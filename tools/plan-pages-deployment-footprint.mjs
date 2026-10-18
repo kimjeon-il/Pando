@@ -4,25 +4,16 @@
 import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {normalizeGitTree,PAGES_PUBLISHED_SITE_LIMIT_BYTES} from './plan-gis-archive-rollout.mjs';
+import {normalizeGitTree} from './lib/git-tree.mjs';
 
 const fail=(condition,message)=>{if(!condition)throw Error(message);};
-const BYTES=PAGES_PUBLISHED_SITE_LIMIT_BYTES;
+const BYTES=1000000000;
 const sha40=x=>typeof x==='string'&&/^[a-f0-9]{40}$/.test(x);
 const DATA='assets/data/';
 const GDAL_WASM='assets/js/vendor/gdal/gdal3WebAssembly.wasm';
 const GDAL_DATA='assets/js/vendor/gdal/gdal3WebAssembly.data';
 const CURRENT_SOURCE='assets/data/territorial-entities/generated/current-world.geojson';
 const STATIC_PREFIXES=['assets/js/','assets/css/','assets/fonts/','assets/vendor/'];
-const CURRENT_PREFIXES=[
-  'assets/data/hydro/v0.13.0/',
-  'assets/data/hydro/v0.13.1/',
-  'assets/data/hydro/v0.13.2/',
-  'assets/data/terrain-preview/v0.13.3-p1/',
-  'assets/data/territorial-entities/generated/',
-  'assets/data/places/',
-  'assets/data/world/'
-];
 const BOOTSTRAP_FILES=['index.html','.nojekyll'];
 const COMPATIBILITY_FILES=[
   'assets/data/countries-preview-shared-v0.34.0.json.gz',
@@ -35,24 +26,21 @@ const must=x=>{fail(typeof x==='string'&&!x.startsWith('/')&&!x.startsWith('../'
 const json=path=>JSON.parse(readFileSync(resolve(path),'utf8'));
 const sum=arr=>arr.reduce((s,x)=>s+x.bytes,0);
 
-export function pinnedLegacyPaths(legacyManifest,nativeManifest){
-  fail(legacyManifest?.version==='0.36.0' && legacyManifest.assets,
-    'Expected version-pinned legacy world manifest');
-  fail(nativeManifest?.schema==='pandoeditor-world-dataset' &&
-    Number.isInteger(nativeManifest.version),'Invalid native App provenance');
+export function pinnedWorldPaths(previewManifest,worldManifest){
+  fail(previewManifest?.version==='0.36.0' && previewManifest.assets,
+    'Expected version-pinned world preview manifest');
+  fail(worldManifest?.schema==='pandolab-world-bundle' && worldManifest.schemaVersion===1 &&
+    worldManifest.assets && typeof worldManifest.source?.url==='string','Invalid current world bundle');
   const required=new Set(BOOTSTRAP_FILES.concat(COMPATIBILITY_FILES));
   required.add(DATA+'world-preview-v0.36.0.json');
-  const source=legacyManifest.source;
-  if(source)required.add(must(source));
-  for(const [role,a] of Object.entries(legacyManifest.assets)){
-    fail(typeof a?.url==='string','Invalid pinned role '+role);
-    required.add(must(a.url));
-  }
-  for(const [role,entry] of Object.entries(nativeManifest)){
-    if(!entry||typeof entry!=='object'||typeof entry.path!=='string')continue;
-    const src=entry.source?.path?.startsWith(DATA)?entry.source.path:must(entry.path);
-    fail(typeof entry.gitBlobSha==='string'&&sha40(entry.gitBlobSha),'Missing native provenance '+role);
-    required.add(src);
+  required.add(DATA+'world/current.json');
+  required.add(must(worldManifest.source.url));
+  if(previewManifest.source)required.add(must(previewManifest.source));
+  for(const manifest of [previewManifest,worldManifest]){
+    for(const [role,asset] of Object.entries(manifest.assets)){
+      fail(typeof asset?.url==='string','Invalid pinned role '+role);
+      required.add(must(asset.url));
+    }
   }
   return [...required].sort();
 }
@@ -106,14 +94,14 @@ export function buildPublicationProfile(tree,lock,required,{profile='main-legacy
     if(category)include(path,category);
   }
   for(const path of archive)include(path,'locked-public-legacy-url',{required:true});
-  for(const path of required)include(path,'verified-world-and-native-pin',{required:true});
+  for(const path of required)include(path,'verified-world-pin',{required:true});
   // These are functional contracts, not discretionary trim targets.
   for(const path of ['assets/js/gis-io.js',GDAL_WASM,GDAL_DATA,
       'assets/data/hydro/v0.13.2/manifest.json',
       'assets/data/hydro/v0.13.2/hydro.bin',
       'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
       'assets/data/territorial-entities/generated/v2/index.json']){
-    fail(chosen.has(path),'Mandatory Web/native runtime asset missing: '+path);
+    fail(chosen.has(path),'Mandatory Web runtime asset missing: '+path);
   }
   const files=[...chosen.values()].sort((a,b)=>a.path.localeCompare(b.path));
   const buckets=new Map();
@@ -169,7 +157,7 @@ export function buildPublicationProfile(tree,lock,required,{profile='main-legacy
     excluded:Object.fromEntries([...excludedByPrefix].sort((a,b)=>a[0].localeCompare(b[0]))),
     excludedBytes:[...excludedByPrefix.values()].reduce((s,b)=>s+b.bytes,0),
     protectedFeatures:{
-      nativePinsAndLegacyWorld:true,
+      sourcePinsAndLegacyWorld:true,
       allHistoricalLibraryGenerated:true,
       fullGDALRuntime:countGDAL>0,
       gdalRuntimeBytes:countGDAL,
@@ -196,10 +184,10 @@ export function finalStage9Plan(main,gis,lock,{mainSha,gisSha}={}){
     siteLimitBytes:BYTES,profiles:options,
     necessaryBeforeDeployment:[
       'Confirm Pages 1 GB includes generated site, not merely artifact tar.gz transfer bytes',
-      'Confirm a fully functional <=1GB site, preserving active/native URLs; expired-version URLs carry no permanence guarantee',
+      'Confirm a fully functional <=1GB site, preserving current Web URLs; expired-version URLs carry no permanence guarantee',
       'Verify every included publication path matches its pinned Git blob, including unretired archives',
       'Validate all asset access under the production origin and in real browsers',
-      'Verify native releases and full Qt regression separately',
+      'Verify WebView app releases separately',
       'Authorize deployment cutover explicitly with rollback controls'
     ],
     eligibleForPagesCutover:false,eligibleForLegacyDeletion:false,
@@ -208,8 +196,8 @@ export function finalStage9Plan(main,gis,lock,{mainSha,gisSha}={}){
   };
 }
 function parseArgs(argv){
-  const map=new Map(),names=new Set(['--main-tree','--gis-tree','--archive-lock','--legacy-manifest',
-    '--native-manifest','--main-sha','--gis-sha','--out','--main-files-out','--gis-files-out']);
+  const map=new Map(),names=new Set(['--main-tree','--gis-tree','--archive-lock','--preview-manifest',
+    '--world-manifest','--main-sha','--gis-sha','--out','--main-files-out','--gis-files-out']);
   for(let i=0;i<argv.length;i+=2){
     const k=argv[i],v=argv[i+1];
     fail(names.has(k)&&v&&!v.startsWith('--')&&!map.has(k),'Bad CLI argument '+k);
@@ -228,7 +216,7 @@ if(invoked){
     const main=normalizeGitTree(json(a.get('--main-tree'))),gis=normalizeGitTree(json(a.get('--gis-tree')));
     const lock=json(a.get('--archive-lock'));
     const confirmed=validateArchiveLock(lock,main,gis);
-    const required=pinnedLegacyPaths(json(a.get('--legacy-manifest')),json(a.get('--native-manifest')));
+    const required=pinnedWorldPaths(json(a.get('--preview-manifest')),json(a.get('--world-manifest')));
     const old=buildPublicationProfile(main,lock,required,{profile:'main-current-publication'});
     const next=buildPublicationProfile(gis,lock,required,{profile:'gis-bundle-compatibility'});
     const plan=finalStage9Plan(old,next,lock,

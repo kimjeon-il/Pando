@@ -6,8 +6,8 @@ or `AGENTS.override.md` provides more specific rules.
 ## Branch and permanent worktree policy (mandatory)
 
 Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
-local worktree. Web lives at the repository root and the Qt app lives in
-`native/`; both use the same commit and branch:
+local worktree. Web lives at the repository root, the application in
+`apps/web-shell/`, and common C++ in `shared/`; all use the same commit and branch:
 
 - Reuse the long-lived branches `work/ui`, `work/objects`, `work/gis`, and
   `work/places` according to the task's primary purpose; `main` is the
@@ -35,8 +35,8 @@ local worktree. Web lives at the repository root and the Qt app lives in
 
 ## Canonical report location (mandatory)
 
-- Store all standalone human-readable research, investigation, audit, QA, and validation reports for both Web and Native App at the repository-root `reports/` directory on **every work branch**. Follow `reports/README.md` and `reports/TEMPLATE.md`; maintain the report index and record source revision, verification scope/status, and unverified claims explicitly.
-- Do not create standalone reports in `docs/`, `native/docs/`, `assets/data/`, `tools/`, `.superpowers/`, `native/reports/`, or the repository root. Relocate existing standalone reports to the same canonical report category before editing them, and update relative references and report-producing callers.
+- Store all standalone human-readable research, investigation, audit, QA, and validation reports for both Web and WebView App at the repository-root `reports/` directory on **every work branch**. Follow `reports/README.md` and `reports/TEMPLATE.md`; maintain the report index and record source revision, verification scope/status, and unverified claims explicitly.
+- Do not create standalone reports in `docs/`, `assets/data/`, `tools/`, `.superpowers/`, or the repository root. Relocate existing standalone reports to the same canonical report category before editing them, and update relative references and report-producing callers.
 - Do **not** relocate technical contracts, architecture/design specifications, implementation plans, mixed contract-and-progress documents, task/SDD ledgers, original GIS/source data, executable inputs, fixtures, machine-generated diagnostic data, or raw build/test logs merely because they mention results. Keep those in their canonical owner locations. Reclassify mixed documents only after separating their report-only content without changing technical contracts.
 - Preserve research evidence/provenance; reporting a test result is not proof of an unexecuted check, integration, deployment, or GIS data application.
 

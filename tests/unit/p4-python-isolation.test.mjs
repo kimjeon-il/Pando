@@ -12,18 +12,7 @@ test('general Web tests and versioning use only Node; old Python suite remains e
       'Normal '+name+' must not invoke Python');
   assert.match(scripts['check:versioning'],/versioning-source-schema\.test\.mjs/);
 });
-test('normal Qt CMake config registers no Python tests and has no mandatory interpreter',()=>{
-  const source=read('native/app/CMakeLists.txt');
-  assert.match(source,/option\(PANDOEDITOR_ENABLE_PYTHON_ORACLES [^\n]+ OFF\)/);
-  assert.match(source,/if\(BUILD_TESTING AND PANDOEDITOR_ENABLE_PYTHON_ORACLES\)\s+find_package\(Python3 REQUIRED COMPONENTS Interpreter\)/);
-  assert.equal((source.match(/find_package\(Python3/g)||[]).length,1);
-  assert.doesNotMatch(source,/if\(Python3_Interpreter_FOUND\)/);
-  assert.match(source,/if\(BUILD_TESTING AND PANDOEDITOR_ENABLE_PYTHON_ORACLES\)\s+add_test\(NAME m974_regression_gate_tests/);
-  assert.match(source,/if\(BUILD_TESTING AND PANDOEDITOR_ENABLE_PYTHON_ORACLES\)\s+add_test\(NAME m974_boundary_delivery_tests/);
-  const river=read('native/tools/m97/river-kernel.test.mjs');
-  assert.match(river,/skip: process\.env\.PANDOEDITOR_ENABLE_PYTHON_ORACLES !== '1'/);
-});
-test('normal Web/Qt CI jobs cannot install Python or execute GIS Python tests',()=>{
+test('normal Web/core CI jobs cannot install Python or execute GIS Python tests',()=>{
   for(const wf of ['remote-development-p1.yml','remote-preview-p3.yml','application-architecture.yml']){
     const source=read('.github/workflows/'+wf);
     assert.doesNotMatch(source,/setup-python|python -m pip|python -m unittest|python -m compileall/,
@@ -45,13 +34,13 @@ test('raw Python GIS inputs only run from the dedicated opt-in workflow and CLI'
   assert.match(cli,/if not namespace\.execute:\s+return 0/);
   assert.match(cli,/subprocess\.run\(command, cwd=REPO, check=False\)/);
 });
-test('Python-only GIS edits select no standard Web/Qt/WASM job',()=>{
-  const caps={core:true,native:true,gisTools:true,web:true};
+test('Python-only GIS edits select no standard Web/core/WASM job',()=>{
+  const caps={core:true,gisTools:true,web:true};
   for(const path of ['tools/build-terrain-dem.py','scripts/research/siachen/compare_independent_dem_saltoro.py',
       'tests/python/test_build_terrain_dem.py']){
     const plan=classifyPaths([path],caps);
     assert.equal(plan.python,true,path);
-    for(const flag of ['web','core','native','qt','wasm','gisTools','gis','ui'])
+    for(const flag of ['web','core','wasm','gisTools','gis','ui'])
       assert.equal(plan[flag],false,path+' unexpectedly triggered '+flag);
   }
 });
@@ -61,6 +50,6 @@ test('legacy GIS/world validation no longer installs Python on Web code changes'
   assert.doesNotMatch(world,/setup-python/);
   const archived=read('.github/workflows/pando-pretransfer-cleanup-gate.yml');
   assert.match(archived,/workflow_dispatch:/);
-  assert.doesNotMatch(archived,/^  push:/m,
+  assert.doesNotMatch(archived,/^ {2}push:/m,
     'obsolete exact-file-count report audit must not block work/gis product pushes');
 });

@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const sourceCache = resolve('.terrain-preview-cache/source');
-const demManifest = resolve('native/assets/world/terrain/v0.13.3/manifest.json');
+const demManifest = resolve('contracts/terrain/preview-dem-source.json');
 const demOrigin = 'https://kimjeon-il.github.io/world-map-terrain-v0.13.0';
 test.use({ viewport: { width: 960, height: 720 }, launchOptions: {
   args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'],

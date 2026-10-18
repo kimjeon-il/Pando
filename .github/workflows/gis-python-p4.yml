@@ -11,8 +11,6 @@ on:
       - 'tools/requirements-*.txt'
       - 'tests/*.py'
       - 'tests/**/*.py'
-      - 'native/tests/*.py'
-      - 'native/tools/**/*.py'
   pull_request:
     branches: [main]
     paths:
@@ -24,8 +22,6 @@ on:
       - 'tools/requirements-*.txt'
       - 'tests/*.py'
       - 'tests/**/*.py'
-      - 'native/tests/*.py'
-      - 'native/tools/**/*.py'
   workflow_dispatch:
     inputs:
       scope:
@@ -54,7 +50,7 @@ jobs:
         with:
           python-version-file: '.python-version'
       - name: Compile Python source without GIS dependencies or raw GIS input
-        run: python -m compileall -q tools scripts/research scripts/gis tests native/tests native/tools/m97/river/test-adapters.py
+        run: python -m compileall -q tools scripts/research scripts/gis tests
       - name: Verify manual-only GIS generator dispatch does not run on import
         run: python -m unittest discover -s tests -p 'test_p4_gis_runner.py' -v
 

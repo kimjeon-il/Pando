@@ -24,8 +24,8 @@ FORMAT = "raster-rgba-v1"
 LIMIT_BYTES = 32_000_000
 TILE_SIZE = 1024
 ROOT = Path(__file__).resolve().parents[1]
-DEM_MANIFEST = ROOT / "native/assets/world/terrain/v0.13.3/manifest.json"
-DEM_INVENTORY = ROOT / "native/assets/world/physical-inventory-terrain-dem-c3c18d1.json"
+DEM_MANIFEST = ROOT / "contracts/terrain/preview-dem-source.json"
+DEM_INVENTORY = ROOT / "contracts/terrain/preview-dem-inventory.json"
 LAND_MASK = ROOT / "assets/data/countries-ne-5.1.1.geojson"
 LAND_MASK_SHA256 = "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72"
 
@@ -158,10 +158,22 @@ def _source_contract() -> tuple[dict, dict, dict]:
     inventory = json.loads(DEM_INVENTORY.read_text(encoding="utf-8"))
     country_bytes = LAND_MASK.read_bytes()
     if dem.get("version") != "0.13.3" or dem.get("representation") != "dem-relief-v1" or (
-        sha256(country_bytes) != LAND_MASK_SHA256 or inventory.get("sourceCommit") !=
-        "c3c18d167dae2dd9639844e5174dd68f745c6832"):
+        sha256(country_bytes) != LAND_MASK_SHA256):
         raise ValueError("DEM or land mask pin changed")
     assets = {item["path"]: item for item in inventory["assets"]}
+    required = {"terrain/v0.13.3/tint.webp"} | {
+        f"terrain/v0.13.0/{level['id']}/{column}-{row}.webp"
+        for level in dem["levels"][:2]
+        for row in range(level["rows"])
+        for column in range(level["columns"])
+    }
+    if set(assets) != required or len(inventory["assets"]) != len(required) or any(
+        not isinstance(item.get("bytes"), int) or item["bytes"] <= 0
+        or not isinstance(item.get("sha256"), str) or len(item["sha256"]) != 64
+        or any(character not in "0123456789abcdef" for character in item["sha256"])
+        for item in assets.values()
+    ):
+        raise ValueError("Preview DEM source pins are incomplete or invalid")
     if dem["tint"]["sha256"] != assets["terrain/v0.13.3/tint.webp"]["sha256"]:
         raise ValueError("DEM tint pin changed")
     return dem, assets, json.loads(country_bytes)

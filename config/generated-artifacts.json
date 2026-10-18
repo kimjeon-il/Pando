@@ -27,8 +27,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/modules/territorial-entity-repository.js",
-        "native/assets/world/"
+        "assets/js/modules/territorial-entity-repository.js"
       ],
       "tools": [
         "node"
@@ -92,8 +91,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/modules/historical-world-loader.js",
-        "native/assets/world/historical-world/"
+        "assets/js/modules/historical-world-loader.js"
       ],
       "tools": [
         "node"
@@ -191,8 +189,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/workers/data-loader-worker.js",
-        "native/assets/world/manifest.json"
+        "assets/js/workers/data-loader-worker.js"
       ],
       "tools": [
         "node"
@@ -291,8 +288,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/modules/place-runtime.js",
-        "native/assets/place/"
+        "assets/js/modules/place-runtime.js"
       ],
       "tools": [
         "node"
@@ -306,8 +302,7 @@
       "generate": [],
       "validate": [],
       "consumers": [
-        "assets/js/workers/data-loader-worker.js",
-        "native/assets/world/hydro/"
+        "assets/js/workers/data-loader-worker.js"
       ],
       "tools": [
         "python"
@@ -324,8 +319,7 @@
       "generate": [],
       "validate": [],
       "consumers": [
-        "assets/js/workers/data-loader-worker.js",
-        "native/assets/world/terrain-preview/"
+        "assets/js/workers/data-loader-worker.js"
       ],
       "tools": [
         "python"
@@ -336,57 +330,50 @@
     },
     {
       "id": "build-metadata",
-      "dependencies": ["wasm", "territorial", "historical-world", "world-bundle", "prepared-mesh", "shared-boundaries", "places", "hydro", "terrain"],
-      "inputs": [
-        "package.json",
-        {"prefix": "assets/js/", "pattern": "^(?!assets/js/build-meta\\.js$).*\\.js$"}
-      ],
-      "outputs": ["assets/js/build-meta.js", "index.html", "README.md"],
-      "generate": [["node", "scripts/generate-build-metadata.mjs"]],
-      "validate": [["node", "scripts/generate-build-metadata.mjs", "--check"]],
-      "consumers": ["assets/js/bootstrap.js", "assets/js/modules/app-builtin-session.js", "assets/js/workers/gpu-mesh-worker.js"],
-      "tools": ["node"]
-    },
-    {
-      "id": "native-assets",
       "dependencies": [
-        "world-bundle",
+        "wasm",
+        "territorial",
         "historical-world",
+        "world-bundle",
+        "prepared-mesh",
+        "shared-boundaries",
         "places",
         "hydro",
         "terrain"
       ],
-      "inputs": [],
+      "inputs": [
+        "package.json",
+        {
+          "prefix": "assets/js/",
+          "pattern": "^(?!assets/js/build-meta\\.js$).*\\.js$"
+        }
+      ],
       "outputs": [
-        "native/assets/world/manifest.json",
-        "native/assets/world/historical-world/v1/",
-        "native/assets/place/"
+        "assets/js/build-meta.js",
+        "index.html",
+        "README.md"
       ],
       "generate": [
         [
           "node",
-          "scripts/p2-sync-native-artifacts.mjs"
+          "scripts/generate-build-metadata.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "native/tools/verify-world-assets.mjs"
-        ],
-        [
-          "node",
-          "scripts/p2-validate-artifacts.mjs",
-          "native-assets"
+          "scripts/generate-build-metadata.mjs",
+          "--check"
         ]
       ],
       "consumers": [
-        "native/app/worlddataset.cpp",
-        "native/app/placeruntimestore.cpp"
+        "assets/js/bootstrap.js",
+        "assets/js/modules/app-builtin-session.js",
+        "assets/js/workers/gpu-mesh-worker.js"
       ],
       "tools": [
         "node"
-      ],
-      "afterWebCommit": true
+      ]
     }
   ]
 }

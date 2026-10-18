@@ -30,17 +30,15 @@ jobs:
           assert.equal(globalThis.PandoLabPolygonGeometry.hasCanonicalPolygonWinding(geometry),true);
           console.log('USSR: 231 canonical outer rings, 40,054 source vertices');
           JS
-      - name: Regenerate territorial chunks, historical timeline and native mirror
+      - name: Regenerate territorial chunks and historical timeline
         run: |
           node tools/build-territorial-entity-chunks.mjs
           node tools/build-historical-world-timeline.mjs
-          node native/tools/sync-historical-world-timeline.mjs --web-root .
           PANDOLAB_BUILD_ID=ussr-spherical-20261013 node scripts/generate-build-metadata.mjs
       - name: Verify reproducibility, lineage and temporal data contracts
         run: |
           node tools/build-territorial-entity-chunks.mjs --check
           node tools/build-historical-world-timeline.mjs --check
-          node native/tools/sync-historical-world-timeline.mjs --web-root . --check
           node scripts/check-version.mjs
           node --test tests/unit/polygon-geometry.test.mjs tests/unit/territorial-chunks.test.mjs tests/unit/historical-world-publication.test.mjs
       - name: Verify generated output scope
@@ -50,8 +48,6 @@ jobs:
           git add -A -- \
             assets/data/territorial-entities/generated/v2 \
             assets/data/historical-world/generated/v1 \
-            native/assets/world/historical-world/v1 \
-            native/assets/world/manifest.json \
             assets/js/build-meta.js index.html README.md
           git diff --cached --check
           while IFS= read -r changed; do
@@ -62,11 +58,7 @@ jobs:
               assets/data/historical-world/generated/v1/world-project.json.gz|\
               assets/data/historical-world/generated/v1/coverage-report.json|\
               assets/data/historical-world/generated/v1/expected-trace.json|\
-              native/assets/world/historical-world/v1/manifest.json|\
-              native/assets/world/historical-world/v1/world-project.json.gz|\
-              native/assets/world/historical-world/v1/coverage-report.json|\
-              native/assets/world/historical-world/v1/expected-trace.json|\
-              native/assets/world/manifest.json|assets/js/build-meta.js|index.html|README.md)
+              assets/js/build-meta.js|index.html|README.md)
                 echo "EXPECTED: $changed" ;;
               *) echo "OUT-OF-SCOPE ASSET CHANGE: $changed" >&2; exit 1 ;;
             esac
@@ -81,6 +73,6 @@ jobs:
             exit 0
           fi
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'build(territory): regenerate USSR web and native historical assets'
+            commit -m 'build(territory): regenerate USSR Web historical assets'
           git push origin HEAD:refs/heads/fix/territory-cpp-normalization-20261013
           echo "Regeneration commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"

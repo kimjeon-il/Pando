@@ -1,16 +1,14 @@
 cmake_minimum_required(VERSION 3.21)
 
-# A single *entry point*, not a second copy of the shared C++ targets.
-# Exactly one component is configured per build tree: native already includes
-# shared/core, while shared includes the same core for standalone and WASM.
+# Shared C++/WASM and GIS tools; the application lives in apps/web-shell.
 project(PandoLab LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(PANDO_BUILD_VARIANT "core" CACHE STRING "One of: core, native, wasm, gis-tools")
-set_property(CACHE PANDO_BUILD_VARIANT PROPERTY STRINGS core native wasm gis-tools)
-set(_variants core native wasm gis-tools)
+set(PANDO_BUILD_VARIANT "core" CACHE STRING "One of: core, wasm, gis-tools")
+set_property(CACHE PANDO_BUILD_VARIANT PROPERTY STRINGS core wasm gis-tools)
+set(_variants core wasm gis-tools)
 if(NOT PANDO_BUILD_VARIANT IN_LIST _variants)
     message(FATAL_ERROR "Unknown PANDO_BUILD_VARIANT=${PANDO_BUILD_VARIANT}")
 endif()
@@ -29,11 +27,6 @@ if(PANDO_BUILD_VARIANT STREQUAL "core" OR PANDO_BUILD_VARIANT STREQUAL "wasm")
         message(FATAL_ERROR "This branch has no shared/ C++ source. Sync the integrated branch before building core/WASM.")
     endif()
     add_subdirectory(shared)
-elseif(PANDO_BUILD_VARIANT STREQUAL "native")
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/native/CMakeLists.txt")
-        message(FATAL_ERROR "This branch has no native/ Qt source. Sync the integrated branch before building the app.")
-    endif()
-    add_subdirectory(native)
 else()
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tools/cpp/CMakeLists.txt")
         message(FATAL_ERROR "This branch has no tools/cpp/ GIS C++ sources.")

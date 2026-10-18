@@ -4,10 +4,10 @@ import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from 
 import { resolve, dirname } from 'node:path';
 
 export const PREVIEW_ROOT = 'assets/data/terrain-preview/v0.13.3-p1/';
+export const DEM_SOURCE = 'contracts/terrain/preview-dem-source.json';
 const sha = (algorithm, bytes) => createHash(algorithm).update(bytes).digest('hex');
-const blobSha = bytes => sha('sha1', Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes]));
 
-export function validatePreviewCorpus(manifest, files, nativeManifestBytes, world, inventory) {
+export function validatePreviewCorpus(manifest, files, dem, landMaskSha256) {
   const errors = [];
   const expected = ['manifest.json', '0/0-0.webp', '0/1-0.webp', ...[0, 1].flatMap(row => [0, 1, 2].map(column => `1/${column}-${row}.webp`))];
   if (manifest.version !== '0.13.3-p1' || manifest.representation !== 'raster-rgba-v1' || manifest.levels?.length !== 2 || manifest.gutter !== 1)
@@ -23,19 +23,12 @@ export function validatePreviewCorpus(manifest, files, nativeManifestBytes, worl
   }
   if (digest.digest('hex') !== manifest.assetsSha256) errors.push('Preview aggregate hash changed');
   const manifestBytes = files.get('manifest.json');
-  if (!manifestBytes || !manifestBytes.equals(nativeManifestBytes)) errors.push('Web and native preview manifests differ');
-  if (!manifestBytes || world.terrain?.path !== 'terrain-preview/v0.13.3-p1/manifest.json'
-      || world.terrain?.source?.path !== PREVIEW_ROOT + 'manifest.json'
-      || world.terrain?.sha256 !== sha('sha256', manifestBytes) || world.terrain?.gitBlobSha !== blobSha(manifestBytes)
-      || world.terrain?.bytes !== manifestBytes.length || !/^[a-f0-9]{40}$/.test(world.terrain?.source?.ref || '')) errors.push('Native world terrain provenance differs');
-  const nativeAssets = inventory.assets?.filter(asset => asset.path.startsWith('terrain-preview/')) || [];
-  if (nativeAssets.length !== 9 || inventory.assets?.some(asset => asset.path.startsWith('terrain/v0.12.6/'))) errors.push('Native preview inventory incomplete or old raster retained');
-  for (const path of expected) {
-    const data = files.get(path), asset = nativeAssets.find(asset => asset.path === `terrain-preview/v0.13.3-p1/${path}`);
-    const sourceUrl = `https://raw.githubusercontent.com/kimjeon-il/Pando/${world.terrain?.source?.ref}/${PREVIEW_ROOT}${path}`;
-    if (!data || !asset || asset.bytes !== data.length || asset.sha256 !== sha('sha256', data) || asset.sourceUrl !== sourceUrl)
-      errors.push(`Native asset identity or source differs: ${path}`);
-  }
+  try {
+    if (!manifestBytes || JSON.stringify(JSON.parse(manifestBytes)) !== JSON.stringify(manifest)) errors.push('Preview manifest bytes differ from parsed metadata');
+  } catch { errors.push('Preview manifest is invalid JSON'); }
+  if (manifest.sourceDem?.version !== dem.version || manifest.sourceDem?.assetsSha256 !== dem.assetsSha256
+      || manifest.sourceDem?.tintSha256 !== dem.tint?.sha256 || manifest.sourceDem?.landMaskSha256 !== landMaskSha256)
+    errors.push('DEM, tint or land-mask source pin differs');
   return { errors, totalBytes, tileCount: expected.length - 1, manifestSha256: manifestBytes ? sha('sha256', manifestBytes) : null };
 }
 
@@ -49,21 +42,14 @@ export function auditTerrainPreview(root = resolve(import.meta.dirname, '..')) {
   const json = path => JSON.parse(read(path));
   const manifest = json(PREVIEW_ROOT + 'manifest.json');
   const files = new Map(filesUnder(resolve(root, PREVIEW_ROOT)).map(path => [path.slice(resolve(root, PREVIEW_ROOT).length + 1).replaceAll('\\', '/'), readFileSync(path)]));
-  const world = json('native/assets/world/manifest.json');
-  const result = validatePreviewCorpus(manifest, files, read('native/assets/world/terrain-preview/v0.13.3-p1/manifest.json'), world,
-    json('native/assets/world/physical-inventory-c0bd31d1.json'));
-  for (const path of ['assets/data/terrain/v0.12.6', 'native/assets/world/terrain/v0.12.6', 'assets/data/terrain/v0.12.0'])
+  const result = validatePreviewCorpus(manifest, files, json(DEM_SOURCE), sha('sha256', read('assets/data/countries-ne-5.1.1.geojson')));
+  for (const path of ['assets/data/terrain/v0.12.6', 'assets/data/terrain/v0.12.0'])
     if (existsSync(resolve(root, path))) result.errors.push(`Retired raster remains: ${path}`);
-  const active = ['assets/js', 'native/app', 'native/renderer'].flatMap(path => filesUnder(resolve(root, path))).filter(path => /\.(js|cpp|h|txt)$/.test(path));
+  const active = filesUnder(resolve(root, 'assets/js')).filter(path => /\.js$/.test(path));
   active.push(...['tools/stage-monorepo-pages.mjs', 'tools/prepare-pages-release-bundle.mjs', 'tools/plan-pages-deployment-footprint.mjs', 'scripts/generate-build-metadata.mjs'].map(path => resolve(root, path)));
   for (const path of active) if (/terrain\/v0\.12\.6\//.test(readFileSync(path, 'utf8'))) result.errors.push(`Active old raster reference: ${path}`);
-  const dem = json('native/assets/world/terrain/v0.13.3/manifest.json');
-  if (manifest.sourceDem?.assetsSha256 !== dem.assetsSha256 || manifest.sourceDem?.tintSha256 !== dem.tint.sha256
-      || manifest.sourceDem?.landMaskSha256 !== sha('sha256', read('assets/data/countries-ne-5.1.1.geojson'))) result.errors.push('DEM, tint or land-mask source pin differs');
-  const pinned = execFileSync('git', ['show', `${world.terrain.source.ref}:${world.terrain.source.path}`], { cwd: root });
-  if (!pinned.equals(files.get('manifest.json'))) result.errors.push('Native source commit does not contain these preview bytes');
   return { schema: 'pando-terrain-preview-audit', version: 1, ...result,
-    sourceCommit: world.terrain.source.ref, head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
+    sourceManifest: DEM_SOURCE, head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
     worktreeChanges: execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim().split('\n').filter(Boolean),
     passed: result.errors.length === 0, deploymentVerified: false };
 }

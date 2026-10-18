@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
 import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createCommandFixture } from '../../tools/parity/command-history.mjs';
+import { createCommandFixture } from '../helpers/current-command-fixture.mjs';
 
 const seed=() => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
 async function fixture(t,{ replaceSnapshot }={}) {
