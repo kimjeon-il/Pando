@@ -591,7 +591,7 @@ export function installReferenceImageController({
       record.locked = !record.locked;
       if (record.locked) {
         if (linearDraft?.recordId === record.id) cancelLinearDraft({ render: false });
-        interaction?.handleRecordLocked(record);
+        if (selectedId === record.id) interaction?.handleRecordLocked(record);
       }
     } else return;
     void persist(record);
