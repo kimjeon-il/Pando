@@ -57,12 +57,6 @@
   height: 100%;
   max-height: none;
   transform: none;
-  border-radius: 0;
-  border-top: 0;
-  border-right: 0;
-  border-bottom: 0;
-  box-shadow: none;
-  backdrop-filter: none;
 }
 
 .app-root:not([data-layout="mobile"]) .reference-image-panel-header {
@@ -98,11 +92,6 @@
   display: block;
   cursor: ew-resize;
   touch-action: none;
-}
-
-.reference-image-resize-handle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
 }
 
 .reference-image-panel.reference-image-collapsed > .reference-image-body {
