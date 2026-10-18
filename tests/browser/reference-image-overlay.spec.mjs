@@ -292,6 +292,7 @@ test('reference image bottom sheet collapses without closing on mobile', async (
 
   // A calibration gesture must survive compacting and re-expanding the sheet.
   await addImage(page, 'mobile-calibration.png');
+  await panel.locator('[data-ref-tab="match"]').click();
   await panel.locator('[data-ref-action="gcp"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
   const guidance = panel.locator('.reference-image-editing-summary > span');
@@ -381,6 +382,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   const secondImagePoint = await referenceScreenPointForUv(page, '<Base "reference">', [0.7, 0.65]);
   const baseCenterX = baseGeometry.center.x;
   const baseCenterY = baseGeometry.center.y;
+  await page.locator('[data-ref-tab="match"]').click();
   await page.locator('[data-ref-action="gcp"]').click();
   const selectedBeforeGcp = await page.locator('#propertyTitle').textContent();
   await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
