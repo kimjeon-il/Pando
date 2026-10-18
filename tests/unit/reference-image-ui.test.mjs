@@ -30,14 +30,26 @@ const options = {
   warpOptions: [['auto', '자동']],
 };
 
-test('editor is organized into display, edit and calibration sections with three primary modes', () => {
+test('editor groups placement, match and display into accessible tabs while keeping image controls shared', () => {
   const markup = referenceImageEditorMarkup({
     ...options,
     record: record(),
   });
+  assert.match(markup, /data-ref-tab="placement"/);
+  assert.match(markup, /data-ref-tab="match"/);
+  assert.match(markup, /data-ref-tab="display"/);
+  assert.match(markup, /data-ref-section="placement"/);
+  assert.match(markup, /data-ref-section="match"/);
+  assert.match(markup, /data-ref-section="display"/);
+  assert.match(markup, /aria-selected="true" tabindex="0">배치<\/button>/);
   assert.match(markup, />표시<\/strong>/);
-  assert.match(markup, />편집<\/strong>/);
-  assert.match(markup, />보정<\/strong>/);
+  assert.match(markup, />배치 도구<\/strong>/);
+  assert.match(markup, />맞추기 도구<\/strong>/);
+  assert.match(markup, /reference-image-selected-card/);
+  assert.match(markup, /data-ref-field="name"/);
+  assert.match(markup, /data-ref-field="opacity"/);
+  assert.match(markup, /data-ref-field="locked"/);
+  assert.match(markup, /data-ref-action="delete"/);
 
   const placement = markup.indexOf('data-ref-action="placement"');
   const free = markup.indexOf('data-ref-action="free-transform"');
@@ -48,6 +60,22 @@ test('editor is organized into display, edit and calibration sections with three
   assert.match(markup, /data-ref-action="gcp"[^>]*>기준점<\/button>/);
   assert.doesNotMatch(markup, />배치 편집<\/button>/);
   assert.doesNotMatch(markup, />기준점 추가<\/button>/);
+});
+
+test('task tab preserves selected panel and hides inactive sections without removing tool actions', () => {
+  const markup = referenceImageEditorMarkup({
+    ...options, activeTab: 'match',
+    record: record(),
+  });
+  assert.match(markup, /id="reference-image-panel-placement"[^>]* hidden>/);
+  assert.match(markup, /id="reference-image-panel-match"[^>]*aria-labelledby="reference-image-tab-match">/);
+  assert.match(markup, /id="reference-image-panel-display"[^>]* hidden>/);
+  assert.match(markup, /aria-selected="true" tabindex="0">맞추기<\/button>/);
+  assert.match(markup, /data-ref-action="linear-river"/);
+  assert.match(markup, /data-ref-action="auto-georef"/);
+  assert.match(markup, /reference-image-advanced/);
+  assert.match(markup, /<summary>고급 보정 방식 및 상세 오차<\/summary>/);
+  assert.match(markup, /data-ref-field="warp"/);
 });
 
 test('calibration list shows hard anchor and per-GCP residuals next to each point', () => {
