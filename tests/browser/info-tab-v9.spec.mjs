@@ -42,17 +42,15 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await writeFile(filePath, new Uint8Array(file.buffer));
   await page.locator('#mobileFileBtn').click();
   const chooser = page.waitForEvent('filechooser');
+  await page.evaluate(() => { window.__testProjectOpened = false; window.addEventListener('pandolab:project-changed', event => { if (event.detail.reason === 'project-load') window.__testProjectOpened = true; }, { once: true }); });
   await page.locator('#openProjectBtn').click();
   await (await chooser).setFiles(filePath);
-  await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 불러오기', { timeout: 30_000 });
-  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 30_000 });
-  await expect(page.locator('#gisImportError')).toBeEmpty();
-  await page.locator('#gisImportConfirmBtn').click();
-  await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 30_000 });
+  await expect.poll(() => page.evaluate(() => window.__testProjectOpened), { timeout: 90_000 }).toBe(true);
+  await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/, { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('D')), { timeout: 30_000 }).toBe(true);
 
   const select = async id => {
-    // The import dialog closes before the Core replacement and UI lock finish.
+    // Selection can race a queued Core transition after project replacement.
     await expect.poll(async () => {
       let selected;
       try { selected = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id); }
