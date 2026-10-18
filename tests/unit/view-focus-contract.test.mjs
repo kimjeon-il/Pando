@@ -5,7 +5,7 @@ import test from 'node:test';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
-import { createCountryIndex } from '../../assets/js/modules/app-country-index.js';
+import { createCountryIndex } from '../../assets/js/modules/country-index.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';

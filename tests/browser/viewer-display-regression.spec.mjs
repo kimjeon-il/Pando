@@ -13,10 +13,10 @@ test('labels paint above land and camera motion reuses geometry centroids',async
  });
  expect(order).toEqual(['viewerLabels','viewerCanvas']);
  await page.evaluate(()=>{const original=d3.geo.centroid;window.__centroidCalls=0;d3.geo.centroid=(...args)=>{window.__centroidCalls++;return original(...args);};});
- await page.locator('#viewerZoomIn').click();
+ await page.locator('#zoomInBtn').click();
  await page.waitForTimeout(500);
  await page.evaluate(()=>{window.__centroidCalls=0;});
- await page.locator('#viewerZoomOut').click();
+ await page.locator('#zoomOutBtn').click();
  await page.waitForTimeout(500);
  expect(await page.evaluate(()=>window.__centroidCalls)).toBe(0);
 });

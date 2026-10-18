@@ -213,6 +213,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "workspaceUiB"
   ],
   "lifecycleAssembly": [
+    "platformConfigurationB",
     "territorySelectionB",
     "territorialEditingB",
     "applicationConstantsA",

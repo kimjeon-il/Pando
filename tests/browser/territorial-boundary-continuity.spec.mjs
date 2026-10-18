@@ -37,7 +37,7 @@ export function createRenderingDomain(options) {
       window.__m1.diagnostics.push(entry);
       if (options.reportDiagnostic) options.reportDiagnostic(entry);
     },
-    prepareEditDisplay: async (payload, jobOptions) => {
+    prepareMapDisplay: async (payload, jobOptions) => {
       const result = await options.prepareEditDisplay(payload, jobOptions);
       if (payload.kind === 'boundaries') {
         window.__m1.completed++;
@@ -71,7 +71,7 @@ export function createMapEditWorkerClient(options) {
 }`;
     expect(body).not.toBe(original); await route.fulfill({ response, body });
   });
-  await page.route('**/modules/app-gpu-scene.js*', async route => {
+  await page.route('**/modules/gpu-scene.js*', async route => {
     const response = await route.fetch(), original = await response.text();
     const body = original.replace("function replaceGpuSceneDomain(domain, { polygons = [], strokes = [] } = {}) {", `
 function replaceGpuSceneDomain(domain, { polygons = [], strokes = [] } = {}) {

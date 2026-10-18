@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCameraNavigation } from '../../assets/js/modules/app-camera-navigation.js';
+import { createCameraNavigation } from '../../assets/js/modules/camera-navigation.js';
 import { normalizeMapSurfaceDragDelta } from '../../assets/js/modules/map-host.js';
 import { equirectangularCenterForAnchor } from '../../assets/js/modules/map-layout-metrics.js';
 
 test('continuous zoom can defer Worker settle and view persistence until the gesture ends', () => {
   const events = [];
-  const owner = createCameraNavigation();
+  const owner = createCameraNavigation({ persistView: () => events.push(['persist']) });
   owner.connect({
     projectState: { state: { projection: 'flat', view: { flatZoom: 1, globeZoom: 1 } } },
     rendering: { gpuMapRenderer: { cancelCountryFocus: () => events.push(['cancel']) } },

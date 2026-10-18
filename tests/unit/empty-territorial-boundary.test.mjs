@@ -27,19 +27,21 @@ test('general children with the same root preserve both owners and use the short
     leftUnit('left', { entityKind: 'general', parentId: 'A' }),
     rightUnit('right', { entityKind: 'general', parentId: 'A' }),
   ]);
-  assert.equal(segments.length, 1);
+  assert.ok(segments.length);
+  assert.ok(Math.abs(segments.reduce((sum,segment)=>sum+Math.abs(segment.a[1]-segment.b[1]),0)-4)<1e-9);
+  assert.ok(segments.every(segment=>segment.styleType==='subunit-internal'));
   assert.equal(segments[0].styleType, 'subunit-internal');
-  assert.deepEqual(segments[0].unitOwners, [
-    { id: 'left', entityKind: 'general', rootId: 'A' },
-    { id: 'right', entityKind: 'general', rootId: 'A' },
-  ]);
+  for(const segment of segments)assert.deepEqual(segment.unitOwners,[
+    {id:'left',entityKind:'general',rootId:'A'}, {id:'right',entityKind:'general',rootId:'A'}]);
 });
 
 test('a one-sided general perimeter inside its root uses the same short dashed style', () => {
   const segments = internalSegments([country()], [
     leftUnit('left', { entityKind: 'general', parentId: 'A' }),
   ]);
-  assert.equal(segments.length, 1);
+  assert.ok(segments.length);
+  assert.ok(Math.abs(segments.reduce((sum,segment)=>sum+Math.abs(segment.a[1]-segment.b[1]),0)-4)<1e-9);
+  assert.ok(segments.every(segment=>segment.styleType==='subunit-internal'));
   assert.equal(segments[0].styleType, 'subunit-internal');
 });
 
@@ -57,7 +59,9 @@ test('independent regional styling needs no country association and missing pare
     leftUnit('left', { entityKind: 'general', parentId: 'A' }),
     rightUnit('right', { entityKind: 'regional', parentId: '' }),
   ]);
-  assert.equal(regionSegments.length, 1);
+  assert.ok(regionSegments.length);
+  assert.ok(Math.abs(regionSegments.reduce((sum,segment)=>sum+Math.abs(segment.a[1]-segment.b[1]),0)-4)<1e-9);
+  assert.ok(regionSegments.every(segment=>segment.styleType==='region'));
   assert.equal(regionSegments[0].styleType, 'region');
 
   assert.throws(() => internalSegments([country()], [

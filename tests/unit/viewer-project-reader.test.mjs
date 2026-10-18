@@ -6,10 +6,9 @@ import { TextEncoder, TextDecoder } from 'node:util';
 import { File, btoa } from 'node:buffer';
 import vm from 'node:vm';
 import test from 'node:test';
-import { readProjectFile } from '../../assets/js/modules/viewer-project-reader.js';
-import { createViewerSession } from '../../assets/js/modules/viewer-session.js';
-import { createCoreDocumentReadModel } from '../../assets/js/modules/core-document-read-model.js';
-import { createNodeCoreDocument } from '../helpers/core-session.mjs';
+import { readProjectFile } from '../../assets/js/modules/project-file-reader.js';
+import { createInitialDocument } from '../../assets/js/modules/initial-document.js';
+import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
 // Execute the production read Worker and sql.js; adapt only browser transport to Node.
@@ -42,11 +41,9 @@ function installReaderWorker(t) {
   return workers;
 }
 
-function createNativeSession(project) {
-  const documentModel = createCoreDocumentReadModel(project);
-  const commandOwner = createNodeCoreDocument({ productMode: 'viewer',
-    onTransition: (result, operation) => documentModel.acceptTransition(result, operation) });
-  return { documentModel, commandOwner };
+async function createNativeSession() {
+  const owner=await createNodeCoreProject(createInitialDocument({appVersion:'0.36.0'}),{productMode:'viewer',replaceSnapshot:async()=>true});
+  return {...owner,commandOwner:owner.client};
 }
 
 test('viewer reader preserves exact current C++ GeoPackage geometries, properties and timeline records', async t => {
@@ -59,10 +56,10 @@ test('viewer reader preserves exact current C++ GeoPackage geometries, propertie
   assert.deepEqual(project.geometries, file.project.geometries);
   assert.deepEqual(project.timelineRecords, file.project.timelineRecords);
   assert.ok(project.timelineRecords.geometryBindings.some(binding => binding.validFrom === '1914-07'));
-  const session = createViewerSession({ createSession: createNativeSession });
+  const session = await createNativeSession();
   t.after(() => session.dispose());
-  await session.open(async () => project);
-  const owner = session.current();
+  await session.project.open(async () => project);
+  const owner = session;
   for (const [month, version] of [['1914-06', 1], ['1914-07', 2]]) {
     await owner.commandOwner.setTimelineCursor(month);
     const world = owner.documentModel.projectWorld(await owner.commandOwner.resolveWorld(month), owner.commandOwner.state().epoch);
@@ -76,16 +73,16 @@ test('viewer reader preserves exact current C++ GeoPackage geometries, propertie
 test('reader errors and rejected native admission preserve the accepted document', async t => {
   const workers = installReaderWorker(t);
   const file = await createViewerProjectPackage();
-  const session = createViewerSession({ createSession: createNativeSession });
+  const session = await createNativeSession();
   t.after(() => session.dispose());
-  assert.equal(await session.open(() => readProjectFile(new File([file.bytes], 'valid.gpkg'))), true);
-  const accepted = session.current();
+  assert.equal(await session.project.open(() => readProjectFile(new File([file.bytes], 'valid.gpkg'))), true);
+  const accepted = session;
   const snapshot = accepted.documentModel.snapshot();
   const state = accepted.commandOwner.state();
-  await assert.rejects(session.open(() => readProjectFile(new File(['not sqlite'], 'broken.gpkg'))));
-  await assert.rejects(session.open(() => readProjectFile(new File([file.bytes], 'wrong.json'))), /\.gpkg/);
-  await assert.rejects(session.open(async () => ({ ...file.project, schemaVersion: -1 })));
-  assert.equal(session.current(), accepted);
+  await assert.rejects(session.project.open(() => readProjectFile(new File(['not sqlite'], 'broken.gpkg'))));
+  await assert.rejects(session.project.open(() => readProjectFile(new File([file.bytes], 'wrong.json'))), /\.gpkg/);
+  await assert.rejects(session.project.open(async () => ({ ...file.project, schemaVersion: -1 })));
+  assert.equal(session, accepted);
   assert.deepEqual(accepted.documentModel.snapshot(), snapshot);
   assert.deepEqual(accepted.commandOwner.state(), state);
   assert.ok(workers.every(worker => worker.terminated));
@@ -95,14 +92,14 @@ test('a later valid file wins even when the earlier real GeoPackage read finishe
   installReaderWorker(t);
   const first = await createViewerProjectPackage('늦은 이전 지도');
   const latest = await createViewerProjectPackage('최신 지도');
-  const session = createViewerSession({ createSession: createNativeSession });
+  const session = await createNativeSession();
   t.after(() => session.dispose());
   let release;
   const delayedFile = { name: 'older.gpkg', arrayBuffer: () => new Promise(resolve => { release = resolve; }) };
-  const pending = session.open(() => readProjectFile(delayedFile));
-  assert.equal(await session.open(() => readProjectFile(new File([latest.bytes], 'latest.gpkg'))), true);
+  const pending = session.project.open(() => readProjectFile(delayedFile));
+  assert.equal(await session.project.open(() => readProjectFile(new File([latest.bytes], 'latest.gpkg'))), true);
   release(first.bytes.buffer.slice(first.bytes.byteOffset, first.bytes.byteOffset + first.bytes.byteLength));
   assert.equal(await pending, false);
-  assert.equal(session.current().documentModel.snapshot().territorialEntities[0].properties.name, '최신 지도');
-  assert.equal(session.current().commandOwner.state().canUndo, false);
+  assert.equal(session.documentModel.snapshot().territorialEntities[0].properties.name, '최신 지도');
+  assert.equal(session.commandOwner.state().canUndo, false);
 });

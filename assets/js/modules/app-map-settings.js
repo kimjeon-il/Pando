@@ -10,7 +10,7 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).fl
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ viewPresentation = null } = {}) {
+export function createMapSettings({ viewPresentation = null,afterProjectionChange=null } = {}) {
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let desktopViewMenuPath = [];
@@ -66,7 +66,6 @@ export function createMapSettings({ viewPresentation = null } = {}) {
   }
 
   function setProjection(type) {
-    if(viewPresentation){viewPresentation.setProjection(type);syncProjectionButtons();return true;}
     const targetProjection = type === 'globe' ? 'globe' : 'flat';
     if (targetProjection === dependencies.projectState.state.projection) return false;
     (0, dependencies.mapView.updateProjection)();
@@ -93,11 +92,10 @@ export function createMapSettings({ viewPresentation = null } = {}) {
     }
     const token = dependencies.projectSession.atomicMapStateController.begin({ kind: 'projection', type: targetProjection });
     if (!dependencies.projectSession.atomicMapStateController.commit(token, { projection: targetProjection, view: nextView })) return false;
-    (0, dependencies.pointerInteractionA.invalidateEditInteraction)();
     (0, dependencies.mapView.syncMapHostFromState)();
     syncProjectionButtons();
     dependencies.domains.renderingDomain?.invalidateProjection?.('projection-change');
-    dependencies.domains.projectDomain.queueViewAutosave();
+    if(afterProjectionChange)afterProjectionChange();
     return true;
   }
 
@@ -138,8 +136,7 @@ export function createMapSettings({ viewPresentation = null } = {}) {
     });
     dependencies.preferences.setUserPreferences(preferences);
     syncPlaceLanguageChecks();
-    if(viewPresentation)viewPresentation.setLanguages(next);
-    else dependencies.domains.renderingDomain.invalidateLabels('place-language-visibility');
+    dependencies.domains.renderingDomain.invalidateLabels('place-language-visibility');
     return true;
   }
 
