@@ -40,7 +40,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
-| `UI-SHARING-REFACTOR-20261019` | [웹·앱 공통 소유자 통합 및 검증](development/testing/shared-output-refactor-2026-10-19.md) | 2026-10-19 | `focused-verified / release-pending / native-unverified` | `not-applicable` |
+| `UI-SHARING-REFACTOR-20261019` | [웹·앱 공통 소유자 통합 및 검증](development/testing/shared-output-refactor-2026-10-19.md) | 2026-10-19 | `focused-verified / published / native-unverified` | `not-applicable` |
 | `UI-SHARING-AUDIT-20261018` | [출력 외 전부 공유 기준의 추가 조사·독립 코드 잔존](development/testing/shared-output-audit-2026-10-18.md) | 2026-10-18 | `audit-complete / follow-up-linked` | `not-applicable` |
 | `UI-VIEWING-REPAIR-20261018` | [웹 열람 UI 공유 누락 조사와 복원](development/testing/viewing-ui-reuse-repair-2026-10-18.md) | 2026-10-18 | `verified-web-release / native-unverified` | `not-applicable` |
 | `DEV-QT-RETIRE-20261018` | [구 Qt 앱 전체 제거](development/testing/qt-app-retirement-2026-10-18.md) | 2026-10-18 | `verified-focused-runtime` | `not-applicable` |

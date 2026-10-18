@@ -1,8 +1,8 @@
 # 웹·앱 공통 소유자 통합 및 검증
 
-> 보고서 ID: `UI-SHARING-REFACTOR-20261019` · 상태: `focused-verified / release-pending / native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
+> 보고서 ID: `UI-SHARING-REFACTOR-20261019` · 상태: `focused-verified / published / native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
 > 원문 최종 수정: 2026-10-19
-> 소스 기준: 제품 기준 `4273bca1298c42fcb5a1bca8570b7b26387f3de8`, `work/ui` 보고서 기준 `61af94eccab6e6c4c9554b1c859d8b3d3e76093a` 이후 작업 변경. 최종 구현 커밋은 이 보고서를 포함하는 커밋.
+> 소스 기준: 제품 기준 `4273bca1298c42fcb5a1bca8570b7b26387f3de8`, 공통화 구현 `76b14f1c`, 최초 게시 `aceb4907820d1ad8f8fc99732c27201feea81817`. 이 보고서를 포함하는 후속 커밋은 툴팁 토큰과 검사·CI 경로 정리를 포함한다.
 > 선행 조사: [UI-SHARING-AUDIT-20261018](shared-output-audit-2026-10-18.md). 원래 조사·재현 근거를 보존한다.
 
 ## 적용 범위
@@ -62,4 +62,15 @@ Android `adb devices -l` 결과 연결 기기가 없었다. 휴대폰의 양쪽 
 
 원본 자료·공통 WASM/C++는 이번 커밋에서 변경하지 않는다. 정량 성능 개선율과 메모리 감소율은 측정하지 않았으므로 주장하지 않는다. 상설 UI 워크트리의 별도 Core/WASM 변경은 이 보고서의 검증·배포 대상이 아니다.
 
-최종 데스크톱 편집 레이아웃 1/1, 휴대폰 가로 패널/키보드/초안 및 파일 세대 변경 2/2, 메뉴·설정·툴팁·그리기 순서 4/4 검사가 통과했다. 공통 UI 수명 해제 포트 검사 35/35도 통과했다. 커밋·Pages 게시·공개 사이트 검증은 진행 중이다. 공개 사이트 검증은 workflow 성공·배포 SHA·HTTP 200·바이트 일치와 실제 UI 확인을 구분해 아래에 기록한다.
+최종 데스크톱 편집 레이아웃 1/1, 휴대폰 가로 패널/키보드/초안 및 파일 세대 변경 2/2, 메뉴·설정·툴팁·그리기 순서 4/4 검사가 통과했다. 공통 UI 수명 해제 포트 검사 35/35도 통과했다.
+
+## 통합·게시와 공개 사이트 검증
+
+- `work/ui`의 검증된 소스만 커밋·푸시하고 `main`에 fast-forward 통합했다. 별도 미완성 Core/WASM·프로젝트 설정·비교·모바일 꼭짓점 변경과 기존 미추적 파일은 보존했다.
+- 실제 Git 커밋 `aceb4907` 기준 Pages staging은 2,233개 파일, 431,897,844 bytes다. 편집 전용 실행 자산을 거부하는 열람 의존성 closure 검사 및 main의 제품·공통 HTML 검사 5/5가 통과했다. Windows checkout 줄바꿈을 공통 HTML 검사에서도 정규화했다.
+- [Pages 실행 39142343675](https://github.com/kimjeon-il/Pando/actions/runs/39142343675)의 build·deploy가 성공했다. 게시 소스 SHA는 `aceb4907820d1ad8f8fc99732c27201feea81817`이다.
+- [공개 사이트](https://kimjeon-il.github.io/Pando/)의 HTML, 빌드 정보, 공통 조립·지도·조회·본문·이름·패널·환경설정 모듈과 display Worker 10개를 내려받아 HTTP 200과 커밋 산출물 SHA-256 일치를 확인했다.
+- 공개 사이트 브라우저에서 시작, 환경설정 미리보기/취소, 검정 배경·흰 글자 툴팁, 실제 현재 GPKG 열기, 검색 선택, 별도 정보 창 부재와 문서/이력 불변을 확인했다. `B 영토`는 1914-06에 검색되고 1921-01에 제외되며 1914-06으로 복귀하면 다시 검색된다. 페이지 예외는 없었다.
+- 게시 후 CI의 툴팁 raw-color 금지 검사를 확인해 공통 component token으로 옮겼다. 검정/흰 색상값과 동작은 같다. UI spacing/components/architecture/layering/information-architecture/registry 검사, registry 단위 4/4, surface 상태 14/14, runtime 경계 검사(350 modules, 순환 참조 없음)가 통과했다. 옮겨진 공통 모듈의 CI lint/trigger 경로와 registry 검사의 실제 owner 참조도 갱신했다. 제품 행동을 검사 통과용으로 되돌리지 않았다.
+
+원시 검증 근거는 상설 UI 워크트리 `.superpowers/sdd/shared-output-refactor/`의 `live-browser.json`, `live-hashes.json`, `live-shared-output.png`, `main-stage.log`, `registry-final.log`, `surface-final.log`, `runtime-after-merge.log`에 보존한다. 이후 문서·토큰 규칙 후속 커밋의 게시 여부는 최종 workflow와 공개 파일을 다시 확인한다. 이 보고서는 네이티브 실기기 검증이나 정량 성능 개선을 주장하지 않는다.
