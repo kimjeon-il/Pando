@@ -14,6 +14,7 @@ const core = await (async () => {
   const { loadVerifiedCore } = await import('./core-wasm-loader.js');
   return loadVerifiedCore({ baseUrl: new URL('../../wasm/', import.meta.url) });
 })();
+globalThis.PandoLabSphericalCore = core;
 for (const name of required) {
   if (typeof core?.[name] !== 'function') {
     throw Object.assign(new Error('Required compiled temporal capability is unavailable: ' + name),

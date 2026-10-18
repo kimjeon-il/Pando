@@ -1,9 +1,10 @@
+import {hydroLineParts} from './physical-settings.js';
 import { geometryRevision } from './geometry-versions.js';
 /** PointerTargets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createPointerTargets() {
+export function createPointerTargets({isDraggingDraft=null}={}) {
   let dependencies;
   let editInteractionRevision;
   let hoverPickFrame;
@@ -57,7 +58,7 @@ export function createPointerTargets() {
       if (!accepted || !Object.hasOwn(accepted,'hover')) throw new TypeError('An accepted Core hover snapshot is required.');
       if (sequence !== hoverPickSequence || generation !== dependencies.domains.projectDomain.getGeneration()
         || (!clear && (viewRevision !== dependencies.mapLayout.viewRevision || dependencies.projectState.state.mapMoving
-          || dependencies.projectState.state.tool !== 'select' || dependencies.draftPresentation.editingDraftSnapshot().dragging))) return false;
+          || dependencies.projectState.state.tool !== 'select' || (isDraggingDraft ? isDraggingDraft():false)))) return false;
       const key = nextRef?.key || null;
       if ((accepted.hover?.key || null) !== key || (dependencies.domains.selectionDomain.snapshot().hover?.key || null) !== key) return false;
       lastHoverHit = hit;
@@ -88,7 +89,7 @@ export function createPointerTargets() {
   }
 
   function queueCountryHoverPick(screenPoint, coord) {
-    if (!screenPoint || !coord || dependencies.projectState.state.mapMoving || (0, dependencies.draftPresentation.editingDraftSnapshot)().dragging || dependencies.projectState.state.tool !== 'select') return;
+    if (!screenPoint || !coord || dependencies.projectState.state.mapMoving || (isDraggingDraft ? isDraggingDraft():false) || dependencies.projectState.state.tool !== 'select') return;
     if (lastHoverPickPoint && Math.hypot(screenPoint[0] - lastHoverPickPoint[0], screenPoint[1] - lastHoverPickPoint[1]) < 3) return;
     pendingHoverPick = { screenPoint: [...screenPoint], coord: [...coord], sequence: ++hoverPickSequence };
     if (hoverPickFrame) return;
@@ -97,7 +98,7 @@ export function createPointerTargets() {
       const pending = pendingHoverPick;
       pendingHoverPick = null;
       try {
-        if (!pending || dependencies.projectState.state.mapMoving || (0, dependencies.draftPresentation.editingDraftSnapshot)().dragging || dependencies.projectState.state.tool !== 'select') return false;
+        if (!pending || dependencies.projectState.state.mapMoving || (isDraggingDraft ? isDraggingDraft():false) || dependencies.projectState.state.tool !== 'select') return false;
         lastHoverPickPoint = pending.screenPoint;
         lastHoverPickViewRevision = dependencies.mapLayout.viewRevision;
         const hit = dependencies.objectPicking.territorialObjectsAt(pending.screenPoint, pending.coord)[0] || null;
@@ -109,11 +110,7 @@ export function createPointerTargets() {
     }, 50);
   }
 
-  function hydroLineParts(geometry) {
-    if (geometry?.type === 'LineString') return [geometry.coordinates || []];
-    if (geometry?.type === 'MultiLineString') return geometry.coordinates || [];
-    return [];
-  }
+
 
   async function hydroAtScreenPoint(screenPoint, coord) {
     const hydroCategoryVisible = dependencies.projectState.state.layerVisibility.rivers || dependencies.projectState.state.layerVisibility.lakes;
@@ -265,7 +262,6 @@ export function createPointerTargets() {
     get countryAtScreenPoint() { return countryAtScreenPoint; },
     get editInteractionRevision() { return editInteractionRevision; },
     get hydroAtScreenPoint() { return hydroAtScreenPoint; },
-    get hydroLineParts() { return hydroLineParts; },
     get invalidateEditInteraction() { return invalidateEditInteraction; },
     get lastHoverHit() { return lastHoverHit; },
     set lastHoverHit(value) { lastHoverHit = value; },

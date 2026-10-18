@@ -2,36 +2,39 @@ import { readFileSync } from 'node:fs';
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import vm from 'node:vm';
-import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
+import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
+import {createNodeSelection} from '../helpers/core-selection.mjs';
+import {handleEditorMapClick} from '../../assets/js/modules/editor-map-click.js';
 import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
 const countryLabels = () => {
-  const rendering = read('assets/js/modules/rendering-domain.js');
+  const rendering = read('assets/js/modules/label-presentation.js');
   return rendering.slice(rendering.indexOf('const renderTerritorialLabels ='), rendering.indexOf('enter.append(\'image\')', rendering.indexOf('const renderTerritorialLabels =')));
 };
 
-function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false } = {}) {
+async function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false } = {}) {
   const oldDocument = globalThis.document, oldFrame = globalThis.requestAnimationFrame;
   globalThis.document = { createElement: editorNode };
   globalThis.requestAnimationFrame = () => 0;
   t.after(() => { globalThis.document = oldDocument; globalThis.requestAnimationFrame = oldFrame; });
   const features = new Map(['A', 'B'].map(id => [id, { id, properties: { name: id, entityKind: 'general', parentId: id === 'A' ? 'B' : '' }, geometry: { type: 'Polygon', coordinates: [[[0, 0], [0, 10], [10, 10], [10, 0], [0, 0]]] } }]));
   const state = { tool: 'select', layerVisibility: { countries: true, subunits: true }, layerPresentation: { overlayOrder: [] } };
-  const domain = createSelectionDomain(), opened = [], coords = [], chooserCandidates = [];
+  const core=await createNodeSelection({territorialIds:['A','B']});t.after(core.dispose);
+  const domain = core.domain, opened = [], coords = [], chooserCandidates = [];
   const ui = createSelectionUiController({ selectionDomain: domain, resolveRef: normalizeObjectRef,
     uiActions: { openEditor: ref => opened.push(ref.id), focusObject: () => assert.fail('label selection must not focus the camera') } });
   const event = { stopPropagation() { event.stopped = true; } };
   const nodes = new Map(['objectChooser', 'objectChooserList', 'map'].map(id => [id, editorNode()]));
-  const picking = createObjectPicking();
-  picking.connect({
+  let ports;
+  const picking = createObjectPicking({openEditor:true,handleEditingClick:point=>handleEditorMapClick(point,ports)});
+  ports={
     projectState: { state }, territorialModel: { entityRepository: { get: id => features.get(id), ancestors: () => [] } },
     countries: { builtinTerritorialScene: () => ({ labelRefs: new Map([['label-A', normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'A' })]]) }) },
     domains: { selectionDomain: domain, selectionUiController: ui, projectDomain: { getGeneration: () => 1 } },
-    selectionServices: { normalizeObjectRef }, objectLookup: { objectRefExists: ref => features.has(ref.id) },
+    selectionServices: { normalizeObjectRef }, objectLookup: { isObjectAvailable:()=>true,objectRefExists: ref => features.has(ref.id) },
     layerPresentation: { isLayerItemVisible: () => true }, surfaces: { isMobile: () => mobile },
     renderScene: { OVERLAY_GROUPS: [] }, rendering: { selectionPerformanceMetrics: {} },
     renderServices: { selectionPerformanceCounterSnapshot: () => ({}), publishSelectionPerformanceSample() {} },
@@ -45,7 +48,7 @@ function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false } = {}) {
     workspaceUiA: { closeSurface() {} },
     genericEditingA: { addLabelAt: value => coords.push(['placed', value]) },
     platform: { $: id => nodes.get(id), d3: { event }, clamp: (v, a, b) => Math.max(a, Math.min(v, b)) },
-  });
+  };picking.connect(ports);
   let operation;
   let blocked = false;
   const labels = { mapClickBlocked: () => blocked, d3: { event, mouse: () => [5, 5] }, svg: { node: () => ({}) },
@@ -59,7 +62,7 @@ function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false } = {}) {
 
 for (const [name, options] of [['another territory', { ground: ['B'] }], ['empty ground', { ground: [] }], ['outside the projected globe', { coord: null }], ['overlapping parent and child', { ground: ['A', 'B'] }], ['mobile tap', { ground: ['B'], mobile: true }]]) {
   test(`a territorial label over ${name} selects its explicit identity and opens its editor once`, async t => {
-    const f = fixture(t, options); await f.activate();
+    const f = await fixture(t, options); await f.activate();
     assert.equal(f.domain.primary()?.id, 'A'); assert.deepEqual(f.opened, ['A']);
     assert.deepEqual(f.coords, [], 'label selection must not fall through to ground picking');
     assert.ok(f.chooserCandidates.every(refs => refs.length === 0));
@@ -68,7 +71,7 @@ for (const [name, options] of [['another territory', { ground: ['B'] }], ['empty
 }
 
 test('territorial label dispatch preserves click blocking, pan, modifier toggling and placement tools', async t => {
-  const f = fixture(t); f.setBlocked(true); await f.activate(); assert.equal(f.domain.size(), 0);
+  const f = await fixture(t); f.setBlocked(true); await f.activate(); assert.equal(f.domain.size(), 0);
   f.setBlocked(false); f.state.spacePanActive = true; await f.activate(); assert.equal(f.domain.size(), 0);
   f.state.spacePanActive = false; await f.activate();
   f.event.ctrlKey = true; await f.activate(); assert.equal(f.domain.size(), 0); assert.deepEqual(f.opened, ['A']);

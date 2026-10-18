@@ -1,279 +1,307 @@
-import { renderLabelText } from './label-text-presentation.js';
-import { panCameraView } from './camera-pan.js';
-import { createGpuMapRenderer } from './gpu-map-renderer.js';
+import {createMapInputPresentation} from './map-input-presentation.js';
+import {createMapInteractionGate} from './map-interaction-gate.js';
+import {createAtomicMapStateController} from './map-state-transition.js';
+import {createTerritorialEntityStore} from './territorial-entity-store.js';
+import {DATA_READINESS} from './startup-readiness.js';
+import {createMapRenderer} from './map-renderer-composition.js';
+import {createPhysicalSourceConfiguration,HYDRO_LAYER_META,HYDRO_TOOL_CONFIG,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET} from './physical-source-configuration.js';
+import {createMapOverlayLayers} from './map-workspace-host.js';
+import './polygon-clipping-core.js';
+import {MAP_OBJECT_CATEGORIES,MAP_OBJECT_TYPES} from './map-object-categories.js';
+import {DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES} from './distribution-model.js';
+import {BASE_DATASET} from './initial-document.js';
+import {createMapObjectSpatialIndex} from './map-object-spatial-index.js';
+import { createObjectQuery } from './object-query.js';
+import { normalizeObjectRef } from './object-selection-controller.js';
+import { COLOR_DOMAINS,readDomainColor,countryDefaultColor,DEFAULT_GENERIC_FEATURE_COLOR } from './color-adapter.js';
+import {createRenderingDomain} from './rendering-domain.js';
+import {createAdaptiveRenderQualityController} from './adaptive-render-quality.js';
+import {createMapDisplayClient} from './map-display-client.js';
+import {geometryRevisionKey} from './geometry-versions.js';
+import {OVERLAY_GROUPS} from './layer-presentation.js';
+import {createTerritorialScopeResolver} from './territorial-scope.js';
+import {builtinSubunitSourceId} from './builtin-subunits.js';
+import {buildRenderableStrokeFeature} from './geographic-boundary.js';
+import {resolveMapInteractionStyle} from './map-interaction-style.js';
+import { ZOOM_LIMITS,FLAT_LATITUDE_LIMIT } from './camera-navigation.js';
+import { createMapLayoutMetricsSnapshot, equirectangularCenterForAnchor, DEFAULT_SAFE_INSETS } from './map-layout-metrics.js';
+import { normalizeMapSurfaceDragDelta } from './map-host.js';
+import { createMapInputController } from './map-input-controller.js';
 import { createMapVisualFrame } from './map-visual-frame.js';
 import { createRenderSceneBuilder } from './render-scene.js';
 import { resolveMapTheme } from './map-theme.js';
-import { createTerritorialFillResolver } from './territorial-fill-style.js';
 import { createTerritorialEntityRepository } from './territorial-entity-repository.js';
 import { normalizeLayerPresentation } from './layer-presentation.js';
-import { terrainRasterManifestUrl, selectTerrainManifestUrls, TERRAIN_DEM_VERSION } from './terrain-manifest.js';
 import { createHydroService, createTerrainService, HYDRO_DATA_VERSION } from './physical-layer-service.js';
 import { fetchWithRetry } from './reliability-core.js';
-import { createGpuUploadScheduler } from './gpu-upload-scheduler.js';
-import { layoutLabels, placeLabelDimensions, automaticLabelSettings, labelKey } from './label-layout.js';
-import { layerStyle, territorialSymbolGroup, territorialSymbolVisibility } from './layer-presentation.js';
-import { buildViewerSceneItems } from './viewer-scene-items.js';
-import { createViewerPlaces } from './viewer-places.js';
-import { geometryHitsScreenPoint } from './geometry-screen-hit.js';
+import { layoutLabels, automaticLabelSettings, labelKey, LABEL_PRIORITIES } from './label-layout.js';
+import { layerStyle } from './layer-presentation.js';
 import { coordinateBounds } from './coordinate-bounds.js';
 import { createRingHitTester } from './ring-hit-test.js';
-import { effectiveTerritorialFlagUrl } from './country-flags.js';
-import { layoutTerritorialFlags, territorialLabelFlag } from './territorial-label-flags.js';
+import { layoutTerritorialFlags } from './territorial-label-flags.js';
 
 /** Viewer presentation adapter to the same GPU/Canvas renderer used by the editor. */
-export function createViewerMap({ element, canvas, labelLayer, meta, languages, onSelect, onError }) {
+export function createViewerMap({ owners,element, canvas, labelLayer, meta, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,closeActiveOverlay,isMobile }) {
   const d3 = globalThis.d3;
   if (!d3) throw new Error('지도 투영 라이브러리를 불러오지 못했습니다.');
-  let session = null, entities = [], rootFeatures=[], featureIndex = new Map(), frameId = 0, scheduled = 0, disposed = false;
-  let projectionKind = 'globe', zoom = 1, rotation = [-125, -20, 0], center = [0, 0], selected = null;
-  let sceneRevision = 0, updateGeneration = 0;
-  let sceneItems={polygons:[],strokes:[],points:[],labels:[],searchItems:[],visibleRootIds:[]};
-  let visibleRootIds=new Set();
-  const boundsCache=new WeakMap(),centroidCache=new WeakMap(),hitTester=createRingHitTester(ring=>ring);
-  let lastFrame=null,lastLabels=[],moving=false,settleTimer=0;
-  const centroid=feature=>{
-    if(!centroidCache.has(feature.geometry))centroidCache.set(feature.geometry,d3.geo.centroid(feature));
-    return centroidCache.get(feature.geometry);
-  };
-  const visibility = { countries:true,subunits:true,regions:true,rivers:true,lakes:true,genericFeatures:true,labels:true,distributions:true };
-  const state = { size:{width:1,height:1}, layerVisibility:visibility, physicalSettings:{terrainVisible:false,terrainStyle:'political'},
-    layerPresentation:normalizeLayerPresentation(),itemVisibility:{}, pendingCountryRenderIds:new Set(), hydroEdits:[],
-    hydroFeatureCache:new Map(), hydroFeatureByFid:new Map(), hydroFeatureById:new Map(),physicalLoadState:{},
-    countryIndex:new Map(), objectPresentationRevision:0, countryVisualPhase:'canonical',
-    selectedCountries:new Set(), tool:'select', geometryPreview:{session:null} };
-  const repository = createTerritorialEntityRepository({ getEntities:()=>entities });
-  const sceneBuilder = createRenderSceneBuilder();
+  let renderingDomain=null;
+  let session = null, disposed = false;
+
+  const currentZoom=()=>state.projection==='globe'?state.view.globeZoom:state.view.flatZoom;
+  let updateGeneration = 0;
+  const hitTester=createRingHitTester(ring=>ring);
+  let lastFrame=null;
+
+  const {builtinSession,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
+  projectSession.connect({readiness:{DATA_READINESS},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
+    modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET},domains:{selectionDomain:documentSession.selectionDomain},
+    uiFactoriesA:{createAtomicMapStateController},workspaceUiA:{get clampViewZooms(){return navigation.clampViewZooms;}}});
+  projectSession.initializeMapWorkScheduler();
+  const state=projectSession.state,mapWorkScheduler=projectSession.mapWorkScheduler;
+  const entityStore=createTerritorialEntityStore({documentModel:documentSession.documentModel,commandOwner:documentSession.commandOwner});
+  projectSession.installDocumentProjection({documentModel:documentSession.documentModel,commandOwner:documentSession.commandOwner,entityStore});
+  state.countryVisualPhase='canonical';
+  const repository=createTerritorialEntityRepository({entityStore});
+  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+
+
+
+  renderQuality.connect({projectState:{state,mapWorkScheduler},surfaces:{isMobile},uiFactoriesA:{createAdaptiveRenderQualityController},
+    rendering:{get gpuMapRenderer(){return renderer;}},gpuRenderingA:{get renderSceneBuilder(){return gpuScene.renderSceneBuilder;}},
+    mapView:{get mapHost(){return mapHost.mapHost;}},hydroModel:{currentMapDevicePixelRatio:physicalSettings.currentMapDevicePixelRatio},
+    countries:builtinSession,domains:{get renderingDomain(){return renderingDomain;}},feedback:{reportOperationError:onError}});
+  renderQuality.initializeRenderQualityController();renderQuality.initializeGpuRebuildTimer();
+
   const theme = () => resolveMapTheme({state,theme:document.documentElement.dataset.theme || 'dark'});
-  const roots = () => rootFeatures;
-  const visible = feature => {
-    const group=feature.properties.entityKind==='regional'?'regions':feature.properties.parentId?'subunits':'countries';
-    return visibility[group] && session?.documentModel.snapshot().itemVisibility?.[group]?.[feature.id] !== false;
-  };
-  const schedule = () => { if (!disposed && !scheduled) scheduled=requestAnimationFrame(draw); };
-  const places=createViewerPlaces({getSession:()=>session,assetRevision:meta.assetRevision,onChange:schedule,onError});
-  const runtimeAssetUrl = path => new URL(`../${path}`,import.meta.url);
-  const dataBase = new URL('../../data/',import.meta.url);
-  const rasterManifest = terrainRasterManifestUrl(dataBase,meta.dataRevision);
-  const terrainSource = selectTerrainManifestUrls({
-    official:new URL(`https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),
-    raster:rasterManifest,defaultDem:true,
-  });
-  const renderer = createGpuMapRenderer({
-    APP_VERSION:meta.appVersion,ASSET_REVISION:meta.assetRevision,DATA_REVISION:meta.dataRevision,
-    PHYSICAL_DATA_BASE_URL:dataBase,TERRAIN_RASTER_MANIFEST_URL:rasterManifest,TERRAIN_PRIMARY_MANIFEST_URL:terrainSource.primary,
-    onTerrainSourceChanged:manifest=>{state.terrainManifest=manifest;},d3,deepClone:structuredClone,
-    createCountryFillResolver:()=>createTerritorialFillResolver({state,entityRepository:repository,terrainAlpha:theme().countryColorAlpha,
-      mapSubstrate:{color:theme().defaultLand,fillAlpha:theme().baseLandAlpha}}),
-    baseSceneFeatureById:id=>featureIndex.get(String(id)),countryOutlineFeature:feature=>feature,
-    defaultCountryColor:feature=>feature?.properties.style?.color || theme().defaultLand,
-    getSystemTheme:()=>document.documentElement.dataset.theme || 'dark',mapTheme:theme,
-    hydroDisplayColor:(_category,gpu=false)=>gpu?theme().oceanGpu:theme().ocean,hydroFeatureById:id=>state.hydroFeatureCache.get(String(id)),
-    hydroVisibilityThreshold:()=>2.4+Math.log2(Math.max(1,zoom))*2.05,isCountryVisibleById:id=>visibleRootIds.has(String(id)),
-    countryBoundaryStyleById:id=>{
-      const feature=featureIndex.get(String(id));if(!feature||!visible(feature))return null;
-      const style=layerStyle(state.layerPresentation,territorialSymbolGroup(feature),`territorial:entity:${id}`);
-      return style.boundaryVisible&&style.opacity>0?style:null;
-    },
-    renderCountryFeatures:roots,renderCountryBoundaryFeatures:roots,canonicalCountryFeatures:roots,
-    isHydroFeatureVisible:feature=>{
-      const props=feature.properties,id=String(props.pandolab_id||feature.id);
-      const layer=state.hydroManifest?.layers?.find(layer=>layer.id===props.layer_id);
-      return visibility[(props.category||layer?.category)==='lake'?'lakes':'rivers']!==false
-        &&state.physicalSettings.hydroLayers?.[props.layer_id]!==false&&state.physicalSettings.hiddenHydroIds?.[id]!==true;
-    },
-    isLayerItemVisible:(group,id)=>state.itemVisibility[group]?.[String(id)]!==false,isMobile:()=>element.clientWidth<800,isSafeKoreanErrorMessage:()=>false,
-    mapWorkScheduler:{isInteractionActive:()=>moving},prepareHydroFeature:feature=>feature,
-    queueMapResize:schedule,renderViewFrame:schedule,reportOperationError:onError,
-    rendererUi:{createCanvas:()=>document.createElement('canvas'),getMapElement:()=>element,
-      setEngineStatus:()=>{},onContextStateChange:schedule,requestHostRepaint:schedule},
-    runtimeAssetUrl,scheduleGpuFrame:schedule,scheduleGpuInteractionFrame:schedule,
-    scheduleGpuMeshRebuild:()=>{update().catch(onError);},setActionStatus:()=>{},state,
-  });
-  const uploadScheduler=createGpuUploadScheduler({getByteBudget:()=>renderer.getUploadByteBudget()});
-  renderer.setUploadScheduler(uploadScheduler);
+  const schedule = () => { if(!disposed&&session&&renderingDomain)renderingDomain.invalidateView('map-view'); };
+  Object.defineProperty(state,'projectReplacing',{get:()=>projectDomain.isReplacing()});
+  const hydroEditById=physicalSettings.hydroEditById,hydroById=physicalSettings.hydroFeatureById;
+  const labelById=id=>labelOwner.labelById(id);
+
+  const readPorts={projectState:{state},territorialModel:{entityRepository:repository,DISTRIBUTION_MODES},
+    colorModel:{COLOR_DOMAINS,readDomainColor,countryDefaultColor,DEFAULT_GENERIC_FEATURE_COLOR,defaultCountryColor:feature=>countryDefaultColor(feature)||theme().defaultLand},
+    objectDefinitions:{MAP_OBJECT_CATEGORIES,MAP_OBJECT_TYPES},
+    objectPresentation,hydroModel:{hydroFeatureById:hydroById},labelPresentation:{labelById,pendingCountryLabelAnchors:new Set(),countryLabelAnchors:new Map()},
+    hydroPresentation:{HYDRO_LAYER_META,HYDRO_TOOL_CONFIG,hydroEditById,hydroCategoryKey:value=>objectPresentation.hydroCategoryKey(value),hydroDisplayColor:physicalSettings.hydroDisplayColor,
+      hydroEditorName:objectPresentation.hydroEditorName,hydroFallbackName:value=>objectPresentation.hydroFallbackName(value),hydroCategoryLabel:value=>objectPresentation.hydroCategoryLabel(value),
+},
+    distributionPresentation:{distributionColor:layer=>objectPresentation.distributionColor(layer)},
+    distributionServices:{distributionEntriesForLayer:(entries,id)=>entries.filter(entry=>entry.layerId===id)},
+    selectionServices:{normalizeObjectRef},objectLookup:{distributionLayerById:id=>state.distributionLayers.find(layer=>String(layer.id)===String(id))},
+    layerPresentation:{ASSET_REVISION:meta.assetRevision,layerGroupNames:{distributions:'분포'}}};
+  objectPresentation.connect(readPorts);objectPresentation.initializeObjectPresentationModel();
+  Object.assign(readPorts.colorModel,{territorialEntityColor:objectPresentation.territorialEntityColor,genericFeatureColor:objectPresentation.genericFeatureColor});
+  const objectQuery=createObjectQuery(readPorts);
+  objectCatalog.connect(readPorts);
+  const runtimeAssetUrl = path => {const url=new URL(`../${path}`,import.meta.url);url.searchParams.set('v',meta.assetRevision);return url;};
+  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:new URL('../',import.meta.url),dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile}),
+    DATA_REVISION:meta.dataRevision,HYDRO_DATA_VERSION,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET};
+  const territorialScope=createTerritorialScopeResolver({entityRepository:repository,clipper:()=>globalThis.polygonClipping,getState:()=>state});
+  builtinSession.connect({projectState:{state},territorialModel:{entityRepository:repository},objectModelB:{territorialScope},
+    objectDefinitions:{builtinSubunitSourceId},applicationServicesB:{layerStyle},platformConfigurationA:{BASE_DATASET},domains:{projectDomain},
+    rendering:{get gpuMapRenderer(){return renderer;}},layerPresentation:objectCatalog});
+  builtinSession.initializePristineCountriesFallback();
+  physicalSettings.connect({projectState:{state},physicalConfig,mapLayout:{get mapLayoutMetricsSnapshot(){return mapProjection.mapLayoutMetricsSnapshot;}},preferences:{mapTheme:theme},platform:{$:id=>document.getElementById(id),clamp},
+    hydroPresentation:readPorts.hydroPresentation,objectPresentation,layerPresentation:objectCatalog});
+  Object.assign(readPorts.hydroPresentation,{allBuiltInHydroFeatures:physicalSettings.allBuiltInHydroFeatures,
+    hydroLayerVisible:physicalSettings.hydroLayerVisible,hydroLineParts:physicalSettings.hydroLineParts,activeLayerFolderKeys:physicalSettings.activeLayerFolderKeys});
+  physicalResources.connect({projectState:{state},physicalConfig,physicalServices:{createHydroService,createTerrainService,fetchWithRetry,isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible},
+    hydroPresentation:readPorts.hydroPresentation,platform:{d3},cutGeometry:{coordinateBounds},
+    labelPresentation:{currentMapZoom:currentZoom},mapView:{get flatProjection(){return mapProjection.flatProjection;},get globeProjection(){return mapProjection.globeProjection;}},
+    layerPresentation:objectCatalog,domains:{projectDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{render:()=>onPlacesSettled('render')}},
+    operationFeedback:{reliabilityDiagnostic:{push:entry=>{globalThis.__PANDOLAB_RESOURCE_DIAGNOSTICS__??=[];globalThis.__PANDOLAB_RESOURCE_DIAGNOSTICS__.push(entry);}}},
+    rendering:{get gpuMapRenderer(){return renderer;}},feedback:{reportOperationError:onError}});
+  const renderer=createMapRenderer({projectState:{state,mapWorkScheduler},physicalConfig,
+    platformConfigurationA:{APP_VERSION:meta.appVersion},layerPresentation:{ASSET_REVISION:meta.assetRevision,isLayerItemVisible:objectCatalog.isLayerItemVisible},
+    preferences:{mapTheme:theme,get systemTheme(){return document.documentElement.dataset.theme;}},colorModel:readPorts.colorModel,
+    platform:{d3,deepClone:structuredClone,$:id=>document.getElementById(id),runtimeAssetUrl},
+    countries:builtinSession,builtinCountries:builtinSession,countryLabelModel:labelOwner,
+    territorialModel:{entityRepository:repository},hydroPresentation:readPorts.hydroPresentation,hydroModel:{hydroFeatureById:hydroById},
+    physicalResources,physicalServices:{isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible},surfaces:{isMobile},
+    readinessUi:{isSafeKoreanErrorMessage:()=>false},mapHostViewB:{queueMapResize:()=>{if(renderingDomain)renderingDomain.invalidateViewport();}},
+    mapView:{get mapHost(){return mapHost.mapHost;}},domains:{get renderingDomain(){return renderingDomain;}},
+    renderQuality,renderScene:{get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
+    feedback:{reportOperationError:onError,setActionStatus:onStatus}});
   renderer.attach(canvas);
   const initialized=renderer.initialize({allowPreview:false});
-  const terrain=createTerrainService({fetchWithRetry,manifestUrl:()=>terrainSource.primary,
-    fallbackManifestUrl:()=>terrainSource.fallback||rasterManifest,getLoadState:()=>state.physicalLoadState.terrain,
-    onLoading:()=>{state.physicalLoadState.terrain='loading';},onRetry:()=>{},
-    acceptManifest:(manifest,url,context)=>{state.physicalLoadState.terrain='ready';state.terrainManifest=manifest;
-      renderer.setTerrainManifest(manifest,url,{source:context.usedFallback?'fallback':terrainSource.source});schedule();},
-    onFailure:error=>{state.physicalLoadState.terrain='error';onError(error);},
+  physicalResources.initializeTerrainService();
+
+  mapProjection.connect({projectState:{state},platform:{d3,clamp,$:id=>document.getElementById(id)},surfaces:{isMobile,get layoutMode(){return owners.workspaceSurfaces.layoutMode;}},
+    mapLayout:{createMapLayoutMetricsSnapshot,DEFAULT_SAFE_INSETS}});
+  mapProjection.initializeMapLayoutMetricsSnapshot();mapProjection.initializeGlobeProjection();
+
+  mapHost.connect({projectState:{state},platform:{d3},mapView:mapProjection,projectionView:mapProjection,
+    platformConfigurationA:{FLAT_PROJECTION_KIND:'equirectangular'},rendering:{gpuMapRenderer:renderer},surfaces:{isMobile},
+    mapLayout:{DEFAULT_SAFE_INSETS,get mapLayoutMetricsSnapshot(){return mapProjection.mapLayoutMetricsSnapshot;}},
+    domains:{projectDomain},renderQuality,renderFactories:{createMapVisualFrame}});
+  mapHost.initializeResolutionQuery();
+
+  navigation.connect({projectState:{state},platform:{d3,clamp},surfaces:{isMobile},countries:{validLabelAnchor:coord=>Array.isArray(coord)&&coord.length===2&&coord.every(Number.isFinite)},
+    mapNavigation:{normalizeMapSurfaceDragDelta,equirectangularCenterForAnchor,FLAT_LATITUDE_LIMIT,ZOOM_LIMITS},
+    mapView:{get flatProjection(){return mapProjection.flatProjection;},get path(){return mapProjection.path;},updateProjection:()=>mapProjection.updateProjection(),
+      activeProjection:()=>mapProjection.activeProjection(),screenToGeo:point=>mapProjection.screenToGeo(point),projectionLayoutMetrics:()=>mapProjection.projectionLayoutMetrics(),syncMapHostFromState:schedule},
+    rendering:{gpuMapRenderer:renderer},objectLookup:objectQuery,physicalData:{HYDRO_LAYER_META:readPorts.hydroPresentation.HYDRO_LAYER_META},
+    domains:{get selectionUiController(){return session.selectionUiController;},renderingDomain:{beginInteraction:()=>inputPresentation.beginMovement(),endInteraction:()=>inputPresentation.finishMovement(),invalidateView:schedule}}});
+
+  spatialIndex.connect({projectState:{state,mapWorkScheduler},territorialModel:{entityRepository:repository},cutGeometry:{coordinateBounds},
+    mapView:mapProjection,spatialFactories:{createMapObjectSpatialIndex},domains:{get renderingDomain(){return renderingDomain;}},surfaces:{isMobile},rendering:{get selectionPerformanceMetrics(){return selectionPerformanceMetrics;}}});
+  spatialIndex.initializeGeometryBoundsCache();spatialIndex.initializeMapObjectSpatialIndex();spatialIndex.initializeViewportCullingMetrics();
+  Object.assign(readPorts,{navigation,objectModelB:{territorialScope},countries:{validLabelAnchor:coord=>Array.isArray(coord)&&coord.length>=2&&coord.every(Number.isFinite)},surfaces:{isMobile},feedback:{setActionStatus:onStatus}});
+  const countryPorts={projectState:{state,mapWorkScheduler},platform:{d3,deepClone:structuredClone,runtimeAssetUrl},
+    countries:{builtinTerritorialScene:builtinSession.builtinTerritorialScene,territorialLabelFeatureById:builtinSession.territorialLabelFeatureById,
+      PRISTINE_LABEL_ANCHORS:builtinSession.PRISTINE_LABEL_ANCHORS},
+    objectDisplay:{invalidateObjectPresentation:objectCatalog.invalidateObjectPresentation},mapView:{ringRepresentativePoint:mapProjection.ringRepresentativePoint},
+    domains:{get projectDomain(){return session.projectDomain;},renderingDomain:{invalidateLabels:schedule}}};
+  countryIndex.connect(countryPorts);countryIndex.initializeCountryLandRevision();countryIndex.initializeCountryLabelAnchorWorker();countryIndex.initializeLabelFallbackQueue();
+  readPorts.labelPresentation.pendingCountryLabelAnchors=countryIndex.pendingCountryLabelAnchors;readPorts.labelPresentation.countryLabelAnchors=countryIndex.countryLabelAnchors;
+  const labelPorts={...countryPorts,territorialModel:{entityRepository:repository},objectModelB:{territorialScope},objectPresentation,
+    countries:{...countryPorts.countries,scheduleCountryLabelAnchors:countryIndex.scheduleCountryLabelAnchors},
+    mapView:mapProjection,mapHostViewB:{projectionViewSnapshot:()=>lastFrame.viewState},
+    layerPresentation:{...readPorts.layerPresentation,isLayerItemVisible:objectCatalog.isLayerItemVisible,isCountryVisibleById:objectCatalog.isCountryVisibleById},
+    labelPresentation:{automaticLabelSettings,labelKey,layoutLabels,LABEL_PRIORITIES,layoutTerritorialFlags,buildRenderableStrokeFeature,
+      get pendingCountryLabelAnchors(){return countryIndex.pendingCountryLabelAnchors;},get countryLabelAnchors(){return countryIndex.countryLabelAnchors;}},
+    preferences:{get userPreferences(){return getPreferences();}},surfaces:{isMobile},renderScene:{get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
+    spatialQuery:{geometryBounds:spatialIndex.geometryBounds,visibleMapObjectCandidates:spatialIndex.visibleMapObjectCandidates,viewportCullingMetrics:spatialIndex.viewportCullingMetrics},
+    feedback:{reportOperationError:onError},domains:{renderingDomain:countryPorts.domains.renderingDomain,get projectDomain(){return session.projectDomain;},
+      get selectionDomain(){return session.selectionDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel'),render:()=>onPlacesSettled('render')}}};
+  labelOwner.connect(labelPorts);labelOwner.initializeCountryOutlineCache();labelOwner.initializeLabelLayoutMetrics();labelOwner.initializeTerritorialLabelScreenAreas();
+  const places=labelOwner.builtinPlaces;
+  const svg=d3.select(labelLayer).attr('class','map-svg map-overlay-svg');
+  const {interactionSvg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,hoverLayer,selectionLayer}=createMapOverlayLayers({map:d3.select(element),svg,productMode:'viewer'});
+
+  const packets={currentGpuInteractionFillItems:[],currentGpuPreviewPackets:[],currentGpuEditPreviewPackets:[],currentGpuDraftPackets:[]};
+
+  gpuScene.connect({projectState:{state},renderScene:{createRenderSceneBuilder,OVERLAY_GROUPS,get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
+    platform:{runtimeAssetUrl},countries:{get countryLandRevision(){return updateGeneration;}},mapLayout:{get viewRevision(){return mapHost.viewRevision;}},
+    rendering:{gpuMapRenderer:renderer},mapLayers:{svg:d3.select(labelLayer)},mapHostViewB:{interactionSvg},interactionPresentation:packets,
+    interactionStateCommands:{replaceGpuInteractionFillItems:items=>{packets.currentGpuInteractionFillItems=items;},replaceGpuEditPreviewPackets:items=>{packets.currentGpuEditPreviewPackets=items;}},
+    domains:{get renderingDomain(){return renderingDomain;}},feedback:{reportOperationError:onError},
+    selectionServices:{normalizeObjectRef},objectModelB:{territorialScope},presentation:objectPresentation,
+    hydroModel:{hydroFeatureById:hydroById},territorialModel:{DISTRIBUTION_MODES},distributionServices:readPorts.distributionServices});
+  gpuScene.initializeSelectionPass();gpuScene.initializeRenderSceneBuilder();gpuScene.initializeGpuSceneDomains();gpuScene.initializeGpuSceneResourceObjectKeys();
+  const selectionProxy={snapshot:()=>session.selectionDomain.snapshot(),has:ref=>session.selectionDomain.has(ref),createPacket:options=>session.selectionDomain.createPacket(options),setHover:(...args)=>session.selectionDomain.setHover(...args)};
+  const selectAt=(point,options={})=>objectPicking.handleObjectSelectionAt(point,{...options,sourceEvent:d3.event}).catch(onError);
+  const commonResources={getState:()=>state,d3,svg:svg.node(),layerStyle,normalizeObjectRef,
+    isLayerItemVisible:objectCatalog.isLayerItemVisible,selectionHas:selectionProxy.has,selectionSnapshot:()=>selectionProxy.snapshot().selection,
+    visibleMapObjectCandidates:spatialIndex.visibleMapObjectCandidates,geometryMayIntersectViewport:spatialIndex.geometryMayIntersectViewport,
+    viewportCullingMetrics:spatialIndex.viewportCullingMetrics,mapClickBlocked:()=>state.projectReplacing,
+    handleObjectSelectionAt:selectAt,setMapHover:(_type,_id,feature,ref)=>{selectionProxy.setHover(feature?ref:null,{source:'map'}).catch(onError);},
+    selectionGeometryRevision:gpuScene.selectionGeometryRevision,gpuSceneOrder:gpuScene.gpuSceneOrder,replaceGpuSceneDomain:gpuScene.replaceGpuSceneDomain,buildRenderableStrokeFeature};
+  const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>updateGeneration});
+  renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionProxy,
+    domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
+    onMapDisplayReady:()=>renderingDomain.invalidateTerritorialPatch('display-ready'),
+    labelResources:{...commonResources,svg,territorialLabelLayer,labelLayer:userLabelLayer,isMobile,
+      automaticLabelSettings,labelSettings:(state,domain,id)=>state.labelSettings[labelKey(domain,id)]||{},
+      countryName:objectPresentation.territorialEntityName,getTerritorialLabelRef:id=>builtinSession.builtinTerritorialScene().labelRefs.get(String(id)),
+      countryLabelAnchors:()=>countryIndex.countryLabelAnchors,labelKey,labelById,
+      preparePlaces:()=>{labelOwner.preparePlaces().catch(onError);},beginPlaceInteraction:()=>{places.beginInteraction();onPlacesSettled('cancel');},
+      handleMapClick:(point,options)=>objectPicking.handleMapClick(point,options)},
+    countryResources:{...commonResources,mapTheme:theme,getEntity:repository.get,countryOutlineFeature:feature=>feature,
+      gpuMapRenderer:renderer,syncGpuRenderScene:gpuScene.syncGpuRenderScene},
+    hydroResources:{...commonResources,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,gpuMapRenderer:renderer,
+      isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible,hydroDisplayColor:physicalSettings.hydroDisplayColor,hydroEditColor:physicalResources.hydroEditColor},
+    territorialResources:{...commonResources,territorialUnitLayer,displayEntities:territorialScope.displayEntities,entityRepository:repository,isNativeBuiltinSubunit:builtinSession.isNativeBuiltinSubunit,syncBuiltinPalette:builtinSession.syncBuiltinPalette},
+    genericResources:{...commonResources,genericFeatureLayer,genericFeatureDisplayFeature:objectPresentation.genericFeatureDisplayFeature,genericFeatureColor:objectPresentation.genericFeatureColor},
+    distributionResources:{...commonResources,distributionLayer,territorialEntityRepository:repository,featureFromGeometry:gpuScene.featureFromGeometry,
+      geometryBounds:spatialIndex.geometryBounds,distributionColor:objectPresentation.distributionColor,DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES,
+      getCountryGeometryRevision:()=>updateGeneration,getDistributionVisibilityRevision:()=>state.objectPresentationRevision},
+    territorialBoundaryResources:{...commonResources,getCountryLandRevision:()=>updateGeneration,getTerritorialGeometryRevision:()=>updateGeneration,
+      geometryToken:geometryRevisionKey,territorialEntityColor:objectPresentation.territorialEntityColor,mapTheme:theme},
+    selectionResources:{...commonResources,selectionLayer,hoverLayer,document,isMobile,gpuMapRenderer:renderer,
+      resolvedInteractionStyle:()=>state.interactionStyle||resolveMapInteractionStyle(),territorialEntityById:repository.get,
+      territorialDisplayFeature:territorialScope.displayFeature,countryOutlineFeature:feature=>feature,
+      mapFeatureForObjectRef:gpuScene.mapFeatureForObjectRef,objectRefVisible:ref=>objectQuery.objectRefExists(ref),
+      buildGpuInteractionFillItems:gpuScene.buildGpuInteractionFillItems,syncGpuInteractionState:gpuScene.syncGpuInteractionState,
+      setCurrentSelectionPacket:packet=>{gpuScene.currentSelectionPacket=packet;},getCurrentSelectionPacket:()=>gpuScene.currentSelectionPacket,
+      getCountryLandRevision:()=>updateGeneration,getStateRevision:()=>state.objectPresentationRevision,getViewRevision:()=>mapHost.viewRevision,getProjection:()=>state.projection},
+    interactionResources:{applyGpuInteractionCoverage:gpuScene.applyGpuInteractionCoverage},
+    prepareView:options=>{
+      state.size={width:Math.max(1,element.clientWidth),height:Math.max(1,element.clientHeight)};
+      lastFrame=mapHost.prepareVisualFrame(options);
+      renderer.resize(lastFrame);return lastFrame;
+    },
+    onFrameComplete:mapHost.handleRenderFrameComplete,
+    renderers:{view:frame=>renderer.renderFrame(frame),labelLayout:frame=>labelOwner.visibleLabelLayout(frame),objectSearch:()=>onPlacesSettled('render')},
+    reportDiagnostic:entry=>onError(entry.error||Object.assign(new Error(entry.technicalMessage||entry.message||entry.stage),{code:entry.code})),
   });
-  const hydro=createHydroService({fetchWithRetry,dataVersion:HYDRO_DATA_VERSION,
-    manifestUrl:()=>new URL(`hydro/v${HYDRO_DATA_VERSION}/manifest.json?v=${meta.dataRevision}`,dataBase),
-    getLoadState:()=>state.physicalLoadState.hydro,onLoading:()=>{state.physicalLoadState.hydro='loading';},onRetry:()=>{},
-    acceptManifest:async(manifest,url)=>{state.hydroManifest=manifest;const accepted=await renderer.setHydroManifest(manifest,url);
-      state.physicalLoadState.hydro=accepted?'ready':'error';schedule();return accepted;},
-    onFailure:error=>{state.physicalLoadState.hydro='error';onError(error);},
-  });
-  let projection=d3.geo.orthographic();
-  function draw() {
-    scheduled=0;if(disposed)return;
-    try {
-      const width=Math.max(1,element.clientWidth),height=Math.max(1,element.clientHeight);
-      state.size={width,height};
-      const scale=(projectionKind==='globe'?Math.min(width,height)*.46:width/(2*Math.PI))*zoom;
-      projection=(projectionKind==='globe'?d3.geo.orthographic().rotate(rotation).clipAngle(90):d3.geo.equirectangular().center(center))
-        .scale(scale).translate([width/2,height/2]);
-      const frame=createMapVisualFrame({frameId:++frameId,viewRevision:frameId,
-        viewState:{projection:projectionKind,size:state.size,dpr:renderer.getRenderPixelRatio(),scale,
-          translate:[width/2,height/2],rotation,projectionCenter:center},projectCoordinate:coord=>projection(coord),
-        projectPath:d3.geo.path().projection(projection),createCanvasPath:context=>d3.geo.path().projection(projection).context(context)});
-      renderer.resize(frame);renderer.renderFrame(frame);
-      lastFrame=frame;
-      const labels=[];
-      const project=session?.documentModel.snapshot();
-      if(session&&visibility.labels)places.prepare(frame,{zoom,month:session.commandOwner.state().timelineCursor}).catch(onError);
-      const flagOptions={zoom,enabled:true,isVisible:feature=>territorialSymbolVisibility(state,territorialSymbolGroup(feature)).flag,
-        flagUrl:feature=>effectiveTerritorialFlagUrl(feature,{assetRevision:meta.assetRevision})};
-      for(const feature of entities){
-        const group=territorialSymbolGroup(feature),objectKey=`territorial:entity:${feature.id}`;
-        const style=layerStyle(state.layerPresentation,group,objectKey);
-        const nameVisible=style.labelsVisible&&territorialSymbolVisibility(state,group).name;
-        const flag=territorialLabelFlag(feature,flagOptions);
-        if(!visible(feature)||!feature.geometry||(!nameVisible&&!flag)||project.itemVisibility?.countryLabels?.[feature.id]===false)continue;
-        const settings=automaticLabelSettings('country',project.labelSettings[labelKey('territorial',feature.id)]);
-        const coordinate=settings.manualPosition||centroid(feature),point=frame.projectVisibleCoordinate(coordinate);
-        if(point)labels.push({...settings,id:feature.id,point,text:nameVisible?feature.properties.name||feature.id:'',style,sourceType:'territorial',source:feature,nameVisible,
-          ...(!nameVisible?{width:flag.width,height:flag.height}:{})});
-      }
-      const placeLabels=project?places.labels({state:{...project,layerVisibility:visibility},month:session.commandOwner.state().timelineCursor,languages}):[];
-      for(const label of [...sceneItems.labels,...placeLabels]){
-        if(zoom<label.minZoom)continue;
-        const point=frame.projectVisibleCoordinate(label.coordinate);
-        if(point)labels.push({...label,id:label.key,point});
-      }
-      const placed=layoutLabels(labels.map(row=>({...placeLabelDimensions(row.rows||row.text),...row,key:row.id})),{zoom,bounds:{left:0,top:0,right:width,bottom:height}});
-      lastLabels=placed;
-      const text=d3.select(labelLayer).selectAll('text').data(placed,row=>row.id);
-      text.exit().remove();text.enter().append('text');
-      d3.select(labelLayer).selectAll('text')
-        .attr('x',row=>row.point[0]).attr('y',row=>row.point[1]).style('opacity',row=>row.style?.opacity??1)
-        .each(function(row){renderLabelText(d3.select(this),row.rows||[{text:row.text}],{x:row.point[0]});});
-      const flags=layoutTerritorialFlags(placed,flagOptions);
-      const flagRows=placed.filter(row=>flags.has(row.id)).map(row=>({...row,flag:flags.get(row.id)}));
-      const images=d3.select(labelLayer).selectAll('image').data(flagRows,row=>row.id);
-      images.exit().remove();images.enter().append('image');
-      d3.select(labelLayer).selectAll('image').attr('href',row=>row.flag.url)
-        .attr('x',row=>row.nameVisible?row.point[0]-row.width/2-row.flag.gap-row.flag.width:row.point[0]-row.flag.width/2)
-        .attr('y',row=>row.point[1]-row.flag.height/2).attr('width',row=>row.flag.width).attr('height',row=>row.flag.height);
-      const points=sceneItems.points.map(row=>({...row,point:frame.projectVisibleCoordinate(row.coordinate)})).filter(row=>row.point);
-      const circles=d3.select(labelLayer).selectAll('circle').data(points,row=>row.key);
-      circles.exit().remove();circles.enter().append('circle');
-      d3.select(labelLayer).selectAll('circle').attr('cx',row=>row.point[0]).attr('cy',row=>row.point[1])
-        .attr('r',row=>row.radius).attr('fill','none').attr('stroke',row=>row.style.color)
-        .attr('stroke-width',row=>row.style.width).attr('opacity',row=>row.style.alpha??1);
-    } catch(error){onError(error);}
-  }
-  function buildScene() {
-    if(!session)return;
-    sceneItems=buildViewerSceneItems({documentModel:session.documentModel,state,entityRepository:repository,theme:theme(),selected,
-      month:session.commandOwner.state().timelineCursor});
-    visibleRootIds=new Set(sceneItems.visibleRootIds);
-    const {polygons,strokes}=sceneItems;
-    renderer.setRenderScene(sceneBuilder.build({revision:++sceneRevision,revisions:{geometry:sceneRevision,style:sceneRevision},polygons,strokes}));
-    renderer.invalidateCountryPalette({base:true,emphasis:true},'viewer-presentation');renderer.invalidateHydroVisibility();schedule();
-  }
+  renderQuality.applyAdaptiveRenderQuality();
+  function buildScene(){if(!session)return;state.objectPresentationRevision++;objectCatalog.invalidateObjectPresentation();renderingDomain.invalidateProject('document-presentation');}
   async function update() {
     if(!session)return;
     const generation=++updateGeneration;
-    entities=session.documentModel.territorialViews();featureIndex=new Map(entities.map(feature=>[String(feature.id),feature]));
-    rootFeatures=entities.filter(feature=>feature.properties.entityKind==='general'&&!feature.properties.parentId);
-    state.countryIndex=featureIndex;state.objectPresentationRevision++;
+    state.countryIndex=new Map(entityStore.snapshot().map(feature=>[String(feature.id),feature]));
+    const rootFeatures=builtinSession.builtinTerritorialScene().collection.features;
+    state.objectPresentationRevision++;
     await initialized;if(generation!==updateGeneration)return;
     buildScene();
-    const built=await renderer.rebuildFromCountries(roots(),{reason:'viewer-document'});
+    const built=await renderQuality.prepareCanonicalMesh({features:rootFeatures,reason:'document-mesh'});
     if(generation===updateGeneration&&built===false)throw new Error('지도 형상을 표시하지 못했습니다.');
     if(generation===updateGeneration)schedule();
   }
-  const beginMotion=()=>{clearTimeout(settleTimer);if(!moving){moving=true;places.beginInteraction();renderer.setHydroInteractionActive(true);}};
-  const settleMotion=()=>{clearTimeout(settleTimer);settleTimer=setTimeout(()=>{if(pointers.size)return;moving=false;renderer.setHydroInteractionActive(false);places.settle().catch(onError);schedule();},120);};
-  const zoomBy=factor=>{beginMotion();settleMotion();zoom=Math.max(1,Math.min(64,zoom*factor));schedule();};
-  const pointers=new Map();let dragDistance=0,pinchDistance=0;
-  element.addEventListener('pointerdown',event=>{beginMotion();pointers.set(event.pointerId,[event.clientX,event.clientY]);dragDistance=0;element.setPointerCapture(event.pointerId);});
-  element.addEventListener('pointermove',event=>{
-    const previous=pointers.get(event.pointerId);if(!previous)return;
-    const dx=event.clientX-previous[0],dy=event.clientY-previous[1];pointers.set(event.pointerId,[event.clientX,event.clientY]);dragDistance+=Math.hypot(dx,dy);
-    if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pinchDistance)zoomBy(distance/pinchDistance);pinchDistance=distance;return;}
-    panCameraView({globeRotation:rotation,globeZoom:zoom,flatCenter:center},projectionKind,dx,dy,{scale:projection.scale()});schedule();
-  });
-  element.addEventListener('pointerup',event=>{
-    pointers.delete(event.pointerId);pinchDistance=0;settleMotion();
-    if(dragDistance>5)return;
-    const bounds=element.getBoundingClientRect(),point=[event.clientX-bounds.left,event.clientY-bounds.top];
-    const label=lastLabels.find(row=>Math.abs(row.point[0]-point[0])<=row.width/2&&Math.abs(row.point[1]-point[1])<=row.height/2);
-    if(label){const feature=label.feature||sceneItems.searchItems.find(feature=>feature.id===(label.source?.id||label.id));if(feature){onSelect(feature);return;}}
-    const coord=projection.invert(point);if(!coord||!lastFrame)return;
-    const options={project:lastFrame.projectVisibleCoordinate,contains:(coord,feature)=>hitTester.containsGeometry(coord,feature.geometry),coordinateBounds,zoom,boundsCache};
-    const overlay=[...sceneItems.searchItems].reverse().find(feature=>feature.group!=='countries'&&geometryHitsScreenPoint(feature.geometry,coord,point,8,options));
-    if(overlay){onSelect(overlay);return;}
-    const owner=session;
-    const selectHydro=async hydro=>{
-      if(!hydro||owner!==session)return false;
-      const feature=await renderer.loadHydroLogicalFeature(Number(hydro.properties.__logicalFid));
-      if(feature&&owner===session)onSelect({...feature,selectionRef:{domain:'hydroBuiltin',type:feature.properties.category,id:feature.properties.pandolab_id}});
-      return true;
-    };
-    if(renderer.getRuntimeState().renderer.startsWith('canvas')){
-      renderer.pickHydroAsync(point).then(async hydro=>{
-        if(await selectHydro(hydro)||owner!==session)return;
-        const country=rootFeatures.find(feature=>visible(feature)&&geometryHitsScreenPoint(feature.geometry,coord,point,8,options));
-        if(country)onSelect(country);
-      }).catch(onError);return;
-    }
-    const hydro=renderer.pickHydro(point);
-    if(hydro){selectHydro(hydro).catch(onError);return;}
-    const id=renderer.pick(point);
-    if(id&&featureIndex.has(String(id)))onSelect(featureIndex.get(String(id)));
-  });
-  element.addEventListener('pointercancel',event=>{pointers.delete(event.pointerId);pinchDistance=0;settleMotion();});
-  element.addEventListener('wheel',event=>{event.preventDefault();zoomBy(Math.exp(-event.deltaY*.001));},{passive:false});
-  const observer=new ResizeObserver(schedule);observer.observe(element);
+  const selectionPerformanceMetrics={};
+
+  objectPicking.connect({projectState:{state},platform:{d3,$:id=>document.getElementById(id),clamp},
+    selectionServices:{normalizeObjectRef},objectLookup:objectQuery,objectOperationsA:objectQuery,territorialModel:{entityRepository:repository},
+    layerPresentation:{isLayerItemVisible:objectCatalog.isLayerItemVisible},renderScene:{OVERLAY_GROUPS},mapView:mapProjection,
+    labelPresentation:{currentMapZoom:currentZoom},cutGeometry:{coordinateBounds},landRelations:{pointInCountryFeature:(coord,feature)=>hitTester.containsGeometry(coord,feature.geometry)},
+    spatialRecords:spatialIndex,hydroModel:{hydroFeatureById:hydroById},rendering:{selectionPerformanceMetrics},hydroPresentation:{hydroEditById},surfaces:{isMobile},
+    physicalServices:{isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible},
+    pointerInteractionA:{get hydroAtScreenPoint(){return pointerTargets.hydroAtScreenPoint;}},
+    domains:{projectDomain,selectionDomain:selectionProxy,get selectionUiController(){return session.selectionUiController;}},
+    mapLayout:{get viewRevision(){return mapHost.viewRevision;}},countries:{builtinTerritorialScene:builtinSession.builtinTerritorialScene},
+    feedback:{reportOperationError:onError}});
+  objectPicking.bindChooser();
+
+  pointerTargets.connect({projectState:{state},mapView:mapProjection,objectPicking,physicalResources,
+    physicalServices:{isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible},hydroPresentation:readPorts.hydroPresentation,
+    mapLayout:{get viewRevision(){return mapHost.viewRevision;}},domains:{projectDomain,selectionDomain:selectionProxy},
+    layerPresentation:objectCatalog,landRelations:{pointInCountryFeature:(coord,feature)=>hitTester.containsGeometry(coord,feature.geometry)},
+    platform:{d3,clamp},surfaces:{isMobile},rendering:{gpuMapRenderer:renderer},feedback:{reportOperationError:onError}});
+  pointerTargets.initializeHoverPickFrame();
+  const inputPresentation=createMapInputPresentation({productMode:'viewer',getElement:id=>document.getElementById(id),window,d3,navigator,
+    createMapInputController,getInputSnapshot:()=>({moving:state.mapMoving,projectReplacing:state.projectReplacing,tool:state.tool,projection:state.projection,globeZoom:state.view.globeZoom,flatZoom:state.view.flatZoom}),
+    setMoving:value=>{state.mapMoving=value;},clearHoverHit:()=>{state.hoverHit=null;},getQualityTier:()=>renderQuality.currentRenderQuality.tier,
+    getRevision:()=>updateGeneration,renderQualityController:renderQuality.renderQualityController,mapWorkScheduler,gpuMapRenderer:renderer,
+    renderingDomain,selectionDomain:selectionProxy,projectDomain,mapInteractionGate:createMapInteractionGate(),
+    applyAdaptiveRenderQuality:renderQuality.applyAdaptiveRenderQuality,queueAdaptiveRenderQualityRefresh:renderQuality.queueAdaptiveRenderQualityRefresh,
+    cancelCountryHoverPick:pointerTargets.cancelCountryHoverPick,suppressNextMapClick:pointerTargets.suppressNextMapClick,
+    mapNavigationEnabled:()=>!!session&&!state.projectReplacing,dragMapBy:navigation.dragMapBy,transformMapView:navigation.transformMapView,
+    zoomBy:navigation.zoomBy,isMobile,handleMapClick:objectPicking.handleMapClick,mapClickBlocked:pointerTargets.mapClickBlocked,
+    screenToGeo:mapProjection.screenToGeo,queueCountryHoverPick:pointerTargets.queueCountryHoverPick,getTerritorialLabelRef:objectPicking.getTerritorialLabelRef,reportOperationError:onError});
+  inputPresentation.bindSvg(d3.select(element));
+  const observer=new ResizeObserver(()=>{mapProjection.refreshMapLayoutMetrics('resize');if(session)renderingDomain.invalidateViewport();});observer.observe(element);
   return Object.freeze({
-    async setSession(next,{view=null}={}){session=next;selected=view?.selected||null;const project=session.documentModel.snapshot();
-      state.layerPresentation=view?.layerPresentation||project.layerPresentation;state.itemVisibility=project.itemVisibility;state.distributionSettings=view?.distributionSettings||project.distributionSettings;
-      state.physicalSettings=view?.physicalSettings||{terrainVisible:false,terrainStyle:'political',...project.physicalSettings};
-      Object.assign(visibility,view?.visibility||project.layerVisibility);await update();
-      await Promise.all([hydro.load(),state.physicalSettings.terrainVisible?terrain.load():Promise.resolve()]);},
-    resolvePlace:id=>places.resolve(id,languages),cancelSearch:()=>places.cancelSearch(),update,visibility,features:()=>entities,searchItems:()=>sceneItems.searchItems,searchPlaces:query=>places.search(query,{languages}),renderer,
-    selectedFeature:()=>selected,
-    capturePresentation:()=>({layerPresentation:structuredClone(state.layerPresentation),distributionSettings:structuredClone(state.distributionSettings),visibility:{...visibility},physicalSettings:structuredClone(state.physicalSettings),selected}),
-    clear(){session=null;entities=[];rootFeatures=[];featureIndex=new Map();visibleRootIds=new Set();sceneItems={polygons:[],strokes:[],points:[],labels:[],searchItems:[],visibleRootIds:[]};
-      renderer.resetProjectRenderState();schedule();},
-    async setTerrain(value){state.physicalSettings={...state.physicalSettings,terrainVisible:value!=='none',terrainStyle:value==='physical'?'physical':'political'};
-      buildScene();renderer.invalidatePhysicalStyle('viewer-terrain');if(value!=='none')await terrain.load();},
+    async setSession(next,{view=null}={}){
+      if(next!==documentSession)throw new Error('Map output requires its single document session.');
+      session=next;projectSession.setViewingPresentation(view||{},{reset:true});await update();
+    },
+    cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
+    loadPhysicalResources:physicalResources.loadPhysicalData,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
+    prepareBuiltinProject:builtinSession.prepareProjectBaseline,
+    placeSelectionReferences:labelOwner.builtinPlaceSelectionReferences,hydroSelectionReferences:physicalResources.builtinHydroSelectionReferences,
+    objectPicking,closeObjectChooser:objectPicking.closeObjectChooser,objectCatalog,objectQuery,refreshSelection:()=>renderingDomain.invalidateSelection(),
+    capturePresentation:projectSession.captureViewingPresentation,
+    async setTerrain(value){projectSession.setViewingPresentation({physicalSettings:{...state.physicalSettings,terrainVisible:value!=='none',terrainStyle:value==='physical'?'physical':'political'}});
+      buildScene();renderer.invalidatePhysicalStyle('viewer-terrain');if(value!=='none')await physicalResources.loadTerrainManifest();},
     physicalSettings:()=>state.physicalSettings,
     entityRepository:repository,
-    displayState:()=>({...session?.documentModel.snapshot(),...state,projection:projectionKind}),
-    setLanguages(next){languages=next;schedule();},
+    displayState:()=>({...session?.documentModel.snapshot(),...state,projection:state.projection}),
+
     async applyPresentation(payload){
-      if(payload.action==='visibility')visibility[payload.key]=payload.visible;
-      else if(payload.action==='groupStyle')state.layerPresentation=normalizeLayerPresentation({...state.layerPresentation,styles:{...state.layerPresentation.styles,[payload.group]:{...state.layerPresentation.styles[payload.group],...payload.patch}}});
+      if(payload.action==='visibility')state.layerVisibility[payload.key]=payload.visible;
+      else if(payload.action==='groupStyle')projectSession.setViewingPresentation({layerPresentation:normalizeLayerPresentation({...state.layerPresentation,styles:{...state.layerPresentation.styles,[payload.group]:{...state.layerPresentation.styles[payload.group],...payload.patch}}})});
       else {
         const key={distributionRenderMode:'renderMode',distributionActiveLayer:'activeLayerId',distributionBoundaryVisible:'boundaryVisible'}[payload.action];
         if(!key)throw new Error(`Unknown viewing action: ${payload.action}`);
-        state.distributionSettings={...state.distributionSettings,[key]:payload.value};
+        projectSession.setViewingPresentation({distributionSettings:{...state.distributionSettings,[key]:payload.value}});
       }
-      buildScene();renderer.invalidatePhysicalStyle('view-presentation');
+      buildScene();renderer.invalidatePhysicalStyle('view-presentation');onPlacesSettled('render');
     },
     refreshAppearance(interactionStyle){state.interactionStyle=interactionStyle;buildScene();renderer.invalidatePhysicalStyle('user-preferences');},
-    setProjection(value){projectionKind=value;schedule();},zoomBy,
-    fit(){zoom=1;center=[0,0];rotation=[-125,-20,0];schedule();},
-    async select(feature,{focus=false}={}){
-      const owner=session;if(!owner)return false;
-      let ref=feature.selectionRef;
-      if(!ref){
-        const [domain,type,id]=feature.objectKey?feature.objectKey.split(':'):['territorial','entity',feature.id];
-        ref={domain,type,id};
-      }
-      if(ref.domain==='hydroBuiltin')await owner.commandOwner.selectionCatalogLoad('hydroBuiltin',[ref]);
-      const result=await owner.commandOwner.selectionApply({action:'replace',ref});
-      if(owner!==session)return false;
-      selected=result.selection.primary?feature:null;
-      if(focus&&feature.geometry){const coord=centroid(feature);rotation=[-coord[0],-coord[1],0];center=coord;zoom=Math.max(zoom,3);}buildScene();return true;
-    },
-    dispose(){disposed=true;clearTimeout(settleTimer);places.dispose();observer.disconnect();cancelAnimationFrame(scheduled);renderer.dispose();uploadScheduler.dispose();},
+
+    fit:()=>navigation.resetView(),
+    navigation,mapProjection,projectSession,renderingDomain,
+    dispose(){disposed=true;entityStore.dispose();renderQuality.cancelGpuMeshRebuild();inputPresentation.dispose();pointerTargets.cancelCountryHoverPick();places.dispose();countryIndex.resetCountryLabelAnchorRuntime();observer.disconnect();renderingDomain.dispose();gpuScene.renderSceneBuilder.clear();},
   });
 }

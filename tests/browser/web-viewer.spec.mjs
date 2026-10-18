@@ -8,8 +8,8 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   const errors=[]; page.on('pageerror', error=>errors.push(error.message));
   await page.addInitScript(()=>{
     localStorage.setItem('pandolab-editor-project','preserve-existing-editor-autosave');
-    const open=indexedDB.open.bind(indexedDB);window.__viewerOpenedDatabases=[];
-    indexedDB.open=(name,...args)=>{window.__viewerOpenedDatabases.push(name);return open(name,...args);};
+    const open=indexedDB.open.bind(indexedDB);window.__openedDatabases=[];
+    indexedDB.open=(name,...args)=>{window.__openedDatabases.push(name);return open(name,...args);};
   });
   await page.goto('/');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
@@ -21,7 +21,7 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await page.getByLabel('지도에서 찾기', { exact: true }).fill('대한민국');
   await expect(page.locator('#objectSearchResults button').first()).toBeVisible();
   await page.locator('#objectSearchResults button').first().click();
-  await expect(page.locator('#viewerInfo')).toContainText('대한민국');
+  await expect(page.locator('#viewerStatus')).toContainText('대한민국');
   await setViewingProjection(page,'flat');
   await setViewingLayer(page,'countries',false);
   await setViewingLayer(page,'countries',true);
@@ -46,7 +46,7 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   expect(after.checkpoint).toBe(before.checkpoint);
   expect(after.presentationCheckpoint).toBe(before.presentationCheckpoint);
   expect(await page.evaluate(()=>localStorage.getItem('pandolab-editor-project'))).toBe('preserve-existing-editor-autosave');
-  expect(await page.evaluate(()=>window.__viewerOpenedDatabases)).not.toContain('pandolab-editor');
+  expect(await page.evaluate(()=>window.__openedDatabases)).not.toContain('pandolab-editor');
   expect(errors).toEqual([]);
 });
 }

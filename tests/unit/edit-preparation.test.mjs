@@ -11,7 +11,7 @@ import { createTerritoryComponentPlan } from '../../assets/js/modules/territory-
 import { normalizePolygonGeometry } from '../../assets/js/modules/map-edit-geometry.js';
 import { geometrySegmentIndex, segmentQueryBounds, territorialSegmentCandidates } from '../../assets/js/modules/geometry-segment-index.js';
 import '../../assets/js/modules/territorial-edit-plan.js';
-import { createEditDisplayPreparation } from '../../assets/js/modules/edit-display-preparation.js';
+import { createMapDisplayPreparation } from '../../assets/js/modules/map-display-preparation.js';
 import { createGeometrySnapshotPool, touchGeometry } from '../../assets/js/modules/geometry-versions.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
@@ -27,7 +27,7 @@ test('indexed adjacency keeps the original collinearity precision and raw date-l
 });
 
 test('display preparation reuses unchanged groups and discards removed boundaries', async () => {
-  const service = createEditDisplayPreparation();
+  const service = createMapDisplayPreparation();
   const country = createTerritorialFeature({ id: 'RUS', entityKind: 'general', geometry: square });
   const unit = createTerritorialFeature({ id: 'child', entityKind: 'general', parentId: 'RUS',
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]] } });
@@ -40,7 +40,7 @@ test('display preparation reuses unchanged groups and discards removed boundarie
 });
 
 test('display preparation shares unchanged monthly shapes and invalidates a touched geometry', async () => {
-  const service = createEditDisplayPreparation();
+  const service = createMapDisplayPreparation();
   const country = createTerritorialFeature({ id: 'ROOT', entityKind: 'general', geometry: square });
   const unit = createTerritorialFeature({ id: 'CHILD', entityKind: 'general', parentId: 'ROOT',
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]] } });
@@ -64,7 +64,7 @@ test('display preparation retains independent regional boundaries across general
   const roots = [country('WEST', 0, 5), country('EAST', 5, 10)];
   const region = createTerritorialFeature({ id: 'REGION', entityKind: 'regional',
     geometry: { type: 'Polygon', coordinates: [[[3, 2], [7, 2], [7, 8], [3, 8], [3, 2]]] } });
-  const result = await createEditDisplayPreparation().prepare({ kind: 'boundaries' }, roots, [region]);
+  const result = await createMapDisplayPreparation().prepare({ kind: 'boundaries' }, roots, [region]);
   assert.ok(result.segments.some(segment => segment.a[0] < 5 || segment.b[0] < 5));
   assert.ok(result.segments.some(segment => segment.a[0] > 5 || segment.b[0] > 5));
   assert.ok(result.segments.every(segment => segment.styleType === 'region' && segment.unitOwners[0].id === 'REGION'));

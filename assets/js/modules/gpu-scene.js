@@ -6,7 +6,7 @@ import { applySvgInteractionOwnership, makeSvgSceneProxy } from './render-channe
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createGpuScene() {
+export function createGpuScene({getEditPreview=null}={}) {
   let dependencies;
   let selectionPass;
   let renderSceneBuilder;
@@ -226,7 +226,7 @@ export function createGpuScene() {
   function syncGpuInteractionState({ selectionPacket = currentSelectionPacket, interactionFillItems = dependencies.interactionPresentation.currentGpuInteractionFillItems } = {}) {
     currentSelectionPacket = selectionPacket || null;
     dependencies.interactionStateCommands.replaceGpuInteractionFillItems(interactionFillItems || []);
-    const activePreview = dependencies.geometryOperations.editPreviewController.packet();
+    const activePreview = getEditPreview ? getEditPreview() : null;
     dependencies.interactionStateCommands.replaceGpuEditPreviewPackets(activePreview ? [activePreview] : []);
     dependencies.rendering.gpuMapRenderer.setInteractionState?.({
       selectionPacket: currentSelectionPacket,

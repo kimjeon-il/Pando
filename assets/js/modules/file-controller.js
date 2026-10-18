@@ -1,4 +1,9 @@
-export function createGisFileController({
+import { readProjectFile } from './project-file-reader.js';
+export function createFileController({
+  productMode,
+  readProject=readProjectFile,
+  openProject=null,
+  reportOperationError,
   elements,
   onFiles,
   setTarget = () => {},
@@ -9,6 +14,9 @@ export function createGisFileController({
   window = globalThis,
   document = globalThis.document,
 } = {}) {
+  if(!['viewer','editor'].includes(productMode))throw new TypeError('File operations require immutable product mode.');
+  if(typeof reportOperationError!=='function')throw new TypeError('File operations require their operation error reporter.');
+  const loadProject=openProject||((read)=>projectDomain.open(read));
   let returnFocus = null;
   let saving = false;
 
@@ -41,7 +49,11 @@ export function createGisFileController({
   const handleChange = async event => {
     const files = [...(event.target.files || [])];
     event.target.value = '';
-    try { return await onFiles(files, { sourceKind: event.target === elements.projectInput ? 'project' : 'vector' }); }
+    try {
+      if(event.target===elements.projectInput)return files.length?await loadProject(()=>readProject(files[0])):false;
+      if(productMode!=='editor')throw new Error('GIS import is unavailable in this product.');
+      return await onFiles(files,{sourceKind:'vector'});
+    }
     finally {
       const target = returnFocus;
       returnFocus = null;
@@ -50,8 +62,8 @@ export function createGisFileController({
   };
 
   const bind = () => {
-    elements.input?.addEventListener('change', handleChange);
-    elements.projectInput?.addEventListener('change', handleChange);
+    if(productMode==='editor')elements.input?.addEventListener('change',event=>{handleChange(event).catch(reportOperationError);});
+    elements.projectInput.addEventListener('change',event=>{handleChange(event).catch(reportOperationError);});
     return api;
   };
 
@@ -70,9 +82,8 @@ export function createGisFileController({
       if (!(selected?.blob instanceof Blob)) throw new TypeError('The application project picker must return a Blob.');
       const name = String(selected.path || '').split(/[\\/]/).pop();
       const filename = name && /\.gpkg$/i.test(name) ? name : '판도연구소-프로젝트.gpkg';
-      return await onFiles([new File([selected.blob], filename, {
-        type: 'application/geopackage+sqlite3',
-      })], { sourceKind: 'project' });
+      const file=new File([selected.blob],filename,{type:'application/geopackage+sqlite3'});
+      return await loadProject(()=>readProject(file));
     } finally {
       returnFocus = null;
       target?.focus?.({ preventScroll: true });
@@ -148,6 +159,6 @@ export function createGisFileController({
     }
   };
 
-  const api = Object.freeze({ bind, openPicker, openProjectPicker, handleChange, saveProject, saveExportFile });
+  const api = Object.freeze({bind,openProjectPicker,handleChange,...(productMode==='editor'?{openPicker,saveProject,saveExportFile}:{})});
   return api;
 }

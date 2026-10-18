@@ -61,6 +61,7 @@ export default [
     files: [
       'assets/js/workers/data-loader-worker.js',
       'assets/js/workers/place-worker.js',
+      'assets/js/workers/map-display-worker.js',
       'assets/js/workers/river-territory-partition-worker.js',
       'assets/js/workers/core-session-worker.js',
       'assets/js/workers/core-viewer-session-worker.js',

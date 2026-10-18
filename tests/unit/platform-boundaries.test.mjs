@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
-import { createProjectSession } from '../../assets/js/modules/app-project-session.js';
+import { createProjectSession } from '../../assets/js/modules/project-session.js';
 import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 import { createGeometryPreviewState } from '../../assets/js/modules/geometry-preview.js';
 import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';

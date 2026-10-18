@@ -73,9 +73,6 @@ export function createGlobalInputBindings() {
         if (!(0, dependencies.platform.$)('gisImportModal')?.classList.contains('hidden')) { (0, dependencies.platform.$)('gisImportCancelBtn')?.click(); return; }
         if (!(0, dependencies.platform.$)('gisExportModal')?.classList.contains('hidden')) { dependencies.gisServicesA.gisExportController?.close(); return; }
         if (dependencies.projectRestore.confirmModalController?.isOpen()) { (0, dependencies.projectRestore.closeConfirmModal)(); return; }
-        if (document.body.classList.contains('file-menu-open')) { (0, dependencies.workspaceUiA.closeFileMenu)({ restoreFocus: true }); return; }
-        if (dependencies.workspaceUiB.surfaceController.isOpen('create')) { (0, dependencies.workspaceUiA.closeSurface)('create', { restoreFocus: true }); return; }
-        if (dependencies.workspaceUiB.surfaceController.isOpen('search')) { e.preventDefault(); (0, dependencies.workspaceUiA.closeSurface)('search', { restoreFocus: true }); return; }
         if (dependencies.projectState.state.territorySelectionSession?.methodChangeConfirmation) {
           e.preventDefault();
           try { await dependencies.territorySelectionB.territorySelectionBack(); }
@@ -194,22 +191,7 @@ export function createGlobalInputBindings() {
     document.addEventListener('visibilitychange', () => { if (document.hidden) { clearAssistedPan(); dependencies.lifecycleUi.mapInputController?.cancel?.(); cancelDraftGesture('document-hidden'); } });
     (0, dependencies.platform.$)('map')?.addEventListener('touchcancel', () => cancelDraftGesture('touchcancel'), { passive: true });
 
-    window.addEventListener('resize', () => {
-      (0, dependencies.objectOperationsA.closeObjectActionsMenu)();
-      const layoutChanged = (0, dependencies.workspaceUiA.applyLayoutMode)();
-      if (!layoutChanged) {
-        (0, dependencies.workspaceUiB.refreshMapSheetMetrics)();
-        if (!dependencies.mapHostViewB.mapResizeObserver) (0, dependencies.mapHostViewB.queueMapResize)('window-resize-fallback');
-      }
-    });
-    window.addEventListener('orientationchange', () => {
-      (0, dependencies.workspaceUiB.refreshMapSheetMetrics)();
-      (0, dependencies.mapHostViewB.queueMapResize)('orientation-change');
-    });
     window.visualViewport?.addEventListener?.('resize', dependencies.objectOperationsA.closeObjectActionsMenu);
-    const onSystemThemeChange = event => (0, dependencies.platformConfigurationB.applySystemTheme)(!!event.matches);
-    if (typeof dependencies.platformConfigurationB.systemThemeQuery.addEventListener === 'function') dependencies.platformConfigurationB.systemThemeQuery.addEventListener('change', onSystemThemeChange);
-    else if (typeof dependencies.platformConfigurationB.systemThemeQuery.addListener === 'function') dependencies.platformConfigurationB.systemThemeQuery.addListener(onSystemThemeChange);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
         dependencies.lifecycleUi.mapInputController?.cancel?.();
@@ -223,33 +205,7 @@ export function createGlobalInputBindings() {
       if (!(0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness)) return;
       try { dependencies.domains.projectDomain.flushAutosave().catch(() => {}); } catch (_) {}
     });
-    window.addEventListener('popstate', event => {
-      if (dependencies.workspaceUiB.ignoreNextMobileSheetPopstate) {
-        dependencies.surfaceCommands.setIgnoreNextMobileSheetPopstate(false);
-        return;
-      }
-      if ((0, dependencies.surfaces.isMobile)() && dependencies.workspaceUiB.surfaceController.activeMobileSheet) {
-        const openSelect = document.querySelector('.ui-select-popover:not([hidden])');
-        if (openSelect) {
-          dependencies.platformConfigurationB.selectController.closeAll({ restoreFocus: true });
-          (0, dependencies.workspaceUiC.trackMobileSheetHistory)(dependencies.workspaceUiB.surfaceController.activeMobileSheet);
-          return;
-        }
-        const openPicker = document.querySelector('[data-color-picker].is-open');
-        if (openPicker) {
-          (0, dependencies.colorPicker.closeColorPicker)(openPicker, { restoreFocus: true });
-          (0, dependencies.workspaceUiC.trackMobileSheetHistory)(dependencies.workspaceUiB.surfaceController.activeMobileSheet);
-          return;
-        }
-        (0, dependencies.workspaceUiA.closeActiveMobileSheet)({ restoreFocus: true, syncHistory: false });
-        return;
-      }
-      if (event.state?.[dependencies.workspaceUiA.MOBILE_SHEET_HISTORY_KEY]) {
-        const nextState = { ...event.state };
-        delete nextState[dependencies.workspaceUiA.MOBILE_SHEET_HISTORY_KEY];
-        window.history.replaceState(nextState, '', window.location.href);
-      }
-    });
+
   }
 
   return Object.freeze({

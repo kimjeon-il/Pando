@@ -5,6 +5,10 @@ import { build } from 'esbuild';
 // Dependencies selected through URLs or classic Worker APIs are reviewed here;
 // static ESM edges are discovered by the same parser used by the build tooling.
 const runtimeDependencies = Object.freeze({
+  'assets/js/modules/map-display-client.js':['assets/js/workers/map-display-worker.js'],
+  'assets/js/modules/gpu-scene.js':['assets/js/workers/gpu-mesh-worker.js'],
+  'assets/js/modules/territorial-labels.js':['assets/data/places/manifest.json','assets/js/workers/place-worker.js'],
+  'assets/js/modules/country-index.js':['assets/js/workers/label-anchor-worker.js'],
   'assets/js/modules/core-document-client.js': ['assets/js/workers/core-viewer-session-worker.js'],
   'assets/js/modules/core-wasm-loader.js': ['assets/wasm/pandoeditor-core.js', 'assets/wasm/pandoeditor-core.wasm', 'assets/wasm/pandoeditor-core.manifest.json'],
   'assets/js/modules/gpu-map-renderer.js': ['assets/js/workers/hydro-tile-worker.js', 'assets/js/workers/gpu-mesh-worker.js',
@@ -19,7 +23,7 @@ const dynamicExpressions = Object.freeze({
   'assets/js/workers/canvas-render-worker.js': ['validationUrl.href'],
   'assets/js/workers/place-worker.js': ['storeModuleUrl.href'],
 });
-const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-(?!(?:accent|map-settings)\.js)|editing-|project-domain|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;
+const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-(?:composition|runtime-dependencies|domain-assembly|lifecycle-assembly|project-restore|project-snapshots|country-commits|generic-commands|object-commands|global-input-bindings|file-bindings|tool-bindings|editor-bindings|territorial-drafts|territory-selection-workflow|geometry-preview|history-assembly|gis-assembly|library-assembly)|editing-|editor-map-click|spatial-edit-registration|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;
 const slash = path => path.replaceAll('\\', '/');
 const stripQuery = path => path.split(/[?#]/, 1)[0];
 
@@ -84,7 +88,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
           for (const match of call[1].matchAll(/['"]([^'"]+\.js(?:\?[^'"]*)?)['"]/g)) dependencies.add(local(match[1], path));
         }
         for (const match of source.matchAll(/runtimeAssetUrl\(\s*['"]([^'"]+)['"]/g)) {
-          const dependency = `assets/js/${stripQuery(match[1])}`;
+          const dependency = slash(relative(root,resolve(root,'assets/js',stripQuery(match[1]))));
           if (!dependencies.has(dependency)) throw Error(`Uncatalogued runtime asset in ${path}: ${dependency}`);
         }
         for (const dependency of dependencies) {

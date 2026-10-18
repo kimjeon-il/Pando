@@ -1,24 +1,23 @@
+import {createPreferencePresentation} from './preference-presentation.js';
+import {ZOOM_LIMITS,FLAT_LATITUDE_LIMIT} from './camera-navigation.js';
+import {syncSearchClearButton} from './object-search-controller.js';
+import { HYDRO_DATASET as hydroDataset } from './physical-layer-service.js';
 import { createEmptyState as renderEmptyState } from './empty-state.js';
 import { resolveMapTheme } from './map-theme.js';
 import { HYDRO_DATA_VERSION } from './physical-layer-service.js';
-import { applyInteractionCssProperties } from './map-interaction-style.js';
-import { countryDefaultColor } from './color-adapter.js';
-const terrainAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
-const { TERRAIN_DEM_VERSION, TERRAIN_RASTER_DATASET, selectTerrainManifestUrls, terrainRasterManifestUrl } =
-  await import(`./terrain-manifest.js?v=${encodeURIComponent(terrainAssetRevision)}`);
-
-// The published DEM is the GPU default; the raster dataset remains the fallback.
-const TERRAIN_DEM_DEFAULT_ENABLED = true;
+import { DEFAULT_GENERIC_FEATURE_COLOR,countryDefaultColor } from './color-adapter.js';
+import {TERRAIN_RASTER_DATASET} from './terrain-manifest.js';
+import {createPhysicalSourceConfiguration,HYDRO_TOOL_CONFIG,HYDRO_LAYER_META,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET} from './physical-source-configuration.js';
 /** Environment: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createEnvironment() {
   let dependencies;
+  let preferencePresentation;
   let d3;
   let APP_VERSION;
   let FLAT_PROJECTION_KIND;
-  let FLAT_LATITUDE_LIMIT;
   let ASSET_REVISION;
   let DATA_REVISION;
   let PANDOLAB_ASSET_BASE_URL;
@@ -29,7 +28,6 @@ export function createEnvironment() {
   let TERRAIN_FALLBACK_MANIFEST_URL;
   let TERRAIN_SOURCE_CHOICE;
   let TERRITORIAL_LIBRARY_INDEX_URL;
-  let PHYSICAL_DATASET;
   let TERRAIN_DATASET;
   let HYDRO_DATASET;
   let STORAGE_KEY;
@@ -38,25 +36,14 @@ export function createEnvironment() {
   let AUTOSAVE_RECORD_KEY;
   let AUTOSAVE_VIEW_KEY;
   let BASE_DATASET;
-  let DEFAULT_GENERIC_FEATURE_COLOR;
   let COLOR_PRESETS;
   let COLOR_PALETTE_TONES;
   let COLOR_PALETTE_NEUTRALS;
   let COLOR_PALETTE_HUES;
   let COLOR_PALETTE_COLORS;
-  let ZOOM_LIMITS;
-  let HYDRO_TOOL_CONFIG;
-  let HYDRO_LAYER_META;
-  let TERRAIN_OCEAN_REPRESENTATIVE;
   let MAX_HISTORY;
   let CUT_ENDPOINT_SNAP_DISTANCE;
-  let systemThemeQuery;
-  let systemTheme;
-  let userPreferences;
   let runtimeReady;
-  let MAP_LABEL_FONT_STACKS;
-  let resolvedAccentColor;
-  let resolvedInteractionStyle;
   let $;
   let selectController;
   let tooltipController;
@@ -70,35 +57,6 @@ export function createEnvironment() {
     dependencies = ports;
   }
 
-  function applyMapLabelPreferences() {
-    const root = document.documentElement.style;
-    const labels = userPreferences.labels;
-    root.setProperty('--country-label-font-family', MAP_LABEL_FONT_STACKS[labels.country.font] || MAP_LABEL_FONT_STACKS.default);
-    root.setProperty('--place-label-font-family', MAP_LABEL_FONT_STACKS[labels.place.font] || MAP_LABEL_FONT_STACKS.default);
-    if (labels.country.color) root.setProperty('--country-label-color', labels.country.color);
-    else root.removeProperty('--country-label-color');
-    if (labels.place.color) root.setProperty('--place-label-color', labels.place.color);
-    else root.removeProperty('--place-label-color');
-    if (labels.place.pointColor) root.setProperty('--place-label-point-color', labels.place.pointColor);
-    else root.removeProperty('--place-label-point-color');
-  }
-
-  function resolveCurrentInteractionStyle() {
-    const theme = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
-    const computed = getComputedStyle(document.documentElement);
-    return (0, dependencies.applicationServicesB.resolveMapInteractionStyle)({
-      theme,
-      selectionColor: userPreferences.selection.color || resolvedAccentColor,
-      outlineVisible: userPreferences.selection.outlineVisible,
-      fillStrength: userPreferences.selection.fillStrength,
-      antiAlias: userPreferences.appearance?.smoothLines !== false,
-      tokens: {
-        accent: computed.getPropertyValue('--accent').trim(),
-        textStrong: computed.getPropertyValue('--text-strong').trim(),
-      },
-    });
-  }
-
   function enableKeyboardNavigation(event) {
     if (event.key === 'Tab') document.documentElement.classList.add('keyboard-navigation');
   }
@@ -109,7 +67,7 @@ export function createEnvironment() {
 
   function mapTheme() {
     return resolveMapTheme({ state: dependencies.projectState.state,
-      theme: document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme });
+      theme: document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || preferencePresentation.systemTheme });
   }
 
   function defaultCountryColor(feature) {
@@ -117,18 +75,11 @@ export function createEnvironment() {
     return countryDefaultColor(feature) || mapTheme().defaultLand;
   }
 
-  function applySystemTheme(matchesDark) {
-    const nextTheme = matchesDark ? 'dark' : 'light';
-    if (nextTheme === systemTheme && userPreferences.appearance.theme !== 'system') return;
-    systemTheme = nextTheme;
-    document.documentElement.dataset.systemTheme = systemTheme;
-    document.documentElement.dataset.theme = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
-    document.documentElement.dataset.smoothLines = String(userPreferences.appearance?.smoothLines !== false);
-    window.__PANDOLAB_THEME__ = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
-    resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentPreset);
-    (0, dependencies.preferences.syncResolvedInteractionStyle)();
-    dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'system-theme');
-    dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('system-theme');
+  function onPreferenceChange({reason,rerender}){
+    if(!dependencies.mapLayers.svg)return;
+    dependencies.preferences.syncResolvedInteractionStyle({redraw:rerender});
+    dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({base:true,emphasis:true},reason);
+    dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle(reason);
     if (dependencies.projectState.state?.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) {
       const id = String(dependencies.projectState.state.selected.id);
       const feature = dependencies.territorialModel.entityRepository.get(id);
@@ -140,17 +91,9 @@ export function createEnvironment() {
         isDefault: color.isDefault,
       });
     }
-    if (dependencies.mapLayers.svg) {
-      (0, dependencies.objectDisplay.invalidateObjectPresentation)();
-      dependencies.domains.objectSearchController?.render();
-      dependencies.domains.renderingDomain?.invalidateBaseScene?.('system-theme');
-    }
-  }
-
-  const createEmptyState = renderEmptyState.bind(null, document);
-
-  function syncSearchClearButton(input, button) {
-    button?.classList.toggle('hidden', !String(input?.value || '').length);
+    dependencies.objectDisplay.invalidateObjectPresentation();
+    dependencies.domains.objectSearchController?.render();
+    if(rerender)dependencies.domains.renderingDomain.invalidateBaseScene(reason);
   }
 
   function runtimeAssetUrl(relativePath) {
@@ -177,7 +120,6 @@ export function createEnvironment() {
 
     (FLAT_PROJECTION_KIND = 'equirectangular');
 
-    (FLAT_LATITUDE_LIMIT = 89.999);
 
     (ASSET_REVISION = String(window.PANDOLAB_ASSET_REVISION || globalThis.PANDOLAB_BUILD_META?.assetRevision || ''));
 
@@ -187,39 +129,18 @@ export function createEnvironment() {
 
     (PANDOLAB_ASSET_BASE_URL = window.PANDOLAB_ASSET_BASE_URL || new URL('./assets/js/', location.href).href);
 
-    (PHYSICAL_DATA_BASE_URL = new URL('../data/', PANDOLAB_ASSET_BASE_URL));
-    (TERRAIN_RASTER_MANIFEST_URL = terrainRasterManifestUrl(PHYSICAL_DATA_BASE_URL, DATA_REVISION));
-    // Development-only data source. No project field or user preference is added.
-    (TERRAIN_DEV_DEM_MANIFEST_URL = (() => {
-      const explicit = window.PANDOLAB_DEV_DEM_MANIFEST_URL;
-      const local = new URLSearchParams(location.search).get('demTerrain') === 'local'
-        ? `http://127.0.0.1:4174/terrain/v${TERRAIN_DEM_VERSION}/manifest.json` : null;
-      return explicit || local ? new URL(String(explicit || local), location.href) : null;
-    })());
-    const terrainSelection = selectTerrainManifestUrls({
-      // The storage repository is stable; data versions are immutable paths.
-      official: new URL(`https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),
-      raster: TERRAIN_RASTER_MANIFEST_URL,
-      dev: globalThis.PANDOLAB_BUILD_META?.resourceProfile === 'full-world'
-        ? null : TERRAIN_DEV_DEM_MANIFEST_URL,
-      preview: new URLSearchParams(location.search).get('demTerrain') === 'preview',
-      rasterOnly: globalThis.PANDOLAB_BUILD_META?.resourceProfile === 'full-world'
-        || new URLSearchParams(location.search).get('demTerrain') === 'raster',
-      defaultDem: TERRAIN_DEM_DEFAULT_ENABLED,
-    });
-    (TERRAIN_PRIMARY_MANIFEST_URL = terrainSelection.primary);
-    (TERRAIN_FALLBACK_MANIFEST_URL = terrainSelection.fallback);
-    (TERRAIN_SOURCE_CHOICE = terrainSelection.source);
+    ({PHYSICAL_DATA_BASE_URL,TERRAIN_RASTER_MANIFEST_URL,TERRAIN_DEV_DEM_MANIFEST_URL,
+      TERRAIN_PRIMARY_MANIFEST_URL,TERRAIN_FALLBACK_MANIFEST_URL,TERRAIN_SOURCE_CHOICE}=createPhysicalSourceConfiguration({
+      assetBaseUrl:PANDOLAB_ASSET_BASE_URL,dataRevision:DATA_REVISION,resourceProfile:globalThis.PANDOLAB_BUILD_META?.resourceProfile}));
 
     (TERRITORIAL_LIBRARY_INDEX_URL = new URL('territorial-entities/generated/v2/index.json', PHYSICAL_DATA_BASE_URL));
 
     TERRITORIAL_LIBRARY_INDEX_URL.searchParams.set('v', ASSET_REVISION);
 
-    (PHYSICAL_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · ETOPO 2022 DEM');
 
     (TERRAIN_DATASET = TERRAIN_RASTER_DATASET);
 
-    (HYDRO_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 1:10m lakes');
+    (HYDRO_DATASET = hydroDataset);
 
     (STORAGE_KEY = 'pandolab-editor-project');
 
@@ -234,7 +155,6 @@ export function createEnvironment() {
     (BASE_DATASET = 'Natural Earth 5.1.1 · Admin 0 Countries · 1:10m · de facto');
 
 
-    (DEFAULT_GENERIC_FEATURE_COLOR = '#8c68d8');
 
     (COLOR_PRESETS = Object.freeze([
       '#000000', '#4b5563', '#9ca3af', '#ffffff', '#7f1d1d', '#dc2626',
@@ -277,61 +197,17 @@ export function createEnvironment() {
       }))
     ))));
 
-    (ZOOM_LIMITS = Object.freeze({
-      globe: Object.freeze({ min: 0.72, max: 32 }),
-      flat: Object.freeze({ min: 0.75, max: 64 }),
-    }));
 
-    (HYDRO_TOOL_CONFIG = Object.freeze({
-      river: Object.freeze({ geometry: 'LineString', category: 'river', label: '강', color: '#3b82c4', prefix: 'river' }),
-      lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
-    }));
-
-    (HYDRO_LAYER_META = Object.freeze({
-      rivers_hydro: Object.freeze({ label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS', category: 'river', color: '#3b82c4' }),
-      lakes_natural_earth: Object.freeze({ label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth', category: 'lake', color: '#5aa9d6' }),
-    }));
-
-    (TERRAIN_OCEAN_REPRESENTATIVE = '#6aa8d2');
 
     (MAX_HISTORY = 30);
 
     (CUT_ENDPOINT_SNAP_DISTANCE = Object.freeze({ mouse: 10, touch: 18 }));
 
 
-    (systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)'));
-
-    (systemTheme = systemThemeQuery.matches ? 'dark' : 'light');
-
-    (userPreferences = (0, dependencies.applicationServicesB.loadUserPreferences)());
-
-    (runtimeReady = false);
-
-    document.documentElement.dataset.systemTheme = systemTheme;
-
-    document.documentElement.dataset.theme = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
-    document.documentElement.dataset.statusBarVisible = String(userPreferences.appearance?.statusBarVisible !== false);
-
-    (MAP_LABEL_FONT_STACKS = Object.freeze({
-      default: 'var(--ui-font-family)',
-      gothic: '"Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif',
-      serif: '"Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", serif',
-    }));
-
-    applyMapLabelPreferences();
-
-    (resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentPreset));
-    document.documentElement.dataset.smoothLines = String(userPreferences.appearance?.smoothLines !== false);
-
-    (resolvedInteractionStyle = resolveCurrentInteractionStyle());
-
-    applyInteractionCssProperties(resolvedInteractionStyle);
-
-    (0, dependencies.selectionServices.setSelectionColor)(resolvedInteractionStyle.selection.color);
-
-    (0, dependencies.selectionServices.setSelectionInteractionStyle)(resolvedInteractionStyle);
-
-    window.__PANDOLAB_THEME__ = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
+    preferencePresentation=createPreferencePresentation({document,window,onChange:onPreferenceChange});
+    runtimeReady=false;
+    dependencies.selectionServices.setSelectionColor(preferencePresentation.interactionStyle.selection.color);
+    dependencies.selectionServices.setSelectionInteractionStyle(preferencePresentation.interactionStyle);
 
     document.addEventListener('keydown', enableKeyboardNavigation, true);
 
@@ -395,6 +271,15 @@ export function createEnvironment() {
 
   return Object.freeze({
     connect,
+    dispose(){
+      if(preferencePresentation)preferencePresentation.dispose();
+      document.removeEventListener('keydown',enableKeyboardNavigation,true);
+      document.removeEventListener('pointerdown',disableKeyboardNavigation,true);
+      document.removeEventListener('mousedown',disableKeyboardNavigation,true);
+      document.removeEventListener('touchstart',disableKeyboardNavigation,true);
+      if(selectController)selectController.closeAll();
+      if(tooltipController)tooltipController.hide();
+    },
     initializeD3,
     initializeTerritorialGeometry,
     initializeClamp,
@@ -431,32 +316,27 @@ export function createEnvironment() {
     get TERRAIN_DATASET() { return TERRAIN_DATASET; },
     get TERRAIN_OCEAN_REPRESENTATIVE() { return TERRAIN_OCEAN_REPRESENTATIVE; },
     get ZOOM_LIMITS() { return ZOOM_LIMITS; },
-    get applyMapLabelPreferences() { return applyMapLabelPreferences; },
-    get applySystemTheme() { return applySystemTheme; },
+    get applyUserPreferences() { return preferencePresentation.apply; },
     get assertRuntimeCompatibility() { return assertRuntimeCompatibility; },
     get tooltipController() { return tooltipController; },
     get clamp() { return clamp; },
     get coarsePointer() { return globalThis.matchMedia?.('(pointer: coarse)')?.matches === true; },
-    get createEmptyState() { return createEmptyState; },
+    get createEmptyState() { return (...args)=>renderEmptyState(document,...args); },
     get d3() { return d3; },
     get deepClone() { return deepClone; },
     get defaultCountryColor() { return defaultCountryColor; },
     get mapTheme() { return mapTheme; },
     get polygonClipping() { return globalThis.polygonClipping; },
     get reliabilityDiagnostic() { return reliabilityDiagnostic; },
-    get resolveCurrentInteractionStyle() { return resolveCurrentInteractionStyle; },
-    get resolvedAccentColor() { return resolvedAccentColor; },
-    set resolvedAccentColor(value) { resolvedAccentColor = value; },
-    get resolvedInteractionStyle() { return resolvedInteractionStyle; },
-    set resolvedInteractionStyle(value) { resolvedInteractionStyle = value; },
+    get resolvedAccentColor() { return preferencePresentation.accent; },
+    get resolvedInteractionStyle() { return preferencePresentation.interactionStyle; },
     get runtimeAssetUrl() { return runtimeAssetUrl; },
     get runtimeReady() { return runtimeReady; },
     set runtimeReady(value) { runtimeReady = value; },
     get selectController() { return selectController; },
     get syncSearchClearButton() { return syncSearchClearButton; },
-    get systemTheme() { return systemTheme; },
-    get systemThemeQuery() { return systemThemeQuery; },
-    get userPreferences() { return userPreferences; },
-    set userPreferences(value) { userPreferences = value; },
+    get systemTheme() { return preferencePresentation.systemTheme; },
+    get userPreferences() { return preferencePresentation.current; },
+    set userPreferences(value) { preferencePresentation.current = value; },
   });
 }

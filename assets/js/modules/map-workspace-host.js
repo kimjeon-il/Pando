@@ -7,7 +7,6 @@ export function createMapHost() {
   let dependencies;
   let svg;
   let interactionSvg;
-  let root;
   let shadowLayer;
   let oceanLayer;
   let countryLayer;
@@ -127,6 +126,18 @@ export function createMapHost() {
       .precision((0, dependencies.surfaces.isMobile)() ? 0.7 : 0.25);
   }
 
+  function prepareVisualFrame({frameId}={}){
+    dependencies.mapView.updateProjection();
+    const viewState=syncViewRevision();
+    if(lastVisualProjectionKind!==viewState.projection){lastVisualProjectionKind=viewState.projection;visualProjectionRevision++;}
+    const visualProjection=visualProjectionForSnapshot(viewState);
+    const visualPath=dependencies.platform.d3.geo.path().projection(visualProjection);
+    return dependencies.renderFactories.createMapVisualFrame({frameId,viewRevision:viewState.revision,
+      projectGeneration:dependencies.domains.projectDomain.getGeneration(),projectionRevision:visualProjectionRevision,viewState,
+      layoutSnapshot:dependencies.mapLayout.mapLayoutMetricsSnapshot,projectCoordinate:coordinate=>visualProjection(coordinate),
+      projectPath:geometry=>visualPath(geometry),createCanvasPath:context=>dependencies.platform.d3.geo.path().projection(visualProjection).context(context)});
+  }
+
   function mapSurfaceHostOptions() {
     return {
       getProjectionKind: () => dependencies.projectState.state.projection,
@@ -242,36 +253,7 @@ export function createMapHost() {
     }));
     dependencies.rendering.gpuMapRenderer.setSelectionPass?.(dependencies.gpuRenderingA.selectionPass);
     (0, dependencies.preferences.syncResolvedInteractionStyle)();
-    interactionSvg = map.append('svg').attr('class', 'map-interaction-svg');
-    const interactionRoot = interactionSvg.append('g').attr('class', 'map-interaction-root');
-    root = svg.append('g').attr('class', 'map-root');
-    mapInteractionLayer = root.append('rect').attr('class', 'map-hit-area').attr('x', 0).attr('y', 0);
-    countryLayer = root.append('g').attr('class', 'countries-layer');
-    hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
-    hydroRiverLayer = root.append('g').attr('class', 'hydro-rivers-layer');
-    hydroEditLayer = root.append('g').attr('class', 'hydro-edit-layer');
-    boundaryEditLayer = root.append('g').attr('class', 'boundary-edit-layer');
-    overlayStackLayer = root.append('g').attr('class', 'overlay-stack-layer');
-    territorialBoundaryLayer = root.append('g').attr('class', 'territorial-boundary-layer');
-    territorialUnitLayer = overlayStackLayer;
-    distributionLayer = overlayStackLayer;
-    genericFeatureLayer = overlayStackLayer;
-    hoverLayer = root.append('g').attr('class', 'hover-overlay-layer');
-    selectionLayer = root.append('g').attr('class', 'selection-overlay-layer');
-    previewLayer = root.append('g').attr('class', 'geometry-preview-layer');
-    validationLayer = root.append('g').attr('class', 'validation-overlay-layer');
-    vertexLayer = root.append('g').attr('class', 'vertices-layer');
-    draftLayer = root.append('g').attr('class', 'draft-layer');
-    snapLayer = root.append('g').attr('class', 'snap-indicator-layer');
-    territorialOperationLayer = interactionRoot.append('g').attr('class', 'territorial-operation-layer');
-    territorialLabelLayer = root.append('g').attr('class', 'territorial-label-layer');
-    labelLayer = root.append('g').attr('class', 'labels-layer');
-    const interactionLayers = [[territorialOperationLayer, 'edit-preview'], [hoverLayer, 'hover'],
-      [selectionLayer, 'primary'], [previewLayer, 'edit-preview'], [validationLayer, 'validation'],
-      [vertexLayer, 'edit-handles'], [draftLayer, 'draft'], [snapLayer, 'snap'],
-      [territorialLabelLayer, 'territorial-labels'], [labelLayer, 'labels']];
-    interactionLayers.sort((a, b) => mapVisualRank(a[1]) - mapVisualRank(b[1]))
-      .forEach(([layer]) => interactionRoot.node().appendChild(layer.node()));
+    ({interactionSvg,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,boundaryEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,previewLayer,validationLayer,vertexLayer,draftLayer,snapLayer,territorialOperationLayer,territorialLabelLayer,labelLayer}=createMapOverlayLayers({map,svg}));
 
     dependencies.mapHostCommands.installMapInputController(dependencies.lifecycleUi.mapInputPresentation.bindSvg(svg));
   }
@@ -381,6 +363,7 @@ export function createMapHost() {
 
   return Object.freeze({
     connect,
+    prepareVisualFrame,
     initializeSvg,
     initializeValidationLayer,
     initializeMapResizeObserver,
@@ -401,8 +384,6 @@ export function createMapHost() {
     get initializeMapHost() { return initializeMapHost; },
     get interactionSvg() { return interactionSvg; },
     get labelLayer() { return labelLayer; },
-    get lastVisualProjectionKind() { return lastVisualProjectionKind; },
-    set lastVisualProjectionKind(value) { lastVisualProjectionKind = value; },
     get mapHost() { return mapHost; },
     get mapHostReadyPromise() { return mapHostReadyPromise; },
     set mapHostReadyPromise(value) { mapHostReadyPromise = value; },
@@ -428,6 +409,40 @@ export function createMapHost() {
     get viewRevision() { return viewRevision; },
     get visualProjectionForSnapshot() { return visualProjectionForSnapshot; },
     get visualProjectionRevision() { return visualProjectionRevision; },
-    set visualProjectionRevision(value) { visualProjectionRevision = value; },
   });
+}
+
+export function createMapOverlayLayers({map,svg,productMode='editor'}){
+    const interactionSvg = map.append('svg').attr('class', 'map-interaction-svg');
+    const interactionRoot = interactionSvg.append('g').attr('class', 'map-interaction-root');
+    const root = svg.append('g').attr('class', 'map-root');
+    const mapInteractionLayer = root.append('rect').attr('class', 'map-hit-area').attr('x', 0).attr('y', 0);
+    const countryLayer = root.append('g').attr('class', 'countries-layer');
+    const hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
+    const hydroRiverLayer = root.append('g').attr('class', 'hydro-rivers-layer');
+    const hydroEditLayer = root.append('g').attr('class', 'hydro-edit-layer');
+    const boundaryEditLayer = productMode==='editor'?root.append('g').attr('class', 'boundary-edit-layer'):null;
+    const overlayStackLayer = root.append('g').attr('class', 'overlay-stack-layer');
+    const territorialBoundaryLayer = root.append('g').attr('class', 'territorial-boundary-layer');
+    const territorialUnitLayer = overlayStackLayer;
+    const distributionLayer = overlayStackLayer;
+    const genericFeatureLayer = overlayStackLayer;
+    const hoverLayer = root.append('g').attr('class', 'hover-overlay-layer');
+    const selectionLayer = root.append('g').attr('class', 'selection-overlay-layer');
+    const previewLayer = productMode==='editor'?root.append('g').attr('class', 'geometry-preview-layer'):null;
+    const validationLayer = productMode==='editor'?root.append('g').attr('class', 'validation-overlay-layer'):null;
+    const vertexLayer = productMode==='editor'?root.append('g').attr('class', 'vertices-layer'):null;
+    const draftLayer = productMode==='editor'?root.append('g').attr('class', 'draft-layer'):null;
+    const snapLayer = productMode==='editor'?root.append('g').attr('class', 'snap-indicator-layer'):null;
+    const territorialOperationLayer = productMode==='editor'?interactionRoot.append('g').attr('class', 'territorial-operation-layer'):null;
+    const territorialLabelLayer = root.append('g').attr('class', 'territorial-label-layer');
+    const labelLayer = root.append('g').attr('class', 'labels-layer');
+    const interactionLayers = [[territorialOperationLayer, 'edit-preview'], [hoverLayer, 'hover'],
+      [selectionLayer, 'primary'], [previewLayer, 'edit-preview'], [validationLayer, 'validation'],
+      [vertexLayer, 'edit-handles'], [draftLayer, 'draft'], [snapLayer, 'snap'],
+      [territorialLabelLayer, 'territorial-labels'], [labelLayer, 'labels']];
+    interactionLayers.filter(([layer])=>layer).sort((a, b) => mapVisualRank(a[1]) - mapVisualRank(b[1]))
+      .forEach(([layer]) => interactionRoot.node().appendChild(layer.node()));
+
+    return {interactionSvg,root,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,boundaryEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,previewLayer,validationLayer,vertexLayer,draftLayer,snapLayer,territorialOperationLayer,territorialLabelLayer,labelLayer};
 }

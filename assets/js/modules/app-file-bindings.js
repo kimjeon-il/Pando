@@ -113,8 +113,7 @@ export function createFileBindings() {
       if (dependencies.surfaces.layoutMode === 'wide' || !target || !fileMenu?.contains(target)) return;
       event.preventDefault();
       requestAnimationFrame(() => {
-        dependencies.surfaceCommands.setFileMenuTrigger((0, dependencies.platform.$)('mobileFileBtn'));
-        fileMenu.classList.add('mobile-open');
+        dependencies.workspaceUiA.openFileMenu({trigger:dependencies.platform.$('mobileFileBtn')});
         (0, dependencies.workspaceUiB.syncOverlayState)();
         requestAnimationFrame(() => target.focus({ preventScroll: true }));
       });

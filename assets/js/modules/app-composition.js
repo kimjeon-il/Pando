@@ -1,15 +1,14 @@
+import {createMapOwners} from './map-owner-composition.js';
+import {handleEditorMapClick} from './editor-map-click.js';
 /** Compose owners, connect their explicit ports, then initialize in dependency order. */
 export async function composeApplication({ productMode, revision, platform = {}, onComposed = null }) {
   if (productMode !== 'editor') throw new TypeError('The application entry requires editor product mode.');
   const [
-    runtime, factoryEnvironment, factoryBuiltinSession, factoryWorkspaceSurfaces, factoryProjectSession,
-    factoryObjectCommands, factoryServiceAssembly, factoryRenderQuality, factoryPointerTargets,
-    factoryCameraNavigation, factoryReadinessNotifications, factoryCountryIndex, factorySpatialIndex,
+    runtime, factoryEnvironment, factoryObjectCommands, factoryServiceAssembly, factoryReadinessNotifications, factorySpatialEdit,
     factoryGeometryPreview, factoryTerritorySelectionWorkflow, factoryTerritoryComponents, factoryCountryValidation, factoryLandRelations,
-    factoryCutGeometry, factoryMapProjection, factoryObjectPresentation, factoryHydroSettings,
-    factoryObjectCatalog, factoryTerritorialLabels, factoryPhysicalResources, factoryInteractionPackets,
-    factoryTerritoryComponentUi, factoryGpuScene, factoryMapAudit, factoryMapHost, factoryTaskPresentation,
-    factoryCountryModes, factoryObjectPicking, factoryRiverCandidates, factoryCountryCommits,
+    factoryCutGeometry, factoryInteractionPackets,
+    factoryTerritoryComponentUi, factoryMapAudit, factoryTaskPresentation,
+    factoryCountryModes, factoryRiverCandidates, factoryCountryCommits,
     factoryGenericCommands, factoryPropertySelection, factoryTerritorialDrafts, factoryColorPicker,
     factoryObjectMetadata, factoryTerritorialConversion, factoryProjectSnapshots, factoryMapSettings,
     factoryHistoryAssembly, factoryProjectRestore, factoryObjectDeletion, factoryGisAssembly,
@@ -20,37 +19,21 @@ export async function composeApplication({ productMode, revision, platform = {},
   ] = await Promise.all([
     import(new URL(`./app-runtime-dependencies.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-environment.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-builtin-session.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-workspace-surfaces.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-project-session.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-object-commands.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-service-assembly.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-render-quality.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-pointer-targets.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-camera-navigation.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-readiness-notifications.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-country-index.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-spatial-index.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
+    import(new URL(`./spatial-edit-registration.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-geometry-preview.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-territory-selection-workflow.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-territory-components.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-country-validation.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-land-relations.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-cut-geometry.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-map-projection.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-object-presentation.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-hydro-settings.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-object-catalog.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-territorial-labels.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-physical-resources.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-interaction-packets.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-territory-component-ui.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-gpu-scene.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-map-audit.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-map-host.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-task-presentation.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-country-modes.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-object-picking.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-river-candidates.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-country-commits.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-generic-commands.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
@@ -66,7 +49,7 @@ export async function composeApplication({ productMode, revision, platform = {},
     import(new URL(`./app-object-deletion.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-gis-assembly.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-library-assembly.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-navigation-bindings.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
+    import(new URL(`./navigation-bindings.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-tool-bindings.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-file-bindings.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-global-input-bindings.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
@@ -83,38 +66,28 @@ export async function composeApplication({ productMode, revision, platform = {},
     import(new URL(`./app-connect-project-io.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-connect-lifecycle-ui.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
   ]);
+  const {builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,platform,
+    closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectAvailable:(group,id)=>objectCommands.isObjectAvailable(objectCommands.layerItemObjectRef(group,id)),
+    editing:{beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
+      persistView:()=>domainAssembly.projectDomain.queueViewAutosave(),getEditPreview:()=>geometryPreview.editPreviewController.packet(),
+      handleMapClick:point=>handleEditorMapClick(point,applicationPorts),
+      onBackgroundClear:()=>workspaceSurfaces.closeSurface('editor',{restoreFocus:false}),
+      performanceRecorder:{snapshot:(...args)=>serviceAssembly.selectionPerformanceCounterSnapshot(...args),publish:(...args)=>serviceAssembly.publishSelectionPerformanceSample(...args)}}});
   const environment = factoryEnvironment.createEnvironment();
-  const builtinSession = factoryBuiltinSession.createBuiltinSession({ historicalWorldLoader: platform.historicalWorldLoader });
-  const workspaceSurfaces = factoryWorkspaceSurfaces.createWorkspaceSurfaces();
-  const projectSession = factoryProjectSession.createProjectSession();
   const objectCommands = factoryObjectCommands.createObjectCommands();
   const serviceAssembly = factoryServiceAssembly.createServiceAssembly();
-  const renderQuality = factoryRenderQuality.createRenderQuality();
-  const pointerTargets = factoryPointerTargets.createPointerTargets();
-  const cameraNavigation = factoryCameraNavigation.createCameraNavigation();
   const readinessNotifications = factoryReadinessNotifications.createReadinessNotifications();
-  const countryIndex = factoryCountryIndex.createCountryIndex();
-  const spatialIndex = factorySpatialIndex.createSpatialIndex();
   const geometryPreview = factoryGeometryPreview.createGeometryPreview();
   const territorySelectionWorkflow = factoryTerritorySelectionWorkflow.createTerritorySelectionWorkflow();
   const territoryComponents = factoryTerritoryComponents.createTerritoryComponents();
   const countryValidation = factoryCountryValidation.createCountryValidation();
   const landRelations = factoryLandRelations.createLandRelations();
   const cutGeometry = factoryCutGeometry.createCutGeometry();
-  const mapProjection = factoryMapProjection.createMapProjection();
-  const objectPresentation = factoryObjectPresentation.createObjectPresentation();
-  const hydroSettings = factoryHydroSettings.createHydroSettings();
-  const objectCatalog = factoryObjectCatalog.createObjectCatalog();
-  const territorialLabels = factoryTerritorialLabels.createTerritorialLabels({ builtinPlacesEnabled: platform.builtinPlacesEnabled });
-  const physicalResources = factoryPhysicalResources.createPhysicalResources({ enabled: platform.physicalResourcesEnabled });
   const interactionPackets = factoryInteractionPackets.createInteractionPackets();
   const territoryComponentUi = factoryTerritoryComponentUi.createTerritoryComponentUi();
-  const gpuScene = factoryGpuScene.createGpuScene();
   const mapAudit = factoryMapAudit.createMapAudit();
-  const mapHost = factoryMapHost.createMapHost();
   const taskPresentation = factoryTaskPresentation.createTaskPresentation();
   const countryModes = factoryCountryModes.createCountryModes();
-  const objectPicking = factoryObjectPicking.createObjectPicking();
   const riverCandidates = factoryRiverCandidates.createRiverCandidates();
   const countryCommits = factoryCountryCommits.createCountryCommits();
   const genericCommands = factoryGenericCommands.createGenericCommands();
@@ -124,13 +97,13 @@ export async function composeApplication({ productMode, revision, platform = {},
   const objectMetadata = factoryObjectMetadata.createObjectMetadata();
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
-  const mapSettings = factoryMapSettings.createMapSettings();
+  const mapSettings = factoryMapSettings.createMapSettings({afterProjectionChange:()=>{pointerTargets.invalidateEditInteraction();domainAssembly.projectDomain.queueViewAutosave();}});
   const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace });
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
   const gisAssembly = factoryGisAssembly.createGisAssembly({ fileAccess: platform.fileAccess });
   const libraryAssembly = factoryLibraryAssembly.createLibraryAssembly();
-  const navigationBindings = factoryNavigationBindings.createNavigationBindings();
+  const navigationBindings = factoryNavigationBindings.createNavigationBindings({productMode});
   const toolBindings = factoryToolBindings.createToolBindings();
   const fileBindings = factoryFileBindings.createFileBindings();
   const globalInputBindings = factoryGlobalInputBindings.createGlobalInputBindings();
@@ -196,7 +169,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   builtinSession.initializePristineCountriesFallback();
   environment.initializeClamp();
   countryModes.initializeHydroToolConfig();
-  workspaceSurfaces.initializeIsPolygonDraftTool();
+  workspaceSurfaces.initializeWorkspaceSurfaces();
   projectSession.initializeMapWorkScheduler();
   objectCommands.initializeObjectActionsMenuTrigger();
   mapHost.initializeSvg();
@@ -240,7 +213,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   renderQuality.initializeGpuRebuildTimer();
   readinessNotifications.initializeCANONICAL_CONTROL_SELECTOR();
   countryIndex.initializeLabelFallbackQueue();
-  spatialIndex.initializeApplyingMapEditWorkerResult();
+  factorySpatialEdit.registerSpatialEditing(spatialIndex,applicationPorts);
   landRelations.initializeRingHitTester();
   objectPresentation.initializeObjectPresentationModel();
   physicalResources.initializeTerrainService();

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectPresentation } from '../../assets/js/modules/app-object-presentation.js';
+import { createObjectPresentation } from '../../assets/js/modules/object-presentation.js';
 import { normalizeGenericFeatureSemantics } from '../../assets/js/modules/generic-feature-service.js';
 
 test('generic display preserves canonical geometry independently of country revisions and source attributes', () => {

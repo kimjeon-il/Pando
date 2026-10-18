@@ -1,3 +1,5 @@
+import {createEditingPresentation} from './editing-presentation.js';
+import {createMapDisplayClient} from './map-display-client.js';
 import { rememberCutPreparation } from './cut-preparation-cache.js';
 import { resetReferenceImageSession } from './reference-image-input.js';
 import { geometryRevision } from './geometry-versions.js';
@@ -778,9 +780,11 @@ export function createDomainAssembly() {
       },
     });
 
+    const mapDisplay=createMapDisplayClient({getEntities:()=>dependencies.objectModelB.territorialScope.displayEntities(),
+      getRevision:()=>dependencies.projectState.state.stateRevision});
     renderingDomain = (0, dependencies.domainFactories.createRenderingDomain)({
-      prepareEditDisplay: (payload, options) => dependencies.spatialQuery.mapEditClient.execute('territorial-display', { payload }, options),
-      onEditDisplayReady: result => {
+      prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
+      onMapDisplayReady: result => {
         if (result?.kind === 'highlight') {
           renderingDomain?.invalidateSelectionOverlay?.('highlight-ready');
           return;
@@ -802,6 +806,7 @@ export function createDomainAssembly() {
         && (snapshot.targetRefs[0]?.domain !== 'hydro' || dependencies.projectState.state.selected?.key === snapshot.targetRefs[0].key)
         && (snapshot.successor?.kind !== 'object' || snapshot.successor.geometry === dependencies.projectState.state.hydroEdits
           .find(feature => String(feature.id) === String(snapshot.targetRefs[0].id))?.geometry),
+      createEditingPresentation,
       getEditingRenderPacket: () => editingDomain?.createRenderPacket?.(),
       emitEditingInteraction: event => editingDomain?.handleInteraction?.(event),
       reportEditingOperationError: error => dependencies.feedback.reportOperationError(error,'편집 동작을 적용하지 못했습니다.','PL-EDIT-INTERACTION-001',4200),
@@ -1111,26 +1116,7 @@ export function createDomainAssembly() {
       }),
       refreshRenderResources,
       requestFrame: callback => requestAnimationFrame(callback),
-      prepareView: ({ frameId } = {}) => {
-        (0, dependencies.mapView.updateProjection)();
-        const viewState = (0, dependencies.mapHostViewC.syncViewRevision)();
-        if (dependencies.mapHostViewB.lastVisualProjectionKind !== viewState.projection) {
-          dependencies.mapHostCommands.advanceVisualProjection(viewState.projection);
-        }
-        const visualProjection = (0, dependencies.mapHostViewC.visualProjectionForSnapshot)(viewState);
-        const visualPath = dependencies.platform.d3.geo.path().projection(visualProjection);
-        return (0, dependencies.renderFactories.createMapVisualFrame)({
-          frameId,
-          viewRevision: viewState.revision,
-          projectGeneration: projectDomain?.getGeneration?.() || 0,
-          projectionRevision: dependencies.mapHostViewC.visualProjectionRevision,
-          viewState,
-          layoutSnapshot: dependencies.mapLayout.mapLayoutMetricsSnapshot,
-          projectCoordinate: coordinate => visualProjection(coordinate),
-          projectPath: geometry => visualPath(geometry),
-          createCanvasPath: context => dependencies.platform.d3.geo.path().projection(visualProjection).context(context),
-        });
-      },
+      prepareView:dependencies.mapHostViewC.prepareVisualFrame,
       onFrameComplete: dependencies.mapHostViewA.handleRenderFrameComplete,
       invalidMaskMode: ['localhost', '127.0.0.1', '::1'].includes(location.hostname)
         || new URLSearchParams(location.search).has('debug')

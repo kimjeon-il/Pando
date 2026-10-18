@@ -13,7 +13,7 @@ test('existing surfaces preserve project and selection across portrait, tablet a
   });
   await page.goto('/');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
-  await page.locator('#viewerFile').setInputFiles({name:'layout.gpkg',mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
+  await page.locator('#projectFileInput').setInputFiles({name:'layout.gpkg',mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset)).toBe(fixture.project.baseDataset);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
   const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
@@ -23,14 +23,8 @@ test('existing surfaces preserve project and selection across portrait, tablet a
     await page.locator('#objectSearchBtn').click();
     await page.locator('#objectSearchInput').fill('화면 검증 지도');
     await page.locator('#objectSearchResults button').filter({hasText:'화면 검증 지도'}).first().click();
-    await expect(page.locator('#viewerInfo')).toContainText('원본 메타데이터 보존');
-    if(viewport.width<800){
-      const handle=page.getByRole('slider',{name:'정보 창 높이 조절'});
-      await handle.press('End');
-      await expect(page.locator('#viewerInfoPanel')).toHaveAttribute('data-sheet-snap','2');
-    }
-    await page.locator('#viewerInfoClose').click();
-    await expect(page.locator('#viewerInfoPanel')).toBeHidden();
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.notes)).toBe('원본 메타데이터 보존');
+    await expect(page.locator('#viewerInfoPanel')).toHaveCount(0);
     await page.keyboard.press('Escape');
     await setViewingProjection(page,'flat');
     const panel=await page.locator('#mapDisplaySurface').boundingBox();
@@ -40,7 +34,7 @@ test('existing surfaces preserve project and selection across portrait, tablet a
     await page.screenshot({path:`reports/images/viewer-editor/current-${viewport.width}x${viewport.height}.png`});
     await closeViewingDisplay(page);
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
-    expect((await page.evaluate(()=>window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([{domain:'territorial',type:'entity',id:'A'}]);
+    expect((await page.evaluate(()=>window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([{domain:'territorial',type:'entity',id:'A',key:'territorial:entity:A'}]);
   }
   expect(errors).toEqual([]);
 });

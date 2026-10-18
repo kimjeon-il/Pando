@@ -100,7 +100,7 @@ const scopePatterns = {
   ],
   "boundary_continuity": [
     "assets/js/modules/app-domain-assembly.js",
-    "assets/js/modules/edit-display-preparation.js",
+    "assets/js/modules/map-display-preparation.js",
     "assets/js/modules/map-edit-*",
     "assets/js/modules/boundary-*",
     "assets/js/modules/gpu-scene-*",
@@ -108,7 +108,7 @@ const scopePatterns = {
     "assets/js/modules/gpu-canvas-worker.js",
     "assets/js/modules/gpu-base-scene-pass.js",
     "assets/js/modules/gpu-stroke-renderer.js",
-    "assets/js/modules/app-gpu-scene.js",
+    "assets/js/modules/gpu-scene.js",
     "assets/js/modules/map-visual-frame.js",
     "assets/js/modules/map-render-coordinator.js",
     "assets/js/modules/render-channel-ownership.js",

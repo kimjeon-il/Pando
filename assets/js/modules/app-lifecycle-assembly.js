@@ -1,3 +1,4 @@
+import {beginReferenceImageGesture,referenceImageInputActive} from './reference-image-input.js';
 /** LifecycleAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -167,6 +168,7 @@ export function createLifecycleAssembly() {
         dependencies.domainControllers.initializeDomainBoundaries,
         () => {
           mapInputPresentation = (0, dependencies.uiFactoriesB.createMapInputPresentation)({
+            productMode:'editor',referenceInput:{beginGesture:beginReferenceImageGesture,isActive:referenceImageInputActive},
             getElement: dependencies.platform.$,
             window,
             d3: dependencies.platform.d3,
@@ -210,7 +212,7 @@ export function createLifecycleAssembly() {
       startup: dependencies.startup.init,
       onReady: () => { dependencies.startupCommands.markRuntimeReady(); },
       onError: dependencies.readinessUi.showFatalError,
-      getDisposables: () => [dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain,dependencies.domains.commandOwner],
+      getDisposables: () => [{dispose:dependencies.workspaceUiB.disposeWorkspaceSurfaces},{dispose:dependencies.platformConfigurationB.disposeEnvironment},dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain,dependencies.domains.commandOwner],
       reportDisposeError: error => dependencies.readiness.reliabilityDiagnostic.push({ category: 'dispose', message: String(error?.message || error) }),
     }));
   }

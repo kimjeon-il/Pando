@@ -17,7 +17,7 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   });
   await page.goto('/');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 120000 });
-  await page.locator('#viewerFile').setInputFiles({
+  await page.locator('#projectFileInput').setInputFiles({
     name: 'canvas-country.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: fixture.bytes,
   });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot()
@@ -34,18 +34,23 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   for (const group of ['subunits', 'regions', 'labels', 'rivers', 'lakes']) {
     await setViewingLayer(page,group,false);
   }
+  await setViewingLayer(page,'countries',true);
+  await page.locator('#basemapLabelsVisible').locator('..').click();
   await closeViewingDisplay(page);
-  await page.locator('#viewerFit').click();
-  await expect(page.locator('#viewerLabels text')).toHaveCount(0);
+  await page.locator('#resetViewBtn').click();
+  await expect(page.locator('#map text')).toHaveCount(0);
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([]);
   const bounds = await page.locator('#map').boundingBox();
-  // At flat fit, the shared projection maps longitude/latitude [8, 8] inside A.
-  await page.mouse.click(bounds.x + bounds.width / 2 + bounds.width * 8 / 360,
-    bounds.y + bounds.height / 2 - bounds.width * 8 / 360);
-  await expect(page.locator('#viewerInfo h2')).toHaveText('Canvas 본문 선택');
-  await expect(page.locator('#viewerInfo')).toContainText('원본 메타데이터 보존');
+  // Reset preserves the current center. Use the canonical frame to hit [8,8].
+  const point=await page.evaluate(()=>{const view=window.__PANDOLAB_VIEW_STATE__;return d3.geo.equirectangular().translate(view.translate).scale(view.scale).center(view.projectionCenter)([8,8]);});
+  await page.mouse.click(bounds.x+point[0],bounds.y+point[1]);
+  await expect(page.locator('#objectChooser')).toBeVisible();
+  await expect(page.locator('#objectChooserList [data-object-chooser-index]')).toHaveCount(2);
+  await page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'}).click();
+  await expect(page.locator('#viewerStatus')).toHaveText('Canvas 본문 선택');
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.notes)).toBe('원본 메타데이터 보존');
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items)
-    .toEqual([{ domain: 'territorial', type: 'entity', id: 'A' }]);
+    .toEqual([{ domain: 'territorial', type: 'entity', id: 'A', key: 'territorial:entity:A' }]);
   const after = await page.evaluate(() => ({
     project: window.__PANDOLAB_VIEWER__.documentSnapshot(), state: window.__PANDOLAB_VIEWER__.documentState(),
   }));

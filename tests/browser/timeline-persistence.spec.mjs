@@ -22,15 +22,11 @@ async function openApp(page) {
 }
 async function openProject(page,path) {
   await page.locator('#mobileFileBtn').click();
+  await page.evaluate(()=>{window.__testProjectOpened=false;window.addEventListener('pandolab:project-changed',event=>{if(event.detail.reason==='project-load')window.__testProjectOpened=true;},{once:true});});
   const chooser=page.waitForEvent('filechooser');
   await page.locator('#openProjectBtn').click();
   await (await chooser).setFiles({name:'project.gpkg',mimeType:'application/geopackage+sqlite3',buffer:await readFile(path)});
-  await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 불러오기',{timeout:30000});
-  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/,{timeout:30000});
-  await expect(page.locator('#gisImportError')).toBeEmpty();
-  await expect(page.locator('#gisImportConfirmBtn')).toBeVisible({timeout:15000});
-  await page.locator('#gisImportConfirmBtn').click();
-  await expect(page.locator('#gisImportModal')).toBeHidden({timeout:90000});
+  await expect.poll(()=>page.evaluate(()=>window.__testProjectOpened),{timeout:90000}).toBe(true);
   await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/,{timeout:90000});
 }
 async function readAutosave(page) {

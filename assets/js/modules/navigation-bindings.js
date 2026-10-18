@@ -5,7 +5,7 @@ import { exitMenuOnTab } from './menu-presentation.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createNavigationBindings() {
+export function createNavigationBindings({productMode='editor'}={}) {
   let dependencies;
 
   function connect(ports) {
@@ -24,20 +24,21 @@ export function createNavigationBindings() {
   }
 
   function toggleWorkspaceSurface(surface, trigger) {
-    const wasOpen = surface === 'display' && (0, dependencies.platform.$)('mapDisplaySurface')?.classList.contains('surface-open');
+    const wasOpen = surface === 'display' && dependencies.workspaceUiB.surfaceController.isOpen('display');
     (0, dependencies.workspaceUiC.toggleSurface)(surface, trigger);
     if (surface === 'display' && wasOpen) (0, dependencies.mapSettingsUi.closeDesktopViewMenuGroup)();
     if (surface === 'display') (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
   }
 
   function bindNavigationUI() {
-    bindSurfaceTabs();
+    if(productMode==='editor')bindSurfaceTabs();
     (0, dependencies.mapSettingsUi.bindMapDisplayUI)();
+    let mobileMenuOpen=false;
     const mobileMenu = () => (0, dependencies.platform.$)('mobileGlobalMenu');
     const closeMobileMenu = ({ restoreFocus = false } = {}) => {
       const menu = mobileMenu();
-      if (!menu || menu.hidden) return;
-      menu.hidden = true;
+      if (!menu || !mobileMenuOpen) return;
+      mobileMenuOpen=false;menu.hidden = true;
       (0, dependencies.platform.$)('mobileMenuBtn')?.setAttribute('aria-expanded', 'false');
       if (restoreFocus) (0, dependencies.platform.$)('mobileMenuBtn')?.focus({ preventScroll: true });
     };
@@ -46,7 +47,7 @@ export function createNavigationBindings() {
       if (!menu) return;
       (0, dependencies.workspaceUiA.closeFileMenu)();
       (0, dependencies.workspaceUiA.closeSurface)('create');
-      menu.hidden = false;
+      mobileMenuOpen=true;menu.hidden = false;
       (0, dependencies.platform.$)('mobileMenuBtn')?.setAttribute('aria-expanded', 'true');
       requestAnimationFrame(() => menu.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
     };
@@ -54,10 +55,17 @@ export function createNavigationBindings() {
     let searchToolbarPointer = false;
     const closeDesktopDisplayMenu = () => {
       const display = (0, dependencies.platform.$)('mapDisplaySurface');
-      if (isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) || !display?.classList.contains('surface-open')) return;
+      if (isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) || !display||!dependencies.workspaceUiB.surfaceController.isOpen('display')) return;
       (0, dependencies.mapSettingsUi.closeDesktopViewMenuGroup)();
       (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: false });
     };
+    document.addEventListener('keydown',event=>{
+      if(event.key!=='Escape'||event.defaultPrevented||document.querySelector('.ui-modal:not(.hidden),[aria-modal="true"]:not(.hidden):not([hidden])'))return;
+      if(mobileMenuOpen){closeMobileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
+      if(!dependencies.platform.$('objectChooser')?.classList.contains('hidden')){dependencies.objectPicking.closeObjectChooser({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
+      if(dependencies.workspaceUiB.isFileMenuOpen){dependencies.workspaceUiA.closeFileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
+      for(const surface of ['create','search','display'])if(dependencies.workspaceUiB.surfaceController.isOpen(surface)){dependencies.workspaceUiA.closeSurface(surface,{restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
+    });
     document.addEventListener('pointerdown', event => {
       displayPointerStartedInside = !!event.target.closest('#mapDisplaySurface');
       searchToolbarPointer = !!event.target.closest('#createMenuBtn, #resetViewBtn');
@@ -71,35 +79,10 @@ export function createNavigationBindings() {
       if (!e.target.closest('#mapDisplaySurface, #mapDisplayBtn') && !(e.detail && displayPointerStartedInside)) {
         closeDesktopDisplayMenu();
       }
-      if (!e.target.closest('#objectActionsMenu') && !e.target.closest('[data-layer-item-menu]')) (0, dependencies.objectOperationsA.closeObjectActionsMenu)();
+      if (productMode==='editor'&&!e.target.closest('#objectActionsMenu') && !e.target.closest('[data-layer-item-menu]')) (0, dependencies.objectOperationsA.closeObjectActionsMenu)();
       if (!e.target.closest('#objectChooser, #map')) (0, dependencies.objectPicking.closeObjectChooser)();
     });
-    (0, dependencies.platform.$)('objectChooserCloseBtn')?.addEventListener('click', () => (0, dependencies.objectPicking.closeObjectChooser)({ restoreFocus: true }));
-    (0, dependencies.platform.$)('objectChooserList')?.addEventListener('click', async event => {
-      const button = event.target.closest('[data-object-chooser-index]');
-      if (!button) return;
-      try { await dependencies.objectPicking.chooseObjectCandidate(button.dataset.objectChooserIndex,{ toggle: event.ctrlKey || event.metaKey }); }
-      catch(error) { dependencies.feedback.reportOperationError(error,'겹친 객체를 선택하지 못했습니다.','PL-SELECTION-CHOOSER-001',4200); }
-    });
-    (0, dependencies.platform.$)('objectChooserList')?.addEventListener('keydown', event => {
-      const items = [...event.currentTarget.querySelectorAll('[data-object-chooser-index]')];
-      const current = items.indexOf(document.activeElement);
-      const delta = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
-      event.stopPropagation();
-      if (event.key === 'Delete' || event.key === 'Backspace') {
-        event.preventDefault();
-        return;
-      }
-      if (event.key === 'Home' || event.key === 'End') {
-        event.preventDefault();
-        items[event.key === 'Home' ? 0 : items.length - 1]?.focus();
-        return;
-      }
-      if (delta) {
-        event.preventDefault();
-        items[(current + delta + items.length) % items.length]?.focus();
-      }
-    });
+    if(productMode==='editor')dependencies.objectPicking.bindChooser();
 
     (0, dependencies.platform.$)('globeBtn').addEventListener('click', () => (0, dependencies.mapSettingsUi.setProjection)('globe'));
     (0, dependencies.platform.$)('flatBtn').addEventListener('click', () => (0, dependencies.mapSettingsUi.setProjection)('flat'));
@@ -111,8 +94,7 @@ export function createNavigationBindings() {
     });
     (0, dependencies.platform.$)('mobileMenuBtn')?.addEventListener('click', event => {
       event.stopPropagation();
-      const menu = mobileMenu();
-      if (menu?.hidden) openMobileMenu(); else closeMobileMenu({ restoreFocus: true });
+      if (!mobileMenuOpen) openMobileMenu(); else closeMobileMenu({ restoreFocus: true });
     });
     (0, dependencies.platform.$)('mobileMenuFileBtn')?.addEventListener('click', event => {
       event.stopPropagation();
@@ -245,15 +227,14 @@ export function createNavigationBindings() {
     dependencies.uiRegistryCommands.installObjectSearchController((0, dependencies.uiFactoriesA.createAppObjectSearchController)({
       window, document, getElement: dependencies.platform.$, state: dependencies.projectState.state, objectSearchGroupKeys: dependencies.objectModelA.LAYER_SEARCH_GROUP_KEYS,
       layerGroupNames: dependencies.layerPresentation.layerGroupNames, createIcon: (name, className) => (0, dependencies.applicationFactories.createSemanticIcon)(document, name, className),
-      createEmptyState: dependencies.platformConfigurationB.createEmptyState, listObjectCatalogItems: dependencies.objectCatalogView.listObjectCatalogItems, layerItemObjectRef: dependencies.objectLookup.layerItemObjectRef, normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef, selectionDomain: dependencies.domains.selectionDomain,
+      createEmptyState: dependencies.platformConfigurationB.createEmptyState, listObjectSearchItems: dependencies.objectCatalogView.listObjectSearchItems, layerItemObjectRef: dependencies.objectLookup.layerItemObjectRef, normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef, selectionDomain: dependencies.domains.selectionDomain,
       hydroCategoryKey: dependencies.hydroPresentation.hydroCategoryKey,
       isSearchOpen: () => dependencies.workspaceUiB.surfaceController.isOpen('search') && dependencies.labelPresentation.builtinPlaces.isSearchOpen(),
       isSearchSurfaceOpen: () => dependencies.workspaceUiB.surfaceController.isOpen('search'),
       builtinSearch: query => dependencies.labelPresentation.builtinPlaces.search(query),
       cancelBuiltinSearch: () => dependencies.labelPresentation.builtinPlaces.cancelSearch(),
       onSearchError: error => dependencies.feedback.reportOperationError(error, '내장 지명 검색에 실패했습니다.', 'PL-PLACE-SEARCH-001'),
-      compareItems: (left, right) => dependencies.objectModelA.layerNameCollator.compare(left.name, right.name) || dependencies.objectModelA.layerNameCollator.compare(left.id, right.id),
-      syncCanonicalControls: dependencies.readinessUi.syncCanonicalControls, syncSearchClearButton: dependencies.platformConfigurationB.syncSearchClearButton,
+      syncCanonicalControls: dependencies.readinessUi.syncCanonicalControls,
       invalidateObjectPresentation: dependencies.objectDisplay.invalidateObjectPresentation, selectObjectSearchItem: dependencies.navigation.selectObjectSearchItem,
       focusObjectRef: dependencies.objectOperationsA.focusObjectRef,
       closeSearchAfterSingleSelection: () => (0, dependencies.workspaceUiA.closeSurface)('search'),

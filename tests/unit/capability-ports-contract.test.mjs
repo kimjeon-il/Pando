@@ -1,3 +1,4 @@
+import {applicationOwnerDefinitions} from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -34,10 +35,10 @@ test('required editor capabilities fail before initialization and after their ow
 const root = new URL('../../', import.meta.url);
 const read = relativePath => readFileSync(new URL(relativePath, root), 'utf8');
 const spatialOwners = [
-  'app-camera-navigation.js',
+  'camera-navigation.js',
   'app-readiness-notifications.js',
-  'app-country-index.js',
-  'app-spatial-index.js',
+  'country-index.js',
+  'spatial-index.js',
   'app-geometry-preview.js',
   'app-territory-components.js',
   'app-country-validation.js',
@@ -45,22 +46,22 @@ const spatialOwners = [
 ];
 const mapResourceOwners = [
   'app-cut-geometry.js',
-  'app-map-projection.js',
-  'app-object-presentation.js',
-  'app-hydro-settings.js',
-  'app-object-catalog.js',
-  'app-territorial-labels.js',
-  'app-physical-resources.js',
+  'map-projection.js',
+  'object-presentation.js',
+  'physical-settings.js',
+  'object-catalog.js',
+  'territorial-labels.js',
+  'physical-resources.js',
   'app-interaction-packets.js',
 ];
 const remainingOwnerGroups = {
   FOUNDATION_OWNER_PORTS: [
-    'app-environment.js', 'app-builtin-session.js', 'app-workspace-surfaces.js', 'app-project-session.js',
-    'app-object-commands.js', 'app-service-assembly.js', 'app-render-quality.js', 'app-pointer-targets.js',
+    'app-environment.js', 'builtin-session.js', 'workspace-surfaces.js', 'project-session.js',
+    'app-object-commands.js', 'app-service-assembly.js', 'render-quality.js', 'pointer-targets.js',
   ],
   MAP_INTERACTION_OWNER_PORTS: [
-    'app-territory-component-ui.js', 'app-gpu-scene.js', 'app-map-audit.js', 'app-map-host.js',
-    'app-task-presentation.js', 'app-country-modes.js', 'app-object-picking.js', 'app-river-candidates.js',
+    'app-territory-component-ui.js', 'gpu-scene.js', 'app-map-audit.js', 'map-workspace-host.js',
+    'app-task-presentation.js', 'app-country-modes.js', 'object-picking.js', 'app-river-candidates.js',
   ],
   OBJECT_EDITING_OWNER_PORTS: [
     'app-territory-selection-workflow.js', 'app-country-commits.js', 'app-generic-commands.js',
@@ -69,14 +70,14 @@ const remainingOwnerGroups = {
   ],
   PROJECT_IO_OWNER_PORTS: [
     'app-map-settings.js', 'app-history-assembly.js', 'app-project-restore.js', 'app-object-deletion.js',
-    'app-gis-assembly.js', 'app-library-assembly.js', 'app-navigation-bindings.js', 'app-tool-bindings.js',
+    'app-gis-assembly.js', 'app-library-assembly.js', 'navigation-bindings.js', 'app-tool-bindings.js',
   ],
   LIFECYCLE_UI_OWNER_PORTS: [
     'app-file-bindings.js', 'app-global-input-bindings.js', 'app-editor-bindings.js',
     'app-progressive-startup.js', 'app-domain-assembly.js', 'app-lifecycle-assembly.js',
   ],
 };
-const ownerName = file => file.slice(4, -3).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+const ownerName=file=>{const row=applicationOwnerDefinitions().find(row=>row.file===file);if(!row)throw new Error(`Unregistered owner file: ${file}`);return row.owner;};
 
 function assertOwnerPortAccesses({ ports, contract, files }) {
   for (const file of files) {
@@ -142,11 +143,9 @@ test('map-resources writes use explicit capability commands', async () => {
   const ports = createApplicationPorts(providers);
   ports.geometryMutation.setApplyingWorkerResult(true);
   ports.distributionPresentation.bumpVisibilityRevision();
-  ports.preferences.setResolvedAccentColor('#123456');
   ports.preferences.setUserPreferences({ theme: 'dark' });
   assert.equal(state.spatialIndex.applyingMapEditWorkerResult, true);
   assert.equal(state.objectPresentation.distributionVisibilityRevision, 3);
-  assert.equal(state.environment.resolvedAccentColor, '#123456');
   assert.deepEqual(state.environment.userPreferences, { theme: 'dark' });
 });
 

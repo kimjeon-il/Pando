@@ -7,11 +7,15 @@ import { createSearchToolbarPresentation } from './search-toolbar-presentation.j
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createWorkspaceSurfaces() {
+export function createWorkspaceSurfaces({productMode='editor'}={}) {
+  if(!['viewer','editor'].includes(productMode))throw new TypeError('Workspace surfaces require immutable product mode.');
+  const registeredSurfaces=productMode==='editor'?['create','search','display','editor','reference']:['search','display'];
+  const listeners=[];
+  const listen=(target,type,listener)=>{target.addEventListener(type,listener);listeners.push(()=>target.removeEventListener(type,listener));};
+  let fileMenuOpen=false;
   let dependencies, mobileSheets;
   let isPolygonDraftTool;
   let isGenericFeatureDraftTool;
-  let clampViewZooms;
   let uid;
   let detectLayoutMode;
   let layoutMode;
@@ -95,6 +99,13 @@ export function createWorkspaceSurfaces() {
     headerToggle.dataset.tooltip = label;
   }
 
+  function syncEditingSurfaces(){
+    if(productMode!=='editor')return;
+    editorWorkspacePresentation.sync();
+    dependencies.domains.renderingDomain?.setCountryPropertyEditingActive?.(surfaceController.isOpen('editor')&&!!dependencies.projectState.state.selected);
+    dependencies.domainControllers.syncTerritorialEditorInteraction();
+    syncEditorPanelControls();requestAnimationFrame(dependencies.taskPresentation.syncMapHudBounds);syncCreateSurface();
+  }
   function applyLayoutMode({ initial = false } = {}) {
     const nextLayout = detectLayoutMode();
     if (nextLayout !== layoutMode && (mobileSheets.activeDrag || mobileSheets.settling || searchComposing || referenceGestureActive)) {
@@ -116,27 +127,22 @@ export function createWorkspaceSurfaces() {
     else if (isMobile() && !isMobileWorkspaceLayout(previous) && surfaceController.activeMobileSheet) {
       trackMobileSheetHistory(surfaceController.activeMobileSheet);
     }
-    const fileOpen = !!document.querySelector('.top-actions')?.classList.contains('mobile-open');
+    const fileOpen=fileMenuOpen;
     surfaceController.render({ fileOpen });
     referenceSurface?.sync();
     searchToolbarPresentation.sync();
-    editorWorkspacePresentation.sync();
-    dependencies.domains.renderingDomain?.setCountryPropertyEditingActive?.(
-      surfaceController.isOpen('editor') && !!dependencies.projectState.state.selected,
-    );
-    dependencies.domainControllers.syncTerritorialEditorInteraction();
+    syncEditingSurfaces();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
-    syncEditorPanelControls();
-    requestAnimationFrame(dependencies.taskPresentation.syncMapHudBounds);
-    syncCreateSurface();
     menuPositionScheduler.schedule();
     if (!initial && previous !== layoutMode) (0, dependencies.mapHostViewB.queueMapResize)('layout-mode-change');
     return previous !== layoutMode;
   }
 
   function syncOverlayState() {
-    const fileOpen = !!document.querySelector('.top-actions')?.classList.contains('mobile-open');
+    const fileOpen=fileMenuOpen;
+    const menu=document.querySelector('.top-actions');
+    if(menu){menu.hidden=!fileOpen;menu.classList.toggle('mobile-open',fileOpen);}
     const view = surfaceController.render({ fileOpen });
     referenceSurface?.sync();
     if (!surfaceController.isOpen('search')) {
@@ -147,15 +153,8 @@ export function createWorkspaceSurfaces() {
       dependencies.domains.objectSearchController?.render(true);
     }
     searchToolbarPresentation.sync();
-    editorWorkspacePresentation.sync();
-    dependencies.domains.renderingDomain?.setCountryPropertyEditingActive?.(
-      surfaceController.isOpen('editor') && !!dependencies.projectState.state.selected,
-    );
-    dependencies.domainControllers.syncTerritorialEditorInteraction();
-    syncEditorPanelControls();
+    syncEditingSurfaces();
     refreshMapSheetMetrics();
-    requestAnimationFrame(dependencies.taskPresentation.syncMapHudBounds);
-    syncCreateSurface();
     menuPositionScheduler.schedule();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     else (0, dependencies.platform.$)('app')?.style.removeProperty('--file-menu-notification-top');
@@ -175,10 +174,10 @@ export function createWorkspaceSurfaces() {
 
   function closeFileMenu({ restoreFocus = false } = {}) {
     const menu = document.querySelector('.top-actions');
-    if (!menu?.classList.contains('mobile-open')) return;
+    if(!menu||!fileMenuOpen)return;
     const trigger = fileMenuTrigger;
     fileMenuTrigger = null;
-    menu.classList.remove('mobile-open');
+    fileMenuOpen=false;
     syncOverlayState();
     if (restoreFocus) {
       const focusTarget = isMobile()
@@ -238,7 +237,7 @@ export function createWorkspaceSurfaces() {
       clearMenuPosition(createMenu);
       return;
     }
-    if (fileMenu?.classList.contains('mobile-open')) {
+    if(fileMenuOpen){
       positionRootMenu({ menu: fileMenu, trigger: (0, dependencies.platform.$)('mobileFileBtn') });
     }
     if (surfaceController.isOpen('create')) {
@@ -265,34 +264,21 @@ export function createWorkspaceSurfaces() {
       if (surfaceController.activeMobileSheet && surfaceController.activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
       return;
     }
-    for (const surface of ['create', 'search', 'display', 'editor', 'reference']) if (surface !== except) surfaceController.close(surface);
+    for(const surface of registeredSurfaces) if (surface !== except) surfaceController.close(surface);
     syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
   }
 
-  function toggleFileMenu() {
-    closeSurface('create');
-    const menu = document.querySelector('.top-actions');
-    if (!menu) return;
-    const willOpen = !menu.classList.contains('mobile-open');
-    if (willOpen) fileMenuTrigger = (0, dependencies.platform.$)('mobileFileBtn');
-    menu.classList.toggle('mobile-open', willOpen);
-    syncOverlayState();
-    if (willOpen) requestAnimationFrame(() => menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true }));
+  function openFileMenu({trigger=null}={}){
+    if(!document.querySelector('.top-actions'))return false;
+    closeSurface('create');fileMenuOpen=true;fileMenuTrigger=trigger||dependencies.platform.$('mobileFileBtn');
+    syncOverlayState();requestAnimationFrame(()=>document.querySelector('.top-actions [role="menuitem"]:not(:disabled)')?.focus({preventScroll:true}));return true;
   }
-
-
-
-
-
-
-
-
-
-
+  function toggleFileMenu(){if(fileMenuOpen){closeFileMenu();return false;}return openFileMenu();}
 
   function openSelectionEditor({ explicit = false, trigger = null, focus = false } = {}) {
+    if(productMode!=='editor')return false;
     const panel = (0, dependencies.platform.$)('editorSurface');
     if (!panel) return false;
     let opened = surfaceController.isOpen('editor');
@@ -314,7 +300,7 @@ export function createWorkspaceSurfaces() {
   }
 
   function openSurface(surface, { trigger = null, automatic = false } = {}) {
-    if (!['create', 'search', 'display', 'editor', 'reference'].includes(surface)) return false;
+    if(!registeredSurfaces.includes(surface))return false;
     if (dependencies.projectState.state.projectReplacing) return false;
     closeFileMenu();
     const activeTrigger = trigger instanceof HTMLElement ? trigger : document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -346,6 +332,7 @@ export function createWorkspaceSurfaces() {
   }
 
   function closeSurface(surface, { manual = false, restoreFocus = false, syncHistory = true } = {}) {
+    if(!registeredSurfaces.includes(surface))return false;
     if (surface === 'editor' && editorWorkspacePresentation.isDocked() && layoutMode !== 'phone-landscape') return;
     const mobileKind = isMobile() ? { create: 'create', search: 'search', display: 'display', editor: 'edit', reference: 'reference' }[surface] : null;
     const mobilePanel = mobileKind ? mobileSheets.mobileSheetPanel(mobileKind) : null;
@@ -386,20 +373,12 @@ export function createWorkspaceSurfaces() {
     }
   }
 
-  function initializeIsPolygonDraftTool() {
-    (isPolygonDraftTool = tool => (0, dependencies.countryEditingA.draftToolConfig)(tool)?.shape === 'polygon');
-
-    (isGenericFeatureDraftTool = tool => !!(0, dependencies.countryEditingA.draftToolConfig)(tool));
-
-    (clampViewZooms = view => {
-      if (!view) return view;
-      view.globeZoom = (0, dependencies.platform.clamp)(Number(view.globeZoom) || 1, dependencies.mapNavigation.ZOOM_LIMITS.globe.min, dependencies.mapNavigation.ZOOM_LIMITS.globe.max);
-      view.flatZoom = (0, dependencies.platform.clamp)(Number(view.flatZoom) || 1, dependencies.mapNavigation.ZOOM_LIMITS.flat.min, dependencies.mapNavigation.ZOOM_LIMITS.flat.max);
-      return view;
-    });
-
-    (uid = () => (0, dependencies.projectServices.createProjectObjectId)());
-
+  function initializeWorkspaceSurfaces() {
+    if(productMode==='editor'){
+      isPolygonDraftTool=tool=>dependencies.countryEditingA.draftToolConfig(tool)?.shape==='polygon';
+      isGenericFeatureDraftTool=tool=>!!dependencies.countryEditingA.draftToolConfig(tool);
+      uid=()=>dependencies.projectServices.createProjectObjectId();
+    }
     const detect = createWorkspaceLayoutDetector();
     const coarsePointer = window.matchMedia('(pointer: coarse)');
     detectLayoutMode = () => detect({
@@ -408,7 +387,7 @@ export function createWorkspaceSurfaces() {
       coarse: coarsePointer.matches,
       editingText: searchComposing || !!document.activeElement?.matches('input, textarea, select, [contenteditable="true"]'),
     });
-    coarsePointer.addEventListener('change', () => applyLayoutMode());
+    listen(coarsePointer,'change', () => applyLayoutMode());
 
     (layoutMode = detectLayoutMode());
 
@@ -423,7 +402,7 @@ export function createWorkspaceSurfaces() {
 
     (surfaceState = surfaceController.state);
 
-    (editorWorkspacePresentation = (0, dependencies.uiFactoriesA.createEditorWorkspacePresentation)({
+    if(productMode==='editor')(editorWorkspacePresentation = (0, dependencies.uiFactoriesA.createEditorWorkspacePresentation)({
       document,
       panel: (0, dependencies.platform.$)('editorSurface'), task: (0, dependencies.platform.$)('modeEditingContext'),
       dockSlot: (0, dependencies.platform.$)('editorTaskSlot'), floatingSlot: (0, dependencies.platform.$)('mapTopContextSlot'),
@@ -450,11 +429,11 @@ export function createWorkspaceSurfaces() {
 
 
 
-    (MOBILE_SHEET_IDS = Object.freeze({ create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', edit: 'editorSurface', reference: 'referenceImageSurface' }));
+    (MOBILE_SHEET_IDS = Object.freeze(productMode==='editor'?{create:'createMenu',search:'objectSearchSurface',display:'mapDisplaySurface',edit:'editorSurface',reference:'referenceImageSurface'}:{search:'objectSearchSurface',display:'mapDisplaySurface'}));
     mobileSheets=createMobileSheetPresentation({document,window,getElement:dependencies.platform.$,getLayout:()=>layoutMode,panelIds:MOBILE_SHEET_IDS,
       onSync:syncOverlayState,onClose:closeActiveMobileSheet,
       onResumeLayout:()=>{if(pendingLayoutChange){pendingLayoutChange=false;applyLayoutMode();}},
-      onLayoutChange:()=>{requestAnimationFrame(dependencies.taskPresentation.syncMapHudBounds);dependencies.mapHostViewB.queueMapResize('panel-layout');},
+      onLayoutChange:()=>{syncEditingSurfaces();dependencies.mapHostViewB.queueMapResize('panel-layout');},
     });
 
 
@@ -484,14 +463,27 @@ export function createWorkspaceSurfaces() {
       isMobile,
       schedulePosition: () => menuPositionScheduler.schedule(),
     });
-    (0, dependencies.platform.$)('objectSearchInput')?.addEventListener('compositionstart', () => { searchComposing = true; });
-    (0, dependencies.platform.$)('objectSearchInput')?.addEventListener('compositionend', () => {
+    listen(dependencies.platform.$('objectSearchInput'),'compositionstart', () => { searchComposing = true; });
+    listen(dependencies.platform.$('objectSearchInput'),'compositionend', () => {
       searchComposing = false;
       if (pendingLayoutChange) applyLayoutMode();
     });
-    window.addEventListener('resize', () => menuPositionScheduler.schedule());
-    window.visualViewport?.addEventListener?.('resize', () => { refreshMapSheetMetrics(); menuPositionScheduler.schedule(); });
-    window.visualViewport?.addEventListener?.('scroll', () => { syncVisibleViewport(); menuPositionScheduler.schedule(); });
+    listen(window,'resize',()=>{if(!applyLayoutMode())refreshMapSheetMetrics();menuPositionScheduler.schedule();});
+    listen(window,'orientationchange',()=>{refreshMapSheetMetrics();dependencies.mapHostViewB.queueMapResize('orientation-change');});
+    listen(window,'popstate',event=>{
+      if(ignoreNextMobileSheetPopstate){ignoreNextMobileSheetPopstate=false;return;}
+      if(isMobile()&&surfaceController.activeMobileSheet){
+        const select=document.querySelector('.ui-select-popover:not([hidden])');
+        const picker=document.querySelector('[data-color-picker].is-open');
+        if(select)dependencies.platformConfigurationB.selectController.closeAll({restoreFocus:true});
+        else if(picker)dependencies.colorPicker.closeColorPicker(picker,{restoreFocus:true});
+        else {closeActiveMobileSheet({restoreFocus:true,syncHistory:false});return;}
+        trackMobileSheetHistory(surfaceController.activeMobileSheet);return;
+      }
+      if(event.state?.[MOBILE_SHEET_HISTORY_KEY]){const next={...event.state};delete next[MOBILE_SHEET_HISTORY_KEY];window.history.replaceState(next,'',window.location.href);}
+    });
+    if(window.visualViewport)listen(window.visualViewport,'resize', () => { refreshMapSheetMetrics(); menuPositionScheduler.schedule(); });
+    if(window.visualViewport)listen(window.visualViewport,'scroll', () => { syncVisibleViewport(); menuPositionScheduler.schedule(); });
   }
 
   return Object.freeze({
@@ -506,13 +498,13 @@ export function createWorkspaceSurfaces() {
       referenceGestureActive = active === true;
       if (!referenceGestureActive && pendingLayoutChange) applyLayoutMode();
     },
-    initializeIsPolygonDraftTool,
-    get MOBILE_SHEET_HISTORY_KEY() { return MOBILE_SHEET_HISTORY_KEY; },
+    initializeWorkspaceSurfaces,openFileMenu,
+    dispose(){listeners.forEach(remove=>remove());if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();cancelAnimationFrame(searchFocusFrame);},
     get MOBILE_SHEET_IDS() { return MOBILE_SHEET_IDS; },
     get activeCreateMenuItems() { return activeCreateMenuItems; },
     get applyLayoutMode() { return applyLayoutMode; },
     get bindMobileSheetSurface() { return mobileSheets.bindMobileSheetSurface; },
-    get clampViewZooms() { return clampViewZooms; },
+    get clampViewZooms() { return dependencies.mapNavigation.clampViewZooms; },
     get closeActiveMobileSheet() { return closeActiveMobileSheet; },
     get closeFileMenu() { return closeFileMenu; },
     get closeMobileSheets() { return closeMobileSheets; },
@@ -520,12 +512,9 @@ export function createWorkspaceSurfaces() {
     get editorSurfaceTabs() { return editorSurfaceTabs; },
     set editorSurfaceTabs(value) { editorSurfaceTabs = value; },
     get editorWorkspacePresentation() { return editorWorkspacePresentation; },
-    get fileMenuTrigger() { return fileMenuTrigger; },
-    set fileMenuTrigger(value) { fileMenuTrigger = value; },
-    get ignoreNextMobileSheetPopstate() { return ignoreNextMobileSheetPopstate; },
-    set ignoreNextMobileSheetPopstate(value) { ignoreNextMobileSheetPopstate = value; },
     get isGenericFeatureDraftTool() { return isGenericFeatureDraftTool; },
     get isMobile() { return isMobile; },
+    get isFileMenuOpen(){return fileMenuOpen;},
     get isPolygonDraftTool() { return isPolygonDraftTool; },
     get layoutMode() { return layoutMode; },
     get mapModeContextWasActive() { return mapModeContextWasActive; },

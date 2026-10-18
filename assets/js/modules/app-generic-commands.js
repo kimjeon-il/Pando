@@ -60,7 +60,7 @@ export function createGenericCommands() {
     }
     if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(sourceIds.map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
-    const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
+    const country = (0, dependencies.countryEditingC.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
     country.properties.metadata = captureSourceMetadata(feature);
     if(feature.properties?.color)country.properties.style={...country.properties.style,color:feature.properties.color};
     (0, dependencies.feedback.setActionStatus)('영역을 국가로 전환하는 중입니다.', 'working', 0);
