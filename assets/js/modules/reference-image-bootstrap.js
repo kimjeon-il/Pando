@@ -50,6 +50,7 @@ export async function installReferenceImageFeature({ revision = '', workspaceSur
   let lineRefiner, liveWire;
   const controller = installReferenceImageController({ workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces, getPlaces, preparePlaces,
     cancelTools: () => { if (lineRefiner?.active()) lineRefiner.cancel(); if (liveWire?.active()) liveWire.cancel(); },
+    auxiliaryInputActive: () => !!lineRefiner?.active() || !!liveWire?.active(),
   });
   moveControlsToMapUi();
 
