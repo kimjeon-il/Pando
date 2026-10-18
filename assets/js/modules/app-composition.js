@@ -1,5 +1,6 @@
 /** Compose owners, connect their explicit ports, then initialize in dependency order. */
-export async function composeApplication({ revision, platform = {}, onComposed = null }) {
+export async function composeApplication({ productMode, revision, platform = {}, onComposed = null }) {
+  if (productMode !== 'editor') throw new TypeError('The application entry requires editor product mode.');
   const [
     runtime, factoryEnvironment, factoryBuiltinSession, factoryWorkspaceSurfaces, factoryProjectSession,
     factoryObjectCommands, factoryServiceAssembly, factoryRenderQuality, factoryPointerTargets,

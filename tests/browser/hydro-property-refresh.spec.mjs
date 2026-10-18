@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 const NILE_POINT = [32.421142578125, 22.6723086609316];
@@ -52,7 +53,7 @@ async function openHydroMap(page, report) {
     };
   });
   await page.setViewportSize({ width: 1600, height: 1000 });
-  await page.goto('/?debug=1&demTerrain=raster');
+  await gotoEditor(page, '/?debug=1&demTerrain=raster');
   try {
     const outcome = await Promise.race([
       page.locator('#app[data-readiness="enhanced"]').waitFor({ timeout: 120_000 }).then(() => 'enhanced'),

@@ -21,7 +21,10 @@ function fixture() {
   assert.equal(run('git', ['init', '-q', root], parent).status, 0);
   assert.equal(run('git', ['config', 'user.name', 'Test'], root).status, 0);
   assert.equal(run('git', ['config', 'user.email', 'test@example.invalid'], root).status, 0);
-  put(root, 'index.html', '<h1>Web</h1>');
+  put(root, 'index.html', '<h1>Viewer</h1><script type="module" src="assets/js/viewer.js"></script>');
+  put(root, 'assets/js/viewer.js', "import './workers/core-viewer-session-worker.js';");
+  put(root, 'assets/js/workers/core-viewer-session-worker.js', '// fixed viewer worker');
+  put(root, 'assets/js/app.js', '// editor only');
   put(root, '.nojekyll', '');
   put(root, 'assets/data/terrain-preview/v0.13.3-p1/manifest.json', '{}');
   put(root, 'assets/data/hydro/v0.13.2/manifest.json', '{}');
@@ -40,12 +43,15 @@ function fixture() {
   return { parent, root, stage: join(parent, 'site'), manifest: join(parent, 'evidence.json') };
 }
 
-test('stages committed Web bytes and reports while excluding native source', () => {
+test('stages committed viewer assets while excluding editor and repository source', () => {
   const { root, stage, manifest } = fixture();
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(readFileSync(join(stage, 'index.html'), 'utf8'), '<h1>Web</h1>');
-  assert.equal(readFileSync(join(stage, 'reports/a.md'), 'utf8'), 'report');
+  assert.match(readFileSync(join(stage, 'index.html'), 'utf8'), /Viewer/);
+  assert.equal(existsSync(join(stage, 'reports/a.md')), false);
+  assert.equal(existsSync(join(stage, 'assets/js/app.js')), false);
+  assert.equal(existsSync(join(stage, 'assets/js/workers/core-session-worker.js')), false);
+  assert.equal(existsSync(join(stage, 'assets/js/workers/core-viewer-session-worker.js')), true);
   assert.equal(existsSync(join(stage, 'native')), false);
   assert.equal(existsSync(join(stage, 'shared')), false);
   assert.equal(existsSync(join(stage, 'apps')), false);
@@ -80,24 +86,24 @@ test('rejects a modified Web file before creating a site', () => {
 
 test('stages committed LF bytes from an equivalent Windows CRLF checkout', () => {
   const { root, stage, manifest } = fixture();
-  put(root, 'reports/crlf.md', 'one\ntwo\n');
-  assert.equal(run('git', ['add', 'reports/crlf.md'], root).status, 0);
+  put(root, 'assets/data/crlf.txt', 'one\ntwo\n');
+  assert.equal(run('git', ['add', 'assets/data/crlf.txt'], root).status, 0);
   assert.equal(run('git', ['commit', '-q', '-m', 'text'], root).status, 0);
-  put(root, 'reports/crlf.md', 'one\r\ntwo\r\n');
+  put(root, 'assets/data/crlf.txt', 'one\r\ntwo\r\n');
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(readFileSync(join(stage, 'reports/crlf.md'), 'utf8'), 'one\ntwo\n');
+  assert.equal(readFileSync(join(stage, 'assets/data/crlf.txt'), 'utf8'), 'one\ntwo\n');
 });
 
 test('stages committed bytes when checkout line endings are mixed', () => {
   const { root, stage, manifest } = fixture();
-  put(root, 'reports/crlf.md', 'one\ntwo\nthree\n');
-  assert.equal(run('git', ['add', 'reports/crlf.md'], root).status, 0);
+  put(root, 'assets/data/crlf.txt', 'one\ntwo\nthree\n');
+  assert.equal(run('git', ['add', 'assets/data/crlf.txt'], root).status, 0);
   assert.equal(run('git', ['commit', '-q', '-m', 'text'], root).status, 0);
-  put(root, 'reports/crlf.md', 'one\r\ntwo\nthree\r\n');
+  put(root, 'assets/data/crlf.txt', 'one\r\ntwo\nthree\r\n');
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(readFileSync(join(stage, 'reports/crlf.md'), 'utf8'), 'one\ntwo\nthree\n');
+  assert.equal(readFileSync(join(stage, 'assets/data/crlf.txt'), 'utf8'), 'one\ntwo\nthree\n');
 });
 
 test('refuses to stage inside the repository or overwrite a prior artifact', () => {

@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 
@@ -76,7 +77,7 @@ test('measure instrumented C++ Soviet core candidate decoding, validation and im
         }
       }).observe({ type: 'longtask', buffered: true });
     });
-    await page.goto('/?perf=1&renderer=webgl2');
+    await gotoEditor(page, '/?perf=1&renderer=webgl2');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
     await expect.poll(() => page.evaluate(() => {
       const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;

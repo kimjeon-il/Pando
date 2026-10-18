@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
@@ -313,7 +314,7 @@ async function loadProjectFile(page, project, name) {
 
 async function openApp(page, renderer, { staticInput = false, focusCountry = true } = {}) {
   await observe(page, staticInput, renderer);
-  await page.goto(`/?debug=1&renderer=${renderer}&demTerrain=raster`);
+  await gotoEditor(page, `/?debug=1&renderer=${renderer}&demTerrain=raster`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#terrainNoneRadio').evaluate(input => input.click());
   await page.locator('#flatBtn').evaluate(button => button.click());

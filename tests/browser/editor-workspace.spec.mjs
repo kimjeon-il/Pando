@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 async function openActionsTab(page) {
@@ -11,7 +12,7 @@ test('the current editor surface owns tasks at every responsive width', async ({
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect(page.locator('#entityProperties')).toBeVisible();

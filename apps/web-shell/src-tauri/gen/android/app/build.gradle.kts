@@ -83,3 +83,10 @@ dependencies {
 }
 
 apply(from = file("tauri.build.gradle.kts"))
+
+// Direct Gradle/Tauri builds must also reject a stale generated Android policy.
+val checkAndroidSources = tasks.register<Exec>("checkAndroidSources") {
+    workingDir(rootProject.projectDir.resolve("../.."))
+    commandLine("node", "sync-android.mjs", "--check")
+}
+tasks.named("preBuild") { dependsOn(checkAndroidSources) }

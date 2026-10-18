@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test as base } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
@@ -54,7 +55,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   await page.setViewportSize(viewport);
   await page.addInitScript(project => localStorage.setItem('pandolab-editor-project', JSON.stringify(project)),
     staticAutosaveProject({ physicalSettings: { terrainVisible: false } }, [parent]));
-  await page.goto('/?debug=1&demTerrain=raster');
+  await gotoEditor(page, '/?debug=1&demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;

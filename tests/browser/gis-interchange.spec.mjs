@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { expect, test } from '@playwright/test';
@@ -38,7 +39,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?demTerrain=raster');
+  await gotoEditor(page, '/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
@@ -229,7 +230,7 @@ test('GIS data export writes only selected layers and omits project-only metadat
     Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
@@ -268,7 +269,7 @@ test('mobile vector import advances by stage and preserves detected choices when
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
@@ -342,7 +343,7 @@ test('current general GIS import preserves explicit source geometry and existing
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?demTerrain=raster');
+  await gotoEditor(page, '/?demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const readRoots = () => page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id).geometry), roots);
   const before = await readRoots();

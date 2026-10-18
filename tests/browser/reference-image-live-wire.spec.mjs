@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
@@ -94,7 +95,7 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
   page.on('pageerror', error => collectError(error.message));
   page.on('console', message => { if (message.type() === 'error') collectError(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await waitForReady(page);
   await clearReferenceStore(page);
   await page.reload();
@@ -181,7 +182,7 @@ test('linear constraint preview leaves storage unchanged until one apply', async
   await page.context().route('**/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json', route =>
     route.fulfill({ contentType: 'application/json', body: readFileSync('assets/data/country-label-anchors-v0.10.1.json') }));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');await waitForReady(page);await clearReferenceStore(page);await page.reload();await waitForReady(page);
+  await gotoEditor(page, '/');await waitForReady(page);await clearReferenceStore(page);await page.reload();await waitForReady(page);
   await page.locator('.reference-image-launcher').click();
   await page.locator('[data-ref-file]').setInputFiles({ name: 'edge.png', mimeType: 'image/png', buffer: EDGE_PNG });
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);

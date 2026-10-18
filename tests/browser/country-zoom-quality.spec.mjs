@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 1440, height: 900 }, trace: 'off', actionTimeout: 10_000 });
@@ -16,7 +17,7 @@ function collectErrors(page) {
 async function openMap(page, { enhanced = true } = {}) {
   const url = process.env.PANDOLAB_TEST_SITE_URL
     ? new URL('?debug=1', process.env.PANDOLAB_TEST_SITE_URL).href : '/?debug=1';
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, url, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
   await expect.poll(() => page.evaluate(() => !!window.__PANDOLAB_VIEW_DEBUG__)).toBe(true);
   if (enhanced) {

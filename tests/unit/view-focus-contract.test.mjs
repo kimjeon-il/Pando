@@ -14,7 +14,7 @@ import { createTerritorialScopeResolver } from '../../assets/js/modules/territor
 
 const appSource = readApplicationOwners('camera-navigation', 'object-commands');
 const navigationBindingsSource = readApplicationOwners('navigation-bindings');
-const htmlSource = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
+const htmlSource = await readFile(new URL('../../apps/web-shell/editor.html', import.meta.url), 'utf8');
 
 function functionSource(name, nextName) {
   const start = appSource.indexOf(`function ${name}`);

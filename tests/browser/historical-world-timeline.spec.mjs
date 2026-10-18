@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { selectUiOption } from './helpers/ui-select.mjs';
@@ -38,7 +39,7 @@ async function pixel(page, coordinate) {
 for (const renderer of ['canvas', 'webgl2']) test(`${renderer} default world uses the common historical trace and Crimea can be selected in 2012`, async ({ page }, info) => {
   test.setTimeout(240000);
   const errors = []; page.on('pageerror', error => errors.push(error.message));
-  await page.goto(`/?debug=1&renderer=${renderer}`);
+  await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   const dirty = await page.locator('#projectSaveStatus').getAttribute('data-tooltip');
   const currentFrance = await pixel(page, [0, 46]);
@@ -79,7 +80,7 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} default world use
 });
 test('new world reset retains the complete history after an edit', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1&renderer=canvas');
+  await gotoEditor(page, '/?debug=1&renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setName('UKR', '편집한 이름'));
   await page.locator('#mobileFileBtn').click(); await page.locator('#newProjectBtn').click();
@@ -94,7 +95,7 @@ test('new world reset retains the complete history after an edit', async ({ page
 test('historical geometry and parent edits preserve the earlier month and support lock and Undo', async ({ page }) => {
   test.setTimeout(240000);
   const errors = []; page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1&renderer=canvas');
+  await gotoEditor(page, '/?debug=1&renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await month(page, '2012-10');
   const id = 'UKR', before = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).geometry, id);

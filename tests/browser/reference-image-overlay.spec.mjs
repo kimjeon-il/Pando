@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
@@ -7,7 +8,7 @@ const PNG_1X1 = Buffer.from(
 );
 
 test('duplicate raw records survive whole saves and independent completed edits need no shutdown rewrite', async ({ page }) => {
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
   await page.evaluate(async png => {
     const store = await import('/assets/js/modules/reference-image-store.js');
     const blob = new Blob([Uint8Array.from(atob(png), char => char.charCodeAt(0))], { type: 'image/png' });
@@ -79,7 +80,7 @@ test('unchanged image startup and shutdown never rewrite the collection', async 
 });
 
 test('undecodable image originals survive full saves, deletion, undo and a pending shutdown edit', async ({ page }) => {
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
       const request = indexedDB.open('pandolab-reference-images', 2);
@@ -122,7 +123,7 @@ async function openApp(page) {
   });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#referenceImageBtn')).toBeVisible();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -217,7 +218,7 @@ async function addImage(page, name) {
 
 test('reference image toolbar button is present before enhanced startup', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('.map-command-toolbar #referenceImageBtn')).toBeVisible();
   await expect(page.locator('#referenceImageBtn use')).toHaveAttribute('href', '#icon-reference-image');
 });

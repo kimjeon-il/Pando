@@ -1,3 +1,4 @@
+import { isMobileWorkspaceLayout } from './workspace-layout.js';
 import { exitMenuOnTab } from './menu-presentation.js';
 
 /** NavigationBindings: extracted application responsibility.
@@ -53,7 +54,7 @@ export function createNavigationBindings() {
     let searchToolbarPointer = false;
     const closeDesktopDisplayMenu = () => {
       const display = (0, dependencies.platform.$)('mapDisplaySurface');
-      if (dependencies.surfaces.layoutMode === 'mobile' || !display?.classList.contains('surface-open')) return;
+      if (isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) || !display?.classList.contains('surface-open')) return;
       (0, dependencies.mapSettingsUi.closeDesktopViewMenuGroup)();
       (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: false });
     };
@@ -145,7 +146,7 @@ export function createNavigationBindings() {
     });
     (0, dependencies.platform.$)('objectSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
     (0, dependencies.platform.$)('resetViewBtn')?.addEventListener('click', () => {
-      if (dependencies.surfaces.layoutMode !== 'mobile') (0, dependencies.workspaceUiA.closeSurface)('search');
+      if (!isMobileWorkspaceLayout(dependencies.surfaces.layoutMode)) (0, dependencies.workspaceUiA.closeSurface)('search');
       (0, dependencies.navigation.resetView)();
     });
     const searchPanel = (0, dependencies.platform.$)('objectSearchSurface');
@@ -155,11 +156,11 @@ export function createNavigationBindings() {
       // Escape is handled after dialogs, but before map-edit commands, globally.
     });
     searchPanel?.addEventListener('focusout', event => {
-      if (dependencies.surfaces.layoutMode === 'mobile' || searchToolbarPointer) return;
+      if (isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) || searchToolbarPointer) return;
       const next = event.relatedTarget;
       if (!next || next.closest('#objectSearchSurface, #objectSearchBtn, .ui-modal, [role="dialog"], .ui-overlay-scrollbar[aria-controls="objectSearchResults"]')) return;
       queueMicrotask(() => {
-        if (dependencies.surfaces.layoutMode !== 'mobile' && !searchPanel.contains(document.activeElement)) {
+        if (!isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) && !searchPanel.contains(document.activeElement)) {
           (0, dependencies.workspaceUiA.closeSurface)('search');
         }
       });
@@ -200,7 +201,7 @@ export function createNavigationBindings() {
         event.preventDefault(); event.stopPropagation();
         (0, dependencies.workspaceUiA.closeSurface)('create', { restoreFocus: true }); return;
       }
-      if (dependencies.surfaces.layoutMode === 'mobile') return;
+      if (isMobileWorkspaceLayout(dependencies.surfaces.layoutMode)) return;
       if (event.key === 'Tab') {
         exitMenuOnTab(event, {
           menus: event.currentTarget,
@@ -231,7 +232,7 @@ export function createNavigationBindings() {
       }
     }, true);
     (0, dependencies.platform.$)('createMenu')?.addEventListener('focusout', event => {
-      if (dependencies.surfaces.layoutMode === 'mobile') return;
+      if (isMobileWorkspaceLayout(dependencies.surfaces.layoutMode)) return;
       const next = event.relatedTarget;
       if (next && !next.closest('#createMenu, #createMenuBtn, .ui-modal, [role="dialog"]')) {
         (0, dependencies.workspaceUiA.closeSurface)('create');

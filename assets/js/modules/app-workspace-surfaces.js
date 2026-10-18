@@ -1,3 +1,4 @@
+import { createWorkspaceLayoutDetector, isMobileWorkspaceLayout } from './workspace-layout.js';
 import { clearMenuPosition, createMenuPositionScheduler, positionRootMenu } from './menu-presentation.js';
 import { createSearchToolbarPresentation } from './search-toolbar-presentation.js';
 
@@ -128,10 +129,21 @@ export function createWorkspaceSurfaces() {
     if (applyHeight) setMobileSheetHeight(panel, defaultSnap);
   }
 
+  function syncVisibleViewport() {
+    const app = (0, dependencies.platform.$)('app');
+    if (!app) return;
+    app.style.setProperty('--workspace-visible-height', Math.round(mobileViewportHeight()) + 'px');
+    app.style.setProperty('--workspace-visible-top', Math.round(window.visualViewport?.offsetTop || 0) + 'px');
+  }
+
   function refreshMapSheetMetrics() {
     const panels = Object.values(MOBILE_SHEET_IDS).map(id => (0, dependencies.platform.$)(id)).filter(Boolean);
-    if (!isMobile()) {
-      panels.forEach(panel => panel.style.removeProperty('--sheet-height'));
+    syncVisibleViewport();
+    if (layoutMode !== 'mobile') {
+      panels.forEach(panel => {
+        panel.style.removeProperty('--sheet-height');
+        panel.removeAttribute('data-sheet-snap');
+      });
       document.body.classList.remove('map-sheet-dragging');
       return;
     }
@@ -165,8 +177,8 @@ export function createWorkspaceSurfaces() {
     if (app) app.dataset.layout = layoutMode;
     document.body.dataset.layout = layoutMode;
     surfaceController.syncLayout(previous);
-    if (previous === 'mobile' && layoutMode !== 'mobile') releaseMobileSheetHistory();
-    else if (layoutMode === 'mobile' && previous !== 'mobile' && surfaceController.activeMobileSheet) {
+    if (isMobileWorkspaceLayout(previous) && !isMobile()) releaseMobileSheetHistory();
+    else if (isMobile() && !isMobileWorkspaceLayout(previous) && surfaceController.activeMobileSheet) {
       trackMobileSheetHistory(surfaceController.activeMobileSheet);
     }
     const fileOpen = !!document.querySelector('.top-actions')?.classList.contains('mobile-open');
@@ -417,7 +429,7 @@ export function createWorkspaceSurfaces() {
   }
 
   function beginMobileSheetDrag(panel, source, pointerId, clientY) {
-    if (!isMobile() || !panel || activeSheetDrag) return false;
+    if (layoutMode !== 'mobile' || !panel || activeSheetDrag) return false;
     clearMobileSheetDragPresentation(panel);
     const currentHeight = Number.parseFloat(getComputedStyle(panel).height)
       || setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP);
@@ -610,7 +622,7 @@ export function createWorkspaceSurfaces() {
   }
 
   function closeSurface(surface, { manual = false, restoreFocus = false, syncHistory = true } = {}) {
-    if (surface === 'editor' && editorWorkspacePresentation.isDocked()) return;
+    if (surface === 'editor' && editorWorkspacePresentation.isDocked() && layoutMode !== 'phone-landscape') return;
     const mobileKind = isMobile() ? { create: 'create', search: 'search', display: 'display', editor: 'edit', reference: 'reference' }[surface] : null;
     const mobilePanel = mobileKind ? mobileSheetPanel(mobileKind) : null;
     if (!surfaceController.close(surface, { manual, selected: !!dependencies.projectState.state?.selected })) return;
@@ -664,11 +676,19 @@ export function createWorkspaceSurfaces() {
 
     (uid = () => (0, dependencies.projectServices.createProjectObjectId)());
 
-    (detectLayoutMode = () => dependencies.platformConfigurationB.LAYOUT_QUERIES.mobile.matches ? 'mobile' : dependencies.platformConfigurationB.LAYOUT_QUERIES.compact.matches ? 'compact' : 'wide');
+    const detect = createWorkspaceLayoutDetector();
+    const coarsePointer = window.matchMedia('(pointer: coarse)');
+    detectLayoutMode = () => detect({
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight,
+      coarse: coarsePointer.matches,
+      editingText: searchComposing || !!document.activeElement?.matches('input, textarea, select, [contenteditable="true"]'),
+    });
+    coarsePointer.addEventListener('change', () => applyLayoutMode());
 
     (layoutMode = detectLayoutMode());
 
-    (isMobile = () => layoutMode === 'mobile');
+    (isMobile = () => isMobileWorkspaceLayout(layoutMode));
 
     (lastOverlayTrigger = null);
 
@@ -741,8 +761,8 @@ export function createWorkspaceSurfaces() {
       if (pendingLayoutChange) applyLayoutMode();
     });
     window.addEventListener('resize', () => menuPositionScheduler.schedule());
-    window.visualViewport?.addEventListener?.('resize', () => menuPositionScheduler.schedule());
-    window.visualViewport?.addEventListener?.('scroll', () => menuPositionScheduler.schedule());
+    window.visualViewport?.addEventListener?.('resize', () => { refreshMapSheetMetrics(); menuPositionScheduler.schedule(); });
+    window.visualViewport?.addEventListener?.('scroll', () => { syncVisibleViewport(); menuPositionScheduler.schedule(); });
   }
 
   return Object.freeze({

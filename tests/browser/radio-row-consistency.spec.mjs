@@ -1,7 +1,8 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('distribution and terrain radios share a quiet row treatment', async ({ page }) => {
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.getByRole('button', { name: '레이어', exact: true }).click();
   await page.getByRole('tab', { name: /지도|표시 설정/, exact: true }).click();

@@ -4,8 +4,7 @@ import { geometryRevision } from './geometry-versions.js';
 import { freezeEditingGeometry } from './editing-render-packet.js';
 import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
 import { resolveTerritorialColor } from './color-adapter.js';
-import { createCoreDocumentClient } from './core-document-client.js';
-import { createCoreDocumentReadModel } from './core-document-read-model.js';
+import { createDocumentSession } from './document-session.js';
 import { coreSelectionRefToWeb,webSelectionRefToCore } from './core-object-ref.js';
 /** DomainAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -1153,11 +1152,9 @@ export function createDomainAssembly() {
   function initializeDomainState() {
     territorialEntityStore?.dispose();
     commandOwner?.dispose();
-    documentModel=createCoreDocumentReadModel(dependencies.projectSession.initialDocument());
-    commandOwner=createCoreDocumentClient({ onTransition: (result,operation) => {
-      documentModel.acceptTransition(result,operation);
-      dependencies.projectSession.saveState.sync();
-    } });
+    ({ documentModel, commandOwner } = createDocumentSession({ productMode: 'editor',
+      initialProject: dependencies.projectSession.initialDocument(),
+      onTransition: () => dependencies.projectSession.saveState.sync() }));
     (territorialEntityStore = (0, dependencies.territorialServicesA.createTerritorialEntityStore)({
       documentModel,commandOwner,
       onEntitiesReplaced: (entities, { changedIds, previous }) => {

@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 
@@ -177,7 +178,7 @@ test('1989 Soviet initial timeline admission, selection setup, memory and cache 
   });
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Performance.enable');
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => {
     const g = window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu;

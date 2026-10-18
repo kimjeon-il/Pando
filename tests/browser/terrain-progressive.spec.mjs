@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
@@ -60,7 +61,7 @@ test('slow mobile globe retains loaded DEM while requesting promoted detail dire
   });
 
   try {
-    await page.goto('/?renderer=webgl2&debug=1&demTerrain=preview', { waitUntil: 'domcontentloaded' });
+    await gotoEditor(page, '/?renderer=webgl2&debug=1&demTerrain=preview', { waitUntil: 'domcontentloaded' });
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation),
       { timeout: 120_000 }).toBe('dem-relief-v1');
     await expect.poll(() => started.length, { timeout: 60_000 }).toBeGreaterThanOrEqual(2);

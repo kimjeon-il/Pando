@@ -1,10 +1,11 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
 async function boot(page) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;
 }
@@ -475,7 +476,7 @@ test('annex selection starts with the method segment without redundant normal-st
   test.setTimeout(180_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#actionsTabBtn').click();

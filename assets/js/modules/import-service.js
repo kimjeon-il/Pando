@@ -181,15 +181,7 @@ export function createCountryImportMergePlanner({
   };
 }
 
-export function applyImportedPackageAssets(metadata, entities) {
-  const assets = new Map((metadata?.countryAssets || []).map(asset => [text(asset.countryId), asset]));
-  return entities.map(entity => {
-    const asset = (entity.properties.entityKind === 'general' && !entity.properties.parentId) && assets.get(text(entity.id));
-    if (!asset?.base64) return entity;
-    return { ...entity, properties: { ...entity.properties, metadata: { ...entity.properties.metadata,
-      flagDataUrl: `data:${asset.mimeType || 'application/octet-stream'};base64,${asset.base64}` } } };
-  });
-}
+export { applyImportedPackageAssets } from './project-package-assets.js';
 
 export function appendImportedSourceInfo(previous, next, now = () => new Date().toISOString()) {
   const imports = [];

@@ -1,7 +1,5 @@
 import { createEmptyTerritorialState } from './territorial-entity-store.js';
-import { pickProjectFields } from './project-state.js';
-import { PROJECT_SCHEMA_VERSION,LAND_OBJECT_SCHEMA_VERSION,SOURCE_PROVENANCE_SCHEMA_VERSION,
-  TERRITORIAL_MODEL_SCHEMA_VERSION,DISTRIBUTION_MODEL_SCHEMA_VERSION } from './version-contract.js';
+import { createInitialDocument } from './initial-document.js';
 import { TERRAIN_RASTER_VERSION } from './terrain-manifest.js';
 const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: id => ids.includes(id),
   [Symbol.iterator]: () => ids[Symbol.iterator]() });
@@ -211,21 +209,13 @@ export function createProjectSession() {
   // A detached, empty startup input. C++ validates and owns it before any
   // preview/canonical source or editable UI is admitted.
   function initialDocument() {
-    return { format: 'pandolab-project-state',schemaVersion: PROJECT_SCHEMA_VERSION,
-      version: dependencies.platformConfigurationA.APP_VERSION,savedAt: new Date().toISOString(),
-      baseDataset: dependencies.platformConfigurationA.BASE_DATASET,
-      landObjectModel: { schemaVersion: LAND_OBJECT_SCHEMA_VERSION,coastlineAuthority: 'territorialEntities',
-        purpose: 'lossless-fallback',directCreation: false,sourceProvenanceSchemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION,
-        canonicalProperties: ['name','notes','color','locked','source'] },
-      territorialModel: { schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION,coastlineAuthority: 'territorialEntities',
-        storage: 'territorialEntities',kinds: ['general','regional'],coverageModes: ['partition','explicit'] },
-      distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION,sourceModes: ['territorial','geometry'],valueKind: 'finite-number' },
-      territorialEntities: [],...pickProjectFields(state),
+    return createInitialDocument({ appVersion: dependencies.platformConfigurationA.APP_VERSION,
+      baseDataset: dependencies.platformConfigurationA.BASE_DATASET, state,
       physicalSourceInfo: {
         terrain: { dataset: dependencies.platformConfigurationB.TERRAIN_DATASET,version: TERRAIN_RASTER_VERSION },
         hydro: { dataset: dependencies.platformConfigurationA.HYDRO_DATASET,version: dependencies.platformConfigurationA.APP_VERSION,
           coordinatePolicy: 'selected source coordinates retained without simplification',selection: {} },
-      } };
+      } });
   }
 
   function installDocumentProjection({ documentModel,commandOwner,entityStore }) {

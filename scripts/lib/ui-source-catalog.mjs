@@ -33,6 +33,13 @@ const modalEntries = Object.freeze([
 const sourceByRole = new Map([...sourceEntries, ...modalEntries].map(entry => [entry.role, entry.path]));
 
 export const UI_BUNDLE_SOURCES = Object.freeze(sourceEntries.map(entry => entry.path));
+// Both products consume the same style owners. The viewer omits only unused
+// edit forms; shared drawer/search/display rules remain visually identical.
+const viewerRoles = new Set(['application-tokens', 'component-tokens', 'tokens', 'controls', 'select',
+  'surface', 'content', 'command-row', 'surface-layout', 'topbar', 'editor-shell', 'panels', 'menus',
+  'view-menu', 'mobile-sheets', 'feedback', 'statusbar', 'map-display', 'map-search', 'map-viewport',
+  'accessibility', 'map-rendering']);
+export const UI_VIEWER_SOURCES = Object.freeze(sourceEntries.filter(entry => viewerRoles.has(entry.role)).map(entry => entry.path));
 export const UI_MODAL_SOURCES = Object.freeze(modalEntries.map(entry => entry.path));
 export const UI_AUDIT_STYLE_SOURCES = Object.freeze([
   'assets/css/app.css',

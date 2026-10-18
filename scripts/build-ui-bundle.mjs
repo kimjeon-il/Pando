@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { UI_BUNDLE_SOURCES, UI_MODAL_SOURCES } from './lib/ui-source-catalog.mjs';
+import { UI_BUNDLE_SOURCES, UI_MODAL_SOURCES, UI_VIEWER_SOURCES } from './lib/ui-source-catalog.mjs';
 
 export function renderUiBundle(sources, readSource, { modal = false } = {}) {
   const prefix = modal ? 'modal-source' : 'source';
@@ -18,6 +18,7 @@ export function renderUiBundle(sources, readSource, { modal = false } = {}) {
 export function buildUiBundles(root) {
   const readSource = relativePath => readFileSync(resolve(root, relativePath), 'utf8');
   return { main: renderUiBundle(UI_BUNDLE_SOURCES, readSource),
+    viewer: renderUiBundle(UI_VIEWER_SOURCES, readSource),
     modal: renderUiBundle(UI_MODAL_SOURCES, readSource, { modal: true }) };
 }
 
@@ -25,6 +26,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const root = fileURLToPath(new URL('../', import.meta.url));
   const bundles = buildUiBundles(root);
   writeFileSync(resolve(root, 'assets/css/ui.bundle.css'), bundles.main, 'utf8');
+  writeFileSync(resolve(root, 'assets/css/ui-viewer.bundle.css'), bundles.viewer, 'utf8');
   writeFileSync(resolve(root, 'assets/css/ui-modal.bundle.css'), bundles.modal, 'utf8');
   console.log(`Generated UI bundle from ${UI_BUNDLE_SOURCES.length} stylesheets and modal bundle from ${UI_MODAL_SOURCES.length} stylesheet.`);
 }
