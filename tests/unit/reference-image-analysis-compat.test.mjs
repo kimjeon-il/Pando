@@ -59,18 +59,16 @@ test('active reference image input bypasses map overlay hit blocking but not UI 
 });
 
 
-test('reference image editing stays expanded on desktop and compacts only on mobile', async () => {
+test('reference image remains docked on desktop and mobile editing can expand without discarding state', async () => {
   const surface = await readFile(moduleUrl('reference-image-surface.js'), 'utf8');
   const layout = await readFile(new URL('../../assets/css/layout/reference-images.css', import.meta.url), 'utf8');
   assert.match(surface, /const mobile = workspaceSurfaces\.isMobile\(\);/);
-  assert.match(surface, /const compactEditing = editing && mobile;/);
+  assert.match(surface, /const compactEditing = editing && mobile && !expandedWhileEditing;/);
   assert.match(surface, /reference-image-editing-active/);
-  assert.equal(
-    /^\s*\.surface-reference\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/m.test(layout),
-    false,
-  );
-  assert.match(layout, /\.surface-reference\.reference-image-editing-active/);
-  assert.match(layout, /right:\s*calc\(var\(--map-safe-right/);
+  assert.match(surface, /reference-image-docked/);
+  assert.match(layout, /\.workspace\.reference-image-docked > \.map-wrap/);
+  assert.match(layout, /\.reference-image-panel\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/);
+  assert.doesNotMatch(layout, /left:\s*50%|translateX\(-50%\)/);
 });
 
 
