@@ -16,6 +16,8 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `GEO-REVIEW-20261019` | [10월 19일 아침 보고서 검토 — 새 문헌·시간 정밀도 보완 및 데이터 보류](geography/reviews/morning-2026-10-19.md) | 2026-10-19 회차 / 2026-10-18 UTC | `investigating` | `not-applied` |
+| `GEO-LIFE-006` | [아프리카 국가 존속기간 — 에리트레아·기니비사우·세네갈](geography/country-lifetime-africa-eri-gnb-sen-2026-10-18.md) | 2026-10-18 / 검토 10-19 | `investigating` | `not-applied` |
 | `GEO-REVIEW-20261017` | [10월 17일 아침 보고서 검토 — 효력일 근거 보완·데이터 보류](geography/reviews/morning-2026-10-17.md) | 2026-10-17 회차 / 2026-10-16 UTC | `investigating` | `not-applied` |
 | `GEO-LIFE-005` | [아시아 국가 존속기간 — 이라크·요르단·레바논](geography/country-lifetime-asia-middle-east-2026-10-17.md) | 2026-10-17 | `investigating` | `not-applied` |
 | `GEO-LIFE-ROTATION` | [국가 존속기간 조사 지역 순환 진행기록](geography/country-lifetime-rotation-progress.md) | 2026-10-17 | `investigating` | `not-applied` |
