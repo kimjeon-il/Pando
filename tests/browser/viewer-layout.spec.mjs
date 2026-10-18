@@ -1,8 +1,10 @@
+import { setViewingProjection, setViewingLayer, closeViewingDisplay } from './helpers/viewing-display.mjs';
 import { test, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
 test('existing surfaces preserve project and selection across portrait, tablet and landscape sizes', async ({ page }) => {
+  page.setDefaultTimeout(15000);
   const fixture=await createViewerProjectPackage('화면 검증 지도');
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
@@ -18,20 +20,25 @@ test('existing surfaces preserve project and selection across portrait, tablet a
   mkdirSync('reports/images/viewer-editor',{recursive:true});
   for(const viewport of [{width:390,height:844},{width:768,height:1024},{width:1024,height:768},{width:844,height:390}]){
     await page.setViewportSize(viewport);
-    await page.locator('#viewerSearchToggle').click();
-    await page.locator('#viewerSearch').fill('화면 검증 지도');
-    await page.locator('#viewerResults button').filter({hasText:'화면 검증 지도'}).first().click();
+    await page.locator('#objectSearchBtn').click();
+    await page.locator('#objectSearchInput').fill('화면 검증 지도');
+    await page.locator('#objectSearchResults button').filter({hasText:'화면 검증 지도'}).first().click();
     await expect(page.locator('#viewerInfo')).toContainText('원본 메타데이터 보존');
+    if(viewport.width<800){
+      const handle=page.getByRole('slider',{name:'정보 창 높이 조절'});
+      await handle.press('End');
+      await expect(page.locator('#viewerInfoPanel')).toHaveAttribute('data-sheet-snap','2');
+    }
     await page.locator('#viewerInfoClose').click();
+    await expect(page.locator('#viewerInfoPanel')).toBeHidden();
     await page.keyboard.press('Escape');
-    await page.locator('#viewerDisplayToggle').click();
-    await page.locator('#viewerFlat').click();
-    const panel=await page.locator('#viewerDisplayPanel').boundingBox();
+    await setViewingProjection(page,'flat');
+    const panel=await page.locator('#mapDisplaySurface').boundingBox();
     expect(panel.x).toBeGreaterThanOrEqual(0);expect(panel.y).toBeGreaterThanOrEqual(0);
     expect(panel.x+panel.width).toBeLessThanOrEqual(viewport.width);
     expect(panel.y+panel.height).toBeLessThanOrEqual(viewport.height);
     await page.screenshot({path:`reports/images/viewer-editor/current-${viewport.width}x${viewport.height}.png`});
-    await page.locator('#viewerDisplayClose').click();
+    await closeViewingDisplay(page);
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
     expect((await page.evaluate(()=>window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([{domain:'territorial',type:'entity',id:'A'}]);
   }

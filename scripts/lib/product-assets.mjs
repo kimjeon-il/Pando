@@ -19,7 +19,7 @@ const dynamicExpressions = Object.freeze({
   'assets/js/workers/canvas-render-worker.js': ['validationUrl.href'],
   'assets/js/workers/place-worker.js': ['storeModuleUrl.href'],
 });
-const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-|editing-|project-domain|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;
+const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-(?!(?:accent|map-settings)\.js)|editing-|project-domain|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;
 const slash = path => path.replaceAll('\\', '/');
 const stripQuery = path => path.split(/[?#]/, 1)[0];
 

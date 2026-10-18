@@ -10,7 +10,7 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).fl
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings() {
+export function createMapSettings({ viewPresentation = null } = {}) {
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let desktopViewMenuPath = [];
@@ -66,6 +66,7 @@ export function createMapSettings() {
   }
 
   function setProjection(type) {
+    if(viewPresentation){viewPresentation.setProjection(type);syncProjectionButtons();return true;}
     const targetProjection = type === 'globe' ? 'globe' : 'flat';
     if (targetProjection === dependencies.projectState.state.projection) return false;
     (0, dependencies.mapView.updateProjection)();
@@ -101,6 +102,7 @@ export function createMapSettings() {
   }
 
   async function setLayerVisibility(key, visible) {
+    if(viewPresentation){await viewPresentation.applyPresentation({action:'visibility',key,visible});renderMapDisplaySettings();return true;}
     if (!await executePresentation({ action: 'visibility', key, visible })) return false;
     if (!isDesktopViewMenu() && !SYMBOL_VISIBILITY_KEYS.has(key) && key !== 'labels') {
       if (visible) dependencies.objectModelA.expandedMapDisplayGroups.add(key);
@@ -136,11 +138,13 @@ export function createMapSettings() {
     });
     dependencies.preferences.setUserPreferences(preferences);
     syncPlaceLanguageChecks();
-    dependencies.domains.renderingDomain.invalidateLabels('place-language-visibility');
+    if(viewPresentation)viewPresentation.setLanguages(next);
+    else dependencies.domains.renderingDomain.invalidateLabels('place-language-visibility');
     return true;
   }
 
   async function updateLayerPresentationStyle(group, patch) {
+    if(viewPresentation){await viewPresentation.applyPresentation({action:'groupStyle',group,patch});renderMapDisplaySettings();return true;}
     const target = LAYER_STYLE_TARGETS[group];
     if (!target) return false;
     if (!await executePresentation({ action: 'groupStyle', group: target.presentationGroup, patch })) return false;
@@ -156,6 +160,7 @@ export function createMapSettings() {
   }
 
   async function setTerrainMode(mode) {
+    if(viewPresentation){await viewPresentation.setTerrain(mode);renderMapDisplaySettings();return true;}
     if (!await executePresentation({ action: 'terrainMode', mode })) return false;
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
     (0, dependencies.hydroModel.syncPhysicalControls)();
@@ -166,6 +171,7 @@ export function createMapSettings() {
   }
 
   async function setDistributionControl(action, value, reason) {
+    if(viewPresentation){await viewPresentation.applyPresentation({action,value});renderMapDisplaySettings();return true;}
     if (!await executePresentation({ action, value })) return false;
     if (action === 'distributionActiveLayer') dependencies.distributionPresentation.bumpVisibilityRevision();
     syncDistributionPresentationControls();
@@ -621,7 +627,7 @@ export function createMapSettings() {
   }
 
   function bindMapDisplayUI() {
-    requireProjectOwner();
+    if(!viewPresentation)requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
     const visibilityInputs = [

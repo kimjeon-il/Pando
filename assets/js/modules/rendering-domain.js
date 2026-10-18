@@ -1,3 +1,4 @@
+import { renderLabelText } from './label-text-presentation.js';
 import { SELECTION_PAINT_ORDER, territorialSymbolGroup } from './layer-presentation.js';
 import { isBuiltinPlaceId } from './place-contract.js';
 import { applySvgInteractionMasks } from './interaction-svg-mask.js';
@@ -392,16 +393,7 @@ export function createRenderingDomain({
       });
     all.select('text').each(function(label) {
       const rows = resolvedLayout.userLabelRows?.get(String(label.id)) || [{ language: 'ko', text: label.name }];
-      const text = labels.d3.select(this);
-      // Multiple official native names share the 'native' language switch, so key by row position.
-       const spans = text.selectAll('tspan').data(rows, (_row, index) => index);
-      spans.exit().remove();
-      spans.enter().append('tspan');
-      text.selectAll('tspan')
-        .attr('x', 7)
-        .attr('dy', (_row, index) => index === 0 ? String(0.35 - (rows.length - 1) * 0.72) + 'em' : '1.32em')
-        .attr('class', (_row, index) => index === 0 ? 'user-label-primary' : 'user-label-secondary')
-        .text(row => row.text);
+      renderLabelText(labels.d3.select(this),rows);
     });
     selection.on('.drag', null);
     if (state.tool === 'select' && !state.labelPlacementMode) selection.filter(label => !isBuiltinPlaceId(label.id)).call(labels.labelDragBehavior?.());

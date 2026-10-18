@@ -38,7 +38,7 @@ export function createObjectSearchController({
     const semanticName = item.layerGroup === 'hydro'
       ? item.typeLabel === '호수' ? 'lake' : 'river'
       : ({
-        countries: 'country', subunits: 'subunit', regions: 'region', distributions: 'area',
+        countries: 'country', subunits: 'subunit', regions: 'region', distributions: 'distribution',
         labels: 'place', genericFeatures: 'territory',
       })[item.layerGroup] || 'map';
     return createIcon?.(semanticName, 'ui-icon object-search-result-icon') || null;

@@ -1,3 +1,4 @@
+import { createPreferencesDialog } from './preferences-dialog.js';
 import { exitMenuOnTab } from './menu-presentation.js';
 
 /** FileBindings: extracted application responsibility.
@@ -41,81 +42,12 @@ export function createFileBindings() {
         .then(controller => controller.open())
         .catch(error => (0, dependencies.feedback.reportOperationError)(error, 'GIS 내보내기 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-002', 4200));
     });
-    const preferencesModal = (0, dependencies.platform.$)('preferencesModal');
-    let preferencesOrigin = null;
-    const syncPreferencesForm = () => {
-      const theme = dependencies.preferences.userPreferences.appearance.theme;
-      (0, dependencies.platform.$)('preferencesThemeInput').value = theme;
-      preferencesModal.querySelectorAll('[data-preference-theme]').forEach(button => {
-        button.setAttribute('aria-pressed', String(button.dataset.preferenceTheme === theme));
-      });
-      (0, dependencies.platform.$)('preferencesStatusBarVisibleInput').checked = dependencies.preferences.userPreferences.appearance.statusBarVisible !== false;
-      (0, dependencies.platform.$)('preferencesSmoothLinesInput').checked = dependencies.preferences.userPreferences.appearance.smoothLines !== false;
-      const accentPreset = dependencies.preferences.userPreferences.appearance.accentPreset;
-      preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
-        button.setAttribute('aria-pressed', String(button.dataset.preferenceAccent === accentPreset));
-      });
-    };
-    const preferencesFromForm = () => ({
-      ...dependencies.preferences.userPreferences,
-      appearance: {
-        ...dependencies.preferences.userPreferences.appearance,
-        theme: (0, dependencies.platform.$)('preferencesThemeInput').value,
-        statusBarVisible: (0, dependencies.platform.$)('preferencesStatusBarVisibleInput').checked,
-        smoothLines: (0, dependencies.platform.$)('preferencesSmoothLinesInput').checked,
-      },
+    createPreferencesDialog({ document,
+      returnFocus: () => dependencies.platform.$(dependencies.surfaces.layoutMode === 'mobile' ? 'mobilePreferencesBtn' : 'preferencesBtn'),
+      getPreferences: () => dependencies.preferences.userPreferences,
+      applyPreferences: value => dependencies.countryLabelModel.applyUserPreferences(value, { persist: false }),
+      beforeOpen: () => { dependencies.workspaceUiA.closeFileMenu(); dependencies.workspaceUiA.closeSurface('create'); },
     });
-    const applyPreferencesForm = () => {
-      (0, dependencies.countryLabelModel.applyUserPreferences)(preferencesFromForm(), { persist: false });
-      syncPreferencesForm();
-    };
-    const previewAccent = accentPreset => {
-      (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: { ...dependencies.preferences.userPreferences.appearance, accentPreset } }, { persist: false });
-      syncPreferencesForm();
-    };
-    const closePreferences = ({ restoreFocus = true, revert = false } = {}) => {
-      if (!preferencesModal || preferencesModal.classList.contains('hidden')) return;
-      if (revert) {
-        if (preferencesOrigin) (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: preferencesOrigin }, { persist: false });
-      } else {
-        dependencies.preferences.setUserPreferences((0, dependencies.preferences.saveUserPreferences)(dependencies.preferences.userPreferences));
-      }
-      preferencesOrigin = null;
-      preferencesModal.classList.add('hidden');
-      if (restoreFocus) {
-        const target = dependencies.surfaces.layoutMode === 'mobile'
-          ? (0, dependencies.platform.$)('mobilePreferencesBtn')
-          : (0, dependencies.platform.$)('preferencesBtn');
-        target?.focus({ preventScroll: true });
-      }
-    };
-    const openPreferences = () => {
-      (0, dependencies.workspaceUiA.closeFileMenu)();
-      (0, dependencies.workspaceUiA.closeSurface)('create');
-      syncPreferencesForm();
-      preferencesOrigin = { ...dependencies.preferences.userPreferences.appearance };
-      preferencesModal?.classList.remove('hidden');
-      preferencesModal.querySelector(`[data-preference-theme="${dependencies.preferences.userPreferences.appearance.theme}"]`)?.focus({ preventScroll: true });
-    };
-    (0, dependencies.platform.$)('preferencesBtn')?.addEventListener('click', openPreferences);
-    (0, dependencies.platform.$)('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
-    preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences({ revert: true }));
-    (0, dependencies.platform.$)('preferencesResetBtn')?.addEventListener('click', () => {
-      (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: (0, dependencies.applicationServicesA.defaultUserPreferences)().appearance }, { persist: false });
-      syncPreferencesForm();
-    });
-    preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
-      button.addEventListener('click', () => previewAccent(button.dataset.preferenceAccent));
-    });
-    preferencesModal.querySelectorAll('[data-preference-theme]').forEach(button => {
-      button.addEventListener('click', () => {
-        (0, dependencies.platform.$)('preferencesThemeInput').value = button.dataset.preferenceTheme;
-        applyPreferencesForm();
-      });
-    });
-    (0, dependencies.platform.$)('preferencesStatusBarVisibleInput')?.addEventListener('change', applyPreferencesForm);
-    (0, dependencies.platform.$)('preferencesSmoothLinesInput')?.addEventListener('change', applyPreferencesForm);
-    (0, dependencies.platform.$)('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
     const helpModal = (0, dependencies.platform.$)('helpModal');
     const closeHelp = ({ restoreFocus = true } = {}) => {
       if (!helpModal || helpModal.classList.contains('hidden')) return;
