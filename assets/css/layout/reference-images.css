@@ -228,7 +228,7 @@
 
 .reference-image-mode-switch {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .reference-image-mode-switch .ui-button {
@@ -372,3 +372,109 @@
   min-width: 0;
 }
 
+
+/* P2: stable collection, selected-image card and tab rail; only the active task scrolls. */
+.reference-image-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.reference-image-collection {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.reference-image-collection-heading,
+.reference-image-list-item,
+.reference-image-list-actions,
+.reference-image-editor-title {
+  display: flex;
+  align-items: center;
+}
+
+.reference-image-collection-heading {
+  justify-content: space-between;
+}
+
+.reference-image-list-item {
+  min-width: 0;
+}
+
+.reference-image-list-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.reference-image-list-actions {
+  flex: 0 0 auto;
+}
+
+.reference-image-list-action {
+  flex: 0 0 auto;
+}
+
+.reference-image-list {
+  max-height: var(--ui-reference-list-max-height);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.reference-image-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.reference-image-selected-card {
+  display: grid;
+  flex: 0 0 auto;
+}
+
+.reference-image-task-tabs {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.reference-image-task-tabs > button {
+  min-width: 0;
+}
+
+.reference-image-tabpanels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.reference-image-tabpanels > .reference-image-section {
+  min-width: 0;
+}
+
+.reference-image-hint {
+  flex: 0 0 auto;
+}
+
+.reference-image-advanced {
+  min-width: 0;
+}
+
+.reference-image-advanced > summary {
+  cursor: pointer;
+}
+
+@media (max-width: 799px) {
+  .reference-image-list {
+    max-height: var(--ui-reference-list-max-height-mobile);
+  }
+  .app-root[data-layout="mobile"] .surface-body.reference-image-body {
+    overflow: hidden;
+  }
+}
