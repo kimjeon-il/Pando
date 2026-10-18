@@ -11,14 +11,18 @@ test('both products use ProjectSession; viewing overrides have no persistence, c
  const session=createProjectSession({productMode:'viewer'});
  session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
   uiFactoriesA:{createAtomicMapStateController},modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
-  get uiFactoriesB(){assert.fail('viewer must not register save state');}});
+  get uiFactoriesB(){return assert.fail('viewer must not register save state');}});
  session.initializeMapWorkScheduler();
  const store=createTerritorialEntityStore({documentModel:core.documentModel,commandOwner:core.client});t.after(store.dispose);
  session.installDocumentProjection({documentModel:core.documentModel,commandOwner:core.client,entityStore:store});
  const before=core.documentModel.snapshot(),beforeState=core.client.state();
  assert.strictEqual(session.state.territorialEntities,core.documentModel.territorialViews());
  assert.strictEqual(session.state.genericFeatures,before.genericFeatures);assert.equal(session.saveState,undefined);
- session.state.layerVisibility.countries=false;
+ session.applyViewingPresentation({action:'visibility',key:'countries',visible:false});
+ session.applyViewingPresentation({action:'groupStyle',group:'countries',patch:{opacity:.25}});
+ assert.equal(session.state.layerPresentation.styles.countries.opacity,.25);
+ session.applyViewingPresentation({action:'distributionRenderMode',value:'single'});
+ assert.equal(session.state.distributionSettings.renderMode,'single');
  session.setViewingPresentation({physicalSettings:{...session.state.physicalSettings,terrainVisible:false}});
  const viewing=session.captureViewingPresentation();session.setViewingPresentation({},{reset:true});
  assert.equal(session.state.layerVisibility.countries,true);

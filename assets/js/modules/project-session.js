@@ -183,6 +183,18 @@ export function createProjectSession({productMode='editor'}={}) {
     viewingPresentation.layerVisibility=normalizeLayerVisibility(viewingPresentation.layerVisibility);
     return viewingPresentation;
   }
+  function applyViewingPresentation(payload) {
+    if (payload.action === 'visibility') setViewingPresentation({ layerVisibility: { ...state.layerVisibility, [payload.key]: payload.visible } });
+    else if (payload.action === 'groupStyle') setViewingPresentation({ layerPresentation: dependencies.modelValidation.normalizeLayerPresentation({
+      ...state.layerPresentation, styles: { ...state.layerPresentation.styles, [payload.group]: { ...state.layerPresentation.styles[payload.group], ...payload.patch } } }) });
+    else if (payload.action === 'terrainMode') setViewingPresentation({ physicalSettings: payload.physicalSettings });
+    else {
+      const key = { distributionRenderMode: 'renderMode', distributionActiveLayer: 'activeLayerId', distributionBoundaryVisible: 'boundaryVisible' }[payload.action];
+      if (!key) throw new TypeError(`Unknown viewing action: ${payload.action}`);
+      setViewingPresentation({ distributionSettings: { ...state.distributionSettings, [key]: payload.value } });
+    }
+    return { ok: true, changed: true };
+  }
   const captureViewingPresentation=()=>structuredClone(viewingPresentation);
 
   // A detached, empty startup input. C++ validates and owns it before any
@@ -228,7 +240,7 @@ export function createProjectSession({productMode='editor'}={}) {
     initializeMapWorkScheduler,
     initialDocument,
     installDocumentProjection,
-    ...(productMode==='viewer'?{setViewingPresentation,captureViewingPresentation}:{}),
+    ...(productMode==='viewer'?{setViewingPresentation,captureViewingPresentation,applyViewingPresentation}:{}),
     get atomicMapStateController() { return atomicMapStateController; },
     get mapWorkScheduler() { return mapWorkScheduler; },
     get normalizeLayerVisibility() { return normalizeLayerVisibility; },

@@ -16,7 +16,6 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
-| `UI-POLICY-AUDIT-20261019` | [웹·앱 독자 규칙 추가 조사](development/testing/independent-view-policy-audit-2026-10-19.md) | 2026-10-19 | `audit-complete / issues-open` | `not-applicable` |
 | `GEO-REVIEW-20261017` | [10월 17일 아침 보고서 검토 — 효력일 근거 보완·데이터 보류](geography/reviews/morning-2026-10-17.md) | 2026-10-17 회차 / 2026-10-16 UTC | `investigating` | `not-applied` |
 | `GEO-LIFE-005` | [아시아 국가 존속기간 — 이라크·요르단·레바논](geography/country-lifetime-asia-middle-east-2026-10-17.md) | 2026-10-17 | `investigating` | `not-applied` |
 | `GEO-LIFE-ROTATION` | [국가 존속기간 조사 지역 순환 진행기록](geography/country-lifetime-rotation-progress.md) | 2026-10-17 | `investigating` | `not-applied` |
@@ -41,6 +40,8 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `UI-POLICY-FIX-20261019` | [웹·앱 공통 열람 규칙 연결 수정](development/testing/shared-view-policy-fix-2026-10-19.md) | 2026-10-19 | `focused-verified / release-pending` | `not-applicable` |
+| `UI-POLICY-AUDIT-20261019` | [웹·앱 독자 규칙 추가 조사](development/testing/independent-view-policy-audit-2026-10-19.md) | 2026-10-19 | `historical-audit / follow-up-linked` | `not-applicable` |
 | `UI-MAP-PARITY-20261019` | [웹·앱 호버 깃발과 경계 규칙 재점검](development/testing/shared-map-rule-parity-2026-10-19.md) | 2026-10-19 | `focused-verified / published / native-unverified` | `not-applicable` |
 | `UI-SHARING-REFACTOR-20261019` | [웹·앱 공통 소유자 통합 및 검증 · 확대/축소 UI 회귀 수정](development/testing/shared-output-refactor-2026-10-19.md) | 2026-10-19 | `focused-verified / published / native-unverified` | `not-applicable` |
 | `UI-SHARING-AUDIT-20261018` | [출력 외 전부 공유 기준의 추가 조사·독립 코드 잔존](development/testing/shared-output-audit-2026-10-18.md) | 2026-10-18 | `audit-complete / follow-up-linked` | `not-applicable` |

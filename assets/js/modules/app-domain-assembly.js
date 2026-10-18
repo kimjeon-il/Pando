@@ -1136,15 +1136,8 @@ export function createDomainAssembly() {
       onTransition: () => dependencies.projectSession.saveState.sync() }));
     (territorialEntityStore = (0, dependencies.territorialServicesA.createTerritorialEntityStore)({
       documentModel,commandOwner,
-      onEntitiesReplaced: (entities, { changedIds, previous }) => {
-        const prior = new Map(previous.map(feature => [String(feature.id), feature]));
-        const after = new Map(entities.map(feature => [String(feature.id), feature]));
-        const countryShapeChanged = [...changedIds].some(id => {
-          const a = prior.get(id), b = after.get(id);
-          return ((a?.properties.entityKind === 'general' && !a?.properties.parentId) || (b?.properties.entityKind === 'general' && !b?.properties.parentId))
-            && (a?.geometry !== b?.geometry || a?.properties.entityKind !== b?.properties.entityKind);
-        });
-        if (countryShapeChanged) (0, dependencies.geometryMutation.reindexCountries)(
+      onEntitiesReplaced: (entities, { rootGeometryChanged }) => {
+        if (rootGeometryChanged) (0, dependencies.geometryMutation.reindexCountries)(
           { type: 'FeatureCollection', features: entities.filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)) });
         dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
       },
