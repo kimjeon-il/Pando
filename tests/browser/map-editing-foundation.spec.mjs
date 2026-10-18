@@ -28,8 +28,8 @@ test('desktop keeps automatic snapping and area feedback while removed map tools
   await expect(page.locator('.snap-indicator-layer')).toHaveCount(1);
 
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('폴란드');
-  await page.locator('#layerSearchResults .layer-search-result').first().click();
+  await page.locator('#objectSearchInput').fill('폴란드');
+  await page.locator('#objectSearchResults .object-search-result').first().click();
   await expect(page.locator('#selectionStatus')).toBeVisible();
   await expect(page.locator('#selectionStatus')).toContainText('폴란드');
   await expect(page.locator('#selectionStatus')).toContainText('km²');

@@ -12,7 +12,7 @@ const feature={ type: 'Feature',id: 'G',geometry: { type: 'Point',coordinates: [
 function ports(domain,service,projectDomain = null) {
   return { projectState: { state: { get selected() { return domain.primary(); } } },
     readinessUi: { requireCanonicalData: () => true },objectModelA: { genericFeatureService: service },
-    landRelations: { reassignGenericFeatureParents() {} },layers: { markLayerTreeDirty() {} },
+    landRelations: { reassignGenericFeatureParents() {} },objectDisplay: { invalidateObjectPresentation() {} },
     objectPresentation: { genericFeatureName: row=>row.properties.name },feedback: { setActionStatus() {} },
     domains: { projectDomain,selectionUiController: { clear: options=>domain.clear(options),presentPrimary: () => false } } };
 }

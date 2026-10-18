@@ -19,7 +19,7 @@ export function createObjectDeletion() {
     const result = await dependencies.objectModelA.genericFeatureService.remove(key);
     if (dependencies.projectState.state.projectReplacing || generation !== dependencies.domains.projectDomain.getGeneration()) return false;
     if (!result.ok) return false;
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     if (wasPrimary && !dependencies.projectState.state.selected) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: false });
     (0, dependencies.feedback.setActionStatus)(statusText || `${(0, dependencies.objectPresentation.genericFeatureName)(feature)} 기타 객체를 삭제했습니다.`, 'success');
     return true;
@@ -38,7 +38,7 @@ export function createObjectDeletion() {
     if (result.before.physicalSettings!==result.after.physicalSettings) {
       dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     }
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     if (wasPrimary && !dependencies.projectState.state.selected) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: false });
     dependencies.domains.renderingDomain?.invalidateHydroPatch?.('hydro-feature-deleted');
     const category = (0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties?.category);
@@ -57,7 +57,7 @@ export function createObjectDeletion() {
     if (dependencies.projectState.state.projectReplacing || generation!==dependencies.domains.projectDomain.getGeneration()
       || !result.ok || !result.changed) return false;
     const label=result.before.labels.find(row => row.id===key);
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     if (wasPrimary && !dependencies.projectState.state.selected) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: false });
     dependencies.domains.renderingDomain?.invalidateLabels?.('label-deleted');
     (0, dependencies.feedback.setActionStatus)(statusText || `${label.name || '지명'} 지명을 삭제했습니다.`, 'success');

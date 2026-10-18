@@ -2385,7 +2385,7 @@ export function createRenderingDomain({
       draft: frameContext => renderDraft(frameContext, editingPacket),
       snapIndicator: frameContext => renderSnap(frameContext, editingPacket),
       debug: (...args) => renderPass('debug', ...args),
-      layerTree: (...args) => renderPass('layerTree', ...args),
+      objectSearch: (...args) => renderPass('objectSearch', ...args),
     },
   });
 

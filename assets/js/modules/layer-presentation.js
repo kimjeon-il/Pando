@@ -126,19 +126,19 @@ function normalizeLayerStyle(value = {}) {
 export function normalizeLayerPresentation(value = {}) {
   const overlayOrder = [...OVERLAY_GROUPS];
   const sourceStyles = value?.styles && typeof value.styles === 'object' ? value.styles : {};
-  const legacyHydroStyle = Object.hasOwn(sourceStyles, 'hydro') ? normalizeLayerStyle(sourceStyles.hydro) : null;
+  const combinedHydroStyle = Object.hasOwn(sourceStyles, 'hydro') ? normalizeLayerStyle(sourceStyles.hydro) : null;
   const styles = {};
   for (const group of PRESENTATION_GROUPS) {
-    if (group === 'rivers' && !Object.hasOwn(sourceStyles, group) && legacyHydroStyle) {
+    if (group === 'rivers' && !Object.hasOwn(sourceStyles, group) && combinedHydroStyle) {
       styles[group] = normalizeLayerStyle({
-        ...legacyHydroStyle,
-        opacity: legacyHydroStyle.boundaryVisible ? legacyHydroStyle.opacity : 0,
+        ...combinedHydroStyle,
+        opacity: combinedHydroStyle.boundaryVisible ? combinedHydroStyle.opacity : 0,
         boundaryVisible: true,
       });
       continue;
     }
-    if (group === 'lakes' && !Object.hasOwn(sourceStyles, group) && legacyHydroStyle) {
-      styles[group] = normalizeLayerStyle(legacyHydroStyle);
+    if (group === 'lakes' && !Object.hasOwn(sourceStyles, group) && combinedHydroStyle) {
+      styles[group] = normalizeLayerStyle(combinedHydroStyle);
       continue;
     }
     styles[group] = normalizeLayerStyle(sourceStyles[group]);

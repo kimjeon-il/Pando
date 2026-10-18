@@ -141,7 +141,7 @@ test('copy creates an independent immutable user label and linked pinned setting
   const state={selected:{domain:'label',id:source.id}};
   const owner=createGenericCommands();owner.connect({projectState:{state},labelPresentation:{labelById:()=>source},surfaces:{uid:()=>id},
     domains:{projectDomain:core.project,renderingDomain:{invalidateLabels:()=>events.push('render')}},
-    layers:{markLayerTreeDirty:()=>events.push('tree')},propertyEditingA:{applyLabelSelectionIntent:async ()=>events.push('select')},feedback:{setActionStatus:()=>{}}});
+    objectDisplay:{invalidateObjectPresentation:()=>events.push('tree')},propertyEditingA:{applyLabelSelectionIntent:async ()=>events.push('select')},feedback:{setActionStatus:()=>{}}});
   try {
     const copy=await owner.copySelectedPlaceForEditing();assert.equal(copy.id,id);assert.equal(copy.sourcePlaceId,source.id);assert.deepEqual(copy.coordinates,source.coordinates);
     assert.throws(()=>{copy.coordinates[0]=128;},TypeError);assert.equal(source.coordinates[0],127);assert.equal(source.name,'서울');

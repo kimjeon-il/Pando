@@ -22,10 +22,10 @@ function setup(method, barrier) {
     territorialModel: { DISTRIBUTION_MODES: { TERRITORIAL: 'territorial' }, entityRepository: { get: id => ({ id, properties: { name: id } }) } },
     distributionServices: { createDistributionEntry: value => value }, surfaces: { uid: () => 'new-entry' },
     selectionServices: { normalizeObjectRef: value => value },
-    layers: { markLayerTreeDirty: () => events.push('tree') },
+    objectDisplay: { invalidateObjectPresentation: () => events.push('tree') },
     feedback: { setActionStatus: (...args) => events.push(['status',...args]) },
     domains: { projectDomain: { getGeneration: () => generation, queuePresentationAutosave: () => events.push('autosave') },
-      layerTreeController: { syncLocks: refs => events.push(['locks',refs]) },
+      objectSearchController: { syncLocks: refs => events.push(['locks',refs]) },
       selectionUiController: { applyIntent: value => events.push(['select',value]), clear: () => events.push('clear') } } });
   return { owner, state, layer, calls, events, switchProject: () => { generation += 1; } };
 }

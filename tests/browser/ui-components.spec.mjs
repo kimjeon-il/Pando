@@ -68,8 +68,8 @@ test('search clear control and desktop tooltip follow the shared interaction con
 
   await page.locator('#objectSearchBtn').click();
   await expect(page.locator('#objectSearchSurface')).toBeVisible();
-  const search = page.locator('#layerSearchInput');
-  const clear = page.locator('#layerSearchClearBtn');
+  const search = page.locator('#objectSearchInput');
+  const clear = page.locator('#objectSearchClearBtn');
   await search.fill('국가');
   await expect(clear).toBeVisible();
   await clear.click();
@@ -108,8 +108,8 @@ test('flag actions follow the selected object type across entity and river edito
   await expect(page.locator('#entityProperties')).toBeVisible();
   await expect(page.locator('#flagMenuBtn')).toBeVisible();
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('깃발 표시 검증 강');
-  await page.locator('#layerSearchResults .layer-search-result').click();
+  await page.locator('#objectSearchInput').fill('깃발 표시 검증 강');
+  await page.locator('#objectSearchResults .object-search-result').click();
   await expect(page.locator('#hydroProperties')).toBeVisible();
   await expect(page.locator('#hydroNameInput')).toHaveValue('깃발 표시 검증 강');
   await expect(page.locator('#flagMenuBtn')).toBeHidden();

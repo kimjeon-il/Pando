@@ -91,8 +91,8 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
       dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('user-preferences');
     }
     if ((themeChanged || smoothLinesChanged) && rerender && dependencies.mapLayers.svg) {
-      (0, dependencies.layerPresentation.markLayerTreeDirty)();
-      dependencies.domains.layerTreeController?.render();
+      (0, dependencies.layerPresentation.invalidateObjectPresentation)();
+      dependencies.domains.objectSearchController?.render();
       dependencies.domains.renderingDomain?.invalidateBaseScene?.('user-preferences');
     }
     return dependencies.preferences.userPreferences;
@@ -323,7 +323,7 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
         const refs = selection.items.filter(ref => ref.domain === 'label');
         return [refs.find(ref => ref.key === selection.primaryKey)?.id, ...refs.map(ref => ref.id)].filter(Boolean);
       },
-      onSettled: () => { dependencies.domains.layerTreeController.cancelSearch(); dependencies.domains.layerTreeController.render(true); },
+      onSettled: () => { dependencies.domains.objectSearchController.cancelSearch(); dependencies.domains.objectSearchController.render(true); },
       onSnapshot: () => dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'),
       onError: error => dependencies.feedback.reportOperationError(error, '내장 지명을 불러오지 못했습니다.', 'PL-PLACE-LOAD-001'),
     });

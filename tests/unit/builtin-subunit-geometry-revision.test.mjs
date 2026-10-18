@@ -21,7 +21,7 @@ test('native built-in eligibility rejects in-place canonical edits even with unc
   owner.connect({ projectState: { state: { layerPresentation: {} } },
     objectModelB: { territorialScope: { displayEntities: () => display } },
     territorialModel: { entityRepository: { list: () => entities, get: id => entities.find(entity => entity.id === id) } },
-    objectCatalog: { builtinSubunitSourceId },
+    objectDefinitions: { builtinSubunitSourceId },
     applicationServicesB: { layerStyle: () => ({ opacity: 1, blendMode: 'normal', boundaryVisible: true }) } });
   owner.installCanonicalCountryStore({ ids: () => ['MAF'], materializeCollectionSync: () => ({ features: [] }),
     materializeFeature: () => null, geometryEquals: (_id, value) => JSON.stringify(value) === baseline });
@@ -49,7 +49,7 @@ test('boundary projection keeps non-native children and resolves independent set
   owner.connect({ projectState: { state },
     objectModelB: { territorialScope: { displayEntities: () => entities } },
     territorialModel: { entityRepository: { list: () => entities, get: id => entities.find(entity => entity.id === id) } },
-    objectCatalog: { builtinSubunitSourceId }, applicationServicesB: { layerStyle },
+    objectDefinitions: { builtinSubunitSourceId }, applicationServicesB: { layerStyle },
     layerPresentation: { isLayerItemVisible: (group, id) => group === 'subunits' && id === child.id } });
   owner.installCanonicalCountryStore({ ids: () => ['CHN', 'HKG'], materializeCollectionSync: () => ({ features: [] }),
     materializeFeature: () => null, geometryEquals: () => true });

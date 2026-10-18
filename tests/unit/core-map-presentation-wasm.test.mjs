@@ -17,7 +17,7 @@ test('actual production map controls match original view fields and explicit dir
     get layerPresentation() { return owner.documentModel.snapshot().layerPresentation; } };
   settings.connect({ projectState: { state },platform: { $: () => null },feedback: { reportOperationError: error => assert.fail(error.stack) },
     objectModelA: { expandedMapDisplayGroups: new Set() },preferences: { userPreferences: { labels: { place: { languages: { ko: true } } } } },
-    layers: { markLayerTreeDirty() {} },rendering: { gpuMapRenderer: { invalidateCountryPalette() {} } },
+    objectDisplay: { invalidateObjectPresentation() {} },rendering: { gpuMapRenderer: { invalidateCountryPalette() {} } },
     territorialModel: { DISTRIBUTION_MODES: { TERRITORIAL: 'territorial',GEOMETRY: 'geometry' } },
     applicationConstantsA: {},platformConfigurationA: {},platformConfigurationB: {},projectServices: { createProjectSerializer: () => ({}) },
     domains: { projectDomain: owner.project,renderingDomain: { invalidateLabels() {},invalidateBaseScene() {},invalidateOverlayStyle() {} } } });

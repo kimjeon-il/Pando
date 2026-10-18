@@ -90,7 +90,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
     const navigationProjection = dependencies.projectState.state.projection;
     const navigationChanged = navigationProjection !== previewStart.projection
       || JSON.stringify(navigationView) !== previewStart.viewJson;
-    const previewSearch = dependencies.projectState.state.layerSearch;
+    const previewSearch = dependencies.projectState.state.objectSearch;
     const liveMonthBeforeAdmission = dependencies.domains.commandOwner.state()?.timelineCursor || '';
     const previewSelection = (dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) ? String(dependencies.projectState.state.selected.id || '') : '';
     (0, dependencies.builtinCountries.installCanonicalCountryStore)(geometry.canonicalCountryStore);
@@ -134,12 +134,12 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
       (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     }
     (0, dependencies.mapView.syncMapHostFromState)();
-    dependencies.projectState.state.layerSearch = previewSearch;
-    await (0, dependencies.layerTree.pruneLayerItemVisibility)();
+    dependencies.projectState.state.objectSearch = previewSearch;
+    await (0, dependencies.objectCatalogView.pruneLayerItemVisibility)();
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(restored || dependencies.domains.projectDomain.snapshot());
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'project-normalized';
     dependencies.projectState.state.boundaryPreparation?.cancel();
@@ -167,7 +167,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
     dependencies.domains.renderingDomain?.invalidateView?.('canonical-geometry-applied');
     if (previewSelection && dependencies.territorialModel.entityRepository.get(previewSelection)) await dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(previewSelection) }, { refreshOnly: true, openEditor: false });
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'layer-hydration';
-    await dependencies.domains.layerTreeController?.completeHydration();
+    await dependencies.domains.objectSearchController?.completeHydration();
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'complete';
@@ -279,7 +279,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
   async function initializeStartupRuntime({ afterInitialMapSetup = null, allowPreview = true, preview = null } = {}) {
     (0, dependencies.workspaceUiA.applyLayoutMode)({ initial: true });
     (0, dependencies.editorBindings.bindUI)();
-    dependencies.domains.layerTreeController.beginHydration();
+    dependencies.domains.objectSearchController.beginHydration();
     (0, dependencies.mapHostViewA.initSvg)();
     (0, dependencies.mapHostViewB.resizeMap)();
     if (typeof afterInitialMapSetup === 'function') afterInitialMapSetup();
@@ -366,9 +366,9 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
         : { countries: { features: [] }, subunits: [] };
       await admitFeatures([...classified.countries.features, ...classified.subunits], 'startup-preview-territories');
     }
-    await (0, dependencies.layerTree.pruneLayerItemVisibility)();
+    await (0, dependencies.objectCatalogView.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = hasStoredCountryGeometry
@@ -505,9 +505,9 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
       await restoreSavedProject(restored);
     } else await admitTerritorialBaseline(baseline,'startup-canonical-territories');
     await dependencies.persistence.applyAutosavedTimeline(autosaveRestore.view);
-    await (0, dependencies.layerTree.pruneLayerItemVisibility)();
+    await (0, dependencies.objectCatalogView.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(restored || dependencies.domains.projectDomain.snapshot());
     const externalGeometry = !!restored?.territorialEntities && restored.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = 'Natural Earth 5.1.1 · GPU 렌더러를 준비하는 중입니다.';
@@ -539,15 +539,15 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
     }
 
     (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
-    if ((0, dependencies.platform.$)('layerSearchInput')) (0, dependencies.platform.$)('layerSearchInput').value = dependencies.projectState.state.layerSearch;
-    dependencies.domains.layerTreeController?.render(true);
+    if ((0, dependencies.platform.$)('objectSearchInput')) (0, dependencies.platform.$)('objectSearchInput').value = dependencies.projectState.state.objectSearch;
+    dependencies.domains.objectSearchController?.render(true);
     (0, dependencies.mapSettingsUi.syncProjectionButtons)();
 
     (0, dependencies.mapHostViewB.resizeMap)();
     dependencies.lifecycleUi.projectUi.syncHistory();
     await dependencies.domains.editingDomain.setTool('select');
     (0, dependencies.physicalResources.loadPhysicalData)();
-    await dependencies.domains.layerTreeController?.completeHydration();
+    await dependencies.domains.objectSearchController?.completeHydration();
 
     if (restored) {
       await dependencies.lifecycleUi.projectUi.completeAutosaveRecovery();

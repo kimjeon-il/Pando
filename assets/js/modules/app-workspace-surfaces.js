@@ -193,11 +193,11 @@ export function createWorkspaceSurfaces() {
     const view = surfaceController.render({ fileOpen });
     referenceSurface?.sync();
     if (!surfaceController.isOpen('search')) {
-      dependencies.domains.layerTreeController?.cancelSearch();
+      dependencies.domains.objectSearchController?.cancelSearch();
       cancelAnimationFrame(searchFocusFrame);
       searchFocusFrame = 0;
     } else {
-      dependencies.domains.layerTreeController?.render(true);
+      dependencies.domains.objectSearchController?.render(true);
     }
     searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
@@ -597,7 +597,7 @@ export function createWorkspaceSurfaces() {
         searchFocusFrame = 0;
         if (surfaceController.isOpen('search') && !dependencies.projectState.state.projectReplacing
           && !document.activeElement?.closest('.ui-modal, [aria-modal="true"]')) {
-          (0, dependencies.platform.$)('layerSearchInput')?.focus({ preventScroll: true });
+          (0, dependencies.platform.$)('objectSearchInput')?.focus({ preventScroll: true });
         }
       });
     }
@@ -731,13 +731,13 @@ export function createWorkspaceSurfaces() {
       panel: (0, dependencies.platform.$)('objectSearchSurface'),
       toolbar: document.querySelector('.map-command-toolbar'),
       slot: document.querySelector('.map-command-search'),
-      results: (0, dependencies.platform.$)('layerSearchResults'),
+      results: (0, dependencies.platform.$)('objectSearchResults'),
       isOpen: () => surfaceController.isOpen('search'),
       isMobile,
       schedulePosition: () => menuPositionScheduler.schedule(),
     });
-    (0, dependencies.platform.$)('layerSearchInput')?.addEventListener('compositionstart', () => { searchComposing = true; });
-    (0, dependencies.platform.$)('layerSearchInput')?.addEventListener('compositionend', () => {
+    (0, dependencies.platform.$)('objectSearchInput')?.addEventListener('compositionstart', () => { searchComposing = true; });
+    (0, dependencies.platform.$)('objectSearchInput')?.addEventListener('compositionend', () => {
       searchComposing = false;
       if (pendingLayoutChange) applyLayoutMode();
     });

@@ -56,7 +56,7 @@ async function harness(t,refs,{ builtin=false }={}) {
     syncTerritorialEditorInteraction() {},hydroCategoryKey: value => value==='lake' ? 'lake':'river',
     hydroCategoryLabel: value => value==='lake' ? '호수':'강',hydroFallbackName: value => `이름 없는 ${value==='lake' ? '호수':'강'}`,
     hydroEditorName: (value,fallback) => String(value || '').trim() || fallback,
-    isLayerItemVisible: (group,id) => state.itemVisibility[group]?.[id]!==false,markLayerTreeDirty() {},
+    isLayerItemVisible: (group,id) => state.itemVisibility[group]?.[id]!==false,invalidateObjectPresentation() {},
     gpuMapRenderer: { invalidateCountryPalette() { effects.palette++; },invalidateHydroVisibility() { effects.hydro++; } },
     renderingDomain: { invalidateBaseScene() { effects.base++; },invalidateLabels() { effects.labels++; },invalidateSelection() { effects.selection++; } },
     projectDomain: owner.project,

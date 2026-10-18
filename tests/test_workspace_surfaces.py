@@ -40,7 +40,7 @@ class WorkspaceSurfaceContracts(unittest.TestCase):
             self.assertNotIn(token, SURFACE)
 
     def test_current_sheet_scroll_owners_use_shared_scroll_surfaces(self):
-        self.assertIn('class="layer-search-results ui-scroll-surface hidden"', INDEX)
+        self.assertIn('class="object-search-results ui-scroll-surface hidden"', INDEX)
         self.assertIn('class="panel-section ui-panel--dense map-view-panel-section ui-scroll-surface"', INDEX)
         self.assertIn('class="surface-body editor-scroll-body ui-scroll-surface"', INDEX)
         self.assertIn("scrollbar-width: thin;", CSS)

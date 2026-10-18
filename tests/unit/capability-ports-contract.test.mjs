@@ -48,7 +48,7 @@ const mapResourceOwners = [
   'app-map-projection.js',
   'app-object-presentation.js',
   'app-hydro-settings.js',
-  'app-layer-list.js',
+  'app-object-catalog.js',
   'app-territorial-labels.js',
   'app-physical-resources.js',
   'app-interaction-packets.js',

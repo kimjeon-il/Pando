@@ -24,7 +24,7 @@ class EditorChromeTests(unittest.TestCase):
             class_match = re.search(r'class="([^"]*)"', attributes)
             self.assertIsNotNone(class_match, attributes)
             self.assertIn('ui-button', class_match.group(1).split(), attributes)
-        self.assertIn("ui-button", read_module(ROOT, 'layer-tree-controller.js'))
+        self.assertIn("ui-button", read_module(ROOT, 'object-search-controller.js'))
 
     def test_active_component_families_use_shared_composition_primitives(self):
         for component in (

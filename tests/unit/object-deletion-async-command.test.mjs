@@ -12,7 +12,7 @@ function setup() {
     objectModelA: { genericFeatureService: { get: () => feature, remove: () => promise } },
     domains: { projectDomain: { getGeneration: () => generation },
       selectionUiController: { presentPrimary: () => events.push('clear') } },
-    layers: { markLayerTreeDirty: () => events.push('tree') },
+    objectDisplay: { invalidateObjectPresentation: () => events.push('tree') },
     feedback: { setActionStatus: (...args) => events.push(['status',...args]) } });
   return { owner, state, events, resolve, reject, replace: () => { generation += 1; } };
 }
@@ -50,7 +50,7 @@ for (const domain of ['label','hydro']) test(`${domain} deletion waits for one c
     domains: { projectDomain: { getGeneration: () => 1,executeCommand: envelope => { envelopes.push(envelope);return command; } },
       selectionUiController: { presentPrimary: () => events.push('selection') },
       renderingDomain: { invalidateLabels: () => events.push('render'),invalidateHydroPatch: () => events.push('render') } },
-    layers: { markLayerTreeDirty: () => events.push('tree') },feedback: { setActionStatus: () => events.push('status') } });
+    objectDisplay: { invalidateObjectPresentation: () => events.push('tree') },feedback: { setActionStatus: () => events.push('status') } });
   const pending=owner.deleteSelected();assert.deepEqual(events,[]);
   assert.deepEqual(envelopes,[{ commandId: `${domain}.edit`,targets: [{ domain,id: feature.id }],
     payload: { domain,id: feature.id,value: null,create: false } }]);

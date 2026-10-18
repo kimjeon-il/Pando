@@ -43,7 +43,7 @@ async function originalTrace(seed) {
   commands.connect({ projectState: { state: f.state },platform: { deepClone: structuredClone },surfaces: { uid: () => lids[index++] },
     objectPresentation: { genericFeatureGeometryKind: original.genericFeatureGeometryKind },
     labelPresentation: { labelKey: (domain,id) => `${domain}:${id}`,automaticLabelSettings: original.automaticLabelSettings },
-    spatialQuery: { mapObjectGeometryRevisions: { generic: 0 } },layers: { markLayerTreeDirty() {} },
+    spatialQuery: { mapObjectGeometryRevisions: { generic: 0 } },objectDisplay: { invalidateObjectPresentation() {} },
     propertyEditingA: { applyLabelSelectionIntent() {} },feedback: { setActionStatus() {},reportOperationError: error => { throw error; } },
     domains: { projectDomain: { recordHistory: history.record,queueAutosave() {} },renderingDomain: noRender } });
   const capture=() => observe({ ...f.owner.snapshotEditable(),labelSettings: f.state.labelSettings },{ ...f.saveState.snapshot(),stateRevision: f.state.stateRevision },history);
@@ -63,7 +63,7 @@ test('two-point generic conversion commits both labels, automatic settings and r
   let index=0;const commands=createGenericCommands();
   commands.connect({ projectState: { state },platform: { deepClone: structuredClone },surfaces: { uid: () => lids[index++] },
     objectPresentation: { genericFeatureGeometryKind: original.genericFeatureGeometryKind },
-    spatialQuery: { mapObjectGeometryRevisions: { generic: 0 } },layers: { markLayerTreeDirty() {} },
+    spatialQuery: { mapObjectGeometryRevisions: { generic: 0 } },objectDisplay: { invalidateObjectPresentation() {} },
     propertyEditingA: { applyLabelSelectionIntent: async () => {} },feedback: { setActionStatus() {},reportOperationError: error => { throw error; } },
     domains: { projectDomain: owner.project,renderingDomain: noRender } });
   const capture=() => observe(owner.documentModel.snapshot(),owner.client.state(),owner.project),actual=[capture()];

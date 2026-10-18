@@ -6,7 +6,7 @@
   --status-dot-width: 7px;
   --status-dot-height: 7px;
   --divider-height: 23px;
-  --layer-search-color: #77818c;
+  --object-search-color: #77818c;
   --toolbar-divider-height: 26px;
   --field-group-color: #aeb7c1;
   --territorial-label-flag-filter: drop-shadow(0 0 .4px rgba(0, 0, 0, .55));
@@ -29,8 +29,8 @@
   --vertex-handle-stroke: var(--text-muted, #6b7280);
   --bootstrap-loading-card-width: min(350px, calc(100vw - var(--ui-space-8)));
   --file-menu-btn-color: #dbe8f8;
-  --layer-search-background: #ffffff;
-  --layer-search-color-media-prefers-color-scheme-light: #7a8590;
+  --object-search-background: #ffffff;
+  --object-search-color-media-prefers-color-scheme-light: #7a8590;
   --field-group-color-media-prefers-color-scheme-light: #46515c;
   --field-group-color-media-prefers-color-scheme-light-2: #74808b;
   --fatal-noscript-border-color: #c97979;

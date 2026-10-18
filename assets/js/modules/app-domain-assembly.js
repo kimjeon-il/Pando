@@ -25,7 +25,7 @@ export function createDomainAssembly() {
   let selectionUiController;
   let territorialPropertyController;
   let objectPropertyController;
-  let layerTreeController;
+  let objectSearchController;
   let territorialEntityStore;
   let territorialEntityRepository;
   let commandOwner;
@@ -122,7 +122,7 @@ export function createDomainAssembly() {
         { domain: 'placeBuiltin',refs: dependencies.countryLabelModel.builtinPlaceSelectionReferences() },
         { domain: 'hydroBuiltin',refs: dependencies.physicalResources.builtinHydroSelectionReferences() },
       ],
-      readPresentationCatalog: () => dependencies.layerTree.presentationCatalog(),
+      readPresentationCatalog: () => dependencies.objectCatalogView.presentationCatalog(),
       publishCommand: async (outcome,{ reason } = {}) => {
         if(outcome.ok && outcome.changed && (reason==='project-undo' || reason==='project-redo')) await dependencies.projectSnapshots.finishHistoryTravel();
         if(reason==='command-rollback') {
@@ -276,7 +276,7 @@ export function createDomainAssembly() {
       formatArea: dependencies.applicationServicesA.formatArea,
       geometryAreaKm2: dependencies.applicationServicesB.sphericalGeometryAreaKm2,
       layerNameCompare: (left, right) => dependencies.objectModelA.layerNameCollator.compare(left, right),
-      layerTreeController: () => layerTreeController,
+      objectSearchController: () => objectSearchController,
       syncObjectActionsMenu: dependencies.objectOperationsB.syncObjectActionsMenu,
       closeObjectActionsMenu: dependencies.objectOperationsA.closeObjectActionsMenu,
       setEditorShellView: dependencies.propertyEditingB.setEditorShellView,
@@ -341,7 +341,7 @@ export function createDomainAssembly() {
       territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
       refreshTerritorialCoastAvailability: dependencies.territorialEditingB.refreshTerritorialCoastAvailability,
       replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
-      syncLayerSelection: () => layerTreeController?.syncSelection(),
+      syncLayerSelection: () => objectSearchController?.syncSelection(),
       commitFlag: (ref, value) => dependencies.objectMetadata.commitTerritorialMetadata(ref, 'flagDataUrl', value),
       openFlagLibrary: dependencies.flagLibrary.openFlagLibraryPicker,
       closeColorPickers: dependencies.colorPicker.closeAllColorPickers,
@@ -407,7 +407,7 @@ export function createDomainAssembly() {
         },
         syncBatchActions: dependencies.objectOperationsB.syncBatchActionAvailability,
         syncMapSurfaces: dependencies.taskPresentation.syncMapContextSurfaces,
-        syncLayerRows: selection => layerTreeController?.syncSelection(selection, { reveal: true }),
+        syncLayerRows: selection => objectSearchController?.syncSelection(selection, { reveal: true }),
         closeChooser: dependencies.objectPicking.closeObjectChooser,
       },
       metrics: dependencies.rendering.selectionPerformanceMetrics,
@@ -822,7 +822,7 @@ export function createDomainAssembly() {
         svg: dependencies.mapLayers.svg,
         getState: () => dependencies.projectState.state,
         preparePlaces: dependencies.countryLabelModel.preparePlaces,
-        beginPlaceInteraction: () => { dependencies.countryLabelModel.builtinPlaces.beginInteraction(); layerTreeController.cancelSearch(); },
+        beginPlaceInteraction: () => { dependencies.countryLabelModel.builtinPlaces.beginInteraction(); objectSearchController.cancelSearch(); },
         disposePlaces: () => dependencies.countryLabelModel.builtinPlaces.dispose(),
         mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
         handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
@@ -1146,7 +1146,7 @@ export function createDomainAssembly() {
         stackOverlays: dependencies.interactionPresentation.applyOverlayStackOrder,
         labelLayout: dependencies.countryLabelModel.visibleLabelLayout,
         debug: (...args) => dependencies.lifecycleUi.mapDebug.renderPanel(...args),
-        layerTree: (...args) => layerTreeController?.render?.(...args),
+        objectSearch: (...args) => objectSearchController?.render?.(...args),
       },
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'rendering-domain', ...entry }),
     });
@@ -1198,7 +1198,7 @@ export function createDomainAssembly() {
 
     (objectPropertyController = null);
 
-    (layerTreeController = null);
+    (objectSearchController = null);
     domainsReady=null;
   }
 
@@ -1236,8 +1236,8 @@ export function createDomainAssembly() {
     get editingDomain() { return editingDomain; },
     get gisDomain() { return gisDomain; },
     get initializeDomainBoundaries() { return initializeDomainBoundaries; },
-    get layerTreeController() { return layerTreeController; },
-    set layerTreeController(value) { layerTreeController = value; },
+    get objectSearchController() { return objectSearchController; },
+    set objectSearchController(value) { objectSearchController = value; },
     get objectPropertyController() { return objectPropertyController; },
     get projectDomain() { return projectDomain; },
     get renderingDomain() { return renderingDomain; },

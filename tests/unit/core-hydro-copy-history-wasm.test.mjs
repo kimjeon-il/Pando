@@ -49,7 +49,7 @@ function ports(state, seed, project, builtin) {
     } }, hydroPresentation: { HYDRO_TOOL_CONFIG: originalHydroToolConfig,
       hydroCategoryLabel: () => '강', hydroCategoryKey: category => category,
       hydroEditById: key => state.hydroEdits.find(row => row.id === key) || null },
-    rendering: { gpuMapRenderer: { invalidateHydroVisibility() {} } }, layers: { markLayerTreeDirty() {} },
+    rendering: { gpuMapRenderer: { invalidateHydroVisibility() {} } }, objectDisplay: { invalidateObjectPresentation() {} },
     selectionServices: { normalizeObjectRef: value => value }, feedback: { setActionStatus() {} },
     domains: { projectDomain: project, selectionUiController: { applyIntent: async () => {} },
       renderingDomain: { invalidateHydroPatch() {} } } };

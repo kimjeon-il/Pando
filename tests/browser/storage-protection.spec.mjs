@@ -62,8 +62,8 @@ test(`startup save conflict restores safely ${cancelFirst ? 'after cancel and pe
   }));
   expect(recovery).toEqual({ archived: 'database', active: 'local' });
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('local-marker');
-  await expect(page.locator('#layerSearchResults')).toContainText('local-marker');
+  await page.locator('#objectSearchInput').fill('local-marker');
+  await expect(page.locator('#objectSearchResults')).toContainText('local-marker');
   expect(errors).toEqual([]);
 });
 }
@@ -97,7 +97,7 @@ test('real GIS GeoJSON export and reimport preserve original provenance and deta
       uid: () => '00000000-0000-4000-8000-000000000011', GENERIC_FEATURE_SCHEMA_VERSION,
       DEFAULT_GENERIC_FEATURE_COLOR: '#888888', normalizeGenericFeatureSemantics, validateStructuredGeometry: () => [],
       genericFeatureService: { addMany: values => { imported = values[0]; } }, activeLayerFolderKeys: () => [],
-      markLayerTreeDirty() {}, setActionStatus() {} });
+      invalidateObjectPresentation() {}, setActionStatus() {} });
     await importer.importGeoJson({ name: 'generic_features.geojson' }, { parsed });
     return { oldId: original.id, id: imported.id, properties: imported.properties, expected: original.properties };
   }, staticAutosaveProject());

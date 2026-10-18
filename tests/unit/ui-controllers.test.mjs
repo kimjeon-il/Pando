@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createConfirmModalController } from '../../assets/js/modules/confirm-modal-controller.js';
-import { createLayerTreeController } from '../../assets/js/modules/layer-tree-controller.js';
+import { createObjectSearchController } from '../../assets/js/modules/object-search-controller.js';
 import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
 
 function fakeElement() {
@@ -119,7 +119,7 @@ test('opening another modal dispatches the previous cancellation immediately wit
 test('object search controller translates search DOM events into commands', () => {
   const search = fakeElement();
   const calls = [];
-  const controller = createLayerTreeController({
+  const controller = createObjectSearchController({
     window: { clearTimeout() {}, setTimeout: callback => { callback(); return 1; }, Event: class { constructor(type) { this.type = type; } } },
     elements: { search },
     groups: { tree: [], search: [], names: {} },

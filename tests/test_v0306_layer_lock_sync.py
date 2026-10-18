@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
-LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "layer-tree-controller.js").read_text(encoding="utf-8")
+LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "object-search-controller.js").read_text(encoding="utf-8")
 
 
 class LayerLockSyncTests(unittest.TestCase):
@@ -15,7 +15,7 @@ class LayerLockSyncTests(unittest.TestCase):
         commands = read_module(ROOT, 'app-object-commands.js')
         batch = function_source(commands, 'batchSetLocked')
         self.assertIn('syncLocks(refs)', batch)
-        self.assertNotIn('markLayerTreeDirty', batch)
+        self.assertNotIn('invalidateObjectPresentation', batch)
         search_row = function_source(LAYER_TREE, 'rowFor')
         self.assertNotIn('locked', search_row)
         self.assertNotIn('Lock', search_row)

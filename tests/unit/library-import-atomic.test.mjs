@@ -122,7 +122,7 @@ async function libraryAssemblyHarness(t,finite,{impacts=false,entities}={}) {
     spatialQuery:{mapEditClient:{sourcesCurrent:revision=>revision===h.client.state().epoch,execute:async(operation,{payload})=>{
       assert.equal(operation,'territorial-library-batch');return {sourceRevision:h.client.state().epoch,result:{features:payload.countries,removedIds:[],
         affectedIds:payload.countries.map(row=>row.id),donorIds:[],transfers:[],deleted:0,impacts:impacts?[{name:'A',area:1,deleted:false}]:[]}};}}},
-    layers:{markLayerTreeDirty:()=>operations.push('layers')},spatialRecords:{scheduleMapObjectSpatialIndexRebuild:()=>operations.push('index')},
+    objectDisplay:{invalidateObjectPresentation:()=>operations.push('layers')},spatialRecords:{scheduleMapObjectSpatialIndexRebuild:()=>operations.push('index')},
     projectSession:{saveState:{markNewProject:()=>operations.push('new-project')}},
   });
   assembly.initializeTerritorialLibraryService();const api=globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY;await api.load();

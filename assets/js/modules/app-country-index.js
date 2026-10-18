@@ -33,7 +33,7 @@ export function createCountryIndex() {
       dependencies.projectState.state.countryIndex.set(id, index);
     });
     (0, dependencies.spatialQuery.rebuildSpatialIndex)(out.features);
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     return out;
   }
 
@@ -227,7 +227,7 @@ export function createCountryIndex() {
       changed = true;
     }
     if (!changed) return;
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     clearTimeout(countryLabelAnchorTimer);
     countryLabelAnchorTimer = setTimeout(flushCountryLabelAnchorQueue, delay);
   }

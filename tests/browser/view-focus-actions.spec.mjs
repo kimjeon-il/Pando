@@ -91,8 +91,8 @@ test.describe('mobile focus', () => {
     test.setTimeout(180_000);
     const errors = await openDebugMap(page, { width: 390, height: 844 });
     await page.locator('#mobileSearchBtn').click();
-    await page.locator('#layerSearchInput').fill('독일');
-    await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+    await page.locator('#objectSearchInput').fill('독일');
+    await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '독일' }).first().click();
     await expect(page.locator('#selectionStatus')).toContainText('독일');
     await expect(page.locator('#mobileEditBtn')).toHaveAttribute('aria-expanded', 'true');
     await expect(page.locator('#focusSelectedObjectBtn')).toBeVisible();

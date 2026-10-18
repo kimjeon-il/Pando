@@ -39,7 +39,7 @@ export function createObjectPropertyController(runtime = {}) {
     formatArea,
     geometryAreaKm2,
     layerNameCompare,
-    layerTreeController,
+    objectSearchController,
     syncObjectActionsMenu,
     closeObjectActionsMenu,
     setEditorShellView,
@@ -220,7 +220,7 @@ export function createObjectPropertyController(runtime = {}) {
     renderDistributionEntries(layer);
     $('selectionStatus').textContent = layer.name;
     syncStatusBar();
-    layerTreeController()?.syncSelection();
+    objectSearchController()?.syncSelection();
     return true;
   }
 
@@ -283,7 +283,7 @@ export function createObjectPropertyController(runtime = {}) {
     syncGenericSemanticEditor(feature);
     $('selectionStatus').textContent = `${feature.properties?.name || String(id).slice(0, 8)}${areaSuffix(feature.geometry)}`;
     syncStatusBar();
-    layerTreeController()?.syncSelection();
+    objectSearchController()?.syncSelection();
     return true;
   }
 
@@ -311,7 +311,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('selectionStatus').textContent = label.name;
     syncActionTab('label');
     syncStatusBar();
-    layerTreeController()?.syncSelection();
+    objectSearchController()?.syncSelection();
     return true;
   }
 
@@ -349,7 +349,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('hydroBuiltinHelp').lastChild.textContent = ` 기반 내장 ${category}입니다. 직접 수정하려면 복사본을 만드세요.`;
     $('selectionStatus').textContent = displayName;
     syncStatusBar();
-    layerTreeController()?.syncSelection();
+    objectSearchController()?.syncSelection();
     if (!editable && !feature.geometry && !feature.__geometryLoading) {
       feature.__geometryLoading = true;
       gpuMapRenderer.loadHydroLogicalFeature(Number(properties.__logicalFid)).then(async full => {

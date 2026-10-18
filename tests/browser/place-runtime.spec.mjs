@@ -32,7 +32,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(nativeSwitch).toBeChecked();
   await page.locator('#mapDisplayBtn').evaluate(button => button.click());
   await page.locator('#objectSearchBtn').evaluate(button => button.click());
-  await page.locator('#layerSearchInput').fill('서울');
+  await page.locator('#objectSearchInput').fill('서울');
   const result=page.locator('[data-object-search-select="labels"][data-item-id="builtin:place:synthetic:seoul"]');
   await expect(result).toBeVisible();await result.click();
   await expect(page.locator('#labelProperties')).toBeVisible({timeout:30_000});
@@ -49,7 +49,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelKindInput')).toBeEnabled();
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeEnabled();
   await page.locator('#objectSearchBtn').evaluate(button => button.click());
-  await page.locator('#layerSearchInput').fill('서울');
+  await page.locator('#objectSearchInput').fill('서울');
   await expect(result).toHaveCount(0);
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
   // Undo the copy itself; the builtin source must immediately become searchable again.

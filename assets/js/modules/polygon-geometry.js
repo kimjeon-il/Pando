@@ -1,4 +1,4 @@
-(function initializeCountryGeometry(root) {
+(function initializePolygonGeometry(root) {
   'use strict';
 
   const COORDINATE_TOLERANCE = 1e-10;

@@ -183,7 +183,7 @@ test('app waits for actual hydro worker readiness and retries manifests', () => 
 
 test('rivers and lakes share the landforms folder while retaining hydro item visibility', () => {
   const source = readApplicationOwners('physical-resources', 'layer-list', 'hydro-settings');
-  const model = read('assets/js/modules/layer-list-model.js');
+  const model = read('assets/js/modules/object-search-model.js');
   assert.ok(!source.includes('HYDRO_FOLDER_STATE_PREFIX'));
   assert.ok(model.includes("name: '지형지물'"));
   assert.ok(model.includes("layerGroup === 'hydro') bundles[1].items.push(item)"));

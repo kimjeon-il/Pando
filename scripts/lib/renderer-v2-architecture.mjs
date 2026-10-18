@@ -19,7 +19,7 @@ export const PROJECT_RENDERER_SEQUENCE = Object.freeze([
   'territorialLabels',
   'userLabels',
   'viewPresentation',
-  'layerTree',
+  'objectSearch',
   'debug',
 ]);
 

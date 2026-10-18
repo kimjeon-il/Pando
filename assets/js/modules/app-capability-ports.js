@@ -11,12 +11,12 @@ export { FOUNDATION_OWNER_PORTS, MAP_INTERACTION_OWNER_PORTS, OBJECT_EDITING_OWN
 export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
   cameraNavigation: Object.freeze(["countries","domains","feedback","mapNavigation","mapView","objectLookup","physicalData","platform","projectState","rendering","surfaces"]),
   readinessNotifications: Object.freeze(["platform","projectState","readiness","surfaces"]),
-  countryIndex: Object.freeze(["countries","domains","geometryModel","layers","mapView","platform","projectState","spatialQuery"]),
+  countryIndex: Object.freeze(["countries","domains","geometryModel","objectDisplay","mapView","platform","projectState","spatialQuery"]),
   spatialIndex: Object.freeze(["objectModelB","countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
   geometryPreview: Object.freeze(["domains","feedback","geometryEditingCore","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry"]),
   territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel","objectPresentation"]),
   countryValidation: Object.freeze(["countries","domains","geometryModel","geometryPreview","projectState","snapshots","spatialQuery"]),
-  landRelations: Object.freeze(["cutGeometry","geometryModel","geometryPreview","layers","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
+  landRelations: Object.freeze(["cutGeometry","geometryModel","geometryPreview","objectDisplay","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
 });
 
 export function createSpatialDataPorts(providers) {
@@ -41,7 +41,7 @@ export function createSpatialDataPorts(providers) {
       get commandOwner() { return providers.domainAssembly.commandOwner; },
       get documentModel() { return providers.domainAssembly.documentModel; },
       get editingDomain() { return providers.domainAssembly.editingDomain; },
-      get layerTreeController() { return providers.domainAssembly.layerTreeController; },
+      get objectSearchController() { return providers.domainAssembly.objectSearchController; },
       get projectDomain() { return providers.domainAssembly.projectDomain; },
       get renderingDomain() { return providers.domainAssembly.renderingDomain; },
       get selectionDomain() { return providers.domainAssembly.selectionDomain; },
@@ -78,8 +78,8 @@ export function createSpatialDataPorts(providers) {
     labels: Object.freeze({
       get countryOutlineCache() { return providers.territorialLabels.countryOutlineCache; },
     }),
-    layers: Object.freeze({
-      get markLayerTreeDirty() { return providers.layerList.markLayerTreeDirty; },
+    objectDisplay: Object.freeze({
+      get invalidateObjectPresentation() { return providers.objectCatalog.invalidateObjectPresentation; },
     }),
     mapNavigation: Object.freeze({
       get equirectangularCenterForAnchor() { return providers.runtime.equirectangularCenterForAnchor; },
@@ -194,12 +194,12 @@ export function createSpatialDataPorts(providers) {
 export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   cutGeometry: Object.freeze(["geometryModel","geometryMutation","geometryPreview","geometryValidation","mapView","objectPresentation","platform","projectState","spatialQuery","territorialModel","territoryGeometry"]),
   mapProjection: Object.freeze(["mapLayers","mapLayout","platform","projectState","surfaces"]),
-  objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery","territorialModel"]),
+  objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectDefinitions","objectPresentation","platform","projectState","spatialQuery","territorialModel"]),
   hydroSettings: Object.freeze(["colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
-  layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering","territorialModel"]),
-  territorialLabels: Object.freeze(["objectModelB","colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel"]),
+  objectCatalog: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectDefinitions","objectPresentation","platform","projectState","rendering","territorialModel"]),
+  territorialLabels: Object.freeze(["objectModelB","colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectDefinitions","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel"]),
   physicalResources: Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
-  interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","feedback","mapLayers","objectCatalog","platform","preferences","projectState","renderScene","surfaces"]),
+  interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","feedback","mapLayers","objectDefinitions","platform","preferences","projectState","renderScene","surfaces"]),
 });
 
 function createMapResourcePorts(providers) {
@@ -263,11 +263,11 @@ function createMapResourcePorts(providers) {
     }),
     layerPresentation: Object.freeze({
       get ASSET_REVISION() { return providers.environment.ASSET_REVISION; },
-      get isCountryVisibleById() { return providers.layerList.isCountryVisibleById; },
-      get isLayerItemVisible() { return providers.layerList.isLayerItemVisible; },
+      get isCountryVisibleById() { return providers.objectCatalog.isCountryVisibleById; },
+      get isLayerItemVisible() { return providers.objectCatalog.isLayerItemVisible; },
       get LAYER_GROUP_KEYS() { return providers.objectPresentation.LAYER_GROUP_KEYS; },
       get layerGroupNames() { return providers.objectPresentation.layerGroupNames; },
-      get markLayerTreeDirty() { return providers.layerList.markLayerTreeDirty; },
+      get invalidateObjectPresentation() { return providers.objectCatalog.invalidateObjectPresentation; },
       get setScopedItemVisibility() { return providers.runtime.setScopedItemVisibility; },
     }),
     mapLayers: Object.freeze({
@@ -286,7 +286,7 @@ function createMapResourcePorts(providers) {
       get projectVisibleCoordinate() { return providers.mapProjection.projectVisibleCoordinate; },
       get viewRevision() { return providers.mapHost.viewRevision; },
     }),
-    objectCatalog: Object.freeze({
+    objectDefinitions: Object.freeze({
       get builtinSubunitSourceId() { return providers.runtime.builtinSubunitSourceId; },
       get MAP_OBJECT_CATEGORIES() { return providers.runtime.MAP_OBJECT_CATEGORIES; },
       get MAP_OBJECT_CATEGORY_ORDER() { return providers.runtime.MAP_OBJECT_CATEGORY_ORDER; },

@@ -13,9 +13,9 @@ export function createProjectSnapshots() {
   async function finishHistoryTravel() {
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();dependencies.hydroModel.syncPhysicalControls();
     // History travel runs inside ProjectDomain's command queue; the builtin catalog is unchanged.
-    await dependencies.layerTree.pruneLayerItemVisibility({ catalogAlreadyAdmitted: true });
-    dependencies.countries.scheduleCountryLabelAnchors(null,10);dependencies.layers.markLayerTreeDirty();
-    dependencies.domains.layerTreeController.cancelSearch();dependencies.domains.layerTreeController.render(true);
+    await dependencies.objectCatalogView.pruneLayerItemVisibility({ catalogAlreadyAdmitted: true });
+    dependencies.countries.scheduleCountryLabelAnchors(null,10);dependencies.objectDisplay.invalidateObjectPresentation();
+    dependencies.domains.objectSearchController.cancelSearch();dependencies.domains.objectSearchController.render(true);
     const state=dependencies.projectState.state;
     state.coastEditCountryId=null;state.coastEditScopeGenericFeatureId=null;state.coastEditReturnSelection=null;
     dependencies.countryEditingB.resetBoundaryEditState();dependencies.countryEditingB.resetMergeState();

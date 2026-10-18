@@ -22,7 +22,7 @@ async function setup(t, { locked = false } = {}) {
     hydroPresentation: { hydroEditById: id => core.documentModel.get({ domain: 'hydro', id }), hydroCategoryLabel: () => '강' },
     domains: { projectDomain: core.project,
       renderingDomain: { invalidateHydroPatch(reason) { events.push(['render', reason, state.stateRevision, current().properties.editorColor]); } } },
-    layers: { markLayerTreeDirty() { events.push('tree'); } },
+    objectDisplay: { invalidateObjectPresentation() { events.push('tree'); } },
     propertyEditingA: { async applyHydroSelectionIntent(id, refreshOnly) { events.push(['present', id, refreshOnly]); } },
     feedback: { setActionStatus(_message, kind) { events.push(['status', kind]); } },
   });

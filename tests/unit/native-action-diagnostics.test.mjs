@@ -143,10 +143,10 @@ function browserFixture({ report, observerThrows = false } = {}) {
   let now = 100, row = null;
   const listeners = [], frames = new Map(), timers = new Map(), observers = [];
   let frameId = 0, timerId = 0, geometryReads = 0;
-  const root = { id: 'layerSearchResults', getAttribute: () => null, querySelector: () => row };
+  const root = { id: 'objectSearchResults', getAttribute: () => null, querySelector: () => row };
   const scope = { Date, performance: { now: () => now, timeOrigin: 123000 },
     document: {
-      querySelector: selector => selector === '#layerSearchResults' ? root : row,
+      querySelector: selector => selector === '#objectSearchResults' ? root : row,
       addEventListener: (type, callback, capture) => listeners.push({ type, callback, capture }),
       removeEventListener(type, callback, capture) {
         const index = listeners.findIndex(item => item.type === type && item.callback === callback && item.capture === capture);
@@ -174,7 +174,7 @@ function browserFixture({ report, observerThrows = false } = {}) {
     closest: () => row,
     getBoundingClientRect: () => { geometryReads++; throw new Error('layout read forbidden'); }, ...extra });
   return { call, node, listeners, observers, frames, timers, scope,
-    install: (options = {}) => call({ command: 'install', token: 'test', selector: '.layer-search-result', rowSelector: '[data-object-key="hydro:river:exact"]', ...options }),
+    install: (options = {}) => call({ command: 'install', token: 'test', selector: '.object-search-result', rowSelector: '[data-object-key="hydro:river:exact"]', ...options }),
     take: () => call({ command: 'take', token: 'test' }),
     setRow: value => { row = value; }, setNow: value => { now = value; },
     mutate(records = []) { for (const observer of observers) if (!observer.disconnected) observer.callback(records); },

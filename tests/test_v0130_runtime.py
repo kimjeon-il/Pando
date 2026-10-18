@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-LAYER_MODEL = (ROOT / "assets/js/modules/layer-list-model.js").read_text(encoding="utf-8")
-LAYER_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
+LAYER_MODEL = (ROOT / "assets/js/modules/object-search-model.js").read_text(encoding="utf-8")
+LAYER_CONTROLLER = (ROOT / "assets/js/modules/object-search-controller.js").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
 CSS = read_ui_sources(ROOT)
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")

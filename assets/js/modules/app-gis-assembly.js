@@ -35,7 +35,7 @@ export function createGisAssembly({ fileAccess = null } = {}) {
       createGisImportError: dependencies.readinessUi.createGisImportError,
       RELIABILITY_ERROR_CATEGORIES: dependencies.readiness.RELIABILITY_ERROR_CATEGORIES,
       markCountryGeometriesChanged: dependencies.spatialQuery.markCountryGeometriesChanged,
-      markLayerTreeDirty: dependencies.layers.markLayerTreeDirty,
+      invalidateObjectPresentation: dependencies.objectDisplay.invalidateObjectPresentation,
       renderingDomain: dependencies.domains.renderingDomain,
       setActionStatus: dependencies.feedback.setActionStatus,
       createDistributionLayer: dependencies.distributionServices.createDistributionLayer,
@@ -55,7 +55,7 @@ export function createGisAssembly({ fileAccess = null } = {}) {
       validateCoastReplacement: dependencies.gisServicesB.validateCoastReplacement,
       applyImportedPackageAssets: dependencies.gisServicesA.applyImportedPackageAssets,
       projectDomain: dependencies.domains.projectDomain,
-      pruneLayerItemVisibility: dependencies.layerTree.pruneLayerItemVisibility,
+      pruneLayerItemVisibility: dependencies.objectCatalogView.pruneLayerItemVisibility,
       scheduleCountryLabelAnchors: dependencies.countries.scheduleCountryLabelAnchors,
       selectionUiController: dependencies.domains.selectionUiController,
     })).catch(error => {

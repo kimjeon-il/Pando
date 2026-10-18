@@ -14,7 +14,7 @@ function fixture(t,{ projectReady=true }={}) {
   const settings=createMapSettings();
   settings.connect({ projectState: { state },platform: { $: () => null },feedback: { reportOperationError: error => { throw error; } },
     objectModelA: { expandedMapDisplayGroups: new Set() },preferences: { userPreferences: { labels: { place: { languages: { ko: true } } } } },
-    layers: { markLayerTreeDirty: () => events.push('tree') },
+    objectDisplay: { invalidateObjectPresentation: () => events.push('tree') },
     rendering: { gpuMapRenderer: { invalidateCountryPalette: () => events.push('palette') } },
     domains: { get projectDomain() { return projectReady ? project : null; },
       renderingDomain: { invalidateBaseScene: () => events.push('base'),invalidateLabels: () => events.push('labels') } } });

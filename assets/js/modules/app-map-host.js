@@ -127,7 +127,7 @@ export function createMapHost() {
       .precision((0, dependencies.surfaces.isMobile)() ? 0.7 : 0.25);
   }
 
-  function legacyHostOptions() {
+  function mapSurfaceHostOptions() {
     return {
       getProjectionKind: () => dependencies.projectState.state.projection,
       setProjectionKind: kind => {
@@ -150,18 +150,18 @@ export function createMapHost() {
       unproject: point => (0, dependencies.mapView.screenToGeo)(point),
       requestRepaint: reason => dependencies.domains.renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),
       resize: () => dependencies.rendering.gpuMapRenderer.resize(),
-      dragBy: dependencies.navigation.dragLegacyMapViewBy,
+      dragBy: dependencies.navigation.panMapViewBy,
       getDebugState: () => ({ viewRevision }),
     };
   }
 
   function createPreferredMapHost(mapEl) {
-    const legacy = (0, dependencies.renderFactories.createLegacyMapHost)(legacyHostOptions());
+    const legacy = (0, dependencies.renderFactories.createMapSurfaceHost)(mapSurfaceHostOptions());
     legacy.attach(mapEl);
     return legacy;
   }
 
-  async function activateLegacyMapHost(reason = '') {
+  async function activateMapSurfaceHost(reason = '') {
     const mapEl = (0, dependencies.platform.$)('map');
     mapHost?.destroy?.();
     // Reuse the Pando canvas created by initSvg when host initialization is
@@ -174,7 +174,7 @@ export function createMapHost() {
       else mapEl?.appendChild(gpuCanvas);
     }
     dependencies.rendering.gpuMapRenderer.attach(gpuCanvas);
-    mapHost = (0, dependencies.renderFactories.createLegacyMapHost)(legacyHostOptions());
+    mapHost = (0, dependencies.renderFactories.createMapSurfaceHost)(mapSurfaceHostOptions());
     mapHost.attach(mapEl);
     await mapHost.initialize();
     document.body.dataset.mapHost = dependencies.applicationConstantsA.MAP_HOST_KINDS.LEGACY;
@@ -184,7 +184,7 @@ export function createMapHost() {
   }
 
   async function initializeMapHost() {
-    if (!mapHost) return activateLegacyMapHost('MapHost가 초기화되지 않았습니다.');
+    if (!mapHost) return activateMapSurfaceHost('MapHost가 초기화되지 않았습니다.');
     try {
       await mapHost.initialize();
       (0, dependencies.renderQuality.applyAdaptiveRenderQuality)({ refreshScene: false, reason: 'map-host-ready' });
@@ -192,7 +192,7 @@ export function createMapHost() {
       window.__PANDOLAB_MAP_HOST__ = mapHost;
       return true;
     } catch (error) {
-      return activateLegacyMapHost(error?.message || String(error));
+      return activateMapSurfaceHost(error?.message || String(error));
     }
   }
 

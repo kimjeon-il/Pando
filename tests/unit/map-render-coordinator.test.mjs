@@ -18,7 +18,7 @@ function fixture() {
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
     'territorialUnits', 'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
     'selectionData', 'selectionView', 'selectionStyle', 'validation', 'territorialLabelPositions', 'userLabelPositions',
-    'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
+    'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'vertices', 'draft', 'snapIndicator', 'debug', 'objectSearch',
   ];
   const renderers = Object.fromEntries(names.map(name => [name, (...args) => {
     calls.push([name, ...args]);
@@ -44,10 +44,10 @@ test('full render preserves canonical layer order and revision', () => {
   assert.deepEqual(calls.map(call => call[0]), [
     'prepare', 'base', 'hydro', 'hydroEdits', 'territorialUnits',
     'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'countries', 'geometryPreview', 'validation',
-    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'selectionData', 'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'layerTree', 'debug',
+    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'selectionData', 'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'objectSearch', 'debug',
   ]);
   assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
-  assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'territorialLabels', 'userLabels', 'debug', 'layerTree'].includes(call[0])).every(call => call[1] === viewState), true);
+  assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'territorialLabels', 'userLabels', 'debug', 'objectSearch'].includes(call[0])).every(call => call[1] === viewState), true);
   assert.equal(calls.find(call => call[0] === 'territorialLabels')[2], viewState);
   assert.equal(calls.find(call => call[0] === 'userLabels')[2], viewState);
   assert.equal(calls.filter(call => call[0] === 'labelLayout').length, 1);
@@ -61,7 +61,7 @@ test('view render refreshes projection-dependent layers with the shared view sta
   assert.equal(calls.some(call => call[0] === 'hydro'), false);
   assert.equal(calls.some(call => call[0] === 'view'), true);
   assert.equal(calls.some(call => call[0] === 'projectedOverlays'), false);
-  assert.equal(calls.some(call => call[0] === 'layerTree'), false);
+  assert.equal(calls.some(call => call[0] === 'objectSearch'), false);
   assert.equal(calls.some(call => call[0] === 'selectionData'), false);
   assert.equal(calls.some(call => call[0] === 'selectionView'), true);
   const fallbackCall = calls.find(call => call[0] === 'selectionView');

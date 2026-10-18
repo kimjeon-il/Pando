@@ -20,7 +20,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     createGisImportError,
     RELIABILITY_ERROR_CATEGORIES,
     markCountryGeometriesChanged,
-    markLayerTreeDirty,
+    invalidateObjectPresentation,
     renderingDomain,
     setActionStatus,
     createDistributionLayer,
@@ -105,7 +105,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       rejected(await projectDomain.confirmCandidate(prepared.candidateId,prepared.state.epoch,{applyAccepted:async()=>{
         const rootIds=[...changed,...imported].filter(entity=>entity.properties.entityKind==='general'&&!entity.properties.parentId).map(entity=>entity.id);
         if(rootIds.length)markCountryGeometriesChanged(rootIds);
-        markLayerTreeDirty();renderingDomain.invalidateTerritorialPatch('entity-import');
+        invalidateObjectPresentation();renderingDomain.invalidateTerritorialPatch('entity-import');
       }}));
     } catch(error){await projectDomain.cancelCandidate(prepared.candidateId).catch(cleanupError=>{error.cleanupError=cleanupError;});throw error;}
     setActionStatus(fileName+': 객체 '+imported.length+'개를 가져왔습니다.','success',3800);
@@ -242,7 +242,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     const generation = projectDomain.getGeneration();
     await distributionService.append({ layers: newLayers, entries: newEntries });
     if (state.projectReplacing || generation !== projectDomain.getGeneration()) return;
-    markLayerTreeDirty();
+    invalidateObjectPresentation();
     setActionStatus(`분포 영역 ${newEntries.length}개를 가져왔습니다.`, 'success', 3800);
   }
 
@@ -290,7 +290,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     await genericFeatureService.addMany(supported);
     if (state.projectReplacing || generation !== projectDomain.getGeneration()) return;
     state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === 'genericFeatures']));
-    markLayerTreeDirty();
+    invalidateObjectPresentation();
     setActionStatus(`GeoJSON 기타 객체 ${supported.length}개를 가져왔습니다.`, 'success', 3200);
   }
 
@@ -346,7 +346,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     try {
       result.assertCurrent?.();
       rejected(await projectDomain.confirmCandidate(prepared.candidateId,prepared.state.epoch,{applyAccepted:async()=>{
-        markLayerTreeDirty();scheduleCountryLabelAnchors(null,10);
+        invalidateObjectPresentation();scheduleCountryLabelAnchors(null,10);
         markCountryGeometriesChanged(plan.affectedIds || [...imported.keys()],{presentation:plan.countryPatchPresentation || 'replace-scene'});
       }}));
     }catch(error){await projectDomain.cancelCandidate(prepared.candidateId).catch(cleanupError=>{error.cleanupError=cleanupError;});throw error;}

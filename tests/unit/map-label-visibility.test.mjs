@@ -35,7 +35,7 @@ function fixture(visibility = {}) {
       labelById: new Map(features.map(feature => [feature.id, feature])),
       labelRefs: new Map(features.map(f => [f.id, { domain: 'territorial', type: 'entity', id: f.id }])),
     }) },
-    layerList: { isLayerItemVisible: (_group, id) => !hiddenIds.has(id) },
+    objectCatalog: { isLayerItemVisible: (_group, id) => !hiddenIds.has(id) },
     spatialIndex: {
       visibleMapObjectCandidates: () => state.labels.filter(label => !hiddenIds.has(label.id)),
       geometryBounds: () => [-10, -10, 10, 10],
@@ -125,7 +125,7 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
     state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
     reportOperationError: error => assert.fail(error.stack),
     userPreferences: defaultUserPreferences(), saveUserPreferences: next => normalizeUserPreferences(next), setUserPreferences() {},
-    normalizeLayerPresentation: value => value, markLayerTreeDirty() {},
+    normalizeLayerPresentation: value => value, invalidateObjectPresentation() {},
     gpuMapRenderer: { invalidateCountryPalette() {} },
     renderingDomain: {
       invalidateLabels: rendering.invalidateLabels,

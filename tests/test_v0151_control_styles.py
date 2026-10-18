@@ -20,9 +20,9 @@ class V0151ControlStyleTests(unittest.TestCase):
 
     def test_layer_search_uses_shared_svg_icon(self):
         self.assertIn('<symbol id="icon-search"', INDEX)
-        self.assertIn('class="ui-icon layer-search-icon"', INDEX)
+        self.assertIn('class="ui-icon object-search-icon"', INDEX)
         self.assertNotIn('<span aria-hidden="true">⌕</span>', INDEX)
-        self.assertIn(".layer-search-icon {", CSS)
+        self.assertIn(".object-search-icon {", CSS)
         self.assertIn("width: var(--ui-icon-size);", CSS)
 
     def test_mobile_auxiliary_buttons_use_theme_tokens(self):

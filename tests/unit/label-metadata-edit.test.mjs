@@ -17,7 +17,7 @@ async function setup(t) {
     projectState: { state },
     domains: { projectDomain: core.project,
       renderingDomain: { invalidateLabels(reason) { events.push(['render', reason, current()]); } } },
-    layers: { markLayerTreeDirty() { events.push(['tree', current()]); } },
+    objectDisplay: { invalidateObjectPresentation() { events.push(['tree', current()]); } },
     propertyEditingA: { async applyLabelSelectionIntent(id, refreshOnly) { events.push(['present', id, refreshOnly, current()]); } },
     feedback: { setActionStatus() { events.push('status'); } },
   });

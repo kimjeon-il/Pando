@@ -247,7 +247,7 @@ export function createObjectCommands() {
     }
     if (refs.some(ref => ref.domain === 'hydro')) dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     if (refs.some(ref => ref.domain === 'distribution')) dependencies.distributionPresentation.bumpVisibilityRevision();
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     dependencies.domains.renderingDomain?.invalidateBaseScene?.('object-visibility');
     dependencies.domains.renderingDomain?.invalidateLabels?.('object-visibility');
     dependencies.domains.renderingDomain?.invalidateSelection?.('object-visibility');
@@ -275,7 +275,7 @@ export function createObjectCommands() {
       );
       if (dependencies.projectState.state.projectReplacing || generation !== dependencies.domains.projectDomain.getGeneration()) return;
       if (!result.ok || !result.changed) return;
-      dependencies.domains.layerTreeController?.syncLocks(refs);
+      dependencies.domains.objectSearchController?.syncLocks(refs);
       dependencies.domains.renderingDomain?.invalidateSelection?.('batch-lock');
       const primary = dependencies.domains.selectionDomain.primary();
       if (primary) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
@@ -286,7 +286,7 @@ export function createObjectCommands() {
     const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'objects.lock',targets,payload: { refs: targets,locked } });
     if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
     if(!result.changed || generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return;
-    dependencies.domains.layerTreeController?.syncLocks(refs);
+    dependencies.domains.objectSearchController?.syncLocks(refs);
     dependencies.domains.renderingDomain?.invalidateSelection?.('batch-lock');
     const primary = dependencies.domains.selectionDomain.primary();
     if (primary) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
@@ -464,7 +464,7 @@ export function createObjectCommands() {
       if (refs.some(ref => (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
         dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
       }
-      (0, dependencies.layers.markLayerTreeDirty)();
+      (0, dependencies.objectDisplay.invalidateObjectPresentation)();
       dependencies.domains.renderingDomain?.invalidateBaseScene?.('batch-country-color');
       syncBatchActionAvailability();
       return;
@@ -476,7 +476,7 @@ export function createObjectCommands() {
     if (refs.some(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
     }
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     dependencies.domains.renderingDomain?.invalidateBaseScene?.('batch-country-color');
     syncBatchActionAvailability();
   }
@@ -517,7 +517,7 @@ export function createObjectCommands() {
               dependencies.projectState.state.boundaryPreparation = null;
               dependencies.domains.renderingDomain.invalidateTerritorialPatch('batch-delete');
               if(wasSelected && dependencies.domains.selectionDomain.size()===0)dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: false });
-              dependencies.layers.markLayerTreeDirty();
+              dependencies.objectDisplay.invalidateObjectPresentation();
               dependencies.domains.renderingDomain.invalidateOverlayGeometry('batch','batch-delete');
               dependencies.domains.renderingDomain.invalidateSelection('batch-delete');
               dependencies.domains.renderingDomain.invalidateLabels('batch-delete');

@@ -140,7 +140,7 @@ export function createProjectSession() {
         polities: false,
         landforms: false,
       },
-      layerSearch: '',
+      objectSearch: '',
       tool: 'select',
       labelPlacementMode: false,
       coastEditCountryId: null,
@@ -190,7 +190,7 @@ export function createProjectSession() {
         flatZoom: 1,
       },
       size: { width: 1000, height: 700 },
-      layerTreeRevision: 1,
+      objectPresentationRevision: 1,
     });
 
     (atomicMapStateController = (0, dependencies.uiFactoriesA.createAtomicMapStateController)({

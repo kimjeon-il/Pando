@@ -231,7 +231,7 @@ if (/(?:영역 편집|관계 및 종류|관계 및 구조)/.test([
 ].join(''))) {
   fail('territorial editor sections must not repeat tab names as headings');
 }
-if (!html.includes('id="layerSearchInput"')) fail('layer search must remain available');
+if (!html.includes('id="objectSearchInput"')) fail('layer search must remain available');
 const mapToolbar = html.match(/<div class="[^"]*map-command-toolbar[^"]*"[\s\S]*?<\/div>/)?.[0] || '';
 if (!mapToolbar.includes('id="createMenuBtn"')) fail('map command bar must own #createMenuBtn');
 for (const id of ['createMenuBtn', 'objectLockBtn', 'objectDeleteBtn']) {

@@ -29,7 +29,7 @@ export function createObjectMetadata() {
       dependencies.domains.renderingDomain.invalidateBaseScene('territorial-color-edited');
       dependencies.domains.renderingDomain.invalidateTerritorialPatch('territorial-color-edited');
     }
-    if (field === 'name') dependencies.layers.markLayerTreeDirty();
+    if (field === 'name') dependencies.objectDisplay.invalidateObjectPresentation();
     if (field === 'name' || field === 'flagDataUrl') dependencies.domains.renderingDomain.invalidateLabels('territorial-metadata-edited');
     const primary = dependencies.projectState.state.selected;
     if (primary?.domain === 'territorial' && primary.type === ref.type && String(primary.id) === String(ref.id)) {
@@ -47,7 +47,7 @@ export function createObjectMetadata() {
     const result = await dependencies.objectModelA.genericFeatureService.updateMetadata(f.id, field, value);
     if (!currentProject(generation)) return;
     if (!result.ok) return;
-    if (field === 'name') (0, dependencies.layers.markLayerTreeDirty)();
+    if (field === 'name') (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     if (dependencies.projectState.state.selected?.domain === 'generic' && String(dependencies.projectState.state.selected.id) === String(f.id))
       await (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(f.id), true);
     (0, dependencies.feedback.setActionStatus)('기타 객체 정보를 변경했습니다.', 'success');
@@ -64,7 +64,7 @@ export function createObjectMetadata() {
     const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'hydro.metadata',
       targets: [{ domain: 'hydro',id: String(feature.id) }],payload: { id: String(feature.id),field,value } });
     if (!currentProject(generation) || !result.ok || !result.changed) return false;
-    if (field === 'name') (0, dependencies.layers.markLayerTreeDirty)();
+    if (field === 'name') (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     if (field === 'editorColor') dependencies.domains.renderingDomain.invalidateHydroPatch('hydro-color-edited');
     const selected=dependencies.projectState.state.selected;
     if (selected?.domain==='hydro' && String(selected.id)===String(feature.id))
@@ -99,7 +99,7 @@ export function createObjectMetadata() {
       dependencies.feedback.setActionStatus(result.issues?.[0] || '상위 객체를 변경할 수 없습니다.', 'error', 4200);
       return result;
     }
-    if (result.changed) dependencies.layers.markLayerTreeDirty();
+    if (result.changed) dependencies.objectDisplay.invalidateObjectPresentation();
     return result;
   }
 

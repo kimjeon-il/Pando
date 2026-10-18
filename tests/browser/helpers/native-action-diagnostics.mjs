@@ -172,7 +172,7 @@ export function nativeActionProbe({ command, token, selector, rowSelector, insta
       objectKey: text(node.getAttribute('data-object-key')), itemId: text(node.getAttribute('data-item-id')),
       inlineStyle: text(node.getAttribute('style')) };
   };
-  const root = rowSelector ? scope.document.querySelector('#layerSearchResults') : null;
+  const root = rowSelector ? scope.document.querySelector('#objectSearchResults') : null;
   const observeRow = reason => {
     const row = root?.querySelector(rowSelector) || null;
     const summary = nodeSummary(row);

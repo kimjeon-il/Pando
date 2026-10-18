@@ -18,7 +18,7 @@ test('direct hydro/label property and delete UI delegates to the complete C++ do
     hydroModel: { hydroFeatureById: id => owner.documentModel.get({ domain: 'hydro',id }) },
     propertyEditingA: { applyHydroSelectionIntent: async () => {},applyLabelSelectionIntent: async () => {} },
     readinessUi: { requireCanonicalData: () => true },objectModelA: { hydroAccusativeLabel: () => '강을' },
-    layers: { markLayerTreeDirty() {} },feedback: { setActionStatus: (...args) => events.push(args) } };
+    objectDisplay: { invalidateObjectPresentation() {} },feedback: { setActionStatus: (...args) => events.push(args) } };
   const metadata=createObjectMetadata(),deletion=createObjectDeletion(),conversion=createTerritorialConversion();
   metadata.connect(ports);deletion.connect(ports);conversion.connect(ports);
   try {

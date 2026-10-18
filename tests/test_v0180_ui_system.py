@@ -7,13 +7,13 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-LAYER_MODEL = (ROOT / "assets/js/modules/layer-list-model.js").read_text(encoding="utf-8")
-LAYER_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
+LAYER_MODEL = (ROOT / "assets/js/modules/object-search-model.js").read_text(encoding="utf-8")
+LAYER_CONTROLLER = (ROOT / "assets/js/modules/object-search-controller.js").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 CSS = read_ui_sources(ROOT)
 DIALOG_CSS = (ROOT / "assets/css/components/dialogs.css").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
-LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "layer-tree-controller.js").read_text(encoding="utf-8")
+LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "object-search-controller.js").read_text(encoding="utf-8")
 
 
 class V0180UiSystemTests(unittest.TestCase):
@@ -44,7 +44,7 @@ class V0180UiSystemTests(unittest.TestCase):
         section = element_markup(INDEX, 'objectSearchSection')
         self.assertIn('object-search-section is-hydrating', section)
         self.assertIn('aria-busy="true"', section)
-        self.assertRegex(element_markup(INDEX,'layerSearchInput'), r'\bdisabled\b')
+        self.assertRegex(element_markup(INDEX,'objectSearchInput'), r'\bdisabled\b')
         self.assertIn('async function completeHydration', LAYER_TREE)
         hydration = function_source(LAYER_TREE,'completeHydration')
         self.assertIn("setAttribute('aria-busy', 'false')", hydration)

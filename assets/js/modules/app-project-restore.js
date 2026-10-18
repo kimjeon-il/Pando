@@ -22,11 +22,11 @@ export function createProjectRestore() {
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
     dependencies.projectState.state.countryVisualPhase = 'preview';
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
-    dependencies.projectState.state.layerSearch = '';
+    dependencies.projectState.state.objectSearch = '';
     dependencies.projectState.state.auditPreviewCountries = null;
-    await (0, dependencies.layerTree.pruneLayerItemVisibility)({ catalogAlreadyAdmitted });
+    await (0, dependencies.objectCatalogView.pruneLayerItemVisibility)({ catalogAlreadyAdmitted });
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(project);
     const externalGeometry = !!project.territorialEntities && project.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
     if(!preserveCoreSession) {
@@ -36,8 +36,8 @@ export function createProjectRestore() {
 
     (0, dependencies.mapSettingsUi.syncProjectionButtons)();
     (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
-    if ((0, dependencies.platform.$)('layerSearchInput')) (0, dependencies.platform.$)('layerSearchInput').value = dependencies.projectState.state.layerSearch;
-    dependencies.domains.layerTreeController?.render(true);
+    if ((0, dependencies.platform.$)('objectSearchInput')) (0, dependencies.platform.$)('objectSearchInput').value = dependencies.projectState.state.objectSearch;
+    dependencies.domains.objectSearchController?.render(true);
     dependencies.domainControllers.objectPropertyController.show(null);
     (0, dependencies.platform.$)('selectionStatus').textContent = '';
     dependencies.projectState.state.boundaryPreparation?.cancel();
@@ -184,8 +184,8 @@ export function createProjectRestore() {
     dependencies.interactionStateCommands.setHoverHit(null);
     dependencies.projectState.state.projection = 'globe';
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
-    dependencies.projectState.state.layerFolders = (0, dependencies.layerTree.normalizeLayerFolderState)(null);
-    dependencies.projectState.state.layerSearch = '';
+    dependencies.projectState.state.layerFolders = (0, dependencies.objectCatalogView.normalizeLayerFolderState)(null);
+    dependencies.projectState.state.objectSearch = '';
     dependencies.projectState.state.tool = 'select';
     dependencies.projectState.state.labelPlacementMode = false;
     dependencies.projectState.state.coastEditCountryId = null;
@@ -205,8 +205,8 @@ export function createProjectRestore() {
     dependencies.projectState.state.countryIndex.clear();
     (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) }));
     dependencies.projectState.state.auditPreviewCountries = null;
-    await (0, dependencies.layerTree.pruneLayerItemVisibility)({ catalogAlreadyAdmitted });
-    (0, dependencies.layers.markLayerTreeDirty)();
+    await (0, dependencies.objectCatalogView.pruneLayerItemVisibility)({ catalogAlreadyAdmitted });
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(prepared.project);
     (0, dependencies.countryValidation.refreshCountryCentroids)();
     dependencies.projectState.state.boundaryPreparation?.cancel();
@@ -214,8 +214,8 @@ export function createProjectRestore() {
     dependencies.spatialQuery.mapEditClient?.invalidateBoundaryCache?.();
 
     (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
-    if ((0, dependencies.platform.$)('layerSearchInput')) (0, dependencies.platform.$)('layerSearchInput').value = '';
-    dependencies.domains.layerTreeController?.render(true);
+    if ((0, dependencies.platform.$)('objectSearchInput')) (0, dependencies.platform.$)('objectSearchInput').value = '';
+    dependencies.domains.objectSearchController?.render(true);
     (0, dependencies.mapSettingsUi.syncProjectionButtons)();
     dependencies.domainControllers.objectPropertyController.show(null);
     (0, dependencies.platform.$)('selectionStatus').textContent = '';

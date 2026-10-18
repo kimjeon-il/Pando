@@ -285,7 +285,7 @@ const std::set<std::string>& Project::inactiveEntityIds() const noexcept {
 const std::vector<CountryView>& Project::countries() const noexcept {
     return viewState_?viewState_->countries:state_->countries;
 }
-const std::vector<Layer>& Project::layers() const noexcept { return state_->document.presentation.userLayers; }
+const std::vector<UserLayer>& Project::userLayers() const noexcept { return state_->document.presentation.userLayers; }
 const DocumentIndex& Project::index() const noexcept { return state_->index; }
 const DocumentIndex& Project::viewIndex() const noexcept {
     return viewState_?viewState_->index:state_->index;
@@ -296,10 +296,10 @@ const CountryView* Project::country(const std::string& id) const
     auto it=state->countryIndex.find(id);
     return it==state->countryIndex.end()?nullptr:&countries()[it->second];
 }
-const Layer* Project::layer(const std::string& id) const
+const UserLayer* Project::userLayer(const std::string& id) const
 {
     auto it=index().layers.find(id);
-    return it==index().layers.end()?nullptr:&layers()[it->second];
+    return it==index().layers.end()?nullptr:&userLayers()[it->second];
 }
 const ObjectPropertyView* Project::propertyView(const ObjectRef& ref) const {
     const auto& state=viewState_?viewState_:state_;
@@ -307,13 +307,13 @@ const ObjectPropertyView* Project::propertyView(const ObjectRef& ref) const {
 }
 bool Project::editable(const std::string& id) const
 {
-    const auto c=country(id); const auto l=c ? layer(c->layerId) : nullptr;
+    const auto c=country(id); const auto l=c ? userLayer(c->layerId) : nullptr;
     return c && (!l || !l->locked) && !c->locked;
 }
 std::string Project::pick(Point point) const
 {
     if (!std::isfinite(point.x) || !std::isfinite(point.y)) return {};
-    auto renderLayers=layers();renderLayers.insert(renderLayers.begin(),Layer{"",""});
+    auto renderLayers=userLayers();renderLayers.insert(renderLayers.begin(),UserLayer{"",""});
     for(auto it=renderLayers.rbegin();it!=renderLayers.rend();++it) {
         if(!it->visible || it->locked || it->opacity==0) continue;
         for(const auto& c:countries())
@@ -442,7 +442,7 @@ bool Project::changeCountry(const std::string& id,CountryProperties next)
     CommandArguments args; args.properties.countries.push_back({id,std::move(next)});
     return execute("edit.properties",std::move(args));
 }
-bool Project::changeLayer(Layer next)
+bool Project::changeUserLayer(UserLayer next)
 {
     CommandArguments args; args.properties.layers.push_back(std::move(next));
     return execute("edit.properties",std::move(args));
@@ -468,37 +468,37 @@ bool Project::setCountryOpacity(const std::string& id,double opacity)
     auto c=country(id); if(!c) return false;
     auto next=properties(*c); next.opacity=opacity; return changeCountry(id,std::move(next));
 }
-bool Project::moveCountry(const std::string& id,const std::string& layerId)
+bool Project::moveCountryToUserLayer(const std::string& id,const std::string& layerId)
 {
-    CommandArguments args; args.action=MoveCountry{id,layerId}; return execute("country.move",std::move(args));
+    CommandArguments args; args.action=MoveCountryToUserLayer{id,layerId}; return execute("country.move",std::move(args));
 }
-bool Project::addLayer(const std::string& id,const std::string& name)
+bool Project::addUserLayer(const std::string& id,const std::string& name)
 {
-    CommandArguments args; args.action=AddLayer{id,name}; return execute("layer.add",std::move(args));
+    CommandArguments args; args.action=AddUserLayer{id,name}; return execute("layer.add",std::move(args));
 }
-bool Project::removeLayer(const std::string& id)
+bool Project::removeUserLayer(const std::string& id)
 {
-    CommandArguments args; args.action=RemoveLayer{id}; return execute("layer.remove",std::move(args));
+    CommandArguments args; args.action=RemoveUserLayer{id}; return execute("layer.remove",std::move(args));
 }
-bool Project::renameLayer(const std::string& id,const std::string& name)
+bool Project::renameUserLayer(const std::string& id,const std::string& name)
 {
-    auto l=layer(id); if(!l) return false; auto next=*l; next.name=name; return changeLayer(std::move(next));
+    auto l=userLayer(id); if(!l) return false; auto next=*l; next.name=name; return changeUserLayer(std::move(next));
 }
-bool Project::setLayerVisible(const std::string& id,bool visible)
+bool Project::setUserLayerVisible(const std::string& id,bool visible)
 {
-    CommandArguments args; args.action=SetLayerVisible{id,visible}; return execute("layer.visibility",std::move(args));
+    CommandArguments args; args.action=SetUserLayerVisible{id,visible}; return execute("layer.visibility",std::move(args));
 }
-bool Project::setLayerLocked(const std::string& id,bool locked)
+bool Project::setUserLayerLocked(const std::string& id,bool locked)
 {
-    CommandArguments args; args.action=SetLayerLocked{id,locked}; return execute("layer.lock",std::move(args));
+    CommandArguments args; args.action=SetUserLayerLocked{id,locked}; return execute("layer.lock",std::move(args));
 }
-bool Project::setLayerOpacity(const std::string& id,double opacity)
+bool Project::setUserLayerOpacity(const std::string& id,double opacity)
 {
-    auto l=layer(id); if(!l) return false; auto next=*l; next.opacity=opacity; return changeLayer(std::move(next));
+    auto l=userLayer(id); if(!l) return false; auto next=*l; next.opacity=opacity; return changeUserLayer(std::move(next));
 }
-bool Project::moveLayer(const std::string& id,int delta)
+bool Project::moveUserLayer(const std::string& id,int delta)
 {
-    CommandArguments args; args.action=MoveLayer{id,delta}; return execute("layer.move",std::move(args));
+    CommandArguments args; args.action=MoveUserLayer{id,delta}; return execute("layer.move",std::move(args));
 }
 std::optional<TerritorialMutationKind> Project::nextUndoTerritorialMutationKind() const noexcept {
     if(!canUndo())return {};

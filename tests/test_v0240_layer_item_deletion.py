@@ -21,7 +21,7 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         self.assertIn('...pickProjectFields(state)', function_source(session, 'initialDocument'))
 
     def test_built_in_hydro_has_visibility_without_an_object_menu(self):
-        search = read_module(ROOT, 'layer-tree-controller.js')
+        search = read_module(ROOT, 'object-search-controller.js')
         row = function_source(search, 'rowFor')
         self.assertIn("row.setAttribute('role', 'option')", row)
         self.assertIn('objectSearchSelect', row)
@@ -32,12 +32,12 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         self.assertIn('id="objectLockBtn"', INDEX)
 
     def test_virtualized_rows_share_the_same_context_menu_factory(self):
-        search = read_module(ROOT, 'layer-tree-controller.js')
+        search = read_module(ROOT, 'object-search-controller.js')
         commit = function_source(search, 'commitRows')
         self.assertIn('rows.map(rowFor)', commit)
         self.assertNotIn('createLayerItemRow', APP)
         self.assertNotIn('renderVirtualizedLayerGroup', APP)
-        self.assertIn('.layer-search-result', CSS)
+        self.assertIn('.object-search-result', CSS)
         self.assertIn('objectSearchSelect', search)
         self.assertIn('objectSearchFocus', search)
 

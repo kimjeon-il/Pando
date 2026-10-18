@@ -98,7 +98,7 @@ async function startupFixture(t, { pauseAt = null, restored = false, restoredDel
         return accepted;
       },restorePreview: async () => null, queueAutosave: () => calls.push(['autosave']),
         ensurePreview: value => calls.push(['ensure-preview', value]) },
-      layerTreeController: { beginHydration: noop, completeHydration: () => pause('hydration') },
+      objectSearchController: { beginHydration: noop, completeHydration: () => pause('hydration') },
       editingDomain: { setTool: noop },
       renderingDomain: { invalidateView: noop },
     },
@@ -121,8 +121,8 @@ async function startupFixture(t, { pauseAt = null, restored = false, restoredDel
       return sourceReceipt ||= await startupBaseline(baselineProject,owner.project,'2026-10',{kind:restoredDelta?'static-features':'stored-asset'});
     } },
     builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop, materializePristineCountriesSync: () => normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES) },
-    countryRecords: { applyPristineLabelAnchors: noop }, layerTree: { pruneLayerItemVisibility: noop },
-    countries: { scheduleCountryLabelAnchors: noop }, layers: { markLayerTreeDirty: noop },
+    countryRecords: { applyPristineLabelAnchors: noop }, objectCatalogView: { pruneLayerItemVisibility: noop },
+    countries: { scheduleCountryLabelAnchors: noop }, objectDisplay: { invalidateObjectPresentation: noop },
     projectSnapshots: { configureDatasetSession: noop }, workspaceUiA: { applyLayoutMode: noop },
     editorBindings: { bindUI: noop, syncProjectControls: noop }, mapHostViewA: { initSvg: noop },
     mapHostViewB: { resizeMap: noop, initializeMapHost: async () => {} },

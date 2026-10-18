@@ -157,7 +157,7 @@ export function createNavigationBindings() {
     searchPanel?.addEventListener('focusout', event => {
       if (dependencies.surfaces.layoutMode === 'mobile' || searchToolbarPointer) return;
       const next = event.relatedTarget;
-      if (!next || next.closest('#objectSearchSurface, #objectSearchBtn, .ui-modal, [role="dialog"], .ui-overlay-scrollbar[aria-controls="layerSearchResults"]')) return;
+      if (!next || next.closest('#objectSearchSurface, #objectSearchBtn, .ui-modal, [role="dialog"], .ui-overlay-scrollbar[aria-controls="objectSearchResults"]')) return;
       queueMicrotask(() => {
         if (dependencies.surfaces.layoutMode !== 'mobile' && !searchPanel.contains(document.activeElement)) {
           (0, dependencies.workspaceUiA.closeSurface)('search');
@@ -225,7 +225,7 @@ export function createNavigationBindings() {
       if (scrollbarOwner === 'createMenu') return;
       if (dependencies.workspaceUiB.surfaceController.isOpen('create') && !event.target.closest('#createMenu, #createMenuBtn, .mobile-bottom-bar, .ui-modal, [role="dialog"]')) (0, dependencies.workspaceUiA.closeSurface)('create');
       if (dependencies.workspaceUiB.surfaceController.isOpen('search')
-        && scrollbarOwner !== 'layerSearchResults'
+        && scrollbarOwner !== 'objectSearchResults'
         && !event.target.closest('#objectSearchSurface, #objectSearchBtn, #mobileSearchBtn, .map-command-toolbar, .mobile-bottom-bar, .ui-modal, [role="dialog"]')) {
         (0, dependencies.workspaceUiA.closeSurface)('search');
       }
@@ -241,10 +241,10 @@ export function createNavigationBindings() {
   }
 
   function bindLayerUI() {
-    dependencies.uiRegistryCommands.installLayerTreeController((0, dependencies.uiFactoriesA.createAppLayerTreeController)({
-      window, document, getElement: dependencies.platform.$, state: dependencies.projectState.state, layerSearchGroupKeys: dependencies.objectModelA.LAYER_SEARCH_GROUP_KEYS,
+    dependencies.uiRegistryCommands.installObjectSearchController((0, dependencies.uiFactoriesA.createAppObjectSearchController)({
+      window, document, getElement: dependencies.platform.$, state: dependencies.projectState.state, objectSearchGroupKeys: dependencies.objectModelA.LAYER_SEARCH_GROUP_KEYS,
       layerGroupNames: dependencies.layerPresentation.layerGroupNames, createIcon: (name, className) => (0, dependencies.applicationFactories.createSemanticIcon)(document, name, className),
-      createEmptyState: dependencies.platformConfigurationB.createEmptyState, layerTreeItems: dependencies.layerTree.layerTreeItems, layerItemObjectRef: dependencies.objectLookup.layerItemObjectRef, normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef, selectionDomain: dependencies.domains.selectionDomain,
+      createEmptyState: dependencies.platformConfigurationB.createEmptyState, listObjectCatalogItems: dependencies.objectCatalogView.listObjectCatalogItems, layerItemObjectRef: dependencies.objectLookup.layerItemObjectRef, normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef, selectionDomain: dependencies.domains.selectionDomain,
       hydroCategoryKey: dependencies.hydroPresentation.hydroCategoryKey,
       isSearchOpen: () => dependencies.workspaceUiB.surfaceController.isOpen('search') && dependencies.labelPresentation.builtinPlaces.isSearchOpen(),
       isSearchSurfaceOpen: () => dependencies.workspaceUiB.surfaceController.isOpen('search'),
@@ -253,11 +253,11 @@ export function createNavigationBindings() {
       onSearchError: error => dependencies.feedback.reportOperationError(error, '내장 지명 검색에 실패했습니다.', 'PL-PLACE-SEARCH-001'),
       compareItems: (left, right) => dependencies.objectModelA.layerNameCollator.compare(left.name, right.name) || dependencies.objectModelA.layerNameCollator.compare(left.id, right.id),
       syncCanonicalControls: dependencies.readinessUi.syncCanonicalControls, syncSearchClearButton: dependencies.platformConfigurationB.syncSearchClearButton,
-      markLayerTreeDirty: dependencies.layers.markLayerTreeDirty, selectLayerTreeItem: dependencies.navigation.selectLayerTreeItem,
+      invalidateObjectPresentation: dependencies.objectDisplay.invalidateObjectPresentation, selectObjectSearchItem: dependencies.navigation.selectObjectSearchItem,
       focusObjectRef: dependencies.objectOperationsA.focusObjectRef,
       closeSearchAfterSingleSelection: () => (0, dependencies.workspaceUiA.closeSurface)('search'),
     }));
-    dependencies.domains.layerTreeController.bind();
+    dependencies.domains.objectSearchController.bind();
   }
 
 

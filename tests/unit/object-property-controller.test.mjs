@@ -48,7 +48,7 @@ test('builtin hydro hydration awaits identity admission and reports its original
   const errors=[],failure=Object.assign(new Error('The builtin identity admission failed.'),{ code: 'PL-CORE-CATALOG' });
   const { controller }=setup({ hydroFeatureById: () => feature,hydroEditById: () => null,hydroCategoryKey: () => 'river',
     hydroCategoryLabel: () => '강',hydroFallbackName: () => '강',hydroEditorName: name => name || '강',prepareHydroFeature() {},
-    layerTreeController: () => null,gpuMapRenderer: { loadHydroLogicalFeature: async () => full },
+    objectSearchController: () => null,gpuMapRenderer: { loadHydroLogicalFeature: async () => full },
     onHydroLoaded: async value => { assert.equal(value,full);signalAdmit();await held; },
     reportOperationError: (...args) => { errors.push(args);signalReport(); } });
   assert.equal(controller.present({ domain: 'hydro',type: 'river',id: feature.id }),true);

@@ -536,8 +536,8 @@ test('wide editor opens from object selection without the retired edge toggle', 
   await expect(page.locator('#togglePanelBtn')).toHaveCount(0);
   await page.locator('#objectSearchBtn').click();
   await expect(page.locator('#objectSearchSurface')).toBeVisible();
-  await page.locator('#layerSearchInput').fill('폴란드');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  await page.locator('#objectSearchInput').fill('폴란드');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#editorSurface')).toBeVisible();
   await expect(page.locator('#propertyTitle')).toHaveText('폴란드');
   expect(errors).toEqual([]);

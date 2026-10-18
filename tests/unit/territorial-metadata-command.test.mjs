@@ -23,7 +23,7 @@ const store=createTerritorialEntityStore({ documentModel:testCoreProject(state).
   const history=testCoreProject(state).project;
   const service=createTerritorialApplicationService({ createId: () => globalThis.crypto.randomUUID(),entityRepository:repository,commandOwner:history});
   const owner=createObjectMetadata();
-  owner.connect({territorialModel:{entityRepository:repository},projectState:{state},objectModelB:{territorialApplicationService:wrapService(service)},feedback:{setActionStatus(){}},layers:{markLayerTreeDirty(){effects.tree++;}},rendering:{gpuMapRenderer:{invalidateCountryPalette(){effects.palette++;}}},domains:{projectDomain:{getGeneration:()=>generation},selectionUiController:{presentPrimary(){effects.refresh++;},applyIntent(){assert.fail('metadata must not change selection or focus');}},renderingDomain:{invalidateLabels(){effects.labels++;},invalidateBaseScene(){effects.base++;},invalidateTerritorialPatch(){effects.patch++;}}}});
+  owner.connect({territorialModel:{entityRepository:repository},projectState:{state},objectModelB:{territorialApplicationService:wrapService(service)},feedback:{setActionStatus(){}},objectDisplay:{invalidateObjectPresentation(){effects.tree++;}},rendering:{gpuMapRenderer:{invalidateCountryPalette(){effects.palette++;}}},domains:{projectDomain:{getGeneration:()=>generation},selectionUiController:{presentPrimary(){effects.refresh++;},applyIntent(){assert.fail('metadata must not change selection or focus');}},renderingDomain:{invalidateLabels(){effects.labels++;},invalidateBaseScene(){effects.base++;},invalidateTerritorialPatch(){effects.patch++;}}}});
   return {owner,state,repository,effects,history,replaceProject:()=>{generation+=1;}};
 }
 
@@ -65,7 +65,7 @@ test('generic metadata completion from a replaced project cannot refresh its reu
   const owner = createObjectMetadata();
   owner.connect({ projectState: { state },objectModelA: { genericFeatureService: { updateMetadata: () => acknowledgement } },
     domains: { projectDomain: { getGeneration: () => generation } },
-    layers: { markLayerTreeDirty: () => effects.push('tree') },
+    objectDisplay: { invalidateObjectPresentation: () => effects.push('tree') },
     propertyEditingA: { applyGenericSelectionIntent: () => effects.push('selection') },
     feedback: { setActionStatus: () => effects.push('status') } });
   const pending = owner.commitGenericFeatureMeta('name','Old generic result');

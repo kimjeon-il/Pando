@@ -4209,7 +4209,7 @@ export function createGpuMapRenderer(deps) {
       return [
         Number(window.__PANDOLAB_VIEW_REVISION__ || 0),
         geometryRevisionTracker.displayedRevision(),
-        Number(state.layerTreeRevision || 0),
+        Number(state.objectPresentationRevision || 0),
         pixelWidth,
         pixelHeight,
         pickEntry?.quality || activeMeshQuality,
@@ -4512,7 +4512,7 @@ export function createGpuMapRenderer(deps) {
       const visibleIds = meshCountryIds.filter(id => isCountryVisibleById(id));
       const strokeResources = currentCountryStrokeResources();
       return {
-        revision: [activeMeshQuality, geometryRevisionTracker.committedRevision(), geometryRevisionTracker.displayedRevision(), mesh?.lineIndices?.length || 0, overrideMesh?.lineIndices?.length || 0, pendingIds.join(','), overriddenIds.join(','), Number(state.layerTreeRevision || 0)].join(':'),
+        revision: [activeMeshQuality, geometryRevisionTracker.committedRevision(), geometryRevisionTracker.displayedRevision(), mesh?.lineIndices?.length || 0, overrideMesh?.lineIndices?.length || 0, pendingIds.join(','), overriddenIds.join(','), Number(state.objectPresentationRevision || 0)].join(':'),
         base: mesh,
         override: overrideMesh,
         countryIds: meshCountryIds,
