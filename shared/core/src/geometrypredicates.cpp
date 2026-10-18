@@ -187,18 +187,42 @@ struct PreparedPeriodicPolygon {
     std::vector<PreparedPeriodicRing> rings;
 };
 struct PreparedPeriodicGeometry {
+    struct OuterBounds {double west,east,south,north;};
     std::vector<PreparedPeriodicPolygon> polygons;
+    // Read-only, conservative periodic envelopes. A point classified as land
+    // must be inside at least one exterior ring's envelope (modulo 360°).
+    // These avoid running expensive periodic edge cuts for a remote parent's
+    // coast when checking a small child such as the Armenian SSR.
+    std::vector<OuterBounds> exteriorBounds;
     LatitudeEdgeIndex edges;
     explicit PreparedPeriodicGeometry(const Geometry& geometry) {
         polygons.reserve(geometry.polygons.size());
+        exteriorBounds.reserve(geometry.polygons.size());
         for(const auto& polygon:geometry.polygons) {
             PreparedPeriodicPolygon item;item.rings.reserve(polygon.size());
             for(const auto& ring:polygon) {
                 item.rings.emplace_back(ring);
                 for(std::size_t i=1;i<ring.size();++i)edges.add(ring[i-1],ring[i]);
             }
+            if(!item.rings.empty() && item.rings.front().source->size()>=3) {
+                const auto& outer=item.rings.front();
+                exteriorBounds.push_back({outer.west,outer.east,outer.south,outer.north});
+            }
             polygons.push_back(std::move(item));
         }
+    }
+    bool mayCoverNear(Point a,Point b,double offset) const {
+        // The caller tests at most length*1e-5 away from points on [a,b].
+        // Include the old on-segment epsilon and full periodic repetitions.
+        const auto south=std::min(a.y,b.y)-offset,north=std::max(a.y,b.y)+offset;
+        const auto west=std::min(a.x,b.x)-offset,east=std::max(a.x,b.x)+offset;
+        for(const auto& bounds:exteriorBounds) {
+            if(bounds.north<south || bounds.south>north)continue;
+            const auto first=std::ceil((west-bounds.east)/360.);
+            const auto last=std::floor((east-bounds.west)/360.);
+            if(first<=last)return true;
+        }
+        return false;
     }
     int locationAt(Point point) const {
         bool boundary=false;
@@ -260,8 +284,14 @@ bool geographicContains(const Geometry& container,const Geometry& subject) {
     // Preserve the original geographic hole/seam witness checks. Test the
     // subject first to avoid full-world lookups at points outside its extent.
     edges(container,[&](Point a,Point b){
-        if(!contained)return;auto cuts=containedGeometry.cuts(a,b);const auto other=containedBy.cuts(a,b);cuts.insert(cuts.end(),other.begin(),other.end());std::sort(cuts.begin(),cuts.end());
+        if(!contained)return;
         const auto dx=b.x-a.x,dy=b.y-a.y,length=std::hypot(dx,dy);if(length<=epsilon)return;
+        // This second pass can only reject when a nearby sample is inside
+        // the subject (not on its boundary). Its sampled points are at most
+        // length*1e-5 away from [a,b], so remote parent edges cannot affect
+        // the predicate. No exact intersection/winding rule is changed.
+        if(!containedGeometry.mayCoverNear(a,b,length*1e-5+2*epsilon))return;
+        auto cuts=containedGeometry.cuts(a,b);const auto other=containedBy.cuts(a,b);cuts.insert(cuts.end(),other.begin(),other.end());std::sort(cuts.begin(),cuts.end());
         for(std::size_t index=1;index<cuts.size()&&contained;++index) {
             if(cuts[index]-cuts[index-1]<=1e-12)continue;const auto t=(cuts[index-1]+cuts[index])/2;const Point middle{a.x+dx*t,a.y+dy*t};
             auto distance=length*(cuts[index]-cuts[index-1])*1e-5;
