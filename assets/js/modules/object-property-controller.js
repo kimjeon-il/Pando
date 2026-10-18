@@ -1,11 +1,9 @@
+import { presentObjectHeading } from './object-property-presentation.js';
 import { isBuiltinPlaceId } from './place-contract.js';
 import { resolvePlaceLabelRows } from './place-name-display.js';
 import { temporalMonthEnd } from './temporal.js';
 
-const PROPERTY_TYPE_LABELS = Object.freeze({
-  entity: '객체',
-  distribution: '분포', generic: '기타 객체', label: '지명', hydro: '강·호수', multi: '다중선택',
-});
+
 
 export function createObjectPropertyController(runtime = {}) {
   const {
@@ -103,12 +101,7 @@ export function createObjectPropertyController(runtime = {}) {
       label: 'labelProperties', hydro: 'hydroProperties', multi: 'multiProperties',
     })) $(id)?.classList.toggle('hidden', type !== kind);
     $('flagMenuBtn')?.classList.toggle('hidden', type !== 'entity');
-    $('propertyTitle').textContent = type ? String(title || '') : '';
-    const visibleTypeLabel = typeLabel || (type ? PROPERTY_TYPE_LABELS[type] || type : '');
-    if ($('propertyTypeLabel')) {
-      $('propertyTypeLabel').textContent = visibleTypeLabel;
-      $('propertyTypeLabel').classList.add('editor-object-type-label');
-    }
+    presentObjectHeading({document,getElement:$,type,title,typeLabel});
     if (!type && $('editorObjectStatus')) {
       $('editorObjectStatus').textContent = '';
       $('editorObjectStatus').classList.add('hidden');
@@ -116,7 +109,6 @@ export function createObjectPropertyController(runtime = {}) {
     if (!type) {
       $('focusSelectedObjectBtn')?.classList.add('hidden');
     }
-    document.querySelector('.editor-object-heading')?.setAttribute('aria-label', type ? `${String(title || '')}, ${visibleTypeLabel}` : '');
     const deleteControl = $('editorDeleteSection');
     const actionList = type === 'entity'
       ? activeForm(type).querySelector('.editor-action-section:not(.editor-relation-section) > .editor-action-list')

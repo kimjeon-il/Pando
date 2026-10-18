@@ -274,6 +274,7 @@ export async function composeApplication({ productMode, revision, platform = {},
         }));
         const { installTimelineControls } = await import(`./timeline-controls.js?v=${encodeURIComponent(revision)}`);
         installTimelineControls({ document, window,
+          onMonthLabel: label => { document.getElementById('editorTimelineContext').textContent = `${label} 기준 편집`; },
           getMonth: () => domainAssembly.timelineMonth,
           setMonth: month => domainAssembly.setTimelineMonth(month),
         });

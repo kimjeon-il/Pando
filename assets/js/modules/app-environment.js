@@ -1,3 +1,4 @@
+import { createEmptyState as renderEmptyState } from './empty-state.js';
 import { resolveMapTheme } from './map-theme.js';
 import { HYDRO_DATA_VERSION } from './physical-layer-service.js';
 import { applyInteractionCssProperties } from './map-interaction-style.js';
@@ -146,16 +147,7 @@ export function createEnvironment() {
     }
   }
 
-  function createEmptyState(title, description, { tag = 'div', compact = false } = {}) {
-    const empty = document.createElement(tag);
-    empty.className = `ui-empty-state${compact ? ' ui-empty-state--compact' : ''}`;
-    const heading = document.createElement('strong');
-    const text = document.createElement('p');
-    heading.textContent = title;
-    text.textContent = description;
-    empty.append(heading, text);
-    return empty;
-  }
+  const createEmptyState = renderEmptyState.bind(null, document);
 
   function syncSearchClearButton(input, button) {
     button?.classList.toggle('hidden', !String(input?.value || '').length);

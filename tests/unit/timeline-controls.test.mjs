@@ -31,7 +31,7 @@ function controls(setMonth) {
     select() {}
   }
   for (const id of ['timelineMonthInput', 'timelineMonthButton', 'timelineMonthButtonText', 'timelineMonthLabel',
-    'editorTimelineContext', 'timelineMonthError', 'timelinePreviousYear', 'timelinePreviousMonth', 'timelineNextMonth', 'timelineNextYear'])
+    'timelineMonthError', 'timelinePreviousYear', 'timelinePreviousMonth', 'timelineNextMonth', 'timelineNextYear'])
     nodes.set(id, new Element());
   const window = new globalThis.EventTarget();
   let month = '1914-06';

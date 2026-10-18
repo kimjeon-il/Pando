@@ -1463,3 +1463,7 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 }
 .ui-tooltip[data-kind="country"] > img { flex: 0 0 auto; width: 1.25rem; height: .875rem; object-fit: contain; }
 .ui-tooltip[data-kind="country"] > span { overflow: hidden; text-overflow: ellipsis; }
+
+.btn {
+  padding: 0 var(--ui-control-padding-x);
+}

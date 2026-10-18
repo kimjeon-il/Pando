@@ -1,3 +1,4 @@
+import { setViewingProjection, setViewingLayer, closeViewingDisplay } from './helpers/viewing-display.mjs';
 import { test, expect } from '@playwright/test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
@@ -27,20 +28,13 @@ test('Canvas viewer selects a saved country polygon body without changing projec
     project: window.__PANDOLAB_VIEWER__.documentSnapshot(), state: window.__PANDOLAB_VIEWER__.documentState(),
   }));
 
-  await page.locator('#viewerDisplayToggle').click();
-  await page.locator('#viewerFlat').click();
+  await setViewingProjection(page,'flat');
   // The fixture deliberately overlaps A, its child B and independent region R.
   // Hide overlays and text so only a root polygon body can satisfy this click.
   for (const group of ['subunits', 'regions', 'labels', 'rivers', 'lakes']) {
-    const input = page.locator(`#viewerLayers input[value="${group}"]`);
-    await input.evaluate(element => {
-      for (let parent = element.parentElement; parent; parent = parent.parentElement) {
-        if (parent.tagName === 'DETAILS') parent.open = true;
-      }
-    });
-    await input.uncheck();
+    await setViewingLayer(page,group,false);
   }
-  await page.locator('#viewerDisplayClose').click();
+  await closeViewingDisplay(page);
   await page.locator('#viewerFit').click();
   await expect(page.locator('#viewerLabels text')).toHaveCount(0);
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([]);

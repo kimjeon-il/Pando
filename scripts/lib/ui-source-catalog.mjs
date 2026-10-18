@@ -36,7 +36,7 @@ export const UI_BUNDLE_SOURCES = Object.freeze(sourceEntries.map(entry => entry.
 // Both products consume the same style owners. The viewer omits only unused
 // edit forms; shared drawer/search/display rules remain visually identical.
 const viewerRoles = new Set(['application-tokens', 'component-tokens', 'tokens', 'controls', 'select',
-  'surface', 'content', 'command-row', 'surface-layout', 'topbar', 'editor-shell', 'panels', 'menus',
+  'surface', 'content', 'command-row', 'dialogs', 'surface-layout', 'topbar', 'editor-shell', 'panels', 'menus',
   'view-menu', 'mobile-sheets', 'feedback', 'statusbar', 'map-display', 'map-search', 'map-viewport',
   'accessibility', 'map-rendering']);
 export const UI_VIEWER_SOURCES = Object.freeze(sourceEntries.filter(entry => viewerRoles.has(entry.role)).map(entry => entry.path));
