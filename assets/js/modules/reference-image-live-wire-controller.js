@@ -1,5 +1,5 @@
 import { referenceImageKeyBlocked, referenceImageNavigationHeld } from './reference-image-input.js';
-import { referenceImageEventTargetsMap } from './reference-image-pointer-target.js';
+import { referenceImageEventTargetsMap, createReferenceImageTouchTracker } from './reference-image-pointer-target.js';
 import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
@@ -124,6 +124,7 @@ export function installReferenceImageLiveWire() {
 
   const imageCache = new Map();
   let state = null;
+  const touchTracker = createReferenceImageTouchTracker();
   let disposed = false;
   let renderScheduled = false;
   let previewScheduled = false;
@@ -278,6 +279,7 @@ export function installReferenceImageLiveWire() {
   }
 
   function cancelLiveWire({ message = '', tone = '' } = {}) {
+    touchTracker.reset();
     setReferenceImageSurfaceEditing(false);
     state = null;
     pendingPointer = null;
@@ -690,7 +692,7 @@ export function installReferenceImageLiveWire() {
     if (!state || !['armed', 'tracking'].includes(state.phase) || referenceImageNavigationHeld()) return false;
     if (!referenceImageEventTargetsMap(event, mapElement)) return false;
     event.preventDefault();
-    event.stopImmediatePropagation();
+    if (event.pointerType !== 'touch') event.stopImmediatePropagation();
     return true;
   }
 
@@ -704,19 +706,27 @@ export function installReferenceImageLiveWire() {
   }
 
   function onPointerDown(event) {
+    if (!state || referenceImageNavigationHeld()
+      || !referenceImageEventTargetsMap(event, mapElement)) return;
+    if (touchTracker.begin(event)) return;
     activateAtPointer(event);
   }
 
   function onPointerUp(event) {
+    if (touchTracker.end(event)) return;
     if (!state || state.phase !== 'tracking' || !state.previewPoints?.length || state.previewPoints.length < 2) return;
     activateAtPointer(event);
   }
 
   function onPointerMove(event) {
-    if (!state || state.phase !== 'tracking' || referenceImageNavigationHeld()
+    if (touchTracker.pinching || !state || state.phase !== 'tracking' || referenceImageNavigationHeld()
       || !referenceImageEventTargetsMap(event, mapElement)) return;
     if (!interceptMapEvent(event)) return;
     schedulePreview(canvasPoint(event, mapElement));
+  }
+
+  function onPointerCancel(event) {
+    touchTracker.end(event);
   }
 
   function onDoubleClick(event) {
@@ -794,6 +804,7 @@ export function installReferenceImageLiveWire() {
   panel.addEventListener('click', onPanelClick, true);
   globalThis.addEventListener('pointerdown', onPointerDown, true);
   globalThis.addEventListener('pointerup', onPointerUp, true);
+  globalThis.addEventListener('pointercancel', onPointerCancel, true);
   globalThis.addEventListener('pointermove', onPointerMove, true);
   globalThis.addEventListener('dblclick', onDoubleClick, true);
   globalThis.addEventListener('keydown', onKeyDown, true);
@@ -810,6 +821,7 @@ export function installReferenceImageLiveWire() {
     destroy() {
       if (disposed) return;
       disposed = true;
+      touchTracker.reset();
       state = null;
       pendingPointer = null;
       globalThis.clearTimeout(monitorTimer);
@@ -818,6 +830,7 @@ export function installReferenceImageLiveWire() {
       panel.removeEventListener('click', onPanelClick, true);
       globalThis.removeEventListener('pointerdown', onPointerDown, true);
       globalThis.removeEventListener('pointerup', onPointerUp, true);
+      globalThis.removeEventListener('pointercancel', onPointerCancel, true);
       globalThis.removeEventListener('pointermove', onPointerMove, true);
       globalThis.removeEventListener('dblclick', onDoubleClick, true);
       globalThis.removeEventListener('keydown', onKeyDown, true);

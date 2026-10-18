@@ -1,5 +1,5 @@
 import { referenceImageKeyBlocked, referenceImageNavigationHeld } from './reference-image-input.js';
-import { referenceImageEventTargetsMap } from './reference-image-pointer-target.js';
+import { referenceImageEventTargetsMap, createReferenceImageTouchTracker } from './reference-image-pointer-target.js';
 import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
@@ -117,6 +117,7 @@ export function installReferenceImageLineRefiner() {
 
   const imageCache = new Map();
   let state = null;
+  const touchTracker = createReferenceImageTouchTracker();
   let lastMessage = '';
   let lastTone = '';
   let disposed = false;
@@ -219,6 +220,7 @@ export function installReferenceImageLineRefiner() {
   }
 
   function cancelRefine({ message = '', tone = '' } = {}) {
+    touchTracker.reset();
     setReferenceImageSurfaceEditing(false);
     state = null;
     mapElement.classList.remove('is-reference-line-refine-mode');
@@ -505,13 +507,21 @@ export function installReferenceImageLineRefiner() {
     if (!state || !['armed', 'drawing'].includes(state.phase) || referenceImageNavigationHeld()) return false;
     if (!referenceImageEventTargetsMap(event, mapElement)) return false;
     event.preventDefault();
-    event.stopImmediatePropagation();
+    if (event.pointerType !== 'touch') event.stopImmediatePropagation();
     return true;
   }
 
   function onPointerDown(event) {
-    if (!state || state.phase !== 'armed' || event.button !== 0 || !referenceImageEventTargetsMap(event, mapElement)) return;
-    if (!intercept(event)) return;
+    if (!state || event.button !== 0 || referenceImageNavigationHeld()
+      || !referenceImageEventTargetsMap(event, mapElement)) return;
+    if (touchTracker.begin(event)) {
+      if (state.phase === 'drawing') {
+        try { mapElement.releasePointerCapture?.(state.pointerId); } catch (_) {}
+        redraw();
+      }
+      return;
+    }
+    if (state.phase !== 'armed' || !intercept(event)) return;
     const screen = canvasPoint(event, mapElement);
     const uv = hitTestUv(state.source, screen);
     if (!uv) {
@@ -529,12 +539,14 @@ export function installReferenceImageLineRefiner() {
   }
 
   function onPointerMove(event) {
-    if (!state || state.phase !== 'drawing' || event.pointerId !== state.pointerId) return;
+    if (touchTracker.pinching || !state || state.phase !== 'drawing'
+      || event.pointerId !== state.pointerId) return;
     if (!intercept(event)) return;
     appendSample(event);
   }
 
   function onPointerUp(event) {
+    if (touchTracker.end(event)) return;
     if (!state || state.phase !== 'drawing' || event.pointerId !== state.pointerId) return;
     if (referenceImageNavigationHeld()) {
       try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
@@ -547,6 +559,7 @@ export function installReferenceImageLineRefiner() {
   }
 
   function onPointerCancel(event) {
+    if (touchTracker.end(event)) return;
     if (!state || state.phase !== 'drawing' || event.pointerId !== state.pointerId) return;
     // Cancellation must unwind the unfinished trace even while Space is held.
     if (!referenceImageNavigationHeld() && !intercept(event)) return;
@@ -614,6 +627,7 @@ export function installReferenceImageLineRefiner() {
     destroy() {
       if (disposed) return;
       disposed = true;
+      touchTracker.reset();
       state = null;
       globalThis.clearTimeout(monitorTimer);
       observer.disconnect();

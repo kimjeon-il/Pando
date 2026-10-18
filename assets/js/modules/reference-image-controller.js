@@ -95,6 +95,7 @@ export function installReferenceImageController({
   getGeneration = () => 0,
   isBlocked = () => false,
   cancelTools = () => {},
+  auxiliaryInputActive = () => false,
   searchPlaces = null,
   getPlaces = null,
   preparePlaces = null,
@@ -930,9 +931,11 @@ export function installReferenceImageController({
     begin: (point, event, context) => {
       if (panel.hidden) return null;
       if (referenceImageNavigationHeld()) return { kind: 'navigate' };
+      // Auxiliary line tools own one-finger input; the map still owns pinch.
+      if (event.pointerType === 'touch' && auxiliaryInputActive()) return { kind: 'exclusive' };
       return linearDraft ? linearGesture(point, event, context) : interaction.beginGesture(point, event, context);
     },
-    active: () => !!linearDraft || interaction.isActive() || navigationOverride,
+    active: () => !!linearDraft || interaction.isActive() || navigationOverride || auxiliaryInputActive(),
     surfaceOpen: () => !panel.hidden,
     mapNavigationActive: () => !panel.hidden && navigationOverride,
     key: onKeyDown,
