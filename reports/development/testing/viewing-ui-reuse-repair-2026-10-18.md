@@ -1,6 +1,6 @@
 # 웹 열람 UI 공유 누락 조사와 복원 검증
 
-> 보고서 ID: `UI-VIEWING-REPAIR-20261018` · 상태: `focused-local-verification` · 지도 반영: `not-applicable` · 색인일: 2026-10-18
+> 보고서 ID: `UI-VIEWING-REPAIR-20261018` · 상태: `verified-web-release / native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-18
 > 원문 최종 수정: 2026-10-18
 > 조사 기준: 배포본 `2574f1e0e9b47b054e8c38d2c392aad8e79698c7`, `work/ui` 기준 `02a5c5baf569e9bf583e23febedb32baf848e7d2` 위 수정
 > 원본·출처: 사용자 배포 화면, 같은 저장소의 앱 시작점과 실제 UI 소유자
@@ -49,4 +49,15 @@
 
 ## 데이터 반영 및 배포
 
-GIS·지도 자료·C++/WASM 변경 없음. 미완성 프로젝트 설정·편집·Core 변경은 작업 트리에 보존하고, 수정 범위만 배포용 소스에서 선택해 커밋한다. 새 배포는 아직 확인 전이다.
+GIS·지도 자료·C++/WASM 변경 없음. 미완성 프로젝트 설정·편집·Core 변경은 작업 트리에 보존하고, 수정 범위만 배포용 소스에서 선택해 커밋한다. 수정 소스 `4273bca1298c42fcb5a1bca8570b7b26387f3de8`를 main에 fast-forward 통합하고 main/work/ui push를 확인했다. Pages 배포 성공과 실서비스 검증까지 확인했다.
+
+- 로컬 웹 staging: 2,162개 파일, 431,221,196 bytes. 앱 파일 103개 및 shared 소스 173개 제외.
+- [Pages workflow 39127233612](https://github.com/kimjeon-il/Pando/actions/runs/39127233612): build 40초, deploy 21초로 성공.
+- CI manifest의 2,162개 파일 경로·크기·Git blob·SHA-256이 로컬 staging과 모두 일치한다. Windows checkout의 CRLF 변환 표시 자체는 플랫폼 진단 값이므로 자산 동일성 비교에서 제외했다.
+- 실서비스에서 시작 HTML/메타데이터/진입점/지도 및 조립 모듈/공통 모바일 시트/설정/공통 CSS/WASM 쌍 총 10개 HTTP 200 및 커밋 바이트 SHA-256 일치 확인.
+- 편집 app.js/bootstrap.js/ui.bundle.css 및 앱 editor.html은 HTTP 404 확인.
+- 실서비스 1280×800: 글자 SVG가 Canvas 위에 놓임, 기존 보기 메뉴, 환경설정 테마 미리보기와 취소, 실제 현재 GeoPackage 열기, 검색 선택 및 객체 정보 표시 확인.
+- 실서비스 640×360: 모바일 메뉴·평면 투영·기원전 1년 12월→서기 1년 1월 이동·환경설정 접근 확인. 프로젝트 checkpoint 불변/Undo 없음. pageerror 및 console error 0개.
+- [배포된 PC 보기 화면](../../images/viewer-editor/viewing-fixed-desktop.png), [배포된 휴대폰 가로 설정](../../images/viewer-editor/viewing-fixed-mobile-settings.png).
+- 실제 실행 근거 원자료: 작업 트리 `.superpowers/viewing-repair-live.json`; CI manifest는 workflow artifact `pages-evidence-4273bca1298c42fcb5a1bca8570b7b26387f3de8`.
+- 이 후속 증거는 work/ui 보고서 커밋으로 기록한다. 배포된 제품 소스 SHA는 위 4273bca1이며, 보고서 커밋 자체를 새 배포 성공으로 표시하지 않는다.
