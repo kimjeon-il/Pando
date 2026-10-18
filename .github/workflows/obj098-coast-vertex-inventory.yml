@@ -1,0 +1,37 @@
+name: OBJ-098 real Soviet coast vertex inventory
+on:
+  push:
+    branches: [work/perf-obj098-valid-coast-20261018]
+    paths:
+      - '.github/workflows/obj098-coast-vertex-inventory.yml'
+      - 'tests/browser/soviet-visible-edit-vertices.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  coast-vertex-inventory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec eslint tests/browser/soviet-visible-edit-vertices.spec.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Enumerate live 1989 Soviet coastal handles without changing document
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-visible-edit-vertices.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj098-coast-vertices-${{ github.sha }}
+          path: test-results/soviet-coast-vertices/
+          retention-days: 14
+          if-no-files-found: warn
