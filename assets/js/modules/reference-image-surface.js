@@ -1,7 +1,10 @@
 import { registerReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 
 /** Late-loaded image UI uses the same lifecycle as the built-in workspace sheets. */
-export function installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose, onOpen }) {
+export function installReferenceImageSurface({ panel, launcher, mapElement, workspaceSurfaces, onAction, onAuxiliaryEditingStart, onClose, onOpen }) {
+  if (!mapElement || typeof onAction !== 'function' || typeof onAuxiliaryEditingStart !== 'function') {
+    throw new TypeError('Reference image workflows require mapElement, onAction and onAuxiliaryEditingStart.');
+  }
   const document = panel.ownerDocument;
   panel.id = 'referenceImageSurface';
   panel.classList.add('workspace-surface', 'surface-reference', 'ui-sheet');
@@ -37,15 +40,25 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
   const hint = document.createElement('span');
   hint.setAttribute('role', 'status');
   compact.append(hint);
+  const defaultCompletionButtons = [];
   for (const [action, label] of [['navigation-toggle', '지도 이동'], ['undo', '실행 취소'], ['redo', '다시 실행'], ['finish', '완료'], ['cancel', '취소']]) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = action === 'finish' ? 'ui-button btn' : 'ui-button btn ghost';
     button.dataset.refAction = action;
     button.textContent = label;
-    if (action === 'undo' || action === 'redo') button.disabled = true;
+    if (action === 'undo' || action === 'redo') {
+      button.disabled = true;
+      button.setAttribute('aria-label', `이미지 편집 ${label}`);
+    }
+    if (action === 'finish' || action === 'cancel') defaultCompletionButtons.push(button);
     compact.append(button);
   }
+  const compactActions = document.createElement('div');
+  compactActions.className = 'reference-image-workflow-actions';
+  compactActions.dataset.refWorkflowActions = '';
+  compactActions.hidden = true;
+  compact.append(compactActions);
   panel.append(compact);
   const resizeHandle = document.createElement('div');
   resizeHandle.className = 'reference-image-resize-handle';
@@ -66,9 +79,136 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
   let resizePointerId = null;
   let previousOpen = false;
   let editing = false;
+  let editingText = '';
+  // A rendering projection supplied by the controller; tool state remains there.
+  let workflow = null;
+  let guide = null;
   let collapsed = false;
   let expandedWhileEditing = false;
   let savedSnap = 1;
+
+  function setText(element, value) {
+    if (element.textContent !== value) element.textContent = value;
+  }
+
+  function stopGuidePointer(event) {
+    event.stopPropagation();
+  }
+
+  function onGuideClick(event) {
+    event.stopPropagation();
+    const button = event.target.closest('[data-ref-action]');
+    if (!button || button.disabled || guide.root.hidden) return;
+    onAction(event);
+  }
+
+  function createGuide() {
+    const root = document.createElement('section');
+    root.className = 'reference-image-workflow-guide';
+    root.dataset.refWorkflowGuide = '';
+    root.hidden = true;
+    root.setAttribute('role', 'region');
+    root.setAttribute('aria-label', '참조 이미지 작업 안내');
+    const status = document.createElement('div');
+    status.className = 'reference-image-workflow-status';
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-live', 'polite');
+    status.setAttribute('aria-atomic', 'true');
+    const heading = document.createElement('div');
+    heading.className = 'reference-image-workflow-heading';
+    const title = document.createElement('strong');
+    const progress = document.createElement('span');
+    progress.dataset.refWorkflowProgress = '';
+    heading.append(title, progress);
+    const steps = document.createElement('ol');
+    steps.className = 'reference-image-workflow-steps';
+    steps.setAttribute('aria-label', '작업 단계');
+    const instruction = document.createElement('p');
+    instruction.className = 'reference-image-workflow-instruction';
+    const detail = document.createElement('p');
+    detail.className = 'reference-image-workflow-detail';
+    const actions = document.createElement('div');
+    actions.className = 'reference-image-workflow-actions';
+    actions.dataset.refWorkflowActions = '';
+    status.append(heading, steps, instruction, detail);
+    root.append(status, actions);
+    root.addEventListener('pointerdown', stopGuidePointer);
+    root.addEventListener('click', onGuideClick);
+    mapElement.append(root);
+    return { root, title, progress, steps, instruction, detail, actions };
+  }
+
+  function removeGuide() {
+    if (!guide) return;
+    guide.root.removeEventListener('pointerdown', stopGuidePointer);
+    guide.root.removeEventListener('click', onGuideClick);
+    guide.root.remove();
+    guide = null;
+  }
+
+  function renderActions(container, actions) {
+    const previousButtons = [...container.children];
+    for (const [index, action] of actions.entries()) {
+      let button = previousButtons[index];
+      if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ui-button btn';
+        container.append(button);
+      }
+      button.dataset.refAction = action.action;
+      button.classList.toggle('ghost', !action.primary);
+      button.disabled = action.disabled === true;
+      setText(button, action.label);
+    }
+    for (const button of previousButtons.slice(actions.length)) button.remove();
+  }
+
+  function syncWorkflowText() {
+    // setEditing supplies the current instruction, including a temporary map-pan
+    // override. Workflow rendering must not replace that instruction.
+    const instruction = editingText || workflow?.instruction || '';
+    const text = workflow
+      ? `${workflow.title} · ${workflow.step + 1}/${workflow.steps.length} · ${instruction}`
+      : editingText;
+    setText(hint, text);
+    if (guide) setText(guide.instruction, instruction);
+  }
+
+  function setWorkflow(next) {
+    workflow = next;
+    for (const button of defaultCompletionButtons) button.hidden = !!workflow;
+    compactActions.hidden = !workflow;
+    if (!workflow) {
+      compactActions.replaceChildren();
+      removeGuide();
+    } else {
+      if (!guide) guide = createGuide();
+      guide.root.dataset.refWorkflowId = workflow.id;
+      setText(guide.title, workflow.title);
+      setText(guide.progress, `${workflow.step + 1}/${workflow.steps.length}`);
+      const previousSteps = [...guide.steps.children];
+      for (const [index, label] of workflow.steps.entries()) {
+        let item = previousSteps[index];
+        if (!item) {
+          item = document.createElement('li');
+          guide.steps.append(item);
+        }
+        setText(item, label);
+        item.classList.toggle('is-complete', index < workflow.step);
+        if (index === workflow.step) item.setAttribute('aria-current', 'step');
+        else item.removeAttribute('aria-current');
+      }
+      for (const item of previousSteps.slice(workflow.steps.length)) item.remove();
+      setText(guide.detail, workflow.detail || '');
+      guide.detail.hidden = !workflow.detail;
+      renderActions(guide.actions, workflow.actions);
+      // These buttons bubble to the panel's existing action handler exactly once.
+      renderActions(compactActions, workflow.actions);
+    }
+    syncWorkflowText();
+    sync();
+  }
 
   function maxDockWidth() {
     const available = workspace?.getBoundingClientRect?.().width;
@@ -146,6 +286,7 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
     }
     if (panel.hidden !== !open) panel.hidden = !open;
     const mobile = workspaceSurfaces.isMobile();
+    if (guide) guide.root.hidden = !open || mobile || !workflow;
     const compactEditing = editing && mobile && !expandedWhileEditing;
     const bodyCollapsed = collapsed || compactEditing;
     panel.classList.toggle('reference-image-editing-active', editing);
@@ -181,14 +322,18 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
     }
     const wasEditing = editing;
     editing = next;
-    if (hint.textContent !== text) hint.textContent = text;
+    editingText = text;
+    syncWorkflowText();
     if (wasEditing && !editing) {
       expandedWhileEditing = false;
       if (workspaceSurfaces.isMobile() && !collapsed) workspaceSurfaces.setMobileSheetHeight(panel, savedSnap);
     }
     sync();
   }
-  const unregisterSurfaceEditing = registerReferenceImageSurfaceEditing(setEditing);
+  const unregisterSurfaceEditing = registerReferenceImageSurfaceEditing((active, text) => {
+    if (active === true) onAuxiliaryEditingStart();
+    setEditing(active, text);
+  });
   collapseButton.addEventListener('click', onCollapseClick);
   resizeHandle.addEventListener('pointerdown', onResizePointerDown);
   resizeHandle.addEventListener('pointermove', onResizePointerMove);
@@ -201,6 +346,7 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
     close: (options = {}) => workspaceSurfaces.closeSurface('reference', options),
     toggle,
     setEditing,
+    setWorkflow,
     setGestureActive: active => workspaceSurfaces.setReferenceImageGestureActive(active),
     resetScroll: () => { body.scrollTop = 0; },
     destroy() {
@@ -208,6 +354,7 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
       workspaceSurfaces.setReferenceImageGestureActive(false);
       unregisterSurfaceEditing();
       unregister();
+      setWorkflow(null);
       workspace?.classList?.remove('reference-image-docked', 'reference-image-dock-collapsed');
       collapseButton.removeEventListener('click', onCollapseClick);
       resizeHandle.removeEventListener('pointerdown', onResizePointerDown);

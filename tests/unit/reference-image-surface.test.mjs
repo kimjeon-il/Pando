@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createSurfaceController } from '../../assets/js/modules/surface-controller.js';
 import { installReferenceImageSurface } from '../../assets/js/modules/reference-image-surface.js';
+import { setReferenceImageSurfaceEditing } from '../../assets/js/modules/reference-image-surface-port.js';
 
 class Element {
   constructor(document) {
@@ -10,6 +11,9 @@ class Element {
     this.attributes = new Map();
     this.dataset = {};
     this.listeners = new Map();
+    this.hidden = false;
+    this.disabled = false;
+    this.text = '';
     this.textWrites = 0;
     const classes = new Set();
     this.classList = {
@@ -26,14 +30,44 @@ class Element {
   setAttribute(key, value) { this.attributes.set(key, value); }
   getAttribute(key) { return this.attributes.get(key); }
   removeAttribute(key) { this.attributes.delete(key); }
-  append(child) {
-    if (child.parent) child.parent.children = child.parent.children.filter(item => item !== child);
-    child.parent = this;
-    this.children.push(child);
+  append(...children) {
+    for (const child of children) {
+      child.remove();
+      child.parent = this;
+      this.children.push(child);
+    }
   }
   prepend(child) { this.append(child); this.children.unshift(this.children.pop()); }
-  querySelector(selector) {
-    return this.children.find(child => child.classList.contains(selector.slice(1))) || null;
+  remove() {
+    if (this.parent) this.parent.children = this.parent.children.filter(item => item !== this);
+    this.parent = null;
+  }
+  replaceChildren(...children) {
+    for (const child of [...this.children]) child.remove();
+    this.append(...children);
+  }
+  matches(selector) {
+    if (selector.startsWith('.')) return this.classList.contains(selector.slice(1));
+    const attribute = selector.match(/^\[data-([\w-]+)(?:="([^"]*)")?\]$/);
+    if (!attribute) return false;
+    const key = attribute[1].replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+    return attribute[2] == null ? key in this.dataset : this.dataset[key] === attribute[2];
+  }
+  querySelectorAll(selector) {
+    return this.children.flatMap(child => [
+      ...(child.matches(selector) ? [child] : []), ...child.querySelectorAll(selector),
+    ]);
+  }
+  querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
+  closest(selector) { return this.matches(selector) ? this : this.parent?.closest(selector) || null; }
+  dispatch(name) {
+    let stopped = false;
+    const event = { target: this, preventDefault() {}, stopPropagation() { stopped = true; } };
+    for (let node = this; node; node = node.parent) {
+      node.listeners.get(name)?.(event);
+      if (stopped) break;
+    }
+    return event;
   }
   addEventListener(name, listener) { this.listeners.set(name, listener); }
   removeEventListener(name) { this.listeners.delete(name); }
@@ -52,7 +86,10 @@ function fixture() {
   const styleValues = new Map();
   workspaceElement.style = { setProperty: (key, value) => styleValues.set(key, value) };
   workspaceElement.getBoundingClientRect = () => ({ left: 0, right: 1200, width: 1200 });
+  const mapElement = document.createElement();
+  mapElement.className = 'map-stage';
   const panel = document.createElement();
+  workspaceElement.append(mapElement, panel);
   const launcher = document.createElement();
   const header = document.createElement();
   header.className = 'reference-image-panel-header';
@@ -75,7 +112,7 @@ function fixture() {
     setReferenceImageGestureActive() {},
   };
   return {
-    panel, launcher, editor, workspace, workspaceElement, styleValues,
+    panel, launcher, mapElement, onAction() {}, onAuxiliaryEditingStart() {}, editor, workspace, workspaceElement, styleValues,
     controller, heights, sync,
     setLayout(value) {
       const previous = layout;
@@ -198,4 +235,157 @@ test('mobile reference sheet collapse and edit expansion keep the panel open', (
   assert.equal(f.panel.classList.contains('reference-image-collapsed'), false);
   assert.equal(f.heights.at(-1), 1);
   assert.equal(closed, 0);
+});
+
+test('desktop workflow guidance remains actionable while the dock is collapsed and cleans up on clear or destroy', () => {
+  const f = fixture();
+  f.setLayout('wide');
+  const actions = [];
+  const onAction = event => actions.push(event.target.dataset.refAction);
+  f.panel.addEventListener('click', onAction);
+  const adapter = installReferenceImageSurface({ ...f, workspaceSurfaces: f.workspace, onAction });
+  const workflow = {
+    id: 'linear', title: '선 보정', steps: ['이미지 선', '지도 선', '미리보기', '적용'], step: 2,
+    instruction: '변형 이미지를 확인하세요.', detail: '적용 전까지 원본 배치는 유지됩니다.',
+    actions: [
+      { action: 'linear-apply', label: '미리보기 적용', primary: true },
+      { action: 'linear-cancel', label: '선 보정 취소' },
+      { action: 'linear-map-undo', label: '마지막 점 취소', disabled: true },
+    ],
+  };
+  adapter.setEditing(true, workflow.instruction);
+  adapter.setWorkflow(workflow);
+  const guide = f.mapElement.querySelector('[data-ref-workflow-guide]');
+  assert.equal(guide.hidden, true);
+  adapter.open();
+  assert.equal(guide.hidden, false);
+  assert.equal(guide.getAttribute('aria-label'), '참조 이미지 작업 안내');
+  assert.equal(guide.querySelector('[data-ref-workflow-progress]').textContent, '3/4');
+  const steps = guide.querySelector('.reference-image-workflow-steps').children;
+  assert.equal(steps[0].classList.contains('is-complete'), true);
+  assert.equal(steps[2].getAttribute('aria-current'), 'step');
+
+  f.panel.querySelector('.reference-image-collapse-button').dispatch('click');
+  assert.equal(f.panel.classList.contains('reference-image-collapsed'), true);
+  assert.equal(guide.hidden, false);
+  const applyButton = guide.querySelector('[data-ref-action="linear-apply"]');
+  assert.equal(applyButton.type, 'button');
+  assert.equal(applyButton.classList.contains('ghost'), false);
+  const instruction = guide.querySelector('.reference-image-workflow-instruction');
+  const writes = instruction.textWrites;
+  adapter.setEditing(true, workflow.instruction);
+  adapter.setWorkflow({ ...workflow });
+  assert.equal(instruction.textWrites, writes);
+  assert.equal(guide.querySelector('[data-ref-action="linear-apply"]'), applyButton);
+  let mapEvents = 0;
+  f.mapElement.addEventListener('pointerdown', () => { mapEvents += 1; });
+  f.mapElement.addEventListener('click', () => { mapEvents += 1; });
+  instruction.dispatch('pointerdown');
+  applyButton.dispatch('click');
+  guide.querySelector('[data-ref-action="linear-map-undo"]').dispatch('click');
+  assert.deepEqual(actions, ['linear-apply']);
+  assert.equal(mapEvents, 0);
+
+  adapter.close();
+  assert.equal(guide.hidden, true);
+  adapter.setWorkflow(null);
+  assert.equal(f.mapElement.querySelector('[data-ref-workflow-guide]'), null);
+  assert.equal(guide.listeners.size, 0);
+  adapter.open();
+  adapter.setWorkflow(workflow);
+  const replacement = f.mapElement.querySelector('[data-ref-workflow-guide]');
+  assert.notEqual(replacement, guide);
+  adapter.destroy();
+  assert.equal(f.mapElement.querySelector('[data-ref-workflow-guide]'), null);
+  assert.equal(replacement.listeners.size, 0);
+});
+
+test('mobile workflow actions replace generic completion while preserving navigation guidance and auxiliary editing', () => {
+  const f = fixture();
+  const actions = [];
+  let auxiliaryStarts = 0;
+  const onAction = event => actions.push(event.target.dataset.refAction);
+  f.panel.addEventListener('click', onAction);
+  const adapter = installReferenceImageSurface({
+    ...f, workspaceSurfaces: f.workspace, onAction,
+    onAuxiliaryEditingStart() {
+      auxiliaryStarts += 1;
+      adapter.setWorkflow(null);
+      adapter.setEditing(false);
+    },
+  });
+  adapter.open();
+  const summary = f.panel.querySelector('.reference-image-editing-summary');
+  const hint = summary.children[0];
+  const navigation = summary.children[1];
+  const undo = summary.children[2];
+  const redo = summary.children[3];
+  const finish = summary.children[4];
+  const cancel = summary.children[5];
+  const workflow = {
+    id: 'linear', title: '선 보정', steps: ['이미지 선', '지도 선', '미리보기', '적용'], step: 0,
+    instruction: '이미지에서 선을 따라 점을 찍으세요.', detail: '두 점 이상 지정하세요.',
+    actions: [
+      { action: 'linear-image-finish', label: '지도 선 지정', primary: true, disabled: true },
+      { action: 'linear-cancel', label: '선 보정 취소' },
+    ],
+  };
+  adapter.setEditing(true, workflow.instruction);
+  adapter.setWorkflow(workflow);
+  assert.equal(summary.hidden, false);
+  assert.equal(f.mapElement.querySelector('[data-ref-workflow-guide]').hidden, true);
+  assert.equal(hint.textContent, '선 보정 · 1/4 · 이미지에서 선을 따라 점을 찍으세요.');
+  assert.equal(navigation.dataset.refAction, 'navigation-toggle');
+  assert.equal(undo.getAttribute('aria-label'), '이미지 편집 실행 취소');
+  assert.equal(redo.getAttribute('aria-label'), '이미지 편집 다시 실행');
+  assert.equal(finish.hidden, true);
+  assert.equal(cancel.hidden, true);
+  const workflowActions = summary.querySelector('[data-ref-workflow-actions]');
+  assert.equal(workflowActions.children[0].disabled, true);
+  workflow.actions[0].disabled = false;
+  adapter.setWorkflow(workflow);
+  workflowActions.children[0].dispatch('click');
+  assert.deepEqual(actions, ['linear-image-finish']);
+
+  const navigationText = '지도 이동 중 · 이미지 편집 단계는 유지됩니다.';
+  adapter.setEditing(true, navigationText);
+  adapter.setWorkflow(workflow);
+  assert.equal(hint.textContent, `선 보정 · 1/4 · ${navigationText}`);
+  assert.equal(f.mapElement.querySelector('.reference-image-workflow-instruction').textContent, navigationText);
+  const writes = hint.textWrites;
+  adapter.setWorkflow({ ...workflow });
+  assert.equal(hint.textWrites, writes);
+
+  const preview = {
+    ...workflow, step: 2, instruction: '변형 이미지를 확인하세요.', detail: '',
+    actions: [
+      { action: 'linear-apply', label: '미리보기 적용', primary: true },
+      { action: 'linear-cancel', label: '선 보정 취소' },
+    ],
+  };
+  adapter.setEditing(true, preview.instruction);
+  adapter.setWorkflow(preview);
+  assert.equal(hint.textContent, '선 보정 · 3/4 · 변형 이미지를 확인하세요.');
+  assert.deepEqual(workflowActions.children.map(button => button.dataset.refAction), ['linear-apply', 'linear-cancel']);
+  workflowActions.children[0].dispatch('click');
+  assert.deepEqual(actions, ['linear-image-finish', 'linear-apply']);
+  assert.equal(finish.hidden, true);
+
+  assert.equal(auxiliaryStarts, 0);
+  setReferenceImageSurfaceEditing(true, '보조선을 따라 점을 찍으세요.');
+  assert.equal(auxiliaryStarts, 1);
+  assert.equal(f.mapElement.querySelector('[data-ref-workflow-guide]'), null);
+  assert.equal(hint.textContent, '보조선을 따라 점을 찍으세요.');
+  assert.equal(summary.hidden, false);
+  assert.equal(workflowActions.hidden, true);
+  assert.equal(workflowActions.children.length, 0);
+  assert.equal(finish.hidden, false);
+  assert.equal(cancel.hidden, false);
+  assert.equal(summary.children[1], navigation);
+  assert.equal(summary.children[2], undo);
+  assert.equal(summary.children[3], redo);
+  setReferenceImageSurfaceEditing(false);
+  assert.equal(auxiliaryStarts, 1);
+  assert.equal(summary.hidden, true);
+  adapter.destroy();
 });
