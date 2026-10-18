@@ -1,3 +1,4 @@
+import { TIMELINE_RECORD_SCHEMA_VERSION } from '../../assets/js/modules/timeline-records.js';
 import { readFileSync } from 'node:fs';
 import { createNodeCoreProject } from './core-project.mjs';
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
@@ -14,7 +15,7 @@ export async function createNodeSelection({ territorialIds = ['A','B','C','D','D
   seed.layerPresentation.objectStyles = Object.fromEntries(Object.entries(seed.layerPresentation.objectStyles)
     .filter(([key]) => admittedPresentationKeys.has(key)));
   seed.layerPresentation.objectOrder = seed.layerPresentation.objectOrder.filter(key => admittedPresentationKeys.has(key));
-  seed.timelineRecords = { schemaVersion: 1,
+  seed.timelineRecords = { schemaVersion: TIMELINE_RECORD_SCHEMA_VERSION,propertyBindings: [],
     lifetimes: territorialIds.map(id => ({ id: 'life:'+id,entityId: id,validFrom: null,validTo: null })),
     geometryBindings: territorialIds.map(id => ({ id: 'shape:'+id,entityId: id,validFrom: null,validTo: null,geometryRef: { id: 'shape',version: 1 } })),
     parentRelations: territorialIds.map(id => ({ id: 'parent:'+id,entityId: id,validFrom: null,validTo: null,parentId: '',coverageMode: 'explicit' })) };
