@@ -164,14 +164,17 @@ async function dragAndPreview(page, timings) {
   // Tiny subpixel movement may never cross Chromium's real pointer-drag
   // threshold. A distinct mouse gesture must send the production boundary-move
   // request before it can count as a geometry editing test.
-  await page.mouse.move(x + 20, y - 14, { steps: 8 });
+  // For the Far Eastern Soviet coastline, test a seaward (east/south)
+  // expansion rather than an inland displacement that would exclude the
+  // unchanged Russian SSR (correctly rejected as GEOMETRY_OUTSIDE_PARENT).
+  await page.mouse.move(x + 20, y + 14, { steps: 8 });
   // Cross the browser's drag threshold, then settle near the original
   // coordinate. This tests a small valid edit instead of deforming a dense
   // historic coastline by multiple degrees.
   // OBJ-098 acceptance: retain a meaningful final displacement after crossing
   // the drag threshold. The older 1.5px move was frequently normalized to a
   // Core no-op although map-edit moved a temporary vertex successfully.
-  await page.mouse.move(x + 6, y - 4, { steps: 6 });
+  await page.mouse.move(x + 6, y + 4, { steps: 6 });
   await page.mouse.up();
   timings.pointerAttempt = { x, y, coordinate: handle.coordinate, score: handle.score };
   timings.heldSource = await fingerprint(page);
