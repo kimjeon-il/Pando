@@ -265,3 +265,18 @@
 .reference-image-hint[data-tone="working"] { color: var(--ui-v2-status-working-text); }
 .reference-image-hint[data-tone="success"] { color: var(--ui-v2-status-success-text); }
 .reference-image-hint[data-tone="error"] { color: var(--ui-v2-status-error-text); }
+
+/* The desktop image dock follows the workspace chrome, not floating glass. */
+.app-root:not([data-layout="mobile"]) .reference-image-panel {
+  border-radius: 0;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.reference-image-resize-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
