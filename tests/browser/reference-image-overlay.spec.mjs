@@ -491,7 +491,7 @@ test('mobile navigation button preserves GCP phase and two-finger pinch cancels 
     const record = (await store.listStoredReferenceImages())[0];
     const center = referenceImagePlacementPointAtUv(record, [0.5, 0.5], window.__PANDOLAB_MAP_HOST__);
     const rect = map.getBoundingClientRect();
-    const touch = (type, id, x, y) => map.dispatchEvent(new PointerEvent(type, {
+    const touch = (type, id, x, y) => map.dispatchEvent(new window.PointerEvent(type, {
       bubbles: true, cancelable: true, pointerId: id, pointerType: 'touch', button: 0,
       clientX: rect.left + x, clientY: rect.top + y,
     }));
