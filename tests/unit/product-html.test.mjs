@@ -7,7 +7,7 @@ test('product HTML is generated from one source for each common viewing control'
  const read=path=>readFileSync(new URL(`../../${path}`,import.meta.url),'utf8');
  const pages=renderProductHtml(read);
  for(const key of ['object-search','map-display','preferences','timeline','tooltip','notification','map-icons','map-search-control','map-fit-control']){
-  const fragment=read(`ui/fragments/${key}.html`).trim();
+  const fragment=read(`ui/fragments/${key}.html`).replaceAll('\r\n','\n').trim();
   assert.ok(pages.web.includes(fragment),`web omitted ${key}`);
   assert.ok(pages.editor.includes(fragment),`app omitted ${key}`);
  }
