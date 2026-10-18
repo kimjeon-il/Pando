@@ -225,54 +225,10 @@ export function createCameraNavigation({ persistView = null } = {}) {
     if (persistView) persistView();
   }
 
-  function bindHoldZoom(button, factor) {
-    if (!button) return;
-    let timer = null;
-    let repeater = null;
-    let repeated = false;
-    let suppressNextClick = false;
-    const clear = () => {
-      clearTimeout(timer); clearInterval(repeater); timer = repeater = null;
-      if (repeated) {
-        dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-hold-settle');
-        if (persistView) persistView();
-        suppressNextClick = true;
-      }
-      repeated = false;
-    };
-    button.addEventListener('pointerdown', event => {
-      repeated = false;
-      suppressNextClick = false;
-      if (event.button !== 0) return;
-      button.setPointerCapture?.(event.pointerId);
-      timer = setTimeout(() => {
-        repeated = true;
-        dependencies.domains.renderingDomain?.beginInteraction?.('zoom-control-hold');
-        zoomBy(factor, false, { settle: false, persist: false });
-        repeater = setInterval(() => zoomBy(factor, false, { settle: false, persist: false }), 115);
-      }, 360);
-    });
-    button.addEventListener('pointerup', clear);
-    button.addEventListener('pointercancel', clear);
-    button.addEventListener('lostpointercapture', clear);
-    window.addEventListener('blur', clear);
-    document.addEventListener('visibilitychange', () => { if (document.hidden) clear(); });
-    button.addEventListener('click', event => {
-      if (suppressNextClick) {
-        suppressNextClick = false;
-        event.preventDefault();
-        return;
-      }
-      zoomBy(factor, true);
-      if (navigator.vibrate && (0, dependencies.surfaces.isMobile)()) navigator.vibrate(6);
-    });
-  }
-
   return Object.freeze({
     connect,
     clampViewZooms,
 
-    get bindHoldZoom() { return bindHoldZoom; },
     get panMapViewBy() { return panMapViewBy; },
     get dragMapBy() { return dragMapBy; },
     get focusCoordinate() { return focusCoordinate; },
