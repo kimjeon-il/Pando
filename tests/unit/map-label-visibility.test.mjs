@@ -68,8 +68,30 @@ function fixture(visibility = {}) {
     ? () => visibleLabelLayout(layoutFrame()) : owner[key] });
   controller.initializeTerritorialLabelScreenAreas();
   controller.initializeLabelLayoutMetrics();
-  return { controller: framedController, state, anchors, hiddenIds, features, layoutFrame };
+  return { controller: framedController, state, anchors, hiddenIds, features, layoutFrame, quality: providers.renderQuality };
 }
+
+test('place visibility survives quality changes and zoom round trips in a crowded territorial view', () => {
+  const { controller, state, anchors, features, quality } = fixture();
+  state.labels[0].kind = 'city';
+  for (let index = 0; index < 85; index++) {
+    const id = `COUNTRY${index}`;
+    features.push({ ...features[0], id, properties: { ...features[0].properties, name: `C${index}` } });
+    anchors.set(id, [100 + index % 14 * 55, 100 + Math.floor(index / 14) * 65]);
+  }
+  for (const [zoom, tier, labelDensity] of [
+    [2, 'high', 1], [2, 'medium', 0.76], [2.2, 'coarse', 0.52], [2, 'coarse', 0.52],
+  ]) {
+    state.view.globeZoom = zoom;
+    quality.currentRenderQuality = { tier, labelDensity };
+    assert.deepEqual(controller.visibleLabelLayout().userLabels.map(label => label.id), ['PLACE'], `${tier} at zoom ${zoom}`);
+    assert.equal(controller.labelLayoutMetrics.qualityCulledCount, 0);
+  }
+  state.view.globeZoom = 1;
+  assert.equal(controller.visibleLabelLayout().userLabels.length, 0, 'the city minimum zoom still applies');
+  state.view.globeZoom = 2;
+  assert.deepEqual(controller.visibleLabelLayout().userLabels.map(label => label.id), ['PLACE']);
+});
 
 for (const names of [true, false]) for (const flags of [true, false]) for (const places of [true, false]) {
   test(`label visibility stays independent: names=${names}, flags=${flags}, places=${places}`, () => {
