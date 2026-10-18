@@ -56,12 +56,14 @@ export function createGlobalInputBindings() {
         dependencies.lifecycleUi.mapInteractionGate.setForcedPan(true);
         dependencies.mapView.mapHost?.setForcedPan?.(true);
         (0, dependencies.platform.$)('map')?.classList.add('space-pan-active');
+        dependencies.taskPresentation.syncEditingContext();
         try { await dependencies.domains.editingDomain.clearDraftHover('space-pan'); }
         catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 경로의 표시를 지우지 못했습니다.','PL-DRAFT-HOVER-001',4200); }
         e.preventDefault();
         return;
       }
       if (e.key === 'Escape') {
+        if (e.repeat) { e.preventDefault(); return; }
         if (dependencies.projectState.state.modeProcessing) { e.preventDefault(); return; }
         if (dependencies.domainControllers.closeTerritorialEditorTransient({ restoreFocus: true })) { e.preventDefault(); return; }
         if (!(0, dependencies.platform.$)('preferencesModal')?.classList.contains('hidden')) { (0, dependencies.platform.$)('preferencesCancelBtn')?.click(); return; }
@@ -74,28 +76,32 @@ export function createGlobalInputBindings() {
         if (document.body.classList.contains('file-menu-open')) { (0, dependencies.workspaceUiA.closeFileMenu)({ restoreFocus: true }); return; }
         if (dependencies.workspaceUiB.surfaceController.isOpen('create')) { (0, dependencies.workspaceUiA.closeSurface)('create', { restoreFocus: true }); return; }
         if (dependencies.workspaceUiB.surfaceController.isOpen('search')) { e.preventDefault(); (0, dependencies.workspaceUiA.closeSurface)('search', { restoreFocus: true }); return; }
+        if (dependencies.projectState.state.territorySelectionSession?.methodChangeConfirmation) {
+          e.preventDefault();
+          try { await dependencies.territorySelectionB.territorySelectionBack(); }
+          catch(error) { dependencies.feedback.reportOperationError(error,'방식 변경 확인을 닫지 못했습니다.','PL-EDIT-METHOD-CANCEL',4200); }
+          return;
+        }
+        if (dependencies.domains.editingDomain.snapshot().gestureActive) { e.preventDefault(); await cancelDraftGesture('escape'); return; }
         if (dependencies.draftPresentation.editingDraftSnapshot().vertexInsertMode) {
           try { await dependencies.domains.editingDomain.setDraftVertexInsertMode(false); }
           catch (error) { dependencies.feedback.reportOperationError(error,'꼭짓점 삽입 모드를 종료하지 못했습니다.','PL-DRAFT-INSERT-001',4200); }
           return;
         }
-        if (dependencies.projectState.state.territorySelectionSession) { (0, dependencies.platform.$)('modeCancelBtn')?.click(); return; }
-        if (dependencies.projectState.state.geometryPreview.session) {
-          try {await dependencies.geometryOperations.discardActiveGeometryPreview();}
-          catch(error){dependencies.feedback.reportOperationError(error,'미리보기를 취소하지 못했습니다.','PL-PREVIEW-CANCEL',4200);}
+        const selection = dependencies.projectState.state.territorySelectionSession;
+        const preview = selection ? selection.stage === 'review' : !!dependencies.projectState.state.geometryPreview.session;
+        if (preview) {
+          e.preventDefault();
+          try { await dependencies.taskPresentation.returnToEditing(); }
+          catch(error) { dependencies.feedback.reportOperationError(error,'수정으로 돌아가지 못했습니다.','PL-PREVIEW-CANCEL',4200); }
           return;
         }
         const cancellingMode = ['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'territorial-border', 'country-coast'].includes(dependencies.projectState.state.tool);
-        if (dependencies.projectState.state.labelPlacementMode || dependencies.domains.editingDomain.draftInputActive()
-          || cancellingMode || dependencies.countryEditingA.editingDraftCoordinates().length) {
-          try {
-            if (dependencies.projectState.state.labelPlacementMode) await dependencies.countryEditingB.exitLabelMode();
-            else if (dependencies.domains.editingDomain.draftInputActive()) await dependencies.genericEditingB.requestDraftDiscard(async () =>
-              dependencies.surfaces.isGenericFeatureDraftTool(dependencies.projectState.state.tool)
-                ? await dependencies.genericEditingA.cancelDraft(true) : await dependencies.countryEditingA.cancelActiveMode());
-            else if (cancellingMode) await dependencies.countryEditingA.cancelActiveMode();
-            else await dependencies.genericEditingA.cancelDraft(true);
-          } catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 작업을 취소하지 못했습니다.','PL-EDIT-CANCEL-001',4200); }
+        if (selection || dependencies.projectState.state.labelPlacementMode || dependencies.domains.editingDomain.draftInputActive()
+          || cancellingMode || dependencies.domains.editingDomain.snapshot().selectionDraft || dependencies.countryEditingA.editingDraftCoordinates().length) {
+          e.preventDefault();
+          try { await dependencies.taskPresentation.cancelCurrentEditing(); }
+          catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 작업을 취소하지 못했습니다.','PL-EDIT-CANCEL-001',4200); }
           return;
         }
         if ((0, dependencies.platform.$)('editorSurface')?.classList.contains('mobile-open')) {
@@ -165,6 +171,7 @@ export function createGlobalInputBindings() {
       dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
       dependencies.mapView.mapHost?.setForcedPan?.(false);
       (0, dependencies.platform.$)('map')?.classList.remove('space-pan-active');
+      dependencies.taskPresentation.syncEditingContext();
     });
     window.addEventListener('blur', () => {
       cancelReferenceImageInput();
@@ -174,12 +181,14 @@ export function createGlobalInputBindings() {
       dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
       dependencies.mapView.mapHost?.setForcedPan?.(false);
       (0, dependencies.platform.$)('map')?.classList.remove('space-pan-active');
+      dependencies.taskPresentation.syncEditingContext();
     });
     const clearAssistedPan = () => {
       dependencies.projectState.state.spacePanActive = false;
       dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
       dependencies.mapView.mapHost?.setForcedPan?.(false);
       (0, dependencies.platform.$)('map')?.classList.remove('space-pan-active');
+      dependencies.taskPresentation.syncEditingContext();
     };
     (0, dependencies.platform.$)('map')?.addEventListener('pointercancel', () => { clearAssistedPan(); cancelDraftGesture('pointercancel'); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) { clearAssistedPan(); dependencies.lifecycleUi.mapInputController?.cancel?.(); cancelDraftGesture('document-hidden'); } });

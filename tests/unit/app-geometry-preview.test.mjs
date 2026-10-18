@@ -121,3 +121,54 @@ test('held geometry candidate survives independent view and catalog acknowledgem
   assert.deepEqual(owner.documentModel.snapshot().layerVisibility,view);
   assert.equal(owner.client.state().presentationDirty,true);
 });
+
+test('candidate exposes canonical affected periods and history command identity',async t=>{
+ const owner=await fixture(t);const geometry=structuredClone(owner.documentModel.territorialViews()[0].geometry);
+ (geometry.type==='MultiPolygon'?geometry.coordinates[0][0]:geometry.coordinates[0])[1][0]+=0.125;
+ const prepared=await owner.project.prepareCommand(geometryCommand(owner,geometry));
+ assert.deepEqual(prepared.preview.temporalImpact,[{entityId:'A',from:null,until:null}]);
+ await owner.project.confirmCandidate(prepared.candidateId,prepared.state.epoch);
+ assert.equal(owner.client.state().undoCommandId,'territorial.geometry');
+ await owner.project.undo();assert.equal(owner.client.state().redoCommandId,'territorial.geometry');
+});
+
+
+test('double apply and completion UI failure cannot duplicate a committed command',async t=>{
+ const owner=await fixture(t);const prepared=await owner.project.prepareCommand({commandId:'territorial.field',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',value:'Applied once'}});
+ let release;const gate=new Promise(resolve=>{release=resolve;});let entered=0;
+ await owner.preview.beginLocalGeometryPreview({operation:'test',preparedCommand:prepared,preparedPreview:validPreview,beforeApply:async()=>{entered++;await gate;return true;},onSuccess:()=>{throw new Error('notification failure');}});
+ const pending=owner.preview.applyActiveGeometryPreview();await Promise.resolve();
+ assert.equal(await owner.preview.applyActiveGeometryPreview(),false);
+ assert.equal(await owner.preview.discardActiveGeometryPreview(),false);
+ release();assert.equal(await pending,true);assert.equal(entered,1);
+ assert.equal(owner.documentModel.territorialViews()[0].properties.name,'Applied once');
+ assert.equal(owner.calls.find(row=>row[0]==='error')[3],'PL-PREVIEW-NOTIFY');
+ assert.equal(await owner.project.undo(),true);assert.equal(owner.project.canUndo(),false);
+});
+
+test('invalidated preview releases its candidate without undoing intervening content',async t=>{
+ const owner=await fixture(t);const prepared=await owner.project.prepareCommand({commandId:'territorial.field',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',value:'Stale'}});
+ await owner.preview.beginLocalGeometryPreview({operation:'test',preparedCommand:prepared,preparedPreview:validPreview});
+ await owner.project.executeCommand({commandId:'territorial.field',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',value:'Current'}});
+ assert.equal(await owner.preview.applyActiveGeometryPreview(),false);
+ assert.equal(owner.state.geometryPreview.session,null);
+ assert.equal(owner.documentModel.territorialViews()[0].properties.name,'Current');
+ assert.equal(await owner.project.undo(),true);assert.equal(owner.project.canUndo(),false);
+});
+
+
+test('dated candidate reports only its real interval and Undo/Redo restore the complete timeline',async t=>{
+ const seed=JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json',import.meta.url),'utf8'));
+ const owner=await createNodeCoreProject(seed);t.after(()=>owner.dispose());
+ await owner.client.setTimelineCursor('1916-01');
+ const command=value=>({commandId:'territorial.field',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',value}});
+ await owner.project.executeCommand(command('Later name'));
+ await owner.client.setTimelineCursor('1914-07');
+ const before=owner.documentModel.snapshot();
+ const prepared=await owner.project.prepareCommand(command('Period name'));
+ assert.equal(prepared.ok,true,prepared.error?.message);
+ assert.deepEqual(prepared.preview.temporalImpact,[{entityId:'A',from:'1914-07-01',until:'1916-01-01'}]);
+ await owner.project.confirmCandidate(prepared.candidateId,prepared.state.epoch);const after=owner.documentModel.snapshot();
+ await owner.project.undo();assert.deepEqual(owner.documentModel.snapshot().timelineRecords,before.timelineRecords);
+ await owner.project.redo();assert.deepEqual(owner.documentModel.snapshot().timelineRecords,after.timelineRecords);
+});

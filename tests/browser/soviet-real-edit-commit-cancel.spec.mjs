@@ -207,10 +207,12 @@ async function dragAndPreview(page, timings) {
     ops: window.__SOVIET_EDIT_WORKER_OPS__?.slice(-8) || [],
     vertices: document.querySelectorAll('.country-vertex:not(.fixed-boundary-vertex)').length,
   }));
+  await expect(page.locator('#modePrimaryBtn')).toHaveAttribute('aria-label','변경 미리보기');
+  await page.locator('#modePrimaryBtn').click();
   await expect.poll(() => page.evaluate(() => window.__SOVIET_EDIT_WORKER_OPS__
     ?.some(item => item.operation === 'boundary-move')), { timeout: 35_000 }).toBe(true);
   try {
-    await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 36_000 });
+    await expect(page.locator('#modePrimaryBtn')).toContainText('경계 변경 적용', { timeout: 36_000 });
   } catch (error) {
     timings.noPreview = await page.evaluate(() => ({
       mode: document.querySelector('#modePrimaryBtn')?.textContent?.trim(),

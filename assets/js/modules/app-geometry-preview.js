@@ -12,6 +12,7 @@ export function createGeometryPreview() {
   let boundarySelectionAnalysisCache;
   let boundarySelectionAnalysisMetrics;
   let activeGeometryPreviewApply;
+  let activeApplication = null;
   let activeGeometryPreviewDiscard;
   let localPreparationEpoch = 0;
   let localPreparationPending = false;
@@ -221,6 +222,7 @@ export function createGeometryPreview() {
 
   async function beginWorkerGeometryPreview({ operation,payload,transferredGeometry=null,prepareResult,applyAccepted,
     invalidateAfterApply=()=>{},onSuccess=()=>{},onError,shouldKeepResult=()=>true }) {
+    if (activeApplication) return false;
     await discardActiveGeometryPreview({ announce:false });
     const expectedEpoch=dependencies.domains.projectDomain.state().epoch;
     let requestId=0,prepared;
@@ -257,11 +259,12 @@ export function createGeometryPreview() {
     beforeApply=async()=>true,preparedPreview=null,validatePrepared=async()=>true,applyAccepted,
     discardPrepared=()=>{},invalidateAfterApply=()=>{},onSuccess=()=>{},
     successMessage='변경을 적용했습니다.',errorMessage='변경을 적용하지 못했습니다.' }) {
+    if (activeApplication) return false;
     await discardActiveGeometryPreview({ announce:false });
     if(!preparedCommand?.ok || !preparedCommand.changed || !preparedCommand.preview || !preparedCommand.candidateId)
       throw new TypeError('A retained C++ candidate and its immutable projection are required.');
     const expectedEpoch=preparedCommand.state.epoch;
-    const current=()=>shouldKeepResult() && dependencies.domains.projectDomain.getGeneration()===preparedCommand.projectGeneration;
+    const current=()=>shouldKeepResult() && dependencies.domains.projectDomain.getGeneration()===preparedCommand.projectGeneration && dependencies.domains.projectDomain.state().checkpoint===preparedCommand.state.checkpoint;
     if(!current()){await dependencies.domains.projectDomain.cancelCandidate(preparedCommand.candidateId);discardPrepared();return false;}
     const epoch=++localPreparationEpoch;
     const source=preparedCommand.preview;
@@ -291,18 +294,18 @@ export function createGeometryPreview() {
     const issues=preparedPreview.validation?.issues || [];
     const baseDataRevision=dependencies.projectState.state.stateRevision;
     const session=dependencies.geometryEditingCore.beginGeometryPreview(dependencies.projectState.state.geometryPreview,{
-      operation,baseDataRevision,affectedIds:[...ids],beforeFeatures,afterFeatures,removedIds,...preparedPreview,
+      operation,baseDataRevision,affectedIds:[...ids],beforeFeatures,afterFeatures,removedIds,...preparedPreview,temporalImpact:source.temporalImpact,
       validation:{ issues,blocking:issues.some(issue=>issue.severity!=='warning') } });
     activeGeometryPreviewDiscard=async()=>{discardPrepared();await dependencies.domains.projectDomain.cancelCandidate(preparedCommand.candidateId);};
     activeGeometryPreviewApply=async()=>{
-      if(!current() || !dependencies.geometryEditingCore.previewIsCurrent(dependencies.projectState.state.geometryPreview,session.sessionId,baseDataRevision)){
-        await discardActiveGeometryPreview({ announce:false });dependencies.feedback.setActionStatus('지도가 바뀌어 미리보기를 취소했습니다.','error',3600);return false;
+      if(!current() || !dependencies.geometryEditingCore.previewIsCurrent(dependencies.projectState.state.geometryPreview,session.sessionId,dependencies.projectState.state.stateRevision)){
+        session.status='stale';dependencies.feedback.setActionStatus('원본이 바뀌었습니다. 입력을 유지하고 미리보기를 다시 계산하세요.','error',3600);return false;
       }
       if(session.validation.blocking){dependencies.feedback.setActionStatus('미리보기 형상을 수정하세요.','error',3400);return false;}
-      if(!await beforeApply())return false;
-      try {if(!await validatePrepared())return false;}
-      catch(error){dependencies.feedback.reportOperationError(error,'미리보기를 다시 계산하세요.','PL-PREVIEW-STALE',3600);return false;}
-      if(!current() || dependencies.projectState.state.geometryPreview.session!==session)return false;
+      if(!await beforeApply()){session.status='returned';return false;}
+      try {if(!await validatePrepared()){session.status='stale';dependencies.feedback.setActionStatus('미리보기를 다시 계산하세요.','error',3600);return false;}}
+      catch(error){session.status='stale';dependencies.feedback.reportOperationError(error,'미리보기를 다시 계산하세요.','PL-PREVIEW-STALE',3600);return false;}
+      if(!current() || dependencies.projectState.state.geometryPreview.session!==session){session.status='stale';return false;}
       dependencies.geometryEditingCore.clearGeometryPreview(dependencies.projectState.state.geometryPreview);
       activeGeometryPreviewApply=null;activeGeometryPreviewDiscard=null;
       try {
@@ -310,7 +313,9 @@ export function createGeometryPreview() {
           if(applyAccepted)await applyAccepted(outcome);await invalidateAfterApply(outcome);
         } }));
         if(!result.changed)return false;
-        await onSuccess(result);dependencies.taskUi.updateModeButtons();dependencies.feedback.setActionStatus(successMessage,'success',3600);return true;
+        try { await onSuccess(result); }
+        catch (error) { dependencies.feedback.reportOperationError(error,'변경은 적용됐지만 완료 표시를 갱신하지 못했습니다.','PL-PREVIEW-NOTIFY',4200);return true; }
+        dependencies.taskUi.updateModeButtons();dependencies.feedback.setActionStatus(successMessage,'success',3600);return true;
       } catch(error) {
         discardPrepared();dependencies.spatialQuery.mapEditClient.rebase();
         dependencies.feedback.reportOperationError(error,errorMessage,'PL-PREVIEW-001',4400);return false;
@@ -324,11 +329,25 @@ export function createGeometryPreview() {
   }
 
   async function applyActiveGeometryPreview() {
-    if (!activeGeometryPreviewApply) return false;
-    return activeGeometryPreviewApply();
+    if (activeApplication || !activeGeometryPreviewApply) return false;
+    const apply = activeGeometryPreviewApply;
+    const session = dependencies.projectState.state.geometryPreview.session;
+    session.status = 'applying';
+    activeApplication = Promise.resolve().then(apply);
+    dependencies.taskUi.updateModeButtons();
+    try { return await activeApplication; }
+    finally {
+      activeApplication = null;
+      if (dependencies.projectState.state.geometryPreview.session === session) {
+        if (['stale','returned'].includes(session.status)) await discardActiveGeometryPreview({announce:false});
+        else session.status = 'ready';
+      }
+      dependencies.taskUi.updateModeButtons();
+    }
   }
 
   async function discardActiveGeometryPreview({ announce = true } = {}) {
+    if (activeApplication) return false;
     localPreparationEpoch += 1;
     if (localPreparationPending) {
       localPreparationPending = false;

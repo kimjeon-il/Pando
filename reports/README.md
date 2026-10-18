@@ -42,6 +42,7 @@
 | --- | --- | --- | --- | --- |
 | `DEV-QT-RETIRE-20261018` | [구 Qt 앱 전체 제거](development/testing/qt-app-retirement-2026-10-18.md) | 2026-10-18 | `verified-focused-runtime` | `not-applicable` |
 | `DEV-NAMING-20261018` | [기존 동작을 유지하는 내부 명칭 정리](development/testing/internal-naming-2026-10-18.md) | 2026-10-18 | `verified-naming / baseline-test-failures` | `not-applicable` |
+| `UI-EDIT-20261018` | [편집 상태와 복구 동작 구현 검증](development/testing/editing-state-recovery-2026-10-18.md) | 2026-10-18 | `verified-focused-implementation` | `not-applicable` |
 | `PERF-P0-001` | [기준 코드·기존 계측 자산 통합 검토](development/testing/performance-baseline-consolidation-2026-10-17.md) | 2026-10-17 | `verified-source-and-focused-ci` | `not-applicable` |
 | `OBJ-097` | [소련 Core 후보 준비: 135초 WASM 동기 실행 미반환 및 C++ 함수별 계측](development/testing/soviet-core-candidate-bottleneck-2026-10-18.md) | 2026-10-18 | `verified-root-cause / geometryContains-47s-per-SSR` | `not-applicable` |
 | `OBJ-096` | [소련 실제 편집·취소·확정 게이트 및 Core 30초 병목 특정](development/testing/soviet-real-edit-cpu-reference-2026-10-17.md) | 2026-10-17 | `worker-move-verified / core-prepare-blocked` | `not-applicable` |
