@@ -23,7 +23,7 @@ export async function createGisCoreFixture(territorialEntities=[],{fields={},run
     activeLayerFolderKeys:()=>['genericFeatures'],validateStructuredGeometry:()=>[],
     normalizePolygonGeometry:value=>value,deepClone:structuredClone,uid:()=> 'generated',
     polygonClipping:globalThis.polygonClipping,validateGisCountryCollection:async()=>({overlapAreaKm2:0}),
-    markCountryGeometriesChanged:ids=>rootPatches.push([...ids]),markLayerTreeDirty(){},setActionStatus(){},
+    markCountryGeometriesChanged:ids=>rootPatches.push([...ids]),invalidateObjectPresentation(){},setActionStatus(){},
     pruneLayerItemVisibility:async()=>{},scheduleCountryLabelAnchors(){},selectionUiController:{clear:async()=>{}},
     renderingDomain:{invalidateTerritorialPatch(){},invalidateCountryPatch(){}},
     createCancellationError:message=>Object.assign(new Error(message),{cancelled:true}),...runtime});

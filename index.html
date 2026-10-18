@@ -56,7 +56,7 @@
     "./assets/js/modules/app-hydro-settings.js": "./assets/js/modules/app-hydro-settings.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/app-interaction-packets.js": "./assets/js/modules/app-interaction-packets.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/app-land-relations.js": "./assets/js/modules/app-land-relations.js?v=0.36.0-build-4355c7ff1ecc",
-    "./assets/js/modules/app-layer-list.js": "./assets/js/modules/app-layer-list.js?v=0.36.0-build-4355c7ff1ecc",
+    "./assets/js/modules/app-object-catalog.js": "./assets/js/modules/app-object-catalog.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/app-library-assembly.js": "./assets/js/modules/app-library-assembly.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/app-lifecycle-assembly.js": "./assets/js/modules/app-lifecycle-assembly.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/app-map-audit.js": "./assets/js/modules/app-map-audit.js?v=0.36.0-build-4355c7ff1ecc",
@@ -190,10 +190,10 @@
     "./assets/js/modules/interaction-roles.js": "./assets/js/modules/interaction-roles.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/interaction-svg-mask.js": "./assets/js/modules/interaction-svg-mask.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/label-layout.js": "./assets/js/modules/label-layout.js?v=0.36.0-build-4355c7ff1ecc",
-    "./assets/js/modules/layer-list-model.js": "./assets/js/modules/layer-list-model.js?v=0.36.0-build-4355c7ff1ecc",
+    "./assets/js/modules/object-search-model.js": "./assets/js/modules/object-search-model.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/layer-presentation.js": "./assets/js/modules/layer-presentation.js?v=0.36.0-build-4355c7ff1ecc",
-    "./assets/js/modules/layer-tree-controller.js": "./assets/js/modules/layer-tree-controller.js?v=0.36.0-build-4355c7ff1ecc",
-    "./assets/js/modules/legacy-map-host.js": "./assets/js/modules/legacy-map-host.js?v=0.36.0-build-4355c7ff1ecc",
+    "./assets/js/modules/object-search-controller.js": "./assets/js/modules/object-search-controller.js?v=0.36.0-build-4355c7ff1ecc",
+    "./assets/js/modules/map-surface-host.js": "./assets/js/modules/map-surface-host.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/library-ownership.js": "./assets/js/modules/library-ownership.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/map-debug-controller.js": "./assets/js/modules/map-debug-controller.js?v=0.36.0-build-4355c7ff1ecc",
     "./assets/js/modules/map-edit-country-commands.js": "./assets/js/modules/map-edit-country-commands.js?v=0.36.0-build-4355c7ff1ecc",
@@ -470,12 +470,12 @@
         </header>
         <div class="surface-body surface-body-delegated">
         <section id="objectSearchSection" class="panel-section ui-panel--dense object-search-section is-hydrating" aria-busy="true">
-          <div class="ui-search-field layer-search">
-            <svg class="ui-icon layer-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
-            <input id="layerSearchInput" type="search" placeholder="지도에서 찾기" autocomplete="off" aria-label="지도에서 찾기" disabled />
-            <button id="layerSearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="검색어 지우기" data-tooltip="검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+          <div class="ui-search-field object-search">
+            <svg class="ui-icon object-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
+            <input id="objectSearchInput" type="search" placeholder="지도에서 찾기" autocomplete="off" aria-label="지도에서 찾기" disabled />
+            <button id="objectSearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="검색어 지우기" data-tooltip="검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
           </div>
-          <div id="layerSearchResults" class="layer-search-results ui-scroll-surface hidden" role="listbox" aria-label="검색 결과"></div>
+          <div id="objectSearchResults" class="object-search-results ui-scroll-surface hidden" role="listbox" aria-label="검색 결과"></div>
         </section>
         </div>
       </aside>

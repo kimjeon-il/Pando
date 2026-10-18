@@ -67,7 +67,7 @@ function focusNavigationFixture({ host = false } = {}) {
       flatProjection: { scale: () => 100 * state.view.flatZoom }, path: { bounds: () => [[0, 0], [100, 100]] },
       projectionLayoutMetrics: () => ({ centerX: 100, centerY: 100, flatBaseScale: 100,
         fitInsets: { left: 0, right: 0, top: 0, bottom: 0 } }),
-      ...(host ? { mapHost: { isReady: () => true, dragBy: (dx, dy) => owner.dragLegacyMapViewBy(dx, dy) } } : {}) },
+      ...(host ? { mapHost: { isReady: () => true, dragBy: (dx, dy) => owner.panMapViewBy(dx, dy) } } : {}) },
     domains: { renderingDomain: { invalidateView: () => {}, endInteraction: () => {} }, projectDomain: { queueViewAutosave: () => {} } },
   });
   return { owner, state, events };

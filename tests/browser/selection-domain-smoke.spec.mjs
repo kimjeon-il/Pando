@@ -22,10 +22,10 @@ test('selection domain drives country editing, multi-selection, and independent 
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await expect(page.locator('#editEntityBorderBtn')).toHaveCount(1);
 
-  const search = page.locator('#layerSearchInput');
+  const search = page.locator('#objectSearchInput');
   if (!await search.isVisible()) await page.locator('#objectSearchBtn').click();
   await search.fill('프랑스');
-  const franceRow = page.locator('#layerSearchResults [data-object-search-select="countries"][data-item-id="FRA"]');
+  const franceRow = page.locator('#objectSearchResults [data-object-search-select="countries"][data-item-id="FRA"]');
   await expect(franceRow).toHaveCount(1);
   await franceRow.click({ modifiers: ['Control'] });
 

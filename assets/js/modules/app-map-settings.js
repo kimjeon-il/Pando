@@ -106,8 +106,8 @@ export function createMapSettings() {
       else dependencies.objectModelA.expandedMapDisplayGroups.delete(key);
     }
     syncMapDisplayDisclosures();
-    (0, dependencies.layers.markLayerTreeDirty)();
-    dependencies.domains.layerTreeController?.render();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
+    dependencies.domains.objectSearchController?.render();
     if (key === 'distributions') dependencies.distributionPresentation.bumpVisibilityRevision();
     if (key === 'countries') dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
@@ -159,7 +159,7 @@ export function createMapSettings() {
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
     (0, dependencies.hydroModel.syncPhysicalControls)();
     syncMapDisplayDisclosures();
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     dependencies.domains.renderingDomain.invalidateBaseScene('terrain-mode');
     return true;
   }

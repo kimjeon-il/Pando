@@ -322,11 +322,11 @@ void restoreArchive(const V& root,ProjectDocument& d) {
     for(const auto& row:array(field(root,"geometries"))){unknown(d,10,row,"/geometries",{"id","version","geojson"});candidate.geometries.push_back({{str(field(row,"id")),integer(field(row,"version"))},std::make_shared<const Geometry>(geometry(field(row,"geojson"),d,10,"/geometries/geojson"))});}
     auto restored=restoreTimelineStorage(candidate,timelineEntityCatalog(d));d.timelineRecords=std::move(restored.records);d.geometries=std::move(restored.geometries);
 }
-Layer layer(const V& v,ProjectDocument& d,int schema,const std::string& path) {
-    Layer l{str(field(v,"id")),str(field(v,"name")),boolean(field(v,"visible")),boolean(field(v,"locked")),number(field(v,"opacity"))};
+UserLayer layer(const V& v,ProjectDocument& d,int schema,const std::string& path) {
+    UserLayer l{str(field(v,"id")),str(field(v,"name")),boolean(field(v,"visible")),boolean(field(v,"locked")),number(field(v,"opacity"))};
     unknown(d,schema,v,path,{"id","name","visible","locked","opacity"}); return l;
 }
-V layerValue(const Layer& l) { return object({{"id",V::str(l.id)},{"name",V::str(l.name)},{"visible",V::boolean(l.visible)},{"locked",V::boolean(l.locked)},{"opacity",V::num(l.opacity)}}); }
+V layerValue(const UserLayer& l) { return object({{"id",V::str(l.id)},{"name",V::str(l.name)},{"visible",V::boolean(l.visible)},{"locked",V::boolean(l.locked)},{"opacity",V::num(l.opacity)}}); }
 void readExtensions(const V& values,ProjectDocument& d) {
     std::size_t index=0;
     for (const auto& v:array(values)) {

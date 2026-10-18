@@ -5,8 +5,8 @@ import { defaultUserPreferences, STORAGE_KEY } from '../../assets/js/modules/use
 import { withNativeActionDiagnostics } from './helpers/native-action-diagnostics.mjs';
 
 const hydroSearchDiagnostic = {
-  selector: '#layerSearchResults .layer-search-result',
-  rowSelector: '.layer-search-result[data-object-key="hydro:river:00000000-0000-4000-8000-000000000005"]',
+  selector: '#objectSearchResults .object-search-result',
+  rowSelector: '.object-search-result[data-object-key="hydro:river:00000000-0000-4000-8000-000000000005"]',
 };
 
 // Tracing delayed a positive screenshot pixel result beyond the CI poll budget.
@@ -33,9 +33,9 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('메타데이터 검증 강');
+  await page.locator('#objectSearchInput').fill('메타데이터 검증 강');
   await withNativeActionDiagnostics(page, testInfo, { ...hydroSearchDiagnostic, label: 'hydro-search-selection' }, async () => {
-    await page.locator('#layerSearchResults .layer-search-result').click();
+    await page.locator('#objectSearchResults .object-search-result').click();
   });
   await expect(page.locator('#hydroProperties')).toBeVisible();
   await page.locator('#mapDisplayBtn').click();
@@ -78,9 +78,9 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   await page.locator('#undoBtn').click();
   await expect(page.locator('#hydroProperties')).toBeHidden();
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('메타데이터 검증 강');
+  await page.locator('#objectSearchInput').fill('메타데이터 검증 강');
   await withNativeActionDiagnostics(page, testInfo, { ...hydroSearchDiagnostic, label: 'hydro-search-reselection' }, async () => {
-    await page.locator('#layerSearchResults .layer-search-result').click();
+    await page.locator('#objectSearchResults .object-search-result').click();
   });
   await expect(page.locator('#hydroColorInput')).toHaveValue(originalColor);
   expect(await page.locator('path.hydro-edit-shape').evaluate(node => node.__data__)).toEqual(original);

@@ -24,7 +24,7 @@ export function historySnapshotFixture({ labels = [], labelSettings = {}, select
   owner.connect({
     projectState: { state }, projectSession: { saveState },
     applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { SINGLE: 'single', OVERLAP: 'overlap' }, BUILTIN_TERRITORY_MERGES: [] },
-    platformConfigurationA: { BASE_DATASET: 'fixture' }, objectCatalog: { builtinSubunitSourceId: () => '' },
+    platformConfigurationA: { BASE_DATASET: 'fixture' }, objectDefinitions: { builtinSubunitSourceId: () => '' },
     projectServices: { pickProjectFields, applyProjectFields },
     platform: { deepClone: structuredClone, $: () => ({ textContent: '' }) },
     labelPresentation: { labelKey: (domain, id) => `${domain}:${id}` },
@@ -39,9 +39,9 @@ export function historySnapshotFixture({ labels = [], labelSettings = {}, select
       validateDistributionModel: () => ({ ok: true }) },
     territorialModel: { entityStore, entityRepository, normalizeTerritorialEntities: value => value || [] },
     presentation: { territorialRepository: { get: () => null } },
-    layerTree: { normalizeLayerFolderState: value => value || {}, pruneLayerItemVisibility() {} },
-    countries: { scheduleCountryLabelAnchors() {} }, layers: { markLayerTreeDirty() {} },
-    domains: { selectionDomain, layerTreeController: {
+    objectCatalogView: { normalizeLayerFolderState: value => value || {}, pruneLayerItemVisibility() {} },
+    countries: { scheduleCountryLabelAnchors() {} }, objectDisplay: { invalidateObjectPresentation() {} },
+    domains: { selectionDomain, objectSearchController: {
       cancelSearch() { searchCancels += 1; }, render(force) { assert.equal(force, true); searchRenders += 1; },
     } },
     countryEditingB: { resetBoundaryEditState() {}, resetMergeState() {}, resetGenericFeatureMergeState() {},

@@ -1,12 +1,12 @@
 import { normalizeObjectRef } from './object-selection-controller.js';
 import { normalizePlaceQuery, PLACE_LIMITS } from './place-contract.js';
-import { createLayerListModel, visibleLayerRows } from './layer-list-model.js';
+import { createObjectSearchModel, visibleObjectSearchRows } from './object-search-model.js';
 
 /**
  * Object search is deliberately flat. The project still owns object grouping and
  * visibility, but the map no longer exposes that structure as a persistent tree.
  */
-export function createLayerTreeController({
+export function createObjectSearchController({
   window,
   document,
   elements,
@@ -41,13 +41,13 @@ export function createLayerTreeController({
         countries: 'country', subunits: 'subunit', regions: 'region', distributions: 'area',
         labels: 'place', genericFeatures: 'territory',
       })[item.layerGroup] || 'map';
-    return createIcon?.(semanticName, 'ui-icon layer-search-result-icon') || null;
+    return createIcon?.(semanticName, 'ui-icon object-search-result-icon') || null;
   }
 
   function searchResultVisual(item) {
     if (!item.flagUrl) return searchResultIcon(item);
     const flag = document.createElement('img');
-    flag.className = 'layer-search-result-flag';
+    flag.className = 'object-search-result-flag';
     flag.src = item.flagUrl;
     flag.alt = '';
     flag.decoding = 'async';
@@ -63,7 +63,7 @@ export function createLayerTreeController({
     const selected = current.items?.some(candidate => candidate.key === item.key) || false;
     const primary = current.primaryKey === item.key;
     const row = document.createElement('div');
-    row.className = 'layer-search-result ui-selectable-row';
+    row.className = 'object-search-result ui-selectable-row';
     row.dataset.objectKey = item.key;
     row.setAttribute('role', 'option');
     row.setAttribute('aria-selected', String(selected));
@@ -72,7 +72,7 @@ export function createLayerTreeController({
 
     const select = document.createElement('button');
     select.type = 'button';
-    select.className = 'ui-button layer-search-result-select';
+    select.className = 'ui-button object-search-result-select';
     select.dataset.objectSearchSelect = item.layerGroup;
     select.dataset.itemId = item.id;
     select.setAttribute('aria-label', item.name);
@@ -84,7 +84,7 @@ export function createLayerTreeController({
 
     const focus = document.createElement('button');
     focus.type = 'button';
-    focus.className = 'ui-button icon-btn layer-search-focus-action';
+    focus.className = 'ui-button icon-btn object-search-focus-action';
     focus.dataset.objectSearchFocus = item.layerGroup;
     focus.dataset.itemId = item.id;
     focus.dataset.tooltip = '선택 객체로 이동';
@@ -97,13 +97,13 @@ export function createLayerTreeController({
 
   function rowsFor(query) {
     if (!query) return [];
-    const presentation = createLayerListModel({
+    const presentation = createObjectSearchModel({
       items: model.items,
       groups: groups.search,
       itemRef: model.itemRef,
       compare: model.compare,
     });
-    return visibleLayerRows(presentation, {}, query).filter(item => item.kind === 'object');
+    return visibleObjectSearchRows(presentation, {}, query).filter(item => item.kind === 'object');
   }
 
   function commitRows(query, rows) {
@@ -190,7 +190,7 @@ export function createLayerTreeController({
     elements.section?.setAttribute('aria-busy', 'false');
     if (elements.search) elements.search.disabled = false;
     commands.syncSearchClear?.();
-    commands.layerTreeRendered?.();
+    commands.objectSearchRendered?.();
     commands.layerReady?.();
     hydrated = true;
     window.dispatchEvent(new window.CustomEvent('pandolab:layer-ready'));
@@ -284,22 +284,22 @@ export function createLayerTreeController({
   return Object.freeze({ bind, render, syncSelection, syncLocks, beginHydration, completeHydration, cancelSearch, dispose });
 }
 
-export function createAppLayerTreeController(runtime = {}) {
+export function createAppObjectSearchController(runtime = {}) {
   const {
     window, document, getElement: $, state,
-    layerSearchGroupKeys, layerTreeItems, layerItemObjectRef, selectionDomain,
-    compareItems, syncSearchClearButton, markLayerTreeDirty, selectLayerTreeItem, closeSearchAfterSingleSelection, focusObjectRef, createIcon,
+    objectSearchGroupKeys, listObjectCatalogItems, layerItemObjectRef, selectionDomain,
+    compareItems, syncSearchClearButton, invalidateObjectPresentation, selectObjectSearchItem, closeSearchAfterSingleSelection, focusObjectRef, createIcon,
   } = runtime;
-  return createLayerTreeController({
+  return createObjectSearchController({
     window,
     document,
     elements: {
-      search: $('layerSearchInput'),
-      searchClear: $('layerSearchClearBtn'),
-      searchResults: $('layerSearchResults'),
+      search: $('objectSearchInput'),
+      searchClear: $('objectSearchClearBtn'),
+      searchResults: $('objectSearchResults'),
       section: $('objectSearchSection'),
     },
-    groups: { search: layerSearchGroupKeys },
+    groups: { search: objectSearchGroupKeys },
     createEmptyState: runtime.createEmptyState,
     createIcon,
     builtinSearch: runtime.builtinSearch,
@@ -307,9 +307,9 @@ export function createAppLayerTreeController(runtime = {}) {
     builtinRecordVisible: record => !(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
     onSearchError: runtime.onSearchError,
     model: {
-      snapshot: () => ({ revision: state.layerTreeRevision, search: state.layerSearch, searchActive: runtime.isSearchOpen(),
+      snapshot: () => ({ revision: state.objectPresentationRevision, search: state.objectSearch, searchActive: runtime.isSearchOpen(),
         searchSurfaceOpen: runtime.isSearchSurfaceOpen() }),
-      items: layerTreeItems,
+      items: listObjectCatalogItems,
       itemRef: layerItemObjectRef,
       selectionSnapshot: () => selectionDomain.snapshot(),
       compare: compareItems,
@@ -322,26 +322,26 @@ export function createAppLayerTreeController(runtime = {}) {
         selectionDomain.setHover(entered ? ref : null, { source: 'list', expectedKey: entered ? '' : ref?.key });
       },
       syncCanonicalControls: runtime.syncCanonicalControls,
-      syncSearchClear: () => syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn')),
+      syncSearchClear: () => syncSearchClearButton($('objectSearchInput'), $('objectSearchClearBtn')),
       beginHydration: () => {
         const metrics = window.__PANDOLAB_STARTUP_METRICS__;
         if (metrics && metrics.layerHydrationStartedMs == null) metrics.layerHydrationStartedMs = performance.now() - metrics.startedAt;
       },
-      layerTreeRendered: () => {
+      objectSearchRendered: () => {
         const metrics = window.__PANDOLAB_STARTUP_METRICS__;
-        if (metrics) metrics.layerTreeRenderedMs = performance.now() - metrics.startedAt;
+        if (metrics) metrics.objectSearchRenderedMs = performance.now() - metrics.startedAt;
       },
       layerReady: () => {
         const metrics = window.__PANDOLAB_STARTUP_METRICS__;
         if (metrics) metrics.layerReadyMs = performance.now() - metrics.startedAt;
       },
       setSearchValue: value => {
-        state.layerSearch = value;
-        syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn'));
+        state.objectSearch = value;
+        syncSearchClearButton($('objectSearchInput'), $('objectSearchClearBtn'));
       },
-      commitSearch: markLayerTreeDirty,
+      commitSearch: invalidateObjectPresentation,
       selectItem: ({ group, id, additive, range, orderedRefs }) => {
-        const didSelect = selectLayerTreeItem(group, id, {
+        const didSelect = selectObjectSearchItem(group, id, {
           mode: additive ? 'toggle' : 'replace',
           range,
           orderedRefs,

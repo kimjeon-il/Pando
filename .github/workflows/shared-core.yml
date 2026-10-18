@@ -205,7 +205,7 @@ jobs:
           tests/unit/core-document-batch-wasm.test.mjs tests/unit/core-codec-unicode-wasm.test.mjs
           tests/unit/core-codec-unicode-ids-wasm.test.mjs
           tests/unit/core-document-content-wasm.test.mjs tests/unit/core-project-command-wasm.test.mjs
-          tests/unit/core-map-presentation-wasm.test.mjs tests/unit/core-layer-catalog-wasm.test.mjs
+          tests/unit/core-map-presentation-wasm.test.mjs tests/unit/core-object-catalog-wasm.test.mjs
           tests/unit/core-delete-selection-wasm.test.mjs
           tests/unit/core-distribution-array-metadata-wasm.test.mjs
           tests/unit/core-direct-object-writers-wasm.test.mjs

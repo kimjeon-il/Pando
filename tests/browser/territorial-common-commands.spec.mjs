@@ -88,7 +88,7 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
   const [a,b]=await importRegions(page,[{name:'병합 A',x:9},{name:'병합 B',x:10}]);
   const before = await page.evaluate(ids=>ids.map(id=>window.PANDOLAB_TERRITORIAL.get(id).geometry),[a,b]);
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('병합 A');
+  await page.locator('#objectSearchInput').fill('병합 A');
   await page.locator(`[data-object-search-focus][data-item-id="${a}"]`).click();
   await expect(page.locator(`g.territorial-label-item[data-label-id="territorial:entity:${a}"]`)).toBeVisible();
   await page.locator(`[data-object-search-select][data-item-id="${a}"]`).click();

@@ -22,7 +22,7 @@ export function createTerritorialConversion() {
       return false;
     }
     if (dependencies.projectState.state.projectReplacing || generation !== dependencies.domains.projectDomain.getGeneration()) return false;
-    dependencies.layers.markLayerTreeDirty();
+    dependencies.objectDisplay.invalidateObjectPresentation();
     await dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: result.unit.id }, { openEditor: true });
     dependencies.feedback.setActionStatus('원본을 유지하고 독립 권역으로 복사했습니다.', 'success');
     return result.unit.id;
@@ -37,7 +37,7 @@ export function createTerritorialConversion() {
     if (dependencies.projectState.state.projectReplacing || generation!==dependencies.domains.projectDomain.getGeneration()
       || !result.ok || !result.changed) return false;
     const affectsMapLabel = field === 'name' || field === 'kind';
-    if (affectsMapLabel) (0, dependencies.layers.markLayerTreeDirty)();
+    if (affectsMapLabel) (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     if (dependencies.projectState.state.selected?.domain==='label' && dependencies.projectState.state.selected.id===label.id)
       await (0, dependencies.propertyEditingA.applyLabelSelectionIntent)(label.id, true);
     if (affectsMapLabel) dependencies.domains.renderingDomain.invalidateLabels('label-metadata-edited');

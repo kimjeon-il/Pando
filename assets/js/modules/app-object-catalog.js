@@ -2,11 +2,11 @@ import { effectiveTerritorialFlagUrl } from './country-flags.js';
 import {BUILTIN_SUBUNITS} from './builtin-subunits.js';
 const builtinSubunitSources=Object.freeze(Object.fromEntries(BUILTIN_SUBUNITS.map(row=>[row.id,row.sourceCountryId])));
 
-/** LayerList: extracted application responsibility.
+/** ObjectCatalog: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createLayerList() {
+export function createObjectCatalog() {
   let dependencies;
 
   function connect(ports) {
@@ -27,8 +27,8 @@ export function createLayerList() {
     return Object.fromEntries((0, dependencies.hydroPresentation.activeLayerFolderKeys)().map(key => [key, !!value?.[key]]));
   }
 
-  function markLayerTreeDirty() {
-    dependencies.projectState.state.layerTreeRevision += 1;
+  function invalidateObjectPresentation() {
+    dependencies.projectState.state.objectPresentationRevision += 1;
   }
 
   function isLayerItemVisible(group, id) {
@@ -43,14 +43,14 @@ export function createLayerList() {
   }
 
 
-  function isLayerListItemVisible(group, id) {
+  function isObjectCatalogItemVisible(group, id) {
     const master = group === 'hydro'
       ? ((0, dependencies.hydroPresentation.hydroCategoryKey)(dependencies.hydroPresentation.HYDRO_LAYER_META[id]?.category || (0, dependencies.hydroPresentation.hydroEditById)(id)?.properties?.category) === 'lake' ? 'lakes' : 'rivers')
       : group;
     return dependencies.projectState.state.layerVisibility[master] !== false && isLayerItemVisible(group, id);
   }
 
-  function layerTreeItems(group) {
+  function listObjectCatalogItems(group) {
     if (group === 'countries' || group === 'countryLabels') {
       return dependencies.territorialModel.entityRepository
         .list({ kind: 'general', parentId: '' })
@@ -168,9 +168,9 @@ export function createLayerList() {
 
     get isCountryVisibleById() { return isCountryVisibleById; },
     get isLayerItemVisible() { return isLayerItemVisible; },
-    get isLayerListItemVisible() { return isLayerListItemVisible; },
-    get layerTreeItems() { return layerTreeItems; },
-    get markLayerTreeDirty() { return markLayerTreeDirty; },
+    get isObjectCatalogItemVisible() { return isObjectCatalogItemVisible; },
+    get listObjectCatalogItems() { return listObjectCatalogItems; },
+    get invalidateObjectPresentation() { return invalidateObjectPresentation; },
     get normalizeLayerFolderState() { return normalizeLayerFolderState; },
     get normalizeLayerItemState() { return normalizeLayerItemState; },
     get pruneLayerItemVisibility() { return pruneLayerItemVisibility; },

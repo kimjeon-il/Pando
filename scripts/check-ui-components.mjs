@@ -63,7 +63,7 @@ for (const match of css.matchAll(/([^{}]*\btextarea\b[^{}]*)\{([^{}]*)\}/g)) {
   failures.push(`unsupported textarea resize override: ${match[1].trim()} { resize: ${resize} }`);
 }
 
-for (const id of ['layerSearchInput', 'territorialLibrarySearchInput']) {
+for (const id of ['objectSearchInput', 'territorialLibrarySearchInput']) {
   const index = html.indexOf(`id="${id}"`);
   const wrapperStart = html.lastIndexOf('class="ui-search-field', index);
   const wrapperEnd = html.indexOf('</div>', index);
@@ -103,7 +103,7 @@ for (const required of []) {
 const skinProperties = ['border', 'background', 'border-radius', 'padding', 'box-shadow'];
 const featureSurfaceNames = [
   'map-command-toolbar', 'map-view-toolbar', 'mobile-zoom-dock', 'multi-selection-bar',
-  'mode-action-bar', 'top-actions', 'editor-view-tabs', 'layer-search', 'layer-lock-control',
+  'mode-action-bar', 'top-actions', 'editor-view-tabs', 'object-search', 'layer-lock-control',
 ];
 for (const name of featureSurfaceNames) {
   const rulePattern = new RegExp(`\\.${name}[^{}]*\\{([^{}]*)\\}`, 'g');

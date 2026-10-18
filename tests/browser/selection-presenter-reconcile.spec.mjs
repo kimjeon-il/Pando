@@ -48,8 +48,8 @@ test('search Shift click selects the displayed range and its final primary', asy
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('국가');
-  const rows = page.locator('#layerSearchResults .layer-search-result');
+  await page.locator('#objectSearchInput').fill('국가');
+  const rows = page.locator('#objectSearchResults .object-search-result');
   await expect.poll(() => rows.count()).toBeGreaterThan(3);
   const displayedKeys = await rows.evaluateAll(nodes => nodes.slice(0, 4).map(node => node.dataset.objectKey));
   await rows.nth(0).locator('[data-object-search-select]').click();

@@ -114,7 +114,7 @@ struct TerritorialUnit {
     // Additional supported annotation metadata, lossless through the codec.
     std::string metadata="{}", sourceFolderId, sourceEntityId, sourceGeometryVersion;
 };
-struct Layer {
+struct UserLayer {
     std::string id, name;
     bool visible=true, locked=false;
     double opacity=1;
@@ -136,7 +136,7 @@ struct PresentationCatalog {
 };
 struct PresentationState {
     WebPresentation webPresentation;
-    std::vector<Layer> userLayers; // bottom to top; independent of territorial ancestry
+    std::vector<UserLayer> userLayers; // bottom to top; independent of territorial ancestry
     std::map<ObjectRef,std::string> membership;
     std::map<ObjectRef,ObjectStyle> objectStyles;
     std::shared_ptr<const NativeHydroWireEvidence> nativeHydroWireEvidence;

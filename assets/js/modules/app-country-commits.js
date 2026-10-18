@@ -202,7 +202,7 @@ export function createCountryCommits() {
       dependencies.projectState.state.multiDraft = null;
       await dependencies.domains.editingDomain.clearDraft({ reason: 'hydro-draft-committed',render: false });
       await dependencies.domains.editingDomain.setTool('select',{ announce: false });
-      (0, dependencies.layers.markLayerTreeDirty)();
+      (0, dependencies.objectDisplay.invalidateObjectPresentation)();
       await (0, dependencies.propertyEditingA.applyHydroSelectionIntent)(String(feature.id));
       dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('finish-hydro-multi-draft');
       (0, dependencies.feedback.setActionStatus)(`${hydro.category === 'river' ? '강을' : '호수를'} 추가했습니다.`, 'success');

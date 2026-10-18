@@ -25,7 +25,7 @@ const { createGisFileController } = await import(versionedModuleUrl('./modules/g
 const polygonGeometry = globalThis.PandoLabPolygonGeometry;
 if (!polygonGeometry) throw new Error('폴리곤 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 
-const [projectStateModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, persistenceServiceModule, browserProjectStorageModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, layerTreeControllerModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
+const [projectStateModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, persistenceServiceModule, browserProjectStorageModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, objectSearchControllerModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
   import(versionedModuleUrl('./modules/distribution-model.js')),
@@ -53,7 +53,7 @@ const [projectStateModule, territorialUnitsModule, distributionModelModule, surf
   import(versionedModuleUrl('./modules/distribution-service.js')),
   import(versionedModuleUrl('./modules/generic-feature-service.js')),
   import(versionedModuleUrl('./modules/tooltip-controller.js')),
-  import(versionedModuleUrl('./modules/layer-tree-controller.js')),
+  import(versionedModuleUrl('./modules/object-search-controller.js')),
   import(versionedModuleUrl('./modules/map-edit-worker-client.js')),
   import(versionedModuleUrl('./modules/map-object-spatial-index.js')),
   import(versionedModuleUrl('./modules/surface-tabs-controller.js')),
@@ -77,8 +77,8 @@ const {
   normalizeGenericFeatureSemantics,
 } = genericFeatureServiceModule;
 const { createTooltipController } = tooltipControllerModule;
-const { createAppLayerTreeController } = layerTreeControllerModule;
-const { setScopedItemVisibility } = await import(versionedModuleUrl('./modules/layer-list-model.js'));
+const { createAppObjectSearchController } = objectSearchControllerModule;
+const { setScopedItemVisibility } = await import(versionedModuleUrl('./modules/object-search-model.js'));
 const { createMapEditWorkerClient } = mapEditWorkerClientModule;
 const { createMapObjectSpatialIndex } = mapObjectSpatialIndexModule;
 const { createSurfaceTabsController } = surfaceTabsControllerModule;
@@ -98,7 +98,7 @@ const renderSceneModule = await import(versionedModuleUrl('./modules/render-scen
 const adaptiveRenderQualityModule = await import(versionedModuleUrl('./modules/adaptive-render-quality.js'));
 const editPreviewControllerModule = await import(versionedModuleUrl('./modules/edit-preview-controller.js'));
 const mapHostModule = await import(versionedModuleUrl('./modules/map-host.js'));
-const legacyMapHostModule = await import(versionedModuleUrl('./modules/legacy-map-host.js'));
+const legacyMapHostModule = await import(versionedModuleUrl('./modules/map-surface-host.js'));
 const mapInteractionGateModule = await import(versionedModuleUrl('./modules/map-interaction-gate.js'));
 const mapInteractionStyleModule = await import(versionedModuleUrl('./modules/map-interaction-style.js'));
 const graticuleGeometryModule = await import(versionedModuleUrl('./modules/graticule-geometry.js'));
@@ -303,7 +303,7 @@ const { createRenderSceneBuilder } = renderSceneModule;
 const { createAdaptiveRenderQualityController } = adaptiveRenderQualityModule;
 const { createEditPreviewController } = editPreviewControllerModule;
 const { MAP_HOST_KINDS, normalizeMapSurfaceDragDelta } = mapHostModule;
-const { createLegacyMapHost } = legacyMapHostModule;
+const { createMapSurfaceHost } = legacyMapHostModule;
 const { buildGraticuleStrokeGeometryPacket } = graticuleGeometryModule;
 const { createMapInteractionGate } = mapInteractionGateModule;
 const { resolveMapInteractionStyle } = mapInteractionStyleModule;
@@ -408,7 +408,7 @@ export {
   normalizeGenericFeatureCollection,
   normalizeGenericFeatureSemantics,
   createTooltipController,
-  createAppLayerTreeController,
+  createAppObjectSearchController,
   setScopedItemVisibility,
   createMapEditWorkerClient,
   createMapObjectSpatialIndex,
@@ -490,7 +490,7 @@ export {
   createEditPreviewController,
   MAP_HOST_KINDS,
   normalizeMapSurfaceDragDelta,
-  createLegacyMapHost,
+  createMapSurfaceHost,
   buildGraticuleStrokeGeometryPacket,
   createMapInteractionGate,
   resolveMapInteractionStyle,

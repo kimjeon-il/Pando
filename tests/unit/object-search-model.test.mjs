@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createLayerListModel, visibleLayerRows, setScopedItemVisibility } from '../../assets/js/modules/layer-list-model.js';
+import { createObjectSearchModel, visibleObjectSearchRows, setScopedItemVisibility } from '../../assets/js/modules/object-search-model.js';
 import { createNodeSelection } from '../helpers/core-selection.mjs';
 
 const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
-const fixture = (data, builtinSession = true) => createLayerListModel({
+const fixture = (data, builtinSession = true) => createObjectSearchModel({
   items: group => data[group], groups: Object.keys(data), builtinSession,
   builtinCountryIds: new Set(['DEU', 'FRA']),
   itemRef: (group, id) => group === 'hydro' && id.startsWith('builtin') ? null
@@ -18,20 +18,20 @@ test('subunits default closed, expand along parents, and remain searchable with 
     { id: 'nested', name: '중첩', parentId: 's' },
     { id: 'orphan', name: '독립', parentId: 'missing' },
   ], regions: [{ id: 'r', name: '지방', parentId: 'DEU' }] });
-  const ids = expanded => visibleLayerRows(m, { polities: true }, '', expanded).map(row => row.id);
+  const ids = expanded => visibleObjectSearchRows(m, { polities: true }, '', expanded).map(row => row.id);
   assert.ok(!ids().includes('s'));
   assert.ok(ids().includes('orphan'));
   assert.ok(ids().includes('r'));
   assert.ok(ids(new Set(['countries:DEU'])).includes('s'));
   assert.ok(!ids(new Set(['countries:DEU'])).includes('nested'));
-  const open = visibleLayerRows(m, { polities: true }, '', new Set(['countries:DEU', 'subunits:s']));
+  const open = visibleObjectSearchRows(m, { polities: true }, '', new Set(['countries:DEU', 'subunits:s']));
   assert.equal(open.find(row => row.id === 'nested').depth, 2);
-  assert.equal(visibleLayerRows(m, {}, '중첩')[0].id, 'nested');
+  assert.equal(visibleObjectSearchRows(m, {}, '중첩')[0].id, 'nested');
 });
 
 test('cyclic legacy subunits remain reachable without recursive loops', () => {
   const m = fixture({ subunits: [{ id: 'a', name: 'a', parentId: 'b' }, { id: 'b', name: 'b', parentId: 'a' }] });
-  const rows = visibleLayerRows(m, { polities: true }, '', new Set(['subunits:a', 'subunits:b']));
+  const rows = visibleObjectSearchRows(m, { polities: true }, '', new Set(['subunits:a', 'subunits:b']));
   assert.equal(rows.filter(row => row.ref).length, 2);
 });
 const hydro = [{ id: 'builtin-river', name: 'HydroRIVERS', isBuiltin: true, hydroCategory: 'river' },
@@ -63,7 +63,7 @@ test('empty bundles disappear and restored objects recreate them; hidden/error i
 });
 test('logical range order includes off-DOM expanded children but not collapsed children', () => {
   const m = fixture({ countries, hydro, regions: Array.from({ length: 1000 }, (_, i) => ({ id: String(i), name: `지역 ${i}` })) });
-  const closed = visibleLayerRows(m, {}), open = visibleLayerRows(m, { polities: true });
+  const closed = visibleObjectSearchRows(m, {}), open = visibleObjectSearchRows(m, { polities: true });
   assert.equal(closed.some(i => i.id === 'DEU'), false);
   assert.equal(open.some(i => i.id === 'DEU'), true);
   assert.equal(open.filter(i => i.ref).length, 1002);
@@ -71,8 +71,8 @@ test('logical range order includes off-DOM expanded children but not collapsed c
 });
 test('equal names sort by full ObjectKey, and search does not duplicate bundle members', () => {
   const m = fixture({ countries: [{ id: 'DEU', name: '동명' }], labels: [{ id: 'DEU', name: '동명' }] });
-  assert.deepEqual(visibleLayerRows(m, {}, '동명').map(i => i.key), ['countries:DEU', 'labels:DEU']);
-  assert.equal(visibleLayerRows(m, {}, '지명').length, 1);
+  assert.deepEqual(visibleObjectSearchRows(m, {}, '동명').map(i => i.key), ['countries:DEU', 'labels:DEU']);
+  assert.equal(visibleObjectSearchRows(m, {}, '지명').length, 1);
 });
 test('bundle visibility preserves user objects, including old globally hidden projects and save/reopen', () => {
   const state = { layerVisibility: { countries: false }, itemVisibility: { countries: {} } };

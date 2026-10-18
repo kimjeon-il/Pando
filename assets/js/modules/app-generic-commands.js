@@ -61,7 +61,7 @@ export function createGenericCommands() {
     if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(sourceIds.map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
     const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
-    country.properties.metadata = legacyGenericMetadata(feature);
+    country.properties.metadata = captureSourceMetadata(feature);
     if(feature.properties?.color)country.properties.style={...country.properties.style,color:feature.properties.color};
     (0, dependencies.feedback.setActionStatus)('영역을 국가로 전환하는 중입니다.', 'working', 0);
     await (0, dependencies.geometryOperations.transactMapEdit)({
@@ -73,7 +73,7 @@ export function createGenericCommands() {
       applyAccepted:async(_outcome,result)=>{
         dependencies.spatialQuery.mapObjectGeometryRevisions.generic+=1;
         dependencies.spatialQuery.markCountryGeometriesChanged(new Set(result.affectedIds),{presentation:'preserve-existing-scene'});
-        dependencies.countryValidation.refreshCountryCentroids(new Set(result.affectedIds));dependencies.layers.markLayerTreeDirty();
+        dependencies.countryValidation.refreshCountryCentroids(new Set(result.affectedIds));dependencies.objectDisplay.invalidateObjectPresentation();
         await dependencies.domains.selectionUiController.applyIntent({domain:'territorial',type:'entity',id:String(country.id)},{refreshOnly:false,openEditor:false});
         dependencies.domains.renderingDomain.invalidateCountryPatch('generic-promoted-country');
       },
@@ -82,7 +82,7 @@ export function createGenericCommands() {
     });
   }
 
-  function legacyGenericMetadata(feature) {
+  function captureSourceMetadata(feature) {
     return { compatibilitySource: (0, dependencies.platform.deepClone)(feature.properties || {}) };
   }
 
@@ -122,7 +122,7 @@ export function createGenericCommands() {
       if(generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
       dependencies.spatialQuery.mapObjectGeometryRevisions.generic+=1;
       dependencies.domains.renderingDomain.invalidateGenericPatch('generic-feature-converted');
-      dependencies.layers.markLayerTreeDirty();return true;
+      dependencies.objectDisplay.invalidateObjectPresentation();return true;
     };
     try {
       if (target === 'general' && !parentId) return await promoteSelectedGenericFeatureToCountry();
@@ -131,7 +131,7 @@ export function createGenericCommands() {
         if (kind !== expectedKind) throw new Error(`${target === 'river' ? '강' : '호수'}으로 전환할 수 없는 형상입니다.`);
         const hydro = {
           type: 'Feature', id: (0, dependencies.surfaces.uid)(target), geometry: (0, dependencies.platform.deepClone)(feature.geometry),
-          properties: { name, editorColor: color, category: target, notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature) },
+          properties: { name, editorColor: color, category: target, notes: String(feature.properties?.notes || ''), metadata: captureSourceMetadata(feature) },
         };
         if(!await convert([{ commandId: 'hydro.edit',targets: [{ domain: 'hydro',id: hydro.id }],
           payload: { domain: 'hydro',id: hydro.id,value: hydro,create: true } }]))return false;
@@ -147,7 +147,7 @@ export function createGenericCommands() {
           const id = (0, dependencies.surfaces.uid)('label');
           const label = {
             id, name: points.length > 1 ? `${name} ${index + 1}` : name, kind: 'custom', coordinates: coordinates.slice(),
-            notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
+            notes: String(feature.properties?.notes || ''), metadata: captureSourceMetadata(feature),
           };
           return label;
         });
@@ -168,7 +168,7 @@ export function createGenericCommands() {
           parentId: target === 'general' ? String(parent.id) : '',
           coverageMode: dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT, color,
           validFrom: feature.properties?.validFrom ?? null, validTo: feature.properties?.validTo ?? null,
-          notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
+          notes: String(feature.properties?.notes || ''), metadata: captureSourceMetadata(feature),
         });
         if(!await convert([{ commandId: 'territorial.create',targets: [{ domain: 'territorial',id: unit.id }],payload: { feature: unit } }]))return false;
         await dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial',type: 'entity',id: String(unit.id) },{ refreshOnly: true,openEditor: false });
@@ -305,7 +305,7 @@ export function createGenericCommands() {
       payload: { domain: 'label',id: label.id,value: label,create: true,labelSettings: { manualPosition: label.coordinates,pinned: true } } });
     if (!result.ok) throw Object.assign(new Error(result.error.message),{ code: result.error.code });
     if (dependencies.projectState.state.projectReplacing || generation!==dependencies.domains.projectDomain.getGeneration()) return false;
-    dependencies.layers.markLayerTreeDirty();
+    dependencies.objectDisplay.invalidateObjectPresentation();
     await dependencies.propertyEditingA.applyLabelSelectionIntent(label.id);
     dependencies.domains.renderingDomain.invalidateLabels('builtin-place-copied');
     dependencies.feedback.setActionStatus(`${label.name} 편집용 복사본을 만들었습니다.`, 'success');

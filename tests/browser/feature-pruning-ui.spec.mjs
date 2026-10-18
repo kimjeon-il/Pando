@@ -39,12 +39,12 @@ for (const viewport of viewports) {
     await expect(page.locator('.editor-danger-zone:visible')).toHaveCount(0);
     await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
 
-    const search = page.locator('#layerSearchInput');
+    const search = page.locator('#objectSearchInput');
     if (!await search.isVisible()) {
       await page.locator(viewport.name === 'mobile' ? '#mobileSearchBtn' : '#objectSearchBtn').click();
     }
     await search.fill('폴란드');
-    await page.locator('#layerSearchResults .layer-search-result').first().click();
+    await page.locator('#objectSearchResults .object-search-result').first().click();
     await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
     await expect(page.locator('#editorTabBtn')).toBeVisible();
     await expect(page.locator('#editorTabBtn')).toHaveText('정보');
@@ -123,9 +123,9 @@ test('country flag thumbnail and menu preserve the existing data flow', async ({
       return box.width / box.height;
     })).toBeCloseTo(expected, 1);
   };
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('폴란드');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('폴란드');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '폴란드' }).first().click();
   await expectFlagSource('/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/pl.svg');
   await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 깃발');
   await expectRenderedFlagRatio(1.6);
@@ -142,19 +142,19 @@ test('country flag thumbnail and menu preserve the existing data flow', async ({
   await expect(page.locator('#flagRemoveBtn')).toHaveAccessibleName('삭제');
   await page.keyboard.press('Escape');
 
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('독일');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('독일');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '독일' }).first().click();
   await expectFlagSource('/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/de.svg');
   await expectRenderedFlagRatio(5 / 3);
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('가봉');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '가봉' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('가봉');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '가봉' }).first().click();
   await expectFlagSource('/assets/vendor/flag-icons/7.5.0/flags/4x3/ga.svg');
   await expectRenderedFlagRatio(4 / 3);
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('폴란드');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('폴란드');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
   await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
@@ -163,9 +163,9 @@ test('country flag thumbnail and menu preserve the existing data flow', async ({
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('POL').properties.metadata.flagDataUrl)).toBeNull();
   await expect(page.locator('#flagRemoveBtn')).toBeHidden();
 
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('BRT');
-  await page.locator('#layerSearchResults .layer-search-result').first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('BRT');
+  await page.locator('#objectSearchResults .object-search-result').first().click();
   await expect(page.locator('#flagPreview img')).toHaveCount(0);
   await expect(page.locator('#flagPreview svg')).toBeVisible();
   await page.locator('#flagMenuBtn').click();

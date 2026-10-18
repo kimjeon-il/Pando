@@ -32,14 +32,14 @@ struct CountryProperties {
     bool operator==(const CountryProperties& other) const;
 };
 struct CountryEdit { std::string id; CountryProperties properties; };
-struct PropertyEdits { std::vector<CountryEdit> countries; std::vector<Layer> layers; std::vector<TerritorialFieldEdit> fields; };
+struct PropertyEdits { std::vector<CountryEdit> countries; std::vector<UserLayer> layers; std::vector<TerritorialFieldEdit> fields; };
 struct SetCountryColor { std::string id; std::uint32_t color; };
-struct AddLayer { std::string id, name; };
-struct RemoveLayer { std::string id; };
-struct MoveLayer { std::string id; int delta; };
-struct SetLayerVisible { std::string id; bool value; };
-struct SetLayerLocked { std::string id; bool value; };
-struct MoveCountry { std::string id, layerId; };
+struct AddUserLayer { std::string id, name; };
+struct RemoveUserLayer { std::string id; };
+struct MoveUserLayer { std::string id; int delta; };
+struct SetUserLayerVisible { std::string id; bool value; };
+struct SetUserLayerLocked { std::string id; bool value; };
+struct MoveCountryToUserLayer { std::string id, layerId; };
 // A null value deletes the target. Geometry is an immutable new version and is
 // inserted only into the candidate; the live document changes at confirm.
 using ContentValue=std::variant<std::monostate,PlaceLabel,HydroFeature,DistributionLayer,
@@ -70,8 +70,8 @@ struct TimelineParentEdit { std::string id, month, parentId, coverageMode; };
 struct TimelineCreate { CreateTerritorialIntent intent; std::string month; };
 struct TimelineDelete { std::vector<ObjectRef> targets; std::string month; };
 struct TimelineTerritorialMutation { ApplyTerritorialMutation mutation; std::string month; };
-using CommandAction = std::variant<std::monostate, SetCountryColor, AddLayer,
-    RemoveLayer, MoveLayer, SetLayerVisible, SetLayerLocked, MoveCountry,
+using CommandAction = std::variant<std::monostate, SetCountryColor, AddUserLayer,
+    RemoveUserLayer, MoveUserLayer, SetUserLayerVisible, SetUserLayerLocked, MoveCountryToUserLayer,
     TerritorialFieldEdit, TerritorialColorEdit, TerritorialLockEdit, ApplyTerritorialMutation, ContentEdit, SetPhysicalData,
     HistoricalInstantiationPlan, GisGenericImportPlan, GisTerritorialImportPlan,
     GisDistributionImportPlan, TimelineGeometryEdit, TimelineParentEdit, TimelineCreate, TimelineDelete,

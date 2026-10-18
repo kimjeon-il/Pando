@@ -6,7 +6,7 @@ export async function composeApplication({ revision, platform = {}, onComposed =
     factoryCameraNavigation, factoryReadinessNotifications, factoryCountryIndex, factorySpatialIndex,
     factoryGeometryPreview, factoryTerritorySelectionWorkflow, factoryTerritoryComponents, factoryCountryValidation, factoryLandRelations,
     factoryCutGeometry, factoryMapProjection, factoryObjectPresentation, factoryHydroSettings,
-    factoryLayerList, factoryTerritorialLabels, factoryPhysicalResources, factoryInteractionPackets,
+    factoryObjectCatalog, factoryTerritorialLabels, factoryPhysicalResources, factoryInteractionPackets,
     factoryTerritoryComponentUi, factoryGpuScene, factoryMapAudit, factoryMapHost, factoryTaskPresentation,
     factoryCountryModes, factoryObjectPicking, factoryRiverCandidates, factoryCountryCommits,
     factoryGenericCommands, factoryPropertySelection, factoryTerritorialDrafts, factoryColorPicker,
@@ -39,7 +39,7 @@ export async function composeApplication({ revision, platform = {}, onComposed =
     import(new URL(`./app-map-projection.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-object-presentation.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-hydro-settings.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-layer-list.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
+    import(new URL(`./app-object-catalog.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-territorial-labels.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-physical-resources.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-interaction-packets.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
@@ -103,7 +103,7 @@ export async function composeApplication({ revision, platform = {}, onComposed =
   const mapProjection = factoryMapProjection.createMapProjection();
   const objectPresentation = factoryObjectPresentation.createObjectPresentation();
   const hydroSettings = factoryHydroSettings.createHydroSettings();
-  const layerList = factoryLayerList.createLayerList();
+  const objectCatalog = factoryObjectCatalog.createObjectCatalog();
   const territorialLabels = factoryTerritorialLabels.createTerritorialLabels({ builtinPlacesEnabled: platform.builtinPlacesEnabled });
   const physicalResources = factoryPhysicalResources.createPhysicalResources({ enabled: platform.physicalResourcesEnabled });
   const interactionPackets = factoryInteractionPackets.createInteractionPackets();
@@ -144,7 +144,7 @@ export async function composeApplication({ revision, platform = {}, onComposed =
     serviceAssembly, renderQuality, pointerTargets, cameraNavigation, readinessNotifications,
     countryIndex, spatialIndex, geometryPreview, territorySelectionWorkflow, territoryComponents,
     countryValidation, landRelations, cutGeometry, mapProjection, objectPresentation, hydroSettings,
-    layerList, territorialLabels, physicalResources, interactionPackets, territoryComponentUi, gpuScene,
+    objectCatalog, territorialLabels, physicalResources, interactionPackets, territoryComponentUi, gpuScene,
     mapAudit, mapHost, taskPresentation, countryModes, objectPicking, riverCandidates, countryCommits,
     genericCommands, propertySelection, territorialDrafts, colorPicker, objectMetadata,
     territorialConversion, projectSnapshots, mapSettings, historyAssembly, projectRestore,
@@ -164,7 +164,7 @@ export async function composeApplication({ revision, platform = {}, onComposed =
   });
   mapResourcesConnector.connectMapResources({
     ports: applicationPorts,
-    cutGeometry, mapProjection, objectPresentation, hydroSettings, layerList, territorialLabels,
+    cutGeometry, mapProjection, objectPresentation, hydroSettings, objectCatalog, territorialLabels,
     physicalResources, interactionPackets,
   });
   mapInteractionConnector.connectMapInteraction({

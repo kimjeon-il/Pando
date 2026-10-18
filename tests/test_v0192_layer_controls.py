@@ -60,10 +60,10 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertNotIn('.checked =', setter)
 
     def test_search_rows_only_select_and_focus_objects(self):
-        search = read_module(ROOT,'layer-tree-controller.js')
+        search = read_module(ROOT,'object-search-controller.js')
         row = function_source(search,'rowFor')
-        self.assertIn('layer-search-result-select', row)
-        self.assertIn('layer-search-focus-action', row)
+        self.assertIn('object-search-result-select', row)
+        self.assertIn('object-search-focus-action', row)
         self.assertIn("row.setAttribute('aria-selected'", row)
         self.assertNotIn('menuButton', row)
         self.assertNotIn('locked', row)

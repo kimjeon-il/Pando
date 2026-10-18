@@ -6,7 +6,7 @@ import { createNavigationBindings } from '../../assets/js/modules/app-navigation
 import { createPlaceRuntime } from '../../assets/js/modules/place-runtime.js';
 import { createSurfaceController } from '../../assets/js/modules/surface-controller.js';
 import { createGlobalInputBindings } from '../../assets/js/modules/app-global-input-bindings.js';
-import { createLayerTreeController, createAppLayerTreeController } from '../../assets/js/modules/layer-tree-controller.js';
+import { createObjectSearchController, createAppObjectSearchController } from '../../assets/js/modules/object-search-controller.js';
 import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { normalizePlace } from '../../assets/js/modules/place-contract.js';
@@ -68,7 +68,7 @@ async function setup(t, { builtinSearch, cancelBuiltinSearch, builtinRecordVisib
   const ui = createSelectionUiController({ selectionDomain, resolveRef: normalizeObjectRef });
   const results = element();
   const snapshot = { revision: 1, search: '항목' };
-  const controller = createLayerTreeController({
+  const controller = createObjectSearchController({
     window: { setTimeout, clearTimeout }, builtinSearch, cancelBuiltinSearch, builtinRecordVisible,
     document: { createElement: element }, elements: { searchResults: results },
     groups: { search: Object.keys(rows) },
@@ -176,14 +176,14 @@ test('editable copies suppress their builtin source in current search rows witho
 // Use the real app adapter and canonical selection owners. Closing without a
 // pointerout is the boundary reproduced by the CI's retained list hover.
 async function hoverLifecycle(t) {
-  const nodes = new Map(['layerSearchInput', 'layerSearchClearBtn', 'layerSearchResults', 'objectSearchSection'].map(id => [id, element()]));
+  const nodes = new Map(['objectSearchInput', 'objectSearchClearBtn', 'objectSearchResults', 'objectSearchSection'].map(id => [id, element()]));
   const owner = await createNodeSelection();
   const tracked = trackSelection(owner.domain);
   t.after(async () => { try { await tracked.settle(); } finally { owner.dispose(); } });
   const domain = tracked.domain;
   const ui = createSelectionUiController({ selectionDomain: domain, resolveRef: normalizeObjectRef });
   const ref = normalizeObjectRef({ domain: 'hydro', type: 'river', id: 'builtin-hydro' });
-  const state = { tool: 'select', mapMoving: false, layerSearch: '검증', layerTreeRevision: 1, labels: [] };
+  const state = { tool: 'select', mapMoving: false, objectSearch: '검증', objectPresentationRevision: 1, labels: [] };
   let controller, wiring;
   const document = { createElement: element };
   const window = { setTimeout, clearTimeout, CustomEvent: class { constructor(type) { this.type = type; } }, dispatchEvent() {} };
@@ -197,25 +197,25 @@ async function hoverLifecycle(t) {
   // actual surface owner and actual place-runtime moving state.
   const navigation = vm.runInNewContext(`(${createNavigationBindings.toString()})()`, { window, document });
   navigation.connect({
-    uiRegistryCommands: { installLayerTreeController: value => { controller = value; domains.layerTreeController = value; } },
-    uiFactoriesA: { createAppLayerTreeController: runtime => { wiring = runtime; return createAppLayerTreeController(runtime); } },
+    uiRegistryCommands: { installObjectSearchController: value => { controller = value; domains.objectSearchController = value; } },
+    uiFactoriesA: { createAppObjectSearchController: runtime => { wiring = runtime; return createAppObjectSearchController(runtime); } },
     platform: { $: id => nodes.get(id) }, projectState: { state },
     objectModelA: { LAYER_SEARCH_GROUP_KEYS: ['hydro'], layerNameCollator: { compare: (a, b) => String(a).localeCompare(String(b)) } },
     layerPresentation: { layerGroupNames: {} }, applicationFactories: { createSemanticIcon: () => null },
     platformConfigurationB: { createEmptyState: element, syncSearchClearButton() {} },
-    layerTree: { layerTreeItems: () => [{ id: ref.id, name: '검증 강', typeLabel: '강' }] },
+    objectCatalogView: { listObjectCatalogItems: () => [{ id: ref.id, name: '검증 강', typeLabel: '강' }] },
     objectLookup: { layerItemObjectRef: () => ref }, selectionServices: { normalizeObjectRef }, domains,
     hydroPresentation: { hydroCategoryKey: () => 'river' }, workspaceUiB: { surfaceController: surfaces },
     labelPresentation: { builtinPlaces: places }, feedback: { reportOperationError: error => { throw error; } },
-    readinessUi: { syncCanonicalControls() {} }, layers: { markLayerTreeDirty() { state.layerTreeRevision++; } },
-    navigation: { selectLayerTreeItem() { ui.applyIntent(ref, { mode: 'replace', scope: 'layer-list' }); return true; } },
+    readinessUi: { syncCanonicalControls() {} }, objectDisplay: { invalidateObjectPresentation() { state.objectPresentationRevision++; } },
+    navigation: { selectObjectSearchItem() { ui.applyIntent(ref, { mode: 'replace', scope: 'layer-list' }); return true; } },
     objectOperationsA: { focusObjectRef() {} }, workspaceUiA: { closeSurface: kind => { assert.equal(kind, 'search'); close(); } },
   });
   navigation.bindLayerUI(); controller.render();
   const dispatch = async (type, extra = {}) => {
-    const row = nodes.get('layerSearchResults').children[0].children[0];
+    const row = nodes.get('objectSearchResults').children[0].children[0];
     row.contains = target => target === row;
-    nodes.get('layerSearchResults').listeners.get(type)({ target: row, relatedTarget: null, pointerType: 'mouse',
+    nodes.get('objectSearchResults').listeners.get(type)({ target: row, relatedTarget: null, pointerType: 'mouse',
       ctrlKey: false, metaKey: false, shiftKey: false, ...extra });
     await tracked.settle();
   };
@@ -267,7 +267,7 @@ test('cancelling or refreshing still-open search retains its valid row hover and
   const f = await hoverLifecycle(t); await f.dispatch('pointerover'); await f.domain.replace(f.ref);
   f.controller.cancelSearch();
   assert.equal(f.domain.snapshot().hover.key, f.ref.key); assert.equal(f.domain.primary().key, f.ref.key);
-  const input = f.nodes.get('layerSearchInput'); input.value = '검증 강';
+  const input = f.nodes.get('objectSearchInput'); input.value = '검증 강';
   input.listeners.get('input')({ currentTarget: input }); f.controller.render(true);
   assert.equal(f.isOpen(), true); assert.equal(f.domain.snapshot().hover.key, f.ref.key);
   assert.equal(f.domain.primary().key, f.ref.key); f.dispose();

@@ -76,9 +76,9 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   const regionalCorners = regional.geometry.coordinates.flat(regional.geometry.type === 'Polygon' ? 1 : 2);
   expect([...new Set(regionalCorners.map(point => JSON.stringify(point)))].sort()).toEqual(['[5,35]', '[5,36]', '[6,35]', '[6,36]']);
 
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('폴란드');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('폴란드');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#objectSearchSurface')).toBeHidden();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 깃발', { timeout: 30_000 });
   const assetRevision = await page.evaluate(() => window.PANDOLAB_BUILD_META.assetRevision);
@@ -92,9 +92,9 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await expect(page.locator('#flagPreview svg')).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('POL').properties.metadata.flagDataUrl)).toBeNull();
 
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('독일');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('독일');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '독일' }).first().click();
   await expect(page.locator('#objectSearchSurface')).toBeHidden();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '독일 깃발', { timeout: 30_000 });
   await page.locator('#flagMenuBtn').click();
@@ -167,14 +167,14 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     db.close();
   }
 
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('독일');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('독일');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '독일' }).first().click();
   await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('폴란드');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('폴란드');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '폴란드' }).first().click();
   await page.locator('#flagMenuBtn').click();
   const [polishFlagChooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#flagUploadBtn').click()]);
   await polishFlagChooser.setFiles({
@@ -205,15 +205,15 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     .flatMap(layer => window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id))))
     .toContainEqual(expect.objectContaining({ mode: 'territorial', territorialUnitId, value: 73 }));
 
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('폴란드');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('폴란드');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveCount(0);
   await expect(page.locator('#flagPreview svg')).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('POL').properties.metadata.flagDataUrl)).toBeNull();
-  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('독일');
-  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('독일');
+  await page.locator('#objectSearchResults .object-search-result').filter({ hasText: '독일' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
   expect(errors).toEqual([]);
 });
