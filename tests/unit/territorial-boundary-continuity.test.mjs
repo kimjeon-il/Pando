@@ -87,6 +87,13 @@ async function present(h) {
   return structuredClone(h.last());
 }
 
+test('the rendering owner schedules a common refresh after its boundary Worker completes',async t=>{
+  const h=await harness(t);h.render();
+  const before=h.rendering.getStats().invalidations;
+  await h.resolve(0);
+  assert.ok(h.rendering.getStats().invalidations>before);
+});
+
 test('unchanged territorial frames reuse connected boundary geometry and style changes stay current', async t => {
   const h = await harness(t); await present(h);
   const before = new Map(h.rawLast().map(stroke => [stroke.key, stroke.geometry]));

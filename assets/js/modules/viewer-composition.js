@@ -61,7 +61,7 @@ export async function composeViewer({ productMode, meta }) {
     mapHostViewB:{queueMapResize:()=>{map.mapProjection.refreshMapLayoutMetrics('panel-layout');map.renderingDomain.invalidateViewport();}},
     platformConfigurationB:{selectController},get mapNavigation(){return map.navigation;}});
   surfaces.initializeWorkspaceSurfaces();
-  map=createViewerMap({owners,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),meta,projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),closeActiveOverlay:()=>surfaces.closeMobileSheets(),onStatus:notifications.setActionStatus,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render(true);},onError:report});
+  map=createViewerMap({owners,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),meta,projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render(true);},onError:report});
   map.refreshAppearance(preferencePresentation.interactionStyle);
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,

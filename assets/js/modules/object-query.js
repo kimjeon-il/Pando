@@ -1,4 +1,5 @@
 import { temporalContains,temporalMonthEnd } from './temporal.js';
+import { effectiveTerritorialFlagUrl } from './country-flags.js';
 export function createObjectQuery(dependencies) {
   function territorialEntityForRef(ref) {
     if (ref?.domain !== 'territorial') return null;
@@ -31,6 +32,17 @@ export function createObjectQuery(dependencies) {
 
   function objectRefExists(value) { return !!objectForRef(value); }
 
+  function objectRefVisible(value) {
+    const ref = dependencies.selectionServices.normalizeObjectRef(value);
+    if (ref?.domain === 'hydro' && !dependencies.hydroPresentation.hydroEditById(ref.id)) {
+      const feature = dependencies.hydroModel.hydroFeatureById(ref.id);
+      const id = String(feature?.properties?.pandolab_id || feature?.id || ref.id);
+      return dependencies.projectState.state.physicalSettings.hiddenHydroIds?.[id] !== true;
+    }
+    const group = layerGroupForObjectRef(ref);
+    return !!(ref && group && dependencies.layerPresentation.isLayerItemVisible(group, ref.id));
+  }
+
   function isObjectAvailable(value) {
     const object=objectForRef(value);
     return !!object && temporalContains(object.properties||object,temporalMonthEnd(dependencies.projectState.state.timelineCursor));
@@ -43,7 +55,8 @@ export function createObjectQuery(dependencies) {
       const feature = territorialEntityForRef(ref);
       const parent = dependencies.territorialModel.entityRepository.parent(ref.id);
       return { name: feature ? dependencies.objectPresentation.territorialEntityName(feature) : ref.id,
-        type: '객체', detail: parent ? dependencies.objectPresentation.territorialEntityName(parent) : '' };
+        type: '객체', detail: parent ? dependencies.objectPresentation.territorialEntityName(parent) : '',
+        flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }) };
     }
     if (ref.domain === 'distribution') {
       const layer = (0, dependencies.objectLookup.distributionLayerById)(ref.id);
@@ -110,5 +123,5 @@ export function createObjectQuery(dependencies) {
     return '';
   }
 
-  return Object.freeze({objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectDisplayInfo,focusObjectRef,layerGroupForObjectRef});
+  return Object.freeze({objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef});
 }
