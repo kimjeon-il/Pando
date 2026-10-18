@@ -1,0 +1,44 @@
+name: OBJ-098 valid outward Soviet coastline edit acceptance
+on:
+  push:
+    branches: [work/perf-obj098-valid-coast-20261018]
+    paths:
+      - '.github/workflows/obj098-valid-coast-acceptance.yml'
+      - 'tests/browser/soviet-real-edit-commit-cancel.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: obj098-valid-coast-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validated-original-world-edit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 43
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Verify candidate shared C++/WASM source and edit test
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node --check tests/browser/soviet-real-edit-commit-cancel.spec.mjs
+          pnpm exec eslint tests/browser/soviet-real-edit-commit-cancel.spec.mjs
+          node --test tests/unit/boundary-source-row-compact.test.mjs tests/unit/country-contact-core.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real 1989 Soviet outer-coast outward edit, preview cancel, confirm Undo/Redo and source identity
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-real-edit-commit-cancel.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj098-valid-outer-coast-${{ github.sha }}
+          path: test-results/soviet-real-edit/
+          if-no-files-found: warn
+          retention-days: 14
