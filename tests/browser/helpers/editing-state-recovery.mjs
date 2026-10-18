@@ -52,6 +52,7 @@ export async function verifyEditingRecovery(page, {url, domainSource, afterBoot 
  await expect.poll(()=>page.evaluate(()=>window.__editingTest.projectState.state.tool),{timeout:30000}).toBe('select');
  const after=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').geometry);expect(after).not.toEqual(before);
  await page.keyboard.press('Control+z');await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').geometry)).toEqual(before);
+ await expect(page.locator('#redoBtn')).toBeEnabled({timeout:30000});
  await page.keyboard.press('Control+y');await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').geometry)).toEqual(after);
  await page.setViewportSize({width:1440,height:900});
  await page.evaluate(async()=>{await window.PANDOLAB_TERRITORIAL.select('A');window.__editingTest.workspaceUiB.openSelectionEditor();});

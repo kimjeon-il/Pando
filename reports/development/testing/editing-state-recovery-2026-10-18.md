@@ -1,13 +1,13 @@
 # 편집 상태와 취소·적용·실행 취소 구현 검증
 
-> 보고서 ID: `UI-EDIT-20261018` · 상태: `verified-focused-implementation` · 지도 반영: `not-applicable` · 색인일: 2026-10-18
+> 보고서 ID: `UI-EDIT-20261018` · 상태: `deployed-web-ci-incomplete` · 지도 반영: `not-applicable` · 색인일: 2026-10-18
 > 원문 최종 수정: 2026-10-18
 > 조사 기준: Web / WebView App 공통 기준 `f7d7b6ba244ef75ba5b708090ec09c453de504ee` 이후 work/ui 변경
 > 원본·출처: 사용자 승인 편집 상태 개편안, 아래 소스 및 실행 로그
 
 ## 대상과 기준일
 
-상설 `D:/dev/worktrees/ui`, `work/ui`에서 작업했다. 원격 상태와 깨끗한 작업 트리를 확인하고 원격 work/ui `9a20fe99`를 반영한 뒤 최신 main `6cb9859d`를 병합했다. main 반영, 원격 push, 배포는 이 검증 범위에 포함하지 않는다.
+상설 `D:/dev/worktrees/ui`, `work/ui`에서 작업했다. 원격 상태와 깨끗한 작업 트리를 확인하고 원격 work/ui `9a20fe99`를 반영한 뒤 최신 main `6cb9859d`를 병합했다. 구현 당시에는 main 반영·원격 push·배포를 실행하지 않았다. 후속 배포 결과는 아래 절에 기록한다.
 
 ## 구현
 
@@ -41,7 +41,36 @@ WebView 진단 패널이 좁은 창에서 편집 버튼을 가리는 문제를 �
 
 ## 데이터 반영
 
-지도 데이터 변경 없음. 변경은 work/ui의 UI·편집 도메인·Core 후보 메타데이터와 관련 테스트다. main 통합·push·배포 미실행.
+지도 데이터 변경 없음. 변경은 work/ui의 UI·편집 도메인·Core 후보 메타데이터와 관련 테스트다. 구현 시점에는 main 통합·push·배포 미실행. 후속 Web 배포는 아래와 같다.
+
+## 2026-10-18 Web 배포 추가 검증
+
+사용자의 ‘배포까지’ 지시에 따라 main 통합과 Pages 게시를 진행했다. 추가 기능 수정 없이 배포 메타데이터를 갱신했다.
+
+- 기능 커밋: `00b1b3ff62df59466f1a3bc774f01755f367bfbf`.
+- 운영 릴리스 커밋: `4d2cf48267de8693fcf6d054b7e56e93c2fd7688`. main `6cb9859d`에서 fast-forward하고 main·work/ui를 원격에 atomic push했다.
+- [Pages 실행 39111928319](https://github.com/kimjeon-il/Pando/actions/runs/39111928319): build 38초, deploy 27초, 모두 성공.
+- 운영 주소: [판도연구소](https://kimjeon-il.github.io/Pando/).
+- 게시 전 canonical staging: 5,725개 파일, 579,942,060 bytes. App 소스 92개, 공통 소스 173개 제외. Windows CRLF 체크아웃 차이 3,684개는 Git batch로 원본을 읽되 기존 stageWebPages의 원본 해시·줄바꿈 동등성·복사 해시 검사를 그대로 수행했다. staging 계약 테스트 6/6 및 릴리스 집중 단위 테스트 174/174 통과.
+- 운영 HTTP 200 및 원본 SHA-256 일치 10/10: index.html, build-meta, UI bundle, task presentation, lifecycle assembly, geometry preview, editing domain, project UI bridge, WASM manifest·binary. 기계 증거: `D:/build/pandolab-pages-editing-20261018-live.json`.
+- 운영 Chromium에서 실제 배포 모듈과 WASM을 사용하여 경계 초안, 미리보기 복귀, 초안 Undo/Redo, 검색 입력의 네이티브 Undo, 접기, 적용, 프로젝트 Undo/Redo까지 확인했다. Undo 후 모델 갱신과 다시 실행 버튼 활성화 사이의 간격 때문에 테스트가 먼저 단축키를 보내던 문제는 버튼 활성화 대기로 수정했다.
+- 라이브 전체 시나리오는 **완주하지 못했다**. 이후 데스크톱으로 크기를 복구하고 합병 탭을 클릭하는 단계에서 15초 시간 초과가 발생했다. 첫 시도에는 모바일 접기 입력 시간 초과도 있었다. 렌더러·반응성 문제의 원인이나 합병 라이브 검증 통과를 주장하지 않는다. 로컬 WebGL2/Canvas 및 네이티브 WebView에서의 기존 전체 시나리오 통과와 구분한다.
+- main 작업 폴더의 기존 미추적 `reports/annex-reproduction-20261015.png`는 보존했으며 통합 전후 SHA-256이 `C7630499BE6105B03780FC1281AF97F965FE91EF21E0AA28D7F738823538E431`로 동일하다.
+
+### 원격 CI 결과와 남은 검증
+
+| 검사 | 결과 | 근거 |
+| --- | --- | --- |
+| Pages | 성공 | [39111928319](https://github.com/kimjeon-il/Pando/actions/runs/39111928319) |
+| P2 생성 산출물 | 성공 | [39111928501](https://github.com/kimjeon-il/Pando/actions/runs/39111928501). work/ui에 자동 커밋 `5ac823c7` 추가. main의 운영 릴리스와 구분 |
+| P3 원격 검증 | 성공 | [39111928657](https://github.com/kimjeon-il/Pando/actions/runs/39111928657) |
+| App 전체세계 Windows | 실패 | [39111928606](https://github.com/kimjeon-il/Pando/actions/runs/39111928606). 258/254/597 고정 개수 assertion. 이전 실행 [39007852586](https://github.com/kimjeon-il/Pando/actions/runs/39007852586)도 동일 조건에서 실패했으며 관련 stage·자료·workflow는 이번 릴리스에서 변경되지 않음 |
+| P1 native-core | 실패 | [39111928612](https://github.com/kimjeon-il/Pando/actions/runs/39111928612). project_codec_tests의 documentId 기대값, document_session_tests의 seed 왕복 비교 assertion |
+| Shared C++ 계약 | 실패 | [39111928329](https://github.com/kimjeon-il/Pando/actions/runs/39111928329). 9개 중 4개 실패: project_codec_tests, document_session_tests, web_territorial_command_tests, source_admission_tests |
+
+C++ 실패 원인은 이 배포 작업에서 수정하거나 baseline 재현으로 확정하지 않았다. 전체 원격 CI가 통과했다고 보고하지 않는다. UI Architecture와 Application Architecture는 기록 시점에 실행 중이다. 원격 C++ 계약 실패 분석과 라이브 합병 전환 반응성 확인은 남은 검증이다. 실제 터치 기기 및 사람 대상 사용성 검증도 여전히 미실행이다.
+
+이 절과 테스트 대기 수정은 후속 work/ui 기록이다. 운영 main에 추가 게시하지 않아 운영 커밋은 위 릴리스 SHA로 유지한다. 상설 브랜치·워크트리와 실행 증거를 보존한다.
 
 ## 판본
 
