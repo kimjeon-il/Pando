@@ -42,6 +42,7 @@
 | --- | --- | --- | --- | --- |
 | `DEV-QT-RETIRE-20261018` | [구 Qt 앱 전체 제거](development/testing/qt-app-retirement-2026-10-18.md) | 2026-10-18 | `verified-focused-runtime` | `not-applicable` |
 | `UI-PRODUCT-SPLIT-20261018` | [웹 열람·앱 편집 분리와 휴대폰 가로 화면](development/testing/web-app-product-split-2026-10-18.md) | 2026-10-18 | `focused-verified / native-device-unverified` | `not-applicable` |
+| `UI-PRODUCT-RELEASE-20261018` | [웹·앱 분리 배포 및 공개 사이트 검증](development/testing/web-app-product-release-2026-10-18.md) | 2026-10-18 | `pages-live-verified / native-device-unverified` | `not-applicable` |
 | `DEV-NAMING-20261018` | [기존 동작을 유지하는 내부 명칭 정리](development/testing/internal-naming-2026-10-18.md) | 2026-10-18 | `verified-naming / baseline-test-failures` | `not-applicable` |
 | `UI-EDIT-20261018` | [편집 상태와 복구 동작 구현 검증](development/testing/editing-state-recovery-2026-10-18.md) | 2026-10-18 | `deployed-web-ci-incomplete` | `not-applicable` |
 | `PERF-P0-001` | [기준 코드·기존 계측 자산 통합 검토](development/testing/performance-baseline-consolidation-2026-10-17.md) | 2026-10-17 | `verified-source-and-focused-ci` | `not-applicable` |
