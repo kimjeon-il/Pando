@@ -100,7 +100,6 @@ export async function composeViewer({ productMode, meta }) {
   const files=createFileController({productMode,elements:{projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')},projectDomain,openProject:open,reportOperationError:report,window,document});
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
   action(get('builtinMapBtn'),'click',()=>open(()=>map.prepareBuiltinProject(),{source:'builtin'}));
-  map.navigation.bindHoldZoom(get('zoomInBtn'),1.4);map.navigation.bindHoldZoom(get('zoomOutBtn'),1/1.4);
   display=createMapSettings({viewPresentation:map});
   display.connect({
     platform:{$:id=>get(id==='app'?'viewer':id),deepClone:structuredClone,clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},

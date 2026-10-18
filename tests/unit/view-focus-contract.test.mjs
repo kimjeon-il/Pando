@@ -1,4 +1,4 @@
-import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
+import { readApplicationOwners, applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -24,7 +24,7 @@ function functionSource(name, nextName) {
 }
 
 test('whole-map view resets only the active projection zoom', () => {
-  const source = functionSource('resetView', 'bindHoldZoom');
+  const source = applicationFunctionSource(appSource, 'resetView');
   assert.match(source, /state\.view\.globeZoom = 1/);
   assert.match(source, /state\.view\.flatZoom = 1/);
   assert.doesNotMatch(source, /state\.view\.globeRotation\s*=/);
@@ -32,7 +32,7 @@ test('whole-map view resets only the active projection zoom', () => {
   assert.doesNotMatch(source, /fitBounds|fitMapToFeature|panMapBy/);
   assert.match(source, /syncMapHostFromState\(\)/);
   assert.match(source, /renderingDomain\?\.endInteraction\?\.\('world-view-settle'\)/);
-  assert.match(source, /projectDomain\.queueViewAutosave\(\)/);
+  assert.match(source, /if \(persistView\) persistView\(\)/);
   assert.doesNotMatch(source, /renderViewFrame\(\)/);
 });
 
@@ -64,6 +64,7 @@ test('territorial focus uses the root label anchor and scope extent, while child
   let mobile = false;
   const owner = createObjectCommands();
   owner.connect({
+    propertyEditingA: { distributionLayerById: () => null },
     selectionServices: { normalizeObjectRef },
     territorialModel: { entityRepository },
     objectModelB: { territorialScope },

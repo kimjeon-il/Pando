@@ -88,7 +88,6 @@
   --gis-import-dialog-width: min(640px, calc(100vw - (var(--ui-dialog-edge) * 2)));
   --gis-import-dialog-max-width: 640px;
   --gis-import-form-min-height: 260px;
-  --map-view-toolbar-bottom: calc(112px + env(safe-area-inset-bottom));
   --ui-custom-color-plane-height: clamp(120px, 22dvh, 180px);
   --ui-custom-color-plane-background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), var(--color-hue, red);
   --ui-custom-color-plane-outline-offset: 3px;
