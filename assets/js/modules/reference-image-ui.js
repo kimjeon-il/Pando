@@ -51,18 +51,24 @@ export function createReferenceImagePanel() {
       </div>
       <button type="button" class="ui-button icon-btn" data-ref-action="close" aria-label="참조 이미지 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
     </header>
-    <div class="reference-image-toolbar">
-      <button type="button" class="ui-button btn" data-ref-action="add">이미지 추가</button>
-      <button type="button" class="ui-button btn ghost" data-ref-action="undo" disabled>실행 취소</button>
-      <button type="button" class="ui-button btn ghost" data-ref-action="redo" disabled>다시 실행</button>
+    <section class="reference-image-collection" aria-label="이미지 목록">
+      <div class="reference-image-collection-heading">
+        <strong>이미지 목록</strong>
+        <button type="button" class="ui-button btn ghost reference-image-add" data-ref-action="add"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg>이미지 추가</button>
+      </div>
       <input data-ref-file type="file" accept="image/png,image/jpeg,image/webp" hidden />
-    </div>
-    <div class="reference-image-empty" data-ref-storage-status role="status" hidden>
-      <span data-ref-storage-message></span>
-      <button type="button" class="ui-button btn ghost" data-ref-action="retry-storage">다시 읽기</button>
-    </div>
-    <div class="reference-image-list" data-ref-list></div>
-    <div class="reference-image-empty" data-ref-empty>PNG, JPG, WebP를 불러와 지도 위에서 기준점을 맞출 수 있습니다.</div>
+      <div class="reference-image-empty" data-ref-storage-status role="status" hidden>
+        <span data-ref-storage-message></span>
+        <button type="button" class="ui-button btn ghost" data-ref-action="retry-storage">다시 읽기</button>
+      </div>
+      <div class="reference-image-list" data-ref-list role="list" aria-label="참고 이미지 순서"></div>
+      <div class="reference-image-empty" data-ref-empty>PNG, JPG, WebP 이미지를 추가하세요.</div>
+      <div class="reference-image-toolbar" aria-label="이미지 편집 이력">
+        <span>이미지 편집 이력</span>
+        <button type="button" class="ui-button btn ghost" data-ref-action="undo" aria-label="이미지 편집 실행 취소" disabled>실행 취소</button>
+        <button type="button" class="ui-button btn ghost" data-ref-action="redo" aria-label="이미지 편집 다시 실행" disabled>다시 실행</button>
+      </div>
+    </section>
     <div class="reference-image-editor" data-ref-editor hidden></div>
   `;
   return panel;
@@ -72,18 +78,66 @@ export function renderReferenceImageList(listElement, records, selectedId) {
   listElement.replaceChildren();
   for (let index = records.length - 1; index >= 0; index -= 1) {
     const record = records[index];
+    const item = document.createElement('div');
+    item.className = 'reference-image-list-item';
+    item.setAttribute('role', 'listitem');
+    if (record.id === selectedId) item.classList.add('is-selected');
+
     const row = document.createElement('button');
     row.type = 'button';
     row.className = 'reference-image-list-row';
     row.dataset.referenceImageId = record.id;
-    if (record.id === selectedId) row.classList.add('is-selected');
-    const calibrationText = record.anchor
-      ? `📌 · ${record.controlPoints.length}점`
-      : `${record.controlPoints.length}점`;
-    row.innerHTML = `<span class="reference-image-visibility" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#${record.visible ? 'icon-eye' : 'icon-eye-off'}"/></svg></span><strong></strong><small>${calibrationText}</small>`;
+    if (record.id === selectedId) {
+      row.classList.add('is-selected');
+      row.setAttribute('aria-current', 'true');
+    }
+    row.innerHTML = '<span class="reference-image-visibility" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#'
+      + (record.visible ? 'icon-eye' : 'icon-eye-off')
+      + '"/></svg></span><strong></strong><small></small>';
     row.querySelector('strong').textContent = record.name;
-    listElement.appendChild(row);
+    row.querySelector('small').textContent =
+      (record.locked ? '잠김 · ' : '') + (record.anchor ? '📌 · ' : '') + record.controlPoints.length + '점';
+
+    const actions = document.createElement('div');
+    actions.className = 'reference-image-list-actions';
+    actions.setAttribute('role', 'group');
+    actions.setAttribute('aria-label', record.name + ' 관리');
+    const makeAction = (action, label, icon, disabled = false) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ui-button icon-btn reference-image-list-action';
+      button.dataset.refListAction = action;
+      button.dataset.refRecordId = record.id;
+      button.setAttribute('aria-label', record.name + ' · ' + label);
+      button.disabled = disabled;
+      if (action === 'visible') button.setAttribute('aria-pressed', String(record.visible));
+      if (action === 'locked') button.setAttribute('aria-pressed', String(record.locked));
+      button.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#' + icon + '"/></svg>';
+      return button;
+    };
+    actions.append(
+      makeAction('visible', record.visible ? '숨기기' : '표시', record.visible ? 'icon-eye' : 'icon-eye-off'),
+      makeAction('locked', record.locked ? '잠금 해제' : '잠금', record.locked ? 'icon-lock-closed' : 'icon-lock-open'),
+      makeAction('forward', '앞으로', 'icon-chevron-up', index === records.length - 1),
+      makeAction('backward', '뒤로', 'icon-chevron-down', index === 0),
+    );
+    item.append(row, actions);
+    listElement.appendChild(item);
   }
+}
+
+function referenceImageTabMarkup(activeTab) {
+  const tabs = [['placement', '배치'], ['match', '맞추기'], ['display', '표시']];
+  return '<div class="reference-image-task-tabs" role="tablist" aria-label="참고 이미지 작업">'
+    + tabs.map(([key, label]) => {
+      const selected = activeTab === key;
+      return '<button type="button" class="ui-button reference-image-task-tab'
+        + (selected ? ' is-active' : '') + '" role="tab" id="reference-image-tab-' + key
+        + '" data-ref-tab="' + key + '" aria-controls="reference-image-panel-' + key
+        + '" aria-selected="' + selected + '" tabindex="' + (selected ? '0' : '-1')
+        + '">' + label + '</button>';
+    }).join('')
+    + '</div>';
 }
 
 export function referenceImageEditorMarkup({
@@ -101,6 +155,7 @@ export function referenceImageEditorMarkup({
   selectedControlPointId = '',
   placementRotation = 0,
   linearDraft = null,
+  activeTab = 'placement',
 } = {}) {
   const diagnostics = warp?.ok ? warp.diagnostics : null;
   const residuals = diagnosticResiduals(diagnostics);
@@ -192,42 +247,34 @@ export function referenceImageEditorMarkup({
               : `기준점 ${warp?.minimumPoints || 2}개부터 보정할 수 있습니다. 평소에는 클릭이 지도 도구로 통과합니다.`;
 
   return `
+    <div class="reference-image-selected-card" aria-label="선택한 참고 이미지">
     <div class="reference-image-editor-title">
       <input type="text" data-ref-field="name" value="${escapeAttribute(record.name)}" aria-label="참조 이미지 이름" />
       <button type="button" class="ui-button icon-btn" data-ref-action="delete" aria-label="참조 이미지 삭제"${record.locked ? ' disabled' : ''}><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
     </div>
 
-    <section class="reference-image-section" aria-labelledby="reference-image-appearance-title">
-      <div class="reference-image-section-header">
-        <strong id="reference-image-appearance-title">표시</strong>
-      </div>
-      <label class="reference-image-field">
-        <span>불투명도</span>
-        <input data-ref-field="opacity" type="range" min="0" max="1" step="0.01" value="${record.opacity}" />
-        <output>${Math.round(record.opacity * 100)}%</output>
-      </label>
-      <label class="reference-image-field">
-        <span>혼합</span>
-        <select class="ui-select" data-ref-field="blend">${blendOptions.map(([value, label]) => `<option value="${value}"${record.blendMode === value ? ' selected' : ''}>${label}</option>`).join('')}</select>
-        <output></output>
-      </label>
       <div class="reference-image-toggle-row">
         <label><input data-ref-field="visible" type="checkbox"${record.visible ? ' checked' : ''} /> 표시</label>
         <label><input data-ref-field="locked" type="checkbox"${record.locked ? ' checked' : ''} /> 잠금</label>
         <button type="button" class="ui-button btn ghost" data-ref-action="bring-forward"${index >= count - 1 ? ' disabled' : ''}>앞으로</button>
         <button type="button" class="ui-button btn ghost" data-ref-action="send-backward"${index <= 0 ? ' disabled' : ''}>뒤로</button>
       </div>
-    </section>
-
-    <section class="reference-image-section" aria-labelledby="reference-image-transform-title">
+      <label class="reference-image-field">
+        <span>불투명도</span>
+        <input data-ref-field="opacity" type="range" min="0" max="1" step="0.01" value="${record.opacity}" />
+        <output>${Math.round(record.opacity * 100)}%</output>
+      </label>
+    </div>
+    ${referenceImageTabMarkup(activeTab)}
+    <div class="reference-image-tabpanels">
+    <section id="reference-image-panel-placement" data-ref-section="placement" role="tabpanel" class="reference-image-section" aria-labelledby="reference-image-tab-placement"${activeTab === 'placement' ? '' : ' hidden'}>
       <div class="reference-image-section-header">
-        <strong id="reference-image-transform-title">편집</strong>
+        <strong id="reference-image-transform-title">배치 도구</strong>
         <span>${record.cornerPinEnabled ? 'Corner Pin 적용' : '기본 배치'}</span>
       </div>
       <div class="reference-image-mode-switch" role="group" aria-label="참조 이미지 편집 모드">
         <button type="button" class="ui-button btn ghost${placementEditing ? ' active' : ''}" data-ref-action="placement" aria-pressed="${placementEditing}"${placementDisabled ? ' disabled' : ''}>배치</button>
         <button type="button" class="ui-button btn ghost${freeTransformEditing ? ' active' : ''}" data-ref-action="free-transform" aria-pressed="${freeTransformEditing}"${freeTransformDisabled ? ' disabled' : ''}>자유 변형</button>
-        <button type="button" class="ui-button btn ghost${calibrationEditing ? ' active' : ''}" data-ref-action="gcp" aria-pressed="${calibrationEditing}"${gcpDisabled ? ' disabled' : ''}>기준점</button>
       </div>
       <label class="reference-image-field">
         <span>회전</span>
@@ -241,17 +288,29 @@ export function referenceImageEditorMarkup({
       </div>
     </section>
 
-    <section class="reference-image-section reference-image-calibration" aria-labelledby="reference-image-calibration-title">
+    <section id="reference-image-panel-match" data-ref-section="match" role="tabpanel" class="reference-image-section reference-image-calibration" aria-labelledby="reference-image-tab-match"${activeTab === 'match' ? '' : ' hidden'}>
       <div class="reference-image-section-header">
-        <strong id="reference-image-calibration-title">보정</strong>
+        <strong id="reference-image-calibration-title">맞추기 도구</strong>
         <span>${rubberSheetActive ? 'TPS rubber-sheet' : warp?.ok ? warp.mode : '미적용'}</span>
       </div>
+
+      <details class="reference-image-advanced">
+        <summary>고급 보정 방식 및 상세 오차</summary>
       <label class="reference-image-field">
         <span>방식</span>
         <select class="ui-select" data-ref-field="warp"${warpDisabled ? ' disabled' : ''}>${options(warpOptions)}</select>
         <output></output>
       </label>
+      <div class="reference-image-diagnostics" aria-label="보정 진단">
+        <span><small>일반점</small><strong>${record.controlPoints.length}</strong></span>
+        <span><small>고정점</small><strong>${record.anchor ? 1 : 0}</strong></span>
+        <span><small>RMS</small><strong>${diagnostics ? `${numberText(diagnostics.rmsMeters / 1000, 1)} km` : '—'}</strong></span>
+        <span><small>최대</small><strong>${diagnostics ? `${numberText(diagnostics.maxMeters / 1000, 1)} km` : '—'}</strong></span>
+        <span><small>고정 오차</small><strong>${diagnostics && record.anchor ? residualText(diagnostics.hardMaxMeters).replace('오차 ', '') : '—'}</strong></span>
+      </div>
+      </details>
       <div class="reference-image-calibration-actions">
+        <button type="button" class="ui-button btn ghost${calibrationEditing ? ' active' : ''}" data-ref-action="gcp" aria-pressed="${calibrationEditing}"${gcpDisabled ? ' disabled' : ''}>기준점</button>
         <button type="button" class="ui-button btn ghost" data-ref-action="auto-georef"${record.locked || autoGeorefBusy ? ' disabled' : ''}>${autoGeorefBusy ? '자동 분석 중…' : '자동 맞춤'}</button>
         <button type="button" class="ui-button btn ghost${anchorState ? ' active' : ''}" data-ref-action="anchor" aria-pressed="${!!anchorState}"${anchorDisabled ? ' disabled' : ''}>${record.anchor ? '고정점 다시 지정' : '📌 고정점 지정'}</button>
         <button type="button" class="ui-button btn ghost${controlPointEditing ? ' active' : ''}" data-ref-action="gcp-edit" aria-pressed="${controlPointEditing}"${gcpDisabled || !record.controlPoints.length ? ' disabled' : ''}>지도에서 점 편집</button>
@@ -295,18 +354,27 @@ export function referenceImageEditorMarkup({
       </div>` : ''}
       ${linearRows ? `<ol class="reference-image-points" aria-label="선 제약 목록">${linearRows}</ol>` : ''}
 
-      <div class="reference-image-diagnostics" aria-label="보정 진단">
-        <span><small>일반점</small><strong>${record.controlPoints.length}</strong></span>
-        <span><small>고정점</small><strong>${record.anchor ? 1 : 0}</strong></span>
-        <span><small>RMS</small><strong>${diagnostics ? `${numberText(diagnostics.rmsMeters / 1000, 1)} km` : '—'}</strong></span>
-        <span><small>최대</small><strong>${diagnostics ? `${numberText(diagnostics.maxMeters / 1000, 1)} km` : '—'}</strong></span>
-        <span><small>고정 오차</small><strong>${diagnostics && record.anchor ? residualText(diagnostics.hardMaxMeters).replace('오차 ', '') : '—'}</strong></span>
-      </div>
+
 
       ${pointRows.length
         ? `<ol class="reference-image-points" aria-label="기준점 편집">${pointRows.join('')}</ol>`
         : '<div class="reference-image-empty reference-image-points-empty">기준점이 없습니다. 위의 ‘기준점’ 모드에서 이미지와 지도 위치를 차례로 선택하세요.</div>'}
     </section>
+
+    <section id="reference-image-panel-display" data-ref-section="display" role="tabpanel" class="reference-image-section" aria-labelledby="reference-image-tab-display"${activeTab === 'display' ? '' : ' hidden'}>
+      <div class="reference-image-section-header">
+        <strong id="reference-image-appearance-title">표시</strong>
+      </div>
+
+      <label class="reference-image-field">
+        <span>혼합</span>
+        <select class="ui-select" data-ref-field="blend">${blendOptions.map(([value, label]) => `<option value="${value}"${record.blendMode === value ? ' selected' : ''}>${label}</option>`).join('')}</select>
+        <output></output>
+      </label>
+
+    </section>
+
+    </div>
 
     ${warningText ? `<p class="reference-image-warning">${warningText}</p>` : ''}
     ${diagnostics && record.controlPoints.length <= 2 ? '<p class="reference-image-warning">최소 기준점으로 계산한 오차입니다. 0이어도 전체 이미지 정렬의 정확성을 보장하지 않습니다.</p>' : ''}
