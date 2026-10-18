@@ -2373,5 +2373,31 @@
     "cmake": "configure-only, GNU 13.1.0, ZLIB 1.2.13; Qt not requested",
     "appsRun": false,
     "wasmRebuilt": false
+  },
+  "rebuildFollowup": {
+    "compiler": "Emscripten 4.0.20",
+    "buildRun": "https://github.com/kimjeon-il/Pando/actions/runs/39099036063",
+    "artifactCommit": "4355c7ff",
+    "sourceSha256": "5e05e60aa9a8a8209afdfb0bc03fd5503258cbeb34a6f78147d574c59d76564f",
+    "assets": {
+      "js": {
+        "file": "pandoeditor-core.js",
+        "sha256": "2bfd9f4865b051d67d090fe36c284ed9e5f6ecade088416a11a2263563cd019b"
+      },
+      "wasm": {
+        "file": "pandoeditor-core.wasm",
+        "sha256": "8047187f71bd191ed08c6e89313a5cf7f712f1a58ed25607c431fd35bfcc7a4f"
+      }
+    },
+    "relatedRuntimeTests": {
+      "pass": 20,
+      "fail": 0
+    },
+    "fixtureFixes": [
+      "tests/helpers/core-startup.mjs",
+      "tests/helpers/core-selection.mjs"
+    ],
+    "appsRun": false,
+    "deployment": "tracked by main Pages workflow"
   }
 }

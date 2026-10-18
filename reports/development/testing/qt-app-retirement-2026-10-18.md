@@ -1,6 +1,6 @@
 # 구 Qt 앱 전체 제거
 
-> 보고서 ID: DEV-QT-RETIRE-20261018 · 상태: focused-static-verified / wasm-prerequisite-blocked · 지도 반영: not-applicable
+> 보고서 ID: DEV-QT-RETIRE-20261018 · 상태: verified-focused-runtime · 지도 반영: not-applicable
 > 원문 최종 수정: 2026-10-18
 > 조사 기준: 통합 Web/App 커밋 `43d13b10ef0276ada9dd91430d59b3266ae7e286` + work/ui 미커밋 변경
 > 원본·출처: [파일·해시·검사 기록](qt-app-retirement-2026-10-18.json)
@@ -24,8 +24,16 @@
 
 최종 읽기 전용 검토에서 추가 중요 결함은 발견하지 못했다. 현재 JS import, 공유 fixture·terrain 계약 경로, Pages helper 및 P2 연결을 확인했다.
 
-## 막힌 검사 및 미검증
+## 초기 검사 차단 기록
 
 WASM을 실제 로드하는 검사 파일 4개는 `PL-CORE-PREREQUISITE-STALE`로 시작하지 못했다. 기준 커밋부터 `shared/core/src/geometrypredicates.cpp`가 packaged WASM의 소스 pin과 다르다. 이번 `shared/tests/CMakeLists.txt` fixture 경로 변경도 전체 shared 소스 해시에 포함되므로, 후속 WASM 빌드·패키징 후 검사해야 한다. pin을 수동으로 고치거나 검사를 우회하지 않았다.
 
 앱·BAT·Qt/offscreen 화면·대규모 세계 자료·성능·전체 테스트는 실행하지 않았다. 실제 앱 응답성, 새 WASM 빌드 및 배포 성공은 미검증이다. main 병합·커밋·푸시·배포·포터블 제작, SDK/컴파일러/캐시 삭제는 하지 않았다.
+
+## WASM 재빌드 후속 검증
+
+사용자가 WASM 불일치 해결, 커밋·푸시·main 병합·배포를 추가 승인했다. 고정 Emscripten 4.0.20으로 [WASM 전용 P2 실행](https://github.com/kimjeon-il/Pando/actions/runs/39099036063)을 수행했고 빌드·실제 소스 식별값·패키지 해시·관련 계산 검사가 통과했다. 산출물 커밋은 `4355c7ff`다.
+
+앞서 차단됐던 검사 파일 4개를 재실행했다. 테스트 helper 두 곳이 schema v1과 propertyBindings 누락 입력을 만들던 문제는 현재 TIMELINE_RECORD_SCHEMA_VERSION과 빈 propertyBindings를 사용하도록 수정했다. 제품 검증기를 완화하거나 기대값·고정 원본 fixture를 변경하지 않았다. 재실행 결과 20/20 통과이며 선택 14단계, 전체 문서의 저장 시점·Undo/Redo, 새 앱 staging, 참조 이미지 계산을 포함한다. 패키지 검사 및 소스 prerequisite도 통과했다.
+
+새 앱·Qt·BAT·브라우저 UI는 실행하지 않았다. 전체 CI·전체 테스트 통과를 뜻하지 않는다. 후속 Pages 배포 결과는 main의 Pages workflow 실행과 최종 사용자 응답에서 확인한다.

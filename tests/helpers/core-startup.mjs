@@ -1,3 +1,4 @@
+import { TIMELINE_RECORD_SCHEMA_VERSION } from '../../assets/js/modules/timeline-records.js';
 import { createProjectSession } from '../../assets/js/modules/app-project-session.js';
 import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
@@ -31,7 +32,7 @@ export function startupDocument(features=[]) {
     properties:Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.filter(key => Object.hasOwn(feature.properties,key))
       .map(key => [key,feature.properties[key]])) })));
   input.geometries=features.map(feature => ({ id:`startup:${feature.id}`,version:1,geojson:structuredClone(feature.geometry) }));
-  input.timelineRecords={ schemaVersion:1,
+  input.timelineRecords={ schemaVersion:TIMELINE_RECORD_SCHEMA_VERSION,propertyBindings:[],
     lifetimes:features.map(feature => ({ id:`life:${feature.id}`,entityId:feature.id,validFrom:null,validTo:null })),
     geometryBindings:features.map(feature => ({ id:`shape:${feature.id}`,entityId:feature.id,validFrom:null,validTo:null,
       geometryRef:{ id:`startup:${feature.id}`,version:1 } })),

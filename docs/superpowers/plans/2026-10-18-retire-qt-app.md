@@ -16,3 +16,5 @@ Ruling: old Qt-bound geometry adapters are retired with their application; the e
 No Qt application, real-world performance workload, full test suite, SDK cleanup, cache cleanup, main integration, push, deployment or portable creation is authorized here. The machine-readable protected-file inventory is `build-native/qt-retirement/preservation-baseline.json`.
 
 Verification: see reports/development/testing/qt-app-retirement-2026-10-18.md. Core configuration and focused static/publication checks pass; four core-dependent files are blocked by stale WASM source provenance (baseline geometry source plus moved test fixture CMake path). No build, application run or publishing was performed.
+
+Follow-up authorization: the user requested resolving the WASM mismatch, committing/pushing, integrating main and deploying. P2 WASM-only build 39099036063 and local focused runtime checks 20/20 pass; see report follow-up. No app execution or portable packaging.
