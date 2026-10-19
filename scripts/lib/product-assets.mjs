@@ -29,12 +29,14 @@ const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|as
 const slash = path => path.replaceAll('\\', '/');
 const stripQuery = path => path.split(/[?#]/, 1)[0];
 
+export const isEditorOnlyAsset = path => editorOnly.test(path);
+
 export async function collectViewerAssets({ root, availablePaths, readSource = path => readFileSync(resolve(root, path), 'utf8') }) {
   root = resolve(root);
   const available = new Set(availablePaths), selected = new Set(), entries = new Set();
   function include(path) {
     if (path.split('/').some(part=>part==='..'||part==='.') || !/^(?:assets\/|index\.html$|\.nojekyll$)/.test(path)) throw Error(`Non-product dependency: ${path}`);
-    if (editorOnly.test(path)) throw Error(`Viewer reaches editor-only dependency: ${path}`);
+    if (isEditorOnlyAsset(path)) throw Error(`Viewer reaches editor-only dependency: ${path}`);
     if (!available.has(path)) throw Error(`Missing viewer dependency: ${path}`);
     selected.add(path);
     return path;
