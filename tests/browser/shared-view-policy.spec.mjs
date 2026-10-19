@@ -134,3 +134,15 @@ return Object.freeze(Object.fromEntries(Object.entries(domain).map(([key,value])
   expect.soft(result.recoveredDiagnostic?.result,`${mode}: technical diagnostic retained`).toBe('recovered');
  }
 });
+
+
+test('low-resource startup initializes resize state before the renderer requests a quality resize',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
+ await page.addInitScript(()=>{Object.defineProperty(navigator,'deviceMemory',{value:2,configurable:true});Object.defineProperty(navigator,'hardwareConcurrency',{value:2,configurable:true});});
+ await page.goto('/?renderer=canvas');
+ await expect.poll(async()=>errors.length>0||await page.locator('#viewerStatus').getAttribute('data-ready')==='true',{timeout:120000}).toBe(true);
+ expect(errors).toEqual([]);
+ await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+ expect((await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).territorialEntities.length).toBeGreaterThan(0);
+ await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().displayedRevision)).toBeGreaterThan(0);
+});
