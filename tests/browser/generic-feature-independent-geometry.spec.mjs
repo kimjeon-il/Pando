@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { GENERIC_FEATURE_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
@@ -19,7 +20,7 @@ test('restored generic geometry ignores source ownership metadata', async ({ pag
     };
   });
   const geometry = { type: 'Polygon', coordinates: [[[5, 45], [5, 55], [15, 55], [15, 45], [5, 45]]] };
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
   const saved = staticAutosaveProject({
       layerVisibility: { genericFeatures: true },
       genericFeatures: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000006', geometry,
@@ -28,7 +29,7 @@ test('restored generic geometry ignores source ownership metadata', async ({ pag
             details: { legacyGenericSemantics: { ownerId: 'DEU', landBinding: 'hard' } } } } }],
   });
   await page.evaluate(saved => localStorage.setItem('pandolab-editor-project', JSON.stringify(saved)), saved);
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await page.locator('#objectSearchBtn').click();
   await page.locator('#objectSearchInput').fill('독립 형상 검증');

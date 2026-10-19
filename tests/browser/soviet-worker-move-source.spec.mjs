@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 /* global boundaryService: readonly, boundaryFeatures: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -16,7 +17,7 @@ test('Soviet real prepared coast candidate: repeat Worker move and cancellation 
   test.setTimeout(450_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{ timeout:120_000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   await month(page,'1989-06');

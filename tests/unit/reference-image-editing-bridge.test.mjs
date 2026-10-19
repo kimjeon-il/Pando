@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGlobalInputBindings } from '../../assets/js/modules/app-global-input-bindings.js';
+import { createTaskPresentation } from '../../assets/js/modules/app-task-presentation.js';
+import { registerReferenceImageInput, referenceImageNavigationHeld } from '../../assets/js/modules/reference-image-input.js';
 
 test('global input initializes the image bridge through current domain ports', async t => {
   const previousDocument = globalThis.document;
@@ -58,6 +60,68 @@ test('global input initializes the image bridge through current domain ports', a
       reason: 'reference-image-live-wire',
     },
   }]);
+});
+
+test('an open image surface keeps the shared editing instruction current during temporary map navigation', async t => {
+  const previousDocument = globalThis.document;
+  const previousWindow = globalThis.window;
+  const listeners = new Map();
+  globalThis.document = {
+    activeElement: null,
+    querySelectorAll: () => [],
+    addEventListener: (type, listener) => listeners.set(type, listener),
+  };
+  globalThis.window = { addEventListener() {} };
+  const unregister = registerReferenceImageInput({ active: () => false, surfaceOpen: () => true });
+  t.after(() => {
+    unregister();
+    globalThis.document = previousDocument;
+    globalThis.window = previousWindow;
+    delete globalThis.__PANDOLAB_REFERENCE_IMAGE_EDITING__;
+  });
+
+  const state = { tool: 'territorial-border', projectReplacing: false, spacePanActive: false, geometryPreview: { session: null } };
+  const draft = { coords: [[0, 0], [1, 1]], inputPhase: 'refine' };
+  const originalDraft = structuredClone(draft);
+  const instruction = { textContent: '' };
+  const taskPresentation = createTaskPresentation();
+  taskPresentation.connect({
+    projectState: { state },
+    platform: { $: id => id === 'modeTaskInput' ? instruction : null },
+    territorialModel: { entityRepository: { get: () => null } },
+    draftPresentation: { editingDraftSnapshot: () => draft },
+    domains: { projectDomain: { state: () => ({ timelineCursor: '1914-07' }) } },
+  });
+  taskPresentation.syncEditingContext();
+  const editingInstruction = instruction.textContent;
+  assert.equal(editingInstruction, '꼭짓점 드래그: 이동 · Space 누르기: 지도 이동');
+
+  const forcedPan = { gate: false, host: false };
+  const bindings = createGlobalInputBindings();
+  bindings.connect({
+    projectState: { state },
+    domains: { editingDomain: { draftInputActive: () => true } },
+    feedback: { reportOperationError: error => { throw error; } },
+    platform: { $: () => null },
+    lifecycleUi: { mapInteractionGate: { setForcedPan: value => { forcedPan.gate = value; } } },
+    mapView: { mapHost: { setForcedPan: value => { forcedPan.host = value; } } },
+    taskPresentation,
+  });
+  bindings.bindGlobalInputUI();
+  const down = Object.assign(new globalThis.Event('keydown', { cancelable: true }), { key: ' ', code: 'Space' });
+  await listeners.get('keydown')(down);
+  assert.equal(down.defaultPrevented, true);
+  assert.equal(state.spacePanActive, true);
+  assert.equal(referenceImageNavigationHeld(), true);
+  assert.deepEqual(forcedPan, { gate: true, host: true });
+  assert.equal(instruction.textContent, '지도 이동 중 · 놓으면 편집 계속');
+
+  listeners.get('keyup')(Object.assign(new globalThis.Event('keyup'), { key: ' ', code: 'Space' }));
+  assert.equal(state.spacePanActive, false);
+  assert.equal(referenceImageNavigationHeld(), false);
+  assert.deepEqual(forcedPan, { gate: false, host: false });
+  assert.equal(instruction.textContent, editingInstruction);
+  assert.deepEqual(draft, originalDraft);
 });
 
 async function freshBridge(t, editingDomain, reportOperationError) {

@@ -1,0 +1,306 @@
+import { touchGeometry } from './geometry-versions.js';
+/** SpatialIndex: extracted application responsibility.
+ * Dependencies are explicitly wired once by the composition modules.
+ * Mutable bindings stay local; exported accessors retain live identity.
+ */
+export function createSpatialIndex() {
+  let dependencies;
+  let geometryBoundsCache;
+  let mapObjectSpatialIndex;
+  let mapObjectDistributionRowCache;
+  let mapObjectSpatialIndexSources;
+  let mapObjectGeometryRevisions;
+  let viewportCullingMetrics;
+  let applyingMapEditWorkerResult;
+  let mapEditClient;
+  function connect(ports) {
+    if (dependencies) throw new Error('spatial-index already connected');
+    dependencies = ports;
+  }
+
+  function geometryBounds(geometry) {
+    if (!geometry || typeof geometry !== 'object') return [Infinity, Infinity, -Infinity, -Infinity];
+    const cached = geometryBoundsCache.get(geometry);
+    if (cached) return cached;
+    const bounds = (0, dependencies.cutGeometry.coordinateBounds)(geometry.coordinates);
+    geometryBoundsCache.set(geometry, bounds);
+    return bounds;
+  }
+
+  function geometryMayIntersectViewport(geometry, overscan = 48) {
+    const bounds = geometryBounds(geometry);
+    if (!bounds.every(Number.isFinite)) return true;
+    const longitudeSpan = bounds[2] - bounds[0];
+    const latitudeSpan = bounds[3] - bounds[1];
+    // The spatial tier query already removes large objects that cannot meet the
+    // current view. Keep the exact projected test conservative for the remaining
+    // large/date-line candidates so culling never creates a visible false negative.
+    if (longitudeSpan > 40 || latitudeSpan > 40 || longitudeSpan < 0) return true;
+    const samples = [
+      [bounds[0], bounds[1]], [bounds[0], bounds[3]],
+      [bounds[2], bounds[1]], [bounds[2], bounds[3]],
+      [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2],
+    ];
+    const projected = samples
+      .filter(coordinate => dependencies.projectState.state.projection !== 'globe' || (0, dependencies.mapView.isCoordVisible)(coordinate))
+      .map(coordinate => (0, dependencies.mapView.activeProjection)()(coordinate))
+      .filter(Boolean);
+    if (!projected.length) return false;
+    const xs = projected.map(point => point[0]);
+    const ys = projected.map(point => point[1]);
+    return Math.max(...xs) >= -overscan && Math.min(...xs) <= dependencies.projectState.state.size.width + overscan
+      && Math.max(...ys) >= -overscan && Math.min(...ys) <= dependencies.projectState.state.size.height + overscan;
+  }
+
+  function sameSourceParts(left = [], right = []) {
+    return left.length === right.length && left.every((value, index) => value === right[index]);
+  }
+
+  function replaceSpatialDomain(domain, sourceParts, buildRecords) {
+    const previous = mapObjectSpatialIndexSources.get(domain);
+    if (previous && sameSourceParts(previous, sourceParts)) return false;
+    mapObjectSpatialIndex.clearDomain(domain);
+    for (const record of buildRecords()) mapObjectSpatialIndex.upsert(record);
+    mapObjectSpatialIndexSources.set(domain, sourceParts.slice());
+    return true;
+  }
+
+  function visibleFlatGeographicBounds(overscan = 64) {
+    const width = Math.max(1, Number(dependencies.projectState.state.size.width || 1));
+    const height = Math.max(1, Number(dependencies.projectState.state.size.height || 1));
+    const center = (0, dependencies.mapView.screenToGeo)([width / 2, height / 2]) || dependencies.projectState.state.view.flatCenter || [0, 0];
+    const samples = [
+      [-overscan, -overscan], [width / 2, -overscan], [width + overscan, -overscan],
+      [-overscan, height / 2], [width / 2, height / 2], [width + overscan, height / 2],
+      [-overscan, height + overscan], [width / 2, height + overscan], [width + overscan, height + overscan],
+    ].map(dependencies.mapView.screenToGeo).filter(Boolean);
+    if (!samples.length) return [-180, -90, 180, 90];
+    const longitudes = samples.map(coordinate => {
+      let longitude = Number(coordinate[0]);
+      while (longitude - center[0] > 180) longitude -= 360;
+      while (longitude - center[0] < -180) longitude += 360;
+      return longitude;
+    });
+    const latitudes = samples.map(coordinate => Number(coordinate[1]));
+    return [Math.min(...longitudes), Math.max(-90, Math.min(...latitudes)), Math.max(...longitudes), Math.min(90, Math.max(...latitudes))];
+  }
+
+  function visibleMapObjectCandidates(domains) {
+    rebuildMapObjectSpatialIndex();
+    const started = performance.now();
+    const records = dependencies.projectState.state.projection === 'globe'
+      ? mapObjectSpatialIndex.querySphericalCap({
+          center: [-Number(dependencies.projectState.state.view.globeRotation?.[0] || 0), -Number(dependencies.projectState.state.view.globeRotation?.[1] || 0)],
+          radius: 91,
+          domains,
+        })
+      : mapObjectSpatialIndex.query(visibleFlatGeographicBounds(), { domains });
+    viewportCullingMetrics.queryCount += 1;
+    viewportCullingMetrics.candidateCount = records.length;
+    viewportCullingMetrics.queryMs = performance.now() - started;
+    viewportCullingMetrics.lastByDomain[domains.join(',')] = {
+      candidateCount: records.length,
+      queryMs: viewportCullingMetrics.queryMs,
+    };
+    return records;
+  }
+
+  function pointBounds(coordinate) {
+    const longitude = Number(coordinate?.[0]);
+    const latitude = Number(coordinate?.[1]);
+    return Number.isFinite(longitude) && Number.isFinite(latitude)
+      ? [longitude, latitude, longitude, latitude]
+      : null;
+  }
+
+  function rebuildMapObjectSpatialIndex(force = false) {
+    if (force) mapObjectSpatialIndexSources.clear();
+    let changed = false;
+    const territorialEntities = dependencies.territorialModel.entityRepository.list();
+    changed = replaceSpatialDomain('label', [dependencies.projectState.state.labels, dependencies.projectState.state.labels?.length || 0, mapObjectGeometryRevisions.label], () => (dependencies.projectState.state.labels || []).flatMap(label => {
+      const bounds = pointBounds(label.coordinates);
+      return bounds ? [{
+        key: `label:${label.id}`, domain: 'label', type: label.kind || 'label', id: label.id, bounds,
+      }] : [];
+    })) || changed;
+    changed = replaceSpatialDomain('generic', [dependencies.projectState.state.genericFeatures, dependencies.projectState.state.genericFeatures?.length || 0, mapObjectGeometryRevisions.generic], () => (dependencies.projectState.state.genericFeatures || []).flatMap(feature => feature?.geometry ? [{
+        key: `generic:${feature.id}`, domain: 'generic', type: 'feature', id: feature.id,
+        bounds: geometryBounds(feature.geometry),
+      }] : [])) || changed;
+    changed = replaceSpatialDomain('territorial', [territorialEntities, mapObjectGeometryRevisions.territorial], () => territorialEntities.flatMap(feature => feature?.geometry ? [{
+        key: `territorial:entity:${encodeURIComponent(feature.id)}`, domain: 'territorial', type: 'entity', id: feature.id,
+        bounds: geometryBounds(feature.geometry),
+      }] : [])) || changed;
+    const distributionRows = dependencies.domains.renderingDomain?.getDistributionRenderRows?.() || [];
+    if (force || mapObjectSpatialIndexSources.get('distribution')?.[0] !== distributionRows) mapObjectDistributionRowCache.clear();
+    changed = replaceSpatialDomain('distribution', [distributionRows], () => distributionRows.map(row => {
+      mapObjectDistributionRowCache.set(String(row.id), row);
+      return {
+        key: `distribution:${row.id}`, domain: 'distribution', type: 'distribution', id: row.id,
+        bounds: row.bounds,
+      };
+    })) || changed;
+    changed = replaceSpatialDomain('hydro', [dependencies.projectState.state.hydroEdits, dependencies.projectState.state.hydroEdits?.length || 0, mapObjectGeometryRevisions.hydro], () => (dependencies.projectState.state.hydroEdits || []).flatMap(feature => feature?.geometry ? [{
+        key: `hydro:${feature.id}`, domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id,
+        bounds: geometryBounds(feature.geometry),
+      }] : [])) || changed;
+    return changed;
+  }
+
+  function scheduleMapObjectSpatialIndexRebuild() {
+    dependencies.projectState.mapWorkScheduler.scheduleIdle('map-object-spatial-index', () => rebuildMapObjectSpatialIndex(), 40);
+  }
+
+  function selectionQueryBounds(screenPoint, tolerance = 8) {
+    const center = (0, dependencies.mapView.screenToGeo)(screenPoint);
+    if (!center) return null;
+    const samples = [[0, 0], [-tolerance, 0], [tolerance, 0], [0, -tolerance], [0, tolerance],
+      [-tolerance, -tolerance], [tolerance, -tolerance], [-tolerance, tolerance], [tolerance, tolerance]]
+      .map(([dx, dy]) => (0, dependencies.mapView.screenToGeo)([screenPoint[0] + dx, screenPoint[1] + dy]))
+      .filter(Boolean);
+    if (!samples.length) return [center[0], center[1], center[0], center[1]];
+    const longitudes = samples.map(coordinate => {
+      let value = Number(coordinate[0]);
+      while (value - center[0] > 180) value -= 360;
+      while (value - center[0] < -180) value += 360;
+      return value;
+    });
+    const latitudes = samples.map(coordinate => Number(coordinate[1]));
+    return [Math.min(...longitudes), Math.min(...latitudes), Math.max(...longitudes), Math.max(...latitudes)];
+  }
+
+  function indexedMapObjectCandidates(screenPoint) {
+    rebuildMapObjectSpatialIndex();
+    const bounds = selectionQueryBounds(screenPoint, (0, dependencies.surfaces.isMobile)() ? 18 : 11);
+    if (!bounds) return [];
+    const startedAt = performance.now();
+    const candidates = mapObjectSpatialIndex.query(bounds);
+    dependencies.rendering.selectionPerformanceMetrics.indexQueryMs = performance.now() - startedAt;
+    dependencies.rendering.selectionPerformanceMetrics.indexedCandidateCount = candidates.length;
+    return candidates;
+  }
+
+  function indexedDistributionRow(id) {
+    return mapObjectDistributionRowCache.get(String(id)) || null;
+  }
+
+  function rebuildSpatialIndex(features = dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })) {
+    dependencies.projectState.state.spatialIndex = (features || []).map(feature => ({
+      id: String(feature?.id || ''),
+      feature,
+      bounds: geometryBounds(feature.geometry),
+    }));
+  }
+
+  function spatialFeatures(bounds, excludeIds = null) {
+    const excluded = excludeIds ? new Set([...excludeIds].map(String)) : null;
+    return (dependencies.projectState.state.spatialIndex || [])
+      .filter(item => (!excluded || !excluded.has(item.id)) && (0, dependencies.cutGeometry.boundsOverlap)(bounds, item.bounds))
+      .map(item => item.feature);
+  }
+
+  function invalidateGeometryCaches(ids = []) {
+    const wanted = new Set([...ids].map(String));
+    for (const feature of dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })) {
+      if (!wanted.size || wanted.has(String(feature?.id || ''))) {
+        touchGeometry(feature.geometry);
+        geometryBoundsCache.delete(feature.geometry);
+        dependencies.territoryGeometry.ringHitTester.invalidate(feature.geometry);
+        dependencies.labels.countryOutlineCache.delete(feature.geometry);
+      }
+    }
+    if (!wanted.size) rebuildSpatialIndex();
+    else for (const item of dependencies.projectState.state.spatialIndex || []) {
+      if (!wanted.has(item.id)) continue;
+      const feature = dependencies.territorialModel.entityRepository.get(item.id);
+      if (feature) { item.feature = feature; item.bounds = geometryBounds(feature.geometry); }
+    }
+  }
+
+  function markCountryGeometriesChanged(ids = [], { presentation = 'replace-scene' } = {}) {
+    const changed = new Set();
+    for (const rawId of ids) {
+      const id = String(rawId || '');
+      if (!id) continue;
+      changed.add(id);
+      dependencies.projectState.state.pendingCountryRenderIds.add(id);
+    }
+    const currentFeatures = new Map((dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })).map(feature => [
+      String(feature?.id || ''),
+      feature,
+    ]));
+    const features = [];
+    const removedIds = [];
+    for (const id of changed) {
+      const feature = currentFeatures.get(id);
+      if (feature) features.push(feature);
+      else removedIds.push(id);
+    }
+    invalidateGeometryCaches(changed);
+    (0, dependencies.countryCommands.bumpLandRevision)();
+    dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
+    dependencies.projectState.state.boundaryPreparation?.cancel();
+    dependencies.projectState.state.boundaryPreparation = null;
+    dependencies.rendering.gpuMapRenderer.applyCountryPatch(
+      { ids: [...changed], features, removedIds },
+      { presentation },
+    );
+    if (!applyingMapEditWorkerResult) mapEditClient.syncPatch(changed);
+  }
+
+  function initializeGeometryBoundsCache() {
+    (geometryBoundsCache = new WeakMap());
+  }
+
+  function initializeMapObjectSpatialIndex() {
+    (mapObjectSpatialIndex = (0, dependencies.spatialFactories.createMapObjectSpatialIndex)());
+
+    (mapObjectDistributionRowCache = new Map());
+
+    (mapObjectSpatialIndexSources = new Map());
+
+    (mapObjectGeometryRevisions = { label: 0, generic: 0, territorial: 0, hydro: 0 });
+  }
+
+  function initializeViewportCullingMetrics() {
+    (viewportCullingMetrics = {
+      queryCount: 0,
+      candidateCount: 0,
+      finalVisibleCount: 0,
+      projectedVerificationCount: 0,
+      projectedVerificationMs: 0,
+      lastByDomain: {},
+    });
+  }
+
+  function installMapEditClient(client) {
+    if(mapEditClient)throw new Error('The map editing client is already registered.');
+    if(!client||typeof client.execute!=='function')throw new TypeError('A map editing client is required.');
+    applyingMapEditWorkerResult=false;mapEditClient=client;
+  }
+
+  return Object.freeze({
+    connect,
+    initializeGeometryBoundsCache,
+    initializeMapObjectSpatialIndex,
+    initializeViewportCullingMetrics,
+    installMapEditClient,
+    get applyingMapEditWorkerResult() { return applyingMapEditWorkerResult; },
+    set applyingMapEditWorkerResult(value) { applyingMapEditWorkerResult = value; },
+    get geometryBounds() { return geometryBounds; },
+    get geometryBoundsCache() { return geometryBoundsCache; },
+    get geometryMayIntersectViewport() { return geometryMayIntersectViewport; },
+    get indexedDistributionRow() { return indexedDistributionRow; },
+    get indexedMapObjectCandidates() { return indexedMapObjectCandidates; },
+    get mapEditClient() { return mapEditClient; },
+    get mapObjectGeometryRevisions() { return mapObjectGeometryRevisions; },
+    get mapObjectSpatialIndex() { return mapObjectSpatialIndex; },
+    get markCountryGeometriesChanged() { return markCountryGeometriesChanged; },
+    get rebuildMapObjectSpatialIndex() { return rebuildMapObjectSpatialIndex; },
+    get rebuildSpatialIndex() { return rebuildSpatialIndex; },
+    get scheduleMapObjectSpatialIndexRebuild() { return scheduleMapObjectSpatialIndexRebuild; },
+    get spatialFeatures() { return spatialFeatures; },
+    get viewportCullingMetrics() { return viewportCullingMetrics; },
+    get visibleMapObjectCandidates() { return visibleMapObjectCandidates; },
+  });
+}

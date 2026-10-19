@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 for (const renderer of ['webgl2', 'canvas']) {
@@ -10,7 +11,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       if (message.type() === 'warning' || message.type() === 'error') diagnostics.push(message.text());
       if (message.type() === 'error' && message.text().includes('PL-COUNTRY-BOUNDARY')) errors.push(message.text());
     });
-    await page.goto(`/?renderer=${renderer}&demTerrain=raster&debug=1`);
+    await gotoEditor(page, `/?renderer=${renderer}&demTerrain=raster&debug=1`);
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     await page.locator('#mapDisplayBtn').click();
     await page.locator('[data-map-display-row="terrain"]').click();
@@ -39,7 +40,7 @@ test.describe('mobile country-border handoff', () => {
   for (const renderer of ['webgl2', 'canvas']) {
     test(`keeps precise borders visible through zoom without mesh switching (${renderer})`, async ({ page }) => {
       test.setTimeout(150_000);
-      await page.goto(`/?renderer=${renderer}&demTerrain=raster&debug=1`);
+      await gotoEditor(page, `/?renderer=${renderer}&demTerrain=raster&debug=1`);
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
       await expect.poll(() => page.evaluate(() =>
         window.__PANDOLAB_GPU_METRICS__?.countrySharedBoundarySegmentCount || 0),

@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { expect, test } from '@playwright/test';
@@ -38,7 +39,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?demTerrain=raster');
+  await gotoEditor(page, '/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
@@ -186,19 +187,15 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
 
   await page.locator('#mobileFileBtn').click();
   const chooserPromise = page.waitForEvent('filechooser');
+  await page.evaluate(() => { window.__testProjectOpened = false; window.addEventListener('pandolab:project-changed', event => { if (event.detail.reason === 'project-load') window.__testProjectOpened = true; }, { once: true }); });
   await page.locator('#openProjectBtn').click();
   await (await chooserPromise).setFiles({
     name: 'flag-roundtrip.gpkg',
     mimeType: 'application/geopackage+sqlite3',
     buffer: readFileSync(filePath),
   });
-  await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 불러오기', { timeout: 90_000 });
-  await expect(page.locator('#gisStepIndicator')).toHaveText('1/1 · 프로젝트 복원 확인', { timeout: 90_000 });
-  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
-  await expect(page.locator('#gisImportError')).toBeEmpty();
-  await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled();
-  await page.locator('#gisImportConfirmBtn').click();
-  await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 120_000 });
+  await expect.poll(() => page.evaluate(() => window.__testProjectOpened), { timeout: 90_000 }).toBe(true);
+  await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/, { timeout: 90_000 });
   await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/, { timeout: 120_000 });
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), regional.id)).toEqual(regional);
   expect(await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()
@@ -229,7 +226,7 @@ test('GIS data export writes only selected layers and omits project-only metadat
     Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
@@ -268,7 +265,7 @@ test('mobile vector import advances by stage and preserves detected choices when
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
@@ -342,7 +339,7 @@ test('current general GIS import preserves explicit source geometry and existing
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?demTerrain=raster');
+  await gotoEditor(page, '/?demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const readRoots = () => page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id).geometry), roots);
   const before = await readRoots();

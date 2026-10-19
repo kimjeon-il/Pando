@@ -1,7 +1,8 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('desktop display menu becomes visible as soon as it opens', async ({ page }) => {
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
   await page.setContent(`
     <link rel="stylesheet" href="/assets/css/ui.bundle.css">
     <div class="app-root" data-layout="wide">
@@ -19,7 +20,7 @@ test('desktop display menu becomes visible as soon as it opens', async ({ page }
 
 async function openApp(page, viewport) {
   await page.setViewportSize(viewport);
-  await page.goto('/?renderer=canvas');
+  await gotoEditor(page, '/?renderer=canvas');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 }
@@ -68,11 +69,12 @@ test('display and create reuse their DOM when switching between menu and sheet l
   });
 
   await page.locator('#mapDisplayBtn').click();
+  await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(page.locator('#mapDisplaySurface')).toHaveClass(/view-menu-desktop/);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('#mobileMenuBtn').click();
-  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
-  await page.locator('#mobileDisplayBtn').click();
+  // The open surface follows the layout change; toggling again would close it.
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  await expect(page.locator('#mobileDisplayBtn')).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(page.locator('#mapDisplaySurface')).not.toHaveClass(/view-menu-desktop/);
   await expect(page.locator('#mapDisplaySurface')).toHaveCount(1);

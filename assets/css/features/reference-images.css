@@ -22,3 +22,15 @@
     transition: none;
   }
 }
+
+/* P3: the selected image alone owns pointer handles. Space overrides all tools. */
+.map-stage.is-reference-placement-mode[data-reference-pointer="move"] { cursor: move; }
+.map-stage.is-reference-placement-mode[data-reference-pointer="resize"] { cursor: nwse-resize; }
+.map-stage.is-reference-placement-mode[data-reference-pointer="rotate"] { cursor: crosshair; }
+.map-stage.is-reference-free-transform-mode[data-reference-pointer="corner"] { cursor: crosshair; }
+.map-stage.is-reference-gcp-edit-mode[data-reference-pointer="point"] { cursor: move; }
+
+.map-stage.is-reference-map-pan-mode,
+.map-stage.is-reference-space-pan { cursor: grab; }
+.map-stage.is-reference-map-pan-mode.dragging,
+.map-stage.is-reference-space-pan.dragging { cursor: grabbing; }

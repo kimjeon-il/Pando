@@ -104,7 +104,7 @@ test('global blur contains a rejected asynchronous draft cancellation and retain
   const reportDone=new Promise(resolve => { reported=resolve; });
   const owner=createGlobalInputBindings();
   owner.connect(capabilityPortsForFixture(LIFECYCLE_UI_OWNER_PORTS.globalInputBindings,{
-    state: { tool: 'select',projectReplacing: false,spacePanActive: true },
+    state: { tool: 'select',projectReplacing: false,spacePanActive: true },syncEditingContext() {},
     $: () => null,systemThemeQuery: { addEventListener() {} },
     mapInteractionGate: { setForcedPan() {} },
     editingDomain: { cancelActiveGesture: () => pending },

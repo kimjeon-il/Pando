@@ -1,8 +1,9 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
 
 test('GIS export shows one subunit choice and counts subunit-only selection', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#mobileFileBtn').click();
   await page.locator('#dataExportBtn').click();

@@ -1,3 +1,4 @@
+import {DEFAULT_GENERIC_FEATURE_COLOR} from './color-adapter.js';
 import {
   SOURCE_KINDS,
   normalizeSourceProvenance,
@@ -30,7 +31,7 @@ function canonicalProperties(properties = {}) {
     schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION,
     name: text(properties.name),
     notes: text(properties.notes),
-    color: text(properties.color) || '#8c68d8',
+    color: text(properties.color) || DEFAULT_GENERIC_FEATURE_COLOR,
     locked: properties.locked === true,
     source: normalizeSourceProvenance(properties.source, { kind: SOURCE_KINDS.UNSUPPORTED }),
   };

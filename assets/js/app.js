@@ -6,5 +6,5 @@ compositionUrl.searchParams.set('v', revision);
 const { composeApplication } = await import(compositionUrl.href);
 // The standalone shell supplies platform capabilities before the canonical Web bootstrap.
 const platform = globalThis.__PANDOLAB_SHELL_PLATFORM__ || {};
-const application = await composeApplication({ revision, platform });
+const application = await composeApplication({ productMode: 'editor', revision, platform });
 void application.start();

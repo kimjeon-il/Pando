@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProjectSession } from '../../assets/js/modules/app-project-session.js';
+import { createProjectSession } from '../../assets/js/modules/project-session.js';
 import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 import { createNodeCoreDocument } from '../helpers/core-session.mjs';
 import { createCoreDocumentReadModel } from '../../assets/js/modules/core-document-read-model.js';

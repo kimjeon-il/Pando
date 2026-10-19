@@ -73,8 +73,8 @@ test('history UI routes preview/draft/project actions without owning history mut
   const ui = createProjectUiBridge({
     getElement: () => null,
     requireCanonicalData: () => true, getEditingSnapshot: () => ({ processing: false, previewActive: preview }),
-    getDraftSnapshot: () => ({ historyCount: 0, futureCount: 0 }), canUndo: () => true, canRedo: () => false,
-    discardActiveGeometryPreview: () => calls.push('preview'), draftInputActive: () => draft,
+    getDraftSnapshot: () => ({ historyCount: 1, futureCount: 0 }), canUndo: () => true, canRedo: () => false,
+    returnToEditing: () => calls.push('preview'), draftInputActive: () => draft,
     undoDraft: () => calls.push('draft'), undoProject: () => { calls.push('project'); return true; },
     setActionStatus: () => calls.push('status'),
   });
@@ -82,6 +82,24 @@ test('history UI routes preview/draft/project actions without owning history mut
   preview = false; draft = true; await ui.undo();
   draft = false; await ui.undo();
   assert.deepEqual(calls, ['preview', 'draft', 'project', 'status']);
+});
+
+test('preview recovery works without project history and blocks redo and duplicate requests', async () => {
+  const elements = new Map(['undoBtn','redoBtn','mobileUndoBtn','mobileRedoBtn'].map(id => [id, {dataset:{}, setAttribute(){}, removeAttribute(){}}]));
+  let preview = true, draft = false, restored = 0, projectUndos = 0, release;
+  const ui = createProjectUiBridge({getElement: id => elements.get(id), requireCanonicalData: () => true,
+    getEditingSnapshot: () => ({processing:false,previewActive:preview}),
+    getDraftSnapshot: () => ({historyCount:0,futureCount:0}), draftInputActive: () => draft,
+    canUndo: () => false, canRedo: () => true,
+    returnToEditing: async () => {restored++; await new Promise(resolve => {release=resolve;}); preview=false;draft=true;},
+    undoDraft: () => assert.fail('empty draft'), undoProject: () => {projectUndos++;}, setActionStatus() {},
+  });
+  ui.syncHistory();
+  assert.equal(elements.get('undoBtn').disabled,false);
+  assert.equal(elements.get('undoBtn').dataset.tooltip,'미리보기에서 수정으로 돌아가기');
+  assert.equal(elements.get('redoBtn').disabled,true);
+  const pending=ui.undo(); await ui.undo(); assert.equal(restored,1); release(); await pending;
+  await ui.undo(); assert.equal(projectUndos,0); assert.equal(elements.get('undoBtn').disabled,true);
 });
 
 test('new project waits for confirmation and save presenter only changes DOM', () => {
