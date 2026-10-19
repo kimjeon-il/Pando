@@ -1,5 +1,11 @@
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+
+test.beforeEach(async ({ page }) => {
+  // Exercise the real editing runtime without loading an unrelated world project.
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
+});
 
 const EDGE_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAoUlEQVR4nO3QQRHAQAyAwGs1xL+tyGll7D3AAAzPzHwHsrtSf15qv4AG6ABNA3SApgE6QNMAHaBpgA7QNEAHaBqgAzQN0AGaBugATQN0gKYBOkDTAB2gaYAO0DRAB2gaoAM0DdABmgboAE0DdICmATpA0wAdoGmADtA0QAdoGqADNA3QAZoG6ABNA3SApgE6QNMAHaBpgA7QNEAHaBqgAzQ/A0IEQI9OdPoAAAAASUVORK5CYII=',
@@ -73,6 +79,39 @@ async function waitForReady(page) {
   await expect(page.locator('.reference-image-launcher')).toBeVisible();
 }
 
+
+async function pinchReferenceMap(page, uv) {
+  const point = await screenPointForReferenceUv(page, uv);
+  return page.evaluate(({ x, y }) => {
+    const map = document.getElementById('map');
+    const host = window.__PANDOLAB_MAP_HOST__;
+    const view = host.getViewState();
+    const before = JSON.stringify(view);
+    const event = (kind, id, dx, dy) => map.dispatchEvent(new window.PointerEvent(kind, {
+      bubbles: true, cancelable: true, pointerId: id, pointerType: 'touch', button: 0,
+      clientX: x + dx, clientY: y + dy,
+    }));
+    event('pointerdown', 901, 0, 0);
+    event('pointerdown', 902, 30, 0);
+    event('pointermove', 902, 38, 5);
+    event('pointerup', 902, 38, 5);
+    event('pointerup', 901, 0, 0);
+    const after = JSON.stringify(host.getViewState());
+    // The pinch is a dedicated ownership assertion. Restore the camera so
+    // subsequent edge-tracing coordinates measure the same image raster.
+    host.setViewState({
+      projection: view.projection,
+      view: {
+        flatCenter: [...view.flatCenter],
+        flatZoom: view.flatZoom,
+        globeRotation: [...view.globeRotation],
+        globeZoom: view.globeZoom,
+      },
+    });
+    return { before, after };
+  }, point);
+}
+
 test('line refinement accepts a current corner-pin mapping and supports cancel/apply preview flow', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = [];
@@ -96,12 +135,13 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().length || 0)).toBe(1);
 
   const start = page.locator('[data-ref-line-action="start"]');
+  await page.locator('[data-ref-tab="match"]').click();
   await expect(start).toBeVisible();
   await expect(start).toBeDisabled();
 
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
   const geometry = await referenceScreenGeometry(page);
-
+  await page.locator('[data-ref-tab="placement"]').click();
   await page.locator('[data-ref-action="free-transform"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
   const corner = geometry.corners[1];
@@ -118,6 +158,7 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
     return { cornerPin: !!item?.cornerPinEnabled, ready: !!item?.mappingReady };
   })).toEqual({ cornerPin: true, ready: true });
   await page.keyboard.press('Escape');
+  await page.locator('[data-ref-tab="match"]').click();
   await expect(start).toBeEnabled();
 
   const lock = page.locator('[data-ref-field="locked"]');
@@ -129,6 +170,9 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
   await page.locator('[data-ref-line-action="start"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('armed');
   await expect(page.locator('#map')).toHaveClass(/is-reference-line-refine-mode/);
+  const beforePinch = await pinchReferenceMap(page, [0.5, 0.35]);
+  expect(beforePinch.after).not.toBe(beforePinch.before);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('armed');
   await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('idle');
   await expect(page.locator('#map')).not.toHaveClass(/is-reference-line-refine-mode/);

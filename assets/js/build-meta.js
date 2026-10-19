@@ -3,7 +3,11 @@ globalThis.PANDOLAB_BUILD_META = Object.freeze({
   "appVersion": "0.36.0",
   "buildId": "0.36.0-build-44fb6d419771",
   "assetRevision": "0.36.0-build-44fb6d419771",
+<<<<<<< HEAD
   "dataRevision": "data-ff83e20208cb1679da5fc4c99cdede16",
+=======
+  "dataRevision": "data-8b4c3c8f7bbd1df8175c541e8b08318a",
+>>>>>>> origin/main
   "territorialIndex": {
     "encoding": "identity",
     "compressedBytes": 626563,
@@ -23,7 +27,7 @@ globalThis.PANDOLAB_BUILD_META = Object.freeze({
     "encoding": "identity",
     "compressedBytes": 163133,
     "decodedBytes": 163133,
-    "sha256": "a6db8c0067156481e44d0625d08c2adfb69b05af67c370184eda4e19473a259e",
-    "algorithmSourceSha256": "b99d73047055bf6c74a7702fd34cfbb1d863248d2094e76c898b290a6e710f09"
+    "sha256": "a78c2998d676e2d5e257c8ff4c72f95486a5f76f3413d7df50de2fb1d2ab821a",
+    "algorithmSourceSha256": "7aa0b76e1d69612455145b65d258e02046a505bcfb69dfd51086d6450b06430a"
   }
 });
