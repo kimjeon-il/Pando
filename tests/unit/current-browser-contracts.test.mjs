@@ -2,162 +2,56 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { parse as parseYaml } from 'yaml';
-import { APPLICATION_SCOPES, FOCUSED_BROWSER_SPECS, MANUAL_SCOPES, applicationScopes,
-  completeBrowserSpecs, loadRepository, planApplicationChecks, runApplicationPlanner } from '../../scripts/plan-application-checks.mjs';
+import { loadRepository, planApplicationChecks } from '../../scripts/plan-application-checks.mjs';
 
 const workflow = parseYaml(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8'));
 const workflows = ['application-architecture', 'ui-architecture', 'place-runtime', 'reference-image-integration']
   .map(name => ({ name, document: parseYaml(readFileSync(new URL(`../../.github/workflows/${name}.yml`, import.meta.url), 'utf8')) }));
-const specPath = name => `tests/browser/${name}.spec.mjs`;
-const smoke = ['boundary-cut-snapping', 'country-label-flags', 'generic-feature-independent-geometry',
-  'hydro-metadata-edit', 'storage-protection', 'ui-components', 'gis-interchange'].map(specPath).sort();
+const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url), 'utf8'));
+const MANUAL_SCOPES = workflow.on.workflow_dispatch.inputs.browser_scope.options;
 
-function fixtureRepository({ specs = [specPath('changed'), specPath('consumer'), specPath('unrelated')],
-  imports = {}, missing = [], configuration = workflow, cases = {} } = {}) {
-  return { exists: file => !missing.includes(file), browserSpecs: specs, sourceFiles: Object.keys(imports),
-    dependencies: file => imports[file] || [], workflow: configuration, listTests: spec => cases[spec] || [] };
-}
-const plan = (changedFiles, options = {}) => planApplicationChecks({ changedFiles,
-  repository: fixtureRepository(), ...options });
-const allScopes = enabled => Object.fromEntries(APPLICATION_SCOPES.map(name => [name, enabled]));
-
-test('changed specs and transitive helper consumers follow the current graph with cycles', () => {
-  const repository = fixtureRepository({ imports: {
-    [specPath('consumer')]: ['tests/browser/helpers/renamed.mjs'],
-    'tests/browser/helpers/renamed.mjs': ['tests/helpers/leaf.mjs'],
-    'tests/helpers/leaf.mjs': ['tests/browser/helpers/renamed.mjs'],
-  } });
-  assert.deepEqual(plan([specPath('changed'), 'tests/helpers/leaf.mjs'], { repository }).browserSpecs,
-    [specPath('changed'), specPath('consumer')]);
+test('current discovered tests each have one owner; diagnostic purposes and commands remain explicit', () => {
+  const repository = loadRepository(new URL('../../', import.meta.url));
+  assert.equal(repository.owners.size, repository.tests.length);
+  assert.ok(repository.tests.length > 600);
+  for (const group of catalog.groups.filter(group => group.mode === 'manual')) assert.ok(group.reason);
+  for (const group of catalog.groups) assert.notEqual(group.argv?.includes('--grep'), true);
 });
 
-test('conditionally imported diagnostic helpers retain their actual browser consumer', () => {
-  const repository = loadRepository(new URL('../../', import.meta.url), { listTests: () => [] });
-  assert.ok(repository.dependencies('assets/js/workers/data-loader-worker.js')
-    .includes('assets/js/modules/startup-readiness.js'), 'revision query templates preserve their real module pathname');
-  for (const helper of ['long-animation-frame-diagnostics', 'native-action-diagnostics', 'native-action-timeline']) {
-    assert.ok(plan([`tests/browser/helpers/${helper}.mjs`], { repository: { ...repository, sourceFiles: [] } })
-      .browserSpecs.includes(specPath('boundary-cut-snapping')), helper);
-  }
-  assert.deepEqual(plan(['tests/helpers/not-an-import.mjs']).browserSpecs, []);
-});
-
-test('renderer source changes retain bounded scopes and new dependencies inherit their owner', () => {
-  const result = plan(['assets/js/modules/gpu-map-renderer.js']);
-  assert.deepEqual(result.browserSpecs, []);
-  assert.equal(result.scopes.scene_staging, true);
-  assert.equal(result.scopes.boundary_continuity, true);
-  const repository = fixtureRepository({ imports: {
-    'assets/js/modules/render-scene.js': ['assets/js/modules/renamed-render-resource.js'],
-  } });
-  assert.equal(applicationScopes(['assets/js/modules/renamed-render-resource.js'], 'default', 'push', repository).scene_staging, true);
-});
-
-test('infrastructure and fixtures select only the bounded smoke policy', () => {
-  for (const file of ['tests/browser/server.mjs', 'playwright.config.js', 'package.json', 'pnpm-lock.yaml',
-    'eslint.config.js', 'scripts/plan-application-checks.mjs', 'tests/fixtures/renamed-fixture.json']) {
-    assert.deepEqual(plan([file]).browserSpecs, smoke, file);
-  }
-});
-
-test('complete coverage follows current workflow commands instead of copied spec names', () => {
-  const whole = specPath('renamed-whole'), partial = specPath('renamed-partial');
-  const configuration = { jobs: {
-    full: { if: "needs.changes.outputs.scene-staging == 'true'", steps: [{ run: `pnpm exec playwright test ${whole}` }] },
-    partial: { if: "needs.changes.outputs.visual-policy == 'true'", steps: [{ run: `pnpm exec playwright test ${partial} --grep='some behavior'` }] },
-    diagnostic: { if: "github.event_name == 'workflow_dispatch'", steps: [{ run: `pnpm exec playwright test ${partial}` }] },
-  } };
-  assert.deepEqual(plan([whole, partial], { repository: fixtureRepository({ specs: [whole, partial], configuration }) }).browserSpecs, [partial]);
-});
-
-test('matrix-filtered coverage requires discovery to prove all current cases are covered', () => {
-  const spec = specPath('renamed-renderer');
-  const configuration = { jobs: { renderer: {
-    if: "needs.changes.outputs.preview-handoff == 'true'", strategy: { matrix: { backend: ['canvas', 'webgl2'] } },
-    steps: [{ run: `pnpm exec playwright test ${spec} --grep='\${{ matrix.backend }} '` }],
-  } } };
-  assert.deepEqual([...completeBrowserSpecs(configuration, () => ['canvas changed title', 'webgl2 another title'])], [spec]);
-  assert.deepEqual([...completeBrowserSpecs(configuration, () => ['canvas case', 'unfiltered new behavior'])], []);
-  assert.deepEqual([...completeBrowserSpecs(configuration, () => [])], []);
-});
-
-test('current complete jobs avoid duplication while partial jobs keep complete changed specs', () => {
-  const complete = ['edit-preview-handoff', 'territorial-boundary-continuity', 'gpu-scene-staging', 'visual-frame-sync'].map(specPath);
-  const partial = ['selection-interaction-style', 'interaction-unification'].map(specPath).sort();
-  const repository = fixtureRepository({ specs: [...complete, ...partial], configuration: workflow,
-    cases: { [specPath('edit-preview-handoff')]: ['canvas case', 'webgl2 case'] } });
-  assert.deepEqual(plan([...complete, ...partial], { repository }).browserSpecs, partial);
-});
-
-test('default manual dispatch keeps changed specs, bounded smoke and all application scopes', () => {
-  for (const browserScope of [undefined, '', 'default']) {
-    const result = plan([specPath('changed')], { eventName: 'workflow_dispatch', browserScope });
-    assert.deepEqual(result.browserSpecs, [...smoke, specPath('changed')].sort());
-    assert.deepEqual(result.scopes, allScopes(true));
-  }
-});
-
-test('focused dispatches isolate their intended scopes and never inspect the diff', () => {
-  for (const browserScope of MANUAL_SCOPES.filter(scope => scope !== 'default')) {
-    let output;
-    const result = runApplicationPlanner({ env: { GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: browserScope },
-      gitDiff: () => assert.fail('focused dispatch must not inspect git'), repository: fixtureRepository(),
-      writeOutput: value => { output = value; } });
-    assert.deepEqual(result.browserSpecs, FOCUSED_BROWSER_SPECS[browserScope] || []);
-    assert.deepEqual(result.scopes, { ...allScopes(false), preview_handoff: browserScope === 'map-rendering' });
-    assert.ok(output.includes(`current_browser_specs=${JSON.stringify(result.browserSpecs)}`));
-  }
-});
-
-test('automatic events ignore dispatch inputs and share one diff lookup between planners', () => {
-  for (const eventName of ['pull_request', 'push']) for (const browserScope of [...MANUAL_SCOPES, 'unknown']) {
-    const calls = [], outputs = [];
-    const result = runApplicationPlanner({ env: { GITHUB_EVENT_NAME: eventName, BROWSER_SCOPE: browserScope,
-      BASE_SHA: 'fixture-base', HEAD_SHA: 'fixture-head' }, repository: fixtureRepository(),
-    gitDiff: (...args) => { calls.push(args); return [specPath('changed')]; }, writeOutput: value => outputs.push(value) });
-    assert.deepEqual(calls, [['fixture-base', 'fixture-head']]);
-    assert.deepEqual(result.browserSpecs, [specPath('changed')]);
-    assert.equal(outputs.length, 1);
-  }
-});
-
-test('empty initial-push base uses the integration branch as its diff baseline', () => {
-  let from;
-  runApplicationPlanner({ env: { GITHUB_EVENT_NAME: 'push', BASE_SHA: '0000000000', HEAD_SHA: 'current-head' },
-    repository: fixtureRepository(), gitDiff: base => { from = base; return []; }, writeOutput: () => {} });
-  assert.equal(from, 'origin/main');
-});
-
-test('invalid manual scopes fail before git or output and missing required specs fail visibly', () => {
-  for (const browserScope of ['unknown', 'map-rendering; touch sentinel', '$(touch sentinel)']) {
-    assert.throws(() => runApplicationPlanner({ env: { GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: browserScope },
-      repository: fixtureRepository(), gitDiff: () => assert.fail('unexpected diff'),
-      writeOutput: () => assert.fail('unexpected output') }), /Unsupported browser_scope/);
-  }
-  for (const [browserScope, specs] of Object.entries(FOCUSED_BROWSER_SPECS)) for (const missingSpec of specs) {
-    assert.throws(() => plan([], { eventName: 'workflow_dispatch', browserScope,
-      repository: fixtureRepository({ missing: [missingSpec] }) }), { message: `Missing focused browser spec: ${missingSpec}` });
-  }
-  assert.throws(() => plan(['package.json'], { repository: fixtureRepository({ missing: [smoke[0]] }) }), /Missing smoke browser spec/);
-});
-
-test('parsed YAML choices, read permission and outputs agree with the executable planner', () => {
-  const input = workflow.on.workflow_dispatch.inputs.browser_scope;
-  assert.deepEqual(input.options, MANUAL_SCOPES);
-  assert.equal(input.required, false);
-  assert.equal(input.type, 'choice');
-  assert.equal(input.default, 'default');
+test('application CI calls the shared selector and runner; automatic test lists are not copied into YAML', () => {
+  const steps = workflow.jobs.checks.steps;
+  assert.ok(steps.some(step => step.run === 'node scripts/run-application-checks.mjs --list --github-output'));
+  assert.ok(steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --output')));
+  assert.equal(steps.some(step => /node --test|playwright test|pnpm test:unit/.test(step.run || '')), false);
+  assert.equal(workflow.on.push.paths, undefined); assert.equal(workflow.on.pull_request.paths, undefined);
   assert.deepEqual(workflow.permissions, { contents: 'read' });
-  const planner = workflow.jobs.changes.steps.filter(step => step.id === 'plan');
-  assert.equal(planner.length, 1);
-  assert.equal(planner[0].run, 'node scripts/plan-application-checks.mjs --github-output');
-  for (const name of ['BASE_SHA', 'HEAD_SHA', 'BROWSER_SCOPE']) assert.ok(planner[0].env[name]);
-  assert.deepEqual(Object.values(workflow.jobs.changes.outputs).sort(), [...APPLICATION_SCOPES
-    .map(scope => `\${{ steps.plan.outputs.${scope} }}`), '${{ steps.plan.outputs.current_browser_specs }}'].sort());
-  const current = workflow.jobs['current-browser-contracts'];
-  assert.equal(current.strategy['max-parallel'], 2);
-  assert.equal(current.strategy['fail-fast'], false);
-  assert.ok(current.steps.some(step => /playwright\s+test/.test(step.run || '') && step.run.includes('matrix.spec') && !step.run.includes('--grep')));
+  assert.ok(workflow.jobs.changes.steps.find(step => step.id === 'plan').env.HEAD_SHA.includes('pull_request.head.sha'));
+  for (const name of MANUAL_SCOPES.filter(scope => scope.startsWith('boundary-'))) assert.ok(workflow.jobs[name]);
+  for (const name of MANUAL_SCOPES.filter(scope => scope !== 'default' && !scope.startsWith('boundary-'))) assert.ok(catalog.manualScopes[name]);
+});
+
+test('P1/P3 retain native and artifact owners while Web checks share the same runner', () => {
+  for (const name of ['remote-development-p1', 'remote-preview-p3']) {
+    const document = parseYaml(readFileSync(new URL(`../../.github/workflows/${name}.yml`, import.meta.url), 'utf8'));
+    assert.equal(document.on.push.paths, undefined);
+    assert.equal(document.jobs.plan.steps.find(step => step.uses?.startsWith('actions/checkout@')).with['fetch-depth'], 0);
+    const job = document.jobs[name.includes('p1') ? 'web-smoke' : 'web-contracts'];
+    assert.ok(job.steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --output')));
+    assert.equal(job.steps.some(step => /node --test|playwright test/.test(step.run || '')), false);
+  }
+});
+
+test('CSS selects relevant UI checks without C++/GIS build or data generation commands', () => {
+  const repository = loadRepository(new URL('../../', import.meta.url));
+  const plan = planApplicationChecks({ repository, changedFiles: ['assets/css/features/map-rendering.css'] });
+  assert.ok(plan.browserSpecs.includes('tests/browser/ui-components.spec.mjs'));
+  assert.ok(plan.commands.includes('ui-spacing'));
+  assert.deepEqual(plan.externalChecks, []);
+  assert.equal(plan.commands.some(id => catalog.groups.find(group => group.id === id)?.gisNative), false);
+  const worker = planApplicationChecks({ repository, changedFiles: ['assets/js/workers/canvas-render-worker.js'] });
+  assert.ok(worker.browserSpecs.includes('tests/browser/physical-land-time.spec.mjs'));
+  for (const id of ['country-selftest', 'country-validity-canonical', 'country-validity', 'territorial-library-contract'])
+    assert.ok(catalog.groups.some(group => group.id === id && group.argv?.length));
 });
 
 // Parse only the guard-expression subset, without executing YAML as JavaScript.
@@ -199,33 +93,6 @@ function expressionValue(expression, context) {
 }
 const templateValue = (template, context) => template.replace(/\$\{\{\s*([\s\S]*?)\s*\}\}/g,
   (_, expression) => String(expressionValue(expression, context)));
-
-test('one shared core preflight gates dependent jobs and preserves isolated capture dispatches', () => {
-  const steps = workflow.jobs.changes.steps;
-  const prerequisites = steps.filter(step => step.run === 'node scripts/check-core-prerequisite.mjs');
-  assert.equal(prerequisites.length, 1);
-  assert.ok(steps.indexOf(prerequisites[0]) > steps.findIndex(step => step.id === 'plan'));
-  for (const browserScope of MANUAL_SCOPES) {
-    assert.equal(expressionValue(prerequisites[0].if,
-      { github: { event_name: 'workflow_dispatch' }, inputs: { browser_scope: browserScope } }), !browserScope.startsWith('boundary-'));
-  }
-  assert.equal(expressionValue(prerequisites[0].if, { github: { event_name: 'pull_request' }, inputs: {} }), true);
-  for (const job of Object.values(workflow.jobs).filter(job => job !== workflow.jobs.changes)) {
-    assert.ok([job.needs].flat().includes('changes'), 'dependent job must wait for the common prerequisite');
-  }
-});
-
-test('focused dispatches isolate diagnostics and skip the broad command job', () => {
-  for (const browserScope of MANUAL_SCOPES.filter(scope => scope !== 'default')) {
-    const context = { github: { event_name: 'workflow_dispatch' }, inputs: { browser_scope: browserScope } };
-    assert.equal(expressionValue(workflow.jobs['command-contract'].if, context), false);
-    for (const diagnostic of MANUAL_SCOPES.filter(scope => scope.startsWith('boundary-'))) {
-      assert.equal(expressionValue(workflow.jobs[diagnostic].if, context), browserScope === diagnostic);
-    }
-  }
-  assert.equal(expressionValue(workflow.jobs['command-contract'].if,
-    { github: { event_name: 'pull_request' }, inputs: {} }), true);
-});
 
 test('manual capture jobs preserve bounded execution and immutable evidence without exact titles or historical SHA assertions', () => {
   for (const id of MANUAL_SCOPES.filter(scope => scope.startsWith('boundary-'))) {

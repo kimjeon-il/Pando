@@ -1,33 +1,14 @@
 name: P1 Remote development (scoped)
-
 on:
   push:
-    branches: [work/ui, work/objects, work/gis, work/places]
-    paths:
-      - '.github/workflows/remote-development-p1.yml'
-      - 'CMakeLists.txt'
-      - 'CMakePresets.json'
-      - '.nvmrc'
-      - '.python-version'
-      - 'config/toolchain-versions.json'
-      - 'scripts/p1-plan-remote-checks.mjs'
-      - 'tests/unit/p1-remote-scopes.test.mjs'
-      - 'tests/unit/p4-python-isolation.test.mjs'
-      - 'tests/unit/versioning-source-schema.test.mjs'
-      - 'shared/**'
-      - 'tools/**'
-      - 'scripts/**'
-      - 'assets/js/**'
-      - 'assets/css/**'
-      - 'assets/data/**'
-      - 'contracts/**'
-      - 'index.html'
-      - 'tests/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
+    branches:
+      - work/ui
+      - work/objects
+      - work/gis
+      - work/places
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       scope:
@@ -35,15 +16,20 @@ on:
         required: false
         default: auto
         type: choice
-        options: [auto, ui, objects, gis, places, core, wasm, all]
-
+        options:
+          - auto
+          - ui
+          - objects
+          - gis
+          - places
+          - core
+          - wasm
+          - all
 permissions:
   contents: read
-
 concurrency:
   group: p1-remote-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
 jobs:
   plan:
     runs-on: ubuntu-24.04
@@ -63,11 +49,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: .nvmrc
       - name: Verify the same pinned versions and selective scopes
         run: node --test tests/unit/p1-remote-scopes.test.mjs tests/unit/p4-python-isolation.test.mjs tests/unit/versioning-source-schema.test.mjs
       - name: Try shallow-fetching push/PR base for exact changed paths
@@ -84,35 +70,49 @@ jobs:
           PANDO_P1_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
           PANDO_P1_SCOPE: ${{ inputs.scope || 'auto' }}
         run: node scripts/p1-plan-remote-checks.mjs --github-output
-
   web-smoke:
     needs: plan
-    # Automatic contracts run once in P3, after P2 publishes fresh assets.
     if: github.event_name == 'workflow_dispatch' && needs.plan.outputs.web == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-      # No package manager or browser install is needed for these focused Node tests.
-      - name: Run changed Web scope contracts
-        shell: bash
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Select current application checks
+        id: plan
         env:
-          UI: ${{ needs.plan.outputs.ui }}
-          OBJECTS: ${{ needs.plan.outputs.objects }}
-          GIS: ${{ needs.plan.outputs.gis }}
-          PLACES: ${{ needs.plan.outputs.places }}
-        run: |
-          set -euo pipefail
-          if [ "$UI" = true ]; then node --test tests/unit/surface-controller.test.mjs; fi
-          if [ "$OBJECTS" = true ]; then node --test tests/unit/temporal.test.mjs; fi
-          if [ "$GIS" = true ]; then node --test tests/unit/polygon-geometry.test.mjs; fi
-          if [ "$PLACES" = true ]; then node --test tests/unit/place-codec.test.mjs; fi
-
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
+          HEAD_SHA: ${{ github.sha }}
+          CHECK_PROFILE: p1
+          CHECK_SCOPE: ${{ inputs.scope || 'auto' }}
+        run: node scripts/run-application-checks.mjs --list --github-output
+      - name: Install Chromium only for selected browser checks
+        if: steps.plan.outputs.browser == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Install native GIS prerequisites only for selected data checks
+        if: steps.plan.outputs.gis_native == 'true'
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
+      - name: Execute the same checks as local development
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
+          HEAD_SHA: ${{ github.sha }}
+          CHECK_PROFILE: p1
+          CHECK_SCOPE: ${{ inputs.scope || 'auto' }}
+        run: node scripts/run-application-checks.mjs --output "$RUNNER_TEMP/application-checks.json"
+      - name: Upload application check evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-application-checks-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/application-checks.json
+          if-no-files-found: warn
   native-core:
     needs: plan
     if: needs.plan.outputs.core == 'true'
@@ -132,7 +132,6 @@ jobs:
           cmake --preset pando-core
           cmake --build --preset pando-core
           ctest --preset pando-core
-
   gis-cpp-tools:
     needs: plan
     if: needs.plan.outputs.gis_tools == 'true'
@@ -151,17 +150,14 @@ jobs:
           cmake --preset pando-gis-tools
           cmake --build --preset pando-gis-tools
           ctest --preset pando-gis-tools
-
   wasm-compile:
     needs: plan
-    # P2 owns automatic WASM generation on every work branch.
-    # Retain the explicit compiler-only diagnostic.
     if: github.event_name == 'workflow_dispatch' && needs.plan.outputs.wasm == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
-      EMCC_CORES: '1'
-      BINARYEN_CORES: '1'
+      EMCC_CORES: "1"
+      BINARYEN_CORES: "1"
     steps:
       - uses: actions/checkout@v4
         with:
