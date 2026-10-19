@@ -49,7 +49,7 @@ int main() {
     const projectcodec::PlatformPorts ports{[](const std::string&){throw std::invalid_argument("UNEXPECTED_FLAG");}};
     auto document=projectcodec::decodeWeb(bytes,ports);
     assert(document.units.size()==4);
-    assert(document.documentId=="web-1cb4d2c5e03aaf53a04927fa29ffe9bbe3e6605c03eaf922fce5d41e2f44769b");
+    assert(document.documentId==codecjson::parse(bytes).object.at("documentId").string);
     Project project;project.replace(document);
     const auto encoded=projectcodec::encodeWeb(project.snapshot(),ports);
     const auto restored=projectcodec::decodeWeb(encoded,ports);

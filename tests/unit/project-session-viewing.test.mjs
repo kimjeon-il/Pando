@@ -6,9 +6,11 @@ import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import {createTerritorialEntityStore} from '../../assets/js/modules/territorial-entity-store.js';
 import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
 import {DISTRIBUTION_RENDER_MODES} from '../../assets/js/modules/distribution-model.js';
+import {createObjectQuery} from '../../assets/js/modules/object-query.js';
+import {normalizeObjectRef} from '../../assets/js/modules/object-selection-controller.js';
 test('both products use ProjectSession; viewing overrides have no persistence, command or document mutation',async t=>{
  const core=await createNodeCoreProject(createInitialDocument({appVersion:'0.36.0'}),{productMode:'viewer'});t.after(core.dispose);
- const session=createProjectSession({productMode:'viewer'});
+ const session=createProjectSession({productMode:'viewer',resolveVisibilityGroup:createObjectQuery({selectionServices:{normalizeObjectRef}}).layerGroupForObjectRef});
  session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
   uiFactoriesA:{createAtomicMapStateController},modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
   get uiFactoriesB(){return assert.fail('viewer must not register save state');}});
@@ -18,17 +20,39 @@ test('both products use ProjectSession; viewing overrides have no persistence, c
  const before=core.documentModel.snapshot(),beforeState=core.client.state();
  assert.strictEqual(session.state.territorialEntities,core.documentModel.territorialViews());
  assert.strictEqual(session.state.genericFeatures,before.genericFeatures);assert.equal(session.saveState,undefined);
- session.applyViewingPresentation({action:'visibility',key:'countries',visible:false});
- session.applyViewingPresentation({action:'groupStyle',group:'countries',patch:{opacity:.25}});
- assert.equal(session.state.layerPresentation.styles.countries.opacity,.25);
+ session.applyViewingPresentation({action:'visibility',key:'objects',visible:false});
+ session.applyViewingPresentation({action:'groupStyle',group:'objects',patch:{opacity:.25}});
+ assert.equal(session.state.layerPresentation.styles.objects.opacity,.25);
  session.applyViewingPresentation({action:'distributionRenderMode',value:'single'});
  assert.equal(session.state.distributionSettings.renderMode,'single');
  session.setViewingPresentation({physicalSettings:{...session.state.physicalSettings,terrainVisible:false}});
  const viewing=session.captureViewingPresentation();session.setViewingPresentation({},{reset:true});
- assert.equal(session.state.layerVisibility.countries,true);
- session.setViewingPresentation(viewing,{reset:true});assert.equal(session.state.layerVisibility.countries,false);
+ assert.equal(session.state.layerVisibility.objects,true);
+ session.setViewingPresentation(viewing,{reset:true});assert.equal(session.state.layerVisibility.objects,false);
  assert.equal(session.state.physicalSettings.terrainVisible,false);
  assert.deepEqual(core.documentModel.snapshot(),before);assert.deepEqual(core.client.state(),beforeState);
  assert.throws(()=>session.setViewingPresentation({territorialEntities:[]}),/Unknown viewing state/);
  assert.throws(()=>{session.state.labels=[];},TypeError);
+});
+
+
+test('shared workspace restore is document scoped and does not change authored distribution settings',async t=>{
+ const seed=createInitialDocument({appVersion:'test'});
+ const core=await createNodeCoreProject(seed,{productMode:'viewer'});t.after(core.dispose);
+ const session=createProjectSession({productMode:'viewer',resolveVisibilityGroup:createObjectQuery({selectionServices:{normalizeObjectRef}}).layerGroupForObjectRef});
+ session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
+  uiFactoriesA:{createAtomicMapStateController},modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{}});
+ session.initializeMapWorkScheduler();const store=createTerritorialEntityStore({documentModel:core.documentModel,commandOwner:core.client});t.after(store.dispose);
+ session.installDocumentProjection({documentModel:core.documentModel,commandOwner:core.client,entityStore:store});
+ const before=core.documentModel.snapshot();
+ assert.equal(session.restoreViewingPresentation({documentId:'another',viewingPresentation:{layerVisibility:{objects:false}}}),false);
+ assert.equal(session.state.layerVisibility.objects,true);
+ assert.equal(session.restoreViewingPresentation({documentId:seed.documentId,viewingPresentation:{layerVisibility:{objects:false,retiredGroup:false},itemVisibility:{objects:{orphan:false}},distributionSettings:{renderMode:'single',activeLayerId:'missing',boundaryVisible:false}}}),true);
+ assert.equal(session.state.layerVisibility.objects,false);assert.equal('retiredGroup' in session.state.layerVisibility,false);
+ assert.equal(session.state.distributionSettings.activeLayerId,'');assert.equal(session.state.distributionSettings.renderMode,'single');
+ session.applyViewingPresentation({action:'objectVisibility',refs:[{domain:'hydroBuiltin',type:'river',id:'river-123'}],visible:false});
+ session.applyViewingPresentation({action:'objectVisibility',refs:[{domain:'placeBuiltin',type:'city',id:'place-123'}],visible:false});
+ session.pruneViewingItems({countryLabelIds:[]});assert.deepEqual(session.state.itemVisibility.objects,{});
+ assert.equal(session.state.itemVisibility.hydro['river-123'],false);assert.equal(session.state.itemVisibility.labels['place-123'],false);
+ assert.deepEqual(core.documentModel.snapshot(),before);assert.equal(core.client.state().dirty,false);
 });

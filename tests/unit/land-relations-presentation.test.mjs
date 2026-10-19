@@ -21,7 +21,7 @@ async function fixture() {
     feature('moved-child',square(1.1,7.1,1.9,7.9),'moved'),feature('crossed',square(3,3,4,7),'source'),
     feature('unrelated',square(21,1,22,2),'other')];
   const state={territorialEntities:entities,
-    itemVisibility:{subunits:{kept:false,moved:false,'moved-child':false,crossed:false,unrelated:false},countries:{source:false}},
+    itemVisibility:{objects:{source:false,kept:false,moved:false,'moved-child':false,crossed:false,unrelated:false}},
     layerPresentation:normalizeLayerPresentation({objectStyles:Object.fromEntries(['source','kept','moved','moved-child','crossed','unrelated']
       .map((id,index)=>[`territorial:entity:${id}`,{opacity:(index+1)/10}]))})};
   await initializeTestTerritorialState(state);
@@ -53,7 +53,7 @@ test('dependent geometry planning reads immutable proposal views and preserves t
   assert.equal(f.project.snapshot(),before);assert.deepEqual(f.client.state(),clock);
 });
 
-test('one accepted split candidate cleans deleted child appearance, cancels atomically and restores it with Undo',async()=>{
+test('one split candidate cleans authored child appearance and preserves independent viewing through Undo',async()=>{
   globalThis.window=globalThis;
   const f=await fixture(),before=f.project.snapshot(),clock=f.client.state(),plan=splitPlan(f.entityStore.snapshot());
   const operation={commandId:'territorial.patch',targets:[...plan.features.map(row=>row.id),...plan.removedIds]
@@ -69,14 +69,14 @@ test('one accepted split candidate cleans deleted child appearance, cancels atom
   assert.equal(committed.ok,true);assert.equal(f.client.state().stateRevision,clock.stateRevision+1);
   const after=f.project.snapshot();
   for(const id of ['moved','moved-child']) {
-    assert.equal(f.entityRepository.get(id),null);assert.equal(Object.hasOwn(f.state.itemVisibility.subunits,id),false);
+    assert.equal(f.entityRepository.get(id),null);assert.equal(f.state.itemVisibility.objects[id],false);
     assert.equal(Object.hasOwn(f.state.layerPresentation.objectStyles,`territorial:entity:${id}`),false);
   }
   for(const id of ['kept','crossed','unrelated']) {
-    assert.equal(f.state.itemVisibility.subunits[id],before.itemVisibility.subunits[id]);
+    assert.equal(f.state.itemVisibility.objects[id],false);
     assert.deepEqual(f.state.layerPresentation.objectStyles[`territorial:entity:${id}`],before.layerPresentation.objectStyles[`territorial:entity:${id}`]);
   }
-  assert.deepEqual(f.state.itemVisibility.countries,before.itemVisibility.countries);
+  assert.equal(f.state.itemVisibility.objects.source,false);
   assert.deepEqual(f.state.layerPresentation.objectStyles['territorial:entity:source'],before.layerPresentation.objectStyles['territorial:entity:source']);
   assert.equal(await f.project.undo(),true);assert.equal(f.client.state().canUndo,false);assert.deepEqual(f.project.snapshot(),before);
   assert.equal(await f.project.redo(),true);assert.deepEqual(f.project.snapshot(),after);

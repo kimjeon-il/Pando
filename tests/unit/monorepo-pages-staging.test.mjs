@@ -26,8 +26,9 @@ function fixture() {
   put(root, 'assets/js/workers/core-viewer-session-worker.js', '// fixed viewer worker');
   put(root, 'assets/js/app.js', '// editor only');
   put(root, '.nojekyll', '');
-  put(root, 'assets/data/terrain-preview/v0.13.3-p1/manifest.json', '{}');
-  put(root, 'assets/data/hydro/v0.13.2/manifest.json', '{}');
+  put(root, 'assets/data/terrain-preview/v0.13.3-p1/manifest.json', '{"tiles":{}}');
+  put(root, 'assets/data/hydro/v0.13.2/manifest.json', '{"container":{"url":"hydro.bin"},"shards":[]}');
+  put(root, 'assets/data/hydro/v0.13.2/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');
   put(root, 'shared/core/CMakeLists.txt', 'project(shared)');
@@ -58,7 +59,7 @@ test('stages committed viewer assets while excluding editor and repository sourc
   assert.deepEqual(readFileSync(join(stage, 'assets/wasm/pandoeditor-core.wasm')),
     Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
   const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
-  assert.equal(evidence.fileCount, 9);
+  assert.equal(evidence.fileCount, 10);
   assert.equal(evidence.excludedNativeFiles, 1);
   assert.equal(evidence.excludedSharedFiles, 2);
   assert.equal(evidence.excludedAppFiles, 2);
@@ -86,24 +87,24 @@ test('rejects a modified Web file before creating a site', () => {
 
 test('stages committed LF bytes from an equivalent Windows CRLF checkout', () => {
   const { root, stage, manifest } = fixture();
-  put(root, 'assets/data/crlf.txt', 'one\ntwo\n');
-  assert.equal(run('git', ['add', 'assets/data/crlf.txt'], root).status, 0);
+  put(root, 'assets/fonts/crlf.txt', 'one\ntwo\n');
+  assert.equal(run('git', ['add', 'assets/fonts/crlf.txt'], root).status, 0);
   assert.equal(run('git', ['commit', '-q', '-m', 'text'], root).status, 0);
-  put(root, 'assets/data/crlf.txt', 'one\r\ntwo\r\n');
+  put(root, 'assets/fonts/crlf.txt', 'one\r\ntwo\r\n');
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(readFileSync(join(stage, 'assets/data/crlf.txt'), 'utf8'), 'one\ntwo\n');
+  assert.equal(readFileSync(join(stage, 'assets/fonts/crlf.txt'), 'utf8'), 'one\ntwo\n');
 });
 
 test('stages committed bytes when checkout line endings are mixed', () => {
   const { root, stage, manifest } = fixture();
-  put(root, 'assets/data/crlf.txt', 'one\ntwo\nthree\n');
-  assert.equal(run('git', ['add', 'assets/data/crlf.txt'], root).status, 0);
+  put(root, 'assets/fonts/crlf.txt', 'one\ntwo\nthree\n');
+  assert.equal(run('git', ['add', 'assets/fonts/crlf.txt'], root).status, 0);
   assert.equal(run('git', ['commit', '-q', '-m', 'text'], root).status, 0);
-  put(root, 'assets/data/crlf.txt', 'one\r\ntwo\nthree\r\n');
+  put(root, 'assets/fonts/crlf.txt', 'one\r\ntwo\nthree\r\n');
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(readFileSync(join(stage, 'assets/data/crlf.txt'), 'utf8'), 'one\ntwo\nthree\n');
+  assert.equal(readFileSync(join(stage, 'assets/fonts/crlf.txt'), 'utf8'), 'one\ntwo\nthree\n');
 });
 
 test('refuses to stage inside the repository or overwrite a prior artifact', () => {

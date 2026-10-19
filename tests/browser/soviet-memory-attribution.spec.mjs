@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromiumProcessPss, createWorkerMemoryProbe, summarizeMemoryPhases } from './helpers/soviet-memory-attribution.mjs';
@@ -6,10 +6,7 @@ import { chromiumProcessPss, createWorkerMemoryProbe, summarizeMemoryPhases } fr
 test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
 
 async function setMonth(page, month) {
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill(month);
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  await setEditorMonth(page, month);
 }
 
 async function waitForSettledWork(page) {
@@ -44,7 +41,7 @@ async function snapshot(page, cdp, workerProbe, label) {
       + Number(gpu.polygonOverlay?.activeBufferBytes || 0) + Number(gpu.selection?.activeBufferBytes || 0)
       + Number(gpu.terrainCacheBytes || 0) + Number(gpu.hydroCacheBytes || 0);
     return {
-      month: document.querySelector('#timelineMonthInput')?.value ?? null,
+      month: window.__testEditorTimeline.month() ?? null,
       boundaryReplacementPending: gpu.countrySharedBoundaryReplacementPending ?? null,
       renderer: gpu.renderer,
       gpu: {

@@ -90,7 +90,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   const hydroEditById=physicalSettings.hydroEditById,hydroById=physicalSettings.hydroFeatureById;
   const labelById=id=>labelOwner.labelById(id);
 
-  const readPorts={projectState:{state},territorialModel:{entityRepository:repository,DISTRIBUTION_MODES},
+  const readPorts={projectSession,domains:{projectDomain,get selectionDomain(){return documentSession.selectionDomain;}},projectState:{state},territorialModel:{entityRepository:repository,DISTRIBUTION_MODES},
     colorModel:{COLOR_DOMAINS,readDomainColor,countryDefaultColor,DEFAULT_GENERIC_FEATURE_COLOR,defaultCountryColor:feature=>countryDefaultColor(feature)||theme().defaultLand},
     objectDefinitions:{MAP_OBJECT_CATEGORIES,MAP_OBJECT_TYPES},
     objectPresentation,hydroModel:{hydroFeatureById:hydroById},labelPresentation:{labelById,pendingCountryLabelAnchors:new Set(),countryLabelAnchors:new Map()},
@@ -160,7 +160,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   spatialIndex.connect({projectState:{state,mapWorkScheduler},territorialModel:{entityRepository:repository},cutGeometry:{coordinateBounds},
     mapView:mapProjection,spatialFactories:{createMapObjectSpatialIndex},domains:{get renderingDomain(){return renderingDomain;}},surfaces:{isMobile},rendering:{get selectionPerformanceMetrics(){return selectionPerformanceMetrics;}}});
   spatialIndex.initializeGeometryBoundsCache();spatialIndex.initializeMapObjectSpatialIndex();spatialIndex.initializeViewportCullingMetrics();
-  Object.assign(readPorts,{navigation,objectModelB:{territorialScope},countries:{validLabelAnchor:countryIndex.validLabelAnchor},surfaces:{isMobile},feedback:{setActionStatus:onStatus}});
+  Object.assign(readPorts,{navigation,objectModelB:{territorialScope},countries:{validLabelAnchor:countryIndex.validLabelAnchor,builtinTerritorialScene:builtinSession.builtinTerritorialScene},surfaces:{isMobile},feedback:{setActionStatus:onStatus}});
   const countryPorts={projectState:{state,mapWorkScheduler},platform:{d3,deepClone:structuredClone,runtimeAssetUrl},
     countries:{builtinTerritorialScene:builtinSession.builtinTerritorialScene,territorialLabelFeatureById:builtinSession.territorialLabelFeatureById,
       PRISTINE_LABEL_ANCHORS:builtinSession.PRISTINE_LABEL_ANCHORS},
@@ -301,7 +301,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
     },
     cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
-    prepareBuiltinProject:builtinSession.prepareProjectBaseline,
+    prepareBuiltinProject:async()=>{const baseline=await builtinSession.prepareProjectBaseline();return {...baseline,setup:{initialMonth:baseline.sourceMonth,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}};},
     placeSelectionReferences:labelOwner.builtinPlaceSelectionReferences,hydroSelectionReferences:physicalResources.builtinHydroSelectionReferences,
     objectPicking,closeObjectChooser:objectPicking.closeObjectChooser,objectCatalog,objectQuery,refreshSelection:()=>renderingDomain.invalidateSelection(),
     capturePresentation:projectSession.captureViewingPresentation,

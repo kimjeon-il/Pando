@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import {mkdir,writeFile} from 'node:fs/promises';
 
@@ -9,10 +9,7 @@ test('enumerate visible editable 1989 Soviet coastline vertices and nearby sourc
   await gotoEditor(page, '/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:120000});
   await page.locator('#flatBtn').evaluate(button=>button.click());
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill('1989-06');
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({timeout:90000});
+  await setEditorMonth(page, '1989-06');
   await expect.poll(()=>page.evaluate(()=>!!window.PANDOLAB_TERRITORIAL.get('state:soviet-union')),
     {timeout:90000}).toBe(true);
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('state:soviet-union'));

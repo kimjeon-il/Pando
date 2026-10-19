@@ -18,6 +18,7 @@ function fixture() {
   put('assets/js/modules/read.js', 'export const value = 1;');
   put('assets/js/app.js'); put('assets/js/bootstrap.js'); put('assets/js/modules/app-composition.js');
   put('reports/a.md'); put('tools/run.mjs'); put('assets/data/world/a.bin');
+  put('assets/data/world/current.json', JSON.stringify({assets:{canonicalMesh:{url:'world/a.bin'}}}));
   return { root, files, put, collect: () => collectViewerAssets({ root, availablePaths: [...files.keys()] }) };
 }
 
@@ -28,6 +29,15 @@ test('viewer closure includes static and query-versioned dynamic imports but exc
   const paths = await f.collect();
   for (const path of ['assets/js/modules/value.js', 'assets/js/modules/lazy.js', 'assets/data/world/a.bin', 'assets/css/viewer.css']) assert.ok(paths.has(path), path);
   for (const path of ['assets/js/app.js', 'assets/js/bootstrap.js', 'assets/js/modules/app-composition.js', 'reports/a.md', 'tools/run.mjs']) assert.equal(paths.has(path), false, path);
+});
+
+test('viewer data closure follows current manifest references and excludes source, old versions and orphan assets',async()=>{
+ const f=fixture();
+ for(const path of ['assets/data/territorial-entities/source/countries/raw.json','assets/data/prepared-polygons/generated/v1/old.bin','assets/data/world/orphan.bin'])f.put(path);
+ const paths=await f.collect();
+ assert.ok(paths.has('assets/data/world/a.bin'));
+ for(const path of ['assets/data/territorial-entities/source/countries/raw.json','assets/data/prepared-polygons/generated/v1/old.bin','assets/data/world/orphan.bin'])assert.equal(paths.has(path),false,path);
+ f.files.delete('assets/data/world/a.bin');await assert.rejects(f.collect(),/missing/i);
 });
 
 test('viewer closure rejects missing, editor-only and unresolved dynamic dependencies', async () => {
@@ -60,4 +70,7 @@ test('actual viewer graph contains render and read Workers without editor execut
     assert.equal(paths.has(`assets/js/${name}`), false, name);
   assert.ok(paths.has('assets/js/vendor/sql/sql-wasm.wasm'));
   assert.ok(paths.has('assets/js/workers/gpkg-read-core.js'));
+  assert.equal(paths.has('assets/js/modules/timeline-comparison.js'),false);
+  assert.equal(paths.has('assets/data/prepared-polygons/generated/v1/manifest.json'),false);
+  assert.equal([...paths].some(path=>path.startsWith('assets/data/territorial-entities/source/')),false);
 });

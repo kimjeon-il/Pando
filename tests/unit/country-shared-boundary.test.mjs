@@ -30,7 +30,7 @@ test('production theme applies effective country opacity once to shared and nati
   const previousDocument = globalThis.document;
   try {
     globalThis.document = Object.assign(new globalThis.EventTarget(), { documentElement: { dataset: { theme: 'dark' } } });
-    const layerPresentation = normalizeLayerPresentation({ styles: { countries: { opacity: 0.5 } } });
+    const layerPresentation = normalizeLayerPresentation({ styles: { objects: { opacity: 0.5 } } });
     const env = createEnvironment();
     env.connect({ projectState: { state: { physicalSettings: { terrainVisible: false }, layerPresentation } },
       applicationServicesB: { layerStyle } });
@@ -38,7 +38,7 @@ test('production theme applies effective country opacity once to shared and nati
     const features = [rectangle('LEFT', 0, 0, 1, 1), rectangle('RIGHT', 1, 0, 2, 1)];
     const packet = prepareCountrySharedBoundaryPacket(buildCountrySharedBoundarySegments(features), features);
     const batches = globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(packet, theme, true,
-      () => layerStyle(layerPresentation, 'countries'));
+      () => layerStyle(layerPresentation, 'objects'));
     assert.ok(batches.length > 0);
     assert.equal(theme.borderAlpha, 0.46);
     for (const batch of batches) assert.equal(batch.style.alpha, theme.borderAlpha);
@@ -52,8 +52,8 @@ test('pending country packet preserves the production theme opacity until native
     globalThis.document = Object.assign(new globalThis.EventTarget(), { documentElement: { dataset: { theme: 'dark' } } });
     const entity = createTerritorialFeature({ id: 'LEFT', entityKind: 'general', geometry: rectangle('LEFT', 0, 0, 1, 1).geometry });
     const state = { territorialEntities: [entity], physicalSettings: { terrainVisible: false },
-      pendingCountryRenderIds: new Set(['LEFT']), layerVisibility: { countries: true },
-      layerPresentation: normalizeLayerPresentation({ styles: { countries: { opacity: 0.5 } } }) };
+      pendingCountryRenderIds: new Set(['LEFT']), layerVisibility: { objects: true },
+      layerPresentation: normalizeLayerPresentation({ styles: { objects: { opacity: 0.5 } } }) };
     await initializeTestTerritorialState(state);
     const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
     const repo = createTerritorialEntityRepository({ entityStore: store });

@@ -26,7 +26,7 @@ export function captureWebHistorySelectionContract() {
     advanceRevision: () => { state.stateRevision += 1; } });
   const service = createTerritorialApplicationService({ entityStore, entityRepository, commandPipeline: pipeline,
     createId: () => { throw new Error('This small fixture must not create IDs'); } });
-  const project = createProjectDomain({ history, saveState, getSnapshot: owner.snapshotEditable,
+  const project = createProjectDomain({ productMode:'editor', history, saveState, getSnapshot: owner.snapshotEditable,
     prepareRestore: async value => value, replaceSnapshot: value => entityStore.restoreProject(value) });
   const entity = { domain: 'territorial', type: 'entity', id: 'A' };
   const builtin = { domain: 'label', type: 'city', id: 'builtin:place:fixture:1' };
