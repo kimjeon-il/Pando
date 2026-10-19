@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
@@ -7,7 +8,7 @@ for (const cancelFirst of [true, false]) {
 test(`startup save conflict restores safely ${cancelFirst ? 'after cancel and persistent retry' : 'with an immediate choice'}`, async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
     const save = name => ({ ...staticAutosaveProject({
       sourceInfo: { name },
       genericFeatures: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000010', geometry: { type: 'Point', coordinates: [1, 2] },
@@ -30,7 +31,7 @@ test(`startup save conflict restores safely ${cancelFirst ? 'after cancel and pe
       };
     });
   }, { dbProject, localProject });
-  await page.goto('/?renderer=canvas');
+  await gotoEditor(page, '/?renderer=canvas');
   await expect(page.locator('#confirmModal')).toBeVisible();
   await expect(page.locator('#confirmModalTitle')).toHaveText('저장본 선택');
   if (cancelFirst) {
@@ -69,7 +70,7 @@ test(`startup save conflict restores safely ${cancelFirst ? 'after cancel and pe
 }
 
 test('real GIS GeoJSON export and reimport preserve original provenance and details', async ({ page }) => {
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
   await page.addScriptTag({ url: '/assets/js/gis-adapters.js' });
   await page.addScriptTag({ url: '/assets/js/gis-io.js' });
   const result = await page.evaluate(async project => {
@@ -125,7 +126,7 @@ test('failed reference-image initial read blocks additions and retry reads safel
       return open(name, ...args);
     };
   });
-  await page.goto('/?renderer=canvas');
+  await gotoEditor(page, '/?renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#referenceImageBtn').click();
   await expect(page.locator('[data-ref-storage-message]')).toContainText('원본을 보존');

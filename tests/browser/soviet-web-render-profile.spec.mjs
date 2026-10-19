@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 // The production historical-world baseline, not the web-shell's two-country
@@ -8,7 +9,7 @@ test('1989 Soviet WebGL interaction work with and without selection', async ({ p
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() =>
     window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer), { timeout: 30_000 }).toBe('webgl2');

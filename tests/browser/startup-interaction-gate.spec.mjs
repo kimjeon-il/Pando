@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
@@ -33,7 +34,7 @@ test('canonical geometry request waits for a complete quiet input window', async
     }, { once: true });
   });
 
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
   for (const lazyAsset of [

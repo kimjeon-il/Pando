@@ -47,23 +47,26 @@ test('touch and a pointer outside the map cannot display country hover', () => {
 });
 
 for (const dismissal of ['pointerdown', 'resize', 'keydown']) test(`fresh same-country movement resumes after ${dismissal} without a new domain hover change`, async () => {
-  const { createSelectionDomain } = await import('../../assets/js/modules/selection-domain.js');
+  const { createNodeSelection } = await import('../helpers/core-selection.mjs');
   const state = fixture();
-  const domain = createSelectionDomain({ onHoverChanged: snapshot => state.controller.setMapHover(snapshot.hover ? { name: snapshot.hover.id } : null) });
+  const owner = await createNodeSelection({ onHoverChanged: snapshot => state.controller.setMapHover(snapshot.hover ? { name: snapshot.hover.id } : null) });
+  const domain=owner.domain;
+  try {
   const move = (x, extra = {}) => state.document.dispatch('pointermove', { clientX: x, clientY: 100, pointerType: 'mouse', buttons: 0, target: { closest: selector => selector === '#map' ? {} : null }, ...extra });
   const ref = { domain: 'territorial', type: 'entity', id: 'A' };
-  move(100); domain.setHover(ref, { source: 'map' });
+  move(100); await domain.setHover(ref, { source: 'map' });
   const before = domain.snapshot();
   assert.equal(state.tooltip.classList.contains('hidden'), false);
   (dismissal === 'resize' ? state.window : state.document).dispatch(dismissal, { key: 'Escape' });
   assert.equal(state.tooltip.classList.contains('hidden'), true);
   move(100); assert.equal(state.tooltip.classList.contains('hidden'), true, 'stationary pointer does not undo dismissal');
-  move(101); domain.setHover(ref, { source: 'map' });
+  move(101); await domain.setHover(ref, { source: 'map' });
   assert.equal(state.tooltip.classList.contains('hidden'), false);
   assert.equal(domain.snapshot(), before, 'canonical same-ref hover remains deduplicated');
   assert.equal(domain.size(), 0);
-  domain.setHover(null, { source: 'map' }); assert.equal(state.tooltip.classList.contains('hidden'), true);
-  move(102); domain.setHover(ref, { source: 'map' }); assert.equal(state.tooltip.classList.contains('hidden'), false);
+  await domain.setHover(null, { source: 'map' }); assert.equal(state.tooltip.classList.contains('hidden'), true);
+  move(102); await domain.setHover(ref, { source: 'map' }); assert.equal(state.tooltip.classList.contains('hidden'), false);
+  } finally { owner.dispose(); }
 });
 
 test('dismissed map hover stays suppressed during buttons, gestures, touch and overlays', () => {

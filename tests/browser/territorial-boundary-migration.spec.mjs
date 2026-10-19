@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 1366, height: 900 }, trace: 'off', actionTimeout: 10_000, reducedMotion: 'reduce',
@@ -5,7 +6,7 @@ test.use({ viewport: { width: 1366, height: 900 }, trace: 'off', actionTimeout: 
 
 test('dense connected WebGL strokes preserve visible dash gaps', async ({ page, baseURL }) => {
   const site = process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`;
-  await page.goto(new URL('assets/js/build-meta.js', site).href);
+  await gotoEditor(page, new URL('assets/js/build-meta.js', site).href);
   const result = await page.evaluate(async site => {
     const { createRenderDevice } = await import(new URL('assets/js/modules/render-device.js', site).href);
     const { createGpuStrokeRenderer } = await import(new URL('assets/js/modules/gpu-stroke-renderer.js', site).href);
@@ -40,7 +41,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     const errors = [];
     page.on('pageerror', error => { errors.push(error.message); console.log(error.stack); });
     const query = `?debug=1&demTerrain=raster&renderer=${renderer}`;
-    await page.goto(process.env.PANDOLAB_TEST_SITE_URL ? new URL(query, process.env.PANDOLAB_TEST_SITE_URL).href : `/${query}`);
+    await gotoEditor(page, process.env.PANDOLAB_TEST_SITE_URL ? new URL(query, process.env.PANDOLAB_TEST_SITE_URL).href : `/${query}`);
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click({ timeout: 30_000 });
     await page.locator('#objectSearchInput').fill('홍콩');

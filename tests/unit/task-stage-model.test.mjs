@@ -51,3 +51,14 @@ test('task workflow presentation derives territorial type without raw unit stora
   assert.equal(view.resultLabel, '합칠 객체');
   assert.deepEqual(view.resultRefs.map(ref => [ref.type, ref.id]), [['entity', 'region-b']]);
 });
+
+test('editing context distinguishes inspection, impact, preview and temporary panning', async () => {
+ const {editingContextPresentation}=await import('../../assets/js/modules/app-task-stage-model.js');
+ const state={tool:'territorial-border',geometryPreview:{session:null}};
+ const options={state,draft:{coords:[[0,0]],inputPhase:'refine'},month:'1914-07',targets:[{name:'A'},{name:'B'}]};
+ const draft=editingContextPresentation(options);assert.equal(draft.stage,'초안');assert.equal(draft.period,'변경 기간 계산 전');assert.match(draft.view,/월 말/);
+ state.geometryPreview.session={temporalImpact:[{entityId:'A',from:'1914-07-01',until:'1915-01-01'}]};
+ const preview=editingContextPresentation(options);assert.equal(preview.stage,'미리보기');assert.match(preview.period,/1915-01-01 전까지/);assert.equal(preview.targetSummary,'A 외 1개');
+ state.spacePanActive=true;assert.equal(editingContextPresentation(options).instruction,'지도 이동 중 · 놓으면 편집 계속');
+ state.geometryPreview.session.status='applying';assert.equal(editingContextPresentation(options).stage,'적용 중');
+});

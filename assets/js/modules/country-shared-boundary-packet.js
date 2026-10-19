@@ -147,7 +147,7 @@ export function createCountrySharedBoundaryState() {
 
 // Keep each owner set contiguous so the GPU can apply the same per-country
 // visibility rule as Canvas without rebuilding geometry when visibility flips.
-export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES } = {}) {
+export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES, includeOutlines = true } = {}) {
   const store = preparedStore || createPreparedBoundaryStore();
   if (!preparedStore) store.replace(features);
   segments = segments.map(segment => segment.refs || !features.length ? segment : attachBoundarySegmentReferences(segment, store));
@@ -205,7 +205,7 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
   // Indexing/owner selection stays Worker-local; a single C++ call owns
   // all collinearity projections, interval union and remaining source edges.
   const pendingOutlines = [];
-  for (const id of [...outlineIds].sort()) {
+  for (const id of includeOutlines ? [...outlineIds].sort() : []) {
     if (byId.get(id).boundaryRootId !== id) continue;
     // Stream the geometry only for a root whose exterior needs clipping.
     // View/camera updates reuse the prepared GPU packet and never visit it.

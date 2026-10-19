@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 /* global boundaryState: readonly, latestMessage: readonly, queued: readonly, draining: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -36,7 +37,7 @@ test('1989 Soviet to modern produces matching country contacts with bounded sour
   let cdp = null, probe = null;
   page.on('pageerror', error => errors.push(error.message));
   try {
-    await page.goto('/?perf=1&renderer=webgl2');
+    await gotoEditor(page, '/?perf=1&renderer=webgl2');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
     await expect.poll(() => page.evaluate(() => {
       const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;

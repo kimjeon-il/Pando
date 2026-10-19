@@ -1,4 +1,5 @@
 import { COUNTRY_DEFAULT_COLORS } from './country-default-colors.js';
+export const DEFAULT_GENERIC_FEATURE_COLOR='#8c68d8';
 
 export const COLOR_DOMAINS = Object.freeze({
   TERRITORIAL: 'territorial',
@@ -8,11 +9,11 @@ export const COLOR_DOMAINS = Object.freeze({
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
-export function normalizeColorValue(value, fallback = '#8c68d8') {
+export function normalizeColorValue(value, fallback = DEFAULT_GENERIC_FEATURE_COLOR) {
   const candidate = String(value || '').trim();
   if (HEX_COLOR.test(candidate)) return candidate.toLowerCase();
   const safeFallback = String(fallback || '').trim();
-  return HEX_COLOR.test(safeFallback) ? safeFallback.toLowerCase() : '#8c68d8';
+  return HEX_COLOR.test(safeFallback) ? safeFallback.toLowerCase() : DEFAULT_GENERIC_FEATURE_COLOR;
 }
 
 function explicitColor(domain, target) {
@@ -22,7 +23,7 @@ function explicitColor(domain, target) {
   return '';
 }
 
-export function readDomainColor(domain, target = {}, { fallback = '#8c68d8', inherited = '' } = {}) {
+export function readDomainColor(domain, target = {}, { fallback = DEFAULT_GENERIC_FEATURE_COLOR, inherited = '' } = {}) {
   const rawExplicit = String(explicitColor(domain, target) || '').trim();
   const explicit = HEX_COLOR.test(rawExplicit) ? rawExplicit.toLowerCase() : '';
   const base = inherited || fallback;
@@ -33,7 +34,7 @@ export function readDomainColor(domain, target = {}, { fallback = '#8c68d8', inh
   };
 }
 
-export function writeDomainColor(domain, target = {}, value, { clear = false, fallback = '#8c68d8' } = {}) {
+export function writeDomainColor(domain, target = {}, value, { clear = false, fallback = DEFAULT_GENERIC_FEATURE_COLOR } = {}) {
   const color = clear ? '' : normalizeColorValue(value, fallback);
   if (domain === COLOR_DOMAINS.TERRITORIAL && target.feature?.properties) {
     target.feature.properties.style = { ...(target.feature.properties.style || {}) };

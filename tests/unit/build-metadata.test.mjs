@@ -10,9 +10,14 @@ test('published metadata verifies actual manifest bytes and rejects stale hashes
   const root=mkdtempSync(join(tmpdir(),'pando-build-meta-'));
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   const put=(path,bytes)=>{mkdirSync(dirname(join(root,path)),{recursive:true});writeFileSync(join(root,path),bytes);};
-  put('scripts/generate-build-metadata.mjs',readFileSync(new URL('../../scripts/generate-build-metadata.mjs',import.meta.url)));
+  put('scripts/generate-build-metadata.mjs',readFileSync(new URL('../../scripts/generate-build-metadata.mjs',import.meta.url),'utf8')
+    .replace('./lib/product-assets.mjs',new URL('../../scripts/lib/product-assets.mjs',import.meta.url).href));
   put('package.json','{"version":"1.2.3"}');put('README.md','# Pando v1.2.3\n');
-  put('index.html','<div data-app-version="1.2.3"></div><script src="assets/js/vendor/d3.min.js?v=old"></script>');
+  put('index.html','<script src="assets/js/build-meta.js"></script><script src="assets/js/vendor/d3.min.js"></script><script type="module" src="assets/js/viewer.js"></script>');
+  put('.nojekyll','');put('assets/js/viewer.js',"import './main.js';");
+  put('assets/js/vendor/d3.min.js','globalThis.d3 = {};');
+  put('assets/js/app.js','export const editor = true;');
+  put('apps/web-shell/editor.html','<base href="../../" data-product-base="editor" /><script src="assets/js/app.js?v=old"></script>');
   put('assets/js/main.js','export const current = true;');
   put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META = Object.freeze({});\n');
   for(const path of ['world/current.json','terrain-preview/v0.13.3-p1/manifest.json','hydro/v0.13.2/manifest.json',
@@ -22,6 +27,11 @@ test('published metadata verifies actual manifest bytes and rejects stale hashes
   const run=(...args)=>execFileSync(process.execPath,['scripts/generate-build-metadata.mjs',...args],{
     cwd:root,env:{...process.env,PANDOLAB_BUILD_ID:'fixed-source'},stdio:'pipe'});
   run();run('--check');
+  const viewerHtml=readFileSync(join(root,'index.html'),'utf8');
+  assert.equal([...viewerHtml.matchAll(/<script src="assets\/js\/build-meta\.js\?v=/g)].length,1);
+  assert.match(viewerHtml,/src="assets\/js\/viewer\.js\?v=1\.2\.3-build-fixed-source"/);
+  assert.doesNotMatch(readFileSync(join(root,'index.html'),'utf8'),/assets\/js\/app\.js/);
+  assert.match(readFileSync(join(root,'apps/web-shell/editor.html'),'utf8'),/assets\/js\/app\.js\?v=1\.2\.3-build-fixed-source/);
   put(history,'{"sourceMonth":"2026-10","revision":2}\n');
   assert.throws(()=>run('--check'),/Command failed/);
   run();run('--check');

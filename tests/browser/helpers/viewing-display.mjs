@@ -1,0 +1,21 @@
+export async function setViewingProjection(page,kind){
+ if(page.viewportSize().width<800){await page.locator('#mobileMenuBtn').click();await page.locator('#mobileDisplayBtn').click();}
+ else await page.locator('#mapDisplayBtn').click();
+ if(page.viewportSize().width>=800)await page.locator('#mapProjectionMenuTrigger').click();
+ await page.locator(kind==='flat'?'#flatBtn':'#globeBtn').click();
+}
+export async function setViewingLayer(page,group,value){
+ if(page.viewportSize().width>=800){
+  if(['countries','subunits'].includes(group)){const parent=page.locator('[data-map-display-row="general"]');if(await parent.getAttribute('aria-expanded')!=='true')await parent.click();}
+  const trigger=page.locator(`[data-map-display-row="${group}"]`);if(await trigger.getAttribute('aria-expanded')!=='true')await trigger.click();
+ }else if(['countries','subunits'].includes(group)){
+  const button=page.locator('[data-map-display-row="general"]');
+  if(await button.getAttribute('aria-expanded')!=='true')await button.click();
+ }
+ const input=page.locator(`#${group}Visible`);
+ if(await input.isChecked()!==value)await input.locator('..').click();
+}
+export async function closeViewingDisplay(page){
+ if(page.viewportSize().width>=800)await page.locator('#mapDisplayBtn').click();
+ else {await page.locator('#mobileMenuBtn').click();await page.locator('#mobileDisplayBtn').click();}
+}

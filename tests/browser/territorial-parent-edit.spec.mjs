@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -7,7 +8,7 @@ test('parent changes replace type conversion while preserving entity ID, kind, g
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60000 });
   const before = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL'));
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('IRL'));

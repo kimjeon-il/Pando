@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { TERRAIN_RASTER_VERSION } from '../../assets/js/modules/terrain-manifest.js';
 
@@ -21,7 +22,7 @@ async function openApp(page, { waitForCanonical = true, url = '/' } = {}) {
       errors.push(`${response.status()} ${response.url()}`);
     }
   });
-  await page.goto(url);
+  await gotoEditor(page, url);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   if (waitForCanonical) await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
@@ -77,7 +78,7 @@ test('bootstrap loading card keeps fixed copy and only changes for real startup 
   ]) {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ colorScheme });
-    await page.goto('/');
+    await gotoEditor(page, '/');
     await expect(page.locator('#bootstrapLoading')).toBeVisible();
     const card = await page.locator('.bootstrap-loading-card').evaluate(element => {
       const text = element.querySelector('#bootstrapLoadingText');
@@ -360,7 +361,7 @@ test('a stale HTML shell recovers once through the current asset revision', asyn
       : freshHtml;
     await route.fulfill({ response, body });
   });
-  await page.goto('/?stale-shell=1');
+  await gotoEditor(page, '/?stale-shell=1');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   expect(shellRequests).toBe(2);
@@ -398,7 +399,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
     contentType: 'text/html',
     body: '<!doctype html><meta charset="utf-8"><title>map edit worker test</title><script src="/assets/js/vendor/d3.min.js"></script>',
   }));
-  await page.goto('/__map-edit-worker-test.html');
+  await gotoEditor(page, '/__map-edit-worker-test.html');
   const result = await page.evaluate(async () => {
   const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r44');
     let workerError = '';
@@ -497,7 +498,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
 });
 
 test('river territory partition Worker returns disjoint donor cells', async ({ page }) => {
-  await page.goto('/');
+  await gotoEditor(page, '/');
   const result = await page.evaluate(async () => {
     const worker = new Worker('/assets/js/workers/river-territory-partition-worker.js?v=0.30.0-r44', { type: 'module' });
     const donor = {

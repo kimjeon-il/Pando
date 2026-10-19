@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { openLibrary, importFiniteSource } from './helpers/library-state.mjs';
 
@@ -36,7 +37,7 @@ for(const renderer of ['webgl2','canvas']) test(`${renderer}: North Schleswig ex
 test('catalog search loads only the index and repeated selection loads one unchanged country chunk',async({page},testInfo)=>{
   test.setTimeout(120_000);
   const requests=[];page.on('request',request=>requests.push(request.url()));
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90_000});
   expect(requests.filter(url=>url.includes('/territorial-entities/'))).toEqual([]);
   await page.locator('#createMenuBtn').click();await page.locator('#addFromLibraryBtn').click();

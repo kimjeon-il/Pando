@@ -1,6 +1,7 @@
-import { beginReferenceImageGesture, referenceImageInputActive } from './reference-image-input.js';
 
 export function createMapInputPresentation({
+  productMode='editor',
+  referenceInput=null,
   getElement: $,
   window,
   d3,
@@ -38,8 +39,10 @@ export function createMapInputPresentation({
   getTerritorialLabelRef,
   reportOperationError,
 } = {}) {
+  const editing=productMode==='editor';
   if (typeof reportOperationError!=='function') throw new TypeError('Map editing input requires its operation error reporter.');
   const clearDraftHover = async reason => {
+    if(!editing)return false;
     try { return await editingDomain.clearDraftHover(reason); }
     catch (error) { reportOperationError(error,'PL-DRAFT-HOVER-001');return false; }
   };
@@ -92,7 +95,7 @@ export function createMapInputPresentation({
     if (point) suppressNextMapClick(point);
     renderingDomain?.endInteraction?.('viewport-culling-settle');
     gpuMapRenderer.prioritizeLatest();
-    projectDomain.queueViewAutosave();
+    if(editing)projectDomain.queueViewAutosave();
   }
 
   function bindMapInputPresentation(svg) {
@@ -101,11 +104,11 @@ export function createMapInputPresentation({
       // Own the complete map surface so native touch/pinch gestures cannot
       // escape through a child SVG hit target and become page zoom.
       element: $('map'),
-      beginExternalGesture: (point, event) => getInputSnapshot().projectReplacing ? null : beginReferenceImageGesture(point, event, { spacePan: getInputSnapshot().spacePanActive }),
+      beginExternalGesture: (point,event)=>getInputSnapshot().projectReplacing||!referenceInput?null:referenceInput.beginGesture(point,event,{spacePan:getInputSnapshot().spacePanActive}),
       interactiveTarget: (target, event) => {
         if (getInputSnapshot().projectReplacing) return true;
-        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel')) return true;
-        if (referenceImageInputActive()) return false;
+        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel,.reference-image-workflow-guide')) return true;
+        if(referenceInput&&referenceInput.isActive())return false;
         if (target?.closest?.('.map-overlay-layer')) return true;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);
@@ -129,6 +132,7 @@ export function createMapInputPresentation({
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
       },
       canDirectTap: () => {
+        if(!editing)return false;
         const input = getInputSnapshot();
         if (input.projectReplacing) return false;
         if (input.tool === 'move') return false;
@@ -143,6 +147,7 @@ export function createMapInputPresentation({
       canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'territorial-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
       suppressClick: suppressNextMapClick,
       canDrawStroke: () => {
+        if(!editing)return false;
         if (getInputSnapshot().projectReplacing) return false;
         const active = editingDomain?.draftInputActive?.() && getDraftSnapshot().inputPhase === 'draw' && !getInputSnapshot().spacePanActive;
         mapInteractionGate.setDraftInputActive(active);
@@ -180,12 +185,12 @@ export function createMapInputPresentation({
     hoverSurface.on('mouseover.map-input', preservePeerLabelHover);
     hoverSurface.on('mousemove.map-input', function() {
       if (getInputSnapshot().projectReplacing) return;
-      const draft = getDraftSnapshot();
-      if (draft.strokeActive) return;
+      const draft = editing?getDraftSnapshot():null;
+      if (draft?.strokeActive) return;
       // Draft controls own segment/vertex/insert hover, including its cleanup.
       // Their bubbling events must not erase the target they just published.
       if (d3.event.target?.closest?.('.draft-interactive')) return;
-      if (draft.dragging) {
+      if (draft?.dragging) {
         clearDraftHover('draft-interactive-hover');
         return;
       }
@@ -209,14 +214,14 @@ export function createMapInputPresentation({
           && input.territorySelectionSession.stage === 'selection'
           && input.territorySelectionSession.activePhase === 'drawing'
           && ['line', 'polygon'].includes(input.territorySelectionSession.activeMethod);
-        if ((isGenericFeatureDraftTool(input.tool) || territoryDraft) && draft.inputPhase === 'draw' && draft.coords.length) {
+        if (editing&&(isGenericFeatureDraftTool(input.tool) || territoryDraft) && draft.inputPhase === 'draw' && draft.coords.length) {
           dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
         }
         if (getInputSnapshot().tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape, .territorial-unit-shape, .distribution-shape')) {
           queueCountryHoverPick(screenPoint, coord);
         }
       } else {
-        dispatchEditingInteraction('draft-hover-clear');
+        if(editing)dispatchEditingInteraction('draft-hover-clear');
         cancelCountryHoverPick({ clear: true });
         clearHoverHit();
         setHover(null, { source: 'map' });
@@ -225,7 +230,7 @@ export function createMapInputPresentation({
 
     hoverSurface.on('mouseleave.map-input', function() {
       cancelCountryHoverPick();
-      dispatchEditingInteraction('draft-hover-clear');
+      if(editing)dispatchEditingInteraction('draft-hover-clear');
       clearHoverHit();
       setHover(null, { source: 'map' });
     });
