@@ -78,6 +78,9 @@ jobs:
           - overlay
           - line-refine
           - live-wire
+          - ux
+          - auto-workflow
+          - auxiliary-surface
     steps:
       - name: Checkout
         uses: actions/checkout@v4
