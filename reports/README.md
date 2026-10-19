@@ -40,6 +40,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `UI-CHECK-AUTOMATION-20261019` | [코드 변경과 검사 자동 선택·실행 연동](development/testing/check-automation-2026-10-19.md) | 2026-10-20 | `local-validation / known-product-failures / unpublished` | `not-applicable` |
 | `UI-SHARED-VIEWING-20261019` | [공통 지도·열람 구조 정리 구현과 검증](development/testing/shared-viewing-cleanup-2026-10-19.md) | 2026-10-19 | `local-validation / native-unverified / unpublished` | `not-applicable` |
 | `UI-COAST-RECURRENCE-20261019` | [해안 점선 재발·수정 유실 여부와 경계 규칙 분기 조사](development/testing/child-coast-recurrence-audit-2026-10-19.md) | 2026-10-19 | `deployment-parity-confirmed / recurrence-not-reproduced / not-fixed` | `not-applicable` |
 | `UI-EMPTY-TIME-LAND-20261019` | [객체가 없는 시점의 육지 소실 원인 조사](development/testing/empty-time-land-mask-2026-10-19.md) | 2026-10-19 | `reproduced / cause-confirmed / not-fixed / native-unverified` | `not-applicable` |

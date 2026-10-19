@@ -1,125 +1,46 @@
 name: UI Architecture
-
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - 'assets/css/**'
-      - 'assets/js/**'
-      - 'index.html'
-      - 'scripts/check-ui-*.mjs'
-      - 'scripts/lib/**'
-      - 'scripts/build-ui-bundle.mjs'
-      - 'scripts/lib/application-source.mjs'
-      - 'tests/fixtures/**'
-      - 'scripts/check-object-registry.mjs'
-      - 'tests/unit/surface-controller.test.mjs'
-      - 'tests/unit/object-registry.test.mjs'
-      - 'tests/unit/territorial-info-period.test.mjs'
-      - 'tests/unit/territorial-property-controller.test.mjs'
-      - 'tests/unit/object-property-controller.test.mjs'
-      - 'tests/unit/territorial-service.test.mjs'
-      - 'tests/browser/info-tab-v9.spec.mjs'
-      - 'docs/architecture/ui-*.md'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/ui-architecture.yml'
-  push:
-    branches:
-      - main
-    paths:
-      - 'assets/css/**'
-      - 'assets/js/**'
-      - 'index.html'
-      - 'scripts/check-ui-*.mjs'
-      - 'scripts/lib/**'
-      - 'scripts/build-ui-bundle.mjs'
-      - 'scripts/lib/application-source.mjs'
-      - 'tests/fixtures/**'
-      - 'scripts/check-object-registry.mjs'
-      - 'tests/unit/surface-controller.test.mjs'
-      - 'tests/unit/object-registry.test.mjs'
-      - 'tests/unit/territorial-info-period.test.mjs'
-      - 'tests/unit/territorial-property-controller.test.mjs'
-      - 'tests/unit/object-property-controller.test.mjs'
-      - 'tests/unit/territorial-service.test.mjs'
-      - 'tests/browser/info-tab-v9.spec.mjs'
-      - 'docs/architecture/ui-*.md'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/ui-architecture.yml'
-
-# Automatic runs share their current PR/ref; manual diagnostics and reruns stay isolated.
+  workflow_dispatch: {}
 concurrency:
-  group: >-
-    ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1
-    && format('{0}-{1}', github.event_name, github.event.pull_request.number || github.ref)
-    || format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
-  cancel-in-progress: >-
-    ${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 }}
-
+  group: ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 && format('{0}-{1}', github.event_name, github.event.pull_request.number || github.ref) || format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 }}
 permissions:
   contents: read
-
 jobs:
-  ui-contract:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v4
         with:
-          version: 11.19.0
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Check UI contracts
-        run: pnpm check:ui
-
-      - name: Check current info presenter and metadata contracts
-        run: |
-          pnpm exec eslint assets/js/modules/object-property-controller.js tests/unit/object-property-controller.test.mjs assets/js/modules/territorial-property-controller.js assets/js/modules/territorial-service.js assets/js/modules/app-domain-assembly.js assets/js/modules/app-environment.js tests/unit/territorial-info-period.test.mjs tests/unit/territorial-property-controller.test.mjs tests/unit/territorial-service.test.mjs tests/browser/info-tab-v9.spec.mjs
-          node --test tests/unit/object-property-controller.test.mjs tests/unit/territorial-info-period.test.mjs tests/unit/territorial-property-controller.test.mjs tests/unit/territorial-service.test.mjs tests/unit/territorial-metadata-command.test.mjs tests/unit/label-metadata-edit.test.mjs tests/unit/hydro-metadata-edit.test.mjs
-
-  info-tab:
-    name: Info tab hierarchy, focus and metadata UI
-    needs: ui-contract
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.19.0
-          run_install: false
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Install Chromium
+      - run: pnpm install --frozen-lockfile
+      - name: Select current application checks
+        id: plan
+        env:
+          BASE_SHA: origin/main
+          HEAD_SHA: ${{ github.sha }}
+        run: node scripts/run-application-checks.mjs --list --github-output --group ui,ui-contracts,ui-architecture,ui-spacing,ui-components,ui-layering,ui-ia,object-registry
+      - name: Install Chromium only for selected browser checks
+        if: steps.plan.outputs.browser == 'true'
         run: pnpm exec playwright install --with-deps chromium
-      - name: Verify actual info tab editing and focus
-        run: pnpm exec playwright test tests/browser/info-tab-v9.spec.mjs
-      - name: Upload info tab browser evidence
+      - name: Install native GIS prerequisites only for selected data checks
+        if: steps.plan.outputs.gis_native == 'true'
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
+      - name: Execute the same checks as local development
+        env:
+          BASE_SHA: origin/main
+          HEAD_SHA: ${{ github.sha }}
+        run: node scripts/run-application-checks.mjs --output "$RUNNER_TEMP/application-checks.json" --group ui,ui-contracts,ui-architecture,ui-spacing,ui-components,ui-layering,ui-ia,object-registry
+      - name: Upload application check evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: info-tab-v9-evidence
-          path: test-results
-          if-no-files-found: error
+          name: ui-architecture-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/application-checks.json
+          if-no-files-found: warn

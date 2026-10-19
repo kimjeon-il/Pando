@@ -20,7 +20,7 @@ export function classifyP3(paths,{web}={},scope='auto') {
     'tests/unit/p3-remote-plan.test.mjs','tests/browser/p3-remote-preview.spec.mjs',
     'CMakePresets.json','config/toolchain-versions.json'
   ].includes(path));
-  const webTouched=infra||paths.some(p=>/^(assets\/|index\.html$|\.nojekyll$|contracts\/|tests\/browser\/|playwright\.config\.js$|shared\/)/.test(p));
+  const webTouched=infra||paths.some(p=>/^(apps\/web-shell\/|assets\/|index\.html$|\.nojekyll$|contracts\/|tests\/browser\/|playwright\.config\.js$|shared\/)/.test(p));
   const preview=availableWeb && scope!=='off' && (scope==='all'||
     scope==='preview'||scope==='browser'||(scope==='auto'&&webTouched));
   const browser=availableWeb && scope!=='off' && (scope==='all'||

@@ -1,127 +1,46 @@
 name: Place Runtime
-
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - 'assets/js/modules/camera-navigation.js'
-      - 'assets/js/modules/app-capability-ports-object-editing.js'
-      - 'assets/js/modules/app-project-snapshots.js'
-      - 'assets/js/modules/app-object-commands.js'
-      - 'assets/js/modules/app-capability-ports-project-io.js'
-      - 'assets/js/modules/object-search-controller.js'
-      - 'assets/js/modules/place-*.js'
-      - 'assets/js/modules/label-layout.js'
-      - 'assets/js/modules/user-preferences.js'
-      - 'assets/js/modules/app-map-settings.js'
-      - 'tools/build-place-runtime.mjs'
-      - 'reports/places/runtime-release-approvals-v1.json'
-      - 'reports/places/tier1-major-cities-batch*.json'
-      - 'assets/data/places/**'
-      - 'contracts/places/**'
-      - 'tests/unit/place-sync-contract.test.mjs'
-      - 'assets/js/modules/project-state.js'
-      - 'assets/js/modules/rendering-domain.js'
-      - 'assets/js/workers/place-worker.js'
-      - 'assets/js/workers/worker-rpc-host.js'
-      - 'tests/helpers/place-*.mjs'
-      - 'tests/unit/camera-navigation.test.mjs'
-      - 'tests/unit/object-search-controller.test.mjs'
-      - 'tests/unit/place-*.test.mjs'
-      - 'tests/unit/project-state.test.mjs'
-      - 'tests/unit/place-interaction-runtime.test.mjs'
-      - 'tests/unit/worker-rpc.test.mjs'
-      - 'tests/browser/place-runtime.spec.mjs'
-      - 'tests/fixtures/**'
-      - 'tests/helpers/**'
-      - 'tests/browser/server.mjs'
-      - 'playwright.config.js'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'eslint.config.js'
-      - '.github/workflows/place-runtime.yml'
-
-# Automatic runs share their current PR/ref; manual diagnostics and reruns stay isolated.
+  workflow_dispatch: {}
 concurrency:
-  group: >-
-    ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1
-    && format('{0}-{1}', github.event_name, github.event.pull_request.number || github.ref)
-    || format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
-  cancel-in-progress: >-
-    ${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 }}
-
+  group: ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 && format('{0}-{1}', github.event_name, github.event.pull_request.number || github.ref) || format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 }}
 permissions:
   contents: read
-
 jobs:
-  place-runtime:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v4
         with:
-          version: 11.19.0
-          run_install: false
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Lint place runtime
-        run: >-
-          pnpm exec eslint
-          assets/js/modules/camera-navigation.js
-          assets/js/modules/app-capability-ports-object-editing.js
-          assets/js/modules/app-project-snapshots.js
-          assets/js/modules/app-object-commands.js
-          assets/js/modules/app-capability-ports-project-io.js
-          assets/js/modules/object-search-controller.js
-          assets/js/modules/place-contract.js
-          assets/js/modules/place-codec.js
-          assets/js/modules/place-runtime.js
-          assets/js/modules/place-worker-store.js
-          assets/js/modules/project-state.js
-          assets/js/modules/rendering-domain.js
-          assets/js/workers/place-worker.js
-          assets/js/workers/worker-rpc-host.js
-          tests/helpers/place-synthetic.mjs
-          tests/unit/camera-navigation.test.mjs
-          tests/unit/object-search-controller.test.mjs
-          tests/unit/place-codec.test.mjs
-          tests/unit/place-label-workflow.test.mjs
-          tests/unit/place-layout.test.mjs
-          tests/unit/place-million.test.mjs
-          tests/unit/place-runtime.test.mjs
-          tests/unit/place-worker-store.test.mjs
-          tests/unit/project-state.test.mjs
-          tests/unit/place-interaction-runtime.test.mjs
-          tests/unit/worker-rpc.test.mjs
-          tests/browser/place-runtime.spec.mjs
-      - name: Check portable Web/native place contract
-        run: pnpm check:place-sync
-      - name: Check 163 explicitly approved city publication
-        run: node tools/build-place-runtime.mjs --check && node --test tests/unit/place-publication.test.mjs
-      - name: Run focused unit regressions
-        run: >-
-          node --test
-          tests/unit/camera-navigation.test.mjs
-          tests/unit/object-search-controller.test.mjs
-          tests/unit/place-codec.test.mjs
-          tests/unit/place-label-workflow.test.mjs
-          tests/unit/place-layout.test.mjs
-          tests/unit/place-runtime.test.mjs
-          tests/unit/place-worker-store.test.mjs
-          tests/unit/project-state.test.mjs
-          tests/unit/place-interaction-runtime.test.mjs
-          tests/unit/worker-rpc.test.mjs
-      - name: Run million-place gate
-        run: node --test tests/unit/place-million.test.mjs
-      - name: Install Chromium
+      - run: pnpm install --frozen-lockfile
+      - name: Select current application checks
+        id: plan
+        env:
+          BASE_SHA: origin/main
+          HEAD_SHA: ${{ github.sha }}
+        run: node scripts/run-application-checks.mjs --list --github-output --group places,place-contracts,places-runtime
+      - name: Install Chromium only for selected browser checks
+        if: steps.plan.outputs.browser == 'true'
         run: pnpm exec playwright install --with-deps chromium
-      - name: Run browser regression (production Canvas backend)
-        run: pnpm exec playwright test tests/browser/place-runtime.spec.mjs
+      - name: Install native GIS prerequisites only for selected data checks
+        if: steps.plan.outputs.gis_native == 'true'
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
+      - name: Execute the same checks as local development
+        env:
+          BASE_SHA: origin/main
+          HEAD_SHA: ${{ github.sha }}
+        run: node scripts/run-application-checks.mjs --output "$RUNNER_TEMP/application-checks.json" --group places,place-contracts,places-runtime
+      - name: Upload application check evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: place-runtime-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/application-checks.json
+          if-no-files-found: warn
