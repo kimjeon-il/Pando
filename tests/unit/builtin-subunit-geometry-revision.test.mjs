@@ -44,19 +44,19 @@ test('boundary projection keeps non-native children and resolves independent set
   const child = createTerritorialFeature({ id: builtinSubunitId('HKG'), entityKind: 'general', parentId: 'CHN',
     geometry: square(1), metadata: { builtinSubunit: { sourceCountryId: 'HKG' } } });
   const entities = [parent, child];
-  const state = { layerVisibility: { countries: false, subunits: true }, layerPresentation: { styles: { subunits: { opacity: 0.4 } } } };
+  const state = { layerVisibility: { objects: true }, layerPresentation: { styles: { objects: { opacity: 0.4 } } } };
   const owner = createBuiltinSession();
   owner.connect({ projectState: { state },
     objectModelB: { territorialScope: { displayEntities: () => entities } },
     territorialModel: { entityRepository: { list: () => entities, get: id => entities.find(entity => entity.id === id) } },
     objectDefinitions: { builtinSubunitSourceId }, applicationServicesB: { layerStyle },
-    layerPresentation: { isLayerItemVisible: (group, id) => group === 'subunits' && id === child.id } });
+    layerPresentation: { isLayerItemVisible: (group, id) => group === 'objects' && id === child.id } });
   owner.installCanonicalCountryStore({ ids: () => ['CHN', 'HKG'], materializeCollectionSync: () => ({ features: [] }),
     materializeFeature: () => null, geometryEquals: () => true });
   assert.equal(owner.isNativeBuiltinSubunit(child), false);
   assert.deepEqual(owner.builtinTerritorialScene().boundaryCollection.features.map(feature => feature.id), ['CHN', 'HKG']);
   assert.equal(owner.renderCountryBoundaryStyle('HKG').opacity, 0.4);
   assert.equal(owner.renderCountryBoundaryStyle('CHN'), null);
-  state.layerPresentation = { styles: { subunits: { opacity: 0.4, boundaryVisible: false } } };
+  state.layerPresentation = { styles: { objects: { opacity: 0.4, boundaryVisible: false } } };
   assert.equal(owner.renderCountryBoundaryStyle('HKG'), null);
 });

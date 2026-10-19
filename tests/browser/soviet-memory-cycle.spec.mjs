@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 
@@ -95,10 +95,7 @@ async function sample(page, cdp, label, { collectMainGarbage = false } = {}) {
 }
 
 async function setMonth(page, month) {
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill(month);
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  await setEditorMonth(page, month);
 }
 
 async function geometryIdentity(page) {

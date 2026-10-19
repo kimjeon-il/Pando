@@ -13,7 +13,7 @@ for (const row of manifest.files) {
     throw new Error(`Frozen supplemental Git blob changed: ${row.path}`);
 }
 const [{ createHydroSettings }, { genericFeatureGeometryKind }, { prepareProjectForStorage }, { normalizeColorValue }] = await Promise.all([
-  loadWebOracle('assets/js/modules/app-hydro-settings.js'),
+  loadWebOracle('assets/js/modules/physical-settings.js'),
   loadWebOracle('assets/js/modules/generic-feature-service.js'),
   loadWebOracle('assets/js/modules/project-state.js'),
   import(new URL('assets/js/modules/color-adapter.js', root)),

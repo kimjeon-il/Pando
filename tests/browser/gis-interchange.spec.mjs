@@ -49,6 +49,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     name: 'QGIS 독립 권역', geometry: { type: 'MultiPolygon', coordinates: [[[[5, 35], [5, 36], [6, 36], [6, 35], [5, 35]]]] } });
   const regionalRow = globalThis.PandoLabGisAdapters.territorialRows({ territorialEntities: [regionalSource] }).regions[0];
   await page.locator('#mobileFileBtn').click();
+  await page.locator('#fileAdvancedBtn').click();
   const [regionalPicker] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#openGisBtn').click()]);
   await regionalPicker.setFiles({ name: 'regions.geojson', mimeType: 'application/geo+json',
     buffer: Buffer.from(JSON.stringify({ type: 'FeatureCollection', features: [{ type: 'Feature', id: regionalSource.id,
@@ -231,6 +232,7 @@ test('GIS data export writes only selected layers and omits project-only metadat
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
   await page.locator('#mobileFileBtn').click();
+  await page.locator('#fileAdvancedBtn').click();
   await page.locator('#dataExportBtn').click();
   await expect(page.locator('#gisExportModal')).toBeVisible();
   await page.locator('#gisExportForm .gis-export-layers input').evaluateAll(inputs => {
@@ -274,6 +276,7 @@ test('mobile vector import advances by stage and preserves detected choices when
   await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
   await page.locator('#mobileMenuFileBtn').click();
   await expect(page.locator('#fileMenu')).toBeVisible();
+  await page.locator('#fileAdvancedBtn').click();
   const [fileChooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#openGisBtn').click()]);
   await fileChooser.setFiles({
     name: 'mobile-region.geojson',
@@ -345,6 +348,7 @@ test('current general GIS import preserves explicit source geometry and existing
   const before = await readRoots();
   await page.locator('#mobileFileBtn').click();
   const choosing = page.waitForEvent('filechooser');
+  await page.locator('#fileAdvancedBtn').click();
   await page.locator('#openGisBtn').click();
   const source = createTerritorialFeature({ id: 'current-east-prussia', entityKind: 'general',
     name: '동프로이센주', parentId: 'DEU', coverageMode: 'explicit', geometry: eastPrussiaGeometry });

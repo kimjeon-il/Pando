@@ -4,13 +4,13 @@ import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
 
-const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).flatMap(keys => Object.values(keys)));
+const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
 
 /** MapSettings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ viewPresentation = null,afterProjectionChange=null } = {}) {
+export function createMapSettings({ viewPresentation = null,authoredStyles=false,onBackgroundChange=null,afterProjectionChange=null } = {}) {
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let desktopViewMenuPath = [];
@@ -37,7 +37,11 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   }
 
   async function executePresentation(payload) {
-    if (viewPresentation) return viewPresentation.applyPresentation(payload);
+    if (viewPresentation && (!authoredStyles || !['groupStyle','objectStyle','labelSettings','layerOrder'].includes(payload.action))) {
+      const result=viewPresentation.applyPresentation(payload);
+      if(authoredStyles)dependencies.domains.projectDomain.queueViewAutosave();
+      return result;
+    }
     const project = requireProjectOwner();
     const generation = project.getGeneration();
     const result = await project.executeCommand({ commandId: 'presentation.apply', targets: [], payload: structuredClone(payload) });
@@ -110,12 +114,12 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
     (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     dependencies.domains.objectSearchController?.render();
     if (key === 'distributions') dependencies.distributionPresentation.bumpVisibilityRevision();
-    if (key === 'countries') dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
+    if (key === 'objects') dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     if (key === 'labels' || SYMBOL_VISIBILITY_KEYS.has(key)) dependencies.domains.renderingDomain?.invalidateLabels?.('label-visibility');
     else {
       dependencies.domains.renderingDomain?.invalidateBaseScene?.('layer-visibility');
-      if (TERRITORIAL_SYMBOL_KEYS[key]) dependencies.domains.renderingDomain.invalidateLabels('layer-visibility');
+      if (key === 'objects') dependencies.domains.renderingDomain.invalidateLabels('layer-visibility');
     }
   }
 
@@ -145,7 +149,7 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
     if (!target) return false;
     if (!await executePresentation({ action: 'groupStyle', group: target.presentationGroup, patch })) return false;
     syncMapDisplayDisclosures();
-    if (target.presentationGroup === 'countries' || target.presentationGroup === 'subunits') {
+    if (target.presentationGroup === 'objects') {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-presentation');
     }
     if (target.presentationGroup === 'rivers' || target.presentationGroup === 'lakes') {
@@ -158,6 +162,8 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   async function setTerrainMode(mode) {
     const physicalSettings = dependencies.hydroModel.terrainModeSettings(mode);
     if (!await executePresentation({ action: 'terrainMode', mode, physicalSettings })) return false;
+    const current=dependencies.preferences.userPreferences,viewer={...current.backgrounds.viewer,terrainVisible:physicalSettings.terrainVisible,terrainStyle:physicalSettings.terrainStyle};
+    dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,viewer}}));
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
     (0, dependencies.hydroModel.syncPhysicalControls)();
     syncMapDisplayDisclosures();
@@ -237,19 +243,18 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   }
 
   function mapDisplayPanel(group) {
-    if (group === 'general') return (0, dependencies.platform.$)('generalDisplayOptions');
     if (group === 'terrain') return (0, dependencies.platform.$)('terrainDisplayOptions');
     return document.querySelector(`[data-layer-style-panel="${group}"]`);
   }
 
   function mapDisplayVisible(group) {
-    return group === 'terrain' || group === 'general'
+    return group === 'terrain'
       ? true
       : dependencies.projectState.state.layerVisibility[group] !== false;
   }
 
   function mapDisplayLabel(group) {
-    if (group === 'general') return '일반 객체 표시';
+    if(group==='advanced')return '고급 보기';
     return group === 'terrain'
       ? '지형 표시'
       : LAYER_STYLE_TARGETS[group]?.label ? `${LAYER_STYLE_TARGETS[group].label} 표시` : '표시';
@@ -365,7 +370,7 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
       surface.append(popups);
     }
     // Distribution styling belongs to distributionViewSettings, not a sibling popup.
-    const groups = ['projection', 'general', ...Object.keys(LAYER_STYLE_TARGETS).filter(group => group !== 'distributions'), 'terrain', 'distribution'];
+    const groups = ['projection', ...Object.keys(LAYER_STYLE_TARGETS).filter(group => group !== 'distributions'), 'terrain', 'distribution', 'advanced'];
     for (const group of groups) {
       const panel = displayPanelForDesktopGroup(group);
       if (!panel || displayMenuPanels.has(group)) continue;
@@ -579,7 +584,7 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   function toggleMapDisplayDisclosure(group) {
     if (isDesktopViewMenu()) return setDesktopViewMenuGroup(group, { toggle: true });
     if (!mapDisplayVisible(group)) return false;
-    const panel = group === 'terrain' || group === 'general' ? mapDisplayPanel(group) : createLayerInlineStylePanel(group);
+    const panel = group === 'terrain' ? mapDisplayPanel(group) : createLayerInlineStylePanel(group);
     if (!panel) return false;
     if (dependencies.objectModelA.expandedMapDisplayGroups.has(group)) dependencies.objectModelA.expandedMapDisplayGroups.delete(group);
     else {
@@ -601,8 +606,6 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
     }
     const hasDistribution = (dependencies.projectState.state.distributionLayers || []).length > 0;
     const available = {
-      subunitsVisible: dependencies.territorialModel.entityRepository
-        .list({ kind: 'general' }).filter(entity => !!entity.properties.parentId).length > 0,
       genericFeaturesVisible: dependencies.projectState.state.genericFeatures.length > 0,
     };
     for (const [id, visible] of Object.entries(available)) {
@@ -625,8 +628,25 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
     if(!viewPresentation)requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
+    const state=dependencies.projectState.state;
+    for(const input of surface.querySelectorAll('[data-map-background]')) {
+      const key=input.dataset.mapBackground;
+      input.closest('label').hidden=(key==='builtinHydro'&&!state.resourceCapabilities.builtinHydro)||(key==='builtinPlaces'&&!state.resourceCapabilities.builtinPlaces);
+      input.checked=state.backgroundSettings[key];
+      input.addEventListener('change',()=>runViewAction(async()=>{
+        state.backgroundSettings[key]=input.checked;
+        const current=dependencies.preferences.userPreferences;
+        const mode=authoredStyles?'editor':'viewer';
+        dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,[mode]:{...current.backgrounds[mode],[key]:input.checked}}}));
+        if(onBackgroundChange)await onBackgroundChange(key,input.checked);
+        dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
+        dependencies.domains.renderingDomain.invalidateBaseScene('background-preference');
+        dependencies.domains.renderingDomain.invalidateLabels('background-preference');
+        dependencies.domains.objectSearchController.render(true);
+      }));
+    }
     const visibilityInputs = [
-      ['countries', 'countriesVisible'], ['subunits', 'subunitsVisible'], ['regions', 'regionsVisible'],
+      ['objects', 'objectsVisible'],
       ['distributions', 'distributionsVisible'],
       ['rivers', 'riversVisible'], ['lakes', 'lakesVisible'], ['genericFeatures', 'genericFeaturesVisible'],
       ['labels', 'labelsVisible'],

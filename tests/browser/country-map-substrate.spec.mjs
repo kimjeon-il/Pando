@@ -146,9 +146,9 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
     if (renderer === 'webgl2') {
       diagnosticStages.set(page, 'layer-color-off');
       await page.locator('#mapDisplayBtn').click();
-      await page.locator('[data-map-display-row="general"]').click();
-      await page.locator('[data-map-display-row="countries"]').click();
-      const toggle = page.locator('[data-layer-style-color="countries"]');
+
+      await page.locator('[data-map-display-row="objects"]').click();
+      const toggle = page.locator('[data-layer-style-color="objects"]');
       await toggle.locator('..').click();
       await expect(toggle).not.toBeChecked();
       await expect.poll(mapPixel).toEqual([204, 204, 204]);
@@ -156,7 +156,7 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
       await toggle.locator('..').click();
       await expect(toggle).toBeChecked();
       await expect.poll(mapPixel).toEqual([239, 68, 68]);
-      await page.locator('[data-map-display-row="countries"]').focus();
+      await page.locator('[data-map-display-row="objects"]').focus();
       await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
@@ -191,12 +191,12 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
       // Without country paint, terrain retains its own color/monochrome base.
       diagnosticStages.set(page, 'terrain-country-fill-off');
       await page.locator('#mapDisplayBtn').click();
-      await page.locator('[data-map-display-row="general"]').click();
-      await page.locator('[data-map-display-row="countries"]').click();
-      const toggle = page.locator('[data-layer-style-color="countries"]');
+
+      await page.locator('[data-map-display-row="objects"]').click();
+      const toggle = page.locator('[data-layer-style-color="objects"]');
       await toggle.locator('..').click();
       await expect(toggle).not.toBeChecked();
-      await page.locator('[data-map-display-row="countries"]').focus();
+      await page.locator('[data-map-display-row="objects"]').focus();
       await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');

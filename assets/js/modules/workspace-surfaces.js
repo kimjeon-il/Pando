@@ -13,6 +13,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   const listeners=[];
   const listen=(target,type,listener)=>{target.addEventListener(type,listener);listeners.push(()=>target.removeEventListener(type,listener));};
   let fileMenuOpen=false;
+  let fileMenuPage='main';
   let dependencies, mobileSheets;
   let isPolygonDraftTool;
   let isGenericFeatureDraftTool;
@@ -178,6 +179,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     const trigger = fileMenuTrigger;
     fileMenuTrigger = null;
     fileMenuOpen=false;
+    setFileMenuPage('main',{focus:false});
     syncOverlayState();
     if (restoreFocus) {
       const focusTarget = isMobile()
@@ -270,9 +272,22 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     if (restoreFocus) lastOverlayTrigger = null;
   }
 
+  function setFileMenuPage(page,{focus=true}={}){
+    if(!['main','advanced'].includes(page)||(page==='advanced'&&productMode!=='editor'))throw new TypeError('Unsupported file menu page.');
+    fileMenuPage=page;
+    for(const panel of document.querySelectorAll('[data-file-menu-page]'))panel.hidden=panel.dataset.fileMenuPage!==page;
+    dependencies.platform.$('fileAdvancedBtn')?.setAttribute('aria-expanded',String(page==='advanced'));
+    if(focus){
+      const target=page==='main'?dependencies.platform.$('fileAdvancedBtn'):dependencies.platform.$('fileAdvancedBackBtn');
+      target.focus({preventScroll:true});
+    }
+    menuPositionScheduler.schedule();
+  }
+
   function openFileMenu({trigger=null}={}){
     if(!document.querySelector('.top-actions'))return false;
     closeSurface('create');fileMenuOpen=true;fileMenuTrigger=trigger||dependencies.platform.$('mobileFileBtn');
+    setFileMenuPage('main',{focus:false});
     syncOverlayState();requestAnimationFrame(()=>document.querySelector('.top-actions [role="menuitem"]:not(:disabled)')?.focus({preventScroll:true}));return true;
   }
   function toggleFileMenu(){if(fileMenuOpen){closeFileMenu();return false;}return openFileMenu();}
@@ -515,6 +530,8 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     get isGenericFeatureDraftTool() { return isGenericFeatureDraftTool; },
     get isMobile() { return isMobile; },
     get isFileMenuOpen(){return fileMenuOpen;},
+    get fileMenuPage(){return fileMenuPage;},
+    setFileMenuPage,
     get isPolygonDraftTool() { return isPolygonDraftTool; },
     get layoutMode() { return layoutMode; },
     get mapModeContextWasActive() { return mapModeContextWasActive; },

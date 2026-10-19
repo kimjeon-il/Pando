@@ -128,7 +128,7 @@ export function createGpuScene({getEditPreview=null}={}) {
         view: dependencies.mapLayout.viewRevision,
       },
       country: {
-        visible: dependencies.projectState.state.layerVisibility.countries !== false,
+        visible: dependencies.projectState.state.layerVisibility.objects !== false,
         meshRevision: dependencies.countries.countryLandRevision,
         overrideRevision: [...(dependencies.projectState.state.pendingCountryRenderIds || [])].sort().join(','),
       },

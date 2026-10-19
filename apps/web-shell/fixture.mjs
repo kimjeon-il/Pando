@@ -22,9 +22,7 @@ export function tinyFixture() {
   project.baseDataset = BASE_DATASET;
   project.timelineRecords.schemaVersion = 2;
   project.timelineRecords.propertyBindings = [];
-  project.physicalSettings = { ...project.physicalSettings, terrainVisible: false };
-  project.layerVisibility = { ...project.layerVisibility, labels: false, rivers: false, lakes: false,
-    basemapLabels: false, countryFlags: false, subunitFlags: false, regionFlags: false };
+
   return { project, countries: { type: 'FeatureCollection', features }, entityCount: features.length,
     coordinateCount: features.reduce((count, row) => count + row.geometry.coordinates[0].length, 0) };
 }
