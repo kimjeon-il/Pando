@@ -6,6 +6,7 @@ test('product HTML is generated from one source for each common viewing control'
  const {renderProductHtml}=await import('../../scripts/lib/product-html.mjs');
  const read=path=>readFileSync(new URL(`../../${path}`,import.meta.url),'utf8');
  const pages=renderProductHtml(read);
+ for(const page of Object.values(pages))assert.doesNotMatch(page,/data-map-background="(?:builtinHydro|builtinPlaces)"/);
  for(const key of ['object-search','map-display','preferences','tooltip','notification','map-icons','map-search-control','map-fit-control']){
   const fragment=read(`ui/fragments/${key}.html`).replaceAll('\r\n','\n').trim();
   for(const sharedPart of fragment.split(/<!-- include:[a-z-]+ -->/).filter(Boolean)){

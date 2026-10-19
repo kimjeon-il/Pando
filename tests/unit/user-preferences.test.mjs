@@ -2,6 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultUserPreferences, normalizeUserPreferences } from '../../assets/js/modules/user-preferences.js';
 
+test('background preferences contain no separate source visibility switches', () => {
+  const normalized = normalizeUserPreferences({ version: 2, backgrounds: { viewer: { builtinHydro: false, builtinPlaces: false } } });
+  for (const settings of [...Object.values(defaultUserPreferences().backgrounds), ...Object.values(normalized.backgrounds)]) {
+    assert.equal(Object.hasOwn(settings, 'builtinHydro'), false);
+    assert.equal(Object.hasOwn(settings, 'builtinPlaces'), false);
+  }
+});
+
 test('selection defaults to the active theme accent and invalid custom colors reset to default', () => {
   assert.equal(defaultUserPreferences().selection.color, null);
   assert.equal(normalizeUserPreferences({ version: 2, selection: { color: '', fillStrength: 0.35 } }).selection.color, null);

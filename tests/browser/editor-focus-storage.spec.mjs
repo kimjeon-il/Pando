@@ -39,9 +39,14 @@ test('app keeps temporary viewing outside the document, keeps viewing outside sa
  expect(stored.projectSetup.initialMonth).toBe('1914-06');
  for(const key of ['defaultView','layerVisibility','itemVisibility'])expect(Object.hasOwn(stored,key)).toBe(false);
  await page.locator('#mapDisplayBtn').click();
- await page.locator('label').filter({has:page.locator('[data-map-background="builtinHydro"]')}).click();
+ await expect(page.locator('[data-map-background="builtinHydro"],[data-map-background="builtinPlaces"]')).toHaveCount(0);
+ await page.locator('[data-map-display-row="rivers"]').click();
+ await page.locator('label[for="riversVisible"],label:has(#riversVisible)').click();
+ await page.locator('label[for="riversVisible"],label:has(#riversVisible)').click();
  await expect.poll(()=>backgroundRequests().some(path=>path.includes('/hydro/')),{timeout:20000}).toBe(true);
- await page.locator('label').filter({has:page.locator('[data-map-background="builtinPlaces"]')}).click();
+ await page.locator('[data-map-display-row="labels"]').click();
+ await page.locator('label[for="labelsVisible"],label:has(#labelsVisible)').click();
+ await page.locator('label[for="labelsVisible"],label:has(#labelsVisible)').click();
  await expect.poll(()=>backgroundRequests().some(path=>path.includes('/places/')),{timeout:20000}).toBe(true);
  expect(backgroundRequests().some(path=>path.includes('/terrain'))).toBe(false);
  expect(await page.evaluate(()=>window.__focusDomain().snapshot())).toEqual(before.project);

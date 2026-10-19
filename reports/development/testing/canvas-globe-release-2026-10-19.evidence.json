@@ -1,0 +1,177 @@
+{
+  "schema": "canvas-globe-release-v1",
+  "sourceBase": "f48aa4028a3e5165efafc086e3aa0da03ff5e1d0",
+  "workerSourceSha256": "f1c546490ca678b12927b3625a5c9f235e1645914c44b39d90ad00234c87ac14",
+  "sourceFilesLfSha256": {
+    "assets/js/workers/canvas-render-worker.js": "f1c546490ca678b12927b3625a5c9f235e1645914c44b39d90ad00234c87ac14",
+    "assets/js/modules/gpu-map-renderer.js": "d3089c9ca645c7ce59e92c4aa68f637659ded2edf9a67b260271174d709e6750",
+    "assets/js/modules/map-render-coordinator.js": "539b7249a9c7b19d5cbce007d382d8a97783efd1975f782909ec42bf352080a5",
+    "assets/js/modules/boundary-topology.js": "0d02eb917dc0b3e675b69ce10ad4caf1c40de58bc238df98ddb60332c1268ac0"
+  },
+  "platform": "Windows Microsoft Edge actual Canvas Worker, 1280x800 CSS viewport",
+  "modes": [
+    {
+      "mode": "physical",
+      "rawPath": "test-results-canvas-final-backend\\canvas-globe-performance-C-17941-ing-paint-toggles-physical-\\phases.json",
+      "readyToggleFrames": [
+        {
+          "visible": false,
+          "workerMs": 136.09999999403954,
+          "observedTestLatencyMs": 481,
+          "pixel": [
+            124,
+            170,
+            150,
+            255
+          ],
+          "styleRevision": 7,
+          "terrainSource": "dem-derived-canvas",
+          "terrainRepaint": false
+        },
+        {
+          "visible": true,
+          "workerMs": 160.19999998807907,
+          "observedTestLatencyMs": 1012,
+          "pixel": [
+            142,
+            144,
+            128,
+            255
+          ],
+          "styleRevision": 8,
+          "terrainSource": "dem-derived-canvas",
+          "terrainRepaint": false
+        },
+        {
+          "visible": false,
+          "workerMs": 106.40000000596046,
+          "observedTestLatencyMs": 472,
+          "pixel": [
+            124,
+            170,
+            150,
+            255
+          ],
+          "styleRevision": 9,
+          "terrainSource": "dem-derived-canvas",
+          "terrainRepaint": false
+        },
+        {
+          "visible": true,
+          "workerMs": 127.2999999821186,
+          "observedTestLatencyMs": 986,
+          "pixel": [
+            142,
+            144,
+            128,
+            255
+          ],
+          "styleRevision": 10,
+          "terrainSource": "dem-derived-canvas",
+          "terrainRepaint": false
+        }
+      ],
+      "maxColdFrameMs": 2136,
+      "maxColdTerrainMs": 1674.199999988079,
+      "maxColdRiverMs": 1734.800000011921
+    },
+    {
+      "mode": "political",
+      "rawPath": "test-results-canvas-final-backend\\canvas-globe-performance-C-f760e-ng-paint-toggles-political-\\phases.json",
+      "readyToggleFrames": [
+        {
+          "visible": false,
+          "workerMs": 138.10000002384186,
+          "observedTestLatencyMs": 492,
+          "pixel": [
+            209,
+            209,
+            209,
+            255
+          ],
+          "styleRevision": 7,
+          "terrainSource": "dem-derived-canvas",
+          "terrainRepaint": false
+        },
+        {
+          "visible": true,
+          "workerMs": 104.89999997615814,
+          "observedTestLatencyMs": 439,
+          "pixel": [
+            206,
+            102,
+            102,
+            255
+          ],
+          "styleRevision": 8,
+          "terrainSource": "dem-derived-canvas",
+          "terrainRepaint": false
+        },
+        {
+          "visible": false,
+          "workerMs": 106.69999998807907,
+          "observedTestLatencyMs": 959,
+          "pixel": [
+            209,
+            209,
+            209,
+            255
+          ],
+          "styleRevision": 9,
+          "terrainSource": "dem-derived-canvas",
+          "terrainRepaint": false
+        },
+        {
+          "visible": true,
+          "workerMs": 107.40000000596046,
+          "observedTestLatencyMs": 448,
+          "pixel": [
+            206,
+            102,
+            102,
+            255
+          ],
+          "styleRevision": 10,
+          "terrainSource": "dem-derived-canvas",
+          "terrainRepaint": false
+        }
+      ],
+      "maxColdFrameMs": 1553,
+      "maxColdTerrainMs": 1437.2000000178814,
+      "maxColdRiverMs": 985.5999999940395
+    }
+  ],
+  "verification": {
+    "unit": {
+      "passed": 97,
+      "failed": 0
+    },
+    "stagingContracts": {
+      "passed": 17,
+      "skipped": 1,
+      "skipReason": "Windows symlink creation not permitted"
+    },
+    "appStaging": {
+      "passed": 7
+    },
+    "initialBrowserBatch": {
+      "passed": 10,
+      "failed": 1,
+      "failedCase": "viewer canvas coast, actionability timeout under shared SwiftShader launch flags"
+    },
+    "canvasFinalModes": {
+      "passed": 2
+    },
+    "canvasCoastRecheck": {
+      "passed": 2,
+      "failed": 0,
+      "output": "test-results-canvas-final-backend",
+      "note": "Viewer and editor use native Canvas backend; SwiftShader is reserved for WebGL tests"
+    },
+    "nativeWindows": "not-run",
+    "nativeAndroid": "not-run"
+  },
+  "release": {
+    "status": "pending"
+  }
+}

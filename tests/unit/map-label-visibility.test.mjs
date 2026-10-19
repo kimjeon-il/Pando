@@ -21,7 +21,7 @@ function fixture(visibility = {}) {
   const anchors = new Map(features.map((feature, index) => [feature.id, [100 + index * 200, 100]]));
   const hiddenIds = new Set();
   const state = {
-    backgroundSettings:{builtinPlaces:false}, projection: 'globe', view: { globeZoom: 2 }, countryVisualPhase: 'canonical',
+    backgroundSettings:{}, projection: 'globe', view: { globeZoom: 2 }, countryVisualPhase: 'canonical',
     layerVisibility: { objects: true, objectNames: true, objectFlags: true, labels: true, ...visibility },
     territorialEntities: features, labelSettings: {}, size: { width: 1000, height: 600 },
     labels: [{ id: 'PLACE', kind: 'capital', name: 'Place', coordinates: [100, 300] }],
@@ -51,7 +51,7 @@ function fixture(visibility = {}) {
       territorialScope: { displayFeature: id => features.find(f => f.id === id) },
       selectionDomain: { has: () => false, snapshot: () => ({ selection: { items: [], primaryKey: null } }) },
     },
-    environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/'), userPreferences: {...defaultUserPreferences(),mapBackgrounds:{builtinPlaces:true}} },
+    environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/'), userPreferences: defaultUserPreferences() },
     renderQuality: { currentRenderQuality: { labelDensity: 1, tier: 'high' } },
     objectPresentation: { territorialScope: { displayFeature: id => features.find(f => f.id === id) }, territorialEntityName: feature => feature.properties.name },
     workspaceSurfaces: { isMobile: () => false },
@@ -147,7 +147,7 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
   settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, {
     state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
     reportOperationError: error => assert.fail(error.stack),
-    userPreferences: {...defaultUserPreferences(),mapBackgrounds:{builtinPlaces:true}}, saveUserPreferences: next => normalizeUserPreferences(next), setUserPreferences() {},
+    userPreferences: defaultUserPreferences(), saveUserPreferences: next => normalizeUserPreferences(next), setUserPreferences() {},
     normalizeLayerPresentation: value => value, invalidateObjectPresentation() {},
     gpuMapRenderer: { invalidateCountryPalette() {} },
     renderingDomain: {
