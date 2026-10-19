@@ -25,7 +25,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     setActionStatus,
     createDistributionLayer,
     createDistributionEntry,
-    activeLayerFolderKeys,
     normalizeGenericFeatureSemantics,
     validateStructuredGeometry,
     validateGisCountryCollection,
@@ -289,7 +288,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     const generation = projectDomain.getGeneration();
     await genericFeatureService.addMany(supported);
     if (state.projectReplacing || generation !== projectDomain.getGeneration()) return;
-    state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === 'genericFeatures']));
     invalidateObjectPresentation();
     setActionStatus(`GeoJSON 기타 객체 ${supported.length}개를 가져왔습니다.`, 'success', 3200);
   }

@@ -9,7 +9,7 @@ export function historySnapshotFixture({ labels = [], labelSettings = {}, select
     distributionLayers: [], distributionEntries: [],
     labelSettings: structuredClone(labelSettings), distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
     layerPresentation: {}, physicalSettings: { hiddenHydroIds: {} }, layerVisibility: {}, itemVisibility: {},
-    projection: 'flat', layerFolders: {}, view: {}, historyDirtyEntityIds: new Set(), autosaveMode: 'delta',
+    projection: 'flat', view: {}, historyDirtyEntityIds: new Set(), autosaveMode: 'delta',
     selectedDistributionLayerId: '', boundaryPreparation: null,
   };
   const owner = createProjectSnapshots();
@@ -39,7 +39,7 @@ export function historySnapshotFixture({ labels = [], labelSettings = {}, select
       validateDistributionModel: () => ({ ok: true }) },
     territorialModel: { entityStore, entityRepository, normalizeTerritorialEntities: value => value || [] },
     presentation: { territorialRepository: { get: () => null } },
-    objectCatalogView: { normalizeLayerFolderState: value => value || {}, pruneLayerItemVisibility() {} },
+    objectCatalogView: { pruneLayerItemVisibility() {} },
     countries: { scheduleCountryLabelAnchors() {} }, objectDisplay: { invalidateObjectPresentation() {} },
     domains: { selectionDomain, objectSearchController: {
       cancelSearch() { searchCancels += 1; }, render(force) { assert.equal(force, true); searchRenders += 1; },

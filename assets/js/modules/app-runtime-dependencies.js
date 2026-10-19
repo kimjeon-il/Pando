@@ -78,7 +78,6 @@ const {
 } = genericFeatureServiceModule;
 const { createTooltipController } = tooltipControllerModule;
 const { createAppObjectSearchController } = objectSearchControllerModule;
-const { setScopedItemVisibility } = await import(versionedModuleUrl('./modules/object-search-model.js'));
 const { createMapEditWorkerClient } = mapEditWorkerClientModule;
 const { createMapObjectSpatialIndex } = mapObjectSpatialIndexModule;
 const { createSurfaceTabsController } = surfaceTabsControllerModule;
@@ -409,7 +408,6 @@ export {
   normalizeGenericFeatureSemantics,
   createTooltipController,
   createAppObjectSearchController,
-  setScopedItemVisibility,
   createMapEditWorkerClient,
   createMapObjectSpatialIndex,
   createSurfaceTabsController,

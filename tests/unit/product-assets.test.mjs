@@ -71,7 +71,10 @@ test('actual viewer graph contains render and read Workers without editor execut
     .filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name).slice(root.length).replaceAll('\\', '/'));
   const paths = await collectViewerAssets({ root, availablePaths: [...availablePaths, 'index.html', '.nojekyll'] });
   for (const name of ['core-viewer-session-worker', 'project-read-worker', 'gpu-mesh-worker', 'canvas-render-worker', 'hydro-tile-worker'])
-    assert.ok(paths.has(`assets/js/workers/${name}.js`), name);
+    {
+      assert.equal(paths.has(`assets/js/workers/${name}.js`), false, name);
+      assert.ok([...paths].some(path => path.startsWith('assets/worker-runtime/') && path.endsWith(`/assets/js/workers/${name}.js`)), name);
+    }
   for (const name of ['app.js', 'bootstrap.js', 'workers/core-session-worker.js', 'workers/gis-gpkg-worker.js'])
     assert.equal(paths.has(`assets/js/${name}`), false, name);
   assert.ok(paths.has('assets/js/vendor/sql/sql-wasm.wasm'));

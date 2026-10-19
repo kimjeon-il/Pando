@@ -6,7 +6,7 @@ import { applySvgInteractionOwnership, makeSvgSceneProxy } from './render-channe
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createGpuScene({getEditPreview=null}={}) {
+export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}) {
   let dependencies;
   let selectionPass;
   let renderSceneBuilder;
@@ -100,6 +100,9 @@ export function createGpuScene({getEditPreview=null}={}) {
   }
 
   function syncGpuRenderScene({ selectionPacket = currentSelectionPacket, interactionFillItems = dependencies.interactionPresentation.currentGpuInteractionFillItems } = {}) {
+    const land = getPhysicalLand();
+    if (land) replaceGpuSceneDomain('physical-land', { polygons: [{ key: 'physical-land', role: 'physical-land', geometryRevision: land.revision,
+      geometry: land.geometry, protected: true, order: -20000, style: { color: '#ffffff', fillAlpha: 1 } }] });
     const overlayOrderSignature = JSON.stringify(dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS);
     if (syncGpuRenderScene.overlayOrderSignature !== overlayOrderSignature) {
       syncGpuRenderScene.overlayOrderSignature = overlayOrderSignature;

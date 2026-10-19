@@ -254,6 +254,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "objectOperationsA",
     "objectPicking",
     "objectPresentation",
+    "physicalResources",
     "platform",
     "pointerInteractionA",
     "pointerInteractionB",

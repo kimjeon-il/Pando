@@ -320,7 +320,7 @@ test('cached builtin results follow current month and visibility and restore the
  const controller=createAppObjectSearchController({window:{setTimeout,clearTimeout},document:{createElement:element},getElement:id=>nodes.get(id),state,
   objectSearchGroupKeys:[],listObjectSearchItems:()=>[],layerItemObjectRef:()=>null,selectionDomain:{snapshot:()=>({selection:{items:[]}}),setHover:async()=>true},
   invalidateObjectPresentation(){},selectObjectSearchItem(){},closeSearchAfterSingleSelection(){},focusObjectRef(){},createEmptyState:element,
-  isSearchOpen:()=>true,isSearchSurfaceOpen:()=>true,builtinSearch:async()=>{calls++;return {records:[{id:'builtin:place:synthetic:seoul',kind:'city',name:'서울'}]};},cancelBuiltinSearch(){}});
+  isSearchOpen:()=>true,isSearchSurfaceOpen:()=>true,builtinSearch:async()=>{calls++;return {records:[{id:'builtin:place:synthetic:seoul',kind:'city',name:'서울'}],displayNames:{'builtin:place:synthetic:seoul':'서울'}};},cancelBuiltinSearch(){}});
  const rows=()=>nodes.get('objectSearchResults').children.filter(row=>row.children[0]?.dataset.itemId);
  controller.render(true);await tick();assert.equal(rows().length,1);
  state.layerVisibility.labels=false;controller.render(true);await tick();assert.equal(rows().length,0);

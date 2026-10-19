@@ -420,7 +420,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const state = t.getState?.() || {};
     const displayed = territorial.displayEntities();
     const countries = displayed.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId);
-    const units = displayed.filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
+    const units = displayed.filter(entity => entity.properties.entityKind === 'regional');
     const revision = t.getTerritorialGeometryRevision?.() ?? 0;
     if (!units.some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) {
       pendingTerritorialBoundary = null;
@@ -451,7 +451,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         // Catch synchronous preparation failures as well as Worker rejection.
         (async () => {
           const response = await prepareMapDisplay({ kind: 'boundaries',
-            ...(state.countryVisualPhase === 'preview' ? { entities: displayed } : {}) },
+            ...(state.countryVisualPhase === 'preview' ? { entities: [...countries, ...units] } : {}) },
           { jobKey: 'edit-display:boundaries' });
           if (isDisposed() || pendingTerritorialBoundary !== candidate || candidate.epoch !== territorialBoundaryEpoch) return;
           if (!Array.isArray(response?.result?.segments)) throw new TypeError('Territorial boundary result requires segments');

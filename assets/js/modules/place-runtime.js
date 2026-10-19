@@ -4,7 +4,7 @@ import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from './place-contract
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
 
 /** Canonical owner of the builtin label snapshot and Worker lifecycle. */
-export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],admitReferences } = {}) {
+export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],getPresentation=()=>null,admitReferences } = {}) {
   if (typeof manifestUrl !== 'string' || !manifestUrl) throw new TypeError('Place manifest URL must be a nonempty string');
   if(typeof admitReferences!=='function')throw new TypeError('Place publication requires its accepted identity admission boundary.');
   let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedKey=null;
@@ -79,7 +79,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     retain: remember,
     async search(query) {
       if (moving || closed) throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.', 'interaction');
-      const job=scheduler.enqueue({ jobKey: 'search', payload: { query }, metadata: { controller: new AbortController() } });
+      const job=scheduler.enqueue({ jobKey: 'search', payload: { query, presentation:getPresentation() }, metadata: { controller: new AbortController() } });
       const result=await job.promise;
       if (result.records.length > PLACE_LIMITS.searchResults) throw new RangeError('Place search result budget exceeded');
       const records=result.records.map(normalizePlace);

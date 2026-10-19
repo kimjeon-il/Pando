@@ -18,7 +18,7 @@ import {createMapHost} from './map-workspace-host.js';
 import {createObjectPicking} from './object-picking.js';
 
 /** One owner graph; only the editor may register mutation and persistence hooks. */
-export function createMapOwners({productMode,platform={},editing=null,isObjectAvailable,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
+export function createMapOwners({productMode,platform={},editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Map composition requires immutable product mode.');
   if(productMode==='viewer'&&editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
   const capabilities=resourceCapabilities(productMode,platform);
@@ -33,10 +33,10 @@ export function createMapOwners({productMode,platform={},editing=null,isObjectAv
   const mapProjection=createMapProjection();
   const objectPresentation=createObjectPresentation();
   const hydroSettings=createHydroSettings();
-  const objectCatalog=createObjectCatalog({isObjectAvailable});
+  const objectCatalog=createObjectCatalog({isObjectVisible});
   const territorialLabels=createTerritorialLabels({capabilities});
   const physicalResources=createPhysicalResources({capabilities});
-  const gpuScene=createGpuScene({getEditPreview:editing?.getEditPreview});
+  const gpuScene=createGpuScene({getEditPreview:editing?.getEditPreview,getPhysicalLand:()=>physicalResources.physicalLand});
   const mapHost=createMapHost({productMode});
   const objectPicking=createObjectPicking({openEditor:productMode==='editor',handleEditingClick:editing?.handleMapClick,onBackgroundClear:editing?.onBackgroundClear,performanceRecorder:editing?.performanceRecorder,closeActiveOverlay});
   return Object.freeze({capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});

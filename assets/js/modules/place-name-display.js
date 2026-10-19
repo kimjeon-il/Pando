@@ -1,5 +1,13 @@
 import { sharedCalculationCore } from './temporal.js';
 import { DEFAULT_PLACE_LANGUAGES } from './place-contract.js';
+import { temporalMonthEnd } from './temporal.js';
+
+/** Shared period projection. No evidence exists here for builtin places in BCE. */
+export function placeLabelRowsAtMonth(place, month, languages = DEFAULT_PLACE_LANGUAGES) {
+  if (String(month || '').startsWith('-')) return [];
+  const date = typeof month === 'string' && /^\d{4}-\d{2}$/.test(month) ? temporalMonthEnd(month).canonical : null;
+  return resolvePlaceLabelRows(place, languages, date);
+}
 
 /** Select period-appropriate names, then suppress duplicate visual text across all languages. */
 export function resolvePlaceLabelRows(place, languages = DEFAULT_PLACE_LANGUAGES, mapDate = null,

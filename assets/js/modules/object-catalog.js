@@ -6,25 +6,12 @@ const builtinSubunitSources=Object.freeze(Object.fromEntries(BUILTIN_SUBUNITS.ma
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createObjectCatalog({ isObjectAvailable } = {}) {
+export function createObjectCatalog({ isObjectVisible } = {}) {
   let dependencies;
 
   function connect(ports) {
     if (dependencies) throw new Error('layer-list already connected');
     dependencies = ports;
-  }
-
-  function normalizeLayerItemState(value) {
-    const output = {};
-    for (const group of dependencies.layerPresentation.LAYER_GROUP_KEYS) {
-      const source = value?.[group];
-      output[group] = source && typeof source === 'object' && !Array.isArray(source) ? { ...source } : {};
-    }
-    return output;
-  }
-
-  function normalizeLayerFolderState(value) {
-    return Object.fromEntries((0, dependencies.hydroPresentation.activeLayerFolderKeys)().map(key => [key, !!value?.[key]]));
   }
 
   function invalidateObjectPresentation() {
@@ -44,10 +31,8 @@ export function createObjectCatalog({ isObjectAvailable } = {}) {
 
 
   function isObjectCatalogItemVisible(group, id) {
-    const master = group === 'hydro'
-      ? ((0, dependencies.hydroPresentation.hydroCategoryKey)(dependencies.hydroPresentation.HYDRO_LAYER_META[id]?.category || (0, dependencies.hydroPresentation.hydroEditById)(id)?.properties?.category) === 'lake' ? 'lakes' : 'rivers')
-      : group;
-    return dependencies.projectState.state.layerVisibility[master] !== false && isLayerItemVisible(group, id);
+    if(typeof isObjectVisible!=='function')throw new TypeError('Search requires the common object visibility query.');
+    return isObjectVisible(group,id);
   }
 
   function listObjectCatalogItems(group) {
@@ -118,8 +103,7 @@ export function createObjectCatalog({ isObjectAvailable } = {}) {
   }
 
   function listObjectSearchItems(group) {
-    if(typeof isObjectAvailable!=='function')throw new TypeError('Search requires the current-month object availability query.');
-    return listObjectCatalogItems(group).filter(item=>isObjectCatalogItemVisible(group,item.id)&&isObjectAvailable(group,item.id));
+    return listObjectCatalogItems(group).filter(item=>isObjectCatalogItemVisible(group,item.id));
   }
 
   function presentationCatalog() {
@@ -148,8 +132,6 @@ export function createObjectCatalog({ isObjectAvailable } = {}) {
     get listObjectSearchItems(){return listObjectSearchItems;},
     get listObjectCatalogItems() { return listObjectCatalogItems; },
     get invalidateObjectPresentation() { return invalidateObjectPresentation; },
-    get normalizeLayerFolderState() { return normalizeLayerFolderState; },
-    get normalizeLayerItemState() { return normalizeLayerItemState; },
     get pruneLayerItemVisibility() { return pruneLayerItemVisibility; },
     get presentationCatalog() { return presentationCatalog; },
   });

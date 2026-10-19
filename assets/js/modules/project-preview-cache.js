@@ -1,5 +1,6 @@
 /** Rebuildable IndexedDB display cache. This Worker never shares the edit Worker. */
 import { matchesDefaultPreview } from './project-preview-policy.js';
+import {workerAssetUrl} from './worker-asset-url.js';
 
 export function createProjectPreviewCache({ storage, scheduler, getGeometry, getBaseline, getPreviewSource, onWarning = () => {} }) {
   if(typeof getPreviewSource!=='function')throw new TypeError('Preview caching requires a pure C++ project geometry query.');
@@ -39,7 +40,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     if (worker) return worker;
     const url = new URL('../workers/project-preview-worker.js', import.meta.url);
     url.searchParams.set('v', globalThis.PANDOLAB_BUILD_META?.assetRevision || '');
-    const currentWorker = new Worker(url.href);
+    const currentWorker = new Worker(workerAssetUrl(url));
     worker = currentWorker;
     currentWorker.onmessage = event => {
       if (worker !== currentWorker) return;

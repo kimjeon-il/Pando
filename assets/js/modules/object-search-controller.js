@@ -103,7 +103,7 @@ export function createObjectSearchController({
       itemRef: model.itemRef,
       compare: model.compare,
     });
-    return visibleObjectSearchRows(presentation, {}, query).filter(item => item.kind === 'object');
+    return visibleObjectSearchRows(presentation, query);
   }
 
   function commitRows(query, rows) {
@@ -310,7 +310,15 @@ export function createAppObjectSearchController(runtime = {}) {
     groups: { search: objectSearchGroupKeys },
     createEmptyState: runtime.createEmptyState,
     createIcon,
-    builtinSearch: runtime.builtinSearch ? query => state.resourceCapabilities?.builtinPlaces === false || state.layerVisibility?.labels === false ? Promise.resolve({records:[],truncated:false}) : runtime.builtinSearch(query) : null,
+    builtinSearch: runtime.builtinSearch ? async query => {
+      if(state.resourceCapabilities?.builtinPlaces===false||state.layerVisibility?.labels===false)return {records:[],truncated:false};
+      const result=await runtime.builtinSearch(query);
+      return {...result,records:result.records.map(record=>{
+        const name=result.displayNames?.[record.id];
+        if(typeof name!=='string'||!name)throw new TypeError('Place search requires its accepted period display name.');
+        return {...record,name};
+      })};
+    } : null,
     cancelBuiltinSearch: runtime.cancelBuiltinSearch,
     builtinRecordVisible: record => state.resourceCapabilities?.builtinPlaces!==false&&state.layerVisibility?.labels!==false&&state.itemVisibility?.labels?.[record.id]!==false&&!(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
     onSearchError: runtime.onSearchError,

@@ -43,3 +43,12 @@ test('allows only native IPC commands at the exact internal origin', async () =>
   await assert.rejects(scope.fetch('http://ipc.localhost.evil.test/write_probe_file'), /blocked/i);
   assert.equal(result.blocked.length, 2);
 });
+
+test('small projects permit only the pinned physical substrate in addition to engine assets', async () => {
+  const scope = { location: new URL('https://tauri.localhost/'), fetch: async () => new Response('packaged') };
+  const state = installNetworkGuard(scope);
+  await scope.fetch('/assets/data/physical-land/v1/geometry.json.gz');
+  await assert.rejects(scope.fetch('/assets/data/physical-land/v1/other.json'), /blocked/i);
+  await assert.rejects(scope.fetch('/assets/data/terrain-preview/manifest.json'), /blocked/i);
+  assert.equal(state.blocked.length, 2);
+});

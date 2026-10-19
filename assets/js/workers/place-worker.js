@@ -28,5 +28,5 @@ async function getStore(url,context) {
 }
 self.PandoLabWorkerRpc.install({ handlers: {
   'place.viewport': async (payload,context) => (await getStore(payload.manifestUrl,context)).queryViewport(payload.view,context),
-  'place.search': async (payload,context) => (await getStore(payload.manifestUrl,context)).search(payload.query,context),
+  'place.search': async (payload,context) => (await getStore(payload.manifestUrl,context)).search(payload.query,context,payload.presentation),
 } });

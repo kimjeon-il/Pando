@@ -1,4 +1,5 @@
 import {createPreferencePresentation} from './preference-presentation.js';
+import {workerAssetUrl} from './worker-asset-url.js';
 import {ZOOM_LIMITS,FLAT_LATITUDE_LIMIT} from './camera-navigation.js';
 import {syncSearchClearButton} from './object-search-controller.js';
 import { HYDRO_DATASET as hydroDataset } from './physical-layer-service.js';
@@ -96,7 +97,7 @@ export function createEnvironment() {
   function runtimeAssetUrl(relativePath) {
     const url = new URL(relativePath, PANDOLAB_ASSET_BASE_URL);
     url.searchParams.set('v', ASSET_REVISION);
-    return url;
+    return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname) ? workerAssetUrl(url) : url;
   }
 
   function assertRuntimeCompatibility() {

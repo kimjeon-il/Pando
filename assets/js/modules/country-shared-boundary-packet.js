@@ -1,5 +1,5 @@
 import { buildGpuStrokeInstances } from './gpu-stroke-geometry.js';
-import { boundaryInteriorComparison, createPreparedBoundaryStore,
+import { boundaryInteriorComparison, buildTerritorialInternalBoundarySegments, createPreparedBoundaryStore,
   attachBoundarySegmentReferences, topologyNodeKey, mergeSharedBoundaryContributions } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
 import { MAX_BOUNDARY_EDGE_DEGREES, forEachRenderableBoundarySegment } from './geographic-boundary.js';
@@ -147,90 +147,72 @@ export function createCountrySharedBoundaryState() {
 
 // Keep each owner set contiguous so the GPU can apply the same per-country
 // visibility rule as Canvas without rebuilding geometry when visibility flips.
+const boundaryGeometryCache = new WeakMap();
 export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES, includeOutlines = true } = {}) {
   const store = preparedStore || createPreparedBoundaryStore();
   if (!preparedStore) store.replace(features);
-  segments = segments.map(segment => segment.refs || !features.length ? segment : attachBoundarySegmentReferences(segment, store));
   const byId = new Map(features.map(feature => [String(feature.id), feature]));
+  const rootOf = id => String(byId.get(String(id))?.boundaryRootId || id);
+  const childIds = ids => ids.filter(id => rootOf(id) !== String(id));
+  const sameHierarchy = segment => new Set(segment.ownerIds.map(rootOf)).size === 1;
+  const key = JSON.stringify(features.map(feature => [String(feature.id), rootOf(feature.id), store.get(feature.id).geometryKey]));
+  let cached = boundaryGeometryCache.get(store);
+  if (cached?.key !== key) {
+    const roots = features.filter(feature => rootOf(feature.id) === String(feature.id))
+      .map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general', parentId: '' } }));
+    const children = features.filter(feature => rootOf(feature.id) !== String(feature.id));
+    const internal = [];
+    // The common land-contact topology owns child boundaries. These flattened
+    // presentation references do not change the canonical document hierarchy.
+    for (const root of roots) {
+      const members = children.filter(feature => rootOf(feature.id) === String(root.id))
+        .map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general', parentId: String(root.id) } }));
+      for (const segment of buildTerritorialInternalBoundarySegments([root], members)) internal.push({
+        start: segment.a, end: segment.b, ownerIds: [...new Set([String(root.id), ...segment.unitOwners.map(owner => owner.id)])].sort(),
+      });
+    }
+    const hierarchyContacts = segments.filter(segment => sameHierarchy(segment) && childIds(segment.ownerIds).length);
+    const opposing = hierarchyContacts.length ? sharedCalculationCore.boundaryOpposingInteriorsBatch(hierarchyContacts.map(segment => boundaryInteriorComparison(segment, segment.ownerIds))) : [];
+    if (!Array.isArray(opposing) || opposing.length !== hierarchyContacts.length || opposing.some(value => typeof value !== 'boolean'))
+      throw Object.assign(new Error('Incomplete compiled country boundary interior classifications.'), { code: 'PL-BOUNDARY-INTERIOR' });
+    const coasts = hierarchyContacts.filter((_, index) => !opposing[index]);
+    cached = { key, internal, coasts, outlines: null };
+    boundaryGeometryCache.set(store, cached);
+  }
   const internalOwners = {};
-  const excluded = createBoundarySpatialIndex();
-  // Child perimeters already belong to territorial scene strokes. The native
-  // country mesh remains a fill optimization and must never repaint them solid.
-  const outlineIds = new Set(features.filter(feature => feature.boundaryRootId && String(feature.id) !== feature.boundaryRootId)
-    .map(feature => String(feature.id)));
-  const exteriorSegments = new Set();
-  // Classify mixed parent/child contacts in one WASM crossing. Cached
-  // source references remain Worker-owned; source geometry is not revisited.
-  const mixedContacts = [];
-  segments.forEach((segment, index) => {
-    const owners = segment.ownerIds.map(id => byId.get(id));
-    if (!owners.length || owners.some(owner => !owner?.boundaryRootId)
-      || new Set(owners.map(owner => owner.boundaryRootId)).size !== 1) return;
-    const children = owners.filter(owner => owner.id !== owner.boundaryRootId);
-    if (children.length && children.length !== owners.length)
-      mixedContacts.push({ index, comparison: boundaryInteriorComparison(segment, segment.ownerIds) });
-  });
-  const flags = mixedContacts.length
-    ? sharedCalculationCore.boundaryOpposingInteriorsBatch(mixedContacts.map(item => item.comparison)) : [];
-  // An incomplete native result must never silently turn an internal shared
-  // country edge into an exterior or suppress the country's dashed boundary.
-  if (!Array.isArray(flags) || flags.length !== mixedContacts.length
-    || flags.some(value => typeof value !== 'boolean')) {
-    throw Object.assign(new Error('Incomplete compiled country boundary interior classifications.'),
-      { code: 'PL-BOUNDARY-INTERIOR' });
+  const contacts = segments.filter(segment => !sameHierarchy(segment));
+  const visible = [...contacts, ...cached.internal];
+  for (const segment of visible) {
+    const children = childIds(segment.ownerIds);
+    if (children.length && sameHierarchy(segment)) internalOwners[segment.ownerIds.join('|')] = children;
   }
-  const opposingSegments = new Set(mixedContacts.filter((_, i) => flags[i]).map(item => item.index));
-  segments.forEach((segment, index) => {
-    const owners = segment.ownerIds.map(id => byId.get(id));
-    if (!owners.length || owners.some(owner => !owner?.boundaryRootId)
-      || new Set(owners.map(owner => owner.boundaryRootId)).size !== 1) return;
-    const children = owners.filter(owner => owner.id !== owner.boundaryRootId).map(owner => String(owner.id));
-    if (!children.length) return;
-    if (children.length === owners.length) {
-      exteriorSegments.add(segment); // The territorial stroke already owns sibling contacts.
-      return;
-    }
-    if (!opposingSegments.has(index)) {
-      exteriorSegments.add(segment);
-      children.forEach(id => outlineIds.add(id));
-      const row = { a: segment.start, b: segment.end, ownerIds: children };
+  if (includeOutlines && !cached.outlines) {
+    const excluded = createBoundarySpatialIndex();
+    [...segments, ...cached.internal].forEach((segment, index) => {
+      const row = { a: segment.start, b: segment.end, ownerIds: segment.ownerIds };
       excluded.insert(index, row, segmentBounds(row));
-      return;
-    }
-    internalOwners[segment.ownerIds.join('|')] = children;
-    segment.ownerIds.forEach(id => outlineIds.add(id));
-    const row = { a: segment.start, b: segment.end, ownerIds: segment.ownerIds };
-    excluded.insert(index, row, segmentBounds(row));
-  });
-  // Indexing/owner selection stays Worker-local; a single C++ call owns
-  // all collinearity projections, interval union and remaining source edges.
-  const pendingOutlines = [];
-  for (const id of includeOutlines ? [...outlineIds].sort() : []) {
-    if (byId.get(id).boundaryRootId !== id) continue;
-    // Stream the geometry only for a root whose exterior needs clipping.
-    // View/camera updates reuse the prepared GPU packet and never visit it.
-    forEachRenderableBoundarySegment(store.get(id).geometry, ([start, end]) => {
-      const row = { a: start, b: end };
-      const bounds = segmentBounds(row).map((value, index) => value + (index < 2 ? -1e-7 : 1e-7));
-      const blocked = excluded.query(bounds).filter(edge => edge.ownerIds.includes(id))
-        .map(edge => [edge.a, edge.b]);
-      pendingOutlines.push({ id, start, end, blocked });
     });
+    const pending = [];
+    for (const feature of features) {
+      const id = String(feature.id);
+      forEachRenderableBoundarySegment(store.get(id).geometry, ([start, end]) => {
+        const bounds = segmentBounds({ a: start, b: end }).map((value, index) => value + (index < 2 ? -1e-7 : 1e-7));
+        pending.push({ id, start, end, blocked: excluded.query(bounds).filter(edge => edge.ownerIds.includes(id)).map(edge => [edge.a, edge.b]) });
+      });
+    }
+    const clipped = pending.length ? sharedCalculationCore.boundarySubtractOverlapsBatch(pending.map(({ start, end, blocked }) => [[start, end], blocked])) : [];
+    if (!Array.isArray(clipped) || clipped.length !== pending.length || clipped.some(pieces => !Array.isArray(pieces)))
+      throw Object.assign(new Error('Incomplete compiled outline overlap subtraction.'), { code: 'PL-BOUNDARY-OVERLAP' });
+    cached.outlines = [...pending.flatMap(({ id }, index) => clipped[index].map(([start, end]) => ({ start, end, ownerIds: [id] }))), ...cached.coasts];
   }
-  const clipped = pendingOutlines.length
-    ? sharedCalculationCore.boundarySubtractOverlapsBatch(
-      pendingOutlines.map(({ start, end, blocked }) => [[start, end], blocked])) : [];
-  if (!Array.isArray(clipped) || clipped.length !== pendingOutlines.length
-    || clipped.some(pieces => !Array.isArray(pieces))) {
-    throw Object.assign(new Error('Incomplete compiled outline overlap subtraction.'),
-      { code: 'PL-BOUNDARY-OVERLAP' });
-  }
-  const outlines = pendingOutlines.flatMap(({ id }, index) => clipped[index]
-    .map(([start, end]) => ({ start, end, ownerIds: [id] })));
-
-  const packet = prepareStrokePacket(segments.filter(segment => !exteriorSegments.has(segment)), maxEdgeDegrees);
-  return { ...packet, ownerIds: [...new Set([...packet.ownerIds, ...byId.keys()])], internalOwners,
-    outlineOverrides: prepareStrokePacket(outlines, maxEdgeDegrees), outlineOwnerIds: [...outlineIds].sort() };
+  const packet = prepareStrokePacket(visible, maxEdgeDegrees);
+  const outlineOverrides = prepareStrokePacket(includeOutlines ? cached.outlines : [], maxEdgeDegrees);
+  outlineOverrides.internalOwners = Object.fromEntries([
+    ...features.filter(feature => rootOf(feature.id) !== String(feature.id)).map(feature => [String(feature.id), [String(feature.id)]]),
+    ...cached.coasts.map(segment => [segment.ownerIds.join('|'), childIds(segment.ownerIds)]),
+  ]);
+  return { ...packet, ownerIds: [...new Set([...packet.ownerIds, ...byId.keys()])], internalOwners, outlineOverrides,
+    outlineOwnerIds: [...byId.keys()].sort() };
 }
 
 function prepareStrokePacket(segments, maxEdgeDegrees) {
@@ -256,26 +238,4 @@ function prepareStrokePacket(segments, maxEdgeDegrees) {
   }
   return { ...packet, preparedGeometry: buildGpuStrokeInstances(
     packet.startsEnds, packet.chainPhase, packet.ownerRanges) };
-}
-
-// Subtract complete owner ranges from the already culled mesh submission.
-// Do not let a broad-phase full-range fallback restore the excluded solid edge.
-export function excludeCountryBoundaryOwners(ranges, mesh, ownerIds) {
-  const excluded = new Set(ownerIds);
-  const blocked = (mesh?.metadataCountryIds || []).flatMap((id, index) => excluded.has(id)
-    ? [{ first: mesh.countryBoundaryRanges[index * 2], count: mesh.countryBoundaryRanges[index * 2 + 1] }] : [])
-    .filter(range => range.count).sort((a, b) => a.first - b.first);
-  return ranges.flatMap(range => {
-    const result = [];
-    let cursor = range.first;
-    const end = range.first + range.count;
-    for (const block of blocked) {
-      if (block.first >= end) break;
-      if (block.first + block.count <= cursor) continue;
-      if (block.first > cursor) result.push({ first: cursor, count: block.first - cursor });
-      cursor = Math.min(end, Math.max(cursor, block.first + block.count));
-    }
-    if (cursor < end) result.push({ first: cursor, count: end - cursor });
-    return result;
-  });
 }

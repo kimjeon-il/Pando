@@ -18,7 +18,7 @@ export function createMapDisplayPreparation() {
       }
       if (request.entities) {
         countries = request.entities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId);
-        units = request.entities.filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
+        units = request.entities.filter(entity => entity.properties.entityKind === 'regional');
       }
       const countryById = new Map(countries.map(feature => [String(feature.id), feature]));
       const grouped = new Map();

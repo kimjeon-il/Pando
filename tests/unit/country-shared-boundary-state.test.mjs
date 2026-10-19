@@ -66,10 +66,11 @@ test('replacement outlines are subdivided only after the internal contact is rem
   assert.equal(packetLength(packet), 4);
   assert.deepEqual(packet.internalOwners['CHILD|ROOT'], ['CHILD']);
   const outlines = packet.outlineOverrides;
-  assert.ok(Math.abs(packetLength(outlines) - 12) < 1e-9);
-  assert.deepEqual(outlines.ownerIds, ['ROOT']);
+  assert.ok(Math.abs(packetLength(outlines) - 18) < 1e-9);
+  assert.deepEqual(outlines.ownerIds, ['CHILD', 'ROOT']);
+  assert.deepEqual(outlines.internalOwners.CHILD, ['CHILD']);
   assert.deepEqual(outlines.preparedGeometry.ownerRanges, outlines.ownerRanges);
-  assert.equal(outlines.preparedGeometry.capCount, 2);
+  assert.equal(outlines.preparedGeometry.capCount, 4);
   for (const segment of outlines.segments) {
     assert.ok(sphericalEdgeDegrees(segment.start, segment.end) <= MAX_BOUNDARY_EDGE_DEGREES + 1e-6);
     if (segment.start[0] === 2 && segment.end[0] === 2) {
@@ -219,17 +220,19 @@ test('one removed owner of a coincident multi-owner edge preserves the remaining
   }
 });
 
-test('classification reads prepared ring direction instead of revisiting complete geometry', () => {
+test('prepared shared geometry reuses the first hierarchy and outline derivation without revisiting coordinates', () => {
   const state = createCountrySharedBoundaryState();
   const parent = rectangle('ROOT', 0, 0, 4, 4), child = rectangle('CHILD', 0, 0, 2, 4, 'ROOT');
   state.replace([parent, child]);
+  const first = prepareCountrySharedBoundaryPacket(state.segments(), state.features(), { preparedStore: state.preparedStore });
   for (const row of [parent, child]) Object.defineProperty(row.geometry, 'coordinates', {
     get: () => { throw new Error('unchanged geometry was traversed again'); },
   });
   const packet = prepareCountrySharedBoundaryPacket(state.segments(), state.features(), { preparedStore: state.preparedStore });
-  assert.deepEqual(packet.internalOwners, {});
-  assert.deepEqual(packet.segments, []);
-  assert.deepEqual(packet.outlineOwnerIds, ['CHILD']);
+  assert.deepEqual(packet.internalOwners, first.internalOwners);
+  assert.deepEqual(packet.segments, first.segments);
+  assert.deepEqual(packet.outlineOverrides.segments, first.outlineOverrides.segments);
+  assert.deepEqual(packet.outlineOwnerIds, ['CHILD', 'ROOT']);
 });
 
 test('hole contacts respect filled-side direction and sibling contacts use territorial stroke ownership', () => {
