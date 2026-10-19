@@ -40,10 +40,10 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
-| `UI-CANVAS-GLOBE-20261019` | [Canvas 지구본 지연 수정과 배포 검증](development/testing/canvas-globe-release-2026-10-19.md) | 2026-10-19 | `focused-verified / release-pending / native-unverified` | `not-applicable` |
-| `UI-CHILD-TERRAIN-20261019` | [하위 객체의 지형 표시 누락·지연 조사와 수정](development/testing/child-terrain-readiness-2026-10-19.md) | 2026-10-19 | `focused-verified / canvas-frame-bottleneck-remains / unpublished / native-unverified` | `not-applicable` |
-| `UI-SOURCE-VISIBILITY-20261019` | [보기 메뉴의 내장 자료 구분 제거](development/testing/source-visibility-menu-2026-10-19.md) | 2026-10-19 | `focused-verified / unpublished / native-unverified` | `not-applicable` |
-| `UI-CHILD-COAST-20261019` | [하위 객체의 해안 점선 잔존 수정](development/testing/child-coast-boundary-2026-10-19.md) | 2026-10-19 | `focused-verified / unpublished / native-unverified` | `not-applicable` |
+| `UI-CANVAS-GLOBE-20261019` | [Canvas 지구본 지연 수정과 배포 검증](development/testing/canvas-globe-release-2026-10-19.md) | 2026-10-19 | `released / windows-startup-verified / android-unverified` | `not-applicable` |
+| `UI-CHILD-TERRAIN-20261019` | [하위 객체의 지형 표시 누락·지연 조사와 수정](development/testing/child-terrain-readiness-2026-10-19.md) | 2026-10-19 | `released-in-followup / see UI-CANVAS-GLOBE-20261019` | `not-applicable` |
+| `UI-SOURCE-VISIBILITY-20261019` | [보기 메뉴의 내장 자료 구분 제거](development/testing/source-visibility-menu-2026-10-19.md) | 2026-10-19 | `released-in-followup / see UI-CANVAS-GLOBE-20261019` | `not-applicable` |
+| `UI-CHILD-COAST-20261019` | [하위 객체의 해안 점선 잔존 수정](development/testing/child-coast-boundary-2026-10-19.md) | 2026-10-19 | `released-in-followup / see UI-CANVAS-GLOBE-20261019` | `not-applicable` |
 | `UI-PROJECT-RELEASE-20261019` | [프로젝트 생성·공통 보기 변경 커밋과 Pages 배포](development/testing/project-creation-release-2026-10-19.md) | 2026-10-19 | `published / focused-verified / android-device-unverified` | `not-applicable` |
 | `UI-PROJECT-CREATION-20261019` | [새 프로젝트 생성 통합과 보기 상태 저장 분리](development/testing/project-creation-storage-2026-10-19.md) | 2026-10-19 | `focused-verified / baseline-test-failures / android-device-unverified` | `not-applicable` |
 | `UI-PRODUCT-PRUNING-20261019` | [웹·앱 불필요 기능 정리와 공통 소유자 유지 검증](development/testing/product-pruning-2026-10-19.md) | 2026-10-19 | `focused-verified / android-device-unverified` | `not-applicable` |

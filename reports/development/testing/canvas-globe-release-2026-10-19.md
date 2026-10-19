@@ -1,6 +1,6 @@
 # Canvas 지구본 지연 수정과 배포 검증
 
-> 보고서 ID: `UI-CANVAS-GLOBE-20261019` · 상태: `focused-verified / release-pending / native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
+> 보고서 ID: `UI-CANVAS-GLOBE-20261019` · 상태: `released / windows-startup-verified / android-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
 > 원문 최종 수정: 2026-10-19
 > 조사 기준: Web·App `f48aa4028a3e5165efafc086e3aa0da03ff5e1d0` 및 `work/ui` 작업본. 최종 소스와 배포 SHA는 아래 배포 기록에 구분한다.
 > 원본·출처: 사용자 홍콩 고유 색상 토글 제보, 실제 Canvas Worker 단계 계측, 현재 내장 지도와 DEM, [선행 조사](child-terrain-readiness-2026-10-19.md)
@@ -33,6 +33,16 @@ Edge의 실제 Canvas Worker를 강제하여 1280×800 CSS px 창, 지도 1280×
 
 ## 한계와 배포
 
-차가운 화면의 형상·상세 지형 최초 준비는 여전히 0ms가 아니며 네트워크 다운로드 시간을 없앤 작업이 아니다. 최종 냉간 프레임 시간은 별도로 기록한다. 브라우저 App 편집 진입점과 네이티브 Windows/Android 실행은 다른 검증이다. 이번 변경은 JS 공통 렌더 경로이며 네이티브 재빌드·실기기 조작은 미실행으로 남긴다.
+차가운 화면의 형상·상세 지형 최초 준비는 여전히 0ms가 아니며 네트워크 다운로드 시간을 없앤 작업이 아니다. 최종 냉간 프레임 시간은 별도로 기록한다. 브라우저 App 편집 진입점과 네이티브 Windows/Android 실행은 다른 검증이다. Windows CI에서 MSVC 재빌드와 실제 Tauri WebView 실행의 12개 startup 검사가 통과했다. 이는 WebGL2 기본 실행 증거이며 네이티브 강제 Canvas·전체 편집 회귀·로컬 수동 실행·Android 실기기 조작은 미검증이다.
 
-현재 이 문서 작성 시점에는 commit/push/main 통합/Pages 배포가 대기 중이다. 관련 없는 네이티브 권한 파일·portability fixture·미추적 결과 폴더는 보존하며 릴리스에 넣지 않는다. 독립 코드 검토의 가장자리 stroke 지적은 수정 후 4px/40px 회귀 사례 통과로 종결했다. 후속 결과는 이 절에 추가한다.
+제품 수정 `740e6669`, 빌드 `da7b7449`를 커밋·push하고, P2가 검증·기록한 생성본 `e401fa2980dad6662a915e4c9779206adcc2f0db`까지 main에 fast-forward 통합·push했다. 관련 없는 네이티브 권한 파일·portability fixture·미추적 결과 폴더는 보존하며 릴리스에 넣지 않는다. 독립 코드 검토의 가장자리 stroke 지적은 수정 후 4px/40px 회귀 사례 통과로 종결했다. 후속 결과는 이 절에 추가한다.
+
+
+## 게시 확인
+
+- [Pages 39247753519](https://github.com/kimjeon-il/Pando/actions/runs/39247753519)의 build/deploy가 source `e401fa29`에서 성공했다. 공개 buildId는 `0.36.0-build-da7b744937ec`, dataRevision은 기존 `data-88f083713d023870fafaa2d0eb1a3636`이다.
+- 로컬 full staging `da7b7449`에서 1,315개 / 108,675,424 bytes를 검증했다. 후속 P2 생성본의 공개 파일 목록은 같고 index/build-meta 2개만 바뀌었다. 변경 없는 1,313개 검증 결과를 재사용하고 2개는 커밋 원문에서 다시 계산·포장했다. 전체 staging을 두 번 새로 실행했다고 주장하지 않는다. CI가 실제 게시한 1,315개 모든 파일의 path/blob/bytes/SHA-256이 이 최종 목록과 일치했다. 편집 앱 소스 104개와 공통 C++ 소스 173개는 게시되지 않았다.
+- 변경된 모든 공개 파일과 공통 Worker 보조 파일을 포함한 19개 URL에서 HTTP 200과 커밋 SHA-256 일치를 확인했다. 공개 사이트의 원본 응답을 수정하지 않은 Edge에서 Canvas Worker·상세 DEM, 홍콩 OFF/ON 육지 픽셀, 표시 revision 일치, 형상 교체 0회, 문서 보존, runtime 오류 없음, 상단 내장 두 항목 부재를 확인하고 화면을 저장했다.
+- 앱 full-world 실제 staging은 최종 생성본 기준 1,530개 / 148,243,933 bytes이며 포장된 Worker가 공통 소스와 일치한다. [Windows 실제 앱 CI](https://github.com/kimjeon-il/Pando/actions/runs/39247299264)는 생성 식별값 갱신 전 동일 제품 소스 `da7b7449`에서 12개 항목이 통과했다.
+- [P1 관련 검사](https://github.com/kimjeon-il/Pando/actions/runs/39247299357), [P3 웹 검사](https://github.com/kimjeon-il/Pando/actions/runs/39247299309), [P2 생성 검증](https://github.com/kimjeon-il/Pando/actions/runs/39247299423)이 통과했다. 전체 저장소의 모든 CI가 통과했다는 주장은 아니다.
+- 이 게시 근거를 추가하는 후속 문서 커밋은 게시 자산을 변경하지 않는다. 미커밋 권한 파일·fixture·로컬 결과 폴더는 그대로 보존한다.
