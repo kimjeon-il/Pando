@@ -492,14 +492,8 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             require(!in.sovereign,CommandError::InvalidArguments,"UNSUPPORTED_POLITICAL_RELATION");
             auto unit=std::find_if(d.units.begin(),d.units.end(),[&](const auto& u){return territorialRef(u.id)==in.source;});
             require(unit!=d.units.end()&&unit->kind==in.targetKind,CommandError::InvalidArguments,"kind changes require a new entity identity");
-            const auto fromGroup=territorialGroup(d,unit->id);
             if(action.geometry)patch();
             auto& parent=staticParentRelation(d,in.source.id);parent.parentId=in.parent?in.parent->id:"";parent.coverageMode="explicit";
-            const auto toGroup=territorialGroup(d,in.source.id);auto& web=d.presentation.webPresentation;
-            const auto group=web.itemVisibility.find(fromGroup);
-            if(group!=web.itemVisibility.end())if(const auto entry=group->second.find(in.source.id);entry!=group->second.end()) {
-                const bool value=entry->second;web.eraseItemVisibility(fromGroup,in.source.id);web.itemVisibility[toGroup][in.source.id]=value;
-            }
         } else if constexpr(std::is_same_v<T,ReplaceGeometryIntent>||std::is_same_v<T,CoastlineIntent>) {
             patch();
         } else if constexpr(std::is_same_v<T,MergeTerritorialIntent>) {
@@ -563,11 +557,10 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             d.presentation.objectStyles.emplace(createdRef,ObjectStyle{0,1,false});
             for(const auto& id:reparented)if(std::any_of(d.units.begin(),d.units.end(),[&](const auto& child){return child.id==id;}))staticParentRelation(d,id).parentId=in.createdId;
             if(!root) {
-                d.presentation.webPresentation.visibility["subunits"]=true;
                 auto& web=d.presentation.webPresentation;
                 for(const auto& removed:action.geometry->removedGeometryOwners) {
-                    web.eraseItemVisibility("subunits",removed.id);web.eraseItemVisibility("regions",removed.id);
-                    web.eraseItemVisibility("countryLabels","territorial:"+removed.id);
+                    web.eraseItemVisibility("objects",removed.id);
+                    web.eraseItemVisibility("objectLabels","territorial:"+removed.id);
                     web.labelSettings.erase(removed);web.objectStyles.erase(territorialPresentationKey(removed.id));
                 }
             }
@@ -647,8 +640,8 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             }
             auto& web=d.presentation.webPresentation;
             for(const auto& removed:action.geometry->removedGeometryOwners) {
-                web.eraseItemVisibility("subunits",removed.id);web.eraseItemVisibility("regions",removed.id);
-                web.eraseItemVisibility("countryLabels","territorial:"+removed.id);web.labelSettings.erase(removed);
+                web.eraseItemVisibility("objects",removed.id);
+                web.eraseItemVisibility("objectLabels","territorial:"+removed.id);web.labelSettings.erase(removed);
                 const auto key=territorialPresentationKey(removed.id);web.objectStyles.erase(key);
                 web.objectOrder.erase(std::remove(web.objectOrder.begin(),web.objectOrder.end(),key),web.objectOrder.end());
             }
@@ -729,12 +722,7 @@ void applyContent(ProjectDocument& d,const DocumentIndex& before,const ContentEd
             auto erase=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return row.id==edit.target.id;}),rows.end());};
             if(edit.target.domain=="label") erase(d.labels);
             else if(edit.target.domain=="hydro") {
-                const auto source=d.hydro.at(before.objects.at(edit.target)).sourceFeatureId;erase(d.hydro);
-                if(webHydro&&source&&std::none_of(d.hydro.begin(),d.hydro.end(),[&](const auto& row){return row.sourceFeatureId==source;})) {
-                    auto header=codecjson::parse(d.exchangeMetadata);auto& settings=header.object.at("physicalSettings");
-                    const auto hidden=settings.object.find("hiddenHydroIds");require(hidden!=settings.object.end()&&hidden->second.kind==codecjson::Value::Object,CommandError::InvalidArguments,"copied hydro removal needs hidden source map");
-                    hidden->second.object.erase(*source);d.exchangeMetadata=header.encode();
-                }
+                erase(d.hydro);
             }
             else if(edit.target.domain=="generic") erase(d.genericFeatures);
             else if(edit.target.domain=="distributionEntry") erase(d.distributionEntries);
@@ -766,12 +754,7 @@ void applyContent(ProjectDocument& d,const DocumentIndex& before,const ContentEd
             require(edit.target.domain==domain && edit.target.id==value.id,CommandError::InvalidTargets,"content ID/domain mismatch");
             if constexpr(std::is_same_v<T,PlaceLabel>) replaceContentRow(d.labels,value);
             else if constexpr(std::is_same_v<T,HydroFeature>) {
-                if(edit.create&&value.sourceFeatureId&&webHydro) {
-                    auto header=codecjson::parse(d.exchangeMetadata);auto& hidden=header.object.at("physicalSettings").object["hiddenHydroIds"];
-                    if(hidden.kind==codecjson::Value::Null)hidden=codecjson::Value::obj();
-                    require(hidden.kind==codecjson::Value::Object,CommandError::InvalidArguments,"invalid hidden source map");
-                    hidden.object[*value.sourceFeatureId]=codecjson::Value::boolean(true);d.exchangeMetadata=header.encode();
-                } else if(edit.create&&value.sourceFeatureId) {
+                if(edit.create&&value.sourceFeatureId&&!webHydro) {
                     const auto original=std::find_if(d.hydro.begin(),d.hydro.end(),[&](const auto& h){return h.id==*value.sourceFeatureId&&h.source.kind=="builtin";});
                     require(original!=d.hydro.end()||(!d.physicalData.source.empty()&&value.source.dataset==d.physicalData.dataset&&
                         value.source.version==d.physicalData.version&&value.source.kind=="user"),
@@ -1448,19 +1431,11 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                 const auto afterWorld=resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const GeometryRef& ref){return bool(candidate.geometries.get(ref));}},project.timelineMonth());
                 auto& view=candidate.presentation.webPresentation;
                 for(const auto& row:beforeWorld.entities)if(!afterWorld.find(row.id)) {
-                    const auto& unit=project.document().units.at(project.index().objects.at(territorialRef(row.id)));
-                    const auto group=unit.kind==UnitKind::Regional?"regions":row.parentId.empty()?"countries":"subunits";
-                    view.eraseItemVisibility(group,row.id);view.eraseItemVisibility("countryLabels",webTerritorialLabelDisplayId(project,row.id));
+                    const std::string group="objects";
+                    view.eraseItemVisibility(group,row.id);view.eraseItemVisibility("objectLabels",webTerritorialLabelDisplayId(project,row.id));
                     view.objectStyles.erase(territorialPresentationKey(row.id));view.labelSettings.erase(territorialRef(row.id));
                 }
-                if(edit->operation==WebTerritorialOperation::Create) {
-                    for(const auto& feature:edit->features) {
-                        const auto row=afterWorld.find(feature.identity.id);if(!row)continue;
-                        if(workflow=="territorial.create-region"&&feature.identity.kind==UnitKind::Regional) {
-                            view.visibility["regions"]=true;view.eraseItemVisibility("regions",row->id);
-                        }else if(feature.identity.kind==UnitKind::General&&!row->parentId.empty()&&workflow=="territorial.edit")view.visibility["subunits"]=true;
-                    }
-                }
+
             }
             if(semanticallyEqual(project.document(),candidate)){result.status=CommandStatus::NoOp;return result;}
             reconcileGeometryProvenance(project.document(),candidate);

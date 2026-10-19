@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import process from 'node:process';
+import {URL} from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -20,7 +22,7 @@ test('the complete historical world exports a full autosave after an identity ed
       sourceMonth:historicalManifest.sourceMonth,
       baseDataset:'Natural Earth 5.1.1 · Admin 0 Countries · 1:10m · de facto',
       fingerprint:historicalManifest.project.sha256},session.projectState().epoch);
-    session.documentLoadBaseline(admitted.storageBaselineId,historicalManifest.sourceMonth);
+    session.documentLoadBaseline(admitted.storageBaselineId,{initialMonth:historicalManifest.sourceMonth,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'});
     const before=session.projectState();
     const edited=session.executeCommand({commandId:'territorial.field',expectedEpoch:before.epoch,
       targets:[{domain:'territorial',id:'IRL'}],payload:{id:'IRL',field:'name',value:'Stored Ireland'}});
@@ -30,7 +32,10 @@ test('the complete historical world exports a full autosave after an identity ed
       savedAt:'2026-10-14T00:00:00.000Z',format:'pandolab-autosave'});
     const project=JSON.parse(exported.storageJson);
     assert.equal(project.format,'pandolab-autosave-full');
-    assert.equal(project.territorialEntities.find(row=>row.id==='IRL').properties.name,'Stored Ireland');
+    assert.ok(project.timelineRecords.propertyBindings.some(row=>row.entityId==='IRL'&&row.property==='name'&&row.value?.name==='Stored Ireland'));
+    session.documentLoad(exported.storageJson,historicalManifest.sourceMonth);
+    const reopened=session.resolveWorld(historicalManifest.sourceMonth,session.projectState().epoch);
+    assert.equal(reopened.entities.find(row=>row.id==='IRL').properties.name.name,'Stored Ireland');
     assert.equal(project.territorialEntities.length,historicalManifest.sourceIdentities.length);
     assert.ok(project.geometries.length>=274);
   }finally{session.delete();}

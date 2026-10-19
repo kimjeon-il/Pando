@@ -1,3 +1,5 @@
+import {gotoEditor,setEditorMonth} from './helpers/editor-entry.mjs';
+import {shiftTimelineMonth} from '../../assets/js/modules/timeline-controls.js';
 import {test,expect} from '@playwright/test';
 import {writeFileSync} from 'node:fs';
 import {coreFileProjection,productionGeoPackage} from '../helpers/production-geopackage.mjs';
@@ -53,7 +55,8 @@ return Object.freeze(Object.fromEntries(Object.entries(domain).map(([key,value])
    const response=await route.fetch(),source=await response.text();
    await route.fulfill({response,body:source.replace('export function createDiagnosticLog(','function observedDiagnosticLog(')+`\nexport function createDiagnosticLog(...args){const log=observedDiagnosticLog(...args);globalThis.__auditDiagnostics=log;return log;}`});
   });
-  await page.goto((mode==='viewer'?'/':'/apps/web-shell/editor.html')+(requestedRenderer?`?renderer=${requestedRenderer}`:''));
+  if(mode==='viewer')await page.goto('/'+(requestedRenderer?`?renderer=${requestedRenderer}`:''));
+  else await gotoEditor(page,'/'+(requestedRenderer?`?renderer=${requestedRenderer}`:''));
   await expect(page.locator(mode==='viewer'?'#viewerStatus':'#app')).toHaveAttribute(mode==='viewer'?'data-ready':'data-readiness',mode==='viewer'?'true':'enhanced',{timeout:120000});
   await page.evaluate(()=>{window.__auditOpened=false;window.addEventListener('pandolab:project-changed',event=>{if(!event.detail||event.detail.reason==='project-load')window.__auditOpened=true;});});
   await page.locator('#mobileFileBtn').click();
@@ -62,7 +65,8 @@ return Object.freeze(Object.fromEntries(Object.entries(domain).map(([key,value])
   await expect.poll(()=>page.evaluate(()=>window.__auditOpened),{timeout:90000}).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.__auditState().territorialEntities.length)).toBe(2);
   const beforeMonth=await page.evaluate(()=>({month:window.__auditState().timelineCursor,meshes:window.__auditMeshCalls}));
-  await page.locator('#timelineNextMonth').click();
+  if(mode==='viewer')await page.locator('#timelineNextMonth').click();
+  else await setEditorMonth(page,shiftTimelineMonth(beforeMonth.month,1));
   await expect.poll(()=>page.evaluate(()=>window.__auditMonthSettled),{timeout:60000}).toBe(true);
   const afterMonth=await page.evaluate(()=>({month:window.__auditState().timelineCursor,meshes:window.__auditMeshCalls}));
   await page.evaluate(async()=>{
@@ -92,9 +96,9 @@ return Object.freeze(Object.fromEntries(Object.entries(domain).map(([key,value])
   evidence[mode]=await page.evaluate(async()=>{
    const settings=window.__auditSettings,owners=window.__auditOwners;
    settings.renderMapDisplaySettings();
-   await settings.updateLayerPresentationStyle('countries',{opacity:.25});
+   await settings.updateLayerPresentationStyle('objects',{opacity:.25});
    settings.renderMapDisplaySettings();
-   const input=document.querySelector('[data-layer-style-opacity="countries"]');
+   const input=document.querySelector('[data-layer-style-opacity="objects"]');
    const range={value:input.value,common:input.style.getPropertyValue('--ui-range-progress'),independent:input.style.getPropertyValue('--range-progress')};
    await settings.setTerrainMode('physical');await settings.setTerrainMode('none');
    const disabledTerrain=structuredClone(window.__auditState().physicalSettings);
@@ -139,7 +143,7 @@ return Object.freeze(Object.fromEntries(Object.entries(domain).map(([key,value])
 test('low-resource startup initializes resize state before the renderer requests a quality resize',async({page})=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
  await page.addInitScript(()=>{Object.defineProperty(navigator,'deviceMemory',{value:2,configurable:true});Object.defineProperty(navigator,'hardwareConcurrency',{value:2,configurable:true});});
- await page.goto('/?renderer=canvas');
+ await page.goto('/?debug=1&renderer=canvas');
  await expect.poll(async()=>errors.length>0||await page.locator('#viewerStatus').getAttribute('data-ready')==='true',{timeout:120000}).toBe(true);
  expect(errors).toEqual([]);
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');

@@ -44,6 +44,7 @@ public:
     static void admitCreatedOpaqueBaseline(const ProjectDocument& before,ProjectDocument& candidate,
                                           const std::set<ObjectRef>& createdOwners);
     static void admitPresentationMetadata(const ProjectDocument& before,ProjectDocument& candidate);
+    static void admitProjectSetupMetadata(const ProjectDocument& before,ProjectDocument& candidate);
     static void admitSourceInfoMetadata(const ProjectDocument& before,ProjectDocument& candidate);
 };
 // One owner-keyed inventory shared by core transitions and codec hashing.

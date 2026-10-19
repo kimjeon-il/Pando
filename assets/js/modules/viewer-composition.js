@@ -1,3 +1,5 @@
+import {createBrowserProjectStorage} from './browser-project-storage.js';
+import {initialBoundsView} from './project-setup.js';
 import {createNotificationPresentation} from './notification-presentation.js';
 import {createApplicationLifecycle} from './application-lifecycle.js';
 import {createPreferencePresentation} from './preference-presentation.js';
@@ -35,14 +37,15 @@ export async function composeViewer({ productMode, meta }) {
   const diagnostics=createDiagnosticLog({limit:250});
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
   tooltipController.bind();
-  const owners=createMapOwners({productMode,isObjectAvailable:(group,id)=>map.objectQuery.isObjectAvailable(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
+  const viewStorage=createBrowserProjectStorage({productMode,indexedDB:window.indexedDB,localStorage:window.localStorage,databaseName:'pandolab-editor',storeName:'projects',projectKey:'active-project',viewKey:'active-view',fallbackKey:'pandolab-editor-project'});
+  const owners=createMapOwners({productMode,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectAvailable:(group,id)=>map.objectQuery.isObjectAvailable(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
   const surfaces=owners.workspaceSurfaces;
   const selectController=createSelectController({document,window});selectController.enhanceAll();
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile()});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,initialProject:createInitialDocument({appVersion:meta.appVersion})});
   await documentSession.commandOwner.load(JSON.stringify(documentSession.documentModel.snapshot()));
-  const projectDomain=createProjectDomain({commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
+  const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
     onProjectReset:async event=>{previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{preserveBuiltinMesh:event.preserveBuiltinMesh===true});},
     replaceSnapshot:async()=>{await map.setSession(activeSession);return true;},
@@ -90,19 +93,31 @@ export async function composeViewer({ productMode, meta }) {
     try {
     if(!await projectDomain.open(reader,options))return;
     if(request!==projectDomain.getOpenRevision())return;
+    const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
+    const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics());
+    map.viewState.projection=initial.projection;map.viewState.view=initial.view;
+    let workspace=null;
+    try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
+    if(request!==projectDomain.getOpenRevision())return;
+    map.projectSession.restoreViewingPresentation(workspace);
+    await map.objectCatalog.pruneLayerItemVisibility();
+    if(!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
+    await map.update();
     window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
     await searchController.completeHydration();
     if(request!==projectDomain.getOpenRevision())return;
     display.renderMapDisplaySettings();
     search();surfaces.syncOverlayState();status.textContent=`객체 ${map.features().length}개`;status.dataset.ready='true';
     map.loadPhysicalResources();
-    } catch(error){if(request===projectDomain.getOpenRevision())throw error;}
+    } catch(error){if(request===projectDomain.getOpenRevision()){
+      status.textContent=`객체 ${map.features().length}개`;status.dataset.ready='true';throw error;
+    }}
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
   const files=createFileController({productMode,elements:{projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')},projectDomain,openProject:open,reportOperationError:report,window,document});
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
   action(get('builtinMapBtn'),'click',()=>open(()=>map.prepareBuiltinProject(),{source:'builtin'}));
-  display=createMapSettings({viewPresentation:map});
+  display=createMapSettings({viewPresentation:map,onBackgroundChange:async(key,enabled)=>{if(enabled&&key==='builtinHydro')await owners.physicalResources.loadHydroData(true);if(enabled&&key==='builtinPlaces')await owners.territorialLabels.preparePlaces({force:true});}});
   display.connect({
     platform:{$:id=>get(id==='app'?'viewer':id),deepClone:structuredClone,clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},
     mapView:{...map.mapProjection,syncMapHostFromState:()=>map.renderingDomain.invalidateView()},mapNavigation:{ZOOM_LIMITS,FLAT_LATITUDE_LIMIT},
@@ -124,9 +139,9 @@ export async function composeViewer({ productMode, meta }) {
   for(const id of ['openProjectBtn','builtinMapBtn'])get(id).addEventListener('click',()=>surfaces.closeFileMenu());
   createPreferencesDialog({document,returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),getPreferences:()=>preferencePresentation.current,
     applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
-  globalThis.__PANDOLAB_VIEWER__=Object.freeze({productMode,documentState:()=>activeSession?.commandOwner.state(),
+  if(new URLSearchParams(window.location.search).get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
-    presentationState:()=>map.capturePresentation(),diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),openFile:file=>open(()=>readProjectFile(file))});
+    diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),openFile:file=>open(()=>readProjectFile(file))});
   const lifecycle=createApplicationLifecycle({window,startup:()=>open(()=>map.prepareBuiltinProject(),{source:'builtin'}),
     getDisposables:()=>[{dispose:disposeTimeline},preferencePresentation,surfaces,notifications,searchController,map,selectionUiController,selectionDomain,projectDomain,documentSession.commandOwner],
     onError:error=>{status.textContent='지도를 열지 못했습니다.';report(error,'지도를 열지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});

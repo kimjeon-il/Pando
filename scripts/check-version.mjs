@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isEditorOnlyAsset } from './lib/product-assets.mjs';
 
 const scriptsDirectory = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const projectRoot = resolve(scriptsDirectory, '..');
@@ -40,7 +41,7 @@ try {
   const imports = JSON.parse(moduleImportMap?.[1] || 'null')?.imports;
   expect(imports && Object.keys(imports).length > 0, '브라우저 모듈 import map이 없습니다.');
   for (const [specifier, target] of Object.entries(imports || {})) {
-    if (product.mode === 'viewer') expect(!/^\.\/assets\/js\/(?:app\.js|bootstrap\.js|modules\/app-|workers\/core-session-worker\.js)/.test(specifier),
+    if (product.mode === 'viewer') expect(!isEditorOnlyAsset(specifier.slice(2)),
       `뷰어 import map에 편집기 모듈이 있습니다: ${specifier}`);
     const source = new URL(specifier, 'https://build.invalid/');
     const destination = new URL(target, 'https://build.invalid/');

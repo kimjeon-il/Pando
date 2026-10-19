@@ -52,13 +52,13 @@ function element() {
 
 async function setup(t, { builtinSearch, cancelBuiltinSearch, builtinRecordVisible } = {}) {
   const rows = {
-    countries: [{ id: 'D', name: 'D 항목' }, { id: 'C', name: 'C 항목 묶음' }],
+    objects: [{ id: 'D', name: 'D 항목' }, { id: 'C', name: 'C 항목 묶음' }],
     labels: [{ id: 'B', name: 'B 항목' }],
     genericFeatures: [{ id: 'A', name: 'A 항목 묶음' }],
   };
   const itemRef = (group, id) => normalizeObjectRef({
-    domain: group === 'countries' ? 'territorial' : group === 'labels' ? 'label' : 'generic',
-    type: group === 'countries' ? 'entity' : group === 'labels' ? 'label' : 'feature', id,
+    domain: group === 'objects' ? 'territorial' : group === 'labels' ? 'label' : 'generic',
+    type: group === 'objects' ? 'entity' : group === 'labels' ? 'label' : 'feature', id,
   });
   const owner = await createNodeSelection();
   const tracked = trackSelection(owner.domain);

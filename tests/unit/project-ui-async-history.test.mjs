@@ -3,13 +3,13 @@ import test from 'node:test';
 import { createProjectUiBridge } from '../../assets/js/modules/project-ui-bridge.js';
 
 function fixture({ undoProject, redoProject, draftInputActive = () => false, undoDraft, redoDraft,
-  getEditingSnapshot = () => ({ processing: false, previewActive: false }), discardActiveGeometryPreview } = {}) {
+  getEditingSnapshot = () => ({ processing: false, previewActive: false }), returnToEditing } = {}) {
   const status = [];
   const buttons = new Map(['undoBtn','redoBtn','mobileUndoBtn','mobileRedoBtn'].map(id => [id, { disabled: false, dataset: {}, setAttribute() {}, removeAttribute() {} }]));
   const ui = createProjectUiBridge({ getElement: id => buttons.get(id), getSaveSnapshot: () => ({}),
     getEditingSnapshot, requireCanonicalData: () => true,
     getDraftSnapshot: () => ({ historyCount: 1, futureCount: 1 }), canUndo: () => true, canRedo: () => true,
-    draftInputActive, undoDraft, redoDraft, discardActiveGeometryPreview,
+    draftInputActive, undoDraft, redoDraft, returnToEditing,
     undoProject, redoProject, setActionStatus: (...args) => status.push(args),
   });
   return { ui, status, buttons };
@@ -56,7 +56,7 @@ test('draft and preview cancellation failures remain inside the history UI opera
   for (const previewActive of [false,true]) {
     const error = Object.assign(new Error('Core detached edit failed'), { code: 'PL-CORE-LOAD' });
     const f = fixture({ draftInputActive: () => true, getEditingSnapshot: () => ({ processing: false, previewActive }),
-      undoDraft: async () => { throw error; }, discardActiveGeometryPreview: async () => { throw error; } });
+      undoDraft: async () => { throw error; }, returnToEditing: async () => { throw error; } });
     await f.ui.undo();
     assert.equal(f.status.length,1); assert.equal(f.status[0][1],'error');
     assert.match(f.status[0][0],/Core detached edit failed/);

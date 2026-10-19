@@ -17,8 +17,8 @@ A commit does not require a version bump by itself. Release version changes are 
 
 ## Project schema
 
-Current project schema: **8**. Territorial model and Feature schema: **4**.
-Temporal relationship schema: **3**. Layer presentation schema remains **4**.
+Current project schema: **14**. Territorial model and Feature schema: **6**.
+Temporal relationship schema: **2**. Layer presentation schema: **5**.
 
 The current schema gate validates the format, model contracts, entity fields,
 and references before replacement. Older development schemas and the retired
@@ -70,11 +70,27 @@ project. History and publication occur after all validation succeeds.
 Historical source-library territory replacement keeps its topology planner:
 replacement of existing root territory is a distinct operation from importing
 new GIS objects. Natural Earth names, static country mesh IDs, place-country
-references and flag-asset table names retain their dataset meanings. Presentation
-categories `countries/subunits/regions` are derived root/child/independent filters,
-not entity kinds or split canonical storage.
+references and flag-asset table names retain their dataset meanings. All territorial entities share the `objects` display/style/item-visibility group,
+`objectNames` and `objectFlags` symbol switches, and `objectLabels` label styling.
+Root, child and independent-overlay paint roles describe land composition only;
+they do not define separate display settings. Layer and object visibility are device workspace state, keyed by documentId, and never project fields. Distribution settings retain their existing behavior and storage in `distributionSettings`; distribution data and authored styles remain project content. Old display keys are rejected.
 
 Generic is explicitly marked as a fallback target. Identifiable data should be routed to a formal territorial, distribution, hydro, or label domain before Generic is considered.
+
+## Creation and initial screen
+
+The editor has one creation-only form. `projectSetup` is required and owns
+`initialMonth`, nullable `timelineRange`, nullable `initialMapBounds`, and
+`sourceMode: builtin | empty`. The initial month must be a valid nonzero-year
+month inside the optional inclusive navigation range. Bounds affect the opening
+camera, never the geometry archive. The app remains flat by default.
+
+There is no separate project settings mode, authored default-view command or
+`defaultView` field. Explicit file opening starts from the creation month and
+bounds. Valid same-document device viewing choices may be restored; startup
+workspace recovery may additionally restore its valid month and camera. A late
+workspace read cannot affect a different document/generation. Unsupported older
+saves are rejected and preserved, with no format migration or background write.
 
 ## Changing the project contract
 

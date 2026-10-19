@@ -7,7 +7,7 @@ import { createPersistenceService } from '../../assets/js/modules/persistence-se
 function fixture({ archive = async () => {} } = {}) {
   const modals = [];
   const saved = { db: { name: 'database' }, local: { name: 'fallback' }, recovery: [] };
-  const elements = new Map(['projectSaveStatus', 'projectSaveStatusText', 'autosaveRecoveryBtn'].map(id =>
+  const elements = new Map(['projectSaveStatus', 'projectSaveStatusText', 'autosaveRecoveryFileBtn'].map(id =>
     [id, { hidden: true, dataset: {}, setAttribute() {}, addEventListener(_name, callback) { this.click = callback; } }]));
   let current = { name: 'default' };
   let dirty = false;
@@ -21,7 +21,7 @@ function fixture({ archive = async () => {} } = {}) {
     validateProject() {}, onDirty() {}, onAutosaveState() {}, onSaved() {}, onFailure() {},
     onRecoveryState: value => { paused = !!value; },
   });
-  const bridge = createProjectUiBridge({ getElement: id => elements.get(id),
+  const bridge = createProjectUiBridge({ getElement: id => elements.get(id),closeFileMenu() {},
     getSaveSnapshot: () => ({ autosaveRecovery: paused, hasUnsavedChanges: dirty, currentContentToken: contentToken }),
     getProjectGeneration: () => 0,
     getEditingSnapshot: () => ({}), draftInputActive: () => false, requireCanonicalData: () => true,
@@ -72,7 +72,7 @@ test('startup cancel preserves both saves and later selection confirms replaceme
   f.modals.shift().onCancel();
   assert.equal((await startup).project, null);
   f.bridge.syncSaveStatus();
-  assert.equal(f.elements.get('autosaveRecoveryBtn').hidden, false);
+  assert.equal(f.elements.get('autosaveRecoveryFileBtn').hidden, false);
   assert.equal(f.elements.get('projectSaveStatusText').textContent, '자동저장 중지');
   await f.service.persist({ project: { name: 'unload' }, checkpoint: null });
   assert.equal(f.saved.db.name, 'database');
@@ -87,5 +87,5 @@ test('startup cancel preserves both saves and later selection confirms replaceme
   await retry;
   assert.equal(f.current().name, 'fallback');
   assert.equal(f.saved.recovery[0].candidates[0].project.name, 'database');
-  assert.equal(f.elements.get('autosaveRecoveryBtn').hidden, true);
+  assert.equal(f.elements.get('autosaveRecoveryFileBtn').hidden, true);
 });

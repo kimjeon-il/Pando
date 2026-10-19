@@ -1,0 +1,1 @@
+import {test} from '@playwright/test';import {verifyMobileVertexUi} from './helpers/mobile-vertex-ui.mjs';test.use({hasTouch:true,viewport:{width:1440,height:900}});test('mobile vertex tap, deliberate drag, loupe and pinch cancellation preserve draft history',async({page})=>{test.setTimeout(180000);await verifyMobileVertexUi(page,{url:'/?debug=1&demTerrain=raster'});});
