@@ -1,13 +1,17 @@
 import { createWorkerRpcClient } from './worker-rpc.js';
+import { createProductModePolicy } from './product-mode-policy.js';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 const stateResponses = new Set(['core.document-state', 'core.document-mark-saved']);
 
 /** Ordered transport only. Document validation and history stay in C++ Project. */
 export function createCoreDocumentClient({
-  createWorker = () => new Worker(new URL('../workers/core-session-worker.js', import.meta.url), { type: 'module' }),
+  productMode = 'editor',
+  createWorker = () => new Worker(new URL(productMode === 'viewer'
+    ? '../workers/core-viewer-session-worker.js' : '../workers/core-session-worker.js', import.meta.url), { type: 'module' }),
   onTransition = () => {},
 } = {}) {
+  const policy = createProductModePolicy(productMode);
   let currentState = null;
   let disposed = false;
   let queue = Promise.resolve();
@@ -16,6 +20,7 @@ export function createCoreDocumentClient({
     onCrash: () => { currentState = null; } });
   function ordered(operation, payload, options = {}, requiresDocument = true, atomic = false, injectEpoch = requiresDocument) {
     const result = queue.then(async () => {
+      policy.assertOperation(operation);
       if (disposed) throw Object.assign(new Error('The C++ document owner was disposed.'),
         { code: 'PL-CORE-CANCELLED', name: 'AbortError', cancelled: true });
       if (options.isCurrent && !options.isCurrent()) fail('PL-CORE-STALE', 'The request belongs to another project generation.');
@@ -57,6 +62,7 @@ export function createCoreDocumentClient({
     return result;
   }
   return Object.freeze({
+    productMode: policy.productMode,
     subscribeTransitions(listener) {
       if (typeof listener !== 'function') throw new TypeError('A Core acknowledgement subscriber is required.');
       subscribers.add(listener);

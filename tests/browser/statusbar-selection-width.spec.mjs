@@ -1,8 +1,9 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('mobile selection uses remaining statusbar width for the full area and truncates only when necessary', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/?renderer=canvas');
+  await gotoEditor(page, '/?renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
   const text = page.locator('#selectionStatus');

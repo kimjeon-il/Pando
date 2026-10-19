@@ -301,47 +301,29 @@ function ringForRef(feature, ref) {
   return feature?.geometry?.coordinates?.[ref.polygonIndex]?.[ref.ringIndex] || null;
 }
 
-export function moveTopologyNode(featureMap, node, nextCoordinate, { precision = 7 } = {}) {
-  if (!node || !Array.isArray(nextCoordinate)) return new Set();
-  const changed = new Set();
-  const oldKey = topologyNodeKey(node.coordinate, precision);
+export function moveTopologyNodes(featureMap, moves, { precision = 7 } = {}) {
+  const replacements = new Map(moves.map(({node,coordinate}) => [topologyNodeKey(node.coordinate,precision),coordinate]));
   const virtualByRing = new Map();
-  for (const ref of node.virtualRefs || []) {
-    const key = `${ref.featureId}:${ref.polygonIndex}:${ref.ringIndex}`;
-    if (!virtualByRing.has(key)) virtualByRing.set(key, []);
-    virtualByRing.get(key).push(ref);
+  for (const {node} of moves) for (const ref of node.virtualRefs || []) {
+    const key = JSON.stringify([ref.featureId,ref.polygonIndex,ref.ringIndex]);
+    if (!virtualByRing.has(key)) virtualByRing.set(key,[]);
+    virtualByRing.get(key).push({...ref,coordinate:node.coordinate});
   }
   for (const refs of virtualByRing.values()) {
-    refs.sort((left, right) => right.segmentIndex - left.segmentIndex || right.t - left.t);
-    for (const ref of refs) {
-      const feature = featureMap.get(String(ref.featureId));
-      const ring = ringForRef(feature, ref);
-      if (!ring) continue;
-      const exists = ring.some(coordinate => topologyNodeKey(coordinate, precision) === oldKey);
-      if (!exists) ring.splice(ref.segmentIndex + 1, 0, cloneCoordinate(node.coordinate));
-      changed.add(String(ref.featureId));
+    refs.sort((a,b)=>b.segmentIndex-a.segmentIndex || b.t-a.t);
+    const ring=ringForRef(featureMap.get(String(refs[0].featureId)),refs[0]);
+    if (!ring) throw new Error('Missing boundary owner ring');
+    const existing=new Set(ring.map(p=>topologyNodeKey(p,precision)));
+    for(const ref of refs) {
+      const key=topologyNodeKey(ref.coordinate,precision);
+      if(!existing.has(key)){ring.splice(ref.segmentIndex+1,0,cloneCoordinate(ref.coordinate));existing.add(key);}
     }
   }
-  for (const ownerId of node.ownerIds || []) {
-    const feature = featureMap.get(String(ownerId));
-    if (!feature) continue;
-    for (const polygon of polygonRings(feature)) {
-      for (const ring of polygon.rings || []) {
-        let ringChanged = false;
-        for (let index = 0; index < ring.length; index += 1) {
-          if (topologyNodeKey(ring[index], precision) !== oldKey) continue;
-          ring[index] = cloneCoordinate(nextCoordinate);
-          ringChanged = true;
-        }
-        if (ringChanged && ring.length > 1) {
-          const firstKey = topologyNodeKey(ring[0], precision);
-          const lastKey = topologyNodeKey(ring[ring.length - 1], precision);
-          if (firstKey !== lastKey && (firstKey === topologyNodeKey(nextCoordinate, precision) || lastKey === topologyNodeKey(nextCoordinate, precision))) {
-            ring[ring.length - 1] = cloneCoordinate(ring[0]);
-          }
-          changed.add(String(ownerId));
-        }
-      }
+  const changed=new Set();
+  for(const [id,feature] of featureMap) for(const polygon of polygonRings(feature)) for(const ring of polygon.rings || []) {
+    for(let i=0;i<ring.length;i++) {
+      const next=replacements.get(topologyNodeKey(ring[i],precision));
+      if(next){ring[i]=cloneCoordinate(next);changed.add(id);}
     }
   }
   return changed;

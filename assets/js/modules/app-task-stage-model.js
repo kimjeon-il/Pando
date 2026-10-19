@@ -185,8 +185,27 @@ export function taskStagePresentation({
     else if (selectionModel?.primaryDisabled) reason = selection?.stage === 'setup'
       ? '대상을 선택하고 필요한 설정을 완료하세요.'
       : selection?.stage === 'review' ? '적용할 결과가 준비될 때까지 기다려 주세요.' : '다음 단계로 진행할 영역을 선택하세요.';
+    else if (['territorial-border','country-coast'].includes(state.tool)) reason = '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.';
     else reason = '다음 단계에 필요한 대상을 선택하세요.';
   }
   const status = invalid ? 'invalid' : preparing ? 'preparing' : reason ? 'needs-target' : 'editable';
-  return Object.freeze({ status, label: STATUS_LABELS[status], reason, feedbackVisible: !!(invalid || preparing), instructionFeedback });
+  return Object.freeze({ status, label: reason === '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.' ? '입력 대기' : STATUS_LABELS[status], reason, feedbackVisible: !!(invalid || preparing), instructionFeedback });
+}
+
+/** Read-only view of the existing task; dates come from the Core candidate. */
+export function editingContextPresentation({state,draft={},month='',targets=[]}) {
+  const selection=state.territorySelectionSession, preview=state.geometryPreview?.session;
+  const applying=preview?.status==='applying'||selection?.applying;
+  const calculating=!applying && (state.modeProcessing||selection?.previewPending||selection?.computationPending||state.multiDraft?.previewPending);
+  const review=selection?selection.stage==='review':!!preview;
+  const setup=selection?.stage==='setup'||(['territorial-border','country-coast'].includes(state.tool)&&state.boundaryEditPhase==='selecting');
+  const stage=applying?'적용 중':calculating?'계산 중':review?'미리보기':setup?'대상 선택':'초안';
+  const names=targets.map(target=>target.name).filter(Boolean);
+  const targetSummary=names.length>1?names[0]+' 외 '+(names.length-1)+'개':names[0]||selection?.name||'새 객체';
+  const view=month?month.replace(/^(-?)([0-9]+)-([0-9]{2})$/,(_,sign,year,m)=>(sign?'기원전 ':'')+Number(year)+'년 '+Number(m)+'월 말 상태'):'시점 확인 중';
+  const periods=preview?.temporalImpact;
+  const labels=periods?.map(row=>!row.from&&!row.until?'모든 시점':(row.from?row.from+'부터':'과거 전체')+' · '+(row.until?row.until+' 전까지':'종료 제한 없음'));
+  const period=!preview?'변경 기간 계산 전':labels?.length?[...new Set(labels)].join(' / '):'시간 기록 변경 없음';
+  const instruction=state.spacePanActive?'지도 이동 중 · 놓으면 편집 계속':applying?'변경을 반영하고 있습니다.':review?'적용 전입니다 · 수정으로 돌아가면 입력이 유지됩니다.':draft.vertexInsertMode?'경계 클릭: 꼭짓점 삽입 · Esc: 삽입 종료':(draft.inputPhase==='refine'||['territorial-border','country-coast'].includes(state.tool))?'꼭짓점 드래그: 이동 · Space 누르기: 지도 이동':'지도에서 입력 · Space 누르기: 지도 이동';
+  return Object.freeze({stage,targetSummary,view,period,instruction});
 }

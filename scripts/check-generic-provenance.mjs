@@ -47,7 +47,7 @@ for (const properties of [{ schemaVersion: 1 }, { schemaVersion: 2, role: 'terri
   if (!rejected) fail('Retired Generic schema/fields were accepted');
 }
 
-const staticUiSource = read('index.html');
+const staticUiSource = read('apps/web-shell/editor.html');
 for (const marker of ['genericFeatureConversionSection', 'convertGenericFeatureBtn']) {
   if (!staticUiSource.includes(marker)) fail(`canonical Generic fallback UI is missing marker: ${marker}`);
 }

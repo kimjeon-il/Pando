@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { canonicalVertexCount, worldAssets } from '../helpers/world-assets.mjs';
 
@@ -14,7 +15,7 @@ test('Android-density mobile viewport caps the map backing store at DPR two', as
     hasTouch: true,
   });
   const page = await context.newPage();
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 90_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {});
@@ -31,7 +32,7 @@ test('Android-density mobile viewport caps the map backing store at DPR two', as
 
 test('immutable core assets are reused from Cache Storage on reload', async ({ page }) => {
   test.setTimeout(180_000);
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const first = await page.evaluate(() => window.__PANDOLAB_STARTUP_METRICS__);
   expect(first.geometry.assets.countryPacket.source).toBe('network');
@@ -49,7 +50,7 @@ test('immutable core assets are reused from Cache Storage on reload', async ({ p
 
 test('a damaged cached country asset is deleted and recovered from the network', async ({ page }) => {
   test.setTimeout(180_000);
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(async packetUrl => {
     const cache = await caches.open('pandolab-world-content-v1');
@@ -87,7 +88,7 @@ test('constrained devices request the high-quality mesh only after geometry is a
     await route.continue();
   });
 
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
   expect(meshRequested).toBe(false);
   expect((await page.evaluate(() => window.__PANDOLAB_STARTUP_METRICS__)).loadPolicy.mode).toBe('sequential');
@@ -108,7 +109,7 @@ for (const renderer of ['webgl1', 'canvas']) {
         await route.continue();
       });
     }
-    await page.goto(`/?renderer=${renderer}`);
+    await gotoEditor(page, `/?renderer=${renderer}`);
     await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
     await expect.poll(

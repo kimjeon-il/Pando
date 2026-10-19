@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({
@@ -7,7 +8,7 @@ test.use({
 
 test('WebGL2 displays the startup preview', async ({ page }) => {
   test.setTimeout(60_000);
-  await page.goto('/?renderer=webgl2', { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, '/?renderer=webgl2', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview', { timeout: 30_000 });
   expect(await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer)).toBe('webgl2');
 });
@@ -24,7 +25,7 @@ test('terrain tiles render on the preview while canonical countries remain pendi
   });
   try {
     // Local raster avoids CDN timing; both formats use the same startup loader.
-    await page.goto('/?renderer=webgl2&demTerrain=raster', { waitUntil: 'domcontentloaded' });
+    await gotoEditor(page, '/?renderer=webgl2&demTerrain=raster', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview', { timeout: 30_000 });
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRenderedLevel ?? -1),
       { timeout: 20_000 }).toBeGreaterThanOrEqual(0);
@@ -83,7 +84,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       if (!page.isClosed()) await route.continue();
     });
     try {
-      await page.goto(`/?renderer=${renderer}&debug=1&demTerrain=raster`, { waitUntil: 'domcontentloaded' });
+      await gotoEditor(page, `/?renderer=${renderer}&debug=1&demTerrain=raster`, { waitUntil: 'domcontentloaded' });
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview', { timeout: 30_000 });
       await expect.poll(() => started.length, { timeout: 60_000 }).toBeGreaterThan(0);
       expect(started.every(level => level === 0)).toBe(true);

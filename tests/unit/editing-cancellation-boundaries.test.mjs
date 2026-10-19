@@ -33,7 +33,7 @@ function fixture(factory) {
     taskPresentation: { syncCountryActionButtons() {} },
     domains: {
       projectDomain: { getGeneration: () => generation, queueAutosave: () => calls.push('save') },
-      editingDomain: { draftInputActive: () => true, clearDraft: async () => calls.push('clear'),
+      editingDomain: { snapshot: () => ({boundaryDraft:null}), draftInputActive: () => true, clearDraft: async () => calls.push('clear'),
         setTool: async tool => { calls.push(['tool', tool]); return true; } },
       selectionUiController: { applyIntent: async ref => calls.push(['select', ref.id]),
         restore: async () => calls.push('restore'), clear: async () => calls.push('selection-clear') },

@@ -1,4 +1,5 @@
 import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
+import { MAP_DISPLAY_TARGETS } from './map-display-catalog.js';
 import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
@@ -9,7 +10,7 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).fl
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings() {
+export function createMapSettings({ viewPresentation = null,afterProjectionChange=null } = {}) {
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let desktopViewMenuPath = [];
@@ -36,6 +37,7 @@ export function createMapSettings() {
   }
 
   async function executePresentation(payload) {
+    if (viewPresentation) return viewPresentation.applyPresentation(payload);
     const project = requireProjectOwner();
     const generation = project.getGeneration();
     const result = await project.executeCommand({ commandId: 'presentation.apply', targets: [], payload: structuredClone(payload) });
@@ -91,11 +93,10 @@ export function createMapSettings() {
     }
     const token = dependencies.projectSession.atomicMapStateController.begin({ kind: 'projection', type: targetProjection });
     if (!dependencies.projectSession.atomicMapStateController.commit(token, { projection: targetProjection, view: nextView })) return false;
-    (0, dependencies.pointerInteractionA.invalidateEditInteraction)();
     (0, dependencies.mapView.syncMapHostFromState)();
     syncProjectionButtons();
     dependencies.domains.renderingDomain?.invalidateProjection?.('projection-change');
-    dependencies.domains.projectDomain.queueViewAutosave();
+    if(afterProjectionChange)afterProjectionChange();
     return true;
   }
 
@@ -155,7 +156,8 @@ export function createMapSettings() {
   }
 
   async function setTerrainMode(mode) {
-    if (!await executePresentation({ action: 'terrainMode', mode })) return false;
+    const physicalSettings = dependencies.hydroModel.terrainModeSettings(mode);
+    if (!await executePresentation({ action: 'terrainMode', mode, physicalSettings })) return false;
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
     (0, dependencies.hydroModel.syncPhysicalControls)();
     syncMapDisplayDisclosures();
@@ -620,7 +622,7 @@ export function createMapSettings() {
   }
 
   function bindMapDisplayUI() {
-    requireProjectOwner();
+    if(!viewPresentation)requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
     const visibilityInputs = [
@@ -870,16 +872,7 @@ export function createMapSettings() {
   }
 
   function initializeLAYER_STYLE_TARGETS() {
-    (LAYER_STYLE_TARGETS = Object.freeze({
-      countries: { presentationGroup: 'countries', label: '상위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
-      subunits: { presentationGroup: 'subunits', label: '하위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
-      regions: { presentationGroup: 'regions', label: '독립 권역', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
-      distributions: { presentationGroup: 'distributions', label: '분포', opacity: true, blendMode: true },
-      rivers: { presentationGroup: 'rivers', label: '강', opacity: true },
-      lakes: { presentationGroup: 'lakes', label: '호수', opacity: true },
-      genericFeatures: { presentationGroup: 'genericFeatures', label: '기타 객체', opacity: true, opacityLabel: '전체 투명도' },
-      labels: { presentationGroup: 'labels', label: '지명' },
-    }));
+    (LAYER_STYLE_TARGETS = MAP_DISPLAY_TARGETS);
 
     (desktopViewMenuPositioner = createMenuPositionScheduler(positionDesktopViewMenus));
   }

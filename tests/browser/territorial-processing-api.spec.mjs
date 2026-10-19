@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
 import { PROJECT_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 test.use({ channel: 'chromium' });
@@ -8,7 +9,7 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect.poll(async () => {
     if (errors.length) throw new Error(errors.join('\n'));
     return page.locator('#app').getAttribute('data-readiness');

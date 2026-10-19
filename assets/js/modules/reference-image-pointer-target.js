@@ -10,3 +10,27 @@ export function referenceImageEventTargetsMap(event, mapElement) {
   if (!rect) return false;
   return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 }
+
+/** In-progress touch gestures have one map owner; the second finger promotes
+ * the gesture to pinch without committing reference-image trace points. */
+export function createReferenceImageTouchTracker() {
+  const pointers = new Set();
+  let pinching = false;
+  return {
+    begin(event) {
+      if (event.pointerType !== 'touch') return false;
+      pointers.add(event.pointerId);
+      if (pointers.size > 1) pinching = true;
+      return pinching;
+    },
+    end(event) {
+      if (event.pointerType !== 'touch') return false;
+      const wasPinching = pinching;
+      pointers.delete(event.pointerId);
+      if (pointers.size === 0) pinching = false;
+      return wasPinching;
+    },
+    get pinching() { return pinching; },
+    reset() { pointers.clear(); pinching = false; },
+  };
+}

@@ -297,11 +297,7 @@ export function createPropertySelection() {
     return true;
   }
 
-  function hydroEditorName(value, fallback) {
-    const name = String(value || '').trim();
-    if (/^미명명 수계(?:\s+\d+)?$/.test(name)) return fallback;
-    return name || fallback;
-  }
+
 
   async function copySelectedHydroForEditing() {
     if (dependencies.projectState.state.selected?.domain !== 'hydro') return;
@@ -427,7 +423,6 @@ export function createPropertySelection() {
     get createDistributionLayerFromPrompt() { return createDistributionLayerFromPrompt; },
     get deleteDistributionLayer() { return deleteDistributionLayer; },
     get distributionLayerById() { return distributionLayerById; },
-    get hydroEditorName() { return hydroEditorName; },
     get removeDistributionEntry() { return removeDistributionEntry; },
     get updateDistributionEntryValue() { return updateDistributionEntryValue; },
     get replaceSelectOptions() { return replaceSelectOptions; },

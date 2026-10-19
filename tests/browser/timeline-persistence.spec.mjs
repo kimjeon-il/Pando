@@ -1,7 +1,10 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
+import { coreFileProjection, productionGeoPackage } from '../helpers/production-geopackage.mjs';
+import { createInitialDocument } from '../../assets/js/modules/initial-document.js';
+import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 
 const fixturePath = kind => fileURLToPath(new URL(`../fixtures/timeline-exchange/${kind}.gpkg`, import.meta.url));
 const fixtureJson = async kind => JSON.parse(await readFile(new URL(`../fixtures/timeline-exchange/${kind}.json`, import.meta.url),'utf8'));
@@ -12,22 +15,18 @@ async function openApp(page) {
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:undefined}));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
   await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/,{timeout:90000});
   return errors;
 }
 async function openProject(page,path) {
   await page.locator('#mobileFileBtn').click();
+  await page.evaluate(()=>{window.__testProjectOpened=false;window.addEventListener('pandolab:project-changed',event=>{if(event.detail.reason==='project-load')window.__testProjectOpened=true;},{once:true});});
   const chooser=page.waitForEvent('filechooser');
   await page.locator('#openProjectBtn').click();
   await (await chooser).setFiles({name:'project.gpkg',mimeType:'application/geopackage+sqlite3',buffer:await readFile(path)});
-  await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 불러오기',{timeout:30000});
-  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/,{timeout:30000});
-  await expect(page.locator('#gisImportError')).toBeEmpty();
-  await expect(page.locator('#gisImportConfirmBtn')).toBeVisible({timeout:15000});
-  await page.locator('#gisImportConfirmBtn').click();
-  await expect(page.locator('#gisImportModal')).toBeHidden({timeout:90000});
+  await expect.poll(()=>page.evaluate(()=>window.__testProjectOpened),{timeout:90000}).toBe(true);
   await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/,{timeout:90000});
 }
 async function readAutosave(page) {
@@ -52,21 +51,29 @@ async function downloadProject(page) {
 }
 const semantics = project => ({entities:project.territorialEntities,records:project.timelineRecords,geometries:project.geometries});
 
-test('static v10 UI file save/open and full autosave restore metadata, records and complete archive',async({page})=>{
+test('current static UI file save/open and full autosave restore metadata, records and complete archive',async({page},info)=>{
+  const {project:fixture,spatialState}=await coreFileProjection({
+    ...createInitialDocument({appVersion:'0.36.0'}),...await fixtureJson('static'),
+  });
+  const encoded=await productionGeoPackage('write',new ArrayBuffer(0),fixture,spatialState);
+  const currentFixture=info.outputPath('current-static.gpkg');
+  await writeFile(currentFixture,new Uint8Array(encoded.buffer));
   const errors=await openApp(page);
-  await openProject(page,fixturePath('static'));
+  await openProject(page,currentFixture);
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(4);
-  await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('A','저장 검증'));
-  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='A')?.properties.name,{timeout:120000}).toBe('저장 검증');
+  expect((await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('A','저장 검증'))).ok).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('저장 검증');
+  const hasNameEdit=project=>project?.timelineRecords?.propertyBindings?.some(row=>row.entityId==='A'&&row.value.name==='저장 검증');
+  await expect.poll(async()=>hasNameEdit(await readAutosave(page)),{timeout:120000}).toBe(true);
   const saved=await readAutosave(page);
   expect(saved.format).toBe('pandolab-autosave-full');
-  expect(saved.schemaVersion).toBe(10);
+  expect(saved.schemaVersion).toBe(PROJECT_SCHEMA_VERSION);
   expect(saved.territorialEntities.every(entity=>entity.geometry===null)).toBe(true);
-  expect(saved.geometries).toEqual((await fixtureJson('static')).geometries);
+  expect(saved.geometries).toEqual(fixture.geometries);
   await page.locator('#undoBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('A 영토');
-  await expect.poll(async()=>semantics(await readAutosave(page)),{timeout:30000}).toEqual(semantics(await fixtureJson('static')));
+  await expect.poll(async()=>semantics(await readAutosave(page)),{timeout:30000}).toEqual(semantics(fixture));
   await page.locator('#redoBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('저장 검증');
   await expect.poll(async()=>semantics(await readAutosave(page)),{timeout:30000}).toEqual(semantics(saved));
@@ -75,7 +82,7 @@ test('static v10 UI file save/open and full autosave restore metadata, records a
   await openProject(page,file.path);
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('A');
-  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='A')?.properties.name,{timeout:30000}).toBe('저장 검증');
+  await expect.poll(async()=>hasNameEdit(await readAutosave(page)),{timeout:30000}).toBe(true);
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.metadata.capital)).toBe('서울');
