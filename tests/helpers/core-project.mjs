@@ -11,7 +11,7 @@ export async function createNodeCoreProject(seed,platformPorts = {}) {
   } });
   try {
     await client.load(JSON.stringify(seed));
-    const project=createProjectDomain({ ...domainPorts,commandOwner: client,documentModel,publishCommand() {},
+    const project=createProjectDomain({ productMode,...domainPorts,commandOwner: client,documentModel,publishCommand() {},
       readBuiltinSelectionCatalogs: platformPorts.readBuiltinSelectionCatalogs || (() => []) });
     return { client,project,documentModel,dispose() { try { project.dispose(); } finally { client.dispose(); } } };
   } catch (error) { client.dispose();throw error; }

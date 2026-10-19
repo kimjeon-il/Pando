@@ -169,7 +169,6 @@ export function createGpuMapRenderer(deps) {
     isCountryVisibleById,
     countryBoundaryStyleById,
     isHydroFeatureVisible,
-    isLayerItemVisible,
     isMobile,
     isSafeKoreanErrorMessage,
     mapTheme,
@@ -408,7 +407,7 @@ export function createGpuMapRenderer(deps) {
     let demShadeBlend = 0;
     let demSettleStartedAt = 0;
     let demShadeTimer = null;
-    const terrainPreparation = createGpuTerrainPreparation({
+    const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
       isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
       tileUrl: spec => {
         const relative = terrainManifest.urlTemplate.replace('{level}', String(spec.level)).replace('{column}', String(spec.column)).replace('{row}', String(spec.row));
@@ -427,6 +426,7 @@ export function createGpuMapRenderer(deps) {
     });
     let preparedTerrain = [];
     function prepareTerrain(frame) {
+      if(!terrainPreparation)return;
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT) {
         const highQuality = renderQuality.phase === 'settle' && renderQuality.tier !== 'coarse';
         if (!highQuality) { demShadeBlend = 0; demSettleStartedAt = 0; }
@@ -711,7 +711,7 @@ export function createGpuMapRenderer(deps) {
         && countryPatchPresentation.ids.has(String(id));
     }
 
-    const terrainTargetsHaveSettled = () => terrainPreparation.settled();
+    const terrainTargetsHaveSettled = () => (terrainPreparation?.settled() ?? true);
 
     function shouldHoldCountryPatchScene(viewSignature) {
       const presentation = countryPatchPresentation;
@@ -720,7 +720,7 @@ export function createGpuMapRenderer(deps) {
       if (presentation.geometryRevision !== geometryRevisionTracker.committedRevision()) return false;
       if (!sceneColorCache.canCompositePreserved?.(viewSignature, projectGeneration)) return false;
       if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return false;
-      const { terrainTargetTileCount, terrainTargetTilesLoaded } = terrainPreparation.stats();
+      const { terrainTargetTileCount, terrainTargetTilesLoaded } = (terrainPreparation?.stats() || {});
       return terrainTargetTileCount > 0
         && terrainTargetTilesLoaded < terrainTargetTileCount
         && !terrainTargetsHaveSettled();
@@ -1370,10 +1370,10 @@ export function createGpuMapRenderer(deps) {
         glVersion === 2 ? countryStateVertexSourceWebGl2 : countryStateVertexSourceWebGl1,
         glVersion === 2 ? countryStateFragmentSourceWebGl2 : countryStateFragmentSourceWebGl1,
       );
-      terrainProgram = createProgram(
+      terrainProgram = terrainPreparation ? createProgram(
         glVersion === 2 ? terrainVertexSourceWebGl2 : terrainVertexSourceWebGl1,
         glVersion === 2 ? terrainFragmentSourceWebGl2 : terrainFragmentSourceWebGl1,
-      );
+      ) : null;
       hydroFillProgram = createProgram(vertexSource, glVersion === 2 ? hydroFragmentSourceWebGl2 : hydroFragmentSourceWebGl1);
       hydroLineProgram = createProgram(
         glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
@@ -1385,17 +1385,17 @@ export function createGpuMapRenderer(deps) {
         glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1,
       );
       const viewUniforms = GPU_VIEW_UNIFORM_NAMES;
-      for (const program of [fillProgram, landMaskProgram, lineProgram, pickProgram, terrainProgram, hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram]) {
+      for (const program of [fillProgram, landMaskProgram, lineProgram, pickProgram, terrainProgram, hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram].filter(Boolean)) {
         primeProgramLocations(program, viewUniforms);
       }
       for (const program of [fillProgram, lineProgram, pickProgram]) primeProgramLocations(program, ['uPalette', 'uPaletteWidth'], ['aCoord', 'aCountry']);
       primeProgramLocations(fillProgram, ['uBaseLand', 'uBaseLandColor'], []);
       primeProgramLocations(countryStateFillProgram, ['uCountryIds', 'uPalette', 'uPaletteWidth'], ['aPosition']);
       primeProgramLocations(lineProgram, ['uBorderColor']);
-      for (const program of [hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram]) {
+      for (const program of [hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram].filter(Boolean)) {
         primeProgramLocations(program, ['uHydroVisibility', 'uHydroVisibilitySize', 'uHydroColor', 'uWidthBoost', 'uWidthScale'], ['aCoord', 'aCountry', 'aCorner', 'aStart', 'aEnd', 'aStartWidth', 'aEndWidth']);
       }
-      primeProgramLocations(terrainProgram, ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme'], ['aGrid']);
+      if(terrainProgram)primeProgramLocations(terrainProgram, ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme'], ['aGrid']);
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && !ensureTerrainDemProgram()) {
         queueMicrotask(() => { void fallbackTerrainToRaster('DEM 셰이더 정밀도가 부족합니다.'); });
       }
@@ -1429,7 +1429,7 @@ export function createGpuMapRenderer(deps) {
       pickFramebuffer = null;
       pickTexture = null;
       pickSceneKey = '';
-      terrainPreparation.reset();
+      terrainPreparation?.reset();
       hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: uploadScheduler });
       hydroVisibilityDirty = true;
     }
@@ -1483,7 +1483,7 @@ export function createGpuMapRenderer(deps) {
 
     function handleSharedGpuContextLost() {
       renderDeviceContextRevision += 1;
-      terrainPreparation.reset();
+      terrainPreparation?.reset();
       hydroPreparation.resetGpu();
       lifecycle.releaseContext(gl);
       pendingCanonicalCommit?.reject(Object.assign(new Error('Context lost during canonical commit'), { name: 'AbortError' }));
@@ -2236,7 +2236,7 @@ export function createGpuMapRenderer(deps) {
         meshQuality = previewAllowed ? 'preview' : 'canonical';
         canonicalMeshReady = false;
       }
-      terrainPreparation.reset();
+      terrainPreparation?.reset();
       // Keep the previously committed pixels in place while a new project is
       // prepared.  They are replaced only by the prepared canonical frame.
       if (!preserveBuiltinMesh && gl && !gl.isContextLost?.()) {
@@ -3117,7 +3117,7 @@ export function createGpuMapRenderer(deps) {
       interactionActive = active === true;
       hydroPreparation.setInteraction(interactionActive);
       if (!interactionActive) {
-        terrainPreparation.scheduleUpload();
+        terrainPreparation?.scheduleUpload();
       }
     }
 
@@ -3300,7 +3300,7 @@ export function createGpuMapRenderer(deps) {
       const sharedOnly = shouldShowSharedCountryBorders(state.physicalSettings);
       // Terrain waits for shared land borders; it never paints coast outlines
       // temporarily while their replacement is being prepared.
-      if (!sharedOnly && state.layerVisibility.countries) {
+      if (!sharedOnly && state.layerVisibility.objects) {
         const excluded = countrySharedBoundary?.outlineOwnerIds || [];
         drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES, null, paletteTexture, null, null,
           excludeCountryBoundaryOwners(baseBoundaryDraw.ranges, mesh, excluded));
@@ -3338,7 +3338,7 @@ export function createGpuMapRenderer(deps) {
       const theme = mapTheme();
       const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
-        countriesVisible: state.layerVisibility.countries,
+        countriesVisible: state.layerVisibility.objects,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
         prepared: preparedBaseScene,
@@ -3542,7 +3542,7 @@ export function createGpuMapRenderer(deps) {
         }
       }
       const preparedInteraction = prepareGpuInteractionPlan({ interaction: renderInteractionState, emphasis: countryEmphasis,
-        mesh, overrideMesh, overrideIds: countryOverrideIds, countriesVisible: state.layerVisibility.countries,
+        mesh, overrideMesh, overrideIds: countryOverrideIds, countriesVisible: state.layerVisibility.objects,
         blocked: projectRenderBlocked, isPending: id => geometryRevisionTracker.isPending(id), isVisible: isCountryVisibleById }, polygonOverlayPass);
       const fillTarget = gl.getParameter(gl.FRAMEBUFFER_BINDING);
       const fillTargetReady = preparedInteraction.hasFillItems
@@ -3622,7 +3622,7 @@ export function createGpuMapRenderer(deps) {
     let canvasFillSubstrate = null;
     function renderCanvasCountryBoundaries(path, theme, features, target = ctx2d, reserve = false) {
       target.save();
-      if (state.layerVisibility.countries) {
+      if (state.layerVisibility.objects) {
         target.globalAlpha = reserve ? 1 : theme.borderAlpha;
         target.strokeStyle = theme.border;
         target.lineJoin = 'round';
@@ -3745,8 +3745,8 @@ export function createGpuMapRenderer(deps) {
       const canvasPath = frame.createCanvasPath(ctx2d);
       const theme = mapTheme();
       const countryFeatures = renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId));
-      const visibleFeatures = state.layerVisibility.countries
-        ? countryFeatures.filter(feature => isLayerItemVisible('countries', String(feature.id))) : [];
+      const visibleFeatures = state.layerVisibility.objects
+        ? countryFeatures.filter(feature => isCountryVisibleById(String(feature.id))) : [];
       const resolveFill = createCountryFillResolver();
       const substrate = canvasFillSubstrate ||= document.createElement('canvas');
       const paint = {
@@ -3768,7 +3768,7 @@ export function createGpuMapRenderer(deps) {
       ctx2d.lineWidth = theme.strokes.country.width;
         },
         'country-fill': () => {
-      if (state.layerVisibility.countries) {
+      if (state.layerVisibility.objects) {
         for (const feature of visibleFeatures) {
           const fill = resolveFill(feature);
           if (!(fill.fillAlpha > 0)) continue;
@@ -3801,10 +3801,10 @@ export function createGpuMapRenderer(deps) {
         else if (mapVisualOrder('hydro').includes(role)) renderCanvasHydro(canvasPath, theme, ctx2d, false, role);
       }
       const emphasisEntries = [];
-      if (state.layerVisibility.countries) for (const feature of countryFeatures) {
+      if (state.layerVisibility.objects) for (const feature of countryFeatures) {
         const id = String(feature.id || '');
         const emphasis = countryEmphasisStyle(id);
-        if (isLayerItemVisible('countries', id) && emphasis) emphasisEntries.push({ key: `country:${id}`, geometry: feature,
+        if (isCountryVisibleById(id) && emphasis) emphasisEntries.push({ key: `country:${id}`, geometry: feature,
           priority: countryEmphasis.priorities[id] || (countryEmphasis.primaryIds.has(id) ? 4 : countryEmphasis.selectedIds.has(id) ? 3 : 2),
           style: { color: colorHex(emphasis.color), fillAlpha: emphasis.alphaByte / 255 } });
       }
@@ -3877,12 +3877,13 @@ export function createGpuMapRenderer(deps) {
     }
 
     function canvasWorkerStyleMessage() {
-      const fills = canvasCountryFills(renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)));
+      const features = renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId));
+      const fills = canvasCountryFills(features);
       return {
         type: 'style',
         styleRevision: ++canvasStyleRevision,
-        visible: !!state.layerVisibility.countries,
-        hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
+        visible: !!state.layerVisibility.objects,
+        hiddenCountryIds: features.map(feature => String(feature.id)).filter(id => !isCountryVisibleById(id)),
         hiddenSharedCountryIds: (countrySharedBoundary?.ownerIds || []).filter(id => !countryBoundaryStyleById(id)),
         fills,
         countryBoundaryStyles: Object.fromEntries((countrySharedBoundary?.ownerIds || []).map(id => [id, countryBoundaryStyleById(id)])),
@@ -3918,6 +3919,8 @@ export function createGpuMapRenderer(deps) {
         riversVisible: !!state.layerVisibility.rivers,
         lakesVisible: !!state.layerVisibility.lakes,
         physicalSettings: deepClone(state.physicalSettings),
+        builtinHydroVisible:state.backgroundSettings?.builtinHydro!==false,
+        hydroVisibility:deepClone(state.itemVisibility.hydro || {}),
         theme: mapTheme(),
         darkTheme: getSystemTheme() === 'dark',
         terrainFetchConcurrency: isMobile() ? 2 : 4,
@@ -3949,10 +3952,9 @@ export function createGpuMapRenderer(deps) {
         ...canvasWorkerPhysicalStyleMessage(),
         geometryRevision: geometryRevisionTracker.committedRevision(),
         sharedBoundary: canvasCountryBoundaryPacket(),
-        terrainManifestUrl: (() => {
-          return String(TERRAIN_RASTER_MANIFEST_URL);
-        })(),
-        terrainDemManifestUrl: String(TERRAIN_PRIMARY_MANIFEST_URL),
+        terrainEnabled:terrainPreparation!==null,
+        terrainManifestUrl:terrainPreparation?String(TERRAIN_RASTER_MANIFEST_URL):null,
+        terrainDemManifestUrl:terrainPreparation?String(TERRAIN_PRIMARY_MANIFEST_URL):null,
       };
       message.type = 'init';
       return message;
@@ -3989,7 +3991,7 @@ export function createGpuMapRenderer(deps) {
         prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
         canvasLastStyleSignature = '';
       }
-      const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme(),
+      const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.objects, getSystemTheme(),
         renderScene?.revisions?.geometry, renderScene?.revisions?.style, renderScene?.revisions?.overlayOrder].join(':');
       if (styleSignature !== canvasLastStyleSignature) {
         canvasLastStyleSignature = styleSignature;
@@ -4224,7 +4226,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function ensureCountryIdScene() {
-      if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.countries) return false;
+      if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.objects) return false;
       const pickEntry = meshVariants.get('canonical') || meshVariants.get(activeMeshQuality);
       // The pick shader uses the active palette slots. Fall back to precise CPU
       // picking when canonical slots differ, rather than decode another country.
@@ -4269,7 +4271,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function pick(screenPoint) {
-      if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.countries) return null;
+      if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.objects) return null;
       resize();
       const pickEntry = meshVariants.get('canonical') || meshVariants.get(activeMeshQuality);
       if (!ensureCountryIdScene()) return null;
@@ -4691,13 +4693,14 @@ export function createGpuMapRenderer(deps) {
 
     function setTerrainManifest(manifest, manifestUrl = TERRAIN_RASTER_MANIFEST_URL,
       { source = 'raster', fallbackReason = null } = {}) {
+      if(!terrainPreparation)throw new Error('Terrain resources are unavailable in this product.');
       if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
       demShadeBlend = 0; demSettleStartedAt = 0;
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainManifestUrl = manifestUrl;
       terrainSource = source;
       terrainFallbackReason = fallbackReason;
-      terrainPreparation.setManifest(terrainManifest);
+      terrainPreparation?.setManifest(terrainManifest);
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && gl && !ensureTerrainDemProgram()) {
         void fallbackTerrainToRaster('DEM 셰이더 정밀도가 부족합니다.');
       }
@@ -4721,7 +4724,7 @@ export function createGpuMapRenderer(deps) {
     function publishLightweightMetrics() {
       const target = window.__PANDOLAB_GPU_METRICS__ ||= {};
       target.renderer = rendererMode;
-      const terrainStats = terrainPreparation.stats();
+      const terrainStats = (terrainPreparation?.stats() || {});
       Object.assign(target, terrainStats);
       target.terrainRepresentation = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d'
         ? TERRAIN_RASTER_FORMAT : terrainManifest?.representation || null;
@@ -4765,6 +4768,7 @@ export function createGpuMapRenderer(deps) {
     function getRuntimeState() {
       return {
         renderer: rendererMode,
+        terrainPreparationEnabled:terrainPreparation!==null,
         fallbackReason,
         effectivePixelRatio,
         devicePixelRatio: Math.max(1, Number(window.devicePixelRatio || 1)),
@@ -4790,7 +4794,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function getStats({ detailed = true } = {}) {
-      const terrainStats = terrainPreparation.stats();
+      const terrainStats = (terrainPreparation?.stats() || {});
       if (detailed && performance.now() - cachedDetailedStats.at > 250) {
         const sorted = [...frameTimes].sort((a, b) => a - b);
         const p95 = sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] : 0;
@@ -4932,7 +4936,7 @@ export function createGpuMapRenderer(deps) {
 
     function releaseGpuContext() {
       hydroPreparation.resetGpu();
-      terrainPreparation.reset();
+      terrainPreparation?.reset();
       sceneColorCache.dispose(); interactionFillCache.dispose(); interactionStrokeCache.dispose();
       polygonOverlayPass.dispose(); strokeRenderer.dispose();
       lifecycle.releaseContext(gl);
@@ -4957,7 +4961,7 @@ export function createGpuMapRenderer(deps) {
       builtinMeshResourceLoader.dispose();
       workerChannels.dispose();
       canvasWorker = null;
-      releaseGpuContext(); terrainPreparation.dispose();
+      releaseGpuContext(); terrainPreparation?.dispose();
       // selectionPass is borrowed from rendering-domain; it owns disposal.
       selectionPass?.handleContextLost?.();
       lifecycle.dispose();

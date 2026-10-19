@@ -53,7 +53,7 @@ TerritorialEntity
 | `type` | `"Feature"` | 공통 GeoJSON 표현 |
 | `id` | 비어 있지 않은 문자열, 기본값 없음 | 두 종류 전체에서 유일한 논리 ID |
 | `geometry` | Polygon/MultiPolygon, 기본값 없음 | 직접 소유하는 유효한 canonical 형상 |
-| `properties.schemaVersion` | 공통 모델 버전 `6` | 프로젝트 스키마 `10`, timelineRecords 스키마 `1` |
+| `properties.schemaVersion` | 공통 모델 버전 `6` | 프로젝트 스키마 `13`, timelineRecords 스키마 `2` |
 | `properties.entityKind` | `general` 또는 `regional`, 모델 입력에서 필수 | 일반객체 또는 지방객체. 계층 깊이·ID·교차 국가 수에서 추측하지 않음 |
 | `properties.name`, `notes` | 문자열, `""` | 명시적 이름과 메모 |
 | `properties.parentId` | 문자열, `""` | 일반객체의 상위 일반객체 ID. 지방객체에서는 반드시 빈 문자열 |

@@ -35,10 +35,10 @@ async function makeProjectDirty(page) {
       await page.locator('#mobileDisplayBtn').click();
     } else await page.locator('#mapDisplayBtn').click();
   }
-  await page.locator('[data-map-display-row="general"]').click();
-  await page.locator('[data-map-display-row="countries"]').click();
-  await page.locator('[data-layer-style-opacity="countries"]').fill('80');
-  await page.locator('[data-layer-style-opacity="countries"]').dispatchEvent('change');
+
+  await page.locator('[data-map-display-row="objects"]').click();
+  const opacity=page.locator('[data-layer-style-opacity="objects"]');await opacity.focus();await opacity.press('End');
+  for(let i=0;i<20;i++)await opacity.press('ArrowLeft');await opacity.press('Tab');
 }
 
 const vectorFixture = {
@@ -67,13 +67,13 @@ test('desktop shell keeps a stable command topbar and accessible file and help d
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#fileMenu')).toBeVisible();
   await expect(page.locator('#mobileFileBtn')).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '프로젝트 불러오기', '프로젝트 저장', 'GIS 가져오기', 'GIS 내보내기']);
+  await expect(page.locator('#fileMenu [data-file-menu-page="main"] > [role="menuitem"]:visible')).toContainText(['새 프로젝트', '프로젝트 불러오기', '프로젝트 저장', '고급 작업']);
   const centerAfter = await page.locator('.topbar-center').boundingBox();
   expect(Math.abs(centerAfter.x - centerBefore.x)).toBeLessThanOrEqual(1);
 
   await expect(page.locator('#newProjectBtn')).toBeFocused();
   await page.keyboard.press('End');
-  await expect(page.locator('#dataExportBtn')).toBeFocused();
+  await expect(page.locator('#fileAdvancedBtn')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.locator('#mobileFileBtn')).toBeFocused();
   await expect(page.locator('#fileMenu')).toBeHidden();
@@ -153,6 +153,7 @@ test('one load command automatically classifies vector data and PandoLab project
 
   await page.locator('#mobileFileBtn').click();
   let chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('#fileAdvancedBtn').click();
   await page.locator('#openGisBtn').click();
   await (await chooserPromise).setFiles(vectorFixture);
   await expect(page.locator('#gisImportModal')).toBeVisible();
@@ -167,6 +168,7 @@ test('one load command automatically classifies vector data and PandoLab project
   if (!await page.locator('#fileMenu').isVisible()) await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#fileMenu')).toBeVisible();
   chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('#fileAdvancedBtn').click();
   await page.locator('#openGisBtn').click();
   await (await chooserPromise).setFiles({ name: 'saved-project.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: projectBuffer });
   await expect(page.locator('#gisImportModal')).toBeVisible();

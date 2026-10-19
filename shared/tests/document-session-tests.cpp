@@ -91,11 +91,14 @@ void ownedCommandBoundaries(const std::string& seed) {
         if(moved)assert(session.storageSnapshot()==initial);
         else assert(codecjson::parse(session.storageSnapshot()).object.at("labelSettings").object.at("label:"+label).encode()==finish.encode());
     }
-    auto aliasSeed=codecjson::parse(seed);aliasSeed.object.at("physicalSettings").object["hiddenHydroIds"]=codecjson::parse("{\"external:source\":true,\"external:no-match\":true,\"disabled:other\":false}");
-    session.documentLoad(aliasSeed.encode(),"2026-10");const auto aliasBefore=session.projectState();
+    // External source catalogs register session identities; they do not author
+    // project background settings or rewrite the saved default view.
+    session.documentLoad(seed,"2026-10");const auto aliasBefore=session.projectState();
+    const auto catalogStorage=session.storageSnapshot();
     const auto alias=session.selectionCatalogLoad("hydroBuiltin",{{{"hydroBuiltin","river","river-fid"},std::string("logical-river"),{"source","other"}}},aliasBefore.epoch);
-    assert(alias.result.changed()&&!alias.delta.empty());const auto aliases=codecjson::parse(session.documentSnapshot()).object.at("physicalSettings").object.at("hiddenHydroIds");
-    assert(aliases.object.at("logical-river").raw=="true"&&aliases.object.at("external:source").raw=="true"&&aliases.object.at("disabled:other").raw=="false");
+    assert(alias.result.ok()&&!alias.result.changed());
+    assert(session.selectionRefExists({"hydroBuiltin","river","river-fid"}));
+    assert(session.storageSnapshot()==catalogStorage);
     assert(session.projectState().epoch==aliasBefore.epoch&&session.projectState().revision==aliasBefore.revision&&session.projectState().presentationRevision==aliasBefore.presentationRevision&&!session.projectState().dirty&&!session.projectState().canUndo);
     Project nativeProject;nativeProject.replace(projectcodec::decodeWeb(seed,ports));nativeProject.setTimelineCursor("2026-10",false);
     DocumentSession native(ports,DocumentSessionProfile::Native,{[](const SelectionRef&){return false;}});native.adoptPreparedProject(std::move(nativeProject));
@@ -164,23 +167,15 @@ int main() {
     assert(codecjson::parse(original).encode()==codecjson::parse(seed).encode());
     assert(!loaded.dirty&&!loaded.canUndo&&loaded.stateRevision==0);
     const auto hydro=session.project().document().hydro.at(0).id;
-    assert(!effectiveMapVisibility(session.project().document(),{"hydro",hydro}));
+    assert(effectiveMapVisibility(session.project().document(),{"hydro",hydro}));
     const projectcodec::PlatformPorts nativePorts{[](const std::string&){}};
     auto native=codecjson::parse(projectcodec::encode(session.project().snapshot(),nativePorts));
-    auto& wire=native.object.at("presentation").object.at("webPresentation").object.at("hiddenItems");
-    auto rivers=codecjson::Value::arr();rivers.array={codecjson::Value::str(hydro),codecjson::Value::str("external-river")};
-    auto lakes=codecjson::Value::arr();lakes.array={codecjson::Value::str("external-lake")};
-    wire.object.erase("hydro");wire.object["rivers"]=rivers;wire.object["lakes"]=lakes;
-    const auto nativeDocument=projectcodec::decode(native.encode(),nativePorts);
-    assert(nativeDocument.presentation.webPresentation.itemVisibility.at("hydro").size()==3);
-    assert(!nativeDocument.presentation.webPresentation.itemVisibility.count("rivers"));
-    Project nativeProject;nativeProject.replace(nativeDocument);
-    const auto nativeRestored=codecjson::parse(projectcodec::encode(nativeProject.snapshot(),nativePorts));
-    assert(nativeRestored.object.at("presentation").object.at("webPresentation").object.at("hiddenItems").encode()==wire.encode());
-    wire.object.at("lakes").array.push_back(codecjson::Value::str(hydro));
-    try { projectcodec::decode(native.encode(),nativePorts);assert(false); }
-    catch(const std::invalid_argument& error){assert(std::string(error.what())=="INVALID_HYDRO_VISIBILITY_KIND");}
-    try { session.documentLoad(seed,"bad month");assert(false); }
+    const auto& authored=native.object.at("presentation").object.at("webPresentation");
+    assert(!authored.object.count("visibility")&&!authored.object.count("hiddenItems"));
+    native.object.at("presentation").object.at("webPresentation").object["hiddenItems"]=codecjson::Value::obj();
+    try{projectcodec::decode(native.encode(),nativePorts);assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what()).find("PL-SCHEMA-FIELD")!=std::string::npos);}
+    auto invalidMonth=codecjson::parse(seed);invalidMonth.object.at("projectSetup").object["initialMonth"]=codecjson::Value::str("bad month");
+    try { session.documentLoad(invalidMonth.encode(),"2026-10");assert(false); }
     catch(const std::exception&) {}
     assert(session.projectState().epoch==loaded.epoch&&session.storageSnapshot()==original);
     CommandArguments args;args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Beta"};
