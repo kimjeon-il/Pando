@@ -2,8 +2,8 @@
 
 > 보고서 ID: `UI-SHARED-VIEWING-20261019` · 상태: `local-validation` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
 > 원문 최종 수정: 2026-10-19
-> 조사 기준: 웹·앱 `work/ui`, 기준 커밋 `264fff61b7f4138c9f19d56d2ef8bc917dce5730` 이후 이 작업의 변경분
-> 로컬 빌드: `0.36.0-build-264fff61b7f4` · 자료 revision: `data-88b762b9e864cec25b6570059b4e5012`
+> 조사 기준: 웹·앱 `work/ui`, 구현 커밋 `4c1078e44b6019f7cfa0232c8f30fa7cc505a988` (기준 `264fff61b7f4138c9f19d56d2ef8bc917dce5730`)
+> 로컬 빌드: `0.36.0-build-4c1078e44b60` · 자료 revision: `data-88b762b9e864cec25b6570059b4e5012`
 
 ## 대상과 기준일
 
