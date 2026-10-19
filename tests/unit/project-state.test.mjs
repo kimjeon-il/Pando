@@ -19,7 +19,7 @@ const state = {projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMa
   distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'overlap', activeLayerId: '' },
   labelSettings: { 'territorial:KOR': { pinned: true } }, layerPresentation: { styles: {} },
   physicalSettings: { terrainVisible: true }, projection: 'flat',
-  layerVisibility: { objects: true }, itemVisibility: { A: false }, layerFolders: { objects: true },
+  layerVisibility: { objects: true }, itemVisibility: { A: false },
   view: { flatZoom: 2 },
   timelineCursor: '1914-07',
 };
@@ -32,7 +32,6 @@ test('project serialization contains document and presentation fields only', () 
   assert.equal('projection' in project, false);
   assert.equal('timelineCursor' in project, false);
   assert.equal('view' in project, false);
-  assert.equal('layerFolders' in project, false);
 });
 
 test('history snapshots preserve editable object state through the shared schema', () => {
@@ -56,7 +55,6 @@ test('presentation and session scopes stay independent', () => {
   const session = pickProjectFields(state, { scope: 'session' });
   assert.equal(session.projection, 'flat');
   assert.deepEqual(session.view, { flatZoom: 2 });
-  assert.deepEqual(session.layerFolders, { objects: true });
   assert.equal(session.timelineCursor, '1914-07');
   assert.deepEqual(session.layerVisibility,state.layerVisibility);
 });
@@ -157,7 +155,7 @@ test('missing duplicate and unsupported object fields are rejected', () => {
 });
 
 test('session state and unsupported model fields are rejected from project files', () => {
-  for (const field of ['projection', 'view', 'layerFolders', 'selectedDistributionLayerId']) {
+  for (const field of ['projection', 'view', 'selectedDistributionLayerId']) {
     const project = currentProject();
     project[field] = field === 'projection' ? 'flat' : {};
     assert.throws(() => assertCurrentProjectSchema(project), new RegExp(`지원하지 않는 필드 ${field}`));

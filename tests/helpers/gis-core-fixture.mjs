@@ -20,7 +20,7 @@ export async function createGisCoreFixture(territorialEntities=[],{fields={},run
     planTransferLandDependents:land.planTransferLandDependents,applyImportedPackageAssets,
     genericFeatureService:createGenericFeatureService({documentModel:owner.documentModel,commandOwner:owner.project}),
     GENERIC_FEATURE_SCHEMA_VERSION,DEFAULT_GENERIC_FEATURE_COLOR:'#8c68d8',normalizeGenericFeatureSemantics,
-    activeLayerFolderKeys:()=>['genericFeatures'],validateStructuredGeometry:()=>[],
+    validateStructuredGeometry:()=>[],
     normalizePolygonGeometry:value=>value,deepClone:structuredClone,uid:()=> 'generated',
     polygonClipping:globalThis.polygonClipping,validateGisCountryCollection:async()=>({overlapAreaKm2:0}),
     markCountryGeometriesChanged:ids=>rootPatches.push([...ids]),invalidateObjectPresentation(){},setActionStatus(){},

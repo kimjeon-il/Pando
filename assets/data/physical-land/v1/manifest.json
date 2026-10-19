@@ -1,0 +1,11 @@
+{
+  "schema": "pando-physical-land-v1",
+  "sourceSha256": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb",
+  "asset": {
+    "url": "assets/data/physical-land/v1/geometry.json.gz",
+    "encoding": "gzip",
+    "compressedBytes": 4357309,
+    "decodedBytes": 12385591,
+    "sha256": "aeb0905d1f95d387261c3c798aa7847d9c15fb3203858b10bfc5c21a94578f98"
+  }
+}

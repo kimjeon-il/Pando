@@ -1,4 +1,5 @@
 import { createWorkerRpcClient } from './worker-rpc.js';
+import {workerAssetUrl} from './worker-asset-url.js';
 import { createProductModePolicy } from './product-mode-policy.js';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
@@ -7,8 +8,8 @@ const stateResponses = new Set(['core.document-state', 'core.document-mark-saved
 /** Ordered transport only. Document validation and history stay in C++ Project. */
 export function createCoreDocumentClient({
   productMode = 'editor',
-  createWorker = () => new Worker(new URL(productMode === 'viewer'
-    ? '../workers/core-viewer-session-worker.js' : '../workers/core-session-worker.js', import.meta.url), { type: 'module' }),
+  createWorker = () => new Worker(workerAssetUrl(new URL(productMode === 'viewer'
+    ? '../workers/core-viewer-session-worker.js' : '../workers/core-session-worker.js', import.meta.url)), { type: 'module' }),
   onTransition = () => {},
 } = {}) {
   const policy = createProductModePolicy(productMode);

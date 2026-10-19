@@ -25,13 +25,8 @@ const loadPolicy = resolveStartupLoadPolicy({
   saveData: params.get('saveData') === 'true',
 });
 
-function versionedDataUrl(relativePath) {
-  const url = new URL(relativePath, self.location.href);
-  url.searchParams.set('v', DATA_REVISION);
-  return url;
-}
-
-const MANIFEST_URL = versionedDataUrl('../../data/world/current.json');
+const MANIFEST_URL = new URL('../../data/world/current.json', self.location.href);
+MANIFEST_URL.searchParams.set('v', DATA_REVISION);
 const phaseProgress = { preview: new Map(), geometry: new Map(), mesh: new Map() };
 let manifest = null;
 let previewReady = false;

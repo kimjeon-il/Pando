@@ -28,7 +28,9 @@ test('both products use ProjectSession; viewing overrides have no persistence, c
  session.setViewingPresentation({physicalSettings:{...session.state.physicalSettings,terrainVisible:false}});
  const viewing=session.captureViewingPresentation();session.setViewingPresentation({},{reset:true});
  assert.equal(session.state.layerVisibility.objects,true);
- session.setViewingPresentation(viewing,{reset:true});assert.equal(session.state.layerVisibility.objects,false);
+ assert.equal(session.restoreViewingPresentation({documentId:before.documentId,viewingPresentation:viewing}),true);
+ assert.equal(session.state.layerVisibility.objects,false);
+ assert.equal(session.state.layerPresentation.styles.objects.opacity,.25);
  assert.equal(session.state.physicalSettings.terrainVisible,false);
  assert.deepEqual(core.documentModel.snapshot(),before);assert.deepEqual(core.client.state(),beforeState);
  assert.throws(()=>session.setViewingPresentation({territorialEntities:[]}),/Unknown viewing state/);

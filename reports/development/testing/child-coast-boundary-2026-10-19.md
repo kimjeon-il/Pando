@@ -1,5 +1,7 @@
 # 하위 객체의 해안 점선 잔존 수정
 
+> 후속 `UI-COAST-RECURRENCE-20261019`: [재발·수정 유실 여부 조사](child-coast-recurrence-audit-2026-10-19.md). 아래는 당시 검증 기록이다. 실제 내장 지도의 전체 경계 출력에 대한 정확도 검증으로 해석하지 않는다.
+
 > 보고서 ID: `UI-CHILD-COAST-20261019` · 상태: `focused-verified / unpublished / native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
 > 원문 최종 수정: 2026-10-19
 > 조사 기준: 웹·앱 `f48aa4028a3e5165efafc086e3aa0da03ff5e1d0` 및 `work/ui` 미커밋 수정본

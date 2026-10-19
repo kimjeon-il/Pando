@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -10,6 +11,21 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
  const evidence=JSON.parse(await readFile(resolve(directory,'shell/stage-evidence.json'),'utf8'));
  const profile=JSON.parse(await readFile(resolve(directory,'shell/stage-profile.json'),'utf8'));
  assert.ok(evidence.files.some(file=>file.path==='index.html'));
+ const metadataSource = await readFile(resolve(directory,'assets/js/build-meta.js'),'utf8');
+ const metadata = JSON.parse(metadataSource.match(/Object\.freeze\(([\s\S]*?)\);/)?.[1] || '{}');
+ assert.ok(Object.keys(metadata.workerAssets || {}).length, 'Missing generated Worker identities');
+ for (const [entry, asset] of Object.entries(metadata.workerAssets)) {
+   assert.ok(asset.files.includes(asset.url), 'Missing Worker entry: ' + entry);
+   for (const path of asset.files) {
+     assert.match(path, /^assets\/worker-runtime\/[a-f0-9]{32}\/assets\//);
+     const source = (await readFile(resolve(directory,path),'utf8')).replaceAll('\r\n','\n');
+     // Shell guards are intentionally prepended only to Worker/helper files.
+     const canonical = source.includes('/* Shell-only request guard; original worker follows. */')
+       ? source.slice(source.indexOf('\n', source.indexOf('})(globalThis, { allowBundledData:')) + 1) : source;
+     assert.equal(createHash('sha256').update(canonical).digest('hex'), asset.sha256[path], path);
+   }
+ }
+ assert.ok(evidence.files.some(file=>file.path===metadata.physicalLand.url), 'Physical substrate must be bundled in both profiles');
  const html=await readFile(resolve(directory,'index.html'),'utf8');
  assert.match(html,/assets\/js\/bootstrap\.js/);assert.doesNotMatch(html,/<script\b[^>]*src=["'][^"']*assets\/js\/viewer\.js/);
  if(profile.mode==='full-world'){

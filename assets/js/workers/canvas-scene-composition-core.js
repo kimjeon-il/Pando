@@ -26,11 +26,10 @@
     context.fillStyle = packet.style.color;
     context.fill();
   }
-  function drawGeneralLand(context, path, packets, features = []) {
+  function drawGeneralLand(context, path, packets) {
     context.beginPath();
-    for (const feature of features) path(feature);
     for (const packet of packets) {
-      if (packet.role !== 'territorial-fill') continue;
+      if (packet.role !== 'physical-land') continue;
       path(geometryFor(packet));
     }
     context.fill();
@@ -75,7 +74,7 @@
     return cached;
   }
   function drawOverlays(context, path, polygons, strokes, dpr, protection = null) {
-    const items = [...polygons.filter(packet => packet.role !== 'territorial-fill').map(packet => ({ packet, polygon: true })),
+    const items = [...polygons.filter(packet => packet.role !== 'territorial-fill' && packet.role !== 'physical-land').map(packet => ({ packet, polygon: true })),
       ...strokes.map(packet => ({ packet, polygon: false }))].sort((a, b) => Number(a.packet.order || 0) - Number(b.packet.order || 0));
     const protectedArea = items.some(item => item.polygon) ? protectionFor(context, dpr, protection) : null;
     for (const { packet, polygon } of items) {
@@ -145,7 +144,7 @@
     const groups = new Map();
     const add = (source, owners, dash = false) => {
       for (const owner of owners) {
-        const ids = dash ? packet.internalOwners[owner] : owner.split('|');
+        const ids = dash ? source.internalOwners[owner] : owner.split('|');
         const opacity = Math.max(0, ...ids.map(id => styleForOwner(id)?.opacity || 0));
         if (!opacity) continue;
         const key = `${dash}:${opacity}:${source === packet}`;
@@ -153,10 +152,11 @@
         groups.get(key).ownerIds.push(owner);
       }
     };
-    if (sharedOnly) {
-      add(packet, Object.keys(packet.ownerRanges).filter(key => !packet.internalOwners[key]));
-    } else {
-      add(packet.outlineOverrides, packet.outlineOverrides.ownerIds);
+    add(packet, Object.keys(packet.ownerRanges).filter(key => !packet.internalOwners[key]));
+    if (!sharedOnly) {
+      const outlines = packet.outlineOverrides;
+      add(outlines, Object.keys(outlines.ownerRanges).filter(key => !outlines.internalOwners?.[key]));
+      add(outlines, Object.keys(outlines.ownerRanges).filter(key => outlines.internalOwners?.[key]), true);
     }
     add(packet, Object.keys(packet.internalOwners), true);
     batches.push(...groups.values());

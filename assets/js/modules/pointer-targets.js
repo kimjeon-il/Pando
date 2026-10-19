@@ -159,8 +159,7 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
   function activeSnapOwnerIds() {
     if (dependencies.projectState.state.tool === 'territorial-border') return dependencies.projectState.state.boundaryEditEntityIds.map(String);
     if (dependencies.projectState.state.coastEditCountryId) return [String(dependencies.projectState.state.coastEditCountryId)];
-    if ((dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId))) return [String(dependencies.projectState.state.selected.id)];
-    if ((dependencies.projectState.state.selected?.domain === 'territorial' && !(dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId))) return [String(dependencies.projectState.state.selected.id)];
+    if (dependencies.projectState.state.selected?.domain === 'territorial') return [String(dependencies.projectState.state.selected.id)];
     if (dependencies.projectState.state.selected?.domain === 'generic') return [String(dependencies.projectState.state.selected.id)];
     if (dependencies.projectState.state.selected?.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id)) return [String(dependencies.projectState.state.selected.id)];
     return [];

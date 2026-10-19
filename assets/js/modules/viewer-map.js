@@ -1,4 +1,5 @@
 import {createMapInputPresentation} from './map-input-presentation.js';
+import {workerAssetUrl} from './worker-asset-url.js';
 import {createMapInteractionGate} from './map-interaction-gate.js';
 import {createAtomicMapStateController} from './map-state-transition.js';
 import {createTerritorialEntityStore} from './territorial-entity-store.js';
@@ -90,7 +91,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   const hydroEditById=physicalSettings.hydroEditById,hydroById=physicalSettings.hydroFeatureById;
   const labelById=id=>labelOwner.labelById(id);
 
-  const readPorts={projectSession,domains:{projectDomain,get selectionDomain(){return documentSession.selectionDomain;}},projectState:{state},territorialModel:{entityRepository:repository,DISTRIBUTION_MODES},
+  const readPorts={preferences:{get userPreferences(){return getPreferences();}},projectSession,domains:{projectDomain,get selectionDomain(){return documentSession.selectionDomain;}},projectState:{state},territorialModel:{entityRepository:repository,DISTRIBUTION_MODES},
     colorModel:{COLOR_DOMAINS,readDomainColor,countryDefaultColor,DEFAULT_GENERIC_FEATURE_COLOR,defaultCountryColor:feature=>countryDefaultColor(feature)||theme().defaultLand},
     objectDefinitions:{MAP_OBJECT_CATEGORIES,MAP_OBJECT_TYPES},
     objectPresentation,hydroModel:{hydroFeatureById:hydroById},labelPresentation:{labelById,pendingCountryLabelAnchors:new Set(),countryLabelAnchors:new Map()},
@@ -105,7 +106,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   Object.assign(readPorts.colorModel,{territorialEntityColor:objectPresentation.territorialEntityColor,genericFeatureColor:objectPresentation.genericFeatureColor});
   const objectQuery=createObjectQuery(readPorts);
   objectCatalog.connect(readPorts);
-  const runtimeAssetUrl = path => {const url=new URL(`../${path}`,import.meta.url);url.searchParams.set('v',meta.assetRevision);return url;};
+  const runtimeAssetUrl = path => {const url=new URL(`../${path}`,import.meta.url);url.searchParams.set('v',meta.assetRevision);return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname)?workerAssetUrl(url,meta):url;};
   const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:new URL('../',import.meta.url),dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile}),
     DATA_REVISION:meta.dataRevision,HYDRO_DATA_VERSION,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET};
   const territorialScope=createTerritorialScopeResolver({entityRepository:repository,clipper:()=>globalThis.polygonClipping,getState:()=>state});
@@ -116,7 +117,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   physicalSettings.connect({projectState:{state},physicalConfig,mapLayout:{get mapLayoutMetricsSnapshot(){return mapProjection.mapLayoutMetricsSnapshot;}},preferences:{mapTheme:theme},platform:{$:id=>document.getElementById(id),clamp},
     hydroPresentation:readPorts.hydroPresentation,objectPresentation,layerPresentation:objectCatalog});
   Object.assign(readPorts.hydroPresentation,{allBuiltInHydroFeatures:physicalSettings.allBuiltInHydroFeatures,
-    hydroLayerVisible:physicalSettings.hydroLayerVisible,hydroLineParts:physicalSettings.hydroLineParts,activeLayerFolderKeys:physicalSettings.activeLayerFolderKeys});
+    hydroLayerVisible:physicalSettings.hydroLayerVisible,hydroLineParts:physicalSettings.hydroLineParts});
   physicalResources.connect({projectState:{state},physicalConfig,physicalServices:{createHydroService,createTerrainService,fetchWithRetry,isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible},
     hydroPresentation:readPorts.hydroPresentation,platform:{d3},cutGeometry:{coordinateBounds},
     labelPresentation:{currentMapZoom:currentZoom},mapView:{get flatProjection(){return mapProjection.flatProjection;},get globeProjection(){return mapProjection.globeProjection;}},
@@ -300,7 +301,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
       session=next;rootGeometryDirty=true;projectSession.setViewingPresentation(view||{},{reset:true});await update();
     },
     cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
-    loadPhysicalResources:physicalResources.loadPhysicalData,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
+    loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
     prepareBuiltinProject:async()=>{const baseline=await builtinSession.prepareProjectBaseline();return {...baseline,setup:{initialMonth:baseline.sourceMonth,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}};},
     placeSelectionReferences:labelOwner.builtinPlaceSelectionReferences,hydroSelectionReferences:physicalResources.builtinHydroSelectionReferences,
     objectPicking,closeObjectChooser:objectPicking.closeObjectChooser,objectCatalog,objectQuery,refreshSelection:()=>renderingDomain.invalidateSelection(),

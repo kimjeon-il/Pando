@@ -29,7 +29,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   let editorWorkspacePresentation;
   let editorSurfaceTabs;
   let MOBILE_SHEET_IDS;
-  let mapModeContextWasActive;
   let MOBILE_SHEET_HISTORY_KEY;
   let ignoreNextMobileSheetPopstate;
   let mobileViewportHeight;
@@ -457,7 +456,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
 
 
 
-    (mapModeContextWasActive = false);
 
     (MOBILE_SHEET_HISTORY_KEY = '__atlaswrightMobileSheet');
 
@@ -534,8 +532,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     setFileMenuPage,
     get isPolygonDraftTool() { return isPolygonDraftTool; },
     get layoutMode() { return layoutMode; },
-    get mapModeContextWasActive() { return mapModeContextWasActive; },
-    set mapModeContextWasActive(value) { mapModeContextWasActive = value; },
     get openSelectionEditor() { return openSelectionEditor; },
     get openSurface() { return openSurface; },
     get refreshMapSheetMetrics() { return refreshMapSheetMetrics; },

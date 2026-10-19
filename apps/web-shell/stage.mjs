@@ -33,6 +33,12 @@ export async function stagePrototype({ root = repository, profile = 'small-proje
 
 async function stageOwnedPrototype({ root, profile }) {
   root = resolve(root);
+  const generator = join(root, 'scripts/generate-build-metadata.mjs');
+  if (await exists(generator)) execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
+  const buildSource = await readFile(join(root, 'assets/js/build-meta.js'), 'utf8');
+  const buildMeta = JSON.parse(buildSource.match(/Object\.freeze\(([\s\S]*)\);\s*$/)?.[1] || '{}');
+  const workerFiles = new Set(Object.values(buildMeta.workerAssets || {}).flatMap(asset => asset.files));
+  const workerHashes = Object.assign({}, ...Object.values(buildMeta.workerAssets || {}).map(asset => asset.sha256));
   const directory = join(root, 'apps/web-shell/dist');
   if (await exists(directory)) {
     if (!await exists(join(directory, ownership))) throw new Error('Output directory ownership is not established; no files removed.');
@@ -57,11 +63,13 @@ async function stageOwnedPrototype({ root, profile }) {
       if (entry.isSymbolicLink()) throw new Error(`Symbolic links cannot enter the shell distribution: ${child}`);
       if (entry.isDirectory()) await copyTree(child);
       else if (entry.isFile() && !entry.name.endsWith('.map')) {
+        if (slash(child).startsWith('assets/worker-runtime/') && !workerFiles.has(slash(child))) continue;
         let bytes = await readFile(join(root, child));
+        if (workerFiles.has(slash(child)) && hash(Buffer.from(bytes.toString('utf8').replaceAll('\r\n', '\n'))) !== workerHashes[slash(child)]) throw new Error(`Immutable Worker asset mismatch: ${child}`);
         if (slash(child) === 'assets/js/build-meta.js') {
           bytes = Buffer.concat([bytes, Buffer.from(`\nglobalThis.PANDOLAB_BUILD_META = Object.freeze({ ...globalThis.PANDOLAB_BUILD_META, resourceProfile: '${profile}' });\n`)]);
         }
-        if (slash(child).startsWith('assets/js/workers/') && child.endsWith('.js')) {
+        if (/(?:^|\/)assets\/js\/workers\//.test(slash(child)) && child.endsWith('.js')) {
           const strict = /^(?:\s|\/\*[\s\S]*?\*\/|\/\/[^\r\n]*(?:\r?\n|$))*(['"])use strict\1\s*;/.test(bytes.toString('utf8'));
           bytes = Buffer.concat([Buffer.from(`${strict ? "'use strict';\n" : ''}/* Shell-only request guard; original worker follows. */\n(${installNetworkGuard.toString()})(globalThis, { allowBundledData: ${profile === 'full-world'} });\n`), bytes]);
         }
@@ -81,7 +89,8 @@ async function stageOwnedPrototype({ root, profile }) {
     await emit(path, bytes, path);
   }
   await emit(manifestPath, manifestBytes, manifestPath);
-  for (const tree of ['assets/js', 'assets/css', 'assets/fonts', 'assets/vendor']) await copyTree(tree);
+  for (const tree of ['assets/js', 'assets/css', 'assets/fonts', 'assets/vendor', 'assets/worker-runtime']) await copyTree(tree);
+  if (buildMeta.physicalLand) await copyTree('assets/data/physical-land');
   const html = await readFile(join(root, 'apps/web-shell/editor.html'), 'utf8');
   const productBase = '<base href="../../" data-product-base="editor" />';
   if (html.split(productBase).length !== 2 || (html.match(/<base\b/g) || []).length !== 1)
@@ -155,7 +164,7 @@ async function stageOwnedPrototype({ root, profile }) {
     worldData, files, bytes: files.reduce((sum, file) => sum + file.bytes, 0) };
   const limit = profile === 'full-world' ? 256 * 1024 * 1024 : 80 * 1024 * 1024;
   if (result.bytes > limit || (profile === 'small-project'
-      && files.some(file => file.path.startsWith('assets/data/')))) {
+      && files.some(file => file.path.startsWith('assets/data/') && file.path !== buildMeta.physicalLand?.url && file.path !== 'assets/data/physical-land/v1/manifest.json'))) {
     throw new Error('Shell staging exceeded the selected offline profile');
   }
   await writeFile(join(directory, 'shell/stage-evidence.json'), JSON.stringify(result, null, 2));

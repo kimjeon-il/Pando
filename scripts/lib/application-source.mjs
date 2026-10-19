@@ -32,7 +32,7 @@ export function applicationOwnerDefinitions(){
  const commonAst=linter.getSourceCode().ast,imports=new Map();
  for(const node of commonAst.body)if(node.type==='ImportDeclaration')for(const spec of node.specifiers)imports.set(spec.local.name,node.source.value.replace(/^\.\//,''));
  nodes.length=0;visit(commonAst);
- const commonOwners=nodes.filter(node=>node.type==='VariableDeclarator'&&node.id.type==='Identifier'&&imports.has(node.init?.callee?.name))
+ const commonOwners=nodes.filter(node=>node.type==='VariableDeclarator'&&node.id.type==='Identifier'&&imports.has(node.init?.callee?.name)&&node.init.callee.name.startsWith('create'))
    .map(node=>({owner:node.id.name,file:imports.get(node.init.callee.name),factory:node.init.callee.name}));
  return [...editorOwners,...commonOwners];
 

@@ -67,7 +67,7 @@ export async function composeApplication({ productMode, revision, platform = {},
     import(new URL(`./app-connect-lifecycle-ui.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
   ]);
   const {builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,platform,
-    resolveVisibilityGroup:ref=>objectCommands.layerGroupForObjectRef(ref),closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectAvailable:(group,id)=>objectCommands.isObjectAvailable(objectCommands.layerItemObjectRef(group,id)),
+    resolveVisibilityGroup:ref=>objectCommands.layerGroupForObjectRef(ref),closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectVisible:(group,id)=>objectCommands.objectRefVisible(objectCommands.layerItemObjectRef(group,id)),
     editing:{beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
       persistView:()=>domainAssembly.projectDomain.queueViewAutosave(),getEditPreview:()=>geometryPreview.editPreviewController.packet(),
       handleMapClick:point=>handleEditorMapClick(point,applicationPorts),

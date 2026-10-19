@@ -21,8 +21,10 @@ export function installNetworkGuard(scope = globalThis, { allowBundledData = fal
     const command = /^\/(write_probe_file|read_probe_file|write_diagnostic_report|finish_probe|begin_document_write|append_document_chunk|finish_document_write|begin_document_read|read_document_chunk|abort_document_transfer)$/.test(url.pathname);
     const ipc = command && (['http://ipc.localhost', 'https://ipc.localhost'].includes(url.origin)
       || (url.protocol === 'ipc:' && url.hostname === 'localhost'));
-    const bundledData = decodeURIComponent(url.pathname).startsWith('/assets/data/');
-    if ((!ipc && url.origin !== origin) || (bundledData && !allowBundledData)) {
+    const dataPath = decodeURIComponent(url.pathname);
+    const bundledData = dataPath.startsWith('/assets/data/');
+    const physicalLand = /^\/assets\/data\/physical-land\/v1\/(?:geometry\.json\.gz|manifest\.json)$/.test(dataPath);
+    if ((!ipc && url.origin !== origin) || (bundledData && !allowBundledData && !physicalLand)) {
       record('blocked', row);
       throw new Error(`Prototype resource request blocked: ${url.href}`);
     }

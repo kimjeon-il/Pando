@@ -281,7 +281,8 @@
   window.PANDOLAB_APP_VERSION = APP_VERSION;
   window.PANDOLAB_ASSET_REVISION = ASSET_REVISION;
   window.PANDOLAB_DATA_REVISION = DATA_REVISION;
-  const loaderUrl = versionedAsset('./workers/data-loader-worker.js');
+  const { workerAssetUrl } = await import(versionedAsset('./modules/worker-asset-url.js').href);
+  const loaderUrl = workerAssetUrl(versionedAsset('./workers/data-loader-worker.js'));
   for (const [key, value] of Object.entries(startupSignals)) {
     if (value !== null && value !== '') loaderUrl.searchParams.set(key, String(value));
   }

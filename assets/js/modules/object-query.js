@@ -1,6 +1,7 @@
 import {isBuiltinPlaceId} from './place-contract.js';
 import { temporalContains,temporalMonthEnd } from './temporal.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
+import { placeLabelRowsAtMonth } from './place-name-display.js';
 export function createObjectQuery(dependencies) {
   function territorialEntityForRef(ref) {
     if (ref?.domain !== 'territorial') return null;
@@ -32,7 +33,7 @@ export function createObjectQuery(dependencies) {
 
   function objectRefVisible(value) {
     const ref = dependencies.selectionServices.normalizeObjectRef(value);
-    if(!ref)return false;
+    if(!ref||!isObjectAvailable(ref))return false;
     const state=dependencies.projectState.state;
     const group=layerGroupForObjectRef(ref);
     const master=ref.domain==='hydro'?(ref.type==='lake'?'lakes':'rivers'):group;
@@ -41,15 +42,21 @@ export function createObjectQuery(dependencies) {
     if(ref.domain==='hydro'&&!dependencies.hydroPresentation.hydroEditById(ref.id)) {
       const feature=dependencies.hydroModel.hydroFeatureById(ref.id);
       const id=String(feature?.properties?.pandolab_id||feature?.id||ref.id);
-      return state.resourceCapabilities?.builtinHydro!==false&&state.itemVisibility.hydro?.[id]!==false;
+      return state.resourceCapabilities?.builtinHydro!==false&&state.itemVisibility.hydro?.[id]!==false
+        && state.physicalSettings?.hydroLayers?.[feature?.properties?.layer_id]!==false;
     }
     return dependencies.layerPresentation.isLayerItemVisible(group,ref.id);
   }
 
   function isObjectAvailable(value) {
+    const ref=dependencies.selectionServices.normalizeObjectRef(value);
     const object=objectForRef(value);
+    if(ref?.domain==='label'&&isBuiltinPlaceId(ref.id)&&object&&!placeLabelRowsAtMonth(object,dependencies.projectState.state.timelineCursor).length)return false;
     return !!object && temporalContains(object.properties||object,temporalMonthEnd(dependencies.projectState.state.timelineCursor));
   }
+
+  const visibleTerritorialCount = () => dependencies.territorialModel.entityRepository.list()
+    .filter(entity=>objectRefVisible({domain:'territorial',type:'entity',id:String(entity.id)})).length;
 
   function objectDisplayInfo(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
@@ -76,7 +83,10 @@ export function createObjectQuery(dependencies) {
     }
     const label = dependencies.labelPresentation.labelById(ref.id);
     const labelKind = { capital: '수도', city: '도시', town: '마을', region: '지역명', mountain: '산', water: '수역', custom: '기타' };
-    return { name: label?.name || ref.id, type: '지명', detail: labelKind[label?.kind] || '지명' };
+    const name = label && isBuiltinPlaceId(ref.id)
+      ? placeLabelRowsAtMonth(label, dependencies.projectState.state.timelineCursor, dependencies.preferences.userPreferences.labels.place.languages)[0]?.text
+      : label?.name;
+    return { name: name || ref.id, type: '지명', detail: labelKind[label?.kind] || '지명' };
   }
 
   function focusObjectRef(value, { announce = true } = {}) {
@@ -126,5 +136,5 @@ export function createObjectQuery(dependencies) {
     return '';
   }
 
-  return Object.freeze({layerGroupForObjectRef,objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef});
+  return Object.freeze({layerGroupForObjectRef,objectForRef,isObjectAvailable,visibleTerritorialCount,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef});
 }

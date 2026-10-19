@@ -99,10 +99,6 @@ export function createProjectSession({productMode='editor',capabilities={terrain
         labels: {},
         objectLabels: {},
       },
-      layerFolders: {
-        polities: false,
-        landforms: false,
-      },
       objectSearch: '',
       tool: 'select',
       labelPlacementMode: false,
@@ -195,6 +191,7 @@ export function createProjectSession({productMode='editor',capabilities={terrain
         if(typeof value.boundaryVisible==='boolean')patch.distributionSettings.boundaryVisible=value.boundaryVisible;
         if(value.activeLayerId===''||state.distributionLayers.some(layer=>layer.id===value.activeLayerId))patch.distributionSettings.activeLayerId=value.activeLayerId;
       }
+      if(productMode==='viewer'&&stored.layerPresentation)patch.layerPresentation=dependencies.modelValidation.normalizeLayerPresentation(stored.layerPresentation);
       setViewingPresentation(patch);
     }
     return true;

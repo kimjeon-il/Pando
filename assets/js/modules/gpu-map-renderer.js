@@ -21,7 +21,7 @@ import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
 import { resolveCountryMeshQuality } from './country-mesh-zoom-policy.js';
-import { shouldShowSharedCountryBorders, excludeCountryBoundaryOwners } from './country-shared-boundary-packet.js';
+import { shouldShowSharedCountryBorders } from './country-shared-boundary-packet.js';
 import { geometryRevisionKey } from './geometry-versions.js';
 import '../workers/canvas-terrain-dem-core.js';
 
@@ -323,8 +323,6 @@ export function createGpuMapRenderer(deps) {
     let ctx2d = null;
     let rendererMode = 'pending';
     let fillProgram = null;
-    let landMaskProgram = null;
-    let lineProgram = null;
     let pickProgram = null;
     let terrainProgram = null;
     let terrainDemProgram = null;
@@ -357,11 +355,9 @@ export function createGpuMapRenderer(deps) {
         setHydroEdits(state.hydroEdits || [], Number(state.stateRevision || 0)); },
     });
     let fillVao = null;
-    let lineVao = null;
     let positionBuffer = null;
     let countryBuffer = null;
     let fillIndexBuffer = null;
-    let lineIndexBuffer = null;
     let paletteTexture = null;
     let overridePaletteTexture = null;
     let emphasisPaletteTexture = null;
@@ -385,9 +381,7 @@ export function createGpuMapRenderer(deps) {
     let overridePositionBuffer = null;
     let overrideCountryBuffer = null;
     let overrideFillIndexBuffer = null;
-    let overrideLineIndexBuffer = null;
     let overrideFillVao = null;
-    let overrideLineVao = null;
     let overrideMesh = null;
     const countryOverrideIds = new Set();
     // IDs changed while the 50m startup preview is painted. They are retained
@@ -530,7 +524,7 @@ export function createGpuMapRenderer(deps) {
             || Number(data?.geometryRevision) !== geometryRevisionTracker.committedRevision()
             || data?.quality !== activeMeshQuality) return;
           if (data.type === 'error') {
-            console.warn('[PL-COUNTRY-BOUNDARY-001]', data.message);
+            reportOperationError(Object.assign(new Error(data.message), { operation: 'country-boundary-prepare' }), '객체 경계를 준비하지 못했습니다.', 'PL-COUNTRY-BOUNDARY-001', 4200);
             // Retain the last successfully presented borders even when a
             // replacement Worker job fails.
             resetCountrySharedBoundary({ terminate: true, preservePresented: true });
@@ -540,6 +534,7 @@ export function createGpuMapRenderer(deps) {
           const revision = `${projectGeneration}:${data.requestId}`;
           pendingCountrySharedBoundary = {
             ...data.packet, key: `country-shared-boundary:${revision}`, geometryRevision: revision,
+            sourceProjectGeneration: data.projectGeneration, sourceGeometryRevision: data.geometryRevision,
             outlineOverrides: {
               ...data.packet.outlineOverrides, key: `country-outline-overrides:${revision}`, geometryRevision: revision,
             },
@@ -547,7 +542,7 @@ export function createGpuMapRenderer(deps) {
           promotePreparedCountryBoundary();
         };
         countryBoundaryWorker.onerror = event => {
-          console.warn('[PL-COUNTRY-BOUNDARY-002]', event.message || event);
+          reportOperationError(event.error || new Error(event.message || 'Boundary Worker failed'), '객체 경계를 준비하지 못했습니다.', 'PL-COUNTRY-BOUNDARY-002', 4200);
           resetCountrySharedBoundary({ terminate: true, preservePresented: true });
         };
         replace = true;
@@ -559,7 +554,8 @@ export function createGpuMapRenderer(deps) {
       // still invalidate the precomputed boundary cache's geometry contract.
       baselineCache = baselineCache && boundaryFeatures.every(feature => feature.properties.parentId
         ? feature.boundaryPristine === true : meshCountryIds.includes(String(feature.id)));
-      resetCountrySharedBoundary({ preservePresented: true });
+      resetCountrySharedBoundary({ preservePresented: countrySharedBoundary?.sourceProjectGeneration === projectGeneration
+        && countrySharedBoundary?.sourceGeometryRevision === geometryRevisionTracker.committedRevision() });
       countryBoundaryIncludesOutlines = !shouldShowSharedCountryBorders(state.physicalSettings);
       countryBoundaryWorker.postMessage({ type: replace ? 'replace' : 'patch',
         requestId: countryBoundaryRequestId, projectGeneration,
@@ -799,20 +795,6 @@ export function createGpuMapRenderer(deps) {
         if (color.a <= 0.0) discard;
         outColor = uBaseLand == 1 ? uBaseLandColor : color;
       }`;
-    const lineFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in float vDepth;
-      flat in uint vCountry;
-      uniform sampler2D uPalette;
-      uniform int uMode;
-      uniform vec4 uBorderColor;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        if (texelFetch(uPalette, ivec2(int(vCountry), 1), 0).a <= 0.0) discard;
-        outColor = uBorderColor;
-      }`;
     const pickFragmentSourceWebGl2 = `#version 300 es
       precision highp float;
       precision highp int;
@@ -846,16 +828,6 @@ export function createGpuMapRenderer(deps) {
         vec4 color=texture(uPalette,vec2((countryIndex+0.5)/max(1.0,uPaletteWidth),0.25));
         if(color.a<=0.0)discard;
         outColor=color;
-      }`;
-    const landMaskFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in float vDepth;
-      uniform int uMode;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        outColor = vec4(1.0);
       }`;
     const vertexShaderSourceWebGl1 = `
       precision highp float;
@@ -1013,21 +985,6 @@ export function createGpuMapRenderer(deps) {
         if (color.a <= 0.0) discard;
         gl_FragColor = uBaseLand == 1 ? uBaseLandColor : color;
       }`;
-    const lineFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying float vDepth;
-      varying float vCountry;
-      uniform sampler2D uPalette;
-      uniform float uPaletteWidth;
-      uniform int uMode;
-      uniform vec4 uBorderColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        float index = floor(vCountry + 0.5);
-        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.75)).a <= 0.0) discard;
-        gl_FragColor = uBorderColor;
-      }`;
     const pickFragmentSourceWebGl1 = `
       precision highp float;
       precision mediump int;
@@ -1064,15 +1021,6 @@ export function createGpuMapRenderer(deps) {
         vec4 color=texture2D(uPalette,vec2((countryIndex+0.5)/max(1.0,uPaletteWidth),0.25));
         if(color.a<=0.0)discard;
         gl_FragColor=color;
-      }`;
-    const landMaskFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying float vDepth;
-      uniform int uMode;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        gl_FragColor = vec4(1.0);
       }`;
     const terrainVertexSourceWebGl2 = `#version 300 es
       precision highp float;
@@ -1370,8 +1318,6 @@ export function createGpuMapRenderer(deps) {
       terrainDemProgram = null;
       const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
-      landMaskProgram = createProgram(vertexSource, glVersion === 2 ? landMaskFragmentSourceWebGl2 : landMaskFragmentSourceWebGl1);
-      lineProgram = createProgram(vertexSource, glVersion === 2 ? lineFragmentSourceWebGl2 : lineFragmentSourceWebGl1);
       pickProgram = createProgram(vertexSource, glVersion === 2 ? pickFragmentSourceWebGl2 : pickFragmentSourceWebGl1);
       countryStateFillProgram = createProgram(
         glVersion === 2 ? countryStateVertexSourceWebGl2 : countryStateVertexSourceWebGl1,
@@ -1392,13 +1338,12 @@ export function createGpuMapRenderer(deps) {
         glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1,
       );
       const viewUniforms = GPU_VIEW_UNIFORM_NAMES;
-      for (const program of [fillProgram, landMaskProgram, lineProgram, pickProgram, terrainProgram, hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram].filter(Boolean)) {
+      for (const program of [fillProgram, pickProgram, terrainProgram, hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram].filter(Boolean)) {
         primeProgramLocations(program, viewUniforms);
       }
-      for (const program of [fillProgram, lineProgram, pickProgram]) primeProgramLocations(program, ['uPalette', 'uPaletteWidth'], ['aCoord', 'aCountry']);
+      for (const program of [fillProgram, pickProgram]) primeProgramLocations(program, ['uPalette', 'uPaletteWidth'], ['aCoord', 'aCountry']);
       primeProgramLocations(fillProgram, ['uBaseLand', 'uBaseLandColor'], []);
       primeProgramLocations(countryStateFillProgram, ['uCountryIds', 'uPalette', 'uPaletteWidth'], ['aPosition']);
-      primeProgramLocations(lineProgram, ['uBorderColor']);
       for (const program of [hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram].filter(Boolean)) {
         primeProgramLocations(program, ['uHydroVisibility', 'uHydroVisibilitySize', 'uHydroColor', 'uWidthBoost', 'uWidthScale'], ['aCoord', 'aCountry', 'aCorner', 'aStart', 'aEnd', 'aStartWidth', 'aEndWidth']);
       }
@@ -1426,11 +1371,9 @@ export function createGpuMapRenderer(deps) {
       positionBuffer = null;
       countryBuffer = null;
       fillIndexBuffer = null;
-      lineIndexBuffer = null;
       overridePositionBuffer = lifecycle.create(gl, 'Buffer');
       overrideCountryBuffer = lifecycle.create(gl, 'Buffer');
       overrideFillIndexBuffer = lifecycle.create(gl, 'Buffer');
-      overrideLineIndexBuffer = lifecycle.create(gl, 'Buffer');
       resetGpuNormalBlend(gl);
       gl.disable(gl.DEPTH_TEST);
       pickFramebuffer = null;
@@ -1607,9 +1550,8 @@ export function createGpuMapRenderer(deps) {
       if (!gl || !resources) return;
       if (glVersion === 2) {
         if (resources.fillVao) lifecycle.release(resources.fillVao);
-        if (resources.lineVao) lifecycle.release(resources.lineVao);
       }
-      for (const buffer of [resources.positionBuffer, resources.countryBuffer, resources.fillIndexBuffer, resources.lineIndexBuffer]) {
+      for (const buffer of [resources.positionBuffer, resources.countryBuffer, resources.fillIndexBuffer]) {
         if (buffer) lifecycle.release(buffer);
       }
     }
@@ -1705,9 +1647,7 @@ export function createGpuMapRenderer(deps) {
         positionBuffer: lifecycle.create(gl, 'Buffer'),
         countryBuffer: lifecycle.create(gl, 'Buffer'),
         fillIndexBuffer: lifecycle.create(gl, 'Buffer'),
-        lineIndexBuffer: lifecycle.create(gl, 'Buffer'),
         fillVao: null,
-        lineVao: null,
         byteLength: Number(nextMesh.positions?.byteLength || 0)
           + Number(nextMesh.countryIndices?.byteLength || 0)
           + Number(nextMesh.triangleIndices?.byteLength || 0)
@@ -1728,8 +1668,6 @@ export function createGpuMapRenderer(deps) {
       }
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resources.fillIndexBuffer);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nextMesh.triangleIndices, gl.STATIC_DRAW);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resources.lineIndexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nextMesh.lineIndices, gl.STATIC_DRAW);
       }
       if (glVersion === 2) {
         const createVao = indexBuffer => {
@@ -1746,7 +1684,6 @@ export function createGpuMapRenderer(deps) {
           return vao;
         };
         resources.fillVao = createVao(resources.fillIndexBuffer);
-        resources.lineVao = createVao(resources.lineIndexBuffer);
       }
       return resources;
     }
@@ -1755,12 +1692,11 @@ export function createGpuMapRenderer(deps) {
       if (!gl) return null;
       if (!uploadScheduler) throw new Error('GPU upload scheduler is not connected');
       const uploadGl = gl;
-      const resources = { fillVao: null, lineVao: null, byteLength: 0 };
+      const resources = { fillVao: null, byteLength: 0 };
       const tasks = [
         ['positionBuffer', nextMesh.positions, gl.ARRAY_BUFFER, glVersion !== 2],
         ['countryBuffer', nextMesh.countryIndices, gl.ARRAY_BUFFER, glVersion !== 2],
         ['fillIndexBuffer', nextMesh.triangleIndices, gl.ELEMENT_ARRAY_BUFFER, false],
-        ['lineIndexBuffer', nextMesh.lineIndices, gl.ELEMENT_ARRAY_BUFFER, false],
       ].map(([key, data, target, convert]) => ({ key, data, target, convert, offset: 0 }));
       return uploadScheduler.enqueueUpload({
         key: `mesh:${++stagingSequence}`, projectGeneration: generation, contextGeneration, priority: 100,
@@ -1813,9 +1749,7 @@ export function createGpuMapRenderer(deps) {
       positionBuffer = resources?.positionBuffer || null;
       countryBuffer = resources?.countryBuffer || null;
       fillIndexBuffer = resources?.fillIndexBuffer || null;
-      lineIndexBuffer = resources?.lineIndexBuffer || null;
       fillVao = resources?.fillVao || null;
-      lineVao = resources?.lineVao || null;
       pickSceneKey = '';
       if (changed) prepareCountrySharedBoundary({ replace: true, baselineCache: entry.boundaryCacheKind === 'built-in' });
       window.__PANDOLAB_GPU_METRICS__ = getStats();
@@ -1896,11 +1830,11 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.countryPatchUploadBytes += uploadBytes;
       performanceMetrics.lastCountryPatchUploadBytes = uploadBytes;
       if (!stagedResources) throw new Error('Override mesh requires staged GPU resources');
-      for (const buffer of [overridePositionBuffer, overrideCountryBuffer, overrideFillIndexBuffer, overrideLineIndexBuffer]) if (buffer) lifecycle.release(buffer);
-      if (glVersion === 2) { if (overrideFillVao) lifecycle.release(overrideFillVao); if (overrideLineVao) lifecycle.release(overrideLineVao); }
+      for (const buffer of [overridePositionBuffer, overrideCountryBuffer, overrideFillIndexBuffer]) if (buffer) lifecycle.release(buffer);
+      if (glVersion === 2) { if (overrideFillVao) lifecycle.release(overrideFillVao); }
       overridePositionBuffer = stagedResources.positionBuffer; overrideCountryBuffer = stagedResources.countryBuffer;
-      overrideFillIndexBuffer = stagedResources.fillIndexBuffer; overrideLineIndexBuffer = stagedResources.lineIndexBuffer;
-      overrideFillVao = stagedResources.fillVao; overrideLineVao = stagedResources.lineVao;
+      overrideFillIndexBuffer = stagedResources.fillIndexBuffer;
+      overrideFillVao = stagedResources.fillVao;
       updatePalette();
       prewarmCountryStrokeResources();
       if (renderFrame) renderLatestVisualFrame();
@@ -2661,18 +2595,12 @@ export function createGpuMapRenderer(deps) {
         gl.uniform1i(cachedUniformLocation(program, 'uBaseLand'), baseLand ? 1 : 0);
         gl.uniform4f(cachedUniformLocation(program, 'uBaseLandColor'), color[0] / 255, color[1] / 255, color[2] / 255, theme.baseLandAlpha);
       }
-      if (program === fillProgram || program === lineProgram || program === pickProgram) {
+      if (program === fillProgram || program === pickProgram) {
         gl.uniform1i(cachedUniformLocation(program, 'uPalette'), 0);
         const paletteWidthLocation = cachedUniformLocation(program, 'uPaletteWidth');
         if (paletteWidthLocation) gl.uniform1f(paletteWidthLocation, Math.max(1, meshCountryIds.length));
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, palette);
-      }
-      if (program === lineProgram) {
-        const theme = mapTheme();
-        gl.lineWidth(Math.max(0.25, Number(lineWidth) || theme.strokes.country.width) * activeFrameContext.dpr);
-        const color = lineColor || [theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha];
-        gl.uniform4f(cachedUniformLocation(program, 'uBorderColor'), color[0], color[1], color[2], color[3]);
       }
       const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer, resources);
       if (glVersion === 2) gl.bindVertexArray(vao);
@@ -3303,17 +3231,10 @@ export function createGpuMapRenderer(deps) {
       return packets.size > 0;
     }
 
-    function drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw) {
+    function drawCountryBoundaryStrokes() {
       const sharedOnly = shouldShowSharedCountryBorders(state.physicalSettings);
       // Terrain waits for shared land borders; it never paints coast outlines
       // temporarily while their replacement is being prepared.
-      if (!sharedOnly && state.layerVisibility.objects) {
-        const excluded = countrySharedBoundary?.outlineOwnerIds || [];
-        drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES, null, paletteTexture, null, null,
-          excludeCountryBoundaryOwners(baseBoundaryDraw.ranges, mesh, excluded));
-        if (overrideMesh?.lineIndices?.length) drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length,
-          gl.LINES, dynamicResources, overridePaletteTexture, null, null, excludeCountryBoundaryOwners(overrideBoundaryDraw.ranges, overrideMesh, excluded));
-      }
       if (!activeFrameContext) return { succeeded: true, renderedKeys: [], missingKeys: [] };
       return strokeRenderer.drawBatches(globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
         countrySharedBoundary, mapTheme(), sharedOnly, countryBoundaryStyleById), activeFrameContext);
@@ -3347,7 +3268,7 @@ export function createGpuMapRenderer(deps) {
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.objects,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
-        countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
+        countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
         prepared: preparedBaseScene,
       }, { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
       performanceMetrics.baseSceneDrawCount += 1;
@@ -3370,8 +3291,7 @@ export function createGpuMapRenderer(deps) {
 
     function drawCountryBoundaryMask() {
       if (!preparedBaseScene) return;
-      const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
-      drawCountryBoundaryStrokes(dynamicResources, preparedBaseScene.baseBoundaryDraw, preparedBaseScene.overrideBoundaryDraw);
+      drawCountryBoundaryStrokes();
     }
 
     function sceneViewSignature(viewState = lastVisualFrame.viewState) {
@@ -3634,11 +3554,6 @@ export function createGpuMapRenderer(deps) {
         target.strokeStyle = theme.border;
         target.lineJoin = 'round';
         target.lineWidth = theme.strokes.country.width;
-        if (!shouldShowSharedCountryBorders(state.physicalSettings)) for (const feature of features) {
-          const id = String(feature?.id || '');
-          if (!countryBoundaryStyleById(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
-          target.beginPath(); path(countryOutlineFeature(feature)); target.stroke();
-        }
       }
       const batches = globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(countrySharedBoundary, theme,
         shouldShowSharedCountryBorders(state.physicalSettings), countryBoundaryStyleById);
@@ -3708,7 +3623,7 @@ export function createGpuMapRenderer(deps) {
       ctx2d.filter = state.darkTheme ? 'brightness(0.84)' : 'none';
       if (style === 'political') {
         ctx2d.beginPath();
-        canvasPath({ type: 'FeatureCollection', features: countryFeatures });
+        for (const packet of canvasScenePolygons()) if (packet.role === 'physical-land') canvasPath(globalThis.PandoLabCanvasSceneComposition.geometryFor(packet));
         ctx2d.clip();
       }
       if (frame.projection === 'flat') {
@@ -3855,7 +3770,7 @@ export function createGpuMapRenderer(deps) {
       const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides, geometryRevision } = countrySharedBoundary;
       return { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, geometryRevision,
         outlineOverrides: { startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
-          ownerIds: outlineOverrides.ownerIds } };
+          ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners } };
     }
 
     const canvasSentGeometry = new Map();

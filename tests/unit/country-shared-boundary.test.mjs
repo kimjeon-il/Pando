@@ -13,7 +13,6 @@ import assert from 'node:assert/strict';
 import { buildCountrySharedBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
 import { prepareCountrySharedBoundaryPacket, visibleCountrySharedSegments, shouldShowSharedCountryBorders, createCountrySharedBoundaryState } from '../../assets/js/modules/country-shared-boundary-packet.js';
 import { countryGeometrySignature, changedCountryGeometryIds } from '../../assets/js/modules/country-shared-boundary-cache.js';
-import { excludeCountryBoundaryOwners } from '../../assets/js/modules/country-shared-boundary-packet.js';
 import '../../assets/js/workers/canvas-scene-composition-core.js';
 import { connectBoundarySegments } from '../../assets/js/modules/boundary-lines.js';
 
@@ -24,6 +23,31 @@ const rectangle = (id, west, south, east, north) => ({
   type: 'Feature', id, properties: {}, geometry: { type: 'Polygon', coordinates: [[
     [west, south], [east, south], [east, north], [west, north], [west, south],
   ]] },
+});
+
+test('one shared packet owns parent and child outlines with the same coast policy and distinct line shapes', () => {
+  const parent = { ...rectangle('ROOT', 0, 0, 2, 2), boundaryRootId: 'ROOT', properties: { entityKind: 'general', parentId: '' } };
+  const child = { ...rectangle('CHILD', 2, 0, 3, 2), boundaryRootId: 'ROOT', properties: { entityKind: 'general', parentId: 'ROOT' } };
+  const features = [parent, child], contacts = buildCountrySharedBoundarySegments(features);
+  const terrain = prepareCountrySharedBoundaryPacket(contacts, features, { includeOutlines: false });
+  assert.ok(terrain.segments.length);
+  assert.ok(terrain.segments.every(segment => segment.start[0] === 2 && segment.end[0] === 2));
+  assert.equal(terrain.outlineOverrides.segments.length, 0);
+  const outline = prepareCountrySharedBoundaryPacket(contacts, features, { includeOutlines: true });
+  assert.ok(outline.outlineOverrides.segments.some(segment => segment.ownerIds.includes('CHILD') && segment.start[0] === 3 && segment.end[0] === 3));
+  assert.deepEqual(outline.outlineOverrides.internalOwners.CHILD, ['CHILD']);
+  assert.deepEqual(outline.outlineOwnerIds, ['CHILD', 'ROOT']);
+  const before = structuredClone(features);
+  prepareCountrySharedBoundaryPacket(contacts, features);
+  assert.deepEqual(features, before);
+});
+
+test('general siblings and child boundaries wholly inside a parent remain in the single shared owner', () => {
+  const parent = { ...rectangle('ROOT', 0, 0, 4, 4), boundaryRootId: 'ROOT', properties: { entityKind: 'general', parentId: '' } };
+  const child = { ...rectangle('CHILD', 1, 1, 2, 2), boundaryRootId: 'ROOT', properties: { entityKind: 'general', parentId: 'ROOT' } };
+  const packet = prepareCountrySharedBoundaryPacket([], [parent, child], { includeOutlines: false });
+  assert.ok(packet.segments.length, 'a child inside the parent has a land boundary even without matching source perimeter contacts');
+  assert.ok(Object.values(packet.internalOwners).some(ids => ids.includes('CHILD')));
 });
 
 test('production theme applies effective country opacity once to shared and native boundaries', () => {
@@ -136,8 +160,9 @@ test('native child contact belongs to dashed lower boundaries and is removed fro
   const packet = prepareCountrySharedBoundaryPacket(buildCountrySharedBoundarySegments([parent, child]), [parent, child]);
   assert.deepEqual(packet.internalOwners['CHN|HKG'], ['HKG']);
   assert.deepEqual(packet.outlineOwnerIds, ['CHN', 'HKG']);
-  assert.deepEqual(packet.outlineOverrides.ownerIds, ['CHN']);
-  assert.ok(Math.abs(displayLength(packet.outlineOverrides.segments) - 3) < 1e-9);
+  assert.deepEqual(packet.outlineOverrides.ownerIds, ['CHN', 'HKG']);
+  assert.deepEqual(packet.outlineOverrides.internalOwners.HKG, ['HKG']);
+  assert.ok(Math.abs(displayLength(packet.outlineOverrides.segments) - 6) < 1e-9);
   assert.ok(packet.outlineOverrides.segments.every(segment => !(segment.start[0] === 1 && segment.end[0] === 1)));
 });
 
@@ -154,12 +179,6 @@ test('split contacts remove only their covered interval from solid parent outlin
   assert.ok(Math.abs(displayLength(contact) - 2) < 1e-9);
 });
 
-test('excluded country outline ranges stay excluded even from a full mesh submission', () => {
-  const mesh = { metadataCountryIds: ['A', 'HKG', 'CHN', 'B'], countryBoundaryRanges: [0, 6, 6, 4, 10, 8, 18, 6] };
-  assert.deepEqual(excludeCountryBoundaryOwners([{ first: 0, count: 24 }], mesh, ['HKG', 'CHN']),
-    [{ first: 0, count: 6 }, { first: 18, count: 6 }]);
-  assert.deepEqual(excludeCountryBoundaryOwners([{ first: 8, count: 12 }], mesh, ['HKG', 'CHN']), [{ first: 18, count: 2 }]);
-});
 
 test('both renderers use lower visibility for internal borders and preserve solid external borders', () => {
   const features = [
@@ -173,8 +192,9 @@ test('both renderers use lower visibility for internal borders and preserve soli
   const { countryBoundaryBatches, drawStrokes } = globalThis.PandoLabCanvasSceneComposition;
   for (const sharedOnly of [true, false]) {
     const batches = countryBoundaryBatches(packet, theme, sharedOnly, () => ({ opacity: 1 }));
-    assert.equal(batches.filter(batch => batch.style.dash?.[0] > 0).length, 1);
-    assert.deepEqual(batches.find(batch => batch.style.dash?.[0] > 0).ownerIds, ['CHN|HKG']);
+    const dashed = batches.filter(batch => batch.style.dash?.[0] > 0);
+    assert.equal(dashed.length, sharedOnly ? 1 : 2);
+    assert.ok(dashed.some(batch => batch.ownerIds.includes('CHN|HKG')));
     assert.ok(batches.some(batch => !(batch.style.dash?.[0] > 0)));
     assert.ok(countryBoundaryBatches(packet, theme, sharedOnly, id => id !== 'HKG' ? { opacity: 1 } : null).every(batch => !(batch.style.dash?.[0] > 0)));
     const transparent = countryBoundaryBatches(packet, theme, sharedOnly, id => ({ opacity: id === 'HKG' ? 0.4 : 1 }));
@@ -187,23 +207,26 @@ test('both renderers use lower visibility for internal borders and preserve soli
   assert.equal(calls.filter(call => call === 'stroke').length, 2);
 });
 
-test('native child outlines never paint solid over territorial dashed strokes', () => {
+test('the shared owner replaces every native outline and applies dashed style to child coasts', () => {
   const parent = { ...rectangle('CHN', 0, 0, 4, 4), boundaryRootId: 'CHN', properties: { entityKind: 'general', parentId: '' } };
   const child = { ...rectangle('HKG', 1, 1, 2, 2), boundaryRootId: 'CHN', properties: { entityKind: 'general', parentId: 'CHN' } };
   const packet = prepareCountrySharedBoundaryPacket([], [parent, child]);
-  assert.deepEqual(packet.outlineOwnerIds, ['HKG']);
-  assert.deepEqual(packet.outlineOverrides.segments, []);
+  assert.deepEqual(packet.outlineOwnerIds, ['CHN', 'HKG']);
+  assert.ok(packet.segments.some(segment => segment.ownerIds.includes('HKG')));
+  assert.deepEqual(packet.outlineOverrides.internalOwners.HKG, ['HKG']);
   assert.deepEqual(packet.ownerIds, ['CHN', 'HKG']);
 });
 
-test('overlapping parent and child coastlines stay exterior and have one solid owner', () => {
+test('overlapping parent and child coastlines follow the shared mode policy and have one owner', () => {
   const parent = { ...rectangle('CHN', 0, 0, 4, 4), boundaryRootId: 'CHN', properties: { entityKind: 'general', parentId: '' } };
   const child = { ...rectangle('HKG', 0, 0, 2, 4), boundaryRootId: 'CHN', properties: { entityKind: 'general', parentId: 'CHN' } };
   const packet = prepareCountrySharedBoundaryPacket(buildCountrySharedBoundarySegments([parent, child]), [parent, child]);
-  assert.deepEqual(packet.internalOwners, {});
-  assert.deepEqual(packet.segments, []);
-  assert.deepEqual(packet.outlineOwnerIds, ['HKG']);
-  assert.deepEqual(packet.outlineOverrides.segments, []);
+  assert.deepEqual(packet.internalOwners, { 'CHN|HKG': ['HKG'] });
+  assert.ok(packet.segments.length);
+  assert.deepEqual(packet.outlineOwnerIds, ['CHN', 'HKG']);
+  const terrain = prepareCountrySharedBoundaryPacket(buildCountrySharedBoundarySegments([parent, child]), [parent, child], { includeOutlines: false });
+  assert.ok(terrain.segments.every(segment => segment.start[0] === 2 && segment.end[0] === 2));
+  assert.ok(Math.abs(displayLength(terrain.segments) - 4) < 1e-9);
 });
 
 test('the same owner pair can have both a coincident coast and an internal contact', () => {
@@ -218,5 +241,6 @@ test('the same owner pair can have both a coincident coast and an internal conta
   const coast = packet.outlineOverrides.segments.filter(segment => segment.ownerIds[0] === 'CHN'
     && segment.start[0] <= 1 && segment.end[0] <= 1);
   assert.ok(Math.abs(displayLength(coast) - 4) < 1e-9);
+  assert.ok(coast.every(segment => segment.ownerIds.includes('HKG')));
   assert.equal(packet.outlineOverrides.segments.filter(segment => segment.ownerIds[0] === 'HKG' && segment.start[0] <= 1 && segment.end[0] <= 1).length, 0);
 });
