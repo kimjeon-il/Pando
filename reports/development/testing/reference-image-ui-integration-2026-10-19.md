@@ -4,6 +4,8 @@
 >
 > 조사 기준: 기존 feature HEAD `5e70dcf1fc130cb39b4b441b721ec9902048ace5`에 최신 `work/ui`의 `d99274160b97b8e47c884d44b3e49af3747ee04f`를 반영한 작업 트리
 >
+> 원격 통합 커밋: `9813535db9138bc00e55777049503cb79dd380bd`. 이후 원격 CI에서 확인한 이전 함수명 기반 검사 한 개를 입력 포트 동작 검사로 보완했다.
+>
 > 원본·출처: [Draft PR #134](https://github.com/kimjeon-il/Pando/pull/134), [실행 결과·입력 및 공유 자산 해시](reference-image-ui-integration-2026-10-19.evidence.json), [이전 P5 기록](reference-image-ui-p5-2026-10-18.md)
 
 ## 결과와 범위
@@ -14,7 +16,8 @@
 
 | 검증 | 결과 |
 | --- | --- |
-| 관련 단위 검사 | **고유 64개 통과**: 지도 입력·인접 UI·참고 이미지 surface/interaction·workspace 54개, 이미지 편집 연결 5개, 앱 staging 5개 |
+| 관련 단위 검사 | **고유 206개 통과**: 최초 통합 검증 64개와 CI 후속 참고 이미지 검사 161개의 합집합. 중복 19개를 제외 |
+| CI 후속 참고 이미지 검사 | `tests/unit/reference-image-*.test.mjs` **20개 파일, 161/161 통과**, 실패·취소·skip 0개 |
 | 실제 Chromium | **고유 38개 시나리오 통과**: 참고 이미지·workspace 21개, UX 16개, 공개 뷰어 1개 |
 | 마지막 UI 추가분 반영 후 재검사 | **5개 통과**: desktop/mobile 자동 분석 취소 2개, 가로 화면 2개, 공개 뷰어 1개. 위 38개와 중복되므로 고유 수에 더하지 않음 |
 | UI 계약 | `pnpm check:ui`의 7개 검사 그룹 통과 |
@@ -57,6 +60,14 @@ desktop 전용 선택자를 `wide`와 `compact`로 한정했다. 모바일과 �
 독립 검토에서 참고 이미지 패널이 열려 있으나 참고 이미지 입력은 비활성인 경우에도 앞쪽 Space 분기가 먼저 반환하는 것을 확인했다. 이 분기는 `spacePanActive`와 실제 지도 이동 상태를 바꾼 뒤 최신 `taskPresentation.syncEditingContext()` 호출을 건너뛰었다.
 
 실제 `createGlobalInputBindings`와 `createTaskPresentation`을 연결한 검사에서, Space를 누른 뒤 `modeTaskInput.textContent`가 기존 편집 안내에 남는 RED를 확인했다. 조기 반환 전에 기존 안내 갱신 호출 한 줄을 추가했다. 이제 지도 이동 중에는 “지도 이동 중 · 놓으면 편집 계속”이 표시되고, keyup 후 원래 문구로 돌아온다. 검사에는 reference navigation, pan gate/host 진입·해제와 초안 불변도 포함한다. 수정 후 5/5 통과했고, 독립 재검토에서 해당 발견이 해결된 것을 확인했다.
+
+### 원격 CI의 이전 함수명 검사 보완
+
+통합 커밋 `9813535…`를 같은 Draft PR에 반영한 뒤 GitHub에서 최신 `work/ui`와 병합 가능한 상태를 확인했다. [Reference Image Integration 실행](https://github.com/kimjeon-il/Pando/actions/runs/39195646382)은 lint를 통과했지만, 단위 검사 161개 중 `reference-image-analysis-compat.test.mjs`의 소스 문자열 검사 한 개가 실패했다. 이로 인해 해당 실행의 browser matrix는 건너뛰었다.
+
+기존 검사는 없어진 `referenceImageInputActive()` 호출의 문자열 위치를 찾았다. 최신 UI는 주입된 `referenceInput.isActive()` 포트를 사용한다. 해당 검사를 실제 `createMapInputPresentation()`이 controller에 전달하는 `interactiveTarget` 동작 검사로 바꿨다. 활성 참조 입력의 overlay·객체 hit 통과, controls·편집 필드·drawer·참고 이미지 패널·workflow-guide와 그 자손의 UI 소유권, 비활성 editor 및 `null` viewer 포트의 기존 차단 정책을 확인한다. 가운데 버튼·Space 지도 이동과 프로젝트 교체 중 입력 차단도 포함한다.
+
+수정 전 해당 파일에서 **8 PASS / 1 FAIL**을 재현했고, 수정 후 **9 PASS / 0 FAIL** 및 ESLint 통과를 확인했다. CI와 같은 20개 참고 이미지 단위 파일을 직접 실행한 결과는 **161 PASS / 0 FAIL**이다. 최초 통합 검증 64개와 겹치는 interaction 6개·surface 8개·editing bridge 5개를 제외한 고유 단위 수는 **206개**다. 후속 변경은 검사 한 파일과 이 기록·evidence에 한정하며, 이미 검증한 제품 코드·브라우저 spec·공유 앱 자산의 해시는 변하지 않았다. 따라서 브라우저 38개나 앱 staging을 이 검사 수정 뒤 다시 실행한 것으로 집계하지 않는다. 후속 원격 CI 결과는 PR에 별도로 갱신한다.
 
 ## 최종 UI 추가분과 검증 시점
 

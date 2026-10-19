@@ -1,6 +1,6 @@
 {
   "schema": "pandolab-reference-image-ui-integration-v1",
-  "capturedAtUtc": "2026-10-19T00:44:16.368361+00:00",
+  "capturedAtUtc": "2026-10-19T03:50:23.851910+00:00",
   "repository": "kimjeon-il/Pando",
   "branch": "feature/reference-image-p1-layout-20261018",
   "pullRequest": 134,
@@ -15,19 +15,32 @@
     "platform": "Linux"
   },
   "summary": {
-    "uniqueUnitCases": 64,
+    "uniqueUnitCases": 206,
     "uniqueBrowserScenarios": 38,
     "initialBrowserExecutions": 38,
     "latestBaseRepeatedScenarios": 5,
     "totalSuccessfulBrowserExecutions": 43,
-    "uiContractGroups": 7
+    "uiContractGroups": 7,
+    "initialUnitCases": 64,
+    "ciFollowupReferenceUnitCases": 161,
+    "overlappingUnitCases": 19
   },
   "unitResults": [
     {
-      "file": "tests/unit/map-input-controller.test.mjs",
+      "file": "apps/web-shell/tests/stage.test.mjs",
       "exit": 0,
-      "tests": 13,
-      "pass": 13,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "f1f8a8f617911f741b043cc74ea5956ed6a33fdc8e3e4edfc08fd6d88c15bd67"
+    },
+    {
+      "file": "tests/unit/app-ui-boundaries.test.mjs",
+      "exit": 0,
+      "tests": 14,
+      "pass": 14,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0
@@ -42,31 +55,253 @@
       "skipped": 0
     },
     {
-      "file": "tests/unit/app-ui-boundaries.test.mjs",
+      "file": "tests/unit/map-input-controller.test.mjs",
       "exit": 0,
-      "tests": 14,
-      "pass": 14,
+      "tests": 13,
+      "pass": 13,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0
     },
     {
-      "file": "tests/unit/reference-image-interaction.test.mjs",
-      "exit": 0,
+      "file": "tests/unit/reference-image-analysis-compat.test.mjs",
+      "durationSeconds": 0.056,
+      "tests": 9,
+      "suites": 0,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-architecture.test.mjs",
+      "durationSeconds": 0.048,
+      "tests": 3,
+      "suites": 0,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-auto-georef.test.mjs",
+      "durationSeconds": 0.051,
       "tests": 6,
+      "suites": 0,
       "pass": 6,
       "fail": 0,
       "cancelled": 0,
-      "skipped": 0
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
     },
     {
-      "file": "tests/unit/reference-image-surface.test.mjs",
-      "exit": 0,
+      "file": "tests/unit/reference-image-draft-ack.test.mjs",
+      "durationSeconds": 0.068,
+      "tests": 10,
+      "suites": 0,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-edit-session.test.mjs",
+      "durationSeconds": 0.058,
+      "tests": 5,
+      "suites": 0,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-editing-bridge.test.mjs",
+      "durationSeconds": 0.058,
+      "tests": 5,
+      "suites": 0,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-georef.test.mjs",
+      "durationSeconds": 0.283,
+      "tests": 23,
+      "suites": 0,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-interaction.test.mjs",
+      "durationSeconds": 0.184,
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-line-refiner.test.mjs",
+      "durationSeconds": 0.133,
+      "tests": 4,
+      "suites": 0,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-live-wire.test.mjs",
+      "durationSeconds": 0.118,
       "tests": 8,
+      "suites": 0,
       "pass": 8,
       "fail": 0,
       "cancelled": 0,
-      "skipped": 0
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-model.test.mjs",
+      "durationSeconds": 0.045,
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-ocr.test.mjs",
+      "durationSeconds": 0.045,
+      "tests": 3,
+      "suites": 0,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-place-match.test.mjs",
+      "durationSeconds": 0.163,
+      "tests": 7,
+      "suites": 0,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-pointer-target.test.mjs",
+      "durationSeconds": 0.043,
+      "tests": 4,
+      "suites": 0,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-source-mapping.test.mjs",
+      "durationSeconds": 0.157,
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-store.test.mjs",
+      "durationSeconds": 0.045,
+      "tests": 4,
+      "suites": 0,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-surface.test.mjs",
+      "durationSeconds": 0.136,
+      "tests": 8,
+      "suites": 0,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-transform.test.mjs",
+      "durationSeconds": 0.155,
+      "tests": 19,
+      "suites": 0,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-ui.test.mjs",
+      "durationSeconds": 0.051,
+      "tests": 15,
+      "suites": 0,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-workflow-cancel.test.mjs",
+      "durationSeconds": 0.159,
+      "tests": 10,
+      "suites": 0,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
     },
     {
       "file": "tests/unit/workspace-layout.test.mjs",
@@ -76,26 +311,6 @@
       "fail": 0,
       "cancelled": 0,
       "skipped": 0
-    },
-    {
-      "file": "tests/unit/reference-image-editing-bridge.test.mjs",
-      "exit": 0,
-      "tests": 5,
-      "pass": 5,
-      "fail": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "logSha256": "94629bafdd5608cab6e0360a558375b307ed31c99e3259dcb8c463198c53385b"
-    },
-    {
-      "file": "apps/web-shell/tests/stage.test.mjs",
-      "exit": 0,
-      "tests": 5,
-      "pass": 5,
-      "fail": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "logSha256": "f1f8a8f617911f741b043cc74ea5956ed6a33fdc8e3e4edfc08fd6d88c15bd67"
     }
   ],
   "unitRevalidation": {
@@ -755,44 +970,24 @@
   ],
   "sourceInputs": [
     {
+      "path": "apps/web-shell/editor.html",
+      "bytes": 154361,
+      "sha256": "e9fe1cbb878ada10218b65332b956dbd4dd3885681244a7cca65d15ac095ea4b"
+    },
+    {
       "path": "assets/css/layout/reference-images.css",
       "bytes": 16415,
       "sha256": "6256157cac9cf8b49a58130ffa08f776b5a54c7aa73164c096b9235c5e6318e0"
     },
     {
+      "path": "assets/js/build-meta.js",
+      "bytes": 1163,
+      "sha256": "75478fba757ad263a53230b469da08a142ec25af2f2db04470880144fa873622"
+    },
+    {
       "path": "assets/js/modules/app-global-input-bindings.js",
       "bytes": 15128,
       "sha256": "fd9bf26c8a4b13020c2c40c8dcd06b861e085401927d4f1cc7a1d28ec95b6159"
-    },
-    {
-      "path": "assets/js/modules/map-input-presentation.js",
-      "bytes": 10955,
-      "sha256": "371382313fbba5bc14cd7c05a7792a8100c98b2112302bf87d2d103ba80c7e0a"
-    },
-    {
-      "path": "assets/js/modules/reference-image-input.js",
-      "bytes": 1394,
-      "sha256": "b4395d99123489475d3f55465b83be4e6aabd14bbc9a073a968828da3cce69aa"
-    },
-    {
-      "path": "assets/js/modules/reference-image-bootstrap.js",
-      "bytes": 3318,
-      "sha256": "46ef574eba55056d8425ffce4cb05f5f8e9f1743fce884ee6681029c3ef8b11c"
-    },
-    {
-      "path": "assets/js/modules/reference-image-surface.js",
-      "bytes": 16598,
-      "sha256": "4d847948db4b00c0b9438f5cb60a875c66c0caeef5f793d046df1496acf3ae39"
-    },
-    {
-      "path": "assets/js/modules/workspace-layout.js",
-      "bytes": 652,
-      "sha256": "ab8f3282e132e027a05cf110c7dd4a527b89097714a3fc5ff1f205c1e256b593"
-    },
-    {
-      "path": "assets/js/modules/workspace-surfaces.js",
-      "bytes": 25086,
-      "sha256": "59ca37ebbdaaac5df38c320b5a2e0766bc8716b418c4d31931bce393c1cb20a5"
     },
     {
       "path": "assets/js/modules/app-task-presentation.js",
@@ -805,9 +1000,64 @@
       "sha256": "886c8c4515fbc475d69db2ddd26eca0df596d5ddc3700b18553f6b0225949448"
     },
     {
-      "path": "tests/unit/reference-image-editing-bridge.test.mjs",
-      "bytes": 7276,
-      "sha256": "d8ea36a89d66b8b7666243027b42f147dc1c7c2faa73332f216107fc51e25f1e"
+      "path": "assets/js/modules/map-input-presentation.js",
+      "bytes": 10955,
+      "sha256": "371382313fbba5bc14cd7c05a7792a8100c98b2112302bf87d2d103ba80c7e0a"
+    },
+    {
+      "path": "assets/js/modules/reference-image-bootstrap.js",
+      "bytes": 3318,
+      "sha256": "46ef574eba55056d8425ffce4cb05f5f8e9f1743fce884ee6681029c3ef8b11c"
+    },
+    {
+      "path": "assets/js/modules/reference-image-input.js",
+      "bytes": 1394,
+      "sha256": "b4395d99123489475d3f55465b83be4e6aabd14bbc9a073a968828da3cce69aa"
+    },
+    {
+      "path": "assets/js/modules/reference-image-surface.js",
+      "bytes": 16598,
+      "sha256": "4d847948db4b00c0b9438f5cb60a875c66c0caeef5f793d046df1496acf3ae39"
+    },
+    {
+      "path": "assets/js/modules/viewer-composition.js",
+      "bytes": 12380,
+      "sha256": "dc87622823dd59f5e698b3dfcd82adae3eecfe485bc533693335432213aa76d5"
+    },
+    {
+      "path": "assets/js/modules/viewer-map.js",
+      "bytes": 32670,
+      "sha256": "1c44c7b0896ffd2ff029c215a5e111bceebc0341c5bf84cc25bbb912afd05c49"
+    },
+    {
+      "path": "assets/js/modules/workspace-layout.js",
+      "bytes": 652,
+      "sha256": "ab8f3282e132e027a05cf110c7dd4a527b89097714a3fc5ff1f205c1e256b593"
+    },
+    {
+      "path": "assets/js/modules/workspace-surfaces.js",
+      "bytes": 25086,
+      "sha256": "59ca37ebbdaaac5df38c320b5a2e0766bc8716b418c4d31931bce393c1cb20a5"
+    },
+    {
+      "path": "index.html",
+      "bytes": 63622,
+      "sha256": "e0435b93ce5108f5c1b021b8eb7b01c29c784bd9f1cd54ac1263ed18083ab31e"
+    },
+    {
+      "path": "playwright.config.js",
+      "bytes": 883,
+      "sha256": "2a6fba65bbbaca10f09edb69d9ee236260c943ef30eb7fd5ac9eed9f83d6b8f7"
+    },
+    {
+      "path": "scripts/check-version.mjs",
+      "bytes": 6885,
+      "sha256": "b24f808bd49f572496ae0ba0aa02f516db51497a2ace034093c510dbb962b056"
+    },
+    {
+      "path": "tests/browser/helpers/editor-entry.mjs",
+      "bytes": 547,
+      "sha256": "42d9cf112e64275f170b14fb7e3af4c4c88df4e491933323affc8c4ff7cd6e09"
     },
     {
       "path": "tests/browser/reference-image-auto-workflow.spec.mjs",
@@ -820,16 +1070,6 @@
       "sha256": "e157d2b3db2c1f9ef03e6d792e8e0fc75734feb6236a45b0bc8363d6dd7bc2de"
     },
     {
-      "path": "tests/browser/reference-image-ux.spec.mjs",
-      "bytes": 20567,
-      "sha256": "2cd37babc9e893dcd851ecd327b2b5dbc3d2af9bf109fff4beea9b44b0b6583a"
-    },
-    {
-      "path": "tests/browser/reference-image-overlay.spec.mjs",
-      "bytes": 43542,
-      "sha256": "548534565f3094abb5a462bf0c33c79b74f8515a2d576942140e2e27e54732cf"
-    },
-    {
       "path": "tests/browser/reference-image-line-refine.spec.mjs",
       "bytes": 10315,
       "sha256": "7b94145f7bd819bae5e00da329db455975a5ff6bd4a02e1e22118cc57bfdc078"
@@ -840,9 +1080,14 @@
       "sha256": "a953e3fdd81bc85403d514d59ddd6de5b0ae2fe2aa513ded46133e5079f3aa5f"
     },
     {
-      "path": "tests/browser/workspace-surfaces.spec.mjs",
-      "bytes": 5704,
-      "sha256": "78a46308344e0f6b3703ab5d73de7ff9631b8a7047191217e268f2295989d32b"
+      "path": "tests/browser/reference-image-overlay.spec.mjs",
+      "bytes": 43542,
+      "sha256": "548534565f3094abb5a462bf0c33c79b74f8515a2d576942140e2e27e54732cf"
+    },
+    {
+      "path": "tests/browser/reference-image-ux.spec.mjs",
+      "bytes": 20567,
+      "sha256": "2cd37babc9e893dcd851ecd327b2b5dbc3d2af9bf109fff4beea9b44b0b6583a"
     },
     {
       "path": "tests/browser/web-viewer.spec.mjs",
@@ -850,44 +1095,19 @@
       "sha256": "f34519b1d294dacce8cdb42f17c075ef4048313090180b5fa34d7e525d3ba5a0"
     },
     {
-      "path": "tests/browser/helpers/editor-entry.mjs",
-      "bytes": 547,
-      "sha256": "42d9cf112e64275f170b14fb7e3af4c4c88df4e491933323affc8c4ff7cd6e09"
+      "path": "tests/browser/workspace-surfaces.spec.mjs",
+      "bytes": 5704,
+      "sha256": "78a46308344e0f6b3703ab5d73de7ff9631b8a7047191217e268f2295989d32b"
     },
     {
-      "path": "apps/web-shell/editor.html",
-      "bytes": 154361,
-      "sha256": "e9fe1cbb878ada10218b65332b956dbd4dd3885681244a7cca65d15ac095ea4b"
+      "path": "tests/unit/reference-image-analysis-compat.test.mjs",
+      "bytes": 8737,
+      "sha256": "3b1da0616b16a9cad0f50555119b7b96e92e51f5702feee6b5f9281dda927d3e"
     },
     {
-      "path": "index.html",
-      "bytes": 63622,
-      "sha256": "e0435b93ce5108f5c1b021b8eb7b01c29c784bd9f1cd54ac1263ed18083ab31e"
-    },
-    {
-      "path": "assets/js/modules/viewer-composition.js",
-      "bytes": 12380,
-      "sha256": "dc87622823dd59f5e698b3dfcd82adae3eecfe485bc533693335432213aa76d5"
-    },
-    {
-      "path": "scripts/check-version.mjs",
-      "bytes": 6885,
-      "sha256": "b24f808bd49f572496ae0ba0aa02f516db51497a2ace034093c510dbb962b056"
-    },
-    {
-      "path": "playwright.config.js",
-      "bytes": 883,
-      "sha256": "2a6fba65bbbaca10f09edb69d9ee236260c943ef30eb7fd5ac9eed9f83d6b8f7"
-    },
-    {
-      "path": "assets/js/modules/viewer-map.js",
-      "bytes": 32670,
-      "sha256": "1c44c7b0896ffd2ff029c215a5e111bceebc0341c5bf84cc25bbb912afd05c49"
-    },
-    {
-      "path": "assets/js/build-meta.js",
-      "bytes": 1163,
-      "sha256": "75478fba757ad263a53230b469da08a142ec25af2f2db04470880144fa873622"
+      "path": "tests/unit/reference-image-editing-bridge.test.mjs",
+      "bytes": 7276,
+      "sha256": "d8ea36a89d66b8b7666243027b42f147dc1c7c2faa73332f216107fc51e25f1e"
     }
   ],
   "screenshots": [
@@ -909,5 +1129,387 @@
     "Native Windows/Android launches, portable/native packaging, full GIS/C++ suites and deployment were not run.",
     "OCR tests cover delayed-response cancellation and state isolation, not recognition accuracy.",
     "Remote CI status is recorded in the PR separately."
-  ]
+  ],
+  "initialUnitResults": [
+    {
+      "file": "tests/unit/map-input-controller.test.mjs",
+      "exit": 0,
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/map-hover-topology.test.mjs",
+      "exit": 0,
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/app-ui-boundaries.test.mjs",
+      "exit": 0,
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/reference-image-interaction.test.mjs",
+      "exit": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/reference-image-surface.test.mjs",
+      "exit": 0,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/workspace-layout.test.mjs",
+      "exit": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/reference-image-editing-bridge.test.mjs",
+      "exit": 0,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "94629bafdd5608cab6e0360a558375b307ed31c99e3259dcb8c463198c53385b"
+    },
+    {
+      "file": "apps/web-shell/tests/stage.test.mjs",
+      "exit": 0,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "f1f8a8f617911f741b043cc74ea5956ed6a33fdc8e3e4edfc08fd6d88c15bd67"
+    }
+  ],
+  "ciFollowup": {
+    "integratedCommit": "9813535db9138bc00e55777049503cb79dd380bd",
+    "failingRun": {
+      "id": 39195646382,
+      "url": "https://github.com/kimjeon-il/Pando/actions/runs/39195646382",
+      "checksJobId": 117877713606,
+      "lint": "passed",
+      "unitCounts": {
+        "tests": 161,
+        "pass": 160,
+        "fail": 1
+      },
+      "browserMatrix": "skipped because checks failed"
+    },
+    "cause": "An assertion searched production source for the removed referenceImageInputActive() call; latest UI uses the injected referenceInput.isActive() port.",
+    "changedTest": "tests/unit/reference-image-analysis-compat.test.mjs",
+    "behaviorCovered": [
+      "Active reference input bypasses map overlay and object hit blocking.",
+      "UI controls, editable fields, editor drawer, reference panel, workflow guide and their descendants retain UI ownership both inside and outside the map overlay.",
+      "Inactive editor and null viewer ports preserve ordinary map overlay and object hit blocking.",
+      "Middle-button and Space navigation preserve existing map policy; project replacement blocks input first."
+    ],
+    "red": {
+      "tests": 9,
+      "pass": 8,
+      "fail": 1,
+      "logSha256": "e21a3e32cf516ac5837c6fa14be7d381a8c64aab43d2d02ca61cf76e1e265b9a"
+    },
+    "green": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "logSha256": "19a67a3d3bee6a8c138744de9978bfb14c99118e10c4f44ad26625a718924e2a"
+    },
+    "eslint": {
+      "command": "pnpm exec eslint tests/unit/reference-image-analysis-compat.test.mjs",
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "referenceSuite": {
+      "command": "node <each tests/unit/reference-image-*.test.mjs file>",
+      "files": 20,
+      "counts": {
+        "tests": 161,
+        "pass": 161,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "referenceSuiteLogSha256": "b63b946fdc2bf254f3c719a93d69ca42302ec479cb55a12be182d4e91861bc81",
+    "referenceSuiteResults": [
+      {
+        "file": "tests/unit/reference-image-analysis-compat.test.mjs",
+        "durationSeconds": 0.056,
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-architecture.test.mjs",
+        "durationSeconds": 0.048,
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-auto-georef.test.mjs",
+        "durationSeconds": 0.051,
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-draft-ack.test.mjs",
+        "durationSeconds": 0.068,
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-edit-session.test.mjs",
+        "durationSeconds": 0.058,
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-editing-bridge.test.mjs",
+        "durationSeconds": 0.058,
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-georef.test.mjs",
+        "durationSeconds": 0.283,
+        "tests": 23,
+        "suites": 0,
+        "pass": 23,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-interaction.test.mjs",
+        "durationSeconds": 0.184,
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-line-refiner.test.mjs",
+        "durationSeconds": 0.133,
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-live-wire.test.mjs",
+        "durationSeconds": 0.118,
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-model.test.mjs",
+        "durationSeconds": 0.045,
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-ocr.test.mjs",
+        "durationSeconds": 0.045,
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-place-match.test.mjs",
+        "durationSeconds": 0.163,
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-pointer-target.test.mjs",
+        "durationSeconds": 0.043,
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-source-mapping.test.mjs",
+        "durationSeconds": 0.157,
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-store.test.mjs",
+        "durationSeconds": 0.045,
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-surface.test.mjs",
+        "durationSeconds": 0.136,
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-transform.test.mjs",
+        "durationSeconds": 0.155,
+        "tests": 19,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-ui.test.mjs",
+        "durationSeconds": 0.051,
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-workflow-cancel.test.mjs",
+        "durationSeconds": 0.159,
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      }
+    ],
+    "uniqueUnitCountMethod": {
+      "initial": 64,
+      "followup": 161,
+      "overlap": 19,
+      "total": 206
+    },
+    "initialSourceInputsUnchanged": 27,
+    "productionAndBrowserSpecsUnchangedFromIntegratedCommit": true,
+    "browserAndStagingRerun": false,
+    "remoteStatusNote": "The failing run above predates this test-only followup. Its subsequent CI status is recorded in PR #134.",
+    "reviewCorrection": "Added controls outside the overlay to prevent the null-viewer assertion from passing through the generic overlay blocker."
+  }
 }
