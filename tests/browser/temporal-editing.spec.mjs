@@ -1,24 +1,9 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import {expect,test} from '@playwright/test';
 test.use({viewport:{width:1440,height:900},trace:'off'});
 
-async function month(page,value,{ afterMutation = false } = {}) {
-  await page.locator('#timelineMonthButton').click();
-  const input = page.locator('#timelineMonthInput');
-  await input.fill(value);
-  await input.press('Enter');
-  if (afterMutation) {
-    // A large dated metadata commit can leave the editor processing while the
-    // month field is already visible. Retry only a still-open valid request;
-    // never treat a rejected/stale selection as a successful transition.
-    await expect.poll(async () => {
-      if (await input.isHidden()) return true;
-      if (await input.getAttribute('aria-invalid') === 'true')
-        throw new Error(await page.locator('#timelineMonthError').textContent() || 'Invalid timeline date');
-      await input.press('Enter');
-      return input.isHidden();
-    }, { timeout: 60_000, intervals: [800, 1_500, 2_000] }).toBe(true);
-  } else await expect(input).toBeHidden({ timeout: 30_000 });
+async function month(page, value) {
+  await setEditorMonth(page, value);
 }
 const object=(page,id)=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id),id);
 async function autosave(page) {
@@ -71,11 +56,11 @@ test('1991 library geometry is inserted into 2012 and preserves temporal edits, 
   const future=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.setName(id,'Future USSR'),added.id);
   expect(future.ok).toBe(true);
   await expect.poll(async()=>(await object(page,added.id))?.properties.name).toBe('Future USSR');
-  await month(page,'2012-01',{ afterMutation: true });
+  await month(page,'2012-01');
   const inserted=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.setName(id,'Inserted USSR'),added.id);
   expect(inserted.ok).toBe(true);
   await expect.poll(async()=>(await object(page,added.id))?.properties.name).toBe('Inserted USSR');
-  await month(page,'2013-01',{ afterMutation: true });expect((await object(page,added.id)).properties.name).toBe('Future USSR');
+  await month(page,'2013-01');expect((await object(page,added.id)).properties.name).toBe('Future USSR');
   // Month navigation only updates the separately stored session cursor;
   // earlier accepted historical edits remain in the full document receipt.
   await expect.poll(async()=> (await autosave(page))?.timelineRecords?.propertyBindings
@@ -95,7 +80,7 @@ test('1991 library geometry is inserted into 2012 and preserves temporal edits, 
   const saved=await autosave(page);
   expect(saved).toEqual(documentBeforeMonth);
   await page.reload();await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
-  await expect(page.locator('#timelineMonthInput')).toHaveValue('2012-06');
+  await expect.poll(() => page.evaluate(() => window.__testEditorTimeline.month())).toBe('2012-06');
   expect((await object(page,added.id)).properties.name).toBe('Inserted USSR');
   await month(page,'2013-01');expect((await object(page,added.id)).properties.name).toBe('Future USSR');
   await month(page,'2011-01');expect(await object(page,added.id)).toBeNull();expect(await object(page,'UKR')).toEqual(preservedPast);

@@ -25,6 +25,7 @@ export function createGlobalInputBindings() {
         e.preventDefault();
         return;
       }
+      if(document.getElementById('projectSetupDialog').open)return;
       const helpModal = (0, dependencies.platform.$)('helpModal');
       if (helpModal && !helpModal.classList.contains('hidden')) {
         if (e.key === 'Escape') {
@@ -63,6 +64,7 @@ export function createGlobalInputBindings() {
         return;
       }
       if (e.key === 'Escape') {
+        if(document.getElementById('projectSetupDialog').open)return;
         if (e.repeat) { e.preventDefault(); return; }
         if (dependencies.projectState.state.modeProcessing) { e.preventDefault(); return; }
         if (dependencies.domainControllers.closeTerritorialEditorTransient({ restoreFocus: true })) { e.preventDefault(); return; }
@@ -80,6 +82,8 @@ export function createGlobalInputBindings() {
           return;
         }
         if (dependencies.domains.editingDomain.snapshot().gestureActive) { e.preventDefault(); await cancelDraftGesture('escape'); return; }
+        if(dependencies.domains.editingDomain.snapshot().vertexPlacement){e.preventDefault();await dependencies.domains.editingDomain.handleInteraction({type:'vertex-placement-cancel'});return;}
+        if(dependencies.domains.editingDomain.snapshot().objectVertexEditing){e.preventDefault();await dependencies.domains.editingDomain.handleInteraction({type:'object-edit-end'});return;}
         if (dependencies.draftPresentation.editingDraftSnapshot().vertexInsertMode) {
           try { await dependencies.domains.editingDomain.setDraftVertexInsertMode(false); }
           catch (error) { dependencies.feedback.reportOperationError(error,'꼭짓점 삽입 모드를 종료하지 못했습니다.','PL-DRAFT-INSERT-001',4200); }

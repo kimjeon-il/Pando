@@ -143,6 +143,7 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
     syncStatusBar() {},
     formatArea: area => `${area} km²`,
     ...portOverrides,
+    editingDomain:{snapshot:()=>({}),draftInputActive:()=>false,...portOverrides.editingDomain},
   }));
   return { presentation, elements, state, focusCalls };
 }
@@ -156,7 +157,7 @@ test('operation errors use the common feedback slot and clear on a new normal ba
   assert.equal(f.elements.modeTaskInstruction.classList.contains('hidden'), true);
   f.presentation.setModeBanner('합칠 인접 영역을 선택하세요.');
   f.presentation.updateModeButtons();
-  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
 });
 
 test('existing redraw preview keeps its real metrics and survives closing and reopening', async t => {
@@ -289,7 +290,7 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(needsTarget.elements.modeTaskStatus.textContent, '대상 필요');
   assert.equal(needsTarget.elements.modePrimaryBtn.disabled, true);
   assert.equal(needsTarget.elements.modeTaskDisabledReason.textContent, '합칠 대상을 하나 이상 선택하세요.');
-  assert.equal(needsTarget.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(needsTarget.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
   assert.equal(needsTarget.elements.modeTaskStatus.classList.contains('hidden'), false);
   assert.equal(needsTarget.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 });

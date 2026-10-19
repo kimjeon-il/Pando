@@ -65,9 +65,9 @@ for (const renderer of ['webgl2', 'canvas']) {
     }
     await page.mouse.click(1330, 20);
     await page.locator('#mapDisplayBtn').click();
-    await page.locator('[data-map-display-row="general"]').click();
-    await page.locator('[data-map-display-row="subunits"]').click();
-    const boundary = page.locator('[data-layer-style-boundary="subunits"]');
+
+    await page.locator('[data-map-display-row="objects"]').click();
+    const boundary = page.locator('[data-layer-style-boundary="objects"]');
     await boundary.locator('..').click();
     await expect(boundary).not.toBeChecked();
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.countryInternalBoundaryVisibleOwnerIds || [])).not.toContain('HKG');

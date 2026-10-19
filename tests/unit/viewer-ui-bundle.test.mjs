@@ -7,10 +7,10 @@ test('viewer bundle reuses current shared UI sources and excludes unused edit fo
   const { main, viewer } = buildUiBundles(fileURLToPath(new URL('../../', import.meta.url)));
   assert.equal(typeof viewer, 'string');
   for (const path of ['tokens/application-tokens.css', 'primitives/controls.css', 'components/editor-shell.css',
-    'components/panels.css', 'components/map-search.css', 'components/statusbar.css']) {
+    'components/panels.css', 'components/map-search.css', 'components/statusbar.css', 'components/dialogs.css']) {
     assert.ok(viewer.includes(`source: assets/css/${path}`), path);
   }
-  for (const path of ['primitives/color-picker.css', 'components/workflows.css', 'components/dialogs.css']) {
+  for (const path of ['primitives/color-picker.css', 'components/workflows.css']) {
     assert.ok(main.includes(`source: assets/css/${path}`), path);
     assert.equal(viewer.includes(`source: assets/css/${path}`), false, path);
   }

@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('publishes a bounded runtime performance report after the app becomes interactive', async ({ page }, testInfo) => {
@@ -61,10 +61,7 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer),
     { timeout: 30_000 }).toBe('webgl2');
 
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill('1989-06');
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  await setEditorMonth(page, '1989-06');
   await expect.poll(() => page.evaluate(() => {
     const country = window.PANDOLAB_TERRITORIAL?.get('state:soviet-union');
     return country?.geometry?.coordinates?.length || 0;

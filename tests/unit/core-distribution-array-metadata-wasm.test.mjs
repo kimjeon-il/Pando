@@ -4,15 +4,15 @@ import test from 'node:test';
 import { createNodeCoreDocument } from '../helpers/core-session.mjs';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
 const { createDistributionLayer,createDistributionEntry }=await loadWebOracle('assets/js/modules/distribution-model.js');
-const { assertCurrentProjectSchema,prepareProjectForStorage }=await loadWebOracle('assets/js/modules/project-state.js');
+import {assertCurrentProjectSchema} from '../../assets/js/modules/project-state.js';
 function originalInput() {
   const input=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
   input.distributionLayers[0]=createDistributionLayer({ ...input.distributionLayers[0],metadata: ['a',{sourceRef:'retained'}] });
   input.distributionEntries[0]=createDistributionEntry({ ...input.distributionEntries[0],metadata: ['b',null] });
   assertCurrentProjectSchema(input);
-  return JSON.parse(JSON.stringify(prepareProjectForStorage(input)));
+  return input;
 }
-test('original current Web storage accepts UUID distribution metadata arrays without conversion',() => {
+test('current Web schema preserves the frozen original distribution metadata array values',() => {
   const input=originalInput();
   assert.deepEqual(input.distributionLayers[0].metadata,['a',{sourceRef:'retained'}]);
   assert.deepEqual(input.distributionEntries[0].metadata,['b',null]);

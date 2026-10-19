@@ -1,3 +1,4 @@
+import {normalizeProjectSetup} from './project-setup.js';
 import { getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES } from './runtime-performance-metrics.js';
 import { createCoreDocumentReadModel } from './core-document-read-model.js';
 
@@ -18,11 +19,13 @@ const presentationCommands=new Set(['presentation.apply','distribution.render-mo
  * returned by the host application.
  */
 export function createProjectDomain({
+  productMode,
   replaceSnapshot = () => false,
+  viewingPresentation = null,
   persistence = null,
   saveState = null,
   createProjectFile = null,
-  prepareEmpty = async () => null,
+  prepareNewProject = async () => null,
   restoreReplacement = null,
   invalidateProject = () => {},
   invalidateCommand = () => {},
@@ -32,6 +35,8 @@ export function createProjectDomain({
   onProjectReset = () => {},
   onReplacementState = () => {},
   onReplacementCommitted = () => {},
+  captureEditorSession=()=>null,
+  restoreEditorSession=()=>{},
   onReplacementError = () => {},
   appVersion,
   commandOwner = null,
@@ -40,6 +45,7 @@ export function createProjectDomain({
   readBuiltinSelectionCatalogs,
   readPresentationCatalog = null,
 } = {}) {
+  if(!['viewer','editor'].includes(productMode))throw new TypeError('Project domain requires explicit product mode.');
   let generation = 0;
   let openRequest=0,opening=false,openQueue=Promise.resolve();
   let disposed = false;
@@ -95,6 +101,9 @@ export function createProjectDomain({
   const executeCommand = (envelope,{ applyAccepted } = {}) => {
     if(replacing)return Promise.reject(Object.assign(new Error('A project replacement is already requested.'),{ code: 'PL-CORE-STALE' }));
     if(applyAccepted!==undefined && typeof applyAccepted!=='function')return Promise.reject(new TypeError('An accepted platform effect must be a function.'));
+    if(viewingPresentation && envelope.commandId==='presentation.apply' && ['visibility','objectVisibility','distributionLayerVisibility','terrainMode','distributionRenderMode','distributionActiveLayer','distributionBoundaryVisible'].includes(envelope.payload.action)) {
+      const result=viewingPresentation(envelope.payload);persistence.queueView();return Promise.resolve(result);
+    }
     const expectedGeneration = generation;
     const operation=commandQueue.then(async () => {
       assertActive();
@@ -346,7 +355,7 @@ export function createProjectDomain({
     let failure;
     let replacementResult;
     try {
-      checkpoint = { replacementId: await commandOwner.captureReplacement(),io: saveState?.checkpoint() };
+      checkpoint = { replacementId: await commandOwner.captureReplacement(),io: saveState?.checkpoint(),editor: captureEditorSession() };
       replacementStarted = true;
       await onReplacementState(true, reason);
       persistence?.cancelPending?.();
@@ -355,7 +364,7 @@ export function createProjectDomain({
         : null);
       if(reason==='new'||reason==='builtin') {
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
-        await commandOwner.loadBaseline(prepared.baselineId);
+        await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
       } else await commandOwner.load(JSON.stringify(prepared));
       await readmitBuiltinSelectionCatalogs();
       if (readPresentationCatalog) {
@@ -374,7 +383,8 @@ export function createProjectDomain({
       });
       if (result === false) throw new Error('Project replacement was rejected.');
       requireCurrent();
-      if (reason === 'new') await persistence?.clear?.();
+      // Unsupported/read-error recovery retains its original slots and write hold.
+      if (reason === 'new' && !persistence?.getRecovery?.()) await persistence?.clear?.();
       if (reason === 'new') saveState?.markNewProject();
       else saveState?.markOpenedFile();
       notify(`project-${reason}`, null, invalidateProject);
@@ -388,6 +398,7 @@ export function createProjectDomain({
           const rollbackGeneration = await bumpGeneration('project-rollback');
           await commandOwner.rollbackReplacement(checkpoint.replacementId);
           if(restoreReplacement)await restoreReplacement(documentModel.snapshot(),rollbackGeneration);
+          await restoreEditorSession(checkpoint.editor,rollbackGeneration);
           if(saveState && checkpoint.io)saveState.restore(checkpoint.io);
         }
         catch (restoreError) { error.restoreError = restoreError; }
@@ -408,13 +419,13 @@ export function createProjectDomain({
   const replace = async (serializedProject,reason,options) => {
     assertActive();
     if(replacing)throw new Error('Project replacement is already running.');
-    if(reason==='new' && persistence?.getRecovery?.())throw new Error('저장본 선택을 먼저 완료하세요.');
+    if(reason==='new' && persistence?.getRecovery?.()?.kind==='conflict')throw new Error('저장본 선택을 먼저 완료하세요.');
     replacing=true;
     try {
       // Pure preparation does not claim the bounded Core rollback capsule.
       // The complete replacement shares its lifetime with accepted commands.
-      const prepared=reason==='new'?await prepareEmpty():reason==='builtin'?serializedProject:
-        await commandOwner.validateImport(JSON.stringify(serializedProject),{baselineId:null});
+      const prepared=reason==='new'?{...await prepareNewProject(serializedProject),setup:serializedProject}:reason==='builtin'?serializedProject:
+        await commandOwner.validateImport(JSON.stringify(serializedProject),{ baselineId: null });
       const operation=commandQueue.then(() => replaceAccepted(prepared,reason,options));
       commandQueue=operation.catch(() => {});return await operation;
     } catch(error) { replacing=false;throw error; }
@@ -440,9 +451,9 @@ export function createProjectDomain({
     } catch(error) {
       if(!isCurrent()&&!error.restoreError)return false;
       throw error;
-    } finally {if(ticket===openRequest)opening=false;}
+    } finally {if(isCurrent())opening=false;}
   };
-  const createEmpty = () => replace(null, 'new');
+  const createProject = async options => replace(normalizeProjectSetup(options), 'new');
   const travelHistory = (direction, metadata) => {
     const operation=commandQueue.then(async () => {
       assertActive();
@@ -507,39 +518,43 @@ export function createProjectDomain({
     snapshot,
     state: () => commandOwner.state(),
     resolveWorld,
-    buildFileSnapshot,
-    buildAutosave,
     getGeneration: () => generation,
     isReplacing: () => replacing,
-    executeCommand,
-    prepareCommand,confirmCandidate,cancelCandidate,labelGestureApply,
     admit,
     admitPresentationCatalog,
     admitSelectionCatalog,
-    admitStorageBaseline,prepareImport,inspectImport,
-    load,
-    open,
-    isOpening:()=>opening,
+    admitStorageBaseline,
+    inspectImport,
+    load,open,
     getOpenRevision:()=>openRequest,
-    createEmpty,
-    save,
-    undo: metadata => travelHistory('undo', metadata),
-    redo: metadata => travelHistory('redo', metadata),
-    canUndo: () => commandOwner.state().canUndo,
-    canRedo: () => commandOwner.state().canRedo,
-    queueAutosave: persistence?.queueProject,
-    queueViewAutosave: persistence?.queueView,
-    queuePresentationAutosave: persistence?.queuePresentation,
-    persistAutosave: persistence?.persist,
-    restoreAutosave: persistence?.restore,
-    getAutosaveRecovery: persistence?.getRecovery,
-    resolveAutosaveRecovery: persistence?.resolveRecovery,
-    completeAutosaveRecovery: persistence?.completeRecovery,
-    loadAutosave: project => load(project),
-    restorePreview: persistence?.restorePreview,
-    ensurePreview: persistence?.ensurePreview,
-    flushAutosave: () => persistence?.persist(),
+    isOpening:()=>opening,
+    baselineCoverage:(baselineId,month)=>commandOwner.baselineCoverage(baselineId,month),
     resetRenderGeneration,
     dispose,
+    ...(productMode==='editor'?{
+      buildFileSnapshot,
+      buildAutosave,
+      executeCommand,
+      prepareCommand,confirmCandidate,cancelCandidate,labelGestureApply,
+      prepareImport,
+      createProject,
+      save,
+      undo: metadata => travelHistory('undo', metadata),
+      redo: metadata => travelHistory('redo', metadata),
+      canUndo: () => commandOwner.state().canUndo,
+      canRedo: () => commandOwner.state().canRedo,
+      queueAutosave: persistence?.queueProject,
+      queueViewAutosave: persistence?.queueView,
+      queuePresentationAutosave: persistence?.queuePresentation,
+      persistAutosave: persistence?.persist,
+      restoreAutosave: persistence?.restore,
+      getAutosaveRecovery: persistence?.getRecovery,
+      resolveAutosaveRecovery: persistence?.resolveRecovery,
+      completeAutosaveRecovery: persistence?.completeRecovery,
+      loadAutosave: project => load(project),
+      restorePreview: persistence?.restorePreview,
+      ensurePreview: persistence?.ensurePreview,
+      flushAutosave: () => persistence?.persist(),
+    }:{}),
   });
 }

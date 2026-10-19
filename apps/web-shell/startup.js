@@ -26,12 +26,8 @@ async function start() {
   if (profile.mode === 'full-world') {
     // The full-world shell must take precisely the website's progressive WebGL
     // preview -> canonical country packet -> canonical mesh startup path.
-    const benchmarkImmediate = globalThis.__PANDOLAB_SHELL_AUTO__ === true
-      && globalThis.__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__ === true;
     globalThis.__PANDOLAB_SHELL_PLATFORM__ = Object.freeze({
       ...profile.platform,
-      // Same build, same source files: only the physical load schedule differs.
-      deferPhysicalUntilReady: benchmarkImmediate ? false : profile.platform.deferPhysicalUntilReady,
       fileAccess: createNativeStorage(),
     });
     window.addEventListener('pandolab:ready', () => {

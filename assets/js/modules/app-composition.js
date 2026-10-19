@@ -67,7 +67,7 @@ export async function composeApplication({ productMode, revision, platform = {},
     import(new URL(`./app-connect-lifecycle-ui.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
   ]);
   const {builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,platform,
-    closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectAvailable:(group,id)=>objectCommands.isObjectAvailable(objectCommands.layerItemObjectRef(group,id)),
+    resolveVisibilityGroup:ref=>objectCommands.layerGroupForObjectRef(ref),closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectAvailable:(group,id)=>objectCommands.isObjectAvailable(objectCommands.layerItemObjectRef(group,id)),
     editing:{beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
       persistView:()=>domainAssembly.projectDomain.queueViewAutosave(),getEditPreview:()=>geometryPreview.editPreviewController.packet(),
       handleMapClick:point=>handleEditorMapClick(point,applicationPorts),
@@ -97,7 +97,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   const objectMetadata = factoryObjectMetadata.createObjectMetadata();
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
-  const mapSettings = factoryMapSettings.createMapSettings({afterProjectionChange:()=>{pointerTargets.invalidateEditInteraction();domainAssembly.projectDomain.queueViewAutosave();}});
+  const mapSettings = factoryMapSettings.createMapSettings({viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onBackgroundChange:async(key,enabled)=>{if(!enabled)return;if(key==='builtinHydro')await physicalResources.loadHydroData(true);if(key==='builtinPlaces')await territorialLabels.preparePlaces({force:true});},afterProjectionChange:()=>{pointerTargets.invalidateEditInteraction();domainAssembly.projectDomain.queueViewAutosave();}});
   const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace });
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
@@ -109,7 +109,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   const globalInputBindings = factoryGlobalInputBindings.createGlobalInputBindings();
   const editorBindings = factoryEditorBindings.createEditorBindings();
   const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup({
-    startupMesh: platform.startupMesh, deferPhysicalUntilReady: platform.deferPhysicalUntilReady === true,
+    startupMesh: platform.startupMesh,
   });
   const domainAssembly = factoryDomainAssembly.createDomainAssembly();
   const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly();
@@ -245,13 +245,16 @@ export async function composeApplication({ productMode, revision, platform = {},
           navigation: cameraNavigation,
           setTimelineMonth: month => domainAssembly.setTimelineMonth(month),
         }));
-        const { installTimelineControls } = await import(`./timeline-controls.js?v=${encodeURIComponent(revision)}`);
-        installTimelineControls({ document, window,
-          onMonthLabel: label => { document.getElementById('editorTimelineContext').textContent = `${label} 기준 편집`; },
-          getMonth: () => domainAssembly.timelineMonth,
-          setMonth: month => domainAssembly.setTimelineMonth(month),
-        });
-        try {
+        window.addEventListener('pandolab:project-changed', taskPresentation.syncEditingContext);
+        taskPresentation.syncEditingContext();
+        if(projectSession.state.backgroundSettings.builtinHydro)await physicalResources.loadHydroData(true);
+        if(projectSession.state.backgroundSettings.builtinPlaces)await territorialLabels.preparePlaces({force:true});
+        const launcher=document.getElementById('referenceImageBtn');let referenceLoading=null;
+        const loadReference=event=>{
+          event.preventDefault();event.stopImmediatePropagation();
+          if(referenceLoading)return;
+          launcher.disabled=true;
+          referenceLoading=(async()=>{
           const { installReferenceImageFeature } = await import(`./reference-image-bootstrap.js?v=${encodeURIComponent(revision)}`);
           await installReferenceImageFeature({
             revision, workspaceSurfaces,
@@ -264,9 +267,12 @@ export async function composeApplication({ productMode, revision, platform = {},
               projectRestore.openConfirmModal({ ...options, onConfirm: () => resolve(true), onCancel: () => resolve(false) });
             }),
           });
-        } catch (error) {
-          console.warn('[reference-image-bootstrap]', error);
-        }
+          })().then(()=>{launcher.removeEventListener('click',loadReference,true);launcher.disabled=false;launcher.click();}).catch(error=>{
+            referenceLoading=null;launcher.disabled=false;console.error('Reference image initialization failed',error);
+            document.getElementById('selectionStatus').textContent='이미지 도구를 불러오지 못했습니다. 다시 시도하세요.';
+          });
+        };
+        launcher.addEventListener('click',loadReference,true);
         return started;
       });
       return startedWithReferenceImages;

@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -54,6 +54,8 @@ const semantics = project => ({entities:project.territorialEntities,records:proj
 test('current static UI file save/open and full autosave restore metadata, records and complete archive',async({page},info)=>{
   const {project:fixture,spatialState}=await coreFileProjection({
     ...createInitialDocument({appVersion:'0.36.0'}),...await fixtureJson('static'),
+    projectSetup:{initialMonth:'2026-10',sourceMode:'empty',timelineRange:null,
+      initialMapBounds:{west:-5,east:20,south:-5,north:20}},
   });
   const encoded=await productionGeoPackage('write',new ArrayBuffer(0),fixture,spatialState);
   const currentFixture=info.outputPath('current-static.gpkg');
@@ -64,7 +66,7 @@ test('current static UI file save/open and full autosave restore metadata, recor
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(4);
   expect((await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('A','저장 검증'))).ok).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('저장 검증');
-  const hasNameEdit=project=>project?.timelineRecords?.propertyBindings?.some(row=>row.entityId==='A'&&row.value.name==='저장 검증');
+  const hasNameEdit=project=>project?.territorialEntities?.some(row=>row.id==='A'&&row.properties.name==='저장 검증');
   await expect.poll(async()=>hasNameEdit(await readAutosave(page)),{timeout:120000}).toBe(true);
   const saved=await readAutosave(page);
   expect(saved.format).toBe('pandolab-autosave-full');
@@ -96,17 +98,14 @@ test('complex timeline file opens and month controls resolve its historical worl
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
   await openProject(page,fixturePath('complex'));
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
-  await expect(page.locator('#timelineMonthInput')).toHaveValue('1916-01');
+  await expect.poll(() => page.evaluate(() => window.__testEditorTimeline.month())).toBe('1916-01');
   const autosaveBefore = await readAutosave(page);
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('C');
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill('1914-07');
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthButton')).toBeVisible();
-  await expect(page.locator('#timelineMonthLabel')).toHaveText('1914년 7월');
+  await setEditorMonth(page, '1914-07');
+  await expect(page.locator('#editorTimelineContext')).toContainText('1914년 7월');
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('A');
-  await page.locator('#timelinePreviousMonth').click();
-  await expect(page.locator('#timelineMonthInput')).toHaveValue('1914-06');
+  await setEditorMonth(page, '1914-06');
+  await expect.poll(() => page.evaluate(() => window.__testEditorTimeline.month())).toBe('1914-06');
   expect(await readAutosave(page)).toEqual(autosaveBefore);
   expect(await page.locator('#undoBtn').isDisabled()).toBe(true);
   expect(errors).toEqual([]);
@@ -140,10 +139,7 @@ test('historical default full save and offline restore retain every identity and
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(before.count);
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').properties.name)).toBe('시간 저장 아일랜드');
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill('2012-10');
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({timeout:30000});
+  await setEditorMonth(page, '2012-10');
   expect(new Set(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().map(row=>row.id)))).toEqual(new Set(['IDN','SDN','SDS','TLS','UKR','state:nagorno-karabakh']));
   expect(semantics(await readAutosave(page))).toEqual(semantics(saved));
   await expect(page.locator('#undoBtn')).toBeDisabled();

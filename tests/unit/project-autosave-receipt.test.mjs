@@ -11,7 +11,7 @@ test('project autosave rejects a receipt completed after project replacement', a
   const held = new Promise(resolve => { release = resolve; });
   let exportStarted;
   const started = new Promise(resolve=>{exportStarted=resolve;});
-  const domain = createProjectDomain({ appVersion: 'fixture',commandOwner: {
+  const domain = createProjectDomain({ productMode:'editor', appVersion: 'fixture',commandOwner: {
     exportSnapshot: async () => { exportStarted();await held;return { storageJson: '{"format":"pandolab-autosave-full"}',state: { epoch: 1,checkpoint: 0,presentationCheckpoint: 0 } }; },
     validateImport: async bytes => JSON.parse(bytes),captureReplacement: async () => 7,load: async () => {},releaseReplacement: async () => true,
   },documentModel: { snapshot: () => ({}) },readBuiltinSelectionCatalogs: () => [],replaceSnapshot: () => true });

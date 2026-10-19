@@ -53,10 +53,10 @@ void DocumentSession::clearPreview() { preview_.reset();candidateId_=0;candidate
 DocumentSessionState DocumentSession::documentLoad(const std::string& input,const std::string& currentMonth) {
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
     auto document=projectcodec::decodeWebStorage(input,ports_,storageBaseline_?&*storageBaseline_:nullptr);
-    const auto month=projectcodec::restoredTimelineMonth(document,currentMonth);
+    const auto month=projectcodec::restoredTimelineMonth(document);
     // Both decoding and Project::replace build a validated candidate before the
     // canonical state changes. No partially parsed document can publish.
-    const bool resumeEditing=document.reopenMonth.has_value();
+    const bool resumeEditing=!isStaticTimeline(document);
     Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,resumeEditing);
     const auto header=codecjson::parse(candidate.document().exchangeMetadata);
     auto active=storageBaseline_&&header.object.at("baseDataset").string==storageBaseline_->baseDataset()?storageBaseline_:
@@ -72,22 +72,14 @@ std::string DocumentSession::documentSnapshot() const {requireLoaded();return pr
 std::string DocumentSession::validateImport(const std::string& input,std::optional<std::uint32_t> baselineId) const {
     if(baselineId&&(!storageBaseline_||*baselineId!=storageBaselineId_))throw TimelineError("PL-SCHEMA-BASE","The requested baseline is absent or replaced.");
     auto decoded=projectcodec::decodeWebStorage(input,ports_,storageBaseline_?&*storageBaseline_:nullptr);
-    const auto reopenMonth=decoded.reopenMonth;
     Project staged;staged.replace(std::move(decoded));
     auto prepared=codecjson::parse(projectcodec::webSnapshot(staged.snapshot()));
-    // This detached import is loaded again by startup/file admission. Keep the
-    // codec-validated reopening hint through preparation without activating or
-    // changing the live session cursor during validation.
-    if(reopenMonth) {
-        auto editor=codecjson::Value::obj();editor.object["lastViewedMonth"]=codecjson::Value::str(*reopenMonth);
-        prepared.object["editorState"]=std::move(editor);
-    }
     return prepared.encode();
 }
 ImportInspection DocumentSession::inspectImport(const std::string& input,std::optional<std::uint32_t> baselineId,const std::string& currentMonth) const {
     if(baselineId&&(!storageBaseline_||*baselineId!=storageBaselineId_))throw TimelineError("PL-SCHEMA-BASE","The requested baseline is absent or replaced.");
     auto decoded=projectcodec::decodeWebStorage(input,ports_,storageBaseline_?&*storageBaseline_:nullptr);
-    const auto month=projectcodec::restoredTimelineMonth(decoded,currentMonth);
+    const auto month=projectcodec::restoredTimelineMonth(decoded);
     Project staged;staged.replace(std::move(decoded));staged.setTimelineCursor(month,false);
     return {projectcodec::webSnapshot(staged.snapshot()),staged.resolveWorld(month)};
 }
@@ -115,11 +107,24 @@ DocumentSessionState DocumentSession::admitExternalBaseline(std::uint32_t expect
     project_.admitTerritorialDirtyIds([&](const ProjectDocument& document){return projectcodec::initialDirtyTerritorialIds(document,baseline);});
     activeBaseline_=std::move(baseline);++epoch_;return projectState();
 }
-DocumentSessionState DocumentSession::documentLoadBaseline(std::uint32_t id,const std::string& currentMonth) {
+ResolvedWorld DocumentSession::baselineWorld(std::uint32_t id,const std::string& month) const {
+    if(!storageBaseline_||id!=storageBaselineId_||!storageBaseline_->sourceDocument())throw TimelineError("PL-SCHEMA-BASE","Baseline source is absent or replaced.");
+    Project staged;staged.replace(*storageBaseline_->sourceDocument());return staged.resolveWorld(month);
+}
+DocumentSessionState DocumentSession::documentLoadBaseline(std::uint32_t id,const codecjson::Value& options,const std::string& documentId) {
     if(!storageBaseline_||id!=storageBaselineId_||!storageBaseline_->sourceDocument())throw TimelineError("PL-SCHEMA-BASE","The full accepted baseline source is absent or replaced.");
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
     auto document=*storageBaseline_->sourceDocument();document.dirtyTerritorialIds.clear();
-    const auto month=projectcodec::restoredTimelineMonth(document,currentMonth);Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,false);
+    const auto before=document;const auto setup=projectcodec::validateProjectSetup(options);auto header=codecjson::parse(document.exchangeMetadata);header.object["projectSetup"]=setup;
+    if(setup.object.at("sourceMode").string=="empty") {
+        document.units.clear();document.countryDetails.clear();document.symbols.clear();document.labels.clear();document.hydro.clear();document.genericFeatures.clear();document.distributionLayers.clear();document.distributionEntries.clear();
+        document.timelineRecords=TimelineRecords{};document.geometries=GeometryStore{};document.geometryProvenance=GeometryProvenance{};document.presentation=PresentationState{};
+        header.object["baseDataset"]=codecjson::Value::str("external-territorial-entities");header.object["sourceInfo"]=codecjson::Value{};
+    }
+    document.exchangeMetadata=header.encode();
+    if(setup.object.at("sourceMode").string=="builtin")GeometryProvenanceCodecAccess::admitProjectSetupMetadata(before,document);
+    if(documentId.empty())throw TimelineError("INVALID_DOCUMENT_ID","New document ID is required.");document.documentId=documentId;
+    const auto month=setup.object.at("initialMonth").string;Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,true);
     project_=std::move(candidate);activeBaseline_=storageBaseline_;loaded_=true;stateRevision_=0;clearPreview();
     selection_.resetProject();externalSelectionRefs_.clear();draft_=GeometryDraft{};draftActive_=false;sourceEpoch_=++epoch_;return projectState();
 }
@@ -192,6 +197,7 @@ DocumentSessionOutcome DocumentSession::rejected(CommandError code,const std::st
 DocumentSessionOutcome DocumentSession::prepareCommand(std::string commandId,CommandArguments args,
         std::vector<ObjectRef> targets,std::uint32_t expectedEpoch) {
     requireLoaded();if(expectedEpoch!=epoch_)return rejected(CommandError::StaleRevision,"session epoch changed");
+    if(commandId=="project.default-view"&&(draftActive_||preview_))return rejected(CommandError::InvalidArguments,"Confirm or cancel the active edit before setting the default view.");
     // At most one preview is retained. A replacement prepare also releases an
     // abandoned RPC preview whose acknowledgement was cancelled by the client.
     clearPreview();
@@ -247,6 +253,7 @@ bool DocumentSession::cancelCandidate(std::uint32_t candidateId) {
 }
 DocumentSessionOutcome DocumentSession::executeCommand(std::string commandId,CommandArguments args,
         std::vector<ObjectRef> targets,std::uint32_t epoch) {
+    if(commandId=="project.default-view"&&(draftActive_||preview_))return rejected(CommandError::InvalidArguments,"Confirm or cancel the active edit before setting the default view.");
     auto prepared=prepareCommand(std::move(commandId),std::move(args),std::move(targets),epoch);
     return prepared.candidateId?confirmCandidate(prepared.candidateId,epoch):prepared;
 }
@@ -351,19 +358,15 @@ DocumentSessionOutcome DocumentSession::presentationCatalogLoad(PresentationCata
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
     auto candidate=project_.document();candidate.presentation.catalog=std::make_shared<const PresentationCatalog>(std::move(catalog));
     std::map<std::string,std::set<std::string>> valid;
-    const auto resolved=project_.resolveWorld(project_.timelineCursor());
-    for(const auto& row:resolved.entities) {
-        const auto kind=candidate.units.at(project_.index().objects.at(territorialRef(row.id))).kind;
-        valid[kind==UnitKind::Regional?"regions":row.parentId.empty()?"countries":"subunits"].insert(row.id);
-    }
+    for(const auto& row:candidate.units)valid["objects"].insert(row.id);
     for(const auto& row:candidate.labels)valid["labels"].insert(row.id);
     for(const auto& row:candidate.hydro)valid["hydro"].insert(row.id);
     for(const auto& row:candidate.genericFeatures)valid["genericFeatures"].insert(row.id);
     for(const auto& row:candidate.distributionLayers)valid["distributions"].insert(row.id);
     for(const auto& [id,kind]:candidate.presentation.catalog->hydroLayers)valid["hydro"].insert(id);
-    for(const auto& id:candidate.presentation.catalog->countryLabelIds)valid["countryLabels"].insert(id);
+    for(const auto& id:candidate.presentation.catalog->countryLabelIds)valid["objectLabels"].insert(id);
     auto& hidden=candidate.presentation.webPresentation.itemVisibility;
-    for(const auto* group:{"countries","subunits","regions","countryLabels","labels","hydro","genericFeatures","distributions"}) {
+    for(const auto* group:{"objects","objectLabels","labels","hydro","genericFeatures","distributions"}) {
         auto& ids=hidden[group];for(auto it=ids.begin();it!=ids.end();)if(!valid[group].count(it->first))it=ids.erase(it);else ++it;
     }
     auto impact=calculateChangeImpact(project_.document(),candidate,{},project_.timelineCursor());
@@ -404,17 +407,13 @@ DocumentSessionOutcome DocumentSession::selectionCatalogLoad(const std::string& 
     auto selected=selection_;selected.prune([&](const SelectionRef& ref){return ref.domain!=domain||catalog.count(ref)!=0;});
     auto candidate=project_.document();
     if(domain=="hydroBuiltin"&&std::any_of(refs.begin(),refs.end(),[](const auto& row){return !row.sourceIds.empty();})) {
-        auto header=codecjson::parse(candidate.exchangeMetadata);auto settings=header.object.find("physicalSettings");
-        if(settings!=header.object.end()&&settings->second.kind==codecjson::Value::Object) {
-            auto hidden=settings->second.object.find("hiddenHydroIds");
-            if(hidden!=settings->second.object.end()&&hidden->second.kind==codecjson::Value::Object)for(const auto& entry:refs)if(entry.logicalId) {
-                bool alias=false;for(const auto& row:hidden->second.object) {
-                    const auto& key=row.first;const auto suffix=key.substr(key.find_last_of(':')==std::string::npos?0:key.find_last_of(':')+1);
-                    if(key!=*entry.logicalId&&row.second.kind==codecjson::Value::Bool&&row.second.raw=="true"&&std::find(entry.sourceIds.begin(),entry.sourceIds.end(),suffix)!=entry.sourceIds.end()){alias=true;break;}
-                }
-                if(alias)hidden->second.object[*entry.logicalId]=codecjson::Value::boolean(true);
+        auto& hidden=candidate.presentation.webPresentation.itemVisibility["hydro"];
+        for(const auto& entry:refs)if(entry.logicalId) {
+            bool alias=false;for(const auto& row:hidden) {
+                const auto& key=row.first;const auto suffix=key.substr(key.find_last_of(':')==std::string::npos?0:key.find_last_of(':')+1);
+                if(key!=*entry.logicalId&&!row.second&&std::find(entry.sourceIds.begin(),entry.sourceIds.end(),suffix)!=entry.sourceIds.end()){alias=true;break;}
             }
-            candidate.exchangeMetadata=header.encode();
+            if(alias)hidden[*entry.logicalId]=false;
         }
     }
     DocumentSessionOutcome outcome;outcome.result.status=CommandStatus::NoOp;

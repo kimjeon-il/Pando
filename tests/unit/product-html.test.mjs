@@ -6,11 +6,23 @@ test('product HTML is generated from one source for each common viewing control'
  const {renderProductHtml}=await import('../../scripts/lib/product-html.mjs');
  const read=path=>readFileSync(new URL(`../../${path}`,import.meta.url),'utf8');
  const pages=renderProductHtml(read);
- for(const key of ['object-search','map-display','preferences','timeline','tooltip','notification','map-icons','map-search-control','map-fit-control']){
+ for(const key of ['object-search','map-display','preferences','tooltip','notification','map-icons','map-search-control','map-fit-control']){
   const fragment=read(`ui/fragments/${key}.html`).replaceAll('\r\n','\n').trim();
-  assert.ok(pages.web.includes(fragment),`web omitted ${key}`);
-  assert.ok(pages.editor.includes(fragment),`app omitted ${key}`);
+  for(const sharedPart of fragment.split(/<!-- include:[a-z-]+ -->/).filter(Boolean)){
+   assert.ok(pages.web.includes(sharedPart),`web omitted ${key}`);
+   assert.ok(pages.editor.includes(sharedPart),`app omitted ${key}`);
+  }
  }
+ const terrain=read('ui/fragments/map-terrain.html').replaceAll('\r\n','\n').trim();
+ const timeline=read('ui/fragments/timeline.html').replaceAll('\r\n','\n').trim();
+ assert.ok(pages.web.includes(timeline));
+ assert.doesNotMatch(pages.editor,/timeline-status|timelinePreviousYear|timelinePreviousMonth|timelineMonthButton|timelineMonthInput|timelineNextMonth|timelineNextYear/);
+ assert.doesNotMatch(pages.editor,/timelineComparePin|timelineComparisonPanel|autosaveRecoveryBtn/);
+ assert.match(pages.editor,/data-map-display-row="advanced"/);
+ assert.doesNotMatch(pages.web,/data-map-display-row="advanced"/);
+ assert.match(pages.editor,/id="fileAdvancedBtn"/);
+ for(const page of Object.values(pages))for(const key of ['graticule','globeShadow'])assert.equal(page.split(`data-map-background="${key}"`).length-1,1,key);
+ assert.ok(pages.web.includes(terrain));assert.ok(!pages.editor.includes('terrainNoneRadio'));
  assert.ok(!pages.web.includes('entityNameInput'));
  assert.ok(pages.editor.includes('entityNameInput'));
  assert.ok(!pages.web.includes('viewerInfoPanel'));

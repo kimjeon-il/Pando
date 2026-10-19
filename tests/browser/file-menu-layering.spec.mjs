@@ -39,7 +39,7 @@ test('global file menus stay above the object editor and keep their existing foc
     await page.locator('#saveProjectBtn').click({ trial: true });
     await page.screenshot({ path: testInfo.outputPath(`file-above-editor-${width}.png`) });
     await page.locator('#newProjectBtn').press('End');
-    await expect(page.locator('#dataExportBtn')).toBeFocused();
+    await expect(page.locator('#fileAdvancedBtn')).toBeFocused();
     if (mobile) {
       await page.locator('#mobileFileBackBtn').click();
       await expect(menu).toBeHidden();

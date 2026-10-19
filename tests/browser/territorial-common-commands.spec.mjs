@@ -11,6 +11,7 @@ async function select(page, id) {
 async function importRegions(page, rows) {
   await page.locator('#mobileFileBtn').click();
   const choosing = page.waitForEvent('filechooser');
+  await page.locator('#fileAdvancedBtn').click();
   await page.locator('#openGisBtn').click();
   await (await choosing).setFiles({ name: 'regions.geojson', mimeType: 'application/geo+json', buffer: Buffer.from(JSON.stringify({ type:'FeatureCollection', features:rows.map(({name,x})=>({ type:'Feature', properties:{name}, geometry:{type:'Polygon',coordinates:[[[x,50],[x,51],[x+1,51],[x+1,50],[x,50]]]}}))})) });
   await expect(page.locator('#gisImportModal')).toBeVisible({timeout:30000});

@@ -1,5 +1,4 @@
 import { INTERACTION_ROLE_PRIORITY } from './layer-presentation.js';
-import { territorialSymbolGroup } from './layer-presentation.js';
 import { interactionNodeRole, resolveMapStrokeStyle, resolveMapInteractionStyle } from './map-interaction-style.js';
 import { applySvgInteractionOwnership } from './render-channel-ownership.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
@@ -35,14 +34,14 @@ export function createInteractionPackets() {
     const groupForDatum = datum => datum?.layer
       ? 'distributions'
       : datum?.properties?.entityKind
-        ? territorialSymbolGroup(datum)
+        ? 'objects'
         : 'genericFeatures';
     dependencies.mapLayers.overlayStackLayer.selectAll('[data-presentation-group]').sort((left, right) => {
       const leftGroup = groupForDatum(left);
       const rightGroup = groupForDatum(right);
       const leftIndex = order.indexOf(leftGroup);
       const rightIndex = order.indexOf(rightGroup);
-      if (leftGroup === rightGroup && leftGroup === 'subunits') {
+      if (leftGroup === rightGroup && leftGroup === 'objects') {
         const key = feature => `territorial:entity:${feature?.id}`;
         return (objectOrder.get(key(right)) ?? objectOrder.size) - (objectOrder.get(key(left)) ?? objectOrder.size);
       }

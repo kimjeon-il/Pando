@@ -164,6 +164,7 @@ export function createEditingDomain({
   let draftStroke = createDraftStrokeState();
   let activeSnap = null;
   let activeGesture = null;
+  let selectedVertex=null,vertexPlacement=false,objectVertexEditing=null;
   let selectionHistory = [];
   let selectionCursor = 0;
   const selectionDraftActive = () => ['merge-country', 'merge-territorial-unit', 'merge-generic-feature'].includes(activeTool);
@@ -217,6 +218,7 @@ export function createEditingDomain({
       revision,
       projectGeneration,
       gestureActive: !!activeGesture,
+      selectedVertex,vertexPlacement,objectVertexEditing,
       ...(selectionDraftActive() ? {selectionDraft: Object.freeze({historyCount: selectionCursor, futureCount: selectionHistory.length - selectionCursor})} : {}),
       ...(boundaryDraftActive() ? {boundaryDraft:Object.freeze({historyCount:boundaryCursor,futureCount:boundaryHistory.length-boundaryCursor,moveCount:boundaryMoves().length})} : {}),
       phase,
@@ -585,6 +587,7 @@ export function createEditingDomain({
     if (!current()) return false;
     await tool.resetForTool?.(name);
     if (!current()) return false;
+    if(changedTool){selectedVertex=null;vertexPlacement=false;}
     activeTool = name;
     if (changedTool) {
       const config = toolConfig();
@@ -621,7 +624,7 @@ export function createEditingDomain({
     if (event.type === 'draft-vertex-drag-start' && (!draftInputActive() || draftStroke.active)) return false;
     const gestureId = String(event.gestureId || `editing-${++gestureSequence}`);
     await cancelActiveGesture('gesture-replaced', { emitChange: false });
-    activeGesture = { id: gestureId, type: event.type, targetRef: event.targetRef || null, vertexKey: event.vertexKey || null };
+    activeGesture = { id: gestureId, type: event.type, pointerType:event.pointerType,screenPoint:event.screenPoint, targetRef: event.targetRef || null, vertexKey: event.vertexKey || null };
     if (event.type === 'draft-vertex-drag-start') {
       const index = Number(event.vertexIndex);
       if (!Number.isInteger(index) || !draftCoords[index]) return cancelActiveGesture('invalid-draft-gesture', { emitChange: false });
@@ -679,6 +682,7 @@ export function createEditingDomain({
     if (!activeGesture || String(event.gestureId || '') !== activeGesture.id || Number(event.projectGeneration) !== projectGeneration) return false;
     const value = interactionCoordinate(event);
     if (!value) return false;
+    activeGesture.screenPoint=event.screenPoint;activeGesture.coordinate=value;
     if (activeGesture.type === 'draft-vertex-drag-start') {
       await applyDraft('moveDrag',{ coordinate: value },{ emit: false });
       refreshDerivedState({ buildPreview: false });
@@ -772,11 +776,33 @@ export function createEditingDomain({
     return result !== false;
   };
 
+  const placeSelectedVertex=async value=>{
+    if(!vertexPlacement||!selectedVertex||Number(value.projectGeneration)!==projectGeneration)return false;
+    const vertex=selectedVertex,packet=createRenderPacket(),group=vertex.kind==='draft-vertex'?packet.draft.vertices:vertex.kind==='boundary-vertex'?packet.boundaryEdit?.handles:packet.objectVertices?.handles;
+    const exists=group?.some(row=>vertex.kind==='draft-vertex'?row.index===vertex.vertexIndex:(row.nodeKey||row.key)===vertex.vertexKey);
+    if(!exists){selectedVertex=null;vertexPlacement=false;emit('vertex-selection-stale');return false;}
+    vertexPlacement=false;const event={...value,...vertex,projectGeneration,packetRevision:revision,gestureId:'placement-'+(++gestureSequence)};
+    if(!await beginGesture({...event,type:vertex.kind+'-drag-start'}))return false;
+    try {await applyGestureMove({...event,type:vertex.kind+'-drag-move'});return await endGesture({...event,type:vertex.kind+'-drag-end'});}
+    catch(error){await cancelActiveGesture('placement-failed');throw error;}
+  };
   const handleInteraction = event => {
     active();
     const value = event && Object.freeze({ ...event });
     const type = String(value?.type || '');
     if (!type) return false;
+    if(type==='object-edit-start'){if(activeGesture||draftInputActive()||boundaryDraftActive())return false;const target=geometry.getObjectVertexTarget(value.targetRef);if(!target)return false;objectVertexEditing=Object.freeze({...target.targetRef});selectedVertex=null;vertexPlacement=false;emit(type);return true;}
+    if(type==='object-edit-end'){if(activeGesture)return false;objectVertexEditing=null;selectedVertex=null;vertexPlacement=false;emit(type);return true;}
+    if(type==='gesture-cancel')return cancelActiveGesture('touch-cancel');
+    if(type.endsWith('-vertex-select')){
+      if(Number(value.projectGeneration)!==projectGeneration||Number(value.packetRevision)!==revision||activeGesture)return false;
+      selectedVertex=Object.freeze({kind:type.replace('-select',''),targetRef:value.targetRef||null,vertexKey:value.vertexKey||null,vertexIndex:value.vertexIndex});vertexPlacement=false;
+      if(type==='draft-vertex-select')return selectDraftVertex(Number(value.vertexIndex));emit(type);return true;
+    }
+    if(type==='vertex-placement-start'){if(!selectedVertex||activeGesture)return false;vertexPlacement=true;emit(type);return true;}
+    if(type==='vertex-placement-cancel'){vertexPlacement=false;emit(type);return true;}
+    if(type==='vertex-placement-commit')return placeSelectedVertex(value);
+
     if (type.endsWith('-drag-start')) return beginGesture(value);
     if (type.endsWith('-drag-move')) return queueGestureMove(value);
     if (type.endsWith('-drag-end')) return endGesture(value);
@@ -837,7 +863,7 @@ export function createEditingDomain({
       draftCoords: cloneCoordinates(draftCoords),
       selectedVertexIndex: draftEdit.selectedVertexIndex,
     }) || {};
-    const objectTarget = supplemental.objectVertices || geometry.getObjectVertexTarget?.();
+    const objectTarget = supplemental.objectVertices || geometry.getObjectVertexTarget?.(objectVertexEditing);
     const objectFeature = activeGesture?.session?.kind === 'object'
       ? activeGesture.session.detached
       : objectTarget?.feature;
@@ -876,6 +902,8 @@ export function createEditingDomain({
         cutStatus: assessment?.status || null,
         canCommit: assessment ? assessment.valid === true : draftIssues.length === 0,
       } : { active: false },
+      selectedVertex,vertexPlacement,
+      magnifier:activeGesture?.pointerType==='touch'&&activeGesture.screenPoint?{screenPoint:activeGesture.screenPoint,coordinate:activeGesture.coordinate}:null,
       objectVertices,
       boundaryEdit: supplemental.boundaryEdit && boundaryMoves().length ? {
         ...supplemental.boundaryEdit, draft: true,
@@ -914,8 +942,13 @@ export function createEditingDomain({
     draftSplitPreview = null;
     draftStroke = createDraftStrokeState();
     activeSnap = null;
+    selectedVertex=null;vertexPlacement=false;objectVertexEditing=null;
     emit('project-reset');
     return true;
+  };
+  const captureReplacement=()=>{
+    const saved={activeTool,phase,draftHover,draftCutAssessment,draftEdit,draftIssues,draftSplitPreview,draftCoords:cloneCoordinates(draftCoords),selectionHistory:selectionHistory.slice(),selectionCursor,boundaryHistory:boundaryHistory.slice(),boundaryCursor,selectedVertex,vertexPlacement,objectVertexEditing};
+    return generation=>{projectGeneration=generation;activeTool=saved.activeTool;phase=saved.phase;draftHover=saved.draftHover;draftCutAssessment=saved.draftCutAssessment;draftEdit=saved.draftEdit;draftCoords=saved.draftCoords;draftIssues=saved.draftIssues;draftSplitPreview=saved.draftSplitPreview;selectionHistory=saved.selectionHistory;selectionCursor=saved.selectionCursor;boundaryHistory=saved.boundaryHistory;boundaryCursor=saved.boundaryCursor;selectedVertex=saved.selectedVertex;vertexPlacement=saved.vertexPlacement;objectVertexEditing=saved.objectVertexEditing;emit('replacement-rollback');};
   };
   const dispose = () => {
     selectionHistory = []; boundaryHistory = [];
@@ -967,6 +1000,7 @@ export function createEditingDomain({
     moveSelectedDraftPointByPixels, redrawDraft, setDraftVertexInsertMode,
     clearDraft,
     commitImport,
+    captureReplacement,
     snapshot: () => snapshotCache || (snapshotCache = buildSnapshot('snapshot')),
   });
 }

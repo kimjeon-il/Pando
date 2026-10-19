@@ -150,3 +150,13 @@ test('hidden, deleted, replaced, locked or externally revised targets cancel the
     editing.dispose();
   }
 });
+
+test('mobile vertex selection changes no coordinates; explicit placement commits once through existing gesture',async()=>{
+ const source={id:'river-1',type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[[0,0],[10,0]]}},commits=[];
+ const editing=createEditingDomain({transactionRunner:({patch})=>patch.commit(),draftServices:{screenToCoordinate:v=>v,projectCoordinate:v=>v,requestFrame:()=>1,cancelFrame:()=>{}},geometryEditing:{getObjectVertexTarget:()=>({targetRef:{domain:'hydro',type:'hydro',id:source.id},feature:source}),resolveObjectFeature:()=>source,commitObjectGesture:change=>{commits.push(change);return true;}}});
+ const send=(type,more={})=>editing.handleInteraction({type,projectGeneration:editing.snapshot().projectGeneration,packetRevision:editing.snapshot().revision,...more});
+ await send('object-vertex-select',{targetRef:{domain:'hydro',type:'hydro',id:source.id},vertexKey:'0:0',vertexIndex:0});
+ assert.deepEqual(source.geometry.coordinates,[[0,0],[10,0]]);assert.equal(commits.length,0);assert.ok(editing.snapshot().selectedVertex);
+ await send('vertex-placement-start');assert.equal(editing.snapshot().vertexPlacement,true);
+ await send('vertex-placement-commit',{screenPoint:[3,4],pointerType:'touch'});assert.equal(commits.length,1);assert.deepEqual(commits[0].feature.geometry.coordinates[0],[3,4]);assert.equal(editing.snapshot().vertexPlacement,false);
+});

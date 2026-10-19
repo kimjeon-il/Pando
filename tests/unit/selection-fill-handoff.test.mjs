@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
+import {createNodeSelection} from '../helpers/core-selection.mjs';
 import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
@@ -54,17 +54,18 @@ function svgFixture() {
   return { document, d3: { select }, root: () => document.createElementNS('', 'g'), stages: () => stages };
 }
 
-function harness(t) {
+async function harness(t) {
   const svg = svgFixture(), selected = svg.root(), hovered = svg.root(), queued = [];
   const feature = id => ({ type: 'Feature', id, properties: { entityKind: 'general', parentId: '' },
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } });
   const features = new Map(['DEU', 'FRA'].map(id => [id, feature(id)]));
   const state = { territorialEntities: [...features.values()] };
-  const selection = createSelectionDomain();
+  const core=await createNodeSelection({territorialIds:['DEU','FRA'],genericIds:[],labelIds:[],distributionIds:[]});t.after(core.dispose);
+  const selection = core.domain;
   const selectionPass = createSelectionPass();
   selectionPass.handleContextLost();
-  selection.replace({ domain: 'territorial', type: 'entity', id: 'DEU' });
-  selection.setHover({ domain: 'territorial', type: 'entity', id: 'FRA' });
+  await selection.replace({ domain: 'territorial', type: 'entity', id: 'DEU' });
+  await selection.setHover({ domain: 'territorial', type: 'entity', id: 'FRA' });
   const snapshot = selection.snapshot(), modelBefore = structuredClone(state);
   // The real renderer starts in pending before a scene renderer takes ownership.
   // Keep stale SVG presentation coverage separate from context recovery.
@@ -99,8 +100,8 @@ function harness(t) {
 const fillSelector = '.map-selection-fill, .map-hover-fill';
 const outlineSelector = '.map-selection-outline, .map-hover-outline';
 
-test('first accepted Canvas Worker frame retires pending-startup fills while preserving selection and outline fallback', t => {
-  const h = harness(t);
+test('first accepted Canvas Worker frame retires pending-startup fills while preserving selection and outline fallback', async t => {
+  const h = await harness(t);
   h.render('invalidateGpuContext');
   assert.equal(h.nodes(fillSelector).length, 2, 'pending startup provides temporary selection and hover emphasis');
   assert.equal(h.nodes(outlineSelector).length, 2);
@@ -122,8 +123,8 @@ test('first accepted Canvas Worker frame retires pending-startup fills while pre
   h.verifyCanonical();
 });
 
-test('deferred view changes retain pending-startup emphasis until acceptance, then stable Canvas views reuse their SVG outlines', t => {
-  const h = harness(t);
+test('deferred view changes retain pending-startup emphasis until acceptance, then stable Canvas views reuse their SVG outlines', async t => {
+  const h = await harness(t);
   h.render('invalidateGpuContext');
   h.setRenderer('canvas-worker');
   const first = h.render('invalidateView');
@@ -139,8 +140,8 @@ test('deferred view changes retain pending-startup emphasis until acceptance, th
   h.verifyCanonical();
 });
 
-test('synchronous Canvas2D scene redraw reconciles pending-startup fill ownership without a selection change', t => {
-  const h = harness(t);
+test('synchronous Canvas2D scene redraw reconciles pending-startup fill ownership without a selection change', async t => {
+  const h = await harness(t);
   h.render('invalidateGpuContext');
   assert.equal(h.nodes(fillSelector).length, 2);
   h.setRenderer('canvas2d');
@@ -154,7 +155,7 @@ test('synchronous Canvas2D scene redraw reconciles pending-startup fill ownershi
   h.verifyCanonical();
 });
 
-async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry = false } = {}) {
+async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry = false, nativeVisibility = false } = {}) {
   const globals = ['window', 'document', 'Worker', 'OffscreenCanvas', 'requestAnimationFrame', 'cancelAnimationFrame'];
   const previous = globals.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
   const svg = svgFixture(), selected = svg.root(), hovered = svg.root();
@@ -196,24 +197,27 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   });
   const features = ['DEU', 'FRA'].map(id => ({ type: 'Feature', id, properties: { entityKind: 'general', parentId: '' },
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } }));
+  if(nativeVisibility)features.push({...features[0],id:'HKG'});
+  const drawnIds=[];
   const byId = id => features.find(feature => feature.id === id);
   const state = { projection: 'flat', countryVisualPhase: 'canonical', size: { width: 300, height: 200 }, view: { flatZoom: 1, globeZoom: 1 },
     territorialEntities: features, pendingCountryRenderIds: new Set(), physicalSettings: { terrainVisible: false, terrainStyle: 'physical' },
-    physicalLoadState: {}, layerVisibility: { countries: true, rivers: false, lakes: false }, itemVisibility: { countries: {} },
+    physicalLoadState: {}, layerVisibility: { objects: true, rivers: false, lakes: false }, itemVisibility: { objects: nativeVisibility?{'unit-uuid':false}:{} },
     hydroEdits: [], stateRevision: 0,
   };
   const theme = { defaultLand: '#eee', baseLandAlpha: 1, countryColorAlpha: 1, borderAlpha: 1,
     border: '#777', strokes: { country: { width: 1, alpha: 1 } } };
-  const selection = createSelectionDomain(), selectionPass = createSelectionPass();
-  selection.replace({ domain: 'territorial', type: 'entity', id: 'DEU' });
-  selection.setHover({ domain: 'territorial', type: 'entity', id: 'FRA' });
+  const core=await createNodeSelection({territorialIds:['DEU','FRA'],genericIds:[],labelIds:[],distributionIds:[]});t.after(core.dispose);
+  const selection = core.domain, selectionPass = createSelectionPass();
+  await selection.replace({ domain: 'territorial', type: 'entity', id: 'DEU' });
+  await selection.setHover({ domain: 'territorial', type: 'entity', id: 'FRA' });
   const snapshot = selection.snapshot(), model = structuredClone(features), scheduledReasons = [];
   const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => new URL(path, 'https://example.test/assets/js/'),
     isMobile: () => false, isSafeKoreanErrorMessage: () => true, mapTheme: () => theme, getSystemTheme: () => 'light',
     deepClone: structuredClone, hydroVisibilityThreshold: () => 0, mapWorkScheduler: { cancel() {} },
-    createCountryFillResolver: () => () => ({ color: '#eee', fillAlpha: 0 }),
+    createCountryFillResolver: () => () => ({ color: '#eee', fillAlpha: nativeVisibility?1:0 }),
     renderCountryFeatures: () => features, renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
-    countryOutlineFeature: value => value, isLayerItemVisible: () => true, setActionStatus() {},
+    countryOutlineFeature: value => value, isCountryVisibleById: id => state.itemVisibility.objects[id==='HKG'?'unit-uuid':id]!==false, setActionStatus() {},
     renderViewFrame: () => rendering.invalidateGpuFrame('view-frame'),
     scheduleGpuFrame: reason => { scheduledReasons.push(reason); rendering.invalidateGpuFrame(reason); },
     scheduleGpuInteractionFrame: reason => { scheduledReasons.push(reason); rendering.invalidateGpuInteraction(reason); },
@@ -225,7 +229,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     requestFrame: callback => queued.push(callback),
     prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewRevision: 1, projectGeneration: 0,
       viewState: { ...state, translate: [150, 100], scale: 40, dpr: 1 }, projectPath: () => 'M0,0L1,0L1,1Z',
-      createCanvasPath: context => { if (context.canvas === canvas) scenePaints++; return () => {}; } }),
+      createCanvasPath: context => { if (context.canvas === canvas) scenePaints++; return feature => {if(context.canvas===canvas&&feature?.id)drawnIds.push(feature.id);}; } }),
     renderers: { view: frame => renderer.renderFrame(frame) },
     selectionResources: { document: svg.document, d3: svg.d3, selectionPass,
       selectionLayer: svg.d3.select(selected), hoverLayer: svg.d3.select(hovered), getState: () => state,
@@ -246,7 +250,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   assert.equal(renderer.getStats().pendingCountryCount, 0);
   assert.equal(queued.length, 0);
   scheduledReasons.length = 0;
-  return { renderer, rendering, nodes, queued, scheduledReasons, scenePaints: () => scenePaints,
+  return { renderer, rendering, nodes, queued, scheduledReasons, workers,drawnIds, scenePaints: () => scenePaints,
     currentCanvas: () => canvas, recoveryPending: () => [...timers.values()].some(timer => timer.delay === 5000),
     restore: async () => { contextLost = false; await canvas.dispatch('webglcontextrestored'); },
     transition: async () => {
@@ -330,5 +334,20 @@ test('Worker failure acknowledges pending geometry only after its scheduled Canv
   assert.equal(h.queued.length, 1, 'displayed geometry schedules its existing pending-overlay cleanup');
   h.queued.shift()();
   assert.equal(h.queued.length, 0);
+  h.verifyCanonical();
+});
+
+for(const canvasWorker of [false,true])test(`native display IDs obey canonical individual visibility in Canvas worker=${canvasWorker}`,async t=>{
+  const h=await directFallbackHarness(t,{canvasWorker,nativeVisibility:true});
+  await h.transition();
+  if(canvasWorker){
+    const worker=h.workers.find(worker=>worker.name==='pandolab-canvas-renderer');
+    const style=worker.messages.find(message=>message.type==='init'||message.type==='style');
+    assert.deepEqual(style.hiddenCountryIds,['HKG']);
+    assert.equal(style.hiddenCountryIds.includes('unit-uuid'),false);
+  }
+  h.queued.shift()();
+  assert.ok(h.drawnIds.includes('DEU'));
+  assert.equal(h.drawnIds.includes('HKG'),false);
   h.verifyCanonical();
 });

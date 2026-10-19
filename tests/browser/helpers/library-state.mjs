@@ -114,7 +114,7 @@ export async function importFiniteSource(page, testInfo, id, errors, { reference
   const source=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),id);
   expect(source.lifetime.validFrom || source.lifetime.validTo).toBeTruthy();
   const inputDate=await page.locator('#territorialLibraryReferenceDateInput').inputValue();
-  const editMonth=await page.locator('#timelineMonthInput').inputValue();
+  const editMonth=await page.evaluate(() => window.__testEditorTimeline.month());
   const selected=await page.evaluate(async({id,referenceDate})=>{
     const {selectGeometryVersion}=await import('/assets/js/modules/territorial-library.js');
     return selectGeometryVersion(await window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),referenceDate);

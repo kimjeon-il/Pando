@@ -1,4 +1,4 @@
-import { layerStyle, resolveLayerDisplayColor, territorialSymbolGroup } from './layer-presentation.js';
+import { layerStyle, resolveLayerDisplayColor } from './layer-presentation.js';
 import { resolveTerritorialColor } from './color-adapter.js';
 
 // One material contract for all objects. Independent regions never claim land
@@ -6,15 +6,15 @@ import { resolveTerritorialColor } from './color-adapter.js';
 export function createTerritorialFillResolver({ state, entityRepository, terrainAlpha = 1, mapSubstrate = null }) {
   const cache = new Map();
   const presentation = state.layerPresentation;
-  const colorVisible = feature => layerStyle(presentation, territorialSymbolGroup(feature)).colorVisible
-    && layerStyle(presentation, territorialSymbolGroup(feature), `territorial:entity:${feature.id}`).colorVisible;
+  const colorVisible = feature => layerStyle(presentation, 'objects').colorVisible
+    && layerStyle(presentation, 'objects', `territorial:entity:${feature.id}`).colorVisible;
   function resolve(feature, visiting = new Set()) {
     const entity = entityRepository.get(feature.id) || feature;
     const id = String(entity.id), properties = entity.properties;
     if (cache.has(id)) return cache.get(id);
     if (visiting.has(id)) throw new Error(`객체 표시 관계가 순환합니다: ${id}`);
     visiting.add(id);
-    const group = territorialSymbolGroup(entity);
+    const group = 'objects';
     const independent = properties.entityKind === 'regional';
     const parent = independent ? null : entityRepository.parent(id);
     const inherited = parent ? resolve(parent, visiting) : null;

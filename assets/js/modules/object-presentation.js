@@ -156,7 +156,7 @@ export function createObjectPresentation() {
       ...dependencies.objectDefinitions.MAP_OBJECT_CATEGORIES.features.viewGroups,
     ])]));
 
-    (LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => group !== 'countryLabels'));
+    (LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => group !== 'objectLabels'));
 
     (layerGroupNames = Object.freeze({
       ...Object.fromEntries(Object.values(dependencies.objectDefinitions.MAP_OBJECT_TYPES)
@@ -164,7 +164,7 @@ export function createObjectPresentation() {
         .map(type => [type.layerGroup, type.label])),
       distributions: '분포',
       hydro: '강·호수',
-      countryLabels: '국가명',
+      objectLabels: '객체 이름',
     }));
 
     (layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' }));

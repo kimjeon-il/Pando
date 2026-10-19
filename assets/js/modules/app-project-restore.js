@@ -1,3 +1,4 @@
+import {initialBoundsView} from './project-setup.js';
 /** ProjectRestore: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -15,6 +16,8 @@ export function createProjectRestore() {
 
   async function applyAtlasState(project, manual = false, { projectGeneration = null,skipRenderReset = false,preserveCoreSession = false,catalogAlreadyAdmitted = false } = {}) {
     if(project!==dependencies.domains.projectDomain.snapshot())throw new TypeError('Project presentation requires the accepted C++ document projection.');
+    if(!preserveCoreSession){dependencies.projectSession.setViewingPresentation({}, {reset:true});if(manual){dependencies.projectState.state.projection='flat';dependencies.projectState.state.view=initialBoundsView(project.projectSetup.initialMapBounds,dependencies.mapView.projectionLayoutMetrics()).view;}}
+    if(manual&&!preserveCoreSession)await dependencies.persistence.restoreViewingForDocument();
     (0, dependencies.countryRecords.resetCountryLabelAnchorRuntime)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
       ? projectGeneration
@@ -48,6 +51,7 @@ export function createProjectRestore() {
     (0, dependencies.spatialRecords.scheduleMapObjectSpatialIndexRebuild)();
     dependencies.lifecycleUi.projectUi.syncHistory();
     if(!preserveCoreSession)await dependencies.domains.editingDomain.setTool('select');
+    if(manual&&!project.projectSetup.initialMapBounds&&dependencies.territorialModel.entityStore.snapshot().length)dependencies.navigation.fitMapToFeature({type:'FeatureCollection',features:dependencies.territorialModel.entityStore.snapshot()});
     if (manual) (0, dependencies.feedback.setActionStatus)(externalGeometry
       ? '외부 GIS 형상을 저장 당시 상태로 불러왔습니다.'
       : '프로젝트를 불러왔습니다.', 'success', 3200);
@@ -182,7 +186,8 @@ export function createProjectRestore() {
     await dependencies.domains.editingDomain.cancelActiveGesture('project-state-replaced');
     dependencies.projectState.state.audit = { status: 'idle', revision: dependencies.projectState.state.audit.revision + 1, report: null, selectedIssueId: null };
     dependencies.interactionStateCommands.setHoverHit(null);
-    dependencies.projectState.state.projection = 'globe';
+    dependencies.projectSession.setViewingPresentation({}, {reset:true});
+    dependencies.projectState.state.projection = 'flat';
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerFolders = (0, dependencies.objectCatalogView.normalizeLayerFolderState)(null);
     dependencies.projectState.state.objectSearch = '';
@@ -199,7 +204,7 @@ export function createProjectRestore() {
     (0, dependencies.countryEditingB.resetMergeState)();
     await dependencies.countryEditingB.resetTerritoryEditingState(true);
     await dependencies.domains.selectionDomain.resetProject(dependencies.domains.projectDomain.getGeneration());
-    dependencies.projectState.state.view = { globeRotation: [-15, -25, 0], globeZoom: 1, flatCenter: [0, 20], flatZoom: 1 };
+    dependencies.projectState.state.view = initialBoundsView(prepared.project.projectSetup.initialMapBounds).view;
 
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     dependencies.projectState.state.countryIndex.clear();

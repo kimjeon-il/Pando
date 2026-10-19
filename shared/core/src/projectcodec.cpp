@@ -32,19 +32,19 @@ V currentWebHeader();
 void validateHeader(const V&,const ProjectDocument&);
 void validateExchangeMetadata(const ProjectDocument&);
 bool presentationGroup(const std::string& key) {
-    return std::set<std::string>{"countries","subunits","regions","distributions","rivers","lakes","hydro","genericFeatures","labels","countryLabels","terrain"}.count(key);
+    return std::set<std::string>{"objects","distributions","rivers","lakes","hydro","genericFeatures","labels","objectLabels","terrain"}.count(key);
 }
 bool presentationSymbol(const std::string& key) {
-    return std::set<std::string>{"basemapLabels","countryFlags","subunitLabels","subunitFlags","regionLabels","regionFlags"}.count(key);
+    return std::set<std::string>{"objectNames","objectFlags"}.count(key);
 }
 // Current web project-state.js has distinct layer/item/style namespaces.
 // Native presentation retains its broader key set for native-only documents.
 bool webLayerVisibilityKey(const std::string& key) {
-    static const std::set<std::string> keys={"countries","subunits","regions","distributions","rivers","lakes","genericFeatures","labels","basemapLabels","countryFlags","subunitLabels","subunitFlags","regionLabels","regionFlags"};
+    static const std::set<std::string> keys={"objects","distributions","rivers","lakes","genericFeatures","labels","objectNames","objectFlags"};
     return keys.count(key);
 }
 bool webItemVisibilityKey(const std::string& key) {
-    static const std::set<std::string> keys={"countries","subunits","regions","distributions","hydro","genericFeatures","labels","countryLabels"};
+    static const std::set<std::string> keys={"objects","distributions","hydro","genericFeatures","labels","objectLabels"};
     return keys.count(key);
 }
 V object(std::initializer_list<std::pair<const std::string,V>> entries) { V v=V::obj(); v.object=entries; return v; }
@@ -534,16 +534,7 @@ void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=
         }
         if(schema>=5) {
             const auto& w=field(p,"webPresentation");auto& out=d.presentation.webPresentation;
-            require(field(w,"visibility").kind==V::Object && field(w,"hiddenItems").kind==V::Object,"INVALID_JSON: presentation visibility");
-            for(const auto& [key,value]:field(w,"visibility").object) {
-                if(presentationGroup(key)||presentationSymbol(key))out.visibility[key]=boolean(value);
-                else throw std::invalid_argument("UNSUPPORTED_VISIBILITY: "+key);
-            }
-            for(const auto& [group,values]:field(w,"hiddenItems").object) {
-                if(!presentationGroup(group))throw std::invalid_argument("UNSUPPORTED_VISIBILITY: "+group);
-                const auto& ids=array(values);auto& hidden=out.itemVisibility[group];
-                for(const auto& id:ids)hidden[str(id)]=false;
-            }
+            for(const auto* key:{"visibility","hiddenItems"})require(!w.object.count(key),"PL-SCHEMA-FIELD: viewing state is device-only");
             auto readStyles=[&](const char* name,auto& target){
                 const auto& values=field(w,name);require(values.kind==V::Object,"INVALID_JSON: presentation styles");
                 for(const auto& [key,value]:values.object){
@@ -562,7 +553,7 @@ void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=
             readStyles("styles",out.styles);readStyles("objectStyles",out.objectStyles);
             std::set<std::string> overlays;
             out.overlayOrderPresent=w.object.count("overlayOrder");
-            if(out.overlayOrderPresent)for(const auto& key:array(field(w,"overlayOrder"))){const auto text=str(key);require((text=="genericFeatures"||text=="distributions"||text=="subunits"||text=="regions")&&overlays.insert(text).second,"UNSUPPORTED_OVERLAY_ORDER");out.overlayOrder.push_back(text);}
+            if(out.overlayOrderPresent)for(const auto& key:array(field(w,"overlayOrder"))){const auto text=str(key);require((text=="genericFeatures"||text=="distributions"||text=="objects")&&overlays.insert(text).second,"UNSUPPORTED_OVERLAY_ORDER");out.overlayOrder.push_back(text);}
             for(const auto& key:array(field(w,"objectOrder"))){const auto text=str(key);require(text.rfind("territorial:entity:",0)==0,"INVALID_PRESENTATION_ORDER");out.objectOrder.push_back(text);}
             if(schema>=6 && w.object.count("labelSettings")) for(const auto& value:array(field(w,"labelSettings"))) {
                 auto path="/presentation/webPresentation/labelSettings/"+std::to_string(out.labelSettings.size());
@@ -584,7 +575,7 @@ void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=
                 out.distributionSettings.boundaryVisible=boolean(field(value,"boundaryVisible"));
                 unknown(d,10,value,"/presentation/webPresentation/distributionSettings",{"renderMode","activeLayerId","boundaryVisible"});
             }
-            unknown(d,5,w,"/presentation/webPresentation",{"visibility","hiddenItems","styles","objectStyles","objectOrder","overlayOrder","labelSettings","distributionSettings"});
+            unknown(d,5,w,"/presentation/webPresentation",{"styles","objectStyles","objectOrder","overlayOrder","labelSettings","distributionSettings"});
 
         }
         unknown(d,10,p,"/presentation",{"userLayers","membership","objectStyles","webPresentation"});
@@ -601,47 +592,7 @@ V extensionValue(const PreservedExtension& e) {
     for (const auto& s:e.forbiddenEffects) effects.array.push_back(V::str(s));
     v.object["dependencies"]=deps; v.object["forbiddenEffects"]=effects; return v;
 }
-void decodeNativeHydroItems(ProjectDocument& d) {
-    auto& hidden=d.presentation.webPresentation.itemVisibility;
-    auto evidence=std::make_shared<NativeHydroWireEvidence>();std::map<std::string,bool> hydro;
-    for(const auto* group:{"rivers","lakes","hydro"}) {
-        const auto found=hidden.find(group);if(found==hidden.end())continue;
-        evidence->presentGroups.insert(group);
-        for(const auto& entry:found->second) {
-            const auto& id=entry.first;const auto visible=entry.second;
-            const auto row=std::find_if(d.hydro.begin(),d.hydro.end(),[&](const auto& item){return item.id==id;});
-            if(row!=d.hydro.end()&&std::string(group)!="hydro")
-                require((row->kind=="river"&&std::string(group)=="rivers")||(row->kind=="lake"&&std::string(group)=="lakes"),"INVALID_HYDRO_VISIBILITY_KIND");
-            require(evidence->itemGroups.emplace(id,group).second,"AMBIGUOUS_HYDRO_VISIBILITY_KIND");hydro[id]=visible;
-        }
-    }
-    if(evidence->presentGroups.empty())return;
-    hidden.erase("rivers");hidden.erase("lakes");hidden["hydro"]=std::move(hydro);
-    d.presentation.nativeHydroWireEvidence=std::move(evidence);
-}
-void encodeNativeHydroItems(const ProjectDocument& d,V& presentation) {
-    auto& hidden=presentation.object.at("hiddenItems").object;const auto canonical=hidden.find("hydro");
-    if(canonical==hidden.end())return;
-    const auto evidence=d.presentation.nativeHydroWireEvidence;std::map<std::string,V> groups;
-    if(evidence)for(const auto& group:evidence->presentGroups)groups.emplace(group,V::arr());
-    if(!evidence&&canonical->second.array.empty())groups.emplace("hydro",V::arr());
-    for(const auto& value:canonical->second.array) {
-        const auto& id=value.string;const auto row=std::find_if(d.hydro.begin(),d.hydro.end(),[&](const auto& item){return item.id==id;});
-        const auto wire=evidence?evidence->itemGroups.find(id):std::map<std::string,std::string>::const_iterator{};
-        const bool recorded=evidence&&wire!=evidence->itemGroups.end();std::string group;
-        if(recorded)group=wire->second;
-        if(row!=d.hydro.end()) {
-            const std::string actual=row->kind=="river"?"rivers":row->kind=="lake"?"lakes":"";
-            require(!actual.empty(),"INVALID_HYDRO_VISIBILITY_KIND");
-            require(!recorded||group=="hydro"||group==actual,"INVALID_HYDRO_VISIBILITY_KIND");
-            if(!recorded)group=actual;
-        }
-        require(!group.empty(),"UNSUPPORTED_NATIVE_EXPORT: hydro item kind required");
-        auto found=groups.find(group);if(found==groups.end())found=groups.emplace(group,V::arr()).first;
-        found->second.array.push_back(V::str(id));
-    }
-    hidden.erase(canonical);for(auto& group:groups)hidden[group.first]=std::move(group.second);
-}
+
 }
 
 void validateNativeLabelReferences(const ProjectDocument& document) {
@@ -649,29 +600,36 @@ void validateNativeLabelReferences(const ProjectDocument& document) {
     for(const auto& label:document.labels)if(label.territory)
         require(label.territory->domain=="territorial"&&owners.count(label.territory->id),"DANGLING_REF: content territory");
 }
-std::string restoredTimelineMonth(const ProjectDocument& document,const std::string& currentMonth) {
-    if(document.reopenMonth)return *document.reopenMonth;
-    return initialTimelineMonth(document.timelineRecords,currentMonth);
+codecjson::Value validateProjectSetup(const V& setup) {
+    require(setup.kind==V::Object&&setup.object.size()==4,"PROJECT_SETUP: four settings required");
+    const auto month=parseTemporal(str(field(setup,"initialMonth")));require(month.precision=="month","PROJECT_SETUP: month required");
+    const auto& range=field(setup,"timelineRange");
+    if(range.kind!=V::Null){require(range.kind==V::Object&&range.object.size()==2,"PROJECT_SETUP: invalid range");
+        const auto start=parseTemporal(str(field(range,"start"))),end=parseTemporal(str(field(range,"end")));
+        require(start.precision=="month"&&end.precision=="month"&&!(end.startKey<start.startKey),"PROJECT_SETUP: reversed range");
+        require(!(month.startKey<start.startKey)&&!(end.startKey<month.startKey),"PROJECT_SETUP: initial month outside range");}
+    const auto& bounds=field(setup,"initialMapBounds");
+    if(bounds.kind!=V::Null){require(bounds.kind==V::Object&&bounds.object.size()==4,"PROJECT_SETUP: invalid bounds");
+        const auto west=number(field(bounds,"west")),east=number(field(bounds,"east")),south=number(field(bounds,"south")),north=number(field(bounds,"north"));
+        require(west>=-180&&west<=180&&east>=-180&&east<=180&&west!=east&&south>=-90&&north<=90&&south<north,"PROJECT_SETUP: invalid bounds");}
+    const auto mode=str(field(setup,"sourceMode"));require(mode=="builtin"||mode=="empty","PROJECT_SETUP: invalid source mode");
+    auto result=setup;result.object["initialMonth"]=V::str(month.canonical);return result;
 }
-namespace {
-void readEditorState(const V& root,ProjectDocument& document) {
-    const auto found=root.object.find("editorState");if(found==root.object.end())return;
-    const auto& state=found->second;
-    require(state.kind==V::Object&&state.object.size()==1,"INVALID_EDITOR_STATE");
-    const auto month=parseTemporal(str(field(state,"lastViewedMonth")));
-    require(month.precision=="month","INVALID_EDITOR_STATE: month precision required");
-    document.reopenMonth=month.canonical;
+void requireNavigationMonth(const V& setup,const std::string& month) {
+    const auto point=parseTemporal(month);const auto& range=field(setup,"timelineRange");if(range.kind==V::Null)return;
+    require(!(point.startKey<parseTemporal(str(field(range,"start"))).startKey)&&!(parseTemporal(str(field(range,"end"))).startKey<point.startKey),"PROJECT_RANGE: selected month is outside the navigation range");
 }
-V editorStateValue(const ProjectSnapshot& snapshot) {
-    return object({{"lastViewedMonth",V::str(snapshot.timelineMonth())}});
-}
+std::string restoredTimelineMonth(const ProjectDocument& document) {
+    const auto header=codecjson::parse(document.exchangeMetadata);
+    const auto setup=validateProjectSetup(field(header,"projectSetup"));
+    return str(field(setup,"initialMonth"));
 }
 pandoeditor::ProjectDocument decode(const std::string& data,const PlatformPorts& ports) {
     require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
     const auto root=codecjson::parse(data,ports.parsedTextPolicy);
     require(str(field(root,"format"))=="pandoeditor-project","UNSUPPORTED_FORMAT: expected Qt project");
-    const auto schema=integer(field(root,"version"));require(schema==ProjectVersion,"UNSUPPORTED_VERSION: expected Qt v11");
-    ProjectDocument d;d.documentId=str(field(root,"documentId"));readExtensions(field(root,"extensions"),d);readEditorState(root,d);
+    const auto schema=integer(field(root,"version"));require(schema==ProjectVersion,"UNSUPPORTED_VERSION: expected native v14");
+    ProjectDocument d;d.documentId=str(field(root,"documentId"));readExtensions(field(root,"extensions"),d);
     d.exchangeMetadata=field(root,"exchangeMetadata").encode();validateExchangeMetadata(d);
     for(const auto& v:array(field(root,"units"))) {
         unknown(d,10,v,"/units",{"id","kind","name","notes","locked","baseName","nameExplicit","libraryOrigin","metadata","sourceFolderId","sourceEntityId","sourceGeometryVersion"});
@@ -687,8 +645,7 @@ pandoeditor::ProjectDocument decode(const std::string& data,const PlatformPorts&
         const auto value=codecjson::parse(property.value);
         if(value.object.at("policy").string=="embedded")ports.validateFlagDataUrl(value.object.at("embeddedDataUrl").string);
     }
-    decodeNativeHydroItems(d);
-    unknown(d,10,root,"",{"format","version","documentId","units","timelineRecords","geometries","presentation","extensions","content","exchangeMetadata","geometryProvenance","editorState"});
+    unknown(d,10,root,"",{"format","version","documentId","units","timelineRecords","geometries","presentation","extensions","content","exchangeMetadata","geometryProvenance"});
     require(root.object.count("geometryProvenance"),"INVALID_GEOMETRY_PROVENANCE: missing ledger");
     readGeometryProvenance(field(root,"geometryProvenance"),d);
     validateNativeFlagPrefixes(d);
@@ -699,14 +656,12 @@ pandoeditor::ProjectDocument decode(const std::string& data,const PlatformPorts&
 namespace {
 V webPresentationValue(const ProjectDocument& d,bool nativeLabels=true) {
     const auto& web=d.presentation.webPresentation;
-    V visibility=V::obj(),hidden=V::obj(),groups=V::obj(),overrides=V::obj(),order=V::arr(),overlayOrder=V::arr(),labelSettings=V::arr();
-    for(const auto& [key,value]:web.visibility)visibility.object[key]=V::boolean(value);
-    for(const auto& [key,ids]:web.itemVisibility){V values=V::arr();for(const auto& [id,visible]:ids)if(!visible)values.array.push_back(V::str(id));hidden.object[key]=values;}
+    V groups=V::obj(),overrides=V::obj(),order=V::arr(),overlayOrder=V::arr(),labelSettings=V::arr();
     auto writeStyles=[](const auto& source,V& target){for(const auto& [key,s]:source){V v=V::obj();if(s.opacity)v.object["opacity"]=V::num(*s.opacity);if(s.colorVisible)v.object["colorVisible"]=V::boolean(*s.colorVisible);if(s.boundaryVisible)v.object["boundaryVisible"]=V::boolean(*s.boundaryVisible);if(s.labelsVisible)v.object["labelsVisible"]=V::boolean(*s.labelsVisible);if(s.boundaryWidth)v.object["boundaryWidth"]=V::num(*s.boundaryWidth);if(s.blendMode)v.object["blendMode"]=V::str(*s.blendMode);target.object[key]=v;}};
     writeStyles(web.styles,groups);writeStyles(web.objectStyles,overrides);for(const auto& key:web.objectOrder)order.array.push_back(V::str(key));for(const auto& key:web.overlayOrder)overlayOrder.array.push_back(V::str(key));
     if(nativeLabels)for(const auto& [owner,s]:web.labelSettings){V value=object({{"ref",refValue(owner)},{"pinned",V::boolean(s.pinned)},{"collisionGroup",V::str(s.collisionGroup)}});if(s.priority)value.object["priority"]=V::num(*s.priority);if(s.minZoom)value.object["minZoom"]=V::num(*s.minZoom);if(s.maxZoom)value.object["maxZoom"]=V::num(*s.maxZoom);if(s.manualPosition){V point=V::arr();point.array={V::num(s.manualPosition->x),V::num(s.manualPosition->y)};value.object["manualPosition"]=point;}labelSettings.array.push_back(std::move(value));}
     auto distributionSettings=object({{"renderMode",V::str(web.distributionSettings.renderMode==DistributionRenderMode::Single?"single":"overlap")},{"activeLayerId",V::str(web.distributionSettings.activeLayerId)},{"boundaryVisible",V::boolean(web.distributionSettings.boundaryVisible)}});
-    auto webValue=object({{"visibility",visibility},{"hiddenItems",hidden},{"styles",groups},{"objectStyles",overrides},{"objectOrder",order},{"overlayOrder",overlayOrder},{"labelSettings",labelSettings},{"distributionSettings",distributionSettings}});
+    auto webValue=object({{"styles",groups},{"objectStyles",overrides},{"objectOrder",order},{"overlayOrder",overlayOrder},{"labelSettings",labelSettings},{"distributionSettings",distributionSettings}});
     if(!web.overlayOrderPresent)webValue.object.erase("overlayOrder");
     return webValue;
 }
@@ -738,10 +693,8 @@ std::string encode(const pandoeditor::ProjectSnapshot& snapshot,const PlatformPo
     }
     for (const auto& e:d.extensions) extensions.array.push_back(extensionValue(e));
     auto webValue=webPresentationValue(d);
-    encodeNativeHydroItems(d,webValue);
     auto root=object({{"format",V::str("pandoeditor-project")},{"version",V::num(ProjectVersion)},{"documentId",V::str(d.documentId)},{"units",units},{"timelineRecords",timelineRecordsValue(d.timelineRecords)},{"geometries",geometries},{"presentation",object({{"userLayers",layers},{"membership",membership},{"objectStyles",styles},{"webPresentation",webValue}})},{"extensions",extensions}});
     root.object["exchangeMetadata"]=jsonObject(d.exchangeMetadata);
-    if(!snapshot.timelineMonth().empty())root.object["editorState"]=editorStateValue(snapshot);
     root.object["content"]=contentValue(d);
     root.object["geometryProvenance"]=geometryProvenanceValue(d.geometryProvenance);
     auto bytes=root.encode()+"\n";
@@ -754,7 +707,7 @@ std::string optionalText(const V& v,const std::string& key,const std::string& fa
 }
 V strings(std::initializer_list<const char*> values){V result=V::arr();for(const auto* value:values)result.array.push_back(V::str(value));return result;}
 V currentWebHeader() {
-    return object({{"version",V::str("0.1.0-timeline")},{"savedAt",V::str("")},{"baseDataset",V::str("external-territorial-entities")},{"sourceInfo",V{}},{"physicalSourceInfo",V::obj()},{"physicalSettings",V::obj()},
+    return object({{"version",V::str("0.1.0-timeline")},{"savedAt",V::str("")},{"baseDataset",V::str("external-territorial-entities")},{"sourceInfo",V{}},{"physicalSourceInfo",V::obj()},{"projectSetup",codecjson::parse(ProjectDocument{}.exchangeMetadata).object.at("projectSetup")},
         {"landObjectModel",object({{"schemaVersion",V::num(2)},{"coastlineAuthority",V::str("territorialEntities")},{"purpose",V::str("lossless-fallback")},{"directCreation",V::boolean(false)},{"sourceProvenanceSchemaVersion",V::num(1)},{"canonicalProperties",strings({"name","notes","color","locked","source"})}})},
         {"territorialModel",object({{"schemaVersion",V::num(TerritorialIdentityVersion)},{"coastlineAuthority",V::str("territorialEntities")},{"storage",V::str("territorialEntities")},{"kinds",strings({"general","regional"})},{"coverageModes",strings({"partition","explicit"})}})},
         {"distributionModel",object({{"schemaVersion",V::num(3)},{"sourceModes",strings({"territorial","geometry"})},{"valueKind",V::str("finite-number")}})}});
@@ -764,8 +717,9 @@ void validateHeader(const V& header,const ProjectDocument&) {
     for(const auto* key:{"landObjectModel","territorialModel","distributionModel"})require(field(header,key).encode()==field(contracts,key).encode(),"UNSUPPORTED_MODEL_CONTRACT");
     for(const auto* key:{"version","savedAt","baseDataset"})(void)str(field(header,key));
     require(field(header,"sourceInfo").kind==V::Null||field(header,"sourceInfo").kind==V::Object,"INVALID_SOURCE_INFO");
-    require(field(header,"physicalSourceInfo").kind==V::Object&&field(header,"physicalSettings").kind==V::Object,"INVALID_PHYSICAL_SETTINGS");
-    ProjectDocument checks;unknown(checks,9,header,"/exchangeMetadata",{"version","savedAt","baseDataset","sourceInfo","physicalSourceInfo","physicalSettings","landObjectModel","territorialModel","distributionModel"});
+    require(field(header,"physicalSourceInfo").kind==V::Object,"INVALID_PHYSICAL_SETTINGS");
+    ProjectDocument checks;unknown(checks,9,header,"/exchangeMetadata",{"version","savedAt","baseDataset","sourceInfo","physicalSourceInfo","landObjectModel","territorialModel","distributionModel","projectSetup"});
+    validateProjectSetup(field(header,"projectSetup"));
 }
 void validateExchangeMetadata(const ProjectDocument& d) {
     auto header=currentWebHeader();for(const auto& [key,value]:jsonObject(d.exchangeMetadata).object)header.object[key]=value;validateHeader(header,d);
@@ -901,19 +855,15 @@ V labelSettingsValue(const LabelSettings& settings) {
     return result;
 }
 void readWebPresentation(const V& root,ProjectDocument& d,bool preserveAnnotations) {
-    const auto& visibility=field(root,"layerVisibility");require(visibility.kind==V::Object,"INVALID_JSON: presentation visibility");
-    for(const auto& [key,value]:visibility.object)if(!webLayerVisibilityKey(key))throw std::invalid_argument("UNSUPPORTED_WEB_VISIBILITY: layerVisibility/"+key);
-    const auto& layer=field(root,"layerPresentation");require(integer(field(layer,"schemaVersion"))==4,"UNSUPPORTED_PRESENTATION_VERSION");
+    const auto& layer=field(root,"layerPresentation");require(integer(field(layer,"schemaVersion"))==5,"UNSUPPORTED_PRESENTATION_VERSION");
     unknown(d,10,layer,"/layerPresentation",{"schemaVersion","styles","objectStyles","objectOrder","overlayOrder"});
-    V hidden=V::obj();const auto& items=field(root,"itemVisibility");require(items.kind==V::Object,"INVALID_ITEM_VISIBILITY");
-    for(const auto& [group,values]:items.object){if(!webItemVisibilityKey(group))throw std::invalid_argument("UNSUPPORTED_WEB_VISIBILITY: itemVisibility/"+group);require(values.kind==V::Object,"INVALID_ITEM_VISIBILITY");V ids=V::arr();for(const auto& [id,visible]:values.object)if(!boolean(visible))ids.array.push_back(V::str(id));hidden.object[group]=ids;}
     V labels=V::arr();const auto& settings=field(root,"labelSettings");require(settings.kind==V::Object,"INVALID_LABEL_SETTINGS");
     for(const auto& [key,value]:settings.object){const auto colon=key.find(':');require(colon!=std::string::npos,"INVALID_LABEL_KEY");const auto domain=key.substr(0,colon);require(domain=="territorial"||domain=="label","UNSUPPORTED_LABEL_KEY");auto row=value;require(row.kind==V::Object,"INVALID_LABEL_SETTINGS");
         if(preserveAnnotations){static const std::set<std::string> fields={"priority","minZoom","maxZoom","manualPosition","pinned","collisionGroup"};for(auto it=row.object.begin();it!=row.object.end();)if(!fields.count(it->first))it=row.object.erase(it);else ++it;}
         row.object["ref"]=refValue({domain,key.substr(colon+1)});
         for(const auto* fieldName:{"priority","minZoom","maxZoom","manualPosition"})if(row.object.count(fieldName)&&field(row,fieldName).kind==V::Null)row.object.erase(fieldName);
         if(!row.object.count("collisionGroup"))row.object["collisionGroup"]=V::str("map");labels.array.push_back(std::move(row));}
-    const auto empty=V::arr();auto presentation=object({{"userLayers",empty},{"membership",empty},{"objectStyles",V::obj()},{"webPresentation",object({{"visibility",field(root,"layerVisibility")},{"hiddenItems",hidden},{"styles",field(layer,"styles")},{"objectStyles",field(layer,"objectStyles")},{"objectOrder",field(layer,"objectOrder")},{"labelSettings",labels},{"distributionSettings",field(root,"distributionSettings")}})}});
+    const auto empty=V::arr();auto presentation=object({{"userLayers",empty},{"membership",empty},{"objectStyles",V::obj()},{"webPresentation",object({{"styles",field(layer,"styles")},{"objectStyles",field(layer,"objectStyles")},{"objectOrder",field(layer,"objectOrder")},{"labelSettings",labels},{"distributionSettings",field(root,"distributionSettings")}})}});
     if(layer.object.count("overlayOrder"))presentation.object["webPresentation"].object["overlayOrder"]=field(layer,"overlayOrder");
     // Entity color is already owned by the native identity's presentation row.
     const auto styles=d.presentation.objectStyles;readPresentation(presentation,d);d.presentation.objectStyles=styles;
@@ -923,10 +873,7 @@ void readWebPresentation(const V& root,ProjectDocument& d,bool preserveAnnotatio
         for(const auto* fieldName:{"priority","minZoom","maxZoom","manualPosition","pinned","collisionGroup"})if(value.object.count(fieldName)){setting.webFields->insert(fieldName);annotations.object.erase(fieldName);}
         setting.annotations=annotations.encode();setting.webMinZoomNull=value.object.count("minZoom")&&field(value,"minZoom").kind==V::Null;
     }
-    for(const auto& [group,values]:items.object) {
-        auto& result=d.presentation.webPresentation.itemVisibility[group];
-        for(const auto& [id,value]:values.object)result[id]=boolean(value);
-    }
+
 }
 }
 
@@ -1010,12 +957,13 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
 namespace {
 ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bool wireIds) {
     require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
-    ProjectDocument d;readEditorState(root,d);
-    require(integer(field(root,"schemaVersion"))==ProjectVersion,"UNSUPPORTED_VERSION: expected web v11");
+    ProjectDocument d;
+    require(integer(field(root,"schemaVersion"))==ProjectVersion,"UNSUPPORTED_VERSION: expected web v14");
     const auto format=str(field(root,"format"));require(format!="pandolab-autosave-delta","BASE_DATA_REQUIRED: web delta requires its matching baseline");require(format=="pandolab-project-state"||format=="pandolab-autosave-full","UNSUPPORTED_FORMAT");
-    unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","physicalSettings","territorialEntities","timelineRecords","geometries","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerVisibility","itemVisibility","layerPresentation","editorState"});
+    for(const auto* key:{"defaultView","layerVisibility","itemVisibility"})require(!root.object.count(key),"PL-SCHEMA-FIELD: viewing state is device-only");
+    unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","documentId","territorialEntities","timelineRecords","geometries","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerPresentation","projectSetup"});
     auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object)header.object[key]=field(root,key);validateHeader(header,d);d.exchangeMetadata=header.encode();
-    d.documentId="web-"+sha256(root.encode());
+    d.documentId=str(field(root,"documentId"));require(!d.documentId.empty(),"INVALID_DOCUMENT_ID");
     for(const auto& row:array(field(root,"territorialEntities")))readWebTerritorialIdentity(row,d,ports);
     restoreArchive(root,d);
     for(const auto& property:d.timelineRecords.propertyBindings)if(property.property=="flag") {
@@ -1144,12 +1092,11 @@ V webDistributionEntry(const ProjectDocument& d,const DistributionEntry& value,c
     row.object["value"]=V::num(value.value);row.object["certainty"]=V::str(value.certainty);return row;
 }
 V webPresentationFields(const ProjectDocument& d) {
-    const auto native=webPresentationValue(d,false);auto hidden=V::obj(),settings=V::obj();
-    for(const auto& group:d.presentation.webPresentation.itemVisibility){auto rows=V::obj();for(const auto& [id,visible]:group.second)rows.object[id]=V::boolean(visible);hidden.object[group.first]=rows;}
-    auto layer=object({{"schemaVersion",V::num(4)},{"styles",field(native,"styles")},{"objectStyles",field(native,"objectStyles")},{"objectOrder",field(native,"objectOrder")}});
+    const auto native=webPresentationValue(d,false);auto settings=V::obj();
+    auto layer=object({{"schemaVersion",V::num(5)},{"styles",field(native,"styles")},{"objectStyles",field(native,"objectStyles")},{"objectOrder",field(native,"objectOrder")}});
     if(native.object.count("overlayOrder"))layer.object["overlayOrder"]=field(native,"overlayOrder");
     for(const auto& entry:d.presentation.webPresentation.labelSettings)settings.object[entry.first.domain+":"+entry.first.id]=labelSettingsValue(entry.second);
-    return object({{"layerVisibility",field(native,"visibility")},{"itemVisibility",hidden},{"layerPresentation",layer},
+    return object({{"layerPresentation",layer},
         {"labelSettings",settings},{"distributionSettings",field(native,"distributionSettings")}});
 }
 std::set<GeometryRef> semanticArchive(const ProjectDocument& d) {
@@ -1221,7 +1168,7 @@ namespace {
 V webSnapshotValue(const ProjectDocument& d,const WebStorageContext& context) {
     auto root=currentWebHeader();for(const auto& [key,value]:jsonObject(d.exchangeMetadata).object)root.object[key]=value;
     if(context.version)root.object["version"]=V::str(*context.version);if(context.savedAt)root.object["savedAt"]=V::str(*context.savedAt);
-    validateHeader(root,d);root.object["format"]=V::str(context.format);root.object["schemaVersion"]=V::num(ProjectVersion);
+    validateHeader(root,d);root.object["format"]=V::str(context.format);root.object["schemaVersion"]=V::num(ProjectVersion);root.object["documentId"]=V::str(d.documentId);
     V units=V::arr(),archive=V::arr(),labels=V::arr(),hydro=V::arr(),generic=V::arr(),layers=V::arr(),entries=V::arr();
     for(const auto& u:d.units)units.array.push_back(webIdentity(d,u));
     for(const auto& [ref,shape]:d.geometries.versions()) {
@@ -1238,7 +1185,8 @@ V webSnapshotValue(const ProjectDocument& d,const WebStorageContext& context) {
     root.object["territorialEntities"]=std::move(units);root.object["timelineRecords"]=timelineRecordsValue(d.timelineRecords);
     root.object["geometries"]=std::move(archive);root.object["labels"]=std::move(labels);root.object["hydroEdits"]=std::move(hydro);
     root.object["genericFeatures"]=std::move(generic);root.object["distributionLayers"]=std::move(layers);root.object["distributionEntries"]=std::move(entries);
-    auto presentation=webPresentationFields(d);for(auto& entry:presentation.object)root.object[entry.first]=std::move(entry.second);
+    auto presentation=webPresentationFields(d);
+    for(auto& entry:presentation.object)root.object[entry.first]=std::move(entry.second);
     return root;
 }
 }
@@ -1276,7 +1224,7 @@ codecjson::Value encodeWebValue(const ProjectSnapshot& snapshot,const PlatformPo
     require(context.format=="pandolab-project-state"||context.format=="pandolab-autosave-full","UNSUPPORTED_WEB_STORAGE_FORMAT");
     const auto archiveCount=semanticArchive(d).size();
     auto root=webSnapshotValue(d,context);
-    if(!snapshot.timelineMonth().empty())root.object["editorState"]=editorStateValue(snapshot);
+    for(const auto* key:{"layerVisibility","itemVisibility"})root.object.erase(key);
     requireWebNumbers(root);
     // Validate the DTO directly: storage changes its envelope before encoding,
     // and must not serialize/parse the entire archive just to obtain this tree.
@@ -1397,13 +1345,21 @@ namespace pandoeditor {
 void GeometryProvenanceCodecAccess::admitPresentationMetadata(const ProjectDocument& before,ProjectDocument& candidate) {
     if(before.exchangeMetadata==candidate.exchangeMetadata||before.geometryProvenance.opaqueUncertain)return;
     auto previous=codecjson::parse(before.exchangeMetadata),next=codecjson::parse(candidate.exchangeMetadata);
-    const auto strip=[](codecjson::Value& value){auto settings=value.object.find("physicalSettings");
-        if(settings!=value.object.end()&&settings->second.kind==codecjson::Value::Object)
-            for(const auto* key:{"terrainVisible","terrainStyle","hydroLayers","hiddenHydroIds"})settings->second.object.erase(key);};
-    strip(previous);strip(next);
     codecjson::require(previous.encode()==next.encode(),"INVALID_GEOMETRY_PROVENANCE: non-presentation header changed");
     candidate.geometryProvenance.opaqueBaseline["/exchangeMetadata"]=projectcodec::opaqueSha256(candidate.exchangeMetadata);
     sealVerifiedOpaqueBaseline(candidate);
+}
+void GeometryProvenanceCodecAccess::admitProjectSetupMetadata(const ProjectDocument& before,ProjectDocument& candidate) {
+    if(before.geometryProvenance.opaqueUncertain)return;
+    auto previous=codecjson::parse(before.exchangeMetadata),next=codecjson::parse(candidate.exchangeMetadata);
+    previous.object.erase("projectSetup");next.object.erase("projectSetup");
+    codecjson::require(previous.encode()==next.encode(),"INVALID_GEOMETRY_PROVENANCE: unrelated project header changed");
+    const auto oldSlots=geometryProvenanceOpaqueSlots(before),newSlots=geometryProvenanceOpaqueSlots(candidate);
+    codecjson::require(oldSlots.size()==newSlots.size(),"INVALID_GEOMETRY_PROVENANCE: project dependencies changed");
+    for(const auto& [path,value]:newSlots)if(path!="/exchangeMetadata") {
+        const auto old=oldSlots.find(path);codecjson::require(old!=oldSlots.end()&&old->second==value,"INVALID_GEOMETRY_PROVENANCE: project dependency changed");
+    }
+    candidate.geometryProvenance.opaqueUncertain=false;candidate.geometryProvenance.opaqueBaseline["/exchangeMetadata"]=projectcodec::opaqueSha256(candidate.exchangeMetadata);sealVerifiedOpaqueBaseline(candidate);
 }
 void GeometryProvenanceCodecAccess::admitSourceInfoMetadata(const ProjectDocument& before,ProjectDocument& candidate) {
     if(before.geometryProvenance.opaqueUncertain)return;

@@ -185,7 +185,7 @@ export function createMapProjection() {
       .attr('x', 0).attr('y', 0).attr('width', width).attr('height', height);
     dependencies.mapLayers.oceanLayer?.attr('display', globe ? null : 'none')
       .attr('cx', translate[0]).attr('cy', translate[1]).attr('r', radius);
-    dependencies.mapLayers.shadowLayer?.attr('display', globe ? null : 'none')
+    dependencies.mapLayers.shadowLayer?.attr('display', globe && dependencies.projectState.state.backgroundSettings?.globeShadow!==false ? null : 'none')
       .attr('cx', translate[0]).attr('cy', translate[1]).attr('r', radius);
   }
 

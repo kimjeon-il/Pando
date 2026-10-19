@@ -58,17 +58,17 @@ test('full-world manifest closure includes active historical and prepared geomet
   assert.equal(plan.rootCount, 207);
   assert.equal(plan.unitCount, 47);
   assert.equal(plan.mergedSourceCount, 4);
-  assert.equal(plan.entries.length, 27);
+  assert.equal(plan.entries.length, 18);
   assert.equal(plan.worldFileCount, 14);
-  assert.equal(plan.physicalFileCount, 13);
+  assert.equal(plan.physicalFileCount, 4);
   assert.equal(new Set(paths).size, paths.length);
   assert.ok(paths.includes('assets/data/world/current.json'));
   assert.ok(paths.includes('assets/data/historical-world/generated/v1/world-project.json.gz'));
   assert.ok(paths.includes('assets/data/territorial-entities/generated/v2/state-ABC.json.gz'));
   assert.ok(paths.includes('assets/data/hydro/v0.13.2/hydro.bin'));
-  assert.ok(paths.includes('assets/data/terrain-preview/v0.13.3-p1/1/2-1.webp'));
+  assert.equal(paths.some(path=>path.includes('terrain')),false);
   assert.ok(paths.includes('assets/data/places/places-v1.bin'));
-  assert.equal(paths.filter(path => /terrain-preview|hydro|places/.test(path)).length, 13);
+  assert.equal(paths.filter(path => /terrain-preview|hydro|places/.test(path)).length, 4);
 });
 test('full-world manifest closure rejects traversal, remote paths and altered hash paths', () => {
   const bad = fixture();

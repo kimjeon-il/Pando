@@ -1,3 +1,4 @@
+import {normalizeProjectSetup} from './project-setup.js';
 import { normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS, TERRITORIAL_SCHEMA_VERSION, TERRITORIAL_ENTITY_KINDS } from './territorial-units.js';
 import { createGeometryVersionStore } from './geometry-version-store.js';
 import { restoreTimelineStorage } from './timeline-storage.js';
@@ -23,9 +24,7 @@ const PROJECT_FORMATS = Object.freeze(new Set([
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const text = value => String(value ?? '').trim();
-const LAYER_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'distributions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels', 'countryFlags', 'subunitLabels', 'subunitFlags', 'regionLabels', 'regionFlags']);
-const ITEM_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'distributions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
-const PRESENTATION_GROUP_KEYS = new Set(['countries', 'subunits', 'regions', 'distributions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
+const PRESENTATION_GROUP_KEYS = new Set(['objects', 'distributions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'objectLabels', 'terrain']);
 const GENERIC_PROPERTY_KEYS = new Set(['schemaVersion', 'name', 'notes', 'color', 'locked', 'source']);
 
 export function createProjectObjectId() {
@@ -151,12 +150,12 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
   if (kinds != null && (!Array.isArray(kinds) || kinds.length !== expectedKinds.length
     || expectedKinds.some(kind => !kinds.includes(kind)))) throw schemaError('영토 모델 kinds가 현재 객체 종류와 일치하지 않습니다.');
   assertAllowedKeys(project, new Set([
-    'format', 'schemaVersion', 'version', 'savedAt', 'territorialEntities', 'entityDelta', 'baseDatasetFingerprint',
+    'format', 'schemaVersion', 'documentId', 'version', 'savedAt', 'territorialEntities', 'entityDelta', 'baseDatasetFingerprint',
     'sourceInfo', 'labels', 'genericFeatures', 'hydroEdits',
     'timelineRecords', 'geometries', 'distributionLayers', 'distributionEntries',
-    'labelSettings', 'distributionSettings', 'layerPresentation', 'physicalSettings',
-    'layerVisibility', 'itemVisibility', 'baseDataset', 'landObjectModel', 'territorialModel',
-    'distributionModel', 'physicalSourceInfo', 'editorState',
+    'labelSettings', 'distributionSettings', 'layerPresentation',
+    'baseDataset', 'landObjectModel', 'territorialModel',
+    'distributionModel', 'physicalSourceInfo', 'projectSetup',
   ]), '프로젝트');
   if (project.format !== 'pandolab-autosave-delta' && (Object.hasOwn(project, 'entityDelta') || Object.hasOwn(project, 'baseDatasetFingerprint'))) {
     throw schemaError('변경분과 기준 fingerprint는 delta 자동저장에만 허용됩니다.', 'PL-SCHEMA-FIELD');
@@ -174,12 +173,10 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
   if (Number(project.landObjectModel?.sourceProvenanceSchemaVersion) !== SOURCE_PROVENANCE_SCHEMA_VERSION) {
     throw schemaError('Generic Feature source provenance 버전이 올바르지 않습니다.', 'PL-SCHEMA-SOURCE');
   }
-  assertAllowedKeys(project.distributionSettings, new Set(['renderMode', 'activeLayerId', 'boundaryVisible']), '분포 표시 설정');
-  if (!['overlap', 'single'].includes(project.distributionSettings?.renderMode)) {
-    throw schemaError('분포 표시 방식이 올바르지 않습니다.', 'PL-SCHEMA-DISTRIBUTION-MODE');
-  }
-  assertAllowedKeys(project.layerVisibility, LAYER_VISIBILITY_KEYS, '레이어 표시 상태');
-  assertAllowedKeys(project.itemVisibility, ITEM_VISIBILITY_KEYS, '객체 표시 상태');
+  if(typeof project.documentId !== 'string' || !project.documentId.trim()) throw schemaError('문서 ID가 필요합니다.');
+  normalizeProjectSetup(project.projectSetup);
+  assertAllowedKeys(project.distributionSettings,new Set(['renderMode','activeLayerId','boundaryVisible']),'분포 표시 설정');
+  if(!['overlap','single'].includes(project.distributionSettings?.renderMode))throw schemaError('분포 표시 방식이 올바르지 않습니다.','PL-SCHEMA-DISTRIBUTION-MODE');
   assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles', 'objectStyles', 'objectOrder']), '레이어 표현');
   assertAllowedKeys(project.layerPresentation?.styles, PRESENTATION_GROUP_KEYS, '레이어 표현 스타일');
   for (const [group, style] of Object.entries(project.layerPresentation?.styles || {})) {
@@ -275,6 +272,7 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
 }
 
 export const PROJECT_STATE_FIELDS = Object.freeze([
+  Object.freeze({name:'projectSetup',scope:'document',fallback:()=>{throw schemaError('프로젝트 시작 설정이 필요합니다.');}}),
   Object.freeze({ name: 'sourceInfo', scope: 'document', fallback: () => null }),
   Object.freeze({ name: 'labels', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'genericFeatures', scope: 'document', fallback: () => [] }),
@@ -286,9 +284,9 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'labelSettings', scope: 'presentation', fallback: () => ({}) }),
   Object.freeze({ name: 'distributionSettings', scope: 'presentation', fallback: current => current || { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true } }),
   Object.freeze({ name: 'layerPresentation', scope: 'presentation', fallback: () => ({}) }),
-  Object.freeze({ name: 'physicalSettings', scope: 'presentation', fallback: current => current || {} }),
-  Object.freeze({ name: 'layerVisibility', scope: 'presentation', fallback: current => current || {} }),
-  Object.freeze({ name: 'itemVisibility', scope: 'presentation', fallback: () => ({}) }),
+  Object.freeze({ name: 'physicalSettings', scope: 'session', fallback: current => current || {} }),
+  Object.freeze({ name: 'layerVisibility', scope: 'session', fallback: current => current || {} }),
+  Object.freeze({ name: 'itemVisibility', scope: 'session', fallback: () => ({}) }),
   Object.freeze({ name: 'projection', scope: 'session', fallback: () => 'globe' }),
   Object.freeze({ name: 'layerFolders', scope: 'session', fallback: () => ({}) }),
   Object.freeze({ name: 'view', scope: 'session', fallback: current => current || {} }),

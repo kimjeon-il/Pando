@@ -1,5 +1,5 @@
 import { projectedPointDistance, projectedLineDistance as screenLineDistance, geometryHitsScreenPoint as screenGeometryHit } from './geometry-screen-hit.js';
-import { layerObjectRank, territorialSymbolGroup } from './layer-presentation.js';
+import { layerObjectRank, territorialPaintRole } from './layer-presentation.js';
 /** ObjectPicking: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -10,6 +10,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
   let objectChooserPresentationRevision = 0;
   let chooserCandidates=[];
   let objectChooserIntentMode = 'replace';
+  let chooserSelection=null;
 
   function connect(ports) {
     if (dependencies) throw new Error('object-picking already connected');
@@ -34,7 +35,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref || !dependencies.objectLookup.objectRefExists(ref) || !dependencies.objectLookup.isObjectAvailable(ref)) return false;
     if (ref.domain === 'territorial') {
-      const group = territorialSymbolGroup(dependencies.territorialModel.entityRepository.get(ref.id));
+      const group = 'objects';
       return dependencies.projectState.state.layerVisibility[group] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id);
     }
     if (ref.domain === 'distribution') {
@@ -61,14 +62,14 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
     let group = '';
     if (ref.domain === 'generic') group = 'genericFeatures';
     else if (ref.domain === 'distribution') group = 'distributions';
-    else if (ref.domain === 'territorial') group = territorialSymbolGroup(dependencies.territorialModel.entityRepository.get(ref.id));
+    else if (ref.domain === 'territorial') group = 'objects';
     else if (ref.domain === 'label') group = 'labels';
     else if (ref.domain === 'hydro') group = 'hydro';
     const index = order.indexOf(group);
     // General hierarchy fills claim land before independent overlays are drawn.
-    if (group === 'subunits') return 600;
+    if (ref.domain==='territorial') {const role=territorialPaintRole(dependencies.territorialModel.entityRepository.get(ref.id));if(role==='country-fill')return 500;if(role==='territorial-fill')return 600;}
     if (index >= 0) return 1000 + index;
-    return { labels: 1300, hydro: 850, countries: 500 }[group] || 700;
+    return { labels: 1300, hydro: 850, objects: 500 }[group] || 700;
   }
 
   function compareVisualOrder(left, right) {
@@ -140,6 +141,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
     if (cancelPending) objectPickRevision += 1;
     objectChooserPresentationRevision += 1;
     objectChooserIntentMode = 'replace';
+    chooserSelection=null;
     const chooser = (0, dependencies.platform.$)('objectChooser');
     if (!chooser) return;
     chooser.classList.add('hidden');
@@ -148,7 +150,8 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
     if (restoreFocus) (0, dependencies.platform.$)('map')?.focus();
   }
 
-  function openObjectChooser(candidates, screenPoint, intentMode) {
+  function openObjectChooser(candidates, screenPoint, intentMode,options={}) {
+    chooserSelection=options.onChoose||null;
     const chooser = (0, dependencies.platform.$)('objectChooser');
     const list = (0, dependencies.platform.$)('objectChooserList');
     if (!chooser || !list || candidates.length < 2) return closeObjectChooser();
@@ -156,10 +159,10 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
     objectChooserIntentMode = intentMode === 'toggle' ? 'toggle' : 'replace';
     chooserCandidates=candidates.slice();
     list.replaceChildren(...candidates.map((ref, index) => {
-      const info = (0, dependencies.objectOperationsA.objectDisplayInfo)(ref);
+      const info = options.describe ? options.describe(ref,index) : (0, dependencies.objectOperationsA.objectDisplayInfo)(ref);
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = `ui-button ui-row ui-card ui-selectable-row object-chooser-item${dependencies.domains.selectionDomain.has(ref) ? ' is-selected' : ''}`;
+      button.className = `ui-button ui-row ui-card ui-selectable-row object-chooser-item${(!options.onChoose&&dependencies.domains.selectionDomain.has(ref)) ? ' is-selected' : ''}`;
       button.dataset.objectChooserIndex = String(index);
       button.setAttribute('role', 'option');
       button.setAttribute('aria-selected', String(dependencies.domains.selectionDomain.has(ref)));
@@ -194,6 +197,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
 
   async function chooseObjectCandidate(index, { toggle = false } = {}) {
     const ref = chooserCandidates[Number(index)];
+    if(chooserSelection){const choose=chooserSelection;closeObjectChooser();return await choose(ref);}
     if (!objectRefSelectable(ref)) return false;
     const mode = toggle || objectChooserIntentMode === 'toggle' ? 'toggle' : 'replace';
     await dependencies.domains.selectionUiController.applyIntent(ref, { mode, scope: 'map',openEditor });
@@ -257,6 +261,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
   async function handleMapClick(screenPoint, { territorialLabelId = '' } = {}) {
     try {
     if (dependencies.projectState.state.spacePanActive || dependencies.projectState.state.tool === 'move') return;
+    if(handleEditingClick){const editing=dependencies.domains.editingDomain;if(editing.snapshot().vertexPlacement)return await editing.handleInteraction({type:'vertex-placement-commit',projectGeneration:editing.snapshot().projectGeneration,screenPoint,pointerType:'touch'});}
     // A label names an explicit object even when its text is over another
     // territory or outside the globe. Other tools retain coordinate dispatch.
     if (territorialLabelId && dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode) {
@@ -312,6 +317,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
   return Object.freeze({
     connect,
 
+    get openVertexChooser(){return (candidates,screenPoint,onChoose)=>openObjectChooser(candidates,screenPoint,'replace',{onChoose,describe:(row,index)=>({name:'꼭짓점 '+(index+1),type:row.fixed?'고정점':'이동 가능',detail:(row.coordinate||row.coord||[]).map(n=>Number(n).toFixed(3)).join(', ')})});},
     get closeObjectChooser() { return closeObjectChooser; },
     get chooseObjectCandidate() { return chooseObjectCandidate; },
     selectableObjectsAt,

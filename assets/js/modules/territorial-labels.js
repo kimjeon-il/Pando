@@ -6,14 +6,14 @@ import { resolvePlaceLabelRows } from './place-name-display.js';
 import { temporalMonthEnd } from './temporal.js';
 import { territorialLabelFlag } from './territorial-label-flags.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
-import { territorialSymbolGroup, territorialSymbolVisibility } from './layer-presentation.js';
+import { territorialPaintRole, territorialSymbolVisibility } from './layer-presentation.js';
 import { createTerritorialFillResolver } from './territorial-fill-style.js';
 
 /** TerritorialLabels: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
+export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eagerBuiltinPlaces:true} } = {}) {
   let dependencies;
   let countryOutlineCache;
   let labelLayoutMetrics;
@@ -42,7 +42,7 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
   }
 
   function preparePlaces({ force = false } = {}) {
-    if (!builtinPlacesEnabled) return Promise.resolve(false);
+    if (!capabilities.builtinPlaces || (!force && dependencies.projectState.state.backgroundSettings?.builtinPlaces===false) || (!capabilities.eagerBuiltinPlaces && !dependencies.projectState.state.backgroundSettings.builtinPlaces && !force)) return Promise.resolve(false);
     if (dependencies.projectState.state.mapMoving) { builtinPlaces.beginInteraction(); return Promise.resolve(false); }
     if (!force && dependencies.projectState.state.layerVisibility.labels === false) { builtinPlaces.cancelViewport(); return builtinPlaces.settle(null); }
     return builtinPlaces.settle(placeView());
@@ -104,7 +104,7 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
 
   function shouldShowTerritorialLabel(feature, metrics) {
     const id = String(feature.id || '');
-    if (!(0, dependencies.layerPresentation.isLayerItemVisible)('countryLabels', id) || dependencies.labelPresentation.pendingCountryLabelAnchors.has(id)) return false;
+    if (!(0, dependencies.layerPresentation.isLayerItemVisible)('objectLabels', id) || dependencies.labelPresentation.pendingCountryLabelAnchors.has(id)) return false;
     if ((dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) && dependencies.projectState.state.selected.id === id) return true;
     const widthFit = metrics.width >= Math.min(34, metrics.textWidth * ((0, dependencies.surfaces.isMobile)() ? 0.48 : 0.42));
     const heightFit = metrics.height >= metrics.textHeight * 0.52;
@@ -121,7 +121,7 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
       terrainAlpha: theme.countryColorAlpha,
       mapSubstrate: dependencies.projectState.state.physicalSettings.terrainVisible ? null
         : { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha } });
-    const pending = dependencies.projectState.state.layerVisibility.countries && dependencies.projectState.state.pendingCountryRenderIds?.size
+    const pending = dependencies.projectState.state.layerVisibility.objects && dependencies.projectState.state.pendingCountryRenderIds?.size
       ? [...dependencies.projectState.state.pendingCountryRenderIds]
         .map(dependencies.territorialModel.entityRepository.get)
         .filter(feature => feature && (0, dependencies.layerPresentation.isCountryVisibleById)(String(feature.id || '')))
@@ -158,22 +158,21 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
     territorialLabelScreenAreas.clear();
     const zoom = frameContext.viewState.zoom;
     const renderCountries = (0, dependencies.countries.builtinTerritorialScene)();
-    const visibility = Object.fromEntries(['countries', 'subunits', 'regions'].map(group =>
-      [group, territorialSymbolVisibility(dependencies.projectState.state, group)]));
+    const visibility = territorialSymbolVisibility(dependencies.projectState.state);
     const flagOptions = {
       zoom, enabled: true,
-      isVisible: feature => visibility[territorialSymbolGroup(feature)].flag,
-      flagUrl: feature => effectiveTerritorialFlagUrl(territorialSymbolGroup(feature) === 'countries'
+      isVisible: feature => visibility.flag,
+      flagUrl: feature => effectiveTerritorialFlagUrl(territorialPaintRole(feature) === 'country-fill'
         ? dependencies.territorialModel.entityRepository.get(feature.id) : feature,
         { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
     };
     for (const feature of renderCountries.labelById.values()) {
       const id = String(feature.id || '');
-      const group = territorialSymbolGroup(feature);
-      const namesVisible = visibility[group].name;
+      const group = 'objects';
+      const namesVisible = visibility.name;
       const labelRef = renderCountries.labelRefs.get(id);
       if (!(0, dependencies.layerPresentation.isLayerItemVisible)(group, labelRef?.id || id)) continue;
-      if (!(0, dependencies.layerPresentation.isLayerItemVisible)('countryLabels', id) || dependencies.labelPresentation.pendingCountryLabelAnchors.has(id)) continue;
+      if (!(0, dependencies.layerPresentation.isLayerItemVisible)('objectLabels', id) || dependencies.labelPresentation.pendingCountryLabelAnchors.has(id)) continue;
       const flag = namesVisible ? null : territorialLabelFlag(feature, flagOptions);
       if (!namesVisible && !flag) continue;
       const settings = (0, dependencies.labelPresentation.automaticLabelSettings)('country', dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('territorial', labelRef.id)] || {});
@@ -202,7 +201,7 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
     }
     const copiedIds = new Set(dependencies.projectState.state.labels.map(label => label.sourcePlaceId).filter(Boolean));
     const selectedIds = new Set(dependencies.domains.selectionDomain.snapshot().selection.items.filter(ref => ref.domain === 'label').map(ref => String(ref.id)));
-    const builtinLabels = [...new Map([...builtinPlaces.snapshot().records, ...[...selectedIds].map(id => builtinPlaces.resolve(id)).filter(Boolean)].map(label => [label.id, label])).values()].filter(label => !copiedIds.has(label.id));
+    const builtinLabels = dependencies.projectState.state.backgroundSettings.builtinPlaces===false ? [] : [...new Map([...builtinPlaces.snapshot().records, ...[...selectedIds].map(id => builtinPlaces.resolve(id)).filter(Boolean)].map(label => [label.id, label])).values()].filter(label => !copiedIds.has(label.id));
     const builtinIds = new Set(builtinLabels.map(label => label.id));
     const labelSources = [...dependencies.projectState.state.labels, ...builtinLabels];
     const placeLanguages = dependencies.preferences.userPreferences.labels.place.languages;

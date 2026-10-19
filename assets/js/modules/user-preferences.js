@@ -34,6 +34,7 @@ function normalizeLabelFont(value, fallback) {
 
 export function defaultUserPreferences() {
   return {
+    backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical',builtinHydro:true,builtinPlaces:true,graticule:true,globeShadow:true},editor:{terrainVisible:false,terrainStyle:'physical',builtinHydro:false,builtinPlaces:false,graticule:false,globeShadow:false}},
     version: DEFAULTS.version,
     appearance: { theme: DEFAULTS.appearance.theme, accentPreset: DEFAULTS.appearance.accentPreset, statusBarVisible: DEFAULTS.appearance.statusBarVisible, smoothLines: DEFAULTS.appearance.smoothLines },
     labels: {
@@ -60,6 +61,7 @@ export function normalizeUserPreferences(value) {
   const fillStrength = normalizeFillStrength(source.selection?.fillStrength, defaults.selection.fillStrength);
   const outlineVisible = source.selection?.outlineVisible !== false;
   return {
+    backgrounds:Object.fromEntries(['viewer','editor'].map(mode=>[mode,Object.fromEntries(Object.entries(defaults.backgrounds[mode]).map(([key,value])=>[key,key==='terrainStyle'?(['political','physical'].includes(source.backgrounds?.[mode]?.[key])?source.backgrounds[mode][key]:value):typeof source.backgrounds?.[mode]?.[key]==='boolean'?source.backgrounds[mode][key]:value]))])),
     version: DEFAULTS.version,
     appearance: {
       theme,

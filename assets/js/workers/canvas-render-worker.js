@@ -576,7 +576,8 @@ function canvasFallbackWorkerMain() {
       const properties = feature.properties || {};
       if (properties.category === 'lake' ? !message.lakesVisible : !message.riversVisible) return false;
       if (message.physicalSettings?.hydroLayers?.[properties.layer_id] === false) return false;
-      if (message.physicalSettings?.hiddenHydroIds?.[String(properties.pandolab_id || feature.id)] === true) return false;
+      if(!hydroEditFeatures.includes(feature)&&message.builtinHydroVisible===false)return false;
+      if(message.hydroVisibility?.[String(properties.pandolab_id || feature.id)]===false)return false;
       return true;
     }
 
@@ -900,8 +901,7 @@ function canvasFallbackWorkerMain() {
         physicalStyleRevision = Number(message.physicalStyleRevision || 0);
         mergeRenderState(message);
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || 2)));
-        loadTerrainManifest(message.terrainManifestUrl);
-        loadDemManifest(message.terrainDemManifestUrl);
+        if(message.terrainEnabled!==false){loadTerrainManifest(message.terrainManifestUrl);loadDemManifest(message.terrainDemManifestUrl);}
         self.postMessage({ type: 'ready' });
       } else if (message.type === 'hydro-port') {
         connectHydroPort(message.port);

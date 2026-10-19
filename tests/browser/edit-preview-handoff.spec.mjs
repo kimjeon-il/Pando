@@ -245,7 +245,7 @@ async function handoffDiagnostics(page, attempt = null) {
         actualCountryHit: 'unavailable: event countryAtScreenPoint result is not exposed; bounds candidates are not polygon hits' },
       selected: state.selected,
       edit: { tool: state.tool, phase: state.boundaryEditPhase, selectedIds: state.boundaryEditEntityIds,
-        countriesVisible: state.layerVisibility.countries, preparationStatus: state.boundaryPreparation?.status,
+        objectsVisible: state.layerVisibility.objects, preparationStatus: state.boundaryPreparation?.status,
         preparation: pick(state.boundaryPreparation?.result, ['neighbors', 'valid', 'isolatedIds']) },
       status: { action: document.querySelector('#statusAction')?.textContent,
         selection: document.querySelector('#statusSelection')?.textContent },
@@ -314,11 +314,9 @@ async function openApp(page, renderer, { staticInput = false, focusCountry = tru
   await observe(page, staticInput, renderer);
   await gotoEditor(page, `/?debug=1&renderer=${renderer}&demTerrain=raster`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.locator('#terrainNoneRadio').evaluate(input => input.click());
   await page.locator('#flatBtn').evaluate(button => button.click());
   if (staticInput) {
     const project = JSON.parse(await readFile(new URL('../fixtures/timeline-exchange/static.json', import.meta.url), 'utf8'));
-    project.layerVisibility.countries = true;
     const polygons = [
       [[6, 48], [6, 56], [16, 56], [16, 54], [16, 52], [16, 50], [16, 48], [6, 48]],
       [[16, 48], [16, 50], [16, 52], [16, 54], [16, 56], [22, 56], [22, 48], [16, 48]],
@@ -381,8 +379,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       properties: { pandolab_domain: 'hydro', pandolab_id: '00000000-0000-4000-8000-000000000005',
         category: kind, pandolab_schema_version: 1, name: `M2 ${kind}`, editorColor: '#3b82c4', notes: '', locked: false } }];
     await loadProjectFile(page, project, kind);
-    await page.locator('#terrainNoneRadio').evaluate(input => input.click());
-    await page.locator('#objectSearchBtn').click();
+      await page.locator('#objectSearchBtn').click();
     await page.locator('#objectSearchInput').fill(`M2 ${kind}`);
     await page.locator('#objectSearchResults .object-search-result-select').first().click();
     await focusSelectedObject(page, renderer);

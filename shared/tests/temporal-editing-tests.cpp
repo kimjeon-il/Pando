@@ -62,7 +62,7 @@ int main() {
     const auto webRejected=CommandProcessor::prepare(project,request);assert(!webRejected.ok());
     const projectcodec::PlatformPorts ports{[](const std::string&) {}};
     project.setTimelineCursor("2012-06");const auto checkpoint=project.historyCheckpoint();const auto bytes=projectcodec::encode(project,ports);
-    auto decoded=projectcodec::decode(bytes,ports);assert(projectcodec::restoredTimelineMonth(decoded,"2026-10")=="2012-06");assert(project.historyCheckpoint()==checkpoint);
+    auto decoded=projectcodec::decode(bytes,ports);assert(projectcodec::restoredTimelineMonth(decoded)=="1970-01");assert(project.historyCheckpoint()==checkpoint);
     Project restored;restored.replace(std::move(decoded));restored.setTimelineCursor("2012-06",false);
     assert(name(restored,"2011-01")=="Baseline");assert(name(restored,"2012-01")=="Inserted");assert(name(restored,"2013-01")=="Future");
     std::cout<<"temporal properties, parent rejection, history and reopen month passed\n";

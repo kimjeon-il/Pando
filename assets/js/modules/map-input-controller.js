@@ -23,6 +23,7 @@ export function createMapInputController({
 }) {
   const pointers = new Map();
   let gesture = null;
+  let pointerRevision=0;
   let pinch = null;
   let wheelFinishTimer = 0;
   let lastTapAt = 0;
@@ -62,6 +63,7 @@ export function createMapInputController({
   }
 
   function pointerDown(event) {
+    pointerRevision++;
     if (event.button > 1) return;
     const assistedPan = event.button === 1;
     const isTouch = event.pointerType === 'touch';
@@ -276,6 +278,7 @@ export function createMapInputController({
 
   return {
     cancel,
+    pointerRevision:()=>pointerRevision,
     isGenericFeature: () => gesture?.kind === 'draw',
     isPanning: () => !!gesture?.panned || !!pinch,
     destroy() {
