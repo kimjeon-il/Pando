@@ -193,7 +193,7 @@ export function taskStagePresentation({
 }
 
 /** Read-only view of the existing task; dates come from the Core candidate. */
-export function editingContextPresentation({state,draft={},month='',targets=[]}) {
+export function editingContextPresentation({state,draft={},month='',targets=[],mobile=false,editing={}}) {
   const selection=state.territorySelectionSession, preview=state.geometryPreview?.session;
   const applying=preview?.status==='applying'||selection?.applying;
   const calculating=!applying && (state.modeProcessing||selection?.previewPending||selection?.computationPending||state.multiDraft?.previewPending);
@@ -206,6 +206,6 @@ export function editingContextPresentation({state,draft={},month='',targets=[]})
   const periods=preview?.temporalImpact;
   const labels=periods?.map(row=>!row.from&&!row.until?'모든 시점':(row.from?row.from+'부터':'과거 전체')+' · '+(row.until?row.until+' 전까지':'종료 제한 없음'));
   const period=!preview?'변경 기간 계산 전':labels?.length?[...new Set(labels)].join(' / '):'시간 기록 변경 없음';
-  const instruction=state.spacePanActive?'지도 이동 중 · 놓으면 편집 계속':applying?'변경을 반영하고 있습니다.':review?'적용 전입니다 · 수정으로 돌아가면 입력이 유지됩니다.':draft.vertexInsertMode?'경계 클릭: 꼭짓점 삽입 · Esc: 삽입 종료':(draft.inputPhase==='refine'||['territorial-border','country-coast'].includes(state.tool))?'꼭짓점 드래그: 이동 · Space 누르기: 지도 이동':'지도에서 입력 · Space 누르기: 지도 이동';
+  const instruction=editing.vertexPlacement?'지도를 탭해 선택 정점 위치 지정 · 위치 지정 취소: 입력 유지':mobile&&!review&&!applying?(editing.selectedVertex?'선택점 드래그: 이동 · 위치 지정: 지도 탭 · 두 손가락: 지도 이동':'정점 탭: 선택 · 점을 끌어 이동 · 두 손가락: 지도 이동'):state.spacePanActive?'지도 이동 중 · 놓으면 편집 계속':applying?'변경을 반영하고 있습니다.':review?'적용 전입니다 · 수정으로 돌아가면 입력이 유지됩니다.':draft.vertexInsertMode?'경계 클릭: 꼭짓점 삽입 · Esc: 삽입 종료':(draft.inputPhase==='refine'||['territorial-border','country-coast'].includes(state.tool))?'꼭짓점 드래그: 이동 · Space 누르기: 지도 이동':'지도에서 입력 · Space 누르기: 지도 이동';
   return Object.freeze({stage,targetSummary,view,period,instruction});
 }

@@ -4,7 +4,7 @@ import { createViewerProjectPackage } from '../fixtures/viewer-project-package.m
 test('web keeps common tooltips and selection without a separate information panel', async ({ page }) => {
   page.setDefaultTimeout(15000);
   const errors=[]; page.on('pageerror',error=>errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
   await page.locator('#timelinePreviousYear').hover();
   await expect(page.locator('#uiTooltip')).toBeVisible();
@@ -27,6 +27,6 @@ test('web keeps common tooltips and selection without a separate information pan
 
 test('web uses the canonical compact workspace breakpoint',async({page})=>{
   page.setDefaultTimeout(15000);
-  await page.setViewportSize({width:1300,height:800}); await page.goto('/');
+  await page.setViewportSize({width:1300,height:800}); await page.goto('/?debug=1');
   await expect(page.locator('#viewer')).toHaveAttribute('data-layout','compact');
 });

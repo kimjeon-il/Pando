@@ -4,8 +4,8 @@
 
 namespace pandoeditor {
 namespace {
-constexpr std::array<const char*,4> overlayGroups{
-    "distributions","subunits","regions","genericFeatures"};
+constexpr std::array<const char*,3> overlayGroups{
+    "distributions","objects","genericFeatures"};
 std::string groupFor(const ProjectDocument& document,const ObjectRef& ref) {
     if(ref.domain=="territorial")for(const auto& unit:document.units)if(unit.id==ref.id)
         return territorialGroup(document,unit.id);
@@ -39,8 +39,8 @@ MapRenderOrder mapRenderOrder(const ProjectDocument& document,const ObjectRef& r
     const auto group=groupFor(document,ref);
     // Web submits child fills first but reserves their pixels with stencil.
     // QPainter uses ordinary overpainting, so country must be behind children.
-    if(group=="countries")return {role==RenderPrimitiveRole::Boundary?50:0,0,0};
-    if(group=="subunits"||group=="regions")
+    if(ref.domain=="territorial")for(const auto& unit:document.units)if(unit.id==ref.id&&isRootGeneral(document,unit))return {role==RenderPrimitiveRole::Boundary?50:0,0,0};
+    if(group=="objects")
         return {role==RenderPrimitiveRole::Fill?10:60,overlayIndex(document,group),territorialObjectOrder(document,ref)};
     if(group=="rivers"||group=="lakes")
         return mapBuiltinHydroRenderOrder(group=="lakes"?"lake":"river",role);
@@ -57,11 +57,11 @@ MapRenderOrder mapRenderOrder(const ProjectDocument& document,const ObjectRef& r
 }
 int mapPickOrder(const ProjectDocument& document,const ObjectRef& ref) {
     const auto group=groupFor(document,ref);
+    if(ref.domain=="territorial")for(const auto& unit:document.units)if(unit.id==ref.id) {if(isRootGeneral(document,unit))return 500;if(unit.kind==UnitKind::General)return 600;}
     const auto overlay=overlayIndex(document,group);
     if(overlay>=0)return 1000-overlay;
     if(group=="labels")return 1300;
     if(group=="rivers"||group=="lakes")return 850;
-    if(group=="countries")return 500;
     return 700;
 }
 int mapBuiltinHydroPickOrder() {return 850;}

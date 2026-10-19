@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 
 test('labels paint above land and camera motion reuses geometry centroids',async({page})=>{
  page.setDefaultTimeout(15000);
- await page.goto('/');
+ await page.goto('/?debug=1');
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
  await expect(page.locator('#zoomInBtn,#zoomOutBtn,.map-view-toolbar')).toHaveCount(0);
  const labelDistance=async()=>{
@@ -41,7 +41,7 @@ test('labels paint above land and camera motion reuses geometry centroids',async
 
 test('viewing preferences preview, cancel and persist without document changes',async({page},testInfo)=>{
  page.setDefaultTimeout(15000);
- await page.goto('/');
+ await page.goto('/?debug=1');
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
  const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
  await page.getByRole('button',{name:'설정',exact:true}).click();

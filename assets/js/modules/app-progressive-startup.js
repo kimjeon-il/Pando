@@ -4,9 +4,8 @@
  */
 import { matchesDefaultPreview, previewSourceForProject } from './project-preview-policy.js';
 import { geometryRevision } from './geometry-versions.js';
-import { schedulePhysicalAfterCanonical } from './deferred-physical-startup.js';
 
-export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysicalUntilReady = false } = {}) {
+export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
   if (!['builtin', 'project'].includes(startupMesh)) throw new TypeError('Unsupported startup mesh source.');
   let dependencies;
   let restoringCountryFirstPaint = false;
@@ -119,7 +118,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
     const userChangedPreviewMonth = !!previewStart.timelineMonth
       && liveMonthBeforeAdmission !== previewStart.timelineMonth;
     await dependencies.persistence.applyAutosavedTimeline(userChangedPreviewMonth
-      ? { lastViewedMonth: liveMonthBeforeAdmission } : autosaveRestore.view);
+      ? { documentId:dependencies.domains.projectDomain.snapshot().documentId,lastViewedMonth: liveMonthBeforeAdmission } : autosaveRestore.view);
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
     // A display request may have initialized the edit Worker from preview countries.
@@ -226,7 +225,6 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
       if (startupMetrics) startupMetrics.canonicalPreviewReleasedBytes = 0;
       (0, dependencies.renderQuality.applyAdaptiveRenderQuality)({ refreshScene: false, reason: 'canonical-ready' });
     }
-    if (!deferPhysicalUntilReady) (0, dependencies.physicalData.loadHydroData)();
     (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.MESH_READY);
     dependencies.projectState.state.meshProgress = 100;
     if (!context.useBuiltInMesh || (dependencies.projectState.state.autosaveMode === 'full')) {
@@ -284,39 +282,8 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
 
   async function initProgressive() {
     (0, dependencies.platformConfigurationB.assertRuntimeCompatibility)();
-    if (deferPhysicalUntilReady) {
-      // Tauri full-world only: preserve the website's preview/geometry/mesh
-      // priority. Defer optional terrain and hydro until that path completes.
-      schedulePhysicalAfterCanonical({ scope: window, load: () => {
-        const metrics = window.__PANDOLAB_STARTUP_METRICS__;
-        if (metrics) metrics.physicalLoadStartedMs = performance.now() - metrics.startedAt;
-        void Promise.allSettled([
-          Promise.resolve().then(() => dependencies.physicalResources.loadTerrainManifest()),
-          Promise.resolve().then(() => dependencies.physicalData.loadHydroData()),
-        ]).then(results => {
-          if (metrics) {
-            metrics.physicalManifestLoadFinishedMs = performance.now() - metrics.startedAt;
-            metrics.physicalManifestLoadResults = results.map(result => result.status);
-          }
-          for (const result of results) if (result.status === 'rejected') {
-            dependencies.feedback.reportOperationError(result.reason,
-              '지도 부가 자료를 불러오지 못했습니다.', 'PL-PHYSICAL-001', 0);
-          }
-        });
-      } });
-      (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).physicalDeferredUntilReady = true;
-    }
     if (!window.d3) throw new Error('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.');
     if (!window.PANDOLAB_COUNTRIES?.features?.length) throw new Error('미리보기 국가 데이터를 불러올 수 없습니다. 페이지를 새로고침하세요.');
-
-    const startTerrainLoading = () => {
-      if (deferPhysicalUntilReady) return;
-      // Normal Web retains painted-preview terrain loading; the full-world
-      // app reserves the first canonical paint and loads later instead.
-      dependencies.physicalResources.loadTerrainManifest().catch(error => {
-        dependencies.feedback.reportOperationError(error, '지형 자료를 불러오지 못했습니다.', 'PL-TERRAIN-001', 0);
-      });
-    };
 
     const autosavePromise = dependencies.lifecycleUi.projectUi.restoreAutosave();
     const autosaveRestore = await autosavePromise;
@@ -390,7 +357,6 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
         }
       }).catch(error => dependencies.feedback.reportOperationError(error, '미리보기 화면을 표시하지 못했습니다.', 'PL-PREVIEW-FRAME-001', 4200));
     }
-    if (!hasStoredCountryGeometry) startTerrainLoading();
     dependencies.startupCommands.markRuntimeReady();
     const previewStart = { projection: dependencies.projectState.state.projection, viewJson: JSON.stringify(dependencies.projectState.state.view),
       timelineMonth: dependencies.domains.commandOwner.state()?.timelineCursor || '',
@@ -440,7 +406,6 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== context.projectGeneration) return;
     // Without a matching project preview, preserve the neutral restore screen
     // until exact geometry and saved display settings have been applied.
-    if (hasStoredCountryGeometry) startTerrainLoading();
     try {
       if (!context.useBuiltInMesh) {
         await completeMeshEnhancement(null, context);
@@ -526,7 +491,6 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
     (0, dependencies.mapHostViewB.resizeMap)();
     dependencies.lifecycleUi.projectUi.syncHistory();
     await dependencies.domains.editingDomain.setTool('select');
-    (0, dependencies.physicalResources.loadPhysicalData)();
     await dependencies.domains.objectSearchController?.completeHydration();
 
     if (restored) {

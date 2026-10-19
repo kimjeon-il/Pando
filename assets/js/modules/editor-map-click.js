@@ -13,7 +13,7 @@ export async function handleEditorMapClick(screenPoint,dependencies){
       territoryCountryPicking ||
       (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') ||
       (dependencies.projectState.state.tool === 'merge-country' && !!dependencies.projectState.state.mergeSourceCountryId);
-    const clickedCountry = needsCountryHit && dependencies.projectState.state.layerVisibility.countries
+    const clickedCountry = needsCountryHit && dependencies.projectState.state.layerVisibility.objects
       ? (0, dependencies.pointerInteractionA.countryAtScreenPoint)(screenPoint, coord)
       : null;
     if (territoryCountryPicking) {

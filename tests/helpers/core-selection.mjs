@@ -20,8 +20,7 @@ export async function createNodeSelection({ territorialIds = ['A','B','C','D','D
     geometryBindings: territorialIds.map(id => ({ id: 'shape:'+id,entityId: id,validFrom: null,validTo: null,geometryRef: { id: 'shape',version: 1 } })),
     parentRelations: territorialIds.map(id => ({ id: 'parent:'+id,entityId: id,validFrom: null,validTo: null,parentId: '',coverageMode: 'explicit' })) };
   const label = seed.labels[0];
-  Object.assign(seed, { labels: [],labelSettings: {},genericFeatures: [],hydroEdits: [],distributionLayers: [],distributionEntries: [],itemVisibility: {} });
-  seed.distributionSettings.activeLayerId = '';
+  Object.assign(seed, { labels: [],labelSettings: {},genericFeatures: [],hydroEdits: [],distributionLayers: [],distributionEntries: [] });
   const owner = await createNodeCoreProject(seed);
   let generation = 1;
   try {

@@ -229,10 +229,10 @@ export function createEnvironment() {
 
     (REQUIRED_UI_IDS = Object.freeze([
       'app', 'map', 'mapBottomStatus', 'statusView', 'projectionStatus', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
-      'timelinePreviousMonth', 'timelineNextMonth', 'timelineMonthInput', 'timelineMonthLabel', 'timelineMonthError', 'editorTimelineContext',
+      'editorTimelineContext',
       'objectSearchSurface', 'objectSearchSection', 'mapDisplaySurface', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
-      'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'distributionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'subunitLabelsVisible', 'subunitFlagsVisible', 'regionLabelsVisible', 'regionFlagsVisible', 'distributionActiveLayerInput', 'distributionLegend', 'distributionBoundaryVisibleInput',
-      'createMenuBtn', 'mobileCreateBtn', 'mobileMenuBtn', 'mobileGlobalMenu', 'mobileMenuFileBtn', 'mobileFileBackBtn', 'mobilePreferencesBtn', 'mobileHelpBtn', 'mobileUndoBtn', 'mobileRedoBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainNoneRadio', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'flagMenuBtn', 'flagMenu', 'flagPreview', 'entityNameInput', 'entityColorInput', 'entityNotesInput',
+      'globeBtn', 'flatBtn', 'objectsVisible', 'distributionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'objectNamesVisible', 'objectFlagsVisible', 'distributionActiveLayerInput', 'distributionLegend', 'distributionBoundaryVisibleInput',
+      'createMenuBtn', 'mobileCreateBtn', 'mobileMenuBtn', 'mobileGlobalMenu', 'mobileMenuFileBtn', 'mobileFileBackBtn', 'mobilePreferencesBtn', 'mobileHelpBtn', 'mobileUndoBtn', 'mobileRedoBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'flagMenuBtn', 'flagMenu', 'flagPreview', 'entityNameInput', 'entityColorInput', 'entityNotesInput',
       'debugMapPanel', 'entityAreaValue',
       'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
       'genericFeatureConversionSection', 'genericFeatureConvertType', 'genericFeatureConvertParentField', 'genericFeatureConvertParentInput', 'genericFeatureConvertDistributionField', 'genericFeatureConvertDistributionInput', 'genericFeatureConvertDistributionValueField', 'genericFeatureConvertDistributionValueInput', 'convertGenericFeatureBtn',

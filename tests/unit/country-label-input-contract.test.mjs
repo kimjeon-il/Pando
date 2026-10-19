@@ -21,7 +21,7 @@ async function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false } = {
   globalThis.requestAnimationFrame = () => 0;
   t.after(() => { globalThis.document = oldDocument; globalThis.requestAnimationFrame = oldFrame; });
   const features = new Map(['A', 'B'].map(id => [id, { id, properties: { name: id, entityKind: 'general', parentId: id === 'A' ? 'B' : '' }, geometry: { type: 'Polygon', coordinates: [[[0, 0], [0, 10], [10, 10], [10, 0], [0, 0]]] } }]));
-  const state = { tool: 'select', layerVisibility: { countries: true, subunits: true }, layerPresentation: { overlayOrder: [] } };
+  const state = { tool: 'select', layerVisibility: { objects: true }, layerPresentation: { overlayOrder: [] } };
   const core=await createNodeSelection({territorialIds:['A','B']});t.after(core.dispose);
   const domain = core.domain, opened = [], coords = [], chooserCandidates = [];
   const ui = createSelectionUiController({ selectionDomain: domain, resolveRef: normalizeObjectRef,
@@ -33,7 +33,8 @@ async function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false } = {
   ports={
     projectState: { state }, territorialModel: { entityRepository: { get: id => features.get(id), ancestors: () => [] } },
     countries: { builtinTerritorialScene: () => ({ labelRefs: new Map([['label-A', normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'A' })]]) }) },
-    domains: { selectionDomain: domain, selectionUiController: ui, projectDomain: { getGeneration: () => 1 } },
+    feedback:{reportOperationError:error=>{throw error;}},
+    domains: { editingDomain:{snapshot:()=>({vertexPlacement:false})}, selectionDomain: domain, selectionUiController: ui, projectDomain: { getGeneration: () => 1 } },
     selectionServices: { normalizeObjectRef }, objectLookup: { isObjectAvailable:()=>true,objectRefExists: ref => features.has(ref.id) },
     layerPresentation: { isLayerItemVisible: () => true }, surfaces: { isMobile: () => mobile },
     renderScene: { OVERLAY_GROUPS: [] }, rendering: { selectionPerformanceMetrics: {} },

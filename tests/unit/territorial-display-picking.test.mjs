@@ -16,7 +16,7 @@ test('canonical geometry drives precise territorial hits independently of displa
   const R = createTerritorialFeature({ id: 'R', entityKind: 'regional', geometry: square(0, 10) });
   const state = { territorialEntities: [A, B, R], layerVisibility: {}, countryVisualPhase: 'preview',
     auditPreviewCountries: { features: [{ ...A, geometry: square(20, 10) }] },
-    auditPreviewTerritorialUnits: [B, R], layerPresentation: normalizeLayerPresentation({ overlayOrder: ['regions', 'subunits'] }) };
+    auditPreviewTerritorialUnits: [B, R], layerPresentation: normalizeLayerPresentation({ overlayOrder: ['objects'] }) };
   await initializeTestTerritorialState(state);
 const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const entityRepository = createTerritorialEntityRepository({ entityStore: store });
@@ -40,16 +40,19 @@ const store = createTerritorialEntityStore({ documentModel:testCoreProject(state
   const hits = () => picking.territorialObjectsAt([5, 5], [5, 5], records);
   assert.deepEqual(hits().map(item => item.ref.key), ['territorial:entity:R', 'territorial:entity:B', 'territorial:entity:A']);
   await testCoreProject(state).project.executeCommand({ commandId:'presentation.apply',targets:[],
-    payload:{ action:'visibility',key:'regions',visible:false } });
-  assert.deepEqual(hits().map(item => item.ref.id), ['B', 'A']);
+    payload:{ action:'visibility',key:'objects',visible:false } });
+  assert.deepEqual(hits().map(item => item.ref.id), []);
+  await testCoreProject(state).project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'visibility',key:'objects',visible:true}});
   assert.deepEqual(picking.territorialObjectsAt([25, 5], [25, 5], records), []);
   assert.deepEqual(hits().find(item => item.ref.id === 'A').feature.geometry, A.geometry);
   state.countryVisualPhase = 'canonical';
-  assert.deepEqual(hits().map(item => item.ref.id), ['B', 'A']);
+  assert.deepEqual(hits().map(item => item.ref.id), ['R', 'B', 'A']);
   await testCoreProject(state).project.executeCommand({ commandId:'presentation.apply',targets:[],
-    payload:{ action:'visibility',key:'subunits',visible:false } });
-  assert.deepEqual(hits().map(item => item.ref.id), ['A']);
+    payload:{ action:'visibility',key:'objects',visible:false } });
+  assert.deepEqual(hits().map(item => item.ref.id), []);
   await executeTerritorialTestCommand(state,'territorial.parent',{ id:'B',parentId:'' });
-  assert.deepEqual(hits().map(item => item.ref.id), ['A', 'B']);
+  assert.deepEqual(hits().map(item => item.ref.id), []);
+  await testCoreProject(state).project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'visibility',key:'objects',visible:true}});
+  assert.deepEqual(new Set(hits().map(item => item.ref.id)), new Set(['R','A','B']));
   assert.deepEqual(A.geometry, square(0, 10));
 });

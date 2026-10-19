@@ -102,8 +102,8 @@ test('preview recovery works without project history and blocks redo and duplica
   await ui.undo(); assert.equal(projectUndos,0); assert.equal(elements.get('undoBtn').disabled,true);
 });
 
-test('new project waits for confirmation and save presenter only changes DOM', () => {
-  let confirmation;
+test('new project opens setup before creation and save presenter only changes DOM', () => {
+  let setup,opened;
   let resets = 0;
   const elements = new Map();
   const getElement = id => {
@@ -114,12 +114,12 @@ test('new project waits for confirmation and save presenter only changes DOM', (
   const ui = createProjectUiBridge({
     getElement, getSaveSnapshot: () => snapshot, closeFileMenu() {},
     getAutosaveRecovery: () => null,
-    openConfirmModal: options => { confirmation = options; }, createEmptyProject: () => resets++,
+    setupDialogFactory: options => {setup=options;return {open:mode=>{opened=mode;}};},createProject:()=>resets++,
   });
   ui.requestNew();
-  assert.equal(confirmation.title, '새 프로젝트');
+  assert.equal(opened,'new');
   assert.equal(resets, 0);
-  confirmation.onConfirm();
+  setup.createProject();
   assert.equal(resets, 1);
   ui.syncSaveStatus();
   assert.equal(getElement('projectSaveStatusText').textContent, '저장됨');
@@ -137,7 +137,7 @@ test('new project defers to pending autosave recovery without resetting', async 
     getEditingSnapshot: () => ({ processing: false }), requireCanonicalData: () => true,
     getAutosaveRecovery: () => recovery,
     closeFileMenu: () => menuCloses++, openConfirmModal: options => confirmations.push(options),
-    createEmptyProject: () => resets++, setActionStatus: (...args) => statuses.push(args),
+    createProject: () => resets++, setActionStatus: (...args) => statuses.push(args),
   });
   ui.requestNew();
   assert.equal(confirmations.length, 1);

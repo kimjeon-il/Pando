@@ -4,7 +4,6 @@ import { assertCurrentProjectSchema, assertProjectBaselineFingerprint } from './
 import { assertProjectReferenceIntegrity } from './project-invariants.js';
 import { restoreTimelineStorage } from './timeline-storage.js';
 import { createGeometrySnapshotPool } from './geometry-versions.js';
-import { TERRAIN_RASTER_VERSION } from './terrain-manifest.js';
 import { PROJECT_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION, GENERIC_FEATURE_SCHEMA_VERSION,
   TERRITORIAL_MODEL_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION } from './version-contract.js';
 
@@ -20,10 +19,10 @@ function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion
 }
 export function createProjectSerializer({ schemaVersion = PROJECT_SCHEMA_VERSION, appVersion, baseDataset,
   genericFeatureSchemaVersion = GENERIC_FEATURE_SCHEMA_VERSION, distributionSchemaVersion = DISTRIBUTION_MODEL_SCHEMA_VERSION,
-  distributionModes, terrainDataset, hydroDataset, readSnapshot, now = () => new Date() }) {
+  distributionModes, readSnapshot, now = () => new Date() }) {
   const copies = createGeometrySnapshotPool();
   const contracts = { genericFeatureSchemaVersion, distributionSchemaVersion, distributionModes };
-  const header = snapshot => ({ schemaVersion, version: appVersion, savedAt: now().toISOString(),
+  const header = snapshot => ({ schemaVersion,documentId:snapshot.documentId,physicalSourceInfo:structuredClone(snapshot.physicalSourceInfo || {}), version: appVersion, savedAt: now().toISOString(),
     baseDataset: snapshot.fullAutosave ? 'external-territorial-entities' : baseDataset, ...modelContracts(contracts) });
   function content(snapshot, clone) {
     const identities = normalizeTerritorialIdentities(snapshot.territorialEntities);
@@ -37,14 +36,7 @@ export function createProjectSerializer({ schemaVersion = PROJECT_SCHEMA_VERSION
   }
   function buildProject(snapshot = readSnapshot(), clone = structuredClone) {
     const result = { format: 'pandolab-project-state', ...header(snapshot),
-      ...content(snapshot, clone),
-      physicalSourceInfo: {
-        terrain: { dataset: snapshot.terrainSourceInfo?.dataset || snapshot.terrainManifest?.dataset || terrainDataset,
-          version: snapshot.terrainSourceInfo?.version || snapshot.terrainManifest?.version || TERRAIN_RASTER_VERSION },
-        hydro: { dataset: snapshot.hydroManifest?.dataset || hydroDataset, version: snapshot.hydroManifest?.version || appVersion,
-          coordinatePolicy: snapshot.hydroManifest?.coordinatePolicy || 'selected source coordinates retained without simplification',
-          selection: structuredClone(snapshot.hydroManifest?.selection || {}) },
-      } };
+      ...content(snapshot, clone) };
     assertCurrentProjectSchema(result);
     return result;
   }

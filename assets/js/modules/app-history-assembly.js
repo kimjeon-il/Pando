@@ -9,15 +9,19 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
     dependencies=ports;
   }
   function applyAutosavedView(viewRecord) {
-    if (!viewRecord || typeof viewRecord!=='object') return false;
-    if (viewRecord.projection==='globe' || viewRecord.projection==='flat') dependencies.projectState.state.projection=viewRecord.projection;
-    if (viewRecord.view && typeof viewRecord.view==='object') dependencies.projectState.state.view=dependencies.workspaceUiA.clampViewZooms({
-      ...dependencies.projectState.state.view,...dependencies.platform.deepClone(viewRecord.view) });
+    if (!viewRecord || typeof viewRecord!=='object' || viewRecord.documentId!==dependencies.domains.projectDomain.snapshot().documentId) return false;
+    const state=dependencies.projectState.state;
+    dependencies.projectSession.restoreViewingPresentation(viewRecord);
+    if (viewRecord.projection==='globe' || viewRecord.projection==='flat') state.projection=viewRecord.projection;
+    if (viewRecord.view && typeof viewRecord.view==='object') {
+      const valid=Object.fromEntries(Object.entries(viewRecord.view).filter(([key,value])=>['flatZoom','globeZoom'].includes(key)?Number.isFinite(value)&&value>0:['flatCenter','globeRotation'].includes(key)&&Array.isArray(value)&&value.length===(key==='flatCenter'?2:3)&&value.every(Number.isFinite)));
+      state.view=dependencies.workspaceUiA.clampViewZooms({...state.view,...valid});
+    }
     return true;
   }
   async function applyAutosavedTimeline(viewRecord) {
     const month = viewRecord?.lastViewedMonth;
-    if (typeof month !== 'string' || !month) return false;
+    if (!viewRecord || viewRecord.documentId!==dependencies.domains.projectDomain.snapshot().documentId || typeof month !== 'string' || !month) return false;
     if (dependencies.domains.commandOwner.state()?.timelineCursor === month) return false;
     try {
       return await dependencies.territorialModel.entityStore.setTimelineCursor(month);
@@ -52,7 +56,7 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
   }
   function initializeBrowserProjectStorage() {
     browserProjectStorage=dependencies.projectServices.createBrowserProjectStorage({
-      indexedDB: window.indexedDB,localStorage: window.localStorage,databaseName: storageNamespace || dependencies.platformConfigurationA.AUTOSAVE_DB_NAME,
+      productMode:'editor',indexedDB: window.indexedDB,localStorage: window.localStorage,databaseName: storageNamespace || dependencies.platformConfigurationA.AUTOSAVE_DB_NAME,
       storeName: dependencies.platformConfigurationA.AUTOSAVE_STORE_NAME,projectKey: dependencies.platformConfigurationA.AUTOSAVE_RECORD_KEY,
       viewKey: dependencies.platformConfigurationA.AUTOSAVE_VIEW_KEY,fallbackKey: storageNamespace ? `${storageNamespace}-project` : dependencies.platformConfigurationB.STORAGE_KEY,
     });
@@ -82,7 +86,7 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
         const projection=await dependencies.domains.projectDomain.inspectImport(project,options);
         return {project,territorialViews:projection.territorialViews};
       }),
-      readView: () => ({ projection: dependencies.projectState.state.projection,
+      readView: () => ({ documentId:dependencies.domains.projectDomain.snapshot().documentId,viewingPresentation:dependencies.projectSession.captureViewingPresentation(),projection: dependencies.projectState.state.projection,
         view: dependencies.platform.deepClone(dependencies.projectState.state.view),
         lastViewedMonth: dependencies.domains.commandOwner.state()?.timelineCursor || null }),
       validateProject: project => queryStoredProject(project,options=>dependencies.domains.projectDomain.prepareImport(project,options)),
@@ -100,7 +104,15 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
       onWarning: (...args) => console.warn(...args),
     });
   }
-  return Object.freeze({ connect,initializeBrowserProjectStorage,initializeCoreServices,
+  async function restoreViewingForDocument(){
+    const domain=dependencies.domains.projectDomain,generation=domain.getGeneration(),documentId=domain.snapshot().documentId;
+    try{
+      const record=await browserProjectStorage.readView(documentId);
+      if(generation!==domain.getGeneration()||documentId!==domain.snapshot().documentId)return false;
+      return dependencies.projectSession.restoreViewingPresentation(record);
+    }catch(error){dependencies.feedback.reportOperationError(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001',4200);return false;}
+  }
+  return Object.freeze({ connect,initializeBrowserProjectStorage,initializeCoreServices,restoreViewingForDocument,
     get applyAutosavedView() { return applyAutosavedView; },
     get applyAutosavedTimeline() { return applyAutosavedTimeline; },
     get persistenceService() { return persistenceService; } });

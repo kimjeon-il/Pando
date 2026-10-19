@@ -53,3 +53,4 @@ export function geometryHitsScreenPoint(geometry, coord, screenPoint, tolerance 
   }
   return projectedLineDistance(geometry, screenPoint, project) <= tolerance;
 }
+

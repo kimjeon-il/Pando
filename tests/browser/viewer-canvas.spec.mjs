@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
 test('Canvas viewer selects a saved country polygon body without changing project data', async ({ page }) => {
-  const fixture = await createViewerProjectPackage('Canvas 본문 선택');
+  const fixture = await createViewerProjectPackage('Canvas 본문 선택',{hiddenObjectIds:['B','R']});
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -15,7 +15,7 @@ test('Canvas viewer selects a saved country polygon body without changing projec
       return String(type).includes('webgl') ? null : getContext.call(this, type, ...args);
     };
   });
-  await page.goto('/');
+  await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 120000 });
   await page.locator('#projectFileInput').setInputFiles({
     name: 'canvas-country.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: fixture.bytes,
@@ -30,19 +30,24 @@ test('Canvas viewer selects a saved country polygon body without changing projec
 
   await setViewingProjection(page,'flat');
   // The fixture deliberately overlaps A, its child B and independent region R.
-  // Hide overlays and text so only a root polygon body can satisfy this click.
-  for (const group of ['subunits', 'regions', 'labels', 'rivers', 'lakes']) {
+  // B and R are hidden by individual canonical IDs in the saved defaults.
+  // Hide text/backgrounds so only a root polygon body can satisfy this click.
+  for (const group of ['labels', 'rivers', 'lakes']) {
     await setViewingLayer(page,group,false);
   }
-  await setViewingLayer(page,'countries',true);
-  await page.locator('#basemapLabelsVisible').locator('..').click();
+  await setViewingLayer(page,'objects',true);
+  await page.locator('#objectNamesVisible').locator('..').click();
   await closeViewingDisplay(page);
   await page.locator('#resetViewBtn').click();
   await expect(page.locator('#map text')).toHaveCount(0);
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([]);
+  await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;host.setViewState({projection:'flat',view:{...host.getViewState(),flatCenter:[5,5],flatZoom:4}});host.requestRepaint('canvas-body-selection');});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEW_STATE__.flatCenter)).toEqual([5,5]);
   const bounds = await page.locator('#map').boundingBox();
-  // Reset preserves the current center. Use the canonical frame to hit [8,8].
-  const point=await page.evaluate(()=>{const view=window.__PANDOLAB_VIEW_STATE__;return d3.geo.equirectangular().translate(view.translate).scale(view.scale).center(view.projectionCenter)([8,8]);});
+  // Bring the known body coordinate into the viewport and use the real projection.
+  const point=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.project([8,8]));
+  expect(point[0]).toBeGreaterThan(0);expect(point[0]).toBeLessThan(bounds.width);
+  expect(point[1]).toBeGreaterThan(0);expect(point[1]).toBeLessThan(bounds.height);
   await page.mouse.click(bounds.x+point[0],bounds.y+point[1]);
   await expect(page.locator('#objectChooser')).toBeVisible();
   await expect(page.locator('#objectChooserList [data-object-chooser-index]')).toHaveCount(2);

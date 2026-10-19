@@ -22,7 +22,10 @@ const initializeInteractionState=async(state,options)=>{
 };
 const executeRemoval=async(state,ids)=>{
   const refs=ids.map(id=>({domain:'territorial',id}));
-  return executeTestCommand(state,{commandId:'objects.remove',targets:refs,payload:{refs}});
+  const result=await executeTestCommand(state,{commandId:'objects.remove',targets:refs,payload:{refs}});
+  const owner=testCoreProject(state),features=owner.entityStore.snapshot(),countryIds=new Set(features.filter(row=>!row.properties.parentId&&row.properties.entityKind==='general').map(row=>row.id));
+  owner.viewing.session.pruneViewingItems({countryLabelIds:features.map(row=>territorialSceneDisplayId(row,countryIds))});
+  return result;
 };
 const locked=(state,id,value)=>executeTerritorialTestCommand(state,'territorial.lock',{ids:[id],locked:value});
 
@@ -47,7 +50,7 @@ test('multiple subunits require one parent, unlocked objects and a connected sel
 test('single and batch deletion never expands into descendants and rechecks changed locks', async () => {
   const a = unit('a'), b = unit('b');
   const state = {territorialEntities:[country('KR'),a,b],distributionLayers:seed.distributionLayers,
-    distributionEntries:[{...seed.distributionEntries[0],territorialUnitId:'a'}],itemVisibility:{subunits:{a:false}},labelSettings:{'territorial:a':{}}};
+    distributionEntries:[{...seed.distributionEntries[0],territorialUnitId:'a'}],itemVisibility:{objects:{a:false}},labelSettings:{'territorial:a':{}}};
   await initializeInteractionState(state);
   await executeTerritorialTestCommand(state,'territorial.create',{feature:unit('child','a')});
   const before = snapshotTestTerritorialState(state);
@@ -74,7 +77,7 @@ test('country deletion uses the same territorial cleanup surface and removes dan
     labels:[{...seed.labels[0],territorialUnitId:'A'}],
     genericFeatures:[{...seed.genericFeatures[0],properties:{...seed.genericFeatures[0].properties,
       source:{...seed.genericFeatures[0].properties.source,details:{provenance:{ownerId:'A',topologyGroup:'land:A'}}}}}],
-    itemVisibility: { countries: { A: false }, countryLabels: { A: false }, subunits: {}, regions: {} },
+    itemVisibility: { objects: { A: false }, objectLabels: { A: false } },
     labelSettings: { 'territorial:A': {} },
   };
 
@@ -89,8 +92,8 @@ test('country deletion uses the same territorial cleanup surface and removes dan
   assert.deepEqual(state.distributionEntries.map(entry=>entry.id),['22000000-0000-4000-8000-000000000009']);
   assert.equal(state.labels[0].territorialUnitId,'A','original current Web stores this non-owning label reference after territory deletion');
   assert.deepEqual(state.genericFeatures[0].properties.source.details.provenance,{ownerId:'A',topologyGroup:'land:A'});
-  assert.deepEqual(state.itemVisibility.countries, {});
-  assert.deepEqual(state.itemVisibility.countryLabels, {});
+  assert.deepEqual(state.itemVisibility.objects, {});
+  assert.deepEqual(state.itemVisibility.objectLabels, {});
   assert.deepEqual(state.labelSettings, {});
 });
 
@@ -100,7 +103,7 @@ test('territorial deletion publishes the accepted C++ collection once', async ()
     distributionEntries: [],
     labels: [],
     genericFeatures: [],
-    itemVisibility: { countries: {}, countryLabels: {}, subunits: {}, regions: {} },
+    itemVisibility: { objects: {}, objectLabels: {} },
     labelSettings: {},
   };
   let writes = 0;
@@ -124,16 +127,15 @@ test('deletion clears the actual native and synthetic scene IDs without touching
         metadata: { builtinSubunit: { sourceCountryId: 'ALD' } },
       } }, region('r')],
       labelSettings: { [`territorial:${native.id}`]: {}, 'territorial:r': {}, 'territorial:FIN': { pinned: true } },
-      itemVisibility: { countryLabels: { [displayId]: false, 'territorial:entity:r': false, FIN: false } },
+      itemVisibility: { objectLabels: { [displayId]: false, 'territorial:entity:r': false, FIN: false } },
       layerPresentation:normalizeLayerPresentation({objectStyles:{[`territorial:entity:${native.id}`]:{},'territorial:entity:r':{},'territorial:entity:FIN':{}}}),
     };
     const input=structuredClone(staticAutosaveProject({labelSettings:state.labelSettings,layerPresentation:state.layerPresentation},state.territorialEntities));
-    input.itemVisibility=structuredClone(state.itemVisibility);
     await initializeInteractionState(state,{project:input});
     const survivorSettings=state.labelSettings['territorial:FIN'];
     await executeRemoval(state,[native.id,'r']);
     assert.deepEqual(state.labelSettings, { 'territorial:FIN': survivorSettings });
-    assert.deepEqual(state.itemVisibility.countryLabels, { FIN: false });
+    assert.deepEqual(state.itemVisibility.objectLabels, { FIN: false });
     assert.deepEqual(state.layerPresentation.objectStyles, { 'territorial:entity:FIN': {} });
   }
 });
@@ -144,7 +146,7 @@ test('country deletion rejects current administrative children before changing s
     distributionEntries: [],
     labels: [],
     genericFeatures: [],
-    itemVisibility: { countries: {}, countryLabels: {}, subunits: {}, regions: {} },
+    itemVisibility: { objects: {}, objectLabels: {} },
     labelSettings: {},
   };
   await initializeInteractionState(state);

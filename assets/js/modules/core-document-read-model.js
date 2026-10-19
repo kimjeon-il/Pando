@@ -5,7 +5,7 @@ const fields = Object.freeze({ territorial: 'territorialEntities', label: 'label
   generic: 'genericFeatures', distributionLayer: 'distributionLayers', distributionEntry: 'distributionEntries' });
 const refKey = ref => JSON.stringify([ref.id, ref.version]);
 const headerFields=new Set(['format','schemaVersion','version','savedAt','baseDataset','landObjectModel','territorialModel',
-  'distributionModel','physicalSourceInfo','sourceInfo','physicalSettings']);
+  'distributionModel','projectSetup','documentId','physicalSourceInfo','sourceInfo']);
 const invalid = message => { throw Object.assign(new Error(message), { code: 'PL-CORE-RESPONSE' }); };
 const sameCoordinates = (left,right) => Array.isArray(left) && Array.isArray(right)
   ? left.length===right.length && left.every((value,index) => sameCoordinates(value,right[index]))
