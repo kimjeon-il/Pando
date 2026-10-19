@@ -116,7 +116,7 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
       labelRefs.set(id, { domain: 'territorial', type: 'entity', id: unit.id });
       if (unit.properties.entityKind === 'general') boundaryFeatures.push(feature);
       if (!sourceId || byId.has(sourceId)) continue;
-      const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'subunits', `territorial:entity:${unit.id}`);
+      const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'objects', `territorial:entity:${unit.id}`);
       const canonicalGeometry = dependencies.territorialModel.entityRepository.get(unit.id).geometry;
       const revision = geometryRevision(canonicalGeometry);
       let cached = builtinGeometryCache.get(canonicalGeometry);
@@ -141,7 +141,7 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
 
   function syncBuiltinPalette() {
     const cache = builtinTerritorialScene();
-    const visibility = JSON.stringify([dependencies.projectState.state.layerVisibility.subunits, dependencies.projectState.state.itemVisibility.subunits]);
+    const visibility = JSON.stringify([dependencies.projectState.state.layerVisibility.objects, dependencies.projectState.state.itemVisibility.objects]);
     if (builtinPaletteKey === cache && builtinPaletteVisibility === visibility) return;
     builtinPaletteKey = cache;
     builtinPaletteVisibility = visibility;
@@ -156,7 +156,7 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
 
   function isRenderCountryVisible(id) {
     const unit = builtinTerritorialScene().nativeUnits.get(String(id));
-    return unit ? dependencies.projectState.state.layerVisibility.subunits !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('subunits', unit.id)
+    return unit ? dependencies.projectState.state.layerVisibility.objects !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('objects', unit.id)
       : !!dependencies.territorialModel.entityRepository.get(id) && (0, dependencies.layerPresentation.isCountryVisibleById)(id);
   }
 
@@ -165,7 +165,7 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
     const feature = scene.labelById.get(String(id));
     if (!feature) return null;
     const entityId = scene.labelRefs.get(String(id)).id;
-    const group = feature.properties.parentId ? 'subunits' : 'countries';
+    const group = 'objects';
     if (dependencies.projectState.state.layerVisibility[group] === false
       || !dependencies.layerPresentation.isLayerItemVisible(group, entityId)) return null;
     const style = dependencies.applicationServicesB.layerStyle(dependencies.projectState.state.layerPresentation,

@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 /* global boundaryService: readonly, boundaryFeatures: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -8,10 +8,7 @@ const entityId = 'state:soviet-union';
 const sleep = duration => new Promise(resolve => setTimeout(resolve, duration));
 
 async function month(page, value) {
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill(value);
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  await setEditorMonth(page, value);
 }
 test('Soviet real prepared coast candidate: repeat Worker move and cancellation without modifying original source', async ({ page }, info) => {
   test.setTimeout(450_000);

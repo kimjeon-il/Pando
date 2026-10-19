@@ -3623,6 +3623,8 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
   display: none;
 }
 
+.project-setup-dialog{width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;color:var(--text,#e8edf5);background:var(--panel,#182231);border:1px solid var(--border,#607080);border-radius:16px;padding:24px}.project-setup-dialog::backdrop{background:#081020aa}.project-setup-dialog form{display:grid;gap:12px}.project-setup-dialog label{display:flex;align-items:center;gap:12px;justify-content:space-between}.project-setup-dialog input[type=text],.project-setup-dialog select{min-height:44px;max-width:230px;color:inherit;background:var(--surface,#273446);border:1px solid var(--border,#607080);border-radius:6px;padding:8px}.project-setup-dialog small,.project-setup-dialog .help{font-size:12px;line-height:1.6;margin:0}.project-setup-dialog pre{font:inherit;font-size:13px;line-height:1.7;white-space:pre-wrap}.project-setup-actions{display:flex;justify-content:flex-end;gap:10px}.project-setup-actions button{min-height:44px}#projectSetupError{color:#ff9f99;margin:0}.project-bounds-picker{position:absolute;inset:0;z-index:200;cursor:crosshair;touch-action:none;background:#12243644;color:white;padding:12px;box-sizing:border-box}.project-bounds-box{display:none;position:absolute;pointer-events:none;border:2px dashed white;background:#68b6ff33}
+
 /* source: assets/css/layout/surfaces.css */
 
 /* Canonical layout / surfaces. */
@@ -5452,6 +5454,8 @@ body.file-menu-open .app-root .topbar {
 
 .mode-map-summary { max-width: min(90vw, 40rem); padding: var(--ui-space-2) var(--ui-space-3); overflow-wrap: anywhere; font-size: var(--ui-font-sm); pointer-events: none; }
 
+.mode-task-input{font-size:var(--ui-font-sm);line-height:1.5;padding:0 var(--ui-space-3);margin:4px 0 8px}.touch-vertex-handle{fill:transparent!important;stroke:transparent!important;filter:none}.touch-vertex-handle.selected{stroke:#b0dbff!important;stroke-width:2}.editing-magnifier{overflow:hidden;filter:drop-shadow(0 3px 6px #0008)}
+
 /* A short touch landscape viewport uses the same surfaces in a side dock. */
 .app-root[data-layout="phone-landscape"] {
   --phone-panel-width: min(var(--ui-phone-landscape-panel-max-width), 45vw);
@@ -6331,6 +6335,9 @@ body.file-menu-open .mobile-backdrop {
   background: var(--surface-elevated);
   box-shadow: var(--control-shadow);
 }
+
+.file-menu-page { display: contents; }
+.file-menu-page[hidden] { display: none; }
 
 .ui-command-menu {
   width: min(var(--ui-menu-width), calc(100vw - var(--ui-menu-screen-edge) * 2));
@@ -7672,6 +7679,7 @@ body.is-loading .app-root {
   color: var(--text-soft);
 }
 
+
 .timeline-status {
   position: relative;
   flex: 0 0 auto;
@@ -7844,39 +7852,6 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
 .app-root[data-layout="mobile"] .status-inner {
   padding-inline: var(--ui-space-2);
   overflow: visible;
-}
-
-/* The floating timeline's height also reserves space for the mobile map tools. */
-.app-root[data-layout="mobile"] {
-  --ui-mobile-timeline-control-height: 2.5rem;
-  --ui-mobile-timeline-row-height: calc(
-    var(--ui-mobile-timeline-control-height) + var(--ui-space-1) + var(--ui-space-1)
-  );
-}
-
-.app-root[data-layout="mobile"] .timeline-status {
-  position: absolute;
-  right: var(--ui-space-2);
-  bottom: calc(100% + var(--ui-space-1));
-  padding: var(--ui-space-1);
-  border-radius: var(--ui-radius-control);
-  background: var(--panel);
-  pointer-events: auto;
-}
-
-.app-root[data-layout="mobile"] .timeline-step {
-  width: clamp(2.25rem, 10vw, 2.5rem);
-  min-height: var(--ui-mobile-timeline-control-height);
-  height: var(--ui-mobile-timeline-control-height);
-}
-
-.app-root[data-layout="mobile"] .timeline-month-control {
-  width: clamp(7.5rem, 36vw, 8.75rem);
-}
-
-.app-root[data-layout="mobile"] .timeline-month-button,
-.app-root[data-layout="mobile"] .timeline-month-input {
-  height: var(--ui-mobile-timeline-control-height);
 }
 
 .app-root[data-layout="mobile"] .status-view {
@@ -8323,11 +8298,10 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   .app-root[data-layout="mobile"] .map-command-toolbar {
     top: auto;
     right: max(var(--ui-map-edge), env(safe-area-inset-right));
-    /* Stack above the timeline row: the two floating controls cannot share
-       the same horizontal band on narrow Android screens. */
+    /* Keep map commands above the editor's occupied bottom controls. */
     bottom: calc(
       var(--ui-map-bottom-occupied-height) + var(--ui-space-1)
-      + var(--ui-mobile-timeline-row-height) + var(--ui-space-3)
+      + var(--ui-space-3)
     );
     left: auto;
     display: flex;

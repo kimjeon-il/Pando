@@ -102,7 +102,7 @@ test('unchanged territorial frames reuse connected boundary geometry and style c
   assert.ok(h.rawLast().length > 0);
   for (const stroke of h.rawLast()) assert.strictEqual(stroke.geometry, before.get(stroke.key));
   const styled = await testCoreProject(h.state).project.executeCommand({ commandId: 'presentation.apply', targets: [],
-    payload: { action: 'groupStyle', group: 'subunits', patch: { opacity: 0.5 } } });
+    payload: { action: 'groupStyle', group: 'objects', patch: { opacity: 0.5 } } });
   assert.equal(styled.ok, true, styled.error?.message);
   h.render();
   assert.equal(h.requests.length, 1, 'style changes must not request topology again');
@@ -220,9 +220,9 @@ for (const setting of ['layer', 'item', 'boundary', 'opacity']) {
     const h = await harness(t); await present(h);
     await h.change(features(1.8)); h.render();
     const changeSetting = async hidden => {
-      const payload = setting === 'layer' ? { action:'visibility',key:'subunits',visible:!hidden }
+      const payload = setting === 'layer' ? { action:'visibility',key:'objects',visible:!hidden }
         : setting === 'item' ? { action:'objectVisibility',refs:['LEFT','RIGHT'].map(id=>({domain:'territorial',type:'entity',id})),visible:!hidden }
-        : { action:'groupStyle',group:'subunits',patch:setting==='boundary' ? {boundaryVisible:!hidden}:{opacity:hidden ? 0:1} };
+        : { action:'groupStyle',group:'objects',patch:setting==='boundary' ? {boundaryVisible:!hidden}:{opacity:hidden ? 0:1} };
       const outcome=await testCoreProject(h.state).project.executeCommand({commandId:'presentation.apply',targets:[],payload});
       assert.equal(outcome.ok,true,JSON.stringify(outcome.error));
     };
@@ -297,7 +297,7 @@ test('boundary style changes reuse topology and rendering does not mutate projec
   const h = await harness(t); await present(h);
   const before = { identities: h.store.identities(), records: structuredClone(h.state.timelineRecords),
     archive: h.state.geometries.snapshot() };
-  const outcome=await testCoreProject(h.state).project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'groupStyle',group:'subunits',patch:{opacity:0.5}}});
+  const outcome=await testCoreProject(h.state).project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'groupStyle',group:'objects',patch:{opacity:0.5}}});
   assert.equal(outcome.ok,true,JSON.stringify(outcome.error));
   h.render();
   assert.equal(h.requests.length, 1);

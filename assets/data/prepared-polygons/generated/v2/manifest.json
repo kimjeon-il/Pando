@@ -3,10 +3,10 @@
   "schemaVersion": 2,
   "meshFormatVersion": 2,
   "algorithmVersion": 5,
-  "algorithmSourceSha256": "7aa0b76e1d69612455145b65d258e02046a505bcfb69dfd51086d6450b06430a",
+  "algorithmSourceSha256": "18b9265509c33f107e0915cd5830cd54387c8ae07df3374a15d15cc958b338fb",
   "maxEdgeDegrees": 0.499,
   "inputHashes": {
-    "assets/data/historical-world/generated/v1/world-project.json.gz": "a4087067ce078f27d7c52cd140b6f1b0ce8058997ea071fee3aa55d50cebd576",
+    "assets/data/historical-world/generated/v1/world-project.json.gz": "93be24bd86908da182e1641de98b54a881b7d510ba579d67a5e7232565156e93",
     "assets/data/territorial-entities/generated/current-world.geojson": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb",
     "assets/data/territorial-entities/generated/v2/state-ABW.json.gz": "a427e103fb240c1ec95b44216defbd79ab97e1a0c9ba260b4600dd4385acc831",
     "assets/data/territorial-entities/generated/v2/state-AFG.json.gz": "daf94898d403323e51259b3e4a7a3b75c43ee5ab8c70fc0a88c2860a004925f7",

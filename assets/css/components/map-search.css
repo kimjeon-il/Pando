@@ -220,11 +220,10 @@
   .app-root[data-layout="mobile"] .map-command-toolbar {
     top: auto;
     right: max(var(--ui-map-edge), env(safe-area-inset-right));
-    /* Stack above the timeline row: the two floating controls cannot share
-       the same horizontal band on narrow Android screens. */
+    /* Keep map commands above the editor's occupied bottom controls. */
     bottom: calc(
       var(--ui-map-bottom-occupied-height) + var(--ui-space-1)
-      + var(--ui-mobile-timeline-row-height) + var(--ui-space-3)
+      + var(--ui-space-3)
     );
     left: auto;
     display: flex;

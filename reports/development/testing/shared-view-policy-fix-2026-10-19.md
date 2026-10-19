@@ -1,8 +1,8 @@
 # 웹·앱 공통 열람 규칙 연결 수정
 
-> 보고서 ID: `UI-POLICY-FIX-20261019` · 상태: `focused-verified / release-pending` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
+> 보고서 ID: `UI-POLICY-FIX-20261019` · 상태: `focused-verified / published / existing-ci-failures` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
 > 원문 최종 수정: 2026-10-19
-> 조사 기준: 제품 `83dfdf70f40effa48634dfed566ed6dbba1ae1f7`, 작업 기준 `0bb54fa7207ce06975d6b8d0474ebcc617542ff9`, 제품 수정 `5a07e8b276a4284114990eddee0d08ef6e85b80e`
+> 조사 기준: 제품 `83dfdf70f40effa48634dfed566ed6dbba1ae1f7`, 작업 기준 `0bb54fa7207ce06975d6b8d0474ebcc617542ff9`, 최초 수정 `5a07e8b276a4284114990eddee0d08ef6e85b80e`, 최종 제품 `44fb6d41977123b5220cde8078f1e9a7e38b2728`
 > 근거: [추가 조사](independent-view-policy-audit-2026-10-19.md), 실제 공통 소유자와 Core/WASM, 관련 회귀 검사
 
 ## 수정 범위
@@ -58,6 +58,18 @@
 후속 CI에서 낮은 기기 자원의 초기 품질 적용이 resize를 동기 요청해 미초기화된 `mapResizeReasons.add`에 접근하는 시작 회귀가 확인됐다. `deviceMemory=2`, `hardwareConcurrency=2`에서 재현했고 host 상태를 렌더러 생성 전에 초기화하도록 수정했다. 저사양 회귀는 오류 없이 시작·문서 로드·Canvas accepted frame 표시가 통과했고 일반 웹·앱 통합 검사도 통과했다. 별도 빌드 ID `20261019-shared-policy.2`로 후속 게시한다.
 
 P2의 build-metadata 산출물 계약에는 생성되는 앱 HTML이 누락돼 있었다. 실제 output contract로 viewer/editor HTML을 stage·publish하는 실패 회귀를 추가하고 앱 HTML을 정확한 허용 출력에 넣었다. 분포 렌더 행·현재 GPKG 읽기의 두 읽기 함수만 storage audit에 분류하고 쓰기 허용은 추가하지 않았다. Core Undo 검사는 시간 이동 후 저장되는 `editorState.lastViewedMonth`를 기대값에 포함하며 나머지 archive 전체 동등성을 유지한다. 관련 검사 32/32 통과.
+
+## 최종 후속 게시 확인
+
+최종 제품은 `44fb6d41977123b5220cde8078f1e9a7e38b2728`, 빌드 ID는 `0.36.0-build-20261019-shared-policy.2`다. 데이터 revision은 최초 배포와 동일한 `data-1d70896e8c76322bd4df52bff683d4d8`이다. `work/ui` push → main fast-forward → main push를 완료했다.
+
+- Pages [39179458446](https://github.com/kimjeon-il/Pando/actions/runs/39179458446) 성공. CI 산출물 2,237개 / 431,920,105 bytes의 모든 path·blob·bytes·SHA-256을 커밋과 확인했다. 최초 로컬 staging의 변경 없는 2,234개 blob은 검증한 기존 해시를 재사용하고 바뀐 3개 파일은 커밋 원문으로 다시 계산했다. 후속 로컬 staging 전체를 재실행했다고 보고하지 않는다.
+- 최종 공개 파일 23개가 HTTP 200·staging SHA-256 일치, 편집 전용 경로 5개가 HTTP 404였다.
+- 최종 공개 브라우저 검사 2/2 통과: 실제 GPKG 열기·설정 전달·지형·슬라이더·패스·경위선·월 이동·크기/배율 및 저사양 시작·Canvas accepted frame. 실제 알제리 포인터 호버의 이름과 로드된 깃발도 별도 통과했다. 문서 불변·pageerror·내장 지명 발행 오류를 함께 검사했다.
+- 최종 UI Architecture [39179458450](https://github.com/kimjeon-il/Pando/actions/runs/39179458450) 성공. Application Architecture의 현재 shared-view-policy 브라우저 job도 성공했다. 전체 워크플로 통과로 확대하지 않는다.
+- 최종 커밋의 Windows CI [39179442747](https://github.com/kimjeon-il/Pando/actions/runs/39179442747)와 P2 [39179442689](https://github.com/kimjeon-il/Pando/actions/runs/39179442689)는 마지막 기록 시 진행 중이다. 최초 제품 5a07e8b2의 Windows 실제 앱 성공과 구분한다. P2가 추가 생성 자료를 work/ui에 게시하더라도 이번 main 배포에 자동 통합하지 않는다.
+
+원시 최종 근거: `final-ci-commit-parity.json`, `live-hashes.json`, `live-observations-final.json`, `live-policy-final.log`, `live-hover.json`, `low-resource-verified.log`, `ci-contract-fixes.log`. 기존 파일·워크트리는 보존했다.
 
 ## 전체 CI의 기존 실패와 구분
 
