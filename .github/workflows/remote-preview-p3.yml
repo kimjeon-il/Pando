@@ -1,33 +1,11 @@
 name: P3 Remote preview and Web verification
 on:
   push:
-    branches: ['work/**']
-    paths:
-      - '.github/workflows/remote-preview-p3.yml'
-      - 'scripts/p3-plan-remote.mjs'
-      - 'scripts/p3-stage-preview.mjs'
-      - 'scripts/p3-preview-server.mjs'
-      - '.devcontainer/**'
-      - 'tests/unit/**'
-      - 'tests/unit/p3-remote-plan.test.mjs'
-      - 'tests/browser/p3-remote-preview.spec.mjs'
-      - 'tests/browser/performance-observability.spec.mjs'
-      - 'tests/unit/gpu-scene-platform-port.test.mjs'
-      - 'index.html'
-      - '.nojekyll'
-      - 'assets/**'
-      - 'contracts/**'
-      - 'shared/**'
-      - 'cmake/**'
-      - 'CMakeLists.txt'
-      - 'CMakePresets.json'
-      - 'config/toolchain-versions.json'
-      - 'playwright.config.js'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
+    branches:
+      - work/**
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       source_sha:
@@ -61,13 +39,18 @@ on:
         type: choice
         required: false
         default: auto
-        options: [auto, all, acceptance, preview, browser, off]
+        options:
+          - auto
+          - all
+          - acceptance
+          - preview
+          - browser
+          - off
 permissions:
   contents: read
 concurrency:
   group: p3-preview-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
 jobs:
   plan:
     runs-on: ubuntu-24.04
@@ -84,7 +67,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -116,35 +99,47 @@ jobs:
           PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
           PANDO_P3_SCOPE: ${{ inputs.scope || 'auto' }}
         run: node scripts/p3-plan-remote.mjs --github-output
-
   web-contracts:
     needs: plan
-    if: needs.plan.outputs.contracts == 'true'
+    if: needs.plan.outputs.contracts == 'true' && github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: Run affected contracts against the verified generated runtime
-        shell: bash
-        env:
-          UI: ${{ needs.plan.outputs.ui }}
-          OBJECTS: ${{ needs.plan.outputs.objects }}
-          GIS: ${{ needs.plan.outputs.gis }}
-          PLACES: ${{ needs.plan.outputs.places }}
-          RETRY_FAILED: ${{ inputs.retry_failed }}
-        run: |
-          set -euo pipefail
-          if [ "$RETRY_FAILED" != true ] && [ "$UI" = true ]; then node --test tests/unit/surface-controller.test.mjs; fi
-          if [ "$RETRY_FAILED" != true ] && [ "$OBJECTS" = true ]; then node --test tests/unit/temporal.test.mjs; fi
-          if [ "$GIS" = true ]; then node --test tests/unit/polygon-geometry.test.mjs; fi
-          if [ "$RETRY_FAILED" != true ] && [ "$PLACES" = true ]; then node --test tests/unit/place-codec.test.mjs; fi
-
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Select current application checks
+        id: plan
+        env: &a1
+          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
+          HEAD_SHA: ${{ inputs.source_sha || github.sha }}
+          CHECK_PROFILE: p3
+          CHECK_SCOPE: ${{ inputs.scope || 'auto' }}
+        run: node scripts/run-application-checks.mjs --list --github-output
+      - name: Install Chromium only for selected browser checks
+        if: steps.plan.outputs.browser == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Install native GIS prerequisites only for selected data checks
+        if: steps.plan.outputs.gis_native == 'true'
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
+      - name: Execute the same checks as local development
+        env: *a1
+        run: node scripts/run-application-checks.mjs --output "$RUNNER_TEMP/application-checks.json"
+      - name: Upload application check evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p3-application-checks-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/application-checks.json
+          if-no-files-found: warn
   web-snapshot:
     needs: plan
     if: needs.plan.outputs.preview == 'true' && !inputs.retry_failed
@@ -180,7 +175,6 @@ jobs:
           echo "### Branch Web preview: $P3_SLUG" >> "$GITHUB_STEP_SUMMARY"
           echo "Download **p3-web-$P3_SLUG-$GITHUB_SHA** from this run's Artifacts." >> "$GITHUB_STEP_SUMMARY"
           echo "This is an offline-served static snapshot, not a live Pages URL; production Pages remains unchanged." >> "$GITHUB_STEP_SUMMARY"
-
   browser-regression:
     needs: plan
     if: needs.plan.outputs.browser == 'true'
@@ -251,7 +245,7 @@ jobs:
         shell: bash
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-          PANDOLAB_TEST_PROFILING: 'off'
+          PANDOLAB_TEST_PROFILING: off
           RETRY_FAILED: ${{ inputs.retry_failed }}
           PANDO_BROWSER_TESTS: ${{ inputs.browser_tests }}
         run: |
@@ -281,7 +275,6 @@ jobs:
             playwright-report
           if-no-files-found: warn
           retention-days: 10
-
   calculation-performance:
     if: inputs.scope == 'acceptance'
     runs-on: ubuntu-24.04

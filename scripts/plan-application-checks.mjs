@@ -1,329 +1,271 @@
-import { execFileSync } from 'node:child_process';
-import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parse as parseYaml } from 'yaml';
+import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
+import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
 
-const workflowPath = '.github/workflows/application-architecture.yml';
-const plannerPath = 'scripts/plan-application-checks.mjs';
-const specPath = name => `tests/browser/${name}.spec.mjs`;
-
-export const MANUAL_SCOPES = Object.freeze(['default', 'map-rendering', 'editor-diagnostics',
-  'boundary-capture-comparison', 'boundary-native-capture', 'boundary-revision-comparison']);
-export const FOCUSED_BROWSER_SPECS = Object.freeze({
-  'map-rendering': ['country-map-substrate', 'interaction-unification'].map(specPath),
-  'editor-diagnostics': ['gis-interchange', 'boundary-cut-snapping', 'hydro-metadata-edit',
-    'library-header-layout'].map(specPath),
-});
-const smokeSpecs = ['boundary-cut-snapping', 'country-label-flags', 'generic-feature-independent-geometry',
-  'hydro-metadata-edit', 'storage-protection', 'ui-components', 'gis-interchange'].map(specPath);
-
-// Broad ownership patterns and non-import dependencies are explicit policy.
-// Current job inputs come from YAML, and their imports are followed below so
-// renamed modules or changed job inputs do not need a copied file-list update.
-const scopePatterns = {
-  "data_contracts": [
-    "assets/js/*",
-    "assets/data/*",
-    "index.html",
-    "README.md",
-    "tools/*",
-    "tests/fixtures/*",
-    "scripts/*",
-    "package.json",
-    "pnpm-lock.yaml",
-    ".github/workflows/application-architecture.yml"
-  ],
-  "visual_policy": [
-    "assets/css/features/map-rendering.css",
-    "assets/css/ui.bundle.css",
-    ".github/workflows/application-architecture.yml"
-  ],
-  "scene_staging": [
-    "assets/js/modules/gpu-upload-scheduler.js",
-    "assets/js/modules/gpu-resource-budget.js",
-    "tests/browser/server.mjs",
-    "playwright.config.js",
-    "package.json",
-    "pnpm-lock.yaml",
-    "eslint.config.js",
-    ".github/workflows/application-architecture.yml"
-  ],
-  "preview_handoff": [
-    "assets/js/modules/editing-render-packet.js",
-    "assets/js/modules/map-render-coordinator.js",
-    "assets/js/modules/app-interaction-packets.js",
-    "assets/js/modules/selection-*",
-    "assets/js/modules/render-channel-ownership.js",
-    "assets/js/modules/map-visual-frame.js",
-    "assets/js/modules/map-edit-*",
-    "assets/js/modules/gpu-map-renderer.js",
-    "assets/js/modules/gpu-canvas-worker.js",
-    "assets/js/modules/gpu-interaction-pass.js",
-    "assets/js/modules/gpu-stroke-renderer.js",
-    "assets/js/workers/canvas-render-worker.js",
-    "assets/js/workers/map-edit-worker.js",
-    "tests/unit/edit-preview-*.test.mjs",
-    "tests/unit/editing-*.test.mjs",
-    "tests/helpers/production-geopackage.mjs",
-    "tests/fixtures/timeline-exchange/static.json",
-    "tests/browser/server.mjs",
-    "playwright.config.js",
-    "package.json",
-    "pnpm-lock.yaml",
-    "eslint.config.js",
-    ".github/workflows/application-architecture.yml"
-  ],
-  "territorial_store": [
-    "assets/js/*",
-    "tests/unit/territorial-*.test.mjs",
-    "package.json",
-    "pnpm-lock.yaml",
-    "eslint.config.js",
-    "scripts/check-territorial-storage.mjs",
-    "scripts/lib/territorial-storage-audit.mjs",
-    "scripts/contracts/territorial-storage-access.json",
-    ".github/workflows/application-architecture.yml"
-  ],
-  "unit_suite": [
-    "assets/js/*",
-    "tests/unit/*",
-    "tests/helpers/*",
-    "tests/fixtures/*",
-    "scripts/*",
-    "tools/*.mjs",
-    "package.json",
-    "pnpm-lock.yaml",
-    "eslint.config.js",
-    ".github/workflows/application-architecture.yml"
-  ],
-  "boundary_continuity": [
-    "assets/js/modules/app-domain-assembly.js",
-    "assets/js/modules/map-display-preparation.js",
-    "assets/js/modules/map-edit-*",
-    "assets/js/modules/boundary-*",
-    "assets/js/modules/gpu-scene-*",
-    "assets/js/modules/gpu-map-renderer.js",
-    "assets/js/modules/gpu-canvas-worker.js",
-    "assets/js/modules/gpu-base-scene-pass.js",
-    "assets/js/modules/gpu-stroke-renderer.js",
-    "assets/js/modules/gpu-scene.js",
-    "assets/js/modules/map-visual-frame.js",
-    "assets/js/modules/map-render-coordinator.js",
-    "assets/js/modules/render-channel-ownership.js",
-    "assets/js/workers/map-edit-worker.js",
-    "assets/js/workers/canvas-render-worker.js",
-    "tests/browser/server.mjs",
-    "playwright.config.js",
-    "package.json",
-    "pnpm-lock.yaml",
-    "eslint.config.js",
-    ".github/workflows/application-architecture.yml"
-  ],
-  "terrain_rendering": [
-    "assets/js/modules/gpu-*",
-    "assets/js/modules/terrain-*",
-    "assets/js/modules/map-visual-frame.js",
-    "assets/js/modules/app-map-*",
-    "assets/js/modules/app-physical-*",
-    "tests/browser/terrain-*.spec.mjs",
-    "tests/browser/server.mjs",
-    "playwright.config.js",
-    "package.json",
-    "pnpm-lock.yaml",
-    "eslint.config.js",
-    ".github/workflows/application-architecture.yml"
-  ]
-};
-export const APPLICATION_SCOPES = Object.freeze(Object.keys(scopePatterns));
-const infrastructure = ['tests/browser/server.mjs', 'playwright.config.js', workflowPath, plannerPath,
-  'package.json', 'pnpm-lock.yaml', 'eslint.config.js'];
-
-export function effectiveManualScope(eventName, browserScope) {
-  const scope = eventName === 'workflow_dispatch' ? browserScope || 'default' : 'default';
-  if (!MANUAL_SCOPES.includes(scope)) throw new Error(`Unsupported browser_scope: ${scope}`);
-  return scope;
+export const catalogPath = 'scripts/contracts/application-checks.json';
+const slash = path => path.replaceAll('\\', '/');
+export function matchesPattern(file, pattern) {
+  const tokens = pattern.split(/(\*\*|\*)/).map(part => part === '**' ? '.*' : part === '*' ? '[^/]*' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp('^' + tokens.join('') + '$').test(file);
 }
+const matches = (file, patterns = []) => patterns.some(pattern => matchesPattern(file, pattern));
+const executable = file => /\.[cm]?js$/.test(file) && !/\/(?:vendor|worker-runtime|fixtures|gen|target|dist)\//.test(file);
+const product = file => /^(?:assets\/js\/|apps\/web-shell\/)/.test(file);
 
-function matchesPattern(file, pattern) {
-  const escaped = pattern.split('*').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*');
-  return new RegExp(`^${escaped}$`).test(file);
-}
-
-export function applicationScopes(changedFiles, manualScope = 'default', eventName = 'pull_request', repository) {
-  const scopes = Object.fromEntries(APPLICATION_SCOPES.map(name => [name, false]));
-  if (eventName === 'workflow_dispatch') {
-    if (manualScope === 'default') for (const name of APPLICATION_SCOPES) scopes[name] = true;
-    else if (manualScope === 'map-rendering') scopes.preview_handoff = true;
-    return scopes;
-  }
-  const changed = new Set(changedFiles.map(file => file === plannerPath ? workflowPath : file));
-  if (!changed.size) return scopes;
-  for (const [name, patterns] of Object.entries(scopePatterns)) {
-    const currentRoots = Object.values(repository?.workflow.jobs || {}).filter(job =>
-      String(job.if || '').includes(`needs.changes.outputs.${name.replaceAll('_', '-')}`))
-      .flatMap(job => (job.steps || []).flatMap(step => [...String(step.run || '')
-        .matchAll(/(?:assets|tests|scripts|tools)\/[\w./-]+\.(?:m?js|css|json|py)\b/g)].map(match => match[0])));
-    const roots = [...patterns, ...currentRoots];
-    const directlyAffected = [...changed].some(file => roots.some(pattern => matchesPattern(file, pattern)));
-    scopes[name] = directlyAffected || Boolean(repository && repository.sourceFiles.some(file =>
-      roots.some(pattern => matchesPattern(file, pattern)) && consumesChangedFile(file, changed, repository)));
-  }
-  return scopes;
-}
-
-function consumesChangedFile(file, changed, repository, visited = new Set()) {
-  if (changed.has(file)) return true;
-  if (visited.has(file) || !repository.exists(file)) return false;
-  visited.add(file);
-  return repository.dependencies(file).some(dependency => consumesChangedFile(dependency, changed, repository, visited));
-}
-
-function titlesFromReport(suite) {
-  return [...(suite.specs || []).map(spec => spec.title), ...(suite.suites || []).flatMap(titlesFromReport)];
-}
-
-// Whole-spec jobs are read from current YAML. For a matrix-filtered command,
-// discovery must prove that the union of its filters covers every current case.
-export function completeBrowserSpecs(workflow, listTests, candidates, scopes) {
-  const covered = new Set();
-  for (const job of Object.values(workflow.jobs || {})) {
-    const scope = String(job.if || '').match(/needs\.changes\.outputs\.([\w-]+)/)?.[1];
-    if (!scope || (scopes && !scopes[scope.replaceAll('-', '_')])) continue;
-    for (const step of job.steps || []) {
-      const command = String(step.run || '').match(/playwright\s+test\s+([^\n]+)/)?.[1];
-      if (!command) continue;
-      const specs = [...command.matchAll(/tests\/browser\/[\w.-]+\.spec\.mjs/g)].map(match => match[0])
-        .filter(spec => !candidates || candidates.has(spec));
-      if (!/--grep(?:[=\s]|$)/.test(command)) {
-        for (const spec of specs) covered.add(spec);
-        continue;
-      }
-      const matrixFilter = command.match(/--grep=['"]\$\{\{\s*matrix\.(\w+)\s*\}\} ([^'"]*)['"]/);
-      const values = matrixFilter && job.strategy?.matrix?.[matrixFilter[1]];
-      if (!Array.isArray(values) || !listTests) continue;
-      const filters = values.map(value => new RegExp(`${value} ${matrixFilter[2]}`));
-      for (const spec of specs) {
-        const titles = listTests(spec);
-        if (titles.length && titles.every(title => filters.some(filter => filter.test(title)))) covered.add(spec);
-      }
-    }
-  }
-  return covered;
-}
-
-export function browserContracts(changedFiles, manualScope, eventName, repository, scopes) {
-  if (manualScope.startsWith('boundary-')) return [];
-  if (FOCUSED_BROWSER_SPECS[manualScope]) {
-    const selected = FOCUSED_BROWSER_SPECS[manualScope];
-    for (const spec of selected) if (!repository.exists(spec)) throw new Error(`Missing focused browser spec: ${spec}`);
-    return [...selected];
-  }
-  const changed = new Set(changedFiles);
-  const selected = new Set(repository.browserSpecs.filter(file => changed.has(file)));
-  const helpers = new Set([...changed].filter(file => file.startsWith('tests/helpers/') || file.startsWith('tests/browser/helpers/')));
-  if (helpers.size) for (const spec of repository.browserSpecs) if (consumesChangedFile(spec, helpers, repository)) selected.add(spec);
-  const fullyCovered = completeBrowserSpecs(repository.workflow, repository.listTests, selected, scopes);
-  for (const spec of fullyCovered) selected.delete(spec);
-  if (eventName === 'workflow_dispatch' || infrastructure.some(file => changed.has(file))
-    || [...changed].some(file => file.startsWith('tests/fixtures/'))) {
-    for (const spec of smokeSpecs) {
-      if (!repository.exists(spec)) throw new Error(`Missing smoke browser spec: ${spec}`);
-      selected.add(spec);
-    }
-  }
-  return [...selected].sort();
-}
-
-export function loadRepository(root = process.cwd(), { listTests } = {}) {
+export function loadRepository(root = process.cwd(), { catalog } = {}) {
   if (root instanceof URL) root = fileURLToPath(root);
   const exists = file => existsSync(resolve(root, file));
-  const dependenciesByFile = new Map();
   const read = file => readFileSync(resolve(root, file), 'utf8');
-  function relativeSource(node) {
-    const literal = node?.value;
-    if (typeof literal === 'string') return literal.split(/[?#]/)[0];
-    if (node?.type !== 'TemplateLiteral') return undefined;
-    const first = node.quasis[0].value.cooked;
-    if (!node.expressions.length || /[?#]/.test(first)) return first.split(/[?#]/)[0];
-    return undefined;
-  }
-  function dependencies(file) {
-    if (dependenciesByFile.has(file)) return dependenciesByFile.get(file);
-    if (!/\.[cm]?js$/.test(file)) return [];
-    const dependencies = [];
-    const source = parseJavaScript(read(file), { filePath: file });
-    walkJavaScript(source, node => {
-      let imported;
-      if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration', 'ImportExpression'].includes(node.type)) {
-        imported = relativeSource(node.source);
-      } else if (node.type === 'NewExpression' && node.callee.type === 'Identifier' && node.callee.name === 'URL') {
-        imported = relativeSource(node.arguments[0]);
-      } else if (node.type === 'CallExpression' && node.callee.type === 'Identifier' && node.callee.name === 'importScripts') {
-        for (const argument of node.arguments) {
-          const relative = relativeSource(argument);
-          if (typeof relative === 'string' && relative.startsWith('.')) {
-            dependencies.push(posix.normalize(posix.join(posix.dirname(file), relative)));
-          }
-        }
-      }
-      if (typeof imported === 'string' && imported.startsWith('.')) dependencies.push(posix.normalize(posix.join(posix.dirname(file), imported)));
-    });
-    dependenciesByFile.set(file, dependencies);
-    return dependencies;
-  }
-  function javascriptFiles(directory) {
+  catalog ||= JSON.parse(read(catalogPath));
+  if (catalog.schema !== 'pando-application-checks-v1') throw Error('Invalid application check catalog');
+  function filesIn(directory) {
     if (!exists(directory)) return [];
     return readdirSync(resolve(root, directory), { withFileTypes: true }).flatMap(entry => {
       const file = `${directory}/${entry.name}`;
-      return entry.isDirectory() ? javascriptFiles(file) : /\.[cm]?js$/.test(file) ? [file] : [];
+      if (entry.isDirectory()) return /^(?:node_modules|target|dist|gen|worker-runtime|vendor|\.superpowers)$/.test(entry.name) ? [] : filesIn(file);
+      return [file];
     });
   }
-  return {
-    exists, dependencies,
-    workflow: parseYaml(read(workflowPath)),
-    browserSpecs: javascriptFiles('tests/browser').filter(file => file.endsWith('.spec.mjs')),
-    sourceFiles: [...javascriptFiles('assets/js/modules'), ...javascriptFiles('assets/js/workers'),
-      ...javascriptFiles('tests/unit'), ...javascriptFiles('tests/helpers'), ...javascriptFiles('tests/browser')],
-    listTests: listTests || (spec => {
-      const report = JSON.parse(execFileSync(process.execPath,
-        [resolve(root, 'node_modules/@playwright/test/cli.js'), 'test', spec, '--list', '--reporter=json'],
-        { cwd: root, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 }));
-      return (report.suites || []).flatMap(titlesFromReport);
-    }),
-  };
+  const files = ['assets', 'apps/web-shell', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows']
+    .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
+  const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
+  const ids = new Set();
+  for (const group of catalog.groups) {
+    if (!group.id || ids.has(group.id)) throw Error('Duplicate check group: ' + group.id);
+    ids.add(group.id);
+    if (!['unit', 'browser', 'command'].includes(group.kind)) throw Error('Invalid check kind: ' + group.id);
+    if (group.kind === 'command' && !Array.isArray(group.argv)) throw Error('Missing check command: ' + group.id);
+    if (group.mode === 'manual' && !group.reason) throw Error('Manual check needs a reason: ' + group.id);
+    for (const required of group.requires || []) if (!catalog.prerequisites?.[required] && !catalog.groups.some(row => row.id === required)) throw Error('Missing prerequisite: ' + required);
+  }
+  for (const command of [...catalog.groups, ...Object.values(catalog.prerequisites || {})]) {
+    for (const argv of command.argv ? [command.argv] : []) {
+      if (!Array.isArray(argv) || !argv.length || argv.some(value => typeof value !== 'string')) throw Error('Invalid check command');
+      for (const arg of argv.slice(1)) if (/^(?:scripts|tools|tests|apps)\/.*\.(?:m?js|json)$/.test(arg) && !exists(arg)) throw Error('Missing check command input: ' + arg);
+    }
+    for (const input of command.inputs || []) if (!input.includes('*') && !exists(input)) throw Error('Missing registered check input: ' + input);
+  }
+  for (const check of catalog.externalChecks || []) if (!exists(check.workflow)) throw Error('Missing external check workflow: ' + check.workflow);
+  const complete = new Set(), active = new Set();
+  function checkPrerequisite(id) {
+    if (active.has(id)) throw Error('Cyclic check prerequisite: ' + id);
+    if (complete.has(id)) return;
+    const entry = catalog.prerequisites?.[id] || catalog.groups.find(group => group.id === id);
+    if (!entry) throw Error('Missing prerequisite: ' + id);
+    active.add(id);
+    for (const required of entry.requires || []) {
+      const dependency = catalog.prerequisites?.[required] || catalog.groups.find(group => group.id === required);
+      if (!dependency?.argv) throw Error('Prerequisite must be a command: ' + required);
+      checkPrerequisite(required);
+    }
+    active.delete(id); complete.add(id);
+  }
+  [...catalog.groups.map(group => group.id), ...Object.keys(catalog.prerequisites || {})].forEach(checkPrerequisite);
+  for (const specs of Object.values(catalog.manualScopes || {})) for (const spec of specs)
+    if (!exists(spec)) throw Error('Missing focused browser spec: ' + spec);
+  const owners = new Map();
+  for (const file of tests) {
+    const group = catalog.groups.find(group => matches(file, group.testPatterns));
+    if (!group) throw Error('Unregistered test: ' + file);
+    owners.set(file, group);
+  }
+  for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {
+    if (!pattern.includes('*') && !owners.has(pattern)) throw Error('Missing registered test: ' + pattern);
+  }
+  const dependencyCache = new Map();
+  function dependencies(file) {
+    if (dependencyCache.has(file)) return dependencyCache.get(file);
+    const found = new Set(runtimeDependencies[file] || []);
+    dependencyCache.set(file, found);
+    if (!executable(file) || !exists(file)) return [...found];
+    const source = parseJavaScript(read(file), { filePath: file });
+    const bindings = new Map();
+    walkJavaScript(source, node => { if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') bindings.set(node.id.name, node.init); });
+    function specifier(node, visited = new Set()) {
+      if (!node || visited.has(node)) return;
+      visited.add(node);
+      if (typeof node.value === 'string') return node.value;
+      if (node.type === 'TemplateLiteral') {
+        const start = node.quasis[0].value.cooked;
+        if (!node.expressions.length || /[?#]/.test(start)) return start.split(/[?#]/)[0];
+      }
+      if (node.type === 'Identifier') return specifier(bindings.get(node.name), visited);
+      if (node.type === 'MemberExpression') return specifier(node.object, visited);
+      if (node.type === 'NewExpression' && node.callee.name === 'URL') {
+        const value = specifier(node.arguments[0], visited);
+        if (file.startsWith('tests/browser/') && node.arguments[1] && /location\.href$/.test(source.getText(node.arguments[1]))
+          && value?.startsWith('../modules/')) return 'assets/js/modules/' + value.slice('../modules/'.length);
+        const relocation = (catalog.relocatedSources || []).find(row => file.startsWith(row.source));
+        if (value?.startsWith('.') && relocation && node.arguments[1] && source.getText(node.arguments[1]) === 'import.meta.url') {
+          const output = relocation.output + file.slice(relocation.source.length);
+          const target = posix.normalize(posix.join(posix.dirname(output), value));
+          return target.startsWith(relocation.output) ? relocation.source + target.slice(relocation.output.length) : target;
+        }
+        return value;
+      }
+      if (node.type === 'CallExpression') {
+        const callee = node.callee.type === 'SequenceExpression' ? node.callee.expressions.at(-1) : node.callee;
+        const name = callee.name || callee.property?.name;
+        if (/^(?:versionedAsset|versionedModuleUrl|versionedWorkerAssetUrl)$/.test(name)) {
+          const value = specifier(node.arguments[0], visited);
+          const base = catalog.runtimeBases?.[file] || catalog.runtimeHelperBases?.[name];
+          return value && base ? posix.normalize(posix.join(base, value)) : value;
+        }
+      }
+    }
+    function add(value, strict = false, browserUrl = false) {
+      if (typeof value !== 'string' || /^(?:https?:|data:|node:|#)/.test(value)) return;
+      value = value.split(/[?#]/)[0].replace(/\/$/, '');
+      if (browserUrl && file.startsWith('tests/browser/') && /^(?:\.\/|\/)assets\//.test(value)) value = value.replace(/^(?:\.\/|\/)/, '');
+      let target;
+      if (value.startsWith('.')) target = posix.normalize(posix.join(posix.dirname(file), value));
+      else if (/^(?:assets|tests|scripts|tools|apps|shared|contracts|config)\//.test(value)) target = value;
+      else return;
+      if (target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
+      if (strict && !exists(target)) throw Error(`Missing dependency ${target} in ${file}`);
+      if (exists(target)) found.add(target);
+    }
+    walkJavaScript(source, node => {
+      if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) && node.source) add(specifier(node.source), true);
+      if (node.type === 'ImportExpression') {
+        const value = specifier(node.source);
+        if (value) add(value, true, true);
+        else if (node.source.type === 'CallExpression' && node.source.arguments[0]?.type === 'BinaryExpression'
+          && source.getAncestors(node).some(ancestor => {
+            const list = ancestor.callee?.object, callback = ancestor.arguments?.[0], expression = node.source.arguments[0];
+            if (ancestor.type !== 'CallExpression' || ancestor.callee.property?.name !== 'map' || list?.type !== 'ArrayExpression'
+              || callback?.params?.[0]?.name !== expression.right.name || typeof expression.left.value !== 'string'
+              || !list.elements.every(item => typeof item.value === 'string')) return false;
+            list.elements.forEach(item => add(expression.left.value + item.value, true)); return true;
+          })) { /* Literal array-map module identities were added above. */ }
+        else if (product(file) && !(dynamicExpressions[file] || []).includes(source.getText(node.source))) throw Error('Uncatalogued dynamic dependency in ' + file + ': ' + source.getText(node.source));
+      }
+      if (node.type === 'NewExpression' && node.callee.name === 'URL') {
+        const value = specifier(node.arguments[0]);
+        const target = value?.startsWith('.') ? posix.normalize(posix.join(posix.dirname(file), value)) : value;
+        const directory = value && (value.endsWith('/') || value === '.' || value === '..');
+        const consumed = source.getAncestors(node).at(-1)?.callee?.name === 'readdirSync';
+        if (!directory || target?.startsWith('tests/fixtures/') || consumed) add(value);
+      }
+      if (node.type === 'CallExpression') {
+        if (node.callee.name === 'importScripts') for (const argument of node.arguments) {
+          const value = specifier(argument);
+          if (value) add(value.startsWith('.') ? value : './' + value, true);
+          else if (argument.type === 'SpreadElement') {
+            const call = argument.argument, list = call.callee?.object, callback = call.arguments?.[0];
+            const statements = callback?.body?.body, declaration = statements?.[0]?.declarations?.[0];
+            const init = declaration?.init;
+            if (call.type !== 'CallExpression' || call.callee.property?.name !== 'map' || list?.type !== 'ArrayExpression'
+              || !list.elements.every(item => typeof item.value === 'string' && /\.js$/.test(item.value))
+              || init?.type !== 'NewExpression' || init.callee.name !== 'URL'
+              || init.arguments[0].name !== callback.params[0]?.name || statements.length !== 3
+              || !source.getText(statements[1]).startsWith(declaration.id.name + '.searchParams.set(')
+              || statements[2].type !== 'ReturnStatement' || source.getText(statements[2].argument) !== declaration.id.name + '.href')
+              throw Error('Uncatalogued dynamic dependency in ' + file);
+            list.elements.forEach(item => add(item.value.startsWith('.') ? item.value : './' + item.value, true));
+          } else throw Error('Uncatalogued dynamic dependency in ' + file);
+        }
+        if (['readFileSync', 'read', 'readSource'].includes(node.callee.name)) {
+          const value = specifier(node.arguments[0]);
+          add(value, typeof value === 'string' && /^(?:assets|tests\/fixtures|scripts|contracts)\//.test(value));
+        }
+      }
+    });
+    // Runtime data identities remain owned by the generated product metadata.
+    if (file === 'assets/js/build-meta.js') return [...found];
+    return [...found];
+  }
+  return { root: resolve(root), catalog, files, tests, owners, exists, read, dependencies };
 }
 
-export function planApplicationChecks({ eventName = 'pull_request', browserScope, changedFiles = [], repository }) {
-  const manualScope = effectiveManualScope(eventName, browserScope);
-  const scopes = applicationScopes(changedFiles, manualScope, eventName, repository);
-  return {
-    scopes,
-    browserSpecs: browserContracts(changedFiles, manualScope, eventName, repository, scopes),
-  };
-}
-
-export function runApplicationPlanner({ env = process.env, gitDiff, repository, writeOutput } = {}) {
-  const eventName = env.GITHUB_EVENT_NAME || 'pull_request';
-  const manualScope = effectiveManualScope(eventName, env.BROWSER_SCOPE);
-  const needsDiff = manualScope === 'default';
-  const base = env.BASE_SHA && !/^0+$/.test(env.BASE_SHA) ? env.BASE_SHA : 'origin/main';
-  const changedFiles = needsDiff ? (gitDiff || ((from, to) => {
-    if (!to) throw new Error('HEAD_SHA is required to plan changed checks');
-    return execFileSync('git', ['diff', '--name-only', '-z', from, to], { encoding: 'utf8' }).split('\0').filter(Boolean);
-  }))(base, env.HEAD_SHA) : [];
-  const plan = planApplicationChecks({ eventName, browserScope: manualScope, changedFiles,
-    repository: repository || loadRepository() });
-  const outputs = Object.entries(plan.scopes).map(([name, enabled]) => `${name}=${enabled}`);
-  outputs.push(`current_browser_specs=${JSON.stringify(plan.browserSpecs)}`);
-  if (writeOutput) writeOutput(`${outputs.join('\n')}\n`);
-  else if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `${outputs.join('\n')}\n`);
-  else console.log(JSON.stringify(plan, null, 2));
-  return plan;
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  if (process.argv.includes('--github-output') && !process.env.GITHUB_OUTPUT) throw new Error('GITHUB_OUTPUT is required');
-  runApplicationPlanner();
+export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [] }) {
+  const repo = repository || loadRepository();
+  const changed = [...new Set(changedFiles.map(slash))].sort();
+  const reasons = {}, selected = new Set(), commands = [], prerequisites = new Set();
+  const expand = patterns => repo.files.filter(file => matches(file, patterns));
+  const entry = id => repo.catalog.prerequisites?.[id] || repo.catalog.groups.find(group => group.id === id);
+  function implementationInputs(check, seen = new Set()) {
+    if (seen.has(check)) return [];
+    seen.add(check);
+    const argvFiles = (check.argv ? [check.argv] : [])
+      .flatMap(argv => argv.slice(1).filter(arg => /^(?:scripts|tools|apps|tests)\/.*\.[cm]?js$/.test(arg)));
+    return [...argvFiles, ...(check.requires || []).flatMap(id => implementationInputs(entry(id), seen))];
+  }
+  const inputsFor = group => [...expand(group.inputs || []), ...implementationInputs(group)];
+  const parents = new Map(), visited = new Set();
+  const queue = [...repo.tests, ...repo.catalog.groups.flatMap(inputsFor),
+    ...(repo.catalog.bindings || []).flatMap(binding => expand(binding.inputs || []))];
+  for (let at = 0; at < queue.length; at++) {
+    const file = queue[at];
+    if (visited.has(file)) continue;
+    visited.add(file);
+    for (const dependency of repo.dependencies(file)) {
+      if (!parents.has(dependency)) parents.set(dependency, new Set());
+      parents.get(dependency).add(file); queue.push(dependency);
+    }
+  }
+  const affectedBy = new Map();
+  for (const change of changed) {
+    const consumers = [change], seen = new Set();
+    for (let dir = posix.dirname(change); dir !== '.'; dir = posix.dirname(dir)) consumers.push(dir);
+    for (let at = 0; at < consumers.length; at++) {
+      const file = consumers[at]; if (seen.has(file)) continue; seen.add(file);
+      if (!affectedBy.has(file)) affectedBy.set(file, []);
+      affectedBy.get(file).push(change);
+      consumers.push(...(parents.get(file) || []));
+    }
+  }
+  const affected = file => affectedBy.get(file) || [];
+  const infrastructure = changed.some(file => matches(file, repo.catalog.infrastructure || []));
+  const matchedProduct = new Set();
+  const externalChecks = (repo.catalog.externalChecks || []).filter(check => changed.some(file => matches(file, check.inputs)));
+  externalChecks.forEach(check => changed.filter(file => matches(file, check.inputs)).forEach(file => matchedProduct.add(file)));
+  for (const group of repo.catalog.groups) {
+    const members = [...repo.owners].filter(([, owner]) => owner.id === group.id).map(([file]) => file);
+    const inputs = inputsFor(group);
+    const groupReasons = [...new Set(inputs.flatMap(file => affected(file)))];
+    // Deleted paths still match the input policy and select surviving consumers.
+    for (const file of changed) if (matches(file, group.inputs)) groupReasons.push(file);
+    if (requestedGroups.length && !requestedGroups.includes(group.id)) continue;
+    if (group.mode === 'manual' && !requestedGroups.includes(group.id)) continue;
+    if (group.kind === 'command') {
+      if (requestedGroups.includes(group.id) || groupReasons.length) {
+        commands.push(group.id); reasons[group.id] = [...new Set(groupReasons.length ? groupReasons : ['check infrastructure changed'])];
+        groupReasons.forEach(file => matchedProduct.add(file));
+        (group.requires || []).forEach(id => prerequisites.add(id));
+      }
+      continue;
+    }
+    for (const file of members) {
+      const sources = affected(file);
+      const bindings = (repo.catalog.bindings || []).filter(binding => matches(file, binding.tests));
+      const linked = bindings.flatMap(binding => expand(binding.inputs).flatMap(input => affected(input)));
+      const why = [...new Set([...sources, ...linked, ...groupReasons])];
+      if (why.length || requestedGroups.includes(group.id) || (infrastructure && group.kind === 'unit')) {
+        selected.add(file); reasons[file] = why.length ? why : ['check infrastructure changed'];
+        why.forEach(path => matchedProduct.add(path));
+        (group.requires || []).forEach(id => prerequisites.add(id));
+      }
+    }
+  }
+  for (const id of requestedGroups) if (!repo.catalog.groups.some(group => group.id === id)) throw Error('Unknown check group: ' + id);
+  for (const file of changed) {
+    if (!requestedGroups.length && matches(file, repo.catalog.productRoots) && !matchedProduct.has(file) && !infrastructure
+      && !matches(file, repo.catalog.passiveInputs || []) && !repo.owners.has(file)) throw Error('Unclassified product change: ' + file);
+  }
+  const unitTests = [...selected].filter(file => file.includes('/unit/')).sort();
+  const browserSpecs = [...selected].filter(file => file.includes('/browser/')).sort();
+  if (unitTests.some(file => file === 'tests/unit/core-document-world-wasm.test.mjs' ||
+    (parents.get('assets/js/modules/temporal.js') && isConsumer(file, 'assets/js/modules/temporal.js'))) && repo.catalog.prerequisites?.core) prerequisites.add('core');
+  function isConsumer(target, dependency, seen = new Set()) {
+    if (target === dependency) return true;
+    if (seen.has(dependency)) return false; seen.add(dependency);
+    return [...(parents.get(dependency) || [])].some(parent => isConsumer(target, parent, seen));
+  }
+  return { schema: 'pando-application-check-plan-v1', changedFiles: changed, unitTests, browserSpecs,
+    externalChecks, commands: commands.sort(), prerequisites: [...prerequisites].sort(), reasons,
+    manualTests: [...repo.owners].filter(([, group]) => group.mode === 'manual').map(([file]) => file).sort(),
+    inventory: { unit: repo.tests.filter(file => file.includes('/unit/')).length, browser: repo.tests.filter(file => file.includes('/browser/')).length } };
 }

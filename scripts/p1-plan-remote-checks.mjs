@@ -1,14 +1,12 @@
 // P1: deterministic, dependency-free change classification for every work/* branch.
 // New test/CI files may be copied to older Web-only branches without copying native.
-import { execFileSync } from 'node:child_process';
+import { collectChanges } from './lib/check-changes.mjs';
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
 const has = path => existsSync(resolve(root, path));
-const changedLines = bytes => bytes.toString('utf8').split('\0').filter(Boolean).map(p => p.replaceAll('\\', '/'));
-const SHA = /^[0-9a-f]{40}$/i;
 
 export function pinnedVersions() {
   const pin = JSON.parse(readFileSync(resolve(root, 'config/toolchain-versions.json'), 'utf8'));
@@ -26,20 +24,9 @@ export function pinnedVersions() {
 }
 
 export function changedPaths({base = '', head = 'HEAD'} = {}) {
-  if (SHA.test(base) && !/^0{40}$/.test(base)) {
-    try {
-      return { paths: changedLines(execFileSync('git', ['diff', '--name-only', '--diff-filter=ACDMRT', '-z', base, head], {cwd:root})), fallback:false };
-    } catch {
-      // Shallow history or an unreachable 'before' SHA: do not misreport clean.
-    }
-  }
-  try {
-    return {paths:changedLines(execFileSync('git', ['diff-tree', '--root', '--no-commit-id',
-      '--name-only', '-r', '-z', head], {cwd:root})),fallback:true};
-  } catch {
-    // Fail safe on unfamiliar refs instead of silently skipping affected scopes.
-    return {paths:['CMakePresets.json'],fallback:true};
-  }
+  const change = collectChanges({ root, base: base || 'origin/main', head,
+    event: process.env.GITHUB_EVENT_NAME || 'push' });
+  return { paths: change.files, fallback: false };
 }
 
 const infrastructure = p => [

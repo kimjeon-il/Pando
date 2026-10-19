@@ -1,0 +1,1091 @@
+{
+  "schema": "pando-application-checks-v1",
+  "groups": [
+    {
+      "id": "ui-contracts",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/object-property-controller.test.mjs",
+        "tests/unit/territorial-info-period.test.mjs",
+        "tests/unit/territorial-property-controller.test.mjs",
+        "tests/unit/territorial-metadata-command.test.mjs",
+        "tests/unit/label-metadata-edit.test.mjs",
+        "tests/unit/hydro-metadata-edit.test.mjs"
+      ],
+      "inputs": [
+        "assets/css/**",
+        "assets/js/modules/ui-*.js",
+        "assets/js/modules/surface-*.js",
+        "apps/web-shell/startup.js",
+        "apps/web-shell/network-guard.js"
+      ]
+    },
+    {
+      "id": "place-contracts",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/place-*.test.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/place-*.js",
+        "assets/js/modules/territorial-labels.js",
+        "assets/data/places/**"
+      ]
+    },
+    {
+      "id": "reference-contracts",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/reference-image-*.test.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/reference-image*.js",
+        "assets/css/features/reference-image*.css"
+      ]
+    },
+    {
+      "id": "measurements",
+      "kind": "browser",
+      "mode": "manual",
+      "reason": "Controlled performance, attribution, or external remote-preview environment. Run the named spec explicitly with its existing workflow prerequisites.",
+      "testPatterns": [
+        "tests/browser/soviet-*.spec.mjs",
+        "tests/browser/*-benchmark.spec.mjs",
+        "tests/browser/*-memory.spec.mjs",
+        "tests/browser/performance-*.spec.mjs",
+        "tests/browser/canvas-globe-performance.spec.mjs",
+        "tests/browser/p3-remote-preview.spec.mjs",
+        "tests/browser/p9-browser-performance.spec.mjs",
+        "tests/browser/russia-edit-preparation.spec.mjs"
+      ],
+      "inputs": []
+    },
+    {
+      "id": "object-contracts",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/object-*.test.mjs",
+        "tests/unit/territorial-*.test.mjs",
+        "tests/unit/project-*.test.mjs",
+        "tests/unit/temporal*.test.mjs",
+        "tests/unit/timeline*.test.mjs",
+        "tests/unit/generic-*.test.mjs",
+        "tests/unit/distribution-*.test.mjs",
+        "tests/unit/editing-*.test.mjs",
+        "tests/unit/core-*.test.mjs",
+        "tests/unit/web-*.test.mjs"
+      ],
+      "inputs": []
+    },
+    {
+      "id": "gis-contracts",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/gis-*.test.mjs",
+        "tests/unit/polygon-*.test.mjs",
+        "tests/unit/hydro-*.test.mjs",
+        "tests/unit/terrain-*.test.mjs",
+        "tests/unit/physical-land*.test.mjs",
+        "tests/unit/country-*.test.mjs",
+        "tests/unit/boundary-*.test.mjs"
+      ],
+      "inputs": []
+    },
+    {
+      "id": "units",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/*.test.mjs"
+      ],
+      "inputs": [],
+      "requires": []
+    },
+    {
+      "id": "terrain",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/terrain-*.spec.mjs",
+        "tests/browser/physical-land-time.spec.mjs",
+        "tests/browser/country-map-substrate.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/terrain-*.js",
+        "assets/js/modules/physical-*.js",
+        "assets/js/modules/gpu-terrain-*.js",
+        "assets/js/modules/gpu-base-scene-pass.js",
+        "assets/js/workers/canvas-terrain-*.js",
+        "assets/data/terrain-*/**",
+        "assets/data/physical-land/**",
+        "assets/js/workers/canvas-render-worker.js",
+        "assets/js/workers/canvas-scene-composition-core.js",
+        "assets/js/modules/gpu-scene.js",
+        "assets/js/modules/gpu-scene-preparation.js",
+        "assets/js/modules/gpu-map-renderer.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "boundaries",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/boundary-*.spec.mjs",
+        "tests/browser/child-coast-boundary.spec.mjs",
+        "tests/browser/country-shared-boundary.spec.mjs",
+        "tests/browser/date-line-outline.spec.mjs",
+        "tests/browser/projection-border.spec.mjs",
+        "tests/browser/territorial-boundary-*.spec.mjs",
+        "tests/browser/territorial-child-fill-comparison.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/*boundary*.js",
+        "assets/js/modules/country-contact-core.js",
+        "assets/js/modules/country-stroke-preparation.js",
+        "assets/js/workers/*boundary*.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "rendering",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/canvas-*.spec.mjs",
+        "tests/browser/gpu-*.spec.mjs",
+        "tests/browser/country-*.spec.mjs",
+        "tests/browser/prepared-overlay-mesh.spec.mjs",
+        "tests/browser/renderer-*.spec.mjs",
+        "tests/browser/map-display-worker.spec.mjs",
+        "tests/browser/selection-pass-baseline.spec.mjs",
+        "tests/browser/single-context-selection.spec.mjs",
+        "tests/browser/edit-preview-handoff.spec.mjs",
+        "tests/browser/visual-frame-sync.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/gpu-*.js",
+        "assets/js/modules/map-display-*.js",
+        "assets/js/modules/render-*.js",
+        "assets/js/modules/map-visual-*.js",
+        "assets/js/workers/canvas-render-worker.js",
+        "assets/js/workers/gpu-mesh-worker.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "objects",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/annex-*.spec.mjs",
+        "tests/browser/builtin-subunits.spec.mjs",
+        "tests/browser/distribution.spec.mjs",
+        "tests/browser/draft-*.spec.mjs",
+        "tests/browser/generic-*.spec.mjs",
+        "tests/browser/editing-*.spec.mjs",
+        "tests/browser/territorial-*.spec.mjs",
+        "tests/browser/territory-*.spec.mjs",
+        "tests/browser/unified-object*.spec.mjs",
+        "tests/browser/subunit-*.spec.mjs",
+        "tests/browser/map-editing-*.spec.mjs",
+        "tests/browser/selection-*.spec.mjs",
+        "tests/browser/object-*.spec.mjs",
+        "tests/browser/temporal-*.spec.mjs",
+        "tests/browser/timeline-*.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/object-*.js",
+        "assets/js/modules/territorial-*.js",
+        "assets/js/modules/generic-*.js",
+        "assets/js/modules/distribution-*.js",
+        "assets/js/modules/selection-*.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "projects",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/editor-*.spec.mjs",
+        "tests/browser/project-*.spec.mjs",
+        "tests/browser/shell-file-save.spec.mjs",
+        "tests/browser/storage-protection.spec.mjs",
+        "tests/browser/startup-restored-country.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/project-*.js",
+        "assets/js/modules/app-file-*.js",
+        "assets/js/modules/app-project-*.js",
+        "assets/js/modules/core-document-*.js",
+        "assets/js/workers/project-*-worker.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "viewer",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/viewer-*.spec.mjs",
+        "tests/browser/web-viewer.spec.mjs",
+        "tests/browser/shared-map-*.spec.mjs",
+        "tests/browser/shared-view*.spec.mjs",
+        "tests/browser/view-focus-actions.spec.mjs",
+        "tests/browser/unified-objects.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/viewer.js",
+        "assets/js/modules/object-query.js",
+        "assets/js/modules/object-search-*.js",
+        "assets/js/modules/place-name-display.js",
+        "assets/js/modules/layer-presentation.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "library",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/east-prussia-library.spec.mjs",
+        "tests/browser/historical-library.spec.mjs",
+        "tests/browser/library-*.spec.mjs",
+        "tests/browser/historical-world-*.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/*library*.js",
+        "assets/data/historical-world/**",
+        "assets/data/territorial-entities/**"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "hydro-gis",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/gis-*.spec.mjs",
+        "tests/browser/hydro-*.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/gis-*.js",
+        "assets/js/modules/gis-*.js",
+        "assets/js/modules/*hydro*.js",
+        "assets/data/hydro/**"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "reference-images",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/reference-image-*.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/reference-image*.js",
+        "assets/css/features/reference-image*.css"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "ui",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/color-swatch-layout.spec.mjs",
+        "tests/browser/feedback-accessibility.spec.mjs",
+        "tests/browser/feature-pruning-ui.spec.mjs",
+        "tests/browser/file-menu-layering.spec.mjs",
+        "tests/browser/flag-thumbnail-quiet.spec.mjs",
+        "tests/browser/general-view-menu.spec.mjs",
+        "tests/browser/interaction-*.spec.mjs",
+        "tests/browser/label-metadata-edit.spec.mjs",
+        "tests/browser/map-workspace-polish.spec.mjs",
+        "tests/browser/mobile-*.spec.mjs",
+        "tests/browser/module-cache-version.spec.mjs",
+        "tests/browser/phase1-ui-cleanup.spec.mjs",
+        "tests/browser/phone-landscape-editor.spec.mjs",
+        "tests/browser/product-pruning.spec.mjs",
+        "tests/browser/radio-row-consistency.spec.mjs",
+        "tests/browser/runtime.spec.mjs",
+        "tests/browser/startup-*.spec.mjs",
+        "tests/browser/statusbar-*.spec.mjs",
+        "tests/browser/style-label-cleanup.spec.mjs",
+        "tests/browser/toggle-proportions.spec.mjs",
+        "tests/browser/topbar-*.spec.mjs",
+        "tests/browser/ui-*.spec.mjs",
+        "tests/browser/workflow-v17.spec.mjs",
+        "tests/browser/workspace-surfaces.spec.mjs",
+        "tests/browser/info-*.spec.mjs"
+      ],
+      "inputs": [
+        "assets/css/**",
+        "assets/js/modules/ui-*.js",
+        "assets/js/modules/surface-*.js",
+        "apps/web-shell/startup.js",
+        "apps/web-shell/network-guard.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "version",
+      "kind": "command",
+      "inputs": [
+        "package.json",
+        "assets/js/build-meta.js",
+        "scripts/check-version.mjs"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-version.mjs"
+      ],
+      "requires": []
+    },
+    {
+      "id": "worker-contracts",
+      "kind": "command",
+      "inputs": [
+        "assets/js/workers/**",
+        "assets/js/modules/worker-*.js",
+        "scripts/lib/worker-assets.mjs"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-worker-architecture.mjs"
+      ],
+      "requires": []
+    },
+    {
+      "id": "runtime-boundaries",
+      "kind": "command",
+      "inputs": [
+        "assets/js/modules/app-*.js",
+        "assets/js/modules/*-domain.js",
+        "scripts/check-runtime-boundaries.mjs"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-runtime-boundaries.mjs"
+      ],
+      "requires": []
+    },
+    {
+      "id": "ui-architecture",
+      "kind": "command",
+      "inputs": [
+        "assets/css/**",
+        "assets/js/modules/ui-*.js",
+        "index.html",
+        "apps/web-shell/editor.html",
+        "scripts/check-ui-*.mjs"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-ui-architecture.mjs"
+      ],
+      "requires": []
+    },
+    {
+      "id": "territorial-storage",
+      "kind": "command",
+      "inputs": [
+        "assets/js/modules/territorial-*.js",
+        "scripts/contracts/territorial-storage-access.json"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-territorial-storage.mjs"
+      ],
+      "requires": []
+    },
+    {
+      "id": "assets",
+      "kind": "command",
+      "inputs": [
+        "assets/worker-runtime/**",
+        "assets/js/build-meta.js",
+        "scripts/generate-build-metadata.mjs",
+        "scripts/lib/product-assets.mjs",
+        "scripts/lib/worker-assets.mjs",
+        "assets/data/**",
+        "assets/js/workers/**"
+      ],
+      "argv": [
+        "node",
+        "scripts/generate-build-metadata.mjs",
+        "--check"
+      ],
+      "requires": []
+    },
+    {
+      "id": "app-small-stage",
+      "kind": "command",
+      "inputs": [
+        "apps/web-shell/**",
+        "scripts/lib/product-assets.mjs",
+        "scripts/lib/worker-assets.mjs",
+        "assets/js/modules/worker-asset-url.js",
+        "assets/js/**",
+        "assets/css/**",
+        "assets/data/physical-land/**"
+      ],
+      "argv": [
+        "node",
+        "apps/web-shell/stage.mjs"
+      ],
+      "requires": [
+        "generated"
+      ]
+    },
+    {
+      "id": "app-small-verify",
+      "kind": "command",
+      "inputs": [
+        "apps/web-shell/**",
+        "scripts/lib/product-assets.mjs",
+        "scripts/lib/worker-assets.mjs",
+        "assets/js/modules/worker-asset-url.js",
+        "assets/js/**",
+        "assets/css/**",
+        "assets/data/physical-land/**"
+      ],
+      "argv": [
+        "node",
+        "apps/web-shell/check-stage.mjs"
+      ],
+      "requires": [
+        "app-small-stage"
+      ]
+    },
+    {
+      "id": "app-world-stage",
+      "kind": "command",
+      "inputs": [
+        "apps/web-shell/**",
+        "scripts/lib/product-assets.mjs",
+        "scripts/lib/worker-assets.mjs",
+        "assets/js/modules/worker-asset-url.js",
+        "assets/js/**",
+        "assets/css/**",
+        "assets/data/physical-land/**"
+      ],
+      "argv": [
+        "node",
+        "apps/web-shell/stage.mjs",
+        "--profile=full-world"
+      ],
+      "requires": [
+        "app-small-verify"
+      ]
+    },
+    {
+      "id": "app-world-verify",
+      "kind": "command",
+      "inputs": [
+        "apps/web-shell/**",
+        "scripts/lib/product-assets.mjs",
+        "scripts/lib/worker-assets.mjs",
+        "assets/js/modules/worker-asset-url.js",
+        "assets/js/**",
+        "assets/css/**",
+        "assets/data/physical-land/**"
+      ],
+      "argv": [
+        "node",
+        "apps/web-shell/check-stage.mjs"
+      ],
+      "requires": [
+        "app-world-stage"
+      ]
+    },
+    {
+      "id": "places",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/place-runtime.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/place-*.js",
+        "assets/js/modules/territorial-labels.js",
+        "assets/data/places/**"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "lint",
+      "kind": "command",
+      "inputs": [
+        "assets/js/**",
+        "scripts/**",
+        "tests/**",
+        "tools/*.mjs",
+        "apps/web-shell/*.js",
+        "apps/web-shell/*.mjs"
+      ],
+      "argv": [
+        "node",
+        "node_modules/eslint/bin/eslint.js"
+      ],
+      "appendChanged": true
+    },
+    {
+      "id": "commands",
+      "kind": "command",
+      "inputs": [
+        "assets/js/modules/*-service.js",
+        "assets/js/modules/*-domain.js",
+        "assets/js/modules/core-document-*.js"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-command-architecture.mjs"
+      ]
+    },
+    {
+      "id": "provenance",
+      "kind": "command",
+      "inputs": [
+        "assets/js/modules/source-provenance.js",
+        "assets/js/modules/generic-*.js",
+        "assets/js/modules/project-*.js"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-generic-provenance.mjs"
+      ]
+    },
+    {
+      "id": "version-contract",
+      "kind": "command",
+      "inputs": [
+        "assets/js/modules/project-*.js",
+        "assets/js/modules/*-adapter-*.js",
+        "scripts/generate-build-metadata.mjs"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-version-architecture.mjs"
+      ]
+    },
+    {
+      "id": "renderer-contract",
+      "kind": "command",
+      "inputs": [
+        "assets/js/modules/gpu-*.js",
+        "assets/js/modules/render-*.js"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-renderer-v2.mjs"
+      ]
+    },
+    {
+      "id": "ui-spacing",
+      "kind": "command",
+      "inputs": [
+        "assets/css/**"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-ui-spacing.mjs"
+      ]
+    },
+    {
+      "id": "ui-components",
+      "kind": "command",
+      "inputs": [
+        "assets/css/**",
+        "assets/js/modules/ui-*.js",
+        "index.html",
+        "apps/web-shell/editor.html"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-ui-components.mjs"
+      ]
+    },
+    {
+      "id": "ui-layering",
+      "kind": "command",
+      "inputs": [
+        "assets/css/**",
+        "assets/js/modules/ui-*.js"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-ui-layering.mjs"
+      ]
+    },
+    {
+      "id": "ui-ia",
+      "kind": "command",
+      "inputs": [
+        "assets/js/modules/ui-*.js",
+        "assets/js/modules/surface-*.js",
+        "index.html",
+        "apps/web-shell/editor.html"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-ui-information-architecture.mjs"
+      ]
+    },
+    {
+      "id": "object-registry",
+      "kind": "command",
+      "inputs": [
+        "assets/js/modules/*object*.js",
+        "assets/js/modules/*registry*.js"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-object-registry.mjs"
+      ]
+    },
+    {
+      "id": "current-world",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**",
+        "assets/data/countries-ne-5.1.1.geojson"
+      ],
+      "argv": [
+        "node",
+        "tools/build-territorial-current-world.mjs",
+        "--check"
+      ],
+      "gisNative": true
+    },
+    {
+      "id": "country-colors",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**"
+      ],
+      "argv": [
+        "node",
+        "tools/build-country-default-colors.mjs",
+        "--check"
+      ],
+      "gisNative": true
+    },
+    {
+      "id": "country-boundaries",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**"
+      ],
+      "argv": [
+        "node",
+        "tools/build-country-shared-boundaries.mjs",
+        "--check"
+      ],
+      "gisNative": true
+    },
+    {
+      "id": "world-bundle",
+      "kind": "command",
+      "inputs": [
+        "assets/data/world/**"
+      ],
+      "argv": [
+        "node",
+        "tools/build-world-bundle.mjs",
+        "--check"
+      ],
+      "gisNative": true
+    },
+    {
+      "id": "country-preview",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**"
+      ],
+      "argv": [
+        "node",
+        "tools/build-world-preview.mjs",
+        "--check"
+      ],
+      "gisNative": true,
+      "requires": [
+        "country-validity-canonical"
+      ]
+    },
+    {
+      "id": "territorial-chunks",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**"
+      ],
+      "argv": [
+        "node",
+        "tools/build-territorial-entity-chunks.mjs",
+        "--check"
+      ],
+      "gisNative": true
+    },
+    {
+      "id": "places-runtime",
+      "kind": "command",
+      "inputs": [
+        "assets/data/places/**",
+        "tools/build-place-runtime.mjs"
+      ],
+      "argv": [
+        "node",
+        "tools/build-place-runtime.mjs",
+        "--check"
+      ],
+      "gisNative": false
+    },
+    {
+      "id": "web-stage",
+      "kind": "command",
+      "inputs": [
+        "assets/js/**",
+        "assets/css/**",
+        "assets/data/**",
+        "tools/stage-monorepo-pages.mjs",
+        "scripts/lib/product-assets.mjs"
+      ],
+      "argv": [
+        "node",
+        "tools/stage-monorepo-pages.mjs",
+        "--root",
+        ".",
+        "--stage",
+        "{scratch}/web-site",
+        "--manifest",
+        "{scratch}/web-evidence.json"
+      ],
+      "requires": [
+        "generated"
+      ]
+    },
+    {
+      "id": "country-selftest",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**",
+        "assets/data/countries-ne-5.1.1.geojson"
+      ],
+      "argv": [
+        "node",
+        "tools/run-country-validator.mjs",
+        "--self-test"
+      ],
+      "gisNative": true
+    },
+    {
+      "id": "country-validity-canonical",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**",
+        "assets/data/countries-ne-5.1.1.geojson"
+      ],
+      "argv": [
+        "node",
+        "tools/run-country-validator.mjs",
+        "--canonical-only"
+      ],
+      "gisNative": true
+    },
+    {
+      "id": "country-validity",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**",
+        "assets/data/countries-ne-5.1.1.geojson"
+      ],
+      "argv": [
+        "node",
+        "tools/run-country-validator.mjs"
+      ],
+      "gisNative": true,
+      "requires": [
+        "country-preview"
+      ]
+    },
+    {
+      "id": "territorial-library-contract",
+      "kind": "command",
+      "inputs": [
+        "assets/data/territorial-entities/source/**",
+        "assets/data/countries-ne-5.1.1.geojson"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-territorial-library.mjs"
+      ],
+      "gisNative": false,
+      "requires": [
+        "core"
+      ]
+    }
+  ],
+  "prerequisites": {
+    "generated": {
+      "argv": [
+        "node",
+        "scripts/generate-build-metadata.mjs",
+        "--check"
+      ]
+    },
+    "core": {
+      "argv": [
+        "node",
+        "scripts/check-core-prerequisite.mjs"
+      ]
+    }
+  },
+  "productRoots": [
+    "assets/**",
+    "apps/web-shell/**",
+    "shared/**",
+    "scripts/**",
+    "tools/**",
+    "contracts/**",
+    "tests/**"
+  ],
+  "passiveInputs": [
+    "assets/js/vendor/**",
+    "assets/vendor/**",
+    "assets/fonts/**",
+    "assets/icons/**",
+    "assets/flags/**"
+  ],
+  "infrastructure": [
+    "pnpm-lock.yaml",
+    "playwright.config.js",
+    ".nvmrc",
+    "config/toolchain-versions.json"
+  ],
+  "bindings": [
+    {
+      "tests": [
+        "tests/unit/*architecture*.test.mjs",
+        "tests/unit/application-*.test.mjs",
+        "tests/unit/capability-*.test.mjs",
+        "tests/unit/current-browser-contracts.test.mjs",
+        "tests/unit/check-*.test.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/app-composition.js",
+        "assets/js/modules/app-capability-ports*.js",
+        "scripts/plan-application-checks.mjs",
+        "scripts/run-application-checks.mjs",
+        "scripts/contracts/application-checks.json",
+        ".github/workflows/*.yml"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/ui-components.spec.mjs",
+        "tests/browser/storage-protection.spec.mjs",
+        "tests/browser/web-viewer.spec.mjs"
+      ],
+      "inputs": [
+        "assets/js/modules/**",
+        "index.html",
+        "apps/web-shell/editor.html"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/*staging*.test.mjs",
+        "tests/unit/*assets.test.mjs",
+        "tests/unit/project-session-viewing.test.mjs",
+        "tests/unit/object-search*.test.mjs"
+      ],
+      "inputs": [
+        "scripts/lib/product-assets.mjs",
+        "scripts/lib/worker-assets.mjs",
+        "assets/js/modules/project-session.js",
+        "assets/js/modules/object-query.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/core-*.test.mjs",
+        "tests/unit/web-*.test.mjs"
+      ],
+      "inputs": [
+        "shared/**"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/check-*.test.mjs",
+        "tests/unit/current-browser-contracts.test.mjs",
+        "tests/unit/p1-remote-scopes.test.mjs",
+        "tests/unit/p3-remote-plan.test.mjs"
+      ],
+      "inputs": [
+        ".github/workflows/application-architecture.yml",
+        ".github/workflows/remote-development-p1.yml",
+        ".github/workflows/remote-preview-p3.yml",
+        "scripts/lib/check-changes.mjs"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/*version*.test.mjs",
+        "tests/unit/check-*.test.mjs",
+        "tests/unit/current-browser-contracts.test.mjs",
+        "tests/unit/p1-remote-scopes.test.mjs",
+        "tests/unit/p3-remote-plan.test.mjs"
+      ],
+      "inputs": [
+        "package.json",
+        "eslint.config.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/ui-components.spec.mjs",
+        "tests/browser/web-viewer.spec.mjs",
+        "tests/browser/storage-protection.spec.mjs"
+      ],
+      "inputs": [
+        "package.json",
+        "playwright.config.js",
+        "tests/browser/server.mjs"
+      ]
+    }
+  ],
+  "runtimeBases": {
+    "apps/web-shell/startup.js": "assets/js",
+    "assets/js/modules/app-runtime-dependencies.js": "assets/js"
+  },
+  "runtimeHelperBases": {
+    "versionedModuleUrl": "assets/js"
+  },
+  "relocatedSources": [
+    {
+      "source": "apps/web-shell/",
+      "output": "shell/",
+      "reason": "stage.mjs copies the shell modules beneath shell/ in the app bundle."
+    }
+  ],
+  "manualScopes": {
+    "map-rendering": [
+      "tests/browser/country-map-substrate.spec.mjs",
+      "tests/browser/interaction-unification.spec.mjs"
+    ],
+    "editor-diagnostics": [
+      "tests/browser/gis-interchange.spec.mjs",
+      "tests/browser/boundary-cut-snapping.spec.mjs",
+      "tests/browser/hydro-metadata-edit.spec.mjs",
+      "tests/browser/library-header-layout.spec.mjs"
+    ]
+  },
+  "externalChecks": [
+    {
+      "id": "native-core",
+      "inputs": [
+        "shared/**",
+        "CMakeLists.txt",
+        "CMakePresets.json"
+      ],
+      "workflow": ".github/workflows/remote-development-p1.yml",
+      "job": "native-core",
+      "reason": "Standalone C++ compilation remains owned by P1; local application checks do not certify native execution."
+    },
+    {
+      "id": "gis-python",
+      "inputs": [
+        "tools/*.py",
+        "scripts/*.py",
+        "tests/python/**"
+      ],
+      "workflow": ".github/workflows/gis-python-p4.yml",
+      "reason": "GIS Python keeps its independent runtime and workflow."
+    }
+  ],
+  "remoteScopes": {
+    "p1": {
+      "ui": [
+        "ui",
+        "viewer",
+        "ui-contracts",
+        "ui-architecture",
+        "ui-spacing",
+        "ui-components",
+        "ui-layering",
+        "ui-ia",
+        "object-registry"
+      ],
+      "objects": [
+        "objects",
+        "projects",
+        "object-contracts",
+        "commands",
+        "provenance",
+        "version-contract"
+      ],
+      "gis": [
+        "gis-contracts",
+        "hydro-gis",
+        "terrain",
+        "boundaries",
+        "country-selftest",
+        "country-validity-canonical",
+        "country-preview",
+        "country-validity",
+        "territorial-library-contract"
+      ],
+      "places": [
+        "places",
+        "place-contracts",
+        "places-runtime"
+      ]
+    },
+    "p3": {
+      "acceptance": [
+        "ui-contracts",
+        "place-contracts",
+        "reference-contracts",
+        "object-contracts",
+        "gis-contracts"
+      ],
+      "browser": [
+        "terrain",
+        "boundaries",
+        "rendering",
+        "objects",
+        "projects",
+        "viewer",
+        "library",
+        "hydro-gis",
+        "reference-images",
+        "ui",
+        "places"
+      ]
+    }
+  }
+}
