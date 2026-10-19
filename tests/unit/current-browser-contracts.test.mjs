@@ -54,6 +54,13 @@ test('CSS selects relevant UI checks without C++/GIS build or data generation co
     assert.ok(catalog.groups.some(group => group.id === id && group.argv?.length));
 });
 
+test('prepared asset changes retain the real fixed-land unit and browser regressions', () => {
+  const repository = loadRepository(new URL('../../', import.meta.url));
+  const plan = planApplicationChecks({ repository, changedFiles: ['assets/data/prepared-polygons/generated/v2/manifest.json'] });
+  assert.ok(plan.unitTests.includes('tests/unit/prepared-polygon-mesh.test.mjs'));
+  assert.ok(plan.browserSpecs.includes('tests/browser/physical-land-time.spec.mjs'));
+});
+
 // Parse only the guard-expression subset, without executing YAML as JavaScript.
 function expressionValue(expression, context) {
   const tokens = expression.match(/'[^']*'|\d+|==|!=|&&|\|\||[(),]|[a-zA-Z_][\w.-]*/g) || [];

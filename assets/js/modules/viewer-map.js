@@ -63,7 +63,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   mapHost.initializeResolutionQuery();mapHost.initializeMapResizeObserver();
   projectSession.connect({readiness:{DATA_READINESS},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
     modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET},domains:{selectionDomain:documentSession.selectionDomain},
-    uiFactoriesA:{createAtomicMapStateController},workspaceUiA:{get clampViewZooms(){return navigation.clampViewZooms;}}});
+    uiFactoriesA:{createAtomicMapStateController},mapNavigation:{get clampViewZooms(){return navigation.clampViewZooms;}}});
   projectSession.initializeMapWorkScheduler();
   const state=projectSession.state,mapWorkScheduler=projectSession.mapWorkScheduler;
   const entityStore=createTerritorialEntityStore({documentModel:documentSession.documentModel,commandOwner:documentSession.commandOwner,

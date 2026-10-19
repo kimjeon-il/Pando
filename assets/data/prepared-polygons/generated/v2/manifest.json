@@ -8,6 +8,7 @@
   "inputHashes": {
     "assets/data/historical-world/generated/v1/world-project.json.gz": "93be24bd86908da182e1641de98b54a881b7d510ba579d67a5e7232565156e93",
     "assets/data/territorial-entities/generated/current-world.geojson": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb",
+    "assets/data/physical-land/v1/geometry.json.gz": "aeb0905d1f95d387261c3c798aa7847d9c15fb3203858b10bfc5c21a94578f98",
     "assets/data/territorial-entities/generated/v2/state-ABW.json.gz": "a427e103fb240c1ec95b44216defbd79ab97e1a0c9ba260b4600dd4385acc831",
     "assets/data/territorial-entities/generated/v2/state-AFG.json.gz": "daf94898d403323e51259b3e4a7a3b75c43ee5ab8c70fc0a88c2860a004925f7",
     "assets/data/territorial-entities/generated/v2/state-AGO.json.gz": "ea7ce10dc29ca3ac528379b67ef2484ad16b664861da15e42ffaa1d275acc18e",
@@ -926,6 +927,13 @@
       "encoding": "gzip",
       "compressedBytes": 88436,
       "decodedBytes": 192312
+    },
+    "49c953d056fae96917f4b57d8d4f8cf657b4a33dcdaa3bb8d331dbb1156e5f17": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-04d34326fc175faeb60da19c06d3f45a679ce25f196a779fa83766b53657ecf3.bin.gz",
+      "sha256": "04d34326fc175faeb60da19c06d3f45a679ce25f196a779fa83766b53657ecf3",
+      "encoding": "gzip",
+      "compressedBytes": 19388644,
+      "decodedBytes": 43498236
     },
     "49ebfd1a0c1449665aa7c3a91e75af67be8351b0348110ea48a881b487294f24": {
       "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e783cc9f5e19dcd745a0b6abc01e3031c64063ec9863bc0b61f4d7c4e0298dae.bin.gz",
