@@ -288,7 +288,6 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'layerVisibility', scope: 'session', fallback: current => current || {} }),
   Object.freeze({ name: 'itemVisibility', scope: 'session', fallback: () => ({}) }),
   Object.freeze({ name: 'projection', scope: 'session', fallback: () => 'globe' }),
-  Object.freeze({ name: 'layerFolders', scope: 'session', fallback: () => ({}) }),
   Object.freeze({ name: 'view', scope: 'session', fallback: current => current || {} }),
   Object.freeze({ name: 'timelineCursor', scope: 'session', fallback: current => current || '' }),
 ]);

@@ -18,7 +18,8 @@
   if (assetRevision) selectOptionPolicyUrl.searchParams.set('v', assetRevision);
   let resolveSelectChoice;
   if (assetRevision) gpkgWorkerUrlObject.searchParams.set('v', assetRevision);
-  const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
+  const workerAssetModuleUrl = new URL('modules/worker-asset-url.js', baseUrl);
+  if (assetRevision) workerAssetModuleUrl.searchParams.set('v', assetRevision);
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
   const gisAdapters = window.PandoLabGisAdapters;
@@ -105,9 +106,11 @@
     return window.fflate;
   }
 
-  function getGpkgWorker() {
+  async function getGpkgWorker() {
     if (gpkgWorker) return gpkgWorker;
-    gpkgWorker = new Worker(gpkgWorkerUrl, { name: 'pandolab-gpkg' });
+    const { workerAssetUrl } = await import(workerAssetModuleUrl.href);
+    if (gpkgWorker) return gpkgWorker;
+    gpkgWorker = new Worker(workerAssetUrl(gpkgWorkerUrlObject), { name: 'pandolab-gpkg' });
     gpkgWorker.onmessage = event => {
       const pending = workerPending.get(event.data?.id);
       if (!pending) return;
@@ -124,9 +127,9 @@
     return gpkgWorker;
   }
 
-  function callGpkgWorker(action, buffer, extra = {}) {
+  async function callGpkgWorker(action, buffer, extra = {}) {
+    const worker = await getGpkgWorker();
     return new Promise((resolve, reject) => {
-      const worker = getGpkgWorker();
       const id = ++workerSequence;
       workerPending.set(id, { resolve, reject });
       worker.postMessage({ id, action, buffer, ...extra }, [buffer]);

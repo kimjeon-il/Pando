@@ -108,6 +108,17 @@ test('canonical projection preserves date-line and rolled polar visibility while
     assert.deepEqual(result.records.map(record=>record.sourceId),[expected]);
   }
 });
+test('search uses the same monthly place naming and BCE availability as label drawing',async()=>{
+ const {bytes,manifest}=fixture(),store=createPlaceWorkerStore({manifest,fetchBytes:async()=>bytes});
+ const modern=await store.search('서울 19',undefined,{month:'2026-10',languages:{ko:true}});
+ assert.equal(modern.records.length,1);
+ assert.equal(modern.displayNames[modern.records[0].id],'서울 19');
+ const ancient=await store.search('서울',undefined,{month:'-0044-03',languages:{ko:true}});
+ assert.deepEqual(ancient.records,[]);
+ const historical=await store.search('서울 19',undefined,{month:'1914-06',languages:{ko:true}});
+ assert.equal(historical.displayNames[historical.records[0].id],'(현)서울 19');
+});
+
 test('decoded cache accounts every string field including worst-case Unicode metadata',async()=>{
   const records=Array.from({length:4},(_,i)=>normalizePlace({source:'s'.repeat(32),sourceId:'🗺'.repeat(127)+i,name:'🗺'.repeat(256),kind:'capital',coordinates:[0,0],countryCode:'🗺'.repeat(8),featureCode:'🗺'.repeat(32)}));
   const bytes=new Uint8Array(encodePlaceTile(records));const {manifest}=fixture();manifest.shards.s.bytes=bytes.length;manifest.tiles['0/0-0'].length=bytes.length;manifest.tiles['0/0-0'].sha256=sha256(bytes);manifest.search={};

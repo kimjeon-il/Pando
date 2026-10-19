@@ -98,7 +98,7 @@ test('real GIS GeoJSON export and reimport preserve original provenance and deta
         getGeneration: () => 0, inspectImport() {} }, planTransferLandDependents() {},
       uid: () => '00000000-0000-4000-8000-000000000011', GENERIC_FEATURE_SCHEMA_VERSION,
       DEFAULT_GENERIC_FEATURE_COLOR: '#888888', normalizeGenericFeatureSemantics, validateStructuredGeometry: () => [],
-      genericFeatureService: { addMany: values => { imported = values[0]; } }, activeLayerFolderKeys: () => [],
+      genericFeatureService: { addMany: values => { imported = values[0]; } },
       invalidateObjectPresentation() {}, setActionStatus() {} });
     await importer.importGeoJson({ name: 'generic_features.geojson' }, { parsed });
     return { oldId: original.id, id: imported.id, properties: imported.properties, expected: original.properties };

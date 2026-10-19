@@ -21,9 +21,6 @@ export function createHydroSettings() {
     return Math.min((0, dependencies.surfaces.isMobile)() ? 2 : 3, devicePixelRatio);
   }
 
-  function activeLayerFolderKeys() {
-    return ['polities', 'landforms'];
-  }
 
   function normalizePhysicalSettings(value) {
     const previousLayers = value?.hydroLayers || {};
@@ -180,7 +177,6 @@ export function createHydroSettings() {
     connect,
     hydroLineParts,
 
-    get activeLayerFolderKeys() { return activeLayerFolderKeys; },
     get allBuiltInHydroFeatures() { return allBuiltInHydroFeatures; },
     get builtInHydroFeatureById() { return builtInHydroFeatureById; },
     get currentMapDevicePixelRatio() { return currentMapDevicePixelRatio; },

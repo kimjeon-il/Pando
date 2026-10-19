@@ -38,7 +38,7 @@ export async function composeViewer({ productMode, meta }) {
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
   tooltipController.bind();
   const viewStorage=createBrowserProjectStorage({productMode,indexedDB:window.indexedDB,localStorage:window.localStorage,databaseName:'pandolab-editor',storeName:'projects',projectKey:'active-project',viewKey:'active-view',fallbackKey:'pandolab-editor-project'});
-  const owners=createMapOwners({productMode,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectAvailable:(group,id)=>map.objectQuery.isObjectAvailable(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
+  const owners=createMapOwners({productMode,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));syncStatus();},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectVisible:(group,id)=>map.objectQuery.objectRefVisible(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
   const surfaces=owners.workspaceSurfaces;
   const selectController=createSelectController({document,window});selectController.enhanceAll();
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile()});
@@ -59,7 +59,7 @@ export async function composeViewer({ productMode, meta }) {
   selectionUiController=createSelectionUiController({window,document,selectionDomain,elements:{selectionStatus:status},
     resolveRef:value=>value,refExists:ref=>map.objectQuery.objectRefExists(ref),displayInfo:ref=>map.objectQuery.objectDisplayInfo(ref),
     presenters:{default:ref=>{status.textContent=map.objectQuery.objectDisplayInfo(ref).name;}},
-    uiActions:{closeChooser:()=>map.closeObjectChooser(),clearPresenter:()=>{status.textContent=`객체 ${map.features().length}개`;},syncLayerRows:()=>searchController.syncSelection()}});
+    uiActions:{closeChooser:()=>map.closeObjectChooser(),clearPresenter:()=>{status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;},syncLayerRows:()=>searchController.syncSelection()}});
   const activeSession=Object.freeze({...documentSession,projectDomain,selectionDomain,selectionUiController});
   surfaces.connect({platform:{$:id=>get(id==='app'?'viewer':id)},projectState:{get state(){return map.viewState;}},
     uiFactoriesB:{createSurfaceController},domains:{get objectSearchController(){return searchController;}},
@@ -78,11 +78,12 @@ export async function composeViewer({ productMode, meta }) {
     closeSearchAfterSingleSelection:()=>surfaces.closeSurface('search')});
   searchController.bind();surfaces.applyLayoutMode({initial:true});
   map.refreshAppearance({rerender:false});
+  const syncStatus=()=>{if(!map)return;if(!selectionDomain.snapshot().selection.items.length)status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;else selectionUiController.syncNow(null,{force:true});};
   const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.cancelSearch();searchController.render(true);};
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
       const current=activeSession;if(projectDomain.isOpening()||!current)throw new Error('지도를 여는 중입니다.');
-      try {await current.commandOwner.setTimelineCursor(month);await map.update();search();}
+      try {await current.commandOwner.setTimelineCursor(month);await map.update();search();syncStatus();}
       catch(error){if(current===activeSession&&!projectDomain.isOpening())throw error;}
     },
   });
@@ -100,6 +101,7 @@ export async function composeViewer({ productMode, meta }) {
     try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
     if(request!==projectDomain.getOpenRevision())return;
     map.projectSession.restoreViewingPresentation(workspace);
+    await map.loadPhysicalLandMask();
     await map.objectCatalog.pruneLayerItemVisibility();
     if(!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
     await map.update();
@@ -107,10 +109,10 @@ export async function composeViewer({ productMode, meta }) {
     await searchController.completeHydration();
     if(request!==projectDomain.getOpenRevision())return;
     display.renderMapDisplaySettings();
-    search();surfaces.syncOverlayState();status.textContent=`객체 ${map.features().length}개`;status.dataset.ready='true';
+    search();surfaces.syncOverlayState();status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;status.dataset.ready='true';
     map.loadPhysicalResources();
     } catch(error){if(request===projectDomain.getOpenRevision()){
-      status.textContent=`객체 ${map.features().length}개`;status.dataset.ready='true';throw error;
+      status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;status.dataset.ready='true';throw error;
     }}
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});

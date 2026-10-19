@@ -547,9 +547,8 @@ function canvasFallbackWorkerMain() {
         // Use the same adopted country geometry as the Canvas substrate
         // and country fills, including country visibility and edit patches.
         const landPath = createCanvasPath(projection, context);
-        for (const feature of visibleLand) landPath(feature);
         for (const packet of message.scenePolygons || []) {
-          if (packet.role === 'territorial-fill') landPath(self.PandoLabCanvasSceneComposition.geometryFor(packet));
+          if (packet.role === 'physical-land') landPath(self.PandoLabCanvasSceneComposition.geometryFor(packet));
         }
         context.clip();
       }
@@ -586,9 +585,8 @@ function canvasFallbackWorkerMain() {
           context.setTransform(dpr, 0, 0, dpr, 0, 0);
           context.beginPath();
           const landPath = createCanvasPath(projection, context);
-          for (const feature of visibleLand) landPath(feature);
           for (const packet of message.scenePolygons || []) {
-            if (packet.role === 'territorial-fill') landPath(self.PandoLabCanvasSceneComposition.geometryFor(packet));
+            if (packet.role === 'physical-land') landPath(self.PandoLabCanvasSceneComposition.geometryFor(packet));
           }
           context.clip();
           drawDem('land');
@@ -855,18 +853,11 @@ function canvasFallbackWorkerMain() {
     }
     function renderCountryBoundaries(message, projection, dpr, target = context, reserve = false) {
       const theme = message.theme, path = createCanvasPath(projection, target);
-      const hidden = new Set((message.hiddenSharedCountryIds || []).map(String));
       const sharedOnly = message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical';
       target.save(); target.setTransform(dpr, 0, 0, dpr, 0, 0);
       target.globalAlpha = reserve ? 1 : theme.borderAlpha;
       target.strokeStyle = theme.border;
       target.lineJoin = 'round'; target.lineWidth = theme.strokes.country.width;
-      // Build coast outlines only in a map mode that actually displays them.
-      if (!sharedOnly) for (let index = 0; message.visible && index < features.length; index++) {
-        const feature = features[index], id = countryId(feature, index);
-        if (hidden.has(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
-        target.beginPath(); path(boundaryOutlineFeature(feature)); target.stroke();
-      }
       const batches = self.PandoLabCanvasSceneComposition.countryBoundaryBatches(countrySharedBoundary, theme, sharedOnly,
         id => message.countryBoundaryStyles[id]);
       self.PandoLabCanvasSceneComposition.drawStrokes(target, path,
@@ -898,8 +889,8 @@ function canvasFallbackWorkerMain() {
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
         const geoPath = createCanvasPath(projection, context);
         const visibleLand = message.visible ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
-        const landShapes = [...visibleLand.map(feature => feature.geometry), ...(message.scenePolygons || [])
-          .filter(packet => packet.role === 'territorial-fill').map(packet => self.PandoLabCanvasSceneComposition.geometryFor(packet))];
+        const landShapes = (message.scenePolygons || []).filter(packet => packet.role === 'physical-land')
+          .map(packet => self.PandoLabCanvasSceneComposition.geometryFor(packet));
         const terrainPlan = terrainRenderPlan(message, projection, width, height, dpr);
         const substrateKey = JSON.stringify([projectedPathKey, pixelWidth, pixelHeight, dpr, message.terrainDpr,
           message.physicalSettings?.terrainVisible, message.physicalSettings?.terrainStyle, message.darkTheme,

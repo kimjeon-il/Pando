@@ -30,9 +30,9 @@ export function drawGpuBaseScene(input, passes) {
 function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
   terrainVisible, terrainStyle, countriesVisible, mapSubstrate, countries, prepared },
   { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
-  const { mesh, overrideMesh, dynamicResources, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
-  const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
-    territoryItems, independentItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
+  const { mesh, overrideMesh, dynamicResources, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
+  const { baseTriangleDraw, overrideTriangleDraw,
+    territoryItems, physicalLandItems = [], independentItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
       const overlayRenderedKeys = [];
       const overlayMissingKeys = [];
       const overlayFailures = [];
@@ -68,14 +68,10 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       gl.stencilMask(0xff);
       gl.stencilFunc(gl.EQUAL, 0, 0xff);
       gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
-      for (const { packet } of territoryItems) {
+      for (const { packet } of physicalLandItems) {
         if (!deferredOverlayKeys.has(String(packet.key)) && !failedOverlayKeys.has(String(packet.key))) {
           polygonOverlayPass.drawPackets([{ ...packet, blendMode: 'normal', style: mapSubstrate }], activeFrameContext, { preparedOnly: true });
         }
-      }
-      if (countriesVisible) {
-        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges, true);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges, true);
       }
       gl.disable(gl.STENCIL_TEST);
       gl.clear(gl.STENCIL_BUFFER_BIT);
@@ -88,12 +84,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         gl.stencilFunc(gl.ALWAYS, 1, 0xff);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         gl.colorMask(false, false, false, false);
-        drawProgram(landMaskProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(landMaskProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
-        // General descendants may have explicit land outside the root polygon.
-        // Consume the same prepared display geometry without clipping/editing it.
-        // Independent regional overlays are absent from territoryItems.
-        for (const { packet } of territoryItems) {
+        for (const { packet } of physicalLandItems) {
           if (!deferredOverlayKeys.has(String(packet.key)) && !failedOverlayKeys.has(String(packet.key))) {
             polygonOverlayPass.drawPackets([packet], activeFrameContext, { claimTransparent: true, preparedOnly: true });
           }
@@ -131,7 +122,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       gl.disable(gl.STENCIL_TEST);
       resetGpuNormalBlend(gl);
         },
-        'country-boundary': () => { countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw); },
+        'country-boundary': () => { countryStrokeResult = drawCountryBoundaryStrokes(); },
         'independent-overlay': () => {
       // Reserve base water and borders, then submit every independent visual
       // in scene order. Only fills are clipped by these protected pixels.
@@ -143,7 +134,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         gl.colorMask(false, false, false, false);
         for (const role of mapVisualOrder('hydro')) drawHydro(role);
-        drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
+        drawCountryBoundaryStrokes();
         gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);
         gl.stencilFunc(gl.EQUAL, 0, 0xff);

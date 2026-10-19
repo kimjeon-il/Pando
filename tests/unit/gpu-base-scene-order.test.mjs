@@ -22,7 +22,7 @@ for (const style of ['political', 'physical']) {
       const polygonOverlayPass = { hasResource: () => true,
         drawPackets(packets, _frame, options) {
           if (!state.color && options.claimTransparent) {
-            events.push({ kind: 'mask-general', key: packets[0].key, ...state });
+            events.push({ kind: 'mask-physical', key: packets[0].key, ...state });
           }
           return { renderedKeys: packets.map(packet => packet.key), missingKeys: [] };
         } };
@@ -32,21 +32,22 @@ for (const style of ['political', 'physical']) {
           landMaskProgram: 'land-mask' },
         prepared: { baseTriangleDraw: range, baseBoundaryDraw: range, overrideTriangleDraw: range, overrideBoundaryDraw: range,
           deferredOverlayKeys: new Set(), failedOverlayKeys: new Set(),
+          physicalLandItems: [{ kind: 'polygon', packet: { key: 'physical-land', role: 'physical-land' } }],
           territoryItems: [{ kind: 'polygon', packet: { key: 'general', role: 'territorial-fill' } }],
           independentItems: [{ kind: 'polygon', packet: { key: 'regional', role: 'regional-overlay' } }] },
       }, { polygonOverlayPass, strokeRenderer: {},
-        drawProgram: program => { if (program === 'land-mask') events.push({ kind: 'mask-country', ...state }); },
+        drawProgram() {},
         renderTerrain: pass => events.push({ kind: pass, ...state }),
         drawHydro() {}, drawCountryBoundaryStrokes: () => ({ succeeded: true }) });
       assert.deepEqual(events.map(event => event.kind),
-        ['mask-country', 'mask-country', 'mask-general', ...(style === 'physical' ? ['ocean'] : []), 'land']);
-      for (const event of events.slice(0, 3)) {
+        ['mask-physical', ...(style === 'physical' ? ['ocean'] : []), 'land']);
+      for (const event of events.slice(0, 1)) {
         assert.equal(event.stencil, true);
         assert.equal(event.color, false);
         assert.equal(event.func, 'ALWAYS');
       }
-      assert.equal(events[2].key, 'general', 'independent regions must not add land to the mask');
-      for (const event of events.slice(3)) {
+      assert.equal(events[0].key, 'physical-land', 'independent regions must not add land to the mask');
+      for (const event of events.slice(1)) {
         assert.equal(event.stencil, true);
         assert.equal(event.color, true);
         assert.equal(event.func, event.kind === 'ocean' ? 'NOTEQUAL' : 'EQUAL');
@@ -103,7 +104,7 @@ test('changing overlay order keeps the frontmost stroke or fill aligned with can
     projectSession: session, mapLayout: { viewRevision: 1 }, renderServices: { selectionPerformanceCounterSnapshot: () => ({}) },
     surfaceCommands: { replaceObjectChooserCandidates: refs => { session.objectChooserCandidates = refs; } },
     domains: { selectionDomain: { has: () => false }, selectionUiController: { applyIntent: ref => selected.push(ref.key) } },
-    objectOperationsA: { objectDisplayInfo: ref => ({ name: ref.id }) } };
+    objectOperationsA: { objectRefVisible: () => true, objectDisplayInfo: ref => ({ name: ref.id }) } };
   const scene = createGpuScene(), picking = createObjectPicking(); scene.connect(ports); picking.connect(ports);
   for (const order of [['genericFeatures', 'objects'], ['objects', 'genericFeatures']]) {
     state.layerPresentation.overlayOrder = order;

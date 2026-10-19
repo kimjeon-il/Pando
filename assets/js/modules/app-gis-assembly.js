@@ -41,7 +41,6 @@ export function createGisAssembly({ fileAccess = null } = {}) {
       setActionStatus: dependencies.feedback.setActionStatus,
       createDistributionLayer: dependencies.distributionServices.createDistributionLayer,
       createDistributionEntry: dependencies.distributionServices.createDistributionEntry,
-      activeLayerFolderKeys: dependencies.hydroPresentation.activeLayerFolderKeys,
       normalizeGenericFeatureSemantics: dependencies.modelValidation.normalizeGenericFeatureSemantics,
       validateStructuredGeometry: dependencies.geometryModel.validateStructuredGeometry,
       validateGisCountryCollection: (...args) => gisWorkflow.validateCountries(...args),

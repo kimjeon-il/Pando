@@ -8,7 +8,7 @@ import { setViewingProjection, closeViewingDisplay } from './helpers/viewing-dis
 test.use({ viewport: { width: 1440, height: 900 }, trace: 'off' });
 
 for (const mode of ['viewer', 'editor']) for (const renderer of ['webgl2', 'canvas']) {
-  test(`${mode} ${renderer} keeps Hong Kong land contact without coastal dashes`, async ({ playwright }, testInfo) => {
+  test(`${mode} ${renderer} keeps Hong Kong land contact in the shared boundary owner`, async ({ playwright }, testInfo) => {
     test.setTimeout(180_000);
     const browser = await playwright.chromium.launch({ ...testInfo.project.use.launchOptions, channel: testInfo.project.use.channel,
       args: renderer === 'webgl2' ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] : [] });
@@ -26,6 +26,17 @@ for (const mode of ['viewer', 'editor']) for (const renderer of ['webgl2', 'canv
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(forceCanvas => {
       window.__coastScene = {};
+      window.__coastPackets = [];
+      window.__coastWorkers = [];
+      const NativeWorker = Worker;
+      window.Worker = class extends NativeWorker {
+        constructor(url, options) {
+          super(url, options); window.__coastWorkers.push(String(url));
+          if (String(url).includes('country-shared-boundary-worker')) this.addEventListener('message', event => {
+            if (event.data.type === 'prepared') window.__coastPackets.push(event.data.packet);
+          });
+        }
+      };
       if (forceCanvas) {
         const getContext = window.HTMLCanvasElement.prototype.getContext;
         window.HTMLCanvasElement.prototype.getContext = function(type, ...args) {
@@ -53,7 +64,7 @@ export function createRenderingDomain(options) {
     });
     await page.goto(mode === 'viewer' ? `/?renderer=${renderer}&debug=1` : `/apps/web-shell/editor.html?renderer=${renderer}&debug=1`);
     await expect(page.locator(mode === 'viewer' ? '#viewerStatus' : '#app'))
-      .toHaveAttribute(mode === 'viewer' ? 'data-ready' : 'data-readiness', mode === 'viewer' ? 'true' : 'enhanced', { timeout: 120_000 });
+      .toHaveAttribute(mode === 'viewer' ? 'data-ready' : 'data-readiness', mode === 'viewer' ? 'true' : /editable|enhanced/, { timeout: 120_000 });
     await page.evaluate(() => {
       window.__coastOpened = false;
       window.addEventListener('pandolab:project-changed', event => {
@@ -64,9 +75,12 @@ export function createRenderingDomain(options) {
     const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#openProjectBtn').click()]);
     await chooser.setFiles({ name: 'china-hongkong-macao.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: Buffer.from(file.buffer) });
     await expect.poll(() => page.evaluate(() => window.__coastOpened), { timeout: 90_000 }).toBe(true);
-    await expect.poll(() => page.evaluate(() => window.__coastScene.strokes?.flatMap(row => row.geometry.coordinates).length || 0), { timeout: 30_000 }).toBeGreaterThan(0);
-    const coordinates = await page.evaluate(() => window.__coastScene.strokes.flatMap(row => row.geometry.coordinates));
+    await expect.poll(() => page.evaluate(() => window.__coastPackets.at(-1)?.segments.filter(row => row.ownerIds.some(id => id.includes('HKG'))).length || 0), { timeout: 60_000 }).toBeGreaterThan(0);
+    expect(await page.evaluate(() => window.__coastScene.strokes?.length || 0)).toBe(0);
+    const coordinates = await page.evaluate(() => window.__coastPackets.at(-1).segments
+      .filter(row => row.ownerIds.some(id => id.includes('HKG'))).map(row => [row.start, row.end]));
     expect(coordinates.flat().every(point => point[1] > 22.5)).toBe(true);
+    expect(await page.evaluate(() => window.__coastWorkers.every(url => /assets\/worker-runtime\/[a-f0-9]{32}\//.test(url)))).toBe(true);
     const length = coordinates.reduce((total, line) => total + line.slice(1).reduce((sum, point, index) =>
       sum + Math.hypot(point[0] - line[index][0], point[1] - line[index][1]), 0), 0);
     expect(length).toBeGreaterThan(0.1);

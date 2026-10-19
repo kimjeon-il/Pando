@@ -1,7 +1,7 @@
 import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
 import { decodePlaceTile } from './place-codec.js';
 import { comparePlaces, normalizePlaceQuery, selectedPlaceNames, PLACE_LIMITS } from './place-contract.js';
-import { resolvePlaceLabelRows } from './place-name-display.js';
+import { resolvePlaceLabelRows, placeLabelRowsAtMonth } from './place-name-display.js';
 import { createFrameProjectors } from './map-visual-frame.js';
 import { placeLabelDimensions, automaticLabelSettings } from './label-layout.js';
 const noCancellation = Object.freeze({ throwIfCancelled() {} });
@@ -19,7 +19,8 @@ function viewportPredicate(view) {
   const {projectVisibleCoordinate}=createFrameProjectors(frame);
   return record => {
     const point=projectVisibleCoordinate(record.coordinates); if (!point) return false;
-    const rows=resolvePlaceLabelRows(record, { ko: true, en: true, native: true }, view.mapDate || null), safe=frame.safeInset;
+    const rows=view.presentation ? placeLabelRowsAtMonth(record,view.presentation.month, { ko: true, en: true, native: true })
+      : resolvePlaceLabelRows(record, { ko: true, en: true, native: true }, view.mapDate || null), safe=frame.safeInset;
     // Keep a superset regardless of UI language mode. Final multi-line bounds belong to main layout.
     return rows.some(row => {
       const {width,height}=placeLabelDimensions(row.text);
@@ -152,12 +153,15 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
     metrics.lastTileCount=rows.length; metrics.lastCandidateCount=records.length;
     return { signature: `${manifest.revision}:${tileWindow?.signature || 'empty'}`, records, tileCount: rows.length, cacheBytes: used, peakWorkingRecords:metrics.peakWorkingRecords };
   }
-  async function search(value, context=noCancellation) {
+  async function search(value, context=noCancellation, presentation=null) {
     const query=normalizePlaceQuery(value); if ([...query].length < 2) return { records: [], truncated: false };
     const prefix=[...query].slice(0,2).join(''), pages=(manifest.search[prefix] || []).filter(row => row.last >= query && row.first <= `${query}\uffff`);
     const selected=pages.slice(0,PLACE_LIMITS.queryTiles);
-    const {records,truncated}=await loadRows(selected,context,record=>selectedPlaceNames(record).some(name => normalizePlaceQuery(name).startsWith(query)),PLACE_LIMITS.searchResults);
-    return { records, truncated: pages.length > selected.length || truncated };
+    const names=record=>presentation ? placeLabelRowsAtMonth(record,presentation.month,presentation.languages).map(row=>row.text.replace(/^\(현\)/,'')) : selectedPlaceNames(record);
+    const {records,truncated}=await loadRows(selected,context,record=>names(record).some(name => normalizePlaceQuery(name).startsWith(query)),PLACE_LIMITS.searchResults);
+    const displayNames=Object.fromEntries(records.map(record=>[record.id,
+      placeLabelRowsAtMonth(record,presentation?.month,presentation?.languages)[0]?.text || record.name]));
+    return { records, displayNames, truncated: pages.length > selected.length || truncated };
   }
   return Object.freeze({ queryViewport, search, stats: () => ({ ...metrics, cacheBytes: used, cacheBudget: budget, cachedTiles: [...cache.keys()].filter(key => key.startsWith('tile:')).length, inflight: inflight.size }) });
 }

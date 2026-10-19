@@ -1,3 +1,4 @@
+import { createStoredAssetLoader } from './stored-asset-loader.js';
 /** PhysicalResources: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -6,6 +7,25 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
   let dependencies;
   let terrainService;
   let hydroService;
+  let physicalLand = null, landLoading = null;
+  function loadPhysicalLandMask() {
+    if (physicalLand) return Promise.resolve(physicalLand);
+    if (!landLoading) landLoading = (async () => {
+      const meta = globalThis.PANDOLAB_BUILD_META;
+      if (!meta?.physicalLand) throw new Error('Missing pinned physical land asset.');
+      const loader = createStoredAssetLoader({ dataRevision: meta.dataRevision,
+        resolveUrl: spec => new URL(spec.url.replace(/^assets\/data\//, ''), dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL).href });
+      const result = await loader.loadAsset(meta.physicalLand, 'background', 'physical-land', '육지 배경', buffer => {
+        const geometry = JSON.parse(new TextDecoder().decode(buffer));
+        if (geometry.type !== 'MultiPolygon' || !Array.isArray(geometry.coordinates)) throw new Error('Invalid physical land geometry.');
+        return geometry;
+      });
+      physicalLand = Object.freeze({ geometry: result.value, revision: meta.physicalLand.sha256 });
+      dependencies.domains.renderingDomain.invalidateProject('physical-land-ready');
+      return physicalLand;
+    })().catch(error => { landLoading = null; throw error; });
+    return landLoading;
+  }
   function connect(ports) {
     if (dependencies) throw new Error('physical-resources already connected');
     dependencies = ports;
@@ -55,7 +75,7 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
   }
 
   async function loadPhysicalData(){
-    try{return await Promise.all([loadTerrainManifest(),loadHydroData()]);}
+    try{return await Promise.all([loadPhysicalLandMask(),loadTerrainManifest(),loadHydroData()]);}
     catch(error){dependencies.feedback.reportOperationError(error,'지도 배경 자료를 준비하지 못했습니다.','PL-PHYSICAL-LOAD-001',4200);return false;}
   }
 
@@ -223,6 +243,8 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
   return Object.freeze({
     connect,
     initializeTerrainService,
+    loadPhysicalLandMask,
+    get physicalLand() { return physicalLand; },
     get hydroEditColor() { return hydroEditColor; },
     get hydroFeatureInView() { return hydroFeatureInView; },
     get hydroRenderGroups() { return hydroRenderGroups; },

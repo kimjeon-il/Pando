@@ -54,6 +54,8 @@ function isEquivalentCrLfCheckout(working, committed) {
 
 export async function stageWebPages(rootInput, stageInput, manifestInput) {
   const root = resolve(rootInput), stage = resolve(stageInput), manifest = resolve(manifestInput);
+  const generator = resolve(root, 'scripts/generate-build-metadata.mjs');
+  if (existsSync(generator)) execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
   if (within(root, stage) || stage === root) throw Error('Pages stage must be outside the source repository');
   if (within(root, manifest) || manifest === root || within(stage, manifest)) {
     throw Error('Pages evidence must be outside the source repository and stage');
@@ -69,7 +71,8 @@ export async function stageWebPages(rootInput, stageInput, manifestInput) {
   const web = all.filter(file => viewerPaths.has(file.path));
   const paths = new Set(web.map(file => file.path));
   const required=[...REQUIRED];
-  if(paths.has('assets/js/workers/core-viewer-session-worker.js'))required.push(
+  if([...paths].some(path => path === 'assets/js/workers/core-viewer-session-worker.js'
+    || path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))required.push(
     'assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm','assets/wasm/pandoeditor-core.manifest.json');
   for (const path of required) if (!paths.has(path)) throw Error(`Missing protected Web URL: ${path}`);
   const total = web.reduce((sum, file) => sum + file.bytes, 0);

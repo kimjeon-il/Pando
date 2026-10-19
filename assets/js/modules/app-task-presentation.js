@@ -204,7 +204,6 @@ export function createTaskPresentation() {
 
   function syncMapContextSurfaces() {
     const editing = mapModeContextActive();
-    dependencies.surfaceCommands.setMapModeContextActive(editing);
     if (!editing) dependencies.projectState.state.modeTaskMinimized = false;
     dependencies.platform.$('modeMapSummary')?.classList.toggle('hidden', !editing);
     const context = (0, dependencies.platform.$)('modeEditingContext');

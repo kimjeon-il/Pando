@@ -237,7 +237,6 @@ function createMapResourcePorts(providers) {
       get segmentsProperlyIntersect() { return providers.countryValidation.segmentsProperlyIntersect; },
     }),
     hydroPresentation: Object.freeze({
-      get activeLayerFolderKeys() { return providers.hydroSettings.activeLayerFolderKeys; },
       get allBuiltInHydroFeatures() { return providers.hydroSettings.allBuiltInHydroFeatures; },
       get HYDRO_LAYER_META() { return providers.environment.HYDRO_LAYER_META; },
       get HYDRO_TOOL_CONFIG() { return providers.environment.HYDRO_TOOL_CONFIG; },
@@ -270,7 +269,6 @@ function createMapResourcePorts(providers) {
       get LAYER_GROUP_KEYS() { return providers.objectPresentation.LAYER_GROUP_KEYS; },
       get layerGroupNames() { return providers.objectPresentation.layerGroupNames; },
       get invalidateObjectPresentation() { return providers.objectCatalog.invalidateObjectPresentation; },
-      get setScopedItemVisibility() { return providers.runtime.setScopedItemVisibility; },
     }),
     mapLayers: Object.freeze({
       get baseSvg() { return providers.objectCommands.baseSvg; },

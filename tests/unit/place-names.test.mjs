@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizePlace, normalizePlaceLanguages, togglePlaceLanguage } from '../../assets/js/modules/place-contract.js';
-import { resolvePlaceLabelRows } from '../../assets/js/modules/place-name-display.js';
+import { resolvePlaceLabelRows, placeLabelRowsAtMonth } from '../../assets/js/modules/place-name-display.js';
 import { placeLabelDimensions, layoutLabels } from '../../assets/js/modules/label-layout.js';
 
 const place = changes => normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',
   kind:'capital',coordinates:[30.52,50.45],nameTimeline:[{fromYear:1801,ko:'키예프'},{fromDate:'1991-08-24',ko:'키이우'}],...changes});
+test('one monthly place projection supplies search and drawing without claiming ancient existence',()=>{
+  assert.deepEqual(placeLabelRowsAtMonth(place(),'1990-01',{ko:true}).map(row=>row.text),['키예프']);
+  assert.deepEqual(placeLabelRowsAtMonth(place(),'-0044-03',{ko:true}),[]);
+  assert.deepEqual(placeLabelRowsAtMonth(place(),'2026-10',{ko:true}).map(row=>row.text),['키이우']);
+});
 test('Korean, English and native lines are independently selectable and ordered',()=>{
   const record=place();
   assert.deepEqual(resolvePlaceLabelRows(record,{ko:true,en:true,native:true}).map(row=>row.text),['키이우','Kyiv','Київ']);

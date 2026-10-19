@@ -33,11 +33,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
 
   function objectRefSelectable(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
-    if (!ref || !dependencies.objectLookup.objectRefExists(ref) || !dependencies.objectLookup.isObjectAvailable(ref)) return false;
-    if (ref.domain === 'territorial') {
-      const group = 'objects';
-      return dependencies.projectState.state.layerVisibility[group] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id);
-    }
+    if (!ref || !dependencies.objectOperationsA.objectRefVisible(ref)) return false;
     if (ref.domain === 'distribution') {
       const group = 'distributions';
       const state = dependencies.projectState.state;
@@ -49,12 +45,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
         ? state.distributionSettings.activeLayerId : firstVisible;
       return ref.id === active;
     }
-    if (ref.domain === 'generic') return dependencies.projectState.state.layerVisibility.genericFeatures !== false
-      && (0, dependencies.layerPresentation.isLayerItemVisible)('genericFeatures', ref.id);
-    if (ref.domain === 'label') return dependencies.projectState.state.layerVisibility.labels !== false
-      && (0, dependencies.layerPresentation.isLayerItemVisible)('labels', ref.id);
-    if (ref.domain === 'hydro') return (0, dependencies.physicalServices.isHydroFeatureVisible)((0, dependencies.hydroModel.hydroFeatureById)(ref.id));
-    return false;
+    return true;
   }
 
   function selectableVisualRank(ref) {

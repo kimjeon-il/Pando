@@ -189,7 +189,6 @@ export function createProjectRestore() {
     dependencies.projectSession.setViewingPresentation({}, {reset:true});
     dependencies.projectState.state.projection = 'flat';
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
-    dependencies.projectState.state.layerFolders = (0, dependencies.objectCatalogView.normalizeLayerFolderState)(null);
     dependencies.projectState.state.objectSearch = '';
     dependencies.projectState.state.tool = 'select';
     dependencies.projectState.state.labelPlacementMode = false;

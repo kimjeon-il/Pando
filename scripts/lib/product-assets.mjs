@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, relative, resolve } from 'node:path';
 import { build } from 'esbuild';
 
 // Dependencies selected through URLs or classic Worker APIs are reviewed here;
 // static ESM edges are discovered by the same parser used by the build tooling.
-const runtimeDependencies = Object.freeze({
+export const runtimeDependencies = Object.freeze({
   'assets/js/modules/map-display-client.js':['assets/js/workers/map-display-worker.js'],
   'assets/js/modules/gpu-scene.js':['assets/js/workers/gpu-mesh-worker.js'],
   'assets/js/modules/territorial-labels.js':['assets/data/places/manifest.json','assets/js/workers/place-worker.js'],
@@ -20,7 +21,7 @@ const runtimeDependencies = Object.freeze({
     'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js', 'assets/js/modules/terrain-manifest.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
 });
-const dynamicExpressions = Object.freeze({
+export const dynamicExpressions = Object.freeze({
   'assets/js/modules/core-wasm-loader.js': ['url'],
   'assets/js/workers/canvas-render-worker.js': ['validationUrl.href'],
   'assets/js/workers/place-worker.js': ['storeModuleUrl.href'],
@@ -31,7 +32,7 @@ const stripQuery = path => path.split(/[?#]/, 1)[0];
 
 export const isEditorOnlyAsset = path => editorOnly.test(path);
 
-export async function collectViewerAssets({ root, availablePaths, readSource = path => readFileSync(resolve(root, path), 'utf8') }) {
+export async function collectViewerAssets({ root, availablePaths, readSource = path => readFileSync(resolve(root, path), 'utf8'), workerAssets = null }) {
   root = resolve(root);
   const available = new Set(availablePaths), selected = new Set(), entries = new Set();
   function include(path) {
@@ -60,6 +61,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
     'assets/data/hydro/v0.13.2/manifest.json',
     'assets/data/places/manifest.json',
     'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
+    'assets/data/physical-land/v1/manifest.json',
   ];
   const dataAsset=(url,base)=>{
     if(typeof url!=='string'||!url||/[?#\\]/.test(url))throw Error(`Invalid manifest resource: ${url}`);
@@ -82,7 +84,8 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
       for(const item of [manifest.index,manifest.metadata?.core,manifest.metadata?.detail,...manifest.shards])if(item?.url)dataAsset(item.url,base);
     }else if(path.includes('/places/')){
       for(const item of Object.values(manifest.shards))dataAsset(item.url,base);
-    }else if(path.includes('/terrain-preview/')){
+    }else if(path.includes('/physical-land/'))dataAsset(manifest.asset.url,base);
+    else if(path.includes('/terrain-preview/')){
       for(const key of Object.keys(manifest.tiles))dataAsset(key,base);
     }
   }
@@ -139,5 +142,22 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
       });
     } }],
   });
+  if (workerAssets === null) {
+    const source = readSource('assets/js/build-meta.js');
+    workerAssets = JSON.parse(source.match(/Object\.freeze\(([\s\S]*)\);\s*$/)?.[1] || '{}').workerAssets || {};
+  }
+  if (Object.keys(workerAssets).length) for (const path of selected) {
+    if (/^assets\/js\/workers\/[\w-]+-worker\.js$/.test(path) && !workerAssets[path]) throw Error('Missing immutable Worker manifest: ' + path);
+  }
+  for (const [entry, asset] of Object.entries(workerAssets)) if (selected.has(entry)) {
+    const prefix = asset.url.slice(0, asset.url.indexOf('/assets/js/workers/') + 1);
+    if (!asset.files.includes(asset.url)) throw Error(`Incomplete immutable Worker entry: ${entry}`);
+    for (const path of asset.files) {
+      if (!path.startsWith(prefix) || !/^assets\/worker-runtime\/[a-f0-9]{32}\/assets\//.test(path) || isEditorOnlyAsset(path.replace(/^assets\/worker-runtime\/[a-f0-9]{32}\//, ''))) throw Error(`Invalid viewer Worker dependency: ${path}`);
+      include(path);
+      if (asset.sha256?.[path] !== createHash('sha256').update(readSource(path).replaceAll('\r\n', '\n')).digest('hex')) throw Error(`Immutable Worker asset mismatch: ${path}`);
+    }
+    selected.delete(entry); // Only the immutable entry is executable in the published viewer.
+  }
   return selected;
 }
