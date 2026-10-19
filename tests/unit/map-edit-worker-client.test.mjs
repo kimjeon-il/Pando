@@ -118,7 +118,7 @@ test('boundary requests reuse synchronized sources and send only geometry, hiera
   await client.execute('boundary-prepare', { payload: { targetIds: ['A'], mode: 'coast' } });
   assert.equal(worker.messages.filter(message => message.operation === 'map-edit.boundary-sync').length, 0);
   unit = { ...unit, properties: { ...unit.properties, locked: true } };
-  await client.execute('boundary-move', { payload: { preparationId: 'test', nodeKey: '0,0', coordinate: [1, 0] } });
+  await client.execute('boundary-move', { payload: { preparationId: 'test', moves: [{nodeKey: '0,0', coordinate: [1, 0]}] } });
   const patches = worker.messages.filter(message => message.operation === 'map-edit.boundary-sync');
   assert.equal(patches.length, 1);
   assert.deepEqual(patches[0].payload.features, [unit]);

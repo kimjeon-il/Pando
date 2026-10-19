@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('global file menus stay above the object editor and keep their existing focus flow', async ({ page }, testInfo) => {
@@ -5,7 +6,7 @@ test('global file menus stay above the object editor and keep their existing foc
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({ width: 1366, height: 900 });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('BIH'));
   await expect(page.locator('#editorObjectHeader')).toBeVisible();

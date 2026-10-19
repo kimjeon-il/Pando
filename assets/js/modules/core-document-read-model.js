@@ -187,9 +187,9 @@ export function createCoreDocumentReadModel(initialProject) {
     provenance=next.provenance;
     return project;
   }
-  function candidateProjection({ delta,world: candidateWorld },expectedEpoch) {
+  function candidateProjection({ delta,world: candidateWorld,temporalImpact },expectedEpoch) {
     const next=candidateForDelta(delta),nextWorld=worldAgainst(candidateWorld,expectedEpoch,next.project,next.geometries);
-    return Object.freeze({ project: next.project,world: nextWorld,territorialViews: viewsForWorld(nextWorld),delta: freeze(delta) });
+    return Object.freeze({ project: next.project,world: nextWorld,territorialViews: viewsForWorld(nextWorld),temporalImpact: freeze(temporalImpact),delta: freeze(delta) });
   }
   return Object.freeze({ snapshot: () => project, get, list, geometry: ref => geometries.get(ref), provenance: () => provenance,
     acceptLoadedProject,apply,projectWorld,acceptWorld,acceptTransition,candidateProjection,detachedImportProjection,world: () => world,territorialViews: () => territorialViews });

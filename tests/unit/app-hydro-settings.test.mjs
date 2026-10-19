@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHydroSettings } from '../../assets/js/modules/app-hydro-settings.js';
+import { createHydroSettings } from '../../assets/js/modules/physical-settings.js';
 
 function createFixture() {
   const settings = createHydroSettings();

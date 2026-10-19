@@ -1,3 +1,4 @@
+import { gotoEditor } from './editor-entry.mjs';
 import { expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { withNativeActionDiagnostics } from './native-action-diagnostics.mjs';
@@ -84,7 +85,7 @@ export async function openLibrary(page, {renderer='webgl2', nativeActionTestInfo
     if (message.type() === 'error' && !message.text().startsWith('[PL-LIB-002]')) unexpectedConsoleErrors.push(message.text());
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`/?debug=1&demTerrain=raster${renderer==='canvas'?'&renderer=canvas':''}`);
+  await gotoEditor(page, `/?debug=1&demTerrain=raster${renderer==='canvas'?'&renderer=canvas':''}`);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   // Preserve a real nonempty Undo and Redo chain through a rejected operation.

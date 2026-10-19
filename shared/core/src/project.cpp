@@ -500,6 +500,9 @@ bool Project::moveUserLayer(const std::string& id,int delta)
 {
     CommandArguments args; args.action=MoveUserLayer{id,delta}; return execute("layer.move",std::move(args));
 }
+std::string Project::historyCommandId(bool forward) const {
+    return (forward?canRedo():canUndo())?(*commands_)[forward?cursor_:cursor_-1].request_.commandId:std::string{};
+}
 std::optional<TerritorialMutationKind> Project::nextUndoTerritorialMutationKind() const noexcept {
     if(!canUndo())return {};
     const auto* action=std::get_if<ApplyTerritorialMutation>(&(*commands_)[cursor_-1].request_.args.action);

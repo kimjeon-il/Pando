@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
@@ -40,7 +41,7 @@ for (const renderer of ['webgl2', 'canvas', 'canvas-direct']) test(`${renderer}:
     }
   }, renderer === 'canvas-direct');
   const query = `?debug=1${renderer.startsWith('canvas') ? '&renderer=canvas' : ''}`;
-  await page.goto(process.env.PANDOLAB_TEST_SITE_URL ? new URL(query, process.env.PANDOLAB_TEST_SITE_URL).href : `/${query}`);
+  await gotoEditor(page, process.env.PANDOLAB_TEST_SITE_URL ? new URL(query, process.env.PANDOLAB_TEST_SITE_URL).href : `/${query}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const evidence = [];
 

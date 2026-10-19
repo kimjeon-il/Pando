@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -38,7 +39,7 @@ for (const renderer of ['webgl2', 'canvas']) {
         }
       };
     });
-    await page.goto(`/?debug=1&renderer=${renderer}&demTerrain=raster`);
+    await gotoEditor(page, `/?debug=1&renderer=${renderer}&demTerrain=raster`);
     await expect.poll(async () => {
       expect(errors).toEqual([]);
       const phase = await page.locator('#app').getAttribute('data-readiness');

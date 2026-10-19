@@ -1,9 +1,11 @@
+import {createNotificationPresentation} from './notification-presentation.js';
 /** ReadinessNotifications: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createReadinessNotifications() {
   let dependencies;
+  let clearNotification,clearErrorNotification,setActionStatus,isSafeKoreanErrorMessage,reportOperationError;
   let CANONICAL_CONTROL_SELECTOR;
   let READINESS_INDEPENDENT_CONTROL_SELECTOR;
   let canonicalControls;
@@ -12,6 +14,7 @@ export function createReadinessNotifications() {
   function connect(ports) {
     if (dependencies) throw new Error('readiness-notifications already connected');
     dependencies = ports;
+    ({clearNotification,clearErrorNotification,setActionStatus,isSafeKoreanErrorMessage,reportOperationError}=createNotificationPresentation({get document(){return globalThis.document;},getElement:(...args)=>ports.platform.$(...args),isMobile:()=>ports.surfaces.isMobile()}));
   }
 
   function setCurrentTool() {
@@ -24,54 +27,6 @@ export function createReadinessNotifications() {
     const projectionLabel = dependencies.projectState.state.projection === 'flat' ? '평면지도' : '지구본';
     if ((0, dependencies.platform.$)('projectionStatus')) (0, dependencies.platform.$)('projectionStatus').textContent = projectionLabel;
     (0, dependencies.platform.$)('statusSelection')?.classList.toggle('hidden', !showSelection);
-  }
-
-  function clearNotification() {
-    clearTimeout(setActionStatus._timer);
-    const notice = (0, dependencies.platform.$)('actionStatus');
-    if (!notice) return;
-    notice.classList.add('hidden');
-    notice.classList.remove('working', 'success', 'error', 'info', 'warning');
-    notice.classList.add('ready');
-    notice.setAttribute('role', 'status');
-    document.body.classList.remove('notification-visible');
-  }
-
-  function clearErrorNotification() {
-    if ((0, dependencies.platform.$)('actionStatus')?.classList.contains('error')) clearNotification();
-  }
-
-  function setActionStatus(message, tone = 'success', timeout = 1800, { forceVisible = false } = {}) {
-    const notice = (0, dependencies.platform.$)('actionStatus');
-    if (!notice) return;
-    const fullMessage = String(message ?? '').replace(/\s+/g, ' ').trim();
-    const isTopLevelNotice = ['working', 'success', 'error', 'info', 'warning'].includes(tone)
-      || forceVisible;
-    clearTimeout(setActionStatus._timer);
-    if (!fullMessage || !isTopLevelNotice) {
-      clearNotification();
-      return;
-    }
-    const visibleMessage = tone === 'error'
-      ? (0, dependencies.readiness.compactNotificationMessage)(fullMessage, {
-        tone,
-        maxLength: (0, dependencies.surfaces.isMobile)() ? 28 : 44,
-      })
-      : (0, dependencies.surfaces.isMobile)()
-        ? (0, dependencies.readiness.compactNotificationMessage)(fullMessage, { tone, maxLength: 22 })
-        : fullMessage;
-    notice.classList.remove('hidden');
-    notice.classList.remove('ready', 'working', 'success', 'error', 'info', 'warning');
-    notice.classList.add(tone);
-    notice.setAttribute('role', tone === 'error' ? 'alert' : 'status');
-    notice.setAttribute('aria-label', fullMessage);
-    if (visibleMessage !== fullMessage) notice.dataset.tooltip = fullMessage;
-    else delete notice.dataset.tooltip;
-    const strong = notice.querySelector('strong');
-    if (strong) strong.textContent = visibleMessage;
-    document.body.classList.add('notification-visible');
-    if (tone === 'error' || timeout <= 0) return;
-    setActionStatus._timer = setTimeout(clearNotification, timeout);
   }
 
   function isReadinessIndependentControl(element) {
@@ -138,23 +93,6 @@ export function createReadinessNotifications() {
     event.preventDefault();
     event.stopImmediatePropagation();
     requireCanonicalData();
-  }
-
-  function isSafeKoreanErrorMessage(error) {
-    const message = String(error?.message || '');
-    if (!/[가-힣]/.test(message)) return false;
-    return !/(Cannot read|undefined|null is not|is not a function|TypeError|ReferenceError|SyntaxError|RangeError|failed\b|\bat\s+\S+\s*\()/i.test(message);
-  }
-
-  function reportOperationError(error, fallbackMessage, code, timeout = 4400) {
-    console.error(`[${code}]`, error);
-    const detail = isSafeKoreanErrorMessage(error) ? String(error.message).trim() : '';
-    const fallbackSummary = String(fallbackMessage || '').split(/(?<=[.!?])\s+/u)[0];
-    const message = detail
-      ? `${detail} · ${code}`
-      : `${fallbackSummary} · ${code}`;
-    setActionStatus(message, 'error', timeout);
-    return message;
   }
 
   function createGisImportError(userMessage, {

@@ -2,7 +2,7 @@ import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presen
 import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
+import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
@@ -24,7 +24,7 @@ const store = createTerritorialEntityStore({ documentModel:testCoreProject(state
   const picking = createObjectPicking();
   picking.connect({
     projectState: { state }, territorialModel: { entityRepository }, objectModelB: { territorialScope },
-    selectionServices: { normalizeObjectRef }, objectLookup: { objectRefExists: ref => !!entityRepository.get(ref.id) },
+    selectionServices: { normalizeObjectRef }, objectLookup: { isObjectAvailable:()=>true,objectRefExists: ref => !!entityRepository.get(ref.id) },
     layerPresentation: { isLayerItemVisible: () => true }, surfaces: { isMobile: () => false },
     renderScene: { OVERLAY_GROUPS: [] }, rendering: { selectionPerformanceMetrics: {} },
     spatialRecords: { geometryBoundsCache: new WeakMap() },

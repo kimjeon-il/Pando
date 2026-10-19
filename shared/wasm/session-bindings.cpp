@@ -2,6 +2,7 @@
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/sphericalpolygon.h>
 #include <pandoeditor/temporal.h>
+#include <pandoeditor/timeline-edit.h>
 #include <pandoeditor/webcommands.h>
 #include <pandoeditor/webcontentcommands.h>
 #include <pandoeditor/webpresentationcommands.h>
@@ -213,6 +214,7 @@ bool canonicalPolygonGeometry(const val& input) {
 val documentState(const DocumentSessionState& state) {
     auto value=val::object();value.set("epoch",state.epoch);value.set("stateRevision",state.stateRevision);
     value.set("revision",static_cast<double>(state.revision));value.set("checkpoint",static_cast<double>(state.checkpoint));
+    value.set("undoCommandId",state.undoCommandId);value.set("redoCommandId",state.redoCommandId);
     value.set("dirty",state.dirty);value.set("canUndo",state.canUndo);value.set("canRedo",state.canRedo);
     value.set("timelineCursor",state.timelineCursor);
     value.set("presentationRevision",static_cast<double>(state.presentationRevision));
@@ -511,6 +513,11 @@ public:
             const auto& change=preview->change();const auto& candidate=change.after();
             auto value=val::object();value.set("delta",val::global("JSON").call<val>("parse",projectcodec::encodeWebDelta(change.before(),candidate,change.impact())));
             auto resolved=world(pandoeditor::resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const GeometryRef& ref){return bool(candidate.geometries.get(ref));}},session_.project().timelineCursor()));
+            std::vector<std::string> ids;for(const auto& ref:change.impact().changedObjects)if(ref.domain=="territorial")ids.push_back(ref.id);
+            auto periods=val::array();for(const auto& period:timelineChangePeriods(change.before().timelineRecords,candidate.timelineRecords,ids)){
+                auto row=val::object();row.set("entityId",period.entityId);row.set("from",optional(period.from));row.set("until",optional(period.until));periods.call<void>("push",row);
+            }
+            value.set("temporalImpact",periods);
             resolved.set("sourceEpoch",epoch);value.set("world",resolved);return value;
         });
     }

@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
@@ -5,7 +6,7 @@ test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 test('Ctrl deselection restores the remaining country presenter and toolbar', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect(page.locator('#entityProperties')).toBeVisible();
@@ -45,7 +46,7 @@ test('search Shift click selects the displayed range and its final primary', asy
   page.setDefaultTimeout(8_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.locator('#objectSearchBtn').click();
   await page.locator('#objectSearchInput').fill('국가');
@@ -67,7 +68,7 @@ test('reselecting a country before idle area calculation finishes still displays
   test.setTimeout(45_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await page.evaluate(() => {
     const requestIdle = window.requestIdleCallback.bind(window);

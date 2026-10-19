@@ -41,6 +41,7 @@ export function createProjectDomain({
   readPresentationCatalog = null,
 } = {}) {
   let generation = 0;
+  let openRequest=0,opening=false,openQueue=Promise.resolve();
   let disposed = false;
   let replacing = false;
   let saving = false;
@@ -336,8 +337,10 @@ export function createProjectDomain({
     commandQueue=operation.catch(() => {});return operation;
   };
 
-  const replaceAccepted = async (prepared, reason) => {
+  const replaceAccepted = async (prepared, reason, {isCurrent=()=>true}={}) => {
     assertActive();
+    const requireCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Project opening was superseded.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});};
+    requireCurrent();
     let checkpoint;
     let replacementStarted = false;
     let failure;
@@ -350,7 +353,7 @@ export function createProjectDomain({
       const nextGeneration = await bumpGeneration(`project-${reason}`, reason === 'new'
         ? { preserveBuiltinMesh: prepared?.builtinMeshReady === true }
         : null);
-      if(reason==='new') {
+      if(reason==='new'||reason==='builtin') {
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
         await commandOwner.loadBaseline(prepared.baselineId);
       } else await commandOwner.load(JSON.stringify(prepared));
@@ -370,6 +373,7 @@ export function createProjectDomain({
         } : {}),
       });
       if (result === false) throw new Error('Project replacement was rejected.');
+      requireCurrent();
       if (reason === 'new') await persistence?.clear?.();
       if (reason === 'new') saveState?.markNewProject();
       else saveState?.markOpenedFile();
@@ -401,7 +405,7 @@ export function createProjectDomain({
     if(failure)throw failure;
     return replacementResult;
   };
-  const replace = async (serializedProject,reason) => {
+  const replace = async (serializedProject,reason,options) => {
     assertActive();
     if(replacing)throw new Error('Project replacement is already running.');
     if(reason==='new' && persistence?.getRecovery?.())throw new Error('저장본 선택을 먼저 완료하세요.');
@@ -409,13 +413,35 @@ export function createProjectDomain({
     try {
       // Pure preparation does not claim the bounded Core rollback capsule.
       // The complete replacement shares its lifetime with accepted commands.
-      const prepared=reason==='new' ? await prepareEmpty()
-        : await commandOwner.validateImport(JSON.stringify(serializedProject),{ baselineId: null });
-      const operation=commandQueue.then(() => replaceAccepted(prepared,reason));
+      const prepared=reason==='new'?await prepareEmpty():reason==='builtin'?serializedProject:
+        await commandOwner.validateImport(JSON.stringify(serializedProject),{baselineId:null});
+      const operation=commandQueue.then(() => replaceAccepted(prepared,reason,options));
       commandQueue=operation.catch(() => {});return await operation;
     } catch(error) { replacing=false;throw error; }
   };
-  const load = project => replace(project, 'load');
+  const load = (project,options) => replace(project, 'load',options);
+  const open = async (read,{source='project'}={}) => {
+    assertActive();
+    if(!['project','builtin'].includes(source))throw new TypeError('Unknown project source.');
+    if(typeof read!=='function')throw new TypeError('Project opening requires its asynchronous source reader.');
+    const ticket=++openRequest,isCurrent=()=>!disposed&&ticket===openRequest;
+    opening=true;
+    try {
+      const project=await read();
+      if(!project||!isCurrent())return false;
+      const operation=openQueue.then(async()=>{
+        if(!isCurrent())return false;
+        if(source==='builtin')await replace(project,'builtin',{isCurrent});
+        else await load(project,{isCurrent});
+        return isCurrent();
+      });
+      openQueue=operation.catch(()=>{});
+      return await operation;
+    } catch(error) {
+      if(!isCurrent()&&!error.restoreError)return false;
+      throw error;
+    } finally {if(ticket===openRequest)opening=false;}
+  };
   const createEmpty = () => replace(null, 'new');
   const travelHistory = (direction, metadata) => {
     const operation=commandQueue.then(async () => {
@@ -466,7 +492,7 @@ export function createProjectDomain({
   const resetRenderGeneration = reason => bumpGeneration(reason || 'render-reset');
   const dispose = () => {
     if(disposed)return;
-    disposed = true;preparedIntents.clear();if(persistence)persistence.cancelPending();
+    disposed = true;openRequest++;preparedIntents.clear();if(persistence)persistence.cancelPending();
   };
 
   const resolveWorld = async (month, options) => {
@@ -492,6 +518,9 @@ export function createProjectDomain({
     admitSelectionCatalog,
     admitStorageBaseline,prepareImport,inspectImport,
     load,
+    open,
+    isOpening:()=>opening,
+    getOpenRevision:()=>openRequest,
     createEmpty,
     save,
     undo: metadata => travelHistory('undo', metadata),

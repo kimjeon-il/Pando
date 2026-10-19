@@ -1,5 +1,11 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+
+test.beforeEach(async ({ page }) => {
+  // Keep the real image, mapping and persistence paths on the current tiny project fixture.
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
+});
 
 const EDGE_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAoUlEQVR4nO3QQRHAQAyAwGs1xL+tyGll7D3AAAzPzHwHsrtSf15qv4AG6ABNA3SApgE6QNMAHaBpgA7QNEAHaBqgAzQN0AGaBugATQN0gKYBOkDTAB2gaYAO0DRAB2gaoAM0DdABmgboAE0DdICmATpA0wAdoGmADtA0QAdoGqADNA3QAZoG6ABNA3SApgE6QNMAHaBpgA7QNEAHaBqgAzQ/A0IEQI9OdPoAAAAASUVORK5CYII=',
@@ -83,6 +89,39 @@ async function screenPointForReferenceUv(page, targetUv) {
   }, targetUv);
 }
 
+
+async function pinchReferenceMap(page, uv) {
+  const point = await screenPointForReferenceUv(page, uv);
+  return page.evaluate(({ x, y }) => {
+    const map = document.getElementById('map');
+    const host = window.__PANDOLAB_MAP_HOST__;
+    const view = host.getViewState();
+    const before = JSON.stringify(view);
+    const event = (kind, id, dx, dy) => map.dispatchEvent(new window.PointerEvent(kind, {
+      bubbles: true, cancelable: true, pointerId: id, pointerType: 'touch', button: 0,
+      clientX: x + dx, clientY: y + dy,
+    }));
+    event('pointerdown', 901, 0, 0);
+    event('pointerdown', 902, 30, 0);
+    event('pointermove', 902, 38, 5);
+    event('pointerup', 902, 38, 5);
+    event('pointerup', 901, 0, 0);
+    const after = JSON.stringify(host.getViewState());
+    // The pinch is a dedicated ownership assertion. Restore the camera so
+    // subsequent edge-tracing coordinates measure the same image raster.
+    host.setViewState({
+      projection: view.projection,
+      view: {
+        flatCenter: [...view.flatCenter],
+        flatZoom: view.flatZoom,
+        globeRotation: [...view.globeRotation],
+        globeZoom: view.globeZoom,
+      },
+    });
+    return { before, after };
+  }, point);
+}
+
 test('live-wire accepts a current corner-pin mapping and traces/applies an edge path', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = [];
@@ -94,7 +133,7 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
   page.on('pageerror', error => collectError(error.message));
   page.on('console', message => { if (message.type() === 'error') collectError(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await waitForReady(page);
   await clearReferenceStore(page);
   await page.reload();
@@ -106,12 +145,13 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().length || 0)).toBe(1);
 
   const start = page.locator('[data-ref-live-wire-action="start"]');
+  await page.locator('[data-ref-tab="match"]').click();
   await expect(start).toBeVisible();
   await expect(start).toBeDisabled();
 
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
   const geometry = await referenceScreenGeometry(page);
-
+  await page.locator('[data-ref-tab="placement"]').click();
   await page.locator('[data-ref-action="free-transform"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
   const corner = geometry.corners[1];
@@ -128,6 +168,7 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
     return { cornerPin: !!item?.cornerPinEnabled, ready: !!item?.mappingReady };
   })).toEqual({ cornerPin: true, ready: true });
   await page.keyboard.press('Escape');
+  await page.locator('[data-ref-tab="match"]').click();
   await expect(start).toBeEnabled();
 
   await page.locator('[data-ref-field="locked"]').check();
@@ -138,6 +179,11 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
   await start.click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('armed');
   await expect(page.locator('#map')).toHaveClass(/is-reference-live-wire-mode/);
+  const beforePinch = await pinchReferenceMap(page, [0.5, 0.12]);
+  expect(beforePinch.after).not.toBe(beforePinch.before);
+  await expect.poll(() => page.evaluate(() =>
+    ['armed', 'tracking'].includes(window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase()),
+  )).toBe(true);
   await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('idle');
 
@@ -176,12 +222,8 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
 
 test('linear constraint preview leaves storage unchanged until one apply', async ({ page }) => {
   test.setTimeout(240_000);
-  // The current checkout's content-addressed copy differs from its pinned
-  // original; use the byte-identical pinned source for this UI-focused case.
-  await page.context().route('**/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json', route =>
-    route.fulfill({ contentType: 'application/json', body: readFileSync('assets/data/country-label-anchors-v0.10.1.json') }));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');await waitForReady(page);await clearReferenceStore(page);await page.reload();await waitForReady(page);
+  await gotoEditor(page, '/');await waitForReady(page);await clearReferenceStore(page);await page.reload();await waitForReady(page);
   await page.locator('.reference-image-launcher').click();
   await page.locator('[data-ref-file]').setInputFiles({ name: 'edge.png', mimeType: 'image/png', buffer: EDGE_PNG });
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
@@ -192,6 +234,7 @@ test('linear constraint preview leaves storage unchanged until one apply', async
   await page.mouse.move(corner.x+(geometry.center.x-corner.x)*.14,corner.y+(geometry.center.y-corner.y)*.14,{steps:4});await page.mouse.up();
   await expect.poll(() => page.evaluate(() => !!window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0]?.cornerPinEnabled)).toBe(true);
   await page.keyboard.press('Escape');
+  await page.locator('[data-ref-tab="match"]').click();
   await page.locator('[data-ref-action="gcp"]').click();
   for (const [uv, delta] of [[[.2,.2],[18,12]],[[.8,.8],[22,14]]]) {
     const point=await screenPointForReferenceUv(page,uv);
@@ -201,16 +244,26 @@ test('linear constraint preview leaves storage unchanged until one apply', async
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0]?.controlPointCount)).toBe(2);
   await page.keyboard.press('Escape');
   await page.locator('[data-ref-action="linear-river"]').click();
+  const guide = page.locator('[data-ref-workflow-guide]');
+  await expect(guide.locator('[data-ref-workflow-progress]')).toHaveText('1/4');
   const first=await screenPointForReferenceUv(page,[.5,.12]);
   const second=await screenPointForReferenceUv(page,[.5,.7]);
   await page.mouse.click(first.x,first.y);await page.mouse.click(second.x,second.y);
-  await page.locator('[data-ref-action="linear-image-finish"]').click();
+  await guide.locator('[data-ref-action="linear-image-finish"]').click();
+  await expect(guide.locator('[data-ref-workflow-progress]')).toHaveText('2/4');
   await page.mouse.click(650, 390);await page.mouse.click(780, 470);
-  await expect(page.locator('[data-ref-action="linear-preview"]')).toBeEnabled();
-  await page.locator('[data-ref-action="linear-preview"]').click();
+  await expect(guide.locator('[data-ref-action="linear-preview"]')).toBeEnabled();
+  await guide.locator('[data-ref-action="linear-preview"]').click();
   expect((await readStoredRecord(page)).linearConstraints || []).toHaveLength(0);
-  await expect(page.locator('[data-ref-action="linear-apply"]')).toBeVisible();
-  await page.locator('[data-ref-action="linear-apply"]').click();
+  await expect(guide.locator('[data-ref-workflow-progress]')).toHaveText('3/4');
+  await expect(guide.locator('[data-ref-action="linear-apply"]')).toHaveText('선 보정 적용');
+  await guide.locator('[data-ref-action="linear-map-redraw"]').click();
+  await expect(guide.locator('[data-ref-action="linear-preview"]')).toBeDisabled();
+  expect((await readStoredRecord(page)).linearConstraints || []).toHaveLength(0);
+  await page.mouse.click(650, 390);await page.mouse.click(780, 470);
+  await guide.locator('[data-ref-action="linear-preview"]').click();
+  await guide.locator('[data-ref-action="linear-apply"]').click();
+  await expect(guide).toHaveCount(0);
   await expect.poll(async () => (await readStoredRecord(page)).linearConstraints?.length || 0).toBe(1);
   await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(async () => (await readStoredRecord(page)).linearConstraints?.length || 0).toBe(0);

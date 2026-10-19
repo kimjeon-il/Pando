@@ -19,7 +19,8 @@ export function createGisAssembly({ fileAccess = null } = {}) {
       (0, dependencies.gisServicesA.ensureGisRuntime)(),
       import((0, dependencies.applicationServicesB.versionedModuleUrl)('./modules/gis-import-transaction.js')),
     ]).then(([, module]) => module.createGisImportTransactionCommitter({
-      state: dependencies.projectState.state,      DISTRIBUTION_MODES: dependencies.territorialModel.DISTRIBUTION_MODES,
+      state: dependencies.projectState.state,
+      DISTRIBUTION_MODES: dependencies.territorialModel.DISTRIBUTION_MODES,
       GENERIC_FEATURE_SCHEMA_VERSION: dependencies.applicationConstantsA.GENERIC_FEATURE_SCHEMA_VERSION,
       DEFAULT_GENERIC_FEATURE_COLOR: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
       polygonClipping: window.polygonClipping,
@@ -68,7 +69,8 @@ export function createGisAssembly({ fileAccess = null } = {}) {
   function getGisFileController() {
     if (gisFileControllerPromise) return gisFileControllerPromise;
     gisFileControllerPromise = Promise.resolve().then(() => {
-        const controller = (0, dependencies.uiFactoriesA.createGisFileController)({
+        const controller = (0, dependencies.uiFactoriesA.createFileController)({
+          productMode:'editor',reportOperationError:error=>dependencies.feedback.reportOperationError(error,'프로젝트 열기를 완료하지 못했습니다.','PL-FILE-OPEN-001',4200),
           elements: { open: (0, dependencies.platform.$)('openGisBtn'), input: (0, dependencies.platform.$)('gisFileInput'), save: (0, dependencies.platform.$)('saveProjectBtn'), projectOpen: (0, dependencies.platform.$)('openProjectBtn'), projectInput: (0, dependencies.platform.$)('projectFileInput') },
           setTarget: target => { requestedVectorTarget = target; },
           onFiles: openGisFiles,

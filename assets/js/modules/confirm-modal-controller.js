@@ -107,7 +107,7 @@ export function createConfirmModalController({
     if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
-      close();
+      if (!event.repeat) close();
       return;
     }
     if (event.key !== 'Tab') return;

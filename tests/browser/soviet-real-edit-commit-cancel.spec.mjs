@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 /* global boundaryState: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -207,10 +208,12 @@ async function dragAndPreview(page, timings) {
     ops: window.__SOVIET_EDIT_WORKER_OPS__?.slice(-8) || [],
     vertices: document.querySelectorAll('.country-vertex:not(.fixed-boundary-vertex)').length,
   }));
+  await expect(page.locator('#modePrimaryBtn')).toHaveAttribute('aria-label','변경 미리보기');
+  await page.locator('#modePrimaryBtn').click();
   await expect.poll(() => page.evaluate(() => window.__SOVIET_EDIT_WORKER_OPS__
     ?.some(item => item.operation === 'boundary-move')), { timeout: 35_000 }).toBe(true);
   try {
-    await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 36_000 });
+    await expect(page.locator('#modePrimaryBtn')).toContainText('경계 변경 적용', { timeout: 36_000 });
   } catch (error) {
     timings.noPreview = await page.evaluate(() => ({
       mode: document.querySelector('#modePrimaryBtn')?.textContent?.trim(),
@@ -317,7 +320,7 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
     caveat: 'The operation wall clocks include Worker/core/transport/UI waits; longtask durations isolate observable main-thread blocks. Chromium SwiftShader is not a physical GPU. All edits occur in a disposable browser context.',
     errors: pageErrors, scenarios, snapshots };
   try {
-    await page.goto('/?perf=1&renderer=webgl2');
+    await gotoEditor(page, '/?perf=1&renderer=webgl2');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 130_000 });
     await expect.poll(() => {
       return page.evaluate(() => {

@@ -20,7 +20,7 @@ import { createReferenceImageInteraction } from './reference-image-interaction.j
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
 import { getReferenceImageLiveWireField, traceReferenceImageLinearAnchors } from './reference-image-live-wire.js';
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
-import { referenceImageKeyBlocked, registerReferenceImageInput } from './reference-image-input.js';
+import { referenceImageKeyBlocked, referenceImageNavigationHeld, registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
 import {
   buildReferenceImagePlaceSeeds,
@@ -42,6 +42,7 @@ import {
 import {
   createReferenceImagePanel,
   referenceImageEditorMarkup,
+  referenceImageWorkflow,
   renderReferenceImageList,
 } from './reference-image-ui.js';
 
@@ -95,6 +96,7 @@ export function installReferenceImageController({
   getGeneration = () => 0,
   isBlocked = () => false,
   cancelTools = () => {},
+  auxiliaryInputActive = () => false,
   searchPlaces = null,
   getPlaces = null,
   preparePlaces = null,
@@ -128,10 +130,13 @@ export function installReferenceImageController({
   };
   const pendingPersistTimers = new Map();
   let selectedId = '';
+  let activeTab = 'placement';
+  let navigationOverride = false;
   let disposed = false;
   let session = 0;
   let continuousBefore = null;
   let linearDraft = null;
+  let autoGeorefRun = null;
   const history = createReferenceImageHistory();
   const objectUrls = new Set();
   const currentToken = () => `${session}:${getGeneration()}`;
@@ -155,9 +160,9 @@ export function installReferenceImageController({
       : records,
     getLinearDraft: () => linearDraft,
     getSelectedId: () => selectedId,
-    getPlacementEditingId: () => interactionState().placementEditingId,
-    getFreeTransformEditingId: () => interactionState().freeTransformEditingId,
-    getControlPointEditingId: () => interactionState().controlPointEditingId,
+    getPlacementEditingId: () => navigationOverride ? '' : interactionState().placementEditingId,
+    getFreeTransformEditingId: () => navigationOverride ? '' : interactionState().freeTransformEditingId,
+    getControlPointEditingId: () => navigationOverride ? '' : interactionState().controlPointEditingId,
     getSelectedControlPointId: () => interactionState().selectedControlPointId,
     isPanelHidden: () => panel.hidden,
   });
@@ -259,6 +264,44 @@ export function installReferenceImageController({
     renderReferenceImageList(listElement, records, selectedId);
   }
 
+  function syncNavigationUi() {
+    mapElement.classList.toggle('is-reference-map-pan-mode', !panel.hidden && navigationOverride);
+    if (navigationOverride || panel.hidden) delete mapElement.dataset.referencePointer;
+    for (const button of panel.querySelectorAll('[data-ref-action="navigation-toggle"]')) {
+      const active = !interaction?.isActive() && !linearDraft ? true : navigationOverride;
+      button.setAttribute('aria-pressed', String(active));
+      button.textContent = navigationOverride ? '이미지 조작으로 복귀' : '지도 이동';
+      button.setAttribute('aria-label', navigationOverride
+        ? '이전 이미지 조작으로 복귀' : '이미지 조작을 유지한 채 지도 이동');
+    }
+  }
+
+  function setNavigationOverride(active) {
+    if (navigationOverride === (active === true)) return;
+    navigationOverride = active === true;
+    renderEditor();
+    if (navigationOverride && (interaction?.isActive() || linearDraft)) {
+      surface?.setEditing(true, '지도 이동 중 · 이미지 편집 단계는 유지됩니다. 다시 누르면 조작을 계속합니다.');
+    }
+    renderer.requestRender();
+  }
+
+  function onMapPointerHover(event) {
+    if (panel.hidden || referenceImageNavigationHeld() || event.pointerType === 'touch') {
+      delete mapElement.dataset.referencePointer;
+      return;
+    }
+    const bounds = mapElement.getBoundingClientRect();
+    const point = [event.clientX - bounds.left, event.clientY - bounds.top];
+    const hit = interaction?.hitType(point) || '';
+    if (hit) mapElement.dataset.referencePointer = hit;
+    else delete mapElement.dataset.referencePointer;
+  }
+
+  function onMapPointerLeave() {
+    delete mapElement.dataset.referencePointer;
+  }
+
   function renderEditor() {
     renderStorageStatus();
     const historyLocked = records.some(record => record.locked);
@@ -268,9 +311,21 @@ export function installReferenceImageController({
     editorElement.hidden = !record;
     if (!record) {
       editorElement.replaceChildren();
+      surface?.setWorkflow(null);
+      syncNavigationUi();
       return;
     }
     const state = interactionState();
+    const anchorState = state.anchorState?.recordId === record.id ? state.anchorState : null;
+    const gcpState = state.gcpState?.recordId === record.id ? state.gcpState : null;
+    const currentLinearDraft = linearDraft?.recordId === record.id ? linearDraft : null;
+    const workflow = referenceImageWorkflow({
+      record,
+      anchorState,
+      gcpState,
+      controlPointEditing: state.controlPointEditingId === record.id,
+      linearDraft: currentLinearDraft,
+    });
     editorElement.innerHTML = referenceImageEditorMarkup({
       record,
       warp: record.warp,
@@ -280,17 +335,32 @@ export function installReferenceImageController({
       count: records.length,
       blendOptions: BLEND_OPTIONS,
       warpOptions: WARP_OPTIONS,
-      anchorState: state.anchorState?.recordId === record.id ? state.anchorState : null,
-      gcpState: state.gcpState,
+      anchorState,
+      gcpState,
       controlPointEditing: state.controlPointEditingId === record.id,
       selectedControlPointId: state.selectedControlPointId,
       placementRotation: referenceImagePlacementRotation(record, mapHost()),
-      linearDraft: linearDraft?.recordId === record.id ? linearDraft : null,
+      linearDraft: currentLinearDraft,
+      workflow,
+      activeTab,
+      navigationOverride,
     });
-    interaction?.syncSurface();
-    if (linearDraft) surface?.setEditing(true, linearDraft.phase === 'image'
-      ? '이미지에서 선을 따라 점을 찍으세요.'
-      : linearDraft.phase === 'map' ? '지도에서 대응 선을 찍으세요.' : '변형 이미지를 확인하세요.');
+    if (workflow) {
+      surface?.setEditing(true, navigationOverride
+        ? '지도 이동 중 · 이미지 편집 단계는 유지됩니다. 다시 누르면 조작을 계속합니다.'
+        : workflow.instruction);
+    } else interaction?.syncSurface();
+    surface?.setWorkflow(workflow);
+    syncNavigationUi();
+  }
+
+  function cancelAutoGeoref(record = autoGeorefRun?.record || selected(), { render = true } = {}) {
+    if (!record || (autoGeorefRun?.record !== record && !record.autoGeorefPreview)) return false;
+    if (autoGeorefRun?.record === record) autoGeorefRun = null;
+    record.autoGeorefBusy = false;
+    record.autoGeorefPreview = null;
+    if (render) renderEditor();
+    return true;
   }
 
   function cancelLinearDraft({ render = true } = {}) {
@@ -370,8 +440,12 @@ export function installReferenceImageController({
   }
 
   function cancelInteraction() {
+    cancelAutoGeoref(undefined, { render: false });
     cancelLinearDraft({ render: false });
     interaction?.cancelAll();
+    navigationOverride = false;
+    syncNavigationUi();
+    renderer.requestRender();
   }
 
   function restoreHistory(direction) {
@@ -384,7 +458,11 @@ export function installReferenceImageController({
     // Lock is a guard, not an edit to be implicitly restored by history.
     for (const item of next) item.locked = records.find(record => record.id === item.id)?.locked ?? false;
     records.splice(0, records.length, ...next);
-    for (const record of records) rebuildWarp(record);
+    for (const record of records) {
+      // Restoring document edits cannot restart a cancelled analysis.
+      record.autoGeorefBusy = false;
+      rebuildWarp(record);
+    }
     if (!selected()) selectedId = records.at(-1)?.id || '';
     void persistAll(); refreshUi();
   }
@@ -410,6 +488,12 @@ export function installReferenceImageController({
     if (!hint) return;
     hint.textContent = text;
     hint.dataset.tone = tone;
+    const state = interactionState();
+    if (linearDraft || state.anchorState || state.gcpState || state.controlPointEditingId || autoGeorefRun) {
+      surface?.setEditing(true, navigationOverride
+        ? '지도 이동 중 · 이미지 편집 단계는 유지됩니다. 다시 누르면 조작을 계속합니다.'
+        : text);
+    }
   }
 
   function autoGeorefFailureMessage(result) {
@@ -417,7 +501,7 @@ export function installReferenceImageController({
     if (reason === 'insufficient-place-seeds') return '현재 화면에서 자동 맞춤에 사용할 도시가 충분하지 않습니다. 지도를 대상 지역에 대략 맞춰 놓고 다시 시도하세요.';
     if (reason === 'insufficient-symbol-candidates') return '도시 주변에서 지도 기호를 충분히 찾지 못했습니다. 이미지를 조금 더 정확히 배치하거나 수동 고정점 하나를 지정하세요.';
     if (reason === 'no-auto-georef-consensus') return '도시 기호 후보들의 위치가 서로 일치하지 않아 자동 정렬을 확정하지 못했습니다.';
-    if (reason === 'auto-georef-preview-stale') return '미리보기 뒤에 이미지 배치가 바뀌었습니다. 자동 맞춤을 다시 실행하세요.';
+    if (reason === 'auto-georef-preview-stale') return '분석 뒤에 이미지 배치가 바뀌었습니다. 자동 맞춤을 다시 실행하세요.';
     if (reason === 'place-snapshot-unavailable') return '도시 데이터에 접근할 수 없어 자동 맞춤을 실행할 수 없습니다.';
     if (reason === 'text-detector-unavailable') return '이 브라우저에서는 OCR을 사용할 수 없습니다. 도시 기호 기반 자동 맞춤 결과를 확인하세요.';
     if (reason === 'no-ocr-text') return '이미지에서 도시명으로 사용할 문자를 찾지 못했습니다.';
@@ -508,6 +592,8 @@ export function installReferenceImageController({
     const continuous = CONTINUOUS_FIELDS.has(field);
     if (event.type === 'input' && !continuous) return;
     if (record.locked && ['rotation', 'warp'].includes(field)) return;
+    const cancelledAutoGeoref = (field === 'rotation' || field === 'warp')
+      && cancelAutoGeoref(record, { render: false });
     if (continuous && !continuousBefore) continuousBefore = copyReferenceImageRecords(records);
     if (!continuous && field !== 'locked') history.push(records);
 
@@ -524,7 +610,10 @@ export function installReferenceImageController({
     if (field === 'visible') record.visible = event.target.checked;
     if (field === 'locked') {
       record.locked = event.target.checked;
-      if (record.locked) cancelLinearDraft({ render: false });
+      if (record.locked) {
+        cancelAutoGeoref(record, { render: false });
+        cancelLinearDraft({ render: false });
+      }
       interaction?.handleRecordLocked(record);
     }
 
@@ -540,11 +629,68 @@ export function installReferenceImageController({
     const historyLocked = records.some(item => item.locked);
     for (const button of panel.querySelectorAll('[data-ref-action="undo"]')) button.disabled = !history.canUndo() || historyLocked;
     for (const button of panel.querySelectorAll('[data-ref-action="redo"]')) button.disabled = !history.canRedo() || historyLocked;
-    if (field === 'warp' || field === 'locked') renderEditor();
+    if (field === 'warp' || field === 'locked' || cancelledAutoGeoref) renderEditor();
     renderer.requestRender();
   }
 
+  function setEditorTab(next, { focus = false } = {}) {
+    if (!['placement', 'match', 'display'].includes(next)) return false;
+    activeTab = next;
+    for (const tab of editorElement.querySelectorAll('[data-ref-tab]')) {
+      const selectedTab = tab.dataset.refTab === activeTab;
+      tab.classList.toggle('is-active', selectedTab);
+      tab.setAttribute('aria-selected', String(selectedTab));
+      tab.tabIndex = selectedTab ? 0 : -1;
+      if (selectedTab && focus) tab.focus({ preventScroll: true });
+    }
+    for (const section of editorElement.querySelectorAll('[data-ref-section]')) {
+      section.hidden = section.dataset.refSection !== activeTab;
+    }
+    return true;
+  }
+
+  function onEditorTabKeydown(event) {
+    const tab = event.target.closest?.('[data-ref-tab]');
+    if (!tab) return;
+    const order = ['placement', 'match', 'display'];
+    const current = order.indexOf(tab.dataset.refTab);
+    const next = event.key === 'Home' ? order[0] : event.key === 'End' ? order.at(-1)
+      : event.key === 'ArrowRight' ? order[(current + 1) % order.length]
+        : event.key === 'ArrowLeft' ? order[(current + order.length - 1) % order.length] : null;
+    if (!next) return;
+    event.preventDefault();
+    setEditorTab(next, { focus: true });
+  }
+
+  function onListAction(button) {
+    if (button.disabled || storageState !== 'ready' || isBlocked()) return;
+    const record = records.find(item => item.id === button.dataset.refRecordId);
+    if (!record) return;
+    const action = button.dataset.refListAction;
+    if (action === 'forward' || action === 'backward') {
+      moveRecord(record, action === 'forward' ? 1 : -1);
+      return;
+    }
+    if (action === 'visible') {
+      history.push(records);
+      record.visible = !record.visible;
+    } else if (action === 'locked') {
+      record.locked = !record.locked;
+      if (record.locked) {
+        cancelAutoGeoref(record, { render: false });
+        if (linearDraft?.recordId === record.id) cancelLinearDraft({ render: false });
+        if (selectedId === record.id) interaction?.handleRecordLocked(record);
+      }
+    } else return;
+    void persist(record);
+    refreshUi();
+  }
+
   async function onPanelClick(event) {
+    const listButton = event.target.closest('[data-ref-list-action]');
+    if (listButton) { onListAction(listButton); return; }
+    const tabButton = event.target.closest('[data-ref-tab]');
+    if (tabButton) { setEditorTab(tabButton.dataset.refTab); return; }
     const button = event.target.closest('[data-ref-action]');
     const action = button?.dataset.refAction;
     if (button?.disabled || isBlocked()) return;
@@ -576,8 +722,21 @@ export function installReferenceImageController({
       return;
     }
     if (!record) return;
+    if (action === 'navigation-toggle') {
+      setNavigationOverride(!navigationOverride);
+      return;
+    }
+    if (navigationOverride && ['placement', 'free-transform', 'anchor', 'gcp', 'gcp-edit',
+      'edit-image', 'edit-coordinate', 'linear-river', 'linear-coastline'].includes(action)) {
+      navigationOverride = false;
+      syncNavigationUi();
+      renderer.requestRender();
+    }
     if (action === 'linear-cancel') { cancelLinearDraft(); return; }
     if (record.locked && !['bring-forward', 'send-backward', 'cancel-auto-georef'].includes(action)) return;
+    if (!['auto-georef', 'apply-auto-georef', 'cancel-auto-georef', 'bring-forward', 'send-backward'].includes(action)) {
+      cancelAutoGeoref(record, { render: false });
+    }
     if (action === 'linear-river' || action === 'linear-coastline') {
       startLinearDraft(record, action === 'linear-river' ? 'river' : 'coastline');return;
     }
@@ -592,6 +751,13 @@ export function installReferenceImageController({
     }
     if (action === 'linear-map-undo' && linearDraft?.phase === 'map') {
       linearDraft.coordinates.pop();renderEditor();renderer.requestRender();return;
+    }
+    if (action === 'linear-map-redraw' && linearDraft?.phase === 'preview') {
+      linearDraft.coordinates = [];
+      linearDraft.preview = null;
+      linearDraft.phase = 'map';
+      linearDraft.error = '';
+      renderEditor();renderer.requestRender();return;
     }
     if (action === 'linear-preview') { previewLinearDraft(record);return; }
     if (action === 'linear-apply' && linearDraft?.phase === 'preview') {
@@ -623,46 +789,45 @@ export function installReferenceImageController({
     if (linearDraft) cancelLinearDraft({ render: false });
     if (action === 'auto-georef') {
       cancelInteraction();
+      const run = { record, token: currentToken() };
+      autoGeorefRun = run;
       record.autoGeorefBusy = true;
       record.autoGeorefPreview = null;
       renderEditor();
-      const token = currentToken();
-      await new Promise(resolve => requestAnimationFrame(resolve));
       try {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        if (autoGeorefRun !== run) return;
         const result = await autoGeorefSmart({ id: record.id });
-        if (!validToken(token) || selected() !== record || !records.includes(record)) return;
+        if (autoGeorefRun !== run) return;
+        if (!validToken(run.token) || selected() !== record || !records.includes(record) || record.locked) {
+          cancelAutoGeoref(record);
+          return;
+        }
         record.autoGeorefBusy = false;
         record.autoGeorefPreview = result.ok ? result : null;
+        if (!result.ok) autoGeorefRun = null;
         renderEditor();
-        if (result.ok) {
-          const method = result.source === 'place-ocr' ? 'OCR 도시명' : '도시 기호';
-          const candidates = result.source === 'place-ocr'
-            ? (result.matching?.matchCount ?? 0)
-            : (result.symbolCandidateCount ?? 0);
-          setHint(`${method} 후보 ${candidates}개 중 ${result.georef.inlierCount}개를 채택했습니다. 결과를 확인한 뒤 적용하세요.`, 'success');
-        } else setHint(autoGeorefFailureMessage(result), 'error');
+        if (!result.ok) setHint(autoGeorefFailureMessage(result), 'error');
       } catch (error) {
-        if (!validToken(token) || selected() !== record || !records.includes(record)) return;
-        record.autoGeorefBusy = false;
-        record.autoGeorefPreview = null;
-        renderEditor();
+        if (autoGeorefRun !== run) return;
+        const current = validToken(run.token) && selected() === record && records.includes(record) && !record.locked;
+        cancelAutoGeoref(record);
+        if (!current) return;
         setHint(error?.message || '자동 맞춤 분석 중 오류가 발생했습니다.', 'error');
       }
       return;
     }
     if (action === 'cancel-auto-georef') {
-      record.autoGeorefPreview = null;
-      record.autoGeorefBusy = false;
-      renderEditor();
-      setHint('자동 맞춤 미리보기를 취소했습니다.');
+      const analysing = record.autoGeorefBusy;
+      cancelAutoGeoref(record);
+      setHint(analysing ? '자동 맞춤 분석을 취소했습니다.' : '자동 맞춤 결과를 취소했습니다.');
       return;
     }
     if (action === 'apply-auto-georef') {
       const preview = record.autoGeorefPreview;
       if (!preview?.ok) return;
       const token = currentToken();
-      record.autoGeorefBusy = true;
-      renderEditor();
+      autoGeorefRun = null;
       const result = await applyPlaceAutoGeorefResult(record, preview, token);
       if (!validToken(token) || selected() !== record || !records.includes(record)) return;
       record.autoGeorefBusy = false;
@@ -752,7 +917,8 @@ export function installReferenceImageController({
     if (panel.hidden || isBlocked() || referenceImageKeyBlocked(event)) return false;
     if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
     if (event.key === 'Escape') {
-      if (linearDraft || interaction?.isActive()) cancelInteraction();
+      if (navigationOverride) setNavigationOverride(false);
+      else if (linearDraft || interaction?.isActive() || autoGeorefRun) cancelInteraction();
       else surface.close({ restoreFocus: true });
       return true;
     }
@@ -807,10 +973,23 @@ export function installReferenceImageController({
     storageError = error.message;
     renderStorageStatus();
   }); };
-  surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
+  surface = installReferenceImageSurface({
+    panel, launcher, workspaceSurfaces, mapElement, onAction: onPanelClickEvent,
+    onAuxiliaryEditingStart: cancelInteraction,
+    onClose: cancelInteraction,
+    onOpen: () => { syncNavigationUi(); renderer.requestRender(); },
+  });
   const unregisterInput = registerReferenceImageInput({
-    begin: (point, event, context) => linearDraft ? linearGesture(point, event, context) : interaction.beginGesture(point, event, context),
-    active: () => !!linearDraft || interaction.isActive(),
+    begin: (point, event, context) => {
+      if (panel.hidden) return null;
+      if (referenceImageNavigationHeld()) return { kind: 'navigate' };
+      // Auxiliary line tools own one-finger input; the map still owns pinch.
+      if (event.pointerType === 'touch' && auxiliaryInputActive()) return { kind: 'exclusive' };
+      return linearDraft ? linearGesture(point, event, context) : interaction.beginGesture(point, event, context);
+    },
+    active: () => !!linearDraft || interaction.isActive() || navigationOverride || auxiliaryInputActive(),
+    surfaceOpen: () => !panel.hidden,
+    mapNavigationActive: () => !panel.hidden && navigationOverride,
     key: onKeyDown,
     cancel: cancelInteraction,
     reset: resetSession,
@@ -822,8 +1001,11 @@ export function installReferenceImageController({
   };
   panel.addEventListener('keydown', stopPanelKeys);
   panel.addEventListener('click', onPanelClickEvent);
+  mapElement.addEventListener('pointermove', onMapPointerHover, { passive: true });
+  mapElement.addEventListener('pointerleave', onMapPointerLeave);
   editorElement.addEventListener('input', onEditorInput);
   editorElement.addEventListener('change', onEditorInput);
+  editorElement.addEventListener('keydown', onEditorTabKeydown);
   fileInput.addEventListener('change', onFileChange);
 
   async function restoreStoredImages() {
@@ -1248,8 +1430,13 @@ export function installReferenceImageController({
       else for (const id of [...pendingPersistTimers.keys()]) clearScheduledPersist(id);
       panel.removeEventListener('keydown', stopPanelKeys);
       panel.removeEventListener('click', onPanelClickEvent);
+      mapElement.removeEventListener('pointermove', onMapPointerHover);
+      mapElement.removeEventListener('pointerleave', onMapPointerLeave);
+      mapElement.classList.remove('is-reference-map-pan-mode', 'is-reference-space-pan');
+      delete mapElement.dataset.referencePointer;
       editorElement.removeEventListener('input', onEditorInput);
       editorElement.removeEventListener('change', onEditorInput);
+      editorElement.removeEventListener('keydown', onEditorTabKeydown);
       fileInput.removeEventListener('change', onFileChange);
       objectUrls.forEach(url => URL.revokeObjectURL(url));
       renderer.destroy();

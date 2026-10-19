@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
@@ -19,7 +20,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
   // Exercise the real supported Canvas backend: this gate owns Place/History
   // contracts, not headless software-WebGL throughput. Keep native UI clicks.
-  await page.goto('/?renderer=canvas');
+  await gotoEditor(page, '/?renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60_000});
   await page.locator('#mapDisplayBtn').evaluate(button => button.click());
   await page.locator('[data-map-display-row="labels"]').evaluate(button => button.click());

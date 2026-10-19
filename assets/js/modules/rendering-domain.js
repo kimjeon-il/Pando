@@ -1,29 +1,25 @@
-import { SELECTION_PAINT_ORDER, territorialSymbolGroup } from './layer-presentation.js';
-import { isBuiltinPlaceId } from './place-contract.js';
+import {createMapContentPresentation} from './map-content-presentation.js';
+import { createLabelPresentation } from './label-presentation.js';
+import { SELECTION_PAINT_ORDER } from './layer-presentation.js';
 import { applySvgInteractionMasks } from './interaction-svg-mask.js';
 import { rendererOwnsSceneGeometry } from './render-channel-ownership.js';
-import { resolveMapStrokeStyle, resolveMapInteractionStyle, interactionNodeRole, interactionStrokeScale, scaleInteractionStroke } from './map-interaction-style.js';
+import { resolveMapStrokeStyle, interactionNodeRole, scaleInteractionStroke } from './map-interaction-style.js';
 import { mapInteractionEntries } from './interaction-roles.js';
 import { selectionEntries, selectionDisplayPlan, orderSelectionFillMasks, selectionFrameOwnership, selectionGeometryKinds, planSelectionEntry, planHoverEntry, selectionCoverage, selectionCoverageAvailable } from './selection-overlay-plan.js';
 import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
-import { boundaryViewBounds, queryBoundaryDisplay } from './boundary-display.js';
-import { distributionValueRange, distributionValueAlpha } from './distribution-model.js';
 import {
   createMapRenderCoordinator,
   MAP_RENDER_DIRTY,
   MAP_RENDER_MASKS,
 } from './map-render-coordinator.js';
-import { EMPTY_EDITING_RENDER_PACKET } from './editing-render-packet.js';
 import { createGpuUploadScheduler } from './gpu-upload-scheduler.js';
 import { commitSelectionFallbackCoverage } from './selection-fallback-coverage.js';
-import { createTerritorialFillResolver } from './territorial-fill-style.js';
-import { connectBoundarySegments } from './boundary-lines.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 
 export function createRenderingDomain({
   context = null,
-  prepareEditDisplay = null,
-  onEditDisplayReady = () => {},
+  prepareMapDisplay = null,
+  onMapDisplayReady = () => {},
   gpuMapRenderer = null,
   sceneBuilder = null,
   mapHost = null,
@@ -45,7 +41,7 @@ export function createRenderingDomain({
   interactionResources = null,
   selectionResources = null,
   refreshRenderResources = null,
-  getEditingRenderPacket = () => EMPTY_EDITING_RENDER_PACKET,
+  getEditingRenderPacket = null,
   emitEditingInteraction = null,
   reportEditingOperationError = null,
   renderers = {},
@@ -53,7 +49,9 @@ export function createRenderingDomain({
   prepareView = () => null,
   onFrameComplete = null,
   invalidMaskMode = 'throw',
+  createEditingPresentation = null,
   reportDiagnostic = () => {},
+  disposeMapDisplay = null,
 } = {}) {
   if (typeof emitEditingInteraction==='function' && typeof reportEditingOperationError!=='function')
     throw new TypeError('Editing interaction dispatch requires its operation error reporter.');
@@ -81,8 +79,7 @@ export function createRenderingDomain({
   listenUploadInput(globalThis.document, 'visibilitychange', resetUploadInput);
   let coordinator = null;
   let placeInteractionActive = false;
-  let editingPacket = EMPTY_EDITING_RENDER_PACKET;
-  let editingGestureSequence = 0;
+  let editingPacket = null;
   const stats = {
     invalidations: 0,
     lastReason: '',
@@ -110,8 +107,6 @@ export function createRenderingDomain({
   const active = () => { if (disposed) throw new Error('Rendering domain is disposed.'); };
   const labels = labelResources || {};
   const pendingVisualFrames = new Map();
-  let territorialLabelPositionBindings = [];
-  let userLabelPositionBindings = [];
   const countries = countryResources || {};
   const hydro = hydroResources || {};
   const territorial = territorialResources || {};
@@ -128,132 +123,6 @@ export function createRenderingDomain({
     const feature = selection.territorialEntityById(ref.id);
     return feature?.properties.entityKind === 'general' && !feature.properties.parentId;
   };
-  const editingPresentation = new Map();
-  const editingChannelChanged = (name, layer, ...parts) => {
-    const previous = editingPresentation.get(name);
-    if (previous && previous.layer === layer && previous.generation === editingPacket.projectGeneration
-      && previous.parts.length === parts.length && parts.every((part, i) => part === previous.parts[i])) return false;
-    editingPresentation.set(name, { layer, parts, generation: editingPacket.projectGeneration });
-    return true;
-  };
-  const joinEditingNodes = (layer, selector, data, key) => {
-    const binding = layer.selectAll(selector).data(data, key);
-    binding.exit().remove();
-    const [tag, className] = selector.split('.');
-    binding.enter().append(tag).attr('class', className);
-    return layer.selectAll(selector);
-  };
-  const componentProjectionCache = new WeakMap();
-  const reprojectEditingLayer = (layer, frame) => {
-    const path = framePath(frame);
-    layer?.selectAll('path').each(function(d) {
-      if (this.hasAttribute('data-interaction-priority')) {
-        const directManipulation = this.classList.contains('draft-shape') || this.classList.contains('draft-auto-close-preview');
-        const style = scaleInteractionStroke(resolveMapStrokeStyle(
-          selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.() || resolveMapInteractionStyle(),
-          interactionNodeRole(this, this.closest('[data-interaction-domain]')?.getAttribute('data-interaction-domain') || 'draft'),
-          { directManipulation },
-        ), frame);
-        this.style.strokeWidth = `${style.width}px`;
-      }
-      const geometry = d?.geometry || (d?.start && d?.end ? { type: 'LineString', coordinates: [d.start, d.end] } : null);
-      if (geometry) {
-        const cacheable = this.classList.contains('territory-component') && Object.isFrozen(geometry)
-          && frame?.viewRevision != null && frame?.projectionRevision != null;
-        const cached = cacheable && componentProjectionCache.get(this);
-        if (cached && cached.geometry === geometry && cached.view === frame.viewRevision
-          && cached.projection === frame.projectionRevision) return;
-        this.setAttribute('d', path({ type: 'Feature', properties: {}, geometry }) || '');
-        if (cacheable) componentProjectionCache.set(this, { geometry, view: frame.viewRevision, projection: frame.projectionRevision });
-      }
-    });
-    layer?.selectAll('g, circle, path.snap-indicator-cross').each(function(d) {
-      if (this.parentNode !== layer.node?.() && (this.parentNode?.__data__?.coordinate || this.parentNode?.__data__?.coord)) return;
-      const coordinate = d?.coordinate || d?.coord;
-      if (!coordinate) return;
-      const point = frameProjectCoordinate(coordinate, frame);
-      this.style.visibility = point ? '' : 'hidden';
-      if (!point) return;
-      if (this.tagName.toLowerCase() === 'circle') {
-        this.removeAttribute('transform');
-        this.setAttribute('cx', point[0]); this.setAttribute('cy', point[1]);
-      } else if (this.classList.contains('snap-indicator-cross')) {
-        this.setAttribute('d', `M${point[0] - 7},${point[1] - 7}L${point[0] + 7},${point[1] + 7}M${point[0] + 7},${point[1] - 7}L${point[0] - 7},${point[1] + 7}`);
-      } else this.setAttribute('transform', `translate(${point[0]},${point[1]})`);
-    });
-    return true;
-  };
-  const publishEditingInteraction = async event => {
-    const packet = editingPacket || EMPTY_EDITING_RENDER_PACKET;
-    const normalized = Object.freeze({
-      ...event,
-      territorySourceKey: event?.territorySourceKey ?? packet.territoryOperation?.sourceKey,
-      projectGeneration: Number(event?.projectGeneration ?? packet.projectGeneration ?? 0),
-      packetRevision: Number(event?.packetRevision ?? packet.revision ?? 0),
-      screenPoint: Array.isArray(event?.screenPoint)
-        ? Object.freeze([Number(event.screenPoint[0]), Number(event.screenPoint[1])])
-        : null,
-      targetRef: event?.targetRef ? Object.freeze({ ...event.targetRef }) : null,
-      modifiers: event?.modifiers ? Object.freeze({ ...event.modifiers }) : null,
-    });
-    if (typeof emitEditingInteraction === 'function') {
-      try { return await emitEditingInteraction(normalized); }
-      catch (error) { reportEditingOperationError(error,{ type: normalized.type });return false; }
-    }
-    context?.publish?.('editing-interaction', normalized);
-    return true;
-  };
-  const pointerMetadata = sourceEvent => ({
-    pointerType: sourceEvent?.pointerType || (sourceEvent?.touches ? 'touch' : 'mouse'),
-    modifiers: {
-      altKey: sourceEvent?.altKey === true,
-      ctrlKey: sourceEvent?.ctrlKey === true,
-      metaKey: sourceEvent?.metaKey === true,
-      shiftKey: sourceEvent?.shiftKey === true,
-    },
-  });
-  const localEditingPoint = () => interaction.d3?.mouse?.(interaction.svg?.node?.() || interaction.svg) || null;
-  const editingDragBehavior = (kind, targetRef = null) => {
-    let gestureId = '';
-    return interaction.d3?.behavior?.drag?.()
-      .on('dragstart', function(item) {
-        gestureId = `editing-${++editingGestureSequence}`;
-        const sourceEvent = interaction.d3?.event?.sourceEvent;
-        sourceEvent?.preventDefault?.();
-        sourceEvent?.stopPropagation?.();
-        publishEditingInteraction({
-          type: `${kind}-drag-start`, gestureId, targetRef: targetRef || item?.targetRef,
-          vertexKey: item?.nodeKey || item?.key || null, vertexIndex: item?.index,
-          screenPoint: localEditingPoint(), ...pointerMetadata(sourceEvent),
-        });
-      })
-      .on('drag', function(item) {
-        const sourceEvent = interaction.d3?.event?.sourceEvent;
-        publishEditingInteraction({
-          type: `${kind}-drag-move`, gestureId, targetRef: targetRef || item?.targetRef,
-          vertexKey: item?.nodeKey || item?.key || null, vertexIndex: item?.index,
-          screenPoint: localEditingPoint(), ...pointerMetadata(sourceEvent),
-        });
-      })
-      .on('dragend', function(item) {
-        const sourceEvent = interaction.d3?.event?.sourceEvent;
-        sourceEvent?.preventDefault?.();
-        sourceEvent?.stopPropagation?.();
-        publishEditingInteraction({
-          type: `${kind}-drag-end`, gestureId, targetRef: targetRef || item?.targetRef,
-          vertexKey: item?.nodeKey || item?.key || null, vertexIndex: item?.index,
-          screenPoint: localEditingPoint(), ...pointerMetadata(sourceEvent),
-        });
-        gestureId = '';
-      });
-  };
-  const geometryPreviewIssueClass = (kind = '') => {
-    if (kind === 'overlap') return 'issue-overlap';
-    if (kind === 'gap' || kind === 'shared-boundary-gap') return 'issue-gap';
-    if (['invalid-sovereign', 'orphan-administrative', 'outside-parent', 'missing-territorial-reference', 'duplicate-id'].includes(kind)) return 'issue-relation';
-    return 'issue-invalid';
-  };
-  const labelState = () => labels.getState?.() || {};
   const requireFrame = frame => {
     if (!isMapVisualFrame(frame)) throw new TypeError('Rendering requires a MapVisualFrame.');
     return frame;
@@ -270,890 +139,18 @@ export function createRenderingDomain({
     stats.labelPositionProjectionCount += 1;
     return point;
   };
-  const renderTerritorialLabels = (layout, frameContext) => {
-    active();
-    const state = labelState();
-    const layer = labels.territorialLabelLayer;
-    if (!layer) return false;
-    const resolvedLayout = layout;
-    const namesVisible = feature => resolvedLayout?.territorialLabelNames?.get(String(feature.id)) !== false;
-    const data = resolvedLayout?.territorialLabels || [];
-    const selection = layer.selectAll('g.territorial-label-item').data(data, d => d.id);
-    selection.exit().remove();
-    // Preserve label identity for selection; the common input owner still dispatches editing tools by ground coordinates.
-    const enter = selection.enter().append('g')
-      .attr('class', 'territorial-label-item')
-      .on('click', function(feature) {
-        if (labels.mapClickBlocked?.()) return;
-        labels.d3.event.stopPropagation();
-        labels.handleMapClick(labels.d3.mouse(labels.svg.node()), { territorialLabelId: String(feature.id) });
-      });
-    enter.append('image').attr('class', 'territorial-label-flag').attr('preserveAspectRatio', 'xMidYMid meet')
-      .attr('aria-hidden', 'true').style('pointer-events', 'none')
-      .on('error', function() {
-        this.dataset.failedUrl = this.getAttribute('href');
-        this.style.display = 'none';
-        this.parentNode.querySelector('text')?.setAttribute('x', '0');
-      });
-    enter.append('text').attr('class', 'country-label').attr('dy', '.35em');
-    const all = layer.selectAll('g.territorial-label-item');
-    all.attr('data-label-id', feature => String(feature.id || ''));
-    all.select('text').text(feature => namesVisible(feature) ? labels.countryName?.(feature) || feature.properties?.name || '' : '')
-      .style('display', feature => namesVisible(feature) ? null : 'none')
-      .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
-    all
-      .style('opacity', labels.layerStyle?.(state.layerPresentation, 'countryLabels').opacity)
-      .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
-      .attr('transform', d => {
-        const settings = labels.automaticLabelSettings?.('country', labels.labelSettings(state, 'territorial', labels.getTerritorialLabelRef(d.id).id));
-        const anchor = settings?.pinned && settings.manualPosition
-          ? settings.manualPosition
-          : labels.countryLabelAnchors?.()?.get?.(String(d.id || ''));
-        const point = resolvedLayout?.territorialLabelPoints?.get?.(String(d.id || ''))
-          || (Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor, frameContext) : null);
-        return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-      });
-    territorialLabelPositionBindings = [];
-    all.each(function(feature) {
-      const nameVisible = namesVisible(feature);
-      let flag = resolvedLayout?.territorialFlags?.get(String(feature.id));
-      const text = this.querySelector('text');
-      const image = this.querySelector('image');
-      if (flag?.url === image.dataset.failedUrl) flag = null;
-      text.setAttribute('x', flag && nameVisible ? (flag.width + flag.gap) / 2 : 0);
-      image.style.display = flag ? '' : 'none';
-      if (flag) {
-        const width = nameVisible ? text.getComputedTextLength() : 0;
-        image.setAttribute('x', nameVisible ? -(width + flag.width + flag.gap) / 2 : -flag.width / 2);
-        image.setAttribute('y', -flag.height / 2);
-        image.setAttribute('width', flag.width); image.setAttribute('height', flag.height);
-        if (image.getAttribute('href') !== flag.url) image.setAttribute('href', flag.url);
-      } else image.removeAttribute('href');
-      const settings = labels.automaticLabelSettings?.('country', labels.labelSettings(state, 'territorial', labels.getTerritorialLabelRef(feature.id).id));
-      const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : labels.countryLabelAnchors?.()?.get?.(String(feature.id || ''));
-      territorialLabelPositionBindings.push({ node: this, coordinate: coordinate?.slice() });
-    });
-    return true;
-  };
-  const renderUserLabels = (layout, frameContext) => {
-    active();
-    const state = labelState();
-    const layer = labels.labelLayer;
-    if (!layer) return false;
-    const labelStyle = labels.layerStyle?.(state.layerPresentation, 'labels') || {};
-    const selectionState = labels.selectionSnapshot?.() || { primaryKey: null };
-    const labelRef = label => labels.normalizeObjectRef({ domain: 'label', type: label.kind || 'label', id: label.id });
-    const resolvedLayout = layout;
-    const data = state.layerVisibility?.labels ? resolvedLayout.userLabels || [] : [];
-    const selection = layer.selectAll('g.user-label').data(data, d => d.id);
-    const enter = selection.enter().append('g').attr('class', 'user-label').on('click', function(d) {
-      if (labels.mapClickBlocked?.() || state.tool !== 'select' || state.labelPlacementMode) return;
-      labels.d3?.event?.stopPropagation?.();
-      const point = labels.d3?.mouse?.(labels.svg);
-      labels.handleObjectSelectionAt?.(point, { sourceEvent: labels.d3?.event, hitRef: { domain: 'label', type: d.kind || 'label', id: d.id } });
-    });
-    enter.on('mouseenter.hover', async d => {
-      try {
-        if (!labels.isMobile() && labelState().tool === 'select' && !labelState().mapMoving) {
-          const ref = labelRef(d);
-          if (!ref) throw new TypeError('An explicit normalized label hover reference is required.');
-          await selectionDomain.setHover(ref, { source: 'map' });
-        }
-      } catch (error) {
-        if (!error.cancelled && error.name !== 'AbortError'
-          && !['STALE_REVISION','PL-CORE-STALE','PL-CORE-CANCELLED','PL-WORKER-RPC-STALE'].includes(error.code))
-          reportDiagnostic({ operation: 'label-hover', stage: 'enter', result: 'failed', code: 'PL-LABEL-HOVER-001', errorCode: error.code || '', message: error.message, error });
-      }
-    }).on('mouseleave.hover', async d => {
-      try {
-        const ref = labelRef(d);
-        if (!ref) throw new TypeError('An explicit normalized label hover reference is required.');
-        await selectionDomain.setHover(null, { source: 'map', expectedKey: ref.key });
-      }
-      catch (error) {
-        if (!error.cancelled && error.name !== 'AbortError'
-          && !['STALE_REVISION','PL-CORE-STALE','PL-CORE-CANCELLED','PL-WORKER-RPC-STALE'].includes(error.code))
-          reportDiagnostic({ operation: 'label-hover', stage: 'leave', result: 'failed', code: 'PL-LABEL-HOVER-001', errorCode: error.code || '', message: error.message, error });
-      }
-    });
-    enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
-    enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
-    const all = layer.selectAll('g.user-label');
-    all.style('opacity', labelStyle.opacity)
-      .classed('selected', d => labels.selectionHas?.(labelRef(d)))
-      .classed('is-primary-selection', d => labelRef(d)?.key === selectionState.primaryKey)
-      .classed('is-secondary-selection', d => labels.selectionHas?.(labelRef(d)) && labelRef(d)?.key !== selectionState.primaryKey)
-      .attr('transform', d => {
-        const settings = labels.automaticLabelSettings?.(d.kind, labels.labelSettings?.(state, 'label', d.id) || {});
-        const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : d.coordinates;
-        const point = resolvedLayout?.userLabelPoints?.get?.(String(d.id || ''))
-          || projectLabelCoordinate(coordinate, frameContext);
-        return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-      });
-    all.select('text').each(function(label) {
-      const rows = resolvedLayout.userLabelRows?.get(String(label.id)) || [{ language: 'ko', text: label.name }];
-      const text = labels.d3.select(this);
-      // Multiple official native names share the 'native' language switch, so key by row position.
-       const spans = text.selectAll('tspan').data(rows, (_row, index) => index);
-      spans.exit().remove();
-      spans.enter().append('tspan');
-      text.selectAll('tspan')
-        .attr('x', 7)
-        .attr('dy', (_row, index) => index === 0 ? String(0.35 - (rows.length - 1) * 0.72) + 'em' : '1.32em')
-        .attr('class', (_row, index) => index === 0 ? 'user-label-primary' : 'user-label-secondary')
-        .text(row => row.text);
-    });
-    selection.on('.drag', null);
-    if (state.tool === 'select' && !state.labelPlacementMode) selection.filter(label => !isBuiltinPlaceId(label.id)).call(labels.labelDragBehavior?.());
-    selection.exit().remove();
-    userLabelPositionBindings = [];
-    layer.selectAll('g.user-label').each(function(label) {
-      const settings = labels.automaticLabelSettings?.(label.kind, labels.labelSettings?.(state, 'label', label.id) || {});
-      const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
-      userLabelPositionBindings.push({ node: this, coordinate: coordinate?.slice() });
-    });
-    return true;
-  };
-  const applyCountryLabelPositions = (frameContext = null) => {
-    active();
-    for (const { node, coordinate: anchor } of territorialLabelPositionBindings) {
-      const point = Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor, frameContext) : null;
-      node?.setAttribute?.('transform', point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)');
-    }
-    return true;
-  };
-  const applyUserLabelPositions = (frameContext = null) => {
-    active();
-    for (const { node, coordinate } of userLabelPositionBindings) {
-      const point = projectLabelCoordinate(coordinate, frameContext);
-      node?.setAttribute?.('transform', point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)');
-    }
-    return true;
-  };
-  const renderTerritorialLabelPositions = frameContext => {
-    stats.labelPositionRequestCount += 1;
-    const result = applyCountryLabelPositions(frameContext);
-    stats.labelPositionCommitCount += 1;
-    stats.labelPositionLastFrameRevision = Number(frameContext?.viewRevision || frameContext?.revision || 0);
-    return result;
-  };
-  const renderUserLabelPositions = frameContext => applyUserLabelPositions(frameContext);
-  const renderCountries = (frame, {
-    presentationOnly = false,
-    gpuResult = null,
-  } = {}) => {
-    active();
-    const state = countries.getState?.() || {};
-    const renderViewState = requireFrame(frame);
-    countries.renderPendingCountryOverlays?.(renderViewState);
-    const pending = state.layerVisibility?.countries && state.pendingCountryRenderIds?.size
-      ? [...state.pendingCountryRenderIds].map(countries.getEntity).filter(Boolean)
-      : [];
-    const pendingPolygons = [];
-    const pendingStrokes = [];
-    const theme = pending.length ? countries.mapTheme() : null;
-    const resolveFill = pending.length ? createTerritorialFillResolver({ state, entityRepository: territorial.entityRepository,
-      terrainAlpha: theme.countryColorAlpha,
-      mapSubstrate: state.physicalSettings.terrainVisible ? null
-        : { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha } }) : null;
-    for (const feature of pending) {
-      const id = String(feature.id || '');
-      const geometryRevision = countries.selectionGeometryRevision?.(`country:${id}`, 'pending-country', feature);
-      pendingPolygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300,
-        role: 'territorial-fill', ownerId: id, territoryDepth: 0,
-        style: resolveFill(feature) });
-      pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: Object.freeze({ ...theme.strokes.country, alpha: theme.borderAlpha }) });
-    }
-    countries.replaceGpuSceneDomain?.('country-overlays', {
-      polygons: pendingPolygons,
-      strokes: pendingStrokes,
-    });
-    countries.syncGpuRenderScene?.();
-    const frameResult = !presentationOnly && renderViewState?.__mapVisualFrame
-      ? countries.gpuMapRenderer?.renderFrame?.(renderViewState)
-      : gpuResult;
-    if (!presentationOnly && frameResult?.deferred) commitViewAttachedLayers(renderViewState, frameResult);
-    countries.applyGpuSceneCoverage?.(frameResult);
-    countries.applyGpuInteractionCoverage?.(frameResult);
-    return frameResult;
-  };
-  const renderHydro = frameContext => {
-    active();
-    const state = hydro.getState?.() || {};
-    if (!hydro.hydroLakeLayer || !hydro.hydroRiverLayer) return false;
-    const riverStyle = hydro.layerStyle?.(state.layerPresentation, 'rivers') || {};
-    const lakeStyle = hydro.layerStyle?.(state.layerPresentation, 'lakes') || {};
-    const renderer = hydro.gpuMapRenderer?.getRuntimeState?.().renderer;
-    const nativeHydro = ['webgl2', 'webgl1', 'canvas-worker', 'canvas2d'].includes(renderer);
-    if (nativeHydro) {
-      hydro.hydroLakeLayer.selectAll('*').remove();
-      hydro.hydroRiverLayer.selectAll('*').remove();
-    } else {
-      const lakes = state.layerVisibility?.lakes ? hydro.hydroRenderGroups?.('lake') || [] : [];
-      const lakeSelection = hydro.hydroLakeLayer.selectAll('path.hydro-lake-group').data(lakes, item => item.key);
-      lakeSelection.enter().append('path').attr('class', 'hydro-lake-group');
-      lakeSelection.attr('d', item => framePath(frameContext)(item.collection))
-        .style('fill', hydro.hydroDisplayColor?.('lake'))
-        .style('stroke', hydro.hydroDisplayColor?.('lake'))
-        .style('opacity', null)
-        .style('fill-opacity', lakeStyle.opacity)
-        .style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)
-        .style('stroke-width', lakeStyle.boundaryWidth);
-      lakeSelection.exit().remove();
-      const rivers = state.layerVisibility?.rivers ? hydro.hydroRenderGroups?.('river') || [] : [];
-      const riverSelection = hydro.hydroRiverLayer.selectAll('path.hydro-river-group').data(rivers, item => item.key);
-      riverSelection.enter().append('path').attr('class', 'hydro-river-group');
-      riverSelection.attr('d', item => framePath(frameContext)(item.collection))
-        .style('stroke-width', item => `${item.width * riverStyle.boundaryWidth}px`)
-        .style('stroke', hydro.hydroDisplayColor?.('river'))
-        .style('opacity', null)
-        .style('stroke-opacity', riverStyle.opacity);
-      riverSelection.exit().remove();
-    }
-    return true;
-  };
-  const renderHydroEdits = frameContext => {
-    active();
-    const state = hydro.getState?.() || {};
-    if (!hydro.hydroEditLayer) return false;
-    const renderer = hydro.gpuMapRenderer?.getRuntimeState?.().renderer;
-    const nativeHydro = ['webgl2', 'webgl1', 'canvas-worker', 'canvas2d'].includes(renderer);
-    hydro.gpuMapRenderer?.setHydroEdits?.(state.hydroEdits || [], hydro.getStateRevision?.() || state.stateRevision);
-    const riverStyle = hydro.layerStyle?.(state.layerPresentation, 'rivers') || {};
-    const lakeStyle = hydro.layerStyle?.(state.layerPresentation, 'lakes') || {};
-    const visibleHydroIds = new Set((hydro.visibleMapObjectCandidates?.(['hydro']) || []).map(record => String(record.id)));
-    const data = (state.hydroEdits || []).filter(feature => hydro.isHydroFeatureVisible?.(feature) && feature.geometry
-      && ((visibleHydroIds.has(String(feature.id)) && hydro.geometryMayIntersectViewport?.(feature.geometry))
-        || hydro.selectionHas?.(hydro.normalizeObjectRef?.({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))));
-    if (hydro.viewportCullingMetrics?.lastByDomain?.hydro) hydro.viewportCullingMetrics.lastByDomain.hydro.finalVisibleCount = data.length;
-    const selection = hydro.hydroEditLayer.selectAll('path.hydro-edit-shape').data(data, feature => String(feature.id));
-    selection.enter().append('path')
-      .attr('class', 'hydro-edit-shape')
-      .on('mouseenter.hover', feature => hydro.setMapHover?.('hydro', feature.id, feature, {
-        domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id,
-      }))
-      .on('mouseleave.hover', feature => hydro.setMapHover?.('', '', null, { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))
-      .on('click', function(feature) {
-        const stateNow = hydro.getState?.() || {};
-        if (hydro.mapClickBlocked?.() || stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
-        hydro.d3?.event?.stopPropagation?.();
-        hydro.handleObjectSelectionAt?.(hydro.d3?.mouse?.(hydro.svg), {
-          sourceEvent: hydro.d3?.event,
-          hitRef: { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id },
-        });
-      });
-    selection.attr('d', feature => framePath(frameContext)(feature))
-      .classed('hydro-edit-native-hit', nativeHydro)
-      .style('fill', feature => feature.properties?.category === 'lake'
-        ? (nativeHydro ? 'transparent' : hydro.hydroEditColor?.(feature) || hydro.hydroDisplayColor?.('lake'))
-        : 'none')
-      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? (nativeHydro ? 0 : 0.34 * lakeStyle.opacity) : 0)
-      .style('stroke', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
-        ? 'none' : (nativeHydro ? 'transparent' : hydro.hydroEditColor?.(feature) || hydro.hydroDisplayColor?.('river')))
-      .style('stroke-opacity', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
-        ? 0 : (nativeHydro ? 0 : riverStyle.opacity))
-      .style('stroke-width', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
-        ? 0 : (nativeHydro ? Math.max(8, riverStyle.boundaryWidth) : riverStyle.boundaryWidth));
-    selection.exit().remove();
-    const polygonSelection = hydro.hydroEditLayer.selectAll('path.hydro-edit-boundary').data(
-      nativeHydro ? [] : data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)),
-      feature => String(feature.id),
-    );
-    polygonSelection.enter().append('path').attr('class', 'hydro-edit-boundary').style('fill', 'none').style('pointer-events', 'none');
-    polygonSelection.attr('d', feature => framePath(frameContext)(hydro.buildRenderableStrokeFeature?.(feature) || feature))
-      .style('stroke', feature => hydro.hydroEditColor?.(feature) || hydro.hydroDisplayColor?.('lake'))
-      .style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)
-      .style('stroke-width', lakeStyle.boundaryWidth);
-    polygonSelection.exit().remove();
-    return true;
-  };
-  const renderTerritorialUnits = frameContext => {
-    active();
-    const t = territorial;
-    const state = t.getState?.() || {};
-    const theme = countries.mapTheme?.() || {};
-    const resolveFill = createTerritorialFillResolver({ state, entityRepository: t.entityRepository,
-      terrainAlpha: theme.countryColorAlpha });
-    t.syncBuiltinPalette?.();
-    const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
-    const displayedUnits = t.displayEntities().filter(entity => territorialSymbolGroup(entity) !== 'countries');
-    const data = displayedUnits.filter(feature => {
-      const group = territorialSymbolGroup(feature);
-      const selected = t.selectionHas?.(t.normalizeObjectRef?.({
-        domain: 'territorial', type: 'entity', id: feature.id,
-      }));
-      const editing = state.territorialUnitMergeSourceId === String(feature.id)
-        || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))
-        || state.territorialUnitSplitSourceId === String(feature.id)
-        || state.territorialUnitRedrawSourceId === String(feature.id);
-      return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id)
-        && (selected || editing || (visibleIds.has(String(feature.id)) && t.geometryMayIntersectViewport?.(feature.geometry)));
-    });
-    if (t.viewportCullingMetrics?.lastByDomain?.territorial) t.viewportCullingMetrics.lastByDomain.territorial.finalVisibleCount = data.length;
-    const selection = t.territorialUnitLayer?.selectAll('path.territorial-unit-shape').data(data, feature => String(feature.id));
-    selection?.enter().append('path').attr('class', 'territorial-unit-shape')
-      .on('mouseenter.hover', feature => t.setMapHover?.('territorialUnit', feature.id, feature, {
-        domain: 'territorial', type: 'entity', id: feature.id,
-      }))
-      .on('mouseleave.hover', feature => t.setMapHover?.('', '', null, { domain: 'territorial', type: 'entity', id: feature.id }))
-      .on('click', function(feature) {
-        const stateNow = t.getState?.() || {};
-        if (t.mapClickBlocked?.()) return;
-        if (stateNow.tool === 'merge-territorial-unit') {
-          t.d3?.event?.stopPropagation?.();
-          t.toggleTerritorialUnitMergeTarget?.(String(feature.id));
-          return;
-        }
-        if (stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
-        t.d3?.event?.stopPropagation?.();
-        t.handleObjectSelectionAt?.(t.d3?.mouse?.(t.svg), {
-          sourceEvent: t.d3?.event,
-          hitRef: { domain: 'territorial', type: 'entity', id: feature.id },
-        });
-      });
-    selection?.attr('d', feature => framePath(frameContext)(feature))
-      .attr('data-gpu-scene-key', feature => {
-        const key = t.normalizeObjectRef?.({ domain: 'territorial', type: 'entity', id: feature.id })?.key
-          || `territorial:entity:${feature.id}`;
-        return `${key}:fill`;
-      })
-      .classed('is-territory', feature => feature.properties?.entityKind === 'general')
-      .classed('is-region', feature => feature.properties?.entityKind === 'regional')
-      .classed('territorial-unit-merge-source', feature => state.territorialUnitMergeSourceId === String(feature.id))
-      .classed('territorial-unit-merge-target', feature => (state.territorialUnitMergeTargetIds || []).includes(String(feature.id)))
-      .style('color', null)
-      .style('fill', 'transparent')
-      .style('fill-opacity', 0)
-      .style('stroke', 'none').style('stroke-opacity', 0).style('stroke-width', 0).style('stroke-dasharray', 'none')
-      .style('mix-blend-mode', 'normal')
-      .attr('data-presentation-group', territorialSymbolGroup);
-    selection?.exit().remove();
-    t.territorialOperationLayer?.selectAll('path.territorial-unit-operation-outline').remove();
-    const polygons = [];
-    const strokes = [];
-    for (const feature of data) {
-      const group = territorialSymbolGroup(feature) || 'subunits';
-      const unitStyle = resolveFill(feature);
-      const objectKey = t.normalizeObjectRef?.({ domain: 'territorial', type: 'entity', id: feature.id })?.key
-        || `territorial:entity:${feature.id}`;
-      const geometryRevision = t.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
-      polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
-        role: feature.properties.entityKind === 'regional' ? 'regional-overlay' : 'territorial-fill', ownerId: unitStyle.ownerId, parentId: unitStyle.parentId, territoryDepth: unitStyle.depth,
-        order: t.gpuSceneOrder?.(group, 'fill', objectKey), blendMode: unitStyle.blendMode,
-        style: { color: unitStyle.color, fillAlpha: unitStyle.fillAlpha, blendMode: unitStyle.blendMode } });
-
-    }
-    t.replaceGpuSceneDomain?.('territorial-units', { polygons, strokes });
-    const boundaryFeatures = displayedUnits.filter(feature => {
-      if (t.isNativeBuiltinSubunit?.(feature)) return false;
-      const group = territorialSymbolGroup(feature) || 'subunits';
-      return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id);
-    });
-    renderTerritorialInternalBoundaries(boundaryFeatures);
-    return true;
-  };
-  const renderGenericFeatures = frameContext => {
-    active();
-    const g = generic;
-    const state = g.getState?.() || {};
-    const style = g.layerStyle?.(state.layerPresentation, 'genericFeatures') || {};
-    const visibleIds = state.layerVisibility?.genericFeatures
-      ? new Set((g.visibleMapObjectCandidates?.(['generic']) || []).map(record => String(record.id)))
-      : new Set();
-    const data = state.layerVisibility?.genericFeatures
-      ? (state.genericFeatures || []).filter(feature => g.isLayerItemVisible?.('genericFeatures', feature.id))
-        .map(feature => g.genericFeatureDisplayFeature?.(feature) || feature)
-        .filter(feature => feature.geometry && ((visibleIds.has(String(feature.id)) && g.geometryMayIntersectViewport?.(feature.geometry))
-          || g.selectionHas?.(g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: feature.id }))))
-      : [];
-    if (g.viewportCullingMetrics?.lastByDomain?.generic) g.viewportCullingMetrics.lastByDomain.generic.finalVisibleCount = data.length;
-    const selection = g.genericFeatureLayer?.selectAll('path.generic-feature-shape').data(data, d => String(d.id));
-    selection?.enter().append('path').attr('class', 'generic-feature-shape')
-      .on('mouseenter.hover', d => g.setMapHover?.('generic', d.id, d, { domain: 'generic', type: 'feature', id: d.id }))
-      .on('mouseleave.hover', feature => g.setMapHover?.('', '', null, { domain: 'generic', type: 'feature', id: feature.id }))
-      .on('click', function(d) {
-        const stateNow = g.getState?.() || {};
-        if (g.mapClickBlocked?.()) return;
-        if (stateNow.tool === 'merge-generic-feature') {
-          g.d3?.event?.stopPropagation?.();
-          g.toggleGenericFeatureMergeTarget?.(String(d.id));
-          return;
-        }
-        if (stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
-        g.d3?.event?.stopPropagation?.();
-        g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, hitRef: { domain: 'generic', type: 'feature', id: d.id } });
-      });
-    const selectedRef = d => g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: d.id });
-    const sceneGeometry = d => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(d.geometry?.type);
-    selection?.attr('d', framePath(frameContext))
-      .attr('data-gpu-scene-key', d => d.geometry?.type?.includes('Polygon')
-        ? `${selectedRef(d)?.key || `generic:feature:${d.id}`}:fill`
-        : ['LineString', 'MultiLineString'].includes(d.geometry?.type) ? `${selectedRef(d)?.key || `generic:feature:${d.id}`}:line` : null)
-      .classed('selected', d => g.selectionHas?.(selectedRef(d)))
-      .classed('selected-point', d => d.geometry?.type === 'Point' && g.selectionHas?.(selectedRef(d)))
-      .classed('is-primary-selection', d => selectedRef(d)?.key === g.selectionSnapshot?.()?.primaryKey)
-      .classed('is-secondary-selection', d => g.selectionHas?.(selectedRef(d)) && selectedRef(d)?.key !== g.selectionSnapshot?.()?.primaryKey)
-      .style('fill', d => sceneGeometry(d) ? 'transparent' : 'none')
-      .style('fill-opacity', 0)
-      .style('stroke', d => sceneGeometry(d) ? 'transparent' : g.genericFeatureColor?.(d))
-      .style('stroke-opacity', d => sceneGeometry(d) ? 0 : style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', d => sceneGeometry(d) ? 0 : style.boundaryWidth)
-      .style('mix-blend-mode', d => sceneGeometry(d) ? 'normal' : style.blendMode)
-      .attr('data-presentation-group', 'genericFeatures')
-      .classed('generic-feature-merge-source', d => state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(d.id))
-      .classed('generic-feature-merge-target', d => state.tool === 'merge-generic-feature' && (state.genericFeatureMergeTargetIds || []).includes(String(d.id)));
-    selection?.exit().remove();
-    g.genericFeatureLayer?.selectAll('path.generic-feature-boundary').remove();
-    const polygons = [];
-    const strokes = [];
-    for (const feature of data) {
-      const objectKey = selectedRef(feature)?.key || `generic:feature:${feature.id}`;
-      const geometryRevision = g.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
-      if (['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)) {
-        polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
-          order: g.gpuSceneOrder?.('genericFeatures', 'fill'), blendMode: style.blendMode,
-          style: { color: g.genericFeatureColor?.(feature), fillAlpha: 0.34 * style.opacity, blendMode: style.blendMode } });
-        if (style.boundaryVisible) strokes.push({
-          key: `${objectKey}:boundary`, objectKey, geometryRevision,
-          geometry: (g.buildRenderableStrokeFeature?.(feature) || feature).geometry,
-          order: g.gpuSceneOrder?.('genericFeatures', 'boundary'), blendMode: style.blendMode,
-          style: resolveMapStrokeStyle({ color: g.genericFeatureColor?.(feature), layerStyle: style, antiAlias: document.documentElement.dataset.smoothLines !== 'false' }, 'generic'),
-        });
-      } else if (['LineString', 'MultiLineString'].includes(feature.geometry?.type) && style.boundaryVisible) strokes.push({
-        key: `${objectKey}:line`, objectKey, geometryRevision, geometry: feature.geometry,
-        order: g.gpuSceneOrder?.('genericFeatures', 'line'), blendMode: style.blendMode,
-        style: resolveMapStrokeStyle({ color: g.genericFeatureColor?.(feature), layerStyle: style, antiAlias: document.documentElement.dataset.smoothLines !== 'false' }, 'generic'),
-      });
-    }
-    g.replaceGpuSceneDomain?.('generic-features', { polygons, strokes });
-    return true;
-  };
-  let distributionRenderRowCache = { layers: null, entries: null, entities: null, countryGeometryRevision: -1, renderMode: '', selectedLayerId: '', visibilityRevision: -1, rows: Object.freeze([]), rebuildCount: 0, buildMs: 0 };
-  const buildDistributionRenderRows = () => {
-    const d = distribution;
-    const state = d.getState?.() || {};
-    const settings = state.distributionSettings || {};
-    const renderMode = settings.renderMode;
-    const modes = d.DISTRIBUTION_RENDER_MODES || {};
-    const selectedLayerId = renderMode === modes.SINGLE ? String(settings.activeLayerId || '') : '';
-    const visibilityRevision = d.getDistributionVisibilityRevision?.() ?? 0;
-    const countryRevision = d.getCountryGeometryRevision?.() ?? 0;
-    const cacheCurrent = distributionRenderRowCache.layers === state.distributionLayers
-      && distributionRenderRowCache.entries === state.distributionEntries
-      && distributionRenderRowCache.entities === state.territorialEntities
-      && distributionRenderRowCache.countryGeometryRevision === countryRevision
-      && distributionRenderRowCache.renderMode === renderMode
-      && distributionRenderRowCache.selectedLayerId === selectedLayerId
-      && distributionRenderRowCache.visibilityRevision === visibilityRevision;
-    if (cacheCurrent) return distributionRenderRowCache.rows;
-    const started = globalThis.performance?.now?.() || Date.now();
-    const visibleLayers = state.layerVisibility?.distributions === false ? [] :
-      (state.distributionLayers || []).filter(layer => d.isLayerItemVisible?.('distributions', layer.id));
-    const activeId = visibleLayers.some(layer => layer.id === selectedLayerId) ? selectedLayerId : visibleLayers[0]?.id;
-    const displayedLayers = renderMode === modes.SINGLE
-      ? visibleLayers.filter(layer => layer.id === activeId) : visibleLayers;
-    const entriesByLayer = new Map(visibleLayers.map(layer => [layer.id, []]));
-    for (const entry of state.distributionEntries || []) entriesByLayer.get(entry.layerId)?.push(entry);
-    const ranges = new Map(visibleLayers.map(layer => [layer.id, distributionValueRange(layer, entriesByLayer.get(layer.id))]));
-    const rows = displayedLayers.flatMap(layer => (entriesByLayer.get(layer.id) || []).map(entry => {
-      const geometry = entry.mode === (d.DISTRIBUTION_MODES || {}).TERRITORIAL
-        ? d.territorialEntityRepository.get(entry.territorialUnitId)?.geometry : entry.geometry;
-      if (!layer || !geometry) return null;
-      return Object.freeze({ id: entry.id, layer, entry, range: ranges.get(layer.id),
-        geometry, bounds: d.geometryBounds?.(geometry), type: 'Feature' });
-    })).filter(Boolean);
-    distributionRenderRowCache = { layers: state.distributionLayers, entries: state.distributionEntries, entities: state.territorialEntities,
-      countryGeometryRevision: countryRevision, renderMode, selectedLayerId, visibilityRevision,
-      rows: Object.freeze(rows), rebuildCount: distributionRenderRowCache.rebuildCount + 1, buildMs: (globalThis.performance?.now?.() || Date.now()) - started };
-    return distributionRenderRowCache.rows;
-  };
-  const visibleDistributionRenderRows = () => {
-    const d = distribution;
-    const rows = buildDistributionRenderRows();
-    const candidates = new Set((d.visibleMapObjectCandidates?.(['distribution']) || []).map(record => String(record.id)));
-    const started = globalThis.performance?.now?.() || Date.now();
-    let verificationCount = 0;
-    const visible = rows.filter(row => {
-      const selected = d.selectionHas?.(d.normalizeObjectRef?.({ domain: 'distribution', type: 'distribution', id: row.layer.id }));
-      if (selected) return true;
-      if (!candidates.has(String(row.id))) return false;
-      verificationCount += 1;
-      return d.geometryMayIntersectViewport?.(row.geometry);
-    });
-    if (d.viewportCullingMetrics) {
-      d.viewportCullingMetrics.finalVisibleCount = visible.length;
-      if (d.viewportCullingMetrics.lastByDomain?.distribution) d.viewportCullingMetrics.lastByDomain.distribution.finalVisibleCount = visible.length;
-      d.viewportCullingMetrics.projectedVerificationCount = (d.viewportCullingMetrics.projectedVerificationCount || 0) + verificationCount;
-      d.viewportCullingMetrics.projectedVerificationMs = (d.viewportCullingMetrics.projectedVerificationMs || 0) + ((globalThis.performance?.now?.() || Date.now()) - started);
-    }
-    return visible;
-  };
-  const renderDistributions = frameContext => {
-    active();
-    const d = distribution;
-    const state = d.getState?.() || {};
-    if (!d.distributionLayer) return false;
-    const data = visibleDistributionRenderRows();
-    const boundaryVisible = state.distributionSettings?.boundaryVisible !== false;
-    const isArea = row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type);
-    const color = row => d.distributionColor?.(row.layer);
-    const styleFor = () => d.layerStyle?.(state.layerPresentation, 'distributions') || {};
-    const selection = d.distributionLayer.selectAll('path.distribution-shape').data(data, row => row.id);
-    selection.enter().append('path').attr('class', 'distribution-shape')
-      .on('mouseenter.hover', row => d.setMapHover?.('distribution', row.id, d.featureFromGeometry?.(row.geometry), { domain: 'distribution', type: 'distribution', id: row.layer.id }))
-      .on('mouseleave.hover', row => d.setMapHover?.('', '', null, { domain: 'distribution', type: 'distribution', id: row.layer.id }))
-      .on('click', function(row) {
-        const stateNow = d.getState?.() || {};
-        if (d.mapClickBlocked?.() || stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
-        d.d3?.event?.stopPropagation?.();
-        d.handleObjectSelectionAt?.(d.d3?.mouse?.(d.svg), { sourceEvent: d.d3?.event, hitRef: { domain: 'distribution', type: 'distribution', id: row.layer.id } });
-      });
-    selection.attr('d', row => framePath(frameContext)({ type: 'Feature', properties: {}, geometry: row.geometry }))
-      .attr('data-gpu-scene-key', row => `distribution-entry:${row.id}:${isArea(row) ? 'fill' : 'line'}`)
-      .style('fill', 'transparent').style('stroke', 'transparent')
-      .style('fill-opacity', 0)
-      .style('stroke-opacity', 0)
-      .style('stroke-width', 0)
-      .style('mix-blend-mode', 'normal')
-      .attr('data-presentation-group', 'distributions');
-    selection.exit().remove();
-    d.distributionLayer.selectAll('path.distribution-boundary').remove();
-    const polygons = [], strokes = [];
-    for (const row of data) {
-      const group = 'distributions';
-      const renderStyle = styleFor(row);
-      const objectKey = d.normalizeObjectRef?.({ domain: 'distribution', type: 'distribution', id: row.layer.id })?.key || `distribution:distribution:${row.layer.id}`;
-      const feature = d.featureFromGeometry?.(row.geometry);
-      const geometryRevision = d.selectionGeometryRevision?.(`distribution-entry:${row.id}`, 'gpu-scene', feature);
-      const fillAlpha = distributionValueAlpha(row.entry.value, row.range, renderStyle.opacity);
-      if (isArea(row)) {
-        polygons.push({ key: `distribution-entry:${row.id}:fill`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 'fill'), blendMode: renderStyle.blendMode, style: { color: color(row), fillAlpha, blendMode: renderStyle.blendMode } });
-        if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 'boundary'), blendMode: renderStyle.blendMode, style: resolveMapStrokeStyle({ color: color(row), layerStyle: renderStyle, antiAlias: document.documentElement.dataset.smoothLines !== 'false' }, 'distribution') });
-      } else if (['LineString', 'MultiLineString'].includes(row.geometry?.type) && boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:line`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 'line'), blendMode: renderStyle.blendMode, style: resolveMapStrokeStyle({ color: color(row), layerStyle: renderStyle, antiAlias: document.documentElement.dataset.smoothLines !== 'false' }, 'distribution') });
-    }
-    d.replaceGpuSceneDomain?.('distributions', { polygons, strokes });
-    return true;
-  };
-  let pendingTerritorialBoundary = null;
-  let territorialBoundaryEpoch = 0;
+  const {renderTerritorialLabels,renderUserLabels,renderTerritorialLabelPositions,renderUserLabelPositions}=createLabelPresentation({
+    labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats});
+  const editPresentation=createEditingPresentation ? createEditingPresentation({active,editing,interaction,selection,context,
+    requireFrame,framePath,frameProjectCoordinate,getPacket:()=>editingPacket,emitEditingInteraction,reportEditingOperationError}) : null;
+  const {renderBoundaryEdit,renderVertices,renderDraft,renderSnap,renderValidation,renderGeometryPreview}=editPresentation||{};
   const pendingHighlights = new Map();
-  let territorialBoundaryCache = { countries: null, units: null, revision: -1, inputSignature: '', segments: [], rebuildCount: 0 };
-  let territorialBoundaryBatchCache = { signature: '', revision: '', groups: [], data: [] };
-  const renderTerritorialInternalBoundaries = (visibleFeatures = []) => {
-    active();
-    const t = territorialBoundary;
-    const state = t.getState?.() || {};
-    const displayed = territorial.displayEntities();
-    const countries = displayed.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId);
-    const units = displayed.filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
-    const revision = t.getTerritorialGeometryRevision?.() ?? 0;
-    if (!units.some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) {
-      pendingTerritorialBoundary = null;
-      const hadBoundaries = territorialBoundaryCache.segments.length || territorialBoundaryBatchCache.groups.length;
-      territorialBoundaryCache = { countries: null, units: null, revision: -1, inputSignature: '', segments: [], rebuildCount: territorialBoundaryCache.rebuildCount };
-      territorialBoundaryBatchCache = { signature: '', revision: '', groups: [], data: [] };
-      t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
-      if (hadBoundaries) t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: [] });
-      return true;
-    }
-    const inputSignature = JSON.stringify([
-      t.getCountryLandRevision?.() ?? 0,
-      revision,
-      countries.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry)]),
-      units.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry), String(feature?.properties?.entityKind || ''), String(feature?.properties?.parentId || '')]),
-    ]);
-    // A candidate belongs to one request lifetime, even if its input repeats
-    // after undo or a project reset. Only the render path promotes its result.
-    if (pendingTerritorialBoundary?.inputSignature !== inputSignature) pendingTerritorialBoundary = null;
-    if (territorialBoundaryCache.revision !== revision || territorialBoundaryCache.inputSignature !== inputSignature) {
-      if (pendingTerritorialBoundary?.status === 'ready') {
-        territorialBoundaryCache = { countries, units, revision, inputSignature,
-          segments: pendingTerritorialBoundary.segments, rebuildCount: territorialBoundaryCache.rebuildCount + 1 };
-        pendingTerritorialBoundary = null;
-      } else if (prepareEditDisplay && !pendingTerritorialBoundary) {
-        const candidate = { inputSignature, epoch: territorialBoundaryEpoch, status: 'preparing', segments: null };
-        pendingTerritorialBoundary = candidate;
-        // Catch synchronous preparation failures as well as Worker rejection.
-        (async () => {
-          const response = await prepareEditDisplay({ kind: 'boundaries',
-            ...(state.countryVisualPhase === 'preview' ? { entities: displayed } : {}) },
-          { jobKey: 'edit-display:boundaries' });
-          if (disposed || pendingTerritorialBoundary !== candidate || candidate.epoch !== territorialBoundaryEpoch) return;
-          if (!Array.isArray(response?.result?.segments)) throw new TypeError('Territorial boundary result requires segments');
-          candidate.segments = response.result.segments;
-          candidate.status = 'ready';
-          onEditDisplayReady();
-        })().catch(error => {
-          if (disposed || pendingTerritorialBoundary !== candidate || candidate.epoch !== territorialBoundaryEpoch) return;
-          if (error?.name === 'AbortError' || error?.cancelled === true) {
-            pendingTerritorialBoundary = null;
-            return;
-          }
-          candidate.status = 'failed';
-          reportDiagnostic({ operation: 'territorial-boundary-prepare', result: 'recovered', stage: 'topology',
-            technicalMessage: String(error?.message || error), stack: error?.stack || '' });
-        });
-      }
-    } else pendingTerritorialBoundary = null;
-    const visibleIds = new Set(visibleFeatures.map(feature => String(feature.id)));
-    const styleByType = new Map([
-      ['subunit', { presentationGroup: 'subunits' }],
-      ['subunit-internal', { presentationGroup: 'subunits' }],
-      ['region', { presentationGroup: 'regions' }],
-    ]);
-    const visibleSignature = [...visibleIds].sort().map(id => {
-      const feature = visibleFeatures.find(item => String(item.id) === id);
-      return `${id}:${t.territorialEntityColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, territorialSymbolGroup(feature), `territorial:entity:${id}`))}`;
-    }).join('|');
-    const styleSignature = [...styleByType].map(([type, definition]) => {
-      const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
-      return `${type}:${style.opacity}:${style.boundaryVisible}`;
-    }).join('|');
-    const boundaryColor = t.mapTheme?.().border || '#ffffff';
-    // Aggregate buffers cannot selectively hide their old segments. A visibility
-    // change makes that archive ineligible as a GPU upload fallback (M3), even
-    // while an otherwise valid new topology is still being prepared.
-    const continuityOwnerIds = [...visibleIds].sort().filter(id => {
-      const feature = visibleFeatures.find(item => String(item.id) === id);
-      const style = t.layerStyle?.(state.layerPresentation, territorialSymbolGroup(feature), `territorial:entity:${id}`) || {};
-      return style.boundaryVisible !== false && Number(style.opacity ?? 1) > 0;
-    });
-    const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature};${boundaryColor}`;
-    if (territorialBoundaryBatchCache.signature !== signature) {
-      const groups = new Map([...styleByType].map(([styleType, definition]) => [styleType, { key: styleType, styleType, segments: [] }]));
-      for (const segment of territorialBoundaryCache.segments) {
-        const owner = (segment.unitOwners || []).find(item => visibleIds.has(String(item.id)));
-        if (!owner) continue;
-        const feature = visibleFeatures.find(item => String(item.id) === String(owner.id));
-        const styleType = segment.styleType || feature?.properties?.entityKind || 'subunit';
-        const definition = styleByType.get(styleType) || styleByType.get('subunit');
-        const group = groups.get(styleType) || groups.get('subunit');
-        if (!group) continue;
-        const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup, `territorial:entity:${feature.id}`) || {};
-        if (!style.boundaryVisible || !(style.opacity > 0)) continue;
-        group.segments.push({ a: segment.a, b: segment.b, color: boundaryColor, opacity: style.opacity });
-      }
-      const preparedGroups = [...groups.values()].filter(group => group.segments.length);
-      const fallbackGroups = new Map();
-      for (const group of preparedGroups) for (const segment of group.segments) {
-        const key = `${group.styleType}:${segment.color}:${segment.opacity}`;
-        if (!fallbackGroups.has(key)) fallbackGroups.set(key, { key, styleType: group.styleType, color: segment.color, opacity: segment.opacity, coordinates: [] });
-        fallbackGroups.get(key).coordinates.push([segment.a, segment.b]);
-      }
-      const data = [...fallbackGroups.values()].map(group => ({ ...group, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(group.coordinates) } }));
-      territorialBoundaryBatchCache = { signature, revision: `${territorialBoundaryCache.rebuildCount}:${signature}`, groups: preparedGroups, data };
-    }
-    const data = territorialBoundaryBatchCache.data;
-    // These are scene strokes. A projected SVG copy caused a second visual
-    // owner with different cache and transition timing.
-    t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
-    t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
-      const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits' };
-      return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 'territorial-boundary', '', index), style: resolveMapStrokeStyle({ color: group.color, layerStyle: { opacity: group.opacity, boundaryWidth: 1 } }, group.styleType) };
-    }) });
-    return true;
-  };
-  const syncBaseView = (viewState = null) => {
-    active();
-    const b = base;
-    b.updatePandoGlobeShell?.(viewState);
-    return true;
-  };
-  const renderBase = (viewState = null) => {
-    syncBaseView(viewState);
-    const b = base;
-    const graticuleGeometry = b.graticule?.();
-    if (!graticuleGeometry) return false;
-    const light = b.isLightTheme?.() ?? true;
-    b.replaceGpuSceneDomain?.('base-graticule', { strokes: [{
-      key: 'base:graticule', geometryRevision: `${viewState.projection}:graticule-v2`,
-      ...b.buildGraticuleStrokeGeometryPacket?.(graticuleGeometry, { maxEdgeDegrees: 0.5 }),
-      lodPolicy: 'exact', protected: true, order: -10000,
-      style: { color: light ? '#aaaaaa' : '#688091', alpha: light ? 0.34 : 0.20, width: 0.55, cap: 'butt', join: 'round' },
-    }] });
-    return true;
-  };
-  const renderProjectedOverlays = (frameContext = null) => {
-    active();
-    for (const layer of projected.layers || []) {
-      layer?.selectAll?.('path')?.attr('d', framePath(frameContext));
-    }
-    return true;
-  };
-  const renderBoundaryEdit = (frameContext = null, packet = editingPacket) => {
-    active();
-    const boundary = packet?.boundaryEdit;
-    const view = frameContext?.viewRevision;
-    const projection = frameContext?.projectionRevision;
-    if (!editingChannelChanged('boundary', editing.boundaryEditLayer, boundary, view, projection, JSON.stringify(editing.getInteractionStyle?.()))) return true;
-    const visibleSegments = queryBoundaryDisplay(boundary?.displayIndex?.segments, boundaryViewBounds(frameContext), boundary?.segments || []);
-    const data = (editing.getInteractionStyle?.()?.selection?.outlineVisible === false ? ['coast', 'shared'] : []).map(kind => {
-      const segments = visibleSegments.filter(segment => (segment.kind === 'coast' ? 'coast' : 'shared') === kind);
-      return segments.length ? {
-        key: `${boundary?.preparationId || packet?.revision || 0}:${kind}:${view ?? 0}:${projection ?? 0}`,
-        kind,
-        style: resolveMapStrokeStyle(editing.getInteractionStyle?.() || resolveMapInteractionStyle(), 'edit-target', { directManipulation: true, boundaryKind: kind }),
-        geometry: { type: 'MultiLineString', coordinates: segments.map(segment => [segment.start, segment.end]) },
-      } : null;
-    }).filter(Boolean);
-    const layer = editing.boundaryEditLayer;
-    if (!layer) return false;
-    const selection = layer.selectAll('path.boundary-edit-segment').data(data, d => d.key);
-    selection.enter().append('path').attr('class', 'boundary-edit-segment');
-    selection.exit().remove();
-    layer.selectAll('path.boundary-edit-segment')
-      .attr('d', d => framePath(frameContext)?.({ type: 'Feature', geometry: d.geometry, properties: {} }))
-      .attr('data-gpu-scene-key', d => `boundary-edit:${d.key}`)
-      .attr('stroke', d => d.style.color)
-      .attr('stroke-width', d => scaleInteractionStroke(d.style, frameContext).width)
-      .attr('stroke-opacity', d => d.style.alpha)
-      .attr('stroke-dasharray', d => d.style.dash.join(' '))
-      .attr('stroke-linecap', d => d.style.cap).attr('stroke-linejoin', d => d.style.join)
-      .classed('coast', d => d.kind === 'coast')
-      .classed('shared', d => d.kind === 'shared')
-      .on('click.vertex-add', null);
-    editing.replaceGpuSceneDomain?.('boundary-edit', {
-      strokes: data.map(item => ({
-        key: `boundary-edit:${item.key}`,
-        geometryRevision: item.key,
-        geometry: item.geometry,
-        order: 9800,
-        style: item.style,
-      })),
-    });
-    return true;
-  };
-  const vertexRows = new WeakMap();
-  const vertexByKey = new WeakMap();
-  let vertexProjectionCache = null;
-  let visibleVertexRows = [];
-  const thinVisibleCoastHandles = (handles, points, activeKey) => {
-    const zoom = editing.currentMapZoom?.() || 1;
-    const mobile = editing.isMobile?.() === true;
-    const minDistance = Math.max(mobile ? 7 : 4, (mobile ? 18 : 11) / Math.sqrt(Math.max(1, zoom)));
-    const occupied = new Map();
-    const accepted = [];
-    for (const handle of handles) {
-      const point = points.get(handle);
-      if (!point) continue;
-      const gx = Math.floor(point[0] / minDistance), gy = Math.floor(point[1] / minDistance);
-      let crowded = false;
-      for (let x = gx - 1; x <= gx + 1 && !crowded; x += 1) {
-        for (let y = gy - 1; y <= gy + 1; y += 1) {
-          const other = occupied.get(`${x}:${y}`);
-          if (other && Math.hypot(point[0] - other[0], point[1] - other[1]) < minDistance) { crowded = true; break; }
-        }
-      }
-      if (crowded && !handle.fixed && handle.nodeKey !== activeKey) continue;
-      occupied.set(`${gx}:${gy}`, point);
-      accepted.push(handle);
-    }
-    return accepted;
-  };
-  const renderVertices = (frameContext = null, packet = editingPacket) => {
-    active();
-    const boundaryHandles = packet?.boundaryEdit?.handles || [];
-    const boundaryMode = ['territorial-border', 'country-coast'].includes(packet?.tool) && boundaryHandles.length > 0;
-    let objectPacket = boundaryMode ? {
-      mode: packet.tool,
-      handles: boundaryHandles,
-      targetRef: {
-        domain: 'territorial',
-        type: 'entity',
-        id: String(boundaryHandles[0]?.ownerIds?.[0] || ''),
-      },
-    } : packet?.objectVertices;
-    if (objectPacket?.targetRef && selection.objectRefVisible?.(objectPacket.targetRef) === false) objectPacket = null;
-    const handles = objectPacket?.handles;
-    let rows = handles && vertexRows.get(handles);
-    if (!rows) {
-      rows = boundaryMode && packet.boundaryEdit.displayIndex ? handles : (handles || []).map(item => ({ ...item, coord: item.coordinate }));
-      if (handles) {
-        vertexRows.set(handles, rows);
-        if (!packet?.boundaryEdit?.displayIndex) vertexByKey.set(handles, new Map(rows.map(row => [row.nodeKey, row])));
-      }
-    }
-    const activeKey = packet?.boundaryActiveNodeKey;
-    const activeCoordinate = packet?.boundaryActiveCoordinate;
-    const cache = vertexProjectionCache;
-    const sameProjection = frameContext && cache && cache.handles === handles && cache.view === frameContext.viewRevision
-      && cache.projection === frameContext.projectionRevision && cache.activeKey === activeKey;
-    let points, data;
-    if (sameProjection) {
-      ({ points, data } = cache);
-      if (activeKey && (cache.activeCoordinate?.[0] !== activeCoordinate?.[0] || cache.activeCoordinate?.[1] !== activeCoordinate?.[1])) {
-        const active = packet?.boundaryEdit?.displayIndex
-          ? rows[packet.boundaryEdit.displayIndex.nodeKeys?.[activeKey]] : vertexByKey.get(handles)?.get(activeKey);
-        if (active) points.set(active, frameProjectCoordinate(activeCoordinate || active.coord, frameContext));
-        cache.activeCoordinate = activeCoordinate;
-      }
-    }
-    else {
-      let candidates = boundaryMode
-        ? queryBoundaryDisplay(packet.boundaryEdit.displayIndex?.handles, boundaryViewBounds(frameContext), rows) : rows;
-      const active = activeKey && (packet?.boundaryEdit?.displayIndex
-        ? rows[packet.boundaryEdit.displayIndex.nodeKeys?.[activeKey]] : vertexByKey.get(handles)?.get(activeKey));
-      if (active && !candidates.includes(active)) candidates = [...candidates, active];
-      candidates = candidates.slice().sort((a, b) => Number(b.nodeKey === activeKey) - Number(a.nodeKey === activeKey) || Number(!!b.fixed) - Number(!!a.fixed));
-      points = new Map(candidates.map(row => [row, frameProjectCoordinate(row === active && activeCoordinate ? activeCoordinate : row.coord, frameContext)]));
-      data = boundaryMode ? thinVisibleCoastHandles(candidates, points, activeKey) : candidates.filter(row => points.get(row));
-      vertexProjectionCache = { handles, view: frameContext?.viewRevision, projection: frameContext?.projectionRevision, activeKey, activeCoordinate, points, data };
-    }
-    const layer = editing.vertexLayer;
-    if (!layer) return false;
-    // Selection outlines may be disabled while vertex editing remains active.
-    // In that policy the existing editing layer owns the committed hydro line.
-    const editFeature = objectPacket?.targetRef?.domain === 'hydro'
-      && editing.getInteractionStyle?.()?.selection?.outlineVisible === false
-      ? selection.mapFeatureForObjectRef(objectPacket.targetRef) : null;
-    const editOutline = layer.selectAll('path.object-edit-outline').data(editFeature?.geometry ? [editFeature] : [], feature => String(feature.id));
-    editOutline.enter().append('path').attr('class', 'object-edit-outline');
-    editOutline.exit().remove();
-    const editStyle = scaleInteractionStroke(resolveMapStrokeStyle(editing.getInteractionStyle?.() || resolveMapInteractionStyle(),
-      'edit-target', { directManipulation: true }), frameContext);
-    layer.selectAll('path.object-edit-outline').attr('fill', 'none').attr('pointer-events', 'none')
-      .attr('data-object-key', objectPacket?.targetRef?.key || '')
-      .attr('d', framePath(frameContext))
-      .attr('stroke', editStyle.color).attr('stroke-width', editStyle.width).attr('stroke-opacity', editStyle.alpha);
-    const handlesChanged = editingChannelChanged('vertices', layer, packet?.objectVertices, packet?.boundaryEdit, packet?.tool);
-    const joinChanged = handlesChanged || data.length !== visibleVertexRows.length || data.some((row, i) => row !== visibleVertexRows[i]);
-    let enteredVertices = layer.selectAll('circle.vertex-handle').filter(() => false);
-    if (joinChanged) {
-      const selection = layer.selectAll('circle.vertex-handle').data(data, d => d.nodeKey || d.key || d.index);
-      enteredVertices = selection.enter().append('circle').attr('class', 'vertex-handle draft-interactive');
-      selection.exit().remove(); visibleVertexRows = data;
-    }
-    const allVertices = layer.selectAll('circle.vertex-handle');
-    allVertices
-      .attr('r', boundaryMode ? (editing.isMobile?.() ? 7.2 : 5.2) : 4.5)
-      .classed('country-vertex', boundaryMode)
-      .classed('coast-vertex', d => boundaryMode && d.boundaryKind === 'coast')
-      .classed('shared-boundary-vertex', d => boundaryMode && d.boundaryKind === 'shared')
-      .classed('fixed-boundary-vertex', d => boundaryMode && d.fixed)
-      .attr('transform', d => {
-        const point = points.get(d);
-        return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-      });
-    const eventVertices = handlesChanged ? allVertices : enteredVertices;
-    eventVertices.on('.drag', null);
-    const dragKind = boundaryMode ? 'boundary-vertex' : 'object-vertex';
-    if (objectPacket?.targetRef) {
-      const behavior = editingDragBehavior(dragKind, objectPacket.targetRef);
-      if (behavior) {
-        if (boundaryMode) eventVertices.filter(d => !d.fixed).call(behavior);
-        else eventVertices.call(behavior);
-      }
-    }
-    eventVertices.on('click.vertex-select', null);
-    eventVertices.each(function(d) {
-      let title = editing.d3?.select(this).select('title');
-      if (title?.empty?.()) title = editing.d3.select(this).append('title');
-      title?.text?.(boundaryMode
-        ? (d.fixed ? '선택 밖 국가와 연결되어 고정된 접경점' : d.boundaryKind === 'shared' ? `${d.ownerIds?.length || 2}개 국가가 공유하는 국경 꼭짓점` : '해안선 꼭짓점')
-        : '꼭짓점');
-    });
-    return true;
-  };
+  const content=createMapContentPresentation({countries,hydro,territorial,generic,distribution,territorialBoundary,base,projected,
+    active,requireFrame,framePath,commitViewAttachedLayers:(...args)=>commitViewAttachedLayers(...args),
+    prepareMapDisplay,onMapDisplayReady:handleMapDisplayReady,reportDiagnostic,isDisposed:()=>disposed});
+  const {renderCountries,renderHydro,renderHydroEdits,renderTerritorialUnits,renderGenericFeatures,renderDistributions,
+    renderBase,syncBaseView,renderProjectedOverlays,buildDistributionRenderRows,getTerritorialBoundaryStats}=content;
+  const resetTerritorialBoundaryCache=()=>{pendingHighlights.clear();content.resetTerritorialBoundaryCache();};
   const invalidate = (mask, reason = 'render-invalidation') => {
     active();
     // Select the display source before the same frame builds scene packets,
@@ -1269,6 +266,15 @@ export function createRenderingDomain({
     MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.VIEW_PRESENTATION,
     reason || 'labels',
   );
+  function handleMapDisplayReady(result = {}) {
+    if (disposed) return;
+    if (result.kind === 'highlight') invalidateSelection('highlight-ready');
+    else {
+      invalidateTerritorialPatch('map-display-ready');
+      invalidateGpuInteraction('map-display-ready');
+    }
+    onMapDisplayReady(result);
+  }
   const beginInteraction = reason => {
     active();
     placeInteractionActive = true;
@@ -1319,7 +325,7 @@ export function createRenderingDomain({
     const frameToken = frameContext?.frameId ?? frameContext?.revision ?? null;
     if (frameToken !== null && frameToken === resourceFrameToken) return resourceFrameToken;
     refreshRenderResources?.(frameToken);
-    editingPacket = getEditingRenderPacket?.() || EMPTY_EDITING_RENDER_PACKET;
+    editingPacket = getEditingRenderPacket?.() || null;
     const preview = editPreviewController?.snapshot();
     if (preview?.id && (!isEditPreviewCurrent(preview)
       || Number(frameContext?.projectGeneration ?? preview.projectGeneration) !== preview.projectGeneration)) {
@@ -1340,76 +346,6 @@ export function createRenderingDomain({
     const renderer = renderers?.[name];
     if (typeof renderer !== 'function') return undefined;
     return renderer(...args);
-  };
-  const renderDraftInsertionHandle = (frameContext = null, packet = editingPacket) => {
-    active();
-    const layer = interaction.draftLayer;
-    if (!layer) return false;
-    const target = packet?.draft?.insertTarget;
-    const data = target?.coordinate
-      && packet?.draft?.active
-      && !packet?.draft?.dragging ? [target] : [];
-    const selection = layer.selectAll('g.draft-insert-handle').data(data, item => item.segmentIndex);
-    const enter = selection.enter().append('g').attr('class', 'draft-insert-handle draft-interactive');
-    const mobile = interaction.isMobile?.() === true;
-    enter.append('circle').attr('class', 'draft-insert-hit').attr('r', mobile ? 18 : 13);
-    enter.append('circle').attr('class', 'draft-insert-dot').attr('r', mobile ? 9 : 7);
-    enter.append('path').attr('class', 'draft-insert-plus').attr('d', 'M-3.5 0h7M0-3.5v7');
-    selection.exit().remove();
-    layer.selectAll('g.draft-insert-handle')
-      .attr('transform', item => {
-        const point = frameProjectCoordinate(item.coordinate, frameContext);
-        return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-      })
-      .on('click', function() {
-        interaction.d3?.event?.preventDefault?.();
-        interaction.d3?.event?.stopPropagation?.();
-        publishEditingInteraction({ type: 'draft-insert-request' });
-      })
-      .on('mouseleave', d => {
-        const relatedTarget = interaction.d3.event.relatedTarget;
-        if (relatedTarget?.closest?.('path.draft-segment-hit')?.parentNode === layer.node()) return;
-        publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: d.segmentIndex });
-      });
-    return true;
-  };
-  const renderGeometryPreview = (frameContext = null, packet = editingPacket) => {
-    active();
-    const layer = interaction.previewLayer;
-    if (!layer) return false;
-    if (!editingChannelChanged('preview', layer, packet?.preview, selection.resolvedInteractionStyle?.())) return reprojectEditingLayer(layer, frameContext);
-    const session = packet?.preview?.session || packet?.preview;
-    const delta = session && !['discarded', 'committed'].includes(session.status) ? session.delta || {} : {};
-    const rows = [];
-    const path = framePath(frameContext);
-    for (const [className, geometry] of [
-      ['geometry-preview-remove', delta.removedGeometry],
-      ['geometry-preview-add', delta.addedGeometry],
-    ]) {
-      if (!geometry) continue;
-      const feature = interaction.featureFromGeometry?.(geometry);
-      if (interaction.hasAreaGeometry?.(feature)) {
-        rows.push({ geometry: feature.geometry, className: `${className} geometry-preview-fill` });
-      }
-      const outline = interaction.buildRenderableStrokeFeature?.(feature);
-      if (outline?.geometry?.coordinates?.length) {
-        rows.push({ geometry: outline.geometry, className: `${className} geometry-preview-outline` });
-      }
-    }
-    for (const geometry of delta.oldBoundaries || []) {
-      const outline = interaction.buildRenderableStrokeFeature?.(interaction.featureFromGeometry?.(geometry));
-      if (outline) rows.push({ geometry: outline.geometry, className: 'geometry-preview-old-boundary' });
-    }
-    for (const geometry of delta.newBoundaries || []) {
-      const outline = interaction.buildRenderableStrokeFeature?.(interaction.featureFromGeometry?.(geometry));
-      if (outline) rows.push({ geometry: outline.geometry, className: 'geometry-preview-new-boundary' });
-    }
-    rows.forEach((row, index) => { row.key = `${session.sessionId}:${row.className}:${index}`; });
-    joinEditingNodes(layer, 'path.editing-preview-path', rows, d => d.key)
-      .attr('class', d => `editing-preview-path ${d.className}`)
-      .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }));
-    interaction.syncGpuInteractionLayer?.('preview', layer);
-    return true;
   };
   const svgStrokePresented = (node, frame) => {
     if (!node?.isConnected || !node.getAttribute('d')) return false;
@@ -1770,20 +706,14 @@ export function createRenderingDomain({
       const revision = `${boundary.revision}:owners:${signature}`;
       const cached = selectionBoundaryGeometryCache.get(revision);
       if (cached) return { feature: cached, revision, owned: true };
-      if (prepareEditDisplay && !pendingHighlights.has(revision)) {
-        const source = (itemRef, itemFeature) => {
-          const canonical = itemRef.domain === 'territorial' ? selection.territorialEntityById(itemRef.id) : selection.mapFeatureForObjectRef?.(itemRef);
-          return itemRef.domain !== 'hydro' && !itemRef.scopeFeature && canonical?.geometry === itemFeature.geometry
-            ? { key: `${itemRef.domain}:${itemRef.id}` } : { feature: itemFeature };
-        };
-        const input = source(ref, feature);
-        const pending = prepareEditDisplay({ kind: 'highlight', ...(input.key ? { featureKey: input.key } : input),
-          occluders: owners.map(item => source(item.ref, item.feature)) }, { jobKey: `edit-display:highlight:${ref.key}` });
+      if (prepareMapDisplay && !pendingHighlights.has(revision)) {
+        const pending = prepareMapDisplay({kind:'highlight',feature,
+          occluders:owners.map(item=>({feature:item.feature}))},{jobKey:`map-display:highlight:${ref.key}`});
         pendingHighlights.set(revision, pending);
         pending.then(response => {
           if (disposed || pendingHighlights.get(revision) !== pending) return;
           setLimitedSelectionCache(selectionBoundaryGeometryCache, revision, response.result.feature);
-          onEditDisplayReady({ kind: 'highlight' });
+          handleMapDisplayReady({ kind: 'highlight' });
         }).catch(error => {
           if (!error?.cancelled) selection.publishMetrics?.({ highlightPreparationError: String(error?.message || error) });
         }).finally(() => pendingHighlights.delete(revision));
@@ -2056,50 +986,6 @@ export function createRenderingDomain({
     });
     return false;
   };
-  const renderValidation = (frameContext = null, packet = editingPacket) => {
-    active();
-    const layer = interaction.validationLayer;
-    if (!layer) return false;
-    const audit = interaction.getValidationPacket?.() || {};
-    if (!editingChannelChanged('validation', layer, packet?.validationIssues, audit.issues, audit.selectedIssueId)) return reprojectEditingLayer(layer, frameContext);
-    const rows = [];
-    const markers = [];
-    const path = framePath(frameContext);
-    const issues = packet?.validationIssues?.length ? packet.validationIssues : audit.issues || [];
-    for (const issue of issues) {
-      const className = geometryPreviewIssueClass(issue.kind);
-      if (issue.geometry) {
-        const feature = interaction.featureFromGeometry?.(issue.geometry);
-        const selectedClass = audit.selectedIssueId === issue.id ? ' selected' : '';
-        if (interaction.hasAreaGeometry?.(feature)) {
-          rows.push({ key: `${issue.id}:fill:${rows.length}`, geometry: feature.geometry, className: `map-validation-issue map-validation-fill ${className}${selectedClass}` });
-        }
-        const outline = interaction.buildRenderableStrokeFeature?.(feature);
-        if (outline?.geometry?.coordinates?.length) {
-          rows.push({ key: `${issue.id}:outline:${rows.length}`, geometry: outline.geometry, className: `map-validation-issue map-validation-outline ${className}${selectedClass}` });
-        }
-      }
-      const coordinate = interaction.issueCoordinate?.(issue);
-      if (coordinate) markers.push({ key: issue.id || markers.length, coordinate, className, radius: audit.selectedIssueId === issue.id ? 8 : 6, message: issue.message });
-    }
-    joinEditingNodes(layer, 'path.editing-validation-path', rows, d => d.key).attr('class', d => `editing-validation-path ${d.className}`)
-      .attr('d', d => path({ type: 'Feature', properties: {}, geometry: d.geometry }));
-    joinEditingNodes(layer, 'circle.map-validation-marker', markers, d => d.key).attr('class', d => `map-validation-marker ${d.className}`).attr('r', d => d.radius)
-      .each(function(d) { const node = interaction.d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(d.message || '지도 오류'); });
-    return reprojectEditingLayer(layer, frameContext);
-  };
-  const renderSnap = (frameContext = null, packet = editingPacket) => {
-    active();
-    const layer = interaction.snapLayer;
-    if (!layer) return false;
-    const indicator = packet?.snap;
-    if (editingChannelChanged('snap', layer, indicator)) {
-      joinEditingNodes(layer, 'path.snap-indicator-segment', indicator?.segmentEndpoints?.length === 2 ? [{ geometry: { type: 'LineString', coordinates: indicator.segmentEndpoints } }] : [], () => 'segment');
-      joinEditingNodes(layer, 'path.snap-indicator-cross', indicator?.kind === 'intersection' ? [indicator] : [], () => 'cross');
-      joinEditingNodes(layer, 'circle.snap-indicator-point', indicator?.coordinate ? [indicator] : [], () => 'point').attr('r', 6);
-    }
-    return reprojectEditingLayer(layer, frameContext);
-  };
   const renderGpuInteraction = (viewState = null) => {
     active();
     const result = gpuMapRenderer?.renderInteraction?.(viewState) || null;
@@ -2107,30 +993,6 @@ export function createRenderingDomain({
     interaction.applyGpuInteractionCoverage?.(result);
     return result;
   };
-  const resetTerritorialBoundaryCache = () => {
-    territorialBoundaryEpoch++;
-    pendingTerritorialBoundary = null;
-    pendingHighlights.clear();
-    territorialBoundaryCache = {
-      countries: null,
-      units: null,
-      revision: -1,
-      inputSignature: '',
-      segments: [],
-      rebuildCount: 0,
-    };
-    territorialBoundaryBatchCache = { signature: '', revision: '', groups: [], data: [] };
-  };
-  const getTerritorialBoundaryStats = () => Object.freeze({
-    rebuildCount: territorialBoundaryCache.rebuildCount,
-    revision: territorialBoundaryBatchCache.revision || '',
-    inputSignature: territorialBoundaryCache.inputSignature || '',
-    batchSignature: territorialBoundaryBatchCache.signature || '',
-    segmentCount: territorialBoundaryCache.segments.length,
-    groupCount: territorialBoundaryBatchCache.groups.length,
-    pendingInputSignature: pendingTerritorialBoundary?.inputSignature || '',
-    pendingStatus: pendingTerritorialBoundary?.status || 'idle',
-  });
   const resetProjectGeneration = (generation, { preserveBuiltinMesh = false } = {}) => {
     active();
     resetTerritorialBoundaryCache();
@@ -2142,8 +1004,8 @@ export function createRenderingDomain({
     ...stats,
     ...(coordinator?.getStats?.() || {}),
     projectGeneration: projectDomain?.getGeneration?.() || 0,
-    territorialBoundaryTopologyRebuildCount: territorialBoundaryCache.rebuildCount,
-    territorialBoundaryRevision: territorialBoundaryBatchCache.revision || '',
+    territorialBoundaryTopologyRebuildCount: content.getTerritorialBoundaryStats().rebuildCount,
+    territorialBoundaryRevision: content.getTerritorialBoundaryStats().revision,
     hasMapHost: typeof mapHost === 'function' ? !!mapHost() : !!mapHost,
     hasDomLayers: !!domLayers,
     hasSceneBuilder: !!sceneBuilder,
@@ -2153,87 +1015,13 @@ export function createRenderingDomain({
   const dispose = () => {
     resetTerritorialBoundaryCache();
     uploadListeners.forEach(remove => remove());
+    if(disposeMapDisplay)disposeMapDisplay();
     labels.disposePlaces?.();
     gpuMapRenderer?.dispose?.();
     uploadScheduler.dispose();
     pendingVisualFrames.clear();
     gpuMapRenderer?.setFramePresentationListener?.(null);
     disposed = true;
-  };
-  const renderDraft = (frameContext = null, packet = editingPacket) => {
-    active();
-    const layer = interaction.draftLayer;
-    if (!layer) return false;
-    const rawDraft = packet?.draft || EMPTY_EDITING_RENDER_PACKET.draft;
-    const draft = rawDraft.active ? rawDraft : EMPTY_EDITING_RENDER_PACKET.draft;
-    const operation = packet?.territoryOperation;
-    if (!editingChannelChanged('draft', layer, draft, operation, packet.tool, selection.resolvedInteractionStyle?.())) return reprojectEditingLayer(layer, frameContext);
-    const path = framePath(frameContext);
-    const { d3, isMobile, formatTerritoryArea } = interaction;
-    const stop = () => { d3?.event?.preventDefault?.(); d3?.event?.stopPropagation?.(); };
-    const components = (operation?.components || []).map(item => ({ ...item, geometry: item.geometry }));
-    const componentPaths = joinEditingNodes(layer, 'path.territory-component', components, d => d.key)
-      .attr('class', d => `territory-component${d.usesRiverBoundary ? ' river-partition' : ''} ${d.selected ? 'selected-component' : 'available'}${d.hovered && !d.selected ? ' hovered-component' : ''}`)
-      .on('mouseenter', d => publishEditingInteraction({ type: 'territory-component-hover', componentKey: d.key }))
-      .on('mouseleave', d => publishEditingInteraction({ type: 'territory-component-leave', componentKey: d.key }))
-      .on('click', d => { stop(); publishEditingInteraction({ type: 'territory-component-toggle', componentKey: d.key, screenPoint: localEditingPoint() }); });
-    componentPaths.each(function(d) { const node = d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(`${d.countryName} · ${formatTerritoryArea?.(d.areaKm2) || d.areaKm2}`); });
-    joinEditingNodes(layer, 'path.territory-candidate', operation?.candidates || [], d => d.key)
-      .attr('class', d => `territory-candidate ${d.selected ? 'selected-candidate' : 'alternate-candidate'}`)
-      .attr('aria-label', d => d.interactive === false ? '선택 영역' : `조각 ${d.index + 1} · ${d.selected ? '선택됨' : '선택 안 됨'}`)
-      .style('pointer-events', d => d.interactive === false ? 'none' : null)
-      .on('click', d => { if (d.interactive === false) return; stop(); publishEditingInteraction({ type: 'territory-candidate-select', candidateId: d.id }); });
-    const shapes = [
-      { key: 'raw', geometry: draft.rawStrokeGeometry, className: 'draft-shape draft-raw-stroke' },
-      { key: 'shape', geometry: draft.geometry, className: ['draft-shape', packet.tool === 'annex-territory' ? 'annex-draft' : '', draft.cutStatus ? 'cut-' + draft.cutStatus : draft.issues.length ? 'draft-invalid' : ''].filter(Boolean).join(' ') },
-      { key: 'close', geometry: draft.autoCloseSegment ? { type: 'LineString', coordinates: [draft.autoCloseSegment.start, draft.autoCloseSegment.end] } : null, className: 'draft-auto-close-preview' },
-    ].filter(d => d.geometry);
-    joinEditingNodes(layer, 'path.draft-packet-shape', shapes, d => d.key).attr('class', d => 'draft-packet-shape ' + d.className);
-    joinEditingNodes(layer, 'path.draft-split-preview', draft.splitCandidates, d => d.key).attr('class', (_, i) => 'draft-split-preview side-' + (i === 0 ? 'a' : 'b'));
-    joinEditingNodes(layer, 'path.draft-segment-hit', draft.segments, d => d.segmentIndex)
-      .attr('class', 'draft-segment-hit draft-interactive')
-      .on('mousemove', d => { if (!isMobile?.() && !editingPacket.draft.dragging) publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); })
-      .on('mouseleave', d => {
-        const relatedTarget = d3.event.relatedTarget;
-        if (relatedTarget?.closest?.('g.draft-insert-handle')?.parentNode === layer.node()) return;
-        publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: d.segmentIndex });
-      })
-      .on('click', d => { stop(); publishEditingInteraction({ type: editingPacket.draft.vertexInsertMode ? 'draft-segment-insert' : 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); });
-    const vertices = joinEditingNodes(layer, 'g.draft-vertex', draft.vertices, d => d.index)
-      .attr('class', d => 'draft-vertex draft-interactive' + (d.selected ? ' selected' : ''))
-      .on('click', d => { stop(); publishEditingInteraction({ type: 'draft-vertex-select', vertexIndex: d.index }); });
-    vertices.each(function() {
-      // Reused vertices must stay above newly appended segment hit paths.
-      this.parentNode.appendChild(this);
-      const node = d3.select(this);
-      if (node.select('circle').empty()) {
-        node.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile?.() ? 16 : 10);
-        node.append('circle').attr('class', 'draft-vertex-dot').attr('r', isMobile?.() ? 6.5 : 4.5);
-        node.append('title');
-      }
-      node.select('title').text(d => '꼭짓점 ' + (d.index + 1) + ' · 드래그하여 이동');
-    });
-    const drag = editingDragBehavior('draft-vertex');
-    if (drag) vertices.call(drag);
-    renderDraftInsertionHandle(frameContext, packet);
-    const issues = joinEditingNodes(layer, 'g.draft-issue-marker', draft.issues.filter(d => d.coordinate), (d, i) => d.kind + ':' + (d.vertexIndex ?? d.segmentIndex ?? i));
-    issues.each(function(d) {
-      const node = d3.select(this);
-      if (node.select('circle').empty()) { node.append('circle').attr('r', 7); node.append('path').attr('d', 'M-3.2-3.2 3.2 3.2M3.2-3.2-3.2 3.2'); node.append('title'); }
-      node.select('title').text(d.message || '수정이 필요한 위치');
-    });
-    joinEditingNodes(layer, 'circle.draft-snap-point', draft.snapPoints, d => d.endpoint).attr('class', d => 'draft-snap-point ' + d.endpoint).attr('r', 6);
-    const riverSections = [];
-    for (const component of operation?.components || []) for (const [i, section] of (component.riverBoundarySegments || []).entries()) {
-      if (component.usesRiverBoundary && section.length >= 2) riverSections.push({ key: component.key + ':' + i, selected: component.selected, geometry: { type: 'LineString', coordinates: section } });
-    }
-    joinEditingNodes(layer, 'path.river-partition-emphasis', riverSections, d => d.key)
-      .attr('class', d => 'river-partition-emphasis' + (d.selected ? ' selected' : ''))
-      .attr('stroke', interaction.selectionStyle?.color).attr('stroke-width', interactionStrokeScale(frameContext) * Number(interaction.selectionStyle?.primaryWidth || 0));
-    void path;
-    reprojectEditingLayer(layer, frameContext);
-    interaction.syncGpuInteractionLayer?.('draft', layer);
-    return true;
   };
   const visualRootNode = value => value?.node?.() || value || null;
   const markVisualRoot = (value, frame) => {
@@ -2277,7 +1065,7 @@ export function createRenderingDomain({
     if (canvasPresented) renderSelectionOverlay(frame, { viewOnly: true, updateData: false, gpuFrameResult: gpuResult });
     renderTerritorialLabelPositions(frame);
     renderUserLabelPositions(frame);
-    if (editingPacketHasViewContent(editingPacket)) {
+    if (editPresentation && editingPacketHasViewContent(editingPacket)) {
       renderGeometryPreview(frame, editingPacket);
       renderBoundaryEdit(frame, editingPacket);
       renderVertices(frame, editingPacket);
@@ -2359,13 +1147,13 @@ export function createRenderingDomain({
       gpuInteraction: renderGpuInteraction,
       hydro: renderHydro,
       hydroEdits: renderHydroEdits,
-      boundaryEdit: renderBoundaryEdit,
+      ...(editPresentation ? {boundaryEdit:renderBoundaryEdit}:{}),
       territorialUnits: renderTerritorialUnits,
       distributions: renderDistributions,
       genericFeatures: renderGenericFeatures,
       stackOverlays: (...args) => renderPass('stackOverlays', ...args),
       projectedOverlays: renderProjectedOverlays,
-      geometryPreview: frameContext => renderGeometryPreview(frameContext, editingPacket),
+      ...(editPresentation ? {geometryPreview:frameContext => renderGeometryPreview(frameContext, editingPacket)}:{}),
       selectionData: (frameContext, packet, options = {}) => renderSelection(frameContext, packet, options),
       selectionStyle: (frameContext, packet, options = {}) => renderSelection(frameContext, packet, { ...options, styleOnly: true }),
       selectionView: (frameContext, gpuFrameResult, options = {}) => renderSelection(
@@ -2374,16 +1162,16 @@ export function createRenderingDomain({
         { ...options, viewOnly: true, updateData: false, gpuFrameResult },
       ),
       hover: renderHoverOverlay,
-      validation: frameContext => renderValidation(frameContext, editingPacket),
+      ...(editPresentation ? {validation:frameContext => renderValidation(frameContext, editingPacket)}:{}),
       labelLayout: (...args) => renderPass('labelLayout', ...args),
       territorialLabelPositions: renderTerritorialLabelPositions,
       userLabelPositions: renderUserLabelPositions,
       territorialLabels: renderTerritorialLabels,
       userLabels: renderUserLabels,
       viewPresentation: commitViewAttachedLayers,
-      vertices: frameContext => renderVertices(frameContext, editingPacket),
-      draft: frameContext => renderDraft(frameContext, editingPacket),
-      snapIndicator: frameContext => renderSnap(frameContext, editingPacket),
+      ...(editPresentation ? {vertices:frameContext => renderVertices(frameContext, editingPacket)}:{}),
+      ...(editPresentation ? {draft:frameContext => renderDraft(frameContext, editingPacket)}:{}),
+      ...(editPresentation ? {snapIndicator:frameContext => renderSnap(frameContext, editingPacket)}:{}),
       debug: (...args) => renderPass('debug', ...args),
       objectSearch: (...args) => renderPass('objectSearch', ...args),
     },

@@ -2,6 +2,9 @@
 #include <pandoeditor/temporal.h>
 #include <algorithm>
 #include <set>
+#include <limits>
+#include <sstream>
+#include <iomanip>
 
 namespace pandoeditor {
 namespace {
@@ -148,6 +151,44 @@ TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords& original,co
     }
     const auto begin=life->validity.from&&month.startKey<parseTemporal(*life->validity.from).startKey?*life->validity.from:month.canonical;
     rows.push_back({nextRecordId(original,"property:"+id+":"+property+":"+month.canonical),id,{begin,end},property,value});
+    return result;
+}
+}
+
+namespace pandoeditor {
+std::vector<TimelineChangePeriod> timelineChangePeriods(const TimelineRecords& before,const TimelineRecords& after,const std::vector<std::string>& ids) {
+    const TemporalKey low{std::numeric_limits<int>::min(),1,1},high{std::numeric_limits<int>::max(),1,1};
+    const auto start=[&](const Validity& v){return v.from?parseTemporal(*v.from).startKey:low;};
+    const auto end=[&](const Validity& v){return v.to?temporalFollowingDay(parseTemporal(*v.to).endKey):high;};
+    const auto text=[&](const TemporalKey& k)->std::optional<std::string>{
+        if(k==low||k==high)return {};
+        std::ostringstream out; if(k.year<0)out<<'-';else if(k.year>9999)out<<'+';
+        out<<std::setfill('0')<<std::setw(4)<<std::abs(k.year)<<'-'<<std::setw(2)<<k.month<<'-'<<std::setw(2)<<k.day;return out.str();
+    };
+    std::vector<TimelineChangePeriod> result;
+    for(const auto& id:ids) {
+        std::set<TemporalKey> points{low,high};
+        const auto collect=[&](const auto& rows){for(const auto& r:rows)if(r.entityId==id){points.insert(start(r.validity));points.insert(end(r.validity));}};
+        for(const auto* records:{&before,&after}){collect(records->lifetimes);collect(records->geometryBindings);collect(records->parentRelations);collect(records->propertyBindings);}
+        const auto signature=[&](const TimelineRecords& records,const TemporalKey& key){
+            std::vector<std::string> parts;
+            const auto contains=[&](const auto& r){return r.entityId==id && !(key<start(r.validity)) && key<end(r.validity);};
+            bool alive=false;for(const auto& r:records.lifetimes)if(contains(r))alive=true;
+            if(!alive)return parts;
+            parts.push_back("alive");
+            for(const auto& r:records.geometryBindings)if(contains(r)){parts.push_back("geometry");parts.push_back(r.geometryRef.id);parts.push_back(std::to_string(r.geometryRef.version));}
+            for(const auto& r:records.parentRelations)if(contains(r)){parts.push_back("parent");parts.push_back(r.parentId);parts.push_back(r.coverageMode);}
+            std::map<std::string,std::string> properties;for(const auto& r:records.propertyBindings)if(contains(r))properties[r.property]=r.value;
+            for(const auto& p:properties){parts.push_back(p.first);parts.push_back(p.second);}return parts;
+        };
+        std::optional<TemporalKey> from;
+        for(auto it=points.begin();std::next(it)!=points.end();++it){
+            const bool changed=signature(before,*it)!=signature(after,*it);
+            if(changed&&!from)from=*it;
+            if(!changed&&from){result.push_back({id,text(*from),text(*it)});from.reset();}
+        }
+        if(from)result.push_back({id,text(*from),{}});
+    }
     return result;
 }
 }

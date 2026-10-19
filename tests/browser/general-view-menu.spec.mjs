@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 1366, height: 900 }, trace: 'off', actionTimeout: 10_000,
@@ -26,7 +27,7 @@ test('general view menu keeps upper and lower settings independent across keyboa
   page.on('pageerror', error => errors.push(error.message));
   const url = process.env.PANDOLAB_TEST_SITE_URL
     ? new URL('?debug=1&demTerrain=raster', process.env.PANDOLAB_TEST_SITE_URL).href : '/?debug=1&demTerrain=raster';
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, url, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#mapDisplayBtn').click();
   const general = page.locator('[data-map-display-row="general"]');

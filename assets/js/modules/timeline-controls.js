@@ -11,12 +11,11 @@ export function timelineMonthLabel(value) {
 }
 
 /** Timeline controls update only the session cursor, never document history. */
-export function installTimelineControls({ document, window, getMonth, setMonth }) {
+export function installTimelineControls({ document, window, getMonth, setMonth, onMonthLabel = () => {} }) {
   const input = document.getElementById('timelineMonthInput');
   const button = document.getElementById('timelineMonthButton');
   const buttonText = document.getElementById('timelineMonthButtonText');
   const label = document.getElementById('timelineMonthLabel');
-  const context = document.getElementById('editorTimelineContext');
   const error = document.getElementById('timelineMonthError');
   const steps = [
     ['timelinePreviousYear', -12],
@@ -24,7 +23,7 @@ export function installTimelineControls({ document, window, getMonth, setMonth }
     ['timelineNextMonth', 1],
     ['timelineNextYear', 12],
   ].map(([id, delta]) => [document.getElementById(id), delta]);
-  if ([input, button, buttonText, label, context, error, ...steps.map(([node]) => node)].some(value => !value)) {
+  if ([input, button, buttonText, label, error, ...steps.map(([node]) => node)].some(value => !value)) {
     throw new Error('Timeline controls are missing.');
   }
 
@@ -44,7 +43,7 @@ export function installTimelineControls({ document, window, getMonth, setMonth }
     label.textContent = readable;
     buttonText.textContent = readable;
     button.setAttribute('aria-label', `${readable}, 시점 직접 입력`);
-    context.textContent = `${readable} 기준 편집`;
+    onMonthLabel(readable);
     if (!editing) input.value = month;
   };
   const exitEdit = (focusButton = false) => {

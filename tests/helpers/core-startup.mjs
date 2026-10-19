@@ -1,5 +1,5 @@
 import { TIMELINE_RECORD_SCHEMA_VERSION } from '../../assets/js/modules/timeline-records.js';
-import { createProjectSession } from '../../assets/js/modules/app-project-session.js';
+import { createProjectSession } from '../../assets/js/modules/project-session.js';
 import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
