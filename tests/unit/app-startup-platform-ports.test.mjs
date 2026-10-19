@@ -4,13 +4,13 @@ import { createPhysicalResources } from '../../assets/js/modules/physical-resour
 import { createTerritorialLabels } from '../../assets/js/modules/territorial-labels.js';
 
 test('an asset-free platform suppresses physical resource requests', async () => {
-  const resources = createPhysicalResources({ enabled: false });
+  const resources = createPhysicalResources({ capabilities: {terrain:false,builtinHydro:false} });
   assert.equal(await resources.loadTerrainManifest(), false);
   assert.equal(await resources.loadHydroData(), false);
-  resources.loadPhysicalData();
+  await resources.loadPhysicalData();
 });
 
 test('an asset-free platform suppresses automatic place preparation', async () => {
-  const labels = createTerritorialLabels({ builtinPlacesEnabled: false });
+  const labels = createTerritorialLabels({ capabilities: {builtinPlaces:false} });
   assert.equal(await labels.preparePlaces({ force: true }), false);
 });

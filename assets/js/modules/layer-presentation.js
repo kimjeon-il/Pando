@@ -52,42 +52,22 @@ export function overlayVisualOrder(presentation, group, detail = 'fill', objectK
     + layerObjectRank(presentation, objectKey) + fragment;
 }
 
-export const TERRITORIAL_SYMBOL_KEYS = Object.freeze({
-  countries: Object.freeze({ name: 'basemapLabels', flag: 'countryFlags' }),
-  subunits: Object.freeze({ name: 'subunitLabels', flag: 'subunitFlags' }),
-  regions: Object.freeze({ name: 'regionLabels', flag: 'regionFlags' }),
-});
+export const TERRITORIAL_SYMBOL_KEYS = Object.freeze({ name: 'objectNames', flag: 'objectFlags' });
 
-export function territorialSymbolGroup(feature) {
-  return (feature?.properties?.entityKind === 'general' && !!feature?.properties?.parentId) ? 'subunits'
-    : (feature?.properties?.entityKind === 'regional') ? 'regions' : 'countries';
+// Paint ownership differs from the common object display settings.
+export function territorialPaintRole(feature) {
+  return feature?.properties?.entityKind === 'regional' ? 'independent-overlay'
+    : feature?.properties?.parentId ? 'territorial-fill' : 'country-fill';
 }
 
-export function territorialSymbolVisibility(state, group) {
-  const keys = TERRITORIAL_SYMBOL_KEYS[group];
-  const visible = state.layerVisibility?.[group] !== false;
-  return {
-    name: visible && state.layerVisibility?.[keys.name] !== false,
-    flag: visible && state.layerVisibility?.[keys.flag] !== false,
-  };
+export function territorialSymbolVisibility(state) {
+  const visible = state.layerVisibility?.objects !== false;
+  return { name: visible && state.layerVisibility?.objectNames !== false,
+    flag: visible && state.layerVisibility?.objectFlags !== false };
 }
 
-export const OVERLAY_GROUPS = Object.freeze([
-  'distributions',
-  'subunits',
-  'regions',
-  'genericFeatures',
-]);
-
-const PRESENTATION_GROUPS = Object.freeze([
-  'labels',
-  'countryLabels',
-  ...OVERLAY_GROUPS,
-  'rivers',
-  'lakes',
-  'countries',
-  'terrain',
-]);
+export const OVERLAY_GROUPS = Object.freeze(['distributions', 'objects', 'genericFeatures']);
+const PRESENTATION_GROUPS = Object.freeze(['labels', 'objectLabels', ...OVERLAY_GROUPS, 'rivers', 'lakes', 'terrain']);
 
 const DEFAULT_STYLE = Object.freeze({
   opacity: 1,

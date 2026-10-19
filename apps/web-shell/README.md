@@ -35,20 +35,18 @@ For Android, set the same environment variable before
 snapshot **only**; subsequent Tauri builds restage using the environment
 variable, so it must also be set for the build.
 
-The full-world profile includes manifest-pinned local terrain-preview tiles, HydroRIVERS
-and built-in places, while retaining lazy Worker loading. Terrain and hydro
-manifest/Worker initialization in this shell profile begins only after the
-canonical country mesh is ready, scheduled at browser idle to avoid contending
-with the first editable map paint. The public Web startup remains unchanged.
-Official high-resolution
-online DEM tiles remain outside the offline distribution. WebGL/Android device performance and
-full-world Tauri runtime behavior are not yet certified (2-4).
-The automatic `verify-windows.ps1` small-fixture diagnostic is **not**
-a full-world acceptance test. The full-world-only `full-world-probe.js` records
-verified country count, canonical geometry/mesh, worker, WebGL and local-resource
-checks when launched with `--probe-auto`. Run `verify-world-windows.ps1` on a
-freshly built full-world Windows EXE for a separate acceptance report. This setting does not change the public
-GitHub Pages output.
+The full-world profile includes manifest-pinned offline HydroRIVERS and built-in places.
+Both are off by default and load only when explicitly enabled in View. Project-created
+water objects and labels remain editable independently. Terrain data and its menu are
+excluded from the app. The public Web retains its backgrounds. New app projects start
+on the flat map; globe projection remains available.
+
+Current projects use schema 13 with a stable documentId and authored defaultView.
+Use project settings to capture the current month and object visibility as the default
+or return to it. Navigation and temporary visibility are device workspace state and
+do not dirty the project. Version 12 projects/autosaves are rejected without conversion
+or automatic deletion. All territorial objects share the objects display group,
+objectNames/objectFlags controls and layer-presentation schema 5.
 
 The application identifier is `com.pandolab.webshell.prototype`. Fixed prototype
 files live below the OS application-data directory in `test-profile/`. Windows

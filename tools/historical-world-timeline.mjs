@@ -187,13 +187,13 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
     for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));
   }
   const normalized = normalizeTimelineRecords(records, { entities: identities.map(row => ({ id: row.id, entityKind: row.properties.entityKind })), geometryExists: ref => archive.get(ref) !== null });
-  const snapshot = { territorialEntities: identities, fullAutosave: true, projectFields: {
+  const snapshot = { documentId:'6dcead54-3bc5-4ca2-a4f5-455305bba911',physicalSourceInfo:{},territorialEntities: identities, fullAutosave: true, projectFields: {
     timelineRecords: normalized, geometries: archive.snapshot(), sourceInfo: null, labels: [], genericFeatures: [], hydroEdits: [],
-    distributionLayers: [], distributionEntries: [], labelSettings: {}, distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
-    layerPresentation: { schemaVersion: 4, styles: {}, objectStyles: {}, objectOrder: [] }, physicalSettings: {}, layerVisibility: {}, itemVisibility: {},
+    distributionLayers: [], distributionEntries: [], labelSettings: {}, distributionSettings:{renderMode:'overlap',activeLayerId:'',boundaryVisible:true}, projectSetup:{initialMonth:sourceMonth,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
+    layerPresentation: { schemaVersion: 5, styles: {}, objectStyles: {}, objectOrder: [] },
   } };
   const project = createProjectSerializer({ appVersion: 'historical-world-v1', distributionModes: Object.values(DISTRIBUTION_MODES),
-    terrainDataset: 'pandolab-terrain', hydroDataset: 'pandolab-water-shards-v5', now: () => new Date(`${currentSnapshot.referenceDate}T00:00:00.000Z`),
+    now: () => new Date(`${currentSnapshot.referenceDate}T00:00:00.000Z`),
     readSnapshot: () => snapshot }).buildProject();
   return { project, sourceIdentities: sourceIdentities.filter(row => rowsByEntity.has(row.projectEntityId)).sort((a, b) => a.projectEntityId.localeCompare(b.projectEntityId, 'en')),
     coverageReport: { schemaVersion: 1, sourceMonth, entities: ordered.map(([id]) => ({ entityId: id,

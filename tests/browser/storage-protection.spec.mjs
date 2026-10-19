@@ -37,15 +37,16 @@ test(`startup save conflict restores safely ${cancelFirst ? 'after cancel and pe
   if (cancelFirst) {
     await page.locator('#confirmModalCancelBtn').click();
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-    await expect(page.locator('#autosaveRecoveryBtn')).toBeVisible();
+    await page.locator('#mobileFileBtn').click();
+    await expect(page.locator('#autosaveRecoveryFileBtn')).toBeVisible();
     const before = await page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-editor-project')).sourceInfo.name);
     expect(before).toBe('local');
-    await page.locator('#autosaveRecoveryBtn').click();
+    await page.locator('#autosaveRecoveryFileBtn').click();
   }
   await selectUiOption(page, '#confirmModalChoice', 'localstorage');
   await page.locator('#confirmModalOkBtn').click();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await expect(page.locator('#autosaveRecoveryBtn')).toBeHidden();
+  await expect(page.locator('#autosaveRecoveryFileBtn')).toBeHidden();
   const recovery = await page.evaluate(async () => new Promise((resolve, reject) => {
     const request = indexedDB.open('pandolab-editor', 2);
     request.onerror = () => reject(request.error);

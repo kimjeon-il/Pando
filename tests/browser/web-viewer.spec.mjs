@@ -11,7 +11,7 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
     const open=indexedDB.open.bind(indexedDB);window.__openedDatabases=[];
     indexedDB.open=(name,...args)=>{window.__openedDatabases.push(name);return open(name,...args);};
   });
-  await page.goto('/');
+  await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
   await expect(page.locator('#viewerStatus')).toContainText('객체');
   await expect(page).toHaveTitle('판도연구소');
@@ -23,10 +23,10 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await page.locator('#objectSearchResults button').first().click();
   await expect(page.locator('#viewerStatus')).toContainText('대한민국');
   await setViewingProjection(page,'flat');
-  await setViewingLayer(page,'countries',false);
-  await setViewingLayer(page,'countries',true);
-  await expect(page.locator('#mapDisplaySurface')).toContainText('일반');
-  await expect(page.locator('#mapDisplaySurface')).toContainText('지방');
+  await setViewingLayer(page,'objects',false);
+  await setViewingLayer(page,'objects',true);
+  await expect(page.locator('#mapDisplaySurface')).toContainText('객체');
+  await expect(page.locator('#countriesVisible,#subunitsVisible,#regionsVisible')).toHaveCount(0);
   const bounds=await page.locator('#mapDisplaySurface').boundingBox();
   expect(bounds.x).toBeGreaterThanOrEqual(0);
   expect(bounds.x+bounds.width).toBeLessThanOrEqual(viewport.width);

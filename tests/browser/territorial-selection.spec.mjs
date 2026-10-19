@@ -15,7 +15,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.locator('#basemapLabelsVisible').evaluate(input => {
+  await page.locator('#objectNamesVisible').evaluate(input => {
     if (!input.checked) return;
     input.checked = false;
     input.dispatchEvent(new input.ownerDocument.defaultView.Event('change', { bubbles: true }));
@@ -28,6 +28,7 @@ async function importTerritorialPolygon(page, { name, target, coordinates }) {
     await page.locator('#mobileMenuBtn').click();
     await page.locator('#mobileMenuFileBtn').click();
   } else await page.locator('#mobileFileBtn').click();
+  await page.locator('#fileAdvancedBtn').click();
   const [picker] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#openGisBtn').click()]);
   await picker.setFiles({
     name: `${name}.geojson`,

@@ -69,7 +69,8 @@ export function createCoreDocumentClient({
       return () => subscribers.delete(listener);
     },
     load: (storageJson, options) => ordered('core.document-load', { storageJson }, options, false, true),
-    loadBaseline: (baselineId,options) => ordered('core.document-load-baseline',{ baselineId },options,true,true),
+    baselineCoverage:(baselineId,month,options)=>ordered('core.document-baseline-coverage',{baselineId,month},options),
+    loadBaseline: (baselineId,setup,options) => ordered('core.document-load-baseline',{ baselineId,setup },options,true,true),
     initialize: (payload,options) => ordered('core.document-initialize',payload,options,false,true,true),
     captureReplacement: options => ordered('core.document-replacement-capture',{},options,true,true),
     rollbackReplacement: (replacementId,options) => ordered('core.document-replacement-rollback',{ replacementId },options,true,true),

@@ -23,7 +23,7 @@ export function inspectFullWorldRuntime(scope = globalThis, {
   const blocked = Array.isArray(network.blocked) ? network.blocked : [];
   const checks = {
     packageProfile: meta.resourceProfile === 'full-world' ? 'PASS' : 'FAIL',
-    historicalWorld: !!meta.historicalWorld?.sha256 ? 'PASS' : 'FAIL',
+    historicalWorld: meta.historicalWorld?.sha256 ? 'PASS' : 'FAIL',
     sourceCountryCount: sourceCountryCount === expectedSourceCount ? 'PASS' : 'FAIL',
     modelEntityCount: countryCount === expectedModelCount ? 'PASS' : 'FAIL',
     sovereignRootCount: sovereignRootCount === expectedRootCount ? 'PASS' : 'FAIL',
@@ -33,7 +33,7 @@ export function inspectFullWorldRuntime(scope = globalThis, {
     renderer: /^webgl[12]$/.test(String(gpu.renderer || ''))
       && Number(gpu.triangleCount) > 0 && Number(gpu.countryBaseIndexCount) > 0
       ? 'PASS' : 'FAIL',
-    sharedCore: !!scope.PandoLabSphericalCore ? 'PASS' : 'FAIL',
+    sharedCore: scope.PandoLabSphericalCore ? 'PASS' : 'FAIL',
     dataLoaderWorker: workers.some(worker => worker.name === 'pandolab-data-loader') ? 'PASS' : 'FAIL',
     blockedRequests: blocked.length === 0 ? 'PASS' : 'FAIL',
   };
@@ -58,11 +58,6 @@ export function inspectFullWorldRuntime(scope = globalThis, {
       canonicalGeometryReceivedMs: startup.canonicalGeometryReceivedMs ?? null,
       canonicalMeshReceivedMs: startup.canonicalMeshReceivedMs ?? null,
       readyMs: startup.readyMs ?? null,
-      physicalDeferredUntilReady: startup.physicalDeferredUntilReady === true,
-      physicalLoadStartedMs: startup.physicalLoadStartedMs ?? null,
-      physicalManifestLoadFinishedMs: startup.physicalManifestLoadFinishedMs ?? null,
-      physicalManifestLoadResults: Array.isArray(startup.physicalManifestLoadResults)
-        ? startup.physicalManifestLoadResults : null,
       dataRevision: String(meta.dataRevision || ''),
       blockedRequests: blocked.length,
       workers: workers.map(worker => ({ name: worker.name, type: worker.type })),

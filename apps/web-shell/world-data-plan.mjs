@@ -5,7 +5,7 @@ const PREFIX = 'assets/data/';
 const LIBRARY_ROOT = 'assets/data/territorial-entities/generated/v2/';
 const PREPARED_ROOT = 'assets/data/prepared-polygons/generated/v2/';
 
-export function buildFullWorldAssetPlan({ meta, world, historical, library, prepared, terrain, hydro, places }) {
+export function buildFullWorldAssetPlan({ meta, world, historical, library, prepared, hydro, places }) {
   if (!meta?.historicalWorld || !meta?.territorialIndex || !meta?.preparedPolygonMeshes
       || !/^data-[a-f0-9]{32}$/.test(meta.dataRevision || '')) {
     throw new Error('Current published world metadata is required.');
@@ -88,19 +88,6 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
   // Physical resources are packaged, not eagerly decoded. The unchanged
   // Web loaders schedule tile and shard reads according to map visibility.
   const worldFileCount = files.size;
-  const terrainRoot = 'assets/data/terrain-preview/v0.13.3-p1/';
-  if (terrain?.version !== '0.13.3-p1' || terrain.representation !== 'raster-rgba-v1'
-      || terrain.urlTemplate !== 'terrain-preview/v0.13.3-p1/{level}/{column}-{row}.webp'
-      || Object.keys(terrain.tiles || {}).length !== 8) {
-    throw new Error('Local terrain raster manifest is not the current eight-tile profile.');
-  }
-  add(terrainRoot + 'manifest.json');
-  for (const [tile, spec] of Object.entries(terrain.tiles)) {
-    if (!new RegExp('^[01]/[0-9]+-[0-9]+[.]webp$').test(tile)) {
-      throw new Error('Invalid local terrain tile name.');
-    }
-    add(terrainRoot + tile, { sha256: spec.sha256, compressedBytes: spec.bytes });
-  }
   if (hydro?.version !== '0.13.2' || hydro.schema !== 'pandolab-water-shards-v5'
       || hydro.container?.url !== 'hydro.bin'
       || hydro.container?.bytes !== hydro.stats?.compressedBytes) {
@@ -142,7 +129,6 @@ export async function loadFullWorldAssetPlan(readText){
       historical: await loadManifest('assets/data/historical-world/generated/v1/manifest.json'),
       library: await loadManifest('assets/data/territorial-entities/generated/v2/index.json'),
       prepared: await loadManifest('assets/data/prepared-polygons/generated/v2/manifest.json'),
-      terrain: await loadManifest('assets/data/terrain-preview/v0.13.3-p1/manifest.json'),
       hydro: await loadManifest('assets/data/hydro/v0.13.2/manifest.json'),
       places: await loadManifest('assets/data/places/manifest.json'),
     });

@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 /* global boundaryState: writable, latestMessage: writable, queued: readonly, draining: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -11,17 +11,14 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
 
 async function setMonth(page, value) {
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill(value);
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  await setEditorMonth(page, value);
 }
 async function ready(page, value, soviet) {
   await expect.poll(() => page.evaluate(() => {
     const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
     if (gpu?.renderer !== 'webgl2' || !gpu.canonicalMeshReady
       || gpu.countrySharedBoundaryReplacementPending) return null;
-    return { month: document.querySelector('#timelineMonthInput')?.value,
+    return { month: window.__testEditorTimeline.month(),
       soviet: !!window.PANDOLAB_TERRITORIAL?.get('state:soviet-union') };
   }), { timeout: 90_000, intervals: [500, 1100, 1800] }).toEqual({ month: value, soviet });
 }

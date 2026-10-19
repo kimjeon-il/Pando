@@ -2,7 +2,7 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createPhysicalResources({ enabled = true } = {}) {
+export function createPhysicalResources({ capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
   let dependencies;
   let terrainService;
   let hydroService;
@@ -21,12 +21,12 @@ export function createPhysicalResources({ enabled = true } = {}) {
   }
 
   async function loadTerrainManifest(force = false) {
-    if (!enabled) return false;
+    if (!capabilities.terrain) return false;
     return terrainService.load(force);
   }
 
   async function loadHydroData(force = false) {
-    if (!enabled) return false;
+    if (!capabilities.builtinHydro || (!force && dependencies.projectState.state.backgroundSettings?.builtinHydro===false) || (!capabilities.eagerBuiltinHydro && !force)) return false;
     return hydroService.load(force);
   }
 
@@ -125,7 +125,7 @@ export function createPhysicalResources({ enabled = true } = {}) {
   }
 
   function initializeTerrainService() {
-    (terrainService = (0, dependencies.physicalServices.createTerrainService)({
+    if(capabilities.terrain)(terrainService = (0, dependencies.physicalServices.createTerrainService)({
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
       manifestUrl: () => dependencies.physicalConfig.TERRAIN_PRIMARY_MANIFEST_URL,
       fallbackManifestUrl: dependencies.physicalConfig.TERRAIN_FALLBACK_MANIFEST_URL
@@ -163,7 +163,7 @@ export function createPhysicalResources({ enabled = true } = {}) {
       },
     }));
 
-    (hydroService = (0, dependencies.physicalServices.createHydroService)({
+    if(capabilities.builtinHydro)(hydroService = (0, dependencies.physicalServices.createHydroService)({
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
       dataVersion: dependencies.physicalConfig.HYDRO_DATA_VERSION,
       manifestUrl: () => {

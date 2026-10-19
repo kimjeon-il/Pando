@@ -1,3 +1,4 @@
+import {resolveObjectAction} from './object-action-registry.js';
 import { territorialSelectionStatus } from './country-display.js';
 import { normalizeObjectRef } from './object-selection-controller.js';
 import { normalizeTemporalInterval } from './temporal.js';
@@ -142,7 +143,11 @@ export function createTerritorialPropertyController({
     };
     for (const [id, visible] of Object.entries(actions)) {
       $(id).classList.toggle('hidden', !visible);
-      $(id).disabled = id !== 'copyEntityRegionBtn' && properties.locked;
+      const actionId={editEntityBorderBtn:'border-edit',editEntityCoastBtn:'coast-edit',reconcileEntityCoastBtn:'coast-reconcile',copyEntityRegionBtn:'copy-region',mergeEntityBtn:'merge',redrawEntityBtn:'split',annexEntityBtn:'merge'}[id];
+      const action=resolveObjectAction(actionId,{domain:'territorial',locked:properties.locked,disabled:isMutationBlocked(view.ref)&&!properties.locked});
+      $(id).disabled=!action.enabled;
+      const small=$(id).querySelector('small');if(small)small.textContent=action.reason||action.help;
+      $(id).setAttribute('aria-label',action.label+(action.reason?' · '+action.reason:''));
     }
     // Copy reads the source; a locked source can still be copied.
     if (nested && !properties.locked) refreshTerritorialCoastAvailability(view.feature);

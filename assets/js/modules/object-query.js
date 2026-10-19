@@ -1,3 +1,4 @@
+import {isBuiltinPlaceId} from './place-contract.js';
 import { temporalContains,temporalMonthEnd } from './temporal.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
 export function createObjectQuery(dependencies) {
@@ -9,10 +10,7 @@ export function createObjectQuery(dependencies) {
 
   function layerItemObjectRef(group, id) {
     const key = String(id);
-    if (group === 'countries' || group === 'countryLabels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: 'entity', id: key });
-    if (group === 'subunits' || group === 'regions') {
-      return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: 'entity', id: key });
-    }
+    if (group === 'objects' || group === 'objectLabels') return dependencies.selectionServices.normalizeObjectRef({domain:'territorial',type:'entity',id:key});
     if (group === 'distributions') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: 'distribution', id: key });
     if (group === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(key)) return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: (0, dependencies.hydroPresentation.hydroEditById)(key)?.properties?.category || 'river', id: key });
     if (group === 'genericFeatures') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'generic', type: 'feature', id: key });
@@ -34,13 +32,18 @@ export function createObjectQuery(dependencies) {
 
   function objectRefVisible(value) {
     const ref = dependencies.selectionServices.normalizeObjectRef(value);
-    if (ref?.domain === 'hydro' && !dependencies.hydroPresentation.hydroEditById(ref.id)) {
-      const feature = dependencies.hydroModel.hydroFeatureById(ref.id);
-      const id = String(feature?.properties?.pandolab_id || feature?.id || ref.id);
-      return dependencies.projectState.state.physicalSettings.hiddenHydroIds?.[id] !== true;
+    if(!ref)return false;
+    const state=dependencies.projectState.state;
+    const group=layerGroupForObjectRef(ref);
+    const master=ref.domain==='hydro'?(ref.type==='lake'?'lakes':'rivers'):group;
+    if(!group||state.layerVisibility[master]===false)return false;
+    if(ref.domain==='label'&&isBuiltinPlaceId(ref.id)&&state.backgroundSettings?.builtinPlaces===false)return false;
+    if(ref.domain==='hydro'&&!dependencies.hydroPresentation.hydroEditById(ref.id)) {
+      const feature=dependencies.hydroModel.hydroFeatureById(ref.id);
+      const id=String(feature?.properties?.pandolab_id||feature?.id||ref.id);
+      return state.backgroundSettings?.builtinHydro!==false&&state.itemVisibility.hydro?.[id]!==false;
     }
-    const group = layerGroupForObjectRef(ref);
-    return !!(ref && group && dependencies.layerPresentation.isLayerItemVisible(group, ref.id));
+    return dependencies.layerPresentation.isLayerItemVisible(group,ref.id);
   }
 
   function isObjectAvailable(value) {
@@ -115,13 +118,13 @@ export function createObjectQuery(dependencies) {
   function layerGroupForObjectRef(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return '';
-    if (ref.domain === 'territorial') return (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'countries' : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !!dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'subunits' : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? 'regions' : 'subunits';
+    if (ref.domain === 'territorial') return 'objects';
     if (ref.domain === 'distribution') return 'distributions';
-    if (ref.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(ref.id)) return 'hydro';
+    if (ref.domain === 'hydro') return 'hydro';
     if (ref.domain === 'generic') return 'genericFeatures';
     if (ref.domain === 'label') return 'labels';
     return '';
   }
 
-  return Object.freeze({objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef});
+  return Object.freeze({layerGroupForObjectRef,objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef});
 }

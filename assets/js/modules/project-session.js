@@ -1,3 +1,5 @@
+import {coreSelectionRefToWeb} from './core-object-ref.js';
+import {loadUserPreferences} from './user-preferences.js';
 import { createMapWorkScheduler } from './map-work-scheduler.js';
 import { createEmptyTerritorialState } from './territorial-entity-store.js';
 import { createInitialDocument } from './initial-document.js';
@@ -7,10 +9,10 @@ const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: 
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createProjectSession({productMode='editor'}={}) {
+export function createProjectSession({productMode='editor',capabilities={terrain:productMode==='viewer',builtinHydro:true,builtinPlaces:true},resolveVisibilityGroup,onViewingChange=null}={}) {
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Project session requires immutable product mode.');
   const viewingFields=new Set(['layerVisibility','layerPresentation','itemVisibility','physicalSettings','distributionSettings']);
-  let viewingPresentation=null,documentProjection=null;
+  let viewingPresentation=null,documentProjection=null,physicalSettings;
   let dependencies;
   let mapWorkScheduler;
   let DEFAULT_LAYER_VISIBILITY;
@@ -36,22 +38,17 @@ export function createProjectSession({productMode='editor'}={}) {
     mapWorkScheduler=createMapWorkScheduler();
 
     (DEFAULT_LAYER_VISIBILITY = Object.freeze({
-      countries: true,
-      subunits: true,
-      regions: true,
+      objects: true,
       distributions: true,
       rivers: true,
       lakes: true,
       genericFeatures: true,
       labels: true,
-      basemapLabels: true,
-      countryFlags: true,
-      subunitLabels: true,
-      subunitFlags: true,
-      regionLabels: true,
-      regionFlags: true,
+      objectNames: true,
+      objectFlags: true,
     }));
 
+    const background=loadUserPreferences().backgrounds[productMode];
     (state = {
       dataReadiness: dependencies.readiness.DATA_READINESS.PREVIEW,
       geometryProgress: 0,
@@ -73,17 +70,18 @@ export function createProjectSession({productMode='editor'}={}) {
       layerPresentation: (0, dependencies.modelValidation.normalizeLayerPresentation)(),
       // SelectionDomain owns selection. Before domain initialization it is empty.
       get selected() { return dependencies.domains.selectionDomain?.primary() || null; },
-      projection: 'globe',
+      projection: productMode==='editor'?'flat':'globe',
+      resourceCapabilities:capabilities,
+      backgroundSettings:{...background,builtinHydro:capabilities.builtinHydro&&background.builtinHydro,builtinPlaces:capabilities.builtinPlaces&&background.builtinPlaces},
       layerVisibility: normalizeLayerVisibility(),
       physicalSettings: {
-        terrainVisible: true,
-        terrainStyle: 'physical',
+        terrainVisible: capabilities.terrain && background.terrainVisible,
+        terrainStyle: background.terrainStyle,
         terrainStyleVersion: 1,
         hydroLayers: {
           rivers_hydro: true,
           lakes_natural_earth: true,
         },
-        hiddenHydroIds: {},
         dataset: dependencies.physicalConfig.PHYSICAL_DATASET,
       },
       hydroCollections: {},
@@ -94,14 +92,12 @@ export function createProjectSession({productMode='editor'}={}) {
       terrainManifest: null,
       physicalLoadState: { terrain: 'idle', hydro: 'idle', hydroCache: 'idle', hydroCachePercent: 0 },
       itemVisibility: {
-        countries: {},
-        subunits: {},
-        regions: {},
+        objects: {},
         distributions: {},
         hydro: {},
         genericFeatures: {},
         labels: {},
-        countryLabels: {},
+        objectLabels: {},
       },
       layerFolders: {
         polities: false,
@@ -175,27 +171,66 @@ export function createProjectSession({productMode='editor'}={}) {
   }
 
   function setViewingPresentation(patch={}, {reset=false}={}){
-    if(productMode!=='viewer')throw new Error('Viewing presentation overrides are not registered in the editor.');
     if(!documentProjection)throw new Error('The accepted document projection is required.');
     for(const field of Object.keys(patch))if(!viewingFields.has(field))throw new TypeError(`Unknown viewing state: ${field}`);
-    if(reset||!viewingPresentation)viewingPresentation=Object.fromEntries([...viewingFields].map(field=>[field,structuredClone(documentProjection.snapshot()[field])]));
+    if(patch.physicalSettings)physicalSettings=structuredClone(patch.physicalSettings);
+    if(reset||!viewingPresentation)viewingPresentation={layerVisibility:{...DEFAULT_LAYER_VISIBILITY},
+      itemVisibility:Object.fromEntries(['objects','distributions','hydro','genericFeatures','labels','objectLabels'].map(group=>[group,{}])),
+      distributionSettings:structuredClone(documentProjection.snapshot().distributionSettings),
+      physicalSettings:structuredClone(physicalSettings),layerPresentation:structuredClone(documentProjection.snapshot().layerPresentation)};
     for(const [field,value] of Object.entries(patch))viewingPresentation[field]=structuredClone(value);
     viewingPresentation.layerVisibility=normalizeLayerVisibility(viewingPresentation.layerVisibility);
     return viewingPresentation;
   }
+  function restoreViewingPresentation(viewRecord){
+    if(!viewRecord||viewRecord.documentId!==documentProjection.snapshot().documentId)return false;
+    const stored=viewRecord.viewingPresentation;
+    if(stored&&typeof stored==='object') {
+      const patch={};
+      if(stored.layerVisibility&&typeof stored.layerVisibility==='object')patch.layerVisibility={...state.layerVisibility,...Object.fromEntries(Object.entries(stored.layerVisibility).filter(([key,value])=>Object.hasOwn(state.layerVisibility,key)&&typeof value==='boolean'))};
+      if(stored.itemVisibility&&typeof stored.itemVisibility==='object')patch.itemVisibility=Object.fromEntries(Object.keys(state.itemVisibility).map(group=>[group,Object.fromEntries(Object.entries(stored.itemVisibility[group]||{}).filter(([,value])=>typeof value==='boolean'))]));
+      if(stored.distributionSettings&&typeof stored.distributionSettings==='object') {
+        const value=stored.distributionSettings;patch.distributionSettings={...state.distributionSettings};
+        if(['single','overlap'].includes(value.renderMode))patch.distributionSettings.renderMode=value.renderMode;
+        if(typeof value.boundaryVisible==='boolean')patch.distributionSettings.boundaryVisible=value.boundaryVisible;
+        if(value.activeLayerId===''||state.distributionLayers.some(layer=>layer.id===value.activeLayerId))patch.distributionSettings.activeLayerId=value.activeLayerId;
+      }
+      setViewingPresentation(patch);
+    }
+    return true;
+  }
+  function pruneViewingItems({countryLabelIds}){
+    const project=documentProjection.snapshot(),ids=rows=>new Set(rows.map(row=>String(row.id)));
+    const territorial=ids(project.territorialEntities),valid={objects:territorial,objectLabels:new Set([...territorial,...countryLabelIds]),
+      distributions:ids(project.distributionLayers),genericFeatures:ids(project.genericFeatures)};
+    // Places and hydro also contain lazy builtin identities. The document and
+    // currently hydrated resource catalogs cannot prove those IDs obsolete.
+    setViewingPresentation({itemVisibility:Object.fromEntries(Object.entries(viewingPresentation.itemVisibility)
+      .map(([group,values])=>[group,Object.fromEntries(Object.entries(values).filter(([id])=>!valid[group]||valid[group].has(id)))]))});
+  }
   function applyViewingPresentation(payload) {
     if (payload.action === 'visibility') setViewingPresentation({ layerVisibility: { ...state.layerVisibility, [payload.key]: payload.visible } });
+    else if(payload.action==='objectVisibility'||payload.action==='distributionLayerVisibility') {
+      const refs=payload.action==='distributionLayerVisibility'?[{group:'distributions',id:payload.id}]:payload.refs.map(ref=>{
+        const web=coreSelectionRefToWeb(ref);return {group:resolveVisibilityGroup(web),id:web.id};});
+      if(!refs.length||refs.some(ref=>!ref.group))throw new TypeError('Known visibility references are required.');
+      const visible=typeof payload.visible==='boolean'?payload.visible:!refs.every(ref=>state.itemVisibility[ref.group]?.[ref.id]!==false);
+      const items=structuredClone(viewingPresentation.itemVisibility);
+      for(const ref of refs){items[ref.group]||={};if(visible)delete items[ref.group][ref.id];else items[ref.group][ref.id]=false;}
+      setViewingPresentation({itemVisibility:items});
+    }
     else if (payload.action === 'groupStyle') setViewingPresentation({ layerPresentation: dependencies.modelValidation.normalizeLayerPresentation({
       ...state.layerPresentation, styles: { ...state.layerPresentation.styles, [payload.group]: { ...state.layerPresentation.styles[payload.group], ...payload.patch } } }) });
-    else if (payload.action === 'terrainMode') setViewingPresentation({ physicalSettings: payload.physicalSettings });
+    else if (payload.action === 'terrainMode') {if(!capabilities.terrain)throw new Error('지형 배경은 앱에서 지원하지 않습니다.');setViewingPresentation({ physicalSettings: payload.physicalSettings });}
     else {
       const key = { distributionRenderMode: 'renderMode', distributionActiveLayer: 'activeLayerId', distributionBoundaryVisible: 'boundaryVisible' }[payload.action];
       if (!key) throw new TypeError(`Unknown viewing action: ${payload.action}`);
       setViewingPresentation({ distributionSettings: { ...state.distributionSettings, [key]: payload.value } });
     }
+    if(onViewingChange)onViewingChange();
     return { ok: true, changed: true };
   }
-  const captureViewingPresentation=()=>structuredClone(viewingPresentation);
+  const captureViewingPresentation=()=>structuredClone(Object.fromEntries(Object.entries(viewingPresentation || {}).filter(([key])=>key!=='physicalSettings'&&(productMode==='viewer'||key!=='layerPresentation'))));
 
   // A detached, empty startup input. C++ validates and owns it before any
   // preview/canonical source or editable UI is admitted.
@@ -205,6 +240,15 @@ export function createProjectSession({productMode='editor'}={}) {
     });
   }
 
+  function captureReplacement() {
+    const capturedPresentation=structuredClone(viewingPresentation);
+    const saved=Object.fromEntries(Object.entries(Object.getOwnPropertyDescriptors(state)).filter(([,descriptor])=>descriptor.writable).map(([key,{value}])=>[key,value instanceof Map?new Map(value):value instanceof Set?new Set(value):Array.isArray(value)?value.slice():value&&Object.getPrototypeOf(value)===Object.prototype?{...value}:value]));
+    return ()=>{viewingPresentation=capturedPresentation;for(const [key,value] of Object.entries(saved))state[key]=value;state.projectReplacing=true;
+      // Prepared candidates have been released by Core replacement. Keep their inputs and recalculate.
+      if(state.geometryPreview?.session)state.geometryPreview={...state.geometryPreview,session:null};
+      if(state.territorySelectionSession?.stage==='review')state.territorySelectionSession={...state.territorySelectionSession,stage:'selection',previewPending:false,prepared:null};
+    };
+  }
   function installDocumentProjection({ documentModel,commandOwner,entityStore }) {
     if (projectionInstalled) throw new Error('The accepted C++ document projection is already installed.');
     if (typeof documentModel?.snapshot!=='function' || typeof documentModel.geometry!=='function'
@@ -223,11 +267,16 @@ export function createProjectSession({productMode='editor'}={}) {
       if(ids!==dirtyIdsSource) { dirtyIdsSource=ids;dirtyIdsProjection=readonlyIds(ids); }
       return dirtyIdsProjection;
     };
-    documentProjection=documentModel;
-    if(productMode==='viewer')setViewingPresentation({}, {reset:true});
-    const properties=Object.fromEntries(['sourceInfo','labels','labelSettings','genericFeatures','hydroEdits','distributionLayers',
+    documentProjection=documentModel;physicalSettings=structuredClone(state.physicalSettings);
+    setViewingPresentation({}, {reset:true});
+    // Source replacement follows authored hydro edits, independent of temporary visibility.
+    const effectiveItemVisibility=()=>{
+      const replaced=documentModel.snapshot().hydroEdits.map(feature=>feature.properties.sourceFeatureId).filter(Boolean);
+      return replaced.length?{...viewingPresentation.itemVisibility,hydro:{...viewingPresentation.itemVisibility.hydro,...Object.fromEntries(replaced.map(id=>[id,false]))}}:viewingPresentation.itemVisibility;
+    };
+    const properties=Object.fromEntries(['documentId','projectSetup','sourceInfo','labels','labelSettings','genericFeatures','hydroEdits','distributionLayers',
       'distributionEntries','distributionSettings','physicalSettings','layerVisibility','itemVisibility','layerPresentation','timelineRecords']
-      .map(name => [name,{ enumerable: true,get: () => productMode==='viewer'&&viewingFields.has(name)?viewingPresentation[name]:documentModel.snapshot()[name] }]));
+      .map(name => [name,{ enumerable: true,get: () => name==='itemVisibility'?effectiveItemVisibility():viewingFields.has(name)&&(productMode==='viewer'||name!=='layerPresentation')?viewingPresentation[name]:documentModel.snapshot()[name] }]));
     Object.assign(properties,{ territorialEntities: { enumerable: true,get: entityStore.snapshot },geometries: { enumerable: true,get: () => geometries },
       stateRevision: { enumerable: true,get: () => coreState().stateRevision },timelineCursor: { enumerable: true,get: () => coreState().timelineCursor },
       historyDirtyEntityIds: { enumerable: true,get: historyDirtyEntityIds } });
@@ -240,7 +289,8 @@ export function createProjectSession({productMode='editor'}={}) {
     initializeMapWorkScheduler,
     initialDocument,
     installDocumentProjection,
-    ...(productMode==='viewer'?{setViewingPresentation,captureViewingPresentation,applyViewingPresentation}:{}),
+    setViewingPresentation,captureViewingPresentation,applyViewingPresentation,restoreViewingPresentation,pruneViewingItems,
+    captureReplacement,
     get atomicMapStateController() { return atomicMapStateController; },
     get mapWorkScheduler() { return mapWorkScheduler; },
     get normalizeLayerVisibility() { return normalizeLayerVisibility; },

@@ -21,7 +21,9 @@ for(const name of ['static','complex'])test(`Core ${name} file export supplies s
     assert.ok(columns.includes('properties_json'));
     for(const retired of ['role','owner_id','parent_id','topology_group','land_binding']) assert.equal(columns.includes(retired),false);
   }
-  assert.deepEqual(await owner.client.validateImport(JSON.stringify((await productionGeoPackage('read',file.buffer)).metadata.projectState)),body);
+  const accepted=await owner.client.validateImport(JSON.stringify((await productionGeoPackage('read',file.buffer)).metadata.projectState));
+  const reopened=await createNodeCoreProject(accepted);t.after(()=>reopened.dispose());
+  assert.deepEqual(JSON.parse(await reopened.client.storageSnapshot()),body);
   assert.equal(Object.hasOwn(body,'spatialState'),false);assert.equal(Object.hasOwn(body,'checkpoint'),false);
 });
 

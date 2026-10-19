@@ -7,6 +7,7 @@ import { loadWebOracle } from './web-oracle.mjs';
 import { DISTRIBUTION_MODES } from '../../assets/js/modules/distribution-model.js';
 import { afterEach } from 'node:test';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import {createTestViewingSession} from './viewing-project.mjs';
 
 // These original factories only construct detached scenario inputs. Current
 // behavior, mutation, validation and history are always exercised in C++.
@@ -28,15 +29,16 @@ afterEach(() => {
 
 export function projectForStorage(row = timelineStorageCases()[0]) {
   return {
+    documentId:'8bb52340-ea7a-4f25-9d38-9adeb8332183',physicalSourceInfo:{},
     territorialEntities: row.entities.map(({ id, entityKind }) => ({ type: 'Feature', id,
       geometry: null, properties: { schemaVersion: TERRITORIAL_SCHEMA_VERSION, entityKind, name: id, notes: '',
         style: {}, locked: false, metadata: {}, sourceFolderId: '', sourceEntityId: '', sourceGeometryVersion: '' } })),
     projectFields: { timelineRecords: structuredClone(row.input.records),
       geometries: structuredClone(row.input.geometries), sourceInfo: null, labels: [],
       genericFeatures: [], hydroEdits: [], distributionLayers: [], distributionEntries: [],
-      labelSettings: {}, distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
-      layerPresentation: { schemaVersion: 4, styles: {}, objectStyles: {}, objectOrder: [] },
-      physicalSettings: {}, layerVisibility: {}, itemVisibility: {} }, fullAutosave: true,
+      labelSettings: {},distributionSettings:{renderMode:'overlap',activeLayerId:'',boundaryVisible:true},projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
+      layerPresentation: { schemaVersion: 5, styles: {}, objectStyles: {}, objectOrder: [] },
+      }, fullAutosave: true,
   };
 }
 
@@ -44,15 +46,22 @@ export async function initializeTestTerritorialState(state,t=null,{project,platf
   if(fixtures.has(state))throw new Error('The current Core fixture is already initialized.');
   const fields=Object.fromEntries(Object.keys(projectForStorage().projectFields)
     .filter(key => Object.hasOwn(state,key) && !['timelineRecords','geometries'].includes(key)).map(key => [key,state[key]]));
-  const owner=await createNodeCoreProject(project || staticAutosaveProject(fields,state.territorialEntities || []),platformPorts);
+  const viewKeys=['layerVisibility','itemVisibility','distributionSettings'];
+  
+  let viewing;
+  const owner=await createNodeCoreProject(project || staticAutosaveProject(fields,state.territorialEntities || []),{
+    ...platformPorts,viewingPresentation:payload=>viewing.session.applyViewingPresentation(payload),
+    persistence:platformPorts.persistence || {queueView(){},queueProject(){},queuePresentation(){},cancelPending(){}}});
+  viewing=createTestViewingSession(owner);
+  viewing.session.setViewingPresentation(Object.fromEntries(viewKeys.filter(key=>state[key]).map(key=>[key,key==='itemVisibility'?{...viewing.session.state.itemVisibility,...state[key]}:state[key]])));
   const entityStore=createTerritorialEntityStore({ documentModel:owner.documentModel,commandOwner:owner.client });
   const entityRepository=createTerritorialEntityRepository({ entityStore });
-  const fixture={ ...owner,entityStore,entityRepository,dispose() { liveFixtures.delete(fixture);entityStore.dispose();owner.dispose(); } };
+  const fixture={ ...owner,viewing,entityStore,entityRepository,dispose() { liveFixtures.delete(fixture);viewing.dispose();entityStore.dispose();owner.dispose(); } };
   fixtures.set(state,fixture);
   liveFixtures.add(fixture);
-  const keys=Object.keys(projectForStorage().projectFields).filter(key => !['geometries'].includes(key));
+  const keys=[...Object.keys(projectForStorage().projectFields).filter(key => !['geometries'].includes(key)),...viewKeys];
   const properties=Object.fromEntries(keys.map(key => [key,{ configurable:true,enumerable:true,
-    get:() => owner.documentModel.snapshot()[key] }]));
+    get:() => viewKeys.includes(key)?viewing.session.state[key]:owner.documentModel.snapshot()[key] }]));
   properties.territorialEntities={ configurable:true,enumerable:true,get:entityStore.snapshot };
   const geometries=Object.freeze({ get:owner.documentModel.geometry,snapshot:() => owner.documentModel.snapshot().geometries });
   properties.geometries={ configurable:true,enumerable:true,get:() => geometries };
@@ -88,7 +97,7 @@ export function executeTerritorialTestCommand(state,commandId,payload) {
 
 export function staticSerializerSnapshot(snapshot) {
   const content = staticTerritorialInput(snapshot.territorialEntities);
-  return { baseDatasetFingerprint: '1'.repeat(64), ...snapshot, territorialEntities: content.territorialEntities,
+  return { documentId:projectForStorage().documentId,physicalSourceInfo:{},baseDatasetFingerprint: '1'.repeat(64), ...snapshot, territorialEntities: content.territorialEntities,
     entityDelta: snapshot.entityDelta ? { ...snapshot.entityDelta,
       changed: snapshot.entityDelta.changed.map(feature => content.territorialEntities.find(entity => entity.id === feature.id)) } : undefined,
     projectFields: { ...projectForStorage().projectFields, ...snapshot.projectFields,
