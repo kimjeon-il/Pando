@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createTerritorialLabels } from '../../assets/js/modules/app-territorial-labels.js';
+import { createTerritorialLabels } from '../../assets/js/modules/territorial-labels.js';
 import { createApplicationPorts, MAP_RESOURCE_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { createMapSettings } from '../../assets/js/modules/app-map-settings.js';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';

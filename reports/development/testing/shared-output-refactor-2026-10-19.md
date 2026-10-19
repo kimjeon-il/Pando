@@ -1,0 +1,89 @@
+# 웹·앱 공통 소유자 통합 및 검증
+
+> 보고서 ID: `UI-SHARING-REFACTOR-20261019` · 상태: `focused-verified / published / native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
+> 원문 최종 수정: 2026-10-19
+> 소스 기준: 제품 기준 `4273bca1298c42fcb5a1bca8570b7b26387f3de8`, 공통화 구현 `76b14f1c`, 최초 게시 `aceb4907820d1ad8f8fc99732c27201feea81817`. 이 보고서를 포함하는 후속 커밋은 툴팁 토큰과 검사·CI 경로 정리를 포함한다.
+> 선행 조사: [UI-SHARING-AUDIT-20261018](shared-output-audit-2026-10-18.md). 원래 조사·재현 근거를 보존한다.
+
+## 적용 범위
+
+검색 대상은 **선택한 연월에 존재하면서 표시가 켜진 객체 전체**다. 화면 밖의 객체도 포함한다. 숨긴 객체, 다른 기간의 객체는 제외한다. 내장 지명의 역사 정보는 자료가 제공하는 범위에서만 사용한다.
+
+웹의 별도 정보 창은 제거했다. 앱의 속성 편집 창은 유지한다. 버튼과 지도 호버는 공통 툴팁을 사용하며 양쪽 테마에서 검정 배경·흰 글자를 사용한다. 제품명에 뷰어 표기를 추가하지 않았다.
+
+| 조사 항목 | 현재 소유자와 실제 변경 |
+| --- | --- |
+| S01 실행·상태 | `map-owner-composition`이 양쪽의 같은 지도 소유자를 생성한다. 불변 제품 모드가 읽기 전용 조립의 편집·저장 훅 등록을 거부한다. `ProjectSession`·문서 투영·영토 저장소를 공유한다. 제품별 파일은 출력 요소와 플랫폼 포트를 연결한다. |
+| S02·S08 장면·라벨 | `RenderingDomain`·`MapContentPresentation`·`LabelPresentation`·`GpuScene`의 실제 기존 함수 본문을 공유한다. 편집 표시 본문은 앱 전용 `EditingPresentation`으로 분리했다. 웹의 별도 scene/label 순회는 삭제했다. |
+| S03·S04 카메라·입력 | 같은 `CameraNavigation`·`MapProjection`·`MapWorkspaceHost`·`MapInputPresentation`을 사용한다. 안전 영역, 줌 제한, 실제 객체 범위 맞춤, 입력 문턱, 클릭 억제, 이동 종료와 품질 복구를 공유한다. |
+| S05·S06 선택·호버 | 같은 `ObjectPicking`·`PointerTargets`·`SelectionDomain`·`SelectionUiController`를 사용한다. 겹친 객체 목록, 빈 배경 해제, Ctrl/Shift, 오래된 호버 응답, 콜론 포함 ID를 같은 경로에서 처리한다. |
+| S07 검색 | 같은 카탈로그·조회·정렬·참조·검색 컨트롤러를 사용한다. 편집 관리용 전체 목록과 검색 가능 목록을 구분한다. 내장 검색 캐시는 연월·지명 표시·개별 표시 변경으로 무효화한다. |
+| S09 지명 | `TerritorialLabels`의 place-runtime 연결·보호 ID·날짜·스타일·선택 참조와 이동 종료 검색 갱신을 공유한다. `viewer-places`는 삭제했다. |
+| S10 프레임·품질 | 같은 프레임 준비, coordinator, 작업 스케줄러, DPR·프레임 예산 정책을 사용한다. canonical mesh 준비·세대 검사도 `RenderQuality`로 모았다. 공통 읽기 전용 표시 Worker는 편집 Worker를 등록하지 않는다. |
+| S11 파일·교체 | 현재 GPKG reader, `FileController`, `ProjectDomain`의 원자적 교체·rollback·마지막 요청 정책과 내장 저장 원본 admission을 공유한다. `viewer-session`·`viewer-project-reader`를 삭제했다. 교체 시 선택/UI/렌더 세대를 함께 초기화한다. |
+| S12·S13 화면·수명 | 정보 창 제거. `WorkspaceSurfaces`·`NavigationBindings`가 메뉴·검색·패널·뒤로 가기·키보드 높이·포커스 복귀를 소유한다. `ApplicationLifecycle`이 BFCache와 해제를 처리한다. 웹의 별도 메뉴 상태와 직접 입력 바인딩을 제거했다. |
+| S14 설정·오류 | `PreferencePresentation`이 양쪽 환경설정 상태와 테마·글꼴·선택 스타일 적용을 소유한다. `NotificationPresentation`의 실제 알림·오류 본문과 마크업을 공유한다. |
+| S15 마크업 | 검색·보기·설정·날짜·툴팁·알림·공통 아이콘·검색/전체 보기 버튼을 `ui/fragments` 단일 원본에서 생성한다. HTML 복사본을 수동 수정하는 경로를 대체했다. |
+| S16 산출물 | 웹은 정적·동적 import 및 Worker 참조의 열람 자산 closure만 게시한다. 편집 실행 자산은 명시적 계약으로 거부한다. 앱은 별도 편집 HTML과 현재 두 데이터 프로필을 유지한다. Windows CI의 옛 597개 고정 비교를 현재 manifest 계획·실제 파일 목록 검사로 바꿨다. |
+
+웹·앱 출력 배선 파일은 남는다. 이들은 제품에서 존재하는 요소와 플랫폼 자원을 주입한다. 별도 지도 모델·렌더러·검색 데이터베이스나 구형 API 별칭을 보존한 것은 아니다. 앱의 편집, 자동저장, 네이티브 파일 연결은 앱에서만 등록한다.
+
+## 원본 코드 증감
+
+기준 커밋과 검증용 소스의 `assets/js/modules/*.js`, `assets/js/workers/*.js`를 LF·BOM 제거 후 같은 방법으로 비교했다. 생성 HTML/CSS, 테스트, 보고서와 도구는 이 수치에서 제외한다. 문자열 길이는 Python Unicode 문자 수이며 이전 보고서의 UTF-16 집계와 혼합하지 않는다.
+
+| 항목 | 기준 | 변경 후 | 차이 |
+| --- | ---: | ---: | ---: |
+| JS 모듈·Worker 파일 | 363 | 374 | +11 |
+| 원본 문자 | 3,635,803 | 3,632,495 | **-3,308** |
+| 원본 LF 줄 | 72,635 | 72,396 | **-239** |
+
+파일 수 증가는 기존 큰 소유자에서 편집 표시와 열람 표시를 분리한 결과다. 이전 모듈의 실제 본문·호출부·포트·테스트 import를 함께 교체했다. `viewer-places`, `viewer-project-reader`, `viewer-scene-items`, `viewer-session`과 해당 독자 테스트는 제거하고 공통 구현의 실제 결과를 검사한다. 단순 압축이나 주석 삭제로 감소량을 만들지 않았다.
+
+## 실행한 검증과 수정 근거
+
+검증은 미커밋 C++/WASM·프로젝트 설정·비교·모바일 꼭짓점 작업이 섞이지 않은 `D:/build/pandolab-product-release-source`에서 실행했다. 상설 `work/ui`의 그 작업들은 보존하며 검증된 소스 blob만 커밋한다.
+
+- 공통 실행·필수 포트·읽기 전용 Core/Worker·문서 상태·장면/날짜·자산 closure: 마지막 묶음 29/29 통과. 별도 제품·HTML·시작 성능 계약 25/25 및 공통 마크업 5/5 통과.
+- 검색 선택·호버 수명·동일 검색어 캐시 가시성/연월 변경: 16/16 통과. 포인터·초안·프레임 관련 묶음 36/36 통과.
+- 지형·수계 서비스 및 두 앱 staging 프로필: 14/14 통과. 프로젝트 교체가 이전 수계 Worker를 정상 취소했을 때 현재 렌더 세대의 준비를 기다리는 회귀 검사를 포함한다.
+- JavaScript 구문 검사 1,122개 통과. 변경된 주요 공통·제품 연결·staging 파일의 ESLint 통과. UI component/layering 검사 통과.
+- 실제 GPKG 열기·손상·취소·연속 요청 검사 통과. 이후 렌더 세대 초기화 검사를 추가한 실제 GPKG 재검사도 통과했다. 앱의 실제 저장·재열기·자동저장·Undo/Redo·시점 흐름 통과.
+- 공통 툴팁, 검색 선택, 정보 창 부재, 설정 미리보기·취소·저장, 웹 세로/가로·태블릿 배치 검사 통과. Canvas 본문 클릭에서는 실제 겹친 두 객체 목록에서 대상을 선택하고 문서·이력이 바뀌지 않음을 확인했다.
+- 실제 full-world staging: 1,537개 파일, 151,536,160 bytes. 597개 세계 자료와 13개 물리 자료를 합친 현재 610개 데이터 항목을 manifest 계획과 비교했다. 이 경로의 소스는 Git 없는 검증용 export이므로 그 staging의 commit은 `unavailable`이며 배포 SHA 증거로 쓰지 않는다.
+
+최종 리뷰에서 수계 조회 포트, 객체 범위 맞춤의 path 포트, 내장 지명 검색 캐시 가시성, 프로젝트 교체 시 렌더 세대 초기화 누락을 찾아 수정했다. 그 뒤 Canvas 검사에서 정상 Worker 재시작을 오류로 오인하던 실제 비동기 문제도 수정했다.
+
+기존 브라우저 검사의 낡은 가정도 확인해 현재 계약으로 갱신했다. 초기 원점 중심·겹친 객체 자동 선택 대신 실제 프레임 좌표와 선택 목록을 사용한다. 앱 작업 제목은 원래 구현의 제목·단계 분리와 상세 접기 버튼을 검사한다. compact inset은 `rem` 값을 픽셀로 오독하지 않고 실제 CSS 길이를 해석한다. 기능 검사를 약화하거나 실패를 skip하지 않았다.
+
+## 미검증과 배포
+
+Android `adb devices -l` 결과 연결 기기가 없었다. 휴대폰의 양쪽 가로 회전·세로 실행·파일 선택기/백그라운드 복귀·태블릿·폴더블·멀티윈도는 실기기 미검증이다. 브라우저 viewport 검사를 네이티브 회전 검증으로 보고하지 않는다. 이번 단계에서 네이티브 실행 파일을 새로 빌드·실행한 결과도 없다.
+
+원본 자료·공통 WASM/C++는 이번 커밋에서 변경하지 않는다. 정량 성능 개선율과 메모리 감소율은 측정하지 않았으므로 주장하지 않는다. 상설 UI 워크트리의 별도 Core/WASM 변경은 이 보고서의 검증·배포 대상이 아니다.
+
+최종 데스크톱 편집 레이아웃 1/1, 휴대폰 가로 패널/키보드/초안 및 파일 세대 변경 2/2, 메뉴·설정·툴팁·그리기 순서 4/4 검사가 통과했다. 공통 UI 수명 해제 포트 검사 35/35도 통과했다.
+
+## 통합·게시와 공개 사이트 검증
+
+- `work/ui`의 검증된 소스만 커밋·푸시하고 `main`에 fast-forward 통합했다. 별도 미완성 Core/WASM·프로젝트 설정·비교·모바일 꼭짓점 변경과 기존 미추적 파일은 보존했다.
+- 실제 Git 커밋 `aceb4907` 기준 Pages staging은 2,233개 파일, 431,897,844 bytes다. 편집 전용 실행 자산을 거부하는 열람 의존성 closure 검사 및 main의 제품·공통 HTML 검사 5/5가 통과했다. Windows checkout 줄바꿈을 공통 HTML 검사에서도 정규화했다.
+- [Pages 실행 39142343675](https://github.com/kimjeon-il/Pando/actions/runs/39142343675)의 build·deploy가 성공했다. 게시 소스 SHA는 `aceb4907820d1ad8f8fc99732c27201feea81817`이다.
+- [공개 사이트](https://kimjeon-il.github.io/Pando/)의 HTML, 빌드 정보, 공통 조립·지도·조회·본문·이름·패널·환경설정 모듈과 display Worker 10개를 내려받아 HTTP 200과 커밋 산출물 SHA-256 일치를 확인했다.
+- 공개 사이트 브라우저에서 시작, 환경설정 미리보기/취소, 검정 배경·흰 글자 툴팁, 실제 현재 GPKG 열기, 검색 선택, 별도 정보 창 부재와 문서/이력 불변을 확인했다. `B 영토`는 1914-06에 검색되고 1921-01에 제외되며 1914-06으로 복귀하면 다시 검색된다. 페이지 예외는 없었다.
+- 게시 후 CI의 툴팁 raw-color 금지 검사를 확인해 공통 component token으로 옮겼다. 검정/흰 색상값과 동작은 같다. UI spacing/components/architecture/layering/information-architecture/registry 검사, registry 단위 4/4, surface 상태 14/14, runtime 경계 검사(350 modules, 순환 참조 없음)가 통과했다. 옮겨진 공통 모듈의 CI lint/trigger 경로와 registry 검사의 실제 owner 참조도 갱신했다. 제품 행동을 검사 통과용으로 되돌리지 않았다.
+- 제품 코드 최종 후속 `b509b567a54ce58937e75ee65dc07c952c3d846d`의 [Pages 실행 39142832189](https://github.com/kimjeon-il/Pando/actions/runs/39142832189)도 build·deploy 성공했다. 변경된 CSS까지 포함한 공개 파일 11개의 HTTP 200·커밋 SHA-256 일치와 위 공개 브라우저 흐름을 다시 확인했다. 내장 지도 화면도 캡처해 글자가 지도 채색 위에 보임을 확인했다.
+- 추가 CI에서 앱 속성 테스트 저장 서비스 대역에 필수 `cancelPending`이 빠져 종료 오류와 잔여 Worker가 발생한 것을 확인했다. 대역 계약을 보완하고 Core 테스트 helper는 정리 실패에도 `finally`로 client를 해제한다. 별도 기존 기대값도 현재 Core가 후보 준비 단계에서 반환하는 `GEOMETRY_OUTSIDE_PARENT` 거절로 갱신했으며 문서·선택·이력·저장 불변 검사는 유지했다. 실제 속성·기간·관계·Undo/Redo·잠금·지명·수계 메타데이터 묶음 84/84가 통과했다. 이 보고서를 포함하는 마지막 변경은 테스트와 보고서이며 제품 자산은 `b509b567`과 같다.
+- 그 뒤 CI의 정보 편집 브라우저 검사가 직접 프로젝트 열기 후 제거된 GIS 복원 확인창을 기다리는 것을 발견했다. 현재 프로젝트 열기 호출자를 검색해 정보 편집·편집 미리보기 handoff·GIS 교환 roundtrip 검사 3곳을 `project-load` 완료 이벤트와 작업 상태를 기다리도록 갱신했다. GIS 자료 추가 가져오기 검사는 유지하고, 기존 객체·속성·형상·이력 검증을 삭제하지 않았다. 실제 정보 편집·계층·GPS 초점·기간 검증·Undo/Redo 브라우저 흐름은 1/1(31.5초) 통과했고 변경된 3개 검사 ESLint도 통과했다. 나머지 두 브라우저 시나리오 전체를 추가로 실행했다고 주장하지 않는다.
+
+원시 검증 근거는 상설 UI 워크트리 `.superpowers/sdd/shared-output-refactor/`의 `live-browser.json`, `live-hashes.json`, `live-shared-output.png`, `main-stage.log`, `registry-final.log`, `surface-final.log`, `runtime-after-merge.log`에 보존한다. 이후 문서·토큰 규칙 후속 커밋의 게시 여부는 최종 workflow와 공개 파일을 다시 확인한다. 이 보고서는 네이티브 실기기 검증이나 정량 성능 개선을 주장하지 않는다.
+
+## 추가 발견: 웹 확대·축소 툴바 회귀 수정
+
+기준 소스 `ab0e539c2dbd8cd8f2a49308d27db41ce4733acd`에서 앱은 이미 확대·축소 툴바를 제거하고 부재를 검사했지만, 웹 별도 템플릿에는 `zoomInBtn`·`zoomOutBtn`과 전용 이벤트 연결이 남아 있었다. 공통화 과정에서 웹의 이 차이를 제거하지 못한 누락이다.
+
+웹 툴바 마크업과 연결을 제거했다. 유일한 호출자가 사라진 `bindHoldZoom`, 양 제품에서 더 이상 출력하지 않는 툴바 CSS·토큰, 앱 작업 안내의 해당 툴바 회피 계산도 함께 삭제했다. 공통 카메라의 휠·핀치 입력과 전체 지도 보기 동작은 유지한다. 생성 HTML/CSS는 원본에서 재생성했으며 캐시 갱신을 위해 빌드 ID를 `0.36.0-build-20261019-view-controls`로 바꿨다. 상설 UI의 별도 미완성 변경은 배포에 섞지 않는다.
+
+검증용 clean export에서 공통 HTML·카메라·초점 검사 15/15, 웹 자산 closure 검사 4/4, 변경 파일 ESLint와 UI spacing/components/architecture/layering 검사가 통과했다. 실제 브라우저 1/1(36.9초)에서 웹 데스크톱과 640×360 화면에 툴바가 없고, 휠 확대·축소에 따라 실제 지도 이름 사이 거리가 변하며 전체 지도 보기로 복원됨을 확인했다. 이름은 실제 공통 interaction SVG의 출력으로 측정했고, centroid 캐시 및 지도 위 이름 순서 검사를 유지했다. 테스트의 필수 조회 포트 대역과 카메라 저장 콜백도 현재 계약으로 맞췄다.
+
+배포 결과와 공개 화면·파일 바이트 검증은 같은 원시 근거 폴더의 `zoom-removal-release.json`, `zoom-removal-live.json`, `zoom-removal-live-desktop.png`, `zoom-removal-live-mobile.png`에 기록한다. 이 수정으로 네이티브 기기 회전을 추가 검증했다고 주장하지 않는다.

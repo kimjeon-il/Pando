@@ -70,7 +70,7 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   const document = createFakeDocument();
   const ids = [
     'modeEditingHud', 'modeTaskName', 'modeTaskStage', 'modeTaskStatus', 'modeTaskInstruction',
-    'modeTaskObjects', 'modeTaskDisabledReason',
+    'modeTaskObjects', 'modeTaskDisabledReason', 'modeTaskViewTime',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
   ];
@@ -116,6 +116,7 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
 const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state,
+    projectDomain: testCoreProject(state).project,
     $: id => elements[id] || null,
     describeTool: () => ({ name: '국경 조정', stage: '맞닿은 국가 선택' }),
     territorySelectionPresentation: () => null,
@@ -289,7 +290,7 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(needsTarget.elements.modePrimaryBtn.disabled, true);
   assert.equal(needsTarget.elements.modeTaskDisabledReason.textContent, '합칠 대상을 하나 이상 선택하세요.');
   assert.equal(needsTarget.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
-  assert.equal(needsTarget.elements.modeTaskStatus.classList.contains('hidden'), true);
+  assert.equal(needsTarget.elements.modeTaskStatus.classList.contains('hidden'), false);
   assert.equal(needsTarget.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 });
 
@@ -377,4 +378,10 @@ test('hydro auxiliary commands run while idle and preserve their own busy guard'
   state.modeProcessing = true;
   buttons.multiDrawnAddBtn.dispatchEvent(new Event('click'));
   assert.equal(calls.length, 2);
+});
+
+test('editing context can render before the Core project state is ready', async t => {
+  const f = await fixture(t, {}, {projectDomain:{state:()=>null}});
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.textContent, '보기: 시점 확인 중');
 });

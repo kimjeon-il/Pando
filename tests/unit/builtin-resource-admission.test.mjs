@@ -3,7 +3,7 @@ import test from 'node:test';
 import { setImmediate } from 'node:timers';
 import { createPlaceRuntime } from '../../assets/js/modules/place-runtime.js';
 import { normalizePlace } from '../../assets/js/modules/place-contract.js';
-import { createPhysicalResources } from '../../assets/js/modules/app-physical-resources.js';
+import { createPhysicalResources } from '../../assets/js/modules/physical-resources.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};

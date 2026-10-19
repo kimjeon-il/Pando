@@ -1,3 +1,4 @@
+import {createEditingPresentation} from '../../assets/js/modules/editing-presentation.js';
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';

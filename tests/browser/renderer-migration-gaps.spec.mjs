@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 1100, height: 760 }, trace: 'off', reducedMotion: 'reduce',
@@ -5,7 +6,7 @@ test.use({ viewport: { width: 1100, height: 760 }, trace: 'off', reducedMotion: 
 const site = baseURL => process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`;
 
 test('boundary edit SVG fallback shares the edited GPU stroke policy with outlines disabled', async ({ page, baseURL }) => {
-  await page.goto(new URL('assets/js/build-meta.js', site(baseURL)).href);
+  await gotoEditor(page, new URL('assets/js/build-meta.js', site(baseURL)).href);
   await page.addScriptTag({ url: new URL('assets/js/vendor/d3.min.js', site(baseURL)).href });
   await page.addStyleTag({ url: new URL('assets/css/features/map-rendering.css', site(baseURL)).href });
   const proof = await page.evaluate(async root => {
@@ -47,7 +48,7 @@ test('boundary edit SVG fallback shares the edited GPU stroke policy with outlin
 });
 
 test('shared stroke policy keeps actual CSS pixel width equal at DPR 1 and 2', async ({ page, baseURL }) => {
-  await page.goto(new URL('assets/js/build-meta.js', site(baseURL)).href);
+  await gotoEditor(page, new URL('assets/js/build-meta.js', site(baseURL)).href);
   const widths = await page.evaluate(async root => {
     const { createMapVisualFrame } = await import(new URL('assets/js/modules/map-visual-frame.js', root).href);
     const { createRenderDevice } = await import(new URL('assets/js/modules/render-device.js', root).href);
@@ -74,7 +75,7 @@ test('shared stroke policy keeps actual CSS pixel width equal at DPR 1 and 2', a
 });
 
 test('multiply strokes preserve opacity at centers and antialiased edges', async ({ page, baseURL }) => {
-  await page.goto(new URL('assets/js/build-meta.js', site(baseURL)).href);
+  await gotoEditor(page, new URL('assets/js/build-meta.js', site(baseURL)).href);
   const result = await page.evaluate(async root => {
     const { createRenderDevice } = await import(new URL('assets/js/modules/render-device.js', root).href);
     const { createGpuStrokeRenderer } = await import(new URL('assets/js/modules/gpu-stroke-renderer.js', root).href);
@@ -153,7 +154,7 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
       return post.call(this, message, ...args);
     };
   });
-  await page.goto(new URL('?renderer=canvas&debug=1', site(baseURL)).href);
+  await gotoEditor(page, new URL('?renderer=canvas&debug=1', site(baseURL)).href);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   try {
     await expect.poll(() => page.evaluate(() => window.__graticulePackets.length), { timeout: 30_000 }).toBeGreaterThan(0);
@@ -280,7 +281,7 @@ test('main-thread Canvas draws the graticule when the Canvas Worker is unavailab
       }
     };
   });
-  await page.goto(new URL('?renderer=canvas&debug=1', site(baseURL)).href);
+  await gotoEditor(page, new URL('?renderer=canvas&debug=1', site(baseURL)).href);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer)).toBe('canvas2d');
   await expect.poll(() => page.evaluate(() => window.__gridChangedPixels), { timeout: 30_000 }).toBeGreaterThan(100);
@@ -318,7 +319,7 @@ test(`${failure} switches the real app to Canvas`, async ({ page, baseURL }) => 
     }
   }, failure);
   const errors = []; page.on('pageerror', error => errors.push(error.message));
-  await page.goto(new URL(`?renderer=${failure === 'webgl1-no-instancing' ? 'webgl1' : 'webgl2'}&debug=1`, site(baseURL)).href);
+  await gotoEditor(page, new URL(`?renderer=${failure === 'webgl1-no-instancing' ? 'webgl1' : 'webgl2'}&debug=1`, site(baseURL)).href);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer), { timeout: 45_000 }).toMatch(/^canvas/);
   expect(await page.evaluate(() => window.__strokeInitFailures)).toBeGreaterThan(0);

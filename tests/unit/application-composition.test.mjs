@@ -1,19 +1,21 @@
+import {applicationOwnerDefinitions} from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createBuiltinSession } from '../../assets/js/modules/app-builtin-session.js';
+import { createBuiltinSession } from '../../assets/js/modules/builtin-session.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 const root = new URL('../../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
 const composition = read('assets/js/modules/app-composition.js');
-const moduleNames = [...composition.matchAll(/\.\/(app-[\w-]+\.js)\?v=/g)].map(match => match[1]);
+const definitions=applicationOwnerDefinitions();
+const moduleNames=[...composition.matchAll(/\.\/([\w-]+\.js)\?v=/g)].map(match=>match[1]);
 
 test('entry stays below 400 nonempty lines and owns only versioned composition/startup', () => {
   const source = read('assets/js/app.js');
   assert.ok(source.split(/\r?\n/).filter(line => line.trim()).length <= 400);
   assert.doesNotMatch(source, /\bfunction\b|=>|document\.|addEventListener\(|new (?:Map|Set|Worker)/);
-  assert.match(source, /await composeApplication\(\{ revision, platform \}\)/);
+  assert.match(source, /await composeApplication\(\{ productMode: 'editor', revision, platform \}\)/);
   assert.match(source, /void application\.start\(\)/);
   assert.match(composition, /encodeURIComponent\(revision\)/);
   assert.equal(new Set(moduleNames).size, moduleNames.length);
@@ -24,11 +26,9 @@ test('all owners construct without DOM access, connect once, and expose every re
   const handles = { runtime: {} };
   const portsByOwner = new Map();
   const runtimeSource = read('assets/js/modules/app-runtime-dependencies.js');
-  for (const name of moduleNames.filter(name => !/runtime-dependencies|capability-ports|connect-/.test(name))) {
+  for (const {file:name,factory:factoryName,owner:handleName} of definitions) {
     const module = await import(new URL(`assets/js/modules/${name}`, root));
-    const factoryName = Object.keys(module).find(key => key.startsWith('create'));
     assert.ok(factoryName, name);
-    const handleName = factoryName[6].toLowerCase() + factoryName.slice(7);
     const owner = module[factoryName]();
     owners.set(handleName, owner);
     const handle = Object.create(owner);

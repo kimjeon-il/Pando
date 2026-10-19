@@ -331,6 +331,17 @@ test('all four operations use setup, selection, review and preserve a selection 
     assert.equal(await h.workflow.back(), true);
     assert.equal(current.stage, 'selection');
     assert.equal(current.activePhase, null);
+    assert.equal(current.previewReadyKey, null);
+    assert.equal(h.state.geometryPreview.session, null);
+    const parts = structuredClone(current.parts);
+    const previewCount = h.calls.preview.length;
+    assert.equal(h.workflow.presentation().primaryDisabled, false);
+    assert.equal(await h.workflow.advance(), true);
+    await settle(t);
+    assert.equal(current.stage, 'review');
+    assert.equal(h.calls.preview.length, previewCount + 1);
+    assert.deepEqual(current.parts, parts);
+    await h.workflow.back();
     assert.equal(await h.workflow.back(), true);
     assert.equal(current.stage, 'setup');
     assert.equal(await h.workflow.advance(), true);

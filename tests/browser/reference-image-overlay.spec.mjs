@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
@@ -7,7 +8,7 @@ const PNG_1X1 = Buffer.from(
 );
 
 test('duplicate raw records survive whole saves and independent completed edits need no shutdown rewrite', async ({ page }) => {
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
   await page.evaluate(async png => {
     const store = await import('/assets/js/modules/reference-image-store.js');
     const blob = new Blob([Uint8Array.from(atob(png), char => char.charCodeAt(0))], { type: 'image/png' });
@@ -79,7 +80,7 @@ test('unchanged image startup and shutdown never rewrite the collection', async 
 });
 
 test('undecodable image originals survive full saves, deletion, undo and a pending shutdown edit', async ({ page }) => {
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
       const request = indexedDB.open('pandolab-reference-images', 2);
@@ -122,7 +123,7 @@ async function openApp(page) {
   });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#referenceImageBtn')).toBeVisible();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -217,21 +218,295 @@ async function addImage(page, name) {
 
 test('reference image toolbar button is present before enhanced startup', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('.map-command-toolbar #referenceImageBtn')).toBeVisible();
   await expect(page.locator('#referenceImageBtn use')).toHaveAttribute('href', '#icon-reference-image');
 });
 
-test('reference image panel opens above the desktop command toolbar', async ({ page }) => {
+test('reference image surface docks beside the desktop map, resizes and collapses without covering it', async ({ page }) => {
   const errors = await openApp(page);
+  const originalWidth = (await page.locator('#map').boundingBox()).width;
   await page.locator('#referenceImageBtn').click();
-  await expect(page.locator('#referenceImageSurface')).toBeVisible();
-  const bounds = await page.evaluate(() => {
-    const panel = document.querySelector('#referenceImageSurface').getBoundingClientRect();
-    const toolbar = document.querySelector('.map-command-toolbar').getBoundingClientRect();
-    return { panelBottom: panel.bottom, toolbarTop: toolbar.top };
+  const panel = page.locator('#referenceImageSurface');
+  await expect(panel).toBeVisible();
+  const bounds = async () => page.evaluate(() => {
+    const box = selector => {
+      const rect = document.querySelector(selector).getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width, height: rect.height };
+    };
+    return { workspace: box('.workspace'), map: box('#map'), panel: box('#referenceImageSurface') };
   });
-  expect(bounds.panelBottom).toBeLessThan(bounds.toolbarTop);
+  const docked = await bounds();
+  expect(docked.map.width).toBeLessThan(originalWidth - 300);
+  expect(docked.map.right).toBeCloseTo(docked.panel.left, 0);
+  expect(docked.panel.right).toBeCloseTo(docked.workspace.right, 0);
+  expect(docked.panel.width).toBeCloseTo(340, 0);
+
+  const toggle = page.locator('.reference-image-collapse-button');
+  await expect(toggle).toBeVisible();
+  await page.locator('.reference-image-panel-header strong').waitFor({ state: 'visible' });
+  await toggle.click();
+  await expect(panel).toHaveClass(/reference-image-collapsed/);
+  const folded = await bounds();
+  expect(folded.map.right).toBeCloseTo(folded.panel.left, 0);
+  expect(folded.panel.width).toBeCloseTo(64, 0);
+  expect(folded.map.width).toBeGreaterThan(docked.map.width + 200);
+  await toggle.click();
+  await expect(panel).not.toHaveClass(/reference-image-collapsed/);
+
+  const start = await bounds();
+  const handle = page.locator('.reference-image-resize-handle');
+  await expect(handle).toBeVisible();
+  await page.mouse.move(start.panel.left + 4, 160);
+  await page.mouse.down();
+  await page.mouse.move(start.panel.left - 56, 160, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(async () => (await bounds()).panel.width).toBeGreaterThan(start.panel.width + 40);
+  const resized = await bounds();
+  expect(resized.map.right).toBeCloseTo(resized.panel.left, 0);
+
+  await page.locator('.reference-image-panel-header [data-ref-action="close"]').click();
+  await expect(panel).toBeHidden();
+  await expect.poll(async () => (await page.locator('#map').boundingBox()).width).toBeCloseTo(originalWidth, 0);
+  expect(errors).toEqual([]);
+});
+
+test('reference image bottom sheet collapses without closing on mobile', async ({ page }) => {
+  const errors = await openApp(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  const originalWidth = (await page.locator('#map').boundingBox()).width;
+  await page.locator('#referenceImageBtn').click();
+  const panel = page.locator('#referenceImageSurface');
+  await expect(panel).toBeVisible();
+  await expect(panel).toHaveAttribute('data-sheet-snap', '1');
+  await expect(panel.locator('.reference-image-panel-header')).toBeVisible();
+  const toggle = panel.locator('.reference-image-collapse-button');
+  await toggle.click();
+  await expect(panel).toHaveClass(/reference-image-collapsed/);
+  await expect(panel).toHaveAttribute('data-sheet-snap', '0');
+  await expect(panel).toBeVisible();
+  await toggle.click();
+  await expect(panel).not.toHaveClass(/reference-image-collapsed/);
+  await expect(panel).toHaveAttribute('data-sheet-snap', '1');
+  expect((await page.locator('#map').boundingBox()).width).toBeCloseTo(originalWidth, 0);
+
+  // A calibration gesture must survive compacting and re-expanding the sheet.
+  await addImage(page, 'mobile-calibration.png');
+  await panel.locator('[data-ref-tab="match"]').click();
+  await panel.locator('[data-ref-action="gcp"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+  const guidance = panel.locator('.reference-image-editing-summary > span');
+  await expect(guidance).toContainText('이미지에서');
+  const first = await referenceScreenPointForUv(page, 'mobile-calibration.png', [0.5, 0.5]);
+  await page.mouse.click(first.x, first.y);
+  await expect(guidance).toContainText('실제 지도 위치');
+  await toggle.click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+  await toggle.click();
+  await expect(guidance).toContainText('실제 지도 위치');
+  expect(errors).toEqual([]);
+});
+
+test('reference image list controls and task tabs preserve selection and stored appearance', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors = await openApp(page);
+  await clearReferenceStore(page);
+  await page.reload();
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await expect(page.locator('#referenceImageBtn')).toBeVisible();
+  await page.locator('#referenceImageBtn').click();
+  await addImage(page, 'first.png');
+  await addImage(page, 'second.png');
+  await expect(page.locator('.reference-image-list-row')).toHaveCount(2);
+
+  const first = page.locator('.reference-image-list-item').filter({ hasText: 'first.png' });
+  await first.locator('[data-ref-list-action="visible"]').click();
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === 'first.png')?.visible,
+  )).toBe(false);
+  await expect(first.locator('.reference-image-list-row .reference-image-visibility use')).toHaveAttribute('href', '#icon-eye-off');
+
+  await page.locator('[data-ref-tab="match"]').click();
+  await page.locator('[data-ref-action="gcp"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+  await first.locator('[data-ref-list-action="locked"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === 'first.png')?.locked,
+  )).toBe(true);
+  await expect(first.locator('.reference-image-list-row small')).toContainText('잠김');
+  await first.locator('[data-ref-list-action="locked"]').click();
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === 'first.png')?.locked,
+  )).toBe(false);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#map')).not.toHaveClass(/is-reference-gcp-mode/);
+
+  await first.locator('[data-ref-list-action="forward"]').click();
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__.list().map(item => item.name),
+  )).toEqual(['second.png', 'first.png']);
+  await first.locator('.reference-image-list-row').click();
+  await expect(page.locator('[data-ref-field="name"]')).toHaveValue('first.png');
+
+  await page.locator('[data-ref-tab="match"]').click();
+  await expect(page.locator('[data-ref-tab="match"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-ref-section="placement"]')).toBeHidden();
+  await expect(page.locator('[data-ref-action="gcp"]')).toBeVisible();
+  await expect(page.locator('[data-ref-field="opacity"]')).toBeVisible();
+
+  await page.locator('[data-ref-tab="match"]').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('[data-ref-tab="display"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-ref-section="match"]')).toBeHidden();
+  await expect(page.locator('[data-ref-field="blend"]')).toBeVisible();
+  await page.locator('[data-ref-field="blend"]').selectOption('multiply');
+  await page.locator('[data-ref-field="opacity"]').evaluate(input => {
+    input.value = '0.37';
+    input.dispatchEvent(new window.Event('input', { bubbles: true }));
+    input.dispatchEvent(new window.Event('change', { bubbles: true }));
+  });
+  await expect.poll(() => page.evaluate(() => {
+    const item = window.__PANDOLAB_REFERENCE_IMAGES__.list().find(record => record.name === 'first.png');
+    return { blend: item?.blendMode, opacity: item?.opacity };
+  })).toEqual({ blend: 'multiply', opacity: 0.37 });
+
+  await expect.poll(async () => page.evaluate(async () => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const item = (await store.listStoredReferenceImages()).find(record => record.name === 'first.png');
+    return { blend: item?.blendMode, opacity: item?.opacity, visible: item?.visible, locked: item?.locked };
+  })).toEqual({ blend: 'multiply', opacity: 0.37, visible: false, locked: false });
+  await page.reload();
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__?.list().find(item => item.name === 'first.png')?.opacity,
+  )).toBe(0.37);
+  expect(errors).toEqual([]);
+});
+
+test('explicit map navigation, Space and overlapping images keep each input owner separate', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page);
+  await clearReferenceStore(page);
+  await page.reload();
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.locator('#referenceImageBtn').click();
+  await addImage(page, 'underlay.png');
+  await addImage(page, 'overlay.png');
+  await page.locator('.reference-image-list-row').filter({ hasText: 'underlay.png' }).click();
+  await page.locator('[data-ref-tab="placement"]').click();
+  await page.locator('[data-ref-action="placement"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-placement-mode/);
+  const before = await readReferenceStore(page);
+  const firstId = before.find(item => item.name === 'underlay.png').id;
+  const secondId = before.find(item => item.name === 'overlay.png').id;
+  const firstMapQuad = before.find(item => item.id === firstId).mapQuad;
+  const upperMapQuad = before.find(item => item.id === secondId).mapQuad;
+  const center = (await referenceScreenGeometry(page, 'underlay.png')).center;
+  await page.mouse.move(center.x, center.y);
+  await expect(page.locator('#map')).toHaveAttribute('data-reference-pointer', 'move');
+
+  const mapMode = page.locator('.reference-image-selected-card [data-ref-action="navigation-toggle"]');
+  await mapMode.click();
+  await expect(mapMode).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#map')).toHaveClass(/is-reference-map-pan-mode/);
+  await expect(page.locator('[data-ref-action="placement"]')).toHaveAttribute('aria-pressed', 'true');
+  const cameraBefore = await page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEW_STATE__));
+  await page.mouse.move(center.x, center.y);
+  await page.mouse.down();
+  await page.mouse.move(center.x + 50, center.y + 20, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEW_STATE__))).not.toBe(cameraBefore);
+  expect((await readReferenceStore(page)).find(item => item.id === firstId).mapQuad).toEqual(firstMapQuad);
+  expect((await readReferenceStore(page)).find(item => item.id === secondId).mapQuad).toEqual(upperMapQuad);
+
+  await mapMode.click();
+  await expect(page.locator('#map')).not.toHaveClass(/is-reference-map-pan-mode/);
+  await expect(page.locator('#map')).toHaveClass(/is-reference-placement-mode/);
+  const imageCenter = (await referenceScreenGeometry(page, 'underlay.png')).center;
+  await page.mouse.move(imageCenter.x, imageCenter.y);
+  await page.mouse.down();
+  await page.mouse.move(imageCenter.x + 34, imageCenter.y + 18, { steps: 4 });
+  await page.mouse.up();
+  await expect.poll(async () => {
+    const current = (await readReferenceStore(page)).find(item => item.id === firstId)?.mapQuad;
+    return JSON.stringify(current) !== JSON.stringify(firstMapQuad);
+  }).toBe(true);
+  expect((await readReferenceStore(page)).find(item => item.id === secondId).mapQuad).toEqual(upperMapQuad);
+  const editedQuad = (await readReferenceStore(page)).find(item => item.id === firstId).mapQuad;
+
+  await page.locator('#map').focus();
+  await page.keyboard.down('Space');
+  await expect(page.locator('#map')).toHaveClass(/is-reference-space-pan/);
+  const spaceCenter = (await referenceScreenGeometry(page, 'underlay.png')).center;
+  const viewBeforeSpace = await page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEW_STATE__));
+  await page.mouse.move(spaceCenter.x, spaceCenter.y);
+  await page.mouse.down();
+  await page.mouse.move(spaceCenter.x - 45, spaceCenter.y + 18, { steps: 5 });
+  await page.mouse.up();
+  await page.keyboard.up('Space');
+  await expect(page.locator('#map')).not.toHaveClass(/is-reference-space-pan/);
+  await expect.poll(() => page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEW_STATE__))).not.toBe(viewBeforeSpace);
+  expect((await readReferenceStore(page)).find(item => item.id === firstId).mapQuad).toEqual(editedQuad);
+  expect((await readReferenceStore(page)).find(item => item.id === secondId).mapQuad).toEqual(upperMapQuad);
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
+  await expect.poll(async () => (await readReferenceStore(page)).find(item => item.id === firstId).mapQuad).toEqual(firstMapQuad);
+  expect(errors).toEqual([]);
+});
+
+test('mobile navigation button preserves GCP phase and two-finger pinch cancels an image drag', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page);
+  await clearReferenceStore(page);
+  await page.reload();
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  await page.locator('#referenceImageBtn').click();
+  await addImage(page, 'touch-input.png');
+  await page.locator('[data-ref-tab="match"]').click();
+  await page.locator('[data-ref-action="gcp"]').click();
+  const summaryMode = page.locator('.reference-image-editing-summary [data-ref-action="navigation-toggle"]');
+  await expect(summaryMode).toBeVisible();
+  const first = await referenceScreenPointForUv(page, 'touch-input.png', [0.5, 0.5]);
+  await page.mouse.click(first.x, first.y);
+  await expect(page.locator('.reference-image-editing-summary > span')).toContainText('실제 지도 위치');
+  await summaryMode.click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+  await expect(page.locator('#map')).toHaveClass(/is-reference-map-pan-mode/);
+  await summaryMode.click();
+  await expect(page.locator('#map')).not.toHaveClass(/is-reference-map-pan-mode/);
+  await expect(page.locator('.reference-image-editing-summary > span')).toContainText('실제 지도 위치');
+
+  // Finish the temporary point workflow, then exercise the map's pointer
+  // controller with two synthetic touch pointers on the selected image.
+  await page.keyboard.press('Escape');
+  await page.locator('[data-ref-tab="placement"]').click();
+  await page.locator('[data-ref-action="placement"]').click();
+  const before = (await readReferenceStore(page))[0].mapQuad;
+  const gestureResult = await page.evaluate(async () => {
+    const map = document.getElementById('map');
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const { referenceImagePlacementPointAtUv } = await import('/assets/js/modules/reference-image-transform.js');
+    const record = (await store.listStoredReferenceImages())[0];
+    const center = referenceImagePlacementPointAtUv(record, [0.5, 0.5], window.__PANDOLAB_MAP_HOST__);
+    const rect = map.getBoundingClientRect();
+    const touch = (type, id, x, y) => map.dispatchEvent(new window.PointerEvent(type, {
+      bubbles: true, cancelable: true, pointerId: id, pointerType: 'touch', button: 0,
+      clientX: rect.left + x, clientY: rect.top + y,
+    }));
+    const beforeZoom = window.__PANDOLAB_MAP_HOST__.getViewState?.();
+    touch('pointerdown', 701, center[0], center[1]);
+    touch('pointermove', 701, center[0] + 18, center[1] + 10);
+    touch('pointerdown', 702, center[0] + 35, center[1] + 2);
+    touch('pointermove', 702, center[0] + 60, center[1] + 14);
+    touch('pointerup', 702, center[0] + 60, center[1] + 14);
+    touch('pointerup', 701, center[0] + 18, center[1] + 10);
+    return { beforeZoom, afterZoom: window.__PANDOLAB_MAP_HOST__.getViewState?.() };
+  });
+  expect(gestureResult.afterZoom).not.toEqual(gestureResult.beforeZoom);
+  expect((await readReferenceStore(page))[0].mapQuad).toEqual(before);
   expect(errors).toEqual([]);
 });
 
@@ -310,6 +585,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   const secondImagePoint = await referenceScreenPointForUv(page, '<Base "reference">', [0.7, 0.65]);
   const baseCenterX = baseGeometry.center.x;
   const baseCenterY = baseGeometry.center.y;
+  await page.locator('[data-ref-tab="match"]').click();
   await page.locator('[data-ref-action="gcp"]').click();
   const selectedBeforeGcp = await page.locator('#propertyTitle').textContent();
   await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
@@ -344,7 +620,13 @@ test('reference images support placement, ordering, georeferencing and persisten
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).not.toEqual(pointBeforeDirectEdit.coordinate);
   await expect(page.locator('.reference-image-editing-summary')).toBeHidden();
   await expect(page.locator('[data-ref-action="gcp-edit"]')).toHaveAttribute('aria-pressed', 'true');
-  await page.locator('[data-ref-action="gcp-edit"]').click();
+  const directEditButton = page.locator('[data-ref-action="gcp-edit"]');
+  await directEditButton.scrollIntoViewIfNeeded();
+  await expect.poll(() => directEditButton.evaluate(button => {
+    const rect = button.getBoundingClientRect();
+    return button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+  }), { message: 'The active point-edit control remains clickable in the task area.' }).toBe(true);
+  await directEditButton.click();
   await expect(page.locator('.reference-image-toolbar [data-ref-action="undo"]')).toBeVisible();
   await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).toEqual(pointBeforeDirectEdit.coordinate);

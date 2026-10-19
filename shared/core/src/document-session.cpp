@@ -181,6 +181,7 @@ std::string DocumentSession::exportSnapshot(const projectcodec::WebStorageContex
 DocumentSessionState DocumentSession::projectState() const {
     requireLoaded();DocumentSessionState state;
     state.epoch=epoch_;state.stateRevision=stateRevision_;state.revision=project_.revision();state.checkpoint=project_.historyCheckpoint();
+    state.undoCommandId=project_.historyCommandId(false);state.redoCommandId=project_.historyCommandId(true);
     state.dirty=project_.dirty();state.canUndo=project_.canUndo();state.canRedo=project_.canRedo();state.timelineCursor=project_.timelineCursor();
     state.presentationRevision=project_.presentationRevision();state.presentationCheckpoint=project_.presentationCheckpoint();
     state.documentDirty=project_.documentDirty();state.presentationDirty=project_.presentationDirty();state.timelineEditsEnabled=project_.timelineEditsEnabled();state.dirtyTerritorialIds=project_.document().dirtyTerritorialIds;state.storageBaselineId=storageBaselineId_;return state;
