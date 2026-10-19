@@ -100,6 +100,7 @@ public:
     bool redo();
     ProjectSnapshot historySnapshot(bool forward,HistoryRestorePolicy policy=HistoryRestorePolicy::NativeCountryOverrides) const;
     bool travelHistory(bool forward,const ProjectSnapshot& prepared);
+    std::string historyCommandId(bool forward) const;
     bool canUndo() const noexcept { return cursor_ > 0; }
     bool canRedo() const noexcept { return cursor_ < commands_->size(); }
     ProjectReplacementState captureReplacement() const;

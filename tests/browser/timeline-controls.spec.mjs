@@ -1,8 +1,9 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { shiftTimelineMonth, timelineMonthLabel } from '../../assets/js/modules/timeline-controls.js';
 
 async function openApp(page) {
-  await page.goto('/?renderer=canvas');
+  await gotoEditor(page, '/?renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
 }
 

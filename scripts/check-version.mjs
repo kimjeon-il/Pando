@@ -11,7 +11,10 @@ const expect = (condition, message) => { if (!condition) failures.push(message);
 
 const packageJson = JSON.parse(read('package.json'));
 const appVersion = String(packageJson.version || '').trim();
-const index = read('index.html');
+const productEntries = [
+  { path: 'index.html', mode: 'viewer', entry: 'assets/js/viewer.js' },
+  { path: 'apps/web-shell/editor.html', mode: 'editor', entry: 'assets/js/bootstrap.js' },
+];
 const buildMetaSource = read('assets/js/build-meta.js');
 const metaMatch = buildMetaSource.match(/PANDOLAB_BUILD_META\s*=\s*Object\.freeze\((\{[\s\S]*?\})\);/);
 let buildMeta = null;
@@ -22,11 +25,14 @@ expect(buildMeta && buildMeta.appVersion === appVersion, 'build-meta.js의 appVe
 expect(buildMeta && buildMeta.buildId === buildMeta.assetRevision, 'buildId와 assetRevision은 동일한 build ID여야 합니다.');
 expect(buildMeta && /^[0-9]+\.[0-9]+\.[0-9]+-build-[A-Za-z0-9._-]+$/.test(buildMeta.assetRevision), 'assetRevision 형식이 올바르지 않습니다.');
 expect(buildMeta && /^data-[a-f0-9]{32}$/.test(buildMeta.dataRevision || ''), 'dataRevision 형식이 올바르지 않습니다.');
-expect(index.includes(`data-app-version="${appVersion}"`), 'index.html의 data-app-version이 package.json과 다릅니다.');
-expect(index.includes(`assets/js/build-meta.js?v=${buildMeta?.assetRevision || ''}`), 'index.html이 현재 build-meta revision을 사용하지 않습니다.');
+for (const product of productEntries) {
+const index = read(product.path);
+if (product.mode === 'editor') expect(index.includes(`data-app-version="${appVersion}"`), `${product.path}의 data-app-version이 package.json과 다릅니다.`);
+expect(index.includes(`${product.entry}?v=${buildMeta?.assetRevision || ''}`), `${product.path}이 현재 제품 진입점을 사용하지 않습니다.`);
+expect(index.includes(`assets/js/build-meta.js?v=${buildMeta?.assetRevision || ''}`), `${product.path}이 현재 build-meta revision을 사용하지 않습니다.`);
 
 const indexRevisions = [...index.matchAll(/\?v=([^"&]+)/g)].map(match => match[1]);
-for (const revision of indexRevisions) expect(revision === buildMeta?.assetRevision, `index.html에 다른 asset revision이 있습니다: ${revision}`);
+for (const revision of indexRevisions) expect(revision === buildMeta?.assetRevision, `${product.path}에 다른 asset revision이 있습니다: ${revision}`);
 
 // Transitive browser imports must use the same deployment as the entry module.
 const moduleImportMap = index.match(/<script\b[^>]*id="pandolab-module-import-map"[^>]*>([\s\S]*?)<\/script>/);
@@ -34,6 +40,8 @@ try {
   const imports = JSON.parse(moduleImportMap?.[1] || 'null')?.imports;
   expect(imports && Object.keys(imports).length > 0, '브라우저 모듈 import map이 없습니다.');
   for (const [specifier, target] of Object.entries(imports || {})) {
+    if (product.mode === 'viewer') expect(!/^\.\/assets\/js\/(?:app\.js|bootstrap\.js|modules\/app-|workers\/core-session-worker\.js)/.test(specifier),
+      `뷰어 import map에 편집기 모듈이 있습니다: ${specifier}`);
     const source = new URL(specifier, 'https://build.invalid/');
     const destination = new URL(target, 'https://build.invalid/');
     expect(specifier.startsWith('./assets/js/') && specifier.endsWith('.js')
@@ -44,6 +52,7 @@ try {
   }
 } catch (error) {
   failures.push(`브라우저 모듈 import map 검증에 실패했습니다: ${error.message}`);
+}
 }
 
 // Dataset identity is content-addressed and independent from package.json.version.
@@ -88,6 +97,8 @@ if (existsSync(resolve(projectRoot, preparedPath))) {
 }
 
 const productionFiles = [
+  'assets/js/viewer.js',
+  'assets/js/workers/core-viewer-session-worker.js',
   'assets/js/bootstrap.js',
   'assets/js/app.js',
   'assets/js/gis-io.js',

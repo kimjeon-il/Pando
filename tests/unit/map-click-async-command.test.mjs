@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
+import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 
 function setup(tool) {

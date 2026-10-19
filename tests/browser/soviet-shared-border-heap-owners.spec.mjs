@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 /* global boundaryState: writable, latestMessage: writable, queued: readonly, draining: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -116,7 +117,7 @@ test('isolated modern shared-border JS retaining roots in both release orders', 
       try {
         const page = await context.newPage();
         page.on('pageerror', err => record.pageErrors.push(err.message));
-        await page.goto('/?perf=1&renderer=webgl2');
+        await gotoEditor(page, '/?perf=1&renderer=webgl2');
         await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
         await expect.poll(() => page.evaluate(() => {
           const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
@@ -234,7 +235,7 @@ test('isolated derived geometry, per-feature spatial index and contact retention
       try {
         const page = await context.newPage();
         page.on('pageerror', error => record.errors.push(error.message));
-        await page.goto('/?perf=1&renderer=webgl2');
+        await gotoEditor(page, '/?perf=1&renderer=webgl2');
         await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
         await expect.poll(() => page.evaluate(() => {
           const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;

@@ -12,13 +12,29 @@ export function createTerritorialEntityStore({ documentModel,commandOwner,onEnti
   for (const method of ['state','subscribeTransitions','resolveWorld','setTimelineCursor'])
     if (typeof commandOwner?.[method]!=='function') throw new TypeError(`The same C++ document owner is required: ${method}.`);
   let previous=documentModel.territorialViews();
-  const unsubscribe=commandOwner.subscribeTransitions(() => {
+  let previousWorld=documentModel.world();
+  const unsubscribe=commandOwner.subscribeTransitions((_result,operation) => {
+    // Geometry IDs and versions are scoped to the accepted document archive.
+    const documentReplaced=['core.document-load','core.document-load-baseline','core.document-initialize','core.document-replacement-rollback'].includes(operation);
     const next=documentModel.territorialViews();
+    const nextWorld=documentModel.world();
     const before=new Map(previous.map(row => [row.id,row])),after=new Map(next.map(row => [row.id,row]));
     const changedIds=new Set([...before.keys(),...after.keys()].filter(id => before.get(id)!==after.get(id)));
     const prior=previous;
     previous=next;
-    if (changedIds.size) onEntitiesReplaced(next,{ changedIds,previous: prior });
+    const beforeRefs=new Map((previousWorld?.entities || []).map(row=>[row.id,row.geometryRef]));
+    const afterRefs=new Map((nextWorld?.entities || []).map(row=>[row.id,row.geometryRef]));
+    previousWorld=nextWorld;
+    if (changedIds.size) {
+      const root = feature => feature?.properties.entityKind === 'general' && !feature.properties.parentId;
+      const rootGeometryChanged = [...changedIds].some(id => {
+        const beforeRow = before.get(id), afterRow = after.get(id);
+        const beforeRef=beforeRefs.get(id),afterRef=afterRefs.get(id);
+        return (root(beforeRow) || root(afterRow)) && (documentReplaced || beforeRef?.id !== afterRef?.id || beforeRef?.version !== afterRef?.version
+          || root(beforeRow) !== root(afterRow));
+      });
+      onEntitiesReplaced(next,{ changedIds,previous: prior,rootGeometryChanged });
+    }
   });
   const entity=id => documentModel.territorialViews().find(row => row.id===String(id ?? '').trim()) || null;
   async function resolveWorld(month,options) {

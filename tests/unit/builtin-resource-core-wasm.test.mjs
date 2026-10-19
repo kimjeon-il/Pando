@@ -4,7 +4,7 @@ import test from 'node:test';
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import {createPlaceRuntime} from '../../assets/js/modules/place-runtime.js';
 import {normalizePlace} from '../../assets/js/modules/place-contract.js';
-import {createPhysicalResources} from '../../assets/js/modules/app-physical-resources.js';
+import {createPhysicalResources} from '../../assets/js/modules/physical-resources.js';
 
 test('actual C++ catalogs keep independent live place and hydro identities across source admission',async t=>{
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));

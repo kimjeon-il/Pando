@@ -2,8 +2,8 @@ import { createReadPorts } from './app-capability-port-utils.js';
 
 export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
   "territorySelectionWorkflow": ["countries","countryCommitFlow","countryEditingA","countryEditingB","countryEditingC","domains","feedback","geometryOperations","interactionPresentation","projectState","riverCandidates","spatialQuery","surfaces","taskUi","territorialEditingA","territorialEditingB","territoryComponentUi","territoryComponents","territorialModel"],
-  "countryCommits": ["applicationServicesB","countryEditingA","countryValidation","cutGeometry","cutOperations","domains","draftPresentation","feedback","genericEditingA","geometryModel","geometryOperations","hydroModel","interactionPresentation","landRelations","objectDisplay","objectModelA","objectOperationsB","objectPicking","presentation","projectState","propertyEditingA","snapshots","spatialQuery","surfaces","taskUi","territorialEditingA","territorialModel","territorialServicesA","territoryComponents","territoryGeometry","territorySelectionA","toolServices","objectPresentation"],
-  "genericCommands": [
+  "countryCommits": ["platform","applicationServicesB","countryEditingA","countryValidation","cutGeometry","cutOperations","domains","draftPresentation","feedback","genericEditingA","geometryModel","geometryOperations","hydroModel","interactionPresentation","landRelations","objectDisplay","objectModelA","objectOperationsB","objectPicking","presentation","projectState","propertyEditingA","snapshots","spatialQuery","surfaces","taskUi","territorialEditingA","territorialModel","territorialServicesA","territoryComponents","territoryGeometry","territorySelectionA","toolServices","objectPresentation"],
+  "genericCommands": ["countryEditingC",
     "countryCommitFlow",
     "applicationServicesA",
     "countryEditingA",
@@ -75,6 +75,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "labelPresentation"
   ],
   "territorialDrafts": [
+    "taskPresentation",
     "countryEditingB",
     "applicationServicesB",
     "countryEditingA",
@@ -185,7 +186,7 @@ const PORT_SPECS = Object.freeze({
   countryValidation: Object.freeze([["refreshCountryCentroids","countryValidation","refreshCountryCentroids"],["snapGeometryToGrid","countryValidation","snapGeometryToGrid"]]),
   cutOperations: Object.freeze([["assessCutDraft","cutGeometry","assessCutDraft"],["buildCutSplitCandidates","cutGeometry","buildCutSplitCandidates"]]),
   labelServices: Object.freeze([["normalizeLabelSettings","runtime","normalizeLabelSettings"],["toolLabel","runtime","toolLabel"]]),
-  objectCatalogView: Object.freeze([["listObjectCatalogItems","objectCatalog","listObjectCatalogItems"],["normalizeLayerFolderState","objectCatalog","normalizeLayerFolderState"],["normalizeLayerItemState","objectCatalog","normalizeLayerItemState"],["presentationCatalog","objectCatalog","presentationCatalog"],["pruneLayerItemVisibility","objectCatalog","pruneLayerItemVisibility"]]),
+  objectCatalogView: Object.freeze([["listObjectSearchItems","objectCatalog","listObjectSearchItems"],["listObjectCatalogItems","objectCatalog","listObjectCatalogItems"],["normalizeLayerFolderState","objectCatalog","normalizeLayerFolderState"],["normalizeLayerItemState","objectCatalog","normalizeLayerItemState"],["presentationCatalog","objectCatalog","presentationCatalog"],["pruneLayerItemVisibility","objectCatalog","pruneLayerItemVisibility"]]),
   objectMetadata: Object.freeze([["commitTerritorialMetadata","objectMetadata","commitTerritorialMetadata"],["commitGenericFeatureMeta","objectMetadata","commitGenericFeatureMeta"],["commitHydroEdit","objectMetadata","commitHydroEdit"],["commitTerritorialRelation","objectMetadata","commitTerritorialRelation"],["territorialUnitInsideContainer","objectMetadata","territorialUnitInsideContainer"]]),
   riverCandidates: Object.freeze([["prepareRiverPartitionCandidates","riverCandidates","prepareRiverPartitionCandidates"],["resetRiverPartitionState","riverCandidates","resetRiverPartitionState"],["riverPartitionBoundsOverlap","riverCandidates","riverPartitionBoundsOverlap"],["riverPartitionFeatureKey","riverCandidates","riverPartitionFeatureKey"],["riverPartitionQueryBounds","riverCandidates","riverPartitionQueryBounds"]]),
   territoryComponentUi: Object.freeze([["selectTerritoryCandidate","territoryComponentUi","selectTerritoryCandidate"],["toggleTerritoryComponentSelection","territoryComponentUi","toggleTerritoryComponentSelection"],["updateTerritoryComponentSelectionFeedback","territoryComponentUi","updateTerritoryComponentSelectionFeedback"]]),

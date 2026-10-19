@@ -1,8 +1,9 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import {routeStaticCatalogSource} from './helpers/static-catalog-source.mjs';
 
 async function openApp(page, renderer) {
-  await page.goto(`/?debug=1&renderer=${renderer}`);
+  await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 60_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer), { timeout: 30_000 }).toBe(renderer);

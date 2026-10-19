@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 1100, height: 760 }, deviceScaleFactor: 1, trace: 'off',
@@ -136,7 +137,7 @@ for (const source of ['dem', 'raster']) {
       }), 'terrain itself must draw grayscale/color pixels before country paint').toBe(true);
     };
     try {
-      await page.goto(`/?renderer=webgl2&debug=1${source === 'raster' ? '&demTerrain=raster' : ''}`, { waitUntil: 'domcontentloaded' });
+      await gotoEditor(page, `/?renderer=webgl2&debug=1${source === 'raster' ? '&demTerrain=raster' : ''}`, { waitUntil: 'domcontentloaded' });
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
       await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation))
         .toBe(source === 'dem' ? 'dem-relief-v1' : 'raster-rgba-v1');
@@ -274,7 +275,7 @@ test('raster surfaces exhausted world-base loading failure through the real oper
     await route.fulfill({ status: 503, body: 'Terrain source temporarily unavailable',
       headers: { 'Access-Control-Allow-Origin': '*' } });
   });
-  await page.goto('/?renderer=webgl2&debug=1&demTerrain=raster', { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, '/?renderer=webgl2&debug=1&demTerrain=raster', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => failedBaseRequests, { timeout: 30_000 }).toBeGreaterThanOrEqual(4);
   await expect.poll(() => page.evaluate(() => window.__terrainFailureAlerts), { timeout: 30_000 }).toEqual(

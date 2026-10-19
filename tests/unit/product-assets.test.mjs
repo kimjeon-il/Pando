@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { mkdtempSync, mkdirSync, writeFileSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { collectViewerAssets } from '../../scripts/lib/product-assets.mjs';
+
+function fixture() {
+  const root = mkdtempSync(join(tmpdir(), 'pando-viewer-assets-'));
+  const files = new Map();
+  const put = (path, text = '') => {
+    files.set(path, text); mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), text);
+  };
+  put('index.html', '<link rel="stylesheet" href="assets/css/viewer.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/viewer.js"></script>');
+  put('.nojekyll'); put('assets/css/viewer.css'); put('assets/js/build-meta.js');
+  put('assets/js/viewer.js', "import './modules/read.js';");
+  put('assets/js/modules/read.js', 'export const value = 1;');
+  put('assets/js/app.js'); put('assets/js/bootstrap.js'); put('assets/js/modules/app-composition.js');
+  put('reports/a.md'); put('tools/run.mjs'); put('assets/data/world/a.bin');
+  return { root, files, put, collect: () => collectViewerAssets({ root, availablePaths: [...files.keys()] }) };
+}
+
+test('viewer closure includes static and query-versioned dynamic imports but excludes editor and repository sources', async () => {
+  const f = fixture();
+  f.put('assets/js/modules/read.js', "export { value } from './value.js'; const next = import(`./lazy.js?v=${Date.now()}`); export { next };");
+  f.put('assets/js/modules/value.js', 'export const value = 1;'); f.put('assets/js/modules/lazy.js', 'export const lazy = true;');
+  const paths = await f.collect();
+  for (const path of ['assets/js/modules/value.js', 'assets/js/modules/lazy.js', 'assets/data/world/a.bin', 'assets/css/viewer.css']) assert.ok(paths.has(path), path);
+  for (const path of ['assets/js/app.js', 'assets/js/bootstrap.js', 'assets/js/modules/app-composition.js', 'reports/a.md', 'tools/run.mjs']) assert.equal(paths.has(path), false, path);
+});
+
+test('viewer closure rejects missing, editor-only and unresolved dynamic dependencies', async () => {
+  for (const source of ["import './missing.js';", "import './app-composition.js';", 'export const load = path => import(path);',
+    'export const load = path => import(`./${path}.js`);']) {
+    const f = fixture(); f.put('assets/js/modules/read.js', source);
+    await assert.rejects(f.collect(), /missing|editor-only|dynamic/i);
+  }
+});
+
+test('runtime worker catalog includes classic Worker imports and rejects a missing worker dependency', async () => {
+  const f = fixture();
+  f.put('assets/js/viewer.js', "import './modules/core-document-client.js';");
+  f.put('assets/js/modules/core-document-client.js', 'export const viewer = true;');
+  f.put('assets/js/workers/core-viewer-session-worker.js', "import './worker-rpc-host.js';");
+  f.put('assets/js/workers/worker-rpc-host.js', 'globalThis.host = true;');
+  assert.ok((await f.collect()).has('assets/js/workers/worker-rpc-host.js'));
+  f.files.delete('assets/js/workers/worker-rpc-host.js');
+  await assert.rejects(f.collect(), /missing/i);
+});
+
+test('actual viewer graph contains render and read Workers without editor execution entries', async () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const availablePaths = readdirSync(join(root, 'assets'), { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name).slice(root.length).replaceAll('\\', '/'));
+  const paths = await collectViewerAssets({ root, availablePaths: [...availablePaths, 'index.html', '.nojekyll'] });
+  for (const name of ['core-viewer-session-worker', 'project-read-worker', 'gpu-mesh-worker', 'canvas-render-worker', 'hydro-tile-worker'])
+    assert.ok(paths.has(`assets/js/workers/${name}.js`), name);
+  for (const name of ['app.js', 'bootstrap.js', 'workers/core-session-worker.js', 'workers/gis-gpkg-worker.js'])
+    assert.equal(paths.has(`assets/js/${name}`), false, name);
+  assert.ok(paths.has('assets/js/vendor/sql/sql-wasm.wasm'));
+  assert.ok(paths.has('assets/js/workers/gpkg-read-core.js'));
+});

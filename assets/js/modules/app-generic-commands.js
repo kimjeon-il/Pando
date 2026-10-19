@@ -60,7 +60,7 @@ export function createGenericCommands() {
     }
     if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(sourceIds.map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
-    const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
+    const country = (0, dependencies.countryEditingC.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
     country.properties.metadata = captureSourceMetadata(feature);
     if(feature.properties?.color)country.properties.style={...country.properties.style,color:feature.properties.color};
     (0, dependencies.feedback.setActionStatus)('영역을 국가로 전환하는 중입니다.', 'working', 0);
@@ -217,7 +217,13 @@ export function createGenericCommands() {
     }
     const targets = new Set(dependencies.projectState.state.genericFeatureMergeTargetIds.map(String));
     if (targets.has(String(id))) targets.delete(String(id)); else targets.add(String(id));
+    const before = [...dependencies.projectState.state.genericFeatureMergeTargetIds];
     dependencies.projectState.state.genericFeatureMergeTargetIds = [...targets];
+    const after = [...dependencies.projectState.state.genericFeatureMergeTargetIds];
+    dependencies.domains.editingDomain.recordSelectionChange({
+      undo: () => { dependencies.projectState.state.genericFeatureMergeTargetIds = [...before]; },
+      redo: () => { dependencies.projectState.state.genericFeatureMergeTargetIds = [...after]; },
+    });
     dependencies.domains.renderingDomain?.invalidateGenericPatch('view-frame-app-generic-commands');
     (0, dependencies.taskUi.updateModeButtons)();
   }
@@ -233,15 +239,20 @@ export function createGenericCommands() {
     const current = () => generation === dependencies.domains.projectDomain.getGeneration() && !dependencies.projectState.state.projectReplacing;
     if (!current()) return false;
     const draftCount = (0, dependencies.countryEditingA.editingDraftCoordinates)().length;
-    if (!dependencies.domains.editingDomain.draftInputActive() || draftCount < 3) {
+    const state = dependencies.projectState.state;
+    const selection = state.territorySelectionSession;
+    const hasInput = !!dependencies.domains.editingDomain.snapshot().boundaryDraft?.historyCount || draftCount > 0 || !!state.geometryPreview.session || !!state.multiDraft?.parts?.length
+      || !!selection && (selection.parts.length > 0 || selection.selectedComponentKeys.length > 0 || selection.selectedCandidateIds.length > 0 || !!selection.currentGeometry || !!selection.combinedGeometry);
+    const hasTargets = state.mergeTargetCountryIds?.length || state.genericFeatureMergeTargetIds?.length || state.territorialUnitMergeTargetIds?.length;
+    if (!hasInput && !hasTargets) {
       await action();
       return current();
     }
     (0, dependencies.projectRestore.openConfirmModal)({
-      title: '그리기 취소',
-      message: `작성 중인 점 ${draftCount}개를 버리고 현재 그리기를 취소합니다.`,
-      confirmText: '그리기 취소',
-      cancelText: '계속 그리기',
+      title: '편집 취소',
+      message: '이번 작업의 미적용 입력을 모두 버립니다. 이미 적용한 프로젝트 변경은 유지됩니다.',
+      confirmText: '초안 버리기',
+      cancelText: '편집 계속',
       danger: true,
       onConfirm: async () => current() ? await action() : false,
     });

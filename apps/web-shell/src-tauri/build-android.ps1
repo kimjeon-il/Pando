@@ -1,6 +1,10 @@
 param()
 $ErrorActionPreference = 'Stop'
 $shellDirectory = Split-Path -Parent $PSScriptRoot
+& node (Join-Path $PSScriptRoot 'sync-android.mjs')
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+& node (Join-Path $PSScriptRoot 'sync-android.mjs') --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if (Test-Path -LiteralPath 'D:/build/toolchains/env-tauri-gnu.ps1' -PathType Leaf) {
     . 'D:/build/toolchains/env-tauri-gnu.ps1'
 }

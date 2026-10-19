@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { startChildCreation } from './helpers/ui-select.mjs';
 import { test, expect } from '@playwright/test';
 import { withPollTimingDiagnostics, installGpuStrokeDiagnostics, instrumentSelectionPassSource, instrumentStrokeRendererSource, logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
@@ -104,7 +105,7 @@ test.afterEach(async ({ page }) => {
 });
 
 test('Canvas ownership keeps overlap pixels equal to a single highest grade', async ({ page }) => {
-  await page.goto('/assets/js/workers/canvas-scene-composition-core.js');
+  await gotoEditor(page, '/assets/js/workers/canvas-scene-composition-core.js');
   const pixels = await page.evaluate(async () => {
     await import('/assets/js/workers/canvas-scene-composition-core.js');
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 80;
@@ -128,7 +129,7 @@ test('unified emphasis boots and selects a country with the configured style', a
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => localStorage.setItem('pandolab-user-preferences', JSON.stringify({ version: 2,
     appearance: { theme: 'light' }, selection: { color: '#1267ad', outlineVisible: true, fillStrength: 0 } })));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__?.hover.fillAlpha)).toBe(0);
@@ -144,7 +145,7 @@ test('unified emphasis boots and selects a country with the configured style', a
 test('adjacent countries share prepared boundaries and list hover never adds a selected hover channel', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#objectSearchBtn').click();
@@ -181,7 +182,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
       }
     };
   });
-  await page.goto(`/?debug=1&renderer=${renderer}`);
+  await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   if (renderer === 'canvas') {
     await page.locator('#mapDisplayBtn').click();
@@ -303,7 +304,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
 
 
 test('SVG temporary fills obey priority, holes and water exclusion', async ({ page }) => {
-  await page.goto('/assets/js/modules/interaction-svg-mask.js');
+  await gotoEditor(page, '/assets/js/modules/interaction-svg-mask.js');
   const result = await page.evaluate(async () => {
     const { applySvgInteractionMasks } = await import('/assets/js/modules/interaction-svg-mask.js');
     const NS = 'http://www.w3.org/2000/svg';
@@ -332,7 +333,7 @@ test('SVG temporary fills obey priority, holes and water exclusion', async ({ pa
 test('custom color, zero fill and disabled selected outlines preserve unselected hover', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('pandolab-user-preferences', JSON.stringify({ version: 2,
     appearance: { theme: 'dark' }, selection: { color: '#8f249b', outlineVisible: false, fillStrength: 0 } })));
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#objectSearchBtn').click();
@@ -352,7 +353,7 @@ test('custom color, zero fill and disabled selected outlines preserve unselected
 
 test('GPU context recovery never gives scene fills back to SVG', async ({ page }) => {
   test.setTimeout(210000);
-  await page.goto('/?debug=1&renderer=webgl2');
+  await gotoEditor(page, '/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   diagnosticStages.set(page, 'context-recovery-initial-selection');
   const selectionRequest = { id: 'DEU', accepted: null, contextLossRequested: false };
@@ -381,7 +382,7 @@ for (const renderer of ['webgl2', 'canvas']) test(`direct coastline gesture uses
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => localStorage.setItem('pandolab-user-preferences', JSON.stringify({ version: 2,
     appearance: { theme: 'light' }, selection: { color: '#1267ad', outlineVisible: false, fillStrength: 0 } })));
-  await page.goto(`/?debug=1&renderer=${renderer}`);
+  await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));

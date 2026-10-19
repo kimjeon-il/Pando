@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromiumProcessPss, createWorkerMemoryProbe, summarizeMemoryPhases } from './helpers/soviet-memory-attribution.mjs';
@@ -145,7 +146,7 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
       }
     };
   });
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => {
     const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;

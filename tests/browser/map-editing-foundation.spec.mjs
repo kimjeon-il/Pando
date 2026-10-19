@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 async function openApp(page, viewport, path = '/?demTerrain=raster') {
@@ -7,7 +8,7 @@ async function openApp(page, viewport, path = '/?demTerrain=raster') {
   page.on('console', message => {
     if (message.type() === 'error') errors.push(message.text());
   });
-  await page.goto(path);
+  await gotoEditor(page, path);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;

@@ -201,7 +201,7 @@ test('actual worker validates normalized edits and invalidates receipts after lo
   assert.deepEqual(parent.geometry, square(0, 0, 10, 10));
 });
 
-test('actual worker prepares uncovered source, indexed snaps and grouped boundaries', { timeout: 15000 }, async t => {
+test('actual worker prepares uncovered source and indexed snaps', { timeout: 15000 }, async t => {
   const rows = [
     { kind: 'country', feature: feature('RUS', square(0, 0, 10, 10)) },
     { kind: 'territorial', feature: feature('child', square(0, 0, 5, 10), { entityKind: 'general', parentId: 'RUS' }) },
@@ -211,8 +211,6 @@ test('actual worker prepares uncovered source, indexed snaps and grouped boundar
   assert.equal(area(source.result.geometry), 50);
   const snap = await client.execute('territorial-snap', { payload: { coordinate: [0, 0], margin: 0.1, activeOwnerIds: ['RUS'] } });
   assert.ok(snap.result.candidates.some(candidate => candidate.kind === 'vertex'));
-  const boundaries = await client.execute('territorial-display', { payload: { kind: 'boundaries' } });
-  assert.ok(boundaries.result.segments.length);
 });
 
 test('library batch preserves order and refuses locked donors without changing synchronized originals', { timeout: 15000 }, async t => {

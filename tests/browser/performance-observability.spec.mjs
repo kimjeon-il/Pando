@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('publishes a bounded runtime performance report after the app becomes interactive', async ({ page }, testInfo) => {
@@ -5,7 +6,7 @@ test('publishes a bounded runtime performance report after the app becomes inter
   const consoleErrors = [];
   page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto('/?debug');
+  await gotoEditor(page, '/?debug');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 60_000 });
 
   await expect.poll(() => page.evaluate(() => typeof window.__PANDOLAB_PERFORMANCE_REPORT__), {
@@ -55,7 +56,7 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   const failures = [];
   page.on('pageerror', error => failures.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer),
     { timeout: 30_000 }).toBe('webgl2');

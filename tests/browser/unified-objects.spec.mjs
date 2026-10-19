@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
@@ -78,7 +79,7 @@ test('one object flow creates a root, child and independent region; annex across
       constructor(...args) { super(...args); this.addEventListener('error', event => window.__workerErrors.push(event.message)); }
     };
   });
-  await page.goto('/?debug=1&renderer=webgl2&demTerrain=raster');
+  await gotoEditor(page, '/?debug=1&renderer=webgl2&demTerrain=raster');
   await expect.poll(async () => { expect(errors).toEqual([]); return page.locator('#app').getAttribute('data-readiness'); }, { timeout: 60000 }).toBe('enhanced');
   await page.locator('#flatBtn').evaluate(button => button.click());
   await select(page, 'DEU');

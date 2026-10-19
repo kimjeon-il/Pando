@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
@@ -8,7 +9,7 @@ test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 
 test('Russia nested edits retain parent candidates, locks and history after autosave reload', async ({ page }) => {
   test.setTimeout(150_000);
-  await page.goto('/?debug=1&renderer=webgl2');
+  await gotoEditor(page, '/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   const add = async (parentId, name, coords) => {
     await page.evaluate(parentId => window.PANDOLAB_TERRITORIAL.select(parentId), parentId);
@@ -75,7 +76,7 @@ test('Russia static library replacement reuses the confirmed batch and undoes at
       }
     };
   });
-  await page.goto('/?debug=1&renderer=webgl2');
+  await gotoEditor(page, '/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   const original = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry));
   await page.locator('#createMenuBtn').click();
@@ -98,7 +99,7 @@ test('Russia static library replacement reuses the confirmed batch and undoes at
 
 test('Russia detailed line preparation remains cancellable and keeps the original', async ({ page }) => {
   test.setTimeout(120_000);
-  await page.goto('/?debug=1&renderer=webgl2');
+  await gotoEditor(page, '/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   const original = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry));
@@ -144,7 +145,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
       new window.PerformanceObserver(list => window.__russiaEdit.tasks.push(...list.getEntries().map(entry => ({ start: entry.startTime, duration: entry.duration })))).observe({ type: 'longtask', buffered: true });
       setInterval(() => window.__russiaEdit.ticks++, 50);
     });
-    await page.goto(`/?debug=1&renderer=${renderer}`);
+    await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
     const baseline = await page.evaluate(() => {
       const country = window.PANDOLAB_TERRITORIAL.get('RUS');

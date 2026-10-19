@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { COUNTRY_DEFAULT_COLORS } from '../../assets/js/modules/country-default-colors.js';
 
@@ -11,7 +12,7 @@ test('country hover after reload leaves selection unchanged and editor color res
   page.on('pageerror', error => errors.push(error.stack || error.message));
   const url = process.env.PANDOLAB_TEST_SITE_URL
     ? new URL('?renderer=webgl2&debug=1', process.env.PANDOLAB_TEST_SITE_URL).href : '/?renderer=webgl2&debug=1';
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, url, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });

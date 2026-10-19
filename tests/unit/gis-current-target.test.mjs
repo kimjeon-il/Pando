@@ -17,7 +17,7 @@ test('unknown external layers require a type; current generic sources are explic
   assert.throws(() => window.testApi.importMappingFromUi(), /가져올 종류를 선택/);
   document.getElementById = () => ({ value: 'generic' });
   assert.equal(window.testApi.importMappingFromUi().targetType, 'generic');
-  const html = fs.readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
+  const html = fs.readFileSync(new URL('../../apps/web-shell/editor.html', import.meta.url), 'utf8');
   const select = html.match(/<select id="gisTargetType">([\s\S]*?)<\/select>/)[1];
   assert.match(select, /value="generic"/);
   assert.doesNotMatch(select, /value="(?:country|subunit|region)"/);

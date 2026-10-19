@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 
@@ -78,7 +79,7 @@ test('attribute first Soviet timeline and GPU-selection CPU cost, then test memo
   test.setTimeout(300_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => {
     const g = window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu;

@@ -29,23 +29,23 @@
 .reference-image-editing-summary > span { flex: 1; min-width: 0; }
 
 /* The reference surface is a workspace sibling of the map, never a map overlay. */
-.app-root:not([data-layout="mobile"]) .workspace.reference-image-docked {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .workspace.reference-image-docked {
   --reference-dock-active-width: min(
     var(--reference-dock-width, var(--ui-reference-panel-width)),
     calc(100% - var(--ui-reference-map-min-width))
   );
 }
 
-.app-root:not([data-layout="mobile"]) .workspace.reference-image-docked.reference-image-dock-collapsed {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .workspace.reference-image-docked.reference-image-dock-collapsed {
   --reference-dock-active-width: var(--ui-reference-panel-collapsed-width);
 }
 
-.app-root:not([data-layout="mobile"]) .workspace.reference-image-docked > .map-wrap {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .workspace.reference-image-docked > .map-wrap {
   right: var(--reference-dock-active-width);
   width: calc(100% - var(--reference-dock-active-width));
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-panel {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel {
   position: absolute;
   top: 0;
   right: 0;
@@ -59,7 +59,7 @@
   transform: none;
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-panel-header {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel-header {
   display: flex;
 }
 
@@ -82,7 +82,7 @@
   display: none;
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-panel:not(.reference-image-collapsed) > .reference-image-resize-handle {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel:not(.reference-image-collapsed) > .reference-image-resize-handle {
   position: absolute;
   z-index: 2;
   top: 0;
@@ -102,7 +102,7 @@
   display: none;
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
@@ -110,21 +110,21 @@
   gap: var(--ui-space-2);
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header > div {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header > div {
   flex: 0 0 auto;
   order: 3;
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header strong {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header strong {
   writing-mode: vertical-rl;
   white-space: nowrap;
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed .reference-image-collapse-button {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed .reference-image-collapse-button {
   order: 1;
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed [data-ref-action="close"] {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed [data-ref-action="close"] {
   order: 2;
 }
 
@@ -350,7 +350,7 @@
   pointer-events: auto;
 }
 
-.app-root[data-layout="mobile"] .reference-image-panel.reference-image-editing > .surface-body {
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-panel.reference-image-editing > .surface-body {
   display: none;
 }
 
@@ -359,16 +359,16 @@
   min-height: min(var(--ui-reference-mobile-compact-min-height), calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)));
 }
 
-.app-root[data-layout="mobile"] .reference-image-editing-summary {
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-editing-summary {
   flex-wrap: wrap;
   pointer-events: auto;
 }
 
-.app-root[data-layout="mobile"] .reference-image-editing-summary > span {
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-editing-summary > span {
   flex: 1 0 100%;
 }
 
-.app-root[data-layout="mobile"] .reference-image-editing-summary > button {
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-editing-summary > button {
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -461,11 +461,11 @@
 
 /* A workflow adds another shared card. Scroll the desktop editor as a whole
    instead of shrinking its task viewport to zero below those fixed rows. */
-.app-root:not([data-layout="mobile"]) .reference-image-editor:has(> .reference-image-workflow) {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-editor:has(> .reference-image-workflow) {
   overflow-y: auto;
 }
 
-.app-root:not([data-layout="mobile"]) .reference-image-editor:has(> .reference-image-workflow) > .reference-image-tabpanels {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-editor:has(> .reference-image-workflow) > .reference-image-tabpanels {
   flex: 0 0 auto;
   overflow: visible;
 }
@@ -503,6 +503,23 @@
   .app-root[data-layout="mobile"] .reference-image-tabpanels {
     flex: 0 0 auto;
   }
+}
+
+/* Landscape keeps the shared full-height side sheet. Its short body must scroll
+   as one surface so collection and tab rows cannot cover the active task. */
+.app-root[data-layout="phone-landscape"] .reference-image-panel:not(.reference-image-editing, .reference-image-collapsed) > .reference-image-body {
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.app-root[data-layout="phone-landscape"] .reference-image-editor,
+.app-root[data-layout="phone-landscape"] .reference-image-tabpanels {
+  overflow: visible;
+}
+
+.app-root[data-layout="phone-landscape"] .reference-image-tabpanels {
+  flex: 0 0 auto;
 }
 
 /* P4: shared workflow steps, with a compact guide above the map status bar. */
@@ -568,7 +585,7 @@
   width: 100%;
 }
 
-.app-root[data-layout="mobile"] .reference-image-editing-summary > .reference-image-calibration-actions > .ui-button {
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-editing-summary > .reference-image-calibration-actions > .ui-button {
   min-width: var(--ui-touch-height);
 }
 
@@ -580,10 +597,10 @@
 .reference-image-workflow-actions > [hidden],
 .reference-image-editing-summary > button[hidden],
 .reference-image-workflow-detail:empty,
-.app-root[data-layout="mobile"] .reference-image-workflow-guide {
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-workflow-guide {
   display: none;
 }
 
-.app-root[data-layout="mobile"] .reference-image-workflow-actions > .ui-button {
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-workflow-actions > .ui-button {
   flex: 1 1 auto;
 }

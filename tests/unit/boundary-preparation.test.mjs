@@ -26,7 +26,7 @@ test('neighbor selection and editing reuse one preparation, preserving external 
   assert.equal(neighbors.preparationId, prepared.preparationId);
   assert.equal(prepared.valid, true);
   assert.equal(prepared.handles.find(row => row.nodeKey === topologyNodeKey([2, 2])).fixed, true);
-  assert.throws(() => service.move({ preparationId: prepared.preparationId, nodeKey: topologyNodeKey([2, 2]), coordinate: [2.1, 2] }), /고정/);
+  assert.throws(() => service.move({ preparationId: prepared.preparationId, moves: [{ nodeKey: topologyNodeKey([2, 2]), coordinate: [2.1, 2] }] }), /고정/);
   assert.strictEqual((await service.prepare(request)).handles, prepared.handles);
 });
 
@@ -34,7 +34,7 @@ test('virtual shared points materialize the correct vertex and leave original ge
   const original = fixtures(), before = structuredClone(original);
   const service = createBoundaryPreparation(); await service.sync(original);
   const prepared = await service.prepare(request);
-  const changed = service.move({ preparationId: prepared.preparationId, nodeKey: topologyNodeKey([2, 1]), coordinate: [2.1, 1] });
+  const changed = service.move({ preparationId: prepared.preparationId, moves: [{ nodeKey: topologyNodeKey([2, 1]), coordinate: [2.1, 1] }] });
   assert.deepEqual(original, before);
   assert.deepEqual(changed.affectedIds.sort(), ['A', 'B']);
   for (const row of changed.features) {
@@ -72,7 +72,7 @@ test('subunit boundaries keep the parent exterior fixed and reject foreign paren
   assert.equal(result.handles.find(row => row.nodeKey === '2,1').fixed, false);
   await service.sync([parent, rows[0], { ...rows[1], properties: { ...rows[1].properties, parentId: 'other' } }]);
   await assert.rejects(service.prepare(request), /상위 단위/);
-  assert.throws(() => service.move({ preparationId: result.preparationId, nodeKey: '2,1', coordinate: [2.1, 1] }), /변경/);
+  assert.throws(() => service.move({ preparationId: result.preparationId, moves: [{ nodeKey: '2,1', coordinate: [2.1, 1] }] }), /변경/);
 });
 
 test('lock changes invalidate a prepared move', async () => {
@@ -80,7 +80,7 @@ test('lock changes invalidate a prepared move', async () => {
   const ready = await service.prepare(request);
   await service.sync(rows.map(row => row.id === 'B' ? { ...row, boundaryLocked: true } : row));
   await assert.rejects(service.prepare(request), /잠긴/);
-  assert.throws(() => service.move({ preparationId: ready.preparationId, nodeKey: '2,1', coordinate: [2.2, 1] }), /변경/);
+  assert.throws(() => service.move({ preparationId: ready.preparationId, moves: [{ nodeKey: '2,1', coordinate: [2.2, 1] }] }), /변경/);
 });
 
 test('islands, holes and original dateline-side references survive coast preparation', async () => {
@@ -93,7 +93,7 @@ test('islands, holes and original dateline-side references survive coast prepara
   assert.ok(ready.handles.some(handle => handle.polygonIndex === 1));
   assert.ok(ready.handles.some(handle => handle.ringIndex === 1));
   const before = structuredClone(row.geometry);
-  service.move({ preparationId: ready.preparationId, nodeKey: '175,0', coordinate: [174.9, 0] });
+  service.move({ preparationId: ready.preparationId, moves: [{ nodeKey: '175,0', coordinate: [174.9, 0] }] });
   assert.deepEqual(row.geometry, before);
 });
 
@@ -144,7 +144,7 @@ test('interrupted source synchronization cannot keep an obsolete preparation', a
   const ready = await service.prepare(request);
   const next = rows.map(row => row.id === 'B' ? { ...row, geometry: structuredClone(row.geometry) } : row);
   await assert.rejects(service.sync(next, async () => { throw new Error('cancelled'); }), /cancelled/);
-  assert.throws(() => service.move({ preparationId: ready.preparationId, nodeKey: '2,1', coordinate: [2.1, 1] }), /변경/);
+  assert.throws(() => service.move({ preparationId: ready.preparationId, moves: [{ nodeKey: '2,1', coordinate: [2.1, 1] }] }), /변경/);
   await service.sync(next);
   assert.notEqual((await service.prepare(request)).preparationId, ready.preparationId);
 });
@@ -155,7 +155,7 @@ test('fresh worker preparation namespaces cannot accept a previous worker move',
   await first.sync(fixtures()); await replacement.sync(fixtures());
   const old = await first.prepare(request), ready = await replacement.prepare(request);
   assert.notEqual(old.preparationId, ready.preparationId);
-  assert.throws(() => replacement.move({ preparationId: old.preparationId, nodeKey: '2,1', coordinate: [2.1, 1] }), /변경/);
+  assert.throws(() => replacement.move({ preparationId: old.preparationId, moves: [{ nodeKey: '2,1', coordinate: [2.1, 1] }] }), /변경/);
 });
 
 
@@ -220,10 +220,10 @@ test('byte budget evicts older preparations without losing the active editable t
   assert.ok(stats.cacheEstimatedBytes > stats.cacheBudgetBytes,
     'the active edit is never evicted merely because its own estimate exceeds the budget');
   assert.throws(() => service.move({
-    preparationId: older.preparationId, nodeKey: '0,0', coordinate: [-0.1, 0],
+    preparationId: older.preparationId, moves: [{ nodeKey: '0,0', coordinate: [-0.1, 0] }],
   }), /변경/);
   const moved = service.move({
-    preparationId: newer.preparationId, nodeKey: '4,0', coordinate: [4.1, 0],
+    preparationId: newer.preparationId, moves: [{ nodeKey: '4,0', coordinate: [4.1, 0] }],
   });
   assert.deepEqual(moved.affectedIds, ['B']);
   assert.equal((await service.prepare({ targetIds: ['B'], mode: 'coast' })).preparationId, newer.preparationId);
@@ -246,4 +246,14 @@ test('invalid boundary cache memory budgets fail before changing any state', () 
   for (const budget of [0, -1, Infinity, NaN, 1.2, '32MB']) {
     assert.throws(() => createBoundaryPreparation({ cacheBudgetBytes: budget }), /positive safe integer/);
   }
+});
+
+
+test('multiple virtual vertices materialize against original rings before simultaneous replacement',async()=>{
+ const source=[feature('A',[[0,0],[2,0],[2,3],[0,3],[0,0]]),feature('B',[[2,0],[4,0],[4,3],[2,3],[2,2],[2,1],[2,0]])];
+ const service=createBoundaryPreparation();await service.sync(source);const prepared=await service.prepare({targetIds:['A','B'],mode:'border'});
+ const moved=service.move({preparationId:prepared.preparationId,moves:[{nodeKey:'2,1',coordinate:[2.2,1]},{nodeKey:'2,2',coordinate:[1.8,2]}]});
+ assert.deepEqual(moved.features.find(f=>f.id==='A').geometry.coordinates[0],[[0,0],[2,0],[2.2,1],[1.8,2],[2,3],[0,3],[0,0]]);
+ for(const f of moved.features){assert.ok(f.geometry.coordinates[0].some(p=>p[0]===2.2&&p[1]===1));assert.ok(f.geometry.coordinates[0].some(p=>p[0]===1.8&&p[1]===2));}
+ assert.equal(source[0].geometry.coordinates[0].length,5);
 });

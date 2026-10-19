@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createObjectCatalog } from '../../assets/js/modules/app-object-catalog.js';
+import { createObjectCatalog } from '../../assets/js/modules/object-catalog.js';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
 

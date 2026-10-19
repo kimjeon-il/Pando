@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
@@ -122,7 +123,7 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
   page.on('pageerror', error => collectError(error.message));
   page.on('console', message => { if (message.type() === 'error') collectError(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await waitForReady(page);
   await clearReferenceStore(page);
   await page.reload();

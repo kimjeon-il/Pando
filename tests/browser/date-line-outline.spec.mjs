@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('date-line country selection stays lightweight during selection and navigation', async ({ page }) => {
@@ -5,7 +6,7 @@ test('date-line country selection stays lightweight during selection and navigat
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { tinyFixture, SOURCE_MONTH } from './fixture.mjs';
 import { installNetworkGuard } from './network-guard.js';
-import { buildFullWorldAssetPlan } from './world-data-plan.mjs';
+import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(here, '../..');
@@ -82,10 +82,14 @@ async function stageOwnedPrototype({ root, profile }) {
   }
   await emit(manifestPath, manifestBytes, manifestPath);
   for (const tree of ['assets/js', 'assets/css', 'assets/fonts', 'assets/vendor']) await copyTree(tree);
-  const html = await readFile(join(root, 'index.html'), 'utf8');
+  const html = await readFile(join(root, 'apps/web-shell/editor.html'), 'utf8');
+  const productBase = '<base href="../../" data-product-base="editor" />';
+  if (html.split(productBase).length !== 2 || (html.match(/<base\b/g) || []).length !== 1)
+    throw new Error('The editor entry requires its explicit product base.');
   const bootstrap = /<script\s+src="assets\/js\/bootstrap\.js[^"]*"\s+defer><\/script>/;
   if (!bootstrap.test(html)) throw new Error('The current frontend bootstrap entry was not found.');
-  await emit('index.html', html.replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'index.html (shell entry only)');
+  await emit('index.html', html.replace(productBase, '<base href="./" data-product-base="editor" />')
+    .replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'apps/web-shell/editor.html (shell entry only)');
   for (const file of ['startup.js', 'runtime-profile.js', 'diagnostics.js', 'native-storage.js', 'network-guard.js', 'full-world-probe.js', 'fixture-limits.js', 'diagnostics.css']) {
     if (await exists(join(here, file))) await emit(`shell/${file}`, await readFile(join(here, file)), `apps/web-shell/${file}`);
   }
@@ -111,22 +115,8 @@ async function stageOwnedPrototype({ root, profile }) {
       mode: profile, historicalWorld, countriesUrl: './fixture-countries.json',
     }));
   } else {
-    const metaSource = await readFile(join(root, 'assets/js/build-meta.js'), 'utf8');
-    const metaLiteral = metaSource.match(/Object\.freeze\((\{[\s\S]*\})\);\s*$/)?.[1];
-    if (!metaLiteral) throw new Error('Current published build metadata is required for the full world.');
-    const meta = JSON.parse(metaLiteral);
-    const loadManifest = async path => JSON.parse(await readFile(join(root, path), 'utf8'));
-    const plan = buildFullWorldAssetPlan({
-      meta,
-      world: await loadManifest('assets/data/world/current.json'),
-      historical: await loadManifest('assets/data/historical-world/generated/v1/manifest.json'),
-      library: await loadManifest('assets/data/territorial-entities/generated/v2/index.json'),
-      prepared: await loadManifest('assets/data/prepared-polygons/generated/v2/manifest.json'),
-      terrain: await loadManifest('assets/data/terrain-preview/v0.13.3-p1/manifest.json'),
-      hydro: await loadManifest('assets/data/hydro/v0.13.2/manifest.json'),
-      places: await loadManifest('assets/data/places/manifest.json'),
-    });
-    const dataRoot = await realpath(resolve(root, 'assets/data'));
+     const {plan,meta}=await loadFullWorldAssetPlan(path=>readFile(join(root,path),'utf8'));
+   const dataRoot = await realpath(resolve(root, 'assets/data'));
     let packagedBytes = 0;
     for (const item of plan.entries) {
       const actual = await realpath(resolve(root, item.path));
