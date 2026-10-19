@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { createObjectPresentation } from '../../assets/js/modules/app-object-presentation.js';
+import { createObjectPresentation } from '../../assets/js/modules/object-presentation.js';
 
 const read = name => readFile(new URL(`../../assets/js/modules/${name}`, import.meta.url), 'utf8');
 
@@ -47,7 +47,7 @@ test('territorial callers do not write raw country or unit collection storage', 
     'app-progressive-startup.js',
     'app-project-restore.js',
     'app-project-snapshots.js',
-    'app-builtin-session.js',
+    'builtin-session.js',
     'gis-import-transaction.js',
   ];
   const sources = await Promise.all(names.map(read));
@@ -70,7 +70,7 @@ test('structural callers have no retired writable Store APIs', async () => {
     read('app-progressive-startup.js'),
     read('app-project-restore.js'),
     read('app-project-snapshots.js'),
-    read('app-builtin-session.js'),
+    read('builtin-session.js'),
     read('gis-import-transaction.js'),
   ]);
 

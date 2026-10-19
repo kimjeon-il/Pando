@@ -212,27 +212,10 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
     const projectGeneration = context?.projectGeneration ?? dependencies.rendering.gpuMapRenderer.getProjectGeneration?.();
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return;
-    if (!context.useBuiltInMesh || (dependencies.projectState.state.autosaveMode === 'full')) {
-      meshApplied = (await dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinTerritorialScene)({ canonical: true }).collection.features, { projectGeneration })) !== false;
-    } else {
-      const dirtyIds = new Set([...dependencies.projectState.state.historyDirtyEntityIds, ...dependencies.projectState.state.pendingCountryRenderIds]);
-      meshApplied = (await dependencies.rendering.gpuMapRenderer.replaceBuiltInMesh({
-        meshBuffer: mesh.meshBuffer,
-        preparedStroke: mesh.preparedStroke,
-        spatialBlocks: mesh.spatialBlocks,
-        builtinIdentity: mesh.identity,
-        onStaged: () => {
-          dependencies.rendering.gpuMapRenderer.syncCountryMeshQuality();
-          dependencies.domains.renderingDomain?.invalidateProject?.('canonical-staging-ready');
-        },
-        // Binary country slots retain canonical source order, even when a
-        // source now lives in Subunits, is hidden, edited or deleted.
-        features: dependencies.builtinCountries.canonicalCountryStore.ids().map(id => ({ id })),
-        quality: 'canonical',
-        countryPatchIds: [...dirtyIds],
-        projectGeneration,
-      })) !== false;
-    }
+    meshApplied=await dependencies.renderQuality.prepareCanonicalMesh({projectGeneration,
+      mesh:context.useBuiltInMesh&&dependencies.projectState.state.autosaveMode!=='full'?mesh:null,
+      slotIds:dependencies.builtinCountries.canonicalCountryStore.ids(),
+      dirtyIds:new Set([...dependencies.projectState.state.historyDirtyEntityIds,...dependencies.projectState.state.pendingCountryRenderIds])});
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return;
     // Keep the single preview as a display source. Exact edit/save geometry
@@ -520,10 +503,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
     });
     if (startupMesh === 'project') {
       (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.GEOMETRY_READY);
-      const rebuilt = await dependencies.rendering.gpuMapRenderer.rebuildFromCountries(
-        (0, dependencies.countries.builtinTerritorialScene)({ canonical: true }).collection.features,
-        { reason: 'project-startup' },
-      );
+      const rebuilt=await dependencies.renderQuality.prepareCanonicalMesh({reason:'project-startup'});
       if (rebuilt === false) throw new Error('Project startup mesh could not be prepared.');
       (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.MESH_READY);
     }

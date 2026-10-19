@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { excludeAncestorHighlightBoundary } from '../../assets/js/modules/territorial-highlight-boundary.js';
-import { createEditDisplayPreparation } from '../../assets/js/modules/edit-display-preparation.js';
+import { createMapDisplayPreparation } from '../../assets/js/modules/map-display-preparation.js';
 
 const polygon = coordinates => ({ type: 'Polygon', coordinates: [coordinates] });
 const length = feature => feature.geometry.coordinates.reduce((total, line) => total + line.slice(1).reduce((sum, point, index) => sum + Math.hypot(point[0] - line[index][0], point[1] - line[index][1]), 0), 0);
@@ -32,8 +32,8 @@ test('highlight preparation removes the same parent perimeter for wrapped and co
   for (const east of [-179, 181]) {
     const parent = { type: 'Feature', properties: {}, geometry: polygon([[179, 0], [179, 1], [east, 1], [east, 0], [179, 0]]) };
     const before = structuredClone([child, parent]);
-    const { feature: result } = await createEditDisplayPreparation().prepare({
-      kind: 'highlight', feature: child, occluderFeatures: [parent],
+    const { feature: result } = await createMapDisplayPreparation().prepare({
+      kind: 'highlight', feature: child, occluders: [{feature:parent}],
     }, [], []);
     assert.equal(length(result), 1, `parent east ${east}`);
     assert.ok(result.geometry.coordinates.every(line => line.every(point => point[0] === 179.5)));

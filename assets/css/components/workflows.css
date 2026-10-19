@@ -312,9 +312,6 @@
   border-radius: var(--ui-radius-control);
 }
 
-.btn {
-  padding: 0 var(--ui-control-padding-x);
-}
 
 .file-menu-btn {
   padding: 0 var(--ui-control-padding-x);

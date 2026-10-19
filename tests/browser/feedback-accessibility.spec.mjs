@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ hasTouch: true });
@@ -12,7 +13,7 @@ test('real file menu hides panel tracks and loads the revisioned scrollbar modul
     contentType: 'text/javascript', body: 'export function installOverlayScrollbars() {}',
   }));
   await page.setViewportSize({ width: 1024, height: 600 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.locator('#mapDisplayBtn').click();
   const track = page.locator('.ui-overlay-scrollbar[aria-controls="mapViewSection"]');
@@ -42,7 +43,7 @@ async function fixture(page) {
     <div id="sheet"><div id="scroll" class="ui-scroll-surface"><div style="height:1200px">내용</div></div></div>
     <div id="dialog" class="ui-dialog hidden" aria-modal="true" role="dialog"><button>처음</button><div id="modalScroll" class="ui-scroll-surface"><div style="height:1200px">상세</div></div><button>마지막</button></div>
     <div id="nested" class="ui-dialog hidden" aria-modal="true" role="dialog"><button>확인</button></div>` }));
-  await page.goto('/feedback-fixture');
+  await gotoEditor(page, '/feedback-fixture');
   await page.evaluate(async () => {
     const { installOverlayScrollbars } = await import('/assets/js/modules/overlay-scrollbars.js');
     const { installDialogAccessibilityController } = await import('/assets/js/modules/dialog-accessibility-controller.js');

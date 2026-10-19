@@ -84,7 +84,7 @@ export function checkVersionArchitecture(root) {
   const failures = [], sources = new Map();
   const read = file => fs.readFileSync(path.join(root, file), 'utf8');
   failures.push(...auditVersionDisplays({ version: JSON.parse(read('package.json')).version,
-    readme: read('README.md'), html: read('index.html') }));
+    readme: read('README.md'), html: read('apps/web-shell/editor.html') }));
   const modules = 'assets/js/modules';
   for (const name of fs.readdirSync(path.join(root, modules)).filter(name => name.endsWith('.js')))
     sources.set(`${modules}/${name}`, fs.readFileSync(path.join(root, modules, name), 'utf8'));

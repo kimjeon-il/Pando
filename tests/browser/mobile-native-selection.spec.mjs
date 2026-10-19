@@ -1,7 +1,8 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 async function openApp(page) {
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
 }
 

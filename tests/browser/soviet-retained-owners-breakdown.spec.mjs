@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 /* global boundaryState: writable, latestMessage: writable, queued: readonly, draining: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -135,7 +136,7 @@ test('isolated contact-edge, upper index and source geometry retaining roots in 
       try {
         const page = await context.newPage();
         page.on('pageerror', error => scenario.errors.push(error.message));
-        await page.goto('/?perf=1&renderer=webgl2');
+        await gotoEditor(page, '/?perf=1&renderer=webgl2');
         await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
         await expect.poll(() => page.evaluate(() => {
           const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;

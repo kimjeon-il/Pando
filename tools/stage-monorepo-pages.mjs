@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { collectViewerAssets } from '../scripts/lib/product-assets.mjs';
 
 const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = [
@@ -51,7 +52,7 @@ function isEquivalentCrLfCheckout(working, committed) {
   }
 }
 
-export function stageWebPages(rootInput, stageInput, manifestInput) {
+export async function stageWebPages(rootInput, stageInput, manifestInput) {
   const root = resolve(rootInput), stage = resolve(stageInput), manifest = resolve(manifestInput);
   if (within(root, stage) || stage === root) throw Error('Pages stage must be outside the source repository');
   if (within(root, manifest) || manifest === root || within(stage, manifest)) {
@@ -62,10 +63,13 @@ export function stageWebPages(rootInput, stageInput, manifestInput) {
   const excludedNativeFiles = all.filter(file => file.path.startsWith('native/')).length;
   const excludedSharedFiles = all.filter(file => file.path.startsWith('shared/')).length;
   const excludedAppFiles = all.filter(file => file.path.startsWith('apps/')).length;
-  const web = all.filter(file => !['native/', 'shared/', 'apps/'].some(prefix => file.path.startsWith(prefix)));
+  const byPath = new Map(all.map(file => [file.path, file]));
+  const viewerPaths = await collectViewerAssets({ root, availablePaths: all.map(file => file.path),
+    readSource: path => committedBlob(root, byPath.get(path)).toString('utf8') });
+  const web = all.filter(file => viewerPaths.has(file.path));
   const paths = new Set(web.map(file => file.path));
   const required=[...REQUIRED];
-  if(paths.has('assets/js/workers/core-session-worker.js'))required.push(
+  if(paths.has('assets/js/workers/core-viewer-session-worker.js'))required.push(
     'assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm','assets/wasm/pandoeditor-core.manifest.json');
   for (const path of required) if (!paths.has(path)) throw Error(`Missing protected Web URL: ${path}`);
   const total = web.reduce((sum, file) => sum + file.bytes, 0);
@@ -95,7 +99,7 @@ export function stageWebPages(rootInput, stageInput, manifestInput) {
     if (hash('sha256', readFileSync(output)) !== file.sha256) throw Error(`Staged copy mismatch: ${file.path}`);
   }
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-  const evidence = { schema: 'pando-web-pages-staging', sourceCommit, fileCount: files.length,
+  const evidence = { schema: 'pando-web-pages-staging', productMode: 'viewer', sourceCommit, fileCount: files.length,
     bytes: total, limitBytes: LIMIT_BYTES, excludedNativeFiles, excludedSharedFiles, excludedAppFiles, files };
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');
@@ -106,6 +110,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const args = process.argv.slice(2);
   const arg = name => { const at = args.indexOf(name); return at < 0 ? null : args[at + 1]; };
   if (!arg('--stage') || !arg('--manifest')) throw Error('Usage: stage-monorepo-pages.mjs --root ROOT --stage OUT --manifest EVIDENCE');
-  const result = stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'));
+  const result = await stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'));
   process.stdout.write(`${result.fileCount} Web files, ${result.bytes} bytes, ${result.excludedNativeFiles} native, ${result.excludedSharedFiles} shared and ${result.excludedAppFiles} app source files excluded\n`);
 }

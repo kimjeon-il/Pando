@@ -3,8 +3,8 @@ import test from 'node:test';
 import { prepareGpuBaseScene } from '../../assets/js/modules/gpu-scene-preparation.js';
 import { drawGpuBaseScene } from '../../assets/js/modules/gpu-base-scene-pass.js';
 import '../../assets/js/workers/canvas-scene-composition-core.js';
-import { createGpuScene } from '../../assets/js/modules/app-gpu-scene.js';
-import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
+import { createGpuScene } from '../../assets/js/modules/gpu-scene.js';
+import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { layerObjectRank, OVERLAY_GROUPS } from '../../assets/js/modules/layer-presentation.js';
 

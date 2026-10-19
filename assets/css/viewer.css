@@ -1,0 +1,13 @@
+/* Viewer-only placement. Colors, controls, surfaces and typography use the shared UI. */
+.viewer-root #map { width: 100%; height: 100%; }
+.viewer-root #viewerCanvas,
+.viewer-root #viewerLabels { position: absolute; inset: 0; width: 100%; height: 100%; }
+.viewer-root #viewerLabels { pointer-events: none; }
+
+.viewer-root #viewerStatus { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.viewer-root .timeline-status { margin-inline-start: auto; }
+@media (max-width: 799px) {
+  .viewer-root[data-layout="mobile"] .map-command-toolbar .map-command-search { display: block; }
+  .viewer-root .map-bottom-status .status-inner { gap: var(--ui-space-2); }
+  .viewer-root #viewerStatus { max-width: 50%; }
+}

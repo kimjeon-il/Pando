@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
@@ -8,7 +9,7 @@ test('nested general objects use the common desktop/mobile creation and editor s
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   expect(errors).toEqual([]);

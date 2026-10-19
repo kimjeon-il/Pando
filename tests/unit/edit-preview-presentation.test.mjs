@@ -1,3 +1,4 @@
+import {createEditingPresentation} from '../../assets/js/modules/editing-presentation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createEditPreviewController } from '../../assets/js/modules/edit-preview-controller.js';
@@ -54,7 +55,7 @@ function harness(renderer = 'webgl2', { directFallback = false, objectSuccessor 
     requestFrame: callback => (frames.push(callback), frames.length),
     prepareView,
     editPreviewController: preview, isEditPreviewCurrent: () => current,
-    getEditingRenderPacket: () => packet,
+    createEditingPresentation,getEditingRenderPacket: () => packet,
     renderers: { view: () => result },
     countryResources: { gpuMapRenderer: { renderFrame: () => result } },
     interactionResources: { previewLayer: layer, path: () => 'M0,0L1,1',

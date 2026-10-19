@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import {worldAssets} from '../helpers/world-assets.mjs';
 
@@ -11,7 +12,7 @@ test('canonical packet materializes cooperatively in an isolated browser harness
     contentType: 'text/html',
     body: '<!doctype html><html><body>packet harness</body></html>',
   }));
-  await page.goto('/packet-harness');
+  await gotoEditor(page, '/packet-harness');
 
   const result = await page.evaluate(async packetUrl => {
     const longTasks = [];
@@ -69,7 +70,7 @@ test('canonical packet materializes cooperatively in an isolated browser harness
 
 test('default world startup uses packed assets without catalog index or entity chunk requests',async({page})=>{
  const requests=[];page.on('request',request=>requests.push(request.url()));
- await page.goto('/');
+ await gotoEditor(page, '/');
  await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90_000});
  expect(requests.filter(url=>url.includes('/territorial-entities/'))).toEqual([]);
  expect(requests.filter(url=>url.includes(worldAssets.canonicalCountryPacket.url))).toHaveLength(1);

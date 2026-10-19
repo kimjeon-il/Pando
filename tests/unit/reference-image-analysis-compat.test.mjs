@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
+import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 const moduleUrl = name => new URL(`../../assets/js/modules/${name}`, import.meta.url);
 
@@ -50,27 +52,95 @@ test('current reference image modules contain no legacy placement migration path
 });
 
 
-test('active reference image input bypasses map overlay hit blocking but not UI controls', async () => {
-  const source = await readFile(moduleUrl('map-input-presentation.js'), 'utf8');
-  const controls = source.indexOf("button,input,select,textarea,a,[contenteditable=\"true\"],.editor-drawer,.reference-image-panel");
-  const active = source.indexOf('if (referenceImageInputActive()) return false;');
-  const overlay = source.indexOf("if (target?.closest?.('.map-overlay-layer')) return true;");
-  assert.ok(controls >= 0 && active > controls && overlay > active);
+function hitTarget({ tag = 'div', className = '', editable = false, parent = null } = {}) {
+  const node = editorNode(tag);
+  node.parentElement = parent;
+  if (className) node.classList.add(className);
+  if (editable) node.setAttribute('contenteditable', 'true');
+  node.closest = selectors => {
+    for (let current = node; current; current = current.parentElement) {
+      if (selectors.split(',').some(value => {
+        const selector = value.trim();
+        if (selector.startsWith('.')) return current.classList.contains(selector.slice(1));
+        if (selector === '[contenteditable="true"]') return current.getAttribute('contenteditable') === 'true';
+        return current.tagName === selector;
+      })) return current;
+    }
+    return null;
+  };
+  return node;
+}
+
+function hitPolicyFixture(t, { productMode = 'editor', referenceInput = null } = {}) {
+  const state = { projectReplacing: false, tool: 'select', spacePanActive: false };
+  const map = editorNode(), selection = { on() { return this; } };
+  let controllerPorts;
+  const presentation = createMapInputPresentation({
+    productMode, referenceInput,
+    getElement: () => map,
+    d3: { select: () => selection },
+    getInputSnapshot: () => state,
+    createMapInputController: ports => {
+      controllerPorts = ports;
+      return { destroy() {} };
+    },
+    mapInteractionGate: { setForcedPan() {}, isPandoTarget: target => !!target.closest('.pando-hit') },
+    reportOperationError: error => { throw error; },
+  });
+  presentation.bindSvg(selection);
+  t.after(() => presentation.dispose());
+  return { state, interactiveTarget: controllerPorts.interactiveTarget };
+}
+
+test('reference input ports bypass overlay hits only while active and never capture UI controls', t => {
+  let active = true;
+  const editor = hitPolicyFixture(t, { referenceInput: { isActive: () => active, beginGesture: () => null } });
+  const viewer = hitPolicyFixture(t, { productMode: 'viewer', referenceInput: null });
+  const overlay = hitTarget({ className: 'map-overlay-layer' });
+  const overlayHit = hitTarget({ parent: overlay });
+  const ground = hitTarget(), pandoHit = hitTarget({ className: 'pando-hit' });
+  const primary = { button: 0 };
+
+  for (const control of [
+    ...['button', 'input', 'select', 'textarea', 'a'].map(tag => ({ tag })),
+    { editable: true },
+    ...['editor-drawer', 'reference-image-panel', 'reference-image-workflow-guide'].map(className => ({ className })),
+  ]) {
+    for (const parent of [null, overlay]) {
+      const child = hitTarget({ parent: hitTarget({ ...control, parent }) });
+      assert.equal(editor.interactiveTarget(child, primary), true, `active reference input must leave ${JSON.stringify(control)} to its UI owner`);
+      assert.equal(viewer.interactiveTarget(child, primary), true, 'a null viewer reference port must still block UI controls');
+    }
+  }
+  assert.equal(editor.interactiveTarget(overlayHit, primary), false, 'active reference input bypasses the overlay hit blocker');
+  assert.equal(editor.interactiveTarget(pandoHit, primary), false, 'active reference input owns map object hits');
+
+  active = false;
+  for (const { interactiveTarget, state } of [editor, viewer]) {
+    assert.equal(interactiveTarget(overlayHit, primary), true, 'inactive or absent reference input retains overlay blocking');
+    assert.equal(interactiveTarget(pandoHit, primary), true, 'map object hits retain their normal input owner');
+    assert.equal(interactiveTarget(ground, primary), false, 'ordinary map ground remains navigable');
+    assert.equal(interactiveTarget(pandoHit, { button: 1 }), false, 'middle-button navigation bypasses map object hits');
+    state.spacePanActive = true;
+    assert.equal(interactiveTarget(pandoHit, primary), false, 'Space navigation retains the existing map policy');
+    state.projectReplacing = true;
+    assert.equal(interactiveTarget(ground, primary), true, 'project replacement blocks map input');
+  }
+  active = true;
+  assert.equal(editor.interactiveTarget(overlayHit, primary), true, 'project replacement also blocks active reference input');
 });
 
 
-test('reference image editing stays expanded on desktop and compacts only on mobile', async () => {
+test('reference image remains docked on desktop and mobile editing can expand without discarding state', async () => {
   const surface = await readFile(moduleUrl('reference-image-surface.js'), 'utf8');
   const layout = await readFile(new URL('../../assets/css/layout/reference-images.css', import.meta.url), 'utf8');
   assert.match(surface, /const mobile = workspaceSurfaces\.isMobile\(\);/);
-  assert.match(surface, /const compactEditing = editing && mobile;/);
+  assert.match(surface, /const compactEditing = editing && mobile && !expandedWhileEditing;/);
   assert.match(surface, /reference-image-editing-active/);
-  assert.equal(
-    /^\s*\.surface-reference\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/m.test(layout),
-    false,
-  );
-  assert.match(layout, /\.surface-reference\.reference-image-editing-active/);
-  assert.match(layout, /right:\s*calc\(var\(--map-safe-right/);
+  assert.match(surface, /reference-image-docked/);
+  assert.match(layout, /\.workspace\.reference-image-docked > \.map-wrap/);
+  assert.match(layout, /\.reference-image-panel\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/);
+  assert.doesNotMatch(layout, /left:\s*50%|translateX\(-50%\)/);
 });
 
 

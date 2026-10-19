@@ -1,0 +1,52 @@
+import { setViewingProjection, setViewingLayer, closeViewingDisplay } from './helpers/viewing-display.mjs';
+import { test, expect } from '@playwright/test';
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 640, height: 360 }]) {
+test(`existing UI loads, searches and navigates without document writes at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
+  page.setDefaultTimeout(15000);
+  await page.setViewportSize(viewport);
+  const errors=[]; page.on('pageerror', error=>errors.push(error.message));
+  await page.addInitScript(()=>{
+    localStorage.setItem('pandolab-editor-project','preserve-existing-editor-autosave');
+    const open=indexedDB.open.bind(indexedDB);window.__openedDatabases=[];
+    indexedDB.open=(name,...args)=>{window.__openedDatabases.push(name);return open(name,...args);};
+  });
+  await page.goto('/');
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+  await expect(page.locator('#viewerStatus')).toContainText('객체');
+  await expect(page).toHaveTitle('판도연구소');
+  await expect(page.locator('#newProjectBtn, #saveProjectBtn, #undoBtn, #editorPanel')).toHaveCount(0);
+  const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
+  await page.locator('#objectSearchBtn').click();
+  await page.getByLabel('지도에서 찾기', { exact: true }).fill('대한민국');
+  await expect(page.locator('#objectSearchResults button').first()).toBeVisible();
+  await page.locator('#objectSearchResults button').first().click();
+  await expect(page.locator('#viewerStatus')).toContainText('대한민국');
+  await setViewingProjection(page,'flat');
+  await setViewingLayer(page,'countries',false);
+  await setViewingLayer(page,'countries',true);
+  await expect(page.locator('#mapDisplaySurface')).toContainText('일반');
+  await expect(page.locator('#mapDisplaySurface')).toContainText('지방');
+  const bounds=await page.locator('#mapDisplaySurface').boundingBox();
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x+bounds.width).toBeLessThanOrEqual(viewport.width);
+  expect(bounds.y+bounds.height).toBeLessThanOrEqual(viewport.height);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
+  await page.screenshot({path:testInfo.outputPath(`existing-ui-${viewport.width}x${viewport.height}.png`)});
+  await closeViewingDisplay(page);
+  await page.locator('#timelineMonthButton').click();
+  await page.locator('#timelineMonthInput').fill('-0001-12');
+  await page.locator('#timelineMonthInput').press('Enter');
+  await expect(page.locator('#timelineMonthButtonText')).toHaveText('기원전 1년 12월');
+  await page.locator('#timelineNextMonth').click();
+  await expect(page.locator('#timelineMonthButtonText')).toHaveText('1년 1월');
+  await page.keyboard.press('Control+z');
+  await page.keyboard.press('Delete');
+  const after=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
+  expect(after.checkpoint).toBe(before.checkpoint);
+  expect(after.presentationCheckpoint).toBe(before.presentationCheckpoint);
+  expect(await page.evaluate(()=>localStorage.getItem('pandolab-editor-project'))).toBe('preserve-existing-editor-autosave');
+  expect(await page.evaluate(()=>window.__openedDatabases)).not.toContain('pandolab-editor');
+  expect(errors).toEqual([]);
+});
+}

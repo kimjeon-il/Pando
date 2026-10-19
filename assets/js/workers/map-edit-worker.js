@@ -26,7 +26,7 @@ const calculationsReady = geometryCoreReady.then(() => Promise.all([
   'map-edit-preparation-operations.js', 'map-edit-library-calculation.js',
   'map-edit-preview-calculations.js', 'map-edit-territorial-commands.js',
   'map-edit-snap-calculation.js', 'cut-worker-preparation.js',
-  'edit-display-preparation.js', 'map-edit-query-calculations.js',
+  'map-edit-query-calculations.js',
   'boundary-topology.js', 'map-edit-country-commands.js',
 ].map(name => import(versionedWorkerAssetUrl('../modules/' + name)))))
   .then(modules => {
@@ -60,7 +60,6 @@ function sourceFeatures(kind) {
 }
 const boundaryFeatures = new Map();
 let boundaryService = null;
-let displayService = null;
 let coastTopologyCache = null;
 let coastResultCache = new WeakMap();
 const pendingResults = new Map();
@@ -139,7 +138,7 @@ function handleEvent(operation, message = {}, context) {
     if (operation === 'edit-sync') { syncEditSources(message); return; }
     if (operation === 'map-edit.rebase') {
       projectEpoch += 1;
-      displayService = null; cutSources.clear();
+      cutSources.clear();
       if (clearCutPreparation) clearCutPreparation(); coastTopologyCache = null; coastResultCache = new WeakMap();
       editSources.clear(); validatedPreviews.clear();
       syncEditSources(message.editSources || { patches: [], sourceRevision: 0 });
@@ -191,7 +190,7 @@ async function execute(payload, context) {
     const {
       createBoundaryPreparation, prepareBoundaryOperation, prepareComponentOperation, calculateLibraryBatch,
       calculateTerritorialPreview, calculateRegionRedraw, calculateDrawnGeometry,
-      calculateSnapCandidates, prepareCutInWorker, createEditDisplayPreparation,
+      calculateSnapCandidates, prepareCutInWorker,
       buildBoundaryTopology, calculateCoastAvailability, calculateUncoveredSource,
       calculateTerritorialEdit, createCountryCommandCalculator, calculateEditPreview, calculateCountryPreview,
     } = await calculationsReady;
@@ -228,11 +227,6 @@ async function execute(payload, context) {
       const source = rememberCutSource(message.payload);
       if (!source) throw new Error('분할 원본을 다시 준비하세요.');
       result = prepareCutInWorker({ ...message.payload, source });
-    } else if (message.operation === 'territorial-display') {
-      displayService ||= createEditDisplayPreparation();
-      const service = displayService;
-      result = await service.prepare(message.payload, sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)), sourceFeatures('territorial').filter(feature => !(feature.properties.entityKind === 'general' && !feature.properties.parentId)),
-        requestCheckpoint(message, epoch, true, () => service === displayService), key => editSources.get(key)?.feature);
     } else if (message.operation === 'territorial-validation') {
       const receipt = validatedPreviews.get(message.payload.preparationId);
       if (!receipt || receipt.sourceRevision !== sourceRevision) throw new Error('미리보기 원본이 변경되었습니다. 다시 계산하세요.');
@@ -285,5 +279,5 @@ async function execute(payload, context) {
 
 const rpcHost = self.PandoLabWorkerRpc.install({
   onEvent: handleEvent,
-  handlers: Object.fromEntries(['annex', 'annex-batch', 'boundary-move', 'boundary-prepare', 'merge', 'new-country', 'territorial-coast-availability', 'territorial-cut', 'territorial-display', 'territorial-drawn', 'territorial-edit', 'territorial-library-batch', 'territorial-preview', 'territorial-region-redraw', 'territorial-snap', 'territorial-source', 'territorial-validation', 'territory-components', 'territory-selection', 'territory-slivers'].map(operation => [operation, execute])),
+  handlers: Object.fromEntries(['annex', 'annex-batch', 'boundary-move', 'boundary-prepare', 'merge', 'new-country', 'territorial-coast-availability', 'territorial-cut', 'territorial-drawn', 'territorial-edit', 'territorial-library-batch', 'territorial-preview', 'territorial-region-redraw', 'territorial-snap', 'territorial-source', 'territorial-validation', 'territory-components', 'territory-selection', 'territory-slivers'].map(operation => [operation, execute])),
 });

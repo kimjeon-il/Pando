@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 // CI screenshots document browser/viewport output, not physical GPU/mobile devices.
@@ -24,7 +25,7 @@ for(const config of [
     page.on('pageerror',err=>runtimeErrors.push(err.message));
     let ready=false;
     try {
-      await page.goto('/?renderer='+config.renderer+'&demTerrain=raster',
+      await gotoEditor(page, '/?renderer='+config.renderer+'&demTerrain=raster',
         {waitUntil:'domcontentloaded',timeout:30_000});
       const app=page.locator('#app');
       await expect(app).toHaveAttribute('data-readiness',/^(preview|editable|enhanced)$/,

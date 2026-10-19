@@ -1129,8 +1129,8 @@ V webHydro(const ProjectDocument& d,const HydroFeature& value,const Geometry* su
     return webFeature(d,value,props,supplied);
 }
 template<class Content> V webInterval(const Content& value) {
-    return object({{"id",V::str(value.id)},{"schemaVersion",V::num(3)},{"validFrom",endpointValue(value.validity.from)},
-        {"validTo",endpointValue(value.validity.to)},{"metadata",webAnnotation(value.metadata)}});
+    return object({{"id",V::str(value.id)},{"schemaVersion",V::num(3)},{"validFrom",value.validity.from?V::str(*value.validity.from):V{}},
+        {"validTo",value.validity.to?V::str(*value.validity.to):V{}},{"metadata",webAnnotation(value.metadata)}});
 }
 V webDistributionLayer(const DistributionLayer& value) {
     auto row=webInterval(value);row.object["name"]=V::str(value.name);row.object["unit"]=V::str(value.unit);row.object["color"]=value.explicitColor?colorValue(value.color):V::str("");

@@ -351,6 +351,7 @@
       "outputs": [
         "assets/js/build-meta.js",
         "index.html",
+        "apps/web-shell/editor.html",
         "README.md"
       ],
       "generate": [

@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
@@ -15,7 +16,7 @@ const viewports = [
 async function openApp(page, viewport, colorScheme = 'light') {
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
   await page.emulateMedia({ colorScheme });
-  await page.goto('/?renderer=canvas&demTerrain=raster');
+  await gotoEditor(page, '/?renderer=canvas&demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
