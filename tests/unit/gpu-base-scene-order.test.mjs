@@ -82,7 +82,7 @@ test('WebGL mixes overlays by order and protects base water and borders from fil
 });
 
 test('changing overlay order keeps the frontmost stroke or fill aligned with canonical picking', async t => {
-  const node = () => ({ dataset: {}, classList: { add() {}, remove() {} }, setAttribute() {}, removeAttribute() {}, append() {}, replaceChildren() {}, getBoundingClientRect: () => null });
+  const node = () => ({ dataset: {}, classList: { add() {}, remove() {} }, setAttribute() {}, removeAttribute() {}, append(...children) {this.children=children;}, replaceChildren(...children) {this.children=children;}, getBoundingClientRect: () => null });
   const previousDocument = globalThis.document;
   globalThis.document = { createElement: node };
   t.after(() => { if (previousDocument) globalThis.document = previousDocument; else delete globalThis.document; });
@@ -90,11 +90,11 @@ test('changing overlay order keeps the frontmost stroke or fill aligned with can
   const region = { id: 'R', properties: { entityKind: 'regional' }, geometry: { type: 'Polygon', coordinates: [[[0, 0], [0, 10], [10, 10], [10, 0], [0, 0]]] } };
   const line = { id: 'G', geometry: { type: 'LineString', coordinates: [[0, 5], [10, 5]] } };
   const state = { tool: 'select', territorialEntities: [region], genericFeatures: [line], layerVisibility: { genericFeatures: true },
-    layerPresentation: { overlayOrder: ['genericFeatures', 'regions'] } };
+    layerPresentation: { overlayOrder: ['genericFeatures', 'objects'] } };
   const records = [{ domain: 'territorial', id: 'R' }, { domain: 'generic', id: 'G' }];
   const ports = { projectState: { state }, selectionServices: { normalizeObjectRef }, renderScene: { OVERLAY_GROUPS },
     applicationServicesB: { layerObjectRank }, territorialModel: { entityRepository: { get: id => id === 'R' ? region : null, ancestors: () => [] } },
-    objectLookup: { objectRefExists: () => true }, layerPresentation: { isLayerItemVisible: () => true },
+    objectLookup: { isObjectAvailable:()=>true, objectRefExists: () => true }, layerPresentation: { isLayerItemVisible: () => true },
     surfaces: { isMobile: () => false }, rendering: { selectionPerformanceMetrics: {} },
     spatialRecords: { geometryBoundsCache: new WeakMap(), indexedMapObjectCandidates: () => records },
     cutGeometry: { coordinateBounds: () => [0, 0, 10, 10] }, labelPresentation: { currentMapZoom: () => 100 },
@@ -105,15 +105,15 @@ test('changing overlay order keeps the frontmost stroke or fill aligned with can
     domains: { selectionDomain: { has: () => false }, selectionUiController: { applyIntent: ref => selected.push(ref.key) } },
     objectOperationsA: { objectDisplayInfo: ref => ({ name: ref.id }) } };
   const scene = createGpuScene(), picking = createObjectPicking(); scene.connect(ports); picking.connect(ports);
-  for (const order of [['genericFeatures', 'regions'], ['regions', 'genericFeatures']]) {
+  for (const order of [['genericFeatures', 'objects'], ['objects', 'genericFeatures']]) {
     state.layerPresentation.overlayOrder = order;
     const packets = [
-      { key: 'territorial:entity:R', order: scene.gpuSceneOrder('regions') },
+      { key: 'territorial:entity:R', order: scene.gpuSceneOrder('objects') },
       { key: 'generic:feature:G', order: scene.gpuSceneOrder('genericFeatures') },
     ];
     const front = packets.sort((a, b) => b.order - a.order)[0].key;
     await picking.handleObjectSelectionAt([5, 5], { sourceEvent: {} });
-    assert.equal(session.objectChooserCandidates[0].key, front);
+    assert.equal(elements.objectChooserList.children[0].children[0].textContent, front.endsWith(':R')?'R':'G');
     await picking.chooseObjectCandidate(0);
     assert.equal(selected.at(-1), front);
   }

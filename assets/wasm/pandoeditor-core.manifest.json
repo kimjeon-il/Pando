@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "7aa0b76e1d69612455145b65d258e02046a505bcfb69dfd51086d6450b06430a",
+  "sourceSha256": "18b9265509c33f107e0915cd5830cd54387c8ae07df3374a15d15cc958b338fb",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -41,7 +41,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/commands.h",
-      "sha256": "0f5898219cd7080256d6fe4bbacb422eea23a557b105293cecbc4e7601dc003e"
+      "sha256": "f053ae5cb118031d440a3996150baab01034b82fa06c8bef3d74d3011b8f4ff1"
     },
     {
       "path": "shared/core/include/pandoeditor/countrycontact.h",
@@ -53,11 +53,11 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document-session.h",
-      "sha256": "0e88144198ecd82615b4be472ce3f372da3d7d5f4aec0eeb3b020249f6571fc0"
+      "sha256": "d031b4a8d0fc96f7105782d93701149c3d29fcf4c5134c9b33901109a957db14"
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
-      "sha256": "06336ad1c67fc7b392efcc21a9391db769568f35db1f941d4a1d6eca8182aa5d"
+      "sha256": "1ee040c64dd6f4f9538e696f26c84feb9c50a5d2b54e943ed21b7e3b0a0c27a7"
     },
     {
       "path": "shared/core/include/pandoeditor/geobounds.h",
@@ -81,7 +81,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/geometryprovenance.h",
-      "sha256": "4ef611df84f3997f1acfab9d3028417ce3692243bc20f6c83ed453f17262f2c7"
+      "sha256": "2ca495801e5150a9ed9d3cc6e27389cf2ee2ac3f9f5a417bf6a70cf4abfbf48b"
     },
     {
       "path": "shared/core/include/pandoeditor/geopackagegeometry.h",
@@ -165,7 +165,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/projectcodec.h",
-      "sha256": "5877f3d4f85103683db318e6c347c0b54eab7cff0dee32abf0224aa1e75689a6"
+      "sha256": "9993493fdb0782f4f939226eb519c2d74f22e39c8b29bb0d50a4687e5069342e"
     },
     {
       "path": "shared/core/include/pandoeditor/referenceimage.h",
@@ -277,11 +277,11 @@
     },
     {
       "path": "shared/core/src/commandbatch.cpp",
-      "sha256": "657f0aed1e4e5d13c39bff83108c0885068bb34898a4f00b1d83ea963bd32c34"
+      "sha256": "279cce2def5c8f0ce6b2af734d2529f09510e4d8ab860046b3bc9fa64efb5fda"
     },
     {
       "path": "shared/core/src/commands.cpp",
-      "sha256": "8e7f546109438e9fdec392c5376c9ddc26fe88f2992d98093bc549399a3f3165"
+      "sha256": "9a9ef74ba3f585992795104def3c5a83bc2e42889f3c9fec5c3e7dc14f8c2e28"
     },
     {
       "path": "shared/core/src/content.cpp",
@@ -297,7 +297,7 @@
     },
     {
       "path": "shared/core/src/document-session.cpp",
-      "sha256": "f7484bbdc0e50eeab0dd11c977440657b01e100b059f027a60240ccebb897da8"
+      "sha256": "6bc528cdfb98366822d11dacf02507d45adcff33624163e5453e22b4bc89e167"
     },
     {
       "path": "shared/core/src/document.cpp",
@@ -361,7 +361,7 @@
     },
     {
       "path": "shared/core/src/maprenderorder.cpp",
-      "sha256": "c80b5e062d843c46df70dd93dcfed2117eabf93997315c0ee02ed3049d52fbd7"
+      "sha256": "d3925da3e08f87648896fc18d9ffc1fd93796e909e299fa0a493559f1a3faec4"
     },
     {
       "path": "shared/core/src/objectproperties.cpp",
@@ -389,19 +389,19 @@
     },
     {
       "path": "shared/core/src/presentation.cpp",
-      "sha256": "4a7c0fe679c049410b1c68c8184096c17baeaa3c772affbb2e267e2f45f80326"
+      "sha256": "9a209c8bd8ca3295bac16a66b1cdb11b21e6c56d33f18a0e2661083f8372a3e5"
     },
     {
       "path": "shared/core/src/presentationcommands.cpp",
-      "sha256": "3f0ff46e9f6134472e5e2f9de683b4fae61780bbc3919db10a599c7d081e19b4"
+      "sha256": "5e6aac935e5d0cfaae8009c75a59c0064d268137ce8f229a6f8c5dd77aa1fdff"
     },
     {
       "path": "shared/core/src/project.cpp",
-      "sha256": "16541acbb0229eedfa4025283149541fdca183cc190e696d1a731c0a35672518"
+      "sha256": "f69d5680fb3963205726da64113130765ca3fe43ba7f62e7abf611d989ed3eaa"
     },
     {
       "path": "shared/core/src/projectcodec.cpp",
-      "sha256": "bb2180a07427fb9d74f9c668669f293d83fc16105c6b779d0cc8529ce7e4ba44"
+      "sha256": "4c3c06b61aca9cd9a5bac0f6686f1761ece9b0b7f7c7c1886321f22eebe83720"
     },
     {
       "path": "shared/core/src/referenceimage.cpp",
@@ -453,7 +453,7 @@
     },
     {
       "path": "shared/core/src/timeline-view.cpp",
-      "sha256": "b6fbe9fcb5928fa2616b6f1288e77edc7134ec80c50fe36cc12cdcee0bc5ac27"
+      "sha256": "632251e6b7ce4844812b0186850cd86c077f4a3a7aa684480ab32366e689ab7e"
     },
     {
       "path": "shared/core/src/version.cpp.in",
@@ -469,7 +469,7 @@
     },
     {
       "path": "shared/core/src/webobjectcommands.cpp",
-      "sha256": "0b61591d6920900fc06b9537c18bf5077a7ca05b83ee97a579ee5824604277fd"
+      "sha256": "c208b19404d87f92a5828af538e9dbd1e43989e54da4ebe02ec8180813ae3882"
     },
     {
       "path": "shared/core/src/webpresentationcommands.cpp",
@@ -525,7 +525,7 @@
     },
     {
       "path": "shared/tests/document-session-tests.cpp",
-      "sha256": "67e210b8e7a61f7e69a6106de785d21ab9fed49fc913d094abf4174a5b3a3001"
+      "sha256": "35e4196fa47c3bbd8a9a2310789564c5d736ce7045c998ff479bf71d6d2e2e20"
     },
     {
       "path": "shared/tests/geometry-draft-tests.cpp",
@@ -541,7 +541,7 @@
     },
     {
       "path": "shared/tests/project-codec-tests.cpp",
-      "sha256": "e6045691b34d0572f475b83fa791af678d61efa1e6f5164fee8fe1b4b2e6416e"
+      "sha256": "f0d779f2e7af38a0667d9805efca2027db7f8058d2ef95cf285bdd73cf2bac68"
     },
     {
       "path": "shared/tests/reference-image-tests.cpp",
@@ -553,11 +553,11 @@
     },
     {
       "path": "shared/tests/source-admission-tests.cpp",
-      "sha256": "6e7da91a15958c2b2715c7f1b2e22ababccc95e65dee7b4683eb70f703b40c2f"
+      "sha256": "8d29e19efb280021766499cee58ac25a4f14a967265198557f82cef32a652749"
     },
     {
       "path": "shared/tests/temporal-editing-tests.cpp",
-      "sha256": "91e24d3a65cccc75cb1b08f90d0753fdceb2f708c3a51420363e2d77ffae1b13"
+      "sha256": "996a46e1d8c0389357c22bbfd81378ff252ae82b5b1e8abc8efae54fbbc5cc27"
     },
     {
       "path": "shared/tests/territorial-document-fixture.h",
@@ -573,7 +573,7 @@
     },
     {
       "path": "shared/tests/web-object-command-tests.cpp",
-      "sha256": "f510969239e3626ffef8a8f6877fbc65c29f0a7ff6d1aef339301882b8a5737e"
+      "sha256": "bf519f83be405ac4ce89bfb562251c554e83d6bf3d32a7d34376b9328c49908a"
     },
     {
       "path": "shared/tests/web-storage-tests.cpp",
@@ -621,7 +621,7 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "504fd230ed047316cb2b5c2f34f286105f75cb46cdeda5280d1918382d50da55"
+      "sha256": "e02149798a8adc22ffa4fec466d3c8e55160cd6fb648d44cec0cdc9f30122f4a"
     },
     {
       "path": "shared/wasm/timeline-bindings.cpp",
@@ -635,7 +635,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "c823967e8a89e2b65261c731e0d3ee78f5d13cee52b055671b67c93d0ff8dfdf"
+      "sha256": "6e480812333ddf9c2d4fac7794b92b5dbd1febd2a17e82f6639ea15834e9ee87"
     }
   }
 }

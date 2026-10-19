@@ -78,8 +78,7 @@ TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const st
         addStaticTerritorialRecords(result.document,unit.id,geometry,parent,coverage);
     }
     for(const auto& unit:source.units)if(result.inactiveIds.count(unit.id)) {
-        const auto group=unit.kind==UnitKind::Regional?"regions":
-            staticParentRelation(result.document,unit.id).parentId.empty()?"countries":"subunits";
+        const std::string group="objects";
         result.document.presentation.webPresentation.itemVisibility[group][unit.id]=false;
     }
     applyProperties(result.document,source.timelineRecords,month);

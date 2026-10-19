@@ -14,6 +14,7 @@ async function waitForEditor(page) {
 async function openCoastImport(page, targetType) {
   await page.locator('#mobileFileBtn').click();
   const chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('#fileAdvancedBtn').click();
   await page.locator('#openGisBtn').click();
   await (await chooserPromise).setFiles(fixture);
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });

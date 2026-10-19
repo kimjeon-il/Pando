@@ -143,7 +143,6 @@ private:
     bool batchBoundaryLabelSettings_=false;
     bool batchWebStateRevision_=false;
     bool batchClearsSelection_=false;
-    bool liveRegionVisibility_=false,liveSubunitVisibility_=false;
 };
 class CommandPreview {
 public:

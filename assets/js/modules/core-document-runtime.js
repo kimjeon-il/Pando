@@ -43,7 +43,8 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     // Publish the accepted load projection in this same Worker operation. A
     // second RPC could observe an intervening command or another document load.
     load: (payload, context) => call('documentLoad', () => [payload.storageJson, currentMonth()], context,loadedResult),
-    loadBaseline: (payload,context) => call('documentLoadBaseline',() => [payload.baselineId,currentMonth()],context,loadedResult),
+    baselineCoverage:(payload,context)=>call('baselineCoverage',[payload.baselineId,payload.month],context),
+    loadBaseline: (payload,context) => call('documentLoadBaseline',() => [payload.baselineId,payload.setup],context,loadedResult),
     initialize: (payload,context) => call('documentInitialize',() => [{ ...payload,currentMonth: currentMonth() }],context,loadedResult),
     captureReplacement: (payload,context) => call('captureReplacement',[payload.expectedEpoch],context),
     rollbackReplacement: (payload,context) => call('rollbackReplacement',[payload.replacementId,payload.expectedEpoch],context,loadedResult),

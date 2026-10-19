@@ -20,7 +20,7 @@ test('the application startup seed is a complete empty current-format input acce
   const store=createTerritorialEntityStore({ documentModel: model,commandOwner: client });
   try {
     const accepted=await client.load(JSON.stringify(input));
-    assert.deepEqual(accepted.project,input);assert.deepEqual(accepted.world.entities,[]);
+    assert.deepEqual(JSON.parse(await client.storageSnapshot()),input);assert.deepEqual(accepted.world.entities,[]);
     assert.deepEqual(accepted.selection.items,[]);assert.equal(accepted.draft.active,false);
     assert.equal(accepted.state.dirty,false);assert.equal(accepted.state.canUndo,false);assert.equal(accepted.state.stateRevision,0);
     assert.equal(Object.hasOwn(input,'projection'),false);assert.equal(Object.hasOwn(input,'view'),false);
@@ -30,7 +30,8 @@ test('the application startup seed is a complete empty current-format input acce
     assert.equal(session.state.geometries.snapshot(),model.snapshot().geometries);
     assert.equal(Object.hasOwn(session.state.geometries,'insert'),false);
     assert.throws(() => { session.state.labels=[]; },TypeError);
-    assert.throws(() => { session.state.layerVisibility.countries=false; },TypeError);
+    session.applyViewingPresentation({action:'visibility',key:'objects',visible:false});
+    assert.equal(session.state.layerVisibility.objects,false);assert.deepEqual(JSON.parse(await client.storageSnapshot()),input);assert.equal(client.state().dirty,false);
     assert.throws(() => { session.state.stateRevision=9; },TypeError);
     assert.equal(session.state.stateRevision,client.state().stateRevision);
     assert.equal(session.state.timelineCursor,client.state().timelineCursor);

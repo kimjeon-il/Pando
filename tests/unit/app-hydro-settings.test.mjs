@@ -8,7 +8,7 @@ function createFixture() {
   return settings;
 }
 
-test('new and legacy terrain settings start in physical color mode', () => {
+test('device terrain settings start in physical color mode', () => {
   const settings = createFixture();
 
   assert.deepEqual(settings.normalizePhysicalSettings(null), {
@@ -17,7 +17,6 @@ test('new and legacy terrain settings start in physical color mode', () => {
     terrainStyleVersion: 1,
     hydroLayers: { rivers_hydro: true, lakes_natural_earth: true },
     userFeaturesVisible: true,
-    hiddenHydroIds: {},
     dataset: 'test-physical-dataset',
   });
   assert.equal(settings.normalizePhysicalSettings({ terrainStyle: 'political' }).terrainStyle, 'physical');

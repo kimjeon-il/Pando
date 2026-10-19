@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 
@@ -70,10 +70,7 @@ async function memorySample(page, cdp, label) {
     workerUrls: page.workers().map(worker => new URL(worker.url()).pathname), autosave };
 }
 async function month(page, text) {
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill(text);
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  await setEditorMonth(page, text);
 }
 test('attribute first Soviet timeline and GPU-selection CPU cost, then test memory retention', async ({ page }, testInfo) => {
   test.setTimeout(300_000);

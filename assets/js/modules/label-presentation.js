@@ -36,7 +36,7 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
       .style('display', feature => namesVisible(feature) ? null : 'none')
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
     all
-      .style('opacity', labels.layerStyle?.(state.layerPresentation, 'countryLabels').opacity)
+      .style('opacity', labels.layerStyle?.(state.layerPresentation, 'objectLabels').opacity)
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
       .attr('transform', d => {
         const settings = labels.automaticLabelSettings?.('country', labels.labelSettings(state, 'territorial', labels.getTerritorialLabelRef(d.id).id));

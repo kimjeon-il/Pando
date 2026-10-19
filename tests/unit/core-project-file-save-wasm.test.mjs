@@ -9,7 +9,7 @@ test('file save encodes Core output and a late device write cannot clean a newer
   const seed=JSON.parse(await readFile(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8')),
     owner=await createNodeCoreProject(seed),saveState=createSaveStateController({ getDocumentState: owner.client.state });
   const encoded=[];
-  const project=createProjectDomain({ commandOwner: owner.client,documentModel: owner.documentModel,publishCommand() {},
+  const project=createProjectDomain({ productMode:'editor', commandOwner: owner.client,documentModel: owner.documentModel,publishCommand() {},
     appVersion: 'fixture-version',saveState,createProjectFile: async body => { encoded.push(body);return body; } });
   try {
     await project.executeCommand({ commandId: 'territorial.field',targets: [{ domain: 'territorial',id: 'A' }],payload: { id: 'A',field: 'name',value: 'Exported name' } });

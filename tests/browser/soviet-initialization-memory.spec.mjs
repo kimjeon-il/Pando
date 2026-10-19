@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 
@@ -74,7 +74,7 @@ async function readSnapshot(page, cdp, label) {
     return {
       nowMs: Number(performance.now().toFixed(1)),
       appReadiness: document.querySelector('#app')?.dataset.readiness || null,
-      historicalMonth: document.querySelector('#timelineMonthInput')?.value || null,
+      historicalMonth: window.__testEditorTimeline.month() || null,
       mainJsHeapUsed: Number(mainMemory.usedJSHeapSize || 0),
       mainJsHeapTotal: Number(mainMemory.totalJSHeapSize || 0),
       gpu: {
@@ -190,10 +190,7 @@ test('1989 Soviet initial timeline admission, selection setup, memory and cache 
   const phases = [];
   phases.push(await readSnapshot(page, cdp, 'startup-modern-world'));
   const beforeTimeline = await page.evaluate(() => performance.now());
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill('1989-06');
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  await setEditorMonth(page, '1989-06');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('state:soviet-union')?.geometry?.coordinates?.length || 0),
     { timeout: 90_000 }).toBeGreaterThan(0);
   const timelineVisibleMs = (await page.evaluate(() => performance.now())) - beforeTimeline;

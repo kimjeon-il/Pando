@@ -1,4 +1,5 @@
 #include <pandoeditor/project.h>
+#include <pandoeditor/projectcodec.h>
 #include "documentstate.h"
 #include <pandoeditor/timeline-view.h>
 #include <pandoeditor/losslessjson.h>
@@ -248,6 +249,7 @@ void Project::replace(ProjectDocument document)
     timelineCursor_.clear();timelineEditsEnabled_=!isStaticTimeline(state_->document);
 }
 bool Project::setTimelineCursor(const std::string& month,bool activateEdits,const ResolvedWorld* resolved) {
+    const auto header=codecjson::parse(document().exchangeMetadata);if(header.object.count("projectSetup"))projectcodec::requireNavigationMonth(header.object.at("projectSetup"),month);
     std::string next;
     if(!month.empty()) {
         const auto parsed=parseTemporal(month);
@@ -353,22 +355,6 @@ ProjectSnapshot Project::commitSnapshot(const ChangeSet& change) const
             const auto old=prior.itemVisibility.find(key),next=target.itemVisibility.find(key);
             owned(output.itemVisibility[key],old==prior.itemVisibility.end()?empty:old->second,next==target.itemVisibility.end()?empty:next->second);
         }
-        for(const auto* key:{"regions","subunits"})if((std::string(key)=="regions"&&change.liveRegionVisibility_)||(std::string(key)=="subunits"&&change.liveSubunitVisibility_)) {
-            const auto value=target.visibility.find(key);if(value!=target.visibility.end())output.visibility[key]=value->second;
-        }
-        if(const auto mutation=std::get_if<ApplyTerritorialMutation>(&change.request_.args.action))
-            if(const auto conversion=std::get_if<ConvertTerritorialTypeIntent>(&mutation->plan.intent)) {
-                const auto& source=document().units.at(index().objects.at(conversion->source));
-                const auto& id=source.id;
-                const auto fromGroup=territorialGroup(document(),source.id),toGroup=territorialGroup(candidate,id);
-                auto& out=candidate.presentation.webPresentation;
-                if(itemVisible(document().presentation.webPresentation,fromGroup,source.id))out.eraseItemVisibility(toGroup,id);
-                else out.itemVisibility[toGroup][id]=false;
-                const auto fromKey=territorialPresentationKey(source.id),toKey=territorialPresentationKey(id);
-                const auto latest=document().presentation.webPresentation.objectStyles.find(fromKey);
-                if(latest!=document().presentation.webPresentation.objectStyles.end())out.objectStyles[toKey]=latest->second;
-                normalizePresentation(candidate,timelineCursor_);
-            }
         rebased=std::make_shared<const detail::DocumentState>(std::move(candidate));
     }
     // View-only controls may change while a geometry candidate is held. Their
@@ -544,15 +530,6 @@ ProjectSnapshot Project::historySnapshot(bool forward,HistoryRestorePolicy polic
             const bool moved=!sameGeometryValue(*command.before_->document.geometries.get(beforeLabel.geometry),*command.after_->document.geometries.get(afterLabel.geometry));
             const auto& restore=moved?target->document.presentation.webPresentation.labelSettings:document().presentation.webPresentation.labelSettings;
             const auto owned=restore.find(ref);if(owned==restore.end())settings.erase(ref);else settings[ref]=owned->second;
-        }
-        next=std::make_shared<const detail::DocumentState>(std::move(candidate));
-    }
-    if(command.liveRegionVisibility_||command.liveSubunitVisibility_) {
-        auto candidate=next->document;auto& visibility=candidate.presentation.webPresentation.visibility;
-        for(const auto* key:{"regions","subunits"}) {
-            if((std::string(key)=="regions"&&!command.liveRegionVisibility_)||(std::string(key)=="subunits"&&!command.liveSubunitVisibility_))continue;
-            const auto value=document().presentation.webPresentation.visibility.find(key);
-            if(value==document().presentation.webPresentation.visibility.end())visibility.erase(key);else visibility[key]=value->second;
         }
         next=std::make_shared<const detail::DocumentState>(std::move(candidate));
     }

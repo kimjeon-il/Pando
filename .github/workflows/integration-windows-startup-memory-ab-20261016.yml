@@ -52,7 +52,7 @@ jobs:
       - name: Check full-world and physical-loading unit contracts
         shell: pwsh
         run: |
-          node --test tests/unit/deferred-physical-startup.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs
+          node --test tests/unit/editor-resource-capabilities.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Stage the same canonical world and physical resources once
         shell: pwsh

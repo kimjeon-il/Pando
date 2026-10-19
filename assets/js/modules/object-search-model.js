@@ -1,5 +1,5 @@
 const TYPE_LABELS = Object.freeze({
-  countries: '국가', subunits: '하위단위', regions: '지방',
+  objects: '객체',
   distributions: '분포', labels: '지명', genericFeatures: '기타 객체',
 });
 
@@ -20,7 +20,7 @@ export function createObjectSearchModel({ items, groups, itemRef, compare }) {
       : layerGroup === 'genericFeatures' ? (source.meta?.split(' · ')[0] || TYPE_LABELS[layerGroup])
         : TYPE_LABELS[layerGroup] || layerGroup;
     const item = { ...source, kind: 'object', key, ref, layerGroup, typeLabel };
-    if (['countries', 'regions', 'subunits'].includes(layerGroup)) bundles[0].items.push(item);
+    if (layerGroup === 'objects') bundles[0].items.push(item);
     else if (layerGroup === 'hydro') bundles[1].items.push(item);
     else objects.push(item);
   }
@@ -32,16 +32,16 @@ export function createObjectSearchModel({ items, groups, itemRef, compare }) {
   }
   const political = bundles[0].items;
   const parentsById = new Map();
-  for (const item of political.filter(item => ['countries', 'subunits'].includes(item.layerGroup))) {
+  for (const item of political) {
     const matches = parentsById.get(String(item.id)) || [];
     matches.push(item); parentsById.set(String(item.id), matches);
   }
   const parentKeys = new Map(), children = new Map();
-  for (const item of political.filter(item => item.layerGroup === 'subunits')) {
-    const matches = parentsById.get(String(item.parentId || item.countryId || '')) || [];
+  for (const item of political.filter(item => item.parentId)) {
+    const matches = parentsById.get(String(item.parentId)) || [];
     if (matches.length === 1 && matches[0].key !== item.key) parentKeys.set(item.key, matches[0].key);
   }
-  // Preserve malformed legacy relationships as direct rows rather than hiding them in cycles.
+  // Keep invalid cycles from hiding rows while the domain reports their error.
   for (const key of [...parentKeys.keys()]) {
     const visited = new Set([key]);
     let cursor = parentKeys.get(key);

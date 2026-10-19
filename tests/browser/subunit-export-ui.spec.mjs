@@ -6,6 +6,7 @@ test('GIS export shows one subunit choice and counts subunit-only selection', as
   await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#mobileFileBtn').click();
+  await page.locator('#fileAdvancedBtn').click();
   await page.locator('#dataExportBtn').click();
   const choices = page.locator('.gis-export-layers input');
   await expect(choices).toHaveCount(6);

@@ -27,6 +27,7 @@
   color: var(--text-soft);
 }
 
+
 .timeline-status {
   position: relative;
   flex: 0 0 auto;
@@ -199,39 +200,6 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
 .app-root[data-layout="mobile"] .status-inner {
   padding-inline: var(--ui-space-2);
   overflow: visible;
-}
-
-/* The floating timeline's height also reserves space for the mobile map tools. */
-.app-root[data-layout="mobile"] {
-  --ui-mobile-timeline-control-height: 2.5rem;
-  --ui-mobile-timeline-row-height: calc(
-    var(--ui-mobile-timeline-control-height) + var(--ui-space-1) + var(--ui-space-1)
-  );
-}
-
-.app-root[data-layout="mobile"] .timeline-status {
-  position: absolute;
-  right: var(--ui-space-2);
-  bottom: calc(100% + var(--ui-space-1));
-  padding: var(--ui-space-1);
-  border-radius: var(--ui-radius-control);
-  background: var(--panel);
-  pointer-events: auto;
-}
-
-.app-root[data-layout="mobile"] .timeline-step {
-  width: clamp(2.25rem, 10vw, 2.5rem);
-  min-height: var(--ui-mobile-timeline-control-height);
-  height: var(--ui-mobile-timeline-control-height);
-}
-
-.app-root[data-layout="mobile"] .timeline-month-control {
-  width: clamp(7.5rem, 36vw, 8.75rem);
-}
-
-.app-root[data-layout="mobile"] .timeline-month-button,
-.app-root[data-layout="mobile"] .timeline-month-input {
-  height: var(--ui-mobile-timeline-control-height);
 }
 
 .app-root[data-layout="mobile"] .status-view {

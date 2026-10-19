@@ -96,9 +96,9 @@ test('distribution controls stay inside the single view submenu on desktop and m
   await expect(page.locator('#distributionSingleRadio')).toBeChecked();
   await expect(page.locator('#distributionLegend')).toBeVisible();
   await expect(page.locator('#distributionBoundaryVisibleInput')).toBeVisible();
-  await page.locator('[data-map-display-row="general"]').click();
-  await page.locator('[data-map-display-row="countries"]').click();
-  await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
+
+  await page.locator('[data-map-display-row="objects"]').click();
+  await expect(page.locator('#layerStylePanel-objects')).toBeVisible();
   await expect(style).toBeHidden();
 
   await page.setViewportSize({ width: 390, height: 844 });

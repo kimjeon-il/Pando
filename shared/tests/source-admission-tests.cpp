@@ -52,8 +52,8 @@ int main() {
     assert(!initialized.dirty&&!initialized.canUndo&&!initialized.timelineEditsEnabled&&isStaticTimeline(preview.project().document()));
     auto emptyRoot=codecjson::parse(seed);
     for(const auto* key:{"territorialEntities","geometries","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries"})emptyRoot.object[key]=V::arr();
-    emptyRoot.object["timelineRecords"]=codecjson::parse("{\"schemaVersion\":1,\"lifetimes\":[],\"geometryBindings\":[],\"parentRelations\":[]}");
-    emptyRoot.object["labelSettings"]=V::obj();emptyRoot.object["itemVisibility"]=V::obj();emptyRoot.object.at("layerPresentation").object["objectStyles"]=V::obj();
+    emptyRoot.object["timelineRecords"]=codecjson::parse("{\"schemaVersion\":2,\"lifetimes\":[],\"geometryBindings\":[],\"parentRelations\":[],\"propertyBindings\":[]}");
+    emptyRoot.object["labelSettings"]=V::obj();emptyRoot.object.at("distributionSettings").object["activeLayerId"]=V::str("");emptyRoot.object.at("layerPresentation").object["objectStyles"]=V::obj();emptyRoot.object.at("layerPresentation").object["objectOrder"]=V::arr();
     DocumentSession progressive(ports);progressive.documentLoad(emptyRoot.encode(),"2026-10");
     const auto promoted=progressive.documentInitialize("","2026-10",true,features,{},progressive.projectState().epoch);
     assert(promoted.dirtyTerritorialIds.empty()&&!promoted.dirty&&!promoted.canUndo);
@@ -94,20 +94,10 @@ int main() {
     assert(projectcodec::decode(alphaBytes,ports).labels.at(0).id=="Alpha");
     assert(alphaSession.undo(alphaSession.projectState().epoch).result.changed());
     assert(alphaSession.project().document().geometries.get(alphaSession.project().document().labels.at(0).geometry)->points.at(0).x==2);
-    auto visibleSeed=codecjson::parse(seed);auto& visibility=visibleSeed.object.at("itemVisibility").object.at("countries");
-    visibility.object["A"]=V::boolean(true);visibility.object["ghost-true"]=V::boolean(true);visibility.object["ghost-false"]=V::boolean(false);
-    DocumentSession visible(ports);visible.documentLoad(visibleSeed.encode(),"2026-10");
-    assert(visible.project().document().presentation.webPresentation.itemVisibility.at("countries").at("A"));
-    visible.presentationCatalogLoad({},visible.projectState().epoch);
-    const auto& admittedVisibility=visible.project().document().presentation.webPresentation.itemVisibility.at("countries");
-    assert(admittedVisibility.size()==1&&admittedVisibility.at("A")&&!visible.projectState().dirty);
-    assert(visible.applyPresentation(WebControlVisibility{"labels",false},visible.projectState().epoch).result.changed());
-    assert(codecjson::parse(visible.documentSnapshot()).object.at("itemVisibility").object.at("countries").object.at("A").raw=="true");
-    // Known current platform format difference: native hiddenItems arrays have
-    // no explicit-visible presence carrier. Preserve the existing conversion,
-    // while the Web runtime/storage retains the true value above exactly.
-    const auto visibleNative=projectcodec::decode(projectcodec::encode(visible.project().snapshot(),ports),ports);
-    assert(!visibleNative.presentation.webPresentation.itemVisibility.at("countries").count("A"));
+    auto visibleSeed=codecjson::parse(seed);visibleSeed.object["itemVisibility"]=V::obj();
+    const auto beforeInvalidView=alphaSession.documentSnapshot();
+    try{alphaSession.documentLoad(visibleSeed.encode(),"2026-10");assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what()).find("PL-SCHEMA-FIELD")!=std::string::npos);}
+    assert(alphaSession.documentSnapshot()==beforeInvalidView);
     auto padded=alphaSession.project().document();padded.presentation.objectStyles.at(territorialRef("A")).opacity=0.5;
     padded.labels.at(0).id=" Alpha ";DistributionLayer paddedLayer;paddedLayer.id=" Layer ";paddedLayer.name="Layer";
     padded.distributionLayers.push_back(paddedLayer);Project paddedProject;paddedProject.replace(std::move(padded));
@@ -124,9 +114,12 @@ int main() {
     const auto paddedWire=projectcodec::decode(projectcodec::encode(paddedSession.project().snapshot(),ports),ports);
     assert(paddedWire.labels.at(0).id==" Alpha "&&paddedWire.labels.at(0).name=="Raw label name"&&paddedWire.distributionLayers.at(0).id==" Layer "&&paddedWire.distributionLayers.at(0).name=="Changed layer");
     assert(paddedSession.undo(paddedSession.projectState().epoch).result.changed()&&paddedSession.project().document().distributionLayers.at(0).name=="Layer");
+    DocumentSession visible(ports);visible.documentLoad(seed,"2026-10");
+    PresentationCatalog physicalCatalog;physicalCatalog.hydroLayers={{"physical-source","river"}};
+    visible.presentationCatalogLoad(std::move(physicalCatalog),visible.projectState().epoch);
     visible.selectionCatalogLoad("hydroBuiltin",{{builtin,std::string("physical-source")}},visible.projectState().epoch);
     assert(visible.applyPresentation(WebObjectVisibility{{builtin},false},visible.projectState().epoch).result.changed());
-    assert(codecjson::parse(visible.documentSnapshot()).object.at("physicalSettings").object.at("hiddenHydroIds").object.at("physical-source").raw=="true");
+    assert(!codecjson::parse(visible.storageSnapshot()).object.count("itemVisibility"));
     assert(!visible.applyPresentation(WebObjectVisibility{{builtin},false},visible.projectState().epoch).result.changed());
     assert(visible.applyPresentation(WebObjectVisibility{{builtin},true},visible.projectState().epoch).result.changed());
     auto orphan=codecjson::parse(seed);orphan.object.at("labels").array.at(0).object["territorialUnitId"]=V::str("deleted-owner");

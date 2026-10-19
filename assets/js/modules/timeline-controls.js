@@ -11,7 +11,7 @@ export function timelineMonthLabel(value) {
 }
 
 /** Timeline controls update only the session cursor, never document history. */
-export function installTimelineControls({ document, window, getMonth, setMonth, onMonthLabel = () => {} }) {
+export function installTimelineControls({ document, window, getMonth, setMonth }) {
   const input = document.getElementById('timelineMonthInput');
   const button = document.getElementById('timelineMonthButton');
   const buttonText = document.getElementById('timelineMonthButtonText');
@@ -43,7 +43,6 @@ export function installTimelineControls({ document, window, getMonth, setMonth, 
     label.textContent = readable;
     buttonText.textContent = readable;
     button.setAttribute('aria-label', `${readable}, 시점 직접 입력`);
-    onMonthLabel(readable);
     if (!editing) input.value = month;
   };
   const exitEdit = (focusButton = false) => {

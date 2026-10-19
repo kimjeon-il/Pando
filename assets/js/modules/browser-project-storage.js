@@ -1,4 +1,5 @@
 export function createBrowserProjectStorage({
+  productMode='editor',
   indexedDB,
   localStorage,
   databaseName,
@@ -10,6 +11,7 @@ export function createBrowserProjectStorage({
   databaseVersion = 2,
   fallbackLimit = 4_500_000,
 }) {
+  if(!['viewer','editor'].includes(productMode))throw new TypeError('Project storage requires a known product mode.');
   let databasePromise = null;
 
   function openDatabase() {
@@ -90,17 +92,19 @@ export function createBrowserProjectStorage({
   }
 
   return Object.freeze({
+    readView: documentId => readRecord(`${viewKey}:${documentId}`,  '보기 위치 읽기 실패'),
+    writeView: view => {if(typeof view.documentId!=='string'||!view.documentId)throw new TypeError('Workspace documentId is required.');return writeRecord(`${viewKey}:${view.documentId}`, view, '보기 위치 저장 실패');},
+    ...(productMode==='editor'?{
     readProject: () => readRecord(projectKey, '자동저장 읽기 실패'),
-    readView: () => readRecord(viewKey, '보기 위치 읽기 실패'),
     readPreview: () => readRecord(previewKey, '지도 미리보기 읽기 실패'),
     writeProject: project => writeRecord(projectKey, project, '자동저장 쓰기 실패'),
     writeRecovery: record => writeRecord(`${projectKey}:recovery:${globalThis.crypto.randomUUID()}`, record, '저장본 복구 기록 쓰기 실패'),
-    writeView: view => writeRecord(viewKey, view, '보기 위치 저장 실패'),
     writePreview: preview => writeRecord(previewKey, preview, '지도 미리보기 저장 실패'),
     deletePreview,
     deleteRecords,
     readFallback,
     writeFallback,
     removeFallback,
+    }:{}),
   });
 }

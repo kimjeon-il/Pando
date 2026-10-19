@@ -8,6 +8,7 @@ test('a failed post-load platform replacement restores the same C++ full history
   const seed=JSON.parse(await readFile(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
   const owner=await createNodeCoreProject(seed),failure=new Error('The platform mesh was not staged.');
   try {
+    const initialSnapshot=owner.documentModel.snapshot();
     await owner.project.executeCommand({ commandId: 'territorial.field',targets: [{ domain: 'territorial',id: 'A' }],
       payload: { id: 'A',field: 'name',value: 'Before failed open' } });
     await owner.client.selectionApply({ action: 'replace',ref: { domain: 'territorial',type: 'entity',id: 'A' },scope: 'map' });
@@ -15,7 +16,7 @@ test('a failed post-load platform replacement restores the same C++ full history
     await owner.client.draftApply({ action: 'append',coordinate: [2,2] });
     const before=owner.documentModel.snapshot(),state=owner.client.state(),selection=await owner.client.selectionSnapshot(),draft=await owner.client.draftSnapshot();
     let restored;const effects=[];
-    const project=createProjectDomain({ commandOwner: owner.client,documentModel: owner.documentModel,publishCommand() {},
+    const project=createProjectDomain({ productMode:'editor', commandOwner: owner.client,documentModel: owner.documentModel,publishCommand() {},
       readBuiltinSelectionCatalogs: () => [],
       onProjectReset: async event => effects.push(event.reason),
       replaceSnapshot: async () => { throw failure; },restoreReplacement: async value => { restored=value;effects.push('render-restored'); } });
@@ -28,7 +29,7 @@ test('a failed post-load platform replacement restores the same C++ full history
     assert.deepEqual(await owner.client.selectionSnapshot(),selection);assert.deepEqual(await owner.client.draftSnapshot(),draft);
     assert.deepEqual(effects,['project-load','project-rollback','render-restored']);assert.equal(project.getGeneration(),2);
     assert.equal(project.isReplacing(),false);
-    assert.equal(await project.undo(),true);assert.deepEqual(owner.documentModel.snapshot(),seed);assert.equal(project.canRedo(),true);
+    assert.equal(await project.undo(),true);assert.deepEqual(owner.documentModel.snapshot(),initialSnapshot);assert.equal(project.canRedo(),true);
     project.dispose();
   } finally { owner.dispose(); }
 });
