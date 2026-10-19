@@ -1,0 +1,1515 @@
+{
+  "schema": "pandolab-reference-image-ui-integration-v1",
+  "capturedAtUtc": "2026-10-19T03:50:23.851910+00:00",
+  "repository": "kimjeon-il/Pando",
+  "branch": "feature/reference-image-p1-layout-20261018",
+  "pullRequest": 134,
+  "featureParent": "5e70dcf1fc130cb39b4b441b721ec9902048ace5",
+  "initialUiBase": "5a07e8b276a4284114990eddee0d08ef6e85b80e",
+  "finalUiBase": "d99274160b97b8e47c884d44b3e49af3747ee04f",
+  "runtime": {
+    "node": "24.19.0",
+    "pnpm": "11.25.0",
+    "playwright": "1.62.1",
+    "chromium": "151.0.7922.34",
+    "platform": "Linux"
+  },
+  "summary": {
+    "uniqueUnitCases": 206,
+    "uniqueBrowserScenarios": 38,
+    "initialBrowserExecutions": 38,
+    "latestBaseRepeatedScenarios": 5,
+    "totalSuccessfulBrowserExecutions": 43,
+    "uiContractGroups": 7,
+    "initialUnitCases": 64,
+    "ciFollowupReferenceUnitCases": 161,
+    "overlappingUnitCases": 19
+  },
+  "unitResults": [
+    {
+      "file": "apps/web-shell/tests/stage.test.mjs",
+      "exit": 0,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "f1f8a8f617911f741b043cc74ea5956ed6a33fdc8e3e4edfc08fd6d88c15bd67"
+    },
+    {
+      "file": "tests/unit/app-ui-boundaries.test.mjs",
+      "exit": 0,
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/map-hover-topology.test.mjs",
+      "exit": 0,
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/map-input-controller.test.mjs",
+      "exit": 0,
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/reference-image-analysis-compat.test.mjs",
+      "durationSeconds": 0.056,
+      "tests": 9,
+      "suites": 0,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-architecture.test.mjs",
+      "durationSeconds": 0.048,
+      "tests": 3,
+      "suites": 0,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-auto-georef.test.mjs",
+      "durationSeconds": 0.051,
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-draft-ack.test.mjs",
+      "durationSeconds": 0.068,
+      "tests": 10,
+      "suites": 0,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-edit-session.test.mjs",
+      "durationSeconds": 0.058,
+      "tests": 5,
+      "suites": 0,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-editing-bridge.test.mjs",
+      "durationSeconds": 0.058,
+      "tests": 5,
+      "suites": 0,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-georef.test.mjs",
+      "durationSeconds": 0.283,
+      "tests": 23,
+      "suites": 0,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-interaction.test.mjs",
+      "durationSeconds": 0.184,
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-line-refiner.test.mjs",
+      "durationSeconds": 0.133,
+      "tests": 4,
+      "suites": 0,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-live-wire.test.mjs",
+      "durationSeconds": 0.118,
+      "tests": 8,
+      "suites": 0,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-model.test.mjs",
+      "durationSeconds": 0.045,
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-ocr.test.mjs",
+      "durationSeconds": 0.045,
+      "tests": 3,
+      "suites": 0,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-place-match.test.mjs",
+      "durationSeconds": 0.163,
+      "tests": 7,
+      "suites": 0,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-pointer-target.test.mjs",
+      "durationSeconds": 0.043,
+      "tests": 4,
+      "suites": 0,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-source-mapping.test.mjs",
+      "durationSeconds": 0.157,
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-store.test.mjs",
+      "durationSeconds": 0.045,
+      "tests": 4,
+      "suites": 0,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-surface.test.mjs",
+      "durationSeconds": 0.136,
+      "tests": 8,
+      "suites": 0,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-transform.test.mjs",
+      "durationSeconds": 0.155,
+      "tests": 19,
+      "suites": 0,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-ui.test.mjs",
+      "durationSeconds": 0.051,
+      "tests": 15,
+      "suites": 0,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/reference-image-workflow-cancel.test.mjs",
+      "durationSeconds": 0.159,
+      "tests": 10,
+      "suites": 0,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit": 0
+    },
+    {
+      "file": "tests/unit/workspace-layout.test.mjs",
+      "exit": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  ],
+  "unitRevalidation": {
+    "file": "tests/unit/app-ui-boundaries.test.mjs",
+    "exit": 0,
+    "tests": 14,
+    "pass": 14,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "logSha256": "9211ba1eee3d542f650830d9cfa27b904728c07b46fc4e0550a9894f07375cda"
+  },
+  "browserResults": [
+    {
+      "name": "reference-and-workspace",
+      "uiBase": "5a07e8b276a4284114990eddee0d08ef6e85b80e",
+      "exit": 0,
+      "passed": 21,
+      "duration": "4.6m",
+      "specs": [
+        "reference-image-auto-workflow",
+        "reference-image-auxiliary-surface",
+        "reference-image-line-refine",
+        "reference-image-live-wire",
+        "reference-image-overlay",
+        "workspace-surfaces"
+      ],
+      "cases": [
+        "tests/browser/reference-image-auto-workflow.spec.mjs:55:3 › desktop 1440px analysis cancellation protects a new GCP workflow from late OCR (8.8s)",
+        "tests/browser/reference-image-auto-workflow.spec.mjs:55:3 › mobile 390px analysis cancellation protects a new GCP workflow from late OCR (7.6s)",
+        "tests/browser/reference-image-auxiliary-surface.spec.mjs:108:3 › mobile 390px line refinement keeps actions usable through panel expansion without changing the image (12.0s)",
+        "tests/browser/reference-image-auxiliary-surface.spec.mjs:108:3 › mobile 390px live wire keeps actions usable through panel expansion without changing the image (12.2s)",
+        "tests/browser/reference-image-line-refine.spec.mjs:115:1 › line refinement accepts a current corner-pin mapping and supports cancel/apply preview flow (16.6s)",
+        "tests/browser/reference-image-live-wire.spec.mjs:125:1 › live-wire accepts a current corner-pin mapping and traces/applies an edge path (18.0s)",
+        "tests/browser/reference-image-live-wire.spec.mjs:223:1 › linear constraint preview leaves storage unchanged until one apply (16.5s)",
+        "tests/browser/reference-image-overlay.spec.mjs:10:1 › duplicate raw records survive whole saves and independent completed edits need no shutdown rewrite (9.5s)",
+        "tests/browser/reference-image-overlay.spec.mjs:67:1 › unchanged image startup and shutdown never rewrite the collection (6.8s)",
+        "tests/browser/reference-image-overlay.spec.mjs:82:1 › undecodable image originals survive full saves, deletion, undo and a pending shutdown edit (8.8s)",
+        "tests/browser/reference-image-overlay.spec.mjs:219:1 › reference image toolbar button is present before enhanced startup (557ms)",
+        "tests/browser/reference-image-overlay.spec.mjs:226:1 › reference image surface docks beside the desktop map, resizes and collapses without covering it (11.9s)",
+        "tests/browser/reference-image-overlay.spec.mjs:274:1 › reference image bottom sheet collapses without closing on mobile (7.2s)",
+        "tests/browser/reference-image-overlay.spec.mjs:311:1 › reference image list controls and task tabs preserve selection and stored appearance (19.3s)",
+        "tests/browser/reference-image-overlay.spec.mjs:388:1 › explicit map navigation, Space and overlapping images keep each input owner separate (22.0s)",
+        "tests/browser/reference-image-overlay.spec.mjs:458:1 › mobile navigation button preserves GCP phase and two-finger pinch cancels an image drag (13.9s)",
+        "tests/browser/reference-image-overlay.spec.mjs:513:1 › reference images support placement, ordering, georeferencing and persistence without blocking normal map input (29.4s)",
+        "tests/browser/workspace-surfaces.spec.mjs:4:1 › desktop display menu becomes visible as soon as it opens (138ms)",
+        "tests/browser/workspace-surfaces.spec.mjs:28:1 › mobile create, display and editor share the current sheet contract (17.9s)",
+        "tests/browser/workspace-surfaces.spec.mjs:62:1 › display and create reuse their DOM when switching between menu and sheet layouts (16.3s)",
+        "tests/browser/workspace-surfaces.spec.mjs:86:1 › hamburger is mobile-only and mobile workspace fills the viewport (16.6s)"
+      ],
+      "logSha256": "12fb1278b4f4bd5e8ba1a4d33a0d2f2e4218b82b6f488db5d644093452228df2"
+    },
+    {
+      "name": "ux",
+      "uiBase": "5a07e8b276a4284114990eddee0d08ef6e85b80e",
+      "exit": 0,
+      "passed": 16,
+      "duration": "2.2m",
+      "specs": [
+        "reference-image-ux"
+      ],
+      "cases": [
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 320x568 in light theme (7.5s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 390x844 in light theme (7.2s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 768x1024 in light theme (6.7s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 1024x800 in light theme (7.7s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 1440x900 in light theme (7.5s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 320x568 in dark theme (7.9s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 390x844 in dark theme (6.9s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 768x1024 in dark theme (7.0s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 1024x800 in dark theme (8.5s)",
+        "tests/browser/reference-image-ux.spec.mjs:124:5 › reference panel fits 1440x900 in dark theme (8.7s)",
+        "tests/browser/reference-image-ux.spec.mjs:142:1 › keyboard tab navigation and dock resizing preserve focus, ARIA and the image record (13.9s)",
+        "tests/browser/reference-image-ux.spec.mjs:184:1 › desktop guidance advances image to map and cancels the unfinished point from a collapsed dock (9.9s)",
+        "tests/browser/reference-image-ux.spec.mjs:213:1 › 320px mobile sheet retains the unfinished map step through expansion and cancellation (7.4s)",
+        "tests/browser/reference-image-ux.spec.mjs:254:5 › phone landscape reference-image workflows › phone landscape 640x360 keeps GCP controls usable without changing the saved image (7.9s)",
+        "tests/browser/reference-image-ux.spec.mjs:254:5 › phone landscape reference-image workflows › phone landscape 844x390 keeps GCP controls usable without changing the saved image (8.7s)",
+        "tests/browser/reference-image-ux.spec.mjs:327:1 › reduced motion suppresses the rendered reference sheet and launcher transitions (7.0s)"
+      ],
+      "logSha256": "13a4880c6072c947e80fcd0fcd83393d44ad932944e44e22a756bdd5c09e2ab7"
+    },
+    {
+      "name": "public-viewer-initial",
+      "uiBase": "5a07e8b276a4284114990eddee0d08ef6e85b80e",
+      "exit": 0,
+      "passed": 1,
+      "duration": "53.6s",
+      "specs": [
+        "web-viewer:1280x800"
+      ],
+      "cases": [
+        "tests/browser/web-viewer.spec.mjs:5:1 › existing UI loads, searches and navigates without document writes at 1280x800 (52.9s)"
+      ],
+      "logSha256": "4fc52d7b9ddaaaf3498052b8a22b4e2fe841b74ab79ebd3913228df665e4e9a4"
+    },
+    {
+      "name": "latest-editor-and-viewer",
+      "uiBase": "d99274160b97b8e47c884d44b3e49af3747ee04f",
+      "exit": 0,
+      "passed": 3,
+      "duration": "1.0m",
+      "specs": [
+        "reference-image-auto-workflow",
+        "web-viewer:1280x800"
+      ],
+      "cases": [
+        "tests/browser/reference-image-auto-workflow.spec.mjs:55:3 › desktop 1440px analysis cancellation protects a new GCP workflow from late OCR (8.0s)",
+        "tests/browser/reference-image-auto-workflow.spec.mjs:55:3 › mobile 390px analysis cancellation protects a new GCP workflow from late OCR (6.5s)",
+        "tests/browser/web-viewer.spec.mjs:5:1 › existing UI loads, searches and navigates without document writes at 1280x800 (47.5s)"
+      ],
+      "logSha256": "d5e852186aac3d9186ec58ac824eb8717110e35da20ffce27fd59a280687f654"
+    },
+    {
+      "name": "latest-landscape",
+      "uiBase": "d99274160b97b8e47c884d44b3e49af3747ee04f",
+      "exit": 0,
+      "passed": 2,
+      "duration": "17.7s",
+      "specs": [
+        "reference-image-ux:phone-landscape"
+      ],
+      "cases": [
+        "tests/browser/reference-image-ux.spec.mjs:254:5 › phone landscape reference-image workflows › phone landscape 640x360 keeps GCP controls usable without changing the saved image (8.5s)",
+        "tests/browser/reference-image-ux.spec.mjs:254:5 › phone landscape reference-image workflows › phone landscape 844x390 keeps GCP controls usable without changing the saved image (8.4s)"
+      ],
+      "logSha256": "43d2a3e88cca8c36c254c4d710e6c1b24a3cb69551f5dfcfe247a4c53d5e7cd4"
+    }
+  ],
+  "staticChecks": {
+    "ui": {
+      "command": "pnpm check:ui",
+      "exit": 0,
+      "groups": [
+        "ui-spacing",
+        "ui-components",
+        "ui-architecture",
+        "ui-layering",
+        "ui-ia",
+        "object-registry",
+        "surface-state"
+      ],
+      "logSha256": "912124911b4f660e1757874aa64f41980e89a8e6c583319fb5b9277cfcc967f1"
+    },
+    "eslint": {
+      "exit": 0,
+      "scope": "changed JavaScript and unit/browser specs"
+    },
+    "diffCheck": {
+      "scope": "final feature diff relative to latest work/ui",
+      "base": "d99274160b97b8e47c884d44b3e49af3747ee04f",
+      "exit": 0,
+      "unmergedEntries": 0
+    }
+  },
+  "staging": {
+    "profile": "small-project",
+    "filesVerified": 930,
+    "bytesVerified": 56115506,
+    "stageEvidenceSha256": "d480e80802d74f7de70f38f41d8a457abf88b641c6ef07fe93f47d9235bebe0c",
+    "recordedGitHead": "5e70dcf1fc130cb39b4b441b721ec9902048ace5",
+    "recordedTrackedDiffSha256": null,
+    "gitIdentityNote": "Staged the merged working tree before committing; individual source and shared asset hashes identify the actual inputs.",
+    "referenceAssets": 28,
+    "adjacentAssets": 4,
+    "sharedAssets": [
+      {
+        "path": "assets/js/modules/app-global-input-bindings.js",
+        "bytes": 15128,
+        "sha256": "fd9bf26c8a4b13020c2c40c8dcd06b861e085401927d4f1cc7a1d28ec95b6159",
+        "group": "adjacent-ui"
+      },
+      {
+        "path": "assets/js/modules/map-input-presentation.js",
+        "bytes": 10955,
+        "sha256": "371382313fbba5bc14cd7c05a7792a8100c98b2112302bf87d2d103ba80c7e0a",
+        "group": "adjacent-ui"
+      },
+      {
+        "path": "assets/js/modules/reference-image-auto-georef.js",
+        "bytes": 16524,
+        "sha256": "7b3ae2c85b37c39e64e0bf299103a3922d51147fd76f8ee531970b976cad8fab",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-bootstrap.js",
+        "bytes": 3318,
+        "sha256": "46ef574eba55056d8425ffce4cb05f5f8e9f1743fce884ee6681029c3ef8b11c",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-controller.js",
+        "bytes": 61426,
+        "sha256": "d88335bfb0e66bd6ccf2298323a046a1a33cf6f1143cd23d385266f0d1c01f85",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-core.js",
+        "bytes": 4729,
+        "sha256": "718c7d748201c11266c9a2191c116378113557a01998e64cdb77e907156d595e",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-edit-session.js",
+        "bytes": 2028,
+        "sha256": "d60ad747ae8472df799073e8b2d1196beb16f30dcf7db2f5cdd969efdf0f6465",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-editing-bridge.js",
+        "bytes": 1230,
+        "sha256": "e3c3570818200801244e9b0f541ae0d070c365cef83d9f2bcd4b572722bccefe",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-georef.js",
+        "bytes": 4411,
+        "sha256": "b28aea5efc463fd576521076b21e765e5bfa96caa88c389c07140d10578c452e",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-input.js",
+        "bytes": 1394,
+        "sha256": "b4395d99123489475d3f55465b83be4e6aabd14bbc9a073a968828da3cce69aa",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-interaction.js",
+        "bytes": 25445,
+        "sha256": "c40ba29e549f202d464bcfbd09fcf27bcccaa53542787c02c02ca09ac1f00774",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-line-refine-controller.js",
+        "bytes": 27554,
+        "sha256": "28d5832e58df22b71f2983f152cc9e1f73429451d54917e20dfddd3292b6578f",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-line-refiner.js",
+        "bytes": 4010,
+        "sha256": "f3b7394e6f810ea29bf5874ce19bc5db70daa8e0d0a3241c551f29cdf05f5a8d",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-live-wire-controller.js",
+        "bytes": 35127,
+        "sha256": "7e091a435e7548be754d02f0fb7354b5a1000158dcf6ad2dd0a9f6e6ba728a59",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-live-wire.js",
+        "bytes": 6059,
+        "sha256": "118229cfd4218343e92887432ea405e774472d7906674c7881afd14f6ab734f6",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-model.js",
+        "bytes": 7487,
+        "sha256": "b39c1c40c464f89963b9948471fdb916292e28817dbacf88d9dc63a17cd7cba0",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-ocr.js",
+        "bytes": 7071,
+        "sha256": "c7dd9da9e692e0825743940330f7c0497f4fa3a92315ed1e3450cadb00166ff5",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-place-match.js",
+        "bytes": 17611,
+        "sha256": "62378c541168733a6545bf0466a2033c403ea1723e6c0f5ff9ce088dc4543d9a",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-pointer-target.js",
+        "bytes": 1388,
+        "sha256": "3764f527bbc58001077fddc5320aee049700c56f17791a27ac486176954e6b8c",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-renderer.js",
+        "bytes": 17910,
+        "sha256": "12ad7e88f55749bf9a14431ec493a7475cd3ef4348a931714e1b1461cd8da2ee",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-source-mapping.js",
+        "bytes": 978,
+        "sha256": "5e085d4a6619f77a65fe0c698c408f5688a20afba1edf86e0c8183308bd4f137",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-store.js",
+        "bytes": 2515,
+        "sha256": "34866c38c8e29e006d9ffa85f99387aa452ffb3e075592878db4f50f0f6b7d29",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-surface-port.js",
+        "bytes": 322,
+        "sha256": "945f5efbd99f34de22297d37ad28f1db4cee2dd1f13816605833dc08277aa99b",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-surface.js",
+        "bytes": 16598,
+        "sha256": "4d847948db4b00c0b9438f5cb60a875c66c0caeef5f793d046df1496acf3ae39",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-transform.js",
+        "bytes": 21905,
+        "sha256": "2bb93ed12e4e287a26de723e38f28c7ee27caefa0c1c36a96c95aea95dbff904",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/reference-image-ui.js",
+        "bytes": 29737,
+        "sha256": "9a5a8250ef961ba0ff4fe1928c864b09d1cf8752f64f7274a765d9ec4d451683",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/js/modules/workspace-layout.js",
+        "bytes": 652,
+        "sha256": "ab8f3282e132e027a05cf110c7dd4a527b89097714a3fc5ff1f205c1e256b593",
+        "group": "adjacent-ui"
+      },
+      {
+        "path": "assets/js/modules/workspace-surfaces.js",
+        "bytes": 25086,
+        "sha256": "59ca37ebbdaaac5df38c320b5a2e0766bc8716b418c4d31931bce393c1cb20a5",
+        "group": "adjacent-ui"
+      },
+      {
+        "path": "assets/css/components/reference-images.css",
+        "bytes": 13354,
+        "sha256": "eb8bf1cf3cdd0907fac341967bddcf0f7dcdb1a990872550fb033054096ad9da",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/css/features/reference-images.css",
+        "bytes": 1196,
+        "sha256": "b613e28c6d2d676874f4a0419a9d6673a7039cf709ebb7530bf494ec9818c72b",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/css/layout/reference-images.css",
+        "bytes": 16415,
+        "sha256": "6256157cac9cf8b49a58130ffa08f776b5a54c7aa73164c096b9235c5e6318e0",
+        "group": "reference-image"
+      },
+      {
+        "path": "assets/css/tokens/reference-images.css",
+        "bytes": 775,
+        "sha256": "3425d3a39069af580ad2fac60559e85deda4fd1d6dbea07f87652b268eeacd03",
+        "group": "reference-image"
+      }
+    ]
+  },
+  "baseAdvance": {
+    "old": "5a07e8b276a4284114990eddee0d08ef6e85b80e",
+    "new": "d99274160b97b8e47c884d44b3e49af3747ee04f",
+    "entryDocuments": [
+      {
+        "path": "index.html",
+        "equalAfterAssetRevisionNormalization": true,
+        "beforeSha256": "d8c681af887e8b3a45de04d9eb6510220530148b27b4b660c5894e33afe26c38",
+        "afterSha256": "e0435b93ce5108f5c1b021b8eb7b01c29c784bd9f1cd54ac1263ed18083ab31e"
+      },
+      {
+        "path": "apps/web-shell/editor.html",
+        "equalAfterAssetRevisionNormalization": true,
+        "beforeSha256": "80c813ba7c53ec298eecf6796c890473e3f2f71a0c79fca0a220c59ad0f6c018",
+        "afterSha256": "e9fe1cbb878ada10218b65332b956dbd4dd3885681244a7cca65d15ac095ea4b"
+      }
+    ],
+    "appliedUnmodifiedPaths": [
+      "apps/web-shell/editor.html",
+      "assets/data/generated-artifacts/p2-manifest.json",
+      "assets/data/prepared-polygons/generated/v2/manifest.json",
+      "assets/js/build-meta.js",
+      "assets/js/modules/viewer-map.js",
+      "config/generated-artifacts.json",
+      "index.html",
+      "reports/development/testing/shared-view-policy-fix-2026-10-19.md",
+      "scripts/contracts/territorial-storage-access.json",
+      "tests/browser/shared-view-policy.spec.mjs",
+      "tests/unit/core-territorial-store-wasm.test.mjs",
+      "tests/unit/p2-artifact-plan.test.mjs"
+    ],
+    "referenceProductionAndSpecInputsUnchanged": true
+  },
+  "regressionProof": {
+    "spaceInstruction": {
+      "red": {
+        "pass": 4,
+        "fail": 1,
+        "actual": "꼭짓점 드래그: 이동 · Space 누르기: 지도 이동",
+        "expected": "지도 이동 중 · 놓으면 편집 계속",
+        "logSha256": "6a3b5e2d07bd644d42a2c8a5841d771aefae5405c9b9394dff75b237d191c3df"
+      },
+      "green": {
+        "pass": 5,
+        "fail": 0
+      }
+    },
+    "landscape": {
+      "red": "640x360 visible/enabled GCP button tap intercepted by editor/tab/hint; 120000ms timeout. The second repeated RED was stopped after the first concrete failure.",
+      "initialDataAndTlsFailuresCountedAsRed": false,
+      "latestGreenViewports": [
+        [
+          640,
+          360
+        ],
+        [
+          844,
+          390
+        ]
+      ]
+    }
+  },
+  "existingBaseFailure": {
+    "command": "node scripts/check-version.mjs",
+    "exit": 1,
+    "errors": [
+      "- 뷰어 import map에 편집기 모듈이 있습니다: ./assets/js/modules/app-accent.js",
+      "- 뷰어 import map에 편집기 모듈이 있습니다: ./assets/js/modules/app-map-settings.js"
+    ],
+    "relevantInputsIdenticalToFinalUiBase": [
+      "scripts/check-version.mjs",
+      "index.html",
+      "apps/web-shell/editor.html",
+      "assets/js/modules/viewer-composition.js"
+    ],
+    "logSha256": "46e06f61ed1747cd5ffd6da1a76b43b1579ad84551bb8fe9c9c4510503b59f1b"
+  },
+  "environmentRecovery": {
+    "browserArchiveSha256": "3cfc2bd00d1bafcf8a68dc74c9c92bb7150ddc8d26ade948a776316e1cec4f14",
+    "tlsBefore": {
+      "phase": "before",
+      "url": "https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/manifest.json",
+      "executablePath": "/tmp/pando-p5-browser-151/chrome-headless-shell-linux64/chrome-headless-shell",
+      "certificateValidation": "enabled; no certificate-error bypass",
+      "consoleErrors": [],
+      "requestFailures": [
+        {
+          "url": "https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/manifest.json",
+          "error": "net::ERR_CERT_AUTHORITY_INVALID"
+        }
+      ],
+      "browserVersion": "151.0.7922.34",
+      "error": "page.goto: net::ERR_CERT_AUTHORITY_INVALID at https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/manifest.json\nCall log:\n\u001b[2m  - navigating to \"https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/manifest.json\", waiting until \"load\"\u001b[22m\n",
+      "passed": false
+    },
+    "tlsAfter": {
+      "phase": "after",
+      "url": "https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/manifest.json",
+      "executablePath": "/tmp/pando-p5-browser-151/chrome-headless-shell-linux64/chrome-headless-shell",
+      "certificateValidation": "enabled; no certificate-error bypass",
+      "consoleErrors": [],
+      "requestFailures": [],
+      "browserVersion": "151.0.7922.34",
+      "responseUrl": "https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/manifest.json",
+      "status": 200,
+      "securityDetails": {
+        "issuer": "openai.com",
+        "protocol": "TLS 1.3",
+        "subjectName": "kimjeon-il.github.io",
+        "validFrom": 1792368531,
+        "validTo": 1792455231
+      },
+      "contentType": "application/json; charset=utf-8",
+      "bodyBytes": 3674,
+      "manifestKeys": [
+        "version",
+        "representation",
+        "dataset",
+        "crs",
+        "heightDatum",
+        "sourceCrs",
+        "extent",
+        "registration",
+        "sourceGridOrigin",
+        "sourceResolutionDegrees",
+        "tileFormat",
+        "channels",
+        "elevation",
+        "shade",
+        "gutter",
+        "tileSize",
+        "levels",
+        "urlTemplate",
+        "tint",
+        "sources",
+        "assetsSha256"
+      ],
+      "passed": true,
+      "peerCertificates": [
+        {
+          "subject": "CN=kimjeon-il.github.io",
+          "issuer": "C=US\nST=California\nL=San Francisco\nO=OpenAI\\, LLC\nCN=openai.com",
+          "fingerprint256": "F2:2F:32:CE:77:EF:0F:88:A3:BD:7C:03:F2:E0:9A:97:D1:8C:F5:B1:91:0B:26:74:8C:EF:15:72:EA:4F:DA:3A",
+          "validFrom": "Oct 19 00:08:51 2026 GMT",
+          "validTo": "Oct 20 00:13:51 2026 GMT",
+          "ca": false
+        },
+        {
+          "subject": "C=US\nST=California\nL=San Francisco\nO=OpenAI\\, LLC\nCN=openai.com",
+          "issuer": "C=US\nST=California\nL=San Francisco\nO=OpenAI\\, LLC\nCN=openai.com",
+          "fingerprint256": "C7:1B:4D:1E:9D:77:75:C5:38:C6:88:AB:10:CE:A9:CE:41:7D:73:12:E8:98:38:F9:D1:5F:F7:32:56:CD:7F:C3",
+          "validFrom": "Dec  3 21:46:23 2024 GMT",
+          "validTo": "Dec  1 21:46:23 2034 GMT",
+          "ca": true
+        }
+      ]
+    },
+    "certificateVerifierAfter": {
+      "verifierResults": [
+        {
+          "certStatus": 0,
+          "netError": 0,
+          "isIssuedByKnownRoot": false
+        }
+      ],
+      "validationConfigurationSource": "/tmp/pando-ui-sync-tls/probe.cjs",
+      "note": "Normal Chromium certificate validation; SSL trust provided by the single locally registered platform CA."
+    },
+    "certificateValidationBypassed": false,
+    "consoleErrorsFiltered": false
+  },
+  "initialSourceInputs": [
+    {
+      "path": "assets/css/layout/reference-images.css",
+      "bytes": 16415,
+      "sha256": "6256157cac9cf8b49a58130ffa08f776b5a54c7aa73164c096b9235c5e6318e0"
+    },
+    {
+      "path": "assets/js/modules/app-global-input-bindings.js",
+      "bytes": 15128,
+      "sha256": "fd9bf26c8a4b13020c2c40c8dcd06b861e085401927d4f1cc7a1d28ec95b6159"
+    },
+    {
+      "path": "assets/js/modules/map-input-presentation.js",
+      "bytes": 10955,
+      "sha256": "371382313fbba5bc14cd7c05a7792a8100c98b2112302bf87d2d103ba80c7e0a"
+    },
+    {
+      "path": "assets/js/modules/reference-image-input.js",
+      "bytes": 1394,
+      "sha256": "b4395d99123489475d3f55465b83be4e6aabd14bbc9a073a968828da3cce69aa"
+    },
+    {
+      "path": "assets/js/modules/reference-image-bootstrap.js",
+      "bytes": 3318,
+      "sha256": "46ef574eba55056d8425ffce4cb05f5f8e9f1743fce884ee6681029c3ef8b11c"
+    },
+    {
+      "path": "assets/js/modules/reference-image-surface.js",
+      "bytes": 16598,
+      "sha256": "4d847948db4b00c0b9438f5cb60a875c66c0caeef5f793d046df1496acf3ae39"
+    },
+    {
+      "path": "assets/js/modules/workspace-layout.js",
+      "bytes": 652,
+      "sha256": "ab8f3282e132e027a05cf110c7dd4a527b89097714a3fc5ff1f205c1e256b593"
+    },
+    {
+      "path": "assets/js/modules/workspace-surfaces.js",
+      "bytes": 25086,
+      "sha256": "59ca37ebbdaaac5df38c320b5a2e0766bc8716b418c4d31931bce393c1cb20a5"
+    },
+    {
+      "path": "assets/js/modules/app-task-presentation.js",
+      "bytes": 49762,
+      "sha256": "66530954dad1c04ddc098b40a8f9ddd3677da317c882834c4e191cb58fefb329"
+    },
+    {
+      "path": "assets/js/modules/app-task-stage-model.js",
+      "bytes": 14363,
+      "sha256": "886c8c4515fbc475d69db2ddd26eca0df596d5ddc3700b18553f6b0225949448"
+    },
+    {
+      "path": "tests/unit/reference-image-editing-bridge.test.mjs",
+      "bytes": 7276,
+      "sha256": "d8ea36a89d66b8b7666243027b42f147dc1c7c2faa73332f216107fc51e25f1e"
+    },
+    {
+      "path": "tests/browser/reference-image-auto-workflow.spec.mjs",
+      "bytes": 7914,
+      "sha256": "3d5dd6f205a1802cbc941aed70a41edfc7a3e91a7ef2a63249b218ab6154767b"
+    },
+    {
+      "path": "tests/browser/reference-image-auxiliary-surface.spec.mjs",
+      "bytes": 11741,
+      "sha256": "e157d2b3db2c1f9ef03e6d792e8e0fc75734feb6236a45b0bc8363d6dd7bc2de"
+    },
+    {
+      "path": "tests/browser/reference-image-ux.spec.mjs",
+      "bytes": 20567,
+      "sha256": "2cd37babc9e893dcd851ecd327b2b5dbc3d2af9bf109fff4beea9b44b0b6583a"
+    },
+    {
+      "path": "tests/browser/reference-image-overlay.spec.mjs",
+      "bytes": 43542,
+      "sha256": "548534565f3094abb5a462bf0c33c79b74f8515a2d576942140e2e27e54732cf"
+    },
+    {
+      "path": "tests/browser/reference-image-line-refine.spec.mjs",
+      "bytes": 10315,
+      "sha256": "7b94145f7bd819bae5e00da329db455975a5ff6bd4a02e1e22118cc57bfdc078"
+    },
+    {
+      "path": "tests/browser/reference-image-live-wire.spec.mjs",
+      "bytes": 14278,
+      "sha256": "a953e3fdd81bc85403d514d59ddd6de5b0ae2fe2aa513ded46133e5079f3aa5f"
+    },
+    {
+      "path": "tests/browser/workspace-surfaces.spec.mjs",
+      "bytes": 5704,
+      "sha256": "78a46308344e0f6b3703ab5d73de7ff9631b8a7047191217e268f2295989d32b"
+    },
+    {
+      "path": "tests/browser/web-viewer.spec.mjs",
+      "bytes": 3411,
+      "sha256": "f34519b1d294dacce8cdb42f17c075ef4048313090180b5fa34d7e525d3ba5a0"
+    },
+    {
+      "path": "tests/browser/helpers/editor-entry.mjs",
+      "bytes": 547,
+      "sha256": "42d9cf112e64275f170b14fb7e3af4c4c88df4e491933323affc8c4ff7cd6e09"
+    },
+    {
+      "path": "apps/web-shell/editor.html",
+      "bytes": 158331,
+      "sha256": "80c813ba7c53ec298eecf6796c890473e3f2f71a0c79fca0a220c59ad0f6c018"
+    },
+    {
+      "path": "index.html",
+      "bytes": 65782,
+      "sha256": "d8c681af887e8b3a45de04d9eb6510220530148b27b4b660c5894e33afe26c38"
+    },
+    {
+      "path": "assets/js/modules/viewer-composition.js",
+      "bytes": 12380,
+      "sha256": "dc87622823dd59f5e698b3dfcd82adae3eecfe485bc533693335432213aa76d5"
+    },
+    {
+      "path": "scripts/check-version.mjs",
+      "bytes": 6885,
+      "sha256": "b24f808bd49f572496ae0ba0aa02f516db51497a2ace034093c510dbb962b056"
+    },
+    {
+      "path": "playwright.config.js",
+      "bytes": 883,
+      "sha256": "2a6fba65bbbaca10f09edb69d9ee236260c943ef30eb7fd5ac9eed9f83d6b8f7"
+    }
+  ],
+  "sourceInputs": [
+    {
+      "path": "apps/web-shell/editor.html",
+      "bytes": 154361,
+      "sha256": "e9fe1cbb878ada10218b65332b956dbd4dd3885681244a7cca65d15ac095ea4b"
+    },
+    {
+      "path": "assets/css/layout/reference-images.css",
+      "bytes": 16415,
+      "sha256": "6256157cac9cf8b49a58130ffa08f776b5a54c7aa73164c096b9235c5e6318e0"
+    },
+    {
+      "path": "assets/js/build-meta.js",
+      "bytes": 1163,
+      "sha256": "75478fba757ad263a53230b469da08a142ec25af2f2db04470880144fa873622"
+    },
+    {
+      "path": "assets/js/modules/app-global-input-bindings.js",
+      "bytes": 15128,
+      "sha256": "fd9bf26c8a4b13020c2c40c8dcd06b861e085401927d4f1cc7a1d28ec95b6159"
+    },
+    {
+      "path": "assets/js/modules/app-task-presentation.js",
+      "bytes": 49762,
+      "sha256": "66530954dad1c04ddc098b40a8f9ddd3677da317c882834c4e191cb58fefb329"
+    },
+    {
+      "path": "assets/js/modules/app-task-stage-model.js",
+      "bytes": 14363,
+      "sha256": "886c8c4515fbc475d69db2ddd26eca0df596d5ddc3700b18553f6b0225949448"
+    },
+    {
+      "path": "assets/js/modules/map-input-presentation.js",
+      "bytes": 10955,
+      "sha256": "371382313fbba5bc14cd7c05a7792a8100c98b2112302bf87d2d103ba80c7e0a"
+    },
+    {
+      "path": "assets/js/modules/reference-image-bootstrap.js",
+      "bytes": 3318,
+      "sha256": "46ef574eba55056d8425ffce4cb05f5f8e9f1743fce884ee6681029c3ef8b11c"
+    },
+    {
+      "path": "assets/js/modules/reference-image-input.js",
+      "bytes": 1394,
+      "sha256": "b4395d99123489475d3f55465b83be4e6aabd14bbc9a073a968828da3cce69aa"
+    },
+    {
+      "path": "assets/js/modules/reference-image-surface.js",
+      "bytes": 16598,
+      "sha256": "4d847948db4b00c0b9438f5cb60a875c66c0caeef5f793d046df1496acf3ae39"
+    },
+    {
+      "path": "assets/js/modules/viewer-composition.js",
+      "bytes": 12380,
+      "sha256": "dc87622823dd59f5e698b3dfcd82adae3eecfe485bc533693335432213aa76d5"
+    },
+    {
+      "path": "assets/js/modules/viewer-map.js",
+      "bytes": 32670,
+      "sha256": "1c44c7b0896ffd2ff029c215a5e111bceebc0341c5bf84cc25bbb912afd05c49"
+    },
+    {
+      "path": "assets/js/modules/workspace-layout.js",
+      "bytes": 652,
+      "sha256": "ab8f3282e132e027a05cf110c7dd4a527b89097714a3fc5ff1f205c1e256b593"
+    },
+    {
+      "path": "assets/js/modules/workspace-surfaces.js",
+      "bytes": 25086,
+      "sha256": "59ca37ebbdaaac5df38c320b5a2e0766bc8716b418c4d31931bce393c1cb20a5"
+    },
+    {
+      "path": "index.html",
+      "bytes": 63622,
+      "sha256": "e0435b93ce5108f5c1b021b8eb7b01c29c784bd9f1cd54ac1263ed18083ab31e"
+    },
+    {
+      "path": "playwright.config.js",
+      "bytes": 883,
+      "sha256": "2a6fba65bbbaca10f09edb69d9ee236260c943ef30eb7fd5ac9eed9f83d6b8f7"
+    },
+    {
+      "path": "scripts/check-version.mjs",
+      "bytes": 6885,
+      "sha256": "b24f808bd49f572496ae0ba0aa02f516db51497a2ace034093c510dbb962b056"
+    },
+    {
+      "path": "tests/browser/helpers/editor-entry.mjs",
+      "bytes": 547,
+      "sha256": "42d9cf112e64275f170b14fb7e3af4c4c88df4e491933323affc8c4ff7cd6e09"
+    },
+    {
+      "path": "tests/browser/reference-image-auto-workflow.spec.mjs",
+      "bytes": 7914,
+      "sha256": "3d5dd6f205a1802cbc941aed70a41edfc7a3e91a7ef2a63249b218ab6154767b"
+    },
+    {
+      "path": "tests/browser/reference-image-auxiliary-surface.spec.mjs",
+      "bytes": 11741,
+      "sha256": "e157d2b3db2c1f9ef03e6d792e8e0fc75734feb6236a45b0bc8363d6dd7bc2de"
+    },
+    {
+      "path": "tests/browser/reference-image-line-refine.spec.mjs",
+      "bytes": 10315,
+      "sha256": "7b94145f7bd819bae5e00da329db455975a5ff6bd4a02e1e22118cc57bfdc078"
+    },
+    {
+      "path": "tests/browser/reference-image-live-wire.spec.mjs",
+      "bytes": 14278,
+      "sha256": "a953e3fdd81bc85403d514d59ddd6de5b0ae2fe2aa513ded46133e5079f3aa5f"
+    },
+    {
+      "path": "tests/browser/reference-image-overlay.spec.mjs",
+      "bytes": 43542,
+      "sha256": "548534565f3094abb5a462bf0c33c79b74f8515a2d576942140e2e27e54732cf"
+    },
+    {
+      "path": "tests/browser/reference-image-ux.spec.mjs",
+      "bytes": 20567,
+      "sha256": "2cd37babc9e893dcd851ecd327b2b5dbc3d2af9bf109fff4beea9b44b0b6583a"
+    },
+    {
+      "path": "tests/browser/web-viewer.spec.mjs",
+      "bytes": 3411,
+      "sha256": "f34519b1d294dacce8cdb42f17c075ef4048313090180b5fa34d7e525d3ba5a0"
+    },
+    {
+      "path": "tests/browser/workspace-surfaces.spec.mjs",
+      "bytes": 5704,
+      "sha256": "78a46308344e0f6b3703ab5d73de7ff9631b8a7047191217e268f2295989d32b"
+    },
+    {
+      "path": "tests/unit/reference-image-analysis-compat.test.mjs",
+      "bytes": 8737,
+      "sha256": "3b1da0616b16a9cad0f50555119b7b96e92e51f5702feee6b5f9281dda927d3e"
+    },
+    {
+      "path": "tests/unit/reference-image-editing-bridge.test.mjs",
+      "bytes": 7276,
+      "sha256": "d8ea36a89d66b8b7666243027b42f147dc1c7c2faa73332f216107fc51e25f1e"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "reports/images/reference-image-ui-p5/ui-sync-landscape-640-gcp.png",
+      "bytes": 41707,
+      "sha256": "8abd30bd959651e1f0ed60a23a85a0e764bc001711fe2102b7569c09eac2acaf",
+      "base": "d99274160b97b8e47c884d44b3e49af3747ee04f"
+    },
+    {
+      "path": "reports/images/reference-image-ui-p5/ui-sync-landscape-844-gcp.png",
+      "bytes": 55843,
+      "sha256": "90faae4cb5da1f65a0c8de364f2f56e5da72dc92f9ee691db40d026c722ba5c7",
+      "base": "d99274160b97b8e47c884d44b3e49af3747ee04f"
+    }
+  ],
+  "limitations": [
+    "The 38 unique browser scenarios are a union of bounded runs; five were repeated after the last upstream advance.",
+    "Native Windows/Android launches, portable/native packaging, full GIS/C++ suites and deployment were not run.",
+    "OCR tests cover delayed-response cancellation and state isolation, not recognition accuracy.",
+    "Remote CI status is recorded in the PR separately."
+  ],
+  "initialUnitResults": [
+    {
+      "file": "tests/unit/map-input-controller.test.mjs",
+      "exit": 0,
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/map-hover-topology.test.mjs",
+      "exit": 0,
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/app-ui-boundaries.test.mjs",
+      "exit": 0,
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/reference-image-interaction.test.mjs",
+      "exit": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/reference-image-surface.test.mjs",
+      "exit": 0,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/workspace-layout.test.mjs",
+      "exit": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "tests/unit/reference-image-editing-bridge.test.mjs",
+      "exit": 0,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "94629bafdd5608cab6e0360a558375b307ed31c99e3259dcb8c463198c53385b"
+    },
+    {
+      "file": "apps/web-shell/tests/stage.test.mjs",
+      "exit": 0,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "f1f8a8f617911f741b043cc74ea5956ed6a33fdc8e3e4edfc08fd6d88c15bd67"
+    }
+  ],
+  "ciFollowup": {
+    "integratedCommit": "9813535db9138bc00e55777049503cb79dd380bd",
+    "failingRun": {
+      "id": 39195646382,
+      "url": "https://github.com/kimjeon-il/Pando/actions/runs/39195646382",
+      "checksJobId": 117877713606,
+      "lint": "passed",
+      "unitCounts": {
+        "tests": 161,
+        "pass": 160,
+        "fail": 1
+      },
+      "browserMatrix": "skipped because checks failed"
+    },
+    "cause": "An assertion searched production source for the removed referenceImageInputActive() call; latest UI uses the injected referenceInput.isActive() port.",
+    "changedTest": "tests/unit/reference-image-analysis-compat.test.mjs",
+    "behaviorCovered": [
+      "Active reference input bypasses map overlay and object hit blocking.",
+      "UI controls, editable fields, editor drawer, reference panel, workflow guide and their descendants retain UI ownership both inside and outside the map overlay.",
+      "Inactive editor and null viewer ports preserve ordinary map overlay and object hit blocking.",
+      "Middle-button and Space navigation preserve existing map policy; project replacement blocks input first."
+    ],
+    "red": {
+      "tests": 9,
+      "pass": 8,
+      "fail": 1,
+      "logSha256": "e21a3e32cf516ac5837c6fa14be7d381a8c64aab43d2d02ca61cf76e1e265b9a"
+    },
+    "green": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "logSha256": "19a67a3d3bee6a8c138744de9978bfb14c99118e10c4f44ad26625a718924e2a"
+    },
+    "eslint": {
+      "command": "pnpm exec eslint tests/unit/reference-image-analysis-compat.test.mjs",
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "referenceSuite": {
+      "command": "node <each tests/unit/reference-image-*.test.mjs file>",
+      "files": 20,
+      "counts": {
+        "tests": 161,
+        "pass": 161,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "referenceSuiteLogSha256": "b63b946fdc2bf254f3c719a93d69ca42302ec479cb55a12be182d4e91861bc81",
+    "referenceSuiteResults": [
+      {
+        "file": "tests/unit/reference-image-analysis-compat.test.mjs",
+        "durationSeconds": 0.056,
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-architecture.test.mjs",
+        "durationSeconds": 0.048,
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-auto-georef.test.mjs",
+        "durationSeconds": 0.051,
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-draft-ack.test.mjs",
+        "durationSeconds": 0.068,
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-edit-session.test.mjs",
+        "durationSeconds": 0.058,
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-editing-bridge.test.mjs",
+        "durationSeconds": 0.058,
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-georef.test.mjs",
+        "durationSeconds": 0.283,
+        "tests": 23,
+        "suites": 0,
+        "pass": 23,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-interaction.test.mjs",
+        "durationSeconds": 0.184,
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-line-refiner.test.mjs",
+        "durationSeconds": 0.133,
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-live-wire.test.mjs",
+        "durationSeconds": 0.118,
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-model.test.mjs",
+        "durationSeconds": 0.045,
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-ocr.test.mjs",
+        "durationSeconds": 0.045,
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-place-match.test.mjs",
+        "durationSeconds": 0.163,
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-pointer-target.test.mjs",
+        "durationSeconds": 0.043,
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-source-mapping.test.mjs",
+        "durationSeconds": 0.157,
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-store.test.mjs",
+        "durationSeconds": 0.045,
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-surface.test.mjs",
+        "durationSeconds": 0.136,
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-transform.test.mjs",
+        "durationSeconds": 0.155,
+        "tests": 19,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-ui.test.mjs",
+        "durationSeconds": 0.051,
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      },
+      {
+        "file": "tests/unit/reference-image-workflow-cancel.test.mjs",
+        "durationSeconds": 0.159,
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "exit": 0
+      }
+    ],
+    "uniqueUnitCountMethod": {
+      "initial": 64,
+      "followup": 161,
+      "overlap": 19,
+      "total": 206
+    },
+    "initialSourceInputsUnchanged": 27,
+    "productionAndBrowserSpecsUnchangedFromIntegratedCommit": true,
+    "browserAndStagingRerun": false,
+    "remoteStatusNote": "The failing run above predates this test-only followup. Its subsequent CI status is recorded in PR #134.",
+    "reviewCorrection": "Added controls outside the overlay to prevent the null-viewer assertion from passing through the generic overlay blocker."
+  }
+}
