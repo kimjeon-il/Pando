@@ -4,7 +4,13 @@ import { mkdtempSync, mkdirSync, writeFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { collectViewerAssets } from '../../scripts/lib/product-assets.mjs';
+import { collectViewerAssets, isEditorOnlyAsset } from '../../scripts/lib/product-assets.mjs';
+
+test('version checks and staging share the distinction between common viewing and editor assets',()=>{
+  for(const name of ['app-accent','app-map-settings'])assert.equal(isEditorOnlyAsset(`assets/js/modules/${name}.js`),false);
+  for(const name of ['app-composition','app-global-input-bindings','project-setup-dialog'])assert.equal(isEditorOnlyAsset(`assets/js/modules/${name}.js`),true);
+  assert.equal(isEditorOnlyAsset('assets/js/workers/core-session-worker.js'),true);
+});
 
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'pando-viewer-assets-'));
