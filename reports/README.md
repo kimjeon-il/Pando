@@ -40,6 +40,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `UI-PROJECT-RELEASE-20261019` | [프로젝트 생성·공통 보기 변경 커밋과 Pages 배포](development/testing/project-creation-release-2026-10-19.md) | 2026-10-19 | `published / focused-verified / android-device-unverified` | `not-applicable` |
 | `UI-PROJECT-CREATION-20261019` | [새 프로젝트 생성 통합과 보기 상태 저장 분리](development/testing/project-creation-storage-2026-10-19.md) | 2026-10-19 | `focused-verified / baseline-test-failures / android-device-unverified` | `not-applicable` |
 | `UI-PRODUCT-PRUNING-20261019` | [웹·앱 불필요 기능 정리와 공통 소유자 유지 검증](development/testing/product-pruning-2026-10-19.md) | 2026-10-19 | `focused-verified / android-device-unverified` | `not-applicable` |
 | `UI-EDITOR-STATUS-TIME-20261019` | [편집기 앱 작업표시줄의 시점 이동 제거](development/testing/editor-status-timeline-removal-2026-10-19.md) | 2026-10-19 | `focused-verified / android-device-unverified` | `not-applicable` |
