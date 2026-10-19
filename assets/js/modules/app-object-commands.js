@@ -15,10 +15,10 @@ export function createObjectCommands() {
   function connect(ports) {
     if (dependencies) throw new Error('object-commands already connected');
     dependencies = ports;
-    ({objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef}=createObjectQuery({...ports,objectLookup:{distributionLayerById:ports.propertyEditingA.distributionLayerById}}));
+    ({layerGroupForObjectRef,objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef}=createObjectQuery({...ports,objectLookup:{distributionLayerById:ports.propertyEditingA.distributionLayerById}}));
   }
 
-  let objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef;
+  let layerGroupForObjectRef,objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef;
 
   function objectBatchCapabilities(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
@@ -431,6 +431,7 @@ export function createObjectCommands() {
   }
 
   return Object.freeze({
+    get layerGroupForObjectRef(){return layerGroupForObjectRef;},
     get objectForRef(){return objectForRef;},
     get isObjectAvailable(){return isObjectAvailable;},
     connect,

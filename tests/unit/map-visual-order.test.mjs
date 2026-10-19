@@ -14,8 +14,8 @@ test('one policy orders paint, claim, selection and SVG roles without changing o
   assert.equal(INTERACTION_ROLE_PRIORITY['chosen-result'], 5);
   assert.ok(mapVisualRank('primary') < mapVisualRank('edit-preview'));
   assert.ok(mapVisualRank('edit-preview') < mapVisualRank('labels'));
-  const presentation = { overlayOrder: ['distributions', 'subunits', 'regions', 'genericFeatures'], objectOrder: ['generic:a', 'generic:b'] };
-  assert.ok(overlayVisualOrder(presentation, 'regions', 'boundary') < overlayVisualOrder(presentation, 'genericFeatures', 'fill'));
+  const presentation = { overlayOrder: ['distributions', 'objects', 'genericFeatures'], objectOrder: ['generic:a', 'generic:b'] };
+  assert.ok(overlayVisualOrder(presentation, 'objects', 'boundary') < overlayVisualOrder(presentation, 'genericFeatures', 'fill'));
   assert.ok(overlayVisualOrder(presentation, 'genericFeatures', 'fill', 'generic:a') < overlayVisualOrder(presentation, 'genericFeatures', 'fill', 'generic:b'));
   assert.throws(() => mapVisualRank('unknown'), /visual role/);
 });

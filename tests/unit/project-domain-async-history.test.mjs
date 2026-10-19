@@ -6,7 +6,7 @@ test('project history publishes lifecycle effects after the canonical Worker his
   let resolve;
   const acknowledgement = new Promise(accept => { resolve = accept; });
   const effects = [];
-  const project = createProjectDomain({ commandOwner: { undo: () => acknowledgement },publishCommand() {},
+  const project = createProjectDomain({ productMode:'editor', commandOwner: { undo: () => acknowledgement },publishCommand() {},
     onProjectChanged: event => effects.push(event.reason),
     invalidateHistory: reason => effects.push(reason),
     persistence: { queueProject: () => effects.push('autosave') } });
@@ -18,7 +18,7 @@ test('project history publishes lifecycle effects after the canonical Worker his
 
 test('rejected and no-op canonical Worker history responses have no success effects', async () => {
   const effects = [], error = Object.assign(new Error('History worker failed'), { code: 'PL-CORE-LOAD' });
-  const project = createProjectDomain({ commandOwner: { undo: async () => ({ ok: true,changed: false }), redo: async () => { throw error; } },publishCommand() {},
+  const project = createProjectDomain({ productMode:'editor', commandOwner: { undo: async () => ({ ok: true,changed: false }), redo: async () => { throw error; } },publishCommand() {},
     onProjectChanged: () => effects.push('event'), invalidateHistory: () => effects.push('render'),
     persistence: { queueProject: () => effects.push('autosave') } });
   assert.equal(await project.undo(), false);

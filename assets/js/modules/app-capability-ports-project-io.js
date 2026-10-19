@@ -59,6 +59,8 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "workspaceUiA"
   ],
   "projectRestore": [
+    "persistence",
+    "navigation",
     "applicationConstantsA",
     "applicationServicesA",
     "builtinCountries",

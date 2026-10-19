@@ -180,7 +180,7 @@ async function verifySavedRussia(page, expectedName, expectedGeometry) {
     const project=prepareProjectForStorage(saved);
     const storage=restoreTimelineStorage({schemaVersion:1,records:project.timelineRecords,geometries:project.geometries},
       project.territorialEntities.map(entity=>({id:entity.id,entityKind:entity.properties.entityKind})));
-    const month=document.querySelector('#timelineMonthInput').value;
+    const month=window.__testEditorTimeline.month();
     const resolved=resolveWorld(project.territorialEntities,storage.records,storage.geometries,month).byId.get('RUS');
     if (!resolved||resolved.identity.properties.name!==expectedName||JSON.stringify(resolved.geometry)!==expectedGeometry)
       throw new Error('The real autosave did not retain the expected RUS identity and complete geometry');

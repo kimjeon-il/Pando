@@ -38,10 +38,11 @@ public:
     PrepareResult prepareNativeCommand(const CommandRequest&,std::uint32_t expectedEpoch) const;
     const CommandPreview* candidatePreview(std::uint32_t candidateId) const;
     DocumentSessionState documentLoad(const std::string& currentWebJson,const std::string& currentMonth);
-    DocumentSessionState documentLoadBaseline(std::uint32_t baselineId,const std::string& currentMonth);
+    DocumentSessionState documentLoadBaseline(std::uint32_t baselineId,const codecjson::Value& setup,const std::string& documentId);
     DocumentSessionState documentInitialize(const std::string& currentWebJson,const std::string& currentMonth,bool preserveCursor,
         const std::optional<codecjson::Value>& features,const std::optional<std::string>& territorialSource,std::uint32_t expectedEpoch,
         std::optional<std::uint32_t> baselineId={});
+    ResolvedWorld baselineWorld(std::uint32_t baselineId,const std::string& month) const;
     std::string documentSnapshot() const;
     DocumentSessionState storageBaselineLoad(const codecjson::Value&,std::uint32_t expectedEpoch);
     DocumentSessionState storageBaselineLoad(const projectcodec::WebStorageAssetSource&,std::uint32_t expectedEpoch);

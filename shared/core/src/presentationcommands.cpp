@@ -10,7 +10,7 @@
 
 namespace pandoeditor {
 namespace {
-bool group(const std::string& g){return g=="countries"||g=="subunits"||g=="regions"||g=="labels"||g=="rivers"||g=="lakes"||g=="genericFeatures"||g=="distributions";}
+bool group(const std::string& g){return g=="objects"||g=="labels"||g=="rivers"||g=="lakes"||g=="genericFeatures"||g=="distributions";}
 void require(bool v){if(!v)throw std::invalid_argument("INVALID_PRESENTATION_COMMAND");}
 void merge(PresentationStyle& s,const PresentationStyle& p){if(p.opacity)s.opacity=p.opacity;if(p.boundaryVisible)s.boundaryVisible=p.boundaryVisible;if(p.labelsVisible)s.labelsVisible=p.labelsVisible;if(p.boundaryWidth)s.boundaryWidth=p.boundaryWidth;if(p.blendMode)s.blendMode=p.blendMode;if(p.colorVisible)s.colorVisible=p.colorVisible;}
 void webStyle(PresentationStyle& s,bool complete) {
@@ -31,7 +31,7 @@ PresentationPreparation PresentationCommandProcessor::prepare(const ProjectSnaps
         auto set=[&](const ObjectRef& ref,bool visible){auto g=itemGroup(ref);if(visible)p.eraseItemVisibility(g,ref.id);else p.itemVisibility[g][ref.id]=false;};
         std::visit([&](const auto& a){using T=std::decay_t<decltype(a)>;
             if constexpr(std::is_same_v<T,SetPresentationVisibility>||std::is_same_v<T,WebControlVisibility>) {
-                require(group(a.key)||a.key=="basemapLabels"||a.key=="countryFlags"||a.key=="subunitLabels"||a.key=="subunitFlags"||a.key=="regionLabels"||a.key=="regionFlags");
+                require(group(a.key)||a.key=="objectNames"||a.key=="objectFlags");
                 if(groupVisible(p,a.key)!=a.visible)p.visibility[a.key]=a.visible;
             } else if constexpr(std::is_same_v<T,SetScopedVisibility>) {
                 require(group(a.group)&&!a.targets.empty());for(const auto& r:a.targets)require(targetGroup(r)==a.group);
@@ -44,22 +44,18 @@ PresentationPreparation PresentationCommandProcessor::prepare(const ProjectSnaps
                 require(project.index().objects.count({"distributionLayer",a.id}));
                 if(a.visible)p.eraseItemVisibility("distributions",a.id);else p.itemVisibility["distributions"][a.id]=false;
             } else if constexpr(std::is_same_v<T,WebObjectVisibility>) {
-                require(!a.refs.empty());auto header=codecjson::parse(d.exchangeMetadata);auto& settings=header.object.at("physicalSettings");
-                auto hidden=settings.object.find("hiddenHydroIds");
+                require(!a.refs.empty());
                 std::vector<ObjectRef> stored;std::vector<std::string> physical;bool all=true;
                 const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}},project.timelineMonth());
                 const auto currentGroup=[&](const ObjectRef& ref) {
                     if(ref.domain!="territorial")return contentItemGroup(d,ref);
                     const auto row=world.find(ref.id);require(bool(row));
-                    return d.units.at(project.index().objects.at(ref)).kind==UnitKind::Regional?std::string("regions"):row->parentId.empty()?std::string("countries"):std::string("subunits");
+                    return std::string("objects");
                 };
                 for(const auto& ref:a.refs) {
                     if(ref.domain=="hydroBuiltin") {
                         require(bool(builtinLogicalId));const auto logical=builtinLogicalId(ref);require(logical&& !logical->empty());physical.push_back(*logical);
-                        bool visible=true;if(hidden!=settings.object.end()) {
-                            require(hidden->second.kind==codecjson::Value::Object);const auto i=hidden->second.object.find(*logical);
-                            visible=i==hidden->second.object.end()||i->second.kind!=codecjson::Value::Bool||i->second.raw!="true";
-                        }
+                        const bool visible=itemVisible(p,"hydro",*logical);
                         all=all&&visible;
                     }else {
                         ObjectRef target{ref.domain,ref.id};require(project.index().objects.count(target));stored.push_back(target);
@@ -69,16 +65,11 @@ PresentationPreparation PresentationCommandProcessor::prepare(const ProjectSnaps
                 const bool visible=a.visible.value_or(!all);
                 for(const auto& ref:stored) {const auto g=currentGroup(ref);if(visible)p.eraseItemVisibility(g,ref.id);else p.itemVisibility[g][ref.id]=false;}
                 if(!physical.empty()) {
-                    if(hidden==settings.object.end())hidden=settings.object.emplace("hiddenHydroIds",codecjson::Value::obj()).first;
-                    for(const auto& id:physical)if(visible)hidden->second.object.erase(id);else hidden->second.object[id]=codecjson::Value::boolean(true);
-                    d.exchangeMetadata=header.encode();
+                    for(const auto& id:physical)if(visible)p.eraseItemVisibility("hydro",id);else p.itemVisibility["hydro"][id]=false;
                 }
             } else if constexpr(std::is_same_v<T,PatchGroupPresentation>) {
-                require(group(a.group)||a.group=="countryLabels"||a.group=="terrain");merge(p.styles[a.group],a.patch);
-                if(a.group=="subunits")for(const auto& unit:d.units)if(territorialGroup(d,unit.id)=="subunits") {
-                    const auto found=p.objectStyles.find(territorialPresentationKey(unit.id));
-                    if(found!=p.objectStyles.end())merge(found->second,a.patch);
-                }
+                require(group(a.group)||a.group=="objectLabels"||a.group=="terrain");merge(p.styles[a.group],a.patch);
+
             } else if constexpr(std::is_same_v<T,SetLabelSettings>) {
                 require(project.index().objects.count(a.ref) && (a.ref.domain=="territorial" || a.ref.domain=="label"));
                 p.labelSettings[a.ref]=a.settings;
@@ -90,23 +81,12 @@ PresentationPreparation PresentationCommandProcessor::prepare(const ProjectSnaps
             } else if constexpr(std::is_same_v<T,SetPresentationOrder>) {
                 p.objectOrder=a.objectOrder;p.overlayOrder=a.overlayOrder;p.overlayOrderPresent=a.overlayOrderPresent;
             } else if constexpr(std::is_same_v<T,WebControlGroupPresentation>) {
-                require(group(a.group)||a.group=="countryLabels"||a.group=="terrain");
+                require(group(a.group)||a.group=="objectLabels"||a.group=="terrain");
                 auto& style=p.styles[a.group];const auto labels=style.labelsVisible.value_or(true);merge(style,a.patch);style.labelsVisible=labels;style.boundaryWidth=1;
-                if(a.group=="subunits") {
-                    const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}},project.timelineMonth());
-                    for(auto& [key,override]:p.objectStyles) {
-                        const std::string prefix="territorial:entity:";const auto row=key.rfind(prefix,0)==0?world.find(key.substr(prefix.size())):nullptr;
-                        if(row&&!row->parentId.empty())merge(override,a.patch);
-                    }
-                }
-                for(const auto* key:{"countries","subunits","regions","distributions","rivers","lakes","genericFeatures","labels","countryLabels","terrain"})webStyle(p.styles[key],true);
+                for(const auto* key:{"objects","distributions","rivers","lakes","genericFeatures","labels","objectLabels","terrain"})webStyle(p.styles[key],true);
                 for(auto& [key,override]:p.objectStyles)webStyle(override,false);
             } else if constexpr(std::is_same_v<T,SetTerrainPresentation>) {
-                require(a.mode=="none"||a.mode=="physical"||a.mode=="political");
-                auto header=codecjson::parse(d.exchangeMetadata);auto& settings=header.object.at("physicalSettings");
-                settings.object["terrainVisible"]=codecjson::Value::boolean(a.mode!="none");
-                if(a.mode!="none")settings.object["terrainStyle"]=codecjson::Value::str(a.mode);
-                d.exchangeMetadata=header.encode();
+                throw std::invalid_argument("DEVICE_PREFERENCE: terrain is not project content");
             } else if constexpr(std::is_same_v<T,WebControlDistributionPresentation>) {
                 if(a.field==DistributionPresentationField::RenderMode)p.distributionSettings.renderMode=a.value=="single"?DistributionRenderMode::Single:DistributionRenderMode::Overlap;
                 else if(a.field==DistributionPresentationField::ActiveLayer)p.distributionSettings.activeLayerId=a.value;
@@ -114,9 +94,9 @@ PresentationPreparation PresentationCommandProcessor::prepare(const ProjectSnaps
             }
         },action);
         if(std::holds_alternative<WebControlVisibility>(action)||std::holds_alternative<WebControlGroupPresentation>(action)) {
-            for(const auto* key:{"countries","subunits","regions","distributions","rivers","lakes","genericFeatures","labels","countryLabels","terrain"})webStyle(p.styles[key],true);
+            for(const auto* key:{"objects","distributions","rivers","lakes","genericFeatures","labels","objectLabels","terrain"})webStyle(p.styles[key],true);
             for(auto& [key,style]:p.objectStyles)webStyle(style,false);
-            p.overlayOrder={"distributions","subunits","regions","genericFeatures"};p.overlayOrderPresent=true;
+            p.overlayOrder={"distributions","objects","genericFeatures"};p.overlayOrderPresent=true;
         }
         GeometryProvenanceCodecAccess::admitPresentationMetadata(project.document(),d);
         validatePresentation(d);

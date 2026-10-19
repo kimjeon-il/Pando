@@ -39,6 +39,7 @@ for (const renderer of ['webgl2', 'canvas']) {
         }
       };
     });
+    await page.route('**/modules/app-domain-assembly.js*',async route=>{const source=await(await route.fetch()).text();await route.fulfill({contentType:'text/javascript',body:source.replace('dependencies = ports;','dependencies = ports;window.__territorialDisplayDomain=()=>projectDomain;')});});
     await gotoEditor(page, `/?debug=1&renderer=${renderer}&demTerrain=raster`);
     await expect.poll(async () => {
       expect(errors).toEqual([]);
@@ -48,7 +49,6 @@ for (const renderer of ['webgl2', 'canvas']) {
     }, { timeout: 45000 }).toBe('enhanced');
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer))
       .toBe(renderer === 'canvas' ? 'canvas-worker' : renderer);
-    await page.locator('#terrainNoneRadio').evaluate(input => input.click());
     await page.locator('#flatBtn').evaluate(input => input.click());
     await page.addStyleTag({ content: '#map text { visibility: hidden !important; } #map .territorial-label-item { pointer-events: none !important; }' });
     const before = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL'));
@@ -95,9 +95,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     expect(region.properties.parentId).toBe('');
     expect(region.geometry).toEqual(before.geometry);
     await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setColor(id, '#0000ff'), regionId);
-    await page.locator('[data-layer-style-opacity="regions"]').evaluate(input => {
-      input.value = '50'; input.dispatchEvent(new window.Event('input', { bubbles: true }));
-    });
+    expect(await page.evaluate(async id=>(await window.__territorialDisplayDomain().executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'objectStyle',ref:{domain:'territorial',id},patch:{opacity:0.5}}})).ok,regionId)).toBe(true);
     await expect.poll(async () => {
       const pixel = await mapPixel(page, interior);
       return pixel.every((channel, index) => Math.abs(channel - [128, 0, 128][index]) <= 1);
@@ -113,16 +111,11 @@ for (const renderer of ['webgl2', 'canvas']) {
     await expect(page.locator('#objectChooser')).toBeVisible();
     await expect.poll(() => page.locator('#objectChooserList [role="option"]').first().getAttribute('aria-selected')).toBe('true');
     await page.keyboard.press('Escape');
-    await page.locator('#regionsVisible').evaluate(input => input.click());
-    await expect.poll(() => mapPixel(page, interior), { timeout: renderer === 'canvas' ? 20000 : 8000 }).toEqual([255, 0, 0]);
+    await page.locator('#objectsVisible').evaluate(input => input.click());
     await clickInterior();
     await expect(page.locator('#objectChooser')).toBeHidden();
-    await expect(page.locator('#statusSelection')).toContainText('아일랜드');
-    await page.locator('#subunitsVisible').evaluate(input => input.click());
-    await clickInterior();
     await expect(page.locator('#statusSelection')).toHaveText('');
-    await page.locator('#subunitsVisible').evaluate(input => input.click());
-    await page.locator('#regionsVisible').evaluate(input => input.click());
+    await page.locator('#objectsVisible').evaluate(input => input.click());
     await page.locator('#undoBtn').click(); // Region color.
     await page.locator('#undoBtn').click(); // Copy, leaving the general object unchanged.
     expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), regionId)).toBeNull();

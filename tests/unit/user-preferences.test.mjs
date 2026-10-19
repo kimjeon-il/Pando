@@ -16,7 +16,7 @@ test('current preferences retain only label and composable selection settings', 
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
   assert.deepEqual(preferences, {
-    version: 2,
+    backgrounds:defaultUserPreferences().backgrounds,version: 2,
     appearance: { theme: 'dark', accentPreset: 'blue', statusBarVisible: true, smoothLines: true },
     labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },

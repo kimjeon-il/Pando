@@ -1,5 +1,6 @@
 import { editingContextPresentation, taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
 import { lineDistanceKm } from './geometry-metrics.js';
+import { timelineMonthLabel } from './timeline-controls.js';
 
 /** Task surface presentation. Territory selection is rendered from one shared model. */
 export function draftToolbarStatus({ state, draft, draftMode, hasDraftTool, minimumPoints, cutLineReady }) {
@@ -166,7 +167,7 @@ export function createTaskPresentation() {
 
   function mapModeContextActive() {
     const label = dependencies.projectState.state.labelPlacementMode || dependencies.projectState.state.tool === 'label';
-    return !!(label || dependencies.projectState.state.territorySelectionSession || (0, dependencies.draftPresentation.hydroToolConfig)(dependencies.projectState.state.tool)
+    return !!(dependencies.domains.editingDomain.snapshot().objectVertexEditing || label || dependencies.projectState.state.territorySelectionSession || (0, dependencies.draftPresentation.hydroToolConfig)(dependencies.projectState.state.tool)
       || dependencies.projectState.state.geometryPreview.session || (0, dependencies.toolServices.isSpecialTool)(dependencies.projectState.state.tool)
       || dependencies.domains.editingDomain?.draftInputActive?.());
   }
@@ -451,10 +452,9 @@ export function createTaskPresentation() {
     boundaryPending, boundaryFailed, calculating, busy, cutLineMode, cutLineReady,
     mergeTargetMode, genericMergeMode, unitMergeMode, unitRedrawMode, hydroReview, hydroCount,
   }) {
-    const draftDone = (0, dependencies.platform.$)('modeDraftDoneBtn');
-    const draftActions = (0, dependencies.platform.$)('modeDraftActions');
-    const primaryDisabled = !!primary?.disabled && !primary.classList.contains('hidden');
-    const draftDisabled = !!draftDone?.disabled && !draftActions?.classList.contains('hidden');
+    const primaryCommand=modePrimaryCommand();
+    const primaryDisabled=primaryCommand.disabled;
+    const draftDisabled=!toolbar.complete;
     const { status, label, reason, feedbackVisible, instructionFeedback } = taskStagePresentation({
       state, selection, selectionModel, draft, toolbar, primaryDisabled, draftDisabled, boundaryAnalysis, operationFeedback,
       boundaryPending, boundaryFailed, calculating, busy, cutLineMode, cutLineReady,
@@ -471,8 +471,9 @@ export function createTaskPresentation() {
     if (taskRoot) taskRoot.dataset.taskState = status;
     const reasonNode = (0, dependencies.platform.$)('modeTaskDisabledReason');
     if (reasonNode) {
-      if (reasonNode.textContent !== reason) reasonNode.textContent = reason;
-      reasonNode.classList.toggle('hidden', !reason || !feedbackVisible);
+      const message=primaryDisabled?primaryCommand.reason:reason;
+      if (reasonNode.textContent !== message) reasonNode.textContent = message;
+      reasonNode.classList.toggle('hidden', !(primaryDisabled?primaryCommand.reason:reason));
     }
     const instruction = dependencies.platform.$('modeTaskInstruction');
     const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
@@ -493,10 +494,13 @@ export function createTaskPresentation() {
     const targets = currentTaskTargets().map(displayObject);
     const preview = state.geometryPreview.session;
     const impact = (preview?.affectedIds || []).map(id => ({name: countryDisplay(id)?.name || territorialUnitDisplay(id) || id}));
-    const context = editingContextPresentation({state,draft: dependencies.draftPresentation.editingDraftSnapshot(),month: dependencies.domains.projectDomain.state()?.timelineCursor,targets});
-    for (const [id,value] of [['modeTaskTargetSummary',context.targetSummary],['modeTaskEditingStage',context.stage],['modeTaskViewTime','보기: '+context.view],['modeTaskPeriod','변경 기간: '+context.period],['modeTaskInput',context.instruction]]) {
+    const editing=dependencies.domains.editingDomain.snapshot();
+    const month = dependencies.domains.projectDomain.state()?.timelineCursor;
+    const context = editingContextPresentation({mobile:dependencies.surfaces.isMobile(),editing,state,draft: dependencies.draftPresentation.editingDraftSnapshot(),month,targets});
+    for (const [id,value] of [['editorTimelineContext',month?`${timelineMonthLabel(month)} 기준 편집`:'시점 확인 중'],['modeTaskTargetSummary',context.targetSummary],['modeTaskEditingStage',context.stage],['modeTaskViewTime','보기: '+context.view],['modeTaskPeriod','변경 기간: '+context.period],['modeTaskInput',context.instruction]]) {
       const element=dependencies.platform.$(id);if(element && element.textContent!==value)element.textContent=value;
     }
+    const placement=dependencies.platform.$('vertexPlacementBtn');if(placement){placement.hidden=!editing.selectedVertex||!!preview;placement.disabled=editing.gestureActive||state.modeProcessing;placement.textContent=editing.vertexPlacement?'위치 지정 취소':'선택 정점 위치 지정';}
     const mapSummary=dependencies.platform.$('modeMapSummary');
     if(mapSummary)mapSummary.textContent=[dependencies.platform.$('modeTaskName')?.textContent,context.targetSummary,context.stage].filter(Boolean).join(' · ');
     const list=dependencies.platform.$('modeTaskAffectedList');
@@ -561,7 +565,7 @@ export function createTaskPresentation() {
     root.dataset.signature = signature;
   }
 
-  function updateModeButtons() {
+  function modeActionContext() {
     const state = dependencies.projectState.state;
     const selectionModel = (0, dependencies.territorySelectionB.territorySelectionPresentation)();
     const selection = selectionModel?.current || null;
@@ -590,6 +594,52 @@ export function createTaskPresentation() {
       state, draft, draftMode, hasDraftTool: dependencies.surfaces.isGenericFeatureDraftTool(state.tool),
       minimumPoints: dependencies.countryEditingA.draftMinimumPoints(), cutLineReady,
     });
+    const busy = state.modeProcessing || selection?.previewPending;
+    const calculating = boundaryPending || selection?.computationPending || selection?.activePhase === 'preparing';
+    const hydroReview = multiDraftReviewActive(state);
+    const hydroCount = hydroReview ? (0, dependencies.countryCommitFlow.multiDraftPartCount)() : 0;
+    return {state,selectionModel,selection,territoryWorkflow,draft,labelMode,terrainMode,draftMode,previewMode,mergeTargetMode,genericMergeMode,genericSplitMode,unitMergeMode,unitSplitMode,unitRedrawMode,boundarySelectMode,boundaryEditMode,boundaryPreparation,boundaryPending,boundaryFailed,boundaryAnalysis,boundaryReady,cutLineMode,cutLineReady,toolbar,busy,calculating,hydroReview,hydroCount};
+  }
+  function modePrimaryCommand(context = modeActionContext()) {
+    const {state,selectionModel,draft,terrainMode,draftMode,previewMode,mergeTargetMode,genericMergeMode,genericSplitMode,unitMergeMode,unitSplitMode,unitRedrawMode,boundarySelectMode,boundaryEditMode,boundaryPending,boundaryFailed,boundaryReady,cutLineReady,toolbar,busy,calculating,hydroReview,hydroCount} = context;
+      let disabled = !!busy;
+      let label = '완료';
+      let icon = '#icon-check';
+      if (selectionModel) {
+        disabled ||= selectionModel.primaryDisabled;
+        label = selectionModel.primaryLabel;
+        icon = selectionModel.primaryIcon;
+      } else {
+        disabled ||= hydroReview && (!hydroCount || draftMode || !!state.multiDraft?.previewPending || !!state.multiDraft?.previewIssues?.length);
+        disabled ||= draftMode && (draft.strokeActive || draft.coords.length < (0, dependencies.countryEditingA.draftMinimumPoints)() || draft.issues.length > 0 || !cutLineReady);
+        disabled ||= mergeTargetMode && !state.mergeTargetCountryIds.length;
+        disabled ||= genericMergeMode && !state.genericFeatureMergeTargetIds.length;
+        disabled ||= unitMergeMode && !state.territorialUnitMergeTargetIds.length;
+        disabled ||= (genericSplitMode || unitSplitMode) && !hydroReview && !cutLineReady;
+        disabled ||= unitRedrawMode && draft.coords.length < 3;
+        disabled ||= boundaryPending || (boundarySelectMode && !boundaryReady && !boundaryFailed);
+        disabled ||= (boundaryEditMode || state.tool === 'country-coast') && !previewMode && !dependencies.domains.editingDomain.snapshot().boundaryDraft?.moveCount;
+        disabled ||= previewMode && state.geometryPreview.session.validation?.blocking === true;
+        if (hydroReview) label = '생성';
+        else if (previewMode) label = ['territorial-border','country-coast'].includes(state.tool) ? '경계 변경 적용' : '변경 적용';
+        else if (boundarySelectMode) label = `국경 편집 (${state.boundaryEditEntityIds.length})`;
+        else if (boundaryEditMode || state.tool === 'country-coast') label = state.boundaryPreparation?.calculationFailed ? '다시 계산' : '변경 미리보기';
+        else if (terrainMode) label = '그리기 완료';
+        else if (mergeTargetMode) label = `합병 미리보기 (${state.mergeTargetCountryIds.length})`;
+        else if (genericMergeMode || unitMergeMode) label = '합병 미리보기';
+        else if (genericSplitMode || unitSplitMode) label = '영역 나누기';
+        else if (unitRedrawMode) label = '영역 다시 지정';
+      }
+      if(dependencies.domains.editingDomain.snapshot().objectVertexEditing){label='좌표 편집 완료';disabled=!!busy;}
+      if (boundaryFailed && !previewMode) label = '다시 시도';
+      if (boundaryPending) label = '경계 준비 중…';
+    const stage=taskStagePresentation({...context,primaryDisabled:!!disabled,draftDisabled:!toolbar.complete,operationFeedback});
+    const reason=disabled ? stage.reason || (busy||calculating?'계산을 마칠 때까지 기다리세요.':boundaryEditMode||state.tool==='country-coast'?'꼭짓점을 움직인 뒤 변경을 미리보세요.':'필요한 대상을 선택하거나 입력을 완료하세요.') : '';
+    return {disabled:!!disabled,label,icon,reason};
+  }
+
+  function updateModeButtons() {
+    const {state,selectionModel,selection,territoryWorkflow,draft,labelMode,terrainMode,draftMode,previewMode,mergeTargetMode,genericMergeMode,unitMergeMode,unitRedrawMode,boundaryPending,boundaryFailed,boundaryAnalysis,cutLineMode,cutLineReady,toolbar,busy,calculating,hydroReview,hydroCount} = modeActionContext();
     const task = activeModeTaskDescriptor();
     const view = taskWorkflowPresentation(state, selectionModel, draft, {
       territorialEntityById: id => dependencies.territorialModel.entityRepository.get(id),
@@ -598,7 +648,7 @@ export function createTaskPresentation() {
     const taskStage = (0, dependencies.platform.$)('modeTaskStage');
     const taskStep = (0, dependencies.platform.$)('modeTaskStep');
     const taskRoot = (0, dependencies.platform.$)('modeEditingHud');
-    if (taskName) taskName.textContent = view?.name || task.name;
+    if (taskName) taskName.textContent = dependencies.domains.editingDomain.snapshot().objectVertexEditing?'수계 좌표 편집':view?.name || task.name;
     if (taskStage) taskStage.textContent = view?.stage || task.stage;
     const taskSeparator = taskRoot?.querySelector('.mode-task-separator');
     if (taskSeparator) taskSeparator.textContent = '·';
@@ -613,9 +663,7 @@ export function createTaskPresentation() {
     syncTerritorySelectionStack(selectionModel);
     syncTaskResults(view, draft);
 
-    const specialMode = !!(selection || labelMode || terrainMode || previewMode || (0, dependencies.toolServices.isSpecialTool)(state.tool) || draftMode);
-    const busy = state.modeProcessing || selection?.previewPending;
-    const calculating = boundaryPending || selection?.computationPending || selection?.activePhase === 'preparing';
+    const specialMode = !!(dependencies.domains.editingDomain.snapshot().objectVertexEditing || selection || labelMode || terrainMode || previewMode || (0, dependencies.toolServices.isSpecialTool)(state.tool) || draftMode);
     const bar = (0, dependencies.platform.$)('modeActionBar');
     bar?.classList.toggle('hidden', !specialMode);
     bar?.classList.toggle('single-action', labelMode);
@@ -675,8 +723,6 @@ export function createTaskPresentation() {
     (0, dependencies.platform.$)('modeDraftInsertBtn')?.setAttribute('aria-pressed', String(toolbar.editable && !!draft.vertexInsertMode));
     (0, dependencies.platform.$)('modeDraftDoneBtn')?.setAttribute('aria-busy', String(state.modeProcessing));
 
-    const hydroReview = multiDraftReviewActive(state);
-    const hydroCount = hydroReview ? (0, dependencies.countryCommitFlow.multiDraftPartCount)() : 0;
     (0, dependencies.platform.$)('multiDrawnActions')?.classList.toggle('hidden', !terrainMode);
     const add = (0, dependencies.platform.$)('multiDrawnAddBtn');
     if (add) add.disabled = !!busy || draft.strokeActive || !state.multiDraft?.current;
@@ -686,36 +732,7 @@ export function createTaskPresentation() {
     const primary = (0, dependencies.platform.$)('modePrimaryBtn');
     if (primary) {
       primary.classList.toggle('hidden', labelMode || (!selection && toolbar.editable));
-      let disabled = !!busy;
-      let label = '완료';
-      let icon = '#icon-check';
-      if (selectionModel) {
-        disabled ||= selectionModel.primaryDisabled;
-        label = selectionModel.primaryLabel;
-        icon = selectionModel.primaryIcon;
-      } else {
-        disabled ||= hydroReview && (!hydroCount || draftMode || !!state.multiDraft?.previewPending || !!state.multiDraft?.previewIssues?.length);
-        disabled ||= draftMode && (draft.strokeActive || draft.coords.length < (0, dependencies.countryEditingA.draftMinimumPoints)() || draft.issues.length > 0 || !cutLineReady);
-        disabled ||= mergeTargetMode && !state.mergeTargetCountryIds.length;
-        disabled ||= genericMergeMode && !state.genericFeatureMergeTargetIds.length;
-        disabled ||= unitMergeMode && !state.territorialUnitMergeTargetIds.length;
-        disabled ||= (genericSplitMode || unitSplitMode) && !hydroReview && !cutLineReady;
-        disabled ||= unitRedrawMode && draft.coords.length < 3;
-        disabled ||= boundaryPending || (boundarySelectMode && !boundaryReady && !boundaryFailed);
-        disabled ||= (boundaryEditMode || state.tool === 'country-coast') && !previewMode && !dependencies.domains.editingDomain.snapshot().boundaryDraft?.moveCount;
-        disabled ||= previewMode && state.geometryPreview.session.validation?.blocking === true;
-        if (hydroReview) label = '생성';
-        else if (previewMode) label = ['territorial-border','country-coast'].includes(state.tool) ? '경계 변경 적용' : '변경 적용';
-        else if (boundarySelectMode) label = `국경 편집 (${state.boundaryEditEntityIds.length})`;
-        else if (boundaryEditMode || state.tool === 'country-coast') label = state.boundaryPreparation?.calculationFailed ? '다시 계산' : '변경 미리보기';
-        else if (terrainMode) label = '그리기 완료';
-        else if (mergeTargetMode) label = `합병 미리보기 (${state.mergeTargetCountryIds.length})`;
-        else if (genericMergeMode || unitMergeMode) label = '합병 미리보기';
-        else if (genericSplitMode || unitSplitMode) label = '영역 나누기';
-        else if (unitRedrawMode) label = '영역 다시 지정';
-      }
-      if (boundaryFailed && !previewMode) label = '다시 시도';
-      if (boundaryPending) label = '경계 준비 중…';
+      const {disabled,label,icon} = modePrimaryCommand(modeActionContext());
       primary.disabled = !!disabled;
       setButtonLabel(primary, label);
       (0, dependencies.platform.$)('modePrimaryIcon')?.setAttribute('href', icon);
@@ -750,6 +767,7 @@ export function createTaskPresentation() {
   }
 
   function dispatchModePrimaryAction() {
+    if(dependencies.domains.editingDomain.snapshot().objectVertexEditing)return dependencies.domains.editingDomain.handleInteraction({type:'object-edit-end'});
     const selection = dependencies.projectState.state.territorySelectionSession;
     if (selection) return selection.stage === 'review'
       ? (0, dependencies.territorySelectionA.territorySelectionApply)()
@@ -771,7 +789,7 @@ export function createTaskPresentation() {
 
   async function runModePrimaryAction(action = dispatchModePrimaryAction) {
     if (dependencies.projectState.state.modeProcessing) return false;
-    if (action === dispatchModePrimaryAction && (0, dependencies.platform.$)('modePrimaryBtn')?.disabled) return false;
+    if (action === dispatchModePrimaryAction) {const command=modePrimaryCommand();if(command.disabled){dependencies.feedback.setActionStatus(command.reason,'error',3200);return false;}}
     operationFeedback = '';
     dependencies.projectState.state.modeProcessing = true;
     updateModeButtons();

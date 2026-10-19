@@ -1,13 +1,12 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { shiftTimelineMonth, timelineMonthLabel } from '../../assets/js/modules/timeline-controls.js';
 
 async function openApp(page) {
-  await gotoEditor(page, '/?renderer=canvas');
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
+  await page.goto('/?debug=1&renderer=canvas');
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
 }
 
-test('month and year buttons navigate without creating Undo or dirty state', async ({ page }) => {
+test('web month and year buttons navigate without changing the document', async ({ page }) => {
   await openApp(page);
   const input = page.locator('#timelineMonthInput');
   const button = page.locator('#timelineMonthButton');
@@ -16,8 +15,7 @@ test('month and year buttons navigate without creating Undo or dirty state', asy
   await expect(button).toContainText(timelineMonthLabel(before));
   await expect(input).toBeHidden();
   await expect(page.locator('.timeline-status')).not.toContainText('월말 기준');
-  const dirty = await page.locator('#projectSaveStatus').getAttribute('data-tooltip');
-  const undo = await page.locator('#undoBtn').isDisabled();
+  const documentBefore = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot());
   for (const [id, delta] of [
     ['#timelinePreviousMonth', -1],
     ['#timelineNextMonth', 1],
@@ -30,8 +28,7 @@ test('month and year buttons navigate without creating Undo or dirty state', asy
     await expect(button).toContainText(timelineMonthLabel(shiftTimelineMonth(current, delta)));
   }
   await expect(input).toHaveValue(before);
-  expect(await page.locator('#projectSaveStatus').getAttribute('data-tooltip')).toBe(dirty);
-  expect(await page.locator('#undoBtn').isDisabled()).toBe(undo);
+  expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(documentBefore);
 });
 
 test('desktop and narrow mobile use the same inline date editor and Enter/Done action', async ({ page }) => {
@@ -39,7 +36,7 @@ test('desktop and narrow mobile use the same inline date editor and Enter/Done a
   const button = page.locator('#timelineMonthButton');
   const input = page.locator('#timelineMonthInput');
   const initial = await input.inputValue();
-  const dirty = await page.locator('#projectSaveStatus').getAttribute('data-tooltip');
+  const documentBefore = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot());
   for (const [width, date] of [[1280, '1914-07'], [390, '1918-11'], [320, '1945-08']]) {
     await page.setViewportSize({ width, height: 800 });
     await expect(button).toBeVisible();
@@ -73,7 +70,7 @@ test('desktop and narrow mobile use the same inline date editor and Enter/Done a
   await page.locator('#timelineNextMonth').click();
   await expect(button).toBeVisible();
   await expect(input).toHaveValue('1945-09');
-  expect(await page.locator('#projectSaveStatus').getAttribute('data-tooltip')).toBe(dirty);
+  expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(documentBefore);
   expect(initial).not.toBe('');
 });
 
@@ -82,7 +79,7 @@ test('mobile timeline and map command toolbar occupy separate rows without cover
   await openApp(page);
   for (const width of [320, 360, 390, 430, 768]) {
     await page.setViewportSize({ width, height: 800 });
-    await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+    await expect(page.locator('#viewer')).toHaveAttribute('data-layout', 'mobile');
     const positions = await page.evaluate(() => {
       const rect = selector => {
         const el = document.querySelector(selector);
@@ -91,7 +88,7 @@ test('mobile timeline and map command toolbar occupy separate rows without cover
       };
       const controls = {};
       for (const id of ['timelinePreviousYear', 'timelinePreviousMonth', 'timelineMonthButton',
-        'timelineNextMonth', 'timelineNextYear', 'referenceImageBtn', 'resetViewBtn']) {
+        'timelineNextMonth', 'timelineNextYear', 'objectSearchBtn', 'resetViewBtn']) {
         const el = document.getElementById(id);
         const r = el.getBoundingClientRect();
         const target = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);

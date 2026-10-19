@@ -106,9 +106,9 @@ test('full-world stage selects manifest-pinned Web resources and keeps the canon
   assert.equal(staged.worldData.countryCount, 258);
   assert.equal(staged.worldData.modelEntityCount, 254);
   assert.equal(staged.worldData.mergedSourceCount, 4);
-  assert.equal(staged.worldData.fileCount, 27);
+  assert.equal(staged.worldData.fileCount, 18);
   assert.equal(staged.worldData.worldFileCount, 14);
-  assert.equal(staged.worldData.physicalFileCount, 13);
+  assert.equal(staged.worldData.physicalFileCount, 4);
   assert.equal(staged.fixture, null);
   assert.equal(await readFile(join(staged.directory, 'assets/js/bootstrap.js'), 'utf8'),
     'globalThis.startedByWebBootstrap = true;');
@@ -118,7 +118,7 @@ test('full-world stage selects manifest-pinned Web resources and keeps the canon
   assert.ok(staged.files.some(file => file.path.endsWith('/state-ABC.json.gz')));
   assert.ok(staged.files.some(file => file.path.endsWith('/hydro.bin')));
   assert.ok(staged.files.some(file => file.path.endsWith('/places-v1.bin')));
-  assert.ok(staged.files.some(file => file.path.endsWith('/1/2-1.webp')));
+  assert.equal(staged.files.some(file=>file.path.includes('terrain-preview')),false);
 });
 test('full-world stage refuses tampered pinned immutable data', async t => {
   const { root, put, mesh } = await fixture(t);

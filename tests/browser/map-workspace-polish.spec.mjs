@@ -191,30 +191,29 @@ test('compact map commands stay clickable and search closes only after a single 
   await page.locator('#mapDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(page.locator('#mapDisplaySurface')).toHaveClass(/view-menu-desktop/);
-  await page.locator('[data-map-display-row="general"]').click();
-  const countryRow = page.locator('[data-map-display-row="countries"]');
+  const countryRow = page.locator('[data-map-display-row="objects"]');
   await countryRow.click();
-  await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
+  await expect(page.locator('#layerStylePanel-objects')).toBeVisible();
   await expect(countryRow).toHaveAttribute('aria-expanded', 'true');
   const displayMenuGeometry = await page.evaluate(() => {
     const rect = selector => {
       const { left, right, top, width, height } = document.querySelector(selector)?.getBoundingClientRect() || {};
       return { left, right, top, width, height };
     };
-    const countryRow = rect('[data-map-display-row="countries"]');
-    const panel = rect('#layerStylePanel-countries');
-    const visibilityLabel = rect('#countriesVisible + span');
+    const countryRow = rect('[data-map-display-row="objects"]');
+    const panel = rect('#layerStylePanel-objects');
+    const visibilityLabel = rect('#objectsVisible + span');
     return { countryRow, panel, visibilityLabel };
   });
   expect(displayMenuGeometry.panel.left).toBeGreaterThanOrEqual(displayMenuGeometry.countryRow.right);
   expect(Math.abs(displayMenuGeometry.panel.top - displayMenuGeometry.countryRow.top)).toBeLessThanOrEqual(2);
   expect(displayMenuGeometry.visibilityLabel.height).toBeLessThanOrEqual(24);
-  await page.locator('#countriesVisible').locator('..').click();
-  await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
-  await expect(page.locator('#layerStylePanel-countries .view-menu-panel-content')).toHaveJSProperty('inert', true);
-  await page.locator('#countriesVisible').locator('..').click();
-  await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
-  await expect(page.locator('#layerStylePanel-countries .view-menu-panel-content')).toHaveJSProperty('inert', false);
+  await page.locator('#objectsVisible').locator('..').click();
+  await expect(page.locator('#layerStylePanel-objects')).toBeVisible();
+  await expect(page.locator('#layerStylePanel-objects .view-menu-panel-content')).toHaveJSProperty('inert', true);
+  await page.locator('#objectsVisible').locator('..').click();
+  await expect(page.locator('#layerStylePanel-objects')).toBeVisible();
+  await expect(page.locator('#layerStylePanel-objects .view-menu-panel-content')).toHaveJSProperty('inert', false);
 
   await page.locator('#mapDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeHidden();

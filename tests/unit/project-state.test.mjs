@@ -13,13 +13,13 @@ import {
 } from '../../assets/js/modules/project-state.js';
 import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
 
-const state = {
+const state = {projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
   sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
   ...createEmptyTerritorialState(),
   distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'overlap', activeLayerId: '' },
   labelSettings: { 'territorial:KOR': { pinned: true } }, layerPresentation: { styles: {} },
   physicalSettings: { terrainVisible: true }, projection: 'flat',
-  layerVisibility: { countries: true }, itemVisibility: { A: false }, layerFolders: { countries: true },
+  layerVisibility: { objects: true }, itemVisibility: { A: false }, layerFolders: { objects: true },
   view: { flatZoom: 2 },
   timelineCursor: '1914-07',
 };
@@ -49,32 +49,32 @@ test('history snapshots preserve editable object state through the shared schema
 test('presentation and session scopes stay independent', () => {
   const presentation = pickProjectFields(state, { scope: 'presentation' });
   assert.deepEqual(presentation.labelSettings, state.labelSettings);
-  assert.deepEqual(presentation.layerVisibility, state.layerVisibility);
+  assert.equal('layerVisibility' in presentation,false);
   assert.equal('countryOverrides' in presentation, false);
   assert.equal('projection' in presentation, false);
 
   const session = pickProjectFields(state, { scope: 'session' });
   assert.equal(session.projection, 'flat');
   assert.deepEqual(session.view, { flatZoom: 2 });
-  assert.deepEqual(session.layerFolders, { countries: true });
+  assert.deepEqual(session.layerFolders, { objects: true });
   assert.equal(session.timelineCursor, '1914-07');
-  assert.equal('layerVisibility' in session, false);
+  assert.deepEqual(session.layerVisibility,state.layerVisibility);
 });
 
 test('shared project fields receive current defaults without sharing mutable values', () => {
-  const restored = applyProjectFields({ physicalSettings: { terrainVisible: false }, layerVisibility: { countries: true }, view: {} },
-    { timelineRecords: createEmptyTerritorialState().timelineRecords, geometries: [] });
+  const restored = applyProjectFields({ physicalSettings: { terrainVisible: false }, layerVisibility: { objects: true }, view: {} },
+    { projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'empty'},timelineRecords: createEmptyTerritorialState().timelineRecords, geometries: [] });
   assert.deepEqual(restored.labels, []);
   assert.deepEqual(restored.hydroEdits, []);
   assert.deepEqual(restored.timelineRecords.lifetimes, []);
-  assert.throws(() => applyProjectFields({}, {}), /timelineRecords/);
+  assert.throws(() => applyProjectFields({}, {projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'empty'}}), /timelineRecords/);
   restored.labels.push({ id: 'new' });
-  assert.deepEqual(applyProjectFields({}, { timelineRecords: createEmptyTerritorialState().timelineRecords, geometries: [] }).labels, []);
+  assert.deepEqual(applyProjectFields({}, { projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'empty'},timelineRecords: createEmptyTerritorialState().timelineRecords, geometries: [] }).labels, []);
 });
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 const currentProject = () => { const project = {
-  format: 'pandolab-project-state',
+  format: 'pandolab-project-state',documentId:uuid(99),projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},distributionSettings:{renderMode:'overlap',activeLayerId:'',boundaryVisible:true},
   schemaVersion: PROJECT_SCHEMA_VERSION,
   landObjectModel: {
     schemaVersion: 2,
@@ -86,13 +86,12 @@ const currentProject = () => { const project = {
   },
   territorialModel: { schemaVersion: 6 },
   distributionModel: { schemaVersion: 3 },
-  layerPresentation: { schemaVersion: 4, overlayOrder: [], styles: {} },
+  layerPresentation: { schemaVersion: 5, overlayOrder: [], styles: {} },
   territorialEntities: [createTerritorialFeature({id:'DEU',entityKind: 'general',name:'독일',geometry:{type:'Polygon',coordinates:[[[0,0],[0,2],[2,2],[2,0],[0,0]]]}}),
     createTerritorialFeature({id:uuid(1),entityKind: 'general',parentId:'DEU',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}})],
   distributionLayers: [{ id: uuid(3), schemaVersion: 3, name: '분포', unit: '', valueScale: { mode: 'auto' } }],
   distributionEntries: [{ id: uuid(4), schemaVersion: 3, layerId: uuid(3), mode: 'geometry',
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] }, value: 1 }],
-  distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
   genericFeatures: [{
     type: 'Feature', id: uuid(5), geometry: { type: 'Point', coordinates: [1, 2] },
     properties: { schemaVersion: 2, name: '기타', notes: '', color: '#123456', locked: false, source: normalizeSourceProvenance({ kind: 'unsupported' }) },
@@ -127,15 +126,11 @@ test('distribution boundary visibility is a shared optional presentation setting
   assert.deepEqual(assertCurrentProjectSchema(prior).distributionSettings, prior.distributionSettings);
 });
 
-test('canonical river and lake presentation groups are accepted while hydro output is rejected', () => {
+test('river and lake authored styles are retained while saved viewing visibility is rejected', () => {
   const legacyHydroInput = currentProject();
-  legacyHydroInput.layerVisibility = { hydro: false };
-  legacyHydroInput.itemVisibility = { hydro: {} };
-  legacyHydroInput.layerPresentation.styles = { hydro: { opacity: 0.5, boundaryVisible: false } };
-  assert.throws(() => assertCurrentProjectSchema(legacyHydroInput), /지원하지 않는 필드 hydro/);
+  legacyHydroInput.layerVisibility = { hydro:false };
+  assert.throws(() => assertCurrentProjectSchema(legacyHydroInput), /지원하지 않는 필드 layerVisibility/);
   const canonical = currentProject();
-  canonical.layerVisibility = { rivers: true, lakes: false };
-  canonical.itemVisibility = { hydro: {} };
   canonical.layerPresentation.styles = { rivers: { opacity: 0.7 }, lakes: { opacity: 0.8, boundaryVisible: true } };
   assert.equal(assertCurrentProjectSchema(canonical).schemaVersion, PROJECT_SCHEMA_VERSION);
 });

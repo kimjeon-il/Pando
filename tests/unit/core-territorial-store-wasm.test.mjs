@@ -27,7 +27,7 @@ test('territorial store and hierarchy index read the same accepted C++ document 
     await assert.rejects(store.setTimelineCursor('1914-08',{ canPublish: () => false }),{ code: 'TIMELINE_DRAFT_ACTIVE' });
     assert.deepEqual(owner.client.state(),state);
     assert.equal(await owner.project.undo(),true);assert.equal(repository.get('A').properties.name,seed.territorialEntities[0].properties.name);
-    assert.deepEqual(JSON.parse(await owner.client.storageSnapshot()),{...seed,editorState:{...seed.editorState,lastViewedMonth:'1914-07'}});
+    assert.deepEqual(JSON.parse(await owner.client.storageSnapshot()),seed);
     assert.equal(owner.client.state().timelineCursor,'1914-07','Undo restores the edit while preserving the chosen viewing month');
   } finally { store.dispose();owner.dispose(); }
 });

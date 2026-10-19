@@ -1,4 +1,3 @@
-import {createEditingPresentation} from '../../assets/js/modules/editing-presentation.js';
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
@@ -101,7 +100,7 @@ test('domain factories expose isolated public contracts', async t => {
     'renderBase',
     'renderProjectedOverlays',
   ]) assert.equal(rendering[method], undefined, `${method} is not a public rendering facade`);
-  for (const method of ['createEmpty', 'undo', 'redo', 'save']) assert.equal(typeof project[method], 'function');
+  for (const method of ['createProject', 'undo', 'redo', 'save']) assert.equal(typeof project[method], 'function');
   for (const method of [
     'normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity', 'planCountryImport',
     'planTerritorialImport', 'planCoastReconciliation', 'planRiverPartition', 'executeWorker', 'cancelWorker',
@@ -380,7 +379,7 @@ test('project domain executes typed Core commands and emits only accepted change
 });
 
 test('project command boundary rejects a missing Core owner and malformed command identifiers explicitly', async t => {
-  const withoutOwner = createProjectDomain();
+  const withoutOwner = createProjectDomain({ productMode:'editor' });
   await assert.rejects(withoutOwner.executeCommand({ commandId: 'generic.create' }),TypeError);
   const seed=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/portability/web-document-seed.json'),'utf8'));
   const owner=await createNodeCoreProject(seed);t.after(() => owner.dispose());

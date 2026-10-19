@@ -1307,6 +1307,8 @@
 
 .mode-map-summary { max-width: min(90vw, 40rem); padding: var(--ui-space-2) var(--ui-space-3); overflow-wrap: anywhere; font-size: var(--ui-font-sm); pointer-events: none; }
 
+.mode-task-input{font-size:var(--ui-font-sm);line-height:1.5;padding:0 var(--ui-space-3);margin:4px 0 8px}.touch-vertex-handle{fill:transparent!important;stroke:transparent!important;filter:none}.touch-vertex-handle.selected{stroke:#b0dbff!important;stroke-width:2}.editing-magnifier{overflow:hidden;filter:drop-shadow(0 3px 6px #0008)}
+
 /* A short touch landscape viewport uses the same surfaces in a side dock. */
 .app-root[data-layout="phone-landscape"] {
   --phone-panel-width: min(var(--ui-phone-landscape-panel-max-width), 45vw);

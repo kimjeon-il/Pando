@@ -5,7 +5,7 @@ import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
 test('disposal cancels persistence and rejects pending or late snapshot exports as cancellation',async()=>{
   let release,started,cancelled=0;
   const response=new Promise(resolve=>{release=resolve;}),exporting=new Promise(resolve=>{started=resolve;});
-  const domain=createProjectDomain({appVersion:'test',persistence:{cancelPending(){cancelled++;}},
+  const domain=createProjectDomain({ productMode:'editor',appVersion:'test',persistence:{cancelPending(){cancelled++;}},
     commandOwner:{exportSnapshot:()=>{started();return response;}}});
   const pending=domain.buildAutosave();await exporting;domain.dispose();domain.dispose();
   release({storageJson:'{}',state:{epoch:1,checkpoint:1,presentationCheckpoint:0}});
@@ -19,7 +19,7 @@ test('accepted command before/after references are captured at ordered dispatch 
   let current=initial,held,publicationStarted;
   const hold=new Promise(resolve => { held=resolve; }),published=new Promise(resolve => { publicationStarted=resolve; });
   const commands=[],events=[];
-  const project=createProjectDomain({ documentModel: { snapshot: () => current,territorialViews: () => [] },
+  const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => current,territorialViews: () => [] },
     commandOwner: { execute: async envelope => { commands.push(envelope.commandId);return { ok: true,changed: true,commandId: envelope.commandId }; } },
     publishCommand: async result => {
       if (result.commandId==='label.create') { publicationStarted();await hold;current=first; } else current=second;
@@ -41,7 +41,7 @@ test('whole history and commands share the dispatch boundary before the next mut
   const initial=Object.freeze({ labels: Object.freeze([{ id: 'L' }]) }),restored=Object.freeze({ labels: Object.freeze([]) });
   let current=initial,release,started;
   const pending=new Promise(resolve => { release=resolve; }),held=new Promise(resolve => { started=resolve; });
-  const project=createProjectDomain({ documentModel: { snapshot: () => current,territorialViews: () => [] },
+  const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => current,territorialViews: () => [] },
     commandOwner: { undo: async () => { started();await pending;current=restored;return { ok: true,changed: true }; },
       execute: async () => ({ ok: true,changed: false }) },publishCommand() {} });
   const undo=project.undo(),command=project.executeCommand({ commandId: 'generic.metadata' });
@@ -53,7 +53,7 @@ test('whole history and commands share the dispatch boundary before the next mut
 test('project replacement awaits the selection/draft reset acknowledgement before swapping or rendering the next project', async () => {
   let release,signalReset;
   const held=new Promise(resolve => { release=resolve; }),resetStarted=new Promise(resolve => { signalReset=resolve; }),effects=[];
-  const project=createProjectDomain({ readBuiltinSelectionCatalogs: () => [],documentModel: { snapshot: () => ({ current: true }) },
+  const project=createProjectDomain({ productMode:'editor', readBuiltinSelectionCatalogs: () => [],documentModel: { snapshot: () => ({ current: true }) },
     commandOwner: { validateImport: async bytes => JSON.parse(bytes),captureReplacement: async () => 7,load: async () => effects.push('core-load'),releaseReplacement: async () => true },
     onProjectReset: async () => { signalReset();await held;effects.push('selection-ack');effects.push('selection-ui'); },
     replaceSnapshot: () => { effects.push('swap');return true; },invalidateProject: () => effects.push('render') });
@@ -66,7 +66,7 @@ test('project replacement awaits the selection/draft reset acknowledgement befor
 
 test('project replacement admits presentation catalog inside its ordered Core transaction', async () => {
   const calls = [],catalog = { hydroLayers: {},builtinSubunitSources: {},countryLabelIds: [] };
-  const project = createProjectDomain({ readBuiltinSelectionCatalogs: () => [],readPresentationCatalog: () => catalog,
+  const project = createProjectDomain({ productMode:'editor', readBuiltinSelectionCatalogs: () => [],readPresentationCatalog: () => catalog,
     documentModel: { snapshot: () => ({ current: true }) },publishCommand: async () => calls.push('publish-catalog'),
     commandOwner: { validateImport: async bytes => JSON.parse(bytes),captureReplacement: async () => 7,
       load: async () => calls.push('load'),presentationCatalogLoad: async value => { assert.equal(value,catalog);calls.push('admit-catalog');return {}; },
@@ -78,7 +78,7 @@ test('project replacement admits presentation catalog inside its ordered Core tr
 
 test('same-generation territorial source admission delegates its exact scope and cursor intent to C++',async () => {
   const current=Object.freeze({ header: 'current',labels: Object.freeze([{ id: 'L' }]) }),source=Object.freeze({ territorialEntities: [] }),calls=[];
-  const project=createProjectDomain({ documentModel: { snapshot: () => current },publishCommand() {},readBuiltinSelectionCatalogs: () => [],
+  const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => current },publishCommand() {},readBuiltinSelectionCatalogs: () => [],
     commandOwner: { load: async value => { calls.push(['load',value]);return {}; },
       initialize: async value => { calls.push(['initialize',value]);return {}; } } });
   assert.equal(await project.admit(current,{ territorialSource: source,preserveCursor: true }),current);
@@ -89,7 +89,7 @@ test('same-generation territorial source admission delegates its exact scope and
 
 test('a presentation acknowledgement queues one presentation save and preserves the platform targeted render boundary',async () => {
   const body=Object.freeze({ labels: Object.freeze([]) }),events=[];
-  const project=createProjectDomain({ documentModel: { snapshot: () => body,territorialViews: () => [] },
+  const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => body,territorialViews: () => [] },
     commandOwner: { execute: async () => ({ ok: true,changed: true,delta: { objects: [],geometries: [] } }) },publishCommand() {},
     invalidateProject: () => assert.fail('View commands must not reset document geometry/topology.'),
     persistence: { queueProject: () => assert.fail('View commands use the presentation lane.'),queuePresentation: options => events.push(['save',options]) },
@@ -103,7 +103,7 @@ test('accepted metadata and geometry commands deliver canonical impact after pub
     { ok: true,changed: true,delta: { impact: { geometryDomains: [],identityDomains: ['territorial'],timelineChanged: false } } },
     { ok: true,changed: true,delta: { impact: { geometryDomains: ['hydro'],identityDomains: ['hydro'],timelineChanged: false } } },
   ];
-  const project=createProjectDomain({ documentModel: { snapshot: () => ({}),territorialViews: () => [] },
+  const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => ({}),territorialViews: () => [] },
     commandOwner: { execute: async () => outcomes.shift() },publishCommand: () => effects.push('publish'),
     invalidateProject: () => assert.fail('A command does not replace the entire rendered project.'),
     invalidateCommand: (reason,outcome) => effects.push([reason,outcome.delta.impact]) });
@@ -115,7 +115,7 @@ test('accepted metadata and geometry commands deliver canonical impact after pub
 test('source admission reuses a Core baseline handle and pure import waits for its ordered admission without replacing the projection',async () => {
   const current=Object.freeze({ territorialEntities: Object.freeze([]) }),calls=[],baseline={ sourceBytes: new Uint8Array([31,139,8]) },
     validated=Object.freeze({ format: 'pandolab-project-state',territorialEntities: Object.freeze([]) });
-  const project=createProjectDomain({ documentModel: { snapshot: () => current },publishCommand: (_result,context) => calls.push(context.reason),
+  const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => current },publishCommand: (_result,context) => calls.push(context.reason),
     readBuiltinSelectionCatalogs: () => [],commandOwner: {
       storageBaselineLoad: async input => { assert.equal(input,baseline);calls.push('admit');return { state: { storageBaselineId: 7 } }; },
       validateImport: async bytes => { calls.push(['validate',bytes]);return validated; },
@@ -131,7 +131,7 @@ test('source admission reuses a Core baseline handle and pure import waits for i
 });
 
 test('a source sequence retains its captured project generation across the baseline and scoped install boundary',async () => {
-  const calls=[],project=createProjectDomain({ documentModel: { snapshot: () => ({}) },publishCommand() {},readBuiltinSelectionCatalogs: () => [],
+  const calls=[],project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => ({}) },publishCommand() {},readBuiltinSelectionCatalogs: () => [],
     commandOwner: { storageBaselineLoad: async () => ({ state: { storageBaselineId: 7 } }),
       initialize: async () => { calls.push('initialize');return {}; },load: async () => calls.push('load') } });
   const expectedGeneration=project.getGeneration();
@@ -145,7 +145,7 @@ test('a source sequence retains its captured project generation across the basel
 test('a failed accepted platform effect restores the Core capsule before propagating the original error and schedules no success effects',async () => {
   const before=Object.freeze({ labels: [{ id: 'L' }] }),after=Object.freeze({ labels: [] }),failure=new Error('Render adoption failed'),effects=[];
   let current=before;
-  const project=createProjectDomain({ documentModel: { snapshot: () => current,territorialViews: () => [] },
+  const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => current,territorialViews: () => [] },
     commandOwner: {
       captureReplacement: async () => { effects.push('capture');return 7; },
       execute: async () => { current=after;effects.push('execute');return { ok: true,changed: true }; },
@@ -165,7 +165,7 @@ test('replacement cannot overwrite the bounded Core capsule while an earlier acc
   const held=new Promise(resolve => { releaseEffect=resolve; }),effectStarted=new Promise(resolve => { signalEffect=resolve; }),
     validated=new Promise(resolve => { signalValidation=resolve; }),effects=[];
   let current=Object.freeze({ complete: 'before' });
-  const project=createProjectDomain({ documentModel: { snapshot: () => current,territorialViews: () => [] },readBuiltinSelectionCatalogs: () => [],
+  const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => current,territorialViews: () => [] },readBuiltinSelectionCatalogs: () => [],
     commandOwner: {
       captureReplacement: async () => { effects.push('capture');return 7; },releaseReplacement: async () => { effects.push('release');return true; },
       execute: async () => { current=Object.freeze({ complete: 'accepted' });effects.push('execute');return { ok: true,changed: true }; },

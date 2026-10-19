@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 
@@ -6,10 +6,7 @@ test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function month(page, value) {
-  await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill(value);
-  await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  await setEditorMonth(page, value);
 }
 
 test('measure instrumented C++ Soviet core candidate decoding, validation and impact stages', async ({ page }, info) => {

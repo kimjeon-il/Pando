@@ -6,7 +6,7 @@
 #include <string>
 
 namespace pandoeditor::projectcodec {
-inline constexpr int ProjectVersion=11;
+inline constexpr int ProjectVersion=14;
 inline constexpr int TerritorialIdentityVersion=6;
 enum class LabelReferencePolicy {NativeHard,WebNonOwning};
 struct PlatformPorts {
@@ -17,8 +17,10 @@ struct PlatformPorts {
     codecjson::ParsedTextPolicy parsedTextPolicy=codecjson::ParsedTextPolicy::QtUtf8;
     LabelReferencePolicy labelReferencePolicy=LabelReferencePolicy::NativeHard;
 };
+codecjson::Value validateProjectSetup(const codecjson::Value&);
+void requireNavigationMonth(const codecjson::Value&,const std::string&);
 ProjectDocument decode(const std::string&,const PlatformPorts&);
-std::string restoredTimelineMonth(const ProjectDocument&,const std::string& currentMonth);
+std::string restoredTimelineMonth(const ProjectDocument&);
 ProjectDocument decodeWeb(const std::string&,const PlatformPorts&);
 ProjectDocument decodeWebValue(const codecjson::Value&,const PlatformPorts&);
 ProjectDocument readWebSnapshot(const std::string&,const PlatformPorts&);

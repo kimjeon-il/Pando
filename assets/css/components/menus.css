@@ -122,6 +122,9 @@
   box-shadow: var(--control-shadow);
 }
 
+.file-menu-page { display: contents; }
+.file-menu-page[hidden] { display: none; }
+
 .ui-command-menu {
   width: min(var(--ui-menu-width), calc(100vw - var(--ui-menu-screen-edge) * 2));
   max-width: calc(100vw - var(--ui-menu-screen-edge) * 2);

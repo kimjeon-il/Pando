@@ -117,7 +117,9 @@ export function createDomainAssembly() {
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'domain', ...entry }),
     });
     projectDomain = (0, dependencies.domainFactories.createProjectDomain)({
+      productMode: 'editor',
       commandOwner,documentModel,
+      viewingPresentation:payload=>dependencies.projectSession.applyViewingPresentation(payload),
       appVersion: dependencies.platformConfigurationA.APP_VERSION,
       readBuiltinSelectionCatalogs: () => [
         { domain: 'placeBuiltin',refs: dependencies.countryLabelModel.builtinPlaceSelectionReferences() },
@@ -144,7 +146,7 @@ export function createDomainAssembly() {
       },
       persistence: dependencies.persistence.persistenceService,
       saveState: dependencies.projectSession.saveState,
-      prepareEmpty: async () => {
+      prepareNewProject: async () => {
         const countryIds = dependencies.builtinCountries.canonicalCountryStore?.ids?.() || [];
         const [baseline] = await Promise.all([
           dependencies.builtinBaseline.prepareProjectBaseline(),
@@ -180,6 +182,8 @@ export function createDomainAssembly() {
           if (reason === 'new') (0, dependencies.feedback.setActionStatus)('새 프로젝트 준비 중…', 'working', 0);
         }
       },
+      captureEditorSession:()=>({view:dependencies.projectSession.captureReplacement(),editing:editingDomain.captureReplacement()}),
+      restoreEditorSession:async(capsule,generation)=>{if(!capsule)return;capsule.view();capsule.editing(generation);selectionUiController.presentPrimary({refreshOnly:false});dependencies.taskPresentation.updateModeButtons();dependencies.mapView.syncMapHostFromState();renderingDomain.invalidateProject('replacement-editor-rollback');},
       onReplacementCommitted: reason => {
         if (reason === 'new') (0, dependencies.feedback.setActionStatus)('새 프로젝트를 만들었습니다.', 'success', 3200, { forceVisible: true });
       },
@@ -546,9 +550,10 @@ export function createDomainAssembly() {
           return true;
         },
         captureObjectGestureSnapshot: () => ({ expectedEpoch: commandOwner.state().epoch,projectGeneration: projectDomain.getGeneration() }),
-        getObjectVertexTarget: () => {
+        getObjectVertexTarget: requestedRef => {
+          if(!requestedRef)return null;
           if (dependencies.projectState.state.tool !== 'select') return null;
-          const selected = dependencies.projectState.state.selected;
+          const selected = requestedRef;
           if (selected?.domain === 'hydro') {
             if (!(0, dependencies.objectOperationsA.objectRefVisible)(selected)) return null;
             const feature = dependencies.projectState.state.hydroEdits.find(item => String(item.id) === String(selected.id));
@@ -765,6 +770,7 @@ export function createDomainAssembly() {
       },
       getImportCommitter: dependencies.gisRuntime.getGisImportCommitter,
       onEditingStateChanged: snapshot => {
+        window.dispatchEvent(new CustomEvent('pandolab:editing-state-changed'));
         dependencies.projectState.state.tool = snapshot.activeTool;
         dependencies.rendering.gpuMapRenderer.setCountryEditingActive(snapshot.phase !== 'idle');
         (0, dependencies.platform.$)('map')?.classList.toggle('draft-stroke-active', snapshot.draft.strokeActive);
@@ -1095,6 +1101,9 @@ export function createDomainAssembly() {
         svg: () => dependencies.mapLayers.svg,
       }),
       editingRenderResources: createResourceSnapshot('editing', {
+        openVertexChooser:dependencies.objectPicking.openVertexChooser,
+        currentRevision:()=>editingDomain.snapshot().revision,
+        inputRevision:()=>dependencies.lifecycleUi.mapInputController?.pointerRevision()??0,
         currentMapZoom: dependencies.labelPresentation.currentMapZoom,
         isMobile: dependencies.surfaces.isMobile,
         d3: dependencies.platform.d3,
@@ -1172,7 +1181,7 @@ export function createDomainAssembly() {
     const canPublish = () => {
       const current = dependencies.projectState.state;
       return !(current.projectReplacing || current.modeProcessing || current.geometryPreview?.session
-        || current.territorySelectionSession || editingDomain?.snapshot().selectionDraft || editingDomain?.snapshot().boundaryDraft || editingDomain?.draftInputActive?.());
+        || current.territorySelectionSession || editingDomain?.snapshot().objectVertexEditing || editingDomain?.snapshot().selectionDraft || editingDomain?.snapshot().boundaryDraft || editingDomain?.draftInputActive?.());
     };
     if (!canPublish()) {
       throw Object.assign(new Error('편집을 확정하거나 취소한 뒤 시간대를 이동하세요.'), { code: 'TIMELINE_DRAFT_ACTIVE' });
@@ -1188,6 +1197,7 @@ export function createDomainAssembly() {
     // A cursor change does not modify the canonical document. Persist only
     // the small view/session record, never the full geometry archive.
     projectDomain.queueViewAutosave();
+    dependencies.taskPresentation.syncEditingContext();
     return true;
   }
 

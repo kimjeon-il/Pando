@@ -42,13 +42,6 @@ PrepareResult CommandProcessor::prepareBatch(const ProjectSnapshot& original,std
     change->impact_=calculateChangeImpact(change->before(),change->after(),change->request_.targets,original.timelineMonth());
     change->historyCheckpoint_=checkpoint;change->batchBoundaryLabelSettings_=boundaryLabels;change->batchWebStateRevision_=territorialState||isWebGeometryBatchCommand(operation);
     change->batchClearsSelection_=clearsSelection;
-    change->liveRegionVisibility_=operation=="territorial.create-region"||operation=="territorial.copy-region-for-display";
-    change->liveSubunitVisibility_=operation=="territorial.edit";
-    if(operation=="territorial.copy-region-for-display") {
-        auto document=change->after_->document;document.presentation.webPresentation.visibility["regions"]=true;
-        change->after_=std::make_shared<const detail::DocumentState>(std::move(document));
-        change->impact_=calculateChangeImpact(change->before(),change->after(),change->request_.targets,original.timelineMonth());
-    }
     result.preview=CommandPreview(std::move(change));result.status=CommandStatus::Prepared;return result;
 }
 }

@@ -6,7 +6,7 @@ export function resolveMapTheme({ state, theme }) {
     const terrainFillAlpha = terrainVisible
       ? (terrainStyle === 'physical' ? 0.22 : 0.68)
       : null;
-    const countryStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'countries') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
+    const countryStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'objects') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const riverStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'rivers') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const lakeStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'lakes') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const base = theme === 'light'
