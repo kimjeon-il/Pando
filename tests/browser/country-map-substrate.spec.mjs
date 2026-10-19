@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { installCanvasTransportDiagnostics, instrumentCanvasTransportSource, logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
 
@@ -101,7 +102,7 @@ async function openMap(page, renderer) {
     await page.addInitScript(() => localStorage.setItem('pandolab-user-preferences', JSON.stringify({
       version: 2, appearance: { theme: 'light' }, selection: { outlineVisible: false, fillStrength: 0 },
     })));
-    await page.goto(`/?debug=1&renderer=${renderer}`);
+    await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
     try {
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', /editable|enhanced/, { timeout: 45_000 });
     } catch (error) {

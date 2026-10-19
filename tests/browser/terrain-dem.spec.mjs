@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -43,7 +44,7 @@ async function openDem(page, renderer, lowPrecision = false, source = 'developme
   }, { url: `${demOrigin}/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`, lowPrecision, source });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto(`/?renderer=${renderer}&debug=1${source === 'preview' ? '&demTerrain=preview' : ''}`);
+  await gotoEditor(page, `/?renderer=${renderer}&debug=1${source === 'preview' ? '&demTerrain=preview' : ''}`);
   try {
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   } catch (error) {
@@ -104,10 +105,10 @@ test('official preview and default use published URL while raster override keeps
     { timeout: 60_000 }).toBeGreaterThan(0);
   expect(requested).toContain('manifest.json');
   expect(errors).toEqual([]);
-  await page.goto('/?renderer=webgl2&debug=1');
+  await gotoEditor(page, '/?renderer=webgl2&debug=1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
     { timeout: 60_000 }).toBe('official');
-  await page.goto('/?renderer=webgl2&debug=1&demTerrain=raster');
+  await gotoEditor(page, '/?renderer=webgl2&debug=1&demTerrain=raster');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation),
     { timeout: 60_000 }).toBe('raster-rgba-v1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
@@ -120,7 +121,7 @@ test('published DEM tiles load by default in the browser without request routing
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const appUrl = process.env.PANDOLAB_VERIFY_LIVE_APP_URL;
-  await page.goto(appUrl
+  await gotoEditor(page, appUrl
     ? new URL('?renderer=webgl2&debug=1', appUrl).href
     : '/?renderer=webgl2&debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
@@ -140,7 +141,7 @@ test('official DEM manifest failure switches the whole dataset to raster', async
   test.setTimeout(120_000);
   await page.route(`${officialOrigin}/terrain/v${TERRAIN_DEM_VERSION}/manifest.json*`, route =>
     route.fulfill({ status: 503, body: 'DEM unavailable' }));
-  await page.goto('/?renderer=webgl2&debug=1');
+  await gotoEditor(page, '/?renderer=webgl2&debug=1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
     { timeout: 90_000 }).toBe('fallback');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation),

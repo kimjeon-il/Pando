@@ -1,3 +1,4 @@
+import {beginReferenceImageGesture,referenceImageInputActive} from './reference-image-input.js';
 /** LifecycleAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -40,13 +41,21 @@ export function createLifecycleAssembly() {
           projectUi = (0, dependencies.uiFactoriesB.createProjectUiBridge)({
             getElement: dependencies.platform.$,
             getSaveSnapshot: () => dependencies.projectSession.saveState.snapshot(),
-            getEditingSnapshot: () => ({ processing: dependencies.projectState.state.modeProcessing, previewActive: !!dependencies.projectState.state.geometryPreview.session, revision: dependencies.domains.editingDomain.snapshot().revision }),
+            getEditingSnapshot: () => ({ undoCommandId: dependencies.domains.projectDomain.state().undoCommandId, redoCommandId: dependencies.domains.projectDomain.state().redoCommandId, processing: dependencies.projectState.state.modeProcessing, previewActive: dependencies.projectState.state.territorySelectionSession ? dependencies.projectState.state.territorySelectionSession.stage === 'review' : !!dependencies.projectState.state.geometryPreview.session, revision: dependencies.domains.editingDomain.snapshot().revision }),
             getProjectGeneration: () => dependencies.domains.projectDomain.getGeneration(),
-            getDraftSnapshot: dependencies.draftPresentation.editingDraftSnapshot,
+            getDraftSnapshot: () => {
+              const draft = dependencies.draftPresentation.editingDraftSnapshot();
+              const snapshot = dependencies.domains.editingDomain.snapshot();
+              const boundary = snapshot.boundaryDraft || snapshot.selectionDraft;
+              if(boundary)return {...draft,...boundary};
+              const selection = dependencies.projectState.state.territorySelectionSession;
+              if (!selection || draft.historyCount || draft.futureCount) return draft;
+              return {...draft,historyCount: selection.parts.length + selection.selectedComponentKeys.length + selection.selectedCandidateIds.length + Number(!!selection.currentGeometry),futureCount: 0};
+            },
             requireCanonicalData: dependencies.readinessUi.requireCanonicalData,
-            discardActiveGeometryPreview: dependencies.geometryOperations.discardActiveGeometryPreview,
-            draftInputActive: () => dependencies.domains.editingDomain?.draftInputActive?.(),
-            undoDraft: () => dependencies.domains.editingDomain?.performDraftUndo(),
+            returnToEditing: dependencies.taskPresentation.returnToEditing,
+            draftInputActive: () => !!dependencies.domains.editingDomain.snapshot().selectionDraft || !!dependencies.domains.editingDomain.snapshot().boundaryDraft || dependencies.domains.editingDomain.draftInputActive() || !!dependencies.projectState.state.territorySelectionSession && dependencies.projectState.state.territorySelectionSession.stage !== 'setup',
+            undoDraft: () => dependencies.projectState.state.territorySelectionSession && !dependencies.draftPresentation.editingDraftSnapshot().historyCount ? dependencies.territorySelectionB.territorySelectionUndoPart() : dependencies.domains.editingDomain.performDraftUndo(),
             redoDraft: () => dependencies.domains.editingDomain?.performDraftRedo(),
             canUndo: () => dependencies.domains.projectDomain?.canUndo() || false,
             canRedo: () => dependencies.domains.projectDomain?.canRedo() || false,
@@ -159,6 +168,7 @@ export function createLifecycleAssembly() {
         dependencies.domainControllers.initializeDomainBoundaries,
         () => {
           mapInputPresentation = (0, dependencies.uiFactoriesB.createMapInputPresentation)({
+            productMode:'editor',referenceInput:{beginGesture:beginReferenceImageGesture,isActive:referenceImageInputActive},
             getElement: dependencies.platform.$,
             window,
             d3: dependencies.platform.d3,
@@ -202,7 +212,7 @@ export function createLifecycleAssembly() {
       startup: dependencies.startup.init,
       onReady: () => { dependencies.startupCommands.markRuntimeReady(); },
       onError: dependencies.readinessUi.showFatalError,
-      getDisposables: () => [dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain,dependencies.domains.commandOwner],
+      getDisposables: () => [{dispose:dependencies.workspaceUiB.disposeWorkspaceSurfaces},{dispose:dependencies.platformConfigurationB.disposeEnvironment},dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain,dependencies.domains.commandOwner],
       reportDisposeError: error => dependencies.readiness.reliabilityDiagnostic.push({ category: 'dispose', message: String(error?.message || error) }),
     }));
   }

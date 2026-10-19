@@ -1,3 +1,4 @@
+import {createTerritorialFeature} from './territorial-units.js';
 /** CountryCommits: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -10,6 +11,14 @@ export function createCountryCommits() {
   function connect(ports) {
     if (dependencies) throw new Error('country-commits already connected');
     dependencies = ports;
+  }
+
+  function createCountryFeature(name, rawRing, geometryOverride = null) {
+    const id = (0, dependencies.surfaces.uid)('USR');
+    const geometry = geometryOverride
+      ? (0, dependencies.platform.deepClone)(geometryOverride)
+      : { type: 'Polygon', coordinates: [(0, dependencies.applicationServicesB.orientRing)(rawRing, true)] };
+    return createTerritorialFeature({ id, entityKind: 'general', name, geometry });
   }
 
   async function prepareTerritorialGeometryPlan(plan,{commandId,expectedEpoch,dependentPlan,extraOperations=[]}={}) {
@@ -489,7 +498,7 @@ export function createCountryCommits() {
     }
     if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(session.sourceCountryIds.map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '새 국가를 분리')) return null;
     const sourceIds = session.sourceCountryIds.map(String);
-    const feature = (0, dependencies.objectPicking.createCountryFeature)(
+    const feature = createCountryFeature(
       session.name.trim(),
       (0, dependencies.countryEditingA.editingDraftCoordinates)(),
       (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7),
@@ -550,6 +559,7 @@ export function createCountryCommits() {
   return Object.freeze({
     connect,
     prepareTerritorialGeometryPlan,
+    createCountryFeature,
 
     get completeCountryMerge() { return completeCountryMerge; },
     get addMultiDraftPart() { return addMultiDraftPart; },

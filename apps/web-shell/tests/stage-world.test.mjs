@@ -18,7 +18,8 @@ async function fixture(t) {
     await put(path, bytes);
     return { url: path, sha256: sha(bytes), compressedBytes: bytes.byteLength, decodedBytes: bytes.byteLength };
   };
-  await put('index.html', '<html><script src="assets/js/bootstrap.js?v=test" defer></script></html>');
+  await put('index.html', '<html>Viewer only</html>');
+  await put('apps/web-shell/editor.html', '<html><base href="../../" data-product-base="editor" /><script src="assets/js/bootstrap.js?v=test" defer></script></html>');
   await put('assets/js/app.js', 'export const originalWeb = true;');
   await put('assets/js/bootstrap.js', 'globalThis.startedByWebBootstrap = true;');
   const wasmJs = await pinned('assets/wasm/pandoeditor-core.js', Buffer.from('export default ()=>({});'));

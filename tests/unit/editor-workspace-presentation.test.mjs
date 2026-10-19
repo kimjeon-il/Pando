@@ -52,13 +52,14 @@ test('an already opened task does not override a subsequent explicit mobile surf
   assert.equal(f.stats().opens, 1);
 });
 
-test('active tasks reuse one editor slot, open the inspector and ignore minimization', () => {
+test('active tasks reuse one editor slot, open the inspector and leave collapse presentation to its owner', () => {
   const f = fixture();
-  f.controller.sync({ active: true, minimized: true });
+  f.content.hidden = true;
+  f.controller.sync({ active: true });
   assert.equal(f.task.parentElement, f.dockSlot);
   assert.equal(f.panel.dataset.editorContent, 'task');
-  assert.equal(f.content.hidden, false);
-  assert.equal(f.minimize.hidden, true);
+  assert.equal(f.content.hidden, true);
+  assert.equal(f.minimize.hidden, false);
   for (let i = 0; i < 10; i++) f.controller.sync();
   assert.equal(f.dockSlot.moves, 1);
   assert.deepEqual(f.stats(), { open: true, opens: 1, invalidations: 1 });
@@ -76,10 +77,11 @@ test('completion restores property mode without closing the inspector', () => {
 
 test('active task presentation never restores the floating task surface', () => {
   const f = fixture();
+  f.content.hidden = true;
   f.controller.sync({ active: true, minimized: true });
   assert.equal(f.task.parentElement, f.dockSlot);
-  assert.equal(f.content.hidden, false);
-  assert.equal(f.minimize.hidden, true);
+  assert.equal(f.content.hidden, true);
+  assert.equal(f.minimize.hidden, false);
   assert.equal(f.floatingSlot.moves, 0);
 });
 

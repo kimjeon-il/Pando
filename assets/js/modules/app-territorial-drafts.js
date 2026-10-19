@@ -103,10 +103,8 @@ export function createTerritorialDrafts() {
             message: '아래 소속 변경과 절단을 함께 반영합니다. 반영하지 않으면 경계를 다시 편집할 수 있습니다.',
             impacts: result.ownershipChanges.map(change => (units.find(unit => text(unit.id) === change.id)?.properties.name || change.id) + ': ' + (change.replacementId ? '합병 후 참조 이전' : '상위 단위 ' + change.to)).concat(partial.map(impact => `${impact.name}: ${impact.kind === 'remove-child' ? '객체와 참조 삭제' : '일부 영역 절단 · ' + (0, dependencies.applicationServicesB.sphericalGeometryAreaKm2)(impact.geometry).toFixed(3) + ' km²'}`)),
             confirmText: '반영', cancelText: '반영 안 함',
-            onConfirm: () => resolve(true), onCancel: () => {
-              if (dependencies.projectState.state.territorySelectionSession?.stage === 'review') (0, dependencies.territorySelectionB.territorySelectionBack)();
-              else dependencies.geometryOperations.discardActiveGeometryPreview({ announce: false }).catch(error=>dependencies.feedback.reportOperationError(error,
-                '미리보기를 취소하지 못했습니다.','PL-PREVIEW-CANCEL',4200));
+            onConfirm: () => resolve(true), onCancel: async () => {
+              if (dependencies.projectState.state.territorySelectionSession?.stage === 'review') await dependencies.territorySelectionB.territorySelectionBack();
               (0, dependencies.taskUi.setModeBanner)('변경을 반영하지 않았습니다. 경계를 다시 편집하세요.');
               resolve(false);
             },
@@ -403,7 +401,13 @@ export function createTerritorialDrafts() {
     }
     const targets = new Set(dependencies.projectState.state.territorialUnitMergeTargetIds.map(String));
     if (targets.has(String(id))) targets.delete(String(id)); else targets.add(String(id));
+    const before = [...dependencies.projectState.state.territorialUnitMergeTargetIds];
     dependencies.projectState.state.territorialUnitMergeTargetIds = [...targets];
+    const after = [...dependencies.projectState.state.territorialUnitMergeTargetIds];
+    dependencies.domains.editingDomain.recordSelectionChange({
+      undo: () => { dependencies.projectState.state.territorialUnitMergeTargetIds = [...before]; },
+      redo: () => { dependencies.projectState.state.territorialUnitMergeTargetIds = [...after]; },
+    });
     (0, dependencies.taskUi.setModeBanner)('합칠 인접 영역을 선택하세요.');
     dependencies.domains.renderingDomain?.invalidateTerritorialPatch('view-frame-app-territorial-drafts');
     (0, dependencies.taskUi.updateModeButtons)();
@@ -569,12 +573,12 @@ export function createTerritorialDrafts() {
     if (root) {
       const state = dependencies.projectState.state;
       if (action === 'annex') return state.tool === 'annex-territory' && state.territorySelectionSession?.targetCountryId === id
-        ? dependencies.countryEditingA.cancelActiveMode() : dependencies.countryEditingA.enterAnnexTerritoryMode(id);
+        ? dependencies.taskPresentation.cancelCurrentEditing() : dependencies.countryEditingA.enterAnnexTerritoryMode(id);
       if (action === 'merge') return dependencies.countryEditingA.enterMergeCountryMode(id);
       if (action === 'boundary') return state.tool === 'territorial-border' && state.boundaryEditPhase === 'editing'
-        ? dependencies.countryEditingB.finishTerritorialBorderEdit() : dependencies.countryEditingA.enterCountryBorderSelection(id);
+        ? dependencies.taskPresentation.cancelCurrentEditing() : dependencies.countryEditingA.enterCountryBorderSelection(id);
       if (action === 'coast') return state.tool === 'country-coast' && state.coastEditCountryId === id
-        ? dependencies.countryEditingB.finishCountryCoastEdit() : dependencies.countryEditingA.enterCountryCoastEdit(id);
+        ? dependencies.taskPresentation.cancelCurrentEditing() : dependencies.countryEditingA.enterCountryCoastEdit(id);
     }
     if (action === 'merge') return enterTerritorialUnitMergeMode(id);
     if (action === 'redraw' || action === 'boundary') return enterTerritorialUnitRedrawMode(id);

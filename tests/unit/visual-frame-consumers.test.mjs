@@ -1,9 +1,10 @@
+import {createEditingPresentation} from '../../assets/js/modules/editing-presentation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
 import { createGpuMapRenderer } from '../../assets/js/modules/gpu-map-renderer.js';
-import { createMapHost } from '../../assets/js/modules/app-map-host.js';
+import { createMapHost } from '../../assets/js/modules/map-workspace-host.js';
 
 const frame = () => createMapVisualFrame({ frameId: 8, viewRevision: 3,
   viewState: { projection: 'flat', size: { width: 300, height: 200 }, translate: [150, 100], scale: 40, dpr: 2 },
@@ -60,7 +61,7 @@ test('editing coordinates never evaluate live projection even when a frame is pr
   } }) };
   const queued = [];
   const domain = createRenderingDomain({ requestFrame: callback => queued.push(callback), prepareView: frame,
-    getEditingRenderPacket: () => ({ snap: { coordinate } }), interactionResources: { snapLayer: layer,
+    createEditingPresentation,getEditingRenderPacket: () => ({ snap: { coordinate } }), interactionResources: { snapLayer: layer,
     activeProjection: () => { throw new Error('live projection evaluated'); } } });
   t.after(() => domain.dispose());
   domain.invalidateEditingOverlays(); queued.shift()();

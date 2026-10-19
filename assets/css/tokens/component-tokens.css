@@ -1,6 +1,8 @@
 /* Canonical tokens / component-tokens. */
 
 :root {
+  --ui-phone-landscape-panel-max-width: 320px;
+  --ui-phone-landscape-nav-label-size: 0.625rem;
   --action-status-min-width: 112px;
   --action-status-max-width: 460px;
   --status-dot-width: 7px;
@@ -49,6 +51,8 @@
   --notification-close-width: 30px;
   --notification-close-min-width: 30px;
   --notification-close-height: 30px;
+  --ui-tooltip-background: #000;
+  --ui-tooltip-color: #fff;
   --ui-tooltip-max-width: min(280px, calc(100vw - var(--ui-space-4) * 2));
   --disclosure-icon-width: 18px;
   --disclosure-icon-height: 18px;
@@ -84,7 +88,6 @@
   --gis-import-dialog-width: min(640px, calc(100vw - (var(--ui-dialog-edge) * 2)));
   --gis-import-dialog-max-width: 640px;
   --gis-import-form-min-height: 260px;
-  --map-view-toolbar-bottom: calc(112px + env(safe-area-inset-bottom));
   --ui-custom-color-plane-height: clamp(120px, 22dvh, 180px);
   --ui-custom-color-plane-background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), var(--color-hue, red);
   --ui-custom-color-plane-outline-offset: 3px;

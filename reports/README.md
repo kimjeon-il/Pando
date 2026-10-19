@@ -44,9 +44,20 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-REF-UI-SYNC-20261019` | [참고 이미지 UI — 최신 work/ui 통합 검증](development/testing/reference-image-ui-integration-2026-10-19.md) | 2026-10-19 | `focused-verified / existing-base-check-failure / native-unverified` | `not-applicable` |
+| `UI-POLICY-FIX-20261019` | [웹·앱 공통 열람 규칙 연결 수정](development/testing/shared-view-policy-fix-2026-10-19.md) | 2026-10-19 | `focused-verified / release-pending` | `not-applicable` |
+| `UI-POLICY-AUDIT-20261019` | [웹·앱 독자 규칙 추가 조사](development/testing/independent-view-policy-audit-2026-10-19.md) | 2026-10-19 | `historical-audit / follow-up-linked` | `not-applicable` |
+| `UI-MAP-PARITY-20261019` | [웹·앱 호버 깃발과 경계 규칙 재점검](development/testing/shared-map-rule-parity-2026-10-19.md) | 2026-10-19 | `focused-verified / published / native-unverified` | `not-applicable` |
+| `UI-SHARING-REFACTOR-20261019` | [웹·앱 공통 소유자 통합 및 검증 · 확대/축소 UI 회귀 수정](development/testing/shared-output-refactor-2026-10-19.md) | 2026-10-19 | `focused-verified / published / native-unverified` | `not-applicable` |
+| `UI-SHARING-AUDIT-20261018` | [출력 외 전부 공유 기준의 추가 조사·독립 코드 잔존](development/testing/shared-output-audit-2026-10-18.md) | 2026-10-18 | `audit-complete / follow-up-linked` | `not-applicable` |
+| `UI-VIEWING-REPAIR-20261018` | [웹 열람 UI 공유 누락 조사와 복원](development/testing/viewing-ui-reuse-repair-2026-10-18.md) | 2026-10-18 | `verified-web-release / native-unverified` | `not-applicable` |
 | `DEV-QT-RETIRE-20261018` | [구 Qt 앱 전체 제거](development/testing/qt-app-retirement-2026-10-18.md) | 2026-10-18 | `verified-focused-runtime` | `not-applicable` |
+| `UI-PRODUCT-SPLIT-20261018` | [웹 열람·앱 편집 분리와 휴대폰 가로 화면](development/testing/web-app-product-split-2026-10-18.md) | 2026-10-18 | `focused-verified / native-device-unverified` | `not-applicable` |
+| `UI-PRODUCT-RELEASE-20261018` | [웹·앱 분리 배포 및 공개 사이트 검증](development/testing/web-app-product-release-2026-10-18.md) | 2026-10-18 | `pages-live-verified / native-device-unverified` | `not-applicable` |
 | `DEV-NAMING-20261018` | [기존 동작을 유지하는 내부 명칭 정리](development/testing/internal-naming-2026-10-18.md) | 2026-10-18 | `verified-naming / baseline-test-failures` | `not-applicable` |
+| `UI-EDIT-20261018` | [편집 상태와 복구 동작 구현 검증](development/testing/editing-state-recovery-2026-10-18.md) | 2026-10-18 | `deployed-web-ci-incomplete` | `not-applicable` |
 | `PERF-P0-001` | [기준 코드·기존 계측 자산 통합 검토](development/testing/performance-baseline-consolidation-2026-10-17.md) | 2026-10-17 | `verified-source-and-focused-ci` | `not-applicable` |
+| `DEV-REF-UI-P5-20261018` | [참고 이미지 UI P5 — 회귀 검증과 조작 영역 수정](development/testing/reference-image-ui-p5-2026-10-18.md) | 2026-10-19 | `historical-feature-verification / follow-up-linked` | `not-applicable` |
 | `OBJ-097` | [소련 Core 후보 준비: 135초 WASM 동기 실행 미반환 및 C++ 함수별 계측](development/testing/soviet-core-candidate-bottleneck-2026-10-18.md) | 2026-10-18 | `verified-root-cause / geometryContains-47s-per-SSR` | `not-applicable` |
 | `OBJ-096` | [소련 실제 편집·취소·확정 게이트 및 Core 30초 병목 특정](development/testing/soviet-real-edit-cpu-reference-2026-10-17.md) | 2026-10-17 | `worker-move-verified / core-prepare-blocked` | `not-applicable` |
 | `OBJ-095` | [국가별 원본 선분 링 메타데이터 공유 및 Worker 6.9MiB 절감](development/testing/soviet-prepared-source-row-compact-2026-10-17.md) | 2026-10-17 | `verified-web-paired-and-12cycle` | `not-applicable` |

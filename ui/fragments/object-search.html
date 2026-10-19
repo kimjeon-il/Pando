@@ -1,0 +1,17 @@
+<aside id="objectSearchSurface" class="workspace-surface surface-search ui-sheet" aria-labelledby="searchSheetTitle" data-od-id="object-search-surface">
+        <header class="surface-header">
+          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="objectSearchSurface" aria-label="검색 창 높이 조절" data-tooltip="검색 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
+          <div class="surface-header-title"><strong id="searchSheetTitle">검색</strong></div>
+          <div class="surface-header-actions"><button id="objectSearchCloseBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="검색 창 닫기" data-tooltip="검색 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+        </header>
+        <div class="surface-body surface-body-delegated">
+        <section id="objectSearchSection" class="panel-section ui-panel--dense object-search-section is-hydrating" aria-busy="true">
+          <div class="ui-search-field object-search">
+            <svg class="ui-icon object-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
+            <input id="objectSearchInput" type="search" placeholder="지도에서 찾기" autocomplete="off" aria-label="지도에서 찾기" disabled />
+            <button id="objectSearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="검색어 지우기" data-tooltip="검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+          </div>
+          <div id="objectSearchResults" class="object-search-results ui-scroll-surface hidden" role="listbox" aria-label="검색 결과"></div>
+        </section>
+        </div>
+      </aside>

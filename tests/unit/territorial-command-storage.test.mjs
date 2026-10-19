@@ -2,7 +2,7 @@ import { testCoreProject, initializeTestTerritorialState, snapshotTestTerritoria
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
-import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
+import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';

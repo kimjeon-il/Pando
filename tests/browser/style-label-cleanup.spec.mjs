@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 async function openApp(page) {
@@ -7,7 +8,7 @@ async function openApp(page) {
     if (message.type() === 'error') errors.push(message.text());
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?renderer=canvas');
+  await gotoEditor(page, '/?renderer=canvas');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;

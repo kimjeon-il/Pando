@@ -2,6 +2,9 @@
 #include <pandoeditor/timeline-records.h>
 
 namespace pandoeditor {
+// Half-open changed intervals derived from record values, never UI estimates.
+struct TimelineChangePeriod {std::string entityId;std::optional<std::string> from,until;};
+std::vector<TimelineChangePeriod> timelineChangePeriods(const TimelineRecords&,const TimelineRecords&,const std::vector<std::string>&);
 // A patch is a domain command intent; absent fields retain the selected record value.
 struct TimelineEditPatch {
     std::optional<GeometryRef> geometryRef;

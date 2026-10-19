@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { selectUiOption } from './helpers/ui-select.mjs';
@@ -10,7 +11,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
     if (message.type() === 'error') errors.push(message.text());
   });
   await page.setViewportSize(viewport);
-  await page.goto('/?debug=1&demTerrain=raster');
+  await gotoEditor(page, '/?debug=1&demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });

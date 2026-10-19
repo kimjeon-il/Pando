@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
@@ -24,7 +25,7 @@ async function openMap(page) {
         label: event.target.closest('[data-label-id]')?.dataset.labelId || null };
     }, true);
   });
-  await page.goto('/?debug=1&renderer=canvas&demTerrain=raster');
+  await gotoEditor(page, '/?debug=1&renderer=canvas&demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 }
 const label = page => page.locator('g.territorial-label-item[data-label-id="DEU"]');

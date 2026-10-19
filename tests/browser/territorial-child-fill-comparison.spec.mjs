@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -8,7 +9,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await page.addInitScript(() => localStorage.setItem('pandolab-user-preferences', JSON.stringify({
       version: 2, selection: { outlineVisible: false, fillStrength: 0 },
     })));
-    await page.goto(`/?perf&renderer=${renderer}`);
+    await gotoEditor(page, `/?perf&renderer=${renderer}`);
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer))
       .toBe(renderer === 'canvas' ? 'canvas2d' : renderer);

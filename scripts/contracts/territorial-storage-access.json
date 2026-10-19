@@ -222,7 +222,7 @@
       "reason": "Reads detached validated identities; derives spatial Features from canonical records."
     },
     {
-      "file": "assets/js/modules/app-builtin-session.js",
+      "file": "assets/js/modules/builtin-session.js",
       "functions": [
         "prepareProjectBaseline"
       ],
@@ -280,7 +280,7 @@
       "reason": "Derives static spatial views from validated detached records; complex files retain canonical JSON only."
     },
     {
-      "file": "assets/js/modules/app-project-session.js",
+      "file": "assets/js/modules/project-session.js",
       "functions": [
         "installDocumentProjection"
       ],
@@ -300,6 +300,28 @@
       ],
       "owner": "Accepted C++ world projection",
       "reason": "Reads immutable accepted identities to attach source-pinned C++ resolved rows and geometry buffers. Does not resolve timeline rules or mutate the document."
+    },
+    {
+      "file": "assets/js/modules/map-content-presentation.js",
+      "functions": [
+        "buildDistributionRenderRows"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "shared distribution presentation",
+      "reason": "Derive display rows from the accepted territorial projection; no canonical document writes."
+    },
+    {
+      "file": "assets/js/modules/project-file-reader.js",
+      "functions": [
+        "readProjectFile"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "current project reader",
+      "reason": "Read detached imported identities to attach current package assets before atomic document admission; no active document writes."
     }
   ]
 }

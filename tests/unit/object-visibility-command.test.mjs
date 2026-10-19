@@ -17,7 +17,7 @@ async function harness(t,refs,{ builtin=false }={}) {
   input.layerVisibility=Object.fromEntries(Object.keys(input.layerVisibility).map(key => [key,false]));
   input.itemVisibility={};input.physicalSettings.hiddenHydroIds={};input.physicalSettings.hydroLayers={ rivers_hydro: false,lakes_natural_earth: false };
   const effects={ saved: 0,palette: 0,hydro: 0,base: 0,labels: 0,selection: 0 };
-  const owner=await createNodeCoreProject(input,{ persistence: { queuePresentation: () => { effects.saved++; } },
+  const owner=await createNodeCoreProject(input,{ persistence: { queuePresentation: () => { effects.saved++; },cancelPending() {} },
     invalidateProject: () => assert.fail('Visibility cannot invalidate the full project.') });
   const store=createTerritorialEntityStore({ documentModel: owner.documentModel,commandOwner: owner.client }),repository=createTerritorialEntityRepository({ entityStore: store });
   let selection;

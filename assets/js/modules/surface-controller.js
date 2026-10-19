@@ -1,3 +1,5 @@
+import { isMobileWorkspaceLayout } from './workspace-layout.js';
+
 const SURFACES = Object.freeze(['create', 'search', 'display', 'editor', 'reference']);
 const SURFACE_SET = new Set(SURFACES);
 const SURFACE_TO_MOBILE = Object.freeze({ create: 'create', search: 'search', display: 'display', editor: 'edit', reference: 'reference' });
@@ -68,7 +70,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     if (!SURFACE_SET.has(surface)) return false;
     if (!automatic || explicit || surface !== 'editor') return true;
     if (isOpen('create')) return false;
-    if (getLayout() === 'mobile') return false;
+    if (isMobileWorkspaceLayout(getLayout())) return false;
     return !automaticOpenBlocked.editor;
   }
 
@@ -83,7 +85,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
       : userIntent ? SURFACE_OPEN_ORIGINS.USER : SURFACE_OPEN_ORIGINS.AUTOMATIC;
     if (surface === 'editor' && userIntent) resetAutomaticBlock('editor');
 
-    if (layout === 'mobile' || (layout === 'compact' && (surface === 'display' || (surface === 'editor' && !isOpen('search'))))) clearOtherSurfaces(surface);
+    if (isMobileWorkspaceLayout(layout) || (layout === 'compact' && (surface === 'display' || (surface === 'editor' && !isOpen('search'))))) clearOtherSurfaces(surface);
     else if (surface !== 'editor') {
       for (const candidate of SURFACES) {
         if (candidate === surface || candidate === 'editor') continue;
@@ -98,7 +100,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     setOpen(surface, true);
     openOrigins[surface] = origin;
     state.activeSurface = surface;
-    activeMobileSheet = layout === 'mobile' ? SURFACE_TO_MOBILE[surface] : null;
+    activeMobileSheet = isMobileWorkspaceLayout(layout) ? SURFACE_TO_MOBILE[surface] : null;
     return true;
   }
 
@@ -120,7 +122,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
 
   function render({ fileOpen = false } = {}) {
     const layout = getLayout();
-    if (layout === 'mobile') {
+    if (isMobileWorkspaceLayout(layout)) {
       const mobileSurface = activeMobileSheet ? MOBILE_TO_SURFACE[activeMobileSheet] : null;
       for (const surface of SURFACES) setOpen(surface, surface === mobileSurface);
       state.activeSurface = mobileSurface;
@@ -138,7 +140,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
         trigger?.classList.toggle('sheet-open', openState);
         trigger?.setAttribute('aria-expanded', String(openState));
       }
-      if (layout === 'mobile' && panel) {
+      if (isMobileWorkspaceLayout(layout) && panel) {
         const hidden = activeMobileSheet !== SURFACE_TO_MOBILE[surface];
         panel.setAttribute('role', 'dialog');
         panel.setAttribute('aria-modal', 'false');
@@ -158,7 +160,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     }
 
     document.body.classList.toggle('file-menu-open', fileOpen);
-    document.body.classList.toggle('map-sheet-open', layout === 'mobile' && !!activeMobileSheet);
+    document.body.classList.toggle('map-sheet-open', isMobileWorkspaceLayout(layout) && !!activeMobileSheet);
     getElement('mobileFileBtn')?.classList.toggle('sheet-open', fileOpen);
     getElement('mobileFileBtn')?.setAttribute('aria-expanded', String(fileOpen));
     getElement('mobileBackdrop')?.setAttribute('aria-hidden', String(!fileOpen));
@@ -169,7 +171,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     const layout = getLayout();
     if (layout === previousLayout) return;
 
-    if (layout === 'mobile') {
+    if (isMobileWorkspaceLayout(layout)) {
       const preferred = state.activeSurface && isOpen(state.activeSurface) ? state.activeSurface
         : SURFACES.find(surface => isOpen(surface)) || null;
       clearOtherSurfaces(preferred);
@@ -182,7 +184,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
       return;
     }
 
-    if (previousLayout === 'mobile') {
+    if (isMobileWorkspaceLayout(previousLayout)) {
       const restored = activeMobileSheet ? MOBILE_TO_SURFACE[activeMobileSheet] : null;
       activeMobileSheet = null;
       if (layout === 'compact') {

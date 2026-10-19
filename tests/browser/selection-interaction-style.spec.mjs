@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 const storedPreferences = (theme = 'dark', selection = {}) => ({
@@ -36,7 +37,7 @@ async function openApp(page, {
     preserveSelectionBuffer, selectionWebGl1,
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`/${query}`);
+  await gotoEditor(page, `/${query}`);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   try {
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });

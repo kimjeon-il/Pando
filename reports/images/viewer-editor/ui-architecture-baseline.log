@@ -1,0 +1,47 @@
+UI architecture audit failed with 46 issue(s):
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog { width: min(520px,calc(100vw - 24px)) }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog { max-height: calc(100dvh - 24px) }
+- raw color is forbidden outside tokens: components/dialogs.css .project-setup-dialog { color: var(--text,#e8edf5) }
+- raw color is forbidden outside tokens: components/dialogs.css .project-setup-dialog { background: var(--panel,#182231) }
+- raw color is forbidden outside tokens: components/dialogs.css .project-setup-dialog { border: 1px solid var(--border,#607080) }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog { border-radius: 16px }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog { padding: 24px }
+- raw color is forbidden outside tokens: components/dialogs.css .project-setup-dialog::backdrop { background: #081020aa }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog form { gap: 12px }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog label { gap: 12px }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog input[type=text],.project-setup-dialog select { min-height: 44px }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog input[type=text],.project-setup-dialog select { max-width: 230px }
+- raw color is forbidden outside tokens: components/dialogs.css .project-setup-dialog input[type=text],.project-setup-dialog select { background: var(--surface,#273446) }
+- raw color is forbidden outside tokens: components/dialogs.css .project-setup-dialog input[type=text],.project-setup-dialog select { border: 1px solid var(--border,#607080) }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog input[type=text],.project-setup-dialog select { border-radius: 6px }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-dialog input[type=text],.project-setup-dialog select { padding: 8px }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-actions { gap: 10px }
+- raw px geometry must use a semantic token: components/dialogs.css .project-setup-actions button { min-height: 44px }
+- ID selector is forbidden in layered UI CSS: components/dialogs.css #projectSetupError
+- raw color is forbidden outside tokens: components/dialogs.css #projectSetupError { color: #ff9f99 }
+- raw color is forbidden outside tokens: components/dialogs.css .project-bounds-picker { background: #12243644 }
+- raw px geometry must use a semantic token: components/dialogs.css .project-bounds-picker { padding: 12px }
+- raw color is forbidden outside tokens: components/dialogs.css .project-bounds-box { background: #68b6ff33 }
+- raw px geometry must use a semantic token: components/editor-shell.css .mode-task-input { margin: 4px 0 8px }
+- !important requires an explicit architecture exception: components/editor-shell.css .touch-vertex-handle { fill }
+- !important requires an explicit architecture exception: components/editor-shell.css .touch-vertex-handle { stroke }
+- !important requires an explicit architecture exception: components/editor-shell.css .touch-vertex-handle.selected { stroke }
+- raw color is forbidden outside tokens: components/editor-shell.css .touch-vertex-handle.selected { stroke: #b0dbff }
+- raw color is forbidden outside tokens: components/editor-shell.css .editing-magnifier { filter: drop-shadow(0 3px 6px #0008) }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel { left: 12px }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel { bottom: 80px }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel { width: min(360px,calc(100vw - 24px)) }
+- raw color is forbidden outside tokens: components/panels.css .timeline-comparison-panel { background: var(--panel,#182231) }
+- raw color is forbidden outside tokens: components/panels.css .timeline-comparison-panel { color: var(--text,#e8edf5) }
+- raw color is forbidden outside tokens: components/panels.css .timeline-comparison-panel { border: 1px solid var(--border,#607080) }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel { border-radius: 12px }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel { padding: 12px }
+- raw color is forbidden outside tokens: components/panels.css .timeline-comparison-panel { box-shadow: 0 6px 24px #0005 }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel td,.timeline-comparison-panel th { padding: 5px }
+- raw color is forbidden outside tokens: components/panels.css .timeline-comparison-panel td,.timeline-comparison-panel th { border-bottom: 1px solid #80808044 }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel img { max-width: 54px }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel img { max-height: 32px }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel summary { padding: 10px 0 }
+- raw px geometry must use a semantic token: components/panels.css .timeline-comparison-panel { bottom: 66px }
+- ID selector is forbidden in layered UI CSS: components/panels.css #timelineComparePin
+- raw px geometry must use a semantic token: components/panels.css #timelineComparePin { min-height: 44px }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "lineageId": "esb",
   "names": {
-    "ko": "데켈리아 지역"
+    "ko": "데켈리아"
   },
   "entities": [
     {
@@ -475,12 +475,12 @@
         "license": "Public domain",
         "featureId": "ESB",
         "featureProperties": {
-          "name": "데켈리아 지역"
+          "name": "데켈리아"
         },
         "geometrySha256": "d8a0efa25c9cd4342d188c7af4a410b7d30c22c0f0bf283315674b71b92b7937"
       },
       "names": {
-        "ko": "데켈리아 지역"
+        "ko": "데켈리아"
       }
     }
   ],
