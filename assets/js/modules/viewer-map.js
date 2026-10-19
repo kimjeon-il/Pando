@@ -59,6 +59,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   let lastFrame=null;
 
   const {builtinSession,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
+  mapHost.initializeResolutionQuery();mapHost.initializeMapResizeObserver();
   projectSession.connect({readiness:{DATA_READINESS},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
     modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET},domains:{selectionDomain:documentSession.selectionDomain},
     uiFactoriesA:{createAtomicMapStateController},workspaceUiA:{get clampViewZooms(){return navigation.clampViewZooms;}}});
@@ -147,7 +148,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
     platformConfigurationA:{FLAT_PROJECTION_KIND:'equirectangular'},rendering:{gpuMapRenderer:renderer},surfaces:{isMobile},
     mapLayout:{DEFAULT_SAFE_INSETS,get mapLayoutMetricsSnapshot(){return mapProjection.mapLayoutMetricsSnapshot;}},
     domains:{projectDomain,get renderingDomain(){return renderingDomain;}},renderQuality,renderFactories:{createMapVisualFrame,createMapSurfaceHost,createSelectionPass}});
-  mapHost.initializeResolutionQuery();mapHost.initializeMapResizeObserver();
+
 
   navigation.connect({projectState:{state},platform:{d3,clamp},surfaces:{isMobile},countries:{validLabelAnchor:countryIndex.validLabelAnchor},
     mapNavigation:{normalizeMapSurfaceDragDelta,equirectangularCenterForAnchor,FLAT_LATITUDE_LIMIT,ZOOM_LIMITS},

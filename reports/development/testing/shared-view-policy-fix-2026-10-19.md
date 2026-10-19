@@ -2,7 +2,7 @@
 
 > 보고서 ID: `UI-POLICY-FIX-20261019` · 상태: `focused-verified / release-pending` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
 > 원문 최종 수정: 2026-10-19
-> 조사 기준: 제품 `83dfdf70f40effa48634dfed566ed6dbba1ae1f7`, 작업 기준 `0bb54fa7207ce06975d6b8d0474ebcc617542ff9` 및 아래 수정본
+> 조사 기준: 제품 `83dfdf70f40effa48634dfed566ed6dbba1ae1f7`, 작업 기준 `0bb54fa7207ce06975d6b8d0474ebcc617542ff9`, 제품 수정 `5a07e8b276a4284114990eddee0d08ef6e85b80e`
 > 근거: [추가 조사](independent-view-policy-audit-2026-10-19.md), 실제 공통 소유자와 Core/WASM, 관련 회귀 검사
 
 ## 수정 범위
@@ -45,15 +45,33 @@
 - 라벨 paint 순서·centroid 재사용, 세로·태블릿·가로 레이아웃 검사 통과. 설정 preview·취소·저장·새로고침·휴대폰 640×360 검사 통과. 새로고침 뒤 HTML 버튼 존재만 기다리던 검사는 실제 지도 준비 완료를 기다리도록 수정했다.
 - SwiftShader `webgl2`의 웹·앱 통합 규칙 검사 통과. 두 제품 모두 호버 선분 256개, drawSucceeded=true, 같은 형상의 2026-10→11 이동 mesh 준비 2→2, DPR+크기 변경 후 layout DPR=2, pageerror 및 console error 0개였다.
 - 제품별 staging·dependency closure·보기 ACK 검사 15/15 통과. 앱 staging은 두 프로필의 합성 fixture 계약 검사이며 실제 배포 앱 패키지를 재빌드했다는 뜻이 아니다.
-- 기본 선택 렌더러(webgl2)에서도 웹·앱 통합 검사 통과. 강제 Canvas 경로는 추가 확인 중이다. 중간 검사에서 초기화 순서의 null 참조와 내장 지명 발행 오류를 발견해 수정했으며 그 실패를 통과로 집계하지 않는다.
+- 기본 선택 렌더러(webgl2)에서도 웹·앱 통합 검사 통과. 강제 `canvas` 경로(실제 canvas-worker)도 웹·앱 통과했으며 pageerror·console error가 없었다. Canvas 결과를 WebGL draw 성공으로 집계하지 않는다. 중간 검사에서 초기화 순서의 null 참조와 내장 지명 발행 오류를 발견해 수정했으며 그 실패를 통과로 집계하지 않는다.
 
 원시 로그와 관찰 JSON은 `.superpowers/sdd/shared-view-policy-20261019/`에 둔다. 검증은 별도 export의 제품 수정본과 커밋된 기준 WASM에서 수행한다. 상설 UI의 별도 미완성 WASM으로 검증하지 않는다.
 
 ## 한계 및 배포
 
-실제 Windows·Android 네이티브 실행, 실기기 회전·멀티윈도·모니터 이동은 이 후속 수정에서 수행하지 않았다. Chromium CDP의 DPR 단독 변경은 resolution media 이벤트를 발생시키지 않아 단독 OS 배율 변경 증거로 사용하지 않았다. 단위 검사에서 query 재등록·해제를, 브라우저에서 크기 변경 후 DPR 반영을 분리한다. 브라우저 DPR 에뮬레이션과 SwiftShader는 이 항목의 대체 증거가 아니다. FPS·메모리·지연 감소율도 측정하지 않았다. 초기 preview 시작 경로 차이는 기존 보고서의 제한대로 남으며 전체 저장소의 모든 동작이 동일하다고 주장하지 않는다.
+로컬 Windows 앱의 수동 조작 및 Android 실기기 회전·멀티윈도·모니터 이동은 수행하지 않았다. 제품 `5a07e8b2`의 Windows CI는 MSVC 빌드 후 실제 Tauri WebView 앱을 실행했으며 full-world·canonical mesh·모델 개수·오프라인 요청 12개 항목이 통과했다([run 39178426026](https://github.com/kimjeon-il/Pando/actions/runs/39178426026)). 이 검사는 모든 편집 흐름의 실기기 검증은 아니다. Chromium CDP의 DPR 단독 변경은 resolution media 이벤트를 발생시키지 않아 단독 OS 배율 변경 증거로 사용하지 않았다. 단위 검사에서 query 재등록·해제를, 브라우저에서 크기 변경 후 DPR 반영을 분리한다. 브라우저 DPR 에뮬레이션과 SwiftShader는 이 항목의 대체 증거가 아니다. FPS·메모리·지연 감소율도 측정하지 않았다. 초기 preview 시작 경로 차이는 기존 보고서의 제한대로 남으며 전체 저장소의 모든 동작이 동일하다고 주장하지 않는다.
 
-검증 후 사용자 지시에 따라 기존 Pages 경로로 게시한다. 제품 커밋·push·staging·workflow·공개 파일 해시·공개 화면 검증을 완료 후 구분해 기록한다.
+제품 수정 커밋 `5a07e8b276a4284114990eddee0d08ef6e85b80e`를 push하고 main에 fast-forward했다. Pages [39178625484](https://github.com/kimjeon-il/Pando/actions/runs/39178625484)가 성공했다. 최초 로컬·CI staging 2,237개 파일 / 431,919,668 bytes의 path·blob·bytes·SHA-256이 모두 일치했다. 공개 파일 23개가 HTTP 200·커밋 해시 일치, 편집 전용 경로 5개가 404였으며 실제 포인터의 알제리 이름·깃발 및 공개 프로젝트 열기·월 이동·설정·크기 검사도 통과했다.
+
+후속 CI에서 낮은 기기 자원의 초기 품질 적용이 resize를 동기 요청해 미초기화된 `mapResizeReasons.add`에 접근하는 시작 회귀가 확인됐다. `deviceMemory=2`, `hardwareConcurrency=2`에서 재현했고 host 상태를 렌더러 생성 전에 초기화하도록 수정했다. 저사양 회귀는 오류 없이 시작·문서 로드·Canvas accepted frame 표시가 통과했고 일반 웹·앱 통합 검사도 통과했다. 별도 빌드 ID `20261019-shared-policy.2`로 후속 게시한다.
+
+P2의 build-metadata 산출물 계약에는 생성되는 앱 HTML이 누락돼 있었다. 실제 output contract로 viewer/editor HTML을 stage·publish하는 실패 회귀를 추가하고 앱 HTML을 정확한 허용 출력에 넣었다. 분포 렌더 행·현재 GPKG 읽기의 두 읽기 함수만 storage audit에 분류하고 쓰기 허용은 추가하지 않았다. Core Undo 검사는 시간 이동 후 저장되는 `editorState.lastViewedMonth`를 기대값에 포함하며 나머지 archive 전체 동등성을 유지한다. 관련 검사 32/32 통과.
+
+## 전체 CI의 기존 실패와 구분
+
+전체 Application Architecture를 통과했다고 주장하지 않는다. `83dfdf70`과 `5a07e8b2`의 관련 구현·검사 blob이 동일한 다음 실패는 기존 범위로 분리해 남긴다.
+
+| 항목 | 현재 확인 및 영향 |
+| --- | --- |
+| domain-split 검사 | 사용하지 않는 `createEditingPresentation` import로 lint 실패. 해당 topology·terrain·M4-M6 브라우저 검사는 실행 전 종료. |
+| M3 검사 대역 | objectLookup의 필수 `isObjectAvailable` 누락. 실제 owner를 연결한 제품 검사는 별도 실행했다. |
+| M2/M7 packet 재사용 | 동일 packet 재결합 때 fill/stroke mesh alias cache를 다시 준비하는 기존 결함. assertion을 약화하거나 이번 출력 연결 수정에 섞지 않았다. 별도 수정 필요. |
+| source 위치 검사 | extraction 전 rendering-domain의 함수 위치를 찾는 기존 assertion. |
+| viewer asset 분류 | 공통으로 쓰는 `app-accent`, `app-map-settings`도 모두 금지하는 기존 app-* blanket 분류. Pages 실제 closure 검사는 별개로 통과했다. |
+
+이번 새 시작 회귀는 위 기존 실패로 분류하지 않고 직접 수정·재검증한다. 원시 CI 실패 로그·후속 상태·실행 범위는 `.superpowers/sdd/shared-view-policy-20261019/`에 보존한다.
 
 ## 판본
 
