@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -115,7 +116,7 @@ test(`P9 alternates fixed baseline and candidate ${editWorkload ? 'large RUS edi
       await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
       await cdp.send('Performance.enable');
       await page.bringToFront();
-      await page.goto(url,{waitUntil:'domcontentloaded'});
+      await gotoEditor(page, url,{waitUntil:'domcontentloaded'});
       await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:120_000});
       if(editWorkload) {
         const edit = await runP9EditWorkload(page);

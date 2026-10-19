@@ -11,9 +11,10 @@ const requiredLayeredFiles = UI_BUNDLE_SOURCES;
 const bootstrapPath = path.join(root, 'assets/js/bootstrap.js');
 const appStylesheetPath = path.join(root, 'assets/css/app.css');
 const bundlePath = path.join(root, 'assets/css/ui.bundle.css');
+const viewerBundlePath = path.join(root, 'assets/css/ui-viewer.bundle.css');
 const modalBundlePath = path.join(root, 'assets/css/ui-modal.bundle.css');
 const modalSourceFiles = UI_MODAL_SOURCES;
-const indexPath = path.join(root, 'index.html');
+const indexPath = path.join(root, 'apps/web-shell/editor.html');
 const uiRuntimePath = path.join(root, 'assets/js/modules/ui-runtime.js');
 const componentDocPath = path.join(root, 'docs/architecture/ui-components.md');
 const retiredArtifacts = Object.freeze([
@@ -53,8 +54,10 @@ if (!fs.existsSync(bundlePath)) {
   failures.push('missing canonical UI bundle: assets/css/ui.bundle.css');
 } else {
   const bundle = fs.readFileSync(bundlePath, 'utf8').replace(/\r\n?/g, '\n');
-  const { main: expectedBundle, modal: expectedModalBundle } = buildUiBundles(root);
+  const { main: expectedBundle, modal: expectedModalBundle, viewer: expectedViewerBundle } = buildUiBundles(root);
   if (bundle !== expectedBundle) failures.push('UI bundle is stale; run pnpm build:ui-bundle');
+  if (!fs.existsSync(viewerBundlePath) || fs.readFileSync(viewerBundlePath, 'utf8').replace(/\r\n?/g, '\n') !== expectedViewerBundle)
+    failures.push('Viewer UI bundle is stale; run pnpm build:ui-bundle');
   if (!fs.existsSync(modalBundlePath)) failures.push('missing lazy modal UI bundle: assets/css/ui-modal.bundle.css');
   else if (fs.readFileSync(modalBundlePath, 'utf8').replace(/\r\n?/g, '\n') !== expectedModalBundle) failures.push('modal UI bundle is stale; run pnpm build:ui-bundle');
 
@@ -97,7 +100,7 @@ if (!fs.existsSync(bootstrapPath)) {
 }
 
 if (!fs.existsSync(indexPath) || !fs.readFileSync(indexPath, 'utf8').includes('data-pandolab-ui="ui-bundle"')) {
-  failures.push('index.html does not statically own ui.bundle.css');
+  failures.push('apps/web-shell/editor.html does not statically own ui.bundle.css');
 }
 
 if (!fs.existsSync(uiRuntimePath)) {

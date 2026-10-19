@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import path from 'node:path';
 
@@ -24,7 +25,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     });
     try {
       const site = process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`;
-      await page.goto(new URL(`?renderer=${renderer}&debug=1${renderer === 'canvas' ? '&demTerrain=raster' : ''}`, site).href,
+      await gotoEditor(page, new URL(`?renderer=${renderer}&debug=1${renderer === 'canvas' ? '&demTerrain=raster' : ''}`, site).href,
         { waitUntil: 'domcontentloaded' });
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
       await expect(page.locator('.gpu-map-canvas')).toBeVisible();

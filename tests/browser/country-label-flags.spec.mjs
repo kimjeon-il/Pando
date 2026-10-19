@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
@@ -28,7 +29,7 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   assertCurrentProjectSchema(saved);
   await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?debug=1&demTerrain=raster');
+  await gotoEditor(page, '/?debug=1&demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const flags = page.locator('.territorial-label-flag[href]');
   await expect(flags).toHaveCount(0);

@@ -37,7 +37,7 @@ async function harness(t) {
     prepareView: ({ frameId }) => createMapVisualFrame({ frameId, projectGeneration: generation,
       viewState: { projection: 'flat', size: { width: 800, height: 600 }, scale: 100, dpr: 1 }, projectPath: () => 'snapshot-path' }),
     requestFrame: callback => { scheduled.push(callback); return scheduled.length; },
-    prepareEditDisplay: (payload, options) => {
+    prepareMapDisplay: (payload, options) => {
       let resolve, reject;
       const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
       const rows = repo.list();
@@ -46,7 +46,7 @@ async function harness(t) {
       requests.push({ payload, options, resolve, reject, segments });
       return promise;
     },
-    onEditDisplayReady: () => { readyCount++; },
+    onMapDisplayReady: () => { readyCount++; },
     reportDiagnostic: entry => diagnostics.push(entry),
     projectDomain: { getGeneration: () => generation },
     countryResources: { mapTheme: () => ({ border: '#ffffff' }) },
@@ -86,6 +86,13 @@ async function present(h) {
   assert.ok(h.last().length > 0, 'baseline must contain real topology strokes');
   return structuredClone(h.last());
 }
+
+test('the rendering owner schedules a common refresh after its boundary Worker completes',async t=>{
+  const h=await harness(t);h.render();
+  const before=h.rendering.getStats().invalidations;
+  await h.resolve(0);
+  assert.ok(h.rendering.getStats().invalidations>before);
+});
 
 test('unchanged territorial frames reuse connected boundary geometry and style changes stay current', async t => {
   const h = await harness(t); await present(h);

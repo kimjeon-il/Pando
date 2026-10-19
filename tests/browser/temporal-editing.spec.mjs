@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import {expect,test} from '@playwright/test';
 test.use({viewport:{width:1440,height:900},trace:'off'});
 
@@ -41,7 +42,7 @@ test('1991 library geometry is inserted into 2012 and preserves temporal edits, 
       console.error(message.text());if(message.text().startsWith('[PL-BOOT-001]'))reject(new Error(message.text()));
     }});
   });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await Promise.race([expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000}),startupFailure]);
   await month(page,'2011-01');const before=await object(page,'UKR');
   await month(page,'2012-01');
@@ -99,7 +100,7 @@ test('1991 library geometry is inserted into 2012 and preserves temporal edits, 
   await month(page,'2013-01');expect((await object(page,added.id)).properties.name).toBe('Future USSR');
   await month(page,'2011-01');expect(await object(page,added.id)).toBeNull();expect(await object(page,'UKR')).toEqual(preservedPast);
   await info.attach('temporal-model-evidence',{body:JSON.stringify({id:added.id,sourceDate:'1991-01-01',version,records:saved.timelineRecords}),contentType:'application/json'});
-  await page.goto('about:blank');
+  await gotoEditor(page, 'about:blank');
   expect(errors).toEqual([]);
   expect(diagnostics).toEqual([]);
 });

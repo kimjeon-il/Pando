@@ -22,18 +22,12 @@ export function createLandRelations() {
     return ringHitTester.contains(point, rawRing);
   }
 
-  function pointInPolygonSet(point, polygon) {
-    if (!polygon?.length || !pointInRing(point, polygon[0])) return false;
-    for (let i = 1; i < polygon.length; i += 1) if (pointInRing(point, polygon[i])) return false;
-    return true;
-  }
-
   function pointInCountryFeature(point, feature) {
-    return (0, dependencies.geometryPreview.geometryPolygonSets)(feature?.geometry).some(polygon => pointInPolygonSet(point, polygon));
+    return ringHitTester.containsGeometry(point, feature?.geometry);
   }
 
   function pointInGenericFeature(point, feature) {
-    return (0, dependencies.geometryPreview.geometryPolygonSets)(feature?.geometry).some(polygon => pointInPolygonSet(point, polygon));
+    return ringHitTester.containsGeometry(point, feature?.geometry);
   }
 
   function viewIndex(territorialViews) {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { makeSvgSceneProxy, rendererOwnsSceneGeometry } from '../../assets/js/modules/render-channel-ownership.js';
 import * as ownership from '../../assets/js/modules/render-channel-ownership.js';
-import { createGpuScene } from '../../assets/js/modules/app-gpu-scene.js';
+import { createGpuScene } from '../../assets/js/modules/gpu-scene.js';
 import { createInteractionPackets } from '../../assets/js/modules/app-interaction-packets.js';
 import { createRenderSceneBuilder, buildPolygonGeometryPacket } from '../../assets/js/modules/render-scene.js';
 

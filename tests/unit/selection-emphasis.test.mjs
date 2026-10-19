@@ -108,7 +108,7 @@ test('country interaction fill consumes only the prepared emphasized ranges', as
 test('territorial persistent boundaries use the shared GPU scene stroke domain', async () => {
   const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
-  const preparation = await readFile(new URL('../../assets/js/modules/edit-display-preparation.js', import.meta.url), 'utf8');
+  const preparation = await readFile(new URL('../../assets/js/modules/map-display-preparation.js', import.meta.url), 'utf8');
   assert.match(preparation, /buildTerritorialInternalBoundarySegments/);
   assert.doesNotMatch(rendering, /buildTerritorialInternalBoundarySegments/);
   assert.match(rendering, /replaceGpuSceneDomain\?\.\('territorial-boundaries'/);

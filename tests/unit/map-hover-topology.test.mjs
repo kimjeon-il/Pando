@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
-import { createPointerTargets } from '../../assets/js/modules/app-pointer-targets.js';
+import { createPointerTargets } from '../../assets/js/modules/pointer-targets.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
 import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
@@ -79,7 +79,7 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
   const settle=async()=>{await owner.client.selectionSnapshot();};
   const runQueuedPicks=async()=>{for(const[token,callback]of hoverTimers){hoverTimers.delete(token);callback();}await settle();};
   let executedPicks = 0;
-  const pointers = createPointerTargets();
+  const pointers = createPointerTargets({isDraggingDraft:()=>draft.dragging});
   pointers.connect({ domains: { selectionDomain: domain,projectDomain:owner.project }, projectState: { state },
     feedback:{reportOperationError:error=>{throw error;}},
     draftPresentation: { editingDraftSnapshot: () => draft }, mapLayout: { viewRevision: 1 },
@@ -87,7 +87,7 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
   pointers.initializeHoverPickFrame();
   const peer = node('user-label', interaction), peerText = node('peer-text', peer);
   peer.__data__ = { id: 'PLACE', kind: peerKind };
-  const renderingSource = readFileSync(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const renderingSource = readFileSync(new URL('../../assets/js/modules/label-presentation.js', import.meta.url), 'utf8');
   const start = renderingSource.indexOf("    enter.on('mouseenter.hover'", renderingSource.indexOf('  const renderUserLabels ='));
   const end = renderingSource.indexOf("    enter.append('circle')", start);
   // Register the existing peer-label hover owner with real D3, then allow its
@@ -220,10 +220,10 @@ async function draftFixture(t, tool) {
   vertex.__data__ = { index: 1 };
   const handleHit = node('handle-hit', handle), vertexHit = node('vertex-hit', vertex);
   const events = [];
-  const source = readFileSync(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../../assets/js/modules/editing-presentation.js', import.meta.url), 'utf8');
   const context = {
     d3, segment, handle, vertex, interaction: { d3 }, layer: { node: () => root }, isMobile: () => false,
-    get editingPacket() { return editing.createRenderPacket(); },
+    getPacket:()=>editing.createRenderPacket(),
     localEditingPoint: () => d3.mouse(f.overlay),
     stop: () => { d3.event.preventDefault(); d3.event.stopPropagation(); },
     publishEditingInteraction: event => {

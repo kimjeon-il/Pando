@@ -1,3 +1,4 @@
+import {createEditingPresentation} from '../../assets/js/modules/editing-presentation.js';
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -202,7 +203,7 @@ test('renderer clears inactive draft channels but still draws territory componen
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
     prepareView: () => testFrame(++frameId),
-    getEditingRenderPacket: () => packet,
+    createEditingPresentation,getEditingRenderPacket: () => packet,
     interactionResources: { draftLayer: layer },
   });
   const render = () => { rendering.invalidateEditingOverlays('inactive-draft-test'); frames.shift()(); };
@@ -234,7 +235,7 @@ test('one coordinator frame reads one editing packet for every editing pass', ()
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
     prepareView: () => testFrame(1, 9),
-    getEditingRenderPacket: () => { reads += 1; return packet; },
+    createEditingPresentation,getEditingRenderPacket: () => { reads += 1; return packet; },
   });
   assert.equal(rendering.requestRender({ kind: 'editing-overlays', reason: 'packet-contract' }), true);
   assert.equal(frames.length, 1);
@@ -290,7 +291,7 @@ async function draftHandlerFixture(t) {
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
     prepareView: () => testFrame(++frameId),
-    getEditingRenderPacket: () => editing.createRenderPacket(),
+    createEditingPresentation,getEditingRenderPacket: () => editing.createRenderPacket(),
     emitEditingInteraction: event => { published.push(event); const operation=editing.handleInteraction(event);pendingInteractions.push(operation);return operation; },
     reportEditingOperationError: error => { throw error; },
     interactionResources: { draftLayer: layer, d3, isMobile: () => false },

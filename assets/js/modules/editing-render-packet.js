@@ -174,6 +174,7 @@ const boundaryPacket = input => {
   if (trustedBoundaries.has(input)) return input;
   return Object.freeze({
     preparationId: String(input.preparationId || ''),
+    draft: input.draft === true,
     segments: freezeList(input.segments, segment),
     handles: freezeList(input.handles, vertex),
   });

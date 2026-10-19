@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createBuiltinSession } from '../../assets/js/modules/app-builtin-session.js';
+import { createBuiltinSession } from '../../assets/js/modules/builtin-session.js';
 import { builtinSubunitId, builtinSubunitSourceId } from '../../assets/js/modules/builtin-subunits.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { geometryRevision, touchGeometry } from '../../assets/js/modules/geometry-versions.js';

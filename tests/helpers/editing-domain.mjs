@@ -30,6 +30,7 @@ export function createTestEditingDomain(options = {}) {
   const domain=createEditingDomain({
     ...options,
     commandOwner,
+    geometryEditing: {boundaryDraftActive:()=>false,...options.geometryEditing},
     draftServices: {
       requestFrame: callback => setTimeout(callback, 0),
       cancelFrame: handle => clearTimeout(handle),

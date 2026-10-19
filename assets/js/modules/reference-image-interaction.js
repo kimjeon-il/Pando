@@ -229,7 +229,7 @@ export function createReferenceImageInteraction({
     };
     mapElement.classList.add('is-reference-anchor-mode');
     renderEditor();
-    setHint('1/2 · 이미지에서 고정할 지점을 선택하세요.', 'working');
+    setHint('이미지에서 고정할 지점을 선택하세요.', 'working');
     return true;
   }
 
@@ -251,8 +251,8 @@ export function createReferenceImageInteraction({
     renderEditor();
     setHint(
       side === 'image'
-        ? '이미지에서 맞출 지점을 선택하세요.'
-        : '실제 지도 위치를 선택하세요.',
+        ? (pointId ? '기준점의 이미지 위치를 다시 선택하세요.' : '이미지에서 맞출 지점을 선택하세요.')
+        : '기준점의 실제 지도 위치를 다시 선택하세요.',
       'working',
     );
     return true;
@@ -487,8 +487,8 @@ export function createReferenceImageInteraction({
       anchorState.image = [...uv];
       anchorState.step = 'map';
       syncSurface();
-      setHint('2/2 · 같은 지점의 실제 지도 위치를 선택하세요.', 'working');
       renderEditor();
+      setHint('같은 지점의 실제 지도 위치를 선택하세요.', 'working');
       return;
     }
 
@@ -520,7 +520,7 @@ export function createReferenceImageInteraction({
       } : null;
       if (previous?.mapQuad) record.mapQuad = previous.mapQuad.map(value => [...value]);
       rebuildWarp(record);
-      setHint('이 위치에는 고정점 제약을 적용할 수 없습니다.', 'error');
+      setHint('이 위치에는 고정점을 설정할 수 없습니다. 다른 지도 위치를 선택하세요.', 'error');
       renderer.requestRender();
       return;
     }
@@ -531,7 +531,7 @@ export function createReferenceImageInteraction({
     refreshUi();
     setHint(
       record.warp.ok
-        ? '고정점을 제약식으로 적용했습니다. 일반 기준점은 오차를 최소화하면서 이 지점은 정확히 유지됩니다.'
+        ? '고정점을 설정했습니다. 다른 기준점을 조정해도 이 위치는 유지됩니다.'
         : '고정점을 설정했습니다. 배치 편집에서 크기와 회전 시 이 지점이 유지됩니다.',
       'success',
     );
@@ -561,7 +561,8 @@ export function createReferenceImageInteraction({
         gcpState.image = uv;
         gcpState.step = 'map';
         syncSurface();
-        setHint('2/2 · 같은 지점의 실제 지도 위치를 선택하세요.', 'working');
+        renderEditor();
+        setHint('같은 지점의 실제 지도 위치를 선택하세요.', 'working');
         return;
       }
     } else {
@@ -666,6 +667,26 @@ export function createReferenceImageInteraction({
     return { kind: 'navigate' };
   }
 
+  // Pointer affordances use the same hit tests as gesture ownership. Only
+  // the selected image can supply an editable handle, even if images overlap.
+  function hitType(point) {
+    const record = selected();
+    if (!record || record.locked || !record.visible) return '';
+    const host = getMapHost();
+    if (controlPointEditingId === record.id) {
+      return renderer.hitTestControlPoint(record, point) ? 'point' : '';
+    }
+    if (freeTransformEditingId === record.id) {
+      const sourceQuad = record.cornerPinEnabled ? record.mapQuad : getCurrentWarpQuad(record) || record.mapQuad;
+      const hitRecord = sourceQuad === record.mapQuad ? record : { ...record, mapQuad: sourceQuad };
+      return referenceImageFreeTransformHit(hitRecord, point, host) ? 'corner' : '';
+    }
+    if (placementEditingId === record.id && !record.warp?.ok) {
+      return referenceImagePlacementHit(record, point, host)?.type || '';
+    }
+    return '';
+  }
+
   function clearSelectedControlPoint() {
     if (!selectedControlPointId) return false;
     selectedControlPointId = '';
@@ -741,6 +762,7 @@ export function createReferenceImageInteraction({
     startControlPointEditing,
     stopControlPointEditing,
     beginGesture,
+    hitType,
     clearSelectedControlPoint,
     deleteSelectedControlPoint,
     handleRecordLocked,

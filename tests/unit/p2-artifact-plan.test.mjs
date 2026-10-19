@@ -254,3 +254,18 @@ test('a concurrent remote commit survives the final publication guard',async t=>
   assert.equal(f.remoteHead(),concurrent);
   assert.notEqual(f.remoteHead(),f.git('rev-parse','HEAD'));
 });
+
+
+test('metadata staging accepts both generated product HTML entries under the real output contract',async t=>{
+ const metadata=JSON.parse(readFileSync(new URL('../../config/generated-artifacts.json',import.meta.url),'utf8')).families.find(f=>f.id==='build-metadata');
+ const f=graphFixture(t);f.families.splice(0,f.families.length,{...metadata,dependencies:[],inputs:['input/a.txt'],generate:[['node','tools/generate.mjs']],validate:[]});f.config();
+ f.put('index.html','old viewer');f.put('apps/web-shell/editor.html','old editor');const head=f.commit();
+ const staged=await stageArtifacts(f.root,{families:['build-metadata'],expectedSourceSha:head,stageDir:'build-native/p2/product-html',run:(_command,cwd)=>{
+  for(const path of ['index.html','apps/web-shell/editor.html','assets/js/build-meta.js','README.md']){mkdirSync(dirname(join(cwd,path)),{recursive:true});writeFileSync(join(cwd,path),'generated '+path);}
+ }});
+ assert.ok(staged.paths.includes('index.html'));assert.ok(staged.paths.includes('apps/web-shell/editor.html'));
+ assert.equal(f.get('apps/web-shell/editor.html').toString(),'old editor');
+ publishArtifacts(f.root,{stageDir:'build-native/p2/product-html',expectedSourceSha:head});
+ assert.equal(f.get('apps/web-shell/editor.html').toString(),'generated apps/web-shell/editor.html');
+ assert.equal(f.get('input/a.txt').toString(),'source-a');
+});

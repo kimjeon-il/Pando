@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import {mkdir,writeFile} from 'node:fs/promises';
 
@@ -5,7 +6,7 @@ test.use({viewport:{width:1440,height:900},trace:'off'});
 
 test('enumerate visible editable 1989 Soviet coastline vertices and nearby source geometry before choosing a valid UI test target',async({page})=>{
   test.setTimeout(180000);
-  await page.goto('/?debug=1&renderer=webgl2');
+  await gotoEditor(page, '/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:120000});
   await page.locator('#flatBtn').evaluate(button=>button.click());
   await page.locator('#timelineMonthButton').click();

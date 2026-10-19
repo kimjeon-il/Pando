@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 import { decideSelectionRedrawStrategy } from '../../assets/js/modules/selection-performance-baseline.js';
@@ -13,7 +14,7 @@ test('single-context SelectionPass reuses scene and stroke buffers during select
     if (message.type() === 'error' && !message.text().includes('[PL-WATER-001]')) errors.push(message.text());
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?perf=1');
+  await gotoEditor(page, '/?perf=1');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.canonicalMeshReady), { timeout: 60_000 }).toBe(true);

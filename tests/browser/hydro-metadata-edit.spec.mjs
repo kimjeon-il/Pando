@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
@@ -18,7 +19,7 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   page.setDefaultTimeout(30_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/assets/css/app.css');
+  await gotoEditor(page, '/assets/css/app.css');
   const saved = staticAutosaveProject({
       hydroEdits: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000005',
         geometry: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] },
@@ -30,7 +31,7 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
     localStorage.setItem('pandolab-editor-project', JSON.stringify(saved));
     localStorage.setItem(key, JSON.stringify(preferences));
   }, { saved, preferences, key: STORAGE_KEY });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await page.locator('#objectSearchBtn').click();
   await page.locator('#objectSearchInput').fill('메타데이터 검증 강');

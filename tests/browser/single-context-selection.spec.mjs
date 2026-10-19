@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('single WebGL context draws a country selection from the shared stroke resource', async ({ page }) => {
@@ -19,7 +20,7 @@ test('single WebGL context draws a country selection from the shared stroke reso
     }
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?perf=1');
+  await gotoEditor(page, '/?perf=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.canonicalMeshReady), { timeout: 60_000 }).toBe(true);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));

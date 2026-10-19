@@ -2,10 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
 import vm from 'node:vm';
-import { createNavigationBindings } from '../../assets/js/modules/app-navigation-bindings.js';
+import { createNavigationBindings } from '../../assets/js/modules/navigation-bindings.js';
 import { createPlaceRuntime } from '../../assets/js/modules/place-runtime.js';
 import { createSurfaceController } from '../../assets/js/modules/surface-controller.js';
-import { createGlobalInputBindings } from '../../assets/js/modules/app-global-input-bindings.js';
 import { createObjectSearchController, createAppObjectSearchController } from '../../assets/js/modules/object-search-controller.js';
 import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
@@ -203,7 +202,7 @@ async function hoverLifecycle(t) {
     objectModelA: { LAYER_SEARCH_GROUP_KEYS: ['hydro'], layerNameCollator: { compare: (a, b) => String(a).localeCompare(String(b)) } },
     layerPresentation: { layerGroupNames: {} }, applicationFactories: { createSemanticIcon: () => null },
     platformConfigurationB: { createEmptyState: element, syncSearchClearButton() {} },
-    objectCatalogView: { listObjectCatalogItems: () => [{ id: ref.id, name: '검증 강', typeLabel: '강' }] },
+    objectCatalogView: { listObjectSearchItems: () => [{ id: ref.id, name: '검증 강', typeLabel: '강' }] },
     objectLookup: { layerItemObjectRef: () => ref }, selectionServices: { normalizeObjectRef }, domains,
     hydroPresentation: { hydroCategoryKey: () => 'river' }, workspaceUiB: { surfaceController: surfaces },
     labelPresentation: { builtinPlaces: places }, feedback: { reportOperationError: error => { throw error; } },
@@ -225,26 +224,12 @@ async function hoverLifecycle(t) {
 }
 
 function escapeThroughApp(fixture) {
-  const listeners = new Map();
-  const hidden = { classList: { contains: name => name === 'hidden' }, addEventListener() {} };
-  const context = {
-    document: { addEventListener: (type, fn) => listeners.set(type, fn), activeElement: { tagName: 'INPUT' },
-      querySelectorAll: () => [], body: { classList: { contains: () => false } } },
-    window: { addEventListener() {} },
-    installReferenceImageEditingBridge() {}, handleReferenceImageKey: () => false, cancelReferenceImageInput() {},
-  };
-  const input = vm.runInNewContext(`(${createGlobalInputBindings.toString()})()`, context);
-  input.connect({
-    projectState: { state: fixture.state }, platform: { $: () => hidden },
-    domains: { editingDomain: {} }, domainControllers: { closeTerritorialEditorTransient: () => false },
-    libraryUi: { territorialLibraryController: { isOpen: () => false } },
-    projectRestore: { confirmModalController: { isOpen: () => false } },
-    workspaceUiB: { surfaceController: { isOpen: kind => kind === 'search' && fixture.isOpen() } },
-    workspaceUiA: { closeSurface: kind => { assert.equal(kind, 'search'); fixture.close(); } },
-    platformConfigurationB: { systemThemeQuery: { addEventListener() {} } },
-  });
-  input.bindGlobalInputUI();
-  listeners.get('keydown')({ key: 'Escape', code: 'Escape', preventDefault() {} });
+  const listeners=new Map(),hidden={hidden:true,classList:{contains:name=>name==='hidden'},addEventListener(){},querySelector(){return null;}};
+  const document={addEventListener:(type,listener)=>listeners.set(type,listener),querySelector:()=>null,activeElement:{tagName:'INPUT'},body:{classList:{contains:()=>false}}};
+  const owner=vm.runInNewContext(`(${createNavigationBindings.toString()})({productMode:'viewer'})`,{document,isMobileWorkspaceLayout:()=>false});
+  const workspace={MOBILE_SHEET_IDS:{},surfaceController:fixture.surfaces,closeSurface:kind=>{assert.equal(kind,'search');fixture.close();}};
+  owner.connect({platform:{$:()=>hidden},readinessUi:{clearNotification(){}},mapSettingsUi:{bindMapDisplayUI(){}},workspaceUiA:workspace,workspaceUiB:workspace,surfaces:{layoutMode:'wide'},projectState:{state:fixture.state}});
+  owner.bindNavigationUI();listeners.get('keydown')({key:'Escape',preventDefault(){},stopImmediatePropagation(){}});
 }
 
 test('single result selection closes search and releases list hover without needing pointerout', async t => {
@@ -326,4 +311,20 @@ test('a late cancellation after reopening cannot clear the current visible list 
   f.places.beginInteraction(); f.controller.cancelSearch();
   assert.equal(f.wiring.isSearchSurfaceOpen(), true); assert.equal(f.wiring.isSearchOpen(), false);
   assert.equal(f.domain.snapshot().hover.key, f.ref.key); f.dispose();
+});
+
+test('cached builtin results follow current month and visibility and restore the unchanged query',async()=>{
+ const nodes=new Map(['objectSearchInput','objectSearchClearBtn','objectSearchResults','objectSearchSection'].map(id=>[id,element()]));
+ const state={tool:'select',objectSearch:'서울',objectPresentationRevision:1,timelineCursor:'1914-06',layerVisibility:{labels:true},itemVisibility:{},labels:[]};
+ let calls=0;
+ const controller=createAppObjectSearchController({window:{setTimeout,clearTimeout},document:{createElement:element},getElement:id=>nodes.get(id),state,
+  objectSearchGroupKeys:[],listObjectSearchItems:()=>[],layerItemObjectRef:()=>null,selectionDomain:{snapshot:()=>({selection:{items:[]}}),setHover:async()=>true},
+  invalidateObjectPresentation(){},selectObjectSearchItem(){},closeSearchAfterSingleSelection(){},focusObjectRef(){},createEmptyState:element,
+  isSearchOpen:()=>true,isSearchSurfaceOpen:()=>true,builtinSearch:async()=>{calls++;return {records:[{id:'builtin:place:synthetic:seoul',kind:'city',name:'서울'}]};},cancelBuiltinSearch(){}});
+ const rows=()=>nodes.get('objectSearchResults').children.filter(row=>row.children[0]?.dataset.itemId);
+ controller.render(true);await tick();assert.equal(rows().length,1);
+ state.layerVisibility.labels=false;controller.render(true);await tick();assert.equal(rows().length,0);
+ state.layerVisibility.labels=true;controller.render(true);await tick();assert.equal(rows().length,1);assert.equal(calls,2);
+ state.timelineCursor='1915-01';controller.render(true);await tick();assert.equal(calls,3);
+ state.itemVisibility.labels={'builtin:place:synthetic:seoul':false};controller.render(true);await tick();assert.equal(rows().length,0);controller.dispose();
 });

@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 
@@ -119,7 +120,7 @@ test('1989 Soviet repeated coast edit and month round-trip keep bounded caches a
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const cdp = await page.context().newCDPSession(page);
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => {
     return page.evaluate(() => {

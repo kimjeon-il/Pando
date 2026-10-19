@@ -16,7 +16,7 @@ async function fixture(configure = () => {}, wrapService = service => service) {
   configure(state);
   await initializeTestTerritorialState(state,null,{platformPorts:{
     onProjectChanged:event=>{if(event.reason.startsWith('territorial.'))effects.history++;},
-    persistence:{queueProject(){effects.save++;}},
+    persistence:{queueProject(){effects.save++;},cancelPending(){}},
   }});
 const store=createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const repository=createTerritorialEntityRepository({entityStore:store});
@@ -172,15 +172,17 @@ test('child add and remove each occupy one real history entry and support Undo/R
   assert.equal(await history.undo(),false,'two accepted relation commands occupy exactly two history units');
 });
 
-test('relation command rejects an out-of-parent partition using the real edit kernel before recording history', async () => {
+test('relation command rejects an out-of-parent partition in Core before recording history', async () => {
   const { owner, state, repository, effects } = await fixture(state => {
     const geometry = { type: 'Polygon', coordinates: [[[5, 5], [5, 6], [6, 6], [6, 5], [5, 5]]] };
     state.territorialEntities[1].geometry = geometry;
     state.territorialEntities.push(createTerritorialFeature({ id: 'C', entityKind: 'general', parentId: 'B', coverageMode: 'partition', geometry }));
   });
   const selected = state.selected, before = structuredClone(repository.list());
-  const result = await owner.commitTerritorialRelation({ domain: 'territorial', type: 'entity', id: 'C' }, 'parentId', 'A');
-  assert.equal(result.code, 'invalid-parent-geometry');
+  await assert.rejects(
+    owner.commitTerritorialRelation({ domain: 'territorial', type: 'entity', id: 'C' }, 'parentId', 'A'),
+    { code: 'GEOMETRY_OUTSIDE_PARENT' },
+  );
   assert.equal(effects.history, 0); assert.equal(effects.save, 0);
   assert.deepEqual(repository.list(), before); assert.equal(state.selected, selected);
 });

@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createGisFileController } from '../../assets/js/modules/gis-file-controller.js';
+import { createFileController } from '../../assets/js/modules/file-controller.js';
 
 test('topbar separates history, file, view, settings and help commands', () => {
-  const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../../apps/web-shell/editor.html', import.meta.url), 'utf8');
   const tokens = readFileSync(new URL('../../assets/css/tokens/design-tokens.css', import.meta.url), 'utf8');
   const menuCss = readFileSync(new URL('../../assets/css/components/menus.css', import.meta.url), 'utf8');
   const fileBindings = readFileSync(new URL('../../assets/js/modules/app-file-bindings.js', import.meta.url), 'utf8');
@@ -34,7 +34,7 @@ test('file inputs pass explicit source intent without changing the import target
   const input = () => ({ dataset: {}, files: [{ name: 'test.gpkg' }], value: '', click() {}, addEventListener() {} });
   const elements = { input: input(), projectInput: input(), projectOpen: { id: 'openProjectBtn', focus() {} } };
   const intents = [];
-  const controller = createGisFileController({ elements, onFiles: async (_files, options) => intents.push(options.sourceKind) });
+  const controller = createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message), elements,readProject:async file=>file,projectDomain:{open:async read=>{intents.push('project');return read();}},onFiles:async(_files,options)=>intents.push(options.sourceKind) });
   controller.bind();
   controller.openProjectPicker();
   assert.equal(elements.projectInput.dataset.returnFocusId, 'openProjectBtn');

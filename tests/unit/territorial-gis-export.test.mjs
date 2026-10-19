@@ -10,7 +10,7 @@ import { Blob, File } from 'node:buffer';
 import { TextEncoder, TextDecoder } from 'node:util';
 
 const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
-const html = read('index.html');
+const html = read('apps/web-shell/editor.html');
 test('export choices use unique current categories and UI has no merged duplicate labels', () => {
   const fieldset = html.match(/<fieldset class="gis-export-layers">[\s\S]*?<\/fieldset>/)[0];
   const values = [...fieldset.matchAll(/value="([^"]+)"/g)].map(match => match[1]);
