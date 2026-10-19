@@ -24,7 +24,7 @@ test('retired layer-panel runtime and stylesheet are absent', () => {
 });
 
 test('current create, display and editor surfaces retain mobile sheet handles', () => {
-  const html = read('index.html');
+  const html = read('apps/web-shell/editor.html');
   const controller = read('assets/js/modules/surface-controller.js');
 
   for (const [surface, panel, trigger] of [
@@ -43,7 +43,7 @@ test('current create, display and editor surfaces retain mobile sheet handles', 
 });
 
 test('current GIS controls do not depend on retired visual option cards', () => {
-  const html = read('index.html');
+  const html = read('apps/web-shell/editor.html');
   const modalCss = read('assets/css/components/modals.css');
 
   assert.match(html, /id="gisStepIndicator"/);

@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -5,7 +6,7 @@ const fixture = 'tests/fixtures/north-schleswig-coast-import.geojson';
 
 async function waitForEditor(page) {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?demTerrain=raster');
+  await gotoEditor(page, '/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 }

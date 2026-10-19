@@ -1,9 +1,14 @@
 # 참고 이미지 UI P5 — 회귀 검증과 조작 영역 수정
 
-> 보고서 ID: `DEV-REF-UI-P5-20261018` · 상태: `verified-feature-branch / integration-pending` · 지도 반영: `not-applicable` · 색인일: 2026-10-18  
-> 원문 최종 수정: 2026-10-18  
-> 조사 기준: 웹·앱 공통 기준 커밋 `94bbb47fbbf59fa666dbccc4af85ef536ba64dac` + 이 보고서와 함께 제출한 P5 변경  
+> 보고서 ID: `DEV-REF-UI-P5-20261018` · 상태: `historical-feature-verification / follow-up-linked` · 지도 반영: `not-applicable` · 색인일: 2026-10-18
+>
+> 원문 검증일: 2026-10-18 · 후속 연결: 2026-10-19
+>
+> 조사 기준: 웹·앱 공통 기준 커밋 `94bbb47fbbf59fa666dbccc4af85ef536ba64dac` + 이 보고서와 함께 제출한 P5 변경
+>
 > 원본·출처: [Draft PR #134](https://github.com/kimjeon-il/Pando/pull/134), [실행 요약·소스 해시](reference-image-ui-p5-evidence.json)
+
+최신 `work/ui` 반영과 편집기 진입·가로 화면·공통 입력 안내의 후속 수정은 [2026-10-19 UI 통합 검증](reference-image-ui-integration-2026-10-19.md)에 기록했다. 아래의 수치와 통합 대기 사항은 2026-10-18 당시 기록으로 유지한다.
 
 ## 대상과 기준일
 

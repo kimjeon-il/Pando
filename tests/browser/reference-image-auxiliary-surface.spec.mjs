@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
@@ -46,7 +47,7 @@ async function prepareCornerPinImage(page) {
   // The mobile assertions below exercise auxiliary UI, not mapping accuracy.
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => typeof window.__PANDOLAB_REFERENCE_IMAGES__?.open)).toBe('function');

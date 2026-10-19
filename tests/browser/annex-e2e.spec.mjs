@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 
@@ -56,7 +57,7 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   const errors = [];
   page.on('pageerror', error => {errors.push(`pageerror: ${error.message}`);console.error('ANNEX_PAGEERROR',error.message);});
   page.on('console', message => { if (message.type() === 'error') {errors.push(`console: ${message.text()}`);console.error('ANNEX_CONSOLE',message.text());} });
-  await page.goto(`/?debug=1&renderer=${renderer}`);
+  await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));

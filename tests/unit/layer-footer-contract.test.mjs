@@ -4,7 +4,7 @@ import { test } from 'node:test';
 
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
 test('map command bar owns add while selection and editor context own object controls', () => {
-  const html = read('index.html');
+  const html = read('apps/web-shell/editor.html');
   const toolbar = html.match(/<div class="[^"]*map-command-toolbar[^"]*"[\s\S]*?<\/div>/)[0];
   const editorHeader = html.match(/<aside id="editorSurface"[\s\S]*?<header class="surface-header">[\s\S]*?<\/header>/)[0];
   assert.doesNotMatch(html, /id="selectionToolbar"|selection-card/);
@@ -36,7 +36,7 @@ test('map command bar owns add while selection and editor context own object con
   assert.doesNotMatch(add, /<span/);
 });
 test('file and mobile global menus belong to the global overlay, not the map stacking context', () => {
-  const html = read('index.html');
+  const html = read('apps/web-shell/editor.html');
   const map = html.match(/<main class="map-wrap"[\s\S]*?<\/main>/)[0];
   const overlay = html.slice(html.indexOf('class="overlay-root"'));
   for (const id of ['fileMenu', 'mobileGlobalMenu']) {

@@ -21,7 +21,7 @@ const versionedModuleUrl = relativePath => {
   return url.href;
 };
 await import(versionedModuleUrl('./modules/polygon-geometry.js'));
-const { createGisFileController } = await import(versionedModuleUrl('./modules/gis-file-controller.js'));
+const { createFileController } = await import(versionedModuleUrl('./modules/file-controller.js'));
 const polygonGeometry = globalThis.PandoLabPolygonGeometry;
 if (!polygonGeometry) throw new Error('폴리곤 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 
@@ -385,7 +385,7 @@ export {
   classifyBuiltinCountries,
   builtinSubunitSourceId,
   versionedModuleUrl,
-  createGisFileController,
+  createFileController,
   polygonGeometry,
   createSemanticIcon,
   normalizeCountryCollection,

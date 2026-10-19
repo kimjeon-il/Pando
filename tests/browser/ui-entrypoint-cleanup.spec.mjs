@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
 
 test('responsive map commands and theme-only preferences preserve editing and saved styles', async ({ page }) => {
@@ -7,7 +8,7 @@ test('responsive map commands and theme-only preferences preserve editing and sa
   const preferences = { version: 2, appearance: { theme: 'light' }, labels: { country: { font: 'serif', color: '#123456' }, place: { font: 'gothic', color: '#654321', pointColor: '#abcdef' } }, selection: { color: '#ff0000', outlineVisible: false, fillStrength: 0.8 } };
   await page.addInitScript(value => localStorage.setItem('pandolab-user-preferences', JSON.stringify(value)), preferences);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect(page.locator('#mapToolToolbar,#engineStatus,#shortcutHelpModal,#keyboardHelpBtn,#objectCoastReconcileMenuBtn')).toHaveCount(0);
   await expect(page.locator('.map-command-toolbar')).toHaveCount(1);

@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromiumProcessPss, createWorkerMemoryProbe } from './helpers/soviet-memory-attribution.mjs';
@@ -130,7 +131,7 @@ test('12 repeated 1989 Soviet/current month round trips retain bounded worker st
   });
   let cdp = null, probe = null;
   try {
-    await page.goto('/?perf=1&renderer=webgl2');
+    await gotoEditor(page, '/?perf=1&renderer=webgl2');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
     await expect.poll(() => page.evaluate(() => {
       const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;

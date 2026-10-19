@@ -1,7 +1,8 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('flag thumbnail keeps its aspect ratio without hover highlight', async ({ page }) => {
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.getByRole('button', { name: '레이어', exact: true }).click();
   await page.getByRole('searchbox', { name: '레이어 검색' }).fill('독일');

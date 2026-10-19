@@ -4,9 +4,9 @@ import {createTerritorialFeature,normalizeTerritorialEntities} from '../../asset
 import {normalizeCountryFeature} from '../../assets/js/modules/country-feature.js';
 import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 
-const polygon=(x=0)=>({type:'Polygon',coordinates:[[[x,0],[x,2],[x+2,2],[x+2,0],[x,0]]]});
+const polygon=(x=0,size=2)=>({type:'Polygon',coordinates:[[[x,0],[x,size],[x+size,size],[x+size,0],[x,0]]]});
 const entity=(id,entityKind='general',options={})=>createTerritorialFeature({id,entityKind,name:id,geometry:polygon(),...options});
-async function fixture(features=[entity('A'),entity('B','general',{geometry:polygon(5)}),entity('S','general',{parentId:'A'}),
+async function fixture(features=[entity('A','general',{geometry:polygon(0,12)}),entity('B','general',{geometry:polygon(0,12)}),entity('S','general',{parentId:'A'}),
   entity('T','general',{parentId:'S'}),entity('R','regional')]) {
   const events=[],state={territorialEntities:features};
   await initializeTestTerritorialState(state,null,{platformPorts:{onProjectChanged:event=>events.push(event)}});
@@ -92,7 +92,8 @@ test('reparenting retains descendants in a single accepted command',async()=>{
 
 test('Undo/Redo restore metadata, geometry, parent records, archive and Core dirty IDs together',async()=>{
   const f=await fixture(),before=structuredClone(f.owner.project.snapshot()),geometry=f.repo.get('S').geometry;
-  await f.command('territorial.patch',{features:[{...f.repo.get('S'),geometry:polygon(5),properties:{...f.repo.get('S').properties,parentId:'B',name:'moved'}}]});
+  await f.command('territorial.patch',{features:[{...f.repo.get('S'),geometry:polygon(5),properties:{...f.repo.get('S').properties,parentId:'B',name:'moved'}},
+    {...f.repo.get('T'),geometry:polygon(5)}]});
   await f.metadata('A','color','#123456');const after=structuredClone(f.owner.project.snapshot()),dirty=[...f.state.historyDirtyEntityIds];
   assert.equal(await f.owner.project.undo(),true);assert.equal(await f.owner.project.undo(),true);
   assert.deepEqual(f.owner.project.snapshot(),before);assert.deepEqual([...f.state.historyDirtyEntityIds],[]);

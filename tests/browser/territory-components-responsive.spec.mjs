@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 test.use({ channel: 'chromium' });
@@ -21,7 +22,7 @@ test('Russia subunit components keep input responsive and reuse preparation on h
     setInterval(() => { window.__componentMetrics.ticks += 1; }, 50);
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
   await startChildCreation(page, 'RUS');
@@ -65,7 +66,7 @@ test('Germany river components prepare a subunit preview before the next step', 
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await startChildCreation(page, 'DEU');

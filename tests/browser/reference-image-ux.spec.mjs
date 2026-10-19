@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
 // The same small PNG used by the reference-image overlay regressions.
@@ -24,7 +25,7 @@ async function openApp(page, { viewport = VIEWPORTS.at(-1), theme = 'light' } = 
   await page.setViewportSize(viewport);
   await page.emulateMedia({ colorScheme: theme, reducedMotion: 'no-preference' });
   await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -76,7 +77,9 @@ async function expectPanelFits(page) {
         label: element.getAttribute('aria-label') || element.dataset.refAction || element.dataset.refField || element.textContent.trim(),
         ...rect(element),
       }));
-    const mobile = document.getElementById('app').dataset.layout === 'mobile';
+    const layoutMode = document.getElementById('app').dataset.layout;
+    const mobile = layoutMode === 'mobile';
+    const landscape = layoutMode === 'phone-landscape';
     return {
       viewport: { width: window.innerWidth, height: window.innerHeight },
       pageWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
@@ -84,7 +87,8 @@ async function expectPanelFits(page) {
       body: { clientWidth: body.clientWidth, scrollWidth: body.scrollWidth },
       controlsOutsidePanel: controls.filter(control => control.width <= 0 || control.left < panelBox.left - 1 || control.right > panelBox.right + 1),
       mobile,
-      navigation: mobile ? rect(document.querySelector('.mobile-bottom-bar')) : null,
+      landscape,
+      navigation: mobile || landscape ? rect(document.querySelector('.mobile-bottom-bar')) : null,
       headerHandle: mobile ? rect(panel.querySelector('.reference-image-panel-header > .sheet-drag-handle')) : null,
       map: rect(document.getElementById('map')),
     };
@@ -101,6 +105,14 @@ async function expectPanelFits(page) {
     expect(layout.headerHandle.width, 'the mobile sheet handle must keep a 44px touch target').toBeGreaterThanOrEqual(44);
     expect(layout.headerHandle.height, 'the mobile sheet handle must keep a 44px touch target').toBeGreaterThanOrEqual(44);
     expect(layout.panel.bottom, 'the reference sheet must leave mobile navigation uncovered').toBeLessThanOrEqual(layout.navigation.top + 1);
+  } else if (layout.landscape) {
+    expect(layout.panel.right, 'the landscape sheet must stay on the right edge').toBeCloseTo(layout.viewport.width, 0);
+    expect(layout.panel.height, 'landscape keeps the common full-height side sheet').toBeCloseTo(layout.viewport.height, 0);
+    expect(layout.panel.width).toBeLessThanOrEqual(Math.min(320, layout.viewport.width * 0.45) + 1);
+    expect(layout.navigation.left).toBeGreaterThanOrEqual(0);
+    expect(layout.navigation.right, 'the left navigation must leave an interactive map area').toBeLessThan(layout.panel.left);
+    expect(layout.navigation.bottom).toBeLessThanOrEqual(layout.viewport.height + 1);
+    expect(layout.map.right, 'landscape reserves projection space without shrinking the map viewport').toBeCloseTo(layout.viewport.width, 0);
   } else {
     expect(layout.map.right, 'the dock must reserve map space').toBeLessThanOrEqual(layout.panel.left + 1);
   }
@@ -233,6 +245,83 @@ test('320px mobile sheet retains the unfinished map step through expansion and c
   await expect(panel).toBeVisible();
   expect(await readReferenceStore(page)).toEqual(before);
   expect(errors).toEqual([]);
+});
+
+test.describe('phone landscape reference-image workflows', () => {
+  test.use({ hasTouch: true, actionTimeout: 8_000 });
+
+  for (const viewport of [{ width: 640, height: 360 }, { width: 844, height: 390 }]) {
+    test(`phone landscape ${viewport.width}x${viewport.height} keeps GCP controls usable without changing the saved image`, async ({ page }, testInfo) => {
+      const errors = await openApp(page, { viewport });
+      await expect(page.locator('#app')).toHaveAttribute('data-layout', 'phone-landscape');
+      expect(await page.evaluate(() => window.matchMedia('(pointer: coarse)').matches)).toBe(true);
+      await addImage(page);
+      const before = await readReferenceStore(page);
+      const readView = () => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());
+      const initialView = await readView();
+      const panel = page.locator('#referenceImageSurface');
+      const body = panel.locator('.reference-image-body');
+      const compact = panel.locator('.reference-image-editing-summary');
+      const toggle = panel.locator('.reference-image-collapse-button');
+
+      await panel.locator('[data-ref-tab="match"]').tap();
+      await panel.locator('[data-ref-action="gcp"]').tap();
+      await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+      await page.screenshot({ path: testInfo.outputPath(`landscape-${viewport.width}-gcp-image-step.png`), animations: 'disabled' });
+      await expect(body, 'the inert GCP body must be hidden in the landscape side sheet').toBeHidden();
+      await expect(body).toHaveJSProperty('inert', true);
+      await expect(compact).toBeVisible();
+      await expect(compact.locator(':scope > span')).toContainText('이미지에서');
+      await expect(panel.locator('.reference-image-resize-handle')).toBeHidden();
+      await expect(panel.locator('.sheet-drag-handle')).toBeHidden();
+      await expect(page.locator('[data-ref-workflow-guide]')).toBeHidden();
+      const layout = await expectPanelFits(page);
+
+      const point = await imagePoint(page, [0.1, 0.5]);
+      expect(point.x).toBeGreaterThan(layout.navigation.right);
+      expect(point.x).toBeLessThan(layout.panel.left);
+      expect(point.y).toBeGreaterThan(layout.map.top);
+      expect(point.y).toBeLessThan(layout.map.bottom);
+      await page.touchscreen.tap(point.x, point.y);
+      await expect(compact.locator(':scope > span')).toContainText('실제 지도 위치');
+      expect(await readReferenceStore(page)).toEqual(before);
+
+      await toggle.tap();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      await expect(body).toBeVisible();
+      await expect(body).toHaveJSProperty('inert', false);
+      await expect(compact).toBeHidden();
+      await expect(panel.locator('[data-ref-workflow="gcp"] [aria-current="step"]')).toContainText('지도 위치');
+      await expectPanelFits(page);
+      expect(await readView()).toEqual(initialView);
+
+      await toggle.tap();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      await expect(body).toBeHidden();
+      await expect(body).toHaveJSProperty('inert', true);
+      await expect(compact.locator(':scope > span')).toContainText('실제 지도 위치');
+      await expectPanelFits(page);
+      await page.screenshot({ path: testInfo.outputPath(`landscape-${viewport.width}-gcp-map-step.png`), animations: 'disabled' });
+      await compact.locator('[data-ref-workflow-actions] [data-ref-action="cancel"]').tap();
+      await expect(page.locator('#map')).not.toHaveClass(/is-reference-gcp-mode/);
+      await expect(panel).toBeVisible();
+      await expect(body).toBeVisible();
+      await expect(body).toHaveJSProperty('inert', false);
+      await expect(compact).toBeHidden();
+      await toggle.tap();
+      await expect(panel).toHaveClass(/reference-image-collapsed/);
+      await expect(body).toBeHidden();
+      await expect(panel.locator('.reference-image-panel-header')).toHaveCSS('flex-direction', 'row');
+      await expect(panel.locator('.reference-image-panel-header strong')).toHaveCSS('writing-mode', 'horizontal-tb');
+      await expectPanelFits(page);
+      await toggle.tap();
+      await expect(body).toBeVisible();
+      await expect(body).toHaveJSProperty('inert', false);
+      expect(await readReferenceStore(page)).toEqual(before);
+      expect(await readView()).toEqual(initialView);
+      expect(errors).toEqual([]);
+    });
+  }
 });
 
 test('reduced motion suppresses the rendered reference sheet and launcher transitions', async ({ page }, testInfo) => {

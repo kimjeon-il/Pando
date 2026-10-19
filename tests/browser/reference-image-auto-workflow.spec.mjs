@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
 const PNG_1X1 = Buffer.from(
@@ -64,7 +65,7 @@ for (const viewport of VIEWPORTS) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
     await delayOcrResponse(page);
-    await page.goto('/');
+    await gotoEditor(page, '/');
     await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     if (viewport.mobile) await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
