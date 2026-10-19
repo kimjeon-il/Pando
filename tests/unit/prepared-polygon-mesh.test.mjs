@@ -5,10 +5,38 @@ import '../../assets/js/workers/gpu-mesh-core.js';
 import { encodePolygonMesh, decodePolygonMesh } from '../../assets/js/modules/polygon-mesh-codec.js';
 import { createPreparedPolygonMeshStore, polygonGeometryDigest } from '../../assets/js/modules/prepared-polygon-mesh.js';
 import { createRenderSceneBuilder } from '../../assets/js/modules/render-scene.js';
+import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 1], [0, 1], [0, 0]]] };
 const engine = globalThis.PandoLabGpuMeshCore;
 const context = { throwIfCancelled() {} };
+
+test('fixed physical land loads a verified prepared mesh instead of triangulating the world at runtime', async () => {
+  const read = file => readFileSync(new URL('../../' + file, import.meta.url));
+  const land = JSON.parse(gunzipSync(read('assets/data/physical-land/v1/geometry.json.gz')));
+  const manifest = JSON.parse(read('assets/data/prepared-polygons/generated/v2/manifest.json'));
+  const digest = await polygonGeometryDigest(land);
+  assert.ok(manifest.meshes[digest], 'fixed physical land is missing from prepared meshes');
+  const store = createPreparedPolygonMeshStore({
+    engine: { ...engine, buildPolygonGeometryPacket: () => assert.fail('fixed land must never triangulate at runtime') },
+    loadManifest: async () => manifest,
+    loadAsset: async spec => {
+      const compressed = read(spec.url);
+      assert.equal(compressed[9], 3, 'prepared assets have one platform-independent gzip header');
+      assert.equal(createHash('sha256').update(compressed).digest('hex'), spec.sha256);
+      return Uint8Array.from(gunzipSync(compressed)).buffer;
+    },
+  });
+  const { packet } = await store.prepare({ cacheKey: 'physical-land:globe', geometry: land }, context);
+  assert.equal(packet.polygonOffsets.length, land.coordinates.length + 1);
+  assert.equal(packet.ringOffsets.at(-1), land.coordinates.flat().reduce((sum, ring) => sum + ring.length, 0));
+  assert.ok(packet.triangleCount > 0);
+  await store.prepare({ cacheKey: 'physical-land:flat', geometry: land }, context);
+  assert.equal(store.stats().assetHits, 1);
+  assert.equal(store.stats().builds, 0);
+});
 
 test('fixed assets and transferred copies retain holes, geometry and algorithm identity', async () => {
   const packet = engine.buildPolygonGeometryPacket(geometry), encoded = encodePolygonMesh(packet);

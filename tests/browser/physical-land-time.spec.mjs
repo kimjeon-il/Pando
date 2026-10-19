@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 
 test.use({ viewport: { width: 1280, height: 800 }, trace: 'off' });
 
@@ -20,12 +21,30 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
   await page.addInitScript(forceCanvas => {
     localStorage.setItem('pandolab-user-preferences', JSON.stringify({ version: 2,
       backgrounds: { viewer: { terrainVisible: true, terrainStyle: 'physical' } } }));
-    window.__landPixels = []; window.__landWorkerUrls = [];
+    window.__landPixels = []; window.__landWorkerUrls = []; window.__landMeshRequests = [];
     const NativeWorker = Worker;
     window.Worker = class extends NativeWorker {
       constructor(url, options) {
         super(url, options); window.__landWorkerUrls.push(String(url));
+        const requests = new Map();
+        const post = this.postMessage.bind(this);
+        this.postMessage = (message, ...args) => {
+          if (message.type === 'request' && message.operation?.startsWith('geometry.')) {
+            const request = { requestId: message.requestId, worker: String(url), started: performance.now(),
+              operation: message.operation, featureCount: message.payload.features?.length,
+              keys: (message.payload.items || []).map(item => item.cacheKey), status: 'pending' };
+            requests.set(message.requestId, request); window.__landMeshRequests.push(request);
+          }
+          return post(message, ...args);
+        };
         this.addEventListener('message', event => {
+          const request = requests.get(event.data.requestId || event.data.payload?.requestId);
+          if (request && event.data.type === 'event' && event.data.operation === 'geometry.prepare-progress')
+            (request.progress ||= []).push(event.data.payload);
+          if (request && event.data.type === 'result') {
+            request.elapsed = performance.now() - request.started; request.status = event.data.ok ? 'passed' : 'failed';
+            request.stats = event.data.result?.stats;
+          }
           if (event.data.landProbe) {
             window.__landPixels.push(event.data.landProbe);
             window.__landPixelRevision = event.data.styleRevision;
@@ -172,6 +191,26 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     expect(flat[0]).toBeLessThan(250);
     expect(await page.evaluate(() => window.__landWorkerUrls.every(url => /assets\/worker-runtime\/[a-f0-9]{32}\//.test(url)))).toBe(true);
     expect(unversioned).toEqual([]); expect(errors).toEqual([]);
+    if (renderer === 'webgl2') {
+      const landRequests = await page.evaluate(() => window.__landMeshRequests.filter(request =>
+        request.status === 'passed' && request.keys.some(key => key.startsWith('polygon:physical-land:'))));
+      expect(landRequests.length).toBeGreaterThan(0);
+      expect(landRequests.every(request => request.stats.assetHits > 0 && request.stats.builds === 0)).toBe(true);
+      expect(landRequests.every(request => request.progress?.at(-1).completed === request.keys.length + 1)).toBe(true);
+    }
     await page.screenshot({ path: info.outputPath(`${renderer}-empty-time-land.png`) });
-  } finally { await browser.close(); }
+  } finally {
+    const path = info.outputPath('mesh-requests.json');
+    await writeFile(path, JSON.stringify(await page.evaluate(() => window.__landMeshRequests), null, 2));
+    await info.attach('mesh-requests', { path, contentType: 'application/json' });
+    const statePath = info.outputPath('viewer-state.json');
+    await writeFile(statePath, JSON.stringify(await page.evaluate(() => ({
+      document: window.__PANDOLAB_VIEWER__.documentState(),
+      timeline: document.getElementById('timelineMonthButton')?.textContent,
+      timelineError: document.getElementById('timelineMonthError')?.textContent,
+      renderer: window.__PANDOLAB_VIEWER__.rendererStats(),
+    })), null, 2));
+    await info.attach('viewer-state', { path: statePath, contentType: 'application/json' });
+    await browser.close();
+  }
 });

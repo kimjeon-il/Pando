@@ -15,7 +15,7 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
     if (viewRecord.projection==='globe' || viewRecord.projection==='flat') state.projection=viewRecord.projection;
     if (viewRecord.view && typeof viewRecord.view==='object') {
       const valid=Object.fromEntries(Object.entries(viewRecord.view).filter(([key,value])=>['flatZoom','globeZoom'].includes(key)?Number.isFinite(value)&&value>0:['flatCenter','globeRotation'].includes(key)&&Array.isArray(value)&&value.length===(key==='flatCenter'?2:3)&&value.every(Number.isFinite)));
-      state.view=dependencies.workspaceUiA.clampViewZooms({...state.view,...valid});
+      state.view=dependencies.mapNavigation.clampViewZooms({...state.view,...valid});
     }
     return true;
   }

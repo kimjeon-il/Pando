@@ -48,7 +48,9 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       const requestPayload = entry.payload?.polygonPreparation || { features: entry.payload?.features || [] };
       const response = await ensureRpc().request(operation, requestPayload, {
         requestId: entry.requestId, projectRevision: entry.targetRevision,
-        ...(operation === 'geometry.mesh' ? { progress: { operation: 'geometry.mesh-progress', total: (requestPayload.features || []).length + 3 } } : {}),
+        progress: operation === 'geometry.mesh'
+          ? { operation: 'geometry.mesh-progress', total: (requestPayload.features || []).length + 3 }
+          : { operation: 'geometry.prepare-progress', total: requestPayload.items.length + 1 },
         metadata: { geometryRevision: entry.geometryRevision, targetRevision: entry.targetRevision, jobKey: entry.jobKey, payload: { token: entry.payload?.token } },
       });
       const mesh = response.result;

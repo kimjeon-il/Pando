@@ -155,7 +155,7 @@ export function createProjectSession({productMode='editor',capabilities={terrain
     (atomicMapStateController = (0, dependencies.uiFactoriesA.createAtomicMapStateController)({
       applySnapshot: snapshot => {
         if (snapshot.projection) state.projection = snapshot.projection;
-        if (snapshot.view) state.view = (0, dependencies.workspaceUiA.clampViewZooms)({ ...state.view, ...snapshot.view });
+        if (snapshot.view) state.view = (0, dependencies.mapNavigation.clampViewZooms)({ ...state.view, ...snapshot.view });
         state.transitionRevision = Number(snapshot.stateRevision || state.transitionRevision || 0);
       },
     }));

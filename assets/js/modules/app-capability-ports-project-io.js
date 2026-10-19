@@ -56,7 +56,7 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "snapshots",
     "territorialModel",
     "territorialServicesA",
-    "workspaceUiA"
+    "mapNavigation"
   ],
   "projectRestore": [
     "persistence",

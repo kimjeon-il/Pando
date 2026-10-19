@@ -91,9 +91,14 @@ self.PandoLabWorkerRpc.install({
   handlers: {
     'geometry.prepare': async (payload, context) => {
       const store = await polygonPreparation, packets = [];
+      const total = payload.items.length + 1;
+      const progress = (completed, phase) => context.emitEvent('geometry.prepare-progress',
+        { requestId: context.requestId, completed, total, phase }, { projectRevision: context.projectRevision });
+      progress(1, 'initialized');
       for (const item of payload.items) {
         context.throwIfCancelled();
         packets.push(await store.prepare(item, context));
+        progress(packets.length + 1, 'polygon');
       }
       const buffers = [...new Set(packets.flatMap(({ packet }) => Object.values(packet)
         .filter(ArrayBuffer.isView).map(value => value.buffer)))];

@@ -33,6 +33,7 @@ function source(file) {
 const historical = readJson('assets/data/historical-world/generated/v1/manifest.json');
 source(historical.project.url);
 source('assets/data/territorial-entities/generated/current-world.geojson');
+source('assets/data/physical-land/v1/geometry.json.gz');
 const index = readJson('assets/data/territorial-entities/generated/v2/index.json');
 for (const entity of index.entities) source(`assets/data/territorial-entities/generated/v2/${entity.file}`);
 // Derived parent display extents use the same resolver and C++ normalization as
@@ -73,6 +74,9 @@ for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeComp
   const packet = engine.buildPolygonGeometryPacket(geometry);
   const encoded = Buffer.from(encodePolygonMesh(packet));
   const compressed = gzipSync(encoded, { level: 9, mtime: 0 });
+  // The payload is identical across hosts; pin the gzip OS byte too so the
+  // published content hashes do not change when generated on Windows.
+  compressed[9] = 3;
   const hash = sha256(compressed), url = `${destination}/polygon-mesh-sha256-${hash}.bin.gz`;
   mkdirSync(dirname(resolve(root, url)), { recursive: true }); writeFileSync(resolve(root, url), compressed);
   meshes[digest] = { url, sha256: hash, encoding: 'gzip', compressedBytes: compressed.length, decodedBytes: encoded.length };

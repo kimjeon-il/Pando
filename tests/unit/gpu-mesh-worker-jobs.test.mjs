@@ -2,6 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGpuMeshWorkerJobs } from '../../assets/js/modules/gpu-mesh-worker-jobs.js';
 
+test('polygon preparation accepts finite progress across a long batch but still times out a stalled batch', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const sent = [], worker = { postMessage: message => sent.push(message), terminate() {} };
+  const jobs = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => worker });
+  const request = jobs.preparePolygons([{ cacheKey: 'a' }, { cacheKey: 'b' }], 1)
+    .then(value => ({ value }), error => ({ error }));
+  for (let i = 0; i < 6; i++) await Promise.resolve();
+  const envelope = sent.find(message => message.type === 'request');
+  const progress = completed => worker.onmessage({ data: { ...envelope, type: 'event',
+    operation: 'geometry.prepare-progress', payload: { requestId: envelope.requestId, completed, total: 3 } } });
+  t.mock.timers.tick(25000); progress(1);
+  t.mock.timers.tick(25000); progress(2);
+  t.mock.timers.tick(25000); progress(3);
+  worker.onmessage({ data: { ...envelope, type: 'result', ok: true, result: { packets: [] } } });
+  assert.deepEqual(await request, { value: { packets: [] } });
+  const stalled = jobs.preparePolygons([{ cacheKey: 'stalled' }], 2)
+    .then(() => assert.fail('stalled preparation must time out'), error => error);
+  for (let i = 0; i < 12; i++) await Promise.resolve();
+  t.mock.timers.tick(30000);
+  assert.equal((await stalled).code, 'PL-WORKER-RPC-TIMEOUT');
+  jobs.cancelAll();
+});
+
 test('full rebuild owner settles replaced, stale and disposed requests and preserves payload', async () => {
   const workers = [], sent = [];
   const owner = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => {

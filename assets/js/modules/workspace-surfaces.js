@@ -517,7 +517,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     get activeCreateMenuItems() { return activeCreateMenuItems; },
     get applyLayoutMode() { return applyLayoutMode; },
     get bindMobileSheetSurface() { return mobileSheets.bindMobileSheetSurface; },
-    get clampViewZooms() { return dependencies.mapNavigation.clampViewZooms; },
     get closeActiveMobileSheet() { return closeActiveMobileSheet; },
     get closeFileMenu() { return closeFileMenu; },
     get closeMobileSheets() { return closeMobileSheets; },
