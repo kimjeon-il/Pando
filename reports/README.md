@@ -40,6 +40,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `UI-PORT-MESH-20261020` | [편집 포트 제한과 WebGL 면 준비 시간 초과 수정](development/testing/port-mesh-worker-fixes-2026-10-20.md) | 2026-10-20 | `local-validation / native-unverified / unpublished` | `not-applicable` |
 | `UI-CHECK-AUTOMATION-20261019` | [코드 변경과 검사 자동 선택·실행 연동](development/testing/check-automation-2026-10-19.md) | 2026-10-20 | `local-validation / known-product-failures / unpublished` | `not-applicable` |
 | `UI-SHARED-VIEWING-20261019` | [공통 지도·열람 구조 정리 구현과 검증](development/testing/shared-viewing-cleanup-2026-10-19.md) | 2026-10-19 | `local-validation / native-unverified / unpublished` | `not-applicable` |
 | `UI-COAST-RECURRENCE-20261019` | [해안 점선 재발·수정 유실 여부와 경계 규칙 분기 조사](development/testing/child-coast-recurrence-audit-2026-10-19.md) | 2026-10-19 | `deployment-parity-confirmed / recurrence-not-reproduced / not-fixed` | `not-applicable` |
