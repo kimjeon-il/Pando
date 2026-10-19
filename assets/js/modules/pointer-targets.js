@@ -31,7 +31,7 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
       const b = item.bounds;
       if (coord[0] < b[0] || coord[0] > b[2] || coord[1] < b[1] || coord[1] > b[3]) continue;
       const feature = item.feature;
-      if (!(0, dependencies.layerPresentation.isLayerItemVisible)('countries', feature?.id || '')) continue;
+      if (!(0, dependencies.layerPresentation.isLayerItemVisible)('objects', feature?.id || '')) continue;
       if ((0, dependencies.landRelations.pointInCountryFeature)(coord, feature)) return feature;
     }
     return null;

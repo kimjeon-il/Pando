@@ -9,6 +9,6 @@ test('editor test navigation selects the explicit editor document and preserves 
   for (const url of ['/__fixture.html', '/assets/js/app.js', '/apps/web-shell/dist/', 'about:blank', '/apps/web-shell/editor.html'])
     assert.equal(editorTestUrl(url), url);
   const calls = [], options = { waitUntil: 'domcontentloaded' };
-  await gotoEditor({ goto: async (...args) => calls.push(args) }, '/', options);
+  await gotoEditor({ route: async () => {}, goto: async (...args) => calls.push(args) }, '/', options);
   assert.deepEqual(calls, [['/apps/web-shell/editor.html', options]]);
 });

@@ -15,10 +15,8 @@ bool LabelSettings::operator==(const LabelSettings& b) const {
     return priority==b.priority&&minZoom==b.minZoom&&maxZoom==b.maxZoom&&point(manualPosition)==point(b.manualPosition)&&pinned==b.pinned&&collisionGroup==b.collisionGroup&&annotations==b.annotations&&labelSettingsWebFields(*this)==labelSettingsWebFields(b)&&webMinZoomNull==b.webMinZoomNull;
 }
 std::string territorialGroup(const ProjectDocument& d,const std::string& id) {
-    requireStaticTimeline(d);
-    const auto unit=std::find_if(d.units.begin(),d.units.end(),[&](const auto& row){return row.id==id;});
-    if(unit==d.units.end())throw std::invalid_argument("INVALID_TARGETS");
-    return unit->kind==UnitKind::Regional?"regions":staticParentRelation(d,id).parentId.empty()?"countries":"subunits";
+    if(std::none_of(d.units.begin(),d.units.end(),[&](const auto& row){return row.id==id;}))throw std::invalid_argument("INVALID_TARGETS");
+    return "objects";
 }
 std::string territorialPresentationKey(const std::string& id) { return "territorial:entity:"+id; }
 bool groupVisible(const WebPresentation& p,const std::string& g) { auto i=p.visibility.find(g);return i==p.visibility.end()||i->second; }
@@ -49,24 +47,20 @@ bool effectiveMapVisibility(const ProjectDocument& d,const ObjectRef& ref) {
 ResolvedTerritorialPresentation resolvedTerritorialPresentation(const ProjectDocument& d,const ObjectRef& ref,double terrainAlpha) {
     const auto& p=d.presentation.webPresentation;std::set<std::string> visiting;
     std::function<ResolvedTerritorialPresentation(const TerritorialUnit&)> resolve=[&](const TerritorialUnit& u) {
-        ResolvedTerritorialPresentation r;auto country=style(p.styles,"countries");r.opacity=country.opacity.value_or(1);r.blendMode=country.blendMode.value_or("normal");
-        auto group=territorialGroup(d,u.id);auto gs=style(p.styles,group);auto os=style(p.objectStyles,territorialPresentationKey(u.id));
-        if(!isRootGeneral(d,u)) {
-            if(!visiting.insert(u.id).second)throw std::invalid_argument("PRESENTATION_CYCLE");
-            const auto& relation=staticParentRelation(d,u.id);
-            if(!relation.parentId.empty()) {
-                const auto parent=unit(d,territorialRef(relation.parentId));
-                if(parent&&!isRootGeneral(d,*parent))r=resolve(*parent);
-            }
-            visiting.erase(u.id);
-            if(os.opacity)r.opacity=*os.opacity;else if(gs.opacity&&*gs.opacity!=1)r.opacity=*gs.opacity;
-            if(os.blendMode)r.blendMode=*os.blendMode;else if(gs.blendMode==std::optional<std::string>("multiply"))r.blendMode="multiply";
+        const auto gs=style(p.styles,"objects"),os=style(p.objectStyles,territorialPresentationKey(u.id));
+        ResolvedTerritorialPresentation r;r.opacity=gs.opacity.value_or(1);r.blendMode=gs.blendMode.value_or("normal");
+        if(!visiting.insert(u.id).second)throw std::invalid_argument("PRESENTATION_CYCLE");
+        const auto& relation=staticParentRelation(d,u.id);
+        if(u.kind==UnitKind::General&&!relation.parentId.empty()) {
+            const auto parent=unit(d,territorialRef(relation.parentId));if(parent)r=resolve(*parent);
         }
-        else {if(os.opacity)r.opacity=*os.opacity;if(os.blendMode)r.blendMode=*os.blendMode;}
+        visiting.erase(u.id);
+        if(os.opacity)r.opacity=*os.opacity;else if(gs.opacity&&*gs.opacity!=1)r.opacity=*gs.opacity;
+        if(os.blendMode)r.blendMode=*os.blendMode;else if(gs.blendMode==std::optional<std::string>("multiply"))r.blendMode="multiply";
         r.boundaryVisible=os.boundaryVisible.value_or(gs.boundaryVisible.value_or(true));
-        r.colorVisible=os.colorVisible.value_or(gs.colorVisible.value_or(true));
-        const std::string name=group=="countries"?"basemapLabels":group=="subunits"?"subunitLabels":"regionLabels";
-        const std::string flag=group=="countries"?"countryFlags":group=="subunits"?"subunitFlags":"regionFlags";
+        r.colorVisible=gs.colorVisible.value_or(true)&&os.colorVisible.value_or(true);
+        const std::string name="objectNames";
+        const std::string flag="objectFlags";
         const bool visible=effectiveMapVisibility(d,territorialRef(u.id));
         r.nameVisible=visible&&groupVisible(p,name);r.flagVisible=visible&&groupVisible(p,flag);
         r.effectiveAlpha=r.opacity*terrainAlpha;
@@ -83,19 +77,16 @@ double territorialRenderOrder(const ProjectDocument& d,const ObjectRef& ref,doub
     double rank=0;if(!order.empty()) {auto i=std::find(order.begin(),order.end(),territorialPresentationKey(u->id));rank=double(i-order.begin())/double(order.size()+1);}
     return (isRootGeneral(d,*u)?-1000:u->kind==UnitKind::General?3000:4000)+offset+rank;
 }
-void normalizePresentation(ProjectDocument& d,const std::string& month) {
+void normalizePresentation(ProjectDocument& d,const std::string&) {
     auto& p=d.presentation.webPresentation;std::set<std::string> keys;std::map<std::string,std::set<std::string>> ids;
-    std::optional<ResolvedWorld> world;
-    if(!isStaticTimeline(d))world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const GeometryRef& ref){return bool(d.geometries.get(ref));}},month);
     for(const auto& u:d.units) {
-        const auto active=world?world->find(u.id):nullptr;
-        const auto group=world?(u.kind==UnitKind::Regional?"regions":active&&!active->parentId.empty()?"subunits":"countries"):territorialGroup(d,u.id);
+        const std::string group="objects";
         ids[group].insert(u.id);keys.insert(territorialPresentationKey(u.id));
     }
     for(const auto& ref:contentRefs(d))ids[contentItemGroup(d,ref)].insert(ref.id);
     if(d.presentation.catalog) {
         for(const auto& [id,kind]:d.presentation.catalog->hydroLayers)ids["hydro"].insert(id);
-        for(const auto& id:d.presentation.catalog->countryLabelIds)ids["countryLabels"].insert(id);
+        for(const auto& id:d.presentation.catalog->countryLabelIds)ids["objectLabels"].insert(id);
     }
     for(auto& [g,hidden]:p.itemVisibility)for(auto i=hidden.begin();i!=hidden.end();)if(!ids[g].count(i->first))i=hidden.erase(i);else ++i;
     for(auto i=p.objectStyles.begin();i!=p.objectStyles.end();)if(!keys.count(i->first))i=p.objectStyles.erase(i);else ++i;
@@ -114,7 +105,7 @@ void validatePresentation(const ProjectDocument& d) {
     const std::string prefix="territorial:entity:";
     std::set<std::string> order;for(const auto& key:p.objectOrder)if(key.rfind(prefix,0)!=0||key.size()==prefix.size()||!order.insert(key).second)throw std::invalid_argument("INVALID_PRESENTATION_ORDER");
     if(!p.overlayOrderPresent&&!p.overlayOrder.empty())throw std::invalid_argument("INVALID_OVERLAY_ORDER");
-    std::set<std::string> overlays;for(const auto& group:p.overlayOrder)if((group!="genericFeatures"&&group!="distributions"&&group!="subunits"&&group!="regions")||!overlays.insert(group).second)throw std::invalid_argument("INVALID_OVERLAY_ORDER");
+    std::set<std::string> overlays;for(const auto& group:p.overlayOrder)if((group!="genericFeatures"&&group!="distributions"&&group!="objects")||!overlays.insert(group).second)throw std::invalid_argument("INVALID_OVERLAY_ORDER");
     for(const auto* styles:{&p.styles,&p.objectStyles})for(const auto& [key,s]:*styles) {
         if((s.opacity&&(!std::isfinite(*s.opacity)||*s.opacity<0||*s.opacity>1))||(s.boundaryWidth&&*s.boundaryWidth!=1)||(s.blendMode&&*s.blendMode!="normal"&&*s.blendMode!="multiply"))throw std::invalid_argument("INVALID_PRESENTATION_STYLE");
     }
@@ -198,7 +189,7 @@ WebPresentation rebasePresentation(const ProjectDocument& current,const ProjectD
         if(auto settings=to.presentation.webPresentation.labelSettings.find(ref);settings!=to.presentation.webPresentation.labelSettings.end())out.labelSettings[ref]=settings->second;
     }
     for(const auto& u:to.units) {
-        const auto prior=unit(from,territorialRef(u.id));if(prior&&prior->kind==u.kind&&territorialGroup(from,prior->id)==territorialGroup(to,u.id))continue;
+        if(unit(from,territorialRef(u.id)))continue;
         const auto group=territorialGroup(to,u.id),key=territorialPresentationKey(u.id);
         const auto& restore=to.presentation.webPresentation;
         if(!itemVisible(restore,group,u.id))out.itemVisibility[group][u.id]=false;else out.eraseItemVisibility(group,u.id);

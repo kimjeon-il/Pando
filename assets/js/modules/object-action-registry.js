@@ -116,10 +116,16 @@ export function objectActionApplies(actionOrId, context = {}) {
   if (action.types.length && type && !action.types.includes(type)) return false;
   const capabilities = capabilitySet(context);
   if (capabilities && action.capability && !capabilities.has(action.capability)) return false;
-  if (context.disabled === true) return false;
   return true;
 }
 
+export function objectActionAvailability(action,context={}) {
+ const applies=objectActionApplies(action,context);let reason='';
+ if(applies){if(context.processing||context.replacing)reason='계산 또는 반영 중입니다. 완료 후 다시 실행하세요.';
+ else if(context.locked&&!['lock','focus','copy-region'].includes(action.id))reason='객체가 잠겨 있습니다. 잠금을 해제하세요.';
+ else if(context.disabled)reason=context.reason||'필요한 대상을 선택하거나 입력을 완료하세요.';}
+ return {applies,enabled:applies&&!reason,reason};
+}
 export function resolveObjectAction(id, context = {}) {
   const action = OBJECT_ACTIONS[id];
   if (!action) return null;
@@ -131,6 +137,6 @@ export function resolveObjectAction(id, context = {}) {
     icon: text(resolveValue(action.icon, context)),
     capability: action.capability,
     danger: action.danger === true,
-    applies: objectActionApplies(action, context),
+    ...objectActionAvailability(action,context),
   });
 }

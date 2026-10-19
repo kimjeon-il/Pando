@@ -174,7 +174,7 @@ export function createReadinessNotifications() {
       '[data-map-display-row]',
       '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-style-blend-mode]',
       '[data-territorial-symbol]',
-      '#labelsVisible', '#basemapLabelsVisible',
+      '#labelsVisible', '#objectNamesVisible',
     ].join(','));
 
     (READINESS_INDEPENDENT_CONTROL_SELECTOR = [
@@ -185,7 +185,7 @@ export function createReadinessNotifications() {
       '[data-territorial-symbol]',
       'input[name="terrainStyle"]',
       '#labelsVisible',
-      '#basemapLabelsVisible',
+      '#objectNamesVisible',
     ].join(','));
 
     (canonicalControls = new Set());

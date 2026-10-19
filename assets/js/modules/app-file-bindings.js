@@ -77,9 +77,18 @@ export function createFileBindings() {
     helpModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closeHelp());
     const fileMenu = document.querySelector('.top-actions');
     const visibleFileMenuItems = () => [...(fileMenu?.querySelectorAll('[role="menuitem"]:not(:disabled)') || [])]
-      .filter(item => !item.closest('.hidden'));
+      .filter(item => !item.closest('[hidden], .hidden'));
     fileMenu?.addEventListener('keydown', event => {
       const active = document.activeElement;
+      if(['Escape','ArrowLeft'].includes(event.key)&&dependencies.workspaceUiB.fileMenuPage==='advanced'){
+        event.preventDefault();event.stopPropagation();dependencies.workspaceUiA.setFileMenuPage('main');return;
+      }
+      if(event.key==='Escape'){
+        event.preventDefault();event.stopPropagation();dependencies.workspaceUiA.closeFileMenu({restoreFocus:true});return;
+      }
+      if(event.key==='ArrowRight'&&active.id==='fileAdvancedBtn'){
+        event.preventDefault();dependencies.workspaceUiA.setFileMenuPage('advanced');return;
+      }
       if (event.key === 'Tab') {
         exitMenuOnTab(event, {
           menus: fileMenu,
@@ -103,6 +112,9 @@ export function createFileBindings() {
     fileMenu?.addEventListener('click', e => {
       const button = e.target.closest('button');
       if (!button) return;
+      if(button.id==='fileAdvancedBtn'||button.id==='fileAdvancedBackBtn'){
+        dependencies.workspaceUiA.setFileMenuPage(button.id==='fileAdvancedBtn'?'advanced':'main');return;
+      }
       if (button.id === 'mobileFileBackBtn') return;
       setTimeout(() => {
         (0, dependencies.workspaceUiA.closeFileMenu)();
@@ -114,6 +126,7 @@ export function createFileBindings() {
       event.preventDefault();
       requestAnimationFrame(() => {
         dependencies.workspaceUiA.openFileMenu({trigger:dependencies.platform.$('mobileFileBtn')});
+        if(target.closest('[data-file-menu-page="advanced"]'))dependencies.workspaceUiA.setFileMenuPage('advanced',{focus:false});
         (0, dependencies.workspaceUiB.syncOverlayState)();
         requestAnimationFrame(() => target.focus({ preventScroll: true }));
       });

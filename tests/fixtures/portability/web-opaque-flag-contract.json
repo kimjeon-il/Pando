@@ -21,7 +21,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -511,15 +511,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -542,37 +537,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -682,15 +646,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -839,7 +825,7 @@
       "flagUrl": "new flag",
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -1329,15 +1315,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -1360,37 +1341,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -1500,15 +1450,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -1657,7 +1629,7 @@
       "flagUrl": "new flag",
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -2147,15 +2119,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -2178,37 +2145,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -2318,15 +2254,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -2351,7 +2309,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -2841,15 +2799,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -2872,37 +2825,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -3012,15 +2934,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -3045,7 +2989,7 @@
       "flagUrl": "new flag",
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -3535,15 +3479,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -3566,37 +3505,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -3706,15 +3614,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -3739,7 +3669,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -4229,15 +4159,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -4260,37 +4185,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -4400,15 +4294,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -4557,7 +4473,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -5047,15 +4963,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -5078,37 +4989,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -5218,15 +5098,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -5375,7 +5277,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -5865,15 +5767,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -5896,37 +5793,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -6036,15 +5902,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -6069,7 +5957,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -6559,15 +6447,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -6590,37 +6473,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -6730,15 +6582,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -6763,7 +6637,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -7253,15 +7127,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -7284,37 +7153,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -7424,15 +7262,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -7457,7 +7317,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -7947,15 +7807,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -7978,37 +7833,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -8118,15 +7942,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -8273,7 +8119,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -8763,15 +8609,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -8794,37 +8635,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -8933,15 +8743,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -9088,7 +8920,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -9578,15 +9410,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -9609,37 +9436,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -9748,15 +9544,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -9781,7 +9599,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -10271,15 +10089,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -10302,37 +10115,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -10442,15 +10224,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }
@@ -10474,7 +10278,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 11,
+        "schemaVersion": 13,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -10964,15 +10768,10 @@
             "collisionGroup": "fixture"
           }
         },
-        "distributionSettings": {
-          "renderMode": "single",
-          "activeLayerId": "22000000-0000-4000-8000-000000000003",
-          "boundaryVisible": false
-        },
         "layerPresentation": {
-          "schemaVersion": 4,
+          "schemaVersion": 5,
           "styles": {
-            "countries": {
+            "objects": {
               "opacity": 0.65,
               "colorVisible": true,
               "boundaryVisible": false,
@@ -10995,37 +10794,6 @@
             "territorial:entity:R",
             "territorial:entity:A"
           ]
-        },
-        "physicalSettings": {
-          "terrainVisible": true,
-          "terrainStyle": "physical",
-          "terrainStyleVersion": 1,
-          "hydroLayers": {
-            "rivers_hydro": false,
-            "lakes_natural_earth": true
-          },
-          "userFeaturesVisible": true,
-          "hiddenHydroIds": {
-            "22000000-0000-4000-8000-000000000005": true
-          },
-          "dataset": "fixture-physical"
-        },
-        "layerVisibility": {
-          "countries": true,
-          "rivers": false,
-          "lakes": true,
-          "labels": true
-        },
-        "itemVisibility": {
-          "countries": {
-            "A": false
-          },
-          "labels": {
-            "22000000-0000-4000-8000-000000000001": false
-          },
-          "hydro": {
-            "22000000-0000-4000-8000-000000000005": false
-          }
         },
         "territorialEntities": [
           {
@@ -11134,15 +10902,37 @@
           }
         ],
         "physicalSourceInfo": {
-          "terrain": {
-            "dataset": "terrain",
-            "version": "0.12.6"
-          },
           "hydro": {
             "dataset": "hydro",
             "version": "0.34.0",
             "coordinatePolicy": "selected source coordinates retained without simplification",
             "selection": {}
+          }
+        },
+        "documentId": "604c8105-5795-540c-8f40-0a4fc47d45eb",
+        "defaultView": {
+          "month": "2026-10",
+          "layerVisibility": {
+            "objects": true,
+            "rivers": false,
+            "lakes": true,
+            "labels": true
+          },
+          "itemVisibility": {
+            "objects": {
+              "A": false
+            },
+            "labels": {
+              "22000000-0000-4000-8000-000000000001": false
+            },
+            "hydro": {
+              "22000000-0000-4000-8000-000000000005": false
+            }
+          },
+          "distributionSettings": {
+            "renderMode": "single",
+            "activeLayerId": "22000000-0000-4000-8000-000000000003",
+            "boundaryVisible": false
           }
         }
       }

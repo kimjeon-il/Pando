@@ -32,12 +32,9 @@ export function createHydroSettings() {
       return defined.length ? defined.some(id => previousLayers[id] !== false) : true;
     };
     const hydroLayers = {
-      rivers_hydro: mergeVisibility(['rivers_hydro', 'rivers_base', 'rivers_europe', 'rivers_north_america', 'rivers_australia']),
-      lakes_natural_earth: mergeVisibility(['lakes_natural_earth', 'lakes_hydro', 'lakes_base', 'lakes_europe', 'lakes_north_america', 'lakes_australia']),
+      rivers_hydro: mergeVisibility(['rivers_hydro']),
+      lakes_natural_earth: mergeVisibility(['lakes_natural_earth']),
     };
-    const hiddenHydroIds = Object.fromEntries(Object.entries(value?.hiddenHydroIds || {}).filter(([id, hidden]) => (
-      hidden === true && !String(id).startsWith('rivers_base:') && !String(id).startsWith('hydro-lake:')
-    )));
     return {
       terrainVisible: value?.terrainVisible !== false,
       terrainStyle: value?.terrainStyleVersion === TERRAIN_STYLE_VERSION && value?.terrainStyle === 'political'
@@ -45,7 +42,6 @@ export function createHydroSettings() {
       terrainStyleVersion: TERRAIN_STYLE_VERSION,
       hydroLayers,
       userFeaturesVisible: value?.userFeaturesVisible !== false,
-      hiddenHydroIds,
       dataset: dependencies.physicalConfig.PHYSICAL_DATASET,
     };
   }
@@ -156,7 +152,7 @@ export function createHydroSettings() {
       const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature.properties?.category);
       return dependencies.projectState.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('hydro', id);
     }
-    return hydroLayerVisible(feature?.properties?.layer_id) && dependencies.projectState.state.physicalSettings.hiddenHydroIds?.[id] !== true;
+    return dependencies.projectState.state.backgroundSettings?.builtinHydro!==false && hydroLayerVisible(feature?.properties?.layer_id) && dependencies.projectState.state.itemVisibility.hydro?.[id]!==false;
   }
 
   function allBuiltInHydroFeatures() {

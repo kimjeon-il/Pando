@@ -1,27 +1,11 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { selectUiOption } from './helpers/ui-select.mjs';
 const expected = JSON.parse(readFileSync(new URL('../../assets/data/historical-world/generated/v1/expected-trace.json', import.meta.url)));
 test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
-async function month(page, value, { waitForReplacement = false } = {}) {
-  await page.locator('#timelineMonthButton').click();
-  const input = page.locator('#timelineMonthInput');
-  await input.fill(value);
-  if (waitForReplacement) {
-    // The new-project dialog closes before the async Core replacement retires.
-    // Preserve the timeline lock: a rejected request is retried only while the
-    // input remains visible, and the test still fails if it never commits.
-    await expect.poll(async () => {
-      if (await input.isHidden()) return true;
-      await input.press('Enter');
-      return input.isHidden();
-    }, { timeout: 60_000, intervals: [500, 1_000, 1_500] }).toBe(true);
-  } else {
-    await input.press('Enter');
-    await expect(input).toBeHidden();
-  }
-  await expect(input).toHaveValue(value);
+async function month(page, value) {
+  await setEditorMonth(page, value);
 }
 async function pixel(page, coordinate) {
   const point = await page.evaluate(value => window.__PANDOLAB_MAP_HOST__.project(value), coordinate);
@@ -84,10 +68,12 @@ test('new world reset retains the complete history after an edit', async ({ page
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setName('UKR', '편집한 이름'));
   await page.locator('#mobileFileBtn').click(); await page.locator('#newProjectBtn').click();
+  await page.locator('#projectSetupMonth').fill('2026-10');await page.locator('#projectSetupSubmit').click();
   await page.locator('#confirmModalOkBtn').click();
+  await expect(page.locator('#projectSetupDialog')).not.toBeVisible();
   await expect(page.locator('#confirmModal')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('UKR')?.properties.name), { timeout: 60000 }).toBe('우크라이나');
-  await month(page, '2012-10', { waitForReplacement: true });
+  await month(page, '2012-10');
   expect(new Set(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list().map(row => row.id)))).toEqual(new Set(['IDN','SDN','SDS','TLS','state:nagorno-karabakh','UKR']));
   await expect(page.locator('#undoBtn')).toBeDisabled(); expect(errors).toEqual([]);
 });

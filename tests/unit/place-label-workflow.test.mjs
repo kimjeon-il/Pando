@@ -19,7 +19,9 @@ const country=id=>normalizeCountryFeature({type:'Feature',id,properties:{name:id
 const fullSeed=()=>JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
 async function fixture(features=[country('KOR')],fields={}) {
   const state={territorialEntities:features,...fields};
-  await initializeTestTerritorialState(state,null,{project:{...staticAutosaveProject(fields,features),baseDataset:'fixture'}});
+  const {itemVisibility:workspaceItems,...authored}=fields;
+  await initializeTestTerritorialState(state,null,{project:{...staticAutosaveProject(authored,features),baseDataset:'fixture'}});
+  if(workspaceItems)testCoreProject(state).viewing.session.setViewingPresentation({itemVisibility:{...testCoreProject(state).viewing.session.state.itemVisibility,...workspaceItems}});
   return {state,...testCoreProject(state)};
 }
 const view=(state,payload)=>executeTestCommand(state,{commandId:'presentation.apply',targets:[],payload});
@@ -31,14 +33,14 @@ test('real Core history restores shared, unused and past archive entries after s
   const input=JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.json',import.meta.url),'utf8')),
     expected=JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.expected.json',import.meta.url),'utf8'));
   const f=await fixture([]);await f.project.admit(input);const before=structuredClone(f.project.snapshot());
-  const geometry={type:'Polygon',coordinates:[[[0,0],[4,0],[4,4],[0,0]]]};
-  await executeTerritorialTestCommand(f.state,'territorial.geometry',{id:'A',geometry});const after=f.project.snapshot();
+  const geometry={type:'Polygon',coordinates:[[[0,0],[4,0],[4,4],[0,4],[0,0]]]};
+  await executeTerritorialTestCommand(f.state,'territorial.geometry',{id:'C',geometry});const after=f.project.snapshot();
   assert.deepEqual(after.territorialEntities,expected.territorialEntities);
   assert.deepEqual(after.timelineRecords.lifetimes,expected.timelineRecords.lifetimes);
   assert.deepEqual(after.timelineRecords.parentRelations,expected.timelineRecords.parentRelations);
   assert.equal(after.geometries.length,expected.geometries.length+1);
   for(const entry of expected.geometries)assert.deepEqual(after.geometries.find(row=>row.id===entry.id&&row.version===entry.version),entry);
-  assert.deepEqual(f.entityRepository.get('A').geometry,geometry);
+  assert.deepEqual(f.entityRepository.get('C').geometry,geometry);
   assert.deepEqual(f.entityRepository.get('B').geometry,expected.geometries.find(row=>row.id==='shape'&&row.version===1).geojson);
   assert.equal(await f.project.undo(),true);assert.deepEqual(f.project.snapshot(),before);
   assert.equal(await f.project.redo(),true);assert.deepEqual(f.project.snapshot(),after);
@@ -110,7 +112,7 @@ test('unchanged static views stay out of delta and cursor movement changes only 
 
 for(const removedId of ['removed','__proto__'])test(`Core history restores ${removedId} appearance while preserving survivor view edits`,async()=>{
   const features=['root',removedId,'kept'].map(id=>createTerritorialFeature({id,name:id,entityKind:'general',parentId:id==='root'?'':'root',geometry:polygon()}));
-  const styleKey=`territorial:entity:${removedId}`,f=await fixture(features,{itemVisibility:{subunits:{[removedId]:false,kept:false},countries:{root:false}},
+  const styleKey=`territorial:entity:${removedId}`,f=await fixture(features,{itemVisibility:{objects:{[removedId]:false,kept:false,root:false}},
     layerPresentation:normalizeLayerPresentation({objectStyles:{[styleKey]:{opacity:0.5},'territorial:entity:kept':{opacity:0.6}}})});
   await f.project.admitPresentationCatalog({hydroLayers:{},countryLabelIds:['root'],
     builtinSubunitSources:Object.fromEntries(BUILTIN_SUBUNITS.map(row=>[row.id,row.sourceCountryId]))});
@@ -120,16 +122,16 @@ for(const removedId of ['removed','__proto__'])test(`Core history restores ${rem
   await view(f.state,{action:'objectStyle',ref:{domain:'territorial',id:'kept'},patch:{opacity:0.9}});
   const survivor=f.project.snapshot().layerPresentation.objectStyles['territorial:entity:kept'];
   assert.equal(await f.project.undo(),true);assert.ok(f.entityRepository.get(removedId));
-  assert.equal(f.state.itemVisibility.subunits[removedId],false);assert.equal(f.state.layerPresentation.objectStyles[styleKey].opacity,0.5);
-  assert.equal(f.state.itemVisibility.subunits.kept,undefined);assert.equal(f.state.itemVisibility.countries.root,undefined);
+  assert.equal(f.state.itemVisibility.objects[removedId],false);assert.equal(f.state.layerPresentation.objectStyles[styleKey].opacity,0.5);
+  assert.equal(f.state.itemVisibility.objects.kept,undefined);assert.equal(f.state.itemVisibility.objects.root,undefined);
   assert.deepEqual(f.state.layerPresentation.objectStyles['territorial:entity:kept'],survivor);
   assert.equal(await f.project.redo(),true);assert.equal(f.entityRepository.get(removedId),null);
-  assert.equal(Object.hasOwn(f.state.itemVisibility.subunits,removedId),false);
+  assert.equal(f.state.itemVisibility.objects[removedId],false,'document history does not own workspace overrides');
   assert.equal(Object.hasOwn(f.state.layerPresentation.objectStyles,styleKey),false);
   assert.deepEqual(f.state.layerPresentation.objectStyles['territorial:entity:kept'],survivor);
 });
 test('canonical object lookup resolves builtin labels in the existing domain with readonly capabilities',()=>{
-  const owner=createObjectCommands();owner.connect({selectionServices:{normalizeObjectRef},projectState:{state:{labels:[]}},labelPresentation:{labelById:id=>id===source.id?source:null}});
+  const owner=createObjectCommands();owner.connect({selectionServices:{normalizeObjectRef},projectState:{state:{labels:[]}},propertyEditingA:{distributionLayerById:()=>null},labelPresentation:{labelById:id=>id===source.id?source:null}});
   const ref=owner.layerItemObjectRef('labels',source.id);
   assert.equal(ref.domain,'label');assert.equal(ref.type,'capital');assert.equal(owner.objectRefExists(ref),true);assert.ok(Object.isFrozen(source));
   assert.equal(owner.objectDisplayInfo(ref).name,'서울');
@@ -149,7 +151,7 @@ test('copy creates an independent immutable user label and linked pinned setting
     const settings=core.documentModel.snapshot().labelSettings[`label:${id}`];
     assert.deepEqual(settings,{ priority: 90,minZoom: 0,maxZoom: Infinity,manualPosition: source.coordinates,pinned: true,collisionGroup: 'place' });
     assert.equal(core.client.state().stateRevision,0);assert.equal(core.client.state().presentationDirty,false);
-    assert.ok(events.includes('select'));assert.equal(await core.project.undo(),true);assert.deepEqual(core.documentModel.snapshot(),seed);
+    assert.ok(events.includes('select'));assert.equal(await core.project.undo(),true);assert.deepEqual(JSON.parse(await core.client.storageSnapshot()),seed);
     assert.equal(core.client.state().canUndo,false);assert.equal(await core.project.redo(),true);
     assert.equal(core.documentModel.list('label')[0].sourcePlaceId,source.id);
     assert.equal(core.documentModel.snapshot().labelSettings[`label:${id}`].maxZoom,Infinity);

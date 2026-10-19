@@ -53,6 +53,7 @@ test('GIS importer layout is available without the Phase 1 stylesheet', async ({
     await gotoEditor(page, '/');
     await page.locator('#mobileFileBtn').click();
     const chooser = page.waitForEvent('filechooser');
+    await page.locator('#fileAdvancedBtn').click();
     await page.locator('#openGisBtn').click();
     await (await chooser).setFiles('tests/fixtures/sample-countries.geojson');
 

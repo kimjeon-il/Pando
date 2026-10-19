@@ -123,9 +123,8 @@ ProjectDocument applyWebObjectRemoval(const ProjectSnapshot& snapshot,const WebO
     for(const auto& id:removed["label"])view.labelSettings.erase({"label",id});
     for(const auto& id:territorialIds) {
         view.labelSettings.erase(territorialRef(id));view.objectStyles.erase(territorialPresentationKey(id));
-        view.eraseItemVisibility("countryLabels",displayId(before,active,id));
-        if(active.roots.count(id)) {view.eraseItemVisibility("countries",id);view.eraseItemVisibility("countryLabels",id);}
-        else {view.eraseItemVisibility("subunits",id);view.eraseItemVisibility("regions",id);}
+        view.eraseItemVisibility("objectLabels",displayId(before,active,id));
+        view.eraseItemVisibility("objects",id);view.eraseItemVisibility("objectLabels",id);
     }
     // Native layer membership/style carriers have no Web UI counterpart. Their
     // owners must be removed when the corresponding content row disappears.

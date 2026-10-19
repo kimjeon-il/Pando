@@ -13,7 +13,9 @@ const runtimeDependencies = Object.freeze({
   'assets/js/modules/core-wasm-loader.js': ['assets/wasm/pandoeditor-core.js', 'assets/wasm/pandoeditor-core.wasm', 'assets/wasm/pandoeditor-core.manifest.json'],
   'assets/js/modules/gpu-map-renderer.js': ['assets/js/workers/hydro-tile-worker.js', 'assets/js/workers/gpu-mesh-worker.js',
     'assets/js/workers/country-shared-boundary-worker.js', 'assets/js/workers/canvas-render-worker.js'],
-  'assets/js/modules/builtin-mesh-resource.js': ['assets/js/workers/data-loader-worker.js'],
+  'assets/js/modules/builtin-mesh-resource.js': ['assets/js/workers/data-loader-worker.js','assets/data/world/current.json'],
+  'assets/js/modules/historical-world-loader.js': ['assets/data/historical-world/generated/v1/manifest.json'],
+  'assets/js/modules/physical-source-configuration.js': ['assets/data/terrain-preview/v0.13.3-p1/manifest.json'],
   'assets/js/workers/canvas-render-worker.js': ['assets/js/vendor/d3.min.js', 'assets/js/workers/geographic-boundary-core.js',
     'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js', 'assets/js/modules/terrain-manifest.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
@@ -27,12 +29,14 @@ const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|as
 const slash = path => path.replaceAll('\\', '/');
 const stripQuery = path => path.split(/[?#]/, 1)[0];
 
+export const isEditorOnlyAsset = path => editorOnly.test(path);
+
 export async function collectViewerAssets({ root, availablePaths, readSource = path => readFileSync(resolve(root, path), 'utf8') }) {
   root = resolve(root);
   const available = new Set(availablePaths), selected = new Set(), entries = new Set();
   function include(path) {
-    if (path.startsWith('../') || !/^(?:assets\/|index\.html$|\.nojekyll$)/.test(path)) throw Error(`Non-product dependency: ${path}`);
-    if (editorOnly.test(path)) throw Error(`Viewer reaches editor-only dependency: ${path}`);
+    if (path.split('/').some(part=>part==='..'||part==='.') || !/^(?:assets\/|index\.html$|\.nojekyll$)/.test(path)) throw Error(`Non-product dependency: ${path}`);
+    if (isEditorOnlyAsset(path)) throw Error(`Viewer reaches editor-only dependency: ${path}`);
     if (!available.has(path)) throw Error(`Missing viewer dependency: ${path}`);
     selected.add(path);
     return path;
@@ -44,7 +48,43 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
   }
   include('index.html'); include('.nojekyll'); include('assets/js/viewer.js'); entries.add('assets/js/viewer.js');
   for (const path of available) {
-    if (/^assets\/(?:data|fonts|vendor|wasm)\//.test(path) && !path.endsWith('.map')) include(path);
+    if (/^assets\/(?:fonts|vendor|wasm)\//.test(path) && !path.endsWith('.map')) include(path);
+  }
+  // Current runtime manifests own data dependencies. Source/provenance fields
+  // describe how data was built and must not publish the original GIS inputs.
+  const manifests=[
+    'assets/data/world/current.json',
+    'assets/data/historical-world/generated/v1/manifest.json',
+    'assets/data/territorial-entities/generated/v2/index.json',
+    'assets/data/prepared-polygons/generated/v2/manifest.json',
+    'assets/data/hydro/v0.13.2/manifest.json',
+    'assets/data/places/manifest.json',
+    'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
+  ];
+  const dataAsset=(url,base)=>{
+    if(typeof url!=='string'||!url||/[?#\\]/.test(url))throw Error(`Invalid manifest resource: ${url}`);
+    return include(url.startsWith('assets/')?url:base+url);
+  };
+  for(const path of manifests){
+    if(!available.has(path))continue;
+    include(path);
+    const manifest=JSON.parse(readSource(path)),base=path.slice(0,path.lastIndexOf('/')+1);
+    if(path==='assets/data/world/current.json'){
+      for(const item of Object.values(manifest.assets||{}))dataAsset(item.url,'assets/data/');
+      for(const url of Object.values(manifest.compatibility?.sharedBoundaries||{}))dataAsset(url,'assets/data/');
+    }else if(path.includes('/historical-world/'))dataAsset(manifest.project.url,base);
+    else if(path.includes('/territorial-entities/')){
+      for(const item of manifest.entities)dataAsset(item.file,base);
+    }else if(path.includes('/prepared-polygons/')){
+      for(const item of Object.values(manifest.meshes))dataAsset(item.url,base);
+    }else if(path.includes('/hydro/')){
+      dataAsset(manifest.container.url,base);
+      for(const item of [manifest.index,manifest.metadata?.core,manifest.metadata?.detail,...manifest.shards])if(item?.url)dataAsset(item.url,base);
+    }else if(path.includes('/places/')){
+      for(const item of Object.values(manifest.shards))dataAsset(item.url,base);
+    }else if(path.includes('/terrain-preview/')){
+      for(const key of Object.keys(manifest.tiles))dataAsset(key,base);
+    }
   }
   const html = readSource('index.html');
   for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {

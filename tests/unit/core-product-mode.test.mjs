@@ -7,6 +7,8 @@ import { createCoreDocumentClient } from '../../assets/js/modules/core-document-
 import { createCoreWorkerRuntime } from '../../assets/js/modules/core-worker-runtime.js';
 
 const context = { throwIfCancelled() {} };
+// Core acknowledgements include temporary viewing fields outside authored storage.
+const authored=value=>{const project={...value};for(const key of ['layerVisibility','itemVisibility'])delete project[key];return project;};
 const blocked = [
   ['execute', [{ commandId: 'territorial.field', productMode: 'editor' }], 'core.document-execute'],
   ['prepare', [{}], 'core.document-prepare'],
@@ -101,7 +103,7 @@ test('viewer uses the same WASM for admission, timeline, selection and replaceme
   const client = createCoreDocumentClient({ productMode: 'viewer', createWorker: () => port });
   try {
     const loaded = await client.load(JSON.stringify(initial));
-    assert.deepEqual(loaded.project, initial);
+    assert.deepEqual(authored(loaded.project), initial);
     const before = await client.projectState();
     for (const [method, args, operation] of blocked) {
       await assert.rejects(client[method](...args), { code: 'PL-PRODUCT-READONLY' });
@@ -118,8 +120,8 @@ test('viewer uses the same WASM for admission, timeline, selection and replaceme
     const replacement = await client.captureReplacement();
     const second = structuredClone(initial);
     second.territorialEntities[0].properties.name = 'Replacement document';
-    assert.deepEqual((await client.load(JSON.stringify(second))).project, second);
-    assert.deepEqual((await client.rollbackReplacement(replacement)).project, initial);
+    assert.deepEqual(authored((await client.load(JSON.stringify(second))).project), second);
+    assert.deepEqual(authored((await client.rollbackReplacement(replacement)).project), initial);
     await client.releaseReplacement(replacement);
     assert.equal((await client.projectState()).dirty, false);
     assert.equal(client.state().canUndo, false);

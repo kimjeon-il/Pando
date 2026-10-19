@@ -35,8 +35,8 @@ ProjectDocument fixture() {
     e.id="U";e.territory=territorialRef("B");d.distributionEntries.push_back(e);
     auto& presentation=d.presentation.webPresentation;
     presentation.labelSettings[territorialRef("A")]={};presentation.labelSettings[{"label","P"}]={};presentation.labelSettings[{"label","Q"}]={};
-    presentation.itemVisibility["countries"]={{"A",false},{"B",true}};
-    presentation.itemVisibility["countryLabels"]={{"A",false},{"B",true}};
+    presentation.itemVisibility["objects"]={{"A",false},{"B",true}};
+    presentation.itemVisibility["objectLabels"]={{"A",false},{"B",true}};
     presentation.itemVisibility["genericFeatures"]["G"]=false;presentation.itemVisibility["hydro"]["H1"]=false;
     presentation.itemVisibility["labels"]["P"]=false;presentation.itemVisibility["distributions"]["L"]=false;
     presentation.objectStyles[territorialPresentationKey("A")].opacity=0.5;
@@ -81,7 +81,7 @@ void fiveDomainsAtomicHistoryAndOriginalCleanup() {
     assert(d.hydro.size()==1&&d.hydro[0].id=="H2"&&codecjson::parse(d.exchangeMetadata).object.at("physicalSettings").object.at("hiddenHydroIds").object.count("source"));
     const auto& view=d.presentation.webPresentation;
     assert(!view.labelSettings.count(territorialRef("A"))&&!view.labelSettings.count({"label","P"})&&view.labelSettings.count({"label","Q"}));
-    assert(!view.itemVisibility.at("countries").count("A")&&!view.itemVisibility.at("countryLabels").count("A")&&view.itemVisibility.at("countries").at("B"));
+    assert(!view.itemVisibility.at("objects").count("A")&&!view.itemVisibility.at("objectLabels").count("A")&&view.itemVisibility.at("objects").at("B"));
     assert(!view.objectStyles.count(territorialPresentationKey("A")));
     // Original UI leaves these content hidden rows stored, even with a catalog.
     for(const auto& [group,id]:std::vector<std::pair<std::string,std::string>>{{"genericFeatures","G"},{"hydro","H1"},{"labels","P"},{"distributions","L"}})assert(!view.itemVisibility.at(group).at(id));
@@ -112,13 +112,13 @@ void admissionIsAtomicAndChildrenCannotBeBundledAway() {
 void registeredDisplayIdentityAndCollision() {
     const std::string id="d34b00a1-9b13-8000-8000-000000484b47";auto d=fixture();unit(d,id,"B");d.units.back().metadata=R"({"builtinSubunit":{"sourceCountryId":"HKG"}})";
     auto catalog=std::make_shared<PresentationCatalog>(*d.presentation.catalog);catalog->builtinSubunitSources[id]="HKG";catalog->countryLabelIds.push_back("HKG");catalog->countryLabelIds.push_back("territorial:entity:"+id);d.presentation.catalog=catalog;
-    d.presentation.webPresentation.itemVisibility["countryLabels"]["HKG"]=false;d.presentation.webPresentation.itemVisibility["countryLabels"]["territorial:entity:"+id]=false;
+    d.presentation.webPresentation.itemVisibility["objectLabels"]["HKG"]=false;d.presentation.webPresentation.itemVisibility["objectLabels"]["territorial:entity:"+id]=false;
     Project p;p.replace(d);p.setTimelineCursor("2026-10",false);assert(apply(p,{{"territorial",id}}).changed());
-    assert(!p.document().presentation.webPresentation.itemVisibility.at("countryLabels").count("HKG")&&p.document().presentation.webPresentation.itemVisibility.at("countryLabels").count("territorial:entity:"+id));
+    assert(!p.document().presentation.webPresentation.itemVisibility.at("objectLabels").count("HKG")&&p.document().presentation.webPresentation.itemVisibility.at("objectLabels").count("territorial:entity:"+id));
     unit(d,"HKG");p.replace(d);assert(apply(p,{{"territorial",id}}).changed());
-    assert(p.document().presentation.webPresentation.itemVisibility.at("countryLabels").count("HKG")&&!p.document().presentation.webPresentation.itemVisibility.at("countryLabels").count("territorial:entity:"+id));
+    assert(p.document().presentation.webPresentation.itemVisibility.at("objectLabels").count("HKG")&&!p.document().presentation.webPresentation.itemVisibility.at("objectLabels").count("territorial:entity:"+id));
     d.units[2].metadata=R"({"builtinSubunit":{"sourceCountryId":"spoof"}})";p.replace(d);assert(apply(p,{{"territorial",id}}).changed());
-    assert(p.document().presentation.webPresentation.itemVisibility.at("countryLabels").count("HKG"));
+    assert(p.document().presentation.webPresentation.itemVisibility.at("objectLabels").count("HKG"));
 }
 void datedRemovalTruncatesWithoutDroppingIdentityOrArchive() {
     auto d=fixture();for(auto& row:d.timelineRecords.lifetimes)row.validity.from="2020";

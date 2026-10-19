@@ -39,7 +39,7 @@ export function createObjectCatalog({ isObjectAvailable } = {}) {
   }
 
   function isCountryVisibleById(id) {
-    return !!dependencies.projectState.state.layerVisibility.countries && isLayerItemVisible('countries', id);
+    return !!dependencies.projectState.state.layerVisibility.objects && isLayerItemVisible('objects', id);
   }
 
 
@@ -51,46 +51,16 @@ export function createObjectCatalog({ isObjectAvailable } = {}) {
   }
 
   function listObjectCatalogItems(group) {
-    if (group === 'countries' || group === 'countryLabels') {
-      return dependencies.territorialModel.entityRepository
-        .list({ kind: 'general', parentId: '' })
-        .map(feature => {
-        const id = String(feature.id || '');
-        return {
-          id,
-          name: (0, dependencies.objectPresentation.territorialEntityName)(feature),
-          color: (0, dependencies.colorModel.territorialEntityColor)(feature),
-          flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
-          searchText: id,
-          meta: group === 'countryLabels' && dependencies.labelPresentation.pendingCountryLabelAnchors.has(id) ? '계산 중' : '',
-          selected: (dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) && dependencies.projectState.state.selected.id === id,
-        };
-      });
-    }
-    if (group === 'subunits' || group === 'regions') {
-      const kind = group === 'subunits'
-        ? 'subunit'
-        : 'region';
-      return dependencies.territorialModel.entityRepository.list({ kind: kind === 'region' ? 'regional' : 'general' }).filter(feature => kind === 'region' || !!feature.properties.parentId).map(feature => {
-        const countryLabel = (0, dependencies.objectPresentation.territorialRootName)(feature);
-
-        return {
-          id: String(feature.id),
-          name: (0, dependencies.objectPresentation.territorialEntityName)(feature),
-          color: (0, dependencies.colorModel.territorialEntityColor)(feature),
-          flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
-          meta: '',
-          searchText: countryLabel,
-          folderName: kind === 'subunit'
-            ? `하위단위 · ${countryLabel}`
-            : kind === 'region'
-            ? `지방${dependencies.territorialModel.entityRepository.root(feature.id)?.id ? ` · ${countryLabel}` : ''}`
-            : `하위단위 · ${countryLabel}`,
-          countryId: String(dependencies.territorialModel.entityRepository.root(feature.id)?.id || ''),
-          parentId: String(feature.properties?.parentId || ''),
-
-          selected: (dependencies.projectState.state.selected?.domain === 'territorial' && !(dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) && dependencies.projectState.state.selected.id === String(feature.id),
-        };
+    if (group === 'objects' || group === 'objectLabels') {
+      return dependencies.territorialModel.entityRepository.list().map(feature=>{
+        const id=String(feature.id),root=dependencies.territorialModel.entityRepository.root(id);
+        return {id,name:dependencies.objectPresentation.territorialEntityName(feature),
+          color:dependencies.colorModel.territorialEntityColor(feature),
+          flagUrl:effectiveTerritorialFlagUrl(feature,{assetRevision:dependencies.layerPresentation.ASSET_REVISION}),
+          searchText:dependencies.objectPresentation.territorialRootName(feature),
+          meta:group==='objectLabels'&&dependencies.labelPresentation.pendingCountryLabelAnchors.has(id)?'계산 중':'',
+          folderName:'객체',countryId:String(root?.id||''),parentId:String(feature.properties.parentId||''),
+          selected:dependencies.projectState.state.selected?.domain==='territorial'&&dependencies.projectState.state.selected.id===id};
       });
     }
     if (group === 'distributions') {
@@ -165,6 +135,7 @@ export function createObjectCatalog({ isObjectAvailable } = {}) {
     if (typeof dependencies.domains.selectionDomain?.prune !== 'function')
       throw new TypeError('Layer visibility pruning requires the canonical C++ selection owner.');
     if (!catalogAlreadyAdmitted) await dependencies.domains.projectDomain.admitPresentationCatalog(presentationCatalog());
+    dependencies.projectSession.pruneViewingItems(presentationCatalog());
     await dependencies.domains.selectionDomain.prune(null,{ reason:'prune-invalid-selection' });
   }
 

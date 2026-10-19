@@ -22,14 +22,13 @@ test('frozen original hydro aggregation adds only true source hidden aliases wit
     assert.equal(result.aggregate.properties.source_id, '101,102');
   }
 });
-test('actual Core builtin source admission owns the original hidden alias while preserving save and history clocks', async t => {
+test('builtin catalog admission preserves creation metadata and save/history clocks', async t => {
   for (const row of cases) {
     const seed = JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
-    seed.physicalSettings.hiddenHydroIds = row.hidden;
     const owner = await createNodeCoreProject(seed); t.after(() => owner.dispose());
     const before = owner.client.state();
     await owner.project.admitSelectionCatalog('hydroBuiltin', [{ domain: 'hydroBuiltin', type: 'river', id: logicalId, logicalId, sourceIds: ['101', '102'] }]);
-    assert.deepEqual(owner.documentModel.snapshot().physicalSettings.hiddenHydroIds, row.expected, row.name);
+    assert.deepEqual(owner.documentModel.snapshot().projectSetup,seed.projectSetup);assert.equal(Object.hasOwn(owner.documentModel.snapshot(),'itemVisibility'),false);
     const after = owner.client.state();
     for (const key of ['stateRevision', 'checkpoint', 'documentDirty', 'presentationDirty', 'presentationCheckpoint', 'canUndo', 'canRedo'])
       assert.equal(after[key], before[key], `${row.name}: ${key}`);

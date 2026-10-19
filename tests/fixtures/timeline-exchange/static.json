@@ -1,6 +1,6 @@
 {
   "format": "pandolab-project-state",
-  "schemaVersion": 11,
+  "schemaVersion": 14,
   "version": "0.34.0",
   "savedAt": "2026-10-04T00:00:00.000Z",
   "baseDataset": "external-territorial-entities",
@@ -308,20 +308,12 @@
   "distributionLayers": [],
   "distributionEntries": [],
   "labelSettings": {},
-  "distributionSettings": {
-    "renderMode": "overlap",
-    "activeLayerId": "",
-    "boundaryVisible": true
-  },
   "layerPresentation": {
-    "schemaVersion": 4,
+    "schemaVersion": 5,
     "styles": {},
     "objectStyles": {},
     "objectOrder": []
   },
-  "physicalSettings": {},
-  "layerVisibility": {},
-  "itemVisibility": {},
   "territorialEntities": [
     {
       "type": "Feature",
@@ -429,15 +421,23 @@
     }
   ],
   "physicalSourceInfo": {
-    "terrain": {
-      "dataset": "terrain",
-      "version": "0.13.3-p1"
-    },
     "hydro": {
       "dataset": "hydro",
       "version": "0.34.0",
       "coordinatePolicy": "selected source coordinates retained without simplification",
       "selection": {}
     }
+  },
+  "documentId": "ac86aaa8-4f4a-5a94-bb06-912bf7851f74",
+  "projectSetup": {
+    "initialMonth": "2026-10",
+    "timelineRange": null,
+    "initialMapBounds": null,
+    "sourceMode": "empty"
+  },
+  "distributionSettings": {
+    "renderMode": "overlap",
+    "activeLayerId": "",
+    "boundaryVisible": true
   }
 }

@@ -1,3 +1,4 @@
+import {createProjectSetupDialog} from './project-setup-dialog.js';
 import { AUTOSAVE_STATES } from './save-state-controller.js';
 const historyNames = Object.freeze({
  'territorial.edit':'영역 변경','territorial.geometry':'경계 변경','territorial.patch':'영역 변경','territorial.border':'국경 변경','territorial.coast':'해안선 변경',
@@ -21,7 +22,9 @@ export function createProjectUiBridge({
   canRedo,
   undoProject,
   redoProject,
-  createEmptyProject,
+  createProject,
+  projectSetupPorts,
+  setupDialogFactory=createProjectSetupDialog,
   isProjectReplacing = () => false,
   setActionStatus,
   closeFileMenu,
@@ -33,6 +36,11 @@ export function createProjectUiBridge({
   loadAutosave,
   queueAutosave,
 } = {}) {
+  let setupDialog;
+  const openSetup=()=>{setupDialog ||= setupDialogFactory({...projectSetupPorts,createProject,confirmDiscard:async()=>{
+    if(!getSaveSnapshot().hasUnsavedChanges&&!draftInputActive()&&!getEditingSnapshot().previewActive)return true;
+    return !!await confirm({title:'새 프로젝트 생성',message:'저장되지 않은 변경 사항과 미적용 초안, 실행 취소 기록을 버리고 새 프로젝트를 생성합니다.',confirmText:'초안과 변경 버리고 생성',danger:true});
+  }});setupDialog.open();};
   let recoveryRequest = null;
   let pendingHistory = 0;
   const confirm = options => new Promise(resolve => openConfirmModal({ ...options,
@@ -84,7 +92,6 @@ export function createProjectUiBridge({
     return recoveryRequest;
   }
 
-  $('autosaveRecoveryBtn')?.addEventListener('click', () => { void requestAutosaveRecovery(); });
   $('autosaveRecoveryFileBtn')?.addEventListener('click', () => { closeFileMenu(); void requestAutosaveRecovery(); });
 
   function syncProjectSaveStatus(snapshot = getSaveSnapshot()) {
@@ -93,8 +100,6 @@ export function createProjectUiBridge({
     const fileState = String(snapshot.file || 'never-saved');
     const autosaveState = String(snapshot.autosave || '');
     const paused = snapshot.autosaveRecovery === true;
-    const recoveryButton = $('autosaveRecoveryBtn');
-    if (recoveryButton) recoveryButton.hidden = !paused;
     const fileRecoveryButton = $('autosaveRecoveryFileBtn');
     if (fileRecoveryButton) fileRecoveryButton.hidden = !paused;
     const isSaving = fileState === 'saving' || autosaveState === AUTOSAVE_STATES.QUEUED || autosaveState === AUTOSAVE_STATES.SAVING;
@@ -189,23 +194,13 @@ export function createProjectUiBridge({
     event?.preventDefault?.();
     event?.stopPropagation?.();
     if (pendingHistory || isProjectReplacing()) return;
-    if (getAutosaveRecovery()) {
+    if (getAutosaveRecovery()?.kind==='conflict') {
       void requestAutosaveRecovery();
       return;
     }
 
     closeFileMenu();
-    const hasUnsavedChanges = getSaveSnapshot().hasUnsavedChanges;
-    openConfirmModal({
-      title: '새 프로젝트',
-      message: hasUnsavedChanges
-        ? '파일에 저장되지 않은 변경 사항이 있습니다. 현재 편집 내용, 실행취소 기록과 자동저장을 모두 지우고\n내장된 최초 세계 국경으로 돌아갑니다.'
-        : '현재 편집 내용, 실행취소 기록과 자동저장을 모두 지우고\n내장된 최초 세계 국경으로 돌아갑니다.',
-      impacts: hasUnsavedChanges ? ['파일에 저장되지 않은 변경 사항 삭제', '현재 실행취소 기록 초기화', '내장된 최초 세계 국경 복원'] : ['현재 실행취소 기록 초기화', '내장된 최초 세계 국경 복원'],
-      confirmText: '초기 상태로 시작',
-      danger: true,
-      onConfirm: () => createEmptyProject(),
-    });
+    openSetup();
   }
 
   return Object.freeze({
