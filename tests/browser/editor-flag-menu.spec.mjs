@@ -1,8 +1,9 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('territorial selection enters the editor directly and preserves its flag menu and tabs', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1366, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   const slotPointerEvents = await page.locator('.map-overlay-layer').evaluate(node => getComputedStyle(node).pointerEvents);
   expect(slotPointerEvents).toBe('none');
@@ -81,7 +82,7 @@ test('territorial selection enters the editor directly and preserves its flag me
 
 test('object deletion shares the coast action spacing and is destructive only on hover', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#actionsTabBtn').click();

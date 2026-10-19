@@ -7,7 +7,7 @@ const fixedGeometry = JSON.parse(readFileSync(new URL('../../assets/data/territo
 test('actual scene prepares fixed assets, edited Worker meshes and latest style without blocking publication', async ({ page }) => {
   await page.goto('/assets/data/prepared-polygons/generated/v2/manifest.json');
   const result = await page.evaluate(async geometry => {
-    const { createGpuScene } = await import('/assets/js/modules/app-gpu-scene.js');
+    const { createGpuScene } = await import('/assets/js/modules/gpu-scene.js');
     const { createRenderSceneBuilder } = await import('/assets/js/modules/render-scene.js');
     const errors = [], scenes = [], requests = [], workerStats = [];
     const WorkerClass = window.Worker;

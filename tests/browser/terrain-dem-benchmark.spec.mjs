@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.skip(process.env.PANDOLAB_BENCHMARK_DEM !== '1', 'Run explicitly for a paired terrain release measurement');
@@ -14,7 +15,7 @@ async function measure(page, source) {
     }
   };
   page.on('response', onResponse);
-  await page.goto(`/?renderer=webgl2&debug=1&demTerrain=${source === 'dem' ? 'preview' : 'raster'}`);
+  await gotoEditor(page, `/?renderer=webgl2&debug=1&demTerrain=${source === 'dem' ? 'preview' : 'raster'}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation),
     { timeout: 60_000 }).toBe(source === 'dem' ? 'dem-relief-v1' : 'raster-rgba-v1');

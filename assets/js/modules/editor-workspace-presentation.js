@@ -1,6 +1,6 @@
 /** Moves the existing task UI; never owns editing state or registers its handlers. */
 export function createEditorWorkspacePresentation({
-  document, panel, task, dockSlot, floatingSlot, content, minimize,
+  document, panel, task, dockSlot, floatingSlot,
   isEditorOpen, openEditor, onLayoutChange,
 }) {
   let active = false;
@@ -24,9 +24,6 @@ export function createEditorWorkspacePresentation({
     }
     if (dockSlot.hidden !== !docked) dockSlot.hidden = !docked;
     task.classList.toggle('hidden', !active);
-    task.classList.toggle('is-minimized', false);
-    if (content.hidden) content.hidden = false;
-    if (!minimize.hidden) minimize.hidden = true;
     if (needsInitialOpen && !isEditorOpen()) openEditor();
     if (isEditorOpen()) needsInitialOpen = false;
     if (changed) onLayoutChange();

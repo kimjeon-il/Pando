@@ -495,6 +495,10 @@ export function createTerritorySelectionWorkflow() {
       refresh('territory-selection-open');
       return true;
     }
+    if (current.stage === 'selection' && !previewReady(current) && selectionGeometryReady(current) && !current.previewPending) {
+      schedulePreview({ delay: 0, openReview: true });
+      return true;
+    }
     if (current.stage !== 'selection' || !previewReady(current)
       || current.activePhase === 'candidate' && !!current.currentGeometry) return false;
     current.stage = 'review';
@@ -513,6 +517,9 @@ export function createTerritorySelectionWorkflow() {
       return true;
     }
     if (current.stage === 'review') {
+      cancelPreview({ discard: false });
+      await dependencies.geometryOperations.discardActiveGeometryPreview({ announce: false });
+      if (current !== session()) return false;
       current.stage = 'selection';
       (0, dependencies.taskUi.setModeBanner)('');
       refresh('territory-selection-back-selection');
@@ -957,7 +964,7 @@ export function createTerritorySelectionWorkflow() {
     return !!current.combinedGeometry && !dependencies.domains.editingDomain?.draftInputActive?.();
   }
 
-  function schedulePreview({ delay = 300 } = {}) {
+  function schedulePreview({ delay = 300, openReview = false } = {}) {
     const current = session();
     if (!selectionGeometryReady(current)) return false;
     cancelPreview({ discard: true });
@@ -989,6 +996,7 @@ export function createTerritorySelectionWorkflow() {
         if (previewIsCurrent(current, key)) {
           current.previewPending = false;
           current.previewReadyKey = prepared && dependencies.projectState.state.geometryPreview.session ? key : null;
+          if (openReview && current.previewReadyKey) current.stage = 'review';
           refresh('territory-selection-preview-ready');
           if (current.activePhase === 'components'
             && current.selectedComponentKeys.length && current.requestedMethod
@@ -1084,7 +1092,7 @@ export function createTerritorySelectionWorkflow() {
       primaryDisabled: current.applying || current.previewPending
         || current.stage === 'setup' && !setupValid(current)
         || current.stage === 'selection' && current.activePhase === 'candidate' && !!current.currentGeometry
-        || current.stage === 'selection' && !current.computationError && !previewReady(current)
+        || current.stage === 'selection' && !current.computationError && !previewReady(current) && !selectionGeometryReady(current)
         || current.stage === 'review' && !previewReady(current),
       cancelLabel: current.stage === 'setup' ? '취소' : '뒤로',
       cancelIcon: current.stage === 'setup' ? '#icon-close' : '#icon-chevron-left',

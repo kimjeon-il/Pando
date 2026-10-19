@@ -6,7 +6,7 @@ import { resolveMapInteractionStyle, resolveInteractionEntries, resolveMapStroke
 import { mapInteractionEntries as interactionEntries } from '../../assets/js/modules/interaction-roles.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createEditDisplayPreparation } from '../../assets/js/modules/edit-display-preparation.js';
+import { createMapDisplayPreparation } from '../../assets/js/modules/map-display-preparation.js';
 import { createNodeSelection } from '../helpers/core-selection.mjs';
 import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
 
@@ -69,7 +69,7 @@ test('worker ownership removes shared boundaries between unrelated objects witho
   const left = polygon([[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]);
   const right = polygon([[2, 0], [4, 0], [4, 2], [2, 2], [2, 0]]);
   const before = JSON.stringify([left, right]);
-  const result = await createEditDisplayPreparation().prepare({ kind: 'highlight', feature: right, occluderFeatures: [left] }, [], []);
+  const result = await createMapDisplayPreparation().prepare({ kind: 'highlight', feature: right, occluders: [{feature:left}] }, [], []);
   for (const line of result.feature.geometry.coordinates) for (let i = 1; i < line.length; i++) {
     assert.ok(!(line[i - 1][0] === 2 && line[i][0] === 2));
   }
@@ -122,15 +122,12 @@ test('common role contracts reject tool colors and keep boundary preparation out
   assert.match(worker, /type: 'frame',\s+styleRevision/);
 });
 
-test('ID-based boundary requests use synchronized geometry and reject missing owners', async () => {
-  const feature = { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]] } };
-  const preparation = createEditDisplayPreparation();
-  const sources = new Map([['territorial:RUS', feature], ['territorial:child', feature]]);
-  const request = { kind: 'highlight', featureKey: 'territorial:child', occluders: [{ key: 'territorial:RUS' }] };
-  const result = await preparation.prepare(request, [], [], async () => {}, key => sources.get(key));
-  assert.deepEqual(result.feature.geometry.coordinates, []);
-  sources.delete('territorial:RUS');
-  await assert.rejects(preparation.prepare(request, [], [], async () => {}, key => sources.get(key)), /원본/);
+test('boundary presentation uses explicit geometry and rejects missing owners',async()=>{
+ const feature={type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[[0,0],[2,0],[2,2],[0,2],[0,0]]]}};
+ const preparation=createMapDisplayPreparation();
+ const result=await preparation.prepare({kind:'highlight',feature,occluders:[{feature}]},[],[]);
+ assert.deepEqual(result.feature.geometry.coordinates,[]);
+ await assert.rejects(preparation.prepare({kind:'highlight',feature,occluders:[{feature:null}]},[],[]),/원본/);
 });
 
 test('tool receivers, donors and nested parents keep their semantic roles independent of selection order', () => {
@@ -177,7 +174,7 @@ test('boundary preparation consumes the same preview entity coordinates and swit
   const child = { type: 'Feature', id: 'B', properties: { entityKind: 'general', parentId: 'A' }, geometry: geometry(0, 2) };
   const displayed = [root, child].map(entity => ({ ...entity, geometry: geometry(20, entity.id === 'B' ? 2 : 4) }));
   const before = structuredClone([root, child]);
-  const preparation = createEditDisplayPreparation();
+  const preparation = createMapDisplayPreparation();
   const preview = await preparation.prepare({ kind: 'boundaries', entities: displayed }, [root], [child]);
   assert.ok(preview.segments.length > 0);
   assert.ok(preview.segments.every(segment => segment.a[0] >= 20 && segment.b[0] >= 20));

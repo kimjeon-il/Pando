@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
 
 test('fresh default Subunits survive canonical promotion and edit Undo on desktop/mobile', async ({ page }) => {
@@ -5,7 +6,7 @@ test('fresh default Subunits survive canonical promotion and edit Undo on deskto
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   expect(errors).toEqual([]);
   const info = await page.evaluate(() => {

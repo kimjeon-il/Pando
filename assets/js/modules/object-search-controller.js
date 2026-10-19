@@ -38,7 +38,7 @@ export function createObjectSearchController({
     const semanticName = item.layerGroup === 'hydro'
       ? item.typeLabel === '호수' ? 'lake' : 'river'
       : ({
-        countries: 'country', subunits: 'subunit', regions: 'region', distributions: 'area',
+        countries: 'country', subunits: 'subunit', regions: 'region', distributions: 'distribution',
         labels: 'place', genericFeatures: 'territory',
       })[item.layerGroup] || 'map';
     return createIcon?.(semanticName, 'ui-icon object-search-result-icon') || null;
@@ -123,8 +123,9 @@ export function createObjectSearchController({
 
   function requestBuiltinRows(query) {
     const normalized = normalizePlaceQuery(query);
-    if (model.snapshot().searchActive === false || builtinQuery === normalized) return;
-    builtinQuery = normalized;
+    const context=JSON.stringify([normalized,model.snapshot().builtinContext]);
+    if (model.snapshot().searchActive === false || builtinQuery === context) return;
+    builtinQuery = context;
     const generation = ++searchGeneration;
     cancelBuiltinSearch();
     builtinRows = [];
@@ -284,12 +285,19 @@ export function createObjectSearchController({
   return Object.freeze({ bind, render, syncSelection, syncLocks, beginHydration, completeHydration, cancelSearch, dispose });
 }
 
+const searchNameCollator=new Intl.Collator('ko',{numeric:true,sensitivity:'base'});
+const compareSearchItems=(left,right)=>searchNameCollator.compare(left.name,right.name)||searchNameCollator.compare(left.id,right.id);
+export function syncSearchClearButton(input,button) {
+  button?.classList.toggle('hidden',!String(input?.value||'').length);
+}
+
 export function createAppObjectSearchController(runtime = {}) {
   const {
     window, document, getElement: $, state,
-    objectSearchGroupKeys, listObjectCatalogItems, layerItemObjectRef, selectionDomain,
-    compareItems, syncSearchClearButton, invalidateObjectPresentation, selectObjectSearchItem, closeSearchAfterSingleSelection, focusObjectRef, createIcon,
+    objectSearchGroupKeys, listObjectSearchItems, layerItemObjectRef, selectionDomain,
+    invalidateObjectPresentation, selectObjectSearchItem, closeSearchAfterSingleSelection, focusObjectRef, createIcon,
   } = runtime;
+  const handleHoverError=error=>{if(!error.cancelled&&error.name!=='AbortError')runtime.onSearchError(error);};
   return createObjectSearchController({
     window,
     document,
@@ -302,24 +310,24 @@ export function createAppObjectSearchController(runtime = {}) {
     groups: { search: objectSearchGroupKeys },
     createEmptyState: runtime.createEmptyState,
     createIcon,
-    builtinSearch: runtime.builtinSearch,
+    builtinSearch: runtime.builtinSearch ? query => state.layerVisibility?.labels === false ? Promise.resolve({records:[],truncated:false}) : runtime.builtinSearch(query) : null,
     cancelBuiltinSearch: runtime.cancelBuiltinSearch,
-    builtinRecordVisible: record => !(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
+    builtinRecordVisible: record => state.layerVisibility?.labels!==false&&state.itemVisibility?.labels?.[record.id]!==false&&!(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
     onSearchError: runtime.onSearchError,
     model: {
-      snapshot: () => ({ revision: state.objectPresentationRevision, search: state.objectSearch, searchActive: runtime.isSearchOpen(),
+      snapshot: () => ({ builtinContext:JSON.stringify([state.timelineCursor,state.layerVisibility?.labels,state.itemVisibility?.labels]),revision: state.objectPresentationRevision, search: state.objectSearch, searchActive: runtime.isSearchOpen(),
         searchSurfaceOpen: runtime.isSearchSurfaceOpen() }),
-      items: listObjectCatalogItems,
+      items: listObjectSearchItems,
       itemRef: layerItemObjectRef,
       selectionSnapshot: () => selectionDomain.snapshot(),
-      compare: compareItems,
+      compare: compareSearchItems,
     },
     commands: {
-      clearSearchHover: () => selectionDomain.setHover(null, { source: 'list' }),
+      clearSearchHover: () => selectionDomain.setHover(null, { source: 'list' }).catch(handleHoverError),
       hoverItem: (group, id, entered) => {
         if (state.tool !== 'select' || state.mapMoving) return;
         const ref = layerItemObjectRef(group, id);
-        selectionDomain.setHover(entered ? ref : null, { source: 'list', expectedKey: entered ? '' : ref?.key });
+        return selectionDomain.setHover(entered ? ref : null, { source: 'list', expectedKey: entered ? '' : ref?.key }).catch(handleHoverError);
       },
       syncCanonicalControls: runtime.syncCanonicalControls,
       syncSearchClear: () => syncSearchClearButton($('objectSearchInput'), $('objectSearchClearBtn')),
