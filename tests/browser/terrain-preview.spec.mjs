@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -22,7 +23,7 @@ test('WebGL DEM failure uses the new preview through color, gray and view change
   page.on('pageerror', error => errors.push(error.message));
   context.on('request', request => { if (request.url().includes('/terrain/v0.12.6/')) oldRequests.push(request.url()); });
   await context.route(`${demOrigin}/terrain/**`, route => route.fulfill({ status: 503, body: 'fixed DEM failure' }));
-  await page.goto('/?renderer=webgl2&debug=1', { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, '/?renderer=webgl2&debug=1', { waitUntil: 'domcontentloaded' });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainDatasetVersion), { timeout: 30000 }).toBe('0.13.3-p1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTilesLoaded || 0)).toBeGreaterThan(0);
   await terrainStyle(page, 'physical');
@@ -65,7 +66,7 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     await route.fulfill({ path: file, contentType: 'image/webp', headers: { 'Access-Control-Allow-Origin': '*' } });
   });
   try {
-    await page.goto('/?renderer=canvas&debug=1', { waitUntil: 'domcontentloaded' });
+    await gotoEditor(page, '/?renderer=canvas&debug=1', { waitUntil: 'domcontentloaded' });
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer)).toBe('canvas-worker');
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource), { timeout: 30000 }).toBe('dem-preview');
     await terrainStyle(page, 'physical');
@@ -103,7 +104,7 @@ test('Canvas without OffscreenCanvas displays the bundled preview', async ({ pag
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => { window.OffscreenCanvas = undefined; });
   await context.route(`${demOrigin}/terrain/**`, route => route.fulfill({ status: 503, body: 'fixed DEM failure' }));
-  await page.goto('/?renderer=canvas&debug=1', { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, '/?renderer=canvas&debug=1', { waitUntil: 'domcontentloaded' });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer), { timeout: 30000 }).toBe('canvas2d');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRenderedLevel), { timeout: 30000 }).toBe(1);
   await terrainStyle(page, 'physical');

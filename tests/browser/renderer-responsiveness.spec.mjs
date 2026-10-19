@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ trace: 'off' });
@@ -8,7 +9,7 @@ async function openEnhanced(page, query = '?perf') {
   page.on('console', message => {
     if (message.type() === 'error') errors.push(message.text());
   });
-  await page.goto(`/${query}`);
+  await gotoEditor(page, `/${query}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => !!window.__PANDOLAB_RENDER_DEBUG__)).toBe(true);
   return errors;

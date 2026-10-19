@@ -1,5 +1,5 @@
 import { prepareBoundaryDisplay } from './boundary-display.js';
-import { boundarySourceSegments, buildBoundaryTopologyFromSegments, planSharedBoundaryEdit, planCoastEdit, moveTopologyNode, topologyNodeKey } from './boundary-topology.js';
+import { boundarySourceSegments, buildBoundaryTopologyFromSegments, planSharedBoundaryEdit, planCoastEdit, moveTopologyNodes, topologyNodeKey } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
 
 const locked = feature => !!(feature.boundaryLocked ?? feature.properties?.locked);
@@ -228,20 +228,25 @@ export function createBoundaryPreparation({ cacheBudgetBytes = BOUNDARY_PREPARAT
       handles: neighborsOnly ? [] : entry.handles, segments: neighborsOnly ? [] : entry.segments };
   }
 
-  function move({ preparationId, nodeKey, coordinate }) {
+  function move({ preparationId, moves }) {
     const entry = [...cache.values()].find(row => row.id === preparationId);
     if (!entry) throw new Error('경계 준비 결과가 변경되었습니다. 다시 시작하세요.');
-    const node = entry.topology.nodes.get(nodeKey);
-    if (!node || !entry.plan.editableNodeKeys.has(nodeKey)) throw new Error('고정된 경계점은 이동할 수 없습니다.');
-    if (coordinate?.length !== 2 || !coordinate.every(Number.isFinite) || Math.abs(coordinate[1]) > 90) throw new Error('유효하지 않은 위치입니다.');
-    const features = new Map([...node.ownerIds].map(id => {
-      const source = sources.get(id)?.feature;
-      if (!source || locked(source)) throw new Error('경계 소유 객체가 없거나 잠겨 있습니다.');
-      const { boundaryLocked, ...feature } = source;
-      return [id, structuredClone(feature)];
+    if (!Array.isArray(moves) || !moves.length) throw new Error('이동한 경계점이 없습니다.');
+    const resolved=moves.map(({nodeKey,coordinate})=>{
+      const node=entry.topology.nodes.get(nodeKey);
+      if(!node || !entry.plan.editableNodeKeys.has(nodeKey))throw new Error('고정된 경계점은 이동할 수 없습니다.');
+      if(coordinate?.length!==2 || !coordinate.every(Number.isFinite) || Math.abs(coordinate[1])>90)throw new Error('유효하지 않은 위치입니다.');
+      return {node,coordinate};
+    });
+    const ids=new Set(resolved.flatMap(({node})=>[...node.ownerIds]));
+    const features=new Map([...ids].map(id=>{
+      const source=sources.get(id)?.feature;
+      if(!source || locked(source))throw new Error('경계 소유 객체가 없거나 잠겨 있습니다.');
+      const {boundaryLocked,...feature}=source;
+      return [id,structuredClone(feature)];
     }));
-    moveTopologyNode(features, node, coordinate);
-    return { features: [...features.values()], affectedIds: [...features.keys()] };
+    moveTopologyNodes(features,resolved);
+    return {features:[...features.values()],affectedIds:[...features.keys()]};
   }
   function stats() {
     const detailed = [...sources.values()].filter(source => source.rows);

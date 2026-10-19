@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "lineageId": "pyf",
   "names": {
-    "ko": "프랑스령폴리네시아"
+    "ko": "프랑스령 폴리네시아"
   },
   "entities": [
     {
@@ -4568,12 +4568,12 @@
         "license": "Public domain",
         "featureId": "PYF",
         "featureProperties": {
-          "name": "프랑스령폴리네시아"
+          "name": "프랑스령 폴리네시아"
         },
         "geometrySha256": "e910ed7e698882a0f691f3867c491b54cecf2cc3df01ab3924f6db2bab15fc10"
       },
       "names": {
-        "ko": "프랑스령폴리네시아"
+        "ko": "프랑스령 폴리네시아"
       }
     }
   ],

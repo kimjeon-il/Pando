@@ -78,6 +78,24 @@ test('replacement outlines are subdivided only after the internal contact is rem
   }
 });
 
+test('terrain packets defer exterior outlines while preserving shared and internal borders', () => {
+  const state = createCountrySharedBoundaryState();
+  state.replace([rectangle('ROOT', 0, 0, 2, 6), rectangle('CHILD', 2, 1, 3, 5, 'ROOT')]);
+  const stats = state.stats();
+  const terrain = prepareCountrySharedBoundaryPacket(state.segments(), state.features(),
+    { preparedStore: state.preparedStore, includeOutlines: false });
+  assert.deepEqual(terrain.outlineOverrides.segments, []);
+  assert.equal(terrain.outlineOverrides.preparedGeometry.segmentCount, 0);
+  assert.deepEqual(terrain.internalOwners['CHILD|ROOT'], ['CHILD']);
+  const political = prepareCountrySharedBoundaryPacket(state.segments(), state.features(),
+    { preparedStore: state.preparedStore, includeOutlines: true });
+  assert.deepEqual(terrain.segments, political.segments);
+  assert.deepEqual(terrain.internalOwners, political.internalOwners);
+  assert.deepEqual(terrain.outlineOwnerIds, political.outlineOwnerIds);
+  assert.ok(packetLength(political.outlineOverrides) > 0);
+  assert.deepEqual(state.stats(), stats, 'map-mode changes reuse prepared topology without recalculating contacts');
+});
+
 test('dateline display pieces keep one dash phase without a long closing chord', () => {
   const packet = prepareCountrySharedBoundaryPacket([{ start: [179, 0], end: [-179, 0], ownerIds: ['A', 'B'] }]);
   assert.equal(packetLength(packet), 2);

@@ -9,7 +9,7 @@
     "stage:world": "node stage.mjs --profile=full-world",
     "tauri": "tauri",
     "build:windows": "tauri build --debug --no-bundle --target x86_64-pc-windows-gnu",
-    "init:android": "tauri android init --ci",
+    "init:android": "tauri android init --ci && node src-tauri/sync-android.mjs && node src-tauri/sync-android.mjs --check",
     "build:android": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File src-tauri/build-android.ps1",
     "test:native": "cargo test --manifest-path src-tauri/Cargo.toml"
   },

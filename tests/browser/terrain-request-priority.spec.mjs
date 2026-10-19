@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
@@ -30,7 +31,7 @@ test('rotating the globe loads the new viewport while obsolete responses remain 
   }, rotation);
   try {
     const site = process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`;
-    await page.goto(new URL('?renderer=webgl2&debug=1', site).href, { waitUntil: 'domcontentloaded' });
+    await gotoEditor(page, new URL('?renderer=webgl2&debug=1', site).href, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     phase = 'old';
     await move([0, 0, 0]);

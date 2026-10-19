@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -41,7 +42,7 @@ test('common territorial metadata, flags and deletion preserve selection, undo a
   const errors=[];
   page.on('pageerror',e=>errors.push(e.stack || e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60000});
   await select(page,'DEU');
   await page.locator('#entityNameInput').fill('공통 명령 시험 국가');
@@ -83,7 +84,7 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
   const errors=[];
   page.on('pageerror',e=>errors.push(e.stack || e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-  await page.goto('/?debug=1');
+  await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60000});
   const [a,b]=await importRegions(page,[{name:'병합 A',x:9},{name:'병합 B',x:10}]);
   const before = await page.evaluate(ids=>ids.map(id=>window.PANDOLAB_TERRITORIAL.get(id).geometry),[a,b]);

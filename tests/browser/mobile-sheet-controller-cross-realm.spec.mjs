@@ -1,9 +1,10 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ trace: 'off' });
 
 test('mobile task sheet raises a collapsed editor with the handle document realm', async ({ page }) => {
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
 
   const result = await page.evaluate(async () => {

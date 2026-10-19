@@ -129,3 +129,22 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
     entries: Object.freeze([...files.values()]),
   });
 }
+
+export async function loadFullWorldAssetPlan(readText){
+    const metaSource = await readText('assets/js/build-meta.js');
+    const metaLiteral = metaSource.match(/Object\.freeze\((\{[\s\S]*\})\);\s*$/)?.[1];
+    if (!metaLiteral) throw new Error('Current published build metadata is required for the full world.');
+    const meta = JSON.parse(metaLiteral);
+    const loadManifest = async path => JSON.parse(await readText(path));
+    const plan = buildFullWorldAssetPlan({
+      meta,
+      world: await loadManifest('assets/data/world/current.json'),
+      historical: await loadManifest('assets/data/historical-world/generated/v1/manifest.json'),
+      library: await loadManifest('assets/data/territorial-entities/generated/v2/index.json'),
+      prepared: await loadManifest('assets/data/prepared-polygons/generated/v2/manifest.json'),
+      terrain: await loadManifest('assets/data/terrain-preview/v0.13.3-p1/manifest.json'),
+      hydro: await loadManifest('assets/data/hydro/v0.13.2/manifest.json'),
+      places: await loadManifest('assets/data/places/manifest.json'),
+    });
+    return {plan,meta};
+}

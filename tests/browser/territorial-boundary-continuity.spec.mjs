@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
@@ -36,7 +37,7 @@ export function createRenderingDomain(options) {
       window.__m1.diagnostics.push(entry);
       if (options.reportDiagnostic) options.reportDiagnostic(entry);
     },
-    prepareEditDisplay: async (payload, jobOptions) => {
+    prepareMapDisplay: async (payload, jobOptions) => {
       const result = await options.prepareEditDisplay(payload, jobOptions);
       if (payload.kind === 'boundaries') {
         window.__m1.completed++;
@@ -70,7 +71,7 @@ export function createMapEditWorkerClient(options) {
 }`;
     expect(body).not.toBe(original); await route.fulfill({ response, body });
   });
-  await page.route('**/modules/app-gpu-scene.js*', async route => {
+  await page.route('**/modules/gpu-scene.js*', async route => {
     const response = await route.fetch(), original = await response.text();
     const body = original.replace("function replaceGpuSceneDomain(domain, { polygons = [], strokes = [] } = {}) {", `
 function replaceGpuSceneDomain(domain, { polygons = [], strokes = [] } = {}) {
@@ -260,7 +261,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     page.on('console', message => { if (['error', 'warning'].includes(message.type())) logs.push(message.text()); });
     await observeProduction(page);
     try {
-      await page.goto(`/?debug=1&renderer=${renderer}&demTerrain=raster`);
+      await gotoEditor(page, `/?debug=1&renderer=${renderer}&demTerrain=raster`);
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
       await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer), { timeout: 60_000 })
         .toBe(renderer === 'canvas' ? 'canvas-worker' : 'webgl2');

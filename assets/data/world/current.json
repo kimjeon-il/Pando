@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "source": {
     "url": "territorial-entities/generated/current-world.geojson",
-    "sha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
+    "sha256": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb",
     "countryCount": 258
   },
   "derivation": {
@@ -474,11 +474,11 @@
   },
   "assets": {
     "previewCountries": {
-      "url": "world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz",
+      "url": "world/objects/countries-preview-sha256-9e5ee678f2cbe1ad5a4df8fb5bcd251c1f04e9e005d811fb1f154afa408be594.geojson.gz",
       "encoding": "gzip",
-      "compressedBytes": 917486,
-      "decodedBytes": 2438859,
-      "sha256": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252"
+      "compressedBytes": 917463,
+      "decodedBytes": 2438854,
+      "sha256": "9e5ee678f2cbe1ad5a4df8fb5bcd251c1f04e9e005d811fb1f154afa408be594"
     },
     "previewMesh": {
       "url": "world/objects/world-mesh-preview-sha256-766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583.bin.gz",
@@ -502,11 +502,11 @@
       ]
     },
     "canonicalCountryPacket": {
-      "url": "world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz",
+      "url": "world/objects/countries-canonical-sha256-6bc58f6fd8c32b4c445f9bc328b87f8ea028221eca1f1a9ff5ff848d51343218.pcg.gz",
       "encoding": "gzip",
-      "compressedBytes": 5122041,
-      "decodedBytes": 8826208,
-      "sha256": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
+      "compressedBytes": 5122020,
+      "decodedBytes": 8826200,
+      "sha256": "6bc58f6fd8c32b4c445f9bc328b87f8ea028221eca1f1a9ff5ff848d51343218",
       "header": [
         826753872,
         1,
@@ -514,20 +514,20 @@
         4274,
         4291,
         548454,
-        13232,
+        13227,
         258,
         259,
         4275,
         4292,
         516,
         80,
-        13312,
-        13572,
-        14608,
-        31708,
-        48876,
-        50944,
-        8826208
+        13307,
+        13568,
+        14604,
+        31704,
+        48872,
+        50936,
+        8826200
       ]
     },
     "canonicalMesh": {

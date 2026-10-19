@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 // Exercises the real 1989 Soviet timeline and the production Core/IndexedDB
@@ -70,7 +71,7 @@ test('Soviet month-only moves save a small session record, persist across reload
   page.on('console', message => {
     if (message.type() === 'error') console.error('BROWSER_CONSOLE_ERROR', message.text());
   });
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await ready(page);
   // A full autosave caused by bootstrap or old IndexedDB data must finish
   // before this measurement begins. This fresh context has no user edits.

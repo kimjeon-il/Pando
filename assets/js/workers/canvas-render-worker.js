@@ -764,8 +764,8 @@ function canvasFallbackWorkerMain() {
       target.globalAlpha = reserve ? 1 : theme.borderAlpha;
       target.strokeStyle = theme.border;
       target.lineJoin = 'round'; target.lineWidth = theme.strokes.country.width;
-      // Never present an empty border pass while a replacement packet is being prepared.
-      if (!sharedOnly || !countrySharedBoundary) for (let index = 0; message.visible && index < features.length; index++) {
+      // Build coast outlines only in a map mode that actually displays them.
+      if (!sharedOnly) for (let index = 0; message.visible && index < features.length; index++) {
         const feature = features[index], id = countryId(feature, index);
         if (hidden.has(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
         target.beginPath(); path(countryOutlineFeature(feature)); target.stroke();
