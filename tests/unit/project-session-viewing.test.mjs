@@ -8,6 +8,31 @@ import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presenta
 import {DISTRIBUTION_RENDER_MODES} from '../../assets/js/modules/distribution-model.js';
 import {createObjectQuery} from '../../assets/js/modules/object-query.js';
 import {normalizeObjectRef} from '../../assets/js/modules/object-selection-controller.js';
+import {createCameraNavigation} from '../../assets/js/modules/camera-navigation.js';
+import {createHistoryAssembly} from '../../assets/js/modules/app-history-assembly.js';
+import {createApplicationPorts} from '../../assets/js/modules/app-capability-ports.js';
+
+test('camera snapshots and restored views use navigation without workspace surface forwarding', () => {
+ const navigation=createCameraNavigation();
+ navigation.connect({platform:{clamp:(value,min,max)=>Math.max(min,Math.min(max,value))}});
+ const ports=createApplicationPorts({cameraNavigation:navigation});
+ assert.equal(Object.hasOwn(ports.workspaceUiA,'clampViewZooms'),false);
+ const session=createProjectSession({productMode:'viewer'});
+ session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
+  modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
+  uiFactoriesA:{createAtomicMapStateController},mapNavigation:ports.mapNavigation});
+ session.initializeMapWorkScheduler();
+ const camera=session.atomicMapStateController;
+ assert.equal(camera.commit(camera.begin(),{projection:'flat',view:{flatZoom:1000,globeZoom:.01}}),true);
+ assert.equal(session.state.view.flatZoom,64);assert.equal(session.state.view.globeZoom,.72);
+ const history=createHistoryAssembly();let restored=0;
+ history.connect({domains:{projectDomain:{snapshot:()=>({documentId:'current'})}},projectState:{state:session.state},
+  projectSession:{restoreViewingPresentation:()=>restored++},mapNavigation:ports.mapNavigation});
+ assert.equal(history.applyAutosavedView({documentId:'current',view:{flatZoom:.01,globeZoom:1000}}),true);
+ assert.equal(session.state.view.flatZoom,.75);assert.equal(session.state.view.globeZoom,32);assert.equal(restored,1);
+ assert.equal(history.applyAutosavedView({documentId:'another',view:{flatZoom:2}}),false);
+ assert.equal(session.state.view.flatZoom,.75);
+});
 test('both products use ProjectSession; viewing overrides have no persistence, command or document mutation',async t=>{
  const core=await createNodeCoreProject(createInitialDocument({appVersion:'0.36.0'}),{productMode:'viewer'});t.after(core.dispose);
  const session=createProjectSession({productMode:'viewer',resolveVisibilityGroup:createObjectQuery({selectionServices:{normalizeObjectRef}}).layerGroupForObjectRef});

@@ -888,6 +888,17 @@
   "bindings": [
     {
       "tests": [
+        "tests/unit/prepared-polygon-mesh.test.mjs",
+        "tests/browser/physical-land-time.spec.mjs"
+      ],
+      "inputs": [
+        "assets/data/physical-land/**",
+        "assets/data/prepared-polygons/generated/v2/**",
+        "tools/build-prepared-polygon-mesh.mjs"
+      ]
+    },
+    {
+      "tests": [
         "tests/unit/*architecture*.test.mjs",
         "tests/unit/application-*.test.mjs",
         "tests/unit/capability-*.test.mjs",
