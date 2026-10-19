@@ -7,6 +7,7 @@ function canvasFallbackWorkerMain() {
     let canvas = null;
     let context = null;
     let substrate = null;
+    let substrateState = null;
     let features = [];
     let geometryRevision = 0;
     let projectGeneration = 0;
@@ -47,7 +48,49 @@ function canvasFallbackWorkerMain() {
     let styleRevision = 0;
     let physicalStyleRevision = 0;
     let hydroRenderTimer = 0;
-    const countryOutlineCache = new WeakMap();
+    const boundaryOutlineCache = new WeakMap();
+    const hydroSegments = new WeakMap();
+    const hydroProfileWidths = new WeakMap();
+    let projectedPathKey = '';
+    let projectedPaths = new WeakMap();
+
+    function createCanvasPath(projection, target) {
+      // Presentation-only cache of exact D3 output. Keep only the current view;
+      // geometry replacement/revisions and project changes cannot reuse old paths.
+      const key = JSON.stringify([projectGeneration, geometryRevision, projection.scale(), projection.translate(),
+        projection.rotate(), projection.center(), projection.clipAngle(), projection.clipExtent(), projection.precision()]);
+      if (key !== projectedPathKey) { projectedPathKey = key; projectedPaths = new WeakMap(); }
+      const cache = projectedPaths;
+      let recording;
+      const recorder = {
+        moveTo: (x, y) => recording.push(0, x, y),
+        lineTo: (x, y) => recording.push(1, x, y),
+        closePath: () => recording.push(2),
+        arc: (x, y, radius, start, end, reverse = false) => recording.push(3, x, y, radius, start, end, Number(reverse)),
+      };
+      const compiler = self.d3.geo.path().projection(projection).context(recorder);
+      const path = geometry => {
+        const shape = geometry.type === 'Feature' ? geometry.geometry : geometry;
+        if (!shape) return;
+        let commands = cache.get(shape);
+        if (!commands) {
+          recording = [];
+          compiler(shape);
+          commands = Float64Array.from(recording);
+          recording = null;
+          cache.set(shape, commands);
+        }
+        for (let index = 0; index < commands.length;) {
+          const operation = commands[index++];
+          if (operation === 0) { target.moveTo(commands[index], commands[index + 1]); index += 2; }
+          else if (operation === 1) { target.lineTo(commands[index], commands[index + 1]); index += 2; }
+          else if (operation === 2) target.closePath();
+          else { target.arc(...commands.subarray(index, index + 6)); index += 6; }
+        }
+      };
+      path.context = function(value) { if (!arguments.length) return target; target = value; return path; };
+      return path;
+    }
 
     function mergeRenderState(message) {
       const updated = { ...message };
@@ -351,8 +394,17 @@ function canvasFallbackWorkerMain() {
     }
 
     function drawTexturedTriangle(image, sourcePoints, destinationPoints, dpr) {
+      if (destinationPoints.some(point => !point || !point.every(Number.isFinite))) return;
+      // Globe tiles cover much more than the viewport at high zoom. Reject
+      // invisible image copies before building a clip or changing transforms.
+      // Keep the same physical-pixel overlap as triangleClip at viewport edges.
+      const padding = 0.75 / dpr, width = canvas.width / dpr, height = canvas.height / dpr;
+      if (destinationPoints.every(point => point[0] < -padding)
+        || destinationPoints.every(point => point[0] > width + padding)
+        || destinationPoints.every(point => point[1] < -padding)
+        || destinationPoints.every(point => point[1] > height + padding)) return;
       const transform = self.PandoLabCanvasTerrainDem.affineTransform(sourcePoints, destinationPoints);
-      if (!transform || destinationPoints.some(point => !point || !point.every(Number.isFinite))) return;
+      if (!transform) return;
       context.save();
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       const clip = self.PandoLabCanvasTerrainDem.triangleClip(destinationPoints, 0.75 / dpr);
@@ -422,8 +474,8 @@ function canvasFallbackWorkerMain() {
       }
     }
 
-    function renderTerrain(message, projection, width, height, dpr, visibleLand) {
-      if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return true;
+    function terrainRenderPlan(message, projection, width, height, dpr) {
+      if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return null;
       const levels = terrainManifest.levels;
       // Source detail follows the physical view scale and original DPR,
       // independently of the preview/canonical country mesh quality.
@@ -443,8 +495,6 @@ function canvasFallbackWorkerMain() {
             && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3]))
           .sort((a, b) => a.level - b.level)
         : [];
-      terrainProtectedKeys.clear();
-      for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
       // Canvas country geometry quality does not own DEM source resolution.
       let demLevel = terrainDemManifest
         ? terrainLevelForView(projection, message.terrainDpr || dpr, terrainDemManifest) : null;
@@ -455,6 +505,16 @@ function canvasFallbackWorkerMain() {
         demSpecs = visibleTerrainTileSpecs(demLevel, message, projection, width, height, false);
       }
       const demNeighbours = demLevel ? terrainNeighbourSpecs(demLevel, demSpecs) : [];
+      const drawSpecs = baseReady
+        ? [...baseSpecs, ...fallbackSpecs, ...(targetLevel.id === baseLevel.id ? [] : targetSpecs)] : [];
+      return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs };
+    }
+
+    function renderTerrain(message, projection, width, height, dpr, visibleLand, plan) {
+      if (!plan) return true;
+      const { targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs } = plan;
+      terrainProtectedKeys.clear();
+      for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
       for (const spec of demSpecs) terrainProtectedKeys.add(`dem:${spec.key}`);
       const wantedDem = new Set([...demSpecs, ...demNeighbours].map(spec => spec.key));
       wantedDemKeys = wantedDem;
@@ -470,9 +530,6 @@ function canvasFallbackWorkerMain() {
       for (const spec of baseSpecs) requestTerrainTile(spec, 50_000);
       for (const spec of targetSpecs) requestTerrainTile(spec, 30_000);
       for (const spec of neighbours) requestTerrainTile(spec, 120);
-      const drawSpecs = baseReady
-        ? [...baseSpecs, ...fallbackSpecs, ...(targetLevel.id === baseLevel.id ? [] : targetSpecs)]
-        : [];
       for (let index = demQueue.length - 1; index >= 0; index -= 1) {
         if (wantedDem.has(demQueue[index].spec.key)) continue;
         demQueuedKeys.delete(demQueue[index].spec.key);
@@ -489,9 +546,10 @@ function canvasFallbackWorkerMain() {
         context.beginPath();
         // Use the same adopted country geometry as the Canvas substrate
         // and country fills, including country visibility and edit patches.
-        self.d3.geo.path().projection(projection).context(context)({ type: 'FeatureCollection', features: visibleLand });
+        const landPath = createCanvasPath(projection, context);
+        for (const feature of visibleLand) landPath(feature);
         for (const packet of message.scenePolygons || []) {
-          if (packet.role === 'territorial-fill') self.d3.geo.path().projection(projection).context(context)(self.PandoLabCanvasSceneComposition.geometryFor(packet));
+          if (packet.role === 'territorial-fill') landPath(self.PandoLabCanvasSceneComposition.geometryFor(packet));
         }
         context.clip();
       }
@@ -527,9 +585,10 @@ function canvasFallbackWorkerMain() {
           context.save();
           context.setTransform(dpr, 0, 0, dpr, 0, 0);
           context.beginPath();
-          self.d3.geo.path().projection(projection).context(context)({ type: 'FeatureCollection', features: visibleLand });
+          const landPath = createCanvasPath(projection, context);
+          for (const feature of visibleLand) landPath(feature);
           for (const packet of message.scenePolygons || []) {
-            if (packet.role === 'territorial-fill') self.d3.geo.path().projection(projection).context(context)(self.PandoLabCanvasSceneComposition.geometryFor(packet));
+            if (packet.role === 'territorial-fill') landPath(self.PandoLabCanvasSceneComposition.geometryFor(packet));
           }
           context.clip();
           drawDem('land');
@@ -537,6 +596,12 @@ function canvasFallbackWorkerMain() {
         }
       }
       context.restore();
+      return terrainComplete && demSpecs.every(spec => demTiles.has(spec.key));
+    }
+
+    function updateTerrainFrameStats(plan) {
+      if (!plan) { terrainFrameStats = {}; return; }
+      const { demSpecs, demLevel, targetLevel } = plan;
       terrainFrameStats = {
         terrainRepresentation: demSpecs.some(spec => demTiles.has(spec.key)) ? 'dem-relief-v1' : 'raster-rgba-v1',
         terrainDatasetVersion: demSpecs.some(spec => demTiles.has(spec.key)) ? terrainDemManifest.version : terrainManifest.version,
@@ -546,7 +611,30 @@ function canvasFallbackWorkerMain() {
         terrainCacheBytes: demCacheBytes + [...terrainTiles.values()].reduce((sum, tile) => sum + tile.physical.width * tile.physical.height * 8, 0),
         terrainDemCacheBytes: demCacheBytes,
       };
-      return terrainComplete && demSpecs.every(spec => demTiles.has(spec.key));
+    }
+
+    function canvasPathPadding(message) {
+      // D3 clips centerlines before Canvas applies stroke/point coverage.
+      let radius = 4.5; // D3 geo.path's point radius.
+      for (const style of [...Object.values(message.theme?.strokes || {}), ...(message.sceneStrokes || []).map(packet => packet.style)]) {
+        const extension = style.join === 'miter' ? 10 : style.cap === 'square' ? Math.SQRT2 : 1;
+        radius = Math.max(radius, Number(style.width || 0) * extension / 2);
+      }
+      for (const feature of activeHydroFeatures()) {
+        const profiles = feature.properties?.stroke_widths;
+        let width = Math.max(0.55, Math.min(2.6, Number(feature.properties?.stroke_width || 0.8)));
+        if (profiles) {
+          let maximum = hydroProfileWidths.get(profiles);
+          if (maximum === undefined) {
+            maximum = 0;
+            for (const part of profiles) for (const value of part) maximum = Math.max(maximum, Number(value) || 0);
+            hydroProfileWidths.set(profiles, maximum);
+          }
+          width = Math.max(width, maximum);
+        }
+        radius = Math.max(radius, width * Number(message.theme?.strokes?.river?.width || 1) / 2);
+      }
+      return Math.ceil(radius + 1 / Math.max(1, Number(message.dpr || 1)));
     }
 
     function createProjection(message, width, height) {
@@ -555,8 +643,12 @@ function canvasFallbackWorkerMain() {
       const translate = frame.translate || [width / 2, height / 2];
       if (message.projection === 'globe') {
         const fallback = Math.max(60, Math.min(width, height - 26) * 0.455) * Number(view.globeZoom || 1);
+        const padding = canvasPathPadding(message);
         return self.d3.geo.orthographic().translate(translate).scale(frame.scale || fallback)
-          .rotate(view.globeRotation || [-15, -25, 0]).clipAngle(90).precision(0.35);
+          .rotate(view.globeRotation || [-15, -25, 0]).clipAngle(90)
+          // Clip projected paths before Canvas rasterizes the enlarged globe.
+          // A context clip alone still submits its offscreen land and masks.
+          .clipExtent([[-padding, -padding], [width + padding, height + padding]]).precision(0.35);
       }
       const safe = frame.safeInset || { left: 0, top: 0, right: 0, bottom: 0 };
       return self.d3.geo.equirectangular().translate(translate)
@@ -576,7 +668,6 @@ function canvasFallbackWorkerMain() {
       const properties = feature.properties || {};
       if (properties.category === 'lake' ? !message.lakesVisible : !message.riversVisible) return false;
       if (message.physicalSettings?.hydroLayers?.[properties.layer_id] === false) return false;
-      if(!hydroEditFeatures.includes(feature)&&message.builtinHydroVisible===false)return false;
       if(message.hydroVisibility?.[String(properties.pandolab_id || feature.id)]===false)return false;
       return true;
     }
@@ -602,7 +693,7 @@ function canvasFallbackWorkerMain() {
 
     function renderHydroPass(message, projection, dpr, role, target = context, reserve = false) {
       const context = target;
-      const geoPath = self.d3.geo.path().projection(projection).context(context);
+      const geoPath = createCanvasPath(projection, context);
       const features = activeHydroFeatures();
       context.save();
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -627,10 +718,10 @@ function canvasFallbackWorkerMain() {
           context.fillStyle = featureColor;
           if (role === 'lake') context.fill();
           if (role === 'lake-boundary' && message.theme?.lakeBoundaryVisible !== false) {
-            const boundary = self.PandoLabGeographicBoundary.buildRenderableBoundarySegments(feature);
-            if (boundary.length) {
+            const outline = boundaryOutlineFeature(feature);
+            if (outline.geometry.coordinates.length) {
               context.beginPath();
-              geoPath({ type: 'MultiLineString', coordinates: boundary });
+              geoPath(outline);
               context.lineWidth = message.theme.strokes['hydro-boundary'].width;
               context.strokeStyle = featureColor;
               context.stroke();
@@ -646,10 +737,15 @@ function canvasFallbackWorkerMain() {
         context.strokeStyle = featureColor;
         for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
           const part = parts[partIndex];
+          let segments = hydroSegments.get(part);
+          if (!segments) {
+            segments = part.slice(1).map((end, index) => ({ type: 'LineString', coordinates: [part[index], end] }));
+            hydroSegments.set(part, segments);
+          }
           const widths = profiles[partIndex] || [];
           for (let index = 0; index < part.length - 1; index += 1) {
             context.beginPath();
-            geoPath({ type: 'LineString', coordinates: [part[index], part[index + 1]] });
+            geoPath(segments[index]);
             const start = Number(widths[index] ?? fallback);
             const end = Number(widths[index + 1] ?? start);
             context.lineWidth = (start + end) / 2 * message.theme.strokes.river.width;
@@ -749,16 +845,16 @@ function canvasFallbackWorkerMain() {
       return incoming.map((feature, index) => retainCountryGeometry(feature, previous.get(countryId(feature, index))));
     }
 
-    function countryOutlineFeature(feature) {
+    function boundaryOutlineFeature(feature) {
       const geometry = feature?.geometry;
-      if (geometry && countryOutlineCache.has(geometry)) return countryOutlineCache.get(geometry);
+      if (geometry && boundaryOutlineCache.has(geometry)) return boundaryOutlineCache.get(geometry);
       const lines = self.PandoLabGeographicBoundary.buildRenderableBoundarySegments(feature);
       const outline = { type: 'Feature', geometry: { type: 'MultiLineString', coordinates: lines }, properties: feature?.properties || {} };
-      if (geometry) countryOutlineCache.set(geometry, outline);
+      if (geometry) boundaryOutlineCache.set(geometry, outline);
       return outline;
     }
     function renderCountryBoundaries(message, projection, dpr, target = context, reserve = false) {
-      const theme = message.theme, path = self.d3.geo.path().projection(projection).context(target);
+      const theme = message.theme, path = createCanvasPath(projection, target);
       const hidden = new Set((message.hiddenSharedCountryIds || []).map(String));
       const sharedOnly = message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical';
       target.save(); target.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -769,7 +865,7 @@ function canvasFallbackWorkerMain() {
       if (!sharedOnly) for (let index = 0; message.visible && index < features.length; index++) {
         const feature = features[index], id = countryId(feature, index);
         if (hidden.has(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
-        target.beginPath(); path(countryOutlineFeature(feature)); target.stroke();
+        target.beginPath(); path(boundaryOutlineFeature(feature)); target.stroke();
       }
       const batches = self.PandoLabCanvasSceneComposition.countryBoundaryBatches(countrySharedBoundary, theme, sharedOnly,
         id => message.countryBoundaryStyles[id]);
@@ -800,8 +896,26 @@ function canvasFallbackWorkerMain() {
         const projection = createProjection(message, width, height);
         const theme = message.theme;
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
-        const geoPath = self.d3.geo.path().projection(projection).context(context);
+        const geoPath = createCanvasPath(projection, context);
         const visibleLand = message.visible ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
+        const landShapes = [...visibleLand.map(feature => feature.geometry), ...(message.scenePolygons || [])
+          .filter(packet => packet.role === 'territorial-fill').map(packet => self.PandoLabCanvasSceneComposition.geometryFor(packet))];
+        const terrainPlan = terrainRenderPlan(message, projection, width, height, dpr);
+        const substrateKey = JSON.stringify([projectedPathKey, pixelWidth, pixelHeight, dpr, message.terrainDpr,
+          message.physicalSettings?.terrainVisible, message.physicalSettings?.terrainStyle, message.darkTheme,
+          theme.baseLandAlpha, theme.defaultLand, terrainManifest?.version, terrainDemManifest?.version,
+          terrainPlan?.drawSpecs.filter(spec => terrainTiles.has(spec.key)).map(spec => spec.key),
+          terrainPlan?.demSpecs.filter(spec => demTiles.has(spec.key)).map(spec => spec.key)]);
+        const reuseSubstrate = substrate && substrateState?.key === substrateKey
+          && landShapes.length === substrateState.shapes.length
+          && landShapes.every((shape, index) => shape === substrateState.shapes[index]);
+        if (reuseSubstrate) {
+          context.setTransform(1, 0, 0, 1, 0, 0);
+          context.drawImage(substrate, 0, 0);
+          context.setTransform(dpr, 0, 0, dpr, 0, 0);
+          context.lineJoin = 'round'; context.lineWidth = theme.strokes.country.width;
+          terrainComplete = substrateState.complete;
+        }
         const paint = {
           substrate: () => {
         context.globalAlpha = theme.baseLandAlpha;
@@ -810,11 +924,12 @@ function canvasFallbackWorkerMain() {
         context.globalAlpha = 1;
           },
           terrain: () => {
-        terrainComplete = renderTerrain(message, projection, width, height, dpr, visibleLand);
+        terrainComplete = renderTerrain(message, projection, width, height, dpr, visibleLand, terrainPlan);
         if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
         const substrateContext = substrate.getContext('2d');
         substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
         substrateContext.drawImage(canvas, 0, 0);
+        substrateState = { key: substrateKey, shapes: landShapes, complete: terrainComplete };
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.lineJoin = 'round';
         context.lineWidth = theme.strokes.country.width;
@@ -847,6 +962,7 @@ function canvasFallbackWorkerMain() {
         self.PandoLabCanvasSceneComposition.drawOverlays(context, geoPath, message.scenePolygons || [], message.sceneStrokes || [], dpr, protection);
         };
         for (const role of message.visualOrder.base) {
+          if (reuseSubstrate && (role === 'substrate' || role === 'terrain')) continue;
           if (Object.hasOwn(paint, role)) paint[role]();
           else if (message.visualOrder.hydro.includes(role)) renderHydroPass(message, projection, dpr, role);
         }
@@ -869,6 +985,7 @@ function canvasFallbackWorkerMain() {
           priority: packet.interactionPriority || 5, style: packet.style });
         self.PandoLabCanvasSceneComposition.drawEmphasis(context, geoPath, emphasisEntries, dpr, protection);
         context.globalAlpha = 1;
+        updateTerrainFrameStats(terrainPlan);
       }
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({

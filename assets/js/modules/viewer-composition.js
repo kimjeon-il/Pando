@@ -117,7 +117,7 @@ export async function composeViewer({ productMode, meta }) {
   const files=createFileController({productMode,elements:{projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')},projectDomain,openProject:open,reportOperationError:report,window,document});
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
   action(get('builtinMapBtn'),'click',()=>open(()=>map.prepareBuiltinProject(),{source:'builtin'}));
-  display=createMapSettings({viewPresentation:map,onBackgroundChange:async(key,enabled)=>{if(enabled&&key==='builtinHydro')await owners.physicalResources.loadHydroData(true);if(enabled&&key==='builtinPlaces')await owners.territorialLabels.preparePlaces({force:true});}});
+  display=createMapSettings({viewPresentation:map,onLayerVisibilityChange:async(key,enabled)=>{if(enabled&&(key==='rivers'||key==='lakes'))await owners.physicalResources.loadHydroData(true);if(enabled&&key==='labels')await owners.territorialLabels.preparePlaces({force:true});}});
   display.connect({
     platform:{$:id=>get(id==='app'?'viewer':id),deepClone:structuredClone,clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},
     mapView:{...map.mapProjection,syncMapHostFromState:()=>map.renderingDomain.invalidateView()},mapNavigation:{ZOOM_LIMITS,FLAT_LATITUDE_LIMIT},

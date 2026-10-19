@@ -72,7 +72,7 @@ export function createProjectSession({productMode='editor',capabilities={terrain
       get selected() { return dependencies.domains.selectionDomain?.primary() || null; },
       projection: productMode==='editor'?'flat':'globe',
       resourceCapabilities:capabilities,
-      backgroundSettings:{...background,builtinHydro:capabilities.builtinHydro&&background.builtinHydro,builtinPlaces:capabilities.builtinPlaces&&background.builtinPlaces},
+      backgroundSettings:{...background},
       layerVisibility: normalizeLayerVisibility(),
       physicalSettings: {
         terrainVisible: capabilities.terrain && background.terrainVisible,

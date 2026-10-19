@@ -43,7 +43,11 @@ const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.LABEL_POSITIONS
   | MAP_RENDER_DIRTY.VIEW_PRESENTATION;
 
-const SETTLE_MASK = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
+// The viewport filters persistent object packets. Re-evaluate that set once
+// navigation ends so newly visible descendants contribute land and terrain
+// without waiting for an unrelated style change or background loading event.
+const SETTLE_MASK = MAP_RENDER_DIRTY.OVERLAY_GEOMETRY
+  | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
 const REPROJECT_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.BASE
   | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS

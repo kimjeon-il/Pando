@@ -42,7 +42,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
   }
 
   function preparePlaces({ force = false } = {}) {
-    if (!capabilities.builtinPlaces || (!force && dependencies.projectState.state.backgroundSettings?.builtinPlaces===false) || (!capabilities.eagerBuiltinPlaces && !dependencies.projectState.state.backgroundSettings.builtinPlaces && !force)) return Promise.resolve(false);
+    if (!capabilities.builtinPlaces || (!capabilities.eagerBuiltinPlaces && !force && builtinPlaces.snapshot().revision === 0)) return Promise.resolve(false);
     if (dependencies.projectState.state.mapMoving) { builtinPlaces.beginInteraction(); return Promise.resolve(false); }
     if (!force && dependencies.projectState.state.layerVisibility.labels === false) { builtinPlaces.cancelViewport(); return builtinPlaces.settle(null); }
     return builtinPlaces.settle(placeView());
@@ -201,7 +201,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     }
     const copiedIds = new Set(dependencies.projectState.state.labels.map(label => label.sourcePlaceId).filter(Boolean));
     const selectedIds = new Set(dependencies.domains.selectionDomain.snapshot().selection.items.filter(ref => ref.domain === 'label').map(ref => String(ref.id)));
-    const builtinLabels = dependencies.projectState.state.backgroundSettings.builtinPlaces===false ? [] : [...new Map([...builtinPlaces.snapshot().records, ...[...selectedIds].map(id => builtinPlaces.resolve(id)).filter(Boolean)].map(label => [label.id, label])).values()].filter(label => !copiedIds.has(label.id));
+    const builtinLabels = [...new Map([...builtinPlaces.snapshot().records, ...[...selectedIds].map(id => builtinPlaces.resolve(id)).filter(Boolean)].map(label => [label.id, label])).values()].filter(label => !copiedIds.has(label.id));
     const builtinIds = new Set(builtinLabels.map(label => label.id));
     const labelSources = [...dependencies.projectState.state.labels, ...builtinLabels];
     const placeLanguages = dependencies.preferences.userPreferences.labels.place.languages;

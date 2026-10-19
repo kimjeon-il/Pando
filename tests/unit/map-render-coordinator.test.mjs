@@ -108,6 +108,23 @@ test('interaction end coalesces settle work into the pending frame', () => {
   assert.equal(coordinator.getStats().fullRenderCount, 0);
 });
 
+test('camera settle refreshes viewport-culled objects once before drawing their land mask', () => {
+  const { calls, frames, coordinator } = fixture();
+  coordinator.beginInteraction();
+  coordinator.invalidate(MAP_RENDER_MASKS.VIEW, 'pan-to-child');
+  frames.shift()();
+  assert.equal(calls.some(call => call[0] === 'territorialUnits'), false, 'drag frames reuse prepared geometry');
+  calls.length = 0;
+  coordinator.endInteraction('viewport-culling-settle');
+  frames.shift()();
+  for (const name of ['hydroEdits', 'territorialUnits', 'distributions', 'genericFeatures']) {
+    assert.equal(calls.filter(call => call[0] === name).length, 1, `${name} must recheck the settled viewport`);
+  }
+  assert.ok(calls.findIndex(call => call[0] === 'territorialUnits') < calls.findIndex(call => call[0] === 'countries'));
+  assert.equal(calls.some(call => ['draft', 'vertices', 'selectionData'].includes(call[0])), false);
+  assert.equal(coordinator.getStats().fullRenderCount, 0);
+});
+
 test('GPU-only invalidation redraws the shared view without rebuilding overlay data', () => {
   const { calls, frames, coordinator } = fixture();
   coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, 'tile-ready');

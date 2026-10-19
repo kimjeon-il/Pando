@@ -12,7 +12,7 @@ test('hydro copy, delete and Undo/Redo derive source suppression without saving 
   session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
     uiFactoriesA:{createAtomicMapStateController:()=>({})},modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{}});
   session.initializeMapWorkScheduler();session.installDocumentProjection({documentModel:owner.documentModel,commandOwner:owner.client,entityStore:{snapshot:()=>[]}});
-  const state=session.state;state.backgroundSettings.builtinHydro=true;
+  const state=session.state;
   const defaults=structuredClone(owner.documentModel.snapshot().projectSetup);
   const result=await owner.project.executeCommand({commandId:'hydro.copy',targets:[{domain:'hydro',id}],payload:{feature:{type:'Feature',id,geometry:{type:'LineString',coordinates:[[1,2],[3,4]]},properties:{name:'Copied river',category:'river',editorColor:'#5488aa',sourceFeatureId:sourceId,source:structuredClone(seed.genericFeatures[0].properties.source)}}}});
   assert.equal(result.ok,true,JSON.stringify(result.error));

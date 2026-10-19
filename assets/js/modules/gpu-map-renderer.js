@@ -85,6 +85,13 @@ export function visibleFlatWorldOffsets({
   }, { worldOffset: 0, distance: Infinity }).worldOffset];
 }
 
+// Presentation changes may replace feature wrappers without changing the data
+// the Canvas Worker owns. Geometry revisions also detect in-place edits.
+export function canvasCountryGeometrySignature(features, projectGeneration) {
+  return JSON.stringify([projectGeneration, features.map(feature => [String(feature.id),
+    geometryRevisionKey(feature.geometry), feature.boundaryRootId || '', feature.boundaryPristine !== false])]);
+}
+
 export function createCountryGeometryRevisionTracker() {
   let committedRevision = 0;
   let displayedRevision = 0;
@@ -603,7 +610,7 @@ export function createGpuMapRenderer(deps) {
     let canvasStyleRevision = 0;
     let canvasPhysicalStyleRevision = 0;
     let canvasLastStyleSignature = '';
-    let canvasLastCountryFeatures = null;
+    let canvasLastCountryGeometrySignature = '';
     let canvasDisplayedStyleRevision = 0;
     let canvasLastPhysicalStyleSignature = '';
     let fallbackReason = '';
@@ -3919,7 +3926,6 @@ export function createGpuMapRenderer(deps) {
         riversVisible: !!state.layerVisibility.rivers,
         lakesVisible: !!state.layerVisibility.lakes,
         physicalSettings: deepClone(state.physicalSettings),
-        builtinHydroVisible:state.backgroundSettings?.builtinHydro!==false,
         hydroVisibility:deepClone(state.itemVisibility.hydro || {}),
         theme: mapTheme(),
         darkTheme: getSystemTheme() === 'dark',
@@ -3978,14 +3984,16 @@ export function createGpuMapRenderer(deps) {
       if (['init', 'replace-data', 'patch-countries'].includes(message.type) && message.features)
         message = { ...message, features: message.features.map(feature => ({ ...feature,
           boundaryGeometryRevision: geometryRevisionKey(feature.geometry) })) };
-      return canvasWorker?.postMessage(message) || false;
+      const sent = canvasWorker?.postMessage(message) || false;
+      if (sent && ['init', 'replace-data'].includes(message.type) && message.features)
+        canvasLastCountryGeometrySignature = canvasCountryGeometrySignature(message.features, projectGeneration);
+      return sent;
     }
 
     function syncCanvasWorkerState() {
       if (!canvasWorker || !canvasWorker.ready) return;
       const features = renderCountryFeatures?.() || [];
-      if (canvasLastCountryFeatures !== features) {
-        canvasLastCountryFeatures = features;
+      if (canvasLastCountryGeometrySignature !== canvasCountryGeometrySignature(features, projectGeneration)) {
         postCanvasWorkerMessage({ type: 'replace-data', features, fills: canvasCountryFills(features), projectGeneration,
           revision: currentRenderRevision, geometryRevision: geometryRevisionTracker.committedRevision() });
         prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
