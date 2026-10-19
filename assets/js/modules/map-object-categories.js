@@ -29,7 +29,7 @@ const MAP_OBJECT_DOMAINS = Object.freeze({
  * layer/presentation mapping, editor target and creation entry point.
  */
 export const MAP_OBJECT_TYPES = Object.freeze({
-  entity: freezeType({ key: 'entity', domain: 'territorial', type: 'entity', category: 'territorial', label: '객체', icon: 'icon-territory', layerGroup: 'countries', presentationGroup: 'countries', editor: 'entity', creatable: true, createButton: 'addEntityBtn', createAction: 'entity-create' }),
+  entity: freezeType({ key: 'entity', domain: 'territorial', type: 'entity', category: 'territorial', label: '객체', icon: 'icon-territory', layerGroup: 'objects', presentationGroup: 'objects', editor: 'entity', creatable: true, createButton: 'addEntityBtn', createAction: 'entity-create' }),
   distribution: freezeType({
     key: 'distribution',
     domain: MAP_OBJECT_DOMAINS.DISTRIBUTION,
@@ -110,7 +110,7 @@ export const MAP_OBJECT_CATEGORIES = Object.freeze({
   territorial: freezeCategory({
     key: 'territorial',
     label: '영토·구역',
-    layerGroups: ['countries', 'subunits', 'regions'],
+    layerGroups: ['objects'],
     createItems: ['entity'],
   }),
   distribution: freezeCategory({
@@ -124,7 +124,7 @@ export const MAP_OBJECT_CATEGORIES = Object.freeze({
     label: '지형지물',
     layerGroups: ['rivers', 'lakes', 'genericFeatures'],
     createItems: ['label', 'river', 'lake'],
-    viewGroups: ['labels', 'countryLabels'],
+    viewGroups: ['labels', 'objectLabels'],
   }),
 });
 

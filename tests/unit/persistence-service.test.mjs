@@ -38,8 +38,8 @@ function harness(overrides = {}) {
       cancel(key) { tasks.delete(key); },
     },
     canPersist: () => true,
-    buildAutosave: () => receipt({ format: 'autosave' }),
-    readView: () => ({ projection: 'flat', view: { flatZoom: 2 } }),
+    buildAutosave: () => receipt({ documentId:'test-document',format: 'autosave' }),
+    readView: () => ({ documentId:'test-document',projection: 'flat', view: { flatZoom: 2 } }),
     validateProject: value => {
       if (value.invalid) throw new Error('invalid');
       return value;
@@ -75,7 +75,7 @@ test('queued autosaves share a build and clear waits for an active write without
   const gate = new Promise(resolve => { release = resolve; });
   const current = harness({
     storage: { async writeProject(value) { await gate; this.project = value; } },
-    service: { buildAutosave: () => receipt({ format: 'autosave', build: ++builds }) },
+    service: { buildAutosave: () => receipt({ documentId:'test-document',format: 'autosave', build: ++builds }) },
   });
   const first = current.service.persist();
   await Promise.resolve();
@@ -111,11 +111,11 @@ test('unload flush and new-project entrypoints do not build or replace while rec
   await service.restore();
   let builds = 0;
   let replacements = 0;
-  const domain = createProjectDomain({ persistence: service,
+  const domain = createProjectDomain({ productMode:'editor', persistence: service,
     serializer: { buildAutosave: () => { builds++; return { name: 'default' }; } },
     replaceSnapshot: () => { replacements++; return true; } });
   await domain.flushAutosave();
-  await assert.rejects(domain.createEmpty(), /저장본/);
+  await assert.rejects(domain.createProject({initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}), /저장본/);
   assert.equal(builds, 0);
   assert.equal(replacements, 0);
   assert.equal(storage.project.name, 'db');
@@ -240,7 +240,7 @@ test('document and presentation queues share persistence but report distinct dir
   assert.deepEqual(events.slice(0, 2), [['dirty', 'presentation'], ['autosave', 'queued', undefined]]);
   assert.equal(tasks.get('autosave').delay, 25);
   await tasks.get('autosave').task();
-  assert.deepEqual(storage.project, { format: 'autosave' });
+  assert.deepEqual(storage.project, { documentId:'test-document',format: 'autosave' });
   assert.equal(events.some(event => event[0] === 'saved'), true);
   assert.equal(events.some(event => event[0] === 'autosave' && event[1] === 'saved'), true);
 });
@@ -250,32 +250,33 @@ test('view preferences use their own scheduled record and do not report project 
   service.queueView(10);
   await tasks.get('view-autosave').task();
   assert.deepEqual(storage.view, {
-    projection: 'flat', view: { flatZoom: 2 }, savedAt: '2026-08-29T00:00:00.000Z',
+    documentId:'test-document',projection: 'flat', view: { flatZoom: 2 }, savedAt: '2026-08-29T00:00:00.000Z',
   });
   assert.deepEqual(events, []);
 });
 
-test('restore keeps project and view separate and promotes a valid fallback', async () => {
+test('restore keeps project/view separate and protects a rejected slot alongside valid fallback', async () => {
   const current = harness();
-  current.storage.project = { format: 'project' };
-  current.storage.view = { projection: 'globe', view: { globeZoom: 3 } };
+  current.storage.project = { documentId:'test-document',format: 'project' };
+  current.storage.view = { documentId:'test-document',projection: 'globe', view: { globeZoom: 3 } };
   assert.deepEqual(await current.service.restore(), {
-    project: { format: 'project' }, source: 'indexeddb', view: current.storage.view,
+    project: { documentId:'test-document',format: 'project' }, source: 'indexeddb', view: current.storage.view,
   });
 
   const fallback = harness();
   fallback.storage.project = { invalid: true };
-  fallback.storage.fallback = { format: 'fallback' };
-  fallback.storage.view = { projection: 'flat' };
+  fallback.storage.fallback = { documentId:'test-document',format: 'fallback' };
+  fallback.storage.view = { documentId:'test-document',projection: 'flat' };
   const restored = await fallback.service.restore();
-  assert.deepEqual(restored, { project: { format: 'fallback' }, source: 'localstorage', view: { projection: 'flat' } });
-  assert.deepEqual(fallback.storage.project, { format: 'fallback' });
-  assert.equal(fallback.storage.fallback, null);
+  assert.deepEqual(restored, { project: { documentId:'test-document',format: 'fallback' }, source: 'localstorage', view: { documentId:'test-document',projection: 'flat' } });
+  assert.deepEqual(fallback.storage.project,{invalid:true});
+  assert.equal(fallback.service.getRecovery().kind,'unsupported');
+  assert.deepEqual(fallback.storage.fallback,restored.project);
 });
 
 test('async snapshot receipt writes only the project body and waits for checkpoint acknowledgement', async () => {
   const requested = barrier(), snapshot = barrier(), acknowledged = barrier(), saved = barrier();
-  const value = receipt({ format: 'autosave', revision: 3 }, { coreEpoch: 7 });
+  const value = receipt({ documentId:'test-document',format: 'autosave', revision: 3 }, { coreEpoch: 7 });
   let observed;
   const current = harness({ service: {
     buildAutosave: async () => { requested.release(); return snapshot.wait; },
@@ -302,7 +303,7 @@ test('cancelled snapshot completion cannot write or mark a replaced project save
   const pending = current.service.persist();
   await requested.wait;
   current.service.cancelPending();
-  snapshot.release(receipt({ format: 'old-project' }, { coreEpoch: 3 }));
+  snapshot.release(receipt({ documentId:'test-document',format: 'old-project' }, { coreEpoch: 3 }));
   await pending;
   assert.equal(current.storage.project, null);
   assert.deepEqual(current.events, []);
@@ -313,13 +314,13 @@ test('late device completion cannot delete another fallback or publish saved sta
   const current = harness({ storage: {
     async writeProject(project) { writing.release(); await finish.wait; this.project = project; },
   } });
-  current.storage.fallback = { format: 'retained-fallback' };
+  current.storage.fallback = { documentId:'test-document',format: 'retained-fallback' };
   const pending = current.service.persist();
   await writing.wait;
   current.service.cancelPending();
   finish.release();
   await pending;
-  assert.deepEqual(current.storage.fallback, { format: 'retained-fallback' });
+  assert.deepEqual(current.storage.fallback, { documentId:'test-document',format: 'retained-fallback' });
   assert.equal(current.events.some(row => row[0] === 'saved'), false);
   assert.equal(current.events.some(row => row[0] === 'autosave' && row[1] === 'saved'), false);
 });
@@ -331,7 +332,7 @@ test('checkpoint rejection after a successful device write never retries through
     onSaved: async () => { throw error; },
   } });
   await assert.rejects(current.service.persist(), candidate => candidate === error);
-  assert.deepEqual(current.storage.project, { format: 'autosave' });
+  assert.deepEqual(current.storage.project, { documentId:'test-document',format: 'autosave' });
   assert.equal(fallbacks, 0);
   assert.equal(current.events.some(row => row[0] === 'autosave' && row[1] === 'saved'), false);
 });
@@ -339,12 +340,12 @@ test('checkpoint rejection after a successful device write never retries through
 test('stale checkpoint acknowledgement leaves the next document autosave state untouched', async () => {
   const current = harness({ service: { onSaved: async () => false } });
   await current.service.persist();
-  assert.deepEqual(current.storage.project, { format: 'autosave' });
+  assert.deepEqual(current.storage.project, { documentId:'test-document',format: 'autosave' });
   assert.equal(current.events.some(row => row[0] === 'autosave' && row[1] === 'saved'), false);
 });
 
 test('retired project-only autosave result fails visibly before any device write', async () => {
-  const current = harness({ service: { buildAutosave: async () => ({ format: 'autosave' }) } });
+  const current = harness({ service: { buildAutosave: async () => ({ documentId:'test-document',format: 'autosave' }) } });
   await assert.rejects(current.service.persist(), /snapshot receipt/i);
   assert.equal(current.storage.project, null);
   assert.ok(current.events.some(row => row[0] === 'autosave' && row[1] === 'error'));
@@ -352,7 +353,7 @@ test('retired project-only autosave result fails visibly before any device write
 });
 
 test('fallback uses the same body and checkpoint receipt after the IndexedDB write fails', async () => {
-  const value = receipt({ format: 'autosave', revision: 2 }, { coreEpoch: 6 });
+  const value = receipt({ documentId:'test-document',format: 'autosave', revision: 2 }, { coreEpoch: 6 });
   let acknowledgement;
   const current = harness({ storage: {
     async writeProject() { throw new Error('IndexedDB unavailable'); },
@@ -384,8 +385,8 @@ test('cancelled acknowledgement errors retain diagnostics without publishing fai
 test('timeline-only session view never builds or writes the full project', async () => {
   let month = '1989-06', builds = 0;
   const { service, storage, tasks, events } = harness({ service: {
-    buildAutosave: () => { builds++; return receipt({ format: 'pandolab-autosave-full' }); },
-    readView: () => ({ projection: 'flat', view: { flatZoom: 2 }, lastViewedMonth: month }),
+    buildAutosave: () => { builds++; return receipt({ documentId:'test-document',format: 'pandolab-autosave-full' }); },
+    readView: () => ({ documentId:'test-document',projection: 'flat', view: { flatZoom: 2 }, lastViewedMonth: month }),
   } });
   service.queueView(10);
   month = '1990-01';
@@ -393,20 +394,20 @@ test('timeline-only session view never builds or writes the full project', async
   assert.equal(builds, 0);
   assert.equal(storage.project, null);
   assert.equal(storage.view.lastViewedMonth, '1990-01');
-  assert.equal(storage.view.projectSavedAt, null);
+  assert.equal(storage.view.documentId,'test-document');
   assert.equal(events.some(row => row[0] === 'autosave' && row[1] === 'saved'), false);
 });
 
-test('cursor hint is scoped to last fully saved document and survives an unchanged restore', async () => {
+test('cursor hint is scoped to stable document identity and survives an unchanged restore', async () => {
   const stamp = '2026-10-16T08:00:00.000Z';
   let month = '1914-07';
   const { service, storage, tasks } = harness({ service: {
-    buildAutosave: () => receipt({ format: 'pandolab-autosave-full', savedAt: stamp, marker: 'edited' }),
-    readView: () => ({ projection: 'flat', view: {}, lastViewedMonth: month }),
+    buildAutosave: () => receipt({ documentId:'test-document',format: 'pandolab-autosave-full', savedAt: stamp, marker: 'edited' }),
+    readView: () => ({ documentId:'test-document',projection: 'flat', view: {}, lastViewedMonth: month }),
   } });
   await service.persist();
   await tasks.get('view-autosave').task();
-  assert.equal(storage.view.projectSavedAt, stamp);
+  assert.equal(storage.view.documentId,'test-document');
   month = '1914-06';
   service.queueView(10);
   await tasks.get('view-autosave').task();
@@ -417,12 +418,11 @@ test('cursor hint is scoped to last fully saved document and survives an unchang
 
 test('a stale cursor from another imported document does not override its reopening hint', async () => {
   const { service, storage } = harness();
-  storage.project = { format: 'pandolab-autosave-full', savedAt: '2026-10-16T09:00:00.000Z' };
+  storage.project = { documentId:'test-document',format: 'pandolab-autosave-full', savedAt: '2026-10-16T09:00:00.000Z' };
   storage.view = { projection: 'globe', lastViewedMonth: '1989-06',
-    projectSavedAt: '2026-10-16T07:00:00.000Z', savedAt: '2026-10-16T10:00:00.000Z' };
+    documentId:'other-document', savedAt: '2026-10-16T10:00:00.000Z' };
   const restored = await service.restore();
-  assert.equal(restored.view.lastViewedMonth, undefined);
-  assert.equal(restored.view.projection, 'globe');
+  assert.equal(restored.view,null);
   assert.equal(restored.project.savedAt, storage.project.savedAt);
 });
 
@@ -432,8 +432,8 @@ test('light session writes wait for the full autosave and adopt its committed id
   const { service, storage, tasks } = harness({
     storage: { async writeProject(value) { started.release(); await finish.wait; this.project = value; } },
     service: {
-      buildAutosave: () => receipt({ format: 'pandolab-autosave-full', savedAt: stamp }),
-      readView: () => ({ lastViewedMonth: '1989-06' }),
+      buildAutosave: () => receipt({ documentId:'test-document',format: 'pandolab-autosave-full', savedAt: stamp }),
+      readView: () => ({documentId:'test-document', lastViewedMonth: '1989-06' }),
     },
   });
   const full = service.persist();
@@ -444,14 +444,14 @@ test('light session writes wait for the full autosave and adopt its committed id
   finish.release();
   await Promise.all([full, writeView]);
   assert.equal(storage.view.lastViewedMonth, '1989-06');
-  assert.equal(storage.view.projectSavedAt, stamp);
+  assert.equal(storage.view.documentId,'test-document');
 });
 
 test('cancelled session writes cannot resurrect a cleared project view', async () => {
   const blocker = barrier(), release = barrier();
   const current = harness({ storage: {
     async writeProject(value) { blocker.release(); await release.wait; this.project = value; },
-  }, service: { readView: () => ({ lastViewedMonth: '1989-06' }) } });
+  }, service: { readView: () => ({documentId:'test-document', lastViewedMonth: '1989-06' }) } });
   const full = current.service.persist();
   await blocker.wait;
   current.service.queueView(10);

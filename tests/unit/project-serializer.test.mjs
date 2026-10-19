@@ -24,11 +24,11 @@ test('full and delta autosaves contain immutable archive geometry while detachin
 
 test('project header and physical source metadata use the current common contract',()=>{
   const entities=[entity('A'),entity('S','general',{parentId:'A'}),entity('R','regional',{})];
-  const snapshot=staticSerializerSnapshot({territorialEntities:entities,projectFields:{labels:[],layerVisibility:{countries:false}},terrainManifest:{dataset:'terrain-current',version:'1'},hydroManifest:{dataset:'hydro-current',selection:{rivers:true}}});
+  const snapshot=staticSerializerSnapshot({territorialEntities:entities,projectFields:{labels:[]},physicalSourceInfo:{hydro:{dataset:'hydro-current',selection:{rivers:true}}}});
   const project=serializer(snapshot).buildProject();
   assert.equal(project.schemaVersion,PROJECT_SCHEMA_VERSION);assert.equal(project.savedAt,'2026-10-03T00:00:00.000Z');
   assert.equal(project.territorialModel.storage,'territorialEntities');assert.equal(project.territorialModel.schemaVersion,6);
-  assert.deepEqual(project.territorialEntities,snapshot.territorialEntities);assert.equal(project.physicalSourceInfo.terrain.dataset,'terrain-current');assert.deepEqual(project.physicalSourceInfo.hydro.selection,{rivers:true});
+  assert.deepEqual(project.territorialEntities,snapshot.territorialEntities);assert.equal(Object.hasOwn(project.physicalSourceInfo,'terrain'),false);assert.deepEqual(project.physicalSourceInfo.hydro.selection,{rivers:true});
   for(const key of ['countriesData','countryOverrides','territorialUnits','countryDelta','territorialRelations','projection','view'])assert.equal(key in project,false);
   assert.deepEqual(project.territorialModel.kinds,['general','regional']);assert.equal('types' in project.territorialModel,false);
 });
@@ -50,7 +50,7 @@ test('external full projects remain independent from the builtin delta baseline 
   const source=staticSerializerSnapshot({territorialEntities:[entity('external')],fullAutosave:true});
   const project=serializer(source).buildProject();assert.equal(project.baseDataset,'external-territorial-entities');
   const {territorialEntities,...projectFields}=project;
-  const reopened=serializer({territorialEntities,projectFields,fullAutosave:project.baseDataset !== 'base'}).buildAutosave();
+  const reopened=serializer({documentId:project.documentId,physicalSourceInfo:project.physicalSourceInfo,territorialEntities,projectFields,fullAutosave:project.baseDataset !== 'base'}).buildAutosave();
   assert.equal(reopened.format,'pandolab-autosave-full');assert.deepEqual(reopened.territorialEntities,project.territorialEntities);
   assert.deepEqual(reopened.timelineRecords,project.timelineRecords);assert.deepEqual(reopened.geometries,project.geometries);
   assert.equal('entityDelta' in reopened,false);

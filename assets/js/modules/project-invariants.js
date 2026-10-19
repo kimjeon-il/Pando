@@ -165,9 +165,9 @@ export function validateProjectReferenceIntegrity({
 
   }
 
-  for (const group of ['countries', 'countryLabels']) {
+  for (const group of ['objects', 'objectLabels']) {
     for (const id of Object.keys(itemVisibility?.[group] || {})) {
-      if (!countryIds.has(text(id))) issues.push(issue('PL-INV-ORPHAN-COUNTRY-VISIBILITY', `존재하지 않는 국가 ${id}의 표시 설정이 남아 있습니다.`, [id], `itemVisibility.${group}`));
+      if (!territorialIds.has(text(id))) issues.push(issue('PL-INV-ORPHAN-ENTITY-VISIBILITY', `존재하지 않는 객체 ${id}의 표시 설정이 남아 있습니다.`, [id], `itemVisibility.${group}`));
     }
   }
 

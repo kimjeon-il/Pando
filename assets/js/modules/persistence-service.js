@@ -31,16 +31,10 @@ export function createPersistenceService({
   let recovery = null;
   let restoring = false;
   let resolving = false;
-  let activeProjectSavedAt = null;
+  let activeDocumentId=null;
   let lastPreviewContentRevision = null;
-  const projectSavedAt = project => typeof project?.savedAt === 'string' ? project.savedAt : null;
-  const scopedView = (view, project) => {
-    if (!view || typeof view !== 'object' || !Object.hasOwn(view, 'lastViewedMonth')) return view;
-    if (view.projectSavedAt === projectSavedAt(project)) return view;
-    // Preserve independent camera preferences but reject a previous project's month.
-    const { lastViewedMonth: _month, projectSavedAt: _identity, ...rest } = view;
-    return rest;
-  };
+  const documentId=project=>typeof project?.documentId==='string'?project.documentId:null;
+  const scopedView=(view,project)=>view && documentId(project) && view.documentId===documentId(project)?view:null;
   const getRecovery = () => recovery ? structuredClone(recovery) : null;
   const setRecovery = value => {
     recovery = value;
@@ -126,7 +120,7 @@ export function createPersistenceService({
       detail.outcome = fallback ? 'localstorage' : 'indexeddb';
       if (fallback) onAutosaveState(AUTOSAVE_STATES.SAVED, { fallback: '브라우저 로컬 저장소' });
       else onAutosaveState(AUTOSAVE_STATES.SAVED);
-      activeProjectSavedAt = projectSavedAt(autosaveProject);
+      activeDocumentId = documentId(autosaveProject);
       queueView();
       // Geometry preview is independent of presentation-only and session
       // persistence. A Core content checkpoint plus project generation and
@@ -178,6 +172,7 @@ export function createPersistenceService({
 
   function queueView(delay = 120) {
     const expectedEpoch = persistenceEpoch;
+    const expectedId=readView()?.documentId || activeDocumentId;
     scheduler.scheduleIdle('view-autosave', () => {
       const startedAt = metricNow();
       // Order light session writes after any active full document write so
@@ -185,8 +180,8 @@ export function createPersistenceService({
       const pending = writeTail.then(async () => {
         if (expectedEpoch !== persistenceEpoch || restoring || recovery || !canPersist()) return false;
         const view = readView() || {};
-        await storage.writeView({ ...view,
-          ...(typeof view.lastViewedMonth === 'string' ? { projectSavedAt: activeProjectSavedAt } : {}),
+        if(!expectedId || view.documentId!==expectedId)return false;
+        await storage.writeView({ ...view,documentId:expectedId,
           savedAt: now().toISOString() });
         return true;
       });
@@ -210,11 +205,6 @@ export function createPersistenceService({
     let rejectedError = null;
     let view = null;
     try {
-      try {
-        view = await storage.readView();
-      } catch (error) {
-        onWarning('IndexedDB view restore failed', error);
-      }
       const reads = await Promise.allSettled([
         storage.readProject(), Promise.resolve().then(() => storage.readFallback()),
       ]);
@@ -268,20 +258,21 @@ export function createPersistenceService({
         }
         if (Number.isFinite(localTime) && (!Number.isFinite(dbTime) || localTime > dbTime)) chosen = local;
       }
-      if (deferResolution && chosen) {
+      if (deferResolution && chosen && !rejectedError) {
         setRecovery({ kind: 'conflict', candidates: [chosen], view });
         return { project: null, source: null, view: scopedView(view, null) };
       }
-      setRecovery(null);
+      if(chosen)try{view=await storage.readView(chosen.project.documentId);}catch(error){onWarning('Project workspace restore failed',error);}
+      setRecovery(rejectedError?{kind:'unsupported',candidates,view:null}:null);
       if (!chosen) return { project: null, source: null, error: rejectedError, view: scopedView(view, null) };
-      if (chosen.source === 'localstorage' || candidates.length === 2) {
+      if (!rejectedError && (chosen.source === 'localstorage' || candidates.length === 2)) {
         try {
           await storage.writeProject(chosen.project);
           storage.removeFallback();
         } catch (error) { onWarning('Autosave promotion failed; fallback retained', error); }
       }
       outcome = chosen.source;
-      activeProjectSavedAt = projectSavedAt(chosen.project);
+      activeDocumentId = documentId(chosen.project);
       return { ...chosen, view: scopedView(view, chosen.project) };
     } finally {
       restoring = false;
@@ -298,7 +289,7 @@ export function createPersistenceService({
       storage.writeFallback(result.project);
     }
     setRecovery(null);
-    activeProjectSavedAt = projectSavedAt(result.project);
+    activeDocumentId = documentId(result.project);
     queueView();
   }
 
@@ -335,7 +326,7 @@ export function createPersistenceService({
     persistenceEpoch += 1;
     previewCache?.cancel();
     queuedAutosave = null;
-    activeProjectSavedAt = null;
+    activeDocumentId = null;
     lastPreviewContentRevision = null;
     scheduler.cancel('autosave');
     scheduler.cancel('view-autosave');

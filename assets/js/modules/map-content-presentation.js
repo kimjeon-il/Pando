@@ -1,5 +1,5 @@
 import {temporalContains,temporalMonthEnd} from './temporal.js';
-import {territorialSymbolGroup} from './layer-presentation.js';
+import {territorialPaintRole} from './layer-presentation.js';
 import {resolveMapStrokeStyle} from './map-interaction-style.js';
 import {distributionValueRange,distributionValueAlpha} from './distribution-model.js';
 import {createTerritorialFillResolver} from './territorial-fill-style.js';
@@ -18,7 +18,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const state = countries.getState?.() || {};
     const renderViewState = requireFrame(frame);
     countries.renderPendingCountryOverlays?.(renderViewState);
-    const pending = state.layerVisibility?.countries && state.pendingCountryRenderIds?.size
+    const pending = state.layerVisibility?.objects && state.pendingCountryRenderIds?.size
       ? [...state.pendingCountryRenderIds].map(countries.getEntity).filter(Boolean)
       : [];
     const pendingPolygons = [];
@@ -148,9 +148,9 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       terrainAlpha: theme.countryColorAlpha });
     t.syncBuiltinPalette?.();
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
-    const displayedUnits = t.displayEntities().filter(entity => territorialSymbolGroup(entity) !== 'countries');
+    const displayedUnits = t.displayEntities().filter(entity => territorialPaintRole(entity) !== 'country-fill');
     const data = displayedUnits.filter(feature => {
-      const group = territorialSymbolGroup(feature);
+      const group = 'objects';
       const selected = t.selectionHas?.(t.normalizeObjectRef?.({
         domain: 'territorial', type: 'entity', id: feature.id,
       }));
@@ -198,13 +198,13 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       .style('fill-opacity', 0)
       .style('stroke', 'none').style('stroke-opacity', 0).style('stroke-width', 0).style('stroke-dasharray', 'none')
       .style('mix-blend-mode', 'normal')
-      .attr('data-presentation-group', territorialSymbolGroup);
+      .attr('data-presentation-group', 'objects');
     selection?.exit().remove();
     t.territorialOperationLayer?.selectAll('path.territorial-unit-operation-outline').remove();
     const polygons = [];
     const strokes = [];
     for (const feature of data) {
-      const group = territorialSymbolGroup(feature) || 'subunits';
+      const group = 'objects';
       const unitStyle = resolveFill(feature);
       const objectKey = t.normalizeObjectRef?.({ domain: 'territorial', type: 'entity', id: feature.id })?.key
         || `territorial:entity:${feature.id}`;
@@ -218,7 +218,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     t.replaceGpuSceneDomain?.('territorial-units', { polygons, strokes });
     const boundaryFeatures = displayedUnits.filter(feature => {
       if (t.isNativeBuiltinSubunit?.(feature)) return false;
-      const group = territorialSymbolGroup(feature) || 'subunits';
+      const group = 'objects';
       return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id);
     });
     renderTerritorialInternalBoundaries(boundaryFeatures);
@@ -472,13 +472,13 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     } else pendingTerritorialBoundary = null;
     const visibleIds = new Set(visibleFeatures.map(feature => String(feature.id)));
     const styleByType = new Map([
-      ['subunit', { presentationGroup: 'subunits' }],
-      ['subunit-internal', { presentationGroup: 'subunits' }],
-      ['region', { presentationGroup: 'regions' }],
+      ['subunit', { presentationGroup: 'objects' }],
+      ['subunit-internal', { presentationGroup: 'objects' }],
+      ['region', { presentationGroup: 'objects' }],
     ]);
     const visibleSignature = [...visibleIds].sort().map(id => {
       const feature = visibleFeatures.find(item => String(item.id) === id);
-      return `${id}:${t.territorialEntityColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, territorialSymbolGroup(feature), `territorial:entity:${id}`))}`;
+      return `${id}:${t.territorialEntityColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, 'objects', `territorial:entity:${id}`))}`;
     }).join('|');
     const styleSignature = [...styleByType].map(([type, definition]) => {
       const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
@@ -489,8 +489,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     // change makes that archive ineligible as a GPU upload fallback (M3), even
     // while an otherwise valid new topology is still being prepared.
     const continuityOwnerIds = [...visibleIds].sort().filter(id => {
-      const feature = visibleFeatures.find(item => String(item.id) === id);
-      const style = t.layerStyle?.(state.layerPresentation, territorialSymbolGroup(feature), `territorial:entity:${id}`) || {};
+      const style = t.layerStyle?.(state.layerPresentation, 'objects', `territorial:entity:${id}`) || {};
       return style.boundaryVisible !== false && Number(style.opacity ?? 1) > 0;
     });
     const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature};${boundaryColor}`;
@@ -523,7 +522,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     // owner with different cache and transition timing.
     t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
-      const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits' };
+      const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'objects' };
       return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 'territorial-boundary', '', index), style: resolveMapStrokeStyle({ color: group.color, layerStyle: { opacity: group.opacity, boundaryWidth: 1 } }, group.styleType) };
     }) });
     return true;
@@ -537,6 +536,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
   const renderBase = (viewState = null) => {
     syncBaseView(viewState);
     const b = base;
+    if(b.getState().backgroundSettings?.graticule===false){b.replaceGpuSceneDomain('base-graticule',{strokes:[]});return true;}
     const graticuleGeometry = b.graticule?.();
     if (!graticuleGeometry) return false;
     const light = b.isLightTheme?.() ?? true;

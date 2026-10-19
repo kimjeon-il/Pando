@@ -23,9 +23,8 @@ export async function createRuntimeProfile() {
     return Object.freeze({
       mode: 'full-world',
       platform: Object.freeze({
-        physicalResourcesEnabled: true,
-        builtinPlacesEnabled: true,
-        deferPhysicalUntilReady: true,
+        builtinHydroAvailable: true,
+        builtinPlacesAvailable: true,
         startupMesh: 'builtin',
         storageNamespace: 'pandoeditor-web-shell-world-v1',
       }),
@@ -56,8 +55,8 @@ export async function createRuntimeProfile() {
         // The shell must not share the website's world cache or its cleanup.
         cacheStorage: null,
       }),
-      physicalResourcesEnabled: false,
-      builtinPlacesEnabled: false,
+      builtinHydroAvailable: false,
+      builtinPlacesAvailable: false,
       startupMesh: 'project',
       storageNamespace: 'pandoeditor-web-shell-prototype-v1',
     }),

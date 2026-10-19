@@ -90,6 +90,67 @@ export function createEditingPresentation({active,editing,interaction,selection,
     },
   });
   const localEditingPoint = () => interaction.d3?.mouse?.(interaction.svg?.node?.() || interaction.svg) || null;
+  const touchBindings = new WeakMap();
+  const bindTouchVertex = (node, kind, row, targetRef, rows, frame) => {
+    if (!editing.isMobile?.()) return;
+    let binding = touchBindings.get(node);
+    if (binding) { Object.assign(binding, { kind, row, targetRef, rows, frame }); return; }
+    binding = { kind, row, targetRef, rows, frame }; touchBindings.set(node, binding);
+    let pointer = null, start = null, moving = false, cancelled = false, epoch = 0, gesture = '', choices = [];
+    let chain = Promise.resolve();
+    const point = event => {
+      const rect = (interaction.svg?.node?.() || interaction.svg).getBoundingClientRect();
+      return [event.clientX - rect.left, event.clientY - rect.top];
+    };
+    const dispatch = (suffix, p) => {if(suffix!=='select'&&epoch!==editing.inputRevision())return publishEditingInteraction({type:'gesture-cancel'});return publishEditingInteraction({
+      type: binding.kind + '-' + suffix, gestureId: gesture, targetRef: binding.targetRef,packetRevision:editing.currentRevision(),
+      vertexKey: binding.row.nodeKey || binding.row.key || null, vertexIndex: binding.row.index,
+      screenPoint: p, pointerType: 'touch',
+    });};
+    const enqueue = operation => {
+      chain = chain.then(operation).catch(error => { cancelled = true; reportEditingOperationError(error, { type: 'touch-vertex' }); });
+    };
+    const confirmedChoice = () => getPacket().selectedVertex && choices.find(candidate =>
+      (candidate.nodeKey || candidate.key || null) === getPacket().selectedVertex.vertexKey && binding.kind === getPacket().selectedVertex.kind);
+    node.addEventListener('pointerdown', event => {
+      if (event.pointerType !== 'touch' || pointer !== null) return;
+      event.preventDefault(); pointer = event.pointerId; start = point(event); moving = false; cancelled = false;
+      epoch = editing.inputRevision(); gesture = 'touch-vertex-' + (++editingGestureSequence); node.setPointerCapture(pointer);
+      choices = binding.rows.filter(candidate => {
+        const p = frameProjectCoordinate(candidate.coordinate || candidate.coord, binding.frame);
+        return p && Math.hypot(p[0] - start[0], p[1] - start[1]) <= 22;
+      });
+      const confirmed = confirmedChoice();
+      if (confirmed) binding.row = confirmed;
+      if (choices.length <= 1 || confirmed) enqueue(() => dispatch('select', start));
+    });
+    node.addEventListener('pointermove', event => {
+      if (event.pointerId !== pointer) return;
+      event.preventDefault();
+      if (epoch !== editing.inputRevision()) { cancelled = true; return; }
+      if (cancelled) return;
+      const p = point(event);
+      if (!moving && Math.hypot(p[0] - start[0], p[1] - start[1]) < 8) return;
+      if (choices.length > 1 && !confirmedChoice()) return;
+      if (!moving) { moving = true; enqueue(() => dispatch('drag-start', start)); }
+      enqueue(() => dispatch('drag-move', p));
+    });
+    node.addEventListener('pointerup', event => {
+      if (event.pointerId !== pointer) return;
+      event.preventDefault(); const p = point(event); pointer = null; cancelled ||= epoch !== editing.inputRevision();
+      if (cancelled) { enqueue(() => publishEditingInteraction({ type: 'gesture-cancel' })); return; }
+      if (moving) { enqueue(() => dispatch('drag-end', p)); return; }
+      if (choices.length > 1) {
+        const generation = getPacket().projectGeneration;
+        editing.openVertexChooser(choices, p, chosen => publishEditingInteraction({
+          type: binding.kind + '-select', projectGeneration: generation, targetRef: binding.targetRef,
+          vertexKey: chosen.nodeKey || chosen.key || null, vertexIndex: chosen.index, pointerType: 'touch',
+        }));
+      }
+    });
+    node.addEventListener('pointercancel', () => { pointer = null; cancelled = true; enqueue(() => publishEditingInteraction({ type: 'gesture-cancel' })); });
+    node.addEventListener('click', event => { if (event.pointerType === 'touch') { event.preventDefault(); event.stopPropagation(); } }, true);
+  };
   const editingDragBehavior = (kind, targetRef = null) => {
     let gestureId = '';
     return interaction.d3?.behavior?.drag?.()
@@ -276,7 +337,8 @@ export function createEditingPresentation({active,editing,interaction,selection,
     }
     const allVertices = layer.selectAll('circle.vertex-handle');
     allVertices
-      .attr('r', boundaryMode ? (editing.isMobile?.() ? 7.2 : 5.2) : 4.5)
+      .attr('r', editing.isMobile?.()?22:(boundaryMode?5.2:4.5))
+      .classed('touch-vertex-handle',!!editing.isMobile?.())
       .classed('country-vertex', boundaryMode)
       .classed('coast-vertex', d => boundaryMode && d.boundaryKind === 'coast')
       .classed('shared-boundary-vertex', d => boundaryMode && d.boundaryKind === 'shared')
@@ -285,6 +347,8 @@ export function createEditingPresentation({active,editing,interaction,selection,
         const point = points.get(d);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
+    const dotJoin=layer.selectAll('circle.vertex-visible-dot').data(editing.isMobile?.()?data:[],d=>d.nodeKey||d.key||d.index);dotJoin.exit().remove();dotJoin.enter().append('circle').attr('class','vertex-visible-dot').attr('pointer-events','none');
+    layer.selectAll('circle.vertex-visible-dot').attr('r',d=>(d.nodeKey||d.key)===packet.selectedVertex?.vertexKey?7:5).attr('fill',d=>d.fixed?'#7b8b9c':'#b9dfff').attr('stroke','#17314b').attr('stroke-width',1.5).attr('transform',d=>{const p=points.get(d);return p?'translate('+p[0]+','+p[1]+')':'translate(-9999,-9999)';});
     const eventVertices = handlesChanged ? allVertices : enteredVertices;
     eventVertices.on('.drag', null);
     const dragKind = boundaryMode ? 'boundary-vertex' : 'object-vertex';
@@ -295,7 +359,9 @@ export function createEditingPresentation({active,editing,interaction,selection,
         else eventVertices.call(behavior);
       }
     }
-    eventVertices.on('click.vertex-select', null);
+    eventVertices.on('click.vertex-select',function(d){const source=editing.d3.event;if(source?.pointerType==='touch')return;source?.stopPropagation();publishEditingInteraction({type:dragKind+'-select',targetRef:objectPacket?.targetRef,vertexKey:d.nodeKey||d.key||null,vertexIndex:d.index});});
+    if(editing.isMobile?.()){allVertices.on('touchstart.drag',null);allVertices.each(function(d){bindTouchVertex(this,dragKind,d,objectPacket?.targetRef,rows,frameContext);});}
+    allVertices.classed('selected',d=>(d.nodeKey||d.key)===packet.selectedVertex?.vertexKey);
     eventVertices.each(function(d) {
       let title = editing.d3?.select(this).select('title');
       if (title?.empty?.()) title = editing.d3.select(this).append('title');
@@ -409,7 +475,32 @@ export function createEditingPresentation({active,editing,interaction,selection,
       .each(function(d) { const node = interaction.d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(d.message || '지도 오류'); });
     return reprojectEditingLayer(layer, frameContext);
   };
+  const renderMagnifier = (frame, packet) => {
+    const root = editing.vertexLayer;
+    if (!root) return;
+    const value = packet.magnifier;
+    const join = root.selectAll('svg.editing-magnifier').data(value ? [value] : []);
+    join.exit().remove();
+    const enter = join.enter().append('svg').attr('class', 'editing-magnifier').attr('width', 116).attr('height', 116)
+      .attr('viewBox', '-29 -29 58 58').attr('pointer-events', 'none');
+    enter.append('rect').attr('x', -29).attr('y', -29).attr('width', 58).attr('height', 58).attr('rx', 8)
+      .attr('fill', '#142437').attr('stroke', '#d9eaff').attr('stroke-width', 1);
+    const all = root.selectAll('svg.editing-magnifier');
+    if (!value) return;
+    all.attr('x', Math.max(6, value.screenPoint[0] - 58)).attr('y', Math.max(6, value.screenPoint[1] - 154));
+    const center = frameProjectCoordinate(value.coordinate, frame);
+    if (!center) return;
+    const segments = packet.boundaryEdit?.segments || packet.objectVertices?.previewSegments || packet.draft?.segments || [];
+    const data = segments.map(row => ({ a: frameProjectCoordinate(row.start, frame), b: frameProjectCoordinate(row.end, frame) }))
+      .filter(row => row.a && row.b && Math.min(Math.hypot(row.a[0] - center[0], row.a[1] - center[1]), Math.hypot(row.b[0] - center[0], row.b[1] - center[1])) < 80);
+    const lines = all.selectAll('line').data(data); lines.enter().append('line'); lines.exit().remove();
+    all.selectAll('line').attr('x1', d => d.a[0] - center[0]).attr('y1', d => d.a[1] - center[1])
+      .attr('x2', d => d.b[0] - center[0]).attr('y2', d => d.b[1] - center[1]).attr('stroke', '#8fd3ff').attr('stroke-width', 1);
+    const dot = all.selectAll('circle').data([value]); dot.enter().append('circle');
+    all.selectAll('circle').attr('r', 2.5).attr('fill', packet.snap ? '#80f0ba' : '#ffffff').attr('stroke', '#152638').attr('stroke-width', 1);
+  };
   const renderSnap = (frameContext = null, packet = getPacket()) => {
+    renderMagnifier(frameContext, packet);
     active();
     const layer = interaction.snapLayer;
     if (!layer) return false;
@@ -469,7 +560,7 @@ export function createEditingPresentation({active,editing,interaction,selection,
       this.parentNode.appendChild(this);
       const node = d3.select(this);
       if (node.select('circle').empty()) {
-        node.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile?.() ? 16 : 10);
+        node.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile?.() ? 22 : 10);
         node.append('circle').attr('class', 'draft-vertex-dot').attr('r', isMobile?.() ? 6.5 : 4.5);
         node.append('title');
       }
@@ -477,6 +568,7 @@ export function createEditingPresentation({active,editing,interaction,selection,
     });
     const drag = editingDragBehavior('draft-vertex');
     if (drag) vertices.call(drag);
+    if(isMobile?.()){vertices.on('touchstart.drag',null);vertices.each(function(d){bindTouchVertex(this,'draft-vertex',d,null,draft.vertices,frameContext);});}
     renderDraftInsertionHandle(frameContext, packet);
     const issues = joinEditingNodes(layer, 'g.draft-issue-marker', draft.issues.filter(d => d.coordinate), (d, i) => d.kind + ':' + (d.vertexIndex ?? d.segmentIndex ?? i));
     issues.each(function(d) {

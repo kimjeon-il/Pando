@@ -22,7 +22,7 @@ for (const [canonicalIds, activeIds, expected] of [
     let targetRequests = 0;
     const entry = { mesh: { triangleIndices: [] }, countryIds: canonicalIds };
     const gl = { bindFramebuffer() {}, viewport() {}, enable() {} };
-    const result = ensureScene(() => true, gl, {}, { layerVisibility: { countries: true } },
+    const result = ensureScene(() => true, gl, {}, { layerVisibility: { objects: true } },
       () => { targetRequests += 1; }, new Map([['canonical', entry]]), 'preview', activeIds,
       () => 'cached-scene', 'cached-scene', {}, 10, 10);
     assert.equal(result, expected);

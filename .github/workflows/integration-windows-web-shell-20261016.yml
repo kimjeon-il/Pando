@@ -9,8 +9,8 @@ on:
       - 'assets/js/modules/app-environment.js'
       - 'assets/js/modules/app-progressive-startup.js'
       - 'assets/js/modules/app-composition.js'
-      - 'assets/js/modules/deferred-physical-startup.js'
-      - 'tests/unit/deferred-physical-startup.test.mjs'
+      - 'assets/js/modules/resource-capabilities.js'
+      - 'tests/unit/editor-resource-capabilities.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -54,7 +54,7 @@ jobs:
       - name: Run focused canonical shell and file tests
         shell: pwsh
         run: |
-          node --test tests/unit/deferred-physical-startup.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs apps/web-shell/tests/stage-world.test.mjs apps/web-shell/tests/stage.test.mjs apps/web-shell/tests/network-guard.test.mjs
+          node --test tests/unit/editor-resource-capabilities.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs apps/web-shell/tests/stage-world.test.mjs apps/web-shell/tests/stage.test.mjs apps/web-shell/tests/network-guard.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Stage and hash the actual committed full-world data
         shell: pwsh
