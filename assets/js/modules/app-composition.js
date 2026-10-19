@@ -97,7 +97,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   const objectMetadata = factoryObjectMetadata.createObjectMetadata();
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
-  const mapSettings = factoryMapSettings.createMapSettings({viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onBackgroundChange:async(key,enabled)=>{if(!enabled)return;if(key==='builtinHydro')await physicalResources.loadHydroData(true);if(key==='builtinPlaces')await territorialLabels.preparePlaces({force:true});},afterProjectionChange:()=>{pointerTargets.invalidateEditInteraction();domainAssembly.projectDomain.queueViewAutosave();}});
+  const mapSettings = factoryMapSettings.createMapSettings({viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onLayerVisibilityChange:async(key,enabled)=>{if(!enabled)return;if(key==='rivers'||key==='lakes')await physicalResources.loadHydroData(true);if(key==='labels')await territorialLabels.preparePlaces({force:true});},afterProjectionChange:()=>{pointerTargets.invalidateEditInteraction();domainAssembly.projectDomain.queueViewAutosave();}});
   const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace });
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
@@ -247,8 +247,6 @@ export async function composeApplication({ productMode, revision, platform = {},
         }));
         window.addEventListener('pandolab:project-changed', taskPresentation.syncEditingContext);
         taskPresentation.syncEditingContext();
-        if(projectSession.state.backgroundSettings.builtinHydro)await physicalResources.loadHydroData(true);
-        if(projectSession.state.backgroundSettings.builtinPlaces)await territorialLabels.preparePlaces({force:true});
         const launcher=document.getElementById('referenceImageBtn');let referenceLoading=null;
         const loadReference=event=>{
           event.preventDefault();event.stopImmediatePropagation();

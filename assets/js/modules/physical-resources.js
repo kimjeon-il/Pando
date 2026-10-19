@@ -26,7 +26,7 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
   }
 
   async function loadHydroData(force = false) {
-    if (!capabilities.builtinHydro || (!force && dependencies.projectState.state.backgroundSettings?.builtinHydro===false) || (!capabilities.eagerBuiltinHydro && !force)) return false;
+    if (!capabilities.builtinHydro || (!capabilities.eagerBuiltinHydro && !force)) return false;
     return hydroService.load(force);
   }
 

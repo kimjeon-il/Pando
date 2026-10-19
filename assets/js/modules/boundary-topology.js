@@ -5,6 +5,7 @@ import { countryGeometrySignature } from './country-shared-boundary-cache.js';
 import { territorialRootId } from './territorial-units.js';
 import { sharedCalculationCore } from './temporal.js';
 import { computeCountrySharedContacts } from './country-contact-core.js';
+import { multiCoordinates } from './map-edit-geometry.js';
 
 for (const capability of ['boundaryOpposingInteriors', 'boundaryOpposingInteriorsBatch', 'boundaryEdgeBoxesBatch']) {
   if (typeof sharedCalculationCore?.[capability] !== 'function') {
@@ -435,9 +436,6 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
   const rootIds = new Set((countries || [])
     .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
     .map((feature, index) => featureId(feature, index)));
-  const countryFeatures = (countries || [])
-    .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
-    .map((feature, index) => topologyFeature(feature, 'country', index));
   const unitFeatures = (units || [])
     .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
     .map((feature, index) => topologyFeature(feature, 'unit', index));
@@ -447,6 +445,22 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
     entityKind: feature.properties?.entityKind || '',
     rootId: territorialRootId(entities.get(featureId(feature).replace(/^unit:/, '')), id => entities.get(id)),
   }]));
+  // A root's editable polygon may exclude its children (including islands).
+  // Only the exterior of the complete general hierarchy is a coast; using the
+  // root polygon alone hid land contacts and painted child coastlines dashed.
+  // Derive the exclusion geometry with the shared polygon kernel, without
+  // replacing canonical entity geometry or including independent regions.
+  const countryFeatures = (countries || [])
+    .filter(feature => rootIds.has(String(feature.id)))
+    .map((feature, index) => {
+      const members = unitFeatures.filter(unit => {
+        const meta = unitMeta.get(unit.id);
+        return meta.entityKind === 'general' && meta.rootId === String(feature.id);
+      });
+      const geometry = members.length ? { type: 'MultiPolygon', coordinates: sharedCalculationCore.polygonOperation('union',
+        [feature, ...members].map(item => multiCoordinates(item.geometry)), false) } : feature.geometry;
+      return topologyFeature({ ...feature, geometry }, 'country', index);
+    });
   const topology = buildBoundaryTopology([...countryFeatures, ...unitFeatures], { precision, epsilon });
   const countryEdges = [...topology.segments.values()].filter(segment => [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')));
   const boundaryTolerance = Math.max(1e-4, epsilon * 1000);

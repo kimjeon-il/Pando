@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const workerSource = readFileSync(new URL('../../assets/js/workers/canvas-render-worker.js', import.meta.url), 'utf8');
+const terrainCoreSource = readFileSync(new URL('../../assets/js/workers/canvas-terrain-dem-core.js', import.meta.url), 'utf8');
 const manifest = { gutter: 1, urlTemplate: 'terrain/v0.12.6/{level}/{column}-{row}.webp', levels: [
   { id: 0, width: 1350, height: 675, columns: 2, rows: 1, tileSize: 1024 },
   { id: 1, width: 2700, height: 1350, columns: 3, rows: 2, tileSize: 1024 },
@@ -11,7 +12,7 @@ const manifest = { gutter: 1, urlTemplate: 'terrain/v0.12.6/{level}/{column}-{ro
 const settle = async () => { for (let i = 0; i < 24; i++) await Promise.resolve(); };
 
 function canvasTerrainRuntime() {
-  const messages = [], requests = [], drawn = [], paths = [], substrates = [];
+  const messages = [], requests = [], drawn = [], paths = [], substrates = [], triangleCopies = [];
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; this.ctx = null; }
     getContext() {
@@ -20,7 +21,7 @@ function canvasTerrainRuntime() {
         this.ctx = {
           canvas, setTransform() {}, clearRect() {}, save() {}, restore() {}, beginPath() {},
           moveTo() {}, lineTo() {}, arc() {}, closePath() {}, stroke() {}, fill() {}, clip() {}, setLineDash() {},
-          drawImage(...args) { if (args.length === 9) drawn.push(args); },
+          drawImage(...args) { if (args.length === 9) drawn.push(args); if (args[0]?.probeTriangle) triangleCopies.push(args); },
           getImageData() { return { data: new Uint8ClampedArray(canvas.width * canvas.height * 4) }; },
           putImageData() {},
         };
@@ -30,12 +31,13 @@ function canvasTerrainRuntime() {
     transferToImageBitmap() { return { close() {} }; }
   }
   function projection() {
-    let scale = 350, translate = [500, 300];
+    let scale = 350, translate = [500, 300], center = [0, 0];
     const project = point => [translate[0] + point[0] * scale * Math.PI / 180,
       translate[1] - point[1] * scale * Math.PI / 180];
     project.scale = function(value) { if (!arguments.length) return scale; scale = value; return project; };
     project.translate = function(value) { if (!arguments.length) return translate; translate = value; return project; };
-    for (const field of ['center', 'rotate', 'precision', 'clipExtent', 'clipAngle']) project[field] = () => project;
+    project.center = function(value) { if (!arguments.length) return center; center = value; return project; };
+    for (const field of ['rotate', 'precision', 'clipExtent', 'clipAngle']) project[field] = () => project;
     return project;
   }
   const scope = {
@@ -55,8 +57,10 @@ function canvasTerrainRuntime() {
   const fetch = url => url.endsWith('manifest.json')
     ? Promise.resolve({ ok: true, json: async () => manifest })
     : new Promise(resolve => requests.push({ url, resolve, completed: false }));
+  new Function('self', terrainCoreSource)(scope);
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
-    'ImageData', 'performance', 'setTimeout', workerSource)(
+    'ImageData', 'performance', 'setTimeout', workerSource.replace('self.onmessage = event => {',
+      'self.drawTerrainTriangle = drawTexturedTriangle; self.onmessage = event => {'))(
     scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
     { now: () => 1 }, () => 0);
@@ -80,7 +84,8 @@ function canvasTerrainRuntime() {
   send({ ...frame, type: 'init', features,
     terrainManifestUrl: 'https://example.test/assets/data/terrain/v0.12.6/manifest.json' });
   return {
-    messages, requests, drawn, paths, substrates, features, send,
+    messages, requests, drawn, paths, substrates, features, send, triangleCopies,
+    drawTriangle: points => scope.drawTerrainTriangle({ probeTriangle: true }, [[0, 0], [1, 0], [0, 1]], points, 1),
     render: extra => send({ ...frame, ...extra, type: 'view' }),
     levels: () => requests.map(request => Number(request.url.match(/\/(\d+)\/\d+-\d+\.webp$/)?.[1])),
     async deliver(request) {
@@ -92,6 +97,18 @@ function canvasTerrainRuntime() {
     find: suffix => requests.find(request => !request.completed && request.url.endsWith(suffix)),
   };
 }
+
+test('Canvas terrain skips wholly offscreen triangles while keeping crossing and antialiased edge triangles', async () => {
+  const h = canvasTerrainRuntime(); await settle(); h.render();
+  h.drawTriangle([[-20, -20], [-10, -20], [-20, -10]]);
+  h.drawTriangle([[1010, 100], [1020, 100], [1010, 110]]);
+  h.drawTriangle([[100, 610], [110, 610], [100, 620]]);
+  assert.equal(h.triangleCopies.length, 0, 'offscreen tiles must not submit image copies');
+  h.drawTriangle([[2, 2], [10, 2], [2, 10]]);
+  h.drawTriangle([[-100, 300], [1100, 300], [500, -100]]);
+  h.drawTriangle([[-.5, 0], [-.2, 10], [-.5, 20]]);
+  assert.equal(h.triangleCopies.length, 3, 'viewport crossings and the existing 0.75px clip overlap remain visible');
+});
 
 test('Canvas terrain demand ignores country preview and backing DPR, but follows source DPR', async () => {
   const h = canvasTerrainRuntime(); await settle(); h.render();
@@ -115,26 +132,61 @@ test('Canvas keeps complete world coverage and masks only accepted visible count
   await h.deliver(h.find('/0/0-0.webp'));
   h.render(); assert.equal(h.drawn.length, 0, 'do not expose a half-loaded world base');
   await h.deliver(h.find('/0/1-0.webp'));
-  h.drawn.length = 0; h.paths.length = 0; h.substrates.length = 0;
+  h.drawn.length = 0; h.substrates.length = 0;
   h.render();
   assert.equal(h.drawn.length, 6, 'two world tiles form a complete flat projection reserve');
   assert.equal(h.messages.at(-1).terrainComplete, false, 'detail is still progressive');
-  const mask = h.paths.find(path => path.type === 'FeatureCollection');
-  assert.deepEqual(mask.features.map(feature => feature.id), ['VISIBLE']);
+  assert.deepEqual(h.paths, [h.features[0].geometry], 'only accepted visible geometry is compiled for the mask');
   assert.deepEqual(h.substrates.at(-1).map(feature => feature.id), ['VISIBLE']);
   const modified = structuredClone(h.features[0]);
   modified.geometry.coordinates[0][1][0] = 3;
   h.send({ type: 'replace-data', features: [modified, h.features[1]],
     geometryRevision: 1, projectGeneration: 1 });
   h.paths.length = 0; h.drawn.length = 0; h.render();
-  assert.equal(h.paths.find(path => path.type === 'FeatureCollection').features[0]
-    .geometry.coordinates[0][1][0], 3, 'the mask follows the adopted geometry revision');
+  assert.equal(h.paths[0].coordinates[0][1][0], 3, 'the mask follows the adopted geometry revision');
   assert.equal(h.drawn.length, 6, 'country edits do not evict world terrain coverage');
   h.paths.length = 0; h.render({ visible: false });
-  assert.deepEqual(h.paths.find(path => path.type === 'FeatureCollection').features, []);
+  assert.deepEqual(h.paths, []);
+  assert.deepEqual(h.substrates.at(-1), [], 'hidden country land is not drawn');
   const detail = h.requests.find(request => !request.completed && /\/2\//.test(request.url));
   assert.ok(detail);
   await h.deliver(detail);
   h.drawn.length = 0; h.render();
   assert.equal(h.drawn.length, 9, 'ready detail tiles overlay the retained two-tile world base');
+});
+
+test('Canvas paint-only frames reuse the terrain substrate, while camera, land visibility and arriving tiles invalidate it', async () => {
+  const h=canvasTerrainRuntime();await settle();h.render();
+  await h.deliver(h.find('/0/0-0.webp'));await h.deliver(h.find('/0/1-0.webp'));h.render();
+  h.drawn.length=0;
+  h.render({fills:{VISIBLE:{fillAlpha:0,color:''}}});
+  assert.equal(h.drawn.length,0,'changing object color must not reproject terrain tiles');
+  h.render({view:{flatCenter:[1,0],flatZoom:1},renderProjection:{scale:350,translate:[490,300]}});
+  assert.equal(h.drawn.length,6,'camera changes redraw the terrain');
+  h.drawn.length=0;h.render({visible:false});
+  assert.equal(h.drawn.length,6,'visibility changes redraw the land mask');
+  h.drawn.length=0;h.render({visible:false,darkTheme:true});
+  assert.equal(h.drawn.length,6,'theme changes redraw the terrain');
+  const detail=h.requests.find(request=>!request.completed && /\/2\//.test(request.url));await h.deliver(detail);
+  h.drawn.length=0;h.render({visible:false,darkTheme:true});
+  assert.equal(h.drawn.length,9,'arriving detailed terrain must replace the cached preview');
+  const child = { role:'territorial-fill', geometry:structuredClone(h.features[0].geometry), style:{fillAlpha:0} };
+  h.drawn.length=0;h.render({scenePolygons:[child]});
+  assert.equal(h.drawn.length,9,'new child land invalidates the mask');
+  h.drawn.length=0;h.render({scenePolygons:[{...child,style:{fillAlpha:.68}}]});
+  assert.equal(h.drawn.length,0,'child paint does not own terrain geometry');
+  h.render({scenePolygons:[{...child,geometry:structuredClone(child.geometry)}]});
+  assert.equal(h.drawn.length,9,'replacement child geometry invalidates the mask');
+});
+
+test('Canvas neighbour prefetch does not redraw the ready viewport terrain', async () => {
+  const h=canvasTerrainRuntime();await settle();h.render();
+  await h.deliver(h.find('/0/0-0.webp'));await h.deliver(h.find('/0/1-0.webp'));h.render();
+  for(let count=0;!h.find('/2/0-0.webp') && count<30;count++) {
+    const pending=h.requests.find(request=>!request.completed);
+    assert.ok(pending);await h.deliver(pending);h.render();
+  }
+  const neighbour=h.find('/2/0-0.webp');assert.ok(neighbour);
+  await h.deliver(neighbour);h.drawn.length=0;h.render();
+  assert.equal(h.drawn.length,0,'offscreen prefetch must not trigger a full terrain repaint');
 });

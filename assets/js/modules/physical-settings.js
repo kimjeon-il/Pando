@@ -152,7 +152,7 @@ export function createHydroSettings() {
       const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature.properties?.category);
       return dependencies.projectState.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('hydro', id);
     }
-    return dependencies.projectState.state.backgroundSettings?.builtinHydro!==false && hydroLayerVisible(feature?.properties?.layer_id) && dependencies.projectState.state.itemVisibility.hydro?.[id]!==false;
+    return hydroLayerVisible(feature?.properties?.layer_id) && dependencies.projectState.state.itemVisibility.hydro?.[id]!==false;
   }
 
   function allBuiltInHydroFeatures() {

@@ -10,7 +10,7 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ viewPresentation = null,authoredStyles=false,onBackgroundChange=null,afterProjectionChange=null } = {}) {
+export function createMapSettings({ viewPresentation = null,authoredStyles=false,onLayerVisibilityChange=null,afterProjectionChange=null } = {}) {
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let desktopViewMenuPath = [];
@@ -121,6 +121,7 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
       dependencies.domains.renderingDomain?.invalidateBaseScene?.('layer-visibility');
       if (key === 'objects') dependencies.domains.renderingDomain.invalidateLabels('layer-visibility');
     }
+    if (onLayerVisibilityChange) await onLayerVisibilityChange(key, visible);
   }
 
   function syncPlaceLanguageChecks() {
@@ -631,14 +632,12 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
     const state=dependencies.projectState.state;
     for(const input of surface.querySelectorAll('[data-map-background]')) {
       const key=input.dataset.mapBackground;
-      input.closest('label').hidden=(key==='builtinHydro'&&!state.resourceCapabilities.builtinHydro)||(key==='builtinPlaces'&&!state.resourceCapabilities.builtinPlaces);
       input.checked=state.backgroundSettings[key];
       input.addEventListener('change',()=>runViewAction(async()=>{
         state.backgroundSettings[key]=input.checked;
         const current=dependencies.preferences.userPreferences;
         const mode=authoredStyles?'editor':'viewer';
         dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,[mode]:{...current.backgrounds[mode],[key]:input.checked}}}));
-        if(onBackgroundChange)await onBackgroundChange(key,input.checked);
         dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
         dependencies.domains.renderingDomain.invalidateBaseScene('background-preference');
         dependencies.domains.renderingDomain.invalidateLabels('background-preference');

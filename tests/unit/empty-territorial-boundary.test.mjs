@@ -1,7 +1,8 @@
 import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTerritorialInternalBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
+import { readFileSync } from 'node:fs';
+import { buildCountrySharedBoundarySegments, buildTerritorialInternalBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
 
 test('no polygon units never inspect canonical country geometry', () => {
   const countries = [{ get geometry() { throw new Error('must not inspect countries'); } }];
@@ -73,4 +74,39 @@ test('country exteriors are not duplicated by territorial boundary segments', ()
   assert.deepEqual(buildTerritorialInternalBoundarySegments([country()], [
     polygon('whole', [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], { entityKind: 'general', parentId: 'A' }),
   ]), []);
+});
+
+test('exclusive child territory keeps its land contact and excludes its coast and detached islands', () => {
+  const root = country();
+  const child = polygon('child', [[4, 0], [6, 0], [6, 4], [4, 4], [4, 0]], { entityKind: 'general', parentId: 'A' });
+  const island = polygon('island', [[8, 0], [9, 0], [9, 1], [8, 1], [8, 0]], { entityKind: 'general', parentId: 'child' });
+  const before = structuredClone([root, child, island]);
+  const segments = buildTerritorialInternalBoundarySegments([root], [child, island]);
+  assert.ok(segments.length, 'the land contact must remain visible');
+  assert.ok(segments.every(segment => segment.a[0] === 4 && segment.b[0] === 4), 'sea-facing child edges must not become internal boundaries');
+  assert.ok(Math.abs(segments.reduce((sum, segment) => sum + Math.abs(segment.a[1] - segment.b[1]), 0) - 4) < 1e-9);
+  assert.ok(segments.every(segment => segment.unitOwners.some(owner => owner.id === 'child')));
+  assert.deepEqual([root, child, island], before);
+});
+
+test('Hong Kong and Macao source coastlines never enter the persistent child boundary scene', () => {
+  const feature = id => {
+    const source = JSON.parse(readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/${id.toLowerCase()}.json`, import.meta.url), 'utf8')).entities[0];
+    return { type: 'Feature', id, properties: { entityKind: source.entityKind, parentId: source.parentEntityId.replace('state:', '') }, geometry: source.geometryVersions[0].geometry };
+  };
+  const root = feature('CHN'), children = [feature('HKG'), feature('MAC')];
+  const before = structuredClone([root, ...children]);
+  const segments = buildTerritorialInternalBoundarySegments([root], children);
+  assert.ok(segments.some(segment => segment.unitOwners.some(owner => owner.id === 'HKG')), 'Hong Kong land border must remain');
+  // The current Macao source has no shared source edge with CHN. Do not
+  // invent a land contact to compensate for that separate data discrepancy.
+  const contacts = buildCountrySharedBoundarySegments([root, ...children]);
+  const length = rows => rows.reduce((sum, row) => {
+    const a = row.a || row.start, b = row.b || row.end;
+    return sum + Math.hypot(a[0] - b[0], a[1] - b[1]);
+  }, 0);
+  assert.ok(Math.abs(length(segments) - length(contacts)) < 1e-7, 'only the actual shared land contact remains');
+  assert.equal(segments.filter(segment => segment.unitOwners.some(owner => owner.id === 'HKG') && Math.max(segment.a[1], segment.b[1]) < 22.3).length, 0, 'Hong Kong southern islands are coast, not internal boundary');
+  assert.equal(segments.filter(segment => segment.unitOwners.some(owner => owner.id === 'MAC') && Math.max(segment.a[1], segment.b[1]) < 22.18).length, 0, 'Macao southern islands are coast, not internal boundary');
+  assert.deepEqual([root, ...children], before);
 });

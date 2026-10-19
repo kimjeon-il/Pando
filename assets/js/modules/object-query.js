@@ -37,11 +37,11 @@ export function createObjectQuery(dependencies) {
     const group=layerGroupForObjectRef(ref);
     const master=ref.domain==='hydro'?(ref.type==='lake'?'lakes':'rivers'):group;
     if(!group||state.layerVisibility[master]===false)return false;
-    if(ref.domain==='label'&&isBuiltinPlaceId(ref.id)&&state.backgroundSettings?.builtinPlaces===false)return false;
+    if(ref.domain==='label'&&isBuiltinPlaceId(ref.id)&&state.resourceCapabilities?.builtinPlaces===false)return false;
     if(ref.domain==='hydro'&&!dependencies.hydroPresentation.hydroEditById(ref.id)) {
       const feature=dependencies.hydroModel.hydroFeatureById(ref.id);
       const id=String(feature?.properties?.pandolab_id||feature?.id||ref.id);
-      return state.backgroundSettings?.builtinHydro!==false&&state.itemVisibility.hydro?.[id]!==false;
+      return state.resourceCapabilities?.builtinHydro!==false&&state.itemVisibility.hydro?.[id]!==false;
     }
     return dependencies.layerPresentation.isLayerItemVisible(group,ref.id);
   }
