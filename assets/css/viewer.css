@@ -6,8 +6,8 @@
 
 .viewer-root #viewerStatus { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .viewer-root .timeline-status { margin-inline-start: auto; }
+.viewer-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .map-command-toolbar .map-command-search { display: block; }
 @media (max-width: 799px) {
-  .viewer-root[data-layout="mobile"] .map-command-toolbar .map-command-search { display: block; }
   .viewer-root .map-bottom-status .status-inner { gap: var(--ui-space-2); }
   .viewer-root #viewerStatus { max-width: 50%; }
 }
