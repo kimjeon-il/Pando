@@ -27,6 +27,9 @@ test('map command bar owns add while selection and editor context own object con
   assert.doesNotMatch(html, /id="modeTaskTargetsFocusBtn"/);
   assert.match(html, /id="editorDeleteSection"[\s\S]*?id="objectDeleteBtn"/);
   assert.match(html, /<div id="editorDeleteSection" class="editor-action-list editor-delete-control hidden">/);
+  assert.match(html, /id="editorTaskSlot"[^>]*>\s*<div id="modeEditingContext"/);
+  assert.match(html, /id="mapTopContextSlot"[^>]*>\s*<div id="modeMapSummary"[^>]*><\/div>\s*<\/div>/);
+  assert.equal((html.match(/id="modeEditingContext"/g) || []).length, 1);
   assert.doesNotMatch(html, /<section id="editorDeleteSection"|editor-delete-section/);
   const add = toolbar.match(/<button id="createMenuBtn"[\s\S]*?<\/button>/)[0];
   assert.match(add, /aria-haspopup="menu"/);
