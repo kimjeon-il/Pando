@@ -10,13 +10,11 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
   }
   function applyAutosavedView(viewRecord) {
     if (!viewRecord || typeof viewRecord!=='object' || viewRecord.documentId!==dependencies.domains.projectDomain.snapshot().documentId) return false;
-    const state=dependencies.projectState.state;
     dependencies.projectSession.restoreViewingPresentation(viewRecord);
-    if (viewRecord.projection==='globe' || viewRecord.projection==='flat') state.projection=viewRecord.projection;
-    if (viewRecord.view && typeof viewRecord.view==='object') {
-      const valid=Object.fromEntries(Object.entries(viewRecord.view).filter(([key,value])=>['flatZoom','globeZoom'].includes(key)?Number.isFinite(value)&&value>0:['flatCenter','globeRotation'].includes(key)&&Array.isArray(value)&&value.length===(key==='flatCenter'?2:3)&&value.every(Number.isFinite)));
-      state.view=dependencies.mapNavigation.clampViewZooms({...state.view,...valid});
-    }
+    const view=Object.fromEntries(Object.entries(viewRecord.view || {}).filter(([key,value])=>['flatZoom','globeZoom'].includes(key)?Number.isFinite(value)&&value>0:['flatCenter','globeRotation'].includes(key)&&Array.isArray(value)&&value.length===(key==='flatCenter'?2:3)&&value.every(Number.isFinite)));
+    const projection=['globe','flat'].includes(viewRecord.projection)?viewRecord.projection:dependencies.projectState.state.projection;
+    const camera=dependencies.projectSession.atomicMapStateController;
+    camera.commit(camera.begin({kind:'workspace-restore'}),{projection,view});
     return true;
   }
   async function applyAutosavedTimeline(viewRecord) {

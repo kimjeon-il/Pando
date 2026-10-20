@@ -8,7 +8,7 @@ test('enumerate visible editable 1989 Soviet coastline vertices and nearby sourc
   test.setTimeout(180000);
   await gotoEditor(page, '/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:120000});
-  await page.locator('#flatBtn').evaluate(button=>button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await setEditorMonth(page, '1989-06');
   await expect.poll(()=>page.evaluate(()=>!!window.PANDOLAB_TERRITORIAL.get('state:soviet-union')),
     {timeout:90000}).toBe(true);

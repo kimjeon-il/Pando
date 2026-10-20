@@ -1,10 +1,11 @@
 import { isMapVisualFrame } from './map-visual-frame.js';
+import { resourceCapabilities } from './resource-capabilities.js';
 
 /** MapProjection: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapProjection() {
+export function createMapProjection({capabilities=resourceCapabilities('viewer')}={}) {
   let dependencies;
   let mapLayoutMetricsSnapshot;
   let mapLayoutMetricsRefreshCount;
@@ -195,20 +196,20 @@ export function createMapProjection() {
     (mapLayoutMetricsRefreshCount = 0);
   }
 
-  function initializeGlobeProjection() {
-    (globeProjection = dependencies.platform.d3.geo.orthographic().clipAngle(90).precision((0, dependencies.surfaces.isMobile)() ? 0.9 : 0.35));
+  function initializeProjections() {
+    if(capabilities.globe)(globeProjection = dependencies.platform.d3.geo.orthographic().clipAngle(90).precision((0, dependencies.surfaces.isMobile)() ? 0.9 : 0.35));
 
     (flatProjection = dependencies.platform.d3.geo.equirectangular().precision((0, dependencies.surfaces.isMobile)() ? 0.7 : 0.25));
 
     (path = dependencies.platform.d3.geo.path().pointRadius(5));
 
-    (graticule = dependencies.platform.d3.geo.graticule());
+    if(capabilities.graticule)(graticule = dependencies.platform.d3.geo.graticule());
   }
 
   return Object.freeze({
     connect,
     initializeMapLayoutMetricsSnapshot,
-    initializeGlobeProjection,
+    initializeProjections,
     get activeProjection() { return activeProjection; },
     get currentMapSafeInsets() { return currentMapSafeInsets; },
     get flatProjection() { return flatProjection; },
