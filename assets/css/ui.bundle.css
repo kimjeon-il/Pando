@@ -6723,8 +6723,11 @@ body.file-menu-open .app-root .topbar {
   line-height: var(--ui-line-normal);
 }
 
-.editor-action-list > .editor-delete-control {
-  display: contents;
+/* The destructive action has one permanent owner after the selected form.
+   All object types reuse this row; only selection and the active tab show it. */
+.surface-content-editor > .editor-delete-control {
+  flex: 0 0 auto;
+  margin-top: var(--ui-space-1);
 }
 
 .editor-action-row.editor-delete-row:hover:not(:disabled) {

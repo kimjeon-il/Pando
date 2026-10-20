@@ -80,7 +80,7 @@ test('territorial selection enters the editor directly and preserves its flag me
   await expect(page.locator('#flagRemoveBtn')).toBeDisabled();
 });
 
-test('object deletion shares the coast action spacing and is destructive only on hover', async ({ page }) => {
+test('object deletion remains in its shared action footer and is destructive only on hover', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -107,14 +107,14 @@ test('object deletion shares the coast action spacing and is destructive only on
     await page.mouse.move(0, 0);
     await expect(deletion).toBeVisible();
     expect(await deletion.evaluate(row => ({
-      host: row.parentElement.parentElement.classList.contains('editor-action-list'),
+      host: row.parentElement.parentElement.classList.contains('surface-content-editor'),
       previous: row.parentElement.previousElementSibling?.id,
       section: row.parentElement.tagName,
-    }))).toEqual({ host: true, previous: 'editEntityCoastBtn', section: 'DIV' });
-    const border = await page.locator('#editEntityBorderBtn').boundingBox();
+    }))).toEqual({ host: true, previous: 'hydroProperties', section: 'DIV' });
     const coast = await page.locator('#editEntityCoastBtn').boundingBox();
+    const finalAction = await page.locator('#copyEntityRegionBtn').boundingBox();
     const remove = await deletion.boundingBox();
-    expect(remove.y - coast.y - coast.height).toBeCloseTo(coast.y - border.y - border.height, 1);
+    expect(remove.y).toBeGreaterThanOrEqual(finalAction.y + finalAction.height);
     expect(remove.x).toBeCloseTo(coast.x, 1);
     expect(remove.width).toBeCloseTo(coast.width, 1);
     expect(await readAppearance('#objectDeleteBtn')).toEqual(await readAppearance('#editEntityCoastBtn'));
@@ -149,6 +149,7 @@ test('object deletion shares the coast action spacing and is destructive only on
   await expect(page.locator('#propertyTitle')).toHaveText('독일');
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('BGR'));
-  await expect(page.locator('#entityProperties #objectDeleteBtn')).toHaveCount(1);
+  await expect(page.locator('#editorScrollBody #objectDeleteBtn')).toHaveCount(1);
+  expect(await deletion.evaluate(row => row.parentElement.parentElement.classList.contains('surface-content-editor'))).toBe(true);
   await expect(deletion).toBeEnabled();
 });

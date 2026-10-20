@@ -41,6 +41,17 @@ test('the common editor exposes the flag action only for territorial entities ac
   }
 });
 
+test('all property types reuse the one permanently authored delete action without reparenting', () => {
+  const { controller, node } = setup();
+  const host = node('editorScrollBody');
+  const action = node('editorDeleteSection');
+  action.parentElement = host;
+  for (const type of ['entity', 'hydro', 'label', 'generic', 'distribution', 'multi', '', 'entity']) {
+    controller.show(type, 'Object');
+    assert.equal(action.parentElement, host, type || 'empty');
+  }
+});
+
 test('builtin hydro hydration awaits identity admission and reports its original rejected ACK',async () => {
   const feature={ id: 'builtin-river',properties: { category: 'river',__logicalFid: 1 } },full={ ...feature,geometry: { type: 'LineString',coordinates: [[0,0],[1,1]] } };
   let admitReject,signalAdmit,signalReport;const held=new Promise((_resolve,reject) => { admitReject=reject; }),
