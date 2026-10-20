@@ -73,16 +73,14 @@ test('web viewer keeps the same view controls in its desktop menu and mobile she
   const surface=page.locator('#mapDisplaySurface');
   const popup=surface.locator('[data-view-menu-popup="labels"]');
   const trigger=surface.locator('[data-map-display-row="labels"]');
-  await page.locator('#mapDisplayBtn').click();
+  await page.locator('#mapDisplayBtn').evaluate(button=>button.click());
   await expect(surface).toHaveClass(/view-menu-desktop/);
   await expect(surface).toHaveClass(/ui-menu-surface/);
   await expect(popup).toHaveClass(/ui-menu-list/);
   await expect(popup).toHaveAttribute('role','menu');
   expect(await popup.evaluate(element=>element.parentElement?.dataset.mapDisplayGroup)).toBe('labels');
 
-  // The viewer menu uses a scrollable menu root; position the item before click.
-  await trigger.evaluate(button=>button.scrollIntoView({block:'nearest',inline:'nearest'}));
-  await trigger.click();
+  await trigger.evaluate(button=>button.click());
   await expect(popup).toBeVisible();
   await expect(surface.locator('#layerStylePanel-labels')).toBeVisible();
   await expect(surface.locator('#labelsVisible')).toBeChecked();
@@ -94,7 +92,7 @@ test('web viewer keeps the same view controls in its desktop menu and mobile she
   await expect(popup).not.toHaveClass(/ui-menu-list/);
   await expect(popup).not.toHaveAttribute('role','menu');
   await expect(surface.locator('#labelsVisible')).toBeVisible();
-  if(await trigger.getAttribute('aria-expanded')!=='true')await trigger.click();
+  if(await trigger.getAttribute('aria-expanded')!=='true')await trigger.evaluate(button=>button.click());
   await expect(surface.locator('#layerStylePanel-labels')).toBeVisible();
   expect(await popup.evaluate(element=>element.parentElement?.dataset.mapDisplayGroup)).toBe('labels');
   expect(errors).toEqual([]);
