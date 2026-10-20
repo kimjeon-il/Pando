@@ -44,6 +44,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-ALL-BRANCH-20261020` | [작업 브랜치의 미통합 변경 전체 반영](development/testing/all-branch-integration-2026-10-20.md) | 2026-10-20 | `integration-in-progress` | `not-applicable` |
 | `UI-EDITOR-FLAT-RELEASE-20261020` | [앱 평면 편집 변경 게시와 작업 브랜치 전파](development/testing/editor-flat-release-2026-10-20.md) | 2026-10-20 | `pages-live-verified / branches-propagated / windows-native-verified / android-unverified` | `not-applicable` |
 | `UI-EDITOR-FLAT-20261020` | [앱 평면 편집 집중과 경위선·지구본 장식 제거](development/testing/editor-flat-cleanup-2026-10-20.md) | 2026-10-20 | `local-focused-verified / release-followup-linked` | `not-applicable` |
 | `UI-RELEASE-SYNC-20261020` | [공통 지도 변경 배포와 작업 브랜치 통합](development/testing/shared-viewing-release-sync-2026-10-20.md) | 2026-10-20 | `pages-content-verified / ci-failures-recorded / native-unverified` | `not-applicable` |
