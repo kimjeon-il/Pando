@@ -160,6 +160,7 @@
         "tests/browser/prepared-overlay-mesh.spec.mjs",
         "tests/browser/renderer-*.spec.mjs",
         "tests/browser/map-display-worker.spec.mjs",
+        "tests/browser/map-scale-readiness.spec.mjs",
         "tests/browser/selection-pass-baseline.spec.mjs",
         "tests/browser/single-context-selection.spec.mjs",
         "tests/browser/edit-preview-handoff.spec.mjs",
