@@ -1,10 +1,8 @@
-// The displayed quality survives projection changes in the new mode's band.
-// Availability is a renderer concern: a pending load cannot change the display
-// history, and project replacement resets it to preview.
-export function resolveCountryMeshQuality({ projection, zoom, previous = 'preview', focus = false, editing = false, preferCanonical = false }) {
-  if (preferCanonical || focus || editing) return 'canonical';
-  const [lower, upper] = projection === 'globe' ? [1.8, 2.2] : [2.2, 2.8];
-  if (zoom <= lower) return 'preview';
-  if (zoom >= upper) return 'canonical';
-  return previous === 'canonical' ? 'canonical' : 'preview';
+// Screen scale is CSS pixels per radian, shared by flat and globe frames.
+// Resource availability and admission of display derivatives belong to the renderer.
+export function resolveCountryMeshQuality({ cssScale, previous = null, focus = false, editing = false, selected = false }) {
+  if (focus || editing || selected || !Number.isFinite(cssScale) || cssScale <= 0) return 'canonical';
+  if (cssScale <= 504) return 'preview';
+  if (cssScale >= 642) return 'canonical';
+  return previous === 'preview' ? 'preview' : 'canonical';
 }

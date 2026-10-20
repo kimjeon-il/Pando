@@ -2,54 +2,28 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { resolveCountryMeshQuality } from '../../assets/js/modules/country-mesh-zoom-policy.js';
 
-for (const [projection, lower, upper] of [['globe', 1.8, 2.2], ['flat', 2.2, 2.8]]) {
-  test(`${projection} uses inclusive thresholds and retains both directions inside the band`, () => {
-    for (const previous of ['preview', 'canonical']) {
-      assert.equal(resolveCountryMeshQuality({ projection, zoom: lower, previous }), 'preview');
-      assert.equal(resolveCountryMeshQuality({ projection, zoom: upper, previous }), 'canonical');
-      assert.equal(resolveCountryMeshQuality({ projection, zoom: lower + 0.001, previous }), previous);
-      assert.equal(resolveCountryMeshQuality({ projection, zoom: upper - 0.001, previous }), previous);
-    }
-  });
-  test(`${projection} defaults to preview at world scale and in an uninitialized band`, () => {
-    assert.equal(resolveCountryMeshQuality({ projection, zoom: 1 }), 'preview');
-    assert.equal(resolveCountryMeshQuality({ projection, zoom: (lower + upper) / 2 }), 'preview');
-  });
-  test(`${projection} does not oscillate across repeated intermediate zoom values`, () => {
-    let previous = 'preview';
-    for (const zoom of [lower, lower + 0.01, upper - 0.01, lower + 0.01]) {
-      previous = resolveCountryMeshQuality({ projection, zoom, previous });
-      assert.equal(previous, 'preview');
-    }
-    previous = resolveCountryMeshQuality({ projection, zoom: upper, previous });
-    for (const zoom of [upper - 0.01, lower + 0.01, upper - 0.01]) {
-      previous = resolveCountryMeshQuality({ projection, zoom, previous });
-      assert.equal(previous, 'canonical');
-    }
-  });
-}
-
-test('mode switches apply destination thresholds with the displayed state in its band', () => {
-  assert.equal(resolveCountryMeshQuality({ projection: 'flat', zoom: 2.5, previous: 'canonical' }), 'canonical');
-  assert.equal(resolveCountryMeshQuality({ projection: 'flat', zoom: 2.2, previous: 'canonical' }), 'preview');
-  assert.equal(resolveCountryMeshQuality({ projection: 'globe', zoom: 2.2, previous: 'preview' }), 'canonical');
+test('CSS scale uses inclusive thresholds, keeps history in the band and starts precise', () => {
+  for (const previous of ['preview', 'canonical']) {
+    assert.equal(resolveCountryMeshQuality({ cssScale: 504, previous }), 'preview');
+    assert.equal(resolveCountryMeshQuality({ cssScale: 642, previous }), 'canonical');
+    assert.equal(resolveCountryMeshQuality({ cssScale: 570, previous }), previous);
+  }
+  assert.equal(resolveCountryMeshQuality({ cssScale: 570 }), 'canonical');
 });
 
-test('focus and editing force canonical across modes and release to the current zoom policy', () => {
-  for (const projection of ['globe', 'flat']) {
-    for (const force of [{ focus: true }, { editing: true }, { focus: true, editing: true }]) {
-      assert.equal(resolveCountryMeshQuality({ projection, zoom: 1, ...force }), 'canonical');
-    }
-    assert.equal(resolveCountryMeshQuality({ projection, zoom: 1, previous: 'canonical' }), 'preview');
+test('projection, DPR, device and dragging cannot change the same CSS scale decision', () => {
+  for (const projection of ['flat', 'globe']) for (const dpr of [1, 2, 3]) {
+    assert.equal(resolveCountryMeshQuality({ cssScale: 500, projection, dpr, mobile: true, dragging: true }), 'preview');
+    assert.equal(resolveCountryMeshQuality({ cssScale: 650, projection, dpr }), 'canonical');
   }
 });
 
-test('mobile high-detail preference retains canonical geometry at any zoom once ready', () => {
-  for (const projection of ['globe', 'flat']) {
-    for (const zoom of [1, 1.5, 2, 3, 10]) {
-      assert.equal(resolveCountryMeshQuality({ projection, zoom, previous: 'preview', preferCanonical: true }), 'canonical');
-      assert.equal(resolveCountryMeshQuality({ projection, zoom, previous: 'canonical', preferCanonical: true }), 'canonical');
-    }
-    assert.equal(resolveCountryMeshQuality({ projection, zoom: 1, previous: 'canonical', preferCanonical: false }), 'preview');
+test('focus, selection and editing protect precise geometry at low scale', () => {
+  for (const forced of [{ focus: true }, { editing: true }, { selected: true }]) {
+    assert.equal(resolveCountryMeshQuality({ cssScale: 100, ...forced }), 'canonical');
   }
+});
+
+test('invalid scale cannot silently choose simplified geometry', () => {
+  for (const cssScale of [undefined, NaN, 0, -1]) assert.equal(resolveCountryMeshQuality({ cssScale }), 'canonical');
 });

@@ -68,6 +68,7 @@ export function createRenderQuality({beforeMeshRebuild=null}={}) {
     const renderer=dependencies.rendering.gpuMapRenderer,revision=++meshRequestRevision;
     const current=()=>revision===meshRequestRevision&&renderer.getProjectGeneration()===projectGeneration;
     if(!current())return false;
+    try {
     const applied=mesh?await renderer.replaceBuiltInMesh({meshBuffer:mesh.meshBuffer,preparedStroke:mesh.preparedStroke,spatialBlocks:mesh.spatialBlocks,
       builtinIdentity:mesh.identity,features:slotIds.map(id=>({id})),quality:'canonical',countryPatchIds:[...dirtyIds],projectGeneration,
       onStaged:()=>{if(current()){renderer.syncCountryMeshQuality();dependencies.domains.renderingDomain.invalidateProject('canonical-staging-ready');}}}):
@@ -76,6 +77,10 @@ export function createRenderQuality({beforeMeshRebuild=null}={}) {
     renderer.syncCountryMeshQuality();dependencies.projectState.state.countryVisualPhase='canonical';
     applyAdaptiveRenderQuality({refreshScene:false,reason:'canonical-ready'});
     dependencies.domains.renderingDomain.invalidateProject(reason);return true;
+    } catch (error) {
+      if (current() && error.name !== 'AbortError') renderer.failMapPreparation(error);
+      throw error;
+    }
   }
 
   function cancelGpuMeshRebuild() {

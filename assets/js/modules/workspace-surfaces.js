@@ -120,8 +120,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     pendingLayoutChange = false;
     layoutMode = nextLayout;
     const app = (0, dependencies.platform.$)('app');
-    if (app) app.dataset.layout = layoutMode;
-    document.body.dataset.layout = layoutMode;
     surfaceController.syncLayout(previous);
     if (isMobileWorkspaceLayout(previous) && !isMobile()) releaseMobileSheetHistory();
     else if (isMobile() && !isMobileWorkspaceLayout(previous) && surfaceController.activeMobileSheet) {
@@ -129,8 +127,12 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     }
     const fileOpen=fileMenuOpen;
     surfaceController.render({ fileOpen });
-    referenceSurface?.sync();
+    // Publish the layout only after its open-surface classes are in place.
+    // A transient hidden sheet can blur an existing input in WebView2.
+    if (app) app.dataset.layout = layoutMode;
+    document.body.dataset.layout = layoutMode;
     searchToolbarPresentation.sync();
+    referenceSurface?.sync();
     syncEditingSurfaces();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
@@ -512,7 +514,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
       if (!referenceGestureActive && pendingLayoutChange) applyLayoutMode();
     },
     initializeWorkspaceSurfaces,openFileMenu,
-    dispose(){listeners.forEach(remove=>remove());if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();cancelAnimationFrame(searchFocusFrame);},
+    dispose(){listeners.forEach(remove=>remove());if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();if(searchToolbarPresentation)searchToolbarPresentation.dispose();cancelAnimationFrame(searchFocusFrame);},
     get MOBILE_SHEET_IDS() { return MOBILE_SHEET_IDS; },
     get activeCreateMenuItems() { return activeCreateMenuItems; },
     get applyLayoutMode() { return applyLayoutMode; },

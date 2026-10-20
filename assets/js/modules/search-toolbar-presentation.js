@@ -1,55 +1,68 @@
-/** Reposition the existing search surface without owning its state or results. */
+/** Position the existing search surface over its desktop toolbar slot.
+ * The surface remains at its authored DOM location across every layout. */
 export function createSearchToolbarPresentation({ document, panel, toolbar, slot, results, isOpen, isMobile, schedulePosition }) {
-  const anchor = document.createComment('search-sheet-position');
-  panel.before(anchor);
   const trigger = document.getElementById('objectSearchBtn');
+  const properties = ['--search-toolbar-left', '--search-toolbar-top',
+    '--search-toolbar-width', '--search-toolbar-height', '--search-results-max-height'];
 
-  function sync() {
-    const mobile = isMobile();
-    const active = document.activeElement;
-    const restoreInput = panel.contains(active) && isOpen();
-    const destination = mobile ? anchor.parentNode : slot;
-    const moved = panel.parentNode !== destination;
-    if (moved) {
-      if (mobile) anchor.after(panel);
-      else slot.append(panel);
-    }
-    panel.classList.toggle('search-toolbar-desktop', !mobile);
-    slot.classList.toggle('is-expanded', !mobile && isOpen());
-    trigger.hidden = !mobile && isOpen();
-    results.classList.toggle('ui-floating-surface', !mobile);
-    if (mobile) {
-      slot.style.removeProperty('--search-toolbar-available-width');
-      slot.style.removeProperty('--search-results-max-height');
-    }
-    if (moved && restoreInput) active.focus({ preventScroll: true });
-    if (!mobile) schedulePosition();
+  function clearDesktopGeometry() {
+    slot.style.removeProperty('--search-toolbar-available-width');
+    for (const property of properties) panel.style.removeProperty(property);
   }
 
   function position() {
-    if (isMobile()) return;
-    const window = document.defaultView;
-    const viewport = window.visualViewport;
-    const style = window.getComputedStyle(slot);
-    const edge = parseFloat(style.getPropertyValue('--ui-menu-screen-edge'));
-    const gap = parseFloat(style.getPropertyValue('--ui-menu-trigger-gap'));
+    if (isMobile() || !toolbar.getClientRects().length || !slot.getClientRects().length) return;
+    const view = document.defaultView;
+    const viewport = view.visualViewport;
+    const style = view.getComputedStyle(slot);
+    const edge = Number.parseFloat(style.getPropertyValue('--ui-menu-screen-edge')) || 8;
+    const gap = Number.parseFloat(style.getPropertyValue('--ui-menu-trigger-gap')) || 6;
     const toolbarRect = toolbar.getBoundingClientRect();
-    const slotRect = slot.getBoundingClientRect();
+    const initialSlotRect = slot.getBoundingClientRect();
     const viewportTop = viewport?.offsetTop || 0;
-    const viewportWidth = viewport?.width || window.innerWidth;
-    const chromeWidth = toolbarRect.width - slotRect.width;
-    slot.style.setProperty('--search-toolbar-available-width', `${Math.max(0, viewportWidth - edge * 2 - chromeWidth)}px`);
-    if (isOpen()) {
-      const topbarBottom = document.querySelector('.topbar')?.getBoundingClientRect().bottom || viewportTop;
-      slot.style.setProperty('--search-results-max-height', `${Math.max(0, slotRect.top - gap - Math.max(viewportTop, topbarBottom) - edge)}px`);
+    const viewportWidth = viewport?.width || view.innerWidth;
+    const chromeWidth = toolbarRect.width - initialSlotRect.width;
+    slot.style.setProperty('--search-toolbar-available-width',
+      String(Math.max(0, viewportWidth - edge * 2 - chromeWidth)) + 'px');
+    if (!isOpen()) {
+      panel.style.removeProperty('--search-results-max-height');
+      return;
+    }
+    // Re-measure once the toolbar width constraint has been applied.
+    const rect = slot.getBoundingClientRect();
+    panel.style.setProperty('--search-toolbar-left', String(rect.left) + 'px');
+    panel.style.setProperty('--search-toolbar-top', String(rect.top) + 'px');
+    panel.style.setProperty('--search-toolbar-width', String(rect.width) + 'px');
+    panel.style.setProperty('--search-toolbar-height', String(rect.height) + 'px');
+    const topbarBottom = document.querySelector('.topbar')?.getBoundingClientRect().bottom || viewportTop;
+    panel.style.setProperty('--search-results-max-height',
+      String(Math.max(0, rect.top - gap - Math.max(viewportTop, topbarBottom) - edge)) + 'px');
+  }
+
+  function sync() {
+    const mobile = isMobile();
+    const desktopOpen = !mobile && isOpen();
+    panel.classList.toggle('search-toolbar-desktop', !mobile);
+    slot.classList.toggle('is-expanded', desktopOpen);
+    trigger.hidden = desktopOpen;
+    results.classList.toggle('ui-floating-surface', !mobile);
+    if (mobile) {
+      clearDesktopGeometry();
     } else {
-      slot.style.removeProperty('--search-results-max-height');
+      position();
+      schedulePosition();
     }
   }
 
+  // The slot animates while the toolbar remains centered. Track its actual
+  // rectangle throughout the transition without moving the search DOM.
   const observer = new document.defaultView.ResizeObserver(schedulePosition);
   observer.observe(toolbar);
+  observer.observe(slot);
   const topbar = document.querySelector('.topbar');
   if (topbar) observer.observe(topbar);
-  return Object.freeze({ sync, position });
+  return Object.freeze({
+    sync, position,
+    dispose() { observer.disconnect(); clearDesktopGeometry(); },
+  });
 }

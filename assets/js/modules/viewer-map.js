@@ -206,6 +206,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
     selectionGeometryRevision:gpuScene.selectionGeometryRevision,gpuSceneOrder:gpuScene.gpuSceneOrder,replaceGpuSceneDomain:gpuScene.replaceGpuSceneDomain,buildRenderableStrokeFeature};
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>spatialIndex.mapObjectGeometryRevisions.territorial});
   renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionProxy,
+    mapHost:()=>mapHost.mapHost,
     domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
     labelResources:{...commonResources,svg,territorialLabelLayer,labelLayer:userLabelLayer,isMobile,
       automaticLabelSettings,labelSettings:(state,domain,id)=>state.labelSettings[labelKey(domain,id)]||{},
