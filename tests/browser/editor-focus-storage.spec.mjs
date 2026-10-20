@@ -21,6 +21,21 @@ test('app keeps temporary viewing outside the document, keeps viewing outside sa
  const {errors,requests}=await boot(page);
  await expect(page.locator('[data-map-display-group="terrain"]')).toHaveCount(0);
  expect(await page.evaluate(()=>window.__focusPorts.projectState.state.projection)).toBe('flat');
+ await expect(page.locator('#globeBtn,#flatBtn,#mapProjectionMenuTrigger,[data-map-background],.globe-shadow,.map-ocean-globe')).toHaveCount(0);
+ const flatPolicy=await page.evaluate(()=>{
+   const ports=window.__focusPorts,domain=window.__focusDomain(),host=window.__PANDOLAB_MAP_HOST__;
+   const before={project:domain.snapshot(),state:domain.state()};
+   const refused=[];
+   for(const change of [()=>host.setProjectionKind('globe'),()=>host.setViewState({projection:'globe'}),()=>ports.mapSettingsUi.setProjection('globe')]) {
+     try {change();refused.push('accepted');}catch(error){refused.push(error.code);}
+   }
+   ports.persistence.applyAutosavedView({documentId:before.project.documentId,projection:'globe',view:{globeRotation:[-114.17,-22.27,0],globeZoom:4}});
+   const camera=host.getViewState(),after={project:domain.snapshot(),state:domain.state()};
+   return {before,after,refused,camera};
+ });
+ expect(flatPolicy.refused).toEqual(Array(3).fill('PL-PRODUCT-PROJECTION'));
+ expect(flatPolicy.camera.projection).toBe('flat');expect(flatPolicy.camera.flatCenter[0]).toBeCloseTo(114.17);expect(flatPolicy.camera.flatCenter[1]).toBeCloseTo(22.27);
+ expect(flatPolicy.after).toEqual(flatPolicy.before);
  const backgroundRequests=()=>requests.filter(path=>/assets\/data\/(terrain|hydro|places)/.test(path));
  expect(backgroundRequests()).toEqual([]);
  expect(requests.some(path=>path.includes('reference-image-bootstrap'))).toBe(false);
@@ -61,6 +76,7 @@ test('phone Canvas startup retains the editor and has no terrain or eager builti
  try {
    const {errors,requests}=await boot(page,'?debug=1&renderer=canvas');
    expect(await page.evaluate(()=>window.__focusPorts.projectState.state.projection)).toBe('flat');
+   await expect(page.locator('#globeBtn,#flatBtn,[data-map-background],.globe-shadow,.map-ocean-globe')).toHaveCount(0);
    expect(requests.filter(path=>/assets\/data\/(terrain|hydro|places)/.test(path))).toEqual([]);
    await page.locator('#mobileMenuBtn').click();
    await page.locator('#mobileDisplayBtn').click();

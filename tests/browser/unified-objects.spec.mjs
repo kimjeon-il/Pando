@@ -81,7 +81,7 @@ test('one object flow creates a root, child and independent region; annex across
   });
   await gotoEditor(page, '/?debug=1&renderer=webgl2&demTerrain=raster');
   await expect.poll(async () => { expect(errors).toEqual([]); return page.locator('#app').getAttribute('data-readiness'); }, { timeout: 60000 }).toBe('enhanced');
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await select(page, 'DEU');
   await page.locator('#focusSelectedObjectBtn').click();
   const original = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').geometry);

@@ -27,7 +27,7 @@ test('camera snapshots and restored views use navigation without workspace surfa
  assert.equal(session.state.view.flatZoom,64);assert.equal(session.state.view.globeZoom,.72);
  const history=createHistoryAssembly();let restored=0;
  history.connect({domains:{projectDomain:{snapshot:()=>({documentId:'current'})}},projectState:{state:session.state},
-  projectSession:{restoreViewingPresentation:()=>restored++},mapNavigation:ports.mapNavigation});
+  projectSession:{restoreViewingPresentation:()=>restored++,atomicMapStateController:session.atomicMapStateController}});
  assert.equal(history.applyAutosavedView({documentId:'current',view:{flatZoom:.01,globeZoom:1000}}),true);
  assert.equal(session.state.view.flatZoom,.75);assert.equal(session.state.view.globeZoom,32);assert.equal(restored,1);
  assert.equal(history.applyAutosavedView({documentId:'another',view:{flatZoom:2}}),false);

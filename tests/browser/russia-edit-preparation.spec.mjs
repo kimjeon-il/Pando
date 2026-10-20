@@ -101,7 +101,7 @@ test('Russia detailed line preparation remains cancellable and keeps the origina
   test.setTimeout(120_000);
   await gotoEditor(page, '/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   const original = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry));
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
   await startChildCreation(page, 'RUS');

@@ -325,7 +325,7 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
         return gpu?.renderer === 'webgl2' && gpu.canonicalMeshReady && !gpu.countrySharedBoundaryReplacementPending;
       });
     }, { timeout: 90_000 }).toBe(true);
-    await page.locator('#flatBtn').evaluate(button => button.click());
+    await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
     await setMonth(page, '1989-06');
     await settleWorld(page, '1989-06', true);
     const original = await fingerprint(page);

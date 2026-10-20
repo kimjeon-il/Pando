@@ -69,7 +69,7 @@ test('annex discard confirmation preserves the exact draft when continuing', asy
   await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
   await page.locator('#modeDirectLineMethodInput').check();
   await expect(page.locator('#modeDraftActions')).toBeVisible({ timeout: 60_000 });
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await page.evaluate(() => {
     const host = window.__PANDOLAB_MAP_HOST__;
     host.setViewState({ projection: 'flat', view: { ...host.getViewState(), flatCenter: [19, 52], flatZoom: 10 } });
@@ -205,7 +205,7 @@ for (const kind of ['general', 'regional']) test(`${kind} creation retains candi
     await page.locator('#modePolygonMethodInput').check();
     await expect(page.locator('#modePolygonMethodInput')).toBeEnabled({ timeout: 60_000 });
     await expect(page.locator('#modeDraftActions')).toBeVisible({ timeout: 60_000 });
-    await page.locator('#flatBtn').evaluate(button => button.click());
+    await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
     await page.evaluate(() => {
       const host = window.__PANDOLAB_MAP_HOST__;
       host.setViewState({ projection: 'flat', view: { ...host.getViewState(), flatCenter: [10, 50.5], flatZoom: 16 } });

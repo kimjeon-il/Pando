@@ -84,8 +84,10 @@ export function createNavigationBindings({productMode='editor'}={}) {
     });
     if(productMode==='editor')dependencies.objectPicking.bindChooser();
 
-    (0, dependencies.platform.$)('globeBtn').addEventListener('click', () => (0, dependencies.mapSettingsUi.setProjection)('globe'));
-    (0, dependencies.platform.$)('flatBtn').addEventListener('click', () => (0, dependencies.mapSettingsUi.setProjection)('flat'));
+    if(productMode==='viewer') {
+      (0, dependencies.platform.$)('globeBtn').addEventListener('click', () => (0, dependencies.mapSettingsUi.setProjection)('globe'));
+      (0, dependencies.platform.$)('flatBtn').addEventListener('click', () => (0, dependencies.mapSettingsUi.setProjection)('flat'));
+    }
 
     (0, dependencies.platform.$)('mobileFileBtn')?.addEventListener('click', event => {
       event.stopPropagation();

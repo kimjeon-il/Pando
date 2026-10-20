@@ -19,10 +19,15 @@ test('product HTML is generated from one source for each common viewing control'
  assert.ok(pages.web.includes(timeline));
  assert.doesNotMatch(pages.editor,/timeline-status|timelinePreviousYear|timelinePreviousMonth|timelineMonthButton|timelineMonthInput|timelineNextMonth|timelineNextYear/);
  assert.doesNotMatch(pages.editor,/timelineComparePin|timelineComparisonPanel|autosaveRecoveryBtn/);
- assert.match(pages.editor,/data-map-display-row="advanced"/);
+ assert.doesNotMatch(pages.editor,/data-map-display-row="advanced"/);
  assert.doesNotMatch(pages.web,/data-map-display-row="advanced"/);
  assert.match(pages.editor,/id="fileAdvancedBtn"/);
- for(const page of Object.values(pages))for(const key of ['graticule','globeShadow'])assert.equal(page.split(`data-map-background="${key}"`).length-1,1,key);
+ for(const key of ['graticule','globeShadow']){
+  assert.equal(pages.web.split(`data-map-background="${key}"`).length-1,1,key);
+  assert.doesNotMatch(pages.editor,new RegExp(`data-map-background="${key}"`));
+ }
+ assert.doesNotMatch(pages.editor,/id="(?:globeBtn|flatBtn|mapProjectionMenuTrigger|projectionControl)"/);
+ assert.match(pages.web,/id="globeBtn"/);assert.match(pages.web,/id="flatBtn"/);
  assert.ok(pages.web.includes(terrain));assert.ok(!pages.editor.includes('terrainNoneRadio'));
  assert.ok(!pages.web.includes('entityNameInput'));
  assert.ok(pages.editor.includes('entityNameInput'));

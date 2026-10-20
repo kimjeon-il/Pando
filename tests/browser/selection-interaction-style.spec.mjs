@@ -172,9 +172,9 @@ test('renderer fallback draws a single selection outline in SVG', async ({ page 
     expect(width).toBeGreaterThan(0);
   };
   await checkWidth();
-  for (const [button, projection] of [['#flatBtn', 'flat'], ['#globeBtn', 'globe']]) {
-    await page.evaluate(selector => document.querySelector(selector).click(), button);
-    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__?.projection)).toBe(projection);
+  for (const zoom of [1.2, 1.5]) {
+    await page.mouse.wheel(0, -Math.log(zoom) / 0.0013);
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__?.projection)).toBe('flat');
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toContain('territorial:entity:DEU');
     await expect(outline).toHaveCount(1);
     await checkWidth();

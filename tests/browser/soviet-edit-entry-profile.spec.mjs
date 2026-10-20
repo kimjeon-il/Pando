@@ -59,7 +59,7 @@ test('1989 Soviet actual coast-edit entry CPU and memory after autosave quiescen
     const g=window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu;
     return g?.renderer==='webgl2'&&g.canonicalMeshReady&&!g.countrySharedBoundaryReplacementPending;
   }),{timeout:90_000}).toBe(true);
-  await page.locator('#flatBtn').evaluate(b=>b.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await setEditorMonth(page, '1989-06');
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('state:soviet-union')?.geometry?.coordinates?.length||0),
     {timeout:90_000}).toBeGreaterThan(0);

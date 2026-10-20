@@ -384,7 +384,7 @@ for (const renderer of ['webgl2', 'canvas']) test(`direct coastline gesture uses
     appearance: { theme: 'light' }, selection: { color: '#1267ad', outlineVisible: false, fillStrength: 0 } })));
   await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   const mapBox = await page.locator('#map').boundingBox();
   const center = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen([10, 54]));

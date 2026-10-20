@@ -70,7 +70,7 @@ test('measure Soviet Core document-prepare queue and actual WASM synchronous cal
       const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
       return gpu?.renderer === 'webgl2' && gpu.canonicalMeshReady && !gpu.countrySharedBoundaryReplacementPending;
     }), { timeout: 90_000 }).toBe(true);
-    await page.locator('#flatBtn').evaluate(button => button.click());
+    await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
     await month(page, '1989-06');
     await expect.poll(() => page.evaluate(() => !!window.PANDOLAB_TERRITORIAL?.get('state:soviet-union')),
       { timeout: 90_000 }).toBe(true);

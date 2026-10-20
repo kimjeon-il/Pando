@@ -19,6 +19,22 @@ export function createCameraNavigation({ persistView = null } = {}) {
     view.flatZoom=dependencies.platform.clamp(Number(view.flatZoom)||1,ZOOM_LIMITS.flat.min,ZOOM_LIMITS.flat.max);
     return view;
   }
+  function reprojectView(view, source, target) {
+    const next = { ...view, flatCenter: view.flatCenter.slice(), globeRotation: view.globeRotation.slice() };
+    if (source === target) return clampViewZooms(next);
+    const layout = dependencies.mapView.projectionLayoutMetrics();
+    const center = source === 'globe' ? [-view.globeRotation[0], -view.globeRotation[1]] : view.flatCenter;
+    const scale = source === 'globe' ? view.globeZoom * layout.globeBaseScale : view.flatZoom * layout.flatBaseScale;
+    const longitude = wrappedLongitudeDelta(center[0]);
+    if (target === 'globe') {
+      next.globeRotation = [-longitude, -dependencies.platform.clamp(center[1], -89, 89), 0];
+      next.globeZoom = scale / layout.globeBaseScale;
+    } else {
+      next.flatCenter = [longitude, dependencies.platform.clamp(center[1], -FLAT_LATITUDE_LIMIT, FLAT_LATITUDE_LIMIT)];
+      next.flatZoom = scale / layout.flatBaseScale;
+    }
+    return clampViewZooms(next);
+  }
   function panMapViewBy(dx, dy) {
     const [dragX, dragY] = (0, dependencies.mapNavigation.normalizeMapSurfaceDragDelta)(dx, dy);
     const changed=panCameraView(dependencies.projectState.state.view,dependencies.projectState.state.projection,dragX,dragY,
@@ -35,7 +51,7 @@ export function createCameraNavigation({ persistView = null } = {}) {
   }
 
   function wrappedLongitudeDelta(value) {
-    return ((Number(value || 0) + 540) % 360) - 180;
+    return (((Number(value || 0) + 180) % 360 + 360) % 360) - 180;
   }
 
   function setMapZoomValue(value) {
@@ -228,6 +244,7 @@ export function createCameraNavigation({ persistView = null } = {}) {
   return Object.freeze({
     connect,
     clampViewZooms,
+    reprojectView,
 
     get panMapViewBy() { return panMapViewBy; },
     get dragMapBy() { return dragMapBy; },

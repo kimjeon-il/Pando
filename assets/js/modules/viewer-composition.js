@@ -122,7 +122,7 @@ export async function composeViewer({ productMode, meta }) {
   display=createMapSettings({viewPresentation:map,onLayerVisibilityChange:async(key,enabled)=>{if(enabled&&(key==='rivers'||key==='lakes'))await owners.physicalResources.loadHydroData(true);if(enabled&&key==='labels')await owners.territorialLabels.preparePlaces({force:true});}});
   display.connect({
     platform:{$:id=>get(id==='app'?'viewer':id),deepClone:structuredClone,clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},
-    mapView:{...map.mapProjection,syncMapHostFromState:()=>map.renderingDomain.invalidateView()},mapNavigation:{ZOOM_LIMITS,FLAT_LATITUDE_LIMIT},
+    mapView:{...map.mapProjection,syncMapHostFromState:()=>map.renderingDomain.invalidateView()},mapNavigation:{ZOOM_LIMITS,FLAT_LATITUDE_LIMIT,reprojectView:map.navigation.reprojectView},
     navigation:map.navigation,projectSession:map.projectSession,domains:{renderingDomain:map.renderingDomain,objectSearchController:searchController},rendering:{gpuMapRenderer:map.renderer},objectDisplay:map.objectCatalog,distributionPresentation:map.distributionPresentation,feedback:{reportOperationError:report},
     projectState:{get state(){return map.displayState();}},
     objectModelA:{expandedMapDisplayGroups:map.objectPresentation.expandedMapDisplayGroups},territorialModel:{entityRepository:map.entityRepository},
