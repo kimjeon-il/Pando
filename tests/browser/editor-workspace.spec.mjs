@@ -29,6 +29,10 @@ test('the current editor surface owns tasks at every responsive width', async ({
   expect(Math.round(map.x + map.width)).toBe(1440);
   expect(Math.round(map.x + map.width)).toBeGreaterThan(Math.round(panel.x));
   await expect(page.locator('#mapDisplaySurface')).toBeHidden();
+  const task = page.locator('#modeEditingContext');
+  await expect(page.locator('#editorTaskSlot > #modeEditingContext')).toHaveCount(1);
+  await expect(page.locator('#mapTopContextSlot #modeEditingContext')).toHaveCount(0);
+  const originalTask = await task.elementHandle();
   await openActionsTab(page);
   await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
@@ -57,6 +61,8 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
+  await expect(page.locator('#editorTaskSlot > #modeEditingContext')).toHaveCount(1);
+  expect(await task.evaluate((node, initial) => node === initial, originalTask)).toBe(true);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await openActionsTab(page);
   await page.locator('#mergeEntityBtn').click();
@@ -69,5 +75,7 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#mapTopContextSlot #modeEditingContext')).toHaveCount(0);
   await expect(page.locator('#modeTaskMinimizeBtn')).toBeVisible();
   await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#editorTaskSlot > #modeEditingContext')).toHaveCount(1);
+  expect(await task.evaluate((node, initial) => node === initial, originalTask)).toBe(true);
   expect(errors).toEqual([]);
 });
