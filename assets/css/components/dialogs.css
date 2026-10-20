@@ -427,4 +427,118 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
   display: none;
 }
 
-.project-setup-dialog{width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;color:var(--text,#e8edf5);background:var(--panel,#182231);border:1px solid var(--border,#607080);border-radius:16px;padding:24px}.project-setup-dialog::backdrop{background:#081020aa}.project-setup-dialog form{display:grid;gap:12px}.project-setup-dialog label{display:flex;align-items:center;gap:12px;justify-content:space-between}.project-setup-dialog input[type=text],.project-setup-dialog select{min-height:44px;max-width:230px;color:inherit;background:var(--surface,#273446);border:1px solid var(--border,#607080);border-radius:6px;padding:8px}.project-setup-dialog small,.project-setup-dialog .help{font-size:12px;line-height:1.6;margin:0}.project-setup-dialog pre{font:inherit;font-size:13px;line-height:1.7;white-space:pre-wrap}.project-setup-actions{display:flex;justify-content:flex-end;gap:10px}.project-setup-actions button{min-height:44px}#projectSetupError{color:#ff9f99;margin:0}.project-bounds-picker{position:absolute;inset:0;z-index:200;cursor:crosshair;touch-action:none;background:#12243644;color:white;padding:12px;box-sizing:border-box}.project-bounds-box{display:none;position:absolute;pointer-events:none;border:2px dashed white;background:#68b6ff33}
+/* Native <dialog> keeps its top-layer behavior; its form owns shared dialog chrome. */
+.project-setup-dialog {
+  width: var(--preferences-card-width);
+  max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
+  max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.project-setup-dialog::backdrop {
+  background: var(--confirm-dim);
+}
+
+.project-setup-form {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--ui-space-3);
+  max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.project-setup-fields {
+  display: grid;
+  align-content: start;
+  gap: var(--ui-space-3);
+  min-width: 0;
+  min-height: 0;
+  padding-inline-end: var(--ui-space-1);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.project-setup-field {
+  display: grid;
+  gap: var(--ui-space-2);
+}
+
+.project-setup-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-3);
+}
+
+.project-setup-range[hidden] {
+  display: none;
+}
+
+.project-setup-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.project-setup-draw {
+  justify-self: start;
+}
+
+.project-setup-summary {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: var(--ui-font-sm);
+}
+
+.project-setup-error {
+  margin: 0;
+}
+
+.project-setup-error:empty {
+  display: none;
+}
+
+.project-setup-actions {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding-top: var(--ui-space-3);
+  border-top: var(--ui-border-width) solid var(--border);
+}
+
+@media (max-width: 799px) {
+  .project-setup-range {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-setup-actions .btn {
+    min-height: var(--ui-touch-height);
+  }
+}
+
+/* Map bounds picking is an interaction overlay, not another dialog skin. */
+.project-bounds-picker {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  cursor: crosshair;
+  touch-action: none;
+  background: color-mix(in srgb, var(--surface-elevated) 22%, transparent);
+  color: var(--text-strong);
+  padding: var(--ui-space-3);
+  box-sizing: border-box;
+}
+
+.project-bounds-box {
+  display: none;
+  position: absolute;
+  pointer-events: none;
+  border: var(--ui-border-width) dashed var(--text-strong);
+  background: var(--selection-soft-bg);
+}
