@@ -86,7 +86,7 @@ test('web viewer keeps the same view controls in its desktop menu and mobile she
   await expect(surface.locator('#labelsVisible')).toBeChecked();
 
   await page.setViewportSize({width:390,height:844});
-  await expect(page.locator('#app')).toHaveAttribute('data-layout','mobile');
+  await expect(page.locator('#viewer')).toHaveAttribute('data-layout','mobile');
   await expect(surface).not.toHaveClass(/view-menu-desktop/);
   await expect(surface).toHaveClass(/ui-sheet/);
   await expect(popup).not.toHaveClass(/ui-menu-list/);
