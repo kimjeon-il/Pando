@@ -120,8 +120,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     pendingLayoutChange = false;
     layoutMode = nextLayout;
     const app = (0, dependencies.platform.$)('app');
-    if (app) app.dataset.layout = layoutMode;
-    document.body.dataset.layout = layoutMode;
     surfaceController.syncLayout(previous);
     if (isMobileWorkspaceLayout(previous) && !isMobile()) releaseMobileSheetHistory();
     else if (isMobile() && !isMobileWorkspaceLayout(previous) && surfaceController.activeMobileSheet) {
@@ -129,8 +127,12 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     }
     const fileOpen=fileMenuOpen;
     surfaceController.render({ fileOpen });
-    referenceSurface?.sync();
+    // Publish the layout only after its open-surface classes are in place.
+    // A transient hidden sheet can blur an existing input in WebView2.
+    if (app) app.dataset.layout = layoutMode;
+    document.body.dataset.layout = layoutMode;
     searchToolbarPresentation.sync();
+    referenceSurface?.sync();
     syncEditingSurfaces();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
