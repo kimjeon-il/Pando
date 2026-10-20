@@ -91,7 +91,7 @@ test('web viewer keeps the same view controls in its desktop menu and mobile she
       surface:{x:surfaceRect.x,y:surfaceRect.y,width:surfaceRect.width,height:surfaceRect.height},
       hit:hit?.outerHTML.slice(0,240),
       hitIsButton:!!hit&&(hit===button||button.contains(hit)),
-      layout:document.getElementById('app')?.dataset.layout,
+      layout:document.getElementById('viewer')?.dataset.layout,
       bodyStyle:getComputedStyle(surface.querySelector('.view-menu-root')).overflowY,
     };
   });
