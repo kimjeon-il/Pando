@@ -516,6 +516,7 @@
   --ui-menu-width: 17.5rem;
   --ui-menu-trigger-gap: 6px;
   --ui-menu-screen-edge: 8px;
+  --ui-layer-search-z: 41;
   --ui-layer-create-z: 140;
   --ui-library-preview-height: 11.875rem;
   --ui-scrollbar-z: 2100;
@@ -8304,10 +8305,16 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   display: none;
 }
 
+/* The desktop search surface tracks its toolbar slot without reparenting. */
 .surface-search.search-toolbar-desktop {
-  position: static;
-  width: 100%;
-  height: auto;
+  position: fixed;
+  z-index: var(--ui-layer-search-z);
+  top: var(--search-toolbar-top, 0px);
+  right: auto;
+  bottom: auto;
+  left: var(--search-toolbar-left, 0px);
+  width: var(--search-toolbar-width, var(--ui-control-height));
+  height: var(--search-toolbar-height, var(--ui-control-height));
   min-height: 0;
   max-height: none;
   overflow: visible;
@@ -8323,7 +8330,7 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   display: none;
 }
 
-.map-command-search .surface-search.search-toolbar-desktop > .surface-header {
+.surface-search.search-toolbar-desktop > .surface-header {
   display: none;
 }
 
