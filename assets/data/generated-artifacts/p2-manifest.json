@@ -1949,8 +1949,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "a013f9dd78cbe6c23b55d7d5f17147a5c5bca0a2862c3be7475331289b54ccdc",
-      "outputFingerprint": "9335accbc1c108f6c39bfa4cfb3c65366eff9fe3f3280daf5198bb79e89748ab",
+      "inputFingerprint": "1d3581a7c158b02958fa4ec4be0942aebe138c2ca0ee7ff426fa787836ae5d27",
+      "outputFingerprint": "6771cae4a1926a10068d97592cbd62129b7596ef675e8ca6fb6c40d06697cd40",
       "inputs": {
         "assets/js/app.js": "3afc301fc189ac2277f115ff9c28f37139e1df7c765fb5b999b5d3613f365f6e",
         "assets/js/bootstrap.js": "93cada4a638e7e0669d1e239282bddf54305de7e30fb7301f35e0cb37b610b8c",
@@ -1994,7 +1994,7 @@
         "assets/js/modules/app-library-assembly.js": "ba278da418491c22769324b815b3a35dd44b6ec0cbb6ce55c1e5c33c18f6e675",
         "assets/js/modules/app-lifecycle-assembly.js": "fa9eaf9e9e5ad13ccdede418a425125f538e3fbcf87e2ed65dbfd98ce79f9dc7",
         "assets/js/modules/app-map-audit.js": "90c6c6bc6244bb3982ce1edf18e6f6f12125be0df6d9ff287c0081c5fbff4937",
-        "assets/js/modules/app-map-settings.js": "9b9ebb81dc70381a28017a4216150d2946d81e2f86c080cd12ebe910c27e6dc3",
+        "assets/js/modules/app-map-settings.js": "05a6d85757b055a53fef24276d8514dc9c6cb9ecfdc11de3d3e5307bdc6d112a",
         "assets/js/modules/app-object-commands.js": "b954911dbfc268874c7ac7f8b435f4f9e603c81e2b50e1788df311cc2494e2f9",
         "assets/js/modules/app-object-deletion.js": "2ec6f6520596345307a7edb4a6b08befc741ced63939115931f45143e186341b",
         "assets/js/modules/app-object-metadata.js": "d6999ca71bda9c8cd248d94de0412625842b19de94d03bbb7d4cd41245608971",
@@ -2371,9 +2371,9 @@
       },
       "outputs": {
         "README.md": "6931d8ae20cb7f1e4135b61e24197d97e0cd13f5f1cd5819ce2916509490efd6",
-        "apps/web-shell/editor.html": "ab64d1e92eb175a165f2786bf23d9048752ab3ba44f32d4808a900fcad790eb9",
-        "assets/js/build-meta.js": "a44eb0b52e5b0f1987d954d147c1683dd6ab494091e6176a4ad6bfa34b1181d5",
-        "index.html": "c6ce9a041d8c9e15f81d8810d3c3e66fc2f8d276759c8435f03623984eac14ca"
+        "apps/web-shell/editor.html": "505d7fdeb9e2d7402213ede4e212a267a4e57ab15bf9131afa3b939fe48f358a",
+        "assets/js/build-meta.js": "d1fa1c216bb76c876d34d1427807d6304dc3c8557cdd695a1e2471b44510e1dd",
+        "index.html": "ebad1a8a1b406500e3cf2b2655692b4fc596cad60a9727a191601e3f134dd338"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2388,7 +2388,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "f70c940380eadbbc357f894e82a55d882ee4e52c"
+      "sourceSha": "fe593049af8815219467b71d49a3f0055af4955b"
     }
   }
 }
