@@ -77,8 +77,10 @@ test('one object menu retains common settings across keyboard navigation and mob
 test('web viewer keeps the same view controls in its desktop menu and mobile sheet',async({page})=>{
   test.setTimeout(120000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto('/?debug=1&renderer=canvas');
+  await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().renderer)).toBe('webgl2');
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().canonicalMeshReady),{timeout:90000}).toBe(true);
 
   const surface=page.locator('#mapDisplaySurface');
   const popup=surface.locator('[data-view-menu-popup="labels"]');

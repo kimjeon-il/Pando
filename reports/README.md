@@ -47,6 +47,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-CORE-CI-WEBGL-20261020` | [C++ CI 2건과 Windows WebGL UI 시간 초과 수정](development/testing/core-ci-webgl-repair-2026-10-20.md) | 2026-10-20 | `native-ci-verified / webgl-ui-verified / separate-artifact-ci-failure` | `not-applicable` |
 | `DEV-REMAINING-BRANCH-20261020` | [남은 작업 브랜치의 main 통합](development/testing/remaining-branch-integration-2026-10-20.md) | 2026-10-20 | `integrated / remote-verified / docs-only` | `not-applicable` |
 | `UI-WEB-GLOBE-20261021` | [웹 지구본 전용 표시 구현과 최소 검증](development/testing/viewer-globe-only-2026-10-21.md) | 2026-10-21 | `local-web-verified / editor-unit-verified / unpublished` | `not-applicable` |
 | `UI-INITIAL-MAP-FIX-20261021` | [초기 지도 배경과 새 프로젝트 전환의 표시 연속성 수정](development/testing/initial-map-continuity-2026-10-21.md) | 2026-10-21 | `local-web-verified / webview-source-verified / unpublished` | `not-applicable` |
