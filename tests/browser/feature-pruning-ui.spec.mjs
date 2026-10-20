@@ -74,10 +74,13 @@ for (const viewport of viewports) {
         || row.querySelectorAll(':scope > .command-row-chevron').length !== 0)
       .map(row => row.id));
     expect(inconsistentActionRows).toEqual([]);
-    await expect(page.locator('#entityProperties #objectDeleteBtn > .command-row-icon')).toHaveCount(1);
-    await expect(page.locator('#entityProperties #objectDeleteBtn > span')).toHaveCount(1);
-    await expect(page.locator('#entityProperties #objectDeleteBtn > .command-row-chevron')).toHaveCount(0);
-    expect(await page.locator('#editorDeleteSection').evaluate(node => node.previousElementSibling.id)).toBe('editEntityCoastBtn');
+    await expect(page.locator('#editorScrollBody #objectDeleteBtn > .command-row-icon')).toHaveCount(1);
+    await expect(page.locator('#editorScrollBody #objectDeleteBtn > span')).toHaveCount(1);
+    await expect(page.locator('#editorScrollBody #objectDeleteBtn > .command-row-chevron')).toHaveCount(0);
+    expect(await page.locator('#editorDeleteSection').evaluate(node => ({
+      parent: node.parentElement?.classList.contains('surface-content-editor'),
+      formBefore: node.previousElementSibling?.id,
+    }))).toEqual({ parent: true, formBefore: 'hydroProperties' });
     await expect(page.locator('#entityProperties .editor-action-grid')).toHaveCount(0);
     const overflow = await page.evaluate(() => ({
       viewport: window.innerWidth,
