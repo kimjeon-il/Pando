@@ -35,7 +35,7 @@ for (const style of ['political', 'physical']) {
           physicalLandItems: [{ kind: 'polygon', packet: { key: 'physical-land', role: 'physical-land' } }],
           territoryItems: [{ kind: 'polygon', packet: { key: 'general', role: 'territorial-fill' } }],
           independentItems: [{ kind: 'polygon', packet: { key: 'regional', role: 'regional-overlay' } }] },
-      }, { polygonOverlayPass, strokeRenderer: {},
+      }, { drawOceanSubstrate() {}, polygonOverlayPass, strokeRenderer: {},
         drawProgram() {},
         renderTerrain: pass => events.push({ kind: pass, ...state }),
         drawHydro() {}, drawCountryBoundaryStrokes: () => ({ succeeded: true }) });
@@ -72,7 +72,7 @@ test('WebGL mixes overlays by order and protects base water and borders from fil
   const scene = { polygons: [{ key: 'upper-fill', order: 200 }], strokes: [{ key: 'lower-line', sourceKey: 'stroke:lower-line:1', order: 100 }] };
   const prepared = prepareGpuBaseScene({ scene, frame: {}, presentedStrokeDomains: new Map() }, { polygonOverlayPass, strokeRenderer });
   drawGpuBaseScene({ gl, frame: {}, countriesVisible: false, terrainVisible: false, countries: {}, prepared },
-    { renderTerrain() {}, drawHydro: kind => events.push({ key: kind, ...state }),
+    { drawOceanSubstrate() {}, renderTerrain() {}, drawHydro: kind => events.push({ key: kind, ...state }),
       drawCountryBoundaryStrokes: () => events.push({ key: 'base-borders', ...state }), polygonOverlayPass, strokeRenderer });
   const lineResourceKey = prepared.overlayItems.find(item => item.kind === 'stroke').resourcePacket.key;
   assert.deepEqual(events.filter(event => ['upper-fill', lineResourceKey].includes(event.key)).map(event => event.key), [lineResourceKey, 'upper-fill']);

@@ -80,7 +80,7 @@ test('base pass draws map substrate before terrain and preserves territory, coun
         { kind: 'polygon', packet: { key: 'parent', role: 'territorial-fill', territoryDepth: 1, order: 1 } },
         { kind: 'polygon', packet: { key: 'child', role: 'territorial-fill', territoryDepth: 2, order: 2 } },
       ].reverse(), independentItems: [{ kind: 'polygon', packet: { key: 'generic' } }, { kind: 'stroke', packet: { key: 'line' } }] },
-  }, { polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[10] ? 'substrate' : args[0]),
+  }, { drawOceanSubstrate() {}, polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[10] ? 'substrate' : args[0]),
     renderTerrain: () => calls.push('terrain'), drawHydro: category => calls.push(category),
     drawCountryBoundaryStrokes: () => { calls.push('boundary'); return { succeeded: true }; } });
   assert.deepEqual(calls, ['child-substrate', 'parent-substrate', 'substrate', 'mask', 'child', 'parent', 'terrain', 'child', 'parent', 'country', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary', 'generic', 'stroke']);

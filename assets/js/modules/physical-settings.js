@@ -65,29 +65,9 @@ export function createHydroSettings() {
     if ((0, dependencies.platform.$)('terrainPhysicalRadio')) (0, dependencies.platform.$)('terrainPhysicalRadio').checked = terrainVisible && dependencies.projectState.state.physicalSettings.terrainStyle === 'physical';
   }
 
-  function parseHexRgb(value, fallback = dependencies.physicalConfig.TERRAIN_OCEAN_REPRESENTATIVE) {
-    const match = /^#([0-9a-f]{6})$/i.exec(String(value || '')) || /^#([0-9a-f]{6})$/i.exec(fallback);
-    const packed = Number.parseInt(match[1], 16);
-    return [(packed >> 16) & 255, (packed >> 8) & 255, packed & 255];
-  }
-
-  function formatHexRgb(rgb) {
-    return `#${rgb.map(value => (0, dependencies.platform.clamp)(Math.round(value), 0, 255).toString(16).padStart(2, '0')).join('')}`;
-  }
-
-  function automaticWaterColor(gpu = false) {
-    if (dependencies.projectState.state.physicalSettings.terrainVisible && dependencies.projectState.state.physicalSettings.terrainStyle === 'physical') {
-      const representative = dependencies.projectState.state.terrainManifest?.displayColors?.oceanRepresentative || dependencies.physicalConfig.TERRAIN_OCEAN_REPRESENTATIVE;
-      let rgb = parseHexRgb(representative);
-      if ((document.documentElement.dataset.theme || dependencies.preferences.systemTheme) === 'dark') rgb = rgb.map((value, index) => value * [0.808, 0.8464, 0.8848][index]);
-      return gpu ? rgb.map(value => value / 255) : formatHexRgb(rgb);
-    }
+  function hydroDisplayColor(_category, gpu = false) {
     const theme = (0, dependencies.preferences.mapTheme)();
     return gpu ? theme.oceanGpu : theme.ocean;
-  }
-
-  function hydroDisplayColor(_category, gpu = false) {
-    return automaticWaterColor(gpu);
   }
 
   function normalizeHydroEdit(feature) {
