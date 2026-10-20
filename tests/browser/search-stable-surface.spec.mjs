@@ -26,6 +26,8 @@ for (const product of ['editor', 'viewer']) {
     await page.locator('#objectSearchBtn').click();
     await expect(panel).toBeVisible();
     await expect(panel).toHaveClass(/search-toolbar-desktop/);
+    await expect(panel.locator(':scope > .surface-header')).not.toBeVisible();
+    await expect.poll(() => panel.locator('.ui-search-field').evaluate(node => Math.abs(node.getBoundingClientRect().top - document.querySelector('.map-command-search').getBoundingClientRect().top))).toBeLessThan(2);
     await expect.poll(() => panel.evaluate(node => {
       const actual = node.getBoundingClientRect();
       const slot = document.querySelector('.map-command-search').getBoundingClientRect();
@@ -54,6 +56,8 @@ for (const product of ['editor', 'viewer']) {
     });
     await expect(panel).toBeVisible();
     await expect(panel).toHaveClass(/search-toolbar-desktop/);
+    await expect(panel.locator(':scope > .surface-header')).not.toBeVisible();
+    await expect.poll(() => panel.locator('.ui-search-field').evaluate(node => Math.abs(node.getBoundingClientRect().top - document.querySelector('.map-command-search').getBoundingClientRect().top))).toBeLessThan(2);
     await expect(input).toHaveValue('독일');
     await expect(input).toBeFocused();
     await expect(input).toHaveAttribute('data-resize-blurs', '0');
