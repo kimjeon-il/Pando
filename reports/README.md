@@ -49,9 +49,10 @@
 | --- | --- | --- | --- | --- |
 | `DEV-CORE-CI-WEBGL-20261020` | [C++ CI 2건과 Windows WebGL UI 시간 초과 수정](development/testing/core-ci-webgl-repair-2026-10-20.md) | 2026-10-20 | `native-ci-verified / webgl-ui-verified / separate-artifact-ci-failure` | `not-applicable` |
 | `DEV-REMAINING-BRANCH-20261020` | [남은 작업 브랜치의 main 통합](development/testing/remaining-branch-integration-2026-10-20.md) | 2026-10-20 | `integrated / remote-verified / docs-only` | `not-applicable` |
-| `DEV-ALL-BRANCH-20261021` | [10월 21일 작업 브랜치의 main 통합](development/testing/all-branch-integration-2026-10-21.md) | 2026-10-21 | `integrated / focused-verified / local-only` | `not-applicable` |
-| `UI-WEB-GLOBE-20261021` | [웹 지구본 전용 표시 구현과 최소 검증](development/testing/viewer-globe-only-2026-10-21.md) | 2026-10-21 | `local-web-verified / editor-unit-verified / unpublished` | `not-applicable` |
-| `UI-INITIAL-MAP-FIX-20261021` | [초기 지도 배경과 새 프로젝트 전환의 표시 연속성 수정](development/testing/initial-map-continuity-2026-10-21.md) | 2026-10-21 | `local-web-verified / webview-source-verified / unpublished` | `not-applicable` |
+| `DEV-INTEGRATED-RELEASE-20261021` | [통합 main의 원격 게시와 Windows 실행 파일 갱신](development/testing/integrated-release-2026-10-21.md) | 2026-10-21 | `pages-live-verified / windows-native-verified / separate-ci-failure` | `not-applicable` |
+| `DEV-ALL-BRANCH-20261021` | [10월 21일 작업 브랜치의 main 통합](development/testing/all-branch-integration-2026-10-21.md) | 2026-10-21 | `integrated / release-followup-linked` | `not-applicable` |
+| `UI-WEB-GLOBE-20261021` | [웹 지구본 전용 표시 구현과 최소 검증](development/testing/viewer-globe-only-2026-10-21.md) | 2026-10-21 | `local-verified / release-followup-linked` | `not-applicable` |
+| `UI-INITIAL-MAP-FIX-20261021` | [초기 지도 배경과 새 프로젝트 전환의 표시 연속성 수정](development/testing/initial-map-continuity-2026-10-21.md) | 2026-10-21 | `local-verified / release-followup-linked` | `not-applicable` |
 | `UI-INITIAL-MAP-20261021` | [초기 지도 요소의 표시 시차와 새 프로젝트의 흰 화면 조사](development/testing/initial-map-and-project-transition-2026-10-21.md) | 2026-10-21 | `historical-record / follow-up-linked` | `not-applicable` |
 | `UI-TERRAIN-RELEASE-20261021` | [지형 전환 지연 수정의 main 반영과 웹·앱 게시 검증](development/testing/terrain-interaction-release-2026-10-21.md) | 2026-10-21 | `pages-live-verified / windows-native-verified` | `not-applicable` |
 | `UI-TERRAIN-LATENCY-20261021` | [고배율 지형 전환 지연의 재현과 수정](development/testing/terrain-interaction-latency-2026-10-21.md) | 2026-10-21 | `local-web-verified / app-unverified / unpublished` | `not-applicable` |

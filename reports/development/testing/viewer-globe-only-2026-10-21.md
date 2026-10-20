@@ -39,3 +39,5 @@
 전체 테스트·원격 CI·Windows 앱 재실행/재빌드·Android·모바일 실기기·WebGL1·Canvas 전체 흐름은 이번에 실행하지 않았다. 앱 평면 정책과 카메라 복원에 대한 단위 통과를 실제 WebView 검증으로 표시하지 않는다. GIS 형상·정확도나 기존 지형 품질 규칙을 변경·재검증한 작업도 아니다.
 
 `work/ui`에만 반영한다. main 통합·push·Pages 배포·실행 파일 갱신은 하지 않았다.
+
+게시 후속 기록: [DEV-INTEGRATED-RELEASE-20261021](integrated-release-2026-10-21.md). 당시 검증 범위는 위 기록대로 유지하며, 이후 main push·Pages·실제 Windows 실행 검증은 후속 문서에서 구분한다.

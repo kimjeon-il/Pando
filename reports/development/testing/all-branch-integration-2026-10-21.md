@@ -39,3 +39,5 @@ UI의 테스트 삭제 873건·생성 권한 6건·미추적 파일, objects의 
 중간 Git 작업 뒤 프로세스가 없는 0바이트 `index.lock`이 남아 진행이 막혔다. 실행 중인 Git이 없고 대상 경로가 main의 `.git/index.lock`임을 확인한 뒤 ignored 작업 폴더에 옮겨 보존했다. 기본 Git fsync 오류 회피는 명령별 옵션에만 적용하며 사용자 Git 설정을 바꾸지 않았다. 메타데이터 쓰기 한 번의 일시적 파일 열기 오류도 후속 정상 재생성·검증과 구분해 원시 로그에 남겼다.
 
 전체 회귀·C++ 전체 CI·Windows 앱 재빌드/실행 파일 교체·실제 WebView/Android·실제 사용자 검증은 이번에 실행하지 않는다. 원격 push·Pages 배포도 이번 로컬 병합 범위에 포함하지 않는다. main push가 Pages workflow를 시작하므로 병합과 게시를 구분한다.
+
+게시 후속 기록: [DEV-INTEGRATED-RELEASE-20261021](integrated-release-2026-10-21.md). 당시 검증 범위는 위 기록대로 유지하며, 이후 main push·Pages·실제 Windows 실행 검증은 후속 문서에서 구분한다.
