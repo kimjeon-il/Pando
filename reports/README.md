@@ -48,6 +48,7 @@
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
 | `DEV-REMAINING-BRANCH-20261020` | [남은 작업 브랜치의 main 통합](development/testing/remaining-branch-integration-2026-10-20.md) | 2026-10-20 | `integrated / remote-verified / docs-only` | `not-applicable` |
+| `UI-TERRAIN-LATENCY-20261021` | [고배율 지형 전환 지연의 재현과 수정](development/testing/terrain-interaction-latency-2026-10-21.md) | 2026-10-21 | `local-web-verified / app-unverified / unpublished` | `not-applicable` |
 | `UI-MAP-SCALE-RELEASE-20261020` | [지도 표시·UI 검사 정리와 웹·Windows 게시 검증](development/testing/map-scale-release-2026-10-20.md) | 2026-10-20 | `pages-live-verified / windows-native-verified / separate-ci-failures` | `not-applicable` |
 | `UI-MAP-SCALE-20261020` | [지도 배율별 품질과 표시 준비 상태](development/testing/map-scale-readiness-2026-10-20.md) | 2026-10-20 | `focused-verified / native-webview2-verified / unpublished` | `not-applicable` |
 | `UI-CONVERGENCE-P2-20261020` | [UI 구조 통일 P2 — 검색창 DOM 고정·가로 화면 CSS 분리](development/testing/ui-convergence-p2-2026-10-20.md) | 2026-10-20 | `implemented / focused-browser-verified / native-unverified` | `not-applicable` |
