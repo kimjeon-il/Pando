@@ -135,7 +135,6 @@
         "tests/browser/child-coast-boundary.spec.mjs",
         "tests/browser/country-shared-boundary.spec.mjs",
         "tests/browser/date-line-outline.spec.mjs",
-        "tests/browser/projection-border.spec.mjs",
         "tests/browser/territorial-boundary-*.spec.mjs",
         "tests/browser/territorial-child-fill-comparison.spec.mjs"
       ],
@@ -160,6 +159,7 @@
         "tests/browser/prepared-overlay-mesh.spec.mjs",
         "tests/browser/renderer-*.spec.mjs",
         "tests/browser/map-display-worker.spec.mjs",
+        "tests/browser/map-loading-continuity.spec.mjs",
         "tests/browser/map-scale-readiness.spec.mjs",
         "tests/browser/selection-pass-baseline.spec.mjs",
         "tests/browser/single-context-selection.spec.mjs",
