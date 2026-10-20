@@ -7565,22 +7565,6 @@ body.file-menu-open .mobile-backdrop {
   margin-inline-start: auto;
 }
 
-.surface-display:not(.view-menu-desktop) .map-display-row > label {
-  position: relative;
-  z-index: 1;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label {
-  flex: 0 0 var(--ui-touch-height);
-  margin-inline-start: auto;
-}
-
-.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label > span {
-  display: none;
-}
-
 .surface-display:not(.view-menu-desktop) .map-display-detail-trigger {
   display: flex;
   align-items: center;
@@ -8116,26 +8100,18 @@ body.file-menu-open .mobile-backdrop {
 
 /* source: assets/css/components/view-menu.css */
 
-/* Canonical components / view-menu. */
+/* Canonical components / view-menu. Both products share ui-menu and ui-sheet.
+ * Submenus remain at their authored DOM locations across layout changes. */
 
 .surface-display.view-menu-desktop {
-  --ui-surface-border-top: var(--ui-border-width) solid var(--overlay-border);
-  --ui-surface-border-right: var(--ui-border-width) solid var(--overlay-border);
-  --ui-surface-border-bottom: var(--ui-border-width) solid var(--overlay-border);
-  --ui-surface-border-left: var(--ui-border-width) solid var(--overlay-border);
-  --ui-surface-radius-top-left: var(--ui-radius-panel);
-  --ui-surface-radius-top-right: var(--ui-radius-panel);
-  --ui-surface-radius-bottom-right: var(--ui-radius-panel);
-  --ui-surface-radius-bottom-left: var(--ui-radius-panel);
-  --ui-surface-shadow: var(--control-shadow);
-  --surface-elevated: var(--design-color-surface-elevated);
   position: fixed;
   z-index: 140;
   top: var(--ui-menu-position-top, calc(var(--ui-shell-topbar-height) + var(--ui-menu-trigger-gap)));
   right: auto;
   bottom: auto;
-  height: auto;
   left: var(--ui-menu-position-left, var(--ui-menu-screen-edge));
+  height: auto;
+  min-height: 0;
   max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
   overflow: visible;
   transform: none;
@@ -8146,7 +8122,6 @@ body.file-menu-open .mobile-backdrop {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: none;
 }
 
 [data-layout="wide"] .workspace-surface.surface-display.view-menu-desktop > .surface-header,
@@ -8154,12 +8129,7 @@ body.file-menu-open .mobile-backdrop {
   display: none;
 }
 
-.surface-display.view-menu-desktop > .surface-body {
-  min-height: 0;
-  overflow: visible;
-  padding: 0;
-}
-
+.surface-display.view-menu-desktop > .surface-body,
 .surface-display.view-menu-desktop .map-view-panel-section {
   min-height: 0;
   overflow: visible;
@@ -8172,35 +8142,19 @@ body.file-menu-open .mobile-backdrop {
   overscroll-behavior: contain;
 }
 
-.view-menu-popups {
-  display: contents;
-}
-
-.view-menu-desktop .view-menu-root > .layer-style-editor {
-  display: contents;
-}
-
-.view-menu-desktop .layer-type-settings {
-  display: contents;
-}
-
+.view-menu-desktop .view-menu-root > .layer-style-editor,
+.view-menu-desktop .layer-type-settings,
 .view-menu-desktop .map-display-row {
   display: contents;
 }
 
-.view-menu-desktop .view-menu-root > .layer-style-editor > strong {
+.view-menu-desktop .view-menu-root > .layer-style-editor > strong,
+.view-menu-desktop .view-menu-popup > strong,
+.view-menu-desktop .view-menu-popup > .layer-setting-hint {
   display: none;
 }
 
-.view-menu-desktop .view-menu-popups > [role="menu"] > strong {
-  display: none;
-}
-
-.view-menu-desktop .view-menu-popups > [role="menu"] > .layer-setting-hint {
-  display: none;
-}
-
-.view-menu-desktop .view-menu-popups > .ui-menu-surface {
+.view-menu-desktop .view-menu-popup {
   position: fixed;
   z-index: 141;
   top: var(--ui-menu-position-top);
@@ -8210,8 +8164,26 @@ body.file-menu-open .mobile-backdrop {
   overscroll-behavior: contain;
 }
 
-.view-menu-desktop .view-menu-popups > [data-menu-level="2"] {
+.view-menu-desktop .view-menu-popup[data-menu-level="2"] {
   z-index: 142;
+}
+
+.surface-display .view-menu-popup[hidden] {
+  display: none;
+}
+
+.view-menu-desktop .view-menu-popup > .view-menu-panel-content {
+  display: grid;
+  gap: var(--ui-menu-gap);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.view-menu-desktop .view-menu-popup > .view-menu-panel-content[hidden] {
+  display: none;
 }
 
 .view-menu-desktop .view-menu-panel-content[inert] {
@@ -8223,11 +8195,54 @@ body.file-menu-open .mobile-backdrop {
   z-index: auto;
 }
 
-.surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent {
+.surface-display:not(.view-menu-desktop) .view-menu-visibility-popup {
+  display: contents;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-list > .layer-type-settings {
+  grid-template-columns: minmax(0, 1fr) var(--ui-touch-height);
+  align-items: center;
+  column-gap: var(--ui-space-1);
+}
+
+.surface-display:not(.view-menu-desktop) .layer-type-settings > .layer-type-settings-heading {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.surface-display:not(.view-menu-desktop) .view-menu-visibility-popup > .ui-toggle {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  width: var(--ui-touch-height);
+  min-width: 0;
+  min-height: var(--map-display-row-height);
+  margin-inline-start: auto;
+}
+
+.surface-display:not(.view-menu-desktop) .view-menu-visibility-popup > .ui-toggle > span {
   display: none;
 }
 
-.surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent {
+.surface-display:not(.view-menu-desktop) .view-menu-visibility-popup > .view-menu-panel-content,
+.surface-display:not(.view-menu-desktop) .terrain-display-settings > .view-menu-popup {
+  grid-column: 1 / -1;
+}
+
+.surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent,
+.surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent,
+.surface-display:not(.view-menu-desktop) .view-menu-separator,
+.surface-display:not(.view-menu-desktop) .view-menu-icon,
+.surface-display:not(.view-menu-desktop) .ui-menu-mark {
+  display: none;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-leading {
+  display: contents;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-chevron {
   display: none;
 }
 
@@ -8286,10 +8301,6 @@ body.file-menu-open .mobile-backdrop {
   align-items: center;
   justify-content: space-between;
   gap: var(--ui-space-1);
-}
-
-.layer-type-settings-heading > label {
-  flex: 1;
 }
 
 .app-root .layer-type-settings .layer-inline-style-panel {
