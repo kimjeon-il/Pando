@@ -86,3 +86,26 @@ test('viewer landscape search stays in its authored location after portrait rota
   await expect(page.locator('#objectSearchInput')).toHaveValue('서울');
   expect(await panel.evaluate(node => node.parentElement?.dataset.p2SearchParent)).toBe('stable');
 });
+
+test('editor search IME composition defers responsive layout until compositionend', async ({ page }) => {
+  test.setTimeout(180_000);
+  await openProduct(page, 'editor');
+  const panel = page.locator('#objectSearchSurface');
+  const input = page.locator('#objectSearchInput');
+  await panel.evaluate(node => { node.parentElement.dataset.p2ImeParent = 'stable'; });
+  await page.locator('#objectSearchBtn').click();
+  await expect(panel).toBeVisible();
+  await input.fill('독');
+  await input.evaluate(node => {
+    node.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: 'ㄷ' }));
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'compact');
+  await input.evaluate(node => {
+    node.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '독' }));
+  });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  await expect(panel).toBeVisible();
+  await expect(input).toHaveValue('독');
+  expect(await panel.evaluate(node => node.parentElement?.dataset.p2ImeParent)).toBe('stable');
+});
