@@ -33,19 +33,30 @@ for (const product of ['editor', 'viewer']) {
     })).toBeLessThan(2);
     await input.fill('독일');
     await expect(input).toBeFocused();
+    await input.evaluate(node => { node.dataset.resizeBlurs = '0'; node.addEventListener('blur', () => { node.dataset.resizeBlurs = String(Number(node.dataset.resizeBlurs) + 1); }); });
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(root).toHaveAttribute('data-layout', 'mobile');
+    await panel.evaluate(async node => {
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {})));
+    });
     await expect(panel).toBeVisible();
     await expect(panel).not.toHaveClass(/search-toolbar-desktop/);
     await expect(input).toHaveValue('독일');
     await expect(input).toBeFocused();
+    await expect(input).toHaveAttribute('data-resize-blurs', '0');
     expect(await parent()).toBe('stable');
     await page.setViewportSize({ width: 1440, height: 900 });
     await expect(root).toHaveAttribute('data-layout', 'wide');
+    await panel.evaluate(async node => {
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {})));
+    });
     await expect(panel).toBeVisible();
     await expect(panel).toHaveClass(/search-toolbar-desktop/);
     await expect(input).toHaveValue('독일');
     await expect(input).toBeFocused();
+    await expect(input).toHaveAttribute('data-resize-blurs', '0');
     expect(await parent()).toBe('stable');
     await expect.poll(() => panel.evaluate(node => {
       const actual = node.getBoundingClientRect();
