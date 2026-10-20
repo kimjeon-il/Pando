@@ -1949,8 +1949,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "1d3581a7c158b02958fa4ec4be0942aebe138c2ca0ee7ff426fa787836ae5d27",
-      "outputFingerprint": "6771cae4a1926a10068d97592cbd62129b7596ef675e8ca6fb6c40d06697cd40",
+      "inputFingerprint": "64ccb6e8438612021b3eb589629198b359acc70d85fe015100989c1deb78856a",
+      "outputFingerprint": "fb40ae3f512fed7a8988c39de160516c397fb2035c6675d90569e34e3e548c76",
       "inputs": {
         "assets/js/app.js": "3afc301fc189ac2277f115ff9c28f37139e1df7c765fb5b999b5d3613f365f6e",
         "assets/js/bootstrap.js": "93cada4a638e7e0669d1e239282bddf54305de7e30fb7301f35e0cb37b610b8c",
@@ -2057,7 +2057,7 @@
         "assets/js/modules/custom-color-control.js": "13ab4bea9f9a78daf61fe16092a05a537cfa6bb0ae975dc80658db908bc7ff0e",
         "assets/js/modules/cut-preparation-cache.js": "38278991e38a0976e0337d805a0d44a611e453d80c2e91f8cb47780f8e8d1a11",
         "assets/js/modules/cut-worker-preparation.js": "5b3831095325a1a2ccd22d108cb09238a5abe63e4f2e652dcca599dbdd2cfc82",
-        "assets/js/modules/dialog-accessibility-controller.js": "4bba1cea5cffdae66d71b8d23a838a4287b24d9db885abe1f0fbd86a44e61625",
+        "assets/js/modules/dialog-accessibility-controller.js": "75092ded3c87be617f41bce53e00087154d0cd8208c3ab1e09a850a393c95173",
         "assets/js/modules/distribution-model.js": "f1e3f765e839699d199edb18c55533486e966ffc85c849471edbcf8fab4a2c8d",
         "assets/js/modules/distribution-service.js": "18c6e250638dcbabd30dffc3588a2b988b5aec8c68c6566795189a19a232c744",
         "assets/js/modules/document-session.js": "c5c3bc6477e40878aef9fd0541a69f5a08690211afb59fef3217e2580d325a71",
@@ -2193,7 +2193,7 @@
         "assets/js/modules/polygon-geometry.js": "7b9da8fbccd264a7af7e68d659c8a6ea3cbad8723e67d48fd3d470cc1032b5e7",
         "assets/js/modules/polygon-mesh-codec.js": "ce7ebccdee3a289c5d5f6bc2c7b24f05cf77257bbd9fd5c683265f3327bc6e70",
         "assets/js/modules/preference-presentation.js": "2e49b1bedc7ba175ff1648a8b53067a6f9d21dc44573bcc63ae72613ea2460ca",
-        "assets/js/modules/preferences-dialog.js": "775507e8f00e908648b5c6eb9925d82f3f923a2934c3927921c677802d4bd245",
+        "assets/js/modules/preferences-dialog.js": "d56db034c35466db5ddf0218c6e94dd33c81e76ab25cd84b50f7611ebb630edb",
         "assets/js/modules/prepared-polygon-mesh.js": "3e19e8dcabd3b9f3c71574d5508768077ea2a13fc4cffb77b99a91f0070dde05",
         "assets/js/modules/product-mode-policy.js": "ab923f7663f2269c29d11d6df5470a4e9824468a38738f1c39dba1f41d9f1217",
         "assets/js/modules/project-domain.js": "f8780ccf9bba97d754d900743b3e0c5550b18628dd655061b39e92879f339981",
@@ -2371,9 +2371,9 @@
       },
       "outputs": {
         "README.md": "6931d8ae20cb7f1e4135b61e24197d97e0cd13f5f1cd5819ce2916509490efd6",
-        "apps/web-shell/editor.html": "505d7fdeb9e2d7402213ede4e212a267a4e57ab15bf9131afa3b939fe48f358a",
-        "assets/js/build-meta.js": "d1fa1c216bb76c876d34d1427807d6304dc3c8557cdd695a1e2471b44510e1dd",
-        "index.html": "ebad1a8a1b406500e3cf2b2655692b4fc596cad60a9727a191601e3f134dd338"
+        "apps/web-shell/editor.html": "9a2c812b4f513894a51131ec8d772371b2e385485c84929f742e036137a4172c",
+        "assets/js/build-meta.js": "509bcc65d547ab2f58013ef02d24708cc63b760acb5eb7eae0a3b1bcb6ea2caa",
+        "index.html": "92439912defe3ef42848d74a2b886cbcf2eff7042f8f4a34200a3abcf3ae011a"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2388,7 +2388,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "fe593049af8815219467b71d49a3f0055af4955b"
+      "sourceSha": "2d6f1490a89dcefcd09c3b0978a58fb3aade3f50"
     }
   }
 }
