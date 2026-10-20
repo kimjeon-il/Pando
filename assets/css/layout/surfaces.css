@@ -21,12 +21,12 @@
   right: 0;
 }
 
-[data-layout="wide"] .workspace-surface:not(.surface-reference, .view-menu-desktop) > .surface-header {
+[data-layout="wide"] .workspace-surface:not(.surface-reference, .view-menu-desktop, .search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.surface-reference, .view-menu-desktop) > .surface-header {
+[data-layout="compact"] .workspace-surface:not(.surface-reference, .view-menu-desktop, .search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
