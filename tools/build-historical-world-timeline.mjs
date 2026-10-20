@@ -47,8 +47,11 @@ export function buildHistoricalWorldPublication({ policyFile = fileURLToPath(new
   const { project, coverageReport, sourceIdentities } = compileHistoricalWorldTimeline({ entities, currentSnapshot, currentWorld, policy });
   const projectBytes = bytes(project);
   if (projectBytes.length > 64 * 1024 * 1024) throw new Error('Historical project exceeds native import limit');
+  const compressedProject = gzipSync(projectBytes, { level: 9, mtime: 0 });
+  // Keep the published gzip identity across Windows and Linux generators.
+  compressedProject[9] = 3;
   const files = new Map([
-    ['world-project.json.gz', gzipSync(projectBytes, { level: 9, mtime: 0 })],
+    ['world-project.json.gz', compressedProject],
     ['coverage-report.json', bytes(coverageReport)],
     ['expected-trace.json', bytes(historicalWorldTrace(project, coverageReport.sourceMonth))],
   ]);
