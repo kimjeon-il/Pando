@@ -12,6 +12,9 @@ ProjectDocument fixture() {
     Geometry line;line.type="LineString";line.lines={{{1.125,2.25},{3.5,4.75}}};
     const GeometryRef ref{"hydro-runtime-H",1};d.geometries.insert(ref,line);
     HydroFeature hydro;hydro.id="H";hydro.name="H";hydro.geometry=ref;d.hydro.push_back(hydro);
+    // The current default setup is opaque metadata, admitted through its owner.
+    const auto beforeSetup=d;
+    GeometryProvenanceCodecAccess::admitProjectSetupMetadata(beforeSetup,d);
     return d;
 }
 CommandResult apply(Project& project,const char* operation,const V& payload) {
