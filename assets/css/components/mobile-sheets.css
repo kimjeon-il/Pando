@@ -346,3 +346,25 @@
     transition-duration: .01ms;
   }
 }
+
+/* Phone landscape is a side dock, but retains the common sheet chrome.
+   The layout stylesheet owns its placement and visibility only. */
+.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet {
+  border: 0;
+  border-left: var(--ui-border-width) solid var(--border);
+  border-radius: 0;
+  background: var(--surface-elevated);
+  box-shadow: var(--control-shadow);
+}
+
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
+  background: var(--mobile-nav-bg);
+}
+
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item strong {
+  font-size: var(--ui-phone-landscape-nav-label-size);
+}
+
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] {
+  color: var(--accent);
+}

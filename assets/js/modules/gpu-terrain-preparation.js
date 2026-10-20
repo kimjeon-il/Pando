@@ -7,6 +7,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
   let activeFrameContext = null, view = {};
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
   let tint = null, tintFallback = null, tintPending = false, pendingDecodedBytes = 0, unusableReported = false;
+  let requiredKeys = new Set(), resolutionLimited = false, preparationFailure = '';
   const controllers = new Set(), retryTimers = new Set(), uploadKeys = new Set();
   const isWebGlRenderer = () => ready;
     const terrainTiles = new Map();
@@ -33,6 +34,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const frameDpr = Math.max(1, Number(frameContext.dpr));
       const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.devicePixelRatio || 1)));
       const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr);
+      resolutionLimited = terrainManifest.levels.at(-1).width < desiredWidth * 1.12;
       return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
         || terrainManifest.levels[terrainManifest.levels.length - 1];
     }
@@ -303,6 +305,8 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       }).catch(error => {
         if (error.name !== 'AbortError') {
           console.warn('Terrain upload failed', error);
+          preparationFailure = String(error?.message || error);
+          invalidate('terrain-upload-failed');
           if (terrainManifest?.representation === 'dem-relief-v1' && !unusableReported) {
             unusableReported = true;
             onUnusable?.(String(error?.message || error));
@@ -380,6 +384,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const baseLevel = terrainManifest.levels[0];
       const baseSpecs = visibleTerrainTileSpecs(baseLevel, true, frameContext);
       const baseKeys = new Set(baseSpecs.map(spec => spec.key));
+      requiredKeys = new Set([...baseKeys, ...targetSpecs.map(spec => spec.key)]);
       const baseReady = baseSpecs.every(spec => terrainTiles.has(spec.key));
       terrainLastLevel = Number(targetLevel?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
@@ -483,6 +488,8 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
         if (requestEpoch === epoch && !controller.signal.aborted) {
           tintPending = false;
           console.warn('DEM terrain tint unavailable', error);
+          preparationFailure = String(error?.message || error);
+          invalidate('terrain-tint-failed');
           if (!unusableReported) { unusableReported = true; onUnusable?.(String(error?.message || error)); }
         }
       }).finally(() => controllers.delete(controller));
@@ -519,8 +526,18 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     terrainLastLevel = -1; terrainRenderedLevel = -1;
     terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0;
     terrainTargetTileKeys.clear(); terrainRetentionKeys.clear();
+    requiredKeys.clear(); resolutionLimited = false; preparationFailure = '';
   }
   const settled = () => [...terrainTargetTileKeys].every(key => terrainTiles.has(key) || Number(terrainTileFailures.get(key)?.attempts || 0) >= 4);
+  function readiness() {
+    const tintRequired = terrainManifest?.representation === 'dem-relief-v1' && view.physicalStyle === 'physical' && !!tintUrl;
+    return {
+      terrainReady: requiredKeys.size > 0 && [...requiredKeys].every(key => terrainTiles.has(key)) && (!tintRequired || !!tint),
+      terrainFailed: !!preparationFailure || [...requiredKeys].some(key => !terrainTiles.has(key) && Number(terrainTileFailures.get(key)?.attempts || 0) >= 4),
+      terrainResolutionLimited: resolutionLimited,
+      terrainTargetKey: `${projectGeneration}:${contextRevision}:${epoch}:${terrainLastLevel}:${[...requiredKeys].sort().join(',')}:${tintRequired}`,
+    };
+  }
   return Object.freeze({
     setContext(next) {
       if (disposed) return;
@@ -534,7 +551,12 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     tintTexture: () => tint?.texture || tintFallback?.texture || null,
     scheduleUpload: scheduleTerrainUpload,
     settled, reset,
-    stats: () => ({ terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
+    retry() {
+      for (const timer of retryTimers) clearTimeout(timer);
+      retryTimers.clear(); terrainTileFailures.clear(); preparationFailure = ''; unusableReported = false;
+      invalidate('terrain-retry');
+    },
+    stats: () => ({ ...readiness(), terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
       terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || tintFallback?.byteLength || 0),
       terrainPendingDecodedBytes: pendingDecodedBytes, terrainTintReady: !!tint,

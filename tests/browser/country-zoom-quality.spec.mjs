@@ -71,7 +71,7 @@ async function sampleQualityFrames(page, count = 8) {
   }, count);
 }
 
-test('selected country outline follows the fill mesh on the first frame of each quality switch', async ({ page }) => {
+test('selected country fill and outline keep the same precise mesh across screen scales', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = collectErrors(page);
   // Observe the real renderer and SelectionPass without replacing their behavior.
@@ -98,8 +98,7 @@ test('selected country outline follows the fill mesh on the first frame of each 
   });
   await openMap(page);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  // The property editor deliberately holds canonical quality; close it while
-  // retaining the selection so wheel navigation exercises both mesh variants.
+  // Keep selection while closing the property editor: navigation must retain precise geometry.
   if (await page.locator('#editorSurface').evaluate(node => node.classList.contains('surface-open'))) {
     await page.locator('#mobileEditBtn').evaluate(button => button.click());
   }
@@ -109,13 +108,13 @@ test('selected country outline follows the fill mesh on the first frame of each 
   for (const { projection, lower, upper } of thresholds) {
     await selectProjection(page, projection);
     await zoomTo(page, lower - 0.01);
-    await expectQuality(page, 'preview');
+    await expectQuality(page, 'canonical');
     const initial = await page.evaluate(() => window.__PANDOLAB_SELECTION_MESH_SNAPSHOT__());
     expect(initial.sameResource).toBe(true);
     expect(initial.sameGeometry).toBe(true);
-    expect(initial.selectionResourceKeys).toEqual(['country-boundary:preview']);
+    expect(initial.selectionResourceKeys).toEqual(['country-boundary:canonical']);
     let rebuilds = initial.primaryRebuilds;
-    for (const [zoom, quality] of [[upper + 0.01, 'canonical'], [lower - 0.01, 'preview']]) {
+    for (const [zoom, quality] of [[upper + 0.01, 'canonical'], [lower - 0.01, 'canonical']]) {
       const firstFrame = await page.evaluate(async target => {
         const map = document.getElementById('map');
         const rect = map.getBoundingClientRect();
@@ -132,7 +131,7 @@ test('selected country outline follows the fill mesh on the first frame of each 
       expect(firstFrame.sameResource).toBe(true);
       expect(firstFrame.sameGeometry).toBe(true);
       expect(firstFrame.selectionResourceKeys).toEqual([`country-boundary:${quality}`]);
-      expect(firstFrame.primaryRebuilds).toBeGreaterThan(rebuilds);
+      expect(firstFrame.primaryRebuilds).toBe(rebuilds);
       // The existing SVG outline covers frames whose shared GPU upload is
       // pending. Selection must remain visible through the quality switch.
       expect([...firstFrame.renderedKeys, ...firstFrame.fallbackKeys]).toContain('territorial:entity:DEU');
@@ -143,27 +142,27 @@ test('selected country outline follows the fill mesh on the first frame of each 
 });
 
 for (const { projection, lower, upper, band } of thresholds) {
-  test(`${projection} preview and canonical switch in both directions without oscillating in the band`, async ({ page }) => {
+  test(`${projection} uncertified preview stays excluded across low, transition and high zoom`, async ({ page }) => {
     test.setTimeout(180_000);
     const errors = collectErrors(page);
     await openMap(page);
     await selectProjection(page, projection);
     await page.locator('#resetViewBtn').evaluate(button => button.click());
-    await expectQuality(page, 'preview');
+    await expectQuality(page, 'canonical');
 
     // Exact equality is covered by the policy unit test. Native wheel math may
     // round one ULP, so cross endpoints by a tiny explicit amount here.
     for (const [zoom, quality] of [
-      [lower, 'preview'],
-      [band, 'preview'],
-      [upper - 0.001, 'preview'],
-      [band, 'preview'],
+      [lower, 'canonical'],
+      [band, 'canonical'],
+      [upper - 0.001, 'canonical'],
+      [band, 'canonical'],
       [upper + 0.000001, 'canonical'],
       [band, 'canonical'],
       [lower + 0.001, 'canonical'],
       [band, 'canonical'],
-      [lower - 0.000001, 'preview'],
-      [band, 'preview'],
+      [lower - 0.000001, 'canonical'],
+      [band, 'canonical'],
     ]) {
       await zoomTo(page, zoom);
       await expectQuality(page, quality);
@@ -179,7 +178,7 @@ test('focus survives frames and resize until navigation resumes while editing re
   await openMap(page);
   await selectProjection(page, 'flat');
   await page.locator('#resetViewBtn').evaluate(button => button.click());
-  await expectQuality(page, 'preview');
+  await expectQuality(page, 'canonical');
   const original = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DEU').geometry));
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
@@ -193,7 +192,7 @@ test('focus survives frames and resize until navigation resumes while editing re
   await page.locator('#mobileEditBtn').evaluate(button => button.click());
   await expectQuality(page, 'canonical');
   await zoomTo(page, 1.1);
-  await expectQuality(page, 'preview');
+  await expectQuality(page, 'canonical');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.countryFocusPending)).toBe(false);
   await page.locator('#mobileEditBtn').evaluate(button => button.click());
   await expectQuality(page, 'canonical');
@@ -202,7 +201,7 @@ test('focus survives frames and resize until navigation resumes while editing re
   await expectQuality(page, 'canonical');
   await page.locator('#mobileEditBtn').evaluate(button => button.click());
   await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
-  await expectQuality(page, 'preview');
+  await expectQuality(page, 'canonical');
 
   await page.locator('#createMenuBtn').click();
   await page.locator('#addRiverBtn').click();
@@ -217,7 +216,7 @@ test('focus survives frames and resize until navigation resumes while editing re
   expect(await sampleQualityFrames(page)).toEqual(Array(8).fill('canonical'));
   await page.locator('#modeCancelBtn').click();
   await page.locator('#mobileEditBtn').evaluate(button => button.click());
-  await expectQuality(page, 'preview');
+  await expectQuality(page, 'canonical');
   expect(await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DEU').geometry))).toBe(original);
   expect(errors).toEqual([]);
 });
@@ -246,12 +245,12 @@ test('a pending canonical response cannot revive an obsolete high zoom request',
     await expect.poll(() => canonicalRequests, { timeout: 20_000 }).toBe(1);
     releaseCanonical();
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-    await expectQuality(page, 'preview');
-    expect(await sampleQualityFrames(page)).toEqual(Array(8).fill('preview'));
+    await expectQuality(page, 'canonical');
+    expect(await sampleQualityFrames(page)).toEqual(Array(8).fill('canonical'));
     await zoomTo(page, 2.9);
     await expectQuality(page, 'canonical');
     await zoomTo(page, 2.1);
-    await expectQuality(page, 'preview');
+    await expectQuality(page, 'canonical');
     expect(errors).toEqual([]);
   } finally {
     releaseCanonical();

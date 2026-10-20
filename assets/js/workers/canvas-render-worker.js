@@ -14,6 +14,7 @@ function canvasFallbackWorkerMain() {
     let countrySharedBoundary = null;
     let terrainManifest = null;
     let terrainManifestUrl = '';
+    let terrainManifestFailure = false;
     let terrainDemManifest = null;
     let terrainDemManifestUrl = '';
     let terrainTint = null;
@@ -350,6 +351,7 @@ function canvasFallbackWorkerMain() {
         if (!base) throw new Error('지형 타일 단계가 없습니다.');
         self.postMessage({ type: 'terrain-ready', count: 0, key: 'manifest' });
       } catch (error) {
+        terrainManifestFailure = true;
         self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) });
       }
     }
@@ -499,15 +501,14 @@ function canvasFallbackWorkerMain() {
       let demLevel = terrainDemManifest
         ? terrainLevelForView(projection, message.terrainDpr || dpr, terrainDemManifest) : null;
       let demSpecs = demLevel ? visibleTerrainTileSpecs(demLevel, message, projection, width, height, false) : [];
-      const decodedBytes = specs => specs.reduce((sum, spec) => sum + (spec.pixelWidth + 2) * (spec.pixelHeight + 2) * 12, 0);
-      while (demLevel?.id > 0 && decodedBytes(demSpecs) > demCacheLimit) {
-        demLevel = terrainDemManifest.levels[demLevel.id - 1];
-        demSpecs = visibleTerrainTileSpecs(demLevel, message, projection, width, height, false);
-      }
+      // Cache pressure may evict unretained tiles, never lower camera source resolution.
       const demNeighbours = demLevel ? terrainNeighbourSpecs(demLevel, demSpecs) : [];
       const drawSpecs = baseReady
         ? [...baseSpecs, ...fallbackSpecs, ...(targetLevel.id === baseLevel.id ? [] : targetSpecs)] : [];
-      return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs };
+      const sourceLevel = demLevel || targetLevel;
+      const desiredWidth = 2 * Math.PI * projection.scale() * Math.max(1, Number(message.terrainDpr || dpr)) * 1.12;
+      return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs,
+        resolutionLimited: sourceLevel.width < desiredWidth };
     }
 
     function renderTerrain(message, projection, width, height, dpr, visibleLand, plan) {
@@ -598,9 +599,15 @@ function canvasFallbackWorkerMain() {
     }
 
     function updateTerrainFrameStats(plan) {
-      if (!plan) { terrainFrameStats = {}; return; }
-      const { demSpecs, demLevel, targetLevel } = plan;
+      if (!plan) { terrainFrameStats = { terrainReady: false, terrainFailed: terrainManifestFailure }; return; }
+      const { demSpecs, demLevel, targetLevel, baseSpecs, targetSpecs, terrainComplete } = plan;
+      const exhausted = (specs, tiles, failures) => specs.some(spec => !tiles.has(spec.key) && Number(failures.get(spec.key)?.attempts || 0) >= 4);
       terrainFrameStats = {
+        terrainReady: terrainComplete && (!terrainDemManifestUrl || !!terrainDemManifest && !!terrainTint)
+          && demSpecs.every(spec => demTiles.has(spec.key)),
+        terrainFailed: demManifestAttempts >= 4 || exhausted([...baseSpecs, ...targetSpecs], terrainTiles, terrainFailures) || exhausted(demSpecs, demTiles, demFailures),
+        terrainResolutionLimited: plan.resolutionLimited,
+        terrainTargetKey: `${projectGeneration}:${terrainManifest.version}:${terrainDemManifest?.version || ''}:${[...baseSpecs, ...targetSpecs].map(spec => spec.key).sort().join(',')}:dem:${demSpecs.map(spec => spec.key).sort().join(',')}`,
         terrainRepresentation: demSpecs.some(spec => demTiles.has(spec.key)) ? 'dem-relief-v1' : 'raster-rgba-v1',
         terrainDatasetVersion: demSpecs.some(spec => demTiles.has(spec.key)) ? terrainDemManifest.version : terrainManifest.version,
         terrainSource: demSpecs.some(spec => demTiles.has(spec.key)) ? 'dem-derived-canvas' : 'dem-preview',
@@ -981,6 +988,7 @@ function canvasFallbackWorkerMain() {
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({
         type: 'frame',
+        presentationKey: message.presentationKey,
         styleRevision,
         // Background redraws reuse visual state, but never acknowledge a submission.
         renderRequestId,
@@ -1011,6 +1019,12 @@ function canvasFallbackWorkerMain() {
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || 2)));
         if(message.terrainEnabled!==false){loadTerrainManifest(message.terrainManifestUrl);loadDemManifest(message.terrainDemManifestUrl);}
         self.postMessage({ type: 'ready' });
+      } else if (message.type === 'retry-terrain') {
+        terrainFailures.clear(); demFailures.clear();
+        terrainManifestFailure = false; demManifestAttempts = 0;
+        if (!terrainManifest) { const url = terrainManifestUrl; terrainManifestUrl = ''; loadTerrainManifest(url); }
+        if (!terrainDemManifest && terrainDemManifestUrl) loadDemManifest(terrainDemManifestUrl);
+        scheduleHydroRender();
       } else if (message.type === 'hydro-port') {
         connectHydroPort(message.port);
       } else if (message.type === 'hydro-edits') {

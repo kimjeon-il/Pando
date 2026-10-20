@@ -1307,133 +1307,26 @@
 
 .mode-map-summary { max-width: min(90vw, 40rem); padding: var(--ui-space-2) var(--ui-space-3); overflow-wrap: anywhere; font-size: var(--ui-font-sm); pointer-events: none; }
 
-.mode-task-input{font-size:var(--ui-font-sm);line-height:1.5;padding:0 var(--ui-space-3);margin:4px 0 8px}.touch-vertex-handle{fill:transparent!important;stroke:transparent!important;filter:none}.touch-vertex-handle.selected{stroke:#b0dbff!important;stroke-width:2}.editing-magnifier{overflow:hidden;filter:drop-shadow(0 3px 6px #0008)}
-
-/* A short touch landscape viewport uses the same surfaces in a side dock. */
-.app-root[data-layout="phone-landscape"] {
-  --phone-panel-width: min(var(--ui-phone-landscape-panel-max-width), 45vw);
-  --phone-nav-width: calc(var(--ui-touch-height) + var(--ui-space-1) * 2);
-  --ui-shell-topbar-height: 0px;
-  --mobile-nav-height: 0px;
-  grid-template-rows: minmax(0, 1fr);
+.mode-task-input {
+  font-size: var(--ui-font-sm);
+  line-height: 1.5;
+  padding: 0 var(--ui-space-3);
+  margin: var(--ui-space-1) 0 var(--ui-space-2);
 }
 
-.app-root[data-layout="phone-landscape"] .topbar { display: none; }
-.app-root[data-layout="phone-landscape"] .workspace {
-  --projection-safe-left: var(--phone-nav-width);
-  --projection-safe-right: 0px;
-  --projection-safe-top: 0px;
-  --map-safe-left: var(--phone-nav-width);
-  --map-safe-right: 0px;
-}
-.app-root[data-layout="phone-landscape"] .workspace:is(.editor-drawer-open, .search-drawer-open, .display-drawer-open, .create-drawer-open, .reference-drawer-open) {
-  --projection-safe-right: var(--phone-panel-width);
-  --map-safe-right: var(--phone-panel-width);
+.touch-vertex-handle {
+  fill: transparent;
+  stroke: transparent;
+  filter: none;
 }
 
-.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet {
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  z-index: 100;
-  top: var(--workspace-visible-top, 0);
-  right: 0;
-  bottom: auto;
-  left: auto;
-  width: var(--phone-panel-width);
-  min-width: 0;
-  height: var(--workspace-visible-height, 100dvh);
-  min-height: 0;
-  max-height: var(--workspace-visible-height, 100dvh);
-  padding-bottom: env(safe-area-inset-bottom);
+.touch-vertex-handle.selected {
+  stroke: var(--ui-touch-vertex-selected-stroke);
+  stroke-width: calc(var(--ui-border-width) * 2);
+}
+
+.editing-magnifier {
   overflow: hidden;
-  border: 0;
-  border-left: var(--ui-border-width) solid var(--border);
-  border-radius: 0;
-  background: var(--surface-elevated);
-  box-shadow: var(--control-shadow);
-  transform: translateX(100%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+  filter: var(--ui-editing-magnifier-filter);
 }
-.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet.surface-open {
-  transform: none;
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet > .surface-header {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  min-height: var(--ui-touch-height);
-  padding: var(--ui-space-1) var(--ui-space-2);
-  cursor: default;
-}
-.app-root[data-layout="phone-landscape"] .workspace-surface .sheet-drag-handle { display: none; }
-.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet > .surface-header > .surface-header-title { display: flex; }
-.app-root[data-layout="phone-landscape"] .workspace-surface .surface-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-}
-.app-root[data-layout="phone-landscape"] .workspace-surface :is(button, input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
-.app-root[data-layout="phone-landscape"] .editor-field-grid { grid-template-columns: minmax(0, 1fr); }
 
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  z-index: 150;
-  inset: calc(var(--workspace-visible-top, 0) + var(--phone-nav-width)) auto auto 0;
-  width: var(--phone-nav-width);
-  height: calc(var(--workspace-visible-height, 100dvh) - var(--phone-nav-width));
-  padding: 0;
-  overflow-y: auto;
-  background: var(--mobile-nav-bg);
-}
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item {
-  flex: 0 0 var(--ui-touch-height);
-  min-height: var(--ui-touch-height);
-  width: 100%;
-  padding: var(--ui-space-1);
-}
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item strong { font-size: var(--ui-phone-landscape-nav-label-size); }
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] { color: var(--accent); }
-body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
-  display: flex;
-  position: fixed;
-  z-index: 180;
-  inset: var(--workspace-visible-top, 0) auto auto 0;
-  width: var(--phone-nav-width);
-  height: var(--phone-nav-width);
-  padding: var(--ui-space-1);
-}
-.app-root[data-layout="phone-landscape"] .mobile-menu-trigger { width: var(--ui-touch-height); height: var(--ui-touch-height); }
-.app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
-  position: fixed;
-  z-index: 210;
-  top: var(--workspace-visible-top, 0);
-  left: var(--phone-nav-width);
-  right: auto;
-  width: min(var(--ui-phone-landscape-panel-max-width), calc(100vw - var(--phone-nav-width)));
-  max-height: var(--workspace-visible-height, 100dvh);
-  overflow-y: auto;
-}
-body .app-root[data-layout="phone-landscape"] .mobile-global-menu { display: grid; }
-.app-root[data-layout="phone-landscape"] .mobile-file-back { display: grid; }
-.app-root[data-layout="phone-landscape"] .map-command-toolbar {
-  top: auto;
-  bottom: calc(var(--ui-statusbar-height) + var(--ui-space-2));
-  left: calc(var(--phone-nav-width) + var(--ui-space-2));
-  right: auto;
-  transform: none;
-}
-.app-root[data-layout="phone-landscape"] .map-command-toolbar :is(.create-menu-command, .map-command-search) { display: none; }
-.app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--phone-nav-width) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
-.app-root[data-layout="phone-landscape"] .status-inner { left: var(--phone-nav-width); right: var(--map-safe-right); }
-.app-root[data-layout="phone-landscape"] :is(.status-view, .status-primary, .project-save-status-text) { display: none; }

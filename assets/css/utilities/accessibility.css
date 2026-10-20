@@ -206,6 +206,13 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: transform var(--ui-surface-motion-duration) ease,
+    opacity var(--ui-surface-motion-duration) ease,
+    visibility var(--ui-surface-motion-duration);
+}
+
+/* Menu chrome stays with the shared ui-menu-surface component. */
+.workspace-surface:where(:not(.ui-menu-surface)) {
   border-top: var(--ui-surface-border-top);
   border-right: var(--ui-surface-border-right);
   border-bottom: var(--ui-surface-border-bottom);
@@ -216,9 +223,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
     var(--ui-surface-radius-bottom-left);
   background: var(--surface-elevated);
   box-shadow: var(--ui-surface-shadow);
-  transition: transform var(--ui-surface-motion-duration) ease,
-    opacity var(--ui-surface-motion-duration) ease,
-    visibility var(--ui-surface-motion-duration);
 }
 
 .surface-body {
