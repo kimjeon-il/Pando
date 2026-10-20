@@ -64,9 +64,7 @@ test('current-view detail reaches an actual WebGL frame while the pointer remain
     expect(errors).toEqual([]);
   }finally{await page.mouse.up();}
   if(viewport.dpr===1){
-    // Fixture setup uses the canonical projection button; the assertions below
-    // exercise terrain preparation even when the old scene can be reprojected.
-    await page.locator('#flatBtn').evaluate(button=>button.click());
+    // Globe camera scale drives terrain preparation independently of scene reprojection.
     const zoom=async scale=>{
       await page.locator('#map').evaluate((map,scale)=>{const r=map.getBoundingClientRect(),current=window.__PANDOLAB_VIEWER__.rendererStats().screenScale;map.dispatchEvent(new window.WheelEvent('wheel',{bubbles:true,cancelable:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2,deltaY:-Math.log(scale/current)/.0013}));},scale);
       await expect.poll(()=>page.evaluate(scale=>Math.abs(window.__PANDOLAB_VIEWER__.rendererStats().screenScale-scale),scale)).toBeLessThan(1);

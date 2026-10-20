@@ -1,0 +1,52 @@
+import { expect, test } from '@playwright/test';
+
+test('web keeps its globe through bounded file open, search, reset and mobile navigation',async({page})=>{
+  const {createViewerProjectPackage}=await import(process.env.PANDOLAB_TEST_VIEWER_FIXTURE || '../fixtures/viewer-project-package.mjs');
+  const fixture=await createViewerProjectPackage('지구본 범위 검사');
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.route('**/modules/viewer-map.js*',async route=>{
+    const source=await(await route.fetch()).text(),anchor='const state=projectSession.state,mapWorkScheduler=projectSession.mapWorkScheduler;';
+    expect(source).toContain(anchor);
+    await route.fulfill({contentType:'text/javascript',body:source.replace(anchor,anchor+`
+      window.__restoreGlobeCamera=()=>{const camera=projectSession.atomicMapStateController;
+        camera.commit(camera.begin(),{projection:'flat',view:{...state.view,flatCenter:[175,25],flatZoom:3}});
+        return {projection:state.projection,rotation:state.view.globeRotation};};`)});
+  });
+  await page.goto('/?debug=1&demTerrain=raster');
+  await expect.poll(()=>page.evaluate(()=>typeof window.__restoreGlobeCamera)).toBe('function');
+  expect(await page.evaluate(()=>window.__restoreGlobeCamera())).toEqual({projection:'globe',rotation:[-175,-25,0]});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
+  const projection=()=>page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().projection);
+  expect(await projection()).toBe('globe');
+  await expect(page.locator('#globeBtn,#flatBtn,#mapProjectionMenuTrigger,.projection-control')).toHaveCount(0);
+  expect(await page.evaluate(()=>{try{window.__PANDOLAB_MAP_HOST__.setProjectionKind('flat');return null;}catch(error){return error.code;}})).toBe('PL-PRODUCT-PROJECTION');
+  await page.locator('#projectFileInput').setInputFiles({name:'globe-bounds.gpkg',mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset)).toBe(fixture.project.baseDataset);
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  expect(await projection()).toBe('globe');
+  const initial=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState());
+  expect(initial.globeRotation.slice(0,2)).toEqual([-7.5,-7.5]);expect(initial.globeZoom).toBeGreaterThan(1);
+  const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
+  await page.locator('#objectSearchBtn').click();await page.locator('#objectSearchInput').fill('지구본 범위 검사');
+  await page.locator('#objectSearchResults button').filter({hasText:'지구본 범위 검사'}).first().click();
+  expect(await projection()).toBe('globe');
+  await page.locator('#resetViewBtn').click();
+  expect(await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().globeZoom)).toBe(1);
+  await page.setViewportSize({width:390,height:844});
+  await expect(page.locator('#viewer')).toHaveAttribute('data-layout','mobile');
+  const box=await page.locator('#map').boundingBox(),rotation=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().globeRotation);
+  await page.mouse.move(box.x+box.width*.7,box.y+box.height*.35);await page.mouse.down();
+  await page.mouse.move(box.x+box.width*.3,box.y+box.height*.4,{steps:5});await page.mouse.up();
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().globeRotation)).not.toEqual(rotation);
+  const cdp=await page.context().newCDPSession(page),x=box.x+box.width/2,y=box.y+box.height*.4;
+  await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:2});
+  const zoom=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().globeZoom);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x-25,y,id:1},{x:x+25,y,id:2}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-50,y,id:1},{x:x+50,y,id:2}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().globeZoom)).toBeGreaterThan(zoom);
+  await cdp.detach();
+  expect(await projection()).toBe('globe');
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState())).toEqual(before);
+  expect(errors).toEqual([]);
+});

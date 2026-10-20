@@ -1,4 +1,4 @@
-import { setViewingProjection, setViewingLayer, closeViewingDisplay } from './helpers/viewing-display.mjs';
+import { openViewingDisplay, setViewingLayer, closeViewingDisplay } from './helpers/viewing-display.mjs';
 import { test, expect } from '@playwright/test';
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 640, height: 360 }]) {
@@ -22,7 +22,7 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await expect(page.locator('#objectSearchResults button').first()).toBeVisible();
   await page.locator('#objectSearchResults button').first().click();
   await expect(page.locator('#viewerStatus')).toContainText('대한민국');
-  await setViewingProjection(page,'flat');
+  await openViewingDisplay(page);
   await setViewingLayer(page,'objects',false);
   await setViewingLayer(page,'objects',true);
   await expect(page.locator('#mapDisplaySurface')).toContainText('객체');

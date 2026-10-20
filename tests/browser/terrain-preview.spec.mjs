@@ -73,8 +73,7 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     await page.screenshot({ path: testInfo.outputPath('canvas-dem-delayed-preview.png') });
     releaseDem();
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 60000 });
-    await page.locator('#flatBtn').evaluate(button => button.click());
-    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection)).toBe('flat');
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection)).toBe('globe');
     await page.evaluate(() => {
       const map = document.getElementById('map'), rect = map.getBoundingClientRect();
       const zoom = window.__PANDOLAB_MAP_HOST__.getViewState().zoom;

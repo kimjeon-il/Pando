@@ -37,7 +37,7 @@ export function createProjectRestore() {
       await dependencies.domains.editingDomain.resetProject(dependencies.domains.projectDomain.getGeneration());
     }
 
-    (0, dependencies.mapSettingsUi.syncProjectionButtons)();
+    (0, dependencies.readinessUi.syncStatusBar)();
     (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
     if ((0, dependencies.platform.$)('objectSearchInput')) (0, dependencies.platform.$)('objectSearchInput').value = dependencies.projectState.state.objectSearch;
     dependencies.domains.objectSearchController?.render(true);
@@ -220,7 +220,7 @@ export function createProjectRestore() {
     (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
     if ((0, dependencies.platform.$)('objectSearchInput')) (0, dependencies.platform.$)('objectSearchInput').value = '';
     dependencies.domains.objectSearchController?.render(true);
-    (0, dependencies.mapSettingsUi.syncProjectionButtons)();
+    (0, dependencies.readinessUi.syncStatusBar)();
     dependencies.domainControllers.objectPropertyController.show(null);
     (0, dependencies.platform.$)('selectionStatus').textContent = '';
     await dependencies.domains.editingDomain.setTool('select', { announce: false });

@@ -1,4 +1,4 @@
-import { setViewingProjection, closeViewingDisplay } from './helpers/viewing-display.mjs';
+import { openViewingDisplay, closeViewingDisplay } from './helpers/viewing-display.mjs';
 import { test, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
@@ -26,7 +26,7 @@ test('existing surfaces preserve project and selection across portrait, tablet a
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.notes)).toBe('원본 메타데이터 보존');
     await expect(page.locator('#viewerInfoPanel')).toHaveCount(0);
     await page.keyboard.press('Escape');
-    await setViewingProjection(page,'flat');
+    await openViewingDisplay(page);
     const panel=await page.locator('#mapDisplaySurface').boundingBox();
     expect(panel.x).toBeGreaterThanOrEqual(0);expect(panel.y).toBeGreaterThanOrEqual(0);
     expect(panel.x+panel.width).toBeLessThanOrEqual(viewport.width);

@@ -2,7 +2,6 @@ import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
 import { MAP_DISPLAY_TARGETS } from './map-display-catalog.js';
 import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
-import { createProductModePolicy } from './product-mode-policy.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
@@ -11,8 +10,7 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ productMode='viewer',viewPresentation = null,authoredStyles=false,onLayerVisibilityChange=null } = {}) {
-  const productPolicy=createProductModePolicy(productMode);
+export function createMapSettings({ viewPresentation = null,authoredStyles=false,onLayerVisibilityChange=null } = {}) {
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let desktopViewMenuPath = [];
@@ -57,32 +55,6 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
       dependencies.feedback.reportOperationError(error, '지도 표시 설정을 변경하지 못했습니다.', 'PL-VIEW-COMMAND-001', 4200);
       renderMapDisplaySettings();
     }
-  }
-
-  function syncProjectionButtons() {
-    for (const [id, projection] of [['globeBtn', 'globe'], ['flatBtn', 'flat']]) {
-      const button = (0, dependencies.platform.$)(id);
-      if (!button) continue;
-      const active = dependencies.projectState.state.projection === projection;
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-pressed', String(active));
-      if (button.classList.contains('ui-menu-item')) button.setAttribute('aria-checked', String(active));
-    }
-    (0, dependencies.readinessUi.syncStatusBar)();
-  }
-
-  function setProjection(type) {
-    const targetProjection = type === 'globe' ? 'globe' : 'flat';
-    productPolicy.assertProjection(targetProjection);
-    if (targetProjection === dependencies.projectState.state.projection) return false;
-    (0, dependencies.mapView.updateProjection)();
-    const nextView = dependencies.mapNavigation.reprojectView(dependencies.projectState.state.view,dependencies.projectState.state.projection,targetProjection);
-    const token = dependencies.projectSession.atomicMapStateController.begin({ kind: 'projection', type: targetProjection });
-    if (!dependencies.projectSession.atomicMapStateController.commit(token, { projection: targetProjection, view: nextView })) return false;
-    (0, dependencies.mapView.syncMapHostFromState)();
-    syncProjectionButtons();
-    dependencies.domains.renderingDomain?.invalidateProjection?.('projection-change');
-    return true;
   }
 
   async function setLayerVisibility(key, visible) {
@@ -249,7 +221,6 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
 
   function displayGroupForTrigger(trigger) {
     if (!trigger) return null;
-    if (trigger.id === 'mapProjectionMenuTrigger') return 'projection';
     if (trigger.id === 'distributionMenuTrigger') return 'distribution';
     return trigger.dataset.mapDisplayRow || null;
   }
@@ -259,7 +230,6 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
   }
 
   function desktopMenuTrigger(group) {
-    if (group === 'projection') return (0, dependencies.platform.$)('mapProjectionMenuTrigger');
     if (group === 'distribution') return (0, dependencies.platform.$)('distributionMenuTrigger');
     return document.querySelector(`[data-map-display-row="${group}"]`);
   }
@@ -281,9 +251,9 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
     let original = displayMenuPresentation.get(element);
     if (!original) {
       original = {
-        classes: ['ui-toggle', 'ui-radio-toggle', 'ui-segment-option', 'ui-segmented', 'projection-control',
-          'projection-btn', 'terrain-mode-option', 'map-view-settings', 'layer-inline-style-panel',
-          'terrain-display-options', 'distribution-view-settings', 'map-view-projection-slot', 'map-display-details']
+        classes: ['ui-toggle', 'ui-radio-toggle', 'ui-segment-option', 'ui-segmented',
+          'terrain-mode-option', 'map-view-settings', 'layer-inline-style-panel',
+          'terrain-display-options', 'distribution-view-settings', 'map-display-details']
           .filter(name => element.classList.contains(name)),
         role: element.getAttribute('role'),
         tabIndex: element.getAttribute('tabindex'),
@@ -303,17 +273,16 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
   }
 
   function syncMenuChoices(surface, desktop) {
-    for (const row of surface.querySelectorAll('.view-menu-parent, .ui-choice-row, .ui-menu-item, .projection-btn')) {
+    for (const row of surface.querySelectorAll('.view-menu-parent, .ui-choice-row, .ui-menu-item')) {
       setMenuPresentation(row, desktop, ['ui-menu-item']);
       const input = row.querySelector(':scope > input[type="checkbox"], :scope > input[type="radio"]');
-      const projection = row.id === 'globeBtn' || row.id === 'flatBtn';
       const action = input || row;
       setMenuPresentation(action, desktop, []);
       if (desktop) {
-        action.setAttribute('role', input ? `menuitem${input.type}` : projection ? 'menuitemradio' : 'menuitem');
-        if (input || projection) {
-          row.dataset.menuChoice = input?.type || 'radio';
-          action.setAttribute('aria-checked', String(input ? input.checked : row.getAttribute('aria-pressed') === 'true'));
+        action.setAttribute('role', input ? `menuitem${input.type}` : 'menuitem');
+        if (input) {
+          row.dataset.menuChoice = input.type;
+          action.setAttribute('aria-checked', String(input.checked));
           if (!row.querySelector(':scope > .ui-menu-mark')) {
             const mark = document.createElement('span');
             mark.className = 'ui-menu-mark';
@@ -358,7 +327,7 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
     surface.classList.toggle('ui-menu-surface', desktop);
     surface.classList.toggle('ui-command-menu', desktop);
     if (!desktop) clearMenuPosition(surface);
-    for (const element of surface.querySelectorAll('.projection-control, .terrain-mode-options, [role="radiogroup"], [data-menu-group]')) {
+    for (const element of surface.querySelectorAll('.terrain-mode-options, [role="radiogroup"], [data-menu-group]')) {
       element.dataset.menuGroup = '';
       setMenuPresentation(element, desktop, ['ui-menu-group']);
       if (desktop) element.setAttribute('role', 'group');
@@ -500,10 +469,6 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
             : LAYER_STYLE_TARGETS[group]?.label || '표시';
       }
     });
-    const projectionSlot = (0, dependencies.platform.$)('mapViewProjectionSlot');
-    const projectionExpanded = menuDesktop && desktopViewMenuPath.includes('projection');
-    if (projectionSlot) projectionSlot.hidden = menuDesktop && !projectionExpanded;
-    (0, dependencies.platform.$)('mapProjectionMenuTrigger')?.setAttribute('aria-expanded', String(projectionExpanded));
     const distributionSettings = (0, dependencies.platform.$)('distributionViewSettings');
     const distributionExpanded = menuDesktop && desktopViewMenuPath.includes('distribution');
     if (distributionSettings) distributionSettings.hidden = menuDesktop && !distributionExpanded;
@@ -836,10 +801,8 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
     get setLayerVisibility() { return setLayerVisibility; },
     get setTerrainMode() { return setTerrainMode; },
     get setPlaceLanguage() { return setPlaceLanguage; },
-    get setProjection() { return setProjection; },
     get syncMapDisplayDisclosures() { return syncMapDisplayDisclosures; },
     get syncDistributionPresentationControls() { return syncDistributionPresentationControls; },
-    get syncProjectionButtons() { return syncProjectionButtons; },
     get toggleMapDisplayDisclosure() { return toggleMapDisplayDisclosure; },
     get updateLayerPresentationStyle() { return updateLayerPresentationStyle; },
   });
