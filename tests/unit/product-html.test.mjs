@@ -27,7 +27,7 @@ test('product HTML is generated from one source for each common viewing control'
   assert.doesNotMatch(pages.editor,new RegExp(`data-map-background="${key}"`));
  }
  assert.doesNotMatch(pages.editor,/id="(?:globeBtn|flatBtn|mapProjectionMenuTrigger|projectionControl)"/);
- assert.match(pages.web,/id="globeBtn"/);assert.match(pages.web,/id="flatBtn"/);
+ assert.doesNotMatch(pages.web,/id="(?:globeBtn|flatBtn|mapProjectionMenuTrigger|projectionControl)"/);
  assert.ok(pages.web.includes(terrain));assert.ok(!pages.editor.includes('terrainNoneRadio'));
  assert.ok(!pages.web.includes('entityNameInput'));
  assert.ok(pages.editor.includes('entityNameInput'));

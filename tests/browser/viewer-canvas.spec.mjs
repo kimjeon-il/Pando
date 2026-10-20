@@ -1,4 +1,4 @@
-import { setViewingProjection, setViewingLayer, closeViewingDisplay } from './helpers/viewing-display.mjs';
+import { openViewingDisplay, setViewingLayer, closeViewingDisplay } from './helpers/viewing-display.mjs';
 import { test, expect } from '@playwright/test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
@@ -28,7 +28,7 @@ test('Canvas viewer selects a saved country polygon body without changing projec
     project: window.__PANDOLAB_VIEWER__.documentSnapshot(), state: window.__PANDOLAB_VIEWER__.documentState(),
   }));
 
-  await setViewingProjection(page,'flat');
+  await openViewingDisplay(page);
   // The fixture deliberately overlaps A, its child B and independent region R.
   // B and R are hidden by individual canonical IDs in the saved defaults.
   // Hide text/backgrounds so only a root polygon body can satisfy this click.
@@ -41,8 +41,8 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   await page.locator('#resetViewBtn').click();
   await expect(page.locator('#map text')).toHaveCount(0);
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([]);
-  await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;host.setViewState({projection:'flat',view:{...host.getViewState(),flatCenter:[5,5],flatZoom:4}});host.requestRepaint('canvas-body-selection');});
-  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEW_STATE__.flatCenter)).toEqual([5,5]);
+  await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;host.setViewState({projection:'globe',view:{...host.getViewState(),globeRotation:[-5,-5,0],globeZoom:4}});host.requestRepaint('canvas-body-selection');});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().globeRotation)).toEqual([-5,-5,0]);
   const bounds = await page.locator('#map').boundingBox();
   // Bring the known body coordinate into the viewport and use the real projection.
   const point=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.project([8,8]));

@@ -27,7 +27,7 @@ test('resetWorldPreservesHistoricalIntervals', async () => {
     countryEditingB: methods('resetBoundaryEditState', 'resetTerritorialUnitEditState', 'resetMergeState', 'resetTerritoryEditingState'),
     domains: {projectDomain:owner.project,selectionDomain:methods('resetProject'),editingDomain:methods('setTool','cancelActiveGesture'),renderingDomain:methods('invalidateProject')},
     objectDisplay: methods('invalidateObjectPresentation'), projectSnapshots: snapshots, countryValidation: methods('refreshCountryCentroids'),
-    mapSettingsUi: methods('renderMapDisplaySettings', 'syncProjectionButtons'), platform: { $: id => id === 'selectionStatus' ? { textContent: '' } : null },
+    readinessUi: methods('syncStatusBar'), mapSettingsUi: methods('renderMapDisplaySettings'), platform: { $: id => id === 'selectionStatus' ? { textContent: '' } : null },
     domainControllers: { objectPropertyController: methods('show') }, mapLayers: {}, mapHostViewA: {}, mapHostViewC: {},
     mapHostViewB: methods('resizeMap'), mapView: methods('syncMapHostFromState'), spatialRecords: methods('scheduleMapObjectSpatialIndexRebuild'),
     lifecycleUi: { projectUi: methods('syncHistory') }, rendering: { gpuMapRenderer: {
