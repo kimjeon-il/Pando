@@ -46,8 +46,8 @@ const common = (sample) => `
   vec3 terrainColor() {
     vec4 encodedPixel = ${sample}(uTerrain, vUv);
     float shade = encodedPixel.b;
-    if (uShadeBlend > 0.001 && abs(vLonLat.y) < 89.5) {
-      shade = mix(shade, derivedShade(vUv), uShadeBlend);
+    if (uDetailedShade > 0.5 && abs(vLonLat.y) < 89.5) {
+      shade = derivedShade(vUv);
     }
     if (uPhysicalStyle < 0.5) return vec3(shade);
     vec3 baseColor = uLandPass > 0.5
@@ -75,7 +75,7 @@ export function terrainDemFragmentSource(glVersion) {
     uniform int uMode;
     uniform float uPhysicalStyle;
     uniform float uLandPass;
-    uniform float uShadeBlend;
+    uniform float uDetailedShade;
     uniform float uDarkTheme;
     ${webGl2 ? 'out vec4 outColor;' : ''}
     ${common(webGl2 ? 'texture' : 'texture2D')}

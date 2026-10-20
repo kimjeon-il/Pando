@@ -70,7 +70,7 @@ async function renderSamples(page, version, tile, samples) {
     const results = samples.map(sample => {
       gl.uniform2f(uniform('uSampleUv'), (sample.x + 0.5) / tile.width, (sample.y + 0.5) / tile.height);
       gl.uniform2f(uniform('uSampleLonLat'), 0, sample.latitude || 0);
-      gl.uniform1f(uniform('uShadeBlend'), sample.blend ?? 1);
+      gl.uniform1f(uniform('uDetailedShade'), sample.detailed === false ? 0 : 1);
       gl.uniform1f(uniform('uPhysicalStyle'), sample.physical ? 1 : 0);
       gl.uniform1f(uniform('uLandPass'), 1);
       gl.uniform1f(uniform('uDarkTheme'), sample.dark ? 1 : 0);
@@ -103,16 +103,16 @@ for (const version of [2, 1]) {
     }
   });
 
-  test(`DEM flat surfaces preserve shade, tint, dark theme and fast shade in WebGL${version}`, async ({ page }) => {
+  test(`DEM flat surfaces preserve shade, tint, dark theme and low-scale shade in WebGL${version}`, async ({ page }) => {
     const tile = elevationTile(6, 6, () => 0);
     const colors = await renderSamples(page, version, tile, [
       { x: 2.25, y: 2.25 }, { x: 2.25, y: 2.25, physical: true },
       { x: 2.25, y: 2.25, dark: true }, { x: 2.25, y: 2.25, physical: true, dark: true },
-      { x: 2.25, y: 2.25, blend: 0 }, { x: 2.25, y: 2.25, blend: 0.5 },
+      { x: 2.25, y: 2.25, detailed: false },
       { x: 2.25, y: 2.25, latitude: 89.6 },
     ]);
     const expected = [[212,212,212,255], [200,100,50,255], [171,179,187,255],
-      [162,85,44,255], [128,128,128,255], [170,170,170,255], [128,128,128,255]];
+      [162,85,44,255], [128,128,128,255], [128,128,128,255]];
     for (let i = 0; i < colors.length; i += 1) {
       for (let channel = 0; channel < 4; channel += 1) {
         expect(Math.abs(colors[i][channel] - expected[i][channel])).toBeLessThanOrEqual(1);
@@ -208,8 +208,8 @@ for (const version of [2, 1]) test(`DEM fragment compiles and switches B/height 
     gl.uniform2f(uniform('uTextureSize'), 2, 2); gl.uniform2f(uniform('uLevelSize'), 1350, 675);
     gl.uniform1i(uniform('uMode'), 1); gl.uniform1f(uniform('uDarkTheme'), 0);
     gl.uniform1f(uniform('uLandPass'), 1); gl.uniform1f(uniform('uPhysicalStyle'), 0);
-    const sample = blend => {
-      gl.uniform1f(uniform('uShadeBlend'), blend);
+    const sample = detailedShade => {
+      gl.uniform1f(uniform('uDetailedShade'), detailedShade);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       const pixel = new Uint8Array(4); gl.readPixels(1, 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
       return Array.from(pixel);
