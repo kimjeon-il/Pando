@@ -440,22 +440,6 @@ body.file-menu-open .mobile-backdrop {
   margin-inline-start: auto;
 }
 
-.surface-display:not(.view-menu-desktop) .map-display-row > label {
-  position: relative;
-  z-index: 1;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label {
-  flex: 0 0 var(--ui-touch-height);
-  margin-inline-start: auto;
-}
-
-.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label > span {
-  display: none;
-}
-
 .surface-display:not(.view-menu-desktop) .map-display-detail-trigger {
   display: flex;
   align-items: center;
