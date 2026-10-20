@@ -291,11 +291,13 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const key = 'terrain:' + generation + ':' + contextGeneration + ':' + uploadEpoch;
       uploadKeys.add(key);
       void uploadScheduler.enqueueUpload({
-        key, projectGeneration: generation, contextGeneration, priority: 40,
+        key, projectGeneration: generation, contextGeneration, priority: 40, allowDuringInteraction: true,
         dispose: () => { if (uploadEpoch === epoch) discardUploads(queue); },
         step: () => {
           if (uploadEpoch !== epoch || disposed) throw Object.assign(new Error('Stale terrain upload'), { name: 'AbortError' });
-          const next = terrainUploadQueue.shift();
+          // Decoded neighbours cannot stand ahead of current-view coverage.
+          const visibleIndex = terrainUploadQueue.findIndex(item => item.tint || requiredKeys.has(item.spec?.key));
+          const next = terrainUploadQueue.splice(Math.max(0, visibleIndex), 1)[0];
           const bytes = next ? next.bitmap.width * next.bitmap.height * 4 : 0;
           const uploaded = next && uploadTerrainTile(next);
           if (uploaded && next?.spec && terrainRetentionKeys.has(next.spec.key)) invalidate('terrain-tile-ready');
@@ -404,7 +406,25 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
             && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3]))]
         : [];
       for (const spec of fallbackSpecs) terrainRetentionKeys.add(spec.key);
-      if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
+      // Speculation starts only after current coverage reaches the GPU, and
+      // only uses spare cache space. It must not block decoding visible tiles
+      // or evict useful detail merely to fill an offscreen neighbour ring.
+      const prefetchSpecs = [];
+      const tintReady = terrainManifest.representation !== 'dem-relief-v1' || view.physicalStyle !== 'physical' || !!tint;
+      if (baseReady && !missingSpecs.length && tintReady) {
+        const residentBytes = [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || tintFallback?.byteLength || 0);
+        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes);
+        for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) {
+          if (terrainTargetTileKeys.has(spec.key) || terrainTiles.has(spec.key)) continue;
+          const bytes = (spec.pixelWidth + 2 * terrainManifest.gutter) * (spec.pixelHeight + 2 * terrainManifest.gutter) * 4;
+          if (!terrainTileQueuedKeys.has(spec.key)) {
+            if (bytes > spareBytes) continue;
+            spareBytes -= bytes;
+          }
+          prefetchSpecs.push(spec);
+          terrainRetentionKeys.add(spec.key);
+        }
+      }
       pruneTerrainFetchQueue();
       const projection = frameContext.viewState?.projection || view.projection;
       const rotation = frameContext.viewState?.rotation || view.rotation;
@@ -419,7 +439,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
           : geoDistance(center, tileCenter);
         requestTerrainTile(spec, 30_000 - distance * 1_000, false);
       }
-      if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 1_000, false);
+      for (const spec of prefetchSpecs) requestTerrainTile(spec, 1_000, false);
       const visibleTilesWaiting = terrainFetchQueue.some(entry => terrainTargetTileKeys.has(entry.spec.key));
       for (const [key, request] of terrainTileRequests) {
         if (!terrainRetentionKeys.has(key)

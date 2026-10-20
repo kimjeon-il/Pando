@@ -405,8 +405,9 @@ test('in-flight neighbouring prefetch cannot block queued tiles in the current v
     await settle();
     for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain uploads. */ }
   }
+  owner.prepare(frame, view); // The upload invalidates a frame before speculative work starts.
   const before = requests.length;
-  assert.equal(before, 12, 'complete base and four visible tiles followed by six neighbouring downloads');
+  assert.equal(before, 10, 'complete current coverage returns speculation to four background download slots');
   owner.prepare({ ...frame, viewState: { ...frame.viewState, projectionCenter: [0, 30] } }, view);
   await settle();
   assert.ok(requests.length >= before + 2, 'both missing visible tiles must start before neighbouring responses finish');

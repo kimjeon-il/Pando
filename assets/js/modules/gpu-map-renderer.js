@@ -288,8 +288,12 @@ export function createGpuMapRenderer(deps) {
     function syncCountryMeshQuality({ cssScale = lastVisualFrame?.cssScale, projection = state.projection } = {}) {
       if (countryFocusPending && countryFocusProjection !== state.projection) countryFocusPending = false;
       const previousPhase = state.countryVisualPhase;
+      const previousScaleQuality = scaleQuality;
       scaleQuality = resolveCountryMeshQuality({ cssScale,
         previous: countryDisplayHistoryValid && qualityProjection === projection ? scaleQuality : null });
+      if (previousScaleQuality !== scaleQuality && terrainManifest?.representation === TERRAIN_DEM_FORMAT) {
+        sceneColorCache.invalidate('terrain-shade-band');
+      }
       qualityProjection = projection;
       desiredCountryMeshQuality = resolveCountryMeshQuality({
         cssScale,
@@ -461,9 +465,6 @@ export function createGpuMapRenderer(deps) {
     let terrainFallbackReason = null;
     let terrainFallbackPending = false;
     let canvasTerrainStats = {};
-    let demShadeBlend = 0;
-    let demSettleStartedAt = 0;
-    let demShadeTimer = null;
     const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
       isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
       tileUrl: spec => {
@@ -482,22 +483,11 @@ export function createGpuMapRenderer(deps) {
       },
     });
     let preparedTerrain = [];
+    function detailedTerrainShadeActive() {
+      return isWebGlRenderer() && terrainManifest?.representation === TERRAIN_DEM_FORMAT && scaleQuality !== 'preview';
+    }
     function prepareTerrain(frame) {
       if(!terrainPreparation)return;
-      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT) {
-        const highQuality = renderQuality.phase === 'settle' && renderQuality.tier !== 'coarse';
-        if (!highQuality) { demShadeBlend = 0; demSettleStartedAt = 0; }
-        else {
-          if (!demSettleStartedAt) demSettleStartedAt = performance.now();
-          demShadeBlend = Math.min(1, (performance.now() - demSettleStartedAt) / 180);
-          if (demShadeBlend < 1 && demShadeTimer === null) demShadeTimer = setTimeout(() => {
-            demShadeTimer = null;
-            if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && !disposed) {
-              invalidatePhysicalScene('terrain-shade-transition');
-            }
-          }, 16);
-        }
-      }
       terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
       preparedTerrain = terrainPreparation.prepare(frame, {
         visible: state.physicalSettings.terrainVisible,
@@ -1269,7 +1259,7 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
           ['uTerrain', 'uTint', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme',
-            'uTextureSize', 'uLevelSize', 'uLandPass', 'uShadeBlend'], ['aGrid']);
+            'uTextureSize', 'uLevelSize', 'uLandPass', 'uDetailedShade'], ['aGrid']);
         return true;
       } catch (error) {
         terrainDemProgram = null;
@@ -3115,7 +3105,6 @@ export function createGpuMapRenderer(deps) {
     function setRenderQuality(nextProfile = {}) {
       const previousRevision = Number(renderQuality.revision || 0);
       const previousTier = renderQuality.tier;
-      const previousPhase = renderQuality.phase;
       const previousDprCap = Number(renderQuality.dprCap || Infinity);
       renderQuality = Object.freeze({ ...DEFAULT_RENDER_QUALITY, ...nextProfile });
       if (previousRevision !== Number(renderQuality.revision || 0) || previousTier !== renderQuality.tier) {
@@ -3133,14 +3122,6 @@ export function createGpuMapRenderer(deps) {
       // resolution is gated by canonical readiness and never changes during
       // interaction.
       renderQuality = Object.freeze({ ...renderQuality, countryMeshQuality: 'canonical', terrainResolutionScale: 1 });
-      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT
-          && (previousPhase !== renderQuality.phase || previousTier !== renderQuality.tier)) {
-        if (renderQuality.phase === 'interaction') {
-          demSettleStartedAt = 0; demShadeBlend = 0;
-          if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
-        }
-        invalidatePhysicalScene('terrain-shade-quality');
-      }
       return renderQuality;
     }
 
@@ -3206,7 +3187,7 @@ export function createGpuMapRenderer(deps) {
         gl.uniform2f(cachedUniformLocation(program, 'uTextureSize'), sourceWidth, sourceHeight);
         gl.uniform2f(cachedUniformLocation(program, 'uLevelSize'), sourceLevel.width, sourceLevel.height);
         gl.uniform1f(cachedUniformLocation(program, 'uLandPass'), pass === 'land' ? 1 : 0);
-        gl.uniform1f(cachedUniformLocation(program, 'uShadeBlend'), demShadeBlend);
+        gl.uniform1f(cachedUniformLocation(program, 'uDetailedShade'), scaleQuality === 'preview' ? 0 : 1);
       }
       for (const offset of frameContext.worldOffsets) {
         setViewUniforms(program, offset, frameContext);
@@ -3298,7 +3279,6 @@ export function createGpuMapRenderer(deps) {
 
     let preparedBaseScene = null;
     function prepareBaseScene() {
-      prepareTerrain(activeFrameContext);
       preparedBaseScene = prepareGpuBaseScene({ mesh, overrideMesh, frame: activeFrameContext,
         scene: renderScene, budgetBytes: renderQuality.uploadBudgetBytes, presentedStrokeDomains }, { polygonOverlayPass, strokeRenderer });
       const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
@@ -3419,6 +3399,13 @@ export function createGpuMapRenderer(deps) {
       };
       let preservedCountryPatchPromoted = false;
       sceneCacheFallbackFrame = false;
+      // A cached image can skip drawing, never current-view terrain requests.
+      // This also promotes cached detail immediately on a small flat zoom.
+      const previousTerrainTarget = terrainPreparation?.stats().terrainTargetKey;
+      prepareTerrain(activeFrameContext);
+      if (previousTerrainTarget !== terrainPreparation?.stats().terrainTargetKey) {
+        sceneColorCache.invalidate('terrain-target');
+      }
       const viewSignature = sceneViewSignature(viewState);
       const exactSceneCacheHit = sceneColorCache.canComposite?.(viewSignature, projectGeneration) || false;
       const reproject = !exactSceneCacheHit && !sceneColorCache.isDirty?.()
@@ -4692,8 +4679,6 @@ export function createGpuMapRenderer(deps) {
     function setTerrainManifest(manifest, manifestUrl = TERRAIN_RASTER_MANIFEST_URL,
       { source = 'raster', fallbackReason = null } = {}) {
       if(!terrainPreparation)throw new Error('Terrain resources are unavailable in this product.');
-      if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
-      demShadeBlend = 0; demSettleStartedAt = 0;
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainManifestUrl = manifestUrl;
       terrainSource = source;
@@ -4730,7 +4715,7 @@ export function createGpuMapRenderer(deps) {
       target.terrainSource = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource;
       target.terrainFallbackReason = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason;
       target.terrainTargetLevel = terrainStats.terrainLevel;
-      target.terrainShadeBlend = demShadeBlend;
+      target.terrainDetailedShade = detailedTerrainShadeActive();
       target.requestedRevision = currentRenderRevision;
       target.displayedRevision = displayedRenderRevision;
       target.lastMeshPreparation = performanceMetrics.lastMeshPreparation || null;
@@ -4788,7 +4773,7 @@ export function createGpuMapRenderer(deps) {
         terrainDatasetVersion: activeTerrainSourceInfo().version,
         terrainSource: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource,
         terrainFallbackReason: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason,
-        terrainShadeBlend: demShadeBlend,
+        terrainDetailedShade: detailedTerrainShadeActive(),
         projectRenderBlocked,
         sceneCacheValid: sceneColorCache.isValid(),
         ...(rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? canvasTerrainStats : {}),
@@ -4824,7 +4809,7 @@ export function createGpuMapRenderer(deps) {
         terrainSource: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource,
         terrainFallbackReason: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason,
         terrainTargetLevel: terrainStats.terrainLevel,
-        terrainShadeBlend: demShadeBlend,
+        terrainDetailedShade: detailedTerrainShadeActive(),
         projectRenderBlocked,
         activeWebGlContextCount: renderDevice && isWebGlRenderer() ? 1 : 0,
         renderSceneRevision: lastRenderSceneRevision,
@@ -4951,7 +4936,6 @@ export function createGpuMapRenderer(deps) {
     function dispose() {
       presentedStrokeDomains.clear();
       if (disposed) return;
-      if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
       disposed = true;
       projectGeneration += 1; renderDeviceContextRevision += 1;
       pendingCanonicalCommit?.reject(Object.assign(new Error('Renderer disposed'), { name: 'AbortError' }));

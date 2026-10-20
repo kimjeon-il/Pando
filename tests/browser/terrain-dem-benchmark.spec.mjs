@@ -45,7 +45,7 @@ async function measure(page, source) {
       const benchmark = window.__terrainBenchmark;
       if (!benchmark?.active) return;
       benchmark.intervals.push(now - previous);
-      benchmark.shades.push(window.__PANDOLAB_GPU_METRICS__?.terrainShadeBlend ?? null);
+      benchmark.shades.push(window.__PANDOLAB_GPU_METRICS__?.terrainDetailedShade ?? null);
       previous = now;
       requestAnimationFrame(sample);
     };
@@ -63,8 +63,8 @@ async function measure(page, source) {
     return {
       p95FrameMs: Number(intervals[Math.floor(intervals.length * 0.95)].toFixed(2)),
       sampledFrames: intervals.length,
-      zeroShadeFrames: benchmark.shades.filter(value => value === 0).length,
-      maxDragShadeBlend: Math.max(...benchmark.shades.filter(Number.isFinite)),
+      coarseShadeFrames: benchmark.shades.filter(value => value === false).length,
+      detailedShadeFrames: benchmark.shades.filter(value => value === true).length,
       p95CpuSubmitMs: metrics.p95CpuSubmitMs,
       terrainCacheBytes: metrics.terrainCacheBytes,
       terrainPendingDecodedBytes: metrics.terrainPendingDecodedBytes,
