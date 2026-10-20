@@ -71,7 +71,7 @@ async function start() {
   window.PANDOLAB_COUNTRIES = await countries.json();
   const { composeApplication } = await import(versionedAsset('./modules/app-composition.js').href);
   let diagnostics;
-  const application = await composeApplication({ revision: meta.assetRevision,
+  const application = await composeApplication({ productMode: 'editor', revision: meta.assetRevision,
     platform: { ...profile.platform, fileAccess: createNativeStorage() },
     onComposed: async runtime => { diagnostics = await installDiagnostics(runtime); },
   });

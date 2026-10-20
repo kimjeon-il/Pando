@@ -266,6 +266,8 @@
 :root {
   --ui-phone-landscape-panel-max-width: 320px;
   --ui-phone-landscape-nav-label-size: 0.625rem;
+  --ui-touch-vertex-selected-stroke: #b0dbff;
+  --ui-editing-magnifier-filter: drop-shadow(0 3px 6px #0008);
   --action-status-min-width: 112px;
   --action-status-max-width: 460px;
   --status-dot-width: 7px;
@@ -516,6 +518,7 @@
   --ui-menu-width: 17.5rem;
   --ui-menu-trigger-gap: 6px;
   --ui-menu-screen-edge: 8px;
+  --ui-layer-search-z: 41;
   --ui-layer-create-z: 140;
   --ui-library-preview-height: 11.875rem;
   --ui-scrollbar-z: 2100;
@@ -5159,7 +5162,125 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
   display: none;
 }
 
-.project-setup-dialog{width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;color:var(--text,#e8edf5);background:var(--panel,#182231);border:1px solid var(--border,#607080);border-radius:16px;padding:24px}.project-setup-dialog::backdrop{background:#081020aa}.project-setup-dialog form{display:grid;gap:12px}.project-setup-dialog label{display:flex;align-items:center;gap:12px;justify-content:space-between}.project-setup-dialog input[type=text],.project-setup-dialog select{min-height:44px;max-width:230px;color:inherit;background:var(--surface,#273446);border:1px solid var(--border,#607080);border-radius:6px;padding:8px}.project-setup-dialog small,.project-setup-dialog .help{font-size:12px;line-height:1.6;margin:0}.project-setup-dialog pre{font:inherit;font-size:13px;line-height:1.7;white-space:pre-wrap}.project-setup-actions{display:flex;justify-content:flex-end;gap:10px}.project-setup-actions button{min-height:44px}#projectSetupError{color:#ff9f99;margin:0}.project-bounds-picker{position:absolute;inset:0;z-index:200;cursor:crosshair;touch-action:none;background:#12243644;color:white;padding:12px;box-sizing:border-box}.project-bounds-box{display:none;position:absolute;pointer-events:none;border:2px dashed white;background:#68b6ff33}
+/* Native <dialog> keeps its top-layer behavior; its form owns shared dialog chrome. */
+.project-setup-dialog {
+  width: var(--preferences-card-width);
+  max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
+  max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.project-setup-dialog::backdrop {
+  background: var(--confirm-dim);
+}
+
+.project-setup-form {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--ui-space-3);
+  max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.project-setup-fields {
+  display: grid;
+  align-content: start;
+  gap: var(--ui-space-3);
+  min-width: 0;
+  min-height: 0;
+  padding-inline-end: var(--ui-space-1);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.project-setup-field {
+  display: grid;
+  gap: var(--ui-space-2);
+}
+
+.project-setup-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-3);
+}
+
+.project-setup-range[hidden] {
+  display: none;
+}
+
+.project-setup-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.project-setup-draw {
+  justify-self: start;
+}
+
+.project-setup-summary {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: var(--ui-font-sm);
+}
+
+.project-setup-error {
+  margin: 0;
+}
+
+.project-setup-error:empty {
+  display: none;
+}
+
+.project-setup-actions {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding-top: var(--ui-space-3);
+  border-top: var(--ui-border-width) solid var(--border);
+}
+
+@media (max-width: 799px) {
+  .project-setup-range {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-setup-actions .btn {
+    min-height: var(--ui-touch-height);
+  }
+}
+
+/* Map bounds picking is an interaction overlay, not another dialog skin. */
+.project-bounds-picker {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  cursor: crosshair;
+  touch-action: none;
+  background: color-mix(in srgb, var(--surface-elevated) 22%, transparent);
+  color: var(--text-strong);
+  padding: var(--ui-space-3);
+  box-sizing: border-box;
+}
+
+.project-bounds-box {
+  display: none;
+  position: absolute;
+  left: var(--bounds-left, 0);
+  top: var(--bounds-top, 0);
+  width: var(--bounds-width, 0);
+  height: var(--bounds-height, 0);
+  pointer-events: none;
+  border: var(--ui-border-width) dashed var(--text-strong);
+  background: var(--selection-soft-bg);
+}
 
 /* source: assets/css/layout/surfaces.css */
 
@@ -5186,12 +5307,12 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
   right: 0;
 }
 
-[data-layout="wide"] .workspace-surface:not(.surface-reference, .view-menu-desktop) > .surface-header {
+[data-layout="wide"] .workspace-surface:not(.surface-reference, .view-menu-desktop, .search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.surface-reference, .view-menu-desktop) > .surface-header {
+[data-layout="compact"] .workspace-surface:not(.surface-reference, .view-menu-desktop, .search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
@@ -5389,6 +5510,127 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
   overflow: auto;
   padding: 0;
 }
+
+/* A short touch landscape viewport uses the same surfaces in a side dock. */
+.app-root[data-layout="phone-landscape"] {
+  --phone-panel-width: min(var(--ui-phone-landscape-panel-max-width), 45vw);
+  --phone-nav-width: calc(var(--ui-touch-height) + var(--ui-space-1) * 2);
+  --ui-shell-topbar-height: 0px;
+  --mobile-nav-height: 0px;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.app-root[data-layout="phone-landscape"] .topbar { display: none; }
+.app-root[data-layout="phone-landscape"] .workspace {
+  --projection-safe-left: var(--phone-nav-width);
+  --projection-safe-right: 0px;
+  --projection-safe-top: 0px;
+  --map-safe-left: var(--phone-nav-width);
+  --map-safe-right: 0px;
+}
+.app-root[data-layout="phone-landscape"] .workspace:is(.editor-drawer-open, .search-drawer-open, .display-drawer-open, .create-drawer-open, .reference-drawer-open) {
+  --projection-safe-right: var(--phone-panel-width);
+  --map-safe-right: var(--phone-panel-width);
+}
+
+.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 100;
+  top: var(--workspace-visible-top, 0);
+  right: 0;
+  bottom: auto;
+  left: auto;
+  width: var(--phone-panel-width);
+  min-width: 0;
+  height: var(--workspace-visible-height, 100dvh);
+  min-height: 0;
+  max-height: var(--workspace-visible-height, 100dvh);
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
+  transform: translateX(100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet.surface-open {
+  transform: none;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet > .surface-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--ui-touch-height);
+  padding: var(--ui-space-1) var(--ui-space-2);
+  cursor: default;
+}
+.app-root[data-layout="phone-landscape"] .workspace-surface .sheet-drag-handle { display: none; }
+.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet > .surface-header > .surface-header-title { display: flex; }
+.app-root[data-layout="phone-landscape"] .workspace-surface .surface-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+.app-root[data-layout="phone-landscape"] .workspace-surface :is(button, input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
+.app-root[data-layout="phone-landscape"] .editor-field-grid { grid-template-columns: minmax(0, 1fr); }
+
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  z-index: 150;
+  inset: calc(var(--workspace-visible-top, 0) + var(--phone-nav-width)) auto auto 0;
+  width: var(--phone-nav-width);
+  height: calc(var(--workspace-visible-height, 100dvh) - var(--phone-nav-width));
+  padding: 0;
+  overflow-y: auto;
+}
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item {
+  flex: 0 0 var(--ui-touch-height);
+  min-height: var(--ui-touch-height);
+  width: 100%;
+  padding: var(--ui-space-1);
+}
+body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
+  display: flex;
+  position: fixed;
+  z-index: 180;
+  inset: var(--workspace-visible-top, 0) auto auto 0;
+  width: var(--phone-nav-width);
+  height: var(--phone-nav-width);
+  padding: var(--ui-space-1);
+}
+.app-root[data-layout="phone-landscape"] .mobile-menu-trigger { width: var(--ui-touch-height); height: var(--ui-touch-height); }
+.app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
+  position: fixed;
+  z-index: 210;
+  top: var(--workspace-visible-top, 0);
+  left: var(--phone-nav-width);
+  right: auto;
+  width: min(var(--ui-phone-landscape-panel-max-width), calc(100vw - var(--phone-nav-width)));
+  max-height: var(--workspace-visible-height, 100dvh);
+  overflow-y: auto;
+}
+body .app-root[data-layout="phone-landscape"] .mobile-global-menu { display: grid; }
+.app-root[data-layout="phone-landscape"] .mobile-file-back { display: grid; }
+.app-root[data-layout="phone-landscape"] .map-command-toolbar {
+  top: auto;
+  bottom: calc(var(--ui-statusbar-height) + var(--ui-space-2));
+  left: calc(var(--phone-nav-width) + var(--ui-space-2));
+  right: auto;
+  transform: none;
+}
+.app-root[data-layout="phone-landscape"] .map-command-toolbar :is(.create-menu-command, .map-command-search) { display: none; }
+.app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--phone-nav-width) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
+.app-root[data-layout="phone-landscape"] .status-inner { left: var(--phone-nav-width); right: var(--map-safe-right); }
+.app-root[data-layout="phone-landscape"] :is(.status-view, .status-primary, .project-save-status-text) { display: none; }
 
 /* source: assets/css/components/topbar.css */
 
@@ -6990,136 +7232,28 @@ body.file-menu-open .app-root .topbar {
 
 .mode-map-summary { max-width: min(90vw, 40rem); padding: var(--ui-space-2) var(--ui-space-3); overflow-wrap: anywhere; font-size: var(--ui-font-sm); pointer-events: none; }
 
-.mode-task-input{font-size:var(--ui-font-sm);line-height:1.5;padding:0 var(--ui-space-3);margin:4px 0 8px}.touch-vertex-handle{fill:transparent!important;stroke:transparent!important;filter:none}.touch-vertex-handle.selected{stroke:#b0dbff!important;stroke-width:2}.editing-magnifier{overflow:hidden;filter:drop-shadow(0 3px 6px #0008)}
-
-/* A short touch landscape viewport uses the same surfaces in a side dock. */
-.app-root[data-layout="phone-landscape"] {
-  --phone-panel-width: min(var(--ui-phone-landscape-panel-max-width), 45vw);
-  --phone-nav-width: calc(var(--ui-touch-height) + var(--ui-space-1) * 2);
-  --ui-shell-topbar-height: 0px;
-  --mobile-nav-height: 0px;
-  grid-template-rows: minmax(0, 1fr);
+.mode-task-input {
+  font-size: var(--ui-font-sm);
+  line-height: 1.5;
+  padding: 0 var(--ui-space-3);
+  margin: var(--ui-space-1) 0 var(--ui-space-2);
 }
 
-.app-root[data-layout="phone-landscape"] .topbar { display: none; }
-.app-root[data-layout="phone-landscape"] .workspace {
-  --projection-safe-left: var(--phone-nav-width);
-  --projection-safe-right: 0px;
-  --projection-safe-top: 0px;
-  --map-safe-left: var(--phone-nav-width);
-  --map-safe-right: 0px;
-}
-.app-root[data-layout="phone-landscape"] .workspace:is(.editor-drawer-open, .search-drawer-open, .display-drawer-open, .create-drawer-open, .reference-drawer-open) {
-  --projection-safe-right: var(--phone-panel-width);
-  --map-safe-right: var(--phone-panel-width);
+.touch-vertex-handle {
+  fill: transparent;
+  stroke: transparent;
+  filter: none;
 }
 
-.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet {
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  z-index: 100;
-  top: var(--workspace-visible-top, 0);
-  right: 0;
-  bottom: auto;
-  left: auto;
-  width: var(--phone-panel-width);
-  min-width: 0;
-  height: var(--workspace-visible-height, 100dvh);
-  min-height: 0;
-  max-height: var(--workspace-visible-height, 100dvh);
-  padding-bottom: env(safe-area-inset-bottom);
+.touch-vertex-handle.selected {
+  stroke: var(--ui-touch-vertex-selected-stroke);
+  stroke-width: calc(var(--ui-border-width) * 2);
+}
+
+.editing-magnifier {
   overflow: hidden;
-  border: 0;
-  border-left: var(--ui-border-width) solid var(--border);
-  border-radius: 0;
-  background: var(--surface-elevated);
-  box-shadow: var(--control-shadow);
-  transform: translateX(100%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+  filter: var(--ui-editing-magnifier-filter);
 }
-.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet.surface-open {
-  transform: none;
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet > .surface-header {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  min-height: var(--ui-touch-height);
-  padding: var(--ui-space-1) var(--ui-space-2);
-  cursor: default;
-}
-.app-root[data-layout="phone-landscape"] .workspace-surface .sheet-drag-handle { display: none; }
-.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet > .surface-header > .surface-header-title { display: flex; }
-.app-root[data-layout="phone-landscape"] .workspace-surface .surface-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-}
-.app-root[data-layout="phone-landscape"] .workspace-surface :is(button, input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
-.app-root[data-layout="phone-landscape"] .editor-field-grid { grid-template-columns: minmax(0, 1fr); }
-
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  z-index: 150;
-  inset: calc(var(--workspace-visible-top, 0) + var(--phone-nav-width)) auto auto 0;
-  width: var(--phone-nav-width);
-  height: calc(var(--workspace-visible-height, 100dvh) - var(--phone-nav-width));
-  padding: 0;
-  overflow-y: auto;
-  background: var(--mobile-nav-bg);
-}
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item {
-  flex: 0 0 var(--ui-touch-height);
-  min-height: var(--ui-touch-height);
-  width: 100%;
-  padding: var(--ui-space-1);
-}
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item strong { font-size: var(--ui-phone-landscape-nav-label-size); }
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] { color: var(--accent); }
-body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
-  display: flex;
-  position: fixed;
-  z-index: 180;
-  inset: var(--workspace-visible-top, 0) auto auto 0;
-  width: var(--phone-nav-width);
-  height: var(--phone-nav-width);
-  padding: var(--ui-space-1);
-}
-.app-root[data-layout="phone-landscape"] .mobile-menu-trigger { width: var(--ui-touch-height); height: var(--ui-touch-height); }
-.app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
-  position: fixed;
-  z-index: 210;
-  top: var(--workspace-visible-top, 0);
-  left: var(--phone-nav-width);
-  right: auto;
-  width: min(var(--ui-phone-landscape-panel-max-width), calc(100vw - var(--phone-nav-width)));
-  max-height: var(--workspace-visible-height, 100dvh);
-  overflow-y: auto;
-}
-body .app-root[data-layout="phone-landscape"] .mobile-global-menu { display: grid; }
-.app-root[data-layout="phone-landscape"] .mobile-file-back { display: grid; }
-.app-root[data-layout="phone-landscape"] .map-command-toolbar {
-  top: auto;
-  bottom: calc(var(--ui-statusbar-height) + var(--ui-space-2));
-  left: calc(var(--phone-nav-width) + var(--ui-space-2));
-  right: auto;
-  transform: none;
-}
-.app-root[data-layout="phone-landscape"] .map-command-toolbar :is(.create-menu-command, .map-command-search) { display: none; }
-.app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--phone-nav-width) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
-.app-root[data-layout="phone-landscape"] .status-inner { left: var(--phone-nav-width); right: var(--map-safe-right); }
-.app-root[data-layout="phone-landscape"] :is(.status-view, .status-primary, .project-save-status-text) { display: none; }
 
 /* source: assets/css/components/panels.css */
 
@@ -7789,46 +7923,15 @@ body.file-menu-open .mobile-backdrop {
   color: var(--selection-strong-muted);
 }
 
+/* Object actions reuse the common menu surface and item styling. */
 .object-actions-menu {
   position: fixed;
   z-index: 3;
   width: var(--object-actions-menu-width);
-  padding: var(--ui-menu-padding);
   pointer-events: auto;
 }
 
-.object-actions-menu .ui-row-button {
-  width: 100%;
-  min-height: var(--ui-control-height);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--ui-space-2);
-  padding: 0 var(--ui-menu-item-padding-x);
-  border-color: transparent;
-  background: transparent;
-  color: var(--text-soft);
-}
-
-.object-actions-menu .ui-row-button:hover:not(:disabled) {
-  border-color: transparent;
-  background: var(--surface-hover);
-  color: var(--text-strong);
-}
-
-.object-actions-menu .ui-row-button:focus-visible:not(:disabled) {
-  border-color: transparent;
-  background: var(--surface-hover);
-  color: var(--text-strong);
-}
-
-.object-actions-menu .ui-icon {
-  width: var(--ui-icon-size);
-  height: var(--ui-icon-size);
-  flex: 0 0 var(--ui-icon-size);
-}
-
-.app-root[data-layout="mobile"] .object-actions-menu .ui-row-button {
+.app-root[data-layout="mobile"] .object-actions-menu .ui-menu-item {
   min-height: var(--ui-touch-height);
 }
 
@@ -8661,6 +8764,28 @@ body.file-menu-open .mobile-backdrop {
   .workspace-surface.ui-sheet {
     transition-duration: .01ms;
   }
+}
+
+/* Phone landscape is a side dock, but retains the common sheet chrome.
+   The layout stylesheet owns its placement and visibility only. */
+.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet {
+  border: 0;
+  border-left: var(--ui-border-width) solid var(--border);
+  border-radius: 0;
+  background: var(--surface-elevated);
+  box-shadow: var(--control-shadow);
+}
+
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
+  background: var(--mobile-nav-bg);
+}
+
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item strong {
+  font-size: var(--ui-phone-landscape-nav-label-size);
+}
+
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] {
+  color: var(--accent);
 }
 
 /* source: assets/css/components/feedback.css */
@@ -9757,10 +9882,16 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   display: none;
 }
 
+/* The desktop search surface tracks its toolbar slot without reparenting. */
 .surface-search.search-toolbar-desktop {
-  position: static;
-  width: 100%;
-  height: auto;
+  position: fixed;
+  z-index: var(--ui-layer-search-z);
+  top: var(--search-toolbar-top, 0);
+  right: auto;
+  bottom: auto;
+  left: var(--search-toolbar-left, 0);
+  width: var(--search-toolbar-width, var(--ui-control-height));
+  height: var(--search-toolbar-height, var(--ui-control-height));
   min-height: 0;
   max-height: none;
   overflow: visible;
@@ -9776,7 +9907,7 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   display: none;
 }
 
-.map-command-search .surface-search.search-toolbar-desktop > .surface-header {
+.surface-search.search-toolbar-desktop > .surface-header {
   display: none;
 }
 
@@ -10267,6 +10398,13 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: transform var(--ui-surface-motion-duration) ease,
+    opacity var(--ui-surface-motion-duration) ease,
+    visibility var(--ui-surface-motion-duration);
+}
+
+/* Menu chrome stays with the shared ui-menu-surface component. */
+.workspace-surface:where(:not(.ui-menu-surface)) {
   border-top: var(--ui-surface-border-top);
   border-right: var(--ui-surface-border-right);
   border-bottom: var(--ui-surface-border-bottom);
@@ -10277,9 +10415,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
     var(--ui-surface-radius-bottom-left);
   background: var(--surface-elevated);
   box-shadow: var(--ui-surface-shadow);
-  transition: transform var(--ui-surface-motion-duration) ease,
-    opacity var(--ui-surface-motion-duration) ease,
-    visibility var(--ui-surface-motion-duration);
 }
 
 .surface-body {

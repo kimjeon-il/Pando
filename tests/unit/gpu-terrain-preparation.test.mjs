@@ -168,6 +168,26 @@ test('terrain camera LOD uses the visual frame DPR when the backing canvas lower
   }
 });
 
+test('terrain readiness requires uploaded world reserve and reports the source resolution limit', async t => {
+  const setup = fixture(t);
+  const { owner } = setup;
+  t.after(() => owner.dispose());
+  owner.setManifest(mobileManifest);
+  const frame = mobileFrame(), view = mobileView();
+  owner.prepare(frame, view);
+  assert.equal(owner.stats().terrainReady, false);
+  await primeBase(setup, frame, view);
+  assert.equal(owner.stats().terrainReady, false, 'world base alone does not complete detailed terrain');
+  assert.equal(owner.stats().terrainResolutionLimited, true);
+  const key = owner.stats().terrainTargetKey;
+  owner.prepare({ ...frame, scale: 100 }, view);
+  assert.notEqual(owner.stats().terrainTargetKey, key);
+  assert.equal(owner.stats().terrainReady, true, 'uploaded base is sufficient at small screen scale');
+  assert.equal(owner.stats().terrainResolutionLimited, false);
+  owner.reset();
+  assert.equal(owner.stats().terrainReady, false);
+});
+
 for (const failDetail of [false, true]) {
 test(`exhausted base${failDetail ? ' and detail' : ''} failures report unusable coverage instead of waiting forever`, async t => {
   const failures = [];
@@ -203,6 +223,8 @@ test(`exhausted base${failDetail ? ' and detail' : ''} failures report unusable 
   assert.equal(owner.prepare(frame, view).length, 0);
   assert.equal(failedRequests.size, unavailable.length * 4, 'unavailable coverage paths exhaust their real retries');
   assert.equal(failures.length, 1, 'report through the existing source failure boundary');
+  assert.equal(owner.stats().terrainReady, false, 'retry exhaustion cannot be readiness');
+  assert.equal(owner.stats().terrainFailed, true);
   assert.match(failures[0], /0\/0-0: 지형 타일 HTTP 503/, 'preserve the failing tile and technical cause');
   owner.prepare(frame, view);
   assert.equal(failures.length, 1, 'report once until the source resets');

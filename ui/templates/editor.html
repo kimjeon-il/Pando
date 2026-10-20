@@ -141,7 +141,7 @@
               </header>
               <div class="mode-task-context-summary"><strong id="modeTaskTargetSummary"></strong><span id="modeTaskEditingStage" aria-live="polite"></span></div>
               <p id="modeTaskInput" class="mode-task-input"></p>
-              <button id="vertexPlacementBtn" type="button" class="btn" hidden>선택 정점 위치 지정</button>
+              <button id="vertexPlacementBtn" type="button" class="ui-button btn" hidden>선택 정점 위치 지정</button>
               <div id="modeTaskWindowContent" class="mode-task-window-content">
                 <div class="mode-task-window-body">
                   <div class="mode-edit-context">
@@ -232,6 +232,8 @@
             <div id="statusView" class="status-group status-view" aria-label="보기 정보">
               <span id="projectionStatus" class="status-item">지구본</span>
             </div>
+            <span id="mapPreparationStatus" class="status-group map-preparation-status" role="status">정밀 경계 준비 중</span>
+            <button id="mapPreparationRetry" class="ui-button" type="button" hidden>다시 시도</button>
             <div id="statusSelection" class="status-group status-selection hidden" aria-label="선택 대상">
               <span id="selectionStatus" class="selection-status"></span>
             </div>
@@ -426,7 +428,7 @@
               <p id="hydroBuiltinHelp" class="editor-help"><span id="hydroSourceValue">Natural Earth 5.0.0 1:10m</span> 기반 내장 강입니다. 직접 수정하려면 복사본을 만드세요.</p>
             </section>
 
-            <section class="editor-section editor-action-section" aria-label="편집"><button id="hydroVerticesBtn" type="button" class="btn wide">좌표 편집 시작</button><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action hydro-copy-command">복사하여 편집</button></section>
+            <section class="editor-section editor-action-section" aria-label="편집"><button id="hydroVerticesBtn" type="button" class="ui-button btn wide">좌표 편집 시작</button><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action hydro-copy-command">복사하여 편집</button></section>
             <details class="ui-disclosure editor-disclosure" hidden>
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
@@ -503,7 +505,7 @@
       </section>
       <div id="mobileBackdrop" class="mobile-backdrop" aria-hidden="true"></div>
 
-      <div id="objectActionsMenu" class="ui-menu ui-popover object-actions-menu hidden" role="menu" aria-label="레이어 작업"><button id="objectFocusMenuBtn" class="ui-button ui-row-button" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>선택 객체로 이동</span></button></div>
+      <div id="objectActionsMenu" class="ui-menu ui-popover ui-menu-surface ui-menu-list object-actions-menu hidden" role="menu" aria-label="레이어 작업"><button id="objectFocusMenuBtn" class="ui-button ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>선택 객체로 이동</span></button></div>
       <!-- include:tooltip -->
     </div>
   </div>
@@ -684,14 +686,31 @@
   <script src="assets/js/vendor/earcut.min.js?v={{assetRevision}}" defer></script>
   <script src="assets/js/bootstrap.js?v={{assetRevision}}" defer></script>
 <dialog aria-modal="true" id="projectSetupDialog" class="project-setup-dialog" aria-labelledby="projectSetupTitle">
-<form id="projectSetupForm"><h2 id="projectSetupTitle">새 프로젝트</h2>
-<label>시작 시점 <input id="projectSetupMonth" type="text" required placeholder="1914-07" aria-describedby="projectSetupMonthHelp"></label><small id="projectSetupMonthHelp">연·월 입력 · 월말 상태로 시작 · 기원전 예: -0044-03 · 연도 0 없음</small>
-<label><input id="projectSetupLimited" type="checkbox"> 탐색 기간 제한</label><div id="projectSetupRange" hidden><label>시작 월 <input id="projectSetupStart" type="text" placeholder="1900-01"></label><label>종료 월 <input id="projectSetupEnd" type="text" placeholder="1920-12"></label></div>
-<p class="help">탐색 기간은 날짜 이동만 제한합니다. 객체의 존속기간과 시간 기록은 보존합니다.</p>
-<label>초기 지도 범위 <select id="projectSetupBounds"><option value="world">전 세계</option><option value="current">현재 화면 범위</option><option value="custom">직접 지정한 영역</option></select></label><button id="projectSetupDraw" type="button" class="btn">지도에서 사각형 지정</button>
-<p class="help">첫 화면만 정합니다. 경계를 자르거나 범위 밖 객체를 삭제하지 않습니다.</p>
-<label>시작 자료 <select id="projectSetupSource"><option value="builtin">내장 지도</option><option value="empty">빈 지도</option></select></label><small>자료가 부족한 시점은 빈 지도로 시작할 수 있습니다.</small>
-<pre id="projectSetupSummary" aria-live="polite"></pre><p id="projectSetupCoverage" class="help" aria-live="polite"></p><p id="projectSetupError" role="alert"></p>
-<div class="project-setup-actions"><button id="projectSetupCancel" type="button" class="btn ghost">취소</button><button id="projectSetupSubmit" type="submit" class="btn primary">프로젝트 생성</button></div></form></dialog>
+  <form id="projectSetupForm" class="ui-dialog-card project-setup-form">
+    <header class="ui-dialog-header"><div><h2 id="projectSetupTitle">새 프로젝트</h2></div></header>
+    <div class="project-setup-fields ui-scroll-surface">
+      <label class="ui-field field-group project-setup-field" for="projectSetupMonth"><span>시작 시점</span><input id="projectSetupMonth" type="text" required placeholder="1914-07" aria-describedby="projectSetupMonthHelp"></label>
+      <small id="projectSetupMonthHelp" class="project-setup-help">연·월 입력 · 월말 상태로 시작 · 기원전 예: -0044-03 · 연도 0 없음</small>
+      <label class="ui-choice-row ui-toggle"><input id="projectSetupLimited" type="checkbox"><span>탐색 기간 제한</span></label>
+      <div id="projectSetupRange" class="project-setup-range" hidden>
+        <label class="ui-field field-group project-setup-field" for="projectSetupStart"><span>시작 월</span><input id="projectSetupStart" type="text" placeholder="1900-01"></label>
+        <label class="ui-field field-group project-setup-field" for="projectSetupEnd"><span>종료 월</span><input id="projectSetupEnd" type="text" placeholder="1920-12"></label>
+      </div>
+      <p class="project-setup-help">탐색 기간은 날짜 이동만 제한합니다. 객체의 존속기간과 시간 기록은 보존합니다.</p>
+      <label class="ui-field field-group project-setup-field" for="projectSetupBounds"><span>초기 지도 범위</span><select id="projectSetupBounds"><option value="world">전 세계</option><option value="current">현재 화면 범위</option><option value="custom">직접 지정한 영역</option></select></label>
+      <button id="projectSetupDraw" type="button" class="ui-button btn ghost project-setup-draw">지도에서 사각형 지정</button>
+      <p class="project-setup-help">첫 화면만 정합니다. 경계를 자르거나 범위 밖 객체를 삭제하지 않습니다.</p>
+      <label class="ui-field field-group project-setup-field" for="projectSetupSource"><span>시작 자료</span><select id="projectSetupSource"><option value="builtin">내장 지도</option><option value="empty">빈 지도</option></select></label>
+      <small class="project-setup-help">자료가 부족한 시점은 빈 지도로 시작할 수 있습니다.</small>
+      <pre id="projectSetupSummary" class="ui-callout project-setup-summary" aria-live="polite"></pre>
+      <p id="projectSetupCoverage" class="project-setup-help" aria-live="polite"></p>
+      <p id="projectSetupError" class="ui-field-error project-setup-error" role="alert"></p>
+    </div>
+    <footer class="ui-dialog-actions project-setup-actions">
+      <button id="projectSetupCancel" type="button" class="ui-button btn ghost">취소</button>
+      <button id="projectSetupSubmit" type="submit" class="ui-button btn primary">프로젝트 생성</button>
+    </footer>
+  </form>
+</dialog>
 </body>
 </html>

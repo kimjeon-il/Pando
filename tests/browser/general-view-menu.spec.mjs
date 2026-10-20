@@ -4,6 +4,13 @@ import {readFileSync} from 'node:fs';
 
 test.use({viewport:{width:1366,height:900},trace:'off',actionTimeout:10000});
 
+async function expectCommonMenuCorners(page,surface){
+  const radii=await surface.evaluate(element=>{const s=getComputedStyle(element);return [s.borderTopLeftRadius,s.borderTopRightRadius,s.borderBottomRightRadius,s.borderBottomLeftRadius];});
+  const common=await page.evaluate(()=>{const s=getComputedStyle(document.getElementById('fileMenu'));return [s.borderTopLeftRadius,s.borderTopRightRadius,s.borderBottomRightRadius,s.borderBottomLeftRadius];});
+  for(const radius of radii)expect(parseFloat(radius)).toBeGreaterThan(0);
+  expect(radii).toEqual(common);
+}
+
 test('one object menu retains common settings across keyboard navigation and mobile layout',async({page},info)=>{
   test.setTimeout(120000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
@@ -19,6 +26,7 @@ test('one object menu retains common settings across keyboard navigation and mob
   await page.evaluate(seed=>window.__objectMenuDomain().load(seed),seed);
   const before=await page.evaluate(()=>window.__objectMenuDomain().snapshot());
   await page.locator('#mapDisplayBtn').click();
+  await expectCommonMenuCorners(page,page.locator('#mapDisplaySurface'));
   const objects=page.locator('[data-map-display-row="objects"]');
   await objects.focus();await page.keyboard.press('ArrowRight');
   await expect(page.locator('#objectsVisible')).toBeFocused();
@@ -36,16 +44,18 @@ test('one object menu retains common settings across keyboard navigation and mob
   await expect(popup).toHaveClass(/ui-menu-list/);
   await expect(popup).toHaveClass(/ui-menu-surface/);
   await expect(popup).toHaveAttribute('role', 'menu');
-  expect(await popup.evaluate(element => element.parentElement?.dataset.mapDisplayGroup)).toBe('objects');
+  expect(await page.evaluate(()=>document.querySelector('[data-view-menu-popup="objects"]').parentElement.dataset.mapDisplayGroup)).toBe('objects');
   expect(await page.locator('#mapDisplaySurface').evaluate(element => element.querySelector('.view-menu-popups'))).toBeNull();
   expect(await page.evaluate(()=>window.__objectMenuDomain().snapshot())).toEqual(before);
   await page.screenshot({path:info.outputPath('object-menu-desktop.png')});
   await page.setViewportSize({width:390,height:844});
   await expect(page.locator('#app')).toHaveAttribute('data-layout','mobile');
+  await expect.poll(()=>page.locator('#mapDisplaySurface').evaluate(element=>parseFloat(getComputedStyle(element).borderTopLeftRadius))).toBeGreaterThan(0);
+  expect(await page.locator('#mapDisplaySurface').evaluate(element=>parseFloat(getComputedStyle(element).borderBottomLeftRadius))).toBe(0);
   await expect(page.locator('#objectsVisible')).toBeVisible();
   await expect(popup).not.toHaveClass(/ui-menu-list/);
   await expect(popup).not.toHaveAttribute('role', 'menu');
-  expect(await popup.evaluate(element => element.parentElement?.dataset.mapDisplayGroup)).toBe('objects');
+  expect(await page.evaluate(()=>document.querySelector('[data-view-menu-popup="objects"]').parentElement.dataset.mapDisplayGroup)).toBe('objects');
   await expect(page.locator('#objectsVisible')).not.toBeChecked();
   await page.locator('#objectsVisible').locator('..').click();
   if(await objects.getAttribute('aria-expanded')!=='true')await objects.click();
@@ -67,20 +77,21 @@ test('one object menu retains common settings across keyboard navigation and mob
 test('web viewer keeps the same view controls in its desktop menu and mobile sheet',async({page})=>{
   test.setTimeout(120000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto('/?debug=1');
+  await page.goto('/?debug=1&renderer=canvas');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
 
   const surface=page.locator('#mapDisplaySurface');
   const popup=surface.locator('[data-view-menu-popup="labels"]');
   const trigger=surface.locator('[data-map-display-row="labels"]');
-  await page.locator('#mapDisplayBtn').evaluate(button=>button.click());
+  await page.locator('#mapDisplayBtn').click();
   await expect(surface).toHaveClass(/view-menu-desktop/);
   await expect(surface).toHaveClass(/ui-menu-surface/);
+  await expectCommonMenuCorners(page,surface);
   await expect(popup).toHaveClass(/ui-menu-list/);
   await expect(popup).toHaveAttribute('role','menu');
-  expect(await popup.evaluate(element=>element.parentElement?.dataset.mapDisplayGroup)).toBe('labels');
+  expect(await page.evaluate(()=>document.querySelector('[data-view-menu-popup="labels"]').parentElement.dataset.mapDisplayGroup)).toBe('labels');
 
-  await trigger.evaluate(button=>button.click());
+  await trigger.click();
   await expect(popup).toBeVisible();
   await expect(surface.locator('#layerStylePanel-labels')).toBeVisible();
   await expect(surface.locator('#labelsVisible')).toBeChecked();
@@ -89,11 +100,13 @@ test('web viewer keeps the same view controls in its desktop menu and mobile she
   await expect(page.locator('#viewer')).toHaveAttribute('data-layout','mobile');
   await expect(surface).not.toHaveClass(/view-menu-desktop/);
   await expect(surface).toHaveClass(/ui-sheet/);
+  await expect.poll(()=>surface.evaluate(element=>parseFloat(getComputedStyle(element).borderTopLeftRadius))).toBeGreaterThan(0);
+  expect(await surface.evaluate(element=>parseFloat(getComputedStyle(element).borderBottomLeftRadius))).toBe(0);
   await expect(popup).not.toHaveClass(/ui-menu-list/);
   await expect(popup).not.toHaveAttribute('role','menu');
   await expect(surface.locator('#labelsVisible')).toBeVisible();
-  if(await trigger.getAttribute('aria-expanded')!=='true')await trigger.evaluate(button=>button.click());
+  if(await trigger.getAttribute('aria-expanded')!=='true')await trigger.click();
   await expect(surface.locator('#layerStylePanel-labels')).toBeVisible();
-  expect(await popup.evaluate(element=>element.parentElement?.dataset.mapDisplayGroup)).toBe('labels');
+  expect(await page.evaluate(()=>document.querySelector('[data-view-menu-popup="labels"]').parentElement.dataset.mapDisplayGroup)).toBe('labels');
   expect(errors).toEqual([]);
 });

@@ -48,6 +48,12 @@ export function createMapRenderer(dependencies) {
         setEngineStatus: text => {
           (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = text;
         },
+        setMapPreparationStatus: presentation => {
+          const label = dependencies.platform.$('mapPreparationStatus');
+          const retry = dependencies.platform.$('mapPreparationRetry');
+          if (label && label.textContent !== presentation.label) label.textContent = presentation.label;
+          if (retry) retry.hidden = !presentation.retry;
+        },
         onContextStateChange: phase => dependencies.domains.renderingDomain?.invalidateGpuContext?.(phase) || false,
         requestHostRepaint: reason => dependencies.mapView.mapHost?.requestRepaint?.(reason) || false,
       },
@@ -60,5 +66,7 @@ export function createMapRenderer(dependencies) {
     });
 
     gpuMapRenderer.setRenderQuality?.(dependencies.renderScene.currentRenderQuality);
+    const retry = dependencies.platform.$('mapPreparationRetry');
+    if (retry) retry.onclick = () => gpuMapRenderer.retryMapPreparation();
     return gpuMapRenderer;
   }

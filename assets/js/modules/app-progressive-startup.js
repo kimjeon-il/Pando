@@ -239,7 +239,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       startupMetrics.devicePixelRatio = renderer.devicePixelRatio;
       startupMetrics.effectivePixelRatio = renderer.effectivePixelRatio;
     }
-    (0, dependencies.feedback.setActionStatus)('고화질 지도를 준비했습니다.', 'success', 2400);
+    (0, dependencies.feedback.setActionStatus)('정밀 경계를 사용할 수 있습니다.', 'success', 2400);
   }
 
   function awaitVisualFrame(maxWaitMs = 120) {
