@@ -373,7 +373,8 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
         input?.focus({ preventScroll: true });
       });
     } else if (isMobile()) {
-      closeMobileSheets();
+      if (editorWorkspacePresentation.isDocked() && layoutMode !== 'phone-landscape') openSurface('editor');
+      else closeMobileSheets();
       requestAnimationFrame(() => (0, dependencies.platform.$)('map')?.focus({ preventScroll: true }));
     } else {
       closeSurface('create');
