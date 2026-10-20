@@ -13,11 +13,13 @@ const viewerOperations = new Set([
 export function createProductModePolicy(productMode) {
   if (productMode !== 'viewer' && productMode !== 'editor')
     throw new TypeError('Product mode must be viewer or editor.');
+  const projection = productMode === 'viewer' ? 'globe' : 'flat';
   return Object.freeze({
     productMode,
-    assertProjection(projection) {
-      if (productMode === 'editor' && projection === 'globe')
-        throw Object.assign(new Error('The editor supports only the flat projection.'), { code: 'PL-PRODUCT-PROJECTION', productMode, projection });
+    projection,
+    assertProjection(requested) {
+      if (requested !== undefined && requested !== projection)
+        throw Object.assign(new Error(`The ${productMode} supports only the ${projection} projection.`), { code: 'PL-PRODUCT-PROJECTION', productMode, projection: requested });
     },
     assertOperation(operation) {
       if (productMode === 'viewer' && !viewerOperations.has(operation))

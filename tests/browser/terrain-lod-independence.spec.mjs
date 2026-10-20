@@ -161,7 +161,6 @@ for (const source of ['dem', 'raster']) {
       await page.evaluate(() => { window.__captureTerrainFrames = true; });
       await page.screenshot({ path: test.info().outputPath(`${source}-cold-base-during-hover.png`) });
       release(); delayDetail = false;
-      await page.locator('#flatBtn').evaluate(button => button.click());
       await page.locator('#resetViewBtn').evaluate(button => button.click());
       expect(await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().zoom)).toBe(1);
       await expect.poll(async () => (await snapshot(page)).terrainLevel).toBe(0);
@@ -169,7 +168,7 @@ for (const source of ['dem', 'raster']) {
       if (source === 'dem') await expect.poll(async () => (await snapshot(page)).terrainTintReady).toBe(true);
       const low = await snapshot(page);
       expect(low.quality).toBe('preview');
-      expect(low.terrainLevel).toBe(0, 'flat overview uses camera LOD even when countries use preview');
+      expect(low.terrainLevel).toBe(0, 'globe overview uses camera LOD even when countries use preview');
       await page.evaluate(() => { window.__captureTerrainFrames = true; window.__terrainProbe = [32, 39]; });
       const priorRequests = requests.length;
       for (const style of ['political', 'physical']) {
@@ -207,8 +206,6 @@ for (const source of ['dem', 'raster']) {
         expect((await snapshot(page)).prepared).toEqual(waiting.prepared);
         await page.screenshot({ path: test.info().outputPath(`${source}-${style}-waiting.png`) });
       }
-      await page.locator('#globeBtn').evaluate(button => button.click());
-      await expect(page.locator('#globeBtn')).toHaveAttribute('aria-pressed', 'true');
       await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection),
         { timeout: 30_000 }).toBe('globe');
       const globeBox = await page.locator('#map').boundingBox();
@@ -226,7 +223,6 @@ for (const source of ['dem', 'raster']) {
         expect(rotated.prepared.some(tile => base.prepared.some(old => old.texture === tile.texture))).toBe(true);
       }
       await page.screenshot({ path: test.info().outputPath(`${source}-rotated-base.png`) });
-      await page.locator('#flatBtn').evaluate(button => button.click());
       await page.locator('#resetViewBtn').evaluate(button => button.click());
       await page.mouse.move(globeBox.x + globeBox.width / 2, globeBox.y + globeBox.height / 2);
       await page.mouse.wheel(0, -Math.log(3) / 0.0013);

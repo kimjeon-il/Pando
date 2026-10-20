@@ -4,6 +4,7 @@ import { createMapWorkScheduler } from './map-work-scheduler.js';
 import { createEmptyTerritorialState } from './territorial-entity-store.js';
 import { createInitialDocument } from './initial-document.js';
 import { resourceCapabilities } from './resource-capabilities.js';
+import { createProductModePolicy } from './product-mode-policy.js';
 const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: id => ids.includes(id),
   [Symbol.iterator]: () => ids[Symbol.iterator]() });
 /** ProjectSession: extracted application responsibility.
@@ -12,6 +13,7 @@ const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: 
  */
 export function createProjectSession({productMode='editor',capabilities=resourceCapabilities(productMode),resolveVisibilityGroup,onViewingChange=null}={}) {
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Project session requires immutable product mode.');
+  const productPolicy=createProductModePolicy(productMode);
   const viewingFields=new Set(['layerVisibility','layerPresentation','itemVisibility','physicalSettings','distributionSettings']);
   let viewingPresentation=null,documentProjection=null,physicalSettings;
   let dependencies;
@@ -71,7 +73,7 @@ export function createProjectSession({productMode='editor',capabilities=resource
       layerPresentation: (0, dependencies.modelValidation.normalizeLayerPresentation)(),
       // SelectionDomain owns selection. Before domain initialization it is empty.
       get selected() { return dependencies.domains.selectionDomain?.primary() || null; },
-      projection: productMode==='editor'?'flat':'globe',
+      projection: productPolicy.projection,
       resourceCapabilities:capabilities,
       backgroundSettings:{...background},
       layerVisibility: normalizeLayerVisibility(),
@@ -157,10 +159,10 @@ export function createProjectSession({productMode='editor',capabilities=resource
       applySnapshot: snapshot => {
         const projection = snapshot.projection || state.projection;
         const view = { ...state.view, ...snapshot.view };
-        state.view = productMode==='editor' && projection==='globe'
-          ? dependencies.mapNavigation.reprojectView(view, 'globe', 'flat')
+        state.view = projection !== productPolicy.projection
+          ? dependencies.mapNavigation.reprojectView(view, projection, productPolicy.projection)
           : dependencies.mapNavigation.clampViewZooms(view);
-        state.projection = productMode==='editor'?'flat':projection;
+        state.projection = productPolicy.projection;
         state.transitionRevision = Number(snapshot.stateRevision || state.transitionRevision || 0);
       },
     }));
