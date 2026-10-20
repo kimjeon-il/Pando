@@ -51,6 +51,7 @@ for (const viewport of [{width: 640, height: 360}, {width: 844, height: 390}]) {
     expect(actual.headerDisplay).toBe('flex');
     expect(actual.handleDisplay).toBe('none');
     expect(actual.titleDisplay).toBe('flex');
+    await expect(page.locator('.mobile-bottom-bar')).toBeVisible();
     const navStyle = await page.locator('.mobile-bottom-bar').evaluate(node => getComputedStyle(node).backgroundColor);
     expect(navStyle).not.toBe('rgba(0, 0, 0, 0)');
   });

@@ -66,8 +66,8 @@ test('viewer landscape search stays in its authored location after portrait rota
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 844, height: 390 });
   await page.addInitScript(() => {
-    const original = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+    const original = globalThis.HTMLCanvasElement.prototype.getContext;
+    globalThis.HTMLCanvasElement.prototype.getContext = function(type, ...args) {
       return String(type).includes('webgl') ? null : original.call(this, type, ...args);
     };
   });
@@ -97,12 +97,12 @@ test('editor search IME composition defers responsive layout until compositionen
   await expect(panel).toBeVisible();
   await input.fill('독');
   await input.evaluate(node => {
-    node.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: 'ㄷ' }));
+    node.dispatchEvent(new globalThis.CompositionEvent('compositionstart', { bubbles: true, data: 'ㄷ' }));
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'compact');
   await input.evaluate(node => {
-    node.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '독' }));
+    node.dispatchEvent(new globalThis.CompositionEvent('compositionend', { bubbles: true, data: '독' }));
   });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
   await expect(panel).toBeVisible();
