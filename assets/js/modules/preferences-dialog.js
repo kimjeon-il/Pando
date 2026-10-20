@@ -1,4 +1,5 @@
 import { defaultUserPreferences, saveUserPreferences } from './user-preferences.js';
+import { setDialogReturnFocus } from './dialog-accessibility-controller.js';
 
 /** Shared appearance dialog; the host owns current preferences and repainting. */
 export function createPreferencesDialog({ document, getPreferences, applyPreferences, beforeOpen = () => {}, returnFocus = null }) {
@@ -22,10 +23,10 @@ export function createPreferencesDialog({ document, getPreferences, applyPrefere
     else applyPreferences(saveUserPreferences(getPreferences()));
     origin = null;
     modal.classList.add('hidden');
-    (returnFocus ? returnFocus() : trigger).focus({ preventScroll: true });
   };
   get('preferencesBtn').addEventListener('click', event => {
     beforeOpen(); trigger = event.currentTarget;
+    setDialogReturnFocus(modal, () => returnFocus?.() || trigger);
     origin = { ...getPreferences().appearance }; sync();
     modal.classList.remove('hidden');
     modal.querySelector(`[data-preference-theme="${origin.theme}"]`).focus({ preventScroll: true });
@@ -42,12 +43,6 @@ export function createPreferencesDialog({ document, getPreferences, applyPrefere
     get(id).addEventListener('change', () => preview({ ...getPreferences().appearance, [key]: get(id).checked }));
   modal.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close({ revert: true }); }
-    if (event.key === 'Tab') {
-      const items = [...modal.querySelectorAll('button, input:not([type="hidden"])')].filter(node => !node.disabled);
-      const first = items[0], last = items.at(-1);
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    }
   });
   return Object.freeze({ close });
 }
