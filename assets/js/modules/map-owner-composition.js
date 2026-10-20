@@ -30,7 +30,7 @@ export function createMapOwners({productMode,platform={},editing=null,isObjectVi
   const cameraNavigation=createCameraNavigation({persistView:editing?.persistView});
   const countryIndex=createCountryIndex();
   const spatialIndex=createSpatialIndex();
-  const mapProjection=createMapProjection();
+  const mapProjection=createMapProjection({capabilities});
   const objectPresentation=createObjectPresentation();
   const hydroSettings=createHydroSettings();
   const objectCatalog=createObjectCatalog({isObjectVisible});

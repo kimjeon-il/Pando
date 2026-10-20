@@ -149,7 +149,7 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
     const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
     return gpu?.renderer === 'webgl2' && gpu.canonicalMeshReady && !gpu.countrySharedBoundaryReplacementPending;
   }), { timeout: 90_000 }).toBe(true);
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   const cdp = await page.context().newCDPSession(page);
   const workerProbe = await createWorkerMemoryProbe(cdp, {
     origin: new URL(page.url()).origin,

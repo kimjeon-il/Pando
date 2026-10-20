@@ -1,4 +1,3 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
@@ -61,7 +60,7 @@ test('slow mobile globe retains loaded DEM while requesting promoted detail dire
   });
 
   try {
-    await gotoEditor(page, '/?renderer=webgl2&debug=1&demTerrain=preview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/?renderer=webgl2&debug=1&demTerrain=preview', { waitUntil: 'domcontentloaded' });
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation),
       { timeout: 120_000 }).toBe('dem-relief-v1');
     await expect.poll(() => started.length, { timeout: 60_000 }).toBeGreaterThanOrEqual(2);
@@ -81,12 +80,12 @@ test('slow mobile globe retains loaded DEM while requesting promoted detail dire
     }), { timeout: 90_000 }).toEqual({ targetLevel: initialLevel, renderedLevel: initialLevel, complete: true, settled: true });
     expect([...new Set(started.map(tile => tile.level))].sort()).toEqual([0, initialLevel]);
     releaseCanonical();
-    await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
     delayFine = true;
     await page.evaluate(() => {
       const map = document.getElementById('map');
       const rect = map.getBoundingClientRect();
-      const current = window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom;
+      const current = window.__PANDOLAB_MAP_HOST__.getViewState().zoom;
       map.dispatchEvent(new window.WheelEvent('wheel', { bubbles: true, cancelable: true,
         clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2,
         deltaY: -Math.log(3 / current) / 0.0013 }));

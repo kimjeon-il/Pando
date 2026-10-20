@@ -31,11 +31,11 @@ async function zoomAndPan(page) {
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom)).toBeGreaterThan(1);
 }
 
-test('whole-map view is zoom-only in flat and globe projections', async ({ page }) => {
+test('whole-map view is zoom-only in the flat editor', async ({ page }) => {
     test.setTimeout(180_000);
   const errors = await openDebugMap(page, { width: 1440, height: 900 });
 
-  await page.evaluate(() => document.getElementById('flatBtn')?.click());
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().projection)).toBe('flat');
   await zoomAndPan(page);
   const flatBefore = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot());
   await expect(page.locator('#resetViewBtn')).toHaveAttribute('aria-label', '전체 지도 보기');
@@ -46,20 +46,13 @@ test('whole-map view is zoom-only in flat and globe projections', async ({ page 
   await page.locator('#resetViewBtn').click();
   expectPairClose((await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot())).flatCenter, flatBefore.flatCenter);
 
-  await page.evaluate(() => document.getElementById('globeBtn')?.click());
-  await zoomAndPan(page);
-  const globeBefore = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot());
-  await page.locator('#resetViewBtn').click();
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().globeZoom)).toBe(1);
-  const globeAfter = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot());
-  expectPairClose(globeAfter.globeRotation, globeBefore.globeRotation);
+  await expect(page.locator('#globeBtn,#flatBtn')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
 test('object focus uses the actual viewport center with the editor panel open', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openDebugMap(page, { width: 1440, height: 900 });
-  await page.evaluate(() => document.getElementById('flatBtn')?.click());
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().projection)).toBe('flat');
   const countryId = 'DEU';
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), countryId);

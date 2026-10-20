@@ -15,6 +15,10 @@ export function createProductModePolicy(productMode) {
     throw new TypeError('Product mode must be viewer or editor.');
   return Object.freeze({
     productMode,
+    assertProjection(projection) {
+      if (productMode === 'editor' && projection === 'globe')
+        throw Object.assign(new Error('The editor supports only the flat projection.'), { code: 'PL-PRODUCT-PROJECTION', productMode, projection });
+    },
     assertOperation(operation) {
       if (productMode === 'viewer' && !viewerOperations.has(operation))
         throw Object.assign(new Error('This operation is unavailable in the read-only viewer.'),

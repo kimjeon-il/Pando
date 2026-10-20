@@ -536,7 +536,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
   const renderBase = (viewState = null) => {
     syncBaseView(viewState);
     const b = base;
-    if(b.getState().backgroundSettings?.graticule===false){b.replaceGpuSceneDomain('base-graticule',{strokes:[]});return true;}
+    if(b.getState().resourceCapabilities?.graticule===false||b.getState().backgroundSettings?.graticule===false){b.replaceGpuSceneDomain('base-graticule',{strokes:[]});return true;}
     const graticuleGeometry = b.graticule?.();
     if (!graticuleGeometry) return false;
     const light = b.isLightTheme?.() ?? true;

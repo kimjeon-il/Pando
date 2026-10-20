@@ -140,7 +140,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
 
   mapProjection.connect({projectState:{state},platform:{d3,clamp,$:id=>document.getElementById(id)},surfaces:{isMobile,get layoutMode(){return owners.workspaceSurfaces.layoutMode;}},
     mapLayout:{createMapLayoutMetricsSnapshot,DEFAULT_SAFE_INSETS},mapLayers:{}});
-  mapProjection.initializeMapLayoutMetricsSnapshot();mapProjection.initializeGlobeProjection();
+  mapProjection.initializeMapLayoutMetricsSnapshot();mapProjection.initializeProjections();
 
   mapHost.connect({projectState:{state},platform:{d3,$:id=>document.getElementById(id),deepClone:structuredClone},mapView:mapProjection,projectionView:mapProjection,
     navigation,workspaceUiB:owners.workspaceSurfaces,mapLayers:{},mapHostCommands:{installSelectionPass:pass=>{gpuScene.selectionPass=pass;}},gpuRenderingA:gpuScene,

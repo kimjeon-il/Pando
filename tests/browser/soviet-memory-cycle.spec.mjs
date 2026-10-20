@@ -125,7 +125,7 @@ test('1989 Soviet repeated coast edit and month round-trip keep bounded caches a
       return gpu.renderer === 'webgl2' && gpu.canonicalMeshReady && !gpu.countrySharedBoundaryReplacementPending;
     });
   }, { timeout: 90_000 }).toBe(true);
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
 
   const sourceMonth = await page.evaluate(() => window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth);
   expect(sourceMonth).toMatch(/^\d{4}-\d{2}$/);

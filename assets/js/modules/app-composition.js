@@ -97,7 +97,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   const objectMetadata = factoryObjectMetadata.createObjectMetadata();
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
-  const mapSettings = factoryMapSettings.createMapSettings({viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onLayerVisibilityChange:async(key,enabled)=>{if(!enabled)return;if(key==='rivers'||key==='lakes')await physicalResources.loadHydroData(true);if(key==='labels')await territorialLabels.preparePlaces({force:true});},afterProjectionChange:()=>{pointerTargets.invalidateEditInteraction();domainAssembly.projectDomain.queueViewAutosave();}});
+  const mapSettings = factoryMapSettings.createMapSettings({productMode,viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onLayerVisibilityChange:async(key,enabled)=>{if(!enabled)return;if(key==='rivers'||key==='lakes')await physicalResources.loadHydroData(true);if(key==='labels')await territorialLabels.preparePlaces({force:true});}});
   const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace });
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
@@ -208,7 +208,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   territorySelectionWorkflow.initializeTerritorySelectionWorkflow();
   geometryPreview.initializeActiveGeometryPreviewApply();
   pointerTargets.initializeSnapCandidateCache();
-  mapProjection.initializeGlobeProjection();
+  mapProjection.initializeProjections();
   serviceAssembly.initializeGpuMapRenderer();
   renderQuality.initializeGpuRebuildTimer();
   readinessNotifications.initializeCANONICAL_CONTROL_SELECTOR();

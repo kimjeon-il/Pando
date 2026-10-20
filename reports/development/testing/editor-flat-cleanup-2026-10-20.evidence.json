@@ -1,0 +1,100 @@
+{
+  "schema": "pando-local-editor-flat-validation-v1",
+  "date": "2026-10-20",
+  "sourceCommit": "4d8fec5bbdfd288e14118615cd55e1cef5078091",
+  "workingBranch": "work/ui",
+  "uncommitted": true,
+  "buildId": "0.36.0-build-4d8fec5bbdfd",
+  "dataRevision": "data-a5bfe87f5918aef45488cd5a4f8dbe1d",
+  "sourceHashes": {
+    "assets/js/modules/app-capability-ports.js": "615ed0a5d70afba6bc55cd8f6bff9c300d8b45aa1d9e7eeb5d8ff77151869952",
+    "assets/js/modules/app-composition.js": "481b9d3fe1e77cf5aff67b137c3099dcd802e8429004aaf25ade3ee699ced424",
+    "assets/js/modules/app-environment.js": "39b2c58d101bc0f168731990c80a235df29f6fadd1a702a739f4e136ca05722f",
+    "assets/js/modules/app-history-assembly.js": "6c58a33e46f0fd0c3ba05dac2589f7372d6fda3114c7196418f587b0437f55fe",
+    "assets/js/modules/app-map-settings.js": "e7e73f97175dd08bf8ef2d31a50f4437d7b74061008d05c73ab78812578bb756",
+    "assets/js/modules/camera-navigation.js": "700f4dec331589e734f38992e3fb14dacaab86ffc49a2bdb55f8b1ad73722965",
+    "assets/js/modules/map-content-presentation.js": "f2dd173750bb90bcb3924c78de5a38f7b0b2609b1e11d8e9a273c0a73c7d1e7e",
+    "assets/js/modules/map-owner-composition.js": "162903cb59354105c64d9e8dfc1eb0a9ed3793ccf7593cd0d331a648810fbe7c",
+    "assets/js/modules/map-projection.js": "1ad381185c239a3bd4c1a83797ec42508674734cc8e2238f85a5ec3e02c1369d",
+    "assets/js/modules/map-workspace-host.js": "2c61e744c195cfc9cdf969c577903c33077e5377aae815083a8e6916a6305555",
+    "assets/js/modules/navigation-bindings.js": "07c4e32c8a0cda85b6044d3e6aa9594014e6977407132e7483eaa18bb5c99c80",
+    "assets/js/modules/product-mode-policy.js": "ab923f7663f2269c29d11d6df5470a4e9824468a38738f1c39dba1f41d9f1217",
+    "assets/js/modules/project-session.js": "699d9d9bb5638282584773fa475cef0edfaf22f5272e840b83d3f41615cd4097",
+    "assets/js/modules/resource-capabilities.js": "75c82a8964103313e81847efe80c66440b4db58845bbbc4285b18fa6abd7a7d8",
+    "assets/js/modules/user-preferences.js": "dc370ccb223e382a99daf77bd0bdab594ef12b9929714b86db832ee710f70c35",
+    "assets/js/modules/viewer-composition.js": "fce109dc85607c6d0f20e4f197d9025ce5cf0534f0d29807b1ec69c05f19ae86",
+    "assets/js/modules/viewer-map.js": "fa275095db8885bba473e943656b74ce9f0acd32951ff53a6024cee0c0db10d2",
+    "scripts/lib/product-html.mjs": "a72c446f290cc2e7dde3da670b7af0f863ea7627c41ed165d079a523510f460d",
+    "ui/fragments/map-decorations-advanced.html": "deleted",
+    "ui/fragments/map-display.html": "cdb6d1fd4d586285c8b5d8964d61bc348ff5bdcbd70434e5c2089b3159ac9427",
+    "ui/fragments/map-projection.html": "2021569582433a9a0a9da52e1479d2ffb918ac57b67e0131d483232e9882d180",
+    "tests/unit/editor-flat-view.test.mjs": "b72f3ca239bb911a0ec13f2695ef604ca997dbfdece28f59570e629953cc8843",
+    "tests/browser/editor-flat-document.spec.mjs": "6b1f59e1785a994540b4dd2ed5d25f4f5fd331a88df8241097913a8a06ba29b4",
+    "index.html": "146f19c523db293f9e458eafdad8a52d3ac23af965b680a44d9261e523d6ed4c",
+    "apps/web-shell/editor.html": "d30093c2797855811b1a568cd025d92777b5a816aead370501fbe56fc196e855",
+    "assets/js/build-meta.js": "09b9d93391bece7e4a8068a578d4b09be23c363e9ba88eb67f7e378e8d7ab177"
+  },
+  "checks": {
+    "focusedUnits": {
+      "pass": 47
+    },
+    "finalCameraAndFlat": {
+      "pass": 14
+    },
+    "checkAutomation": {
+      "pass": 17
+    },
+    "lint": {
+      "files": 67
+    },
+    "metadata": "passed",
+    "browserCollection": {
+      "tests": 414,
+      "files": 152
+    },
+    "browser": {
+      "distinctPassed": 11,
+      "existingFixtureSkipped": 1,
+      "specs": [
+        "editor-focus-storage",
+        "project-creation-storage",
+        "editor-flat-document",
+        "child-coast-boundary (editor Canvas/WebGL)",
+        "physical-land-time",
+        "terrain-preview (WebGL/no-Offscreen Canvas)"
+      ]
+    },
+    "smallStage": {
+      "passed": true,
+      "files": 1121,
+      "bytes": 62452113,
+      "entities": 3
+    },
+    "fullStage": {
+      "passed": true,
+      "files": 1720,
+      "entities": 258,
+      "absentRemovedControls": true
+    }
+  },
+  "review": {
+    "findings": [
+      "multi-turn longitude modulo",
+      "indirect retired app projection UI setup"
+    ],
+    "resolution": "fixed and reviewed"
+  },
+  "unverified": [
+    "native Windows WebView",
+    "native Android device",
+    "delayed Canvas DEM test: missing pinned local fixture",
+    "committed Pages stage",
+    "push/deployment/live assets"
+  ],
+  "untouched": [
+    "unrelated Tauri permission WIP",
+    "preexisting CRLF work",
+    "preexisting untracked generated files"
+  ],
+  "releasePerformed": false
+}

@@ -38,7 +38,7 @@ export async function installP9EditWorkload(page) {
       const retain = entries => probe.longTasks.push(...entries.map(entry => ({
         startMs: entry.startTime, durationMs: entry.duration, name: entry.name,
       })));
-      const observer = new PerformanceObserver(list => retain(list.getEntries()));
+      const observer = new globalThis.PerformanceObserver(list => retain(list.getEntries()));
       observer.observe({ type: 'longtask' });
       probe.longTaskSupported = true;
       probe.drainLongTasks = () => retain(observer.takeRecords());
@@ -114,8 +114,8 @@ export async function installP9EditWorkload(page) {
       if(stage==='rus-line-preparation-and-cancel')cancelAnimationFrame(probe.frameHandle);
       probe.drainLongTasks?.();return {...window};
     };
-    addEventListener('error',event=>probe.errors.push({stage:probe.stage,message:event.message}));
-    addEventListener('unhandledrejection',event=>probe.errors.push({stage:probe.stage,message:String(event.reason?.message||event.reason)}));
+    window.addEventListener('error',event=>probe.errors.push({stage:probe.stage,message:event.message}));
+    window.addEventListener('unhandledrejection',event=>probe.errors.push({stage:probe.stage,message:String(event.reason?.message||event.reason)}));
   });
 }
 
@@ -206,7 +206,7 @@ export async function runP9EditWorkload(page, { timeoutMs=90_000 }={}) {
   expect({polygons:original.polygons,coordinatePairs:original.coordinatePairs}).toEqual({polygons:source.polygons,coordinatePairs:source.coordinatePairs});
   const runtimeGeometrySha256=createHash('sha256').update(original.geometry).digest('hex');
   await page.locator('#resetViewBtn').evaluate(button=>button.click());
-  await page.locator('#flatBtn').evaluate(button=>button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('RUS'))).toBe(true);
   await page.evaluate(()=>globalThis.__PANDOLAB_P9_EDIT_TEST_PROBE__.begin('rus-line-preparation-and-cancel'));
   await startChildCreation(page,'RUS');
