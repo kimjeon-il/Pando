@@ -13,6 +13,22 @@ let installed = false;
 let openSequence = 0;
 const dialogState = new WeakMap();
 
+function stateFor(dialog) {
+  let state = dialogState.get(dialog);
+  if (!state) {
+    state = { open: false, order: 0, trigger: null, returnFocus: null };
+    dialogState.set(dialog, state);
+  }
+  return state;
+}
+
+export function setDialogReturnFocus(dialog, resolveTarget) {
+  if (!(dialog instanceof HTMLElement) || typeof resolveTarget !== 'function') {
+    throw new TypeError('Dialog focus restoration requires a dialog and a target resolver.');
+  }
+  stateFor(dialog).returnFocus = resolveTarget;
+}
+
 function isHidden(element) {
   return !element
     || element.hidden
@@ -39,12 +55,7 @@ function topOpenDialog(documentRef) {
 
 function syncDialog(dialog, documentRef) {
   if (!(dialog instanceof HTMLElement)) return;
-  let state = dialogState.get(dialog);
-  if (!state) {
-    state = { open: false, order: 0, trigger: null };
-    dialogState.set(dialog, state);
-  }
-
+  const state = stateFor(dialog);
   const open = dialogOpen(dialog);
   if (open && !state.open) {
     state.open = true;
@@ -61,11 +72,14 @@ function syncDialog(dialog, documentRef) {
   if (!open && state.open) {
     state.open = false;
     const trigger = state.trigger;
+    const restore = state.returnFocus;
     state.trigger = null;
+    state.returnFocus = null;
     requestAnimationFrame(() => {
-      if (!(trigger instanceof HTMLElement) || !trigger.isConnected) return;
       if (topOpenDialog(documentRef)) return;
-      trigger.focus({ preventScroll: true });
+      const preferred = restore?.();
+      const target = preferred instanceof HTMLElement && preferred.isConnected ? preferred : trigger;
+      if (target instanceof HTMLElement && target.isConnected) target.focus({ preventScroll: true });
     });
   }
 }
