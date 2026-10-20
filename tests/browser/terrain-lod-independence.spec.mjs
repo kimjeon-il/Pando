@@ -1,4 +1,3 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 1100, height: 760 }, deviceScaleFactor: 1, trace: 'off',
@@ -137,8 +136,8 @@ for (const source of ['dem', 'raster']) {
       }), 'terrain itself must draw grayscale/color pixels before country paint').toBe(true);
     };
     try {
-      await gotoEditor(page, `/?renderer=webgl2&debug=1${source === 'raster' ? '&demTerrain=raster' : ''}`, { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+      await page.goto(`/?renderer=webgl2&debug=1${source === 'raster' ? '&demTerrain=raster' : ''}`, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
       await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation))
         .toBe(source === 'dem' ? 'dem-relief-v1' : 'raster-rgba-v1');
       await expect.poll(() => baseResponses, { timeout: 60_000 }).toBe(2);
@@ -164,7 +163,7 @@ for (const source of ['dem', 'raster']) {
       release(); delayDetail = false;
       await page.locator('#flatBtn').evaluate(button => button.click());
       await page.locator('#resetViewBtn').evaluate(button => button.click());
-      expect(await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom)).toBe(1);
+      expect(await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().zoom)).toBe(1);
       await expect.poll(async () => (await snapshot(page)).terrainLevel).toBe(0);
       await settleTiles();
       if (source === 'dem') await expect.poll(async () => (await snapshot(page)).terrainTintReady).toBe(true);
@@ -190,7 +189,7 @@ for (const source of ['dem', 'raster']) {
       gate = new Promise(resolve => { release = resolve; }); delayDetail = true;
       await page.evaluate(() => {
         const map = document.getElementById('map'), rect = map.getBoundingClientRect();
-        const zoom = window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom;
+        const zoom = window.__PANDOLAB_MAP_HOST__.getViewState().zoom;
         map.dispatchEvent(new window.WheelEvent('wheel', { bubbles: true, cancelable: true,
           clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2,
           deltaY: -Math.log(3 / zoom) / 0.0013 }));
@@ -275,8 +274,8 @@ test('raster surfaces exhausted world-base loading failure through the real oper
     await route.fulfill({ status: 503, body: 'Terrain source temporarily unavailable',
       headers: { 'Access-Control-Allow-Origin': '*' } });
   });
-  await gotoEditor(page, '/?renderer=webgl2&debug=1&demTerrain=raster', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.goto('/?renderer=webgl2&debug=1&demTerrain=raster', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
   await expect.poll(() => failedBaseRequests, { timeout: 30_000 }).toBeGreaterThanOrEqual(4);
   await expect.poll(() => page.evaluate(() => window.__terrainFailureAlerts), { timeout: 30_000 }).toEqual(
     expect.arrayContaining([expect.objectContaining({ visible: true,

@@ -1,9 +1,11 @@
 import { mapVisualRank } from './layer-presentation.js';
+import { createProductModePolicy } from './product-mode-policy.js';
 /** MapHost: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createMapHost({productMode='editor'}={}) {
+  const productPolicy=createProductModePolicy(productMode);
   let dependencies;
   let svg;
   let interactionSvg;
@@ -142,12 +144,14 @@ export function createMapHost({productMode='editor'}={}) {
     return {
       getProjectionKind: () => dependencies.projectState.state.projection,
       setProjectionKind: kind => {
+        productPolicy.assertProjection(kind);
         dependencies.projectState.state.projection = kind === 'globe' ? 'globe' : 'flat';
         (0, dependencies.mapView.updateProjection)();
         return true;
       },
       getViewState: () => projectionViewSnapshot(),
       setViewState: view => {
+        productPolicy.assertProjection(view?.projection);
         if (view?.projection) dependencies.projectState.state.projection = view.projection === 'globe' ? 'globe' : 'flat';
         if (view?.view) dependencies.projectState.state.view = (0, dependencies.platform.deepClone)(view.view);
         (0, dependencies.mapView.updateProjection)();
@@ -260,8 +264,10 @@ export function createMapHost({productMode='editor'}={}) {
       .attr('focusable', 'false'));
     const baseRoot = dependencies.mapLayers.baseSvg.append('g').attr('class', 'map-base-root');
     dependencies.mapHostCommands.installFlatOceanLayer(baseRoot.append('rect').attr('class', 'map-ocean map-ocean-flat'));
-    oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
-    shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
+    if(productMode==='viewer') {
+      oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
+      shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
+    }
 
     const gpuCanvas = document.createElement('canvas');
     gpuCanvas.className = 'gpu-map-canvas';

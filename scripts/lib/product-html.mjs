@@ -2,7 +2,7 @@
 export function renderProductHtml(readSource) {
   return Object.fromEntries(['web','editor'].map(mode => {
     const template=readSource(`ui/templates/${mode}.html`).replaceAll('\r\n','\n');
-    const omitted=new Set(mode==='editor'?['map-terrain','map-decorations-basic']:['map-decorations-advanced']);
+    const omitted=new Set(mode==='editor'?['map-terrain','map-decorations-basic','map-projection']:[]);
     const expand=source=>source.replace(/<!-- include:([a-z-]+) -->/g,(_match,name)=>omitted.has(name)?'':expand(readSource(`ui/fragments/${name}.html`).replaceAll('\r\n','\n').trim()));
     const html=expand(template);
     if (/<!-- include:/.test(html)) throw new Error('Unresolved UI fragment');

@@ -71,7 +71,7 @@ async function openHydroMap(page, report) {
     console.log(`HYDRO_STARTUP_DIAGNOSTIC ${JSON.stringify(report)}`);
     throw error;
   }
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await expect(page.locator('#projectionStatus')).toHaveText('평면지도');
   await page.evaluate(center => {
     const host = window.__PANDOLAB_MAP_HOST__;

@@ -66,7 +66,7 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
     const country = window.PANDOLAB_TERRITORIAL?.get('state:soviet-union');
     return country?.geometry?.coordinates?.length || 0;
   }), { timeout: 60_000 }).toBeGreaterThan(0);
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
 
   // Include the demanding selected outline, then warm all deliberate startup
   // and selection uploads before sampling ordinary camera-only gestures.

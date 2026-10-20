@@ -184,7 +184,7 @@ test('1989 Soviet initial timeline admission, selection setup, memory and cache 
     const g = window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu;
     return g?.canonicalMeshReady && g.renderer === 'webgl2' && !g.countrySharedBoundaryReplacementPending;
   }), { timeout: 75_000 }).toBe(true);
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await page.waitForTimeout(400);
 
   const phases = [];

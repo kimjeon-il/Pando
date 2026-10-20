@@ -27,7 +27,7 @@ test('benchmark repeated C++ contact source encoding on real prepared modern nei
     const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
     return gpu?.renderer === 'webgl2' && gpu.canonicalMeshReady && !gpu.countrySharedBoundaryReplacementPending;
   }), { timeout: 90_000 }).toBe(true);
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   const current = await page.evaluate(() => window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth);
   await month(page, '1989-06'); await ready(page, '1989-06', true);
   await month(page, current); await ready(page, current, false);

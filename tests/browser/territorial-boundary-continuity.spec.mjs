@@ -198,7 +198,7 @@ async function verifyPending(page, renderer, phase, before) {
   const waiting = await stats(page);
   expect(waiting.inputSignature).toBe(before.inputSignature);
   expect(waiting.segmentCount).toBe(before.segmentCount);
-  await page.locator('#globeBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   const box = await page.locator('#map').boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   const scale = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().scale);
@@ -271,7 +271,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       for (const id of ['riversVisible', 'lakesVisible', 'labelsVisible']) await page.locator(`#${id}`).evaluate(input => {
         if (input.checked) { input.checked = false; input.dispatchEvent(new window.Event('change', { bubbles: true })); }
       });
-      await page.locator('#flatBtn').evaluate(button => button.click());
+      await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
       await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.geometry?.type), { timeout: 60_000 })
         .toMatch(/^(Multi)?Polygon$/);
       await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
@@ -319,7 +319,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       const nestedId = await entityNamed(page, 'general', 'M1 추가 경계');
       expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.parentId, nestedId)).toBe(childId);
       await verifyPending(page, renderer, 'child-create', creationBefore);
-      await page.locator('#flatBtn').evaluate(button => button.click());
+      await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
       await ready(page);
       await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), regionId);
       await page.locator('#actionsTabBtn').click();

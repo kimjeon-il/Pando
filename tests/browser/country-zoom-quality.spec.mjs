@@ -4,7 +4,6 @@ import { expect, test } from '@playwright/test';
 test.use({ viewport: { width: 1440, height: 900 }, trace: 'off', actionTimeout: 10_000 });
 
 const thresholds = [
-  { projection: 'globe', lower: 1.8, upper: 2.2, band: 2 },
   { projection: 'flat', lower: 2.2, upper: 2.8, band: 2.5 },
 ];
 
@@ -37,7 +36,7 @@ async function expectQuality(page, quality) {
 }
 
 async function selectProjection(page, projection) {
-  await page.locator(`#${projection === 'globe' ? 'globe' : 'flat'}Btn`).evaluate(button => button.click());
+  expect(projection).toBe('flat');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().projection)).toBe(projection);
 }
 
@@ -178,7 +177,7 @@ test('focus survives frames and resize until navigation resumes while editing re
   test.setTimeout(180_000);
   const errors = collectErrors(page);
   await openMap(page);
-  await selectProjection(page, 'globe');
+  await selectProjection(page, 'flat');
   await page.locator('#resetViewBtn').evaluate(button => button.click());
   await expectQuality(page, 'preview');
   const original = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DEU').geometry));
@@ -237,21 +236,21 @@ test('a pending canonical response cannot revive an obsolete high zoom request',
   try {
     await openMap(page, { enhanced: false });
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
-    await selectProjection(page, 'globe');
+    await selectProjection(page, 'flat');
     await page.locator('#resetViewBtn').evaluate(button => button.click());
     await expectQuality(page, 'preview');
-    await zoomTo(page, 2.3);
+    await zoomTo(page, 2.9);
     await expectQuality(page, 'preview');
-    await zoomTo(page, 2);
+    await zoomTo(page, 2.5);
     await expectQuality(page, 'preview');
     await expect.poll(() => canonicalRequests, { timeout: 20_000 }).toBe(1);
     releaseCanonical();
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     await expectQuality(page, 'preview');
     expect(await sampleQualityFrames(page)).toEqual(Array(8).fill('preview'));
-    await zoomTo(page, 2.3);
+    await zoomTo(page, 2.9);
     await expectQuality(page, 'canonical');
-    await zoomTo(page, 1.7);
+    await zoomTo(page, 2.1);
     await expectQuality(page, 'preview');
     expect(errors).toEqual([]);
   } finally {
@@ -260,23 +259,18 @@ test('a pending canonical response cannot revive an obsolete high zoom request',
   }
 });
 
-test('projection switches preserve the displayed quality in the destination band', async ({ page }) => {
+test('flat editor rejects globe changes without altering quality or camera', async ({ page }) => {
   test.setTimeout(180_000);
-  const errors = collectErrors(page);
+  const errors=collectErrors(page);
   await openMap(page);
-  await selectProjection(page, 'flat');
-  await zoomTo(page, 2.5);
-  await expectQuality(page, 'preview');
-  await selectProjection(page, 'globe');
-  await zoomTo(page, 2.3);
-  await expectQuality(page, 'canonical');
-  await zoomTo(page, 2);
-  await selectProjection(page, 'flat');
-  await expectQuality(page, 'canonical');
-  await zoomTo(page, 2.1);
-  await expectQuality(page, 'preview');
-  await selectProjection(page, 'globe');
-  await expectQuality(page, 'preview');
-  expect(await sampleQualityFrames(page)).toEqual(Array(8).fill('preview'));
+  await selectProjection(page,'flat');
+  await zoomTo(page,2.5);
+  const result=await page.evaluate(()=>{
+    const host=window.__PANDOLAB_MAP_HOST__,before=host.getViewState();
+    let code;try{host.setProjectionKind('globe');}catch(error){code=error.code;}
+    return {before,after:host.getViewState(),code};
+  });
+  expect(result.code).toBe('PL-PRODUCT-PROJECTION');
+  expect(result.after).toEqual(result.before);
   expect(errors).toEqual([]);
 });

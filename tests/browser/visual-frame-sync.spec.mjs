@@ -19,7 +19,7 @@ async function visualFrameIds(page) {
   })), visualSelectors);
 }
 
-for (const renderer of ['webgl2', 'canvas', 'canvas-direct']) test(`${renderer}: flat and globe view-attached layers commit the same visual frame`, async ({ page }, testInfo) => {
+for (const renderer of ['webgl2', 'canvas', 'canvas-direct']) test(`${renderer}: flat editor view-attached layers commit the same visual frame`, async ({ page }, testInfo) => {
   test.setTimeout(180_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -45,8 +45,8 @@ for (const renderer of ['webgl2', 'canvas', 'canvas-direct']) test(`${renderer}:
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const evidence = [];
 
-  for (const selector of ['#globeBtn', '#flatBtn']) {
-    await page.locator(selector).evaluate(button => button.click());
+  for (let navigationPass=0; navigationPass<2; navigationPass++) {
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection)).toBe('flat');
     const map = page.locator('#map');
     const box = await map.boundingBox();
     expect(box).not.toBeNull();
@@ -67,8 +67,7 @@ for (const renderer of ['webgl2', 'canvas', 'canvas-direct']) test(`${renderer}:
     }, { timeout: 20_000 }).toBe(true);
     const proof = await page.evaluate(() => {
       const view = window.__PANDOLAB_VIEW_STATE__;
-      const ocean = document.querySelector('.map-ocean-globe');
-      return { view, shell: ['cx', 'cy', 'r'].map(name => Number(ocean.getAttribute(name))),
+      return { view,
         canvas: [document.querySelector('.gpu-map-canvas').width, document.querySelector('.gpu-map-canvas').height],
         ids: [...document.querySelectorAll('.map-base-svg,.map-overlay-svg,.map-interaction-svg')].map(node => node.dataset.visualFrameId),
         mode: window.__PANDOLAB_GPU_METRICS__?.renderer,
@@ -77,7 +76,7 @@ for (const renderer of ['webgl2', 'canvas', 'canvas-direct']) test(`${renderer}:
     expect(proof.canvas).toEqual([Math.round(proof.view.size.width * proof.view.dpr), Math.round(proof.view.size.height * proof.view.dpr)]);
     expect(proof.mode).toBe(renderer === 'canvas-direct' ? 'canvas2d' : renderer === 'canvas' ? 'canvas-worker' : 'webgl2');
     if (renderer === 'canvas') expect(proof.messages.length).toBeGreaterThan(0);
-    if (proof.view.projection === 'globe') expect(proof.shell).toEqual([...proof.view.translate, proof.view.scale]);
+    expect(proof.view.projection).toBe('flat');
     for (const message of proof.messages) {
       expect(message.frameId).toBeGreaterThan(0);
       expect(message.renderProjection.dpr).toBe(message.dpr);

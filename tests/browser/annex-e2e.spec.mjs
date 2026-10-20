@@ -11,7 +11,7 @@ test.afterEach(async ({ page }, testInfo) => {
   if (process.env.PANDO_P9_DEVICE_EVIDENCE !== 'true' || page.isClosed()) return;
   const device = await page.evaluate(() => ({
     userAgent: navigator.userAgent,
-    viewport: [innerWidth, innerHeight, devicePixelRatio],
+    viewport: [window.innerWidth, window.innerHeight, window.devicePixelRatio],
     canvases: [...document.querySelectorAll('#map canvas')].map(canvas => {
       const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
       if (!gl) return null;
@@ -59,7 +59,7 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   page.on('console', message => { if (message.type() === 'error') {errors.push(`console: ${message.text()}`);console.error('ANNEX_CONSOLE',message.text());} });
   await gotoEditor(page, `/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
   // Focus is setup for the annex workflow. Dispatch its real command without
   // pointer-hover rendering becoming part of Playwright's click completion.
@@ -354,15 +354,14 @@ test('annex - line SVG fallback shows the same small candidate', async ({ page }
   expect(await page.evaluate(() => window.__annexE2e.workerErrors)).toEqual([]);
 });
 
-test('annex - line candidate stays local on the globe', async ({ page }) => {
+test('annex - line candidate stays local in the flat editor', async ({ page }) => {
   test.setTimeout(120_000);
   const context = await openAnnex(page, [27.5, 41.8]);
   await page.locator('#modeDirectLineMethodInput').check();
   await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
   await drawStroke(page, [[29, 41.8], [26, 41.8]], { closed: false });
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
-  await page.locator('#globeBtn').evaluate(button => button.click());
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__?.projection)).toBe('globe');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__?.projection)).toBe('flat');
   await page.locator('#modeDraftDoneBtn').click();
   expectLineCandidate(await inspectLineCandidate(page), { gpu: true });
   expect((await accentViewportCoverage(page)).accentRatio).toBeLessThan(0.5);
@@ -371,7 +370,7 @@ test('annex - line candidate stays local on the globe', async ({ page }) => {
 });
 
 for (const svgFallback of [false, true]) {
-  test(`annex - mainland globe result preview ${svgFallback ? 'SVG fallback' : 'WebGL'}`, async ({ page }, testInfo) => {
+  test(`annex - mainland flat result preview ${svgFallback ? 'SVG fallback' : 'WebGL'}`, async ({ page }, testInfo) => {
     test.setTimeout(180_000);
     if (svgFallback) {
       // Simulate an unavailable interaction fill target, leaving the base map intact.
@@ -390,7 +389,7 @@ for (const svgFallback of [false, true]) {
     await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
     await drawStroke(page, [[37.5, 43], [37.5, 35]], { closed: false });
     await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
-    await page.locator('#globeBtn').evaluate(button => button.click());
+    await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
     await page.locator('#resetViewBtn').click();
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('path.geometry-preview-add.geometry-preview-fill')).toHaveCount(1, { timeout: 90_000 });

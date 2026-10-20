@@ -85,11 +85,7 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   await page.locator('#confirmModalOkBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(0);
 
-  await page.locator('#mapDisplayBtn').click();
-  await page.locator('#mapProjectionMenuTrigger').click();
-  await page.locator('#flatBtn').click();
-  for (let index = 0; index < 2 && await page.locator('#mapDisplaySurface').isVisible(); index++) await page.keyboard.press('Escape');
-  await expect(page.locator('#mapDisplaySurface')).toBeHidden();
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), parentId)).toBe(true);
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#focusSelectedObjectBtn').click();

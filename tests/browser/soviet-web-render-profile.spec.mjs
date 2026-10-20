@@ -17,7 +17,7 @@ test('1989 Soviet WebGL interaction work with and without selection', async ({ p
   await expect.poll(() => page.evaluate(() =>
     window.PANDOLAB_TERRITORIAL?.get('state:soviet-union')?.geometry?.coordinates?.length || 0),
   { timeout: 60_000 }).toBeGreaterThan(0);
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await expect.poll(() => page.evaluate(() => {
     const { gpu } = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
     return gpu.canonicalMeshReady && !gpu.countrySharedBoundaryReplacementPending

@@ -34,7 +34,7 @@ function normalizeLabelFont(value, fallback) {
 
 export function defaultUserPreferences() {
   return {
-    backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical',graticule:true,globeShadow:true},editor:{terrainVisible:false,terrainStyle:'physical',graticule:false,globeShadow:false}},
+    backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical',graticule:true,globeShadow:true},editor:{}},
     version: DEFAULTS.version,
     appearance: { theme: DEFAULTS.appearance.theme, accentPreset: DEFAULTS.appearance.accentPreset, statusBarVisible: DEFAULTS.appearance.statusBarVisible, smoothLines: DEFAULTS.appearance.smoothLines },
     labels: {
