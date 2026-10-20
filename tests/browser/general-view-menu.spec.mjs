@@ -80,30 +80,15 @@ test('web viewer keeps the same view controls in its desktop menu and mobile she
   await expect(popup).toHaveAttribute('role','menu');
   expect(await popup.evaluate(element=>element.parentElement?.dataset.mapDisplayGroup)).toBe('labels');
 
-  const viewerMenuProbe=await trigger.evaluate(button=>{
-    button.scrollIntoView({block:'nearest',inline:'nearest'});
-    const rect=button.getBoundingClientRect();
-    const surface=button.closest('#mapDisplaySurface');
-    const surfaceRect=surface.getBoundingClientRect();
-    const hit=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);
-    return {
-      button:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},
-      surface:{x:surfaceRect.x,y:surfaceRect.y,width:surfaceRect.width,height:surfaceRect.height},
-      hit:hit?.outerHTML.slice(0,240),
-      hitIsButton:!!hit&&(hit===button||button.contains(hit)),
-      layout:document.getElementById('app')?.dataset.layout,
-      bodyStyle:getComputedStyle(surface.querySelector('.view-menu-root')).overflowY,
-    };
-  });
-  console.log('VIEWER_VIEW_MENU_INTERACTION_PROBE',JSON.stringify(viewerMenuProbe));
-  expect(viewerMenuProbe.button.width).toBeGreaterThan(0);
-  await trigger.click({timeout:5000});
+  // The viewer menu uses a scrollable menu root; position the item before click.
+  await trigger.evaluate(button=>button.scrollIntoView({block:'nearest',inline:'nearest'}));
+  await trigger.click();
   await expect(popup).toBeVisible();
   await expect(surface.locator('#layerStylePanel-labels')).toBeVisible();
   await expect(surface.locator('#labelsVisible')).toBeChecked();
 
   await page.setViewportSize({width:390,height:844});
-  await expect(page.locator('#app')).toHaveAttribute('data-layout','mobile');
+  await expect(page.locator('#viewer')).toHaveAttribute('data-layout','mobile');
   await expect(surface).not.toHaveClass(/view-menu-desktop/);
   await expect(surface).toHaveClass(/ui-sheet/);
   await expect(popup).not.toHaveClass(/ui-menu-list/);
