@@ -109,14 +109,6 @@ export function createObjectPropertyController(runtime = {}) {
     if (!type) {
       $('focusSelectedObjectBtn')?.classList.add('hidden');
     }
-    const deleteControl = $('editorDeleteSection');
-    const actionList = type === 'entity'
-      ? activeForm(type).querySelector('.editor-action-section:not(.editor-relation-section) > .editor-action-list')
-      : null;
-    const coastAction = actionList?.querySelector('#editEntityCoastBtn');
-    const deleteHost = actionList || $('editorScrollBody');
-    if (coastAction && deleteControl.previousElementSibling !== coastAction) coastAction.after(deleteControl);
-    else if (!coastAction && deleteControl.parentElement !== deleteHost) deleteHost.append(deleteControl);
     if (type) syncObjectActionsMenu();
     else closeObjectActionsMenu();
     syncActionTab(type);
