@@ -1949,8 +1949,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "c57adb16b1b63d82d0e29c0085e3e6bec654658589aa7dacaec3b62c98dd1652",
-      "outputFingerprint": "56a615cb177234cfecdce7a314c4fc37b4533e80a207dfcbbcde74be8f8107dc",
+      "inputFingerprint": "f1995c9938c055c0af2f96bd6bdb027a4919b222007d481015ea8c7905620b73",
+      "outputFingerprint": "e0eba17517f88800ec12776e6657c2fcb9c48a9596f404393868d4e1c987aa67",
       "inputs": {
         "assets/js/app.js": "3afc301fc189ac2277f115ff9c28f37139e1df7c765fb5b999b5d3613f365f6e",
         "assets/js/bootstrap.js": "93cada4a638e7e0669d1e239282bddf54305de7e30fb7301f35e0cb37b610b8c",
@@ -2068,7 +2068,7 @@
         "assets/js/modules/editing-presentation.js": "820a194239216d7355862883d142e8ac0fbc27de226267f3544666516a1c5cd4",
         "assets/js/modules/editing-render-packet.js": "7527bc638dfdc2266fc837258208df6f74215b37cb97617bd0c75ff6d0820a9e",
         "assets/js/modules/editor-map-click.js": "6fb0d46a1282d9820d23f1ac90c05d198da6c82fc708213b07aeefd9f75bed74",
-        "assets/js/modules/editor-workspace-presentation.js": "7b21d3806cc348def11873822729260f880cf418e19534f44168992fd638999a",
+        "assets/js/modules/editor-workspace-presentation.js": "429566bbb49f9a08a6429cff3910a5d73716471bfde2da097a5e0b28c1890b3b",
         "assets/js/modules/empty-state.js": "f95d908cb9a2297f4ee0c65e81870667d3c6e073b0543a0f9de807c43b6871d0",
         "assets/js/modules/exchange-adapter-registry.js": "8415d2eb4680bf13e6130d81d60ba01bad9eedbc344801b06c81c47304778a66",
         "assets/js/modules/feedback-controller.js": "1763f5670d8acaf662e2e4b52553d966058fbd574cdf50a65c5cf32d61a21d13",
@@ -2168,7 +2168,7 @@
         "assets/js/modules/object-catalog.js": "5afe7630e9daf4f3e81ed5982a1a4b4395f66f5445054d40ee4fb51631437e8d",
         "assets/js/modules/object-picking.js": "b61cb547c23776cbd19ddc2a46de46839821793bff9a5ac8095e0b8b3658a00e",
         "assets/js/modules/object-presentation.js": "3a2efce868011b7de71ec3f1569d43153d5b7980a73fd329e40abc9bcaf0fdd2",
-        "assets/js/modules/object-property-controller.js": "95b2bf509d85150d5e8e62d177069671ea44c0a7ae93c3e36dbb6748886dec9d",
+        "assets/js/modules/object-property-controller.js": "d9b31243b7e4fb8588186f7c29891391bed4091116ea87fbd169a82a3525e0b4",
         "assets/js/modules/object-property-presentation.js": "6d111a035d62262f2f7cbf51640b0e1f5b88fc1f4d50bc63cbc8778c46a18989",
         "assets/js/modules/object-query.js": "b5d476544e7ef8497bdc1c3a7a3f6463383be35f88a32bea611f7ddd9eb76cd6",
         "assets/js/modules/object-registry-presenter.js": "1ee53dc5ed5cbb092ea92eb5b05790794601e9828e97aa72077ea7caf920f882",
@@ -2307,7 +2307,7 @@
         "assets/js/modules/worker-job-scheduler.js": "06d2ca1668a10a9de79c58bfbfce9fb4d68aa22611f8b83cd2471a93a1ce97c9",
         "assets/js/modules/worker-rpc.js": "29ba7f35d830f25a52a70e4703444b3cdea6f822b3f39762c5a00fb8915aae77",
         "assets/js/modules/workspace-layout.js": "ab8f3282e132e027a05cf110c7dd4a527b89097714a3fc5ff1f205c1e256b593",
-        "assets/js/modules/workspace-surfaces.js": "c842c60bbc73b942c3cfa3476612e5a76e34a7fa508594e9886837595fa9329a",
+        "assets/js/modules/workspace-surfaces.js": "ad8ca0af7149b658e70c63af824756ffff897e71adb939cf622fd2c1e1d983ef",
         "assets/js/modules/world-bundle-manifest.js": "80ea3e0ea8eca1a5ebed9f5dd00050114ca176d1d460a0d4312fcb1086d8c3ba",
         "assets/js/vendor/d3.min.js": "4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538",
         "assets/js/vendor/earcut.min.js": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3",
@@ -2371,9 +2371,9 @@
       },
       "outputs": {
         "README.md": "6931d8ae20cb7f1e4135b61e24197d97e0cd13f5f1cd5819ce2916509490efd6",
-        "apps/web-shell/editor.html": "58530ced99cd38e6bb89742fa54292a6524450f86531f279d15074e8aecac84f",
-        "assets/js/build-meta.js": "3793dda7b96e6d26b10981459d7ad1cb54419c5fbf61a92f08e31d92bc4702cc",
-        "index.html": "5b88504ba0744b483ccef87c6e076a6abf7c4fa9009319709a76dae1a53affeb"
+        "apps/web-shell/editor.html": "0b012266ee5be1cb8f7fcaadafdb412fe0d14900302fa9d70677cacf03d7a7ee",
+        "assets/js/build-meta.js": "7e54150b21220a826ed291d7fd7abe8ae3b2669becbe814ef0cfe6a24be8bf35",
+        "index.html": "a470b2ec1466bf59a95b74b0bf463712dcd2ab44b121b90e3d2f0b71022bcaf4"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2388,7 +2388,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "4bcd15a19f551818baf9fd91ac78e0bf1380620b"
+      "sourceSha": "1943e2bc13f4931c3279f958921ad3eb0f3cf9b1"
     }
   }
 }
