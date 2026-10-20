@@ -107,7 +107,7 @@ export function createMapInputPresentation({
       beginExternalGesture: (point,event)=>getInputSnapshot().projectReplacing||!referenceInput?null:referenceInput.beginGesture(point,event,{spacePan:getInputSnapshot().spacePanActive}),
       interactiveTarget: (target, event) => {
         if (getInputSnapshot().projectReplacing) return true;
-        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel,.reference-image-workflow-guide')) return true;
+        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel,.reference-image-workflow-guide,.project-bounds-picker')) return true;
         if(referenceInput&&referenceInput.isActive())return false;
         if (target?.closest?.('.map-overlay-layer')) return true;
         if (event?.button === 1) return false;
