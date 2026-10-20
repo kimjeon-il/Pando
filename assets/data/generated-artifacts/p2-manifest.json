@@ -1949,8 +1949,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "21c2c1cfbb9a4a6ff3f5e4918a9890c7e9474771ee769d47f66ffcf813e976d9",
-      "outputFingerprint": "dfcc2306bb0f774ac00900c95126a16877ef61404a0d9e6cf430fb0362110f1d",
+      "inputFingerprint": "fbec7a08ae78f93179745513a8456fa64b99d24f045e25464f33b9e9c11d360e",
+      "outputFingerprint": "c715d3fe9d85ceeeb4f2bb08a683d75fcf1b6818cac0d288242b033ac62eeb02",
       "inputs": {
         "assets/js/app.js": "3afc301fc189ac2277f115ff9c28f37139e1df7c765fb5b999b5d3613f365f6e",
         "assets/js/bootstrap.js": "93cada4a638e7e0669d1e239282bddf54305de7e30fb7301f35e0cb37b610b8c",
@@ -1998,7 +1998,7 @@
         "assets/js/modules/app-object-commands.js": "b954911dbfc268874c7ac7f8b435f4f9e603c81e2b50e1788df311cc2494e2f9",
         "assets/js/modules/app-object-deletion.js": "2ec6f6520596345307a7edb4a6b08befc741ced63939115931f45143e186341b",
         "assets/js/modules/app-object-metadata.js": "d6999ca71bda9c8cd248d94de0412625842b19de94d03bbb7d4cd41245608971",
-        "assets/js/modules/app-progressive-startup.js": "b89fc5039aadf2573df256dada97d89d3a58315de225c6aedf854d4596f59b7b",
+        "assets/js/modules/app-progressive-startup.js": "56c927e832f14571d6eef974d611d66adcc5389830431859b72585b5822789bf",
         "assets/js/modules/app-project-restore.js": "de1cb4d59c80e2380b9c7d19947d4e20a1e28361f350c45a33bf2143aa53f5c0",
         "assets/js/modules/app-project-snapshots.js": "e5a8b55f166668ffc41cfb21ddf89f53b6166e0c718a23a4531ac2987bcaec4b",
         "assets/js/modules/app-property-selection.js": "e6f1b8af4efdca446836d85044a959f4ce827287fc6107f52585694312210a65",
@@ -2050,7 +2050,7 @@
         "assets/js/modules/country-mesh-codec.js": "f99018c281bd54fd8d5c40c246fc33a0f0704b294e38137ae797576fc2e43af2",
         "assets/js/modules/country-mesh-preparation.js": "00120abd82d249a0936b91dc418c2bdaf7d9904be20fc6b8b3934872420e1f38",
         "assets/js/modules/country-mesh-quality-gate.js": "5310754e3c2679fb0e157829993bac191652fb279975c3dc65642952da10ad8c",
-        "assets/js/modules/country-mesh-zoom-policy.js": "40fbaf0fecf8045157673889af674a19ecc21e02e7cebff88a53539cac1a39a3",
+        "assets/js/modules/country-mesh-zoom-policy.js": "53f3292638e8eda390d1dff9cccf16ec75fba9f6e3b0852bd7a0fc62c79f8daf",
         "assets/js/modules/country-shared-boundary-cache.js": "f4d0d32a5b2a6f22df0cc2652c2cbccb6ee3cb89311f91a04039d37bd394c250",
         "assets/js/modules/country-shared-boundary-packet.js": "9aab0ed5ea7e14e62e074be1b5d7587d07802d42cda5543a4b32dfc88460bbe4",
         "assets/js/modules/country-stroke-preparation.js": "99202e94f05813adf416cb76855df5c1335614f8add6f656807eba35c7279567",
@@ -2096,7 +2096,7 @@
         "assets/js/modules/gpu-country-ranges.js": "0d22f62296088c290a87dcff53e17d1aae8170f250b95d4a9ad9fdc75c8101ab",
         "assets/js/modules/gpu-hydro-preparation.js": "47b931d4ca6bee38f5769ddc0dd89c934e645f6c9b1a130c299e4563dd94791d",
         "assets/js/modules/gpu-interaction-pass.js": "a773d3a80cea547fe6533ea06ca1a274da7a8c7f0983d7433626f7b5194cd6fc",
-        "assets/js/modules/gpu-map-renderer.js": "5e0d1dcccd103516ff711bbab2b93cce39613e56eb098ec2154d3ebc2ff98773",
+        "assets/js/modules/gpu-map-renderer.js": "944bd909d11b1ad926f7c2f8762b21bdf01c9bfb0bf7e1809e02471c20283051",
         "assets/js/modules/gpu-mesh-worker-jobs.js": "99ada5aa99b4e7e37a7ebbd0d4065262e0e11050fbd627247e4d50e0edd9816d",
         "assets/js/modules/gpu-polygon-overlay-pass.js": "3c2e2c9e5e4593ac88aa2253bc4fee2f646fbf5ecf8a9f6d876dae8553760bc8",
         "assets/js/modules/gpu-resource-budget.js": "6f6fa180163edc983863bfba423295166534c91d8f877cfc528a3855ae000aeb",
@@ -2106,7 +2106,7 @@
         "assets/js/modules/gpu-shader-utils.js": "6bfc72c339411ded0e84079a48c0dc5004c15fef31976ff05d28a44a6b98db38",
         "assets/js/modules/gpu-stroke-geometry.js": "c7b885a4150c20f957b2477e48d03763e9778be728afc0481016e9b44e5e05fe",
         "assets/js/modules/gpu-stroke-renderer.js": "bb94ef8ba987326b2b6d56880a6e324018b549091ea2b4577b6866fbc4c1c604",
-        "assets/js/modules/gpu-terrain-preparation.js": "4571462c8460a4ff637886d740424ca0af0f57c522e6f1c67ca23f976b5b0490",
+        "assets/js/modules/gpu-terrain-preparation.js": "fb5cd2f3542cbf1ccd1be433590f2e51b82051070e32073e588e882b098582a2",
         "assets/js/modules/gpu-upload-scheduler.js": "665504d0b7fbffdf4a781935f3531dd7ad7bc247c5ef8edc6fdf3414ffbe8dd8",
         "assets/js/modules/gpu-view-uniforms.js": "8cee63792301da34df6e7b9d654213cca8a57fb9be3d055033a3e40a9fa44e88",
         "assets/js/modules/gpu-worker-channels.js": "7c83c12b6bc60049dbb43b9c532757b8843afc596874b0311505edb5c78bbafa",
@@ -2141,7 +2141,7 @@
         "assets/js/modules/map-edit-worker-client.js": "0503d38cd10cbbc7d4948d5062cdda3dbece6d2259ac3f759e57fc045703b918",
         "assets/js/modules/map-host.js": "a78f3a9168596d8887d7b5bc9b6246bb3f26468a4c1dc89697b2ffd0be85344a",
         "assets/js/modules/map-input-controller.js": "f615f1937474427466eda6cba2012211b3118e0a835ac90ff8dea8a89cd77959",
-        "assets/js/modules/map-input-presentation.js": "371382313fbba5bc14cd7c05a7792a8100c98b2112302bf87d2d103ba80c7e0a",
+        "assets/js/modules/map-input-presentation.js": "c6ce03fd1983a90ce639259e1045e856faa0652c3486c8546c9182c73fa20397",
         "assets/js/modules/map-interaction-gate.js": "d891076b6544ea770330b1f1639d0909d3007e91d3e6eae102f333d325d14cd4",
         "assets/js/modules/map-interaction-style.js": "92bd449b3329830203e6237987ed2b06e260c42780aabce1d3332f1d27af564c",
         "assets/js/modules/map-layout-metrics.js": "f95dd020ec9d57fbdeafefcd15a6af3efa4b8e036378153ec461878128287af6",
@@ -2150,7 +2150,7 @@
         "assets/js/modules/map-owner-composition.js": "28eb05a208056574defa1a745097fda3e858aef7d6e7bba9d2146acb7731b0da",
         "assets/js/modules/map-projection.js": "5ef9caf8770694c7b3e90d63b64e90c92d1b89f071600eea3e8e062bd388edb8",
         "assets/js/modules/map-render-coordinator.js": "539b7249a9c7b19d5cbce007d382d8a97783efd1975f782909ec42bf352080a5",
-        "assets/js/modules/map-renderer-composition.js": "196cc030248d5b90eef5d402b89cc493b9cbc680f364ba5eeda87bb492876f4e",
+        "assets/js/modules/map-renderer-composition.js": "0dbf1b6b2870a7347a4ec4a3bf13a5ba54817c23a7f3e6bed0f049a3d0af3f68",
         "assets/js/modules/map-state-transition.js": "4d844f88837cd8b2238db6370d10c740805927f93f5f0d241b86340666e45364",
         "assets/js/modules/map-surface-host.js": "e5fe112034a732c2dedc9f23cce83f50bcebf04c494074d24e0633164233b272",
         "assets/js/modules/map-theme.js": "1901a83ceed9f0e37514cf6162bba00d0b30360e5d58b7a1594a82836bd63bad",
@@ -2205,7 +2205,7 @@
         "assets/js/modules/project-preview-topology.js": "d58420258f3c28cadf2a4ed719222c299e29a814dabfe9387d2253d2d689316b",
         "assets/js/modules/project-serializer.js": "b49466e82e439b12033d35c7ee0c52afcdf2b92861ba42e07e3b8f576ccfc3a7",
         "assets/js/modules/project-session.js": "699d9d9bb5638282584773fa475cef0edfaf22f5272e840b83d3f41615cd4097",
-        "assets/js/modules/project-setup-dialog.js": "f16c31d09d5aa50e4a37f8465787159a3827581aec934bf84ac8614336b34670",
+        "assets/js/modules/project-setup-dialog.js": "bc09ee8ebbc8e60b9b97b5cc3ecde7ab4bc08a0ef2fc047120da5d8edd0cc049",
         "assets/js/modules/project-setup.js": "2bf1c105414f2d02904763ce6cdb1cb2ab344f794b8a8ade871f648cedc4654e",
         "assets/js/modules/project-state.js": "22ac5fc50475aa190c52d36cc17b43a37613afc8715fef295c9dd841de7f45c3",
         "assets/js/modules/project-ui-bridge.js": "d10ee8e9acce8f1da44ec896796a32fea274d4f3c6c09e298e0e0085c4752041",
@@ -2238,9 +2238,9 @@
         "assets/js/modules/render-channel-ownership.js": "81d46fe03362dfb23a93a82903d0bfaaebadf092575ab59c85e12ef33618cb44",
         "assets/js/modules/render-device.js": "e2801b34412f99170b7ec7bad71d9bdc1b26be71f7b98d54bad46ccc619886b6",
         "assets/js/modules/render-lod.js": "4bcb47f5a4b78d28e43dcea974503f582ca52cd9b6a7c30cb55f6154c55ea1d2",
-        "assets/js/modules/render-quality.js": "3d69f60be4836d0657337bdeacab2af9a391c7c7e328fbfeacb58f6093247483",
+        "assets/js/modules/render-quality.js": "043aed32e28cd66738890d43dbac9566f776986cae2ddfeec79321fdeaf0db86",
         "assets/js/modules/render-scene.js": "17f84447a3876f9c43ed0f7920910963751a7b86657dd2de4faa963f3c4e9579",
-        "assets/js/modules/rendering-domain.js": "79be167b2e63e309e431146a7afd7a616feb0713a0b288ee15ba2ffdde8aac35",
+        "assets/js/modules/rendering-domain.js": "332ce1f53c2751e8915596b0f77d86bdd54732f0feb8cbc646a815d85d438a6d",
         "assets/js/modules/resource-capabilities.js": "75c82a8964103313e81847efe80c66440b4db58845bbbc4285b18fa6abd7a7d8",
         "assets/js/modules/ring-hit-test.js": "ffe72994cc90639c890be4c33581e35363207c49c18ac27e65521d90dac3698f",
         "assets/js/modules/river-territory-partition.js": "ea4e444efc2cf4cf7a13f6c1f082c60959cb0fd042e78e8d0f69060120072b94",
@@ -2262,7 +2262,7 @@
         "assets/js/modules/source-provenance.js": "62140d9ecccdba484c8743c267883b27445bacf1ebd5cb1c347f0ab33daf0549",
         "assets/js/modules/spatial-edit-registration.js": "b29a8243d92bab8447a2e0a6f932854b6b207af8e0284fdeb1dbe8113780a405",
         "assets/js/modules/spatial-index.js": "013ee9dcc1783c82a8f6ae90357d1f163d19a1e422ffaf5bf4f566c2d0827422",
-        "assets/js/modules/startup-readiness.js": "fabe32192a6dce9589b87e46519265f576a03cad185d6b1a35410ac2dc4db4f4",
+        "assets/js/modules/startup-readiness.js": "54cb9687dfacdde688b02458cecd817f12f4a709622169a7e27ff6f42ddf2a20",
         "assets/js/modules/startup-task-gate.js": "69f5814bea7dad4510a9dd71acc2bb159a5de0af05ad5fdc2e1b69254e6fc0cd",
         "assets/js/modules/stored-asset-loader.js": "22bc7e3f5b63398391e4be654342aab343789b3cd4a47e956692a60d771d65c2",
         "assets/js/modules/surface-controller.js": "32dd62457fe6c3588739880543c63d84074080735906eb91e5ea04a7da08ed6c",
@@ -2302,7 +2302,7 @@
         "assets/js/modules/user-preferences.js": "c052b8dd153b44b858a3e96a9f37367027e008f376a17602c59ba8f5bd1da156",
         "assets/js/modules/version-contract.js": "34c05a5bac9627531c170191952ac81489ba320059a0359033db6b8c0d943e02",
         "assets/js/modules/viewer-composition.js": "259658bfae22782ec562db72472cdb31f8bb6062399ea167818568b8176bbef6",
-        "assets/js/modules/viewer-map.js": "fa275095db8885bba473e943656b74ce9f0acd32951ff53a6024cee0c0db10d2",
+        "assets/js/modules/viewer-map.js": "ac2e23cfd584844ed6d6eefef4f8c588b1d3d0c06060c9fedb04d9b04cd7d0d8",
         "assets/js/modules/worker-asset-url.js": "37635192ae1c904dc951895f07850dcc1d6c39e5bd55bfa42f908085885a544a",
         "assets/js/modules/worker-job-scheduler.js": "06d2ca1668a10a9de79c58bfbfce9fb4d68aa22611f8b83cd2471a93a1ce97c9",
         "assets/js/modules/worker-rpc.js": "29ba7f35d830f25a52a70e4703444b3cdea6f822b3f39762c5a00fb8915aae77",
@@ -2319,7 +2319,7 @@
         "assets/js/vendor/topojson-server.min.js": "5c06cdfaae02fc29dd750005fcf169fac5aa75d778321542ac119349b88bbee7",
         "assets/js/vendor/topojson-simplify.min.js": "8804c5f220355fd007d433fa52592b0139bbd74829a92f6bf2159640b86a3718",
         "assets/js/viewer.js": "f34d9352bde117ab090ad3dca489d84c43079259a4bc60fa9f1ed0b83bab094b",
-        "assets/js/workers/canvas-render-worker.js": "b4aff7ed86af59c91976d9d8d01a5980af60cc47731d822365ae6eb52c56cae5",
+        "assets/js/workers/canvas-render-worker.js": "831439aa5897824d7106833b7b224fb68ff7736ce060c48b391966802597d440",
         "assets/js/workers/canvas-scene-composition-core.js": "5999fd297a269310129e7414bdf107f1d32c563deb554e5b91f3eaadb5b539b4",
         "assets/js/workers/canvas-terrain-dem-core.js": "81dd29b093b2cd79172d5335befbb45bf8629ed3096bd6d36d88529110c58d8f",
         "assets/js/workers/core-session-worker.js": "c95ca6191a357589ad090dbef724fc0c3c8102bfcc413a3e27d95c178033a531",
@@ -2371,9 +2371,9 @@
       },
       "outputs": {
         "README.md": "6931d8ae20cb7f1e4135b61e24197d97e0cd13f5f1cd5819ce2916509490efd6",
-        "apps/web-shell/editor.html": "20e25560e505bea238bfd6c50f4ec5c71114adf3f9b9bb913880bfe3b9ec616a",
-        "assets/js/build-meta.js": "26649287b9bb4c6b79e5ede2b234d3892fc409202d53bcc6a82ab0e1a25dba5e",
-        "index.html": "aa614964aa13c4b45ccac96af38958d4d0d987748c4177091f80506597487d3d"
+        "apps/web-shell/editor.html": "cf2932207ff405f47a98df8381547b46b3522ba08c8ed857614deda6dab13f18",
+        "assets/js/build-meta.js": "7f02f171506eda30b0d7fda1e1dc26c1bee2f6587a41055ac1beb7d6a3b86461",
+        "index.html": "192c0bc8fa0336d6da35d7848a461c7882606e09de876f7a85dc4fd6c34d94f6"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2388,7 +2388,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "0c172d1cbabe8e6490746c1ca1bca828068b8849"
+      "sourceSha": "c52aabb406ed1aba3e7301c8b3151216b5da638e"
     }
   }
 }
