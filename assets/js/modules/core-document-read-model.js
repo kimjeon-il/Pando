@@ -20,8 +20,9 @@ function freeze(value) {
 
 /** Immutable presentation/storage projection; only accepted C++ deltas publish. */
 export function createCoreDocumentReadModel(initialProject) {
-  const initial = structuredClone(initialProject);
-  let geometries = createGeometryVersionStore(initial.geometries);
+  const { geometries: initialGeometries, ...initialProperties } = initialProject;
+  const initial = structuredClone(initialProperties);
+  let geometries = createGeometryVersionStore(initialGeometries);
   // Storage and render lookup share the same immutable geometry allocations.
   // The lookup is rebuilt only when the C++ geometry archive delta changes.
   let project = freeze({ ...initial, geometries: geometries.snapshot() });
@@ -32,8 +33,11 @@ export function createCoreDocumentReadModel(initialProject) {
     if (!value || !Array.isArray(value.geometries)) invalid('A complete accepted C++ storage snapshot is required after document load.');
     for (const field of Object.values(fields)) if (!Array.isArray(value[field]))
       invalid(`Required accepted C++ loaded domain is missing: ${field}`);
-    const candidate=structuredClone(value);
-    const nextGeometries=createGeometryVersionStore(candidate.geometries);
+    // The geometry registry validates, copies and freezes each untrusted shape.
+    // Cloning the entire archive first duplicated every coordinate allocation.
+    const { geometries: geometryRows, ...properties } = value;
+    const candidate=structuredClone(properties);
+    const nextGeometries=createGeometryVersionStore(geometryRows);
     const next=freeze({ ...candidate,geometries: nextGeometries.snapshot() });
     project=next;
     geometries=nextGeometries;

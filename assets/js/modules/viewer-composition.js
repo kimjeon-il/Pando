@@ -78,6 +78,9 @@ export async function composeViewer({ productMode, meta }) {
     closeSearchAfterSingleSelection:()=>surfaces.closeSurface('search')});
   searchController.bind();surfaces.applyLayoutMode({initial:true});
   map.refreshAppearance({rerender:false});
+  // Background assets are global; hydro identities must wait for the Core
+  // replacement below. The resource owner handles errors and shared requests.
+  map.loadPhysicalResources({includeHydro:false});
   const syncStatus=()=>{if(!map)return;if(!selectionDomain.snapshot().selection.items.length)status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;else selectionUiController.syncNow(null,{force:true});};
   const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.cancelSearch();searchController.render(true);};
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>activeSession?.commandOwner.state().timelineCursor,
@@ -108,9 +111,9 @@ export async function composeViewer({ productMode, meta }) {
     window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
     await searchController.completeHydration();
     if(request!==projectDomain.getOpenRevision())return;
+    map.loadPhysicalResources();
     display.renderMapDisplaySettings();
     search();surfaces.syncOverlayState();status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;status.dataset.ready='true';
-    map.loadPhysicalResources();
     } catch(error){if(request===projectDomain.getOpenRevision()){
       status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;status.dataset.ready='true';throw error;
     }}

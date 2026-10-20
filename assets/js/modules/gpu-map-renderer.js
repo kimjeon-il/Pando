@@ -383,6 +383,8 @@ export function createGpuMapRenderer(deps) {
     let ctx2d = null;
     let rendererMode = 'pending';
     let fillProgram = null;
+    let oceanSubstrateProgram = null;
+    let oceanSubstrateBuffer = null;
     let pickProgram = null;
     let terrainProgram = null;
     let terrainDemProgram = null;
@@ -497,7 +499,13 @@ export function createGpuMapRenderer(deps) {
         cacheBudgetBytes: renderQuality.terrainCacheBudgetBytes,
       });
     }
-    function renderTerrain(pass = 'land') { for (const tile of preparedTerrain) drawTerrainTile(tile, pass); }
+    function renderTerrain(pass = 'land') {
+      // Keep the complete flat-colored substrate until DEM color and shade
+      // can replace ocean and land together; never flash a gray tint texture.
+      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && state.physicalSettings.terrainStyle === 'physical'
+        && !terrainPreparation.stats().terrainTintReady) return;
+      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);
+    }
     let mesh = null;
     let meshCountryIds = [];
     let countryBoundaryWorker = null;
@@ -1364,6 +1372,24 @@ export function createGpuMapRenderer(deps) {
       terrainDemProgram = null;
       const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
+      const oceanVertex = `${glVersion === 2 ? '#version 300 es\n' : ''}precision highp float;
+        ${glVersion === 2 ? 'layout(location=0) in' : 'attribute'} vec2 aPosition;
+        void main(){gl_Position=vec4(aPosition,0.0,1.0);}`;
+      const oceanFragment = `${glVersion === 2 ? '#version 300 es\n' : ''}precision mediump float;
+        uniform vec2 uViewport; uniform vec2 uTranslate; uniform vec2 uFlatCenter;
+        uniform float uScale; uniform int uMode; uniform vec3 uOceanColor;
+        ${glVersion === 2 ? 'out vec4 outColor;' : ''}
+        void main(){
+          vec2 point=(vec2(gl_FragCoord.x,uViewport.y-gl_FragCoord.y)-uTranslate)/uScale;
+          if(uMode==0 && dot(point,point)>1.0)discard;
+          if(uMode==1 && abs(uFlatCenter.y-point.y)>1.5707964)discard;
+          ${glVersion === 2 ? 'outColor' : 'gl_FragColor'}=vec4(uOceanColor,1.0);
+        }`;
+      oceanSubstrateProgram = createProgram(oceanVertex, oceanFragment);
+      primeProgramLocations(oceanSubstrateProgram, [...GPU_VIEW_UNIFORM_NAMES, 'uOceanColor'], ['aPosition']);
+      oceanSubstrateBuffer = lifecycle.create(gl, 'Buffer');
+      gl.bindBuffer(gl.ARRAY_BUFFER, oceanSubstrateBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
       pickProgram = createProgram(vertexSource, glVersion === 2 ? pickFragmentSourceWebGl2 : pickFragmentSourceWebGl1);
       countryStateFillProgram = createProgram(
         glVersion === 2 ? countryStateVertexSourceWebGl2 : countryStateVertexSourceWebGl1,
@@ -2196,7 +2222,9 @@ export function createGpuMapRenderer(deps) {
       canvasDataReplacementResolver?.(); canvasDataReplacementResolver = null;
       void hydroPreparation.restart();
       resetCountryGeometryVisualState({ renderFrame: false, renderPending: false });
-      sceneColorCache.reset?.({ dropActive: !preserveBuiltinMesh });
+      // The retained texture is only eligible for the explicit blocked-frame
+      // presentation below. Normal draws still require the new generation.
+      sceneColorCache.reset();
       renderScene = null;
       presentedStrokeDomains.clear();
       renderInteractionState = Object.freeze({
@@ -2226,17 +2254,27 @@ export function createGpuMapRenderer(deps) {
       terrainPreparation?.reset();
       // Keep the previously committed pixels in place while a new project is
       // prepared.  They are replaced only by the prepared canonical frame.
-      if (!preserveBuiltinMesh && gl && !gl.isContextLost?.()) {
-        try {
-          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-          gl.viewport(0, 0, Math.max(1, pixelWidth), Math.max(1, pixelHeight));
-          gl.clearColor(0, 0, 0, 0);
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-        } catch (_) {
-          // A reset must not surface a renderer cleanup failure as a runtime error.
-        }
-      }
       return projectGeneration;
+    }
+
+    function renderPreservedProjectFrame() {
+      if (!projectRenderBlocked) return null;
+      if (!isWebGlRenderer() || webglContextLost || !canvas || !sceneColorCache.hasActive()) return { deferred: true };
+      const element = rendererUi.getMapElement();
+      const dpr = resolveRenderPixelRatio();
+      const nextWidth = Math.max(1, Math.round(element.clientWidth * dpr));
+      const nextHeight = Math.max(1, Math.round(element.clientHeight * dpr));
+      const previous = sceneColorCache.stats();
+      const scale = dpr / (lastVisualFrame?.dpr || dpr);
+      if (canvas.width !== nextWidth) canvas.width = nextWidth;
+      if (canvas.height !== nextHeight) canvas.height = nextHeight;
+      // Keep old CSS coordinates (and their frozen SVG labels) on resize.
+      // This is display-only and never certifies a replacement frame.
+      sceneColorCache.composite(nextWidth, nextHeight, { reproject: {
+        sourceViewport: [previous.width, previous.height], scale: [scale, scale],
+        offset: [0, nextHeight - previous.height * scale],
+      } });
+      return { deferred: true, preserved: true };
     }
 
     async function decodeBuiltInMesh(rawBuffer = null, features = null, preparedStroke = null) {
@@ -3278,6 +3316,20 @@ export function createGpuMapRenderer(deps) {
     }
 
     let preparedBaseScene = null;
+    function drawOceanSubstrate() {
+      gl.disable(gl.BLEND);
+      gl.disable(gl.STENCIL_TEST);
+      if (glVersion === 2) gl.bindVertexArray(null);
+      gl.useProgram(oceanSubstrateProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, oceanSubstrateBuffer);
+      const position = cachedAttributeLocation(oceanSubstrateProgram, 'aPosition');
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      setViewUniforms(oceanSubstrateProgram, 0, activeFrameContext);
+      gl.uniform3fv(cachedUniformLocation(oceanSubstrateProgram, 'uOceanColor'), mapTheme().oceanGpu);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.disableVertexAttribArray(position);
+    }
     function prepareBaseScene() {
       preparedBaseScene = prepareGpuBaseScene({ mesh, overrideMesh, frame: activeFrameContext,
         scene: renderScene, budgetBytes: renderQuality.uploadBudgetBytes, presentedStrokeDomains }, { polygonOverlayPass, strokeRenderer });
@@ -3298,7 +3350,9 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawBaseSceneContent() {
-      if (!gl || !mesh || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
+      if (!gl || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
+      if (!mesh && (!preparedBaseScene.physicalLandItems.length || preparedBaseScene.physicalLandItems.some(({ packet }) =>
+        preparedBaseScene.deferredOverlayKeys.has(packet.key) || preparedBaseScene.failedOverlayKeys.has(packet.key)))) return false;
       const theme = mapTheme();
       const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
@@ -3306,7 +3360,7 @@ export function createGpuMapRenderer(deps) {
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
         prepared: preparedBaseScene,
-      }, { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
+      }, { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
       performanceMetrics.baseSceneDrawCount += 1;
       sceneCacheFullDrawCount += 1;
       if (result.strokePresentationFailed) return false;
@@ -3381,7 +3435,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function renderWebGl(visualFrame, { interactionOnly = false } = {}) {
-      if (!gl || !mesh) return null;
+      if (!gl) return null;
+      if (projectRenderBlocked) return renderPreservedProjectFrame();
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('GPU render requires a MapVisualFrame.');
       resize(visualFrame);
       activeFrameContext = visualFrame;
@@ -3530,7 +3585,7 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.interactionFrameCount += 1;
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
-      if (baseResult && !baseSubmissionFailed) markPreviewFramePresented();
+      if (mesh && baseResult && !baseSubmissionFailed) markPreviewFramePresented();
       if (!webglContextLost && baseResult && !baseSubmissionFailed) recordMapPresentation(visualFrame,
         baseResult.countryStrokeResult?.succeeded === true && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length);
       frameTimes.push(performance.now() - started);
@@ -4967,7 +5022,7 @@ export function createGpuMapRenderer(deps) {
       dispose, attach,
       mapReadiness, retryMapPreparation,
       failMapPreparation: error => { canonicalPromotionError = String(error?.message || error); publishMapReadiness(); },
-      initialize, replaceBuiltInMesh, renderFrame, renderInteraction,
+      initialize, replaceBuiltInMesh, renderFrame, renderInteraction, renderPreservedProjectFrame,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, getRenderPixelRatio: resolveRenderPixelRatio, setTerrainManifest, activeTerrainSourceInfo,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
