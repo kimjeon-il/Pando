@@ -9882,10 +9882,10 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
 .surface-search.search-toolbar-desktop {
   position: fixed;
   z-index: var(--ui-layer-search-z);
-  top: var(--search-toolbar-top, 0px);
+  top: var(--search-toolbar-top, 0);
   right: auto;
   bottom: auto;
-  left: var(--search-toolbar-left, 0px);
+  left: var(--search-toolbar-left, 0);
   width: var(--search-toolbar-width, var(--ui-control-height));
   height: var(--search-toolbar-height, var(--ui-control-height));
   min-height: 0;
