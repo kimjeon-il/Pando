@@ -48,6 +48,7 @@
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
 | `DEV-REMAINING-BRANCH-20261020` | [남은 작업 브랜치의 main 통합](development/testing/remaining-branch-integration-2026-10-20.md) | 2026-10-20 | `integrated / remote-verified / docs-only` | `not-applicable` |
+| `UI-TERRAIN-RELEASE-20261021` | [지형 전환 지연 수정의 main 반영과 웹·앱 게시 검증](development/testing/terrain-interaction-release-2026-10-21.md) | 2026-10-21 | `pages-live-verified / windows-native-verified` | `not-applicable` |
 | `UI-TERRAIN-LATENCY-20261021` | [고배율 지형 전환 지연의 재현과 수정](development/testing/terrain-interaction-latency-2026-10-21.md) | 2026-10-21 | `local-web-verified / app-unverified / unpublished` | `not-applicable` |
 | `UI-MAP-SCALE-RELEASE-20261020` | [지도 표시·UI 검사 정리와 웹·Windows 게시 검증](development/testing/map-scale-release-2026-10-20.md) | 2026-10-20 | `pages-live-verified / windows-native-verified / separate-ci-failures` | `not-applicable` |
 | `UI-MAP-SCALE-20261020` | [지도 배율별 품질과 표시 준비 상태](development/testing/map-scale-readiness-2026-10-20.md) | 2026-10-20 | `focused-verified / native-webview2-verified / unpublished` | `not-applicable` |
