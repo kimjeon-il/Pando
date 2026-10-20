@@ -3,13 +3,14 @@ import {loadUserPreferences} from './user-preferences.js';
 import { createMapWorkScheduler } from './map-work-scheduler.js';
 import { createEmptyTerritorialState } from './territorial-entity-store.js';
 import { createInitialDocument } from './initial-document.js';
+import { resourceCapabilities } from './resource-capabilities.js';
 const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: id => ids.includes(id),
   [Symbol.iterator]: () => ids[Symbol.iterator]() });
 /** ProjectSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createProjectSession({productMode='editor',capabilities={terrain:productMode==='viewer',builtinHydro:true,builtinPlaces:true},resolveVisibilityGroup,onViewingChange=null}={}) {
+export function createProjectSession({productMode='editor',capabilities=resourceCapabilities(productMode),resolveVisibilityGroup,onViewingChange=null}={}) {
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Project session requires immutable product mode.');
   const viewingFields=new Set(['layerVisibility','layerPresentation','itemVisibility','physicalSettings','distributionSettings']);
   let viewingPresentation=null,documentProjection=null,physicalSettings;
@@ -76,7 +77,7 @@ export function createProjectSession({productMode='editor',capabilities={terrain
       layerVisibility: normalizeLayerVisibility(),
       physicalSettings: {
         terrainVisible: capabilities.terrain && background.terrainVisible,
-        terrainStyle: background.terrainStyle,
+        terrainStyle: productMode==='viewer'?background.terrainStyle:'physical',
         terrainStyleVersion: 1,
         hydroLayers: {
           rivers_hydro: true,
@@ -154,8 +155,12 @@ export function createProjectSession({productMode='editor',capabilities={terrain
 
     (atomicMapStateController = (0, dependencies.uiFactoriesA.createAtomicMapStateController)({
       applySnapshot: snapshot => {
-        if (snapshot.projection) state.projection = snapshot.projection;
-        if (snapshot.view) state.view = (0, dependencies.mapNavigation.clampViewZooms)({ ...state.view, ...snapshot.view });
+        const projection = snapshot.projection || state.projection;
+        const view = { ...state.view, ...snapshot.view };
+        state.view = productMode==='editor' && projection==='globe'
+          ? dependencies.mapNavigation.reprojectView(view, 'globe', 'flat')
+          : dependencies.mapNavigation.clampViewZooms(view);
+        state.projection = productMode==='editor'?'flat':projection;
         state.transitionRevision = Number(snapshot.stateRevision || state.transitionRevision || 0);
       },
     }));

@@ -16,7 +16,7 @@ test('Soviet real prepared coast candidate: repeat Worker move and cancellation 
   page.on('pageerror', error => errors.push(error.message));
   await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{ timeout:120_000 });
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await month(page,'1989-06');
   await expect.poll(() => page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('state:soviet-union')),
     { timeout: 90_000 }).toBe(true);

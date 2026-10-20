@@ -140,7 +140,7 @@ test('isolated contact-edge, upper index and source geometry retaining roots in 
           return gpu?.renderer === 'webgl2' && gpu.canonicalMeshReady
             && !gpu.countrySharedBoundaryReplacementPending;
         }), { timeout: 90_000 }).toBe(true);
-        await page.locator('#flatBtn').evaluate(button => button.click());
+        await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
         const current = await page.evaluate(() => window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth);
         expect(current).toMatch(/^\d{4}-\d{2}$/);
         await month(page, '1989-06'); await ready(page, '1989-06', true);

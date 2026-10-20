@@ -49,7 +49,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     }, { timeout: 45000 }).toBe('enhanced');
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer))
       .toBe(renderer === 'canvas' ? 'canvas-worker' : renderer);
-    await page.locator('#flatBtn').evaluate(input => input.click());
+    await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
     await page.addStyleTag({ content: '#map text { visibility: hidden !important; } #map .territorial-label-item { pointer-events: none !important; }' });
     const before = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL'));
     await page.evaluate(() => {

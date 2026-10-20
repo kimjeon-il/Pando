@@ -83,6 +83,7 @@ export function createSpatialDataPorts(providers) {
     }),
     mapNavigation: Object.freeze({
       get clampViewZooms(){return providers.cameraNavigation.clampViewZooms;},
+      get reprojectView(){return providers.cameraNavigation.reprojectView;},
       get equirectangularCenterForAnchor() { return providers.runtime.equirectangularCenterForAnchor; },
       get FLAT_LATITUDE_LIMIT() { return providers.environment.FLAT_LATITUDE_LIMIT; },
       get normalizeMapSurfaceDragDelta() { return providers.runtime.normalizeMapSurfaceDragDelta; },

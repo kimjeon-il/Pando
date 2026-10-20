@@ -2,6 +2,7 @@ import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
 import { MAP_DISPLAY_TARGETS } from './map-display-catalog.js';
 import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
+import { createProductModePolicy } from './product-mode-policy.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
@@ -10,7 +11,8 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ viewPresentation = null,authoredStyles=false,onLayerVisibilityChange=null,afterProjectionChange=null } = {}) {
+export function createMapSettings({ productMode='viewer',viewPresentation = null,authoredStyles=false,onLayerVisibilityChange=null } = {}) {
+  const productPolicy=createProductModePolicy(productMode);
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let desktopViewMenuPath = [];
@@ -72,35 +74,15 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
 
   function setProjection(type) {
     const targetProjection = type === 'globe' ? 'globe' : 'flat';
+    productPolicy.assertProjection(targetProjection);
     if (targetProjection === dependencies.projectState.state.projection) return false;
     (0, dependencies.mapView.updateProjection)();
-    const currentProjection = (0, dependencies.mapView.activeProjection)();
-    const currentCenter = (0, dependencies.mapView.screenToGeo)(currentProjection.translate()) || (dependencies.projectState.state.projection === 'globe'
-      ? [-dependencies.projectState.state.view.globeRotation[0], -dependencies.projectState.state.view.globeRotation[1]]
-      : dependencies.projectState.state.view.flatCenter.slice());
-    const currentScale = Number(currentProjection.scale()) || 1;
-    const layout = (0, dependencies.mapView.projectionLayoutMetrics)();
-    const nextView = (0, dependencies.platform.deepClone)(dependencies.projectState.state.view);
-    if (targetProjection === 'globe') {
-      nextView.globeRotation = [
-        -(0, dependencies.navigation.wrappedLongitudeDelta)(currentCenter[0]),
-        -(0, dependencies.platform.clamp)(Number(currentCenter[1]), -89, 89),
-        0,
-      ];
-      nextView.globeZoom = (0, dependencies.platform.clamp)(currentScale / layout.globeBaseScale, dependencies.mapNavigation.ZOOM_LIMITS.globe.min, dependencies.mapNavigation.ZOOM_LIMITS.globe.max);
-    } else {
-      nextView.flatCenter = [
-        (0, dependencies.navigation.wrappedLongitudeDelta)(currentCenter[0]),
-        (0, dependencies.platform.clamp)(Number(currentCenter[1]), -dependencies.mapNavigation.FLAT_LATITUDE_LIMIT, dependencies.mapNavigation.FLAT_LATITUDE_LIMIT),
-      ];
-      nextView.flatZoom = (0, dependencies.platform.clamp)(currentScale / layout.flatBaseScale, dependencies.mapNavigation.ZOOM_LIMITS.flat.min, dependencies.mapNavigation.ZOOM_LIMITS.flat.max);
-    }
+    const nextView = dependencies.mapNavigation.reprojectView(dependencies.projectState.state.view,dependencies.projectState.state.projection,targetProjection);
     const token = dependencies.projectSession.atomicMapStateController.begin({ kind: 'projection', type: targetProjection });
     if (!dependencies.projectSession.atomicMapStateController.commit(token, { projection: targetProjection, view: nextView })) return false;
     (0, dependencies.mapView.syncMapHostFromState)();
     syncProjectionButtons();
     dependencies.domains.renderingDomain?.invalidateProjection?.('projection-change');
-    if(afterProjectionChange)afterProjectionChange();
     return true;
   }
 
@@ -371,7 +353,7 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
       surface.append(popups);
     }
     // Distribution styling belongs to distributionViewSettings, not a sibling popup.
-    const groups = ['projection', ...Object.keys(LAYER_STYLE_TARGETS).filter(group => group !== 'distributions'), 'terrain', 'distribution', 'advanced'];
+    const groups = ['projection', ...Object.keys(LAYER_STYLE_TARGETS).filter(group => group !== 'distributions'), 'terrain', 'distribution'];
     for (const group of groups) {
       const panel = displayPanelForDesktopGroup(group);
       if (!panel || displayMenuPanels.has(group)) continue;
