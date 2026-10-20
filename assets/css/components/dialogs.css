@@ -538,6 +538,10 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
 .project-bounds-box {
   display: none;
   position: absolute;
+  left: var(--bounds-left, 0);
+  top: var(--bounds-top, 0);
+  width: var(--bounds-width, 0);
+  height: var(--bounds-height, 0);
   pointer-events: none;
   border: var(--ui-border-width) dashed var(--text-strong);
   background: var(--selection-soft-bg);
