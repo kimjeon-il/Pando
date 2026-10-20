@@ -11,7 +11,7 @@ const manifest = { gutter: 1, urlTemplate: 'terrain/v0.12.6/{level}/{column}-{ro
 ] };
 const settle = async () => { for (let i = 0; i < 24; i++) await Promise.resolve(); };
 
-function canvasTerrainRuntime() {
+function canvasTerrainRuntime({ expectDem = false } = {}) {
   const messages = [], requests = [], drawn = [], paths = [], substrates = [], triangleCopies = [];
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; this.ctx = null; }
@@ -83,6 +83,7 @@ function canvasTerrainRuntime() {
   };
   const send = message => scope.onmessage({ data: message });
   send({ ...frame, type: 'init', features,
+    terrainDemManifestUrl: expectDem ? 'https://example.test/expected-dem.json' : undefined,
     terrainManifestUrl: 'https://example.test/assets/data/terrain/v0.12.6/manifest.json' });
   return {
     messages, requests, drawn, paths, substrates, features, land, send, triangleCopies,
@@ -123,6 +124,7 @@ test('Canvas terrain demand ignores country preview and backing DPR, but follows
   const h = canvasTerrainRuntime(); await settle(); h.render();
   assert.deepEqual(h.levels(), [0, 0], 'world base consumes both initial fetch slots');
   assert.equal(h.messages.at(-1).terrainComplete, false);
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
   await h.deliver(h.find('/0/0-0.webp'));
   await h.deliver(h.find('/0/1-0.webp'));
   h.render();
@@ -133,6 +135,30 @@ test('Canvas terrain demand ignores country preview and backing DPR, but follows
   h.render({ meshQuality: 'preview', terrainDpr: 1 });
   await h.deliver(h.requests.find(request => !request.completed && /\/2\//.test(request.url)));
   assert.ok(h.levels().includes(1), 'a lower source DPR selects a lower terrain level');
+});
+
+test('Canvas terrain acknowledges prepared coverage and its source limit in the actual frame', async () => {
+  const h = canvasTerrainRuntime(); await settle();
+  const view = { presentationKey: 'current-view', terrainDpr: 1, renderProjection: { scale: 100, translate: [500, 300] } };
+  h.render(view);
+  const pending = [...h.requests];
+  for (const request of pending) await h.deliver(request);
+  h.render(view);
+  const message = h.messages.at(-1);
+  assert.equal(message.presentationKey, 'current-view');
+  assert.equal(message.terrainStats.terrainReady, true);
+  assert.equal(message.terrainStats.terrainResolutionLimited, false);
+  h.render({ ...view, renderProjection: { scale: 2000, translate: [500, 300] } });
+  assert.equal(h.messages.at(-1).terrainStats.terrainResolutionLimited, true);
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
+});
+
+test('Canvas cannot acknowledge raster coverage while requested DEM and tint are pending', async () => {
+  const h = canvasTerrainRuntime({ expectDem: true }); await settle();
+  h.render({ terrainDpr: 1, renderProjection: { scale: 100, translate: [500, 300] } });
+  for (const request of h.requests.filter(request => /\/0\//.test(request.url))) await h.deliver(request);
+  h.render({ terrainDpr: 1, renderProjection: { scale: 100, translate: [500, 300] } });
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
 });
 
 test('Canvas keeps world coverage and the physical mask independently of political geometry and visibility', async () => {

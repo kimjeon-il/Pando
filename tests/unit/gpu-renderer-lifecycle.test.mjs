@@ -38,6 +38,7 @@ test('timeline changes release modern preview ownership', t => {
   t.after(() => { globalThis.window = previous; });
   const state = { projection: 'globe', view: { globeZoom: 1 }, countryVisualPhase: 'preview',
     auditPreviewCountries: { features: [{ id: 'RUS' }] }, auditPreviewTerritorialUnits: [], auditPreviewGeometryReferences: new Map() };
+  state.physicalSettings = {};
   const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path,
     renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null, scheduleGpuFrame: () => {} });
   assert.equal(typeof renderer.invalidateCountryPreview, 'function');

@@ -221,7 +221,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     renderViewFrame: () => rendering.invalidateGpuFrame('view-frame'),
     scheduleGpuFrame: reason => { scheduledReasons.push(reason); rendering.invalidateGpuFrame(reason); },
     scheduleGpuInteractionFrame: reason => { scheduledReasons.push(reason); rendering.invalidateGpuInteraction(reason); },
-    rendererUi: { createCanvas, setEngineStatus() {}, getMapElement: () => null,
+    rendererUi: { createCanvas, setEngineStatus() {}, setMapPreparationStatus() {}, getMapElement: () => null,
       onContextStateChange: phase => rendering.invalidateGpuContext(phase) },
   });
   canvas = createCanvas(); renderer.attach(canvas);
@@ -260,6 +260,8 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
         assert.equal(renderer.getRuntimeState().renderer, 'canvas-worker');
         const worker = workers.find(worker => worker.name === 'pandolab-canvas-renderer');
         assert.ok(worker);
+        worker.onmessage({ data: { type: 'terrain-warning', message: 'terminal test failure' } });
+        assert.ok(scheduledReasons.includes('canvas-terrain-failed'), 'failure must request a frame that publishes retry state');
         assert.equal(scenePaints, 0, 'no Canvas Worker bitmap has been presented');
         if (pendingGeometry) {
           await renderer.applyCountryPatch({ ids: ['DEU'], features: [byId('DEU')], removedIds: [] });
@@ -306,7 +308,7 @@ for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker fa
   await h.transition();
   assert.equal(h.renderer.getRuntimeState().renderer, 'canvas2d');
   assert.equal(h.scenePaints(), 0, 'activation must not paint outside the canonical presentation boundary');
-  assert.deepEqual(h.scheduledReasons, ['canvas-fallback-ready']);
+  assert.deepEqual(h.scheduledReasons, canvasWorker ? ['canvas-terrain-failed', 'canvas-fallback-ready'] : ['canvas-fallback-ready']);
   assert.equal(h.nodes(fillSelector).length, 0, 'fallback activation does not return scene fills to SVG');
   assert.equal(h.queued.length, 1);
   // Only internally scheduled transition work may run. The test does not

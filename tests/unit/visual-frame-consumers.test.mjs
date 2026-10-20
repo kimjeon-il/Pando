@@ -10,6 +10,21 @@ const frame = () => createMapVisualFrame({ frameId: 8, viewRevision: 3,
   viewState: { projection: 'flat', size: { width: 300, height: 200 }, translate: [150, 100], scale: 40, dpr: 2 },
   projectPath: () => 'snapshot-path' });
 
+test('quality invalidation reads the current view from a lazily initialized map host', t => {
+  let host = null;
+  const inputs = [];
+  const domain = createRenderingDomain({ mapHost: () => host,
+    gpuMapRenderer: { syncCountryMeshQuality: input => { inputs.push(input); return false; } },
+    requestFrame: () => 1 });
+  t.after(() => domain.dispose());
+  host = { getViewState: () => ({ scale: 500, projection: 'flat' }) };
+  domain.invalidateView();
+  assert.deepEqual(inputs.at(-1), { cssScale: 500, projection: 'flat' });
+  host = { getViewState: () => ({ scale: 570, projection: 'globe' }) };
+  domain.invalidateView();
+  assert.deepEqual(inputs.at(-1), { cssScale: 570, projection: 'globe' });
+});
+
 test('frame preparation snapshots the renderer DPR cap separately from source terrain DPR', t => {
   const previousWindow = globalThis.window;
   globalThis.window = { devicePixelRatio: 3 };

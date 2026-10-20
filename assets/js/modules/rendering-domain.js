@@ -155,7 +155,9 @@ export function createRenderingDomain({
     active();
     // Select the display source before the same frame builds scene packets,
     // labels and overlays, expanding a view-only frame only on a real switch.
-    if (gpuMapRenderer?.syncCountryMeshQuality?.()) mask |= MAP_RENDER_DIRTY.PROJECT;
+    const qualityHost = typeof mapHost === 'function' ? mapHost() : mapHost;
+    const qualityView = qualityHost?.getViewState?.();
+    if (gpuMapRenderer?.syncCountryMeshQuality?.(qualityView ? { cssScale: qualityView.scale, projection: qualityView.projection } : undefined)) mask |= MAP_RENDER_DIRTY.PROJECT;
     stats.invalidations += 1;
     stats.lastReason = String(reason);
     if (!placeInteractionActive && mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION | MAP_RENDER_DIRTY.PROJECT)) labels.preparePlaces?.();
