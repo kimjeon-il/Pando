@@ -1949,8 +1949,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "fbec7a08ae78f93179745513a8456fa64b99d24f045e25464f33b9e9c11d360e",
-      "outputFingerprint": "c715d3fe9d85ceeeb4f2bb08a683d75fcf1b6818cac0d288242b033ac62eeb02",
+      "inputFingerprint": "c57adb16b1b63d82d0e29c0085e3e6bec654658589aa7dacaec3b62c98dd1652",
+      "outputFingerprint": "56a615cb177234cfecdce7a314c4fc37b4533e80a207dfcbbcde74be8f8107dc",
       "inputs": {
         "assets/js/app.js": "3afc301fc189ac2277f115ff9c28f37139e1df7c765fb5b999b5d3613f365f6e",
         "assets/js/bootstrap.js": "93cada4a638e7e0669d1e239282bddf54305de7e30fb7301f35e0cb37b610b8c",
@@ -2307,7 +2307,7 @@
         "assets/js/modules/worker-job-scheduler.js": "06d2ca1668a10a9de79c58bfbfce9fb4d68aa22611f8b83cd2471a93a1ce97c9",
         "assets/js/modules/worker-rpc.js": "29ba7f35d830f25a52a70e4703444b3cdea6f822b3f39762c5a00fb8915aae77",
         "assets/js/modules/workspace-layout.js": "ab8f3282e132e027a05cf110c7dd4a527b89097714a3fc5ff1f205c1e256b593",
-        "assets/js/modules/workspace-surfaces.js": "71cf3b2af276f2017027d64803c1de47da9656f3394976b53da9da4329956cc9",
+        "assets/js/modules/workspace-surfaces.js": "c842c60bbc73b942c3cfa3476612e5a76e34a7fa508594e9886837595fa9329a",
         "assets/js/modules/world-bundle-manifest.js": "80ea3e0ea8eca1a5ebed9f5dd00050114ca176d1d460a0d4312fcb1086d8c3ba",
         "assets/js/vendor/d3.min.js": "4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538",
         "assets/js/vendor/earcut.min.js": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3",
@@ -2371,9 +2371,9 @@
       },
       "outputs": {
         "README.md": "6931d8ae20cb7f1e4135b61e24197d97e0cd13f5f1cd5819ce2916509490efd6",
-        "apps/web-shell/editor.html": "cf2932207ff405f47a98df8381547b46b3522ba08c8ed857614deda6dab13f18",
-        "assets/js/build-meta.js": "7f02f171506eda30b0d7fda1e1dc26c1bee2f6587a41055ac1beb7d6a3b86461",
-        "index.html": "192c0bc8fa0336d6da35d7848a461c7882606e09de876f7a85dc4fd6c34d94f6"
+        "apps/web-shell/editor.html": "58530ced99cd38e6bb89742fa54292a6524450f86531f279d15074e8aecac84f",
+        "assets/js/build-meta.js": "3793dda7b96e6d26b10981459d7ad1cb54419c5fbf61a92f08e31d92bc4702cc",
+        "index.html": "5b88504ba0744b483ccef87c6e076a6abf7c4fa9009319709a76dae1a53affeb"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2388,7 +2388,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "c52aabb406ed1aba3e7301c8b3151216b5da638e"
+      "sourceSha": "4bcd15a19f551818baf9fd91ac78e0bf1380620b"
     }
   }
 }
