@@ -22,7 +22,6 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
   let displayMenuGesture = null;
   let pendingDisplayMenuLayout = false;
   let desktopViewMenuPositioner;
-  const displayMenuPanels = new Map();
   const displayMenuPresentation = new Map();
   function connect(ports) {
     if (dependencies) throw new Error('map-settings already connected');
@@ -256,9 +255,7 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
   }
 
   function displayPanelForDesktopGroup(group) {
-    if (group === 'projection') return (0, dependencies.platform.$)('mapViewProjectionSlot');
-    if (group === 'distribution') return (0, dependencies.platform.$)('distributionViewSettings');
-    return mapDisplayPanel(group);
+    return document.querySelector(`[data-view-menu-popup="${group}"]`);
   }
 
   function desktopMenuTrigger(group) {
@@ -279,13 +276,6 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
     desktopViewMenuCloseTimer = null;
   }
 
-  function createMenuSeparator() {
-    const separator = document.createElement('span');
-    separator.className = 'ui-menu-separator view-menu-separator';
-    separator.setAttribute('role', 'separator');
-    return separator;
-  }
-
   function setMenuPresentation(element, desktop, classes) {
     if (!element) return;
     let original = displayMenuPresentation.get(element);
@@ -293,7 +283,7 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
       original = {
         classes: ['ui-toggle', 'ui-radio-toggle', 'ui-segment-option', 'ui-segmented', 'projection-control',
           'projection-btn', 'terrain-mode-option', 'map-view-settings', 'layer-inline-style-panel',
-          'terrain-display-options', 'distribution-view-settings', 'map-view-projection-slot']
+          'terrain-display-options', 'distribution-view-settings', 'map-view-projection-slot', 'map-display-details']
           .filter(name => element.classList.contains(name)),
         role: element.getAttribute('role'),
         tabIndex: element.getAttribute('tabindex'),
@@ -346,64 +336,24 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
     cancelDesktopMenuTimers();
     const focusedControl = surface.contains(document.activeElement) ? document.activeElement : null;
     const root = surface.querySelector('.view-menu-root');
-    let popups = surface.querySelector('.view-menu-popups');
-    if (!popups) {
-      popups = document.createElement('div');
-      popups.className = 'view-menu-popups';
-      surface.append(popups);
-    }
-    // Distribution styling belongs to distributionViewSettings, not a sibling popup.
-    const groups = ['projection', ...Object.keys(LAYER_STYLE_TARGETS).filter(group => group !== 'distributions'), 'terrain', 'distribution'];
-    for (const group of groups) {
-      const panel = displayPanelForDesktopGroup(group);
-      if (!panel || displayMenuPanels.has(group)) continue;
-      const anchor = document.createComment(`view-menu-${group}`);
-      panel.before(anchor);
-      const visibility = desktopMenuTrigger(group)?.parentElement.querySelector(':scope > label');
-      const visibilityAnchor = visibility ? document.createComment(`view-menu-${group}-visibility`) : null;
-      if (visibility) visibility.before(visibilityAnchor);
-      const body = visibility ? document.createElement('div') : null;
-      if (body) body.className = 'view-menu-panel-content ui-menu-group';
-      displayMenuPanels.set(group, {
-        panel, anchor, visibility, visibilityAnchor, body,
-        contentNodes: [...panel.childNodes],
-        separator: visibility ? createMenuSeparator() : null,
-      });
-    }
-    for (const [group, entry] of displayMenuPanels) {
-      const { panel, anchor, visibility, visibilityAnchor, body, contentNodes, separator } = entry;
-      setMenuPresentation(panel, desktop, ['ui-menu-surface', 'ui-menu-list', 'ui-command-menu']);
-      panel.dataset.menuLevel = desktopMenuTrigger(group)?.dataset.mapDisplayParent ? '2' : '1';
+
+    // Keep authored submenu parents stable across desktop and mobile layouts.
+    for (const popup of surface.querySelectorAll('[data-view-menu-popup]')) {
+      setMenuPresentation(popup, desktop, ['ui-menu-surface', 'ui-menu-list', 'ui-command-menu']);
       if (desktop) {
-        if (body) {
-          body.append(...contentNodes);
-          const symbols = [...body.querySelectorAll(':scope > [data-territorial-symbol-row]')];
-          const boundary = body.querySelector('[data-layer-style-boundary]')?.closest('label');
-          body.prepend(...symbols, ...(boundary ? [boundary] : []));
-          const lastRow = boundary || symbols.at(-1);
-          if (lastRow) lastRow.after(separator);
-          else body.prepend(separator);
-          panel.append(visibility, body);
-        }
-        popups.append(panel);
-        panel.setAttribute('role', 'menu');
+        popup.setAttribute('role', 'menu');
+        popup.dataset.menuLevel = desktopMenuTrigger(popup.dataset.viewMenuPopup)?.dataset.mapDisplayParent ? '2' : '1';
       } else {
-        if (visibility) visibilityAnchor.after(visibility);
-        if (body) {
-          panel.append(...contentNodes);
-          const opacityField = panel.querySelector('[data-layer-style-opacity]')?.closest('label');
-          if (opacityField) panel.append(opacityField);
-          body.remove();
-          separator.remove();
-        }
-        anchor.after(panel);
-        panel.inert = false;
-        delete panel.dataset.menuLevel;
-        clearMenuPosition(panel);
+        popup.removeAttribute('role');
+        delete popup.dataset.menuLevel;
+        popup.hidden = false;
+        popup.inert = false;
+        clearMenuPosition(popup);
       }
     }
     setMenuPresentation(root, desktop, ['ui-menu-list']);
     if (desktop) root.setAttribute('role', 'menu');
+    else root.removeAttribute('role');
     surface.classList.toggle('view-menu-desktop', desktop);
     surface.classList.toggle('ui-menu-surface', desktop);
     surface.classList.toggle('ui-command-menu', desktop);
@@ -413,13 +363,12 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
       setMenuPresentation(element, desktop, ['ui-menu-group']);
       if (desktop) element.setAttribute('role', 'group');
     }
+    for (const panel of surface.querySelectorAll('[data-layer-style-panel]')) panel.classList.toggle('ui-menu-group', desktop);
     for (const field of surface.querySelectorAll('.layer-inline-style-field')) field.classList.toggle('ui-menu-control', desktop);
     for (const leading of surface.querySelectorAll('.view-menu-leading')) leading.classList.toggle('ui-menu-leading', desktop);
     for (const chevron of surface.querySelectorAll('.view-menu-chevron')) chevron.classList.toggle('ui-menu-chevron', desktop);
     syncMenuChoices(surface, desktop);
-    if (!desktop) {
-      desktopViewMenuPath = [];
-    }
+    if (!desktop) desktopViewMenuPath = [];
     displayMenuLayout = desktop;
     pendingDisplayMenuLayout = false;
     if (focusedControl?.getClientRects().length) focusedControl.focus({ preventScroll: true });
@@ -531,11 +480,11 @@ export function createMapSettings({ productMode='viewer',viewPresentation = null
         ? desktopViewMenuPath.includes(group)
         : visible && dependencies.objectModelA.expandedMapDisplayGroups.has(group);
       const panel = mapDisplayPanel(group);
+      const popup = displayPanelForDesktopGroup(group);
+      if (popup && popup !== panel) popup.hidden = menuDesktop && !expanded;
       if (panel) {
         panel.hidden = !expanded;
-        panel.inert = false;
-        const body = displayMenuPanels.get(group)?.body;
-        if (body) body.inert = menuDesktop && !visible;
+        panel.inert = menuDesktop && !visible;
       }
       row?.classList.toggle('is-disabled', !menuDesktop && !visible);
       trigger.disabled = !menuDesktop && !visible;
