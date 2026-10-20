@@ -314,7 +314,7 @@ async function openApp(page, renderer, { staticInput = false, focusCountry = tru
   await observe(page, staticInput, renderer);
   await gotoEditor(page, `/?debug=1&renderer=${renderer}&demTerrain=raster`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   if (staticInput) {
     const project = JSON.parse(await readFile(new URL('../fixtures/timeline-exchange/static.json', import.meta.url), 'utf8'));
     const polygons = [

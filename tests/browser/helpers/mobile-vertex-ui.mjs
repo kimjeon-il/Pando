@@ -8,7 +8,7 @@ export async function verifyMobileVertexUi(page,{url,domainSource,afterBoot=asyn
  const polygons=[[[6,48],[6,56],[16,56],[16,54],[16,52],[16,50],[16,48],[6,48]],[[16,48],[16,50],[16,52],[16,54],[16,56],[22,56],[22,48],[16,48]]];
  for(const [i,id] of ['A','B'].entries()){const ref={id:'recovery-'+id,version:1};seed.geometries.push({...ref,geojson:{type:'Polygon',coordinates:[polygons[i]]}});seed.timelineRecords.geometryBindings.find(r=>r.entityId===id).geometryRef=ref;Object.assign(seed.timelineRecords.parentRelations.find(r=>r.entityId===id),{parentId:'',coverageMode:'explicit'});}
  await page.evaluate(async seed=>{await window.__editingTestDomains().projectDomain.loadAutosave(seed);await window.PANDOLAB_TERRITORIAL.select('A');window.__editingTest.workspaceUiB.openSelectionEditor();},seed);
- await page.locator('#flatBtn').evaluate(n=>n.click());
+ await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
  await page.evaluate(()=>{const h=window.__PANDOLAB_MAP_HOST__;h.setViewState({projection:'flat',view:{...h.getViewState(),flatCenter:[13,52],flatZoom:12}});h.requestRepaint('editing-test');});
  await page.locator('#actionsTabBtn').click();await page.locator('#editEntityCoastBtn').click();
  await expect.poll(()=>page.evaluate(()=>window.__editingTest.projectState.state.boundaryPreparation?.status),{timeout:30000}).toBe('ready');

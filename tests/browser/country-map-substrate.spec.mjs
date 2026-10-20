@@ -113,7 +113,7 @@ async function openMap(page, renderer) {
     diagnosticStages.set(page, 'renderer-readiness');
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer))
       .toBe(renderer === 'canvas' ? 'canvas-worker' : renderer);
-    if (renderer === 'canvas') await page.locator('#flatBtn').evaluate(button => button.click());
+    if (renderer === 'canvas') await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
     await page.addStyleTag({ content: '#map text, #map .map-label, #map .country-label { visibility: hidden !important; }' });
     diagnosticStages.set(page, 'initial-selection');
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));

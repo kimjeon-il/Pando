@@ -82,7 +82,7 @@ test('attribute first Soviet timeline and GPU-selection CPU cost, then test memo
     const g = window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu;
     return g?.renderer === 'webgl2' && g.canonicalMeshReady && !g.countrySharedBoundaryReplacementPending;
   }), { timeout: 80_000 }).toBe(true);
-  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Profiler.enable');
   await cdp.send('Profiler.setSamplingInterval', { interval: 1000 });

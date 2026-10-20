@@ -85,8 +85,12 @@ export function createRenderingDomain(options) {
       sum + Math.hypot(point[0] - line[index][0], point[1] - line[index][1]), 0), 0);
     expect(length).toBeGreaterThan(0.1);
     expect(length).toBeLessThan(0.3);
-    await setViewingProjection(page, 'flat');
-    await closeViewingDisplay(page);
+    if (mode === 'viewer') {
+      await setViewingProjection(page, 'flat');
+      await closeViewingDisplay(page);
+    } else {
+      expect(await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection)).toBe('flat');
+    }
     await page.locator('#objectSearchBtn').click();
     await page.locator('#objectSearchInput').fill('HKG');
     await page.locator('#objectSearchResults button').filter({ hasText: 'HKG' }).first().click();
