@@ -18,6 +18,16 @@ test('phone landscape switches one right panel, preserves camera and adapts to k
   const box = await page.locator('#editorSurface').boundingBox();
   expect(box.width).toBeLessThanOrEqual(320);
   expect(box.width).toBeLessThanOrEqual(844 * 0.45);
+  const skin = await page.locator('#editorSurface').evaluate(node => {
+    const style = getComputedStyle(node);
+    return { position: style.position, leftBorder: style.borderLeftWidth,
+      topBorder: style.borderTopWidth, radius: style.borderTopLeftRadius, shadow: style.boxShadow };
+  });
+  expect(skin.position).toBe('fixed');
+  expect(skin.leftBorder).toBe('1px');
+  expect(skin.topBorder).toBe('0px');
+  expect(skin.radius).toBe('0px');
+  expect(skin.shadow).not.toBe('none');
   await expect.poll(async () => {
     const bounds = await page.locator('#editorSurface').boundingBox();
     return Math.round(bounds.x + bounds.width);
