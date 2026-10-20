@@ -1124,6 +1124,7 @@ export function createRenderingDomain({
   coordinator = createMapRenderCoordinator({
     requestFrame,
     prepareView,
+    isPresentationBlocked: () => !!gpuMapRenderer && gpuMapRenderer.getRuntimeState().projectRenderBlocked,
     invalidMaskMode,
     onInvalidMask: error => reportDiagnostic({
       code: error.code,
@@ -1134,6 +1135,7 @@ export function createRenderingDomain({
     }),
     onFrameComplete,
     renderers: {
+      preservedFrame: () => gpuMapRenderer.renderPreservedProjectFrame(),
       beginFrame,
       view: frame => {
         const result = renderPass('view', frame);

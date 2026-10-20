@@ -29,7 +29,7 @@ export function drawGpuBaseScene(input, passes) {
 
 function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
   terrainVisible, terrainStyle, countriesVisible, mapSubstrate, countries, prepared },
-  { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
+  { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, overrideTriangleDraw,
     territoryItems, physicalLandItems = [], independentItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
@@ -62,6 +62,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       gl.clearColor(0, 0, 0, 0);
       gl.clearStencil(0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+      drawOceanSubstrate();
       // Map-mode substrate is independent of optional country paint.
       resetGpuNormalBlend(gl);
       gl.enable(gl.STENCIL_TEST);
@@ -115,7 +116,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         },
         'country-fill': () => {
       resetGpuNormalBlend(gl);
-      if (countriesVisible) {
+      if (countriesVisible && mesh) {
         drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
         if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
       }

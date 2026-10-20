@@ -157,10 +157,11 @@ test('accepted metadata acknowledgements reproject current C++ rows while retain
 
 test('authoritative header patches preserve explicit null and missing fields without admitting a second domain writer',() => {
   const model=createCoreDocumentReadModel(seed()),before=model.snapshot();
-  model.apply({ ...emptyDelta(),header: { set: { sourceInfo: null,physicalSettings: { hiddenHydroIds: { source: true } } },removedKeys: ['physicalSourceInfo'] } });
+  model.apply({ ...emptyDelta(),presentation: { physicalSettings: { hiddenHydroIds: { source: true } } },header: { set: { sourceInfo: null },removedKeys: ['physicalSourceInfo'] } });
   const accepted=model.snapshot();assert.ok(Object.hasOwn(accepted,'sourceInfo'));assert.equal(accepted.sourceInfo,null);
   assert.equal(Object.hasOwn(accepted,'physicalSourceInfo'),false);assert.equal(accepted.labels,before.labels);
   assert.deepEqual(accepted.physicalSettings.hiddenHydroIds,{ source: true });
+  assert.throws(() => model.apply({ ...emptyDelta(),header: { set: { physicalSettings: {} },removedKeys: [] } }),{ code: 'PL-CORE-RESPONSE' });
   assert.throws(() => model.apply({ ...emptyDelta(),header: { set: { labels: [] },removedKeys: [] } }),{ code: 'PL-CORE-RESPONSE' });
   assert.throws(() => model.apply({ ...emptyDelta(),header: { set: { sourceInfo: null },removedKeys: ['sourceInfo'] } }),{ code: 'PL-CORE-RESPONSE' });
   assert.equal(model.snapshot(),accepted);
