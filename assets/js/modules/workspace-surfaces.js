@@ -512,7 +512,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
       if (!referenceGestureActive && pendingLayoutChange) applyLayoutMode();
     },
     initializeWorkspaceSurfaces,openFileMenu,
-    dispose(){listeners.forEach(remove=>remove());if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();cancelAnimationFrame(searchFocusFrame);},
+    dispose(){listeners.forEach(remove=>remove());if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();if(searchToolbarPresentation)searchToolbarPresentation.dispose();cancelAnimationFrame(searchFocusFrame);},
     get MOBILE_SHEET_IDS() { return MOBILE_SHEET_IDS; },
     get activeCreateMenuItems() { return activeCreateMenuItems; },
     get applyLayoutMode() { return applyLayoutMode; },
