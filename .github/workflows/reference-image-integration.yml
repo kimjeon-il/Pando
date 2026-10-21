@@ -1,6 +1,11 @@
 name: Reference Image Integration
 on:
   workflow_dispatch: {}
+  # Scoped one-off push trigger: CI runs only when this verification workflow is edited.
+  push:
+    branches: [work/ui]
+    paths:
+      - '.github/workflows/reference-image-integration.yml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 && format('{0}-{1}', github.event_name, github.event.pull_request.number || github.ref) || format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 }}
@@ -8,6 +13,7 @@ permissions:
   contents: read
 jobs:
   checks:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -44,3 +50,51 @@ jobs:
           name: reference-image-integration-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/application-checks.json
           if-no-files-found: warn
+
+  p6-focused-verification:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install pinned JS tools
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: '1. Reference-image unit tests and focused ESLint'
+        run: |
+          pnpm exec eslint \
+            assets/js/modules/reference-image-controller.js \
+            assets/js/modules/reference-image-surface.js \
+            assets/js/modules/reference-image-surface-port.js \
+            assets/js/modules/reference-image-ui.js \
+            assets/js/modules/reference-image-line-refine-controller.js \
+            assets/js/modules/reference-image-live-wire-controller.js \
+            tests/unit/reference-image-surface.test.mjs \
+            tests/browser/reference-image-auxiliary-surface.spec.mjs
+          node --test \
+            tests/unit/reference-image-surface.test.mjs \
+            tests/unit/reference-image-ui.test.mjs
+      - name: '2. Relevant UI architecture and CSS layering checks'
+        run: |
+          node scripts/check-ui-architecture.mjs
+          node scripts/check-ui-layering.mjs
+      - name: Install Chromium for the three targeted browser specs
+        run: pnpm exec playwright install --with-deps chromium
+      - name: '3. Reference-image button, line refinement and live-wire browser regression'
+        run: >
+          pnpm exec playwright test
+          tests/browser/reference-image-auxiliary-surface.spec.mjs
+          tests/browser/reference-image-line-refine.spec.mjs
+          tests/browser/reference-image-live-wire.spec.mjs
+          --workers=1 --retries=0 --trace off
+      - name: '4. Lazy reference-image CSS app-staging test'
+        run: >
+          node --test
+          --test-name-pattern="stages the runtime reference style catalog"
+          apps/web-shell/tests/stage.test.mjs
