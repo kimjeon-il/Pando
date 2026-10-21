@@ -164,10 +164,10 @@ test('wrapping is idempotent when strip clipping creates a long planar edge', as
 
 test('Soviet Union geometry preserves its 231 land components under D3 spherical winding', () => {
   const source = JSON.parse(fs.readFileSync(
-    path.join(root, 'assets/data/territorial-entities/source/countries/soviet-union.json'),
+    path.join(root, 'assets/data/territorial-entities/source/countries/state-soviet-union.json'),
     'utf8',
   ));
-  const entity = source.entities.find(item => item.entityId === 'state:soviet-union');
+  const entity = [source].find(item => item.entityId === 'state:soviet-union');
   assert.ok(entity, 'the USSR catalog identity must exist');
   const version = entity.geometryVersions.find(item =>
     item.versionId === 'state:soviet-union:1922-1991-baikonur-r1');

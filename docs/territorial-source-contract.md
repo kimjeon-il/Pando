@@ -17,6 +17,10 @@ This contract is shared by Pando Web and PandoEditor. The temporal semantics in
   `metadata.sourceLifetime`, geometry validity in `metadata.sourceGeometryValidity`,
   the selection precision/date in `metadata.sourceReferenceDate`, and source
   attribution in `metadata.sourceInfo`.
+- An undated import uses the source object's explicit
+  `metadata.representativeGeometryVersionId` and records `sourceReferenceDate: null`.
+  A dated import selects only a version covering the requested date. The representative
+  never supplies a missing historical version or implies a shared world reference date.
 - Source IDs/version IDs are preserved. New project instances receive their
   own IDs; existing project IDs and complete geometry archive survive exchange.
 - Repeated imports are distinct instances. Source administrative parent links

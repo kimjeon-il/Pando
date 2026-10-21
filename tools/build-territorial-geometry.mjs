@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File/lineage boundary for the native historical geometry recipe engine.
+// Individual source object boundary for the native historical geometry recipe engine.
 // All coordinate construction, topology, projection and winding live in C++.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -23,24 +23,20 @@ export function verifySourceHashes(recipe, repositoryRoot = root) {
   }
 }
 
-export function replaceRecipeGeometry(lineage, recipe, geometry) {
+export function replaceRecipeGeometry(entity, recipe, geometry) {
   assert.equal(geometry?.type, 'MultiPolygon', 'C++ recipe output must be MultiPolygon');
   assert.ok(Array.isArray(geometry.coordinates) && geometry.coordinates.length > 0,
     'C++ recipe output is empty');
-  const matches = lineage.entities.filter((entity) => entity.entityId === recipe.entityId);
-  assert.equal(matches.length, 1, 'Recipe target identity mismatch');
-  const versions = matches[0].geometryVersions.filter((version) => version.versionId === recipe.id);
+  assert.equal(entity.entityId, recipe.entityId, 'Recipe target identity mismatch');
+  const versions = entity.geometryVersions.filter((version) => version.versionId === recipe.id);
   assert.equal(versions.length, 1, 'Recipe target version mismatch');
   assert.equal(versions[0].validFrom, recipe.referenceDate, 'Recipe target date mismatch');
   assert.equal(versions[0].validTo, recipe.referenceDate, 'Recipe target date mismatch');
   return {
-    ...lineage,
-    entities: lineage.entities.map((entity) => entity.entityId !== recipe.entityId ? entity : {
-      ...entity,
-      geometryVersions: entity.geometryVersions.map((version) => version.versionId !== recipe.id ? version : {
-        ...version,
-        geometry,
-      }),
+    ...entity,
+    geometryVersions: entity.geometryVersions.map((version) => version.versionId !== recipe.id ? version : {
+      ...version,
+      geometry,
     }),
   };
 }
@@ -90,8 +86,7 @@ export function run(argv = process.argv.slice(2)) {
   const original = JSON.parse(readFileSync(outputPath, 'utf8'));
   const candidate = replaceRecipeGeometry(original, recipe, geometry);
   if (check) {
-    const stored = original.entities.find((entity) => entity.entityId === recipe.entityId)
-      .geometryVersions.find((version) => version.versionId === recipe.id).geometry;
+    const stored = original.geometryVersions.find((version) => version.versionId === recipe.id).geometry;
     assert.ok(sameRecipeGeometryWithinProjectionRounding(geometry, stored),
       `Historical library geometry is stale: ${recipe.output}`);
     const comparable = replaceRecipeGeometry(candidate, recipe, stored);

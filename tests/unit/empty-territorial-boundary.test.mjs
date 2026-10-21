@@ -91,7 +91,7 @@ test('exclusive child territory keeps its land contact and excludes its coast an
 
 test('Hong Kong and Macao source coastlines never enter the persistent child boundary scene', () => {
   const feature = id => {
-    const source = JSON.parse(readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/${id.toLowerCase()}.json`, import.meta.url), 'utf8')).entities[0];
+    const source = JSON.parse(readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`, import.meta.url), 'utf8'));
     return { type: 'Feature', id, properties: { entityKind: source.entityKind, parentId: source.parentEntityId.replace('state:', '') }, geometry: source.geometryVersions[0].geometry };
   };
   const root = feature('CHN'), children = [feature('HKG'), feature('MAC')];

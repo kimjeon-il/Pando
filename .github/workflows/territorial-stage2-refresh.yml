@@ -22,8 +22,7 @@ jobs:
           import assert from 'node:assert/strict';
           import fs from 'node:fs';
           await import('./assets/js/modules/polygon-geometry.js');
-          const source=JSON.parse(fs.readFileSync('assets/data/territorial-entities/source/countries/soviet-union.json','utf8'));
-          const soviet=source.entities.find(e=>e.entityId==='state:soviet-union');
+          const soviet=JSON.parse(fs.readFileSync('assets/data/territorial-entities/source/countries/state-soviet-union.json','utf8'));
           const geometry=soviet?.geometryVersions.find(v=>v.versionId==='state:soviet-union:1922-1991-baikonur-r1')?.geometry;
           assert.equal(geometry?.coordinates?.length,231);
           assert.equal(geometry.coordinates.reduce((sum,p)=>sum+p.reduce((n,r)=>n+r.length,0),0),40054);

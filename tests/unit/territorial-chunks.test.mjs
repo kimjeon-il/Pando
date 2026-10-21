@@ -22,7 +22,11 @@ test('index lists all source entities without geometry and compressed chunks ret
    assert.deepEqual(JSON.parse(bytes),entity);
    assert.equal(item.file,`${entityFileName(entity.entityId)}.gz`);
  }
- assert.equal(index.snapshots.length,2);
+ assert.equal(index.snapshots.length,1);
+ assert.equal(index.views.length,1);
+ assert.equal(index.views[0].id,'world:catalog');
+ assert.equal(Object.hasOwn(index.views[0],'referenceDate'),false);
+ assert.equal(index.views[0].selections.length,258);
 });
 
 test('unchanged compressed chunk bytes are reused rather than recompressed with a different zlib level',()=>{

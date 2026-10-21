@@ -34,7 +34,7 @@ const baseFixture = () => {
       compressedBytes: binary.length, file, bbox, sha256: createHash('sha256').update(binary).digest('hex') };
   });
   fs.writeFileSync(path.join(chunks, 'index.json'), JSON.stringify({ schemaVersion: 2, entities: indexRows,
-    snapshots: [{ id: 'world:natural-earth-5.1.1', referenceDate: '2026-10-06', entityRefs: ['state:TST', 'state:OTH'] }] }));
+    snapshots: [], views:[{id:'world:catalog',selections:['state:TST','state:OTH'].map(entityId=>({entityId,geometryVersionId:entityId+':v1'}))}] }));
   fs.writeFileSync(path.join(hydro, 'rivers_base.geojson'), JSON.stringify({ type: 'FeatureCollection', features: [
     { type: 'Feature', id: 'river-one', properties: { name: 'River' }, geometry: { type: 'LineString', coordinates: [[-2, 1], [5, 1]] } },
     { type: 'Feature', id: 'far', properties: { name: 'Elsewhere' }, geometry: { type: 'LineString', coordinates: [[50, 50], [60, 60]] } },
@@ -137,7 +137,8 @@ test('rejects huge unscoped read, too many entities and invalid calendar date', 
   assert.notEqual(cli(f.data, '--mode', 'summary').status, 0);
   assert.notEqual(cli(f.data, '--mode', 'summary', '--bbox', '-10,-10,30,30', '--max-entities', '1').status, 0);
   assert.notEqual(cli(f.data, '--country', 'TST', '--date', '2026-02-30').status, 0);
-  assert.match(cli(f.data, '--country', 'TST', '--date', '1914-01-01').stderr, /only current geometry/);
-  assert.equal(cli(f.data, '--country', 'TST', '--date', '2026-10-06').status, 0);
+  assert.match(cli(f.data, '--country', 'TST', '--date', '1914-01-01').stderr, /only undated modern geometry/);
+  assert.notEqual(cli(f.data, '--country', 'TST', '--date', '2026-10-06').status, 0);
+  assert.equal(cli(f.data, '--country', 'TST').status, 0);
   assert.notEqual(cli(f.data, '--mode', 'list', '--date', '1914-01-01').status, 0);
 });

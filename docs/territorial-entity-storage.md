@@ -1,15 +1,27 @@
-# Country lineage storage — current contract
+# Country object storage — current contract
 
-2026-10-06 country-lineage follow-up supersedes the flat-source/catalog descriptions
-in the dated M0–M16 execution record below. Work is on Web and App candidate branches
-`codex/country-lineage-storage`; this follow-up does not merge main or deploy.
+2026-10-21 country-object contract supersedes the embedded-lineage and flat-source
+descriptions in the dated execution record below. Work is on permanent `work/gis`;
+this change does not merge main or deploy.
 
-- Authoritative source: `assets/data/territorial-entities/source/countries/<lineageId>.json`.
-- Lineage schema 1: `lineageId`, `names`, embedded `entities`, explicit `relations`.
+- Authoritative source: `assets/data/territorial-entities/source/countries/<entityId with colon replaced by hyphen>.json`.
+  Each object owns its metadata, lifetime and all dated geometry versions.
+- Reference-only lineage schema 2: `source/lineages/<lineageId>.json` with
+  `lineageId`, `names`, `entityRefs`, explicit `relations`. No geometry is duplicated.
 - Entity/index schema 2: `entityId`, `names`, `alternateNames`, `lifetime`,
   `geometryVersions[].versionId`, provenance, administrative parent and instantiation.
-- 284 entities / 287 versions / 262 lineages. No identity merge/split, invented
-  periods or geometry; source coordinates and current canonical/shared boundaries preserved.
+- 281 entities / 262 lineages. Identity, lifetime and historical geometry are preserved.
+  Eligible modern land-boundary intervals are supplemented from pinned LSIB 11.4;
+  source details and withheld intervals are recorded in `reports/geography/country-files-lsib-2026-10-21.md`.
+- `metadata.representativeGeometryVersionId` explicitly selects an object's undated
+  representative. Importing it records a null reference date; explicit dated queries
+  still use that object's lifetime and version validity without a fallback.
+- `source/views/world.json` is an explicit entity/version display selection with no
+  common reference date. `generated/current-world.geojson`, packed world assets and
+  indexes are derivatives. Actual dated presets stay in `source/snapshots/`.
+- `tools/historical-library/historical-publication.recipe.json` holds the historical
+  viewer's dated export query. Its cursor is neither a global source observation date
+  nor a country founding date.
 - Individual generated chunks remain entity-scoped in `generated/v2`; index has
   lineage membership and version metadata without coordinates. Existing loader/cache
   owners verify bytes and schema before publication.

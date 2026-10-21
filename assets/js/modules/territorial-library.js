@@ -54,10 +54,11 @@ function relations(raw) {
 }
 
 export function normalizeTerritorialLineage(raw) {
-  if (raw?.schemaVersion !== 1 || !/^[a-z0-9][a-z0-9_-]*$/.test(raw.lineageId) || !Array.isArray(raw.entities) || !raw.entities.length) throw new Error('Invalid lineage schema/identity');
-  const entities = raw.entities.map(normalizeTerritorialLibraryEntity);
-  if (new Set(entities.map(e => e.entityId)).size !== entities.length) throw new Error('Duplicate lineage entity');
-  return freeze({schemaVersion: 1, lineageId: raw.lineageId, names: names(raw.names), entities, relations: relations(raw.relations)});
+  if (raw?.schemaVersion !== 2 || !/^[a-z0-9][a-z0-9_-]*$/.test(raw.lineageId)
+    || Object.hasOwn(raw,'entities') || !Array.isArray(raw.entityRefs) || !raw.entityRefs.length
+    || raw.entityRefs.some(id=>!/^[a-z]+:[A-Za-z0-9_-]+$/.test(id))) throw new Error('Invalid lineage schema/identity');
+  if (new Set(raw.entityRefs).size !== raw.entityRefs.length) throw new Error('Duplicate lineage entity');
+  return freeze({schemaVersion: 2, lineageId: raw.lineageId, names: names(raw.names), entityRefs:[...raw.entityRefs], relations: relations(raw.relations)});
 }
 
 export function normalizeTerritorialLibraryIndex(raw) {
@@ -90,6 +91,11 @@ export function normalizeTerritorialLibraryIndex(raw) {
   for(const entity of raw.entities){let parent=entity.parentEntityId;const seen=new Set([entity.entityId]);while(parent){if(!ids.has(parent)||seen.has(parent))throw new Error('Invalid catalog parent');seen.add(parent);parent=byId.get(parent).parentEntityId;}}
   const snapshots=new Set();
   for(const s of raw.snapshots){parseTemporal(s.referenceDate,{nullable:false});if(s.schemaVersion!==1 || !s.id || snapshots.has(s.id) || !Array.isArray(s.entityRefs) || new Set(s.entityRefs).size!==s.entityRefs.length || s.entityRefs.some(id=>!ids.has(id)))throw new Error('Invalid territorial snapshot');snapshots.add(s.id);}
+  for(const view of raw.views || []){
+    if(view.schemaVersion!==1 || !view.id || Object.hasOwn(view,'referenceDate') || !Array.isArray(view.selections)
+      || new Set(view.selections.map(row=>row.entityId)).size!==view.selections.length
+      || view.selections.some(row=>!byId.get(row.entityId)?.geometryVersions.some(v=>v.versionId===row.geometryVersionId)))throw new Error('Invalid territorial view');
+  }
   return freeze(structuredClone(raw));
 }
 
@@ -118,6 +124,7 @@ export function normalizeTerritorialLibraryEntity(raw) {
     }
   }
   const instantiation = structuredClone(raw.instantiation || { mode: 'independent', countryUpdates: {} });
+  if(raw.metadata?.representativeGeometryVersionId && !ids.has(raw.metadata.representativeGeometryVersionId))throw new Error('Missing representative geometry version');
   if (!['independent', 'territory-replacement'].includes(instantiation.mode)) throw new Error('Invalid territorial instantiation mode');
   return freeze({
     schemaVersion: TERRITORIAL_LIBRARY_SCHEMA_VERSION, entityId, entityKind: raw.entityKind,
@@ -148,8 +155,9 @@ export function selectGeometryVersion(entity, referenceDate = null) {
   return index < 0 ? null : entity.geometryVersions[index];
 }
 
-export function instantiateLibraryEntity(entity, referenceDate) {
-  const version = selectGeometryVersion(entity, referenceDate);
+export function instantiateLibraryEntity(entity, referenceDate, geometryVersionId = null) {
+  const version = geometryVersionId && referenceDate===null
+    ? entity.geometryVersions.find(row=>row.versionId===geometryVersionId) : selectGeometryVersion(entity, referenceDate);
   if (!version) throw new Error('선택한 시점에 사용할 경계 버전이 없습니다.');
   return {
     entityId: entity.entityId, geometryVersionId: version.versionId, entityKind: entity.entityKind,

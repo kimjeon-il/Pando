@@ -23,11 +23,13 @@ export function createTerritorialLibraryEditor({service,repository,revision}) {
    relations:l.relations.filter(r=>entries.has(r.from)&&entries.has(r.to))})).filter(l=>l.entityRefs.length);
   for(const e of entities){
    let lineage=lineages.find(l=>l.lineageId===e.lineageId);
-   if(!lineage){lineage={schemaVersion:1,lineageId:e.lineageId,names:e.names,entityRefs:[],relations:[]};lineages.push(lineage);}
+   if(!lineage){lineage={schemaVersion:2,lineageId:e.lineageId,names:e.names,entityRefs:[],relations:[]};lineages.push(lineage);}
    if(!lineage.entityRefs.includes(e.entityId))lineage.entityRefs.push(e.entityId);
   }
   const snapshots=base.snapshots.map(s=>({...s,entityRefs:s.entityRefs.filter(id=>entries.has(id))}));
-  return normalizeTerritorialLibraryIndex({...base,entities,lineages,snapshots});
+  const views=(base.views || []).map(view=>({...view,selections:view.selections.filter(row=>
+    entries.get(row.entityId)?.geometryVersions.some(v=>v.versionId===row.geometryVersionId))}));
+  return normalizeTerritorialLibraryIndex({...base,entities,lineages,snapshots,views});
  }
  async function apply({entities=[],deletedEntityIds=[],editMethod='user-library-editor',externalRevision:externalGuard}){
   guard();const start=epoch;

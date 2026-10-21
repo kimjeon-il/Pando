@@ -16,7 +16,7 @@ for (const mode of ['viewer', 'editor']) for (const renderer of ['webgl2', 'canv
     try {
     page.setDefaultTimeout(20_000);
     const entities = ['CHN', 'HKG', 'MAC'].map(id => {
-      const source = JSON.parse(readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/${id.toLowerCase()}.json`, import.meta.url), 'utf8')).entities[0];
+      const source = JSON.parse(readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`, import.meta.url), 'utf8'));
       return createTerritorialFeature({ id, name: id, entityKind: 'general', parentId: source.parentEntityId.replace('state:', ''), geometry: source.geometryVersions[0].geometry });
     });
     const receipt = await coreFileProjection(startupDocument(entities));

@@ -21,7 +21,7 @@ for (const filename of fs.readdirSync(countryDirectory).filter(file => file.ends
   const file = path.join(countryDirectory, filename);
   const document = JSON.parse(fs.readFileSync(file, 'utf8'));
   stagedFiles.set(file, { document, changed: false });
-  for (const entity of document.entities) {
+  for (const entity of [document]) {
     for (const version of entity.geometryVersions) {
       entries.push({ file, identity: { file: filename, entityId: entity.entityId, versionId: version.versionId }, version });
     }

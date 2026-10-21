@@ -1,69 +1,66 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { normalizeTerritorialLibraryEntity, normalizeTerritorialLineage } from '../assets/js/modules/territorial-library.js';
+import {fileURLToPath} from 'node:url';
+import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage} from '../assets/js/modules/territorial-library.js';
 
-export const territorialDataRoot = fileURLToPath(new URL('../assets/data/territorial-entities/', import.meta.url));
-export const territorialSourceRoot = process.env.PANDOLAB_LIBRARY_SOURCE_ROOT
-  ? path.resolve(process.env.PANDOLAB_LIBRARY_SOURCE_ROOT)
-  : path.join(territorialDataRoot, 'source');
-export const entityFileName = entityId => {
-  if (!/^[a-z]+:[A-Za-z0-9_-]+$/.test(entityId)) throw new Error(`Unsafe entity ID: ${entityId}`);
-  return `${entityId.replace(':', '-')}.json`;
+export const territorialDataRoot=fileURLToPath(new URL('../assets/data/territorial-entities/',import.meta.url));
+export const territorialSourceRoot=process.env.PANDOLAB_LIBRARY_SOURCE_ROOT
+  ? path.resolve(process.env.PANDOLAB_LIBRARY_SOURCE_ROOT) : path.join(territorialDataRoot,'source');
+export const entityFileName=entityId=>{
+  if(!/^[a-z]+:[A-Za-z0-9_-]+$/.test(entityId))throw new Error(`Unsafe entity ID: ${entityId}`);
+  return `${entityId.replace(':','-')}.json`;
 };
+const read=file=>JSON.parse(fs.readFileSync(file,'utf8'));
 
-export function readTerritorialLineages(root = territorialSourceRoot) {
-  const directory = path.join(root, 'countries');
-  const lineages = fs.readdirSync(directory).filter(name => name.endsWith('.json')).sort().map(name => {
-    const lineage = normalizeTerritorialLineage(JSON.parse(fs.readFileSync(path.join(directory, name), 'utf8')));
-    if (name !== `${lineage.lineageId}.json`) throw new Error(`Lineage filename mismatch: ${name}`);
+export function readTerritorialLineages(root=territorialSourceRoot){
+  const directory=path.join(root,'lineages');
+  return fs.readdirSync(directory).filter(name=>name.endsWith('.json')).sort().map(name=>{
+    const lineage=normalizeTerritorialLineage(read(path.join(directory,name)));
+    if(name!==`${lineage.lineageId}.json`)throw new Error(`Lineage filename mismatch: ${name}`);
     return lineage;
   });
-  const entities = lineages.flatMap(lineage => lineage.entities);
-  const ids = new Set();
-  for (const entity of entities) {
-    if (ids.has(entity.entityId)) throw new Error(`Duplicate entity: ${entity.entityId}`);
-    ids.add(entity.entityId);
+}
+function validateMembership(lineages,byId){
+  const membership=new Set();
+  for(const lineage of lineages){
+    for(const id of lineage.entityRefs){
+      if(membership.has(id)||!byId.has(id)||byId.get(id).lineageId!==lineage.lineageId)throw new Error(`Invalid lineage membership: ${id}`);
+      membership.add(id);
+    }
+    for(const relation of lineage.relations)if(!byId.has(relation.from)||!byId.has(relation.to))throw new Error('Missing lineage relation endpoint');
   }
-  const byId = new Map(entities.map(entity => [entity.entityId, entity]));
-  for (const entity of entities) {
-    const visited = new Set([entity.entityId]);
-    let parent = entity.parentEntityId;
-    while (parent) {
-      if (!byId.has(parent) || visited.has(parent)) throw new Error(`Invalid catalog parent: ${entity.entityId}`);
-      visited.add(parent); parent = byId.get(parent).parentEntityId;
+  if(membership.size!==byId.size)throw new Error('Orphan country source');
+  for(const entity of byId.values()){
+    const visited=new Set([entity.entityId]);let parent=entity.parentEntityId;
+    while(parent){
+      if(!byId.has(parent)||visited.has(parent))throw new Error(`Invalid catalog parent: ${entity.entityId}`);
+      visited.add(parent);parent=byId.get(parent).parentEntityId;
     }
   }
-  for (const lineage of lineages) for (const relation of lineage.relations) {
-    if (!ids.has(relation.from) || !ids.has(relation.to)) throw new Error('Missing lineage relation endpoint');
+}
+export function readTerritorialSource(entityId,root=territorialSourceRoot){
+  const entity=normalizeTerritorialLibraryEntity(read(path.join(root,'countries',entityFileName(entityId))));
+  if(entity.entityId!==entityId)throw new Error(`Country filename mismatch: ${entityId}`);
+  return entity;
+}
+export function readTerritorialSources(root=territorialSourceRoot){
+  const lineages=readTerritorialLineages(root),directory=path.join(root,'countries'),byId=new Map();
+  for(const name of fs.readdirSync(directory).filter(name=>name.endsWith('.json')).sort()){
+    const entity=normalizeTerritorialLibraryEntity(read(path.join(directory,name)));
+    if(name!==entityFileName(entity.entityId)||byId.has(entity.entityId))throw new Error(`Country filename/identity mismatch: ${name}`);
+    byId.set(entity.entityId,entity);
   }
-  return lineages;
+  validateMembership(lineages,byId);
+  return lineages.flatMap(lineage=>lineage.entityRefs.map(id=>byId.get(id)));
 }
-
-export function readTerritorialSources(root = territorialSourceRoot) {
-  return readTerritorialLineages(root).flatMap(lineage => lineage.entities.map(entity => Object.freeze({...entity,lineageId:lineage.lineageId})));
-}
-
-// Curated source tools patch one identity in its existing lineage. Siblings,
-// lineage names and relations are kept byte-for-value rather than normalized.
-export function updateTerritorialSource(entityId, update, root = path.join(territorialDataRoot, 'source')) {
-  const lineages = readTerritorialLineages(root);
-  const lineage = lineages.find(item => item.entities.some(entity => entity.entityId === entityId));
-  if (!lineage) throw new Error(`Missing source entity: ${entityId}`);
-  const file = path.join(root, 'countries', `${lineage.lineageId}.json`);
-  const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const index = raw.entities.findIndex(entity => entity.entityId === entityId);
-  const replacement = update(structuredClone(raw.entities[index]));
-  if (replacement.entityId !== entityId) throw new Error('Source update changed identity');
-  normalizeTerritorialLibraryEntity(replacement);
-  raw.entities[index] = replacement;
-  normalizeTerritorialLineage(raw);
-  const ids = new Set(lineages.flatMap(item => item.entities.map(entity => entity.entityId)));
-  if (replacement.parentEntityId && !ids.has(replacement.parentEntityId)) throw new Error('Missing source parent');
-  const byId = new Map(lineages.flatMap(item => item.entities.map(entity => [entity.entityId,entity])));
-  byId.set(entityId,replacement);
-  const seen=new Set([entityId]);let parent=replacement.parentEntityId;
-  while(parent){if(seen.has(parent))throw new Error('Cyclic source parent');seen.add(parent);parent=byId.get(parent).parentEntityId;}
-  fs.writeFileSync(file, `${JSON.stringify(raw, null, 2)}\n`);
-  return normalizeTerritorialLibraryEntity(replacement);
+// One source object owns its coordinates; cross-object validation precedes writes.
+export function updateTerritorialSource(entityId,update,root=territorialSourceRoot){
+  const entities=readTerritorialSources(root),byId=new Map(entities.map(e=>[e.entityId,e]));
+  if(!byId.has(entityId))throw new Error(`Missing source entity: ${entityId}`);
+  const replacement=update(structuredClone(byId.get(entityId)));
+  if(replacement.entityId!==entityId)throw new Error('Source update changed identity');
+  const validated=normalizeTerritorialLibraryEntity(replacement);byId.set(entityId,validated);
+  validateMembership(readTerritorialLineages(root),byId);
+  fs.writeFileSync(path.join(root,'countries',entityFileName(entityId)),`${JSON.stringify(replacement,null,2)}\n`);
+  return validated;
 }

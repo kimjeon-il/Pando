@@ -24,6 +24,12 @@ const host=document.getElementById('sourceHost'),preview=document.getElementById
 let ui;
 async function render(){preview.replaceChildren();const entity=await service.loadEntity(selectedId);ui.decorate({entity,version:entity.geometryVersions[0],host:preview});}
 ui=createTerritorialLibraryEditingUi({document,window,host,service,repository,refresh:render,reportError:error=>{document.getElementById('failure').textContent=error.message;}});
-await render();window.LIBRARY_UI_TEST={get saved(){return saved;},get publishCalls(){return publishCalls;},get openCalls(){return openCalls;},warnOnCommit:()=>{warningOnCommit=true;},queueExternal:async invalid=>{
+await render();window.LIBRARY_UI_TEST={get saved(){return saved;},get publishCalls(){return publishCalls;},get openCalls(){return openCalls;},importRepresentative:async()=>{
+const entity=await service.loadEntity(selectedId);const selection=service.resolveSelection(selectedId,null);
+const result=await service.instantiateDescriptors([selectedId],null);
+const value=result[0],version=entity.geometryVersions.find(v=>v.versionId===selection.geometryVersionId);
+return {versionId:selection.geometryVersionId,referenceDate:value.metadata.sourceReferenceDate,
+geometryMatches:JSON.stringify(value.geometry)===JSON.stringify(version.geometry)};
+},warnOnCommit:()=>{warningOnCommit=true;},queueExternal:async invalid=>{
 const entity=await repository.readEntity('state:KOR');entity.names.ko='외부 파일 수정';entity.geometryVersions[0].validFrom='1948-08-15';if(invalid)entity.lifetime.validFrom='bad';external=[entity];}};
 </script></html>

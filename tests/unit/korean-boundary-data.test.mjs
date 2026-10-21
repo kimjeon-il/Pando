@@ -1,17 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
-import {normalizeTerritorialLineage,selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity,selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
 import {createRingHitTester} from '../../assets/js/modules/ring-hit-test.js';
 import {clippingOperationWithPrecisionRetry} from '../../assets/js/modules/polygon-clipping-calculation.js';
 import {gunzipSync} from 'node:zlib';
 import {createGeometryVersionStore} from '../../assets/js/modules/geometry-version-store.js';
 import {resolveWorld} from '../../assets/js/modules/timeline-resolver.js';
+import {refineChinesePaektuSource} from '../../tools/build-korean-boundaries.mjs';
 
-const source = JSON.parse(fs.readFileSync(new URL('../../assets/data/territorial-entities/source/countries/korea.json',import.meta.url)));
-const lineage = normalizeTerritorialLineage(source);
-const korea = lineage.entities.find(e=>e.entityId==='state:KOR');
-const north = lineage.entities.find(e=>e.entityId==='state:PRK');
+const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`,import.meta.url))));
+const korea=readCountry('KOR'),north=readCountry('PRK');
 const rings=createRingHitTester(ring=>ring);
 const contains=(entity,date,point)=>{
   const geometry=selectGeometryVersion(entity,date).geometry;
@@ -81,14 +80,18 @@ test('Baengnyeong island keeps its whole South Korean component across armistice
   assert.deepEqual(before,after);
 });
 
-test('the paired Korean/Chinese changes preserve the land union and produce no ownership overlap',()=>{
+test('the paired Korean/Chinese changes preserve the Korean land union and produce no ownership overlap',()=>{
   const original=JSON.parse(fs.readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson',import.meta.url)));
-  const china=JSON.parse(fs.readFileSync(new URL('../../assets/data/territorial-entities/source/countries/chn.json',import.meta.url))).entities[0];
+  const china=readCountry('CHN');
   const coordinates=g=>g.type==='Polygon'?[g.coordinates]:g.coordinates;
   const before=original.features.filter(f=>['KOR','PRK','CHN'].includes(f.id)).map(f=>coordinates(f.geometry));
   const current=[korea,north,china].map(e=>coordinates(selectGeometryVersion(e,'2026-10-06').geometry));
   const union=values=>clippingOperationWithPrecisionRetry('union',...values);
-  assert.deepEqual(clippingOperationWithPrecisionRetry('xor',union(before),union(current)),[]);
+  // China's other land borders are independently supplemented. Restrict the
+  // original NE union comparison to Korea and its Chinese counterpart region.
+  const region=[[[[123,36],[130,36],[130,42.8],[123,42.8],[123,36]]]];
+  const within=values=>clippingOperationWithPrecisionRetry('intersection',union(values),region);
+  assert.deepEqual(clippingOperationWithPrecisionRetry('xor',within(before),within(current)),[]);
   assert.deepEqual(clippingOperationWithPrecisionRetry('intersection',current[0],current[1]),[]);
   assert.deepEqual(clippingOperationWithPrecisionRetry('intersection',current[1],current[2]),[]);
   assert.equal(china.geometryVersions.length,1,'A local counterpart correction must not invent Chinese historical coverage');
@@ -97,6 +100,13 @@ test('the paired Korean/Chinese changes preserve the land union and produce no o
   assert.equal(contains(china,'2026-10-06',[128.045,42.016]),true);
   assert.equal(contains(north,'1964-03-20',[128.07,42.006]),true,'southeast Cheonji belongs to North Korea');
   assert.equal(contains(china,'2026-10-06',[128.07,42.006]),false);
+});
+
+test('Korean reconstruction preserves the supplemented Chinese counterpart byte for byte',()=>{
+  const china=readCountry('CHN');
+  const lines=JSON.parse(fs.readFileSync(new URL('../../tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson',import.meta.url)));
+  assert.ok(china.geometryVersions[0].modernBoundarySupplement);
+  assert.deepEqual(refineChinesePaektuSource(china,lines,'unused-on-unchanged-chain'),china);
 });
 
 test('the actual published timeline retains Korean creation dates and the June/July 1953 geometry change',()=>{

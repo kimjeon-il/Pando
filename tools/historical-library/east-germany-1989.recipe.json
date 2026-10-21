@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "state:deutsche-demokratische-republik:1989-04-25-r1",
   "referenceDate": "1989-04-25",
-  "output": "assets/data/territorial-entities/source/countries/germany.json",
+  "output": "assets/data/territorial-entities/source/countries/state-deutsche-demokratische-republik.json",
   "entityId": "state:deutsche-demokratische-republik",
   "sources": {
     "naturalEarthAdmin1": {
@@ -36,7 +36,7 @@
     "canonicalCountries": {
       "path": "assets/data/countries-ne-5.1.1.geojson",
       "crs": "EPSG:4326",
-      "sha256": "6D29C349478CB2A7899573544BA580DA70BD902C12EE86A4A93662CA6E94AD72"
+      "sha256": "52590CE133A779FC678496844C844137AEAA0DCA41CECA1621CD7C50169F5EFB"
     }
   },
   "operations": [

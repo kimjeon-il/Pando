@@ -216,8 +216,9 @@ const previewCountries = checkedGzip(previewCountriesPath, zlib.gzipSync(preview
 const canonicalCountryPacketBuffer = encodeCanonicalCountryPacket(canonicalSource);
 const canonicalCountryPacketHeader = inspectCanonicalCountryPacket(canonicalCountryPacketBuffer);
 const canonicalCountryPacket = checkedGzip(canonicalCountryPacketPath, zlib.gzipSync(Buffer.from(canonicalCountryPacketBuffer), { level: 9, mtime: 0 }));
-if (canonicalCountryPacketBuffer.byteLength > 10 * 1024 * 1024) throw new Error(`canonical 국가 packet이 10MiB를 초과했습니다: ${canonicalCountryPacketBuffer.byteLength}`);
-if (canonicalCountryPacket.length > 5.5 * 1024 * 1024) throw new Error(`canonical 국가 packet gzip이 5.5MiB를 초과했습니다: ${canonicalCountryPacket.length}`);
+// LSIB detail increases source vertices; these are data budgets, not wire limits.
+if (canonicalCountryPacketBuffer.byteLength > 24 * 1024 * 1024) throw new Error(`canonical 국가 packet이 24MiB를 초과했습니다: ${canonicalCountryPacketBuffer.byteLength}`);
+if (canonicalCountryPacket.length > 13 * 1024 * 1024) throw new Error(`canonical 국가 packet gzip이 13MiB를 초과했습니다: ${canonicalCountryPacket.length}`);
 const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, { validate: true, maxEdgeDegrees: 2 });
 validatePackedMeshGeometry(mesh, canonicalSource.features.length);
 const packedMesh = packMesh(mesh, preview.coordinateCount);

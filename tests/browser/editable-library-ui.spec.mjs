@@ -1,4 +1,21 @@
 import {test,expect} from '@playwright/test';
+
+test('explicit representative survives source save and reload and imports without an invented date',async({page})=>{
+ await page.goto('/tests/fixtures/editable-library-ui.html');
+ await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ const id='state:KOR:38th-parallel-1948';
+ await page.getByLabel('대표 형상',{exact:true}).selectOption(id);
+ await page.getByRole('button',{name:'저장',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('동기화 대기');
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.saved.records['state:KOR'].metadata.representativeGeometryVersionId)).toBe(id);
+ await page.reload();await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await expect(page.getByLabel('대표 형상',{exact:true})).toHaveValue(id);
+ const imported=await page.evaluate(()=>window.LIBRARY_UI_TEST.importRepresentative());
+ expect(imported.versionId).toBe(id);expect(imported.referenceDate).toBeNull();
+ expect(imported.geometryMatches).toBe(true);
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.publishCalls)).toBe(0);
+ await expect(page.locator('#failure')).toHaveText('');
+});
 test('a committed write with locked derivative files retains its success receipt and warning',async({page})=>{
  await page.goto('/tests/fixtures/editable-library-ui.html');await page.getByRole('button',{name:'원본 편집',exact:true}).click();
  await page.evaluate(()=>window.LIBRARY_UI_TEST.warnOnCommit());

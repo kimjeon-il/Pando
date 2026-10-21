@@ -21,18 +21,15 @@ test('native recipe launcher changes only the selected geometry version', () => 
   const geometry = { type: 'MultiPolygon', coordinates: [[[[0, 0], [0, 1], [1, 0], [0, 0]]]] };
   const before = structuredClone(lineage);
   const result = replaceRecipeGeometry(lineage, recipe, geometry);
-  const target = result.entities.find((entity) => entity.entityId === recipe.entityId);
-  const version = target.geometryVersions.find((item) => item.versionId === recipe.id);
+  const version = result.geometryVersions.find((item) => item.versionId === recipe.id);
   assert.deepEqual(version.geometry, geometry);
   assert.deepEqual(lineage, before, 'candidate generation must not mutate the source');
-  version.geometry = before.entities.find((entity) => entity.entityId === recipe.entityId)
-    .geometryVersions.find((item) => item.versionId === recipe.id).geometry;
+  version.geometry = before.geometryVersions.find((item) => item.versionId === recipe.id).geometry;
   assert.deepEqual(result, before, 'all curated identities, metadata, other versions and relations must survive');
 });
 
 test('projection rounding accepts submicroscopic drift while rejecting changed geometry', () => {
-  const stored = lineage.entities.find((entity) => entity.entityId === recipe.entityId)
-    .geometryVersions.find((version) => version.versionId === recipe.id).geometry;
+  const stored = lineage.geometryVersions.find((version) => version.versionId === recipe.id).geometry;
   const rounded = structuredClone(stored);
   rounded.coordinates[0][0][0][0] += 1e-12;
   assert.equal(sameRecipeGeometryWithinProjectionRounding(rounded, stored), true);
