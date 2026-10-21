@@ -2,9 +2,10 @@
 
 [[permission]]
 identifier = "allow-begin-document-read"
-description = "Enables begin_document_read without any pre-configured scope."
+description = "Enables the begin_document_read command without any pre-configured scope."
 commands.allow = ["begin_document_read"]
 
 [[permission]]
 identifier = "deny-begin-document-read"
+description = "Denies the begin_document_read command without any pre-configured scope."
 commands.deny = ["begin_document_read"]
