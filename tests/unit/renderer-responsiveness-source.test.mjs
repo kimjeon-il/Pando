@@ -48,21 +48,21 @@ test('a newly promoted scene cache texture is presented in the same view frame',
   assert.ok(!renderWebGl.includes('{ clearTarget: false, reproject }'));
 });
 
-test('hydro and terrain share bounded upload steps and pause during interaction', async () => {
+test('visible terrain shares the upload budget while background hydro waits for quiet input', async () => {
   const { createGpuUploadScheduler } = await import('../../assets/js/modules/gpu-upload-scheduler.js');
   const frames = [], submitted = [];
   let now = 0;
   const scheduler = createGpuUploadScheduler({ requestFrame: callback => (frames.push(callback), frames.length),
     cancelFrame() {}, now: () => now, isHidden: () => false, isInputPending: () => false, getByteBudget: () => 512 * 1024 });
   scheduler.noteInput(true);
-  const pending = ['hydro', 'terrain'].map(key => scheduler.enqueueUpload({ key, step: ({ byteBudget }) => {
+  const pending = ['hydro', 'terrain'].map(key => scheduler.enqueueUpload({ key, allowDuringInteraction: key === 'terrain', step: ({ byteBudget }) => {
     submitted.push([key, byteBudget]); return { bytes: byteBudget, done: true };
   } }));
   frames.shift()();
-  assert.deepEqual(submitted, []);
+  assert.deepEqual(submitted, [['terrain', 262144]]);
   scheduler.noteInput(false); now = 500; frames.shift()();
   await Promise.all(pending);
-  assert.deepEqual(submitted, [['hydro', 262144], ['terrain', 262144]]);
+  assert.deepEqual(submitted, [['terrain', 262144], ['hydro', 262144]]);
   scheduler.dispose();
 });
 

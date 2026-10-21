@@ -51,7 +51,9 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   const d3 = globalThis.d3;
   if (!d3) throw new Error('지도 투영 라이브러리를 불러오지 못했습니다.');
   let renderingDomain=null;
-  let session = null, disposed = false;
+  // The admitted empty document can already display the physical substrate.
+  // Historical country data replaces it only after Core accepts that source.
+  let session = documentSession, disposed = false;
 
   const currentZoom=()=>state.projection==='globe'?state.view.globeZoom:state.view.flatZoom;
   let updateGeneration = 0;
@@ -63,7 +65,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   mapHost.initializeResolutionQuery();mapHost.initializeMapResizeObserver();
   projectSession.connect({readiness:{DATA_READINESS},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
     modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET},domains:{selectionDomain:documentSession.selectionDomain},
-    uiFactoriesA:{createAtomicMapStateController},mapNavigation:{get clampViewZooms(){return navigation.clampViewZooms;}}});
+    uiFactoriesA:{createAtomicMapStateController},mapNavigation:{get clampViewZooms(){return navigation.clampViewZooms;},get reprojectView(){return navigation.reprojectView;}}});
   projectSession.initializeMapWorkScheduler();
   const state=projectSession.state,mapWorkScheduler=projectSession.mapWorkScheduler;
   const entityStore=createTerritorialEntityStore({documentModel:documentSession.documentModel,commandOwner:documentSession.commandOwner,
@@ -196,6 +198,8 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   gpuScene.initializeSelectionPass();gpuScene.initializeRenderSceneBuilder();gpuScene.initializeGpuSceneDomains();gpuScene.initializeGpuSceneResourceObjectKeys();
   mapHost.attachMapOutput({overlaySvg:svg,gpuCanvas:canvas});
   initialized=Promise.all([renderer.initialize({allowPreview:false}),mapHost.initializeMapHost()]);
+  initialized.then(()=>renderingDomain.invalidateProject('map-initialized'))
+    .catch(error=>onError(error,'지도 표시를 준비하지 못했습니다.','PL-MAP-INITIALIZE-001'));
   const selectionProxy={snapshot:()=>documentSession.selectionDomain.snapshot(),has:ref=>documentSession.selectionDomain.has(ref),createPacket:options=>documentSession.selectionDomain.createPacket(options),setHover:(...args)=>documentSession.selectionDomain.setHover(...args)};
   const selectAt=(point,options={})=>objectPicking.handleObjectSelectionAt(point,{...options,sourceEvent:d3.event}).catch(onError);
   const commonResources={getState:()=>state,d3,svg:svg.node(),layerStyle,normalizeObjectRef,

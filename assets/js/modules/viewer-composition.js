@@ -8,7 +8,6 @@ import {saveUserPreferences} from './user-preferences.js';
 import {createDiagnosticLog} from './reliability-core.js';
 import {createNavigationBindings} from './navigation-bindings.js';
 import {createSelectController} from './select-controller.js';
-import {ZOOM_LIMITS,FLAT_LATITUDE_LIMIT} from './camera-navigation.js';
 import { createSelectionUiController } from './selection-ui-controller.js';
 import { createTooltipController } from './tooltip-controller.js';
 import { installTimelineControls } from './timeline-controls.js';
@@ -78,6 +77,9 @@ export async function composeViewer({ productMode, meta }) {
     closeSearchAfterSingleSelection:()=>surfaces.closeSurface('search')});
   searchController.bind();surfaces.applyLayoutMode({initial:true});
   map.refreshAppearance({rerender:false});
+  // Background assets are global; hydro identities must wait for the Core
+  // replacement below. The resource owner handles errors and shared requests.
+  map.loadPhysicalResources({includeHydro:false});
   const syncStatus=()=>{if(!map)return;if(!selectionDomain.snapshot().selection.items.length)status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;else selectionUiController.syncNow(null,{force:true});};
   const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.cancelSearch();searchController.render(true);};
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>activeSession?.commandOwner.state().timelineCursor,
@@ -95,7 +97,7 @@ export async function composeViewer({ productMode, meta }) {
     if(!await projectDomain.open(reader,options))return;
     if(request!==projectDomain.getOpenRevision())return;
     const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
-    const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics());
+    const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),'globe');
     map.viewState.projection=initial.projection;map.viewState.view=initial.view;
     let workspace=null;
     try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
@@ -108,9 +110,9 @@ export async function composeViewer({ productMode, meta }) {
     window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
     await searchController.completeHydration();
     if(request!==projectDomain.getOpenRevision())return;
+    map.loadPhysicalResources();
     display.renderMapDisplaySettings();
     search();surfaces.syncOverlayState();status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;status.dataset.ready='true';
-    map.loadPhysicalResources();
     } catch(error){if(request===projectDomain.getOpenRevision()){
       status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;status.dataset.ready='true';throw error;
     }}
@@ -122,13 +124,11 @@ export async function composeViewer({ productMode, meta }) {
   display=createMapSettings({viewPresentation:map,onLayerVisibilityChange:async(key,enabled)=>{if(enabled&&(key==='rivers'||key==='lakes'))await owners.physicalResources.loadHydroData(true);if(enabled&&key==='labels')await owners.territorialLabels.preparePlaces({force:true});}});
   display.connect({
     platform:{$:id=>get(id==='app'?'viewer':id),deepClone:structuredClone,clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},
-    mapView:{...map.mapProjection,syncMapHostFromState:()=>map.renderingDomain.invalidateView()},mapNavigation:{ZOOM_LIMITS,FLAT_LATITUDE_LIMIT,reprojectView:map.navigation.reprojectView},
-    navigation:map.navigation,projectSession:map.projectSession,domains:{renderingDomain:map.renderingDomain,objectSearchController:searchController},rendering:{gpuMapRenderer:map.renderer},objectDisplay:map.objectCatalog,distributionPresentation:map.distributionPresentation,feedback:{reportOperationError:report},
+    navigation:map.navigation,domains:{renderingDomain:map.renderingDomain,objectSearchController:searchController},rendering:{gpuMapRenderer:map.renderer},objectDisplay:map.objectCatalog,distributionPresentation:map.distributionPresentation,feedback:{reportOperationError:report},
     projectState:{get state(){return map.displayState();}},
     objectModelA:{expandedMapDisplayGroups:map.objectPresentation.expandedMapDisplayGroups},territorialModel:{entityRepository:map.entityRepository},
     applicationServicesB:{layerStyle},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
     preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;}},
-    readinessUi:{syncStatusBar:selectionUiController.sync},
     hydroModel:owners.hydroSettings,
     workspaceUiA:surfaces,
   });

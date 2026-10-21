@@ -26,14 +26,14 @@ test('app keeps temporary viewing outside the document, keeps viewing outside sa
    const ports=window.__focusPorts,domain=window.__focusDomain(),host=window.__PANDOLAB_MAP_HOST__;
    const before={project:domain.snapshot(),state:domain.state()};
    const refused=[];
-   for(const change of [()=>host.setProjectionKind('globe'),()=>host.setViewState({projection:'globe'}),()=>ports.mapSettingsUi.setProjection('globe')]) {
+   for(const change of [()=>host.setProjectionKind('globe'),()=>host.setViewState({projection:'globe'})]) {
      try {change();refused.push('accepted');}catch(error){refused.push(error.code);}
    }
    ports.persistence.applyAutosavedView({documentId:before.project.documentId,projection:'globe',view:{globeRotation:[-114.17,-22.27,0],globeZoom:4}});
    const camera=host.getViewState(),after={project:domain.snapshot(),state:domain.state()};
    return {before,after,refused,camera};
  });
- expect(flatPolicy.refused).toEqual(Array(3).fill('PL-PRODUCT-PROJECTION'));
+ expect(flatPolicy.refused).toEqual(Array(2).fill('PL-PRODUCT-PROJECTION'));
  expect(flatPolicy.camera.projection).toBe('flat');expect(flatPolicy.camera.flatCenter[0]).toBeCloseTo(114.17);expect(flatPolicy.camera.flatCenter[1]).toBeCloseTo(22.27);
  expect(flatPolicy.after).toEqual(flatPolicy.before);
  const backgroundRequests=()=>requests.filter(path=>/assets\/data\/(terrain|hydro|places)/.test(path));

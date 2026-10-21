@@ -28,8 +28,6 @@ const geometryImportantAllowlist = [
 ];
 
 const knownConflictAllowlist = new Map([
-  // Map rendering geometry is intentionally restated by projection/layout-specific rules.
-  ['.projection-btn|border-radius', 'wide flush toolbar and mobile segmented projection use different geometry'],
 ]);
 
 function stripComments(source) {

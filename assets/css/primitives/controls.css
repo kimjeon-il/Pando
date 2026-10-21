@@ -1160,11 +1160,6 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
   .preferences-theme-swatches { grid-template-columns: repeat(3, var(--ui-preferences-chip-size-mobile)); }
 }
 
-.projection-btn .ui-icon {
-  width: var(--design-projection-icon-size);
-  height: var(--design-projection-icon-size);
-}
-
 :where(.ui-button):active:not(:disabled) {
   transform: none;
 }

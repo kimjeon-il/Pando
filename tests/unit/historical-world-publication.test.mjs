@@ -16,6 +16,7 @@ const module = await import('../../tools/build-historical-world-timeline.mjs').c
 test('publicationIsDeterministicAndRejectsStaleOutput', () => {
   assert.equal(typeof module.buildHistoricalWorldPublication, 'function');
   const first = module.buildHistoricalWorldPublication(), second = module.buildHistoricalWorldPublication();
+  assert.equal(first.get('world-project.json.gz')[9], 3, 'published gzip bytes must not depend on the generating OS');
   assert.deepEqual(first, second);
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'historical-world-'));
   module.writeHistoricalWorldPublication(first, folder);

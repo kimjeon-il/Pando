@@ -15,7 +15,12 @@ export default defineConfig({
     baseURL: testBaseUrl,
     browserName: 'chromium',
     channel: browserChannel,
-    launchOptions: { executablePath: process.env.PANDOLAB_BROWSER_EXECUTABLE || undefined },
+    launchOptions: {
+      executablePath: process.env.PANDOLAB_BROWSER_EXECUTABLE || undefined,
+      // Match the native Windows renderer; SwiftShader/Vulkan can stall the
+      // compositor before Playwright dispatches a pointer event to fixed UI.
+      args: process.platform === 'win32' ? ['--use-angle=d3d11'] : [],
+    },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

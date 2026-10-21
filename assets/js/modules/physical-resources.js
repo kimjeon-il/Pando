@@ -74,8 +74,8 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
     return dependencies.domains.projectDomain.admitSelectionCatalog('hydroBuiltin',()=>builtinHydroSelectionReferences());
   }
 
-  async function loadPhysicalData(){
-    try{return await Promise.all([loadPhysicalLandMask(),loadTerrainManifest(),loadHydroData()]);}
+  async function loadPhysicalData({includeHydro=true}={}){
+    try{return await Promise.all([loadPhysicalLandMask(),loadTerrainManifest(),includeHydro ? loadHydroData() : false]);}
     catch(error){dependencies.feedback.reportOperationError(error,'지도 배경 자료를 준비하지 못했습니다.','PL-PHYSICAL-LOAD-001',4200);return false;}
   }
 

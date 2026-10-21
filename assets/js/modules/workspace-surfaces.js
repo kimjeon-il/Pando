@@ -373,7 +373,8 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
         input?.focus({ preventScroll: true });
       });
     } else if (isMobile()) {
-      closeMobileSheets();
+      if (editorWorkspacePresentation.isDocked() && layoutMode !== 'phone-landscape') openSurface('editor');
+      else closeMobileSheets();
       requestAnimationFrame(() => (0, dependencies.platform.$)('map')?.focus({ preventScroll: true }));
     } else {
       closeSurface('create');
@@ -421,7 +422,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     if(productMode==='editor')(editorWorkspacePresentation = (0, dependencies.uiFactoriesA.createEditorWorkspacePresentation)({
       document,
       panel: (0, dependencies.platform.$)('editorSurface'), task: (0, dependencies.platform.$)('modeEditingContext'),
-      dockSlot: (0, dependencies.platform.$)('editorTaskSlot'), floatingSlot: (0, dependencies.platform.$)('mapTopContextSlot'),
+      dockSlot: (0, dependencies.platform.$)('editorTaskSlot'),
       isEditorOpen: () => surfaceController.isOpen('editor'),
       openEditor: () => {
         if (!surfaceController.isOpen('create')) openSurface('editor');

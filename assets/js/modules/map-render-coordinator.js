@@ -99,6 +99,7 @@ export function createMapRenderCoordinator({
   requestFrame,
   prepareView,
   renderers,
+  isPresentationBlocked = () => false,
   onFrameComplete = null,
   invalidMaskMode = 'throw',
   onInvalidMask = null,
@@ -144,6 +145,12 @@ export function createMapRenderCoordinator({
   }
 
   function render({ dirtyMask, reasons = [] }) {
+    // A replacement owns no display frame until its renderer commits one.
+    // Preserve the whole old presentation, including DOM labels and shell.
+    if (isPresentationBlocked()) {
+      renderers.preservedFrame?.();
+      return { deferred: true, renderRevision };
+    }
     const requestedMask = dirtyMask;
     let mask = expandedMask(requestedMask);
     if (interactionActive) mask &= ~MAP_RENDER_DIRTY.LABEL_LAYOUT;

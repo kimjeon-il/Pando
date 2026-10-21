@@ -1,8 +1,6 @@
-export async function setViewingProjection(page,kind){
+export async function openViewingDisplay(page){
  if(page.viewportSize().width<800){await page.locator('#mobileMenuBtn').click();await page.locator('#mobileDisplayBtn').click();}
  else await page.locator('#mapDisplayBtn').click();
- if(page.viewportSize().width>=800)await page.locator('#mapProjectionMenuTrigger').click();
- await page.locator(kind==='flat'?'#flatBtn':'#globeBtn').click();
 }
 export async function setViewingLayer(page,group,value){
  if(page.viewportSize().width>=800){

@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
-import { setViewingProjection, closeViewingDisplay } from './helpers/viewing-display.mjs';
 
 test.use({ viewport: { width: 1280, height: 800 }, trace: 'off', screenshot: 'off',
   launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
@@ -38,8 +37,6 @@ for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'p
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.rendererStats().renderer))
       .toBe(renderer === 'canvas' ? 'canvas-worker' : 'webgl2');
     const documentBefore = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState());
-    await setViewingProjection(page, 'flat');
-    await closeViewingDisplay(page);
     const childId = await page.evaluate(() => window.__terrainPorts.territorialModel.entityRepository.list()
       .find(entity => entity.properties.metadata?.builtinSubunit?.sourceCountryId === 'HKG').id);
     const childKey = `territorial:entity:${childId}:fill`;
@@ -47,16 +44,17 @@ for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'p
     // Prepare a known offscreen set, then use real pointer navigation to enter it.
     await page.evaluate(async () => {
       const ports = window.__terrainPorts, state = ports.projectState.state;
-      window.__PANDOLAB_MAP_HOST__.setViewState({ projection: 'flat',
-        view: { ...state.view, flatCenter: [101, 22.27], flatZoom: 32 } });
+      window.__PANDOLAB_MAP_HOST__.setViewState({ projection: 'globe',
+        view: { ...state.view, globeRotation: [-101, -22.27, 0], globeZoom: 32 } });
       ports.domains.renderingDomain.invalidateOverlayStyle('offscreen-test-fixture');
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     });
     expect(await hasChild()).toBe(false);
     const box = await page.locator('#map').boundingBox();
-    await page.mouse.move(box.x + box.width * .92, box.y + box.height * .5);
+    const drag=13.17/(.22/Math.sqrt(32)),start=box.x+box.width*.8;
+    await page.mouse.move(start, box.y + box.height * .5);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width * .08, box.y + box.height * .5, { steps: 8 });
+    await page.mouse.move(start-drag, box.y + box.height * .5, { steps: 8 });
     await page.mouse.up();
     await expect(page.locator('#map')).not.toHaveClass(/dragging/);
     await expect.poll(hasChild, { timeout: 5000 }).toBe(true);
