@@ -1,0 +1,173 @@
+name: P6 Native WebView Execution
+
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - '.github/workflows/ui-native-webview-p6.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p6-native-webview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows-webview2:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      PANDOLAB_SHELL_PROFILE: small-project
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Preserve Git byte identities on Windows
+        shell: pwsh
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      - name: Install pinned frontend and Tauri CLI dependencies
+        shell: pwsh
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify the exact small-project application resources
+        shell: pwsh
+        run: |
+          node scripts/generate-build-metadata.mjs --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node apps/web-shell/stage.mjs --profile=small-project
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node apps/web-shell/check-stage.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build native Windows MSVC Tauri executable
+        shell: pwsh
+        run: |
+          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Execute the real WebView2 app twice and verify persistent data
+        shell: pwsh
+        run: |
+          ./apps/web-shell/verify-windows.ps1 -BinaryPath 'apps/web-shell/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($phase in @('write','reopen')) {
+            $p = Get-Content "build-native/web-shell/windows-$phase.json" -Raw | ConvertFrom-Json
+            if (-not $p.ok -or $p.phase -ne $phase -or
+                $p.checks.webgl.status -ne 'PASS' -or $p.checks.worker.status -ne 'PASS' -or
+                $p.checks.wasm.status -ne 'PASS' -or $p.checks.autosave.status -ne 'PASS' -or
+                $p.checks.nativeFile.status -ne 'PASS') {
+              throw "Native WebView2 $phase diagnostics are incomplete."
+            }
+          }
+          Write-Output 'WINDOWS_NATIVE_WEBVIEW2_P6_PASS'
+      - name: Save Windows native runtime reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p6-windows-native-webview2-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            build-native/web-shell/windows-write.json
+            build-native/web-shell/windows-reopen.json
+            apps/web-shell/dist/shell/stage-evidence.json
+
+  android-emulator-webview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    env:
+      PANDOLAB_SHELL_PROFILE: small-project
+      CARGO_TERM_COLOR: always
+      NDK_VERSION: '27.3.13750724'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up preinstalled Android SDK command tools
+        run: |
+          test -d /usr/local/lib/android/sdk/cmdline-tools
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
+          manager="$(find /usr/local/lib/android/sdk/cmdline-tools -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -x "$manager"
+          echo "$(dirname "$manager")" >> "$GITHUB_PATH"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-linux-android
+      - name: Install pinned Android SDK, NDK and JavaScript toolchain
+        run: |
+          sdkmanager --install 'platforms;android-37.0' 'build-tools;37.0.0' "ndk;$NDK_VERSION"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+      - name: Build native Android x86_64 debug APK
+        run: |
+          node scripts/generate-build-metadata.mjs --check
+          node apps/web-shell/src-tauri/sync-android.mjs --check
+          pnpm --dir apps/web-shell exec tauri android build --debug --apk --target x86_64
+          find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print
+      - name: Enable KVM for the x86_64 emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm -a -w /dev/kvm
+      - name: Boot emulator and inspect the real Tauri Android WebView
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          ram-size: 4096M
+          heap-size: 512M
+          disk-size: 6144M
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            set -euo pipefail
+            APK="$(find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | head -n 1)"
+            test -n "$APK"
+            adb install -r "$APK"
+            adb shell am force-stop com.pandolab.webshell.prototype || true
+            adb shell am start -W -n com.pandolab.webshell.prototype/.MainActivity
+            node .github/scripts/verify-android-native-webview.mjs
+            adb exec-out screencap -p > build-native/web-shell/android-native-screen.png
+      - name: Save Android emulator diagnostics
+        if: always()
+        run: |
+          mkdir -p build-native/web-shell
+          adb logcat -d -t 1000 > build-native/web-shell/android-logcat-tail.txt || true
+      - name: Upload Android native WebView evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p6-android-emulator-webview-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            build-native/web-shell/android-native-webview.json
+            build-native/web-shell/android-native-screen.png
+            build-native/web-shell/android-logcat-tail.txt
+            apps/web-shell/dist/shell/stage-evidence.json
