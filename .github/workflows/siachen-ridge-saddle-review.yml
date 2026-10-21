@@ -12,6 +12,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: work/gis
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -42,13 +44,15 @@ jobs:
           print('PASS ridge-sensitivity tests, saddle morphology, output integrity')
           PY
       - name: Commit independent research output
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_saltoro_ridge_terrain_diagnostics.json
-          git add "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_saltoro_ridge_terrain_diagnostics.geojson
-          git add "$(python tools/report_paths.py assets/data/research/siachen)"/README_saltoro_terrain_continuity.md
-          git add "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_terrain_90km_profile_*.png
+          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_saltoro_ridge_terrain_diagnostics.json
+          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_saltoro_ridge_terrain_diagnostics.geojson
+          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/README_saltoro_terrain_continuity.md
+          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_terrain_90km_profile_*.png
           if ! git diff --cached --quiet; then
             git commit -m "research: save Saltoro DEM crest and pass-saddle diagnostic"
             git fetch origin work/gis

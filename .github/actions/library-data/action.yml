@@ -1,0 +1,7 @@
+name: Prepare paired external library assets
+description: Mount pinned runtime assets and compressed original material; no data tests or regeneration.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: node tools/library-data.mjs

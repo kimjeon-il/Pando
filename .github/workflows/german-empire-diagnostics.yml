@@ -30,6 +30,8 @@ jobs:
       PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: mamba-org/setup-micromamba@v3
         with:
           environment-file: tools/cpp/territorial-recipe-environment.yml
@@ -53,6 +55,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -106,6 +110,8 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: mamba-org/setup-micromamba@v3
         with:
           environment-file: tools/cpp/territorial-recipe-environment.yml
