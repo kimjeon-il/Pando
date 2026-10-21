@@ -193,5 +193,11 @@ const loadStoredAsset=(spec,phase,key,label,validateStoredBytes,signal=null)=>{
  if(typeof validateStoredBytes!=='function')throw new TypeError('A stored-byte format validator is required.');
  return loadRepresentation(spec,phase,key,label,validateStoredBytes,signal,'stored');
 };
-return Object.freeze({loadAsset,loadStoredAsset, cleanupOldCoreCaches});
+async function decodeStoredAsset(storedBuffer,spec,phase,key,label,validate) {
+ await validateStoredAsset(storedBuffer,spec,label);
+ const result=await decodeStoredBuffer(storedBuffer,spec,phase,key,label);
+ validateAssetLength(result,spec,label);
+ return {...result,value:await validate(result.buffer,label)};
+}
+return Object.freeze({loadAsset,loadStoredAsset,decodeStoredAsset,cleanupOldCoreCaches});
 }

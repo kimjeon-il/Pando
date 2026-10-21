@@ -121,14 +121,17 @@ V identities(const V& features) {
 std::map<std::string,const V*> identityMap(const V& values) {
     std::map<std::string,const V*> result;for(const auto& row:values.array)result.emplace(field(row,"id").string,&row);return result;
 }
-std::string decodeAssetGzip(const WebStorageAssetSource& source) {
+std::string decodeAssetBytes(const WebStorageAssetSource& source) {
     constexpr std::uint64_t maxCompressed=256ull*1024*1024,maxDecoded=64ull*1024*1024;
-    require(source.encoding=="gzip"&&source.compressedBytes>0&&source.compressedBytes<=maxCompressed&&
+    require((source.encoding=="gzip"||source.encoding=="identity")&&source.compressedBytes>0&&source.compressedBytes<=maxCompressed&&
         source.sourceBytes.size()==source.compressedBytes&&source.decodedBytes>0&&source.decodedBytes<=maxDecoded,
         "PL-SCHEMA-BASE","Stored source sizes or encoding are invalid.");
     require(validFingerprint(V::str(source.fingerprint)),"PL-SCHEMA-BASE","Stored source fingerprint is invalid.");
-    const std::string stored(reinterpret_cast<const char*>(source.sourceBytes.data()),source.sourceBytes.size());
+    require(source.encoding!="identity"||source.compressedBytes==source.decodedBytes,
+        "PL-SCHEMA-BASE","Identity source byte counts must match.");
+    std::string stored(reinterpret_cast<const char*>(source.sourceBytes.data()),source.sourceBytes.size());
     require(sha256Bytes(stored)==source.fingerprint,"PL-SCHEMA-BASE","Stored source bytes do not match the fingerprint.");
+    if(source.encoding=="identity")return stored;
     std::string output(std::size_t(source.decodedBytes)+1,'\0');z_stream stream{};
     stream.next_in=const_cast<Bytef*>(reinterpret_cast<const Bytef*>(source.sourceBytes.data()));stream.avail_in=uInt(source.sourceBytes.size());
     stream.next_out=reinterpret_cast<Bytef*>(output.data());stream.avail_out=uInt(output.size());
@@ -269,7 +272,7 @@ WebStorageBaseline admitWebStorageAssetBaseline(const ProjectSnapshot& current,c
     require(!input.baseDataset.empty()&&input.sourceMonth.size()==7&&input.sourceMonth[4]=='-'&&
         input.sourceMonth.find_first_not_of("0123456789-")==std::string::npos,"PL-SCHEMA-BASE","Stored source dataset or month is invalid.");
     const auto month=parseTemporal(input.sourceMonth);require(month.precision=="month"&&month.canonical==input.sourceMonth,"PL-SCHEMA-BASE","Stored source month is invalid.");
-    auto decoded=decodeAssetGzip(input);auto root=normalizedFullRoot(codecjson::parse(decoded,ports.parsedTextPolicy));decoded.clear();
+    auto decoded=decodeAssetBytes(input);auto root=normalizedFullRoot(codecjson::parse(decoded,ports.parsedTextPolicy));decoded.clear();
     auto document=decodeWebValue(root,ports);auto data=std::make_shared<WebStorageBaseline::Data>();data->identities=std::move(root.object.at("territorialEntities"));root=V{};
     data->dataset=input.baseDataset;data->digest=input.fingerprint;data->sourceMonth=input.sourceMonth;data->kind=kind;data->populateDocument(std::move(document),current);
     return WebStorageBaseline(std::move(data));
