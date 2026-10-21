@@ -9,6 +9,19 @@ import {compileBuiltinWorldCatalog} from './builtin-world-compiler.mjs';
 
 const output=fileURLToPath(new URL('../assets/data/builtin-world/generated/v1/',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+export function packBuiltinWorldFiles(index, files) {
+ let offset=0;
+ const chunks=index.entities.map(entry=>{
+  const bytes=files.get(entry.file);
+  if(!bytes||bytes.length!==entry.compressedBytes||sha(bytes)!==entry.sha256)throw new Error(`Missing exact country bytes: ${entry.entityId}`);
+  entry.offset=offset;offset+=bytes.length;return bytes;
+ });
+ const bytes=Buffer.concat(chunks),digest=sha(bytes),url=`transport/countries-sha256-${digest}.bin`;
+ files.set(url,bytes);
+ index.transport={schemaVersion:1,url,encoding:'identity',sha256:digest,compressedBytes:bytes.length,decodedBytes:bytes.length};
+ files.set('index.json',Buffer.from(JSON.stringify(index)+'\n'));
+ return files;
+}
 export function buildBuiltinWorldPublication({input=null,policyFile=new URL('../assets/data/historical-world/policy.json',import.meta.url)}={}){
  const entities=input?.entities||readTerritorialSources(),currentWorld=input?.currentWorld||buildCurrentWorld();
  const view=input?.view||JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json')));
@@ -23,7 +36,7 @@ export function buildBuiltinWorldPublication({input=null,policyFile=new URL('../
    compressedBytes:stored.length,decodedBytes:decoded.length});
  }
  index.inputHashes={entities:sha(JSON.stringify(entities)),view:sha(JSON.stringify(view)),policy:sha(JSON.stringify(policy))};
- files.set('index.json',Buffer.from(JSON.stringify(index)+'\n'));
+ packBuiltinWorldFiles(index,files);
  files.set('coverage-report.json',Buffer.from(JSON.stringify(coverageReport)+'\n'));
  return files;
 }
@@ -37,6 +50,9 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
  }
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- const files=buildBuiltinWorldPublication();writeBuiltinWorldPublication(files,output,{check:process.argv.includes('--check')});
- console.log(`Builtin world: ${files.size-2} country files; no aggregate project, ${[...files.values()].reduce((n,b)=>n+b.length,0)} bytes`);
+ const existing=process.argv.includes('--pack-existing');
+ const index=existing?JSON.parse(fs.readFileSync(path.join(output,'index.json'))):null;
+ const files=existing?packBuiltinWorldFiles(index,new Map(index.entities.map(entry=>[entry.file,fs.readFileSync(path.join(output,entry.file))]))):buildBuiltinWorldPublication();
+ writeBuiltinWorldPublication(files,output,{check:process.argv.includes('--check')});
+ console.log(`Builtin world: ${existing?index.entities.length:JSON.parse(files.get('index.json')).entities.length} country files retained; packed transport, ${[...files.values()].reduce((n,b)=>n+b.length,0)} bytes`);
 }

@@ -59,7 +59,7 @@ export async function composeViewer({ productMode, meta }) {
   selectionUiController=createSelectionUiController({window,document,selectionDomain,elements:{selectionStatus:status},
     resolveRef:value=>value,refExists:ref=>map.objectQuery.objectRefExists(ref),displayInfo:ref=>map.objectQuery.objectDisplayInfo(ref),
     presenters:{default:ref=>{status.textContent=map.objectQuery.objectDisplayInfo(ref).name;}},
-    uiActions:{closeChooser:()=>map.closeObjectChooser(),clearPresenter:()=>{status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;},syncLayerRows:()=>searchController.syncSelection()}});
+    uiActions:{closeChooser:()=>map.closeObjectChooser(),clearPresenter:()=>presentCount(),syncLayerRows:()=>searchController.syncSelection()}});
   const activeSession=Object.freeze({...documentSession,projectDomain,selectionDomain,selectionUiController});
   surfaces.connect({platform:{$:id=>get(id==='app'?'viewer':id)},projectState:{get state(){return map.viewState;}},
     uiFactoriesB:{createSurfaceController},domains:{get objectSearchController(){return searchController;}},
@@ -81,8 +81,9 @@ export async function composeViewer({ productMode, meta }) {
   // Background assets are global; hydro identities must wait for the Core
   // replacement below. The resource owner handles errors and shared requests.
   map.loadPhysicalResources({includeHydro:false});
-  const countLabel=()=>`객체 ${map.objectQuery.visibleTerritorialCount()}개`+(builtinActive&&activeSession.commandOwner.state().timelineCursor===deviceCurrentMonth()?' · 현행 참고 형상 포함 (원본 기준일 미확인)':'');
-  const syncStatus=()=>{if(!map)return;if(!selectionDomain.snapshot().selection.items.length)status.textContent=countLabel();else selectionUiController.syncNow(null,{force:true});};
+  function countLabel(){return `객체 ${map.objectQuery.visibleTerritorialCount()}개`+(builtinActive&&activeSession.commandOwner.state().timelineCursor===deviceCurrentMonth()?' · 현행 참고 형상 포함 (원본 기준일 미확인)':'');}
+  function presentCount(){if(map&&!projectDomain.isOpening())status.textContent=countLabel();}
+  const syncStatus=()=>{if(!map||projectDomain.isOpening())return;if(!selectionDomain.snapshot().selection.items.length)presentCount();else selectionUiController.syncNow(null,{force:true});};
   const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.cancelSearch();searchController.render(true);};
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
@@ -117,7 +118,7 @@ export async function composeViewer({ productMode, meta }) {
     if(request!==projectDomain.getOpenRevision())return;
     map.loadPhysicalResources();
     display.renderMapDisplaySettings();
-    search();surfaces.syncOverlayState();status.textContent=countLabel();status.dataset.ready='true';
+    search();surfaces.syncOverlayState();presentCount();status.dataset.ready='true';
     return true;
     } catch(error){if(request===projectDomain.getOpenRevision()){
       status.textContent=`객체 ${map.objectQuery.visibleTerritorialCount()}개`;status.dataset.ready='true';throw error;
