@@ -131,7 +131,7 @@ test('failed catalog loading can retry',async()=>{
 });
 test('missing reference date and geometry gaps never instantiate a nearest or overridden version',async()=>{
   const f=fixture();await f.service.load();
-  await assert.rejects(f.service.instantiateDescriptors(['state:parent'],''),/date|required/i);
+  await assert.rejects(f.service.instantiateDescriptors(['state:parent'],''),/representative|required/i);
   await assert.rejects(f.service.instantiateDescriptors(['state:expired'],'2026'),/경계/);
   const result=await f.service.instantiateDescriptors(['state:expired'],'1990');
   assert.equal(result[0].validFrom,null);assert.equal(result[0].validTo,null);
@@ -168,100 +168,32 @@ test('nonblank resolution passes the exact cursor to the shared selector and nev
   assert.equal(f.loads(),0);assert.equal(f.todayCalls(),0);
 });
 
-test('blank representative metadata outranks newer snapshots and retains coarse provenance through import', async () => {
-  const value=datedEntity();value.metadata.referenceDate='1953-07';
-  const f=fixture({entities:[value],snapshots:[snapshot('newer','2026-10-06',[value.entityId])]});await f.service.load();
-  const expected={entityId:value.entityId,geometryVersionId:'state:history:early',referenceDate:'1953-07-01',mode:'representative',basis:'metadata',sourceDate:'1953-07'};
-  for (const blank of [null,'','  ']) assert.deepEqual(f.service.resolveSelection(value.entityId,blank),expected);
-  assert.equal(f.loads(),0);assert.equal(f.todayCalls(),0);
-  const descriptor=(await f.service.instantiateDescriptors([value.entityId],expected.referenceDate))[0];
-  assert.equal(descriptor.geometryVersionId,expected.geometryVersionId);
-  assert.equal(descriptor.metadata.sourceReferenceDate,'1953-07-01');
-  assert.equal(descriptor.metadata.referenceDate,'1953-07');
-  assert.deepEqual(descriptor.metadata.sourceLifetime,{validFrom:'1900',validTo:null});
-  assert.deepEqual(descriptor.metadata.sourceGeometryValidity,{validFrom:'1900',validTo:'1953-07-26'});
-  assert.equal(descriptor.metadata.geometryDatePrecision,'year');
-  assert.notEqual(descriptor.geometry,f.originals[0].geometryVersions[0].geometry);
-  assert.deepEqual(f.service.get(value.entityId),f.index.entities[0]);
+test('representatives select only the explicit version, keep dates as provenance, and import independent geometry',async()=>{
+ const value=datedEntity();value.metadata.referenceDate='1953-07';value.metadata.representativeGeometryVersionId=value.geometryVersions[0].versionId;
+ const f=fixture({entities:[value],snapshots:[snapshot('newer','2026-10-06',[value.entityId])]});await f.service.load();
+ for(const blank of [null,'','  '])assert.deepEqual(f.service.resolveSelection(value.entityId,blank),{
+  entityId:value.entityId,geometryVersionId:value.geometryVersions[0].versionId,referenceDate:null,mode:'representative',basis:'version',sourceDate:null});
+ const descriptor=(await f.service.instantiateDescriptors([value.entityId],null))[0];
+ assert.equal(descriptor.metadata.sourceReferenceDate,null);assert.equal(descriptor.metadata.referenceDate,'1953-07');
+ assert.deepEqual(descriptor.metadata.sourceGeometryValidity,{validFrom:'1900',validTo:'1953-07-26'});
+ assert.notEqual(descriptor.geometry,f.originals[0].geometryVersions[0].geometry);
+ assert.equal(f.todayCalls(),0);
 });
-
-test('representatives skip unusable metadata and nonmember or out-of-lifetime snapshots before valid candidates', async () => {
-  const value=datedEntity();value.metadata.referenceDate='1899';value.lifetime.validTo='2010';
-  const f=fixture({entities:[value],snapshots:[
-    snapshot('future','2026-10-06',[value.entityId]),snapshot('not-member','2009',[]),
-    snapshot('old','1953-07',[value.entityId]),snapshot('pilot','1991',[value.entityId]),
-  ]});await f.service.load();
-  assert.deepEqual(f.service.resolveSelection(value.entityId,null),{
-    entityId:value.entityId,geometryVersionId:'state:history:late',referenceDate:'1991-01-01',mode:'representative',basis:'snapshot',sourceDate:'1991',
-  });
-  assert.equal(f.loads(),0);
+test('a missing representative is never guessed from snapshots, date metadata or version order',async()=>{
+ const value=datedEntity();value.metadata.referenceDate='1953-07';
+ const f=fixture({entities:[value],snapshots:[snapshot('pilot','1991',[value.entityId])]});await f.service.load();
+ assert.equal(f.service.resolveSelection(value.entityId,null),null);
+ assert.equal(f.service.resolveSelection(value.entityId,'1991').geometryVersionId,value.geometryVersions[1].versionId);
+ const malformed={...value,metadata:{representativeGeometryVersionId:'missing'}};
+ const other=fixture({entities:[malformed]});await other.service.load();
+ assert.throws(()=>other.service.resolveSelection(value.entityId,null),/Missing representative/);
 });
-
-test('wholly unknown lifetimes remain eligible for permitted blank representative candidates and imports', async () => {
-  const value=entity('state:current');
-  const f=fixture({entities:[value],snapshots:[snapshot('current','2026-10-06',[value.entityId])]});await f.service.load();
-  assert.equal(f.service.search({referenceDate:'2026-10-06'})[0].entities[0].sourceAvailability,'available');
-  const selection=f.service.resolveSelection(value.entityId,null);
-  assert.deepEqual(selection,{
-    entityId:value.entityId,geometryVersionId:'state:current:v1',referenceDate:'2026-10-06',mode:'representative',basis:'snapshot',sourceDate:'2026-10-06',
-  });
-  const descriptor=(await f.service.instantiateDescriptors([value.entityId],selection.referenceDate))[0];
-  assert.equal(descriptor.geometryVersionId,selection.geometryVersionId);
-  assert.deepEqual(descriptor.metadata.sourceLifetime,{validFrom:null,validTo:null});
-});
-
-test('representative snapshot ordering uses signed temporal dates and deterministic snapshot identity ties', async () => {
-  const value=entity('state:extended');
-  const snapshots=[
-    snapshot('z-tie','+010000',[value.entityId]),snapshot('negative','-0001',[value.entityId]),
-    snapshot('a-tie','+010000-01',[value.entityId]),snapshot('positive','9999',[value.entityId]),
-  ];
-  for (const ordered of [snapshots,[...snapshots].reverse()]) {
-    const f=fixture({entities:[value],snapshots:ordered});await f.service.load();
-    assert.deepEqual(f.service.resolveSelection(value.entityId,null),{
-      entityId:value.entityId,geometryVersionId:'state:extended:v1',referenceDate:'+010000-01-01',mode:'representative',basis:'snapshot',sourceDate:'+010000-01',
-    });
-  }
-  const bce=fixture({entities:[value],snapshots:[snapshot('earlier','-0100',[value.entityId]),snapshot('later','-0001',[value.entityId])]});
-  await bce.service.load();
-  assert.equal(bce.service.resolveSelection(value.entityId,null).sourceDate,'-0001');
-});
-
-test('version-start representatives select the latest usable own version and do not invent an undated cursor', async () => {
-  const value=datedEntity();value.lifetime.validTo='1990';
-  value.geometryVersions.reverse();
-  const undated=entity('state:undated');
-  const f=fixture({entities:[value,undated]});await f.service.load();
-  assert.deepEqual(f.service.resolveSelection(value.entityId,null),{
-    entityId:value.entityId,geometryVersionId:'state:history:late',referenceDate:'1953-07-27',mode:'representative',basis:'version-start',sourceDate:'1953-07-27',
-  });
-  assert.equal(f.service.resolveSelection(undated.entityId,null),null);
-  assert.equal(selectGeometryVersion(undated).versionId,'state:undated:v1');
-  assert.equal(f.loads(),0);assert.equal(f.todayCalls(),0);
-});
-
-test('malformed optional representative metadata is diagnosed locally without hiding valid snapshot candidates', async t => {
-  const warnings=[];t.mock.method(console,'warn',(...args)=>warnings.push(args));
-  for (const date of ['0000','1900-02-29',2001]) {
-    const value=entity('state:metadata');value.metadata.referenceDate=date;
-    const f=fixture({entities:[value],snapshots:[snapshot('pilot','1991',[value.entityId])]});await f.service.load();
-    const selection=f.service.resolveSelection(value.entityId,null);
-    assert.equal(selection.basis,'snapshot');assert.equal(selection.referenceDate,'1991-01-01');
-    assert.equal(selection.sourceDate,'1991');
-  }
-  assert.equal(warnings.length,3);
-  for (const warning of warnings) {
-    assert.match(warning[0],/state:metadata.*metadata\.referenceDate/);
-    assert.ok(warning[1] instanceof Error);
-  }
-});
-
-test('representative resolution propagates unexpected selector failures instead of silently trying another date', async () => {
-  const value=entity('state:ambiguous');value.metadata.referenceDate='2001';
-  value.geometryVersions.push({...value.geometryVersions[0],versionId:'another'});
-  const f=fixture({entities:[value],snapshots:[snapshot('other','1991',[value.entityId])]});await f.service.load();
-  assert.throws(()=>f.service.resolveSelection(value.entityId,null),/Ambiguous territorial geometry selection/);
-  assert.throws(()=>f.service.resolveSelection(value.entityId,'2001-01-01'),/Ambiguous territorial geometry selection/);
+test('unknown lifetimes and undated representative imports do not acquire the current date',async()=>{
+ const value=entity('state:current');value.metadata.representativeGeometryVersionId=value.geometryVersions[0].versionId;
+ const f=fixture({entities:[value]});await f.service.load();
+ const descriptor=(await f.service.instantiateDescriptors([value.entityId],null))[0];
+ assert.deepEqual(descriptor.metadata.sourceLifetime,{validFrom:null,validTo:null});assert.equal(descriptor.metadata.sourceReferenceDate,null);
+ assert.equal(f.todayCalls(),0);
 });
 
 test('events use only existing lifetime endpoints and explicit dissolution metadata, independently of the date filter', async () => {
@@ -332,20 +264,21 @@ test('malformed optional dissolution dates do not suppress valid lifetime events
   for (const warning of warnings) {assert.match(warning[0],/state:(invalid|numeric).*metadata\.dissolutionDate/);assert.ok(warning[1] instanceof Error);}
 });
 
-test('resolved representative dates cross descendant traversal unchanged without imposing dated-search exclusions', async () => {
-  const root=entity('state:root');root.metadata.referenceDate='1991';
+test('undated representative descendants stay independent of explicit dated traversal', async () => {
+  const root=entity('state:root');root.metadata.referenceDate='1991';root.metadata.representativeGeometryVersionId=root.geometryVersions[0].versionId;
   const child=entity('state:child',root.entityId);
   const grandchild=entity('state:grandchild',child.entityId);
   const later=entity('state:later',root.entityId);later.lifetime.validFrom='1991-07-01';
+  for(const e of [child,grandchild,later])e.metadata.representativeGeometryVersionId=e.geometryVersions[0].versionId;
   const f=fixture({entities:[root,child,grandchild,later]});await f.service.load();
   const selection=f.service.resolveSelection(root.entityId,null);
-  assert.equal(selection.referenceDate,'1991-01-01');
+  assert.equal(selection.referenceDate,null);
   assert.deepEqual(f.service.entityRefsWithChildren([root.entityId],'none',selection.referenceDate),[root.entityId]);
-  assert.deepEqual(f.service.entityRefsWithChildren([root.entityId],'level1',selection.referenceDate),[root.entityId,child.entityId]);
-  assert.deepEqual(f.service.entityRefsWithChildren([root.entityId],'all',selection.referenceDate),[root.entityId,child.entityId,grandchild.entityId]);
+  assert.deepEqual(f.service.entityRefsWithChildren([root.entityId],'level1',selection.referenceDate),[root.entityId,child.entityId,later.entityId]);
+  assert.deepEqual(f.service.entityRefsWithChildren([root.entityId],'all',selection.referenceDate),[root.entityId,child.entityId,later.entityId,grandchild.entityId]);
   const descriptors=await f.service.instantiateDescriptors([root.entityId],selection.referenceDate,'all');
-  assert.deepEqual(descriptors.map(item=>item.entityId),[root.entityId,child.entityId,grandchild.entityId]);
-  assert.deepEqual(descriptors.map(item=>item.metadata.sourceReferenceDate),['1991-01-01','1991-01-01','1991-01-01']);
+  assert.deepEqual(descriptors.map(item=>item.entityId),[root.entityId,child.entityId,later.entityId,grandchild.entityId]);
+  assert.deepEqual(descriptors.map(item=>item.metadata.sourceReferenceDate),[null,null,null,null]);
   assert.equal(descriptors[0].geometryVersionId,selection.geometryVersionId);
   assert.ok(f.service.entityRefsWithChildren([root.entityId],'all','1991').includes(later.entityId));
   assert.equal(f.todayCalls(),0);

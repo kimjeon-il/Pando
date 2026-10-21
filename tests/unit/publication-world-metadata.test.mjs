@@ -13,15 +13,15 @@ test('an edited KOR source name and flag reach both current world and historical
       } }, metadata: {
       ...entity.metadata, defaultFlagDataUrl: 'assets/vendor/edited-kor-flag.svg',
     } } : entity);
-  const snapshot = JSON.parse(readFileSync(`${territorialSourceRoot}/snapshots/current-world.json`));
-  const currentWorld = buildCurrentWorld({ entities, snapshot });
+  const snapshot = JSON.parse(readFileSync(`${territorialSourceRoot}/views/world.json`));
+  const currentWorld = buildCurrentWorld({ entities, view: snapshot });
   const current = currentWorld.features.find(feature => feature.id === 'KOR');
   assert.equal(current.properties.name, '새 대한민국');
   assert.equal(current.properties.metadata.flagDataUrl, 'assets/vendor/edited-kor-flag.svg');
   assert.equal(current.properties.sourceOriginalMarker, 'retained');
 
   const policy = JSON.parse(readFileSync(new URL('../../assets/data/historical-world/policy.json', import.meta.url)));
-  const { project } = compileHistoricalWorldTimeline({ entities, currentSnapshot: snapshot,
+  const { project } = compileHistoricalWorldTimeline({ entities, currentSnapshot: {schemaVersion:1,referenceDate:'2026-10-06',entityRefs:snapshot.selections.map(row=>row.entityId)},
     currentWorld, policy });
   const published = project.territorialEntities.find(feature => feature.id === 'KOR');
   assert.equal(published.properties.name, '새 대한민국');

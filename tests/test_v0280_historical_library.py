@@ -7,11 +7,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
+INDEX = (ROOT / "apps/web-shell/editor.html").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
 MODEL = (ROOT / "assets" / "js" / "modules" / "territorial-library.js").read_text(encoding="utf-8")
 CONTROLLER = (ROOT / "assets" / "js" / "modules" / "territorial-library-controller.js").read_text(encoding="utf-8")
-PILOT = {"schemaVersion": 2, "entities": [e for p in (ROOT / "assets/data/territorial-entities/source/countries").glob("*.json") for e in json.loads(p.read_text(encoding="utf-8"))["entities"]], "snapshots": json.loads((ROOT / "assets/data/territorial-entities/generated/v2/index.json").read_text(encoding="utf-8"))["snapshots"]}
+PILOT = {"schemaVersion": 2, "entities": [json.loads(p.read_text(encoding="utf-8")) for p in (ROOT / "assets/data/territorial-entities/source/countries").glob("*.json")], "snapshots": json.loads((ROOT / "assets/data/territorial-entities/generated/v2/index.json").read_text(encoding="utf-8"))["snapshots"]}
 SERVICE = (ROOT / "assets/js/modules/territorial-library-service.js").read_text(encoding="utf-8")
 
 

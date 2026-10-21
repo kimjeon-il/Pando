@@ -10,11 +10,11 @@ from shapely.ops import transform, unary_union
 
 
 ROOT = Path(__file__).parents[1]
-PILOT_PATH = ROOT / "assets/data/territorial-entities/source/countries/germany.json"
+PILOT_PATH = ROOT / "assets/data/territorial-entities/source/countries/state-deutsche-demokratische-republik.json"
 COUNTRIES_PATH = ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson"
 PILOT = json.loads(PILOT_PATH.read_text(encoding="utf-8"))
 COUNTRIES = json.loads(COUNTRIES_PATH.read_text(encoding="utf-8"))
-ENTITY = next(item for item in PILOT["entities"] if item["entityId"] == "state:deutsche-demokratische-republik")
+ENTITY = PILOT
 GEOMETRY = shape(ENTITY["geometryVersions"][0]["geometry"])
 CANONICAL_DEU = shape(next(
     item["geometry"] for item in COUNTRIES["features"] if item["id"] == "DEU"

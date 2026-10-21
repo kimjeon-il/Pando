@@ -13,8 +13,8 @@ from shapely.ops import unary_union
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 URL='https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson'
-data=json.loads((ROOT/'assets/data/territorial-entities/source/countries/indonesia.json').read_text(encoding='utf-8'))
-entity=next(e for e in data['entities'] if e['entityId']=='state:IDN')
+data=json.loads((ROOT/'assets/data/territorial-entities/source/countries/state-IDN.json').read_text(encoding='utf-8'))
+entity=next(e for e in [data] if e['entityId']=='state:IDN')
 modern=next(v for v in entity['geometryVersions'] if v['versionId']=='state:IDN:natural-earth-5.1.1')
 request=urllib.request.Request(URL,headers={'User-Agent':'Pando historical atlas research (Natural Earth 5.1.1)'})
 with urllib.request.urlopen(request,timeout=180) as response:

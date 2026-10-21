@@ -153,6 +153,8 @@ export function clippedLines(points, bbox, maxPoints = 400) {
 function entityVersion(entity, date) {
   const versions = entity.geometryVersions || [];
   if (!date) {
+    const representative=versions.find(version=>version.versionId===entity.metadata?.representativeGeometryVersionId);
+    if(representative)return representative;
     if (versions.length === 1) return versions[0];
     const current = versions.filter(version => version.datePrecision === 'current');
     if (current.length === 1) return current[0];
@@ -182,10 +184,9 @@ function selectedRows(index, args) {
     if (!rows.length) fail(`No entity matching ${input}; use --mode list to find the canonical ID`);
     if (rows.length > 1) fail(`Ambiguous lineage ${input}: ${rows.map(e => e.entityId).join(', ')}. Specify --country state:ID`);
   } else {
-    // A spatial query without an entity is a *current* snapshot query, not all historic lineages.
-    const snapshot = index.snapshots.find(s => s.id === 'world:natural-earth-5.1.1') || index.snapshots.find(s => s.name === '현재 세계');
-    if (!snapshot) fail('Current-world snapshot missing');
-    const refs = new Set(snapshot.entityRefs);
+    const view = index.views?.find(s => s.id === 'world:catalog');
+    if (!view) fail('World object/version view missing');
+    const refs = new Set(view.selections.map(row=>row.entityId));
     rows = all.filter(e => refs.has(e.entityId));
   }
   return rows.filter(row => intersects(row.bbox, args.bbox));
@@ -307,8 +308,7 @@ export function inspect(args) {
     const entity = loadEntity(row, dataDir);
     const version = entityVersion(entity, args.date);
     if (args.date && version.datePrecision === 'current' && !version.validFrom && !version.validTo) {
-      const currentDate = index.snapshots.find(s => s.id === 'world:natural-earth-5.1.1')?.referenceDate;
-      if (args.date !== currentDate) fail(`${entity.entityId}: only current geometry is recorded; cannot treat it as historical geometry for ${args.date}`);
+      fail(`${entity.entityId}: only undated modern geometry is recorded; cannot treat it as historical geometry for ${args.date}`);
     }
     const props = { entityId: entity.entityId, geometryVersionId: version.versionId, sourceId: version.sourceId ?? row.sourceInfo?.sourceId ?? null };
     if (args.mode === 'summary') summaries.push({ ...props, name: entity.names?.ko ?? null,

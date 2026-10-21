@@ -14,7 +14,7 @@ import {
 import { encodeCanonicalCountryPacket } from '../../tools/canonical-country-packet-encoder.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
+const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/territorial-entities/generated/current-world.geojson'), 'utf8'));
 
 test('canonical packet round trips all country ids and Float64 geometry exactly', () => {
   const packet = encodeCanonicalCountryPacket(canonical);
@@ -27,8 +27,8 @@ test('canonical packet round trips all country ids and Float64 geometry exactly'
   assert.deepEqual(store.ids(), canonical.features.map(feature => String(feature.id)));
   assert.deepEqual(roundTrip.features.map(feature => feature.geometry), canonical.features.map(feature => feature.geometry));
   assert.deepEqual(roundTrip.features.map(feature => feature.properties.name), canonical.features.map(feature => feature.properties.name));
-  assert.ok(packet.byteLength < 10 * 1024 * 1024);
-  assert.ok(zlib.gzipSync(Buffer.from(packet), { level: 9, mtime: 0 }).byteLength < 5.5 * 1024 * 1024);
+  assert.ok(packet.byteLength < 24 * 1024 * 1024);
+  assert.ok(zlib.gzipSync(Buffer.from(packet), { level: 9, mtime: 0 }).byteLength < 13 * 1024 * 1024);
   assert.deepEqual(canonicalCountryPacketTransferables(packet), [packet]);
 });
 
@@ -93,7 +93,7 @@ test('cooperative materialization respects the 4096-coordinate slice ceiling', a
     onSlice: slice => slices.push(slice),
   });
   assert.equal(result.collection.features.length, 258);
-  assert.equal(result.metrics.coordinateCount, 548454);
+  assert.equal(result.metrics.coordinateCount, 1100074);
   assert.ok(slices.every(slice => slice.coordinateCount <= 4096));
   assert.equal(yields, slices.filter(slice => !slice.final).length);
   assert.ok(quietWaits >= yields + 1);

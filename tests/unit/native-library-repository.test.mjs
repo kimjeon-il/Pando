@@ -35,7 +35,8 @@ test('native repository requires a real bridge and rejects malformed read receip
 function singleIndex(){
  const copy=structuredClone(index);copy.entities=copy.entities.filter(e=>e.entityId==='state:KOR');
  copy.lineages=copy.lineages.filter(l=>l.entityRefs.includes('state:KOR')).map(l=>({...l,entityRefs:['state:KOR'],relations:[]}));
- copy.snapshots=copy.snapshots.map(s=>({...s,entityRefs:s.entityRefs.filter(id=>id==='state:KOR')}));return copy;
+ copy.snapshots=copy.snapshots.map(s=>({...s,entityRefs:s.entityRefs.filter(id=>id==='state:KOR')}));
+ copy.views=copy.views.map(v=>({...v,selections:v.selections.filter(row=>row.entityId==='state:KOR')}));return copy;
 }
 test('remote sources are fully validated before the native sync admission call',async()=>{
  const source=JSON.parse(gunzipSync(readFileSync(new URL('state-KOR.json.gz',base))));const catalog=singleIndex();
