@@ -29,3 +29,12 @@ test('retired native Project mutation convenience APIs stay absent', () => {
     assert.equal(cpp.includes('Project::' + name + '('), false, name);
   }
 });
+
+test('removed Qt document session profile is not revived', () => {
+  const header = read('shared/core/include/pandoeditor/document-session.h');
+  const cpp = read('shared/core/src/document-session.cpp');
+  for (const name of ['DocumentSessionProfile', 'NativeDocumentPorts', 'prepareNativeCommand', 'installNativeDraft']) {
+    assert.equal(header.includes(name), false, name);
+    assert.equal(cpp.includes(name), false, name);
+  }
+});

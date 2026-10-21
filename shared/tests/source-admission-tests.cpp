@@ -62,58 +62,21 @@ int main() {
     assert(!preview.setTimelineCursor(initialized.timelineCursor,initialized.epoch));
     assert(preview.projectState().timelineEditsEnabled&&preview.projectState().epoch>initialized.epoch);
     assert(!preview.confirmCandidate(candidate.candidateId,preview.projectState().epoch).result.ok());
-    // Native adoption retains prepared identity/checkpoints and one draft owner.
-    auto nativeDocument=projectcodec::decodeWeb(seed,ports);nativeDocument.presentation.userLayers={{"native-layer","Native"}};
-    for(const auto& unit:nativeDocument.units)nativeDocument.presentation.membership[territorialRef(unit.id)]="native-layer";
-    Project native;native.replace(std::move(nativeDocument));native.setTimelineCursor("2026-10",false);
-    const auto instance=native.instanceId();DocumentSession nativeSession(ports,DocumentSessionProfile::Native,{[&](const SelectionRef& ref){return ref==builtin;}});
-    nativeSession.adoptPreparedProject(std::move(native));assert(nativeSession.project().instanceId()==instance&&nativeSession.selectionRefExists(builtin));
-    Geometry draft;draft.type="Point";draft.points={{1,2}};nativeSession.installNativeDraft(draft,nativeSession.projectState().epoch);
-    assert(nativeSession.draftActive()&&nativeSession.draft().geometry().points.at(0).x==1);
-    auto create=features.array.at(0);create.object["id"]=V::str("Native-new");create.object.at("properties").object["parentId"]=V::str("");create.object.at("properties").object["coverageMode"]=V::str("explicit");
-    auto createPayload=V::obj();createPayload.object["feature"]=create;
-    request=readWebTerritorialCommand(nativeSession.project().snapshot(),"territorial.create",createPayload,ports);
-    assert(nativeSession.executeCommand(request.commandId,request.args,request.targets,nativeSession.projectState().epoch).result.changed());
-    assert(nativeSession.project().document().presentation.membership.at(territorialRef("Native-new"))=="native-layer");
-    assert(!projectcodec::encode(nativeSession.project().snapshot(),ports).empty());
-    assert(nativeSession.undo(nativeSession.projectState().epoch).result.changed());
-    assert(!nativeSession.project().index().objects.count(territorialRef("Native-new")));
-    pandoeditor::ProjectDocument alphaDocument = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}});
-    Geometry point;point.type="Point";point.points={{2,3}};alphaDocument.geometries.insert({"native-label",1},point);
-    auto alphaLabel=session.project().document().labels.at(0);alphaLabel.id="Alpha";alphaLabel.geometry={"native-label",1};alphaLabel.territory=territorialRef("A");alphaLabel.source.details="{}";
-    alphaDocument.labels.push_back(alphaLabel);Project alpha;alpha.replace(std::move(alphaDocument));
-    NativeDocumentPorts nativeSelection{[](const SelectionRef&){return false;}};DocumentSession alphaSession(ports,DocumentSessionProfile::Native,nativeSelection);
-    alphaSession.adoptPreparedProject(std::move(alpha));
-    auto alphaRow=projectcodec::webContentValue(alphaSession.project().snapshot(),{"label","Alpha"});alphaRow.object["coordinates"]=codecjson::parse("[4,5]");
-    CommandArguments alphaArgs;alphaArgs.action=projectcodec::readWebContentEdit(alphaSession.project().snapshot(),{"label","Alpha"},alphaRow,false);
-    auto alphaRequest=CommandProcessor::makeRequest(alphaSession.project(),"label.edit",alphaArgs);alphaRequest.targets={{"label","Alpha"}};
-    auto alphaPreview=alphaSession.prepareNativeCommand(alphaRequest,alphaSession.projectState().epoch);assert(alphaPreview.preview);
-    const auto retained=alphaSession.adoptPreparedCommand(std::move(alphaPreview),alphaSession.projectState().epoch);assert(retained.candidateId);
-    assert(alphaSession.confirmCandidate(retained.candidateId,alphaSession.projectState().epoch).result.changed());
-    const auto alphaBytes=projectcodec::encode(alphaSession.project().snapshot(),ports);
-    assert(projectcodec::decode(alphaBytes,ports).labels.at(0).id=="Alpha");
-    assert(alphaSession.undo(alphaSession.projectState().epoch).result.changed());
-    assert(alphaSession.project().document().geometries.get(alphaSession.project().document().labels.at(0).geometry)->points.at(0).x==2);
-    auto visibleSeed=codecjson::parse(seed);visibleSeed.object["itemVisibility"]=V::obj();
-    const auto beforeInvalidView=alphaSession.documentSnapshot();
-    try{alphaSession.documentLoad(visibleSeed.encode(),"2026-10");assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what()).find("PL-SCHEMA-FIELD")!=std::string::npos);}
-    assert(alphaSession.documentSnapshot()==beforeInvalidView);
-    auto padded=alphaSession.project().document();padded.presentation.objectStyles.at(territorialRef("A")).opacity=0.5;
-    padded.labels.at(0).id=" Alpha ";DistributionLayer paddedLayer;paddedLayer.id=" Layer ";paddedLayer.name="Layer";
-    padded.distributionLayers.push_back(paddedLayer);Project paddedProject;paddedProject.replace(std::move(padded));
-    DocumentSession paddedSession(ports,DocumentSessionProfile::Native,nativeSelection);paddedSession.adoptPreparedProject(std::move(paddedProject));
-    auto paddedLabel=projectcodec::webContentValue(paddedSession.project().snapshot(),{"label"," Alpha "});paddedLabel.object["name"]=V::str("Raw label name");
-    auto paddedPayload=V::obj();paddedPayload.object["id"]=V::str(" Alpha ");paddedPayload.object["value"]=paddedLabel;paddedPayload.object["create"]=V::boolean(false);
-    auto paddedRequest=readWebContentCommand(paddedSession.project().snapshot(),"label.edit",paddedPayload,ContentIdentityPolicy::NativeExact);
-    const auto paddedResult=paddedSession.executeCommand(paddedRequest.commandId,paddedRequest.args,paddedRequest.targets,paddedSession.projectState().epoch);
-    if(!paddedResult.result.changed())std::cerr<<"Native opacity edit: "<<paddedResult.result.detail<<'\n';
-    assert(paddedRequest.targets.at(0).id==" Alpha "&&paddedResult.result.changed());
-    paddedPayload=codecjson::parse("{\"id\":\" Layer \",\"field\":\"name\",\"value\":\" Changed layer \"}");
-    paddedRequest=readWebContentCommand(paddedSession.project().snapshot(),"distribution.layer.metadata",paddedPayload,ContentIdentityPolicy::NativeExact);
-    assert(paddedRequest.targets.at(0).id==" Layer "&&paddedSession.executeCommand(paddedRequest.commandId,paddedRequest.args,paddedRequest.targets,paddedSession.projectState().epoch).result.changed());
-    const auto paddedWire=projectcodec::decode(projectcodec::encode(paddedSession.project().snapshot(),ports),ports);
-    assert(paddedWire.labels.at(0).id==" Alpha "&&paddedWire.labels.at(0).name=="Raw label name"&&paddedWire.distributionLayers.at(0).id==" Layer "&&paddedWire.distributionLayers.at(0).name=="Changed layer");
-    assert(paddedSession.undo(paddedSession.projectState().epoch).result.changed()&&paddedSession.project().document().distributionLayers.at(0).name=="Layer");
+    // Detached Web adoption keeps one canonical Project and retains its identity.
+    auto adoptedDocument=projectcodec::decodeWeb(seed,ports);
+    Project adoptedProject;adoptedProject.replace(std::move(adoptedDocument));adoptedProject.setTimelineCursor("2026-10",false);
+    const auto adoptedInstance=adoptedProject.instanceId();
+    DocumentSession adoptedSession(ports);adoptedSession.adoptPreparedProject(std::move(adoptedProject));
+    assert(adoptedSession.project().instanceId()==adoptedInstance);
+    auto incoming=features.array.at(0);incoming.object["id"]=V::str("Adopted-new");
+    incoming.object.at("properties").object["parentId"]=V::str("");
+    incoming.object.at("properties").object["coverageMode"]=V::str("explicit");
+    auto adoptedPayload=V::obj();adoptedPayload.object["feature"]=incoming;
+    request=readWebTerritorialCommand(adoptedSession.project().snapshot(),"territorial.create",adoptedPayload,ports);
+    assert(adoptedSession.executeCommand(request.commandId,request.args,request.targets,adoptedSession.projectState().epoch).result.changed());
+    assert(adoptedSession.project().index().objects.count(territorialRef("Adopted-new")));
+    assert(adoptedSession.undo(adoptedSession.projectState().epoch).result.changed());
+    assert(!adoptedSession.project().index().objects.count(territorialRef("Adopted-new")));
     DocumentSession visible(ports);visible.documentLoad(seed,"2026-10");
     PresentationCatalog physicalCatalog;physicalCatalog.hydroLayers={{"physical-source","river"}};
     visible.presentationCatalogLoad(std::move(physicalCatalog),visible.projectState().epoch);
@@ -127,5 +90,5 @@ int main() {
     assert(codecjson::parse(orphanWeb.storageSnapshot()).object.at("labels").array.at(0).object.at("territorialUnitId").string=="deleted-owner");
     try{projectcodec::decodeWeb(orphan.encode(),ports);assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what())=="DANGLING_REF: content territory");}
     try{projectcodec::encode(orphanWeb.project().snapshot(),ports);assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what())=="DANGLING_REF: content territory");}
-    std::cout<<"source admission, immutable replacement, native profile and stale mode checks passed\n";
+    std::cout<<"source admission, immutable replacement and stale mode checks passed\n";
 }

@@ -6,8 +6,6 @@
 #include <pandoeditor/webstorage.h>
 
 namespace pandoeditor {
-enum class DocumentSessionProfile {Web,Native};
-struct NativeDocumentPorts {std::function<bool(const SelectionRef&)> builtinRefExists;};
 struct SelectionCatalogEntry {SelectionRef ref;std::optional<std::string> logicalId;std::vector<std::string> sourceIds;};
 struct DocumentSessionState {
     std::uint32_t epoch=0,stateRevision=0;
@@ -27,15 +25,14 @@ struct DocumentSessionOutcome {
     std::string domainErrorCode;
 };
 struct ImportInspection {std::string project;ResolvedWorld world;};
-// The WASM document owner is the same Project/CommandProcessor used by Qt.
+// The WASM document owner uses the canonical Project and CommandProcessor.
 // Snapshots returned by Project remain immutable; this boundary never owns a
 // second JSON document, a JS-computed candidate, or another undo ledger.
 class DocumentSession {
 public:
-    explicit DocumentSession(projectcodec::PlatformPorts,DocumentSessionProfile profile=DocumentSessionProfile::Web,NativeDocumentPorts={});
+    explicit DocumentSession(projectcodec::PlatformPorts);
     DocumentSessionState adoptPreparedProject(Project&&);
     DocumentSessionOutcome adoptPreparedCommand(PrepareResult&&,std::uint32_t expectedEpoch);
-    PrepareResult prepareNativeCommand(const CommandRequest&,std::uint32_t expectedEpoch) const;
     const CommandPreview* candidatePreview(std::uint32_t candidateId) const;
     DocumentSessionState documentLoad(const std::string& currentWebJson,const std::string& currentMonth);
     DocumentSessionState documentLoadBaseline(std::uint32_t baselineId,const codecjson::Value& setup,const std::string& documentId);
@@ -80,7 +77,6 @@ public:
     const GeometryDraft& draft() const { requireLoaded();return draft_; }
     bool draftActive() const { requireLoaded();return draftActive_; }
     bool startDraft(const std::string& shape,const Ring&,const std::string& phase);
-    void installNativeDraft(Geometry,std::uint32_t expectedEpoch);
     void clearDraft(bool deactivate=false);
     void requireDraftRevision(std::uint64_t expectedRevision) const;
 private:
@@ -109,8 +105,6 @@ private:
     std::optional<projectcodec::WebStorageBaseline> activeBaseline_;
     std::uint32_t storageBaselineSequence_=0,storageBaselineId_=0;
     projectcodec::PlatformPorts ports_;
-    DocumentSessionProfile profile_;
-    NativeDocumentPorts nativePorts_;
     std::optional<CommandPreview> preview_;
     std::uint32_t epoch_=0,stateRevision_=0,candidateSequence_=0,candidateId_=0,candidateEpoch_=0,sourceEpoch_=0;
     bool loaded_=false;

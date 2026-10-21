@@ -5,19 +5,9 @@
 #include <cmath>
 
 namespace pandoeditor {
-namespace {
-void nativeGeometryCarriers(CommandArguments& args) {
-    const auto normalize=[](ContentEdit& edit){edit.inlineAllocation.reset();
-        if(edit.create&&edit.target.domain=="label"&&edit.initialLabelSettings&&edit.initialLabelSettings->maxZoom&&
-            *edit.initialLabelSettings->maxZoom==std::numeric_limits<double>::infinity())edit.initialLabelSettings->maxZoom.reset();};
-    if(auto edit=std::get_if<ContentEdit>(&args.action))normalize(*edit);
-    else if(auto batch=std::get_if<ContentBatchEdit>(&args.action))for(auto& edit:batch->edits)normalize(edit);
-}
-}
-DocumentSession::DocumentSession(projectcodec::PlatformPorts ports,DocumentSessionProfile profile,NativeDocumentPorts nativePorts):ports_(std::move(ports)),profile_(profile),nativePorts_(std::move(nativePorts)) {
-    ports_.labelReferencePolicy=profile==DocumentSessionProfile::Native?projectcodec::LabelReferencePolicy::NativeHard:projectcodec::LabelReferencePolicy::WebNonOwning;
+DocumentSession::DocumentSession(projectcodec::PlatformPorts ports):ports_(std::move(ports)) {
+    ports_.labelReferencePolicy=projectcodec::LabelReferencePolicy::WebNonOwning;
     if(!ports_.validateFlagDataUrl)throw std::invalid_argument("CODEC_PLATFORM_REQUIRED: flag validator");
-    if(profile_==DocumentSessionProfile::Native&&!nativePorts_.builtinRefExists)throw std::invalid_argument("CODEC_PLATFORM_REQUIRED: native builtin identity lookup");
 }
 DocumentSessionState DocumentSession::adoptPreparedProject(Project&& project) {
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
@@ -35,16 +25,6 @@ DocumentSessionOutcome DocumentSession::adoptPreparedCommand(PrepareResult&& pre
 }
 const CommandPreview* DocumentSession::candidatePreview(std::uint32_t candidateId) const {
     requireLoaded();return preview_&&candidateId==candidateId_?&*preview_:nullptr;
-}
-PrepareResult DocumentSession::prepareNativeCommand(const CommandRequest& request,std::uint32_t expectedEpoch) const {
-    requireLoaded();if(profile_!=DocumentSessionProfile::Native)throw std::invalid_argument("CORE_SESSION_PROFILE: Native preparation requires the Native profile.");
-    if(expectedEpoch!=epoch_){PrepareResult result;result.error=CommandError::StaleRevision;result.detail="session epoch changed";return result;}
-    auto typed=request;nativeGeometryCarriers(typed.args);
-    if(typed.commandId=="hydro.edit"||typed.commandId=="hydro.copy")typed.commandId="content.edit";
-    auto prepared=CommandProcessor::prepare(project_.snapshot(),typed);
-    if(prepared.preview)try {projectcodec::validateNativeLabelReferences(prepared.preview->change().after());}
-        catch(const std::invalid_argument& error){prepared.preview.reset();prepared.status=CommandStatus::Rejected;prepared.error=CommandError::ValidationFailed;prepared.detail=error.what();}
-    return prepared;
 }
 void DocumentSession::requireLoaded() const {
     if(!loaded_)throw std::invalid_argument("CORE_SESSION_UNLOADED: Load a document first.");
@@ -130,7 +110,6 @@ DocumentSessionState DocumentSession::documentLoadBaseline(std::uint32_t id,cons
 }
 DocumentSessionState DocumentSession::documentInitialize(const std::string& input,const std::string& currentMonth,bool preserveCursor,
         const std::optional<codecjson::Value>& features,const std::optional<std::string>& territorialSource,std::uint32_t expectedEpoch,std::optional<std::uint32_t> baselineId) {
-    if(profile_!=DocumentSessionProfile::Web)throw std::invalid_argument("CORE_SESSION_PROFILE: Web source admission requires the Web profile.");
     if(loaded_)requireEpoch(expectedEpoch);else if(expectedEpoch!=0)throw std::invalid_argument("STALE_REVISION: unloaded session epoch must be zero");
     if(unsigned(bool(features))+unsigned(bool(territorialSource))+unsigned(bool(baselineId))>1)throw std::invalid_argument("CORE_SOURCE_ADMISSION: source protocols are mutually exclusive");
     if(baselineId&&(!storageBaseline_||*baselineId!=storageBaselineId_||!storageBaseline_->sourceDocument()))throw TimelineError("PL-SCHEMA-BASE","Accepted baseline source is absent or replaced.");
@@ -201,7 +180,6 @@ DocumentSessionOutcome DocumentSession::prepareCommand(std::string commandId,Com
     // At most one preview is retained. A replacement prepare also releases an
     // abandoned RPC preview whose acknowledgement was cancelled by the client.
     clearPreview();
-    if(profile_==DocumentSessionProfile::Native){nativeGeometryCarriers(args);if(commandId=="hydro.edit"||commandId=="hydro.copy")commandId="content.edit";}
     auto request=CommandProcessor::makeRequest(project_,std::move(commandId),std::move(args));
     request.targets=std::move(targets);
     auto prepared=CommandProcessor::prepare(project_,request);
@@ -215,10 +193,8 @@ DocumentSessionOutcome DocumentSession::retainPreview(PrepareResult&& prepared) 
     DocumentSessionOutcome outcome;outcome.result=static_cast<CommandResult&>(prepared);
     outcome.domainErrorCode=prepared.operationErrorCode;
     if(prepared.preview) {
-        if(profile_==DocumentSessionProfile::Native)try {projectcodec::validateNativeLabelReferences(prepared.preview->change().after());}
-            catch(const std::invalid_argument& error){return rejected(CommandError::ValidationFailed,error.what());}
         const auto& provenance=prepared.preview->change().after().geometryProvenance;
-        if(profile_==DocumentSessionProfile::Web&&provenance.opaqueUncertain&&std::any_of(provenance.inlineAllocations.begin(),provenance.inlineAllocations.end(),
+        if(provenance.opaqueUncertain&&std::any_of(provenance.inlineAllocations.begin(),provenance.inlineAllocations.end(),
             [](const auto& row){return !row.second.promoted;}))
             return rejected(CommandError::UnsupportedDependency,"opaque geometry dependencies cannot be exported by current Web storage");
         if(candidateSequence_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_CANDIDATE_OVERFLOW");
@@ -238,7 +214,7 @@ DocumentSessionOutcome DocumentSession::confirmCandidate(std::uint32_t candidate
     // model change that the Worker client cannot reconcile.
     const auto prospective=CommandProcessor::commitProjection(project_,*preview_);
     const auto impact=calculateChangeImpact(project_.document(),prospective.document(),preview_->change().request().targets,project_.timelineCursor());
-    auto delta=profile_==DocumentSessionProfile::Web?projectcodec::encodeWebDelta(project_.document(),prospective.document(),impact):std::string{};
+    auto delta=projectcodec::encodeWebDelta(project_.document(),prospective.document(),impact);
     outcome.result=CommandProcessor::confirm(project_,*preview_,prospective);clearPreview();
     if(outcome.result.changed()) {
         sourceEpoch_=++epoch_;if(advancesStateRevision)++stateRevision_;
@@ -260,13 +236,12 @@ DocumentSessionOutcome DocumentSession::executeCommand(std::string commandId,Com
 DocumentSessionOutcome DocumentSession::history(bool forward,std::uint32_t expectedEpoch) {
     requireLoaded();if(expectedEpoch!=epoch_)return rejected(CommandError::StaleRevision,"session epoch changed");
     if(epoch_==std::numeric_limits<std::uint32_t>::max())return rejected(CommandError::RevisionOverflow,"session counter overflow");
-    const auto before=project_.snapshot(),prospective=project_.historySnapshot(forward,
-        profile_==DocumentSessionProfile::Web?HistoryRestorePolicy::Exact:HistoryRestorePolicy::NativeCountryOverrides);
+    const auto before=project_.snapshot(),prospective=project_.historySnapshot(forward,HistoryRestorePolicy::Exact);
     const bool available=forward?project_.canRedo():project_.canUndo();
     ChangeImpact impact;std::string delta;
     if(available) {
         impact=calculateChangeImpact(before.document(),prospective.document(),{},project_.timelineCursor());
-        if(profile_==DocumentSessionProfile::Web)delta=projectcodec::encodeWebDelta(before.document(),prospective.document(),impact);
+        delta=projectcodec::encodeWebDelta(before.document(),prospective.document(),impact);
     }
     clearPreview();const bool changed=available&&project_.travelHistory(forward,prospective);
     DocumentSessionOutcome outcome;outcome.result.status=changed?CommandStatus::Applied:CommandStatus::NoOp;
@@ -290,14 +265,12 @@ DocumentSessionOutcome DocumentSession::labelGestureApply(const std::string& act
     if(coordinate&&(!std::isfinite(coordinate->x)||!std::isfinite(coordinate->y)))throw TimelineError("CORE_LABEL_GESTURE","A finite coordinate is required.");
     auto row=projectcodec::webContentValue(project_.snapshot(),ref);
     if(coordinate){auto point=codecjson::Value::arr();point.array={codecjson::Value::num(coordinate->x),codecjson::Value::num(coordinate->y)};row.object["coordinates"]=std::move(point);}
-    auto edit=profile_==DocumentSessionProfile::Native?projectcodec::readNativeContentEdit(project_.snapshot(),ref,row,false):
-        projectcodec::readWebContentEdit(project_.snapshot(),ref,row,false);
+    auto edit=projectcodec::readWebContentEdit(project_.snapshot(),ref,row,false);
     if(action=="finish") {
         const auto& label=std::get<PlaceLabel>(edit.value);
         const auto found=project_.document().presentation.webPresentation.labelSettings.find(ref);
         auto settings=found==project_.document().presentation.webPresentation.labelSettings.end()?automaticLabelSettings(label.kind,LabelSettings{}):found->second;
         settings.annotations="{}";settings.webFields.reset();settings.webMinZoomNull=false;settings.minZoom=settings.minZoom.value_or(0);
-        if(profile_==DocumentSessionProfile::Native&&settings.maxZoom&&*settings.maxZoom==std::numeric_limits<double>::infinity())settings.maxZoom.reset();
         const auto shape=edit.geometry?&edit.geometry->second:project_.document().geometries.get(label.geometry).get();
         settings.manualPosition=shape->points.at(0);settings.pinned=true;edit.initialLabelSettings=settings;
     }
@@ -307,7 +280,6 @@ DocumentSessionOutcome DocumentSession::labelGestureApply(const std::string& act
         if(outcome.result.changed())labelGesture_=LabelGesture{ref,project_.instanceId(),project_.historyCheckpoint()};
         return outcome;
     }
-    if(profile_==DocumentSessionProfile::Native)nativeGeometryCarriers(arguments);
     auto request=CommandProcessor::makeRequest(project_,commandId,std::move(arguments));request.targets={ref};
     auto prepared=CommandProcessor::prepare(project_.snapshot(),request);
     DocumentSessionOutcome outcome;outcome.result=static_cast<CommandResult&>(prepared);outcome.domainErrorCode=prepared.operationErrorCode;
@@ -315,7 +287,7 @@ DocumentSessionOutcome DocumentSession::labelGestureApply(const std::string& act
     if(epoch_==std::numeric_limits<std::uint32_t>::max())return rejected(CommandError::RevisionOverflow,"session counter overflow");
     const auto prospective=CommandProcessor::commitProjection(project_,*prepared.preview);
     auto impact=calculateChangeImpact(project_.document(),prospective.document(),{ref},project_.timelineCursor());
-    auto delta=profile_==DocumentSessionProfile::Web?projectcodec::encodeWebDelta(project_.document(),prospective.document(),impact):std::string{};
+    auto delta=projectcodec::encodeWebDelta(project_.document(),prospective.document(),impact);
     const auto receipt=*labelGesture_;project_.amendLabelGesture(prepared.preview->change(),receipt.checkpoint);
     clearPreview();if(action=="move")labelGesture_=receipt;
     sourceEpoch_=++epoch_;outcome.result.status=CommandStatus::Applied;outcome.result.impact=std::move(impact);outcome.delta=std::move(delta);return outcome;
@@ -338,7 +310,7 @@ DocumentSessionOutcome DocumentSession::applyPresentation(const PresentationActi
     }
     if(epoch_==std::numeric_limits<std::uint32_t>::max())return rejected(CommandError::RevisionOverflow,"session counter overflow");
     auto impact=calculateChangeImpact(prepared.preview->before(),prepared.preview->after(),{},project_.timelineCursor());
-    auto delta=profile_==DocumentSessionProfile::Web?projectcodec::encodeWebDelta(prepared.preview->before(),prepared.preview->after(),impact):std::string{};
+    auto delta=projectcodec::encodeWebDelta(prepared.preview->before(),prepared.preview->after(),impact);
     const auto committed=PresentationCommandProcessor::confirm(project_,*prepared.preview);
     if(committed!=PresentationResult::Applied)return rejected(committed==PresentationResult::StaleRevision?
         CommandError::StaleRevision:CommandError::CommitFailed,"presentation commit failed");
@@ -370,7 +342,7 @@ DocumentSessionOutcome DocumentSession::presentationCatalogLoad(PresentationCata
         auto& ids=hidden[group];for(auto it=ids.begin();it!=ids.end();)if(!valid[group].count(it->first))it=ids.erase(it);else ++it;
     }
     auto impact=calculateChangeImpact(project_.document(),candidate,{},project_.timelineCursor());
-    auto delta=profile_==DocumentSessionProfile::Web?projectcodec::encodeWebDelta(project_.document(),candidate,impact):std::string{};
+    auto delta=projectcodec::encodeWebDelta(project_.document(),candidate,impact);
     project_.admitPresentation(std::move(candidate));++epoch_;
     DocumentSessionOutcome outcome;outcome.result.status=CommandStatus::Applied;outcome.result.impact=std::move(impact);outcome.delta=std::move(delta);return outcome;
 }
@@ -420,7 +392,7 @@ DocumentSessionOutcome DocumentSession::selectionCatalogLoad(const std::string& 
     if(candidate.exchangeMetadata!=project_.document().exchangeMetadata) {
         GeometryProvenanceCodecAccess::admitPresentationMetadata(project_.document(),candidate);
         outcome.result.impact=calculateChangeImpact(project_.document(),candidate,{},project_.timelineCursor());
-        if(profile_==DocumentSessionProfile::Web)outcome.delta=projectcodec::encodeWebDelta(project_.document(),candidate,outcome.result.impact);
+        outcome.delta=projectcodec::encodeWebDelta(project_.document(),candidate,outcome.result.impact);
         project_.admitPresentation(std::move(candidate),false);outcome.result.status=CommandStatus::Applied;
     }
     externalSelectionRefs_=std::move(catalog);selection_=std::move(selected);
@@ -428,15 +400,10 @@ DocumentSessionOutcome DocumentSession::selectionCatalogLoad(const std::string& 
 }
 bool DocumentSession::selectionRefExists(const SelectionRef& ref) const {
     const ObjectRef object{ref.domain,ref.id};
-    return project_.hasActiveObject(object)||externalSelectionRefs_.count(ref)!=0||
-        (profile_==DocumentSessionProfile::Native&&(ref.domain=="placeBuiltin"||ref.domain=="hydroBuiltin")&&nativePorts_.builtinRefExists(ref));
+    return project_.hasActiveObject(object)||externalSelectionRefs_.count(ref)!=0;
 }
 bool DocumentSession::startDraft(const std::string& shape,const Ring& coordinates,const std::string& phase) {
     requireLoaded();if(!draft_.start(shape,coordinates,phase))return false;draftActive_=true;return true;
-}
-void DocumentSession::installNativeDraft(Geometry geometry,std::uint32_t expectedEpoch) {
-    requireEpoch(expectedEpoch);if(profile_!=DocumentSessionProfile::Native)throw std::invalid_argument("CORE_SESSION_PROFILE: Native draft installation requires the Native profile.");
-    GeometryDraft draft(std::move(geometry));draft_=std::move(draft);draftActive_=true;
 }
 void DocumentSession::clearDraft(bool deactivate) {
     requireLoaded();draft_.clear();if(deactivate)draftActive_=false;
