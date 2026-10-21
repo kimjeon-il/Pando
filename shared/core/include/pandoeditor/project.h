@@ -82,8 +82,6 @@ public:
     const CountryView* country(const std::string& id) const;
     const UserLayer* userLayer(const std::string& id) const;
     const ObjectPropertyView* propertyView(const ObjectRef&) const;
-    bool editable(const std::string& id) const;
-    std::string pick(Point point) const;
     bool setColor(const std::string& id, std::uint32_t color);
     bool renameCountry(const std::string& id, const std::string& name);
     bool setMemo(const std::string& id, const std::string& memo);
