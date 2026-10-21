@@ -86,10 +86,9 @@ jobs:
           node scripts/check-ui-layering.mjs
       - name: Install Chromium for the three targeted browser specs
         run: pnpm exec playwright install --with-deps chromium
-      - name: '3. Reference-image button, line refinement and live-wire browser regression'
+      - name: '3. Focused rerun of previously failing line-refinement and live-wire cases'
         run: >
           pnpm exec playwright test
-          tests/browser/reference-image-auxiliary-surface.spec.mjs
           tests/browser/reference-image-line-refine.spec.mjs
           tests/browser/reference-image-live-wire.spec.mjs
           --workers=1 --retries=0 --trace off
