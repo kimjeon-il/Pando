@@ -20,3 +20,12 @@ test('retired native-only C++ spatial and rendering helpers stay absent', () => 
     assert.equal(cpp.includes('Project::' + symbol + '('), false, symbol);
   }
 });
+
+test('retired native Project mutation convenience APIs stay absent', () => {
+  const header = read('shared/core/include/pandoeditor/project.h');
+  const cpp = read('shared/core/src/project.cpp');
+  for (const name of ["setColor","renameCountry","setMemo","setCountryOpacity","moveCountryToUserLayer","addUserLayer","removeUserLayer","renameUserLayer","setUserLayerVisible","setUserLayerLocked","setUserLayerOpacity","moveUserLayer","changeCountry","changeUserLayer","execute"]) {
+    assert.equal(header.includes(' ' + name + '('), false, name);
+    assert.equal(cpp.includes('Project::' + name + '('), false, name);
+  }
+});
