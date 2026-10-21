@@ -1,4 +1,5 @@
 import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
+import {builtinProject} from '../helpers/builtin-world.mjs';
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -8,7 +9,6 @@ import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract
 
 const fixturePath = kind => fileURLToPath(new URL(`../fixtures/timeline-exchange/${kind}.gpkg`, import.meta.url));
 const fixtureJson = async kind => JSON.parse(await readFile(new URL(`../fixtures/timeline-exchange/${kind}.json`, import.meta.url),'utf8'));
-const historicalManifest = async () => JSON.parse(await readFile(new URL('../../assets/data/historical-world/generated/v1/manifest.json', import.meta.url),'utf8'));
 test.use({ channel:'chromium', trace:'off', viewport:{width:1440,height:900} });
 test.setTimeout(360000);
 async function openApp(page) {
@@ -119,7 +119,7 @@ test('historical default full save and offline restore retain every identity and
   await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='IRL')?.properties.name,{timeout:120000}).toBe('시간 저장 아일랜드');
   const saved=await readAutosave(page);
   expect(saved.format).toBe('pandolab-autosave-full');
-  expect(saved.territorialEntities.length).toBe((await historicalManifest()).sourceIdentities.length);
+  expect(saved.territorialEntities.length).toBe(builtinProject(new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')).territorialEntities.length);
   expect(saved.timelineRecords.lifetimes.length).toBeGreaterThan(before.count);
   expect(saved.geometries.length).toBeGreaterThanOrEqual(before.count);
   expect(saved.entityDelta).toBeUndefined();

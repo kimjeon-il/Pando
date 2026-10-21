@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {normalizeTerritorialLibraryEntity,selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
 import {createRingHitTester} from '../../assets/js/modules/ring-hit-test.js';
 import {clippingOperationWithPrecisionRetry} from '../../assets/js/modules/polygon-clipping-calculation.js';
-import {gunzipSync} from 'node:zlib';
+import {builtinProject} from '../helpers/builtin-world.mjs';
 import {createGeometryVersionStore} from '../../assets/js/modules/geometry-version-store.js';
 import {resolveWorld} from '../../assets/js/modules/timeline-resolver.js';
 import {refineChinesePaektuSource} from '../../tools/build-korean-boundaries.mjs';
@@ -110,9 +110,7 @@ test('Korean reconstruction preserves the supplemented Chinese counterpart byte 
 });
 
 test('the actual published timeline retains Korean creation dates and the June/July 1953 geometry change',()=>{
-  const project=JSON.parse(gunzipSync(fs.readFileSync(new URL('../../assets/data/historical-world/generated/v1/world-project.json.gz',import.meta.url))));
-  const archive=createGeometryVersionStore(project.geometries);
-  const view=month=>resolveWorld(project.territorialEntities,project.timelineRecords,archive,month).entities;
+  const view=month=>{const project=builtinProject(month);return resolveWorld(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month).entities;};
   assert.equal(view('1948-07').some(e=>e.id==='KOR'||e.id==='PRK'),false);
   assert.equal(view('1948-08').some(e=>e.id==='KOR'),true);
   assert.equal(view('1948-08').some(e=>e.id==='PRK'),false);

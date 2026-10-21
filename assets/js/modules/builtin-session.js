@@ -2,12 +2,13 @@ import { normalizeCountryCollection } from './country-feature.js';
 import { geometryRevision } from './geometry-versions.js';
 import { territorialSceneDisplayId } from './builtin-subunits.js';
 import { territorialRootId } from './territorial-units.js';
-import { createHistoricalWorldLoader } from './historical-world-loader.js';
+import {createBuiltinWorldLoader} from './builtin-world-loader.js';
+import {deviceCurrentMonth} from './builtin-month-clock.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
+export function createBuiltinSession({ builtinWorldLoader = null } = {}) {
   let dependencies;
   let pristineCountriesFallback;
   let canonicalCountryStore;
@@ -21,7 +22,6 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
   let builtinPaletteKey;
   let builtinPaletteVisibility;
   let projectBaseline = null;
-  let projectBaselinePending = null;
   function connect(ports) {
     if (dependencies) throw new Error('builtin-session already connected');
     dependencies = ports;
@@ -38,31 +38,33 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
     pristineCountriesFallback = null;
   }
 
-  async function prepareProjectBaseline() {
-    if (projectBaseline) return projectBaseline;
-    if (projectBaselinePending) return projectBaselinePending;
-    projectBaselinePending = (async () => {
-      if (!historicalWorldLoader) {
-        const meta = window.PANDOLAB_BUILD_META;
-        historicalWorldLoader = createHistoricalWorldLoader({ manifestUrl: meta?.historicalWorld?.url,
-          manifestSpec: meta?.historicalWorld, dataRevision: meta?.dataRevision });
+  async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
+    const key=month+':'+deviceCurrentMonth();
+    const domain=dependencies.domains.projectDomain;
+    if(projectBaseline?.queryKey===key&&domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
+    const stale=()=>Object.assign(new Error('Builtin source request was superseded'),{name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
+    const promise=(async()=>{
+      if(!builtinWorldLoader){
+        const meta=window.PANDOLAB_BUILD_META;
+        const spec=meta.builtinWorld;
+        builtinWorldLoader=createBuiltinWorldLoader({manifestUrl:new URL(spec.url,new URL('../../../',import.meta.url)).href,
+          manifestSpec:spec,dataRevision:meta.dataRevision});
       }
-      const domain=dependencies.domains.projectDomain,expectedGeneration=domain.getGeneration();
-      const facts=({sourceBytes,manifest})=>({kind:'stored-asset',sourceBytes,encoding:manifest.project.encoding,
-        compressedBytes:manifest.project.compressedBytes,decodedBytes:manifest.project.decodedBytes,sourceMonth:manifest.sourceMonth,
-        baseDataset:dependencies.platformConfigurationA.BASE_DATASET,fingerprint:manifest.project.sha256});
-      const {sourceBytes,manifest,admission}=await historicalWorldLoader.loadSource(async source=>{
-        try {const accepted=await domain.admitStorageBaseline(facts(source),{expectedGeneration});return {baselineId:accepted.storageBaselineId};}
-        catch(error){if(error.code==='PL-CORE-STALE'||error.code==='STALE_REVISION'){error.name='AbortError';error.cancelled=true;}throw error;}
-      });
-      if(!(sourceBytes instanceof Uint8Array)||!Number.isSafeInteger(admission?.baselineId)||admission.baselineId<=0)
-        throw new TypeError('The verified stored source and admitted Core baseline handle are required.');
-      if(domain.getGeneration()!==expectedGeneration)throw Object.assign(new Error('Historical source admission crossed a project replacement.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});
-      projectBaseline=Object.freeze({...facts({sourceBytes,manifest}),baselineId:admission.baselineId});
+      const expectedGeneration=domain.getGeneration();
+      const {project}=await builtinWorldLoader.loadProject(month,deviceCurrentMonth(),{isCurrent});
+      const decoded=new TextEncoder().encode(JSON.stringify(project));
+      const sourceBytes=new Uint8Array(await new Response(new Blob([decoded]).stream().pipeThrough(new globalThis.CompressionStream('gzip'))).arrayBuffer());
+      const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',sourceBytes))].map(value=>value.toString(16).padStart(2,'0')).join('');
+      if(!isCurrent())throw stale();
+      const facts={kind:'stored-asset',sourceBytes,encoding:'gzip',compressedBytes:sourceBytes.length,decodedBytes:decoded.length,
+        sourceMonth:month,baseDataset:dependencies.platformConfigurationA.BASE_DATASET,fingerprint};
+      const accepted=await domain.admitStorageBaseline(facts,{expectedGeneration});
+      if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw stale();
+      if(!Number.isSafeInteger(accepted.storageBaselineId)||accepted.storageBaselineId<=0)throw new Error('Core rejected the assembled builtin source');
+      projectBaseline=Object.freeze({...facts,baselineId:accepted.storageBaselineId,queryKey:key});
       return projectBaseline;
     })();
-    try { return await projectBaselinePending; }
-    finally { projectBaselinePending = null; }
+    return promise;
   }
 
   function materializePristineCountriesSync() {

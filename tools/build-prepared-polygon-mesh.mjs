@@ -9,8 +9,10 @@ import { encodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from '../assets/js/mod
 import './load-spherical-core.mjs';
 import '../assets/js/vendor/polygon-clipping.min.js';
 import { createGeometryVersionStore } from '../assets/js/modules/geometry-version-store.js';
+import {temporalContains,temporalMonthEnd,shiftTemporalMonth} from '../assets/js/modules/temporal.js';
 import { resolveWorld } from '../assets/js/modules/timeline-resolver.js';
 import { createTerritorialScopeResolver } from '../assets/js/modules/territorial-scope.js';
+import {assembleBuiltinWorld,selectBuiltinCountries} from '../assets/js/modules/builtin-world-loader.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const destination = 'assets/data/prepared-polygons/generated/v2';
@@ -30,42 +32,44 @@ function source(file) {
   if (inputHashes[file]) return;
   inputHashes[file] = sha256(readFileSync(resolve(root, file))); collect(readJson(file));
 }
-const historical = readJson('assets/data/historical-world/generated/v1/manifest.json');
-source(historical.project.url);
+const indexPath='assets/data/builtin-world/generated/v1/index.json';
+const index=readJson(indexPath);source(indexPath);
+const countries=index.entities.map(entry=>{
+ const file='assets/data/builtin-world/generated/v1/'+entry.file;source(file);return readJson(file);
+});
 source('assets/data/territorial-entities/generated/current-world.geojson');
 source('assets/data/physical-land/v1/geometry.json.gz');
-const index = readJson('assets/data/territorial-entities/generated/v2/index.json');
-for (const entity of index.entities) source(`assets/data/territorial-entities/generated/v2/${entity.file}`);
-// Derived parent display extents use the same resolver and C++ normalization as
-// the application. Visit only timeline change months, reusing unchanged scopes.
-const project = readJson(historical.project.url), archive = createGeometryVersionStore(project.geometries);
-const months = new Set([historical.sourceMonth]);
-for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) for (const row of project.timelineRecords[name]) {
-  for (const value of [row.validFrom, row.validTo]) if (value) {
-    const date = String(value), year = Number(date.slice(0, 4));
-    const month = date.length >= 7 ? Number(date.slice(5, 7)) : date === String(row.validFrom) ? 1 : 12;
-    for (const offset of [-1, 0, 1]) {
-      const ordinal = year * 12 + month - 1 + offset;
-      months.add(`${Math.floor(ordinal / 12)}-${String(ordinal % 12 + 1).padStart(2, '0')}`);
-    }
-  }
-}
-let world, features = [], byId = new Map();
-const precisionDiscards = [];
-const scopes = createTerritorialScopeResolver({ clipper: () => globalThis.polygonClipping,
-  entityRepository: { list: () => features, get: id => byId.get(id), descendants: id => world.entities
-    .filter(row => row.identity.properties.entityKind === 'general' && row.ancestors.includes(id)).map(row => byId.get(row.id)) } });
-for (const month of [...months].sort()) {
-  world = resolveWorld(project.territorialEntities, project.timelineRecords, archive, month);
-  features = world.entities.map(row => ({ ...row.identity, geometry: row.geometry,
-    properties: { ...row.identity.properties, parentId: row.parentId } }));
-  byId = new Map(features.map(feature => [feature.id, feature]));
-  for (const id of new Set(world.entities.filter(row => row.identity.properties.entityKind === 'general' && row.parentId).map(row => row.parentId))) {
-    try {
-      const scope = scopes.scope(id); collect(scope.extent?.geometry); collect(scope.extra?.geometry);
-      if (scope.precisionDiscards.length) precisionDiscards.push({ id, month, discards: scope.precisionDiscards });
-    } catch (error) { throw new Error(`Fixed display scope ${id} at ${month}: ${error.message}`, { cause: error }); }
-  }
+const sourceIndex=readJson('assets/data/territorial-entities/generated/v2/index.json');
+for(const entity of sourceIndex.entities)source(`assets/data/territorial-entities/generated/v2/${entity.file}`);
+const months=new Set();
+for(const country of countries)for(const rows of Object.values(country.modes))for(const row of rows.lifetimes)
+ for(const value of [row.validFrom,row.validTo])if(value)for(const offset of [-1,0,1])months.add(shiftTemporalMonth(value.slice(0,-3),offset));
+const precisionDiscards=[],seenScopes=new Set();
+for(const month of [...months].sort())for(const currentMonth of [null,month]){
+ const mode=currentMonth===null?'dated':'current',wanted=selectBuiltinCountries(index,month,currentMonth),ids=new Set(wanted.map(row=>row.entityId));
+ const active=countries.filter(row=>ids.has(row.entityId));
+ const relation=country=>country.modes[mode].parentRelations.find(row=>temporalContains(row,temporalMonthEnd(month)));
+ const needed=new Set();
+ for(const country of active){const row=relation(country);if(row?.parentId){needed.add(country.entityId);needed.add(row.parentId);}}
+ let expanded=true;
+ while(expanded){expanded=false;for(const country of active)if(needed.has(country.entityId)){
+  const parent=relation(country)?.parentId;if(parent&&!needed.has(parent)){needed.add(parent);expanded=true;}
+ }}
+ if(!needed.size)continue;
+ const selected=active.filter(country=>needed.has(country.entityId));
+ const signature=JSON.stringify(selected.map(country=>[country.entityId,relation(country)?.parentId,
+  country.modes[mode].geometryBindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.geometryRef]));
+ if(seenScopes.has(signature))continue;seenScopes.add(signature);
+ const project=assembleBuiltinWorld({...index,entities:wanted.filter(row=>needed.has(row.entityId))},selected,month,currentMonth);
+ const archive=createGeometryVersionStore(project.geometries),world=resolveWorld(project.territorialEntities,project.timelineRecords,archive,month);
+ const features=world.entities.map(row=>({...row.identity,geometry:row.geometry,properties:{...row.identity.properties,parentId:row.parentId}}));
+ const byId=new Map(features.map(feature=>[feature.id,feature]));
+ const scopes=createTerritorialScopeResolver({clipper:()=>globalThis.polygonClipping,
+  entityRepository:{list:()=>features,get:id=>byId.get(id),descendants:id=>world.entities.filter(row=>row.identity.properties.entityKind==='general'&&row.ancestors.includes(id)).map(row=>byId.get(row.id))}});
+ for(const id of new Set(world.entities.filter(row=>row.identity.properties.entityKind==='general'&&row.parentId).map(row=>row.parentId))){
+  const scope=scopes.scope(id);collect(scope.extent?.geometry);collect(scope.extra?.geometry);
+  if(scope.precisionDiscards.length)precisionDiscards.push({id,month,discards:scope.precisionDiscards});
+ }
 }
 const engine = globalThis.PandoLabGpuMeshCore;
 const meshes = {};

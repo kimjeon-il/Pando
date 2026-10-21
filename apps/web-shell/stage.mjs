@@ -4,7 +4,7 @@ import { access, lstat, mkdir, open, readFile, readdir, realpath, rm, unlink, wr
 import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
-import { tinyFixture, SOURCE_MONTH } from './fixture.mjs';
+import { tinyFixture } from './fixture.mjs';
 import { installNetworkGuard } from './network-guard.js';
 import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
 
@@ -109,20 +109,18 @@ async function stageOwnedPrototype({ root, profile }) {
     fixture = tinyFixture();
     if (await exists(join(root, 'package.json'))) fixture.project.version = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version;
     if (fixture.coordinateCount > 100) throw new Error('Prototype fixture exceeds the 100-coordinate limit');
-    const projectBytes = Buffer.from(JSON.stringify(fixture.project));
-    const compressed = gzipSync(projectBytes, { level: 9 });
-    fixtureHash = hash(projectBytes);
-    await emit('shell/fixture-project.json.gz', compressed);
-    await emit('shell/fixture-countries.json', JSON.stringify(fixture.countries));
-    const world = Buffer.from(JSON.stringify({ schemaVersion: 1, sourceMonth: SOURCE_MONTH,
-      project: { url: '/shell/fixture-project.json.gz', encoding: 'gzip', sha256: hash(compressed),
-        compressedBytes: compressed.length, decodedBytes: projectBytes.length } }));
-    await emit('shell/fixture-world.json', world);
-    const historicalWorld = { url: './fixture-world.json', encoding: 'json', sha256: hash(world),
-      compressedBytes: world.length, decodedBytes: world.length, sourceMonth: SOURCE_MONTH };
-    await emit('shell/stage-profile.json', JSON.stringify({
-      mode: profile, historicalWorld, countriesUrl: './fixture-countries.json',
-    }));
+    fixture.builtinIndex.template.version=fixture.project.version;
+    for(const country of fixture.builtinCountries){
+      const decoded=Buffer.from(JSON.stringify(country)),stored=gzipSync(decoded,{level:9});
+      const file=`countries/${country.entityId}-sha256-${hash(stored)}.json.gz`;
+      await emit('shell/'+file,stored);
+      Object.assign(fixture.builtinIndex.entities.find(row=>row.entityId===country.entityId),{file,encoding:'gzip',sha256:hash(stored),compressedBytes:stored.length,decodedBytes:decoded.length});
+    }
+    const world=Buffer.from(JSON.stringify(fixture.builtinIndex));fixtureHash=hash(world);
+    await emit('shell/fixture-world.json',world);
+    await emit('shell/fixture-countries.json',JSON.stringify(fixture.countries));
+    const builtinWorld={url:'./fixture-world.json',encoding:'identity',sha256:hash(world),compressedBytes:world.length,decodedBytes:world.length};
+    await emit('shell/stage-profile.json',JSON.stringify({mode:profile,builtinWorld,countriesUrl:'./fixture-countries.json'}));
   } else {
      const {plan,meta}=await loadFullWorldAssetPlan(path=>readFile(join(root,path),'utf8'));
    const dataRoot = await realpath(resolve(root, 'assets/data'));

@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {gunzipSync} from 'node:zlib';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
 import {selectGeometryVersion, territorialEntityExistsAt} from '../../assets/js/modules/territorial-library.js';
 import {createRingHitTester} from '../../assets/js/modules/ring-hit-test.js';
-import {buildHistoricalWorldPublication} from '../../tools/build-historical-world-timeline.mjs';
+import {builtinProject} from '../helpers/builtin-world.mjs';
 import {createGeometryVersionStore} from '../../assets/js/modules/geometry-version-store.js';
 import {resolvedTimelineViews} from '../../assets/js/modules/timeline-resolver.js';
 
@@ -58,10 +57,7 @@ test('Indonesia has exact 1963 Papua inclusion and 1975/1999 East Timor control 
 });
 
 test('Web and native common history publication preserves Indonesia identity and Timor independence',()=>{
- const built=buildHistoricalWorldPublication();
- const project=JSON.parse(gunzipSync(built.get('world-project.json.gz')));
- const archive=createGeometryVersionStore(project.geometries);
- const active=(month,id)=>resolvedTimelineViews(project.territorialEntities,project.timelineRecords,archive,month).find(row=>row.id===id);
+ const active=(month,id)=>{const project=builtinProject(month);return resolvedTimelineViews(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month).find(row=>row.id===id);};
  const checks=[
   ['1945-11',false,false],
   ['1963-04',false,false],
@@ -81,10 +77,6 @@ test('Web and native common history publication preserves Indonesia identity and
    assert.equal(pointInside(indonesia.geometry,timor),timorExpected,'East Timor owner in '+date);
    assert.equal(Boolean(active(date,'TLS')),date>='2002-05','TLS independent status: '+date);
    if(active(date,'TLS'))assert.ok(pointInside(active(date,'TLS').geometry,timor));
- }
- const trace=JSON.parse(built.get('expected-trace.json'));
- for(const month of ['1963-04','1963-05','1975-11','1975-12','1999-09','1999-10','2002-04','2002-05']){
-  assert.ok(trace.months.some(row=>row.month===month),'Historical trace missing boundary month '+month);
  }
  const current=active('2026-10','IDN');
  assert.ok(current);

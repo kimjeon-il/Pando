@@ -157,7 +157,7 @@ test('isolate source wire encodings, packed indexes, source objects and top-leve
             && !gpu.countrySharedBoundaryReplacementPending;
         }), { timeout: 90_000 }).toBe(true);
         await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
-        const modern = await page.evaluate(() => window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth);
+        const modern = await page.evaluate(() => new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'));
         expect(modern).toMatch(/^\d{4}-\d{2}$/);
         await setMonth(page, '1989-06');
         await ready(page, '1989-06', true);

@@ -5,18 +5,19 @@ import { historicalWorldCases } from '../fixtures/historical-world-cases.mjs';
 import { createEmptyTerritorialState } from '../../assets/js/modules/territorial-entity-store.js';
 import { effectiveTerritorialFlagUrl } from '../../assets/js/modules/country-flags.js';
 
-const compiler = await import('../../tools/historical-world-timeline.mjs').catch(error => {
-  if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
-  return {};
-});
+import {compileBuiltinWorldCatalog} from '../../tools/builtin-world-compiler.mjs';
+import {assembleBuiltinWorld,selectBuiltinCountries} from '../../assets/js/modules/builtin-world-loader.js';
+import {withExplicitView,contextProject} from '../helpers/builtin-world.mjs';
+function compileFixture(input){const catalog=compileBuiltinWorldCatalog(withExplicitView(input));return {...catalog,project:contextProject(catalog)};}
 let built;
 function result() {
-  assert.equal(typeof compiler.compileHistoricalWorldTimeline, 'function', 'Historical compiler must exist');
-  return built ||= compiler.compileHistoricalWorldTimeline(historicalWorldCases());
+  return built ||= compileFixture(historicalWorldCases());
 }
 async function view(month) {
   const state = createEmptyTerritorialState();
-  await initializeTestTerritorialState(state,null,{project:result().project});
+  const data=result(),ids=new Set(selectBuiltinCountries(data.index,month,'2026-10').map(row=>row.entityId));
+  const project=assembleBuiltinWorld(data.index,data.countries.filter(row=>ids.has(row.entityId)),month,'2026-10');
+  await initializeTestTerritorialState(state,null,{project});
   const owner=testCoreProject(state),store=owner.entityStore;
   try {
     await store.setTimelineCursor(month);
@@ -41,7 +42,7 @@ test('monthEndDoesNotExtendExactSourceDates', async () => {
   const day = records.lifetimes.find(row => row.entityId === 'state:single-day');
   assert.equal(day.validFrom, '1989-04-25'); assert.equal(day.validTo, '1989-04-25');
 });
-test('modernGeometryIsLimitedToSourceMonth', async () => {
+test('undated modern geometry is restricted to the device-current query context', async () => {
   assert.equal(await visible('RUS', '2026-09'), false);
   assert.equal(await visible('RUS', '2026-10'), true);
   assert.equal(await visible('RUS', '2026-11'), false);
@@ -57,7 +58,7 @@ test('a current snapshot selecting an explicitly dated version retains its entir
     validFrom:'1948-08-15',validTo:'1953-07-26'});
   const historic = source.geometryVersions[0].geometry.coordinates[0];
   historic[1][0]-=0.5; historic[2][0]-=0.5;
-  const compiled = compiler.compileHistoricalWorldTimeline(input);
+  const compiled = compileFixture(input);
   const bindings = compiled.project.timelineRecords.geometryBindings.filter(row=>row.entityId==='KOR');
   assert.deepEqual(bindings.map(({validFrom,validTo})=>({validFrom,validTo})),
     [{validFrom:'1948-08-15',validTo:'1953-07-26'},{validFrom:'1953-07-27',validTo:null}]);
@@ -84,16 +85,16 @@ test('stableIdentitySurvivesGeometryVersionChange', async () => {
 test('leapDayIsVisibleAtFebruaryMonthEnd', async () => assert.equal(await visible('state:leap', '2000-02'), true));
 test('compilationPreservesRawSourceDatesAndCoordinates', () => {
   const input = historicalWorldCases(), before = structuredClone(input);
-  compiler.compileHistoricalWorldTimeline(input);
+  compileFixture(input);
   assert.deepEqual(input, before);
   const item = result().project.territorialEntities.find(row => row.id === 'state:test-ukraine');
   assert.equal(item.properties.metadata.historicalTimeline.lifetime.validTo, '2014-03-17');
 });
 test('compilerRejectsReversedIntervalsAndMissingGeometry', () => {
   const reversed = historicalWorldCases(); reversed.entities.at(-1).lifetime.validFrom = '2001';
-  assert.throws(() => compiler.compileHistoricalWorldTimeline(reversed), /기간|interval/i);
+  assert.throws(() => compileFixture(reversed), /기간|interval/i);
   const missing = historicalWorldCases(); delete missing.entities.at(-1).geometryVersions[0].geometry;
-  assert.throws(() => compiler.compileHistoricalWorldTimeline(missing), /geometry|형상/i);
+  assert.throws(() => compileFixture(missing), /geometry|형상/i);
 });
 test('historical defaults reach root flags and color without promoting a child flag', () => {
   const input = historicalWorldCases();
@@ -102,7 +103,7 @@ test('historical defaults reach root flags and color without promoting a child f
     const entity = input.entities.find(row => row.entityId === id);
     Object.assign(entity.metadata, { defaultColor: '#53657A', defaultFlagDataUrl: flag });
   }
-  const project = compiler.compileHistoricalWorldTimeline(input).project;
+  const project = compileFixture(input).project;
   const root = project.territorialEntities.find(row => row.id === 'state:test-ukraine');
   assert.equal(root.properties.style.color?.toUpperCase(), '#53657A');
   assert.equal(effectiveTerritorialFlagUrl(root), flag);

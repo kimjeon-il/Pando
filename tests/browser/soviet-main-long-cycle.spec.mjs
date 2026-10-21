@@ -135,7 +135,7 @@ test('12 repeated 1989 Soviet/current month round trips retain bounded worker st
       return gpu?.renderer === 'webgl2' && gpu.canonicalMeshReady && !gpu.countrySharedBoundaryReplacementPending;
     }), { timeout: 90_000 }).toBe(true);
     await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
-    const modernMonth = await page.evaluate(() => window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth);
+    const modernMonth = await page.evaluate(() => new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'));
     expect(modernMonth).toMatch(/^\d{4}-\d{2}$/);
     expect(modernMonth).not.toBe('1989-06');
     result.modernMonth = modernMonth;

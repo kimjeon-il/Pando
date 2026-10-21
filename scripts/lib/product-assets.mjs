@@ -15,7 +15,7 @@ export const runtimeDependencies = Object.freeze({
   'assets/js/modules/gpu-map-renderer.js': ['assets/js/workers/hydro-tile-worker.js', 'assets/js/workers/gpu-mesh-worker.js',
     'assets/js/workers/country-shared-boundary-worker.js', 'assets/js/workers/canvas-render-worker.js'],
   'assets/js/modules/builtin-mesh-resource.js': ['assets/js/workers/data-loader-worker.js','assets/data/world/current.json'],
-  'assets/js/modules/historical-world-loader.js': ['assets/data/historical-world/generated/v1/manifest.json'],
+  'assets/js/modules/builtin-world-loader.js': ['assets/data/builtin-world/generated/v1/index.json'],
   'assets/js/modules/physical-source-configuration.js': ['assets/data/terrain-preview/v0.13.3-p1/manifest.json'],
   'assets/js/workers/canvas-render-worker.js': ['assets/js/vendor/d3.min.js', 'assets/js/workers/geographic-boundary-core.js',
     'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js', 'assets/js/modules/terrain-manifest.js'],
@@ -55,7 +55,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
   // describe how data was built and must not publish the original GIS inputs.
   const manifests=[
     'assets/data/world/current.json',
-    'assets/data/historical-world/generated/v1/manifest.json',
+    'assets/data/builtin-world/generated/v1/index.json',
     'assets/data/territorial-entities/generated/v2/index.json',
     'assets/data/prepared-polygons/generated/v2/manifest.json',
     'assets/data/hydro/v0.13.2/manifest.json',
@@ -74,7 +74,9 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
     if(path==='assets/data/world/current.json'){
       for(const item of Object.values(manifest.assets||{}))dataAsset(item.url,'assets/data/');
       for(const url of Object.values(manifest.compatibility?.sharedBoundaries||{}))dataAsset(url,'assets/data/');
-    }else if(path.includes('/historical-world/'))dataAsset(manifest.project.url,base);
+    }else if(path.includes('/builtin-world/')){
+      for(const item of manifest.entities)dataAsset(item.file,base);
+    }
     else if(path.includes('/territorial-entities/')){
       for(const item of manifest.entities)dataAsset(item.file,base);
     }else if(path.includes('/prepared-polygons/')){

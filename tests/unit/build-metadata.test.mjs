@@ -34,10 +34,9 @@ test('published metadata verifies actual manifest bytes and rejects stale hashes
   put('assets/data/hydro/v0.13.2/manifest.json',JSON.stringify({container:{url:'hydro.bin'},shards:[]}));
   put('assets/data/hydro/v0.13.2/hydro.bin','hydro fixture');
   put('assets/data/places/manifest.json',JSON.stringify({shards:{}}));
-  const history='assets/data/historical-world/generated/v1/manifest.json';
-  const historical=revision=>JSON.stringify({sourceMonth:'2026-10',revision,project:{url:'assets/data/historical-world/generated/v1/world-project.json.gz'}})+'\n';
+  const history='assets/data/builtin-world/generated/v1/index.json';
+  const historical=revision=>JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,revision,entities:[]})+'\n';
   put(history,historical(1));
-  put('assets/data/historical-world/generated/v1/world-project.json.gz','project fixture');
   const run=(...args)=>execFileSync(process.execPath,['scripts/generate-build-metadata.mjs',...args],{
     cwd:root,env:{...process.env,PANDOLAB_BUILD_ID:'fixed-source'},stdio:'pipe'});
   run();run('--check');
@@ -51,7 +50,7 @@ test('published metadata verifies actual manifest bytes and rejects stale hashes
   run();run('--check');
   const source=readFileSync(join(root,'assets/js/build-meta.js'),'utf8');
   const meta=JSON.parse(source.match(/Object\.freeze\(([\s\S]*)\);\s*$/)[1]);
-  assert.equal(meta.historicalWorld.sha256,createHash('sha256').update(readFileSync(join(root,history))).digest('hex'));
+  assert.equal(meta.builtinWorld.sha256,createHash('sha256').update(readFileSync(join(root,history))).digest('hex'));
   put('assets/js/added.js','export const added = true;');
   assert.throws(()=>run('--check'),/Command failed/);
 });

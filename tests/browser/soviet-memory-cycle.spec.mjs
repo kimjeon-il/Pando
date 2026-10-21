@@ -127,7 +127,7 @@ test('1989 Soviet repeated coast edit and month round-trip keep bounded caches a
   }, { timeout: 90_000 }).toBe(true);
   await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
 
-  const sourceMonth = await page.evaluate(() => window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth);
+  const sourceMonth = await page.evaluate(() => new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'));
   expect(sourceMonth).toMatch(/^\d{4}-\d{2}$/);
   expect(sourceMonth).not.toBe('1989-06');
 

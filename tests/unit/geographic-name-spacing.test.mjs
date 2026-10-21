@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {builtinProject} from '../helpers/builtin-world.mjs';
 import fs from 'node:fs';
 import test from 'node:test';
 import { gunzipSync } from 'node:zlib';
@@ -54,7 +55,7 @@ test('Dhekelia uses its canonical name in source, lineage, library chunks and ac
   const bytes = gunzipSync(fs.readFileSync(new URL(world.assets.canonicalCountryPacket.url, data)));
   const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   assert.equal(createCanonicalCountryStore(buffer).materializeFeature('ESB').properties.name, '데켈리아');
-  const historical = gunzipSync(fs.readFileSync(new URL('historical-world/generated/v1/world-project.json.gz', data))).toString();
+  const historical = JSON.stringify(builtinProject('2026-10'));
   assert.doesNotMatch(historical, /데켈리아 지역/u);
   assert.match(historical, /데켈리아/u);
 });

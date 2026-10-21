@@ -46,7 +46,7 @@ test('actual autosave composition uses one receipt and acknowledgement retains f
   assert.equal(options.onSaved('stale-project', receipt), false); assert.equal(state.lastSavedAt, 'first');
 });
 
-test('cold delta validation and preview inspection first reuse the verified Core source without replacing the live document',async t=>{
+test('cold autosave validation and preview need no date-dependent builtin baseline',async t=>{
   const source=startupDocument([{id:'A',type:'Feature',properties:{schemaVersion:6,entityKind:'general',name:'A',parentId:'',coverageMode:'explicit',
     locked:false,style:{color:'#123456'},metadata:{}},geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]);
   const producer=await createNodeCoreProject(source,{appVersion:'fixture'});
@@ -57,7 +57,7 @@ test('cold delta validation and preview inspection first reuse the verified Core
       payload:{id:'A',field:'notes',valuePresent:true,value:'Recovered notes'}});
     assert.equal(edited.ok,true);
     delta=(await producer.project.buildAutosave()).project;
-    assert.equal(delta.format,'pandolab-autosave-delta');
+    assert.equal(delta.format,'pandolab-autosave-full');
   } finally {producer.dispose();}
   const consumer=await createCoreStartupState(t),before=consumer.documentModel.snapshot();
   let options,receipt,preparations=0;
@@ -73,10 +73,10 @@ test('cold delta validation and preview inspection first reuse the verified Core
   const restored=await options.validateProject(delta);
   assert.equal(restored.territorialEntities[0].properties.notes,'Recovered notes');
   const sourceId=consumer.client.state().storageBaselineId;
-  assert.ok(sourceId>0);assert.equal(consumer.documentModel.snapshot(),before);
+  assert.equal(sourceId,0);assert.equal(consumer.documentModel.snapshot(),before);
   const preview=await options.previewProjection(delta);
   assert.equal(preview.project,delta);assert.equal(preview.territorialViews[0].properties.notes,'Recovered notes');
   assert.equal(preview.territorialViews[0].geometry.type,'Polygon');
   assert.equal(consumer.client.state().storageBaselineId,sourceId);assert.equal(consumer.documentModel.snapshot(),before);
-  assert.equal(consumer.project.canUndo(),false);assert.equal(preparations,2);
+  assert.equal(consumer.project.canUndo(),false);assert.equal(preparations,0);
 });

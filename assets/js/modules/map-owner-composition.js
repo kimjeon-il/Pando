@@ -22,7 +22,7 @@ export function createMapOwners({productMode,platform={},editing=null,isObjectVi
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Map composition requires immutable product mode.');
   if(productMode==='viewer'&&editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
   const capabilities=resourceCapabilities(productMode,platform);
-  const builtinSession=createBuiltinSession({historicalWorldLoader:platform.historicalWorldLoader});
+  const builtinSession=createBuiltinSession({builtinWorldLoader:platform.builtinWorldLoader});
   const workspaceSurfaces=createWorkspaceSurfaces({productMode});
   const projectSession=createProjectSession({productMode,capabilities,resolveVisibilityGroup,onViewingChange});
   const renderQuality=createRenderQuality({beforeMeshRebuild:editing?.beforeMeshRebuild});

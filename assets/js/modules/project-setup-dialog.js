@@ -26,6 +26,9 @@ export function createProjectSetupDialog({document,createProject,confirmDiscard,
  overlay.addEventListener('pointercancel',finish);overlay.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();finish();}});overlay.focus();});
  dialog.addEventListener('cancel',event=>{event.preventDefault();close();});el('Cancel').addEventListener('click',close);
  form.addEventListener('submit',async event=>{event.preventDefault();if(pending)return;let setup;try{setup=read();}catch(reason){error(reason);return;}
- lock(true);try{if(!await confirmDiscard())return;await createProject(setup);dialog.close();}catch(reason){error(reason);}finally{lock(false);}});
+ // A native modal dialog makes the external discard prompt inert. Release
+ // the top layer before prompting, retaining the form on cancel or failure.
+ lock(true);dialog.close();try{if(!await confirmDiscard()){dialog.showModal();return;}await createProject(setup);}
+ catch(reason){dialog.showModal();error(reason);}finally{lock(false);}});
  return Object.freeze({open});
 }
