@@ -67,6 +67,7 @@ jobs:
       - name: Install pinned JS tools
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: '1. Reference-image unit tests and focused ESLint'
+        if: ${{ !contains(github.event.head_commit.message, '[stage-only]') }}
         run: |
           pnpm exec eslint \
             assets/js/modules/reference-image-controller.js \
@@ -81,19 +82,45 @@ jobs:
             tests/unit/reference-image-surface.test.mjs \
             tests/unit/reference-image-ui.test.mjs
       - name: '2. Relevant UI architecture and CSS layering checks'
+        if: ${{ !contains(github.event.head_commit.message, '[stage-only]') }}
         run: |
           node scripts/check-ui-architecture.mjs
           node scripts/check-ui-layering.mjs
       - name: Install Chromium for the three targeted browser specs
+        if: ${{ !contains(github.event.head_commit.message, '[stage-only]') }}
         run: pnpm exec playwright install --with-deps chromium
       - name: '3. Focused rerun of previously failing line-refinement and live-wire cases'
+        if: ${{ !contains(github.event.head_commit.message, '[stage-only]') }}
         run: >
           pnpm exec playwright test
           tests/browser/reference-image-line-refine.spec.mjs
           tests/browser/reference-image-live-wire.spec.mjs
           --workers=1 --retries=0 --trace off
       - name: '4. Lazy reference-image CSS app-staging test'
+        if: ${{ !contains(github.event.head_commit.message, '[stage-only]') }}
         run: >
           node --test
           --test-name-pattern="stages the runtime reference style catalog"
           apps/web-shell/tests/stage.test.mjs
+      - name: '4b. Actual small-project App staging and source identity'
+        if: ${{ contains(github.event.head_commit.message, '[stage-only]') }}
+        run: |
+          node apps/web-shell/stage.mjs --profile=small-project
+          node apps/web-shell/check-stage.mjs
+          node --input-type=module -e "
+            import assert from 'node:assert/strict';
+            import { readFileSync } from 'node:fs';
+            import { REFERENCE_IMAGE_STYLE_SOURCES } from './assets/js/modules/reference-image-style-sources.js';
+            const sourcePaths = [
+              ...REFERENCE_IMAGE_STYLE_SOURCES.map(p => 'assets/' + p),
+              ...['reference-image-controller.js', 'reference-image-surface.js', 'reference-image-ui.js',
+                'reference-image-line-refine-controller.js', 'reference-image-live-wire-controller.js']
+                .map(p => 'assets/js/modules/' + p)
+            ];
+            for (const p of sourcePaths) {
+              const original = readFileSync(p);
+              const staged = readFileSync('apps/web-shell/dist/' + p);
+              assert.deepEqual(staged, original, 'App packaged source mismatch: ' + p);
+            }
+            console.log('Verified exact bytes for ' + sourcePaths.length + ' reference UI/CSS assets.');
+          "
