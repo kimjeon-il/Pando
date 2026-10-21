@@ -9,6 +9,7 @@ import { normalizeCountryCollection } from '../../assets/js/modules/country-feat
 import { classifyBuiltinCountries } from '../../assets/js/modules/builtin-subunits.js';
 import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
 import { resolvedTimelineViews } from '../../assets/js/modules/timeline-resolver.js';
+import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 const module = await import('../../tools/build-historical-world-timeline.mjs').catch(error => {
   if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
   return {};
@@ -26,10 +27,10 @@ test('publicationIsDeterministicAndRejectsStaleOutput', () => {
   const manifest = JSON.parse(first.get('manifest.json'));
   const project = JSON.parse(gunzipSync(first.get('world-project.json.gz')));
   assert.ok(manifest.project.decodedBytes < 64 * 1024 * 1024);
-  assert.equal(project.schemaVersion, 10);
+  assert.equal(project.schemaVersion, PROJECT_SCHEMA_VERSION);
   const trace = JSON.parse(first.get('expected-trace.json'));
   const october = trace.months.find(row => row.month === '2012-10');
-  assert.deepEqual(new Set(october.entities.map(row => row.entityId)),new Set(['IDN','SDN','SDS','TLS','state:nagorno-karabakh','UKR']));
+  assert.deepEqual(new Set(october.entities.map(row => row.entityId)),new Set(['IDN','SDN','SDS','TLS','state:nagorno-karabakh','UKR','KOR','PRK']));
   assert.equal(october.points[0].rootIds.join(), 'UKR');
   assert.equal(october.entities.find(row => row.entityId === 'UKR').sourceEntityId, 'state:UKR');
   assert.equal(trace.months.find(row => row.month === manifest.sourceMonth).entities.find(row => row.entityId === 'UKR').sourceEntityId, 'state:UKR');

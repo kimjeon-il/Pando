@@ -46,6 +46,25 @@ test('modernGeometryIsLimitedToSourceMonth', async () => {
   assert.equal(await visible('RUS', '2026-10'), true);
   assert.equal(await visible('RUS', '2026-11'), false);
 });
+
+test('a current snapshot selecting an explicitly dated version retains its entire source coverage', () => {
+  const input = historicalWorldCases();
+  const source = input.entities.find(row => row.sourceInfo?.featureId === 'KOR');
+  source.lifetime = {validFrom:'1948-08-15',validTo:null};
+  const current = source.geometryVersions[0];
+  Object.assign(current,{validFrom:'1953-07-27',datePrecision:'date'});
+  source.geometryVersions.unshift({...structuredClone(current),versionId:'KOR:38th-parallel',
+    validFrom:'1948-08-15',validTo:'1953-07-26'});
+  const historic = source.geometryVersions[0].geometry.coordinates[0];
+  historic[1][0]-=0.5; historic[2][0]-=0.5;
+  const compiled = compiler.compileHistoricalWorldTimeline(input);
+  const bindings = compiled.project.timelineRecords.geometryBindings.filter(row=>row.entityId==='KOR');
+  assert.deepEqual(bindings.map(({validFrom,validTo})=>({validFrom,validTo})),
+    [{validFrom:'1948-08-15',validTo:'1953-07-26'},{validFrom:'1953-07-27',validTo:null}]);
+  const lifetime=compiled.project.timelineRecords.lifetimes.find(row=>row.entityId==='KOR');
+  assert.equal(lifetime.validFrom,'1948-08-15');
+  assert.equal(lifetime.validTo,null);
+});
 test('parentCoverageLimitsChildPresence', async () => {
   assert.equal(await visible('state:child', '1900-12'), true);
   assert.equal(await visible('state:child', '1901-07'), false);

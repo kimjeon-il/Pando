@@ -19,6 +19,16 @@ const gdr = () => entity('gdr', { names: { ko: '독일 민주공화국' }, alter
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const textOf = node => [node.textContent, ...node.children.map(textOf)].join(' ');
 
+test('the preview exposes source limitations instead of reducing them to a generic confidence label',async()=>{
+  const notice='북중 국경 확정 이전의 북쪽 경계는 미복원 상태이며 현재 경계를 참고용으로 표시합니다.';
+  const source=entity('limited',{geometryVersions:[{versionId:'limited:v1',validFrom:'1900',validTo:'2000',
+    geometry,certainty:'medium',historicalProvenance:{notice}}]});
+  const h=harness({entities:[source]});
+  await h.controller.open();await h.controller.select('state:limited');
+  assert.ok(textOf(h.elements.preview).includes(notice));
+  assert.equal(h.elements.add.disabled,false);
+});
+
 function fakeElement(ownerDocument, tag = 'div') {
   const listeners = new Map(), attributes = new Map(), classes = new Set();
   const matches = (node, selector) => {

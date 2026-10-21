@@ -16,7 +16,7 @@ function fixture(corrupt=false,wrongMetadata=false){
 test('lazy loader fetches index once and one gzip once for concurrent requests and dated selection',async()=>{
  const f=fixture();const [a,b]=await Promise.all([f.service.loadEntity('state:KOR'),f.service.loadEntity('state:KOR')]);
  assert.equal(a,b);assert.equal(f.calls(),2);assert.equal(f.service.peek('state:KOR'),a);
- assert.equal((await f.service.loadGeometryVersion('state:KOR','2026-10-06')).versionId,'state:KOR:natural-earth-5.1.1');
+ assert.equal((await f.service.loadGeometryVersion('state:KOR','2026-10-06')).versionId,'state:KOR:armistice-1953');
  assert.equal(f.calls(),2);await assert.rejects(f.service.loadEntity('state:missing'),/Unknown/);
 });
 
