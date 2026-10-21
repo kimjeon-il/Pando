@@ -989,41 +989,27 @@
       "sourceSha": "8f5c8c51f19518ae5e013afe9569f41855a65569"
     },
     "world-bundle": {
-      "inputFingerprint": "ac35dde5d9a489b5bcc146bdb3e6444c79771021f3e6eaca3832d17f1cafaf6c",
-      "outputFingerprint": "9b135f052202f64b477238670347dd8c3bc0b31eb83fa68c51dcf20872324162",
+      "inputFingerprint": "fc14c26b526ec12d78bf844a9cf2bb068810c60b87adc0eff4a7c297cf127b37",
+      "outputFingerprint": "96bc9b616ad73e76945d016e3e45754b88c34518af1a02d8f7e68ec95d3d6d9e",
       "inputs": {
         "assets/data/world/build-input.json": "a47c5f6db7e1ee62ca1162f0fbe9e2e8ba937bb41d79ebeebd3deaf89bd71fd3"
       },
       "generatorHashes": {
-        "tools/build-world-bundle.mjs": "5b27d9b6cfbe10f275a6618fc11470773b21dac8ec02199d55af6a0888c03385"
+        "tools/build-world-bundle.mjs": "f3a5e00bb2183db10944bcbe3acd9b430e5df4e07a0b2af444cdf5f14207dfdc"
       },
       "tools": {
         "node": "24"
       },
       "dependencies": {
-        "world-preview": "b39a8be74f610d953be440509ba723df4fb73776a10bbf94856222be7d478169"
+        "world-preview": "1a0f8a9184b06a3cb6037d8ccda8af62b9d56c19b78d02b8b4735461e1daa196"
       },
       "outputs": {
-        "assets/data/world/current.json": "f05db0f49bbd323d7c6d946cc06acdcb83ccdc5e443ae85bf1597b8a77f15e1f",
-        "assets/data/world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
-        "assets/data/world/objects/countries-canonical-sha256-6bc58f6fd8c32b4c445f9bc328b87f8ea028221eca1f1a9ff5ff848d51343218.pcg.gz": "6bc58f6fd8c32b4c445f9bc328b87f8ea028221eca1f1a9ff5ff848d51343218",
-        "assets/data/world/objects/countries-canonical-sha256-753e21400c5a9123169379ba023ccce00d604ae15faf4963cf40ab6cc1652845.pcg.gz": "753e21400c5a9123169379ba023ccce00d604ae15faf4963cf40ab6cc1652845",
-        "assets/data/world/objects/countries-canonical-sha256-d7d25bb4c04a1eb9d29e214ec3333e09051bcab00d725d5ee78ab15836bd7325.pcg.gz": "d7d25bb4c04a1eb9d29e214ec3333e09051bcab00d725d5ee78ab15836bd7325",
-        "assets/data/world/objects/countries-preview-sha256-079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5.geojson.gz": "079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5",
-        "assets/data/world/objects/countries-preview-sha256-1ee545410a2a654b5b333e9d8d19b4a0f914334d0759a3e7f2cdc3bc9c4f3ad0.geojson.gz": "1ee545410a2a654b5b333e9d8d19b4a0f914334d0759a3e7f2cdc3bc9c4f3ad0",
-        "assets/data/world/objects/countries-preview-sha256-25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38.geojson.gz": "25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38",
-        "assets/data/world/objects/countries-preview-sha256-4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166.geojson.gz": "4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166",
-        "assets/data/world/objects/countries-preview-sha256-9e5ee678f2cbe1ad5a4df8fb5bcd251c1f04e9e005d811fb1f154afa408be594.geojson.gz": "9e5ee678f2cbe1ad5a4df8fb5bcd251c1f04e9e005d811fb1f154afa408be594",
-        "assets/data/world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252",
+        "assets/data/world/current.json": "5f16e081bf6ed730091872f330fceb91930c64e734d8d23e0649066b8d318f8a",
+        "assets/data/world/objects/countries-canonical-sha256-79a3a7f958461e18b61c219a463f97cdffbbdd21276781e97d39f3fb930684cd.pcg.gz": "79a3a7f958461e18b61c219a463f97cdffbbdd21276781e97d39f3fb930684cd",
+        "assets/data/world/objects/countries-preview-sha256-7146a7bd82d8f91b6cbbd5d2637870873b56e0355e3de6fae710f055e70a788f.geojson.gz": "7146a7bd82d8f91b6cbbd5d2637870873b56e0355e3de6fae710f055e70a788f",
         "assets/data/world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
-        "assets/data/world/objects/world-mesh-preview-sha256-64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129.bin.gz": "64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129",
-        "assets/data/world/objects/world-mesh-preview-sha256-766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583.bin.gz": "766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583",
-        "assets/data/world/objects/world-mesh-preview-sha256-a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48.bin.gz": "a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48",
-        "assets/data/world/objects/world-mesh-preview-sha256-c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b.bin.gz": "c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b",
-        "assets/data/world/objects/world-mesh-preview-sha256-fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e.bin.gz": "fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e",
-        "assets/data/world/objects/world-mesh-sha256-4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53.bin.gz": "4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53",
-        "assets/data/world/objects/world-mesh-sha256-9fe1f686728e83d4615998a7b023db680b3b561b0a26e7f2f4357b7fe8bcfb86.bin.gz": "9fe1f686728e83d4615998a7b023db680b3b561b0a26e7f2f4357b7fe8bcfb86",
-        "assets/data/world/objects/world-mesh-sha256-c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8.bin.gz": "c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8"
+        "assets/data/world/objects/world-mesh-preview-sha256-595fd734fe25605d9ac9b9066e62efc852a48d04e6ff7cfdc6624f006e3f352e.bin.gz": "595fd734fe25605d9ac9b9066e62efc852a48d04e6ff7cfdc6624f006e3f352e",
+        "assets/data/world/objects/world-mesh-sha256-8f74fb3e416358acab6d8664a2808fa4991415e77ee6ce925611c73b8b74b636.bin.gz": "8f74fb3e416358acab6d8664a2808fa4991415e77ee6ce925611c73b8b74b636"
       },
       "consumers": [
         "assets/js/workers/data-loader-worker.js"
@@ -1036,7 +1022,8 @@
           "--check"
         ]
       ],
-      "sourceSha": "7f99c716e9c867369df480eacd28b20d85f91fff"
+      "sourceSha": "6fc982bfe1b3f13c0ce9988af0a73d1358f0be2b",
+      "sourceDirty": true
     },
     "shared-boundaries": {
       "inputFingerprint": "f1d0258b1ede34bffcb98bcd8aad44b873e006816571cdd10132d7533cc1222e",

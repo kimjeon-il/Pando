@@ -1,9 +1,0 @@
-✔ all 258 source features retain identity and properties; uncurated geometries retain exact coordinate order (2148.1045ms)
-ℹ tests 1
-ℹ suites 0
-ℹ pass 1
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 2460.0643
