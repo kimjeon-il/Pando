@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createSurfaceController } from '../../assets/js/modules/surface-controller.js';
 import { installReferenceImageSurface } from '../../assets/js/modules/reference-image-surface.js';
-import { setReferenceImageSurfaceEditing } from '../../assets/js/modules/reference-image-surface-port.js';
+import { setReferenceImageSurfaceEditing, setReferenceImageSurfaceActions } from '../../assets/js/modules/reference-image-surface-port.js';
 import { installReferenceImageLineRefiner } from '../../assets/js/modules/reference-image-line-refine-controller.js';
 import { installReferenceImageLiveWire } from '../../assets/js/modules/reference-image-live-wire-controller.js';
 
@@ -139,6 +139,20 @@ function fixture() {
   actions.className = 'reference-image-workflow-actions';
   actions.dataset.refWorkflowActions = '';
   summary.append(actions);
+  const auxiliary = document.createElement();
+  auxiliary.className = 'reference-image-auxiliary-actions';
+  auxiliary.dataset.refAuxiliaryActions = '';
+  auxiliary.hidden = true;
+  for (const [name, label] of [['line', '선 보강 작업'], ['live-wire', '자동 추적 작업']]) {
+    const row = document.createElement();
+    row.className = 'reference-image-calibration-actions';
+    row.dataset[name === 'line' ? 'refLineActions' : 'refLiveWireActions'] = '';
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', label);
+    row.hidden = true;
+    auxiliary.append(row);
+  }
+  summary.append(auxiliary);
   panel.append(resize, header, body, summary);
   let layout = 'mobile';
   const controller = createSurfaceController({ document, getElement: id => document.elements.find(element => element.id === id), getLayout: () => layout });
@@ -473,9 +487,9 @@ test('mobile workflow actions replace generic completion while preserving naviga
   adapter.destroy();
 });
 
-for (const [name, install, actionKey, actionNames] of [
-  ['line refiner', installReferenceImageLineRefiner, 'refLineAction', ['start', 'apply', 'redraw', 'cancel']],
-  ['live wire', installReferenceImageLiveWire, 'refLiveWireAction', ['start', 'finish', 'undo', 'apply', 'redraw', 'cancel']],
+for (const [name, install] of [
+  ['line refiner', installReferenceImageLineRefiner],
+  ['live wire', installReferenceImageLiveWire],
 ]) {
   test(`inactive ${name} rendering preserves the surface's workflow and auxiliary completion buttons`, async t => {
     const f = fixture();
@@ -483,16 +497,10 @@ for (const [name, install, actionKey, actionNames] of [
     const adapter = installReferenceImageSurface({ ...f, workspaceSurfaces: f.workspace });
     adapter.open();
     f.editor.dataset.refEditor = '';
-    const calibration = document.createElement();
-    calibration.className = 'reference-image-calibration-actions';
-    const row = document.createElement();
-    row.dataset[actionKey === 'refLineAction' ? 'refLineActions' : 'refLiveWireActions'] = '';
-    for (const action of actionNames) {
-      const button = document.createElement();
-      button.dataset[actionKey] = action;
-      row.append(button);
-    }
-    f.editor.append(calibration, row);
+    const auxiliaryHost = f.panel.querySelector('[data-ref-auxiliary-actions]');
+    assert.equal(auxiliaryHost.parentElement, f.panel.querySelector('.reference-image-editing-summary'));
+    assert.equal(f.editor.querySelector('[data-ref-line-actions]'), null);
+    assert.equal(f.editor.querySelector('[data-ref-live-wire-actions]'), null);
 
     document.documentElement = { dataset: {} };
     document.getElementById = id => id === 'map' ? f.mapElement : null;
@@ -543,6 +551,7 @@ for (const [name, install, actionKey, actionNames] of [
     assert.equal(genericActions.length, 2);
     assert.ok(genericActions.every(button => button.hidden), 'an idle auxiliary renderer must preserve workflow completion ownership');
     assert.equal(summary.querySelector('[data-ref-workflow-actions]').hidden, false);
+    assert.equal(auxiliaryHost.hidden, true, 'another workflow keeps its own footer action slot');
 
     adapter.setWorkflow(null);
     setReferenceImageSurfaceEditing(true, '보조 도구 조작 중');
@@ -556,3 +565,69 @@ for (const [name, install, actionKey, actionNames] of [
     assert.ok(genericActions.every(button => !button.hidden));
   });
 }
+
+
+test('P5 action groups stay in a single Surface footer through phases and layout changes', () => {
+  const f = fixture();
+  const adapter = installReferenceImageSurface({ ...f, workspaceSurfaces: f.workspace });
+  adapter.open();
+  const summary = f.panel.querySelector('.reference-image-editing-summary');
+  const host = f.panel.querySelector('[data-ref-auxiliary-actions]');
+  const line = host.querySelector('[data-ref-line-actions]');
+  const wire = host.querySelector('[data-ref-live-wire-actions]');
+  assert.equal(host.parentElement, summary);
+  assert.equal(summary.hidden, true);
+
+  setReferenceImageSurfaceActions('line', { start: { hidden: false, disabled: false } });
+  const start = line.querySelector('[data-ref-line-action="start"]');
+  assert.equal(start.textContent, '선 보강');
+  assert.equal(start.parentElement, line);
+  assert.equal(line.children.length, 4);
+  assert.equal(line.hidden, false);
+  assert.equal(summary.hidden, false);
+  assert.equal(summary.classList.contains('is-compact'), false);
+  adapter.setEditing(true, '기준점 추가');
+  assert.equal(host.hidden, true, 'regular image editing suppresses the idle auxiliary toolbar');
+  adapter.setEditing(false);
+  assert.equal(host.hidden, false);
+
+  setReferenceImageSurfaceActions('line', {
+    apply: { hidden: false, disabled: true },
+    redraw: { hidden: false },
+    cancel: { hidden: false },
+  });
+  const apply = line.querySelector('[data-ref-line-action="apply"]');
+  assert.equal(apply.disabled, true);
+  assert.equal(start.hidden, true);
+  assert.equal(line.querySelector('[data-ref-line-action="cancel"]').hidden, false);
+
+  setReferenceImageSurfaceEditing(true, '선 보강 중');
+  assert.equal(summary.classList.contains('is-compact'), true);
+  assert.equal(f.panel.querySelector('.reference-image-body').inert, true);
+  assert.equal(start, line.querySelector('[data-ref-line-action="start"]'));
+  assert.equal(apply, line.querySelector('[data-ref-line-action="apply"]'));
+  assert.equal(host.parentElement, summary);
+
+  setReferenceImageSurfaceActions('live-wire', {
+    finish: { hidden: false, disabled: false },
+    undo: { hidden: false, disabled: true },
+    cancel: { hidden: false },
+  });
+  assert.equal(wire.children.length, 6);
+  assert.equal(wire.querySelector('[data-ref-live-wire-action="undo"]').disabled, true);
+
+  f.setLayout('wide');
+  f.sync();
+  assert.equal(summary.hidden, false);
+  assert.equal(summary.classList.contains('is-compact'), false);
+  assert.equal(host.parentElement, summary);
+  assert.equal(start.parentElement, line);
+  assert.equal(apply.parentElement, line);
+
+  setReferenceImageSurfaceEditing(false);
+  setReferenceImageSurfaceActions('line');
+  setReferenceImageSurfaceActions('live-wire');
+  assert.equal(host.hidden, true);
+  assert.equal(summary.hidden, true);
+  adapter.destroy();
+});
