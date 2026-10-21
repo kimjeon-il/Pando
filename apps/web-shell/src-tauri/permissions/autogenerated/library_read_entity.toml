@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-library-read-entity"
+description = "Enables the library_read_entity command without any pre-configured scope."
+commands.allow = ["library_read_entity"]
+
+[[permission]]
+identifier = "deny-library-read-entity"
+description = "Denies the library_read_entity command without any pre-configured scope."
+commands.deny = ["library_read_entity"]

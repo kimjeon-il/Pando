@@ -1,6 +1,11 @@
+import { publicDataRoot, resolveWorkerDataChannel } from '../modules/publication-data-channel.js';
 const workerAssetRevision = new URL(self.location.href).searchParams.get('v') || '';
 await import(`../build-meta.js?v=${encodeURIComponent(workerAssetRevision)}`);
-const buildMeta = globalThis.PANDOLAB_BUILD_META;
+const { meta: buildMeta } = await resolveWorkerDataChannel({
+  baseUrl: publicDataRoot(self.location.href), buildMeta: globalThis.PANDOLAB_BUILD_META,
+  expectedRevision: new URL(self.location.href).searchParams.get('publicationRevision'),
+  expectedManifestSha256: new URL(self.location.href).searchParams.get('publicationManifestSha256'),
+});
 if (!buildMeta) throw new Error('빌드 메타데이터를 불러오지 못했습니다.');
 const APP_VERSION = String(buildMeta.appVersion || '');
 const ASSET_REVISION = String(buildMeta.assetRevision || workerAssetRevision);
@@ -25,7 +30,9 @@ const loadPolicy = resolveStartupLoadPolicy({
   saveData: params.get('saveData') === 'true',
 });
 
-const MANIFEST_URL = new URL('../../data/world/current.json', self.location.href);
+const MANIFEST_URL = buildMeta.worldBundle?.url
+  ? new URL(buildMeta.worldBundle.url, publicDataRoot(self.location.href))
+  : new URL('../../data/world/current.json', self.location.href);
 MANIFEST_URL.searchParams.set('v', DATA_REVISION);
 const phaseProgress = { preview: new Map(), geometry: new Map(), mesh: new Map() };
 let manifest = null;
@@ -54,8 +61,14 @@ function report(phase, key, message, loaded = 0, total = 0, done = false, extra 
 }
 
 const { createStoredAssetLoader } = await import(`../modules/stored-asset-loader.js?v=${encodeURIComponent(ASSET_REVISION)}`);
-const { validateWorldBundle, worldAssetUrl } = await import(`../modules/world-bundle-manifest.js?v=${encodeURIComponent(ASSET_REVISION)}`);
-const worldDataRoot = new URL('../../data/', self.location.href);
+const { parseVerifiedWorldBundle, worldAssetUrl } = await import(`../modules/world-bundle-manifest.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+const worldDataRoot = buildMeta.worldBundle?.url
+  ? new URL('../', MANIFEST_URL)
+  : new URL('../../data/', self.location.href);
+const publishedManifestLoader = buildMeta.worldBundle
+  ? createStoredAssetLoader({ dataRevision: DATA_REVISION,
+    resolveUrl: spec => new URL(spec.url, publicDataRoot(self.location.href)) })
+  : null;
 const { loadAsset, cleanupOldCoreCaches } = createStoredAssetLoader({
   dataRevision: DATA_REVISION,
   cachePolicy: 'immutable',
@@ -70,7 +83,7 @@ async function parseJson(buffer) {
 }
 
 function validateCountries(data, label) {
-  if (data?.type !== 'FeatureCollection' || data.features?.length !== 258) {
+  if (data?.type !== 'FeatureCollection' || data.features?.length !== manifest.countryCount) {
     throw new Error(`${label}의 국가 수가 올바르지 않습니다.`);
   }
   const ids = new Set();
@@ -96,7 +109,7 @@ function validateMesh(buffer, spec, label) {
     && header[11] === header[2]);
   const expectedHeaderValid = expected.length === headerWords
     && expected.every((value, index) => header[index] === value);
-  if (header[0] !== 0x434d4731 || !metadataValid || header[2] !== 258
+  if (header[0] !== 0x434d4731 || !metadataValid || header[2] !== manifest.countryCount
       || !expectedHeaderValid) {
     throw new Error(`${label} 헤더가 올바르지 않습니다.`);
   }
@@ -118,9 +131,14 @@ function assetMetrics(result, parseMilliseconds = 0) {
 }
 
 async function loadManifest() {
+  if (publishedManifestLoader) {
+    const { value } = await publishedManifestLoader.loadAsset(buildMeta.worldBundle,
+      'preview', 'world-manifest', '세계지도 목록', bytes => parseVerifiedWorldBundle(bytes, buildMeta.worldBundle));
+    return value;
+  }
   const response = await fetch(MANIFEST_URL, { cache: 'no-cache' });
   if (!response.ok) throw new Error(`시작 데이터 manifest 요청에 실패했습니다. (${response.status})`);
-  return validateWorldBundle(await response.json());
+  return parseVerifiedWorldBundle(await response.arrayBuffer(), buildMeta.worldBundle || null);
 }
 
 async function loadJsonAsset(spec, phase, key, label, countryCollection = false, signal = null) {
@@ -146,7 +164,7 @@ async function loadCountryPacketAsset(spec, phase, key, label, signal = null) {
     const startedAt = performance.now();
     packetHeader = inspectCanonicalCountryPacket(buffer, Array.isArray(spec.header) ? spec.header : null);
     validateMilliseconds = performance.now() - startedAt;
-    if (packetHeader.featureCount !== 258) throw new Error(`${label}의 국가 수가 올바르지 않습니다.`);
+    if (packetHeader.featureCount !== manifest.countryCount) throw new Error(`${label}의 국가 수가 올바르지 않습니다.`);
     return buffer;
   }, signal);
   return { ...result, buffer: result.value, packetHeader, validateMilliseconds };
@@ -161,7 +179,7 @@ async function loadPreview() {
     loadJsonAsset(manifest.assets.labelAnchors, 'preview', 'labels', '국명 기준점'),
   ]);
   const labelAnchors = anchorResult.data;
-  if (labelAnchors?.version !== '0.10.1' || !labelAnchors.anchors || Object.keys(labelAnchors.anchors).length !== 258) {
+  if (labelAnchors?.version !== '0.10.1' || !labelAnchors.anchors) {
     throw new Error('국명 기준점 데이터가 올바르지 않습니다.');
   }
   const meshBuffer = meshResult.buffer;
@@ -271,7 +289,7 @@ async function loadMesh() {
 
 async function loadBuiltinMeshOnly(countryIds) {
   const ids = [...(countryIds || [])].map(String).filter(Boolean);
-  if (ids.length !== 258) throw new Error('내장 기본 메시 국가 ID가 올바르지 않습니다.');
+  if (ids.length !== manifest.countryCount || new Set(ids).size !== ids.length) throw new Error('내장 기본 메시 국가 ID가 올바르지 않습니다.');
   const result = await loadMeshAsset(manifest.assets.canonicalMesh, 'mesh', 'builtin-mesh', '내장 기본 GPU 메시');
   const meshBuffer = result.buffer;
   const decodedMesh = decodeCountryMesh(meshBuffer, ids).mesh;

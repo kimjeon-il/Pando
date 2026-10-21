@@ -98,18 +98,20 @@ export async function composeApplication({ productMode, revision, platform = {},
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
   const mapSettings = factoryMapSettings.createMapSettings({viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onLayerVisibilityChange:async(key,enabled)=>{if(!enabled)return;if(key==='rivers'||key==='lakes')await physicalResources.loadHydroData(true);if(key==='labels')await territorialLabels.preparePlaces({force:true});}});
-  const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace });
+  const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace,
+    libraryGeometryContext:platform.libraryGeometryContext });
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
   const gisAssembly = factoryGisAssembly.createGisAssembly({ fileAccess: platform.fileAccess });
   const libraryAssembly = factoryLibraryAssembly.createLibraryAssembly();
   const navigationBindings = factoryNavigationBindings.createNavigationBindings({productMode});
   const toolBindings = factoryToolBindings.createToolBindings();
-  const fileBindings = factoryFileBindings.createFileBindings();
-  const globalInputBindings = factoryGlobalInputBindings.createGlobalInputBindings();
+  const fileBindings = factoryFileBindings.createFileBindings({libraryGeometryContext:platform.libraryGeometryContext});
+  const globalInputBindings = factoryGlobalInputBindings.createGlobalInputBindings({libraryGeometryContext:platform.libraryGeometryContext});
   const editorBindings = factoryEditorBindings.createEditorBindings();
   const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup({
     startupMesh: platform.startupMesh,
+    libraryGeometryContext:platform.libraryGeometryContext,
   });
   const domainAssembly = factoryDomainAssembly.createDomainAssembly();
   const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly();
@@ -233,6 +235,10 @@ export async function composeApplication({ productMode, revision, platform = {},
       if (startedWithReferenceImages) return startedWithReferenceImages;
       startedWithReferenceImages = lifecycle.start().then(async started => {
         if (!started) return started;
+        if(platform.libraryGeometryContext)platform.libraryGeometryContext.attachRuntime(Object.freeze({
+          projectDomain:domainAssembly.projectDomain,entityRepository:domainAssembly.territorialEntityRepository,
+          editingDomain:domainAssembly.editingDomain,getState:()=>projectSession.state,
+        }));
         if (onComposed) await onComposed(Object.freeze({
           projectDomain: domainAssembly.projectDomain,
           entityRepository: domainAssembly.territorialEntityRepository,

@@ -13,5 +13,9 @@ export function workerAssetUrl(value, meta = globalThis.PANDOLAB_BUILD_META) {
   const url = new URL(asset.url, base);
   url.searchParams.set('v', meta.assetRevision);
   for (const [key, parameter] of original.searchParams) if (key !== 'v') url.searchParams.set(key, parameter);
+  if (meta.publicReleaseManifestSha256) {
+    url.searchParams.set('publicationRevision', meta.dataRevision);
+    url.searchParams.set('publicationManifestSha256', meta.publicReleaseManifestSha256);
+  }
   return url;
 }
