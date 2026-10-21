@@ -36,6 +36,8 @@ jobs:
             /assets/js/
             /assets/data/hydro/v0.13.2/
             /assets/data/countries-ne-5.1.1.geojson
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
         with:
           repository: kimjeon-il/Pando

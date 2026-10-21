@@ -30,6 +30,8 @@ jobs:
             /assets/data/hydro/v0.13.2/
             /tools/build-hydro-packfile.py
             /tests/unit/hydro-packfile.test.mjs
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
         with:
           repository: kimjeon-il/Pando

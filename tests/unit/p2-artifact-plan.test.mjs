@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -312,4 +312,25 @@ test('artifact receipts refresh only the validated family and preserve dirty-sou
     families:[{id:'current',outputs:['out/missing.bin']}]}));
   assert.throws(()=>artifactOwners.recordArtifactReceipts(f.root,{families:['current'],sourceSha:'a'.repeat(40)}),/P2_MISSING_RECEIPT_OUTPUT/);
   assert.deepEqual(JSON.parse(f.get(RECEIPT_PATH)),receipt,'failed recording preserves the old receipt');
+});
+
+
+test('staging excludes private data cache and baselines existing external mounts',async t=>{
+  const f=graphFixture(t), revision='a'.repeat(40);
+  f.put('.gitignore','build-native/\n.library-data/\nassets/data/\nreports/\n');
+  f.put('config/library-data.json',JSON.stringify({repository:'example/data',revision,mounts:['assets/data','reports']}));
+  const head=f.commit();
+  const staged=await stageArtifacts(f.root,{families:['a'],expectedSourceSha:head,stageDir:'build-native/p2/external',
+    prepareData:({root})=>{
+      const materialized=join(root,'.library-data/materialized',revision,'assets/data');
+      const reports=join(root,'.library-data/repository/.working',revision,'reports');
+      mkdirSync(materialized,{recursive:true});mkdirSync(reports,{recursive:true});mkdirSync(join(root,'assets'),{recursive:true});
+      writeFileSync(join(materialized,'existing.bin'),'existing runtime');
+      writeFileSync(join(reports,'existing.md'),'existing evidence');
+      writeFileSync(join(root,'.library-data/private-cache'),'not a product file');
+      symlinkSync(materialized,join(root,'assets/data'),process.platform==='win32'?'junction':'dir');
+      symlinkSync(reports,join(root,'reports'),process.platform==='win32'?'junction':'dir');
+    }});
+  assert.ok(staged.paths.includes('out/a.txt'));
+  assert.equal(staged.paths.some(path=>path.startsWith('.library-data/')||path==='assets/data/existing.bin'||path==='reports/existing.md'),false);
 });
