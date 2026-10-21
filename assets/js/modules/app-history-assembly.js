@@ -1,8 +1,8 @@
 /** Device persistence and service installation; C++ owns commands and history. */
-export function createHistoryAssembly({ storageNamespace = null } = {}) {
+export function createHistoryAssembly({ storageNamespace = null, libraryGeometryContext = null } = {}) {
   let dependencies;
   let browserProjectStorage;
-  let persistenceService;
+  let persistenceService = null;
   let servicesInstalled=false;
   function connect(ports) {
     if (dependencies) throw new Error('history-assembly already connected');
@@ -53,6 +53,19 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
     servicesInstalled=true;
   }
   function initializeBrowserProjectStorage() {
+    if (libraryGeometryContext) {
+      // The geometry WebView has its own C++ session. All durable writes are
+      // explicit library commits; project autosave has no device backing here.
+      const noop=()=>{};
+      persistenceService=Object.freeze({
+        queueProject:noop,queuePresentation:noop,queueView:noop,cancelPending:noop,
+        persist:async()=>{},clear:async()=>{},
+        restore:async()=>({project:null,source:null,view:null,error:null}),
+        restorePreview:async()=>null,ensurePreview:async()=>null,
+        getRecovery:()=>null,resolveRecovery:async()=>false,completeRecovery:async()=>{},
+      });
+      return;
+    }
     browserProjectStorage=dependencies.projectServices.createBrowserProjectStorage({
       productMode:'editor',indexedDB: window.indexedDB,localStorage: window.localStorage,databaseName: storageNamespace || dependencies.platformConfigurationA.AUTOSAVE_DB_NAME,
       storeName: dependencies.platformConfigurationA.AUTOSAVE_STORE_NAME,projectKey: dependencies.platformConfigurationA.AUTOSAVE_RECORD_KEY,
@@ -103,6 +116,7 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
     });
   }
   async function restoreViewingForDocument(){
+    if (libraryGeometryContext) return false;
     const domain=dependencies.domains.projectDomain,generation=domain.getGeneration(),documentId=domain.snapshot().documentId;
     try{
       const record=await browserProjectStorage.readView(documentId);

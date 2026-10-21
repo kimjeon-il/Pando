@@ -3,7 +3,7 @@
   "identifier": "prototype-main",
   "description": "Only fixed prototype storage and user-selected project dialogs.",
   "windows": [
-    "main"
+    "main", "library-geometry-*"
   ],
   "permissions": [
     "allow-write-probe-file",
@@ -15,6 +15,8 @@
     "allow-finish-document-write",
     "allow-begin-document-read",
     "allow-read-document-chunk",
-    "allow-abort-document-transfer"
+    "allow-abort-document-transfer",
+    "allow-library-open", "allow-library-read-entity", "allow-library-commit",
+    "allow-library-sync", "allow-library-publish", "allow-library-conflict", "allow-library-open-geometry", "allow-library-read-external-changes", "allow-library-read-candidate"
   ]
 }

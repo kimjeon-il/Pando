@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-library-commit"
+description = "Enables the library_commit command without any pre-configured scope."
+commands.allow = ["library_commit"]
+
+[[permission]]
+identifier = "deny-library-commit"
+description = "Denies the library_commit command without any pre-configured scope."
+commands.deny = ["library_commit"]

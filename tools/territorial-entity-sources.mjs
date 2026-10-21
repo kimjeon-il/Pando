@@ -4,12 +4,15 @@ import { fileURLToPath } from 'node:url';
 import { normalizeTerritorialLibraryEntity, normalizeTerritorialLineage } from '../assets/js/modules/territorial-library.js';
 
 export const territorialDataRoot = fileURLToPath(new URL('../assets/data/territorial-entities/', import.meta.url));
+export const territorialSourceRoot = process.env.PANDOLAB_LIBRARY_SOURCE_ROOT
+  ? path.resolve(process.env.PANDOLAB_LIBRARY_SOURCE_ROOT)
+  : path.join(territorialDataRoot, 'source');
 export const entityFileName = entityId => {
   if (!/^[a-z]+:[A-Za-z0-9_-]+$/.test(entityId)) throw new Error(`Unsafe entity ID: ${entityId}`);
   return `${entityId.replace(':', '-')}.json`;
 };
 
-export function readTerritorialLineages(root = path.join(territorialDataRoot, 'source')) {
+export function readTerritorialLineages(root = territorialSourceRoot) {
   const directory = path.join(root, 'countries');
   const lineages = fs.readdirSync(directory).filter(name => name.endsWith('.json')).sort().map(name => {
     const lineage = normalizeTerritorialLineage(JSON.parse(fs.readFileSync(path.join(directory, name), 'utf8')));
@@ -37,7 +40,7 @@ export function readTerritorialLineages(root = path.join(territorialDataRoot, 's
   return lineages;
 }
 
-export function readTerritorialSources(root = path.join(territorialDataRoot, 'source')) {
+export function readTerritorialSources(root = territorialSourceRoot) {
   return readTerritorialLineages(root).flatMap(lineage => lineage.entities.map(entity => Object.freeze({...entity,lineageId:lineage.lineageId})));
 }
 
