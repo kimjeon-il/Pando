@@ -205,7 +205,7 @@ impl Api for NewRemote {
         if path.contains("/git/trees/") {
             return Ok(json!({"truncated":false,"tree":[]}));
         }
-        if path == "repos/kimjeon-il/Pando-library-data" {
+        if path == "repos/kimjeon-il/PandoLab-library-data" {
             return Ok(json!({"private":true,"default_branch":"main"}));
         }
         Err(format!("Unexpected API {method} {path}"))
@@ -497,7 +497,7 @@ impl Api for RemoteLibrary {
         if path.contains("/git/commits/") {
             return Ok(json!({"tree":{"sha":"b".repeat(40)}}));
         }
-        if path == "repos/kimjeon-il/Pando-library-data" {
+        if path == "repos/kimjeon-il/PandoLab-library-data" {
             return Ok(json!({"private":true,"default_branch":"main"}));
         }
         Err(format!("Unexpected candidate request: {path}"))
