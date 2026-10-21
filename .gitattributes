@@ -26,3 +26,6 @@ tests/fixtures/portability/web-9300609-hydro-copy/** -text
 tests/fixtures/shared-core/** text eol=lf
 contracts/terrain/*.json text eol=lf
 tools/reference-fixtures/*.mjs text eol=lf
+
+# Historical comparison corpus has a byte-exact source pin.
+tests/fixtures/geographic-predicate-comparison/** text eol=lf

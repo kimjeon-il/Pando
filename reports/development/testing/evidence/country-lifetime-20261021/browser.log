@@ -1,0 +1,13 @@
+
+[WebServer] (node:23428) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:15552) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/2] tests\browser\historical-world-lifetime.spec.mjs:4:1 › public Web viewer retains country lifetime when navigating outside map coverage
+[2/2] tests\browser\historical-world-lifetime.spec.mjs:27:1 › country information preserves source lifetime and blank dates across history and map-data gaps
+  2 passed (51.0s)

@@ -102,6 +102,9 @@ export function artifactGraph(root) {
         f.outputs.push(manifest,...['canonicalCountryPacket','previewCountries','previewMesh'].map(k=>'assets/data/'+legacy.assets[k].url));
         f.inputs.push('assets/data/'+legacy.assets.labelAnchors.url);
         f.layout={manifest,assets:Object.fromEntries(Object.entries(legacy.assets).map(([k,v])=>[k,v.url]))};
+      } else if(f.resolve==='world-bundle') {
+        const current=json(root,'assets/data/world/current.json');
+        f.outputs.push(...Object.values(current.assets).map(asset=>'assets/data/'+asset.url));
       } else f.outputs.push(...Object.values(seed.sharedBoundaries).map(p=>'assets/data/'+p));
     }
     if(f.resolve==='hydro'||f.resolve==='terrain') {
@@ -168,6 +171,22 @@ export function graphStatus(root,{wasm=null,requested=[],force=false}={}) {
     blockedFamilies:graph.filter(f=>statuses[f.id].blocked.length).map(f=>({id:f.id,reasons:statuses[f.id].blocked}))};
 }
 
+// Call after the selected owners' validators pass; unrelated receipts stay intact.
+export function recordArtifactReceipts(root,{families,sourceSha,sourceDirty=false}) {
+  assert.match(sourceSha||'',/^[a-f0-9]{40}$/,'P2_SOURCE_SHA_REQUIRED');
+  assert.ok(Array.isArray(families)&&families.length,'P2_FAMILIES_REQUIRED');
+  const status=graphStatus(root,{requested:families});
+  const receipt=optionalJson(root,RECEIPT_PATH)||{schema:'pandolab-generated-artifact-receipt',schemaVersion:1,families:{}};
+  for(const id of families) {
+    const current=status.statuses[id],old=receipt.families[id];
+    assert.ok(Object.keys(current.outputs).length&&Object.values(current.outputs).every(value=>value!==null),'P2_MISSING_RECEIPT_OUTPUT: '+id);
+    if(old?.inputFingerprint===current.inputFingerprint&&old?.outputFingerprint===current.outputFingerprint)continue;
+    receipt.families[id]={...current,selected:undefined,blocked:undefined,reasons:undefined,needed:undefined,
+      sourceSha,...(sourceDirty?{sourceDirty:true}:{})};
+  }
+  writeJson(root,RECEIPT_PATH,receipt);
+}
+
 export function ownsPath(f,path) {return f.outputs.some(p=>p.endsWith('/')?path.startsWith(p):p===path);}
 export function assertBranchState(root,{expectedSourceSha,expectedRemoteSha,branch,remote='origin'}) {
   assert.match(expectedSourceSha||'',/^[a-f0-9]{40}$/,'P2_SOURCE_SHA_REQUIRED');
@@ -213,13 +232,7 @@ export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,r
   const after=hashes(checkout,filesInCheckout(checkout));
   const changedPaths=[...new Set([...Object.keys(before),...Object.keys(after)])].filter(p=>before[p]!==after[p]);
   for(const p of changedPaths)assert.ok(owned.some(f=>ownsPath(f,p)),'P2_UNEXPECTED_GENERATED_FILE: '+p);
-  const status=graphStatus(checkout,{requested:families}),receipt=optionalJson(checkout,RECEIPT_PATH)||{schema:'pandolab-generated-artifact-receipt',schemaVersion:1,families:{}};
-  for(const id of families) {
-    const current=status.statuses[id],old=receipt.families[id];
-    if(old?.inputFingerprint===current.inputFingerprint&&old?.outputFingerprint===current.outputFingerprint)continue;
-    receipt.families[id]={...current,selected:undefined,blocked:undefined,reasons:undefined,needed:undefined,sourceSha:expectedSourceSha};
-  }
-  writeJson(checkout,RECEIPT_PATH,receipt);
+  recordArtifactReceipts(checkout,{families,sourceSha:expectedSourceSha});
   if(sha(readFileSync(safePath(checkout,RECEIPT_PATH)))!==before[RECEIPT_PATH])changedPaths.push(RECEIPT_PATH);
   const publication={schema:'pandolab-p2-stage',schemaVersion:1,sourceSha:expectedSourceSha,families,
     paths:[...new Set(changedPaths)].sort(),before:hashes(root,[...new Set(changedPaths)]),after:hashes(checkout,[...new Set(changedPaths)])};

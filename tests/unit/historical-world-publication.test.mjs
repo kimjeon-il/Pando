@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {gunzipSync} from 'node:zlib';
 import {buildBuiltinWorldPublication,writeBuiltinWorldPublication} from '../../tools/build-builtin-world.mjs';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';
@@ -19,4 +20,20 @@ test('country publication is deterministic, has no aggregate project and detects
 });
 test('country publication rejects a missing policy',()=>{
  assert.throws(()=>buildBuiltinWorldPublication({policyFile:path.join(os.tmpdir(),'missing-history-policy.json')}),/ENOENT|missing/i);
+});
+
+test('country publication preserves independent source lifetimes without inventing historical availability',()=>{
+ const input=withExplicitView(historicalWorldCases());
+ input.entities.find(row=>row.entityId==='current:KOR').lifetime.validFrom='1948-08-15';
+ const files=buildBuiltinWorldPublication({input}),index=JSON.parse(files.get('index.json'));
+ const country=id=>JSON.parse(gunzipSync(files.get(index.entities.find(row=>row.entityId===id).file)));
+ const kor=country('KOR'),rus=country('RUS'),parent=country('state:parent');
+ assert.equal(kor.modes.current.lifetimes[0].validFrom,'1948-08-15');
+ assert.equal(kor.modes.current.lifetimes[0].validTo,null);
+ assert.equal(rus.modes.current.lifetimes[0].validFrom,null);
+ assert.equal(rus.modes.current.lifetimes[0].validTo,null);
+ assert.equal(parent.modes.dated.lifetimes.length,1);
+ assert.deepEqual(parent.modes.dated.lifetimes.map(({validFrom,validTo})=>({validFrom,validTo})),[{validFrom:'1900',validTo:'1903'}]);
+ assert.deepEqual(index.entities.find(row=>row.entityId==='KOR').coverage.dated,[]);
+ assert.equal(parent.modes.dated.geometryBindings.length,2,'the geometry gap remains distinct from the lifetime');
 });

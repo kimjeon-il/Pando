@@ -60,6 +60,8 @@
 | --- | --- | --- | --- | --- |
 | `UI-LIBRARY-REVIEW-20261021` | [편집 라이브러리 UI·네이티브 코드 검토](development/testing/editable-library-editor-native-review-2026-10-21.md) | 2026-10-21 | `reviewed-important-findings-resolved / native-workflow-unverified` | `not-applicable` |
 | `UI-LIBRARY-PUBLISH-REVIEW-20261021` | [독립 라이브러리 게시 코드 검토](development/testing/editable-library-publication-review-2026-10-21.md) | 2026-10-21 | `changes-requested / live-publication-unverified` | `not-applicable` |
+| `OBJ-MAIN-SYNC-20261021` | [객체 워크트리 main 동기화와 미커밋 작업 복원](development/testing/objects-main-sync-2026-10-21.md) | 2026-10-21 | `main-synchronized / local-wip-restored` | `local-worktree-only` |
+| `OBJ-LIFETIME-20261021` | [국가 존속기간과 지도 자료 제공 기간 분리](development/testing/country-lifetime-2026-10-21.md) | 2026-10-21 | `historical-record / followup-linked` | `local-worktree-only` |
 | `DEV-CORE-CI-WEBGL-20261020` | [C++ CI 2건과 Windows WebGL UI 시간 초과 수정](development/testing/core-ci-webgl-repair-2026-10-20.md) | 2026-10-20 | `native-ci-verified / webgl-ui-verified / separate-artifact-ci-failure` | `not-applicable` |
 | `DEV-REMAINING-BRANCH-20261020` | [남은 작업 브랜치의 main 통합](development/testing/remaining-branch-integration-2026-10-20.md) | 2026-10-20 | `integrated / remote-verified / docs-only` | `not-applicable` |
 | `DEV-INTEGRATED-RELEASE-20261021` | [통합 main의 원격 게시와 Windows 실행 파일 갱신](development/testing/integrated-release-2026-10-21.md) | 2026-10-21 | `pages-live-verified / windows-native-verified / separate-ci-failure` | `not-applicable` |
@@ -71,6 +73,7 @@
 | `UI-TERRAIN-LATENCY-20261021` | [고배율 지형 전환 지연의 재현과 수정](development/testing/terrain-interaction-latency-2026-10-21.md) | 2026-10-21 | `local-web-verified / app-unverified / unpublished` | `not-applicable` |
 | `UI-MAP-SCALE-RELEASE-20261020` | [지도 표시·UI 검사 정리와 웹·Windows 게시 검증](development/testing/map-scale-release-2026-10-20.md) | 2026-10-20 | `pages-live-verified / windows-native-verified / separate-ci-failures` | `not-applicable` |
 | `UI-MAP-SCALE-20261020` | [지도 배율별 품질과 표시 준비 상태](development/testing/map-scale-readiness-2026-10-20.md) | 2026-10-20 | `focused-verified / native-webview2-verified / unpublished` | `not-applicable` |
+| `DEV-CLEANUP-OBJECTS-20261021` | [objects 잔여 파일·구형 테스트·생성 자산 목록 정리](development/testing/branch-residue-cleanup-2026-10-21.md) | 2026-10-21 | `local-focused-verified / uncommitted / unpublished` | `not-applicable` |
 | `UI-CONVERGENCE-P4-20261021` | [UI 구조 통일 P4 — 참조 이미지 공통 Surface 통합](development/testing/ui-convergence-p4-2026-10-21.md) | 2026-10-21 | `implemented / focused-browser-verified / staged-app-verified / native-unverified` | `not-applicable` |
 | `UI-CONVERGENCE-P2-20261020` | [UI 구조 통일 P2 — 검색창 DOM 고정·가로 화면 CSS 분리](development/testing/ui-convergence-p2-2026-10-20.md) | 2026-10-20 | `implemented / focused-browser-verified / native-unverified` | `not-applicable` |
 | `UI-CONVERGENCE-P0-20261020` | [UI 독자 규칙 통합 P0 — 구조·상태·회귀 기준 조사](development/testing/ui-convergence-p0-audit-2026-10-20.md) | 2026-10-20 | `source-audited / focused-runtime-baseline-not-rerun` | `not-applicable` |
@@ -101,6 +104,7 @@
 | `UI-SHARING-AUDIT-20261018` | [출력 외 전부 공유 기준의 추가 조사·독립 코드 잔존](development/testing/shared-output-audit-2026-10-18.md) | 2026-10-18 | `audit-complete / follow-up-linked` | `not-applicable` |
 | `UI-VIEWING-REPAIR-20261018` | [웹 열람 UI 공유 누락 조사와 복원](development/testing/viewing-ui-reuse-repair-2026-10-18.md) | 2026-10-18 | `verified-web-release / native-unverified` | `not-applicable` |
 | `DEV-QT-RETIRE-20261018` | [구 Qt 앱 전체 제거](development/testing/qt-app-retirement-2026-10-18.md) | 2026-10-18 | `verified-focused-runtime` | `not-applicable` |
+| `PERF-PREDICATE-20261018` | [main·지리 판정 실험 정확성 및 제한 성능 비교](development/testing/predicate-comparison-2026-10-18.md) | 2026-10-18 | `verified-bounded-comparison / keep-main` | `not-applicable` |
 | `UI-PRODUCT-SPLIT-20261018` | [웹 열람·앱 편집 분리와 휴대폰 가로 화면](development/testing/web-app-product-split-2026-10-18.md) | 2026-10-18 | `focused-verified / native-device-unverified` | `not-applicable` |
 | `UI-PRODUCT-RELEASE-20261018` | [웹·앱 분리 배포 및 공개 사이트 검증](development/testing/web-app-product-release-2026-10-18.md) | 2026-10-18 | `pages-live-verified / native-device-unverified` | `not-applicable` |
 | `DEV-NAMING-20261018` | [기존 동작을 유지하는 내부 명칭 정리](development/testing/internal-naming-2026-10-18.md) | 2026-10-18 | `verified-naming / baseline-test-failures` | `not-applicable` |

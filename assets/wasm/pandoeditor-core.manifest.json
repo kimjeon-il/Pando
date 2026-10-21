@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "c05f2987d26e0c4f0f167dbab997e7bd32c106a4ca017e576a426f6bd8144ec9",
+  "sourceSha256": "7899aa82d40988da5093f622fc65d7f700ef5b07dd7165682c4eb37a97929296",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -213,7 +213,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/timeline-resolver.h",
-      "sha256": "bbc757bc5e4fa516872c2b437c51af3d550ec57ed7125f3403507b638e1a0f05"
+      "sha256": "cdb62195845db64fd658382de9902ea9aff28302118d051f131a415042675824"
     },
     {
       "path": "shared/core/include/pandoeditor/timeline-storage.h",
@@ -281,7 +281,7 @@
     },
     {
       "path": "shared/core/src/commands.cpp",
-      "sha256": "9a9ef74ba3f585992795104def3c5a83bc2e42889f3c9fec5c3e7dc14f8c2e28"
+      "sha256": "dcf365a79b3d225817769bbac719e1fce19ecc4f75fcdbea9da6f9e6c0e48326"
     },
     {
       "path": "shared/core/src/content.cpp",
@@ -437,15 +437,15 @@
     },
     {
       "path": "shared/core/src/timeline-edit.cpp",
-      "sha256": "0d161df4d2339bd61a14f64d59939efe8bd7fa6d706a2ff22949101f8f898f11"
+      "sha256": "c7787641e8b0835e8efdaca9516344ff4b30086946401b35d3842a29ca6bbba1"
     },
     {
       "path": "shared/core/src/timeline-records.cpp",
-      "sha256": "6bcaf0db4c67c9ffc11534d2f9d2ee0e3c3efe12de896acc07083974f403a687"
+      "sha256": "c04c4b552762faae6851554b0bd8f0c5449f8bb0041651df00a45f777eee0761"
     },
     {
       "path": "shared/core/src/timeline-resolver.cpp",
-      "sha256": "7d5fad877f6705973bf7aca8aa1ac870c67ee5993dd4bf81d8db13adcfd5cbfb"
+      "sha256": "b965ded439dd837ddfca59e2d87a82da85b03e3af91eeab7d3f72b484a025aa6"
     },
     {
       "path": "shared/core/src/timeline-storage.cpp",
@@ -485,7 +485,7 @@
     },
     {
       "path": "shared/core/src/webterritorialedit.cpp",
-      "sha256": "126197f4e6f535b7c44ffed04f2a049e11e051e492567e27f18894f6ec40866f"
+      "sha256": "defb2104b0225771bba881bb2549ef11d3c89e12bbcc7e7682397df7509d720a"
     },
     {
       "path": "shared/tests/CMakeLists.txt",
@@ -557,7 +557,7 @@
     },
     {
       "path": "shared/tests/temporal-editing-tests.cpp",
-      "sha256": "996a46e1d8c0389357c22bbfd81378ff252ae82b5b1e8abc8efae54fbbc5cc27"
+      "sha256": "d5544fa5d5c23329be7d679a5d73cc89e91ea7292c5635641042766856d45e37"
     },
     {
       "path": "shared/tests/territorial-document-fixture.h",
@@ -635,7 +635,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "c83a34a0f634cf609e86f9fe61ed17e9a146315b2db1abd735c0fe1a179eb9b9"
+      "sha256": "8a42195e3776db4c08aab333942dc8b66754d3820437852ce6785382fec9e339"
     }
   }
 }

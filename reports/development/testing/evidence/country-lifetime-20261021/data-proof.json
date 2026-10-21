@@ -1,0 +1,37 @@
+{
+  "sourceRevision": "4f35c345e0707c44e383cca027e119207f93259c",
+  "coreSourceSha256": "7899aa82d40988da5093f622fc65d7f700ef5b07dd7165682c4eb37a97929296",
+  "entityCount": 277,
+  "allSourceLifetimesPreserved": true,
+  "geometryArchiveUnchanged": true,
+  "geometryBindingsUnchanged": true,
+  "parentRelationsUnchanged": true,
+  "previousOctoberOnly": 249,
+  "remainingOctoberOnly": 0,
+  "countries": [
+    {
+      "entityId": "BEL",
+      "id": "historical-world:lifetimes:BEL:0",
+      "validFrom": "1830-10-04",
+      "validTo": null
+    },
+    {
+      "entityId": "ZMB",
+      "id": "historical-world:lifetimes:ZMB:0",
+      "validFrom": "1964-10-24",
+      "validTo": null
+    },
+    {
+      "entityId": "KOR",
+      "id": "historical-world:lifetimes:KOR:0",
+      "validFrom": null,
+      "validTo": null
+    },
+    {
+      "entityId": "USA",
+      "id": "historical-world:lifetimes:USA:0",
+      "validFrom": null,
+      "validTo": null
+    }
+  ]
+}

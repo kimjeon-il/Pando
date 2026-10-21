@@ -1,0 +1,79 @@
+{
+  "kind": "post-run-evidence-collection",
+  "baseline": "bb48e2cbb729bed9a794c1f3f843b5cb028e1227",
+  "files": [
+    {
+      "path": "native.json",
+      "sha256": "2bb3085f08a4ca69cfa30ec0ef0732b02bf365f5b3cf129c70dd855a5bd4fcd9",
+      "baseline": "bb48e2cbb729bed9a794c1f3f843b5cb028e1227",
+      "variantCount": 5,
+      "benchmarkCaseCounts": [
+        {
+          "id": "main-control",
+          "count": 8
+        },
+        {
+          "id": "geo-containment-index",
+          "count": 8
+        },
+        {
+          "id": "geographic-2d-index",
+          "count": 8
+        },
+        {
+          "id": "geographic-broadphase",
+          "count": 8
+        },
+        {
+          "id": "geographic-direct-smoke",
+          "count": 8
+        }
+      ],
+      "hasAdditionalEqualWarmup": false
+    },
+    {
+      "path": "native-main-1deg.json",
+      "sha256": "0a09447d1b30f297c3cd46e39cbc57472ac0f31e81635b4f777c8eaaa06f4790",
+      "baseline": "bb48e2cbb729bed9a794c1f3f843b5cb028e1227",
+      "variantCount": 1,
+      "benchmarkCaseCounts": [
+        {
+          "id": "main-1deg",
+          "count": 8
+        }
+      ],
+      "hasAdditionalEqualWarmup": false
+    },
+    {
+      "path": "wasm.json",
+      "sha256": "ef92837e14228c4b431fc95236aac09f7e5f6a66c4b7b652862a05e28afbae0b",
+      "baseline": "bb48e2cbb729bed9a794c1f3f843b5cb028e1227",
+      "variantCount": 2,
+      "benchmarkCaseCounts": [
+        {
+          "id": "main-control",
+          "count": 9
+        },
+        {
+          "id": "geo-containment-index",
+          "count": 9
+        }
+      ],
+      "hasAdditionalEqualWarmup": true
+    }
+  ],
+  "finalReplayTool": {
+    "path": "tools/compare-geographic-predicates.mjs",
+    "sha256": "eb9739a491b83546e63da482e688d4a2cf047ff694192fe48e4fba35a7c089ec"
+  },
+  "finalHarness": {
+    "path": "tests/cpp/geographic-predicate-comparison.cpp",
+    "sha256": "be92931eaea371a38ffcde89cd39154355db27f036f66a105b62be64d28105cd"
+  },
+  "limitations": [
+    "Tool/harness hashes recorded after measurements, not compiler-time provenance.",
+    "Native runs predate island-gap case and additional equal warmup; WASM includes both.",
+    "Executable hashes were not recorded in original reports. Replay tool now records native binaries and WASM loader/payload separately.",
+    "native-island.json was a contextual manual timing sample without full provenance; excluded from decision evidence."
+  ]
+}
