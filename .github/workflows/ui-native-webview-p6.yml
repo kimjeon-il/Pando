@@ -147,9 +147,9 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
-            set -euo pipefail
+            set -eu
             mkdir -p build-native/web-shell
-            trap 'timeout 12s adb logcat -d -t 1000 > build-native/web-shell/android-logcat-tail.txt || true; timeout 12s adb exec-out screencap -p > build-native/web-shell/android-native-screen.png || true' EXIT
+            trap 'timeout 12s adb logcat -d -t 1000 > build-native/web-shell/android-logcat-tail.txt || true; timeout 12s adb exec-out screencap -p > build-native/web-shell/android-native-screen.png || true' 0
             APK="$(find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | head -n 1)"
             test -n "$APK"
             adb install -r "$APK"
