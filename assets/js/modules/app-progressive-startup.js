@@ -486,7 +486,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
     if ((0, dependencies.platform.$)('objectSearchInput')) (0, dependencies.platform.$)('objectSearchInput').value = dependencies.projectState.state.objectSearch;
     dependencies.domains.objectSearchController?.render(true);
-    (0, dependencies.mapSettingsUi.syncProjectionButtons)();
+    (0, dependencies.readinessUi.syncStatusBar)();
 
     (0, dependencies.mapHostViewB.resizeMap)();
     dependencies.lifecycleUi.projectUi.syncHistory();

@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "families": {
     "territorial": {
-      "inputFingerprint": "6859c98d97ddaa8b88a7951910e1e24e418c5ad80c5b3cac398f7208d39bcd40",
+      "inputFingerprint": "5625941a0f1e17343d34363d2bc09ffacae6b7bd3c9acac2a3b21a1edb2e6046",
       "outputFingerprint": "c738d3419ba01dabb72637602ba7d595693ac5321c34db88128ae73b36bcc1ff",
       "inputs": {
         "assets/data/territorial-entities/source/countries/abw.json": "cf36df15d9694d1dd89d915374b4423f9be5eab501460beaf7538ab12e75e06a",
@@ -273,7 +273,7 @@
       },
       "generatorHashes": {
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
-        "assets/js/modules/geometry-version-store.js": "f2ce8752cc86d4ee766ae16f741f261ae535d5be12959636337158d3579d4831",
+        "assets/js/modules/geometry-version-store.js": "977f8bb33d984c1e18c207fdc09a3c2b4454ac199fef50153176fead0ee181ca",
         "assets/js/modules/temporal.js": "baf6a844f372531e89e6d89eb38b45bdfb48688afaf4811637896fb84e88030d",
         "assets/js/modules/territorial-library.js": "1e9d00470c721956bbcef95c0c09bec2e1e76796f53a8208a5470a6a2b930c73",
         "tools/build-territorial-entity-chunks.mjs": "44873f77c6c8961e68a76c7187cdbdc32d07735c5983e82db207df49d3e5c3e6",
@@ -286,7 +286,7 @@
         "node": "24"
       },
       "dependencies": {
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54"
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434"
       },
       "outputs": {
         "assets/data/territorial-entities/generated/v2/index.json": "4226e4ec5c4397ce7f0af0c1ecef0be25759894ffbcc9859b6124cb461717618",
@@ -583,10 +583,10 @@
           "--check"
         ]
       ],
-      "sourceSha": "ce2db90932b44c344c2f0d2d9bd697a630b7ba3c"
+      "sourceSha": "b82c8ea516a75704d081334f29368e3bca747191"
     },
     "current-world": {
-      "inputFingerprint": "5f3f36eb0c46ebbbd78a8f466e028a1b175cd74c9b8b25f6d23a0ebeda83e450",
+      "inputFingerprint": "4fb2e56bda7d3bf053ed7fc8aa2847f9b3237f7c4bb66709f55a9c739e111c33",
       "outputFingerprint": "ea65179793c7db683f440dbea1fc8f474ed65eb7bdac70813567c5070942ffc3",
       "inputs": {
         "assets/data/territorial-entities/source/countries/abw.json": "cf36df15d9694d1dd89d915374b4423f9be5eab501460beaf7538ab12e75e06a",
@@ -856,7 +856,7 @@
       },
       "generatorHashes": {
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
-        "assets/js/modules/geometry-version-store.js": "f2ce8752cc86d4ee766ae16f741f261ae535d5be12959636337158d3579d4831",
+        "assets/js/modules/geometry-version-store.js": "977f8bb33d984c1e18c207fdc09a3c2b4454ac199fef50153176fead0ee181ca",
         "assets/js/modules/temporal.js": "baf6a844f372531e89e6d89eb38b45bdfb48688afaf4811637896fb84e88030d",
         "assets/js/modules/territorial-library.js": "1e9d00470c721956bbcef95c0c09bec2e1e76796f53a8208a5470a6a2b930c73",
         "tools/build-territorial-current-world.mjs": "ac9811931912452c1c64ea96fbf8eeab7fa019f90bf54cb91e51d9a97e417869",
@@ -869,7 +869,7 @@
         "node": "24"
       },
       "dependencies": {
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54"
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434"
       },
       "outputs": {
         "assets/data/territorial-entities/generated/current-world.geojson": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb"
@@ -885,10 +885,10 @@
           "--check"
         ]
       ],
-      "sourceSha": "ce2db90932b44c344c2f0d2d9bd697a630b7ba3c"
+      "sourceSha": "b82c8ea516a75704d081334f29368e3bca747191"
     },
     "historical-world": {
-      "inputFingerprint": "a93e4c9e200ae1f870fe24875f081ff721dd913feee3e24208330098f0911e3c",
+      "inputFingerprint": "d5f8af025376753353f7cad9eafc217cd967d2240c38bd7002e711c0d80c1f53",
       "outputFingerprint": "5acc33d1b6c613f83c409e23a6da1f424119e1b3a719d784155e32ab291fe038",
       "inputs": {
         "assets/data/historical-world/policy.json": "ffd3405989180ab1498045c49c438163e22a2a77a1e3d59ff1c7099cb6d3712f"
@@ -896,15 +896,17 @@
       "generatorHashes": {
         "assets/js/modules/builtin-subunits.js": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673",
         "assets/js/modules/builtin-territory-policy.js": "ca5d8cb2fdcc4c7797bc9f114082f7824bcac630a4109b4fe0678fa9643e5dd7",
+        "assets/js/modules/camera-navigation.js": "a040662cae8d52058f85574a13c8972d86a4e031ed5bb2a01fdeec5970990bc7",
+        "assets/js/modules/camera-pan.js": "8f662e5d369343e2ec8814aca44f4e34af67c055ee706857a41a96cda79b8e19",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
         "assets/js/modules/country-feature.js": "b987afa9b6fed942fe890a5c05a2b6606bf80017f2f70bb71129f103ccd44bce",
         "assets/js/modules/distribution-model.js": "f1e3f765e839699d199edb18c55533486e966ffc85c849471edbcf8fab4a2c8d",
-        "assets/js/modules/geometry-version-store.js": "f2ce8752cc86d4ee766ae16f741f261ae535d5be12959636337158d3579d4831",
+        "assets/js/modules/geometry-version-store.js": "977f8bb33d984c1e18c207fdc09a3c2b4454ac199fef50153176fead0ee181ca",
         "assets/js/modules/geometry-versions.js": "1875f423e3663f92b4634275fc8be09c137ca8ae94f18552d534025f02cfa7d9",
         "assets/js/modules/polygon-geometry.js": "7b9da8fbccd264a7af7e68d659c8a6ea3cbad8723e67d48fd3d470cc1032b5e7",
         "assets/js/modules/project-invariants.js": "d73cc6b765c6b9c7ecd87c4bd0a28ad624b29eb9f6076370fc8b618297967529",
         "assets/js/modules/project-serializer.js": "b49466e82e439b12033d35c7ee0c52afcdf2b92861ba42e07e3b8f576ccfc3a7",
-        "assets/js/modules/project-setup.js": "2bf1c105414f2d02904763ce6cdb1cb2ab344f794b8a8ade871f648cedc4654e",
+        "assets/js/modules/project-setup.js": "80623ab06fa34cd89911a4dc57cb2982e5170894faa6a30d1fa7ea00475ff728",
         "assets/js/modules/project-state.js": "22ac5fc50475aa190c52d36cc17b43a37613afc8715fef295c9dd841de7f45c3",
         "assets/js/modules/ring-hit-test.js": "ffe72994cc90639c890be4c33581e35363207c49c18ac27e65521d90dac3698f",
         "assets/js/modules/source-provenance.js": "62140d9ecccdba484c8743c267883b27445bacf1ebd5cb1c347f0ab33daf0549",
@@ -917,7 +919,7 @@
         "assets/js/modules/timeline-storage.js": "c56738d103b67f6ba8584e79781a0fe0d2d0d7511b1a2292b0d841a1dae6aa5a",
         "assets/js/modules/version-contract.js": "34c05a5bac9627531c170191952ac81489ba320059a0359033db6b8c0d943e02",
         "assets/js/vendor/polygon-clipping.min.js": "8c1ed56df8b1f97b047f82d91b910aacdaff67d8d9a55f2495eb26e8369186f7",
-        "tools/build-historical-world-timeline.mjs": "4877e92bff211244453720636929e8dc6da2abd66eae9a1eec3ba73f431e2491",
+        "tools/build-historical-world-timeline.mjs": "709c25d7b0a46fd2b62ccc5b7d1e6bd84629a0db84f834ecec04ca1be19ce487",
         "tools/historical-world-territories.mjs": "baddf910526ee6a34944f28d9b6f637e96d062da0cb0c8f83663fef7ff9f78c6",
         "tools/historical-world-timeline.mjs": "9d6c4b6b8eb6f0041782a2ac96a7bd73a4239b84d76ce06b80fa7578859238b9",
         "tools/load-node-core.mjs": "b8a6f0331acc96fa545def4c2a18fd50b91bca50cdb52f57dba697fb1c6d75b0",
@@ -932,7 +934,7 @@
       "dependencies": {
         "territorial": "c738d3419ba01dabb72637602ba7d595693ac5321c34db88128ae73b36bcc1ff",
         "current-world": "ea65179793c7db683f440dbea1fc8f474ed65eb7bdac70813567c5070942ffc3",
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54"
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434"
       },
       "outputs": {
         "assets/data/historical-world/generated/v1/coverage-report.json": "3acc77a9a3e5cfba0ba4e6fd9c6e58b7bf3af0e964f2bedc26c7fb053119338b",
@@ -951,10 +953,10 @@
           "--check"
         ]
       ],
-      "sourceSha": "f761825cb3426ae47a69e967ba891822f44dcf91"
+      "sourceSha": "8c0c9bb4efc72f72a73a98abf8df8da362c1909c"
     },
     "world-mesh": {
-      "inputFingerprint": "801cf311352bffb444a169e51d231d84ee0f45ee7ac14c3a816b4ba7ca166309",
+      "inputFingerprint": "547a4d84d895248816700c84e6edffa6e8e2b6165d23a19b3fc9e943e857051a",
       "outputFingerprint": "704c58e121ed92aa3c876612d162ade4f520ae8f8d06d6988d1dd4dfb4c4c172",
       "inputs": {
         "assets/data/world/build-input.json": "a47c5f6db7e1ee62ca1162f0fbe9e2e8ba937bb41d79ebeebd3deaf89bd71fd3",
@@ -976,7 +978,7 @@
       },
       "dependencies": {
         "current-world": "ea65179793c7db683f440dbea1fc8f474ed65eb7bdac70813567c5070942ffc3",
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54"
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434"
       },
       "outputs": {
         "assets/data/world-mesh-v0.36.1.bin.gz": "4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53"
@@ -992,10 +994,10 @@
           "world-mesh"
         ]
       ],
-      "sourceSha": "ce2db90932b44c344c2f0d2d9bd697a630b7ba3c"
+      "sourceSha": "8f5c8c51f19518ae5e013afe9569f41855a65569"
     },
     "world-preview": {
-      "inputFingerprint": "cdb97dbadc4a5560e7824f34b288aaa4ce284467b6146597f13f0004debb74fc",
+      "inputFingerprint": "20e276743523c38a0c68bb2f3ce238945a2fc9a8ff6b4f54ca28a3363fa81f79",
       "outputFingerprint": "b39a8be74f610d953be440509ba723df4fb73776a10bbf94856222be7d478169",
       "inputs": {
         "assets/data/country-label-anchors-v0.10.1.json": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
@@ -1033,7 +1035,7 @@
       "dependencies": {
         "world-mesh": "704c58e121ed92aa3c876612d162ade4f520ae8f8d06d6988d1dd4dfb4c4c172",
         "current-world": "ea65179793c7db683f440dbea1fc8f474ed65eb7bdac70813567c5070942ffc3",
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54"
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434"
       },
       "outputs": {
         "assets/data/countries-canonical-v0.36.1.pcg.gz": "6bc58f6fd8c32b4c445f9bc328b87f8ea028221eca1f1a9ff5ff848d51343218",
@@ -1052,7 +1054,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "f761825cb3426ae47a69e967ba891822f44dcf91"
+      "sourceSha": "8f5c8c51f19518ae5e013afe9569f41855a65569"
     },
     "world-bundle": {
       "inputFingerprint": "ac35dde5d9a489b5bcc146bdb3e6444c79771021f3e6eaca3832d17f1cafaf6c",
@@ -1105,7 +1107,7 @@
       "sourceSha": "7f99c716e9c867369df480eacd28b20d85f91fff"
     },
     "shared-boundaries": {
-      "inputFingerprint": "4156a4ce7aa925a797f7551972b867f3a6b1fa55570352757686fab9cae49262",
+      "inputFingerprint": "f1d0258b1ede34bffcb98bcd8aad44b873e006816571cdd10132d7533cc1222e",
       "outputFingerprint": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
       "inputs": {},
       "generatorHashes": {
@@ -1133,7 +1135,7 @@
       },
       "dependencies": {
         "world-bundle": "9b135f052202f64b477238670347dd8c3bc0b31eb83fa68c51dcf20872324162",
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54"
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434"
       },
       "outputs": {
         "assets/data/countries-canonical-shared-v0.36.1.json.gz": "20a0f3bc89ffe1b370e3513a57b329bf84d4c9460571f5545da7c6809531fba0",
@@ -1150,11 +1152,11 @@
           "--check"
         ]
       ],
-      "sourceSha": "da7b744937ecf93bec2c34aa4602438dfdae0dbf"
+      "sourceSha": "8f5c8c51f19518ae5e013afe9569f41855a65569"
     },
     "prepared-mesh": {
-      "inputFingerprint": "3dee00cd4d393cb6e583f110e31673e32809304aa13b707061471005717dc0d5",
-      "outputFingerprint": "bbae2a6544cf0eb0a221a805f87e78edda93ccf339f0e8973a1803be32377cde",
+      "inputFingerprint": "077f21da479d5cd7aa791475bdb9f37e6f1b1f34022e504937e13cbe070b223a",
+      "outputFingerprint": "7f2c72e0c563c9720de073d327e12242834ff8f93bca0c5e5b03a277c32640da",
       "inputs": {
         "assets/js/workers/gpu-mesh-core.js": "7b638743ead0d5c1fbc194eacacdd065e85b5db23973ea023df0bd83e4ecb442"
       },
@@ -1164,7 +1166,7 @@
         "assets/js/modules/coordinate-bounds.js": "67e2598e59d6e5ff98d871566332286dc83d7e4f9fbc3dc1236c9cc9d08665e0",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
         "assets/js/modules/country-mesh-codec.js": "f99018c281bd54fd8d5c40c246fc33a0f0704b294e38137ae797576fc2e43af2",
-        "assets/js/modules/geometry-version-store.js": "f2ce8752cc86d4ee766ae16f741f261ae535d5be12959636337158d3579d4831",
+        "assets/js/modules/geometry-version-store.js": "977f8bb33d984c1e18c207fdc09a3c2b4454ac199fef50153176fead0ee181ca",
         "assets/js/modules/geometry-versions.js": "1875f423e3663f92b4634275fc8be09c137ca8ae94f18552d534025f02cfa7d9",
         "assets/js/modules/map-edit-geometry.js": "397da6a410d2abcaa871b3c626bd8b1808534351b8332912e13dd76f8feb9915",
         "assets/js/modules/polygon-geometry.js": "7b9da8fbccd264a7af7e68d659c8a6ea3cbad8723e67d48fd3d470cc1032b5e7",
@@ -1190,10 +1192,10 @@
         "historical-world": "5acc33d1b6c613f83c409e23a6da1f424119e1b3a719d784155e32ab291fe038",
         "territorial": "c738d3419ba01dabb72637602ba7d595693ac5321c34db88128ae73b36bcc1ff",
         "current-world": "ea65179793c7db683f440dbea1fc8f474ed65eb7bdac70813567c5070942ffc3",
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54"
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434"
       },
       "outputs": {
-        "assets/data/prepared-polygons/generated/v2/manifest.json": "6f401183bca19f153ce16c54e51d44d1fcfd6fb9d1eba694bcf79cdd0b0780ff",
+        "assets/data/prepared-polygons/generated/v2/manifest.json": "1d6b49111885b42f7392cfea7135c4ad8e618fc908c6478d2803406508a8ba82",
         "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0011571193c7f9380024db94fbc4b3430ec50f954c4013589956a5473260a08a.bin.gz": "0011571193c7f9380024db94fbc4b3430ec50f954c4013589956a5473260a08a",
         "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-004ae3688b11aa8574ee9982ce5d78d173b5f4cd65243d933aa915c88eee1a7c.bin.gz": "004ae3688b11aa8574ee9982ce5d78d173b5f4cd65243d933aa915c88eee1a7c",
         "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0085762491ab3e85151d90d3c1d6e7201267ed917743413009d7b4b58f748033.bin.gz": "0085762491ab3e85151d90d3c1d6e7201267ed917743413009d7b4b58f748033",
@@ -1815,10 +1817,10 @@
           "prepared-mesh"
         ]
       ],
-      "sourceSha": "f761825cb3426ae47a69e967ba891822f44dcf91"
+      "sourceSha": "8c0c9bb4efc72f72a73a98abf8df8da362c1909c"
     },
     "places": {
-      "inputFingerprint": "04090c1531d200dac9b9e01b80e8cfd0ca03316c4001353c41aa8804c294fbb3",
+      "inputFingerprint": "d0ff066cd8d8b04b765ee88e3589f59b75d198db57d47322def430677e9464eb",
       "outputFingerprint": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
       "inputs": {
         "reports/places/runtime-release-approvals-v1.json": "178f4166f2f897478b8d8a51ee0b4ca97c07de9285a5dff3a1a00093b1e95f69",
@@ -1860,7 +1862,7 @@
         "node": "24"
       },
       "dependencies": {
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54"
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434"
       },
       "outputs": {
         "assets/data/places/manifest.json": "b9ad0bb6733a46a83a9c295eeceef79b626b21f213cb4e18ffd1205895a54829",
@@ -1878,79 +1880,11 @@
           "--check"
         ]
       ],
-      "sourceSha": "ce2db90932b44c344c2f0d2d9bd697a630b7ba3c"
-    },
-    "native-assets": {
-      "inputFingerprint": "086aca3dd171bb1e8e3d59ddfcbf291c33a3dba44dcc563837aa9a775b555747",
-      "outputFingerprint": "04f403f5acc0eb1c11bc29b028f310c7c7d00b5982b2466b71e4012e8e131bb8",
-      "inputs": {},
-      "generatorHashes": {
-        "assets/js/modules/country-mesh-codec.js": "f99018c281bd54fd8d5c40c246fc33a0f0704b294e38137ae797576fc2e43af2",
-        "assets/js/modules/polygon-mesh-codec.js": "ce7ebccdee3a289c5d5f6bc2c7b24f05cf77257bbd9fd5c683265f3327bc6e70",
-        "native/tools/lib/world-dataset-contract.mjs": "d4a160b599d680089ae56d588b59704501b3ae835bc40483b000caf6ff2a037d",
-        "native/tools/sync-world-data.mjs": "cc58a4b74830dd91de12e2f1fa4f617b009c679dcb06bf56b1d828f19df366bd",
-        "native/tools/verify-world-assets.mjs": "e30d68877f7d717835c06f6759b68702be1fe8d427ab6af5e6a541df9ed2f954",
-        "scripts/lib/p2-artifact-graph.mjs": "43e35cfae984c9cd82b92e534a8941dfc3e36fcd7a2f723de035de996fbba411",
-        "scripts/p2-sync-native-artifacts.mjs": "84fa75dac7e8a7a258ded7b2c2e20aa0e01ee051c6f977493a8d876579dad45d",
-        "scripts/p2-validate-artifacts.mjs": "f9a0c7b6267c4bb7cec3b0b992a03c7969b856e6cbec7e780625fb2a76a147b8",
-        "tools/package-shared-core-assets.mjs": "70e297ee44a35405dc117908e429acf2c8eafd8cfcaf4843b2b1a1d1db85b62f"
-      },
-      "tools": {
-        "node": "24"
-      },
-      "dependencies": {
-        "world-bundle": "29773e5cc81520cb6cf1c01ffdf98c1b0c8cf7bc1d099d88014224b6c381c82e",
-        "historical-world": "64ac03cddd00832f82bd0acbd588f8563ecadc8ffbb5002c7f0e5e26eee3aa35",
-        "places": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
-        "hydro": "0bbe01264b4fd53dc8b2bd15f562255eee54f27fbdaf69e3b01237b00d237afe",
-        "terrain": "a3deead71a595408645fc2dd77d436facf8c78356edcf212070efc252f6aad1e"
-      },
-      "outputs": {
-        "native/assets/place/manifest.json": "b9ad0bb6733a46a83a9c295eeceef79b626b21f213cb4e18ffd1205895a54829",
-        "native/assets/place/places-v1.bin": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
-        "native/assets/world/historical-world/v1/coverage-report.json": "3acc77a9a3e5cfba0ba4e6fd9c6e58b7bf3af0e964f2bedc26c7fb053119338b",
-        "native/assets/world/historical-world/v1/expected-trace.json": "b51f656af8c5935d03bf48594cf2e29b78723561149a0586857ba27419359281",
-        "native/assets/world/historical-world/v1/manifest.json": "520c13ca5fa452316cc8197cac10250d613f35488e17965a88b2f81b5286e652",
-        "native/assets/world/historical-world/v1/world-project.json.gz": "7b7a325b9033124b4a304f9e1a2c833ab0504253c181714f5f85d424df2a089e",
-        "native/assets/world/hydro/v0.13.2/hydro.bin": "91c2268c6dbfdfa7fc6103d8ad0b4eeca71f6c522df5c0118db69a3654ff532a",
-        "native/assets/world/hydro/v0.13.2/manifest.json": "2bde5c10bdf4d26fd29d2b983b70029022cfaa9fda816a105e6f4338b85f0d24",
-        "native/assets/world/manifest.json": "d4b15725294d1831ff6c6c4b6eb8615cd6a93a9adde3584b85f606bfc5b53ca9",
-        "native/assets/world/terrain-preview/v0.13.3-p1/0/0-0.webp": "0e1622d6429a56f382493dad4ee5a903b7d209237dedd3a5dc8d09a72379fd89",
-        "native/assets/world/terrain-preview/v0.13.3-p1/0/1-0.webp": "5f99f8bcbd21ff722f908348ba26b96d21ffc826293430df607636431b54adc6",
-        "native/assets/world/terrain-preview/v0.13.3-p1/1/0-0.webp": "608c8bf9a156324189b0980831ce4a2193631d0f2b12d21ede90e18ebcbb46cd",
-        "native/assets/world/terrain-preview/v0.13.3-p1/1/0-1.webp": "05e39e4d50ba0c929717d1e47a85477c7052670006a9cf907eb93f573225de13",
-        "native/assets/world/terrain-preview/v0.13.3-p1/1/1-0.webp": "a572f3d3e5d11603cfbcecf6a7de79300c41ff4e230247dacf351ef4a8dec7c6",
-        "native/assets/world/terrain-preview/v0.13.3-p1/1/1-1.webp": "95565e6a6aeb46dc824811fdc1d4d61d1aebf1b0df775548bee197714992fdc7",
-        "native/assets/world/terrain-preview/v0.13.3-p1/1/2-0.webp": "ca28d962900674c12ef418a03437e23d538ebc3da3011c804d95305960879782",
-        "native/assets/world/terrain-preview/v0.13.3-p1/1/2-1.webp": "c44de7f316321266eed62dc54bf5d3504f900378f5274d2b5c50b45a80162502",
-        "native/assets/world/terrain-preview/v0.13.3-p1/manifest.json": "05e3a657287151c29c338caaec9c5d7cd22d4144d7e2db8ecad536742fe6fee8",
-        "native/assets/world/world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
-        "native/assets/world/world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252",
-        "native/assets/world/world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
-        "native/assets/world/world/objects/world-mesh-preview-sha256-766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583.bin.gz": "766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583",
-        "native/assets/world/world/objects/world-mesh-sha256-4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53.bin.gz": "4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53"
-      },
-      "consumers": [
-        "native/app/worlddataset.cpp",
-        "native/app/placeruntimestore.cpp"
-      ],
-      "provenance": [],
-      "validation": [
-        [
-          "node",
-          "native/tools/verify-world-assets.mjs"
-        ],
-        [
-          "node",
-          "scripts/p2-validate-artifacts.mjs",
-          "native-assets"
-        ]
-      ],
-      "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
+      "sourceSha": "8f5c8c51f19518ae5e013afe9569f41855a65569"
     },
     "build-metadata": {
-      "inputFingerprint": "c57adb16b1b63d82d0e29c0085e3e6bec654658589aa7dacaec3b62c98dd1652",
-      "outputFingerprint": "56a615cb177234cfecdce7a314c4fc37b4533e80a207dfcbbcde74be8f8107dc",
+      "inputFingerprint": "c2d4589b68a9c1af802a8b5b2a159189fb4e0648da3ce5af66deb30ea7f522f3",
+      "outputFingerprint": "9a7d473049caaa06d610f26a8d30effbbd300debbc205026a1d76d87c60e7c4c",
       "inputs": {
         "assets/js/app.js": "3afc301fc189ac2277f115ff9c28f37139e1df7c765fb5b999b5d3613f365f6e",
         "assets/js/bootstrap.js": "93cada4a638e7e0669d1e239282bddf54305de7e30fb7301f35e0cb37b610b8c",
@@ -1965,10 +1899,10 @@
         "assets/js/modules/app-capability-ports-lifecycle-ui.js": "1f6ec9e3d32f101718ce627db1b7fe2c48ba53b8699bc7e82cca5bac17faf7b7",
         "assets/js/modules/app-capability-ports-map-interaction.js": "61dc7c4203cf46b6c9b21608737cd0794ee6f0cbad37b03dc0746273a1f65453",
         "assets/js/modules/app-capability-ports-object-editing.js": "da21eaddd07ec5dbb5f0168f91abc68784382b065b0aa318616baa25b341ff6f",
-        "assets/js/modules/app-capability-ports-project-io.js": "550286e97b5e6050041c5a3e9e65df461e12a4907f0168eb8375a5f44833cab7",
+        "assets/js/modules/app-capability-ports-project-io.js": "53ce335ce26ed0778ec67dd082dd53e2697f852b6400d102de778cf94b438dce",
         "assets/js/modules/app-capability-ports.js": "34b725996a72ad46a6f37a1615caf86367816b530a87c9a2e4ffd3053818fe0e",
         "assets/js/modules/app-color-picker.js": "386eacd64f96657ee1edfb19550a8ebb4d7bff12f83849319ae7f7628cd93a24",
-        "assets/js/modules/app-composition.js": "c99139cd9a3328f11e9ead4f31b0ff4064c84b0464320ab2ecf646033c6ad35d",
+        "assets/js/modules/app-composition.js": "8bd0a7d81281da47789c3ee46dfee698131b9d49d3a9a7b2e818d6e9002269b5",
         "assets/js/modules/app-connect-foundation.js": "99f790697b7ee7044758bb9a90562acfc7857751fe92981c9033d040ad24f906",
         "assets/js/modules/app-connect-lifecycle-ui.js": "1fae8ab01ee07ef29b2be719fd0c927b36d605ae29bc771f51b5b1911ffe8cb9",
         "assets/js/modules/app-connect-map-interaction.js": "a07c4ce072dd475cf51a043dfedff1fbb950f1ba4368ea74890b0357aa9f8ef7",
@@ -1981,7 +1915,7 @@
         "assets/js/modules/app-country-validation.js": "f1198177b310e835b0ac7febffa38ec2e3711d9091d4f5973deeea00ae40d513",
         "assets/js/modules/app-cut-geometry.js": "75c519499107dc84167753eaee7fdaa4acb0e330236a202cc5e675a092e96d94",
         "assets/js/modules/app-domain-assembly.js": "fc86336a869a324ac09e404a488fd9adadc4d77ba05701df1d31b46fd3fcae3c",
-        "assets/js/modules/app-editor-bindings.js": "6e6ea0b3496c61a3f58649dfe9bd8d4987ab567fabb44b747d87e6624499202f",
+        "assets/js/modules/app-editor-bindings.js": "4f76bdd43282de9f971113c9ba6fb90d8a3110439473a4a960f6b85edf65f03d",
         "assets/js/modules/app-environment.js": "2f3abf1c90a99990126a7a31ef332373519bff90574a495a210064d6a58b1b52",
         "assets/js/modules/app-file-bindings.js": "1c8f7eb67bd6938f48d2894661e2631d90e80324f8fc27dbad12de7218d0be88",
         "assets/js/modules/app-generic-commands.js": "cc10cf7aae88e573a32b1e71db2948725c5a5faa54da74660242202196bc022a",
@@ -1994,12 +1928,12 @@
         "assets/js/modules/app-library-assembly.js": "ba278da418491c22769324b815b3a35dd44b6ec0cbb6ce55c1e5c33c18f6e675",
         "assets/js/modules/app-lifecycle-assembly.js": "fa9eaf9e9e5ad13ccdede418a425125f538e3fbcf87e2ed65dbfd98ce79f9dc7",
         "assets/js/modules/app-map-audit.js": "90c6c6bc6244bb3982ce1edf18e6f6f12125be0df6d9ff287c0081c5fbff4937",
-        "assets/js/modules/app-map-settings.js": "05a6d85757b055a53fef24276d8514dc9c6cb9ecfdc11de3d3e5307bdc6d112a",
+        "assets/js/modules/app-map-settings.js": "ebebb40301732af8c4c1efa3323d3ccd272db1cc91e2ea2dd109da1f0c02e7a3",
         "assets/js/modules/app-object-commands.js": "b954911dbfc268874c7ac7f8b435f4f9e603c81e2b50e1788df311cc2494e2f9",
         "assets/js/modules/app-object-deletion.js": "2ec6f6520596345307a7edb4a6b08befc741ced63939115931f45143e186341b",
         "assets/js/modules/app-object-metadata.js": "d6999ca71bda9c8cd248d94de0412625842b19de94d03bbb7d4cd41245608971",
-        "assets/js/modules/app-progressive-startup.js": "56c927e832f14571d6eef974d611d66adcc5389830431859b72585b5822789bf",
-        "assets/js/modules/app-project-restore.js": "de1cb4d59c80e2380b9c7d19947d4e20a1e28361f350c45a33bf2143aa53f5c0",
+        "assets/js/modules/app-progressive-startup.js": "311edb8a47b616bcafaca19ba40962b47c0f98953bbaae1bdd5325fbb52b4559",
+        "assets/js/modules/app-project-restore.js": "95170fad2003b08341ceefdb35d3f9dc377a134921d08abdf34e460c2773fb6b",
         "assets/js/modules/app-project-snapshots.js": "e5a8b55f166668ffc41cfb21ddf89f53b6166e0c718a23a4531ac2987bcaec4b",
         "assets/js/modules/app-property-selection.js": "e6f1b8af4efdca446836d85044a959f4ce827287fc6107f52585694312210a65",
         "assets/js/modules/app-readiness-notifications.js": "8f09ff5a0e5a4ba6f2180a2de417f1267fbbd4fa9c06d899cef86393d024daab",
@@ -2035,7 +1969,7 @@
         "assets/js/modules/confirm-modal-controller.js": "c75bd2d7f47924c13beae204a2e375da2df1f539ba02a568ac341c7f254115f6",
         "assets/js/modules/coordinate-bounds.js": "67e2598e59d6e5ff98d871566332286dc83d7e4f9fbc3dc1236c9cc9d08665e0",
         "assets/js/modules/core-document-client.js": "f2db059f017c03bd1ebd3b2d6b211fc57c8d31e44b14c39a30ef8094b6d2c8f3",
-        "assets/js/modules/core-document-read-model.js": "6e3635691327a5171cfb2d229b194fdcc6e1e449fba52baad25861cfc1c9635f",
+        "assets/js/modules/core-document-read-model.js": "cafb8f6227c86ab278787f7f9dbe4380cdf409460497ccae37b46b04252d9681",
         "assets/js/modules/core-document-runtime.js": "18457292224b6a6c49a41c28bfcea36fc16e8a6db05df9e186063f720418eb7a",
         "assets/js/modules/core-object-ref.js": "1c88f1dbf15c6698165d2cd9ff97dc136b4105823dd115d4adce749c22376f26",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
@@ -2068,7 +2002,7 @@
         "assets/js/modules/editing-presentation.js": "820a194239216d7355862883d142e8ac0fbc27de226267f3544666516a1c5cd4",
         "assets/js/modules/editing-render-packet.js": "7527bc638dfdc2266fc837258208df6f74215b37cb97617bd0c75ff6d0820a9e",
         "assets/js/modules/editor-map-click.js": "6fb0d46a1282d9820d23f1ac90c05d198da6c82fc708213b07aeefd9f75bed74",
-        "assets/js/modules/editor-workspace-presentation.js": "7b21d3806cc348def11873822729260f880cf418e19534f44168992fd638999a",
+        "assets/js/modules/editor-workspace-presentation.js": "429566bbb49f9a08a6429cff3910a5d73716471bfde2da097a5e0b28c1890b3b",
         "assets/js/modules/empty-state.js": "f95d908cb9a2297f4ee0c65e81870667d3c6e073b0543a0f9de807c43b6871d0",
         "assets/js/modules/exchange-adapter-registry.js": "8415d2eb4680bf13e6130d81d60ba01bad9eedbc344801b06c81c47304778a66",
         "assets/js/modules/feedback-controller.js": "1763f5670d8acaf662e2e4b52553d966058fbd574cdf50a65c5cf32d61a21d13",
@@ -2081,7 +2015,7 @@
         "assets/js/modules/geometry-segment-index.js": "63680763f49fd03345b1503a135f17c8b66b538673d040dacd69f6a6b648aeb1",
         "assets/js/modules/geometry-snap.js": "6ba41e4dafffe417af43eff52df3e476e9c2fc8d2b73fda973c71e932aa6be9b",
         "assets/js/modules/geometry-validation.js": "581ed80c865457921c37591892bc942f655d99886e9e6322708393d76ae5ec92",
-        "assets/js/modules/geometry-version-store.js": "f2ce8752cc86d4ee766ae16f741f261ae535d5be12959636337158d3579d4831",
+        "assets/js/modules/geometry-version-store.js": "977f8bb33d984c1e18c207fdc09a3c2b4454ac199fef50153176fead0ee181ca",
         "assets/js/modules/geometry-versions.js": "1875f423e3663f92b4634275fc8be09c137ca8ae94f18552d534025f02cfa7d9",
         "assets/js/modules/gis-domain.js": "0c770b2f11a3443e32193279b93e6927bd160714cb90118f06f9e2f6f60b7df0",
         "assets/js/modules/gis-export-controller.js": "89e2fee9ffac35fcd96efe53ef6fd10095d330a2754960fd170cbfeeb19027bc",
@@ -2090,13 +2024,13 @@
         "assets/js/modules/gis-import-transaction.js": "65e51d27e8c9445791cf33c14402d7a9f260f85d2fc594e0dacc5c169ef70c10",
         "assets/js/modules/gis-import-wizard-controller.js": "4e4018de6f4beebbf61c4961555d16f14df86d5bed7c8e69e3b0f4529a325621",
         "assets/js/modules/gis-workflow-controller.js": "fa8558d83050f5723f3e3100fb43516b5d1496f08c5b9a77d4568c6d2ce02f8c",
-        "assets/js/modules/gpu-base-scene-pass.js": "97412fcab1db4fb652f1dcf131cbe0b8916ccdee8b452ba42271310de33391f3",
+        "assets/js/modules/gpu-base-scene-pass.js": "9cb8cba9648425c897168456538578bf42d70857434ad1248a03027b5cfb943d",
         "assets/js/modules/gpu-blend-utils.js": "20a876c420010ff7eb2d7c2ca94d29c00706720a01cc0c33dece49b94acdf490",
         "assets/js/modules/gpu-canvas-worker.js": "1c438b95bca7e21686acaec57584c50b4c74f00a1e465f54b84217f052481694",
         "assets/js/modules/gpu-country-ranges.js": "0d22f62296088c290a87dcff53e17d1aae8170f250b95d4a9ad9fdc75c8101ab",
         "assets/js/modules/gpu-hydro-preparation.js": "47b931d4ca6bee38f5769ddc0dd89c934e645f6c9b1a130c299e4563dd94791d",
         "assets/js/modules/gpu-interaction-pass.js": "a773d3a80cea547fe6533ea06ca1a274da7a8c7f0983d7433626f7b5194cd6fc",
-        "assets/js/modules/gpu-map-renderer.js": "944bd909d11b1ad926f7c2f8762b21bdf01c9bfb0bf7e1809e02471c20283051",
+        "assets/js/modules/gpu-map-renderer.js": "becf686094fab795c26db961693a301acab1bd9dad5903600e00bbce1d8e8df4",
         "assets/js/modules/gpu-mesh-worker-jobs.js": "99ada5aa99b4e7e37a7ebbd0d4065262e0e11050fbd627247e4d50e0edd9816d",
         "assets/js/modules/gpu-polygon-overlay-pass.js": "3c2e2c9e5e4593ac88aa2253bc4fee2f646fbf5ecf8a9f6d876dae8553760bc8",
         "assets/js/modules/gpu-resource-budget.js": "6f6fa180163edc983863bfba423295166534c91d8f877cfc528a3855ae000aeb",
@@ -2106,8 +2040,8 @@
         "assets/js/modules/gpu-shader-utils.js": "6bfc72c339411ded0e84079a48c0dc5004c15fef31976ff05d28a44a6b98db38",
         "assets/js/modules/gpu-stroke-geometry.js": "c7b885a4150c20f957b2477e48d03763e9778be728afc0481016e9b44e5e05fe",
         "assets/js/modules/gpu-stroke-renderer.js": "bb94ef8ba987326b2b6d56880a6e324018b549091ea2b4577b6866fbc4c1c604",
-        "assets/js/modules/gpu-terrain-preparation.js": "fb5cd2f3542cbf1ccd1be433590f2e51b82051070e32073e588e882b098582a2",
-        "assets/js/modules/gpu-upload-scheduler.js": "665504d0b7fbffdf4a781935f3531dd7ad7bc247c5ef8edc6fdf3414ffbe8dd8",
+        "assets/js/modules/gpu-terrain-preparation.js": "cb2f7541f8b64e5238a65ea3f3001806116c820a06e8554db36c8f714ebb87c3",
+        "assets/js/modules/gpu-upload-scheduler.js": "1a14b31d7aa750ffdd69c13bbcf114700ca850fe86f607e641872289561bab3c",
         "assets/js/modules/gpu-view-uniforms.js": "8cee63792301da34df6e7b9d654213cca8a57fb9be3d055033a3e40a9fa44e88",
         "assets/js/modules/gpu-worker-channels.js": "7c83c12b6bc60049dbb43b9c532757b8843afc596874b0311505edb5c78bbafa",
         "assets/js/modules/graticule-geometry.js": "11fe93ca520f1f5468cb5d096cd476e810c5ca944611de80009340e538f61d61",
@@ -2149,11 +2083,11 @@
         "assets/js/modules/map-object-spatial-index.js": "e90f4d0e7822693503c9a3bde5d514096e5faf8b9f2f076ecbeb6f1fcc75db52",
         "assets/js/modules/map-owner-composition.js": "28eb05a208056574defa1a745097fda3e858aef7d6e7bba9d2146acb7731b0da",
         "assets/js/modules/map-projection.js": "5ef9caf8770694c7b3e90d63b64e90c92d1b89f071600eea3e8e062bd388edb8",
-        "assets/js/modules/map-render-coordinator.js": "539b7249a9c7b19d5cbce007d382d8a97783efd1975f782909ec42bf352080a5",
+        "assets/js/modules/map-render-coordinator.js": "756a42c47b01e96c974af18be77bf91033a73005d04a31b2e225611de80ba449",
         "assets/js/modules/map-renderer-composition.js": "0dbf1b6b2870a7347a4ec4a3bf13a5ba54817c23a7f3e6bed0f049a3d0af3f68",
         "assets/js/modules/map-state-transition.js": "4d844f88837cd8b2238db6370d10c740805927f93f5f0d241b86340666e45364",
         "assets/js/modules/map-surface-host.js": "e5fe112034a732c2dedc9f23cce83f50bcebf04c494074d24e0633164233b272",
-        "assets/js/modules/map-theme.js": "1901a83ceed9f0e37514cf6162bba00d0b30360e5d58b7a1594a82836bd63bad",
+        "assets/js/modules/map-theme.js": "994d8abd709c0d77a2d1b8f89f39e7080a0a5585f9cb04ac8299467e75f11254",
         "assets/js/modules/map-visual-frame.js": "4333648377219ad4395a9573b32e1f1db86f494029656929def0785264a81489",
         "assets/js/modules/map-work-scheduler.js": "be06916f7a39a8760e41c1566208d5ef3e68dc7ad3416e8c8140af0c2127ea8e",
         "assets/js/modules/map-workspace-host.js": "2356fde484009c9cee1fdd1501ba441e132befdc29b65b95f3d2e25e4a312ebf",
@@ -2161,14 +2095,14 @@
         "assets/js/modules/mesh-spatial-blocks.js": "5d1f88d7ffea45b3cd2b7677ea189b229085e8359dd1175f814f0db81b7ddee6",
         "assets/js/modules/mobile-sheet-controller.js": "4ccd4bbdecc5d068c7e2191b1affd9bc5f4863fb889dd0fe87884faac26503c8",
         "assets/js/modules/mobile-sheet-presentation.js": "49d177cc91833b7115657ef3faffa3479cdc39bee078f097f8e89878a5dce431",
-        "assets/js/modules/navigation-bindings.js": "07c4e32c8a0cda85b6044d3e6aa9594014e6977407132e7483eaa18bb5c99c80",
+        "assets/js/modules/navigation-bindings.js": "b7f1a1e353640405a618965b380a212e3f00e59e7786f737c7af732ebbf5e84f",
         "assets/js/modules/notification-copy.js": "044deb9e3ca4b52fc18ed918e52a65e623420a1a15e1a5d3a286174510105f5d",
         "assets/js/modules/notification-presentation.js": "7399619cf3d70261ff1d06d41cffb665385b3274758449c948ec1e68bbfaadf8",
         "assets/js/modules/object-action-registry.js": "2bc66bf007e5637a744b038d6c0075bc82c3d55c8c1db2a3b7d31e3e5847b397",
         "assets/js/modules/object-catalog.js": "5afe7630e9daf4f3e81ed5982a1a4b4395f66f5445054d40ee4fb51631437e8d",
         "assets/js/modules/object-picking.js": "b61cb547c23776cbd19ddc2a46de46839821793bff9a5ac8095e0b8b3658a00e",
         "assets/js/modules/object-presentation.js": "3a2efce868011b7de71ec3f1569d43153d5b7980a73fd329e40abc9bcaf0fdd2",
-        "assets/js/modules/object-property-controller.js": "95b2bf509d85150d5e8e62d177069671ea44c0a7ae93c3e36dbb6748886dec9d",
+        "assets/js/modules/object-property-controller.js": "d9b31243b7e4fb8588186f7c29891391bed4091116ea87fbd169a82a3525e0b4",
         "assets/js/modules/object-property-presentation.js": "6d111a035d62262f2f7cbf51640b0e1f5b88fc1f4d50bc63cbc8778c46a18989",
         "assets/js/modules/object-query.js": "b5d476544e7ef8497bdc1c3a7a3f6463383be35f88a32bea611f7ddd9eb76cd6",
         "assets/js/modules/object-registry-presenter.js": "1ee53dc5ed5cbb092ea92eb5b05790794601e9828e97aa72077ea7caf920f882",
@@ -2178,8 +2112,8 @@
         "assets/js/modules/overlay-scrollbars.js": "3cb6a6c5576ad5a8bd9c89d2d62d4062fbb0a20e4863c7256ac4241fdaff5443",
         "assets/js/modules/persistence-service.js": "f237268e018795dbc587f11a9c2998ef45c2d73de0ee6c1cd0a672480a77a34a",
         "assets/js/modules/physical-layer-service.js": "f8ef06d190d363091b34763ad7fa87d867b24ffc9edfe4c4d2e5b6d196d54da3",
-        "assets/js/modules/physical-resources.js": "7afad311516c0a406b45b5ab2ea42de88c428e09c20182f75fc2c2dc3ae437a3",
-        "assets/js/modules/physical-settings.js": "b0521c78579e81eefdee91aa5e353e7d71f350fa3d221993103758cad49df91d",
+        "assets/js/modules/physical-resources.js": "8694944fb462834a9313aa272cbdc6efeb114d45a7585139ff625a0f6e3683a9",
+        "assets/js/modules/physical-settings.js": "f4b80dab6e20a0b94fb1f8a7884b874487aeec089456f8c2442b14486c315370",
         "assets/js/modules/physical-source-configuration.js": "13230237420313ad4372517c7ed7a7e4b4b7127b0efce4caccf1553d3c3d19d5",
         "assets/js/modules/place-codec.js": "78c866e6ba4dba5deed99dff27eaccd637f4e42280551b414310ada9b07e5adc",
         "assets/js/modules/place-contract.js": "572955dc54e29aad94d4e2a19c1b6c7c38e0817598028bdd5a5fd215eafb9ead",
@@ -2195,7 +2129,7 @@
         "assets/js/modules/preference-presentation.js": "2e49b1bedc7ba175ff1648a8b53067a6f9d21dc44573bcc63ae72613ea2460ca",
         "assets/js/modules/preferences-dialog.js": "d56db034c35466db5ddf0218c6e94dd33c81e76ab25cd84b50f7611ebb630edb",
         "assets/js/modules/prepared-polygon-mesh.js": "3e19e8dcabd3b9f3c71574d5508768077ea2a13fc4cffb77b99a91f0070dde05",
-        "assets/js/modules/product-mode-policy.js": "ab923f7663f2269c29d11d6df5470a4e9824468a38738f1c39dba1f41d9f1217",
+        "assets/js/modules/product-mode-policy.js": "abce3fcaae05c09ec4f84e593ee96f24011a54344d5c055965a45498c05812d4",
         "assets/js/modules/project-domain.js": "f8780ccf9bba97d754d900743b3e0c5550b18628dd655061b39e92879f339981",
         "assets/js/modules/project-file-reader.js": "70183edab3dfd47861f7e26b65f7ef0bce33a9e331b8ddf759775a66ad89acff",
         "assets/js/modules/project-invariants.js": "d73cc6b765c6b9c7ecd87c4bd0a28ad624b29eb9f6076370fc8b618297967529",
@@ -2204,9 +2138,9 @@
         "assets/js/modules/project-preview-policy.js": "33a74c3dda83b5f82b98ab1e1b2abfea1b4234c2def2922cfbc27bd91ce0e28b",
         "assets/js/modules/project-preview-topology.js": "d58420258f3c28cadf2a4ed719222c299e29a814dabfe9387d2253d2d689316b",
         "assets/js/modules/project-serializer.js": "b49466e82e439b12033d35c7ee0c52afcdf2b92861ba42e07e3b8f576ccfc3a7",
-        "assets/js/modules/project-session.js": "699d9d9bb5638282584773fa475cef0edfaf22f5272e840b83d3f41615cd4097",
+        "assets/js/modules/project-session.js": "5a1f39ad9768e008ae47eb967267e756f196dd04544c4d1097589f7e45e7ee30",
         "assets/js/modules/project-setup-dialog.js": "bc09ee8ebbc8e60b9b97b5cc3ecde7ab4bc08a0ef2fc047120da5d8edd0cc049",
-        "assets/js/modules/project-setup.js": "2bf1c105414f2d02904763ce6cdb1cb2ab344f794b8a8ade871f648cedc4654e",
+        "assets/js/modules/project-setup.js": "80623ab06fa34cd89911a4dc57cb2982e5170894faa6a30d1fa7ea00475ff728",
         "assets/js/modules/project-state.js": "22ac5fc50475aa190c52d36cc17b43a37613afc8715fef295c9dd841de7f45c3",
         "assets/js/modules/project-ui-bridge.js": "d10ee8e9acce8f1da44ec896796a32fea274d4f3c6c09e298e0e0085c4752041",
         "assets/js/modules/property-editor-bindings.js": "d3b0f9f93bc38c98d2d2d5ea7aa3beefa5b3af393d60de9b012a13d2d7d864ba",
@@ -2240,7 +2174,7 @@
         "assets/js/modules/render-lod.js": "4bcb47f5a4b78d28e43dcea974503f582ca52cd9b6a7c30cb55f6154c55ea1d2",
         "assets/js/modules/render-quality.js": "043aed32e28cd66738890d43dbac9566f776986cae2ddfeec79321fdeaf0db86",
         "assets/js/modules/render-scene.js": "17f84447a3876f9c43ed0f7920910963751a7b86657dd2de4faa963f3c4e9579",
-        "assets/js/modules/rendering-domain.js": "332ce1f53c2751e8915596b0f77d86bdd54732f0feb8cbc646a815d85d438a6d",
+        "assets/js/modules/rendering-domain.js": "5217ec5867ec06ce3d0568d5e198f4af2b51c0fa60fdb0b321166fabd139a4e1",
         "assets/js/modules/resource-capabilities.js": "75c82a8964103313e81847efe80c66440b4db58845bbbc4285b18fa6abd7a7d8",
         "assets/js/modules/ring-hit-test.js": "ffe72994cc90639c890be4c33581e35363207c49c18ac27e65521d90dac3698f",
         "assets/js/modules/river-territory-partition.js": "ea4e444efc2cf4cf7a13f6c1f082c60959cb0fd042e78e8d0f69060120072b94",
@@ -2269,7 +2203,7 @@
         "assets/js/modules/surface-metrics.js": "4a3998e8a60b36e1e532838a5171c66f928bbb13b61fc6855ab648f7eb251ce2",
         "assets/js/modules/surface-tabs-controller.js": "6c9ea164615c380bb911c222bac9a5fc5a93f39a187014c200f3577ffaa3b6e5",
         "assets/js/modules/temporal.js": "baf6a844f372531e89e6d89eb38b45bdfb48688afaf4811637896fb84e88030d",
-        "assets/js/modules/terrain-dem-shaders.js": "00cc3c301c9a31b5e05bb091c9db0568b6ef69292310f7190ad1b724fefb4c85",
+        "assets/js/modules/terrain-dem-shaders.js": "b41f35b05c5fe7242492d89b1a87131b13e5dad7048c00726bb5e16dd47fc962",
         "assets/js/modules/terrain-manifest.js": "e97d23c64448a5ac37ad67532b239001f972a19f7c8c0f9df08e7448be7359cb",
         "assets/js/modules/territorial-edit-plan.js": "290c3b01d3c4318c560706d49e58a88157339b4060ef145a8758fd2bef2f5f47",
         "assets/js/modules/territorial-entity-loader.js": "1f35bc12f61b23915dc66a962347a61c994a97819ab07f0a5ad200be5bfb262b",
@@ -2301,13 +2235,13 @@
         "assets/js/modules/ui-runtime.js": "e5c8dd61b9873c00ed57ec6d988ae258c8e190bb369cc180181d0021e88cfe00",
         "assets/js/modules/user-preferences.js": "c052b8dd153b44b858a3e96a9f37367027e008f376a17602c59ba8f5bd1da156",
         "assets/js/modules/version-contract.js": "34c05a5bac9627531c170191952ac81489ba320059a0359033db6b8c0d943e02",
-        "assets/js/modules/viewer-composition.js": "259658bfae22782ec562db72472cdb31f8bb6062399ea167818568b8176bbef6",
-        "assets/js/modules/viewer-map.js": "ac2e23cfd584844ed6d6eefef4f8c588b1d3d0c06060c9fedb04d9b04cd7d0d8",
+        "assets/js/modules/viewer-composition.js": "4b920adac83868aea77c57660c2349d1b2fcc3c315c746d5b04aedfa8ca1b70c",
+        "assets/js/modules/viewer-map.js": "3558acb43d0d3205bf138d445c541d382859490337668b6795bf48e1ba345a1b",
         "assets/js/modules/worker-asset-url.js": "37635192ae1c904dc951895f07850dcc1d6c39e5bd55bfa42f908085885a544a",
         "assets/js/modules/worker-job-scheduler.js": "06d2ca1668a10a9de79c58bfbfce9fb4d68aa22611f8b83cd2471a93a1ce97c9",
         "assets/js/modules/worker-rpc.js": "29ba7f35d830f25a52a70e4703444b3cdea6f822b3f39762c5a00fb8915aae77",
         "assets/js/modules/workspace-layout.js": "ab8f3282e132e027a05cf110c7dd4a527b89097714a3fc5ff1f205c1e256b593",
-        "assets/js/modules/workspace-surfaces.js": "c842c60bbc73b942c3cfa3476612e5a76e34a7fa508594e9886837595fa9329a",
+        "assets/js/modules/workspace-surfaces.js": "2b79c578365e160c65488122770f599f929a7074a67dca4e5fec75d891b163e8",
         "assets/js/modules/world-bundle-manifest.js": "80ea3e0ea8eca1a5ebed9f5dd00050114ca176d1d460a0d4312fcb1086d8c3ba",
         "assets/js/vendor/d3.min.js": "4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538",
         "assets/js/vendor/earcut.min.js": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3",
@@ -2351,7 +2285,7 @@
         "pnpm-workspace.yaml": "006e69527abbf26647e4aead8af6027d36876044fa9c7d8b56f4b74171886712",
         "scripts/generate-build-metadata.mjs": "856cdf3979c7711359d0d9001330ec49f2494a87d2eb763510998e7b2602f0c3",
         "scripts/lib/product-assets.mjs": "d1b32e24d38ab539948f778ff5e1ca1f685dd65f0b22c36e0d7139c479a4da75",
-        "scripts/lib/product-html.mjs": "67537da40c87b6268637848b449587aeb347fca83c6fd66b1dadbb97897ea516",
+        "scripts/lib/product-html.mjs": "421e583a77e5c654c5fbb9b60a2fde890a147259cd1f7647627aadbe39457f66",
         "scripts/lib/worker-assets.mjs": "2d88be297d7c31f31e6187b687c16674c094833c6531b0f8fe1257725511ced8",
         "tools/build-physical-land-mask.mjs": "5f0904fabb7278ff1677f3093dac67f564c28105e60961be00dda09105202131"
       },
@@ -2359,21 +2293,21 @@
         "node": "24"
       },
       "dependencies": {
-        "wasm": "809eff1f05ef46f618220af7dc307b04c0153a2cfa4bebb790fb517ef066fb54",
+        "wasm": "23cc399065b7aff0a264319491def4811f2700747246428a9a547767b3dc9434",
         "territorial": "c738d3419ba01dabb72637602ba7d595693ac5321c34db88128ae73b36bcc1ff",
         "historical-world": "5acc33d1b6c613f83c409e23a6da1f424119e1b3a719d784155e32ab291fe038",
         "world-bundle": "9b135f052202f64b477238670347dd8c3bc0b31eb83fa68c51dcf20872324162",
-        "prepared-mesh": "bbae2a6544cf0eb0a221a805f87e78edda93ccf339f0e8973a1803be32377cde",
+        "prepared-mesh": "7f2c72e0c563c9720de073d327e12242834ff8f93bca0c5e5b03a277c32640da",
         "shared-boundaries": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
         "places": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
-        "hydro": "0bbe01264b4fd53dc8b2bd15f562255eee54f27fbdaf69e3b01237b00d237afe",
+        "hydro": "d2234995362147505789c88d9658c6f8cd826ddc7c5968d8d9f02aaf9bc0ffc0",
         "terrain": "5da01e69637ae3ea2fab4f1424b7eb34129a5bce07a7f3fe8b3154014b8a28e5"
       },
       "outputs": {
         "README.md": "6931d8ae20cb7f1e4135b61e24197d97e0cd13f5f1cd5819ce2916509490efd6",
-        "apps/web-shell/editor.html": "58530ced99cd38e6bb89742fa54292a6524450f86531f279d15074e8aecac84f",
-        "assets/js/build-meta.js": "3793dda7b96e6d26b10981459d7ad1cb54419c5fbf61a92f08e31d92bc4702cc",
-        "index.html": "5b88504ba0744b483ccef87c6e076a6abf7c4fa9009319709a76dae1a53affeb"
+        "apps/web-shell/editor.html": "2636a691f5c1ea485229918f0cbb35991836a4cb726798fc16d3aa047ee0cd83",
+        "assets/js/build-meta.js": "acec129691298149527423a84610029175f3c3b89e6fc5ba4ec8d1fb9cad8922",
+        "index.html": "18b977f4f972b9b0f2f68d04acffa4fb94e1f4938dd9db458800cb449e5c82ea"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2388,7 +2322,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "4bcd15a19f551818baf9fd91ac78e0bf1380620b"
+      "sourceSha": "389d1bf934c3ff538bd30ca2ce3d6998dbe8333a"
     }
   }
 }

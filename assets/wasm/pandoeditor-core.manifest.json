@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "18b9265509c33f107e0915cd5830cd54387c8ae07df3374a15d15cc958b338fb",
+  "sourceSha256": "c05f2987d26e0c4f0f167dbab997e7bd32c106a4ca017e576a426f6bd8144ec9",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -569,7 +569,7 @@
     },
     {
       "path": "shared/tests/web-content-command-tests.cpp",
-      "sha256": "a8637429e1e45abb36f8a426825566d5dfd78833ab643b7b99b2648ad8ed0148"
+      "sha256": "856e2a54ca3e902fa41527afb255d44a6d5cf0d911aabc6ad36789e4ffcdfbb4"
     },
     {
       "path": "shared/tests/web-object-command-tests.cpp",
@@ -581,7 +581,7 @@
     },
     {
       "path": "shared/tests/web-territorial-command-tests.cpp",
-      "sha256": "41bab1e4dcc6a405a34e0c73ae4540c24e93ab1e24dc00f631c84adf0786e0f9"
+      "sha256": "15e90887fe445fe6bac5aac67edc5efafda9c75624b73ae41d28cd23bed3e14f"
     },
     {
       "path": "shared/third_party/earcut/earcut.hpp",
@@ -635,7 +635,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "6e480812333ddf9c2d4fac7794b92b5dbd1febd2a17e82f6639ea15834e9ee87"
+      "sha256": "c83a34a0f634cf609e86f9fe61ed17e9a146315b2db1abd735c0fe1a179eb9b9"
     }
   }
 }

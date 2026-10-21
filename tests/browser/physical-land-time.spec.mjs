@@ -182,13 +182,13 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     expect(gray[0]).toBeLessThan(250);
     await page.evaluate(() => {
       const host = window.__PANDOLAB_MAP_HOST__;
-      host.setViewState({ projection: 'flat', view: { flatCenter: [114.17, 22.27], flatZoom: 16,
+      host.setViewState({ projection: 'globe', view: { flatCenter: [114.17, 22.27], flatZoom: 16,
         globeRotation: [-114.17, -22.27, 0], globeZoom: 16 } });
-      host.requestRepaint('flat-physical-land');
+      host.requestRepaint('detailed-globe-physical-land');
     });
-    const flat = await settledPixel('political');
-    expect(flat[3]).toBe(255);
-    expect(flat[0]).toBeLessThan(250);
+    const detailed = await settledPixel('political');
+    expect(detailed[3]).toBe(255);
+    expect(detailed[0]).toBeLessThan(250);
     expect(await page.evaluate(() => window.__landWorkerUrls.every(url => /assets\/worker-runtime\/[a-f0-9]{32}\//.test(url)))).toBe(true);
     expect(unversioned).toEqual([]); expect(errors).toEqual([]);
     if (renderer === 'webgl2') {

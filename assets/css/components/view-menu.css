@@ -128,7 +128,6 @@
   grid-column: 1 / -1;
 }
 
-.surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent,
 .surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent,
 .surface-display:not(.view-menu-desktop) .view-menu-separator,
 .surface-display:not(.view-menu-desktop) .view-menu-icon,

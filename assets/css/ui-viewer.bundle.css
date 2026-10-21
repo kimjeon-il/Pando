@@ -451,7 +451,6 @@
   --design-weight-bold: 700;
   --design-icon-size: 1rem;
   --design-icon-size-sm: 1rem;
-  --design-projection-icon-size: 1.125rem;
   --design-icon-stroke-width: 1.6;
   --design-surface-header-height-desktop: 3.25rem;
   --design-space-0: 0;
@@ -1774,11 +1773,6 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
   }
 
   .preferences-theme-swatches { grid-template-columns: repeat(3, var(--ui-preferences-chip-size-mobile)); }
-}
-
-.projection-btn .ui-icon {
-  width: var(--design-projection-icon-size);
-  height: var(--design-projection-icon-size);
 }
 
 :where(.ui-button):active:not(:disabled) {
@@ -5187,8 +5181,11 @@ body.file-menu-open .app-root .topbar {
   line-height: var(--ui-line-normal);
 }
 
-.editor-action-list > .editor-delete-control {
-  display: contents;
+/* The destructive action has one permanent owner after the selected form.
+   All object types reuse this row; only selection and the active tab show it. */
+.surface-content-editor > .editor-delete-control {
+  flex: 0 0 auto;
+  margin-top: var(--ui-space-1);
 }
 
 .editor-action-row.editor-delete-row:hover:not(:disabled) {
@@ -5769,10 +5766,6 @@ body.file-menu-open .mobile-backdrop {
   padding-top: var(--ui-space-3);
 }
 
-.map-view-projection-slot .projection-btn {
-  padding: 0 var(--ui-control-padding-x);
-}
-
 .map-command-toolbar {
   position: absolute;
   z-index: 18;
@@ -5837,65 +5830,6 @@ body.file-menu-open .mobile-backdrop {
   font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-semibold);
   line-height: var(--ui-line-tight);
-}
-
-.map-view-projection-slot .projection-control {
-  width: 100%;
-  height: auto;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ui-space-1);
-  padding: 0;
-  overflow: visible;
-  border: 0;
-  background: transparent;
-}
-
-.map-view-projection-slot .projection-btn {
-  min-width: 0;
-  min-height: var(--design-command-row-min-height);
-  height: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-space-2);
-  padding-inline: var(--ui-space-3);
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-button-subtle);
-  color: var(--muted);
-}
-
-.map-view-projection-slot .projection-btn > span {
-  display: inline;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--ui-font-md);
-  font-weight: var(--ui-weight-semibold);
-}
-
-.map-view-projection-slot .projection-btn .ui-icon {
-  width: var(--design-projection-icon-size);
-  height: var(--design-projection-icon-size);
-  flex: 0 0 auto;
-}
-
-.map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) {
-  border-color: transparent;
-  background: var(--ui-button-selected);
-  color: var(--text-strong);
-}
-
-.map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) .ui-icon {
-  color: var(--accent);
-}
-
-.map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]):hover {
-  border-color: transparent;
-  background: var(--ui-button-selected-hover);
-  color: var(--text-strong);
 }
 
 .map-view-settings .ui-choice-row {
@@ -6004,13 +5938,6 @@ body.file-menu-open .mobile-backdrop {
 }
 
 @media (max-width: 799px) {
-  .map-view-projection-slot .projection-btn {
-    min-height: var(--ui-touch-height);
-    height: auto;
-  }
-}
-
-@media (max-width: 799px) {
   .map-view-settings {
     --map-display-row-height: var(--ui-touch-height);
   }
@@ -6019,12 +5946,6 @@ body.file-menu-open .mobile-backdrop {
 @media (max-width: 799px) {
   .terrain-strength-control input[type="range"] {
     min-height: var(--ui-touch-height);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .map-view-projection-slot .projection-btn {
-    transition: none;
   }
 }
 
@@ -6797,7 +6718,6 @@ body.file-menu-open .mobile-backdrop {
   grid-column: 1 / -1;
 }
 
-.surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent,
 .surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent,
 .surface-display:not(.view-menu-desktop) .view-menu-separator,
 .surface-display:not(.view-menu-desktop) .view-menu-icon,
@@ -8544,45 +8464,6 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   pointer-events: auto;
 }
 
-.projection-btn {
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  min-height: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--muted);
-  font-size: var(--ui-font-sm);
-  font-weight: var(--ui-weight-strong);
-  box-shadow: none;
-}
-
-.projection-btn:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-}
-
-.projection-btn.active {
-  background: var(--accent-surface);
-  color: var(--accent-text);
-  box-shadow: none;
-}
-
-.projection-btn.active:hover {
-  background: var(--accent-surface-hover);
-  color: var(--accent-text);
-}
-
-.projection-btn > span {
-  display: none;
-}
-
 .map-wrap {
   position: absolute;
   inset: 0;
@@ -8606,13 +8487,6 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   --ui-map-bottom-occupied-height: calc(var(--mobile-nav-height) + var(--ui-shell-statusbar-height));
 }
 
-.projection-control {
-  width: calc(var(--ui-control-height) * 2);
-  height: var(--ui-control-height);
-  padding: var(--ui-border-width);
-  gap: 0;
-}
-
 .reset-view-command {
   font-size: var(--ui-font-body);
 }
@@ -8629,11 +8503,6 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   align-items: center;
   gap: var(--ui-toolbar-gap);
   padding: var(--ui-toolbar-padding);
-}
-
-.app-root[data-layout="mobile"] .projection-control {
-  height: var(--ui-icon-control-mobile-size);
-  padding: var(--ui-segment-padding);
 }
 
 .app-root[data-layout="mobile"] .ui-floating-toolbar:has(.workspace-surface) {

@@ -49,7 +49,15 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-CORE-CI-WEBGL-20261020` | [C++ CI 2건과 Windows WebGL UI 시간 초과 수정](development/testing/core-ci-webgl-repair-2026-10-20.md) | 2026-10-20 | `native-ci-verified / webgl-ui-verified / separate-artifact-ci-failure` | `not-applicable` |
 | `DEV-REMAINING-BRANCH-20261020` | [남은 작업 브랜치의 main 통합](development/testing/remaining-branch-integration-2026-10-20.md) | 2026-10-20 | `integrated / remote-verified / docs-only` | `not-applicable` |
+| `DEV-INTEGRATED-RELEASE-20261021` | [통합 main의 원격 게시와 Windows 실행 파일 갱신](development/testing/integrated-release-2026-10-21.md) | 2026-10-21 | `pages-live-verified / windows-native-verified / separate-ci-failure` | `not-applicable` |
+| `DEV-ALL-BRANCH-20261021` | [10월 21일 작업 브랜치의 main 통합](development/testing/all-branch-integration-2026-10-21.md) | 2026-10-21 | `integrated / release-followup-linked` | `not-applicable` |
+| `UI-WEB-GLOBE-20261021` | [웹 지구본 전용 표시 구현과 최소 검증](development/testing/viewer-globe-only-2026-10-21.md) | 2026-10-21 | `local-verified / release-followup-linked` | `not-applicable` |
+| `UI-INITIAL-MAP-FIX-20261021` | [초기 지도 배경과 새 프로젝트 전환의 표시 연속성 수정](development/testing/initial-map-continuity-2026-10-21.md) | 2026-10-21 | `local-verified / release-followup-linked` | `not-applicable` |
+| `UI-INITIAL-MAP-20261021` | [초기 지도 요소의 표시 시차와 새 프로젝트의 흰 화면 조사](development/testing/initial-map-and-project-transition-2026-10-21.md) | 2026-10-21 | `historical-record / follow-up-linked` | `not-applicable` |
+| `UI-TERRAIN-RELEASE-20261021` | [지형 전환 지연 수정의 main 반영과 웹·앱 게시 검증](development/testing/terrain-interaction-release-2026-10-21.md) | 2026-10-21 | `pages-live-verified / windows-native-verified` | `not-applicable` |
+| `UI-TERRAIN-LATENCY-20261021` | [고배율 지형 전환 지연의 재현과 수정](development/testing/terrain-interaction-latency-2026-10-21.md) | 2026-10-21 | `local-web-verified / app-unverified / unpublished` | `not-applicable` |
 | `UI-MAP-SCALE-RELEASE-20261020` | [지도 표시·UI 검사 정리와 웹·Windows 게시 검증](development/testing/map-scale-release-2026-10-20.md) | 2026-10-20 | `pages-live-verified / windows-native-verified / separate-ci-failures` | `not-applicable` |
 | `UI-MAP-SCALE-20261020` | [지도 배율별 품질과 표시 준비 상태](development/testing/map-scale-readiness-2026-10-20.md) | 2026-10-20 | `focused-verified / native-webview2-verified / unpublished` | `not-applicable` |
 | `UI-CONVERGENCE-P2-20261020` | [UI 구조 통일 P2 — 검색창 DOM 고정·가로 화면 CSS 분리](development/testing/ui-convergence-p2-2026-10-20.md) | 2026-10-20 | `implemented / focused-browser-verified / native-unverified` | `not-applicable` |

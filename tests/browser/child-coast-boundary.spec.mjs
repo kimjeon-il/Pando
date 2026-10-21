@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import { coreFileProjection, productionGeoPackage } from '../helpers/production-geopackage.mjs';
 import { startupDocument } from '../helpers/core-startup.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { setViewingProjection, closeViewingDisplay } from './helpers/viewing-display.mjs';
 
 test.use({ viewport: { width: 1440, height: 900 }, trace: 'off' });
 
@@ -85,12 +84,7 @@ export function createRenderingDomain(options) {
       sum + Math.hypot(point[0] - line[index][0], point[1] - line[index][1]), 0), 0);
     expect(length).toBeGreaterThan(0.1);
     expect(length).toBeLessThan(0.3);
-    if (mode === 'viewer') {
-      await setViewingProjection(page, 'flat');
-      await closeViewingDisplay(page);
-    } else {
-      expect(await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection)).toBe('flat');
-    }
+    expect(await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection)).toBe(mode==='viewer'?'globe':'flat');
     await page.locator('#objectSearchBtn').click();
     await page.locator('#objectSearchInput').fill('HKG');
     await page.locator('#objectSearchResults button').filter({ hasText: 'HKG' }).first().click();

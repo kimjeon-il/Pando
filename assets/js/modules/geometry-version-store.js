@@ -41,7 +41,7 @@ function polygon(value) {
 }
 function freeze(value) {
   if (value && typeof value === 'object') {
-    for (const child of Object.values(value)) freeze(child);
+    for (const child of Array.isArray(value) ? value : Object.values(value)) freeze(child);
     Object.freeze(value);
   }
   return value;

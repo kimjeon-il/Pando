@@ -6,6 +6,36 @@ async function openActionsTab(page) {
   await page.locator('#actionsTabBtn').click();
 }
 
+test('mobile task remains open after its asynchronous property action starts', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  // Expose the existing presentation owner to exercise the late-completion
+  // order observed in WebView2, without changing the edit operation itself.
+  await page.route('**/modules/workspace-surfaces.js*', async route => {
+    const source = await (await route.fetch()).text();
+    const anchor = 'function initializeWorkspaceSurfaces() {';
+    expect(source).toContain(anchor);
+    await route.fulfill({ contentType: 'text/javascript', body: source.replace(anchor,
+      anchor + 'window.__testCompleteToolStart = completeToolStart;') });
+  });
+  await gotoEditor(page, '/');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+  await openActionsTab(page);
+  await page.locator('#annexEntityBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
+  // The start command may still be settling after the task first appears.
+  await expect(page.locator('#modeCancelBtn')).toBeEnabled();
+  await page.evaluate(() => window.__testCompleteToolStart(true));
+  await expect(page.locator('#editorSurface')).toHaveClass(/mobile-open/);
+  await expect(page.locator('#modeTaskMinimizeBtn')).toBeInViewport();
+  await page.locator('#modeTaskMinimizeBtn').click();
+  await expect(page.locator('#modeTaskMinimizeBtn')).toHaveAttribute('aria-expanded', 'false');
+  await page.locator('#modeTaskMinimizeBtn').click();
+  await expect(page.locator('#modeTaskMinimizeBtn')).toHaveAttribute('aria-expanded', 'true');
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
+});
+
 test('the current editor surface owns tasks at every responsive width', async ({ page }) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
@@ -29,6 +59,10 @@ test('the current editor surface owns tasks at every responsive width', async ({
   expect(Math.round(map.x + map.width)).toBe(1440);
   expect(Math.round(map.x + map.width)).toBeGreaterThan(Math.round(panel.x));
   await expect(page.locator('#mapDisplaySurface')).toBeHidden();
+  const task = page.locator('#modeEditingContext');
+  await expect(page.locator('#editorTaskSlot > #modeEditingContext')).toHaveCount(1);
+  await expect(page.locator('#mapTopContextSlot #modeEditingContext')).toHaveCount(0);
+  const originalTask = await task.elementHandle();
   await openActionsTab(page);
   await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
@@ -57,6 +91,8 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
+  await expect(page.locator('#editorTaskSlot > #modeEditingContext')).toHaveCount(1);
+  expect(await task.evaluate((node, initial) => node === initial, originalTask)).toBe(true);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await openActionsTab(page);
   await page.locator('#mergeEntityBtn').click();
@@ -69,5 +105,7 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#mapTopContextSlot #modeEditingContext')).toHaveCount(0);
   await expect(page.locator('#modeTaskMinimizeBtn')).toBeVisible();
   await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#editorTaskSlot > #modeEditingContext')).toHaveCount(1);
+  expect(await task.evaluate((node, initial) => node === initial, originalTask)).toBe(true);
   expect(errors).toEqual([]);
 });
