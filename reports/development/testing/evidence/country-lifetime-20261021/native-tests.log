@@ -1,8 +1,0 @@
-Internal ctest changing into directory: D:/dev/worktrees/objects/build-native/core-ci-webgl
-Test project D:/dev/worktrees/objects/build-native/core-ci-webgl
-    Start 1: temporal_editing_tests
-1/1 Test #1: temporal_editing_tests ...........   Passed    0.23 sec
-
-100% tests passed, 0 tests failed out of 1
-
-Total Test time (real) =   0.68 sec

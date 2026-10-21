@@ -4,21 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       sourceRepository:
-        description: Private owner-library repository
+        description: Storage repository (must match config/library-data.json)
         required: true
-        default: kimjeon-il/Pando-library-data
+        default: kimjeon-il/PandoLab-library-data
         type: string
       sourceRevision:
-        description: Immutable private Git commit (40 hex characters)
+        description: Immutable source Git commit (40 hex characters)
         required: true
         type: string
       revision:
-        description: SHA-256 of the exact private library.json bytes
+        description: SHA-256 of the exact library.json bytes
         required: true
         type: string
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -34,28 +34,35 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Validate explicit pinned publication request and private read configuration
-        env:
-          SOURCE_REPOSITORY: ${{ inputs.sourceRepository }}
-          SOURCE_REVISION: ${{ inputs.sourceRevision }}
-          LIBRARY_REVISION: ${{ inputs.revision }}
-          LIBRARY_READ_TOKEN: ${{ secrets.PANDO_LIBRARY_READ_TOKEN }}
-        run: |
-          test "$SOURCE_REPOSITORY" = 'kimjeon-il/Pando-library-data' || { echo 'Unexpected private source repository'; exit 1; }
-          [[ "$SOURCE_REVISION" =~ ^[0-9a-f]{40}$ ]] || { echo 'Source Git commit must be pinned'; exit 1; }
-          [[ "$LIBRARY_REVISION" =~ ^[0-9a-f]{64}$ ]] || { echo 'Library content revision must be pinned'; exit 1; }
-          test -n "$LIBRARY_READ_TOKEN" || { echo 'PANDO_LIBRARY_READ_TOKEN is not configured'; exit 1; }
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 1
+      - name: Validate pinned publication request and storage write configuration
+        env:
+          SOURCE_REPOSITORY: ${{ inputs.sourceRepository }}
+          SOURCE_REVISION: ${{ inputs.sourceRevision }}
+          LIBRARY_REVISION: ${{ inputs.revision }}
+          LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: |
+          test "$SOURCE_REPOSITORY" = "$(node -p 'require("./config/library-data.json").repository')" || { echo 'Unexpected library source repository'; exit 1; }
+          [[ "$SOURCE_REVISION" =~ ^[0-9a-f]{40}$ ]] || { echo 'Source Git commit must be pinned'; exit 1; }
+          [[ "$LIBRARY_REVISION" =~ ^[0-9a-f]{64}$ ]] || { echo 'Library content revision must be pinned'; exit 1; }
+          test -n "$LIBRARY_WRITE_TOKEN" || { echo 'PANDOLAB_LIBRARY_WRITE_TOKEN (write access to storage repository only) is not configured'; exit 1; }
+      - name: Prepare paired baseline data
+        uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
         with:
           repository: ${{ inputs.sourceRepository }}
           ref: ${{ inputs.sourceRevision }}
-          token: ${{ secrets.PANDO_LIBRARY_READ_TOKEN }}
-          persist-credentials: false
-          path: private-library
+          token: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+          persist-credentials: true
+          filter: blob:none
+          sparse-checkout: |
+            objects
+            assets/data/library-channel
+            assets/data/library-releases
+          path: publication-source
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -64,10 +71,10 @@ jobs:
       - name: Stage the committed public viewer before deriving data
         run: node tools/stage-monorepo-pages.mjs --root . --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json"
       - name: Preserve the committed world solely for label anchor comparison
-        run: git show HEAD:assets/data/territorial-entities/generated/current-world.geojson > "$RUNNER_TEMP/baseline-current-world.geojson"
-      - name: Verify and materialize the pinned private source
-        run: node tools/prepare-library-publication.mjs --source private-library --target "$RUNNER_TEMP/library-source" --revision '${{ inputs.revision }}' --source-revision '${{ inputs.sourceRevision }}'
-      - name: Derive and validate the independent library release
+        run: cp assets/data/territorial-entities/generated/current-world.geojson "$RUNNER_TEMP/baseline-current-world.geojson"
+      - name: Materialize the pinned editable source
+        run: node tools/prepare-library-publication.mjs --source publication-source --target "$RUNNER_TEMP/library-source" --revision '${{ inputs.revision }}' --source-revision '${{ inputs.sourceRevision }}'
+      - name: Derive the independent library release in Pando (storage has no jobs)
         env:
           PANDOLAB_LIBRARY_SOURCE_ROOT: ${{ runner.temp }}/library-source
         run: |
@@ -89,17 +96,11 @@ jobs:
         run: |
           node tools/assemble-library-release.mjs --root . --output "$RUNNER_TEMP/library-release" --revision '${{ inputs.revision }}' --source-revision '${{ inputs.sourceRevision }}'
           node tools/assemble-library-release.mjs --verify --output "$RUNNER_TEMP/library-release" --revision '${{ inputs.revision }}'
-      - name: Load and verify every previous public data release
+      - name: Preserve previously published immutable releases
         run: |
-          git worktree add --detach "$RUNNER_TEMP/library-branch" HEAD
-          if git ls-remote --exit-code origin refs/heads/library-data >/dev/null; then
-            git fetch origin refs/heads/library-data:refs/remotes/origin/library-data
-            git -C "$RUNNER_TEMP/library-branch" switch -c library-data origin/library-data
-            node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/library-branch"
+          if test -d publication-source/assets/data/library-releases; then
             mkdir -p "$RUNNER_TEMP/pages-site/assets/data/library-releases"
-            cp -a "$RUNNER_TEMP/library-branch/assets/data/library-releases/." "$RUNNER_TEMP/pages-site/assets/data/library-releases/"
-          else
-            git -C "$RUNNER_TEMP/library-branch" switch --orphan library-data
+            cp -a publication-source/assets/data/library-releases/. "$RUNNER_TEMP/pages-site/assets/data/library-releases/"
           fi
       - name: Verify the complete staged viewer and release compatibility
         run: |
@@ -108,21 +109,21 @@ jobs:
           cp -a "$RUNNER_TEMP/library-release/assets/data/library-releases/." "$RUNNER_TEMP/pages-site/assets/data/library-releases/"
           node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/pages-site"
           node tools/check-library-release-code.mjs --site "$RUNNER_TEMP/pages-site"
-      - name: Record the verified release on the public data branch
+      - name: Store the derived release in the external repository
         run: |
-          if test -e "$RUNNER_TEMP/library-branch/assets/data/library-releases/${{ inputs.revision }}"; then
-            diff -qr "$RUNNER_TEMP/library-release/assets/data/library-releases/${{ inputs.revision }}" "$RUNNER_TEMP/library-branch/assets/data/library-releases/${{ inputs.revision }}" || { echo 'Immutable library release differs from existing publication'; exit 1; }
+          DEST="publication-source/assets/data"
+          if test -e "$DEST/library-releases/${{ inputs.revision }}"; then
+            diff -qr "$RUNNER_TEMP/library-release/assets/data/library-releases/${{ inputs.revision }}" "$DEST/library-releases/${{ inputs.revision }}" || { echo 'Immutable release differs'; exit 1; }
           fi
-          mkdir -p "$RUNNER_TEMP/library-branch/assets/data/library-releases"
-          cp -a "$RUNNER_TEMP/library-release/assets/data/library-channel" "$RUNNER_TEMP/library-branch/assets/data/"
-          cp -a "$RUNNER_TEMP/library-release/assets/data/library-releases/." "$RUNNER_TEMP/library-branch/assets/data/library-releases/"
-          node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/library-branch"
-          git -C "$RUNNER_TEMP/library-branch" config user.name 'github-actions[bot]'
-          git -C "$RUNNER_TEMP/library-branch" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git -C "$RUNNER_TEMP/library-branch" add assets/data/library-channel assets/data/library-releases
-          if ! git -C "$RUNNER_TEMP/library-branch" diff --cached --quiet; then
-            git -C "$RUNNER_TEMP/library-branch" commit -m "Publish library data ${{ inputs.revision }}"
-            git -C "$RUNNER_TEMP/library-branch" push origin library-data:library-data
+          mkdir -p "$DEST/library-releases"
+          cp -a "$RUNNER_TEMP/library-release/assets/data/library-channel" "$DEST/"
+          cp -a "$RUNNER_TEMP/library-release/assets/data/library-releases/." "$DEST/library-releases/"
+          git -C publication-source config user.name 'github-actions[bot]'
+          git -C publication-source config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C publication-source add --sparse assets/data/library-channel assets/data/library-releases
+          if ! git -C publication-source diff --cached --quiet; then
+            git -C publication-source commit -m "Store published library ${{ inputs.revision }}"
+            git -C publication-source push origin HEAD:main
           fi
       - uses: actions/upload-pages-artifact@v4
         with:
