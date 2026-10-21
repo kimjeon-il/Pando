@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
@@ -13,10 +13,12 @@ export function libraryConfig(root = defaultRoot) {
   return config;
 }
 export function libraryCheckout(root = defaultRoot) {
-  return resolve(process.env.PANDOLAB_LIBRARY_DATA_ROOT || resolve(root, '.library-data/repository'));
+  const checkout = resolve(process.env.PANDOLAB_LIBRARY_DATA_ROOT || resolve(root, '.library-data/repository'));
+  return existsSync(checkout) ? realpathSync(checkout) : checkout;
 }
 export function libraryMaterializedRoot(root = defaultRoot) {
-  return resolve(root, '.library-data/materialized', libraryConfig(root).revision);
+  const base = resolve(root, '.library-data/materialized');
+  return resolve(existsSync(base) ? realpathSync(base) : base, libraryConfig(root).revision);
 }
 export function libraryReportRoot(root = defaultRoot) {
   return resolve(libraryCheckout(root), '.working', libraryConfig(root).revision, 'reports');
@@ -99,7 +101,7 @@ export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
       if (!lstatSync(output).isSymbolicLink()) throw Error(`Existing data directory must be preserved before mounting: ${output}`);
       if (realpathSync(output) === realpathSync(target)) continue;
       const previous = realpathSync(output);
-      const owned = path === 'reports' ? previous === resolve(checkout, 'reports') || previous.startsWith(resolve(checkout, '.working') + sep) : previous.startsWith(resolve(root, '.library-data/materialized') + sep);
+      const owned = path === 'reports' ? previous === resolve(checkout, 'reports') || previous.startsWith(resolve(checkout, '.working') + sep) : previous.startsWith(dirname(materialized) + sep);
       if (!owned) throw Error(`Unknown data mount must be preserved: ${output}`);
       unlinkSync(output); // Remove this owned link only, preserving the previous cache.
     }
@@ -115,7 +117,14 @@ export function storeLibraryData({ root = defaultRoot, push = false } = {}) {
   const index = JSON.parse(readFileSync(indexPath, 'utf8'));
   const runtimeDirectories = new Set(Object.entries(index.files).filter(([path, entry]) => path.startsWith('assets/data/') && path === entry.stored).map(([path]) => dirname(path)));
   const digest = bytes => createHash('sha256').update(bytes).digest('hex');
-  const put = (path, bytes) => { const output = safeChild(data.checkout, path); mkdirSync(dirname(output), { recursive: true }); writeFileSync(output, bytes); };
+  const put = (path, bytes) => {
+    const output = safeChild(data.checkout, path);
+    mkdirSync(dirname(output), { recursive: true });
+    if (existsSync(output) && readFileSync(output).equals(bytes)) return;
+    const temporary = output + `.${process.pid}.pending`;
+    writeFileSync(temporary, bytes);
+    renameSync(temporary, output);
+  };
   const store = (path, bytes) => {
     const sha256 = digest(bytes);
     if (index.files[path]?.sha256 === sha256) return;
