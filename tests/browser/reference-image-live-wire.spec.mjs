@@ -61,8 +61,7 @@ async function referenceScreenGeometry(page) {
 async function waitForReady(page) {
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  // Enhanced map readiness precedes the lazy reference controller and its click handler.
-  await expect.poll(() => page.evaluate(() => typeof window.__PANDOLAB_REFERENCE_IMAGES__?.open)).toBe('function');
+  // The reference feature loads on its launcher click, not on app enhancement.
   await expect(page.locator('.reference-image-launcher')).toBeVisible();
 }
 
@@ -140,6 +139,7 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
   await waitForReady(page);
 
   await page.locator('.reference-image-launcher').click();
+  await expect.poll(() => page.evaluate(() => typeof window.__PANDOLAB_REFERENCE_IMAGES__?.open)).toBe('function');
   await expect(page.locator('#referenceImageSurface')).toBeVisible();
   await page.locator('[data-ref-file]').setInputFiles({ name: 'edge.png', mimeType: 'image/png', buffer: EDGE_PNG });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().length || 0)).toBe(1);
@@ -225,6 +225,7 @@ test('linear constraint preview leaves storage unchanged until one apply', async
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoEditor(page, '/');await waitForReady(page);await clearReferenceStore(page);await page.reload();await waitForReady(page);
   await page.locator('.reference-image-launcher').click();
+  await expect.poll(() => page.evaluate(() => typeof window.__PANDOLAB_REFERENCE_IMAGES__?.open)).toBe('function');
   await page.locator('[data-ref-file]').setInputFiles({ name: 'edge.png', mimeType: 'image/png', buffer: EDGE_PNG });
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
   const geometry = await referenceScreenGeometry(page);
