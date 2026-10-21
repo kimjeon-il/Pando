@@ -1,5 +1,7 @@
 # 한국·북한 정부수립일과 남북 경계 전환
 
+2026-10-21 후속 통합: 작업 커밋 `bd68b8d4`가 사용자 지시로 로컬 main에 병합됐다. 아래 `work-gis-only` 및 미커밋 표기는 최초 검증 시점의 기록이며, 새 병합 결과를 재검증한 것으로 해석하지 않는다. [통합 기록](../development/testing/library-korea-main-merge-2026-10-21.md).
+
 > 보고서 ID: `GEO-KOR-20261021` · 상태: `implemented-partially / provisional` · 지도 반영: `work-gis-only` · 색인일: 2026-10-21  
 > 원문 최종 수정: 2026-10-21  
 > 조사 기준: Web/App 공통 기반 커밋 `4e8cb5b117eaf1e1f1a3411e424c5139139f759f` + 이 작업의 미커밋 변경  

@@ -46,6 +46,8 @@
 
 ## 개발·검증
 
+통합 기록: [국가 자료·편집 라이브러리 main 병합 — 2026-10-21](development/testing/library-korea-main-merge-2026-10-21.md) (`merged-locally / followup-deferred`, `main-local-only`).
+
 현재 구현 체크포인트: [편집 가능한 라이브러리 구현 현황 — 2026-10-21](development/testing/editable-library-2026-10-21.md) (`implementation-partial / app-unverified`, `not-applicable`).
 
 > OBJ 접두사는 객체 브랜치 원본의 DEV-082~088 번호가 기존 메인 보고서 번호와 충돌하여 통합 시 부여한 고유 색인입니다. 원본 소스와 검증 링크는 해당 보고서에 보존합니다.
