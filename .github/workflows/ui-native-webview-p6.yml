@@ -11,10 +11,11 @@ permissions:
 
 concurrency:
   group: p6-native-webview-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   windows-webview2:
+    if: ${{ !contains(github.event.head_commit.message, '[android-retry]') }}
     runs-on: windows-2022
     timeout-minutes: 60
     env:
@@ -147,18 +148,19 @@ jobs:
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
             set -euo pipefail
+            mkdir -p build-native/web-shell
+            trap 'timeout 12s adb logcat -d -t 1000 > build-native/web-shell/android-logcat-tail.txt || true; timeout 12s adb exec-out screencap -p > build-native/web-shell/android-native-screen.png || true' EXIT
             APK="$(find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | head -n 1)"
             test -n "$APK"
             adb install -r "$APK"
             adb shell am force-stop com.pandolab.webshell.prototype || true
             adb shell am start -W -n com.pandolab.webshell.prototype/.MainActivity
             node .github/scripts/verify-android-native-webview.mjs
-            adb exec-out screencap -p > build-native/web-shell/android-native-screen.png
       - name: Save Android emulator diagnostics
         if: always()
         run: |
           mkdir -p build-native/web-shell
-          adb logcat -d -t 1000 > build-native/web-shell/android-logcat-tail.txt || true
+          timeout 12s adb logcat -d -t 1000 > build-native/web-shell/android-logcat-tail.txt || true
       - name: Upload Android native WebView evidence
         if: always()
         uses: actions/upload-artifact@v4
