@@ -28,6 +28,13 @@ This contract is shared by Pando Web and PandoEditor. The temporal semantics in
   new objects in the same import batch. They imply no political sovereignty.
 - Project save/restore does not require catalog access. Complex timeline projects
   remain storable/exchangeable; static UI activation policy is unchanged.
+- Builtin country selections follow the same snapshot boundary: source lifetimes,
+  exact geometry validity and version IDs remain in `metadata.historicalTimeline`.
+  Unbounded project records describe the imported editable instance, not evidence
+  of historical source coverage. Only the builtin viewer reloads source dates.
+- Application autosave exports `pandolab-autosave-full`, including all selected
+  geometry. It requires neither a calendar-dependent baseline nor catalog access
+  on restore. No migration of retired development autosaves is provided.
 - Retired project 9, identity 5 and sourceLibraryId/source_library_id are rejected.
   No reader, migration, alias or compatibility fallback is provided.
 

@@ -50,13 +50,9 @@ async function fixture(t) {
     world.compatibility.sharedBoundaries[role] = name;
   }
   await put('assets/data/world/current.json', JSON.stringify(world));
-  const historicalProjectPath = 'assets/data/historical-world/generated/v1/world-project.json.gz';
-  const historicalProject = await pinned(historicalProjectPath);
-  const historicPath = 'assets/data/historical-world/generated/v1/manifest.json';
-  const historicSpec = await pinned(historicPath, Buffer.from(JSON.stringify({
-    schemaVersion: 1, sourceMonth: '2026-10',
-    project: { ...historicalProject, encoding: 'gzip' },
-  })));
+  const country=await pinned('assets/data/builtin-world/generated/v1/countries/state-ABC-sha256-'+sha(Buffer.from('COUNTRY'))+'.json.gz',Buffer.from('COUNTRY'));
+  const historicPath='assets/data/builtin-world/generated/v1/index.json';
+  const historicSpec=await pinned(historicPath,Buffer.from(JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,entities:[{...country,file:country.url.split('/v1/')[1]}]})));
   const libPath = 'assets/data/territorial-entities/generated/v2/';
   const libraryChunk = await pinned(libPath + 'state-ABC.json.gz');
   const indexSpec = await pinned(libPath + 'index.json', Buffer.from(JSON.stringify({
@@ -95,7 +91,7 @@ async function fixture(t) {
     },
   }));
   const meta = { appVersion: '0.36.0', assetRevision: 'test-full-world', dataRevision: 'data-' + 'b'.repeat(32),
-    historicalWorld: historicSpec, territorialIndex: indexSpec, preparedPolygonMeshes: prepSpec };
+    builtinWorld: historicSpec, territorialIndex: indexSpec, preparedPolygonMeshes: prepSpec };
   await put('assets/js/build-meta.js', 'globalThis.PANDOLAB_BUILD_META = Object.freeze(' + JSON.stringify(meta) + ');\n');
   return { root, put, mesh };
 }

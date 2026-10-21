@@ -21,13 +21,13 @@ try{
   await page.goto(url.href);
   const result=await verifyKoreanBoundaryWorkflow(page,{screenshotPath:output.replace(/\.json$/,'.png')});
   const manifest=await page.evaluate(async()=>{
-    const response=await fetch('/assets/data/historical-world/generated/v1/manifest.json');
+    const response=await fetch('/assets/data/builtin-world/generated/v1/index.json');
     if(!response.ok)throw new Error(`Historical manifest unavailable: ${response.status}`);
     return response.json();
   });
-  const expected=JSON.parse(fs.readFileSync(new URL('../../../assets/data/historical-world/generated/v1/manifest.json',import.meta.url)));
-  if(manifest.project.sha256!==expected.project.sha256)throw new Error('Packaged historical timeline differs from source');
+  const expected=JSON.parse(fs.readFileSync(new URL('../../../assets/data/builtin-world/generated/v1/index.json',import.meta.url)));
+  if(JSON.stringify(manifest.inputHashes)!==JSON.stringify(expected.inputHashes))throw new Error('Packaged historical timeline differs from source');
   if(errors.length)throw new Error(`WebView page errors: ${errors.join('; ')}`);
-  fs.writeFileSync(output,JSON.stringify({...result,errors,historicalProjectSha256:manifest.project.sha256},null,2)+'\n');
-  console.log(`Packaged Korean boundary workflow verified: ${result.versions.length} dated selections; history ${manifest.project.sha256}`);
+  fs.writeFileSync(output,JSON.stringify({...result,errors,historicalProjectSha256:manifest.inputHashes.entities},null,2)+'\n');
+  console.log(`Packaged Korean boundary workflow verified: ${result.versions.length} dated selections; history ${manifest.inputHashes.entities}`);
 }finally{await browser.close();}

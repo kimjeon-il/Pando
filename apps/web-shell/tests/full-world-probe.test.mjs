@@ -7,7 +7,7 @@ function runtime({ renderer = 'webgl2', blocked = [] } = {}) {
   const scope = {
     PANDOLAB_BUILD_META: {
       resourceProfile: 'full-world', dataRevision: 'data-' + 'a'.repeat(32),
-      historicalWorld: { sha256: 'c'.repeat(64) },
+      builtinWorld: { sha256: 'c'.repeat(64) },
     },
     __PANDOLAB_STARTUP_METRICS__: {
       preview: { source: 'local' }, geometry: { source: 'local' }, mesh: { source: 'local' },

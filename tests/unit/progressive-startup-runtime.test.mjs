@@ -18,7 +18,7 @@ function deferred() {
 const square = size => ({ type: 'Polygon', coordinates: [[[0,0],[0,size],[size,size],[size,0],[0,0]]] });
 const collection = size => normalizeCountryCollection({ features: [{ id: 'A', geometry: square(size) }] });
 
-async function startupFixture(t, { pauseAt = null, restored = false, restoredDelta = false, onEditable = () => {}, startMonth = '', baselinePending = null, viewRecord = null } = {}) {
+async function startupFixture(t, { pauseAt = null, restored = false, restoredSnapshot = false, onEditable = () => {}, startMonth = '', baselinePending = null, viewRecord = null } = {}) {
   const noop = () => {};
   const geometry = deferred();
   const mesh = deferred();
@@ -30,18 +30,18 @@ async function startupFixture(t, { pauseAt = null, restored = false, restoredDel
   const errors = [];
   let generation = 1;
   let sourceReceipt;
-  const baselineProject=restoredDelta ? startupDocument(collection(10).features)
+  const baselineProject=restoredSnapshot ? startupDocument(collection(10).features)
     :historicalStartupDocument(normalizeCountryCollection({features:[{id:'state:ukraine',geometry:square(1)},{id:'A',geometry:square(10)}]}).features);
   let project=restored ? startupDocument(collection(10).features):null;
-  if(restoredDelta) {
+  if(restoredSnapshot) {
     const producer=await createNodeCoreProject(baselineProject);
     try {
       await startupBaseline(baselineProject,producer.project,'2026-10',{kind:'static-features'});
       const changed=await producer.project.executeCommand({commandId:'territorial.metadata',targets:[{domain:'territorial',id:'A'}],
-        payload:{id:'A',field:'notes',valuePresent:true,value:'restored delta'}});
+        payload:{id:'A',field:'notes',valuePresent:true,value:'restored snapshot'}});
       assert.equal(changed.ok,true);
-      project=JSON.parse((await producer.client.exportSnapshot({format:'pandolab-autosave',version:'fixture',savedAt:'2026-10-04T00:00:00.000Z'})).storageJson);
-      assert.equal(project.format,'pandolab-autosave-delta');
+      project=JSON.parse((await producer.client.exportSnapshot({format:'pandolab-autosave-full',version:'fixture',savedAt:'2026-10-04T00:00:00.000Z'})).storageJson);
+      assert.equal(project.format,'pandolab-autosave-full');
     } finally {producer.dispose();}
   }
   const owner=await createCoreStartupState(t,{ startMonth,view:{ globeZoom:1,flatZoom:1 },projection:'globe',
@@ -118,7 +118,7 @@ async function startupFixture(t, { pauseAt = null, restored = false, restoredDel
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
     builtinBaseline: { prepareProjectBaseline: async () => {
       if (baselinePending) { paused.resolve(); await baselinePending; }
-      return sourceReceipt ||= await startupBaseline(baselineProject,owner.project,'2026-10',{kind:restoredDelta?'static-features':'stored-asset'});
+      return sourceReceipt ||= await startupBaseline(baselineProject,owner.project,'2026-10',{kind:restoredSnapshot?'static-features':'stored-asset'});
     } },
     builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop, materializePristineCountriesSync: () => normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES) },
     countryRecords: { applyPristineLabelAnchors: noop }, objectCatalogView: { pruneLayerItemVisibility: noop },
@@ -155,16 +155,16 @@ async function startupFixture(t, { pauseAt = null, restored = false, restoredDel
   };
 }
 
-test('cold delta restoration resolves its verified source before the saved view and reuses it during promotion',async t=>{
-  const fixture=await startupFixture(t,{restoredDelta:true});
+test('cold snapshot restoration needs no current source before the saved view or during promotion',async t=>{
+  const fixture=await startupFixture(t,{restoredSnapshot:true});
   await fixture.interactive.promise;
   const sourceId=fixture.owner.client.state().storageBaselineId;
-  assert.ok(sourceId>0);assert.equal(fixture.entityRepository.get('A').properties.notes,'restored delta');
+  assert.equal(sourceId,0);assert.equal(fixture.entityRepository.get('A').properties.notes,'restored snapshot');
   assert.equal(fixture.owner.client.state().documentDirty,false);assert.equal(fixture.owner.client.state().canUndo,false);
   assert.deepEqual(fixture.errors,[]);
   await fixture.promote();await fixture.editable.promise;
-  assert.equal(fixture.owner.client.state().storageBaselineId,sourceId,'promotion uses the already verified source handle');
-  assert.equal(fixture.entityRepository.get('A').properties.notes,'restored delta');assert.deepEqual(fixture.errors,[]);
+  assert.equal(fixture.owner.client.state().storageBaselineId,sourceId,'promotion remains independent of a builtin source handle');
+  assert.equal(fixture.entityRepository.get('A').properties.notes,'restored snapshot');assert.deepEqual(fixture.errors,[]);
   fixture.mesh.resolve({});await fixture.running;
 });
 test('staleBaselineDoesNotReplaceNewGeneration', async t => {

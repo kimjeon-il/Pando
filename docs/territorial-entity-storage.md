@@ -19,9 +19,9 @@ this change does not merge main or deploy.
 - `source/views/world.json` is an explicit entity/version display selection with no
   common reference date. `generated/current-world.geojson`, packed world assets and
   indexes are derivatives. Actual dated presets stay in `source/snapshots/`.
-- `tools/historical-library/historical-publication.recipe.json` holds the historical
-  viewer's dated export query. Its cursor is neither a global source observation date
-  nor a country founding date.
+- `assets/data/builtin-world/generated/v1/index.json` selects country-scoped
+  derived files by month. The viewer starts at the device-local current month;
+  source objects have no common observation date or fixed default month.
 - Individual generated chunks remain entity-scoped in `generated/v2`; index has
   lineage membership and version metadata without coordinates. Existing loader/cache
   owners verify bytes and schema before publication.
@@ -35,10 +35,15 @@ this change does not merge main or deploy.
 - Web/App shared project/native schema 10, territorial identity 6, timeline records 1;
   `sourceEntityId` / `source_entity_id` replace the retired library provenance field.
   Catalog never needs to load during project read/write. See `territorial-source-contract.md`.
-- App delta import still requires its unavailable original baseline (`BASE_DATA_REQUIRED`).
-  No baseline reader or migration was introduced. App lineage/catalog UI is outside scope.
-- Current world startup still reads packed preview → canonical → mesh/shared boundary;
-  source-lineage files and generated entity chunks are not startup inputs.
+- Application autosave is a self-contained `pandolab-autosave-full` document;
+  restoring it never depends on the current month or a newer source catalog.
+- The builtin viewer loads only countries available for its selected month, then
+  assembles an in-memory Core input. Present-only undated references are unavailable
+  to historical queries. Editable projects receive a static selected snapshot,
+  with source dates and validity retained as provenance; their clock never reloads it.
+- Packed preview/render meshes remain derivatives; no aggregate stored world project
+  is published or staged. The retired aggregate and recipe are archived externally
+  at `D:/dev/release-evidence/PandoLab/legacy-world-project/ab4112e0/`.
 - Actual Qt codec/Web Worker cross-exchange, selected UI evidence and final candidate
   hashes are recorded in `timeline-persistence.md` and the execution evidence manifest.
 

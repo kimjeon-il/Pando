@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {gunzipSync} from 'node:zlib';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
 import {selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
-import {buildHistoricalWorldPublication} from '../../tools/build-historical-world-timeline.mjs';
+import {builtinProject} from '../helpers/builtin-world.mjs';
 import {createGeometryVersionStore} from '../../assets/js/modules/geometry-version-store.js';
 import {resolvedTimelineViews} from '../../assets/js/modules/timeline-resolver.js';
 import {createRingHitTester} from '../../assets/js/modules/ring-hit-test.js';
@@ -47,10 +46,7 @@ test('monthly end and exact day selection keep Sudan, South Sudan and Ukraine as
 });
 
 test('built Web/native historical-project input has the same post-transition geographical ownership',()=>{
- const generated=buildHistoricalWorldPublication();
- const project=JSON.parse(gunzipSync(generated.get('world-project.json.gz')));
- const archive=createGeometryVersionStore(project.geometries);
- const at=(month,id)=>resolvedTimelineViews(project.territorialEntities,project.timelineRecords,archive,month).find(e=>e.id===id);
+ const at=(month,id)=>{const project=builtinProject(month);return resolvedTimelineViews(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month).find(e=>e.id===id);};
  const khartoum=[32.56,15.5],juba=[31.58,4.85],kyiv=[30.52,50.45],crimea=[34.1,44.95];
  assert.ok(covers(at('2011-06','SDN')?.geometry,juba));
  assert.equal(at('2011-06','SDS'),undefined);

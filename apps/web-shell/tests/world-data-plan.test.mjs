@@ -20,12 +20,11 @@ function fixture() {
     removedIds: Array.from({ length: 51 }, (_, i) => 'removed-' + i),
   };
   const meta = { dataRevision: 'data-' + 'b'.repeat(32),
-    historicalWorld: pin('assets/data/historical-world/generated/v1/manifest.json'),
+    builtinWorld: pin('assets/data/builtin-world/generated/v1/index.json'),
     territorialIndex: pin('assets/data/territorial-entities/generated/v2/index.json'),
     preparedPolygonMeshes: pin('assets/data/prepared-polygons/generated/v2/manifest.json'),
   };
-  const historical = { schemaVersion: 1, sourceMonth: '2026-10',
-    project: { ...pin('assets/data/historical-world/generated/v1/world-project.json.gz'), encoding: 'gzip' } };
+  const historical={schema:'pandolab-builtin-world',schemaVersion:1,entities:[{file:'countries/state-ABC-sha256-'+SHA+'.json.gz',sha256:SHA,compressedBytes:3,decodedBytes:3}]};
   const library = { schemaVersion: 2, entities: [{ file: 'state-ABC.json.gz', sha256: SHA, compressedBytes: 3 }] };
   const prepared = { schemaVersion: 2, meshes: {
     first: pin('assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-' + SHA + '.bin.gz'),
@@ -63,7 +62,7 @@ test('full-world manifest closure includes active historical and prepared geomet
   assert.equal(plan.physicalFileCount, 4);
   assert.equal(new Set(paths).size, paths.length);
   assert.ok(paths.includes('assets/data/world/current.json'));
-  assert.ok(paths.includes('assets/data/historical-world/generated/v1/world-project.json.gz'));
+  assert.ok(paths.includes('assets/data/builtin-world/generated/v1/countries/state-ABC-sha256-'+SHA+'.json.gz'));
   assert.ok(paths.includes('assets/data/territorial-entities/generated/v2/state-ABC.json.gz'));
   assert.ok(paths.includes('assets/data/hydro/v0.13.2/hydro.bin'));
   assert.equal(paths.some(path=>path.includes('terrain')),false);
