@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "kwt",
+  "names": {
+    "ko": "쿠웨이트"
+  },
+  "entityRefs": [
+    "state:KWT"
+  ],
+  "relations": []
+}

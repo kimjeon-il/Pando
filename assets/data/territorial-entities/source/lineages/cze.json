@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cze",
+  "names": {
+    "ko": "체코"
+  },
+  "entityRefs": [
+    "state:CZE"
+  ],
+  "relations": []
+}

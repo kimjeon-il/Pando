@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "irq",
+  "names": {
+    "ko": "이라크"
+  },
+  "entityRefs": [
+    "state:IRQ"
+  ],
+  "relations": []
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "france",
+  "names": {
+    "ko": "프랑스",
+    "en": "France"
+  },
+  "entityRefs": [
+    "state:FRA"
+  ],
+  "relations": []
+}

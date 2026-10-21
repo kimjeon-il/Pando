@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "dji",
+  "names": {
+    "ko": "지부티"
+  },
+  "entityRefs": [
+    "state:DJI"
+  ],
+  "relations": []
+}

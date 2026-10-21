@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "lby",
+  "names": {
+    "ko": "리비아"
+  },
+  "entityRefs": [
+    "state:LBY"
+  ],
+  "relations": []
+}

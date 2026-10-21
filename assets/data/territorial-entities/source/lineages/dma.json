@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "dma",
+  "names": {
+    "ko": "도미니카 연방"
+  },
+  "entityRefs": [
+    "state:DMA"
+  ],
+  "relations": []
+}

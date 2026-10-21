@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "ind",
+  "names": {
+    "ko": "인도"
+  },
+  "entityRefs": [
+    "state:IND"
+  ],
+  "relations": []
+}

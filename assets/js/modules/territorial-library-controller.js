@@ -264,7 +264,8 @@ export function createTerritorialLibraryController({
     map.dataset.geometryVersionId = version.versionId;
     const source = document.createElement('p');
     source.className = 'editor-help territorial-library-source-date';
-    source.textContent = resolution.mode === 'representative' ? `자료 기준 ${resolution.sourceDate}` : '';
+    source.textContent = resolution.mode === 'representative'
+      ? (resolution.sourceDate ? `자료 기준 ${resolution.sourceDate}` : '대표 형상 · 공통 기준일 없음') : '';
     const meta = document.createElement('p');
     meta.className = 'editor-help';
     meta.textContent = [

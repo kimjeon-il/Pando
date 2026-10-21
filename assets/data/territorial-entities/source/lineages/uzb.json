@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "uzb",
+  "names": {
+    "ko": "우즈베키스탄"
+  },
+  "entityRefs": [
+    "state:soviet-union-uzbek-ssr",
+    "state:UZB"
+  ],
+  "relations": []
+}

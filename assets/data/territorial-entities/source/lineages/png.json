@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "png",
+  "names": {
+    "ko": "파푸아뉴기니"
+  },
+  "entityRefs": [
+    "state:PNG"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bmu",
+  "names": {
+    "ko": "버뮤다"
+  },
+  "entityRefs": [
+    "state:BMU"
+  ],
+  "relations": []
+}

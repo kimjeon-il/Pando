@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "kna",
+  "names": {
+    "ko": "세인트키츠네비스"
+  },
+  "entityRefs": [
+    "state:KNA"
+  ],
+  "relations": []
+}

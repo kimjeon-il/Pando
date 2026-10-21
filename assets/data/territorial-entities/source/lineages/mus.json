@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mus",
+  "names": {
+    "ko": "모리셔스"
+  },
+  "entityRefs": [
+    "state:MUS"
+  ],
+  "relations": []
+}

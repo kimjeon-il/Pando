@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "shn",
+  "names": {
+    "ko": "세인트헬레나"
+  },
+  "entityRefs": [
+    "state:SHN"
+  ],
+  "relations": []
+}

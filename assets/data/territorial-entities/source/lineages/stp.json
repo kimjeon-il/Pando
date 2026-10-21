@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "stp",
+  "names": {
+    "ko": "상투메프린시페"
+  },
+  "entityRefs": [
+    "state:STP"
+  ],
+  "relations": []
+}

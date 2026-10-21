@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "usa",
+  "names": {
+    "ko": "미국"
+  },
+  "entityRefs": [
+    "state:USA"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bel",
+  "names": {
+    "ko": "벨기에"
+  },
+  "entityRefs": [
+    "state:BEL"
+  ],
+  "relations": []
+}

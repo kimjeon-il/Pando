@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "civ",
+  "names": {
+    "ko": "코트디부아르"
+  },
+  "entityRefs": [
+    "state:CIV"
+  ],
+  "relations": []
+}

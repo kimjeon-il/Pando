@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "kir",
+  "names": {
+    "ko": "키리바시"
+  },
+  "entityRefs": [
+    "state:KIR"
+  ],
+  "relations": []
+}

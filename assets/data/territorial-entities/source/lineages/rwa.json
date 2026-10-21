@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "rwa",
+  "names": {
+    "ko": "르완다"
+  },
+  "entityRefs": [
+    "state:RWA"
+  ],
+  "relations": []
+}

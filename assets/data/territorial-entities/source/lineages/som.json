@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "som",
+  "names": {
+    "ko": "소말리아"
+  },
+  "entityRefs": [
+    "state:SOM"
+  ],
+  "relations": []
+}

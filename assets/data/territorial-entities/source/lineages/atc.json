@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "atc",
+  "names": {
+    "ko": "애시모어카르티에제도"
+  },
+  "entityRefs": [
+    "state:ATC"
+  ],
+  "relations": []
+}

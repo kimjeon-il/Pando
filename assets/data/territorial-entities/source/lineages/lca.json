@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "lca",
+  "names": {
+    "ko": "세인트루시아"
+  },
+  "entityRefs": [
+    "state:LCA"
+  ],
+  "relations": []
+}

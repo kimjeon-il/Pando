@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bri",
+  "names": {
+    "ko": "브라질섬"
+  },
+  "entityRefs": [
+    "state:BRI"
+  ],
+  "relations": []
+}

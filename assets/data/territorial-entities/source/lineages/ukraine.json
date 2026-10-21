@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "ukraine",
+  "names": {
+    "ko": "우크라이나"
+  },
+  "entityRefs": [
+    "state:soviet-union-ukrainian-ssr",
+    "state:UKR"
+  ],
+  "relations": []
+}

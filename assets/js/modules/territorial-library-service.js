@@ -90,29 +90,12 @@ export function createTerritorialLibraryService({loader, today = () => {
       return version ? {entityId:entity.entityId, geometryVersionId:version.versionId, referenceDate,
         mode:'date', basis:'input', sourceDate:referenceDate} : null;
     }
-    function candidate(sourceDate, basis, expectedVersionId = null) {
-      const date = normalizeReferenceDate(sourceDate);
-      const version = selectGeometryVersion(entity, date);
-      if (!version || (expectedVersionId !== null && version.versionId !== expectedVersionId)) return null;
-      return {entityId:entity.entityId, geometryVersionId:version.versionId, referenceDate:date,
-        mode:'representative', basis, sourceDate};
-    }
-    const metadataDate = optionalMetadataDate(entity, 'referenceDate');
-    if (metadataDate) {
-      const selection = candidate(metadataDate, 'metadata');
-      if (selection) return selection;
-    }
-    const snapshots = (catalog?.snapshots || []).filter(snapshot=>snapshot.entityRefs.includes(entity.entityId))
-      .sort((a,b)=>compareTemporal(b.referenceDate,a.referenceDate) || compareIdentity(a.id,b.id));
-    for (const snapshot of snapshots) {
-      const selection = candidate(snapshot.referenceDate, 'snapshot');
-      if (selection) return selection;
-    }
-    const versions = entity.geometryVersions.filter(version=>version.validFrom !== null)
-      .sort((a,b)=>compareTemporal(b.validFrom,a.validFrom) || compareIdentity(a.versionId,b.versionId));
-    for (const version of versions) {
-      const selection = candidate(version.validFrom, 'version-start', version.versionId);
-      if (selection) return selection;
+    const representativeId=entity.metadata?.representativeGeometryVersionId;
+    if(representativeId){
+      const version=entity.geometryVersions.find(row=>row.versionId===representativeId);
+      if(!version)throw new Error(`Missing representative geometry: ${entity.entityId}`);
+      return {entityId:entity.entityId,geometryVersionId:version.versionId,referenceDate:null,
+        mode:'representative',basis:'version',sourceDate:null};
     }
     return null;
   }
@@ -121,17 +104,21 @@ export function createTerritorialLibraryService({loader, today = () => {
     if(depth==='none')return [...selected];
     let frontier=[...selected];
     while(frontier.length){const parents=new Set(frontier);frontier=[];
-      for(const e of list()) if(parents.has(e.parentEntityId) && !selected.has(e.entityId) && territorialEntityExistsAt(e,referenceDate)){selected.add(e.entityId);frontier.push(e.entityId);}
+      for(const e of list()) if(parents.has(e.parentEntityId) && !selected.has(e.entityId)
+        && (referenceDate===null ? resolveSelection(e.entityId)!==null : territorialEntityExistsAt(e,referenceDate))){selected.add(e.entityId);frontier.push(e.entityId);}
       if(depth==='level1')break;
     }
     return [...selected];
   }
   async function instantiateDescriptors(rootIds, referenceDate, depth='none') {
-    if(!referenceDate)throw new Error('A reference date is required');
-    parseTemporal(referenceDate,{nullable:false});
+    const cursor=parseTemporal(referenceDate) ? referenceDate : null;
     await load();
-    const entities=await Promise.all(entityRefsWithChildren(rootIds,depth,referenceDate).map(id=>loader.loadEntity(id)));
-    return entities.map(e=>instantiateLibraryEntity(e,referenceDate));
+    const entities=await Promise.all(entityRefsWithChildren(rootIds,depth,cursor).map(id=>loader.loadEntity(id)));
+    return entities.map(e=>{
+      const representative=cursor===null ? resolveSelection(e.entityId) : null;
+      if(cursor===null && !representative)throw new Error(`A representative geometry version is required: ${e.entityId}`);
+      return instantiateLibraryEntity(e,cursor,representative?.geometryVersionId);
+    });
   }
   function replaceCatalog(index){catalog=normalizeTerritorialLibraryIndex(index);pending=null;}
   return Object.freeze({load,get,list,loadEntity:loader.loadEntity, getLoadedEntity:loader.peek,entityRefsWithChildren,instantiateDescriptors,replaceCatalog,

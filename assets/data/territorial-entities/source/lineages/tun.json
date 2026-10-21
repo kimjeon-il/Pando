@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "tun",
+  "names": {
+    "ko": "튀니지"
+  },
+  "entityRefs": [
+    "state:TUN"
+  ],
+  "relations": []
+}

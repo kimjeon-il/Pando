@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cub",
+  "names": {
+    "ko": "쿠바"
+  },
+  "entityRefs": [
+    "state:CUB"
+  ],
+  "relations": []
+}

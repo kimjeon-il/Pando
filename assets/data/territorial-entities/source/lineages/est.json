@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "est",
+  "names": {
+    "ko": "에스토니아"
+  },
+  "entityRefs": [
+    "state:EST",
+    "state:soviet-union-estonian-ssr"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "csi",
+  "names": {
+    "ko": "산호해제도"
+  },
+  "entityRefs": [
+    "state:CSI"
+  ],
+  "relations": []
+}

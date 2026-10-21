@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sgs",
+  "names": {
+    "ko": "사우스조지아사우스샌드위치제도"
+  },
+  "entityRefs": [
+    "state:SGS"
+  ],
+  "relations": []
+}

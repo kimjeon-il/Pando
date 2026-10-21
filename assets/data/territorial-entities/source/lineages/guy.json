@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "guy",
+  "names": {
+    "ko": "가이아나"
+  },
+  "entityRefs": [
+    "state:GUY"
+  ],
+  "relations": []
+}

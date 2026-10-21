@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "tkm",
+  "names": {
+    "ko": "투르크메니스탄"
+  },
+  "entityRefs": [
+    "state:soviet-union-turkmen-ssr",
+    "state:TKM"
+  ],
+  "relations": []
+}

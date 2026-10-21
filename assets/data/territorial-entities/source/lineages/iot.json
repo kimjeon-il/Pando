@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "iot",
+  "names": {
+    "ko": "영국령 인도양 지역"
+  },
+  "entityRefs": [
+    "state:IOT"
+  ],
+  "relations": []
+}

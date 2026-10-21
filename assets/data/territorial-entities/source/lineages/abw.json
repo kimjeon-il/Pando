@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "abw",
+  "names": {
+    "ko": "아루바"
+  },
+  "entityRefs": [
+    "state:ABW"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "lux",
+  "names": {
+    "ko": "룩셈부르크"
+  },
+  "entityRefs": [
+    "state:LUX"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "scr",
+  "names": {
+    "ko": "스카버러암초"
+  },
+  "entityRefs": [
+    "state:SCR"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "slb",
+  "names": {
+    "ko": "솔로몬제도"
+  },
+  "entityRefs": [
+    "state:SLB"
+  ],
+  "relations": []
+}

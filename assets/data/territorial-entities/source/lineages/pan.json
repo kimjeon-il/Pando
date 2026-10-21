@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "pan",
+  "names": {
+    "ko": "파나마"
+  },
+  "entityRefs": [
+    "state:PAN"
+  ],
+  "relations": []
+}

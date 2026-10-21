@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cri",
+  "names": {
+    "ko": "코스타리카"
+  },
+  "entityRefs": [
+    "state:CRI"
+  ],
+  "relations": []
+}

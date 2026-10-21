@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "pyf",
+  "names": {
+    "ko": "프랑스령 폴리네시아"
+  },
+  "entityRefs": [
+    "state:PYF"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mdg",
+  "names": {
+    "ko": "마다가스카르"
+  },
+  "entityRefs": [
+    "state:MDG"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "aut",
+  "names": {
+    "ko": "오스트리아"
+  },
+  "entityRefs": [
+    "state:AUT"
+  ],
+  "relations": []
+}

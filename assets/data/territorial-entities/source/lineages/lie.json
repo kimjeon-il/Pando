@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "lie",
+  "names": {
+    "ko": "리히텐슈타인"
+  },
+  "entityRefs": [
+    "state:LIE"
+  ],
+  "relations": []
+}

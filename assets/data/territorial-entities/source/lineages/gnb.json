@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "gnb",
+  "names": {
+    "ko": "기니비사우"
+  },
+  "entityRefs": [
+    "state:GNB"
+  ],
+  "relations": []
+}

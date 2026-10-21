@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "svn",
+  "names": {
+    "ko": "슬로베니아"
+  },
+  "entityRefs": [
+    "state:SVN"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "twn",
+  "names": {
+    "ko": "중화민국"
+  },
+  "entityRefs": [
+    "state:TWN"
+  ],
+  "relations": []
+}

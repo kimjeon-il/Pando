@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "syr",
+  "names": {
+    "ko": "시리아"
+  },
+  "entityRefs": [
+    "state:SYR"
+  ],
+  "relations": []
+}

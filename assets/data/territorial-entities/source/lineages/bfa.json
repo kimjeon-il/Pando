@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bfa",
+  "names": {
+    "ko": "부르키나파소"
+  },
+  "entityRefs": [
+    "state:BFA"
+  ],
+  "relations": []
+}

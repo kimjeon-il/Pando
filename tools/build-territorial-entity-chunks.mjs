@@ -11,7 +11,7 @@ const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const entities=readTerritorialSources();
 const expectedFiles=new Set(['index.json']);
 fs.mkdirSync(output,{recursive:true});
-const index={schemaVersion:2,lineages:readTerritorialLineages().map(({entities:members,...lineage})=>({...lineage,entityRefs:members.map(entity=>entity.entityId)})),entities:entities.map(entity=>{
+const index={schemaVersion:2,lineages:readTerritorialLineages(),entities:entities.map(entity=>{
  const bytes=Buffer.from(`${JSON.stringify(entity,null,2)}\n`);
  const file=`${entityFileName(entity.entityId)}.gz`;expectedFiles.add(file);
  const destination=path.join(output,file);
@@ -25,7 +25,8 @@ const index={schemaVersion:2,lineages:readTerritorialLineages().map(({entities:m
  parseTemporal(snapshot.referenceDate,{nullable:false});
  if(snapshot.schemaVersion!==1 || new Set(snapshot.entityRefs).size!==snapshot.entityRefs.length || snapshot.entityRefs.some(id=>!entities.some(e=>e.entityId===id)))throw new Error(`Invalid territorial snapshot: ${file}`);
  return snapshot;
- })};
+ }),views:fs.readdirSync(path.join(territorialSourceRoot,'views')).filter(f=>f.endsWith('.json')).sort()
+   .map(file=>JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views',file),'utf8')))};
 for(const file of fs.readdirSync(output)) if(!expectedFiles.has(file) && !process.env.PANDOLAB_LIBRARY_SOURCE_ROOT)throw new Error(`Obsolete territorial output must be explicitly removed: ${file}`);
 // Regenerate the full index when a source geometry version changes. The index
 // contains all entity metadata, including per-chunk hashes, and must be rebuilt

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "nam",
+  "names": {
+    "ko": "나미비아"
+  },
+  "entityRefs": [
+    "state:NAM"
+  ],
+  "relations": []
+}

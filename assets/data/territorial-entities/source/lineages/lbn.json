@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "lbn",
+  "names": {
+    "ko": "레바논"
+  },
+  "entityRefs": [
+    "state:LBN"
+  ],
+  "relations": []
+}

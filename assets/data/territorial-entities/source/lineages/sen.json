@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sen",
+  "names": {
+    "ko": "세네갈"
+  },
+  "entityRefs": [
+    "state:SEN"
+  ],
+  "relations": []
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "blr",
+  "names": {
+    "ko": "벨라루스"
+  },
+  "entityRefs": [
+    "state:BLR",
+    "state:soviet-union-byelorussian-ssr"
+  ],
+  "relations": []
+}

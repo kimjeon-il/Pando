@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mhl",
+  "names": {
+    "ko": "마셜제도"
+  },
+  "entityRefs": [
+    "state:MHL"
+  ],
+  "relations": []
+}

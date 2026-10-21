@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "gbr",
+  "names": {
+    "ko": "영국"
+  },
+  "entityRefs": [
+    "state:GBR"
+  ],
+  "relations": []
+}

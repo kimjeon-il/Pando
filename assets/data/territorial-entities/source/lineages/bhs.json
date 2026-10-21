@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bhs",
+  "names": {
+    "ko": "바하마"
+  },
+  "entityRefs": [
+    "state:BHS"
+  ],
+  "relations": []
+}

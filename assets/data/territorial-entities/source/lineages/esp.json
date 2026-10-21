@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "esp",
+  "names": {
+    "ko": "에스파냐"
+  },
+  "entityRefs": [
+    "state:ESP"
+  ],
+  "relations": []
+}

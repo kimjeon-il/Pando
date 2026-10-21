@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "jor",
+  "names": {
+    "ko": "요르단"
+  },
+  "entityRefs": [
+    "state:JOR"
+  ],
+  "relations": []
+}

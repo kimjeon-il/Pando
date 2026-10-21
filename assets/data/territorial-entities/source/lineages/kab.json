@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "kab",
+  "names": {
+    "ko": "바이코누르"
+  },
+  "entityRefs": [
+    "state:KAB"
+  ],
+  "relations": []
+}

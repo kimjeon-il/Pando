@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "nld",
+  "names": {
+    "ko": "네덜란드"
+  },
+  "entityRefs": [
+    "state:NLD"
+  ],
+  "relations": []
+}

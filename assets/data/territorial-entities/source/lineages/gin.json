@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "gin",
+  "names": {
+    "ko": "기니"
+  },
+  "entityRefs": [
+    "state:GIN"
+  ],
+  "relations": []
+}

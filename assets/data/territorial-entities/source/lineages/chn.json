@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "chn",
+  "names": {
+    "ko": "중화인민공화국"
+  },
+  "entityRefs": [
+    "state:CHN"
+  ],
+  "relations": []
+}

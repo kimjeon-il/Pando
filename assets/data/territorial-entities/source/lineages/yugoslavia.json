@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "yugoslavia",
+  "names": {
+    "ko": "유고슬라비아",
+    "en": "Yugoslavia"
+  },
+  "entityRefs": [
+    "state:yugoslavia"
+  ],
+  "relations": []
+}

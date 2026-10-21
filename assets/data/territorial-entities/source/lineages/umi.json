@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "umi",
+  "names": {
+    "ko": "미국령 군소제도"
+  },
+  "entityRefs": [
+    "state:UMI"
+  ],
+  "relations": []
+}

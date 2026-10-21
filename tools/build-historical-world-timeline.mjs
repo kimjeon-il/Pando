@@ -36,8 +36,11 @@ export function historicalWorldTrace(project, sourceMonth) {
 }
 export function buildHistoricalWorldPublication({ policyFile = fileURLToPath(new URL('../assets/data/historical-world/policy.json', import.meta.url)) } = {}) {
   const entities = readTerritorialSources(), currentWorld = buildCurrentWorld();
-  const snapshotBytes = fs.readFileSync(path.join(territorialSourceRoot, 'snapshots/current-world.json'));
-  const currentSnapshot = JSON.parse(snapshotBytes), policyBytes = fs.readFileSync(policyFile), policy = JSON.parse(policyBytes);
+  const view=JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json')));
+  const recipe=JSON.parse(fs.readFileSync(new URL('./historical-library/historical-publication.recipe.json',import.meta.url)));
+  // An explicit dated viewer query is a derivative, never the canonical world source.
+  const currentSnapshot={schemaVersion:1,referenceDate:recipe.referenceDate,entityRefs:view.selections.map(row=>row.entityId)};
+  const policyBytes = fs.readFileSync(policyFile), policy = JSON.parse(policyBytes);
   for (const rule of policy.replacements) {
     normalizeTemporalInterval(rule.validFrom, rule.validTo);
     const source = entities.find(entity => entity.entityId === rule.basis?.sourceEntityId);

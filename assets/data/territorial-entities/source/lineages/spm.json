@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "spm",
+  "names": {
+    "ko": "생피에르미클롱"
+  },
+  "entityRefs": [
+    "state:SPM"
+  ],
+  "relations": []
+}

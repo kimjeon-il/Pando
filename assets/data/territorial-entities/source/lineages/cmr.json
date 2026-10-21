@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cmr",
+  "names": {
+    "ko": "카메룬"
+  },
+  "entityRefs": [
+    "state:CMR"
+  ],
+  "relations": []
+}

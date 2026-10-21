@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mkd",
+  "names": {
+    "ko": "북마케도니아"
+  },
+  "entityRefs": [
+    "state:MKD"
+  ],
+  "relations": []
+}

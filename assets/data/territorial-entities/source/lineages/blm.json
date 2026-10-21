@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "blm",
+  "names": {
+    "ko": "생바르텔레미"
+  },
+  "entityRefs": [
+    "state:BLM"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "jpn",
+  "names": {
+    "ko": "일본"
+  },
+  "entityRefs": [
+    "state:JPN"
+  ],
+  "relations": []
+}

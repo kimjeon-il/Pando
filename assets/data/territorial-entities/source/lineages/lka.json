@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "lka",
+  "names": {
+    "ko": "스리랑카"
+  },
+  "entityRefs": [
+    "state:LKA"
+  ],
+  "relations": []
+}

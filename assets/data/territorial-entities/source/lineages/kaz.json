@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "kaz",
+  "names": {
+    "ko": "카자흐스탄"
+  },
+  "entityRefs": [
+    "state:KAZ",
+    "state:soviet-union-kazakh-ssr"
+  ],
+  "relations": []
+}

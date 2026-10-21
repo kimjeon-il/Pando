@@ -11,7 +11,7 @@ const probes = read('../../tools/historical-library/sources/netherlands/canonica
 const germanEvents = read('../../tools/historical-library/sources/german-coastline/change-events.json');
 
 const registry = read('../../tools/historical-library/sources/coastline-catalogs.json');
-const nld = read('../../assets/data/territorial-entities/source/countries/nld.json');
+const nld = read('../../assets/data/territorial-entities/source/countries/state-NLD.json');
 
 function insideRing([x, y], ring) {
   let inside = false;
@@ -83,7 +83,7 @@ test('canonical NLD phase-0 probes reproduce the actual current country geometry
   assert.equal(probes.method.notAnEventFootprintInventory, true);
   assert.equal(probes.method.coastToleranceCssPx, 0.5);
   assert.equal(probes.crs, 'EPSG:4326');
-  const entity = nld.entities.find((value) => value.entityId === probes.entityId);
+  const entity = nld;
   assert.ok(entity, 'NLD catalog entry missing');
   const version = entity.geometryVersions.find((value) => value.versionId === probes.geometryVersionId);
   assert.ok(version, 'NLD baseline version missing');

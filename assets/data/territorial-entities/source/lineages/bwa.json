@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bwa",
+  "names": {
+    "ko": "보츠와나"
+  },
+  "entityRefs": [
+    "state:BWA"
+  ],
+  "relations": []
+}

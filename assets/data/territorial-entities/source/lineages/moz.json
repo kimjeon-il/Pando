@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "moz",
+  "names": {
+    "ko": "모잠비크"
+  },
+  "entityRefs": [
+    "state:MOZ"
+  ],
+  "relations": []
+}

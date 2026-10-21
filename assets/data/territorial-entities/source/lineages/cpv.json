@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cpv",
+  "names": {
+    "ko": "카보베르데"
+  },
+  "entityRefs": [
+    "state:CPV"
+  ],
+  "relations": []
+}

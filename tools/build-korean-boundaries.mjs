@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {sharedCalculationCore} from '../assets/js/modules/temporal.js';
 import {clippingOperationWithPrecisionRetry} from '../assets/js/modules/polygon-clipping-calculation.js';
-import {updateTerritorialSource} from './territorial-entity-sources.mjs';
+import {updateTerritorialSource,readTerritorialSource} from './territorial-entity-sources.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const read=file=>JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
@@ -86,6 +86,30 @@ export function buildKoreanBoundaryGeometry(countries,lines) {
     north38:normalize({type:'MultiPolygon',coordinates:[...polygons(northMain),...preNorthIslands]})};
 }
 
+// Re-running Korean reconstruction must preserve supplements on China's other
+// borders. An already present Paektu chain is a no-op, including ring ordering.
+export function refineChinesePaektuSource(entity,lines,sourceFile) {
+  const sino=lines.features.find(f=>f.properties.CC1_GENC3==='CHN'&&f.properties.CC2_GENC3==='PRK');
+  const start=[128.14425,41.754713],end=[128.597556,42.027126],through=[128.054643,41.998316];
+  const chain=lineBetween(sino.geometry.coordinates,start,end).filter((p,i,a)=>!i||!same(p,a[i-1]));
+  const edge=(a,b)=>[JSON.stringify(a),JSON.stringify(b)].sort().join('|');
+  let changed=false;
+  const geometryVersions=entity.geometryVersions.map(version=>{
+    if(version.datePrecision!=='current')return version;
+    const edges=new Set(polygons(version.geometry).flatMap(p=>p).flatMap(ring=>ring.slice(1).map((p,i)=>edge(ring[i],p))));
+    if(chain.slice(1).every((p,i)=>edges.has(edge(chain[i],p))))return version;
+    changed=true;
+    return {...version,sourceId:'natural-earth-5.1.1+dos-lsib-11.4',
+      geometry:replaceBoundaryChain(version.geometry,start,end,chain,through),
+      historicalProvenance:{evidenceStatus:'provisional',sourceIds:['natural-earth-5.1.1','dos-lsib-11.4'],
+        reconstructionScope:'Paektu shared boundary only; no extension of Chinese historical coverage',sourceFile}};
+  });
+  if(!changed)return entity;
+  const representative=geometryVersions.find(v=>v.versionId===entity.metadata.representativeGeometryVersionId);
+  return {...entity,geometryVersions,sourceInfo:{...entity.sourceInfo,
+    sourceId:'natural-earth-5.1.1+dos-lsib-11.4',geometrySha256:sha(representative.geometry)}};
+}
+
 export function run({check=false}={}) {
   const countries=read('assets/data/countries-ne-5.1.1.geojson');
   const sourceFile='tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson';
@@ -125,17 +149,12 @@ export function run({check=false}={}) {
         title:'Natural Earth coastlines with US Department of State LSIB 11.4 Korean boundaries',geometrySha256:sha(value.geometry)},
       metadata:{...entity.metadata,historicalBoundaryEvidence:'provisional',boundaryEvidenceFile:'reports/geography/korea-boundaries-2026-10-21.md'}});
     if(check){
-      const current=read('assets/data/territorial-entities/source/countries/korea.json').entities.find(e=>e.entityId===entityId);
+      const current=readTerritorialSource(entityId);
       assert.deepEqual(current,update(current),`Stale Korean source: ${entityId}`);
     }else updateTerritorialSource(entityId,update);
   }
-  const updateChina=entity=>({...entity,geometryVersions:entity.geometryVersions.map(v=>({...v,
-    versionId:'state:CHN:paektu-lsib-11.4',sourceId:'natural-earth-5.1.1+dos-lsib-11.4',geometry:geometries.china,
-    historicalProvenance:{evidenceStatus:'provisional',sourceIds:['natural-earth-5.1.1','dos-lsib-11.4'],
-      reconstructionScope:'Paektu shared boundary only; no extension of Chinese historical coverage',sourceFile}})),
-    sourceInfo:{...entity.sourceInfo,sourceId:'natural-earth-5.1.1+dos-lsib-11.4',
-      title:'Natural Earth with US Department of State LSIB 11.4 Paektu boundary',geometrySha256:sha(geometries.china)}});
-  if(check){const current=read('assets/data/territorial-entities/source/countries/chn.json').entities.find(e=>e.entityId==='state:CHN');
+  const updateChina=entity=>refineChinesePaektuSource(entity,lines,sourceFile);
+  if(check){const current=readTerritorialSource('state:CHN');
     assert.deepEqual(current,updateChina(current),'Stale Chinese Paektu counterpart');}
   else updateTerritorialSource('state:CHN',updateChina);
   console.log(`${check?'Checked':'Built'} Korean government lifetimes, 38th-parallel/MDL phases and Sino-Korean protocol evidence (pre-settlement geometry unresolved)`);

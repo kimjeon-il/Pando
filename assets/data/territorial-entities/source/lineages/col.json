@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "col",
+  "names": {
+    "ko": "콜롬비아"
+  },
+  "entityRefs": [
+    "state:COL"
+  ],
+  "relations": []
+}

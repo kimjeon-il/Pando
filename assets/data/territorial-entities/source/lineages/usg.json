@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "usg",
+  "names": {
+    "ko": "관타나모만 해군 기지"
+  },
+  "entityRefs": [
+    "state:USG"
+  ],
+  "relations": []
+}

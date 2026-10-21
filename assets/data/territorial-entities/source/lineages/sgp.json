@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sgp",
+  "names": {
+    "ko": "싱가포르"
+  },
+  "entityRefs": [
+    "state:SGP"
+  ],
+  "relations": []
+}

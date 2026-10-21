@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "ken",
+  "names": {
+    "ko": "케냐"
+  },
+  "entityRefs": [
+    "state:KEN"
+  ],
+  "relations": []
+}

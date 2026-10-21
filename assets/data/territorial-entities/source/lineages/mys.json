@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mys",
+  "names": {
+    "ko": "말레이시아"
+  },
+  "entityRefs": [
+    "state:MYS"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "nzl",
+  "names": {
+    "ko": "뉴질랜드"
+  },
+  "entityRefs": [
+    "state:NZL"
+  ],
+  "relations": []
+}

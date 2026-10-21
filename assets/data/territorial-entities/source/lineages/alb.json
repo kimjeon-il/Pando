@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "alb",
+  "names": {
+    "ko": "알바니아"
+  },
+  "entityRefs": [
+    "state:ALB"
+  ],
+  "relations": []
+}

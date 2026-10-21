@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "tza",
+  "names": {
+    "ko": "탄자니아"
+  },
+  "entityRefs": [
+    "state:TZA"
+  ],
+  "relations": []
+}

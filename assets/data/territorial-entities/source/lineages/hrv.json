@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "hrv",
+  "names": {
+    "ko": "크로아티아"
+  },
+  "entityRefs": [
+    "state:HRV"
+  ],
+  "relations": []
+}

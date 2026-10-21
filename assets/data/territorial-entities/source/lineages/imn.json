@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "imn",
+  "names": {
+    "ko": "맨섬"
+  },
+  "entityRefs": [
+    "state:IMN"
+  ],
+  "relations": []
+}

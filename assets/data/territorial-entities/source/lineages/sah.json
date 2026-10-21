@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sah",
+  "names": {
+    "ko": "서사하라"
+  },
+  "entityRefs": [
+    "state:SAH"
+  ],
+  "relations": []
+}

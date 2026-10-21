@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "geo",
+  "names": {
+    "ko": "조지아"
+  },
+  "entityRefs": [
+    "state:GEO",
+    "state:soviet-union-georgian-ssr"
+  ],
+  "relations": []
+}

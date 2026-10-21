@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "plw",
+  "names": {
+    "ko": "팔라우"
+  },
+  "entityRefs": [
+    "state:PLW"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "slv",
+  "names": {
+    "ko": "엘살바도르"
+  },
+  "entityRefs": [
+    "state:SLV"
+  ],
+  "relations": []
+}

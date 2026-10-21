@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sau",
+  "names": {
+    "ko": "사우디아라비아"
+  },
+  "entityRefs": [
+    "state:SAU"
+  ],
+  "relations": []
+}

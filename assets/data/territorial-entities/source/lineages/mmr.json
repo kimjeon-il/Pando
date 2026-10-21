@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mmr",
+  "names": {
+    "ko": "미얀마"
+  },
+  "entityRefs": [
+    "state:MMR"
+  ],
+  "relations": []
+}

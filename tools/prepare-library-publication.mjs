@@ -3,12 +3,12 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {entityFileName} from './territorial-entity-sources.mjs';
 import { normalizeTerritorialLibraryEntity, normalizeTerritorialLibraryIndex,
   normalizeTerritorialLineage } from '../assets/js/modules/territorial-library.js';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const HEX40 = /^[0-9a-f]{40}$/;
-const CURRENT_WORLD_SNAPSHOT_ID = 'world:natural-earth-5.1.1';
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const json = bytes => JSON.parse(bytes.toString('utf8'));
 
@@ -53,21 +53,22 @@ export function materializeLibrarySource({ source, target, revision }) {
   }));
   const files = new Map();
   for (const lineage of index.lineages) {
-    const value = { schemaVersion: 1, lineageId: lineage.lineageId, names: lineage.names,
-      entities: lineage.entityRefs.map(id => entities.get(id)), relations: lineage.relations };
+    const value = { schemaVersion: 2, lineageId: lineage.lineageId, names: lineage.names,
+      entityRefs: lineage.entityRefs, relations: lineage.relations };
     normalizeTerritorialLineage(value);
-    files.set(`countries/${lineage.lineageId}.json`, value);
+    files.set(`lineages/${lineage.lineageId}.json`, value);
   }
-  let hasCurrentWorld = false;
+  for(const entity of entities.values())files.set(`countries/${entityFileName(entity.entityId)}`,entity);
   for (const snapshot of index.snapshots) {
-    const name = snapshot.id === CURRENT_WORLD_SNAPSHOT_ID ? 'current-world' : snapshot.id;
+    const name = snapshot.id;
     if (!/^[a-z0-9][a-z0-9_-]*$/.test(name) || files.has(`snapshots/${name}.json`)) {
       throw new Error(`Unsafe or duplicate snapshot identity: ${snapshot.id}`);
     }
-    if (snapshot.id === CURRENT_WORLD_SNAPSHOT_ID) hasCurrentWorld = true;
     files.set(`snapshots/${name}.json`, snapshot);
   }
-  if (!hasCurrentWorld) throw new Error('The selected current-world snapshot is missing');
+  const view=index.views?.find(row=>row.id==='world:catalog');
+  if(!view)throw new Error('The world object/version view is missing');
+  files.set('views/world.json',view);
   for (const [relative, value] of files) {
     const file = join(target, relative);
     mkdirSync(dirname(file), { recursive: true });

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { sharedSourceManifest } from './package-shared-core-assets.mjs';
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
@@ -69,8 +69,20 @@ for (const month of [...months].sort()) {
 }
 const engine = globalThis.PandoLabGpuMeshCore;
 const meshes = {};
-let count = 0, bytes = 0;
+const algorithmSourceSha256 = sharedSourceManifest(root).sourceSha256;
+const oldManifestPath=resolve(root,`${destination}/manifest.json`);
+const oldManifest=existsSync(oldManifestPath)?readJson(`${destination}/manifest.json`):null;
+const reusable=oldManifest?.schemaVersion===2 && oldManifest.meshFormatVersion===POLYGON_MESH_FORMAT_VERSION
+  && oldManifest.algorithmSourceSha256===algorithmSourceSha256 && oldManifest.algorithmVersion===engine.MESH_ALGORITHM_REVISION;
+let count = 0, bytes = 0, reused = 0;
 for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeCompare(b))) {
+  const previous=reusable?oldManifest.meshes[digest]:null;
+  if(previous && existsSync(resolve(root,previous.url))){
+    const stored=readFileSync(resolve(root,previous.url));
+    if(stored.length===previous.compressedBytes && sha256(stored)===previous.sha256){
+      meshes[digest]=previous;bytes+=stored.length;count++;reused++;continue;
+    }
+  }
   const packet = engine.buildPolygonGeometryPacket(geometry);
   const encoded = Buffer.from(encodePolygonMesh(packet));
   const compressed = gzipSync(encoded, { level: 9, mtime: 0 });
@@ -83,10 +95,9 @@ for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeComp
   bytes += compressed.length; count++;
   if (count % 25 === 0) console.log(`Prepared ${count}/${geometries.size} fixed polygon meshes`);
 }
-const algorithmSourceSha256 = sharedSourceManifest(root).sourceSha256;
 const manifest = { schema: 'pandolab-prepared-polygon-meshes', schemaVersion: 2,
   meshFormatVersion: POLYGON_MESH_FORMAT_VERSION,
   algorithmVersion: engine.MESH_ALGORITHM_REVISION, algorithmSourceSha256,
   maxEdgeDegrees: engine.MAX_RENDER_EDGE_DEGREES, inputHashes, precisionDiscards, meshes };
 writeFileSync(resolve(root, `${destination}/manifest.json`), JSON.stringify(manifest, null, 2) + '\n');
-console.log(`Prepared ${count} fixed polygon meshes (${bytes} compressed bytes).`);
+console.log(`Prepared ${count} fixed polygon meshes (${bytes} compressed bytes; ${reused} unchanged meshes reused).`);

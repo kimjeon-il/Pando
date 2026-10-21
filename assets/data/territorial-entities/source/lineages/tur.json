@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "tur",
+  "names": {
+    "ko": "튀르키예"
+  },
+  "entityRefs": [
+    "state:TUR"
+  ],
+  "relations": []
+}

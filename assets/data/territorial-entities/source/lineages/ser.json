@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "ser",
+  "names": {
+    "ko": "세라니야환초"
+  },
+  "entityRefs": [
+    "state:SER"
+  ],
+  "relations": []
+}

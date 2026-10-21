@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "jam",
+  "names": {
+    "ko": "자메이카"
+  },
+  "entityRefs": [
+    "state:JAM"
+  ],
+  "relations": []
+}

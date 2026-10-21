@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "swe",
+  "names": {
+    "ko": "스웨덴"
+  },
+  "entityRefs": [
+    "state:SWE"
+  ],
+  "relations": []
+}

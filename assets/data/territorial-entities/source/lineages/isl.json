@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "isl",
+  "names": {
+    "ko": "아이슬란드"
+  },
+  "entityRefs": [
+    "state:ISL"
+  ],
+  "relations": []
+}

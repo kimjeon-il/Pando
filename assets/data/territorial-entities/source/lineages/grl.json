@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "grl",
+  "names": {
+    "ko": "그린란드"
+  },
+  "entityRefs": [
+    "state:GRL"
+  ],
+  "relations": []
+}

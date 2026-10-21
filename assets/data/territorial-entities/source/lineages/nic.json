@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "nic",
+  "names": {
+    "ko": "니카라과"
+  },
+  "entityRefs": [
+    "state:NIC"
+  ],
+  "relations": []
+}

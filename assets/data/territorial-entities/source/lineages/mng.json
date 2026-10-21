@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mng",
+  "names": {
+    "ko": "몽골"
+  },
+  "entityRefs": [
+    "state:MNG"
+  ],
+  "relations": []
+}

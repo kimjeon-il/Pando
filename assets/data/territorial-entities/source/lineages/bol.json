@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bol",
+  "names": {
+    "ko": "볼리비아"
+  },
+  "entityRefs": [
+    "state:BOL"
+  ],
+  "relations": []
+}

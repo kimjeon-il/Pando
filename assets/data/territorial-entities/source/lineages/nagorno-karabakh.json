@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "nagorno-karabakh",
+  "names": {
+    "ko": "나고르노카라바흐",
+    "en": "Nagorno-Karabakh"
+  },
+  "entityRefs": [
+    "state:nagorno-karabakh"
+  ],
+  "relations": []
+}

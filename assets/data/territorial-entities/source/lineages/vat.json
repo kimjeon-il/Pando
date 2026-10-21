@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "vat",
+  "names": {
+    "ko": "바티칸 시국"
+  },
+  "entityRefs": [
+    "state:VAT"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sle",
+  "names": {
+    "ko": "시에라리온"
+  },
+  "entityRefs": [
+    "state:SLE"
+  ],
+  "relations": []
+}

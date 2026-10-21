@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cyn",
+  "names": {
+    "ko": "북키프로스"
+  },
+  "entityRefs": [
+    "state:CYN"
+  ],
+  "relations": []
+}

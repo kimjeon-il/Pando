@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sds",
+  "names": {
+    "ko": "남수단"
+  },
+  "entityRefs": [
+    "state:SDS"
+  ],
+  "relations": []
+}

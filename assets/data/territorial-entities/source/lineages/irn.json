@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "irn",
+  "names": {
+    "ko": "이란"
+  },
+  "entityRefs": [
+    "state:IRN"
+  ],
+  "relations": []
+}

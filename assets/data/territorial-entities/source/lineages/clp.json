@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "clp",
+  "names": {
+    "ko": "클리퍼턴섬"
+  },
+  "entityRefs": [
+    "state:CLP"
+  ],
+  "relations": []
+}

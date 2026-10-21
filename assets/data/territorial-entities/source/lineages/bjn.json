@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bjn",
+  "names": {
+    "ko": "바호누에보환초"
+  },
+  "entityRefs": [
+    "state:BJN"
+  ],
+  "relations": []
+}

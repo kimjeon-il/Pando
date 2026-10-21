@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "aus",
+  "names": {
+    "ko": "오스트레일리아"
+  },
+  "entityRefs": [
+    "state:AUS"
+  ],
+  "relations": []
+}

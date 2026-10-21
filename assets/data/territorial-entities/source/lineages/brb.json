@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "brb",
+  "names": {
+    "ko": "바베이도스"
+  },
+  "entityRefs": [
+    "state:BRB"
+  ],
+  "relations": []
+}

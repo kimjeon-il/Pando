@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "wsb",
+  "names": {
+    "ko": "아크로티리"
+  },
+  "entityRefs": [
+    "state:WSB"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "tgo",
+  "names": {
+    "ko": "토고"
+  },
+  "entityRefs": [
+    "state:TGO"
+  ],
+  "relations": []
+}

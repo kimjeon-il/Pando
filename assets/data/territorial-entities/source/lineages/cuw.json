@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cuw",
+  "names": {
+    "ko": "퀴라소"
+  },
+  "entityRefs": [
+    "state:CUW"
+  ],
+  "relations": []
+}

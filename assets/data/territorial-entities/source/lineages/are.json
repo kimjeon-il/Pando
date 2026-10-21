@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "are",
+  "names": {
+    "ko": "아랍에미리트"
+  },
+  "entityRefs": [
+    "state:ARE"
+  ],
+  "relations": []
+}

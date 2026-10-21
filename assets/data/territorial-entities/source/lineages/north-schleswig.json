@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "north-schleswig",
+  "names": {
+    "ko": "북슐레스비히",
+    "en": "North Schleswig",
+    "de": "Nordschleswig",
+    "da": "Nordslesvig"
+  },
+  "entityRefs": [
+    "state:north-schleswig"
+  ],
+  "relations": []
+}

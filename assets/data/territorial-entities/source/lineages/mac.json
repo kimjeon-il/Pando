@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mac",
+  "names": {
+    "ko": "마카오"
+  },
+  "entityRefs": [
+    "state:MAC"
+  ],
+  "relations": []
+}

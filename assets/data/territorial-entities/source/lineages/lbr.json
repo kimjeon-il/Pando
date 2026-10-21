@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "lbr",
+  "names": {
+    "ko": "라이베리아"
+  },
+  "entityRefs": [
+    "state:LBR"
+  ],
+  "relations": []
+}

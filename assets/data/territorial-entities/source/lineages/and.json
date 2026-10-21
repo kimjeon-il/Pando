@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "and",
+  "names": {
+    "ko": "안도라"
+  },
+  "entityRefs": [
+    "state:AND"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "bdi",
+  "names": {
+    "ko": "부룬디"
+  },
+  "entityRefs": [
+    "state:BDI"
+  ],
+  "relations": []
+}

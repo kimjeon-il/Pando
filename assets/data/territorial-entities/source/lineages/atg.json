@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "atg",
+  "names": {
+    "ko": "앤티가바부다"
+  },
+  "entityRefs": [
+    "state:ATG"
+  ],
+  "relations": []
+}

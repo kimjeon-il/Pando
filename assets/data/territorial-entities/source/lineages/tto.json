@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "tto",
+  "names": {
+    "ko": "트리니다드토바고"
+  },
+  "entityRefs": [
+    "state:TTO"
+  ],
+  "relations": []
+}

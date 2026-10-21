@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "ury",
+  "names": {
+    "ko": "우루과이"
+  },
+  "entityRefs": [
+    "state:URY"
+  ],
+  "relations": []
+}

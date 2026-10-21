@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "nga",
+  "names": {
+    "ko": "나이지리아"
+  },
+  "entityRefs": [
+    "state:NGA"
+  ],
+  "relations": []
+}

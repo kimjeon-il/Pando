@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "uga",
+  "names": {
+    "ko": "우간다"
+  },
+  "entityRefs": [
+    "state:UGA"
+  ],
+  "relations": []
+}

@@ -33,11 +33,11 @@ test('canonical geographic names are consistent in source, preview and current l
 });
 
 test('Dhekelia uses its canonical name in source, lineage, library chunks and active world assets', () => {
-  const source = JSON.parse(fs.readFileSync(new URL('territorial-entities/source/countries/esb.json', data)));
+  const source = JSON.parse(fs.readFileSync(new URL('territorial-entities/source/countries/state-ESB.json', data)));
   assert.equal(source.names.ko, '데켈리아');
-  assert.equal(source.entities[0].entityId, 'state:ESB');
-  assert.equal(source.entities[0].names.ko, '데켈리아');
-  assert.equal(source.entities[0].sourceInfo.featureProperties.name, '데켈리아');
+  assert.equal(source.entityId, 'state:ESB');
+  assert.equal(source.names.ko, '데켈리아');
+  assert.equal(source.sourceInfo.featureProperties.name, '데켈리아');
   const index = JSON.parse(fs.readFileSync(new URL('territorial-entities/generated/v2/index.json', data)));
   assert.equal(index.lineages.find(row => row.lineageId === 'esb').names.ko, '데켈리아');
   const entry = index.entities.find(row => row.entityId === 'state:ESB');
@@ -65,10 +65,10 @@ test('territorial prefixes are spaced in canonical lineage, entity and source na
     ['ASM', '미국령 사모아'], ['PYF', '프랑스령 폴리네시아'], ['UMI', '미국령 군소제도'],
     ['VIR', '미국령 버진아일랜드'], ['VGB', '영국령 버진아일랜드'],
   ]) {
-    const source = JSON.parse(fs.readFileSync(new URL(`territorial-entities/source/countries/${id.toLowerCase()}.json`, data)));
+    const source = JSON.parse(fs.readFileSync(new URL(`territorial-entities/source/countries/state-${id}.json`, data)));
     assert.equal(source.names.ko, name, `${id} lineage`);
-    assert.equal(source.entities[0].names.ko, name, `${id} entity`);
-    assert.equal(source.entities[0].sourceInfo.featureProperties.name, name, `${id} source metadata`);
+    assert.equal(source.names.ko, name, `${id} entity`);
+    assert.equal(source.sourceInfo.featureProperties.name, name, `${id} source metadata`);
     assert.equal(index.lineages.find(row => row.lineageId === source.lineageId).names.ko, name);
     const entry = index.entities.find(row => row.entityId === `state:${id}`);
     assert.equal(entry.names.ko, name);

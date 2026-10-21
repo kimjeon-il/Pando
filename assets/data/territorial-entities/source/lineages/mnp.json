@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mnp",
+  "names": {
+    "ko": "북마리아나제도"
+  },
+  "entityRefs": [
+    "state:MNP"
+  ],
+  "relations": []
+}

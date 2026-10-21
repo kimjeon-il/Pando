@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "maf",
+  "names": {
+    "ko": "생마르탱"
+  },
+  "entityRefs": [
+    "state:MAF"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mlt",
+  "names": {
+    "ko": "몰타"
+  },
+  "entityRefs": [
+    "state:MLT"
+  ],
+  "relations": []
+}

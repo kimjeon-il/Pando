@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "syc",
+  "names": {
+    "ko": "세이셸"
+  },
+  "entityRefs": [
+    "state:SYC"
+  ],
+  "relations": []
+}

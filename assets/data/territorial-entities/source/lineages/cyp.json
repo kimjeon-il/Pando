@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cyp",
+  "names": {
+    "ko": "키프로스"
+  },
+  "entityRefs": [
+    "state:CYP"
+  ],
+  "relations": []
+}

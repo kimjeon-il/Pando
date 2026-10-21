@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "pak",
+  "names": {
+    "ko": "파키스탄"
+  },
+  "entityRefs": [
+    "state:PAK"
+  ],
+  "relations": []
+}

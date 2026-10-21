@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "com",
+  "names": {
+    "ko": "코모로"
+  },
+  "entityRefs": [
+    "state:COM"
+  ],
+  "relations": []
+}

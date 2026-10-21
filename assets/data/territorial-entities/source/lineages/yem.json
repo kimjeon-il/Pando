@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "yem",
+  "names": {
+    "ko": "예멘"
+  },
+  "entityRefs": [
+    "state:YEM"
+  ],
+  "relations": []
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mda",
+  "names": {
+    "ko": "몰도바"
+  },
+  "entityRefs": [
+    "state:MDA",
+    "state:soviet-union-moldavian-ssr"
+  ],
+  "relations": []
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "soviet-union",
+  "names": {
+    "ko": "소련",
+    "en": "Soviet Union",
+    "ru": "СССР"
+  },
+  "entityRefs": [
+    "state:soviet-union"
+  ],
+  "relations": []
+}

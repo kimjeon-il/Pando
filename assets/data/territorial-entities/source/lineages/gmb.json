@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "gmb",
+  "names": {
+    "ko": "감비아"
+  },
+  "entityRefs": [
+    "state:GMB"
+  ],
+  "relations": []
+}

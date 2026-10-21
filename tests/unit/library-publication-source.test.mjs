@@ -13,13 +13,13 @@ function fixture() {
   const source = join(root, 'private');
   const target = join(root, 'materialized');
   mkdirSync(join(source, 'objects'), { recursive: true });
-  const lineage = JSON.parse(readFileSync(new URL('../../assets/data/territorial-entities/source/countries/afg.json', import.meta.url)));
-  const entity = { ...lineage.entities[0], lineageId: lineage.lineageId };
+  const entity=JSON.parse(readFileSync(new URL('../../assets/data/territorial-entities/source/countries/state-AFG.json',import.meta.url)));
+  const lineage={lineageId:entity.lineageId,names:{en:'Afghanistan'},relations:[]};
   const entityBytes = Buffer.from(JSON.stringify(entity));
   const entry = territorialIndexEntry(entity, { sha256: 'e'.repeat(64), compressedBytes: 42, decodedBytes: entityBytes.length });
   const index = { schemaVersion: 2, entities: [entry],
     lineages: [{ lineageId: lineage.lineageId, names: lineage.names, relations: lineage.relations, entityRefs: [entity.entityId] }],
-    snapshots: [{ schemaVersion: 1, id: 'world:natural-earth-5.1.1', referenceDate: '2026-10', entityRefs: [entity.entityId] }],
+    snapshots: [], views:[{schemaVersion:1,id:'world:catalog',selections:[{entityId:entity.entityId,geometryVersionId:entity.geometryVersions[0].versionId}],sourceInfo:{collectionMetadata:{type:'FeatureCollection'}}}],
   };
   const indexBytes = Buffer.from(JSON.stringify(index));
   const indexHash = hash(indexBytes), entityHash = hash(entityBytes);
@@ -35,12 +35,13 @@ test('materializes verified full entities, lineages and snapshots from private c
   const input = fixture();
   const result = materializeLibrarySource(input);
   assert.equal(result.entityCount, 1);
-  const lineage = JSON.parse(readFileSync(join(input.target, 'countries/afg.json')));
-  assert.equal(lineage.entities[0].entityId, 'state:AFG');
-  assert.equal(lineage.entities[0].geometryVersions[0].geometry.type, 'Polygon');
-  const current = JSON.parse(readFileSync(join(input.target, 'snapshots/current-world.json')));
-  assert.equal(current.id, 'world:natural-earth-5.1.1');
-  assert.deepEqual(current.entityRefs, ['state:AFG']);
+  const lineage = JSON.parse(readFileSync(join(input.target, 'lineages/afg.json')));
+  assert.equal(lineage.entityRefs[0], 'state:AFG');
+  const entity=JSON.parse(readFileSync(join(input.target,'countries/state-AFG.json')));
+  assert.equal(entity.geometryVersions[0].geometry.type,'Polygon');
+  const current = JSON.parse(readFileSync(join(input.target, 'views/world.json')));
+  assert.equal(current.id, 'world:catalog');
+  assert.deepEqual(current.selections.map(row=>row.entityId), ['state:AFG']);
 });
 
 test('rejects an altered private entity before writing materialized source', () => {

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mco",
+  "names": {
+    "ko": "모나코"
+  },
+  "entityRefs": [
+    "state:MCO"
+  ],
+  "relations": []
+}

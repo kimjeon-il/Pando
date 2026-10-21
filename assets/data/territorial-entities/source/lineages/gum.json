@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "gum",
+  "names": {
+    "ko": "괌"
+  },
+  "entityRefs": [
+    "state:GUM"
+  ],
+  "relations": []
+}

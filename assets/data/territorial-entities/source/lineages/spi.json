@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "spi",
+  "names": {
+    "ko": "남부파타고니아빙원"
+  },
+  "entityRefs": [
+    "state:SPI"
+  ],
+  "relations": []
+}

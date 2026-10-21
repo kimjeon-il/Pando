@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "wlf",
+  "names": {
+    "ko": "왈리스푸투나"
+  },
+  "entityRefs": [
+    "state:WLF"
+  ],
+  "relations": []
+}

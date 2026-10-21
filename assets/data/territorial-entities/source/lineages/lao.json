@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "lao",
+  "names": {
+    "ko": "라오스"
+  },
+  "entityRefs": [
+    "state:LAO"
+  ],
+  "relations": []
+}

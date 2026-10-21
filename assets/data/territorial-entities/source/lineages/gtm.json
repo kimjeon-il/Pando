@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "gtm",
+  "names": {
+    "ko": "과테말라"
+  },
+  "entityRefs": [
+    "state:GTM"
+  ],
+  "relations": []
+}

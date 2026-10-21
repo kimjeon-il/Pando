@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cnm",
+  "names": {
+    "ko": "유엔 키프로스 완충 지대"
+  },
+  "entityRefs": [
+    "state:CNM"
+  ],
+  "relations": []
+}

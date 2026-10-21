@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "tcd",
+  "names": {
+    "ko": "차드"
+  },
+  "entityRefs": [
+    "state:TCD"
+  ],
+  "relations": []
+}

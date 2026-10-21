@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "dom",
+  "names": {
+    "ko": "도미니카 공화국"
+  },
+  "entityRefs": [
+    "state:DOM"
+  ],
+  "relations": []
+}

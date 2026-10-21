@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sudan",
+  "names": {
+    "ko": "수단"
+  },
+  "entityRefs": [
+    "state:SDN"
+  ],
+  "relations": []
+}

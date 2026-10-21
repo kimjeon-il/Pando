@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "netherlands-current-canonical-phase0-probes",
   "asOf": "2026-10-09",
-  "canonicalSource": "assets/data/territorial-entities/source/countries/nld.json",
+  "canonicalSource": "assets/data/territorial-entities/source/countries/state-NLD.json",
   "entityId": "state:NLD",
   "geometryVersionId": "state:NLD:natural-earth-5.1.1",
   "crs": "EPSG:4326",

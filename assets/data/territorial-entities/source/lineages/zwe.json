@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "zwe",
+  "names": {
+    "ko": "짐바브웨"
+  },
+  "entityRefs": [
+    "state:ZWE"
+  ],
+  "relations": []
+}

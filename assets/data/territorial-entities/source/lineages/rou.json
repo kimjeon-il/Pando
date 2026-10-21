@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "rou",
+  "names": {
+    "ko": "루마니아"
+  },
+  "entityRefs": [
+    "state:ROU"
+  ],
+  "relations": []
+}

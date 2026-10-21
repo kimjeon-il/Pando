@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "omn",
+  "names": {
+    "ko": "오만"
+  },
+  "entityRefs": [
+    "state:OMN"
+  ],
+  "relations": []
+}

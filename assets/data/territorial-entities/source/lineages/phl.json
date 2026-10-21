@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "phl",
+  "names": {
+    "ko": "필리핀"
+  },
+  "entityRefs": [
+    "state:PHL"
+  ],
+  "relations": []
+}

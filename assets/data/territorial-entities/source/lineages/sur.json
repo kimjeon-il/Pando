@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "sur",
+  "names": {
+    "ko": "수리남"
+  },
+  "entityRefs": [
+    "state:SUR"
+  ],
+  "relations": []
+}

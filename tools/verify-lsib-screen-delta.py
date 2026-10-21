@@ -1,0 +1,124 @@
+"""Independently bound source/display Hausdorff distance on supplemented sections."""
+import argparse
+import importlib.util
+import hashlib
+import io
+import json
+from pathlib import Path
+import zipfile
+import numpy as np
+import shapely
+from shapely.geometry import LineString, Point
+from shapely.ops import substring
+from shapely.strtree import STRtree
+
+SCALE = 2560 * 64 / 360
+STEP = .001  # Any position on a segment lies <= STEP/2 from a sampled point.
+
+
+def samples(line):
+    xy = np.asarray(line.coords)
+    delta = xy[1:] - xy[:-1]
+    steps = np.maximum(1, np.ceil(np.linalg.norm(delta, axis=1) / STEP).astype(int))
+    indices = np.repeat(np.arange(len(steps)), steps)
+    starts = np.r_[0, np.cumsum(steps)[:-1]]
+    fraction = (np.arange(steps.sum()) - np.repeat(starts, steps)) / np.repeat(steps, steps)
+    return shapely.points(np.vstack((xy[indices] + delta[indices] * fraction[:, None], xy[-1])))
+
+
+def sampled_distance(source, target):
+    xy = np.asarray(target.coords)
+    tree = STRtree(shapely.linestrings(np.stack((xy[:-1], xy[1:]), axis=1)))
+    points = samples(source)
+    _, distances = tree.query_nearest(points, return_distance=True, all_matches=False)
+    return float(distances.max() * SCALE), len(points)
+
+
+def display_section(geometry, anchors, reference):
+    polygons = [geometry['coordinates']] if geometry['type'] == 'Polygon' else geometry['coordinates']
+    options = []
+    for polygon in polygons:
+        for ring in polygon:
+            points = [tuple(p) for p in ring[:-1]]
+            matches = [[i for i, p in enumerate(points) if np.linalg.norm(np.subtract(p, anchor)) < 1e-11] for anchor in anchors]
+            if not all(len(v) == 1 for v in matches):
+                continue
+            a, b = matches[0][0], matches[1][0]
+            rotated = points[a:] + points[:a]
+            at = (b - a) % len(points)
+            for sequence in (rotated[:at + 1], list(reversed(rotated[at:] + rotated[:1]))):
+                if len(sequence) > 1:
+                    line = LineString(sequence)
+                    options.append(line)
+    if not options:
+        raise ValueError('Supplement anchor not found in final normalized country geometry')
+    # Detailed river linework can be much longer than its simplified derivative.
+    # Match interior source positions, not total length (which can select the
+    # opposite side of an entire country polygon).
+    witnesses = [reference.interpolate(fraction, normalized=True) for fraction in (.2, .4, .6, .8)]
+    return min(options, key=lambda line: sum(line.distance(point) for point in witnesses))
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--candidate', required=True)
+    parser.add_argument('--archive', required=True)
+    parser.add_argument('--output', required=True)
+    parser.add_argument('--pair', help='Restrict a diagnostic run to one CODE/CODE pair')
+    args = parser.parse_args()
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location('lsib_source', root / 'tools/supplement-lsib-boundaries.py')
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    archive_bytes = Path(args.archive).read_bytes()
+    provenance = json.loads((root / 'tools/historical-library/sources/lsib-11.4/provenance.json').read_text(encoding='utf-8'))
+    if hashlib.sha256(archive_bytes).hexdigest() != provenance['archiveSha256']:
+        raise ValueError('LSIB archive does not match the pinned evidence revision')
+    outer = zipfile.ZipFile(io.BytesIO(archive_bytes))
+    inner = zipfile.ZipFile(io.BytesIO(outer.read(next(n for n in outer.namelist() if n.endswith('.zip')))))
+    records = module.read_shapefile(inner.read(next(n for n in inner.namelist() if n.endswith('.dbf'))), inner.read(next(n for n in inner.namelist() if n.endswith('.shp'))))
+    by_id = {r['properties']['ID']: r['line'] for r in records}
+    candidate = json.loads(Path(args.candidate).read_text(encoding='utf-8'))
+    entities = {}
+    results = []
+    for entry in candidate['boundaries']:
+        if args.pair and '/'.join(entry['countries']) != args.pair:
+            continue
+        if entry['status'] == 'withheld':
+            continue
+        code = entry['countries'][0]
+        if code not in entities:
+            e = json.loads((root / f'assets/data/territorial-entities/source/countries/state-{code}.json').read_text(encoding='utf-8'))
+            entities[code] = next(v['geometry'] for v in e['geometryVersions'] if v['versionId'] == e['metadata']['representativeGeometryVersionId'])
+        source = shapely.line_merge(shapely.union_all([by_id[v] for v in entry['sourceLineIds']]))
+        parts = list(source.geoms) if source.geom_type == 'MultiLineString' else [source]
+        for segment in entry['segments']:
+            if segment['status'] == 'withheld':
+                continue
+            anchors = segment['anchors']
+            reference = min(parts, key=lambda line: sum(line.distance(Point(p)) for p in anchors))
+            reference = substring(reference, reference.project(Point(anchors[0])), reference.project(Point(anchors[1])))
+            display = display_section(entities[code], anchors, reference)
+            forward, n1 = sampled_distance(reference, display)
+            reverse, n2 = sampled_distance(display, reference)
+            upper = max(forward, reverse) + STEP * SCALE / 2
+            if upper > .5:
+                diagnostic={'entry':entry,'segment':segment,'reference':list(reference.coords),'display':list(display.coords),
+                            'referenceBounds':reference.bounds,'displayBounds':display.bounds,
+                            'forward':forward,'reverse':reverse}
+                (root/'build-native/lsib-supplement/screen-failure.json').write_text(json.dumps(diagnostic),encoding='utf-8')
+                print(json.dumps({k:v for k,v in diagnostic.items() if k not in ('reference','display','entry','segment')}),flush=True)
+                raise AssertionError(f'Source/display screen deviation exceeds tolerance: {entry["countries"]}: {upper}')
+            results.append({'countries': entry['countries'], 'anchors': anchors, 'samples': n1 + n2,
+                            'sampledMaximumCssPx': max(forward, reverse), 'continuousUpperBoundCssPx': upper})
+    report = {'widthCssPx': 2560, 'flatZoom': 64, 'scope': 'supplemented intervals only; retained old endings excluded',
+              'source': 'LSIB 11.4 original detailed vectors', 'historicalGroundTruthVerified': False,
+              'sections': len(results), 'samples': sum(r['samples'] for r in results),
+              'sampledMaximumCssPx': max(r['sampledMaximumCssPx'] for r in results),
+              'continuousUpperBoundCssPx': max(r['continuousUpperBoundCssPx'] for r in results), 'results': results}
+    target = Path(args.output); target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps({k: v for k, v in report.items() if k != 'results'}))
+
+
+if __name__ == '__main__':
+    main()

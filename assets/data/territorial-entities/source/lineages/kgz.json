@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "kgz",
+  "names": {
+    "ko": "키르기스스탄"
+  },
+  "entityRefs": [
+    "state:KGZ",
+    "state:soviet-union-kirghiz-ssr"
+  ],
+  "relations": []
+}

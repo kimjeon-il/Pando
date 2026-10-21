@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "blz",
+  "names": {
+    "ko": "벨리즈"
+  },
+  "entityRefs": [
+    "state:BLZ"
+  ],
+  "relations": []
+}

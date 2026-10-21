@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "cog",
+  "names": {
+    "ko": "콩고 공화국"
+  },
+  "entityRefs": [
+    "state:COG"
+  ],
+  "relations": []
+}

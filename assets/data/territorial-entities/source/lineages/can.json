@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "can",
+  "names": {
+    "ko": "캐나다"
+  },
+  "entityRefs": [
+    "state:CAN"
+  ],
+  "relations": []
+}

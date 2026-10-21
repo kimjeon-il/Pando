@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "jey",
+  "names": {
+    "ko": "저지섬"
+  },
+  "entityRefs": [
+    "state:JEY"
+  ],
+  "relations": []
+}

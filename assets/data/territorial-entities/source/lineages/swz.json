@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "swz",
+  "names": {
+    "ko": "에스와티니"
+  },
+  "entityRefs": [
+    "state:SWZ"
+  ],
+  "relations": []
+}

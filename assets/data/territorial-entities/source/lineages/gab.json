@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "gab",
+  "names": {
+    "ko": "가봉"
+  },
+  "entityRefs": [
+    "state:GAB"
+  ],
+  "relations": []
+}

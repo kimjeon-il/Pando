@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "pga",
+  "names": {
+    "ko": "웨이크섬"
+  },
+  "entityRefs": [
+    "state:PGA"
+  ],
+  "relations": []
+}

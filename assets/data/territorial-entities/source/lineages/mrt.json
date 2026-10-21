@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mrt",
+  "names": {
+    "ko": "모리타니"
+  },
+  "entityRefs": [
+    "state:MRT"
+  ],
+  "relations": []
+}

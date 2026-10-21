@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "tha",
+  "names": {
+    "ko": "태국"
+  },
+  "entityRefs": [
+    "state:THA"
+  ],
+  "relations": []
+}

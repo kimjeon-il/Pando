@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "chl",
+  "names": {
+    "ko": "칠레"
+  },
+  "entityRefs": [
+    "state:CHL"
+  ],
+  "relations": []
+}

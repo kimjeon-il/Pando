@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mli",
+  "names": {
+    "ko": "말리"
+  },
+  "entityRefs": [
+    "state:MLI"
+  ],
+  "relations": []
+}

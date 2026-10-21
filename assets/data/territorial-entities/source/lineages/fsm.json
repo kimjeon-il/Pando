@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "fsm",
+  "names": {
+    "ko": "미크로네시아 연방"
+  },
+  "entityRefs": [
+    "state:FSM"
+  ],
+  "relations": []
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "msr",
+  "names": {
+    "ko": "몬트세랫"
+  },
+  "entityRefs": [
+    "state:MSR"
+  ],
+  "relations": []
+}

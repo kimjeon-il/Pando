@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "vut",
+  "names": {
+    "ko": "바누아투"
+  },
+  "entityRefs": [
+    "state:VUT"
+  ],
+  "relations": []
+}

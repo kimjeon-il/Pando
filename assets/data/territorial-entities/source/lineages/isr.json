@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "isr",
+  "names": {
+    "ko": "이스라엘"
+  },
+  "entityRefs": [
+    "state:ISR"
+  ],
+  "relations": []
+}

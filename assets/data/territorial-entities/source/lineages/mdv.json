@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "lineageId": "mdv",
+  "names": {
+    "ko": "몰디브"
+  },
+  "entityRefs": [
+    "state:MDV"
+  ],
+  "relations": []
+}
