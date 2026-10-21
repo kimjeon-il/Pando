@@ -75,6 +75,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
       for(const item of Object.values(manifest.assets||{}))dataAsset(item.url,'assets/data/');
       for(const url of Object.values(manifest.compatibility?.sharedBoundaries||{}))dataAsset(url,'assets/data/');
     }else if(path.includes('/builtin-world/')){
+      dataAsset(manifest.transport.url,base);
       for(const item of manifest.entities)dataAsset(item.file,base);
     }
     else if(path.includes('/territorial-entities/')){

@@ -39,7 +39,8 @@ test('viewer closure includes static and query-versioned dynamic imports but exc
 
 test('viewer data closure follows current manifest references and excludes source, old versions and orphan assets',async()=>{
  const f=fixture();
- f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({entities:[{file:'countries/A.json.gz'}]}));
+ f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({entities:[{file:'countries/A.json.gz'}],transport:{url:'transport/packed.bin'}}));
+ f.put('assets/data/builtin-world/generated/v1/transport/packed.bin');
  f.put('assets/data/builtin-world/generated/v1/countries/A.json.gz');
  f.put('assets/data/builtin-world/generated/v1/countries/orphan.json.gz');
  f.put('assets/data/historical-world/generated/v1/world-project.json.gz');
@@ -47,6 +48,7 @@ test('viewer data closure follows current manifest references and excludes sourc
  const paths=await f.collect();
  assert.ok(paths.has('assets/data/world/a.bin'));
  assert.ok(paths.has('assets/data/builtin-world/generated/v1/countries/A.json.gz'));
+ assert.ok(paths.has('assets/data/builtin-world/generated/v1/transport/packed.bin'));
  assert.equal(paths.has('assets/data/builtin-world/generated/v1/countries/orphan.json.gz'),false);
  assert.equal(paths.has('assets/data/historical-world/generated/v1/world-project.json.gz'),false);
  for(const path of ['assets/data/territorial-entities/source/countries/raw.json','assets/data/prepared-polygons/generated/v1/old.bin','assets/data/world/orphan.bin'])assert.equal(paths.has(path),false,path);
