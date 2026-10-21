@@ -97,7 +97,7 @@
       "tileSize": 1024
     }
   ],
-  "urlTemplate": "https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.0/{level}/{column}-{row}.webp",
+  "urlTemplate": "https://kimjeon-il.github.io/PandoLab-library-data/terrain/v0.13.3/{level}/{column}-{row}.webp",
   "tint": {
     "algorithm": "canonical-land-average-nearest-fill-v2",
     "validCells": 2842697,
@@ -105,7 +105,7 @@
     "sourceEntry": "HYP_HR/HYP_HR.tif",
     "iceSourceSha256": "04fd2303d5f0ece2cf482af19d06731d745db9690501d7b0a2a4b7fe23a7726f",
     "landMaskSourceSha256": "7a70ea46df0511c30701863c2f9d30dea5b2731f4f46e0e0a5d236945d52b797",
-    "url": "https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/tint.webp",
+    "url": "https://kimjeon-il.github.io/PandoLab-library-data/terrain/v0.13.3/tint.webp",
     "width": 4096,
     "height": 2048,
     "sha256": "1ae4c70e05494917c11d3c6b32869db61bf4f9e7e4b0239f9b4bd2b9bec582f3"

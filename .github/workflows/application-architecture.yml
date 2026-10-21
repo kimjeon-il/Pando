@@ -93,6 +93,8 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -150,6 +152,8 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0

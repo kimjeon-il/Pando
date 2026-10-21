@@ -55,6 +55,8 @@ jobs:
             !/assets/data/hydro/v0.12.6/**
             !/assets/data/research/**
             !/assets/data/terrain/v0.12.6/[0-9]/**
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -100,6 +102,8 @@ jobs:
             !/assets/data/hydro/v0.12.5/**
             !/assets/data/hydro/v0.12.6/**
             !/assets/data/research/**
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0

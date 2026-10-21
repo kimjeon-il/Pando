@@ -30,4 +30,4 @@ Android orientation and phone panels delegated to independent agents; parent own
 
 Ruling: existing app composition imports editing eagerly. Separate product entrypoints and extract shared rendering/session responsibilities, rather than hide editor controls in viewer DOM.
 
-Implementation and focused verification evidence are recorded in [the canonical report](../../../reports/development/testing/web-app-product-split-2026-10-18.md). Native Android device rotation and a running Windows native window remain unverified; browser viewport checks do not replace those checks.
+Implementation and focused verification evidence are recorded in [the canonical report](https://github.com/kimjeon-il/PandoLab-library-data/blob/cd0698ab2886e7468cf10571186c76941e56709a/reports/development/testing/web-app-product-split-2026-10-18.md). Native Android device rotation and a running Windows native window remain unverified; browser viewport checks do not replace those checks.

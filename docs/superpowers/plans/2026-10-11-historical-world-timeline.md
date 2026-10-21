@@ -62,6 +62,6 @@ policy는 `{schemaVersion: 1, unknownPeerOverlap: 'exclude-from-all', replacemen
 5. 앱 커서별 활성 world/mesh 재사용, 좌표 변경·비활성 형상 검증
 6. 공통 날짜 trace·브라우저/Qt의 편집·Undo/저장·오프라인 복원을 직접 검증
 
-[당시 검증 결과와 한계](../../../reports/development/testing/historical-world-timeline-validation.md)를 참조. 별도 역사 자료 고증·실기기·전체 배포의 검증까지 완료했다고 이 계획만으로 판단하지 않는다.
+[당시 검증 결과와 한계](https://github.com/kimjeon-il/PandoLab-library-data/blob/cd0698ab2886e7468cf10571186c76941e56709a/reports/development/testing/historical-world-timeline-validation.md)를 참조. 별도 역사 자료 고증·실기기·전체 배포의 검증까지 완료했다고 이 계획만으로 판단하지 않는다.
 
 원래 Task별 구현 파일 목록·실행 명령·회귀 항목과 리뷰 지시는 고정 Git 원문에 보존된다.

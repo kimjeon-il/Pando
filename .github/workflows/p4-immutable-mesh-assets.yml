@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -48,9 +50,11 @@ jobs:
           node --test tests/unit/gpu-mesh-country-strokes.test.mjs tests/unit/prepared-polygon-mesh.test.mjs tests/unit/mesh-geometry-assets.test.mjs tests/unit/world-bundle-runtime.test.mjs tests/unit/country-shared-boundary-state.test.mjs
       - name: Stage only newly published map assets and metadata
         shell: bash
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           set -euo pipefail
-          git add -- \
+          node tools/library-data.mjs --store-and-stage --push -- \
             assets/data/world/build-input.json \
             assets/data/world/current.json \
             assets/data/world-preview-v0.36.1.json \
