@@ -53,15 +53,16 @@ export function createBuiltinSession({ builtinWorldLoader = null } = {}) {
       const expectedGeneration=domain.getGeneration();
       const {project}=await builtinWorldLoader.loadProject(month,deviceCurrentMonth(),{isCurrent});
       const decoded=new TextEncoder().encode(JSON.stringify(project));
-      const sourceBytes=new Uint8Array(await new Response(new Blob([decoded]).stream().pipeThrough(new globalThis.CompressionStream('gzip'))).arrayBuffer());
+      const sourceBytes=decoded;
       const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',sourceBytes))].map(value=>value.toString(16).padStart(2,'0')).join('');
       if(!isCurrent())throw stale();
-      const facts={kind:'stored-asset',sourceBytes,encoding:'gzip',compressedBytes:sourceBytes.length,decodedBytes:decoded.length,
+      const facts={kind:'stored-asset',sourceBytes,encoding:'identity',compressedBytes:sourceBytes.length,decodedBytes:decoded.length,
         sourceMonth:month,baseDataset:dependencies.platformConfigurationA.BASE_DATASET,fingerprint};
       const accepted=await domain.admitStorageBaseline(facts,{expectedGeneration});
       if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw stale();
       if(!Number.isSafeInteger(accepted.storageBaselineId)||accepted.storageBaselineId<=0)throw new Error('Core rejected the assembled builtin source');
-      projectBaseline=Object.freeze({...facts,baselineId:accepted.storageBaselineId,queryKey:key});
+      const receipt={...facts};delete receipt.sourceBytes;
+      projectBaseline=Object.freeze({...receipt,baselineId:accepted.storageBaselineId,queryKey:key});
       return projectBaseline;
     })();
     return promise;
