@@ -33,6 +33,8 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 1
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
