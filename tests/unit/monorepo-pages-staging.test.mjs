@@ -92,11 +92,38 @@ test('stages committed viewer assets while excluding editor and repository sourc
   const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
   assert.equal(evidence.dataRepository, 'example/library-data');
   assert.match(evidence.dataCommit, /^[0-9a-f]{40}$/);
-  assert.equal(evidence.fileCount, 11);
+  const channelPath = 'assets/data/library-channel/current.json';
+  const channelBytes = readFileSync(join(stage, channelPath));
+  assert.deepEqual(JSON.parse(channelBytes), { schema: 'pandolab-data-channel', schemaVersion: 1, mode: 'baseline' });
+  const channel = evidence.files.find(file => file.path === channelPath);
+  assert.equal(channel.bytes, channelBytes.length);
+  assert.equal(channel.sha256, createHash('sha256').update(channelBytes).digest('hex'));
+  assert.equal(evidence.fileCount, 12);
+  assert.equal(evidence.bytes, evidence.files.reduce((total, file) => total + file.bytes, 0));
   assert.equal(evidence.excludedNativeFiles, 1);
   assert.equal(evidence.excludedSharedFiles, 2);
   assert.equal(evidence.excludedAppFiles, 2);
   assert.equal(evidence.files.some(file => file.path.startsWith('native/')), false);
+});
+
+test('final evidence describes overlaid publication files and their current hashes', async () => {
+  const { root, stage, manifest } = await fixture();
+  const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
+  assert.equal(result.status, 0, result.stderr);
+  const before = JSON.parse(readFileSync(manifest, 'utf8'));
+  put(stage, 'assets/data/library-channel/current.json', '{"revision":"published"}\n');
+  put(stage, 'assets/data/library-releases/published/manifest.json', '{"release":true}\n');
+  const final = run(process.execPath, [script, '--finalize', '--stage', stage, '--manifest', manifest], root);
+  assert.equal(final.status, 0, final.stderr);
+  const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
+  assert.equal(evidence.sourceCommit, before.sourceCommit);
+  assert.equal(evidence.fileCount, before.fileCount + 1);
+  assert.equal(evidence.bytes, evidence.files.reduce((total, file) => total + file.bytes, 0));
+  for (const file of evidence.files) {
+    const bytes = readFileSync(join(stage, file.path));
+    assert.equal(file.bytes, bytes.length);
+    assert.equal(file.sha256, createHash('sha256').update(bytes).digest('hex'));
+  }
 });
 
 test('required Worker cannot publish with a missing WASM pair member', async () => {
