@@ -20,7 +20,8 @@ def report_path(legacy, root=REPO):
     if not target.startswith('reports/'):
         raise ValueError(f'Not a report path: {legacy}')
     checkout = Path(os.environ.get('PANDOLAB_LIBRARY_DATA_ROOT', root / '.library-data/repository'))
-    return checkout / target
+    config = json.loads((root / 'config/library-data.json').read_text(encoding='utf-8'))
+    return checkout / '.working' / config['revision'] / target
 
 
 

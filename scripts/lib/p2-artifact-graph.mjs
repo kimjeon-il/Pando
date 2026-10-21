@@ -7,7 +7,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSy
   renameSync, unlinkSync, writeFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
-import { libraryConfig, libraryCheckout, libraryMaterializedRoot, prepareLibraryData } from '../../tools/library-data.mjs';
+import { libraryConfig, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData } from '../../tools/library-data.mjs';
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
@@ -30,7 +30,7 @@ export function safePath(root,p) {
       const configured=existsSync(resolve(root,'config/library-data.json'))?libraryConfig(root):null;
       assert.ok(configured,'P2_SYMLINK_PATH: '+p);
       const mount=normalize(relative(root,cursor));
-      const expected=mount==='reports'?resolve(libraryCheckout(root),'reports'):resolve(libraryMaterializedRoot(root),mount);
+      const expected=mount==='reports'?libraryReportRoot(root):resolve(libraryMaterializedRoot(root),mount);
       assert.ok(configured?.mounts.includes(mount)&&realpathSync(cursor)===realpathSync(expected),'P2_SYMLINK_PATH: '+p);
     }
     cursor=dirname(cursor);

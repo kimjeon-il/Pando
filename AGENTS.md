@@ -38,7 +38,7 @@ local worktree. Web lives at the repository root, the application in
 - `kimjeon-il/PandoLab-library-data` owns library objects, runtime data, original GIS sources and all reports/evidence. This repository contains app/web code, generators, contracts, fixtures, tests and development specifications only.
 - The data repository is storage only. Do not run tests, validators, GIS regeneration or check workflows there. Run only narrowly relevant application checks in Pando.
 - `config/library-data.json` pins the paired data revision for this branch. Run `node tools/library-data.mjs` to prepare the fixed ignored data cache and mounts. Never add mounted data to app Git.
-- New reports belong to the external checkout's `reports/`, following its README and TEMPLATE. `tools/report-paths.mjs` and `tools/report_paths.py` resolve that location. Keep sources, revision, scope and unverified claims; preserve compressed original evidence.
+- Stored reports belong to the external checkout's `reports/`, following its README and TEMPLATE. `tools/report-paths.mjs` and `tools/report_paths.py` resolve full original working copies at `.working/<data revision>/reports/`; `node tools/library-data.mjs --store` archives changes and updates readable reports. Keep sources, revision, scope and unverified claims; preserve compressed original evidence.
 - Keep branch-specific data/WASM pairings; do not replace a work branch pin with main's pin without reviewing the actual data changes.
 
 ## Historical GIS reconstruction policy (mandatory)

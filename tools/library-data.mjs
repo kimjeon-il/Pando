@@ -19,7 +19,7 @@ export function libraryMaterializedRoot(root = defaultRoot) {
   return resolve(root, '.library-data/materialized', libraryConfig(root).revision);
 }
 export function libraryReportRoot(root = defaultRoot) {
-  return resolve(libraryCheckout(root), 'reports');
+  return resolve(libraryCheckout(root), '.working', libraryConfig(root).revision, 'reports');
 }
 export function safeChild(root, path) {
   const target = resolve(root, path), rel = relative(root, target);
@@ -33,8 +33,8 @@ export function decodeArchiveEntry(checkout, entry) {
   if (bytes.length !== entry.bytes || createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw Error(`Library transfer is corrupt: ${entry.stored}`);
   return bytes;
 }
-export function prepareLibraryData({ root = defaultRoot, checkout = libraryCheckout(root), fetch = true } = {}) {
-  root = resolve(root); checkout = resolve(checkout);
+export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
+  root = resolve(root); const checkout = libraryCheckout(root);
   const config = libraryConfig(root);
   if (!existsSync(resolve(checkout, '.git'))) {
     if (!fetch) throw Error('Pinned library checkout is missing');
@@ -62,16 +62,42 @@ export function prepareLibraryData({ root = defaultRoot, checkout = libraryCheck
     }
     writeFileSync(marker, config.revision + '\n');
   }
+  // Report callers need complete original evidence, rather than shortened pages.
+  const reportRoot = libraryReportRoot(root), reportMarker = resolve(dirname(reportRoot), '.reports-complete');
+  if (!existsSync(reportMarker)) {
+    mkdirSync(reportRoot, { recursive: true });
+    for (const [path, entry] of Object.entries(index.files)) if (path.startsWith('reports/')) {
+      const output = safeChild(reportRoot, path.slice('reports/'.length));
+      mkdirSync(dirname(output), { recursive: true }); writeFileSync(output, decodeArchiveEntry(checkout, entry));
+    }
+    const copyNewReports = (directory, prefix) => {
+      if (!existsSync(directory)) return;
+      for (const entry of readdirSync(directory, { withFileTypes: true })) {
+        const path = prefix + '/' + entry.name;
+        if (entry.isDirectory()) copyNewReports(resolve(directory, entry.name), path);
+        else if (entry.isFile() && !index.files[path]) {
+          const output = safeChild(reportRoot, path.slice('reports/'.length));
+          mkdirSync(dirname(output), { recursive: true }); writeFileSync(output, readFileSync(resolve(directory, entry.name)));
+        }
+      }
+    };
+    copyNewReports(resolve(checkout, 'reports'), 'reports');
+    const excludePath = resolve(checkout, git(checkout, ['rev-parse', '--git-path', 'info/exclude']));
+    const exclude = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
+    if (!exclude.split(/\r?\n/).includes('/.working/')) { mkdirSync(dirname(excludePath), { recursive: true }); writeFileSync(excludePath, exclude + '\n/.working/\n'); }
+    writeFileSync(reportMarker, config.revision + '\n');
+  }
   for (const path of config.mounts) {
     const output = safeChild(root, path);
-    const target = path === 'reports' ? resolve(checkout, 'reports') : safeChild(materialized, path);
+    const target = path === 'reports' ? reportRoot : safeChild(materialized, path);
     mkdirSync(target, { recursive: true });
     mkdirSync(dirname(output), { recursive: true });
     if (existsSync(output)) {
       if (!lstatSync(output).isSymbolicLink()) throw Error(`Existing data directory must be preserved before mounting: ${output}`);
       if (realpathSync(output) === realpathSync(target)) continue;
       const previous = realpathSync(output);
-      if (path === 'reports' || !previous.startsWith(resolve(root, '.library-data/materialized') + sep)) throw Error(`Unknown data mount must be preserved: ${output}`);
+      const owned = path === 'reports' ? previous === resolve(checkout, 'reports') || previous.startsWith(resolve(checkout, '.working') + sep) : previous.startsWith(resolve(root, '.library-data/materialized') + sep);
+      if (!owned) throw Error(`Unknown data mount must be preserved: ${output}`);
       unlinkSync(output); // Remove this owned link only, preserving the previous cache.
     }
     symlinkSync(target, output, process.platform === 'win32' ? 'junction' : 'dir');
@@ -84,7 +110,7 @@ export function storeLibraryData({ root = defaultRoot, push = false } = {}) {
   const data = prepareLibraryData({ root });
   const indexPath = resolve(data.checkout, 'archive/index.json');
   const index = JSON.parse(readFileSync(indexPath, 'utf8'));
-  const runtimeDirectories = new Set(Object.entries(index.files).filter(([path, entry]) => path === entry.stored).map(([path]) => dirname(path)));
+  const runtimeDirectories = new Set(Object.entries(index.files).filter(([path, entry]) => path.startsWith('assets/data/') && path === entry.stored).map(([path]) => dirname(path)));
   const digest = bytes => createHash('sha256').update(bytes).digest('hex');
   const put = (path, bytes) => { const output = safeChild(data.checkout, path); mkdirSync(dirname(output), { recursive: true }); writeFileSync(output, bytes); };
   const store = (path, bytes) => {
@@ -95,6 +121,14 @@ export function storeLibraryData({ root = defaultRoot, push = false } = {}) {
     const stored = runtimeDirectories.has(dirname(path)) ? path : `archive/blobs/${sha256}.${identity ? 'bin' : 'gz'}`;
     put(stored, identity ? bytes : packed);
     index.files[path] = { stored, encoding: identity ? 'identity' : 'gzip', sha256, bytes: bytes.length };
+    if (path.startsWith('reports/') && /\.(?:md|png|jpe?g|webp|gif|svg)$/i.test(path)) {
+      let readable = bytes;
+      if (path.endsWith('.md') && bytes.length > 5000 && !/\/(?:README|TEMPLATE)\.md$/.test(path)) {
+        const text = bytes.toString('utf8'), title = text.split('\n').find(line => line.startsWith('# ')) || '# Report';
+        readable = Buffer.from(title + '\n\n> 압축 열람본: 도입부 발췌. 전체 출처·결론·미확인 내용은 연결한 원문을 따른다.\n\n' + text.slice(title.length).slice(0, 1600) + '\n\n[무손실 압축 원문](' + relative(dirname(path), stored).replaceAll('\\', '/') + ')\n');
+      }
+      put(path, readable);
+    }
   };
   const seen = new Set();
   const visit = (directory, prefix) => {
@@ -107,15 +141,11 @@ export function storeLibraryData({ root = defaultRoot, push = false } = {}) {
   };
   const managedMounts = libraryConfig(root).mounts.filter(path => path !== 'reports');
   for (const path of managedMounts) visit(safeChild(data.materialized, path), path);
+  visit(libraryReportRoot(root), 'reports');
   for (const [path, entry] of Object.entries(index.files)) {
-    if (!managedMounts.some(mount => path.startsWith(mount + '/')) || seen.has(path)) continue;
+    if (!(path.startsWith('reports/') || managedMounts.some(mount => path.startsWith(mount + '/'))) || seen.has(path)) continue;
     delete index.files[path];
-    if (entry.stored === path && existsSync(safeChild(data.checkout, path))) unlinkSync(safeChild(data.checkout, path));
-  }
-  const changedReports = git(data.checkout, ['ls-files', '--modified', '--others', '--exclude-standard', '--', 'reports']).split('\n').filter(Boolean);
-  for (const path of changedReports) {
-    if (existsSync(safeChild(data.checkout, path))) store(path, readFileSync(safeChild(data.checkout, path)));
-    else delete index.files[path];
+    if ((entry.stored === path || path.startsWith('reports/')) && existsSync(safeChild(data.checkout, path))) unlinkSync(safeChild(data.checkout, path));
   }
   // The existing native source schema remains the only editable library format.
   const indexBytes = readFileSync(resolve(data.materialized, 'assets/data/territorial-entities/generated/v2/index.json'));
