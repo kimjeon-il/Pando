@@ -555,14 +555,32 @@ for (const [name, install] of [
 
     adapter.setWorkflow(null);
     setReferenceImageSurfaceEditing(true, '보조 도구 조작 중');
-    for (const observer of observers) observer.callback();
+    for (const observer of observers) observer.callback([{ target: f.mapElement }]);
     await Promise.resolve();
     assert.ok(genericActions.every(button => button.hidden), 'an idle renderer must preserve another auxiliary tool\'s completion ownership');
     setReferenceImageSurfaceEditing(false);
     adapter.setEditing(true, '이미지를 드래그해 배치하세요.');
-    for (const observer of observers) observer.callback();
+    for (const observer of observers) observer.callback([{ target: f.mapElement }]);
     await Promise.resolve();
     assert.ok(genericActions.every(button => !button.hidden));
+
+    const matchSection = document.createElement('section');
+    matchSection.dataset.refSection = 'match';
+    f.editor.append(matchSection);
+    const actionPrefix = name === 'line refiner' ? 'line' : 'live-wire';
+    const start = f.panel.querySelector(`[data-ref-${actionPrefix}-action="start"]`);
+    matchSection.hidden = true;
+    for (const observer of observers) observer.callback([{ target: matchSection }]);
+    await Promise.resolve();
+    assert.equal(start.hidden, true, 'placement tab hides auxiliary start');
+    matchSection.hidden = false;
+    for (const observer of observers) observer.callback([{ target: matchSection }]);
+    await Promise.resolve();
+    assert.equal(start.hidden, false, 'entering the match tab reveals auxiliary start');
+    const writes = start.textWrites;
+    for (const observer of observers) observer.callback([{ target: document.createElement('span') }]);
+    await Promise.resolve();
+    assert.equal(start.textWrites, writes, 'status descendants do not trigger another action render');
   });
 }
 

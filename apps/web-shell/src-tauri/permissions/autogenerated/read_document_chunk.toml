@@ -2,9 +2,10 @@
 
 [[permission]]
 identifier = "allow-read-document-chunk"
-description = "Enables read_document_chunk without any pre-configured scope."
+description = "Enables the read_document_chunk command without any pre-configured scope."
 commands.allow = ["read_document_chunk"]
 
 [[permission]]
 identifier = "deny-read-document-chunk"
+description = "Denies the read_document_chunk command without any pre-configured scope."
 commands.deny = ["read_document_chunk"]
