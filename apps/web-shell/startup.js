@@ -23,17 +23,40 @@ async function start() {
     return url;
   };
   const profile = await createRuntimeProfile();
+  let libraryGeometryContext = null;
+  if (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function') {
+    const { parseNativeLibraryGeometryRequest, createLibraryGeometryContext } =
+      await import(versionedAsset('./modules/library-geometry-context.js').href);
+    const request = parseNativeLibraryGeometryRequest(location.search, true);
+    if (request) {
+      if (profile.mode !== 'full-world') throw new Error('라이브러리 형상 편집에는 전체 지도 앱이 필요합니다.');
+      const [{ createNativeLibraryRepository }, { createRepositoryTerritorialLoader },
+        { createTerritorialLibraryService }] = await Promise.all([
+        import(versionedAsset('./modules/native-library-repository.js').href),
+        import(versionedAsset('./modules/territorial-entity-loader.js').href),
+        import(versionedAsset('./modules/territorial-library-service.js').href),
+      ]);
+      const repository = createNativeLibraryRepository({ invoke: globalThis.__TAURI_INTERNALS__.invoke });
+      const service = createTerritorialLibraryService({ loader: createRepositoryTerritorialLoader(repository) });
+      libraryGeometryContext = createLibraryGeometryContext({
+        repository, service, ...request, appVersion: meta.appVersion,
+      });
+      await libraryGeometryContext.prepare();
+      document.title = libraryGeometryContext.title;
+    }
+  }
   if (profile.mode === 'full-world') {
     // The full-world shell must take precisely the website's progressive WebGL
     // preview -> canonical country packet -> canonical mesh startup path.
     globalThis.__PANDOLAB_SHELL_PLATFORM__ = Object.freeze({
       ...profile.platform,
       fileAccess: createNativeStorage(),
+      libraryGeometryContext,
     });
     window.addEventListener('pandolab:ready', () => {
       window.__PANDOLAB_SHELL_READY__ = true;
     }, { once: true });
-    installFullWorldProbe({
+    if (!libraryGeometryContext) installFullWorldProbe({
       readyDelayMs: globalThis.__PANDOLAB_SHELL_AUTO__ === true
         ? (Number(globalThis.__PANDOLAB_SHELL_PROBE_HOLD_MS__) || 500) : 500,
       expectedSourceCount: profileMeta.world.countryCount,

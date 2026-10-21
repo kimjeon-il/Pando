@@ -1636,7 +1636,8 @@ export function createGpuMapRenderer(deps) {
 
     function rememberBuiltinMesh(meshValue, countryIds, identity = null) {
       const ids = [...(countryIds || [])].map(String).filter(Boolean);
-      if (!meshValue || ids.length !== 258) throw new Error('내장 기본 메시의 국가 슬롯이 올바르지 않습니다.');
+      if (!meshValue || !ids.length || new Set(ids).size !== ids.length
+        || (identity?.header?.[2] && identity.header[2] !== ids.length)) throw new Error('내장 기본 메시의 국가 슬롯이 올바르지 않습니다.');
       builtinMeshBaseline = {
         mesh: meshValue,
         countryIds: ids,

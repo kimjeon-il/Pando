@@ -1,0 +1,64 @@
+import {test,expect} from '@playwright/test';
+test('a committed write with locked derivative files retains its success receipt and warning',async({page})=>{
+ await page.goto('/tests/fixtures/editable-library-ui.html');await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await page.evaluate(()=>window.LIBRARY_UI_TEST.warnOnCommit());
+ await page.getByLabel('한국어 이름',{exact:true}).fill('저장된 대한민국');
+ const openCalls=await page.evaluate(()=>window.LIBRARY_UI_TEST.openCalls);
+ await page.getByRole('button',{name:'저장',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('저장 완료 · 작업 파일 갱신 대기');
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.openCalls)).toBe(openCalls);
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.saved.records['state:KOR'].names.ko)).toBe('저장된 대한민국');
+ await expect(page.locator('#failure')).toHaveText('');
+ await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('저장된 대한민국');
+});
+test('owner source UI preserves exact dates and saved edits across reload without implicit publishing',async({page})=>{
+ await page.goto('/tests/fixtures/editable-library-ui.html');await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await page.getByLabel('한국어 이름',{exact:true}).fill('대한민국 로컬 수정');
+ await page.getByLabel('존속 시작일',{exact:true}).fill('1948-08-15');
+ await page.getByRole('button',{name:'변경 적용',exact:true}).click();
+ await page.getByRole('button',{name:'실행 취소',exact:true}).click();
+ await expect(page.getByLabel('한국어 이름',{exact:true})).not.toHaveValue('대한민국 로컬 수정');
+ await page.getByRole('button',{name:'다시 실행',exact:true}).click();
+ await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('대한민국 로컬 수정');
+ await page.getByRole('button',{name:'저장',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('동기화 대기');
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.publishCalls)).toBe(0);
+ await page.reload();await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('대한민국 로컬 수정');
+ await expect(page.getByLabel('존속 시작일',{exact:true})).toHaveValue('1948-08-15');
+ await expect(page.locator('#failure')).toHaveText('');
+ await page.screenshot({path:'build-native/editable-library-ui.png',fullPage:true});
+});
+test('incomplete form survives a blocked geometry edit and version correction is validated on save',async({page})=>{
+ await page.goto('/tests/fixtures/editable-library-ui.html');await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await page.getByLabel('한국어 이름',{exact:true}).fill('보존할 입력');
+ await page.getByRole('button',{name:'지도에서 경계 편집',exact:true}).click();
+ await expect(page.locator('#failure')).toContainText('먼저 저장');await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('보존할 입력');
+ await page.getByLabel('존속 시작일',{exact:true}).fill('invalid');await page.getByRole('button',{name:'저장',exact:true}).click();
+ await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('보존할 입력');
+ expect(await page.evaluate(()=>Object.keys(window.LIBRARY_UI_TEST.saved.records))).toEqual([]);
+});
+test('reload validates external file candidates and activates only a valid source transaction',async({page})=>{
+ await page.goto('/tests/fixtures/editable-library-ui.html');
+ await page.getByRole('button',{name:'원본 편집',exact:true}).waitFor();
+ await page.evaluate(()=>window.LIBRARY_UI_TEST.queueExternal(true));
+ await page.getByRole('button',{name:'자료 다시 읽기',exact:true}).click();
+ await expect(page.locator('#failure')).not.toHaveText('');
+ expect(await page.evaluate(()=>Object.keys(window.LIBRARY_UI_TEST.saved.records))).toEqual([]);
+ await page.evaluate(()=>window.LIBRARY_UI_TEST.queueExternal(false));
+ await page.getByRole('button',{name:'자료 다시 읽기',exact:true}).click();
+ await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('외부 파일 수정');
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.saved.records['state:KOR'].geometryVersions[0].historicalProvenance.evidenceStatus)).toBe('provisional');
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.publishCalls)).toBe(0);
+});
+test('editing a name preserves the actual source date precision vocabulary',async({page})=>{
+ await page.goto('/tests/fixtures/editable-library-ui.html?entity=state:east-prussia');
+ await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await expect(page.getByLabel('날짜 정밀도',{exact:true})).toHaveValue('exact');
+ await page.getByLabel('한국어 이름',{exact:true}).fill('동프로이센 이름 수정');
+ await page.getByRole('button',{name:'저장',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('동기화 대기');
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.saved.records['state:east-prussia'].geometryVersions[0].datePrecision)).toBe('exact');
+});

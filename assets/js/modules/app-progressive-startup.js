@@ -5,7 +5,15 @@
 import { matchesDefaultPreview, previewSourceForProject } from './project-preview-policy.js';
 import { geometryRevision } from './geometry-versions.js';
 
-export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
+export async function resolveStartupSource({libraryGeometryContext = null,restoreAutosave}){
+  if(libraryGeometryContext){
+    const workspace=await libraryGeometryContext.prepare();
+    return {project:workspace.project,source:'library-geometry',view:null,error:null};
+  }
+  return restoreAutosave();
+}
+
+export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeometryContext = null } = {}) {
   if (!['builtin', 'project'].includes(startupMesh)) throw new TypeError('Unsupported startup mesh source.');
   let dependencies;
   let restoringCountryFirstPaint = false;
@@ -117,7 +125,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     } else await admitTerritorialBaseline(baseline,'startup-canonical-territories');
     const userChangedPreviewMonth = !!previewStart.timelineMonth
       && liveMonthBeforeAdmission !== previewStart.timelineMonth;
-    await dependencies.persistence.applyAutosavedTimeline(userChangedPreviewMonth
+    if(!libraryGeometryContext)await dependencies.persistence.applyAutosavedTimeline(userChangedPreviewMonth
       ? { documentId:dependencies.domains.projectDomain.snapshot().documentId,lastViewedMonth: liveMonthBeforeAdmission } : autosaveRestore.view);
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
@@ -129,7 +137,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     if (navigationChanged) {
       dependencies.projectState.state.view = navigationView;
       dependencies.projectState.state.projection = navigationProjection;
-    } else {
+    } else if(!libraryGeometryContext){
       (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     }
     (0, dependencies.mapView.syncMapHostFromState)();
@@ -183,7 +191,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       startupMetrics.devicePixelRatio = renderer.devicePixelRatio;
       startupMetrics.effectivePixelRatio = renderer.effectivePixelRatio;
     }
-    if (restored) {
+    if (restored && !libraryGeometryContext) {
       await dependencies.lifecycleUi.projectUi.completeAutosaveRecovery();
       if (Number.isFinite(projectGeneration)
         && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
@@ -285,7 +293,8 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     if (!window.d3) throw new Error('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.');
     if (!window.PANDOLAB_COUNTRIES?.features?.length) throw new Error('미리보기 국가 데이터를 불러올 수 없습니다. 페이지를 새로고침하세요.');
 
-    const autosavePromise = dependencies.lifecycleUi.projectUi.restoreAutosave();
+    const autosavePromise = resolveStartupSource({libraryGeometryContext,
+      restoreAutosave:()=>dependencies.lifecycleUi.projectUi.restoreAutosave()});
     const autosaveRestore = await autosavePromise;
     const savedProject = autosaveRestore.project;
     const baseline = window.PANDOLAB_PREVIEW_BASELINE;
@@ -297,7 +306,8 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     const previewInput=savedProject ? {project:savedProject,
       territorialViews:(await dependencies.domains.projectDomain.inspectImport(savedProject)).territorialViews}:null;
     const defaultPreview = !savedProject || matchesDefaultPreview(previewInput, baseline);
-    const cachedPreview = !defaultPreview ? await dependencies.domains.projectDomain.restorePreview(savedProject, previewInput) : null;
+    const cachedPreview = !defaultPreview && !libraryGeometryContext
+      ? await dependencies.domains.projectDomain.restorePreview(savedProject, previewInput) : null;
     const previewSource = !savedProject ? {kind:'default'} : previewSourceForProject(previewInput, baseline, cachedPreview);
     const hasStoredCountryGeometry = previewSource.kind === 'restore';
     const sourceMonth = window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth || new Date().toISOString().slice(0, 7);
@@ -307,7 +317,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     if (hasStoredCountryGeometry) {
       (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.RESTORE_STARTED);
     }
-    if (savedProject) (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
+    if (savedProject && !libraryGeometryContext) (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     if (savedProject) {
       await restoreSavedProject(savedProject);
     } else {
@@ -441,9 +451,10 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       return;
     }
 
-    const autosaveRestore = await dependencies.lifecycleUi.projectUi.restoreAutosave();
+    const autosaveRestore = await resolveStartupSource({libraryGeometryContext,
+      restoreAutosave:()=>dependencies.lifecycleUi.projectUi.restoreAutosave()});
     const restored = autosaveRestore.project;
-    (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
+    if(!libraryGeometryContext)(0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     dependencies.projectState.state.auditPreviewCountries = window.PANDOLAB_COUNTRIES;
 
     const baseline = !restored || restored.format === 'pandolab-autosave-delta'
@@ -452,7 +463,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       if(baseline)requireCurrentBaseline(baseline,dependencies.domains.projectDomain.getGeneration());
       await restoreSavedProject(restored);
     } else await admitTerritorialBaseline(baseline,'startup-canonical-territories');
-    await dependencies.persistence.applyAutosavedTimeline(autosaveRestore.view);
+    if(!libraryGeometryContext)await dependencies.persistence.applyAutosavedTimeline(autosaveRestore.view);
     await (0, dependencies.objectCatalogView.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.objectDisplay.invalidateObjectPresentation)();
@@ -493,7 +504,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     await dependencies.domains.editingDomain.setTool('select');
     await dependencies.domains.objectSearchController?.completeHydration();
 
-    if (restored) {
+    if (restored && !libraryGeometryContext) {
       await dependencies.lifecycleUi.projectUi.completeAutosaveRecovery();
       dependencies.projectSession.saveState.markNewProject();
       dependencies.projectSession.saveState.setAutosave(dependencies.applicationConstantsA.AUTOSAVE_STATES.SAVED, { fallback: autosaveRestore.source === 'localstorage' ? '브라우저 로컬 저장소' : '' });

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import { readTerritorialSources, territorialDataRoot } from './territorial-entity-sources.mjs';
+import { readTerritorialSources, territorialSourceRoot } from './territorial-entity-sources.mjs';
 import { buildCurrentWorld } from './territorial-current-world.mjs';
 import { compileHistoricalWorldTimeline } from './historical-world-timeline.mjs';
 import { createGeometryVersionStore } from '../assets/js/modules/geometry-version-store.js';
@@ -36,7 +36,7 @@ export function historicalWorldTrace(project, sourceMonth) {
 }
 export function buildHistoricalWorldPublication({ policyFile = fileURLToPath(new URL('../assets/data/historical-world/policy.json', import.meta.url)) } = {}) {
   const entities = readTerritorialSources(), currentWorld = buildCurrentWorld();
-  const snapshotBytes = fs.readFileSync(path.join(territorialDataRoot, 'source/snapshots/current-world.json'));
+  const snapshotBytes = fs.readFileSync(path.join(territorialSourceRoot, 'snapshots/current-world.json'));
   const currentSnapshot = JSON.parse(snapshotBytes), policyBytes = fs.readFileSync(policyFile), policy = JSON.parse(policyBytes);
   for (const rule of policy.replacements) {
     normalizeTemporalInterval(rule.validFrom, rule.validTo);

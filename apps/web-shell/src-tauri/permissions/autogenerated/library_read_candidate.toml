@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-library-read-candidate"
+description = "Enables the library_read_candidate command without any pre-configured scope."
+commands.allow = ["library_read_candidate"]
+
+[[permission]]
+identifier = "deny-library-read-candidate"
+description = "Denies the library_read_candidate command without any pre-configured scope."
+commands.deny = ["library_read_candidate"]

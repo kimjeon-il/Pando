@@ -7252,6 +7252,11 @@ body.file-menu-open .app-root .topbar {
   filter: var(--ui-editing-magnifier-filter);
 }
 
+.territorial-library-source-editor { border-block-start: var(--ui-border-width) solid var(--border); padding: var(--space-3); }
+.territorial-library-source-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); max-height: 42vh; overflow: auto; }
+.territorial-library-source-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); padding-block: var(--space-2); }
+.territorial-library-source-flag { max-width: 72px; max-height: 48px; object-fit: contain; }
+
 /* source: assets/css/components/panels.css */
 
 /* Canonical components / panels. */

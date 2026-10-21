@@ -83,7 +83,7 @@ function canonicalFeatureIssues(featureValue) {
 function buildPreview(canonicalSource) {
   const canonicalFeatures = canonicalSource.features.map(minimalFeature);
   const canonicalIds = canonicalFeatures.map(featureValue => featureValue.id);
-  if (canonicalFeatures.length !== 258 || new Set(canonicalIds).size !== 258) throw new Error('canonical 국가 목록은 중복 없는 258개여야 합니다.');
+  if (!canonicalFeatures.length || new Set(canonicalIds).size !== canonicalFeatures.length) throw new Error('canonical 국가 목록은 비어 있거나 중복되었습니다.');
   const { features, coordinateCount, simplificationQuantile } = buildTopologyPreview(canonicalFeatures, {
     maxCoordinates: MAX_COORDINATES,
     normalizeGeometry: countryGeometry.normalizePolygonGeometry,
@@ -148,9 +148,9 @@ function packMesh(mesh, sourceCoordinateCount) {
   return { raw, compressed: zlib.gzipSync(raw, { level: 9, mtime: 0 }) };
 }
 
-function validatePackedMeshGeometry(mesh) {
+function validatePackedMeshGeometry(mesh, expectedCountries) {
   const vertexCount = mesh.positions.length / 2;
-  if (!Number.isInteger(vertexCount) || mesh.countryIndices.length !== vertexCount || mesh.countryIds.length !== 258) throw new Error('미리보기 GPU 메시 꼭짓점 또는 국가 메타데이터 길이가 올바르지 않습니다.');
+  if (!Number.isInteger(vertexCount) || mesh.countryIndices.length !== vertexCount || mesh.countryIds.length !== expectedCountries) throw new Error('미리보기 GPU 메시 꼭짓점 또는 국가 메타데이터 길이가 올바르지 않습니다.');
   const coordinateKey = index => `${mesh.positions[index * 2]},${mesh.positions[index * 2 + 1]}`;
   const assertIndex = (index, label) => { if (index >= vertexCount) throw new Error(`${label} 인덱스가 꼭짓점 범위를 벗어났습니다: ${index}`); };
   for (let index = 0; index < mesh.triangleIndices.length; index += 3) {
@@ -194,7 +194,7 @@ const canonicalMeshBytes = fs.readFileSync(canonicalMeshPath);
 const canonicalMeshDecoded = zlib.gunzipSync(canonicalMeshBytes);
 const labelAnchorBytes = Buffer.from(fs.readFileSync(labelAnchorsPath, 'utf8').replaceAll('\r\n', '\n'));
 const canonicalSource = JSON.parse(canonicalBytes.toString('utf8'));
-if (canonicalSource?.type !== 'FeatureCollection' || canonicalSource.features?.length !== 258) throw new Error('Natural Earth canonical 국가 데이터는 정확히 258개여야 합니다.');
+if (canonicalSource?.type !== 'FeatureCollection' || !canonicalSource.features?.length) throw new Error('현재 세계지도 국가 데이터가 비어 있거나 올바르지 않습니다.');
 
 const startedAt = performance.now();
 const preview = buildPreview(canonicalSource);
@@ -219,7 +219,7 @@ const canonicalCountryPacket = checkedGzip(canonicalCountryPacketPath, zlib.gzip
 if (canonicalCountryPacketBuffer.byteLength > 10 * 1024 * 1024) throw new Error(`canonical 국가 packet이 10MiB를 초과했습니다: ${canonicalCountryPacketBuffer.byteLength}`);
 if (canonicalCountryPacket.length > 5.5 * 1024 * 1024) throw new Error(`canonical 국가 packet gzip이 5.5MiB를 초과했습니다: ${canonicalCountryPacket.length}`);
 const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, { validate: true, maxEdgeDegrees: 2 });
-validatePackedMeshGeometry(mesh);
+validatePackedMeshGeometry(mesh, canonicalSource.features.length);
 const packedMesh = packMesh(mesh, preview.coordinateCount);
 packedMesh.compressed = checkedGzip(previewMeshPath, packedMesh.compressed);
 const combinedCompressedBytes = previewCountries.length + packedMesh.compressed.length;

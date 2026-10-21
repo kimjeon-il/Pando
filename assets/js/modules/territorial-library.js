@@ -3,6 +3,16 @@ import {createGeometryVersionStore} from './geometry-version-store.js';
 
 export const TERRITORIAL_LIBRARY_SCHEMA_VERSION = 2;
 export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional' });
+export function assertTerritorialIndexEntity(entry,entity){
+  const keys=['schemaVersion','entityId','lineageId','entityKind','names','alternateNames','lifetime','parentEntityId','instantiation','metadata'];
+  const comparable=value=>Array.isArray(value)?value.map(comparable):value&&typeof value==='object'
+    ?Object.fromEntries(Object.keys(value).sort().map(key=>[key,comparable(value[key])])):value;
+  const source=Object.fromEntries(keys.map(key=>[key,entity[key]]));
+  const indexed=Object.fromEntries(keys.map(key=>[key,entry?.[key]]));
+  source.geometryVersions=entity.geometryVersions.map(({geometry,...version})=>version);
+  indexed.geometryVersions=entry?.geometryVersions;
+  if(JSON.stringify(comparable(source))!==JSON.stringify(comparable(indexed)))throw new Error('Territorial index/source metadata mismatch');
+}
 export function historicalSourceAvailability(entity,referenceDate) {
   return sharedCalculationCore.timelineSourceAvailability(entity.lifetime,entity.geometryVersions,referenceDate);
 }

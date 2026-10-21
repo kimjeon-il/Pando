@@ -116,20 +116,20 @@ function validatePackedGeometry(mesh) {
 
 const sourceBytes = Buffer.from(fs.readFileSync(sourcePath, 'utf8').replaceAll('\r\n', '\n'));
 const countries = JSON.parse(sourceBytes.toString('utf8'));
-if (countries?.type !== 'FeatureCollection' || countries.features?.length !== 258) {
-  throw new Error('Natural Earth 국가 데이터는 정확히 258개여야 합니다.');
+if (countries?.type !== 'FeatureCollection' || !countries.features?.length) {
+  throw new Error('현재 세계지도 국가 데이터가 비어 있거나 올바르지 않습니다.');
 }
 const ids = countries.features.map((feature, index) => String(feature.id || index));
 if (new Set(ids).size !== ids.length) throw new Error('국가 ID가 중복되었습니다.');
 const sourceCoordinateCount = countCoordinates(countries.features.map(feature => feature.geometry?.coordinates));
-if (sourceCoordinateCount !== 548454) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);
+if (!Number.isSafeInteger(sourceCoordinateCount) || sourceCoordinateCount <= 0) throw new Error('원본 좌표 수가 올바르지 않습니다.');
 
 const startedAt = performance.now();
 const mesh = meshCore.buildGpuMeshFeatures(countries.features, { validate: true });
 const vertexCount = mesh.positions.length / 2;
 validateIndices(mesh.triangleIndices, vertexCount, 3, '삼각형');
 validateIndices(mesh.lineIndices, vertexCount, 2, '국경선');
-if (mesh.countryIds.length !== 258 || mesh.countryIndices.length !== vertexCount) {
+if (mesh.countryIds.length !== countries.features.length || mesh.countryIndices.length !== vertexCount) {
   throw new Error('국가 또는 꼭짓점 메타데이터 길이가 올바르지 않습니다.');
 }
 if (mesh.countryTriangleRanges.length !== mesh.countryIds.length * 2

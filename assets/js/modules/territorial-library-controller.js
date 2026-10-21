@@ -16,6 +16,7 @@ export function createTerritorialLibraryController({
   setStatus,
   reportError,
   getProjectGeneration,
+  editing = null,
   requestFrame = callback => requestAnimationFrame(callback),
 }) {
   let selectedId = '';
@@ -249,6 +250,7 @@ export function createTerritorialLibraryController({
         ? (referenceDate ? availabilityNotice(service.sourceAvailability(selectedId,referenceDate)) : '대표 국토 자료를 정할 수 없습니다. 시점을 입력해 주세요.')
         : '국토 자료를 불러오는 중입니다.';
       elements.preview.replaceChildren(help);
+      if(editing&&selectedId)editing.decorate({entity:service.get(selectedId),version:null,host:elements.preview});
       elements.add.disabled = true;
       elements.addOptions?.classList.add('hidden');
       elements.optionsBack?.classList.add('hidden');
@@ -274,6 +276,7 @@ export function createTerritorialLibraryController({
     heading.append(title);
     elements.preview.replaceChildren(heading, map, ...(source.textContent ? [source] : []),
       ...(meta.textContent ? [meta] : []));
+    if(editing)editing.decorate({entity,version,host:elements.preview});
     elements.add.disabled = false;
     const hasChildren = service.list().some(candidate => candidate.parentEntityId === entity.entityId);
     if (hasChildren) elements.addOptions?.classList.remove('hidden');
@@ -596,5 +599,5 @@ export function createTerritorialLibraryController({
     elements.optionsBack?.addEventListener('click', returnToDetail);
   }
 
-  return Object.freeze({ close, connect, isOpen: () => !elements.modal.classList.contains('hidden'), open, renderPreview, renderResults, select });
+  return Object.freeze({ close, connect, isOpen: () => !elements.modal.classList.contains('hidden'), open, renderPreview, renderResults, select,selectedEntityId:()=>selectedId });
 }
