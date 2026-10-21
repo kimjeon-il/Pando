@@ -7,6 +7,7 @@ import { gzipSync } from 'node:zlib';
 import { tinyFixture } from './fixture.mjs';
 import { installNetworkGuard } from './network-guard.js';
 import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
+import { prepareLibraryData } from '../../tools/library-data.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(here, '../..');
@@ -34,6 +35,7 @@ export async function stagePrototype({ root = repository, profile = 'small-proje
 async function stageOwnedPrototype({ root, profile }) {
   root = resolve(root);
   const generator = join(root, 'scripts/generate-build-metadata.mjs');
+  if (await exists(generator)) prepareLibraryData({ root });
   if (await exists(generator)) execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
   const buildSource = await readFile(join(root, 'assets/js/build-meta.js'), 'utf8');
   const buildMeta = JSON.parse(buildSource.match(/Object\.freeze\(([\s\S]*)\);\s*$/)?.[1] || '{}');
@@ -156,7 +158,9 @@ async function stageOwnedPrototype({ root, profile }) {
     commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
     trackedDiffSha256 = hash(execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: root, windowsHide: true, maxBuffer: 8 * 1024 * 1024 }));
   } catch { /* Synthetic staging tests have no Git directory. */ }
+  const dataPin = await exists(join(root, 'config/library-data.json')) ? JSON.parse(await readFile(join(root, 'config/library-data.json'), 'utf8')) : null;
   const result = { schema: 'pandolab-web-shell-stage', profile, directory, commit, trackedDiffSha256,
+    dataRepository: dataPin?.repository, dataCommit: dataPin?.revision,
     coreSourceSha256: coreManifest.sourceSha256 || null,
     fixture: fixture ? { entityCount: fixture.entityCount, coordinateCount: fixture.coordinateCount, sha256: fixtureHash } : null,
     worldData, files, bytes: files.reduce((sum, file) => sum + file.bytes, 0) };

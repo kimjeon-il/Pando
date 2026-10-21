@@ -17,8 +17,8 @@ Event inventories are reusable across sovereigns and eras: Germany 1914 coastal 
 
 - **Current national source geometry:** `assets/data/territorial-entities/source/countries/<lineageId>.json` and the existing territorial build pipeline. Generated bundles are **not** authoritative editable source.
 - **German regional event evidence:** `tools/historical-library/sources/german-coastline/change-events.json` and the detailed WMS / dyke / Helgoland evidence alongside it. Do **not** copy those entries into another 'global' country-specific table.
-- **Dutch regional event evidence:** `tools/historical-library/sources/netherlands/change-events.json` and the previously prepared [reverse-chronological source plan](../reports/geography/netherlands/land-reclamation-reverse-timeline.md).
-- **Read-only Dutch current-baseline point audit:** [phase-0 result](../reports/geography/netherlands/phase0-canonical-audit.md). Neither this audit nor the nine indexed events contains a digitized historical shoreline.
+- **Dutch regional event evidence:** `tools/historical-library/sources/netherlands/change-events.json` and the previously prepared [reverse-chronological source plan](https://github.com/kimjeon-il/PandoLab-library-data/blob/a09a1de5ee0e7fd6d6f8627c84f887068ca4eba9/reports/geography/netherlands/land-reclamation-reverse-timeline.md).
+- **Read-only Dutch current-baseline point audit:** [phase-0 result](https://github.com/kimjeon-il/PandoLab-library-data/blob/a09a1de5ee0e7fd6d6f8627c84f887068ca4eba9/reports/geography/netherlands/phase0-canonical-audit.md). Neither this audit nor the nine indexed events contains a digitized historical shoreline.
 
 Worldwide catalogue discovery now starts from the [read-only coastline catalogue registry](../tools/historical-library/sources/coastline-catalogs.json). It references German and Dutch regional source catalogues by **path and geographic scope**, without copying events. A future loader may consume this registry; no production loader or current-world build has been changed.
 
