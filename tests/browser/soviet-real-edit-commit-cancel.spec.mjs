@@ -393,8 +393,8 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
         boundaryWorkerJsMiB: current.sharedJsMiB, mapEditWorkerJsMiB: current.editJsMiB,
         longTask: scenario.longTask }));
     }
-    await setMonth(page, await page.evaluate(() => window.PANDOLAB_BUILD_META.historicalWorld.sourceMonth));
-    await settleWorld(page, await page.evaluate(() => window.PANDOLAB_BUILD_META.historicalWorld.sourceMonth), false);
+    await setMonth(page, await page.evaluate(() => new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')));
+    await settleWorld(page, await page.evaluate(() => new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')), false);
     snapshots.push(await snapshot(page, probe, 'modern-after-restored-edits'));
     expect(await fingerprint(page)).toBeNull();
     report.summary = { scenarioCount: scenarios.length, cancelCount: scenarios.filter(s => s.mode==='cancel-preview').length,

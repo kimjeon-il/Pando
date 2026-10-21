@@ -4,7 +4,7 @@ const HEX40 = /^[0-9a-f]{40}$/;
 const CACHE_NAME = 'pandolab-library-channel-v1';
 const ROLES = Object.freeze({
   territorialIndex: 'territorial-entities/generated/v2/index.json',
-  historicalWorld: 'historical-world/generated/v1/manifest.json',
+  builtinWorld: 'builtin-world/generated/v1/index.json',
   preparedPolygonMeshes: 'prepared-polygons/generated/v2/manifest.json',
   worldBundle: 'world/current.json',
 });
@@ -48,7 +48,7 @@ function overlay(buildMeta, release, pointer) {
   return Object.freeze({ ...buildMeta, dataRevision: release.revision,
     publicReleaseManifestSha256: pointer.manifestSha256,
     territorialIndex: Object.freeze({ ...assets.territorialIndex }),
-    historicalWorld: Object.freeze({ ...assets.historicalWorld }),
+    builtinWorld: Object.freeze({ ...assets.builtinWorld }),
     preparedPolygonMeshes: Object.freeze({ ...assets.preparedPolygonMeshes }),
     worldBundle: Object.freeze({ ...assets.worldBundle }),
   });

@@ -103,7 +103,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeomet
     (0, dependencies.builtinCountries.installCanonicalCountryStore)(geometry.canonicalCountryStore);
     const restored = autosaveRestore.project;
     const projectGeneration = previewStart.projectGeneration;
-    const baseline = !restored || restored.format === 'pandolab-autosave-delta'
+    const baseline = !restored
       ? await dependencies.builtinBaseline.prepareProjectBaseline() : null;
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
@@ -123,6 +123,8 @@ export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeomet
       if(baseline)requireCurrentBaseline(baseline,dependencies.domains.projectDomain.getGeneration());
       await restoreSavedProject(restored);
     } else await admitTerritorialBaseline(baseline,'startup-canonical-territories');
+    if (Number.isFinite(projectGeneration)
+      && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
     const userChangedPreviewMonth = !!previewStart.timelineMonth
       && liveMonthBeforeAdmission !== previewStart.timelineMonth;
     if(!libraryGeometryContext)await dependencies.persistence.applyAutosavedTimeline(userChangedPreviewMonth
@@ -298,11 +300,6 @@ export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeomet
     const autosaveRestore = await autosavePromise;
     const savedProject = autosaveRestore.project;
     const baseline = window.PANDOLAB_PREVIEW_BASELINE;
-    if(savedProject?.format==='pandolab-autosave-delta') {
-      const expectedGeneration=dependencies.domains.projectDomain.getGeneration();
-      const source=await dependencies.builtinBaseline.prepareProjectBaseline();
-      requireCurrentBaseline(source,expectedGeneration);
-    }
     const previewInput=savedProject ? {project:savedProject,
       territorialViews:(await dependencies.domains.projectDomain.inspectImport(savedProject)).territorialViews}:null;
     const defaultPreview = !savedProject || matchesDefaultPreview(previewInput, baseline);
@@ -310,7 +307,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeomet
       ? await dependencies.domains.projectDomain.restorePreview(savedProject, previewInput) : null;
     const previewSource = !savedProject ? {kind:'default'} : previewSourceForProject(previewInput, baseline, cachedPreview);
     const hasStoredCountryGeometry = previewSource.kind === 'restore';
-    const sourceMonth = window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth || new Date().toISOString().slice(0, 7);
+    const sourceMonth = new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
     const allowDefaultPreview = !dependencies.projectState.state.timelineCursor || dependencies.projectState.state.timelineCursor === sourceMonth;
     const allowPreview = !hasStoredCountryGeometry && (previewSource.kind !== 'default' || allowDefaultPreview);
     restoringCountryFirstPaint = hasStoredCountryGeometry;
@@ -457,7 +454,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeomet
     if(!libraryGeometryContext)(0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     dependencies.projectState.state.auditPreviewCountries = window.PANDOLAB_COUNTRIES;
 
-    const baseline = !restored || restored.format === 'pandolab-autosave-delta'
+    const baseline = !restored
       ? await dependencies.builtinBaseline.prepareProjectBaseline() : null;
     if (restored) {
       if(baseline)requireCurrentBaseline(baseline,dependencies.domains.projectDomain.getGeneration());

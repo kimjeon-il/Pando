@@ -74,7 +74,7 @@ jobs:
           node tools/build-territorial-entity-chunks.mjs
           node tools/build-territorial-current-world.mjs
           node tools/publication-label-anchors.mjs --before "$RUNNER_TEMP/baseline-current-world.geojson" --after assets/data/territorial-entities/generated/current-world.geojson --anchors assets/data/country-label-anchors-v0.10.1.json
-          node tools/build-historical-world-timeline.mjs
+          node tools/build-builtin-world.mjs
           node tools/build-world-mesh.mjs
           node tools/build-world-preview.mjs
           node tools/build-world-bundle.mjs
@@ -82,7 +82,6 @@ jobs:
           node tools/build-prepared-polygon-mesh.mjs
           node tools/build-territorial-entity-chunks.mjs --check
           node tools/build-territorial-current-world.mjs --check
-          node tools/build-historical-world-timeline.mjs --check
           node tools/build-world-preview.mjs --check
           node tools/build-world-bundle.mjs --check
           node tools/build-country-shared-boundaries.mjs --check

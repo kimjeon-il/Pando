@@ -16,6 +16,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `GEO-LOAD-20261021` | [국가별 내장 지도 로딩·현재 월 자동 선택·기존 단일 파일 보관](geography/country-loading-current-month-2026-10-21.md) | 2026-10-21 | `implemented / focused-verification` | `work-gis-only` |
 | `GEO-WORLD-20261021` | [국가별 원본 분리와 LSIB 육상 국경 보충·미교체 구간 전체 목록](geography/country-files-lsib-2026-10-21.md) | 2026-10-21 | `implemented-partially / provisional` | `work-gis-only` |
 | `GEO-KOR-20261021` | [한국·북한 정부수립일과 남북 경계 전환](geography/korea-boundaries-2026-10-21.md) | 2026-10-21 | `implemented-partially / provisional` | `work-gis-only` |
 | `GEO-REVIEW-20261020-FOLLOWUP` | [GIS 후속 검토 — 중앙아시아 벡터 후보·원문 부재 보류](geography/reviews/followup-2026-10-20-vector-sources.md) | 2026-10-20 UTC / 10-21 한국 | `investigating` | `not-applied` |

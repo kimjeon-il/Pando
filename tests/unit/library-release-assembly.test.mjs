@@ -20,8 +20,8 @@ function fixture() {
   };
   const chunk = write('territorial-entities/generated/v2/state-AAA.json.gz', 'chunk');
   write('territorial-entities/generated/v2/index.json', JSON.stringify({ schemaVersion: 2, entities: [{ file: 'state-AAA.json.gz', ...chunk }], lineages: [], snapshots: [] }));
-  const project = write('historical-world/generated/v1/world-project.json.gz', 'project');
-  write('historical-world/generated/v1/manifest.json', JSON.stringify({ schemaVersion: 1, project: { ...project, url: `assets/data/${project.url}` } }));
+  const country=write('builtin-world/generated/v1/countries/AAA.json.gz','country');
+  write('builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,entities:[{...country,file:'countries/AAA.json.gz'}]}));
   const source = write('territorial-entities/generated/current-world.geojson', 'world');
   const worldAsset = write('world/objects/countries-preview-sha256-' + 'c'.repeat(64) + '.geojson.gz', 'preview');
   const shared = write('countries-preview-shared-v0.36.1.json.gz', 'shared');
@@ -40,15 +40,15 @@ test('assembles a content-checked immutable release and a last-written activatio
   assert.equal(result.manifest.assets.preparedPolygonMeshes.algorithmSourceSha256, 'f'.repeat(64));
   const pointer = JSON.parse(readFileSync(join(output, 'assets/data/library-channel/current.json')));
   assert.equal(pointer.manifestSha256, hash(readFileSync(join(output, `assets/data/library-releases/${revision}/manifest.json`))));
-  const historical = JSON.parse(readFileSync(join(output, `assets/data/library-releases/${revision}/historical-world/generated/v1/manifest.json`)));
-  assert.equal(historical.project.url, `assets/data/library-releases/${revision}/historical-world/generated/v1/world-project.json.gz`);
+  const historical = JSON.parse(readFileSync(join(output, `assets/data/library-releases/${revision}/builtin-world/generated/v1/index.json`)));
+  assert.equal(historical.entities[0].file,'countries/AAA.json.gz');
   assert.equal(verifyLibraryRelease({ output, revision }).fileCount, result.fileCount);
 });
 
 test('rejects a missing referenced asset without activating the pointer', () => {
   const { root, output } = fixture();
-  const file = join(root, 'assets/data/historical-world/generated/v1/manifest.json');
-  writeFileSync(file, JSON.stringify({ schemaVersion: 1, project: { url: 'assets/data/missing.gz', sha256: '0'.repeat(64) } }));
+  const file = join(root, 'assets/data/builtin-world/generated/v1/index.json');
+  writeFileSync(file, JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,entities:[{file:'countries/missing.gz',sha256:'0'.repeat(64)}]}));
   assert.throws(() => assembleLibraryRelease({ root, output, revision, sourceRevision }), /Missing|missing|없습니다/);
   assert.throws(() => readFileSync(join(output, 'assets/data/library-channel/current.json')));
 });

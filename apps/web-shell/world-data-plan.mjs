@@ -6,7 +6,7 @@ const LIBRARY_ROOT = 'assets/data/territorial-entities/generated/v2/';
 const PREPARED_ROOT = 'assets/data/prepared-polygons/generated/v2/';
 
 export function buildFullWorldAssetPlan({ meta, world, historical, library, prepared, hydro, places }) {
-  if (!meta?.historicalWorld || !meta?.territorialIndex || !meta?.preparedPolygonMeshes
+  if (!meta?.builtinWorld || !meta?.territorialIndex || !meta?.preparedPolygonMeshes
       || !/^data-[a-f0-9]{32}$/.test(meta.dataRevision || '')) {
     throw new Error('Current published world metadata is required.');
   }
@@ -14,9 +14,8 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
       || world.source?.countryCount !== 258 || !world.assets) {
     throw new Error('Current world manifest is not a 258-country world bundle.');
   }
-  if (historical?.schemaVersion !== 1 || historical.project?.encoding !== 'gzip'
-      || !/^\d{4}-\d{2}$/.test(historical.sourceMonth || '')) {
-    throw new Error('Historical world manifest is not the current project contract.');
+  if (historical?.schema !== 'pandolab-builtin-world' || historical.schemaVersion !== 1 || !Array.isArray(historical.entities)) {
+    throw new Error('Builtin world country index is unavailable.');
   }
   if (library?.schemaVersion !== 2 || !Array.isArray(library.entities) || !library.entities.length
       || prepared?.schemaVersion !== 2 || !prepared.meshes) {
@@ -64,11 +63,11 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
     }
     add('assets/data/' + name);
   }
-  add('assets/data/historical-world/generated/v1/manifest.json', meta.historicalWorld);
-  if (historical.project.url !== 'assets/data/historical-world/generated/v1/world-project.json.gz') {
-    throw new Error('Unexpected historical world project path.');
+  add('assets/data/builtin-world/generated/v1/index.json', meta.builtinWorld);
+  for(const entry of historical.entities){
+    if(!/^countries\/[A-Za-z0-9_-]+-sha256-[a-f0-9]{64}\.json\.gz$/.test(entry.file)||!entry.file.includes(entry.sha256))throw new Error('Invalid builtin country file');
+    add('assets/data/builtin-world/generated/v1/'+entry.file,entry);
   }
-  add(historical.project.url, historical.project);
   add(LIBRARY_ROOT + 'index.json', meta.territorialIndex);
   for (const item of library.entities) {
     if (!/^state-[A-Za-z0-9_-]+\.json\.gz$/.test(item.file || '')) {
@@ -126,7 +125,7 @@ export async function loadFullWorldAssetPlan(readText){
     const plan = buildFullWorldAssetPlan({
       meta,
       world: await loadManifest('assets/data/world/current.json'),
-      historical: await loadManifest('assets/data/historical-world/generated/v1/manifest.json'),
+      historical: await loadManifest('assets/data/builtin-world/generated/v1/index.json'),
       library: await loadManifest('assets/data/territorial-entities/generated/v2/index.json'),
       prepared: await loadManifest('assets/data/prepared-polygons/generated/v2/manifest.json'),
       hydro: await loadManifest('assets/data/hydro/v0.13.2/manifest.json'),

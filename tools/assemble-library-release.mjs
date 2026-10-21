@@ -9,7 +9,7 @@ const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const json = bytes => JSON.parse(bytes.toString('utf8'));
 const RELEASE_ASSETS = Object.freeze({
   territorialIndex: 'territorial-entities/generated/v2/index.json',
-  historicalWorld: 'historical-world/generated/v1/manifest.json',
+  builtinWorld: 'builtin-world/generated/v1/index.json',
   preparedPolygonMeshes: 'prepared-polygons/generated/v2/manifest.json',
   worldBundle: 'world/current.json',
 });
@@ -63,14 +63,9 @@ export function assembleLibraryRelease({ root, output, revision, sourceRevision 
   if (index.schemaVersion !== 2 || !Array.isArray(index.entities)) throw new Error('Invalid publication territorial index');
   for (const entry of index.entities) copy(`territorial-entities/generated/v2/${relativeDataPath(entry.file)}`, entry.sha256);
 
-  const historical = json(copy(RELEASE_ASSETS.historicalWorld));
-  if (historical.schemaVersion !== 1 || !historical.project?.url) throw new Error('Invalid publication historical world');
-  for (const key of ['project', 'coverageReport', 'expectedTrace']) if (historical[key]?.url) {
-    const path = relativeDataPath(historical[key].url);
-    copy(path, historical[key].sha256);
-    historical[key].url = releasePrefix + path;
-  }
-  replace(RELEASE_ASSETS.historicalWorld, historical);
+  const historical = json(copy(RELEASE_ASSETS.builtinWorld));
+  if (historical.schema !== 'pandolab-builtin-world' || historical.schemaVersion !== 1 || !Array.isArray(historical.entities)) throw new Error('Invalid publication builtin world');
+  for(const entry of historical.entities)copy(`builtin-world/generated/v1/${relativeDataPath(entry.file)}`,entry.sha256);
 
   const world = json(copy(RELEASE_ASSETS.worldBundle));
   if (world.schema !== 'pandolab-world-bundle' || world.schemaVersion !== 1

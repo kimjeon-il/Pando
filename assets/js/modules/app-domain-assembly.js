@@ -146,10 +146,10 @@ export function createDomainAssembly() {
       },
       persistence: dependencies.persistence.persistenceService,
       saveState: dependencies.projectSession.saveState,
-      prepareNewProject: async () => {
+      prepareNewProject: async setup => {
         const countryIds = dependencies.builtinCountries.canonicalCountryStore?.ids?.() || [];
         const [baseline] = await Promise.all([
-          dependencies.builtinBaseline.prepareProjectBaseline(),
+          dependencies.builtinBaseline.prepareProjectBaseline(setup.initialMonth),
           dependencies.rendering.gpuMapRenderer.ensureBuiltinMeshBaseline(countryIds),
         ]);
         return { baselineId:baseline.baselineId,

@@ -1,0 +1,224 @@
+import { createHash } from 'node:crypto';
+import { normalizeTemporalInterval, parseTemporal } from '../assets/js/modules/temporal.js';
+import { normalizeCountryCollection } from '../assets/js/modules/country-feature.js';
+import { classifyBuiltinCountries, builtinSubunitSourceId } from '../assets/js/modules/builtin-subunits.js';
+import { BUILTIN_TERRITORY_MERGES } from '../assets/js/modules/builtin-territory-policy.js';
+import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from '../assets/js/modules/territorial-units.js';
+import { createGeometryVersionStore } from '../assets/js/modules/geometry-version-store.js';
+import { normalizeTimelineRecords } from '../assets/js/modules/timeline-records.js';
+import { createProjectSerializer } from '../assets/js/modules/project-serializer.js';
+import { DISTRIBUTION_MODES } from '../assets/js/modules/distribution-model.js';
+import { adjustHistoricalTerritories, historicalWorldClipper } from './historical-world-territories.mjs';
+
+const compare = (a, b) => {
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1;
+  return 0;
+};
+const date = ([year, month, day]) => `${year < 0 ? '-' : year > 9999 ? '+' : ''}${String(Math.abs(year)).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+function shiftDay(key, direction) {
+  let [year, month, day] = key;
+  if (direction > 0) {
+    const end = parseTemporal(date([year, month, 1]).slice(0, -3)).endKey[2];
+    if (++day > end) { day = 1; if (++month > 12) { month = 1; year = year === -1 ? 1 : year + 1; } }
+  } else if (--day < 1) {
+    if (--month < 1) { month = 12; year = year === 1 ? -1 : year - 1; }
+    day = parseTemporal(date([year, month, 1]).slice(0, -3)).endKey[2];
+  }
+  return [year, month, day];
+}
+function bounds(interval) {
+  const value = normalizeTemporalInterval(interval.validFrom, interval.validTo);
+  return { start: value.start?.startKey ?? null, end: value.end?.endKey ?? null };
+}
+function intersection(a, b) {
+  const start = !a.start ? b.start : !b.start ? a.start : compare(a.start, b.start) > 0 ? a.start : b.start;
+  const end = !a.end ? b.end : !b.end ? a.end : compare(a.end, b.end) < 0 ? a.end : b.end;
+  return start && end && compare(start, end) > 0 ? null : { start, end };
+}
+function covers(interval, start) {
+  if (start === null) return interval.start === null;
+  return (!interval.start || compare(interval.start, start) <= 0) && (!interval.end || compare(interval.end, start) >= 0);
+}
+function append(rows, row, sameValue) {
+  const previous = rows.at(-1);
+  if (previous && previous.entityId === row.entityId && previous.validTo !== null && row.validFrom !== null
+      && date(shiftDay(parseTemporal(previous.validTo).endKey, 1)) === row.validFrom && sameValue(previous, row)) {
+    previous.validTo = row.validTo;
+  } else rows.push(row);
+}
+const identity = feature => ({ type: 'Feature', id: feature.id, geometry: null,
+  properties: Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.map(key => [key, structuredClone(feature.properties[key])])) });
+const withoutGeometry = ({ geometry, ...value }) => structuredClone(value);
+
+/** Build an ordinary editable project; library inputs and raw intervals stay immutable. */
+export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper }) {
+  if(view?.schemaVersion!==1 || !Array.isArray(view.selections) || Object.hasOwn(view,'referenceDate'))throw new Error('Invalid world view');
+  if (!policy || policy.schemaVersion !== 1) throw new Error('Missing historical world policy');
+  const selection=new Map(view.selections.map(row=>[row.entityId,row.geometryVersionId]));
+  if(selection.size!==view.selections.length)throw new Error('Duplicate world selection');
+  const bySource = new Map(entities.map(entity => [entity.entityId, entity]));
+  if (bySource.size !== entities.length) throw new Error('Duplicate source entity');
+  const currentIds = new Set(selection.keys());
+  for (const id of currentIds) if (!bySource.has(id)) throw new Error(`Missing current source: ${id}`);
+  const classified = classifyBuiltinCountries(normalizeCountryCollection(currentWorld));
+  const definitions = new Map(), sourceToProject = new Map(), sourceIdentities = [];
+  for (const feature of [...classified.countries.features, ...classified.subunits]) {
+    const sourceFeature = builtinSubunitSourceId(feature) || feature.id;
+    const sourceFeatureIds = [sourceFeature, ...BUILTIN_TERRITORY_MERGES.filter(row => row.controller === sourceFeature).map(row => row.sourceId)].sort();
+    const sources = entities.filter(entity => currentIds.has(entity.entityId) && sourceFeatureIds.includes(entity.sourceInfo?.featureId));
+    if (!sources.length) throw new Error(`Missing current identity: ${feature.id}`);
+    for (const source of sources) sourceToProject.set(source.entityId, feature.id);
+    const info = { projectEntityId: feature.id, sourceEntityIds: sources.map(source => source.entityId).sort(), sourceFeatureIds, currentGeometryRef: null };
+    sourceIdentities.push(info);
+    const primary = sources.find(source => source.sourceInfo.featureId === sourceFeature);
+    const lifetime = bounds(primary.lifetime);
+    const version = primary.geometryVersions.find(row=>row.versionId===selection.get(primary.entityId));
+    if(!version)throw new Error(`Missing selected geometry: ${primary.entityId}`);
+    const normalized = identity(feature);
+    normalized.properties.metadata.historicalTimeline = { entityId: primary.entityId, sourceEntityIds: info.sourceEntityIds,
+      lifetime: structuredClone(primary.lifetime), geometryVersions: primary.geometryVersions.map(withoutGeometry), geometryBindings: [] };
+    const windows=primary.geometryVersions.map(row=>{
+      const interval=intersection(lifetime,bounds(row));
+      return interval && {...interval,versionId:row.versionId,currentOnly:row.datePrecision==='current',
+        geometry:row.versionId===version.versionId?feature.geometry:row.geometry,
+        parentId:feature.properties.parentId,coverageMode:feature.properties.coverageMode,
+        currentSnapshot:row.versionId===version.versionId};
+    }).filter(Boolean);
+    definitions.set(feature.id,{identity:normalized,currentSnapshot:true,info,windows});
+  }
+  for (const entity of entities) {
+    const lifetime = bounds(entity.lifetime);
+    // Validate all input windows/geometry, including sources outside the snapshot.
+    for (const version of entity.geometryVersions) {
+      bounds(version);
+      if (!version.geometry) throw new Error(`Missing source geometry: ${version.versionId}`);
+    }
+    if (currentIds.has(entity.entityId)) continue;
+    const first = entity.geometryVersions[0];
+    if (!first) throw new Error(`Missing source geometry: ${entity.entityId}`);
+    const feature = createTerritorialFeature({ id: entity.entityId, entityKind: entity.entityKind,
+      name: entity.names.ko || entity.names.en || Object.values(entity.names)[0], geometry: first.geometry,
+      color: entity.metadata?.defaultColor || '',
+      notes: entity.metadata?.notes || '', metadata: { ...structuredClone(entity.metadata),
+        ...(entity.entityKind === 'general' && !entity.parentEntityId && entity.metadata?.defaultFlagDataUrl
+          ? { flagDataUrl: entity.metadata.defaultFlagDataUrl } : {}),
+        historicalTimeline: { entityId: entity.entityId, lifetime: structuredClone(entity.lifetime),
+          sourceInfo: structuredClone(entity.sourceInfo), geometryVersions: entity.geometryVersions.map(withoutGeometry), geometryBindings: [] } },
+      sourceEntityId: entity.entityId });
+    const windows = entity.geometryVersions.map(version => {
+      const available = bounds(version);
+      const interval = available && intersection(lifetime, available);
+      return interval && { ...interval, currentOnly:version.datePrecision==='current', geometry: version.geometry, versionId: version.versionId,
+        parentId: sourceToProject.get(entity.parentEntityId) || entity.parentEntityId,
+        coverageMode: entity.instantiation.coverageMode || 'explicit' };
+    }).filter(Boolean);
+    definitions.set(entity.entityId, { identity: identity(feature), currentSnapshot: false, windows });
+    sourceIdentities.push({ projectEntityId: entity.entityId, sourceEntityIds: [entity.entityId], sourceFeatureIds: [], currentGeometryRef: null });
+  }
+  const eligibleWindows=(definition,mode)=>definition.windows.filter(window=>mode==='dated'?!window.currentOnly:
+    definition.currentSnapshot?window.currentSnapshot:window.end===null);
+  const archive = createGeometryVersionStore(), byGeometry = new Map();
+  const contexts={}, adjustments = [];
+  const refByObject=new WeakMap();
+  const geometryRef = geometry => {
+    if(refByObject.has(geometry))return refByObject.get(geometry);
+    const bytes = JSON.stringify(geometry), hash = createHash('sha256').update(bytes).digest('hex');
+    if (!byGeometry.has(hash)) { const ref = { id: `historical-world:${hash}`, version: 1 }; archive.insert(ref, geometry); byGeometry.set(hash, ref); }
+    const ref=byGeometry.get(hash);refByObject.set(geometry,ref);return ref;
+  };
+  const ordered = [...definitions].sort(([a], [b]) => a.localeCompare(b, 'en'));
+  for(const mode of ['dated','current']) {
+  const events=new Map();
+  for(const definition of definitions.values())for(const window of eligibleWindows(definition,mode)){
+    if(window.start)events.set(date(window.start),window.start);
+    if(window.end){const next=shiftDay(window.end,1);events.set(date(next),next);}
+  }
+  for(const rule of policy.replacements){const interval=bounds(rule);
+    if(interval.start)events.set(date(interval.start),interval.start);
+    if(interval.end){const next=shiftDay(interval.end,1);events.set(date(next),next);}
+  }
+  const cuts=[...events.values()].sort(compare);
+  const rowsByEntity=new Map(),sourceBindings=new Map();
+  for (let index = 0; index <= cuts.length; index++) {
+    const start = index === 0 ? null : cuts[index - 1], end = index === cuts.length ? null : shiftDay(cuts[index], -1);
+    let candidates = [];
+    for (const [id, definition] of ordered) {
+      let active = eligibleWindows(definition,mode).filter(window=>covers(window,start));
+      if(active.some(window=>!window.currentOnly))active=active.filter(window=>!window.currentOnly);
+      if (active.length > 1) throw new Error(`Overlapping geometry intervals: ${id}`);
+      if (active.length) candidates.push({ ...active[0], entityId: id, currentSnapshot: active[0].currentSnapshot ?? definition.currentSnapshot,
+        validFrom: start && date(start), validTo: end && date(end) });
+    }
+    // A parent gap hides descendants transitively; cycles are a source error.
+    const all = new Map(candidates.map(row => [row.entityId, row]));
+    const activeParent = (row, seen = new Set()) => {
+      if (seen.has(row.entityId)) throw new Error(`Cyclic parent: ${row.entityId}`);
+      if (!row.parentId) return true;
+      seen.add(row.entityId);
+      const parent = all.get(row.parentId);
+      return !!parent && activeParent(parent, seen);
+    };
+    candidates = candidates.filter(row => activeParent(row));
+    const mappedPolicy = { ...policy, replacements: policy.replacements.map(rule => ({ ...rule,
+      targetEntityId: sourceToProject.get(rule.targetEntityId) || rule.targetEntityId,
+      priorityEntityId: sourceToProject.get(rule.priorityEntityId) || rule.priorityEntityId,
+    })) };
+    const adjusted = adjustHistoricalTerritories(candidates, mappedPolicy, clipper);
+    candidates = adjusted.candidates;
+    const surviving=new Map(candidates.map(row=>[row.entityId,row]));
+    const hasParent=row=>!row.parentId || (surviving.has(row.parentId)&&hasParent(surviving.get(row.parentId)));
+    candidates=candidates.filter(hasParent);
+    adjustments.push(...adjusted.adjustments.map(row => ({ ...row, mode, validFrom: start && date(start), validTo: end && date(end) })));
+    for (const candidate of candidates) {
+      const definition = definitions.get(candidate.entityId), ref = geometryRef(candidate.geometry);
+      if (definition.currentSnapshot) definition.info.currentGeometryRef = ref;
+      let rows = rowsByEntity.get(candidate.entityId);
+      if (!rows) rowsByEntity.set(candidate.entityId, rows = { lifetimes: [], geometryBindings: [], parentRelations: [] });
+      const base = { entityId: candidate.entityId, validFrom: start && date(start), validTo: end && date(end) };
+      append(rows.lifetimes, { ...base }, () => true);
+      append(rows.geometryBindings, { ...base, geometryRef: ref }, (a, b) => a.geometryRef.id === b.geometryRef.id);
+      append(rows.parentRelations, { ...base, parentId: candidate.parentId, coverageMode: candidate.coverageMode }, (a, b) => a.parentId === b.parentId && a.coverageMode === b.coverageMode);
+      if(!sourceBindings.has(candidate.entityId))sourceBindings.set(candidate.entityId,[]);
+      append(sourceBindings.get(candidate.entityId),{...base,geometryRef:ref,sourceVersionId:candidate.versionId},
+        (a,b)=>a.geometryRef.id===b.geometryRef.id&&a.sourceVersionId===b.sourceVersionId);
+
+    }
+  }
+  const identities = normalizeTerritorialIdentities(ordered.filter(([id]) => rowsByEntity.has(id)).map(([, value]) => value.identity));
+  const records = { schemaVersion: 2, lifetimes: [], geometryBindings: [], parentRelations: [], propertyBindings: [] };
+  for (const [id] of ordered) {
+    const rows = rowsByEntity.get(id); if (!rows) continue;
+    for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));
+  }
+  const normalized = normalizeTimelineRecords(records, { entities: identities.map(row => ({ id: row.id, entityKind: row.properties.entityKind })), geometryExists: ref => archive.get(ref) !== null });
+  contexts[mode]={identities,records:normalized,sourceBindings};
+  }
+  const snapshot={documentId:'6dcead54-3bc5-4ca2-a4f5-455305bba911',physicalSourceInfo:{},territorialEntities:[],fullAutosave:true,projectFields:{
+    timelineRecords:{schemaVersion:2,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]},geometries:[],sourceInfo:null,
+    labels:[],genericFeatures:[],hydroEdits:[],distributionLayers:[],distributionEntries:[],labelSettings:{},
+    distributionSettings:{renderMode:'overlap',activeLayerId:'',boundaryVisible:true},
+    projectSetup:{initialMonth:'1970-01',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
+    layerPresentation:{schemaVersion:5,styles:{},objectStyles:{},objectOrder:[]}}};
+  const template=createProjectSerializer({appVersion:'builtin-world-v1',distributionModes:Object.values(DISTRIBUTION_MODES),
+    now:()=>new Date(0),readSnapshot:()=>snapshot}).buildProject();
+  delete template.projectSetup;
+  const countries=[];
+  const allGeometry=archive.snapshot();
+  for(const [id,definition] of ordered){
+    const modes={};
+    for(const mode of ['dated','current']){
+      const records=contexts[mode].records;
+      modes[mode]=Object.fromEntries(Object.entries(records).map(([key,value])=>[key,
+        Array.isArray(value)?value.filter(row=>row.entityId===id):value]));
+    }
+    if(!modes.dated.lifetimes.length&&!modes.current.lifetimes.length)continue;
+    const refs=new Set(Object.values(modes).flatMap(rows=>rows.geometryBindings.map(row=>JSON.stringify(row.geometryRef))));
+    const geometries=allGeometry.filter(row=>refs.has(JSON.stringify({id:row.id,version:row.version})));
+    countries.push({schemaVersion:1,entityId:id,identity:definition.identity,modes,geometries,
+      sourceBindings:Object.fromEntries(['dated','current'].map(mode=>[mode,contexts[mode].sourceBindings.get(id)||[]]))});
+  }
+  const index={schema:'pandolab-builtin-world',schemaVersion:1,template,
+    entities:countries.map(country=>({entityId:country.entityId,coverage:Object.fromEntries(Object.entries(country.modes).map(([mode,rows])=>
+      [mode,rows.lifetimes.map(({validFrom,validTo})=>({validFrom,validTo}))]))})),sourceIdentities};
+  return {index,countries,coverageReport:{schemaVersion:2,adjustments}};
+}

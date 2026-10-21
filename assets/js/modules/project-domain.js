@@ -80,7 +80,9 @@ export function createProjectDomain({
       epoch: output.state.epoch,content: output.state.checkpoint,presentation: output.state.presentationCheckpoint }) });
   };
   const buildFileSnapshot = () => exportReceipt('pandolab-project-state');
-  const buildAutosave = () => exportReceipt('pandolab-autosave');
+  // Country selections are date-specific sources, not a globally reproducible
+  // baseline. Persist a self-contained document across calendar/data updates.
+  const buildAutosave = () => exportReceipt('pandolab-autosave-full');
   const emitChanged = (reason, detail = null) => {
     const event = Object.freeze({ generation, reason: String(reason || 'project-changed'), detail: cloneValue(detail) });
     onProjectChanged(event);
@@ -438,11 +440,17 @@ export function createProjectDomain({
     const ticket=++openRequest,isCurrent=()=>!disposed&&ticket===openRequest;
     opening=true;
     try {
-      const project=await read();
-      if(!project||!isCurrent())return false;
+      // Builtin readers admit a Core baseline. Run them after an earlier
+      // replacement/rollback has settled, so they observe its final generation.
+      const project=source==='builtin'?null:await read();
+      if((source!=='builtin'&&!project)||!isCurrent())return false;
       const operation=openQueue.then(async()=>{
         if(!isCurrent())return false;
-        if(source==='builtin')await replace(project,'builtin',{isCurrent});
+        if(source==='builtin') {
+          const baseline=await read();
+          if(!baseline||!isCurrent())return false;
+          await replace(baseline,'builtin',{isCurrent});
+        }
         else await load(project,{isCurrent});
         return isCurrent();
       });

@@ -31,16 +31,9 @@ export function createHistoryAssembly({ storageNamespace = null, libraryGeometry
   }
   async function queryStoredProject(project,query) {
     const domain=dependencies.domains.projectDomain,expectedGeneration=domain.getGeneration();
-    let baselineId=null;
-    if(project.format==='pandolab-autosave-delta') {
-      const receipt=await dependencies.builtinBaseline.prepareProjectBaseline();
-      baselineId=receipt.baselineId;
-      if(!Number.isSafeInteger(baselineId)||baselineId<=0||domain.state().storageBaselineId!==baselineId)
-        throw Object.assign(new Error('The stored delta requires its verified C++ source receipt.'),{code:'PL-SCHEMA-BASE'});
-    }
     if(domain.getGeneration()!==expectedGeneration)
       throw Object.assign(new Error('Stored project inspection crossed a project replacement.'),{code:'PL-CORE-STALE',name:'AbortError'});
-    return query({baselineId,expectedGeneration});
+    return query({expectedGeneration});
   }
   function initializeCoreServices({ commandOwner,documentModel }) {
     if(servicesInstalled)throw new Error('Core application services are already installed.');

@@ -16,7 +16,7 @@ const asset = (name, contents = '{}') => ({
 const release = () => ({ schema: 'pandolab-library-release', schemaVersion: 1,
   revision, sourceRevision, assets: {
     territorialIndex: asset('territorial-entities/generated/v2/index.json'),
-    historicalWorld: asset('historical-world/generated/v1/manifest.json'),
+    builtinWorld: asset('builtin-world/generated/v1/index.json'),
     preparedPolygonMeshes: { ...asset('prepared-polygons/generated/v2/manifest.json'), algorithmSourceSha256: 'f'.repeat(64) },
     worldBundle: asset('world/current.json'),
   },

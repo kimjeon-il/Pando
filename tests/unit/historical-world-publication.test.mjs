@@ -3,56 +3,20 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { gunzipSync } from 'node:zlib';
-import { buildCurrentWorld } from '../../tools/territorial-current-world.mjs';
-import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
-import { classifyBuiltinCountries } from '../../assets/js/modules/builtin-subunits.js';
-import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
-import { resolvedTimelineViews } from '../../assets/js/modules/timeline-resolver.js';
-import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
-const module = await import('../../tools/build-historical-world-timeline.mjs').catch(error => {
-  if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
-  return {};
+import {buildBuiltinWorldPublication,writeBuiltinWorldPublication} from '../../tools/build-builtin-world.mjs';
+import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
+import {withExplicitView} from '../helpers/builtin-world.mjs';
+test('country publication is deterministic, has no aggregate project and detects stale output',()=>{
+ const input=withExplicitView(historicalWorldCases());
+ const first=buildBuiltinWorldPublication({input}),second=buildBuiltinWorldPublication({input});
+ assert.deepEqual(first,second);assert.equal(first.has('world-project.json.gz'),false);
+ const index=JSON.parse(first.get('index.json'));assert.equal(Object.hasOwn(index,'sourceMonth'),false);
+ for(const row of index.entities)assert.equal(first.get(row.file)[9],3);
+ const folder=fs.mkdtempSync(path.join(os.tmpdir(),'builtin-country-publication-'));
+ writeBuiltinWorldPublication(first,folder);writeBuiltinWorldPublication(second,folder,{check:true});
+ fs.appendFileSync(path.join(folder,'index.json'),'stale');
+ assert.throws(()=>writeBuiltinWorldPublication(first,folder,{check:true}),/stale/i);
 });
-test('publicationIsDeterministicAndRejectsStaleOutput', () => {
-  assert.equal(typeof module.buildHistoricalWorldPublication, 'function');
-  const first = module.buildHistoricalWorldPublication(), second = module.buildHistoricalWorldPublication();
-  assert.equal(first.get('world-project.json.gz')[9], 3, 'published gzip bytes must not depend on the generating OS');
-  assert.deepEqual(first, second);
-  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'historical-world-'));
-  module.writeHistoricalWorldPublication(first, folder);
-  module.writeHistoricalWorldPublication(second, folder, { check: true });
-  fs.appendFileSync(path.join(folder, 'coverage-report.json'), 'stale');
-  assert.throws(() => module.writeHistoricalWorldPublication(first, folder, { check: true }), /stale/i);
-  const manifest = JSON.parse(first.get('manifest.json'));
-  const project = JSON.parse(gunzipSync(first.get('world-project.json.gz')));
-  assert.ok(manifest.project.decodedBytes < 64 * 1024 * 1024);
-  assert.equal(project.schemaVersion, PROJECT_SCHEMA_VERSION);
-  const trace = JSON.parse(first.get('expected-trace.json'));
-  const october = trace.months.find(row => row.month === '2012-10');
-  assert.deepEqual(new Set(october.entities.map(row => row.entityId)),new Set(['IDN','SDN','SDS','TLS','state:nagorno-karabakh','UKR','KOR','PRK']));
-  assert.equal(october.points[0].rootIds.join(), 'UKR');
-  assert.equal(october.entities.find(row => row.entityId === 'UKR').sourceEntityId, 'state:UKR');
-  assert.equal(trace.months.find(row => row.month === manifest.sourceMonth).entities.find(row => row.entityId === 'UKR').sourceEntityId, 'state:UKR');
-  const byMonth = month => trace.months.find(row => row.month === month);
-  for(const entityId of ['SDN','SDS']){
-    assert.equal(byMonth('2011-06').entities.some(row => row.entityId === entityId),entityId === 'SDN');
-    assert.equal(byMonth('2011-07').entities.some(row => row.entityId === entityId),true);
-  }
-  assert.ok(byMonth('2014-02').points[0].rootIds.includes('UKR'));
-  assert.ok(!byMonth('2014-03').points[0].rootIds.includes('UKR'));
-  assert.ok(byMonth('2014-03').entities.some(row => row.entityId === 'UKR'));
-  assert.ok(byMonth('2015-10').entities.some(row => row.entityId === 'UKR'));
-  assert.equal(trace.months.find(row => row.month === manifest.sourceMonth).entities.length, 254);
-  const classified = classifyBuiltinCountries(normalizeCountryCollection(buildCurrentWorld()));
-  const current = resolvedTimelineViews(project.territorialEntities, project.timelineRecords, createGeometryVersionStore(project.geometries), manifest.sourceMonth);
-  for (const expected of [...classified.countries.features, ...classified.subunits]) {
-    const actual = current.find(row => row.id === expected.id);
-    assert.deepEqual(actual.geometry, expected.geometry, `current geometry ${expected.id}`);
-    for (const field of ['name', 'entityKind', 'parentId', 'color', 'flag', 'coverageMode']) assert.deepEqual(actual.properties[field], expected.properties[field], `${expected.id}.${field}`);
-  }
-});
-test('publicationRejectsMissingInputAndUnsupportedPolicy', () => {
-  assert.equal(typeof module.buildHistoricalWorldPublication, 'function');
-  assert.throws(() => module.buildHistoricalWorldPublication({ policyFile: path.join(os.tmpdir(), 'missing-history-policy.json') }), /ENOENT|missing/i);
+test('country publication rejects a missing policy',()=>{
+ assert.throws(()=>buildBuiltinWorldPublication({policyFile:path.join(os.tmpdir(),'missing-history-policy.json')}),/ENOENT|missing/i);
 });

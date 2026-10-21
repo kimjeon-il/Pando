@@ -23,6 +23,15 @@ export function tinyFixture() {
   project.timelineRecords.schemaVersion = 2;
   project.timelineRecords.propertyBindings = [];
 
-  return { project, countries: { type: 'FeatureCollection', features }, entityCount: features.length,
-    coordinateCount: features.reduce((count, row) => count + row.geometry.coordinates[0].length, 0) };
+  const template=structuredClone(project);template.territorialEntities=[];template.geometries=[];
+  template.timelineRecords={schemaVersion:2,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};delete template.projectSetup;
+  const builtinCountries=project.territorialEntities.map(identity=>{
+    const records=Object.fromEntries(Object.entries(project.timelineRecords).map(([key,value])=>[key,Array.isArray(value)?value.filter(row=>row.entityId===identity.id):value]));
+    const refs=new Set(records.geometryBindings.map(row=>row.geometryRef.id));
+    return {schemaVersion:1,entityId:identity.id,identity,modes:{dated:records,current:structuredClone(records)},sourceBindings:{dated:[],current:[]},geometries:project.geometries.filter(row=>refs.has(row.id))};
+  });
+  const builtinIndex={schema:'pandolab-builtin-world',schemaVersion:1,template,entities:builtinCountries.map(row=>({entityId:row.entityId,
+    coverage:{dated:[{validFrom:null,validTo:null}],current:[{validFrom:null,validTo:null}]}}))};
+  return {project,builtinIndex,builtinCountries,countries:{type:'FeatureCollection',features},entityCount:features.length,
+    coordinateCount:features.reduce((count,row)=>count+row.geometry.coordinates[0].length,0)};
 }
