@@ -1,4 +1,4 @@
-import {instantiateLibraryEntity, territorialEntityExistsAt, selectGeometryVersion,historicalSourceAvailability} from './territorial-library.js';
+import {instantiateLibraryEntity, territorialEntityExistsAt, selectGeometryVersion,historicalSourceAvailability,normalizeTerritorialLibraryIndex} from './territorial-library.js';
 import {compareTemporal, parseTemporal} from './temporal.js';
 
 const compareIdentity = (left, right) => left < right ? -1 : left > right ? 1 : 0;
@@ -133,7 +133,8 @@ export function createTerritorialLibraryService({loader, today = () => {
     const entities=await Promise.all(entityRefsWithChildren(rootIds,depth,referenceDate).map(id=>loader.loadEntity(id)));
     return entities.map(e=>instantiateLibraryEntity(e,referenceDate));
   }
-  return Object.freeze({load,get,list,loadEntity:loader.loadEntity, getLoadedEntity:loader.peek,entityRefsWithChildren,instantiateDescriptors,
+  function replaceCatalog(index){catalog=normalizeTerritorialLibraryIndex(index);pending=null;}
+  return Object.freeze({load,get,list,loadEntity:loader.loadEntity, getLoadedEntity:loader.peek,entityRefsWithChildren,instantiateDescriptors,replaceCatalog,
     snapshots:()=>catalog?.snapshots || [],getSnapshot:id=>catalog?.snapshots.find(s=>s.id===id) || null,
     today,normalizeReferenceDate,resolveSelection,search,events,
     sourceAvailability:(id,date)=>historicalSourceAvailability(get(id),date),

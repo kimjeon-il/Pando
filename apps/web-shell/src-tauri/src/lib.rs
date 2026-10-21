@@ -1,3 +1,7 @@
+mod library_working;
+mod library_repository;
+mod library_sync;
+mod library_commands;
 mod storage;
 mod document_transfer;
 
@@ -235,6 +239,7 @@ fn probe_options() -> Result<ProbeOptions, String> {
 pub fn run() {
     let options = probe_options().expect("invalid prototype arguments");
     let auto = options.auto;
+    let library_available = cfg!(windows);
     let physical_immediate = options.auto && options.physical_immediate;
     let probe_hold_ms = if options.probe_hold_ms > 0 { options.probe_hold_ms } else { 500 };
     let profile_id = options.profile_id.clone();
@@ -246,7 +251,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe,
             document_transfer::begin_document_write, document_transfer::append_document_chunk,
             document_transfer::finish_document_write, document_transfer::begin_document_read,
-            document_transfer::read_document_chunk, document_transfer::abort_document_transfer])
+            document_transfer::read_document_chunk, document_transfer::abort_document_transfer,
+            library_commands::library_open, library_commands::library_read_entity,
+            library_commands::library_commit, library_commands::library_sync,
+            library_commands::library_publish, library_commands::library_conflict,
+            library_commands::library_open_geometry, library_commands::library_read_external_changes, library_commands::library_read_candidate])
         .setup(move |app| {
             let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                 .title("PandoLab 시험용")
@@ -254,7 +263,8 @@ pub fn run() {
                 .on_navigation(local_navigation)
                 .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
                 .initialization_script(format!(
-                    "Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
+                    "Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {library_available}, writable: false, configurable: false }});\
+                     Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
                      Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__', {{ value: {physical_immediate}, writable: false }});\
                      Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_HOLD_MS__', {{ value: {probe_hold_ms}, writable: false }});"
                 ));

@@ -21,7 +21,8 @@ export function validateWorldBundle(bundle) {
   if (bundle?.schema !== WORLD_BUNDLE_SCHEMA || bundle.schemaVersion !== WORLD_BUNDLE_FORMAT) {
     throw new Error('지원하지 않는 세계지도 데이터 매니페스트입니다.');
   }
-  if (!HEX_256.test(bundle.source?.sha256) || bundle.source?.countryCount !== 258
+  if (!HEX_256.test(bundle.source?.sha256) || !Number.isSafeInteger(bundle.source?.countryCount)
+    || bundle.source.countryCount <= 0
     || !validRelativePath(bundle.source?.url) || !bundle.defaultClassification?.countries
     || bundle.derivation?.preview !== 'canonical-topology-simplified'
     || !Number.isInteger(bundle.derivation?.coordinateCount)
@@ -60,6 +61,7 @@ export function validateWorldBundle(bundle) {
     schema: WORLD_BUNDLE_SCHEMA,
     schemaVersion: WORLD_BUNDLE_FORMAT,
     sourceSha256: bundle.source.sha256,
+    countryCount: bundle.source.countryCount,
     defaultClassification: bundle.defaultClassification,
     assets: Object.freeze(assets),
     sharedBoundaryCacheUrls: Object.freeze(shared),
@@ -72,4 +74,19 @@ export function worldAssetUrl(asset, dataRootUrl) {
     throw new Error('검증되지 않은 세계지도 파일 경로입니다.');
   }
   return new URL(asset.url, dataRootUrl);
+}
+
+export async function parseVerifiedWorldBundle(bytes, spec = null) {
+  const stored = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  if (spec) {
+    if (spec.encoding !== 'identity' || !HEX_256.test(spec.sha256)
+      || stored.byteLength !== spec.compressedBytes || spec.decodedBytes !== stored.byteLength) {
+      throw new Error('게시된 세계지도 매니페스트 크기가 올바르지 않습니다.');
+    }
+    if (!globalThis.crypto?.subtle) throw new Error('게시된 세계지도 무결성을 확인할 수 없습니다.');
+    const digest = await globalThis.crypto.subtle.digest('SHA-256', stored);
+    const actual = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    if (actual !== spec.sha256) throw new Error('게시된 세계지도 매니페스트 무결성이 올바르지 않습니다.');
+  }
+  return validateWorldBundle(JSON.parse(new TextDecoder().decode(stored)));
 }

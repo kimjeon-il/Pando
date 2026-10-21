@@ -35,7 +35,7 @@ export function contentAddress(role, digest) {
 
 export function bundleDescriptor({ seed, legacy, assets, sourceBytes }) {
   if (seed?.schema !== 'pandolab-world-build-input' || seed?.schemaVersion !== 1) throw new Error('Invalid world build input');
-  if (legacy?.countries !== 258 || legacy?.source !== seed.canonicalSource || !legacy.defaultClassification
+  if (!Number.isSafeInteger(legacy?.countries) || legacy.countries <= 0 || legacy?.source !== seed.canonicalSource || !legacy.defaultClassification
       || legacy.previewDerivation !== 'canonical-topology-simplified') throw new Error('Incompatible legacy world manifest');
   const sourceDigest = sha256(sourceBytes);
   if (sourceDigest !== legacy.sourceSha256 || sourceDigest !== legacy.canonicalSourceSha256
@@ -66,7 +66,7 @@ export function bundleDescriptor({ seed, legacy, assets, sourceBytes }) {
   for (const role of ['preview', 'canonical']) boundaries[role] = assertDataPath(seed.sharedBoundaries?.[role]);
   return {
     schema: WORLD_BUNDLE_SCHEMA, schemaVersion: WORLD_BUNDLE_FORMAT,
-    source: { url: seed.canonicalSource, sha256: sourceDigest, countryCount: 258 },
+    source: { url: seed.canonicalSource, sha256: sourceDigest, countryCount: legacy.countries },
     derivation: { preview: legacy.previewDerivation, previewSourceScale: legacy.previewSourceScale,
       simplificationQuantile: legacy.simplificationQuantile, coordinateCount: legacy.coordinateCount,
       meshAlgorithmRevision: legacy.meshAlgorithmRevision },
@@ -87,7 +87,8 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
   const legacy = JSON.parse(readData(seed.legacyPreviewManifest));
   const sourceBytes = Buffer.from(readData(seed.canonicalSource).toString('utf8').replaceAll('\r\n', '\n'));
   const source = JSON.parse(sourceBytes);
-  if (source?.type !== 'FeatureCollection' || source.features?.length !== 258) throw new Error('Invalid world canonical source');
+  if (source?.type !== 'FeatureCollection' || source.features?.length !== legacy.countries
+      || new Set(source.features.map(feature => String(feature.id))).size !== legacy.countries) throw new Error('Invalid world canonical source');
   const original = {};
   for (const role of Object.keys(ROLES)) original[role] = readData(legacy.assets?.[role]?.url);
   const bundle = bundleDescriptor({ seed, legacy, assets: original, sourceBytes });

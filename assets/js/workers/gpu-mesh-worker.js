@@ -20,18 +20,26 @@ const blockPreparation = import(`../modules/mesh-spatial-blocks.js?v=${encodeURI
 const polygonPreparation = meshCoreReady.then(() => Promise.all([
   import(`../modules/prepared-polygon-mesh.js?v=${encodeURIComponent(assetRevision)}`),
   import(`../modules/stored-asset-loader.js?v=${encodeURIComponent(assetRevision)}`),
-])).then(([{ createPreparedPolygonMeshStore }, { createStoredAssetLoader }]) => {
+  import(`../modules/publication-data-channel.js?v=${encodeURIComponent(assetRevision)}`),
+])).then(async ([{ createPreparedPolygonMeshStore }, { createStoredAssetLoader },
+  { publicDataRoot, publicDataAssetUrl, resolveWorkerDataChannel }]) => {
   const engine = self.PandoLabGpuMeshCore;
-  const spec = globalThis.PANDOLAB_BUILD_META.preparedPolygonMeshes;
-  const base = new URL('../../../', self.location.href);
-  const { loadAsset } = createStoredAssetLoader({ dataRevision: globalThis.PANDOLAB_BUILD_META.dataRevision,
+  const params = new URL(self.location.href).searchParams;
+  const { meta } = await resolveWorkerDataChannel({ baseUrl: publicDataRoot(self.location.href),
+    buildMeta: globalThis.PANDOLAB_BUILD_META,
+    expectedRevision: params.get('publicationRevision'),
+    expectedManifestSha256: params.get('publicationManifestSha256') });
+  const spec = meta.preparedPolygonMeshes;
+  const { loadAsset } = createStoredAssetLoader({ dataRevision: meta.dataRevision,
     cachePolicy: 'immutable', resolveUrl: asset => {
-      if (!asset.url.startsWith('assets/data/prepared-polygons/generated/v2/') || asset.url.includes('..'))
+      const baseline = asset.url.startsWith('assets/data/prepared-polygons/generated/v2/');
+      const published = asset.url.startsWith(`assets/data/library-releases/${meta.dataRevision}/prepared-polygons/generated/v2/`);
+      if ((!baseline && !published) || asset.url.includes('..'))
         throw new Error('Invalid prepared polygon asset path');
-      const url = new URL(asset.url, base); url.searchParams.set('sha256', asset.sha256); return url;
+      return publicDataAssetUrl(self.location.href, asset);
     } });
   return createPreparedPolygonMeshStore({ engine,
-    loadManifest: globalThis.PANDOLAB_BUILD_META.resourceProfile === 'small-project' ? null : async () => {
+    loadManifest: meta.resourceProfile === 'small-project' ? null : async () => {
       if (!spec) throw new Error('Required prepared polygon manifest is missing from build metadata');
       const result = await loadAsset(spec, 'mesh', 'polygon-manifest', 'Prepared polygon manifest', buffer => JSON.parse(new TextDecoder().decode(buffer)));
       const manifest = result.value;

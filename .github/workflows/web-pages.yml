@@ -26,6 +26,19 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Stage exactly the committed viewer dependency closure
         run: node tools/stage-monorepo-pages.mjs --root . --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json"
+      - name: Overlay the verified independent library publication when available
+        run: |
+          if git ls-remote --exit-code origin refs/heads/library-data >/dev/null; then
+            git fetch origin refs/heads/library-data:refs/remotes/origin/library-data
+            mkdir -p "$RUNNER_TEMP/current-library"
+            git archive origin/library-data assets/data | tar -xf - -C "$RUNNER_TEMP/current-library"
+            node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/current-library"
+            cp -a "$RUNNER_TEMP/current-library/assets/data/library-channel" "$RUNNER_TEMP/pages-site/assets/data/"
+            mkdir -p "$RUNNER_TEMP/pages-site/assets/data/library-releases"
+            cp -a "$RUNNER_TEMP/current-library/assets/data/library-releases/." "$RUNNER_TEMP/pages-site/assets/data/library-releases/"
+            node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/pages-site"
+            node tools/check-library-release-code.mjs --site "$RUNNER_TEMP/pages-site"
+          fi
       - uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ runner.temp }}/pages-site

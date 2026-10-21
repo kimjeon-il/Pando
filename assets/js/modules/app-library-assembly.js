@@ -146,12 +146,27 @@ export function createLibraryAssembly() {
     await Promise.all([(0, dependencies.libraryServices.ensureTerritorialLibraryRuntime)(), dependencies.gisRuntime.gisWorkflow.ensure(), (0, dependencies.applicationServicesA.ensureModalRuntime)()]);
     const { createTerritorialLibraryService } = dependencies.libraryServices.territorialLibraryServiceModule;
     const { createTerritorialLibraryController } = dependencies.libraryServices.territorialLibraryControllerModule;
-    const {createTerritorialEntityLoader} = dependencies.libraryServices.territorialEntityLoaderModule;
+    const {createTerritorialEntityLoader,createRepositoryTerritorialLoader} = dependencies.libraryServices.territorialEntityLoaderModule;
     const meta = window.PANDOLAB_BUILD_META;
-    territorialLibraryService = createTerritorialLibraryService({loader:createTerritorialEntityLoader({
+    let repository=null,editing=null;
+    if(globalThis.PANDOLAB_NATIVE_LIBRARY_AVAILABLE===true&&typeof globalThis.__TAURI_INTERNALS__?.invoke==='function'){
+      const {createNativeLibraryRepository}=await import('./native-library-repository.js');
+      repository=createNativeLibraryRepository();await repository.open();
+      try{await repository.sync();await repository.open();}
+      catch(error){dependencies.feedback.reportOperationError(error,'라이브러리는 로컬 자료로 열었습니다. GitHub 동기화 대기 중입니다.','PL-LIB-SYNC-OPEN');}
+    }
+    territorialLibraryService = createTerritorialLibraryService({loader:repository?createRepositoryTerritorialLoader(repository):createTerritorialEntityLoader({
       indexUrl: dependencies.platformConfigurationA.TERRITORIAL_LIBRARY_INDEX_URL,
       indexSpec: meta.territorialIndex, dataRevision: meta.dataRevision,
     })});
+    if(repository){
+      const {createTerritorialLibraryEditingUi}=await import('./territorial-library-editing-ui.js');
+      editing=createTerritorialLibraryEditingUi({document,window,host:document.querySelector('.territorial-library-card'),
+        service:territorialLibraryService,repository,refresh:async()=>{
+          await territorialLibraryService.load();
+          await territorialLibraryController.select(territorialLibraryController.selectedEntityId());
+        },reportError:dependencies.feedback.reportOperationError});
+    }
     territorialLibraryController = createTerritorialLibraryController({
       document,
       elements: {
@@ -174,6 +189,7 @@ export function createLibraryAssembly() {
         ownership: (0, dependencies.platform.$)('territorialLibraryOwnership'),
       },
       service: territorialLibraryService,
+      editing,
       renderMapPreview: territorialLibraryPreviewSvg,
       createEmptyState: dependencies.platformConfigurationB.createEmptyState,
       syncSearchClearButton: dependencies.platformConfigurationB.syncSearchClearButton,
