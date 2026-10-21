@@ -70,6 +70,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -110,6 +112,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -150,6 +154,8 @@ jobs:
         with:
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -185,6 +191,8 @@ jobs:
         with:
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -284,6 +292,8 @@ jobs:
         with:
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
         with:
           ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa

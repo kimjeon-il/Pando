@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "repository": "kimjeon-il/PandoLab-library-data",
+  "revision": "0ef646d99e3516e3faa93fc1e9ce3a7e640cf771",
+  "mounts": [
+    "assets/data",
+    "reports",
+    "tools/historical-library/sources",
+    "tools/historical-library/working",
+    "tools/historical-library/review-output",
+    "tools/historical-library/land-borders"
+  ]
+}

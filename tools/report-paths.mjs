@@ -1,6 +1,8 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { libraryReportRoot } from './library-data.mjs';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const mapping = JSON.parse(readFileSync(new URL('./report-paths.json', import.meta.url), 'utf8'));
@@ -14,6 +16,6 @@ export function reportPath(legacy, root = repo) {
       break;
     }
   }
-  const migrated = existsSync(resolve(root, 'reports/places/source-manifest.json'));
-  return resolve(root, migrated || existsSync(resolve(root, target)) ? target : legacy);
+  if (!target.startsWith('reports/')) throw Error(`Not a report path: ${legacy}`);
+  return resolve(libraryReportRoot(root), target.slice('reports/'.length));
 }

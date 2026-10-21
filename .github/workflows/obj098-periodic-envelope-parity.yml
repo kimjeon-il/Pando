@@ -18,6 +18,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - run: sudo apt-get update && sudo apt-get install -y ninja-build cmake libz-dev
       - name: Compile candidate native C++ shared Core
         run: |
