@@ -62,14 +62,6 @@ bool webObjectId(const std::string& id) {
     auto value=id;if(!value.empty()&&value.back()=='\n')value.pop_back();
     return std::regex_match(value,pattern);
 }
-void validateNativeFlagPrefixes(const ProjectDocument& document) {
-    for(const auto& entry:document.symbols) {
-        const auto& style=entry.second;
-        require(style.policy!=FlagPolicy::Embedded||style.embeddedDataUrl.rfind("data:image/",0)==0,"INVALID_FLAG: payload");
-        require(!style.defaultFlagDataUrl||style.defaultFlagDataUrl->empty()||style.defaultFlagDataUrl->rfind("data:image/",0)==0,
-                "INVALID_FLAG: converted default payload");
-    }
-}
 void validateWebObjectIds(const ProjectDocument& d) {
     const auto rows=[&](const auto& values){for(const auto& value:values)require(webObjectId(value.id),"INVALID_WEB_OBJECT_UUID");};
     rows(d.labels);rows(d.hydro);rows(d.genericFeatures);rows(d.distributionLayers);rows(d.distributionEntries);
@@ -326,24 +318,6 @@ UserLayer layer(const V& v,ProjectDocument& d,int schema,const std::string& path
     UserLayer l{str(field(v,"id")),str(field(v,"name")),boolean(field(v,"visible")),boolean(field(v,"locked")),number(field(v,"opacity"))};
     unknown(d,schema,v,path,{"id","name","visible","locked","opacity"}); return l;
 }
-V layerValue(const UserLayer& l) { return object({{"id",V::str(l.id)},{"name",V::str(l.name)},{"visible",V::boolean(l.visible)},{"locked",V::boolean(l.locked)},{"opacity",V::num(l.opacity)}}); }
-void readExtensions(const V& values,ProjectDocument& d) {
-    std::size_t index=0;
-    for (const auto& v:array(values)) {
-        PreservedExtension e;
-        e.id=str(field(v,"extensionId")); e.sourceFormat=str(field(v,"sourceFormat"));
-        const auto schema=integer(field(v,"sourceSchema")); require(schema<=INT_MAX,"INVALID_JSON: sourceSchema overflow"); e.sourceSchema=int(schema);
-        e.jsonPointer=str(field(v,"jsonPointer")); e.payload=field(v,"payload").encode();
-        e.status=str(field(v,"status")); e.dependencyKnowledge=str(field(v,"dependencyKnowledge"));
-        require(e.status=="unsupported"||e.status=="migrationArchive","INVALID_JSON: extension status");
-        require(e.dependencyKnowledge=="known"||e.dependencyKnowledge=="unknown","INVALID_JSON: dependency knowledge");
-        for (const auto& r:array(field(v,"dependencies"))) e.dependencies.push_back(ref(r,d,"/extensions/"+std::to_string(index)+"/dependencies/"+std::to_string(e.dependencies.size())));
-        for (const auto& effect:array(field(v,"forbiddenEffects"))) e.forbiddenEffects.push_back(str(effect));
-        V extras=v;
-        for (auto k:{"extensionId","sourceFormat","sourceSchema","jsonPointer","payload","status","dependencyKnowledge","dependencies","forbiddenEffects"}) extras.object.erase(k);
-        e.envelopeExtras=extras.encode(); d.extensions.push_back(std::move(e)); ++index;
-    }
-}
 V jsonObject(const std::string& bytes) {
     auto v=codecjson::parse(bytes);
     require(v.kind==V::Object,"INVALID_CONTENT: expected JSON object"); return v;
@@ -375,7 +349,7 @@ void requireWebNumbers(const V& value) {
     }else if(value.kind==V::Array)for(const auto& child:value.array)requireWebNumbers(child);
     else if(value.kind==V::Object)for(const auto& entry:value.object)requireWebNumbers(entry.second);
 }
-V nativeIdentityMetadata(const std::string& bytes,bool preserveOpaqueAnnotations=false) {
+V validatedEntityMetadata(const std::string& bytes,bool preserveOpaqueAnnotations=false) {
     auto value=jsonObject(bytes);
     for(const auto* key:{"sovereignId","sovereign","sovereignty","politicalRelations"})require(!value.object.count(key),"UNSUPPORTED_POLITICAL_RELATION");
     for(const auto* key:{"capital","flagDataUrl","nameSource","libraryOrigin"}) {
@@ -388,126 +362,6 @@ V sourceValue(const SourceProvenance& s) {
     return object({{"kind",V::str(s.kind)},{"dataset",V::str(s.dataset)},{"version",V::str(s.version)},
         {"sourceId",V::str(s.sourceId)},{"sourceFormat",V::str(s.sourceFormat)},{"sourceType",V::str(s.sourceType)},
         {"importedAt",V::str(s.importedAt)},{"details",jsonObject(s.details)}});
-}
-SourceProvenance readSource(const V& v,ProjectDocument& d,const std::string& path) {
-    SourceProvenance s;
-    s.kind=str(field(v,"kind")); s.dataset=str(field(v,"dataset")); s.version=str(field(v,"version"));
-    s.sourceId=str(field(v,"sourceId")); s.sourceFormat=str(field(v,"sourceFormat"));
-    s.sourceType=str(field(v,"sourceType")); s.importedAt=str(field(v,"importedAt"));
-    s.details=field(v,"details").encode(); jsonObject(s.details);
-    unknown(d,6,v,path,{"kind","dataset","version","sourceId","sourceFormat","sourceType","importedAt","details"});
-    return s;
-}
-V contentValue(const ProjectDocument& d) {
-    V labels=V::arr(),hydro=V::arr(),layers=V::arr(),entries=V::arr(),generic=V::arr(),countries=V::arr(),symbols=V::arr();
-    auto common=[](const auto& v){return object({{"id",V::str(v.id)},{"name",V::str(v.name)},
-        {"notes",V::str(v.notes)},{"geometryRef",geometryRefValue(v.geometry)},{"source",sourceValue(v.source)}});};
-    for(const auto& v:d.labels) {
-        auto row=common(v); row.object["kind"]=V::str(v.kind);
-        if(v.sourcePlaceId)row.object["sourcePlaceId"]=V::str(*v.sourcePlaceId);
-        row.object["territory"]=v.territory?refValue(*v.territory):V{}; labels.array.push_back(std::move(row));
-    }
-    for(const auto& v:d.hydro) {
-        auto row=common(v); row.object["kind"]=V::str(v.kind); row.object["color"]=colorValue(v.color);
-        row.object["locked"]=V::boolean(v.locked); row.object["sourceFeatureId"]=v.sourceFeatureId?V::str(*v.sourceFeatureId):V{};
-        hydro.array.push_back(std::move(row));
-    }
-    for(const auto& v:d.genericFeatures) {
-        auto row=common(v); row.object["color"]=colorValue(v.color); row.object["locked"]=V::boolean(v.locked);
-        row.object["fallbackOnly"]=V::boolean(v.fallbackOnly); generic.array.push_back(std::move(row));
-    }
-    for(const auto& v:d.distributionLayers) {
-        V groups=V::arr(); for(const auto& group:v.groups) groups.array.push_back(V::str(group));
-        V scale=object({{"mode",V::str(v.valueScale.manual?"manual":"auto")}});
-        if(v.valueScale.manual){scale.object["min"]=V::num(v.valueScale.min);scale.object["max"]=V::num(v.valueScale.max);}
-        layers.array.push_back(object({{"id",V::str(v.id)},{"name",V::str(v.name)},{"unit",V::str(v.unit)},{"valueScale",scale},
-            {"color",colorValue(v.color)},{"locked",V::boolean(v.locked)},{"parentId",v.parentId?V::str(*v.parentId):V{}},
-            {"groups",groups},{"validity",validityValue(v.validity)},{"metadata",jsonObject(v.metadata)}}));
-    }
-    for(const auto& v:d.distributionEntries) entries.array.push_back(object({{"id",V::str(v.id)},
-        {"layerId",V::str(v.layerId)},{"territory",v.territory?refValue(*v.territory):V{}},
-        {"geometryRef",v.geometry?geometryRefValue(*v.geometry):V{}},{"value",V::num(v.value)},
-        {"certainty",V::str(v.certainty)},{"validity",validityValue(v.validity)},{"metadata",jsonObject(v.metadata)}}));
-    for(const auto& [ref,v]:d.countryDetails) countries.array.push_back(object({{"ref",refValue(ref)},{"capital",V::str(v.capital)}}));
-    for(const auto& [ref,v]:d.symbols) symbols.array.push_back(object({{"ref",refValue(ref)},
-        {"policy",V::str(v.policy==FlagPolicy::Default?"default":v.policy==FlagPolicy::None?"none":"embedded")},
-        {"embeddedDataUrl",V::str(v.embeddedDataUrl)},{"defaultCountryId",V::str(v.defaultCountryId)},
-        {"defaultFlagDataUrl",v.defaultFlagDataUrl?V::str(*v.defaultFlagDataUrl):V{}}}));
-    V hidden=V::arr(); for(const auto& id:d.physicalData.hiddenHydroIds) hidden.array.push_back(V::str(id));
-    return object({{"labels",labels},{"hydro",hydro},{"distributionLayers",layers},{"distributionEntries",entries},
-        {"genericFeatures",generic},{"countryDetails",countries},{"symbols",symbols},
-        {"physicalData",object({{"dataset",V::str(d.physicalData.dataset)},{"version",V::str(d.physicalData.version)},
-            {"source",V::str(d.physicalData.source)},{"hiddenHydroIds",hidden}})}});
-}
-void readContent(const V& content,ProjectDocument& d,const PlatformPorts& ports) {
-    auto common=[&](const V& row,auto& v,const std::string& path) {
-        v.id=str(field(row,"id")); v.name=str(field(row,"name")); v.notes=str(field(row,"notes"));
-        v.geometry=geometryRef(field(row,"geometryRef"),d,path+"/geometryRef");
-        v.source=readSource(field(row,"source"),d,path+"/source");
-    };
-    for(const auto& row:array(field(content,"labels"))) {
-        auto path="/content/labels/"+std::to_string(d.labels.size()); PlaceLabel v; common(row,v,path);
-        v.kind=str(field(row,"kind")); if(field(row,"territory").kind!=V::Null) v.territory=ref(field(row,"territory"),d,path+"/territory");
-        if(row.object.count("sourcePlaceId")&&field(row,"sourcePlaceId").kind!=V::Null)v.sourcePlaceId=str(field(row,"sourcePlaceId"));
-        unknown(d,6,row,path,{"id","name","notes","geometryRef","source","kind","territory","sourcePlaceId"}); d.labels.push_back(std::move(v));
-    }
-    for(const auto& row:array(field(content,"hydro"))) {
-        auto path="/content/hydro/"+std::to_string(d.hydro.size()); HydroFeature v; common(row,v,path);
-        v.kind=str(field(row,"kind")); v.color=color(field(row,"color")); v.locked=boolean(field(row,"locked"));
-        if(field(row,"sourceFeatureId").kind!=V::Null) v.sourceFeatureId=str(field(row,"sourceFeatureId"));
-        unknown(d,6,row,path,{"id","name","notes","geometryRef","source","kind","color","locked","sourceFeatureId"}); d.hydro.push_back(std::move(v));
-    }
-    for(const auto& row:array(field(content,"genericFeatures"))) {
-        auto path="/content/genericFeatures/"+std::to_string(d.genericFeatures.size()); GenericFeature v; common(row,v,path);
-        v.color=color(field(row,"color")); v.locked=boolean(field(row,"locked")); v.fallbackOnly=boolean(field(row,"fallbackOnly"));
-        unknown(d,6,row,path,{"id","name","notes","geometryRef","source","color","locked","fallbackOnly"}); d.genericFeatures.push_back(std::move(v));
-    }
-    for(const auto& row:array(field(content,"distributionLayers"))) {
-        auto path="/content/distributionLayers/"+std::to_string(d.distributionLayers.size()); DistributionLayer v;
-        v.id=str(field(row,"id")); v.name=str(field(row,"name"));
-        v.unit=str(field(row,"unit"));const auto& scale=field(row,"valueScale");const auto mode=str(field(scale,"mode"));
-        require(mode=="auto"||mode=="manual","INVALID_DISTRIBUTION: value scale");
-        if(mode=="manual")v.valueScale={true,number(field(scale,"min")),number(field(scale,"max"))};
-        unknown(d,10,scale,path+"/valueScale",mode=="manual"?std::initializer_list<const char*>{"mode","min","max"}:std::initializer_list<const char*>{"mode"});
-        v.color=color(field(row,"color")); v.locked=boolean(field(row,"locked"));
-        if(field(row,"parentId").kind!=V::Null) v.parentId=str(field(row,"parentId"));
-        for(const auto& group:array(field(row,"groups"))) v.groups.push_back(str(group));
-        v.validity=validity(field(row,"validity"),d,path+"/validity");
-        v.metadata=field(row,"metadata").encode(); jsonObject(v.metadata);
-        unknown(d,10,row,path,{"id","name","unit","valueScale","color","locked","parentId","groups","validity","metadata"}); d.distributionLayers.push_back(std::move(v));
-    }
-    for(const auto& row:array(field(content,"distributionEntries"))) {
-        auto path="/content/distributionEntries/"+std::to_string(d.distributionEntries.size()); DistributionEntry v;
-        v.id=str(field(row,"id")); v.layerId=str(field(row,"layerId")); v.value=number(field(row,"value"));
-        v.certainty=str(field(row,"certainty")); v.metadata=field(row,"metadata").encode(); jsonObject(v.metadata);
-        v.validity=validity(field(row,"validity"),d,path+"/validity");
-        if(field(row,"territory").kind!=V::Null) v.territory=ref(field(row,"territory"),d,path+"/territory");
-        if(field(row,"geometryRef").kind!=V::Null) v.geometry=geometryRef(field(row,"geometryRef"),d,path+"/geometryRef");
-        unknown(d,10,row,path,{"id","layerId","value","certainty","metadata","validity","territory","geometryRef"}); d.distributionEntries.push_back(std::move(v));
-    }
-    for(const auto& row:array(field(content,"countryDetails"))) {
-        auto path="/content/countryDetails/"+std::to_string(d.countryDetails.size());
-        require(d.countryDetails.emplace(ref(field(row,"ref"),d,path+"/ref"),CountryDetails{str(field(row,"capital"))}).second,"DUPLICATE_ID: country details");
-        unknown(d,6,row,path,{"ref","capital"});
-    }
-    for(const auto& row:array(field(content,"symbols"))) {
-        auto path="/content/symbols/"+std::to_string(d.symbols.size()); TerritorialSymbolStyle v;
-        const auto policy=str(field(row,"policy")); require(policy=="default" || policy=="none" || policy=="embedded","INVALID_FLAG: policy");
-        v.policy=policy=="default"?FlagPolicy::Default:policy=="none"?FlagPolicy::None:FlagPolicy::Embedded;
-        v.embeddedDataUrl=str(field(row,"embeddedDataUrl"));
-        if(row.object.count("defaultCountryId"))v.defaultCountryId=str(field(row,"defaultCountryId"));
-        if(row.object.count("defaultFlagDataUrl")&&field(row,"defaultFlagDataUrl").kind!=V::Null)
-            v.defaultFlagDataUrl=str(field(row,"defaultFlagDataUrl"));
-        if(v.policy==FlagPolicy::Embedded)validateEmbeddedFlag(v.embeddedDataUrl,ports);
-        require(d.symbols.emplace(ref(field(row,"ref"),d,path+"/ref"),v).second,"DUPLICATE_ID: symbol");
-        unknown(d,6,row,path,{"ref","policy","embeddedDataUrl","defaultCountryId","defaultFlagDataUrl"});
-    }
-    const auto& physical=field(content,"physicalData");
-    d.physicalData.dataset=str(field(physical,"dataset")); d.physicalData.version=str(field(physical,"version"));
-    d.physicalData.source=str(field(physical,"source"));
-    for(const auto& id:array(field(physical,"hiddenHydroIds"))) d.physicalData.hiddenHydroIds.push_back(str(id));
-    unknown(d,6,physical,"/content/physicalData",{"dataset","version","source","hiddenHydroIds"});
-    unknown(d,6,content,"/content",{"labels","hydro","genericFeatures","distributionLayers","distributionEntries","countryDetails","symbols","physicalData"});
 }
 void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=10;
         const auto& p=value;
@@ -582,24 +436,9 @@ void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=
 
 }
 
-V extensionValue(const PreservedExtension& e) {
-    V v=codecjson::parse(e.envelopeExtras); require(v.kind==V::Object,"INVALID_JSON: extension envelope extras");
-    v.object["extensionId"]=V::str(e.id); v.object["sourceFormat"]=V::str(e.sourceFormat); v.object["sourceSchema"]=V::num(e.sourceSchema);
-    v.object["jsonPointer"]=V::str(e.jsonPointer); v.object["payload"]=codecjson::parse(e.payload);
-    v.object["status"]=V::str(e.status); v.object["dependencyKnowledge"]=V::str(e.dependencyKnowledge);
-    V deps=V::arr(),effects=V::arr();
-    for (const auto& r:e.dependencies) deps.array.push_back(refValue(r));
-    for (const auto& s:e.forbiddenEffects) effects.array.push_back(V::str(s));
-    v.object["dependencies"]=deps; v.object["forbiddenEffects"]=effects; return v;
-}
 
 }
 
-void validateNativeLabelReferences(const ProjectDocument& document) {
-    std::set<std::string> owners;for(const auto& unit:document.units)owners.insert(unit.id);
-    for(const auto& label:document.labels)if(label.territory)
-        require(label.territory->domain=="territorial"&&owners.count(label.territory->id),"DANGLING_REF: content territory");
-}
 codecjson::Value validateProjectSetup(const V& setup) {
     require(setup.kind==V::Object&&setup.object.size()==4,"PROJECT_SETUP: four settings required");
     const auto month=parseTemporal(str(field(setup,"initialMonth")));require(month.precision=="month","PROJECT_SETUP: month required");
@@ -624,82 +463,17 @@ std::string restoredTimelineMonth(const ProjectDocument& document) {
     const auto setup=validateProjectSetup(field(header,"projectSetup"));
     return str(field(setup,"initialMonth"));
 }
-pandoeditor::ProjectDocument decode(const std::string& data,const PlatformPorts& ports) {
-    require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
-    const auto root=codecjson::parse(data,ports.parsedTextPolicy);
-    require(str(field(root,"format"))=="pandoeditor-project","UNSUPPORTED_FORMAT: expected Qt project");
-    const auto schema=integer(field(root,"version"));require(schema==ProjectVersion,"UNSUPPORTED_VERSION: expected native v14");
-    ProjectDocument d;d.documentId=str(field(root,"documentId"));readExtensions(field(root,"extensions"),d);
-    d.exchangeMetadata=field(root,"exchangeMetadata").encode();validateExchangeMetadata(d);
-    for(const auto& v:array(field(root,"units"))) {
-        unknown(d,10,v,"/units",{"id","kind","name","notes","locked","baseName","nameExplicit","libraryOrigin","metadata","sourceFolderId","sourceEntityId","sourceGeometryVersion"});
-        TerritorialUnit u;u.id=str(field(v,"id"));u.name=str(field(v,"name"));u.notes=str(field(v,"notes"));const auto kind=str(field(v,"kind"));require(kind=="general"||kind=="regional","INVALID_ENTITY_KIND");u.kind=kind=="general"?UnitKind::General:UnitKind::Regional;
-        u.locked=boolean(field(v,"locked"));u.baseName=str(field(v,"baseName"));u.nameExplicit=boolean(field(v,"nameExplicit"));
-        if(field(v,"libraryOrigin").kind!=V::Null)u.libraryOrigin=libraryOrigin(field(v,"libraryOrigin"),d,"/units/libraryOrigin");
-        u.metadata=field(v,"metadata").encode();nativeIdentityMetadata(u.metadata);u.sourceFolderId=str(field(v,"sourceFolderId"));u.sourceEntityId=str(field(v,"sourceEntityId"));u.sourceGeometryVersion=str(field(v,"sourceGeometryVersion"));d.units.push_back(std::move(u));
-    }
-    restoreArchive(root,d);
-    readPresentation(field(root,"presentation"),d);
-    readContent(field(root,"content"),d,ports);
-    for(const auto& property:d.timelineRecords.propertyBindings)if(property.property=="flag") {
-        const auto value=codecjson::parse(property.value);
-        if(value.object.at("policy").string=="embedded")ports.validateFlagDataUrl(value.object.at("embeddedDataUrl").string);
-    }
-    unknown(d,10,root,"",{"format","version","documentId","units","timelineRecords","geometries","presentation","extensions","content","exchangeMetadata","geometryProvenance"});
-    require(root.object.count("geometryProvenance"),"INVALID_GEOMETRY_PROVENANCE: missing ledger");
-    readGeometryProvenance(field(root,"geometryProvenance"),d);
-    validateNativeFlagPrefixes(d);
-    validateNativeLabelReferences(d);
-    validateDocument(d);return d;
-}
-
 namespace {
-V webPresentationValue(const ProjectDocument& d,bool nativeLabels=true) {
+V webPresentationValue(const ProjectDocument& d) {
     const auto& web=d.presentation.webPresentation;
-    V groups=V::obj(),overrides=V::obj(),order=V::arr(),overlayOrder=V::arr(),labelSettings=V::arr();
+    V groups=V::obj(),overrides=V::obj(),order=V::arr(),overlayOrder=V::arr();
     auto writeStyles=[](const auto& source,V& target){for(const auto& [key,s]:source){V v=V::obj();if(s.opacity)v.object["opacity"]=V::num(*s.opacity);if(s.colorVisible)v.object["colorVisible"]=V::boolean(*s.colorVisible);if(s.boundaryVisible)v.object["boundaryVisible"]=V::boolean(*s.boundaryVisible);if(s.labelsVisible)v.object["labelsVisible"]=V::boolean(*s.labelsVisible);if(s.boundaryWidth)v.object["boundaryWidth"]=V::num(*s.boundaryWidth);if(s.blendMode)v.object["blendMode"]=V::str(*s.blendMode);target.object[key]=v;}};
     writeStyles(web.styles,groups);writeStyles(web.objectStyles,overrides);for(const auto& key:web.objectOrder)order.array.push_back(V::str(key));for(const auto& key:web.overlayOrder)overlayOrder.array.push_back(V::str(key));
-    if(nativeLabels)for(const auto& [owner,s]:web.labelSettings){V value=object({{"ref",refValue(owner)},{"pinned",V::boolean(s.pinned)},{"collisionGroup",V::str(s.collisionGroup)}});if(s.priority)value.object["priority"]=V::num(*s.priority);if(s.minZoom)value.object["minZoom"]=V::num(*s.minZoom);if(s.maxZoom)value.object["maxZoom"]=V::num(*s.maxZoom);if(s.manualPosition){V point=V::arr();point.array={V::num(s.manualPosition->x),V::num(s.manualPosition->y)};value.object["manualPosition"]=point;}labelSettings.array.push_back(std::move(value));}
     auto distributionSettings=object({{"renderMode",V::str(web.distributionSettings.renderMode==DistributionRenderMode::Single?"single":"overlap")},{"activeLayerId",V::str(web.distributionSettings.activeLayerId)},{"boundaryVisible",V::boolean(web.distributionSettings.boundaryVisible)}});
-    auto webValue=object({{"styles",groups},{"objectStyles",overrides},{"objectOrder",order},{"overlayOrder",overlayOrder},{"labelSettings",labelSettings},{"distributionSettings",distributionSettings}});
+    auto webValue=object({{"styles",groups},{"objectStyles",overrides},{"objectOrder",order},{"overlayOrder",overlayOrder},{"distributionSettings",distributionSettings}});
     if(!web.overlayOrderPresent)webValue.object.erase("overlayOrder");
     return webValue;
 }
-}
-std::string encode(const pandoeditor::Project& project,const PlatformPorts& ports) {
-    return encode(project.snapshot(),ports);
-}
-std::string encode(const pandoeditor::ProjectSnapshot& snapshot,const PlatformPorts& ports) {
-    for(const auto& label:snapshot.document().labels)require(!label.metadata,"UNSUPPORTED_NATIVE_LABEL_METADATA");
-    for(const auto& hydro:snapshot.document().hydro)require(jsonObject(hydro.annotations).object.empty(),"UNSUPPORTED_NATIVE_HYDRO_PROPERTIES");
-    for(const auto& entry:snapshot.document().presentation.webPresentation.labelSettings)require(jsonObject(entry.second.annotations).object.empty(),"UNSUPPORTED_NATIVE_LABEL_SETTINGS");
-    require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
-    const auto& d=snapshot.document(); validateDocument(d);validateExchangeMetadata(d);validateProvenanceDigests(d);
-    validateNativeLabelReferences(d);
-    validateNativeFlagPrefixes(d);
-    V units=V::arr(),geometries=V::arr(),layers=V::arr(),membership=V::arr(),styles=V::obj(),extensions=V::arr();
-    for (const auto& u:d.units) {
-        auto value=object({{"id",V::str(u.id)},{"kind",V::str(u.kind==UnitKind::General?"general":"regional")},{"name",V::str(u.name)},{"baseName",V::str(u.baseName)},{"nameExplicit",V::boolean(u.kind==UnitKind::General?u.nameExplicit&&!u.name.empty():u.nameExplicit)},{"notes",V::str(u.kind==UnitKind::General?trimWebText(u.notes):u.notes)},{"locked",V::boolean(u.locked)},{"libraryOrigin",V{}},{"metadata",nativeIdentityMetadata(u.metadata)},{"sourceFolderId",V::str(u.sourceFolderId)},{"sourceEntityId",V::str(u.sourceEntityId)},{"sourceGeometryVersion",V::str(u.sourceGeometryVersion)}});
-        if(u.libraryOrigin)value.object["libraryOrigin"]=libraryOriginValue(*u.libraryOrigin);
-        units.array.push_back(std::move(value));
-    }
-    // Opaque domains may reference otherwise unreferenced stored geometries.
-    for (const auto& [r,g]:d.geometries.versions()) geometries.array.push_back(object({{"id",V::str(r.id)},{"version",V::num(r.version)},{"geojson",geometryValue(*g)}}));
-    for (const auto& l:d.presentation.userLayers) layers.array.push_back(layerValue(l));
-    for (const auto& [r,l]:d.presentation.membership) membership.array.push_back(object({{"ref",refValue(r)},{"layerId",V::str(l)}}));
-    for (const auto& [r,s]:d.presentation.objectStyles) {
-        if (!styles.object.count(r.domain)) styles.object[r.domain]=V::obj();
-        styles.object[r.domain].object[r.id]=object({{"color",s.explicitColor?colorValue(s.color):V{}},{"opacity",V::num(s.opacity)}});
-    }
-    for (const auto& e:d.extensions) extensions.array.push_back(extensionValue(e));
-    auto webValue=webPresentationValue(d);
-    auto root=object({{"format",V::str("pandoeditor-project")},{"version",V::num(ProjectVersion)},{"documentId",V::str(d.documentId)},{"units",units},{"timelineRecords",timelineRecordsValue(d.timelineRecords)},{"geometries",geometries},{"presentation",object({{"userLayers",layers},{"membership",membership},{"objectStyles",styles},{"webPresentation",webValue}})},{"extensions",extensions}});
-    root.object["exchangeMetadata"]=jsonObject(d.exchangeMetadata);
-    root.object["content"]=contentValue(d);
-    root.object["geometryProvenance"]=geometryProvenanceValue(d.geometryProvenance);
-    auto bytes=root.encode()+"\n";
-    require(bytes.size()<=256ll*1024*1024,"LIMIT_EXCEEDED: encoded JSON exceeds 256 MiB");
-    return bytes;
 }
 namespace {
 std::string optionalText(const V& v,const std::string& key,const std::string& fallback="") {
@@ -996,7 +770,6 @@ ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bo
     // A newly created ledger must be saveable before this candidate can activate.
     validateProvenanceDigests(d,wireIds);
     GeometryProvenanceCodecAccess::sealVerifiedOpaqueBaseline(d);
-    if(ports.labelReferencePolicy==LabelReferencePolicy::NativeHard)validateNativeLabelReferences(d);
     validateDocument(d);return d;
 }
 }
@@ -1018,25 +791,12 @@ codecjson::Value normalizeWebTerritorialStoredIdentity(const V& input) {
     props.object["locked"]=V::boolean(p.object.count("locked")&&boolean(field(p,"locked")));
     return object({{"type",V::str("Feature")},{"id",field(input,"id")},{"geometry",V{}},{"properties",std::move(props)}});
 }
-ContentEdit readNativeContentEdit(const ProjectSnapshot& source,const ObjectRef& ref,const V& value,bool create) {
-    auto edit=readWebContentEdit(source,ref,value,create);
-    // Native files carry explicit geometry IDs/versions. A new shape is an
-    // ordinary archive allocation, without Web's private-inline provenance.
-    edit.inlineAllocation.reset();
-    if(create&&ref.domain=="label") {
-        edit.initialLabelSettings=automaticLabelSettings(std::get<PlaceLabel>(edit.value).kind);
-        // Current Native wire represents an unbounded zoom by absence.
-        if(edit.initialLabelSettings->maxZoom&&*edit.initialLabelSettings->maxZoom==std::numeric_limits<double>::infinity())
-            edit.initialLabelSettings->maxZoom.reset();
-    }
-    return edit;
-}
 ProjectDocument decodeWebValue(const V& root,const PlatformPorts& ports){return readWebDocumentValue(root,ports,true);}
 ProjectDocument decodeWeb(const std::string& bytes,const PlatformPorts& ports){return readWebDocumentValue(codecjson::parse(bytes,ports.parsedTextPolicy),ports,true);}
 ProjectDocument readWebSnapshot(const std::string& bytes,const PlatformPorts& ports){return readWebDocumentValue(codecjson::parse(bytes,ports.parsedTextPolicy),ports,false);}
 namespace {
 V webIdentity(const ProjectDocument& d,const TerritorialUnit& u) {
-const auto owner=territorialRef(u.id);auto metadata=nativeIdentityMetadata(u.metadata,true);if(const auto details=d.countryDetails.find(owner);details!=d.countryDetails.end())metadata.object["capital"]=V::str(details->second.capital);if(const auto symbol=d.symbols.find(owner);symbol!=d.symbols.end()&&symbol->second.policy!=FlagPolicy::Default)metadata.object["flagDataUrl"]=symbol->second.policy==FlagPolicy::None?V{}:V::str(symbol->second.embeddedDataUrl);
+const auto owner=territorialRef(u.id);auto metadata=validatedEntityMetadata(u.metadata,true);if(const auto details=d.countryDetails.find(owner);details!=d.countryDetails.end())metadata.object["capital"]=V::str(details->second.capital);if(const auto symbol=d.symbols.find(owner);symbol!=d.symbols.end()&&symbol->second.policy!=FlagPolicy::Default)metadata.object["flagDataUrl"]=symbol->second.policy==FlagPolicy::None?V{}:V::str(symbol->second.embeddedDataUrl);
         if(!u.baseName.empty()||!u.nameExplicit)metadata.object["nameSource"]=object({{"baseName",V::str(u.baseName)},{"nameExplicit",V::boolean(u.nameExplicit)}});if(u.libraryOrigin)metadata.object["libraryOrigin"]=libraryOriginValue(*u.libraryOrigin);
         const auto& style=d.presentation.objectStyles.at(owner);require(style.opacity==1,"UNSUPPORTED_WEB_EXPORT: native entity opacity");V color=V::obj();if(style.explicitColor)color.object["color"]=colorValue(style.color);
         return object({{"type",V::str("Feature")},{"id",V::str(u.id)},{"geometry",V{}},{"properties",object({{"schemaVersion",V::num(TerritorialIdentityVersion)},{"entityKind",V::str(u.kind==UnitKind::General?"general":"regional")},{"name",V::str(u.name)},{"notes",V::str(u.notes)},{"locked",V::boolean(u.locked)},{"style",color},{"metadata",metadata},{"sourceFolderId",V::str(u.sourceFolderId)},{"sourceEntityId",V::str(u.sourceEntityId)},{"sourceGeometryVersion",V::str(u.sourceGeometryVersion)}})}});
@@ -1092,12 +852,12 @@ V webDistributionEntry(const ProjectDocument& d,const DistributionEntry& value,c
     row.object["value"]=V::num(value.value);row.object["certainty"]=V::str(value.certainty);return row;
 }
 V webPresentationFields(const ProjectDocument& d) {
-    const auto native=webPresentationValue(d,false);auto settings=V::obj();
-    auto layer=object({{"schemaVersion",V::num(5)},{"styles",field(native,"styles")},{"objectStyles",field(native,"objectStyles")},{"objectOrder",field(native,"objectOrder")}});
-    if(native.object.count("overlayOrder"))layer.object["overlayOrder"]=field(native,"overlayOrder");
+    const auto presentationValues=webPresentationValue(d);auto settings=V::obj();
+    auto layer=object({{"schemaVersion",V::num(5)},{"styles",field(presentationValues,"styles")},{"objectStyles",field(presentationValues,"objectStyles")},{"objectOrder",field(presentationValues,"objectOrder")}});
+    if(presentationValues.object.count("overlayOrder"))layer.object["overlayOrder"]=field(presentationValues,"overlayOrder");
     for(const auto& entry:d.presentation.webPresentation.labelSettings)settings.object[entry.first.domain+":"+entry.first.id]=labelSettingsValue(entry.second);
     return object({{"layerPresentation",layer},
-        {"labelSettings",settings},{"distributionSettings",field(native,"distributionSettings")}});
+        {"labelSettings",settings},{"distributionSettings",field(presentationValues,"distributionSettings")}});
 }
 std::set<GeometryRef> semanticArchive(const ProjectDocument& d) {
     std::set<GeometryRef> result;for(const auto& entry:d.geometries.versions()) {

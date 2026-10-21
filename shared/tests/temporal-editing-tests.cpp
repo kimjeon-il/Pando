@@ -42,7 +42,7 @@ int main() {
         assert(country.undo());assert(country.redo());
         assert(country.resolveWorld("2026-10").entities.front().validity.from=="1830-10-04");
         const projectcodec::PlatformPorts ports{[](const std::string&) {}};
-        Project reopened;reopened.replace(projectcodec::decode(projectcodec::encode(country,ports),ports));
+        Project reopened;reopened.replace(projectcodec::decodeWeb(projectcodec::encodeWeb(country.snapshot(),ports),ports));
         assert(reopened.resolveWorld("2026-09").entities.empty());
         assert(reopened.resolveWorld("2026-10").entities.front().validity.from=="1830-10-04");
         assert(reopened.resolveWorld("2026-11").entities.empty());
@@ -116,8 +116,8 @@ int main() {
     const CommandRequest request{"territorial.relation.parent",project.instanceId(),project.document().documentId,project.revision(),{territorialRef("A"),territorialRef("B")},args};
     const auto webRejected=CommandProcessor::prepare(project,request);assert(!webRejected.ok());
     const projectcodec::PlatformPorts ports{[](const std::string&) {}};
-    project.setTimelineCursor("2012-06");const auto checkpoint=project.historyCheckpoint();const auto bytes=projectcodec::encode(project,ports);
-    auto decoded=projectcodec::decode(bytes,ports);assert(projectcodec::restoredTimelineMonth(decoded)=="1970-01");assert(project.historyCheckpoint()==checkpoint);
+    project.setTimelineCursor("2012-06");const auto checkpoint=project.historyCheckpoint();const auto bytes=projectcodec::encodeWeb(project.snapshot(),ports);
+    auto decoded=projectcodec::decodeWeb(bytes,ports);assert(projectcodec::restoredTimelineMonth(decoded)=="1970-01");assert(project.historyCheckpoint()==checkpoint);
     Project restored;restored.replace(std::move(decoded));restored.setTimelineCursor("2012-06",false);
     assert(name(restored,"2011-01")=="Baseline");assert(name(restored,"2012-01")=="Inserted");assert(name(restored,"2013-01")=="Future");
     std::cout<<"temporal properties, parent rejection, history and reopen month passed\n";

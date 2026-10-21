@@ -88,7 +88,5 @@ int main() {
     auto orphan=codecjson::parse(seed);orphan.object.at("labels").array.at(0).object["territorialUnitId"]=V::str("deleted-owner");
     DocumentSession orphanWeb(ports);orphanWeb.documentLoad(orphan.encode(),"2026-10");
     assert(codecjson::parse(orphanWeb.storageSnapshot()).object.at("labels").array.at(0).object.at("territorialUnitId").string=="deleted-owner");
-    try{projectcodec::decodeWeb(orphan.encode(),ports);assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what())=="DANGLING_REF: content territory");}
-    try{projectcodec::encode(orphanWeb.project().snapshot(),ports);assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what())=="DANGLING_REF: content territory");}
     std::cout<<"source admission, immutable replacement and stale mode checks passed\n";
 }

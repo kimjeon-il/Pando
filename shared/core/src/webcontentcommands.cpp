@@ -159,7 +159,7 @@ template<class F> auto invalidBoundary(F&& action) -> decltype(action()) {
     catch(const std::invalid_argument& error){throw TimelineError("invalid",error.what());}
 }
 }
-CommandRequest readWebContentCommand(const ProjectSnapshot& snapshot,const std::string& operationId,const V& payload,ContentIdentityPolicy identityPolicy) {
+CommandRequest readWebContentCommand(const ProjectSnapshot& snapshot,const std::string& operationId,const V& payload) {
     if(payload.kind!=V::Object)throw TimelineError("CORE_COMMAND_PAYLOAD","Content payload must be an object.");
     static const std::set<std::string> operations={"generic.create","generic.import","generic.metadata","generic.remove",
         "distribution.layer.create","distribution.layer.metadata","distribution.layer.remove",
@@ -168,9 +168,7 @@ CommandRequest readWebContentCommand(const ProjectSnapshot& snapshot,const std::
     if(!operations.count(operationId))throw TimelineError("CORE_COMMAND_ID","Unsupported content operation: "+operationId);
     CommandRequest request;request.commandId=operationId;request.projectInstanceId=snapshot.instanceId();
     const auto objectId=[&](const V& value) {
-        if(identityPolicy==ContentIdentityPolicy::WebTrimmed)return text(value);
-        if(value.kind!=V::String||value.string.empty())throw TimelineError("CORE_COMMAND_PAYLOAD","Native identity must be an exact nonempty string.");
-        return value.string;
+        return text(value);
     };
     request.documentId=snapshot.document().documentId;request.revision=snapshot.revision();
     const auto set=[&](ContentEdit edit){request.targets={edit.target};request.args.action=std::move(edit);};
@@ -225,11 +223,10 @@ CommandRequest readWebContentCommand(const ProjectSnapshot& snapshot,const std::
         if(payload.object.count("domain")&&text(required(payload,"domain"))!=domain)throw TimelineError("CORE_COMMAND_PAYLOAD","Content domain does not match operation.");
         const ObjectRef ref{domain,objectId(required(payload,"id"))};
         const auto create=flag(optional(payload,"create"));
-        const auto value=domain==std::string("hydro")&&create&&identityPolicy==ContentIdentityPolicy::WebTrimmed?
+        const auto value=domain==std::string("hydro")&&create?
             hydro(required(payload,"value")):required(payload,"value");
-        auto edit=identityPolicy==ContentIdentityPolicy::NativeExact?
-            projectcodec::readNativeContentEdit(snapshot,ref,value,create):projectcodec::readWebContentEdit(snapshot,ref,value,create);
-        if(edit.create&&domain==std::string("label")&&identityPolicy==ContentIdentityPolicy::WebTrimmed)
+        auto edit=projectcodec::readWebContentEdit(snapshot,ref,value,create);
+        if(edit.create&&domain==std::string("label"))
             edit.initialLabelSettings=automaticLabelSettings(std::get<PlaceLabel>(edit.value).kind,readWebLabelSettings(optional(payload,"labelSettings")));
         set(std::move(edit));
     } else {
@@ -238,8 +235,7 @@ CommandRequest readWebContentCommand(const ProjectSnapshot& snapshot,const std::
         if(!*domain)throw TimelineError("CORE_COMMAND_ID","Unsupported content operation: "+operationId);
         ObjectRef ref{domain,objectId(required(payload,"id"))};std::size_t index=0;
         if(ref.domain=="generic") {
-            if(identityPolicy==ContentIdentityPolicy::NativeExact)index=existing(snapshot,ref);
-            else {const auto found=genericIndex(snapshot,ref.id);if(!found)throw TimelineError("not-found","Content object was not found.");
+            {const auto found=genericIndex(snapshot,ref.id);if(!found)throw TimelineError("not-found","Content object was not found.");
                 index=*found;ref.id=snapshot.document().genericFeatures.at(index).id;}
         } else index=existing(snapshot,ref);
         ContentEdit edit;edit.target=ref;

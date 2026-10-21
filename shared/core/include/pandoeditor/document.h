@@ -122,13 +122,6 @@ struct UserLayer {
 struct ObjectStyle { std::uint32_t color=0xa8c7db; double opacity=1; bool explicitColor=true; };
 // Immutable codec evidence for the current native file's hydro item namespace.
 // Visibility itself lives only in WebPresentation::itemVisibility["hydro"].
-struct NativeHydroWireEvidence {
-    std::map<std::string,std::string> itemGroups;
-    std::set<std::string> presentGroups;
-    bool operator==(const NativeHydroWireEvidence& other) const {
-        return itemGroups==other.itemGroups&&presentGroups==other.presentGroups;
-    }
-};
 struct PresentationCatalog {
     std::map<std::string,std::string> hydroLayers;
     std::vector<std::string> countryLabelIds;
@@ -139,7 +132,6 @@ struct PresentationState {
     std::vector<UserLayer> userLayers; // bottom to top; independent of territorial ancestry
     std::map<ObjectRef,std::string> membership;
     std::map<ObjectRef,ObjectStyle> objectStyles;
-    std::shared_ptr<const NativeHydroWireEvidence> nativeHydroWireEvidence;
     std::shared_ptr<const PresentationCatalog> catalog;
 };
 struct PreservedExtension {
