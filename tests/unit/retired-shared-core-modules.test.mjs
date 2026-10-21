@@ -38,3 +38,18 @@ test('removed Qt document session profile is not revived', () => {
     assert.equal(cpp.includes(name), false, name);
   }
 });
+
+test('retired Qt project wire codec and native-only identity policy stay absent', () => {
+  const header = read('shared/core/include/pandoeditor/projectcodec.h');
+  const cpp = read('shared/core/src/projectcodec.cpp');
+  const binding = read('shared/wasm/session-bindings.cpp');
+  const content = read('shared/core/src/webcontentcommands.cpp');
+  for (const name of ['readNativeContentEdit', 'LabelReferencePolicy', 'validateNativeLabelReferences']) {
+    assert.equal(header.includes(name) || cpp.includes(name) || binding.includes(name), false, name);
+  }
+  for (const name of ['ContentIdentityPolicy', 'NativeExact']) {
+    assert.equal(content.includes(name), false, name);
+  }
+  assert.equal(header.includes('ProjectDocument decode(const'), false);
+  assert.equal(header.includes('std::string encode(const Project'), false);
+});

@@ -7,7 +7,7 @@
 namespace pandoeditor::codecjson {
 // Parsed fields/keys have platform-specific text semantics. Opaque scalar
 // tokens retain their original bytes under both policies.
-enum class ParsedTextPolicy { PreserveUtf16, QtUtf8 };
+enum class ParsedTextPolicy { PreserveUtf16 };
 inline void require(bool value,const char* error) { if(!value)throw std::invalid_argument(error); }
 // A codec value, never an editable document or a second model owner. Opaque
 // scalar tokens stay exact; interpreted fields are decoded at the codec boundary.
