@@ -43,6 +43,9 @@ export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
     git(checkout, ['config', 'core.autocrlf', 'false']);
     git(checkout, ['sparse-checkout', 'init', '--cone']);
     git(checkout, ['sparse-checkout', 'set', 'assets/data', 'archive', 'objects', 'reports']);
+    // A no-checkout clone has no working snapshot yet, not user deletions.
+    git(checkout, ['fetch', '--filter=blob:none', 'origin', config.revision]);
+    git(checkout, ['checkout', '--detach', config.revision]);
   }
   let current;
   try { current = git(checkout, ['rev-parse', 'HEAD']); } catch { current = ''; }
