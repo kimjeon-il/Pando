@@ -16,6 +16,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `GEO-KOR-20261021` | [한국·북한 정부수립일과 남북 경계 전환](geography/korea-boundaries-2026-10-21.md) | 2026-10-21 | `implemented-partially / provisional` | `work-gis-only` |
 | `GEO-REVIEW-20261020-FOLLOWUP` | [GIS 후속 검토 — 중앙아시아 벡터 후보·원문 부재 보류](geography/reviews/followup-2026-10-20-vector-sources.md) | 2026-10-20 UTC / 10-21 한국 | `investigating` | `not-applied` |
 | `GEO-TIME-005` | [2025년 중앙아시아 역사 벡터 자료 후보 탐색](geography/historical-timeline-2025-central-asia-vector-screen-2026-10-21.md) | 2026-10-21 회차 / 검토 10-20 UTC | `investigating` | `not-applied` |
 | `GEO-REVIEW-20261020` | [10월 20일 아침 보고서 검토 — 미주 8개국 보류·순환 이력 정합성 보정](geography/reviews/morning-2026-10-20.md) | 2026-10-20 회차 / 2026-10-19 UTC | `investigating` | `not-applied` |

@@ -3,14 +3,14 @@
   "schemaVersion": 1,
   "source": {
     "url": "territorial-entities/generated/current-world.geojson",
-    "sha256": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb",
+    "sha256": "e632fdc71c43c0f0ce3b4cfcb09c0498586cef17d6f507332fd17409cff47c41",
     "countryCount": 258
   },
   "derivation": {
     "preview": "canonical-topology-simplified",
     "previewSourceScale": "derived",
     "simplificationQuantile": 0.16,
-    "coordinateCount": 105880,
+    "coordinateCount": 106604,
     "meshAlgorithmRevision": 5
   },
   "defaultClassification": {
@@ -23,7 +23,7 @@
       "ARG": "2ds2:vjcmy7",
       "CYP": "53d:jt5nyt",
       "IND": "3loi:4zl7un",
-      "CHN": "6u58:16s3qbj",
+      "CHN": "8fpv:1bax1a6",
       "ISR": "7x3:2foanb",
       "PSX": "3yj:1sm15x0",
       "LBN": "597:1qgfi0c",
@@ -38,8 +38,8 @@
       "FRA": "24y5:y81n84",
       "SUR": "ceq:iobdxv",
       "GUY": "ivh:1gs0ica",
-      "KOR": "1hyc:3go4s",
-      "PRK": "vd7:1n0vzo8",
+      "KOR": "570d:xbh7wq",
+      "PRK": "65zv:1p2oirh",
       "MAR": "hha:1tnqn35",
       "SAH": "51m:1r9en7d",
       "CRI": "e76:280jk4",
@@ -224,7 +224,7 @@
       "BHR": "2ie:1gf5v3t"
     },
     "changed": {
-      "CHN": "6u58:16s3qbj",
+      "CHN": "8fpv:1bax1a6",
       "BRA": "5hrd:ljjqbf",
       "COL": "1kcn:3zrssf"
     },
@@ -474,26 +474,26 @@
   },
   "assets": {
     "previewCountries": {
-      "url": "world/objects/countries-preview-sha256-9e5ee678f2cbe1ad5a4df8fb5bcd251c1f04e9e005d811fb1f154afa408be594.geojson.gz",
+      "url": "world/objects/countries-preview-sha256-e3a79e2ff5c852731600244a33637f55df5afa20f98f1203dbcbee1d61456f54.geojson.gz",
       "encoding": "gzip",
-      "compressedBytes": 917463,
-      "decodedBytes": 2438854,
-      "sha256": "9e5ee678f2cbe1ad5a4df8fb5bcd251c1f04e9e005d811fb1f154afa408be594"
+      "compressedBytes": 923669,
+      "decodedBytes": 2455928,
+      "sha256": "e3a79e2ff5c852731600244a33637f55df5afa20f98f1203dbcbee1d61456f54"
     },
     "previewMesh": {
-      "url": "world/objects/world-mesh-preview-sha256-766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583.bin.gz",
+      "url": "world/objects/world-mesh-preview-sha256-397f34f917184ace46d0a34f74cca6b56d011135ae81727ec759ea233839d363.bin.gz",
       "encoding": "gzip",
-      "compressedBytes": 1734093,
-      "decodedBytes": 3764552,
-      "sha256": "766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583",
+      "compressedBytes": 1742838,
+      "decodedBytes": 3785684,
+      "sha256": "397f34f917184ace46d0a34f74cca6b56d011135ae81727ec759ea233839d363",
       "header": [
         1129137969,
         2,
         258,
-        125464,
-        421674,
-        203470,
-        105880,
+        126170,
+        423744,
+        204918,
+        106604,
         5,
         516,
         516,
@@ -502,18 +502,18 @@
       ]
     },
     "canonicalCountryPacket": {
-      "url": "world/objects/countries-canonical-sha256-6bc58f6fd8c32b4c445f9bc328b87f8ea028221eca1f1a9ff5ff848d51343218.pcg.gz",
+      "url": "world/objects/countries-canonical-sha256-6c9c45a726ddae7a35a221acd053f690375cf671be23fa072cd290665b0000f6.pcg.gz",
       "encoding": "gzip",
-      "compressedBytes": 5122020,
-      "decodedBytes": 8826200,
-      "sha256": "6bc58f6fd8c32b4c445f9bc328b87f8ea028221eca1f1a9ff5ff848d51343218",
+      "compressedBytes": 5282645,
+      "decodedBytes": 9028984,
+      "sha256": "6c9c45a726ddae7a35a221acd053f690375cf671be23fa072cd290665b0000f6",
       "header": [
         826753872,
         1,
         258,
         4274,
         4291,
-        548454,
+        561128,
         13227,
         258,
         259,
@@ -527,23 +527,23 @@
         31704,
         48872,
         50936,
-        8826200
+        9028984
       ]
     },
     "canonicalMesh": {
-      "url": "world/objects/world-mesh-sha256-4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53.bin.gz",
+      "url": "world/objects/world-mesh-sha256-5fba75c02306f7abf6c627b55214e002646abef2898160cd0f7f2237fb822bf1.bin.gz",
       "encoding": "gzip",
-      "compressedBytes": 14619919,
-      "decodedBytes": 32644044,
-      "sha256": "4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53",
+      "compressedBytes": 14790484,
+      "decodedBytes": 33037296,
+      "sha256": "5fba75c02306f7abf6c627b55214e002646abef2898160cd0f7f2237fb822bf1",
       "header": [
         1129137969,
         2,
         258,
-        1026976,
-        4504629,
-        1086608,
-        548454,
+        1040064,
+        4544928,
+        1111902,
+        561128,
         5,
         516,
         516,

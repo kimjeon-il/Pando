@@ -1,0 +1,17 @@
+{
+  "crs": "EPSG:4326",
+  "planarAreaUnits": "square degrees; zero area used only for exact topology equivalence",
+  "versionsValid": {
+    "state:KOR:38th-parallel-1948": true,
+    "state:KOR:armistice-1953": true,
+    "state:PRK:38th-parallel-1948": true,
+    "state:PRK:armistice-1953": true,
+    "state:PRK:sino-korean-protocol-1964": true,
+    "state:CHN:paektu-lsib-11.4": true
+  },
+  "korPrkOverlap": 0.0,
+  "prkChnOverlap": 0.0,
+  "landUnionSymmetricDifference": 0.0,
+  "independentPeriodGeometryCompared": false,
+  "historicalHalfPixelTest": "not-run"
+}
