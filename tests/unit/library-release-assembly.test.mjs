@@ -21,7 +21,8 @@ function fixture() {
   const chunk = write('territorial-entities/generated/v2/state-AAA.json.gz', 'chunk');
   write('territorial-entities/generated/v2/index.json', JSON.stringify({ schemaVersion: 2, entities: [{ file: 'state-AAA.json.gz', ...chunk }], lineages: [], snapshots: [] }));
   const country=write('builtin-world/generated/v1/countries/AAA.json.gz','country');
-  write('builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,entities:[{...country,file:'countries/AAA.json.gz'}]}));
+  const packed=write('builtin-world/generated/v1/transport/packed.bin','country');
+  write('builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,entities:[{...country,file:'countries/AAA.json.gz'}],transport:{...packed,url:'transport/packed.bin'}}));
   const source = write('territorial-entities/generated/current-world.geojson', 'world');
   const worldAsset = write('world/objects/countries-preview-sha256-' + 'c'.repeat(64) + '.geojson.gz', 'preview');
   const shared = write('countries-preview-shared-v0.36.1.json.gz', 'shared');
@@ -42,6 +43,7 @@ test('assembles a content-checked immutable release and a last-written activatio
   assert.equal(pointer.manifestSha256, hash(readFileSync(join(output, `assets/data/library-releases/${revision}/manifest.json`))));
   const historical = JSON.parse(readFileSync(join(output, `assets/data/library-releases/${revision}/builtin-world/generated/v1/index.json`)));
   assert.equal(historical.entities[0].file,'countries/AAA.json.gz');
+  assert.equal(readFileSync(join(output,`assets/data/library-releases/${revision}/builtin-world/generated/v1/${historical.transport.url}`),'utf8'),'country');
   assert.equal(verifyLibraryRelease({ output, revision }).fileCount, result.fileCount);
 });
 
