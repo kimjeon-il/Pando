@@ -9,14 +9,14 @@ const PNG_1X1 = Buffer.from(
   'base64',
 );
 const VIEWPORTS = [
-  { width: 320, height: 568 },
+  { width: 320, height: 720 },
   { width: 390, height: 844 },
   { width: 768, height: 1024 },
-  { width: 1024, height: 800 },
+  { width: 1024, height: 768 },
   { width: 1440, height: 900 },
 ];
 
-async function openApp(page, { viewport = VIEWPORTS.at(-1), theme = 'light' } = {}) {
+async function openApp(page, { viewport = VIEWPORTS.at(-1), theme = 'light', beforeOpen = null } = {}) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -30,10 +30,50 @@ async function openApp(page, { viewport = VIEWPORTS.at(-1), theme = 'light' } = 
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
   await expect(page.locator('#referenceImageBtn')).toBeVisible();
+  if (beforeOpen) await beforeOpen(page);
   await page.locator('#referenceImageBtn').click();
   await expect(page.locator('#referenceImageSurface')).toBeVisible();
   return errors;
 }
+
+test('first activation mounts one complete reference Surface directly in the workspace and loads styles once', async ({ page }) => {
+  const errors = await openApp(page, { beforeOpen: async currentPage => {
+    await expect(currentPage.locator('[data-pandolab-reference-image-style]')).toHaveCount(0);
+    await currentPage.evaluate(() => {
+      const launcher = document.getElementById('referenceImageBtn');
+      const mutations = [];
+      const observer = new MutationObserver(records => {
+        for (const record of records) {
+          for (const node of record.addedNodes) {
+            if (node.nodeType === window.Node.ELEMENT_NODE && node.matches('.reference-image-panel')) {
+              mutations.push({ parent: record.target.className, complete: !!node.querySelector(':scope > .surface-footer') });
+            }
+          }
+        }
+      });
+      observer.observe(document.querySelector('.workspace'), { childList: true, subtree: true });
+      window.__referenceMount = { launcher, parent: launcher.parentElement, mutations, observer };
+    });
+  } });
+  const mount = await page.evaluate(() => {
+    const capture = window.__referenceMount;
+    capture.observer.disconnect();
+    return { mutations: capture.mutations, sameLauncher: capture.launcher.parentElement === capture.parent };
+  });
+  expect(mount).toEqual({ mutations: [{ parent: expect.stringContaining('workspace'), complete: true }], sameLauncher: true });
+  await addImage(page, 'fixed-surface.png');
+  const before = await readReferenceStore(page);
+  const styleUrls = await page.locator('[data-pandolab-reference-image-style]').evaluateAll(links => links.map(link => link.href));
+  expect(styleUrls).toHaveLength(4);
+  expect(new Set(styleUrls).size).toBe(4);
+  expect(styleUrls.every(href => new URL(href).searchParams.has('v'))).toBe(true);
+  await page.locator('.surface-header [data-ref-action="close"]').click();
+  await page.locator('#referenceImageBtn').click();
+  await expect(page.locator('[data-ref-field="name"]')).toHaveValue('fixed-surface.png');
+  expect(await page.locator('[data-pandolab-reference-image-style]').evaluateAll(links => links.map(link => link.href))).toEqual(styleUrls);
+  expect(await readReferenceStore(page)).toEqual(before);
+  expect(errors).toEqual([]);
+});
 
 async function readReferenceStore(page) {
   return page.evaluate(async () => {

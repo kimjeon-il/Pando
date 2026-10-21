@@ -50,9 +50,10 @@ async function prepareCornerPinImage(page) {
   await gotoEditor(page, '/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await expect.poll(() => page.evaluate(() => typeof window.__PANDOLAB_REFERENCE_IMAGES__?.open)).toBe('function');
   await page.locator('.reference-image-launcher').click();
+  await expect.poll(() => page.evaluate(() => typeof window.__PANDOLAB_REFERENCE_IMAGES__?.open)).toBe('function');
   const panel = page.locator('#referenceImageSurface');
+  await expect(panel).toBeVisible();
   await panel.locator('[data-ref-file]').setInputFiles({ name: 'auxiliary-edge.png', mimeType: 'image/png', buffer: EDGE_PNG });
   await expect.poll(async () => (await readReferenceSnapshot(page)).stored.length).toBe(1);
   const geometry = await page.evaluate(async () => {

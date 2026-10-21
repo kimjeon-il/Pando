@@ -105,10 +105,12 @@ export function installReferenceImageController({
   const mapElement = document.getElementById('map');
   const launcher = document.getElementById('referenceImageBtn');
   if (!mapElement || !launcher) return null;
+  const workspace = mapElement.closest('.workspace');
+  if (!workspace) throw new TypeError('Reference images require a workspace host.');
   document.documentElement.dataset.referenceImageController = 'installed';
 
   const panel = createReferenceImagePanel();
-  mapElement.append(panel);
+  workspace.append(panel);
 
   const fileInput = panel.querySelector('[data-ref-file]');
   const listElement = panel.querySelector('[data-ref-list]');

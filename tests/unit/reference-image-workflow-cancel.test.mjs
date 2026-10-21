@@ -36,6 +36,8 @@ async function controllerHarness() {
     .map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
   const panel = element();
   const map = element();
+  const workspace = element();
+  map.closest = selector => selector === '.workspace' ? workspace : null;
   const launcher = element();
   const mapQuad = [[0, 10], [20, 10], [20, 0], [0, 0]];
   const deferred = [];

@@ -41,16 +41,23 @@ function referencePointRow({
 
 export function createReferenceImagePanel() {
   const panel = document.createElement('section');
-  panel.className = 'reference-image-panel';
+  panel.id = 'referenceImageSurface';
+  panel.className = 'workspace-surface surface-reference ui-sheet reference-image-panel';
   panel.hidden = true;
   panel.setAttribute('aria-label', '참조 이미지');
   panel.innerHTML = `
-    <header class="reference-image-panel-header">
-      <div>
+    <div class="reference-image-resize-handle" tabindex="0" role="separator" aria-label="참조 이미지 패널 너비 조절" aria-orientation="vertical" aria-valuemin="300" aria-valuemax="480" aria-valuenow="340"></div>
+    <header class="surface-header reference-image-panel-header">
+      <button type="button" class="ui-button sheet-drag-handle" data-sheet-handle="referenceImageSurface" role="slider" aria-label="참조 이미지 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span></span></button>
+      <div class="surface-header-title">
         <strong>참조 이미지</strong>
       </div>
-      <button type="button" class="ui-button icon-btn" data-ref-action="close" aria-label="참조 이미지 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+      <div class="surface-header-actions">
+        <button type="button" class="ui-button btn ghost reference-image-collapse-button" data-reference-panel-toggle aria-controls="referenceImageSurfaceBody" aria-label="참조 이미지 패널 접기" aria-expanded="true">접기</button>
+        <button type="button" class="ui-button icon-btn" data-ref-action="close" aria-label="참조 이미지 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+      </div>
     </header>
+    <div id="referenceImageSurfaceBody" class="surface-body reference-image-body">
     <section class="reference-image-collection" aria-label="이미지 목록">
       <div class="reference-image-collection-heading">
         <strong>이미지 목록</strong>
@@ -70,6 +77,16 @@ export function createReferenceImagePanel() {
       </div>
     </section>
     <div class="reference-image-editor" data-ref-editor hidden></div>
+    </div>
+    <footer class="surface-footer reference-image-editing-summary" hidden>
+      <span class="reference-image-editing-status" role="status"></span>
+      <button type="button" class="ui-button btn ghost" data-ref-action="navigation-toggle">지도 이동</button>
+      <button type="button" class="ui-button btn ghost" data-ref-action="undo" aria-label="이미지 편집 실행 취소" disabled>실행 취소</button>
+      <button type="button" class="ui-button btn ghost" data-ref-action="redo" aria-label="이미지 편집 다시 실행" disabled>다시 실행</button>
+      <button type="button" class="ui-button btn" data-ref-action="finish">완료</button>
+      <button type="button" class="ui-button btn ghost" data-ref-action="cancel">취소</button>
+      <div class="reference-image-workflow-actions" data-ref-workflow-actions hidden></div>
+    </footer>
   `;
   return panel;
 }
@@ -347,7 +364,7 @@ export function referenceImageEditorMarkup({
 
   return `
     <div class="reference-image-selected-card" aria-label="선택한 참고 이미지">
-    <div class="reference-image-editor-title">
+    <div class="ui-field field-group reference-image-editor-title">
       <input type="text" data-ref-field="name" value="${escapeAttribute(record.name)}" aria-label="참조 이미지 이름" />
       <button type="button" class="ui-button icon-btn" data-ref-action="delete" aria-label="참조 이미지 삭제"${record.locked ? ' disabled' : ''}><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
     </div>
@@ -358,7 +375,7 @@ export function referenceImageEditorMarkup({
         <button type="button" class="ui-button btn ghost" data-ref-action="bring-forward"${index >= count - 1 ? ' disabled' : ''}>앞으로</button>
         <button type="button" class="ui-button btn ghost" data-ref-action="send-backward"${index <= 0 ? ' disabled' : ''}>뒤로</button>
       </div>
-      <label class="reference-image-field">
+      <label class="ui-field field-group reference-image-field">
         <span>불투명도</span>
         <input data-ref-field="opacity" type="range" min="0" max="1" step="0.01" value="${record.opacity}" />
         <output>${Math.round(record.opacity * 100)}%</output>
@@ -392,7 +409,7 @@ export function referenceImageEditorMarkup({
         <button type="button" class="ui-button btn ghost${placementEditing ? ' active' : ''}" data-ref-action="placement" aria-pressed="${placementEditing}"${placementDisabled ? ' disabled' : ''}>배치</button>
         <button type="button" class="ui-button btn ghost${freeTransformEditing ? ' active' : ''}" data-ref-action="free-transform" aria-pressed="${freeTransformEditing}"${freeTransformDisabled ? ' disabled' : ''}>자유 변형</button>
       </div>
-      <label class="reference-image-field">
+      <label class="ui-field field-group reference-image-field">
         <span>회전</span>
         <input class="ui-input reference-image-number-input" data-ref-field="rotation" type="number" min="-180" max="180" step="0.1" value="${numberText(placementRotation, 1)}"${placementDisabled ? ' disabled' : ''} />
         <output>°</output>
@@ -413,7 +430,7 @@ export function referenceImageEditorMarkup({
       <details class="reference-image-advanced">
         <summary>고급 보정 방식 및 상세 오차</summary>
       <p class="reference-image-hint">자유 변형은 Projective Corner Pin으로 계산합니다. 기준점·고정점과 함께 사용하면 모서리와 고정점을 hard constraint로 유지하고 TPS rubber-sheet로 보정합니다.</p>
-      <label class="reference-image-field">
+      <label class="ui-field field-group reference-image-field">
         <span>방식</span>
         <select class="ui-select" data-ref-field="warp"${warpDisabled ? ' disabled' : ''}>${options(warpOptions)}</select>
         <output></output>
@@ -469,7 +486,7 @@ export function referenceImageEditorMarkup({
         <strong id="reference-image-appearance-title">표시</strong>
       </div>
 
-      <label class="reference-image-field">
+      <label class="ui-field field-group reference-image-field">
         <span>혼합</span>
         <select class="ui-select" data-ref-field="blend">${blendOptions.map(([value, label]) => `<option value="${value}"${record.blendMode === value ? ' selected' : ''}>${label}</option>`).join('')}</select>
         <output></output>
