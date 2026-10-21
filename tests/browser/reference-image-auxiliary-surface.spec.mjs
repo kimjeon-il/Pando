@@ -86,6 +86,20 @@ async function prepareCornerPinImage(page) {
   })).toBe(true);
   await page.keyboard.press('Escape');
   await panel.locator('[data-ref-tab="match"]').click();
+  // P6: both fixed auxiliary start buttons respond to click and keyboard tab navigation.
+  for (const id of ['line', 'live-wire']) {
+    await expect(panel.locator(`[data-ref-${id}-action="start"]`)).toBeVisible();
+  }
+  await panel.locator('[data-ref-tab="display"]').click();
+  for (const id of ['line', 'live-wire']) {
+    await expect(panel.locator(`[data-ref-${id}-action="start"]`)).toBeHidden();
+  }
+  await panel.locator('[data-ref-tab="display"]').focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(panel.locator('[data-ref-tab="match"]')).toHaveAttribute('aria-selected', 'true');
+  for (const id of ['line', 'live-wire']) {
+    await expect(panel.locator(`[data-ref-${id}-action="start"]`)).toBeVisible();
+  }
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
   return panel;
