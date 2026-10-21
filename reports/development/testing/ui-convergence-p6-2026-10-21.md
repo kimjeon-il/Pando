@@ -1,8 +1,8 @@
 # UI 구조 통일 P6 — 공통 구조 정리·최소 회귀 검증
 
-> 보고서 ID: `UI-CONVERGENCE-P6-20261021` · 상태: `cleanup-implemented / isolated-focused-verified / browser-native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-21  
+> 보고서 ID: `UI-CONVERGENCE-P6-20261021` · 상태: `focused-unit-browser-app-stage-verified / native-webview-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-21  
 > 원문 최종 수정: 2026-10-21  
-> 코드 조사 기준: `work/ui` `7f1cad96333a2f81bc68e8ef22a3fdefba8fc18d` (P5 이후)  
+> 코드 조사 기준: `work/ui` `7f1cad96333a2f81bc68e8ef22a3fdefba8fc18d` (P5 이후), P6 `4f80c53`, 최종 생성물 `4df41af`  
 > 수정 범위: 본 P6 커밋의 6개 소스·테스트 파일, 보고서와 색인. `main`에 직접 반영하거나 배포하지 않음.  
 > 근거: [P0 조사](ui-convergence-p0-audit-2026-10-20.md) · [P4 보고](ui-convergence-p4-2026-10-21.md) · [P5 보고](ui-convergence-p5-2026-10-21.md)
 
@@ -32,31 +32,41 @@ P5의 시작 버튼 활성 상태는 각 도구의 `syncUi()`가 `[data-ref-sect
 - `layout/reference-images.css`: 과거 footer 직계 `reference-image-calibration-actions`의 미사용 스타일 두 곳을 제거했다. 새 footer Action 자식 선택자는 보존했다.
 - 단위 검사는 양쪽 시작 버튼의 `placement → match → placement` 표시 상태 전환과 동일 버튼 보존을 추가했다. 기존 모바일 브라우저 시나리오에는 탭 클릭 및 왼쪽 화살표 키보드 전환을 추가했다.
 
-## 최소 검증 결과
+## 단계별 최소 검증 결과
 
 | 항목 | 결과 | 정확한 실행 범위 |
 | --- | --- | --- |
-| 변경 파일 구문 | **8개 소스·테스트 파서 검사 통과** | 실제 GitHub 파일 본문을 V8에서 파싱하되 ESM import/export를 검사 환경에 맞춰 제거 |
-| Surface·도구 관련 단위 시나리오 | **10/10 통과** | 기존 `reference-image-surface.test.mjs`의 테스트 함수, 실제 모듈 본문을 사용한 V8 모의 DOM 실행. 외부 의존성은 검사용 stub으로 대체 |
-| 탭 전환·키보드 동작 집중 시나리오 | **7/7 통과** | `setEditorTab()`과 `onEditorTabKeydown()`의 실제 소스·모의 탭 DOM으로 이벤트·표시·포커스 검사 |
-| P0~P5 구조·재부모화 정적 점검 | 확인 완료 | GitHub `work/ui` 소스에서 대표 이동 패턴과 공통 소유자 규칙 점검. 런타임 동등성 보증은 아님 |
-| `node --test`, Playwright, `pnpm check:ui` | **미실행** | 현재 환경에 실제 저장소 checkout 및 브라우저 빌드 실행 환경이 없어 정식 검사 결과를 주장하지 않음 |
-| 실제 Tauri WebView 및 앱 staging | **미실행** | 참조 모듈의 자산 경로는 P4와 동일하며 앱 stage는 `assets/` 트리를 복사하지만 P6 실행 검증은 별도 필요 |
+| 1차 ESLint·Node 단위 | **25/25 통과**, ESLint 통과 | `reference-image-surface.test.mjs`, `reference-image-ui.test.mjs`, 관련 소스/테스트 8개 ESLint. [실제 CI 실행](https://github.com/kimjeon-il/Pando/actions/runs/39572335246) |
+| 2차 UI 구조·CSS 계층 | **모두 통과** | `node scripts/check-ui-architecture.mjs` (Surface 1 계약·CSS 30개·legacy ratchet 4), `node scripts/check-ui-layering.mjs` (정본 CSS 25개). 동일 CI 실행 |
+| 3차 Playwright | **총 5/5 통과** | [최초 실행](https://github.com/kimjeon-il/Pando/actions/runs/39571774395)에서 모바일 보조 UI 2건 통과, 기존 선 보강·자동 추적 3건은 최초 진입 전에 지연 API가 있다고 가정하여 실패. 테스트 준비 순서만 수정한 뒤 [재검사](https://github.com/kimjeon-il/Pando/actions/runs/39572335246)에서 3/3 통과 |
+| 4차 지연 CSS 앱 스테이징 계약 | **1/1 통과** | 기존 `apps/web-shell/tests/stage.test.mjs`의 참조 CSS catalog 전수 검사. 생성용 fixture 환경 테스트 |
+| 4차 실제 앱 `small-project` 스테이징 | **통과** | [실제 CI](https://github.com/kimjeon-il/Pando/actions/runs/39573489751): 정식 생성기 실행 후 1,134파일·62,473,993바이트, 참조 이미지 JS/CSS 9개 소스 바이트 동일, `check-stage.mjs` 통과. [메타데이터 게시 CI](https://github.com/kimjeon-il/Pando/actions/runs/39573901604)에서 동일 경로 재검증 |
+| Windows Tauri·Android 실제 WebView | **미실행** | 소스 브라우저 테스트와 Linux `small-project` stage 검증은 네이티브 WebView 기동 검증을 대체하지 않음 |
+| `pnpm check:ui` 전체·무관 GIS/Worker 테스트 | **요청에 따라 생략** | 수정 범위 관련 검사만 수행. [별도 GIS P2 실패](https://github.com/kimjeon-il/Pando/actions/runs/39558398760)는 `Invalid prepared polygon mesh: boundary edge`이며 이 UI 검증 결과와 무관 |
 
-`work/ui`의 P5 커밋에 대한 기존 원격 자동화는 UI 집중 검사와 다르다. [P3 원격 검증](https://github.com/kimjeon-il/Pando/actions/runs/39558398807)의 선택 단계는 성공했으나 실제 브라우저 검증 job은 skip되었다. [P2 산출물 자동화](https://github.com/kimjeon-il/Pando/actions/runs/39558398760)는 GIS prepared polygon mesh의 `Invalid prepared polygon mesh: boundary edge`로 실패했다. 본 UI 수정의 성공·실패로 환산하지 않으며 P6에서 GIS를 수정하지 않았다.
+### 회귀 진단 및 변경 내용
 
-## 산출물·릴리스 상태와 남은 검증
+브라우저의 세 실패는 `reference-image-line-refine.spec.mjs`와 `reference-image-live-wire.spec.mjs`의 `waitForReady`가 기능을 열기 **이전**에 `__PANDOLAB_REFERENCE_IMAGES__.open` 존재를 요구한 테스트 전제 때문이었다. 기존 P4의 실제 지연 초기화 정책에 맞춰 런처 클릭 후 API를 기다리도록 `4fe5dcb`에서 수정했고, 실패했던 세 시나리오만 재실행했다. 애플리케이션 보정 계산·저장·명령 코드는 건드리지 않았다.
 
-공용 JS 모듈 경로와 CSS 자산 목록은 바뀌지 않았고 `reference-images.css`는 공통 정본에 등록된 지연 로딩 파일이다. `index.html`, 앱 editor HTML, JS 빌드 메타데이터는 생성물이며 이번 작업에서는 직접 손대지 않았다. 릴리스 전에 정식 생성기에서 현재 리비전으로 갱신·검증해야 한다. 이번 보고서는 새 빌드 ID나 캐시 갱신을 검증했다고 주장하지 않는다.
+CI 첫 실제 스테이징은 `assets/js/build-meta.js`의 이전 생성 결과와 현행 소스가 달라 `Stale build metadata output`에서 중단됐다. 그 결과를 무시하거나 검사를 약화하지 않고 정식 `scripts/generate-build-metadata.mjs`를 실행했다. 작업 checkout에서 변경된 파일은 `index.html`, `apps/web-shell/editor.html`, `assets/js/build-meta.js` 정확히 세 개뿐이었다. 생성 전후 앱 검증을 마치고 허용된 세 파일만 [`work/ui` 커밋 `4df41af`](https://github.com/kimjeon-il/Pando/commit/4df41af2ce1dd4ed5e5586f11432800841f41225)에 반영했다. 그 외 원본 GIS·지도·저장 파일은 수정하지 않았다.
 
-실제 완료 판정을 위한 최소 후속 실행은 다음과 같다. 전체 GIS·Worker·네이티브 계산 스위트는 불필요하다.
+
+## 산출물·릴리스 상태와 잔여 항목
+
+`reference-images.css`는 지연 로딩 스타일 정본 catalog에서 계속 관리한다. `index.html`, 앱 editor HTML, JS 빌드 메타데이터는 **정식 생성기로 갱신한 세 파일**만 기록됐다. `main` 병합·웹 게시·네이티브 앱 배포는 이 단계에서 하지 않았다.
+
+실제로 수행한 최소 검증 명령은 다음과 같다.
 
 ```bash
-node --test tests/unit/reference-image-surface.test.mjs
+pnpm exec eslint assets/js/modules/reference-image-{controller,surface,surface-port,ui,line-refine-controller,live-wire-controller}.js tests/unit/reference-image-surface.test.mjs tests/browser/reference-image-auxiliary-surface.spec.mjs
+node --test tests/unit/reference-image-surface.test.mjs tests/unit/reference-image-ui.test.mjs
 node scripts/check-ui-architecture.mjs
 node scripts/check-ui-layering.mjs
-pnpm exec playwright test tests/browser/reference-image-auxiliary-surface.spec.mjs --workers=1
-# 앱 빌드 출력이 필요한 경우: 앱 stage small-project 자산 정합성 검사
+pnpm exec playwright test tests/browser/reference-image-auxiliary-surface.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/reference-image-live-wire.spec.mjs --workers=1 --retries=0 --trace off
+node scripts/generate-build-metadata.mjs
+node scripts/generate-build-metadata.mjs --check
+node apps/web-shell/stage.mjs --profile=small-project
+node apps/web-shell/check-stage.mjs
 ```
 
-단위·브라우저 결과를 확보하지 못한 항목은 미검증으로 남긴다. Windows Tauri 네이티브 WebView는 이 환경에서 실행되지 않았다. `main` 병합·게시·배포는 이 단계에 포함하지 않는다.
+네이티브 Windows Tauri·Android 기동 확인은 미실행이며, 현재 UI 단위·브라우저·app staging 검사 통과라는 범위와 구분해야 한다. `work/ui`의 변경을 `main`에 병합하거나 배포하려면 별도 지시가 필요하다.
