@@ -22,6 +22,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -43,6 +45,8 @@ jobs:
         with:
           persist-credentials: false
           ref: 6b0c501dd09029ef237e90c1ef55fdb82bdf315f
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc

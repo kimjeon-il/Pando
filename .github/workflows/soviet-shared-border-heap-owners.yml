@@ -17,6 +17,8 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 15
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - name: Confirm only test files and an unrelated documentation report differ from pinned main
         env:
           MAIN_BASE: e85b3e158d5c02e4aa028283db5b83a1750f4b1a

@@ -38,7 +38,7 @@ test.use({viewport:{width:viewport.width,height:viewport.height},deviceScaleFact
 test('current-view detail reaches an actual WebGL frame while the pointer remains held',async({page})=>{
   const manifest={version:'0.13.3',representation:'dem-relief-v1',crs:'EPSG:4326',extent:[-180,-90,180,90],gutter:1,tileFormat:'lossless WebP RGBA',registration:'cell-center',sourceGridOrigin:[-180,90],sourceResolutionDegrees:[1/120,1/120],elevation:{decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535]},channels:{r:'encoded elevation high byte',g:'encoded elevation low byte',b:'precomputed hillshade',a:'255'},shade:{azimuthDegrees:315,altitudeDegrees:45,ambient:.42,diffuse:.58,polarFallbackDegrees:89.5},tint:{url:'terrain/v0.13.3/tint.webp',width:4,height:2},assetsSha256:'a'.repeat(64),sources:[],urlTemplate:'terrain/v0.13.3/{level}/{column}-{row}.webp',levels:Array.from({length:6},(_,id)=>({id,width:1350*2**id,height:675*2**id,tileSize:1024,columns:Math.ceil(1350*2**id/1024),rows:Math.ceil(675*2**id/1024)}))};
   const images=new Map();
-  await page.route('https://kimjeon-il.github.io/world-map-terrain-v0.13.0/**',async route=>{
+  await page.route('https://kimjeon-il.github.io/PandoLab-library-data/**',async route=>{
     const path=new URL(route.request().url()).pathname;
     if(path.endsWith('manifest.json'))return route.fulfill({json:manifest});
     let width=4,height=2;const match=path.match(/\/(\d+)\/(\d+)-(\d+)\.webp$/);
