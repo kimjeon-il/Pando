@@ -1,6 +1,6 @@
 # 브랜치 및 상설 워크트리 운영 정책
 
-`kimjeon-il/Pando`가 웹 루트, `apps/web-shell/` 앱과 `shared/` 공통 코어, `reports/` 보고서를 함께 보관하는 단일 저장소다. 웹과 앱은 같은 Git 커밋의 웹 UI·Worker·WASM을 사용하며 플랫폼 연결은 별도로 검증한다. 이전 `kimjeon-il/PandoEditor` 저장소는 복구용 원본으로 보존하며, 이 저장소의 새 작업은 그쪽으로 자동 동기화하지 않는다.
+`kimjeon-il/Pando`가 웹 루트, `apps/web-shell/` 앱과 `shared/` 공통 코어를 보관하는 단일 저장소다. 웹과 앱은 같은 Git 커밋의 웹 UI·Worker·WASM을 사용하며 플랫폼 연결은 별도로 검증한다. 이전 `kimjeon-il/PandoEditor` 저장소는 복구용 원본으로 보존하며, 이 저장소의 새 작업은 그쪽으로 자동 동기화하지 않는다.
 
 ## 유지할 브랜치
 
@@ -35,3 +35,7 @@
 웹 루트의 정적 파일만 `.github/workflows/web-pages.yml`로 Pages에 게시한다. `apps/`와 `shared/` 소스는 게시 대상에서 제외한다. 앱은 같은 커밋의 웹 산출물을 staging하며 플랫폼 연결은 별도 검사한다. 원본 데이터 핀, 과거 Web/App SHA, 별도 교환 검증은 역사적 근거로 남기며 현재 동등성이라고 표시하지 않는다.
 
 `main` 반영 전에는 영향받은 웹·앱 검사와 Pages 게시 파일 검증을 수행한다. workflow 성공, 원격 push, 실제 사이트 응답은 각각 확인하고 기록한다. 전체 테스트나 포터블 패키지는 필요한 경우에만 실행하며, 포터블 앱은 사용자가 명시적으로 요청한 경우에만 만든다.
+
+## 외부 자료 저장소
+
+라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library-data`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 외부 체크아웃 `reports/`에 작성한다. 자료 저장소는 보관용이며 검사·테스트·재생성을 실행하지 않는다.

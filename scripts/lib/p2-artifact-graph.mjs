@@ -4,8 +4,10 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync,
-  renameSync, unlinkSync, writeFileSync } from 'node:fs';
+  renameSync, unlinkSync, writeFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+
+import { libraryConfig, libraryCheckout, libraryMaterializedRoot, prepareLibraryData } from '../../tools/library-data.mjs';
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
@@ -24,7 +26,13 @@ export function safePath(root,p) {
   assert.ok(rel&&rel!=='..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel),'P2_UNSAFE_PATH: '+p);
   let cursor=target;
   while(cursor!==resolve(root)) {
-    if(existsSync(cursor))assert.ok(!lstatSync(cursor).isSymbolicLink(),'P2_SYMLINK_PATH: '+p);
+    if(existsSync(cursor)&&lstatSync(cursor).isSymbolicLink()) {
+      const configured=existsSync(resolve(root,'config/library-data.json'))?libraryConfig(root):null;
+      assert.ok(configured,'P2_SYMLINK_PATH: '+p);
+      const mount=normalize(relative(root,cursor));
+      const expected=mount==='reports'?resolve(libraryCheckout(root),'reports'):resolve(libraryMaterializedRoot(root),mount);
+      assert.ok(configured?.mounts.includes(mount)&&realpathSync(cursor)===realpathSync(expected),'P2_SYMLINK_PATH: '+p);
+    }
     cursor=dirname(cursor);
   }
   return target;
@@ -32,7 +40,7 @@ export function safePath(root,p) {
 function files(root,p) {
   const path=safePath(root,p);
   if(!existsSync(path))return [];
-  if(!lstatSync(path).isDirectory())return [p];
+  if(!statSync(path).isDirectory())return [p];
   return readdirSync(path).sort().flatMap(name=>files(root,p.replace(/\/$/,'')+'/'+name));
 }
 function expand(root,selectors) {
@@ -199,7 +207,7 @@ export function assertBranchState(root,{expectedSourceSha,expectedRemoteSha,bran
   }
 }
 
-export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,run=runCommand}) {
+export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,run=runCommand,prepareData=prepareLibraryData}) {
   assertBranchState(root,{expectedSourceSha});
   assert.ok(Array.isArray(families)&&families.length,'P2_FAMILIES_REQUIRED');
   const initial=graphStatus(root,{requested:families}),byId=new Map(initial.graph.map(f=>[f.id,f]));
@@ -223,7 +231,8 @@ export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,r
     assert.ok(lstatSync(source).isFile(),'P2_NON_FILE_TRACKED_INPUT: '+p);
     mkdirSync(dirname(target),{recursive:true});copyFileSync(source,target);
   }
-  const before=hashes(checkout,tracked),selected=initial.graph.filter(f=>families.includes(f.id));
+  if(existsSync(resolve(checkout,'config/library-data.json')))prepareData({root:checkout});
+  const before=hashes(checkout,filesInCheckout(checkout)),selected=initial.graph.filter(f=>families.includes(f.id));
   for(const family of selected) {
     for(const command of family.generate)await run(command,checkout,{PANDO_P2_SOURCE_SHA:expectedSourceSha});
     for(const command of family.validate)await run(command,checkout,{PANDO_P2_SOURCE_SHA:expectedSourceSha});
@@ -238,7 +247,7 @@ export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,r
     paths:[...new Set(changedPaths)].sort(),before:hashes(root,[...new Set(changedPaths)]),after:hashes(checkout,[...new Set(changedPaths)])};
   writeJson(stage,'stage.json',publication);return publication;
 }
-function filesInCheckout(root) {return readdirSync(root).sort().flatMap(name=>files(root,name));}
+function filesInCheckout(root) {return readdirSync(root).filter(name=>name!=='.library-data').sort().flatMap(name=>files(root,name));}
 function runCommand(command,cwd,env) {
   assert.ok(command.length>=2,'P2_INVALID_COMMAND');
   const executable=command[0]==='node'?process.execPath:command[0];

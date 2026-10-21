@@ -1,10 +1,11 @@
 // Build a branch-specific, downloadable static Web snapshot without touching Pages.
-// Only Git-tracked runtime files enter the snapshot, preserving relative asset URLs.
+// Code and its pinned external runtime assets preserve relative asset URLs.
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { prepareLibraryData } from '../tools/library-data.mjs';
 import { previewSlug } from './p3-plan-remote.mjs';
 
 const sha=b=>createHash('sha256').update(b).digest('hex');
@@ -18,6 +19,8 @@ export function stagePreview({root,output,branch}) {
   const files=execFileSync('git',['ls-files','-z','--','index.html','.nojekyll','assets/'],
     {cwd:source,maxBuffer:16*1024*1024})
     .toString('utf8').split('\0').filter(Boolean).sort();
+  const library=existsSync(resolve(source,'config/library-data.json'))?prepareLibraryData({root:source}):null;
+  if(library)files.push(...Object.entries(library.files).filter(([path,entry])=>path.startsWith('assets/data/')&&entry.stored===path).map(([path])=>path));
   const paths=new Set(files);
   const mandatory=['index.html','.nojekyll','assets/data/world/current.json'];
   if(paths.has('assets/js/workers/core-session-worker.js'))mandatory.push(
@@ -36,7 +39,9 @@ export function stagePreview({root,output,branch}) {
     const input=resolve(source,name),target=resolve(dest,name);
     if(!isInside(source,input)||!isInside(dest,target)||
        !lstatSync(input).isFile())throw Error('P3_PREVIEW_NONREGULAR_INPUT: '+name);
-    const b=readFileSync(input);total+=b.length;
+    const b=readFileSync(input);
+    if(library?.files[name]&&sha(b)!==library.files[name].sha256)throw Error('P3_PREVIEW_LIBRARY_TRANSFER_MISMATCH: '+name);
+    total+=b.length;
     if(total>maxBytes)throw Error('P3_PREVIEW_MAX_BYTES_EXCEEDED');
     mkdirSync(dirname(target),{recursive:true});
     copyFileSync(input,target);
@@ -44,6 +49,7 @@ export function stagePreview({root,output,branch}) {
     entries.push({path:name,bytes:b.length,sha256:sha(b)});
   }
   const manifest={schema:'pando-branch-preview-v1',branch,slug,sourceCommit,
+    dataRepository:library?.repository,dataCommit:library?.revision,
     mode:'downloadable-static-snapshot',publicUrl:null,files:entries.length,bytes:total,
     included:entries, excludes:['native/**','shared/**','reports/**','tests/**','tools/**']};
   writeFileSync(join(dest,'preview-manifest.json'),JSON.stringify(manifest,null,2)+'\n');

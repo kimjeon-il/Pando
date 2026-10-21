@@ -7,7 +7,7 @@ import { TERRAIN_DEM_VERSION } from '../../assets/js/modules/terrain-manifest.js
 const output = process.env.PANDOLAB_DEM_OUTPUT_DIR;
 const available = !!output && existsSync(path.join(output, 'manifest.json'));
 const demOrigin = 'http://127.0.0.1:4174';
-const officialOrigin = 'https://kimjeon-il.github.io/world-map-terrain-v0.13.0';
+const officialOrigin = 'https://kimjeon-il.github.io/PandoLab-library-data';
 
 test.use({
   launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] },

@@ -28,6 +28,8 @@ jobs:
             tools/report-hydro-v0124.py
             tools/repack-water-v0125.py
             tests/test_restore_archival_hydro.py
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - name: Compile historical tools
         run: python3 -m py_compile tools/restore-archival-hydro.py tools/report-hydro-v0124.py tools/repack-water-v0125.py
       - name: Synthetic restoration and non-overwrite regression
@@ -45,6 +47,8 @@ jobs:
           filter: blob:none
           sparse-checkout: |
             tools/restore-archival-hydro.py
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - name: Fetch immutable pre-cleanup commit without historical working-tree checkout
         run: |
           git fetch --no-tags --filter=blob:none --depth=1 origin 6dce59ea427e0728ef29bea31e2e51afbf27d9c8

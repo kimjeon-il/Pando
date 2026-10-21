@@ -1,13 +1,13 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { prepareLibraryData } from '../tools/library-data.mjs';
 import { collectViewerAssets } from './lib/product-assets.mjs';
 import { renderProductHtml } from './lib/product-html.mjs';
 import { buildWorkerAsset } from './lib/worker-assets.mjs';
-import { buildPhysicalLandMask } from '../tools/build-physical-land-mask.mjs';
 
 const scriptsDirectory = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const projectRoot = resolve(scriptsDirectory, '..');
@@ -17,16 +17,12 @@ const indexPath = resolve(projectRoot, 'index.html');
 const editorPath = resolve(projectRoot, 'apps/web-shell/editor.html');
 const readmePath = resolve(projectRoot, 'README.md');
 const checkOnly = process.argv.includes('--check');
-const physicalLandOutput = buildPhysicalLandMask(readFileSync(resolve(projectRoot, 'assets/data/countries-ne-5.1.1.geojson')));
+prepareLibraryData({ root: projectRoot });
+// Metadata consumes the published land derivative; GIS generation has its own owner.
+const landManifest = JSON.parse(readFileSync(resolve(projectRoot, 'assets/data/physical-land/v1/manifest.json')));
+const physicalLandOutput = { manifest: landManifest };
 const terrainSource = JSON.parse(readFileSync(resolve(projectRoot, 'assets/data/terrain-preview/v0.13.3-p1/manifest.json')));
-assert.equal(physicalLandOutput.manifest.sourceSha256, terrainSource.sourceDem.landMaskSha256, 'Physical land must use the pinned terrain mask source.');
-const landPath = resolve(projectRoot, physicalLandOutput.manifest.asset.url);
-if (checkOnly) assert.deepEqual(readFileSync(landPath), physicalLandOutput.bytes, 'Stale physical land mask');
-else { mkdirSync(dirname(landPath), { recursive: true }); writeFileSync(landPath, physicalLandOutput.bytes); }
-const landManifestPath = resolve(projectRoot, 'assets/data/physical-land/v1/manifest.json');
-const landManifestSource = JSON.stringify(physicalLandOutput.manifest, null, 2) + '\n';
-if (checkOnly) assert.equal(readFileSync(landManifestPath, 'utf8').replaceAll('\r\n', '\n'), landManifestSource);
-else writeFileSync(landManifestPath, landManifestSource);
+assert.equal(landManifest.sourceSha256, terrainSource.sourceDem.landMaskSha256, 'Physical land must use the pinned terrain mask source.');
 function publishText(path, source) {
   if (checkOnly) assert.equal(readFileSync(path, 'utf8').replaceAll('\r\n', '\n'), source.replaceAll('\r\n', '\n'), `Stale build metadata output: ${path}`);
   else writeFileSync(path, source, 'utf8');
@@ -82,7 +78,7 @@ const moduleImports = {}, assetPaths = [];
 function collectModuleImports(directory, prefix) {
   for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const path = `${prefix}/${entry.name}`;
-    if (entry.isDirectory()) collectModuleImports(resolve(directory, entry.name), path);
+    if (entry.isDirectory() || entry.isSymbolicLink() && statSync(resolve(directory, entry.name)).isDirectory()) collectModuleImports(resolve(directory, entry.name), path);
     else if (entry.isFile()) {
       assetPaths.push(path.replace(/^\.\//, ''));
       if (path.startsWith('./assets/js/') && entry.name.endsWith('.js')) moduleImports[path] = `${path}?v=${encodeURIComponent(assetRevision)}`;

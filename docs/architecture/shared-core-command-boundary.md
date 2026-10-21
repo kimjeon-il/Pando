@@ -58,4 +58,4 @@ builtin place/hydro ID와 자료 출처는 기존 로더가 사실을 공급하�
 
 현재 작업에서는 앱, BAT, 포터블, offscreen 및 실제 Qt/브라우저 UI를 실행하지
 않는다. 실행하지 않은 사용자 화면과 시작 응답성은 통과로 표시하지 않는다.
-검증 근거는 [DEV-066 보고서](../../reports/development/testing/shared-core-startup-implementation-2026-10-12.md)에 기록한다.
+검증 근거는 [DEV-066 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/ac0f530631e8b94ad5b9a9b6dfaa029724076a5a/reports/development/testing/shared-core-startup-implementation-2026-10-12.md)에 기록한다.

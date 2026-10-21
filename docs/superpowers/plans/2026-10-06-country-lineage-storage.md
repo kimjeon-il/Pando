@@ -73,7 +73,7 @@ embedded entity와 generated index/chunk는 schema 2다. entity는 `entityId`, `
 
 ## 과거 단계별 계획 압축
 
-기존 M0~M7 단계는 기준 동결 → 계보·entity/version 계약 → source 이전/빌드 → 조회/로더 → 웹·앱 provenance → 독립 정적 객체 → 조회 UI → 실제 교환/회귀 순으로 실행하도록 설계됐다. 수행 결과의 범위·실패·미검증 사항은 [당시 실행 보고서](../../../reports/development/testing/country-lineage-storage.md)를 따른다. 문서의 사양이나 완료 조건을 실제 검증 성공으로 가정하지 않는다.
+기존 M0~M7 단계는 기준 동결 → 계보·entity/version 계약 → source 이전/빌드 → 조회/로더 → 웹·앱 provenance → 독립 정적 객체 → 조회 UI → 실제 교환/회귀 순으로 실행하도록 설계됐다. 수행 결과의 범위·실패·미검증 사항은 [당시 실행 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/ac0f530631e8b94ad5b9a9b6dfaa029724076a5a/reports/development/testing/country-lineage-storage.md)를 따른다. 문서의 사양이나 완료 조건을 실제 검증 성공으로 가정하지 않는다.
 
 ### 당시 완료 조건과 후속 범위
 
