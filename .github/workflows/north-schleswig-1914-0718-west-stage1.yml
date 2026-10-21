@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: work/gis
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -59,10 +61,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Commit clipping and measurements, not historical raster data
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add             tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0718-west-stage1.geojson             tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0718-west-stage1.json
+          node tools/library-data.mjs --store-and-stage --push --             tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0718-west-stage1.geojson             tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0718-west-stage1.json
           if git diff --cached --quiet; then
             echo "No stage 1 changes."
           else

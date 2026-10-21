@@ -20,6 +20,8 @@ jobs:
           sparse-checkout: |
             /tools/build-hydro-packfile.py
             /assets/data/hydro/v0.13.2/
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
         with:
           repository: kimjeon-il/Pando
@@ -39,10 +41,12 @@ jobs:
           python tools/build-hydro-packfile.py --source historical-hydro/assets/data/hydro/v0.13.1
           python tools/build-hydro-packfile.py --source historical-hydro/assets/data/hydro/v0.13.1 --check
       - name: Commit only the two output files to the existing GIS branch
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- assets/data/hydro/v0.13.2/manifest.json assets/data/hydro/v0.13.2/hydro.bin
+          node tools/library-data.mjs --store-and-stage --push -- assets/data/hydro/v0.13.2/manifest.json assets/data/hydro/v0.13.2/hydro.bin
           if git diff --cached --quiet; then
             echo 'Two-file hydro package already matches deterministic builder'
           else
