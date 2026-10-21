@@ -6,7 +6,6 @@
 
 namespace pandoeditor {
 DocumentSession::DocumentSession(projectcodec::PlatformPorts ports):ports_(std::move(ports)) {
-    ports_.labelReferencePolicy=projectcodec::LabelReferencePolicy::WebNonOwning;
     if(!ports_.validateFlagDataUrl)throw std::invalid_argument("CODEC_PLATFORM_REQUIRED: flag validator");
 }
 DocumentSessionState DocumentSession::adoptPreparedProject(Project&& project) {
