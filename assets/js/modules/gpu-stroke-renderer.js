@@ -182,6 +182,24 @@ function createPrograms(device, only = null) {
   });
 }
 
+function createCoverageProgram(device) {
+  const modern = device.version === 2;
+  const vertex = `${modern ? '#version 300 es\n' : ''}precision highp float;
+    ${modern ? 'in' : 'attribute'} vec2 aCorner;
+    ${modern ? 'out' : 'varying'} vec2 vUv;
+    void main(){vUv=aCorner*0.5+0.5;gl_Position=vec4(aCorner,0.0,1.0);}`;
+  const fragment = `${modern ? '#version 300 es\n' : ''}precision highp float;
+    ${modern ? 'in' : 'varying'} vec2 vUv;
+    ${modern ? 'out vec4 outColor;' : ''}
+    uniform sampler2D uCoverage;uniform vec4 uColor;uniform int uMultiply;
+    void main(){
+      float alpha=${modern ? 'texture' : 'texture2D'}(uCoverage,vUv).a*uColor.a;
+      if(alpha<=0.0)discard;
+      ${modern ? 'outColor' : 'gl_FragColor'}=vec4(uColor.rgb*(uMultiply==1?alpha:1.0),alpha);
+    }`;
+  return linkProgram(device, vertex, fragment, ['aCorner'], ['uCoverage', 'uColor', 'uMultiply']);
+}
+
 export function resolveGpuStrokeRanges(resource, ownerIds = null, rangeProperty = 'ownerRanges', countProperty = 'instanceCount') {
   const instanceCount = Math.max(0, Math.trunc(Number(resource?.[countProperty]) || 0));
   if (!instanceCount) return Object.freeze([]);
@@ -208,6 +226,8 @@ function joinModeValue(join) {
 }
 
 export function createGpuStrokeRenderer({ onError = null, onResourceReady = null, isInputActive = () => false, getUploadBudget = () => 4 * 1024 * 1024, aaRadiusPx = DEFAULT_AA_RADIUS_PX } = {}) {
+  let coverageProgram = null, coverageQuad = null, coverageTexture = null, coverageFramebuffer = null;
+  let coverageWidth = 0, coverageHeight = 0, coverageMaximum = null;
   let uploadScheduler = null;
   const pendingUploads = new Map();
   const scheduleUpload = () => {
@@ -316,17 +336,26 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
   };
 
   function captureState() {
+    const activeTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+    const texture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+    gl.activeTexture(gl.TEXTURE0);
+    const texture0 = gl.getParameter(gl.TEXTURE_BINDING_2D);
+    gl.activeTexture(activeTexture);
     return {
       framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING),
+      readFramebuffer: device.version === 2 ? gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) : null,
       viewport: Array.from(gl.getParameter(gl.VIEWPORT)),
       program: gl.getParameter(gl.CURRENT_PROGRAM),
       arrayBuffer: gl.getParameter(gl.ARRAY_BUFFER_BINDING),
-      activeTexture: gl.getParameter(gl.ACTIVE_TEXTURE),
-      texture: gl.getParameter(gl.TEXTURE_BINDING_2D),
+      activeTexture, texture, texture0,
       blend: gl.isEnabled(gl.BLEND),
       depth: gl.isEnabled(gl.DEPTH_TEST),
       cull: gl.isEnabled(gl.CULL_FACE),
       scissor: gl.isEnabled(gl.SCISSOR_TEST),
+      stencil: gl.isEnabled(gl.STENCIL_TEST),
+      equations: [gl.getParameter(gl.BLEND_EQUATION_RGB), gl.getParameter(gl.BLEND_EQUATION_ALPHA)],
+      blendFactors: [gl.getParameter(gl.BLEND_SRC_RGB), gl.getParameter(gl.BLEND_DST_RGB),
+        gl.getParameter(gl.BLEND_SRC_ALPHA), gl.getParameter(gl.BLEND_DST_ALPHA)],
       colorMask: Array.from(gl.getParameter(gl.COLOR_WRITEMASK)),
       clearColor: Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE)),
     };
@@ -335,15 +364,21 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
   function restoreState(state) {
     const enabled = (cap, value) => value ? gl.enable(cap) : gl.disable(cap);
     gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);
+    if (device.version === 2) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, state.readFramebuffer);
     gl.viewport(...state.viewport);
     gl.useProgram(state.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, state.arrayBuffer);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, state.texture0);
     gl.activeTexture(state.activeTexture);
     gl.bindTexture(gl.TEXTURE_2D, state.texture);
     enabled(gl.BLEND, state.blend);
     enabled(gl.DEPTH_TEST, state.depth);
     enabled(gl.CULL_FACE, state.cull);
     enabled(gl.SCISSOR_TEST, state.scissor);
+    enabled(gl.STENCIL_TEST, state.stencil);
+    gl.blendEquationSeparate(...state.equations);
+    gl.blendFuncSeparate(...state.blendFactors);
     gl.colorMask(...state.colorMask);
     gl.clearColor(...state.clearColor);
   }
@@ -484,6 +519,79 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     draws += drawRoundNodes(resource, style, frameContext, ownerIds);
     draws += drawBevelJoins(resource, style, frameContext, ownerIds);
     return draws;
+  }
+
+  function disposeCoverage() {
+    if (gl && !gl.isContextLost?.()) {
+      if (coverageTexture) gl.deleteTexture(coverageTexture);
+      if (coverageFramebuffer) gl.deleteFramebuffer(coverageFramebuffer);
+      if (coverageQuad) gl.deleteBuffer(coverageQuad);
+      if (coverageProgram) gl.deleteProgram(coverageProgram.program);
+    }
+    coverageTexture = coverageFramebuffer = coverageQuad = coverageProgram = null;
+    coverageWidth = coverageHeight = 0; coverageMaximum = null;
+  }
+
+  function ensureCoverage(width, height) {
+    if (coverageMaximum === null) {
+      const maximum = device.version === 2 ? gl.MAX : gl.getExtension('EXT_blend_minmax')?.MAX_EXT;
+      if (maximum === undefined) throw Object.assign(new Error('Country coverage requires MAX blending.'), { code: 'PL-GPU-STROKE-COVERAGE' });
+      coverageMaximum = maximum;
+    }
+    try {
+      if (!coverageProgram) {
+        coverageProgram = createCoverageProgram(device);
+        coverageQuad = createBuffer(ROUND_NODE_CORNERS);
+      }
+      if (!coverageTexture) {
+        coverageTexture = gl.createTexture(); coverageFramebuffer = gl.createFramebuffer();
+        if (!coverageTexture || !coverageFramebuffer) throw new Error('Country coverage allocation failed.');
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, coverageTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      }
+      if (coverageWidth !== width || coverageHeight !== height) {
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, coverageTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, coverageFramebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, coverageTexture, 0);
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE || gl.getError() !== gl.NO_ERROR)
+          throw new Error('Country coverage framebuffer unavailable.');
+        coverageWidth = width; coverageHeight = height;
+      }
+    } catch (error) { disposeCoverage(); throw error; }
+  }
+
+  function drawCoverageStyle(resource, style, frameContext, ownerIds) {
+    const saved = captureState();
+    try {
+      ensureCoverage(frameContext.viewport[0], frameContext.viewport[1]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, coverageFramebuffer);
+      gl.viewport(0, 0, coverageWidth, coverageHeight);
+      gl.disable(gl.SCISSOR_TEST); gl.disable(gl.STENCIL_TEST);
+      gl.colorMask(true, true, true, true); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.BLEND); gl.blendEquation(coverageMaximum); gl.blendFunc(gl.ONE, gl.ONE);
+      // Geometry contributes coverage only. Color and effective owner opacity
+      // are applied once below, including at dense joins and coincident edges.
+      const draws = drawStyle(resource, { ...style, color: '#ffffff', alpha: 1, blendMode: 'normal' }, frameContext, ownerIds);
+      if (!draws) return 0;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, saved.framebuffer); gl.viewport(...saved.viewport);
+      if (saved.scissor) gl.enable(gl.SCISSOR_TEST);
+      if (saved.stencil) gl.enable(gl.STENCIL_TEST);
+      gl.colorMask(...saved.colorMask);
+      gl.blendEquation(gl.FUNC_ADD); applyGpuBlendMode(gl, style.blendMode);
+      gl.useProgram(coverageProgram.program);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, coverageTexture);
+      gl.uniform1i(coverageProgram.uniforms.uCoverage, 0);
+      gl.uniform4f(coverageProgram.uniforms.uColor, ...parseGpuColor(style.color), Math.max(0, Math.min(1, Number(style.alpha ?? 1))));
+      gl.uniform1i(coverageProgram.uniforms.uMultiply, style.blendMode === 'multiply' ? 1 : 0);
+      bindStaticAttribute(coverageQuad, coverageProgram.attributes.aCorner, 2);
+      gl.drawArrays(gl.TRIANGLES, 0, VERTICES_PER_ROUND_NODE);
+      releaseAttributes([coverageProgram.attributes.aCorner]); drawCallCount++;
+      return draws + 1;
+    } finally { restoreState(saved); }
   }
 
   function createBuffer(data) {
@@ -704,9 +812,10 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
         applyGpuBlendMode(gl, style.blendMode);
         let completedDraws = 0;
         if (style.casing?.width > style.width && style.casing.alpha > 0) {
-          completedDraws += drawStyle(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, batch.ownerIds);
+          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, batch.ownerIds);
         }
-        if (Number(style.alpha ?? 1) > 0 && Number(style.width || 0) > 0) completedDraws += drawStyle(resource, style, frameContext, batch.ownerIds);
+        if (Number(style.alpha ?? 1) > 0 && Number(style.width || 0) > 0)
+          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, style, frameContext, batch.ownerIds);
         if (completedDraws > 0) {
           if (key) renderedKeys.push(key);
         } else {
@@ -753,6 +862,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
 
   function handleContextLost() {
     cancelUploads();
+    disposeCoverage();
     contextLost = true;
     gpuHealth = 'context-lost';
     selfTestPassed = false;
@@ -769,6 +879,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
 
   function dispose() {
     cancelUploads();
+    disposeCoverage();
     if (gl && !gl.isContextLost?.()) {
       for (const resource of resources.values()) deleteGpuResource(resource);
       if (segmentCornerBuffer) gl.deleteBuffer(segmentCornerBuffer);
