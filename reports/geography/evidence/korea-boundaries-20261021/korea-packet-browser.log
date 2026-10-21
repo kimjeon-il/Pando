@@ -1,0 +1,13 @@
+
+[WebServer] (node:14748) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+
+(node:4756) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/2] tests\browser\canonical-country-packet-memory.spec.mjs:7:1 › canonical packet materializes cooperatively in an isolated browser harness
+[2/2] tests\browser\canonical-country-packet-memory.spec.mjs:71:1 › default world startup uses packed assets without catalog index or entity chunk requests
+  2 passed (18.8s)

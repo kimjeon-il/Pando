@@ -1,0 +1,54 @@
+✔ historical timeline fixture uses a bounded synthetic current-world input instead of source assets (3.3563ms)
+✔ monthEndDoesNotExtendExactSourceDates (973.7087ms)
+✔ modernGeometryIsLimitedToSourceMonth (811.8705ms)
+✖ a current snapshot selecting an explicitly dated version retains its entire source coverage (55.4562ms)
+✔ parentCoverageLimitsChildPresence (837.5148ms)
+✔ lineageDoesNotCollapseSimultaneousEntities (1078.6078ms)
+✔ stableIdentitySurvivesGeometryVersionChange (543.5816ms)
+✔ leapDayIsVisibleAtFebruaryMonthEnd (271.1955ms)
+✔ compilationPreservesRawSourceDatesAndCoordinates (53.7224ms)
+✔ compilerRejectsReversedIntervalsAndMissingGeometry (17.0251ms)
+✔ historical defaults reach root flags and color without promoting a child flag (47.9636ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5184.155
+
+✖ failing tests:
+
+test at tests\unit\historical-world-timeline.test.mjs:50:1
+✖ a current snapshot selecting an explicitly dated version retains its entire source coverage (55.4562ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      {
+        validFrom: '1948-08-15',
+        validTo: '1953-07-26'
+      },
+      {
+  +     validFrom: '2026-10-01',
+  +     validTo: '2026-10-31'
+  -     validFrom: '1953-07-27',
+  -     validTo: null
+      }
+    ]
+  
+      at TestContext.<anonymous> (file:///D:/dev/worktrees/gis/tests/unit/historical-world-timeline.test.mjs:60:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { validFrom: '1948-08-15', validTo: '1953-07-26' }, { validFrom: '2026-10-01', validTo: '2026-10-31' } ],
+    expected: [ { validFrom: '1948-08-15', validTo: '1953-07-26' }, { validFrom: '1953-07-27', validTo: null } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

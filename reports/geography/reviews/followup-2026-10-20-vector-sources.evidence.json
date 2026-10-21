@@ -1,0 +1,524 @@
+{
+  "reviewId": "GEO-REVIEW-20261020-FOLLOWUP",
+  "observedAtUtc": "2026-10-20T22:11:44.273798+00:00",
+  "branch": "work/gis",
+  "baseCommit": "e5b31d700fb6a9e2e2b0ab67356b3883011f22c3",
+  "priorReviewCommit": "310ee5e674c43cc434f154886da254b2038148a4",
+  "localIntegration": "Clean existing work/gis fast-forwarded from prior to base; no main merge",
+  "policyFiles": [
+    {
+      "path": "AGENTS.md",
+      "blob": "629831332a81a5ed4b6fe6bd864826deea134eb5",
+      "sha256": "e2cc3aa1108e896afcefcb224559ac51966fbacf82a09710b1ec11305e3e61c3"
+    },
+    {
+      "path": "docs/branch-policy.md",
+      "blob": "006793e11a8baf339a1f7146cba18581cce589e5",
+      "sha256": "ac6d58ca8c9545515c1b5d2192da019672a9b3aa27ac0597c8bf2e40c4ebc126"
+    },
+    {
+      "path": "docs/historical-border-reconstruction-policy.md",
+      "blob": "cb1c52b6c42332adcd3bfd529b00322cde6c12c6",
+      "sha256": "8a52738ad8d27680429305bb601a1a90c1141e65a1f89cf39481e367c63f5f4d"
+    },
+    {
+      "path": "docs/historical-vector-source-workflow.md",
+      "blob": "4e53e43581dbb65c671f999324fd2d1e03a180ca",
+      "sha256": "7df0414f1668f715ce84554482a442e9c2a74de10356252716bcbd2ab934b57e"
+    },
+    {
+      "path": "reports/README.md",
+      "blob": "98bb78004eb0df6a9bdc81c0bd83947342580f5a",
+      "sha256": "0db7b1c5d93db826a046091b711d50d801596bd994bdd4394ff3dd387c60effe"
+    },
+    {
+      "path": "reports/TEMPLATE.md",
+      "blob": "ba4487a59760b9302fe0d37cf739d43126aaa37e",
+      "sha256": "e84663d5886ce3d17d551e6bceba6f86a4767e3c34024694f6b8920edcc11935"
+    }
+  ],
+  "policyHistory": {
+    "vectorAdded": "ba333eee7be941b23a21844b36a2363ecb1fe159",
+    "vectorPathClarified": "da9c9dccad823e5966a74e9ea64bbb4a387dba2c",
+    "reconstructionVectorGate": "ae5275356b1dc616e1b0dc462b394ea17a699284"
+  },
+  "repositorySkills": {
+    "trackedInstructions": [
+      "AGENTS.md"
+    ],
+    "trackedAgentsSkills": [],
+    "workspaceAgentsDirectory": "empty"
+  },
+  "reportInventory": [
+    {
+      "path": "reports/geography/country-geometry-identity-consolidation-2026-10-13.md",
+      "blob": "e9dd404c54c0bf3853f9ab89b85c220827054c18",
+      "priorProcessedBlob": "e9dd404c54c0bf3853f9ab89b85c220827054c18",
+      "status": "unchanged",
+      "lastCommit": "5b539e76f0a9c70afaa0188f543bc97557dee179",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/country-lifetime-a-d-2026-10-13.md",
+      "blob": "a7272dc4466ef1bbbea3d98b0914b5f3f3c25cbd",
+      "priorProcessedBlob": "a7272dc4466ef1bbbea3d98b0914b5f3f3c25cbd",
+      "status": "unchanged",
+      "lastCommit": "9f25f5d13a050dd48df9121eef8a0bf09f0f89e8",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/country-lifetime-africa-eri-gnb-sen-2026-10-18.md",
+      "blob": "f0ec2313f4df371103baa1cc4942b756b2ad9753",
+      "priorProcessedBlob": "f0ec2313f4df371103baa1cc4942b756b2ad9753",
+      "status": "unchanged",
+      "lastCommit": "851dc0154bee2673d9fccbeca872fa406f9f8ff2",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/country-lifetime-asia-middle-east-2026-10-17.md",
+      "blob": "cd7122edf9afb07177350c217fd9b8a38db4f0f7",
+      "priorProcessedBlob": "cd7122edf9afb07177350c217fd9b8a38db4f0f7",
+      "status": "unchanged",
+      "lastCommit": "f57ab731ba554d97603efcfdf31504959e2d5e93",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/country-lifetime-europe-1801-plus-2026-10-15.md",
+      "blob": "276f5180a9fbb471e81c05d488a3b79c9485f01b",
+      "priorProcessedBlob": "276f5180a9fbb471e81c05d488a3b79c9485f01b",
+      "status": "unchanged",
+      "lastCommit": "6b509611ce9bac87a89cd9df0119689b83277f00",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/country-lifetime-north-america-2026-10-19.md",
+      "blob": "3da2a04e41b8f1288fd383bc44c2af7050853c7c",
+      "priorProcessedBlob": "3da2a04e41b8f1288fd383bc44c2af7050853c7c",
+      "status": "unchanged",
+      "lastCommit": "310ee5e674c43cc434f154886da254b2038148a4",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/country-lifetime-rotation-progress.md",
+      "blob": "c1bffc7b0494ad9262c8a4504570474c42931d09",
+      "priorProcessedBlob": "c1bffc7b0494ad9262c8a4504570474c42931d09",
+      "status": "unchanged",
+      "lastCommit": "310ee5e674c43cc434f154886da254b2038148a4",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/country-lifetime-south-america-2026-10-20.md",
+      "blob": "64c263e6142b57a2b60c5cadb0442b1c934437cd",
+      "priorProcessedBlob": "64c263e6142b57a2b60c5cadb0442b1c934437cd",
+      "status": "unchanged",
+      "lastCommit": "310ee5e674c43cc434f154886da254b2038148a4",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/1914-screen-delta-precheck.md",
+      "blob": "434d772408b5aeaa683d1c90a3c65fe0fc218192",
+      "priorProcessedBlob": "434d772408b5aeaa683d1c90a3c65fe0fc218192",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/1914-sh-period-map-overlay-review.md",
+      "blob": "25b6efbcdd26c799d01d42c145cc477447203129",
+      "priorProcessedBlob": "25b6efbcdd26c799d01d42c145cc477447203129",
+      "status": "unchanged",
+      "lastCommit": "b6ef69827bcc34b271d8a04a044b1acb4cc25ef5",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.review.md",
+      "blob": "347407866f81d8e866f642db2fb325b56abbe57b",
+      "priorProcessedBlob": "347407866f81d8e866f642db2fb325b56abbe57b",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.review.md",
+      "blob": "bda15af605152779eb2bb417063f889a734f931e",
+      "priorProcessedBlob": "bda15af605152779eb2bb417063f889a734f931e",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0717-hvidding-ufer-stage5.review.md",
+      "blob": "6c587000836d2bedc427e8710cfc90c1e22fcbb1",
+      "priorProcessedBlob": "6c587000836d2bedc427e8710cfc90c1e22fcbb1",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0718-east-stage2.review.md",
+      "blob": "70b7ac84ef995cff89b08a8f8e5c5528301ef23b",
+      "priorProcessedBlob": "70b7ac84ef995cff89b08a8f8e5c5528301ef23b",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0718-west-stage1.review.md",
+      "blob": "84ba50dafcb60cf28f94b529c5197b4aa8395e49",
+      "priorProcessedBlob": "84ba50dafcb60cf28f94b529c5197b4aa8395e49",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.review.md",
+      "blob": "3cccc9449282ef1c698f0a7576b58336c4edc59f",
+      "priorProcessedBlob": "3cccc9449282ef1c698f0a7576b58336c4edc59f",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.review.md",
+      "blob": "acdca5970347b38f11144ce4d493ae0841e26140",
+      "priorProcessedBlob": "acdca5970347b38f11144ce4d493ae0841e26140",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/historical-timeline-2025-central-asia-2026-10-17.md",
+      "blob": "41dca2bc248b571fb4b4223b833a1d21b0bb341b",
+      "priorProcessedBlob": "41dca2bc248b571fb4b4223b833a1d21b0bb341b",
+      "status": "unchanged",
+      "lastCommit": "f57ab731ba554d97603efcfdf31504959e2d5e93",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/historical-timeline-2025-central-asia-vector-screen-2026-10-21.md",
+      "blob": "d1334c596cf9bfee0adf1fea766038ca5b9d6481",
+      "priorProcessedBlob": null,
+      "status": "added",
+      "lastCommit": "e5b31d700fb6a9e2e2b0ab67356b3883011f22c3",
+      "changesSincePrior": [
+        "e5b31d700fb6a9e2e2b0ab67356b3883011f22c3"
+      ]
+    },
+    {
+      "path": "reports/geography/historical-timeline-2025-south-southeast-asia-2026-10-19.md",
+      "blob": "cbf723be05c172ce209ca4f61fe56f297232abe2",
+      "priorProcessedBlob": "cbf723be05c172ce209ca4f61fe56f297232abe2",
+      "status": "unchanged",
+      "lastCommit": "851dc0154bee2673d9fccbeca872fa406f9f8ff2",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/historical-timeline-yearly-progress.md",
+      "blob": "3cfb03af44e5c6fa1de36c1633cf269df74bf0f9",
+      "priorProcessedBlob": "3cfb03af44e5c6fa1de36c1633cf269df74bf0f9",
+      "status": "unchanged",
+      "lastCommit": "79e6df21c52d00e2952dee147cab1b72b0d77135",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/indonesia-west-new-guinea-east-timor-territorial-epochs-2026-10-13.md",
+      "blob": "ff5e8839b5a0e32a5b2ef3bf9f1e5905ca8aa39e",
+      "priorProcessedBlob": "ff5e8839b5a0e32a5b2ef3bf9f1e5905ca8aa39e",
+      "status": "unchanged",
+      "lastCommit": "5b539e76f0a9c70afaa0188f543bc97557dee179",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/netherlands/land-reclamation-reverse-timeline.md",
+      "blob": "710c716ee5dfb2e31133676dc69aee8f0c95ae49",
+      "priorProcessedBlob": "710c716ee5dfb2e31133676dc69aee8f0c95ae49",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/netherlands/phase0-canonical-audit.md",
+      "blob": "ca343d33c561dccfad37d0348641a2ddf4ee73a2",
+      "priorProcessedBlob": "ca343d33c561dccfad37d0348641a2ddf4ee73a2",
+      "status": "unchanged",
+      "lastCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/serbia/serbia-1914-qa.md",
+      "blob": "20eb17c0547f27facc751661c7d6570afb5011a6",
+      "priorProcessedBlob": "20eb17c0547f27facc751661c7d6570afb5011a6",
+      "status": "unchanged",
+      "lastCommit": "a1b0a6d899df00cff965b8066481cd1b113ef2fe",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/serbia/serbia-montenegro-1914-border-candidate-qa.md",
+      "blob": "e3fed6dfade061c3c1a3d2b3c1af1bf79cf41bde",
+      "priorProcessedBlob": "e3fed6dfade061c3c1a3d2b3c1af1bf79cf41bde",
+      "status": "unchanged",
+      "lastCommit": "a1b0a6d899df00cff965b8066481cd1b113ef2fe",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/serbia/serbia-montenegro-1914-map-crosscheck.md",
+      "blob": "9f0720827a0ed7fb9e21678ff6d50529a7e30a40",
+      "priorProcessedBlob": "9f0720827a0ed7fb9e21678ff6d50529a7e30a40",
+      "status": "unchanged",
+      "lastCommit": "a1b0a6d899df00cff965b8066481cd1b113ef2fe",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/sudan-ukraine-post-transition-2026-10-13.md",
+      "blob": "b8b833de4cb44b428d6ea8133141909ccd01377a",
+      "priorProcessedBlob": "b8b833de4cb44b428d6ea8133141909ccd01377a",
+      "status": "unchanged",
+      "lastCommit": "1519f609bd69f7e57dbdfdcec4e8036366bbd12f",
+      "changesSincePrior": []
+    },
+    {
+      "path": "reports/geography/verified-entity-lifetimes.md",
+      "blob": "02f043f5108327d0d16dfd202c9ae67fee45a86c",
+      "priorProcessedBlob": "02f043f5108327d0d16dfd202c9ae67fee45a86c",
+      "status": "unchanged",
+      "lastCommit": "b6ef69827bcc34b271d8a04a044b1acb4cc25ef5",
+      "changesSincePrior": []
+    }
+  ],
+  "sourceReport": {
+    "id": "GEO-TIME-005",
+    "path": "reports/geography/historical-timeline-2025-central-asia-vector-screen-2026-10-21.md",
+    "originalCommit": "e5b31d700fb6a9e2e2b0ab67356b3883011f22c3",
+    "blob": "d1334c596cf9bfee0adf1fea766038ca5b9d6481",
+    "batchDate": "2026-10-21",
+    "commitDateUtc": "2026-10-20",
+    "newHistoricalEvents": 0
+  },
+  "dataComparison": {
+    "priorTree": "b36a4ddca401ab343e2d5e5f170ccca185e35243",
+    "baseTree": "b36a4ddca401ab343e2d5e5f170ccca185e35243",
+    "treesEqual": true
+  },
+  "index": {
+    "path": "assets/data/territorial-entities/generated/v2/index.json",
+    "blob": "a26630cd820eb2ec05e1c87fb847aa8cdcf3dacf",
+    "entityCount": 281,
+    "lineageCount": 262,
+    "referenceDates": [
+      "2026-10-06",
+      "1991"
+    ]
+  },
+  "focusedEntities": [
+    {
+      "entityId": "state:KGZ",
+      "source": "assets/data/territorial-entities/source/countries/kgz.json",
+      "sourceBlob": "2087e4fd0885f18f5fdb11d5d8270ca504c43943",
+      "sourceSha256": "c39d5e329da6f89faafbab584679d9e320063ae2542b2846935184387fd27d28",
+      "chunk": "assets/data/territorial-entities/generated/v2/state-KGZ.json.gz",
+      "chunkBlob": "f24cba513d3d305fac7d133bd4fd7fb14d27a7f5",
+      "chunkSha256": "e5a2dc52fb1974ba585c5ca876fee9700fb6d55d8a6f5e5d7df9dc77df5527eb",
+      "sourceIndexChunkAgree": true,
+      "lifetime": {
+        "validFrom": "1991-08-31",
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:KGZ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ]
+    },
+    {
+      "entityId": "state:TJK",
+      "source": "assets/data/territorial-entities/source/countries/tjk.json",
+      "sourceBlob": "c1f3baea8a4e9d111d0d68421d9419cbe7a68862",
+      "sourceSha256": "23e84e76afc43939e34880837bdd796c861a13230cb281527ee0ae18c4b608c3",
+      "chunk": "assets/data/territorial-entities/generated/v2/state-TJK.json.gz",
+      "chunkBlob": "946a79e1cf855aea3558e27aa8b2f9f662b5a830",
+      "chunkSha256": "9193cab31dd7c530aa70fe4e41f8b68dcaef9b3d84174ff8534f5c96825d769c",
+      "sourceIndexChunkAgree": true,
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:TJK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ]
+    },
+    {
+      "entityId": "state:UZB",
+      "source": "assets/data/territorial-entities/source/countries/uzb.json",
+      "sourceBlob": "6d6715c667163e3feeb2fd25fae363310dd00e0a",
+      "sourceSha256": "ff973e65037f2b2201b8b3cd4b4982cf84f3e92ed4becea883555ea4be7f7053",
+      "chunk": "assets/data/territorial-entities/generated/v2/state-UZB.json.gz",
+      "chunkBlob": "f9f0b5d5c726f70b0f1cf1098b1e164f85d6f97a",
+      "chunkSha256": "818afb50d0b43fb6c706b0fb7a08ca393d5eba943c59cb5fd7510d04b24185d1",
+      "sourceIndexChunkAgree": true,
+      "lifetime": {
+        "validFrom": "1991-08-31",
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:UZB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ]
+    }
+  ],
+  "externalSources": [
+    {
+      "url": "https://catalog.data.gov/dataset/large-scale-international-boundaries",
+      "status": "body-read",
+      "edition": "11.4",
+      "published": "2025-02-24",
+      "listedFormats": [
+        "full ZIP with multiple formats",
+        "data-only GPKG"
+      ],
+      "listedLicense": "CC0 1.0 URL",
+      "listedAccessLevel": "restricted public",
+      "listedRights": "copyright",
+      "limitation": "US policy boundary representation; actual vector package, SHP components and segment validity not inspected"
+    },
+    {
+      "url": "https://www.geoboundaries.org/api/current/gbOpen/KGZ/ADM0/",
+      "status": "metadata-body-read",
+      "boundaryID": "KGZ-ADM0-96190653",
+      "yearRepresented": "2017",
+      "sourceUpdate": "2023-01-19",
+      "build": "2023-12-12",
+      "boundaryLicense": "Open Data Commons Open Database License 1.0",
+      "source": "OpenStreetMap, Wambacher",
+      "downloadRevision": "9469f09",
+      "limitation": "Metadata ID is not a verified feature attribute; geometry not downloaded; predates 2025 treaty"
+    },
+    {
+      "url": "https://www.geoboundaries.org/api/current/gbOpen/TJK/ADM0/",
+      "status": "metadata-body-read",
+      "boundaryID": "TJK-ADM0-77803701",
+      "yearRepresented": "2017",
+      "sourceUpdate": "2023-01-19",
+      "build": "2023-12-12",
+      "boundaryLicense": "Open Data Commons Open Database License 1.0",
+      "source": "OpenStreetMap, Wambacher",
+      "downloadRevision": "9469f09",
+      "limitation": "Same source family as KGZ; not two independent historical legal sources; geometry not downloaded"
+    },
+    {
+      "url": "https://icr.ethz.ch/data/cshapes/",
+      "status": "body-read",
+      "edition": "2.0",
+      "globalCoverage": "1886-2019",
+      "europeCoverageStart": "1816",
+      "license": "CC BY-NC-SA 4.0",
+      "limitation": "Outside 2025 target; raw file not inspected"
+    },
+    {
+      "url": "https://gps.gov.kg/wp-content/uploads/Digital-maps/en/index.html",
+      "status": "body-read",
+      "title": "Digital Map of Border Crossing Points",
+      "limitation": "Treaty boundary vector layer, download, version, CRS and reuse terms not verified"
+    }
+  ],
+  "missingSources": [
+    {
+      "id": "GEO-TIME-004",
+      "reportedFilename": "GEO-TIME-004-2025-palestine-chagos-2026-10-20.md",
+      "status": "missing-source",
+      "origin": "User-provided report of another conversation and safety-review rejection; original artifacts and rejection decision unavailable",
+      "bodyAvailable": false,
+      "rejectionReasonAvailable": false,
+      "originalWriteExecutionOutcome": "unknown",
+      "currentWorkGisPathOrFetchedHistoryMatch": false,
+      "retryAttempted": false,
+      "historicalClaimsApplied": 0
+    },
+    {
+      "id": "GEO-TIME-HANDOFF",
+      "reportedFilename": "GEO-TIME-HANDOFF-2026-10-20.md",
+      "status": "missing-source",
+      "origin": "User-provided report of another conversation and safety-review rejection; original artifacts and rejection decision unavailable",
+      "bodyAvailable": false,
+      "rejectionReasonAvailable": false,
+      "originalWriteExecutionOutcome": "unknown",
+      "currentWorkGisPathOrFetchedHistoryMatch": false,
+      "retryAttempted": false,
+      "historicalClaimsApplied": 0
+    }
+  ],
+  "priorMissingReport": {
+    "id": "GEO-TIME-002",
+    "status": "missing-source unchanged; distinct from 004 and HANDOFF"
+  },
+  "accessLimitations": [
+    {
+      "action": "Read original conversation message and safety-review decision",
+      "target": "https://chatgpt.com/c/6ad0d979-fc70-83e8-8629-d26dfa23b685?messageId=38d806eb-b6b0-43f8-ba97-27364135e829",
+      "result": "Login shell only; no message or decision body",
+      "outcome": "body unavailable"
+    },
+    {
+      "action": "Retrieve exact report bodies and rejection reason via Personal Context",
+      "target": "Named 004 and HANDOFF in referenced conversation",
+      "result": "Personal context is unavailable for this conversation.",
+      "outcome": "tool error; no source retrieved"
+    }
+  ],
+  "result": {
+    "dataChanges": 0,
+    "newHistoricalEventsConfirmed": 0,
+    "newReportsReviewed": 1,
+    "existingReportsUnchanged": 28,
+    "candidateMetadataSourcesRead": 5,
+    "missingSourceDocuments": 2,
+    "priorHoldsResolved": 0,
+    "missingSourceHistoricalClaimsApplied": 0,
+    "rejectedOperationsRetried": 0
+  },
+  "cursors": {
+    "yearly": "2025 incomplete; not advanced or decremented",
+    "countryRotation": "Oceania next; unchanged"
+  },
+  "notRun": [
+    "raw external vector downloads/hash/CRS/layer/geometry/topology checks or conversion",
+    "independent historical geometry 0.5 CSS px comparison",
+    "web/app builds, browser and full tests",
+    "main merge, deployment, portable packaging, stopped unnamed hydro research"
+  ],
+  "verification": {
+    "reportRevisionsChecked": 29,
+    "priorProcessedReportsUnchanged": 28,
+    "newReportsReviewed": 1,
+    "focusedSourceIndexChunkChecks": 3,
+    "externalCandidateMetadataUrlsRead": 5,
+    "relativeMarkdownLinksChecked": 150,
+    "allowedChangedFileCount": 5,
+    "indexIdsUnique": true,
+    "developmentIndexPreserved": true,
+    "yearlyCursorUnchanged": true,
+    "countryRotationUnchanged": true,
+    "missingSourceDocumentsDistinct": true,
+    "sourceBodiesNotReconstructed": true,
+    "productAndPolicyDiffEmpty": true,
+    "diffCheck": "passed",
+    "webAppBuildAndGeometryChecks": "not run"
+  }
+}

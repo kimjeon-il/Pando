@@ -268,6 +268,7 @@ export function createTerritorialLibraryController({
     meta.textContent = [
       version.certainty === 'low' ? '정확도가 낮은 경계' : version.certainty === 'medium' ? '경계 일부 불확실' : '',
       entity.metadata?.approximateGeometry ? '근사 경계' : '',
+      version.historicalProvenance?.notice || '',
     ].filter(Boolean).join(' · ');
     const heading = document.createElement('div');
     heading.className = 'territorial-library-preview-heading';

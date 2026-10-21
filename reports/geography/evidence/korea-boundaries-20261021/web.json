@@ -1,0 +1,154 @@
+{
+  "url": "http://127.0.0.1:4189/apps/web-shell/editor.html?debug=1&demTerrain=raster",
+  "lifetimes": [
+    {
+      "id": "KOR",
+      "from": "1948-08-15",
+      "displayed": "1948-08-15 ~"
+    },
+    {
+      "id": "PRK",
+      "from": "1948-09-09",
+      "displayed": "1948-09-09 ~"
+    }
+  ],
+  "versions": [
+    {
+      "id": "state:KOR",
+      "referenceDate": "1953-07-26",
+      "versionId": "state:KOR:38th-parallel-1948",
+      "gaeseong": true,
+      "sokcho": false,
+      "evidence": {
+        "evidenceStatus": "provisional",
+        "sourceIds": [
+          "natural-earth-5.1.1",
+          "dos-lsib-11.4",
+          "ibs022-1963"
+        ],
+        "reconstructionScope": "Korean mutual land boundary; Paektu modern boundary refinement",
+        "coastline": "Modern Natural Earth outlines retained; period coastlines not reconstructed",
+        "unresolvedSegments": [],
+        "independentPeriodScreenDeltaChecked": false,
+        "sourceFile": "tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson"
+      }
+    },
+    {
+      "id": "state:KOR",
+      "referenceDate": "1953-07-27",
+      "versionId": "state:KOR:armistice-1953",
+      "gaeseong": false,
+      "sokcho": true,
+      "evidence": {
+        "evidenceStatus": "provisional",
+        "sourceIds": [
+          "natural-earth-5.1.1",
+          "dos-lsib-11.4",
+          "korean-armistice-1953"
+        ],
+        "reconstructionScope": "Korean mutual land boundary; Paektu modern boundary refinement",
+        "coastline": "Modern Natural Earth outlines retained; period coastlines not reconstructed",
+        "unresolvedSegments": [],
+        "independentPeriodScreenDeltaChecked": false,
+        "sourceFile": "tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson"
+      }
+    },
+    {
+      "id": "state:PRK",
+      "referenceDate": "1953-07-26",
+      "versionId": "state:PRK:38th-parallel-1948",
+      "gaeseong": false,
+      "sokcho": true,
+      "evidence": {
+        "evidenceStatus": "provisional",
+        "sourceIds": [
+          "natural-earth-5.1.1",
+          "dos-lsib-11.4",
+          "ibs022-1963"
+        ],
+        "reconstructionScope": "Korean mutual land boundary; Paektu modern boundary refinement",
+        "coastline": "Modern Natural Earth outlines retained; period coastlines not reconstructed",
+        "unresolvedSegments": [
+          "Sino-Korean pre-settlement boundary; modern alignment retained as provisional context"
+        ],
+        "notice": "북중 국경 확정 이전의 북쪽 경계는 미복원 상태이며 현재 경계를 참고용으로 표시합니다.",
+        "independentPeriodScreenDeltaChecked": false,
+        "sourceFile": "tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson"
+      }
+    },
+    {
+      "id": "state:PRK",
+      "referenceDate": "1953-07-27",
+      "versionId": "state:PRK:armistice-1953",
+      "gaeseong": true,
+      "sokcho": false,
+      "evidence": {
+        "evidenceStatus": "provisional",
+        "sourceIds": [
+          "natural-earth-5.1.1",
+          "dos-lsib-11.4",
+          "korean-armistice-1953"
+        ],
+        "reconstructionScope": "Korean mutual land boundary; Paektu modern boundary refinement",
+        "coastline": "Modern Natural Earth outlines retained; period coastlines not reconstructed",
+        "unresolvedSegments": [
+          "Sino-Korean pre-settlement boundary; modern alignment retained as provisional context"
+        ],
+        "notice": "북중 국경 확정 이전의 북쪽 경계는 미복원 상태이며 현재 경계를 참고용으로 표시합니다.",
+        "independentPeriodScreenDeltaChecked": false,
+        "sourceFile": "tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson"
+      }
+    },
+    {
+      "id": "state:PRK",
+      "referenceDate": "1964-03-19",
+      "versionId": "state:PRK:armistice-1953",
+      "gaeseong": true,
+      "sokcho": false,
+      "evidence": {
+        "evidenceStatus": "provisional",
+        "sourceIds": [
+          "natural-earth-5.1.1",
+          "dos-lsib-11.4",
+          "korean-armistice-1953"
+        ],
+        "reconstructionScope": "Korean mutual land boundary; Paektu modern boundary refinement",
+        "coastline": "Modern Natural Earth outlines retained; period coastlines not reconstructed",
+        "unresolvedSegments": [
+          "Sino-Korean pre-settlement boundary; modern alignment retained as provisional context"
+        ],
+        "notice": "북중 국경 확정 이전의 북쪽 경계는 미복원 상태이며 현재 경계를 참고용으로 표시합니다.",
+        "independentPeriodScreenDeltaChecked": false,
+        "sourceFile": "tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson"
+      }
+    },
+    {
+      "id": "state:PRK",
+      "referenceDate": "1964-03-20",
+      "versionId": "state:PRK:sino-korean-protocol-1964",
+      "gaeseong": true,
+      "sokcho": false,
+      "evidence": {
+        "evidenceStatus": "provisional",
+        "sourceIds": [
+          "natural-earth-5.1.1",
+          "dos-lsib-11.4",
+          "korean-armistice-1953"
+        ],
+        "reconstructionScope": "Korean mutual land boundary; Paektu modern boundary refinement",
+        "coastline": "Modern Natural Earth outlines retained; period coastlines not reconstructed",
+        "treatySigned": "1962-10-12",
+        "protocolEffective": "1964-03-20",
+        "notice": "1964-03-20은 북중 국경 확정일입니다. 확정 전후의 영토 차이는 미복원 상태입니다.",
+        "unresolvedSegments": [
+          "Period river-island allocation outside Paektu not independently digitized"
+        ],
+        "independentPeriodScreenDeltaChecked": false,
+        "sourceFile": "tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson"
+      }
+    }
+  ],
+  "projectPreserved": true,
+  "sourceOverrides": false,
+  "errors": []
+}

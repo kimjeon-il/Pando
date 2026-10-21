@@ -1,0 +1,123 @@
+✔ Korean identities start on their respective government establishment days (3.061ms)
+✔ armistice changes the Korean mutual boundary on the exact day without wartime versions (1.4837ms)
+✖ Sino-Korean settlement is distinguished from treaty signature and changes on protocol effectiveness (7.571ms)
+✔ the 38th parallel/MDL transition changes actual settlement attribution (16.5995ms)
+✔ Baengnyeong island keeps its whole South Korean component across armistice (2.5811ms)
+✔ the paired Korean/Chinese changes preserve the land union and produce no ownership overlap (453.7291ms)
+✔ the actual published timeline retains Korean creation dates and the June/July 1953 geometry change (920.5722ms)
+✖ the preview exposes source limitations instead of reducing them to a generic confidence label (19.6501ms)
+✖ blank browsing never uses today or geometry; rows preserve identity, order and year-only source periods (8.9451ms)
+✔ year and month inputs consistently select the first day for search, preview, ownership and Add (10.1739ms)
+✔ blank representative discloses untouched coarse source date and imports the exact preview version (3.7216ms)
+✔ GDR live geometry gaps keep the row but never borrow a representative; unavailable blank rows require a date (5.849ms)
+✔ invalid dates retire selection, rows and Add with PL-LIB-005, including reopen and stale row activation (11.2623ms)
+✔ pending preview survives valid/blank edits through a new continuation and cannot revive after invalid/filter edits (4.1256ms)
+✔ A→B, close→reopen and abandoned failures cannot restore stale geometry or focus (2.9568ms)
+✔ preview failure remains usable and retries; project replacement cannot enable Add (4.6311ms)
+✔ Add captures date/depth/ownership across awaits and an input event invalidates the entire operation (4.0166ms)
+✔ Add transaction isCurrent retires on input/close/project changes and locks against repeated clicks (3.0285ms)
+✔ missing ownership still validates country/root name and child changes clear impact confirmation (3.8672ms)
+✔ async Add failures reenable controls and leave modal open; stale project ownership never instantiates (1.9305ms)
+✖ clock lists index-only neutral events independent of date, selects through first-day refresh and dismisses correctly (2.9147ms)
+✖ event activation that removes a selected identity clears its map, ownership and Add (1.6559ms)
+✔ flag picker stays index-only even without a representative and restores original focus (0.7899ms)
+✔ index loading owns control state, contains load failures and succeeds on reopen (0.4525ms)
+✔ selected-only, immediate-child and all-descendant imports keep one effective date and source precision (10.9268ms)
+✔ retired project chunk failure clears loading preview without reporting an obsolete error (0.9368ms)
+✔ library search clear visibility follows typing, invalid date, clearing and reopened query through the shared helper (1.9808ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 22
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1827.3423
+
+✖ failing tests:
+
+test at tests\unit\korean-boundary-data.test.mjs:43:1
+✖ Sino-Korean settlement is distinguished from treaty signature and changes on protocol effectiveness (7.571ms)
+  AssertionError [ERR_ASSERTION]: The "string" argument must be of type string. Received type undefined (undefined)
+      at TestContext.<anonymous> (file:///D:/dev/worktrees/gis/tests/unit/korean-boundary-data.test.mjs:54:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /북쪽 경계.*미복원/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\unit\territorial-library-controller.test.mjs:22:1
+✖ the preview exposes source limitations instead of reducing them to a generic confidence label (19.6501ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(textOf(h.elements.preview).includes(notice))
+  
+      at TestContext.<anonymous> (file:///D:/dev/worktrees/gis/tests/unit/territorial-library-controller.test.mjs:28:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\unit\territorial-library-controller.test.mjs:111:1
+✖ blank browsing never uses today or geometry; rows preserve identity, order and year-only source periods (8.9451ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///D:/dev/worktrees/gis/tests/unit/territorial-library-controller.test.mjs:124:50)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\territorial-library-controller.test.mjs:266:1
+✖ clock lists index-only neutral events independent of date, selects through first-day refresh and dismisses correctly (2.9147ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///D:/dev/worktrees/gis/tests/unit/territorial-library-controller.test.mjs:271:70)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\territorial-library-controller.test.mjs:283:1
+✖ event activation that removes a selected identity clears its map, ownership and Add (1.6559ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///D:/dev/worktrees/gis/tests/unit/territorial-library-controller.test.mjs:286:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
