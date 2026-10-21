@@ -1,5 +1,7 @@
 # 판도편집기 조사·검증 보고서
 
+최신 개발 통합 기록: [미병합 커밋 main 통합 — 2026-10-21](development/testing/all-branches-main-integration-2026-10-21.md) (`DEV-MAIN-20261021`, `integrated / focused-verification`).
+
 통합 `Pando` 저장소의 이 폴더가 웹·앱 사람이 읽는 조사·검증 보고서의 정본입니다. 웹 데이터는 루트 `assets/`, 앱 소스는 `apps/web-shell/`, 공통 계산은 `shared/`에 둡니다. 보고서만으로 지도 반영이나 검증 통과를 뜻하지 않습니다.
 
 | 표기 | 뜻 |
@@ -69,6 +71,7 @@
 | `UI-TERRAIN-LATENCY-20261021` | [고배율 지형 전환 지연의 재현과 수정](development/testing/terrain-interaction-latency-2026-10-21.md) | 2026-10-21 | `local-web-verified / app-unverified / unpublished` | `not-applicable` |
 | `UI-MAP-SCALE-RELEASE-20261020` | [지도 표시·UI 검사 정리와 웹·Windows 게시 검증](development/testing/map-scale-release-2026-10-20.md) | 2026-10-20 | `pages-live-verified / windows-native-verified / separate-ci-failures` | `not-applicable` |
 | `UI-MAP-SCALE-20261020` | [지도 배율별 품질과 표시 준비 상태](development/testing/map-scale-readiness-2026-10-20.md) | 2026-10-20 | `focused-verified / native-webview2-verified / unpublished` | `not-applicable` |
+| `UI-CONVERGENCE-P4-20261021` | [UI 구조 통일 P4 — 참조 이미지 공통 Surface 통합](development/testing/ui-convergence-p4-2026-10-21.md) | 2026-10-21 | `implemented / focused-browser-verified / staged-app-verified / native-unverified` | `not-applicable` |
 | `UI-CONVERGENCE-P2-20261020` | [UI 구조 통일 P2 — 검색창 DOM 고정·가로 화면 CSS 분리](development/testing/ui-convergence-p2-2026-10-20.md) | 2026-10-20 | `implemented / focused-browser-verified / native-unverified` | `not-applicable` |
 | `UI-CONVERGENCE-P0-20261020` | [UI 독자 규칙 통합 P0 — 구조·상태·회귀 기준 조사](development/testing/ui-convergence-p0-audit-2026-10-20.md) | 2026-10-20 | `source-audited / focused-runtime-baseline-not-rerun` | `not-applicable` |
 | `DEV-ALL-BRANCH-20261020` | [작업 브랜치의 미통합 변경 전체 반영](development/testing/all-branch-integration-2026-10-20.md) | 2026-10-20 | `integrated-with-validation-exception` | `not-applicable` |

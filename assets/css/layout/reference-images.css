@@ -8,24 +8,7 @@
   pointer-events: none;
 }
 
-.reference-image-panel {
-  --ui-reference-panel-top: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-4) + var(--ui-control-height) + var(--ui-space-2));
-  position: absolute;
-  z-index: 9;
-  inset-block-start: var(--ui-reference-panel-top);
-  inset-inline-end: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-map-edge));
-  width: min(var(--ui-reference-panel-width), calc(100% - var(--ui-map-edge) * 2));
-  max-height: min(var(--ui-reference-panel-max-height), calc(100% - var(--ui-reference-panel-top) - var(--ui-map-edge) - var(--ui-shell-statusbar-height)));
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.reference-image-panel[hidden] { display: none; }
-.reference-image-body { min-height: 0; overflow: auto; }
-.reference-image-panel-header { flex: 0 0 auto; }
-.reference-image-editing-summary { display: flex; align-items: center; gap: var(--ui-space-2); }
-.reference-image-editing-summary[hidden] { display: none; }
+.surface-reference[hidden] { display: none; }
 .reference-image-editing-summary > span { flex: 1; min-width: 0; }
 
 /* The reference surface is a workspace sibling of the map, never a map overlay. */
@@ -45,8 +28,9 @@
   width: calc(100% - var(--reference-dock-active-width));
 }
 
-.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .surface-reference {
   position: absolute;
+  z-index: 9;
   top: 0;
   right: 0;
   bottom: 0;
@@ -57,25 +41,6 @@
   height: 100%;
   max-height: none;
   transform: none;
-}
-
-.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel-header {
-  display: flex;
-}
-
-.reference-image-panel-header > div {
-  flex: 1;
-  min-width: 0;
-}
-
-.reference-image-panel-header strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.reference-image-panel-header > .reference-image-collapse-button {
-  flex: 0 0 auto;
 }
 
 .reference-image-resize-handle {
@@ -94,41 +59,36 @@
   touch-action: none;
 }
 
-.reference-image-panel.reference-image-collapsed > .reference-image-body {
+.surface-reference.reference-image-collapsed > .surface-body {
   display: none;
 }
 
-.reference-image-panel.reference-image-collapsed:not(.reference-image-editing) > .reference-image-editing-summary {
+.surface-reference.reference-image-collapsed:not(.reference-image-editing) > .surface-footer {
   display: none;
 }
 
-.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .surface-reference.reference-image-collapsed > .surface-header {
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: var(--ui-space-2) var(--ui-space-1);
-  gap: var(--ui-space-2);
 }
 
-.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header > div {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .surface-reference.reference-image-collapsed > .surface-header > .surface-header-title {
   flex: 0 0 auto;
-  order: 3;
+  order: 2;
 }
 
-.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header strong {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .surface-reference.reference-image-collapsed > .surface-header > .surface-header-title > strong {
   writing-mode: vertical-rl;
   white-space: nowrap;
 }
 
-.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed .reference-image-collapse-button {
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .surface-reference.reference-image-collapsed > .surface-header > .surface-header-actions {
+  flex-direction: column;
   order: 1;
 }
 
-.app-root:is([data-layout="wide"], [data-layout="compact"]) .reference-image-panel.reference-image-collapsed [data-ref-action="close"] {
-  order: 2;
-}
-
-.reference-image-panel-header,
 .reference-image-editor-title,
 .reference-image-toolbar,
 .reference-image-toggle-row,
@@ -139,14 +99,6 @@
 .reference-image-point-actions {
   display: flex;
   align-items: center;
-}
-
-.reference-image-panel-header {
-  justify-content: space-between;
-}
-
-.reference-image-panel-header > div {
-  display: grid;
 }
 
 .reference-image-list {
@@ -192,6 +144,10 @@
 
 .reference-image-editor {
   display: grid;
+}
+
+.reference-image-editor-title {
+  flex-direction: row;
 }
 
 .reference-image-editor-title input[type="text"] {
@@ -299,62 +255,43 @@
   pointer-events: auto;
 }
 
-[data-layout="mobile"] .surface-reference.reference-image-editing {
-  height: auto;
-  min-height: var(--ui-touch-height);
-}
 /* Mobile continues to use the common bottom-sheet snap controller. */
-.app-root[data-layout="mobile"] .reference-image-panel {
-  position: fixed;
-  inset-block-start: auto;
-  inset-inline-end: 0;
-  top: auto;
-  right: 0;
-  bottom: var(--mobile-nav-height);
-  left: 0;
-  width: 100%;
-  height: var(--sheet-height, var(--design-sheet-snap-half));
-  max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
-}
-
-.app-root[data-layout="mobile"] .reference-image-panel > .reference-image-panel-header {
+.app-root[data-layout="mobile"] .surface-reference > .surface-header {
   display: grid;
-  grid-template-columns: var(--ui-touch-height) minmax(0, 1fr) auto auto;
+  grid-template-columns: var(--ui-touch-height) minmax(0, 1fr) auto;
   grid-template-rows: minmax(var(--ui-touch-height), auto);
   align-items: center;
   gap: var(--ui-space-1);
   cursor: default;
 }
 
-.app-root[data-layout="mobile"] .reference-image-panel-header > .sheet-drag-handle {
+.app-root[data-layout="mobile"] .surface-reference > .surface-header > .sheet-drag-handle {
   grid-column: 1;
   width: 100%;
 }
 
-.app-root[data-layout="mobile"] .reference-image-panel-header > div {
+.app-root[data-layout="mobile"] .surface-reference > .surface-header > .surface-header-title {
+  display: flex;
   grid-column: 2;
 }
 
-.app-root[data-layout="mobile"] .reference-image-panel-header > .reference-image-collapse-button {
+.app-root[data-layout="mobile"] .surface-reference > .surface-header > .surface-header-actions {
+  display: flex;
+  gap: var(--ui-space-1);
   grid-column: 3;
-}
-
-.app-root[data-layout="mobile"] .reference-image-panel-header > [data-ref-action="close"] {
-  display: inline-grid;
-  grid-column: 4;
   pointer-events: auto;
 }
 
-.app-root[data-layout="mobile"] .reference-image-panel.reference-image-editing > .surface-header {
+.app-root[data-layout="mobile"] .surface-reference.reference-image-editing > .surface-header {
   display: grid;
   pointer-events: auto;
 }
 
-.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-panel.reference-image-editing > .surface-body {
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .surface-reference.reference-image-editing > .surface-body {
   display: none;
 }
 
-.app-root[data-layout="mobile"] .reference-image-panel.reference-image-editing {
+.app-root[data-layout="mobile"] .surface-reference.reference-image-editing {
   height: auto;
   min-height: min(var(--ui-reference-mobile-compact-min-height), calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)));
 }

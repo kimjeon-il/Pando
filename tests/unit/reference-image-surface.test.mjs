@@ -66,17 +66,24 @@ class Element {
   }
   querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
   closest(selector) { return this.matches(selector) ? this : this.parent?.closest(selector) || null; }
-  dispatch(name) {
+  dispatch(name, properties = {}) {
     let stopped = false;
-    const event = { target: this, preventDefault() {}, stopPropagation() { stopped = true; } };
+    const event = { target: this, preventDefault() {}, stopPropagation() { stopped = true; }, ...properties };
     for (let node = this; node; node = node.parent) {
-      node.listeners.get(name)?.(event);
+      for (const listener of node.listeners.get(name) || []) listener(event);
       if (stopped) break;
     }
     return event;
   }
-  addEventListener(name, listener) { this.listeners.set(name, listener); }
-  removeEventListener(name) { this.listeners.delete(name); }
+  addEventListener(name, listener) {
+    if (!this.listeners.has(name)) this.listeners.set(name, new Set());
+    this.listeners.get(name).add(listener);
+  }
+  removeEventListener(name, listener) {
+    const listeners = this.listeners.get(name);
+    listeners?.delete(listener);
+    if (!listeners?.size) this.listeners.delete(name);
+  }
 }
 
 function fixture() {
@@ -95,13 +102,44 @@ function fixture() {
   const mapElement = document.createElement();
   mapElement.className = 'map-stage';
   const panel = document.createElement();
+  panel.id = 'referenceImageSurface';
+  panel.className = 'workspace-surface surface-reference ui-sheet reference-image-panel';
   workspaceElement.append(mapElement, panel);
   const launcher = document.createElement();
+  launcher.id = 'referenceImageBtn';
+  const resize = document.createElement();
+  resize.className = 'reference-image-resize-handle';
   const header = document.createElement();
-  header.className = 'reference-image-panel-header';
-  panel.append(header);
+  header.className = 'surface-header reference-image-panel-header';
+  const collapse = document.createElement();
+  collapse.className = 'ui-button reference-image-collapse-button';
+  collapse.dataset.referencePanelToggle = '';
+  header.append(collapse);
+  const body = document.createElement();
+  body.id = 'referenceImageSurfaceBody';
+  body.className = 'surface-body reference-image-body';
   const editor = document.createElement();
-  panel.append(editor);
+  body.append(editor);
+  const summary = document.createElement();
+  summary.className = 'surface-footer reference-image-editing-summary';
+  const hint = document.createElement();
+  hint.className = 'reference-image-editing-status';
+  summary.append(hint);
+  for (const action of ['navigation-toggle', 'undo', 'redo', 'finish', 'cancel']) {
+    const button = document.createElement();
+    button.className = 'ui-button btn';
+    button.dataset.refAction = action;
+    if (action === 'undo' || action === 'redo') {
+      button.disabled = true;
+      button.setAttribute('aria-label', `이미지 편집 ${action === 'undo' ? '실행 취소' : '다시 실행'}`);
+    }
+    summary.append(button);
+  }
+  const actions = document.createElement();
+  actions.className = 'reference-image-workflow-actions';
+  actions.dataset.refWorkflowActions = '';
+  summary.append(actions);
+  panel.append(resize, header, body, summary);
   let layout = 'mobile';
   const controller = createSurfaceController({ document, getElement: id => document.elements.find(element => element.id === id), getLayout: () => layout });
   let registered;
@@ -127,6 +165,31 @@ function fixture() {
     },
   };
 }
+
+test('installing and reinstalling a complete surface preserves its controls and binds one launcher action', () => {
+  const f = fixture();
+  const document = f.panel.ownerDocument;
+  const nodes = document.elements.slice();
+  const parents = nodes.map(element => element.parentElement);
+  let opened = 0;
+  const install = () => installReferenceImageSurface({
+    ...f, workspaceSurfaces: f.workspace, onOpen: () => { opened += 1; },
+  });
+  const adapter = install();
+  assert.equal(document.elements.length, nodes.length, 'installation must bind the existing Surface, without creating wrappers or controls');
+  assert.ok(nodes.every((element, index) => element.parentElement === parents[index]));
+  f.launcher.dispatch('click');
+  assert.equal(opened, 1);
+  assert.equal(f.panel.hidden, false);
+  adapter.destroy();
+  const replacement = install();
+  f.launcher.dispatch('click');
+  assert.equal(opened, 2, 'destroy/reinstall must leave exactly one launcher callback');
+  assert.equal(f.panel.hidden, false);
+  assert.equal(document.elements.length, nodes.length);
+  assert.ok(nodes.every((element, index) => element.parentElement === parents[index]));
+  replacement.destroy();
+});
 
 test('late image surface registration reuses controls and closes once even with a reentrant mode callback', () => {
   const f = fixture();
@@ -181,7 +244,7 @@ test('desktop reference dock collapses without closing or cancelling the active 
   adapter.setEditing(true, '이미지점 선택 중');
   const toggle = f.panel.querySelector('.reference-image-panel-header')
     .querySelector('.reference-image-collapse-button');
-  const click = () => toggle.listeners.get('click')({ preventDefault() {}, stopPropagation() {} });
+  const click = () => toggle.dispatch('click');
   click();
   assert.equal(f.panel.hidden, false);
   assert.equal(f.panel.classList.contains('reference-image-collapsed'), true);
@@ -197,7 +260,7 @@ test('desktop reference dock collapses without closing or cancelling the active 
   assert.equal(f.panel.querySelector('.reference-image-body').inert, false);
 
   const resize = f.panel.querySelector('.reference-image-resize-handle');
-  resize.listeners.get('keydown')({ key: 'ArrowLeft', preventDefault() {} });
+  resize.dispatch('keydown', { key: 'ArrowLeft' });
   assert.equal(f.styleValues.get('--reference-dock-width'), '352px');
   assert.equal(resize.getAttribute('aria-valuenow'), '352');
 
@@ -215,7 +278,7 @@ test('mobile reference sheet collapse and edit expansion keep the panel open', (
   });
   const toggle = f.panel.querySelector('.reference-image-panel-header')
     .querySelector('.reference-image-collapse-button');
-  const click = () => toggle.listeners.get('click')({ preventDefault() {}, stopPropagation() {} });
+  const click = () => toggle.dispatch('click');
   const body = f.panel.querySelector('.reference-image-body');
   const summary = f.panel.querySelector('.reference-image-editing-summary');
   adapter.setEditing(true, '기준점 지정 중');

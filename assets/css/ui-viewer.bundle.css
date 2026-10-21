@@ -264,6 +264,8 @@
 /* Canonical tokens / component-tokens. */
 
 :root {
+  --territorial-library-source-flag-max-width: 72px;
+  --territorial-library-source-flag-max-height: 48px;
   --ui-phone-landscape-panel-max-width: 320px;
   --ui-phone-landscape-nav-label-size: 0.625rem;
   --ui-touch-vertex-selected-stroke: #b0dbff;
@@ -2739,6 +2741,48 @@ body.map-sheet-dragging {
   display: flex;
   align-items: center;
   gap: var(--design-button-gap);
+}
+
+/* The reference dock uses the shared Surface chrome and stable content rails. */
+.workspace-surface.surface-reference {
+  --ui-surface-border-left: var(--ui-border-width) solid var(--border);
+  padding: var(--ui-space-0);
+  color: var(--text);
+}
+
+/* Keep the sheet's existing interior width while the shared Surface paints it. */
+.app-root[data-layout="mobile"] .workspace-surface.surface-reference {
+  --ui-surface-border-right: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-bottom: var(--ui-border-width) solid var(--border);
+}
+
+.surface-reference > .surface-header {
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3);
+}
+
+.surface-reference > .surface-header > .surface-header-title > strong {
+  font-size: var(--ui-font-section);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.surface-reference > .surface-body {
+  padding: var(--ui-space-3);
+}
+
+.surface-reference > .surface-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2);
+}
+
+.surface-reference > .surface-footer[hidden] {
+  display: none;
+}
+
+.app-root:is([data-layout="wide"], [data-layout="compact"]) .surface-reference.reference-image-collapsed > .surface-header {
+  padding: var(--ui-space-2) var(--ui-space-1);
 }
 
 .surface-tabs .ui-tab::after {
@@ -5719,7 +5763,7 @@ body.file-menu-open .app-root .topbar {
 .territorial-library-source-editor { border-block-start: var(--ui-border-width) solid var(--border); padding: var(--space-3); }
 .territorial-library-source-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); max-height: 42vh; overflow: auto; }
 .territorial-library-source-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); padding-block: var(--space-2); }
-.territorial-library-source-flag { max-width: 72px; max-height: 48px; object-fit: contain; }
+.territorial-library-source-flag { max-width: var(--territorial-library-source-flag-max-width); max-height: var(--territorial-library-source-flag-max-height); object-fit: contain; }
 
 /* source: assets/css/components/panels.css */
 
