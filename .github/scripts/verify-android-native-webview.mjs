@@ -6,6 +6,16 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
+// Persist a machine-readable error even when inspection fails before CDP attaches.
+process.on('uncaughtExceptionMonitor', error => {
+  mkdirSync('build-native/web-shell', { recursive: true });
+  writeFileSync('build-native/web-shell/android-native-webview.json', JSON.stringify({
+    schema: 'pandolab-android-native-webview-p6',
+    capturedAt: new Date().toISOString(), ok: false,
+    error: String(error?.stack || error),
+  }, null, 2) + '\n');
+});
+
 const PACKAGE_ID = 'com.pandolab.webshell.prototype';
 const DEBUG_PORT = 9222;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -31,6 +41,7 @@ const socket = await repeat('Android debug WebView CDP socket was not exposed', 
   const exact = new RegExp('webview_devtools_remote_' + pid + '\\b');
   return entries.split('\n').find(line => exact.test(line))?.match(/webview_devtools_remote_\d+/)?.[0] || null;
 }, { attempts: 40 });
+console.log('ANDROID_WEBVIEW_CDP_SOCKET', JSON.stringify({ pid, socket }));
 adb('forward', 'tcp:' + DEBUG_PORT, 'localabstract:' + socket);
 
 const endpoint = 'http://127.0.0.1:' + DEBUG_PORT + '/json';
