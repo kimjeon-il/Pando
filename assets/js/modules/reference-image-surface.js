@@ -1,4 +1,24 @@
-import { registerReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
+import {
+  registerReferenceImageSurfaceEditing,
+  registerReferenceImageSurfaceActions,
+} from './reference-image-surface-port.js';
+
+const AUXILIARY_ACTIONS = Object.freeze({
+  line: Object.freeze([
+    { action: 'start', label: '선 보강', primary: true },
+    { action: 'apply', label: '적용', primary: true },
+    { action: 'redraw', label: '다시 그리기' },
+    { action: 'cancel', label: '취소' },
+  ]),
+  'live-wire': Object.freeze([
+    { action: 'start', label: '자동 추적', primary: true },
+    { action: 'finish', label: '완료', primary: true },
+    { action: 'undo', label: '마지막 점 취소' },
+    { action: 'apply', label: '적용', primary: true },
+    { action: 'redraw', label: '다시 그리기' },
+    { action: 'cancel', label: '취소' },
+  ]),
+});
 
 /** Late-loaded image UI uses the same lifecycle as the built-in workspace sheets. */
 export function installReferenceImageSurface({ panel, launcher, mapElement, workspaceSurfaces, onAction, onAuxiliaryEditingStart, onClose, onOpen }) {
@@ -11,9 +31,15 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
   const compact = panel.querySelector('.reference-image-editing-summary');
   const hint = panel.querySelector('.reference-image-editing-status');
   const compactActions = panel.querySelector('[data-ref-workflow-actions]');
+  const auxiliaryRoot = panel.querySelector('[data-ref-auxiliary-actions]');
+  const auxiliaryRows = {
+    line: { element: panel.querySelector('[data-ref-line-actions]'), datasetKey: 'refLineAction' },
+    'live-wire': { element: panel.querySelector('[data-ref-live-wire-actions]'), datasetKey: 'refLiveWireAction' },
+  };
   const resizeHandle = panel.querySelector('.reference-image-resize-handle');
   const workspace = panel.closest('.workspace');
-  if (!body || !collapseButton || !compact || !hint || !compactActions || !resizeHandle || !workspace) {
+  if (!body || !collapseButton || !compact || !hint || !compactActions || !auxiliaryRoot
+    || !auxiliaryRows.line.element || !auxiliaryRows['live-wire'].element || !resizeHandle || !workspace) {
     throw new TypeError('Reference image Surface must be created completely and mounted in the workspace before binding.');
   }
   const defaultCompletionButtons = compact.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]');
@@ -94,7 +120,7 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
     guide = null;
   }
 
-  function renderActions(container, actions) {
+  function renderActions(container, actions, datasetKey = 'refAction') {
     const previousButtons = [...container.children];
     for (const [index, action] of actions.entries()) {
       let button = previousButtons[index];
@@ -104,12 +130,27 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
         button.className = 'ui-button btn';
         container.append(button);
       }
-      button.dataset.refAction = action.action;
+      button.dataset[datasetKey] = action.action;
       button.classList.toggle('ghost', !action.primary);
       button.disabled = action.disabled === true;
+      button.hidden = action.hidden === true;
       setText(button, action.label);
     }
     for (const button of previousButtons.slice(actions.length)) button.remove();
+  }
+
+  /** Fixed footer groups share the same button renderer as reference-image workflows. */
+  function setAuxiliaryActions(tool, projection = null) {
+    const row = auxiliaryRows[tool];
+    const definitions = AUXILIARY_ACTIONS[tool];
+    if (!row || !definitions) throw new TypeError('Unknown reference image auxiliary action tool.');
+    const actions = definitions.map(definition => ({
+      ...definition,
+      ...(projection?.[definition.action] ?? { hidden: true }),
+    }));
+    renderActions(row.element, actions, row.datasetKey);
+    row.element.hidden = actions.every(action => action.hidden);
+    sync();
   }
 
   function syncWorkflowText() {
@@ -243,7 +284,12 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
     workspace?.classList?.toggle('reference-image-docked', open && !mobile);
     workspace?.classList?.toggle('reference-image-dock-collapsed', open && !mobile && collapsed);
     if (body.inert !== bodyCollapsed) body.inert = bodyCollapsed;
-    if (compact.hidden !== !compactEditing) compact.hidden = !compactEditing;
+    compact.classList.toggle('is-compact', compactEditing);
+    // Ordinary image workflows own the footer until an auxiliary tool takes over.
+    const hasAuxiliaryActions = Object.values(auxiliaryRows).some(row => !row.element.hidden);
+    auxiliaryRoot.hidden = !hasAuxiliaryActions || !!workflow || (editing && !auxiliaryEditing);
+    const showFooter = compactEditing || !auxiliaryRoot.hidden;
+    if (compact.hidden !== !showFooter) compact.hidden = !showFooter;
     const label = bodyCollapsed ? '펼치기' : '접기';
     if (collapseButton.textContent !== label) collapseButton.textContent = label;
     collapseButton.setAttribute('aria-label', '참조 이미지 패널 ' + label);
@@ -281,6 +327,7 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
     }
     sync();
   }
+  const unregisterSurfaceActions = registerReferenceImageSurfaceActions(setAuxiliaryActions);
   const unregisterSurfaceEditing = registerReferenceImageSurfaceEditing((active, text) => {
     if (active === true) onAuxiliaryEditingStart();
     setEditing(active, text, { auxiliary: true });
@@ -304,6 +351,7 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
       workspaceSurfaces.closeSurface('reference');
       workspaceSurfaces.setReferenceImageGestureActive(false);
       unregisterSurfaceEditing();
+      unregisterSurfaceActions();
       unregister();
       setWorkflow(null);
       workspace?.classList?.remove('reference-image-docked', 'reference-image-dock-collapsed');

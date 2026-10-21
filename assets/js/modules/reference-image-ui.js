@@ -86,6 +86,10 @@ export function createReferenceImagePanel() {
       <button type="button" class="ui-button btn" data-ref-action="finish">완료</button>
       <button type="button" class="ui-button btn ghost" data-ref-action="cancel">취소</button>
       <div class="reference-image-workflow-actions" data-ref-workflow-actions hidden></div>
+      <div class="reference-image-auxiliary-actions" data-ref-auxiliary-actions hidden>
+        <div class="reference-image-calibration-actions reference-image-line-refine-actions" data-ref-line-actions role="group" aria-label="선 보강 작업" hidden></div>
+        <div class="reference-image-calibration-actions reference-image-live-wire-actions" data-ref-live-wire-actions role="group" aria-label="자동 추적 작업" hidden></div>
+      </div>
     </footer>
   `;
   return panel;

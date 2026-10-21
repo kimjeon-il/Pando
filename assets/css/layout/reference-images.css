@@ -541,3 +541,44 @@
 .app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-workflow-actions > .ui-button {
   flex: 1 1 auto;
 }
+
+/* P5: both tools use the Surface footer's fixed action host. */
+.reference-image-editing-summary:not(.is-compact) > :not(.reference-image-auxiliary-actions) {
+  display: none;
+}
+
+.reference-image-editing-summary > .reference-image-auxiliary-actions {
+  flex: 1 0 100%;
+  width: 100%;
+}
+
+.reference-image-auxiliary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2);
+  pointer-events: auto;
+}
+
+.reference-image-auxiliary-actions > .reference-image-calibration-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2);
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.reference-image-auxiliary-actions[hidden],
+.reference-image-auxiliary-actions > [hidden],
+.reference-image-auxiliary-actions .ui-button[hidden] {
+  display: none;
+}
+
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-auxiliary-actions .ui-button {
+  flex: 1 1 auto;
+  min-width: var(--ui-touch-height);
+}
+
+.surface-reference.reference-image-editing .reference-image-auxiliary-actions,
+.surface-reference.reference-image-editing .reference-image-auxiliary-actions button {
+  pointer-events: auto;
+}
