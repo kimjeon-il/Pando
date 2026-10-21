@@ -52,8 +52,11 @@ relations and validity. Selection catalogs replace only one explicit built-in
 domain, and platform facts never become another writable document.
 
 Storage baselines have explicit `stored-asset` and `static-features` source
-protocols. Stored assets verify the actual compressed bytes, fingerprint and
-size limits before current-format decoding. Baselines are immutable source
+protocols. Stored assets accept `gzip` or `identity` bytes and verify the stored
+bytes, fingerprint and size limits before current-format decoding. Identity
+sources require equal stored/decoded byte counts and avoid recompression for
+assembled country scenes. The browser retains the admitted handle and receipt,
+not the large source byte buffer. Baselines are immutable source
 facts; dirty territorial IDs derive from the canonical Project/history.
 File export and autosave retain their current full/delta policies. Native and
 Web format differences are tested and reported separately.
