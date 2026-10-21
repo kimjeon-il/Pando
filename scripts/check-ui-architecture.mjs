@@ -82,6 +82,34 @@ function classNames(tag) {
   return new Set((tag.match(/\bclass=["']([^"']+)["']/i)?.[1] || '').split(/\s+/).filter(Boolean));
 }
 
+function elementSourceForOpeningTag(source, openingTag) {
+  const start = source.indexOf(openingTag);
+  const tagName = openingTag.match(/^<([a-z][\w:-]*)\b/i)?.[1].toLowerCase();
+  if (start < 0 || !tagName) return '';
+
+  // Match complete tags so quoted attributes and comments cannot alter nesting.
+  const tags = /<!--[\s\S]*?-->|<\/?([a-z][\w:-]*)\b(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi;
+  tags.lastIndex = start;
+  let depth = 0;
+  for (let match; (match = tags.exec(source));) {
+    const name = match[1]?.toLowerCase();
+    if (!name) continue;
+    const closing = match[0].startsWith('</');
+    if (!closing && /^(?:script|style|textarea|title)$/.test(name)) {
+      const rawTextEnd = new RegExp(`</${name}\\s*>`, 'gi');
+      rawTextEnd.lastIndex = tags.lastIndex;
+      if (!rawTextEnd.exec(source)) return '';
+      tags.lastIndex = rawTextEnd.lastIndex;
+      continue;
+    }
+    if (name !== tagName) continue;
+    if (closing) depth--;
+    else if (!/\/\s*>$/.test(match[0])) depth++;
+    if (depth === 0) return source.slice(start, tags.lastIndex);
+  }
+  return '';
+}
+
 function requireSurfaceContract({ id, variant, headerKind }) {
   const openingTag = openingTagForId(id);
   if (!openingTag) {
@@ -93,8 +121,7 @@ function requireSurfaceContract({ id, variant, headerKind }) {
     if (!classes.has(required)) failures.push(`#${id} lacks .${required}`);
   }
 
-  const start = html.indexOf(openingTag);
-  const snippet = html.slice(start, start + 14000);
+  const snippet = elementSourceForOpeningTag(html, openingTag);
   const headerIndex = snippet.search(/class=["'][^"']*\bsurface-header\b[^"']*["']/i);
   const tabsIndex = snippet.search(/class=["'][^"']*\bsurface-tabs\b[^"']*["']/i);
   const bodyIndex = snippet.search(/class=["'][^"']*\bsurface-body\b[^"']*["']/i);
