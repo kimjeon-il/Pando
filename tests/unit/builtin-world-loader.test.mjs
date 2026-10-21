@@ -37,6 +37,8 @@ test('selected country snapshot restores from autosave without reconstructing it
   admitStorageBaseline:async facts=>(await owner.client.storageBaselineLoad(facts)).state}}});
  const receipt=await session.prepareProjectBaseline('2014-02');
  await owner.client.loadBaseline(receipt.baselineId,{initialMonth:'2014-02',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'});
+ assert.notEqual(owner.documentModel.snapshot().documentId,JSON.parse(files.get('index.json')).template.documentId,
+  'activating a builtin baseline allocates a fresh editable instance');
  assert.ok(owner.documentModel.snapshot().territorialEntities.some(row=>row.id==='state:test-ukraine'));
  const saved=(await owner.project.buildAutosave()).project;
  assert.equal(saved.format,'pandolab-autosave-full');assert.equal(saved.baseDatasetFingerprint,undefined);

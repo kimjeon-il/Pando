@@ -30,4 +30,7 @@ HistoricalSourceAvailability classifyHistoricalSourceAvailability(const Validity
 ResolvedWorld resolveWorld(const TimelineRecords&, const TimelineValidationContext&,
                            const std::string& month);
 std::string initialTimelineMonth(const TimelineRecords&,const std::string& currentMonth);
+// Connected map-data coverage containing the cursor, across adjacent versions.
+// Input records must already be validated; a map-data gap is not a lifetime end.
+Validity timelineMapCoverageAtMonth(const TimelineRecords&,const std::string& id,const std::string& month);
 }

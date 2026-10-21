@@ -1610,10 +1610,12 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                         for(unsigned suffix=1;used(id);++suffix)id=base+":"+std::to_string(suffix);
                         return id;
                     };
-                    const Validity validity{month,{}};
+                    const Validity validity{month,in.parent?world.find(in.parent->id)->validity.to:std::nullopt};
+                    const auto coverage=in.parent?timelineMapCoverageAtMonth(candidate.timelineRecords,in.parent->id,month):Validity{};
+                    const Validity mapValidity{coverage.from&&point.startKey<parseTemporal(*coverage.from).startKey?coverage.from:month,coverage.to};
                     candidate.timelineRecords.lifetimes.push_back({recordId("lifetime:"+in.id),in.id,validity});
-                    candidate.timelineRecords.geometryBindings.push_back({recordId("geometry:"+in.id),in.id,validity,ref});
-                    candidate.timelineRecords.parentRelations.push_back({recordId("parent:"+in.id),in.id,validity,
+                    candidate.timelineRecords.geometryBindings.push_back({recordId("geometry:"+in.id),in.id,mapValidity,ref});
+                    candidate.timelineRecords.parentRelations.push_back({recordId("parent:"+in.id),in.id,mapValidity,
                         in.parent?in.parent->id:"",in.coverageMode.empty()?"explicit":in.coverageMode});
                     const auto object=territorialRef(in.id);
                     if(!candidate.presentation.userLayers.empty())
