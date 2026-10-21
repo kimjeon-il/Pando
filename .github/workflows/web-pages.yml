@@ -51,6 +51,8 @@ jobs:
               node tools/check-library-release-code.mjs --site "$RUNNER_TEMP/pages-site"
             fi
           fi
+      - name: Record the final viewer and publication artifact
+        run: node tools/stage-monorepo-pages.mjs --finalize --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ runner.temp }}/pages-site

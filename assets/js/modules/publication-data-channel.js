@@ -2,6 +2,9 @@
 const HEX64 = /^[0-9a-f]{64}$/;
 const HEX40 = /^[0-9a-f]{40}$/;
 const CACHE_NAME = 'pandolab-library-channel-v1';
+export const BASELINE_DATA_CHANNEL = Object.freeze({
+  schema: 'pandolab-data-channel', schemaVersion: 1, mode: 'baseline',
+});
 const ROLES = Object.freeze({
   territorialIndex: 'territorial-entities/generated/v2/index.json',
   builtinWorld: 'builtin-world/generated/v1/index.json',
@@ -10,8 +13,11 @@ const ROLES = Object.freeze({
 });
 
 function validatePointer(pointer) {
-  if (pointer?.schema !== 'pandolab-data-channel' || pointer.schemaVersion !== 1
-    || !HEX64.test(pointer.revision) || !HEX64.test(pointer.manifestSha256)) {
+  if (pointer?.schema !== 'pandolab-data-channel' || pointer.schemaVersion !== 1) {
+    throw new Error('공개 라이브러리 판본 매니페스트가 올바르지 않습니다.');
+  }
+  if (pointer.mode === 'baseline' && pointer.revision === undefined && pointer.manifestSha256 === undefined) return pointer;
+  if (pointer.mode !== undefined || !HEX64.test(pointer.revision) || !HEX64.test(pointer.manifestSha256)) {
     throw new Error('공개 라이브러리 판본 매니페스트가 올바르지 않습니다.');
   }
   return pointer;
@@ -135,6 +141,10 @@ export async function resolvePublicDataChannel({ baseUrl, buildMeta, fetchFn = g
   }
   if (!pointerResponse.ok) throw new Error(`공개 라이브러리 판본을 읽지 못했습니다. (${pointerResponse.status})`);
   const pointer = validatePointer(await pointerResponse.json());
+  if (pointer.mode === 'baseline') {
+    if (cache && await cache.match(pointerUrl)) throw new Error('게시된 공개 라이브러리 판본이 사라졌습니다.');
+    return Object.freeze({ meta: buildMeta, status: 'baseline', sourceRevision: null });
+  }
   const releaseUrl = new URL(`assets/data/library-releases/${pointer.revision}/manifest.json`, root);
   let releaseResponse;
   let status = 'online';
