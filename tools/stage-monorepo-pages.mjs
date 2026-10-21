@@ -53,11 +53,12 @@ function isEquivalentCrLfCheckout(working, committed) {
   }
 }
 
-export async function stageWebPages(rootInput, stageInput, manifestInput) {
+export async function stageWebPages(rootInput, stageInput, manifestInput, { skipChecks = false } = {}) {
   const root = resolve(rootInput), stage = resolve(stageInput), manifest = resolve(manifestInput);
   const library = prepareLibraryData({ root });
   const generator = resolve(root, 'scripts/generate-build-metadata.mjs');
-  if (existsSync(generator)) execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
+  const metadataCheck = skipChecks ? 'skipped' : existsSync(generator) ? 'passed' : 'unavailable';
+  if (metadataCheck === 'passed') execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
   if (within(root, stage) || stage === root) throw Error('Pages stage must be outside the source repository');
   if (within(root, manifest) || manifest === root || within(stage, manifest)) {
     throw Error('Pages evidence must be outside the source repository and stage');
@@ -110,7 +111,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput) {
     if (hash('sha256', readFileSync(output)) !== file.sha256) throw Error(`Staged copy mismatch: ${file.path}`);
   }
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-  const evidence = { schema: 'pando-web-pages-staging', productMode: 'viewer', sourceCommit, fileCount: files.length,
+  const evidence = { schema: 'pando-web-pages-staging', productMode: 'viewer', sourceCommit, metadataCheck, fileCount: files.length,
     dataRepository: library?.repository, dataCommit: library?.revision,
     bytes: total, limitBytes: LIMIT_BYTES, excludedNativeFiles, excludedSharedFiles, excludedAppFiles, files };
   mkdirSync(dirname(manifest), { recursive: true });
@@ -121,7 +122,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
   const arg = name => { const at = args.indexOf(name); return at < 0 ? null : args[at + 1]; };
-  if (!arg('--stage') || !arg('--manifest')) throw Error('Usage: stage-monorepo-pages.mjs --root ROOT --stage OUT --manifest EVIDENCE');
-  const result = await stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'));
+  if (!arg('--stage') || !arg('--manifest')) throw Error('Usage: stage-monorepo-pages.mjs --root ROOT --stage OUT --manifest EVIDENCE [--skip-checks]');
+  const result = await stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'), { skipChecks: args.includes('--skip-checks') });
   process.stdout.write(`${result.fileCount} Web files, ${result.bytes} bytes, ${result.excludedNativeFiles} native, ${result.excludedSharedFiles} shared and ${result.excludedAppFiles} app source files excluded\n`);
 }

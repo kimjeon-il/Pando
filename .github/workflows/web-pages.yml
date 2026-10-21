@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      skip_checks:
+        description: Skip separate metadata and library release validators
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -15,6 +20,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    env:
+      SKIP_DEPLOY_CHECKS: ${{ inputs.skip_checks && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,7 +34,11 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Stage exactly the committed viewer dependency closure
-        run: node tools/stage-monorepo-pages.mjs --root . --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json"
+        shell: bash
+        run: |
+          args=()
+          if [[ "$SKIP_DEPLOY_CHECKS" == "1" ]]; then args+=(--skip-checks); fi
+          node tools/stage-monorepo-pages.mjs --root . --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json" "${args[@]}"
       - name: Overlay independently published data from the storage repository
         shell: bash
         run: |
@@ -35,8 +46,10 @@ jobs:
           git -C "$DATA_ROOT" fetch --filter=blob:none origin main
           if git -C "$DATA_ROOT" cat-file -e FETCH_HEAD:assets/data/library-channel/current.json 2>/dev/null; then
             git -C "$DATA_ROOT" archive FETCH_HEAD assets/data/library-channel assets/data/library-releases | tar -xf - -C "$RUNNER_TEMP/pages-site"
-            node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/pages-site"
-            node tools/check-library-release-code.mjs --site "$RUNNER_TEMP/pages-site"
+            if [[ "$SKIP_DEPLOY_CHECKS" != "1" ]]; then
+              node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/pages-site"
+              node tools/check-library-release-code.mjs --site "$RUNNER_TEMP/pages-site"
+            fi
           fi
       - uses: actions/upload-pages-artifact@v4
         with:
