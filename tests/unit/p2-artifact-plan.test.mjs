@@ -323,7 +323,7 @@ test('staging excludes private data cache and baselines existing external mounts
   const staged=await stageArtifacts(f.root,{families:['a'],expectedSourceSha:head,stageDir:'build-native/p2/external',
     prepareData:({root})=>{
       const materialized=join(root,'.library-data/materialized',revision,'assets/data');
-      const reports=join(root,'.library-data/repository/reports');
+      const reports=join(root,'.library-data/repository/.working',revision,'reports');
       mkdirSync(materialized,{recursive:true});mkdirSync(reports,{recursive:true});mkdirSync(join(root,'assets'),{recursive:true});
       writeFileSync(join(materialized,'existing.bin'),'existing runtime');
       writeFileSync(join(reports,'existing.md'),'existing evidence');
