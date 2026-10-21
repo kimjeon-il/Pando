@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-library-publish"
+description = "Enables the library_publish command without any pre-configured scope."
+commands.allow = ["library_publish"]
+
+[[permission]]
+identifier = "deny-library-publish"
+description = "Denies the library_publish command without any pre-configured scope."
+commands.deny = ["library_publish"]

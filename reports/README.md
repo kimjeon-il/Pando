@@ -43,10 +43,14 @@
 
 ## 개발·검증
 
+현재 구현 체크포인트: [편집 가능한 라이브러리 구현 현황 — 2026-10-21](development/testing/editable-library-2026-10-21.md) (`implementation-partial / app-unverified`, `not-applicable`).
+
 > OBJ 접두사는 객체 브랜치 원본의 DEV-082~088 번호가 기존 메인 보고서 번호와 충돌하여 통합 시 부여한 고유 색인입니다. 원본 소스와 검증 링크는 해당 보고서에 보존합니다.
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `UI-LIBRARY-REVIEW-20261021` | [편집 라이브러리 UI·네이티브 코드 검토](development/testing/editable-library-editor-native-review-2026-10-21.md) | 2026-10-21 | `reviewed-important-findings-resolved / native-workflow-unverified` | `not-applicable` |
+| `UI-LIBRARY-PUBLISH-REVIEW-20261021` | [독립 라이브러리 게시 코드 검토](development/testing/editable-library-publication-review-2026-10-21.md) | 2026-10-21 | `changes-requested / live-publication-unverified` | `not-applicable` |
 | `DEV-CORE-CI-WEBGL-20261020` | [C++ CI 2건과 Windows WebGL UI 시간 초과 수정](development/testing/core-ci-webgl-repair-2026-10-20.md) | 2026-10-20 | `native-ci-verified / webgl-ui-verified / separate-artifact-ci-failure` | `not-applicable` |
 | `DEV-REMAINING-BRANCH-20261020` | [남은 작업 브랜치의 main 통합](development/testing/remaining-branch-integration-2026-10-20.md) | 2026-10-20 | `integrated / remote-verified / docs-only` | `not-applicable` |
 | `DEV-INTEGRATED-RELEASE-20261021` | [통합 main의 원격 게시와 Windows 실행 파일 갱신](development/testing/integrated-release-2026-10-21.md) | 2026-10-21 | `pages-live-verified / windows-native-verified / separate-ci-failure` | `not-applicable` |

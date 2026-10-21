@@ -1,5 +1,5 @@
 import {createStoredAssetLoader} from './stored-asset-loader.js';
-import {normalizeTerritorialLibraryEntity,normalizeTerritorialLibraryIndex,selectGeometryVersion} from './territorial-library.js';
+import {normalizeTerritorialLibraryEntity,normalizeTerritorialLibraryIndex,selectGeometryVersion,assertTerritorialIndexEntity} from './territorial-library.js';
 
 export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}) {
   if(!indexUrl || !indexSpec?.sha256 || !dataRevision)throw new Error('Territorial index URL, integrity metadata and data revision are required');
@@ -8,8 +8,6 @@ export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,f
   const entities=new Map(), pending=new Map();
   let index=null,indexPromise=null;
   const parse=bytes=>JSON.parse(new TextDecoder().decode(bytes));
-  const comparable=value=>Array.isArray(value)?value.map(comparable):value && typeof value==='object'
-    ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,comparable(value[key])])):value;
   async function loadIndex(){
     if(index)return index;
     if(!indexPromise)indexPromise=assets.loadAsset({...indexSpec,url:base.href},'catalog','index','Territorial index',parse).then(({value})=>{
@@ -23,16 +21,30 @@ export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,f
       const catalog=await loadIndex();const entry=catalog.entities.find(e=>e.entityId===entityId);
       if(!entry)throw new Error(`Unknown territorial entity: ${entityId}`);
       const {value}=await assets.loadAsset({...entry,url:entry.file,encoding:'gzip'},'catalog',entityId,entityId,bytes=>normalizeTerritorialLibraryEntity(parse(bytes)));
-      const metadataKeys=['schemaVersion','entityId','lineageId','entityKind','names','alternateNames','lifetime','parentEntityId','instantiation','metadata'];
-      const chunkMetadata=Object.fromEntries(metadataKeys.map(key=>[key,value[key]]));
-      const indexMetadata=Object.fromEntries(metadataKeys.map(key=>[key,entry[key]]));
-      chunkMetadata.geometryVersions=value.geometryVersions.map(({geometry,...version})=>version);
-      indexMetadata.geometryVersions=entry.geometryVersions;
-      if(JSON.stringify(comparable(chunkMetadata))!==JSON.stringify(comparable(indexMetadata)))throw new Error('Territorial chunk identity/metadata mismatch');
+      assertTerritorialIndexEntity(entry,value);
       entities.set(entityId,value);return value;
     })().finally(()=>pending.delete(entityId)));
     return pending.get(entityId);
   }
   return Object.freeze({loadIndex,loadEntity,peek:id=>entities.get(id)||null,
     loadGeometryVersion:async(id,date)=>selectGeometryVersion(await loadEntity(id),date)});
+}
+
+// Same catalog contract through the external owner-library repository.
+export function createRepositoryTerritorialLoader(repository){
+ if(!repository||typeof repository.open!=='function'||typeof repository.readEntity!=='function')throw new TypeError('Library repository is required');
+ const loaded=new Map();
+ const revision=()=>repository.snapshot()?.revision;
+ const peek=id=>{const entry=loaded.get(id);return entry?.revision===revision()?entry.value:null;};
+ async function loadIndex(){return (await repository.open()).index;}
+ async function loadEntity(id){
+  const cached=peek(id);if(cached)return cached;
+  if(!repository.snapshot())await loadIndex();
+  const start=revision(),value=normalizeTerritorialLibraryEntity(await repository.readEntity(id));
+  if(value.entityId!==id)throw new Error('Library source identity mismatch');
+  assertTerritorialIndexEntity(repository.snapshot().index.entities.find(e=>e.entityId===id),value);
+  if(start!==revision())throw new Error('라이브러리 판본이 변경되었습니다. 다시 읽으세요.');
+  loaded.set(id,{revision:start,value});return value;
+ }
+ return Object.freeze({loadIndex,loadEntity,peek,loadGeometryVersion:async(id,date)=>selectGeometryVersion(await loadEntity(id),date)});
 }
