@@ -66,9 +66,11 @@ Pages CI용 staging은 커밋된 트리만 읽는 기존 무결성 계약을 유
 - Windows 네이티브 창, Android 전체 Rust/APK 빌드와 설치 실행은 하지 않았다. 편집 UI 브라우저 테스트와 native compile/check를 구분한다.
 - 실제 OS IME·물리 뒤로 가기·노치 장치 검증은 남아 있다. 브라우저에서 가용 높이·Surface 전환·Escape/닫기와 초안 유지만 확인했다.
 - 전체 내장 지도를 사용한 지명 종류 변경 검사에서는 8초 단언 제한 시점에 Core 응답이 대기 중이었다. 별도 Chromium 실행에서는 이름/종류 변경 응답과 표시 성공을 확인했지만, 시간 초과가 난 실행의 최종 응답이나 전체 지도 편집 지연 시간을 검증했다고 주장하지 않는다. 속성 회귀 검사는 현재 Core 문서 팩터리로 만든 소형 프로젝트에 분리했다.
-- 기존 UI 정적 검사 실패는 남아 있다. components는 기존 7개 버튼의 ui-button 누락, architecture는 기존 프로젝트 설정/타임라인/편집 보조 CSS 46건이다. 이번 휴대폰 CSS가 추가했던 12건은 토큰 사용으로 해소했다. [분리 로그](../../images/viewer-editor/ui-architecture-baseline.log)
+- 기존 UI 정적 검사 실패는 남아 있다. components는 기존 7개 버튼의 ui-button 누락, architecture는 기존 프로젝트 설정/타임라인/편집 보조 CSS 46건이다. 이번 휴대폰 CSS가 추가했던 12건은 토큰 사용으로 해소했다. [분리 로그](/D:/dev/release-evidence/PandoLab/branch-cleanup-20261021/files/gis/reports/images/viewer-editor/ui-architecture-baseline.log)
 - 이전 전체 Core WASM 검사에서 기존 dirty 편집 상태의 `editorState.lastViewedMonth` 기대값 2건, 다른 preferences/focus fixture 및 브라우저 lint의 기존 실패가 확인됐다. 관련 범위를 넘어 기대값을 무작정 완화하거나 전체 테스트 통과로 보고하지 않았다.
 
 ## 데이터 반영과 판본
 
 지도 형상을 새로 조사하거나 GIS 데이터를 변경한 작업이 아니다. 역사 형상의 0.5px 정확도 검증은 수행하지 않았다. main 통합·배포는 범위 밖이며 아직 하지 않았다. 이 보고서는 해당 작업 사본의 개발 검증 기록이다.
+
+> 2026-10-21 정리 후속: 이 문서에서 언급한 완료된 작업의 일부 원시 증거는 외부로 옮겼다. 작성 당시의 결과는 변경하지 않았다. [브랜치별 원래 경로·SHA-256·보관 목록](/D:/dev/release-evidence/PandoLab/branch-cleanup-20261021/gis-archive.json).

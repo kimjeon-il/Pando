@@ -71,6 +71,7 @@
 | `UI-TERRAIN-LATENCY-20261021` | [고배율 지형 전환 지연의 재현과 수정](development/testing/terrain-interaction-latency-2026-10-21.md) | 2026-10-21 | `local-web-verified / app-unverified / unpublished` | `not-applicable` |
 | `UI-MAP-SCALE-RELEASE-20261020` | [지도 표시·UI 검사 정리와 웹·Windows 게시 검증](development/testing/map-scale-release-2026-10-20.md) | 2026-10-20 | `pages-live-verified / windows-native-verified / separate-ci-failures` | `not-applicable` |
 | `UI-MAP-SCALE-20261020` | [지도 배율별 품질과 표시 준비 상태](development/testing/map-scale-readiness-2026-10-20.md) | 2026-10-20 | `focused-verified / native-webview2-verified / unpublished` | `not-applicable` |
+| `DEV-CLEANUP-GIS-20261021` | [gis 잔여 파일·구형 테스트·생성 자산 목록 정리](development/testing/branch-residue-cleanup-2026-10-21.md) | 2026-10-21 | `local-focused-verified / uncommitted / unpublished` | `not-applicable` |
 | `UI-CONVERGENCE-P4-20261021` | [UI 구조 통일 P4 — 참조 이미지 공통 Surface 통합](development/testing/ui-convergence-p4-2026-10-21.md) | 2026-10-21 | `implemented / focused-browser-verified / staged-app-verified / native-unverified` | `not-applicable` |
 | `UI-CONVERGENCE-P2-20261020` | [UI 구조 통일 P2 — 검색창 DOM 고정·가로 화면 CSS 분리](development/testing/ui-convergence-p2-2026-10-20.md) | 2026-10-20 | `implemented / focused-browser-verified / native-unverified` | `not-applicable` |
 | `UI-CONVERGENCE-P0-20261020` | [UI 독자 규칙 통합 P0 — 구조·상태·회귀 기준 조사](development/testing/ui-convergence-p0-audit-2026-10-20.md) | 2026-10-20 | `source-audited / focused-runtime-baseline-not-rerun` | `not-applicable` |

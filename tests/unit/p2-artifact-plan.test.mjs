@@ -11,6 +11,7 @@ import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
   plan, assertArtifactsCurrent } from '../../scripts/p2-artifact-plan.mjs';
 import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,
   RECEIPT_PATH,artifactGraph } from '../../scripts/lib/p2-artifact-graph.mjs';
+import * as artifactOwners from '../../scripts/lib/p2-artifact-graph.mjs';
 import { publishGeneratedArtifacts } from '../../scripts/p2-publish-artifacts.mjs';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -279,4 +280,36 @@ test('metadata staging accepts both generated product HTML entries under the rea
  publishArtifacts(f.root,{stageDir:'build-native/p2/product-html',expectedSourceSha:head});
  assert.equal(f.get('apps/web-shell/editor.html').toString(),'generated apps/web-shell/editor.html');
  assert.equal(f.get('input/a.txt').toString(),'source-a');
+});
+
+test('world bundle ownership follows the current manifest rather than every cached object', t => {
+  const f=fixture(t);
+  f.put('assets/data/world/build-input.json',JSON.stringify({legacyPreviewManifest:'legacy.json'}));
+  f.put('assets/data/legacy.json',JSON.stringify({assets:{},sharedBoundaries:{}}));
+  f.put('assets/data/world/current.json',JSON.stringify({assets:{packet:{url:'world/objects/current.bin'}}}));
+  f.put('assets/data/world/objects/current.bin','current');
+  f.put('assets/data/world/objects/retired.bin','retired');
+  f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,
+    families:[{id:'world-bundle',resolve:'world-bundle',outputs:['assets/data/world/current.json']}]}));
+  const family=artifactGraph(f.root)[0];
+  assert.deepEqual(family.outputs,['assets/data/world/current.json','assets/data/world/objects/current.bin']);
+  assert.deepEqual(Object.keys(graphStatus(f.root).statuses['world-bundle'].outputs),family.outputs);
+});
+
+test('artifact receipts refresh only the validated family and preserve dirty-source provenance', t => {
+  const f=fixture(t);
+  f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,
+    families:[{id:'current',outputs:['out/current.bin']}]}));
+  f.put('out/current.bin','current');
+  f.put(RECEIPT_PATH,JSON.stringify({schema:'pandolab-generated-artifact-receipt',schemaVersion:1,
+    families:{unrelated:{sourceSha:'old',outputs:{'old.bin':'old'}}}}));
+  artifactOwners.recordArtifactReceipts(f.root,{families:['current'],sourceSha:'a'.repeat(40),sourceDirty:true});
+  const receipt=JSON.parse(f.get(RECEIPT_PATH));
+  assert.deepEqual(receipt.families.unrelated,{sourceSha:'old',outputs:{'old.bin':'old'}});
+  assert.equal(receipt.families.current.sourceDirty,true);
+  assert.equal(graphStatus(f.root).statuses.current.needed,false);
+  f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,
+    families:[{id:'current',outputs:['out/missing.bin']}]}));
+  assert.throws(()=>artifactOwners.recordArtifactReceipts(f.root,{families:['current'],sourceSha:'a'.repeat(40)}),/P2_MISSING_RECEIPT_OUTPUT/);
+  assert.deepEqual(JSON.parse(f.get(RECEIPT_PATH)),receipt,'failed recording preserves the old receipt');
 });
