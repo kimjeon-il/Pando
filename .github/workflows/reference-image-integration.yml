@@ -55,6 +55,8 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -130,3 +132,29 @@ jobs:
             }
             console.log('Verified exact bytes for ' + sourcePaths.length + ' reference UI/CSS assets.');
           "
+      - name: '5. Commit only verified generated UI metadata to work/ui'
+        if: ${{ contains(github.event.head_commit.message, '[publish-meta]') }}
+        run: |
+          set -euo pipefail
+          # Reject any other tracked or untracked generated data before publication.
+          unexpected="$(git diff --name-only | grep -vE '^(index\.html|apps/web-shell/editor\.html|assets/js/build-meta\.js)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected tracked generated changes: $unexpected"
+            exit 1
+          fi
+          untracked="$(git ls-files --others --exclude-standard -- assets/worker-runtime assets/data/physical-land)"
+          if [ -n "$untracked" ]; then
+            echo "Unexpected untracked runtime artifacts: $untracked"
+            exit 1
+          fi
+          git add -- index.html apps/web-shell/editor.html assets/js/build-meta.js
+          if git diff --cached --quiet; then
+            echo 'All three generated UI files already match their sources.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(ui): publish verified editor metadata [skip ci]'
+          git fetch origin work/ui
+          test "$(git rev-parse origin/work/ui)" = "$GITHUB_SHA"
+          git push origin HEAD:refs/heads/work/ui
