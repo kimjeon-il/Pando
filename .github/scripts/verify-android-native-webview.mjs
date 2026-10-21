@@ -1,0 +1,105 @@
+/**
+ * Verify a running Android debug WebView over the emulator's CDP endpoint.
+ * This must not be confused with a browser-only or an APK-only check.
+ */
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+
+const PACKAGE_ID = 'com.pandolab.webshell.prototype';
+const DEBUG_PORT = 9222;
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+function adb(...args) {
+  return execFileSync('adb', args, { encoding: 'utf8', timeout: 20000 }).trim();
+}
+async function repeat(label, action, { attempts = 75, delayMs = 1500 } = {}) {
+  let last;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const result = await action();
+      if (result) return result;
+    } catch (error) { last = error; }
+    await delay(delayMs);
+  }
+  throw new Error(label + ': ' + (last?.message || 'timed out'));
+}
+
+const pid = await repeat('The Android application process did not start', () =>
+  adb('shell', 'pidof', PACKAGE_ID).split(/\s+/)[0] || null, { attempts: 30 });
+const socket = await repeat('Android debug WebView CDP socket was not exposed', () => {
+  const entries = adb('shell', 'cat', '/proc/net/unix');
+  const exact = new RegExp('webview_devtools_remote_' + pid + '\\b');
+  return entries.split('\n').find(line => exact.test(line))?.match(/webview_devtools_remote_\d+/)?.[0] || null;
+}, { attempts: 40 });
+adb('forward', 'tcp:' + DEBUG_PORT, 'localabstract:' + socket);
+
+const endpoint = 'http://127.0.0.1:' + DEBUG_PORT + '/json';
+const target = await repeat('Native WebView debugging endpoint was not available', async () => {
+  const response = await fetch(endpoint, { signal: AbortSignal.timeout(3000) });
+  if (!response.ok) return null;
+  const targets = await response.json();
+  return targets.find(item => item.type === 'page' && item.webSocketDebuggerUrl) || null;
+}, { attempts: 30 });
+const channel = new WebSocket(target.webSocketDebuggerUrl);
+await new Promise((resolve, reject) => {
+  channel.addEventListener('open', resolve, { once: true });
+  channel.addEventListener('error', reject, { once: true });
+});
+let nextId = 0;
+const awaiting = new Map();
+channel.addEventListener('message', event => {
+  const message = JSON.parse(String(event.data));
+  if (!awaiting.has(message.id)) return;
+  const { resolve, reject, timeout } = awaiting.get(message.id);
+  awaiting.delete(message.id);
+  clearTimeout(timeout);
+  if (message.error) reject(new Error(message.error.message));
+  else resolve(message.result);
+});
+async function evaluate(expression) {
+  const id = ++nextId;
+  const result = await new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => { awaiting.delete(id); reject(new Error('CDP evaluation timed out')); }, 10000);
+    awaiting.set(id, { resolve, reject, timeout });
+    channel.send(JSON.stringify({ id, method: 'Runtime.evaluate', params: {
+      expression, awaitPromise: true, returnByValue: true,
+    } }));
+  });
+  if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'WebView JavaScript evaluation failed');
+  return result.result?.value;
+}
+
+try {
+  const startupExpression = "(() => ({ ready: document.querySelector('#app')?.getAttribute('data-readiness'), nativeBridge: typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function', launcher: !!document.querySelector('.reference-image-launcher'), map: !!document.getElementById('map'), title: document.title, url: location.href }))()";
+  const startup = await repeat('Native Android WebView failed to become interactive', async () => {
+    const state = await evaluate(startupExpression);
+    return state?.ready === 'enhanced' && state.nativeBridge && state.launcher && state.map ? state : null;
+  }, { attempts: 60 });
+
+  const clicked = await evaluate("(() => { const launcher = document.querySelector('.reference-image-launcher'); if (!launcher) return false; launcher.click(); return true; })()");
+  assert.equal(clicked, true, 'Native UI did not expose the reference-image launcher');
+  const referenceExpression = "(() => { const panel = document.getElementById('referenceImageSurface'); const footer = panel?.querySelector('.reference-image-editing-summary'); return { installed: typeof globalThis.__PANDOLAB_REFERENCE_IMAGES__?.open === 'function', visible: !!panel && !panel.hidden, workspaceOwned: panel?.parentElement?.classList?.contains('workspace') === true, commonSurface: !!panel && ['workspace-surface', 'surface-reference', 'ui-sheet'].every(name => panel.classList.contains(name)), header: !!panel?.querySelector(':scope > .surface-header'), body: !!panel?.querySelector(':scope > .surface-body'), footer: footer?.parentElement === panel, actions: !!footer?.querySelector('[data-ref-auxiliary-actions] [data-ref-line-actions]') && !!footer?.querySelector('[data-ref-auxiliary-actions] [data-ref-live-wire-actions]'), cssLoaded: [...document.styleSheets].some(sheet => sheet.href?.includes('reference-images.css')) }; })()";
+  const reference = await repeat('Native Android reference-image Surface did not initialize', async () => {
+    const state = await evaluate(referenceExpression);
+    return state.installed && state.visible && state.workspaceOwned && state.commonSurface
+      && state.header && state.body && state.footer && state.actions && state.cssLoaded ? state : null;
+  }, { attempts: 50 });
+
+  const proof = {
+    schema: 'pandolab-android-native-webview-p6',
+    capturedAt: new Date().toISOString(),
+    package: PACKAGE_ID,
+    pid: Number(pid),
+    webviewSocket: socket,
+    browserTarget: target.url,
+    startup,
+    reference,
+    ok: true,
+  };
+  mkdirSync('build-native/web-shell', { recursive: true });
+  writeFileSync('build-native/web-shell/android-native-webview.json', JSON.stringify(proof, null, 2) + '\n');
+  console.log('ANDROID_NATIVE_WEBVIEW_PASS ' + JSON.stringify(proof));
+} finally {
+  channel.close();
+  adb('forward', '--remove', 'tcp:' + DEBUG_PORT);
+}
