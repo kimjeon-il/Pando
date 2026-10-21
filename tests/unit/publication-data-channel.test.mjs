@@ -119,3 +119,43 @@ test('missing online channel keeps the built-in baseline until first publication
   assert.equal(result.status, 'baseline');
   assert.equal(result.meta, built);
 });
+
+test('explicit baseline channel uses build data without requesting a release', async () => {
+  const context = fixture({ pointer: { schema: 'pandolab-data-channel', schemaVersion: 1, mode: 'baseline' } });
+  const result = await resolvePublicDataChannel({ baseUrl: base, buildMeta: built, ...context });
+  assert.equal(result.status, 'baseline');
+  assert.equal(result.meta, built);
+  assert.equal(result.sourceRevision, null);
+  assert.deepEqual(context.reads, [base + 'assets/data/library-channel/current.json']);
+  assert.equal(context.cache.size, 0);
+});
+
+test('baseline cannot silently replace a previously verified published release', async () => {
+  const context = fixture();
+  await resolvePublicDataChannel({ baseUrl: base, buildMeta: built, ...context });
+  const baseline = fixture({ cached: context.cache,
+    pointer: { schema: 'pandolab-data-channel', schemaVersion: 1, mode: 'baseline' } });
+  await assert.rejects(resolvePublicDataChannel({ baseUrl: base, buildMeta: built, ...baseline }), /사라졌습니다/);
+  const restored = await resolvePublicDataChannel({ baseUrl: base, buildMeta: built,
+    ...fixture({ online: false, cached: context.cache }) });
+  assert.equal(restored.status, 'offline-verified');
+  assert.equal(restored.meta.dataRevision, revision);
+});
+
+test('baseline mode rejects release fields and unrecognized modes', async () => {
+  for (const pointer of [
+    { schema: 'pandolab-data-channel', schemaVersion: 1, mode: 'baseline', revision, manifestSha256 },
+    { schema: 'pandolab-data-channel', schemaVersion: 1, mode: 'unknown', revision, manifestSha256 },
+    { schema: 'pandolab-data-channel', schemaVersion: 2, mode: 'baseline' },
+  ]) {
+    await assert.rejects(resolvePublicDataChannel({ baseUrl: base, buildMeta: built,
+      ...fixture({ pointer }) }), /판본|매니페스트/);
+  }
+});
+
+test('missing published channel keeps its verified cache instead of switching to baseline', async () => {
+  const context = fixture();
+  await resolvePublicDataChannel({ baseUrl: base, buildMeta: built, ...context });
+  await assert.rejects(resolvePublicDataChannel({ baseUrl: base, buildMeta: built,
+    cacheStorage: context.cacheStorage, fetchFn: async () => new Response('not found', { status: 404 }) }), /사라졌습니다/);
+});

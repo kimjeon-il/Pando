@@ -109,6 +109,8 @@ jobs:
           cp -a "$RUNNER_TEMP/library-release/assets/data/library-releases/." "$RUNNER_TEMP/pages-site/assets/data/library-releases/"
           node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/pages-site"
           node tools/check-library-release-code.mjs --site "$RUNNER_TEMP/pages-site"
+      - name: Record the final viewer and publication artifact
+        run: node tools/stage-monorepo-pages.mjs --finalize --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json"
       - name: Store the derived release in the external repository
         run: |
           DEST="publication-source/assets/data"
