@@ -1883,8 +1883,8 @@
       "sourceSha": "8f5c8c51f19518ae5e013afe9569f41855a65569"
     },
     "build-metadata": {
-      "inputFingerprint": "c2d4589b68a9c1af802a8b5b2a159189fb4e0648da3ce5af66deb30ea7f522f3",
-      "outputFingerprint": "9a7d473049caaa06d610f26a8d30effbbd300debbc205026a1d76d87c60e7c4c",
+      "inputFingerprint": "e64a829e1a7a9dca211500092d05a72b0c643aca5f3507d202c41f217fae35e7",
+      "outputFingerprint": "37f1b121d91370f6437300714ece7e25d7f1c02b7ceaee56a71e83dd85c80259",
       "inputs": {
         "assets/js/app.js": "3afc301fc189ac2277f115ff9c28f37139e1df7c765fb5b999b5d3613f365f6e",
         "assets/js/bootstrap.js": "93cada4a638e7e0669d1e239282bddf54305de7e30fb7301f35e0cb37b610b8c",
@@ -2145,8 +2145,8 @@
         "assets/js/modules/project-ui-bridge.js": "d10ee8e9acce8f1da44ec896796a32fea274d4f3c6c09e298e0e0085c4752041",
         "assets/js/modules/property-editor-bindings.js": "d3b0f9f93bc38c98d2d2d5ea7aa3beefa5b3af393d60de9b012a13d2d7d864ba",
         "assets/js/modules/reference-image-auto-georef.js": "7b3ae2c85b37c39e64e0bf299103a3922d51147fd76f8ee531970b976cad8fab",
-        "assets/js/modules/reference-image-bootstrap.js": "46ef574eba55056d8425ffce4cb05f5f8e9f1743fce884ee6681029c3ef8b11c",
-        "assets/js/modules/reference-image-controller.js": "d88335bfb0e66bd6ccf2298323a046a1a33cf6f1143cd23d385266f0d1c01f85",
+        "assets/js/modules/reference-image-bootstrap.js": "0348329739406f9a3749cf0319495a7f9f0febe299bea72e1e4b6d5a65346ef0",
+        "assets/js/modules/reference-image-controller.js": "e9c1149eb96e142a8251c2b420b9c30265a4f1bd3ef9beaeb0bbc94eb7a6a3c2",
         "assets/js/modules/reference-image-core.js": "718c7d748201c11266c9a2191c116378113557a01998e64cdb77e907156d595e",
         "assets/js/modules/reference-image-edit-session.js": "d60ad747ae8472df799073e8b2d1196beb16f30dcf7db2f5cdd969efdf0f6465",
         "assets/js/modules/reference-image-editing-bridge.js": "e3c3570818200801244e9b0f541ae0d070c365cef83d9f2bcd4b572722bccefe",
@@ -2164,10 +2164,11 @@
         "assets/js/modules/reference-image-renderer.js": "12ad7e88f55749bf9a14431ec493a7475cd3ef4348a931714e1b1461cd8da2ee",
         "assets/js/modules/reference-image-source-mapping.js": "5e085d4a6619f77a65fe0c698c408f5688a20afba1edf86e0c8183308bd4f137",
         "assets/js/modules/reference-image-store.js": "34866c38c8e29e006d9ffa85f99387aa452ffb3e075592878db4f50f0f6b7d29",
+        "assets/js/modules/reference-image-style-sources.js": "810f84ad5c4e8415c313b60ed97867fde29129da78d9c9e51794c785df744850",
         "assets/js/modules/reference-image-surface-port.js": "945f5efbd99f34de22297d37ad28f1db4cee2dd1f13816605833dc08277aa99b",
-        "assets/js/modules/reference-image-surface.js": "4d847948db4b00c0b9438f5cb60a875c66c0caeef5f793d046df1496acf3ae39",
+        "assets/js/modules/reference-image-surface.js": "3a09e8dbc75003fb3ddca5a986a8412dc970f4c7c2798241b879505a3bf2719a",
         "assets/js/modules/reference-image-transform.js": "2bb93ed12e4e287a26de723e38f28c7ee27caefa0c1c36a96c95aea95dbff904",
-        "assets/js/modules/reference-image-ui.js": "9a5a8250ef961ba0ff4fe1928c864b09d1cf8752f64f7274a765d9ec4d451683",
+        "assets/js/modules/reference-image-ui.js": "daffd0dfdf5b550603dc730dab7b75e86f02fbc4f69b9527a5e2d1841bd3293a",
         "assets/js/modules/reliability-core.js": "9817100f492a0816cec93b077e2f7a3ef07db053a6aa3a82367efa583015ccc3",
         "assets/js/modules/render-channel-ownership.js": "81d46fe03362dfb23a93a82903d0bfaaebadf092575ab59c85e12ef33618cb44",
         "assets/js/modules/render-device.js": "e2801b34412f99170b7ec7bad71d9bdc1b26be71f7b98d54bad46ccc619886b6",
@@ -2300,14 +2301,14 @@
         "prepared-mesh": "7f2c72e0c563c9720de073d327e12242834ff8f93bca0c5e5b03a277c32640da",
         "shared-boundaries": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
         "places": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
-        "hydro": "d2234995362147505789c88d9658c6f8cd826ddc7c5968d8d9f02aaf9bc0ffc0",
+        "hydro": "0bbe01264b4fd53dc8b2bd15f562255eee54f27fbdaf69e3b01237b00d237afe",
         "terrain": "5da01e69637ae3ea2fab4f1424b7eb34129a5bce07a7f3fe8b3154014b8a28e5"
       },
       "outputs": {
         "README.md": "6931d8ae20cb7f1e4135b61e24197d97e0cd13f5f1cd5819ce2916509490efd6",
-        "apps/web-shell/editor.html": "2636a691f5c1ea485229918f0cbb35991836a4cb726798fc16d3aa047ee0cd83",
-        "assets/js/build-meta.js": "acec129691298149527423a84610029175f3c3b89e6fc5ba4ec8d1fb9cad8922",
-        "index.html": "18b977f4f972b9b0f2f68d04acffa4fb94e1f4938dd9db458800cb449e5c82ea"
+        "apps/web-shell/editor.html": "bbbe0d640cae66a62ef3d5a3c0b84a622db4864ff57a55c51b2e1164aa057785",
+        "assets/js/build-meta.js": "4b662ad2c00dea81bb4aa0c13172f49af741ed13d2815079cf32687743c6f8ad",
+        "index.html": "7f548ee364e01ae74368f2c6de49d91700ed2148869d73810e3719e6903fc0c8"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2322,7 +2323,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "389d1bf934c3ff538bd30ca2ce3d6998dbe8333a"
+      "sourceSha": "979028ba690c4ed1d22dfeed88959106a02527d5"
     }
   }
 }
