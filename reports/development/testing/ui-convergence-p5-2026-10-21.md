@@ -5,6 +5,8 @@
 > 수정 기준: `work/ui`의 `6fc982bfe1b3f13c0ce9988af0a73d1358f0be2b` (P4 `979028ba690c4ed1d22dfeed88959106a02527d5` 포함)  
 > 근거: [P0 구조 조사](ui-convergence-p0-audit-2026-10-20.md), [P4 Surface 정리](ui-convergence-p4-2026-10-21.md), [UI 공통 구조](../../../docs/architecture/ui-architecture.md)
 
+> 후속 검증: [UI-SYNC-CLEANUP-20261021](ui-sync-test-cleanup-2026-10-21.md)에서 실제 탭 전환 회귀를 수정하고 Node 단위 검사·모바일 브라우저 검사를 실행했다. 아래 결과는 원래 P5 작성 당시의 기록이다.
+
 ## 범위와 구조
 
 P5의 대상은 `reference-image-line-refine-controller.js`, `reference-image-live-wire-controller.js`에서 중복되던 도구 버튼 생성 및 요약 영역과 본문 사이의 DOM 이동이다. P4에서 완성된 참조 이미지 Surface를 Action 렌더러의 단일 소유자로 사용한다.

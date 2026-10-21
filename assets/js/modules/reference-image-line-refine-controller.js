@@ -573,13 +573,17 @@ export function installReferenceImageLineRefiner() {
     monitorTimer = globalThis.setTimeout(monitorHost, state ? HOST_ACTIVE_POLL_MS : HOST_IDLE_POLL_MS);
   }
 
-  const observer = new MutationObserver(() => {
+  const observer = new MutationObserver(records => {
+    // Tabs change descendant section visibility; ignore status text and tool output.
+    if (!records.some(({ target }) => target === panel || target === editor
+      || target === mapElement || target === editingSummary
+      || target.matches?.('[data-ref-section]'))) return;
     if (panel.hidden && state) cancelRefine();
     else scheduleSync();
   });
   // Watch host changes, not the button attributes written by either image tool.
   observer.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
-  observer.observe(editor, { childList: true, attributes: true, attributeFilter: ['hidden'] });
+  observer.observe(editor, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
   observer.observe(mapElement, { attributes: true, attributeFilter: ['class'] });
   const editingSummary = panel.querySelector('.reference-image-editing-summary');
   if (editingSummary) observer.observe(editingSummary, { attributes: true, attributeFilter: ['hidden'] });

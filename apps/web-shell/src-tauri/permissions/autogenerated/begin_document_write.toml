@@ -2,9 +2,10 @@
 
 [[permission]]
 identifier = "allow-begin-document-write"
-description = "Enables begin_document_write without any pre-configured scope."
+description = "Enables the begin_document_write command without any pre-configured scope."
 commands.allow = ["begin_document_write"]
 
 [[permission]]
 identifier = "deny-begin-document-write"
+description = "Denies the begin_document_write command without any pre-configured scope."
 commands.deny = ["begin_document_write"]
