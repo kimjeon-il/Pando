@@ -2,7 +2,7 @@
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
-이 저장소는 웹(루트), [Windows·Android 앱](apps/web-shell/README.md), [공통 C++ 코어](shared/README.md), [조사·검증 보고서](reports/README.md)를 함께 관리합니다. 앱 실행·개발 기준은 `apps/web-shell`이며, 웹 화면·Worker·WASM·자료를 같은 커밋에서 사용합니다.
+이 저장소는 웹(루트), [Windows·Android 앱](apps/web-shell/README.md), [공통 C++ 코어](shared/README.md), [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/cd0698ab2886e7468cf10571186c76941e56709a/reports/README.md)를 함께 관리합니다. 앱 실행·개발 기준은 `apps/web-shell`이며, 웹 화면·Worker·WASM·자료를 같은 커밋에서 사용합니다.
 
 v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·단위·숫자값으로 관리합니다. 소수·0·음수를 저장할 수 있고, 분포별 자동 또는 직접 지정한 값 범위로 색 농도를 정합니다. 보기 메뉴에서는 모든 분포를 겹쳐 보거나 한 분포만 표시할 수 있습니다.
 
@@ -13,7 +13,7 @@ v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·�
 참고하세요. 개발 에이전트의 필수 규칙은 [AGENTS.md](AGENTS.md)에 정리되어 있습니다.
 작업별로 브랜치·워크트리를 새로 만들거나 작업 종료 시 자동 삭제하지 않습니다.
 
-조사·검증 보고서는 [보고서 색인](reports/README.md)에서 분야와 상태별로 찾을 수 있습니다.
+조사·검증 보고서는 [보고서 색인](https://github.com/kimjeon-il/PandoLab-library-data/blob/cd0698ab2886e7468cf10571186c76941e56709a/reports/README.md)에서 분야와 상태별로 찾을 수 있습니다.
 
 ## 로컬 실행
 
@@ -42,7 +42,7 @@ pnpm.cmd test:python
 ```
 
 현재 계약으로 검사 파일과 CI를 검수한 범위·실행 증거는
-[검사 최신화 기록](reports/development/testing/validation-audit.md)에 기록합니다.
+[검사 최신화 기록](https://github.com/kimjeon-il/PandoLab-library-data/blob/cd0698ab2886e7468cf10571186c76941e56709a/reports/development/testing/validation-audit.md)에 기록합니다.
 
 ## GitHub Pages 배포
 
@@ -203,7 +203,7 @@ python tools/calibrate-hydro.py `
   --output reports/hydro-calibration
 ```
 
-분석 출력은 안전상 `assets/data` 아래로 지정할 수 없습니다. 캘리브레이션 원본 결과는 [`reports/hydro-calibration`](reports/hydro-calibration/README.md)에 보존되어 있습니다.
+분석 출력은 안전상 `assets/data` 아래로 지정할 수 없습니다. 캘리브레이션 원본 결과는 [`reports/hydro-calibration`](https://github.com/kimjeon-il/PandoLab-library-data/blob/cd0698ab2886e7468cf10571186c76941e56709a/reports/hydro-calibration/README.md)에 보존되어 있습니다.
 
 실제 v0.13.1 수계 샤드는 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile, 저장소의 Natural Earth `lakes_base.geojson`, 검수 교정표와 빌드용 OSM waterway 관계 내보내기를 사용합니다. 생성기는 중형 본류를 하구까지 폐합하고, 수계 단위 논리 ID와 본류·지류 역할을 만든 뒤 내장 공유국경과 일치하는 세부 구간을 표시용 형상으로 정렬합니다. 결과에는 Natural Earth 호수, 단일 공간 인덱스와 4MiB 이하 정적 샤드가 포함됩니다. 표시 강의 종점은 바다·Natural Earth 호수·합류점·내륙 유역으로 분류하고, 같은 육지 안의 명확한 하구만 최대 25km 범위에서 연결합니다. Hydro 원본 연결망 자체가 해안에서 멀리 끊겨 안전하게 복구할 수 없는 경우에는 임의의 직선을 만들지 않고 해당 논리 수계 전체를 제외하며 manifest 통계에 남깁니다.
 

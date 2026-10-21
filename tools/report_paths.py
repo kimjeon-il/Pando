@@ -1,5 +1,6 @@
 """Resolve report inputs and outputs during the Pando -> PandoLab move."""
 import argparse
+import os
 import json
 from pathlib import Path
 
@@ -16,8 +17,12 @@ def report_path(legacy, root=REPO):
         if legacy == old or (recursive and legacy.startswith(old + '/')):
             target = MAPPING['files'].get(legacy, new + legacy[len(old):])
             break
-    migrated = (root / 'reports/places/source-manifest.json').is_file()
-    return root / (target if migrated or (root / target).exists() else legacy)
+    if not target.startswith('reports/'):
+        raise ValueError(f'Not a report path: {legacy}')
+    checkout = Path(os.environ.get('PANDOLAB_LIBRARY_DATA_ROOT', root / '.library-data/repository'))
+    config = json.loads((root / 'config/library-data.json').read_text(encoding='utf-8'))
+    return checkout / '.working' / config['revision'] / target
+
 
 
 if __name__ == '__main__':

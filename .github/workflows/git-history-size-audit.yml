@@ -21,6 +21,8 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             tools/git-history-dryrun.sh
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
