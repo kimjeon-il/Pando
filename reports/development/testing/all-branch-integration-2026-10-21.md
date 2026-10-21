@@ -41,3 +41,5 @@ UI의 테스트 삭제 873건·생성 권한 6건·미추적 파일, objects의 
 전체 회귀·C++ 전체 CI·Windows 앱 재빌드/실행 파일 교체·실제 WebView/Android·실제 사용자 검증은 이번에 실행하지 않는다. 원격 push·Pages 배포도 이번 로컬 병합 범위에 포함하지 않는다. main push가 Pages workflow를 시작하므로 병합과 게시를 구분한다.
 
 게시 후속 기록: [DEV-INTEGRATED-RELEASE-20261021](integrated-release-2026-10-21.md). 당시 검증 범위는 위 기록대로 유지하며, 이후 main push·Pages·실제 Windows 실행 검증은 후속 문서에서 구분한다.
+
+> 2026-10-21 정리 후속: 이 문서에서 언급한 완료된 작업의 일부 원시 증거는 외부로 옮겼다. 작성 당시의 결과는 변경하지 않았다. [브랜치별 원래 경로·SHA-256·보관 목록](/D:/dev/release-evidence/PandoLab/branch-cleanup-20261021/main-archive.json).

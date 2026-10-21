@@ -64,3 +64,5 @@ UI 및 객체 워크트리의 수정·삭제·미추적 파일과 장소 워크�
 stash/reset/clean/강제 checkout을 사용하지 않았다. main에 있던 미추적
 `reports/annex-reproduction-20261015.png`도 보존했다. 상설 브랜치와 워크트리를
 삭제하거나 다른 작업 브랜치를 변경하지 않았다.
+
+> 2026-10-21 정리 후속: 이 문서에서 언급한 완료된 작업의 일부 원시 증거는 외부로 옮겼다. 작성 당시의 결과는 변경하지 않았다. [브랜치별 원래 경로·SHA-256·보관 목록](/D:/dev/release-evidence/PandoLab/branch-cleanup-20261021/main-archive.json).
