@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,7 +14,7 @@ const put = (root, path, value) => {
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, value);
 };
-const run = (command, args, cwd) => spawnSync(command, args, { cwd, encoding: 'utf8' });
+const run = (command, args, cwd) => spawnSync(command, command === 'git' ? ['-c', 'core.fsync=none', ...args] : args, { cwd, encoding: 'utf8' });
 
 async function fixture() {
   const parent = mkdtempSync(join(tmpdir(), 'pando-pages-'));
@@ -47,6 +47,27 @@ async function fixture() {
     'assets/js/workers/core-viewer-session-worker.js': { url: worker.url, files: [...worker.files.keys()],
       sha256: Object.fromEntries([...worker.files].map(([path, source]) => [path, createHash('sha256').update(source).digest('hex')])) }
   } }) + ');');
+  const data = join(root, '.library-data/repository');
+  mkdirSync(data, { recursive: true });
+  run('git', ['init', '-q'], data);
+  run('git', ['config', 'user.name', 'Test'], data);
+  run('git', ['config', 'user.email', 'test@example.invalid'], data);
+  mkdirSync(join(data, 'assets'), { recursive: true });
+  renameSync(join(root, 'assets/data'), join(data, 'assets/data'));
+  const dataFiles = {};
+  function list(directory, prefix) {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = prefix + '/' + entry.name;
+      if (entry.isDirectory()) list(join(directory, entry.name), path);
+      else { const bytes = readFileSync(join(directory, entry.name)); dataFiles[path] = { stored: path, encoding: 'identity', bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') }; }
+    }
+  }
+  list(join(data, 'assets/data'), 'assets/data');
+  put(data, 'archive/index.json', JSON.stringify({ files: dataFiles }));
+  run('git', ['add', '.'], data); run('git', ['commit', '-qm', 'paired data'], data);
+  const revision = run('git', ['rev-parse', 'HEAD'], data).stdout.trim();
+  put(root, 'config/library-data.json', JSON.stringify({ repository: 'example/library-data', revision, mounts: ['assets/data'] }));
+  put(root, '.gitignore', '.library-data/\nassets/data/\n');
   assert.equal(run('git', ['add', '.'], root).status, 0);
   assert.equal(run('git', ['commit', '-q', '-m', 'fixture'], root).status, 0);
   return { parent, root, stage: join(parent, 'site'), manifest: join(parent, 'evidence.json') };
@@ -69,6 +90,8 @@ test('stages committed viewer assets while excluding editor and repository sourc
   assert.deepEqual(readFileSync(join(stage, 'assets/wasm/pandoeditor-core.wasm')),
     Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
   const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
+  assert.equal(evidence.dataRepository, 'example/library-data');
+  assert.match(evidence.dataCommit, /^[0-9a-f]{40}$/);
   assert.equal(evidence.fileCount, 11);
   assert.equal(evidence.excludedNativeFiles, 1);
   assert.equal(evidence.excludedSharedFiles, 2);

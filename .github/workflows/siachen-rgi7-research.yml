@@ -13,6 +13,8 @@ jobs:
         with:
           ref: work/gis
           persist-credentials: true
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -41,10 +43,12 @@ jobs:
       - name: Extract and verify RGI7 geometry
         run: python scripts/research/siachen/extract_rgi7.py
       - name: Commit isolated GIS research artifacts
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$(python tools/report_paths.py assets/data/research/siachen)"
+          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"
           if ! git diff --cached --quiet; then
             git commit -m "research: add verified Siachen glacier GeoJSON and comparison"
             git push origin HEAD:work/gis
