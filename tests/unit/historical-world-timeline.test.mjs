@@ -71,6 +71,33 @@ test('parentCoverageLimitsChildPresence', async () => {
   assert.equal(await visible('state:child', '1901-07'), false);
   assert.equal(await visible('state:child', '1902-01'), true);
 });
+
+test('source lifetime retains precision independently of country geometry availability',()=>{
+  const input=historicalWorldCases();
+  input.entities.find(row=>row.entityId==='current:KOR').lifetime.validFrom='1948-08-15';
+  const catalog=compileFixture(input),current=contextProject(catalog,'current');
+  assert.deepEqual(current.timelineRecords.lifetimes.find(row=>row.entityId==='KOR'),
+    {id:'historical-world:lifetimes:KOR:0',entityId:'KOR',validFrom:'1948-08-15',validTo:null});
+  const unknown=current.timelineRecords.lifetimes.find(row=>row.entityId==='RUS');
+  assert.equal(unknown.validFrom,null);assert.equal(unknown.validTo,null);
+  const rows=catalog.project.timelineRecords.lifetimes.filter(row=>row.entityId==='state:parent');
+  assert.equal(rows.length,1);assert.equal(rows[0].validFrom,'1900');assert.equal(rows[0].validTo,'1903');
+  assert.equal(selectBuiltinCountries(catalog.index,'1901-07','2026-10').some(row=>row.entityId==='state:parent'),false);
+});
+
+test('resolved source lifetime stays whole across a geometry gap',async()=>{
+  const state=createEmptyTerritorialState();await initializeTestTerritorialState(state,null,{project:result().project});
+  const owner=testCoreProject(state);
+  try{
+    for(const month of ['1900-12','1902-01']){
+      await owner.entityStore.setTimelineCursor(month);
+      const feature=state.territorialEntities.find(row=>row.id==='state:parent');
+      assert.equal(feature.properties.validFrom,'1900');assert.equal(feature.properties.validTo,'1903');
+    }
+    await owner.entityStore.setTimelineCursor('1901-07');
+    assert.equal(state.territorialEntities.some(row=>row.id==='state:parent'),false);
+  }finally{owner.dispose();}
+});
 test('lineageDoesNotCollapseSimultaneousEntities', async () => {
   assert.equal(await visible('KOR', '2026-10'), true);
   assert.equal(await visible('PRK', '2026-10'), true);

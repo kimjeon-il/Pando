@@ -43,8 +43,8 @@ void inspect(const std::map<std::string,Slots>& active) {
         if(life.empty())for(std::size_t i=3;i<slots.size();++i)if(!slots[i].empty())
             fail("TIMELINE_OUTSIDE_LIFETIME","Properties outside the lifetime of "+id+".");
         if(!life.empty()) {
-            if(geometry.empty()||parent.empty()) fail("TIMELINE_GAP","Incomplete lifetime coverage for "+id+".");
-            parents.emplace(id,parent.begin()->second);
+            if(geometry.empty()!=parent.empty()) fail("TIMELINE_GAP","Geometry and parent coverage differ for "+id+".");
+            if(!parent.empty()) parents.emplace(id,parent.begin()->second);
         }
     }
     for(const auto& [id,parent]:parents) {
