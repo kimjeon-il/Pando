@@ -7,16 +7,23 @@ import {selectGeometryVersion} from '../../assets/js/modules/territorial-library
 const data = new URL('../../assets/data/',import.meta.url);
 const baseline = JSON.parse(fs.readFileSync(new URL('../fixtures/territorial-entity-baseline.json',import.meta.url),'utf8'));
 const sha = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-test('all 258 source features retain their IDs, properties, types and coordinate order in lineage sources', () => {
+test('all 258 source features retain identity and properties; uncurated geometries retain exact coordinate order', () => {
   const raw = JSON.parse(fs.readFileSync(new URL('countries-ne-5.1.1.geojson',data),'utf8'));
   const entities = readTerritorialSources();
-  const imported = entities.filter(e=>e.sourceInfo.sourceId === 'natural-earth-5.1.1');
+  const imported = entities.filter(e=>e.sourceInfo.featureId);
   assert.equal(imported.length,raw.features.length);
   for(const feature of raw.features) {
     const e=imported.find(item=>item.entityId===`state:${feature.id}`);
     assert.ok(e,feature.id);
     assert.deepEqual(e.sourceInfo.featureProperties,feature.properties);
     assert.equal(e.sourceInfo.featureId,feature.id);
+    if(['KOR','PRK','CHN'].includes(feature.id)){
+      const current=selectGeometryVersion(e,'2026-10-06');
+      assert.ok(current.historicalProvenance.sourceIds.includes('dos-lsib-11.4'));
+      assert.equal(sha(current.geometry),e.sourceInfo.geometrySha256);
+      assert.notEqual(sha(current.geometry),baseline.countryGeometry[feature.id]);
+      continue;
+    }
     const sourceVersion=['IDN','SDN','UKR'].includes(feature.id)?e.geometryVersions.at(-1):e.geometryVersions[0];
     assert.equal(sha(sourceVersion.geometry),baseline.countryGeometry[feature.id]);
     assert.deepEqual(sourceVersion.geometry,feature.geometry);
