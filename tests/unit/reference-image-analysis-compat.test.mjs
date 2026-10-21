@@ -139,7 +139,7 @@ test('reference image remains docked on desktop and mobile editing can expand wi
   assert.match(surface, /reference-image-editing-active/);
   assert.match(surface, /reference-image-docked/);
   assert.match(layout, /\.workspace\.reference-image-docked > \.map-wrap/);
-  assert.match(layout, /\.reference-image-panel\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/);
+  assert.match(layout, /\.surface-reference\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/);
   assert.doesNotMatch(layout, /left:\s*50%|translateX\(-50%\)/);
 });
 

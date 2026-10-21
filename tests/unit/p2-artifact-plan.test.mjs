@@ -4,15 +4,26 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import { sharedSourceManifest } from '../../tools/package-shared-core-assets.mjs';
 import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
   plan, assertArtifactsCurrent } from '../../scripts/p2-artifact-plan.mjs';
 import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,
-  RECEIPT_PATH } from '../../scripts/lib/p2-artifact-graph.mjs';
+  RECEIPT_PATH,artifactGraph } from '../../scripts/lib/p2-artifact-graph.mjs';
 import { publishGeneratedArtifacts } from '../../scripts/p2-publish-artifacts.mjs';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+test('builtin country family replaces the retired aggregate throughout the artifact graph',()=>{
+ const root=fileURLToPath(new URL('../../',import.meta.url)),graph=artifactGraph(root);
+ const family=graph.find(row=>row.id==='builtin-world');
+ assert.ok(family);assert.equal(graph.some(row=>row.id==='historical-world'||row.dependencies.includes('historical-world')),false);
+ assert.deepEqual(family.outputs,['assets/data/builtin-world/generated/v1/']);
+ for(const command of [...family.generate,...family.validate])assert.ok(readFileSync(join(root,command[1])).length);
+ for(const consumer of family.consumers)assert.ok(readFileSync(join(root,consumer)).length);
+ assert.ok(graph.find(row=>row.id==='prepared-mesh').dependencies.includes('builtin-world'));
+ assert.ok(graph.find(row=>row.id==='build-metadata').dependencies.includes('builtin-world'));
+});
 function fixture(t) {
   const root=mkdtempSync(join(tmpdir(),'pando-p2-'));
   t.after(()=>rmSync(root,{recursive:true,force:true}));

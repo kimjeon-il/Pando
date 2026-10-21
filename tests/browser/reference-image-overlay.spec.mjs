@@ -74,6 +74,8 @@ test('unchanged image startup and shutdown never rewrite the collection', async 
     };
   });
   await openApp(page);
+  await page.locator('#referenceImageBtn').click();
+  await expect(page.locator('#referenceImageSurface')).toBeVisible();
   expect(await page.evaluate(() => window.referenceWrites)).toBe(0);
   await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.destroy());
   expect(await page.evaluate(() => window.referenceWrites)).toBe(0);
@@ -379,6 +381,7 @@ test('reference image list controls and task tabs preserve selection and stored 
   })).toEqual({ blend: 'multiply', opacity: 0.37, visible: false, locked: false });
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.locator('#referenceImageBtn').click();
   await expect.poll(() => page.evaluate(() =>
     window.__PANDOLAB_REFERENCE_IMAGES__?.list().find(item => item.name === 'first.png')?.opacity,
   )).toBe(0.37);
@@ -519,6 +522,13 @@ test('reference images support placement, ordering, georeferencing and persisten
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
   await page.locator('.reference-image-launcher').click();
+  await expect(page.locator('#referenceImageSurface')).toBeVisible();
+  // Keep the rotated image inside geographic bounds. At world zoom the top
+  // corner crosses the pole, so the existing latitude clamp changes its angle.
+  const mapBounds = await page.locator('#map').boundingBox();
+  await page.mouse.move(mapBounds.x + mapBounds.width / 2, mapBounds.y + mapBounds.height / 2);
+  await page.mouse.wheel(0, -650);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__.flatZoom)).toBeGreaterThan(2);
   await addImage(page, 'base.png');
   await expect(page.locator('.reference-image-list-row')).toHaveCount(1);
   await page.locator('[data-ref-field="name"]').press('Escape');
@@ -680,8 +690,9 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  // The map's enhanced event precedes the lazy image bootstrap and blob decoding.
+  // First activation starts the lazy image bootstrap and blob decoding.
   await expect(page.locator('.reference-image-launcher')).toBeVisible({ timeout: 30_000 });
+  await page.locator('.reference-image-launcher').click();
   await expect.poll(async () => ({
     names: await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().map(item => item.name) || []),
     errors,
@@ -691,6 +702,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   expect(restored.find(item => item.name === '<Base "reference">').controlPointCount).toBe(2);
   const restoredStored = await readReferenceStore(page);
   expect(restoredStored.find(item => item.name === '<Base "reference">').mapQuad).toEqual(baseMapQuadBeforeReload);
+  await page.locator('.reference-image-panel-header [data-ref-action="close"]').click();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');

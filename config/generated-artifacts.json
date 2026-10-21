@@ -65,7 +65,7 @@
       ]
     },
     {
-      "id": "historical-world",
+      "id": "builtin-world",
       "dependencies": [
         "territorial",
         "current-world",
@@ -75,23 +75,23 @@
         "assets/data/historical-world/policy.json"
       ],
       "outputs": [
-        "assets/data/historical-world/generated/v1/"
+        "assets/data/builtin-world/generated/v1/"
       ],
       "generate": [
         [
           "node",
-          "tools/build-historical-world-timeline.mjs"
+          "tools/build-builtin-world.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-historical-world-timeline.mjs",
+          "tools/build-builtin-world.mjs",
           "--check"
         ]
       ],
       "consumers": [
-        "assets/js/modules/historical-world-loader.js"
+        "assets/js/modules/builtin-world-loader.js"
       ],
       "tools": [
         "node"
@@ -227,7 +227,7 @@
     {
       "id": "prepared-mesh",
       "dependencies": [
-        "historical-world",
+        "builtin-world",
         "territorial",
         "current-world",
         "wasm"
@@ -333,7 +333,7 @@
       "dependencies": [
         "wasm",
         "territorial",
-        "historical-world",
+        "builtin-world",
         "world-bundle",
         "prepared-mesh",
         "shared-boundaries",
