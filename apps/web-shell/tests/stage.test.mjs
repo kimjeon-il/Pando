@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { stagePrototype } from '../stage.mjs';
+import { REFERENCE_IMAGE_STYLE_SOURCES } from '../../../assets/js/modules/reference-image-style-sources.js';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function source(t) {
@@ -43,6 +44,20 @@ test('stages the real frontend and exact WASM pair without any world data', asyn
   assert.equal(result.profile, 'small-project');
   assert.equal(result.fixture.entityCount, 3);
   assert.ok(result.fixture.coordinateCount <= 100);
+});
+
+test('stages the runtime reference style catalog and every lazily loaded stylesheet', async t => {
+  const { root, put } = await source(t);
+  const catalog = 'assets/js/modules/reference-image-style-sources.js';
+  const catalogSource = await readFile(new URL(`../../../${catalog}`, import.meta.url), 'utf8');
+  await put(catalog, catalogSource);
+  for (const path of REFERENCE_IMAGE_STYLE_SOURCES) await put(`assets/${path}`, `/* ${path} */`);
+  const result = await stagePrototype({ root });
+  assert.equal(await readFile(join(result.directory, catalog), 'utf8'), catalogSource);
+  for (const path of REFERENCE_IMAGE_STYLE_SOURCES) {
+    assert.equal(await readFile(join(result.directory, 'assets', path), 'utf8'), `/* ${path} */`);
+  }
+  assert.ok(result.files.every(file => !file.path.startsWith('scripts/')), 'runtime must not require build-only scripts');
 });
 
 test('rejects a modified WASM asset instead of blessing a new hash', async t => {

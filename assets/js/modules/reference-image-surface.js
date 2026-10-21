@@ -6,70 +6,17 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
     throw new TypeError('Reference image workflows require mapElement, onAction and onAuxiliaryEditingStart.');
   }
   const document = panel.ownerDocument;
-  panel.id = 'referenceImageSurface';
-  panel.classList.add('workspace-surface', 'surface-reference', 'ui-sheet');
-  launcher.id = 'referenceImageBtn';
-  launcher.setAttribute('aria-label', '이미지 추가');
-  launcher.dataset.tooltip = '이미지 추가';
-  launcher.setAttribute('aria-controls', panel.id);
-  launcher.setAttribute('aria-haspopup', 'dialog');
-  const header = panel.querySelector('.reference-image-panel-header');
-  header.classList.add('surface-header');
-  const handle = document.createElement('button');
-  handle.className = 'ui-button sheet-drag-handle';
-  handle.type = 'button';
-  handle.dataset.sheetHandle = panel.id;
-  for (const [key, value] of Object.entries({ role: 'slider', 'aria-label': '참조 이미지 창 높이 조절', 'aria-orientation': 'vertical', 'aria-valuemin': '0', 'aria-valuemax': '2', 'aria-valuenow': '1', 'aria-valuetext': '중간 높이' })) handle.setAttribute(key, value);
-  handle.append(document.createElement('span'));
-  header.prepend(handle);
-  const collapseButton = document.createElement('button');
-  collapseButton.type = 'button';
-  collapseButton.className = 'ui-button btn ghost reference-image-collapse-button';
-  collapseButton.dataset.referencePanelToggle = '';
-  collapseButton.setAttribute('aria-controls', 'referenceImageSurfaceBody');
-  const closeButton = header.querySelector('[data-ref-action="close"]');
-  if (closeButton) closeButton.before(collapseButton);
-  else header.append(collapseButton);
-  const body = document.createElement('div');
-  body.className = 'surface-body reference-image-body gis-form-grid';
-  body.id = 'referenceImageSurfaceBody';
-  for (const child of [...panel.children]) if (child !== header) body.append(child);
-  panel.append(body);
-  const compact = document.createElement('div');
-  compact.className = 'reference-image-editing-summary';
-  const hint = document.createElement('span');
-  hint.setAttribute('role', 'status');
-  compact.append(hint);
-  const defaultCompletionButtons = [];
-  for (const [action, label] of [['navigation-toggle', '지도 이동'], ['undo', '실행 취소'], ['redo', '다시 실행'], ['finish', '완료'], ['cancel', '취소']]) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = action === 'finish' ? 'ui-button btn' : 'ui-button btn ghost';
-    button.dataset.refAction = action;
-    button.textContent = label;
-    if (action === 'undo' || action === 'redo') {
-      button.disabled = true;
-      button.setAttribute('aria-label', `이미지 편집 ${label}`);
-    }
-    if (action === 'finish' || action === 'cancel') defaultCompletionButtons.push(button);
-    compact.append(button);
+  const body = panel.querySelector('.surface-body');
+  const collapseButton = panel.querySelector('[data-reference-panel-toggle]');
+  const compact = panel.querySelector('.reference-image-editing-summary');
+  const hint = panel.querySelector('.reference-image-editing-status');
+  const compactActions = panel.querySelector('[data-ref-workflow-actions]');
+  const resizeHandle = panel.querySelector('.reference-image-resize-handle');
+  const workspace = panel.closest('.workspace');
+  if (!body || !collapseButton || !compact || !hint || !compactActions || !resizeHandle || !workspace) {
+    throw new TypeError('Reference image Surface must be created completely and mounted in the workspace before binding.');
   }
-  const compactActions = document.createElement('div');
-  compactActions.className = 'reference-image-workflow-actions';
-  compactActions.dataset.refWorkflowActions = '';
-  compactActions.hidden = true;
-  compact.append(compactActions);
-  panel.append(compact);
-  const resizeHandle = document.createElement('div');
-  resizeHandle.className = 'reference-image-resize-handle';
-  resizeHandle.tabIndex = 0;
-  for (const [key, value] of Object.entries({
-    role: 'separator', 'aria-label': '참조 이미지 패널 너비 조절',
-    'aria-orientation': 'vertical', 'aria-valuemin': '300', 'aria-valuemax': '480',
-  })) resizeHandle.setAttribute(key, value);
-  panel.prepend(resizeHandle);
-
-  const workspace = panel.closest?.('.workspace') || document.querySelector('.workspace');
+  const defaultCompletionButtons = compact.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]');
   const DOCK_WIDTH_KEY = 'pandolab-reference-image-dock-width';
   let dockWidth = 340;
   try {

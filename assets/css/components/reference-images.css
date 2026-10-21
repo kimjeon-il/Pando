@@ -1,14 +1,3 @@
-.reference-image-panel {
-  padding: var(--ui-space-0);
-  border: var(--ui-border-width) solid var(--overlay-border);
-  border-radius: var(--ui-radius-panel);
-  background: var(--overlay-panel);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(var(--ui-v2-overlay-blur));
-  color: var(--text);
-}
-
-.reference-image-panel-header,
 .reference-image-editor-title,
 .reference-image-toolbar,
 .reference-image-toggle-row,
@@ -20,14 +9,6 @@
 .reference-image-point-actions {
   gap: var(--ui-space-2);
 }
-
-.reference-image-panel-header {
-  padding: var(--ui-space-3);
-  border-block-end: var(--ui-border-width) solid var(--border);
-}
-
-.reference-image-body { padding: var(--ui-space-3); }
-.reference-image-editing-summary { padding: var(--ui-space-2); }
 
 .reference-image-points {
   margin: var(--ui-space-0);
@@ -68,21 +49,6 @@
   font-size: var(--ui-font-caption);
 }
 
-[data-layout="mobile"] .reference-image-panel-header {
-  padding-block-end: var(--ui-space-0);
-  border-block-end: 0;
-}
-
-.reference-image-panel-header > div {
-  gap: var(--ui-space-0-5);
-}
-
-.reference-image-panel-header strong {
-  font-size: var(--ui-font-section);
-  font-weight: var(--ui-weight-semibold);
-}
-
-.reference-image-panel-header span,
 .reference-image-empty,
 .reference-image-hint,
 .reference-image-warning,
@@ -92,16 +58,11 @@
   color: var(--muted);
 }
 
-.reference-image-toolbar {
-  padding-block: var(--ui-space-3);
-}
-
 .reference-image-list {
   gap: var(--ui-space-1);
 }
 
 .reference-image-list-row {
-  gap: var(--ui-space-2);
   padding: var(--ui-space-0) var(--ui-space-2);
   border: var(--ui-border-width) solid transparent;
   border-radius: var(--ui-radius-control);
@@ -266,16 +227,6 @@
 .reference-image-hint[data-tone="success"] { color: var(--ui-v2-status-success-text); }
 .reference-image-hint[data-tone="error"] { color: var(--ui-v2-status-error-text); }
 
-/* The desktop image dock follows the workspace chrome, not floating glass. */
-.app-root:not([data-layout="mobile"]) .reference-image-panel {
-  border-radius: 0;
-  border-top: 0;
-  border-right: 0;
-  border-bottom: 0;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-
 .reference-image-resize-handle:focus-visible {
   outline: var(--ui-border-width) solid var(--accent);
   outline-offset: 0;
@@ -338,7 +289,6 @@
 }
 
 .reference-image-list-row {
-  grid-template-columns: var(--ui-reference-list-icon-track) minmax(0, 1fr);
   grid-template-rows: auto auto;
   gap: 0 var(--ui-space-2);
   padding-block: var(--ui-space-1);
