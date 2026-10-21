@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
   launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
 
-test('western Pacific stays blue while land tint is still loading', async ({ page, baseURL }) => {
+test('western Pacific keeps the ocean substrate while DEM colors are still loading', async ({ page, baseURL }) => {
   test.setTimeout(150_000);
   let releaseTint;
   const tintGate = new Promise(resolve => { releaseTint = resolve; });
@@ -16,12 +16,12 @@ test('western Pacific stays blue while land tint is still loading', async ({ pag
   await page.route('**/tint.webp*', async route => { await tintGate; if (!page.isClosed()) await route.continue(); });
   await page.addInitScript(() => {
     window.__oceanLoadingPixels = [];
-    const prototype = window.WebGL2RenderingContext.prototype, draw = prototype.drawElements;
-    prototype.drawElements = function(...args) {
+    const prototype = window.WebGL2RenderingContext.prototype, draw = prototype.drawArrays;
+    prototype.drawArrays = function(...args) {
       const result = draw.apply(this, args);
       if (!window.__oceanLoadingSample) return result;
-      const program = this.getParameter(this.CURRENT_PROGRAM), land = this.getUniformLocation(program, 'uLandPass');
-      if (!land || this.getUniform(program, land) !== 0) return result;
+      const program = this.getParameter(this.CURRENT_PROGRAM), land = this.getUniformLocation(program, 'uOceanColor');
+      if (!land) return result;
       const point = window.__oceanLoadingSample, viewport = this.getParameter(this.VIEWPORT);
       const rgba = new Uint8Array(4);
       this.readPixels(Math.floor(point[0]), viewport[3] - Math.floor(point[1]) - 1, 1, 1, this.RGBA, this.UNSIGNED_BYTE, rgba);

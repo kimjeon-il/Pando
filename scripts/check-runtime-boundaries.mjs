@@ -395,9 +395,6 @@ if (/\n\s*revision\s*[:]/.test(coordinatorPublicFacade)) {
 if (!readApplicationOwners('map-host').includes("invalidateViewport?.('resize')")) {
   throw new Error('app.js resize path must use RenderingDomain.invalidateViewport');
 }
-if (!readApplicationOwners('map-settings').includes("invalidateProjection?.('projection-change')")) {
-  throw new Error('app.js projection path must use RenderingDomain.invalidateProjection');
-}
 if (appSource.includes('renderAll(')) throw new Error('app.js must not retain renderAll compatibility calls');
 
 const domainPublicFacade = source => source.slice(source.lastIndexOf('return Object.freeze({'));

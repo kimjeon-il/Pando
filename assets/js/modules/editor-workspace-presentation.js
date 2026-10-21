@@ -1,8 +1,14 @@
-/** Moves the existing task UI; never owns editing state or registers its handlers. */
+/** Presents a task already authored inside the inspector's permanent slot.
+ * The editor domain owns workflow state; this module only switches visibility.
+ * Pointer gestures defer panel transitions, not DOM reparenting. */
 export function createEditorWorkspacePresentation({
-  document, panel, task, dockSlot, floatingSlot,
+  document, panel, task, dockSlot,
   isEditorOpen, openEditor, onLayoutChange,
 }) {
+  if (task?.parentElement !== dockSlot) {
+    throw new TypeError('The editor task must be authored inside its permanent inspector slot.');
+  }
+
   let active = false;
   let docked = false;
   let needsInitialOpen = false;
@@ -12,11 +18,10 @@ export function createEditorWorkspacePresentation({
   const apply = () => {
     if (disposed) return;
     const nextDocked = active;
+    // Do not change the panel while the user is dragging on the map or UI.
     if (nextDocked !== docked && pointers.size) return;
-    const destination = nextDocked ? dockSlot : floatingSlot;
     const changed = nextDocked !== docked;
     if (changed) needsInitialOpen = nextDocked;
-    if (task.parentElement !== destination) destination.append(task);
     docked = nextDocked;
     if (panel.dataset.editorContent !== (docked ? 'task' : 'properties')) {
       panel.dataset.editorContent = docked ? 'task' : 'properties';
@@ -28,6 +33,7 @@ export function createEditorWorkspacePresentation({
     if (isEditorOpen()) needsInitialOpen = false;
     if (changed) onLayoutChange();
   };
+
   const sync = (input = {}) => {
     if ('active' in input) active = !!input.active;
     apply();
@@ -39,11 +45,13 @@ export function createEditorWorkspacePresentation({
   };
   const cancel = () => { pointers.clear(); queueMicrotask(apply); };
   const visibility = () => { if (document.hidden) cancel(); };
+
   document.addEventListener('pointerdown', start, true);
   document.addEventListener('pointerup', finish, true);
   document.addEventListener('pointercancel', finish, true);
   document.addEventListener('visibilitychange', visibility);
   document.defaultView?.addEventListener('blur', cancel);
+
   return Object.freeze({
     sync,
     isDocked: () => docked,

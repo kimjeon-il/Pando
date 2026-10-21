@@ -288,8 +288,12 @@ export function createGpuMapRenderer(deps) {
     function syncCountryMeshQuality({ cssScale = lastVisualFrame?.cssScale, projection = state.projection } = {}) {
       if (countryFocusPending && countryFocusProjection !== state.projection) countryFocusPending = false;
       const previousPhase = state.countryVisualPhase;
+      const previousScaleQuality = scaleQuality;
       scaleQuality = resolveCountryMeshQuality({ cssScale,
         previous: countryDisplayHistoryValid && qualityProjection === projection ? scaleQuality : null });
+      if (previousScaleQuality !== scaleQuality && terrainManifest?.representation === TERRAIN_DEM_FORMAT) {
+        sceneColorCache.invalidate('terrain-shade-band');
+      }
       qualityProjection = projection;
       desiredCountryMeshQuality = resolveCountryMeshQuality({
         cssScale,
@@ -379,6 +383,8 @@ export function createGpuMapRenderer(deps) {
     let ctx2d = null;
     let rendererMode = 'pending';
     let fillProgram = null;
+    let oceanSubstrateProgram = null;
+    let oceanSubstrateBuffer = null;
     let pickProgram = null;
     let terrainProgram = null;
     let terrainDemProgram = null;
@@ -461,9 +467,6 @@ export function createGpuMapRenderer(deps) {
     let terrainFallbackReason = null;
     let terrainFallbackPending = false;
     let canvasTerrainStats = {};
-    let demShadeBlend = 0;
-    let demSettleStartedAt = 0;
-    let demShadeTimer = null;
     const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
       isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
       tileUrl: spec => {
@@ -482,22 +485,11 @@ export function createGpuMapRenderer(deps) {
       },
     });
     let preparedTerrain = [];
+    function detailedTerrainShadeActive() {
+      return isWebGlRenderer() && terrainManifest?.representation === TERRAIN_DEM_FORMAT && scaleQuality !== 'preview';
+    }
     function prepareTerrain(frame) {
       if(!terrainPreparation)return;
-      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT) {
-        const highQuality = renderQuality.phase === 'settle' && renderQuality.tier !== 'coarse';
-        if (!highQuality) { demShadeBlend = 0; demSettleStartedAt = 0; }
-        else {
-          if (!demSettleStartedAt) demSettleStartedAt = performance.now();
-          demShadeBlend = Math.min(1, (performance.now() - demSettleStartedAt) / 180);
-          if (demShadeBlend < 1 && demShadeTimer === null) demShadeTimer = setTimeout(() => {
-            demShadeTimer = null;
-            if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && !disposed) {
-              invalidatePhysicalScene('terrain-shade-transition');
-            }
-          }, 16);
-        }
-      }
       terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
       preparedTerrain = terrainPreparation.prepare(frame, {
         visible: state.physicalSettings.terrainVisible,
@@ -507,7 +499,13 @@ export function createGpuMapRenderer(deps) {
         cacheBudgetBytes: renderQuality.terrainCacheBudgetBytes,
       });
     }
-    function renderTerrain(pass = 'land') { for (const tile of preparedTerrain) drawTerrainTile(tile, pass); }
+    function renderTerrain(pass = 'land') {
+      // Keep the complete flat-colored substrate until DEM color and shade
+      // can replace ocean and land together; never flash a gray tint texture.
+      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && state.physicalSettings.terrainStyle === 'physical'
+        && !terrainPreparation.stats().terrainTintReady) return;
+      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);
+    }
     let mesh = null;
     let meshCountryIds = [];
     let countryBoundaryWorker = null;
@@ -1269,7 +1267,7 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
           ['uTerrain', 'uTint', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme',
-            'uTextureSize', 'uLevelSize', 'uLandPass', 'uShadeBlend'], ['aGrid']);
+            'uTextureSize', 'uLevelSize', 'uLandPass', 'uDetailedShade'], ['aGrid']);
         return true;
       } catch (error) {
         terrainDemProgram = null;
@@ -1374,6 +1372,24 @@ export function createGpuMapRenderer(deps) {
       terrainDemProgram = null;
       const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
+      const oceanVertex = `${glVersion === 2 ? '#version 300 es\n' : ''}precision highp float;
+        ${glVersion === 2 ? 'layout(location=0) in' : 'attribute'} vec2 aPosition;
+        void main(){gl_Position=vec4(aPosition,0.0,1.0);}`;
+      const oceanFragment = `${glVersion === 2 ? '#version 300 es\n' : ''}precision mediump float;
+        uniform vec2 uViewport; uniform vec2 uTranslate; uniform vec2 uFlatCenter;
+        uniform float uScale; uniform int uMode; uniform vec3 uOceanColor;
+        ${glVersion === 2 ? 'out vec4 outColor;' : ''}
+        void main(){
+          vec2 point=(vec2(gl_FragCoord.x,uViewport.y-gl_FragCoord.y)-uTranslate)/uScale;
+          if(uMode==0 && dot(point,point)>1.0)discard;
+          if(uMode==1 && abs(uFlatCenter.y-point.y)>1.5707964)discard;
+          ${glVersion === 2 ? 'outColor' : 'gl_FragColor'}=vec4(uOceanColor,1.0);
+        }`;
+      oceanSubstrateProgram = createProgram(oceanVertex, oceanFragment);
+      primeProgramLocations(oceanSubstrateProgram, [...GPU_VIEW_UNIFORM_NAMES, 'uOceanColor'], ['aPosition']);
+      oceanSubstrateBuffer = lifecycle.create(gl, 'Buffer');
+      gl.bindBuffer(gl.ARRAY_BUFFER, oceanSubstrateBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
       pickProgram = createProgram(vertexSource, glVersion === 2 ? pickFragmentSourceWebGl2 : pickFragmentSourceWebGl1);
       countryStateFillProgram = createProgram(
         glVersion === 2 ? countryStateVertexSourceWebGl2 : countryStateVertexSourceWebGl1,
@@ -2206,7 +2222,9 @@ export function createGpuMapRenderer(deps) {
       canvasDataReplacementResolver?.(); canvasDataReplacementResolver = null;
       void hydroPreparation.restart();
       resetCountryGeometryVisualState({ renderFrame: false, renderPending: false });
-      sceneColorCache.reset?.({ dropActive: !preserveBuiltinMesh });
+      // The retained texture is only eligible for the explicit blocked-frame
+      // presentation below. Normal draws still require the new generation.
+      sceneColorCache.reset();
       renderScene = null;
       presentedStrokeDomains.clear();
       renderInteractionState = Object.freeze({
@@ -2236,17 +2254,27 @@ export function createGpuMapRenderer(deps) {
       terrainPreparation?.reset();
       // Keep the previously committed pixels in place while a new project is
       // prepared.  They are replaced only by the prepared canonical frame.
-      if (!preserveBuiltinMesh && gl && !gl.isContextLost?.()) {
-        try {
-          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-          gl.viewport(0, 0, Math.max(1, pixelWidth), Math.max(1, pixelHeight));
-          gl.clearColor(0, 0, 0, 0);
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-        } catch (_) {
-          // A reset must not surface a renderer cleanup failure as a runtime error.
-        }
-      }
       return projectGeneration;
+    }
+
+    function renderPreservedProjectFrame() {
+      if (!projectRenderBlocked) return null;
+      if (!isWebGlRenderer() || webglContextLost || !canvas || !sceneColorCache.hasActive()) return { deferred: true };
+      const element = rendererUi.getMapElement();
+      const dpr = resolveRenderPixelRatio();
+      const nextWidth = Math.max(1, Math.round(element.clientWidth * dpr));
+      const nextHeight = Math.max(1, Math.round(element.clientHeight * dpr));
+      const previous = sceneColorCache.stats();
+      const scale = dpr / (lastVisualFrame?.dpr || dpr);
+      if (canvas.width !== nextWidth) canvas.width = nextWidth;
+      if (canvas.height !== nextHeight) canvas.height = nextHeight;
+      // Keep old CSS coordinates (and their frozen SVG labels) on resize.
+      // This is display-only and never certifies a replacement frame.
+      sceneColorCache.composite(nextWidth, nextHeight, { reproject: {
+        sourceViewport: [previous.width, previous.height], scale: [scale, scale],
+        offset: [0, nextHeight - previous.height * scale],
+      } });
+      return { deferred: true, preserved: true };
     }
 
     async function decodeBuiltInMesh(rawBuffer = null, features = null, preparedStroke = null) {
@@ -3115,7 +3143,6 @@ export function createGpuMapRenderer(deps) {
     function setRenderQuality(nextProfile = {}) {
       const previousRevision = Number(renderQuality.revision || 0);
       const previousTier = renderQuality.tier;
-      const previousPhase = renderQuality.phase;
       const previousDprCap = Number(renderQuality.dprCap || Infinity);
       renderQuality = Object.freeze({ ...DEFAULT_RENDER_QUALITY, ...nextProfile });
       if (previousRevision !== Number(renderQuality.revision || 0) || previousTier !== renderQuality.tier) {
@@ -3133,14 +3160,6 @@ export function createGpuMapRenderer(deps) {
       // resolution is gated by canonical readiness and never changes during
       // interaction.
       renderQuality = Object.freeze({ ...renderQuality, countryMeshQuality: 'canonical', terrainResolutionScale: 1 });
-      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT
-          && (previousPhase !== renderQuality.phase || previousTier !== renderQuality.tier)) {
-        if (renderQuality.phase === 'interaction') {
-          demSettleStartedAt = 0; demShadeBlend = 0;
-          if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
-        }
-        invalidatePhysicalScene('terrain-shade-quality');
-      }
       return renderQuality;
     }
 
@@ -3206,7 +3225,7 @@ export function createGpuMapRenderer(deps) {
         gl.uniform2f(cachedUniformLocation(program, 'uTextureSize'), sourceWidth, sourceHeight);
         gl.uniform2f(cachedUniformLocation(program, 'uLevelSize'), sourceLevel.width, sourceLevel.height);
         gl.uniform1f(cachedUniformLocation(program, 'uLandPass'), pass === 'land' ? 1 : 0);
-        gl.uniform1f(cachedUniformLocation(program, 'uShadeBlend'), demShadeBlend);
+        gl.uniform1f(cachedUniformLocation(program, 'uDetailedShade'), scaleQuality === 'preview' ? 0 : 1);
       }
       for (const offset of frameContext.worldOffsets) {
         setViewUniforms(program, offset, frameContext);
@@ -3297,8 +3316,21 @@ export function createGpuMapRenderer(deps) {
     }
 
     let preparedBaseScene = null;
+    function drawOceanSubstrate() {
+      gl.disable(gl.BLEND);
+      gl.disable(gl.STENCIL_TEST);
+      if (glVersion === 2) gl.bindVertexArray(null);
+      gl.useProgram(oceanSubstrateProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, oceanSubstrateBuffer);
+      const position = cachedAttributeLocation(oceanSubstrateProgram, 'aPosition');
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      setViewUniforms(oceanSubstrateProgram, 0, activeFrameContext);
+      gl.uniform3fv(cachedUniformLocation(oceanSubstrateProgram, 'uOceanColor'), mapTheme().oceanGpu);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.disableVertexAttribArray(position);
+    }
     function prepareBaseScene() {
-      prepareTerrain(activeFrameContext);
       preparedBaseScene = prepareGpuBaseScene({ mesh, overrideMesh, frame: activeFrameContext,
         scene: renderScene, budgetBytes: renderQuality.uploadBudgetBytes, presentedStrokeDomains }, { polygonOverlayPass, strokeRenderer });
       const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
@@ -3318,7 +3350,9 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawBaseSceneContent() {
-      if (!gl || !mesh || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
+      if (!gl || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
+      if (!mesh && (!preparedBaseScene.physicalLandItems.length || preparedBaseScene.physicalLandItems.some(({ packet }) =>
+        preparedBaseScene.deferredOverlayKeys.has(packet.key) || preparedBaseScene.failedOverlayKeys.has(packet.key)))) return false;
       const theme = mapTheme();
       const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
@@ -3326,7 +3360,7 @@ export function createGpuMapRenderer(deps) {
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
         prepared: preparedBaseScene,
-      }, { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
+      }, { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
       performanceMetrics.baseSceneDrawCount += 1;
       sceneCacheFullDrawCount += 1;
       if (result.strokePresentationFailed) return false;
@@ -3401,7 +3435,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function renderWebGl(visualFrame, { interactionOnly = false } = {}) {
-      if (!gl || !mesh) return null;
+      if (!gl) return null;
+      if (projectRenderBlocked) return renderPreservedProjectFrame();
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('GPU render requires a MapVisualFrame.');
       resize(visualFrame);
       activeFrameContext = visualFrame;
@@ -3419,6 +3454,13 @@ export function createGpuMapRenderer(deps) {
       };
       let preservedCountryPatchPromoted = false;
       sceneCacheFallbackFrame = false;
+      // A cached image can skip drawing, never current-view terrain requests.
+      // This also promotes cached detail immediately on a small flat zoom.
+      const previousTerrainTarget = terrainPreparation?.stats().terrainTargetKey;
+      prepareTerrain(activeFrameContext);
+      if (previousTerrainTarget !== terrainPreparation?.stats().terrainTargetKey) {
+        sceneColorCache.invalidate('terrain-target');
+      }
       const viewSignature = sceneViewSignature(viewState);
       const exactSceneCacheHit = sceneColorCache.canComposite?.(viewSignature, projectGeneration) || false;
       const reproject = !exactSceneCacheHit && !sceneColorCache.isDirty?.()
@@ -3543,7 +3585,7 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.interactionFrameCount += 1;
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
-      if (baseResult && !baseSubmissionFailed) markPreviewFramePresented();
+      if (mesh && baseResult && !baseSubmissionFailed) markPreviewFramePresented();
       if (!webglContextLost && baseResult && !baseSubmissionFailed) recordMapPresentation(visualFrame,
         baseResult.countryStrokeResult?.succeeded === true && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length);
       frameTimes.push(performance.now() - started);
@@ -4692,8 +4734,6 @@ export function createGpuMapRenderer(deps) {
     function setTerrainManifest(manifest, manifestUrl = TERRAIN_RASTER_MANIFEST_URL,
       { source = 'raster', fallbackReason = null } = {}) {
       if(!terrainPreparation)throw new Error('Terrain resources are unavailable in this product.');
-      if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
-      demShadeBlend = 0; demSettleStartedAt = 0;
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainManifestUrl = manifestUrl;
       terrainSource = source;
@@ -4730,7 +4770,7 @@ export function createGpuMapRenderer(deps) {
       target.terrainSource = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource;
       target.terrainFallbackReason = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason;
       target.terrainTargetLevel = terrainStats.terrainLevel;
-      target.terrainShadeBlend = demShadeBlend;
+      target.terrainDetailedShade = detailedTerrainShadeActive();
       target.requestedRevision = currentRenderRevision;
       target.displayedRevision = displayedRenderRevision;
       target.lastMeshPreparation = performanceMetrics.lastMeshPreparation || null;
@@ -4788,7 +4828,7 @@ export function createGpuMapRenderer(deps) {
         terrainDatasetVersion: activeTerrainSourceInfo().version,
         terrainSource: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource,
         terrainFallbackReason: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason,
-        terrainShadeBlend: demShadeBlend,
+        terrainDetailedShade: detailedTerrainShadeActive(),
         projectRenderBlocked,
         sceneCacheValid: sceneColorCache.isValid(),
         ...(rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? canvasTerrainStats : {}),
@@ -4824,7 +4864,7 @@ export function createGpuMapRenderer(deps) {
         terrainSource: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource,
         terrainFallbackReason: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason,
         terrainTargetLevel: terrainStats.terrainLevel,
-        terrainShadeBlend: demShadeBlend,
+        terrainDetailedShade: detailedTerrainShadeActive(),
         projectRenderBlocked,
         activeWebGlContextCount: renderDevice && isWebGlRenderer() ? 1 : 0,
         renderSceneRevision: lastRenderSceneRevision,
@@ -4951,7 +4991,6 @@ export function createGpuMapRenderer(deps) {
     function dispose() {
       presentedStrokeDomains.clear();
       if (disposed) return;
-      if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
       disposed = true;
       projectGeneration += 1; renderDeviceContextRevision += 1;
       pendingCanonicalCommit?.reject(Object.assign(new Error('Renderer disposed'), { name: 'AbortError' }));
@@ -4983,7 +5022,7 @@ export function createGpuMapRenderer(deps) {
       dispose, attach,
       mapReadiness, retryMapPreparation,
       failMapPreparation: error => { canonicalPromotionError = String(error?.message || error); publishMapReadiness(); },
-      initialize, replaceBuiltInMesh, renderFrame, renderInteraction,
+      initialize, replaceBuiltInMesh, renderFrame, renderInteraction, renderPreservedProjectFrame,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, getRenderPixelRatio: resolveRenderPixelRatio, setTerrainManifest, activeTerrainSourceInfo,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,

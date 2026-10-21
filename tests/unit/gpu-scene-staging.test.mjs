@@ -107,7 +107,7 @@ test('a failed prepared B draw redraws eligible A before publication and cannot 
   const prepared = h.prepare([b]), drawn = [];
   const gl = new Proxy({}, { get: (_target, key) => /^[A-Z_]+$/.test(key) ? key : () => {} });
   const result = drawGpuBaseScene({ gl, frame: { frameId: 1, projectGeneration: 7 }, countries: {}, prepared }, {
-    drawHydro() {}, drawCountryBoundaryStrokes() {}, strokeRenderer: { ...h,
+    drawOceanSubstrate() {}, drawHydro() {}, drawCountryBoundaryStrokes() {}, strokeRenderer: { ...h,
       hasResource: key => h.resources.has(key),
       drawBatches: rows => { const row = rows[0]; drawn.push(row.geometryRevision);
         return row.geometryRevision === 2 ? { renderedKeys: [], missingKeys: [row.key], failures: [{ key: row.key, reason: 'GPU draw failed' }] }
@@ -127,7 +127,7 @@ test('failure of both B and eligible A is a failed presentation with no promotio
   const h = harness(), a = packet('line', 1), b = packet('line', 2); h.ready(a); h.accept(h.prepare([a])); h.ready(b);
   const gl = new Proxy({}, { get: (_target, key) => /^[A-Z_]+$/.test(key) ? key : () => {} });
   const result = drawGpuBaseScene({ gl, frame: { frameId: 1, projectGeneration: 7 }, countries: {}, prepared: h.prepare([b]) }, {
-    drawHydro() {}, drawCountryBoundaryStrokes() {}, strokeRenderer: {
+    drawOceanSubstrate() {}, drawHydro() {}, drawCountryBoundaryStrokes() {}, strokeRenderer: {
       hasResource: () => true, drawBatches: rows => ({ renderedKeys: [], missingKeys: rows.map(row => row.key) }),
     },
   });

@@ -7,14 +7,18 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
   function drain() {
     frame = 0;
     if (disposed) return;
-    if (active || isHidden() || isInputPending()) { lastInput = now(); schedule(); return; }
-    if (now() - lastInput < 500) { schedule(); return; }
+    if (isHidden()) { schedule(); return; }
+    if (isInputPending()) { lastInput = now(); schedule(); return; }
+    const interaction = active || now() - lastInput < 500;
     const start = now();
-    let bytes = Math.min(2 * 1024 * 1024, Math.max(4, getByteBudget()));
+    let bytes = Math.min(interaction ? 256 * 1024 : 2 * 1024 * 1024, Math.max(4, getByteBudget()));
     const order = [...jobs.values()].sort((a, b) => b.priority - a.priority);
     for (const job of order) {
       if (now() - start >= 2 || bytes <= 0) break;
       if (!jobs.has(job.key)) continue;
+      // Visible resources must progress during navigation. Background work
+      // keeps its quiet period; both paths share the same frame/time budget.
+      if (interaction && !job.allowDuringInteraction) continue;
       try {
         const result = job.step({ byteBudget: Math.min(bytes, 256 * 1024), deadline: start + 2 }) || {};
         const used = Math.max(0, Number(result.bytes) || 0);
