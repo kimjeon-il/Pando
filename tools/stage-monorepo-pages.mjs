@@ -5,6 +5,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, writeFile
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collectViewerAssets } from '../scripts/lib/product-assets.mjs';
+import { prepareLibraryData } from './library-data.mjs';
 
 const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = [
@@ -54,6 +55,7 @@ function isEquivalentCrLfCheckout(working, committed) {
 
 export async function stageWebPages(rootInput, stageInput, manifestInput) {
   const root = resolve(rootInput), stage = resolve(stageInput), manifest = resolve(manifestInput);
+  const library = prepareLibraryData({ root });
   const generator = resolve(root, 'scripts/generate-build-metadata.mjs');
   if (existsSync(generator)) execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
   if (within(root, stage) || stage === root) throw Error('Pages stage must be outside the source repository');
@@ -62,12 +64,17 @@ export async function stageWebPages(rootInput, stageInput, manifestInput) {
   }
   if (existsSync(stage) || existsSync(manifest)) throw Error('Pages stage or evidence already exists');
   const all = gitFiles(root);
+  if (library) for (const [path, entry] of Object.entries(library.files)) {
+    if (!path.startsWith('assets/data/')) continue;
+    all.push({ path, mode: '100644', bytes: entry.bytes, blob: null, sha256: entry.sha256, data: true });
+  }
+  const sourceBytes = file => file.data ? readFileSync(resolve(library.materialized, file.path)) : committedBlob(root, file);
   const excludedNativeFiles = all.filter(file => file.path.startsWith('native/')).length;
   const excludedSharedFiles = all.filter(file => file.path.startsWith('shared/')).length;
   const excludedAppFiles = all.filter(file => file.path.startsWith('apps/')).length;
   const byPath = new Map(all.map(file => [file.path, file]));
   const viewerPaths = await collectViewerAssets({ root, availablePaths: all.map(file => file.path),
-    readSource: path => committedBlob(root, byPath.get(path)).toString('utf8') });
+    readSource: path => sourceBytes(byPath.get(path)).toString('utf8') });
   const web = all.filter(file => viewerPaths.has(file.path));
   const paths = new Set(web.map(file => file.path));
   const required=[...REQUIRED];
@@ -84,8 +91,9 @@ export async function stageWebPages(rootInput, stageInput, manifestInput) {
       throw Error(`Invalid source file: ${file.path}`);
     }
     const working = readFileSync(source);
-    const exact = working.length === file.bytes && blobHash(working) === file.blob;
-    const committed = exact ? working : committedBlob(root, file);
+    const exact = working.length === file.bytes && (file.data ? hash('sha256', working) === file.sha256 : blobHash(working) === file.blob);
+    const committed = exact ? working : sourceBytes(file);
+    if (file.data && !exact) throw Error(`Pinned library transfer mismatch: ${file.path}`);
     if (!exact && !isEquivalentCrLfCheckout(working, committed)) {
       throw Error(`Committed Web file changed or mismatch: ${file.path}`);
     }
@@ -97,12 +105,13 @@ export async function stageWebPages(rootInput, stageInput, manifestInput) {
     const output = resolve(stage, file.path);
     if (!within(stage, output)) throw Error(`Invalid Pages output: ${file.path}`);
     mkdirSync(dirname(output), { recursive: true });
-    if (file.convertedCrLf) writeFileSync(output, committedBlob(root, file));
+    if (file.convertedCrLf) writeFileSync(output, sourceBytes(file));
     else copyFileSync(resolve(root, file.path), output);
     if (hash('sha256', readFileSync(output)) !== file.sha256) throw Error(`Staged copy mismatch: ${file.path}`);
   }
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   const evidence = { schema: 'pando-web-pages-staging', productMode: 'viewer', sourceCommit, fileCount: files.length,
+    dataRepository: library?.repository, dataCommit: library?.revision,
     bytes: total, limitBytes: LIMIT_BYTES, excludedNativeFiles, excludedSharedFiles, excludedAppFiles, files };
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');

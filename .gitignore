@@ -21,3 +21,13 @@ aqtinstall.log
 tools/historical-library/sources/german-empire-1914/*.geojson
 tools/historical-library/generated/german-empire-1914-base.geojson
 tools/historical-library/generated/german-empire-1914-base.diagnostics.json
+
+# External library data and fixed local materialization (never tracked in app Git).
+/.library-data/
+/assets/data
+/reports
+/tools/historical-library/sources
+/tools/historical-library/working
+/tools/historical-library/review-output
+/tools/historical-library/land-borders
+/.codex-remote-attachments/

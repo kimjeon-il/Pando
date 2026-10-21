@@ -26,7 +26,7 @@ DEM 71프레임, raster 59프레임의 화면 좌표를 실제 준비 타일의 
 
 관련 파일의 ESLint, `node scripts/check-runtime-boundaries.mjs`(302모듈, 순환 없음), `git diff --check`, workflow YAML 및 작업 연결 검사가 통과했다. 기존 Application Architecture workflow에 변경 범위별 지형 브라우저 검사 여섯 개와 증거 artifact 업로드를 추가했다. 원격 CI, main 병합, Pages 배포 및 라이브 배포 결과 검증은 이번 로컬 검증에서 실행하지 않았다. Canvas Worker 및 실제 하드웨어 GPU·모든 브라우저에서의 동등성을 통과로 간주하지 않는다. 위 로그·이미지는 ignored 로컬 검증 산출물이며 원격 실행 시 CI artifact로 보존한다.
 
-DEM 데이터는 앱 저장소가 아닌 [별도 공개 저장소](https://github.com/kimjeon-il/world-map-terrain-v0.13.0)의 GitHub Pages에서 제공한다. 앱은 `https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/manifest.json`을 읽는다. 데이터 자산은 해당 버전에서 수정하지 않고, 변경이 필요하면 새 버전 경로를 만든다. 배포 순서는 데이터 업로드와 HTTP 검증, `?demTerrain=preview` 검수, 앱의 기본값 전환이다.
+DEM 데이터는 앱 저장소가 아닌 [별도 공개 저장소](https://github.com/kimjeon-il/PandoLab-library-data)의 GitHub Pages에서 제공한다. 앱은 `https://kimjeon-il.github.io/PandoLab-library-data/terrain/v0.13.3/manifest.json`을 읽는다. 데이터 자산은 해당 버전에서 수정하지 않고, 변경이 필요하면 새 버전 경로를 만든다. 배포 순서는 데이터 업로드와 HTTP 검증, `?demTerrain=preview` 검수, 앱의 기본값 전환이다.
 
 원본은 [NOAA ETOPO 2022 30 arc-second Ice Surface GeoTIFF](https://www.ncei.noaa.gov/products/etopo-global-relief-model)와 음영을 포함하지 않은 [Natural Earth Cross-blended Hypso HYP_HR](https://www.naturalearthdata.com/downloads/10m-raster-data/10m-cross-blend-hypso/)다. ETOPO의 좌표계는 WGS84 경위도와 EGM2008 높이의 결합 좌표계 EPSG:9518이다. 타일의 위치는 EPSG:4326 경위도로 표현하고 높이값은 EGM2008 m를 보존한다.
 

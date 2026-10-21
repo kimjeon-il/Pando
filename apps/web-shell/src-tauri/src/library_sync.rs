@@ -8,7 +8,14 @@ use std::{
     process::{Command, Stdio},
     time::{Duration, Instant},
 };
-pub const SOURCE_REPOSITORY: &str = "kimjeon-il/Pando-library-data";
+fn source_repository() -> &'static str {
+    static REPOSITORY: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    REPOSITORY.get_or_init(|| {
+        let config: serde_json::Value = serde_json::from_str(include_str!("../../../../config/library-data.json"))
+            .expect("valid library configuration");
+        config["repository"].as_str().expect("configured library repository").to_owned()
+    }).as_str()
+}
 pub trait Api {
     fn request(&self, method: &str, path: &str, body: Option<Value>) -> Result<Value>;
 }
@@ -119,7 +126,7 @@ fn decode(v: &Value) -> Result<Vec<u8>> {
     STANDARD.decode(s).map_err(|e| e.to_string())
 }
 fn endpoint(s: &str) -> String {
-    format!("repos/{SOURCE_REPOSITORY}/{s}")
+    format!("repos/{}/{s}", source_repository())
 }
 fn download(api: &impl Api, sha: &str) -> Result<Vec<u8>> {
     git_sha(sha)?;
@@ -144,7 +151,7 @@ pub fn sync(repo: &Repository, api: &impl Api, validated_revision: Option<&str>)
     if state.conflict.is_some() {
         return Ok(Repository::status(&state));
     }
-    let remote = api.request("GET", &format!("repos/{SOURCE_REPOSITORY}"), None)?;
+    let remote = api.request("GET", &format!("repos/{}", source_repository()), None)?;
     if remote["private"] != true {
         return Err("Library source repository must be private".into());
     }
@@ -305,6 +312,6 @@ pub fn publish(repo: &Repository, api: &impl Api, revision: &str) -> Result<Valu
         .as_deref()
         .ok_or("Missing synced Git revision")?;
     git_sha(sha)?;
-    api.request("POST","repos/kimjeon-il/Pando/actions/workflows/library-publish.yml/dispatches",Some(json!({"ref":"main","inputs":{"sourceRepository":SOURCE_REPOSITORY,"sourceRevision":sha,"revision":revision}})))?;
+    api.request("POST","repos/kimjeon-il/Pando/actions/workflows/library-publish.yml/dispatches",Some(json!({"ref":"main","inputs":{"sourceRepository":source_repository(),"sourceRevision":sha,"revision":revision}})))?;
     Ok(json!({"state":"dispatched","sourceRevision":sha}))
 }

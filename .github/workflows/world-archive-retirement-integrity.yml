@@ -44,6 +44,8 @@ jobs:
             /assets/data/world/current.json
             /assets/data/world/build-input.json
             /assets/data/world-preview-v0.36.0.json
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

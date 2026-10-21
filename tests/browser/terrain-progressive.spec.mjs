@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 
-const DEM_ORIGIN = 'https://kimjeon-il.github.io/world-map-terrain-v0.13.0';
+const DEM_ORIGIN = 'https://kimjeon-il.github.io/PandoLab-library-data';
 
 test.use({
   viewport: { width: 390, height: 844 },
