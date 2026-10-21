@@ -71,7 +71,7 @@ export function resolveInteractionEntries(entries = []) {
 const STROKE_SHAPE = Object.freeze({ cap: 'round', join: 'round', dash: Object.freeze([0, 0]), casing: null,
   blendMode: 'normal', scaleWithView: false, antiAlias: true });
 const BASE_STROKES = Object.freeze({
-  country: Object.freeze({ width: 0.72, cap: 'butt' }),
+  country: Object.freeze({ width: 0.72, cap: 'butt', coverage: 'union' }),
   'country-internal': Object.freeze({ width: 1.1, cap: 'butt', join: 'miter', dash: Object.freeze([3, 2]) }),
   subunit: Object.freeze({ width: 2 }),
   'subunit-internal': Object.freeze({ width: 1.1, dash: Object.freeze([3, 2]) }),
