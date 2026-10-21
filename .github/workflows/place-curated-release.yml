@@ -56,6 +56,8 @@ jobs:
         run: git diff --check
 
       - name: Commit only generated places assets to work/places
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           if git diff --quiet -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json; then
             echo "Place release outputs already match the approved source."
@@ -63,7 +65,7 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json
+          node tools/library-data.mjs --store-and-stage --push -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json
           git commit -m 'build(places): publish approved-only city shard and search manifest'
           # If the remote moved while this job ran, fail safely rather than rewrite it.
           git push origin 'HEAD:work/places'
