@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: p6-native-webview-${{ github.ref }}
+  group: p6-native-webview-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
