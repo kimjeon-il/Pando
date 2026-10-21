@@ -105,6 +105,12 @@ jobs:
       - name: '4b. Actual small-project App staging and source identity'
         if: ${{ contains(github.event.head_commit.message, '[stage-only]') }}
         run: |
+          # Compare the actual app package against source-matched generated assets,
+          # without pushing or committing generated files from this CI run.
+          node scripts/generate-build-metadata.mjs
+          node scripts/generate-build-metadata.mjs --check
+          echo 'Generated tracked changes in temporary CI checkout:'
+          git diff --name-only | head -60
           node apps/web-shell/stage.mjs --profile=small-project
           node apps/web-shell/check-stage.mjs
           node --input-type=module -e "
