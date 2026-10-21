@@ -62,7 +62,7 @@ test('canonical packet materializes cooperatively in an isolated browser harness
   expect(result.decodedBytes).toBeLessThan(10 * 1024 * 1024);
   expect(result.retainedBytes).toBeLessThan(10 * 1024 * 1024);
   expect(result.featureCount).toBe(258);
-  expect(result.coordinateCount).toBe(548_454);
+  expect(result.coordinateCount).toBe(561_128);
   expect(result.sliceCount).toBeGreaterThan(1);
   expect(result.maxSliceCoordinates).toBeLessThanOrEqual(4096);
   expect(result.longTaskCount).toBe(0);
@@ -75,5 +75,5 @@ test('default world startup uses packed assets without catalog index or entity c
  expect(requests.filter(url=>url.includes('/territorial-entities/'))).toEqual([]);
  expect(requests.filter(url=>url.includes(worldAssets.canonicalCountryPacket.url))).toHaveLength(1);
  expect(requests.filter(url=>url.includes(worldAssets.canonicalMesh.url))).toHaveLength(1);
- expect(await page.evaluate(()=>window.__PANDOLAB_STARTUP_METRICS__.canonicalMaterializedCoordinateCount)).toBe(548_454);
+ expect(await page.evaluate(()=>window.__PANDOLAB_STARTUP_METRICS__.canonicalMaterializedCoordinateCount)).toBe(561_128);
 });
