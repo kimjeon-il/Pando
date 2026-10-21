@@ -54,7 +54,6 @@ std::shared_ptr<const detail::DocumentState> restoredBoundaryLabelSettings(
     auto document=target->document;document.presentation.webPresentation.labelSettings=std::move(settings);
     return std::make_shared<const detail::DocumentState>(std::move(document));
 }
-CountryProperties properties(const CountryView& c) { return {c.name,c.memo,c.color,c.opacity,c.layerId}; }
 void rebasePhysicalPresentation(const ProjectDocument& current,const ProjectDocument& from,ProjectDocument& target) {
     if(current.exchangeMetadata==from.exchangeMetadata)return;
     auto latest=codecjson::parse(current.exchangeMetadata),before=codecjson::parse(from.exchangeMetadata),after=codecjson::parse(target.exchangeMetadata);
@@ -371,74 +370,6 @@ void Project::amendLabelGesture(const ChangeSet& change,std::uint64_t checkpoint
     gesture.after_=prepared.state_;gesture.impact_=calculateChangeImpact(gesture.before(),gesture.after(),gesture.request_.targets,timelineCursor_);
     auto commands=std::make_shared<const std::vector<ChangeSet>>(std::move(ledger));
     state_=prepared.state_;viewState_=std::move(view);commands_=std::move(commands);++revision_;++presentationRevision_;
-}
-bool Project::execute(std::string commandId, CommandArguments args)
-{
-    auto result=CommandProcessor::prepare(*this,CommandProcessor::makeRequest(*this,std::move(commandId),std::move(args)));
-    return result.preview && CommandProcessor::confirm(*this,*result.preview).changed();
-}
-bool Project::changeCountry(const std::string& id,CountryProperties next)
-{
-    CommandArguments args; args.properties.countries.push_back({id,std::move(next)});
-    return execute("edit.properties",std::move(args));
-}
-bool Project::changeUserLayer(UserLayer next)
-{
-    CommandArguments args; args.properties.layers.push_back(std::move(next));
-    return execute("edit.properties",std::move(args));
-}
-bool Project::setColor(const std::string& id,std::uint32_t color)
-{
-    CommandArguments args; args.action=SetCountryColor{id,color}; return execute("country.color",std::move(args));
-}
-bool Project::renameCountry(const std::string& id,const std::string& name)
-{
-    if(!country(id))return false;
-    CommandArguments args;args.action=TerritorialFieldEdit{territorialRef(id),TerritorialField::Name,name};
-    return execute("territorial.field",std::move(args));
-}
-bool Project::setMemo(const std::string& id,const std::string& memo)
-{
-    if(!country(id))return false;
-    CommandArguments args;args.action=TerritorialFieldEdit{territorialRef(id),TerritorialField::Notes,memo};
-    return execute("territorial.field",std::move(args));
-}
-bool Project::setCountryOpacity(const std::string& id,double opacity)
-{
-    auto c=country(id); if(!c) return false;
-    auto next=properties(*c); next.opacity=opacity; return changeCountry(id,std::move(next));
-}
-bool Project::moveCountryToUserLayer(const std::string& id,const std::string& layerId)
-{
-    CommandArguments args; args.action=MoveCountryToUserLayer{id,layerId}; return execute("country.move",std::move(args));
-}
-bool Project::addUserLayer(const std::string& id,const std::string& name)
-{
-    CommandArguments args; args.action=AddUserLayer{id,name}; return execute("layer.add",std::move(args));
-}
-bool Project::removeUserLayer(const std::string& id)
-{
-    CommandArguments args; args.action=RemoveUserLayer{id}; return execute("layer.remove",std::move(args));
-}
-bool Project::renameUserLayer(const std::string& id,const std::string& name)
-{
-    auto l=userLayer(id); if(!l) return false; auto next=*l; next.name=name; return changeUserLayer(std::move(next));
-}
-bool Project::setUserLayerVisible(const std::string& id,bool visible)
-{
-    CommandArguments args; args.action=SetUserLayerVisible{id,visible}; return execute("layer.visibility",std::move(args));
-}
-bool Project::setUserLayerLocked(const std::string& id,bool locked)
-{
-    CommandArguments args; args.action=SetUserLayerLocked{id,locked}; return execute("layer.lock",std::move(args));
-}
-bool Project::setUserLayerOpacity(const std::string& id,double opacity)
-{
-    auto l=userLayer(id); if(!l) return false; auto next=*l; next.opacity=opacity; return changeUserLayer(std::move(next));
-}
-bool Project::moveUserLayer(const std::string& id,int delta)
-{
-    CommandArguments args; args.action=MoveUserLayer{id,delta}; return execute("layer.move",std::move(args));
 }
 std::string Project::historyCommandId(bool forward) const {
     return (forward?canRedo():canUndo())?(*commands_)[forward?cursor_:cursor_-1].request_.commandId:std::string{};
