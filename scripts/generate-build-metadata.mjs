@@ -138,7 +138,9 @@ const productHtml=renderProductHtml(path=>readFileSync(resolve(projectRoot,path)
 for (const [htmlPath, imports, mode] of [[indexPath, viewerModuleImports,'web'], [editorPath, moduleImports,'editor']]) {
 let index = productHtml[mode].replaceAll('{{assetRevision}}',assetRevision);
 index = index.replace(/(\bdata-app-version=")[^"]+(")/, `$1${appVersion}$2`);
-index = index.replace(/(\b(?:href|src)="[^"]*assets\/[^"?]+)(?:\?v=[^"]*)?(")/g, `$1?v=${assetRevision}$2`);
+index = index.replace(/(\b(?:href|src)="[^"]*assets\/[^"?]+)(?:\?v=[^"]*)?(")/g,
+  (_match, start, end) => /assets\/fonts\/pretendard-v\d+\.\d+\.\d+\/[^/]+\.woff2$/.test(start)
+    ? `${start}${end}` : `${start}?v=${assetRevision}${end}`);
 const moduleImportMap = `<script id="pandolab-module-import-map" type="importmap">\n${JSON.stringify({ imports }, null, 2)}\n  </script>`;
 const moduleImportMapPattern = /<script\b[^>]*id="pandolab-module-import-map"[^>]*>[\s\S]*?<\/script>/;
 index = moduleImportMapPattern.test(index)

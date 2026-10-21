@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collectViewerAssets } from '../scripts/lib/product-assets.mjs';
 import { prepareLibraryData } from './library-data.mjs';
+import { BASELINE_DATA_CHANNEL } from '../assets/js/modules/publication-data-channel.js';
 
 const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = [
@@ -83,7 +84,9 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
     || path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))required.push(
     'assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm','assets/wasm/pandoeditor-core.manifest.json');
   for (const path of required) if (!paths.has(path)) throw Error(`Missing protected Web URL: ${path}`);
-  const total = web.reduce((sum, file) => sum + file.bytes, 0);
+  const channelPath = 'assets/data/library-channel/current.json';
+  const channelBytes = Buffer.from(JSON.stringify(BASELINE_DATA_CHANNEL) + '\n');
+  const total = web.reduce((sum, file) => sum + file.bytes, 0) + channelBytes.length;
   if (total > LIMIT_BYTES) throw Error(`Pages site exceeds ${LIMIT_BYTES} bytes: ${total}`);
   const files = web.map(file => {
     if (file.mode !== '100644' && file.mode !== '100755') throw Error(`Unsupported source mode: ${file.path}`);
@@ -101,12 +104,15 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
     return { path: file.path, blob: file.blob, bytes: file.bytes,
       sha256: hash('sha256', committed), convertedCrLf: !exact };
   });
+  files.push({ path: channelPath, blob: null, bytes: channelBytes.length,
+    sha256: hash('sha256', channelBytes), generated: true });
   mkdirSync(stage, { recursive: true });
   for (const file of files) {
     const output = resolve(stage, file.path);
     if (!within(stage, output)) throw Error(`Invalid Pages output: ${file.path}`);
     mkdirSync(dirname(output), { recursive: true });
-    if (file.convertedCrLf) writeFileSync(output, sourceBytes(file));
+    if (file.generated) writeFileSync(output, channelBytes);
+    else if (file.convertedCrLf) writeFileSync(output, sourceBytes(file));
     else copyFileSync(resolve(root, file.path), output);
     if (hash('sha256', readFileSync(output)) !== file.sha256) throw Error(`Staged copy mismatch: ${file.path}`);
   }
@@ -119,10 +125,40 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   return evidence;
 }
 
+// Publication may replace the baseline pointer and add immutable releases.
+// Record the actual final artifact rather than the pre-overlay file list.
+export function finalizeWebPages(stageInput, manifestInput) {
+  const stage = resolve(stageInput), manifest = resolve(manifestInput);
+  if (within(stage, manifest) || stage === manifest) throw Error('Pages evidence must be outside stage');
+  const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
+  if (evidence.schema !== 'pando-web-pages-staging') throw Error('Invalid Pages staging evidence');
+  const previous = new Map(evidence.files.map(file => [file.path, file]));
+  const files = [];
+  function visit(directory, prefix = '') {
+    for (const name of readdirSync(directory).sort()) {
+      const path = prefix + name, absolute = resolve(directory, name), stat = lstatSync(absolute);
+      if (stat.isDirectory()) visit(absolute, path + '/');
+      else {
+        if (!stat.isFile()) throw Error(`Invalid Pages artifact file: ${path}`);
+        const bytes = readFileSync(absolute), sha256 = hash('sha256', bytes), old = previous.get(path);
+        files.push(old?.sha256 === sha256 ? old : { path, blob: null, bytes: bytes.length, sha256 });
+      }
+    }
+  }
+  visit(stage);
+  const bytes = files.reduce((total, file) => total + file.bytes, 0);
+  if (bytes > LIMIT_BYTES) throw Error(`Pages site exceeds ${LIMIT_BYTES} bytes: ${bytes}`);
+  const final = { ...evidence, files, bytes, fileCount: files.length };
+  writeFileSync(manifest, JSON.stringify(final, null, 2) + '\n');
+  return final;
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
   const arg = name => { const at = args.indexOf(name); return at < 0 ? null : args[at + 1]; };
   if (!arg('--stage') || !arg('--manifest')) throw Error('Usage: stage-monorepo-pages.mjs --root ROOT --stage OUT --manifest EVIDENCE [--skip-checks]');
-  const result = await stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'), { skipChecks: args.includes('--skip-checks') });
+  const result = args.includes('--finalize')
+    ? finalizeWebPages(arg('--stage'), arg('--manifest'))
+    : await stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'), { skipChecks: args.includes('--skip-checks') });
   process.stdout.write(`${result.fileCount} Web files, ${result.bytes} bytes, ${result.excludedNativeFiles} native, ${result.excludedSharedFiles} shared and ${result.excludedAppFiles} app source files excluded\n`);
 }
