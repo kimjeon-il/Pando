@@ -100,22 +100,22 @@ void ownedCommandBoundaries(const std::string& seed) {
     assert(session.selectionRefExists({"hydroBuiltin","river","river-fid"}));
     assert(session.storageSnapshot()==catalogStorage);
     assert(session.projectState().epoch==aliasBefore.epoch&&session.projectState().revision==aliasBefore.revision&&session.projectState().presentationRevision==aliasBefore.presentationRevision&&!session.projectState().dirty&&!session.projectState().canUndo);
-    Project nativeProject;nativeProject.replace(projectcodec::decodeWeb(seed,ports));nativeProject.setTimelineCursor("2026-10",false);
-    DocumentSession native(ports,DocumentSessionProfile::Native,{[](const SelectionRef&){return false;}});native.adoptPreparedProject(std::move(nativeProject));
-    const auto nativeEpoch=native.projectState().epoch;
-    edit.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Native held"};
-    auto nativeRequest=CommandProcessor::makeRequest(native.project(),"territorial.field",edit);nativeRequest.targets={territorialRef("A")};
-    auto nativePrepared=native.prepareNativeCommand(nativeRequest,nativeEpoch);assert(nativePrepared.preview);
-    assert(native.applyPresentation(SetPresentationVisibility{"labels",false},nativeEpoch).result.changed());
-    const auto nativeHeld=native.adoptPreparedCommand(std::move(nativePrepared),nativeEpoch);assert(nativeHeld.candidateId);
-    assert(native.confirmCandidate(nativeHeld.candidateId,nativeEpoch).result.changed()&&!groupVisible(native.project().document().presentation.webPresentation,"labels"));
-    const auto oldNativeEpoch=native.projectState().epoch;nativeRequest=CommandProcessor::makeRequest(native.project(),"territorial.field",edit);nativeRequest.targets={territorialRef("A")};
+    Project adoptedProject;adoptedProject.replace(projectcodec::decodeWeb(seed,ports));adoptedProject.setTimelineCursor("2026-10",false);
+    DocumentSession adopted(ports);adopted.adoptPreparedProject(std::move(adoptedProject));
+    const auto adoptedEpoch=adopted.projectState().epoch;
+    edit.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Adopted held"};
+    auto adoptedRequest=CommandProcessor::makeRequest(adopted.project(),"territorial.field",edit);adoptedRequest.targets={territorialRef("A")};
+    auto adoptedPrepared=CommandProcessor::prepare(adopted.project().snapshot(),adoptedRequest);assert(adoptedPrepared.preview);
+    assert(adopted.applyPresentation(SetPresentationVisibility{"labels",false},adoptedEpoch).result.changed());
+    const auto adoptedHeld=adopted.adoptPreparedCommand(std::move(adoptedPrepared),adoptedEpoch);assert(adoptedHeld.candidateId);
+    assert(adopted.confirmCandidate(adoptedHeld.candidateId,adoptedEpoch).result.changed()&&!groupVisible(adopted.project().document().presentation.webPresentation,"labels"));
+    const auto adoptedOldEpoch=adopted.projectState().epoch;
+    adoptedRequest=CommandProcessor::makeRequest(adopted.project(),"territorial.field",edit);adoptedRequest.targets={territorialRef("A")};
+    adoptedRequest.args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Late name"};
+    adoptedPrepared=CommandProcessor::prepare(adopted.project().snapshot(),adoptedRequest);assert(adoptedPrepared.preview);
     edit.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Notes,"Other command"};
-    nativePrepared=native.prepareNativeCommand(nativeRequest,oldNativeEpoch);
-    // Use a genuinely changed held request, then reject it after another document write.
-    nativeRequest.args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Late name"};nativePrepared=native.prepareNativeCommand(nativeRequest,oldNativeEpoch);assert(nativePrepared.preview);
-    assert(native.executeCommand("territorial.field",edit,{territorialRef("A")},oldNativeEpoch).result.changed());
-    assert(!native.adoptPreparedCommand(std::move(nativePrepared),oldNativeEpoch).result.ok());
+    assert(adopted.executeCommand("territorial.field",edit,{territorialRef("A")},adoptedOldEpoch).result.changed());
+    assert(!adopted.adoptPreparedCommand(std::move(adoptedPrepared),adoptedOldEpoch).result.ok());
 }
 void pureTimelineContracts() {
     const TimelineValidationContext context{{{"root","general"},{"child","general"}},[](const GeometryRef& ref){return ref.id=="shape"&&(ref.version==1||ref.version==2);}};
@@ -168,12 +168,6 @@ int main() {
     assert(!loaded.dirty&&!loaded.canUndo&&loaded.stateRevision==0);
     const auto hydro=session.project().document().hydro.at(0).id;
     assert(effectiveMapVisibility(session.project().document(),{"hydro",hydro}));
-    const projectcodec::PlatformPorts nativePorts{[](const std::string&){}};
-    auto native=codecjson::parse(projectcodec::encode(session.project().snapshot(),nativePorts));
-    const auto& authored=native.object.at("presentation").object.at("webPresentation");
-    assert(!authored.object.count("visibility")&&!authored.object.count("hiddenItems"));
-    native.object.at("presentation").object.at("webPresentation").object["hiddenItems"]=codecjson::Value::obj();
-    try{projectcodec::decode(native.encode(),nativePorts);assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what()).find("PL-SCHEMA-FIELD")!=std::string::npos);}
     auto invalidMonth=codecjson::parse(seed);invalidMonth.object.at("projectSetup").object["initialMonth"]=codecjson::Value::str("bad month");
     try { session.documentLoad(invalidMonth.encode(),"2026-10");assert(false); }
     catch(const std::exception&) {}

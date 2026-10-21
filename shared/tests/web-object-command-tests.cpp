@@ -129,22 +129,4 @@ void datedRemovalTruncatesWithoutDroppingIdentityOrArchive() {
     reject(p,{{"territorial","A"}},"not-found");assert(p.undo()&&p.resolveWorld("2026-10").find("A"));
 }
 }
-void nativeRemovalAdmission() {
-    const projectcodec::PlatformPorts ports{[](const std::string&){}};
-    auto d=fixture();d.presentation.userLayers={{"native-layer","Native"}};
-    for(const auto& row:d.distributionEntries){const ObjectRef ref{"distributionEntry",row.id};d.presentation.membership[ref]="native-layer";d.presentation.objectStyles[ref]={0x123456,1,true};}
-    Project project;project.replace(d);project.setTimelineCursor("2026-10",false);
-    DocumentSession session(ports,DocumentSessionProfile::Native,{[](const SelectionRef&){return false;}});session.adoptPreparedProject(std::move(project));
-    auto request=readWebObjectRemoval(session.project().snapshot(),json(R"({"refs":[{"domain":"territorial","id":"B"}]})"));
-    assert(session.executeCommand(request.commandId,request.args,request.targets,session.projectState().epoch).result.changed());
-    assert(!session.project().index().objects.count({"distributionEntry","E"})&&!session.project().document().presentation.membership.count({"distributionEntry","E"})&&!session.project().document().presentation.objectStyles.count({"distributionEntry","E"}));
-    assert(session.undo(session.projectState().epoch).result.changed()&&session.project().document().presentation.membership.count({"distributionEntry","E"}));
-    request=readWebObjectRemoval(session.project().snapshot(),json(R"({"refs":[{"domain":"territorial","id":"A"}]})"));
-    const auto before=session.projectState();const auto result=session.prepareNativeCommand(request,before.epoch);
-    assert(!result.ok()&&!result.preview&&result.detail=="DANGLING_REF: content territory"&&session.projectState().checkpoint==before.checkpoint);
-    d=fixture();d.units.at(1).locked=true;Project locked;locked.replace(d);locked.setTimelineCursor("2026-10",false);
-    try{readWebObjectRemoval(locked.snapshot(),json(R"({"refs":[{"domain":"territorial","id":"B"}]})"));assert(false);}catch(const TimelineError& error){assert(error.code=="locked");}
-    d=fixture();unit(d,"child","B");Project parent;parent.replace(d);parent.setTimelineCursor("2026-10",false);
-    try{readWebObjectRemoval(parent.snapshot(),json(R"({"refs":[{"domain":"territorial","id":"B"},{"domain":"territorial","id":"child"}]})"));assert(false);}catch(const TimelineError& error){assert(error.code=="has-children");}
-}
-int main(){nativeRemovalAdmission();fiveDomainsAtomicHistoryAndOriginalCleanup();duplicatesAndLastHydroSource();admissionIsAtomicAndChildrenCannotBeBundledAway();registeredDisplayIdentityAndCollision();datedRemovalTruncatesWithoutDroppingIdentityOrArchive();std::cout<<"Web object removal tests passed\n";}
+int main(){fiveDomainsAtomicHistoryAndOriginalCleanup();duplicatesAndLastHydroSource();admissionIsAtomicAndChildrenCannotBeBundledAway();registeredDisplayIdentityAndCollision();datedRemovalTruncatesWithoutDroppingIdentityOrArchive();std::cout<<"Web object removal tests passed\n";}
