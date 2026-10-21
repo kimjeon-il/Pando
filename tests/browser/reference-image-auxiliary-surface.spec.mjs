@@ -127,17 +127,30 @@ for (const tool of TOOLS) {
     await expect.poll(phase).toBe('armed');
     await expect(summary).toBeVisible();
     await expect(summary.locator(`[data-ref-${tool.id}-actions]`)).toBeVisible();
+    // The Surface owns the same row and buttons during every snap and phase.
+    await row.evaluate(node => {
+      window.__PANDOLAB_TEST_AUXILIARY_ROW__ = node;
+      window.__PANDOLAB_TEST_AUXILIARY_BUTTONS__ = [...node.children];
+    });
+    const stableActions = () => row.evaluate(node =>
+      node === window.__PANDOLAB_TEST_AUXILIARY_ROW__
+      && node.parentElement === document.querySelector('[data-ref-auxiliary-actions]')
+      && node.children.length === window.__PANDOLAB_TEST_AUXILIARY_BUTTONS__.length
+      && [...node.children].every((button, index) => button === window.__PANDOLAB_TEST_AUXILIARY_BUTTONS__[index]));
+    expect(await stableActions()).toBe(true);
     await expect(panel.locator(`[data-ref-${tool.id}-action="apply"]`)).toBeHidden();
     await expectAvailableActions(panel, tool, ['cancel']);
     await page.screenshot({ path: testInfo.outputPath(`${tool.id}-390px-armed-compact.png`), animations: 'disabled' });
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(summary).toBeHidden();
+    await expect(summary).toBeVisible();
+    await expect(summary).not.toHaveClass(/is-compact/);
     await expect(row).toBeVisible();
     await expectAvailableActions(panel, tool, ['cancel']);
     await expect.poll(phase).toBe('armed');
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(summary).toHaveClass(/is-compact/);
     await expect(summary.locator(`[data-ref-${tool.id}-actions]`)).toBeVisible();
     await expectAvailableActions(panel, tool, ['cancel']);
     expect(await readReferenceSnapshot(page)).toEqual(before);
@@ -158,11 +171,14 @@ for (const tool of TOOLS) {
     }
     await expect.poll(phase, { timeout: 10_000 }).toBe('preview');
     await expectAvailableActions(panel, tool, ['apply', 'cancel']);
+    expect(await stableActions()).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`${tool.id}-390px-preview-compact.png`), animations: 'disabled' });
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(summary).toBeHidden();
+    await expect(summary).toBeVisible();
+    await expect(summary).not.toHaveClass(/is-compact/);
     await expect(row).toBeVisible();
+    expect(await stableActions()).toBe(true);
     await expectAvailableActions(panel, tool, ['apply', 'cancel']);
     await expect.poll(phase).toBe('preview');
     const hitTests = await row.locator('button').evaluateAll((buttons, attribute) => buttons
@@ -189,6 +205,7 @@ for (const tool of TOOLS) {
     expect(await readReferenceSnapshot(page)).toEqual(before);
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(summary).toHaveClass(/is-compact/);
     await expect(summary.locator(`[data-ref-${tool.id}-actions]`)).toBeVisible();
     await expectAvailableActions(panel, tool, ['apply', 'cancel']);
     await page.screenshot({ path: testInfo.outputPath(`${tool.id}-390px-preview-recollapsed.png`), animations: 'disabled' });
@@ -196,7 +213,8 @@ for (const tool of TOOLS) {
 
     await panel.locator(`[data-ref-${tool.id}-action="cancel"]`).click();
     await expect.poll(phase).toBe('idle');
-    await expect(summary).toBeHidden();
+    await expect(summary).toBeVisible();
+    await expect(summary).not.toHaveClass(/is-compact/);
     await expect(panel.locator(`[data-ref-${tool.id}-action="start"]`)).toBeEnabled();
     expect(await readReferenceSnapshot(page)).toEqual(before);
     await testInfo.attach('browser-errors', { body: JSON.stringify(errors, null, 2), contentType: 'application/json' });

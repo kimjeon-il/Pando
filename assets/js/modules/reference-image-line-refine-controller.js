@@ -1,6 +1,6 @@
 import { referenceImageKeyBlocked, referenceImageNavigationHeld } from './reference-image-input.js';
 import { referenceImageEventTargetsMap, createReferenceImageTouchTracker } from './reference-image-pointer-target.js';
-import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
+import { setReferenceImageSurfaceEditing, setReferenceImageSurfaceActions } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
@@ -200,25 +200,6 @@ export function installReferenceImageLineRefiner() {
     }
   }
 
-  function ensureActionRow() {
-    let row = panel.querySelector('[data-ref-line-actions]');
-    if (!row) {
-      row = document.createElement('div');
-      row.className = 'reference-image-calibration-actions reference-image-line-refine-actions';
-      row.dataset.refLineActions = '';
-      row.innerHTML = `
-        <button type="button" class="ui-button ui-button--primary" data-ref-line-action="start">선 보강</button>
-        <button type="button" class="ui-button ui-button--primary" data-ref-line-action="apply" hidden>적용</button>
-        <button type="button" class="ui-button" data-ref-line-action="redraw" hidden>다시 그리기</button>
-        <button type="button" class="ui-button" data-ref-line-action="cancel" hidden>취소</button>
-      `;
-      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
-      if (calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
-      else editor.appendChild(row);
-    }
-    return row;
-  }
-
   function cancelRefine({ message = '', tone = '' } = {}) {
     touchTracker.reset();
     setReferenceImageSurfaceEditing(false);
@@ -234,7 +215,12 @@ export function installReferenceImageLineRefiner() {
 
   function syncUi() {
     syncScheduled = false;
-    if (disposed || editor.hidden) return;
+    if (disposed) return;
+    if (editor.hidden) {
+      if (state) cancelRefine();
+      setReferenceImageSurfaceActions('line');
+      return;
+    }
     const recordId = selectedRecordId(panel);
     const meta = recordId ? publicRecordMeta(recordId) : null;
     if (state && (!recordId || recordId !== state.recordId)) {
@@ -249,32 +235,23 @@ export function installReferenceImageLineRefiner() {
       });
       return;
     }
-    const row = ensureActionRow();
-    const start = row.querySelector('[data-ref-line-action="start"]');
-    const apply = row.querySelector('[data-ref-line-action="apply"]');
-    const redraw = row.querySelector('[data-ref-line-action="redraw"]');
-    const cancel = row.querySelector('[data-ref-line-action="cancel"]');
     const active = !!state && state.recordId === recordId;
-    const summary = panel.querySelector('.reference-image-editing-summary');
-    const compactSummaryActive = active && summary && !summary.hidden;
-    if (compactSummaryActive) {
-      if (row.parentElement !== summary) summary.appendChild(row);
-    } else {
-      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
-      if (calibrationActions && row.previousElementSibling !== calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
-    }
-    start.hidden = active;
-    start.disabled = !meta || meta.locked || !mappingReady
-      || mapElement.classList.contains('is-reference-anchor-mode')
-      || mapElement.classList.contains('is-reference-gcp-mode')
-      || mapElement.classList.contains('is-reference-gcp-edit-mode')
-      || mapElement.classList.contains('is-reference-placement-mode')
-      || mapElement.classList.contains('is-reference-free-transform-mode')
-      || mapElement.classList.contains('is-reference-live-wire-mode');
-    apply.hidden = !active || state.phase !== 'preview';
-    apply.disabled = !!state?.applying;
-    redraw.hidden = !active || state.phase !== 'preview';
-    cancel.hidden = !active;
+    const matchVisible = !editor.querySelector('[data-ref-section="match"]')?.hidden;
+    setReferenceImageSurfaceActions('line', {
+      start: {
+        hidden: active || !matchVisible,
+        disabled: !meta || meta.locked || !mappingReady
+          || mapElement.classList.contains('is-reference-anchor-mode')
+          || mapElement.classList.contains('is-reference-gcp-mode')
+          || mapElement.classList.contains('is-reference-gcp-edit-mode')
+          || mapElement.classList.contains('is-reference-placement-mode')
+          || mapElement.classList.contains('is-reference-free-transform-mode')
+          || mapElement.classList.contains('is-reference-live-wire-mode'),
+      },
+      apply: { hidden: !active || state.phase !== 'preview', disabled: !!state?.applying },
+      redraw: { hidden: !active || state.phase !== 'preview' },
+      cancel: { hidden: !active },
+    });
     const gcpButton = editor.querySelector('[data-ref-action="gcp"]');
     if (gcpButton) gcpButton.disabled = !!meta?.locked || active || mapElement.classList.contains('is-reference-live-wire-mode');
     if (lastMessage) setMessage(lastMessage, lastTone);
@@ -640,6 +617,7 @@ export function installReferenceImageLineRefiner() {
       for (const cached of imageCache.values()) if (cached.objectUrl) URL.revokeObjectURL(cached.objectUrl);
       imageCache.clear();
       canvas.remove();
+      setReferenceImageSurfaceActions('line');
       mapElement.classList.remove('is-reference-line-refine-mode');
       document.documentElement.dataset.referenceImageLineRefiner = '';
       if (globalThis.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__ === api) delete globalThis.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__;

@@ -1,6 +1,6 @@
 import { referenceImageKeyBlocked, referenceImageNavigationHeld } from './reference-image-input.js';
 import { referenceImageEventTargetsMap, createReferenceImageTouchTracker } from './reference-image-pointer-target.js';
-import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
+import { setReferenceImageSurfaceEditing, setReferenceImageSurfaceActions } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
@@ -249,29 +249,6 @@ export function installReferenceImageLiveWire() {
     }
   }
 
-  function ensureActionRow() {
-    let row = panel.querySelector('[data-ref-live-wire-actions]');
-    if (!row) {
-      row = document.createElement('div');
-      row.className = 'reference-image-calibration-actions reference-image-live-wire-actions';
-      row.dataset.refLiveWireActions = '';
-      row.innerHTML = `
-        <button type="button" class="ui-button ui-button--primary" data-ref-live-wire-action="start">자동 추적</button>
-        <button type="button" class="ui-button ui-button--primary" data-ref-live-wire-action="finish" hidden>완료</button>
-        <button type="button" class="ui-button" data-ref-live-wire-action="undo" hidden>마지막 점 취소</button>
-        <button type="button" class="ui-button ui-button--primary" data-ref-live-wire-action="apply" hidden>적용</button>
-        <button type="button" class="ui-button" data-ref-live-wire-action="redraw" hidden>다시 그리기</button>
-        <button type="button" class="ui-button" data-ref-live-wire-action="cancel" hidden>취소</button>
-      `;
-      const lineActions = editor.querySelector('[data-ref-line-actions]');
-      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
-      if (lineActions) lineActions.insertAdjacentElement('afterend', row);
-      else if (calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
-      else editor.appendChild(row);
-    }
-    return row;
-  }
-
   function scheduleSync() {
     if (syncScheduled || disposed) return;
     syncScheduled = true;
@@ -294,7 +271,12 @@ export function installReferenceImageLiveWire() {
 
   function syncUi() {
     syncScheduled = false;
-    if (disposed || editor.hidden) return;
+    if (disposed) return;
+    if (editor.hidden) {
+      if (state) cancelLiveWire();
+      setReferenceImageSurfaceActions('live-wire');
+      return;
+    }
     const recordId = selectedRecordId(panel);
     const meta = recordId ? publicRecordMeta(recordId) : null;
     if (state && (!recordId || recordId !== state.recordId)) {
@@ -309,24 +291,7 @@ export function installReferenceImageLiveWire() {
       });
       return;
     }
-    const row = ensureActionRow();
-    const start = row.querySelector('[data-ref-live-wire-action="start"]');
-    const finish = row.querySelector('[data-ref-live-wire-action="finish"]');
-    const undo = row.querySelector('[data-ref-live-wire-action="undo"]');
-    const apply = row.querySelector('[data-ref-live-wire-action="apply"]');
-    const redraw = row.querySelector('[data-ref-live-wire-action="redraw"]');
-    const cancel = row.querySelector('[data-ref-live-wire-action="cancel"]');
     const active = !!state && state.recordId === recordId;
-    const summary = panel.querySelector('.reference-image-editing-summary');
-    const compactSummaryActive = active && summary && !summary.hidden;
-    if (compactSummaryActive) {
-      if (row.parentElement !== summary) summary.appendChild(row);
-    } else {
-      const lineActions = editor.querySelector('[data-ref-line-actions]');
-      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
-      if (lineActions && row.previousElementSibling !== lineActions) lineActions.insertAdjacentElement('afterend', row);
-      else if (!lineActions && calibrationActions && row.previousElementSibling !== calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
-    }
     const tracking = active && state.phase === 'tracking';
     const preview = active && state.phase === 'preview';
     const incompatibleMode = mapElement.classList.contains('is-reference-anchor-mode')
@@ -335,16 +300,15 @@ export function installReferenceImageLiveWire() {
       || mapElement.classList.contains('is-reference-placement-mode')
       || mapElement.classList.contains('is-reference-free-transform-mode')
       || mapElement.classList.contains('is-reference-line-refine-mode');
-    start.hidden = active;
-    start.disabled = !meta || meta.locked || !mappingReady || incompatibleMode;
-    finish.hidden = !tracking;
-    finish.disabled = !state?.segments?.length && !state?.previewPoints?.length;
-    undo.hidden = !tracking;
-    undo.disabled = !(state?.anchors?.length);
-    apply.hidden = !preview;
-    apply.disabled = !!state?.applying;
-    redraw.hidden = !preview;
-    cancel.hidden = !active;
+    const matchVisible = !editor.querySelector('[data-ref-section="match"]')?.hidden;
+    setReferenceImageSurfaceActions('live-wire', {
+      start: { hidden: active || !matchVisible, disabled: !meta || meta.locked || !mappingReady || incompatibleMode },
+      finish: { hidden: !tracking, disabled: !state?.segments?.length && !state?.previewPoints?.length },
+      undo: { hidden: !tracking, disabled: !(state?.anchors?.length) },
+      apply: { hidden: !preview, disabled: !!state?.applying },
+      redraw: { hidden: !preview },
+      cancel: { hidden: !active },
+    });
 
     const gcpButton = editor.querySelector('[data-ref-action="gcp"]');
     if (gcpButton) gcpButton.disabled = !!meta?.locked || active || mapElement.classList.contains('is-reference-line-refine-mode');
@@ -836,6 +800,7 @@ export function installReferenceImageLiveWire() {
       for (const cached of imageCache.values()) if (cached.objectUrl) URL.revokeObjectURL(cached.objectUrl);
       imageCache.clear();
       canvas.remove();
+      setReferenceImageSurfaceActions('live-wire');
       mapElement.classList.remove('is-reference-live-wire-mode');
       document.documentElement.dataset.referenceImageLiveWire = '';
       if (globalThis.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__ === api) delete globalThis.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__;
