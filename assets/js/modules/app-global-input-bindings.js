@@ -1,4 +1,13 @@
 import { installReferenceImageEditingBridge } from './reference-image-editing-bridge.js';
+import {saveBoundDocument} from './app-file-bindings.js';
+
+export function confirmLibraryGeometryBeforeUnload(event,context){
+  if(typeof context?.hasUnsavedChanges!=='function')throw new TypeError('Library geometry dirty-state owner is required');
+  if(!context.hasUnsavedChanges())return false;
+  event.preventDefault();
+  event.returnValue='';
+  return true;
+}
 import {
   cancelReferenceImageInput, handleReferenceImageKey, referenceImageInputActive,
   referenceImageSurfaceOpen, setReferenceImageSpacePan,
@@ -8,7 +17,7 @@ import {
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createGlobalInputBindings() {
+export function createGlobalInputBindings({libraryGeometryContext=null}={}) {
   let dependencies;
 
   function connect(ports) {
@@ -147,8 +156,11 @@ export function createGlobalInputBindings() {
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        try { await (await (0, dependencies.gisRuntime.getGisFileController)()).saveProject(); }
-        catch (error) { dependencies.feedback.reportOperationError(error, '프로젝트를 저장하지 못했습니다.', 'PL-PROJECT-SAVE-001', 4200); }
+        try { await saveBoundDocument({libraryGeometryContext,getGisFileController:dependencies.gisRuntime.getGisFileController,
+          setActionStatus:dependencies.feedback.setActionStatus}); }
+        catch (error) { dependencies.feedback.reportOperationError(error,
+          libraryGeometryContext?'라이브러리 경계를 저장하지 못했습니다.':'프로젝트를 저장하지 못했습니다.',
+          libraryGeometryContext?'PL-LIB-GEOMETRY-SAVE':'PL-PROJECT-SAVE-001',4200); }
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !editingText) {
         e.preventDefault(); dependencies.lifecycleUi.projectUi.undo();
@@ -211,6 +223,7 @@ export function createGlobalInputBindings() {
 
     window.visualViewport?.addEventListener?.('resize', dependencies.objectOperationsA.closeObjectActionsMenu);
     document.addEventListener('visibilitychange', () => {
+      if(libraryGeometryContext)return;
       if (document.visibilityState === 'hidden') {
         dependencies.lifecycleUi.mapInputController?.cancel?.();
         cancelDraftGesture('document-hidden');
@@ -219,7 +232,8 @@ export function createGlobalInputBindings() {
         dependencies.domains.projectDomain.persistAutosave().catch(error => console.warn('Immediate autosave failed', error));
       }
     });
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener('beforeunload', event => {
+      if(libraryGeometryContext){confirmLibraryGeometryBeforeUnload(event,libraryGeometryContext);return;}
       if (!(0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness)) return;
       try { dependencies.domains.projectDomain.flushAutosave().catch(() => {}); } catch (_) {}
     });

@@ -7,11 +7,14 @@ export function decodeCountryMesh(buffer, ids = []) {
   const formatVersion = Number(prefix[1]);
   const headerWords = formatVersion >= 2 ? 12 : 8;
   const header = new Uint32Array(buffer, 0, headerWords);
-  if (header[0] !== 0x434d4731 || ![1, 2].includes(formatVersion) || header[2] !== 258
+  if (header[0] !== 0x434d4731 || ![1, 2].includes(formatVersion) || header[2] < 1
     || header[6] < 1 || header[7] !== MESH_ALGORITHM_REVISION) {
     throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
   }
   const countryCount = header[2];
+  if (ids.length && (ids.length !== countryCount || new Set(ids).size !== ids.length)) {
+    throw new Error('외부 GPU 메시의 국가 identity 수가 올바르지 않습니다.');
+  }
   const vertexCount = header[3];
   const triangleIndexCount = header[4];
   const lineIndexCount = header[5];

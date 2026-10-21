@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-library-read-external-changes"
+description = "Enables the library_read_external_changes command without any pre-configured scope."
+commands.allow = ["library_read_external_changes"]
+
+[[permission]]
+identifier = "deny-library-read-external-changes"
+description = "Denies the library_read_external_changes command without any pre-configured scope."
+commands.deny = ["library_read_external_changes"]

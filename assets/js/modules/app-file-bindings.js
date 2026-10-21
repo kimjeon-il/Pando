@@ -1,11 +1,24 @@
 import { createPreferencesDialog } from './preferences-dialog.js';
 import { exitMenuOnTab } from './menu-presentation.js';
 
+export async function saveBoundDocument({libraryGeometryContext=null,getGisFileController,setActionStatus}){
+  if(libraryGeometryContext){
+    if(typeof setActionStatus!=='function')throw new TypeError('Library geometry save status is required');
+    const result=await libraryGeometryContext.save();
+    if(result.warning){
+      const detail=String(result.warning.message||'상세 오류를 확인하세요.').trim();
+      setActionStatus(`라이브러리 경계 저장 완료 · 작업 파일 갱신 대기: ${detail}`,'warning',0);
+    }else setActionStatus(result.changed===false?'변경된 경계가 없습니다.':'라이브러리 경계를 저장했습니다.','success',3200);
+    return result;
+  }
+  return (await getGisFileController()).saveProject();
+}
+
 /** FileBindings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createFileBindings() {
+export function createFileBindings({libraryGeometryContext=null}={}) {
   let dependencies;
 
   function connect(ports) {
@@ -14,7 +27,17 @@ export function createFileBindings() {
   }
 
   function bindFileAndGisUI() {
-    (0, dependencies.platform.$)('addFromLibraryBtn')?.addEventListener('click', async () => {
+    if(libraryGeometryContext){
+      for(const id of ['newProjectBtn','openProjectBtn','openGisBtn','dataExportBtn','addFromLibraryBtn']){
+        const button=(0, dependencies.platform.$)(id);
+        if(button)button.hidden=true;
+      }
+      const save=(0, dependencies.platform.$)('saveProjectBtn');
+      save.setAttribute('aria-label','라이브러리 형상 저장');
+      save.dataset.tooltip='라이브러리 형상 저장';
+      save.querySelector('span')?.replaceChildren(document.createTextNode('라이브러리 형상 저장'));
+    }
+    if(!libraryGeometryContext)(0, dependencies.platform.$)('addFromLibraryBtn')?.addEventListener('click', async () => {
       try {
         const controller = await (0, dependencies.libraryUi.getTerritorialLibraryController)();
         await controller.open();
@@ -23,21 +46,23 @@ export function createFileBindings() {
       }
     });
     (0, dependencies.platform.$)('saveProjectBtn').addEventListener('click', () => {
-      (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.saveProject())
-        .catch(error => dependencies.feedback.reportOperationError(error,'프로젝트 저장을 완료하지 못했습니다.','PL-FILE-SAVE-001',4200));
+      saveBoundDocument({libraryGeometryContext,getGisFileController:dependencies.gisRuntime.getGisFileController,
+        setActionStatus:dependencies.feedback.setActionStatus})
+        .catch(error => dependencies.feedback.reportOperationError(error,libraryGeometryContext?'라이브러리 경계를 저장하지 못했습니다.':'프로젝트 저장을 완료하지 못했습니다.',
+          libraryGeometryContext?'PL-LIB-GEOMETRY-SAVE':'PL-FILE-SAVE-001',4200));
     });
-    (0, dependencies.platform.$)('openGisBtn').addEventListener('click', event => {
+    if(!libraryGeometryContext)(0, dependencies.platform.$)('openGisBtn').addEventListener('click', event => {
       const trigger=event.currentTarget;
       (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.openPicker({ trigger }))
         .catch(error => dependencies.feedback.reportOperationError(error,'GIS 파일 열기를 완료하지 못했습니다.','PL-FILE-GIS-001',4200));
     });
-    (0, dependencies.platform.$)('openProjectBtn').addEventListener('click', () => {
+    if(!libraryGeometryContext)(0, dependencies.platform.$)('openProjectBtn').addEventListener('click', () => {
       (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.openProjectPicker())
         .catch(error => dependencies.feedback.reportOperationError(error,'프로젝트 열기를 완료하지 못했습니다.','PL-FILE-OPEN-001',4200));
     });
 
-    (0, dependencies.platform.$)('newProjectBtn').addEventListener('click', (...args) => dependencies.lifecycleUi.projectUi.requestNew(...args));
-    (0, dependencies.platform.$)('dataExportBtn').addEventListener('click', () => {
+    if(!libraryGeometryContext)(0, dependencies.platform.$)('newProjectBtn').addEventListener('click', (...args) => dependencies.lifecycleUi.projectUi.requestNew(...args));
+    if(!libraryGeometryContext)(0, dependencies.platform.$)('dataExportBtn').addEventListener('click', () => {
       void (0, dependencies.gisRuntime.getGisExportController)()
         .then(controller => controller.open())
         .catch(error => (0, dependencies.feedback.reportOperationError)(error, 'GIS 내보내기 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-002', 4200));
