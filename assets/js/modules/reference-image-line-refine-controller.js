@@ -585,12 +585,11 @@ export function installReferenceImageLineRefiner() {
   observer.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
   observer.observe(editor, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
   observer.observe(mapElement, { attributes: true, attributeFilter: ['class'] });
-  const editingSummary = panel.querySelector('.reference-image-editing-summary');
-  if (editingSummary) observer.observe(editingSummary, { attributes: true, attributeFilter: ['hidden'] });
   const resizeObserver = new ResizeObserver(requestRender);
   resizeObserver.observe(mapElement);
 
   panel.addEventListener('click', onPanelClick, true);
+  panel.addEventListener('reference-image-tab-changed', scheduleSync);
   globalThis.addEventListener('pointerdown', onPointerDown, true);
   globalThis.addEventListener('pointermove', onPointerMove, true);
   globalThis.addEventListener('pointerup', onPointerUp, true);
@@ -613,6 +612,7 @@ export function installReferenceImageLineRefiner() {
       observer.disconnect();
       resizeObserver.disconnect();
       panel.removeEventListener('click', onPanelClick, true);
+      panel.removeEventListener('reference-image-tab-changed', scheduleSync);
       globalThis.removeEventListener('pointerdown', onPointerDown, true);
       globalThis.removeEventListener('pointermove', onPointerMove, true);
       globalThis.removeEventListener('pointerup', onPointerUp, true);

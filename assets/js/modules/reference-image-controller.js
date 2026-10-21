@@ -648,6 +648,9 @@ export function installReferenceImageController({
     for (const section of editorElement.querySelectorAll('[data-ref-section]')) {
       section.hidden = section.dataset.refSection !== activeTab;
     }
+    // The tool controllers need this explicit notification: their observer watches
+    // editor replacement, not hidden attributes on dynamically rebuilt child tabs.
+    panel.dispatchEvent(new CustomEvent('reference-image-tab-changed'));
     return true;
   }
 

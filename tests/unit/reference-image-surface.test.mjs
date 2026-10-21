@@ -497,6 +497,10 @@ for (const [name, install] of [
     const adapter = installReferenceImageSurface({ ...f, workspaceSurfaces: f.workspace });
     adapter.open();
     f.editor.dataset.refEditor = '';
+    const matchSection = document.createElement();
+    matchSection.dataset.refSection = 'match';
+    matchSection.hidden = true;
+    f.editor.append(matchSection);
     const auxiliaryHost = f.panel.querySelector('[data-ref-auxiliary-actions]');
     assert.equal(auxiliaryHost.parentElement, f.panel.querySelector('.reference-image-editing-summary'));
     assert.equal(f.editor.querySelector('[data-ref-line-actions]'), null);
@@ -545,6 +549,16 @@ for (const [name, install] of [
     controller = install();
     assert.ok(controller);
     await Promise.resolve();
+    const start = auxiliaryHost.querySelector(`[data-${name === 'line refiner' ? 'ref-line-action' : 'ref-live-wire-action'}="start"]`);
+    assert.equal(start.hidden, true, 'start is hidden outside the match tab');
+    matchSection.hidden = false;
+    f.panel.dispatch('reference-image-tab-changed');
+    await Promise.resolve();
+    assert.equal(start.hidden, false, 'tab change must refresh a stable start button');
+    matchSection.hidden = true;
+    f.panel.dispatch('reference-image-tab-changed');
+    await Promise.resolve();
+    assert.equal(start.hidden, true, 'leaving the match tab hides the same button');
     const summary = f.panel.querySelector('.reference-image-editing-summary');
     const genericActions = summary.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]');
     assert.equal(controller.active(), false);

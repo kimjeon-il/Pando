@@ -516,14 +516,9 @@
   overflow-wrap: anywhere;
 }
 
-.reference-image-editing-summary > .reference-image-workflow-actions,
-.reference-image-editing-summary > .reference-image-calibration-actions {
+.reference-image-editing-summary > .reference-image-workflow-actions {
   flex: 1 0 100%;
   width: 100%;
-}
-
-.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .reference-image-editing-summary > .reference-image-calibration-actions > .ui-button {
-  min-width: var(--ui-touch-height);
 }
 
 .reference-image-workflow[hidden],
