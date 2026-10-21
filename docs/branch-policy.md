@@ -38,4 +38,4 @@
 
 ## 외부 자료 저장소
 
-라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library-data`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 외부 체크아웃 `reports/`에 작성한다. 자료 저장소는 보관용이며 검사·테스트·재생성을 실행하지 않는다.
+라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library-data`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 경로 helper가 제공하는 외부 원문 작업본에 작성하고 `node tools/library-data.mjs --store`로 자료 저장소 `reports/`에 보관한다. 자료 저장소는 보관용이며 검사·테스트·재생성을 실행하지 않는다.
