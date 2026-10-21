@@ -1,12 +1,7 @@
-const STYLE_PATHS = Object.freeze([
-  '../../css/tokens/reference-images.css',
-  '../../css/components/reference-images.css',
-  '../../css/layout/reference-images.css',
-  '../../css/features/reference-images.css',
-]);
+import { REFERENCE_IMAGE_STYLE_SOURCES } from './reference-image-style-sources.js';
 
 function stylesheetHref(relativePath, revision) {
-  const url = new URL(relativePath, import.meta.url);
+  const url = new URL(`../../${relativePath}`, import.meta.url);
   if (revision) url.searchParams.set('v', revision);
   return url.href;
 }
@@ -24,26 +19,8 @@ function ensureStylesheet(relativePath, revision) {
   return link;
 }
 
-function moveControlsToMapUi() {
-  const mapElement = document.getElementById('map');
-  const mapWrap = mapElement?.closest('.map-wrap');
-  const overlayLayer = mapWrap?.querySelector('.map-overlay-layer');
-  const workspace = mapWrap?.closest('.workspace');
-  const commandToolbar = overlayLayer?.querySelector('.map-command-toolbar');
-  if (!mapElement || !overlayLayer || !workspace) return;
-  const launcher = overlayLayer.querySelector('#referenceImageBtn');
-  const panel = mapElement.querySelector(':scope > .reference-image-panel');
-  if (launcher && commandToolbar && !commandToolbar.contains(launcher)) {
-    const resetViewButton = commandToolbar.querySelector('#resetViewBtn');
-    if (resetViewButton) resetViewButton.before(launcher);
-    else commandToolbar.appendChild(launcher);
-  }
-  // Keep the panel outside the map viewport: the dock reserves real map width.
-  if (panel) workspace.appendChild(panel);
-}
-
 export async function installReferenceImageFeature({ revision = '', workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces = null, getPlaces = null, preparePlaces = null } = {}) {
-  for (const path of STYLE_PATHS) ensureStylesheet(path, revision);
+  for (const path of REFERENCE_IMAGE_STYLE_SOURCES) ensureStylesheet(path, revision);
   const controllerUrl = new URL('./reference-image-controller.js', import.meta.url);
   if (revision) controllerUrl.searchParams.set('v', revision);
   const { installReferenceImageController } = await import(controllerUrl.href);
@@ -52,7 +29,6 @@ export async function installReferenceImageFeature({ revision = '', workspaceSur
     cancelTools: () => { if (lineRefiner?.active()) lineRefiner.cancel(); if (liveWire?.active()) liveWire.cancel(); },
     auxiliaryInputActive: () => !!lineRefiner?.active() || !!liveWire?.active(),
   });
-  moveControlsToMapUi();
 
   const lineRefinerUrl = new URL('./reference-image-line-refine-controller.js', import.meta.url);
   if (revision) lineRefinerUrl.searchParams.set('v', revision);
