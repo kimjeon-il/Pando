@@ -165,6 +165,7 @@
     },
     {
       "id": "world-bundle",
+      "resolve": "world-bundle",
       "dependencies": [
         "world-preview"
       ],
@@ -172,8 +173,7 @@
         "assets/data/world/build-input.json"
       ],
       "outputs": [
-        "assets/data/world/current.json",
-        "assets/data/world/objects/"
+        "assets/data/world/current.json"
       ],
       "generate": [
         [

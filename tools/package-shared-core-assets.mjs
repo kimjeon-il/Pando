@@ -20,7 +20,8 @@ export function sharedSourceManifest(root) {
   return {inputs,sourceSha256:sha256(inputs.map(row=>`${row.path}\n${row.sha256}\n`).join(''))};
 }
 
-export async function packageSharedCoreAssets(rootInput,buildInput,{check=false}={}) {
+export async function packageSharedCoreAssets(rootInput,buildInput,{check=false,skipChecks=false}={}) {
+  if(check&&skipChecks)throw Error('Cannot combine --check and --skip-checks');
   const root=resolve(rootInput),build=resolve(buildInput);
   // Git commits this generated module with LF endings; hash the published bytes.
   const js=Buffer.from(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true})
@@ -28,12 +29,14 @@ export async function packageSharedCoreAssets(rootInput,buildInput,{check=false}
   const wasm=readFileSync(join(build,'pandoeditor-core.wasm'));
   assert.ok(wasm.length>=8&&wasm.subarray(0,8).equals(Buffer.from([0,97,115,109,1,0,0,0])),'invalid WASM artifact');
   const identity=sharedSourceManifest(root);
-  const url=pathToFileURL(join(build,'pandoeditor-core.js'));url.searchParams.set('verify',sha256(js));
-  const {default:createCore}=await import(url.href);
-  const module=await createCore({wasmBinary:wasm});
-  assert.equal(module.coreAbiVersion,1,'core ABI mismatch');
-  assert.equal(module.coreCompilerVersion,'4.0.20','core compiler version mismatch');
-  assert.equal(module.coreSourceSha256,identity.sourceSha256,'compiled core source identity mismatch');
+  if(!skipChecks){
+    const url=pathToFileURL(join(build,'pandoeditor-core.js'));url.searchParams.set('verify',sha256(js));
+    const {default:createCore}=await import(url.href);
+    const module=await createCore({wasmBinary:wasm});
+    assert.equal(module.coreAbiVersion,1,'core ABI mismatch');
+    assert.equal(module.coreCompilerVersion,'4.0.20','core compiler version mismatch');
+    assert.equal(module.coreSourceSha256,identity.sourceSha256,'compiled core source identity mismatch');
+  }
   const manifest={schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:identity.sourceSha256,
     compiler:{name:'emscripten',version:'4.0.20'},inputs:identity.inputs,
     assets:{js:{file:'pandoeditor-core.js',sha256:sha256(js)},wasm:{file:'pandoeditor-core.wasm',sha256:sha256(wasm)}}};
@@ -58,7 +61,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const at=process.argv.indexOf('--build-dir');
   if(at<0||!process.argv[at+1])throw Error('Required: --build-dir DIR containing the generated JS/WASM pair');
   const manifest=await packageSharedCoreAssets(fileURLToPath(new URL('../',import.meta.url)),process.argv[at+1],
-    {check:process.argv.includes('--check')});
+    {check:process.argv.includes('--check'),skipChecks:process.argv.includes('--skip-checks')});
   console.log(JSON.stringify({sourceSha256:manifest.sourceSha256,assets:manifest.assets,
     mode:process.argv.includes('--check')?'check':'package'}));
 }
