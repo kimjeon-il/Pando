@@ -438,7 +438,7 @@ void applyGeometryPatch(ProjectDocument& d,const TerritorialMutationPlan& plan,c
         d.geometries.insert(next,replacement.geometry); binding.geometryRef=next;
     }
     for(const auto& ref:patch.removedGeometryOwners) {
-        d.presentation.membership.erase(ref);d.presentation.objectStyles.erase(ref);
+        d.presentation.objectStyles.erase(ref);
         d.units.erase(std::remove_if(d.units.begin(),d.units.end(),[&](const auto& u){return territorialRef(u.id)==ref;}),d.units.end());
     }
 }
@@ -462,7 +462,7 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             const auto ref=territorialRef(in.id);d.presentation.objectStyles.emplace(ref,ObjectStyle{in.explicitColor.value_or(0),1,in.explicitColor.has_value()});
         } else if constexpr(std::is_same_v<T,DeleteTerritorialIntent>) {
             std::set<ObjectRef> removed(in.targets.begin(),in.targets.end());std::vector<std::string> ids;
-            for(const auto& ref:removed){ids.push_back(ref.id);d.presentation.membership.erase(ref);d.presentation.objectStyles.erase(ref);}
+            for(const auto& ref:removed){ids.push_back(ref.id);d.presentation.objectStyles.erase(ref);}
             removeTerritorialRecords(d,ids);d.units.erase(std::remove_if(d.units.begin(),d.units.end(),[&](const auto& u){return removed.count(territorialRef(u.id));}),d.units.end());
         } else if constexpr(std::is_same_v<T,TransferSubunitIntent>) {
             patch();staticParentRelation(d,in.target.id).parentId=in.destinationCountry.id;
@@ -641,7 +641,7 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
         require(layer!=d.distributionLayers.end()&&!layer->locked,CommandError::Locked,"distribution reference locked");
         require(effectAllowed(contentBefore,ref,replacement==redirected.end()?"delete":"relation"),CommandError::UnsupportedDependency,"distribution territorial dependency");
         if(replacement!=redirected.end()){it->territory=replacement->second;++it;}
-        else {d.presentation.membership.erase(ref);d.presentation.objectStyles.erase(ref);it=d.distributionEntries.erase(it);}
+        else {d.presentation.objectStyles.erase(ref);it=d.distributionEntries.erase(it);}
     }
     for(auto it=d.symbols.begin();it!=d.symbols.end();) {
         if(survives(it->first)){++it;continue;}const auto replacement=redirected.find(it->first);
@@ -1113,10 +1113,7 @@ ChangeImpact calculateChangeImpact(const ProjectDocument& before,const ProjectDo
         return std::tie(s.kind,s.dataset,s.version,s.sourceId,s.sourceFormat,s.sourceType,s.importedAt,s.details);
     };
     const auto& a=before.presentation;const auto& b=after.presentation;
-    const bool globalPresentation=!(a.webPresentation==b.webPresentation)||a.membership!=b.membership||
-        !same(a.userLayers,b.userLayers,[](const auto& x,const auto& y) {
-            return std::tie(x.id,x.name,x.visible,x.locked,x.opacity)==std::tie(y.id,y.name,y.visible,y.locked,y.opacity);
-        })||!same(a.objectStyles,b.objectStyles,[](const auto& x,const auto& y) {
+    const bool globalPresentation=!(a.webPresentation==b.webPresentation)||!same(a.objectStyles,b.objectStyles,[](const auto& x,const auto& y) {
             return x.first==y.first&&std::tie(x.second.color,x.second.opacity,x.second.explicitColor)==
                 std::tie(y.second.color,y.second.opacity,y.second.explicitColor);
         });
@@ -1424,7 +1421,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                     candidate.units.erase(std::remove_if(candidate.units.begin(),candidate.units.end(),
                         [&](const auto& unit){return unit.id==old.id;}),candidate.units.end());
                     const auto ref=territorialRef(old.id);
-                    candidate.presentation.membership.erase(ref);
+                    
                     candidate.presentation.objectStyles.erase(ref);
                 }
             }
@@ -1456,9 +1453,6 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                         candidate.timelineRecords=replaceParentRelationAtMonth(candidate.timelineRecords,
                             unit.id,dated->month,relation.parentId,relation.coverageMode);
                 }
-                const auto membership=afterView.presentation.membership.find(ref);
-                if(membership!=afterView.presentation.membership.end())candidate.presentation.membership[ref]=membership->second;
-                else candidate.presentation.membership.erase(ref);
                 const auto style=afterView.presentation.objectStyles.find(ref);
                 if(style!=afterView.presentation.objectStyles.end())candidate.presentation.objectStyles[ref]=style->second;
                 else candidate.presentation.objectStyles.erase(ref);
@@ -1558,7 +1552,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                         if(!retained) {
                             candidate.units.erase(std::remove_if(candidate.units.begin(),candidate.units.end(),
                                 [&](const auto& unit){return unit.id==ref.id;}),candidate.units.end());
-                            candidate.presentation.membership.erase(ref);
+                            
                             candidate.presentation.objectStyles.erase(ref);
                         }
                     }
