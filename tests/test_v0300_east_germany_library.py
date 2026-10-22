@@ -5,20 +5,20 @@ import unittest
 from pathlib import Path
 
 from pyproj import Geod, Transformer
-from shapely.geometry import Point, shape
+from shapely.geometry import Point, box, shape
 from shapely.ops import transform, unary_union
 
 
 ROOT = Path(__file__).parents[1]
 PILOT_PATH = ROOT / "assets/data/territorial-entities/source/countries/state-deutsche-demokratische-republik.json"
-COUNTRIES_PATH = ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson"
+COUNTRIES_PATH = ROOT / "assets/data/territorial-entities/source/countries/state-DEU.json"
 PILOT = json.loads(PILOT_PATH.read_text(encoding="utf-8"))
 COUNTRIES = json.loads(COUNTRIES_PATH.read_text(encoding="utf-8"))
 ENTITY = PILOT
 GEOMETRY = shape(ENTITY["geometryVersions"][0]["geometry"])
-CANONICAL_DEU = shape(next(
-    item["geometry"] for item in COUNTRIES["features"] if item["id"] == "DEU"
-))
+CANONICAL_DEU = shape(next(item["geometry"] for item in COUNTRIES["geometryVersions"] if item["datePrecision"] == "current"))
+RECIPE = json.loads((ROOT / "tools/historical-library/east-germany-1989.recipe.json").read_text(encoding="utf-8"))
+PREVIOUS = shape(json.loads((ROOT / RECIPE["sources"]["previousDdr"]["path"]).read_text(encoding="utf-8"))["features"][0]["geometry"])
 TO_EQUAL_AREA = Transformer.from_crs(4326, 3035, always_xy=True).transform
 
 
@@ -47,7 +47,9 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
         area, _ = Geod(ellps="WGS84").geometry_area_perimeter(GEOMETRY)
         self.assertGreaterEqual(abs(area) / 1_000_000, 108_000)
         self.assertLessEqual(abs(area) / 1_000_000, 109_000)
-        self.assertLessEqual(projected_area_km2(GEOMETRY.difference(CANONICAL_DEU)), 1e-6)
+        # GEOS overlays can leave near-collinear sub-picometre strips. Reprojecting
+        # their differently segmented edges turns them into artificial area.
+        self.assertTrue(GEOMETRY.difference(CANONICAL_DEU.buffer(3e-12)).is_empty)
         self.assertLess(len(json.dumps(ENTITY).encode("utf-8")), 6 * 1024 * 1024)
 
     def test_reference_points_and_west_berlin_exclusion(self):
@@ -72,21 +74,30 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
         reconstructed = unary_union([GEOMETRY, remainder])
         self.assertLessEqual(projected_area_km2(reconstructed.symmetric_difference(CANONICAL_DEU)), 0.001)
 
-    def test_shared_external_vertices_are_canonical_vertices(self):
-        canonical_vertices = set()
-        polygons = CANONICAL_DEU.geoms if CANONICAL_DEU.geom_type == "MultiPolygon" else [CANONICAL_DEU]
-        for polygon in polygons:
-            for ring in (polygon.exterior, *polygon.interiors):
-                canonical_vertices.update((round(x, 12), round(y, 12)) for x, y in ring.coords)
-        shared = GEOMETRY.boundary.intersection(CANONICAL_DEU.boundary)
-        lines = shared.geoms if hasattr(shared, "geoms") else [shared]
-        shared_vertices = {
-            (round(x, 12), round(y, 12))
-            for line in lines if hasattr(line, "coords")
-            for x, y in line.coords
-        }
-        self.assertTrue(shared_vertices)
-        self.assertTrue(shared_vertices.issubset(canonical_vertices))
+    def test_changes_are_confined_to_admitted_sections_and_preserve_holes(self):
+        admitted = unary_union([box(*section["bounds"]) for operation in RECIPE["operations"]
+                                if operation["operation"] == "boundary-supplement" for section in operation["sections"]])
+        delta = GEOMETRY.symmetric_difference(PREVIOUS)
+        self.assertGreater(projected_area_km2(delta), 0)
+        self.assertLess(projected_area_km2(delta.difference(admitted)), 1e-6)
+        old_holes = unary_union([shape({"type": "Polygon", "coordinates": [list(ring.coords)]})
+                                 for polygon in PREVIOUS.geoms for ring in polygon.interiors])
+        new_holes = unary_union([shape({"type": "Polygon", "coordinates": [list(ring.coords)]})
+                                 for polygon in GEOMETRY.geoms for ring in polygon.interiors])
+        self.assertLess(projected_area_km2(old_holes.symmetric_difference(new_holes)), 1e-6)
+        for name, bounds in {"coast": (9, 53.86, 15.5, 55.5), "Elbe-Neuhaus": (10.25, 52.7, 12, 53.44),
+                             "West Berlin": (12.9, 52.3, 13.8, 52.8)}.items():
+            with self.subTest(name=name):
+                self.assertLess(projected_area_km2(delta.intersection(box(*bounds))), 1e-6)
+
+    def test_adopted_lsib_arcs_are_shared_and_not_shifted_by_the_vg25_step(self):
+        # Endpoints may be interpolated crossing points; the adopted reference
+        # line, rather than membership in its vertex set, owns the shared arc.
+        for section in RECIPE["operations"][-2]["sections"]:
+            region = box(*section["bounds"])
+            shared = GEOMETRY.boundary.intersection(CANONICAL_DEU.boundary.buffer(3e-12)).intersection(region)
+            old_shared = PREVIOUS.boundary.intersection(CANONICAL_DEU.boundary.buffer(3e-12)).intersection(region)
+            self.assertGreater(shared.length, old_shared.length + 0.1)
 
 
 if __name__ == "__main__":

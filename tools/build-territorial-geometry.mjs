@@ -32,12 +32,24 @@ export function replaceRecipeGeometry(entity, recipe, geometry) {
   assert.equal(versions.length, 1, 'Recipe target version mismatch');
   assert.equal(versions[0].validFrom, recipe.referenceDate, 'Recipe target date mismatch');
   assert.equal(versions[0].validTo, recipe.referenceDate, 'Recipe target date mismatch');
+  const provenance = recipe.resultSource;
+  const importedId = entity.sourceInfo?.importProvenance?.versionIds?.[recipe.id];
   return {
     ...entity,
     geometryVersions: entity.geometryVersions.map((version) => version.versionId !== recipe.id ? version : {
       ...version,
       geometry,
+      ...(provenance ? { sourceId: provenance.id, notes: provenance.notes,
+        boundarySupplement: recipe.boundarySupplement } : {}),
     }),
+    ...(provenance ? {sourceInfo: {
+      ...entity.sourceInfo,
+      title: provenance.title, license: provenance.license, notes: provenance.notes,
+      sources: [...(entity.sourceInfo.sources || []).filter(source =>
+        !provenance.sources.some(added => added.url === source.url)), ...provenance.sources],
+      geometryRecipes: entity.sourceInfo.geometryRecipes.map(record =>
+        [recipe.id, importedId].includes(record.id) ? {...record, sourceId: provenance.id, notes: provenance.notes} : record),
+    }} : {}),
   };
 }
 
@@ -81,6 +93,7 @@ export function run(argv = process.argv.slice(2)) {
   if (result.status !== 0) {
     throw new Error(`C++ territorial recipe failed: ${result.stderr || result.error?.message || result.status}`);
   }
+  if (result.stderr) process.stderr.write(result.stderr);
   const geometry = JSON.parse(result.stdout);
   const outputPath = path.join(root, recipe.output);
   const original = JSON.parse(readFileSync(outputPath, 'utf8'));

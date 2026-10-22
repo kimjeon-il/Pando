@@ -119,11 +119,15 @@ export function createLibraryAssembly() {
       countriesData: { type: 'FeatureCollection', features: countryFeatures },
       preparedTerritorialUnits: units, landTransfers: transfers, assertCurrent,
       countryUpdates: Object.assign({}, ...prepared.map(item => item.instantiation?.countryUpdates || {})),
-      sourceInfo: { imports: prepared.map(item => ({
+      sourceInfo: { imports: prepared.map((item,index) => ({
         ...(item.metadata?.sourceInfo || {}), kind: 'library', sourceId: item.entityId,
         objectId: item.id, sourceType: descriptors.find(original => original.entityId === item.entityId)?.type,
         geometryVersionId: item.geometryVersionId, referenceDate,
         originalParentEntityId: item.parentEntityId,
+        ...(index===0 && batch.precisionDiscards.length ? {batchPrecisionAudit:{
+          sourceEntityIds:prepared.map(row=>row.entityId),objectIds:prepared.map(row=>row.id),
+          discards:batch.precisionDiscards,
+        }} : {}),
       })) },
       commitStatus: '라이브러리 항목과 소속 관계를 한 번의 작업으로 추가했습니다.',
     }, {
