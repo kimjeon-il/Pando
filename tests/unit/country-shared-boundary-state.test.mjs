@@ -8,6 +8,7 @@ import { boundarySourceSegments, buildCountrySharedBoundarySegments, serializeCo
 import { countryGeometrySignature } from '../../assets/js/modules/country-shared-boundary-cache.js';
 import { geometryRevisionKey } from '../../assets/js/modules/geometry-versions.js';
 import { MAX_BOUNDARY_EDGE_DEGREES } from '../../assets/js/modules/geographic-boundary.js';
+import { sharedCalculationCore } from '../../assets/js/modules/temporal.js';
 
 const rectangle = (id, west, south, east, north, root = id) => {
   const geometry = { type: 'Polygon', coordinates: [[[west, south], [east, south], [east, north], [west, north], [west, south]]] };
@@ -15,6 +16,37 @@ const rectangle = (id, west, south, east, north, root = id) => {
     boundaryGeometryRevision: geometryRevisionKey(geometry) };
 };
 const coordinates = state => serializeCountrySharedBoundarySegments(state.segments());
+
+test('large outlines cross the compiled boundary budget without losing edges or ordering', t => {
+  const count = 20_000, radius = .1;
+  const ring = Array.from({ length: count }, (_, index) => {
+    const angle = index / count * 2 * Math.PI;
+    return [radius * Math.cos(angle), radius * Math.sin(angle)];
+  });
+  ring.push([...ring[0]]);
+  const geometry = { type: 'Polygon', coordinates: [ring] };
+  const feature = { type: 'Feature', id: 'A', properties: {}, geometry,
+    boundaryGeometryRevision: geometryRevisionKey(geometry) };
+  const original = sharedCalculationCore.boundarySubtractOverlapsBatch, batches = [];
+  t.mock.method(sharedCalculationCore, 'boundarySubtractOverlapsBatch', rows => {
+    // Reproduce the real WASM request guard at a smaller fixture budget.
+    if (rows.length > 16_384) throw new Error('INVALID_BOUNDARY_OVERLAP: too many source edges');
+    batches.push(rows.length);
+    return original.call(sharedCalculationCore, rows);
+  });
+  const packet = prepareCountrySharedBoundaryPacket([], [feature]);
+  const outline = packet.outlineOverrides.segments;
+  assert.ok(batches.length > 1);
+  assert.equal(batches.reduce((sum, size) => sum + size, 0), count);
+  assert.equal(outline.length, count);
+  const expected = sharedCalculationCore.boundaryRefineSegments(
+    ring.slice(0, -1).map((start, index) => [start, ring[index + 1]]), MAX_BOUNDARY_EDGE_DEGREES);
+  for (let index = 0; index < count; index++) {
+    assert.deepEqual(outline[index].ownerIds, ['A']);
+    assert.deepEqual(outline[index].start, expected[index][0]);
+    assert.deepEqual(outline[index].end, expected[index][1]);
+  }
+});
 
 const packetLength = packet => packet.segments.reduce((sum, segment) => sum
   + Math.hypot(segment.end[0] - segment.start[0], segment.end[1] - segment.start[1]), 0);
