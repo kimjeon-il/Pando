@@ -7785,103 +7785,6 @@ body.is-loading .app-root {
 }
 
 
-.timeline-status {
-  position: relative;
-  flex: 0 0 auto;
-  gap: var(--ui-space-1);
-  overflow: visible;
-  color: var(--text-soft);
-  pointer-events: auto;
-}
-
-.timeline-step {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  width: 1.875rem;
-  min-height: 1.75rem;
-  height: 1.75rem;
-  padding: 0;
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.timeline-month-control {
-  display: grid;
-  flex: 0 0 auto;
-  width: 8.75rem;
-  min-width: 0;
-}
-
-.timeline-month-control > * {
-  grid-area: 1 / 1;
-  width: 100%;
-}
-
-.timeline-month-button,
-.timeline-month-input {
-  min-width: 0;
-  height: 1.75rem;
-  border: var(--ui-border-width) solid var(--map-status-border);
-  border-radius: var(--ui-radius-control);
-  background: var(--panel);
-  color: var(--text);
-}
-
-.timeline-month-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-space-1);
-  padding: 0 var(--ui-space-1);
-  font-size: var(--design-font-xs);
-  font-weight: var(--ui-weight-medium);
-}
-
-.timeline-month-button .ui-icon {
-  flex: 0 0 auto;
-  width: 1rem;
-  height: 1rem;
-}
-
-.timeline-month-button span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.timeline-month-input {
-  padding: 0 var(--ui-space-1);
-  font-size: var(--design-font-xs);
-  text-align: center;
-}
-
-.timeline-month-input[aria-invalid="true"] {
-  border-color: var(--danger);
-}
-
-.status-inner:has(.timeline-month-error:not([hidden])) {
-  overflow: visible;
-}
-
-.timeline-month-error {
-  position: absolute;
-  z-index: 5;
-  bottom: calc(100% + var(--ui-space-1));
-  left: 0;
-  max-width: min(19rem, calc(100vw - 1rem));
-  padding: var(--ui-space-1) var(--ui-space-2);
-  border: var(--ui-border-width) solid var(--danger);
-  border-radius: var(--ui-radius-control);
-  background: var(--panel);
-  box-shadow: var(--control-shadow);
-  color: var(--danger);
-  font-size: var(--design-font-xs);
-  white-space: normal;
-}
-
 .editor-timeline-context {
   display: block;
   padding-inline: var(--ui-space-3);
@@ -7908,7 +7811,7 @@ body.is-loading .app-root {
   font-weight: var(--ui-weight-medium);
 }
 
-.status-group:not(.hidden) ~ .status-group:not(.hidden):not(.timeline-status)::before {
+.status-group:not(.hidden) ~ .status-group:not(.hidden)::before {
   content: "";
   width: var(--ui-border-width);
   height: var(--status-group-height);
