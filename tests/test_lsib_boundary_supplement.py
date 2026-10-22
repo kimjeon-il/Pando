@@ -18,6 +18,153 @@ screen_spec.loader.exec_module(screen)
 
 
 class SupplementTests(unittest.TestCase):
+    def coastal_fixture(self):
+        monaco = shapely.Polygon([(4, 0), (6, 0), (6, 4), (4, 4), (4, 0)])
+        land = shapely.Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
+        island = shapely.box(20, 20, 21, 21)
+        geometries = {'FRA': mapping(land.difference(monaco).difference(shapely.box(8, 8, 9, 9)).union(island)),
+                      'MCO': mapping(monaco)}
+        border = LineString([(4, -.0001), (4, 1), (5, 1.2), (6, 1), (6, -.0001)])
+        coasts = {
+            'monaco': LineString([(6, -.0001), (5, -.1), (4, -.0001)]),
+            'west': LineString([(4, -.0001), (3, -.0001), (2, 0), (1, -.0001)]),
+            'east': LineString([(6, -.0001), (7, -.0001), (8, 0), (9, -.0001)]),
+        }
+        return geometries, border, coasts
+
+    def test_coastal_repair_uses_shared_border_and_only_reviewed_outer_arc(self):
+        geometries, border, coasts = self.coastal_fixture()
+        original = copy.deepcopy(geometries)
+        updated, sections, review = module.repair_coastal_boundary(geometries, border, coasts)
+        monaco, france = shape(updated['MCO']), shape(updated['FRA'])
+        self.assertEqual(geometries, original)
+        self.assertTrue(monaco.is_valid and france.is_valid)
+        self.assertTrue(monaco.boundary.intersection(france.boundary).equals(border))
+        self.assertEqual(monaco.intersection(france).area, 0)
+        self.assertFalse(monaco.covers(shape(original['MCO']).representative_point()))
+        self.assertTrue(monaco.boundary.covers(coasts['monaco']))
+        self.assertEqual(review['outerAnchors'], [(2., 0.), (8., 0.)])
+        self.assertEqual(len(sections), 4)
+        self.assertTrue(france.intersection(shapely.box(19, 19, 22, 22)).equals(shapely.box(20, 20, 21, 21)))
+        self.assertTrue(france.boundary.intersection(shapely.box(7.5, 7.5, 9.5, 9.5)).equals(shapely.box(8, 8, 9, 9).boundary))
+        module.validate_coastal_repair(geometries, updated, review)
+        bad = copy.deepcopy(updated)
+        bad['FRA'] = mapping(france.union(shapely.box(30, 30, 31, 31)))
+        with self.assertRaisesRegex(ValueError, 'reviewed coast|component'):
+            module.validate_coastal_repair(geometries, bad, review)
+        with self.assertRaisesRegex(ValueError, 'Land/coastline union changed'):
+            module.apply_country_patches(geometries, {
+                'MCO': [{'old': list(shape(geometries['MCO']).exterior.coords),
+                         'replacement': list(monaco.exterior.coords)}]})
+
+    def test_coastal_repair_rejects_missing_anchor_and_large_endpoint_move(self):
+        geometries, border, coasts = self.coastal_fixture()
+        original = copy.deepcopy(geometries)
+        coasts['west'] = LineString([(4, -.0001), (3, -.0001), (1, -.0001)])
+        with self.assertRaisesRegex(ValueError, 'anchor'):
+            module.repair_coastal_boundary(geometries, border, coasts)
+        self.assertEqual(geometries, original)
+        geometries, border, coasts = self.coastal_fixture()
+        border = LineString([(4, -.01), *list(border.coords)[1:]])
+        with self.assertRaisesRegex(ValueError, 'endpoint'):
+            module.repair_coastal_boundary(geometries, border, coasts)
+
+    def test_coast_endpoint_snap_cannot_invent_an_outer_intersection(self):
+        geometries, border, coasts = self.coastal_fixture()
+        coasts['monaco'] = LineString([(6, -.0001), (5, -.1), (4, .0001)])
+        coasts['west'] = LineString([(4, -.0001), (3, -.0001), (1, -.0001)])
+        self.assertTrue(coasts['west'].intersection(shapely.union_all([shape(g) for g in geometries.values()]).boundary).is_empty)
+        with self.assertRaisesRegex(ValueError, 'No safe outer coast anchor'):
+            module.repair_coastal_boundary(geometries, border, coasts)
+
+    def test_reviewed_coast_manifest_pins_features_level_and_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'coast.json'
+            _, _, coasts = self.coastal_fixture()
+            features = [{'type': 'Feature', 'properties': {'cleabs': role, 'niveau': 'Plus hautes eaux'},
+                         'geometry': mapping(line)} for role, line in coasts.items()]
+            source.write_text(json.dumps({'type': 'FeatureCollection', 'features': features}), encoding='utf-8')
+            manifest = {'schemaVersion': 1, 'countries': ['FRA', 'MCO'],
+                        'sourceId': 'ign-bdtopo-v3-monaco-coast', 'sourceCrs': 'EPSG:4326',
+                        'sourceFile': 'coast.json', 'sourceFileSha256': hashlib.sha256(source.read_bytes()).hexdigest(),
+                        'features': {role: role for role in coasts}}
+            file = root / 'manifest.json'
+            file.write_text(json.dumps(manifest), encoding='utf-8')
+            loaded, _ = module.reviewed_coast_reference(root, file)
+            self.assertTrue(loaded['monaco'].equals(coasts['monaco']))
+            features[0]['properties']['niveau'] = 'Plus basses eaux'
+            source.write_text(json.dumps({'type': 'FeatureCollection', 'features': features}), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'pinned'):
+                module.reviewed_coast_reference(root, file)
+            manifest['sourceFileSha256'] = hashlib.sha256(source.read_bytes()).hexdigest()
+            file.write_text(json.dumps(manifest), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'high-water'):
+                module.reviewed_coast_reference(root, file)
+
+    def test_coastal_candidate_preserves_current_identity_past_and_source_attribution(self):
+        geometries, border, coasts = self.coastal_fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'assets/data/territorial-entities/source'
+            evidence = root / 'tools/historical-library/sources/lsib-11.4'
+            for folder in (source / 'countries', source / 'views', evidence, root / 'config'):
+                folder.mkdir(parents=True)
+            originals, selections = {}, []
+            for code, geometry in geometries.items():
+                entity = {'entityId': f'state:{code}', 'sourceInfo': {'featureId': code},
+                          'lifetime': {'validFrom': '1900-01-01', 'validTo': None}, 'parentEntityId': '',
+                          'geometryVersions': [
+                              {'versionId': code, 'datePrecision': 'current', 'sourceId': 'natural-earth-5.1.1', 'geometry': geometry},
+                              {'versionId': code + ':past', 'datePrecision': 'day', 'geometry': geometry}]}
+                if code == 'FRA':
+                    entity['geometryVersions'][0]['modernBoundarySupplement'] = {
+                        'boundaries': [{'countries': ['AND', 'FRA'], 'sourceId': module.SOURCE_ID}]}
+                file = source / 'countries' / f'state-{code}.json'
+                file.write_text(json.dumps(entity), encoding='utf-8')
+                originals[code] = file.read_bytes()
+                selections.append({'entityId': entity['entityId'], 'geometryVersionId': code})
+            (source / 'views/world.json').write_text(json.dumps({'selections': selections}), encoding='utf-8')
+            raw = gzip.compress(json.dumps({'features': [{'properties': {
+                'CC1_GENC3': 'FRA', 'CC2_GENC3': 'MCO', 'RANK': '1', 'STATUS': 'International Boundary', 'ID': 'land'},
+                'geometry': mapping(border)}]}).encode())
+            (evidence / 'boundaries.geojson.gz').write_bytes(raw)
+            (evidence / 'provenance.json').write_text(json.dumps({'published': '2025-02-24',
+                'masterSha256': hashlib.sha256(raw).hexdigest()}), encoding='utf-8')
+            (root / 'config/library-data.json').write_text(json.dumps({'revision': 'test-data-revision'}), encoding='utf-8')
+            raw_coast = json.dumps({'features': [{'properties': {'cleabs': role, 'niveau': 'Plus hautes eaux'},
+                'geometry': mapping(line)} for role, line in coasts.items()]}).encode()
+            (root / 'coast.json').write_bytes(raw_coast)
+            manifest = {'schemaVersion': 1, 'countries': ['FRA', 'MCO'], 'sourceId': 'ign-bdtopo-v3-monaco-coast',
+                'sourceCrs': 'EPSG:4326', 'sourceFile': 'coast.json', 'sourceFileSha256': hashlib.sha256(raw_coast).hexdigest(),
+                'features': {role: role for role in coasts}, 'title': 'Reviewed coast', 'published': None,
+                'url': 'https://example.invalid/coast', 'license': 'Open Licence 2.0', 'licenseUrl': 'https://example.invalid/license',
+                'attribution': 'IGN', 'retrieved': '2026-10-22', 'lastModified': '2024-09-23', 'confirmed': '2021-11-01'}
+            file = root / 'manifest.json'
+            file.write_text(json.dumps(manifest), encoding='utf-8')
+            output = root / 'candidate.json'
+            with self.assertRaisesRegex(ValueError, 'pinned reviewed coast'):
+                module.targeted_candidates(root, output, ['FRA/MCO'])
+            module.targeted_candidates(root, output, ['FRA/MCO'], coast_manifest=file)
+            candidate = json.loads(output.read_text(encoding='utf-8'))
+            self.assertEqual(len(candidate['changes']), 2)
+            self.assertEqual(len(candidate['boundaries']), 4)
+            for change in candidate['changes']:
+                code = change['entityId'].split(':')[1]
+                self.assertEqual(change['geometryVersionId'], code)
+                self.assertIn('dos-lsib-11.4+ign-bdtopo-v3-monaco-coast', change['sourceId'])
+                self.assertIsNone(change['sourceAttributions'][0]['published'])
+                self.assertEqual(change['supplement']['coastline'], 'reviewed-ign-replacement')
+                self.assertEqual((source / 'countries' / f'state-{code}.json').read_bytes(), originals[code])
+                self.assertEqual(change['inputFileSha256'], hashlib.sha256(originals[code]).hexdigest())
+            france = next(c for c in candidate['changes'] if c['entityId'] == 'state:FRA')
+            self.assertEqual(france['supplement']['boundaries'][0]['countries'], ['AND', 'FRA'])
+            entity = json.loads(originals['MCO'])
+            entity['geometryVersions'][0]['datePrecision'] = 'day'
+            (source / 'countries/state-MCO.json').write_text(json.dumps(entity), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'Historical'):
+                module.targeted_candidates(root, output, ['FRA/MCO'], coast_manifest=file)
+
     def test_closed_screen_section_uses_complete_enclave_ring(self):
         geometry = {'type': 'Polygon', 'coordinates': [[(1, 1), (2, 1), (2, 2), (1, 2), (1, 1)]]}
         reference = LineString([(2, 2), (2, 1), (1, 1), (1, 2), (2, 2)])

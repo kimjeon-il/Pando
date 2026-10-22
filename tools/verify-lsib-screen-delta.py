@@ -94,7 +94,11 @@ def main():
         if code not in entities:
             e = json.loads((root / f'assets/data/territorial-entities/source/countries/state-{code}.json').read_text(encoding='utf-8'))
             entities[code] = next(v['geometry'] for v in e['geometryVersions'] if v['versionId'] == e['metadata']['representativeGeometryVersionId'])
-        if 'referenceManifest' in entry:
+        if entry.get('kind') == 'coastline':
+            coasts, metadata = module.reviewed_coast_reference(root, entry['referenceManifest'])
+            source = coasts[entry['referenceRole']]
+            provenance = {'sourceId': metadata['sourceId'], 'referenceManifest': metadata['referenceManifest']}
+        elif 'referenceManifest' in entry:
             source, metadata = module.reviewed_reference(root, entry['referenceManifest'])
             provenance = {'sourceId': metadata['sourceId'], 'referenceManifest': metadata['referenceManifest']}
         else:
