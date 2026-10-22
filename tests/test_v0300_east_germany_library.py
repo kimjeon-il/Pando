@@ -105,17 +105,38 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
         baseline_path = ROOT / "tools/historical-library/sources/east-germany/ddr-before-remaining-vg25.geojson"
         baseline = shape(json.loads(baseline_path.read_text(encoding="utf-8"))["features"][0]["geometry"])
         region = box(10.55, 51.98, 10.91, 52.09)
+        stage2 = unary_union([box(*section["bounds"]) for section in RECIPE["operations"][-1]["sections"]
+                              if section["id"] in {"vg25-eichsfeld-glasehausen", "vg25-schaalsee-mustin-thurow-land"}])
+        admitted = unary_union([region, stage2])
         delta = baseline.symmetric_difference(GEOMETRY)
         self.assertGreater(projected_area_km2(delta.intersection(region)), 0.01)
-        self.assertTrue(delta.difference(region.buffer(3e-12)).difference(baseline.boundary.buffer(3e-12)).is_empty)
-        self.assertLess(baseline.boundary.difference(region).hausdorff_distance(
-            GEOMETRY.boundary.difference(region)), 3e-11)
+        self.assertTrue(delta.difference(admitted.buffer(3e-12)).difference(baseline.boundary.buffer(3e-12)).is_empty)
+        self.assertLess(baseline.boundary.difference(admitted).hausdorff_distance(
+            GEOMETRY.boundary.difference(admitted)), 3e-11)
         self.assertEqual(len(GEOMETRY.geoms), len(baseline.geoms))
         for name, bounds in {"Wendebach-Werra": (9.7, 50.8, 10.3, 51.45),
                              "Ohre-Droemling": (10.7, 52.3, 11.3, 52.9),
                              "northern-shores": (10.5, 53.4, 11.2, 54.1)}.items():
             with self.subTest(held=name):
-                self.assertTrue(delta.intersection(box(*bounds)).difference(baseline.boundary.buffer(3e-12)).is_empty)
+                self.assertTrue(delta.intersection(box(*bounds).difference(stage2.buffer(3e-12)))
+                                .difference(baseline.boundary.buffer(3e-12)).is_empty)
+
+    def test_stage2_land_sections_change_geometry_and_preserve_all_other_boundaries(self):
+        source = RECIPE["sources"]["beforeStage2Supplement"]
+        baseline = shape(json.loads((ROOT / source["path"]).read_text(encoding="utf-8"))["features"][0]["geometry"])
+        ids = {"vg25-eichsfeld-glasehausen", "vg25-schaalsee-mustin-thurow-land"}
+        sections = [section for section in RECIPE["operations"][-1]["sections"] if section["id"] in ids]
+        self.assertEqual({section["id"] for section in sections}, ids)
+        admitted = unary_union([box(*section["bounds"]) for section in sections])
+        delta = baseline.symmetric_difference(GEOMETRY)
+        for section in sections:
+            with self.subTest(section=section["id"]):
+                self.assertGreater(projected_area_km2(delta.intersection(box(*section["bounds"]))), 0.001)
+        self.assertTrue(delta.difference(admitted.buffer(3e-12)).difference(baseline.boundary.buffer(3e-12)).is_empty)
+        self.assertLess(baseline.boundary.difference(admitted).hausdorff_distance(
+            GEOMETRY.boundary.difference(admitted)), 3e-11)
+        self.assertEqual(len(GEOMETRY.geoms), len(baseline.geoms))
+        self.assertEqual([len(p.interiors) for p in GEOMETRY.geoms], [len(p.interiors) for p in baseline.geoms])
 
     def test_admitted_inland_sections_reuse_the_pinned_vg25_derivative(self):
         # This checks which source line was applied, not historical positional

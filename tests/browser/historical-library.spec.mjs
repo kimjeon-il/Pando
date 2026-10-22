@@ -107,6 +107,7 @@ test('East Germany static import preserves identity, archive, history and origin
     'vg25-schaalsee-lake', 'vg25-bavaria-central', 'vg25-saxony-bavaria',
     'vg25-eichsfeld-north', 'vg25-harz-ecker', 'vg25-geismar-spahl',
     'vg25-wolfenbuettel-hornburg',
+    'vg25-eichsfeld-glasehausen', 'vg25-schaalsee-mustin-thurow-land',
   ]);
   expect(imported.geometry).toEqual(source.geometryVersions[0].geometry);
   if(process.env.PANDOLAB_DDR_EVIDENCE_DIR){
