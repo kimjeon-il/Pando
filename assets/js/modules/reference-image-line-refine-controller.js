@@ -576,7 +576,7 @@ export function installReferenceImageLineRefiner() {
   const observer = new MutationObserver(records => {
     // Tabs change descendant section visibility; ignore status text and tool output.
     if (!records.some(({ target }) => target === panel || target === editor
-      || target === mapElement || target === editingSummary
+      || target === mapElement
       || target.matches?.('[data-ref-section]'))) return;
     if (panel.hidden && state) cancelRefine();
     else scheduleSync();

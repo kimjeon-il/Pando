@@ -578,11 +578,6 @@ for (const [name, install] of [
     await Promise.resolve();
     assert.ok(genericActions.every(button => !button.hidden));
 
-    const matchSection = document.createElement('section');
-    matchSection.dataset.refSection = 'match';
-    f.editor.append(matchSection);
-    const actionPrefix = name === 'line refiner' ? 'line' : 'live-wire';
-    const start = f.panel.querySelector(`[data-ref-${actionPrefix}-action="start"]`);
     matchSection.hidden = true;
     for (const observer of observers) observer.callback([{ target: matchSection }]);
     await Promise.resolve();
