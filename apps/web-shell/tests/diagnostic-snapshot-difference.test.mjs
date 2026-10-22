@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { describeSnapshotDifference } from '../diagnostics.js';
+import { describeSnapshotDifference, expectedReopenedSnapshot } from '../diagnostics.js';
 
 test('identical snapshots and root savedAt changes produce no differences', () => {
   const reopened = { savedAt: '2026-10-22T02:00:00Z', documentId: 'fixture', objects: [{ id: 'A', properties: { name: 'alpha' } }] };
@@ -58,4 +58,26 @@ test('diagnostic output is limited without changing the failure condition', () =
   const sample = title.entries.find(row => row.path === '/title');
   assert.equal(sample.reopened.preview.length, 101);
   assert.equal(sample.reopened.length, 1000);
+});
+
+test('full-autosave provenance is validated before comparing the original live document', () => {
+  const before = {
+    savedAt: '2026-10-22T00:00:00Z',
+    baseDataset: 'Natural Earth 5.1.1 · Admin 0 Countries · 1:10m · de facto',
+    territorialEntities: [{ id: 'shell-country-a', properties: { name: 'edited' } }],
+  };
+  const autosave = { format: 'pandolab-autosave-full', baseDataset: 'external-territorial-entities' };
+  const expected = expectedReopenedSnapshot(before, autosave);
+  assert.equal(expected.baseDataset, 'external-territorial-entities');
+  assert.equal(before.baseDataset, 'Natural Earth 5.1.1 · Admin 0 Countries · 1:10m · de facto');
+  assert.equal(expected.savedAt, undefined);
+  const restored = structuredClone(expected);
+  assert.deepEqual(describeSnapshotDifference(restored, expected).entries, []);
+  restored.territorialEntities[0].properties.name = 'lost-edit';
+  assert.deepEqual(describeSnapshotDifference(restored, expected).entries.map(item => item.path),
+    ['/territorialEntities/0/properties/name']);
+  assert.throws(() => expectedReopenedSnapshot(before, { format: 'pandolab-autosave-delta', baseDataset: autosave.baseDataset }),
+    /self-contained full autosave/);
+  assert.throws(() => expectedReopenedSnapshot(before, { format: autosave.format, baseDataset: before.baseDataset }),
+    /external dataset provenance/);
 });

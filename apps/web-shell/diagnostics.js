@@ -110,6 +110,17 @@ export function describeSnapshotDifference(reopened, saved, { limit = 48 } = {})
   return { entries, shown: entries.length, truncated };
 }
 
+/** A full autosave is self-contained; C++ intentionally replaces builtin source identity. */
+export function expectedReopenedSnapshot(savedSnapshot, autosave) {
+  assert(autosave?.format === 'pandolab-autosave-full',
+    'The restart probe requires a self-contained full autosave.');
+  assert(autosave.baseDataset === 'external-territorial-entities',
+    'A self-contained full autosave must carry external dataset provenance.');
+  const expected = comparableSnapshot(savedSnapshot);
+  expected.baseDataset = autosave.baseDataset;
+  return expected;
+}
+
 async function readAutosaveRecord() {
   const database = await new Promise((resolve, reject) => {
     const request = indexedDB.open(DATABASE);
@@ -256,14 +267,23 @@ export function installDiagnostics(runtime) {
           const read = await readProbeFile(), previous = JSON.parse(read.contents);
           assert(previous.schema === 'pandolab-shell-probe-v1', 'The previous process probe is unavailable.');
           assert(entityRepository.get(COUNTRY)?.properties.name === previous.name, 'The reopened process did not restore the accepted edit.');
+          const storedAutosave = await readAutosaveRecord();
+          const expectedSnapshot = expectedReopenedSnapshot(previous.savedSnapshot, storedAutosave);
           const reopenedSnapshot = projectDomain.snapshot();
-          if (!same(comparableSnapshot(reopenedSnapshot), comparableSnapshot(previous.savedSnapshot))) {
+          assert(reopenedSnapshot.baseDataset === storedAutosave.baseDataset,
+            'The reopened document did not retain the self-contained autosave provenance.');
+          if (!same(comparableSnapshot(reopenedSnapshot), expectedSnapshot)) {
             const error = new Error('The reopened canonical document differs from the saved snapshot.');
             error.code = 'PL-NATIVE-REOPEN-SNAPSHOT';
-            error.snapshotDifference = describeSnapshotDifference(reopenedSnapshot, previous.savedSnapshot);
+            error.snapshotDifference = describeSnapshotDifference(reopenedSnapshot, expectedSnapshot);
             throw error;
           }
-          return { processRestart: true, exactDocument: true, name: previous.name, path: read.path };
+          return {
+            processRestart: true, exactDocument: true, name: previous.name, path: read.path,
+            originalDataset: previous.savedSnapshot.baseDataset,
+            restoredDataset: reopenedSnapshot.baseDataset,
+            normalizedFromFullAutosave: true,
+          };
         });
         await check('nativeFile', async () => {
           const read = await readProbeFile(), previous = JSON.parse(read.contents);
