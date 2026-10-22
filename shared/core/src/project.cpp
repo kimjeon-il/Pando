@@ -23,19 +23,6 @@ std::string nextInstanceId()
     } while (!counter.compare_exchange_weak(value, value + 1, std::memory_order_relaxed));
     return "project-session-" + std::to_string(value + 1);
 }
-// Current native history normalizes country overrides. Web history restores
-// its accepted data exactly; the session chooses the platform contract.
-std::shared_ptr<const detail::DocumentState> restoredHistoryState(
-    const std::shared_ptr<const detail::DocumentState>& target)
-{
-    if(!target->needsHistoryPruning)return target;
-    auto document=target->document;
-    for(auto& u:document.units)if(u.kind==UnitKind::General) {
-        u.notes=trimWebText(u.notes);
-        if(u.name.empty())u.nameExplicit=false;
-    }
-    return std::make_shared<const detail::DocumentState>(std::move(document));
-}
 bool boundaryHistoryAction(const CommandAction& action) {
     const auto* mutation=std::get_if<ApplyTerritorialMutation>(&action);
     return mutation&&mutation->plan.kind==TerritorialMutationKind::ReconcileSharedBoundary&&std::holds_alternative<SharedBoundaryIntent>(mutation->plan.intent);
@@ -384,26 +371,27 @@ std::optional<TerritorialMutationKind> Project::nextRedoTerritorialMutationKind(
     const auto* action=std::get_if<ApplyTerritorialMutation>(&(*commands_)[cursor_].request_.args.action);
     return action?std::optional<TerritorialMutationKind>(action->plan.kind):std::nullopt;
 }
-ProjectSnapshot Project::historySnapshot(bool forward,HistoryRestorePolicy policy) const {
+ProjectSnapshot Project::historySnapshot(bool forward) const {
     if(!(forward?canRedo():canUndo()))return snapshot();
     const auto& command=(*commands_)[forward?cursor_:cursor_-1];
     const auto& target=forward?command.after_:command.before_;
     const auto& from=forward?command.before_:command.after_;
-    auto next=policy==HistoryRestorePolicy::Exact?target:restoredHistoryState(target);
+    auto next=target;
     if(!(document().presentation.webPresentation==from->document.presentation.webPresentation)) {
         auto candidate=next->document;
         candidate.presentation.webPresentation=rebasePresentation(document(),from->document,candidate);
         next=std::make_shared<const detail::DocumentState>(std::move(candidate));
     }
-    if(policy==HistoryRestorePolicy::Exact) {
-        // Current Web history excludes physicalSettings entirely, including
-        // copied-hydro hidden flags. They stay live on both Undo and Redo.
-        auto candidate=next->document;auto header=codecjson::parse(candidate.exchangeMetadata),live=codecjson::parse(document().exchangeMetadata);
-        const auto settings=live.object.find("physicalSettings");if(settings==live.object.end())header.object.erase("physicalSettings");else header.object["physicalSettings"]=settings->second;
-        candidate.exchangeMetadata=header.encode();GeometryProvenanceCodecAccess::admitPresentationMetadata(next->document,candidate);
-        next=std::make_shared<const detail::DocumentState>(std::move(candidate));
-    }else if(document().exchangeMetadata!=from->document.exchangeMetadata) {
-        auto candidate=next->document;rebasePhysicalPresentation(document(),from->document,candidate);
+    // Physical viewing settings are not part of Web document history.
+    {
+        auto candidate=next->document;
+        auto header=codecjson::parse(candidate.exchangeMetadata);
+        const auto live=codecjson::parse(document().exchangeMetadata);
+        const auto settings=live.object.find("physicalSettings");
+        if(settings==live.object.end())header.object.erase("physicalSettings");
+        else header.object["physicalSettings"]=settings->second;
+        candidate.exchangeMetadata=header.encode();
+        GeometryProvenanceCodecAccess::admitPresentationMetadata(next->document,candidate);
         next=std::make_shared<const detail::DocumentState>(std::move(candidate));
     }
     if(command.batchBoundaryLabelSettings_||boundaryHistoryAction(command.request_.args.action))next=restoredBoundaryLabelSettings(document(),next);
@@ -424,7 +412,7 @@ ProjectSnapshot Project::historySnapshot(bool forward,HistoryRestorePolicy polic
     }
     ProjectSnapshot prepared{std::move(next),instanceId_,revision_,timelineCursor_,timelineEditsEnabled_};
     prepared.historySource_=state_;prepared.historyForward_=forward;prepared.historyCursor_=cursor_;
-    prepared.historyExact_=policy==HistoryRestorePolicy::Exact;return prepared;
+    return prepared;
 }
 bool Project::travelHistory(bool forward,const ProjectSnapshot& prepared) {
     if(!(forward?canRedo():canUndo())||revision_==std::numeric_limits<std::uint64_t>::max()||!prepared.matches(*this)
@@ -434,7 +422,7 @@ bool Project::travelHistory(bool forward,const ProjectSnapshot& prepared) {
     const auto& target=forward?command.after_:command.before_;
     auto nextView=projectedState(prepared.document(),timelineCursor_);
     const bool savedTarget=target==saved_||semanticallyEqual(target->document,saved_->document);
-    auto nextSaved=savedTarget?(prepared.historyExact_?target:restoredHistoryState(target)):saved_;
+    auto nextSaved=savedTarget?target:saved_;
     state_=prepared.state_;viewState_=std::move(nextView);saved_=std::move(nextSaved);
     checkpoint_=forward?command.checkpointAfter_:command.checkpointBefore_;
     if(forward)++cursor_;else --cursor_;

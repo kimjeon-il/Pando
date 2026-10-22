@@ -18,7 +18,6 @@ struct DocumentState {
     std::vector<CountryView> countries;
     std::map<std::string, std::size_t> countryIndex;
     std::set<std::string> inactiveIds;
-    bool needsHistoryPruning=false;
 
     DocumentState() = default; // unloaded Project only
     DocumentState(ProjectDocument candidate,CommandBatchStage)
@@ -31,8 +30,6 @@ struct DocumentState {
         auto allCountries=countryViews(document);
         countries.reserve(allCountries.size());
         for(const auto& view:allCountries)if(!inactiveIds.count(view.id))countries.push_back(view);
-        for(const auto& u:document.units)if(u.kind==UnitKind::General &&
-            (trimWebText(u.notes)!=u.notes || (u.name.empty() && u.nameExplicit)))needsHistoryPruning=true;
         for (std::size_t i = 0; i < countries.size(); ++i)
             countryIndex.emplace(countries[i].id, i);
     }

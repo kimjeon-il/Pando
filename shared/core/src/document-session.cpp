@@ -235,7 +235,7 @@ DocumentSessionOutcome DocumentSession::executeCommand(std::string commandId,Com
 DocumentSessionOutcome DocumentSession::history(bool forward,std::uint32_t expectedEpoch) {
     requireLoaded();if(expectedEpoch!=epoch_)return rejected(CommandError::StaleRevision,"session epoch changed");
     if(epoch_==std::numeric_limits<std::uint32_t>::max())return rejected(CommandError::RevisionOverflow,"session counter overflow");
-    const auto before=project_.snapshot(),prospective=project_.historySnapshot(forward,HistoryRestorePolicy::Exact);
+    const auto before=project_.snapshot(),prospective=project_.historySnapshot(forward);
     const bool available=forward?project_.canRedo():project_.canUndo();
     ChangeImpact impact;std::string delta;
     if(available) {
