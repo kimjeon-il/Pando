@@ -147,6 +147,7 @@ export function createTerritorialPropertyController({
       const action=resolveObjectAction(actionId,{domain:'territorial',locked:properties.locked,disabled:isMutationBlocked(view.ref)&&!properties.locked});
       $(id).disabled=!action.enabled;
       const small=$(id).querySelector('small');if(small)small.textContent=action.reason||action.help;
+      $(id).dataset.actionReason=action.reason?'true':'false';
       $(id).setAttribute('aria-label',action.label+(action.reason?' · '+action.reason:''));
     }
     // Copy reads the source; a locked source can still be copied.

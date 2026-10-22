@@ -1,4 +1,4 @@
-import { editingContextPresentation, taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
+import { editingContextPresentation, shouldShowTaskInputInstruction, taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
 import { lineDistanceKm } from './geometry-metrics.js';
 import { timelineMonthLabel } from './timeline-controls.js';
 
@@ -107,6 +107,16 @@ export function createTaskPresentation() {
     return { name: display.name, flagUrl: country?.flagUrl || '' };
   }
 
+  function mergeReviewTargets(state) {
+    if (!['merge-country', 'merge-territorial-unit'].includes(state.tool)) return null;
+    const country = state.tool === 'merge-country';
+    const keeperId = String(country ? state.mergeSourceCountryId || '' : state.territorialUnitMergeSourceId || '');
+    const selected = country ? state.mergeTargetCountryIds : state.territorialUnitMergeTargetIds;
+    const absorbedIds = [...new Set((selected || []).map(id => String(id || '')))]
+      .filter(id => id && id !== keeperId);
+    return keeperId && absorbedIds.length ? { keeperId, absorbedIds } : null;
+  }
+
   function appendIdentity(parent, display) {
     const document = parent.ownerDocument;
     if (display.flagUrl) {
@@ -143,7 +153,16 @@ export function createTaskPresentation() {
       rows.push([['annex', 'new-country'].includes(selection.kind) ? '선택 영토' : '선택 영역', `${dependencies.territorySelectionB.territorySelectionPresentation().count}개`]);
     } else {
       const refs = currentTaskTargets();
-      if (refs.length) rows.push(['대상', refs.map(ref => displayObject(ref).name).join(', ')]);
+      const mergeOperation = state.tool === 'merge-country' ? 'merge' : 'territorial-merge';
+      const merge = view?.review && preview.operation === mergeOperation
+        ? mergeReviewTargets(state) : null;
+      const labels = new Map(refs.map(ref => [String(ref.id), displayObject(ref).name]));
+      if (merge && labels.has(merge.keeperId) && merge.absorbedIds.every(id => labels.has(id))) {
+        rows.push(['남길 객체', labels.get(merge.keeperId)]);
+        rows.push(['합쳐질 객체', merge.absorbedIds.map(id => labels.get(id)).join(', ')]);
+      } else if (refs.length) {
+        rows.push(['대상', refs.map(ref => displayObject(ref).name).join(', ')]);
+      }
     }
     const metrics = preview.metrics || {};
     for (const [key, label] of [['transferredAreaKm2', '이동 면적'], ['finalAreaKm2', '결과 면적']]) {
@@ -205,7 +224,6 @@ export function createTaskPresentation() {
   function syncMapContextSurfaces() {
     const editing = mapModeContextActive();
     if (!editing) dependencies.projectState.state.modeTaskMinimized = false;
-    dependencies.platform.$('modeMapSummary')?.classList.toggle('hidden', !editing);
     const context = (0, dependencies.platform.$)('modeEditingContext');
     const content = (0, dependencies.platform.$)('modeTaskWindowContent');
     const minimize = (0, dependencies.platform.$)('modeTaskMinimizeBtn');
@@ -218,7 +236,22 @@ export function createTaskPresentation() {
       minimize.setAttribute('aria-expanded', String(!minimized));
       minimize.setAttribute('aria-label', minimized ? '편집 상세 펼치기' : '편집 상세 접기');
     }
+    // The expanded heading and role/review details already identify the stage and target.
+    // Collapsing the body restores the existing compact context instead of losing it.
+    const targetSummary = dependencies.platform.$('modeTaskTargetSummary');
+    const roleCards = dependencies.platform.$('modeTaskObjects');
+    const previewSummary = dependencies.platform.$('geometryPreviewSummary');
+    const targetDetailed = (roleCards && !roleCards.classList.contains('hidden'))
+      || (previewSummary && !previewSummary.classList.contains('hidden'));
+    targetSummary?.parentElement?.classList.toggle('hidden', !minimized && !!targetDetailed);
+    const genericStage = dependencies.platform.$('modeTaskEditingStage');
+    genericStage?.classList.toggle('hidden', !minimized);
+    genericStage?.setAttribute('aria-live', minimized ? 'polite' : 'off');
+    dependencies.platform.$('modeTaskStage')?.setAttribute('aria-live', minimized ? 'off' : 'polite');
     dependencies.workspaceUiB.editorWorkspacePresentation.sync({ active: editing });
+    // The map HUD is fallback context only when the inspector itself is not open.
+    const editorOpen = dependencies.platform.$('editorSurface')?.classList.contains('surface-open');
+    dependencies.platform.$('modeMapSummary')?.classList.toggle('hidden', !editing || !!editorOpen);
     dependencies.domainControllers.syncTerritorialEditorInteraction();
     requestAnimationFrame(syncMapHudBounds);
   }
@@ -306,8 +339,10 @@ export function createTaskPresentation() {
     const summary = (0, dependencies.platform.$)('territorySelectionStackSummary');
     const current = model?.current;
     const visible = !!model?.selection;
-    section?.classList.toggle('hidden', !visible);
-    if (!visible || !list || !summary) return;
+    if (!visible || !list || !summary) {
+      section?.classList.add('hidden');
+      return;
+    }
 
     const activeComponents = current.activePhase === 'components'
       ? dependencies.territoryComponents.territoryComponentItems().filter(item => item.selected)
@@ -317,6 +352,10 @@ export function createTaskPresentation() {
       ...activeComponents.map(item => ({ kind: 'component', id: item.key, geometry: item.geometry })),
     ];
     const pending = current.computationPending || current.computationError;
+    // Keep the shared result-list UI, but omit an empty zero-area card during
+    // annex drawing. Real parts and calculation errors/progress stay visible.
+    const showList = current.kind !== 'annex' || items.length > 0 || !!pending;
+    section?.classList.toggle('hidden', !showList);
     const busy = !!(pending || current.previewPending || current.applying || dependencies.projectState.state.modeProcessing);
     const label = ['annex', 'new-country'].includes(current.kind) ? '선택 영토' : '선택 영역';
     section.setAttribute('aria-label', label);
@@ -348,7 +387,7 @@ export function createTaskPresentation() {
       area.className = 'workflow-result-value';
       area.textContent = row.area;
       const remove = list.ownerDocument.createElement('button');
-      remove.className = 'ui-button workflow-result-remove';
+      remove.className = 'ui-button icon-btn workflow-result-remove';
       remove.type = 'button';
       remove.dataset.itemKind = row.kind;
       remove.dataset.itemId = row.id;
@@ -379,7 +418,10 @@ export function createTaskPresentation() {
     if (!section || !list || !summary) return;
     const hydro = state.multiDraft?.kind === 'hydro' && ['river', 'lake'].includes(state.tool);
     const merge = ['merge-country', 'merge-territorial-unit'].includes(state.tool) && !view?.review;
-    section.classList.toggle('hidden', !hydro && !merge);
+    // Do not reserve an empty results panel before a merge target is selected.
+    // The full removable list returns as soon as there is a selected target.
+    const showResults = hydro || (merge && !!view?.resultRefs?.length);
+    section.classList.toggle('hidden', !showResults);
     if (!hydro && !merge) return;
     const busy = !!(state.modeProcessing || state.multiDraft?.previewPending || draft.strokeActive);
     const length = geometry => (geometry?.type === 'MultiLineString' ? geometry.coordinates : [geometry?.coordinates || []])
@@ -412,7 +454,7 @@ export function createTaskPresentation() {
       item.append(number, value);
       if (row.ref) {
         const remove = list.ownerDocument.createElement('button');
-        remove.className = 'ui-button workflow-result-remove';
+        remove.className = 'ui-button icon-btn workflow-result-remove';
         remove.type = 'button';
         remove.dataset.objectId = row.ref.id;
         remove.disabled = busy;
@@ -464,7 +506,7 @@ export function createTaskPresentation() {
     if (statusNode) {
       statusNode.dataset.taskState = status;
       if (statusNode.textContent !== label) statusNode.textContent = label;
-      statusNode.classList.remove('hidden');
+      statusNode.classList.toggle('hidden', status !== 'preparing' && status !== 'invalid');
       for (const value of ['preparing', 'needs-target', 'editable', 'invalid']) statusNode.classList.toggle(`is-${value}`, value === status);
     }
     if (taskRoot) taskRoot.dataset.taskState = status;
@@ -472,7 +514,15 @@ export function createTaskPresentation() {
     if (reasonNode) {
       const message=primaryDisabled?primaryCommand.reason:reason;
       if (reasonNode.textContent !== message) reasonNode.textContent = message;
-      reasonNode.classList.toggle('hidden', !(primaryDisabled?primaryCommand.reason:reason));
+      // The empty annex donor card already conveys the routine selection request.
+      // Preserve the message for aria-describedby; never suppress real errors or progress.
+      const redundantAnnexPrompt = selection?.kind === 'annex' && selection.stage === 'setup'
+        && !selection.sourceCountryIds?.length && status === 'needs-target'
+        && message === '대상을 선택하고 필요한 설정을 완료하세요.';
+      const redundantAnnexMethodPrompt = selection?.kind === 'annex' && selection.stage === 'selection'
+        && !selection.activeMethod && !selection.requestedMethod && status === 'needs-target'
+        && message === '다음 단계로 진행할 영역을 선택하세요.';
+      reasonNode.classList.toggle('hidden', !message || redundantAnnexPrompt || redundantAnnexMethodPrompt);
     }
     const instruction = dependencies.platform.$('modeTaskInstruction');
     const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
@@ -490,15 +540,32 @@ export function createTaskPresentation() {
 
   function syncEditingContext() {
     const state = dependencies.projectState.state;
-    const targets = currentTaskTargets().map(displayObject);
+    const targetRefs = currentTaskTargets();
+    const targets = targetRefs.map(displayObject);
     const preview = state.geometryPreview.session;
     const impact = (preview?.affectedIds || []).map(id => ({name: countryDisplay(id)?.name || territorialUnitDisplay(id) || id}));
     const editing=dependencies.domains.editingDomain.snapshot();
     const month = dependencies.domains.projectDomain.state()?.timelineCursor;
-    const context = editingContextPresentation({mobile:dependencies.surfaces.isMobile(),editing,state,draft: dependencies.draftPresentation.editingDraftSnapshot(),month,targets});
+    const draft = dependencies.draftPresentation.editingDraftSnapshot();
+    const mobile = dependencies.surfaces.isMobile();
+    const context = editingContextPresentation({mobile,editing,state,draft,month,targets});
     for (const [id,value] of [['editorTimelineContext',month?`${timelineMonthLabel(month)} 기준 편집`:'시점 확인 중'],['modeTaskTargetSummary',context.targetSummary],['modeTaskEditingStage',context.stage],['modeTaskViewTime','보기: '+context.view],['modeTaskPeriod','변경 기간: '+context.period],['modeTaskInput',context.instruction]]) {
       const element=dependencies.platform.$(id);if(element && element.textContent!==value)element.textContent=value;
     }
+    // Annex setup/selection already display the receiver, donor and method.
+    // Do not repeat uncalculated time/impact metadata before the review stage.
+    const annex = state.territorySelectionSession;
+    const annexBeforeReview = annex?.kind === 'annex' && annex.stage !== 'review';
+    const mergeChoosingTargets = !preview
+      && (state.tool === 'merge-country' && !!state.mergeSourceCountryId
+        || state.tool === 'merge-territorial-unit' && !!state.territorialUnitMergeSourceId);
+    // The keeper card and selected-target list already identify the active
+    // merge. Display the existing date/impact details when preview is ready.
+    dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden', annexBeforeReview || mergeChoosingTargets);
+    const taskInput = dependencies.platform.$('modeTaskInput');
+    taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
+      state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
+    }));
     const placement=dependencies.platform.$('vertexPlacementBtn');if(placement){placement.hidden=!editing.selectedVertex||!!preview;placement.disabled=editing.gestureActive||state.modeProcessing;placement.textContent=editing.vertexPlacement?'위치 지정 취소':'선택 정점 위치 지정';}
     const mapSummary=dependencies.platform.$('modeMapSummary');
     if(mapSummary)mapSummary.textContent=[dependencies.platform.$('modeTaskName')?.textContent,context.targetSummary,context.stage].filter(Boolean).join(' · ');
@@ -509,6 +576,36 @@ export function createTaskPresentation() {
       summary.textContent=preview?'영향 대상 '+names.length+'개':'작업 대상 '+targets.length+'개';
       const value=(preview?names:targets.map(row=>row.name)).join(', ');
       if(list.textContent!==value)list.textContent=value;
+      // In a valid annex review, the main result already names the receiver and
+      // donor countries. Hide the extra affected list only if it repeats those
+      // same identified objects; preserve it for additional impacts or errors.
+      const annexReview = annex?.kind === 'annex' && annex.stage === 'review'
+        && !!preview && !preview.validation?.blocking;
+      const directIds = annexReview
+        ? [annex.targetCountryId, ...(annex.sourceCountryIds || [])].filter(Boolean).map(String)
+        : [];
+      const duplicateImpact = annexReview && (preview.affectedIds || []).length > 0
+        && directIds.length > 0 && directIds.every(id => !!countryDisplay(id)?.name)
+        && preview.affectedIds.every(id => directIds.includes(String(id)));
+
+      const merge = mergeReviewTargets(state);
+      const mergeIds = merge ? [merge.keeperId, ...merge.absorbedIds] : [];
+      const mergeSet = new Set(mergeIds);
+      const namedRefs = new Set(targetRefs.filter((ref, index) => targets[index]?.name).map(ref => String(ref.id)));
+      const affectedIds = (preview?.affectedIds || []).map(String);
+      const removedIds = (preview?.removedIds || []).map(String);
+      // Only an exact, validated identity match can replace the affected list.
+      // Keep it for unselected dependents, references, warnings and ambiguous impacts.
+      const duplicateMergeImpact = !!merge && !!preview && preview.validation?.blocking === false
+        && preview.operation === (state.tool === 'merge-country' ? 'merge' : 'territorial-merge')
+        && !(preview.validation?.issues || []).length
+        && mergeIds.every(id => namedRefs.has(id))
+        && affectedIds.length === mergeSet.size && affectedIds.every(id => mergeSet.has(id))
+        && removedIds.length === merge.absorbedIds.length
+        && removedIds.every(id => merge.absorbedIds.includes(id))
+        && (preview.temporalImpact || []).every(row => row?.entityId && mergeSet.has(String(row.entityId)))
+        && (preview.delta?.objects || []).every(row => row?.ref?.domain === 'territorial' && mergeSet.has(String(row.ref.id)));
+      if (summary.parentElement) summary.parentElement.hidden = !!(duplicateImpact || duplicateMergeImpact);
     }
   }
 
@@ -624,7 +721,7 @@ export function createTaskPresentation() {
         else if (boundarySelectMode) label = `국경 편집 (${state.boundaryEditEntityIds.length})`;
         else if (boundaryEditMode || state.tool === 'country-coast') label = state.boundaryPreparation?.calculationFailed ? '다시 계산' : '변경 미리보기';
         else if (terrainMode) label = '그리기 완료';
-        else if (mergeTargetMode) label = `합병 미리보기 (${state.mergeTargetCountryIds.length})`;
+        else if (mergeTargetMode) label = '합병 미리보기';
         else if (genericMergeMode || unitMergeMode) label = '합병 미리보기';
         else if (genericSplitMode || unitSplitMode) label = '영역 나누기';
         else if (unitRedrawMode) label = '영역 다시 지정';

@@ -133,6 +133,7 @@
   --ui-control-height: var(--design-control-md);
   --ui-touch-height: var(--design-touch-height);
   --ui-icon-control-mobile-size: var(--design-icon-control-mobile-size);
+  --ui-icon-control-size: var(--ui-control-height);
   --ui-control-padding-x: var(--ui-space-3);
   --ui-control-padding-y: var(--ui-space-2);
   --ui-control-gap: var(--design-button-gap);
@@ -254,9 +255,14 @@
 
 @media (max-width: 799px) {
   :root {
+    --ui-icon-control-size: var(--ui-icon-control-mobile-size);
     --ui-tree-row-height: var(--design-layer-row-height-mobile);
     --ui-tree-folder-height: var(--design-layer-row-height-mobile);
   }
+}
+
+:root:has(.app-root[data-layout="phone-landscape"]) {
+  --ui-icon-control-size: var(--ui-icon-control-mobile-size);
 }
 
 /* source: assets/css/tokens/component-tokens.css */
@@ -315,9 +321,6 @@
   --file-menu-btn-min-width-alternate: 72px;
   --top-actions-width-alternate: min(320px, calc(100vw - var(--ui-popover-screen-edge) * 2));
   --mode-task-window-body-max-height-alternate: min(42dvh, 320px);
-  --notification-close-width: 30px;
-  --notification-close-min-width: 30px;
-  --notification-close-height: 30px;
   --ui-tooltip-background: #000;
   --ui-tooltip-color: #fff;
   --ui-tooltip-max-width: min(280px, calc(100vw - var(--ui-space-4) * 2));
@@ -1105,7 +1108,7 @@ label:has(> input[type="radio"]) {
 .ui-search-field {
   min-width: 0;
   display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-control-height);
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-icon-control-size);
   align-items: center;
   gap: var(--ui-space-2);
   padding-left: var(--ui-control-padding-x);
@@ -1134,10 +1137,7 @@ label:has(> input[type="radio"]) {
 }
 
 .ui-search-clear {
-  align-self: stretch;
-  width: var(--ui-control-height);
-  min-height: 0;
-  height: 100%;
+  align-self: center;
   border: 0;
   border-radius: 0 var(--ui-radius-control) var(--ui-radius-control) 0;
   background: transparent;
@@ -1793,10 +1793,12 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 }
 
 .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) {
-  width: var(--design-control-md);
-  min-width: var(--design-control-md);
-  min-height: var(--design-control-md);
-  height: auto;
+  box-sizing: border-box;
+  width: var(--ui-icon-control-size);
+  min-width: var(--ui-icon-control-size);
+  min-height: var(--ui-icon-control-size);
+  height: var(--ui-icon-control-size);
+  flex: 0 0 auto;
   padding: 0;
   display: inline-grid;
   place-items: center;
@@ -1807,20 +1809,6 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) .ui-icon {
   width: var(--design-icon-size);
   height: var(--design-icon-size);
-}
-
-.ui-button.compact:is(.icon-btn, .ui-icon-button) {
-  width: var(--design-control-sm);
-  min-width: var(--design-control-sm);
-  min-height: var(--design-control-sm);
-  height: auto;
-}
-
-.ui-button:is(.mode-task-minimize-btn, .mode-task-close-btn) {
-  width: var(--design-control-sm);
-  min-width: var(--design-control-sm);
-  min-height: var(--design-control-sm);
-  height: auto;
 }
 
 :where(.ui-button):hover:not(:disabled) {
@@ -2016,15 +2004,6 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 }
 
 @media (max-width: 799px) {
-  .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn):not(.compact) {
-    width: var(--ui-icon-control-mobile-size);
-    min-width: var(--ui-icon-control-mobile-size);
-    min-height: var(--ui-icon-control-mobile-size);
-    height: var(--ui-icon-control-mobile-size);
-  }
-}
-
-@media (max-width: 799px) {
   .ui-toggle > input[type="checkbox"] {
     width: var(--design-toggle-mobile-width);
     min-width: var(--design-toggle-mobile-width);
@@ -2077,6 +2056,10 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 .ui-tooltip[data-kind="country"] > span { overflow: hidden; text-overflow: ellipsis; }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-control-gap);
   padding: 0 var(--ui-control-padding-x);
 }
 
@@ -3430,6 +3413,18 @@ body.map-sheet-dragging {
   :is(.editor-action-row, .ui-row-button):has(small:not(:empty)) {
     min-height: var(--design-command-description-height-mobile);
   }
+
+  /* Routine action descriptions are visually omitted on mobile, so they
+     must not reserve the extra description-row height. */
+  .editor-action-row:not([data-action-reason="true"]):has(small:not(:empty)) {
+    min-height: var(--ui-touch-height);
+  }
+
+  /* The mobile layout owner sets 48px on every action row. An actual
+     disabled reason must retain the shared 56px description-row minimum. */
+  .app-root[data-layout="mobile"] .editor-action-row[data-action-reason="true"]:has(small:not(:empty)) {
+    min-height: var(--design-command-description-height-mobile);
+  }
 }
 
 /* source: assets/css/components/workflows.css */
@@ -3829,7 +3824,7 @@ body.map-sheet-dragging {
   color: var(--text-strong);
 }
 
-.app-root[data-layout="mobile"] :where( .btn, .danger-btn, .mode-action-bar button, .surface-header button, .ui-color-trigger, .ui-color-default ) {
+.app-root[data-layout="mobile"] :where( .btn, .danger-btn, .mode-action-bar button, .surface-header button, .ui-color-trigger, .ui-color-default ):not(:is(.icon-btn, .ui-icon-button, .sheet-close-btn)) {
   min-height: var(--ui-touch-height);
 }
 
@@ -4299,7 +4294,7 @@ body.map-sheet-dragging {
   overflow: hidden;
 }
 
-.app-root[data-layout="mobile"] .workflow-map-session .mode-aux-control {
+.app-root[data-layout="mobile"] .workflow-map-session .mode-aux-control:not(.icon-btn) {
   height: var(--design-control-mobile-height);
   min-height: var(--design-control-mobile-height);
 }
@@ -4639,9 +4634,11 @@ body.map-sheet-dragging {
 }
 
 .workflow-map-session .mode-draft-actions .mode-aux-control {
-  flex: 0 0 var(--ui-control-height);
-  width: var(--ui-control-height);
-  min-width: var(--ui-control-height);
+  flex: 0 0 var(--ui-icon-control-size);
+  width: var(--ui-icon-control-size);
+  min-width: var(--ui-icon-control-size);
+  height: var(--ui-icon-control-size);
+  min-height: var(--ui-icon-control-size);
   padding: 0;
   border-color: transparent;
   background: transparent;
@@ -4697,9 +4694,6 @@ body.map-sheet-dragging {
 }
 
 .workflow-map-session .workflow-result-remove {
-  width: var(--ui-control-height);
-  min-width: var(--ui-control-height);
-  height: var(--ui-control-height);
   padding: 0;
   border-color: transparent;
   background: transparent;
@@ -4756,17 +4750,6 @@ body.map-sheet-dragging {
 
 .workflow-map-session[data-task-state="invalid"] .mode-task-disabled-reason {
   color: inherit;
-}
-
-@media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .workflow-map-session .mode-draft-actions .mode-aux-control,
-  .app-root[data-layout="mobile"] .workflow-map-session .workflow-result-remove {
-    flex-basis: var(--ui-touch-height);
-    width: var(--ui-touch-height);
-    min-width: var(--ui-touch-height);
-    height: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
-  }
 }
 
 /* source: assets/css/components/dialogs.css */
@@ -5616,7 +5599,7 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
   overscroll-behavior: contain;
   touch-action: pan-y;
 }
-.app-root[data-layout="phone-landscape"] .workspace-surface :is(button, input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
+.app-root[data-layout="phone-landscape"] .workspace-surface :is(button:not(.icon-btn, .ui-icon-button, .sheet-close-btn), input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
 .app-root[data-layout="phone-landscape"] .editor-field-grid { grid-template-columns: minmax(0, 1fr); }
 
 .app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
@@ -5645,7 +5628,6 @@ body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
   height: var(--phone-nav-width);
   padding: var(--ui-space-1);
 }
-.app-root[data-layout="phone-landscape"] .mobile-menu-trigger { width: var(--ui-touch-height); height: var(--ui-touch-height); }
 .app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
   position: fixed;
   z-index: 210;
@@ -5934,15 +5916,6 @@ body.file-menu-open .app-root .topbar {
 @media (max-width: 799px) {
   .app-root[data-layout="mobile"] .topbar-actions {
     gap: var(--ui-space-1);
-  }
-}
-
-@media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .topbar-history > .ui-button {
-    width: auto;
-    min-width: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
-    height: var(--ui-touch-height);
   }
 }
 
@@ -6561,8 +6534,6 @@ body.file-menu-open .app-root .topbar {
 }
 
 .surface-editor .editor-relation-focus {
-  width: var(--ui-control-height);
-  height: var(--ui-control-height);
   padding: 0;
   border: 0;
   background: transparent;
@@ -6816,9 +6787,6 @@ body.file-menu-open .app-root .topbar {
 }
 
 .editor-focus-action {
-  width: var(--ui-control-height);
-  min-width: var(--ui-control-height);
-  min-height: var(--ui-control-height);
   display: inline-grid;
   place-items: center;
   padding: 0;
@@ -7249,9 +7217,19 @@ body.file-menu-open .app-root .topbar {
   white-space: nowrap;
 }
 
+.editor-action-row[data-action-reason="true"] > span > small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 799px) {
   .editor-action-row > span > small {
     display: none;
+  }
+
+  /* A disabled-action reason is essential feedback, unlike routine help. */
+  .editor-action-row[data-action-reason="true"] > span > small:not(:empty) {
+    display: block;
   }
 }
 
@@ -9057,11 +9035,7 @@ body.is-loading .app-root {
 }
 
 .notification-close {
-  display: none;
-  width: var(--notification-close-width);
-  min-width: var(--notification-close-min-width);
-  height: var(--notification-close-height);
-  flex: 0 0 30px;
+  flex: 0 0 auto;
   padding: 0;
   border: 0;
   border-radius: var(--ui-radius-control);
@@ -9128,7 +9102,7 @@ body.is-loading .app-root {
   min-width: 0;
   max-width: calc(100vw - (var(--ui-space-2) * 2));
   height: calc(var(--ui-control-height) + (var(--ui-space-1-5) * 2));
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--design-control-sm);
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-icon-control-size);
   gap: var(--ui-space-2);
   padding: 0 var(--ui-space-2) 0 var(--ui-space-3);
   border-radius: var(--ui-radius-panel);
@@ -9139,13 +9113,6 @@ body.is-loading .app-root {
   text-align: left;
   font-size: var(--ui-font-sm);
   font-weight: var(--ui-weight-semibold);
-}
-
-.action-status.ui-toast .notification-close {
-  width: var(--design-control-sm);
-  min-width: var(--design-control-sm);
-  height: var(--design-control-sm);
-  min-height: var(--design-control-sm);
 }
 
 .action-status.ui-toast.working {

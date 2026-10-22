@@ -283,3 +283,15 @@ manifest의 입력 경로가 여전히 옛 Natural Earth 직접 입력이라고 
 Linux Node 22 CI와 로컬 Windows Node 24 사이의 정확한 재생성 차이 원인은 이번 배포에서
 확정하지 않았다. 비교 규칙을 완화하거나 기존 packed 자산을 교체해 실패를 숨기지 않는다.
 이 항목과 원격 미완료 browser 검사 때문에 CI 전체 성공이라고 보고하지 않는다.
+
+
+## 국경 원본 수정 후 표시 자산 갱신
+
+국가 원본만 바꾸면 GPU 면과 공유 경계 캐시가 이전 국경을 표시할 수 있다. 기존 상설 GIS 작업트리에서 아래 순서로 필요한 파생 자료를 생성한다. 검사가 포함된 package 스크립트를 대신 실행할 필요는 없다.
+
+1. `build-territorial-entity-chunks.mjs` → `build-territorial-current-world.mjs` → `build-builtin-world.mjs`
+2. `build-world-mesh.mjs` → `build-world-preview.mjs` → `build-world-bundle.mjs`
+3. `build-country-shared-boundaries.mjs` → `build-prepared-polygon-mesh.mjs`
+4. `scripts/generate-build-metadata.mjs`
+
+각 빌더는 `node tools/<파일명>`으로 실행한다. 이미 현재 canonical 공유 경계를 생성했다면 새 preview 생성 후 `node tools/build-country-shared-boundaries.mjs --quality=preview`만 실행해 같은 canonical 계산을 반복하지 않는다. 생성과 별도 검사·벤치마크를 구분하며, 외부 자료 저장소 안에서는 실행하지 않는다.

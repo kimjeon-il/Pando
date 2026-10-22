@@ -24,7 +24,9 @@ function fixture() {
     territorialIndex: pin('assets/data/territorial-entities/generated/v2/index.json'),
     preparedPolygonMeshes: pin('assets/data/prepared-polygons/generated/v2/manifest.json'),
   };
-  const historical={schema:'pandolab-builtin-world',schemaVersion:1,entities:[{file:'countries/state-ABC-sha256-'+SHA+'.json.gz',sha256:SHA,compressedBytes:3,decodedBytes:3}]};
+  const historical={schema:'pandolab-builtin-world',schemaVersion:1,
+    transport:{...pin('transport/countries-sha256-'+SHA+'.bin'),schemaVersion:1,encoding:'identity'},
+    entities:[{file:'countries/state-ABC-sha256-'+SHA+'.json.gz',sha256:SHA,compressedBytes:3,decodedBytes:3,offset:0}]};
   const library = { schemaVersion: 2, entities: [{ file: 'state-ABC.json.gz', sha256: SHA, compressedBytes: 3 }] };
   const prepared = { schemaVersion: 2, meshes: {
     first: pin('assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-' + SHA + '.bin.gz'),
@@ -62,7 +64,8 @@ test('full-world manifest closure includes active historical and prepared geomet
   assert.equal(plan.physicalFileCount, 4);
   assert.equal(new Set(paths).size, paths.length);
   assert.ok(paths.includes('assets/data/world/current.json'));
-  assert.ok(paths.includes('assets/data/builtin-world/generated/v1/countries/state-ABC-sha256-'+SHA+'.json.gz'));
+  assert.ok(paths.includes('assets/data/builtin-world/generated/v1/transport/countries-sha256-'+SHA+'.bin'));
+  assert.equal(paths.some(path => path.includes('builtin-world/generated/v1/countries/')), false);
   assert.ok(paths.includes('assets/data/territorial-entities/generated/v2/state-ABC.json.gz'));
   assert.ok(paths.includes('assets/data/hydro/v0.13.2/hydro.bin'));
   assert.equal(paths.some(path=>path.includes('terrain')),false);
@@ -79,4 +82,16 @@ test('full-world manifest closure rejects traversal, remote paths and altered ha
   const mismatch = fixture();
   mismatch.world.assets.previewMesh.sha256 = 'b'.repeat(64);
   assert.throws(() => buildFullWorldAssetPlan(mismatch), /immutable path/);
+});
+
+test('full-world packaging requires the current pinned country transport', () => {
+  for (const change of [
+    value => { delete value.historical.transport; },
+    value => { value.historical.transport.url = '../outside.bin'; },
+    value => { value.historical.transport.sha256 = 'b'.repeat(64); },
+    value => { value.historical.transport.encoding = 'gzip'; },
+  ]) {
+    const value = fixture(); change(value);
+    assert.throws(() => buildFullWorldAssetPlan(value), /country transport/);
+  }
 });
