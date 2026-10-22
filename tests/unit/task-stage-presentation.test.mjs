@@ -73,12 +73,14 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
     'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage',
     'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput', 'modeTaskTargetSummary', 'modeTaskEditingStage',
     'modeMapSummary', 'editorSurface', 'modeTaskObjects', 'modeTaskDisabledReason', 'modeTaskViewTime',
+    'modeTaskAffectedSummary', 'modeTaskAffectedList',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
   ];
   const elements = Object.fromEntries(ids.map(id => [id, new FakeElement(document)]));
   elements.modeTaskTargetSummary.parentElement = new FakeElement(document);
   elements.modeTaskViewTime.parentElement = new FakeElement(document);
+  elements.modeTaskAffectedSummary.parentElement = new FakeElement(document);
   const state = {
     tool: 'territorial-border',
     selected: null,
@@ -579,4 +581,52 @@ test('annex selection omits empty results but keeps real parts, progress and err
   current.stage = 'review';
   f.presentation.syncEditingContext();
   assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+});
+
+test('annex review removes only duplicate affected countries and retains safety details', async t => {
+  const country = id => ({ type: 'Feature', id, properties: { name: id, entityKind: 'general' },
+    geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } });
+  const selection = {
+    kind: 'annex', tool: 'annex-territory', stage: 'review',
+    targetCountryId: 'COUNTRY', sourceCountryIds: ['DONOR'],
+  };
+  const preview = { validation: { blocking: false }, affectedIds: ['COUNTRY', 'DONOR'],
+    temporalImpact: [{ from: '1950-01', until: '1951-01' }], metrics: { transferredAreaKm2: 12 } };
+  const f = await fixture(t, { tool: 'annex-territory', territorySelectionSession: selection,
+    geometryPreview: { session: preview }, boundaryEditPhase: '', boundaryPreparation: null }, {
+    countrySourceFeature: id => ['COUNTRY', 'DONOR'].includes(id) ? country(id) : null,
+  });
+  const summary = f.elements.modeTaskAffectedSummary;
+  const list = f.elements.modeTaskAffectedList;
+
+  f.presentation.syncEditingContext();
+  assert.equal(summary.textContent, '영향 대상 2개');
+  assert.equal(list.textContent, 'COUNTRY, DONOR');
+  assert.equal(summary.parentElement.hidden, true, 'direct receiver and donors repeat the review summary');
+
+  preview.affectedIds = ['COUNTRY', 'DONOR', 'DEPENDENCY'];
+  f.presentation.syncEditingContext();
+  assert.equal(summary.textContent, '영향 대상 3개');
+  assert.equal(list.textContent, 'COUNTRY, DONOR, DEPENDENCY');
+  assert.equal(summary.parentElement.hidden, false, 'additional affected entity must remain visible');
+
+  preview.affectedIds = ['COUNTRY', 'DONOR'];
+  preview.validation.blocking = true;
+  f.presentation.syncEditingContext();
+  assert.equal(summary.parentElement.hidden, false, 'validation failures retain the full affected list');
+
+  preview.validation.blocking = false;
+  selection.stage = 'selection';
+  f.presentation.syncEditingContext();
+  assert.equal(summary.parentElement.hidden, false, 'leaving review restores the default list');
+
+  selection.stage = 'review';
+  preview.affectedIds = [];
+  f.presentation.syncEditingContext();
+  assert.equal(summary.parentElement.hidden, false, 'unknown impact cannot be treated as duplicate');
+
+  preview.affectedIds = ['COUNTRY', 'DONOR'];
+  selection.sourceCountryIds = ['MISSING-DONOR'];
+  f.presentation.syncEditingContext();
+  assert.equal(summary.parentElement.hidden, false, 'unresolved donor names must not suppress impact');
 });
