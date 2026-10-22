@@ -548,6 +548,18 @@ export function createTaskPresentation() {
       summary.textContent=preview?'영향 대상 '+names.length+'개':'작업 대상 '+targets.length+'개';
       const value=(preview?names:targets.map(row=>row.name)).join(', ');
       if(list.textContent!==value)list.textContent=value;
+      // In a valid annex review, the main result already names the receiver and
+      // donor countries. Hide the extra affected list only if it repeats those
+      // same identified objects; preserve it for additional impacts or errors.
+      const annexReview = annex?.kind === 'annex' && annex.stage === 'review'
+        && !!preview && !preview.validation?.blocking;
+      const directIds = annexReview
+        ? [annex.targetCountryId, ...(annex.sourceCountryIds || [])].filter(Boolean).map(String)
+        : [];
+      const duplicateImpact = annexReview && (preview.affectedIds || []).length > 0
+        && directIds.length > 0 && directIds.every(id => !!countryDisplay(id)?.name)
+        && preview.affectedIds.every(id => directIds.includes(String(id)));
+      if (summary.parentElement) summary.parentElement.hidden = !!duplicateImpact;
     }
   }
 
