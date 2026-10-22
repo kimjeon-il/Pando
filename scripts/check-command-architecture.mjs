@@ -33,7 +33,7 @@ if(!store.includes('documentModel.territorialViews')||!store.includes('commandOw
 for(const method of ['setField','setLocked','transaction','restoreProject','replaceEntities','appendEntities','removeEntities','applyChanges'])
   if(new RegExp(`\\b(?:function|const)\\s+${method}\\b|\\b${method}\\s*:`).test(store))failures.push(`Read-only Store exposes a document writer: ${method}`);
 const native=read('shared/core/src/document-session.cpp');
-for(const contract of ['requireEpoch','confirmCandidate','project_.historySnapshot(forward,','project_.travelHistory(forward,prospective)'])
+for(const contract of ['requireEpoch','confirmCandidate','project_.historySnapshot(forward)','project_.travelHistory(forward,prospective)'])
   if(!native.includes(contract))failures.push(`Shared document session lacks ${contract}`);
 if(failures.length) {
   for(const failure of failures)console.error(`- ${failure}`);

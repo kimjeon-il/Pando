@@ -35,7 +35,7 @@ bool advancesWebStateRevision(const CommandRequest& request) noexcept {
     return std::visit([](const auto& action) {
         using T=std::decay_t<decltype(action)>;
         if constexpr(std::is_same_v<T,ContentEdit>)return action.target.domain=="territorial";
-        else return std::is_same_v<T,SetCountryColor>||std::is_same_v<T,MoveCountryToUserLayer>||std::is_same_v<T,TerritorialFieldEdit>||
+        else return std::is_same_v<T,SetCountryColor>||std::is_same_v<T,TerritorialFieldEdit>||
             std::is_same_v<T,TerritorialColorEdit>||std::is_same_v<T,TerritorialLockEdit>||std::is_same_v<T,ApplyTerritorialMutation>||
             std::is_same_v<T,HistoricalInstantiationPlan>||std::is_same_v<T,GisTerritorialImportPlan>||
             std::is_same_v<T,TimelineGeometryEdit>||std::is_same_v<T,TimelineParentEdit>||std::is_same_v<T,TimelineCreate>||
@@ -58,15 +58,12 @@ std::vector<ObjectRef> targetsFor(const CommandArguments& args)
     std::set<ObjectRef> refs;
     for(const auto& edit:args.properties.countries) {
         refs.insert(territorialRef(edit.id));
-        if(!edit.properties.layerId.empty())refs.insert({"userLayer",edit.properties.layerId});
     }
-    for(const auto& layer:args.properties.layers) refs.insert({"userLayer",layer.id});
     for(const auto& field:args.properties.fields)refs.insert(field.target);
     std::visit([&](const auto& action) {
         using T=std::decay_t<decltype(action)>;
-        if constexpr(std::is_same_v<T,SetCountryColor> || std::is_same_v<T,MoveCountryToUserLayer>) {
+        if constexpr(std::is_same_v<T,SetCountryColor>) {
             refs.insert(territorialRef(action.id));
-            if constexpr(std::is_same_v<T,MoveCountryToUserLayer>) refs.insert({"userLayer",action.layerId});
         } else if constexpr(std::is_same_v<T,TerritorialFieldEdit>) refs.insert(action.target);
         else if constexpr(std::is_same_v<T,TerritorialColorEdit> || std::is_same_v<T,TerritorialLockEdit>) refs.insert(action.targets.begin(),action.targets.end());
         else if constexpr(std::is_same_v<T,ApplyTerritorialMutation>) refs.insert(action.plan.affectedObjects.begin(),action.plan.affectedObjects.end());
@@ -117,7 +114,6 @@ std::vector<ObjectRef> targetsFor(const CommandArguments& args)
         else if constexpr(std::is_same_v<T,TimelineTerritorialMutation>)
             refs.insert(action.mutation.plan.affectedObjects.begin(),action.mutation.plan.affectedObjects.end());
         else if constexpr(std::is_same_v<T,SetPhysicalData>||std::is_same_v<T,DocumentSourceInfoAppend>) {}
-        else if constexpr(!std::is_same_v<T,std::monostate>) refs.insert({"userLayer",action.id});
     },args.action);
     return {refs.begin(),refs.end()};
 }
@@ -127,45 +123,44 @@ void validateRequest(const ProjectSnapshot& project,const CommandRequest& reques
     require(request.documentId==project.document().documentId,CommandError::DocumentMismatch,"document changed");
     require(request.revision==project.revision(),CommandError::StaleRevision,"revision changed");
     const std::pair<const char*,std::size_t> commands[]={
-        {"edit.properties",0},{"country.color",1},{"layer.add",2},{"layer.remove",3},
-        {"layer.move",4},{"layer.visibility",5},{"layer.lock",6},{"country.move",7},
-        {"territorial.field",8},{"territorial.color",9},{"territorial.color.reset",9},
-        {"territorial.batch-color",9},{"territorial.service-color",9},{"territorial.lock",10},{"territorial.create",11},
-        {"territorial.relation.parent",11},{"territorial.relation.sovereign",11},
-        {"territorial.delete",11},{"territorial.geometry.commit",11},{"territorial.geometry.replace",11},
-        {"content.edit",12},{"generic.create",12},{"generic.metadata",12},{"generic.remove",12},
-        {"distribution.layer.create",12},{"distribution.layer.metadata",12},{"distribution.layer.remove",12},
-        {"distribution.entry.create",12},{"distribution.entry.value",12},{"distribution.entry.remove",12},
-        {"label.edit",12},{"label.gesture.begin",12},{"label.gesture.move",12},{"label.gesture.finish",12},{"hydro.edit",12},{"hydro.metadata",12},
-        {"physical-data.configure",13},{"historical.instantiate",14},
-        {"gis.import.generic",15},{"gis.import.territorial",16},
-        {"gis.import.distribution",17},{"timeline.geometry",18},{"timeline.parent",19},
-        {"timeline.create",20},{"timeline.delete",21},{"timeline.territorial",22},
-        {"generic.import",23},{"distribution.import",23},{"territorial.create",24},{"territorial.geometry",24},
-        {"territorial.parent",24},{"territorial.remove",24},{"territorial.patch",24},{"territorial.replace",24},{"territorial.copy-region",24},{"objects.remove",25},{"document.source-info",26},{"objects.lock",27},{"objects.color",27},
-        {"generic.color-reset",12},{"hydro.geometry",12},{"hydro.copy",12}};
+        {"edit.properties",0},{"country.color",1},
+        {"territorial.field",2},{"territorial.color",3},{"territorial.color.reset",3},
+        {"territorial.batch-color",3},{"territorial.service-color",3},{"territorial.lock",4},{"territorial.create",5},
+        {"territorial.relation.parent",5},{"territorial.relation.sovereign",5},
+        {"territorial.delete",5},{"territorial.geometry.commit",5},{"territorial.geometry.replace",5},
+        {"content.edit",6},{"generic.create",6},{"generic.metadata",6},{"generic.remove",6},
+        {"distribution.layer.create",6},{"distribution.layer.metadata",6},{"distribution.layer.remove",6},
+        {"distribution.entry.create",6},{"distribution.entry.value",6},{"distribution.entry.remove",6},
+        {"label.edit",6},{"label.gesture.begin",6},{"label.gesture.move",6},{"label.gesture.finish",6},{"hydro.edit",6},{"hydro.metadata",6},
+        {"physical-data.configure",7},{"historical.instantiate",8},
+        {"gis.import.generic",9},{"gis.import.territorial",10},
+        {"gis.import.distribution",11},{"timeline.geometry",12},{"timeline.parent",13},
+        {"timeline.create",14},{"timeline.delete",15},{"timeline.territorial",16},
+        {"generic.import",17},{"distribution.import",17},{"territorial.create",18},{"territorial.geometry",18},
+        {"territorial.parent",18},{"territorial.remove",18},{"territorial.patch",18},{"territorial.replace",18},{"territorial.copy-region",18},{"objects.remove",19},{"document.source-info",20},{"objects.lock",21},{"objects.color",21},
+        {"generic.color-reset",6},{"hydro.geometry",6},{"hydro.copy",6}};
     const auto known=std::find_if(std::begin(commands),std::end(commands),[&](const auto& c){return request.commandId==c.first;});
     require(known!=std::end(commands),CommandError::InvalidCommand,"unknown commandId");
     const auto found=std::find_if(std::begin(commands),std::end(commands),[&](const auto& c){return request.commandId==c.first&&request.args.action.index()==c.second;});
     require(found!=std::end(commands),CommandError::InvalidArguments,"commandId/action mismatch");
     if(std::holds_alternative<DocumentSourceInfoAppend>(request.args.action)) {
-        require(request.targets.empty()&&request.args.properties.countries.empty()&&request.args.properties.layers.empty()&&request.args.properties.fields.empty(),CommandError::InvalidArguments,"source metadata cannot collect object/property targets");return;
+        require(request.targets.empty()&&request.args.properties.countries.empty()&&request.args.properties.fields.empty(),CommandError::InvalidArguments,"source metadata cannot collect object/property targets");return;
     }
     if(const auto edit=std::get_if<WebObjectEdit>(&request.args.action)) {
-        require(request.args.properties.countries.empty()&&request.args.properties.layers.empty()&&request.args.properties.fields.empty(),CommandError::InvalidArguments,"object edit cannot contain other property drafts");
+        require(request.args.properties.countries.empty()&&request.args.properties.fields.empty(),CommandError::InvalidArguments,"object edit cannot contain other property drafts");
         require((request.commandId=="objects.lock")== (edit->kind==WebObjectEditKind::Lock),CommandError::InvalidArguments,"object edit intent mismatch");
         auto targets=request.targets;std::sort(targets.begin(),targets.end());
         require(std::adjacent_find(targets.begin(),targets.end())==targets.end()&&targets==targetsFor(request.args),CommandError::InvalidTargets,"object edit targets mismatch");return;
     }
     if(const auto* removal=std::get_if<WebObjectRemoval>(&request.args.action)) {
-        require(request.args.properties.countries.empty()&&request.args.properties.layers.empty()&&request.args.properties.fields.empty(),CommandError::InvalidArguments,"object removal cannot include property drafts");
+        require(request.args.properties.countries.empty()&&request.args.properties.fields.empty(),CommandError::InvalidArguments,"object removal cannot include property drafts");
         auto refs=request.targets;std::sort(refs.begin(),refs.end());
         require(std::adjacent_find(refs.begin(),refs.end())==refs.end()&&refs==targetsFor(request.args),CommandError::InvalidTargets,"object removal targets mismatch");
         std::set<ObjectRef> unique(removal->refs.begin(),removal->refs.end());
         require(unique.size()==removal->refs.size(),CommandError::InvalidTargets,"duplicate object removal intent");return;
     }
     if(const auto* edit=std::get_if<WebTerritorialEdit>(&request.args.action)) {
-        require(request.args.properties.countries.empty()&&request.args.properties.layers.empty()&&request.args.properties.fields.empty(),CommandError::InvalidArguments,"territorial intent cannot include unrelated property drafts");
+        require(request.args.properties.countries.empty()&&request.args.properties.fields.empty(),CommandError::InvalidArguments,"territorial intent cannot include unrelated property drafts");
         const char* names[]={"territorial.create","territorial.geometry","territorial.parent","territorial.remove","territorial.patch","territorial.replace","territorial.copy-region"};
         const auto operation=static_cast<unsigned>(edit->operation);
         require(operation<7&&request.commandId==names[operation],CommandError::InvalidArguments,"territorial operation mismatch");
@@ -195,8 +190,8 @@ void validateRequest(const ProjectSnapshot& project,const CommandRequest& reques
                 edit.target.domain=="distributionLayer"||edit.target.domain=="distributionEntry"),
             CommandError::InvalidArguments,"invalid/duplicate import row");
     }
-    if(request.args.action.index()>=8) {
-        require(request.args.properties.countries.empty() && request.args.properties.layers.empty() && request.args.properties.fields.empty(),CommandError::InvalidArguments,"property commands cannot collect unrelated drafts");
+    if(request.args.action.index()>=2) {
+        require(request.args.properties.countries.empty() && request.args.properties.fields.empty(),CommandError::InvalidArguments,"property commands cannot collect unrelated drafts");
         if(const auto field=std::get_if<TerritorialFieldEdit>(&request.args.action)) {
             require(field->field>=TerritorialField::Name && field->field<=TerritorialField::ValidTo,CommandError::InvalidArguments,"unknown field");
         }
@@ -315,34 +310,23 @@ void validateRequest(const ProjectSnapshot& project,const CommandRequest& reques
     for(const auto& f:request.args.properties.fields) {
         require(f.target.domain=="territorial" && f.field>=TerritorialField::Name && f.field<=TerritorialField::ValidTo && fields.emplace(f.target,f.field).second,CommandError::InvalidArguments,"invalid/duplicate field edit");
     }
-    std::set<std::string> countries,layers;
+    std::set<std::string> countries;
     for(const auto& edit:request.args.properties.countries) {
         require(countries.insert(edit.id).second,CommandError::InvalidArguments,"duplicate country edit");
         const auto& p=edit.properties;
         require(!Project::normalizeName(p.name).empty() && p.color<=0xffffff && opacity(p.opacity),
                 CommandError::InvalidArguments,"invalid country name/color/opacity");
     }
-    for(const auto& layer:request.args.properties.layers) {
-        require(layers.insert(layer.id).second,CommandError::InvalidArguments,"duplicate layer edit");
-        require(!Project::normalizeName(layer.name).empty() && opacity(layer.opacity),
-                CommandError::InvalidArguments,"invalid layer name/opacity");
-    }
     std::visit([&](const auto& action) {
         using T=std::decay_t<decltype(action)>;
         if constexpr(std::is_same_v<T,SetCountryColor>)
             require(action.color<=0xffffff,CommandError::InvalidArguments,"invalid RGB color");
-        else if constexpr(std::is_same_v<T,AddUserLayer>)
-            require(!action.id.empty() && !Project::normalizeName(action.name).empty() && !project.userLayer(action.id),
-                    CommandError::InvalidArguments,"invalid or duplicate new layer");
-        else if constexpr(std::is_same_v<T,MoveUserLayer>)
-            require(action.delta==-1 || action.delta==1,CommandError::InvalidArguments,"layer delta must be -1 or 1");
     },request.args.action);
     auto refs=request.targets;
     std::sort(refs.begin(),refs.end());
     require(std::adjacent_find(refs.begin(),refs.end())==refs.end() && refs==targetsFor(request.args),
             CommandError::InvalidTargets,"targets do not match arguments");
-    if(request.args.action.index()>=8 && request.args.action.index()<12)for(const auto& ref:refs)require(ref.domain=="territorial",CommandError::InvalidTargets,"non-territorial target");
-    const auto* added=std::get_if<AddUserLayer>(&request.args.action);
+    if(request.args.action.index()>=2 && request.args.action.index()<6)for(const auto& ref:refs)require(ref.domain=="territorial",CommandError::InvalidTargets,"non-territorial target");
     for(const auto& ref:refs) {
         if(std::holds_alternative<ContentEdit>(request.args.action)||std::holds_alternative<ContentBatchEdit>(request.args.action)) {
             require(!ref.id.empty(),CommandError::InvalidTargets,"empty content target");
@@ -385,16 +369,10 @@ void validateRequest(const ProjectSnapshot& project,const CommandRequest& reques
             const auto* createPlan=create?&create->plan:datedCreate?&datedCreate->mutation.plan:nullptr;
             const bool newCreate=(createPlan && (createPlan->kind==TerritorialMutationKind::CreateCountry||createPlan->kind==TerritorialMutationKind::CreateSubunit||createPlan->kind==TerritorialMutationKind::CreateRegion) && ref==createPlan->targets.front())||
                 (std::holds_alternative<TimelineCreate>(request.args.action)&&ref==territorialRef(std::get<TimelineCreate>(request.args.action).intent.id));
-            require(newCreate || ((request.args.action.index()>=8 || std::any_of(request.args.properties.fields.begin(),request.args.properties.fields.end(),[&](const auto& f){return f.target==ref;}))?project.index().objects.count(ref)!=0:project.country(ref.id)!=nullptr),CommandError::InvalidTargets,"territorial target not found");
+            require(newCreate || ((request.args.action.index()>=2 || std::any_of(request.args.properties.fields.begin(),request.args.properties.fields.end(),[&](const auto& f){return f.target==ref;}))?project.index().objects.count(ref)!=0:project.country(ref.id)!=nullptr),CommandError::InvalidTargets,"territorial target not found");
         }
-        else
-            require(ref.domain=="userLayer" && (project.userLayer(ref.id) || (added && ref.id==added->id)),
-                    CommandError::InvalidTargets,"layer target not found");
+        else require(false,CommandError::InvalidTargets,"unsupported target domain");
     }
-    // A property edit must refer to an existing layer, not the layer an action
-    // will create later in this request.
-    for(const auto& layer:request.args.properties.layers)
-        require(project.userLayer(layer.id)!=nullptr,CommandError::InvalidTargets,"layer edit target not found");
 }
 void applyField(ProjectDocument& candidate,const DocumentIndex& index,const TerritorialFieldEdit& action) {
             auto& u=candidate.units.at(index.objects.at(action.target));
@@ -481,7 +459,7 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             GeometryRef geometry{"geometry-"+in.id,1};unsigned n=1;while(d.geometries.get(geometry))geometry={"geometry-"+in.id+"-"+std::to_string(n++),1};d.geometries.insert(geometry,in.geometry);
             TerritorialUnit unit;unit.id=in.id;unit.name=in.name;unit.baseName=in.kind==UnitKind::General?in.name:"";unit.nameExplicit=true;unit.notes=in.notes;unit.kind=in.kind;d.units.push_back(unit);
             addStaticTerritorialRecords(d,in.id,geometry,in.parent?in.parent->id:"",in.coverageMode.empty()?"explicit":in.coverageMode);
-            const auto ref=territorialRef(in.id);if(!d.presentation.userLayers.empty())d.presentation.membership.emplace(ref,d.presentation.userLayers.front().id);d.presentation.objectStyles.emplace(ref,ObjectStyle{in.explicitColor.value_or(0),1,in.explicitColor.has_value()});
+            const auto ref=territorialRef(in.id);d.presentation.objectStyles.emplace(ref,ObjectStyle{in.explicitColor.value_or(0),1,in.explicitColor.has_value()});
         } else if constexpr(std::is_same_v<T,DeleteTerritorialIntent>) {
             std::set<ObjectRef> removed(in.targets.begin(),in.targets.end());std::vector<std::string> ids;
             for(const auto& ref:removed){ids.push_back(ref.id);d.presentation.membership.erase(ref);d.presentation.objectStyles.erase(ref);}
@@ -729,14 +707,13 @@ void applyContent(ProjectDocument& d,const DocumentIndex& before,const ContentEd
             else if(edit.target.domain=="distributionLayer") {
                 erase(d.distributionLayers);
                 for(const auto& entry:d.distributionEntries) if(entry.layerId==edit.target.id) {
-                    d.presentation.membership.erase({"distributionEntry",entry.id});
                     d.presentation.objectStyles.erase({"distributionEntry",entry.id});
                 }
                 d.distributionEntries.erase(std::remove_if(d.distributionEntries.begin(),d.distributionEntries.end(),
                     [&](const auto& row){return row.layerId==edit.target.id;}),d.distributionEntries.end());
                 for(auto& child:d.distributionLayers) if(child.parentId==edit.target.id) child.parentId.reset();
             } else require(false,CommandError::InvalidTargets,"invalid content domain");
-            d.presentation.membership.erase(edit.target); d.presentation.objectStyles.erase(edit.target);
+            d.presentation.objectStyles.erase(edit.target);
         } else if constexpr(std::is_same_v<T,CountryDetails>) {
             require(edit.target.domain=="territorial" && exists,CommandError::InvalidTargets,"country missing");
             auto& metadata=d.units.at(before.objects.at(edit.target)).metadata;
@@ -807,33 +784,11 @@ void applyArguments(ProjectDocument& candidate,const DocumentIndex& index,const 
         u.notes=edit.properties.memo;
         if(effectiveObjectColor(candidate,ref)!=edit.properties.color){style.color=edit.properties.color;style.explicitColor=true;}
         style.opacity=edit.properties.opacity;
-        if(edit.properties.layerId.empty())candidate.presentation.membership.erase(ref);else candidate.presentation.membership[ref]=edit.properties.layerId;
-    }
-    auto& layers=candidate.presentation.userLayers;
-    for(auto layer:args.properties.layers) {
-        layer.name=Project::normalizeName(layer.name);
-        layers.at(index.layers.at(layer.id))=std::move(layer);
     }
     std::visit([&](const auto& action) {
         using T=std::decay_t<decltype(action)>;
         if constexpr(std::is_same_v<T,SetCountryColor>)
             {auto& s=candidate.presentation.objectStyles.at(territorialRef(action.id));s.color=action.color;s.explicitColor=true;}
-        else if constexpr(std::is_same_v<T,AddUserLayer>)
-            layers.push_back({action.id,Project::normalizeName(action.name)});
-        else if constexpr(std::is_same_v<T,RemoveUserLayer>)
-            layers.erase(layers.begin()+index.layers.at(action.id));
-        else if constexpr(std::is_same_v<T,MoveUserLayer>) {
-            const auto from=index.layers.at(action.id);
-            if((action.delta==-1 && from>0) || (action.delta==1 && from+1<layers.size())) {
-                const auto to=action.delta==-1 ? from-1 : from+1;
-                std::swap(layers[from],layers[to]);
-            }
-        } else if constexpr(std::is_same_v<T,SetUserLayerVisible>)
-            layers.at(index.layers.at(action.id)).visible=action.value;
-        else if constexpr(std::is_same_v<T,SetUserLayerLocked>)
-            layers.at(index.layers.at(action.id)).locked=action.value;
-        else if constexpr(std::is_same_v<T,MoveCountryToUserLayer>)
-            candidate.presentation.membership[territorialRef(action.id)]=action.layerId;
         else if constexpr(std::is_same_v<T,SetPhysicalData>)
             candidate.physicalData=action.settings;
         else if constexpr(std::is_same_v<T,TerritorialFieldEdit>) {
@@ -881,8 +836,6 @@ void checkEffects(const ProjectSnapshot& project,const ProjectDocument& after,co
         const auto& ref=edit->target;
         const auto found=project.index().objects.find(ref);
         const bool exists=found!=project.index().objects.end();
-        const auto layer=project.userLayer(nativeLayerId(before,ref));
-        require(!layer || !layer->locked,CommandError::Locked,"content layer locked");
         bool locked=false;
         if(exists) {
             const auto i=found->second;
@@ -974,8 +927,6 @@ void checkEffects(const ProjectSnapshot& project,const ProjectDocument& after,co
                     }
                 }
                 require(!changed||!u.locked,CommandError::Locked,"object locked");
-                const auto layer=project.userLayer(nativeLayerId(before,ref));
-                require(!changed||!layer||!layer->locked,CommandError::Locked,"source layer locked");
             }
         }
         return;
@@ -987,21 +938,15 @@ void checkEffects(const ProjectSnapshot& project,const ProjectDocument& after,co
             for(const auto& ref:{addition.parent,addition.sovereign})if(ref&&project.index().objects.count(*ref)) {
                 const auto& owner=before.units.at(project.index().objects.at(*ref));
                 require(!owner.locked,CommandError::Locked,"historical owner locked");
-                const auto layer=project.userLayer(nativeLayerId(before,*ref));
-                require(!layer||!layer->locked,CommandError::Locked,"historical owner layer locked");
             }
         }
         for(const auto& patch:historical->territoryReplacements) {
             const auto& owner=before.units.at(project.index().objects.at(patch.owner));
             require(!owner.locked&&effectAllowed(before,patch.owner,"geometry"),CommandError::Locked,"historical geometry owner locked");
-            const auto layer=project.userLayer(nativeLayerId(before,patch.owner));
-            require(!layer||!layer->locked,CommandError::Locked,"historical geometry layer locked");
         }
         for(const auto& [donor,target]:historical->territoryTransfers) {
             const auto& owner=before.units.at(project.index().objects.at(donor));
             require(!owner.locked&&effectAllowed(before,donor,"delete"),CommandError::Locked,"historical donor locked");
-            const auto layer=project.userLayer(nativeLayerId(before,donor));
-            require(!layer||!layer->locked,CommandError::Locked,"historical donor layer locked");
             for(const auto& label:before.labels)if(label.territory==donor)
                 require(effectAllowed(before,{"label",label.id},"relation"),CommandError::UnsupportedDependency,"historical label dependency");
             for(const auto& entry:before.distributionEntries)if(entry.territory==donor) {
@@ -1034,15 +979,13 @@ void checkEffects(const ProjectSnapshot& project,const ProjectDocument& after,co
                 const auto found=project.index().objects.find(*owner);
                 if(found!=project.index().objects.end()) {
                     const auto& unit=before.units.at(found->second);
-                    const auto layer=project.userLayer(nativeLayerId(before,*owner));
-                    require(!unit.locked&&(!layer||!layer->locked),CommandError::Locked,
+                    require(!unit.locked,CommandError::Locked,
                         "territorial GIS owner locked");
                 }
             }
             if(row.replaceExisting) {
                 const auto& unit=before.units.at(project.index().objects.at(ref));
-                const auto layer=project.userLayer(nativeLayerId(before,ref));
-                require(!unit.locked&&(!layer||!layer->locked),CommandError::Locked,
+                require(!unit.locked,CommandError::Locked,
                     "territorial GIS replacement locked");
             }
         }
@@ -1050,8 +993,7 @@ void checkEffects(const ProjectSnapshot& project,const ProjectDocument& after,co
             require(effectAllowed(before,patch.owner,"geometry"),
                 CommandError::UnsupportedDependency,"territorial GIS patch dependency");
             const auto& unit=before.units.at(project.index().objects.at(patch.owner));
-            const auto layer=project.userLayer(nativeLayerId(before,patch.owner));
-            require(!unit.locked&&(!layer||!layer->locked),CommandError::Locked,
+            require(!unit.locked,CommandError::Locked,
                 "territorial GIS donor locked");
         }
         return;
@@ -1077,10 +1019,8 @@ void checkEffects(const ProjectSnapshot& project,const ProjectDocument& after,co
         require(!changed || effectAllowed(before,ref,effect),CommandError::UnsupportedDependency,effect);
     };
     // New commands validate their intended effects even for equal-value requests.
-    if(request.args.action.index()>=8)for(const auto& ref:request.targets) {
+    if(request.args.action.index()>=2)for(const auto& ref:request.targets) {
         const auto& u=before.units.at(project.index().objects.at(ref));
-        const auto layer=project.userLayer(nativeLayerId(before,ref));
-        require(!layer||!layer->locked,CommandError::Locked,"source layer locked");
         const bool unlock=std::holds_alternative<TerritorialLockEdit>(request.args.action);
         require(unlock || request.commandId=="territorial.batch-color" || request.commandId=="territorial.service-color" || !u.locked,CommandError::Locked,"object locked");
         const char* effect=unlock?"locked":"color";
@@ -1092,36 +1032,16 @@ void checkEffects(const ProjectSnapshot& project,const ProjectDocument& after,co
         const auto& old=before.units[i]; const auto& next=after.units[i]; const auto ref=territorialRef(old.id);
         const auto& oldStyle=before.presentation.objectStyles.at(ref);
         const auto& nextStyle=after.presentation.objectStyles.at(ref);
-        const auto& source=nativeLayerId(before,ref);
-        const auto& destination=nativeLayerId(after,ref);
         const bool colorChanged=oldStyle.explicitColor!=nextStyle.explicitColor || (oldStyle.explicitColor&&oldStyle.color!=nextStyle.color);
         const bool dateChanged=isStaticTimeline(before) &&
             !sameValidity(staticLifetime(before,old.id).validity,staticLifetime(after,next.id).validity);
         bool changed=old.name!=next.name || old.nameExplicit!=next.nameExplicit || old.notes!=next.notes || colorChanged || dateChanged ||
-                     oldStyle.opacity!=nextStyle.opacity || source!=destination;
+                     oldStyle.opacity!=nextStyle.opacity;
         // Check pre-transaction locks; a compound unlock cannot bypass protection.
-        require(!changed || ((!old.locked || request.commandId=="territorial.batch-color" || request.commandId=="territorial.service-color") && (!project.userLayer(source)||!project.userLayer(source)->locked)),CommandError::Locked,"country/source layer locked");
-        if(source!=destination) {
-            const auto target=project.userLayer(destination);
-            require(!target || !target->locked,CommandError::Locked,"destination layer locked");
-            allow(true,{"userLayer",source},"membership"); allow(true,{"userLayer",destination},"membership");
-        }
+        require(!changed || !old.locked || request.commandId=="territorial.batch-color" || request.commandId=="territorial.service-color",CommandError::Locked,"country locked");
         allow(old.name!=next.name,ref,"name"); allow(old.notes!=next.notes,ref,"notes");
         allow(colorChanged,ref,"color");allow(dateChanged,ref,"validity");allow(old.locked!=next.locked,ref,"locked"); allow(oldStyle.opacity!=nextStyle.opacity,ref,"opacity");
-        allow(source!=destination,ref,"membership");
     }
-    const auto& layers=after.presentation.userLayers;
-    for(std::size_t i=0;i<project.userLayers().size();++i) {
-        const auto& old=project.userLayers()[i]; const ObjectRef ref{"userLayer",old.id};
-        auto next=std::find_if(layers.begin(),layers.end(),[&](const UserLayer& layer){return layer.id==old.id;});
-        if(next==layers.end()) { allow(true,ref,"delete"); continue; }
-        // Layer management remains possible while locked (in particular unlock).
-        // Lock protects member objects, as in the pre-M1.3 editor.
-        allow(old.name!=next->name,ref,"name"); allow(old.opacity!=next->opacity,ref,"opacity");
-        allow(old.visible!=next->visible,ref,"visibility"); allow(old.locked!=next->locked,ref,"locked");
-        allow(static_cast<std::size_t>(next-layers.begin())!=i,ref,"order");
-    }
-    for(const auto& layer:layers) if(!project.userLayer(layer.id)) allow(true,{"userLayer",layer.id},"add");
 }
 template<class Range,class Equal> bool same(const Range& a,const Range& b,Equal equal)
 {
@@ -1275,7 +1195,7 @@ ChangeImpact calculateChangeImpact(const ProjectDocument& before,const ProjectDo
 
 bool CountryProperties::operator==(const CountryProperties& b) const
 {
-    return name==b.name && memo==b.memo && color==b.color && opacity==b.opacity && layerId==b.layerId;
+    return name==b.name && memo==b.memo && color==b.color && opacity==b.opacity;
 }
 const char* commandErrorCode(CommandError error) noexcept
 {
@@ -1618,8 +1538,6 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                     candidate.timelineRecords.parentRelations.push_back({recordId("parent:"+in.id),in.id,mapValidity,
                         in.parent?in.parent->id:"",in.coverageMode.empty()?"explicit":in.coverageMode});
                     const auto object=territorialRef(in.id);
-                    if(!candidate.presentation.userLayers.empty())
-                        candidate.presentation.membership.emplace(object,candidate.presentation.userLayers.front().id);
                     candidate.presentation.objectStyles.emplace(object,
                         ObjectStyle{in.explicitColor.value_or(0),1,in.explicitColor.has_value()});
                 } else {
@@ -1766,7 +1684,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
         const bool content=std::holds_alternative<ContentEdit>(request.args.action)||std::holds_alternative<ContentBatchEdit>(request.args.action);
         const auto* fieldEdit=std::get_if<TerritorialFieldEdit>(&request.args.action);
         const bool identityField=fieldEdit&&(fieldEdit->field==TerritorialField::Name||fieldEdit->field==TerritorialField::Notes);
-        const bool identityProperties=request.args.properties.countries.empty()&&request.args.properties.layers.empty()&&
+        const bool identityProperties=request.args.properties.countries.empty()&&
             std::all_of(request.args.properties.fields.begin(),request.args.properties.fields.end(),[](const auto& field){return field.field==TerritorialField::Name||field.field==TerritorialField::Notes;})&&request.args.action.index()==0;
         const bool identityAction=identityField||identityProperties||std::holds_alternative<TerritorialColorEdit>(request.args.action)||std::holds_alternative<TerritorialLockEdit>(request.args.action);
         const auto* historical=std::get_if<HistoricalInstantiationPlan>(&request.args.action);
@@ -1988,9 +1906,7 @@ bool semanticallyEqual(const ProjectDocument& a,const ProjectDocument& b)
         same(a.timelineRecords.parentRelations,b.timelineRecords.parentRelations,[](const auto& x,const auto& y){return x.id==y.id&&x.entityId==y.entityId&&sameValidity(x.validity,y.validity)&&x.parentId==y.parentId&&x.coverageMode==y.coverageMode;}) &&
         same(a.timelineRecords.propertyBindings,b.timelineRecords.propertyBindings,[](const auto& x,const auto& y){return x.id==y.id&&x.entityId==y.entityId&&sameValidity(x.validity,y.validity)&&x.property==y.property&&x.value==y.value;}) && same(a.geometries.versions(),b.geometries.versions(),[](const auto& x,const auto& y) {
             return x.first==y.first && (x.second==y.second || sameGeometry(*x.second,*y.second));
-        }) && same(a.presentation.userLayers,b.presentation.userLayers,[](const UserLayer& x,const UserLayer& y) {
-            return x.id==y.id && x.name==y.name && x.visible==y.visible && x.locked==y.locked && x.opacity==y.opacity;
-        }) && a.presentation.webPresentation==b.presentation.webPresentation && a.presentation.membership==b.presentation.membership &&
+        }) && a.presentation.webPresentation==b.presentation.webPresentation &&
         same(a.presentation.objectStyles,b.presentation.objectStyles,[](const auto& x,const auto& y) {
             return x.first==y.first && x.second.explicitColor==y.second.explicitColor && (!x.second.explicitColor || x.second.color==y.second.color) && x.second.opacity==y.second.opacity;
         }) && same(a.extensions,b.extensions,[](const PreservedExtension& x,const PreservedExtension& y) {
