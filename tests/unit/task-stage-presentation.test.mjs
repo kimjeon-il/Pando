@@ -517,7 +517,66 @@ test('annex donor setup shows role cards without duplicate metadata or routine r
 
   current.sourceCountryIds = ['COUNTRY-2'];
   current.stage = 'selection';
-  // Test metadata restoration without invoking the unrelated geometric parts list.
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  current.stage = 'review';
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+});
+
+test('annex selection omits empty results but keeps real parts, progress and errors', async t => {
+  const current = {
+    kind: 'annex', tool: 'annex-territory', taskLabel: '영토 편입',
+    stage: 'selection', targetCountryId: 'COUNTRY', sourceCountryIds: [],
+    activeMethod: null, requestedMethod: null, activePhase: null,
+    parts: [], archivedGeometry: null, candidates: [], selectedCandidateIds: [],
+  };
+  const model = {
+    current, step: 2, stageLabel: '영토 선택', selection: true,
+    showMethods: true, primaryDisabled: true, primaryLabel: '다음', primaryIcon: '#icon-chevron-right',
+  };
+  const f = await fixture(t, { tool: current.tool, territorySelectionSession: current,
+    boundaryEditPhase: '', boundaryPreparation: null }, {
+    territorySelectionPresentation: () => model, sphericalGeometryAreaKm2: geometry => geometry?.area || 0,
+  });
+  f.presentation.updateModeButtons();
+  const section = f.elements.territorySelectionStack;
+  assert.equal(section.classList.contains('hidden'), true);
+  assert.equal(f.elements.territorySelectionStackSummary.textContent, '선택 영토 0개 · 0 km²');
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
+
+  current.activeMethod = 'polygon';
+  current.activePhase = 'drawing';
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), true);
+
+  current.parts.push({ id: 'first', geometry: { area: 12 } });
+  current.archivedGeometry = { area: 12 };
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), false);
+  assert.equal(f.elements.territorySelectionStackList.children.length, 1);
+  assert.equal(f.elements.territorySelectionStackSummary.textContent, '선택 영토 1개 · 12 km²');
+
+  current.parts = [];
+  current.archivedGeometry = null;
+  current.computationPending = true;
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), false);
+  assert.equal(f.elements.territorySelectionStackSummary.textContent, '선택 영토 0개 · 계산 중…');
+
+  current.computationPending = false;
+  current.computationError = true;
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), false);
+  assert.equal(f.elements.territorySelectionStackSummary.textContent, '선택 영토 0개 · 계산 실패');
+
+  current.computationError = false;
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), true);
+  current.stage = 'review';
   f.presentation.syncEditingContext();
   assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
 });
