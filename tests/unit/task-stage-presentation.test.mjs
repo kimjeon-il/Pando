@@ -70,12 +70,14 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   });
   const document = createFakeDocument();
   const ids = [
-    'modeEditingHud', 'modeTaskName', 'modeTaskStage', 'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput',
-    'modeTaskObjects', 'modeTaskDisabledReason', 'modeTaskViewTime',
+    'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage',
+    'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput', 'modeTaskTargetSummary', 'modeTaskEditingStage',
+    'modeMapSummary', 'editorSurface', 'modeTaskObjects', 'modeTaskDisabledReason', 'modeTaskViewTime',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
   ];
   const elements = Object.fromEntries(ids.map(id => [id, new FakeElement(document)]));
+  elements.modeTaskTargetSummary.parentElement = new FakeElement(document);
   const state = {
     tool: 'territorial-border',
     selected: null,
@@ -260,6 +262,7 @@ test('task status explains pending and missing-target decisions without changing
   pending.presentation.updateModeButtons();
   assert.equal(pending.elements.modeTaskStatus.dataset.taskState, 'preparing');
   assert.equal(pending.elements.modeTaskStatus.textContent, '준비 중');
+  assert.equal(pending.elements.modeTaskStatus.classList.contains('hidden'), false);
   assert.equal(pending.elements.modePrimaryBtn.disabled, true);
   assert.equal(pending.elements.modeTaskDisabledReason.textContent, '경계를 준비하는 중입니다.');
   assert.equal(pending.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
@@ -272,6 +275,7 @@ test('task status explains pending and missing-target decisions without changing
   failed.presentation.updateModeButtons();
   assert.equal(failed.elements.modeTaskStatus.dataset.taskState, 'invalid');
   assert.equal(failed.elements.modeTaskStatus.textContent, '확인 필요');
+  assert.equal(failed.elements.modeTaskStatus.classList.contains('hidden'), false);
   assert.equal(failed.elements.modePrimaryBtn.disabled, false);
   assert.equal(failed.elements.modePrimaryBtn.textContent, '다시 시도');
   assert.equal(failed.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
@@ -292,7 +296,7 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(needsTarget.elements.modePrimaryBtn.disabled, true);
   assert.equal(needsTarget.elements.modeTaskDisabledReason.textContent, '합칠 대상을 하나 이상 선택하세요.');
   assert.equal(needsTarget.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
-  assert.equal(needsTarget.elements.modeTaskStatus.classList.contains('hidden'), false);
+  assert.equal(needsTarget.elements.modeTaskStatus.classList.contains('hidden'), true);
   assert.equal(needsTarget.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 });
 
@@ -428,4 +432,55 @@ test('mobile coast editing retains touch instructions', async t => {
   const f = await fixture(t, { tool: 'country-coast', boundaryEditPhase: 'editing' }, { isMobile: () => true });
   f.presentation.syncEditingContext();
   assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
+});
+
+test('expanded role cards own the target and stage; minimized task preserves the compact context', async t => {
+  const f = await fixture(t, { tool: 'merge-country', mergeSourceCountryId: 'COUNTRY', mergeTargetCountryIds: [], boundaryEditPhase: '', boundaryPreparation: null });
+  f.presentation.updateModeButtons();
+  const compact = f.elements.modeTaskTargetSummary.parentElement;
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(compact.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskEditingStage.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskStage.attributes.get('aria-live'), 'polite');
+  assert.equal(f.elements.modeTaskStatus.classList.contains('hidden'), true);
+  f.state.modeTaskMinimized = true;
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(compact.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskEditingStage.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskEditingStage.attributes.get('aria-live'), 'polite');
+  assert.equal(f.elements.modeTaskStage.attributes.get('aria-live'), 'off');
+  assert.equal(f.elements.modeTaskWindowContent.hidden, true);
+  f.state.modeTaskMinimized = false;
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(compact.classList.contains('hidden'), true);
+});
+
+test('editor-open map summary is hidden and restored when the editor closes', async t => {
+  const f = await fixture(t, { tool: 'merge-country', mergeSourceCountryId: 'COUNTRY', boundaryEditPhase: '', boundaryPreparation: null });
+  f.elements.editorSurface.classList.add('surface-open');
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeMapSummary.classList.contains('hidden'), true);
+  f.elements.editorSurface.classList.remove('surface-open');
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(f.elements.modeMapSummary.classList.contains('hidden'), false);
+});
+
+test('target summary stays when no role cards or valid review summary can replace it', async t => {
+  const f = await fixture(t, { tool: 'river', boundaryEditPhase: '', boundaryPreparation: null }, {
+    describeTool: () => ({ name: '강 추가', stage: '경로 그리기' }),
+    hydroToolConfig: () => ({ shape: 'line' }),
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), true);
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), false);
+});
+
+test('preview summary replaces the redundant target row without changing its result details', async t => {
+  const f = await fixture(t, { tool: 'redraw-territorial-unit', boundaryEditPhase: '', boundaryPreparation: null,
+    geometryPreview: { session: { validation: { blocking: false }, metrics: { finalAreaKm2: 42 } } } });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.geometryPreviewSummary.children[0].children[1].textContent, '42 km²');
 });
