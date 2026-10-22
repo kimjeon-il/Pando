@@ -197,8 +197,8 @@ test('1989 Soviet initial timeline admission, selection setup, memory and cache 
   await expect(page.locator('#projectSetupDialog')).toBeVisible();
   await page.locator('#projectSetupMonth').fill('1989-06');
   await page.locator('#projectSetupSubmit').click();
-  await expect(page.locator('#confirmModal')).toBeVisible();
-  await page.locator('#confirmModalOkBtn').click();
+  // A pristine project opens immediately; only unsaved changes require discard confirmation.
+  if (await page.locator('#confirmModal').isVisible()) await page.locator('#confirmModalOkBtn').click();
   await expect(page.locator('#projectSetupDialog')).toBeHidden({ timeout: 90_000 });
   await expect(page.locator('#confirmModal')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.__testEditorTimeline.month()),
