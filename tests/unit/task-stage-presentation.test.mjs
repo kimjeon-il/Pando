@@ -78,6 +78,7 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   ];
   const elements = Object.fromEntries(ids.map(id => [id, new FakeElement(document)]));
   elements.modeTaskTargetSummary.parentElement = new FakeElement(document);
+  elements.modeTaskViewTime.parentElement = new FakeElement(document);
   const state = {
     tool: 'territorial-border',
     selected: null,
@@ -483,4 +484,44 @@ test('preview summary replaces the redundant target row without changing its res
   assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
   assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), true);
   assert.equal(f.elements.geometryPreviewSummary.children[0].children[1].textContent, '42 km²');
+});
+
+test('annex donor setup shows role cards without duplicate metadata or routine reminders', async t => {
+  const current = {
+    kind: 'annex', tool: 'annex-territory', taskLabel: '영토 편입', stage: 'setup',
+    targetCountryId: 'COUNTRY', sourceCountryIds: [],
+  };
+  const model = {
+    current, setup: true, step: 1, stageLabel: '가져올 국가',
+    primaryDisabled: true, primaryLabel: '다음', primaryIcon: '#icon-check',
+  };
+  const f = await fixture(t, {
+    tool: 'annex-territory', territorySelectionSession: current,
+    boundaryEditPhase: '', boundaryPreparation: null,
+  }, { territorySelectionPresentation: () => model });
+
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskObjects.children.length, 3, 'receiver, arrow, donor');
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '대상을 선택하고 필요한 설정을 완료하세요.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
+
+  f.presentation.setModeBanner('선택 국가를 준비하지 못했습니다.', { feedback: true });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '선택 국가를 준비하지 못했습니다.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  f.presentation.setModeBanner('');
+
+  current.sourceCountryIds = ['COUNTRY-2'];
+  current.stage = 'selection';
+  model.setup = false;
+  model.selection = true;
+  model.step = 2;
+  model.stageLabel = '영토 선택';
+  model.primaryDisabled = false;
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
 });
