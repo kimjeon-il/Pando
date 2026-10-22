@@ -280,6 +280,10 @@ test('subunit merge removes the exact middle target and preserves preview, apply
   await expect(page.locator('#modeTaskResultsList')).not.toContainText('병합 2');
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('합병 확인', { timeout: 60_000 });
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('남길 객체');
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('합쳐질 객체');
+  await expect(page.locator('#modeTaskPeriod')).toBeVisible();
+  await expect(page.locator('#modeReturnBtn')).toBeVisible();
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#confirmModal')).toBeVisible();
@@ -354,7 +358,14 @@ test('merge removal, boundary and coast use actual role cards and the shared spa
   await captureLayouts(page, 'country-merge');
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('합병 확인', { timeout: 60_000 });
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('남길 객체');
   await expect(page.locator('#geometryPreviewSummary')).toContainText('독일');
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('합쳐질 객체');
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('폴란드');
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('오스트리아');
+  await expect(page.locator('#geometryPreviewSummary')).not.toContainText('체코');
+  await expect(page.locator('#modeTaskPeriod')).toBeVisible();
+  await expect(page.locator('#modeReturnBtn')).toBeVisible();
   await expect(page.locator('#modeTaskObjects')).toBeHidden();
   await expect(page.locator('#modeTaskResults')).toBeHidden();
   await captureLayouts(page, 'merge-review');

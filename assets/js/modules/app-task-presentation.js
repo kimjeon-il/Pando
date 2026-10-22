@@ -107,6 +107,16 @@ export function createTaskPresentation() {
     return { name: display.name, flagUrl: country?.flagUrl || '' };
   }
 
+  function mergeReviewTargets(state) {
+    if (!['merge-country', 'merge-territorial-unit'].includes(state.tool)) return null;
+    const country = state.tool === 'merge-country';
+    const keeperId = String(country ? state.mergeSourceCountryId || '' : state.territorialUnitMergeSourceId || '');
+    const selected = country ? state.mergeTargetCountryIds : state.territorialUnitMergeTargetIds;
+    const absorbedIds = [...new Set((selected || []).map(id => String(id || '')))]
+      .filter(id => id && id !== keeperId);
+    return keeperId && absorbedIds.length ? { keeperId, absorbedIds } : null;
+  }
+
   function appendIdentity(parent, display) {
     const document = parent.ownerDocument;
     if (display.flagUrl) {
@@ -143,7 +153,14 @@ export function createTaskPresentation() {
       rows.push([['annex', 'new-country'].includes(selection.kind) ? '선택 영토' : '선택 영역', `${dependencies.territorySelectionB.territorySelectionPresentation().count}개`]);
     } else {
       const refs = currentTaskTargets();
-      if (refs.length) rows.push(['대상', refs.map(ref => displayObject(ref).name).join(', ')]);
+      const merge = view?.review ? mergeReviewTargets(state) : null;
+      const labels = new Map(refs.map(ref => [String(ref.id), displayObject(ref).name]));
+      if (merge && labels.has(merge.keeperId) && merge.absorbedIds.every(id => labels.has(id))) {
+        rows.push(['남길 객체', labels.get(merge.keeperId)]);
+        rows.push(['합쳐질 객체', merge.absorbedIds.map(id => labels.get(id)).join(', ')]);
+      } else if (refs.length) {
+        rows.push(['대상', refs.map(ref => displayObject(ref).name).join(', ')]);
+      }
     }
     const metrics = preview.metrics || {};
     for (const [key, label] of [['transferredAreaKm2', '이동 면적'], ['finalAreaKm2', '결과 면적']]) {
@@ -521,7 +538,8 @@ export function createTaskPresentation() {
 
   function syncEditingContext() {
     const state = dependencies.projectState.state;
-    const targets = currentTaskTargets().map(displayObject);
+    const targetRefs = currentTaskTargets();
+    const targets = targetRefs.map(displayObject);
     const preview = state.geometryPreview.session;
     const impact = (preview?.affectedIds || []).map(id => ({name: countryDisplay(id)?.name || territorialUnitDisplay(id) || id}));
     const editing=dependencies.domains.editingDomain.snapshot();
@@ -567,7 +585,25 @@ export function createTaskPresentation() {
       const duplicateImpact = annexReview && (preview.affectedIds || []).length > 0
         && directIds.length > 0 && directIds.every(id => !!countryDisplay(id)?.name)
         && preview.affectedIds.every(id => directIds.includes(String(id)));
-      if (summary.parentElement) summary.parentElement.hidden = !!duplicateImpact;
+
+      const merge = mergeReviewTargets(state);
+      const mergeIds = merge ? [merge.keeperId, ...merge.absorbedIds] : [];
+      const mergeSet = new Set(mergeIds);
+      const namedRefs = new Set(targetRefs.filter((ref, index) => targets[index]?.name).map(ref => String(ref.id)));
+      const affectedIds = (preview?.affectedIds || []).map(String);
+      const removedIds = (preview?.removedIds || []).map(String);
+      // Only an exact, validated identity match can replace the affected list.
+      // Keep it for unselected dependents, references, warnings and ambiguous impacts.
+      const duplicateMergeImpact = !!merge && !!preview && !preview.validation?.blocking
+        && preview.operation === (state.tool === 'merge-country' ? 'merge' : 'territorial-merge')
+        && !(preview.validation?.issues || []).length
+        && mergeIds.every(id => namedRefs.has(id))
+        && affectedIds.length === mergeSet.size && affectedIds.every(id => mergeSet.has(id))
+        && removedIds.length === merge.absorbedIds.length
+        && removedIds.every(id => merge.absorbedIds.includes(id))
+        && (preview.temporalImpact || []).every(row => row?.entityId && mergeSet.has(String(row.entityId)))
+        && (preview.delta?.objects || []).every(row => row?.ref?.domain === 'territorial' && mergeSet.has(String(row.ref.id)));
+      if (summary.parentElement) summary.parentElement.hidden = !!(duplicateImpact || duplicateMergeImpact);
     }
   }
 
