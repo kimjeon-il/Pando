@@ -757,6 +757,17 @@ test('merge review distinguishes surviving and absorbed countries without losing
   assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
   preview.validation.blocking = false;
 
+  preview.validation = undefined;
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'missing validation must never hide affected objects');
+  preview.validation = { blocking: false, issues: [] };
+
+  preview.operation = 'unrelated';
+  f.presentation.updateModeButtons();
+  assert.equal(affected.hidden, false, 'unmatched preview operation retains affected objects');
+  assert.equal(rows()[0][0], '대상', 'unmatched preview operation must not label an unrelated preview as a merge');
+  preview.operation = 'merge';
+
   f.state.geometryPreview.session = null;
   f.presentation.updateModeButtons();
   assert.equal(affected.hidden, false, 'returning to selection restores impact disclosure');

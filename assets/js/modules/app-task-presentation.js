@@ -153,7 +153,9 @@ export function createTaskPresentation() {
       rows.push([['annex', 'new-country'].includes(selection.kind) ? '선택 영토' : '선택 영역', `${dependencies.territorySelectionB.territorySelectionPresentation().count}개`]);
     } else {
       const refs = currentTaskTargets();
-      const merge = view?.review ? mergeReviewTargets(state) : null;
+      const mergeOperation = state.tool === 'merge-country' ? 'merge' : 'territorial-merge';
+      const merge = view?.review && preview.operation === mergeOperation
+        ? mergeReviewTargets(state) : null;
       const labels = new Map(refs.map(ref => [String(ref.id), displayObject(ref).name]));
       if (merge && labels.has(merge.keeperId) && merge.absorbedIds.every(id => labels.has(id))) {
         rows.push(['남길 객체', labels.get(merge.keeperId)]);
@@ -594,7 +596,7 @@ export function createTaskPresentation() {
       const removedIds = (preview?.removedIds || []).map(String);
       // Only an exact, validated identity match can replace the affected list.
       // Keep it for unselected dependents, references, warnings and ambiguous impacts.
-      const duplicateMergeImpact = !!merge && !!preview && !preview.validation?.blocking
+      const duplicateMergeImpact = !!merge && !!preview && preview.validation?.blocking === false
         && preview.operation === (state.tool === 'merge-country' ? 'merge' : 'territorial-merge')
         && !(preview.validation?.issues || []).length
         && mergeIds.every(id => namedRefs.has(id))
