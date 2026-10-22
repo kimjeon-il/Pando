@@ -7,7 +7,7 @@ test('diagnose Soviet 1991 library import in a 2012-01 source project', async({p
   test.setTimeout(300000);
   const errors=[];
   let patched=0;
-  const workerIntercepts={batch:0,planner:0};
+  const workerIntercepts={batch:0,planner:0,validator:0};
   const modern=process.env.PANDO_SOVIET_PROFILE_MODE==='modern';
   page.on('pageerror',error=>errors.push(error.message));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text().slice(0,400));});
@@ -65,6 +65,18 @@ test('diagnose Soviet 1991 library import in a 2012-01 source project', async({p
     if(code.split(entry).length!==2)throw Error('Missing worker planner');
     code=code.replace(entry,"    __batchProbe('worker:planner:begin',{id:feature.id,countries:draft.features.length});\n"+entry+
       "\n    __batchProbe('worker:planner:end',{affected:plan.affectedIds.length,donors:plan.donorIds.length});");
+    const donor='    for (const id of plan.donorIds) {';
+    if(code.split(donor).length!==2)throw Error('Missing donor loop');
+    code=code.replace(donor,"    __batchProbe('worker:donors:begin',{count:plan.donorIds.length});\n"+donor);
+    const donorDone='    deleted += plan.counts.deleted;';
+    if(code.split(donorDone).length!==2)throw Error('Missing donor completion');
+    code=code.replace(donorDone,"    __batchProbe('worker:donors:end');\n"+donorDone);
+    const checkpoint='    await checkpoint();';
+    if(code.split(checkpoint).length!==2)throw Error('Missing batch checkpoint');
+    code=code.replace(checkpoint,"    __batchProbe('worker:checkpoint:begin');\n"+checkpoint+"\n    __batchProbe('worker:checkpoint:end');");
+    const validation="  if (validateCollection(draft, [...affected]).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');";
+    if(code.split(validation).length!==2)throw Error('Missing batch validation');
+    code=code.replace(validation,"  __batchProbe('worker:validate:begin',{countries:draft.features.length,affected:affected.size});\n"+validation+"\n  __batchProbe('worker:validate:end');");
     workerIntercepts.batch++;
     await route.fulfill({contentType:'text/javascript',body:code});
   });
@@ -84,6 +96,23 @@ test('diagnose Soviet 1991 library import in a 2012-01 source project', async({p
       code=code.replace(target,indent+"__clipProbe('clip:"+op+":begin',"+info+");\n"+target+"\n"+indent+"__clipProbe('clip:"+op+":end',"+info+");");
     }
     workerIntercepts.planner++;
+    await route.fulfill({contentType:'text/javascript',body:code});
+  });
+  await page.context().route('**/gis-geometry-validation.js*',async route=>{
+    if(!route.request().url().includes('/worker-runtime/'))return route.continue();
+    let code=await(await route.fetch()).text();
+    const start='export function validateCollection(collection, affectedIds = null) {';
+    const tracer="  const __validateProbe=(stage,info={})=>self.postMessage({type:'USSR_WORKER_PROFILE',stage,workerMs:performance.now(),info});";
+    if(code.split(start).length!==2)throw Error('Missing country validation');
+    code=code.replace(start,start+"\n"+tracer+"\n  __validateProbe('validate:enter',{count:collection.features?.length,affected:affectedIds?.length});");
+    const geometry='    if ((!affected || affected.has(ids[index])) && !validGeometry(features[index].geometry)) {';
+    if(code.split(geometry).length!==2)throw Error('Missing geometry validation');
+    code=code.replace(geometry,"    if(!affected||affected.has(ids[index]))__validateProbe('validate:geometry:begin',{id:ids[index]});\n"+geometry+
+      "\n    if(!affected||affected.has(ids[index]))__validateProbe('validate:geometry:end',{id:ids[index]});");
+    const pairs='  for (let i = 0; i < features.length; i += 1) {';
+    if(code.split(pairs).length!==2)throw Error('Missing pair validation');
+    code=code.replace(pairs,"  __validateProbe('validate:pairs:begin',{count:features.length});\n"+pairs);
+    workerIntercepts.validator++;
     await route.fulfill({contentType:'text/javascript',body:code});
   });
   let result,outcome='setup';
