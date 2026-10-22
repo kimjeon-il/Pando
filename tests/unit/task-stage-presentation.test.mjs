@@ -692,3 +692,121 @@ test('territorial unit merge uses the same compact empty/selected target behavio
   assert.equal(f.elements.modeTaskResultsList.children.length, 1);
   assert.equal(f.elements.modeTaskResultsList.children[0].children[2].dataset.objectId, 'OTHER');
 });
+
+test('merge review distinguishes surviving and absorbed countries without losing metrics or impact', async t => {
+  const feature = (id, name) => ({ type: 'Feature', id,
+    properties: { entityKind: 'general', name },
+    geometry: { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] } });
+  const countries = { COUNTRY: feature('COUNTRY', 'Country'), OTHER: feature('OTHER', 'Other') };
+  const preview = {
+    operation: 'merge', affectedIds: ['COUNTRY', 'OTHER'], removedIds: ['OTHER'],
+    validation: { blocking: false, issues: [] }, temporalImpact: [],
+    delta: { objects: [] }, metrics: { finalAreaKm2: 42 },
+  };
+  const f = await fixture(t, {
+    tool: 'merge-country', mergeSourceCountryId: 'COUNTRY',
+    mergeTargetCountryIds: ['OTHER'], boundaryEditPhase: '', boundaryPreparation: null,
+    geometryPreview: { session: preview },
+  }, {
+    countrySourceFeature: id => countries[id] || null,
+    objectDisplayInfo: ref => ({ name: countries[ref.id]?.properties.name || ref.id, type: ref.type }),
+  });
+  const affected = f.elements.modeTaskAffectedSummary.parentElement;
+  const rows = () => f.elements.geometryPreviewSummary.children.map(row =>
+    [row.children[0].textContent, row.children[1].textContent]);
+
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
+  assert.deepEqual(rows().slice(0, 2), [
+    ['남길 객체', 'Country'], ['합쳐질 객체', 'Other'],
+  ]);
+  assert.ok(rows().some(([label, value]) => label === '결과 면적' && value === '42 km²'));
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskAffectedList.textContent, 'Country, Other');
+  assert.equal(affected.hidden, true, 'exactly duplicated impact is already shown by merge roles');
+
+  preview.affectedIds.push('DEPENDENT');
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'additional affected entity must remain visible');
+  assert.match(f.elements.modeTaskAffectedList.textContent, /DEPENDENT/);
+  preview.affectedIds.pop();
+
+  preview.validation.issues.push({ severity: 'warning', message: '참조를 확인하세요.' });
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'warnings preserve full affected details');
+  preview.validation.issues.pop();
+
+  preview.temporalImpact.push({ entityId: 'DEPENDENT', from: '1950-01' });
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'unselected temporal changes preserve full impact');
+  preview.temporalImpact.pop();
+
+  preview.delta.objects.push({ ref: { domain: 'distribution', id: 'd1' } });
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'changes to dependent content preserve impact');
+  preview.delta.objects.pop();
+
+  preview.removedIds.push('UNEXPECTED');
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'extra removals preserve impact');
+  preview.removedIds.pop();
+
+  preview.validation.blocking = true;
+  f.presentation.updateModeButtons();
+  assert.equal(affected.hidden, false, 'blocked preview never suppresses impact');
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  preview.validation.blocking = false;
+
+  f.state.geometryPreview.session = null;
+  f.presentation.updateModeButtons();
+  assert.equal(affected.hidden, false, 'returning to selection restores impact disclosure');
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+});
+
+test('subunit merge review uses the same roles without hiding indirect effects', async t => {
+  const geometry = { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] };
+  const units = ['SUB', 'OTHER'].map(id => ({
+    type: 'Feature', id,
+    properties: { name: id === 'SUB' ? 'Kept subunit' : 'Absorbed subunit', entityKind: 'general', parentId: 'COUNTRY' },
+    geometry,
+  }));
+  const preview = {
+    operation: 'territorial-merge', affectedIds: ['SUB', 'OTHER'],
+    removedIds: ['OTHER'], validation: { blocking: false, issues: [] },
+    temporalImpact: [], delta: { objects: [] }, metrics: { finalAreaKm2: 18 },
+  };
+  const f = await fixture(t, {
+    tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'SUB',
+    territorialUnitMergeTargetIds: ['OTHER'], territorialEntities: units,
+    boundaryEditPhase: '', boundaryPreparation: null, geometryPreview: { session: preview },
+  }, {
+    objectDisplayInfo: ref => ({ name: units.find(unit => unit.id === ref.id)?.properties.name || ref.id, type: ref.type }),
+  });
+  f.presentation.updateModeButtons();
+  const rows = f.elements.geometryPreviewSummary.children.map(row =>
+    [row.children[0].textContent, row.children[1].textContent]);
+  assert.deepEqual(rows.slice(0, 2), [
+    ['남길 객체', 'Kept subunit'], ['합쳐질 객체', 'Absorbed subunit'],
+  ]);
+  assert.equal(f.elements.modeTaskAffectedSummary.parentElement.hidden, true);
+  preview.affectedIds.push('CHILD');
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskAffectedSummary.parentElement.hidden, false,
+    'additional dependent units keep the original impact disclosure');
+});
+
+test('non-merge preview retains the original general target label', async t => {
+  const f = await fixture(t, {
+    tool: 'redraw-territorial-unit', territorialUnitRedrawSourceId: 'SUB',
+    boundaryEditPhase: '', boundaryPreparation: null,
+    geometryPreview: { session: { validation: { blocking: false }, metrics: { finalAreaKm2: 9 } } },
+    territorialEntities: [{
+      type: 'Feature', id: 'SUB', properties: { name: 'Subunit', entityKind: 'general', parentId: 'COUNTRY' },
+      geometry: { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] },
+    }],
+  }, { objectDisplayInfo: ref => ({ name: 'Subunit', type: ref.type }) });
+  f.presentation.updateModeButtons();
+  const labels = f.elements.geometryPreviewSummary.children.map(row => row.children[0].textContent);
+  assert.ok(labels.includes('대상'), 'other editors should retain the existing review terminology');
+  assert.ok(!labels.includes('합쳐질 객체'));
+});
