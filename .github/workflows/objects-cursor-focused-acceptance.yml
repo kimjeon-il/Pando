@@ -45,7 +45,7 @@ jobs:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: |
           node --test tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs
-          node --test shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs
+          node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import { readFile } from 'node:fs/promises';
@@ -125,12 +125,18 @@ jobs:
       - uses: pnpm/action-setup@v4
       - name: Install pinned browser dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Require rebuilt source-matched WASM before browser testing
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Repeat new-project reset then verify real dated-view acceptance
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: pnpm exec playwright test tests/browser/historical-world-timeline.spec.mjs --grep 'new world reset materializes one source month and editor navigation keeps that snapshot' --repeat-each=3 --workers=1 --retries=0 --trace off
+      - name: Verify label Undo/Redo and save/reopen on the published WASM
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/editor-flat-document.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve reset failure evidence
         if: always()
         uses: actions/upload-artifact@v4
