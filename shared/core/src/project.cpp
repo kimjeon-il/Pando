@@ -376,17 +376,25 @@ ProjectSnapshot Project::historySnapshot(bool forward) const {
         candidate.presentation.webPresentation=rebasePresentation(document(),from->document,candidate);
         next=std::make_shared<const detail::DocumentState>(std::move(candidate));
     }
-    // Physical viewing settings are not part of Web document history.
-    {
-        auto candidate=next->document;
-        auto header=codecjson::parse(candidate.exchangeMetadata);
+    // Physical viewing settings are not part of Web document history. Only
+    // rebase them when they actually differ: re-encoding an unchanged header
+    // would modify losslessly retained JSON bytes during an unrelated Undo.
+    if(next->document.exchangeMetadata!=document().exchangeMetadata) {
+        auto header=codecjson::parse(next->document.exchangeMetadata);
         const auto live=codecjson::parse(document().exchangeMetadata);
-        const auto settings=live.object.find("physicalSettings");
-        if(settings==live.object.end())header.object.erase("physicalSettings");
-        else header.object["physicalSettings"]=settings->second;
-        candidate.exchangeMetadata=header.encode();
-        GeometryProvenanceCodecAccess::admitPresentationMetadata(next->document,candidate);
-        next=std::make_shared<const detail::DocumentState>(std::move(candidate));
+        const auto restored=header.object.find("physicalSettings");
+        const auto current=live.object.find("physicalSettings");
+        const bool unchanged=current==live.object.end()
+            ? restored==header.object.end()
+            : restored!=header.object.end()&&restored->second.encode()==current->second.encode();
+        if(!unchanged) {
+            auto candidate=next->document;
+            if(current==live.object.end())header.object.erase("physicalSettings");
+            else header.object["physicalSettings"]=current->second;
+            candidate.exchangeMetadata=header.encode();
+            GeometryProvenanceCodecAccess::admitPresentationMetadata(next->document,candidate);
+            next=std::make_shared<const detail::DocumentState>(std::move(candidate));
+        }
     }
     if(command.batchBoundaryLabelSettings_||boundaryHistoryAction(command.request_.args.action))next=restoredBoundaryLabelSettings(document(),next);
     if(command.request_.commandId=="label.gesture.begin") {
