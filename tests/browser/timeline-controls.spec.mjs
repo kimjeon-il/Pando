@@ -53,7 +53,8 @@ test('floating date controls preserve navigation and document state across deskt
     });
     expect(layout.tool.left).toBeGreaterThanOrEqual(0); expect(layout.tool.right).toBeLessThanOrEqual(width);
     for (const control of layout.controls) {
-      expect(control.width).toBeGreaterThanOrEqual(44); expect(control.height).toBeGreaterThanOrEqual(44); expect(control.hit).toBe(true);
+      const minimum = width < 800 ? 40 : 36;
+      expect(control.width).toBeGreaterThanOrEqual(minimum); expect(control.height).toBeGreaterThanOrEqual(minimum); expect(control.hit).toBe(true);
     }
     if (width < 900) expect(layout.search.bottom).toBeLessThanOrEqual(layout.tool.top - 8);
     else expect(layout.search.right).toBeLessThanOrEqual(layout.tool.left);

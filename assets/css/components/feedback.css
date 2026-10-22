@@ -296,11 +296,7 @@ body.is-loading .app-root {
 }
 
 .notification-close {
-  display: none;
-  width: var(--notification-close-width);
-  min-width: var(--notification-close-min-width);
-  height: var(--notification-close-height);
-  flex: 0 0 30px;
+  flex: 0 0 auto;
   padding: 0;
   border: 0;
   border-radius: var(--ui-radius-control);
@@ -367,7 +363,7 @@ body.is-loading .app-root {
   min-width: 0;
   max-width: calc(100vw - (var(--ui-space-2) * 2));
   height: calc(var(--ui-control-height) + (var(--ui-space-1-5) * 2));
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--design-control-sm);
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-icon-control-size);
   gap: var(--ui-space-2);
   padding: 0 var(--ui-space-2) 0 var(--ui-space-3);
   border-radius: var(--ui-radius-panel);
@@ -378,13 +374,6 @@ body.is-loading .app-root {
   text-align: left;
   font-size: var(--ui-font-sm);
   font-weight: var(--ui-weight-semibold);
-}
-
-.action-status.ui-toast .notification-close {
-  width: var(--design-control-sm);
-  min-width: var(--design-control-sm);
-  height: var(--design-control-sm);
-  min-height: var(--design-control-sm);
 }
 
 .action-status.ui-toast.working {
