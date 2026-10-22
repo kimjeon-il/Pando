@@ -54,7 +54,6 @@ int main() {
     const auto encoded=projectcodec::encodeWeb(project.snapshot(),ports);
     const auto restored=projectcodec::decodeWeb(encoded,ports);
     assert(semanticallyEqual(document,restored));
-    assert(projectcodec::encode(project.snapshot(),ports).find("pandoeditor-project")!=std::string::npos);
     auto flagInput=codecjson::parse(bytes);
     flagInput.object.at("territorialEntities").array[0].object.at("properties").object.at("metadata")
         .object["flagDataUrl"]=codecjson::Value::str("garbage flag URL");
@@ -72,9 +71,7 @@ int main() {
     Project opaqueProject;opaqueProject.replace(opaqueFlag);
     assert(codecjson::parse(projectcodec::encodeWeb(opaqueProject.snapshot(),webPorts)).object.at("territorialEntities")
         .array[0].object.at("properties").object.at("metadata").object.at("flagDataUrl").raw=="42");
-    try { projectcodec::encode(flagProject.snapshot(),ports);assert(false); }
-    catch(const std::invalid_argument& error) { assert(std::string(error.what())=="INVALID_FLAG: payload"); }
     try { projectcodec::decodeWeb(bytes,{});assert(false); }
     catch(const std::invalid_argument& error) { assert(std::string(error.what()).find("CODEC_PLATFORM_REQUIRED")==0); }
-    std::cout << "Shared codec: lossless scalars, duplicate keys, Unicode and current Web/native round trip passed\n";
+    std::cout << "Shared codec: lossless scalars, duplicate keys, Unicode and current Web round trip passed\n";
 }

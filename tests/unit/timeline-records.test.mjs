@@ -58,3 +58,17 @@ test('returned references do not alias input and cannot be edited', () => {
   assert.equal(ref.id, 'shape-a');
   assert.throws(() => { ref.version = 99; }, TypeError);
 });
+
+test('paired geometry and parent gaps preserve the independent lifetime', () => {
+  const { input, context } = timelineCases()[0];
+  for (const rows of [input.geometryBindings, input.parentRelations]) {
+    const row = rows.find(row => row.entityId === 'B');
+    row.validFrom = '2026-10-01';
+    row.validTo = '2026-10-31';
+  }
+  const result = normalizeTimelineRecords(input, timelineContext(context));
+  assert.deepEqual(result.lifetimes, input.lifetimes);
+  const missingGeometry = structuredClone(input);
+  missingGeometry.geometryBindings.find(row => row.entityId === 'B').validFrom = '2026-10-02';
+  assert.throws(() => normalizeTimelineRecords(missingGeometry, timelineContext(context)), { code: 'TIMELINE_GAP' });
+});

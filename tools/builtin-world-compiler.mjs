@@ -173,9 +173,9 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
       const definition = definitions.get(candidate.entityId), ref = geometryRef(candidate.geometry);
       if (definition.currentSnapshot) definition.info.currentGeometryRef = ref;
       let rows = rowsByEntity.get(candidate.entityId);
-      if (!rows) rowsByEntity.set(candidate.entityId, rows = { lifetimes: [], geometryBindings: [], parentRelations: [] });
+      if (!rows) rowsByEntity.set(candidate.entityId, rows = { availability: [], geometryBindings: [], parentRelations: [] });
       const base = { entityId: candidate.entityId, validFrom: start && date(start), validTo: end && date(end) };
-      append(rows.lifetimes, { ...base }, () => true);
+      append(rows.availability, { ...base }, () => true);
       append(rows.geometryBindings, { ...base, geometryRef: ref }, (a, b) => a.geometryRef.id === b.geometryRef.id);
       append(rows.parentRelations, { ...base, parentId: candidate.parentId, coverageMode: candidate.coverageMode }, (a, b) => a.parentId === b.parentId && a.coverageMode === b.coverageMode);
       if(!sourceBindings.has(candidate.entityId))sourceBindings.set(candidate.entityId,[]);
@@ -188,10 +188,13 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   const records = { schemaVersion: 2, lifetimes: [], geometryBindings: [], parentRelations: [], propertyBindings: [] };
   for (const [id] of ordered) {
     const rows = rowsByEntity.get(id); if (!rows) continue;
-    for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));
+    records.lifetimes.push({ id: `historical-world:lifetimes:${id}:0`, entityId: id,
+      ...structuredClone(definitions.get(id).identity.properties.metadata.historicalTimeline.lifetime) });
+    for (const name of ['geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));
   }
   const normalized = normalizeTimelineRecords(records, { entities: identities.map(row => ({ id: row.id, entityKind: row.properties.entityKind })), geometryExists: ref => archive.get(ref) !== null });
-  contexts[mode]={identities,records:normalized,sourceBindings};
+  contexts[mode]={identities,records:normalized,sourceBindings,
+    availability:new Map([...rowsByEntity].map(([id,rows])=>[id,rows.availability]))};
   }
   const snapshot={documentId:'6dcead54-3bc5-4ca2-a4f5-455305bba911',physicalSourceInfo:{},territorialEntities:[],fullAutosave:true,projectFields:{
     timelineRecords:{schemaVersion:2,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]},geometries:[],sourceInfo:null,
@@ -219,6 +222,9 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   }
   const index={schema:'pandolab-builtin-world',schemaVersion:1,template,
     entities:countries.map(country=>({entityId:country.entityId,coverage:Object.fromEntries(Object.entries(country.modes).map(([mode,rows])=>
-      [mode,rows.lifetimes.map(({validFrom,validTo})=>({validFrom,validTo}))]))})),sourceIdentities};
-  return {index,countries,coverageReport:{schemaVersion:2,adjustments}};
+      [mode,contexts[mode].availability.get(country.entityId)?.map(({validFrom,validTo})=>({validFrom,validTo}))||[]]))})),sourceIdentities};
+  return {index,countries,coverageReport:{schemaVersion:2,adjustments,
+    entities:countries.map(country=>({entityId:country.entityId,
+      lifetime:structuredClone(country.identity.properties.metadata.historicalTimeline.lifetime),
+      availability:index.entities.find(row=>row.entityId===country.entityId).coverage}))}};
 }
