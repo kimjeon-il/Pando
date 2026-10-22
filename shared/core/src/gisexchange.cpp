@@ -159,8 +159,6 @@ void applyTerritorialGisImport(ProjectDocument& document,const GisTerritorialImp
             document.units.push_back(std::move(created));
             const auto owner=territorialRef(input.id);
             document.presentation.objectStyles.emplace(owner,ObjectStyle{});
-            if(!document.presentation.userLayers.empty())
-                document.presentation.membership.emplace(owner,document.presentation.userLayers.front().id);
             if(input.sovereign)throw std::invalid_argument("UNSUPPORTED_POLITICAL_RELATION");
             addStaticTerritorialRecords(document,input.id,ref,input.parent?input.parent->id:"","explicit");
         }

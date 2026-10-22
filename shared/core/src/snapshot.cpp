@@ -5,12 +5,8 @@ namespace pandoeditor {
 const ProjectDocument& ProjectSnapshot::document() const noexcept { return state_->document; }
 const std::set<std::string>& ProjectSnapshot::inactiveEntityIds() const noexcept { return state_->inactiveIds; }
 const DocumentIndex& ProjectSnapshot::index() const noexcept { return state_->index; }
-const std::vector<UserLayer>& ProjectSnapshot::userLayers() const noexcept { return document().presentation.userLayers; }
 const CountryView* ProjectSnapshot::country(const std::string& id) const {
     auto it=state_->countryIndex.find(id); return it==state_->countryIndex.end()?nullptr:&state_->countries[it->second];
-}
-const UserLayer* ProjectSnapshot::userLayer(const std::string& id) const {
-    auto it=index().layers.find(id); return it==index().layers.end()?nullptr:&userLayers()[it->second];
 }
 bool ProjectSnapshot::matches(const Project& p) const noexcept {
     return instanceId_==p.instanceId() && revision_==p.revision() &&

@@ -62,7 +62,7 @@ void transferScope(const ProjectSnapshot& s,TerritorialMutationPlan& plan,
     for(const auto& ref:plan.geometry.readOwners)plan.geometry.replacements.push_back({ref,ref});
     for(const auto& ref:plan.affectedObjects) {
         unlocked(unit(s,ref));guard(plan,doc,ref,"geometry");guard(plan,doc,ref,"relation");
-        const auto layer=s.userLayer(nativeLayerId(doc,ref));if(layer&&layer->locked)throw std::invalid_argument("LOCKED");
+
     }
     for(const auto& ref:plan.geometry.removableOwners)guard(plan,doc,ref,"delete");
     requireRewritableGuards(plan,doc);
@@ -124,7 +124,7 @@ TerritorialMutationPlan planConversion(const ProjectSnapshot& s,const ConvertTer
 }
 TerritorialMutationPlan planReplaceGeometry(const ProjectSnapshot& s,const ReplaceGeometryIntent& in) {
     const auto& target=unit(s,in.target);unlocked(target);
-    const auto layer=s.userLayer(nativeLayerId(s.document(),in.target));if(layer&&layer->locked)throw std::invalid_argument("LOCKED");
+
     auto p=initial(s,TerritorialMutationKind::ReplaceGeometry,in);
     p.targets={in.target};p.affectedObjects={in.target};p.selectedAfter=in.target;
     p.geometry.kind=GeometryRequirementKind::WorkerPatch;p.geometry.operation="replace";
@@ -188,7 +188,7 @@ TerritorialMutationPlan planAnnex(const ProjectSnapshot& s,const AnnexTerritoryI
             unlocked(candidate);p.geometry.readOwners.push_back(ref);p.geometry.replacements.push_back({ref,ref});p.geometry.removableOwners.push_back(ref);p.affectedObjects.push_back(ref);guard(p,s.document(),ref,"geometry");guard(p,s.document(),ref,"relation");
         }
     }
-    for(const auto& owner:owners){guard(p,s.document(),owner,"geometry");const auto layer=s.userLayer(nativeLayerId(s.document(),owner));if(layer&&layer->locked)throw std::invalid_argument("LOCKED");}
+    for(const auto& owner:owners)guard(p,s.document(),owner,"geometry");
     requireRewritableGuards(p,s.document());p.impacts.push_back({"annex",in.target,"territorial.annex"});return p;
 }
 TerritorialMutationPlan planSplit(const ProjectSnapshot& s,const SplitTerritorialIntent& in) {
@@ -196,9 +196,9 @@ TerritorialMutationPlan planSplit(const ProjectSnapshot& s,const SplitTerritoria
     if(in.createdId.empty()||trimWebText(in.createdName).empty())throw std::invalid_argument("INVALID_ARGUMENTS");
     {GeometryStore validation;validation.insert({"split-selection",1},in.selection);if(in.selection.type!="Polygon"&&in.selection.type!="MultiPolygon")throw std::invalid_argument("INVALID_GEOMETRY");}
     const auto created=territorialRef(in.createdId);if(created==in.source||s.index().objects.count(created))throw std::invalid_argument("DUPLICATE_ID");
-    const auto layer=s.userLayer(nativeLayerId(s.document(),in.source));if(layer&&layer->locked)throw std::invalid_argument("LOCKED");
+
     const auto& relation=staticParentRelation(s.document(),in.source.id);
-    if(!relation.parentId.empty()) {const auto& parent=unit(s,territorialRef(relation.parentId));unlocked(parent);if(parent.kind!=UnitKind::General)throw std::invalid_argument("ADMINISTRATIVE_PARENT_MISMATCH");const auto parentLayer=s.userLayer(nativeLayerId(s.document(),territorialRef(parent.id)));if(parentLayer&&parentLayer->locked)throw std::invalid_argument("LOCKED");}
+    if(!relation.parentId.empty()) {const auto& parent=unit(s,territorialRef(relation.parentId));unlocked(parent);if(parent.kind!=UnitKind::General)throw std::invalid_argument("ADMINISTRATIVE_PARENT_MISMATCH");}
     auto p=initial(s,TerritorialMutationKind::SplitTerritorial,in);p.targets={in.source};p.affectedObjects={in.source};p.selectedAfter=created;p.requiresConfirmation=true;
     p.geometry.kind=GeometryRequirementKind::WorkerPatch;p.geometry.operation="split";p.geometry.readOwners={in.source};p.geometry.replacements={{in.source,in.source}};p.geometry.createOwners={created};
     guard(p,s.document(),in.source,"geometry");guard(p,s.document(),created,"add");
@@ -219,7 +219,7 @@ TerritorialMutationPlan planSplit(const ProjectSnapshot& s,const SplitTerritoria
         // effect is granted for their unchanged geometry/immediate parent.
         if(relation.parentId.empty()||changing){p.geometry.replacements.push_back({ref,ref});p.geometry.removableOwners.push_back(ref);}
         if(changing) {
-            unlocked(candidate);p.affectedObjects.push_back(ref);const auto childLayer=s.userLayer(nativeLayerId(s.document(),ref));if(childLayer&&childLayer->locked)throw std::invalid_argument("LOCKED");
+            unlocked(candidate);p.affectedObjects.push_back(ref);
             guard(p,s.document(),ref,"geometry");guard(p,s.document(),ref,"relation");guard(p,s.document(),ref,"delete");
         }
     }
@@ -238,7 +238,7 @@ TerritorialMutationPlan planSharedBoundary(const ProjectSnapshot& s,const Shared
         const auto& candidate=unit(s,draft.owner);unlocked(candidate);
         if(candidate.kind!=UnitKind::General)throw std::invalid_argument("BOUNDARY_REQUIRES_GENERAL");
         if(staticParentRelation(document,candidate.id).parentId!=parentId)throw std::invalid_argument("ADMINISTRATIVE_PARENT_MISMATCH");
-        const auto layer=s.userLayer(nativeLayerId(document,draft.owner));if(layer&&layer->locked)throw std::invalid_argument("LOCKED");
+
         owners.push_back(draft.owner);
     }
     auto p=initial(s,TerritorialMutationKind::ReconcileSharedBoundary,in);p.targets=owners;p.affectedObjects=owners;p.selectedAfter=owners.front();p.requiresConfirmation=true;
@@ -269,7 +269,7 @@ TerritorialMutationPlan planSharedBoundary(const ProjectSnapshot& s,const Shared
             if(std::find(seen.begin(),seen.end(),current)!=seen.end())throw std::invalid_argument("PARENT_CYCLE");seen.push_back(current);
             const auto ref=territorialRef(current);const auto& ancestor=unit(s,ref);unlocked(ancestor);
             if(ancestor.kind!=UnitKind::General)throw std::invalid_argument("ADMINISTRATIVE_PARENT_MISMATCH");
-            const auto layer=s.userLayer(nativeLayerId(document,ref));if(layer&&layer->locked)throw std::invalid_argument("LOCKED");
+
             p.geometry.readOwners.push_back(ref);current=staticParentRelation(document,current).parentId;
         }
     }

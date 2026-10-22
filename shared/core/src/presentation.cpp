@@ -40,9 +40,7 @@ bool effectiveMapVisibility(const ProjectDocument& d,const ObjectRef& ref) {
     if(g.empty()||!groupVisible(p,g)||!itemVisible(p,itemGroup,ref.id))return false;
     if(ref.domain=="hydro"&&std::find(d.physicalData.hiddenHydroIds.begin(),d.physicalData.hiddenHydroIds.end(),ref.id)!=d.physicalData.hiddenHydroIds.end())for(const auto& h:d.hydro)if(h.id==ref.id&&h.source.kind=="builtin")return false;
     if(ref.domain=="distributionEntry") for(const auto& e:d.distributionEntries) if(e.id==ref.id && !itemVisible(p,g,e.layerId)) return false;
-    auto m=d.presentation.membership.find(ref);
-    if(m!=d.presentation.membership.end())for(const auto& l:d.presentation.userLayers)if(l.id==m->second)return l.visible;
-    return m==d.presentation.membership.end();
+    return true;
 }
 ResolvedTerritorialPresentation resolvedTerritorialPresentation(const ProjectDocument& d,const ObjectRef& ref,double terrainAlpha) {
     const auto& p=d.presentation.webPresentation;std::set<std::string> visiting;
@@ -67,9 +65,7 @@ ResolvedTerritorialPresentation resolvedTerritorialPresentation(const ProjectDoc
         return r;
     };
     auto u=unit(d,ref);if(!u)return {};
-    auto r=resolve(*u);auto m=d.presentation.membership.find(ref);
-    if(m!=d.presentation.membership.end())for(const auto& l:d.presentation.userLayers)if(l.id==m->second)r.effectiveAlpha*=l.opacity;
-    return r;
+    return resolve(*u);
 }
 double territorialRenderOrder(const ProjectDocument& d,const ObjectRef& ref,double offset) {
     auto u=unit(d,ref);if(!u)return 0;

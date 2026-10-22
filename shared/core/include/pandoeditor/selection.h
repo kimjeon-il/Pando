@@ -114,7 +114,7 @@ public:
     }
 private:
     static bool valid(const SelectionRef& ref) {
-        static const std::set<std::string> domains={"territorial","distributionLayer","distributionEntry","generic","hydro","hydroBuiltin","placeBuiltin","label","userLayer"};
+        static const std::set<std::string> domains={"territorial","distributionLayer","distributionEntry","generic","hydro","hydroBuiltin","placeBuiltin","label"};
         const bool accepted=!ref.id.empty()&&!ref.type.empty()&&domains.count(ref.domain)!=0
             &&(ref.domain!="territorial"||ref.type=="entity");
         if(accepted)(void)selectionRefKey(ref);

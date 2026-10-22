@@ -147,13 +147,12 @@ struct Allocator {
 };
 void eraseIdentity(ProjectDocument& d,const std::string& id) {
     d.units.erase(std::remove_if(d.units.begin(),d.units.end(),[&](const auto& unit){return unit.id==id;}),d.units.end());
-    const auto owner=territorialRef(id);d.countryDetails.erase(owner);d.symbols.erase(owner);d.presentation.objectStyles.erase(owner);d.presentation.membership.erase(owner);
+    const auto owner=territorialRef(id);d.countryDetails.erase(owner);d.symbols.erase(owner);d.presentation.objectStyles.erase(owner);
 }
 void setIdentity(ProjectDocument& d,const WebTerritorialFeature& row,bool appendOnly=false) {
     const auto found=std::find_if(d.units.begin(),d.units.end(),[&](const auto& unit){return unit.id==row.identity.id;});
     if(found==d.units.end()) {
         d.units.push_back(row.identity);
-        if(!d.presentation.userLayers.empty())d.presentation.membership.emplace(territorialRef(row.identity.id),d.presentation.userLayers.front().id);
     }else {require(!appendOnly,"invalid","Territorial identity already exists.");*found=row.identity;}
     const auto owner=territorialRef(row.identity.id);d.presentation.objectStyles[owner]=row.style;
     if(row.countryDetails)d.countryDetails[owner]=*row.countryDetails;else d.countryDetails.erase(owner);

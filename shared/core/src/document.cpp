@@ -9,7 +9,6 @@ namespace pandoeditor {
 namespace {
 void require(bool ok,const std::string& code) { if(!ok) throw std::invalid_argument(code); }
 bool opacity(double x) { return std::isfinite(x) && x>=0 && x<=1; }
-bool named(const std::string& x) { return x.find_first_not_of(" \t\r\n")!=std::string::npos; }
 void point(Point p) { require(std::isfinite(p.x)&&std::isfinite(p.y)&&std::abs(p.x)<=180&&std::abs(p.y)<=90,"INVALID_GEOMETRY: coordinate"); }
 void validateGeometry(const Geometry& g) {
     if(g.type=="Point" || g.type=="MultiPoint") {
@@ -104,11 +103,6 @@ DocumentIndex validateDocumentImpl(const ProjectDocument& d,void(*readContent)(c
     validatePresentation(d);
     require(!d.documentId.empty(),"INVALID_DOCUMENT: documentId");
     DocumentIndex idx;
-    for(std::size_t i=0;i<d.presentation.userLayers.size();++i) {
-        const auto& l=d.presentation.userLayers[i];
-        require(!l.id.empty() && named(l.name) && opacity(l.opacity),"INVALID_LAYER");
-        require(idx.layers.emplace(l.id,i).second,"DUPLICATE_ID: layer");
-    }
     for(std::size_t i=0;i<d.units.size();++i) {
         const auto& u=d.units[i]; auto ref=territorialRef(u.id);
         require(!u.id.empty(),"INVALID_UNIT: id");
@@ -124,10 +118,6 @@ DocumentIndex validateDocumentImpl(const ProjectDocument& d,void(*readContent)(c
         require(d.presentation.objectStyles.count(ref),"DANGLING_REF: presentation missing");
     }
     readContent(d,idx);
-    for(const auto& [ref,layer]:d.presentation.membership) {
-        require(idx.objects.count(ref)&&idx.layers.count(layer),"DANGLING_REF: membership");
-        idx.dependents[{"userLayer",layer}].push_back(ref);
-    }
     for(const auto& [ref,s]:d.presentation.objectStyles) require(idx.objects.count(ref)&&s.color<=0xffffff&&opacity(s.opacity),"INVALID_STYLE");
     const auto records=normalizeTimelineRecords(d.timelineRecords,{timelineEntityCatalog(d),[&](const GeometryRef& ref){
         const auto geometry=d.geometries.get(ref);return geometry&&(geometry->type=="Polygon"||geometry->type=="MultiPolygon");
@@ -144,7 +134,7 @@ DocumentIndex validateDocumentImpl(const ProjectDocument& d,void(*readContent)(c
         require(e.dependencyKnowledge=="known"||e.dependencyKnowledge=="unknown","INVALID_EXTENSION: dependencies");
         require(e.status=="unsupported"||e.status=="migrationArchive","INVALID_EXTENSION: status");
         for(const auto& ref:e.dependencies) {
-            require(idx.objects.count(ref)||(ref.domain=="userLayer"&&idx.layers.count(ref.id)),"DANGLING_REF: extension");
+            require(idx.objects.count(ref),"DANGLING_REF: extension");
             idx.dependents[ref].push_back({"extension",e.id});
         }
     }
@@ -161,7 +151,7 @@ std::vector<CountryView> countryViews(const ProjectDocument& d) {
     for(const auto& u:d.units) if(isRootGeneral(d,u)) {
         auto ref=territorialRef(u.id); const auto& s=d.presentation.objectStyles.at(ref);
         const std::uint32_t resolvedColor=s.explicitColor?s.color:countryDefault;
-        result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,u.id).geometryRef)->polygons,resolvedColor,u.notes,s.opacity,nativeLayerId(d,ref),u.locked});
+        result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,u.id).geometryRef)->polygons,resolvedColor,u.notes,s.opacity,u.locked});
     }
     return result;
 }
@@ -175,10 +165,6 @@ std::vector<std::string> blockingExtensions(const ProjectDocument& d,const Objec
         if(related && (e.forbiddenEffects.empty()||std::find(e.forbiddenEffects.begin(),e.forbiddenEffects.end(),effect)!=e.forbiddenEffects.end())) result.push_back(e.id);
     }
     return result;
-}
-const std::string& nativeLayerId(const ProjectDocument& d,const ObjectRef& ref) {
-    static const std::string none;
-    const auto i=d.presentation.membership.find(ref);return i==d.presentation.membership.end()?none:i->second;
 }
 bool effectAllowed(const ProjectDocument& d,const ObjectRef& ref,const std::string& effect) {
     return blockingExtensions(d,ref,effect).empty();
