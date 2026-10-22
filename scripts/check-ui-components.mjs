@@ -27,12 +27,24 @@ for (const primitive of requiredPrimitives) {
   if (!new RegExp(`\\.${primitive}\\b`).test(css)) failures.push(`missing UI primitive: .${primitive}`);
 }
 
-for (const match of html.matchAll(/<button\b([^>]*)>/gi)) {
+const buttonHtml = `${html}\n${read('index.html')}`;
+for (const match of buttonHtml.matchAll(/<button\b([^>]*)>/gi)) {
   const attributes = match[1];
   if (!/\bclass=["'][^"']*\bui-button\b/i.test(attributes)) {
     const id = attributes.match(/\bid=["']([^"']+)/i)?.[1] || `offset ${match.index}`;
     failures.push(`visible button lacks .ui-button: ${id}`);
   }
+}
+
+// A generic reset does not center a block SVG; both products must opt in.
+for (const match of buttonHtml.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/gi)) {
+  const [, attributes, body] = match;
+  if (!/<svg\b/.test(body) || body.replace(/<svg\b[\s\S]*?<\/svg>/g, '').replace(/<[^>]*>/g, '').trim()) continue;
+  const id = attributes.match(/\bid=["']([^"']+)/)?.[1] || `offset ${match.index}`;
+  if (!/\bclass=["'][^"']*\b(?:icon-btn|ui-icon-button|sheet-close-btn)\b/i.test(attributes)) {
+    failures.push(`icon-only button lacks shared size and alignment: ${id}`);
+  }
+  if (!/<svg\b[^>]*class=["'][^"']*\bui-icon\b/.test(body)) failures.push(`button icon lacks shared geometry: ${id}`);
 }
 
 for (const match of app.matchAll(/document\.createElement\(['"]button['"]\)/g)) {

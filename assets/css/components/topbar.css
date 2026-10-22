@@ -264,15 +264,6 @@ body.file-menu-open .app-root .topbar {
 }
 
 @media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .topbar-history > .ui-button {
-    width: auto;
-    min-width: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
-    height: var(--ui-touch-height);
-  }
-}
-
-@media (max-width: 799px) {
   .app-root[data-layout="mobile"] .topbar .topbar-command {
     width: auto;
     min-width: var(--ui-touch-height);
