@@ -292,7 +292,7 @@
   overscroll-behavior: contain;
   touch-action: pan-y;
 }
-.app-root[data-layout="phone-landscape"] .workspace-surface :is(button, input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
+.app-root[data-layout="phone-landscape"] .workspace-surface :is(button:not(.icon-btn, .ui-icon-button, .sheet-close-btn), input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
 .app-root[data-layout="phone-landscape"] .editor-field-grid { grid-template-columns: minmax(0, 1fr); }
 
 .app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
@@ -321,7 +321,6 @@ body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
   height: var(--phone-nav-width);
   padding: var(--ui-space-1);
 }
-.app-root[data-layout="phone-landscape"] .mobile-menu-trigger { width: var(--ui-touch-height); height: var(--ui-touch-height); }
 .app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
   position: fixed;
   z-index: 210;

@@ -7,10 +7,10 @@ import { withNativeActionDiagnostics } from './native-action-diagnostics.mjs';
 // activation policy, selection implementation, or operation error boundary.
 async function observeOwners(page) {
   const patches = [
-    ['app-project-session.js', 'get state() { return state; }',
+    ['project-session.js', 'get state() { return state; }',
       'get state() { window.__libraryState = state; window.__librarySaveState = saveState; return state; }'],
-    ['selection-domain.js', '  return Object.freeze({\n    replace,',
-      '  return window.__librarySelection = Object.freeze({\n    replace,'],
+    ['selection-domain.js', '  return Object.freeze({ replace,',
+      '  return window.__librarySelection = Object.freeze({ replace,'],
     ['territorial-library-controller.js', '  reportError,',
       `  reportError: originalReportError,`],
   ];

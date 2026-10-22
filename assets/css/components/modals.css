@@ -169,7 +169,7 @@ body.modal-open { overflow: hidden; }
 .territorial-library-time-control { position: relative; min-width: 0; }
 .territorial-library-time-control input {
   width: 100%;
-  padding-inline-end: calc(var(--ui-space-6) + var(--ui-space-3));
+  padding-inline-end: calc(var(--ui-icon-control-size) + var(--ui-space-3));
   font-variant-numeric: tabular-nums;
 }
 
@@ -177,13 +177,6 @@ body.modal-open { overflow: hidden; }
   position: absolute;
   inset-block-start: 50%;
   inset-inline-end: var(--ui-space-1);
-  width: var(--ui-space-6);
-  min-width: var(--ui-space-6);
-  height: var(--ui-space-6);
-  min-height: var(--ui-space-6);
-  padding: 0;
-  display: grid;
-  place-items: center;
   transform: translateY(-50%);
   border: 0;
   border-radius: var(--ui-radius-control);
@@ -198,16 +191,6 @@ body.modal-open { overflow: hidden; }
 }
 .territorial-library-time-suggest:is(:hover, :active, :focus-visible):not(:disabled) { transform: translateY(-50%); }
 .territorial-library-time-suggest:focus-visible { outline-offset: calc(-1 * var(--ui-border-width)); }
-.territorial-library-time-suggest svg {
-  width: .9375rem;
-  height: .9375rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 .territorial-library-time-popover {
   position: absolute;
   z-index: var(--ui-library-popover-z);

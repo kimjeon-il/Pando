@@ -30,7 +30,11 @@ const inputs = [
   ['preview', bundle.assets.previewCountries.url, bundle.compatibility.sharedBoundaries.preview],
   ['canonical', bundle.source.url, bundle.compatibility.sharedBoundaries.canonical],
 ];
-for (const [quality, input, output] of inputs) {
+const qualityArgument = process.argv.find(value => value.startsWith('--quality='));
+const selectedQuality = qualityArgument?.slice('--quality='.length);
+if (qualityArgument && !inputs.some(([quality]) => quality === selectedQuality))
+  throw new Error('Unknown boundary cache quality: ' + selectedQuality);
+for (const [quality, input, output] of inputs.filter(([quality]) => !qualityArgument || quality === selectedQuality)) {
   const raw = fs.readFileSync(path.join(data, input));
   const source = JSON.parse(input.endsWith('.gz') ? gunzipSync(raw) : raw);
   const classified = classifyBuiltinCountries(source);

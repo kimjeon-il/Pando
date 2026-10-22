@@ -52,9 +52,6 @@
   --file-menu-btn-min-width-alternate: 72px;
   --top-actions-width-alternate: min(320px, calc(100vw - var(--ui-popover-screen-edge) * 2));
   --mode-task-window-body-max-height-alternate: min(42dvh, 320px);
-  --notification-close-width: 30px;
-  --notification-close-min-width: 30px;
-  --notification-close-height: 30px;
   --ui-tooltip-background: #000;
   --ui-tooltip-color: #fff;
   --ui-tooltip-max-width: min(280px, calc(100vw - var(--ui-space-4) * 2));

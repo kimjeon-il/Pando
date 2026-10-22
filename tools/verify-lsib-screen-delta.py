@@ -36,6 +36,10 @@ def sampled_distance(source, target):
 
 def display_section(geometry, anchors, reference):
     polygons = [geometry['coordinates']] if geometry['type'] == 'Polygon' else geometry['coordinates']
+    if reference.is_ring:
+        if geometry['type'] != 'Polygon' or len(polygons[0]) != 1:
+            raise ValueError('Closed boundary review requires the selected enclave exterior')
+        return LineString(polygons[0][0])
     options = []
     for polygon in polygons:
         for ring in polygon:
@@ -85,18 +89,33 @@ def main():
             continue
         if entry['status'] == 'withheld':
             continue
-        code = entry['countries'][0]
+        closed = any(segment.get('closedRing') for segment in entry['segments'])
+        code = entry['segments'][0]['enclave'] if closed else entry['countries'][0]
         if code not in entities:
             e = json.loads((root / f'assets/data/territorial-entities/source/countries/state-{code}.json').read_text(encoding='utf-8'))
             entities[code] = next(v['geometry'] for v in e['geometryVersions'] if v['versionId'] == e['metadata']['representativeGeometryVersionId'])
-        source = shapely.line_merge(shapely.union_all([by_id[v] for v in entry['sourceLineIds']]))
+        if entry.get('kind') == 'coastline':
+            coasts, metadata = module.reviewed_coast_reference(root, entry['referenceManifest'])
+            source = coasts[entry['referenceRole']]
+            provenance = {'sourceId': metadata['sourceId'], 'referenceManifest': metadata['referenceManifest']}
+        elif 'referenceManifest' in entry:
+            source, metadata = module.reviewed_reference(root, entry['referenceManifest'])
+            provenance = {'sourceId': metadata['sourceId'], 'referenceManifest': metadata['referenceManifest']}
+        else:
+            source = shapely.line_merge(shapely.union_all([by_id[v] for v in entry['sourceLineIds']]))
+            provenance = {'sourceId': module.SOURCE_ID}
         parts = list(source.geoms) if source.geom_type == 'MultiLineString' else [source]
         for segment in entry['segments']:
             if segment['status'] == 'withheld':
                 continue
-            anchors = segment['anchors']
-            reference = min(parts, key=lambda line: sum(line.distance(Point(p)) for p in anchors))
-            reference = substring(reference, reference.project(Point(anchors[0])), reference.project(Point(anchors[1])))
+            anchors = segment.get('anchors', [])
+            if segment.get('closedRing'):
+                if len(parts) != 1 or not parts[0].is_ring:
+                    raise ValueError('Expected one complete closed reference boundary')
+                reference = parts[0]
+            else:
+                reference = min(parts, key=lambda line: sum(line.distance(Point(p)) for p in anchors))
+                reference = substring(reference, reference.project(Point(anchors[0])), reference.project(Point(anchors[1])))
             display = display_section(entities[code], anchors, reference)
             forward, n1 = sampled_distance(reference, display)
             reverse, n2 = sampled_distance(display, reference)
@@ -108,10 +127,11 @@ def main():
                 (root/'build-native/lsib-supplement/screen-failure.json').write_text(json.dumps(diagnostic),encoding='utf-8')
                 print(json.dumps({k:v for k,v in diagnostic.items() if k not in ('reference','display','entry','segment')}),flush=True)
                 raise AssertionError(f'Source/display screen deviation exceeds tolerance: {entry["countries"]}: {upper}')
-            results.append({'countries': entry['countries'], 'anchors': anchors, 'samples': n1 + n2,
+            results.append({**provenance, 'countries': entry['countries'], 'anchors': anchors, 'samples': n1 + n2,
                             'sampledMaximumCssPx': max(forward, reverse), 'continuousUpperBoundCssPx': upper})
     report = {'widthCssPx': 2560, 'flatZoom': 64, 'scope': 'supplemented intervals only; retained old endings excluded',
-              'source': 'LSIB 11.4 original detailed vectors', 'historicalGroundTruthVerified': False,
+              'source': 'Reviewed source vectors identified in each result',
+              'sourceIds': sorted({r['sourceId'] for r in results}), 'historicalGroundTruthVerified': False,
               'sections': len(results), 'samples': sum(r['samples'] for r in results),
               'sampledMaximumCssPx': max(r['sampledMaximumCssPx'] for r in results),
               'continuousUpperBoundCssPx': max(r['continuousUpperBoundCssPx'] for r in results), 'results': results}
