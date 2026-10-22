@@ -52,7 +52,10 @@ async function fixture(t) {
   await put('assets/data/world/current.json', JSON.stringify(world));
   const country=await pinned('assets/data/builtin-world/generated/v1/countries/state-ABC-sha256-'+sha(Buffer.from('COUNTRY'))+'.json.gz',Buffer.from('COUNTRY'));
   const historicPath='assets/data/builtin-world/generated/v1/index.json';
-  const historicSpec=await pinned(historicPath,Buffer.from(JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,entities:[{...country,file:country.url.split('/v1/')[1]}]})));
+  const transport=await pinned('assets/data/builtin-world/generated/v1/transport/countries-sha256-'+country.sha256+'.bin',Buffer.from('COUNTRY'));
+  const historicSpec=await pinned(historicPath,Buffer.from(JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,
+    transport:{...transport,url:transport.url.split('/v1/')[1],schemaVersion:1,encoding:'identity'},
+    entities:[{...country,file:country.url.split('/v1/')[1],offset:0}]})));
   const libPath = 'assets/data/territorial-entities/generated/v2/';
   const libraryChunk = await pinned(libPath + 'state-ABC.json.gz');
   const indexSpec = await pinned(libPath + 'index.json', Buffer.from(JSON.stringify({
@@ -93,10 +96,10 @@ async function fixture(t) {
   const meta = { appVersion: '0.36.0', assetRevision: 'test-full-world', dataRevision: 'data-' + 'b'.repeat(32),
     builtinWorld: historicSpec, territorialIndex: indexSpec, preparedPolygonMeshes: prepSpec };
   await put('assets/js/build-meta.js', 'globalThis.PANDOLAB_BUILD_META = Object.freeze(' + JSON.stringify(meta) + ');\n');
-  return { root, put, mesh };
+  return { root, put, mesh, transport };
 }
 test('full-world stage selects manifest-pinned Web resources and keeps the canonical bootstrap intact', async t => {
-  const { root } = await fixture(t);
+  const { root, transport } = await fixture(t);
   const staged = await stagePrototype({ root, profile: 'full-world' });
   assert.equal(staged.profile, 'full-world');
   assert.equal(staged.worldData.countryCount, 258);
@@ -115,9 +118,17 @@ test('full-world stage selects manifest-pinned Web resources and keeps the canon
   assert.ok(staged.files.some(file => file.path.endsWith('/hydro.bin')));
   assert.ok(staged.files.some(file => file.path.endsWith('/places-v1.bin')));
   assert.equal(staged.files.some(file=>file.path.includes('terrain-preview')),false);
+  assert.equal(await readFile(join(staged.directory, transport.url), 'utf8'), 'COUNTRY');
+  assert.equal(staged.files.some(file => file.path.includes('builtin-world/generated/v1/countries/')), false);
 });
 test('full-world stage refuses tampered pinned immutable data', async t => {
   const { root, put, mesh } = await fixture(t);
   await put(mesh.url, 'TAMPERED');
+  await assert.rejects(stagePrototype({ root, profile: 'full-world' }), /Pinned world resource mismatch/);
+});
+
+test('full-world stage rejects a corrupted builtin country transport before packaging', async t => {
+  const { root, put, transport } = await fixture(t);
+  await put(transport.url, 'TAMPERED');
   await assert.rejects(stagePrototype({ root, profile: 'full-world' }), /Pinned world resource mismatch/);
 });

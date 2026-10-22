@@ -64,9 +64,17 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
     add('assets/data/' + name);
   }
   add('assets/data/builtin-world/generated/v1/index.json', meta.builtinWorld);
+  const transport = historical.transport;
+  if (transport?.schemaVersion !== 1 || transport.encoding !== 'identity'
+      || !/^transport\/countries-sha256-[a-f0-9]{64}\.bin$/.test(transport.url)
+      || !HEX.test(transport.sha256) || !transport.url.includes(transport.sha256)
+      || !Number.isSafeInteger(transport.compressedBytes) || transport.compressedBytes <= 0
+      || transport.decodedBytes !== transport.compressedBytes) {
+    throw new Error('Invalid builtin country transport.');
+  }
+  add('assets/data/builtin-world/generated/v1/' + transport.url, transport);
   for(const entry of historical.entities){
     if(!/^countries\/[A-Za-z0-9_-]+-sha256-[a-f0-9]{64}\.json\.gz$/.test(entry.file)||!entry.file.includes(entry.sha256))throw new Error('Invalid builtin country file');
-    add('assets/data/builtin-world/generated/v1/'+entry.file,entry);
   }
   add(LIBRARY_ROOT + 'index.json', meta.territorialIndex);
   for (const item of library.entities) {
