@@ -10,7 +10,7 @@ function fixture() {
   class DocumentSession {
     constructor(ports) { calls.push(['ports', ports]); }
     documentLoad(json, currentMonth) { calls.push(['load', json, currentMonth]); epoch += 1; return { epoch, stateRevision: 0, canUndo: false, canRedo: false,timelineCursor: currentMonth }; }
-    documentLoadBaseline(baselineId,currentMonth) { calls.push(['loadBaseline',baselineId,currentMonth]);return { epoch: ++epoch,timelineCursor: currentMonth }; }
+    documentLoadBaseline(baselineId,setup) { calls.push(['loadBaseline',baselineId,setup]);return { epoch: ++epoch,timelineCursor: setup.initialMonth }; }
     documentInitialize(payload) { calls.push(['initialize',payload]); return this.documentLoad(JSON.stringify(payload.project),payload.currentMonth); }
     executeCommand(command) { calls.push(['execute', command]); return { ok: true, changed: true, state: { epoch: ++epoch, stateRevision: 1,timelineCursor: month }, delta: { objects: [],timelineRecords: null } }; }
     undo(value) { calls.push(['undo', value]); return { ok: true, changed: true, state: { epoch: ++epoch, stateRevision: 1,timelineCursor: month }, delta: { objects: [],timelineRecords: {} } }; }
@@ -123,9 +123,11 @@ test('storage baseline bytes and pure import validation use the same session wit
 
 test('full baseline load returns its one accepted packet without decoding or loading project JSON again',async () => {
   const f=fixture();await f.runtime.load({ storageJson: '{}' },context());
-  f.setCurrentMonth('2026-11');const result=await f.runtime.loadBaseline({ baselineId: 7 },context());
+  const setup={ initialMonth: '2026-11',timelineRange: null,initialMapBounds: null,sourceMode: 'builtin' };
+  f.setCurrentMonth('2030-01'); // The accepted setup, not today's clock, owns the requested month.
+  const result=await f.runtime.loadBaseline({ baselineId: 7,setup },context());
   assert.equal(result.state.epoch,2);assert.equal(result.world.sourceEpoch,2);assert.equal(result.world.month,'2026-11');
-  assert.deepEqual(f.calls.find(row => row[0]==='loadBaseline'),['loadBaseline',7,'2026-11']);
+  assert.deepEqual(f.calls.find(row => row[0]==='loadBaseline'),['loadBaseline',7,setup]);
   assert.equal(f.calls.filter(row => row[0]==='load').length,1);await f.runtime.dispose();
 });
 
