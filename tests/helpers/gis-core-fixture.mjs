@@ -12,7 +12,7 @@ export async function createGisCoreFixture(territorialEntities=[],{fields={},run
   globalThis.window=globalThis;
   const state={territorialEntities,...fields},events=[],rootPatches=[];
   await initializeTestTerritorialState(state,null,{platformPorts:{appVersion:'fixture',
-    onProjectChanged:()=>events.push('history'),persistence:{queueProject:()=>events.push('save')},...platformPorts}});
+    onProjectChanged:()=>events.push('history'),persistence:{queueProject:()=>events.push('save'),cancelPending(){}},...platformPorts}});
   const owner=testCoreProject(state),land=createLandRelations();
   land.connect({territorialModel:{territorialRootId,TERRITORIAL_COVERAGE_MODES,DISTRIBUTION_MODES}});
   const committer=createGisImportTransactionCommitter({state,entityStore:owner.entityStore,
