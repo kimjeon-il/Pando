@@ -24,7 +24,9 @@ export function applyLsibSupplement(candidate,{root=territorialSourceRoot,check=
     version.sourceId=change.sourceId;
     version.modernBoundarySupplement=change.supplement;
     entity.sourceInfo={...entity.sourceInfo,sourceId:version.sourceId,
-      title:'Existing coastlines and attribution with reviewed land boundary sections',
+      title:change.supplement.coastline==='reviewed-ign-replacement'
+        ?'Reviewed land boundaries and IGN high-water coastline with existing attribution'
+        :'Existing coastlines and attribution with reviewed land boundary sections',
       sourceAttributions:[...new Map([...(entity.sourceInfo.sourceAttributions??[]),...change.sourceAttributions].map(row=>[row.sourceId,row])).values()],
       geometrySha256:sha(JSON.stringify(geometry))};
     normalizeTerritorialLibraryEntity(entity);
