@@ -205,7 +205,6 @@ export function createTaskPresentation() {
   function syncMapContextSurfaces() {
     const editing = mapModeContextActive();
     if (!editing) dependencies.projectState.state.modeTaskMinimized = false;
-    dependencies.platform.$('modeMapSummary')?.classList.toggle('hidden', !editing);
     const context = (0, dependencies.platform.$)('modeEditingContext');
     const content = (0, dependencies.platform.$)('modeTaskWindowContent');
     const minimize = (0, dependencies.platform.$)('modeTaskMinimizeBtn');
@@ -218,7 +217,22 @@ export function createTaskPresentation() {
       minimize.setAttribute('aria-expanded', String(!minimized));
       minimize.setAttribute('aria-label', minimized ? '편집 상세 펼치기' : '편집 상세 접기');
     }
+    // The expanded heading and role/review details already identify the stage and target.
+    // Collapsing the body restores the existing compact context instead of losing it.
+    const targetSummary = dependencies.platform.$('modeTaskTargetSummary');
+    const roleCards = dependencies.platform.$('modeTaskObjects');
+    const previewSummary = dependencies.platform.$('geometryPreviewSummary');
+    const targetDetailed = (roleCards && !roleCards.classList.contains('hidden'))
+      || (previewSummary && !previewSummary.classList.contains('hidden'));
+    targetSummary?.parentElement?.classList.toggle('hidden', !minimized && !!targetDetailed);
+    const genericStage = dependencies.platform.$('modeTaskEditingStage');
+    genericStage?.classList.toggle('hidden', !minimized);
+    genericStage?.setAttribute('aria-live', minimized ? 'polite' : 'off');
+    dependencies.platform.$('modeTaskStage')?.setAttribute('aria-live', minimized ? 'off' : 'polite');
     dependencies.workspaceUiB.editorWorkspacePresentation.sync({ active: editing });
+    // The map HUD is fallback context only when the inspector itself is not open.
+    const editorOpen = dependencies.platform.$('editorSurface')?.classList.contains('surface-open');
+    dependencies.platform.$('modeMapSummary')?.classList.toggle('hidden', !editing || !!editorOpen);
     dependencies.domainControllers.syncTerritorialEditorInteraction();
     requestAnimationFrame(syncMapHudBounds);
   }
@@ -464,7 +478,7 @@ export function createTaskPresentation() {
     if (statusNode) {
       statusNode.dataset.taskState = status;
       if (statusNode.textContent !== label) statusNode.textContent = label;
-      statusNode.classList.remove('hidden');
+      statusNode.classList.toggle('hidden', status !== 'preparing' && status !== 'invalid');
       for (const value of ['preparing', 'needs-target', 'editable', 'invalid']) statusNode.classList.toggle(`is-${value}`, value === status);
     }
     if (taskRoot) taskRoot.dataset.taskState = status;
