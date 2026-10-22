@@ -488,6 +488,8 @@ test('annex selection starts with the method segment without redundant normal-st
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('영토 선택');
   await expect(page.locator('#modeMethodSwitch')).toBeVisible();
+  await expect(page.locator('.mode-edit-context')).toBeHidden();
+  await expect(page.locator('#territorySelectionStack')).toBeHidden();
   await expect(page.locator('#modeTaskObjects')).toBeHidden();
   await expect(page.locator('[data-interaction-legend]')).toHaveCount(0);
   await expect(page.locator('#modeTaskDisabledReason')).toBeHidden();

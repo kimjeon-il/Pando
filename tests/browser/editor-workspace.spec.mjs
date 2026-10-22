@@ -177,7 +177,8 @@ test('annex setup hides duplicate context but restores it after donor selection'
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('영토 선택');
-  await expect(page.locator('.mode-edit-context')).toBeVisible();
+  await expect(page.locator('.mode-edit-context')).toBeHidden();
+  await expect(page.locator('#territorySelectionStack')).toBeHidden();
   await expect(page.locator('#modeTaskViewTime')).toContainText('보기:');
   expect(errors).toEqual([]);
 });
