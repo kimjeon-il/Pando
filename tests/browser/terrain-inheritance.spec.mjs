@@ -21,7 +21,7 @@ for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'p
     }, { renderer, mode });
     await page.route('**/modules/map-renderer-composition.js*', async route => {
       const response = await route.fetch(), source = await response.text();
-      const anchor = 'export function createMapRenderer(dependencies) {';
+      const anchor = 'export function createMapRenderer(dependencies, { productMode }) {';
       expect(source).toContain(anchor);
       await route.fulfill({ response, body: source.replace(anchor, anchor + '\nwindow.__terrainPorts = dependencies;') });
     });
