@@ -72,7 +72,8 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   const ids = [
     'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage',
     'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput', 'modeTaskTargetSummary', 'modeTaskEditingStage',
-    'modeMapSummary', 'editorSurface', 'modeTaskObjects', 'modeTaskDisabledReason', 'modeTaskViewTime',
+    'modeMapSummary', 'editorSurface', 'modeTaskObjects', 'modeTaskResults', 'modeTaskResultsList',
+    'modeTaskResultsSummary', 'modeTaskDisabledReason', 'modeTaskViewTime',
     'modeTaskAffectedSummary', 'modeTaskAffectedList',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
@@ -629,4 +630,65 @@ test('annex review removes only duplicate affected countries and retains safety 
   selection.sourceCountryIds = ['MISSING-DONOR'];
   f.presentation.syncEditingContext();
   assert.equal(summary.parentElement.hidden, false, 'unresolved donor names must not suppress impact');
+});
+
+test('country merge selection keeps the keeper card, hides empty results, and restores preview metadata', async t => {
+  const countrySourceFeature = id => ['COUNTRY', 'OTHER'].includes(id)
+    ? { type: 'Feature', id, properties: { name: id, entityKind: 'general' },
+      geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } }
+    : null;
+  const f = await fixture(t, { tool: 'merge-country', mergeSourceCountryId: 'COUNTRY',
+    mergeTargetCountryIds: [], boundaryEditPhase: '', boundaryPreparation: null }, {
+    countrySourceFeature,
+    objectDisplayInfo: ref => ({ name: ref.id === 'OTHER' ? 'Other' : 'Country', type: ref.type }),
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskResultsSummary.textContent, '합칠 객체 0개');
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '합칠 대상을 하나 이상 선택하세요.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '합병 미리보기');
+
+  f.state.mergeTargetCountryIds.push('OTHER');
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskResultsSummary.textContent, '합칠 객체 1개');
+  assert.equal(f.elements.modeTaskResultsList.children.length, 1);
+  assert.equal(f.elements.modeTaskResultsList.children[0].children[2].dataset.objectId, 'OTHER');
+  assert.equal(f.elements.modeTaskResultsList.children[0].children[2].attributes.get('aria-label'), 'Other 합병 대상에서 제외');
+  assert.equal(f.elements.modePrimaryBtn.disabled, false);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '합병 미리보기');
+
+  f.state.mergeTargetCountryIds.pop();
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskResultsList.children.length, 0);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+
+  f.state.geometryPreview.session = { validation: { blocking: false }, metrics: { finalAreaKm2: 42 } };
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+});
+
+test('territorial unit merge uses the same compact empty/selected target behavior', async t => {
+  const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 0], [0, 0]]] };
+  const unit = id => ({ type: 'Feature', id, properties: {
+    name: id, entityKind: 'general', parentId: 'COUNTRY',
+  }, geometry });
+  const f = await fixture(t, {
+    tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'SUB',
+    territorialUnitMergeTargetIds: [], territorialEntities: [unit('SUB'), unit('OTHER')],
+    boundaryEditPhase: '', boundaryPreparation: null,
+  }, { objectDisplayInfo: ref => ({ name: ref.id, type: ref.type }) });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  f.state.territorialUnitMergeTargetIds.push('OTHER');
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskResultsList.children.length, 1);
+  assert.equal(f.elements.modeTaskResultsList.children[0].children[2].dataset.objectId, 'OTHER');
 });

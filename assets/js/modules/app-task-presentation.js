@@ -399,7 +399,10 @@ export function createTaskPresentation() {
     if (!section || !list || !summary) return;
     const hydro = state.multiDraft?.kind === 'hydro' && ['river', 'lake'].includes(state.tool);
     const merge = ['merge-country', 'merge-territorial-unit'].includes(state.tool) && !view?.review;
-    section.classList.toggle('hidden', !hydro && !merge);
+    // Do not reserve an empty results panel before a merge target is selected.
+    // The full removable list returns as soon as there is a selected target.
+    const showResults = hydro || (merge && !!view?.resultRefs?.length);
+    section.classList.toggle('hidden', !showResults);
     if (!hydro && !merge) return;
     const busy = !!(state.modeProcessing || state.multiDraft?.previewPending || draft.strokeActive);
     const length = geometry => (geometry?.type === 'MultiLineString' ? geometry.coordinates : [geometry?.coordinates || []])
@@ -533,7 +536,12 @@ export function createTaskPresentation() {
     // Do not repeat uncalculated time/impact metadata before the review stage.
     const annex = state.territorySelectionSession;
     const annexBeforeReview = annex?.kind === 'annex' && annex.stage !== 'review';
-    dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden', annexBeforeReview);
+    const mergeChoosingTargets = !preview
+      && (state.tool === 'merge-country' && !!state.mergeSourceCountryId
+        || state.tool === 'merge-territorial-unit' && !!state.territorialUnitMergeSourceId);
+    // The keeper card and selected-target list already identify the active
+    // merge. Display the existing date/impact details when preview is ready.
+    dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden', annexBeforeReview || mergeChoosingTargets);
     const taskInput = dependencies.platform.$('modeTaskInput');
     taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
@@ -675,7 +683,7 @@ export function createTaskPresentation() {
         else if (boundarySelectMode) label = `국경 편집 (${state.boundaryEditEntityIds.length})`;
         else if (boundaryEditMode || state.tool === 'country-coast') label = state.boundaryPreparation?.calculationFailed ? '다시 계산' : '변경 미리보기';
         else if (terrainMode) label = '그리기 완료';
-        else if (mergeTargetMode) label = `합병 미리보기 (${state.mergeTargetCountryIds.length})`;
+        else if (mergeTargetMode) label = '합병 미리보기';
         else if (genericMergeMode || unitMergeMode) label = '합병 미리보기';
         else if (genericSplitMode || unitSplitMode) label = '영역 나누기';
         else if (unitRedrawMode) label = '영역 다시 지정';
