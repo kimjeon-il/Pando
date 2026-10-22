@@ -5,14 +5,15 @@ import {resolveMapInteractionStyle,applyInteractionCssProperties} from './map-in
 const FONT_STACKS=Object.freeze({default:'var(--ui-font-family)',gothic:'"Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif',serif:'"Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", serif'});
 
 /** Owns preference state and its DOM projection for both products. */
-export function createPreferencePresentation({document,window,onChange=()=>{}}){
+export function createPreferencePresentation({document,window,productMode,onChange=()=>{}}){
+  if (!['viewer', 'editor'].includes(productMode)) throw new TypeError('Preference product mode is required.');
   let current=loadUserPreferences(),accent,interactionStyle;
   const systemThemeQuery=window.matchMedia('(prefers-color-scheme: dark)');
   let systemTheme=systemThemeQuery.matches?'dark':'light';
   function render(){
     const root=document.documentElement,theme=effectiveTheme(current,systemTheme==='dark');
     root.dataset.systemTheme=systemTheme;root.dataset.theme=theme;
-    root.dataset.statusBarVisible=String(current.appearance.statusBarVisible);
+    root.dataset.statusBarVisible=String(productMode==='editor'&&current.appearance.statusBarVisible);
     root.dataset.smoothLines=String(current.appearance.smoothLines);
     const status=document.getElementById('mapBottomStatus');if(status)status.hidden=!current.appearance.statusBarVisible;
     accent=applyAppAccent(document,current.appearance.accentPreset);

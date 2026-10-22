@@ -13,7 +13,7 @@ test('builtin country loading follows calendar rollover, retains manual dates an
  expect(requests.some(url=>url.includes('world-project.json.gz'))).toBe(false);
  await page.clock.setSystemTime(new Date(2026,10,1));await page.evaluate(()=>window.dispatchEvent(new window.Event('focus')));
  await expect(page.locator('#timelineMonthButtonText')).toHaveText('2026년 11월',{timeout:45000});
- await page.locator('#timelineMonthButton').click();await page.locator('#timelineMonthInput').fill('1953-06');await page.locator('#timelineMonthInput').press('Enter');
+ await page.locator('#timelineMonthButton').click();await page.locator('#timelineYearInput').fill('1953');await page.locator('#timelineMonthInput').selectOption('6');await page.locator('#timelineGoBtn').click();
  await expect(page.locator('#timelineMonthButtonText')).toHaveText('1953년 6월',{timeout:45000});
  const source=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities.find(row=>row.id==='KOR').properties.sourceGeometryVersion);
  expect(source).toBe('state:KOR:38th-parallel-1948');

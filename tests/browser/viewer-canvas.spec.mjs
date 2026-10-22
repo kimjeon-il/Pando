@@ -52,7 +52,7 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   await expect(page.locator('#objectChooser')).toBeVisible();
   await expect(page.locator('#objectChooserList [data-object-chooser-index]')).toHaveCount(2);
   await page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'}).click();
-  await expect(page.locator('#viewerStatus')).toHaveText('Canvas 본문 선택');
+  await expect(page.locator('#viewerSelectionStatus')).toHaveText('Canvas 본문 선택');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.notes)).toBe('원본 메타데이터 보존');
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items)
     .toEqual([{ domain: 'territorial', type: 'entity', id: 'A', key: 'territorial:entity:A' }]);
