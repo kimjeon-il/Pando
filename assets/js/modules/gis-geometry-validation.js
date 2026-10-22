@@ -157,23 +157,39 @@ export function validateCollection(collection, affectedIds = null, { overlapAffe
       let overlapPlanarArea = 0;
       const leftPolygons = polygonSets(features[i].geometry);
       const rightPolygons = polygonSets(features[j].geometry);
-      for (let leftIndex = 0; leftIndex < leftPolygons.length; leftIndex += 1) {
-        for (let rightIndex = 0; rightIndex < rightPolygons.length; rightIndex += 1) {
-          if (!boundsOverlap(componentBounds[i][leftIndex], componentBounds[j][rightIndex])) continue;
-          let componentOverlap;
-          try {
-            componentOverlap = robustPolygonIntersection(
-              [leftPolygons[leftIndex]],
-              [rightPolygons[rightIndex]],
-            );
-          } catch (error) {
-            // Surface the exact topological pair that rejected the calculation;
-            // never silently accept an unverified country overlap.
-            throw new Error(`COUNTRY_OVERLAP_CALCULATION_FAILED: ${ids[i]}/${ids[j]} polygon ${leftIndex}/${rightIndex}: ${error.message}`, { cause: error });
+      // Individual component intersections can fail on long shared borders
+      // after a subtraction (e.g. Soviet/ROU). The same compiled polygon
+      // kernel successfully handles these as one topological MultiPolygon.
+      // Prefer a whole-geometry operation when the cartesian component count
+      // is large; unlike a shortcut, this still verifies the *entire* pair.
+      const fullPair = leftPolygons.length * rightPolygons.length > 64;
+      if (fullPair) {
+        try {
+          const intersection = robustPolygonIntersection(leftPolygons, rightPolygons);
+          if (intersection?.length) {
+            overlap.push(...intersection);
+            overlapPlanarArea += planarArea(intersection);
           }
-          if (!componentOverlap?.length) continue;
-          overlap.push(...componentOverlap);
-          overlapPlanarArea += planarArea(componentOverlap);
+        } catch (error) {
+          throw new Error(`COUNTRY_OVERLAP_CALCULATION_FAILED: ${ids[i]}/${ids[j]} whole MultiPolygon: ${error.message}`, { cause: error });
+        }
+      } else {
+        for (let leftIndex = 0; leftIndex < leftPolygons.length; leftIndex += 1) {
+          for (let rightIndex = 0; rightIndex < rightPolygons.length; rightIndex += 1) {
+            if (!boundsOverlap(componentBounds[i][leftIndex], componentBounds[j][rightIndex])) continue;
+            let componentOverlap;
+            try {
+              componentOverlap = robustPolygonIntersection(
+                [leftPolygons[leftIndex]],
+                [rightPolygons[rightIndex]],
+              );
+            } catch (error) {
+              throw new Error(`COUNTRY_OVERLAP_CALCULATION_FAILED: ${ids[i]}/${ids[j]} polygon ${leftIndex}/${rightIndex}: ${error.message}`, { cause: error });
+            }
+            if (!componentOverlap?.length) continue;
+            overlap.push(...componentOverlap);
+            overlapPlanarArea += planarArea(componentOverlap);
+          }
         }
       }
       if (overlapPlanarArea <= 1e-8) continue;

@@ -144,3 +144,18 @@ test('library pair scope checks new land against every donor without skipping do
   assert.throws(() => validateCollection(collection, ['donor'],
     { overlapAffectedIds:['gained'] }), /pair scope/);
 });
+
+test('large multipolygon overlap is validated as a whole without losing area or unmodified geometry', () => {
+  const far = n => [[n*4,0],[n*4,2],[n*4+2,2],[n*4+2,0],[n*4,0]];
+  const islands = Array.from({length:70},(_,i)=>[far(i)]);
+  const large = {type:'Feature',id:'islands',properties:{name:'islands'},geometry:{type:'MultiPolygon',coordinates:islands}};
+  const intersecting = feature('overlap',[[[0.5,0.5],[0.5,1.5],[1.5,1.5],[1.5,0.5],[0.5,0.5]]]);
+  const separate = feature('far',[[[-4,0],[-4,1],[-3,1],[-3,0],[-4,0]]]);
+  const input={type:'FeatureCollection',features:[large,intersecting]};
+  const unchanged=structuredClone(input);
+  const found=validateCollection(input,['overlap']);
+  assert.deepEqual(found.firstOverlap,['islands','overlap']);
+  assert.ok(found.overlapAreaKm2>1000);
+  assert.deepEqual(input,unchanged);
+  assert.equal(validateCollection({type:'FeatureCollection',features:[large,separate]},['far']).overlapAreaKm2,0);
+});
