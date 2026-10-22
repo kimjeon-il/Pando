@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
 import { createTaskPresentation } from '../../assets/js/modules/app-task-presentation.js';
+import { shouldShowTaskInputInstruction } from '../../assets/js/modules/app-task-stage-model.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createToolBindings } from '../../assets/js/modules/app-tool-bindings.js';
 import { MAP_INTERACTION_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
@@ -69,12 +70,18 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   });
   const document = createFakeDocument();
   const ids = [
-    'modeEditingHud', 'modeTaskName', 'modeTaskStage', 'modeTaskStatus', 'modeTaskInstruction',
-    'modeTaskObjects', 'modeTaskDisabledReason', 'modeTaskViewTime',
+    'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage',
+    'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput', 'modeTaskTargetSummary', 'modeTaskEditingStage',
+    'modeMapSummary', 'editorSurface', 'modeTaskObjects', 'modeTaskResults', 'modeTaskResultsList',
+    'modeTaskResultsSummary', 'modeTaskDisabledReason', 'modeTaskViewTime',
+    'modeTaskAffectedSummary', 'modeTaskAffectedList',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
   ];
   const elements = Object.fromEntries(ids.map(id => [id, new FakeElement(document)]));
+  elements.modeTaskTargetSummary.parentElement = new FakeElement(document);
+  elements.modeTaskViewTime.parentElement = new FakeElement(document);
+  elements.modeTaskAffectedSummary.parentElement = new FakeElement(document);
   const state = {
     tool: 'territorial-border',
     selected: null,
@@ -259,6 +266,7 @@ test('task status explains pending and missing-target decisions without changing
   pending.presentation.updateModeButtons();
   assert.equal(pending.elements.modeTaskStatus.dataset.taskState, 'preparing');
   assert.equal(pending.elements.modeTaskStatus.textContent, '준비 중');
+  assert.equal(pending.elements.modeTaskStatus.classList.contains('hidden'), false);
   assert.equal(pending.elements.modePrimaryBtn.disabled, true);
   assert.equal(pending.elements.modeTaskDisabledReason.textContent, '경계를 준비하는 중입니다.');
   assert.equal(pending.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
@@ -271,6 +279,7 @@ test('task status explains pending and missing-target decisions without changing
   failed.presentation.updateModeButtons();
   assert.equal(failed.elements.modeTaskStatus.dataset.taskState, 'invalid');
   assert.equal(failed.elements.modeTaskStatus.textContent, '확인 필요');
+  assert.equal(failed.elements.modeTaskStatus.classList.contains('hidden'), false);
   assert.equal(failed.elements.modePrimaryBtn.disabled, false);
   assert.equal(failed.elements.modePrimaryBtn.textContent, '다시 시도');
   assert.equal(failed.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
@@ -291,7 +300,7 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(needsTarget.elements.modePrimaryBtn.disabled, true);
   assert.equal(needsTarget.elements.modeTaskDisabledReason.textContent, '합칠 대상을 하나 이상 선택하세요.');
   assert.equal(needsTarget.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
-  assert.equal(needsTarget.elements.modeTaskStatus.classList.contains('hidden'), false);
+  assert.equal(needsTarget.elements.modeTaskStatus.classList.contains('hidden'), true);
   assert.equal(needsTarget.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 });
 
@@ -385,4 +394,430 @@ test('editing context can render before the Core project state is ready', async 
   const f = await fixture(t, {}, {projectDomain:{state:()=>null}});
   f.presentation.syncEditingContext();
   assert.equal(f.elements.modeTaskViewTime.textContent, '보기: 시점 확인 중');
+});
+
+test('routine task guidance is suppressed without hiding active edit or recovery instructions', () => {
+  const cases = [
+    ['desktop selection', { state: { tool: 'merge-country' } }, false],
+    ['mobile country merge', { state: { tool: 'merge-country' }, mobile: true }, false],
+    ['mobile annex setup', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'setup' } }, mobile: true }, false],
+    ['mobile annex drawing', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'selection', activePhase: 'drawing' } }, mobile: true }, true],
+    ['mobile annex components', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'selection', activePhase: 'components' } }, mobile: true }, false],
+    ['mobile annex review', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'review' } }, mobile: true }, false],
+    ['mobile border selection', { state: { tool: 'territorial-border', boundaryEditPhase: 'selecting' }, mobile: true }, false],
+    ['mobile border editing', { state: { tool: 'territorial-border', boundaryEditPhase: 'editing' }, mobile: true }, true],
+    ['mobile coast editing', { state: { tool: 'country-coast' }, mobile: true }, true],
+    ['mobile hydro drawing', { state: { tool: 'river' }, mobile: true, draftActive: true }, true],
+    ['desktop routine drawing', { state: { tool: 'river' }, draftActive: true }, false],
+    ['desktop insert mode', { state: { tool: 'river' }, draft: { vertexInsertMode: true } }, true],
+    ['desktop map panning', { state: { tool: 'merge-country', spacePanActive: true } }, true],
+    ['desktop vertex placement', { state: { tool: 'country-coast' }, editing: { vertexPlacement: true } }, true],
+    ['mobile selected vertex', { state: { tool: 'river' }, mobile: true, editing: { selectedVertex: { vertexKey: 'v0' } } }, true],
+    ['review preview', { state: { tool: 'country-coast', geometryPreview: { session: { status: 'ready' } } }, mobile: true }, false],
+    ['applying preview', { state: { tool: 'country-coast', geometryPreview: { session: { status: 'applying' } } } }, true],
+    ['applying selection', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'review', applying: true } } }, true],
+  ];
+  for (const [name, options, visible] of cases) {
+    assert.equal(shouldShowTaskInputInstruction(options), visible, name);
+  }
+});
+
+test('routine instructions retain text but are visually hidden in the normal editor', async t => {
+  const f = await fixture(t, { tool: 'merge-country', mergeSourceCountryId: 'COUNTRY', boundaryEditPhase: '', boundaryPreparation: null });
+  f.presentation.syncEditingContext();
+  assert.ok(f.elements.modeTaskInput.textContent.length > 0);
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), true);
+  f.state.spacePanActive = true;
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
+});
+
+test('mobile coast editing retains touch instructions', async t => {
+  const f = await fixture(t, { tool: 'country-coast', boundaryEditPhase: 'editing' }, { isMobile: () => true });
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
+});
+
+test('expanded role cards own the target and stage; minimized task preserves the compact context', async t => {
+  const f = await fixture(t, { tool: 'merge-country', mergeSourceCountryId: 'COUNTRY', mergeTargetCountryIds: [], boundaryEditPhase: '', boundaryPreparation: null });
+  f.presentation.updateModeButtons();
+  const compact = f.elements.modeTaskTargetSummary.parentElement;
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(compact.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskEditingStage.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskStage.attributes.get('aria-live'), 'polite');
+  assert.equal(f.elements.modeTaskStatus.classList.contains('hidden'), true);
+  f.state.modeTaskMinimized = true;
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(compact.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskEditingStage.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskEditingStage.attributes.get('aria-live'), 'polite');
+  assert.equal(f.elements.modeTaskStage.attributes.get('aria-live'), 'off');
+  assert.equal(f.elements.modeTaskWindowContent.hidden, true);
+  f.state.modeTaskMinimized = false;
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(compact.classList.contains('hidden'), true);
+});
+
+test('editor-open map summary is hidden and restored when the editor closes', async t => {
+  const f = await fixture(t, { tool: 'merge-country', mergeSourceCountryId: 'COUNTRY', boundaryEditPhase: '', boundaryPreparation: null });
+  f.elements.editorSurface.classList.add('surface-open');
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeMapSummary.classList.contains('hidden'), true);
+  f.elements.editorSurface.classList.remove('surface-open');
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(f.elements.modeMapSummary.classList.contains('hidden'), false);
+});
+
+test('target summary stays when no role cards or valid review summary can replace it', async t => {
+  const f = await fixture(t, { tool: 'river', boundaryEditPhase: '', boundaryPreparation: null }, {
+    describeTool: () => ({ name: '강 추가', stage: '경로 그리기' }),
+    hydroToolConfig: () => ({ shape: 'line' }),
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), true);
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), false);
+});
+
+test('preview summary replaces the redundant target row without changing its result details', async t => {
+  const f = await fixture(t, { tool: 'redraw-territorial-unit', boundaryEditPhase: '', boundaryPreparation: null,
+    geometryPreview: { session: { validation: { blocking: false }, metrics: { finalAreaKm2: 42 } } } });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.geometryPreviewSummary.children[0].children[1].textContent, '42 km²');
+});
+
+test('annex donor setup shows role cards without duplicate metadata or routine reminders', async t => {
+  const current = {
+    kind: 'annex', tool: 'annex-territory', taskLabel: '영토 편입', stage: 'setup',
+    targetCountryId: 'COUNTRY', sourceCountryIds: [],
+  };
+  const model = {
+    current, setup: true, step: 1, stageLabel: '가져올 국가',
+    primaryDisabled: true, primaryLabel: '다음', primaryIcon: '#icon-check',
+  };
+  const f = await fixture(t, {
+    tool: 'annex-territory', territorySelectionSession: current,
+    boundaryEditPhase: '', boundaryPreparation: null,
+  }, { territorySelectionPresentation: () => model });
+
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskObjects.children.length, 3, 'receiver, arrow, donor');
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '대상을 선택하고 필요한 설정을 완료하세요.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
+
+  f.presentation.setModeBanner('선택 국가를 준비하지 못했습니다.', { feedback: true });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '선택 국가를 준비하지 못했습니다.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  f.presentation.setModeBanner('');
+
+  current.sourceCountryIds = ['COUNTRY-2'];
+  current.stage = 'selection';
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  current.stage = 'review';
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+});
+
+test('annex selection omits empty results but keeps real parts, progress and errors', async t => {
+  const current = {
+    kind: 'annex', tool: 'annex-territory', taskLabel: '영토 편입',
+    stage: 'selection', targetCountryId: 'COUNTRY', sourceCountryIds: [],
+    activeMethod: null, requestedMethod: null, activePhase: null,
+    parts: [], archivedGeometry: null, candidates: [], selectedCandidateIds: [],
+  };
+  const model = {
+    current, step: 2, stageLabel: '영토 선택', selection: true,
+    showMethods: true, primaryDisabled: true, primaryLabel: '다음', primaryIcon: '#icon-chevron-right',
+  };
+  const f = await fixture(t, { tool: current.tool, territorySelectionSession: current,
+    boundaryEditPhase: '', boundaryPreparation: null }, {
+    territorySelectionPresentation: () => model, sphericalGeometryAreaKm2: geometry => geometry?.area || 0,
+  });
+  f.presentation.updateModeButtons();
+  const section = f.elements.territorySelectionStack;
+  assert.equal(section.classList.contains('hidden'), true);
+  assert.equal(f.elements.territorySelectionStackSummary.textContent, '선택 영토 0개 · 0 km²');
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
+
+  current.activeMethod = 'polygon';
+  current.activePhase = 'drawing';
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), true);
+
+  current.parts.push({ id: 'first', geometry: { area: 12 } });
+  current.archivedGeometry = { area: 12 };
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), false);
+  assert.equal(f.elements.territorySelectionStackList.children.length, 1);
+  assert.equal(f.elements.territorySelectionStackSummary.textContent, '선택 영토 1개 · 12 km²');
+
+  current.parts = [];
+  current.archivedGeometry = null;
+  current.computationPending = true;
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), false);
+  assert.equal(f.elements.territorySelectionStackSummary.textContent, '선택 영토 0개 · 계산 중…');
+
+  current.computationPending = false;
+  current.computationError = true;
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), false);
+  assert.equal(f.elements.territorySelectionStackSummary.textContent, '선택 영토 0개 · 계산 실패');
+
+  current.computationError = false;
+  f.presentation.updateModeButtons();
+  assert.equal(section.classList.contains('hidden'), true);
+  current.stage = 'review';
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+});
+
+test('annex review removes only duplicate affected countries and retains safety details', async t => {
+  const country = id => ({ type: 'Feature', id, properties: { name: id, entityKind: 'general' },
+    geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } });
+  const selection = {
+    kind: 'annex', tool: 'annex-territory', stage: 'review',
+    targetCountryId: 'COUNTRY', sourceCountryIds: ['DONOR'],
+  };
+  const preview = { validation: { blocking: false }, affectedIds: ['COUNTRY', 'DONOR'],
+    temporalImpact: [{ from: '1950-01', until: '1951-01' }], metrics: { transferredAreaKm2: 12 } };
+  const f = await fixture(t, { tool: 'annex-territory', territorySelectionSession: selection,
+    geometryPreview: { session: preview }, boundaryEditPhase: '', boundaryPreparation: null }, {
+    countrySourceFeature: id => ['COUNTRY', 'DONOR'].includes(id) ? country(id) : null,
+  });
+  const summary = f.elements.modeTaskAffectedSummary;
+  const list = f.elements.modeTaskAffectedList;
+
+  f.presentation.syncEditingContext();
+  assert.equal(summary.textContent, '영향 대상 2개');
+  assert.equal(list.textContent, 'COUNTRY, DONOR');
+  assert.equal(summary.parentElement.hidden, true, 'direct receiver and donors repeat the review summary');
+
+  preview.affectedIds = ['COUNTRY', 'DONOR', 'DEPENDENCY'];
+  f.presentation.syncEditingContext();
+  assert.equal(summary.textContent, '영향 대상 3개');
+  assert.equal(list.textContent, 'COUNTRY, DONOR, DEPENDENCY');
+  assert.equal(summary.parentElement.hidden, false, 'additional affected entity must remain visible');
+
+  preview.affectedIds = ['COUNTRY', 'DONOR'];
+  preview.validation.blocking = true;
+  f.presentation.syncEditingContext();
+  assert.equal(summary.parentElement.hidden, false, 'validation failures retain the full affected list');
+
+  preview.validation.blocking = false;
+  selection.stage = 'selection';
+  f.presentation.syncEditingContext();
+  assert.equal(summary.parentElement.hidden, false, 'leaving review restores the default list');
+
+  selection.stage = 'review';
+  preview.affectedIds = [];
+  f.presentation.syncEditingContext();
+  assert.equal(summary.parentElement.hidden, false, 'unknown impact cannot be treated as duplicate');
+
+  preview.affectedIds = ['COUNTRY', 'DONOR'];
+  selection.sourceCountryIds = ['MISSING-DONOR'];
+  f.presentation.syncEditingContext();
+  assert.equal(summary.parentElement.hidden, false, 'unresolved donor names must not suppress impact');
+});
+
+test('country merge selection keeps the keeper card, hides empty results, and restores preview metadata', async t => {
+  const countrySourceFeature = id => ['COUNTRY', 'OTHER'].includes(id)
+    ? { type: 'Feature', id, properties: { name: id, entityKind: 'general' },
+      geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } }
+    : null;
+  const f = await fixture(t, { tool: 'merge-country', mergeSourceCountryId: 'COUNTRY',
+    mergeTargetCountryIds: [], boundaryEditPhase: '', boundaryPreparation: null }, {
+    countrySourceFeature,
+    objectDisplayInfo: ref => ({ name: ref.id === 'OTHER' ? 'Other' : 'Country', type: ref.type }),
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskResultsSummary.textContent, '합칠 객체 0개');
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '합칠 대상을 하나 이상 선택하세요.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '합병 미리보기');
+
+  f.state.mergeTargetCountryIds.push('OTHER');
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskResultsSummary.textContent, '합칠 객체 1개');
+  assert.equal(f.elements.modeTaskResultsList.children.length, 1);
+  assert.equal(f.elements.modeTaskResultsList.children[0].children[2].dataset.objectId, 'OTHER');
+  assert.equal(f.elements.modeTaskResultsList.children[0].children[2].attributes.get('aria-label'), 'Other 합병 대상에서 제외');
+  assert.equal(f.elements.modePrimaryBtn.disabled, false);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '합병 미리보기');
+
+  f.state.mergeTargetCountryIds.pop();
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskResultsList.children.length, 0);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+
+  f.state.geometryPreview.session = { validation: { blocking: false }, metrics: { finalAreaKm2: 42 } };
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+});
+
+test('territorial unit merge uses the same compact empty/selected target behavior', async t => {
+  const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 0], [0, 0]]] };
+  const unit = id => ({ type: 'Feature', id, properties: {
+    name: id, entityKind: 'general', parentId: 'COUNTRY',
+  }, geometry });
+  const f = await fixture(t, {
+    tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'SUB',
+    territorialUnitMergeTargetIds: [], territorialEntities: [unit('SUB'), unit('OTHER')],
+    boundaryEditPhase: '', boundaryPreparation: null,
+  }, { objectDisplayInfo: ref => ({ name: ref.id, type: ref.type }) });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  f.state.territorialUnitMergeTargetIds.push('OTHER');
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskResults.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskResultsList.children.length, 1);
+  assert.equal(f.elements.modeTaskResultsList.children[0].children[2].dataset.objectId, 'OTHER');
+});
+
+test('merge review distinguishes surviving and absorbed countries without losing metrics or impact', async t => {
+  const feature = (id, name) => ({ type: 'Feature', id,
+    properties: { entityKind: 'general', name },
+    geometry: { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] } });
+  const countries = { COUNTRY: feature('COUNTRY', 'Country'), OTHER: feature('OTHER', 'Other') };
+  const preview = {
+    operation: 'merge', affectedIds: ['COUNTRY', 'OTHER'], removedIds: ['OTHER'],
+    validation: { blocking: false, issues: [] }, temporalImpact: [],
+    delta: { objects: [] }, metrics: { finalAreaKm2: 42 },
+  };
+  const f = await fixture(t, {
+    tool: 'merge-country', mergeSourceCountryId: 'COUNTRY',
+    mergeTargetCountryIds: ['OTHER'], boundaryEditPhase: '', boundaryPreparation: null,
+    geometryPreview: { session: preview },
+  }, {
+    countrySourceFeature: id => countries[id] || null,
+    objectDisplayInfo: ref => ({ name: countries[ref.id]?.properties.name || ref.id, type: ref.type }),
+  });
+  const affected = f.elements.modeTaskAffectedSummary.parentElement;
+  const rows = () => f.elements.geometryPreviewSummary.children.map(row =>
+    [row.children[0].textContent, row.children[1].textContent]);
+
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
+  assert.deepEqual(rows().slice(0, 2), [
+    ['남길 객체', 'Country'], ['합쳐질 객체', 'Other'],
+  ]);
+  assert.ok(rows().some(([label, value]) => label === '결과 면적' && value === '42 km²'));
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskAffectedList.textContent, 'Country, Other');
+  assert.equal(affected.hidden, true, 'exactly duplicated impact is already shown by merge roles');
+
+  preview.affectedIds.push('DEPENDENT');
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'additional affected entity must remain visible');
+  assert.match(f.elements.modeTaskAffectedList.textContent, /DEPENDENT/);
+  preview.affectedIds.pop();
+
+  preview.validation.issues.push({ severity: 'warning', message: '참조를 확인하세요.' });
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'warnings preserve full affected details');
+  preview.validation.issues.pop();
+
+  preview.temporalImpact.push({ entityId: 'DEPENDENT', from: '1950-01' });
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'unselected temporal changes preserve full impact');
+  preview.temporalImpact.pop();
+
+  preview.delta.objects.push({ ref: { domain: 'distribution', id: 'd1' } });
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'changes to dependent content preserve impact');
+  preview.delta.objects.pop();
+
+  preview.removedIds.push('UNEXPECTED');
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'extra removals preserve impact');
+  preview.removedIds.pop();
+
+  preview.validation.blocking = true;
+  f.presentation.updateModeButtons();
+  assert.equal(affected.hidden, false, 'blocked preview never suppresses impact');
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  preview.validation.blocking = false;
+
+  preview.validation = undefined;
+  f.presentation.syncEditingContext();
+  assert.equal(affected.hidden, false, 'missing validation must never hide affected objects');
+  preview.validation = { blocking: false, issues: [] };
+
+  preview.operation = 'unrelated';
+  f.presentation.updateModeButtons();
+  assert.equal(affected.hidden, false, 'unmatched preview operation retains affected objects');
+  assert.equal(rows()[0][0], '대상', 'unmatched preview operation must not label an unrelated preview as a merge');
+  preview.operation = 'merge';
+
+  f.state.geometryPreview.session = null;
+  f.presentation.updateModeButtons();
+  assert.equal(affected.hidden, false, 'returning to selection restores impact disclosure');
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+});
+
+test('subunit merge review uses the same roles without hiding indirect effects', async t => {
+  const geometry = { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] };
+  const units = ['SUB', 'OTHER'].map(id => ({
+    type: 'Feature', id,
+    properties: { name: id === 'SUB' ? 'Kept subunit' : 'Absorbed subunit', entityKind: 'general', parentId: 'COUNTRY' },
+    geometry,
+  }));
+  const preview = {
+    operation: 'territorial-merge', affectedIds: ['SUB', 'OTHER'],
+    removedIds: ['OTHER'], validation: { blocking: false, issues: [] },
+    temporalImpact: [], delta: { objects: [] }, metrics: { finalAreaKm2: 18 },
+  };
+  const f = await fixture(t, {
+    tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'SUB',
+    territorialUnitMergeTargetIds: ['OTHER'], territorialEntities: units,
+    boundaryEditPhase: '', boundaryPreparation: null, geometryPreview: { session: preview },
+  }, {
+    objectDisplayInfo: ref => ({ name: units.find(unit => unit.id === ref.id)?.properties.name || ref.id, type: ref.type }),
+  });
+  f.presentation.updateModeButtons();
+  const rows = f.elements.geometryPreviewSummary.children.map(row =>
+    [row.children[0].textContent, row.children[1].textContent]);
+  assert.deepEqual(rows.slice(0, 2), [
+    ['남길 객체', 'Kept subunit'], ['합쳐질 객체', 'Absorbed subunit'],
+  ]);
+  assert.equal(f.elements.modeTaskAffectedSummary.parentElement.hidden, true);
+  preview.affectedIds.push('CHILD');
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskAffectedSummary.parentElement.hidden, false,
+    'additional dependent units keep the original impact disclosure');
+});
+
+test('non-merge preview retains the original general target label', async t => {
+  const f = await fixture(t, {
+    tool: 'redraw-territorial-unit', territorialUnitRedrawSourceId: 'SUB',
+    boundaryEditPhase: '', boundaryPreparation: null,
+    geometryPreview: { session: { validation: { blocking: false }, metrics: { finalAreaKm2: 9 } } },
+    territorialEntities: [{
+      type: 'Feature', id: 'SUB', properties: { name: 'Subunit', entityKind: 'general', parentId: 'COUNTRY' },
+      geometry: { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] },
+    }],
+  }, { objectDisplayInfo: ref => ({ name: 'Subunit', type: ref.type }) });
+  f.presentation.updateModeButtons();
+  const labels = f.elements.geometryPreviewSummary.children.map(row => row.children[0].textContent);
+  assert.ok(labels.includes('대상'), 'other editors should retain the existing review terminology');
+  assert.ok(!labels.includes('합쳐질 객체'));
 });

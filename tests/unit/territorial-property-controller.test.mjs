@@ -287,3 +287,19 @@ for (const operation of ['upload', 'library']) test(`pending flag ${operation} c
   state.upload(); state.readers.at(-1).result = 'data:image/png;base64,fresh'; state.readers.at(-1).dispatch('load');
   assert.deepEqual(state.flags, [[state.a, 'data:image/png;base64,fresh']]);
 });
+
+test('action rows distinguish routine help from a locked-object reason', () => {
+  const state = setup();
+  state.controller.present(state.a);
+  const merge = state.fields.get('mergeEntityBtn');
+  assert.equal(merge.dataset.actionReason, 'false');
+  assert.equal(merge.disabled, false);
+
+  const before = state.views.get(state.a.key);
+  const locked = { ...before.feature, properties: { ...before.feature.properties, locked: true } };
+  state.views.set(state.a.key, { ...before, feature: locked, properties: locked.properties });
+  state.controller.present(state.a);
+  assert.equal(merge.disabled, true);
+  assert.equal(merge.dataset.actionReason, 'true');
+  assert.equal(state.fields.get('copyEntityRegionBtn').dataset.actionReason, 'false');
+});
