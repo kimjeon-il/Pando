@@ -106,6 +106,7 @@ test('East Germany static import preserves identity, archive, history and origin
   expect(source.geometryVersions[0].boundarySupplement.sections.filter(s=>s.id.startsWith('vg25-')).map(s=>s.id)).toEqual([
     'vg25-schaalsee-lake', 'vg25-bavaria-central', 'vg25-saxony-bavaria',
     'vg25-eichsfeld-north', 'vg25-harz-ecker', 'vg25-geismar-spahl',
+    'vg25-wolfenbuettel-hornburg',
   ]);
   expect(imported.geometry).toEqual(source.geometryVersions[0].geometry);
   if(process.env.PANDOLAB_DDR_EVIDENCE_DIR){
