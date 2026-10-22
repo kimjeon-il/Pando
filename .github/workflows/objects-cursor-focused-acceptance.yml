@@ -129,8 +129,6 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Require rebuilt source-matched WASM before browser testing
         run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
-      - name: Assert source-matched WASM for actual browser validation
-        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Repeat new-project reset then verify real dated-view acceptance

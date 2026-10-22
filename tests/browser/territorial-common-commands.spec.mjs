@@ -50,7 +50,7 @@ test('common territorial metadata, flags and deletion preserve selection, undo a
   await page.locator('#entityNameInput').dispatchEvent('change');
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('DEU').properties.name)).toBe('공통 명령 시험 국가');
   const camera=await page.evaluate(()=>JSON.stringify(window.__PANDOLAB_VIEW_STATE__));
-  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('FRA','선택하지 않은 국가').changed)).toBe(true);
+  expect(await page.evaluate(async()=> (await window.PANDOLAB_TERRITORIAL.setName('FRA','선택하지 않은 국가')).changed)).toBe(true);
   await expect(page.locator('#entityNameInput')).toHaveValue('공통 명령 시험 국가');
   expect(await page.evaluate(()=>JSON.stringify(window.__PANDOLAB_VIEW_STATE__))).toBe(camera);
   const unit=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list({kind:'general'}).filter(f=>f.properties.parentId).find(f=>f.properties.metadata?.builtinSubunit?.sourceCountryId==='ALD').id);
@@ -67,6 +67,10 @@ test('common territorial metadata, flags and deletion preserve selection, undo a
   await page.locator('#entityNameInput').fill('사용자 하위단위 이름'); await page.locator('#entityNameInput').dispatchEvent('change');
   await page.locator('#actionsTabBtn').click(); await page.locator('#objectDeleteBtn').click();
   await expect(page.locator('#confirmModal')).toBeVisible(); await page.locator('#confirmModalOkBtn').click();
+  await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id),unit)).toBeNull();
+  await page.locator('#undoBtn').click();
+  await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id)?.properties.name,unit)).toBe('사용자 하위단위 이름');
+  await page.locator('#redoBtn').click();
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id),unit)).toBeNull();
   await page.locator('#undoBtn').click();
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id)?.properties.name,unit)).toBe('사용자 하위단위 이름');
