@@ -202,7 +202,7 @@ export function createEnvironment() {
     (CUT_ENDPOINT_SNAP_DISTANCE = Object.freeze({ mouse: 10, touch: 18 }));
 
 
-    preferencePresentation=createPreferencePresentation({document,window,onChange:onPreferenceChange});
+    preferencePresentation=createPreferencePresentation({document,window,productMode:'editor',onChange:onPreferenceChange});
     runtimeReady=false;
     dependencies.selectionServices.setSelectionColor(preferencePresentation.interactionStyle.selection.color);
     dependencies.selectionServices.setSelectionInteractionStyle(preferencePresentation.interactionStyle);
