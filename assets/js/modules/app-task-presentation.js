@@ -387,7 +387,7 @@ export function createTaskPresentation() {
       area.className = 'workflow-result-value';
       area.textContent = row.area;
       const remove = list.ownerDocument.createElement('button');
-      remove.className = 'ui-button workflow-result-remove';
+      remove.className = 'ui-button icon-btn workflow-result-remove';
       remove.type = 'button';
       remove.dataset.itemKind = row.kind;
       remove.dataset.itemId = row.id;
@@ -454,7 +454,7 @@ export function createTaskPresentation() {
       item.append(number, value);
       if (row.ref) {
         const remove = list.ownerDocument.createElement('button');
-        remove.className = 'ui-button workflow-result-remove';
+        remove.className = 'ui-button icon-btn workflow-result-remove';
         remove.type = 'button';
         remove.dataset.objectId = row.ref.id;
         remove.disabled = busy;
