@@ -17,7 +17,14 @@ test('product HTML is generated from one source for each common viewing control'
  const terrain=read('ui/fragments/map-terrain.html').replaceAll('\r\n','\n').trim();
  const timeline=read('ui/fragments/timeline.html').replaceAll('\r\n','\n').trim();
  assert.ok(pages.web.includes(timeline));
- assert.doesNotMatch(pages.editor,/timeline-status|timelinePreviousYear|timelinePreviousMonth|timelineMonthButton|timelineMonthInput|timelineNextMonth|timelineNextYear/);
+ assert.doesNotMatch(pages.web,/id="mapBottomStatus"|id="preferencesStatusBarVisibleInput"/);
+ assert.match(pages.editor,/id="mapBottomStatus"/);
+ assert.match(pages.editor,/id="preferencesStatusBarVisibleInput"/);
+ assert.match(timeline,/id="timelinePopover"/);
+ assert.doesNotMatch(timeline,/[«‹›»]|timeline-divider/);
+ for(const icon of ['chevron-left','chevron-right','chevrons-left','chevrons-right'])
+  assert.match(timeline,new RegExp(`href="#icon-${icon}"`));
+ assert.doesNotMatch(pages.editor,/timelineControls|timelinePreviousYear|timelinePreviousMonth|timelineMonthButton|timelineMonthInput|timelineNextMonth|timelineNextYear/);
  assert.doesNotMatch(pages.editor,/timelineComparePin|timelineComparisonPanel|autosaveRecoveryBtn/);
  assert.doesNotMatch(pages.editor,/data-map-display-row="advanced"/);
  assert.doesNotMatch(pages.web,/data-map-display-row="advanced"/);

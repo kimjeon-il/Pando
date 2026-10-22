@@ -80,7 +80,7 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
   }, renderer === 'canvas');
   await page.route('**/modules/map-renderer-composition.js*', async route => {
     const response = await route.fetch(), source = await response.text();
-    const anchor = 'export function createMapRenderer(dependencies) {';
+    const anchor = 'export function createMapRenderer(dependencies, { productMode }) {';
     expect(source).toContain(anchor);
     await route.fulfill({ response, body: source.replace(anchor, anchor + '\nwindow.__landPorts = dependencies;') });
   });
@@ -105,7 +105,8 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     // Canvas exercises its DEM Worker; WebGL uses pinned local terrain tiles.
     await page.goto(renderer === 'canvas' ? '/?debug=1' : '/?debug=1&demTerrain=raster');
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
-    const initialCount = Number((await page.locator('#viewerStatus').innerText()).match(/\d+/)[0]);
+    const visibleCount = () => page.evaluate(() => window.__PANDOLAB_VIEWER__.visibleTerritorialCount());
+    const initialCount = await visibleCount();
     const documentBefore = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState());
     const snapshotBefore = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot());
     const childKey = await page.evaluate(() => {
@@ -152,12 +153,12 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     expect(before.slice(0, 3)).not.toEqual([106, 168, 210]);
     expect(before[1]).toBeGreaterThan(before[2] + 5);
     await page.locator('#timelinePreviousMonth').click();
-    await expect.poll(async () => Number((await page.locator('#viewerStatus').innerText()).match(/\d+/)[0]), { timeout: 30_000 }).toBeLessThan(initialCount);
+    await expect.poll(visibleCount, { timeout: 30_000 }).toBeLessThan(initialCount);
     const empty = await settledPixel();
     console.log(renderer, 'empty', empty, await page.evaluate(() => window.__landProbeMeta));
     expect(empty).toEqual(before);
     await page.locator('#timelineNextMonth').click();
-    await expect(page.locator('#viewerStatus')).toHaveText('객체 ' + initialCount + '개', { timeout: 30_000 });
+    await expect.poll(visibleCount, { timeout: 30_000 }).toBe(initialCount);
     await expect.poll(() => page.evaluate(key => window.__landPaints?.[key], childKey)).toBe(0);
     const restored = await settledPixel();
     console.log(renderer, 'restored', restored, await page.evaluate(() => window.__landProbeMeta));
@@ -165,7 +166,7 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     await page.locator('#mapDisplayBtn').click();
     await page.locator('[data-map-display-row="objects"]').click();
     await page.locator('#objectsVisible').locator('..').click();
-    await expect(page.locator('#viewerStatus')).toHaveText('객체 0개');
+    await expect.poll(visibleCount).toBe(0);
     await page.locator('#mapDisplayBtn').click();
     expect(await settledPixel()).toEqual(before);
     // Epoch counts accepted read projections, including the two cursor moves.

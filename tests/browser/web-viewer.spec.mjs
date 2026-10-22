@@ -13,7 +13,8 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   });
   await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
-  await expect(page.locator('#viewerStatus')).toContainText('객체');
+  await expect(page.locator('#viewerStatus')).toBeHidden();
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.visibleTerritorialCount())).toBeGreaterThan(0);
   await expect(page).toHaveTitle('판도연구소');
   await expect(page.locator('#newProjectBtn, #saveProjectBtn, #undoBtn, #editorPanel')).toHaveCount(0);
   const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
@@ -21,7 +22,7 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await page.getByLabel('지도에서 찾기', { exact: true }).fill('대한민국');
   await expect(page.locator('#objectSearchResults button').first()).toBeVisible();
   await page.locator('#objectSearchResults button').first().click();
-  await expect(page.locator('#viewerStatus')).toContainText('대한민국');
+  await expect(page.locator('#viewerSelectionStatus')).toContainText('대한민국');
   await openViewingDisplay(page);
   await setViewingLayer(page,'objects',false);
   await setViewingLayer(page,'objects',true);
@@ -35,8 +36,9 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await page.screenshot({path:testInfo.outputPath(`existing-ui-${viewport.width}x${viewport.height}.png`)});
   await closeViewingDisplay(page);
   await page.locator('#timelineMonthButton').click();
-  await page.locator('#timelineMonthInput').fill('-0001-12');
-  await page.locator('#timelineMonthInput').press('Enter');
+  await page.locator('#timelineYearInput').fill('-1');
+  await page.locator('#timelineMonthInput').selectOption('12');
+  await page.locator('#timelineYearInput').press('Enter');
   await expect(page.locator('#timelineMonthButtonText')).toHaveText('기원전 1년 12월');
   await page.locator('#timelineNextMonth').click();
   await expect(page.locator('#timelineMonthButtonText')).toHaveText('1년 1월');

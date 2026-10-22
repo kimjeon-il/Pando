@@ -1,6 +1,7 @@
 import {createGpuMapRenderer} from './gpu-map-renderer.js';
 import {createTerritorialFillResolver} from './territorial-fill-style.js';
-export function createMapRenderer(dependencies) {
+export function createMapRenderer(dependencies, { productMode }) {
+    if (!['viewer', 'editor'].includes(productMode)) throw new TypeError('Renderer presentation product mode is required.');
     const gpuMapRenderer=createGpuMapRenderer({
       APP_VERSION: dependencies.platformConfigurationA.APP_VERSION,
       ASSET_REVISION: dependencies.layerPresentation.ASSET_REVISION,
@@ -51,7 +52,9 @@ export function createMapRenderer(dependencies) {
         setMapPreparationStatus: presentation => {
           const label = dependencies.platform.$('mapPreparationStatus');
           const retry = dependencies.platform.$('mapPreparationRetry');
-          if (label && label.textContent !== presentation.label) label.textContent = presentation.label;
+          const text = productMode === 'viewer' ? presentation.label.replace('현재 화면 ', '').replace('준비 실패', '불러오기 실패') : presentation.label;
+          if (label && label.textContent !== text) label.textContent = text;
+          if (productMode === 'viewer') dependencies.platform.$('mapPreparationNotice').hidden = presentation.status !== 'error';
           if (retry) retry.hidden = !presentation.retry;
         },
         onContextStateChange: phase => dependencies.domains.renderingDomain?.invalidateGpuContext?.(phase) || false,
