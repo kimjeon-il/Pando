@@ -23,11 +23,12 @@ const importEnvelope=(features,removedIds=[])=>({commandId:'territorial.library-
   sourceInfo:{next:{imports:[{kind:'library',sourceId:'state:fixture',license:'test'}]},mergedAt:'2026-10-06T00:00:00.000Z'},
 }});
 
-async function harness(t,{invalidChild=false,failTransfer=false,failPresentation=false,entities=[feature('A')]}={}) {
+async function harness(t,{invalidChild=false,failTransfer=false,failPresentation=false,entities=[feature('A')],validateCalls=null}={}) {
   const previousWindow=globalThis.window,platformEvents=[];
   t.after(()=>{globalThis.window=previousWindow;});
   const runtime={createGisImportError:(message,details)=>Object.assign(new Error(message),details),
     RELIABILITY_ERROR_CATEGORIES:{GEOMETRY:'geometry'}};
+  if(validateCalls)runtime.validateGisCountryCollection=async (_collection,affected,options)=>{validateCalls.push({affected,options});return {overlapAreaKm2:0};};
   if(failTransfer)runtime.planTransferLandDependents=()=>{throw new Error('dependent geometry failed');};
   if(failPresentation)runtime.markCountryGeometriesChanged=()=>{throw new Error('accepted platform failed');};
   const h=await createGisCoreFixture(entities,{fields:{sourceInfo:null},runtime});
@@ -178,4 +179,14 @@ test('original library impact approval leaves the project unchanged until explic
   assert.equal(pending.confirmationRequired,true);assert.ok(pending.impactKey);assert.deepEqual(snapshot(h),before);assert.equal(h.project.canUndo(),false);assert.deepEqual(h.operations,[]);
   const result=await options.instantiate([h.entityId],'2026','none',{confirmedImpact:pending.impactKey});
   assert.equal(result.added,1);assert.equal(h.client.state().checkpoint,checkpoint+1);await h.project.undo();assert.deepEqual(snapshot(h),before);
+});
+
+test('GIS library commit limits pair checks to growing roots without dropping donor shape validation',async t=>{
+  const calls=[];
+  const h=await harness(t,{entities:[feature('A')] , validateCalls:calls});
+  h.plan.overlapAffectedIds=['NEW'];
+  await h.run();
+  assert.equal(calls.length,1);
+  assert.deepEqual(calls[0].affected,['A','NEW']);
+  assert.deepEqual(calls[0].options,{overlapAffectedIds:['NEW']});
 });
