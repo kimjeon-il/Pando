@@ -9,7 +9,7 @@
   <link rel="icon" href="data:,">
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2?v={{assetRevision}}" as="font" type="font/woff2" crossorigin>
 
-  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible='false';}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='false';}}());</script>
   <link rel="stylesheet" href="assets/css/app.css?v={{assetRevision}}">
   <link rel="stylesheet" href="assets/css/ui-viewer.bundle.css?v={{assetRevision}}" data-pandolab-ui="ui-bundle">
   <link rel="stylesheet" href="assets/css/viewer.css?v={{assetRevision}}">
@@ -67,6 +67,7 @@
           <canvas id="viewerCanvas" class="gpu-map-canvas"></canvas>
           <svg id="viewerLabels" class="map-overlay-svg labels-layer country-label" aria-hidden="true"></svg>
         </div>
+        <div class="viewer-map-tools">
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar" aria-label="지도 명령">
           <div class="map-command-search">
             <!-- include:map-search-control -->
@@ -74,14 +75,14 @@
           </div>
           <!-- include:map-fit-control -->
         </div>
-        <footer id="mapBottomStatus" class="map-bottom-status">
-          <div class="status-inner">
-            <span id="viewerStatus" class="status-group status-primary" role="status" aria-live="polite">지도를 준비하고 있습니다…</span>
-            <span id="mapPreparationStatus" class="status-group map-preparation-status" role="status">정밀 경계 준비 중</span>
-            <button id="mapPreparationRetry" class="ui-button" type="button" hidden>다시 시도</button>
-            <!-- include:timeline -->
-          </div>
-        </footer>
+        <!-- include:timeline -->
+        </div>
+        <span id="viewerStatus" class="viewer-loading" role="status" aria-live="polite">지도 불러오는 중…</span>
+        <span id="viewerSelectionStatus" class="sr-only" role="status" aria-live="polite"></span>
+        <div id="mapPreparationNotice" class="ui-floating-surface viewer-map-error" role="alert" hidden>
+          <span id="mapPreparationStatus"></span>
+          <button id="mapPreparationRetry" class="ui-button" type="button" hidden>다시 시도</button>
+        </div>
       </main>
 
       <!-- include:object-search -->
