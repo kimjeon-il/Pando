@@ -22,6 +22,8 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/generated-artifacts-p2.yml'
+  # Opt-in, per-push compiled-core-only publication; avoids unrelated stale data families.
+  # Include [p2-wasm-only] in a work-branch commit message for a focused rebuild.
   workflow_dispatch:
     inputs:
       scope:
@@ -71,7 +73,7 @@ jobs:
         id: scopes
         env:
           PANDO_P2_BASE_SHA: ${{ github.event.before || '' }}
-          PANDO_P2_SCOPE: ${{ inputs.scope || 'auto' }}
+          PANDO_P2_SCOPE: ${{ inputs.scope || (contains(github.event.head_commit.message, '[p2-wasm-only]') && 'wasm' || 'auto') }}
         run: node scripts/p2-artifact-plan.mjs --github-output
 
   generate:
@@ -88,7 +90,7 @@ jobs:
     env:
       EMCC_CORES: '1'
       BINARYEN_CORES: '1'
-      PANDO_P2_SCOPE: ${{ inputs.scope || 'auto' }}
+      PANDO_P2_SCOPE: ${{ inputs.scope || (contains(github.event.head_commit.message, '[p2-wasm-only]') && 'wasm' || 'auto') }}
       PANDO_P2_WASM: ${{ needs.plan.outputs.wasm }}
       PANDO_P2_BASE_SHA: ${{ github.event.before || '' }}
     steps:
