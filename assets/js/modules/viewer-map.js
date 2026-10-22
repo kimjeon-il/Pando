@@ -136,7 +136,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
     readinessUi:{isSafeKoreanErrorMessage},mapHostViewB:{queueMapResize:()=>mapHost.queueMapResize()},
     mapView:{get mapHost(){return mapHost.mapHost;}},domains:{get renderingDomain(){return renderingDomain;}},
     renderQuality,renderScene:{get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
-    feedback:{reportOperationError:onError,setActionStatus:onStatus}});
+    feedback:{reportOperationError:onError,setActionStatus:onStatus}},{productMode:'viewer'});
   let initialized;
   physicalResources.initializeTerrainService();
 
