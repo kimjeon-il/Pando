@@ -62,6 +62,7 @@ function normalizedStyle(style = {}) {
     width: Math.max(0, Number(style.width ?? 1)),
     scaleWithView: style.scaleWithView === true,
     antiAlias: style.antiAlias !== false,
+    coverage: style.coverage === 'union' ? 'union' : 'normal',
     innerCutout: Math.max(0, Number(style.innerCutout) || 0),
     fillAlpha: Math.max(0, Math.min(1, Number(style.fillAlpha ?? style.alpha ?? 1))),
     casing,
