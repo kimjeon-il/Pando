@@ -147,9 +147,9 @@ jobs:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: >-
           pnpm exec playwright test
-          tests/browser/territorial-common-commands.spec.mjs
+          tests/browser/historical-world-timeline.spec.mjs
           tests/browser/distribution.spec.mjs
-          --grep 'common territorial metadata, flags and deletion preserve selection, undo and saved state|a numeric distribution stores signed values and survives undo and redo'
+          --grep 'deleting a built-in subunit restores canonical data with Undo and Redo|a numeric distribution stores signed values and survives undo and redo'
           --workers=1 --retries=0 --trace off
       - name: Preserve reset failure evidence
         if: always()

@@ -85,3 +85,28 @@ test('historical geometry and parent edits preserve the earlier month and suppor
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.parentId, id)).toBe('');
   expect(errors).toEqual([]);
 });
+
+test('deleting a built-in subunit restores canonical data with Undo and Redo', async ({ page }) => {
+  test.setTimeout(180000);
+  const errors=[];
+  page.on('pageerror', error => errors.push(error.message));
+  await gotoEditor(page, '/?debug=1&renderer=canvas');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', {timeout:90000});
+  const id=await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({kind:'general'})
+    .find(row => row.properties.parentId && row.properties.metadata?.builtinSubunit?.sourceCountryId==='ALD')?.id || null);
+  expect(id).toBeTruthy();
+  const original=await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id),id);
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id),id);
+  await expect(page.locator('#entityProperties')).toBeVisible();
+  await page.locator('#actionsTabBtn').click();
+  await expect(page.locator('#objectDeleteBtn')).toBeEnabled({timeout:30000});
+  await page.locator('#objectDeleteBtn').click();
+  await expect(page.locator('#confirmModal')).toBeVisible();
+  await page.locator('#confirmModalOkBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id),id),{timeout:30000}).toBeNull();
+  await page.locator('#undoBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id),id),{timeout:30000}).toEqual(original);
+  await page.locator('#redoBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id),id),{timeout:30000}).toBeNull();
+  expect(errors).toEqual([]);
+});
