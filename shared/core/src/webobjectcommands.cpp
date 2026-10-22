@@ -112,7 +112,6 @@ ProjectDocument applyWebObjectRemoval(const ProjectSnapshot& snapshot,const WebO
     candidate.distributionEntries.erase(std::remove_if(candidate.distributionEntries.begin(),candidate.distributionEntries.end(),[&](const auto& row) {
         const bool deleting=removed["distributionLayer"].count(row.layerId)||(row.territory&&removed["territorial"].count(row.territory->id));
         if(deleting) {
-            candidate.presentation.membership.erase({"distributionEntry",row.id});
             candidate.presentation.objectStyles.erase({"distributionEntry",row.id});
         }
         return deleting;
@@ -126,10 +125,9 @@ ProjectDocument applyWebObjectRemoval(const ProjectSnapshot& snapshot,const WebO
         view.eraseItemVisibility("objectLabels",displayId(before,active,id));
         view.eraseItemVisibility("objects",id);view.eraseItemVisibility("objectLabels",id);
     }
-    // Native layer membership/style carriers have no Web UI counterpart. Their
-    // owners must be removed when the corresponding content row disappears.
+    // Remove owner-specific styles when their content rows are deleted.
     for(const auto& ref:intent.refs)if(ref.domain!="territorial") {
-        candidate.presentation.membership.erase(ref);candidate.presentation.objectStyles.erase(ref);
+        candidate.presentation.objectStyles.erase(ref);
     }
     // Current Web labels keep the non-owning territorialUnitId annotation;
     // content itemVisibility and ordering hints also remain exactly as stored.

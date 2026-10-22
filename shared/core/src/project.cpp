@@ -244,7 +244,6 @@ const std::set<std::string>& Project::inactiveEntityIds() const noexcept {
 const std::vector<CountryView>& Project::countries() const noexcept {
     return viewState_?viewState_->countries:state_->countries;
 }
-const std::vector<UserLayer>& Project::userLayers() const noexcept { return state_->document.presentation.userLayers; }
 const DocumentIndex& Project::index() const noexcept { return state_->index; }
 const DocumentIndex& Project::viewIndex() const noexcept {
     return viewState_?viewState_->index:state_->index;
@@ -254,11 +253,6 @@ const CountryView* Project::country(const std::string& id) const
     const auto& state=viewState_?viewState_:state_;
     auto it=state->countryIndex.find(id);
     return it==state->countryIndex.end()?nullptr:&countries()[it->second];
-}
-const UserLayer* Project::userLayer(const std::string& id) const
-{
-    auto it=index().layers.find(id);
-    return it==index().layers.end()?nullptr:&userLayers()[it->second];
 }
 const ObjectPropertyView* Project::propertyView(const ObjectRef& ref) const {
     const auto& state=viewState_?viewState_:state_;
@@ -430,7 +424,6 @@ bool Project::travelHistory(bool forward,const ProjectSnapshot& prepared) {
 }
 bool Project::undo() { return travelHistory(false,historySnapshot(false)); }
 bool Project::hasActiveObject(const ObjectRef& ref) const noexcept {
-    if(ref.domain=="userLayer")return index().layers.count(ref.id)!=0;
     return index().objects.count(ref)!=0&&(ref.domain!="territorial"||!inactiveEntityIds().count(ref.id));
 }
 bool Project::redo() { return travelHistory(true,historySnapshot(true)); }

@@ -222,8 +222,6 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
         document.presentation.objectStyles.emplace(owner,addition.initialObjectStyle.value_or(ObjectStyle{}));
         if(addition.initialCountryDetails)document.countryDetails.emplace(owner,*addition.initialCountryDetails);
         if(addition.initialSymbolStyle)document.symbols.emplace(owner,*addition.initialSymbolStyle);
-        if(!document.presentation.userLayers.empty())
-            document.presentation.membership.emplace(owner,document.presentation.userLayers.front().id);
         if(addition.sovereign)throw std::invalid_argument("UNSUPPORTED_POLITICAL_RELATION");
         addStaticTerritorialRecords(document,id,ref,addition.parent?addition.parent->id:"",
             !addition.instanceId.empty()&&addition.parent?"partition":"explicit");
@@ -243,7 +241,6 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
         removeTerritorialRecords(document,{donor.id});
         for(auto& label:document.labels)if(label.territory==donor)label.territory=target;
         for(auto& entry:document.distributionEntries)if(entry.territory==donor)entry.territory=target;
-        document.presentation.membership.erase(donor);
         document.presentation.objectStyles.erase(donor);
         auto& web=document.presentation.webPresentation;
         for(auto& [group,hidden]:web.itemVisibility)hidden.erase(donor.id);

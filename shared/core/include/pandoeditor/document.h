@@ -114,11 +114,6 @@ struct TerritorialUnit {
     // Additional supported annotation metadata, lossless through the codec.
     std::string metadata="{}", sourceFolderId, sourceEntityId, sourceGeometryVersion;
 };
-struct UserLayer {
-    std::string id, name;
-    bool visible=true, locked=false;
-    double opacity=1;
-};
 struct ObjectStyle { std::uint32_t color=0xa8c7db; double opacity=1; bool explicitColor=true; };
 // Immutable codec evidence for the current native file's hydro item namespace.
 // Visibility itself lives only in WebPresentation::itemVisibility["hydro"].
@@ -129,8 +124,6 @@ struct PresentationCatalog {
 };
 struct PresentationState {
     WebPresentation webPresentation;
-    std::vector<UserLayer> userLayers; // bottom to top; independent of territorial ancestry
-    std::map<ObjectRef,std::string> membership;
     std::map<ObjectRef,ObjectStyle> objectStyles;
     std::shared_ptr<const PresentationCatalog> catalog;
 };
@@ -177,12 +170,10 @@ struct CountryView {
     std::uint32_t color;
     const std::string& memo;
     const double& opacity;
-    const std::string& layerId;
     const bool& locked;
 };
 struct DocumentIndex {
     std::map<ObjectRef,std::size_t> objects;
-    std::map<std::string,std::size_t> layers;
     std::map<ObjectRef,std::vector<ObjectRef>> children, dependents;
     std::map<ObjectRef,std::vector<std::size_t>> parentRelationsByUnit;
     std::map<GeometryRef,std::vector<ObjectRef>> geometryUsers;
@@ -196,7 +187,6 @@ std::optional<GeometryRef> objectGeometry(const ProjectDocument&,const DocumentI
 bool objectLocked(const ProjectDocument&,const DocumentIndex&,const ObjectRef&);
 std::string contentGroup(const ProjectDocument&,const ObjectRef&);
 std::vector<CountryView> countryViews(const ProjectDocument& document);
-const std::string& nativeLayerId(const ProjectDocument&,const ObjectRef&);
 std::vector<TimelineEntityIdentity> timelineEntityCatalog(const ProjectDocument&);
 bool isStaticTimeline(const ProjectDocument&);
 void requireStaticTimeline(const ProjectDocument&);

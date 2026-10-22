@@ -25,9 +25,7 @@ public:
     const std::set<std::string>& inactiveEntityIds() const noexcept;
     const ProjectDocument& document() const noexcept;
     const DocumentIndex& index() const noexcept;
-    const std::vector<UserLayer>& userLayers() const noexcept;
     const CountryView* country(const std::string&) const;
-    const UserLayer* userLayer(const std::string&) const;
     bool matches(const Project&) const noexcept;
 private:
     friend class Project;
@@ -73,12 +71,10 @@ public:
     const ProjectDocument& viewDocument() const noexcept;
     const std::set<std::string>& inactiveEntityIds() const noexcept;
     const std::vector<CountryView>& countries() const noexcept;
-    const std::vector<UserLayer>& userLayers() const noexcept;
     const DocumentIndex& index() const noexcept;
     const DocumentIndex& viewIndex() const noexcept;
     bool hasActiveObject(const ObjectRef&) const noexcept;
     const CountryView* country(const std::string& id) const;
-    const UserLayer* userLayer(const std::string& id) const;
     const ObjectPropertyView* propertyView(const ObjectRef&) const;
     bool undo();
     bool redo();
