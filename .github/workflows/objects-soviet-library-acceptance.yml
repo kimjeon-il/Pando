@@ -1,0 +1,85 @@
+name: Objects Soviet library acceptance
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/objects-soviet-library-acceptance.yml'
+      - 'assets/js/modules/gis-geometry-validation.js'
+      - 'assets/js/modules/map-edit-library-calculation.js'
+      - 'assets/js/modules/app-library-assembly.js'
+      - 'assets/js/modules/gis-import-transaction.js'
+      - 'assets/js/modules/gis-workflow-controller.js'
+      - 'assets/js/modules/import-service.js'
+      - 'assets/js/workers/gis-geometry-worker.js'
+      - 'tests/unit/gis-geometry-worker.test.mjs'
+      - 'tests/unit/library-import-atomic.test.mjs'
+      - 'tests/browser/temporal-editing.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: objects-soviet-library-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned browser and unit-test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check original GIS math, affected-region validation and atomic Undo
+        run: >-
+          node --test --test-concurrency=1
+          tests/unit/gis-geometry-worker.test.mjs
+          tests/unit/gis-math-contract.test.mjs
+          tests/unit/map-edit-preparation-worker.test.mjs
+          tests/unit/library-import-atomic.test.mjs
+      - name: Stage current code-matched immutable browser Worker runtime
+        run: |
+          node scripts/generate-build-metadata.mjs
+          node scripts/generate-build-metadata.mjs --check
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify actual 1991 Soviet import, undo, redo, autosave and reopen
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/temporal-editing.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Publish only verified source-matched runtime on work/objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          const changes=execFileSync('git',['status','--porcelain=v1','-z','--untracked-files=all']).toString('utf8').split('\0').filter(Boolean).map(row=>row.slice(3));
+          const allowed=path=>path==='assets/js/build-meta.js'||path==='index.html'||path==='README.md'||path==='apps/web-shell/editor.html'||path.startsWith('assets/worker-runtime/');
+          const invalid=changes.filter(path=>!allowed(path));
+          if(invalid.length)throw Error('Unexpected generated paths: '+invalid.join(', '));
+          console.log('Generated candidate files: '+changes.length);
+          NODE
+          git add -A assets/js/build-meta.js index.html README.md apps/web-shell/editor.html assets/worker-runtime
+          if git diff --cached --quiet; then exit 0; fi
+          actual="$(git ls-remote origin refs/heads/work/objects | cut -f1)"
+          test "$actual" = "$GITHUB_SHA" || { echo 'Branch changed; refusing generated publication'; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build(objects): publish browser-verified Soviet import runtime [skip ci]"
+          git push origin HEAD:refs/heads/work/objects
+      - name: Preserve focused regression failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-library-acceptance-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 10
