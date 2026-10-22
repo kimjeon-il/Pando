@@ -5,7 +5,7 @@ test('public Web viewer keeps source lifetime separate from selected country ava
   test.setTimeout(180000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.clock.install({time:new Date(2026,9,21,12)});
+  await page.clock.setFixedTime(new Date(2026,9,21,12));
   await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 120000 });
   const lifetime = () => page.evaluate(() => {
@@ -20,6 +20,9 @@ test('public Web viewer keeps source lifetime separate from selected country ava
     await page.locator('#timelineYearInput').fill(year);
     await page.locator('#timelineMonthInput').selectOption(String(Number(selectedMonth)));
     await page.locator('#timelineYearInput').press('Enter');
+    // A builtin month replaces the read-only dataset. The cursor updates before
+    // that operation completes, so wait for its existing readiness contract.
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 120000 });
     await expect(page.locator('#timelinePopover')).toBeHidden();
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState().timelineCursor)).toBe(month);
     expect(await lifetime()).toEqual(month==='2026-10'?{validFrom:'1830-10-04',validTo:null}:null);
