@@ -112,6 +112,12 @@ test('diagnose Soviet 1991 library import in a 2012-01 source project', async({p
     const pairs='  for (let i = 0; i < features.length; i += 1) {';
     if(code.split(pairs).length!==2)throw Error('Missing pair validation');
     code=code.replace(pairs,"  __validateProbe('validate:pairs:begin',{count:features.length});\n"+pairs);
+    const pair='      if (!canOverlap(componentBounds[i], componentBounds[j])) continue;';
+    if(code.split(pair).length!==2)throw Error('Missing pair broadphase');
+    code=code.replace(pair,pair+"\n      __validateProbe('validate:pair:start',{left:ids[i],right:ids[j],leftParts:componentBounds[i].length,rightParts:componentBounds[j].length});");
+    const pairEnd='      if (overlapPlanarArea <= 1e-8) continue;';
+    if(code.split(pairEnd).length!==2)throw Error('Missing pair end');
+    code=code.replace(pairEnd,"      __validateProbe('validate:pair:done',{left:ids[i],right:ids[j],planarArea:overlapPlanarArea});\n"+pairEnd);
     workerIntercepts.validator++;
     await route.fulfill({contentType:'text/javascript',body:code});
   });
