@@ -62,3 +62,48 @@ test('editing context distinguishes inspection, impact, preview and temporary pa
  state.spacePanActive=true;assert.equal(editingContextPresentation(options).instruction,'지도 이동 중 · 놓으면 편집 계속');
  state.geometryPreview.session.status='applying';assert.equal(editingContextPresentation(options).stage,'적용 중');
 });
+
+test('nested subunit merge uses precise terms without changing its steps or object refs', () => {
+  const get = resolver([country('A'), unit('SUB-1'), unit('SUB-2')]);
+  const state = {
+    tool: 'merge-territorial-unit',
+    territorialUnitMergeSourceId: 'SUB-1',
+    territorialUnitMergeTargetIds: ['SUB-2'],
+    geometryPreview: { session: null },
+  };
+  const view = taskWorkflowPresentation(state, null, {}, { territorialEntityById: get });
+  assert.equal(view.name, '하위단위 합병');
+  assert.equal(view.stage, '합칠 하위단위');
+  assert.equal(view.cards[0].role, '남길 하위단위');
+  assert.equal(view.resultLabel, '합칠 하위단위');
+  assert.deepEqual(view.resultRefs.map(ref => ref.id), ['SUB-2']);
+  assert.deepEqual([view.step, view.total], [1, 2]);
+
+  state.geometryPreview.session = { validation: { blocking: false } };
+  const review = taskWorkflowPresentation(state, null, {}, { territorialEntityById: get });
+  assert.deepEqual([review.name, review.stage, review.step], ['하위단위 합병', '합병 확인', 2]);
+  assert.deepEqual(state.territorialUnitMergeTargetIds, ['SUB-2']);
+});
+
+test('country and independent region wording stays as before; generic feature merge remains unavailable', () => {
+  const get = resolver([country('A'), country('B'), unit('REG-1', 'region'), unit('REG-2', 'region')]);
+  const countryView = taskWorkflowPresentation({
+    tool: 'merge-country', mergeSourceCountryId: 'A', mergeTargetCountryIds: ['B'],
+    geometryPreview: { session: null },
+  }, null, {}, { territorialEntityById: get });
+  assert.deepEqual([countryView.name, countryView.cards[0].role, countryView.resultLabel],
+    ['객체 합병', '남길 객체', '합칠 객체']);
+
+  const regionView = taskWorkflowPresentation({
+    tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'REG-1',
+    territorialUnitMergeTargetIds: ['REG-2'], geometryPreview: { session: null },
+  }, null, {}, { territorialEntityById: get });
+  assert.deepEqual([regionView.name, regionView.cards[0].role, regionView.resultLabel],
+    ['객체 합병', '남길 객체', '합칠 객체']);
+
+  const removedGenericView = taskWorkflowPresentation({
+    tool: 'merge-generic-feature', genericFeatureMergeSourceId: 'GEN-1',
+    genericFeatureMergeTargetIds: ['GEN-2'], geometryPreview: { session: null },
+  }, null, {}, { territorialEntityById: get });
+  assert.equal(removedGenericView, null);
+});
