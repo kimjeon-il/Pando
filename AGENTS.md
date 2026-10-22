@@ -15,22 +15,48 @@ local worktree. Web lives at the repository root, the application in
 - Before local changes, run `git worktree list --porcelain` and inspect the
   assigned worktree's branch, `git status --short --branch`, and uncommitted or
   untracked files. Reuse the existing permanent worktree for that branch.
-- Create a permanent worktree only if it does not yet exist and is needed for
-  local work. Do not generate new branches/worktrees per task by default.
-- After a task, leave the worktree in place for the next task. Do not
-  automatically delete/prune worktrees, branches, directories, caches, or
-  locally generated files.
+- Reuse existing permanent worktrees and fixed per-worktree build directories.
+  Do not create a new workspace, repository clone, branch, worktree, or build
+  directory for each task. Create a missing permanent worktree only when the
+  work cannot be handled in an existing appropriate workspace.
+- After a task, leave permanent worktrees and branches in place for the next
+  task. Removing or pruning them requires explicit user approval.
 - Never discard unrelated or uncommitted work, including via automatic stash,
   `git clean`, `git reset --hard`, force checkout, force push, or force
-  worktree removal. Request explicit user approval for destructive operations.
+  worktree removal. Request explicit user approval for destructive operations
+  affecting protected work or data; verified unused, reproducible cache and
+  generated-file cleanup follows the policy below without separate approval.
 - Synchronize the latest `main` **into** the appropriate `work/*` branch
   only after checking the local and remote state; preserve unfinished work and
   resolve conflicts without silently choosing one side.
 - Never merge `work/*` into `main`, commit directly to `main`, deploy, or
   transfer changes between categories without explicit user instructions.
 - Verify Web and App changes independently even though they share a commit.
-- Exception branches or temporary worktrees require a concrete need and user
-  approval. Do not delete them automatically after integration.
+- Exception branches or temporary worktrees require a concrete reason why an
+  existing workspace cannot handle the work, and user approval. Do not delete
+  them automatically after integration.
+
+## Storage and generated-file cleanup (mandatory)
+
+- Before large builds, downloads, or copies, check free space on the target
+  drive. Avoid duplicate outputs and unnecessary full copies; reuse existing
+  dependencies, data caches, and incremental build directories where valid.
+- When cleanup is needed, unused caches, temporary files, duplicate generated
+  outputs, and failed-operation remnants may be removed without separate user
+  approval, including files from earlier tasks, after verifying both that they
+  are reproducible and that no current build, running app, verification
+  workflow, or other worktree depends on them.
+- Preserve active incremental build caches and outputs required for current
+  execution or verification. Being generated or Git-ignored alone does not
+  establish that a file is unused or safe to remove.
+- Protect source files, user data, uncommitted or untracked work, original
+  materials and evidence, and permanent worktrees and branches. Discarding
+  these still requires explicit user approval.
+- Before deletion, verify each target's purpose, resolve its absolute path, and
+  confirm it stays within the intended cache, build, or temporary-file location.
+  Do not traverse junctions or symbolic links into another repository or shared
+  cache.
+- After cleanup, report the removed targets and measured storage reclaimed.
 
 
 ## External library data and reports (mandatory)
