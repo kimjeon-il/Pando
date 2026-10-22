@@ -47,8 +47,9 @@ test('common territorial metadata, flags and deletion preserve selection, undo a
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60000});
   await select(page,'DEU');
   await page.locator('#entityNameInput').fill('공통 명령 시험 국가');
-  await page.locator('#entityNameInput').dispatchEvent('change');
-  await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('DEU').properties.name)).toBe('공통 명령 시험 국가');
+  await page.locator('#entityNameInput').press('Tab'); // Commit through the real browser blur/change path.
+  await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('DEU').properties.name),
+    {timeout:30000}).toBe('공통 명령 시험 국가');
   const camera=await page.evaluate(()=>JSON.stringify(window.__PANDOLAB_VIEW_STATE__));
   expect(await page.evaluate(async()=> (await window.PANDOLAB_TERRITORIAL.setName('FRA','선택하지 않은 국가')).changed)).toBe(true);
   await expect(page.locator('#entityNameInput')).toHaveValue('공통 명령 시험 국가');
