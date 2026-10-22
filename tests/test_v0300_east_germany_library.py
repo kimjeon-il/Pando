@@ -99,6 +99,20 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
             old_shared = PREVIOUS.boundary.intersection(CANONICAL_DEU.boundary.buffer(3e-12)).intersection(region)
             self.assertGreater(shared.length, old_shared.length + 0.1)
 
+    def test_admitted_inland_sections_reuse_the_pinned_vg25_derivative(self):
+        # This checks which source line was applied, not historical positional
+        # accuracy: the documentary admission has no independent period vector.
+        source = json.loads((ROOT / RECIPE["sources"]["vg25EasternLands"]["path"]).read_text(encoding="utf-8"))
+        to_wgs84 = Transformer.from_crs(25832, 4326, always_xy=True).transform
+        reference = transform(to_wgs84, unary_union([shape(feature["geometry"]) for feature in source["features"]]))
+        reference = reference.simplify(RECIPE["boundarySupplement"]["presentationToleranceDegrees"], preserve_topology=True).boundary
+        for section in RECIPE["operations"][-1]["sections"]:
+            region = box(*section["bounds"])
+            with self.subTest(section=section["id"]):
+                shared = GEOMETRY.boundary.intersection(reference.buffer(3e-11)).intersection(region).length
+                previous_shared = PREVIOUS.boundary.intersection(reference.buffer(3e-11)).intersection(region).length
+                self.assertGreater(shared, previous_shared + 0.0001)
+
 
 if __name__ == "__main__":
     unittest.main()
