@@ -486,7 +486,12 @@ export function createTaskPresentation() {
     if (reasonNode) {
       const message=primaryDisabled?primaryCommand.reason:reason;
       if (reasonNode.textContent !== message) reasonNode.textContent = message;
-      reasonNode.classList.toggle('hidden', !(primaryDisabled?primaryCommand.reason:reason));
+      // The empty annex donor card already conveys the routine selection request.
+      // Preserve the message for aria-describedby; never suppress real errors or progress.
+      const redundantAnnexPrompt = selection?.kind === 'annex' && selection.stage === 'setup'
+        && !selection.sourceCountryIds?.length && status === 'needs-target'
+        && message === '대상을 선택하고 필요한 설정을 완료하세요.';
+      reasonNode.classList.toggle('hidden', !message || redundantAnnexPrompt);
     }
     const instruction = dependencies.platform.$('modeTaskInstruction');
     const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
@@ -515,6 +520,11 @@ export function createTaskPresentation() {
     for (const [id,value] of [['editorTimelineContext',month?`${timelineMonthLabel(month)} 기준 편집`:'시점 확인 중'],['modeTaskTargetSummary',context.targetSummary],['modeTaskEditingStage',context.stage],['modeTaskViewTime','보기: '+context.view],['modeTaskPeriod','변경 기간: '+context.period],['modeTaskInput',context.instruction]]) {
       const element=dependencies.platform.$(id);if(element && element.textContent!==value)element.textContent=value;
     }
+    // The annex setup's role cards show both receiver and donor. Keep the
+    // canonical time/affected metadata in DOM but reveal it at selection/review.
+    const annexSetup = state.territorySelectionSession?.kind === 'annex'
+      && state.territorySelectionSession.stage === 'setup';
+    dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden', annexSetup);
     const taskInput = dependencies.platform.$('modeTaskInput');
     taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
