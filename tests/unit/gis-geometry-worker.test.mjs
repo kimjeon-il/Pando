@@ -119,3 +119,24 @@ test('current territorial import validates the complete batch and publishes only
   assert.deepEqual(patches, [['A']]);
   assert.deepEqual(events, ['history', 'save']);
 });
+
+test('library pair scope checks new land against every donor without skipping donor shape validation', () => {
+  const disjoint = square.map(ring => ring.map(([x,y]) => [x+12,y]));
+  const overlap = square.map(ring => ring.map(([x,y]) => [x+1,y]));
+  const donor = feature('donor', square), untouched = feature('untouched', overlap);
+  const gained = feature('gained', disjoint);
+  const collection = { type:'FeatureCollection', features:[donor, untouched, gained] };
+  // The generic caller continues to detect donor/unchanged overlap.
+  assert.deepEqual(validateCollection(collection, ['donor','gained']).firstOverlap, ['donor','untouched']);
+  // A known difference-only donor cannot introduce a previously absent overlap.
+  assert.equal(validateCollection(collection, ['donor','gained'],
+    { overlapAffectedIds:['gained'] }).overlapAreaKm2, 0);
+  const intersecting = { type:'FeatureCollection', features:[donor, untouched, feature('gained', overlap)] };
+  assert.deepEqual(validateCollection(intersecting, ['donor','gained'],
+    { overlapAffectedIds:['gained'] }).firstOverlap, ['donor','gained']);
+  const invalidDonor = { type:'FeatureCollection', features:[feature('donor', degenerate), gained] };
+  assert.throws(() => validateCollection(invalidDonor, ['donor','gained'],
+    { overlapAffectedIds:['gained'] }), /유효하지 않습니다/);
+  assert.throws(() => validateCollection(collection, ['donor'],
+    { overlapAffectedIds:['gained'] }), /pair scope/);
+});

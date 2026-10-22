@@ -13,8 +13,13 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
   let draft = { type: 'FeatureCollection', features: originals };
   const originalsById = new Map(originals.map(feature => [featureId(feature), feature]));
   const affected = new Set(), donors = new Set(), transfers = [], impacts = [];
+  // Incoming/expanded roots can gain land. Donor roots are obtained solely by
+  // geometric difference and therefore cannot introduce overlap with another
+  // pre-existing country; their structural geometry is still validated below.
+  const gainedTerritoryIds = new Set();
   let deleted = 0;
   const merge = async (feature, geometry = feature.geometry) => {
+    gainedTerritoryIds.add(featureId(feature));
     const plan = await planner(draft, { type: 'FeatureCollection', features: [feature] }, 'territory-replacement');
     for (const id of plan.affectedIds) {
       if (originalsById.get(id)?.properties?.locked) throw new Error(`${id}: 잠긴 국가의 영토를 변경할 수 없습니다.`);
@@ -52,7 +57,9 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
     if (!parent || !draft.features.some(country => featureId(country) === territorialRootId(unit, id => byId.get(id)))
       || clipper.difference(multiCoordinates(unit.geometry), multiCoordinates(parent.geometry)).length) throw new Error(`${unit.properties.name}: 상위 단위에 포함되지 않습니다.`);
   }
-  if (validateCollection(draft, [...affected]).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
+  if (validateCollection(draft, [...affected], {
+    overlapAffectedIds: [...gainedTerritoryIds],
+  }).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
   const kept = new Set(draft.features.map(featureId));
   return { features: draft.features.filter(feature => affected.has(featureId(feature))), removedIds: originals.filter(feature => !kept.has(featureId(feature))).map(featureId),
     affectedIds: [...affected], transfers, impacts, donorIds: [...donors], deleted };
