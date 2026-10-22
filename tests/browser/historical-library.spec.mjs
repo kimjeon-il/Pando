@@ -103,7 +103,10 @@ test('East Germany static import preserves identity, archive, history and origin
   const imported=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().find(e=>e.properties.sourceEntityId==='state:deutsche-demokratische-republik'));
   const source=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL_LIBRARY.get('state:deutsche-demokratische-republik'));
   expect(source.geometryVersions[0].sourceId).toContain('adopted-dos-lsib-11.4+bkg-vg25');
-  expect(source.geometryVersions[0].boundarySupplement.sections.filter(s=>s.id.startsWith('vg25-')).map(s=>s.id)).toEqual(['vg25-schaalsee-lake']);
+  expect(source.geometryVersions[0].boundarySupplement.sections.filter(s=>s.id.startsWith('vg25-')).map(s=>s.id)).toEqual([
+    'vg25-schaalsee-lake', 'vg25-bavaria-central', 'vg25-saxony-bavaria',
+    'vg25-eichsfeld-north', 'vg25-harz-ecker', 'vg25-geismar-spahl',
+  ]);
   expect(imported.geometry).toEqual(source.geometryVersions[0].geometry);
   if(process.env.PANDOLAB_DDR_EVIDENCE_DIR){
     const {writeFile}=await import('node:fs/promises'),{gzipSync}=await import('node:zlib');
@@ -129,7 +132,7 @@ test('East Germany static import preserves identity, archive, history and origin
     await writeFile(packagePath,bytes);
     await viewer.locator('#projectFileInput').setInputFiles(packagePath);
     await expect.poll(()=>viewer.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities.some(e=>e.properties.sourceEntityId==='state:deutsche-demokratische-republik')),{timeout:90000}).toBe(true);
-    await expect(viewer.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+    await expect(viewer.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
     const opened=await viewer.evaluate(id=>{const document=window.__PANDOLAB_VIEWER__.documentSnapshot();
       const binding=document.timelineRecords.geometryBindings.find(row=>row.entityId===id);
       return {audits:document.sourceInfo.imports.filter(row=>row.batchPrecisionAudit).map(row=>row.batchPrecisionAudit),
