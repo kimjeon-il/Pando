@@ -598,8 +598,6 @@
 }
 
 .surface-editor .editor-relation-focus {
-  width: var(--ui-control-height);
-  height: var(--ui-control-height);
   padding: 0;
   border: 0;
   background: transparent;
@@ -853,9 +851,6 @@
 }
 
 .editor-focus-action {
-  width: var(--ui-control-height);
-  min-width: var(--ui-control-height);
-  min-height: var(--ui-control-height);
   display: inline-grid;
   place-items: center;
   padding: 0;
@@ -1286,9 +1281,19 @@
   white-space: nowrap;
 }
 
+.editor-action-row[data-action-reason="true"] > span > small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 799px) {
   .editor-action-row > span > small {
     display: none;
+  }
+
+  /* A disabled-action reason is essential feedback, unlike routine help. */
+  .editor-action-row[data-action-reason="true"] > span > small:not(:empty) {
+    display: block;
   }
 }
 
