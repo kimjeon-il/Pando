@@ -95,7 +95,7 @@ V colorValue(std::uint32_t value) {
 }
 ObjectRef ref(const V& v,ProjectDocument& d,const std::string& path) {
     ObjectRef r{str(field(v,"domain")),str(field(v,"id"))};
-    const std::set<std::string> domains={"territorial","distributionLayer","distributionEntry","label","hydro","generic","userLayer"};
+    const std::set<std::string> domains={"territorial","distributionLayer","distributionEntry","label","hydro","generic"};
     require(domains.count(r.domain),"INVALID_JSON: invalid ObjectRef domain");
     unknown(d,10,v,path,{"domain","id"}); return r;
 }
@@ -314,10 +314,6 @@ void restoreArchive(const V& root,ProjectDocument& d) {
     for(const auto& row:array(field(root,"geometries"))){unknown(d,10,row,"/geometries",{"id","version","geojson"});candidate.geometries.push_back({{str(field(row,"id")),integer(field(row,"version"))},std::make_shared<const Geometry>(geometry(field(row,"geojson"),d,10,"/geometries/geojson"))});}
     auto restored=restoreTimelineStorage(candidate,timelineEntityCatalog(d));d.timelineRecords=std::move(restored.records);d.geometries=std::move(restored.geometries);
 }
-UserLayer layer(const V& v,ProjectDocument& d,int schema,const std::string& path) {
-    UserLayer l{str(field(v,"id")),str(field(v,"name")),boolean(field(v,"visible")),boolean(field(v,"locked")),number(field(v,"opacity"))};
-    unknown(d,schema,v,path,{"id","name","visible","locked","opacity"}); return l;
-}
 V jsonObject(const std::string& bytes) {
     auto v=codecjson::parse(bytes);
     require(v.kind==V::Object,"INVALID_CONTENT: expected JSON object"); return v;
@@ -365,16 +361,6 @@ V sourceValue(const SourceProvenance& s) {
 }
 void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=10;
         const auto& p=value;
-        for (const auto& v:array(field(p,"userLayers"))) d.presentation.userLayers.push_back(layer(v,d,3,"/presentation/userLayers/"+std::to_string(d.presentation.userLayers.size())));
-        std::size_t membershipIndex=0;
-        for (const auto& v:array(field(p,"membership"))) {
-            auto path="/presentation/membership/"+std::to_string(membershipIndex++);
-            auto r=ref(field(v,"ref"),d,path+"/ref"); auto l=str(field(v,"layerId"));
-            if (r.domain=="territorial") {
-                require(d.presentation.membership.emplace(r,l).second,"DUPLICATE_ID: membership");
-                unknown(d,10,v,path,{"ref","layerId"});
-            } else {require(d.presentation.membership.emplace(r,l).second,"DUPLICATE_ID: membership");unknown(d,10,v,path,{"ref","layerId"});}
-        }
         const auto& styles=field(p,"objectStyles"); require(styles.kind==V::Object,"INVALID_JSON: objectStyles");
         for (const auto& [domain,items]:styles.object) {
             auto path=pointer("/presentation/objectStyles",domain);
@@ -432,7 +418,7 @@ void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=
             unknown(d,5,w,"/presentation/webPresentation",{"styles","objectStyles","objectOrder","overlayOrder","labelSettings","distributionSettings"});
 
         }
-        unknown(d,10,p,"/presentation",{"userLayers","membership","objectStyles","webPresentation"});
+        unknown(d,10,p,"/presentation",{"objectStyles","webPresentation"});
 
 }
 
@@ -637,7 +623,7 @@ void readWebPresentation(const V& root,ProjectDocument& d,bool preserveAnnotatio
         row.object["ref"]=refValue({domain,key.substr(colon+1)});
         for(const auto* fieldName:{"priority","minZoom","maxZoom","manualPosition"})if(row.object.count(fieldName)&&field(row,fieldName).kind==V::Null)row.object.erase(fieldName);
         if(!row.object.count("collisionGroup"))row.object["collisionGroup"]=V::str("map");labels.array.push_back(std::move(row));}
-    const auto empty=V::arr();auto presentation=object({{"userLayers",empty},{"membership",empty},{"objectStyles",V::obj()},{"webPresentation",object({{"styles",field(layer,"styles")},{"objectStyles",field(layer,"objectStyles")},{"objectOrder",field(layer,"objectOrder")},{"labelSettings",labels},{"distributionSettings",field(root,"distributionSettings")}})}});
+    auto presentation=object({{"objectStyles",V::obj()},{"webPresentation",object({{"styles",field(layer,"styles")},{"objectStyles",field(layer,"objectStyles")},{"objectOrder",field(layer,"objectOrder")},{"labelSettings",labels},{"distributionSettings",field(root,"distributionSettings")}})}});
     if(layer.object.count("overlayOrder"))presentation.object["webPresentation"].object["overlayOrder"]=field(layer,"overlayOrder");
     // Entity color is already owned by the native identity's presentation row.
     const auto styles=d.presentation.objectStyles;readPresentation(presentation,d);d.presentation.objectStyles=styles;
@@ -980,7 +966,7 @@ codecjson::Value encodeWebValue(const ProjectSnapshot& snapshot,const PlatformPo
     for(const auto& [owner,symbol]:d.symbols)
         require(symbol.defaultCountryId.empty()&&!symbol.defaultFlagDataUrl.has_value(),
                 "UNSUPPORTED_WEB_EXPORT: native captured flag defaults");
-    require(d.extensions.empty(),"UNSUPPORTED_WEB_EXPORT: retained native extensions");require(d.physicalData.dataset.empty()&&d.physicalData.version.empty()&&d.physicalData.source.empty()&&d.physicalData.hiddenHydroIds.empty(),"UNSUPPORTED_WEB_EXPORT: native physical dataset settings");for(const auto& [owner,style]:d.presentation.objectStyles)require(owner.domain=="territorial","UNSUPPORTED_WEB_EXPORT: native non-territorial style override");require(d.presentation.userLayers.empty()&&d.presentation.membership.empty(),"UNSUPPORTED_WEB_EXPORT: native user layer membership");
+    require(d.extensions.empty(),"UNSUPPORTED_WEB_EXPORT: retained native extensions");require(d.physicalData.dataset.empty()&&d.physicalData.version.empty()&&d.physicalData.source.empty()&&d.physicalData.hiddenHydroIds.empty(),"UNSUPPORTED_WEB_EXPORT: native physical dataset settings");for(const auto& [owner,style]:d.presentation.objectStyles)require(owner.domain=="territorial","UNSUPPORTED_WEB_EXPORT: native non-territorial style override");
     require(context.format=="pandolab-project-state"||context.format=="pandolab-autosave-full","UNSUPPORTED_WEB_STORAGE_FORMAT");
     const auto archiveCount=semanticArchive(d).size();
     auto root=webSnapshotValue(d,context);

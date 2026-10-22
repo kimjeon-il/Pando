@@ -165,9 +165,6 @@ std::optional<GeometryRef> objectGeometry(const ProjectDocument& d,const Documen
 }
 bool objectLocked(const ProjectDocument& d,const DocumentIndex& index,const ObjectRef& ref) {
     const auto found=index.objects.find(ref); if(found==index.objects.end()) return true;
-    const auto member=d.presentation.membership.find(ref);
-    if(member!=d.presentation.membership.end()) for(const auto& layer:d.presentation.userLayers)
-        if(layer.id==member->second && layer.locked) return true;
     const auto i=found->second;
     if(ref.domain=="territorial") return d.units.at(i).locked;
     if(ref.domain=="hydro") return d.hydro.at(i).locked || d.hydro.at(i).source.kind=="builtin";

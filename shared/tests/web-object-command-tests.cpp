@@ -62,10 +62,8 @@ void reject(Project& p,const std::vector<ObjectRef>& refs,const char* code) {
     assert(p.revision()==before.revision()&&p.historyCheckpoint()==checkpoint&&semanticallyEqual(p.document(),before.document()));
 }
 void fiveDomainsAtomicHistoryAndOriginalCleanup() {
-    auto seed=fixture();seed.presentation.userLayers.push_back({"native-layer","Native layer"});
-    for(const auto& unit:seed.units)seed.presentation.membership[territorialRef(unit.id)]="native-layer";
+    auto seed=fixture();
     for(const auto* id:{"E","T","U"}) {
-        seed.presentation.membership[{"distributionEntry",id}]="native-layer";
         seed.presentation.objectStyles[{"distributionEntry",id}]={0x123456,0.5,true};
     }
     Project p;p.replace(std::move(seed));p.setTimelineCursor("2026-10",false);const auto before=p.snapshot();
@@ -76,8 +74,8 @@ void fiveDomainsAtomicHistoryAndOriginalCleanup() {
     assert(d.labels[0].id=="Q"&&d.labels[0].territory==territorialRef("A")); // Original saved non-owning annotation.
     assert(d.distributionLayers.size()==2&&d.distributionLayers[0].id=="M"&&d.distributionLayers[1].id=="C"&&!d.distributionLayers[1].parentId&&d.distributionLayers[1].locked);
     assert(d.distributionEntries.size()==1&&d.distributionEntries[0].id=="U");
-    for(const auto* id:{"E","T"})assert(!d.presentation.membership.count({"distributionEntry",id})&&!d.presentation.objectStyles.count({"distributionEntry",id}));
-    assert(d.presentation.membership.count({"distributionEntry","U"})&&d.presentation.objectStyles.count({"distributionEntry","U"}));
+    for(const auto* id:{"E","T"})assert(!d.presentation.objectStyles.count({"distributionEntry",id}));
+    assert(d.presentation.objectStyles.count({"distributionEntry","U"}));
     assert(d.hydro.size()==1&&d.hydro[0].id=="H2"&&codecjson::parse(d.exchangeMetadata).object.at("physicalSettings").object.at("hiddenHydroIds").object.count("source"));
     const auto& view=d.presentation.webPresentation;
     assert(!view.labelSettings.count(territorialRef("A"))&&!view.labelSettings.count({"label","P"})&&view.labelSettings.count({"label","Q"}));
