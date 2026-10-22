@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 
@@ -7,6 +7,8 @@ test('diagnose Soviet 1991 library import in a 2012-01 source project', async({p
   test.setTimeout(300000);
   const errors=[];
   let patched=0;
+  const workerIntercepts={batch:0,planner:0};
+  const modern=process.env.PANDO_SOVIET_PROFILE_MODE==='modern';
   page.on('pageerror',error=>errors.push(error.message));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text().slice(0,400));});
   await page.addInitScript(()=>{
@@ -21,6 +23,7 @@ test('diagnose Soviet 1991 library import in a 2012-01 source project', async({p
           mark('worker:created');
           this.addEventListener('message',event=>{
             const data=event.data;
+            if(data?.type==='USSR_WORKER_PROFILE')mark(data.stage,{workerMs:data.workerMs,...data.info});
             if(data?.rpc==='pandolab-worker-rpc'&&data.type==='result')
               mark('worker:response',{requestId:data.requestId});
           });
@@ -50,16 +53,52 @@ test('diagnose Soviet 1991 library import in a 2012-01 source project', async({p
     patched++;
     await route.fulfill({contentType:'text/javascript',body:code});
   });
+  // Profile the actual immutable Worker module without modifying published code.
+  await page.context().route('**/map-edit-library-calculation.js*',async route=>{
+    if(!route.request().url().includes('/worker-runtime/'))return route.continue();
+    let code=await(await route.fetch()).text();
+    const start='export async function calculateLibraryBatch(payload, originals, existingUnits, clipper, checkpoint) {';
+    const probe="  const __batchProbe=(stage,info={})=>self.postMessage({type:'USSR_WORKER_PROFILE',stage,workerMs:performance.now(),info});";
+    if(code.split(start).length!==2)throw Error('Missing worker batch');
+    code=code.replace(start,start+"\n"+probe+"\n  __batchProbe('worker:batch:begin',{countries:originals.length,units:existingUnits.length,imports:payload.countries.length});");
+    const entry="    const plan = await planner(draft, { type: 'FeatureCollection', features: [feature] }, 'territory-replacement');";
+    if(code.split(entry).length!==2)throw Error('Missing worker planner');
+    code=code.replace(entry,"    __batchProbe('worker:planner:begin',{id:feature.id,countries:draft.features.length});\n"+entry+
+      "\n    __batchProbe('worker:planner:end',{affected:plan.affectedIds.length,donors:plan.donorIds.length});");
+    workerIntercepts.batch++;
+    await route.fulfill({contentType:'text/javascript',body:code});
+  });
+  await page.context().route('**/import-service.js*',async route=>{
+    if(!route.request().url().includes('/worker-runtime/'))return route.continue();
+    let code=await(await route.fetch()).text();
+    const point='  function mergeImportedCountryProperties(existing, imported, geometry) {';
+    const tracer="  const __clipProbe=(stage,info={})=>self.postMessage({type:'USSR_WORKER_PROFILE',stage,workerMs:performance.now(),info});";
+    if(code.split(point).length!==2)throw Error('Missing clipper planner');
+    code=code.replace(point,tracer+"\n"+point);
+    for(const [target,op,info] of [
+      ['    const importedRawUnion = normalizeGeometry(clipper.union(...imported.map(feature => feature.geometry.coordinates)));','union','{}'],
+      ['      const overlap = normalizeGeometry(clipper.intersection(existing.geometry.coordinates, importedRawUnion.coordinates));','intersection','{id}'],
+      ['      const remainder = normalizeGeometry(clipper.difference(existing.geometry.coordinates, importedRawUnion.coordinates));','difference','{id}']]){
+      if(code.split(target).length!==2)throw Error('Missing clipper operation '+op);
+      const indent=target.match(/^ */)[0];
+      code=code.replace(target,indent+"__clipProbe('clip:"+op+":begin',"+info+");\n"+target+"\n"+indent+"__clipProbe('clip:"+op+":end',"+info+");");
+    }
+    workerIntercepts.planner++;
+    await route.fulfill({contentType:'text/javascript',body:code});
+  });
   let result,outcome='setup';
   try{
     await gotoEditor(page,'/?debug=1&renderer=canvas');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
+    if(modern){await setEditorMonth(page,'2012-01');}
+    else {
     await page.locator('#mobileFileBtn').click();
     await page.locator('#newProjectBtn').click();
     await page.locator('#projectSetupMonth').fill('2012-01');
     await page.locator('#projectSetupSubmit').click();
     if(await page.locator('#confirmModal').isVisible())await page.locator('#confirmModalOkBtn').click();
     await expect(page.locator('#projectSetupDialog')).toBeHidden({timeout:90000});
+    }
     await expect.poll(()=>page.evaluate(()=>window.__testEditorTimeline.month())).toBe('2012-01');
     const initial=await page.evaluate(()=>({month:window.__testEditorTimeline.month(),
       entities:window.PANDOLAB_TERRITORIAL.list().length,
@@ -88,9 +127,9 @@ test('diagnose Soviet 1991 library import in a 2012-01 source project', async({p
       status:document.querySelector('#actionStatus')?.textContent?.slice(0,250)
     }));
     if(outcome!=='timed-out')outcome=state.impact?'confirmation':state.hidden?'imported':'error-or-unblocked';
-    result={outcome,initial,patched,state,errors};
+    result={outcome,mode:modern?'modern-cursor':'2012-baseline',initial,patched,workerIntercepts,state,errors};
   }catch(error){
-    outcome='setup-failure';result={outcome,error:String(error.stack||error),patched,errors};
+    outcome='setup-failure';result={outcome,mode:modern?'modern-cursor':'2012-baseline',error:String(error.stack||error),patched,workerIntercepts,errors};
   }finally{
     await mkdir('test-results/soviet-1991-import-profile',{recursive:true});
     await writeFile('test-results/soviet-1991-import-profile/report.json',JSON.stringify(result,null,2));

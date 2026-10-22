@@ -31,6 +31,7 @@ jobs:
       - name: Profile only the 1991 Soviet import
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDO_SOVIET_PROFILE_MODE: modern
         run: pnpm exec playwright test tests/browser/soviet-1991-import-profile.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve profiling evidence
         if: always()
