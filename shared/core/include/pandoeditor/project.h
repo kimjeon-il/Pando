@@ -11,7 +11,6 @@
 namespace pandoeditor {
 
 class Project;
-enum class HistoryRestorePolicy {NativeCountryOverrides,Exact};
 class ProjectReplacementState {
     friend class Project;
     struct Data;
@@ -45,7 +44,6 @@ private:
     std::shared_ptr<const detail::DocumentState> historySource_;
     std::optional<bool> historyForward_;
     std::size_t historyCursor_=0;
-    bool historyExact_=false;
     std::shared_ptr<const detail::DocumentState> commitSource_;
 };
 
@@ -84,7 +82,7 @@ public:
     const ObjectPropertyView* propertyView(const ObjectRef&) const;
     bool undo();
     bool redo();
-    ProjectSnapshot historySnapshot(bool forward,HistoryRestorePolicy policy=HistoryRestorePolicy::NativeCountryOverrides) const;
+    ProjectSnapshot historySnapshot(bool forward) const;
     bool travelHistory(bool forward,const ProjectSnapshot& prepared);
     std::string historyCommandId(bool forward) const;
     bool canUndo() const noexcept { return cursor_ > 0; }

@@ -16,6 +16,24 @@ void apply(Project& project,const std::string& command,CommandArguments args) {
 std::string name(const Project& project,const std::string& month) {return timelineDocumentView(project.document(),month).document.units.front().name;}
 }
 int main() {
+    // Project's direct history must not apply retired native-only text pruning.
+    {
+        auto document=makeTerritorialDocument({{{"A","Country"},box(0,2),{}}});
+        document.units.front().notes="  preserved notes  ";
+        document.units.front().name="";
+        document.units.front().nameExplicit=true;
+        Project project;project.replace(std::move(document));
+        CommandArguments args;args.action=SetCountryColor{"A",0x112233};
+        apply(project,"country.color",std::move(args));
+        assert(project.undo());
+        assert(project.document().units.front().notes=="  preserved notes  ");
+        assert(project.document().units.front().name.empty());
+        assert(project.document().units.front().nameExplicit);
+        assert(project.redo());
+        assert(project.undo());
+        assert(project.document().units.front().notes=="  preserved notes  ");
+        assert(project.document().units.front().nameExplicit);
+    }
     Project boot;ProjectDocument blank;blank.documentId="baseline-admission";boot.replace(blank);
     WebTerritorialFeature root;root.identity.id="Root";root.identity.name="Source root";root.geometry=box(0,2);root.coverageMode="explicit";
     WebTerritorialFeature child;child.identity.id="Child";child.identity.name="Source child";child.geometry=box(10,2);child.coverageMode="partition";child.parentId="Root";
