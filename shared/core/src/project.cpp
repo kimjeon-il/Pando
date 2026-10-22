@@ -65,7 +65,7 @@ void rebasePhysicalPresentation(const ProjectDocument& current,const ProjectDocu
         output.object[key]=std::move(merged);
     }
     if(after.encode()!=target.exchangeMetadata) {
-        auto admitted=target;admitted.exchangeMetadata=after.encode();GeometryProvenanceCodecAccess::admitPresentationMetadata(target,admitted);
+        auto admitted=target;admitted.exchangeMetadata=after.encode();GeometryProvenanceCodecAccess::admitPhysicalViewMetadata(target,admitted);
         target.exchangeMetadata=std::move(admitted.exchangeMetadata);target.geometryProvenance=std::move(admitted.geometryProvenance);
     }
 }
@@ -392,7 +392,7 @@ ProjectSnapshot Project::historySnapshot(bool forward) const {
             if(current==live.object.end())header.object.erase("physicalSettings");
             else header.object["physicalSettings"]=current->second;
             candidate.exchangeMetadata=header.encode();
-            GeometryProvenanceCodecAccess::admitPresentationMetadata(next->document,candidate);
+            GeometryProvenanceCodecAccess::admitPhysicalViewMetadata(next->document,candidate);
             next=std::make_shared<const detail::DocumentState>(std::move(candidate));
         }
     }

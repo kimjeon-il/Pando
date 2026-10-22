@@ -1095,6 +1095,30 @@ void GeometryProvenanceCodecAccess::admitPresentationMetadata(const ProjectDocum
     candidate.geometryProvenance.opaqueBaseline["/exchangeMetadata"]=projectcodec::opaqueSha256(candidate.exchangeMetadata);
     sealVerifiedOpaqueBaseline(candidate);
 }
+void GeometryProvenanceCodecAccess::admitPhysicalViewMetadata(const ProjectDocument& before,ProjectDocument& candidate) {
+    if(before.exchangeMetadata==candidate.exchangeMetadata||before.geometryProvenance.opaqueUncertain)return;
+    auto previous=codecjson::parse(before.exchangeMetadata),next=codecjson::parse(candidate.exchangeMetadata);
+    const auto withoutViewSettings=[](codecjson::Value& header) {
+        auto physical=header.object.find("physicalSettings");
+        if(physical==header.object.end())return;
+        codecjson::require(physical->second.kind==codecjson::Value::Object,
+                           "INVALID_GEOMETRY_PROVENANCE: physical settings must be an object");
+        for(const auto* key:{"terrainVisible","terrainStyle","hydroLayers","hiddenHydroIds"})
+            physical->second.object.erase(key);
+        if(physical->second.object.empty())header.object.erase(physical);
+    };
+    withoutViewSettings(previous);withoutViewSettings(next);
+    codecjson::require(previous.encode()==next.encode(),
+                       "INVALID_GEOMETRY_PROVENANCE: unrelated physical metadata changed");
+    // View rebasing cannot modify opaque geometry/source annotations.
+    auto oldSlots=geometryProvenanceOpaqueSlots(before);
+    auto newSlots=geometryProvenanceOpaqueSlots(candidate);
+    oldSlots.erase("/exchangeMetadata");newSlots.erase("/exchangeMetadata");
+    codecjson::require(oldSlots==newSlots,
+                       "INVALID_GEOMETRY_PROVENANCE: unrelated opaque dependency changed");
+    candidate.geometryProvenance.opaqueBaseline["/exchangeMetadata"]=projectcodec::opaqueSha256(candidate.exchangeMetadata);
+    sealVerifiedOpaqueBaseline(candidate);
+}
 void GeometryProvenanceCodecAccess::admitProjectSetupMetadata(const ProjectDocument& before,ProjectDocument& candidate) {
     if(before.geometryProvenance.opaqueUncertain)return;
     auto previous=codecjson::parse(before.exchangeMetadata),next=codecjson::parse(candidate.exchangeMetadata);

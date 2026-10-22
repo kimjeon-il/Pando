@@ -44,6 +44,8 @@ public:
     static void admitCreatedOpaqueBaseline(const ProjectDocument& before,ProjectDocument& candidate,
                                           const std::set<ObjectRef>& createdOwners);
     static void admitPresentationMetadata(const ProjectDocument& before,ProjectDocument& candidate);
+    // Only the four physical view controls may change during a trusted rebase.
+    static void admitPhysicalViewMetadata(const ProjectDocument& before,ProjectDocument& candidate);
     static void admitProjectSetupMetadata(const ProjectDocument& before,ProjectDocument& candidate);
     static void admitSourceInfoMetadata(const ProjectDocument& before,ProjectDocument& candidate);
 };
