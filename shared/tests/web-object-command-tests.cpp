@@ -85,7 +85,12 @@ void fiveDomainsAtomicHistoryAndOriginalCleanup() {
     for(const auto& [group,id]:std::vector<std::pair<std::string,std::string>>{{"genericFeatures","G"},{"hydro","H1"},{"labels","P"},{"distributions","L"}})assert(!view.itemVisibility.at(group).at(id));
     assert(d.geometries.versions().size()==before.document().geometries.versions().size());
     for(const auto& [ref,shape]:before.document().geometries.versions())assert(d.geometries.get(ref)==shape);
-    assert(p.undo()&&semanticallyEqual(p.document(),before.document())&&p.redo()&&p.document().labels[0].territory==territorialRef("A"));
+    assert(p.undo());
+    // Unchanged physical settings must retain the original raw header bytes,
+    // including noncanonical JSON member order and numeric spelling.
+    assert(p.document().exchangeMetadata==before.document().exchangeMetadata);
+    assert(semanticallyEqual(p.document(),before.document()));
+    assert(p.redo()&&p.document().labels[0].territory==territorialRef("A"));
 }
 void duplicatesAndLastHydroSource() {
     Project p;p.replace(fixture());p.setTimelineCursor("2026-10",false);
@@ -94,7 +99,11 @@ void duplicatesAndLastHydroSource() {
     auto prepared=CommandProcessor::prepare(p,request);assert(prepared.preview&&CommandProcessor::confirm(p,*prepared.preview).changed());
     const auto settings=codecjson::parse(p.document().exchangeMetadata).object.at("physicalSettings");assert(p.document().hydro.empty()&&!settings.object.at("hiddenHydroIds").object.count("source"));
     assert(settings.object.at("hiddenHydroIds").object.at("other").raw=="true"&&settings.object.at("annotation").object.at("keep").raw=="1.2500");
-    assert(p.undo()&&p.document().hydro.size()==2&&p.redo()&&p.document().hydro.empty());
+    const auto viewedMetadata=p.document().exchangeMetadata;
+    assert(p.undo()&&p.document().hydro.size()==2);
+    // Copied-hydro source visibility is a live view setting, not history data.
+    assert(p.document().exchangeMetadata==viewedMetadata);
+    assert(p.redo()&&p.document().hydro.empty());
 }
 void admissionIsAtomicAndChildrenCannotBeBundledAway() {
     Project p;auto d=fixture();unit(d,"child","A");p.replace(std::move(d));p.setTimelineCursor("2026-10",false);
