@@ -7,7 +7,12 @@ const PHASE_KEY = 'pandoeditor-shell-probe-phase';
 const DATABASE = 'pandoeditor-web-shell-prototype-v1';
 const LIMIT_MS = 15_000;
 const assert = (value, message) => { if (!value) throw new Error(message); };
-const errorInfo = error => ({ name: String(error?.name || 'Error'), code: String(error?.code || ''), message: String(error?.message || error) });
+const errorInfo = error => ({
+  name: String(error?.name || 'Error'),
+  code: String(error?.code || ''),
+  message: String(error?.message || error),
+  ...(error?.snapshotDifference ? { snapshotDifference: error.snapshotDifference } : {}),
+});
 
 function bounded(label, action) {
   let timer;
@@ -43,6 +48,66 @@ function comparableSnapshot(snapshot) {
   const copy = structuredClone(snapshot);
   delete copy.savedAt;
   return copy;
+}
+
+/** Report only bounded, path-specific evidence; never serialize a whole document into a failure report. */
+export function describeSnapshotDifference(reopened, saved, { limit = 48 } = {}) {
+  const current = comparableSnapshot(reopened);
+  const expected = comparableSnapshot(saved);
+  const entries = [];
+  let truncated = false;
+
+  const description = (value, exists) => {
+    if (!exists) return { type: 'missing' };
+    if (value === null) return { type: 'null' };
+    if (Array.isArray(value)) return { type: 'array', length: value.length };
+    if (typeof value === 'object') return { type: 'object', keyCount: Object.keys(value).length };
+    if (typeof value === 'string') return {
+      type: 'string', length: value.length,
+      preview: value.length > 100 ? value.slice(0, 100) + '…' : value,
+    };
+    return { type: typeof value, value: typeof value === 'number' && !Number.isFinite(value) ? String(value) : value };
+  };
+  const append = (path, left, right, leftExists = true, rightExists = true) => {
+    if (entries.length >= limit) { truncated = true; return; }
+    entries.push({
+      path: path || '/',
+      reopened: description(left, leftExists),
+      saved: description(right, rightExists),
+    });
+  };
+  const segment = key => String(key).replaceAll('~', '~0').replaceAll('/', '~1');
+  function compare(left, right, path = '', depth = 0) {
+    if (entries.length >= limit) { truncated = true; return; }
+    if (Object.is(left, right)) return;
+    if (depth > 64) { append(path, left, right); return; }
+    if (Array.isArray(left) && Array.isArray(right)) {
+      if (left.length !== right.length) append(path + '/length', left.length, right.length);
+      const length = Math.max(left.length, right.length);
+      for (let index = 0; index < length && entries.length < limit; index += 1) {
+        if (index >= left.length || index >= right.length) append(path + '/' + index, left[index], right[index], index < left.length, index < right.length);
+        else compare(left[index], right[index], path + '/' + index, depth + 1);
+      }
+      if (length > limit && entries.length >= limit) truncated = true;
+      return;
+    }
+    const leftObject = left !== null && typeof left === 'object' && !Array.isArray(left);
+    const rightObject = right !== null && typeof right === 'object' && !Array.isArray(right);
+    if (leftObject && rightObject) {
+      const keys = [...new Set([...Object.keys(left), ...Object.keys(right)])].sort();
+      for (const key of keys) {
+        const leftHas = Object.hasOwn(left, key), rightHas = Object.hasOwn(right, key);
+        const next = path + '/' + segment(key);
+        if (!leftHas || !rightHas) append(next, left[key], right[key], leftHas, rightHas);
+        else compare(left[key], right[key], next, depth + 1);
+        if (entries.length >= limit) { if (key !== keys.at(-1)) truncated = true; break; }
+      }
+      return;
+    }
+    if (!same(left, right)) append(path, left, right);
+  }
+  compare(current, expected);
+  return { entries, shown: entries.length, truncated };
 }
 
 async function readAutosaveRecord() {
@@ -191,7 +256,13 @@ export function installDiagnostics(runtime) {
           const read = await readProbeFile(), previous = JSON.parse(read.contents);
           assert(previous.schema === 'pandolab-shell-probe-v1', 'The previous process probe is unavailable.');
           assert(entityRepository.get(COUNTRY)?.properties.name === previous.name, 'The reopened process did not restore the accepted edit.');
-          assert(same(comparableSnapshot(projectDomain.snapshot()), comparableSnapshot(previous.savedSnapshot)), 'The reopened canonical document differs from the saved snapshot.');
+          const reopenedSnapshot = projectDomain.snapshot();
+          if (!same(comparableSnapshot(reopenedSnapshot), comparableSnapshot(previous.savedSnapshot))) {
+            const error = new Error('The reopened canonical document differs from the saved snapshot.');
+            error.code = 'PL-NATIVE-REOPEN-SNAPSHOT';
+            error.snapshotDifference = describeSnapshotDifference(reopenedSnapshot, previous.savedSnapshot);
+            throw error;
+          }
           return { processRestart: true, exactDocument: true, name: previous.name, path: read.path };
         });
         await check('nativeFile', async () => {
