@@ -148,6 +148,10 @@ export function createCountrySharedBoundaryState() {
 // Keep each owner set contiguous so the GPU can apply the same per-country
 // visibility rule as Canvas without rebuilding geometry when visibility flips.
 const boundaryGeometryCache = new WeakMap();
+// Keep each WASM transfer below its source/candidate limits. Each subtraction
+// row is independent, so chunking preserves the source order and exact pieces.
+const OUTLINE_BATCH_EDGES = 16_384;
+const OUTLINE_BATCH_CANDIDATES = 1_000_000;
 export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES, includeOutlines = true } = {}) {
   const store = preparedStore || createPreparedBoundaryStore();
   if (!preparedStore) store.replace(features);
@@ -192,18 +196,32 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
       const row = { a: segment.start, b: segment.end, ownerIds: segment.ownerIds };
       excluded.insert(index, row, segmentBounds(row));
     });
-    const pending = [];
+    const pending = [], outlines = [];
+    let candidateCount = 0;
+    function flushOutlines() {
+      if (!pending.length) return;
+      const clipped = sharedCalculationCore.boundarySubtractOverlapsBatch(pending.map(({ start, end, blocked }) => [[start, end], blocked]));
+      if (!Array.isArray(clipped) || clipped.length !== pending.length || clipped.some(pieces => !Array.isArray(pieces)))
+        throw Object.assign(new Error('Incomplete compiled outline overlap subtraction.'), { code: 'PL-BOUNDARY-OVERLAP' });
+      pending.forEach(({ id }, index) => {
+        for (const [start, end] of clipped[index]) outlines.push({ start, end, ownerIds: [id] });
+      });
+      pending.length = 0;
+      candidateCount = 0;
+    }
     for (const feature of features) {
       const id = String(feature.id);
       forEachRenderableBoundarySegment(store.get(id).geometry, ([start, end]) => {
         const bounds = segmentBounds({ a: start, b: end }).map((value, index) => value + (index < 2 ? -1e-7 : 1e-7));
-        pending.push({ id, start, end, blocked: excluded.query(bounds).filter(edge => edge.ownerIds.includes(id)).map(edge => [edge.a, edge.b]) });
+        const blocked = excluded.query(bounds).filter(edge => edge.ownerIds.includes(id)).map(edge => [edge.a, edge.b]);
+        if (pending.length >= OUTLINE_BATCH_EDGES
+          || (pending.length && candidateCount + blocked.length > OUTLINE_BATCH_CANDIDATES)) flushOutlines();
+        pending.push({ id, start, end, blocked });
+        candidateCount += blocked.length;
       });
     }
-    const clipped = pending.length ? sharedCalculationCore.boundarySubtractOverlapsBatch(pending.map(({ start, end, blocked }) => [[start, end], blocked])) : [];
-    if (!Array.isArray(clipped) || clipped.length !== pending.length || clipped.some(pieces => !Array.isArray(pieces)))
-      throw Object.assign(new Error('Incomplete compiled outline overlap subtraction.'), { code: 'PL-BOUNDARY-OVERLAP' });
-    cached.outlines = [...pending.flatMap(({ id }, index) => clipped[index].map(([start, end]) => ({ start, end, ownerIds: [id] }))), ...cached.coasts];
+    flushOutlines();
+    cached.outlines = [...outlines, ...cached.coasts];
   }
   const packet = prepareStrokePacket(visible, maxEdgeDegrees);
   const outlineOverrides = prepareStrokePacket(includeOutlines ? cached.outlines : [], maxEdgeDegrees);
