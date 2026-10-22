@@ -313,7 +313,13 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       return {...base,geometry:feature.geometry,properties:{...base.properties,...(result.countryUpdates?.[id]||{})}};
     });
     const draftIds=new Set(features.map(feature=>String(feature.id)));
-    const validation=await validateGisCountryCollection({type:'FeatureCollection',features},plan.affectedIds || [...imported.keys()]);
+    // Library batch rechecks every affected geometry, but only gained land
+    // can create new overlaps. Donors were reduced by geometric difference.
+    const overlapOptions = result.sourceInfo?.imports?.some(row => row.kind === 'library')
+      && Array.isArray(plan.overlapAffectedIds) && plan.overlapAffectedIds.length
+      ? { overlapAffectedIds: plan.overlapAffectedIds } : undefined;
+    const validation=await validateGisCountryCollection(
+      {type:'FeatureCollection',features},plan.affectedIds || [...imported.keys()],overlapOptions);
     if(Number(validation?.overlapAreaKm2||0)>0.001)throw createGisImportError('가져온 국가가 다른 국가와 실제로 겹칩니다.',{
       category:RELIABILITY_ERROR_CATEGORIES.GEOMETRY,objectIds:validation?.firstOverlap || [...imported.keys()],
       technicalMessage:'Residual overlap: '+validation.overlapAreaKm2+' km2'});

@@ -27,14 +27,17 @@ export function createGisGeometryValidator({ createWorker, timeoutMs = GIS_GEOME
     rpc = null;
   }
 
-  async function validate(collection, affectedIds = null) {
+  async function validate(collection, affectedIds = null, options = undefined) {
     const scopedIds = affectedIds
       ? [...new Set([...affectedIds].map(text).filter(Boolean))]
       : null;
     try {
+      const overlapAffectedIds = Array.isArray(options?.overlapAffectedIds) && options.overlapAffectedIds.length
+        ? [...new Set(options.overlapAffectedIds.map(text).filter(Boolean))] : null;
       const response = await ensureRpc().request('gis.validate', {
         collection,
         affectedIds: scopedIds?.length ? scopedIds : null,
+        ...(overlapAffectedIds?.length ? { overlapAffectedIds } : {}),
       }, { timeoutMs, priority: 300 });
       return response.result;
     } catch (error) {

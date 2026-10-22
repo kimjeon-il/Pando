@@ -70,6 +70,10 @@ test('GIS validator sends unique affected IDs and treats an empty scope as full 
   assert.deepEqual(messages[0].payload.collection, collection);
   await validator.validate(collection, []);
   assert.equal(messages[1].payload.affectedIds, null);
+  await validator.validate(collection, ['A', 'A'], { overlapAffectedIds: ['A', 'A'] });
+  assert.deepEqual(messages[2].payload, {
+    collection, affectedIds: ['A'], overlapAffectedIds: ['A'],
+  });
 });
 
 test('GIS validator rejects timed out work, disposes its worker and permits a fresh request', async t => {
