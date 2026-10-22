@@ -1,4 +1,4 @@
-import { editingContextPresentation, taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
+import { editingContextPresentation, shouldShowTaskInputInstruction, taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
 import { lineDistanceKm } from './geometry-metrics.js';
 import { timelineMonthLabel } from './timeline-controls.js';
 
@@ -495,10 +495,16 @@ export function createTaskPresentation() {
     const impact = (preview?.affectedIds || []).map(id => ({name: countryDisplay(id)?.name || territorialUnitDisplay(id) || id}));
     const editing=dependencies.domains.editingDomain.snapshot();
     const month = dependencies.domains.projectDomain.state()?.timelineCursor;
-    const context = editingContextPresentation({mobile:dependencies.surfaces.isMobile(),editing,state,draft: dependencies.draftPresentation.editingDraftSnapshot(),month,targets});
+    const draft = dependencies.draftPresentation.editingDraftSnapshot();
+    const mobile = dependencies.surfaces.isMobile();
+    const context = editingContextPresentation({mobile,editing,state,draft,month,targets});
     for (const [id,value] of [['editorTimelineContext',month?`${timelineMonthLabel(month)} 기준 편집`:'시점 확인 중'],['modeTaskTargetSummary',context.targetSummary],['modeTaskEditingStage',context.stage],['modeTaskViewTime','보기: '+context.view],['modeTaskPeriod','변경 기간: '+context.period],['modeTaskInput',context.instruction]]) {
       const element=dependencies.platform.$(id);if(element && element.textContent!==value)element.textContent=value;
     }
+    const taskInput = dependencies.platform.$('modeTaskInput');
+    taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
+      state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
+    }));
     const placement=dependencies.platform.$('vertexPlacementBtn');if(placement){placement.hidden=!editing.selectedVertex||!!preview;placement.disabled=editing.gestureActive||state.modeProcessing;placement.textContent=editing.vertexPlacement?'위치 지정 취소':'선택 정점 위치 지정';}
     const mapSummary=dependencies.platform.$('modeMapSummary');
     if(mapSummary)mapSummary.textContent=[dependencies.platform.$('modeTaskName')?.textContent,context.targetSummary,context.stage].filter(Boolean).join(' · ');

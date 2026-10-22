@@ -209,3 +209,16 @@ export function editingContextPresentation({state,draft={},month='',targets=[],m
   const instruction=editing.vertexPlacement?'지도를 탭해 선택 정점 위치 지정 · 위치 지정 취소: 입력 유지':mobile&&!review&&!applying?(editing.selectedVertex?'선택점 드래그: 이동 · 위치 지정: 지도 탭 · 두 손가락: 지도 이동':'정점 탭: 선택 · 점을 끌어 이동 · 두 손가락: 지도 이동'):state.spacePanActive?'지도 이동 중 · 놓으면 편집 계속':applying?'변경을 반영하고 있습니다.':review?'적용 전입니다 · 수정으로 돌아가면 입력이 유지됩니다.':draft.vertexInsertMode?'경계 클릭: 꼭짓점 삽입 · Esc: 삽입 종료':(draft.inputPhase==='refine'||['territorial-border','country-coast'].includes(state.tool))?'꼭짓점 드래그: 이동 · Space 누르기: 지도 이동':'지도에서 입력 · Space 누르기: 지도 이동';
   return Object.freeze({stage,targetSummary,view,period,instruction});
 }
+
+/** Show only actionable editing hints; leave ordinary instructions in state for other consumers. */
+export function shouldShowTaskInputInstruction({ state = {}, editing = {}, draft = {}, mobile = false, draftActive = false } = {}) {
+  if (state.spacePanActive || editing.vertexPlacement || draft.vertexInsertMode) return true;
+  if (state.geometryPreview?.session?.status === 'applying' || state.territorySelectionSession?.applying) return true;
+  if (!mobile || state.geometryPreview?.session) return false;
+  const selection = state.territorySelectionSession;
+  if (selection) return selection.stage === 'selection' && selection.activePhase === 'drawing';
+  if (state.tool === 'territorial-border') return state.boundaryEditPhase === 'editing';
+  if (state.tool === 'country-coast') return true;
+  if (['merge-country', 'merge-territorial-unit', 'merge-generic-feature'].includes(state.tool)) return false;
+  return Boolean(editing.selectedVertex || editing.objectVertexEditing || draftActive);
+}
