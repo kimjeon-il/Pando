@@ -102,12 +102,13 @@ export function resolveMapStrokeStyle(style, role = 'candidate', { directManipul
   const selection = style.selection;
   const antiAlias = style.antiAlias !== false;
   if (priority === 1) return Object.freeze({ ...STROKE_SHAPE, color: selection.color, width: 1, alpha: 0.45, fillAlpha: 0, scaleWithView: true, antiAlias });
-  if (priority === 2) return Object.freeze({ ...STROKE_SHAPE, ...style.hover, scaleWithView: true, antiAlias });
+  if (priority === 2) return Object.freeze({ ...STROKE_SHAPE, ...style.hover, coverage: 'union', scaleWithView: true, antiAlias });
   const source = priority >= 4 ? selection.primary : selection.secondary;
   return Object.freeze({ ...STROKE_SHAPE, color: selection.color,
     width: directManipulation ? (priority >= 4 ? 2.5 : 1.5) : source.innerWidth,
     alpha: directManipulation ? (priority >= 4 ? 1 : 0.72) : source.innerAlpha,
     fillAlpha: source.fillAlpha,
+    coverage: role === 'primary' || role === 'secondary' ? 'union' : 'normal',
     dash: boundaryKind === 'shared' ? Object.freeze([6, 3]) : STROKE_SHAPE.dash,
     scaleWithView: true,
     antiAlias });
