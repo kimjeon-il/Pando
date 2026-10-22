@@ -53,3 +53,45 @@ test('retired Qt project wire codec and native-only identity policy stay absent'
   assert.equal(header.includes('ProjectDocument decode(const'), false);
   assert.equal(header.includes('std::string encode(const Project'), false);
 });
+
+test('retired user-layer data and command variants remain removed', () => {
+  const header=read('shared/core/include/pandoeditor/document.h');
+  const actions=read('shared/core/include/pandoeditor/commands.h');
+  const processor=read('shared/core/src/commands.cpp');
+  const codec=read('shared/core/src/projectcodec.cpp');
+  for(const symbol of ['struct UserLayer','std::vector<UserLayer>','nativeLayerId','membership;'])assert.equal(header.includes(symbol),false,symbol);
+  for(const symbol of ['AddUserLayer','RemoveUserLayer','MoveUserLayer','SetUserLayerVisible','SetUserLayerLocked','MoveCountryToUserLayer']) {
+    assert.equal(actions.includes(symbol)||processor.includes(symbol),false,symbol);
+  }
+  assert.equal(codec.includes('userLayers'),false);
+  assert.ok(header.includes('struct DistributionLayer'),'active distribution layers must remain');
+});
+test('CommandAction mapping indices follow their variant ordering', () => {
+  const actions=read('shared/core/include/pandoeditor/commands.h');
+  const processor=read('shared/core/src/commands.cpp');
+  const variants=actions.match(/using CommandAction\s*=\s*std::variant<([\s\S]*?)>;/)?.[1].split(',').map(s=>s.trim());
+  const text=processor.match(/const std::pair<const char\*,std::size_t> commands\[\]=\{([\s\S]*?)\};/)?.[1];
+  assert.ok(variants&&text,'missing C++ command/variant table');
+  const entries=Array.from(text.matchAll(/\{"([^"]+)",(\d+)\}/g),m=>[m[1],Number(m[2])]);
+  const cases=[
+    ['edit.properties','std::monostate'],['country.color','SetCountryColor'],['territorial.field','TerritorialFieldEdit'],
+    ['territorial.color','TerritorialColorEdit'],['territorial.lock','TerritorialLockEdit'],
+    ['territorial.relation.parent','ApplyTerritorialMutation'],['content.edit','ContentEdit'],['physical-data.configure','SetPhysicalData'],
+    ['historical.instantiate','HistoricalInstantiationPlan'],['gis.import.generic','GisGenericImportPlan'],['gis.import.territorial','GisTerritorialImportPlan'],
+    ['gis.import.distribution','GisDistributionImportPlan'],['timeline.geometry','TimelineGeometryEdit'],['timeline.parent','TimelineParentEdit'],
+    ['timeline.create','TimelineCreate'],['timeline.delete','TimelineDelete'],['timeline.territorial','TimelineTerritorialMutation'],
+    ['generic.import','ContentBatchEdit'],['territorial.replace','WebTerritorialEdit'],['objects.remove','WebObjectRemoval'],
+    ['document.source-info','DocumentSourceInfoAppend'],['objects.lock','WebObjectEdit']
+  ];
+  for(const [id,type] of cases){
+    const record=entries.find(([name])=>name===id);
+    assert.ok(record,id);
+    assert.equal(record[1],variants.indexOf(type),id+' -> '+type);
+  }
+});
+test('native country history restore policy remains removed', () => {
+  for(const file of ['shared/core/include/pandoeditor/project.h','shared/core/src/project.cpp','shared/core/src/document-session.cpp']){
+    const source=read(file);
+    for(const token of ['HistoryRestorePolicy','NativeCountryOverrides','restoredHistoryState'])assert.equal(source.includes(token),false,file+':'+token);
+  }
+});
