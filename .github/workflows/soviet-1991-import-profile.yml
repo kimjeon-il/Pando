@@ -1,0 +1,42 @@
+name: Soviet 1991 import profiling
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - 'tests/browser/soviet-1991-import-profile.spec.mjs'
+      - '.github/workflows/soviet-1991-import-profile.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-import-profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify published C++ WASM
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Profile only the 1991 Soviet import
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-1991-import-profile.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Preserve profiling evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-1991-import-profile-${{ github.sha }}
+          path: test-results/soviet-1991-import-profile/
+          if-no-files-found: warn
+          retention-days: 10
