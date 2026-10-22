@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
 import { createTaskPresentation } from '../../assets/js/modules/app-task-presentation.js';
+import { shouldShowTaskInputInstruction } from '../../assets/js/modules/app-task-stage-model.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createToolBindings } from '../../assets/js/modules/app-tool-bindings.js';
 import { MAP_INTERACTION_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
@@ -69,7 +70,7 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   });
   const document = createFakeDocument();
   const ids = [
-    'modeEditingHud', 'modeTaskName', 'modeTaskStage', 'modeTaskStatus', 'modeTaskInstruction',
+    'modeEditingHud', 'modeTaskName', 'modeTaskStage', 'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput',
     'modeTaskObjects', 'modeTaskDisabledReason', 'modeTaskViewTime',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
@@ -385,4 +386,46 @@ test('editing context can render before the Core project state is ready', async 
   const f = await fixture(t, {}, {projectDomain:{state:()=>null}});
   f.presentation.syncEditingContext();
   assert.equal(f.elements.modeTaskViewTime.textContent, '보기: 시점 확인 중');
+});
+
+test('routine task guidance is suppressed without hiding active edit or recovery instructions', () => {
+  const cases = [
+    ['desktop selection', { state: { tool: 'merge-country' } }, false],
+    ['mobile country merge', { state: { tool: 'merge-country' }, mobile: true }, false],
+    ['mobile annex setup', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'setup' } }, mobile: true }, false],
+    ['mobile annex drawing', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'selection', activePhase: 'drawing' } }, mobile: true }, true],
+    ['mobile annex components', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'selection', activePhase: 'components' } }, mobile: true }, false],
+    ['mobile annex review', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'review' } }, mobile: true }, false],
+    ['mobile border selection', { state: { tool: 'territorial-border', boundaryEditPhase: 'selecting' }, mobile: true }, false],
+    ['mobile border editing', { state: { tool: 'territorial-border', boundaryEditPhase: 'editing' }, mobile: true }, true],
+    ['mobile coast editing', { state: { tool: 'country-coast' }, mobile: true }, true],
+    ['mobile hydro drawing', { state: { tool: 'river' }, mobile: true, draftActive: true }, true],
+    ['desktop routine drawing', { state: { tool: 'river' }, draftActive: true }, false],
+    ['desktop insert mode', { state: { tool: 'river' }, draft: { vertexInsertMode: true } }, true],
+    ['desktop map panning', { state: { tool: 'merge-country', spacePanActive: true } }, true],
+    ['desktop vertex placement', { state: { tool: 'country-coast' }, editing: { vertexPlacement: true } }, true],
+    ['mobile selected vertex', { state: { tool: 'river' }, mobile: true, editing: { selectedVertex: { vertexKey: 'v0' } } }, true],
+    ['review preview', { state: { tool: 'country-coast', geometryPreview: { session: { status: 'ready' } } }, mobile: true }, false],
+    ['applying preview', { state: { tool: 'country-coast', geometryPreview: { session: { status: 'applying' } } } }, true],
+    ['applying selection', { state: { tool: 'annex-territory', territorySelectionSession: { stage: 'review', applying: true } } }, true],
+  ];
+  for (const [name, options, visible] of cases) {
+    assert.equal(shouldShowTaskInputInstruction(options), visible, name);
+  }
+});
+
+test('routine instructions retain text but are visually hidden in the normal editor', async t => {
+  const f = await fixture(t, { tool: 'merge-country', mergeSourceCountryId: 'COUNTRY', boundaryEditPhase: '', boundaryPreparation: null });
+  f.presentation.syncEditingContext();
+  assert.ok(f.elements.modeTaskInput.textContent.length > 0);
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), true);
+  f.state.spacePanActive = true;
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
+});
+
+test('mobile coast editing retains touch instructions', async t => {
+  const f = await fixture(t, { tool: 'country-coast', boundaryEditPhase: 'editing' }, { isMobile: () => true });
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
 });
