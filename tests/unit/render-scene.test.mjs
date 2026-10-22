@@ -12,20 +12,23 @@ import { scaleInteractionStroke } from '../../assets/js/modules/map-interaction-
 test('stroke packets preserve explicit view scaling and drawing controls', () => {
   const scene = createRenderSceneBuilder().build({ strokes: [{ key: 'draft', geometryRevision: 1,
     geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] },
-    style: { color: '#ffffff', width: 5, scaleWithView: true, antiAlias: false, innerCutout: 2 } }] });
+    style: { color: '#ffffff', width: 5, scaleWithView: true, antiAlias: false, innerCutout: 2, coverage: 'union' } }] });
   const style = scene.strokes[0].style;
   assert.equal(style.scaleWithView, true);
   assert.equal(style.antiAlias, false);
   assert.equal(style.innerCutout, 2);
+  assert.equal(style.coverage, 'union');
   const drawn = scaleInteractionStroke(style, { projection: 'globe', size: { width: 1000, height: 1000 }, scale: 200 });
   assert.equal(drawn.width, 2.25);
   assert.equal(drawn.innerCutout, 0.9);
+  assert.equal(drawn.coverage, 'union');
   assert.equal(style.width, 5);
   const defaults = createRenderSceneBuilder().build({ strokes: [{ key: 'fixed',
     geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] } }] }).strokes[0].style;
   assert.equal(defaults.scaleWithView, false);
   assert.equal(defaults.antiAlias, true);
   assert.equal(defaults.innerCutout, 0);
+  assert.equal(defaults.coverage, 'normal');
 });
 
 const polygon = color => ({
