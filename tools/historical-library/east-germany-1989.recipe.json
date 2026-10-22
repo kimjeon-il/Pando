@@ -166,6 +166,66 @@
           "basis": "Lake-crossing arcs between existing geometric intersections only. Former inter-German boundary equals current SH/MV boundary within Schaalsee per the reserve authority; surrounding land is excluded. Official SH lake catchment map (1:50000) reviewed for the lake passage; no independent historical vector accuracy claim. The old NE path detours south to 53.548463; the window includes this obsolete detour, while the replacement lake arc stays north of 53.5716795 between actual shared intersections.",
           "evidence": "https://www.schaalsee.de/flipbook/naturschutzprojekte/12/",
           "overview": "https://umweltanwendungen.schleswig-holstein.de/Seen/seen/schaalsee_seedorfer_tief/schaalsee_nord-west_einz.gif"
+        },
+        {
+          "id": "vg25-bavaria-central",
+          "bounds": [
+            10.15,
+            50.17,
+            11.98,
+            50.62
+          ],
+          "basis": "Bavarian survey authority exhibition catalogue, printed p.3 (PDF p.9), explicitly identifies the 1973 commission markers as the present 422 km Bavaria/Saxony/Thuringia boundary. Falkenstein 1949 adjustment and 1957/1980 aerial boundary illustrations reviewed. Conservative window excludes the Hessian corner and Czech exterior; no independent period-vector positional accuracy claim.",
+          "evidence": "https://www.ldbv.bayern.de/mam/ldbv/dateien/katalog_grenzen_trennen_grenzen_verbinden.pdf",
+          "corroboration": "https://www.bfn.de/gruenes-band"
+        },
+        {
+          "id": "vg25-saxony-bavaria",
+          "bounds": [
+            11.98,
+            50.34,
+            12.12,
+            50.5
+          ],
+          "basis": "Bavarian survey continuity statement corroborated by Saxon Green Belt regulation identifying the former DDR border strip along the Saxony/Bavaria land boundary. Southern cutoff excludes the Czech tripoint; existing LSIB exterior remains unchanged.",
+          "evidence": "https://www.ldbv.bayern.de/mam/ldbv/dateien/katalog_grenzen_trennen_grenzen_verbinden.pdf",
+          "corroboration": "https://www.revosax.sachsen.de/vorschrift_gesamt/5507/28211.pdf"
+        },
+        {
+          "id": "vg25-eichsfeld-north",
+          "bounds": [
+            10.02,
+            51.47,
+            10.31,
+            51.64
+          ],
+          "basis": "Niedersachsen political education authority, Das Eichsfeld (2002), printed p.17/PDF p.18 explicitly records the former state border becoming the Niedersachsen/Hessen-Thuringia land boundary on 1990-10-03. Only the northern Eichsfeld interval is admitted; southern Wendebach and unreviewed Werra intervals excluded.",
+          "evidence": "https://www.mk.niedersachsen.de/download/57145/Peter_Aufgebauer_u.a._Eichsfeld_-_Ein_deutscher_Grenzraum._Niedersaechsische_Landeszentrale_fuer_politische_Bildung._Niedersachsen_-_vom_Grenzland_zum_Land_in_der_Mitte._Folge_6_._Hannover_2002._PDF_2.196_KB_124_Seiten_..pdf",
+          "corroboration": "https://www.bfn.de/gruenes-band"
+        },
+        {
+          "id": "vg25-harz-ecker",
+          "bounds": [
+            10.55,
+            51.78,
+            10.665,
+            51.91
+          ],
+          "basis": "Nationalpark Harz, Gewaesser im Nationalpark Harz, PDF p.29: the Ecker from source to Harz foothills is the current state boundary and was the DDR/BRD boundary until reunification. LGLN NaVKV 2/3 2010, printed p.41, independently documents the reservoir/dam boundary and retained marker. Restricted Ecker/reservoir interval, not all Harz.",
+          "evidence": "https://www.nationalpark-harz.de/de/downloads/schriftenreihe/Band10_Gewaesser-im-NLP-Harz.pdf",
+          "corroboration": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf"
+        },
+        {
+          "id": "vg25-geismar-spahl",
+          "bounds": [
+            9.89,
+            50.635,
+            9.96,
+            50.69
+          ],
+          "basis": "Official Geismar land-reorganisation plan, maps PDF pp.1-3 (1:5000, dated 2015-12-09) and text PDF p.30/printed p.10 identify the former border strip along its western edge adjoining Hessen. The western state boundary is distinguished from the internal Kolonnenweg. Restricted Geismar/Spahl/Roedgen interval, south of Point Alpha; corroborated by the federal Green Belt explanation of the former strip between land boundary and Kolonnenweg. Visual/documentary continuity only, not a digitized 1989 positional test.",
+          "evidence": "https://landentwicklung-online.thueringen.de/dokumente/k41/k41_320350.pdf",
+          "corroboration": "https://www.bfn.de/gruenes-band"
         }
       ]
     }
@@ -272,23 +332,169 @@
         "basis": "Lake-crossing arcs between existing geometric intersections only. Former inter-German boundary equals current SH/MV boundary within Schaalsee per the reserve authority; surrounding land is excluded. Official SH lake catchment map (1:50000) reviewed for the lake passage; no independent historical vector accuracy claim. The old NE path detours south to 53.548463; the window includes this obsolete detour, while the replacement lake arc stays north of 53.5716795 between actual shared intersections.",
         "evidence": "https://www.schaalsee.de/flipbook/naturschutzprojekte/12/",
         "overview": "https://umweltanwendungen.schleswig-holstein.de/Seen/seen/schaalsee_seedorfer_tief/schaalsee_nord-west_einz.gif"
+      },
+      {
+        "id": "vg25-bavaria-central",
+        "bounds": [
+          10.15,
+          50.17,
+          11.98,
+          50.62
+        ],
+        "basis": "Bavarian survey authority exhibition catalogue, printed p.3 (PDF p.9), explicitly identifies the 1973 commission markers as the present 422 km Bavaria/Saxony/Thuringia boundary. Falkenstein 1949 adjustment and 1957/1980 aerial boundary illustrations reviewed. Conservative window excludes the Hessian corner and Czech exterior; no independent period-vector positional accuracy claim.",
+        "evidence": "https://www.ldbv.bayern.de/mam/ldbv/dateien/katalog_grenzen_trennen_grenzen_verbinden.pdf",
+        "corroboration": "https://www.bfn.de/gruenes-band"
+      },
+      {
+        "id": "vg25-saxony-bavaria",
+        "bounds": [
+          11.98,
+          50.34,
+          12.12,
+          50.5
+        ],
+        "basis": "Bavarian survey continuity statement corroborated by Saxon Green Belt regulation identifying the former DDR border strip along the Saxony/Bavaria land boundary. Southern cutoff excludes the Czech tripoint; existing LSIB exterior remains unchanged.",
+        "evidence": "https://www.ldbv.bayern.de/mam/ldbv/dateien/katalog_grenzen_trennen_grenzen_verbinden.pdf",
+        "corroboration": "https://www.revosax.sachsen.de/vorschrift_gesamt/5507/28211.pdf"
+      },
+      {
+        "id": "vg25-eichsfeld-north",
+        "bounds": [
+          10.02,
+          51.47,
+          10.31,
+          51.64
+        ],
+        "basis": "Niedersachsen political education authority, Das Eichsfeld (2002), printed p.17/PDF p.18 explicitly records the former state border becoming the Niedersachsen/Hessen-Thuringia land boundary on 1990-10-03. Only the northern Eichsfeld interval is admitted; southern Wendebach and unreviewed Werra intervals excluded.",
+        "evidence": "https://www.mk.niedersachsen.de/download/57145/Peter_Aufgebauer_u.a._Eichsfeld_-_Ein_deutscher_Grenzraum._Niedersaechsische_Landeszentrale_fuer_politische_Bildung._Niedersachsen_-_vom_Grenzland_zum_Land_in_der_Mitte._Folge_6_._Hannover_2002._PDF_2.196_KB_124_Seiten_..pdf",
+        "corroboration": "https://www.bfn.de/gruenes-band"
+      },
+      {
+        "id": "vg25-harz-ecker",
+        "bounds": [
+          10.55,
+          51.78,
+          10.665,
+          51.91
+        ],
+        "basis": "Nationalpark Harz, Gewaesser im Nationalpark Harz, PDF p.29: the Ecker from source to Harz foothills is the current state boundary and was the DDR/BRD boundary until reunification. LGLN NaVKV 2/3 2010, printed p.41, independently documents the reservoir/dam boundary and retained marker. Restricted Ecker/reservoir interval, not all Harz.",
+        "evidence": "https://www.nationalpark-harz.de/de/downloads/schriftenreihe/Band10_Gewaesser-im-NLP-Harz.pdf",
+        "corroboration": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf"
+      },
+      {
+        "id": "vg25-geismar-spahl",
+        "bounds": [
+          9.89,
+          50.635,
+          9.96,
+          50.69
+        ],
+        "basis": "Official Geismar land-reorganisation plan, maps PDF pp.1-3 (1:5000, dated 2015-12-09) and text PDF p.30/printed p.10 identify the former border strip along its western edge adjoining Hessen. The western state boundary is distinguished from the internal Kolonnenweg. Restricted Geismar/Spahl/Roedgen interval, south of Point Alpha; corroborated by the federal Green Belt explanation of the former strip between land boundary and Kolonnenweg. Visual/documentary continuity only, not a digitized 1989 positional test.",
+        "evidence": "https://landentwicklung-online.thueringen.de/dokumente/k41/k41_320350.pdf",
+        "corroboration": "https://www.bfn.de/gruenes-band"
       }
     ],
     "held": [
       "Elbe undetermined boundary and estuary",
       "Amt Neuhaus, Neu Bleckede, Neu Wendischthun, Stiepelse and Bohldamm transferred areas",
-      "Remaining uncorroborated inter-German intervals, including Werra/Harz and northern sectors",
+      "Northern SH/MV land sectors around Schaalsee; Altmark/Ohre and remaining Harz sectors without segment-specific corroboration",
+      "Hessian/Thuringian Werra, southern Eichsfeld/Wendebach and Rhon/Geisa outside the admitted windows",
+      "Bavarian west/Rhon and Czech-tripoint transition gaps outside conservative crossing-to-crossing windows; west window yielded no admissible intersecting arc",
       "West Berlin and coast (out of scope)",
-      "Polish/Czech exterior outside the currently adopted LSIB crossing-to-crossing arcs",
-      "Geisa/Point Alpha, Heldburgerland/Rodachtal and surrounding Schaalsee land sectors: detailed historical equivalence not corroborated; detailed Thuringian source access blocked"
+      "Polish/Czech exterior outside the currently adopted LSIB crossing-to-crossing arcs"
     ],
-    "presentationToleranceDegrees": 0.0002
+    "presentationToleranceDegrees": 0.0002,
+    "followup": {
+      "date": "2026-10-22",
+      "report": "reports/geography/east-germany-vg25-followup-2026-10-22.md",
+      "evidenceStatus": "documentary-continuity-and-visual-review; independent-period-vector screen accuracy not measured",
+      "capturedSources": [
+        {
+          "name": "bkg-vg-hist-documentation.pdf",
+          "url": "https://sgx.geodatenzentrum.de/web_public/gdz/dokumentation/deu/vg-hist.pdf",
+          "bytes": 683212,
+          "sha256": "574f51129890054abbf97b199162b09ae235a11cb16301bda8a984daabd0eabd",
+          "capturedAt": "2026-10-22T14:00:46.234Z"
+        },
+        {
+          "name": "bkg-vg-hist-sources.pdf",
+          "url": "https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg-hist.pdf",
+          "bytes": 110948,
+          "sha256": "0e4e32aba98121aff3ca2915bcd40123e3fa90a0a182565db6fccc2a3174383f",
+          "capturedAt": "2026-10-22T14:00:36.775Z"
+        },
+        {
+          "name": "bkg-vg-hist.lamge.gpkg.gesamt.zip",
+          "url": "https://daten.gdz.bkg.bund.de/produkte/vg/vg-hist/aktuell/vg-hist.lamge.gpkg.gesamt.zip",
+          "error": "400 https://daten.gdz.bkg.bund.de/produkte/vg/vg-hist/aktuell/vg-hist.lamge.gpkg.gesamt.zip"
+        },
+        {
+          "name": "bavaria-survey-boundaries-2010.pdf",
+          "url": "https://www.ldbv.bayern.de/mam/ldbv/dateien/katalog_grenzen_trennen_grenzen_verbinden.pdf",
+          "bytes": 41487385,
+          "sha256": "275a4ae9ffcf255f4aa1686866b539cbb55ee9dae20d7b7ec0a21b0e09026682",
+          "capturedAt": "2026-10-22T14:00:36.818Z"
+        },
+        {
+          "name": "eichsfeld-2002.pdf",
+          "url": "https://www.mk.niedersachsen.de/download/57145/Peter_Aufgebauer_u.a._Eichsfeld_-_Ein_deutscher_Grenzraum._Niedersaechsische_Landeszentrale_fuer_politische_Bildung._Niedersachsen_-_vom_Grenzland_zum_Land_in_der_Mitte._Folge_6_._Hannover_2002._PDF_2.196_KB_124_Seiten_..pdf",
+          "bytes": 2248045,
+          "sha256": "d3c78d0300417382658d3114e198160ad23f2a592639ea9e79e637ed57e8bb9d",
+          "capturedAt": "2026-10-22T14:00:36.821Z"
+        },
+        {
+          "name": "lgln-survey-2010.pdf",
+          "url": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf",
+          "bytes": 6056159,
+          "sha256": "c20519232db43282624c620622a31ce3142517536ef7df566b5ef541a19546a2",
+          "capturedAt": "2026-10-22T14:00:36.827Z"
+        },
+        {
+          "name": "suedharz-ellrich-25000.pdf",
+          "url": "https://naturpark-suedharz.de/files/naturpark/uploads/4-besucherinfo/infomaterial/folder-grenzweg-tour-web.pdf",
+          "error": "404 https://naturpark-suedharz.de/files/naturpark/uploads/4-besucherinfo/infomaterial/folder-grenzweg-tour-web.pdf"
+        },
+        {
+          "name": "bkg-vg-hist-documentation-canonical.pdf",
+          "url": "https://sg.geodatenzentrum.de/web_public/gdz/dokumentation/deu/VG-Hist.pdf",
+          "bytes": 681391,
+          "sha256": "350a89aab40cbc4408f79a2bbc7ab82546e71ec2dc17eae8606272b31933af7b",
+          "capturedAt": "2026-10-22T14:00:44.302Z"
+        },
+        {
+          "name": "geismar-land-reorganisation-plan.pdf",
+          "url": "https://landentwicklung-online.thueringen.de/dokumente/k41/k41_320350.pdf",
+          "bytes": 30405595,
+          "sha256": "c3ec83191c6effdbd62e11ec791458087df82b84553604d338f17230145ef6c1",
+          "capturedAt": "2026-10-22T14:01:14.579Z"
+        },
+        {
+          "name": "harz-nationalpark-waters.pdf",
+          "url": "https://www.nationalpark-harz.de/de/downloads/schriftenreihe/Band10_Gewaesser-im-NLP-Harz.pdf",
+          "bytes": 7686670,
+          "sha256": "2a393973112541e0e7cf4a189fd3035c40b6a8bbf8c2674e1b02fe2198e4f1bf",
+          "capturedAt": "2026-10-22T14:00:44.278Z"
+        },
+        {
+          "name": "bfn-green-belt.html",
+          "url": "https://www.bfn.de/gruenes-band",
+          "error": "fetch failed"
+        },
+        {
+          "name": "saxony-green-belt-regulation.pdf",
+          "url": "https://www.revosax.sachsen.de/vorschrift_gesamt/5507/28211.pdf",
+          "bytes": 38295,
+          "sha256": "83f8a059a0f3cb11eb7634fa4734b05bca74092ef4528404ea31c53300fedfe1",
+          "capturedAt": "2026-10-22T14:00:40.625Z"
+        }
+      ]
+    }
   },
   "resultSource": {
     "id": "natural-earth-admin1-v5.1.1+bkg-vg250+berlin-wall-1989+adopted-dos-lsib-11.4+bkg-vg25-capture-2026-10-22",
     "title": "Natural Earth, BKG VG250/VG25, Berlin Wall 1989 and adopted German LSIB 11.4 arcs",
     "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0",
-    "notes": "1989-04-25 reference-date approximation. Adopted DEU LSIB-derived Polish/Czech arcs reused; selected historically corroborated inter-German sections use the pinned VG25 capture. Coast, West Berlin, Elbe and transferred/uncorroborated sectors retain their previous geometry. No independent historical-vector 0.5px accuracy claim.",
+    "notes": "1989-04-25 reference-date approximation. Adopted DEU LSIB Polish/Czech arcs reused; pinned VG25 used only in documentarily corroborated Schaalsee, selected Bavaria/Saxony, northern Eichsfeld, Ecker and Geismar/Spahl intervals. Coast, West Berlin, Elbe, transferred and remaining uncorroborated sectors preserved. No independent historical-vector 0.5px accuracy claim.",
     "sources": [
       {
         "title": "Adopted German LSIB 11.4 linework (2025-02-24 source; adopted subset)",
