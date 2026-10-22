@@ -99,6 +99,24 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
             old_shared = PREVIOUS.boundary.intersection(CANONICAL_DEU.boundary.buffer(3e-12)).intersection(region)
             self.assertGreater(shared.length, old_shared.length + 0.1)
 
+    def test_hornburg_supplement_changes_real_geometry_and_preserves_other_sectors(self):
+        # Freeze the already accepted LSIB/VG25 result. This catches source-only
+        # recipe edits and accidental changes outside the newly admitted area.
+        baseline_path = ROOT / "tools/historical-library/sources/east-germany/ddr-before-remaining-vg25.geojson"
+        baseline = shape(json.loads(baseline_path.read_text(encoding="utf-8"))["features"][0]["geometry"])
+        region = box(10.55, 51.98, 10.91, 52.09)
+        delta = baseline.symmetric_difference(GEOMETRY)
+        self.assertGreater(projected_area_km2(delta.intersection(region)), 0.01)
+        self.assertTrue(delta.difference(region.buffer(3e-12)).difference(baseline.boundary.buffer(3e-12)).is_empty)
+        self.assertLess(baseline.boundary.difference(region).hausdorff_distance(
+            GEOMETRY.boundary.difference(region)), 3e-11)
+        self.assertEqual(len(GEOMETRY.geoms), len(baseline.geoms))
+        for name, bounds in {"Wendebach-Werra": (9.7, 50.8, 10.3, 51.45),
+                             "Ohre-Droemling": (10.7, 52.3, 11.3, 52.9),
+                             "northern-shores": (10.5, 53.4, 11.2, 54.1)}.items():
+            with self.subTest(held=name):
+                self.assertTrue(delta.intersection(box(*bounds)).difference(baseline.boundary.buffer(3e-12)).is_empty)
+
     def test_admitted_inland_sections_reuse_the_pinned_vg25_derivative(self):
         # This checks which source line was applied, not historical positional
         # accuracy: the documentary admission has no independent period vector.
