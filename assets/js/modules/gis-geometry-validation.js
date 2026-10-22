@@ -129,11 +129,19 @@ function featureId(feature, index) {
   return String(properties.pandolab_id || properties.ADM0_A3 || properties.ISO_A3 || properties.GID_0 || feature?.id || index + 1);
 }
 
-export function validateCollection(collection, affectedIds = null) {
+// overlapAffectedIds is a narrower, opt-in *pair* scope. Importers may pass
+// only directly added/expanded roots when other modified roots are guaranteed
+// subsets of their previously valid shapes (clipping by difference).
+// All affected geometries still undergo complete structural validation.
+export function validateCollection(collection, affectedIds = null, { overlapAffectedIds = null } = {}) {
   const features = collection?.features || [];
   const ids = features.map(featureId);
   if (ids.some(id => !id) || new Set(ids).size !== ids.length) throw new Error('국가 ID가 비어 있거나 중복되었습니다.');
   const affected = Array.isArray(affectedIds) && affectedIds.length ? new Set(affectedIds.map(String)) : null;
+  const overlapAffected = affected && Array.isArray(overlapAffectedIds) && overlapAffectedIds.length
+    ? new Set(overlapAffectedIds.map(String)) : affected;
+  if (overlapAffected !== affected && [...overlapAffected].some(id => !affected.has(id)))
+    throw new Error('Overlap pair scope must be part of the validated affected countries.');
   const componentBounds = [];
   for (let index = 0; index < features.length; index += 1) {
     if ((!affected || affected.has(ids[index])) && !validGeometry(features[index].geometry)) {
@@ -143,7 +151,7 @@ export function validateCollection(collection, affectedIds = null) {
   }
   for (let i = 0; i < features.length; i += 1) {
     for (let j = i + 1; j < features.length; j += 1) {
-      if (affected && !affected.has(ids[i]) && !affected.has(ids[j])) continue;
+      if (overlapAffected && !overlapAffected.has(ids[i]) && !overlapAffected.has(ids[j])) continue;
       if (!canOverlap(componentBounds[i], componentBounds[j])) continue;
       const overlap = [];
       let overlapPlanarArea = 0;
