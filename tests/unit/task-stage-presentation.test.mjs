@@ -517,11 +517,7 @@ test('annex donor setup shows role cards without duplicate metadata or routine r
 
   current.sourceCountryIds = ['COUNTRY-2'];
   current.stage = 'selection';
-  model.setup = false;
-  model.selection = true;
-  model.step = 2;
-  model.stageLabel = '영토 선택';
-  model.primaryDisabled = false;
-  f.presentation.updateModeButtons();
+  // Test metadata restoration without invoking the unrelated geometric parts list.
+  f.presentation.syncEditingContext();
   assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
 });
