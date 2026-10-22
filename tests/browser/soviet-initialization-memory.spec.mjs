@@ -1,4 +1,4 @@
-import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 
@@ -190,7 +190,19 @@ test('1989 Soviet initial timeline admission, selection setup, memory and cache 
   const phases = [];
   phases.push(await readSnapshot(page, cdp, 'startup-modern-world'));
   const beforeTimeline = await page.evaluate(() => performance.now());
-  await setEditorMonth(page, '1989-06');
+  // The editor retains the source-month project through cursor navigation.
+  // Create a genuine 1989 source project instead of merely moving its cursor.
+  await page.locator('#mobileFileBtn').click();
+  await page.locator('#newProjectBtn').click();
+  await expect(page.locator('#projectSetupDialog')).toBeVisible();
+  await page.locator('#projectSetupMonth').fill('1989-06');
+  await page.locator('#projectSetupSubmit').click();
+  await expect(page.locator('#confirmModal')).toBeVisible();
+  await page.locator('#confirmModalOkBtn').click();
+  await expect(page.locator('#projectSetupDialog')).toBeHidden({ timeout: 90_000 });
+  await expect(page.locator('#confirmModal')).toBeHidden();
+  await expect.poll(() => page.evaluate(() => window.__testEditorTimeline.month()),
+    { timeout: 90_000 }).toBe('1989-06');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('state:soviet-union')?.geometry?.coordinates?.length || 0),
     { timeout: 90_000 }).toBeGreaterThan(0);
   const timelineVisibleMs = (await page.evaluate(() => performance.now())) - beforeTimeline;
