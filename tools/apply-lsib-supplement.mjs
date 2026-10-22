@@ -11,6 +11,7 @@ export function applyLsibSupplement(candidate,{root=territorialSourceRoot,check=
   if(candidate.schemaVersion!==1 || candidate.sourceId!=='dos-lsib-11.4' || !candidate.changes?.length)throw new Error('Invalid LSIB candidate');
   const writes=[];
   for(const change of candidate.changes){
+    if(typeof change.sourceId!=='string'||!change.sourceId.length||!Array.isArray(change.sourceAttributions))throw new Error('Candidate source provenance is required');
     const file=path.join(root,'countries',entityFileName(change.entityId));
     const before=fs.readFileSync(file);
     if(!/^[a-f0-9]{64}$/.test(change.inputFileSha256)||sha(before)!==change.inputFileSha256)throw new Error(`LSIB source changed after candidate calculation: ${change.entityId}`);
@@ -20,10 +21,13 @@ export function applyLsibSupplement(candidate,{root=territorialSourceRoot,check=
     const geometry=sharedCalculationCore.normalizePolygonGeometry(change.geometry);
     if(!geometry || !geometry.coordinates.length)throw new Error(`Failed C++ geometry normalization: ${change.entityId}`);
     version.geometry=geometry;
-    version.sourceId='natural-earth-5.1.1+dos-lsib-11.4';
+    version.sourceId=change.sourceId;
     version.modernBoundarySupplement=change.supplement;
     entity.sourceInfo={...entity.sourceInfo,sourceId:version.sourceId,
-      title:'Existing coastlines and attribution with eligible LSIB 11.4 land boundary sections',
+      title:change.supplement.coastline==='reviewed-ign-replacement'
+        ?'Reviewed land boundaries and IGN high-water coastline with existing attribution'
+        :'Existing coastlines and attribution with reviewed land boundary sections',
+      sourceAttributions:[...new Map([...(entity.sourceInfo.sourceAttributions??[]),...change.sourceAttributions].map(row=>[row.sourceId,row])).values()],
       geometrySha256:sha(JSON.stringify(geometry))};
     normalizeTerritorialLibraryEntity(entity);
     writes.push({file,bytes:`${JSON.stringify(entity,null,2)}\n`});
