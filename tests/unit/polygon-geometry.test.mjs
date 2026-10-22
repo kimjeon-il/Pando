@@ -207,3 +207,18 @@ test('numerical clipping artifacts require explicit bounded audit; non-numerical
   assert.throws(() => normalizeClippedPolygonGeometry([[valid], [unsupported]],
     { onPrecisionDiscard() { assert.fail('larger malformed rings may not be discarded'); } }), /INVALID_POLYGON_RING/);
 });
+
+test('audited shared-border clipping omits only submicroscopic-width triangular roundoff',()=>{
+  const {normalizeClippedPolygonGeometry,normalizePolygonGeometry}=globalThis.PandoLabPolygonGeometry;
+  const valid=[[0,0],[0,1],[1,1],[1,0],[0,0]];
+  const artifact=[[14.077778600000045,50.81575200000003],[14.078463700000043,50.81248050000005],
+    [14.077918587444104,50.81508352981577],[14.077778600000045,50.81575200000003]];
+  assert.throws(()=>normalizePolygonGeometry([[artifact]]),/INVALID_POLYGON_RING/,'source admission stays strict');
+  assert.throws(()=>normalizeClippedPolygonGeometry([[artifact]]),/INVALID_POLYGON_RING/,'audit is required');
+  const audit=[],input=[[valid],[artifact]],before=structuredClone(input);
+  const geometry=normalizeClippedPolygonGeometry(input,{onPrecisionDiscard:item=>audit.push(item)});
+  assert.deepEqual(geometry.coordinates,[valid]);assert.deepEqual(input,before);
+  assert.equal(audit.length,1);assert.ok(audit[0].areaM2<0.1);
+  const finiteWidth=[[14,50],[14.001,50.001],[14.0005,50.00050001],[14,50]];
+  assert.ok(normalizeClippedPolygonGeometry([[finiteWidth]],{onPrecisionDiscard(){assert.fail('non-roundoff geometry must not be discarded');}}));
+});

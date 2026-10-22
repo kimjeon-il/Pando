@@ -117,8 +117,15 @@
       || Math.max(...ys.map(Math.abs)) >= 85) return null;
     const smallestEdge = Math.min(Math.hypot(a[0] - b[0], a[1] - b[1]),
       Math.hypot(b[0] - c[0], b[1] - c[1]), Math.hypot(c[0] - a[0], c[1] - a[1]));
-    if (smallestEdge > 1e-9) return null;
-    const areaDegrees = Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) / 2;
+    const twiceArea = Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]));
+    const longestEdge = Math.max(Math.hypot(a[0] - b[0], a[1] - b[1]),
+      Math.hypot(b[0] - c[0], b[1] - c[1]), Math.hypot(c[0] - a[0], c[1] - a[1]));
+    // A point inserted along a shared edge can leave three well-separated
+    // vertices with only roundoff width. This applies to audited Boolean
+    // results, never the strict source-geometry admission path.
+    const roundoffWidth = longestEdge > 0 ? twiceArea / longestEdge : 0;
+    if (smallestEdge > 1e-9 && roundoffWidth > 2e-12) return null;
+    const areaDegrees = twiceArea / 2;
     const latitude = (a[1] + b[1] + c[1]) / 3;
     const areaM2 = areaDegrees * (111195 ** 2) * Math.cos(latitude * Math.PI / 180);
     return Number.isFinite(areaM2) && areaM2 <= 0.1 ? areaM2 : null;
