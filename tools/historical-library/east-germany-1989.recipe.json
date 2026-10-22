@@ -63,6 +63,12 @@
       "crs": "EPSG:4326",
       "sha256": "7E7B385CF2E35F1B27680B90A801078C11ACD95F521940F5F767FB785974522E",
       "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0"
+    },
+    "beforeStage2Supplement": {
+      "path": "tools/historical-library/sources/east-germany/ddr-before-stage2-vg25.geojson",
+      "crs": "EPSG:4326",
+      "sha256": "C5087B6C4B03B2519D9DB2EAB4B0BEF2EEEFBC048FBDBED70BD75B7C0D27F69F",
+      "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0"
     }
   },
   "operations": [
@@ -244,6 +250,31 @@
           "basis": "LGLN NaVKV 2/3 2010, PDF p.33/printed p.32 fig.4 reproduces the 1985 DDR map of the Wolfenbuettel/Hornburg boundary. PDF pp.40-42 describe the post-1941 territorial allocation, joint 1974-1976 survey and 1986 inspection of section 21. The adopted window is restricted to the Hornburg/Grosses Bruch line visible in this period map, including the former west-side bend; it does not extend to all Harz or Altmark. NLWKN independently describes Grosses Bruch on the current Niedersachsen/Sachsen-Anhalt boundary. Reuse pinned VG25 only between actual intersections. Documentary continuity and visual period-map review; no independent historical-vector 0.5px pass.",
           "evidence": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf",
           "corroboration": "https://www.nlwkn.niedersachsen.de/natura2000/schutzgebiete_zur_umsetzung_von_natura_2000/landschaftsschutzgebiet-grosses-bruch-197972.html"
+        },
+        {
+          "id": "vg25-eichsfeld-glasehausen",
+          "bounds": [
+            10.17,
+            51.453,
+            10.19,
+            51.474
+          ],
+          "basis": "Restricted land interval east of Glasehausen, adjoining the previously admitted northern Eichsfeld window. Niedersachsen Das Eichsfeld (2002), printed p.17/PDF p.18, explicitly records the former state boundary becoming the land boundary on 1990-10-03; printed p.18/PDF p.19 reproduces the July 1990 Eichenberg-Brochthausen crossing overview. The restricted window excludes Wendebach and Werra. Documentary continuity and schematic period-map review, not an independently digitized 1989 positional test.",
+          "evidence": "https://www.mk.niedersachsen.de/download/57145/Peter_Aufgebauer_u.a._Eichsfeld_-_Ein_deutscher_Grenzraum._Niedersaechsische_Landeszentrale_fuer_politische_Bildung._Niedersachsen_-_vom_Grenzland_zum_Land_in_der_Mitte._Folge_6_._Hannover_2002._PDF_2.196_KB_124_Seiten_..pdf",
+          "corroboration": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf"
+        },
+        {
+          "id": "vg25-schaalsee-mustin-thurow-land",
+          "bounds": [
+            10.915,
+            53.679,
+            10.945,
+            53.694
+          ],
+          "basis": "Only the two inland forest arcs southeast of Mustin toward Gross Thurow. Kreis Herzogtum Lauenburg explicitly identifies the former inter-German boundary as the present SH/MV state boundary throughout the Schaalsee project. NatPSchaalseeV of 1990-09-12 section 2(2)4 identifies its shared western state-border interval; the Kreis history records the 1945 territorial exchange. Official current SH DTK25 reviewed to exclude Culpiner See, Wasserkrueger See and other lake/river shores. The current map screens land/water only; documentary continuity is not independent 1989 vector accuracy.",
+          "evidence": "https://www.kreis-rz.de/Adressen/Zweckverband-Schaalsee-Landschaft-.php?ModID=9&FID=327.1042.1",
+          "corroboration": "https://www.gesetze-im-internet.de/natpschaalseev/DDNR514770990.html",
+          "overview": "https://service.gdi-sh.de/WMS_SH_DTK25_OpenGBD"
         }
       ]
     }
@@ -422,13 +453,38 @@
         "basis": "LGLN NaVKV 2/3 2010, PDF p.33/printed p.32 fig.4 reproduces the 1985 DDR map of the Wolfenbuettel/Hornburg boundary. PDF pp.40-42 describe the post-1941 territorial allocation, joint 1974-1976 survey and 1986 inspection of section 21. The adopted window is restricted to the Hornburg/Grosses Bruch line visible in this period map, including the former west-side bend; it does not extend to all Harz or Altmark. NLWKN independently describes Grosses Bruch on the current Niedersachsen/Sachsen-Anhalt boundary. Reuse pinned VG25 only between actual intersections. Documentary continuity and visual period-map review; no independent historical-vector 0.5px pass.",
         "evidence": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf",
         "corroboration": "https://www.nlwkn.niedersachsen.de/natura2000/schutzgebiete_zur_umsetzung_von_natura_2000/landschaftsschutzgebiet-grosses-bruch-197972.html"
+      },
+      {
+        "id": "vg25-eichsfeld-glasehausen",
+        "bounds": [
+          10.17,
+          51.453,
+          10.19,
+          51.474
+        ],
+        "basis": "Restricted land interval east of Glasehausen, adjoining the previously admitted northern Eichsfeld window. Niedersachsen Das Eichsfeld (2002), printed p.17/PDF p.18, explicitly records the former state boundary becoming the land boundary on 1990-10-03; printed p.18/PDF p.19 reproduces the July 1990 Eichenberg-Brochthausen crossing overview. The restricted window excludes Wendebach and Werra. Documentary continuity and schematic period-map review, not an independently digitized 1989 positional test.",
+        "evidence": "https://www.mk.niedersachsen.de/download/57145/Peter_Aufgebauer_u.a._Eichsfeld_-_Ein_deutscher_Grenzraum._Niedersaechsische_Landeszentrale_fuer_politische_Bildung._Niedersachsen_-_vom_Grenzland_zum_Land_in_der_Mitte._Folge_6_._Hannover_2002._PDF_2.196_KB_124_Seiten_..pdf",
+        "corroboration": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf"
+      },
+      {
+        "id": "vg25-schaalsee-mustin-thurow-land",
+        "bounds": [
+          10.915,
+          53.679,
+          10.945,
+          53.694
+        ],
+        "basis": "Only the two inland forest arcs southeast of Mustin toward Gross Thurow. Kreis Herzogtum Lauenburg explicitly identifies the former inter-German boundary as the present SH/MV state boundary throughout the Schaalsee project. NatPSchaalseeV of 1990-09-12 section 2(2)4 identifies its shared western state-border interval; the Kreis history records the 1945 territorial exchange. Official current SH DTK25 reviewed to exclude Culpiner See, Wasserkrueger See and other lake/river shores. The current map screens land/water only; documentary continuity is not independent 1989 vector accuracy.",
+        "evidence": "https://www.kreis-rz.de/Adressen/Zweckverband-Schaalsee-Landschaft-.php?ModID=9&FID=327.1042.1",
+        "corroboration": "https://www.gesetze-im-internet.de/natpschaalseev/DDNR514770990.html",
+        "overview": "https://service.gdi-sh.de/WMS_SH_DTK25_OpenGBD"
       }
     ],
     "held": [
       "Elbe undetermined boundary and estuary",
       "Amt Neuhaus, Neu Bleckede, Neu Wendischthun, Stiepelse and Bohldamm transferred areas",
-      "Northern SH/MV land sectors around Schaalsee; Altmark/Ohre/Droemling and Harz outside the admitted Ecker and Hornburg/Grosses Bruch windows",
-      "Hessian/Thuringian Werra and southern Eichsfeld/Wendebach (documented mobile river boundary with later surveys), and Rhon/Point Alpha outside the admitted Geismar window",
+      "Northern SH/MV sectors outside the admitted Mustin/Gross Thurow forest arcs, including unreviewed lake/river shores; Altmark/Ohre/Droemling and Harz outside the admitted Ecker and Hornburg/Grosses Bruch windows",
+      "Hessian/Thuringian Werra and Wendebach (documented mobile river boundary with later surveys), southern Eichsfeld outside the Glasehausen land window, and Rhon/Point Alpha outside the admitted Geismar window",
       "Bavarian west/Rhon and Czech-tripoint transition gaps outside conservative crossing-to-crossing windows; west window yielded no admissible intersecting arc",
       "West Berlin and coast (out of scope)",
       "Polish/Czech exterior outside the currently adopted LSIB crossing-to-crossing arcs"
@@ -525,13 +581,20 @@
       "researchReport": "reports/geography/east-germany-remaining-research-2026-10-22.md",
       "baselineSource": "beforeRemainingSupplement",
       "evidenceStatus": "documentary continuity and period-map visual review; no independent historical vector, no 0.5px positional pass"
+    },
+    "stage2Followup": {
+      "date": "2026-10-23",
+      "report": "reports/geography/east-germany-remaining-stage2-2026-10-23.md",
+      "baselineSource": "beforeStage2Supplement",
+      "evidenceManifest": "reports/geography/east-germany-remaining-stage2-2026-10-23/captured-sources.json",
+      "evidenceStatus": "documentary continuity with July 1990 schematic overview and current DTK25 land/water screening; no independent 1989 vector, no 0.5px positional pass"
     }
   },
   "resultSource": {
     "id": "natural-earth-admin1-v5.1.1+bkg-vg250+berlin-wall-1989+adopted-dos-lsib-11.4+bkg-vg25-capture-2026-10-22",
     "title": "Natural Earth, BKG VG250/VG25, Berlin Wall 1989 and adopted German LSIB 11.4 arcs",
     "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0",
-    "notes": "1989-04-25 reference-date approximation. Adopted DEU LSIB Polish/Czech arcs reused; pinned VG25 used only in documentarily corroborated Schaalsee, selected Bavaria/Saxony, northern Eichsfeld, Ecker, Geismar/Spahl and Hornburg/Grosses Bruch intervals. Coast, West Berlin, Elbe, transferred and remaining uncorroborated sectors preserved. No independent historical-vector 0.5px accuracy claim.",
+    "notes": "1989-04-25 reference-date approximation. Adopted DEU LSIB Polish/Czech arcs reused; pinned VG25 used only in documentarily corroborated Schaalsee, selected Bavaria/Saxony, northern Eichsfeld/Glasehausen, Ecker, Geismar/Spahl, Hornburg/Grosses Bruch and Mustin/Gross Thurow forest intervals. Coast, West Berlin, Elbe, transferred and remaining uncorroborated sectors preserved. No independent historical-vector 0.5px accuracy claim.",
     "sources": [
       {
         "title": "Adopted German LSIB 11.4 linework (2025-02-24 source; adopted subset)",
