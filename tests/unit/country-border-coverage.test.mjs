@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { chromium } from '@playwright/test';
 
-test('country coverage stays uniform across dense joins and preserves GPU state and resources', { timeout: 60_000 }, async () => {
+test('country and interaction coverage stay uniform across dense joins and preserve GPU state and resources', { timeout: 60_000 }, async () => {
   const root = process.cwd();
   const server = createServer(async (request, response) => {
     try {
@@ -26,9 +26,9 @@ test('country coverage stays uniform across dense joins and preserves GPU state 
     const proof = await page.evaluate(async () => {
       const { createGpuStrokeRenderer } = await import('/assets/js/modules/gpu-stroke-renderer.js');
       const { createRenderDevice } = await import('/assets/js/modules/render-device.js');
-      const { resolveMapStrokeStyle } = await import('/assets/js/modules/map-interaction-style.js');
+      const { resolveMapStrokeStyle, resolveMapInteractionStyle } = await import('/assets/js/modules/map-interaction-style.js');
       const results = [];
-      for (const version of [2, 1]) for (const dpr of [1, 2]) {
+      for (const version of [2, 1]) for (const dpr of [1, 2]) for (const role of ['country', 'hover', 'secondary', 'primary']) {
         const canvas = globalThis.document.createElement('canvas'); canvas.width = 256 * dpr; canvas.height = 64 * dpr;
         const gl = canvas.getContext(version === 2 ? 'webgl2' : 'webgl', { alpha: true, antialias: false, preserveDrawingBuffer: true });
         if (!gl) throw new Error(`WebGL${version} unavailable`);
@@ -41,7 +41,9 @@ test('country coverage stays uniform across dense joins and preserves GPU state 
         const marker = gl.createTexture(); gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, marker);
         const frame = { viewport: [canvas.width, canvas.height], translate: [0, 32.25 * dpr], scale: 180 / Math.PI * dpr,
           dpr, rowX: [1, 0, 0], rowY: [0, 1, 0], rowZ: [0, 0, 1], flatCenter: [0, 0], mode: 1, worldOffsets: [0] };
-        const country = resolveMapStrokeStyle({ theme: { border: '#ffffff', borderAlpha: 1 } }, 'country');
+        const stroke = resolveMapStrokeStyle(role === 'country'
+          ? { theme: { border: '#ffffff', borderAlpha: 1 } }
+          : resolveMapInteractionStyle(), role);
         function draw(key, step, alpha = 1, multiply = false, duplicate = false) {
           const values = [];
           for (let x = 32; x < 224; x += step) values.push(x, 0, Math.min(x + step, 224), 0);
@@ -51,7 +53,7 @@ test('country coverage stays uniform across dense joins and preserves GPU state 
           gl.enable(gl.SCISSOR_TEST); gl.scissor(8 * dpr, 8 * dpr, 240 * dpr, 48 * dpr);
           gl.enable(gl.STENCIL_TEST); gl.stencilFunc(gl.ALWAYS, 0, 0xff); gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
           const result = renderer.drawBatches([{ key, startsEnds: new Float32Array(coords),
-            style: { ...country, alpha, color: multiply ? '#447799' : '#ffffff', blendMode: multiply ? 'multiply' : 'normal' } }], frame);
+            style: { ...stroke, alpha, color: multiply ? '#447799' : '#ffffff', blendMode: multiply ? 'multiply' : 'normal' } }], frame);
           const rgba = new Uint8Array(canvas.width * canvas.height * 4);
           gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
           const interior = [];
@@ -73,7 +75,7 @@ test('country coverage stays uniform across dense joins and preserves GPU state 
         const afterResize = { ...counts };
         renderer.dispose();
         const afterDispose = { ...counts };
-        results.push({ version, dpr, coverage: country.coverage,
+        results.push({ version, dpr, role, coverage: stroke.coverage,
           densityDifference: maxDiff(sparse.interior, dense.interior), duplicateDifference: maxDiff(transparent.interior, repeated.interior),
           multiplyDifference: maxDiff(multiply.interior, multiplyRepeated.interior),
           occupied: dense.interior.some((value, index) => index % 4 === 3 && value > 0),
@@ -86,7 +88,7 @@ test('country coverage stays uniform across dense joins and preserves GPU state 
       return results;
     });
     for (const row of proof) {
-      const label = `WebGL${row.version}/DPR${row.dpr}`;
+      const label = `WebGL${row.version}/DPR${row.dpr}/${row.role}`;
       assert.equal(row.coverage, 'union', label);
       assert.ok(row.densityDifference <= 1, `${label}: density changed coverage by ${row.densityDifference}`);
       assert.ok(row.duplicateDifference <= 1, `${label}: alpha was applied more than once`);
