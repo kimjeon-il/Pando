@@ -101,7 +101,7 @@ export function createServiceAssembly() {
     }
   }
 
-  function initializeGpuMapRenderer(){gpuMapRenderer=createMapRenderer(dependencies);}
+  function initializeGpuMapRenderer(){gpuMapRenderer=createMapRenderer(dependencies,{productMode:'editor'});}
 
   return Object.freeze({
     connect,
