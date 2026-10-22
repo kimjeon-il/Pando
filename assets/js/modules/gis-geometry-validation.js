@@ -160,10 +160,17 @@ export function validateCollection(collection, affectedIds = null, { overlapAffe
       for (let leftIndex = 0; leftIndex < leftPolygons.length; leftIndex += 1) {
         for (let rightIndex = 0; rightIndex < rightPolygons.length; rightIndex += 1) {
           if (!boundsOverlap(componentBounds[i][leftIndex], componentBounds[j][rightIndex])) continue;
-          const componentOverlap = robustPolygonIntersection(
-            [leftPolygons[leftIndex]],
-            [rightPolygons[rightIndex]],
-          );
+          let componentOverlap;
+          try {
+            componentOverlap = robustPolygonIntersection(
+              [leftPolygons[leftIndex]],
+              [rightPolygons[rightIndex]],
+            );
+          } catch (error) {
+            // Surface the exact topological pair that rejected the calculation;
+            // never silently accept an unverified country overlap.
+            throw new Error(`COUNTRY_OVERLAP_CALCULATION_FAILED: ${ids[i]}/${ids[j]} polygon ${leftIndex}/${rightIndex}: ${error.message}`, { cause: error });
+          }
           if (!componentOverlap?.length) continue;
           overlap.push(...componentOverlap);
           overlapPlanarArea += planarArea(componentOverlap);
