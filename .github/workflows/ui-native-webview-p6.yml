@@ -5,6 +5,8 @@ on:
     branches: [work/ui]
     paths:
       - '.github/workflows/ui-native-webview-p6.yml'
+      - 'apps/web-shell/diagnostics.js'
+      - 'apps/web-shell/tests/diagnostic-snapshot-difference.test.mjs'
 
 permissions:
   contents: read
