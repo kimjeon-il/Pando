@@ -30,6 +30,7 @@ REVIEWED_TARGETS = {
     'ITA/SMR': {'pair': ('ITA', 'SMR'), 'enclave': 'SMR'},
     'ITA/VAT': {'pair': ('ITA', 'VAT'), 'enclave': 'VAT', 'simplify': False},
     'LSO/ZAF': {'pair': ('LSO', 'ZAF'), 'enclave': 'LSO'},
+    'FRA/MCO': {'pair': ('FRA', 'MCO'), 'coastal': 'MCO', 'simplify': False},
 }
 
 
@@ -70,6 +71,31 @@ def reviewed_reference(root, manifest_path):
 def json_write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def reviewed_coast_reference(root, manifest_path):
+    """The approved Monaco high-water coastline, never a general source override."""
+    path = Path(manifest_path)
+    path = path if path.is_absolute() else root / path
+    metadata = json.loads(path.read_text(encoding='utf-8'))
+    if (metadata['schemaVersion'] != 1 or metadata['countries'] != ['FRA', 'MCO']
+            or metadata['sourceId'] != 'ign-bdtopo-v3-monaco-coast' or metadata['sourceCrs'] != 'EPSG:4326'
+            or set(metadata['features']) != {'monaco', 'west', 'east'}):
+        raise ValueError('Not the explicitly reviewed Monaco coast manifest')
+    raw = (root / metadata['sourceFile']).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != metadata['sourceFileSha256']:
+        raise ValueError('Reviewed coast differs from pinned evidence')
+    features = json.loads(raw)['features']
+    coasts = {}
+    for role, identifier in metadata['features'].items():
+        matches = [f for f in features if f['properties']['cleabs'] == identifier]
+        if len(matches) != 1 or matches[0]['properties']['niveau'] != 'Plus hautes eaux':
+            raise ValueError('Reviewed coast must identify exactly one high-water feature per role')
+        line = shape(matches[0]['geometry'])
+        if line.geom_type != 'LineString' or not line.is_simple or line.is_ring:
+            raise ValueError('Reviewed high-water coast must be a simple open line')
+        coasts[role] = line
+    return coasts, {**metadata, 'referenceManifest': path.relative_to(root).as_posix()}
 
 
 def read_shapefile(dbf, shp):
@@ -162,7 +188,7 @@ def replacement_chain(old, reference):
 
 
 def replace_chain(geometry, old, replacement):
-    result = copy.deepcopy(geometry)
+    result = json.loads(json.dumps(geometry))
     polygons = [result['coordinates']] if result['type'] == 'Polygon' else result['coordinates']
     start, end = tuple(old[0]), tuple(old[-1])
     if start == end:
@@ -180,7 +206,6 @@ def replace_chain(geometry, old, replacement):
             points.reverse()
         matches[0][:] = [list(point) for point in points]
         return result
-    witness = tuple(old[len(old) // 2])
     matches = []
     for polygon in polygons:
         for ring in polygon:
@@ -214,7 +239,13 @@ def replace_chain(geometry, old, replacement):
     rotated = points[at:] + points[:at]
     last = rotated.index(end)
     direct = rotated[:last + 1]
-    if witness in direct:
+    other = list(reversed(rotated[last:] + rotated[:1]))
+    old_line = LineString(old)
+    matches = [abs(LineString(arc).length - old_line.length) < 1e-10
+               and LineString(arc).hausdorff_distance(old_line) < 1e-10 for arc in (direct, other)]
+    if sum(matches) != 1:
+        raise ValueError('Old chain does not identify exactly one owning arc')
+    if matches[0]:
         new = list(replacement) + rotated[last + 1:]
     else:
         new = direct[:-1] + list(reversed(replacement))
@@ -248,6 +279,13 @@ def apply_country_patches(geometries, patches):
     for code, entries in patches.items():
         for entry in entries:
             result[code] = replace_chain(result[code], entry['old'], entry['replacement'])
+    validate_country_repair(geometries, result)
+    return result
+
+
+def validate_country_repair(geometries, result, expected_union=None, corrected_country=None):
+    if set(geometries) != set(result):
+        raise ValueError('Candidate country set changed')
     before = {code: shape(geometry) for code, geometry in geometries.items()}
     after = {code: shape(geometry) for code, geometry in result.items()}
     invalid = {code: shapely.is_valid_reason(geometry) for code, geometry in after.items() if not geometry.is_valid}
@@ -258,8 +296,10 @@ def apply_country_patches(geometries, patches):
            for i, a in enumerate(codes) for b in codes[i + 1:]):
         raise ValueError('Candidate counterpart ownership overlaps')
     before_union, after_union = shapely.union_all(list(before.values())), shapely.union_all(list(after.values()))
-    if before_union.symmetric_difference(after_union).area > 1e-9:
-        raise ValueError('Land/coastline union changed')
+    if expected_union is None:
+        expected_union = before_union
+    if expected_union.symmetric_difference(after_union).area > 1e-9:
+        raise ValueError('Land/coastline union changed outside reviewed coast')
     for code, previous in before.items():
         current = after[code]
         if len(component_points(previous)) != len(component_points(current)):
@@ -267,9 +307,91 @@ def apply_country_patches(geometries, patches):
         parts = lambda g: list(g.geoms) if g.geom_type == 'MultiPolygon' else [g]
         if sum(len(p.interiors) for p in parts(previous)) != sum(len(p.interiors) for p in parts(current)):
             raise ValueError('Enclave hole count changed')
-        if any(not current.covers(point) for point in component_points(previous)):
+        if code != corrected_country and any(not current.covers(point) for point in component_points(previous)):
             raise ValueError('Existing component attribution changed')
-    return result
+
+
+def validate_coastal_repair(geometries, result, review):
+    if set(geometries) != {'FRA', 'MCO'}:
+        raise ValueError('Coast correction is restricted to FRA/MCO')
+    before_union = shapely.union_all([shape(g) for g in geometries.values()])
+    expected = shape(replace_chain(mapping(before_union), review['oldChain'], review['replacementChain']))
+    if not expected.is_valid:
+        raise ValueError('Reviewed coast does not form a valid land mask')
+    validate_country_repair(geometries, result, expected, corrected_country='MCO')
+
+
+def repair_coastal_boundary(geometries, reference, coasts):
+    """Replace only the approved FRA/MCO shore arc, then assign its two owners."""
+    if set(geometries) != {'FRA', 'MCO'} or set(coasts) != {'monaco', 'west', 'east'}:
+        raise ValueError('Coast correction is restricted to FRA/MCO and three reviewed coasts')
+    if reference.geom_type != 'LineString' or reference.is_ring or not reference.is_simple:
+        raise ValueError('Coastal land reference must be one simple open line')
+    if any(line.geom_type != 'LineString' or line.is_ring or not line.is_simple for line in coasts.values()):
+        raise ValueError('Reviewed coasts must be simple open lines')
+    border = coordinates(reference)
+    if border[0][0] > border[-1][0]:
+        border.reverse()
+    coast = coordinates(coasts['monaco'])
+    if Point(coast[0]).distance(Point(border[-1])) > Point(coast[-1]).distance(Point(border[-1])):
+        coast.reverse()
+    junctions = [coast[-1], coast[0]]
+    endpoint_offsets = [Point(a).distance(Point(b)) * SCALE for a, b in zip((border[0], border[-1]), junctions)]
+    if max(endpoint_offsets) > .5:
+        raise ValueError('Coastal land endpoint move exceeds 0.5px')
+    border[0], border[-1] = junctions
+    before_union = shapely.union_all([shape(g) for g in geometries.values()])
+    branches, anchors = {}, []
+    for role, junction in zip(('west', 'east'), junctions):
+        points = coordinates(coasts[role])
+        if Point(points[0]).distance(Point(junction)) > Point(points[-1]).distance(Point(junction)):
+            points.reverse()
+        if Point(points[0]).distance(Point(junction)) * SCALE > .5:
+            raise ValueError('Reviewed coast endpoint does not meet the national boundary')
+        branch = LineString(points)
+        candidates = [p for p in intersection_anchors(branch.intersection(before_union.boundary))
+                      if branch.project(p) > 1e-11]
+        if not candidates:
+            raise ValueError(f'No safe outer coast anchor for {role}')
+        anchor = min(candidates, key=branch.project)
+        detail = coordinates(substring(branch, 0, branch.project(anchor)))
+        detail[0], detail[-1] = junction, tuple(anchor.coords[0])
+        branches[role] = detail
+        anchors.append(tuple(anchor.coords[0]))
+    polygons = list(before_union.geoms) if before_union.geom_type == 'MultiPolygon' else [before_union]
+    rings = [LineString(p.exterior.coords) for p in polygons
+             if all(p.exterior.distance(Point(a)) < 1e-11 for a in anchors)]
+    if len(rings) != 1:
+        raise ValueError('Outer coast anchors do not identify one land component')
+    ring = rings[0]
+    a, b = [ring.project(Point(p)) for p in anchors]
+    lo, hi = sorted((a, b))
+    direct = coordinates(substring(ring, lo, hi))
+    other = join_paths(coordinates(substring(ring, hi, ring.length)), coordinates(substring(ring, 0, lo)))
+    old = min((direct, other), key=lambda points: LineString(points).length)
+    if Point(old[0]).distance(Point(anchors[0])) > Point(old[-1]).distance(Point(anchors[0])):
+        old.reverse()
+    old[0], old[-1] = anchors
+    replacement = join_paths(list(reversed(branches['west'])), list(reversed(coast)), branches['east'])
+    review = {'oldChain': old, 'replacementChain': replacement, 'outerAnchors': anchors,
+              'endpointOffsetsCssPx': endpoint_offsets}
+    expected = shape(replace_chain(mapping(before_union), old, replacement))
+    monaco = Polygon(join_paths(border, coast))
+    if (not expected.is_valid or not monaco.is_valid or monaco.interiors
+            or monaco.difference(expected).area > 1e-10):
+        raise ValueError('Reviewed coastline and border do not bound one Monaco polygon')
+    result = {'MCO': mapping(monaco), 'FRA': mapping(expected.difference(monaco))}
+    validate_coastal_repair(geometries, result, review)
+    if not shape(result['FRA']).boundary.intersection(monaco.boundary).equals(LineString(border)):
+        raise ValueError('Coastal counterparts do not share exactly the national boundary')
+    sections = [{'countries': ('FRA', 'MCO'), 'anchors': junctions,
+                 'master_vertices': len(reference.coords), 'derived_vertices': len(border),
+                 'simplification_bound_px': 0}]
+    for role, points, code in [('monaco', coast, 'MCO'), ('west', branches['west'], 'FRA'), ('east', branches['east'], 'FRA')]:
+        sections.append({'countries': (code,), 'kind': 'coastline', 'referenceRole': role,
+                         'anchors': [points[0], points[-1]], 'master_vertices': len(coasts[role].coords),
+                         'derived_vertices': len(points), 'simplification_bound_px': 0})
+    return result, sections, review
 
 
 def extract_shared_chains(geometries):
@@ -414,7 +536,7 @@ def repair_enclave_boundary(geometries, reference, pair, enclave, simplify=True)
         'simplification_bound_px': SIMPLIFY_DEGREES * SCALE if simplify else 0}]
 
 
-def targeted_candidates(root, output, targets, reference_manifest=None):
+def targeted_candidates(root, output, targets, reference_manifest=None, coast_manifest=None):
     """Accumulate explicitly reviewed targets; emit each country only once."""
     targets = list(dict.fromkeys(targets))
     if not targets or any(target not in REVIEWED_TARGETS for target in targets):
@@ -462,10 +584,22 @@ def targeted_candidates(root, output, targets, reference_manifest=None):
         if '/'.join(pair) not in targets:
             raise ValueError('Reviewed reference target was not explicitly selected')
         references[pair], ids[pair], overrides[pair] = reference, [metadata['featureGlobalId']], metadata
-    updated, sections = copy.deepcopy(geometries), []
+    coasts, coast_metadata = None, None
+    if coast_manifest is not None:
+        if 'FRA/MCO' not in targets:
+            raise ValueError('Reviewed coast target was not explicitly selected')
+        coasts, coast_metadata = reviewed_coast_reference(root, coast_manifest)
+    elif any('coastal' in plan for plan in plans):
+        raise ValueError('FRA/MCO requires a pinned reviewed coast manifest')
+    updated, sections, coast_reviews = copy.deepcopy(geometries), [], {}
     for target, plan in zip(targets, plans):
         pair = plan['pair']
-        if 'junctionCountry' in plan:
+        if 'coastal' in plan:
+            changed, current_sections, review = repair_coastal_boundary(
+                {code: updated[code] for code in pair}, references[pair], coasts)
+            coast_reviews[target] = review
+            status = 'supplemented-with-reviewed-coast'
+        elif 'junctionCountry' in plan:
             third = plan['junctionCountry']
             changed, current_sections = repair_tripoint_boundary(
                 {code: updated[code] for code in (*pair, third)}, references, pair, third)
@@ -477,10 +611,17 @@ def targeted_candidates(root, output, targets, reference_manifest=None):
             status = 'supplemented-with-reviewed-enclave'
         updated.update(changed)
         sections.extend({**section, 'target': target, 'status': status} for section in current_sections)
-    boundaries = [{'countries': list(section['countries']), 'sourceLineIds': ids[section['countries']],
+    boundaries = [{'countries': list(section['countries']),
+        'sourceLineIds': [coast_metadata['features'][section['referenceRole']]]
+            if section.get('kind') == 'coastline' else ids[section['countries']],
         'status': section['status'], 'segments': [{k: v for k, v in section.items() if k != 'countries'}]}
         for section in sections]
     for entry in boundaries:
+        if entry['segments'][0].get('kind') == 'coastline':
+            entry.update({'kind': 'coastline', 'referenceRole': entry['segments'][0]['referenceRole'],
+                          'sourceId': coast_metadata['sourceId'],
+                          'referenceManifest': coast_metadata['referenceManifest']})
+            continue
         pair = tuple(entry['countries'])
         metadata = overrides.get(pair)
         entry['sourceId'] = metadata['sourceId'] if metadata else SOURCE_ID
@@ -521,12 +662,25 @@ def targeted_candidates(root, output, targets, reference_manifest=None):
             supplement['additionalSources'] = supplement.get('additionalSources', []) + attributions
             if not versions[code].get('modernBoundarySupplement'):
                 supplement['sourceFile'] = attributions[0]['sourceFile']
+        if coast_metadata and code in ('FRA', 'MCO'):
+            attribution = {key: coast_metadata[key] for key in
+                ('sourceId', 'title', 'published', 'url', 'license', 'licenseUrl', 'attribution', 'sourceFile',
+                 'retrieved', 'lastModified', 'confirmed')}
+            attributions.append(attribution)
+            supplement.update({'coastline': 'reviewed-ign-replacement',
+                               'coastlineReview': {'referenceManifest': coast_metadata['referenceManifest'],
+                                   'sourceId': coast_metadata['sourceId'], 'effectiveDateEstablished': False,
+                                   'historicalAccuracyVerified': False},
+                               'sourceId': '+'.join(key for key in source_ids if key != 'natural-earth-5.1.1')})
+            supplement['additionalSources'] = supplement.get('additionalSources', []) + [attribution]
         changes.append({'entityId': entities[code]['entityId'], 'geometryVersionId': versions[code]['versionId'],
             'inputFileSha256': hashes[code], 'sourceId': '+'.join(source_ids), 'sourceAttributions': attributions,
             'geometry': updated[code], 'supplement': supplement})
     result = {'schemaVersion': 1, 'sourceId': SOURCE_ID, 'sourcePublished': provenance['published'],
         'sourceRevision': json.loads((root / 'config/library-data.json').read_text(encoding='utf-8'))['revision'],
         'changes': changes, 'boundaries': boundaries}
+    if coast_reviews:
+        result['coastReviews'] = coast_reviews
     json_write(output, result)
     print(json.dumps({'targets': targets, 'changedCountries': len(changes), 'sections': len(sections), 'output': str(output)}))
 
@@ -538,14 +692,15 @@ def main():
     parser.add_argument('--target', action='append', choices=REVIEWED_TARGETS,
                         help='Explicitly reviewed target; repeat to accumulate countries in one candidate')
     parser.add_argument('--reviewed-reference', help='Pinned manifest for the reviewed IGM San Marino exception')
+    parser.add_argument('--reviewed-coast', help='Pinned high-water coast manifest; requires --target FRA/MCO')
     parser.add_argument('--output', default='build-native/lsib-supplement/candidates.json')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     if args.target:
-        targeted_candidates(root, Path(args.output), args.target, args.reviewed_reference)
+        targeted_candidates(root, Path(args.output), args.target, args.reviewed_reference, args.reviewed_coast)
         return
-    if args.reviewed_reference:
-        parser.error('--reviewed-reference requires an explicitly selected --target')
+    if args.reviewed_reference or args.reviewed_coast:
+        parser.error('Reviewed source manifests require an explicitly selected --target')
     if not args.archive or not args.disputed_directory:
         parser.error('--archive and --disputed-directory are required for an untargeted supplement')
     source_root = root / 'assets/data/territorial-entities/source'
