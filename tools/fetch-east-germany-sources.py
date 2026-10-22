@@ -10,6 +10,9 @@ from __future__ import annotations
 
 import json
 import pathlib
+import hashlib
+import sys
+from datetime import datetime, timezone
 import urllib.parse
 import urllib.request
 
@@ -22,6 +25,7 @@ NE_ADMIN1_URL = (
 )
 BKG_WFS = "https://sgx.geodatenzentrum.de/wfs_vg250"
 BERLIN_WFS = "https://gdi.berlin.de/services/wfs/berlinermauer"
+VG25_WFS = "https://sgx.geodatenzentrum.de/wfs_vg25"
 EAST_GERMAN_ADMIN1_IDS = {"DE-BB", "DE-MV", "DE-SN", "DE-ST", "DE-TH", "DE-BE"}
 
 
@@ -76,6 +80,49 @@ def write_json(name: str, payload: dict) -> None:
 
 def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
+
+    if sys.argv[1:] in (["--vg25"], ["--vg25-captured"]):
+        # Capture the source, not a new historical boundary. Admission is owned
+        # by the dated recipe and its reviewed section catalogue.
+        captured_path = OUTPUT / "bkg-vg25-eastern-lands-25832.geojson"
+        if sys.argv[1:] == ["--vg25"]:
+            collection = fetch_json(wfs_url(
+                VG25_WFS, "vg25:vg25_lan", "EPSG:25832",
+                "ags IN ('12','13','14','15','16')",
+            ))
+        else:
+            collection = json.loads(captured_path.read_text(encoding="utf-8"))
+        if {str(feature["properties"]["ags"]) for feature in collection.get("features", [])} != {"12", "13", "14", "15", "16"}:
+            raise RuntimeError("VG25 capture must contain the five eastern lands")
+        if sys.argv[1:] == ["--vg25"]:
+            write_json(captured_path.name, collection)
+        german = json.loads((ROOT / "assets/data/territorial-entities/source/countries/state-DEU.json").read_text(encoding="utf-8"))
+        german_version = next(version for version in german["geometryVersions"] if version["datePrecision"] == "current")
+        if "dos-lsib-11.4" not in german_version["sourceId"]:
+            raise RuntimeError("Current German source does not contain the adopted LSIB boundary")
+        write_json("adopted-german-lsib-exterior.geojson", {
+            "type": "FeatureCollection", "features": [{
+                "type": "Feature", "id": "DEU", "geometry": german_version["geometry"],
+                "properties": {"entityId": german["entityId"], "versionId": german_version["versionId"],
+                               "sourceId": german_version["sourceId"], "supplement": german_version["modernBoundarySupplement"]},
+            }],
+        })
+        provenance = {
+            "sourceId": "bkg-vg25-capture-2026-10-22", "service": VG25_WFS,
+            "capturedAt": datetime.fromtimestamp(captured_path.stat().st_mtime, timezone.utc).isoformat(),
+            "publishedReference": None,
+            "referenceNote": "Pinned WFS capture; product PDF and service catalogue advertise different vintages. Feature validity attributes are retained, not treated as historical observation dates.",
+            "license": "CC BY 4.0", "attribution": "© BKG 2026 CC BY 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "documentation": "https://gdz.bkg.bund.de/index.php/default/wfs-verwaltungsgebiete-1-25-000-stand-31-12-wfs-vg25.html",
+            "crs": "EPSG:25832", "historicalAccuracyVerified": False,
+            "files": {name: hashlib.sha256((OUTPUT / name).read_bytes()).hexdigest()
+                      for name in ("bkg-vg25-eastern-lands-25832.geojson", "adopted-german-lsib-exterior.geojson")},
+        }
+        write_json("bkg-vg25-provenance.json", provenance)
+        return
+    if sys.argv[1:]:
+        raise RuntimeError("Expected no argument, --vg25 or --vg25-captured")
 
     natural_earth = fetch_json(NE_ADMIN1_URL)
     selected = [
