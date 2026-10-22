@@ -127,7 +127,7 @@ export function createLibraryAssembly() {
       })) },
       commitStatus: '라이브러리 항목과 소속 관계를 한 번의 작업으로 추가했습니다.',
     }, {
-      countriesData: draft, affectedIds: [...affectedIds],
+      countriesData: draft, affectedIds: [...affectedIds], overlapAffectedIds: batch.overlapAffectedIds || [],
       counts: { added: prepared.length, subtracted: donorIds.size, deleted },
       countryPatchPresentation: preserveExistingScene ? 'preserve-existing-scene' : 'replace-scene',
     });

@@ -62,5 +62,5 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
   }).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
   const kept = new Set(draft.features.map(featureId));
   return { features: draft.features.filter(feature => affected.has(featureId(feature))), removedIds: originals.filter(feature => !kept.has(featureId(feature))).map(featureId),
-    affectedIds: [...affected], transfers, impacts, donorIds: [...donors], deleted };
+    affectedIds: [...affected], overlapAffectedIds: [...gainedTerritoryIds], transfers, impacts, donorIds: [...donors], deleted };
 }

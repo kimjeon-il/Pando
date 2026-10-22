@@ -12,6 +12,7 @@ self.PandoLabWorkerRpc.install({ handlers: {
   'gis.validate': async (payload, context) => {
     const { validateCollection } = await ready();
     context.throwIfCancelled();
-    return validateCollection(payload.collection, payload.affectedIds);
+    return validateCollection(payload.collection, payload.affectedIds,
+      { overlapAffectedIds: payload.overlapAffectedIds || null });
   },
 } });

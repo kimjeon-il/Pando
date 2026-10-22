@@ -49,9 +49,9 @@ export function createGisWorkflowController({
     });
     return pending;
   }
-  async function validateCountries(collection, affectedIds = null) {
+  async function validateCountries(collection, affectedIds = null, options = undefined) {
     await ensureGisServices();
-    return gisGeometryValidator.validate(collection, affectedIds);
+    return gisGeometryValidator.validate(collection, affectedIds, options);
   }
   async function planMerge(...args) {
     await ensureGisServices();
