@@ -191,9 +191,10 @@ void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,co
         if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.entityId==row.identity.id;}))eraseIdentity(d,row.identity.id);
     }
     Allocator allocate(d);
-    const auto parentEnd=[&](std::string parentId) -> std::optional<std::string> {
+    const auto parentPeriod=[&](std::string parentId,bool mapCoverage) -> Validity {
         while(!parentId.empty()) {
-            if(const auto old=previous.find(parentId);old!=previous.end())return before.rows[old->second].validity.to;
+            if(const auto old=previous.find(parentId);old!=previous.end())return mapCoverage
+                ?timelineMapCoverageAtMonth(d.timelineRecords,parentId,month):before.rows[old->second].validity;
             parentId=next[after.at(parentId)].parentId;
         }
         return {};
@@ -203,10 +204,12 @@ void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,co
         if(old==previous.end()) {
             require(std::none_of(d.units.begin(),d.units.end(),[&](const auto& unit){return unit.id==id;})&&!row.validity.from&&!row.validity.to,
                 "TIMELINE_ACTIVATION","A historical identity or explicit dates cannot be reused for a new current-month entity.");
-            const auto geometry=allocate.fresh(id,row.geometry);const Validity interval{month,parentEnd(row.parentId)};
+            const auto geometry=allocate.fresh(id,row.geometry);const Validity interval{month,parentPeriod(row.parentId,false).to};
+            const auto coverage=parentPeriod(row.parentId,true);
+            const Validity mapInterval{coverage.from&&parseTemporal(month).startKey<parseTemporal(*coverage.from).startKey?coverage.from:month,coverage.to};
             d.timelineRecords.lifetimes.push_back({allocate.record("lifetime:"+id),id,interval});
-            d.timelineRecords.geometryBindings.push_back({allocate.record("geometry:"+id),id,interval,geometry});
-            d.timelineRecords.parentRelations.push_back({allocate.record("parent:"+id),id,interval,row.parentId,row.coverageMode});
+            d.timelineRecords.geometryBindings.push_back({allocate.record("geometry:"+id),id,mapInterval,geometry});
+            d.timelineRecords.parentRelations.push_back({allocate.record("parent:"+id),id,mapInterval,row.parentId,row.coverageMode});
             setIdentity(d,row,true);
         } else {
             const auto& original=before.rows[old->second];

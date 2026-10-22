@@ -3,10 +3,10 @@ import test from 'node:test';
 import { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } from '../../assets/js/modules/timeline-edit.js';
 import { normalizeTimelineRecords } from '../../assets/js/modules/timeline-records.js';
 
-const records = { schemaVersion: 1, lifetimes: [], geometryBindings: [
+const records = { schemaVersion: 2, lifetimes: [], geometryBindings: [
   { id: 'A:original', entityId: 'A', validFrom: '1914-06-15', validTo: '1915-12', geometryRef: { id: 'shape', version: 1 } },
   { id: 'A:future', entityId: 'A', validFrom: '1916', validTo: null, geometryRef: { id: 'shape', version: 3 } },
-], parentRelations: [] };
+], parentRelations: [], propertyBindings: [] };
 
 test('dated geometry replacement retains exact original start and later versions', () => {
   const result = replaceTimelineRecordAtMonth(records, 'geometryBindings', 'A', '1914-07',
@@ -41,7 +41,7 @@ test('same-month replacement keeps its exact day and does not create overlap', (
 });
 
 test('parent change splits only its own slot and can be validated as one candidate', () => {
-  const source = { schemaVersion: 1,
+  const source = { schemaVersion: 2, propertyBindings: [],
     lifetimes: ['A', 'B', 'C'].map(id => ({ id: `life:${id}`, entityId: id, validFrom: null, validTo: null })),
     geometryBindings: ['A', 'B', 'C'].map(id => ({ id: `shape:${id}`, entityId: id, validFrom: null, validTo: null,
       geometryRef: { id: `shape:${id}`, version: 1 } })),
@@ -59,7 +59,7 @@ test('parent change splits only its own slot and can be validated as one candida
 });
 
 test('ending an entity removes future records but preserves earlier month coverage', () => {
-  const source = { schemaVersion: 1,
+  const source = { schemaVersion: 2, propertyBindings: [],
     lifetimes: [{ id: 'life:A', entityId: 'A', validFrom: null, validTo: null }],
     geometryBindings: [
       { id: 'shape:A:old', entityId: 'A', validFrom: null, validTo: '1914-06', geometryRef: { id: 'shape', version: 1 } },

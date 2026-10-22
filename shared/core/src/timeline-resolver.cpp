@@ -62,6 +62,31 @@ HistoricalSourceAvailability classifyHistoricalSourceAvailability(const Validity
     if(!validityContainsAtEnd(lifetime,point))return HistoricalSourceAvailability::Absent;
     return lifetime.from||lifetime.to?HistoricalSourceAvailability::GeometryGap:HistoricalSourceAvailability::Unknown;
 }
+Validity timelineMapCoverageAtMonth(const TimelineRecords& records,const std::string& id,const std::string& month) {
+    const auto cursor=parseTemporal(month);
+    if(cursor.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
+    const auto point=temporalMonthEnd(cursor.canonical);
+    std::vector<TemporalInterval> intervals;
+    for(const auto& row:records.geometryBindings)if(row.entityId==id)
+        intervals.push_back(normalizeTemporalInterval(row.validity.from,row.validity.to));
+    std::sort(intervals.begin(),intervals.end(),[](const auto& a,const auto& b) {
+        return b.start&&(!a.start||a.start->startKey<b.start->startKey);
+    });
+    std::optional<TemporalInterval> coverage;
+    for(const auto& interval:intervals) {
+        if(coverage&&coverage->end&&interval.start&&temporalFollowingDay(coverage->end->endKey)<interval.start->startKey) {
+            const Validity value{coverage->validFrom,coverage->validTo};
+            if(validityContainsAtEnd(value,point))return value;
+            coverage.reset();
+        }
+        coverage=coverage?normalizeTemporalInterval(coverage->validFrom,interval.validTo):interval;
+    }
+    if(coverage) {
+        const Validity value{coverage->validFrom,coverage->validTo};
+        if(validityContainsAtEnd(value,point))return value;
+    }
+    throw TimelineError("TIMELINE_INACTIVE","No map coverage for "+id+" at "+month);
+}
 ResolvedWorld resolveWorld(const TimelineRecords& records,const TimelineValidationContext& context,
                            const std::string& month) {
     const auto cursor=parseTemporal(month);
@@ -74,6 +99,7 @@ ResolvedWorld resolveWorld(const TimelineRecords& records,const TimelineValidati
         if(!lifetime)continue;
         const auto* geometry=selected(normalized.geometryBindings,identity.id,point);
         const auto* parent=selected(normalized.parentRelations,identity.id,point);
+        if(!geometry)continue; // Validated paired coverage may be absent during a lifetime.
         result.entities.push_back({identity.id,geometry->geometryRef,parent->parentId,parent->coverageMode});
         result.entities.back().validity=lifetime->validity;
         for(const auto& property:normalized.propertyBindings)if(property.entityId==identity.id&&active(property.validity,point))

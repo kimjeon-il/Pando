@@ -119,6 +119,12 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
         rows=std::move(kept);
     };
     truncate(result.lifetimes);truncate(result.geometryBindings);truncate(result.parentRelations);truncate(result.propertyBindings);
+    // Explicit deletion of the final map interval removes the project identity
+    // through existing callers, even when source lifetime dates precede the map.
+    if(std::none_of(result.geometryBindings.begin(),result.geometryBindings.end(),[&](const auto& row){return row.entityId==id;})) {
+        const auto erase=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return row.entityId==id;}),rows.end());};
+        erase(result.lifetimes);erase(result.parentRelations);erase(result.propertyBindings);
+    }
     return result;
 }
 TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords& original,const std::string& id,

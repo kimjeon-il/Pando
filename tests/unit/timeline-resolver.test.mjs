@@ -51,7 +51,7 @@ test('month-end resolution includes exact starts and excludes exact mid-month en
 
 test('initial month uses the latest explicit record start and static fallback', () => {
   assert.equal(initialTimelineMonth(storage.records, '2026-10'), '1916-01');
-  assert.equal(initialTimelineMonth({ schemaVersion: 1, lifetimes: [{ id: 'life:A', entityId: 'A', validFrom: null, validTo: null }], geometryBindings: [], parentRelations: [] }, '2026-10'), '2026-10');
+  assert.equal(initialTimelineMonth({ schemaVersion: 2, propertyBindings: [], lifetimes: [{ id: 'life:A', entityId: 'A', validFrom: null, validTo: null }], geometryBindings: [], parentRelations: [] }, '2026-10'), '2026-10');
 });
 
 test('independent timeline golden months match effective identity, version and ancestry', () => {

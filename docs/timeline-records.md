@@ -2,6 +2,10 @@
 
 Date: 2026-10-04. Normative companion to `docs/timeline-contract.md`.
 
+Updated 2026-10-21: the current schema and independent lifetime/map-coverage
+contract below supersede T2-1's full-coverage rule. The T2 verification record
+at the end remains historical evidence for that earlier implementation.
+
 ## Scope and integration boundary
 
 T2-1 implements a pure, validated **record value**, not an application store or a
@@ -17,14 +21,15 @@ The branch inputs are web `c01084dc32f519949bb92a610b064170fdff6a40` and app
 entities; app still has Country/Subunit/Region and a different project codec.
 Do not pretend these full project formats are already interchangeable.
 
-## Record shape (schemaVersion 1)
+## Current record shape (schemaVersion 2)
 
 ```text
 TimelineRecords {
-  schemaVersion: 1,
+  schemaVersion: 2,
   lifetimes:       [{ id, entityId, validFrom, validTo }],
   geometryBindings:[{ id, entityId, validFrom, validTo, geometryRef: { id, version } }],
-  parentRelations:[{ id, entityId, validFrom, validTo, parentId, coverageMode }]
+  parentRelations:[{ id, entityId, validFrom, validTo, parentId, coverageMode }],
+  propertyBindings:[{ id, entityId, validFrom, validTo, property, value }]
 }
 ```
 
@@ -37,7 +42,7 @@ means no administrative parent; it is not a missing value to fill from a base.
 `coverageMode` is `partition` or `explicit`.
 
 IDs are nonempty opaque strings, compared exactly and never converted from a
-number or an array index. Record IDs are unique across the three collections.
+number or an array index. Record IDs are unique across the four collections.
 Logical entity IDs, record IDs, source IDs, and geometry references are different
 identity domains. A geometry reference is a nonempty ID plus an integer version
 in 1..4294967295. Reuse the app's existing GeometryRef type, not a new geometry
@@ -61,7 +66,7 @@ geometry storage, the current project, history, or selection. Web returns deeply
 frozen records and references. Native returns a value with no shared mutable
 geometry. No singleton, cache, selection owner, or revision is introduced.
 
-## Lifetimes and full coverage
+## Lifetimes and map coverage
 
 Each catalog entity must have at least one explicit lifetime. Multiple disjoint
 lifetimes are allowed (e.g. an entity that ceases to exist and later reappears).
@@ -70,21 +75,23 @@ An empty catalog with empty collections is valid.
 All intervals have inclusive endpoints. At any valid calendar day:
 
 - A logical entity has zero or one active lifetime, never two.
-- While alive, it has exactly one active geometry binding and one parent record.
+- While alive, it has either one active geometry binding and one parent record,
+  or neither when map data is unavailable. A gap in map data does not shorten
+  the entity's lifetime or alter the precision of its source dates.
 - While not alive, it has neither active geometry nor active parent records.
 - There is no implicit timeless/default record, inheritance from the currently
   displayed world, last-write-wins, or array-order priority.
 
-Thus missing geometry/parent coverage, one-day gaps, and shared inclusive
-endpoints between records are errors. Adjacent months and adjacent calendar days
+Thus mismatched geometry/parent coverage and shared inclusive endpoints between
+records are errors. Paired map-data gaps are allowed. Adjacent months and calendar days
 are valid transitions. Precision is retained in storage; comparisons use the T1
 temporal parser. BCE/CE adjacency skips year zero; the T1 leap-year convention is
 unchanged. Records may cross adjacent lifetime records, but not a gap in existence.
 
 ## Administrative relationships
 
-Both ends of a nonempty parent relationship must be general entities and alive
-throughout the relationship. Regional entities have no parent and cannot be a
+Both ends of a nonempty parent relationship must be general entities and have
+map coverage throughout the relationship. Regional entities have no parent and cannot be a
 parent. Roots and regional entities must use explicit coverage. Self-parenting
 and cycles are errors at **every** date, including a single day not visible in a
 monthly UI. Opposite edges in disjoint periods are not automatically a cycle.
