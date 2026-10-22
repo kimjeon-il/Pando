@@ -63,7 +63,7 @@ for (const setup of [
       toggle.click();
     });
     await expect.poll(async () => (await stats()).mapReadiness.status, { timeout: 15000 }).toBe('ready');
-    await expect(page.locator('#mapPreparationStatus')).toContainText('현재 화면 준비 완료');
+    await expect(page.locator('#mapPreparationNotice')).toBeHidden();
     expect(errors).toEqual([]);
   });
 });

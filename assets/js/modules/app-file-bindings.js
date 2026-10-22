@@ -67,7 +67,7 @@ export function createFileBindings({libraryGeometryContext=null}={}) {
         .then(controller => controller.open())
         .catch(error => (0, dependencies.feedback.reportOperationError)(error, 'GIS 내보내기 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-002', 4200));
     });
-    createPreferencesDialog({ document,
+    createPreferencesDialog({ document, productMode: 'editor',
       returnFocus: () => dependencies.platform.$(dependencies.surfaces.layoutMode === 'mobile' ? 'mobilePreferencesBtn' : 'preferencesBtn'),
       getPreferences: () => dependencies.preferences.userPreferences,
       applyPreferences: value => dependencies.countryLabelModel.applyUserPreferences(value, { persist: false }),
