@@ -67,3 +67,19 @@ test('interaction anti-aliasing is explicit style state instead of a DOM lookup'
     assert.equal(resolveMapStrokeStyle(crisp, role).antiAlias, false);
   }
 });
+
+test('hover and selection request union coverage while preserving their ink and anti-aliasing', () => {
+  for (const antiAlias of [true, false]) {
+    const interaction = resolveMapInteractionStyle({ selectionColor: '#315e9d', antiAlias });
+    for (const [role, width, alpha] of [['hover', 1.5, 0.85], ['secondary', 1.5, 0.72], ['primary', 2.5, 1]]) {
+      const style = resolveMapStrokeStyle(interaction, role);
+      assert.equal(style.coverage, 'union', role);
+      assert.equal(style.color, '#315e9d', role);
+      assert.equal(style.width, width, role);
+      assert.equal(style.alpha, alpha, role);
+      assert.equal(style.antiAlias, antiAlias, role);
+    }
+    assert.notEqual(resolveMapStrokeStyle(interaction, 'candidate').coverage, 'union');
+    assert.notEqual(resolveMapStrokeStyle(interaction, 'edit-target').coverage, 'union');
+  }
+});
