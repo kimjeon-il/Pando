@@ -20,7 +20,7 @@ test('web keeps common tooltips and selection without a separate information pan
   await page.getByLabel('지도에서 찾기',{exact:true}).fill('선택 유지');
   await page.locator('#objectSearchResults button').filter({hasText:'선택 유지'}).first().click();
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.selectionSnapshot().items.length)).toBe(1);
-  await expect(page.locator('#viewerStatus')).toContainText('선택 유지');
+  await expect(page.locator('#viewerSelectionStatus')).toContainText('선택 유지');
   await expect(page.locator('#viewerInfoPanel')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
