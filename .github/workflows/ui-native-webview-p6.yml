@@ -52,6 +52,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node apps/web-shell/check-stage.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify field-difference diagnostic only
+        shell: pwsh
+        run: |
+          node --test apps/web-shell/tests/diagnostic-snapshot-difference.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build native Windows MSVC Tauri executable
         shell: pwsh
         run: |
@@ -72,6 +77,20 @@ jobs:
             }
           }
           Write-Output 'WINDOWS_NATIVE_WEBVIEW2_P6_PASS'
+      - name: Display reopened snapshot differences
+        if: always()
+        shell: pwsh
+        run: |
+          $path = 'build-native/web-shell/windows-reopen.json'
+          if (Test-Path -LiteralPath $path) {
+            $report = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+            if ($report.error.snapshotDifference) {
+              Write-Output 'WINDOWS_REOPEN_SNAPSHOT_DIFFERENCE'
+              $report.error.snapshotDifference | ConvertTo-Json -Depth 10
+            } else {
+              Write-Output 'No saved-versus-reopened document field difference was captured.'
+            }
+          }
       - name: Save Windows native runtime reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,6 +104,7 @@ jobs:
             apps/web-shell/dist/shell/stage-evidence.json
 
   android-emulator-webview:
+    if: ${{ !contains(github.event.head_commit.message, '[windows-diff]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 80
     env:
