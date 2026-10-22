@@ -1286,9 +1286,19 @@
   white-space: nowrap;
 }
 
+.editor-action-row[data-action-reason="true"] > span > small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 799px) {
   .editor-action-row > span > small {
     display: none;
+  }
+
+  /* A disabled-action reason is essential feedback, unlike routine help. */
+  .editor-action-row[data-action-reason="true"] > span > small:not(:empty) {
+    display: block;
   }
 }
 
