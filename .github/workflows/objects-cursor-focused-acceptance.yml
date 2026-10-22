@@ -94,6 +94,8 @@ jobs:
       - uses: pnpm/action-setup@v4
       - name: Install pinned browser deps
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Assert source-matched WASM for actual browser validation
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run actual Soviet selection and historical world roundtrip contracts
@@ -127,6 +129,8 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Require rebuilt source-matched WASM before browser testing
         run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - name: Assert source-matched WASM for actual browser validation
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Repeat new-project reset then verify real dated-view acceptance
@@ -137,6 +141,15 @@ jobs:
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: pnpm exec playwright test tests/browser/editor-flat-document.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Verify browser Undo/Redo for deletion and distribution edits
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: >-
+          pnpm exec playwright test
+          tests/browser/territorial-common-commands.spec.mjs
+          tests/browser/distribution.spec.mjs
+          --grep 'common territorial metadata, flags and deletion preserve selection, undo and saved state|a numeric distribution stores signed values and survives undo and redo'
+          --workers=1 --retries=0 --trace off
       - name: Preserve reset failure evidence
         if: always()
         uses: actions/upload-artifact@v4
