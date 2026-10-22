@@ -281,7 +281,7 @@ projectcodec::PlatformPorts documentPorts(const val& options) {
         if(!result.isUndefined()&&!result.isNull()&&type(result,"object")&&type(result["then"],"function"))
             fail("CODEC_PLATFORM_ASYNC","The flag validator must finish before preparing a candidate.");
         if(type(result,"boolean")&&!result.as<bool>())fail("INVALID_FLAG","The platform rejected the flag.");
-    },true,codecjson::ParsedTextPolicy::PreserveUtf16,projectcodec::LabelReferencePolicy::WebNonOwning};
+    },true,codecjson::ParsedTextPolicy::PreserveUtf16};
 }
 std::vector<ObjectRef> commandTargets(const val& input) {
     const auto rows=input["targets"];array(rows,"CORE_COMMAND_TARGETS");std::vector<ObjectRef> result;

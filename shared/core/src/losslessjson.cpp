@@ -49,7 +49,7 @@ std::string quoted(const std::string& text) {
     output+='"';return output;
 }
 class Parser {
-    const std::string& data;ParsedTextPolicy textPolicy;std::size_t pos=0;
+    const std::string& data;std::size_t pos=0;
     void ws() { while(pos<data.size()&&(data[pos]==' '||data[pos]=='\r'||data[pos]=='\n'||data[pos]=='\t'))++pos; }
     bool digit() const { return pos<data.size()&&data[pos]>='0'&&data[pos]<='9'; }
     std::uint32_t unit() {
@@ -84,8 +84,7 @@ class Parser {
                     // Qt's decoded QString::toStdString replaces an unpaired
                     // UTF-16 unit with '?'. Web JSON retains that unit. This is
                     // applied before duplicate-key detection, never to raw tokens.
-                    if(textPolicy==ParsedTextPolicy::QtUtf8&&code>=0xd800&&code<=0xdfff)code='?';
-                    utf8(value.string,code);break;
+                                        utf8(value.string,code);break;
                 }
                 default:throw std::invalid_argument("INVALID_JSON: invalid escape");
                 }
@@ -126,7 +125,7 @@ class Parser {
         Value result;result.kind=Value::Number;result.raw=data.substr(start,pos-start);return result;
     }
 public:
-    Parser(const std::string& bytes,ParsedTextPolicy policy):data(bytes),textPolicy(policy){}
+    Parser(const std::string& bytes,ParsedTextPolicy):data(bytes){}
     Value parse() {
         require(data.size()<=256ull*1024*1024,"LIMIT_EXCEEDED: JSON exceeds 256 MiB");if(data.compare(0,3,"\xef\xbb\xbf")==0)pos=3;
         auto result=value(0);ws();require(pos==data.size(),"INVALID_JSON: trailing data");return result;

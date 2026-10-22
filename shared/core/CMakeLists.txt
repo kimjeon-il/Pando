@@ -25,11 +25,8 @@ if(NOT EMSCRIPTEN)
 endif()
 
 add_library(pandoeditor_core STATIC
-    src/geobounds.cpp
-    src/spatialindex.cpp
     src/hydroformat.cpp
     src/hydroviewport.cpp
-    src/maprenderorder.cpp
     src/project.cpp
     src/presentation.cpp
     src/presentationcommands.cpp

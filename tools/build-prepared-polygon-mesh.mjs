@@ -42,7 +42,7 @@ source('assets/data/physical-land/v1/geometry.json.gz');
 const sourceIndex=readJson('assets/data/territorial-entities/generated/v2/index.json');
 for(const entity of sourceIndex.entities)source(`assets/data/territorial-entities/generated/v2/${entity.file}`);
 const months=new Set();
-for(const country of countries)for(const rows of Object.values(country.modes))for(const row of rows.lifetimes)
+for(const country of countries)for(const rows of Object.values(country.modes))for(const row of [...rows.geometryBindings,...rows.parentRelations])
  for(const value of [row.validFrom,row.validTo])if(value)for(const offset of [-1,0,1])months.add(shiftTemporalMonth(value.slice(0,-3),offset));
 const precisionDiscards=[],seenScopes=new Set();
 for(const month of [...months].sort())for(const currentMonth of [null,month]){

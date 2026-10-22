@@ -1,0 +1,6 @@
+{
+  "sourceCommit": "00b5616f2348a78b01dfe8188d3cab504d895cca",
+  "sourcePath": "scripts/research/geographic-index-parity.cpp",
+  "sha256": "59efe05f8b00b94c258f0def1c7f98c1f657e02d2a2b02014889b8fc558053c8",
+  "purpose": "Frozen exact containment/overlap corpus; timings in this original probe are not acceptance measurements."
+}
