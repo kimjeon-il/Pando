@@ -1,15 +1,21 @@
-<div class="status-group timeline-status" aria-label="시점 이동">
-          <button id="timelinePreviousYear" class="ui-button ghost timeline-step" type="button" aria-label="1년 이전" data-tooltip="1년 이전">«</button>
-              <button id="timelinePreviousMonth" class="ui-button ghost timeline-step" type="button" aria-label="1개월 이전" data-tooltip="1개월 이전">‹</button>
-              <span class="timeline-month-control">
-                <button id="timelineMonthButton" class="ui-button timeline-month-button" type="button" aria-label="시점 직접 입력" data-tooltip="시점 직접 입력">
-                  <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
-                  <span id="timelineMonthButtonText">현재 시점</span>
-                </button>
-                <input id="timelineMonthInput" class="timeline-month-input" type="text" inputmode="text" enterkeyhint="done" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="연월 입력" aria-describedby="timelineMonthError" placeholder="YYYY-MM" hidden />
-              </span>
-              <button id="timelineNextMonth" class="ui-button ghost timeline-step" type="button" aria-label="1개월 이후" data-tooltip="1개월 이후">›</button>
-              <button id="timelineNextYear" class="ui-button ghost timeline-step" type="button" aria-label="1년 이후" data-tooltip="1년 이후">»</button>
-              <span id="timelineMonthLabel" hidden>현재 월</span>
-              <span id="timelineMonthError" class="timeline-month-error" role="status" hidden></span>
-            </div>
+<div id="timelineControls" class="ui-toolbar ui-floating-surface timeline-controls" role="group" aria-label="시점 이동">
+  <button id="timelinePreviousYear" class="ui-button ghost timeline-step" type="button" aria-label="1년 이전" data-tooltip="1년 이전"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevrons-left"/></svg></button>
+  <button id="timelinePreviousMonth" class="ui-button ghost timeline-step" type="button" aria-label="1개월 이전" data-tooltip="1개월 이전"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-left"/></svg></button>
+  <button id="timelineMonthButton" class="ui-button ghost timeline-month-button" type="button" aria-label="시점 직접 입력" aria-haspopup="dialog" aria-controls="timelinePopover" aria-expanded="false"><svg class="ui-icon timeline-calendar-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-calendar"/></svg><span id="timelineMonthButtonText">현재 시점</span></button>
+  <button id="timelineNextMonth" class="ui-button ghost timeline-step" type="button" aria-label="1개월 이후" data-tooltip="1개월 이후"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+  <button id="timelineNextYear" class="ui-button ghost timeline-step" type="button" aria-label="1년 이후" data-tooltip="1년 이후"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevrons-right"/></svg></button>
+  <section id="timelinePopover" class="ui-floating-surface timeline-popover" role="dialog" aria-labelledby="timelinePopoverTitle" hidden>
+    <h2 id="timelinePopoverTitle">시점 이동</h2>
+    <form id="timelineDateForm" novalidate>
+      <label for="timelineYearInput">연도</label>
+      <input id="timelineYearInput" class="ui-input" type="text" inputmode="text" autocomplete="off" enterkeyhint="done" spellcheck="false" aria-describedby="timelineYearHint timelineMonthError" />
+      <label for="timelineMonthInput">월</label>
+      <select id="timelineMonthInput" class="ui-input" data-native-select aria-describedby="timelineMonthError">
+        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      </select>
+      <span id="timelineYearHint" class="timeline-year-hint">기원전 1년은 -1로 입력</span>
+      <span id="timelineMonthError" class="timeline-error" role="alert" hidden></span>
+      <button id="timelineGoBtn" class="ui-button btn timeline-go" type="submit">이동</button>
+    </form>
+  </section>
+</div>
