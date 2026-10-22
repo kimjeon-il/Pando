@@ -106,4 +106,16 @@
   :is(.editor-action-row, .ui-row-button):has(small:not(:empty)) {
     min-height: var(--design-command-description-height-mobile);
   }
+
+  /* Routine action descriptions are visually omitted on mobile, so they
+     must not reserve the extra description-row height. */
+  .editor-action-row:not([data-action-reason="true"]):has(small:not(:empty)) {
+    min-height: var(--ui-touch-height);
+  }
+
+  /* The mobile layout owner sets 48px on every action row. An actual
+     disabled reason must retain the shared 56px description-row minimum. */
+  .app-root[data-layout="mobile"] .editor-action-row[data-action-reason="true"]:has(small:not(:empty)) {
+    min-height: var(--design-command-description-height-mobile);
+  }
 }

@@ -127,6 +127,7 @@
   --ui-control-height: var(--design-control-md);
   --ui-touch-height: var(--design-touch-height);
   --ui-icon-control-mobile-size: var(--design-icon-control-mobile-size);
+  --ui-icon-control-size: var(--ui-control-height);
   --ui-control-padding-x: var(--ui-space-3);
   --ui-control-padding-y: var(--ui-space-2);
   --ui-control-gap: var(--design-button-gap);
@@ -248,7 +249,12 @@
 
 @media (max-width: 799px) {
   :root {
+    --ui-icon-control-size: var(--ui-icon-control-mobile-size);
     --ui-tree-row-height: var(--design-layer-row-height-mobile);
     --ui-tree-folder-height: var(--design-layer-row-height-mobile);
   }
+}
+
+:root:has(.app-root[data-layout="phone-landscape"]) {
+  --ui-icon-control-size: var(--ui-icon-control-mobile-size);
 }

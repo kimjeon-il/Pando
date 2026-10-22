@@ -263,6 +263,14 @@ async function completeAndCheck(page, context, expectedGeometry = null) {
     })));
     throw error;
   }
+  // The review must retain decisive facts even when the affected-object
+  // disclosure is omitted because it merely repeats receiver and donors.
+  await expect(page.locator('#geometryPreviewSummary')).toBeVisible();
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('넘겨받는 국가');
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('넘겨주는 국가');
+  await expect(page.locator('#geometryPreviewSummary')).toContainText('선택 영토');
+  await expect(page.locator('#modeTaskPeriod')).toBeVisible();
+  await expect(page.locator('#modeTaskAffectedSummary')).toHaveText(/영향 대상/);
   const previewFill = page.locator('path.editing-preview-path.geometry-preview-add.geometry-preview-fill');
   await expect(previewFill).toHaveCount(1, { timeout: 15_000 });
   const preview = await previewFill

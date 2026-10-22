@@ -239,12 +239,11 @@
     flex: 1 1 auto;
   }
 
-  .reference-image-panel .ui-button,
+  .reference-image-panel .ui-button:not(:is(.icon-btn, .ui-icon-button, .sheet-close-btn)),
   .reference-image-toggle-row label {
     min-height: var(--ui-touch-height);
   }
 
-  .reference-image-panel .icon-btn { min-width: var(--ui-touch-height); }
 }
 
 .surface-reference.reference-image-editing {
