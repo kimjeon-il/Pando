@@ -77,7 +77,11 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
   } else if (state.tool === 'merge-country' || state.tool === 'merge-territorial-unit') {
     const country = state.tool === 'merge-country';
     const source = country ? state.mergeSourceCountryId : state.territorialUnitMergeSourceId;
-    const type = '객체';
+    // Only nested general entities are subunits. Regional entities retain
+    // the existing generic object wording; generic-feature merge is retired.
+    const entity = country ? null : territorialEntityById(source);
+    const subunit = entity?.properties?.entityKind === 'general' && !!entity.properties.parentId;
+    const type = subunit ? '하위단위' : '객체';
     const ids = country ? state.mergeTargetCountryIds : state.territorialUnitMergeTargetIds;
     name = `${type} 합병`;
     stage = preview ? '합병 확인' : `합칠 ${type}`;
