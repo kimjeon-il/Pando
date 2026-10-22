@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "e3358a716040d593d44d4b127c2c0dac5147aa27b1c0e797a69cf758373b50f4",
+  "sourceSha256": "3e1d8d1ac0c30ae52d9c1bc0b7f82429545bf485e6a69bd0047e2f6d8222481b",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -41,7 +41,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/commands.h",
-      "sha256": "f053ae5cb118031d440a3996150baab01034b82fa06c8bef3d74d3011b8f4ff1"
+      "sha256": "25128d5d1397efe55651708af790164023835f11ae696a21fb07d1a02c713bfc"
     },
     {
       "path": "shared/core/include/pandoeditor/countrycontact.h",
@@ -57,7 +57,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
-      "sha256": "a21c2c68b655c6b19897d99a69f28a8732afbe1b7aef73a9b55b48bfbf7252d7"
+      "sha256": "f8888c3fc7c3e28a9f629a7d63237f9a55c36abee88e07dd6247ed44228c04e7"
     },
     {
       "path": "shared/core/include/pandoeditor/geometry-types.h",
@@ -77,7 +77,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/geometryprovenance.h",
-      "sha256": "2ca495801e5150a9ed9d3cc6e27389cf2ee2ac3f9f5a417bf6a70cf4abfbf48b"
+      "sha256": "c94f7419eeda4b429c5dbdf9759097dca3498a02cc10efcf4f64112a3ac9b7a3"
     },
     {
       "path": "shared/core/include/pandoeditor/geopackagegeometry.h",
@@ -149,7 +149,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/project.h",
-      "sha256": "bccc2b8cacee5801c1e8d6700895e78ddc17b0aecebdf16a172bd66ec009e7a3"
+      "sha256": "e8db419a82f6fd6902263c56ffa6f25ca7874c28362732c83e917c6035b4d27e"
     },
     {
       "path": "shared/core/include/pandoeditor/projectcodec.h",
@@ -169,7 +169,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/selection.h",
-      "sha256": "f409773cfbb7dbdfb6db8f5d965e184cb78c9c02ec70468e7245d56b678cd6c0"
+      "sha256": "1f254f84039f9a5212dd8b21486d68bf267bbc5c644f2a225f61de80ac75d261"
     },
     {
       "path": "shared/core/include/pandoeditor/selectionref.h",
@@ -265,11 +265,11 @@
     },
     {
       "path": "shared/core/src/commands.cpp",
-      "sha256": "dcf365a79b3d225817769bbac719e1fce19ecc4f75fcdbea9da6f9e6c0e48326"
+      "sha256": "7934156664ea1477cfb5cf61973d23f438d94cb7745d5b69a3d4b57a31e66fcc"
     },
     {
       "path": "shared/core/src/content.cpp",
-      "sha256": "cda6dcaab1a45f862c94df2a5ab7e4bfc2ca24ca0e7efd80e8a42ccc3fed9b4e"
+      "sha256": "9b9b1c1b0c3f12a28735739d96132298ca8314089dbd13e5338bc83e1b2fdb83"
     },
     {
       "path": "shared/core/src/countrycontact.cpp",
@@ -281,15 +281,15 @@
     },
     {
       "path": "shared/core/src/document-session.cpp",
-      "sha256": "e065c72c1c39308682c03a291bb0a0262ea6c0d3ba34a1e6572e08274f51143d"
+      "sha256": "853b79937d40ddada616372a1efe65192a12f68c1f5fd98968affb28503f1ef7"
     },
     {
       "path": "shared/core/src/document.cpp",
-      "sha256": "ee969c4f65f4efd4a1db4c29dfaadf050909b3eb53e09edb2e080ccfb17f1096"
+      "sha256": "c9bcac54bcf4b42e912558e95170b788d746ebad578043e0c6f80f3cb6d82960"
     },
     {
       "path": "shared/core/src/documentstate.h",
-      "sha256": "90b020e11b64e61a4fbe5fc3818b517bafb76990aeaf77b9d70d9e2a91a408e6"
+      "sha256": "ad78d025b535f4b34911043d58a9d7acef6b460686bd40e15acf3f215bccb87d"
     },
     {
       "path": "shared/core/src/geometrydraft.cpp",
@@ -309,7 +309,7 @@
     },
     {
       "path": "shared/core/src/gisexchange.cpp",
-      "sha256": "3447ad1b6fc9a3f48abec2106a658a2a102a5188dd85deec50d545eb341217f9"
+      "sha256": "68b7bc09663ff900a1c7bc53bc3a21a029ac37dbe06e80ac69b57bf146651586"
     },
     {
       "path": "shared/core/src/giszip.cpp",
@@ -317,7 +317,7 @@
     },
     {
       "path": "shared/core/src/historicalinstantiation.cpp",
-      "sha256": "540a307ecb67de79ea1748707492f0daaf940826f4c9520a2fe5091fae565051"
+      "sha256": "1403759300d51028248f17930db637361c2f702643b6ae332ed572413f96eab7"
     },
     {
       "path": "shared/core/src/historicallibrary.cpp",
@@ -365,7 +365,7 @@
     },
     {
       "path": "shared/core/src/presentation.cpp",
-      "sha256": "9a209c8bd8ca3295bac16a66b1cdb11b21e6c56d33f18a0e2661083f8372a3e5"
+      "sha256": "9ce0269b411363e7e18c7dd7fc2658a54c58b3eb2d4b029dd6335fb2cf30ebde"
     },
     {
       "path": "shared/core/src/presentationcommands.cpp",
@@ -373,11 +373,11 @@
     },
     {
       "path": "shared/core/src/project.cpp",
-      "sha256": "755255fd5eea4daa3ee935bb4e65ad9cacbd9679b43f2e7c286251d3efe0d66a"
+      "sha256": "8dd64ec2c28647b3e23b9cfa0f446ed011406912200a8ef35a53ae5e627b81c3"
     },
     {
       "path": "shared/core/src/projectcodec.cpp",
-      "sha256": "714034cdedaa8e6ffdef726205033e748ae6d1ceaf945c9be070338fc5a92370"
+      "sha256": "122c65aa68e4f2954d7f8aa4167e31e9aed5f24aa27b531fb34fdbcb8a152722"
     },
     {
       "path": "shared/core/src/referenceimage.cpp",
@@ -393,7 +393,7 @@
     },
     {
       "path": "shared/core/src/snapshot.cpp",
-      "sha256": "6e49cfaaa43d1610e2467796abbca4d7319970bc007afcd3cb1d5629fd73ab9e"
+      "sha256": "c2eb10ec0d1491208b4b2344e96a1d370cf5e956b72fa3ac998990918a9afee4"
     },
     {
       "path": "shared/core/src/sphericalpolygon.cpp",
@@ -405,7 +405,7 @@
     },
     {
       "path": "shared/core/src/territorialmutation.cpp",
-      "sha256": "d1d454d329eafe91dbaaacdbff0b35d4bdc3f60f0d2dfb3ebdeeedfffa48278a"
+      "sha256": "e7dc8e82d0dd8049c06552bf131ec6728aed5177a2df1d3f9527106df872f129"
     },
     {
       "path": "shared/core/src/timeline-edit.cpp",
@@ -441,7 +441,7 @@
     },
     {
       "path": "shared/core/src/webobjectcommands.cpp",
-      "sha256": "c208b19404d87f92a5828af538e9dbd1e43989e54da4ebe02ec8180813ae3882"
+      "sha256": "e92244e194ee8306521a6e6c6c215491f99a779d6a1210401c7d201e2e327154"
     },
     {
       "path": "shared/core/src/webpresentationcommands.cpp",
@@ -457,7 +457,7 @@
     },
     {
       "path": "shared/core/src/webterritorialedit.cpp",
-      "sha256": "defb2104b0225771bba881bb2549ef11d3c89e12bbcc7e7682397df7509d720a"
+      "sha256": "34b4a5c989e07b941bf398888aef4a4252b24c6692e7ac785ce8ee645e3de8d0"
     },
     {
       "path": "shared/tests/CMakeLists.txt",
@@ -529,11 +529,11 @@
     },
     {
       "path": "shared/tests/temporal-editing-tests.cpp",
-      "sha256": "08228245178467a5afee6402676cd689168fc6cdb41451319dba2e257dbf6c8b"
+      "sha256": "15f50845eab9d7fba2024a8e6b1340f937b96c76e6745418cc83d3eb0ff1f22b"
     },
     {
       "path": "shared/tests/territorial-document-fixture.h",
-      "sha256": "f96da38dba48a2a04a38fd1d94325d74384ef659226b47e9930a15dccbf08688"
+      "sha256": "2115e83f165ae1f646790affe2d1f6457b7c248112159397c19003c26cafba98"
     },
     {
       "path": "shared/tests/web-content-codec-tests.cpp",
@@ -545,7 +545,7 @@
     },
     {
       "path": "shared/tests/web-object-command-tests.cpp",
-      "sha256": "f4457943bc7ba4c16529d6ba8dfe9e5ddc805c3e36b5b37293affa67548da6d1"
+      "sha256": "9de75fe930b6865cf0832630f60f55392728591636c26105a29d5337d174738c"
     },
     {
       "path": "shared/tests/web-storage-tests.cpp",
@@ -607,7 +607,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "1456b64420176f87dcf4e89ea3d694ae4d911e9e805e74db506fc2f46bb63031"
+      "sha256": "0b33c54f8f0990173d207f24950d02176fa4972f7ab230ab2dfd7b80b196a6f6"
     }
   }
 }
