@@ -320,8 +320,10 @@ export function createTaskPresentation() {
     const summary = (0, dependencies.platform.$)('territorySelectionStackSummary');
     const current = model?.current;
     const visible = !!model?.selection;
-    section?.classList.toggle('hidden', !visible);
-    if (!visible || !list || !summary) return;
+    if (!visible || !list || !summary) {
+      section?.classList.add('hidden');
+      return;
+    }
 
     const activeComponents = current.activePhase === 'components'
       ? dependencies.territoryComponents.territoryComponentItems().filter(item => item.selected)
@@ -331,6 +333,10 @@ export function createTaskPresentation() {
       ...activeComponents.map(item => ({ kind: 'component', id: item.key, geometry: item.geometry })),
     ];
     const pending = current.computationPending || current.computationError;
+    // Keep the shared result-list UI, but omit an empty zero-area card during
+    // annex drawing. Real parts and calculation errors/progress stay visible.
+    const showList = current.kind !== 'annex' || items.length > 0 || !!pending;
+    section?.classList.toggle('hidden', !showList);
     const busy = !!(pending || current.previewPending || current.applying || dependencies.projectState.state.modeProcessing);
     const label = ['annex', 'new-country'].includes(current.kind) ? '선택 영토' : '선택 영역';
     section.setAttribute('aria-label', label);
@@ -491,7 +497,10 @@ export function createTaskPresentation() {
       const redundantAnnexPrompt = selection?.kind === 'annex' && selection.stage === 'setup'
         && !selection.sourceCountryIds?.length && status === 'needs-target'
         && message === '대상을 선택하고 필요한 설정을 완료하세요.';
-      reasonNode.classList.toggle('hidden', !message || redundantAnnexPrompt);
+      const redundantAnnexMethodPrompt = selection?.kind === 'annex' && selection.stage === 'selection'
+        && !selection.activeMethod && !selection.requestedMethod && status === 'needs-target'
+        && message === '다음 단계로 진행할 영역을 선택하세요.';
+      reasonNode.classList.toggle('hidden', !message || redundantAnnexPrompt || redundantAnnexMethodPrompt);
     }
     const instruction = dependencies.platform.$('modeTaskInstruction');
     const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
@@ -520,11 +529,11 @@ export function createTaskPresentation() {
     for (const [id,value] of [['editorTimelineContext',month?`${timelineMonthLabel(month)} 기준 편집`:'시점 확인 중'],['modeTaskTargetSummary',context.targetSummary],['modeTaskEditingStage',context.stage],['modeTaskViewTime','보기: '+context.view],['modeTaskPeriod','변경 기간: '+context.period],['modeTaskInput',context.instruction]]) {
       const element=dependencies.platform.$(id);if(element && element.textContent!==value)element.textContent=value;
     }
-    // The annex setup's role cards show both receiver and donor. Keep the
-    // canonical time/affected metadata in DOM but reveal it at selection/review.
-    const annexSetup = state.territorySelectionSession?.kind === 'annex'
-      && state.territorySelectionSession.stage === 'setup';
-    dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden', annexSetup);
+    // Annex setup/selection already display the receiver, donor and method.
+    // Do not repeat uncalculated time/impact metadata before the review stage.
+    const annex = state.territorySelectionSession;
+    const annexBeforeReview = annex?.kind === 'annex' && annex.stage !== 'review';
+    dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden', annexBeforeReview);
     const taskInput = dependencies.platform.$('modeTaskInput');
     taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
