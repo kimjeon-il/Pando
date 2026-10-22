@@ -3231,6 +3231,12 @@ body.map-sheet-dragging {
   :is(.editor-action-row, .ui-row-button):has(small:not(:empty)) {
     min-height: var(--design-command-description-height-mobile);
   }
+
+  /* Routine action descriptions are visually omitted on mobile, so they
+     must not reserve the extra description-row height. */
+  .editor-action-row:not([data-action-reason="true"]):has(small:not(:empty)) {
+    min-height: var(--ui-touch-height);
+  }
 }
 
 /* source: assets/css/components/dialogs.css */
@@ -5713,9 +5719,19 @@ body.file-menu-open .app-root .topbar {
   white-space: nowrap;
 }
 
+.editor-action-row[data-action-reason="true"] > span > small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 799px) {
   .editor-action-row > span > small {
     display: none;
+  }
+
+  /* A disabled-action reason is essential feedback, unlike routine help. */
+  .editor-action-row[data-action-reason="true"] > span > small:not(:empty) {
+    display: block;
   }
 }
 
