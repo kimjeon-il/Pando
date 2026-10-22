@@ -135,5 +135,25 @@ void datedRemovalTruncatesWithoutDroppingIdentityOrArchive() {
     assert(!p.resolveWorld("2026-10").find("A")&&p.resolveWorld("2026-09").find("A")&&p.document().geometries.versions().size()==before.document().geometries.versions().size());
     reject(p,{{"territorial","A"}},"not-found");assert(p.undo()&&p.resolveWorld("2026-10").find("A"));
 }
+void physicalViewRebaseRejectsUnrelatedMetadataChanges() {
+    const auto original=fixture();
+    auto allowed=original;
+    auto view=codecjson::parse(allowed.exchangeMetadata);
+    view.object.at("physicalSettings").object.at("hiddenHydroIds").object.erase("source");
+    allowed.exchangeMetadata=view.encode();
+    GeometryProvenanceCodecAccess::admitPhysicalViewMetadata(original,allowed);
+    assert(allowed.geometryProvenance.opaqueBaseline.count("/exchangeMetadata"));
+
+    auto rejected=original;
+    auto changed=codecjson::parse(rejected.exchangeMetadata);
+    changed.object.at("physicalSettings").object.at("annotation").object["keep"]=V::num(2);
+    rejected.exchangeMetadata=changed.encode();
+    bool failed=false;
+    try { GeometryProvenanceCodecAccess::admitPhysicalViewMetadata(original,rejected); }
+    catch(const std::invalid_argument& error) {
+        failed=std::string(error.what()).find("unrelated physical metadata changed")!=std::string::npos;
+    }
+    assert(failed);
 }
-int main(){fiveDomainsAtomicHistoryAndOriginalCleanup();duplicatesAndLastHydroSource();admissionIsAtomicAndChildrenCannotBeBundledAway();registeredDisplayIdentityAndCollision();datedRemovalTruncatesWithoutDroppingIdentityOrArchive();std::cout<<"Web object removal tests passed\n";}
+}
+int main(){physicalViewRebaseRejectsUnrelatedMetadataChanges();fiveDomainsAtomicHistoryAndOriginalCleanup();duplicatesAndLastHydroSource();admissionIsAtomicAndChildrenCannotBeBundledAway();registeredDisplayIdentityAndCollision();datedRemovalTruncatesWithoutDroppingIdentityOrArchive();std::cout<<"Web object removal tests passed\n";}
