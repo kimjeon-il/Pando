@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "970da21c84c31e076427bac38177fd058cee74b350100c828b2e23b59b97d8b0",
+  "sourceSha256": "e3358a716040d593d44d4b127c2c0dac5147aa27b1c0e797a69cf758373b50f4",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -13,7 +13,7 @@
     },
     {
       "path": "shared/core/CMakeLists.txt",
-      "sha256": "9bbfe504c2a9433e735d1c2e56e21b2272c1ea7bb4cf108002949331fd64beef"
+      "sha256": "d24ac5245672cd8a5a417aca913d5a9841596eb0433e6a31bc094d03de950448"
     },
     {
       "path": "shared/core/include/pandoeditor/boundarychain.h",
@@ -53,15 +53,11 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document-session.h",
-      "sha256": "d031b4a8d0fc96f7105782d93701149c3d29fcf4c5134c9b33901109a957db14"
+      "sha256": "f5310fd8804a41e39f52883bb7aa0d95377b04b640ed7f8fdef5c47dea309fc1"
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
-      "sha256": "1ee040c64dd6f4f9538e696f26c84feb9c50a5d2b54e943ed21b7e3b0a0c27a7"
-    },
-    {
-      "path": "shared/core/include/pandoeditor/geobounds.h",
-      "sha256": "2f36370d828612e6cfd70b04f03500bf707b127561f028552094ac2ad65ece4c"
+      "sha256": "a21c2c68b655c6b19897d99a69f28a8732afbe1b7aef73a9b55b48bfbf7252d7"
     },
     {
       "path": "shared/core/include/pandoeditor/geometry-types.h",
@@ -117,19 +113,11 @@
     },
     {
       "path": "shared/core/include/pandoeditor/losslessjson.h",
-      "sha256": "c51a1b53d8dc53a7a6574197f326887da659983b50b5f57e01eaaf70f348f98d"
-    },
-    {
-      "path": "shared/core/include/pandoeditor/maprenderorder.h",
-      "sha256": "7387c2d1768a6244f54fdfad6d9f6f0bb405517e3d31791d953dd62f16225c17"
+      "sha256": "602008117e54b5d47fff61c7b2a684ca74a31e772f0586f6fca7aae21a2b99af"
     },
     {
       "path": "shared/core/include/pandoeditor/objectproperties.h",
       "sha256": "7b6317fb7eb9cd1c4d9209cbdcc6abf47ced7a8c4573c938aceff71c4a250a16"
-    },
-    {
-      "path": "shared/core/include/pandoeditor/picking.h",
-      "sha256": "1383e42c00e3b96a8289395b90d7476175ce306fd9df5a6ed352f5f00d644c7d"
     },
     {
       "path": "shared/core/include/pandoeditor/placenames.h",
@@ -161,11 +149,11 @@
     },
     {
       "path": "shared/core/include/pandoeditor/project.h",
-      "sha256": "8671d874ac408f1b3c10bbf51c1ff61e171910545f690024fddc67c6f797a8c3"
+      "sha256": "bccc2b8cacee5801c1e8d6700895e78ddc17b0aecebdf16a172bd66ec009e7a3"
     },
     {
       "path": "shared/core/include/pandoeditor/projectcodec.h",
-      "sha256": "9993493fdb0782f4f939226eb519c2d74f22e39c8b29bb0d50a4687e5069342e"
+      "sha256": "dfe80b8b33e9191c09e6d51c80a5b3bd8a8b683483499bb3ea2817f34337f284"
     },
     {
       "path": "shared/core/include/pandoeditor/referenceimage.h",
@@ -186,10 +174,6 @@
     {
       "path": "shared/core/include/pandoeditor/selectionref.h",
       "sha256": "7a7b5d79a856c51b3d6a7168523a104d3a156a5d1607ce6c8212389c12761791"
-    },
-    {
-      "path": "shared/core/include/pandoeditor/spatialindex.h",
-      "sha256": "67ace6176339753fc4fbb2787982899291a7004c34a0e7f4f80d9b1825776ebe"
     },
     {
       "path": "shared/core/include/pandoeditor/sphericalpolygon.h",
@@ -213,7 +197,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/timeline-resolver.h",
-      "sha256": "bbc757bc5e4fa516872c2b437c51af3d550ec57ed7125f3403507b638e1a0f05"
+      "sha256": "cdb62195845db64fd658382de9902ea9aff28302118d051f131a415042675824"
     },
     {
       "path": "shared/core/include/pandoeditor/timeline-storage.h",
@@ -233,7 +217,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/webcontentcommands.h",
-      "sha256": "b216eb7290d43a71a90509860c8b4f8e9b0545c015dc5ddaed96fed8a06167d5"
+      "sha256": "e46a049b56529eaba634bfc2931cbe8c7a787ede133448e666e4e7982cd52d38"
     },
     {
       "path": "shared/core/include/pandoeditor/webobjectcommands.h",
@@ -281,7 +265,7 @@
     },
     {
       "path": "shared/core/src/commands.cpp",
-      "sha256": "9a9ef74ba3f585992795104def3c5a83bc2e42889f3c9fec5c3e7dc14f8c2e28"
+      "sha256": "dcf365a79b3d225817769bbac719e1fce19ecc4f75fcdbea9da6f9e6c0e48326"
     },
     {
       "path": "shared/core/src/content.cpp",
@@ -297,7 +281,7 @@
     },
     {
       "path": "shared/core/src/document-session.cpp",
-      "sha256": "6bc528cdfb98366822d11dacf02507d45adcff33624163e5453e22b4bc89e167"
+      "sha256": "e065c72c1c39308682c03a291bb0a0262ea6c0d3ba34a1e6572e08274f51143d"
     },
     {
       "path": "shared/core/src/document.cpp",
@@ -306,10 +290,6 @@
     {
       "path": "shared/core/src/documentstate.h",
       "sha256": "90b020e11b64e61a4fbe5fc3818b517bafb76990aeaf77b9d70d9e2a91a408e6"
-    },
-    {
-      "path": "shared/core/src/geobounds.cpp",
-      "sha256": "d866581e2c9e02e43bf5bd63cca089b6a6e6c4486c428e358d5bd24801b65373"
     },
     {
       "path": "shared/core/src/geometrydraft.cpp",
@@ -357,11 +337,7 @@
     },
     {
       "path": "shared/core/src/losslessjson.cpp",
-      "sha256": "3d87feb3a9d096465c500c7182ba50cd66eca81fa89a9b0e6c083af340910ebb"
-    },
-    {
-      "path": "shared/core/src/maprenderorder.cpp",
-      "sha256": "d3925da3e08f87648896fc18d9ffc1fd93796e909e299fa0a493559f1a3faec4"
+      "sha256": "a6881128724334b407ddf36f8c52710abe1023d6677a69cdb0ed0e58978ebf28"
     },
     {
       "path": "shared/core/src/objectproperties.cpp",
@@ -397,11 +373,11 @@
     },
     {
       "path": "shared/core/src/project.cpp",
-      "sha256": "f69d5680fb3963205726da64113130765ca3fe43ba7f62e7abf611d989ed3eaa"
+      "sha256": "755255fd5eea4daa3ee935bb4e65ad9cacbd9679b43f2e7c286251d3efe0d66a"
     },
     {
       "path": "shared/core/src/projectcodec.cpp",
-      "sha256": "4c3c06b61aca9cd9a5bac0f6686f1761ece9b0b7f7c7c1886321f22eebe83720"
+      "sha256": "714034cdedaa8e6ffdef726205033e748ae6d1ceaf945c9be070338fc5a92370"
     },
     {
       "path": "shared/core/src/referenceimage.cpp",
@@ -420,10 +396,6 @@
       "sha256": "6e49cfaaa43d1610e2467796abbca4d7319970bc007afcd3cb1d5629fd73ab9e"
     },
     {
-      "path": "shared/core/src/spatialindex.cpp",
-      "sha256": "d306d9331c2ec7a5bbbf34b81d6f2c3365afc3c498b8650ebcf1c013caee22c9"
-    },
-    {
       "path": "shared/core/src/sphericalpolygon.cpp",
       "sha256": "cfe213945b555b5f3c37be1ef0cfd34f41c4fc3337cbb47116464c01aceec313"
     },
@@ -437,15 +409,15 @@
     },
     {
       "path": "shared/core/src/timeline-edit.cpp",
-      "sha256": "0d161df4d2339bd61a14f64d59939efe8bd7fa6d706a2ff22949101f8f898f11"
+      "sha256": "c7787641e8b0835e8efdaca9516344ff4b30086946401b35d3842a29ca6bbba1"
     },
     {
       "path": "shared/core/src/timeline-records.cpp",
-      "sha256": "6bcaf0db4c67c9ffc11534d2f9d2ee0e3c3efe12de896acc07083974f403a687"
+      "sha256": "c04c4b552762faae6851554b0bd8f0c5449f8bb0041651df00a45f777eee0761"
     },
     {
       "path": "shared/core/src/timeline-resolver.cpp",
-      "sha256": "7d5fad877f6705973bf7aca8aa1ac870c67ee5993dd4bf81d8db13adcfd5cbfb"
+      "sha256": "b965ded439dd837ddfca59e2d87a82da85b03e3af91eeab7d3f72b484a025aa6"
     },
     {
       "path": "shared/core/src/timeline-storage.cpp",
@@ -465,7 +437,7 @@
     },
     {
       "path": "shared/core/src/webcontentcommands.cpp",
-      "sha256": "ccb7354c52d197f3b5a778cd1ee8965ff51585a0cbd68c024a1b8398600540c0"
+      "sha256": "d12083e0be4126d314bdb8c33bb343590ad6fdc642bdcc084984332cc55ccf59"
     },
     {
       "path": "shared/core/src/webobjectcommands.cpp",
@@ -485,7 +457,7 @@
     },
     {
       "path": "shared/core/src/webterritorialedit.cpp",
-      "sha256": "126197f4e6f535b7c44ffed04f2a049e11e051e492567e27f18894f6ec40866f"
+      "sha256": "defb2104b0225771bba881bb2549ef11d3c89e12bbcc7e7682397df7509d720a"
     },
     {
       "path": "shared/tests/CMakeLists.txt",
@@ -525,7 +497,7 @@
     },
     {
       "path": "shared/tests/document-session-tests.cpp",
-      "sha256": "35e4196fa47c3bbd8a9a2310789564c5d736ce7045c998ff479bf71d6d2e2e20"
+      "sha256": "d627ebd012974f03607da61b7c2f7a23abfc3b3f9a40fc70af6becb0322fd67e"
     },
     {
       "path": "shared/tests/geometry-draft-tests.cpp",
@@ -541,7 +513,7 @@
     },
     {
       "path": "shared/tests/project-codec-tests.cpp",
-      "sha256": "f0d779f2e7af38a0667d9805efca2027db7f8058d2ef95cf285bdd73cf2bac68"
+      "sha256": "419049dc6cd25a5284d249a5a5e7b4e11727fd47aeb12584bcdd95fba9f29867"
     },
     {
       "path": "shared/tests/reference-image-tests.cpp",
@@ -553,11 +525,11 @@
     },
     {
       "path": "shared/tests/source-admission-tests.cpp",
-      "sha256": "8d29e19efb280021766499cee58ac25a4f14a967265198557f82cef32a652749"
+      "sha256": "403bad9757ec856a70e84412fda29f9d92265d64f758aef27322ddec0544a3f7"
     },
     {
       "path": "shared/tests/temporal-editing-tests.cpp",
-      "sha256": "996a46e1d8c0389357c22bbfd81378ff252ae82b5b1e8abc8efae54fbbc5cc27"
+      "sha256": "08228245178467a5afee6402676cd689168fc6cdb41451319dba2e257dbf6c8b"
     },
     {
       "path": "shared/tests/territorial-document-fixture.h",
@@ -573,7 +545,7 @@
     },
     {
       "path": "shared/tests/web-object-command-tests.cpp",
-      "sha256": "bf519f83be405ac4ce89bfb562251c554e83d6bf3d32a7d34376b9328c49908a"
+      "sha256": "f4457943bc7ba4c16529d6ba8dfe9e5ddc805c3e36b5b37293affa67548da6d1"
     },
     {
       "path": "shared/tests/web-storage-tests.cpp",
@@ -621,7 +593,7 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "e02149798a8adc22ffa4fec466d3c8e55160cd6fb648d44cec0cdc9f30122f4a"
+      "sha256": "823fdc8618f8d14c6c866aaf6c8012f08e7af3478f5917e8d0a01bf3adc00987"
     },
     {
       "path": "shared/wasm/timeline-bindings.cpp",
@@ -635,7 +607,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "9ce5583fe0b29a25db4cde9e1f42bdf44415a06e8c7807dc7417700a08b4946a"
+      "sha256": "1456b64420176f87dcf4e89ea3d694ae4d911e9e805e74db506fc2f46bb63031"
     }
   }
 }
