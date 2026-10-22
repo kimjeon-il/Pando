@@ -338,8 +338,14 @@ test('merge removal, boundary and coast use actual role cards and the shared spa
   await page.locator('#actionsTabBtn').click();
   await page.locator('#mergeEntityBtn').click();
   await expect(page.locator('#modeTaskObjects [aria-label="남길 객체"]')).toContainText('독일');
+  await expect(page.locator('#modeTaskResults')).toBeHidden();
+  await expect(page.locator('.mode-edit-context')).toBeHidden();
+  await expect(page.locator('#modeTaskDisabledReason')).toContainText('합칠 대상을 하나 이상 선택하세요.');
+  await expect(page.locator('#modePrimaryBtn .mode-button-label')).toHaveText('합병 미리보기');
   for (const id of ['POL', 'CZE', 'AUT']) await pickCountry(page, id);
+  await expect(page.locator('#modeTaskResults')).toBeVisible();
   await expect(page.locator('#modeTaskResultsList li')).toHaveCount(3);
+  await expect(page.locator('#modePrimaryBtn .mode-button-label')).toHaveText('합병 미리보기');
   await page.getByRole('button', { name: '체코 합병 대상에서 제외' }).click();
   await expect(page.locator('#modeTaskResultsList li')).toHaveCount(2);
   await expect(page.locator('#modeTaskResultsList')).toContainText('폴란드');
