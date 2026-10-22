@@ -17,13 +17,54 @@ import zipfile
 from collections import defaultdict
 
 import numpy as np
-from shapely.geometry import LineString, MultiLineString, Point, shape, mapping
-from shapely.ops import substring
+from shapely.geometry import LineString, MultiLineString, Point, Polygon, shape, mapping
+from shapely.ops import substring, transform
 import shapely
 
 SCALE = 2560 * 64 / 360
 SIMPLIFY_DEGREES = 0.0004  # <= 0.182045 CSS px symmetric displacement.
 SOURCE_ID = 'dos-lsib-11.4'
+REVIEWED_TARGETS = {
+    'AUT/LIE': {'pair': ('AUT', 'LIE'), 'junctionCountry': 'CHE'},
+    'AND/FRA': {'pair': ('AND', 'FRA'), 'junctionCountry': 'ESP'},
+    'ITA/SMR': {'pair': ('ITA', 'SMR'), 'enclave': 'SMR'},
+    'ITA/VAT': {'pair': ('ITA', 'VAT'), 'enclave': 'VAT', 'simplify': False},
+    'LSO/ZAF': {'pair': ('LSO', 'ZAF'), 'enclave': 'LSO'},
+}
+
+
+def source_supplement(published='2025-02-24', tolerance=SIMPLIFY_DEGREES):
+    return {'sourceId': SOURCE_ID, 'published': published, 'effectiveDateEstablished': False,
+        'status': 'provisional-modern-source-supplement', 'coastline': 'unchanged',
+        'sourceFile': 'tools/historical-library/sources/lsib-11.4/boundaries.geojson.gz',
+        'simplificationToleranceDegrees': tolerance, 'simplificationMaximumPx': tolerance * SCALE,
+        'screenBaseline': {'widthCssPx': 2560, 'flatZoom': 64}, 'historicalAccuracyVerified': False}
+
+
+def reviewed_reference(root, manifest_path):
+    """Load the explicitly reviewed IGM San Marino exception, with pinned bytes."""
+    from pyproj import Transformer
+    manifest_path = Path(manifest_path)
+    manifest_path = manifest_path if manifest_path.is_absolute() else root / manifest_path
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    if (manifest['schemaVersion'] != 1 or manifest['countries'] != ['ITA', 'SMR']
+            or manifest['sourceId'] != 'igm-dbsn-2025-06-27' or manifest['sourceCrs'] != 'EPSG:4258'):
+        raise ValueError('Reference override is not the reviewed IGM San Marino source')
+    raw = (root / manifest['sourceFile']).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != manifest['sourceFileSha256']:
+        raise ValueError('Reviewed reference differs from pinned evidence')
+    matches = [feature for feature in json.loads(raw)['features']
+               if feature['properties']['globalid'] == manifest['featureGlobalId']]
+    if len(matches) != 1 or matches[0]['properties']['comune_ist'] != 'san_mar_com':
+        raise ValueError('Reviewed reference does not identify exactly the San Marino feature')
+    polygon = shape(matches[0]['geometry'])
+    if polygon.geom_type != 'Polygon' or len(polygon.interiors) or not polygon.is_valid:
+        raise ValueError('Reviewed San Marino source must be one valid polygon without holes')
+    operation = Transformer.from_crs(4258, 4326, always_xy=True)
+    polygon = transform(operation.transform, polygon)
+    return LineString(polygon.exterior.coords), {**manifest,
+        'referenceManifest': manifest_path.relative_to(root).as_posix(),
+        'transformation': {'description': operation.description, 'accuracyMetres': operation.accuracy}}
 
 
 def json_write(path, value):
@@ -125,7 +166,20 @@ def replace_chain(geometry, old, replacement):
     polygons = [result['coordinates']] if result['type'] == 'Polygon' else result['coordinates']
     start, end = tuple(old[0]), tuple(old[-1])
     if start == end:
-        raise ValueError('Closed enclave chain requires separate ownership review')
+        old_line, new_line = LineString(old), LineString(replacement)
+        if not old_line.is_ring or not new_line.is_ring or not Polygon(new_line).is_valid:
+            raise ValueError('Reviewed enclave boundary must be a simple closed ring')
+        matches = [ring for polygon in polygons for ring in polygon
+                   if LineString(ring).equals(old_line)]
+        if len(matches) != 1:
+            raise ValueError('Closed boundary does not identify exactly one owning ring')
+        # Each owner retains its ring role and winding; cyclic starts and opposite
+        # traversal must not prevent matching the same complete shared boundary.
+        points = coordinates(new_line)
+        if shapely.is_ccw(LineString(matches[0])) != shapely.is_ccw(new_line):
+            points.reverse()
+        matches[0][:] = [list(point) for point in points]
+        return result
     witness = tuple(old[len(old) // 2])
     matches = []
     for polygon in polygons:
@@ -329,8 +383,53 @@ def repair_tripoint_boundary(geometries, references, pair, third):
     return result, sections
 
 
-def targeted_candidates(root, output):
-    """Only the approved AUT/LIE target and its CHE junction branches are eligible."""
+def repair_enclave_boundary(geometries, reference, pair, enclave, simplify=True):
+    pair = tuple(sorted(pair))
+    if set(geometries) != set(pair) or enclave not in pair:
+        raise ValueError('Reviewed enclave requires exactly its two owning countries')
+    host = next(code for code in pair if code != enclave)
+    inner, outer = shape(geometries[enclave]), shape(geometries[host])
+    old = extract_shared_chains(geometries).get(pair)
+    if (inner.geom_type != 'Polygon' or len(inner.interiors) or old is None
+            or not old.is_ring or not old.equals(LineString(inner.exterior.coords))):
+        raise ValueError('Enclave must own exactly one complete shared exterior ring')
+    host_parts = list(outer.geoms) if outer.geom_type == 'MultiPolygon' else [outer]
+    holes = [ring for part in host_parts for ring in part.interiors
+             if LineString(ring.coords).equals(old)]
+    if len(holes) != 1:
+        raise ValueError('Enclave boundary must match exactly one host hole')
+    if reference.geom_type != 'LineString' or not reference.is_ring or not Polygon(reference).is_valid:
+        raise ValueError('Enclave reference must be one simple closed ring')
+    derivative = reference.simplify(SIMPLIFY_DEGREES) if simplify else reference
+    if not derivative.is_ring or not Polygon(derivative).is_valid:
+        raise ValueError('Derived enclave boundary is not a valid closed ring')
+    patches = {code: [{'old': coordinates(old), 'replacement': coordinates(derivative)}] for code in pair}
+    result = apply_country_patches(geometries, patches)
+    shared = shape(result[host]).boundary.intersection(shape(result[enclave]).boundary)
+    if not shared.equals(derivative):
+        raise ValueError('Enclave and host do not share the complete replacement ring')
+    return result, [{'countries': pair, 'closedRing': True, 'enclave': enclave,
+        'old_length_degrees': old.length, 'source_length_degrees': reference.length,
+        'master_vertices': len(reference.coords), 'derived_vertices': len(derivative.coords),
+        'simplification_bound_px': SIMPLIFY_DEGREES * SCALE if simplify else 0}]
+
+
+def targeted_candidates(root, output, targets, reference_manifest=None):
+    """Accumulate explicitly reviewed targets; emit each country only once."""
+    targets = list(dict.fromkeys(targets))
+    if not targets or any(target not in REVIEWED_TARGETS for target in targets):
+        raise ValueError('An explicitly reviewed boundary target is required')
+    plans = [REVIEWED_TARGETS[target] for target in targets]
+    codes = set()
+    required_pairs = set()
+    for plan in plans:
+        pair = plan['pair']
+        codes.update(pair)
+        required_pairs.add(pair)
+        if 'junctionCountry' in plan:
+            third = plan['junctionCountry']
+            codes.add(third)
+            required_pairs.update(tuple(sorted((code, third))) for code in pair)
     source = root / 'assets/data/territorial-entities/source'
     evidence = root / 'tools/historical-library/sources/lsib-11.4'
     provenance = json.loads((evidence / 'provenance.json').read_text(encoding='utf-8'))
@@ -341,7 +440,7 @@ def targeted_candidates(root, output):
     view = json.loads((source / 'views/world.json').read_text(encoding='utf-8'))
     selections = {row['entityId']: row['geometryVersionId'] for row in view['selections']}
     entities, versions, geometries, hashes = {}, {}, {}, {}
-    for code in ('AUT', 'LIE', 'CHE'):
+    for code in sorted(codes):
         raw_entity = (source / 'countries' / f'state-{code}.json').read_bytes()
         entity = json.loads(raw_entity)
         version = next(v for v in entity['geometryVersions'] if v['versionId'] == selections[entity['entityId']])
@@ -350,42 +449,103 @@ def targeted_candidates(root, output):
         entities[code], versions[code], geometries[code] = entity, version, version['geometry']
         hashes[code] = hashlib.sha256(raw_entity).hexdigest()
     references, ids = {}, {}
-    for pair in (('AUT', 'LIE'), ('AUT', 'CHE'), ('CHE', 'LIE')):
+    for pair in sorted(required_pairs):
         selected = [record for record in records if tuple(sorted((record['properties']['CC1_GENC3'], record['properties']['CC2_GENC3']))) == pair]
         if not selected or any(exclusion_reason(record['properties'], False) for record in selected):
             raise ValueError(f'Missing or protected reference: {pair}')
         references[pair] = shapely.line_merge(shapely.union_all([shape(record['geometry']) for record in selected]))
         ids[pair] = [record['properties']['ID'] for record in selected]
-    updated, sections = repair_tripoint_boundary(geometries, references, ('AUT', 'LIE'), 'CHE')
+    overrides = {}
+    if reference_manifest is not None:
+        reference, metadata = reviewed_reference(root, reference_manifest)
+        pair = tuple(metadata['countries'])
+        if '/'.join(pair) not in targets:
+            raise ValueError('Reviewed reference target was not explicitly selected')
+        references[pair], ids[pair], overrides[pair] = reference, [metadata['featureGlobalId']], metadata
+    updated, sections = copy.deepcopy(geometries), []
+    for target, plan in zip(targets, plans):
+        pair = plan['pair']
+        if 'junctionCountry' in plan:
+            third = plan['junctionCountry']
+            changed, current_sections = repair_tripoint_boundary(
+                {code: updated[code] for code in (*pair, third)}, references, pair, third)
+            status = 'supplemented-with-reviewed-tripoints'
+        else:
+            changed, current_sections = repair_enclave_boundary(
+                {code: updated[code] for code in pair}, references[pair], pair,
+                plan['enclave'], False if pair in overrides else plan.get('simplify', True))
+            status = 'supplemented-with-reviewed-enclave'
+        updated.update(changed)
+        sections.extend({**section, 'target': target, 'status': status} for section in current_sections)
     boundaries = [{'countries': list(section['countries']), 'sourceLineIds': ids[section['countries']],
-        'status': 'supplemented-with-reviewed-tripoints', 'segments': [{**{k: v for k, v in section.items() if k != 'countries'},
-        'status': 'supplemented-with-reviewed-tripoints'}]} for section in sections]
+        'status': section['status'], 'segments': [{k: v for k, v in section.items() if k != 'countries'}]}
+        for section in sections]
+    for entry in boundaries:
+        pair = tuple(entry['countries'])
+        metadata = overrides.get(pair)
+        entry['sourceId'] = metadata['sourceId'] if metadata else SOURCE_ID
+        if metadata:
+            entry['referenceManifest'] = metadata['referenceManifest']
     changes = []
     for code in sorted(updated):
-        supplement = copy.deepcopy(versions[code].get('modernBoundarySupplement', {}))
-        supplement['boundaries'] = supplement.get('boundaries', []) + [entry for entry in boundaries if code in entry['countries']]
-        supplement['reviewedTripointRepair'] = {'target': ['AUT', 'LIE'], 'junctionCountry': 'CHE',
-            'historicalAccuracyVerified': False, 'effectiveDateEstablished': False}
+        relevant_plans = [(target, plan) for target, plan in zip(targets, plans)
+                          if code in (*plan['pair'], plan.get('junctionCountry'))]
+        tolerance = SIMPLIFY_DEGREES if any(plan.get('simplify', True) and plan['pair'] not in overrides
+                                           for _, plan in relevant_plans) else 0
+        supplement = {**source_supplement(provenance['published'], tolerance),
+                      **copy.deepcopy(versions[code].get('modernBoundarySupplement', {}))}
+        full_pairs = {plan['pair'] for _, plan in relevant_plans}
+        supplement['boundaries'] = [entry for entry in supplement.get('boundaries', [])
+                                    if tuple(entry['countries']) not in full_pairs]
+        supplement['boundaries'].extend(entry for entry in boundaries if code in entry['countries'])
+        for target, plan in relevant_plans:
+            if 'junctionCountry' in plan:
+                supplement['reviewedTripointRepair'] = {'target': list(plan['pair']),
+                    'junctionCountry': plan['junctionCountry'], 'historicalAccuracyVerified': False,
+                    'effectiveDateEstablished': False}
+        supplement['reviewedBoundaryRepairs'] = supplement.get('reviewedBoundaryRepairs', []) + [
+            {'target': target, 'historicalAccuracyVerified': False, 'effectiveDateEstablished': False}
+            for target, _ in relevant_plans]
+        source_ids = dict.fromkeys(versions[code]['sourceId'].split('+'))
+        for entry in boundaries:
+            if code in entry['countries']:
+                source_ids[entry['sourceId']] = None
+        attributions = []
+        for pair, metadata in overrides.items():
+            if code in pair:
+                attributions.append({key: metadata[key] for key in
+                    ('sourceId', 'title', 'published', 'url', 'license', 'licenseUrl', 'attribution', 'sourceFile')})
+        if attributions:
+            supplement['sourceId'] = '+'.join(key for key in source_ids if key != 'natural-earth-5.1.1')
+            supplement['published'] = max([supplement['published'], *(a['published'] for a in attributions)])
+            supplement['additionalSources'] = supplement.get('additionalSources', []) + attributions
+            if not versions[code].get('modernBoundarySupplement'):
+                supplement['sourceFile'] = attributions[0]['sourceFile']
         changes.append({'entityId': entities[code]['entityId'], 'geometryVersionId': versions[code]['versionId'],
-            'inputFileSha256': hashes[code], 'geometry': updated[code], 'supplement': supplement})
+            'inputFileSha256': hashes[code], 'sourceId': '+'.join(source_ids), 'sourceAttributions': attributions,
+            'geometry': updated[code], 'supplement': supplement})
     result = {'schemaVersion': 1, 'sourceId': SOURCE_ID, 'sourcePublished': provenance['published'],
         'sourceRevision': json.loads((root / 'config/library-data.json').read_text(encoding='utf-8'))['revision'],
         'changes': changes, 'boundaries': boundaries}
     json_write(output, result)
-    print(json.dumps({'target': 'AUT/LIE', 'changedCountries': len(changes), 'sections': len(sections), 'output': str(output)}))
+    print(json.dumps({'targets': targets, 'changedCountries': len(changes), 'sections': len(sections), 'output': str(output)}))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--archive')
     parser.add_argument('--disputed-directory')
-    parser.add_argument('--target', choices=['AUT/LIE'], help='Approved three-country tripoint repair only')
+    parser.add_argument('--target', action='append', choices=REVIEWED_TARGETS,
+                        help='Explicitly reviewed target; repeat to accumulate countries in one candidate')
+    parser.add_argument('--reviewed-reference', help='Pinned manifest for the reviewed IGM San Marino exception')
     parser.add_argument('--output', default='build-native/lsib-supplement/candidates.json')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     if args.target:
-        targeted_candidates(root, Path(args.output))
+        targeted_candidates(root, Path(args.output), args.target, args.reviewed_reference)
         return
+    if args.reviewed_reference:
+        parser.error('--reviewed-reference requires an explicitly selected --target')
     if not args.archive or not args.disputed_directory:
         parser.error('--archive and --disputed-directory are required for an untargeted supplement')
     source_root = root / 'assets/data/territorial-entities/source'
@@ -508,12 +668,10 @@ def main():
     changes = []
     for code in sorted(changed):
         changes.append({'entityId': entities[code]['entityId'], 'geometryVersionId': versions[code]['versionId'], 'inputFileSha256': input_hashes[code],
-                        'geometry': geometries[code], 'supplement': {'sourceId': SOURCE_ID, 'published': '2025-02-24',
-                        'effectiveDateEstablished': False, 'status': 'provisional-modern-source-supplement',
-                        'coastline': 'unchanged', 'sourceFile': 'tools/historical-library/sources/lsib-11.4/boundaries.geojson.gz',
-                        'simplificationToleranceDegrees': SIMPLIFY_DEGREES, 'simplificationMaximumPx': SIMPLIFY_DEGREES * SCALE,
-                        'screenBaseline': {'widthCssPx': 2560, 'flatZoom': 64},
-                        'historicalAccuracyVerified': False, 'boundaries': applied[code]}})
+                        'sourceId': '+'.join(dict.fromkeys([*versions[code]['sourceId'].split('+'), SOURCE_ID])),
+                        'sourceAttributions': [],
+                        'geometry': geometries[code],
+                        'supplement': {**source_supplement(), 'boundaries': applied[code]}})
     result = {'schemaVersion': 1, 'sourceId': SOURCE_ID, 'sourcePublished': '2025-02-24',
               'sourceRevision': '4c7f30453fc5de61efd1ab0fb03d7fdaa92fe3a7',
               'changes': changes, 'boundaries': report}

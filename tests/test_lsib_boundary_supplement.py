@@ -1,16 +1,178 @@
 import importlib.util
 import copy
+import gzip
+import hashlib
+import json
 from pathlib import Path
+import tempfile
 import unittest
-from shapely.geometry import LineString, Point, shape
+from shapely.geometry import LineString, Point, shape, mapping
 import shapely
 
 spec = importlib.util.spec_from_file_location('supplement', Path(__file__).parents[1] / 'tools/supplement-lsib-boundaries.py')
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
+screen_spec = importlib.util.spec_from_file_location('screen', Path(__file__).parents[1] / 'tools/verify-lsib-screen-delta.py')
+screen = importlib.util.module_from_spec(screen_spec)
+screen_spec.loader.exec_module(screen)
 
 
 class SupplementTests(unittest.TestCase):
+    def test_closed_screen_section_uses_complete_enclave_ring(self):
+        geometry = {'type': 'Polygon', 'coordinates': [[(1, 1), (2, 1), (2, 2), (1, 2), (1, 1)]]}
+        reference = LineString([(2, 2), (2, 1), (1, 1), (1, 2), (2, 2)])
+        display = screen.display_section(geometry, [], reference)
+        self.assertTrue(display.equals(reference))
+        self.assertTrue(display.is_ring)
+        with self.assertRaisesRegex(ValueError, 'enclave exterior'):
+            screen.display_section(self.enclave_fixture()['ITA'], [], reference)
+
+    def enclave_fixture(self):
+        first = [(1, 1), (2, 1), (2, 2), (1, 2), (1, 1)]
+        second = [(4, 4), (5, 4), (5, 5), (4, 5), (4, 4)]
+        host = {'type': 'Polygon', 'coordinates': [
+            [(0, 0), (8, 0), (8, 8), (0, 8), (0, 0)],
+            list(reversed(first)), list(reversed(second)),
+        ]}
+        return {'ITA': host, 'SMR': {'type': 'Polygon', 'coordinates': [first]},
+                'VAT': {'type': 'Polygon', 'coordinates': [second]}}
+
+    def test_closed_ring_matches_cyclic_start_and_opposite_winding(self):
+        geometries = self.enclave_fixture()
+        old = [(2, 2), (2, 1), (1, 1), (1, 2), (2, 2)]
+        new = [(1, 1), (2.2, 1), (2.2, 2), (1, 2), (1, 1)]
+        for code in ('ITA', 'SMR'):
+            before = geometries[code]
+            after = module.replace_chain(before, old, new)
+            self.assertTrue(shape(after).is_valid)
+            self.assertEqual(len(after['coordinates']), len(before['coordinates']))
+            self.assertEqual(before, geometries[code])
+            self.assertTrue(any(LineString(ring).equals(LineString(new)) for ring in after['coordinates']))
+
+    def test_two_enclaves_accumulate_in_one_host_without_losing_other_holes(self):
+        geometries = self.enclave_fixture()
+        original = copy.deepcopy(geometries)
+        reference = LineString([(1, 1), (2.2, 1), (2.2, 2), (1, 2), (1, 1)])
+        first, _ = module.repair_enclave_boundary(
+            {code: geometries[code] for code in ('ITA', 'SMR')}, reference, ('ITA', 'SMR'), 'SMR')
+        precise = LineString([(4, 4), (5, 4), (5.0001, 4.0001), (5.1, 5), (4, 5), (4, 4)])
+        second, sections = module.repair_enclave_boundary(
+            {'ITA': first['ITA'], 'VAT': geometries['VAT']}, precise, ('ITA', 'VAT'), 'VAT', simplify=False)
+        final = {**first, **second}
+        self.assertEqual(geometries, original)
+        self.assertTrue(shapely.union_all([shape(g) for g in original.values()]).equals(
+            shapely.union_all([shape(g) for g in final.values()])))
+        self.assertEqual(len(shape(final['ITA']).interiors), 2)
+        for code, line in [('SMR', reference), ('VAT', precise)]:
+            self.assertEqual(shape(final['ITA']).intersection(shape(final[code])).area, 0)
+            self.assertTrue(shape(final['ITA']).boundary.intersection(shape(final[code]).boundary).equals(line))
+        self.assertEqual(len(shape(final['VAT']).exterior.coords), len(precise.coords))
+        self.assertTrue(sections[0]['closedRing'])
+        self.assertEqual(sections[0]['simplification_bound_px'], 0)
+
+    def test_enclave_rejects_missing_host_hole_and_open_reference(self):
+        geometries = self.enclave_fixture()
+        pair = {code: geometries[code] for code in ('ITA', 'SMR')}
+        reference = LineString([(1, 1), (2.2, 1), (2.2, 2), (1, 2), (1, 1)])
+        with self.assertRaisesRegex(ValueError, 'closed ring'):
+            module.repair_enclave_boundary(pair, LineString([(1, 1), (2, 1)]), ('ITA', 'SMR'), 'SMR')
+        pair['ITA']['coordinates'].pop(1)
+        before = copy.deepcopy(pair)
+        with self.assertRaisesRegex(ValueError, 'complete shared exterior|host hole'):
+            module.repair_enclave_boundary(pair, reference, ('ITA', 'SMR'), 'SMR')
+        self.assertEqual(pair, before)
+
+    def test_batch_candidate_emits_one_host_and_preserves_source_metadata_and_dates(self):
+        geometries = self.enclave_fixture()
+        tripoint, tripoint_refs = self.tripoint_fixture()
+        rename = {'AUT': 'FRA', 'LIE': 'AND', 'CHE': 'ESP'}
+        geometries.update({rename[code]: geometry for code, geometry in tripoint.items()})
+        geometries.update({'LSO': geometries['SMR'], 'ZAF': geometries['ITA']})
+        references = {tuple(sorted(rename[code] for code in pair)): line for pair, line in tripoint_refs.items()}
+        references.update({
+            ('ITA', 'SMR'): LineString([(1, 1), (2.2, 1), (2.2, 2), (1, 2), (1, 1)]),
+            ('ITA', 'VAT'): LineString([(4, 4), (5.1, 4), (5.1, 5), (4, 5), (4, 4)]),
+            ('LSO', 'ZAF'): LineString([(1, 1), (2.1, 1), (2.1, 2), (1, 2), (1, 1)]),
+        })
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'assets/data/territorial-entities/source'
+            evidence = root / 'tools/historical-library/sources/lsib-11.4'
+            evidence.mkdir(parents=True)
+            selections, originals = [], {}
+            for code, geometry in geometries.items():
+                version_id = f'state:{code}:current'
+                entity = {'entityId': f'state:{code}', 'sourceInfo': {'featureId': code},
+                    'lifetime': {'validFrom': '1900-01-01', 'validTo': None}, 'parentEntityId': None,
+                    'geometryVersions': [{'versionId': version_id, 'datePrecision': 'current',
+                        'validFrom': None, 'validTo': None, 'geometry': geometry, 'sourceId': 'natural-earth-5.1.1'},
+                        {'versionId': f'state:{code}:past', 'datePrecision': 'day',
+                         'validFrom': '1900-01-01', 'validTo': '1910-01-01', 'geometry': geometry}]}
+                path = source / 'countries' / f'state-{code}.json'
+                module.json_write(path, entity)
+                originals[code] = path.read_bytes()
+                selections.append({'entityId': entity['entityId'], 'geometryVersionId': version_id})
+            module.json_write(source / 'views/world.json', {'selections': selections})
+            records = [{'type': 'Feature', 'properties': {'CC1_GENC3': pair[0], 'CC2_GENC3': pair[1],
+                'RANK': '1', 'STATUS': 'International Boundary', 'NOTES': '', 'ID': '/'.join(pair)},
+                'geometry': mapping(line)} for pair, line in references.items()]
+            raw = gzip.compress(json.dumps({'features': records}).encode())
+            (evidence / 'boundaries.geojson.gz').write_bytes(raw)
+            module.json_write(evidence / 'provenance.json', {'masterSha256': hashlib.sha256(raw).hexdigest(), 'published': '2025-02-24'})
+            module.json_write(root / 'config/library-data.json', {'revision': 'fixture-revision'})
+            output = root / 'candidate.json'
+            module.targeted_candidates(root, output, ['AND/FRA', 'ITA/SMR', 'ITA/VAT', 'LSO/ZAF'])
+            candidate = json.loads(output.read_text())
+            changes = {change['entityId']: change for change in candidate['changes']}
+            self.assertEqual(len(changes), 8)
+            self.assertEqual(len(candidate['changes']), 8)
+            self.assertEqual(candidate['sourceRevision'], 'fixture-revision')
+            self.assertEqual(len(changes['state:ITA']['supplement']['reviewedBoundaryRepairs']), 2)
+            self.assertEqual(changes['state:VAT']['supplement']['simplificationToleranceDegrees'], 0)
+            self.assertEqual(changes['state:LSO']['supplement']['sourceId'], 'dos-lsib-11.4')
+            self.assertFalse(changes['state:VAT']['supplement']['historicalAccuracyVerified'])
+            for code, original in originals.items():
+                self.assertEqual((source / 'countries' / f'state-{code}.json').read_bytes(), original)
+                change = changes[f'state:{code}']
+                self.assertEqual(change['inputFileSha256'], hashlib.sha256(original).hexdigest())
+                self.assertEqual(change['geometryVersionId'], f'state:{code}:current')
+                self.assertEqual(change['sourceId'], 'natural-earth-5.1.1+dos-lsib-11.4')
+            official_file = Path('tools/historical-library/sources/igm-fixture.geojson')
+            official_raw = json.dumps({'features': [{'properties': {'globalid': 'fixture-smr', 'comune_ist': 'san_mar_com'},
+                'geometry': {'type': 'Polygon', 'coordinates': [[(1, 1), (2.3, 1), (2.3, 2), (1, 2), (1, 1)]]}}]}).encode()
+            (root / official_file).write_bytes(official_raw)
+            manifest_file = Path('tools/historical-library/sources/igm-fixture.json')
+            manifest = {'schemaVersion': 1, 'countries': ['ITA', 'SMR'], 'sourceId': 'igm-dbsn-2025-06-27',
+                'sourceCrs': 'EPSG:4258', 'sourceFile': official_file.as_posix(),
+                'sourceFileSha256': hashlib.sha256(official_raw).hexdigest(), 'featureGlobalId': 'fixture-smr',
+                'title': 'IGM DBSN fixture', 'published': '2025-06-27', 'url': 'https://example.invalid/igm',
+                'license': 'ODbL-1.0', 'licenseUrl': 'https://opendatacommons.org/licenses/odbl/1-0/', 'attribution': 'IGM'}
+            module.json_write(root / manifest_file, manifest)
+            module.targeted_candidates(root, output, ['ITA/SMR'], manifest_file)
+            official_candidate = json.loads(output.read_text())
+            self.assertEqual(len(official_candidate['changes']), 2)
+            official_change = next(c for c in official_candidate['changes'] if c['entityId'] == 'state:SMR')
+            self.assertEqual(official_change['sourceId'], 'natural-earth-5.1.1+igm-dbsn-2025-06-27')
+            self.assertEqual(official_change['sourceAttributions'][0]['license'], 'ODbL-1.0')
+            self.assertEqual(official_change['supplement']['simplificationToleranceDegrees'], 0)
+            self.assertTrue(shape(official_change['geometry']).equals(shape(json.loads(official_raw)['features'][0]['geometry'])))
+            with self.assertRaisesRegex(ValueError, 'not explicitly selected'):
+                module.targeted_candidates(root, output, ['AND/FRA'], manifest_file)
+            (root / official_file).write_bytes(official_raw + b'changed')
+            with self.assertRaisesRegex(ValueError, 'pinned evidence'):
+                module.targeted_candidates(root, output, ['ITA/SMR'], manifest_file)
+            versions = json.loads(originals['AND'])['geometryVersions']
+            versions[0]['datePrecision'] = 'day'
+            entity = json.loads(originals['AND'])
+            entity['geometryVersions'] = versions
+            module.json_write(source / 'countries/state-AND.json', entity)
+            with self.assertRaisesRegex(ValueError, 'Historical'):
+                module.targeted_candidates(root, output, ['AND/FRA'])
+            (source / 'countries/state-AND.json').write_bytes(originals['AND'])
+            (evidence / 'boundaries.geojson.gz').write_bytes(raw + b'changed')
+            with self.assertRaisesRegex(ValueError, 'master differs'):
+                module.targeted_candidates(root, output, ['AND/FRA'])
+
     def tripoint_fixture(self):
         def polygon(points):
             return {'type': 'Polygon', 'coordinates': [points]}
