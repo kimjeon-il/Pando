@@ -9,7 +9,7 @@ test('builtin country loading follows calendar rollover, retains manual dates an
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
  expect(await page.evaluate(()=>window.PANDOLAB_BUILD_META.builtinWorld?.url)).toContain('builtin-world/generated/v1/index.json');
  await expect(page.locator('#timelineMonthButtonText')).toHaveText('2026년 10월');
- expect(requests.some(url=>url.includes('/builtin-world/generated/v1/countries/'))).toBe(true);
+ expect(requests.some(url=>/\/builtin-world\/generated\/v1\/transport\/countries-sha256-[a-f0-9]{64}\.bin/.test(url))).toBe(true);
  expect(requests.some(url=>url.includes('world-project.json.gz'))).toBe(false);
  await page.clock.setSystemTime(new Date(2026,10,1));await page.evaluate(()=>window.dispatchEvent(new window.Event('focus')));
  await expect(page.locator('#timelineMonthButtonText')).toHaveText('2026년 11월',{timeout:45000});

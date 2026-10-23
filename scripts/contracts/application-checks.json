@@ -237,6 +237,7 @@
       "id": "viewer",
       "kind": "browser",
       "testPatterns": [
+        "tests/browser/builtin-country-loading.spec.mjs",
         "tests/browser/viewer-*.spec.mjs",
         "tests/browser/web-viewer.spec.mjs",
         "tests/browser/shared-map-*.spec.mjs",
