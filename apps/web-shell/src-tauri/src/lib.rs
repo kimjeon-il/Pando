@@ -13,6 +13,7 @@ use std::{
 };
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
+#[cfg(feature = "custom-protocol")]
 const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../dist/shell/stage-evidence.json"
@@ -86,6 +87,12 @@ async fn read_probe_file(app: tauri::AppHandle) -> Result<ReadFile, String> {
     })
 }
 
+#[cfg(not(feature = "custom-protocol"))]
+fn embedded_build_summary() -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false }))
+}
+
+#[cfg(feature = "custom-protocol")]
 fn embedded_build_summary() -> Result<serde_json::Value, String> {
     let evidence: serde_json::Value = serde_json::from_str(EMBEDDED_STAGE_EVIDENCE)
         .map_err(|error| format!("Invalid embedded stage evidence: {error}"))?;
@@ -182,6 +189,9 @@ async fn finish_probe(
 }
 
 fn local_navigation(url: &tauri::Url) -> bool {
+    #[cfg(not(feature = "custom-protocol"))]
+    if url.scheme() == "http" && url.host_str() == Some("127.0.0.1") && url.port() == Some(4175)
+        && url.username().is_empty() && url.password().is_none() { return true; }
     url.username().is_empty()
         && url.password().is_none()
         && url.port().is_none()
@@ -307,8 +317,12 @@ mod tests {
             "file:///etc/passwd",
             "https://user@tauri.localhost",
             "https://tauri.localhost:444",
+            "http://127.0.0.1:4176",
+            "http://127.0.0.1.evil.test:4175",
+            "http://user@127.0.0.1:4175",
         ] {
             assert!(!local_navigation(&url.parse().unwrap()), "{url}");
         }
+        assert_eq!(local_navigation(&"http://127.0.0.1:4175/index.html".parse().unwrap()), !cfg!(feature = "custom-protocol"));
     }
 }

@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
@@ -17,6 +17,7 @@ const indexPath = resolve(projectRoot, 'index.html');
 const editorPath = resolve(projectRoot, 'apps/web-shell/editor.html');
 const readmePath = resolve(projectRoot, 'README.md');
 const checkOnly = process.argv.includes('--check');
+const pendingText = new Map();
 prepareLibraryData({ root: projectRoot });
 // Metadata consumes the published land derivative; GIS generation has its own owner.
 const landManifest = JSON.parse(readFileSync(resolve(projectRoot, 'assets/data/physical-land/v1/manifest.json')));
@@ -25,7 +26,7 @@ const terrainSource = JSON.parse(readFileSync(resolve(projectRoot, 'assets/data/
 assert.equal(landManifest.sourceSha256, terrainSource.sourceDem.landMaskSha256, 'Physical land must use the pinned terrain mask source.');
 function publishText(path, source) {
   if (checkOnly) assert.equal(readFileSync(path, 'utf8').replaceAll('\r\n', '\n'), source.replaceAll('\r\n', '\n'), `Stale build metadata output: ${path}`);
-  else writeFileSync(path, source, 'utf8');
+  else pendingText.set(path, source);
 }
 
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
@@ -68,7 +69,6 @@ for (const name of readdirSync(resolve(projectRoot, 'assets/js/workers')).filter
     sha256: Object.fromEntries([...generated.files].sort(([a], [b]) => a.localeCompare(b))
       .map(([path, source]) => [path, createHash('sha256').update(source).digest('hex')])) };
   for (const [path, source] of generated.files) {
-    if (!checkOnly) mkdirSync(dirname(resolve(projectRoot, path)), { recursive: true });
     publishText(resolve(projectRoot, path), source);
   }
 }
@@ -157,5 +157,32 @@ let readme = readFileSync(readmePath, 'utf8');
 if (!/^# .*?v\d+\.\d+\.\d+/m.test(readme)) throw new Error('README 최신 버전 제목을 찾을 수 없습니다.');
 readme = readme.replace(/^(# .*?v)\d+\.\d+\.\d+/m, `$1${appVersion}`);
 publishText(readmePath, readme);
+
+if (!checkOnly) {
+  // Validate the whole plan before publishing any Worker or metadata. Roll back
+  // just this write set on failure; do not discard the last valid asset graph.
+  const previous = new Map();
+  try {
+    for (const [path, source] of pendingText) {
+      previous.set(path, existsSync(path) ? readFileSync(path) : null);
+      mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, source, 'utf8');
+    }
+  } catch (error) {
+    for (const [path, bytes] of previous) {
+      if (bytes) writeFileSync(path, bytes); else if (existsSync(path)) unlinkSync(path);
+    }
+    throw error;
+  }
+  const active = new Set(Object.values(workerAssets).flatMap(asset => asset.files.map(path => path.split('/')[2])));
+  const runtime = resolve(projectRoot, 'assets/worker-runtime');
+  for (const entry of readdirSync(runtime, { withFileTypes: true })) {
+    if (!entry.isDirectory() || !/^[a-f0-9]{32}$/.test(entry.name) || active.has(entry.name)) continue;
+    const path = resolve(runtime, entry.name), logical = `assets/worker-runtime/${entry.name}`;
+    // A modified or untracked old closure could be unfinished work. Preserve it.
+    if (execFileSync('git', ['status', '--porcelain', '--untracked-files=all', '--ignored', '--', logical], { cwd: projectRoot, encoding: 'utf8' }).trim()) continue;
+    const noLinks = path => !lstatSync(path).isSymbolicLink() && readdirSync(path, { withFileTypes: true }).every(item => !item.isSymbolicLink() && (!item.isDirectory() || noLinks(resolve(path, item.name))));
+    if (noLinks(path)) rmSync(path, { recursive: true });
+  }
+}
 
 console.log(`${checkOnly ? 'Verified' : 'Generated'} PandoLab build metadata: ${buildId} (${dataRevision})`);

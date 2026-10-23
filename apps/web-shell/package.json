@@ -8,10 +8,13 @@
     "stage": "node stage.mjs",
     "stage:world": "node stage.mjs --profile=full-world",
     "tauri": "tauri",
-    "build:windows": "tauri build --debug --no-bundle --target x86_64-pc-windows-gnu --features custom-protocol",
+    "build:windows": "node packaged-artifacts.mjs --build --features custom-protocol",
     "init:android": "tauri android init --ci && node src-tauri/sync-android.mjs && node src-tauri/sync-android.mjs --check",
-    "build:android": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File src-tauri/build-android.ps1",
-    "test:native": "cargo test --manifest-path src-tauri/Cargo.toml"
+    "build:android": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File src-tauri/build-android.ps1 && node packaged-artifacts.mjs --android",
+    "test:native": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "dev:windows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File dev.ps1 windows",
+    "dev:android": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File dev.ps1 android",
+    "dev:server": "node dev.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.12.3"

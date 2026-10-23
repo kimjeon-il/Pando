@@ -1,28 +1,17 @@
-"""Resolve report inputs and outputs during the Pando -> PandoLab move."""
+"""Resolve original report paths through the shared Node owner and hydration."""
 import argparse
-import os
-import json
+import subprocess
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-MAPPING = json.loads((REPO / 'tools/report-paths.json').read_text(encoding='utf-8'))
 
 
 def report_path(legacy, root=REPO):
-    root = Path(root)
-    legacy = str(legacy)
-    target = MAPPING['files'].get(legacy, legacy)
-    for old, new in MAPPING['directories'].items():
-        recursive = old == 'assets/data/research/siachen'
-        if legacy == old or (recursive and legacy.startswith(old + '/')):
-            target = MAPPING['files'].get(legacy, new + legacy[len(old):])
-            break
-    if not target.startswith('reports/'):
-        raise ValueError(f'Not a report path: {legacy}')
-    checkout = Path(os.environ.get('PANDOLAB_LIBRARY_DATA_ROOT', root / '.library-data/repository'))
-    config = json.loads((root / 'config/library-data.json').read_text(encoding='utf-8'))
-    return checkout / '.working' / config['revision'] / target
-
+    output = subprocess.check_output(
+        ['node', str(REPO / 'tools/report-paths.mjs'), str(legacy), str(root)],
+        text=True, encoding='utf-8',
+    )
+    return Path(output.strip())
 
 
 if __name__ == '__main__':

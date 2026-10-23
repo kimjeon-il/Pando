@@ -11,9 +11,14 @@ use std::{
 fn source_repository() -> &'static str {
     static REPOSITORY: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     REPOSITORY.get_or_init(|| {
-        let config: serde_json::Value = serde_json::from_str(include_str!("../../../../config/library-data.json"))
-            .expect("valid library configuration");
-        config["repository"].as_str().expect("configured library repository").to_owned()
+        #[cfg(feature = "custom-protocol")]
+        {
+            let config: serde_json::Value = serde_json::from_str(include_str!("../../../../config/library-data.json"))
+                .expect("valid library configuration");
+            config["repository"].as_str().expect("configured library repository").to_owned()
+        }
+        #[cfg(not(feature = "custom-protocol"))]
+        { option_env!("PANDOLAB_LIBRARY_REPOSITORY").expect("development launcher must set the library repository").to_owned() }
     }).as_str()
 }
 pub trait Api {
