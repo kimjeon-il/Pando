@@ -17,13 +17,22 @@ test('native recipe launcher checks every pinned source before generation', () =
   } } }, root), /Source SHA-256 mismatch for changed/);
 });
 
-test('native recipe launcher changes only the selected geometry version', () => {
+test('native recipe launcher preserves identity and curated fields while recording the selected geometry provenance', () => {
   const geometry = { type: 'MultiPolygon', coordinates: [[[[0, 0], [0, 1], [1, 0], [0, 0]]]] };
   const before = structuredClone(lineage);
   const result = replaceRecipeGeometry(lineage, recipe, geometry);
   const version = result.geometryVersions.find((item) => item.versionId === recipe.id);
   assert.deepEqual(version.geometry, geometry);
   assert.deepEqual(lineage, before, 'candidate generation must not mutate the source');
+  assert.equal(version.sourceId, recipe.resultSource.id);
+  assert.deepEqual(version.boundarySupplement, recipe.boundarySupplement);
+  assert.equal(result.sourceInfo.sources.filter(source=>source.url===recipe.resultSource.sources[0].url).length,1);
+  assert.deepEqual(replaceRecipeGeometry(result,recipe,geometry),result,'provenance generation must be idempotent');
+  for(const key of ['sourceId','notes','boundarySupplement']) {
+    const original=before.geometryVersions.find((item)=>item.versionId===recipe.id);
+    if(Object.hasOwn(original,key))version[key]=original[key];else delete version[key];
+  }
+  result.sourceInfo=before.sourceInfo;
   version.geometry = before.geometryVersions.find((item) => item.versionId === recipe.id).geometry;
   assert.deepEqual(result, before, 'all curated identities, metadata, other versions and relations must survive');
 });

@@ -1,14 +1,20 @@
 import { territorialRootId } from './territorial-units.js';
-import { normalizePolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, featureId } from './map-edit-geometry.js';
+import { normalizePolygonGeometry, normalizeClippedPolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, featureId } from './map-edit-geometry.js';
 import { createCountryImportMergePlanner } from './import-service.js';
 import { validateCollection } from './gis-geometry-validation.js';
 import { geometryAreaKm2 } from './geometry-metrics.js';
 
 /** Ordered library calculation. checkpoint is the caller-owned cancellation/yield boundary. */
 export async function calculateLibraryBatch(payload, originals, existingUnits, clipper, checkpoint) {
+  const precisionDiscards=[];
+  let clippingResultIndex=0;
+  const normalizeClippingResult=value=>{
+    const operationIndex=clippingResultIndex++;
+    return normalizeClippedPolygonGeometry(value,{onPrecisionDiscard:item=>precisionDiscards.push({...item,operationIndex})});
+  };
   const planner = createCountryImportMergePlanner({ clipper, clone: structuredClone,
     featureCountryId: featureId, countryName: feature => feature.properties?.name || featureId(feature),
-    geometryBounds, boundsOverlap, normalizeGeometry: normalizePolygonGeometry, geometryCoordinates: multiCoordinates,
+    geometryBounds, boundsOverlap, normalizeGeometry: normalizeClippingResult, geometryCoordinates: multiCoordinates,
     planarArea: area, areaKm2: geometryAreaKm2, validateCountryCollection: () => ({ overlapAreaKm2: 0 }) });
   let draft = { type: 'FeatureCollection', features: originals };
   const originalsById = new Map(originals.map(feature => [featureId(feature), feature]));
@@ -19,6 +25,7 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
   const gainedTerritoryIds = new Set();
   let deleted = 0;
   const merge = async (feature, geometry = feature.geometry) => {
+    normalizePolygonGeometry(feature.geometry); // Strictly admit the source before auditing Boolean results.
     gainedTerritoryIds.add(featureId(feature));
     const plan = await planner(draft, { type: 'FeatureCollection', features: [feature] }, 'territory-replacement');
     for (const id of plan.affectedIds) {
@@ -62,5 +69,5 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
   }).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
   const kept = new Set(draft.features.map(featureId));
   return { features: draft.features.filter(feature => affected.has(featureId(feature))), removedIds: originals.filter(feature => !kept.has(featureId(feature))).map(featureId),
-    affectedIds: [...affected], overlapAffectedIds: [...gainedTerritoryIds], transfers, impacts, donorIds: [...donors], deleted };
+    affectedIds: [...affected], overlapAffectedIds: [...gainedTerritoryIds], transfers, impacts, donorIds: [...donors], deleted, precisionDiscards };
 }

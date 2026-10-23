@@ -430,9 +430,21 @@
       }
       polygonOffsets.push(ringOffsets.length - 1);
     }
-    return Object.freeze({ positions: Float32Array.from(mesh.positions, value => value * 1e-6),
-      indices: mesh.triangleIndices, boundaryIndices: mesh.lineIndices,
-      startsEnds: mesh.strokeStartsEnds, segmentCount: mesh.lineIndices.length / 2,
+    const displayPositions = Float32Array.from(mesh.positions, value => value * 1e-6);
+    const boundaryIndices = [], startsEnds = [];
+    for (let index = 0; index < mesh.lineIndices.length; index += 2) {
+      const a = mesh.lineIndices[index], b = mesh.lineIndices[index + 1];
+      const ax = displayPositions[a * 2], ay = displayPositions[a * 2 + 1];
+      const bx = displayPositions[b * 2], by = displayPositions[b * 2 + 1];
+      // Distinct packed integer vertices can become identical in Float32.
+      // Enforce the existing nonzero display-edge contract after that conversion;
+      // source rings and the shared C++ fill triangulation remain unchanged.
+      if (ax === bx && ay === by) continue;
+      boundaryIndices.push(a, b); startsEnds.push(ax, ay, bx, by);
+    }
+    return Object.freeze({ positions: displayPositions,
+      indices: mesh.triangleIndices, boundaryIndices: new Uint32Array(boundaryIndices),
+      startsEnds: new Float32Array(startsEnds), segmentCount: boundaryIndices.length / 2,
       featureIds: Uint32Array.from(mesh.countryIndices),
       vertexCount: mesh.positions.length / 2, triangleCount: mesh.triangleIndices.length / 3,
       ringCoordinates: new Float64Array(ringCoordinates), ringOffsets: new Uint32Array(ringOffsets),

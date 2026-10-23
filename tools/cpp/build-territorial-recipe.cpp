@@ -6,6 +6,7 @@
 #include <geos_c.h>
 #include <proj.h>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -189,8 +190,12 @@ public:
             return false;
         });
         auto result=collection(polygons,GEOS_MULTIPOLYGON);
-        if(GEOSisValid_r(context_,result.get())!=1)
-            throw std::runtime_error("GEOS failed: invalid normalized polygon");
+        if(GEOSisValid_r(context_,result.get())!=1) {
+            char* reason=GEOSisValidReason_r(context_,result.get());
+            const std::string message=reason?reason:"unknown reason";
+            GEOSFree_r(context_,reason);
+            throw std::runtime_error("GEOS failed: invalid normalized polygon: "+message);
+        }
         return result;
     }
     Shape decomposePointContacts(const Shape& source) {
@@ -221,7 +226,10 @@ public:
             if(!GEOSCoordSeq_getXY_r(context_,sequence,index,&x,&y))
                 throw std::runtime_error("GEOS failed: coordinate pair");
             auto pair=V::arr();
-            pair.array={V::num(std::nearbyint(x*1e12)/1e12),V::num(std::nearbyint(y*1e12)/1e12)};
+            // Adopted shared borders must retain the exact reference doubles.
+            // Decimal rounding here creates microscopic clipping polygons when
+            // a library object is subtracted from its modern donor countries.
+            pair.array={V::num(x),V::num(y)};
             output.array.push_back(std::move(pair));
         }
         return output;
@@ -276,6 +284,136 @@ class Recipe {
     std::map<std::string,V> sources_;
     std::map<std::string,GeometryEngine::Shape> results_;
     using Shape=GeometryEngine::Shape;
+    using XY=std::array<double,2>;
+    struct Path {
+        std::vector<XY> points;
+        std::vector<double> distances;
+        double length()const{return distances.back();}
+        bool closed()const{return points.front()==points.back();}
+        XY at(double distance)const {
+            if(distance<=0)return points.front();
+            if(distance>=length())return points.back();
+            const auto end=std::upper_bound(distances.begin(),distances.end(),distance)-distances.begin();
+            const auto start=end-1;
+            const double fraction=(distance-distances[start])/(distances[end]-distances[start]);
+            return {points[start][0]+fraction*(points[end][0]-points[start][0]),points[start][1]+fraction*(points[end][1]-points[start][1])};
+        }
+        std::vector<XY> slice(double start,double end)const {
+            if(start>end) {auto result=slice(end,start);std::reverse(result.begin(),result.end());return result;}
+            std::vector<XY> result{at(start)};
+            auto index=std::upper_bound(distances.begin(),distances.end(),start)-distances.begin();
+            for(;index<static_cast<decltype(index)>(points.size())&&distances[index]<end;++index)result.push_back(points[index]);
+            if(result.back()!=at(end))result.push_back(at(end));
+            return result;
+        }
+        std::vector<XY> arc(double start,double end)const {
+            auto direct=slice(start,end);
+            if(!closed()||std::abs(end-start)<=length()/2)return direct;
+            auto result=start>end?slice(start,length()):slice(start,0);
+            auto tail=start>end?slice(0,end):slice(length(),end);
+            result.insert(result.end(),tail.begin()+1,tail.end());return result;
+        }
+    };
+    Path linePath(const GEOSGeometry* geometry) {
+        Path result;const auto* sequence=GEOSGeom_getCoordSeq_r(engine_.context(),geometry);unsigned count=0;
+        if(!sequence||!GEOSCoordSeq_getSize_r(engine_.context(),sequence,&count))throw std::runtime_error("Cannot read boundary path");
+        for(unsigned i=0;i<count;++i) {
+            XY point;GEOSCoordSeq_getXY_r(engine_.context(),sequence,i,&point[0],&point[1]);
+            if(!result.points.empty()&&result.points.back()==point)continue;
+            const double distance=result.points.empty()?0:result.distances.back()+std::hypot(point[0]-result.points.back()[0],point[1]-result.points.back()[1]);
+            result.points.push_back(point);result.distances.push_back(distance);
+        }
+        return result;
+    }
+    void intersectionAnchors(const GEOSGeometry* geometry,std::vector<XY>& points) {
+        if(engine_.empty(geometry))return;
+        const auto kind=engine_.type(geometry);
+        if(kind==GEOS_POINT||kind==GEOS_LINESTRING||kind==GEOS_LINEARRING) {
+            const auto values=linePath(geometry).points;
+            points.push_back(values.front());if(values.size()>1)points.push_back(values.back());return;
+        }
+        const auto count=GEOSGetNumGeometries_r(engine_.context(),geometry);
+        for(int i=0;i<count;++i)intersectionAnchors(GEOSGetGeometryN_r(engine_.context(),geometry,i),points);
+    }
+    V ringValue(const std::vector<XY>& points) {
+        auto result=V::arr();for(const auto& point:points) {auto item=V::arr();item.array={V::num(point[0]),V::num(point[1])};result.array.push_back(std::move(item));}return result;
+    }
+    Shape supplement(const V& operation) {
+        auto result=resolve(str(field(operation,"input")));
+        auto referencePolygon=source(str(field(operation,"referenceSource")));
+        if(const auto* tolerance=optional(operation,"referenceToleranceDegrees")) {
+            if(number(*tolerance)<=0)throw std::runtime_error("Reference tolerance must be positive");
+            referencePolygon=engine_.own(GEOSTopologyPreserveSimplify_r(engine_.context(),referencePolygon.get(),number(*tolerance)),"reference simplification");
+        }
+        auto reference=engine_.boundary(referencePolygon);
+        for(const auto& section:array(field(operation,"sections"))) {
+            const auto& bounds=array(field(section,"bounds"));
+            if(bounds.size()!=4)throw std::runtime_error("Boundary section needs four bounds");
+            const auto inside=[&](const XY& point) {return point[0]>=number(bounds[0])&&point[1]>=number(bounds[1])&&point[0]<=number(bounds[2])&&point[1]<=number(bounds[3]);};
+            unsigned replaced=0;double replacedLength=0;
+            auto polygons=V::arr();
+            for(const auto& polygon:engine_.parts(result)) {
+                const auto* ring=GEOSGetExteriorRing_r(engine_.context(),polygon.get());
+                auto original=linePath(ring);auto ringShape=engine_.clone(ring);
+                struct Replacement {double start,end;std::vector<XY> points;};
+                std::vector<Replacement> replacements;
+                for(const auto& referenceLine:engine_.parts(reference)) {
+                    auto path=linePath(referenceLine.get());
+                    auto crossing=engine_.intersection(ringShape,referenceLine);
+                    std::vector<XY> points;intersectionAnchors(crossing.get(),points);
+                    std::vector<std::pair<double,XY>> anchors;
+                    for(const auto& point:points)if(inside(point)) {
+                        const auto value=engine_.point(point[0],point[1]);
+                        const double distance=GEOSProject_r(engine_.context(),ring,value.get());
+                        if(distance<0)throw std::runtime_error("Cannot locate boundary anchor");
+                        anchors.push_back({distance,point});
+                    }
+                    std::sort(anchors.begin(),anchors.end());
+                    anchors.erase(std::unique(anchors.begin(),anchors.end(),[](const auto& a,const auto& b){return std::abs(a.first-b.first)<1e-11;}),anchors.end());
+                    for(size_t i=1;i<anchors.size();++i) {
+                        const auto start=anchors[i-1].first,end=anchors[i].first;
+                        if(end-start<1e-11)continue;
+                        const auto old=original.slice(start,end);
+                        if(!std::all_of(old.begin(),old.end(),inside))continue;
+                        const auto a=engine_.point(anchors[i-1].second[0],anchors[i-1].second[1]);
+                        const auto b=engine_.point(anchors[i].second[0],anchors[i].second[1]);
+                        const double from=GEOSProject_r(engine_.context(),referenceLine.get(),a.get());
+                        const double to=GEOSProject_r(engine_.context(),referenceLine.get(),b.get());
+                        if(from<0||to<0)throw std::runtime_error("Cannot locate reference anchor");
+                        auto replacement=path.arc(from,to);
+                        if(!std::all_of(replacement.begin(),replacement.end(),inside))continue;
+                        replacement.front()=anchors[i-1].second;replacement.back()=anchors[i].second;
+                        if(old==replacement)continue;
+                        replacements.push_back({start,end,std::move(replacement)});
+                    }
+                }
+                std::sort(replacements.begin(),replacements.end(),[](const auto& a,const auto& b){return a.start<b.start;});
+                std::vector<XY> updated;double cursor=0;
+                const auto append=[&](const std::vector<XY>& points){for(const auto& point:points)if(updated.empty()||updated.back()!=point)updated.push_back(point);};
+                for(const auto& replacement:replacements) {
+                    if(replacement.start<cursor-1e-11)throw std::runtime_error("Overlapping boundary replacements");
+                    auto gap=original.slice(cursor,replacement.start);
+                    if(!updated.empty())gap.front()=updated.back();
+                    gap.back()=replacement.points.front();
+                    append(gap);append(replacement.points);cursor=replacement.end;
+                    ++replaced;replacedLength+=replacement.end-replacement.start;
+                }
+                auto tail=original.slice(cursor,original.length());
+                if(!updated.empty())tail.front()=updated.back();
+                append(tail);
+                auto rings=V::arr();rings.array.push_back(ringValue(updated));
+                const int holes=GEOSGetNumInteriorRings_r(engine_.context(),polygon.get());
+                for(int i=0;i<holes;++i)rings.array.push_back(engine_.coordinates(GEOSGetInteriorRingN_r(engine_.context(),polygon.get(),i)));
+                polygons.array.push_back(std::move(rings));
+            }
+            if(!replaced)throw std::runtime_error("No admissible boundary arc: "+str(field(section,"id")));
+            auto geometry=V::obj();geometry.object["type"]=V::str("MultiPolygon");geometry.object["coordinates"]=std::move(polygons);
+            try {result=engine_.normalize(engine_.parse(geometry));}
+            catch(const std::exception& error) {throw std::runtime_error(str(field(section,"id"))+": "+error.what());}
+            std::cerr<<"BOUNDARY_SECTION "<<str(field(section,"id"))<<" arcs="<<replaced<<" oldLengthDegrees="<<replacedLength<<"\n";
+        }
+        return result;
+    }
     Shape source(const std::string& id,const std::string& target="EPSG:4326",const V* selector=nullptr) {
         const auto& definition=field(field(recipe_,"sources"),id);
         const auto& document=sources_.at(id);
@@ -374,6 +512,7 @@ public:
                 auto left=resolve(str(inputs[0])),right=resolve(str(inputs[1]));
                 result=kind=="difference"?engine_.difference(left,right):engine_.intersection(left,right);
             } else if(kind=="polygonize-mask")result=mask(operation);
+            else if(kind=="boundary-supplement")result=supplement(operation);
             else if(kind=="canonical-boundary-reconcile") {
                 auto candidate=resolve(str(field(operation,"input")));
                 auto selector=V::obj();selector.object["field"]=V::str("__feature_id__");

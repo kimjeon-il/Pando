@@ -11,6 +11,8 @@ async function observeOwners(page) {
       'get state() { window.__libraryState = state; window.__librarySaveState = saveState; return state; }'],
     ['selection-domain.js', '  return Object.freeze({ replace,',
       '  return window.__librarySelection = Object.freeze({ replace,'],
+    ['project-domain.js', "  const buildFileSnapshot = () => exportReceipt('pandolab-project-state');",
+      "  const buildFileSnapshot = () => exportReceipt('pandolab-project-state'); window.__libraryBuildFileSnapshot=buildFileSnapshot;"],
     ['territorial-library-controller.js', '  reportError,',
       `  reportError: originalReportError,`],
   ];
@@ -20,6 +22,11 @@ async function observeOwners(page) {
       const original = (await response.text()).replace(/\r\n/g, '\n');
       expect(original).toContain(before);
       let source = original.replace(before, after);
+      if(file==='project-session.js') {
+        const install='function installDocumentProjection({ documentModel,commandOwner,entityStore }) {';
+        expect(source).toContain(install);
+        source=source.replace(install,install+' window.__libraryCoreOwner=commandOwner;');
+      }
       if (file === 'territorial-library-controller.js') {
         const marker = '  let selectedId =';
         expect(source).toContain(marker);
@@ -54,17 +61,16 @@ async function stateProof(page, sourceId) {
     });
     const source = structuredClone(await window.PANDOLAB_TERRITORIAL_LIBRARY.get(sourceId));
     const rendering = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+    const core = window.__libraryCoreOwner.state();
     return {
       entities: await hash(state.territorialEntities),
       records: await hash(state.timelineRecords),
       archive: await hash(state.geometries.snapshot()),
-      history: await hash(state.history), future: await hash(state.future),
-      historyMeta: await hash(state.historyMeta), futureMeta: await hash(state.futureMeta),
-      historyCount: state.history.length, futureCount: state.future.length,
+      history: {checkpoint:core.checkpoint,canUndo:core.canUndo,canRedo:core.canRedo,
+        undoCommandId:core.undoCommandId,redoCommandId:core.redoCommandId},
       source: await hash(source), sourceInfo: await hash(state.sourceInfo),
       savedProject: await hash(saved), saveState: window.__librarySaveState.checkpoint(),
-      stateRevision: state.stateRevision, transitionRevision: state.transitionRevision,
-      contentToken: state.contentToken, lastSavedAt: state.lastSavedAt,
+      stateRevision: core.stateRevision, epoch: core.epoch,
       selection: window.__librarySelection.snapshot().selection,
       session: { projection: state.projection, view: state.view, tool: state.tool,
         countryVisualPhase: state.countryVisualPhase, pendingCountryRenderIds: [...state.pendingCountryRenderIds] },
@@ -115,6 +121,7 @@ export async function importFiniteSource(page, testInfo, id, errors, { reference
   expect(source.lifetime.validFrom || source.lifetime.validTo).toBeTruthy();
   const inputDate=await page.locator('#territorialLibraryReferenceDateInput').inputValue();
   const editMonth=await page.evaluate(() => window.__testEditorTimeline.month());
+  const timelineEditsEnabled=await page.evaluate(()=>window.__libraryCoreOwner.state().timelineEditsEnabled);
   const selected=await page.evaluate(async({id,referenceDate})=>{
     const {selectGeometryVersion}=await import('/assets/js/modules/territorial-library.js');
     return selectGeometryVersion(await window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),referenceDate);
@@ -122,24 +129,35 @@ export async function importFiniteSource(page, testInfo, id, errors, { reference
   expect(selected).toBeTruthy();
   await expect(page.locator('#territorialLibraryPreview [data-geometry-version-id]')).toHaveAttribute('data-geometry-version-id',selected.versionId);
   await page.locator('#territorialLibraryAddBtn').click();
-  await expect.poll(async()=> (await page.locator('[data-library-impact]').count()) || (await page.locator('#territorialLibraryModal.hidden').count()),{timeout:60_000}).toBeGreaterThan(0);
+  await expect.poll(async()=> {
+    const failures=await page.evaluate(()=>window.__libraryErrors);
+    if(failures.length)throw new Error(JSON.stringify(failures));
+    return (await page.locator('[data-library-impact]').count()) || (await page.locator('#territorialLibraryModal.hidden').count());
+  },{timeout:60_000}).toBeGreaterThan(0);
   if(await page.locator('[data-library-impact]').count())await page.locator('#territorialLibraryAddBtn').click();
   await expect(page.locator('#territorialLibraryModal')).toBeHidden({timeout:60_000});
   const added=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().filter(e=>e.properties.sourceEntityId===id),id);
   expect(added).toHaveLength(1);expect(added[0].id).not.toBe(id);
   expect(added[0].geometry).toEqual(selected.geometry);
-  expect(added[0].properties).toMatchObject({validFrom:editMonth,validTo:null,sourceGeometryVersion:selected.versionId,
+  expect(added[0].properties).toMatchObject({validFrom:timelineEditsEnabled?editMonth:null,validTo:null,sourceGeometryVersion:selected.versionId,
     metadata:{sourceLifetime:source.lifetime,sourceGeometryValidity:{validFrom:selected.validFrom,validTo:selected.validTo},
       sourceReferenceDate:referenceDate,sourceInfo:source.sourceInfo,geometryCertainty:selected.certainty,geometryDatePrecision:selected.datePrecision}});
   await expect(page.locator('#territorialLibraryReferenceDateInput')).toHaveValue(inputDate);
-  const after=await stateProof(page,id);expect(after.historyCount).toBe(before.historyCount+1);expect(after.source).toBe(before.source);
+  const after=await stateProof(page,id);
+  expect(after.history.checkpoint).not.toBe(before.history.checkpoint);
+  expect(after.history.canUndo).toBe(true);expect(after.history.canRedo).toBe(false);
+  expect(after.source).toBe(before.source);
   await page.locator('#undoBtn').click({timeout:30_000,noWaitAfter:true});
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().some(e=>e.properties.sourceEntityId===id),id),{timeout:30_000}).toBe(false);
   const undone=await stateProof(page,id);
+  expect(undone.history.checkpoint).toBe(before.history.checkpoint);
+  expect(undone.history.canRedo).toBe(true);
   for(const key of ['entities','records','archive','source','sourceInfo'])expect(undone[key],key).toBe(before[key]);
   await page.locator('#redoBtn').click({timeout:30_000,noWaitAfter:true});
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().filter(e=>e.properties.sourceEntityId===id).map(e=>e.id),id),{timeout:30_000}).toEqual([added[0].id]);
   const redone=await stateProof(page,id);for(const key of ['entities','records','archive','source','sourceInfo'])expect(redone[key],key).toBe(after[key]);
+  expect(redone.history.checkpoint).toBe(after.history.checkpoint);
+  expect(redone.history.undoCommandId).toBe(after.history.undoCommandId);
   const proofPath=testInfo.outputPath('static-import-provenance.json');
   await writeFile(proofPath,JSON.stringify({id,inputDate,referenceDate,versionId:selected.versionId,objectId:added[0].id,before,after,undone,redone}));
   await testInfo.attach('static-import-provenance',{path:proofPath,contentType:'application/json'});
