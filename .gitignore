@@ -6,9 +6,12 @@ node_modules/
 /build-native/
 /apps/web-shell/dist/
 /apps/web-shell/.stage-lock
+/apps/web-shell/.dist-pending/
+/apps/web-shell/.dist-previous/
 /apps/web-shell/src-tauri/target/
 /apps/web-shell/src-tauri/gen/schemas/
 /apps/web-shell/src-tauri/gen/android/.gradle/
+/apps/web-shell/src-tauri/gen/android/.kotlin/
 /apps/web-shell/src-tauri/gen/android/**/build/
 /apps/web-shell/src-tauri/gen/android/.tauri/
 /apps/web-shell/src-tauri/gen/android/local.properties
