@@ -47,6 +47,9 @@ jobs:
           cache: pnpm
       - &a4
         run: pnpm install --frozen-lockfile
+      - &library
+        name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - name: Select current application checks
         id: plan
         if: github.event_name != 'workflow_dispatch' || !startsWith(inputs.browser_scope, 'boundary-')
@@ -65,6 +68,7 @@ jobs:
       - *a2
       - *a3
       - *a4
+      - *library
       - name: Select current application checks
         id: plan
         env: *a5
