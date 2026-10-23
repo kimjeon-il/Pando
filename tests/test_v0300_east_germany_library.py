@@ -20,6 +20,10 @@ CANONICAL_DEU = shape(next(item["geometry"] for item in COUNTRIES["geometryVersi
 RECIPE = json.loads((ROOT / "tools/historical-library/east-germany-1989.recipe.json").read_text(encoding="utf-8"))
 PREVIOUS = shape(json.loads((ROOT / RECIPE["sources"]["previousDdr"]["path"]).read_text(encoding="utf-8"))["features"][0]["geometry"])
 TO_EQUAL_AREA = Transformer.from_crs(4326, 3035, always_xy=True).transform
+NORTHERN_SECTION_IDS = {"vg25-ratzeburg-wakenitz-south", "vg25-kiekbusch-mechower-west-shore"}
+NORTHERN_SECTIONS = [section for section in RECIPE["operations"][-1]["sections"]
+                     if section["id"] in NORTHERN_SECTION_IDS]
+NORTHERN_REGION = unary_union([box(*section["bounds"]) for section in NORTHERN_SECTIONS])
 
 
 def projected_area_km2(geometry):
@@ -107,7 +111,7 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
         region = box(10.55, 51.98, 10.91, 52.09)
         stage2 = unary_union([box(*section["bounds"]) for section in RECIPE["operations"][-1]["sections"]
                               if section["id"] in {"vg25-eichsfeld-glasehausen", "vg25-schaalsee-mustin-thurow-land"}])
-        admitted = unary_union([region, stage2])
+        admitted = unary_union([region, stage2, NORTHERN_REGION])
         delta = baseline.symmetric_difference(GEOMETRY)
         self.assertGreater(projected_area_km2(delta.intersection(region)), 0.01)
         self.assertTrue(delta.difference(admitted.buffer(3e-12)).difference(baseline.boundary.buffer(3e-12)).is_empty)
@@ -118,7 +122,7 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
                              "Ohre-Droemling": (10.7, 52.3, 11.3, 52.9),
                              "northern-shores": (10.5, 53.4, 11.2, 54.1)}.items():
             with self.subTest(held=name):
-                self.assertTrue(delta.intersection(box(*bounds).difference(stage2.buffer(3e-12)))
+                self.assertTrue(delta.intersection(box(*bounds).difference(unary_union([stage2, NORTHERN_REGION]).buffer(3e-12)))
                                 .difference(baseline.boundary.buffer(3e-12)).is_empty)
 
     def test_stage2_land_sections_change_geometry_and_preserve_all_other_boundaries(self):
@@ -127,7 +131,7 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
         ids = {"vg25-eichsfeld-glasehausen", "vg25-schaalsee-mustin-thurow-land"}
         sections = [section for section in RECIPE["operations"][-1]["sections"] if section["id"] in ids]
         self.assertEqual({section["id"] for section in sections}, ids)
-        admitted = unary_union([box(*section["bounds"]) for section in sections])
+        admitted = unary_union([NORTHERN_REGION, *[box(*section["bounds"]) for section in sections]])
         delta = baseline.symmetric_difference(GEOMETRY)
         for section in sections:
             with self.subTest(section=section["id"]):
@@ -137,6 +141,28 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
             GEOMETRY.boundary.difference(admitted)), 3e-11)
         self.assertEqual(len(GEOMETRY.geoms), len(baseline.geoms))
         self.assertEqual([len(p.interiors) for p in GEOMETRY.geoms], [len(p.interiors) for p in baseline.geoms])
+
+    def test_northern_supplement_preserves_lake_ownership_and_unreviewed_boundaries(self):
+        source = RECIPE["sources"]["beforeNorthernMapSupplement"]
+        baseline = shape(json.loads((ROOT / source["path"]).read_text(encoding="utf-8"))["features"][0]["geometry"])
+        self.assertEqual({section["id"] for section in NORTHERN_SECTIONS}, NORTHERN_SECTION_IDS)
+        delta = baseline.symmetric_difference(GEOMETRY)
+        for section in NORTHERN_SECTIONS:
+            with self.subTest(section=section["id"]):
+                self.assertGreater(projected_area_km2(delta.intersection(box(*section["bounds"]))), 0.001)
+        self.assertTrue(delta.difference(NORTHERN_REGION.buffer(3e-12))
+                        .difference(baseline.boundary.buffer(3e-12)).is_empty)
+        self.assertLess(baseline.boundary.difference(NORTHERN_REGION).hausdorff_distance(
+            GEOMETRY.boundary.difference(NORTHERN_REGION)), 3e-11)
+        self.assertEqual(len(GEOMETRY.geoms), len(baseline.geoms))
+        self.assertEqual([len(p.interiors) for p in GEOMETRY.geoms], [len(p.interiors) for p in baseline.geoms])
+        # A real ownership regression: the old diagonal excluded water along
+        # Mechower See's west side although the lake belonged to the DDR.
+        western_lake_water = Point(10.813891870361987, 53.722674120019214)
+        self.assertFalse(baseline.covers(western_lake_water))
+        self.assertTrue(GEOMETRY.covers(western_lake_water))
+        self.assertFalse(GEOMETRY.covers(Point(10.801354237954948, 53.72486100857692)))
+        self.assertTrue(GEOMETRY.covers(Point(10.834842915748618, 53.72035733471293)))
 
     def test_admitted_inland_sections_reuse_the_pinned_vg25_derivative(self):
         # This checks which source line was applied, not historical positional
