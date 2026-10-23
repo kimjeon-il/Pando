@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { parse } from 'yaml';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { loadRepository, planApplicationChecks } from '../../scripts/plan-application-checks.mjs';
@@ -22,6 +23,17 @@ function fixture() {
   put('scripts/generate.mjs');
   return { root, put, catalog, repository: () => loadRepository(root, { catalog }) };
 }
+
+test('application CI prepares pinned data before planning and executing registered checks', () => {
+  const workflow = parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8'));
+  for (const id of ['changes', 'checks']) {
+    const steps = workflow.jobs[id].steps;
+    const checkout = steps.findIndex(step => step.uses === 'actions/checkout@v4');
+    const prepare = steps.findIndex(step => step.uses === './.github/actions/library-data');
+    const plan = steps.findIndex(step => step.run?.includes('run-application-checks.mjs'));
+    assert.ok(checkout >= 0 && prepare > checkout && plan > prepare, `${id} must prepare registered data inputs before loading the repository`);
+  }
+});
 
 test('transitive source changes choose related units and declared HTTP browser consumers', () => {
   const f = fixture();

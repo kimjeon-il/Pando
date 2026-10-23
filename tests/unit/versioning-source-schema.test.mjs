@@ -15,7 +15,7 @@ const gis=file('assets/js/gis-adapters.js');
 test('project data follows its C++-compatible schema and UUID identity policy',()=>{
   assert.match(serializer,/schemaVersion = PROJECT_SCHEMA_VERSION/);
   assert.match(serializer,/schemaVersion,/);
-  assert.match(domain,/commandOwner\.inspectImport\(JSON\.stringify\(project\)/);
+  assert.match(domain,/commandOwner\.inspectImport\(JSON\.stringify\(splitPackage\(project\)\.core\)/);
   assert.match(version,/export const PROJECT_SCHEMA_VERSION = 14/);
   assert.match(project,/export \{ PROJECT_SCHEMA_VERSION \}/);
   assert.doesNotMatch(project,/migrateProject/);
