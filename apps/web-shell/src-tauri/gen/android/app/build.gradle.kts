@@ -92,3 +92,9 @@ val checkAndroidSources = tasks.register<Exec>("checkAndroidSources") {
     commandLine("node", "sync-android.mjs", "--check")
 }
 tasks.named("preBuild") { dependsOn(checkAndroidSources) }
+
+// Updating an APK in place retains holes left by replaced native libraries.
+// Recreate only the final ZIP; Rust, Java and resource tasks stay incremental.
+tasks.matching { it.name.matches(Regex("package(Arm64|X86_64)Debug")) }.configureEach {
+    outputs.upToDateWhen { false }
+}
