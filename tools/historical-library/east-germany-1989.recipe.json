@@ -69,6 +69,12 @@
       "crs": "EPSG:4326",
       "sha256": "C5087B6C4B03B2519D9DB2EAB4B0BEF2EEEFBC048FBDBED70BD75B7C0D27F69F",
       "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0"
+    },
+    "beforeNorthernMapSupplement": {
+      "path": "tools/historical-library/sources/east-germany/ddr-before-ratzeburg-mechow-vg25.geojson",
+      "crs": "EPSG:4326",
+      "sha256": "FB6B6E2F75E5D5D65943C95BB398045E3471BF4288260CF3E5868724FB1E0AB5",
+      "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0"
     }
   },
   "operations": [
@@ -275,6 +281,30 @@
           "evidence": "https://www.kreis-rz.de/Adressen/Zweckverband-Schaalsee-Landschaft-.php?ModID=9&FID=327.1042.1",
           "corroboration": "https://www.gesetze-im-internet.de/natpschaalseev/DDNR514770990.html",
           "overview": "https://service.gdi-sh.de/WMS_SH_DTK25_OpenGBD"
+        },
+        {
+          "id": "vg25-ratzeburg-wakenitz-south",
+          "bounds": [
+            10.72,
+            53.75,
+            10.8,
+            53.8
+          ],
+          "basis": "Restricted eastern Ratzeburger See and short southern Wakenitz/outlet interval, south of53.80. GRENZHUS 2023 PDF p.8 describes the joint 1973 boundary survey and FRG narrow bank strip; Kreis Lauenburg identifies the former inter-German boundary as the present SH/MV boundary. The approved provider-georeferenced TK25AS map, sheet N32082DA (edition1991, content1989), was visually reviewed without fitting to VG25. Reuse the pinned vector between real shared crossings, not a traced shoreline. The1990 NatPSchaalseeV section2(2)4 follows the shared western state border north to Naedlershorst; the remainder of Wakenitz is not admitted. No independent reference-date 0.5px positional pass.",
+          "evidence": "https://www.grenzhus.de/wp-content/uploads/2023/12/Newsletter-2023_Nummer-1.pdf",
+          "corroboration": "https://www.kreis-rz.de/Adressen/Zweckverband-Schaalsee-Landschaft-.php?ModID=9&FID=327.1042.1"
+        },
+        {
+          "id": "vg25-kiekbusch-mechower-west-shore",
+          "bounds": [
+            10.745,
+            53.695,
+            10.9,
+            53.76
+          ],
+          "basis": "Kiekbuschwiesen former border ditch and Mechower See western bank only. GRENZHUS 2023 PDF p.8 identifies the early1980s boundary ditch; GRENZHUS 2024 PDF p.8 explicitly places the lake in the DDR and describes the1973 commission. The Schaalsee-Elbe reserve authority identifies the entire western bank as the present SH boundary. Kreis Lauenburg corroborates boundary continuity. The user-approved TK25AS georeferencing was reviewed to distinguish the numbered political boundary from the inner patrol road. Reuse CC-BY4.0 VG25, not digitized provider pixels. Exact1989 revision day/georeferencing residual unmeasured; provisional.",
+          "evidence": "https://www.grenzhus.de/wp-content/uploads/2025/01/Newsletter-2024_final.pdf",
+          "corroboration": "https://www.schaalsee.de/schuetzen-entwickeln/naturschutz/naturschutzgebiete/mechower-see"
         }
       ]
     }
@@ -478,12 +508,36 @@
         "evidence": "https://www.kreis-rz.de/Adressen/Zweckverband-Schaalsee-Landschaft-.php?ModID=9&FID=327.1042.1",
         "corroboration": "https://www.gesetze-im-internet.de/natpschaalseev/DDNR514770990.html",
         "overview": "https://service.gdi-sh.de/WMS_SH_DTK25_OpenGBD"
+      },
+      {
+        "id": "vg25-ratzeburg-wakenitz-south",
+        "bounds": [
+          10.72,
+          53.75,
+          10.8,
+          53.8
+        ],
+        "basis": "Restricted eastern Ratzeburger See and short southern Wakenitz/outlet interval, south of53.80. GRENZHUS 2023 PDF p.8 describes the joint 1973 boundary survey and FRG narrow bank strip; Kreis Lauenburg identifies the former inter-German boundary as the present SH/MV boundary. The approved provider-georeferenced TK25AS map, sheet N32082DA (edition1991, content1989), was visually reviewed without fitting to VG25. Reuse the pinned vector between real shared crossings, not a traced shoreline. The1990 NatPSchaalseeV section2(2)4 follows the shared western state border north to Naedlershorst; the remainder of Wakenitz is not admitted. No independent reference-date 0.5px positional pass.",
+        "evidence": "https://www.grenzhus.de/wp-content/uploads/2023/12/Newsletter-2023_Nummer-1.pdf",
+        "corroboration": "https://www.kreis-rz.de/Adressen/Zweckverband-Schaalsee-Landschaft-.php?ModID=9&FID=327.1042.1"
+      },
+      {
+        "id": "vg25-kiekbusch-mechower-west-shore",
+        "bounds": [
+          10.745,
+          53.695,
+          10.9,
+          53.76
+        ],
+        "basis": "Kiekbuschwiesen former border ditch and Mechower See western bank only. GRENZHUS 2023 PDF p.8 identifies the early1980s boundary ditch; GRENZHUS 2024 PDF p.8 explicitly places the lake in the DDR and describes the1973 commission. The Schaalsee-Elbe reserve authority identifies the entire western bank as the present SH boundary. Kreis Lauenburg corroborates boundary continuity. The user-approved TK25AS georeferencing was reviewed to distinguish the numbered political boundary from the inner patrol road. Reuse CC-BY4.0 VG25, not digitized provider pixels. Exact1989 revision day/georeferencing residual unmeasured; provisional.",
+        "evidence": "https://www.grenzhus.de/wp-content/uploads/2025/01/Newsletter-2024_final.pdf",
+        "corroboration": "https://www.schaalsee.de/schuetzen-entwickeln/naturschutz/naturschutzgebiete/mechower-see"
       }
     ],
     "held": [
       "Elbe undetermined boundary and estuary",
       "Amt Neuhaus, Neu Bleckede, Neu Wendischthun, Stiepelse and Bohldamm transferred areas",
-      "Northern SH/MV sectors outside the admitted Mustin/Gross Thurow forest arcs, including unreviewed lake/river shores; Altmark/Ohre/Droemling and Harz outside the admitted Ecker and Hornburg/Grosses Bruch windows",
+      "Northern SH/MV outside the admitted Ratzeburger See/southern Wakenitz, Kiekbuschwiesen/Mechower west bank, Schaalsee lake and Mustin/Gross Thurow forest windows; remaining Wakenitz, lake/river shores, Altmark/Ohre/Droemling and Harz outside admitted Ecker/Hornburg windows",
       "Hessian/Thuringian Werra and Wendebach (documented mobile river boundary with later surveys), southern Eichsfeld outside the Glasehausen land window, and Rhon/Point Alpha outside the admitted Geismar window",
       "Bavarian west/Rhon and Czech-tripoint transition gaps outside conservative crossing-to-crossing windows; west window yielded no admissible intersecting arc",
       "West Berlin and coast (out of scope)",
@@ -588,13 +642,23 @@
       "baselineSource": "beforeStage2Supplement",
       "evidenceManifest": "reports/geography/east-germany-remaining-stage2-2026-10-23/captured-sources.json",
       "evidenceStatus": "documentary continuity with July 1990 schematic overview and current DTK25 land/water screening; no independent 1989 vector, no 0.5px positional pass"
+    },
+    "northernMapFollowup": {
+      "date": "2026-10-23",
+      "report": "reports/geography/east-germany-ratzeburg-mechow-applied-2026-10-23.md",
+      "baselineSource": "beforeNorthernMapSupplement",
+      "mapPreview": "reports/geography/east-germany-remaining-map-preview-2026-10-23.md",
+      "userApproval": "2026-10-23 user confirmed map alignment and requested implementation",
+      "mapStatus": "LAiV provider georeferenced TK25AS; N32082DA edition1991/content1989, exact revision date and independent residual unmeasured",
+      "productionGeometry": "Reuse pinned CC-BY4.0 VG25 between real intersections; no provider-map-derived production vertices",
+      "evidenceStatus": "Documentary continuity, ownership and approved-map visual review; no independent exact-date historical-vector 0.5px positional pass"
     }
   },
   "resultSource": {
     "id": "natural-earth-admin1-v5.1.1+bkg-vg250+berlin-wall-1989+adopted-dos-lsib-11.4+bkg-vg25-capture-2026-10-22",
     "title": "Natural Earth, BKG VG250/VG25, Berlin Wall 1989 and adopted German LSIB 11.4 arcs",
     "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0",
-    "notes": "1989-04-25 reference-date approximation. Adopted DEU LSIB Polish/Czech arcs reused; pinned VG25 used only in documentarily corroborated Schaalsee, selected Bavaria/Saxony, northern Eichsfeld/Glasehausen, Ecker, Geismar/Spahl, Hornburg/Grosses Bruch and Mustin/Gross Thurow forest intervals. Coast, West Berlin, Elbe, transferred and remaining uncorroborated sectors preserved. No independent historical-vector 0.5px accuracy claim.",
+    "notes": "1989-04-25 reference-date approximation. Adopted DEU LSIB Polish/Czech arcs reused; pinned VG25 used only in documentarily corroborated Schaalsee, selected Bavaria/Saxony, northern Eichsfeld/Glasehausen, Ecker, Geismar/Spahl, Hornburg/Grosses Bruch Mustin/Gross Thurow forest, Ratzeburger See/southern Wakenitz and Kiekbuschwiesen/Mechower western-bank intervals. Coast, West Berlin, Elbe, transferred and remaining uncorroborated sectors preserved. No independent historical-vector 0.5px accuracy claim.",
     "sources": [
       {
         "title": "Adopted German LSIB 11.4 linework (2025-02-24 source; adopted subset)",
