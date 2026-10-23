@@ -3,6 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { restoreTimelineStorage } from '../../assets/js/modules/timeline-storage.js';
 import { initialTimelineMonth, resolveWorld, resolvedTimelineViews } from '../../assets/js/modules/timeline-resolver.js';
+import { sphericalCore } from '../helpers/spherical-core.mjs';
 
 const project = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json', import.meta.url), 'utf8'));
 const catalog = project.territorialEntities.map(feature => ({ id: feature.id, entityKind: feature.properties.entityKind }));
@@ -68,4 +69,48 @@ test('materialized editor views contain only living features at the selected mon
   assert.deepEqual(before.map(feature => feature.id), ['A', 'C', 'R']);
   assert.equal(after.find(feature => feature.id === 'B').properties.parentId, 'C');
   assert.deepEqual(after.find(feature => feature.id === 'A').geometry, storage.geometries.get({ id: 'shape', version: 2 }));
+});
+
+test('scattered timeline rows retain catalog order, exact values, ancestry and validation failures', () => {
+  const ids = ['__proto__', 'constructor', '국가:😀', ...Array.from({ length: 37 }, (_, index) => `entity:${index}`)];
+  const entities = ids.map(id => ({ id, entityKind: 'general' })).reverse();
+  const records = { schemaVersion: 2, lifetimes: [], geometryBindings: [], parentRelations: [], propertyBindings: [] };
+  for (const [index, entityId] of ids.entries()) {
+    records.lifetimes.push({ id: `life:${index}`, entityId, validFrom: '1910', validTo: '1915' });
+    for (let year = 1910; year <= 1915; year++) {
+      const common = { entityId, validFrom: String(year), validTo: String(year) };
+      records.geometryBindings.push({ ...common, id: `geometry:${index}:${year}`, geometryRef: { id: 'shape', version: year - 1909 } });
+      records.parentRelations.push({ ...common, id: `parent:${index}:${year}`, parentId: index ? ids[Math.floor((index - 1) / 3)] : '', coverageMode: 'explicit' });
+      records.propertyBindings.push({ ...common, id: `name:${index}:${year}`, property: 'name', value: { name: `${entityId}:${year}`, nameExplicit: year % 2 === 0 } });
+    }
+  }
+  // Row tables have different orders and do not match catalog order.
+  records.geometryBindings.reverse();
+  records.propertyBindings.reverse();
+  const before = JSON.stringify(records), visits = [];
+  const context = { entities, geometryExists: ref => { visits.push(ref.version); return true; } };
+  for (const month of ['1909-12', '1910-01', '1912-07', '1915-12', '1916-01']) {
+    visits.length = 0;
+    const world = sphericalCore.timelineResolveWorld(records, context, month);
+    assert.equal(world.month, month);
+    assert.deepEqual(visits, records.geometryBindings.map(row => row.geometryRef.version), 'all geometry validation retains row order');
+    const year = Number(month.slice(0, 4));
+    assert.deepEqual(world.entities.map(row => row.id), year < 1910 || year > 1915 ? [] : entities.map(row => row.id));
+    for (const row of world.entities) {
+      const ancestors = [];
+      let index = ids.indexOf(row.id);
+      while (index) { index = Math.floor((index - 1) / 3); ancestors.push(ids[index]); }
+      assert.deepEqual(row.ancestors, ancestors);
+      assert.equal(row.rootId, ids[0]);
+      assert.deepEqual(row.geometryRef, { id: 'shape', version: year - 1909 });
+      assert.deepEqual(row.properties, { name: { name: `${row.id}:${year}`, nameExplicit: year % 2 === 0 } });
+    }
+    assert.equal(JSON.stringify(records), before);
+  }
+  const failure = new Error('repository sentinel');
+  assert.throws(() => sphericalCore.timelineResolveWorld(records, { entities, geometryExists() { throw failure; } }, '1912-01'), error => error === failure);
+  const duplicate = structuredClone(records);
+  duplicate.lifetimes.push({ ...duplicate.lifetimes[0], id: 'overlap' });
+  assert.throws(() => sphericalCore.timelineResolveWorld(duplicate, context, '1912-01'), { code: 'TIMELINE_OVERLAP' });
+  assert.equal(JSON.stringify(records), before);
 });
