@@ -17,9 +17,13 @@ def acquire(source, root, opener=urllib.request.urlopen):
     name = source["id"]
     if not name or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789-" for c in name):
         raise ValueError("Unsafe source id")
+    format = source.get('format', 'jpeg')
+    if format not in {'jpeg', 'pdf'}:
+        raise ValueError('Unsupported source format')
+    suffix = '.pdf' if format == 'pdf' else '.jpg'
     root = pathlib.Path(root).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    target, evidence = root / (name + ".jpg"), root / (name + ".source.json")
+    target, evidence = root / (name + suffix), root / (name + ".source.json")
     for path in (target, evidence):
         if path.resolve().parent != root or path.is_symlink():
             raise ValueError("Source target escapes storage root")
@@ -35,7 +39,7 @@ def acquire(source, root, opener=urllib.request.urlopen):
     maximum = source["maximumBytes"]
     if shutil.disk_usage(root).free < maximum + 128 * 1024 * 1024:
         raise ValueError("Insufficient storage for bounded source acquisition")
-    temporary = root / (name + ".jpg.part")
+    temporary = root / (name + suffix + ".part")
     # Exclusive creation protects an active acquisition or an unfamiliar remnant.
     created, metadata_created, published = False, False, False
     try:
@@ -55,8 +59,9 @@ def acquire(source, root, opener=urllib.request.urlopen):
                 or source.get("sha256", sha.hexdigest()) != sha.hexdigest()):
             raise ValueError("Source does not match depositor size/checksum")
         with temporary.open("rb") as image:
-            if not count or image.read(2) != b"\xff\xd8":
-                raise ValueError("Source is not a JPEG")
+            signature = b'%PDF-' if format == 'pdf' else b'\xff\xd8'
+            if not count or image.read(len(signature)) != signature:
+                raise ValueError('Source is not a ' + ('PDF' if format == 'pdf' else 'JPEG'))
         record = {**source, "sha256": sha.hexdigest(), "bytes": count,
                   "acquiredAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
                   "annotations": None, "reviewedLabels": False, "trainingReady": False}

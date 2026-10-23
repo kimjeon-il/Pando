@@ -4,6 +4,7 @@ import hashlib
 import json
 import pathlib
 import re
+import importlib.metadata
 
 from PIL import Image
 
@@ -11,9 +12,109 @@ CHANNELS = ["international", "administrative", "coast", "hydro", "transport", "t
 LANGUAGES = set(json.loads((pathlib.Path(__file__).resolve().parents[2] / 'assets/vendor/reference-analysis/manifest.json').read_text(encoding='utf-8'))['languages']) - {'osd'}
 
 
-def validate_corpus(value, root=None):
+def corpus_path(root, relative):
+    if not isinstance(relative, str):
+        raise ValueError('Corpus path required')
+    path = pathlib.PurePosixPath(relative)
+    if path.is_absolute() or '..' in path.parts:
+        raise ValueError('Corpus paths must stay inside corpus root')
+    absolute = (pathlib.Path(root) / path).resolve()
+    if not absolute.is_relative_to(pathlib.Path(root).resolve()):
+        raise ValueError('Corpus symlink escapes root')
+    return absolute
+
+
+def corpus_fingerprint(manifest, auxiliary=None):
+    """Pin labels and their rasters as well as the manifest and original images."""
+    if auxiliary:
+        return hashlib.sha256(json.dumps([corpus_fingerprint(manifest), corpus_fingerprint(auxiliary)]).encode()).hexdigest()
+    manifest = pathlib.Path(manifest).resolve()
+    value = json.loads(manifest.read_text(encoding='utf-8'))
+    root, files = manifest.parent, {manifest.name}
+    for sheet in value['sheets']:
+        files.update([sheet['image'], sheet['annotations']])
+        annotation = json.loads(corpus_path(root, sheet['annotations']).read_text(encoding='utf-8'))
+        if annotation.get('origin') == 'publisher-layer-export':
+            files.update([annotation['sourcePdf'], annotation['sourceMetadata'],
+                          annotation['raster']['path'], annotation['validRaster']['path']])
+        elif annotation.get('origin') == 'semap-human-mask-export':
+            files.update([spec['path'] for spec in annotation['sourceFiles']])
+            files.update([annotation['raster']['path'], annotation['validRaster']['path']])
+    digest = hashlib.sha256()
+    for relative in sorted(files):
+        with corpus_path(root, relative).open('rb') as stream:
+            file_hash = hashlib.file_digest(stream, 'sha256').hexdigest()
+        digest.update(f'{relative}\n{file_hash}\n'.encode('utf-8'))
+    return digest.hexdigest()
+
+
+def validate_publisher_annotation(annotation, sheet, root):
+    if annotation.get('reviewed') is not False or annotation.get('schemaVersion') != 1:
+        raise ValueError('Publisher-derived training labels cannot claim human review')
+    producer = annotation.get('producer', {})
+    script_hash = hashlib.sha256(pathlib.Path(__file__).with_name('publisher.py').read_bytes().replace(b'\r\n', b'\n')).hexdigest()
+    if producer != dict(script='tools/reference-analysis/publisher.py', sha256=script_hash,
+                        renderer='PyMuPDF', rendererVersion=importlib.metadata.version('PyMuPDF')):
+        raise ValueError('Publisher label generator identity differs')
+    source = corpus_path(root, annotation.get('sourcePdf'))
+    metadata_path = corpus_path(root, annotation.get('sourceMetadata'))
+    if hashlib.sha256(source.read_bytes()).hexdigest() != annotation.get('sourceSha256'):
+        raise ValueError('Publisher source hash changed')
+    if hashlib.sha256(metadata_path.read_bytes()).hexdigest() != annotation.get('sourceMetadataSha256'):
+        raise ValueError('Publisher source metadata hash changed')
+    metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+    if (metadata.get('sha256') != annotation['sourceSha256'] or metadata.get('rightsReviewed') is not True
+            or metadata.get('materialKind') != 'publisher-layered-pdf' or not metadata.get('license')
+            or metadata.get('id') != sheet['id'] or metadata.get('familyId') != sheet['familyId']
+            or metadata.get('url') != sheet['source']['url']):
+        raise ValueError('Verified publisher source provenance required')
+    validate_training_rasters(annotation, sheet, root)
+
+
+def validate_semap_annotation(annotation, sheet, root):
+    script = pathlib.Path(__file__).with_name('semap.py')
+    expected = dict(script='tools/reference-analysis/semap.py',
+                    sha256=hashlib.sha256(script.read_bytes().replace(b'\r\n', b'\n')).hexdigest())
+    if (annotation.get('reviewed') is not False or annotation.get('schemaVersion') != 1
+            or annotation.get('producer') != expected or annotation.get('authorPartition') != 'train'
+            or annotation.get('synthetic') is not False or annotation.get('observedChannels') != ['hydro', 'transport']
+            or annotation.get('labelMapping') != {'4': 'hydro', '5': 'transport'}):
+        raise ValueError('Verified real-only Semap auxiliary provenance required')
+    if len(annotation.get('sourceFiles', [])) != 5:
+        raise ValueError('Semap original image, original label, partition and rights evidence required')
+    for spec in annotation['sourceFiles']:
+        if hashlib.sha256(corpus_path(root, spec['path']).read_bytes()).hexdigest() != spec['sha256']:
+            raise ValueError('Semap source evidence hash changed')
+    validate_training_rasters(annotation, sheet, root)
+
+
+def validate_training_rasters(annotation, sheet, root):
+    observed = annotation.get('observedChannels', [])
+    if not observed or len(set(observed)) != len(observed) or any(channel not in CHANNELS for channel in observed):
+        raise ValueError('Explicit observed publisher channels required')
+    allowed = sum(1 << CHANNELS.index(channel) for channel in observed)
+    for name in ['raster', 'validRaster']:
+        spec = annotation.get(name, {})
+        path = corpus_path(root, spec.get('path'))
+        if hashlib.sha256(path.read_bytes()).hexdigest() != spec.get('sha256'):
+            raise ValueError('Publisher raster hash changed')
+        with Image.open(path) as image:
+            if image.mode != 'L' or list(image.size) != [annotation.get('width'), annotation.get('height')]:
+                raise ValueError('Publisher raster dimensions or mode differ')
+            if any(value and value & ~allowed for value, count in enumerate(image.histogram()) if count):
+                raise ValueError('Publisher raster contains unobserved channels')
+    with Image.open(corpus_path(root, sheet['image'])) as image:
+        if list(image.size) != [annotation['width'], annotation['height']]:
+            raise ValueError('Publisher raster/image dimensions differ')
+
+
+def validate_corpus(value, root=None, *, training_only=False):
     if value.get("schemaVersion") != 1 or not isinstance(value.get("sheets"), list):
         raise ValueError("Corpus schemaVersion=1 and sheets are required")
+    if training_only and (value.get('trainingOnly') is not True or root is None):
+        raise ValueError('Explicit materialized training-only corpus required')
+    if not training_only and value.get('trainingOnly'):
+        raise ValueError('Human-reviewed independent corpus required; supplied corpus is training-only')
     seen, splits = set(), {}
     for sheet in value["sheets"]:
         if not sheet.get("id") or sheet["id"] in seen:
@@ -21,6 +122,8 @@ def validate_corpus(value, root=None):
         seen.add(sheet["id"])
         if sheet.get("split") not in {"train", "validation", "test"}:
             raise ValueError("Explicit train/validation/test split required")
+        if training_only and sheet['split'] != 'train':
+            raise ValueError('Publisher training-only data cannot become validation/test truth')
         for key in ["familyId", "editionId", "duplicateGroup"]:
             group = sheet.get(key)
             if not group:
@@ -32,7 +135,7 @@ def validate_corpus(value, root=None):
             raise ValueError("Reviewed annotations required; unlabelled sources are inventory only")
         if not re.fullmatch("[a-f0-9]{64}", sheet.get("sha256", "")):
             raise ValueError("Original image sha256 required")
-        if sheet.get("language") not in LANGUAGES or not sheet.get("script"):
+        if (sheet.get("language") not in LANGUAGES and not (training_only and sheet.get('language') == 'und')) or not sheet.get("script"):
             raise ValueError("Supported language and explicit script required")
         if sheet.get("mapKind") not in {"color", "monochrome"}:
             raise ValueError("mapKind must be color or monochrome")
@@ -43,14 +146,16 @@ def validate_corpus(value, root=None):
             if path.is_absolute() or ".." in path.parts:
                 raise ValueError("Corpus paths must stay inside corpus root")
             if root:
-                absolute = (pathlib.Path(root) / path).resolve()
-                if not absolute.is_relative_to(pathlib.Path(root).resolve()):
-                    raise ValueError("Corpus symlink escapes root")
+                absolute = corpus_path(root, sheet[key])
                 if key == "image" and hashlib.sha256(absolute.read_bytes()).hexdigest() != sheet["sha256"]:
                     raise ValueError("Original image hash changed: " + sheet["id"])
                 if key == "annotations":
                     annotations = json.loads(absolute.read_text(encoding="utf-8"))
-                    if annotations.get("reviewed") is not True or annotations.get("schemaVersion") != 1:
+                    if annotations.get('origin') == 'publisher-layer-export' and training_only:
+                        validate_publisher_annotation(annotations, sheet, root)
+                    elif annotations.get('origin') == 'semap-human-mask-export' and training_only:
+                        validate_semap_annotation(annotations, sheet, root)
+                    elif annotations.get("reviewed") is not True or annotations.get("schemaVersion") != 1 or annotations.get('origin') in {'publisher-layer-export', 'semap-human-mask-export'}:
                         raise ValueError("Human-reviewed current annotation schema required")
     return value
 

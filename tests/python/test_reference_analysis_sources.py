@@ -16,6 +16,22 @@ image_spec.loader.exec_module(inputs)
 
 
 class SourceAcquisitionTests(unittest.TestCase):
+    def test_publisher_pdf_is_preserved_as_pdf_and_checked_by_its_own_signature(self):
+        body = b'%PDF-1.7\nsource publisher content\n%%EOF'
+        source = {'id': 'usgs-sheet', 'format': 'pdf', 'rightsReviewed': True, 'license': 'public-domain',
+                  'url': 'https://example.test/map.pdf', 'maximumBytes': 100, 'expectedBytes': len(body)}
+        with tempfile.TemporaryDirectory() as directory:
+            result = sources.acquire(source, directory, lambda *_args, **_kwargs: io.BytesIO(body))
+            self.assertEqual(result['status'], 'acquired-unlabelled')
+            self.assertEqual(pathlib.Path(directory, 'usgs-sheet.pdf').read_bytes(), body)
+            self.assertFalse(pathlib.Path(directory, 'usgs-sheet.jpg').exists())
+            self.assertEqual(sources.acquire(source, directory)['status'], 'verified-existing')
+            with self.assertRaisesRegex(ValueError, 'PDF'):
+                sources.acquire({**source, 'id': 'damaged', 'expectedBytes': 4}, directory,
+                                lambda *_args, **_kwargs: io.BytesIO(b'HTML'))
+            self.assertFalse(pathlib.Path(directory, 'damaged.pdf').exists())
+            self.assertFalse(pathlib.Path(directory, 'damaged.pdf.part').exists())
+
     def test_verified_inventory_is_idempotent_and_never_claims_labels(self):
         body = b"\xff\xd8example"
         source = {"id": "seed", "rightsReviewed": True, "license": "CC-BY-4.0", "url": "https://example.test/map.jpg", "maximumBytes": 100,
