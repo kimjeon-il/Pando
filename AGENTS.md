@@ -74,23 +74,29 @@ territorial polygons and administrative boundaries**, read and follow
 [docs/historical-border-reconstruction-policy.md](docs/historical-border-reconstruction-policy.md)
 **before researching, digitizing, simplifying or validating geometry**.
 
-- Prioritize reference-date correctness, source revision history, ownership and
-  boundary topology over subpixel or cadastral-precision tracing.
-- Use about 1:100,000 for broad screening and about **1:25,000 as the normal
-  detailed historical source**. Consult 1:10,000 or finer maps only for a
-  specific discrepancy or historically meaningful exception.
-- The current **flat-map visual review baseline** is maximum `flatZoom=64`,
-  **2560 CSS px map-content width**, with a **0.5 CSS px maximum screen-space
-  discrepancy** where independent historical geometry is available. App zoom
-  limits must be translated to equivalent actual display resolution.
-- A screen tolerance **never overrides** country/settlement attribution,
-  border topology, river-bank/thalweg rules, date changes or land reclamation.
-- If no independent period boundary has been digitized, do not report the
-  0.5px requirement as tested or passed; label visual-only checks explicitly.
-- Keep original evidence and master geometry; simplify presentation geometry
-  only as a separate derivative, preserving shared-boundary connectivity.
-- Record sources, dates, checked scale/resolution, evidence status and
-  outstanding exceptions; never claim that an unrun validation passed.
+- Prioritize macro territorial history: state formation, dissolution, division,
+  merger and major territorial gains/losses. Verify the dates and ownership of
+  the selected events.
+- Match presentation detail to **Natural Earth 1:10,000,000 (1:10M)**. This is a
+  cartographic generalization target, not a uniform positional accuracy,
+  deletion distance, or a claim that modern data proves historical boundaries.
+- Normally omit small parcel exchanges, minor boundary adjustments, deposition,
+  erosion, river shifts and seasonal water-level/flow changes. Retain small
+  events only when they explain state existence or historically important
+  city/island attribution; record the reason for each such exception.
+- Choose period-appropriate sources sufficient to reconstruct the major route.
+  No detailed source scale is mandatory. Investigate finer maps only for a
+  concrete important question; do not trace every bend or boundary marker.
+- Compare generalized output with the Natural Earth 1:10M reference at the same
+  extent and projection. Stop when the selected history and recognizable shape
+  are supported and topology is valid. Maximum app zoom and subpixel deviations
+  do not impose further historical reconstruction work.
+- Preserve original evidence and master geometry. Generalize a separate display
+  derivative, treating shared boundaries consistently and retaining required
+  territories and connections. Do not automatically simplify existing vectors.
+- Record sources, dates, scope omissions, important exceptions and actual checks.
+  Distinguish visual review from independent measurement; never claim unrun
+  checks passed. Renderer/mesh accuracy checks remain separate and unchanged.
 
 ## Project status
 
