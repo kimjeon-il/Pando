@@ -44,3 +44,17 @@ test('product HTML is generated from one source for each common viewing control'
  assert.ok(changed.web.includes('data-source-probe="shared"'));
  assert.ok(changed.editor.includes('data-source-probe="shared"'));
 });
+
+test('both maps expose shared OSM credit and the ODbL source/derivative archive', async () => {
+ const { renderProductHtml } = await import('../../scripts/lib/product-html.mjs');
+ const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
+ const pages = renderProductHtml(read);
+ const fragment = read('ui/fragments/map-attribution.html').trim();
+ for (const page of Object.values(pages)) {
+  assert.equal(page.split(fragment).length - 1, 1);
+  assert.match(page, /<aside class="map-attribution" aria-label="지도 데이터 출처">/);
+  assert.match(page, /href="https:\/\/www\.openstreetmap\.org\/copyright"[^>]*>© OpenStreetMap contributors<\/a>/);
+  assert.match(page, /href="https:\/\/github\.com\/kimjeon-il\/PandoLab-library-data\/blob\/[a-z0-9]+\/reports\/geography\/ne-selected-20261023\/odbl-source-and-derivative\.zip"/);
+  assert.match(page, /바이코누르 원본·파생 데이터 \(ODbL\)/);
+ }
+});
