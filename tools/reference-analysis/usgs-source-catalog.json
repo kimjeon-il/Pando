@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "usgs-pajarito-peak-2014", "familyId": "usgs-us-topo", "editionId": "usgs-az-2014",
+      "language": "eng", "script": "Latin", "published": "2014-12-15", "format": "pdf",
+      "materialKind": "publisher-layered-pdf", "rightsReviewed": true,
+      "license": "USGS topographic-map reuse permission; retain map-specific third-party credits",
+      "rightsUrl": "https://www.usgs.gov/faqs/are-usgs-topographic-maps-copyrighted",
+      "metadataUrl": "https://www.sciencebase.gov/catalog/item/5f88e73f82cef33f43f0119f",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/AZ/AZ_Pajarito_Peak_20141215_TM_geo.pdf",
+      "expectedBytes": 13477214, "maximumBytes": 33554432,
+      "sha256": "27b7d5be1db48272b3bca82415ec76f5e2d4078501b44408376f7592b92d6878"
+    },
+    {
+      "id": "usgs-detroit-2017", "familyId": "usgs-us-topo", "editionId": "usgs-mi-2017",
+      "language": "eng", "script": "Latin", "published": "2017-05-03", "format": "pdf",
+      "materialKind": "publisher-layered-pdf", "rightsReviewed": true,
+      "license": "USGS topographic-map reuse permission; retain map-specific third-party credits",
+      "rightsUrl": "https://www.usgs.gov/faqs/are-usgs-topographic-maps-copyrighted",
+      "metadataUrl": "https://www.sciencebase.gov/catalog/item/5f88e9c182cef33f43f04a45",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/MI/MI_Detroit_20170503_TM_geo.pdf",
+      "expectedBytes": 11194419, "maximumBytes": 33554432,
+      "sha256": "7fb6c33aeb2f37b5ad788cf2258a4d6c91bb990b0d1e29bb477ca982ebae1c4a"
+    },
+    {
+      "id": "usgs-east-brownsville-2016", "familyId": "usgs-us-topo", "editionId": "usgs-tx-2016",
+      "language": "eng", "script": "Latin", "published": "2016-02-26", "format": "pdf",
+      "materialKind": "publisher-layered-pdf", "rightsReviewed": true,
+      "license": "USGS topographic-map reuse permission; retain map-specific third-party credits",
+      "rightsUrl": "https://www.usgs.gov/faqs/are-usgs-topographic-maps-copyrighted",
+      "metadataUrl": "https://www.sciencebase.gov/catalog/item/5f88fc7882cef33f43f2114c",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/TX/TX_East_Brownsville_20160226_TM_geo.pdf",
+      "expectedBytes": 14992038, "maximumBytes": 33554432,
+      "sha256": "f76179e205a70bfd3adde81050c4b256222e4eaec4f762000cfaca133322c26e"
+    },
+    {
+      "id": "usgs-eastport-2014", "familyId": "usgs-us-topo", "editionId": "usgs-me-2014",
+      "language": "eng", "script": "Latin", "published": "2014-10-09", "format": "pdf",
+      "materialKind": "publisher-layered-pdf", "rightsReviewed": true,
+      "license": "USGS topographic-map reuse permission; retain map-specific third-party credits",
+      "rightsUrl": "https://www.usgs.gov/faqs/are-usgs-topographic-maps-copyrighted",
+      "metadataUrl": "https://www.sciencebase.gov/catalog/item/5f88fb5c82cef33f43f1f1d8",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/ME/ME_Eastport_OE_E_20141009_TM_geo.pdf",
+      "expectedBytes": 5748503, "maximumBytes": 33554432,
+      "sha256": "9dc79d1c34e257c8b024c9cb90b31811a83b4f604780331cb47e65002fa360b0"
+    },
+    {
+      "id": "usgs-guthrie-2016", "familyId": "usgs-us-topo", "editionId": "usgs-ky-2016",
+      "language": "eng", "script": "Latin", "published": "2016-03-22", "format": "pdf",
+      "materialKind": "publisher-layered-pdf", "rightsReviewed": true,
+      "license": "USGS topographic-map reuse permission; retain map-specific third-party credits",
+      "rightsUrl": "https://www.usgs.gov/faqs/are-usgs-topographic-maps-copyrighted",
+      "metadataUrl": "https://www.sciencebase.gov/catalog/item/5f88f0cd82cef33f43f0ddd0",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/KY/KY_Guthrie_20160322_TM_geo.pdf",
+      "expectedBytes": 10337528, "maximumBytes": 33554432,
+      "sha256": "5998b3342c6b1adb383b4fc6839ab976ed6898d5c7aeefe31e9e3ae655e98cba"
+    }
+  ]
+}
