@@ -9,6 +9,8 @@
 
 Build historic shorelines across multiple centuries **without storing one full coastline for every country-year**. Reuse a modern baseline wherever the historical shoreline is unchanged, and store independent **geographic change events** tied to dated evidence, physical effects, and local geometry.
 
+Select events that change the macro shoreline or explain the existence, attribution or important connections of states, major cities and important islands. Match presentation detail to **Natural Earth 1:10,000,000 (1:10M)**. Normally omit minor deposition, erosion, river-mouth shifts and seasonal water-level/flow changes; record the scope omission briefly without reconstructing each occurrence. Explain any historically important small exception. The display target does not supply a uniform positional accuracy or deletion distance.
+
 This method is a **working design**, not a claim that historical shorelines are automatically reconstructable. The review must not replace genuine period maps with modern coastlines, assume that natural erosion is reversible from engineering documents, or infer ownership from a coastline.
 
 Event inventories are reusable across sovereigns and eras: Germany 1914 coastal change and postwar Dutch reclamation are **geographic events**, even where the present-day country is different.
@@ -43,11 +45,11 @@ Follow the existing GIS policy's `source-indexed`, `overlay-reviewed`, `screen-d
 
 1. **Index:** event ID, neutral geographic site, candidate interval, distinct construction / closure / drainage/opening dates, source URL, source survey and publication/revision years, licensing, and explicit uncertainty. `geometry.status = not-digitized`; no geometry modification.
 2. **Screen modern baseline:** test the **actual current canonical shape and hydro source**, not country names or live browser overlays alone. Mark full region coverage as present / absent / uncertain based on independently sourced footprints; point tests only establish sampled membership.
-3. **Independent period evidence:** choose official dated maps (often around 1:25,000) and contemporary engineering GIS; independently check water edge, dike crown, tide flat, silted foreshore, basin, lake and construction phase. Map layer range must not be mistaken for exact sheet year.
-4. **Working vectors:** trace local before/after `land` and `water` geometry, preserve originals, source hashes and GCP residual. Assign only supported validity intervals. Unknown exact transition dates remain unknown.
-5. **Topology:** verify island creation/merging, lake-open-sea links, closure barrier topology, marine/inland water classes, shared boundary edges and country's territorial ownership before any date-specific promotion.
-6. **Screen delta:** use Web maximum `flatZoom=64`, map width `2560 CSS px`, independent period coastline digitization, *bidirectional* projected-line maximum separation **≤0.5 CSS px** where measurable. Any meaningful territorial, connectivity or date error overrides this threshold. Point-to-modern-shore measurements **do not qualify**.
-7. **Derivative materialization:** first add a local verified patch to an **isolated historical geometry version**. Build and test derived meshes/snapshots. Keep unchanged shoreline arcs shared. Do not overwrite the modern original or automatically move a historical state's legal boundary.
+3. **Independent period evidence:** choose dated maps and contemporary engineering GIS sufficient to establish the selected major change. No detailed source scale is mandatory; consult finer sources only for a concrete important question. Check the relevant land/water extent and construction phase without tracing every minor water-edge bend. Map layer range must not be mistaken for exact sheet year.
+4. **Working vectors:** reconstruct the principal local before/after `land` and `water` geometry, preserving originals, master geometry, source hashes and GCP residual. Assign only supported validity intervals. Unknown exact transition dates remain unknown.
+5. **Topology:** verify the island existence, waterway connections, marine/inland water classes, shared edges and territorial ownership needed to explain the selected event. Generalization must not introduce invalid geometry or unintended gaps/overlaps.
+6. **Presentation review:** compare a separate generalized derivative with the Natural Earth 1:10M reference at the same extent, projection and display magnification. Stop when the selected event’s date, attribution, recognizable form and necessary topology are supported. Maximum app zoom is only a technical inspection aid, not a demand to reconstruct finer history. Independent period-line measurements are optional and must be distinguished from visual review; point-to-modern-shore measurements do not establish historical accuracy.
+7. **Derivative materialization:** first add a local verified patch to an **isolated historical geometry version**. Build and test derived meshes/snapshots. Preserve original/master geometry and share unchanged shoreline arcs. Do not overwrite the modern original or automatically move a historical state's legal boundary. This policy does not direct regeneration of existing assets or changes to renderer/mesh accuracy checks.
 8. **Release:** Web/App provenance and affected tests reviewed separately; only integrate into `main` with explicit approval.
 
 ## 5. Geographic and temporal rollout
@@ -58,9 +60,9 @@ Use overlapping spatial packages **rather than a separate full audit for every c
 - **1914 German Empire:** continue existing coastal event list and historical WMS, North Frisian levees, Helgoland and Schleswig land/sea boundary; **do not treat large Natural Earth vs HistoGIS differences as confirmed reclamation**.
 - **Shared Dollard/Ems:** one physical shoreline investigation with *separate* bilateral frontier evidence and sovereignty interpretations.
 
-Use event checkpoints, not synthetic 1-year snapshots. Prioritize large map-visible deltas and missing coastal components using the **actual** current max-zoom review and period maps. Small numerical differences are not reasons to dismiss component ownership or changed waterways.
+Use event checkpoints, not synthetic 1-year snapshots. Prioritize major changes and missing important coastal components at the Natural Earth 1:10M presentation level, with period evidence. Minor numerical differences do not require further reconstruction; small changes affecting a selected important exception remain reviewable with a recorded reason. Preserve the existing pilot inventory and its observed results rather than claiming they have been revalidated under this policy.
 
-Remote sensing and modern national GIS can **locate recent candidates**; it cannot create trustworthy pre-1980 global shoreline vectors on its own. Non-event natural geomorphology, historical shoreline survey gaps, and undocumented river-mouth shifts remain explicit exceptions.
+Remote sensing and modern national GIS can **locate recent candidates**; it cannot create trustworthy pre-1980 global shoreline vectors on its own. Evidence gaps affecting selected major events remain explicit limitations. Minor natural geomorphology and undocumented river-mouth shifts are normally outside reconstruction scope unless an important exception is identified.
 
 ## 6. First-pilot observed facts and limitations
 
