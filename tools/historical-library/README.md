@@ -4,11 +4,18 @@
 
 Historical national/subnational borders, rivers, coastlines and reclamation
 geometry follow the shared [historical boundary reconstruction policy](../../docs/historical-border-reconstruction-policy.md).
-The standard uses suitable period maps (normally around 1:25,000), with a
-maximum-zoom **2560 CSS px / 0.5 CSS px** visual stopping criterion, but never
-allows subpixel tolerance to override source chronology, territory ownership,
-shoreline changes or shared-border topology. Keep canonical evidence separate
-from display-only simplified geometry.
+The standard prioritizes macro territorial change and matches display detail to
+**Natural Earth 1:10,000,000 (1:10M)**. Normally omit small parcel exchanges,
+minor deposition/erosion, river shifts and seasonal water-level/flow changes;
+retain historically important small exceptions concerning state existence or
+major city/island attribution, with a recorded reason. Use suitable period
+sources without requiring a detailed source scale or tracing every bend.
+Preserve original evidence and master geometry, then generalize a separate
+display derivative against the Natural Earth reference at the same extent and
+projection. Stop when the selected history, recognizable shape and necessary
+shared-border topology are supported. Maximum app zoom does not impose further
+historical reconstruction work. Existing vectors and renderer/mesh accuracy
+checks are not changed by this policy; no universal deletion distance is implied.
 
 
 `east-germany-1989.recipe.json` is the pinned, declarative build recipe for the
