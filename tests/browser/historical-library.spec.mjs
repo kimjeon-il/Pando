@@ -102,22 +102,9 @@ test('East Germany static import preserves identity, archive, history and origin
   await importFiniteSource(page, testInfo, 'state:deutsche-demokratische-republik', errors, { referenceDate: '1989-04-25' });
   const imported=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().find(e=>e.properties.sourceEntityId==='state:deutsche-demokratische-republik'));
   const source=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL_LIBRARY.get('state:deutsche-demokratische-republik'));
-  expect(source.geometryVersions[0].sourceId).toContain('adopted-dos-lsib-11.4+bkg-vg25');
-  expect(source.geometryVersions[0].boundarySupplement.sections.filter(s=>s.id.startsWith('vg25-')).map(s=>s.id)).toEqual([
-    'vg25-schaalsee-lake', 'vg25-bavaria-central', 'vg25-saxony-bavaria',
-    'vg25-eichsfeld-north', 'vg25-harz-ecker', 'vg25-geismar-spahl',
-    'vg25-wolfenbuettel-hornburg',
-    'vg25-eichsfeld-glasehausen', 'vg25-schaalsee-mustin-thurow-land',
-    'vg25-ratzeburg-wakenitz-south', 'vg25-kiekbusch-mechower-west-shore',
-    'vg25-wakenitz-palingen-remaining', 'vg25-schaalsee-northern-remaining',
-    'vg25-gudow-lauenburg-land', 'vg25-altmark-diesdorf-land', 'vg25-altmark-stresow-land',
-    'vg25-helmstedt-lappwald-land', 'vg25-ecker-lower-foothills',
-    'vg25-suedharz-ellrich-land', 'vg25-rhon-point-alpha-land',
-    'vg25-delvenau-approved-map',
-  ]);
-  expect(source.geometryVersions[0].boundarySupplement.sections.filter(s=>s.id.startsWith('tk25as-')).map(s=>s.id)).toEqual([
-    'tk25as-elbe-neuhaus-printed-claim', 'tk25as-elbe-schnackenburg-printed-claim'
-  ]);
+  expect(source.geometryVersions[0].sourceId).toBe('natural-earth-admin1-v5.1.1+bkg-vg250+berlin-wall-1989');
+  expect(source.geometryVersions[0].versionId).toBe('state:deutsche-demokratische-republik:1989-04-25-r1');
+  expect(source.geometryVersions[0].boundarySupplement).toBeUndefined();
   expect(imported.geometry).toEqual(source.geometryVersions[0].geometry);
   if(process.env.PANDOLAB_DDR_EVIDENCE_DIR){
     const {writeFile}=await import('node:fs/promises'),{gzipSync}=await import('node:zlib');
