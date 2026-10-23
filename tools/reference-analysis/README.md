@@ -103,6 +103,30 @@ unreadable areas in `ignore`. City symbols, original transcriptions, independent
 georeference check points and source-date evidence must also be retained with the
 corpus; the segmentation line schema does not replace their independent review.
 
+Prepare a draft directly from the verified acquired JPEG sources, without making
+another image copy:
+
+```powershell
+& build-native/python/Scripts/python.exe tools/reference-analysis/corpus.py --prepare-review EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/sources
+```
+
+This writes `labels/<source-id>.json` and `corpus.draft.json` beside `sources/`.
+Labels start empty and `reviewed: false`, using header-only original dimensions.
+The draft uses the current corpus contract, with `split`, `editionId` and
+`mapKind` left unset for review. It cannot pass the training validator. Publication
+uncertainty and official-downsample status remain in the source metadata. A
+runtime analysis derivative is not substituted for the original coordinate grid.
+Rerunning verifies source hashes and dimensions while preserving edited labels
+and draft metadata. A changed inventory or identity fails for inspection.
+
+Review all seven overlapping classes, unreadable `ignore` regions, city symbols,
+original transcriptions and independent check points. Confirm map production
+family/edition/duplicates before assigning disjoint train/validation/test sets.
+Keep unconfirmed dates unset. Promote a completed draft to `corpus.json` only
+after actual annotation review and successful `--corpus` validation; the draft
+command never performs that promotion or approves a model. The acquired samples
+alone do not provide the three independent families needed for training.
+
 ## Commands
 
 The fixed development environment is `build-native/python/Scripts/python.exe`.
