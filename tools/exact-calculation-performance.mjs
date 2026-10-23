@@ -16,6 +16,8 @@ const arg = name => process.argv[process.argv.indexOf(name) + 1];
 assert.ok(process.argv.includes('--baseline') && process.argv.includes('--output'), 'Required: --baseline REV --output FILE');
 const baseline = execFileSync('git', ['rev-parse', '--verify', arg('--baseline') + '^{commit}'], { cwd: root, encoding: 'utf8' }).trim();
 const output = resolve(arg('--output'));
+const only = process.argv.includes('--only') ? arg('--only') : null;
+assert.ok(only === null || ['timeline', 'source-analysis', 'import'].includes(only), 'Unknown --only operation');
 const scratch = resolve(dirname(output), 'baseline-' + baseline.slice(0, 12));
 mkdirSync(scratch, { recursive: true });
 const sha256 = value => createHash('sha256').update(value).digest('hex');
@@ -55,7 +57,7 @@ const geometry = await import('../assets/js/modules/map-edit-geometry.js');
 const { geometryAreaKm2 } = await import('../assets/js/modules/geometry-metrics.js');
 const capture = fn => { try { return { ok: true, value: fn() }; } catch (error) { return { ok: false, code: error.code, message: error.message }; } };
 let parityCases = 0;
-for (const row of timelineCases()) for (const month of ['1900-01', '1914-07', '2026-10']) {
+for (const row of only && only !== 'timeline' ? [] : timelineCases()) for (const month of ['1900-01', '1914-07', '2026-10']) {
   const after = capture(() => afterCore.timelineResolveWorld(row.input, timelineContext(row.context), month));
   const before = capture(() => beforeCore.timelineResolveWorld(row.input, timelineContext(row.context), month));
   assert.deepEqual(after, before, row.name + ':' + month);
@@ -88,6 +90,7 @@ const measure = async fn => {
 };
 const metrics = [];
 async function pairs(name, before, after, inputSha256, work = null) {
+  if (only && !name.startsWith(only)) return;
   const beforeResult = await before(), afterResult = await after();
   assert.deepEqual(beforeResult, afterResult, name + ' exact output');
   if (!name.startsWith('source-analysis-')) assert.equal(JSON.stringify(beforeResult), JSON.stringify(afterResult), name + ' serialized output');
@@ -105,7 +108,7 @@ async function pairs(name, before, after, inputSha256, work = null) {
     candidateMedianMs: median(samples.map(s => s.candidateMs)), baselineWasmMemoryBytes: beforeRuntime.memoryBytes(),
     candidateWasmMemoryBytes: afterRuntime.memoryBytes(), samples, work });
 }
-for (const size of [16, 256, 2048]) {
+for (const size of only && only !== 'timeline' ? [] : [16, 256, 2048]) {
   const { records, context } = timelineInput(size), original = JSON.stringify(records);
   for (const month of ['1909-12', '1910-01', '1912-07', '1915-12', '1916-01']) {
     assert.deepEqual(afterCore.timelineResolveWorld(records, context, month), beforeCore.timelineResolveWorld(records, context, month)); parityCases++;
@@ -128,7 +131,7 @@ const ring = Array.from({ length: 20000 }, (_, i) => [100 + Math.cos(i / 20000 *
 ring.push([...ring[0]]);
 const current = { type: 'FeatureCollection', features: Array.from({ length: 128 }, (_, i) => feature(`existing:${i}`, -170 + i * 2)) };
 const incoming = { type: 'FeatureCollection', features: [feature('incoming', 0, ring)] };
-for (const strategy of ['id-replace', 'territory-replacement']) {
+for (const strategy of only && only !== 'import' ? [] : ['id-replace', 'territory-replacement']) {
   const counts = { before: 0, after: 0 };
   const planner = (module, label) => module.createCountryImportMergePlanner({ clipper: globalThis.polygonClipping,
     clone: structuredClone, featureCountryId: item => item.id, countryName: item => item.properties.name,
