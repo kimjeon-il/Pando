@@ -121,8 +121,9 @@ export function createCountryImportMergePlanner({
       )));
       const unaffected = result.filter(feature => !importedIds.has(text(feature?.id)));
       for (const incoming of imported) {
+        let incomingBounds;
         for (const other of unaffected) {
-          if (!boundsOverlap(geometryBounds(incoming.geometry), geometryBounds(other.geometry))) continue;
+          if (!boundsOverlap(incomingBounds ??= geometryBounds(incoming.geometry), geometryBounds(other.geometry))) continue;
           const overlap = normalizeGeometry(clipper.intersection(incoming.geometry.coordinates, other.geometry.coordinates));
           if (!overlap || planarArea(geometryCoordinates(overlap)) <= 1e-8) continue;
           counts.overlapAreaKm2 += areaKm2(overlap);
@@ -140,10 +141,13 @@ export function createCountryImportMergePlanner({
     if (!importedRawUnion) throw new Error('가져온 영토를 결합할 수 없습니다.');
     const donorIds = [];
     result = [];
+    // The union stays immutable throughout this operation. Compute its bounds
+    // at the first comparison; preserve empty/matched-only short circuiting.
+    let importedBounds;
     for (const existing of current) {
       const id = text(existing?.id);
       if (importedIds.has(id)) continue;
-      if (!boundsOverlap(geometryBounds(existing.geometry), geometryBounds(importedRawUnion))) {
+      if (!boundsOverlap(geometryBounds(existing.geometry), importedBounds ??= geometryBounds(importedRawUnion))) {
         result.push(existing);
         continue;
       }
