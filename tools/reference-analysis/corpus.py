@@ -9,6 +9,7 @@ import importlib.metadata
 from PIL import Image
 
 CHANNELS = ["international", "administrative", "coast", "hydro", "transport", "text", "frame"]
+RASTER_ORIGINS = {'publisher-layer-export', 'semap-human-mask-export', 'macro-vector-supervision'}
 LANGUAGES = set(json.loads((pathlib.Path(__file__).resolve().parents[2] / 'assets/vendor/reference-analysis/manifest.json').read_text(encoding='utf-8'))['languages']) - {'osd'}
 
 
@@ -34,7 +35,7 @@ def corpus_fingerprint(manifest, auxiliary=None):
     for sheet in value['sheets']:
         files.update([sheet['image'], sheet['annotations']])
         annotation = json.loads(corpus_path(root, sheet['annotations']).read_text(encoding='utf-8'))
-        if annotation.get('origin') == 'publisher-layer-export':
+        if annotation.get('origin') in {'publisher-layer-export', 'macro-vector-supervision'}:
             files.update([annotation['sourcePdf'], annotation['sourceMetadata'],
                           annotation['raster']['path'], annotation['validRaster']['path']])
         elif annotation.get('origin') == 'semap-human-mask-export':
@@ -133,6 +134,40 @@ def validate_training_rasters(annotation, sheet, root):
             raise ValueError('Publisher raster/image dimensions differ')
 
 
+def validate_macro_annotation(annotation, sheet, root):
+    import numpy as np
+    from macro import derive, image_bytes
+    producer = annotation.get('producer', {})
+    if (annotation.get('schemaVersion') != 1 or annotation.get('reviewed') is not False
+            or annotation.get('supervisionQuality') != 'source-derived-weak'
+            or producer.get('script') != 'tools/reference-analysis/macro.py'
+            or not re.fullmatch('[a-f0-9]{64}', producer.get('sha256', ''))
+            or producer.get('renderer') != 'PyMuPDF'
+            or producer.get('rendererVersion') != importlib.metadata.version('PyMuPDF')):
+        raise ValueError('Explicit source-derived macro provenance required')
+    source, metadata_path = [corpus_path(root, annotation.get(field)) for field in ['sourcePdf', 'sourceMetadata']]
+    if (hashlib.sha256(source.read_bytes()).hexdigest() != annotation.get('sourceSha256')
+            or hashlib.sha256(metadata_path.read_bytes()).hexdigest() != annotation.get('sourceMetadataSha256')):
+        raise ValueError('Macro source evidence hash changed')
+    metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+    if (metadata.get('sha256') != annotation['sourceSha256']
+            or any(metadata.get(key) != sheet.get(key) for key in ['id', 'familyId', 'editionId', 'duplicateGroup', 'geographicScope', 'scopeEvidence'])
+            or metadata.get('url') != sheet['source']['url'] or metadata.get('license') != sheet['source']['license']):
+        raise ValueError('Verified macro source and geographic scope required')
+    validate_training_rasters(annotation, sheet, root)
+    image, target, valid, _ = derive(source, metadata, annotation['maximumDimension'])
+    for field, expected in [('raster', target), ('validRaster', valid)]:
+        with Image.open(corpus_path(root, annotation[field]['path'])) as raster:
+            if not np.array_equal(expected, np.asarray(raster)):
+                raise ValueError('Macro source supervision differs')
+    if hashlib.sha256(image_bytes(image, 'JPEG')).hexdigest() != sheet['sha256']:
+        raise ValueError('Macro source image differs')
+    observed = [name for index, name in enumerate(CHANNELS) if np.any(valid & (1 << index))]
+    positives = {name: int(np.count_nonzero(target & (1 << index))) for index, name in enumerate(CHANNELS)}
+    if annotation['observedChannels'] != observed or annotation['positivePixels'] != positives:
+        raise ValueError('Macro source supervision statistics differ')
+
+
 def validate_corpus(value, root=None, *, training_only=False):
     if value.get("schemaVersion") != 1 or not isinstance(value.get("sheets"), list):
         raise ValueError("Corpus schemaVersion=1 and sheets are required")
@@ -180,7 +215,9 @@ def validate_corpus(value, root=None, *, training_only=False):
                         validate_publisher_annotation(annotations, sheet, root)
                     elif annotations.get('origin') == 'semap-human-mask-export' and training_only:
                         validate_semap_annotation(annotations, sheet, root)
-                    elif annotations.get("reviewed") is not True or annotations.get("schemaVersion") != 1 or annotations.get('origin') in {'publisher-layer-export', 'semap-human-mask-export'}:
+                    elif annotations.get('origin') == 'macro-vector-supervision' and training_only:
+                        validate_macro_annotation(annotations, sheet, root)
+                    elif annotations.get("reviewed") is not True or annotations.get("schemaVersion") != 1 or annotations.get('origin') in RASTER_ORIGINS:
                         raise ValueError("Human-reviewed current annotation schema required")
     return value
 
