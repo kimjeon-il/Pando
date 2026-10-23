@@ -30,6 +30,18 @@ const options = {
   warpOptions: [['auto', '자동']],
 };
 
+test('layout review exposes separate crop actions and excludes recognized legends', () => {
+  const value = record({ analysis: { stage: 'layout', busy: false, layout: { panels: [
+    { id: 'main', kind: 'main', sourceRect: { x: 10, y: 20, width: 500, height: 400 } },
+    { id: 'legend', kind: 'legend', sourceRect: { x: 30, y: 40, width: 50, height: 40 } },
+  ] } } });
+  assert.equal(referenceImageWorkflow({ record: value }).id, 'layout');
+  const markup = referenceImageEditorMarkup({ ...options, record: value });
+  assert.match(markup, /data-panel-id="main">이 영역 맞춤/);
+  assert.match(markup, /data-panel-id="legend" disabled/);
+  assert.match(markup, /원본 \(10, 20\)/);
+});
+
 test('editor groups placement, match and display into accessible tabs while keeping image controls shared', () => {
   const markup = referenceImageEditorMarkup({
     ...options,
@@ -203,7 +215,7 @@ test('free transform is disabled only by record lock', () => {
 
 test('automatic georeferencing shows scan action and a review-before-apply preview', () => {
   const previewRecord = record({
-    autoGeorefPreview: {
+    analysis: { georef: {
       ok: true,
       seedCount: 18,
       symbolCandidateCount: 12,
@@ -212,7 +224,7 @@ test('automatic georeferencing shows scan action and a review-before-apply previ
         rejectedCount: 3,
         diagnostics: { rmsMeters: 4200 },
       },
-    },
+    } },
   });
   const markup = referenceImageEditorMarkup({ ...options, record: previewRecord });
   assert.match(markup, /data-ref-action="auto-georef"[^>]*>자동 맞춤<\/button>/);
@@ -228,7 +240,7 @@ test('automatic georeferencing shows scan action and a review-before-apply previ
 test('automatic georeferencing action is disabled while analysis is running or the record is locked', () => {
   const busy = referenceImageEditorMarkup({
     ...options,
-    record: record({ autoGeorefBusy: true }),
+    record: record({ analysis: { busy: true } }),
   });
   assert.match(busy, /data-ref-action="auto-georef" disabled>자동 분석 중…<\/button>/);
 
@@ -244,7 +256,7 @@ test('OCR automatic georeferencing preview identifies the method and place match
   const markup = referenceImageEditorMarkup({
     ...options,
     record: record({
-      autoGeorefPreview: {
+      analysis: { georef: {
         ok: true,
         source: 'place-ocr',
         ocr: { detections: [{ text: 'Berlin' }, { text: 'Prag' }, { text: 'Wien' }] },
@@ -254,7 +266,7 @@ test('OCR automatic georeferencing preview identifies the method and place match
           rejectedCount: 0,
           diagnostics: { rmsMeters: 1800 },
         },
-      },
+      } },
     }),
   });
   assert.match(markup, /방식<\/small><strong>OCR 도시명<\/strong>/);
@@ -320,13 +332,31 @@ test('line workflow gates progression and keeps preview confirmation separate fr
 });
 
 test('automatic workflow offers cancellation during analysis and explicit confirmation after review', () => {
-  const busy = referenceImageWorkflow({ record: record({ autoGeorefBusy: true }) });
+  const busy = referenceImageWorkflow({ record: record({ analysis: { busy: true } }) });
   assert.equal(busy.step, 0);
   assert.deepEqual(busy.actions.map(item => item.action), ['cancel-auto-georef']);
-  const ready = referenceImageWorkflow({ record: record({ autoGeorefPreview: { ok: true, georef: { inlierCount: 4 } } }) });
+  const ready = referenceImageWorkflow({ record: record({ analysis: { georef: { ok: true, georef: { inlierCount: 4 } } } }) });
   assert.equal(ready.step, 1);
   assert.match(ready.instruction, /분석 결과/);
   assert.match(ready.detail, /결과 적용/);
   assert.deepEqual(ready.actions.map(item => item.action), ['apply-auto-georef', 'cancel-auto-georef']);
   assert.equal(referenceImageWorkflow({ record: record() }), null);
+});
+
+test('ambiguous locations require an explicit choice before applying calibration', () => {
+  const workflow = referenceImageWorkflow({ record: record({ analysis: { georef: { ok: true, requiresLocationChoice: true, locations: [{}, {}] } } }) });
+  assert.equal(workflow.actions.find(row => row.action === 'apply-auto-georef').disabled, true);
+});
+
+test('boundary review starts with no selection and disables incomplete faces', () => {
+  const image = record({ analysis: { reviewing: true, boundaries: { graph: { width: 100, height: 100, chains: [{ id: 2, points: [[1, 1], [2, 2]], semanticBits: 1 }],
+    faces: [{ id: 4, touchesImageEdge: true }], unresolved: [{ point: [1, 1] }] } }, selectedIds: new Set() } });
+  const workflow = referenceImageWorkflow({ record: image });
+  assert.equal(workflow.id, 'boundaries');
+  assert.equal(workflow.actions.find(row => row.action === 'apply-boundaries').disabled, true);
+  const markup = referenceImageEditorMarkup({ ...options, record: image });
+  assert.match(markup, /data-ref-candidate="line:2"/);
+  assert.match(markup, /data-ref-candidate="face:4"[^>]*disabled/);
+  assert.match(markup, /미해결/);
+  for (const action of ['boundary-exclude', 'boundary-cut', 'boundary-retrace', 'boundary-endpoint']) assert.match(markup, new RegExp(`data-ref-action="${action}"`));
 });

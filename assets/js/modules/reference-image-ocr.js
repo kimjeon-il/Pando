@@ -1,4 +1,5 @@
-const DEFAULT_LANGUAGES = Object.freeze(['en', 'de', 'fr', 'es', 'it', 'pt', 'nl']);
+import { createReferenceOcrDetector, REFERENCE_OCR_LANGUAGES } from './reference-image-ocr-runtime.js';
+const DEFAULT_LANGUAGES = REFERENCE_OCR_LANGUAGES;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -49,8 +50,9 @@ export function normalizeReferenceImageOcrBlocks(blocks = [], {
   const limit = Math.max(1, Math.min(512, Math.round(Number(maximumDetections) || 96)));
   const minimum = Math.max(1, Math.min(12, Math.round(Number(minimumTextLength) || 2)));
   const result = [];
+  const nearby = new Map();
 
-  for (let blockIndex = 0; blockIndex < blocks.length && result.length < limit; blockIndex += 1) {
+  for (let blockIndex = 0; blockIndex < blocks.length; blockIndex += 1) {
     const block = blocks[blockIndex];
     const box = normalizeBox(block?.boundingBox || block?.box, imageWidth, imageHeight);
     if (!box) continue;
@@ -69,18 +71,59 @@ export function normalizeReferenceImageOcrBlocks(blocks = [], {
       clamp(boxHeight / imageHeight, 0, 1),
     ]);
     const confidence = clamp(finite(block?.confidence) ?? 1, 0, 1);
-    for (let lineIndex = 0; lineIndex < lines.length && result.length < limit; lineIndex += 1) {
-      result.push(Object.freeze({
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      const row = Object.freeze({
         id: 'ocr-' + (blockIndex + 1) + '-' + (lineIndex + 1),
         text: lines[lineIndex],
+        originalText: raw,
         image,
         confidence,
         box: normalizedBox,
-        origin: 'text-detector',
-      }));
+        origin: 'tesseract',
+      });
+      const text = row.text.toLocaleLowerCase(), gx = Math.floor(image[0] * 200), gy = Math.floor(image[1] * 200);
+      let duplicate = -1;
+      for (let dx = -1; dx <= 1 && duplicate < 0; dx++) for (let dy = -1; dy <= 1 && duplicate < 0; dy++) {
+        for (const index of nearby.get(`${text}:${gx + dx}:${gy + dy}`) || []) {
+          const old = result[index];
+          if (Math.hypot(old.image[0] - image[0], old.image[1] - image[1]) < .005) { duplicate = index;break; }
+        }
+      }
+      if (duplicate >= 0) {
+        if (row.confidence > result[duplicate].confidence) {
+          const old = result[duplicate], oldKey = `${text}:${Math.floor(old.image[0] * 200)}:${Math.floor(old.image[1] * 200)}`;
+          const key = `${text}:${gx}:${gy}`;
+          if (key !== oldKey) {
+            nearby.set(oldKey, nearby.get(oldKey).filter(index => index !== duplicate));
+            if (!nearby.has(key)) nearby.set(key, []);
+            nearby.get(key).push(duplicate);
+          }
+          result[duplicate] = row;
+        }
+      } else {
+        const key = `${text}:${gx}:${gy}`;
+        if (!nearby.has(key)) nearby.set(key, []);
+        nearby.get(key).push(result.length);result.push(row);
+      }
     }
   }
-  return Object.freeze(result);
+  // Round-robin spatial bins prevent the first tile or language pass from
+  // exhausting the control budget. Confidence orders alternatives within a bin.
+  const columns = Math.max(1, Math.min(limit, Math.ceil(Math.sqrt(limit * imageWidth / imageHeight))));
+  const rows = Math.ceil(limit / columns), bins = new Map();
+  for (const row of result) {
+    const key = Math.min(columns - 1, Math.floor(row.image[0] * columns)) + columns * Math.min(rows - 1, Math.floor(row.image[1] * rows));
+    if (!bins.has(key)) bins.set(key, []);
+    bins.get(key).push(row);
+  }
+  for (const bin of bins.values()) bin.sort((a, b) => b.confidence - a.confidence);
+  const selected = [];
+  const count = Math.min(result.length, limit);
+  for (let depth = 0; selected.length < count; depth++) for (const bin of bins.values()) {
+    if (bin[depth]) selected.push(bin[depth]);
+    if (selected.length === count) break;
+  }
+  return Object.freeze(selected);
 }
 
 function defaultCanvasFactory(width, height) {
@@ -92,57 +135,30 @@ function defaultCanvasFactory(width, height) {
   return canvas;
 }
 
-async function defaultDetectorFactory(languages) {
-  const Detector = globalThis.TextDetector;
-  if (typeof Detector !== 'function' && typeof Detector?.create !== 'function') {
-    throw Object.assign(new Error('TextDetector is unavailable'), { code: 'text-detector-unavailable' });
-  }
-  if (typeof Detector.create === 'function') {
-    try {
-      return await Detector.create({ languages });
-    } catch (error) {
-      if (languages?.length) {
-        try { return await Detector.create(); } catch {}
-      }
-      throw error;
-    }
-  }
-  return new Detector();
-}
-
 export async function referenceImageOcrAvailability({
-  languages = DEFAULT_LANGUAGES,
-  Detector = globalThis.TextDetector,
+  fetchManifest = async () => {
+    const response = await fetch(new URL('../../vendor/reference-analysis/manifest.json', import.meta.url));
+    if (!response.ok) throw new Error('Bundled OCR runtime is missing.');
+    return response.json();
+  },
 } = {}) {
-  if (typeof Detector !== 'function' && typeof Detector?.create !== 'function') {
-    return Object.freeze({ available: false, reason: 'text-detector-unavailable' });
-  }
-  if (typeof Detector.availability !== 'function') {
-    return Object.freeze({ available: true, status: 'unknown' });
-  }
   try {
-    const status = await Detector.availability({ languages: [...languages] });
-    const normalized = String(status?.status ?? status ?? '').toLowerCase();
-    return Object.freeze({
-      available: !['unavailable', 'no'].includes(normalized),
-      status: normalized || 'unknown',
-    });
+    const manifest = await fetchManifest();
+    const available = manifest.schemaVersion === 1 && DEFAULT_LANGUAGES.every(language => manifest.languages?.[language]?.sha256);
+    return Object.freeze({ available, status: available ? 'ready' : 'missing-language-pack', provider: 'tesseract' });
   } catch (error) {
-    return Object.freeze({
-      available: true,
-      status: 'unknown',
-      warning: String(error?.message || error || ''),
-    });
+    return Object.freeze({ available: false, reason: 'ocr-runtime-unavailable', error: String(error.message || error) });
   }
 }
 
 export async function detectReferenceImageText(image, {
-  languages = DEFAULT_LANGUAGES,
+  languages = null,
   maxDimension = 2048,
   minimumTextLength = 2,
   maximumDetections = 96,
-  detectorFactory = defaultDetectorFactory,
+  detectorFactory = createReferenceOcrDetector,
   canvasFactory = defaultCanvasFactory,
+  signal = null,
 } = {}) {
   const dimensions = imageDimensions(image);
   if (!dimensions) {
@@ -170,8 +186,10 @@ export async function detectReferenceImageText(image, {
   }
 
   try {
-    const detector = await detectorFactory([...languages]);
+    signal?.throwIfAborted();
+    const detector = await detectorFactory(languages ? [...languages] : null, { signal });
     const blocks = await detector.detect(canvas);
+    signal?.throwIfAborted();
     const detections = normalizeReferenceImageOcrBlocks(Array.from(blocks || []), {
       width,
       height,
@@ -181,16 +199,15 @@ export async function detectReferenceImageText(image, {
     return Object.freeze({
       ok: detections.length > 0,
       reason: detections.length ? '' : 'no-ocr-text',
-      provider: 'text-detector',
+      provider: 'tesseract',
       width,
       height,
       scale,
       detections,
     });
   } catch (error) {
-    const code = error?.code === 'text-detector-unavailable'
-      ? error.code
-      : 'text-detector-failed';
+    if (signal?.aborted) throw signal.reason;
+    const code = error?.code || 'ocr-recognition-failed';
     return Object.freeze({
       ok: false,
       reason: code,

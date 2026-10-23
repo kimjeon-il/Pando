@@ -1,3 +1,4 @@
+import { decodeReferenceImageSource, referenceImageSourceSize } from './reference-image-source.js';
 import { referenceImageKeyBlocked, referenceImageNavigationHeld } from './reference-image-input.js';
 import { referenceImageEventTargetsMap, createReferenceImageTouchTracker } from './reference-image-pointer-target.js';
 import { setReferenceImageSurfaceEditing, setReferenceImageSurfaceActions } from './reference-image-surface-port.js';
@@ -61,20 +62,6 @@ function barycentric(point, triangle) {
   return a >= -0.002 && b >= -0.002 && c >= -0.002 ? [a, b, c] : null;
 }
 
-function createImageFromBlob(blob) {
-  return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(blob);
-    const image = new Image();
-    image.decoding = 'async';
-    image.onload = () => resolve({ image, objectUrl });
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('참조 이미지를 분석용으로 읽을 수 없습니다.'));
-    };
-    image.src = objectUrl;
-  });
-}
-
 function publicRecordMeta(recordId) {
   return globalThis.__PANDOLAB_REFERENCE_IMAGES__?.list?.()
     ?.find(record => String(record.id) === String(recordId)) || null;
@@ -115,7 +102,6 @@ export function installReferenceImageLineRefiner() {
   const context = canvas.getContext('2d');
   if (!context) throw new Error('선 보강 미리보기 Canvas를 만들 수 없습니다.');
 
-  const imageCache = new Map();
   let state = null;
   const touchTracker = createReferenceImageTouchTracker();
   let lastMessage = '';
@@ -206,8 +192,7 @@ export function installReferenceImageLineRefiner() {
     state = null;
     mapElement.classList.remove('is-reference-line-refine-mode');
     if (message) {
-      lastMessage = message;
-      lastTone = tone;
+      setMessage(message, tone);
     }
     requestRender();
     scheduleSync();
@@ -254,24 +239,13 @@ export function installReferenceImageLineRefiner() {
     });
     const gcpButton = editor.querySelector('[data-ref-action="gcp"]');
     if (gcpButton) gcpButton.disabled = !!meta?.locked || active || mapElement.classList.contains('is-reference-live-wire-mode');
-    if (lastMessage) setMessage(lastMessage, lastTone);
+    if (active && lastMessage) setMessage(lastMessage, lastTone);
   }
 
   function scheduleSync() {
     if (syncScheduled || disposed) return;
     syncScheduled = true;
     queueMicrotask(syncUi);
-  }
-
-  async function cachedImage(record) {
-    const signature = `${record.blob?.type || ''}:${record.blob?.size || 0}`;
-    const cached = imageCache.get(record.id);
-    if (cached?.signature === signature) return cached;
-    if (cached?.objectUrl) URL.revokeObjectURL(cached.objectUrl);
-    const decoded = await createImageFromBlob(record.blob);
-    const next = { ...decoded, signature };
-    imageCache.set(record.id, next);
-    return next;
   }
 
   async function loadSource(recordId) {
@@ -290,14 +264,14 @@ export function installReferenceImageLineRefiner() {
     if (meta?.locked || stored.locked) throw new Error('잠금을 해제한 뒤 선 보강을 사용할 수 있습니다.');
     const warp = buildReferenceImageSourceMapping(stored);
     if (!warp.ok) throw new Error('Corner Pin 또는 기준점 보정을 완료한 뒤 선 보강을 사용할 수 있습니다.');
-    const decoded = await cachedImage(stored);
+    const decoded = await decodeReferenceImageSource(stored.blob, stored.sourceRect);
     return {
       id: String(recordId),
       image: decoded.image,
       warp,
       mesh: buildReferenceImageMesh(warp, MESH_QUALITY),
-      sourceWidth: Number(decoded.image.naturalWidth || 0),
-      sourceHeight: Number(decoded.image.naturalHeight || 0),
+      sourceWidth: referenceImageSourceSize(decoded.image).width,
+      sourceHeight: referenceImageSourceSize(decoded.image).height,
     };
   }
 
@@ -618,8 +592,6 @@ export function installReferenceImageLineRefiner() {
       globalThis.removeEventListener('pointerup', onPointerUp, true);
       globalThis.removeEventListener('pointercancel', onPointerCancel, true);
       globalThis.removeEventListener('keydown', onKeyDown, true);
-      for (const cached of imageCache.values()) if (cached.objectUrl) URL.revokeObjectURL(cached.objectUrl);
-      imageCache.clear();
       canvas.remove();
       setReferenceImageSurfaceActions('line');
       mapElement.classList.remove('is-reference-line-refine-mode');

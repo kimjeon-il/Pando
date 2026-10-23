@@ -1,5 +1,6 @@
 #include <pandoeditor/referenceimage.h>
 #include <pandoeditor/referencetracing.h>
+#include <pandoeditor/referenceboundaries.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <stdexcept>
@@ -91,6 +92,10 @@ val trace(const val& value,const val& target,const val& options) {
     return webResult(traceReferencePath(readField(value["field"]),t,readPoint(target),option(options,"snapRadius",8),option(options,"minimumMeanEdge",.035)));
 }
 val simplify(const val& points,double tolerance){return webPoints(simplifyReferenceTrace(readPoints(points),tolerance));}
+val boundaries(int width,int height,const val& labels,const val& confidence,const val& options){
+    const auto result=referenceBoundaryGraph(width,height,readVector<std::uint8_t>(labels),readVector<float>(confidence),option(options,"threshold",.55),option(options,"simplifyTolerance",.75),option(options,"maximumGapPixels",6));
+    return val::global("JSON").call<val>("parse",result.encode());
+}
 val refine(const val& options) {
     const auto result=refineReferenceTrace(readField(options["field"]),readPoints(options["roughPoints"]),option(options,"corridorRadius",12),option(options,"simplifyTolerance",1.5),option(options,"minimumPeakEdge",.02),option(options,"minimumMeanEdge",.06));
     auto out=webResult(result);if(result.ok){out.set("rawPointCount",result.rawPointCount);out.set("simplifiedPointCount",result.points.size());out.set("corridorRadius",result.corridorRadius);}return out;
@@ -129,4 +134,5 @@ EMSCRIPTEN_BINDINGS(pando_reference_image) {
     emscripten::function("referenceTracePath",&trace);
     emscripten::function("referenceSimplifyTrace",&simplify);
     emscripten::function("referenceRefineTrace",&refine);
+    emscripten::function("referenceBoundaryGraph",&boundaries);
 }

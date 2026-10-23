@@ -68,6 +68,7 @@ test('an open image surface keeps the shared editing instruction current during 
   const listeners = new Map();
   globalThis.document = {
     activeElement: null,
+    getElementById: () => ({ open: false }),
     querySelectorAll: () => [],
     addEventListener: (type, listener) => listeners.set(type, listener),
   };
@@ -83,14 +84,18 @@ test('an open image surface keeps the shared editing instruction current during 
   const state = { tool: 'territorial-border', projectReplacing: false, spacePanActive: false, geometryPreview: { session: null } };
   const draft = { coords: [[0, 0], [1, 1]], inputPhase: 'refine' };
   const originalDraft = structuredClone(draft);
-  const instruction = { textContent: '' };
+  const instruction = { textContent: '', classList: { toggle() {} } };
   const taskPresentation = createTaskPresentation();
   taskPresentation.connect({
     projectState: { state },
     platform: { $: id => id === 'modeTaskInput' ? instruction : null },
     territorialModel: { entityRepository: { get: () => null } },
     draftPresentation: { editingDraftSnapshot: () => draft },
-    domains: { projectDomain: { state: () => ({ timelineCursor: '1914-07' }) } },
+    domains: {
+      projectDomain: { state: () => ({ timelineCursor: '1914-07' }) },
+      editingDomain: { snapshot: () => ({}) },
+    },
+    surfaces: { isMobile: () => false },
   });
   taskPresentation.syncEditingContext();
   const editingInstruction = instruction.textContent;

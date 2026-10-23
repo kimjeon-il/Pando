@@ -1,5 +1,35 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+test('reference search ignores interaction and presentation without publishing project identities', async () => {
+  const calls = []; let admissions = 0;
+  const place = normalizePlace({ source: 'synthetic', sourceId: 'old', name: 'Old name', kind: 'city', coordinates: [1, 2] });
+  const runtime = createPlaceRuntime({ getPresentation: () => ({ month: '2026-10', languages: { ko: true } }),
+    admitReferences: async () => { admissions++; }, rpc: { stop() {}, request: async (operation, payload) => {
+      calls.push({ operation, payload }); return { result: { records: [place] } };
+    } } });
+  runtime.beginInteraction();
+  const result = await runtime.search('Old', { scope: 'reference', mapDate: '1800' });
+  assert.equal(result.records[0].id, place.id);
+  assert.equal(calls[0].payload.scope, 'reference');
+  assert.equal(calls[0].payload.mapDate, '1800');
+  assert.equal(calls[0].payload.presentation, null);
+  assert.equal(admissions, 0); assert.equal(runtime.stats().retainedRecords, 0);
+  runtime.dispose();
+});
+
+test('reference search uses the scheduler abort signal and rejects after disposal', async () => {
+  let workerSignal;
+  const runtime = createPlaceRuntime({ admitReferences: async () => {}, rpc: { stop() {}, request: (_op, _payload, options) => {
+    workerSignal = options.signal; return new Promise(() => {});
+  } } });
+  const abort = new globalThis.AbortController();
+  const result = runtime.search('Old', { scope: 'reference', signal: abort.signal });
+  await tick(); abort.abort();
+  await assert.rejects(result, error => error.name === 'AbortError');
+  assert.equal(workerSignal.aborted, true);runtime.dispose();
+  await assert.rejects(runtime.search('Old', { scope: 'reference' }), error => error.name === 'AbortError');
+});
 import { setImmediate } from 'node:timers';
 import { createPlaceRuntime } from '../../assets/js/modules/place-runtime.js';
 import { normalizePlace, PLACE_LIMITS } from '../../assets/js/modules/place-contract.js';

@@ -196,8 +196,30 @@ export function referenceImageWorkflow({ record, anchorState = null, gcpState = 
       ],
     };
   }
-  const preview = record.autoGeorefPreview?.ok ? record.autoGeorefPreview : null;
-  if (record.autoGeorefBusy || preview) {
+  const analysis = record.analysis;
+  if (analysis?.stage === 'layout') {
+    return { id: 'layout', title: '지도 영역 분석', steps: ['분석', '영역 확인', '자동 맞춤'], step: analysis.busy ? 0 : 1,
+      instruction: analysis.busy ? '도곽과 삽입도 후보를 찾고 있습니다.' : '분리해서 맞출 본 지도 또는 삽입도를 선택하세요.',
+      detail: '원본과 수동 기준점은 유지됩니다. 선택한 영역은 별도 이미지 항목으로 생성합니다.',
+      actions: [{ action: 'auto-georef', label: '전체 이미지 맞춤', disabled: analysis.busy },
+        { action: 'cancel-auto-georef', label: analysis.busy ? '분석 취소' : '검토 닫기' }] };
+  }
+  if (analysis?.editingChainId != null) return null;
+  if (analysis?.reviewing || (analysis?.busy && analysis.stage === 'boundaries')) {
+    const graph = analysis.boundaries?.graph;
+    return { id: 'boundaries', title: '경계 자동 추출', steps: ['분석', '경계 검토', '적용'], step: analysis.busy ? 0 : 1,
+      instruction: analysis.busy ? (analysis.stage === 'edit' ? '수정한 경계망에서 영역을 다시 구성하고 있습니다.' : analysis.stage === 'apply' ? '선택한 객체를 생성하고 있습니다.' : '지도 전체의 경계를 분석하고 있습니다.')
+        : analysis.pointAction ? '지도에서 선택한 선을 끊을 위치를 누르세요.' : analysis.connectFrom ? '연결할 다른 시작점 또는 끝점을 선택하세요.'
+          : `선 ${graph.chains.length}개 · 영역 ${graph.faces.length}개 · 미해결 ${graph.unresolved.length}곳`,
+      detail: '지도 위 후보를 확인하고 생성할 선·영역을 선택하세요. 이름·귀속·연대는 자동 확정하지 않습니다.',
+      actions: [...(analysis.busy ? [] : [
+        { action: 'boundary-undo', label: '경계 수정 취소', disabled: !analysis.graphHistory?.past.length },
+        { action: 'boundary-redo', label: '경계 수정 다시 실행', disabled: !analysis.graphHistory?.future.length },
+        { action: 'apply-boundaries', label: '선택한 객체 생성', primary: true, disabled: !analysis.selectedIds.size },
+      ]), { action: 'cancel-boundaries', label: analysis.busy ? '분석 취소' : '검토 닫기', disabled: analysis.busy && analysis.stage === 'apply' }] };
+  }
+  const preview = analysis?.georef?.ok ? analysis.georef : null;
+  if (analysis?.busy || preview) {
     return {
       id: 'auto', title: '자동 맞춤', steps: ['분석', '결과 확인', '적용'],
       step: preview ? 1 : 0,
@@ -208,7 +230,7 @@ export function referenceImageWorkflow({ record, anchorState = null, gcpState = 
         ? '‘결과 적용’을 누르면 기준점과 이미지 보정에 반영됩니다.'
         : '분석 중에도 취소할 수 있습니다. 취소한 분석 결과는 반영하지 않습니다.',
       actions: preview ? [
-          { action: 'apply-auto-georef', label: '결과 적용', primary: true },
+          { action: 'apply-auto-georef', label: '결과 적용', primary: true, disabled: !!preview.requiresLocationChoice },
           { action: 'cancel-auto-georef', label: '결과 취소' },
         ] : [{ action: 'cancel-auto-georef', label: '분석 취소' }],
     };
@@ -300,8 +322,8 @@ export function referenceImageEditorMarkup({
   const gcpDisabled = record.locked;
   const warpDisabled = record.locked || rubberSheetActive;
   const calibrationEditing = !!gcpState || controlPointEditing;
-  const autoGeorefBusy = record.autoGeorefBusy === true;
-  const autoGeorefPreview = record.autoGeorefPreview?.ok ? record.autoGeorefPreview : null;
+  const autoGeorefBusy = record.analysis?.busy === true;
+  const autoGeorefPreview = record.analysis?.georef?.ok ? record.analysis.georef : null;
   const autoGeorefDiagnostics = autoGeorefPreview?.georef?.diagnostics || null;
   const autoGeorefIsOcr = autoGeorefPreview?.source === 'place-ocr';
   const autoGeorefMethod = autoGeorefIsOcr ? 'OCR 도시명' : '도시 기호';
@@ -448,6 +470,8 @@ export function referenceImageEditorMarkup({
       </div>
       </details>
       <div class="reference-image-calibration-actions">
+        <button type="button" class="ui-button btn" data-ref-action="auto-analysis"${record.locked || autoGeorefBusy ? ' disabled' : ''}>자동 분석</button>
+        <button type="button" class="ui-button btn ghost" data-ref-action="analyze-layout"${record.locked || autoGeorefBusy ? ' disabled' : ''}>본 지도·삽입도 분리</button>
         <button type="button" class="ui-button btn ghost${calibrationEditing ? ' active' : ''}" data-ref-action="gcp" aria-pressed="${calibrationEditing}"${gcpDisabled ? ' disabled' : ''}>기준점</button>
         <button type="button" class="ui-button btn ghost" data-ref-action="auto-georef"${record.locked || autoGeorefBusy ? ' disabled' : ''}>${autoGeorefBusy ? '자동 분석 중…' : '자동 맞춤'}</button>
         <button type="button" class="ui-button btn ghost${anchorState ? ' active' : ''}" data-ref-action="anchor" aria-pressed="${!!anchorState}"${anchorDisabled ? ' disabled' : ''}>${record.anchor ? '고정점 다시 지정' : '📌 고정점 지정'}</button>
@@ -456,7 +480,18 @@ export function referenceImageEditorMarkup({
         <button type="button" class="ui-button btn ghost" data-ref-action="clear-gcp"${record.controlPoints.length && !gcpDisabled ? '' : ' disabled'}>전체 삭제</button>
       </div>
 
+      ${record.analysis?.layout ? `<fieldset class="reference-image-advanced"${record.locked || autoGeorefBusy ? ' disabled' : ''}>
+        <legend>지도 영역 후보</legend><p class="reference-image-hint">도곽으로 찾은 후보입니다. 범례나 장식 테두리가 포함됐는지 확인하세요.</p>
+        ${record.analysis.layout.panels.map((panel, index) => `<div class="reference-image-point-row"><span>${panel.kind === 'main' ? '본 지도' : panel.kind === 'legend' ? '범례' : '삽입도'} 후보 ${index + 1} · ${panel.sourceRect.width} × ${panel.sourceRect.height} px · 원본 (${panel.sourceRect.x}, ${panel.sourceRect.y})</span>
+        <button type="button" class="ui-button btn ghost" data-ref-action="use-layout-panel" data-panel-id="${escapeAttribute(panel.id)}"${panel.kind === 'legend' ? ' disabled' : ''}>이 영역 맞춤</button></div>`).join('')}
+        ${record.analysis.layout.grid?.points.length ? `<p class="reference-image-hint">경위도 격자점 ${record.analysis.layout.grid.points.length}개 후보. 원본의 기준 자오선이 그리니치이고 측지 기준이 WGS84인지 확인한 경우에만 추가하세요. 알 수 없거나 다른 기준이면 사용할 수 없습니다.</p>
+        <details><summary>인식한 좌표 표기</summary>${record.analysis.layout.grid.labels.map(label => `<p>${escapeAttribute(label.originalText)} → ${label.value}°</p>`).join('')}</details>
+        <button type="button" class="ui-button btn ghost" data-ref-action="use-grid-points"${record.analysis.layout.grid.independentLongitudeLabels < 2 || record.analysis.layout.grid.independentLatitudeLabels < 2 ? ' disabled' : ''}>그리니치·WGS84 확인: 격자점 추가</button>` : ''}
+      </fieldset>` : ''}
+
       ${autoGeorefPreview ? `
+        ${autoGeorefPreview.requiresLocationChoice ? `<p class="reference-image-hint">위치를 하나로 확정하지 못했습니다. 지역 후보를 선택하세요.</p>
+        <div class="reference-image-calibration-actions">${autoGeorefPreview.locations.map((location, index) => `<button type="button" class="ui-button btn ghost" data-ref-action="choose-location" data-location="${index}">후보 ${index + 1} · ${escapeAttribute((location.matching?.matches || []).filter(row => location.georef.inlierIds.includes(row.id)).slice(0, 3).map(row => row.name || row.text || row.placeId).join(', '))}</button>`).join('')}</div>` : ''}
         <p class="reference-image-hint">분석 결과 · 기준점 ${autoGeorefPreview.georef?.inlierCount ?? 0}개 채택, ${autoGeorefPreview.georef?.rejectedCount ?? 0}개 제외. 적용 전 결과를 확인하세요.</p>
         <details class="reference-image-advanced">
         <summary>자동 맞춤 분석 상세</summary>
@@ -467,9 +502,22 @@ export function referenceImageEditorMarkup({
           <span><small>채택</small><strong>${autoGeorefPreview.georef?.inlierCount ?? 0}</strong></span>
           <span><small>제외</small><strong>${autoGeorefPreview.georef?.rejectedCount ?? 0}</strong></span>
           <span><small>RMS</small><strong>${autoGeorefDiagnostics ? `${numberText(autoGeorefDiagnostics.rmsMeters / 1000, 1)} km` : '—'}</strong></span>
+          <span><small>검증 P95</small><strong>${numberText(autoGeorefDiagnostics?.quality?.crossValidationP95Pixels, 1)} px</strong></span>
+          <span><small>검증점 분포</small><strong>${numberText((autoGeorefDiagnostics?.quality?.imageCoverage || 0) * 100, 0)}%</strong></span>
         </div>
         </details>
       ` : ''}
+
+      <div class="reference-image-calibration-actions"><button type="button" class="ui-button btn ghost" data-ref-action="extract-boundaries"${record.locked || autoGeorefBusy || !warp?.ok ? ' disabled' : ''}>경계 자동 추출</button></div>
+      ${record.analysis?.reviewing ? `<fieldset class="reference-image-advanced"${record.locked || autoGeorefBusy || record.analysis.editingChainId != null ? ' disabled' : ''}>
+        <legend>생성할 경계 후보</legend>
+        <p class="reference-image-hint">미해결 구간은 임의로 잇지 않습니다. 가장자리에서 잘린 영역은 생성할 수 없습니다.</p>
+        <details open><summary>선 ${record.analysis.boundaries.graph.chains.length}개</summary>${record.analysis.boundaries.graph.chains.map(chain => `<div class="reference-image-point-row">
+          <label class="reference-image-field"><input type="checkbox" data-ref-candidate="line:${chain.id}"${record.analysis.selectedIds.has('line:' + chain.id) ? ' checked' : ''} />선 ${chain.id + 1} · ${chain.semanticBits & 1 ? '국경' : chain.semanticBits & 2 ? '행정경계' : '해안'}</label>
+          <div class="reference-image-point-actions">${[['boundary-exclude', '경계 제외'], ['boundary-cut', '위치 선택해 끊기'], ['boundary-retrace', '다시 추적']].map(([action, text]) => `<button type="button" class="ui-button btn ghost" data-ref-action="${action}" data-chain-id="${chain.id}">${text}</button>`).join('')}
+          ${['start', 'end'].map(end => `<button type="button" class="ui-button btn ghost" data-ref-action="boundary-endpoint" data-chain-id="${chain.id}" data-end="${end}" aria-pressed="${record.analysis.connectFrom?.chainId === chain.id && record.analysis.connectFrom?.end === end}">${end === 'start' ? '시작점' : '끝점'} 연결</button>`).join('')}</div></div>`).join('')}</details>
+        <details><summary>영역 ${record.analysis.boundaries.graph.faces.length}개</summary>${record.analysis.boundaries.graph.faces.map(face => `<label class="reference-image-field"><input type="checkbox" data-ref-candidate="face:${face.id}"${face.touchesImageEdge ? ' disabled' : ''}${record.analysis.selectedIds.has('face:' + face.id) ? ' checked' : ''} />영역 ${face.id + 1}${face.touchesImageEdge ? ' · 가장자리 불완전' : ''}</label>`).join('')}</details>
+      </fieldset>` : ''}
 
       <div class="reference-image-calibration-actions">
         <button type="button" class="ui-button btn ghost" data-ref-action="linear-coastline"${record.locked || !linearReady || linearDraft ? ' disabled' : ''}>해안선 맞추기</button>

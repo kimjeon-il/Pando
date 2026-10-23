@@ -19,7 +19,7 @@ const quad = [
 ];
 
 test('reference image model normalizes one canonical geographic placement quad', () => {
-  assert.equal(REFERENCE_IMAGE_MODEL_VERSION, 6);
+  assert.equal(REFERENCE_IMAGE_MODEL_VERSION, 7);
   assert.deepEqual(normalizeReferenceImageMapQuad(quad), quad);
   assert.equal(normalizeReferenceImageMapQuad([[0, 0]]), null);
   const record = normalizeReferenceImageRecord({

@@ -1,4 +1,5 @@
-export const REFERENCE_IMAGE_MODEL_VERSION = 6;
+import { normalizeReferenceImageSourceRect } from './reference-image-source.js';
+export const REFERENCE_IMAGE_MODEL_VERSION = 7;
 
 const DEFAULT_OPACITY = 0.55;
 const DEFAULT_BLEND_MODE = 'source-over';
@@ -102,10 +103,15 @@ export function normalizeReferenceImageRecord(record = {}) {
   const linearConstraints = normalizeReferenceImageLinearConstraints(record?.linearConstraints);
   const anchor = normalizeReferenceImageAnchor(record?.anchor);
   const mapQuad = normalizeReferenceImageMapQuad(record?.mapQuad);
+  const gridReference = record.gridReference;
+  if (gridReference && (gridReference.primeMeridian !== 'greenwich' || gridReference.datum !== 'WGS84'
+    || gridReference.reviewed !== true || !Array.isArray(gridReference.labels))) throw new TypeError('Invalid reviewed graticule reference.');
   return {
     modelVersion: REFERENCE_IMAGE_MODEL_VERSION,
     id: String(record?.id || ''),
     name: String(record?.name || '참조 이미지'),
+    sourceRect: normalizeReferenceImageSourceRect(record.sourceRect),
+    gridReference: gridReference ? structuredClone(gridReference) : null,
     opacity: clamp(Number.isFinite(opacity) ? opacity : DEFAULT_OPACITY, 0, 1),
     blendMode: BLEND_MODES.has(record?.blendMode) ? record.blendMode : DEFAULT_BLEND_MODE,
     warpMode: WARP_MODES.has(record?.warpMode) ? record.warpMode : DEFAULT_WARP_MODE,
@@ -127,6 +133,8 @@ export function normalizeReferenceImageRecord(record = {}) {
 export function referenceImageMappingSignature(record = {}) {
   const normalized = normalizeReferenceImageRecord(record);
   return JSON.stringify({
+    sourceRect: normalized.sourceRect,
+    gridReference: normalized.gridReference,
     warpMode: normalized.warpMode,
     flipX: normalized.flipX,
     flipY: normalized.flipY,
@@ -155,6 +163,8 @@ export function serializeReferenceImageRecord(record, order = 0) {
     modelVersion: REFERENCE_IMAGE_MODEL_VERSION,
     id: normalized.id,
     name: normalized.name,
+    sourceRect: normalized.sourceRect,
+    gridReference: normalized.gridReference,
     opacity: normalized.opacity,
     blendMode: normalized.blendMode,
     warpMode: normalized.warpMode,
@@ -186,6 +196,9 @@ export function serializeReferenceImageRecord(record, order = 0) {
 export function cloneReferenceImageRecord(record) {
   return {
     ...record,
+    sourceRect: normalizeReferenceImageSourceRect(record.sourceRect),
+    gridReference: record.gridReference ? structuredClone(record.gridReference) : null,
+    analysis: null,
     controlPoints: Array.isArray(record?.controlPoints)
       ? record.controlPoints.map(point => ({
         ...point,

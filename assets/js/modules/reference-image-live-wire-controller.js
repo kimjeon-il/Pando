@@ -1,3 +1,4 @@
+import { decodeReferenceImageSource, referenceImageSourceSize } from './reference-image-source.js';
 import { referenceImageKeyBlocked, referenceImageNavigationHeld } from './reference-image-input.js';
 import { referenceImageEventTargetsMap, createReferenceImageTouchTracker } from './reference-image-pointer-target.js';
 import { setReferenceImageSurfaceEditing, setReferenceImageSurfaceActions } from './reference-image-surface-port.js';
@@ -68,20 +69,6 @@ function barycentric(point, triangle) {
   return a >= -0.002 && b >= -0.002 && c >= -0.002 ? [a, b, c] : null;
 }
 
-function createImageFromBlob(blob) {
-  return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(blob);
-    const image = new Image();
-    image.decoding = 'async';
-    image.onload = () => resolve({ image, objectUrl });
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('참조 이미지를 자동 추적용으로 읽을 수 없습니다.'));
-    };
-    image.src = objectUrl;
-  });
-}
-
 function publicRecordMeta(recordId) {
   return globalThis.__PANDOLAB_REFERENCE_IMAGES__?.list?.()
     ?.find(record => String(record.id) === String(recordId)) || null;
@@ -122,7 +109,6 @@ export function installReferenceImageLiveWire() {
   const context = canvas.getContext('2d');
   if (!context) throw new Error('자동 추적 미리보기 Canvas를 만들 수 없습니다.');
 
-  const imageCache = new Map();
   let state = null;
   const touchTracker = createReferenceImageTouchTracker();
   let disposed = false;
@@ -256,14 +242,15 @@ export function installReferenceImageLiveWire() {
   }
 
   function cancelLiveWire({ message = '', tone = '' } = {}) {
+    const target = state?.target;
     touchTracker.reset();
     setReferenceImageSurfaceEditing(false);
     state = null;
+    if (target) target.onClose();
     pendingPointer = null;
     mapElement.classList.remove('is-reference-live-wire-mode');
     if (message) {
-      lastMessage = message;
-      lastTone = tone;
+      setMessage(message, tone);
     }
     requestRender();
     scheduleSync();
@@ -303,7 +290,7 @@ export function installReferenceImageLiveWire() {
     const matchVisible = !editor.querySelector('[data-ref-section="match"]')?.hidden;
     setReferenceImageSurfaceActions('live-wire', {
       start: { hidden: active || !matchVisible, disabled: !meta || meta.locked || !mappingReady || incompatibleMode },
-      finish: { hidden: !tracking, disabled: !state?.segments?.length && !state?.previewPoints?.length },
+      finish: { hidden: !tracking, disabled: !state?.target && !state?.segments?.length && !state?.previewPoints?.length },
       undo: { hidden: !tracking, disabled: !(state?.anchors?.length) },
       apply: { hidden: !preview, disabled: !!state?.applying },
       redraw: { hidden: !preview },
@@ -312,18 +299,7 @@ export function installReferenceImageLiveWire() {
 
     const gcpButton = editor.querySelector('[data-ref-action="gcp"]');
     if (gcpButton) gcpButton.disabled = !!meta?.locked || active || mapElement.classList.contains('is-reference-line-refine-mode');
-    if (lastMessage) setMessage(lastMessage, lastTone);
-  }
-
-  async function cachedImage(record) {
-    const signature = `${record.blob?.type || ''}:${record.blob?.size || 0}`;
-    const cached = imageCache.get(record.id);
-    if (cached?.signature === signature) return cached;
-    if (cached?.objectUrl) URL.revokeObjectURL(cached.objectUrl);
-    const decoded = await createImageFromBlob(record.blob);
-    const next = { ...decoded, signature };
-    imageCache.set(record.id, next);
-    return next;
+    if (active && lastMessage) setMessage(lastMessage, lastTone);
   }
 
   async function loadStoredRecord(recordId) {
@@ -348,7 +324,7 @@ export function installReferenceImageLiveWire() {
     if (meta?.locked || stored.locked) throw new Error('잠금을 해제한 뒤 자동 추적을 사용할 수 있습니다.');
     const warp = buildReferenceImageSourceMapping(stored);
     if (!warp.ok) throw new Error('Corner Pin 또는 기준점 보정을 완료한 뒤 자동 추적을 사용할 수 있습니다.');
-    const decoded = await cachedImage(stored);
+    const decoded = await decodeReferenceImageSource(stored.blob, stored.sourceRect);
     const field = getReferenceImageLiveWireField(decoded.image, { maxDimension: LIVE_WIRE_OPTIONS.maxDimension });
     if (Number(field.peakEdgeStrength || 0) < 0.02) throw new Error('이미지에서 추적할 수 있는 선명한 경계를 찾지 못했습니다.');
     return {
@@ -357,8 +333,8 @@ export function installReferenceImageLiveWire() {
       warp,
       mesh: buildReferenceImageMesh(warp, MESH_QUALITY),
       field,
-      sourceWidth: Number(decoded.image.naturalWidth || 0),
-      sourceHeight: Number(decoded.image.naturalHeight || 0),
+      sourceWidth: referenceImageSourceSize(decoded.image).width,
+      sourceHeight: referenceImageSourceSize(decoded.image).height,
     };
   }
 
@@ -392,8 +368,11 @@ export function installReferenceImageLiveWire() {
     return uv ? analysisPointFromUv(state.field, uv) : null;
   }
 
-  async function startLiveWire(recordId) {
+  async function startLiveWire(recordId, { target = null } = {}) {
     if (state) cancelLiveWire();
+    if (target && (!Array.isArray(target.points) || target.points.length < 2 || target.points.some(point => !Array.isArray(point) || point.length !== 2 || !point.every(Number.isFinite)) || typeof target.onApply !== 'function' || typeof target.onClose !== 'function')) {
+      throw new TypeError('A boundary trace requires endpoints and apply/close callbacks.');
+    }
     if (mapElement.classList.contains('is-reference-anchor-mode')
       || mapElement.classList.contains('is-reference-gcp-mode')
       || mapElement.classList.contains('is-reference-gcp-edit-mode')
@@ -408,6 +387,7 @@ export function installReferenceImageLiveWire() {
     setReferenceImageSurfaceEditing(true, '자동 추적 중 · 지도에서 경계 시작점과 다음 지점을 선택하세요.');
     state = {
       recordId,
+      target,
       phase: 'loading',
       source: null,
       field: null,
@@ -415,27 +395,41 @@ export function installReferenceImageLiveWire() {
       segments: [],
       previewPoints: [],
       previewCoordinates: [],
+      previewSourcePixels: [],
       tree: null,
       treeTarget: null,
     };
     mapElement.classList.add('is-reference-live-wire-mode');
     setMessage('참조 이미지의 경계를 분석하고 있습니다.', 'working');
     scheduleSync();
+    const loadingState = state;
     await new Promise(resolve => requestAnimationFrame(resolve));
     try {
       const source = await loadSource(recordId);
-      if (!state || state.recordId !== recordId) return false;
+      if (state !== loadingState) return false;
       state.source = source;
       state.field = source.field;
       state.phase = 'armed';
-      setMessage('추적할 경계 위를 클릭해 시작점을 지정하세요.', 'working');
+      if (target) seedBoundaryStart();
+      setMessage(target ? '양 끝점을 유지하며 구간을 재추적합니다. 중간 지점을 선택하거나 완료를 누르세요.' : '추적할 경계 위를 클릭해 시작점을 지정하세요.', 'working');
       scheduleSync();
       requestRender();
       return true;
     } catch (error) {
+      if (state !== loadingState) return false;
       cancelLiveWire({ message: error?.message || '자동 추적을 준비하지 못했습니다.', tone: 'error' });
       return false;
     }
+  }
+
+  function boundaryEndpoint(end) {
+    const point = end === 'start' ? state.target.points[0] : state.target.points.at(-1);
+    return analysisPointFromUv(state.field, [point[0] / (state.source.sourceWidth - 1), point[1] / (state.source.sourceHeight - 1)]);
+  }
+
+  function seedBoundaryStart() {
+    state.anchors = [boundaryEndpoint('start')];
+    state.phase = 'tracking';
   }
 
   function placeFirstAnchor(screen) {
@@ -475,7 +469,10 @@ export function installReferenceImageLiveWire() {
 
   function computePreviewForScreen(screen) {
     if (!state || state.phase !== 'tracking') return false;
-    const target = screenToAnalysis(screen);
+    return computePreviewForAnalysis(screenToAnalysis(screen));
+  }
+
+  function computePreviewForAnalysis(target) {
     if (!target) {
       state.previewPoints = [];
       requestRender();
@@ -560,7 +557,7 @@ export function installReferenceImageLiveWire() {
       scheduleSync();
       return true;
     }
-    if (state.anchors.length) {
+    if (state.anchors.length && !state.target) {
       state.anchors = [];
       state.previewPoints = [];
       state.phase = 'armed';
@@ -575,12 +572,17 @@ export function installReferenceImageLiveWire() {
   function finishTrace({ commitPreview = true } = {}) {
     if (!state || state.phase !== 'tracking') return false;
     if (commitPreview && state.previewPoints?.length >= 2) commitCurrentPreview();
+    if (state.target && (!computePreviewForAnalysis(boundaryEndpoint('end')) || !commitCurrentPreview())) return false;
     if (!state.segments.length) {
       setMessage('최소 한 구간을 고정한 뒤 완료하세요.', 'error');
       return false;
     }
     const simplified = simplifyLiveWireSegments(state.segments, { tolerance: LIVE_WIRE_OPTIONS.simplifyTolerance });
     const sourcePixels = sourcePixelsFromAnalysis(state.field, simplified);
+    if (state.target) {
+      sourcePixels[0] = [...state.target.points[0]];
+      sourcePixels[sourcePixels.length - 1] = [...state.target.points.at(-1)];
+    }
     const coordinates = referenceImagePixelsToCoordinates(sourcePixels, {
       sourceWidth: state.source.sourceWidth,
       sourceHeight: state.source.sourceHeight,
@@ -591,6 +593,7 @@ export function installReferenceImageLiveWire() {
       return false;
     }
     state.previewCoordinates = coordinates;
+    state.previewSourcePixels = sourcePixels;
     state.previewPoints = [];
     state.tree = null;
     state.treeTarget = null;
@@ -608,8 +611,10 @@ export function installReferenceImageLiveWire() {
     state.segments = [];
     state.previewPoints = [];
     state.previewCoordinates = [];
+    state.previewSourcePixels = [];
     state.tree = null;
     state.treeTarget = null;
+    if (state.target) seedBoundaryStart();
     setMessage('새 시작점을 클릭하세요.', 'working');
     requestRender();
     scheduleSync();
@@ -619,7 +624,7 @@ export function installReferenceImageLiveWire() {
   async function applyPreview() {
     if (!state || state.applying || state.phase !== 'preview' || state.previewCoordinates.length < 2) return false;
     const bridge = globalThis.__PANDOLAB_REFERENCE_IMAGE_EDITING__;
-    if (!bridge?.isDraftActive?.()) {
+    if (!state.target && !bridge?.isDraftActive?.()) {
       setMessage('먼저 지도 편집 도구를 켠 뒤 적용하세요. 자동 추적 결과는 그대로 유지됩니다.', 'error');
       return false;
     }
@@ -628,13 +633,15 @@ export function installReferenceImageLiveWire() {
     applyingState.applying = true;
     scheduleSync();
     try {
-      const applied = await bridge.applyDraftCoordinates(coordinates, { source: 'reference-image-live-wire' });
+      const applied = applyingState.target
+        ? await applyingState.target.onApply(applyingState.previewSourcePixels)
+        : await bridge.applyDraftCoordinates(coordinates, { source: 'reference-image-live-wire' });
       if (disposed || state !== applyingState || state.previewCoordinates !== coordinates) return false;
       if (!applied) {
         setMessage('현재 편집선에 자동 추적 결과를 적용하지 못했습니다. 편집 상태를 확인하세요.', 'error');
         return false;
       }
-      cancelLiveWire({ message: '자동 추적선을 도형 편집 초안에 반영했습니다. 지도 미리보기에서 확인한 뒤 기존 편집 확정 흐름을 사용하세요.', tone: 'success' });
+      cancelLiveWire({ message: applyingState.target ? '검토 중인 경계 구간을 수정했습니다.' : '자동 추적선을 도형 편집 초안에 반영했습니다. 지도 미리보기에서 확인한 뒤 기존 편집 확정 흐름을 사용하세요.', tone: 'success' });
       return true;
     } catch (error) {
       console.error('[PL-REFERENCE-DRAFT-001]', error);
@@ -778,6 +785,7 @@ export function installReferenceImageLiveWire() {
   scheduleSync();
 
   const api = Object.freeze({
+    start: startLiveWire,
     active: () => !!state,
     phase: () => state?.phase || 'idle',
     segmentCount: () => state?.segments?.length || 0,
@@ -801,8 +809,6 @@ export function installReferenceImageLiveWire() {
       globalThis.removeEventListener('pointermove', onPointerMove, true);
       globalThis.removeEventListener('dblclick', onDoubleClick, true);
       globalThis.removeEventListener('keydown', onKeyDown, true);
-      for (const cached of imageCache.values()) if (cached.objectUrl) URL.revokeObjectURL(cached.objectUrl);
-      imageCache.clear();
       canvas.remove();
       setReferenceImageSurfaceActions('live-wire');
       mapElement.classList.remove('is-reference-live-wire-mode');

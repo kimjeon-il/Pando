@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "loc-tehran-1889-preview",
+      "familyId": "tehran-najm-al-mulk",
+      "language": "fas",
+      "script": "Arabic",
+      "published": "1889",
+      "materialKind": "official-downsample",
+      "url": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd7:g7624:g7624t:ct001792/full/2048,/0/default.jpg",
+      "metadataUrl": "https://www.loc.gov/item/2009582796/",
+      "originalMetadataUrl": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd7:g7624:g7624t:ct001792/info.json",
+      "license": "LOC free to use and reuse advisory; retain item-level rights statement",
+      "rightsReviewed": true,
+      "sha256": "35c31b490ee4aab6c775540f18e59660d5b354deefdf9ec8568952bea80d875d",
+      "expectedBytes": 783466,
+      "maximumBytes": 8388608
+    },
+    {
+      "id": "zenodo-urdu-punjab-undated",
+      "familyId": "survey-india-manuscript-punjab",
+      "language": "urd",
+      "script": "Arabic",
+      "published": null,
+      "materialKind": "depositor-original",
+      "url": "https://zenodo.org/api/records/3596387/files/F04-26%20nd%20Map%20of%20District%20xx%20in%20Punjab%20in%20Urdu.jpg/content",
+      "metadataUrl": "https://zenodo.org/records/3596387",
+      "license": "CC-BY-4.0 (depositor collection metadata)",
+      "rightsReviewed": true,
+      "expectedBytes": 26226792,
+      "md5": "52985d651ba64a5489e8b72581cd22f9",
+      "sha256": "cfdf4de3992c84ae3d45dc84e187c536298908b0712e74ce326d3ea775c57fc3",
+      "maximumBytes": 30000000,
+      "uncertainty": "Depositor filename is undated and does not identify the district. Ferozepur/1870 attribution in a Commons mirror is secondary and unconfirmed."
+    },
+    {
+      "id": "loc-asyut-1905-blog-reproduction",
+      "familyId": "survey-egypt-provincial",
+      "language": "ara",
+      "script": "Arabic",
+      "published": "1905",
+      "materialKind": "blog-reproduction",
+      "url": "https://blogs.loc.gov/maps/files/2023/04/asyut.jpg",
+      "metadataUrl": "https://blogs.loc.gov/maps/2023/04/early-20th-century-survey-of-egypt-provincial-series-now-online/",
+      "license": null,
+      "rightsReviewed": false,
+      "maximumBytes": 8388608,
+      "uncertainty": "Inspect item rights and retrieve the original sheet before corpus admission. Cadastral, not evidence of international-border labels."
+    }
+  ]
+}

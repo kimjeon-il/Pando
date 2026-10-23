@@ -19,15 +19,16 @@ function ensureStylesheet(relativePath, revision) {
   return link;
 }
 
-export async function installReferenceImageFeature({ revision = '', workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces = null, getPlaces = null, preparePlaces = null } = {}) {
+export async function installReferenceImageFeature({ revision = '', workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces = null, genericFeatureService, onFeaturesApplied, onCollectionChanged } = {}) {
   for (const path of REFERENCE_IMAGE_STYLE_SOURCES) ensureStylesheet(path, revision);
   const controllerUrl = new URL('./reference-image-controller.js', import.meta.url);
   if (revision) controllerUrl.searchParams.set('v', revision);
   const { installReferenceImageController } = await import(controllerUrl.href);
   let lineRefiner, liveWire;
-  const controller = installReferenceImageController({ workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces, getPlaces, preparePlaces,
+  const controller = installReferenceImageController({ workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces, genericFeatureService, onFeaturesApplied, onCollectionChanged,
     cancelTools: () => { if (lineRefiner?.active()) lineRefiner.cancel(); if (liveWire?.active()) liveWire.cancel(); },
     auxiliaryInputActive: () => !!lineRefiner?.active() || !!liveWire?.active(),
+    startBoundaryTrace: (recordId, target) => liveWire.start(recordId, { target }),
   });
 
   const lineRefinerUrl = new URL('./reference-image-line-refine-controller.js', import.meta.url);

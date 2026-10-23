@@ -7,7 +7,7 @@ const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.f
 export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],getPresentation=()=>null,admitReferences } = {}) {
   if (typeof manifestUrl !== 'string' || !manifestUrl) throw new TypeError('Place manifest URL must be a nonempty string');
   if(typeof admitReferences!=='function')throw new TypeError('Place publication requires its accepted identity admission boundary.');
-  let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedKey=null;
+  let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedKey=null, referenceSequence=0;
   const retained=new Map();
   let publication=Promise.resolve();
   // A Worker can finish the next request while the previous C++ admission is
@@ -77,12 +77,21 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     selectionReferences: () => references(),
     resolve: id => retained.get(String(id)) || snapshot.records.find(record => record.id === String(id)) || null,
     retain: remember,
-    async search(query) {
-      if (moving || closed) throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.', 'interaction');
-      const job=scheduler.enqueue({ jobKey: 'search', payload: { query, presentation:getPresentation() }, metadata: { controller: new AbortController() } });
+    async search(query, { scope = 'display', mapDate = null, signal = null } = {}) {
+      if (!['display', 'reference'].includes(scope)) throw new TypeError('Unknown place search scope.');
+      const reference = scope === 'reference';
+      if (closed || (moving && !reference)) throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.', 'interaction');
+      signal?.throwIfAborted();
+      const job=scheduler.enqueue({ jobKey: reference ? `reference:${++referenceSequence}` : 'search', signal,
+        payload: { query, scope, mapDate, presentation:reference ? null : getPresentation() }, metadata: { controller: new AbortController() } });
       const result=await job.promise;
       if (result.records.length > PLACE_LIMITS.searchResults) throw new RangeError('Place search result budget exceeded');
       const records=result.records.map(normalizePlace);
+      if (reference) {
+        signal?.throwIfAborted();
+        if (closed) throw createWorkerCancellationError();
+        return { ...result, records };
+      }
       return publishAccepted(async()=>{
         if(closed || moving)throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.','interaction');
         const candidate=new Map(retained);

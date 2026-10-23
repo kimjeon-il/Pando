@@ -159,8 +159,8 @@ export function defaultReferenceImageScreenRect(image, mapElement) {
   const bounds = mapElement.getBoundingClientRect();
   const maxWidth = Math.max(180, bounds.width * 0.62);
   const maxHeight = Math.max(140, bounds.height * 0.62);
-  const naturalWidth = Math.max(1, Number(image?.naturalWidth) || 1);
-  const naturalHeight = Math.max(1, Number(image?.naturalHeight) || 1);
+  const naturalWidth = Math.max(1, Number(image?.naturalWidth || image?.width) || 1);
+  const naturalHeight = Math.max(1, Number(image?.naturalHeight || image?.height) || 1);
   const scale = Math.min(maxWidth / naturalWidth, maxHeight / naturalHeight);
   const width = Math.max(80, naturalWidth * scale);
   const height = Math.max(60, naturalHeight * scale);
@@ -187,7 +187,7 @@ export function referenceImageScreenRectToMapQuad(screenRect, rotation, host) {
 
 export function defaultReferenceImageMapQuad(image, mapElement, host) {
   return calculateReferencePlacement('placementDefault', {
-    width: image?.naturalWidth, height: image?.naturalHeight,
+    width: image?.naturalWidth || image?.width, height: image?.naturalHeight || image?.height,
     viewport: { width: mapElement.getBoundingClientRect().width, height: mapElement.getBoundingClientRect().height },
   }, coordinate => projectVisible(host, coordinate), point => host.unproject(point)).mapQuad;
 }

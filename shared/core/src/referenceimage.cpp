@@ -1,5 +1,9 @@
 #include <pandoeditor/referenceimage.h>
+#include <pandoeditor/referenceboundaries.h>
 #include <pandoeditor/referencetracing.h>
+#include <pandoeditor/projectcodec.h>
+#include <pandoeditor/polygonwrapping.h>
+#include <pandoeditor/sphericalpolygon.h>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -254,13 +258,24 @@ int modeMinimum(const std::string& mode){return mode=="projective"?4:mode=="affi
 double coverage(const V& points){double minx=INFINITY,miny=INFINITY,maxx=-INFINITY,maxy=-INFINITY;for(const auto& p:points.array){const auto uv=*point(get(p,"image"));minx=std::min(minx,uv[0]);maxx=std::max(maxx,uv[0]);miny=std::min(miny,uv[1]);maxy=std::max(maxy,uv[1]);}return points.array.empty()?0:std::max(0.,(maxx-minx)*(maxy-miny));}
 double residual(const V& warp,const V& candidate){const auto projected=project(warp,*point(get(candidate,"image")));return projected?distance(*point(get(candidate,"coordinate")),*projected):INFINITY;}
 struct Score {V inliers=V::arr();double confidence=0,rms=INFINITY,coverage=0;};
-Score score(const V& warp,const V& candidates,double threshold){Score s;double squared=0;for(const auto& p:candidates.array){const auto meters=residual(warp,p);if(!std::isfinite(meters)||meters>threshold)continue;s.inliers.array.push_back(p);squared+=meters*meters;s.confidence+=field(p,"confidence",1);}if(!s.inliers.array.empty())s.rms=std::sqrt(squared/s.inliers.array.size());s.coverage=coverage(s.inliers);return s;}
+Score score(const V& warp,const V& candidates,double threshold){
+    Score s;double squared=0;std::vector<std::pair<double,std::size_t>> ranked;
+    for(std::size_t i=0;i<candidates.array.size();++i){const auto meters=residual(warp,candidates.array[i]);if(std::isfinite(meters)&&meters<=threshold)ranked.push_back({meters,i});}
+    std::sort(ranked.begin(),ranked.end());std::set<std::string> detections,places;std::set<std::size_t> accepted;
+    for(const auto [meters,i]:ranked){const auto& p=candidates.array[i];const auto detection=text(get(p,"detectionId")),place=text(get(p,"placeId"));
+        if((!detection.empty()&&detections.count(detection))||(!place.empty()&&places.count(place)))continue;
+        if(!detection.empty())detections.insert(detection);if(!place.empty())places.insert(place);accepted.insert(i);squared+=meters*meters;s.confidence+=field(p,"confidence",1);
+    }
+    for(auto i:accepted)s.inliers.array.push_back(candidates.array[i]);
+    if(!s.inliers.array.empty())s.rms=std::sqrt(squared/s.inliers.array.size());s.coverage=coverage(s.inliers);return s;
+}
 bool better(const Score& candidate,const Score& current){if(candidate.inliers.array.size()!=current.inliers.array.size())return candidate.inliers.array.size()>current.inliers.array.size();if(std::abs(candidate.confidence-current.confidence)>1e-12)return candidate.confidence>current.confidence;if(std::abs(candidate.rms-current.rms)>1e-9)return candidate.rms<current.rms;return candidate.coverage>current.coverage;}
 V concat(V a,const V& b){a.array.insert(a.array.end(),b.array.begin(),b.array.end());return a;}
 V crossValidate(const std::string& mode,const V& candidates,const V& hard){const auto count=candidates.array.size();if(count<2||count-1+hard.array.size()<std::size_t(modeMinimum(mode)))return {};Row errors;for(std::size_t i=0;i<count;++i){auto training=hard;for(std::size_t j=0;j<count;++j)if(j!=i)training.array.push_back(candidates.array[j]);const auto warp=fit(training,mode);if(!yes(get(warp,"ok")))return {};const auto meters=residual(warp,candidates.array[i]);if(!std::isfinite(meters))return {};errors.push_back(meters);}double squared=0;for(auto x:errors)squared+=x*x;std::sort(errors.begin(),errors.end());const auto middle=count/2;return obj({{"mode",V::str(mode)},{"count",V::num(count)},{"rmsMeters",V::num(std::sqrt(squared/count))},{"medianMeters",V::num(count%2?errors[middle]:(errors[middle-1]+errors[middle])/2)},{"maxMeters",V::num(errors.back())}});}
 V autoGeoref(const V& input){
     auto candidates=V::arr();std::set<std::string> ids;
     for(std::size_t i=0;i<get(input,"points").array.size();++i){const auto& raw=get(input,"points").array[i];auto id=text(get(raw,"id"),"auto-gcp-"+std::to_string(i+1));if(id.empty())id="auto-gcp-"+std::to_string(i+1);const auto begin=id.find_first_not_of(" \t\r\n"),end=id.find_last_not_of(" \t\r\n");id=begin==std::string::npos?"auto-gcp-"+std::to_string(i+1):id.substr(begin,end-begin+1);if(id=="anchor"||ids.count(id))continue;auto p=raw;p.object["id"]=V::str(id);p.object["pinned"]=V::boolean(false);auto list=V::arr();list.array.push_back(p);const auto normalized=normalize(list);if(normalized.array.empty())continue;ids.insert(id);p=normalized.array[0];p.object["confidence"]=V::num(std::clamp(field(raw,"confidence",1),0.,1.));p.object["origin"]=get(raw,"origin");candidates.array.push_back(p);}
+    for(auto& candidate:candidates.array)for(const auto& raw:get(input,"points").array)if(text(get(candidate,"id"))==text(get(raw,"id"))){candidate.object["detectionId"]=get(raw,"detectionId");candidate.object["placeId"]=get(raw,"placeId");break;}
     auto result=obj({{"ok",V::boolean(false)},{"candidateCount",V::num(candidates.array.size())}}),hard=V::arr();const auto& anchor=get(input,"anchor");
     if(anchor.kind!=V::Null){auto list=V::arr();list.array.push_back(obj({{"id",V::str("anchor")},{"image",get(anchor,"image")},{"coordinate",get(anchor,"coordinate")},{"pinned",V::boolean(true)}}));hard=normalize(list);if(hard.array.empty()){result.object["reason"]=V::str("invalid-anchor");return result;}}
     const auto requested=text(get(input,"mode"),"auto");const auto count=candidates.array.size()+hard.array.size();std::string consensus=requested;
@@ -336,6 +351,124 @@ std::optional<ReferencePoint> projectReferenceImageWarp(const V& warp,ReferenceP
     return project(warp,point,geographic);
 }
 codecjson::Value referenceImageOperation(const std::string& operation,const V& input,const ReferenceProjection& host) {
+    if(operation=="editBoundaryGraph")return editReferenceBoundaryGraph(get(input,"graph"),get(input,"command"));
+    if(operation=="projectBoundaryGraph"){
+        const auto& graph=get(input,"graph");const auto& warp=get(input,"warp");
+        const double width=field(graph,"width",0),height=field(graph,"height",0);
+        if(width<2||height<2||!yes(get(warp,"ok")))throw std::invalid_argument("A calibrated source graph is required.");
+        const auto prepared=prepareReferenceImageWarp(warp);std::size_t projectedCount=0;
+        const auto coordinate=[&](P pixel){
+            if(pixel[0]<0||pixel[0]>width-1||pixel[1]<0||pixel[1]>height-1)throw std::invalid_argument("Boundary point is outside its source image.");
+            const auto p=projectReferenceImageWarp(prepared,{pixel[0]/(width-1),pixel[1]/(height-1)},false);
+            if(!p||std::abs((*p)[1])>90)throw std::runtime_error("Unprojectable boundary point.");
+            return P{wrap((*p)[0]),(*p)[1]};
+        };
+        const auto projectPoints=[&](const V& source){
+            auto out=V::arr();std::optional<P> previous;P previousCoordinate{};
+            const auto append=[&](P p){if(++projectedCount>2000000)throw std::runtime_error("Projected boundary point budget exceeded.");out.array.push_back(pair(p));};
+            const auto segment=[&](auto&& self,P a,P b,P pa,P pb,int depth)->void{
+                const P middle{(a[0]+b[0])/2,(a[1]+b[1])/2},pm=coordinate(middle);
+                const double pixels=std::hypot(b[0]-a[0],b[1]-a[1]);
+                const double longitude=(pa[0]+unwrap(pb[0],pa[0]))/2,latitude=(pa[1]+pb[1])/2;
+                const double error=std::hypot(unwrap(pm[0],longitude)-longitude,pm[1]-latitude);
+                const double scale=std::hypot(unwrap(pb[0],pa[0])-pa[0],pb[1]-pa[1])/std::max(1.,pixels);
+                const bool nonlinear=prepared.mode==PreparedReferenceWarp::ThinPlateSpline||prepared.mode==PreparedReferenceWarp::Projective;
+                if(error>std::max(1e-10,scale*.25)||(nonlinear&&pixels>8)){
+                    if(depth>=18)throw std::runtime_error("Boundary warp subdivision did not converge.");
+                    self(self,a,middle,pa,pm,depth+1);self(self,middle,b,pm,pb,depth+1);
+                }else append(pb);
+            };
+            for(const auto& value:source.array){
+                const auto p=point(value);if(!p)throw std::invalid_argument("Invalid graph point.");const auto current=coordinate(*p);
+                if(previous)segment(segment,*previous,*p,previousCoordinate,current,0);else append(current);
+                previous=p;previousCoordinate=current;
+            }return out;
+        };
+        auto lines=V::arr(),polygons=V::arr();
+        for(const auto& chain:get(graph,"chains").array){const auto coordinates=projectPoints(get(chain,"points"));if(coordinates.array.size()<2)continue;
+            auto parts=V::arr(),part=V::arr();part.array.push_back(coordinates.array[0]);
+            for(std::size_t i=1;i<coordinates.array.size();++i){const auto a=*point(coordinates.array[i-1]),b=*point(coordinates.array[i]);
+                if(std::abs(b[0]-a[0])>180){const auto longitude=unwrap(b[0],a[0]);const double seam=longitude>a[0]?180:-180,t=(seam-a[0])/(longitude-a[0]),latitude=a[1]+t*(b[1]-a[1]);
+                    part.array.push_back(pair({seam,latitude}));if(part.array.size()>1)parts.array.push_back(part);part=V::arr();part.array.push_back(pair({-seam,latitude}));
+                }part.array.push_back(pair(b));
+            }if(part.array.size()>1)parts.array.push_back(part);
+            const bool multi=parts.array.size()>1;lines.array.push_back(obj({{"id",get(chain,"id")},{"geometry",obj({{"type",V::str(multi?"MultiLineString":"LineString")},{"coordinates",multi?parts:parts.array[0]}})}}));
+        }
+        for(const auto& face:get(graph,"faces").array){auto rings=V::arr();rings.array.push_back(projectPoints(get(face,"ring")));for(const auto& hole:get(face,"holes").array)rings.array.push_back(projectPoints(hole));
+            const auto raw=obj({{"type",V::str("Polygon")},{"coordinates",rings}});
+            const auto geometry=normalizeSphericalPolygonGeometry(wrapPolygonGeometry(projectcodec::readWebGeometry(raw)));
+            polygons.array.push_back(obj({{"id",get(face,"id")},{"geometry",projectcodec::webGeometryValue(geometry)}}));
+        }
+        return obj({{"lines",lines},{"polygons",polygons}});
+    }
+    if(operation=="georefQuality") {
+        const auto points=normalize(get(input,"points"));
+        const double width=field(input,"sourceWidth",0),height=field(input,"sourceHeight",0);
+        if(width<2||height<2)throw std::invalid_argument("Source dimensions are required for pixel validation.");
+        const auto mode=text(get(input,"mode"),"affine");
+        const auto warp=fit(points,mode);
+        auto out=obj({{"ok",V::boolean(yes(get(warp,"ok")))},{"recommended",V::boolean(false)},
+            {"folded",V::boolean(false)},{"imageCoverage",V::num(0)},{"crossValidationP95Pixels",V{}},
+            {"reason",V::str("insufficient-distributed-controls")}});
+        if(!yes(get(warp,"ok")))return out;
+        const auto inverse=[](const V& descriptor,P coordinate)->std::optional<P> {
+            const auto prepared=prepareReferenceImageWarp(descriptor);P uv{.5,.5};
+            auto initial=projectReferenceImageWarp(prepared,uv,false);if(!initial)return {};
+            coordinate[0]=unwrap(coordinate[0],(*initial)[0]);
+            for(int iteration=0;iteration<24;++iteration) {
+                const auto p=projectReferenceImageWarp(prepared,uv,false);
+                const auto x=projectReferenceImageWarp(prepared,{uv[0]+1e-5,uv[1]},false);
+                const auto y=projectReferenceImageWarp(prepared,{uv[0],uv[1]+1e-5},false);
+                if(!p||!x||!y)return {};
+                const auto a=((*x)[0]-(*p)[0])/1e-5,b=((*y)[0]-(*p)[0])/1e-5;
+                const auto c=((*x)[1]-(*p)[1])/1e-5,d=((*y)[1]-(*p)[1])/1e-5,det=a*d-b*c;
+                if(!std::isfinite(det)||std::abs(det)<1e-14)return {};
+                const auto ex=coordinate[0]-(*p)[0],ey=coordinate[1]-(*p)[1];
+                const P step{(d*ex-b*ey)/det,(-c*ex+a*ey)/det};
+                uv[0]+=step[0];uv[1]+=step[1];
+                if(!std::isfinite(uv[0])||!std::isfinite(uv[1]))return {};
+                if(std::hypot(step[0],step[1])<1e-9)return uv;
+            }
+            return {};
+        };
+        std::vector<P> hull;for(const auto& p:points.array)hull.push_back(*point(get(p,"image")));
+        std::sort(hull.begin(),hull.end());hull.erase(std::unique(hull.begin(),hull.end()),hull.end());
+        const auto cross=[](P a,P b,P c){return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);};
+        std::vector<P> polygon;
+        for(const auto p:hull){while(polygon.size()>1&&cross(polygon[polygon.size()-2],polygon.back(),p)<=0)polygon.pop_back();polygon.push_back(p);}
+        const auto lower=polygon.size();
+        for(auto i=hull.rbegin()+std::min<std::size_t>(1,hull.size());i!=hull.rend();++i){while(polygon.size()>lower&&cross(polygon[polygon.size()-2],polygon.back(),*i)<=0)polygon.pop_back();polygon.push_back(*i);}
+        double area=0;for(std::size_t i=1;i<polygon.size();++i)area+=polygon[i-1][0]*polygon[i][1]-polygon[i][0]*polygon[i-1][1];
+        area=std::abs(area)/2;out.object["imageCoverage"]=V::num(area);
+        bool folded=false;double referenceDet=0;
+        const auto prepared=prepareReferenceImageWarp(warp);
+        for(int y=0;y<=16;++y)for(int x=0;x<=16;++x){
+            const P uv{double(x)/16,double(y)/16};
+            const auto p=projectReferenceImageWarp(prepared,uv,false),a=projectReferenceImageWarp(prepared,{uv[0]+1e-5,uv[1]},false),b=projectReferenceImageWarp(prepared,{uv[0],uv[1]+1e-5},false);
+            if(!p||!a||!b){folded=true;continue;}
+            const double det=(((*a)[0]-(*p)[0])*((*b)[1]-(*p)[1])-((*a)[1]-(*p)[1])*((*b)[0]-(*p)[0]))/1e-10;
+            if(!referenceDet)referenceDet=det;
+            if(!std::isfinite(det)||std::abs(det)<std::max(1e-14,std::abs(referenceDet)*1e-6)||det*referenceDet<=0)folded=true;
+        }
+        out.object["folded"]=V::boolean(folded);
+        if(folded){out.object["reason"]=V::str("folded-or-singular-warp");return out;}
+        if(points.array.size()<6||area<.2)return out;
+        Row errors;
+        for(std::size_t i=0;i<points.array.size();++i){
+            if(yes(get(points.array[i],"pinned")))continue;
+            auto training=V::arr();for(std::size_t j=0;j<points.array.size();++j)if(i!=j)training.array.push_back(points.array[j]);
+            const auto check=fit(training,mode);if(!yes(get(check,"ok")))continue;
+            const auto uv=inverse(check,*point(get(points.array[i],"coordinate")));if(!uv)continue;
+            const auto actual=*point(get(points.array[i],"image"));
+            errors.push_back(std::hypot(((*uv)[0]-actual[0])*(width-1),((*uv)[1]-actual[1])*(height-1)));
+        }
+        const auto soft=std::count_if(points.array.begin(),points.array.end(),[](const V& p){return !yes(get(p,"pinned"));});
+        if(errors.empty()||errors.size()!=std::size_t(soft)){out.object["reason"]=V::str("cross-validation-unavailable");return out;}
+        std::sort(errors.begin(),errors.end());const double p95=errors[std::min(errors.size()-1,std::size_t(std::ceil(errors.size()*.95)-1))];
+        out.object["crossValidationP95Pixels"]=V::num(p95);
+        out.object["recommended"]=V::boolean(p95<=8);out.object["reason"]=V::str(p95<=8?"":"source-pixel-validation-failed");
+        return out;
+    }
     if(operation=="normalize")return normalize(input);
     if(operation=="autoGeoref")return autoGeoref(input);
     if(operation=="warp")return fit(get(input,"points"),text(get(input,"mode"),"auto"));

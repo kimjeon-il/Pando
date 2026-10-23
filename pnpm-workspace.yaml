@@ -2,3 +2,5 @@ packages:
   - '.'
 allowBuilds:
   esbuild@0.25.10: true
+  protobufjs@7.6.6: false
+  tesseract.js@7.0.0: false

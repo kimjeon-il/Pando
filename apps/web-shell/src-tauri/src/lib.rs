@@ -22,6 +22,7 @@ const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
 struct ProbeOptions {
     auto: bool,
     physical_immediate: bool,
+    reference_analysis: bool,
     probe_hold_ms: u64,
     profile_id: Option<String>,
     diagnostic_output: Option<PathBuf>,
@@ -200,6 +201,8 @@ fn probe_options() -> Result<ProbeOptions, String> {
                 options.auto = true;
             } else if arg == "--probe-physical-immediate" {
                 options.physical_immediate = true;
+            } else if arg == "--probe-reference-analysis" {
+                options.reference_analysis = true;
             } else if arg == "--probe-hold-ms" {
                 let requested = args.next().ok_or("--probe-hold-ms requires milliseconds")?;
                 let duration = requested.to_string_lossy().parse::<u64>()
@@ -227,7 +230,7 @@ fn probe_options() -> Result<ProbeOptions, String> {
                 options.diagnostic_output = Some(path);
             }
         }
-        if !options.auto && (options.physical_immediate
+        if !options.auto && (options.physical_immediate || options.reference_analysis
             || options.probe_hold_ms > 0 || options.profile_id.is_some()) {
             return Err("Performance flags require --probe-auto".into());
         }
@@ -241,6 +244,7 @@ pub fn run() {
     let auto = options.auto;
     let library_available = cfg!(windows);
     let physical_immediate = options.auto && options.physical_immediate;
+    let reference_analysis = options.auto && options.reference_analysis;
     let probe_hold_ms = if options.probe_hold_ms > 0 { options.probe_hold_ms } else { 500 };
     let profile_id = options.profile_id.clone();
     tauri::Builder::default()
@@ -266,6 +270,7 @@ pub fn run() {
                     "Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {library_available}, writable: false, configurable: false }});\
                      Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
                      Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__', {{ value: {physical_immediate}, writable: false }});\
+                     Object.defineProperty(window, '__PANDOLAB_SHELL_REFERENCE_ANALYSIS__', {{ value: {reference_analysis}, writable: false }});\
                      Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_HOLD_MS__', {{ value: {probe_hold_ms}, writable: false }});"
                 ));
             #[cfg(windows)]

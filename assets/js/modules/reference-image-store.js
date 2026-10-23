@@ -1,4 +1,5 @@
 import { createBrowserProjectStorage } from './browser-project-storage.js';
+import { packReferenceImages, unpackReferenceImages } from './reference-image-package.js';
 
 export const REFERENCE_IMAGE_COLLECTION_VERSION = 2;
 const COLLECTION_KEY = 'reference-images';
@@ -68,3 +69,26 @@ const imageStore = createReferenceImageStore(storage);
 export const listStoredReferenceImages = imageStore.list;
 export const putStoredReferenceImage = imageStore.put;
 export const replaceStoredReferenceImages = imageStore.replace;
+
+let collectionOwner = null;
+let contentRevision = 0, savedRevision = 0;
+export function markReferenceImageCollectionChanged() { contentRevision += 1; }
+/** The mounted controller owns live records; storage supplies them before the tool is mounted. */
+export function registerReferenceImageCollection(owner) {
+  if (collectionOwner || typeof owner?.capture !== 'function' || typeof owner?.replace !== 'function') throw new TypeError('A single reference image collection owner is required.');
+  collectionOwner = owner;
+  return () => { if (collectionOwner === owner) collectionOwner = null; };
+}
+export const referenceImageProjectAssets = Object.freeze({
+  state: () => ({ revision: contentRevision, dirty: contentRevision !== savedRevision }),
+  markSaved(revision) { if (revision === contentRevision) savedRevision = revision; },
+  restoreState(state) { contentRevision += 1;savedRevision = state.dirty ? -1 : contentRevision; },
+  capture: () => collectionOwner ? collectionOwner.capture() : imageStore.list(),
+  prepare: unpackReferenceImages,
+  async exportPackage() { return packReferenceImages(await this.capture()); },
+  async replace(records) {
+    if (collectionOwner) await collectionOwner.replace(records);
+    else await imageStore.replace(records);
+    contentRevision += 1;
+  },
+});

@@ -93,6 +93,13 @@ async function fixture(t) {
       'places-v1': { url: 'places-v1.bin', sha256: placeBin.sha256, bytes: placeBin.compressedBytes },
     },
   }));
+  const ocrBytes = Buffer.from('OCR'), runtimeBytes = Buffer.from('export default {};');
+  const languages = { eng: { url: 'eng.traineddata.gz', bytes: ocrBytes.length, sha256: sha(ocrBytes) } };
+  await put('assets/vendor/reference-analysis/tesseract.mjs', runtimeBytes);
+  await put('assets/vendor/reference-analysis/manifest.json', JSON.stringify({ schemaVersion: 1, languages,
+    files: { 'tesseract.mjs': { bytes: runtimeBytes.length, sha256: sha(runtimeBytes) } } }));
+  await put('assets/data/reference-analysis/v1/ocr/eng.traineddata.gz', ocrBytes);
+  await put('assets/data/reference-analysis/v1/ocr/manifest.json', JSON.stringify({ schemaVersion: 1, languages }));
   const meta = { appVersion: '0.36.0', assetRevision: 'test-full-world', dataRevision: 'data-' + 'b'.repeat(32),
     builtinWorld: historicSpec, territorialIndex: indexSpec, preparedPolygonMeshes: prepSpec };
   await put('assets/js/build-meta.js', 'globalThis.PANDOLAB_BUILD_META = Object.freeze(' + JSON.stringify(meta) + ');\n');
@@ -109,6 +116,8 @@ test('full-world stage selects manifest-pinned Web resources and keeps the canon
   assert.equal(staged.worldData.worldFileCount, 14);
   assert.equal(staged.worldData.physicalFileCount, 4);
   assert.equal(staged.fixture, null);
+  assert.equal(staged.referenceAnalysis.modelAvailable, false);
+  assert.ok(staged.files.some(file => file.path === 'assets/data/reference-analysis/v1/ocr/eng.traineddata.gz'));
   assert.equal(await readFile(join(staged.directory, 'assets/js/bootstrap.js'), 'utf8'),
     'globalThis.startedByWebBootstrap = true;');
   const mode = JSON.parse(await readFile(join(staged.directory, 'shell/stage-profile.json')));

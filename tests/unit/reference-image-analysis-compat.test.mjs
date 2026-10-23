@@ -17,7 +17,7 @@ for (const name of [
     assert.match(source, /mappingReady/);
     assert.equal(source.includes('buildReferenceImageWarp('), false);
     assert.equal(source.includes('reference-image-gcp-actions'), false);
-    assert.match(source, /reference-image-calibration-actions/);
+    assert.match(source, /setReferenceImageSurfaceActions/);
     for (const modeClass of [
       'is-reference-anchor-mode',
       'is-reference-gcp-mode',

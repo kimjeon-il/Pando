@@ -1,5 +1,5 @@
+import { decodeReferenceImageSource, referenceImageSourceHash } from './reference-image-source.js';
 import {
-  buildReferenceImageAutoGeoref,
   buildReferenceImageCalibrationWarp,
   buildReferenceImageMesh,
   referenceImageWarpQuad,
@@ -22,22 +22,15 @@ import { getReferenceImageLiveWireField, traceReferenceImageLinearAnchors } from
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
 import { referenceImageKeyBlocked, referenceImageNavigationHeld, registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
-import {
-  buildReferenceImagePlaceSeeds,
-  buildReferenceImagePlaceSymbolCandidates,
-  createReferenceImagePointRaster,
-  findReferenceImagePointSymbolNearTextBox,
-} from './reference-image-auto-georef.js';
-import { detectReferenceImageText } from './reference-image-ocr.js';
-import {
-  resolveReferenceImagePlaceAutoGeoref,
-  resolveReferenceImagePlaceDetections,
-} from './reference-image-place-match.js';
+import { createReferenceAnalysisClient } from './reference-image-analysis-client.js';
+import { createReferenceImageAnalysisService } from './reference-image-analysis.js';
 import { installReferenceImageSurface } from './reference-image-surface.js';
 import {
   listStoredReferenceImages,
   putStoredReferenceImage,
   replaceStoredReferenceImages,
+  registerReferenceImageCollection,
+  markReferenceImageCollectionChanged,
 } from './reference-image-store.js';
 import {
   createReferenceImagePanel,
@@ -76,20 +69,6 @@ function mapHost() {
   return globalThis.__PANDOLAB_MAP_HOST__ || null;
 }
 
-function createImageFromBlob(blob) {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(blob);
-    const image = new Image();
-    image.decoding = 'async';
-    image.onload = () => resolve({ image, url });
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('이미지 파일을 읽을 수 없습니다.'));
-    };
-    image.src = url;
-  });
-}
-
 export function installReferenceImageController({
   workspaceSurfaces,
   confirm,
@@ -98,8 +77,10 @@ export function installReferenceImageController({
   cancelTools = () => {},
   auxiliaryInputActive = () => false,
   searchPlaces = null,
-  getPlaces = null,
-  preparePlaces = null,
+  genericFeatureService,
+  startBoundaryTrace,
+  onFeaturesApplied = () => {},
+  onCollectionChanged = () => {},
 } = {}) {
   if (document.documentElement.dataset.referenceImageController === 'installed') return globalThis.__PANDOLAB_REFERENCE_IMAGES__ || null;
   const mapElement = document.getElementById('map');
@@ -124,7 +105,8 @@ export function installReferenceImageController({
   let storageError = '';
   const recordVersions = new Map();
   let collectionVersion = 0;
-  const markRecordDirty = id => {
+  const markRecordDirty = (id, assetChanged = true) => {
+    if (assetChanged) { markReferenceImageCollectionChanged();onCollectionChanged(); }
     dirtyRecords.add(id);
     const version = (recordVersions.get(id) || 0) + 1;
     recordVersions.set(id, version);
@@ -138,11 +120,13 @@ export function installReferenceImageController({
   let session = 0;
   let continuousBefore = null;
   let linearDraft = null;
-  let autoGeorefRun = null;
+  let analysisRun = null;
+  const analysisClient = createReferenceAnalysisClient({ getGeneration });
+  const analysisService = createReferenceImageAnalysisService({ client: analysisClient, searchPlaces, getGeneration, genericFeatureService });
   const history = createReferenceImageHistory();
-  const objectUrls = new Set();
   const currentToken = () => `${session}:${getGeneration()}`;
-  const validToken = token => !disposed && token === currentToken() && !isBlocked();
+  const ownsSession = token => !disposed && token === currentToken();
+  const validToken = token => ownsSession(token) && !isBlocked();
   let surface;
   let interaction;
 
@@ -170,7 +154,7 @@ export function installReferenceImageController({
   });
 
   function rebuildWarp(record) {
-    record.autoGeorefPreview = null;
+    if (record.analysis) record.analysis.georef = null;
     record.warp = buildReferenceImageCalibrationWarp({
       controlPoints: record.controlPoints,
       anchor: record.anchor,
@@ -192,12 +176,12 @@ export function installReferenceImageController({
     pendingPersistTimers.delete(recordId);
   }
 
-  function persist(record) {
+  function persist(record, { assetChanged = true } = {}) {
     if (storageState !== 'ready') return Promise.resolve(false);
     const index = records.indexOf(record);
     if (index < 0 || !record.blob) return Promise.resolve(false);
     clearScheduledPersist(record.id);
-    const version = markRecordDirty(record.id);
+    const version = markRecordDirty(record.id, assetChanged);
     return putStoredReferenceImage(serializeReferenceImageRecord(record, index))
       .then(() => {
         if (version === recordVersions.get(record.id) && !pendingPersistTimers.has(record.id)) dirtyRecords.delete(record.id);
@@ -220,7 +204,7 @@ export function installReferenceImageController({
     const token = currentToken();
     const timer = globalThis.setTimeout(() => {
       pendingPersistTimers.delete(record.id);
-      if (validToken(token)) void persist(record);
+      if (validToken(token)) void persist(record, { assetChanged: false });
     }, PERSIST_DEBOUNCE_MS);
     pendingPersistTimers.set(record.id, timer);
   }
@@ -228,6 +212,7 @@ export function installReferenceImageController({
   function persistAll() {
     if (storageState !== 'ready') return Promise.resolve(false);
     dirtyCollection = true;
+    markReferenceImageCollectionChanged();onCollectionChanged();
     const version = ++collectionVersion;
     const versions = new Map(recordVersions);
     for (const recordId of [...pendingPersistTimers.keys()]) clearScheduledPersist(recordId);
@@ -351,18 +336,149 @@ export function installReferenceImageController({
       surface?.setEditing(true, navigationOverride
         ? '지도 이동 중 · 이미지 편집 단계는 유지됩니다. 다시 누르면 조작을 계속합니다.'
         : workflow.instruction);
-    } else interaction?.syncSurface();
+    } else if (record.analysis?.editingChainId == null) interaction?.syncSurface();
     surface?.setWorkflow(workflow);
     syncNavigationUi();
   }
 
-  function cancelAutoGeoref(record = autoGeorefRun?.record || selected(), { render = true } = {}) {
-    if (!record || (autoGeorefRun?.record !== record && !record.autoGeorefPreview)) return false;
-    if (autoGeorefRun?.record === record) autoGeorefRun = null;
-    record.autoGeorefBusy = false;
-    record.autoGeorefPreview = null;
-    if (render) renderEditor();
+  function cancelAnalysis(record = analysisRun?.record || selected(), { render = true } = {}) {
+    if (!record || (analysisRun?.record !== record && !record.analysis)) return false;
+    if (analysisRun?.record === record) {
+      analysisRun.abort.abort();
+      analysisClient.cancel();
+      analysisRun = null;
+    }
+    if (record.analysis?.boundaries) record.analysis = { boundaries: record.analysis.boundaries, selectedIds: new Set(), reviewing: false };
+    else record.analysis = null;
+    if (render) { renderEditor(); renderer.requestRender(); }
     return true;
+  }
+
+  async function startAnalysis(record, operation) {
+    const previous = record.analysis?.boundaries;
+    const layoutFirst = operation === 'analyze-layout' || (operation === 'auto-analysis' && !record.sourceRect && !record.controlPoints.length);
+    cancelInteraction();
+    const run = { record, token: currentToken(), abort: new AbortController() };
+    analysisRun = run;
+    record.analysis = { busy: true, stage: layoutFirst ? 'layout' : operation === 'extract-boundaries' ? 'boundaries' : 'georef',
+      extractAfter: operation === 'auto-analysis', boundaries: previous, selectedIds: new Set(), reviewing: false };
+    renderEditor();
+    try {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      if (analysisRun !== run) return;
+      if (layoutFirst) {
+        const layout = await analysisService.analyzeLayout(record, { signal: run.abort.signal });
+        if (analysisRun !== run) return;
+        if (!validToken(run.token) || selected() !== record || !records.includes(record) || record.locked) { cancelAnalysis(record); return; }
+        if (layout.panels.length || operation === 'analyze-layout') {
+          record.analysis.layout = layout;
+          record.analysis.busy = false;
+          if (operation === 'auto-analysis' && layout.panels.length === 1 && layout.panels[0].kind === 'main' && !layout.panels[0].requiresReview) {
+            await useLayoutPanel(record, layout.panels[0].id);return;
+          }
+          renderEditor(); renderer.requestRender();
+          if (!layout.panels.length) setHint('분리할 도곽을 찾지 못했습니다. 전체 이미지로 자동 맞춤을 실행할 수 있습니다.');
+          return;
+        }
+        record.analysis.stage = 'georef'; renderEditor();
+      }
+      const result = operation === 'extract-boundaries'
+        ? await analysisService.extractBoundaries(record, { signal: run.abort.signal, previous })
+        : await analysisService.analyzeGeoreference(record, { signal: run.abort.signal });
+      if (analysisRun !== run) return;
+      if (!validToken(run.token) || selected() !== record || !records.includes(record) || record.locked) { cancelAnalysis(record); return; }
+      record.analysis.busy = false;
+      if (operation === 'extract-boundaries') {
+        record.analysis.boundaries = result;
+        record.analysis.reviewing = true;
+        record.analysis.graphHistory = { past: [], future: [] };
+      } else {
+        record.analysis.georef = result.ok ? result : null;
+        if (!result.ok) { analysisRun = null; record.analysis = null; }
+      }
+      renderEditor(); renderer.requestRender();
+      if (operation !== 'extract-boundaries' && !result.ok) setHint(autoGeorefFailureMessage(result), 'error');
+    } catch (error) {
+      if (analysisRun !== run) return;
+      const current = validToken(run.token) && selected() === record && records.includes(record) && !record.locked;
+      cancelAnalysis(record);
+      if (current && error.name !== 'AbortError') {
+        console.error('[reference-image-analysis]', error);
+        setHint(error.message || '이미지 자동 분석 중 오류가 발생했습니다.', 'error');
+      }
+    }
+  }
+
+  async function useLayoutPanel(record, panelId) {
+    const review = record.analysis;
+    const panel = review?.layout?.panels.find(item => item.id === panelId);
+    if (!panel || panel.kind === 'legend' || review.busy || record.locked) return;
+    analysisService.assertCurrent(record, review.layout.snapshot);
+    const token = currentToken();
+    const isCurrent = () => validToken(token) && selected() === record && records.includes(record)
+      && record.analysis === review && !record.locked;
+    const sourceHash = await referenceImageSourceHash(record.blob);
+    const hashes = await Promise.all(records.map(item => referenceImageSourceHash(item.blob)));
+    if (!isCurrent()) return;
+    const rect = JSON.stringify(panel.sourceRect);
+    let crop = records.find((item, index) => hashes[index] === sourceHash && JSON.stringify(item.sourceRect) === rect);
+    if (crop?.locked) throw new Error('이 영역의 참조 이미지가 잠겨 있습니다. 잠금을 해제한 뒤 분석하세요.');
+    const before = copyReferenceImageRecords(records);
+    if (!crop) {
+      crop = await addBlob(record.blob, record.name, {
+        id: createId(), name: `${record.name} · ${panel.kind === 'main' ? '본 지도' : '삽입도'}`,
+        sourceRect: panel.sourceRect, mapQuad: record.mapQuad,
+      }, { select: false, save: false, isCurrent });
+      if (!crop) return;
+    }
+    if (!isCurrent()) return;
+    cancelInteraction();
+    record.visible = false; crop.visible = true; selectedId = crop.id;
+    history.push(before);
+    await persistAll(); refreshUi();
+    if (selected() === crop && validToken(token) && !crop.locked) await startAnalysis(crop, review.extractAfter ? 'auto-analysis' : 'auto-georef');
+  }
+
+  async function editBoundary(record, command) {
+    const review = record.analysis;
+    if (!review?.reviewing || review.busy || record.locked) return false;
+    const run = { record, token: currentToken(), abort: new AbortController() };
+    analysisRun = run;
+    review.busy = true; review.stage = 'edit'; review.pointAction = null; review.connectFrom = null;
+    renderEditor();
+    try {
+      const next = await analysisService.editBoundaries(record, review.boundaries, command, { signal: run.abort.signal });
+      if (analysisRun !== run || record.analysis !== review) return false;
+      if (!validToken(run.token) || selected() !== record || !records.includes(record) || record.locked) { cancelAnalysis(record); return false; }
+      review.graphHistory.past.push(review.boundaries);
+      if (review.graphHistory.past.length > 20) review.graphHistory.past.shift();
+      review.graphHistory.future = [];
+      review.boundaries = next;
+      review.selectedIds.clear();
+      review.busy = false;
+      renderEditor(); renderer.requestRender();
+      return true;
+    } catch (error) {
+      if (analysisRun !== run || record.analysis !== review) return false;
+      review.busy = false;
+      renderEditor(); renderer.requestRender();
+      if (error.name !== 'AbortError') {
+        console.error('[PL-REFERENCE-BOUNDARY-EDIT]', error);
+        setHint(error.message || '경계 수정을 적용하지 못했습니다. 이전 결과를 유지했습니다.', 'error');
+      }
+      return false;
+    }
+  }
+
+  function restoreBoundaryEdit(record, direction) {
+    const review = record?.analysis;
+    if (!review?.reviewing || review.busy || review.editingChainId != null || record.locked) return;
+    const from = direction === 'undo' ? review.graphHistory.past : review.graphHistory.future;
+    const to = direction === 'undo' ? review.graphHistory.future : review.graphHistory.past;
+    if (!from.length) return;
+    to.push(review.boundaries); review.boundaries = from.pop();
+    review.selectedIds.clear(); review.pointAction = null; review.connectFrom = null;
+    renderEditor(); renderer.requestRender();
   }
 
   function cancelLinearDraft({ render = true } = {}) {
@@ -442,7 +558,7 @@ export function installReferenceImageController({
   }
 
   function cancelInteraction() {
-    cancelAutoGeoref(undefined, { render: false });
+    cancelAnalysis(undefined, { render: false });
     cancelLinearDraft({ render: false });
     interaction?.cancelAll();
     navigationOverride = false;
@@ -462,7 +578,7 @@ export function installReferenceImageController({
     records.splice(0, records.length, ...next);
     for (const record of records) {
       // Restoring document edits cannot restart a cancelled analysis.
-      record.autoGeorefBusy = false;
+      record.analysis = null;
       rebuildWarp(record);
     }
     if (!selected()) selectedId = records.at(-1)?.id || '';
@@ -491,7 +607,7 @@ export function installReferenceImageController({
     hint.textContent = text;
     hint.dataset.tone = tone;
     const state = interactionState();
-    if (linearDraft || state.anchorState || state.gcpState || state.controlPointEditingId || autoGeorefRun) {
+    if (linearDraft || state.anchorState || state.gcpState || state.controlPointEditingId || analysisRun) {
       surface?.setEditing(true, navigationOverride
         ? '지도 이동 중 · 이미지 편집 단계는 유지됩니다. 다시 누르면 조작을 계속합니다.'
         : text);
@@ -500,25 +616,20 @@ export function installReferenceImageController({
 
   function autoGeorefFailureMessage(result) {
     const reason = String(result?.reason || '');
-    if (reason === 'insufficient-place-seeds') return '현재 화면에서 자동 맞춤에 사용할 도시가 충분하지 않습니다. 지도를 대상 지역에 대략 맞춰 놓고 다시 시도하세요.';
-    if (reason === 'insufficient-symbol-candidates') return '도시 주변에서 지도 기호를 충분히 찾지 못했습니다. 이미지를 조금 더 정확히 배치하거나 수동 고정점 하나를 지정하세요.';
-    if (reason === 'no-auto-georef-consensus') return '도시 기호 후보들의 위치가 서로 일치하지 않아 자동 정렬을 확정하지 못했습니다.';
     if (reason === 'auto-georef-preview-stale') return '분석 뒤에 이미지 배치가 바뀌었습니다. 자동 맞춤을 다시 실행하세요.';
-    if (reason === 'place-snapshot-unavailable') return '도시 데이터에 접근할 수 없어 자동 맞춤을 실행할 수 없습니다.';
-    if (reason === 'text-detector-unavailable') return '이 브라우저에서는 OCR을 사용할 수 없습니다. 도시 기호 기반 자동 맞춤 결과를 확인하세요.';
+    if (reason === 'ocr-runtime-unavailable') return '앱에 포함된 OCR 자료를 읽지 못했습니다.';
     if (reason === 'no-ocr-text') return '이미지에서 도시명으로 사용할 문자를 찾지 못했습니다.';
-    if (reason === 'insufficient-ocr-symbol-candidates') return '도시명은 찾았지만 주변에서 실제 도시 기호를 충분히 찾지 못했습니다.';
-    if (reason === 'text-detector-failed') return '브라우저 OCR 실행에 실패했습니다.';
-    return '자동 맞춤 결과를 만들지 못했습니다. 대략 배치나 고정점을 조정한 뒤 다시 시도하세요.';
+    if (reason === 'insufficient-ocr-symbol-candidates') return '도시명과 도시 기호의 대응이 부족합니다. 지역이나 수동 기준점을 보완하세요.';
+    if (reason === 'ocr-recognition-failed') return 'OCR 실행에 실패했습니다.';
+    return '정확한 위치를 확정할 근거가 부족합니다. 지역이나 수동 기준점을 보완한 뒤 다시 분석하세요.';
   }
 
-  async function addBlob(blob, name, persisted = null, { select = true, save = true } = {}) {
+  async function addBlob(blob, name, persisted = null, { select = true, save = true, isCurrent = () => true, prepareOnly = false } = {}) {
     if (save && storageState !== 'ready') throw new Error('참조 이미지 저장 목록을 먼저 읽어야 합니다.');
     if (!(blob instanceof Blob) || !ACCEPTED_IMAGE_TYPES.has(blob.type)) throw new Error('PNG, JPG, WebP 이미지만 사용할 수 있습니다.');
     const token = currentToken();
-    const decoded = await createImageFromBlob(blob);
-    if (!validToken(token)) { URL.revokeObjectURL(decoded.url); return null; }
-    objectUrls.add(decoded.url);
+    const decoded = await decodeReferenceImageSource(blob, persisted?.sourceRect);
+    if (!ownsSession(token) || (!prepareOnly && isBlocked()) || !isCurrent()) return null;
     const host = mapHost();
     if (!host) throw new Error('지도 좌표계를 준비할 수 없습니다.');
     const source = persisted
@@ -545,13 +656,13 @@ export function installReferenceImageController({
       name: source.name || '참조 이미지',
       blob,
       image: decoded.image,
-      objectUrl: decoded.url,
       mapQuad,
       warp: null,
       mesh: null,
       projectedMesh: null,
     };
     rebuildWarp(record);
+    if (prepareOnly) return record;
     if (select) cancelInteraction();
     if (save) history.push(records);
     records.push(record);
@@ -589,13 +700,21 @@ export function installReferenceImageController({
   function onEditorInput(event) {
     const record = selected();
     if (!record || storageState !== 'ready' || isBlocked()) return;
+    const candidate = event.target?.dataset?.refCandidate;
+    if (candidate) {
+      const review = record.analysis;
+      if (event.type !== 'change' || record.locked || !review?.reviewing || review.busy) return;
+      if (event.target.checked) review.selectedIds.add(candidate);
+      else review.selectedIds.delete(candidate);
+      renderEditor(); renderer.requestRender(); return;
+    }
     const field = event.target?.dataset?.refField;
     if (!field) return;
     const continuous = CONTINUOUS_FIELDS.has(field);
     if (event.type === 'input' && !continuous) return;
     if (record.locked && ['rotation', 'warp'].includes(field)) return;
     const cancelledAutoGeoref = (field === 'rotation' || field === 'warp')
-      && cancelAutoGeoref(record, { render: false });
+      && cancelAnalysis(record, { render: false });
     if (continuous && !continuousBefore) continuousBefore = copyReferenceImageRecords(records);
     if (!continuous && field !== 'locked') history.push(records);
 
@@ -613,7 +732,7 @@ export function installReferenceImageController({
     if (field === 'locked') {
       record.locked = event.target.checked;
       if (record.locked) {
-        cancelAutoGeoref(record, { render: false });
+        cancelAnalysis(record, { render: false });
         cancelLinearDraft({ render: false });
       }
       interaction?.handleRecordLocked(record);
@@ -682,7 +801,7 @@ export function installReferenceImageController({
     } else if (action === 'locked') {
       record.locked = !record.locked;
       if (record.locked) {
-        cancelAutoGeoref(record, { render: false });
+        cancelAnalysis(record, { render: false });
         if (linearDraft?.recordId === record.id) cancelLinearDraft({ render: false });
         if (selectedId === record.id) interaction?.handleRecordLocked(record);
       }
@@ -738,9 +857,11 @@ export function installReferenceImageController({
       renderer.requestRender();
     }
     if (action === 'linear-cancel') { cancelLinearDraft(); return; }
-    if (record.locked && !['bring-forward', 'send-backward', 'cancel-auto-georef'].includes(action)) return;
-    if (!['auto-georef', 'apply-auto-georef', 'cancel-auto-georef', 'bring-forward', 'send-backward'].includes(action)) {
-      cancelAutoGeoref(record, { render: false });
+    if (record.locked && !['bring-forward', 'send-backward', 'cancel-auto-georef', 'cancel-boundaries'].includes(action)) return;
+    if (!['auto-georef', 'auto-analysis', 'analyze-layout', 'use-layout-panel', 'use-grid-points', 'extract-boundaries', 'choose-location', 'apply-auto-georef', 'cancel-auto-georef',
+      'apply-boundaries', 'cancel-boundaries', 'boundary-exclude', 'boundary-cut', 'boundary-retrace', 'boundary-endpoint',
+      'boundary-undo', 'boundary-redo', 'bring-forward', 'send-backward'].includes(action)) {
+      cancelAnalysis(record, { render: false });
     }
     if (action === 'linear-river' || action === 'linear-coastline') {
       startLinearDraft(record, action === 'linear-river' ? 'river' : 'coastline');return;
@@ -792,55 +913,98 @@ export function installReferenceImageController({
       void persist(record);refreshUi();return;
     }
     if (linearDraft) cancelLinearDraft({ render: false });
-    if (action === 'auto-georef') {
-      cancelInteraction();
-      const run = { record, token: currentToken() };
-      autoGeorefRun = run;
-      record.autoGeorefBusy = true;
-      record.autoGeorefPreview = null;
-      renderEditor();
-      try {
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        if (autoGeorefRun !== run) return;
-        const result = await autoGeorefSmart({ id: record.id });
-        if (autoGeorefRun !== run) return;
-        if (!validToken(run.token) || selected() !== record || !records.includes(record) || record.locked) {
-          cancelAutoGeoref(record);
-          return;
-        }
-        record.autoGeorefBusy = false;
-        record.autoGeorefPreview = result.ok ? result : null;
-        if (!result.ok) autoGeorefRun = null;
-        renderEditor();
-        if (!result.ok) setHint(autoGeorefFailureMessage(result), 'error');
-      } catch (error) {
-        if (autoGeorefRun !== run) return;
-        const current = validToken(run.token) && selected() === record && records.includes(record) && !record.locked;
-        cancelAutoGeoref(record);
-        if (!current) return;
-        setHint(error?.message || '자동 맞춤 분석 중 오류가 발생했습니다.', 'error');
+    if (['auto-georef', 'auto-analysis', 'analyze-layout', 'extract-boundaries'].includes(action)) {
+      await startAnalysis(record, action); return;
+    }
+    if (action === 'use-layout-panel') { await useLayoutPanel(record, button.dataset.panelId); return; }
+    if (action === 'use-grid-points') {
+      const review = record.analysis;
+      if (!review?.layout || review.busy) return;
+      const result = analysisService.reviewGraticule(record, review.layout);
+      const before = copyReferenceImageRecords(records);
+      const ids = new Set(result.controlPoints.map(point => point.id));
+      record.controlPoints = [...record.controlPoints.filter(point => !ids.has(point.id)), ...result.controlPoints];
+      record.gridReference = result.gridReference;
+      cancelAnalysis(record, { render: false }); rebuildWarp(record); history.push(before);
+      await persist(record); refreshUi(); return;
+    }
+    if (action === 'cancel-auto-georef' || action === 'cancel-boundaries') {
+      cancelAnalysis(record); return;
+    }
+    if (action === 'boundary-undo' || action === 'boundary-redo') {
+      restoreBoundaryEdit(record, action === 'boundary-undo' ? 'undo' : 'redo'); return;
+    }
+    if (['boundary-exclude', 'boundary-cut', 'boundary-retrace', 'boundary-endpoint'].includes(action)) {
+      const review = record.analysis;
+      if (!review?.reviewing || review.busy || review.editingChainId != null) return;
+      const chain = review.boundaries.graph.chains.find(item => String(item.id) === button.dataset.chainId);
+      if (!chain) return;
+      if (action === 'boundary-exclude') await editBoundary(record, { type: 'exclude', chainId: chain.id });
+      if (action === 'boundary-cut') {
+        review.pointAction = { chainId: chain.id }; review.connectFrom = null;
+        renderEditor(); renderer.requestRender();
+      }
+      if (action === 'boundary-endpoint' && ['start', 'end'].includes(button.dataset.end)) {
+        const endpoint = { chainId: chain.id, end: button.dataset.end };
+        if (!review.connectFrom) { review.connectFrom = endpoint; review.pointAction = null; renderEditor(); renderer.requestRender(); }
+        else if (review.connectFrom.chainId === endpoint.chainId && review.connectFrom.end === endpoint.end) {
+          review.connectFrom = null; renderEditor(); renderer.requestRender();
+        } else await editBoundary(record, { type: 'join', from: review.connectFrom, to: endpoint });
+      }
+      if (action === 'boundary-retrace') {
+        if (typeof startBoundaryTrace !== 'function') throw new TypeError('Boundary review requires the Live-Wire trace port.');
+        review.editingChainId = chain.id; review.pointAction = null; review.connectFrom = null;
+        renderEditor(); renderer.requestRender();
+        const onClose = () => {
+          if (record.analysis !== review) return;
+          review.editingChainId = null; renderEditor(); renderer.requestRender();
+        };
+        try {
+          const started = await startBoundaryTrace(record.id, { points: chain.points,
+            onApply: points => editBoundary(record, { type: 'replace', chainId: chain.id, points }), onClose });
+          if (!started) onClose();
+        } catch (error) { onClose(); throw error; }
       }
       return;
     }
-    if (action === 'cancel-auto-georef') {
-      const analysing = record.autoGeorefBusy;
-      cancelAutoGeoref(record);
-      setHint(analysing ? '자동 맞춤 분석을 취소했습니다.' : '자동 맞춤 결과를 취소했습니다.');
+    if (action === 'choose-location') {
+      const preview = record.analysis?.georef;
+      const choice = preview?.locations?.[Number(button.dataset.location)];
+      if (choice) { record.analysis.georef = choice; renderEditor(); }
       return;
     }
     if (action === 'apply-auto-georef') {
-      const preview = record.autoGeorefPreview;
-      if (!preview?.ok) return;
+      const preview = record.analysis?.georef;
+      if (!preview?.ok || preview.requiresLocationChoice) return;
+      analysisService.assertCurrent(record, preview.snapshot);
+      const extractAfter = record.analysis.extractAfter;
       const token = currentToken();
-      autoGeorefRun = null;
       const result = await applyPlaceAutoGeorefResult(record, preview, token);
       if (!validToken(token) || selected() !== record || !records.includes(record)) return;
-      record.autoGeorefBusy = false;
-      record.autoGeorefPreview = null;
-      renderEditor();
-      if (result.applied) {
-        setHint(`자동 기준점 ${result.appliedControlPointCount}개를 적용했습니다. 필요하면 개별 기준점을 수정하세요.`, 'success');
-      } else setHint(autoGeorefFailureMessage(result), 'error');
+      if (result.applied && extractAfter) await startAnalysis(record, 'extract-boundaries');
+      else if (result.applied) setHint(`자동 기준점 ${result.appliedControlPointCount}개를 적용했습니다. 필요하면 개별 기준점을 수정하세요.`, 'success');
+      else setHint(autoGeorefFailureMessage(result), 'error');
+      return;
+    }
+    if (action === 'apply-boundaries') {
+      const review = record.analysis;
+      if (!review?.reviewing || review.busy || !review.selectedIds.size) return;
+      const token = currentToken();
+      review.busy = true; review.stage = 'apply'; renderEditor();
+      try {
+        const ids = await analysisService.applyExtractedFeatures(record, review.boundaries, [...review.selectedIds]);
+        if (!validToken(token)) return;
+        onFeaturesApplied(ids);
+        if (record.analysis !== review || selected() !== record || !records.includes(record)) return;
+        cancelAnalysis(record);
+        setHint(`선·영역 ${ids.length}개를 생성했습니다. 객체 실행 취소로 한 번에 되돌릴 수 있습니다.`, 'success');
+      } catch (error) {
+        console.error('[PL-REFERENCE-BOUNDARY-APPLY]', error);
+        if (record.analysis === review) {
+          review.busy = false; renderEditor();
+          setHint(error.message || '선·영역을 생성하지 못했습니다. 검토 결과를 유지했습니다.', 'error');
+        }
+      }
       return;
     }
     if (action === 'delete' || action === 'clear-gcp') {
@@ -922,8 +1086,11 @@ export function installReferenceImageController({
     if (panel.hidden || isBlocked() || referenceImageKeyBlocked(event)) return false;
     if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
     if (event.key === 'Escape') {
-      if (navigationOverride) setNavigationOverride(false);
-      else if (linearDraft || interaction?.isActive() || autoGeorefRun) cancelInteraction();
+      const review = selected()?.analysis;
+      if (review?.pointAction || review?.connectFrom) {
+        review.pointAction = null; review.connectFrom = null; renderEditor(); renderer.requestRender();
+      } else if (navigationOverride) setNavigationOverride(false);
+      else if (linearDraft || interaction?.isActive() || analysisRun) cancelInteraction();
       else surface.close({ restoreFocus: true });
       return true;
     }
@@ -931,7 +1098,10 @@ export function installReferenceImageController({
       return true;
     }
     if ((event.ctrlKey || event.metaKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
-      restoreHistory(event.key.toLowerCase() === 'y' || event.shiftKey ? 'redo' : 'undo'); return true;
+      const direction = event.key.toLowerCase() === 'y' || event.shiftKey ? 'redo' : 'undo';
+      if (selected()?.analysis?.reviewing) restoreBoundaryEdit(selected(), direction);
+      else restoreHistory(direction);
+      return true;
     }
     return ['Delete', 'Backspace', 'Enter'].includes(event.key) && !!interaction?.isActive();
   }
@@ -980,7 +1150,11 @@ export function installReferenceImageController({
   }); };
   surface = installReferenceImageSurface({
     panel, launcher, workspaceSurfaces, mapElement, onAction: onPanelClickEvent,
-    onAuxiliaryEditingStart: cancelInteraction,
+    onAuxiliaryEditingStart: () => {
+      if (selected()?.analysis?.editingChainId != null) {
+        cancelLinearDraft({ render: false }); interaction.cancelAll({ renderUi: false });
+      } else cancelInteraction();
+    },
     onClose: cancelInteraction,
     onOpen: () => { syncNavigationUi(); renderer.requestRender(); },
   });
@@ -988,11 +1162,24 @@ export function installReferenceImageController({
     begin: (point, event, context) => {
       if (panel.hidden) return null;
       if (referenceImageNavigationHeld()) return { kind: 'navigate' };
+      const record = selected();
+      const review = record?.analysis;
+      if (review?.reviewing && review.pointAction && !review.busy && !record.locked) {
+        const chainId = review.pointAction.chainId;
+        return { kind: 'tap', end: next => {
+          if (record.analysis !== review || review.pointAction?.chainId !== chainId) return;
+          const uv = renderer.hitTestUv(record, next);
+          if (!uv) return;
+          const graph = review.boundaries.graph;
+          editBoundary(record, { type: 'cut', chainId, point: [uv[0] * (graph.width - 1), uv[1] * (graph.height - 1)] })
+            .catch(error => { console.error('[PL-REFERENCE-BOUNDARY-EDIT]', error); setHint(error.message, 'error'); });
+        } };
+      }
       // Auxiliary line tools own one-finger input; the map still owns pinch.
       if (event.pointerType === 'touch' && auxiliaryInputActive()) return { kind: 'exclusive' };
       return linearDraft ? linearGesture(point, event, context) : interaction.beginGesture(point, event, context);
     },
-    active: () => !!linearDraft || interaction.isActive() || navigationOverride || auxiliaryInputActive(),
+    active: () => !!linearDraft || !!selected()?.analysis?.pointAction || interaction.isActive() || navigationOverride || auxiliaryInputActive(),
     surfaceOpen: () => !panel.hidden,
     mapNavigationActive: () => !panel.hidden && navigationOverride,
     key: onKeyDown,
@@ -1045,15 +1232,32 @@ export function installReferenceImageController({
     }
     if (!disposed) refreshUi();
   }
-  void restoreStoredImages();
+  const restoredImages = restoreStoredImages();
+  const unregisterCollection = registerReferenceImageCollection({
+    async capture() {
+      await restoredImages;
+      if (storageState !== 'ready') throw new Error('참조 이미지 저장 목록을 먼저 읽어야 합니다.');
+      return [...records.map((record, order) => serializeReferenceImageRecord(record, order)), ...retainedRecords];
+    },
+    async replace(values) {
+      await restoredImages;
+      cancelInteraction();
+      const token = currentToken(), staged = [];
+      for (const value of values) {
+        const record = await addBlob(value.blob, value.name, value, { select: false, save: false, prepareOnly: true });
+        if (!record || !ownsSession(token)) throw new Error('프로젝트 변경으로 참조 이미지 읽기가 취소되었습니다.');
+        staged.push(record);
+      }
+      if (!ownsSession(token)) throw new Error('프로젝트 변경으로 참조 이미지 교체가 취소되었습니다.');
+      for (const id of [...pendingPersistTimers.keys()]) clearScheduledPersist(id);
+      await replaceStoredReferenceImages(values);
+      if (!ownsSession(token)) throw new Error('프로젝트 변경으로 참조 이미지 교체가 취소되었습니다.');
+      records.splice(0, records.length, ...staged); retainedRecords.splice(0);
+      dirtyRecords.clear(); dirtyCollection = false; history.clear(); storageState = 'ready'; storageError = '';
+      selectedId = records.at(-1)?.id || ''; refreshUi();
+    },
+  });
 
-
-  function coarseAutoGeorefMode(record, requestedMode = null) {
-    return requestedMode
-      || (record.warpMode === REFERENCE_IMAGE_WARP_MODES.TPS
-        ? REFERENCE_IMAGE_WARP_MODES.AUTO
-        : record.warpMode);
-  }
 
   async function applyPlaceAutoGeorefResult(record, result, token = currentToken()) {
     if (!result?.ok) return Object.freeze({ ...result, applied: false });
@@ -1108,300 +1312,13 @@ export function installReferenceImageController({
     });
   }
 
-  async function autoGeorefPlaces({
-    id = selectedId,
-    detections = [],
-    mapDate = null,
-    mode = null,
-    matching = {},
-    georef = {},
-    apply = false,
-  } = {}) {
-    const record = records.find(item => item.id === id) || null;
-    if (!record) return Object.freeze({ ok: false, reason: 'reference-image-not-found' });
-    if (typeof searchPlaces !== 'function') return Object.freeze({ ok: false, reason: 'place-search-unavailable' });
-    if (apply && (record.locked || isBlocked() || storageState !== 'ready')) {
-      return Object.freeze({ ok: false, reason: 'reference-image-not-editable' });
-    }
-
-    const token = currentToken();
-    const result = await resolveReferenceImagePlaceAutoGeoref(detections, {
-      search: searchPlaces,
-      anchor: record.anchor,
-      mapDate,
-      mode: coarseAutoGeorefMode(record, mode),
-      matching,
-      georef,
-    });
-    if (!apply || !result.ok) return result;
-    return applyPlaceAutoGeorefResult(record, result, token);
-  }
-
-  async function autoGeorefPlaceSymbols({
-    id = selectedId,
-    mode = null,
-    apply = false,
-    rasterOptions = {},
-    symbolOptions = {},
-    georef = {},
-  } = {}) {
-    const record = records.find(item => item.id === id) || null;
-    if (!record) return Object.freeze({ ok: false, reason: 'reference-image-not-found' });
-    if (typeof getPlaces !== 'function') return Object.freeze({ ok: false, reason: 'place-snapshot-unavailable' });
-    if (apply && (record.locked || isBlocked() || storageState !== 'ready')) {
-      return Object.freeze({ ok: false, reason: 'reference-image-not-editable' });
-    }
-    const host = mapHost();
-    if (!host || !record.image) return Object.freeze({ ok: false, reason: 'reference-image-mapping-unavailable' });
-
-    const token = currentToken();
-    if (typeof preparePlaces === 'function') await preparePlaces();
-    if (!validToken(token) || !records.includes(record)) {
-      return Object.freeze({ ok: false, reason: 'reference-image-session-changed' });
-    }
-    const places = getPlaces() || [];
-    const seeds = buildReferenceImagePlaceSeeds(places, {
-      projectCoordinate: coordinate => host.project?.(coordinate),
-      hitTestUv: screen => renderer.hitTestUv(record, screen),
-      maximumSeeds: 120,
-    });
-    if (seeds.length < 2) {
-      return Object.freeze({
-        ok: false,
-        reason: 'insufficient-place-seeds',
-        seedCount: seeds.length,
-        placeCount: Array.isArray(places) ? places.length : 0,
-      });
-    }
-
-    const raster = createReferenceImagePointRaster(record.image, { maxDimension: 1600, ...rasterOptions });
-    const defaultSearchRadius = Math.max(
-      12,
-      Math.min(48, Math.round(Math.max(raster.width, raster.height) * 0.018)),
-    );
-    const detected = buildReferenceImagePlaceSymbolCandidates(raster, seeds, {
-      searchRadiusPx: defaultSearchRadius,
-      minimumConfidence: 0.42,
-      dedupeRadiusPx: 4,
-      maximumCandidates: 96,
-      ...symbolOptions,
-    });
-    const candidates = detected.candidates.map(candidate => Object.freeze({
-      ...candidate,
-      id: 'auto-place:symbol:' + candidate.id,
-      origin: 'place-symbol',
-    }));
-    const totalPossible = candidates.length + (record.anchor ? 1 : 0);
-    if (totalPossible < 2) {
-      return Object.freeze({
-        ok: false,
-        reason: 'insufficient-symbol-candidates',
-        seedCount: seeds.length,
-        symbolCandidateCount: candidates.length,
-        symbolMissCount: detected.misses.length,
-      });
-    }
-    const minimumInliers = Math.min(
-      totalPossible,
-      Math.max(Math.min(totalPossible, 4), Math.ceil(totalPossible * 0.35)),
-    );
-    const solved = buildReferenceImageAutoGeoref(candidates, {
-      anchor: record.anchor,
-      mode: coarseAutoGeorefMode(record, mode),
-      inlierThresholdMeters: 25000,
-      maxTrials: 512,
-      minimumInliers,
-      ...georef,
-    });
-    const matching = Object.freeze({
-      matchCount: candidates.length,
-      rejectedCount: detected.misses.length,
-      matches: Object.freeze(candidates),
-      rejected: detected.misses,
-    });
-    const result = Object.freeze({
-      ok: solved.ok,
-      reason: solved.reason || '',
-      source: 'place-symbol',
-      seedCount: seeds.length,
-      placeCount: Array.isArray(places) ? places.length : 0,
-      symbolCandidateCount: candidates.length,
-      symbolMissCount: detected.misses.length,
-      matching,
-      georef: solved,
-      baseMappingSignature: referenceImageMappingSignature(record),
-    });
-    if (!apply || !result.ok) return result;
-    return applyPlaceAutoGeorefResult(record, result, token);
-  }
-
-
-  async function autoGeorefOcr({
-    id = selectedId,
-    mode = null,
-    mapDate = null,
-    matching = {},
-    georef = {},
-    ocr = {},
-  } = {}) {
-    const record = records.find(item => item.id === id) || null;
-    if (!record) return Object.freeze({ ok: false, reason: 'reference-image-not-found' });
-    if (typeof searchPlaces !== 'function') return Object.freeze({ ok: false, reason: 'place-search-unavailable' });
-    if (!record.image) return Object.freeze({ ok: false, reason: 'invalid-image' });
-
-    const token = currentToken();
-    const detected = await detectReferenceImageText(record.image, ocr);
-    if (!validToken(token) || !records.includes(record)) {
-      return Object.freeze({ ok: false, reason: 'reference-image-session-changed' });
-    }
-    if (!detected.ok) {
-      return Object.freeze({
-        ok: false,
-        reason: detected.reason,
-        source: 'place-ocr',
-        ocr: detected,
-        baseMappingSignature: referenceImageMappingSignature(record),
-      });
-    }
-
-    const matched = await resolveReferenceImagePlaceDetections(detected.detections, {
-      search: searchPlaces,
-      anchor: record.anchor,
-      mapDate,
-      ...matching,
-    });
-    if (!validToken(token) || !records.includes(record)) {
-      return Object.freeze({ ok: false, reason: 'reference-image-session-changed' });
-    }
-
-    const raster = createReferenceImagePointRaster(record.image, { maxDimension: 2048 });
-    const detectionById = new Map(detected.detections.map(item => [String(item.id), item]));
-    const refinedMatches = [];
-    const refinementRejected = [];
-    const searchRadius = Math.max(16, Math.min(42, Math.round(Math.max(raster.width, raster.height) * 0.014)));
-
-    for (const match of matched.matches || []) {
-      const detection = detectionById.get(String(match.detectionId));
-      const box = detection?.box;
-      const symbol = findReferenceImagePointSymbolNearTextBox(raster, box, {
-        searchRadiusPx: searchRadius,
-        minimumConfidence: 0.4,
-      });
-      if (!symbol) {
-        refinementRejected.push(Object.freeze({
-          detectionId: match.detectionId,
-          text: match.text,
-          placeId: match.placeId,
-          reason: 'ocr-place-symbol-not-found',
-        }));
-        continue;
-      }
-      refinedMatches.push(Object.freeze({
-        ...match,
-        id: 'auto-place:ocr-symbol:' + match.detectionId + ':' + match.placeId,
-        image: symbol.uv,
-        confidence: clamp(match.confidence * 0.76 + symbol.confidence * 0.24, 0, 1),
-        origin: 'place-ocr-symbol',
-        symbol,
-      }));
-    }
-
-    const candidates = refinedMatches.map(match => ({
-      id: match.id,
-      image: match.image,
-      coordinate: match.coordinate,
-      confidence: match.confidence,
-      origin: match.origin,
-    }));
-    const totalPossible = candidates.length + (record.anchor ? 1 : 0);
-    if (totalPossible < 2) {
-      return Object.freeze({
-        ok: false,
-        reason: 'insufficient-ocr-symbol-candidates',
-        source: 'place-ocr',
-        ocr: detected,
-        matching: Object.freeze({
-          ...matched,
-          matchCount: refinedMatches.length,
-          rejectedCount: (matched.rejectedCount || 0) + refinementRejected.length,
-          matches: Object.freeze(refinedMatches),
-          rejected: Object.freeze([...(matched.rejected || []), ...refinementRejected]),
-        }),
-        baseMappingSignature: referenceImageMappingSignature(record),
-      });
-    }
-
-    const minimumInliers = Math.min(
-      totalPossible,
-      Math.max(Math.min(totalPossible, 4), Math.ceil(totalPossible * 0.35)),
-    );
-    const solved = buildReferenceImageAutoGeoref(candidates, {
-      anchor: record.anchor,
-      mode: coarseAutoGeorefMode(record, mode),
-      inlierThresholdMeters: 25000,
-      maxTrials: 512,
-      minimumInliers,
-      ...georef,
-    });
-    const refinedMatching = Object.freeze({
-      ...matched,
-      matchCount: refinedMatches.length,
-      rejectedCount: (matched.rejectedCount || 0) + refinementRejected.length,
-      matches: Object.freeze(refinedMatches),
-      rejected: Object.freeze([...(matched.rejected || []), ...refinementRejected]),
-    });
-    return Object.freeze({
-      ok: solved.ok,
-      reason: solved.reason || '',
-      source: 'place-ocr',
-      ocr: detected,
-      matching: refinedMatching,
-      georef: solved,
-      baseMappingSignature: referenceImageMappingSignature(record),
-    });
-  }
-
-  async function autoGeorefSmart(options = {}) {
-    const symbols = await autoGeorefPlaceSymbols(options);
-    const symbolInliers = Number(symbols?.georef?.inlierCount || 0);
-    const symbolRms = Number(symbols?.georef?.diagnostics?.rmsMeters);
-    const symbolStrong = symbols.ok
-      && Number.isFinite(symbolRms)
-      && (
-        (symbolInliers >= 8 && symbolRms <= 15000)
-        || (symbolInliers >= 6 && symbolRms <= 10000)
-      );
-    if (symbolStrong) return symbols;
-
-    const ocr = await autoGeorefOcr(options);
-    if (ocr.ok) {
-      if (!symbols.ok) return ocr;
-      const ocrInliers = Number(ocr?.georef?.inlierCount || 0);
-      const ocrRms = Number(ocr?.georef?.diagnostics?.rmsMeters);
-      const ocrBetter = ocrInliers > symbolInliers
-        || (ocrInliers === symbolInliers
-          && Number.isFinite(ocrRms)
-          && (!Number.isFinite(symbolRms) || ocrRms + 1e-6 < symbolRms));
-      if (ocrBetter) return ocr;
-    }
-    if (symbols.ok) return Object.freeze({ ...symbols, ocrFallback: ocr });
-    return Object.freeze({
-      ...symbols,
-      ocrFallback: ocr,
-      reason: symbols.reason || ocr.reason,
-    });
-  }
-
   const api = Object.freeze({
-    autoGeorefPlaces,
-    autoGeorefPlaceSymbols,
-    autoGeorefOcr,
-    autoGeorefSmart,
     list: () => {
       const state = interactionState();
       return records.map((record, order) => ({
         id: record.id,
         name: record.name,
+        sourceRect: record.sourceRect ? { ...record.sourceRect } : null,
         order,
         visible: record.visible,
         locked: record.locked,
@@ -1430,7 +1347,8 @@ export function installReferenceImageController({
     destroy: () => {
       if (disposed) return;
       disposed = true;
-      unregisterInput(); cancelInteraction(); surface.destroy(); history.clear();
+      unregisterCollection();
+      unregisterInput(); cancelInteraction(); analysisClient.dispose(); surface.destroy(); history.clear();
       if (storageState === 'ready' && (dirtyCollection || dirtyRecords.size || pendingPersistTimers.size)) void persistAll();
       else for (const id of [...pendingPersistTimers.keys()]) clearScheduledPersist(id);
       panel.removeEventListener('keydown', stopPanelKeys);
@@ -1443,7 +1361,6 @@ export function installReferenceImageController({
       editorElement.removeEventListener('change', onEditorInput);
       editorElement.removeEventListener('keydown', onEditorTabKeydown);
       fileInput.removeEventListener('change', onFileChange);
-      objectUrls.forEach(url => URL.revokeObjectURL(url));
       renderer.destroy();
       panel.remove();
       launcher.remove();

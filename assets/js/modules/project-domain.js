@@ -44,6 +44,7 @@ export function createProjectDomain({
   publishCommand = null,
   readBuiltinSelectionCatalogs,
   readPresentationCatalog = null,
+  referenceImages = null,
 } = {}) {
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Project domain requires explicit product mode.');
   let generation = 0;
@@ -53,6 +54,13 @@ export function createProjectDomain({
   let saving = false;
   let commandQueue = Promise.resolve();
   const preparedIntents=new Map();
+  function splitPackage(project) {
+    const { packageAssets, ...core } = project;
+    if (packageAssets && (packageAssets.schemaVersion !== 1 || Object.keys(packageAssets).some(key => !['schemaVersion', 'referenceImages', 'referenceImagesDirty'].includes(key))
+      || (packageAssets.referenceImagesDirty !== undefined && typeof packageAssets.referenceImagesDirty !== 'boolean'))) throw new TypeError('Unsupported project package assets.');
+    if (packageAssets?.referenceImages && !referenceImages && productMode === 'editor') throw new TypeError('Reference image project assets require their collection owner.');
+    return { packageAssets, core };
+  }
 
   const snapshot = () => {
     if (typeof documentModel?.snapshot!=='function') throw new TypeError('The accepted C++ document read model is required.');
@@ -76,8 +84,13 @@ export function createProjectDomain({
       throw Object.assign(new Error('Project export crossed a project replacement.'),{ code: 'PL-PERSISTENCE-STALE' });
     if(format==='pandolab-project-state' && !Object.hasOwn(output,'spatialState'))
       throw new TypeError('The C++ file export spatial projection is required.');
-    return Object.freeze({ project: JSON.parse(output.storageJson),...(format==='pandolab-project-state' ? { spatialState: output.spatialState } : {}),checkpoint: Object.freeze({ projectGeneration: expectedGeneration,
-      epoch: output.state.epoch,content: output.state.checkpoint,presentation: output.state.presentationCheckpoint }) });
+    const project = JSON.parse(output.storageJson);
+    const assetRevision = referenceImages ? referenceImages.state().revision : null;
+    if (referenceImages) project.packageAssets = { schemaVersion: 1, referenceImages: await referenceImages.exportPackage() };
+    if (referenceImages && format === 'pandolab-autosave-full') project.packageAssets.referenceImagesDirty = referenceImages.state().dirty;
+    if (generation!==expectedGeneration || replacing) throw Object.assign(new Error('Project assets crossed a project replacement.'), { code: 'PL-PERSISTENCE-STALE' });
+    return Object.freeze({ project,...(format==='pandolab-project-state' ? { spatialState: output.spatialState } : {}),checkpoint: Object.freeze({ projectGeneration: expectedGeneration,
+      epoch: output.state.epoch,content: output.state.checkpoint,presentation: output.state.presentationCheckpoint,assetRevision }) });
   };
   const buildFileSnapshot = () => exportReceipt('pandolab-project-state');
   // Country selections are date-specific sources, not a globally reproducible
@@ -173,14 +186,22 @@ export function createProjectDomain({
       if (typeof commandOwner?.load!=='function' || typeof commandOwner.initialize!=='function'
         || typeof documentModel?.snapshot!=='function' || typeof publishCommand!=='function')
         throw new TypeError('Document admission requires the canonical C++ owner and accepted read-model publisher.');
+      const { core, packageAssets } = project ? splitPackage(project) : { core: project, packageAssets: null };
+      const imageRecords = referenceImages && packageAssets ? await referenceImages.prepare(packageAssets.referenceImages) : null;
+      if (generation!==expectedGeneration || replacing) throw Object.assign(new Error('Image admission belongs to another project generation.'), { code: 'PL-CORE-STALE' });
       const outcome=features===undefined && territorialSource===undefined && baselineId===undefined && !preserveCursor
-        ? await commandOwner.load(JSON.stringify(project))
-        : await commandOwner.initialize({ project,preserveCursor,...(features===undefined ? {} : { features }),
+        ? await commandOwner.load(JSON.stringify(core))
+        : await commandOwner.initialize({ project: core,preserveCursor,...(features===undefined ? {} : { features }),
           ...(territorialSource===undefined ? {} : { territorialSource }),...(baselineId===undefined ? {} : { baselineId }) });
       await readmitBuiltinSelectionCatalogs();
       if(generation!==expectedGeneration || replacing)
         throw Object.assign(new Error('Document admission completed after project replacement.'),{ code: 'PL-CORE-STALE' });
       await publishCommand(outcome,{ expectedGeneration,reason });
+      if (imageRecords) {
+        await referenceImages.replace(imageRecords);
+        referenceImages.markSaved(referenceImages.state().revision);
+        if (packageAssets.referenceImagesDirty) referenceImages.restoreState({ dirty: true });
+      }
       return documentModel.snapshot();
     });
     commandQueue=operation.catch(() => {});
@@ -208,10 +229,12 @@ export function createProjectDomain({
       if (generation!==expectedGeneration)
         throw Object.assign(new Error('Project validation crossed a project replacement.'),{ code: 'PL-CORE-STALE' });
       if (typeof commandOwner?.validateImport!=='function') throw new TypeError('The pure C++ project import validator is required.');
-      const result=await commandOwner.validateImport(JSON.stringify(project),{ baselineId });
+      const { core, packageAssets } = splitPackage(project);
+      if (referenceImages) await referenceImages.prepare(packageAssets?.referenceImages);
+      const result=await commandOwner.validateImport(JSON.stringify(core),{ baselineId });
       if (generation!==expectedGeneration)
         throw Object.assign(new Error('Project validation completed after project replacement.'),{ code: 'PL-CORE-STALE' });
-      return result;
+      return packageAssets ? { ...result, packageAssets } : result;
     });
     commandQueue=operation.catch(() => {});return operation;
   };
@@ -220,7 +243,7 @@ export function createProjectDomain({
       assertActive();
       if(generation!==expectedGeneration)throw Object.assign(new Error('Import geometry inspection crossed a project replacement.'),{ code: 'PL-CORE-STALE' });
       if(typeof commandOwner?.inspectImport!=='function')throw new TypeError('The pure C++ import geometry inspector is required.');
-      const packet=await commandOwner.inspectImport(JSON.stringify(project),{ baselineId });
+      const packet=await commandOwner.inspectImport(JSON.stringify(splitPackage(project).core),{ baselineId });
       if(generation!==expectedGeneration)throw Object.assign(new Error('Import geometry inspection completed after project replacement.'),{ code: 'PL-CORE-STALE' });
       return createCoreDocumentReadModel(packet.project).detachedImportProjection(packet.world);
     });
@@ -348,7 +371,7 @@ export function createProjectDomain({
     commandQueue=operation.catch(() => {});return operation;
   };
 
-  const replaceAccepted = async (prepared, reason, {isCurrent=()=>true}={}) => {
+  const replaceAccepted = async (prepared, reason, {isCurrent=()=>true, referenceImageRecords=[], restoreAttachmentDirty=false}={}) => {
     assertActive();
     const requireCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Project opening was superseded.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});};
     requireCurrent();
@@ -357,7 +380,9 @@ export function createProjectDomain({
     let failure;
     let replacementResult;
     try {
-      checkpoint = { replacementId: await commandOwner.captureReplacement(),io: saveState?.checkpoint(),editor: captureEditorSession() };
+      const images = referenceImages ? await referenceImages.capture() : null;
+      checkpoint = { io: saveState?.checkpoint(),editor: captureEditorSession(), images, imageState: referenceImages ? referenceImages.state() : null,
+        replacementId: await commandOwner.captureReplacement() };
       replacementStarted = true;
       await onReplacementState(true, reason);
       persistence?.cancelPending?.();
@@ -384,7 +409,10 @@ export function createProjectDomain({
         } : {}),
       });
       if (result === false) throw new Error('Project replacement was rejected.');
+      if (referenceImages) await referenceImages.replace(referenceImageRecords);
       requireCurrent();
+      if (referenceImages) referenceImages.markSaved(referenceImages.state().revision);
+      if (referenceImages && restoreAttachmentDirty) referenceImages.restoreState({ dirty: true });
       // Unsupported/read-error recovery retains its original slots and write hold.
       if (reason === 'new' && !persistence?.getRecovery?.()) await persistence?.clear?.();
       if (reason === 'new') saveState?.markNewProject();
@@ -399,6 +427,8 @@ export function createProjectDomain({
         try {
           const rollbackGeneration = await bumpGeneration('project-rollback');
           await commandOwner.rollbackReplacement(checkpoint.replacementId);
+          if (referenceImages) await referenceImages.replace(checkpoint.images);
+          if (referenceImages) referenceImages.restoreState(checkpoint.imageState);
           if(restoreReplacement)await restoreReplacement(documentModel.snapshot(),rollbackGeneration);
           await restoreEditorSession(checkpoint.editor,rollbackGeneration);
           if(saveState && checkpoint.io)saveState.restore(checkpoint.io);
@@ -426,9 +456,12 @@ export function createProjectDomain({
     try {
       // Pure preparation does not claim the bounded Core rollback capsule.
       // The complete replacement shares its lifetime with accepted commands.
-      const prepared=reason==='new'?{...await prepareNewProject(serializedProject),setup:serializedProject}:reason==='builtin'?serializedProject:
-        await commandOwner.validateImport(JSON.stringify(serializedProject),{ baselineId: null });
-      const operation=commandQueue.then(() => replaceAccepted(prepared,reason,options));
+      const { packageAssets, core: coreProject } = splitPackage(serializedProject);
+      const referenceImageRecords = referenceImages ? await referenceImages.prepare(packageAssets?.referenceImages) : [];
+      const prepared=reason==='new'?{...await prepareNewProject(coreProject),setup:coreProject}:reason==='builtin'?coreProject:
+        await commandOwner.validateImport(JSON.stringify(coreProject),{ baselineId: null });
+      const restoreAttachmentDirty = coreProject.format === 'pandolab-autosave-full' && packageAssets?.referenceImagesDirty === true;
+      const operation=commandQueue.then(() => replaceAccepted(prepared,reason,{ ...options, referenceImageRecords, restoreAttachmentDirty }));
       commandQueue=operation.catch(() => {});return await operation;
     } catch(error) { replacing=false;throw error; }
   };
@@ -490,6 +523,7 @@ export function createProjectDomain({
     const tokens = saveState?.snapshot?.();
     let receipt;
     const unchanged = () => generation === savedGeneration && !replacing
+      && (!receipt || !referenceImages || referenceImages.state().revision === receipt.checkpoint.assetRevision)
       && (receipt ? commandOwner.state().epoch===receipt.checkpoint.epoch
         : saveState?.snapshot?.().currentContentToken === tokens?.currentContentToken
           && saveState?.snapshot?.().currentPresentationToken === tokens?.currentPresentationToken);
@@ -498,7 +532,11 @@ export function createProjectDomain({
       receipt=await exportReceipt('pandolab-project-state');
       const blob = await createProjectFile(receipt.project,{ spatialState: receipt.spatialState });
       const result = await write(blob);
-      if (unchanged()) { await commandOwner.markSaved(receipt.checkpoint.epoch);saveState?.markFileSaved?.(result); }
+      if (unchanged()) {
+        await commandOwner.markSaved(receipt.checkpoint.epoch);
+        if (referenceImages) referenceImages.markSaved(receipt.checkpoint.assetRevision);
+        saveState?.markFileSaved?.(result);
+      }
       return true;
     } catch (error) {
       if (error?.name === 'AbortError') {
