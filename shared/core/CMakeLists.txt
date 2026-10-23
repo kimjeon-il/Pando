@@ -59,6 +59,7 @@ add_library(pandoeditor_core STATIC
     src/cutgeometry.cpp
     src/referenceimage.cpp
     src/referencetracing.cpp
+    src/referenceboundaries.cpp
     src/sphericalpolygon.cpp
     src/boundarychain.cpp
     src/boundarypacket.cpp

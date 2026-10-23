@@ -111,8 +111,16 @@ export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
 }
 
 // App-owned writers store their output here; the data repository runs no tools.
-export function storeLibraryData({ root = defaultRoot, push = false } = {}) {
+export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null } = {}) {
   const data = prepareLibraryData({ root });
+  if (git(data.checkout, ['status', '--porcelain'])) throw Error('Preserve existing data checkout edits before storing library material.');
+  if (prefixes && (!Array.isArray(prefixes) || !prefixes.length || prefixes.some(path =>
+    typeof path !== 'string' || !/^[\w.-]+(?:\/[\w.-]+)*$/.test(path) || path.split('/').some(part => part === '..' || part === '.')
+      || !libraryConfig(root).mounts.some(mount => path === mount || path.startsWith(mount + '/'))))) throw Error('Invalid library storage prefixes.');
+  const included = path => !prefixes || prefixes.some(prefix => path === prefix || path.startsWith(prefix + '/'));
+  const traversable = path => included(path) || prefixes.some(prefix => prefix.startsWith(path + '/'));
+  const storeNativeObjects = !prefixes || included('assets/data/territorial-entities');
+  if (!storeNativeObjects && prefixes.some(path => path.startsWith('assets/data/territorial-entities/'))) throw Error('Store territorial entities as a whole so native objects and runtime data stay paired.');
   const indexPath = resolve(data.checkout, 'archive/index.json');
   const index = JSON.parse(readFileSync(indexPath, 'utf8'));
   const runtimeDirectories = new Set(Object.entries(index.files).filter(([path, entry]) => path.startsWith('assets/data/') && path === entry.stored).map(([path]) => dirname(path)));
@@ -144,22 +152,24 @@ export function storeLibraryData({ root = defaultRoot, push = false } = {}) {
   };
   const seen = new Set();
   const visit = (directory, prefix) => {
+    if (!traversable(prefix)) return;
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
       const path = prefix + '/' + entry.name;
       if (entry.isSymbolicLink()) throw Error(`Unexpected nested library link: ${path}`);
       if (entry.isDirectory()) visit(resolve(directory, entry.name), path);
-      else if (entry.isFile()) { seen.add(path); store(path, readFileSync(resolve(directory, entry.name))); }
+      else if (entry.isFile() && included(path)) { seen.add(path); store(path, readFileSync(resolve(directory, entry.name))); }
     }
   };
   const managedMounts = libraryConfig(root).mounts.filter(path => path !== 'reports');
   for (const path of managedMounts) visit(safeChild(data.materialized, path), path);
   visit(libraryReportRoot(root), 'reports');
   for (const [path, entry] of Object.entries(index.files)) {
-    if (!(path.startsWith('reports/') || managedMounts.some(mount => path.startsWith(mount + '/'))) || seen.has(path)) continue;
+    if (!included(path) || !(path.startsWith('reports/') || managedMounts.some(mount => path.startsWith(mount + '/'))) || seen.has(path)) continue;
     delete index.files[path];
     if ((entry.stored === path || path.startsWith('reports/')) && existsSync(safeChild(data.checkout, path))) unlinkSync(safeChild(data.checkout, path));
   }
   // The existing native source schema remains the only editable library format.
+  if (storeNativeObjects) {
   const indexBytes = readFileSync(resolve(data.materialized, 'assets/data/territorial-entities/generated/v2/index.json'));
   const libraryIndex = JSON.parse(indexBytes), source = { schemaVersion: 1, indexHash: digest(indexBytes), entities: {} };
   put(`objects/${source.indexHash}.json`, indexBytes);
@@ -168,6 +178,7 @@ export function storeLibraryData({ root = defaultRoot, push = false } = {}) {
     const hash = digest(bytes); put(`objects/${hash}.json`, bytes); source.entities[entry.entityId] = hash;
   }
   put('library.json', Buffer.from(JSON.stringify(source) + '\n'));
+  }
   index.sourceRevision = git(root, ['rev-parse', 'HEAD']);
   put('archive/index.json', Buffer.from(JSON.stringify(index) + '\n'));
   git(data.checkout, ['add', '--sparse', '--', 'archive', 'assets/data', 'objects', 'library.json', 'reports']);
@@ -184,14 +195,16 @@ export function storeLibraryData({ root = defaultRoot, push = false } = {}) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const prefixes = process.argv.filter(arg => arg.startsWith('--include-prefix=')).map(arg => arg.slice('--include-prefix='.length));
+  const storeOptions = { push: process.argv.includes('--push'), prefixes: prefixes.length ? prefixes : null };
   if (process.argv.includes('--store-and-stage')) {
-    storeLibraryData({ push: process.argv.includes('--push') });
+    storeLibraryData(storeOptions);
     const root = defaultRoot, mounts = libraryConfig(root).mounts;
     const paths = process.argv.slice(process.argv.indexOf('--') + 1).filter(path => !path.startsWith('-')).filter(path => {
       const logical = relative(root, resolve(root, path)).replaceAll('\\', '/');
       return !isAbsolute(path) && !logical.startsWith('../') && !mounts.some(mount => logical === mount || logical.startsWith(mount + '/'));
     });
     git(root, ['add', '--', 'config/library-data.json', ...paths]);
-  } else if (process.argv.includes('--store')) console.log(`Library stored: ${storeLibraryData({ push: process.argv.includes('--push') })}`);
+  } else if (process.argv.includes('--store')) console.log(`Library stored: ${storeLibraryData(storeOptions)}`);
   else { const result = prepareLibraryData(); console.log(`Library mounted: ${result.repository}@${result.revision}`); }
 }

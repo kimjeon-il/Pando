@@ -40,6 +40,9 @@ function foldSpecialLatin(value) {
 export function normalizeReferenceImagePlaceText(value) {
   let text = String(value ?? '').normalize('NFKD').toLocaleLowerCase();
   text = text.replace(/[\u0300-\u036f]/g, '');
+  text = text.replace(/[\u064b-\u065f\u0670\u06d6-\u06ed\u0640]/g, '')
+    .replace(/\u06cc/g, '\u064a').replace(/\u06a9/g, '\u0643').replace(/\u03c2/g, '\u03c3')
+    .replace(/[\u0660-\u0669\u06f0-\u06f9]/g, digit => String(digit.charCodeAt(0) % 16));
   text = foldSpecialLatin(text);
   text = text
     .replace(/[\s.,;:!?()[\]{}'"\u201c\u201d\u2018\u2019/\\|_+=*~<>\u2014\u2013-]+/g, ' ')
@@ -286,6 +289,8 @@ export function matchReferenceImagePlaceDetections(detectionValues = [], placeVa
   maxAnchorDistanceMeters = 2500000,
   maxDetections = DEFAULT_MAX_DETECTIONS,
   maxPlaces = DEFAULT_MAX_PLACES,
+  allowAmbiguous = false,
+  maximumCandidatesPerDetection = 5,
 } = {}) {
   const detections = normalizeDetections(detectionValues, Math.max(1, Math.min(256, Math.round(maxDetections) || DEFAULT_MAX_DETECTIONS)));
   const places = normalizePlaces(placeValues, Math.max(1, Math.min(20000, Math.round(maxPlaces) || DEFAULT_MAX_PLACES)));
@@ -313,7 +318,7 @@ export function matchReferenceImagePlaceDetections(detectionValues = [], placeVa
       rejected.push(Object.freeze({ detectionId: detection.id, text: detection.text, reason: 'no-place-match' }));
       continue;
     }
-    if (second && best.score - second.score < options.ambiguityMargin) {
+    if (!allowAmbiguous && second && best.score - second.score < options.ambiguityMargin) {
       rejected.push(Object.freeze({
         detectionId: detection.id,
         text: detection.text,
@@ -324,7 +329,7 @@ export function matchReferenceImagePlaceDetections(detectionValues = [], placeVa
       }));
       continue;
     }
-    proposals.push(best);
+    proposals.push(...(allowAmbiguous ? edges.filter(edge => edge.score >= options.minimumMatchScore).slice(0, maximumCandidatesPerDetection) : [best]));
   }
 
   proposals.sort((left, right) => right.score - left.score || right.detection.confidence - left.detection.confidence);
@@ -332,8 +337,8 @@ export function matchReferenceImagePlaceDetections(detectionValues = [], placeVa
   const usedPlaces = new Set();
   const matches = [];
   for (const proposal of proposals) {
-    if (usedDetections.has(proposal.detection.id)) continue;
-    if (usedPlaces.has(proposal.place.id)) {
+    if (!allowAmbiguous && usedDetections.has(proposal.detection.id)) continue;
+    if (!allowAmbiguous && usedPlaces.has(proposal.place.id)) {
       rejected.push(Object.freeze({
         detectionId: proposal.detection.id,
         text: proposal.detection.text,
@@ -414,14 +419,16 @@ export async function resolveReferenceImagePlaceDetections(detectionValues = [],
   ...matchOptions
 } = {}) {
   if (typeof search !== 'function') throw new TypeError('Place search function is required');
-  const detections = normalizeDetections(detectionValues, DEFAULT_MAX_DETECTIONS);
+  const detections = normalizeDetections(detectionValues, Math.max(1, Math.min(256, Math.round(matchOptions.maxDetections) || DEFAULT_MAX_DETECTIONS)));
   const queries = [];
-  for (const detection of detections) {
-    for (const query of referenceImagePlaceSearchQueries(detection.text)) {
+  const passes = detections.map(detection => referenceImagePlaceSearchQueries(detection.text));
+  for (let pass = 0; pass < 4 && queries.length < maxSearchQueries; pass++) {
+    for (const alternatives of passes) {
+      const query = alternatives[pass];
+      if (!query) continue;
       if (!queries.includes(query)) queries.push(query);
       if (queries.length >= maxSearchQueries) break;
     }
-    if (queries.length >= maxSearchQueries) break;
   }
   const places = await runSearches(
     queries,

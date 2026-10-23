@@ -3,6 +3,7 @@ import { installDiagnostics } from './diagnostics.js';
 import { createNativeStorage, finishDiagnostics } from './native-storage.js';
 import { installNetworkGuard } from './network-guard.js';
 import { installFullWorldProbe } from './full-world-probe.js';
+import { installReferenceRuntimeProbe } from './reference-analysis-probe.js';
 
 async function start() {
   if (document.readyState === 'loading' && (!globalThis.PANDOLAB_BUILD_META || !window.d3)) {
@@ -56,7 +57,8 @@ async function start() {
     window.addEventListener('pandolab:ready', () => {
       window.__PANDOLAB_SHELL_READY__ = true;
     }, { once: true });
-    if (!libraryGeometryContext) installFullWorldProbe({
+    if (!libraryGeometryContext && globalThis.__PANDOLAB_SHELL_REFERENCE_ANALYSIS__) installReferenceRuntimeProbe();
+    else if (!libraryGeometryContext) installFullWorldProbe({
       readyDelayMs: globalThis.__PANDOLAB_SHELL_AUTO__ === true
         ? (Number(globalThis.__PANDOLAB_SHELL_PROBE_HOLD_MS__) || 500) : 500,
       expectedSourceCount: profileMeta.world.countryCount,

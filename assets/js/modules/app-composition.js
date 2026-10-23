@@ -1,5 +1,6 @@
 import {createMapOwners} from './map-owner-composition.js';
 import {handleEditorMapClick} from './editor-map-click.js';
+import { referenceImageProjectAssets } from './reference-image-store.js';
 /** Compose owners, connect their explicit ports, then initialize in dependency order. */
 export async function composeApplication({ productMode, revision, platform = {}, onComposed = null }) {
   if (productMode !== 'editor') throw new TypeError('The application entry requires editor product mode.');
@@ -68,7 +69,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   ]);
   const {builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,platform,
     resolveVisibilityGroup:ref=>objectCommands.layerGroupForObjectRef(ref),closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectVisible:(group,id)=>objectCommands.objectRefVisible(objectCommands.layerItemObjectRef(group,id)),
-    editing:{beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
+    editing:{getAttachmentState: referenceImageProjectAssets.state,beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
       persistView:()=>domainAssembly.projectDomain.queueViewAutosave(),getEditPreview:()=>geometryPreview.editPreviewController.packet(),
       handleMapClick:point=>handleEditorMapClick(point,applicationPorts),
       onBackgroundClear:()=>workspaceSurfaces.closeSurface('editor',{restoreFocus:false}),
@@ -264,9 +265,10 @@ export async function composeApplication({ productMode, revision, platform = {},
             revision, workspaceSurfaces,
             getGeneration: () => domainAssembly.projectDomain.getGeneration(),
             isBlocked: () => projectSession.state.projectReplacing || projectSession.state.modeProcessing,
-            searchPlaces: query => territorialLabels.builtinPlaces.search(query),
-            preparePlaces: () => territorialLabels.preparePlaces({ force: true }),
-            getPlaces: () => territorialLabels.builtinPlaces?.snapshot?.().records || [],
+            searchPlaces: (query, options) => territorialLabels.builtinPlaces.search(query, options),
+            genericFeatureService: objectPresentation.genericFeatureService,
+            onFeaturesApplied: () => domainAssembly.renderingDomain.invalidateGenericPatch('reference-image-analysis'),
+            onCollectionChanged: () => { projectSession.saveState.sync();domainAssembly.projectDomain.queueAutosave(); },
             confirm: options => new Promise(resolve => {
               projectRestore.openConfirmModal({ ...options, onConfirm: () => resolve(true), onCancel: () => resolve(false) });
             }),

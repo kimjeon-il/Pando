@@ -94,3 +94,33 @@ for (const mode of ['line-refine', 'live-wire']) {
     assert.equal(calls.messages.at(-1)[0], failure.message);
   });
 }
+
+test('Live-Wire can apply source pixels to a boundary-review target without an active object draft', async () => {
+  const { apply, context, calls } = await operation('live-wire');
+  const pixels = [[2, 3], [5, 8]];
+  let received;
+  context.__PANDOLAB_REFERENCE_IMAGE_EDITING__.isDraftActive = () => false;
+  context.state.previewSourcePixels = pixels;
+  context.state.target = { onApply: async value => { received = value;return true; } };
+  assert.equal(await apply(), true);
+  assert.equal(received, pixels);
+  assert.equal(calls.applied.length, 0);
+  assert.equal(calls.cancelled.length, 1);
+});
+
+for (const mode of ['line-refine', 'live-wire']) test(`${mode} stops publishing its previous message after another workflow takes ownership`, async () => {
+  const source = await readFile(new URL(`../../assets/js/modules/reference-image-${mode}-controller.js`, import.meta.url), 'utf8');
+  const match = source.match(/ {2}(function syncUi\(\) \{[\s\S]*?\r?\n {2}\})/);
+  assert.ok(match);
+  const writes = [];
+  const context = { syncScheduled: false, disposed: false, editor: { hidden: false, querySelector: () => null }, panel: {},
+    state: null, selectedRecordId: () => 'map-a', publicRecordMeta: () => ({ locked: false, mappingReady: true }),
+    mapElement: { classList: { contains: () => false } }, setReferenceImageSurfaceActions() {},
+    lastMessage: 'previous trace result', lastTone: 'success', setMessage: (...args) => writes.push(args) };
+  const sync = vm.runInNewContext(`(${match[1]})`, context);
+  sync();
+  assert.equal(writes.length, 0, 'idle tracing cannot overwrite the next boundary analysis/apply message');
+  context.state = { recordId: 'map-a', phase: 'tracking', anchors: [], segments: [], previewPoints: [] };
+  sync();
+  assert.equal(writes.length, 1, 'the active tool still restores its current instruction after a panel render');
+});

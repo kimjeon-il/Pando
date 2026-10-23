@@ -25,7 +25,7 @@ test('archive paths cannot escape their explicit storage root', () => {
   assert.equal(safeChild(root, 'archive/file.gz'), join(root, 'archive/file.gz'));
 });
 
-test('storing deletions removes runtime and report entries from the next materialization', () => {
+for (const prefixes of [null, ['assets/data/obsolete.json', 'reports/obsolete.md']]) test(`storing deletions ${prefixes ? 'within explicit paths preserves unrelated work' : 'removes runtime and report entries from the next materialization'}`, () => {
   const root = mkdtempSync(join(tmpdir(), 'pando-library-delete-'));
   const checkout = join(root, '.library-data/repository');
   const put = (base, path, bytes) => { mkdirSync(dirname(join(base, path)), { recursive: true }); writeFileSync(join(base, path), bytes); };
@@ -40,16 +40,24 @@ test('storing deletions removes runtime and report entries from the next materia
     files[path] = { stored: path, encoding: 'identity', bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
   }
   put(checkout, 'archive/index.json', JSON.stringify({ branch: 'main', files }));
+  put(checkout, 'objects/.gitkeep', ''); put(checkout, 'library.json', '{}');
   git(checkout, 'add', '.'); git(checkout, 'commit', '-qm', 'source');
   put(root, '.gitignore', '.library-data/\nassets/data/\nreports/\n');
   put(root, 'config/library-data.json', JSON.stringify({ repository: 'example/data', revision: git(checkout, 'rev-parse', 'HEAD'), mounts: ['assets/data', 'reports'] }));
   git(root, 'add', '.'); git(root, 'commit', '-qm', 'code');
   prepareLibraryData({ root, fetch: false });
+  const unrelated = join(root, 'assets/data/territorial-entities/generated/v2/index.json');
+  if (prefixes) writeFileSync(unrelated, '{"entities":[],"unfinished":true}');
   unlinkSync(join(root, 'assets/data/obsolete.json')); unlinkSync(join(root, 'reports/obsolete.md'));
-  storeLibraryData({ root });
+  storeLibraryData({ root, prefixes });
   const stored = JSON.parse(readFileSync(join(checkout, 'archive/index.json'), 'utf8'));
   assert.equal(stored.files['assets/data/obsolete.json'], undefined);
   assert.equal(stored.files['reports/obsolete.md'], undefined);
+  if (prefixes) {
+    assert.deepEqual(stored.files['assets/data/territorial-entities/generated/v2/index.json'], files['assets/data/territorial-entities/generated/v2/index.json']);
+    assert.match(readFileSync(unrelated, 'utf8'), /unfinished/);
+    assert.equal(readFileSync(join(checkout, 'library.json'), 'utf8'), '{}');
+  }
   prepareLibraryData({ root, fetch: false });
   assert.equal(existsSync(join(root, 'assets/data/obsolete.json')), false);
   assert.equal(existsSync(join(root, 'reports/obsolete.md')), false);

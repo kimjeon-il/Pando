@@ -37,6 +37,17 @@ test('viewer closure includes static and query-versioned dynamic imports but exc
   for (const path of ['assets/js/app.js', 'assets/js/bootstrap.js', 'assets/js/modules/app-composition.js', 'reports/a.md', 'tools/run.mjs']) assert.equal(paths.has(path), false, path);
 });
 
+test('viewer publication excludes offline reference OCR and AI runtime assets', async () => {
+  const f = fixture();
+  f.put('assets/vendor/reference-analysis/tesseract.mjs');
+  f.put('assets/vendor/reference-analysis/core/tesseract-core.wasm');
+  f.put('assets/vendor/common.js');
+  const paths = await f.collect();
+  assert.equal(paths.has('assets/vendor/common.js'), true);
+  assert.equal(paths.has('assets/vendor/reference-analysis/tesseract.mjs'), false);
+  assert.equal(paths.has('assets/vendor/reference-analysis/core/tesseract-core.wasm'), false);
+});
+
 test('viewer data closure follows current manifest references and excludes source, old versions and orphan assets',async()=>{
  const f=fixture();
  f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({entities:[{file:'countries/A.json.gz'}],transport:{url:'transport/packed.bin'}}));
