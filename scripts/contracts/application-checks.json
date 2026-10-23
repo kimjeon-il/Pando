@@ -131,6 +131,7 @@
       "id": "boundaries",
       "kind": "browser",
       "testPatterns": [
+        "tests/browser/korean-boundaries.spec.mjs",
         "tests/browser/boundary-*.spec.mjs",
         "tests/browser/child-coast-boundary.spec.mjs",
         "tests/browser/country-shared-boundary.spec.mjs",
@@ -261,6 +262,7 @@
       "id": "library",
       "kind": "browser",
       "testPatterns": [
+        "tests/browser/editable-library-ui.spec.mjs",
         "tests/browser/east-prussia-library.spec.mjs",
         "tests/browser/historical-library.spec.mjs",
         "tests/browser/library-*.spec.mjs",
@@ -313,6 +315,7 @@
       "id": "ui",
       "kind": "browser",
       "testPatterns": [
+        "tests/browser/button-consistency.spec.mjs",
         "tests/browser/color-swatch-layout.spec.mjs",
         "tests/browser/feedback-accessibility.spec.mjs",
         "tests/browser/feature-pruning-ui.spec.mjs",
