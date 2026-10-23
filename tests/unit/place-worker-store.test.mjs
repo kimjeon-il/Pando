@@ -119,6 +119,19 @@ test('search uses the same monthly place naming and BCE availability as label dr
  assert.equal(historical.displayNames[historical.records[0].id],'(현)서울 19');
 });
 
+test('reference lookup finds historical and native names without month or display language filters', async () => {
+  const place = normalizePlace({ source: 'synthetic', sourceId: 'history', name: '서울', nameEn: 'Seoul', nameNative: '서울',
+    nameTimeline: [{ fromYear: 1308, ko: '한양', en: 'Hanyang', native: '漢陽' }, { fromDate: '1946-08-10', ko: '서울', en: 'Seoul', native: '서울' }],
+    coordinates: [127, 37], kind: 'city' });
+  const bytes = new Uint8Array(encodePlaceTile([place])), { manifest } = fixture();
+  const row = { shard: 's', offset: 0, length: bytes.length, sha256: sha256(bytes) };
+  manifest.shards.s.bytes = bytes.length; manifest.tiles['0/0-0'] = row;
+  manifest.search = Object.fromEntries(['ha', '漢陽', 'se'].map(prefix => [prefix, [{ ...row, first: prefix, last: prefix + '\uffff' }]]));
+  const store = createPlaceWorkerStore({ manifest, fetchBytes: async () => bytes });
+  for (const query of ['Hanyang', '漢陽', 'Seoul']) assert.deepEqual((await store.search(query)).records.map(row => row.id), [place.id]);
+  assert.deepEqual((await store.search('Hanyang', undefined, { month: '2026-10', languages: { en: true } })).records, []);
+});
+
 test('decoded cache accounts every string field including worst-case Unicode metadata',async()=>{
   const records=Array.from({length:4},(_,i)=>normalizePlace({source:'s'.repeat(32),sourceId:'🗺'.repeat(127)+i,name:'🗺'.repeat(256),kind:'capital',coordinates:[0,0],countryCode:'🗺'.repeat(8),featureCode:'🗺'.repeat(32)}));
   const bytes=new Uint8Array(encodePlaceTile(records));const {manifest}=fixture();manifest.shards.s.bytes=bytes.length;manifest.tiles['0/0-0'].length=bytes.length;manifest.tiles['0/0-0'].sha256=sha256(bytes);manifest.search={};

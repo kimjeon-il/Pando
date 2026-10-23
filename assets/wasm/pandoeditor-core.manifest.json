@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "3e1d8d1ac0c30ae52d9c1bc0b7f82429545bf485e6a69bd0047e2f6d8222481b",
+  "sourceSha256": "412c93b0582ac0a4d11fef3472f01714ad19a3932ef96aa2d093b08002bea447",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -13,7 +13,7 @@
     },
     {
       "path": "shared/core/CMakeLists.txt",
-      "sha256": "d24ac5245672cd8a5a417aca913d5a9841596eb0433e6a31bc094d03de950448"
+      "sha256": "b804f5e02e0a8b33b0ee78ba826d43a227af695055d98cb4f1d259beeb26b51e"
     },
     {
       "path": "shared/core/include/pandoeditor/boundarychain.h",
@@ -154,6 +154,10 @@
     {
       "path": "shared/core/include/pandoeditor/projectcodec.h",
       "sha256": "dfe80b8b33e9191c09e6d51c80a5b3bd8a8b683483499bb3ea2817f34337f284"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/referenceboundaries.h",
+      "sha256": "5957918b1fa24cb6a9cf832be4c7266edf80cf5ada19d523da59d3f0583df9b5"
     },
     {
       "path": "shared/core/include/pandoeditor/referenceimage.h",
@@ -349,7 +353,7 @@
     },
     {
       "path": "shared/core/src/planargraph.cpp",
-      "sha256": "dcd8abee662d39ddf51d82cfb93dd3fb73284e31c57c7e375247ca5e8c182a74"
+      "sha256": "e8a23100ce6be57b2bb30bb19277f64cae6fa879161f943ee345f5fd41568a71"
     },
     {
       "path": "shared/core/src/polygonclipping.cpp",
@@ -380,8 +384,12 @@
       "sha256": "122c65aa68e4f2954d7f8aa4167e31e9aed5f24aa27b531fb34fdbcb8a152722"
     },
     {
+      "path": "shared/core/src/referenceboundaries.cpp",
+      "sha256": "49fb3f1a1a0bc4d5c265cd5bf4217c8dd79151a3173820dc82b4d9c06fca8f82"
+    },
+    {
       "path": "shared/core/src/referenceimage.cpp",
-      "sha256": "be59378a99741a4d9ffa3db30bd10a7d8a60c8415459e20f12174254990e2660"
+      "sha256": "737e8eed725719dad0d465a9db19f2add7befbccba3c1f1b8a85f8a8a9a0bd11"
     },
     {
       "path": "shared/core/src/referencetracing.cpp",
@@ -585,7 +593,7 @@
     },
     {
       "path": "shared/wasm/reference-bindings.cpp",
-      "sha256": "a8d62fc8c61ee6a6de90dbd41b03f1a7e0f6ad43b8865430d49fce4a70750279"
+      "sha256": "e6f8936269131002135a4dd65fc75fdb4d091d9a9700961673f94aaaab091a56"
     },
     {
       "path": "shared/wasm/river-bindings.cpp",
@@ -607,7 +615,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "6f8f9d34744816ed8a5d106aaf894966a9a12ad38d817d356288392807a0e1d6"
+      "sha256": "64c7d6ea552ecec8270787aa018e93dc27f3ed90b020de2f2d246038a480968e"
     }
   }
 }

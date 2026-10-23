@@ -23,6 +23,18 @@ export async function readAtlasTables(buffer, getSql) {
       if (rows[0]?.values?.[0]?.[0]) {
         result.projectState = JSON.parse(rows[0].values[0][0]);
       }
+      const images = db.exec("SELECT json_value FROM pandolab_project_settings WHERE setting_key='reference_images' LIMIT 1");
+      if (images[0]?.values?.[0]?.[0]) {
+        const referenceImages = { ...JSON.parse(images[0].values[0][0]), sources: [] };
+        if (!tableExists(db, 'pandolab_reference_sources')) throw new Error('참조 이미지 원본 테이블이 없습니다.');
+        const statement = db.prepare('SELECT source_hash, mime_type, image_data FROM pandolab_reference_sources');
+        while (statement.step()) {
+          const row = statement.get(), bytes = new Uint8Array(row[2]);
+          referenceImages.sources.push({ sha256: String(row[0]), mimeType: String(row[1]), bytes: bytes.length, base64: bytesToBase64(bytes) });
+        }
+        statement.free();
+        result.packageAssets = { schemaVersion: 1, referenceImages };
+      }
     }
     if (tableExists(db, 'pandolab_country_assets')) {
       const statement = db.prepare('SELECT country_id, mime_type, image_data FROM pandolab_country_assets');

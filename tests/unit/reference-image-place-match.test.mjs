@@ -9,6 +9,7 @@ import {
   referenceImagePlaceNames,
   referenceImagePlaceSearchQueries,
   resolveReferenceImagePlaceAutoGeoref,
+  resolveReferenceImagePlaceDetections,
 } from '../../assets/js/modules/reference-image-place-match.js';
 import { REFERENCE_IMAGE_WARP_MODES } from '../../assets/js/modules/reference-image-georef.js';
 
@@ -27,6 +28,20 @@ test('place text normalization and similarity tolerate common OCR/diacritic erro
   assert.ok(referenceImagePlaceNameSimilarity('Beriin', 'Berlin') > 0.8);
   assert.ok(referenceImagePlaceNameSimilarity('Munchen', 'München') > 0.99);
   assert.ok(referenceImagePlaceNameSimilarity('Praha', 'Prague') < 0.72);
+});
+
+test('search normalization matches Arabic Persian glyph variants and polytonic Greek without mutating source text', () => {
+  assert.equal(referenceImagePlaceNameSimilarity('كاشان', 'کاشان'), 1);
+  assert.equal(referenceImagePlaceNameSimilarity('طَهْرَان', 'طهران'), 1);
+  assert.equal(referenceImagePlaceNameSimilarity('Ῥόδος', 'Ροδοσ'), 1);
+});
+
+test('global georeferencing retains competing names for spatial consensus', () => {
+  const result = matchReferenceImagePlaceDetections([{ id: 'one', text: 'Springfield', image: [.2, .3], confidence: 1 }],
+    [place('a', 'Springfield', [-90, 40]), place('b', 'Springfield', [-72, 42])], { allowAmbiguous: true });
+  assert.equal(result.matches.length, 2);
+  assert.equal(new Set(result.matches.map(row => row.detectionId)).size, 1);
+  assert.equal(result.rejected.length, 0);
 });
 
 test('historical and native place names participate in matching', () => {
@@ -82,6 +97,15 @@ test('search queries include a short prefix so one-character OCR errors can reco
   const queries = referenceImagePlaceSearchQueries('Beriin');
   assert.ok(queries.includes('beriin'));
   assert.ok(queries.includes('be'));
+});
+
+test('global search honors the full OCR detection budget and shares query passes across labels', async () => {
+  const detections = Array.from({ length: 70 }, (_, index) => ({ id: 'd' + index, text: 'City' + index, image: [index / 70, .5], confidence: .9 }));
+  const result = await resolveReferenceImagePlaceDetections(detections, { search: async () => [], maxDetections: 70, maxSearchQueries: 512 });
+  assert.ok(result.queries.includes('city69'));
+  const small = await resolveReferenceImagePlaceDetections(['Alpha', 'Beta', 'Gamma', 'Delta'].map((text, index) => ({ id: String(index), text, image: [.1 * index, .5] })),
+    { search: async () => [], maxSearchQueries: 4 });
+  assert.deepEqual(small.queries, ['alpha', 'beta', 'gamma', 'delta']);
 });
 
 test('search-backed matching recovers an OCR typo and robust georeferencing rejects a spatial outlier', async () => {

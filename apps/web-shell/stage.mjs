@@ -7,6 +7,7 @@ import { gzipSync } from 'node:zlib';
 import { tinyFixture } from './fixture.mjs';
 import { installNetworkGuard } from './network-guard.js';
 import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
+import { referenceAnalysisAssetPlan } from './reference-analysis-plan.mjs';
 import { prepareLibraryData } from '../../tools/library-data.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -92,6 +93,23 @@ async function stageOwnedPrototype({ root, profile }) {
   }
   await emit(manifestPath, manifestBytes, manifestPath);
   for (const tree of ['assets/js', 'assets/css', 'assets/fonts', 'assets/vendor', 'assets/worker-runtime']) await copyTree(tree);
+  const referenceVendorPath = 'assets/vendor/reference-analysis/manifest.json';
+  const referenceOcrPath = 'assets/data/reference-analysis/v1/ocr/manifest.json';
+  const referenceBoundaryPath = 'assets/data/reference-analysis/v1/boundary.manifest.json';
+  const referenceVendor = JSON.parse(await readFile(join(root, referenceVendorPath), 'utf8'));
+  const referenceOcr = JSON.parse(await readFile(join(root, referenceOcrPath), 'utf8'));
+  const referenceBoundary = await exists(join(root, referenceBoundaryPath)) ? JSON.parse(await readFile(join(root, referenceBoundaryPath), 'utf8')) : null;
+  const referencePlan = referenceAnalysisAssetPlan(referenceVendor, referenceOcr, referenceBoundary);
+  const referenceDataRoot = await realpath(join(root, 'assets/data/reference-analysis/v1'));
+  for (const item of referencePlan.entries) {
+    const actual = await realpath(join(root, item.path));
+    if (item.path.startsWith('assets/data/') && !actual.startsWith(referenceDataRoot + sep)) throw new Error('Reference data resource escapes its root.');
+    const bytes = await readFile(actual);
+    if (hash(bytes) !== item.sha256 || bytes.length !== item.bytes) throw new Error(`Reference analysis resource mismatch: ${item.path}`);
+    if (item.path.startsWith('assets/data/')) await emit(item.path, bytes, item.path);
+  }
+  await emit(referenceOcrPath, await readFile(join(root, referenceOcrPath)), referenceOcrPath);
+  if (referenceBoundary) await emit(referenceBoundaryPath, await readFile(join(root, referenceBoundaryPath)), referenceBoundaryPath);
   if (buildMeta.physicalLand) await copyTree('assets/data/physical-land');
   const html = await readFile(join(root, 'apps/web-shell/editor.html'), 'utf8');
   const productBase = '<base href="../../" data-product-base="editor" />';
@@ -101,8 +119,15 @@ async function stageOwnedPrototype({ root, profile }) {
   if (!bootstrap.test(html)) throw new Error('The current frontend bootstrap entry was not found.');
   await emit('index.html', html.replace(productBase, '<base href="./" data-product-base="editor" />')
     .replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'apps/web-shell/editor.html (shell entry only)');
-  for (const file of ['startup.js', 'runtime-profile.js', 'diagnostics.js', 'native-storage.js', 'network-guard.js', 'full-world-probe.js', 'fixture-limits.js', 'diagnostics.css']) {
+  for (const file of ['startup.js', 'runtime-profile.js', 'diagnostics.js', 'native-storage.js', 'network-guard.js', 'full-world-probe.js', 'reference-analysis-probe.js', 'fixture-limits.js', 'diagnostics.css']) {
     if (await exists(join(here, file))) await emit(`shell/${file}`, await readFile(join(here, file)), `apps/web-shell/${file}`);
+  }
+  if (process.env.PANDOLAB_REFERENCE_PROBE_SOURCE) {
+    if (profile !== 'full-world') throw new Error('Reference runtime proof requires the full-world profile.');
+    const bytes = await readFile(process.env.PANDOLAB_REFERENCE_PROBE_SOURCE);
+    if (bytes.length > 8 * 1024 * 1024) throw new Error('Native reference probe source exceeds 8 MiB.');
+    await emit('shell/reference-probe.jpg', bytes);
+    await emit('shell/reference-probe.json', Buffer.from(JSON.stringify({ sha256: hash(bytes), bytes: bytes.length })));
   }
   let fixture = null;
   let fixtureHash = null;
@@ -163,10 +188,10 @@ async function stageOwnedPrototype({ root, profile }) {
     dataRepository: dataPin?.repository, dataCommit: dataPin?.revision,
     coreSourceSha256: coreManifest.sourceSha256 || null,
     fixture: fixture ? { entityCount: fixture.entityCount, coordinateCount: fixture.coordinateCount, sha256: fixtureHash } : null,
-    worldData, files, bytes: files.reduce((sum, file) => sum + file.bytes, 0) };
-  const limit = profile === 'full-world' ? 256 * 1024 * 1024 : 80 * 1024 * 1024;
+    worldData, referenceAnalysis: { bytes: referencePlan.bytes, modelAvailable: !!referenceBoundary }, files, bytes: files.reduce((sum, file) => sum + file.bytes, 0) };
+  const limit = (profile === 'full-world' ? 256 : 80) * 1024 * 1024 + referencePlan.bytes;
   if (result.bytes > limit || (profile === 'small-project'
-      && files.some(file => file.path.startsWith('assets/data/') && file.path !== buildMeta.physicalLand?.url && file.path !== 'assets/data/physical-land/v1/manifest.json'))) {
+      && files.some(file => file.path.startsWith('assets/data/') && !file.path.startsWith('assets/data/reference-analysis/v1/') && file.path !== buildMeta.physicalLand?.url && file.path !== 'assets/data/physical-land/v1/manifest.json'))) {
     throw new Error('Shell staging exceeded the selected offline profile');
   }
   await writeFile(join(directory, 'shell/stage-evidence.json'), JSON.stringify(result, null, 2));

@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test';
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
-const PNG_1X1 = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9WlWsAAAAASUVORK5CYII=',
+const PNG_SAMPLE = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAI0lEQVR4nGP8//8/AymAiSTVDKMaiANMRKqDg1ENxACSQwkAVW0DHeN02ZEAAAAASUVORK5CYII=',
   'base64',
 );
 const VIEWPORTS = [
@@ -32,29 +32,29 @@ async function readReferenceSnapshot(page) {
 
 async function delayOcrResponse(page) {
   await page.addInitScript(() => {
-    const state = { calls: 0, completed: 0, resolve: null };
+    const state = { calls: 0, completed: 0 };
+    const channel = new window.BroadcastChannel('reference-ocr-cancel-test');
     window.referenceImageDelayedOcr = state;
-    window.TextDetector = class {
-      detect() {
-        state.calls++;
-        return new Promise(resolve => {
-          state.resolve = blocks => {
-            state.resolve = null;
-            resolve(blocks);
-          };
-        }).then(blocks => {
-          state.completed++;
-          return blocks;
-        });
-      }
-    };
+    channel.onmessage = event => { state[event.data]++; };
+    state.resolve = () => channel.postMessage('release');
   });
+  await page.route('**/assets/vendor/reference-analysis/tesseract.mjs', route => route.fulfill({
+    contentType: 'text/javascript', body: `export default { createWorker: async () => ({
+      detect: async () => ({data:{script:'Latin'}}),
+      recognize: () => new Promise(resolve => {
+        const channel = new BroadcastChannel('reference-ocr-cancel-test');
+        channel.onmessage = () => { channel.postMessage('completed');channel.close();resolve({data:{blocks:[]}}); };
+        channel.postMessage('calls');
+      }),
+      terminate: async () => {},
+    }) };`,
+  }));
 }
 
 for (const viewport of VIEWPORTS) {
   test(`${viewport.name} ${viewport.width}px analysis cancellation protects a new GCP workflow from late OCR`, async ({ page }, testInfo) => {
     // This exercises the real cancellation UI and late-result boundary. Only the
-    // platform TextDetector response is delayed; OCR support and recognition
+    // bundled Tesseract recognition is delayed; OCR support and recognition
     // accuracy are not under test. Accepting a cancelled analysis completion
     // would replace the new GCP instruction with the old analysis failure.
     const errors = [];
@@ -73,11 +73,11 @@ for (const viewport of VIEWPORTS) {
     const panel = page.locator('#referenceImageSurface');
     await expect(panel).toBeVisible();
     const name = `auto-cancel-${viewport.name}.png`;
-    await panel.locator('[data-ref-file]').setInputFiles({ name, mimeType: 'image/png', buffer: PNG_1X1 });
+    await panel.locator('[data-ref-file]').setInputFiles({ name, mimeType: 'image/png', buffer: PNG_SAMPLE });
     await expect(panel.locator('[data-ref-field="name"]')).toHaveValue(name);
     await expect.poll(async () => (await readReferenceSnapshot(page)).stored.length).toBe(1);
     const before = await readReferenceSnapshot(page);
-    expect(before.stored[0].blob.bytes).toEqual([...PNG_1X1]);
+    expect(before.stored[0].blob.bytes).toEqual([...PNG_SAMPLE]);
     expect(before.stored[0].mapQuad).toHaveLength(4);
     expect(before.stored[0].controlPoints).toEqual([]);
 
@@ -127,7 +127,7 @@ for (const viewport of VIEWPORTS) {
 
     await page.evaluate(async () => {
       window.referenceImageDelayedOcr.resolve([]);
-      // The empty detector result requires no subsequent place lookup. Let its
+      // Release the cancelled recognition. Let its
       // promise continuations and the next browser paint finish before reading
       // the real workflow and stored image, without an arbitrary sleep.
       await new Promise(resolve => requestAnimationFrame(resolve));
@@ -146,7 +146,10 @@ for (const viewport of VIEWPORTS) {
 
     await workflow.getByRole('button', { name: '기준점 추가 종료', exact: true }).click();
     await expect(page.locator('#map')).not.toHaveClass(/is-reference-gcp-mode/);
-    await expect(workflow).toBeHidden();
+    // The shared mobile footer also owns the idle line-refine/Live-Wire buttons.
+    // Ending GCP editing removes only its workflow, without removing those tools.
+    if (viewport.mobile) await expect(workflow.locator('[data-ref-workflow-actions]')).toBeHidden();
+    else await expect(workflow).toBeHidden();
     await expect(panel).toBeVisible();
     expect(await readReferenceSnapshot(page)).toEqual(before);
     await testInfo.attach('browser-errors', { body: JSON.stringify(errors, null, 2), contentType: 'application/json' });

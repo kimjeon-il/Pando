@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "tesseractVersion": "7.0.0",
+  "tesseractPatch": "raw-worker-lifecycle-v1",
+  "onnxVersion": "1.30.0",
+  "files": {
+    "tesseract.mjs": {
+      "sha256": "c9eab2009f04169b405bdec2f7abf654ac4f0912eab5e7f3e08c5c3887271e6c",
+      "bytes": 63246
+    },
+    "worker.min.js": {
+      "sha256": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
+      "bytes": 111307
+    },
+    "TESSERACT-LICENSE": {
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+      "bytes": 11357
+    },
+    "WORKER-LICENSE": {
+      "sha256": "45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac",
+      "bytes": 466
+    },
+    "core/tesseract-core-lstm.wasm": {
+      "sha256": "66b17df6e20c5329a17ffa9c202a47eaa3e32500b253d4c7f38e7f2bc01457c3",
+      "bytes": 2855361
+    },
+    "core/tesseract-core-lstm.wasm.js": {
+      "sha256": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680",
+      "bytes": 3896484
+    },
+    "core/tesseract-core-relaxedsimd-lstm.wasm": {
+      "sha256": "7985c92d4c64e7267d24cadffe1b2a1da6bf8aa55fdcaf953fe94fe122a24545",
+      "bytes": 2862266
+    },
+    "core/tesseract-core-relaxedsimd-lstm.wasm.js": {
+      "sha256": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3",
+      "bytes": 3905767
+    },
+    "core/tesseract-core-relaxedsimd.wasm": {
+      "sha256": "45f8c9b516df326b6ae6b493ed3a6289df5cbd10490e7b6ff8bf5b12ea42d1da",
+      "bytes": 3456075
+    },
+    "core/tesseract-core-relaxedsimd.wasm.js": {
+      "sha256": "843074aa5bad1cc6421b74a86201768ced9f244795e4d81435435a61a40ce535",
+      "bytes": 4697227
+    },
+    "core/tesseract-core-simd-lstm.wasm": {
+      "sha256": "34e8d50cac216427d86bf397d610fdd9f49492539bbcdfbfccc4eda20c810bea",
+      "bytes": 2857601
+    },
+    "core/tesseract-core-simd-lstm.wasm.js": {
+      "sha256": "c58b46a4c796c0b8afccf77591d5b875b6896b45d402bbce8caa6f5362447b38",
+      "bytes": 3899472
+    },
+    "core/tesseract-core-simd.wasm": {
+      "sha256": "7d237a13edfeb0fa2f104744fccde0a00e0c076c3e23b7a8fc7af75ec9af2c3e",
+      "bytes": 3451410
+    },
+    "core/tesseract-core-simd.wasm.js": {
+      "sha256": "6b61ef4e911b5cf57e656bbfe983d6e2b3711a02dd164154ddda064566e8e09d",
+      "bytes": 4690932
+    },
+    "core/tesseract-core.wasm": {
+      "sha256": "c7f5ace62ac0ad065e71e9c6725f1d7cdf82e7eda8fba532cbb9563964da7098",
+      "bytes": 3449168
+    },
+    "core/tesseract-core.wasm.js": {
+      "sha256": "0bc6ce3e5fbbd0cd89706cf2fd70960e3372f4f01ee24265b26990808aaeb286",
+      "bytes": 4687944
+    },
+    "ort.wasm.min.mjs": {
+      "sha256": "219e6a1fc8a9938268d18efca3c91d310bd2f4a59bbd13744df5b2b7fc6cee3b",
+      "bytes": 50126
+    },
+    "ort-wasm-simd-threaded.mjs": {
+      "sha256": "e13f7f94fc51b4ca72b12faeb1ee95f4ace6dfbc8939bc718aabdc0a27c4299b",
+      "bytes": 24381
+    },
+    "ort-wasm-simd-threaded.wasm": {
+      "sha256": "3398c10d07d229bd91b364548e130e0e51a8e5704b88c7c083ebbeb78842dee2",
+      "bytes": 14239897
+    },
+    "ONNX-LICENSE": {
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c",
+      "bytes": 1073
+    },
+    "TESSDATA-LICENSE": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    }
+  },
+  "languages": {
+    "osd": {
+      "url": "osd.traineddata.gz",
+      "sha256": "3d1e7ee45c0b3d4fcd9929c58d6824e19df6816f7f38b4867466fabb9ca86242",
+      "bytes": 4389383
+    },
+    "eng": {
+      "url": "eng.traineddata.gz",
+      "sha256": "22d975baf864a9d30757dccd47020e08c433ba4b2324d1edbfc645df996a15be",
+      "bytes": 1975928
+    },
+    "deu": {
+      "url": "deu.traineddata.gz",
+      "sha256": "f5bb2017edf9026b96f6eaf19520051bdd7527041b5cde7744c82c43b31dd13e",
+      "bytes": 850275
+    },
+    "deu_latf": {
+      "url": "deu_latf.traineddata.gz",
+      "sha256": "9023873bcbb2e857105881c1af1c7a2e0e7910d372d1da64fb9a09712ad52507",
+      "bytes": 3362881
+    },
+    "lat": {
+      "url": "lat.traineddata.gz",
+      "sha256": "9bbb1795de99c4470bab48bf6833839f4c1a77c06c52f716efaefef1658b925e",
+      "bytes": 1740512
+    },
+    "fra": {
+      "url": "fra.traineddata.gz",
+      "sha256": "7ffcc7f3f5e213a8b0ce4f8c9c071b02fb208968e309a9e2148a2c123f73f40d",
+      "bytes": 606045
+    },
+    "spa": {
+      "url": "spa.traineddata.gz",
+      "sha256": "bd43c7cbe66a5afbbb4bfbc2fbf935c2f0ae4e959e730c5451ea4714e134b22f",
+      "bytes": 1131358
+    },
+    "ita": {
+      "url": "ita.traineddata.gz",
+      "sha256": "4427d122120e73bbe6a2b44992a09f39359153156007d9f3aef2b1dec77f1264",
+      "bytes": 1278441
+    },
+    "por": {
+      "url": "por.traineddata.gz",
+      "sha256": "e12ae528b1d8f9dee42b6d3960a40a49d30d1531986b2d7fef1e30265d284c99",
+      "bytes": 1002885
+    },
+    "nld": {
+      "url": "nld.traineddata.gz",
+      "sha256": "b58efb7e66fe17702876e87ab0bdba052c141a7de13ecce58de56fcb08863959",
+      "bytes": 2993102
+    },
+    "kor": {
+      "url": "kor.traineddata.gz",
+      "sha256": "f55ac6ea99134f7a83b65bc6b6e502c86c7c4c1dd5b1abed432fdc7213efc861",
+      "bytes": 1110950
+    },
+    "kor_vert": {
+      "url": "kor_vert.traineddata.gz",
+      "sha256": "fca955c3007f5f56d304a8203e91648042bfe5de6550e98dc7fe8f92129fbdd7",
+      "bytes": 606526
+    },
+    "chi_tra": {
+      "url": "chi_tra.traineddata.gz",
+      "sha256": "324872e939384374d46d9d878434810796312891bd0c2af89c8ab96d43d954e1",
+      "bytes": 1667801
+    },
+    "chi_sim": {
+      "url": "chi_sim.traineddata.gz",
+      "sha256": "4e4c7a1b5e40754b8a3198ecce8dcf6800926b481380795710ecab5675f89fef",
+      "bytes": 1727794
+    },
+    "jpn": {
+      "url": "jpn.traineddata.gz",
+      "sha256": "3f4d53cd4c1a0ad6cbcf61cd2402b264005e99834ac0b36ab38b89eb21b54f5f",
+      "bytes": 1531260
+    },
+    "chi_tra_vert": {
+      "url": "chi_tra_vert.traineddata.gz",
+      "sha256": "3a858bdc47ead000364a147914bc477784b24988056b5baaf7b133de10181893",
+      "bytes": 1174205
+    },
+    "chi_sim_vert": {
+      "url": "chi_sim_vert.traineddata.gz",
+      "sha256": "7730d4558c945a1cc92559dc720d075c0b98d7c7972623ea974ede89d890d322",
+      "bytes": 1227512
+    },
+    "jpn_vert": {
+      "url": "jpn_vert.traineddata.gz",
+      "sha256": "39b44fda8ab0507604d27b23711ae8adf1d57942e286dea53ecbe8d8c082dd13",
+      "bytes": 2027419
+    },
+    "ara": {
+      "url": "ara.traineddata.gz",
+      "sha256": "2a9d48a9ce1aad845139dcf6d4b86ba44d0d024cc2658bb8f485a09148c173b7",
+      "bytes": 721935
+    },
+    "fas": {
+      "url": "fas.traineddata.gz",
+      "sha256": "0dc71e4e080ee0e8016322b6bf4494e036b8361a0593b5e1cf8426f5d6ab29ac",
+      "bytes": 310172
+    },
+    "urd": {
+      "url": "urd.traineddata.gz",
+      "sha256": "0f5b7edd256ae5b8fcdb0df5ef42c8ed85e3c11f7eed3d2579b65783b14ed67a",
+      "bytes": 1032893
+    },
+    "ell": {
+      "url": "ell.traineddata.gz",
+      "sha256": "f4e66eb102b49af9ab6687a1e4422914d2bcf4e8eb9a1c4ac16187dbc627c711",
+      "bytes": 701853
+    },
+    "grc": {
+      "url": "grc.traineddata.gz",
+      "sha256": "ee43a8e621738042de853178198617d5fc1980706c7d311f5161314e9bd63f1a",
+      "bytes": 1093444
+    },
+    "rus": {
+      "url": "rus.traineddata.gz",
+      "sha256": "e14eb884d1255c661adf5786929901f8e483d23b85bb6fc3475bbe07290eede7",
+      "bytes": 1608780
+    },
+    "ukr": {
+      "url": "ukr.traineddata.gz",
+      "sha256": "4c4e0c04e71e004491abd3e9f8376fe76a52bcf12a0a10f0bfd7d0b7387b20b6",
+      "bytes": 1622215
+    },
+    "heb": {
+      "url": "heb.traineddata.gz",
+      "sha256": "4dd227664fa0cd14e3427c8884be3212bc542dc8b611f7d8d17905ca78da48fa",
+      "bytes": 480496
+    },
+    "hye": {
+      "url": "hye.traineddata.gz",
+      "sha256": "bcf59a90a9cb4ea11efa4540fed7f1a218281972873ac0cc37aa2dda487d4d58",
+      "bytes": 1493565
+    },
+    "kat": {
+      "url": "kat.traineddata.gz",
+      "sha256": "0cdbbd635e1502ce975406c602f3bad56d6751130545f3a15c32908f2810777f",
+      "bytes": 1084115
+    },
+    "hin": {
+      "url": "hin.traineddata.gz",
+      "sha256": "abdc590d1964261361b999fbe75c196eaae423115de20514b495aca026924746",
+      "bytes": 921573
+    },
+    "ben": {
+      "url": "ben.traineddata.gz",
+      "sha256": "93d413a6b7213752b3c603e0109b9c5fb7c41fbab0e263272312a95df3e838f1",
+      "bytes": 549750
+    }
+  },
+  "tessdataRevision": "87416418657359cb625c412a48b6e1d6d41c29bd"
+}

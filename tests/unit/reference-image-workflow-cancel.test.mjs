@@ -78,6 +78,10 @@ async function controllerHarness() {
       referenceImageMappingSignature: record => JSON.stringify(record.controlPoints),
       serializeReferenceImageRecord: record => record,
     },
+    './reference-image-source.js': {
+      decodeReferenceImageSource: async () => ({ image: { naturalWidth: 200, naturalHeight: 100 }, url: '' }),
+      referenceImageSourceHash: async () => 'fixture-source',
+    },
     './reference-image-renderer.js': {
       createReferenceImageCanvasRenderer: options => {
         state.getRecords = options.getRecords;
@@ -89,13 +93,36 @@ async function controllerHarness() {
       referenceImageNavigationHeld: () => false,
       registerReferenceImageInput: options => { state.input = options; return () => {}; },
     },
-    './reference-image-auto-georef.js': {
-      buildReferenceImagePlaceSeeds: () => matches,
-      buildReferenceImagePlaceSymbolCandidates: () => ({ candidates: matches, misses: [] }),
-      createReferenceImagePointRaster: () => ({ width: 1000, height: 500 }),
-      findReferenceImagePointSymbolNearTextBox: () => null,
+    './reference-image-analysis-client.js': {
+      createReferenceAnalysisClient: () => ({ cancel() {}, dispose() {} }),
+    },
+    './reference-image-analysis.js': {
+      createReferenceImageAnalysisService: () => ({
+        analyzeGeoreference: async () => {
+          await new Promise(resolve => deferred.push(resolve));
+          return { ok: true, matching: { matches }, georef: { inlierIds: matches.map(row => row.id) } };
+        },
+        analyzeLayout: async () => {
+          await new Promise(resolve => deferred.push(resolve));
+          return { panels: state.layoutPanels || [{ id: 'panel-main', kind: 'main', sourceRect: { x: 10, y: 5, width: 100, height: 80 } },
+            { id: 'panel-inset', kind: 'inset', sourceRect: { x: 120, y: 10, width: 60, height: 50 } }] };
+        },
+        applyExtractedFeatures: async (_record, _analysis, ids) => {
+          state.appliedIds = ids;
+          if (state.holdApply) await new Promise(resolve => deferred.push(resolve));
+          return ids;
+        },
+        editBoundaries: async (_record, analysis, command) => {
+          state.commands = [...(state.commands || []), command];
+          if (state.holdEdit) await new Promise(resolve => deferred.push(resolve));
+          return { ...analysis, graph: { ...analysis.graph, edited: true }, edits: [...(analysis.edits || []), command] };
+        },
+        assertCurrent() {},
+      }),
     },
     './reference-image-store.js': {
+      markReferenceImageCollectionChanged() {},
+      registerReferenceImageCollection: owner => { state.collection = owner; return () => {}; },
       listStoredReferenceImages: async () => ['ref-a', 'ref-b'].map(id => ({
         id, name: id, mapQuad, blob: new Blob(['image'], { type: 'image/png' }),
       })),
@@ -106,8 +133,8 @@ async function controllerHarness() {
       createReferenceImagePanel: () => panel,
       referenceImageEditorMarkup: options => { state.options = options; return ''; },
       renderReferenceImageList() {},
-      referenceImageWorkflow: ({ record }) => record.autoGeorefBusy || record.autoGeorefPreview
-        ? { id: 'auto', title: '자동 맞춤', steps: ['분석', '결과 확인'], step: record.autoGeorefBusy ? 0 : 1, instruction: '확인하세요.', actions: [] }
+      referenceImageWorkflow: ({ record }) => record.analysis?.busy || record.analysis?.georef
+        ? { id: 'auto', title: '자동 맞춤', steps: ['분석', '결과 확인'], step: record.analysis?.busy ? 0 : 1, instruction: '확인하세요.', actions: [] }
         : null,
     },
     './reference-image-surface.js': {
@@ -140,19 +167,26 @@ async function controllerHarness() {
   finally { hooks.deregister(); delete globalThis[key]; }
   const api = module.installReferenceImageController({
     workspaceSurfaces: {}, confirm: async () => false,
-    preparePlaces: () => new Promise(resolve => deferred.push(resolve)),
-    getPlaces: () => matches,
+    isBlocked: () => state.blocked === true,
+    startBoundaryTrace: async (_id, target) => { state.traceTarget = target; state.surfaceOptions.onAuxiliaryEditingStart();return true; },
   });
   await settle();
   api.open();
   state.records = state.getRecords();
-  const click = async action => {
-    const button = { disabled: false, dataset: { refAction: action } };
+  const click = async (action, attributes = {}) => {
+    const button = { disabled: false, dataset: { refAction: action, ...attributes } };
     panel.listeners.get('click')({ target: { closest: selector => selector === '[data-ref-action]' ? button : null } });
     await settle();
   };
   return {
     ...state, api, click, deferred,
+    appliedIds: () => state.appliedIds,
+    commands: () => state.commands || [],
+    traceTarget: () => state.traceTarget,
+    holdEdit: () => { state.holdEdit = true; },
+    holdApply: () => { state.holdApply = true; },
+    block: () => { state.blocked = true; },
+    layoutPanels: panels => { state.layoutPanels = panels; },
     get record() { return state.options.record; },
     select(id) {
       panel.listeners.get('click')({ target: { closest: selector => selector === '[data-reference-image-id]'
@@ -194,14 +228,14 @@ test('cancelling or leaving automatic analysis cannot restore a late result', as
       try {
         await harness.click('auto-georef');
         const record = harness.record;
-        assert.equal(record.autoGeorefBusy, true);
+        assert.equal(record.analysis?.busy, true);
         assert.equal(harness.deferred.length, 1);
         await cancel(harness);
-        assert.equal(record.autoGeorefBusy, false, 'leaving analysis clears its busy state');
+        assert.equal(!!record.analysis?.busy, false, 'leaving analysis clears its busy state');
         harness.deferred[0]();
         await settle();
-        assert.equal(record.autoGeorefBusy, false);
-        assert.equal(record.autoGeorefPreview, null, 'cancelled analysis does not restore a result');
+        assert.equal(!!record.analysis?.busy, false);
+        assert.equal(record.analysis, null, 'cancelled analysis does not restore a result');
         assert.equal(record.controlPoints.length, 0, 'analysis cancellation does not apply calibration');
       } finally {
         for (const resolve of harness.deferred) resolve();
@@ -212,23 +246,173 @@ test('cancelling or leaving automatic analysis cannot restore a late result', as
   }
 });
 
+test('project-owned image adoption remains available while user editing is blocked for replacement', async () => {
+  const harness = await controllerHarness();
+  try {
+    const original = await harness.collection.capture();
+    harness.block();
+    await harness.collection.replace([]);
+    assert.equal(harness.api.list().length, 0);
+    await harness.collection.replace(original);
+    assert.equal(harness.api.list().length, 2);
+  } finally { harness.dispose(); }
+});
+
+test('layout review creates a separate shared-source crop and undo restores the original collection', async () => {
+  const harness = await controllerHarness();
+  try {
+    const original = harness.record;
+    original.controlPoints = [{ id: 'manual', image: [0.5, 0.5], coordinate: [10, 5] }];
+    await harness.click('analyze-layout');
+    assert.equal(original.analysis?.stage, 'layout');
+    harness.deferred[0](); await settle();
+    assert.equal(original.analysis.layout.panels.length, 2);
+    await harness.click('use-layout-panel', { panelId: 'panel-inset' });
+    const crop = harness.record;
+    assert.notEqual(crop.id, original.id);
+    assert.equal(crop.blob, original.blob);
+    assert.deepEqual(crop.sourceRect, { x: 120, y: 10, width: 60, height: 50 });
+    assert.deepEqual(crop.controlPoints, []);
+    assert.equal(original.controlPoints.length, 1, 'manual calibration stays on the original');
+    assert.equal(harness.api.list().length, 3);
+    await harness.click('cancel-auto-georef');
+    await harness.click('undo');
+    assert.equal(harness.api.list().length, 2);
+    assert.equal(harness.api.list().find(row => row.id === original.id).controlPointCount, 1);
+  } finally {
+    for (const resolve of harness.deferred) resolve();
+    await settle(); harness.dispose();
+  }
+});
+
+test('late layout results do not create crop records after selection changes', async () => {
+  const harness = await controllerHarness();
+  try {
+    const original = harness.record;
+    await harness.click('auto-analysis');
+    assert.equal(original.analysis.stage, 'layout');
+    harness.select('ref-a');
+    harness.deferred[0](); await settle();
+    assert.equal(original.analysis, null);
+    assert.equal(harness.api.list().length, 2);
+  } finally { harness.dispose(); }
+});
+
+test('automatic analysis continues through one clear main frame without requesting a panel choice', async () => {
+  const harness = await controllerHarness();
+  try {
+    const original = harness.record;
+    harness.layoutPanels([{ id: 'main-only', kind: 'main', requiresReview: false, sourceRect: { x: 5, y: 5, width: 190, height: 90 } }]);
+    await harness.click('auto-analysis');harness.deferred[0]();await settle();
+    assert.notEqual(harness.record.id, original.id);
+    assert.equal(original.visible, false);
+    assert.equal(harness.record.analysis.stage, 'georef');
+    assert.equal(harness.record.analysis.extractAfter, true);
+    assert.equal(harness.deferred.length, 2);
+  } finally { for (const resolve of harness.deferred) resolve();await settle();harness.dispose(); }
+});
+
+test('location choice and selected boundary import keep their review state until dispatch', async () => {
+  const harness = await controllerHarness();
+  try {
+    const choice = { ok: true, georef: { inlierIds: ['chosen'] } };
+    harness.record.analysis = { georef: { ok: true, requiresLocationChoice: true, locations: [choice] } };
+    // Missing index must not accidentally accept a region.
+    await harness.click('choose-location');
+    assert.equal(harness.record.analysis.georef.requiresLocationChoice, true);
+    await harness.click('choose-location', { location: '0' });
+    assert.equal(harness.record.analysis.georef, choice);
+    harness.record.analysis = { reviewing: true, boundaries: { graph: {} }, selectedIds: new Set(['line:0']) };
+    await harness.click('apply-boundaries');
+    assert.deepEqual(harness.appliedIds(), ['line:0']);
+    assert.equal(harness.record.analysis.reviewing, false);
+  } finally { harness.dispose(); }
+});
+
 test('undo restores visibility without restoring cancelled automatic analysis', async () => {
   const harness = await controllerHarness();
   try {
     await harness.click('auto-georef');
-    assert.equal(harness.record.autoGeorefBusy, true);
+    assert.equal(harness.record.analysis?.busy, true);
     harness.setVisible(false);
     assert.equal(harness.record.visible, false);
     await harness.click('cancel-auto-georef');
     await harness.click('undo');
     assert.equal(harness.record.visible, true);
-    assert.equal(harness.record.autoGeorefBusy, false);
-    assert.equal(harness.record.autoGeorefPreview, null);
+    assert.equal(!!harness.record.analysis?.busy, false);
+    assert.equal(harness.record.analysis, null);
     assert.deepEqual(harness.record.controlPoints, []);
   } finally {
     for (const resolve of harness.deferred) resolve();
     await settle();
     harness.dispose();
+  }
+});
+
+test('boundary review dispatches edits, preserves review during retrace, and owns its undo history', async () => {
+  const harness = await controllerHarness();
+  try {
+    const original = { graph: { width: 100, height: 100, chains: [{ id: 0, points: [[1, 2], [8, 9]] }, { id: 1, points: [[4, 5], [8, 9]] }] } };
+    const review = { reviewing: true, boundaries: original, selectedIds: new Set(['line:0']), graphHistory: { past: [], future: [] } };
+    harness.record.analysis = review;
+    await harness.click('boundary-exclude', { chainId: '0' });
+    assert.equal(harness.record.analysis, review);
+    assert.deepEqual(harness.commands().at(-1), { type: 'exclude', chainId: 0 });
+    assert.equal(review.selectedIds.size, 0);
+    await harness.click('boundary-undo');
+    assert.equal(review.boundaries, original);
+    await harness.click('boundary-redo');
+    assert.equal(review.boundaries.graph.edited, true);
+    await harness.click('boundary-cut', { chainId: '1' });
+    assert.equal(harness.input.active(), true);
+    harness.input.begin([3, 4], { button: 0 }).end([3, 4]);
+    await settle();
+    assert.deepEqual(harness.commands().at(-1), { type: 'cut', chainId: 1, point: [24.75, 49.5] });
+    await harness.click('boundary-endpoint', { chainId: '0', end: 'end' });
+    await harness.click('boundary-endpoint', { chainId: '1', end: 'start' });
+    assert.deepEqual(harness.commands().at(-1), { type: 'join', from: { chainId: 0, end: 'end' }, to: { chainId: 1, end: 'start' } });
+    await harness.click('boundary-retrace', { chainId: '0' });
+    assert.equal(harness.record.analysis, review, 'auxiliary trace start must keep its owning boundary review');
+    assert.equal(review.editingChainId, 0);
+    assert.equal(await harness.traceTarget().onApply([[1, 2], [4, 6], [8, 9]]), true);
+    assert.equal(harness.commands().at(-1).type, 'replace');
+    harness.traceTarget().onClose();
+    assert.equal(review.editingChainId, null);
+  } finally { harness.dispose(); }
+});
+
+test('a late boundary graph edit cannot restore cancelled review', async () => {
+  const harness = await controllerHarness();
+  try {
+    harness.record.analysis = { reviewing: true, boundaries: { graph: { chains: [{ id: 0 }] } }, selectedIds: new Set(), graphHistory: { past: [], future: [] } };
+    harness.holdEdit();
+    await harness.click('boundary-exclude', { chainId: '0' });
+    assert.equal(harness.record.analysis.busy, true);
+    await harness.click('cancel-boundaries');
+    harness.deferred[0]();
+    await settle();
+    assert.equal(harness.record.analysis.reviewing, false);
+    assert.equal(harness.record.analysis.boundaries.graph.edited, undefined);
+  } finally { harness.dispose(); }
+});
+
+test('a late generic import acknowledgement cannot cancel a newer analysis workflow', async () => {
+  const harness = await controllerHarness();
+  try {
+    harness.record.analysis = { reviewing: true, boundaries: { graph: {} }, selectedIds: new Set(['line:0']) };
+    harness.holdApply();
+    await harness.click('apply-boundaries');
+    assert.equal(harness.record.analysis.stage, 'apply');
+    await harness.click('gcp');
+    await harness.click('auto-georef');
+    const newer = harness.record.analysis;
+    assert.equal(newer.busy, true);
+    harness.deferred[0]();
+    await settle();
+    assert.equal(harness.record.analysis, newer);
+    assert.equal(newer.busy, true);
+  } finally {
+    for (const resolve of harness.deferred) resolve();await settle();harness.dispose();
   }
 });
 

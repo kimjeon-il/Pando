@@ -6,6 +6,7 @@ import {
   referenceImagePlacementPointAtUv,
   referenceImagePlacementUvAtPoint,
 } from './reference-image-transform.js';
+import { referenceImageMappingSignature } from './reference-image-model.js';
 
 const HOST_ACTIVE_POLL_MS = 34;
 const HOST_IDLE_POLL_MS = 240;
@@ -115,8 +116,8 @@ export function createReferenceImageCanvasRenderer({
 
   function drawTriangle(record, destination, uv, dpr) {
     const source = uv.map(pair => [
-      pair[0] * record.image.naturalWidth,
-      pair[1] * record.image.naturalHeight,
+      pair[0] * (record.image.naturalWidth || record.image.width),
+      pair[1] * (record.image.naturalHeight || record.image.height),
     ]);
     const transform = affineForTriangles(source, destination);
     if (!transform) return;
@@ -337,6 +338,49 @@ export function createReferenceImageCanvasRenderer({
     context.restore();
   }
 
+  function drawBoundaryReview(record, host, dpr) {
+    const review = record.analysis;
+    if (!record.visible || !record.warp?.ok || !review?.reviewing || isPanelHidden?.()
+      || review.boundaries.snapshot.baseMappingSignature !== referenceImageMappingSignature(record)) return;
+    const graph = review.boundaries.graph;
+    const screen = pixel => {
+      const coordinate = record.warp.project([pixel[0] / (graph.width - 1), pixel[1] / (graph.height - 1)]);
+      return coordinate ? projectVisible(host, coordinate) : null;
+    };
+    const path = pixels => {
+      let previous = null, complete = true;
+      for (const pixel of pixels) {
+        const point = screen(pixel);
+        if (!point) { previous = null; complete = false; continue; }
+        if (!previous || Math.abs(point[0] - previous[0]) > canvas.width / dpr / 2) { context.moveTo(...point); if (previous) complete = false; }
+        else context.lineTo(...point);
+        previous = point;
+      }
+      return complete;
+    };
+    context.save(); context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    for (const face of graph.faces) {
+      if (!review.selectedIds.has('face:' + face.id)) continue;
+      context.beginPath();
+      let complete = path(face.ring);
+      for (const hole of face.holes) complete = path(hole) && complete;
+      if (complete) { context.fillStyle = 'rgba(226,106,68,.2)'; context.fill('evenodd'); }
+    }
+    for (const chain of graph.chains) {
+      if (review.editingChainId === chain.id) continue;
+      context.beginPath(); path(chain.points);
+      context.lineWidth = review.selectedIds.has('line:' + chain.id) || review.pointAction?.chainId === chain.id || review.connectFrom?.chainId === chain.id ? 3.5 : 1.5;
+      context.strokeStyle = chain.semanticBits & 1 ? '#f87171' : chain.semanticBits & 2 ? '#fbbf24' : '#38bdf8';
+      context.stroke();
+    }
+    context.fillStyle = '#e879f9';
+    for (const unresolved of graph.unresolved) {
+      const point = screen(unresolved.point);
+      if (point) { context.beginPath(); context.arc(...point, 4, 0, Math.PI * 2); context.fill(); }
+    }
+    context.restore();
+  }
+
   function render() {
     const dpr = resizeCanvas();
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -352,6 +396,7 @@ export function createReferenceImageCanvasRenderer({
     if (host && selected) drawFreeTransformHandles(selected, host, dpr);
     if (host && selected) drawAnchor(selected, host, dpr);
     if (host && selected) drawControlPoints(selected, host, dpr);
+    if (host && selected) drawBoundaryReview(selected, host, dpr);
     if (host) drawLinearDraft(host, dpr);
   }
 
