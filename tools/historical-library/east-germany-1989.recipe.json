@@ -75,6 +75,32 @@
       "crs": "EPSG:4326",
       "sha256": "FB6B6E2F75E5D5D65943C95BB398045E3471BF4288260CF3E5868724FB1E0AB5",
       "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0"
+    },
+    "beforeAllRemainingSupplement": {
+      "path": "tools/historical-library/sources/east-germany/ddr-before-all-remaining-vg25.geojson",
+      "crs": "EPSG:4326",
+      "sha256": "F6BF09C75A1F03136E24568B1381EB3E433AE59146F8340EC1B69F5EB32DEE7D",
+      "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0"
+    },
+    "beforeApprovedMapPhase": {
+      "path": "tools/historical-library/sources/east-germany/ddr-before-approved-map-phase.geojson",
+      "crs": "EPSG:4326",
+      "sha256": "8830B9B101479DC29CCD1E91B39E915B4EB558E6FA75910501B2C8CB05338D22",
+      "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0"
+    },
+    "mapElbeNeuhaus": {
+      "path": "tools/historical-library/sources/east-germany/tk25as-elbe-neuhaus-printed-claim-reference.geojson",
+      "crs": "EPSG:4326",
+      "sha256": "25DA369104B50743E3827C39B5FA12079B14B40F81371663B369798971D4F341",
+      "license": "LAiV WMS internal local research; external reuse of derived vectors unresolved. No external publication authorized.",
+      "url": "https://www.geodaten-mv.de/dienste/tk25as_laiv_wms?SERVICE=WMS&VERSION=1.1.1&SRS=EPSG%3A25832&BBOX=610981%2C5891197%2C640981%2C5921197&WIDTH=2400&HEIGHT=2400&STYLES=&LAYERS=mv_tk25as&REQUEST=GetMap&FORMAT=image%2Fpng"
+    },
+    "mapElbeSchnackenburg": {
+      "path": "tools/historical-library/sources/east-germany/tk25as-elbe-schnackenburg-printed-claim-reference.geojson",
+      "crs": "EPSG:4326",
+      "sha256": "6BF33B5A10B6BA0403ECDEA6D9503B5BC3560E93F0516B4EE2FE7E029393DEE9",
+      "license": "LAiV WMS internal local research; external reuse of derived vectors unresolved. No external publication authorized.",
+      "url": "https://www.geodaten-mv.de/dienste/tk25as_laiv_wms?SERVICE=WMS&VERSION=1.1.1&SRS=EPSG%3A25832&BBOX=657298%2C5864809%2C687298%2C5894809&WIDTH=2400&HEIGHT=2400&STYLES=&LAYERS=mv_tk25as&REQUEST=GetMap&FORMAT=image%2Fpng"
     }
   },
   "operations": [
@@ -305,6 +331,160 @@
           "basis": "Kiekbuschwiesen former border ditch and Mechower See western bank only. GRENZHUS 2023 PDF p.8 identifies the early1980s boundary ditch; GRENZHUS 2024 PDF p.8 explicitly places the lake in the DDR and describes the1973 commission. The Schaalsee-Elbe reserve authority identifies the entire western bank as the present SH boundary. Kreis Lauenburg corroborates boundary continuity. The user-approved TK25AS georeferencing was reviewed to distinguish the numbered political boundary from the inner patrol road. Reuse CC-BY4.0 VG25, not digitized provider pixels. Exact1989 revision day/georeferencing residual unmeasured; provisional.",
           "evidence": "https://www.grenzhus.de/wp-content/uploads/2025/01/Newsletter-2024_final.pdf",
           "corroboration": "https://www.schaalsee.de/schuetzen-entwickeln/naturschutz/naturschutzgebiete/mechower-see"
+        },
+        {
+          "id": "vg25-wakenitz-palingen-remaining",
+          "bounds": [
+            10.62,
+            53.795,
+            10.83,
+            53.88
+          ],
+          "basis": "Wakenitz east-bank and Palinger Heide remaining interval; approved30km provider georeferencing used for visual comparison; exact sheet revision and independent residual unmeasured. Grenzhus directly describes the former Wakenitz border south of Herrnburg. Trave/coast excluded. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://www.grenzhus.de/wakenitz-und-trave/"
+        },
+        {
+          "id": "vg25-schaalsee-northern-remaining",
+          "bounds": [
+            10.82,
+            53.645,
+            11.01,
+            53.72
+          ],
+          "basis": "Remaining northern Schaalsee-project interval around Mustin, excluding the previously reviewed Mechower/Ratzeburg area to the west. Kreis continuity and1990 ordinance western state-border description; approved30km map reviewed for political-boundary vs shoreline/road distinction. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://www.kreis-rz.de/Adressen/Zweckverband-Schaalsee-Landschaft-.php?ModID=9&FID=327.1042.1"
+        },
+        {
+          "id": "vg25-gudow-lauenburg-land",
+          "bounds": [
+            10.82,
+            53.49,
+            10.99,
+            53.575
+          ],
+          "basis": "Restricted land south of the Schaalsee lake window toward Gudow; not the Delvenau bank or Neuhaus/Elbe. Kreis continuity and1990Schaalsee western state-border description. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://www.gesetze-im-internet.de/natpschaalseev/DDNR514770990.html"
+        },
+        {
+          "id": "vg25-altmark-diesdorf-land",
+          "bounds": [
+            10.65,
+            52.71,
+            11.03,
+            52.815
+          ],
+          "basis": "Restricted Diesdorf-area fixed land interval; main Dumme/Harper Muehlenbach, Ohre and Elbe corridors excluded. Regional history corroborates former state-boundary continuity. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://www.landtag.sachsen-anhalt.de/2019/erinnerungen-an-opfer-des-ddr-grenzregimes"
+        },
+        {
+          "id": "vg25-altmark-stresow-land",
+          "bounds": [
+            11.27,
+            52.94,
+            11.6,
+            53.005
+          ],
+          "basis": "Restricted land south of Stresow/Schnackenburg; cut south of the Aland/Elbe junction. Municipality explicitly identifies former inter-German and present state boundary. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://www.seehausen-altmark.de/familie-freizeit/kultur-tourismus/aktivitaeten-ausflugsziele/denkmaeler-gedenkstaetten/gedenkstaette-stresow/"
+        },
+        {
+          "id": "vg25-helmstedt-lappwald-land",
+          "bounds": [
+            10.75,
+            52.09,
+            11.17,
+            52.335
+          ],
+          "basis": "Helmstedt/Lappwald fixed surveyed land interval; cutoff south of the Droemling/Ohre corridor. LGLN2010 describes boundary-cadastral work; no mobile-river reconstruction from current coordinates. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf"
+        },
+        {
+          "id": "vg25-ecker-lower-foothills",
+          "bounds": [
+            10.5,
+            51.895,
+            10.78,
+            51.985
+          ],
+          "basis": "Lower Ecker to Harz foothills, extending the already documented Ecker interval. Nationalpark Harz explicitly identifies Ecker from source to foothills as current and former inter-German boundary. Warme Bode excluded. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://www.nationalpark-harz.de/de/downloads/schriftenreihe/Band10_Gewaesser-im-NLP-Harz.pdf"
+        },
+        {
+          "id": "vg25-suedharz-ellrich-land",
+          "bounds": [
+            10.3,
+            51.575,
+            10.68,
+            51.695
+          ],
+          "basis": "Southern Harz/Ellrich fixed-land interval, cut south of Warme Bode dispute and north of Wendebach. Joint-survey records and Niedersachsen boundary administration corroborate continuity; local water exceptions require separate screening. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf"
+        },
+        {
+          "id": "vg25-rhon-point-alpha-land",
+          "bounds": [
+            9.78,
+            50.39,
+            10.25,
+            50.74
+          ],
+          "basis": "Rhon/Point Alpha fixed land interval connecting accepted Geismar and Bavarian windows; cut south of Werra corridor. Hessen archive1834 boundary continuity and Bavarian surveying authority1973-marker continuity independently corroborate. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+          "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+          "corroboration": "https://landesarchiv.hessen.de/sites/landesarchiv.hessen.de/files/2022-12/archivnachrichten_7_1_juni_2007_internet_col.pdf"
+        },
+        {
+          "id": "vg25-delvenau-approved-map",
+          "bounds": [
+            10.75,
+            53.45,
+            10.99,
+            53.59
+          ],
+          "basis": "User-approved LAiV TK25AS content1989/publication1991 overlay corroborates fixed political line in covered Delvenau/Segrahner Forst interval; pinned VG25 coordinates reused, no raster-derived coordinates here. Independent exact-date positional accuracy unmeasured."
+        }
+      ]
+    },
+    {
+      "id": "tk25as-elbe-neuhaus-printed-claim-op",
+      "operation": "boundary-supplement",
+      "input": "gdr-vg25-inter-german",
+      "referenceSource": "mapElbeNeuhaus",
+      "sections": [
+        {
+          "id": "tk25as-elbe-neuhaus-printed-claim",
+          "bounds": [
+            10.729910812084295,
+            53.25800456528921,
+            10.82469624859888,
+            53.30156420254467
+          ],
+          "basis": "map-depicted late1980s DDR cartographic boundary; Elbe jurisdiction disputed, not bilateral delimitation; 1988/1989 content; exact1989-04-25 validity not independently established; no independent georeferencing residual or1989 positional accuracy pass. Production use in this local branch only; external-use terms unresolved."
+        }
+      ]
+    },
+    {
+      "id": "tk25as-elbe-schnackenburg-printed-claim-op",
+      "operation": "boundary-supplement",
+      "input": "tk25as-elbe-neuhaus-printed-claim-op",
+      "referenceSource": "mapElbeSchnackenburg",
+      "sections": [
+        {
+          "id": "tk25as-elbe-schnackenburg-printed-claim",
+          "bounds": [
+            11.534451753409602,
+            53.03136456110668,
+            11.62215714749881,
+            53.05599538567732
+          ],
+          "basis": "map-depicted late1980s DDR cartographic boundary; Elbe jurisdiction disputed, not bilateral delimitation; 1988/1989 content; exact1989-04-25 validity not independently established; no independent georeferencing residual or1989 positional accuracy pass. Production use in this local branch only; external-use terms unresolved."
         }
       ]
     }
@@ -532,16 +712,155 @@
         "basis": "Kiekbuschwiesen former border ditch and Mechower See western bank only. GRENZHUS 2023 PDF p.8 identifies the early1980s boundary ditch; GRENZHUS 2024 PDF p.8 explicitly places the lake in the DDR and describes the1973 commission. The Schaalsee-Elbe reserve authority identifies the entire western bank as the present SH boundary. Kreis Lauenburg corroborates boundary continuity. The user-approved TK25AS georeferencing was reviewed to distinguish the numbered political boundary from the inner patrol road. Reuse CC-BY4.0 VG25, not digitized provider pixels. Exact1989 revision day/georeferencing residual unmeasured; provisional.",
         "evidence": "https://www.grenzhus.de/wp-content/uploads/2025/01/Newsletter-2024_final.pdf",
         "corroboration": "https://www.schaalsee.de/schuetzen-entwickeln/naturschutz/naturschutzgebiete/mechower-see"
+      },
+      {
+        "id": "vg25-wakenitz-palingen-remaining",
+        "bounds": [
+          10.62,
+          53.795,
+          10.83,
+          53.88
+        ],
+        "basis": "Wakenitz east-bank and Palinger Heide remaining interval; approved30km provider georeferencing used for visual comparison; exact sheet revision and independent residual unmeasured. Grenzhus directly describes the former Wakenitz border south of Herrnburg. Trave/coast excluded. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://www.grenzhus.de/wakenitz-und-trave/"
+      },
+      {
+        "id": "vg25-schaalsee-northern-remaining",
+        "bounds": [
+          10.82,
+          53.645,
+          11.01,
+          53.72
+        ],
+        "basis": "Remaining northern Schaalsee-project interval around Mustin, excluding the previously reviewed Mechower/Ratzeburg area to the west. Kreis continuity and1990 ordinance western state-border description; approved30km map reviewed for political-boundary vs shoreline/road distinction. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://www.kreis-rz.de/Adressen/Zweckverband-Schaalsee-Landschaft-.php?ModID=9&FID=327.1042.1"
+      },
+      {
+        "id": "vg25-gudow-lauenburg-land",
+        "bounds": [
+          10.82,
+          53.49,
+          10.99,
+          53.575
+        ],
+        "basis": "Restricted land south of the Schaalsee lake window toward Gudow; not the Delvenau bank or Neuhaus/Elbe. Kreis continuity and1990Schaalsee western state-border description. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://www.gesetze-im-internet.de/natpschaalseev/DDNR514770990.html"
+      },
+      {
+        "id": "vg25-altmark-diesdorf-land",
+        "bounds": [
+          10.65,
+          52.71,
+          11.03,
+          52.815
+        ],
+        "basis": "Restricted Diesdorf-area fixed land interval; main Dumme/Harper Muehlenbach, Ohre and Elbe corridors excluded. Regional history corroborates former state-boundary continuity. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://www.landtag.sachsen-anhalt.de/2019/erinnerungen-an-opfer-des-ddr-grenzregimes"
+      },
+      {
+        "id": "vg25-altmark-stresow-land",
+        "bounds": [
+          11.27,
+          52.94,
+          11.6,
+          53.005
+        ],
+        "basis": "Restricted land south of Stresow/Schnackenburg; cut south of the Aland/Elbe junction. Municipality explicitly identifies former inter-German and present state boundary. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://www.seehausen-altmark.de/familie-freizeit/kultur-tourismus/aktivitaeten-ausflugsziele/denkmaeler-gedenkstaetten/gedenkstaette-stresow/"
+      },
+      {
+        "id": "vg25-helmstedt-lappwald-land",
+        "bounds": [
+          10.75,
+          52.09,
+          11.17,
+          52.335
+        ],
+        "basis": "Helmstedt/Lappwald fixed surveyed land interval; cutoff south of the Droemling/Ohre corridor. LGLN2010 describes boundary-cadastral work; no mobile-river reconstruction from current coordinates. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf"
+      },
+      {
+        "id": "vg25-ecker-lower-foothills",
+        "bounds": [
+          10.5,
+          51.895,
+          10.78,
+          51.985
+        ],
+        "basis": "Lower Ecker to Harz foothills, extending the already documented Ecker interval. Nationalpark Harz explicitly identifies Ecker from source to foothills as current and former inter-German boundary. Warme Bode excluded. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://www.nationalpark-harz.de/de/downloads/schriftenreihe/Band10_Gewaesser-im-NLP-Harz.pdf"
+      },
+      {
+        "id": "vg25-suedharz-ellrich-land",
+        "bounds": [
+          10.3,
+          51.575,
+          10.68,
+          51.695
+        ],
+        "basis": "Southern Harz/Ellrich fixed-land interval, cut south of Warme Bode dispute and north of Wendebach. Joint-survey records and Niedersachsen boundary administration corroborate continuity; local water exceptions require separate screening. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://www.lgln.niedersachsen.de/download/80437/NaVKV_2010_2_3.pdf"
+      },
+      {
+        "id": "vg25-rhon-point-alpha-land",
+        "bounds": [
+          9.78,
+          50.39,
+          10.25,
+          50.74
+        ],
+        "basis": "Rhon/Point Alpha fixed land interval connecting accepted Geismar and Bavarian windows; cut south of Werra corridor. Hessen archive1834 boundary continuity and Bavarian surveying authority1973-marker continuity independently corroborate. LGLN NaVKV1/2016 printed pp72-73 (PDF pp73-74), authored by former border-cadastral-office head Dieter Kertscher, states that jointly marked border stones and the authoritative survey records remain the old/new federal-state border, except Amt Neuhaus. This supports fixed surveyed land continuity, not a blanket reconstruction of mobile water boundaries. Pinned CC-BY4.0 VG25 reused between actual geometric crossings; provisional, no independently digitized1989 accuracy pass.",
+        "evidence": "https://www.lgln.niedersachsen.de/download/113504/NaVKV_2016_1.pdf",
+        "corroboration": "https://landesarchiv.hessen.de/sites/landesarchiv.hessen.de/files/2022-12/archivnachrichten_7_1_juni_2007_internet_col.pdf"
+      },
+      {
+        "id": "vg25-delvenau-approved-map",
+        "bounds": [
+          10.75,
+          53.45,
+          10.99,
+          53.59
+        ],
+        "basis": "User-approved LAiV TK25AS content1989/publication1991 overlay corroborates fixed political line in covered Delvenau/Segrahner Forst interval; pinned VG25 coordinates reused, no raster-derived coordinates here. Independent exact-date positional accuracy unmeasured."
+      },
+      {
+        "id": "tk25as-elbe-neuhaus-printed-claim",
+        "bounds": [
+          10.729910812084295,
+          53.25800456528921,
+          10.82469624859888,
+          53.30156420254467
+        ],
+        "basis": "map-depicted late1980s DDR cartographic boundary; Elbe jurisdiction disputed, not bilateral delimitation; 1988/1989 content; exact1989-04-25 validity not independently established; no independent georeferencing residual or1989 positional accuracy pass. Production use in this local branch only; external-use terms unresolved."
+      },
+      {
+        "id": "tk25as-elbe-schnackenburg-printed-claim",
+        "bounds": [
+          11.534451753409602,
+          53.03136456110668,
+          11.62215714749881,
+          53.05599538567732
+        ],
+        "basis": "map-depicted late1980s DDR cartographic boundary; Elbe jurisdiction disputed, not bilateral delimitation; 1988/1989 content; exact1989-04-25 validity not independently established; no independent georeferencing residual or1989 positional accuracy pass. Production use in this local branch only; external-use terms unresolved."
       }
     ],
     "held": [
-      "Elbe undetermined boundary and estuary",
-      "Amt Neuhaus, Neu Bleckede, Neu Wendischthun, Stiepelse and Bohldamm transferred areas",
-      "Northern SH/MV outside the admitted Ratzeburger See/southern Wakenitz, Kiekbuschwiesen/Mechower west bank, Schaalsee lake and Mustin/Gross Thurow forest windows; remaining Wakenitz, lake/river shores, Altmark/Ohre/Droemling and Harz outside admitted Ecker/Hornburg windows",
-      "Hessian/Thuringian Werra and Wendebach (documented mobile river boundary with later surveys), southern Eichsfeld outside the Glasehausen land window, and Rhon/Point Alpha outside the admitted Geismar window",
-      "Bavarian west/Rhon and Czech-tripoint transition gaps outside conservative crossing-to-crossing windows; west window yielded no admissible intersecting arc",
+      "Elbe legal delimitation remains disputed; only two approved TK25AS cartographic-claim subarcs traced locally. Other Elbe/estuary and Warme Bode stay unchanged.",
+      "Amt Neuhaus1993 transfer regions retained; only approved map-depicted Elbe subarc changed, not the modern internal state boundary.",
+      "Remaining SH/MV/Schaalsee/Delvenau outside approved crossing-to-crossing arcs; white map gaps and unreviewed footprints excluded.",
+      "Altmark Dumme/Harper Muehlenbach, Ohre/Droemling and Aland/Elbe water corridors; any fixed-land gaps outside accepted arcs",
+      "Harz/Bremke/Warme Bode and southern Eichsfeld gaps; mobile Wendebach and Werra; central Hessen outside accepted fixed-land arcs",
+      "Bavaria west/Rhon and Czech tripoint connection gaps not actually replaced by admitted arcs; no arbitrary endpoint bridges",
       "West Berlin and coast (out of scope)",
-      "Polish/Czech exterior outside the currently adopted LSIB crossing-to-crossing arcs"
+      "Polish/Czech exterior outside currently adopted LSIB crossing-to-crossing arcs; no VG25 international replacement"
     ],
     "presentationToleranceDegrees": 0.0002,
     "followup": {
@@ -652,13 +971,45 @@
       "mapStatus": "LAiV provider georeferenced TK25AS; N32082DA edition1991/content1989, exact revision date and independent residual unmeasured",
       "productionGeometry": "Reuse pinned CC-BY4.0 VG25 between real intersections; no provider-map-derived production vertices",
       "evidenceStatus": "Documentary continuity, ownership and approved-map visual review; no independent exact-date historical-vector 0.5px positional pass"
+    },
+    "remainingAllFollowup": {
+      "date": "2026-10-23",
+      "report": "reports/geography/east-germany-remaining-all-2026-10-23.md",
+      "baselineSource": "beforeAllRemainingSupplement",
+      "sectionIds": [
+        "vg25-wakenitz-palingen-remaining",
+        "vg25-schaalsee-northern-remaining",
+        "vg25-gudow-lauenburg-land",
+        "vg25-altmark-diesdorf-land",
+        "vg25-altmark-stresow-land",
+        "vg25-helmstedt-lappwald-land",
+        "vg25-ecker-lower-foothills",
+        "vg25-suedharz-ellrich-land",
+        "vg25-rhon-point-alpha-land"
+      ],
+      "evidenceManifest": "reports/geography/east-germany-remaining-all-2026-10-23/captured-sources.json",
+      "evidenceStatus": "LGLN joint-survey marker continuity with regional corroboration; period-map visual comparison in approved northern footprint; exact-date independent positional accuracy unmeasured; no provider-map-derived production coordinates"
+    },
+    "approvedMapPhase": {
+      "date": "2026-10-23",
+      "baselineSource": "beforeApprovedMapPhase",
+      "sectionIds": [
+        "vg25-delvenau-approved-map",
+        "tk25as-elbe-neuhaus-printed-claim",
+        "tk25as-elbe-schnackenburg-printed-claim"
+      ],
+      "alignmentApproval": "User: 정합 확인, 복원 진행",
+      "status": "provisional-local-only",
+      "interpretation": "Elbe map-depicted late1980s DDR cartographic claim; not a bilateral agreed legal delimitation. Exact1989-04-25 validity unverified.",
+      "publicationRestriction": "LAiV WMS external reuse of map-derived vectors unresolved; local research only, do not publish these derived inputs until terms resolved.",
+      "rejected": "Broad Saxony tripoint VG25 candidate conflicts with adopted generalized international LSIB and produces partial/reversing arcs; narrowed candidate adds no substantive geometry. Preserve junction, no artificial bridge."
     }
   },
   "resultSource": {
-    "id": "natural-earth-admin1-v5.1.1+bkg-vg250+berlin-wall-1989+adopted-dos-lsib-11.4+bkg-vg25-capture-2026-10-22",
-    "title": "Natural Earth, BKG VG250/VG25, Berlin Wall 1989 and adopted German LSIB 11.4 arcs",
-    "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0",
-    "notes": "1989-04-25 reference-date approximation. Adopted DEU LSIB Polish/Czech arcs reused; pinned VG25 used only in documentarily corroborated Schaalsee, selected Bavaria/Saxony, northern Eichsfeld/Glasehausen, Ecker, Geismar/Spahl, Hornburg/Grosses Bruch Mustin/Gross Thurow forest, Ratzeburger See/southern Wakenitz and Kiekbuschwiesen/Mechower western-bank intervals. Coast, West Berlin, Elbe, transferred and remaining uncorroborated sectors preserved. No independent historical-vector 0.5px accuracy claim.",
+    "id": "natural-earth-admin1-v5.1.1+bkg-vg250+berlin-wall-1989+adopted-dos-lsib-11.4+bkg-vg25-capture-2026-10-22+tk25as-elbe-local-provisional",
+    "title": "Natural Earth, BKG VG250/VG25, Berlin Wall 1989 and adopted German LSIB 11.4 arcs; approved late1980s Elbe map-claim reconstruction (local provisional)",
+    "license": "Natural Earth and US LSIB public domain; BKG VG250 dl-de/by-2-0; BKG VG25 CC BY 4.0; Berlin dl-de/zero-2-0; LAiV TK25AS-derived Elbe inputs: internal local research only, external reuse unresolved",
+    "notes": "1989-04-25 reference-date approximation. Adopted DEU LSIB Polish/Czech arcs reused; pinned VG25 used only in documentarily corroborated Schaalsee, selected Bavaria/Saxony, northern Eichsfeld/Glasehausen, Ecker, Geismar/Spahl, Hornburg/Grosses Bruch Mustin/Gross Thurow forest, Ratzeburger See/southern Wakenitz and Kiekbuschwiesen/Mechower western-bank intervals. Coast, West Berlin, Elbe, transferred and remaining uncorroborated sectors preserved. No independent historical-vector 0.5px accuracy claim. Further fixed surveyed intervals in northern SH/MV, Diesdorf/Stresow land, Helmstedt/Lappwald, lower Ecker, southern Harz and Rhon/Point Alpha reuse pinned VG25 under LGLN2016 marker continuity and regional evidence. Unresolved Elbe/Warme Bode, transferred and mobile-water intervals stay provisional/held; no claim that all remaining boundary was replaced. User approved four aligned period maps. Covered Delvenau reuses VG25; two safe Elbe subarcs use printed late1980s DDR cartographic boundary claim, not agreed delimitation. No exact-date or independent positional accuracy pass. LAiV external derived-use terms unresolved: do not externally publish this local provisional map phase. Tripoint candidate not admitted because it conflicts with preserved international LSIB.",
     "sources": [
       {
         "title": "Adopted German LSIB 11.4 linework (2025-02-24 source; adopted subset)",
@@ -670,6 +1021,16 @@
         "url": "https://sgx.geodatenzentrum.de/wfs_vg25",
         "license": "CC BY 4.0",
         "attribution": "© BKG 2026 CC BY 4.0"
+      },
+      {
+        "title": "tk25as-elbe-neuhaus-printed-claim (approved TK25AS raster-derived local reference)",
+        "url": "https://www.geodaten-mv.de/dienste/tk25as_laiv_wms?SERVICE=WMS&VERSION=1.1.1&SRS=EPSG%3A25832&BBOX=610981%2C5891197%2C640981%2C5921197&WIDTH=2400&HEIGHT=2400&STYLES=&LAYERS=mv_tk25as&REQUEST=GetMap&FORMAT=image%2Fpng",
+        "license": "LAiV WMS internal local research; external reuse of derived vectors unresolved. No external publication authorized."
+      },
+      {
+        "title": "tk25as-elbe-schnackenburg-printed-claim (approved TK25AS raster-derived local reference)",
+        "url": "https://www.geodaten-mv.de/dienste/tk25as_laiv_wms?SERVICE=WMS&VERSION=1.1.1&SRS=EPSG%3A25832&BBOX=657298%2C5864809%2C687298%2C5894809&WIDTH=2400&HEIGHT=2400&STYLES=&LAYERS=mv_tk25as&REQUEST=GetMap&FORMAT=image%2Fpng",
+        "license": "LAiV WMS internal local research; external reuse of derived vectors unresolved. No external publication authorized."
       }
     ]
   }
