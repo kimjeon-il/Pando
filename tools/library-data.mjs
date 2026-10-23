@@ -1,12 +1,13 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 
 export const defaultRoot = fileURLToPath(new URL('../', import.meta.url));
-const git = (root, args) => execFileSync('git', ['-c', 'core.fsync=none', '-c', 'core.fsyncObjectFiles=false', ...args], { cwd: root, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+const gitOptions = ['-c', 'core.fsync=none', '-c', 'core.fsyncObjectFiles=false', '-c', 'maintenance.auto=false', '-c', 'gc.auto=0'];
+const git = (root, args) => execFileSync('git', [...gitOptions, ...args], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
 export function libraryConfig(root = defaultRoot) {
   const config = JSON.parse(readFileSync(resolve(root, 'config/library-data.json'), 'utf8'));
   if (!/^[\w-]+\/[\w.-]+$/.test(config.repository) || !/^[a-f0-9]{40}$/.test(config.revision)) throw Error('Invalid pinned library configuration');
@@ -21,27 +22,132 @@ export function libraryMaterializedRoot(root = defaultRoot) {
   return resolve(existsSync(base) ? realpathSync(base) : base, libraryConfig(root).revision);
 }
 export function libraryReportRoot(root = defaultRoot) {
-  return resolve(libraryCheckout(root), '.working', libraryConfig(root).revision, 'reports');
+  const checkout = libraryCheckout(root), registry = resolve(checkout, '.working/report-owner.json');
+  if (existsSync(registry)) return safeChild(resolve(checkout, '.working'), JSON.parse(readFileSync(registry, 'utf8')).path);
+  const mounted = resolve(root, 'reports');
+  if (existsSync(mounted) && lstatSync(mounted).isSymbolicLink()) {
+    const previous = realpathSync(mounted);
+    if (previous.startsWith(resolve(checkout, '.working') + sep)) return previous;
+  }
+  return resolve(checkout, '.working/current/reports');
+}
+// Restore only the requested original. Existing files, including unfinished
+// evidence, belong to the caller and are never overwritten by hydration.
+export function hydrateReports({ root = defaultRoot, path } = {}) {
+  const reportRoot = libraryReportRoot(root);
+  safeChild(reportRoot, path);
+  const checkout = libraryCheckout(root), registry = resolve(checkout, '.working/report-owner.json');
+  const revision = (existsSync(registry) && JSON.parse(readFileSync(registry, 'utf8')).revision) || libraryConfig(root).revision;
+  const index = JSON.parse(git(checkout, ['show', `${revision}:archive/index.json`]));
+  for (const [logical, entry] of Object.entries(index.files)) {
+    if (logical !== `reports/${path}` && !logical.startsWith(`reports/${path}/`)) continue;
+    const output = safeChild(reportRoot, logical.slice(8));
+    if (existsSync(output)) continue;
+    const stored = execFileSync('git', [...gitOptions, 'show', `${revision}:${entry.stored}`], { cwd: checkout, maxBuffer: Math.max(entry.bytes * 2, 16 * 1024 * 1024) });
+    const bytes = entry.encoding === 'gzip' ? gunzipSync(stored) : stored;
+    if (bytes.length !== entry.bytes || createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw Error(`Corrupt report: ${logical}`);
+    mkdirSync(dirname(output), { recursive: true });
+    try { writeFileSync(output, bytes, { flag: 'wx' }); } catch (error) { if (error.code !== 'EEXIST') throw error; }
+  }
+  return safeChild(reportRoot, path);
+}
+
+function pristineCache(directory, files) {
+  let pristine = true;
+  const seen = new Set();
+  const visit = (path, prefix = '') => {
+    for (const entry of readdirSync(path, { withFileTypes: true })) {
+      const logical = prefix + entry.name, file = resolve(path, entry.name);
+      if (entry.isSymbolicLink()) { pristine = false; continue; }
+      if (entry.isDirectory()) visit(file, logical + '/');
+      else if (entry.isFile() && !['.complete', '.cache-owner.json'].includes(logical)) {
+        seen.add(logical);
+        if (files[logical] !== createHash('sha256').update(readFileSync(file)).digest('hex')) pristine = false;
+      }
+    }
+  };
+  visit(directory);
+  return pristine && Object.keys(files).every(path => seen.has(path));
+}
+
+let lastRetirementSignature;
+function retireOwnedCaches(root, current) {
+  // Old caches without this ownership record are handled by the separately
+  // reviewed cleanup. Never infer ownership from an ignored directory alone.
+  const base = dirname(current), active = new Set([current]);
+  let roots;
+  try { roots = git(root, ['worktree', 'list', '--porcelain']).split('\n').filter(line => line.startsWith('worktree ')).map(line => line.slice(9)); }
+  catch { return; }
+  for (const worktree of roots) {
+    if (!existsSync(resolve(worktree, 'config/library-data.json'))) continue;
+    active.add(libraryMaterializedRoot(worktree));
+    const lease = resolve(worktree, '.library-data/dev-server.json');
+    if (existsSync(lease)) {
+      const record = JSON.parse(readFileSync(lease, 'utf8'));
+      try { process.kill(record.pid, 0); for (const path of record.materialized) active.add(path); }
+      catch (error) { if (error.code !== 'ESRCH') return; }
+    }
+    for (const mount of libraryConfig(worktree).mounts) {
+      const output = resolve(worktree, mount);
+      if (existsSync(output) && lstatSync(output).isSymbolicLink()) {
+        const target = realpathSync(output), rel = relative(base, target);
+        if (!rel.startsWith('..') && !isAbsolute(rel)) active.add(resolve(base, rel.split(sep)[0]));
+      }
+    }
+  }
+  const directories = readdirSync(base, { withFileTypes: true });
+  const signature = JSON.stringify({ base, active: [...active].sort(), directories: directories.map(item => item.name).sort() });
+  if (signature === lastRetirementSignature) return;
+  for (const item of directories) {
+    if (!item.isDirectory() || !/^[a-f0-9]{40}$/.test(item.name)) continue;
+    const directory = safeChild(base, item.name), owner = resolve(directory, '.cache-owner.json');
+    if (active.has(directory) || !existsSync(owner)) continue;
+    const record = JSON.parse(readFileSync(owner, 'utf8'));
+    if (record.revision !== item.name || record.schema !== 'pando-materialized-cache-v1') continue;
+    if (pristineCache(directory, record.files)) rmSync(directory, { recursive: true });
+  }
+  lastRetirementSignature = signature;
 }
 export function safeChild(root, path) {
   const target = resolve(root, path), rel = relative(root, target);
   if (!rel || rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw Error(`Unsafe library path: ${path}`);
   return target;
 }
-export function decodeArchiveEntry(checkout, entry) {
-  const stored = readFileSync(safeChild(checkout, entry.stored));
-  if (!['gzip', 'identity'].includes(entry.encoding)) throw Error('Unknown library archive encoding');
-  const bytes = entry.encoding === 'gzip' ? gunzipSync(stored) : stored;
-  if (bytes.length !== entry.bytes || createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw Error(`Library transfer is corrupt: ${entry.stored}`);
-  return bytes;
+export function decodeArchiveEntry(checkout, entry, revision = null) {
+  let stored;
+  try { stored = readFileSync(safeChild(checkout, entry.stored)); }
+  catch (error) { if (!revision) throw error; }
+  const decode = stored => {
+    if (!['gzip', 'identity'].includes(entry.encoding)) throw Error('Unknown library archive encoding');
+    const bytes = entry.encoding === 'gzip' ? gunzipSync(stored) : stored;
+    if (bytes.length !== entry.bytes || createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw Error(`Library transfer is corrupt: ${entry.stored}`);
+    return bytes;
+  };
+  if (revision) {
+    try { return decode(stored); } catch { /* The storage HEAD may contain a newer runtime resource. */ }
+    stored = execFileSync('git', [...gitOptions, 'show', revision + ':' + entry.stored], { cwd: checkout, maxBuffer: Math.max(entry.bytes * 2, 16 * 1024 * 1024) });
+  }
+  return decode(stored);
 }
 export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
+  return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch }));
+}
+function withLibraryLock(root, operation) {
+  const lockPath = resolve(root, '.library-data/prepare.lock');
+  mkdirSync(dirname(lockPath), { recursive: true });
+  let lock;
+  try { lock = openSync(lockPath, 'wx'); }
+  catch (error) { throw Error('Library preparation is already running; preserve its outputs and retry after it finishes.', { cause: error }); }
+  try { return operation(); }
+  finally { closeSync(lock); unlinkSync(lockPath); }
+}
+function prepareOwnedLibraryData({ root, fetch }) {
   root = resolve(root); const checkout = libraryCheckout(root);
   const config = libraryConfig(root);
   if (!existsSync(resolve(checkout, '.git'))) {
     if (!fetch) throw Error('Pinned library checkout is missing');
     mkdirSync(dirname(checkout), { recursive: true });
-    execFileSync('git', ['-c', 'core.fsync=none', '-c', 'core.fsyncObjectFiles=false', '-c', 'core.autocrlf=false', 'clone', '--filter=blob:none', '--no-checkout', `https://github.com/${config.repository}.git`, checkout], { stdio: 'inherit' });
+    execFileSync('git', [...gitOptions, '-c', 'core.autocrlf=false', 'clone', '--filter=blob:none', '--no-checkout', `https://github.com/${config.repository}.git`, checkout], { stdio: 'inherit' });
     git(checkout, ['config', 'core.autocrlf', 'false']);
     git(checkout, ['sparse-checkout', 'init', '--cone']);
     git(checkout, ['sparse-checkout', 'set', 'assets/data', 'archive', 'objects', 'reports']);
@@ -51,47 +157,62 @@ export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
   }
   let current;
   try { current = git(checkout, ['rev-parse', 'HEAD']); } catch { current = ''; }
-  if (current !== config.revision || !existsSync(resolve(checkout, 'archive/index.json'))) {
-    if (git(checkout, ['status', '--porcelain'])) throw Error('Library checkout has local edits; preserve or publish them before changing its pin');
-    if (fetch) git(checkout, ['fetch', '--filter=blob:none', 'origin', config.revision]);
-    git(checkout, ['checkout', '--detach', config.revision]);
+  let index;
+  try { index = JSON.parse(git(checkout, ['show', `${config.revision}:archive/index.json`])); }
+  catch (error) {
+    if (!fetch) throw error;
+    git(checkout, ['fetch', '--filter=blob:none', 'origin', config.revision]);
+    index = JSON.parse(git(checkout, ['show', `${config.revision}:archive/index.json`]));
   }
-  const index = JSON.parse(readFileSync(resolve(checkout, 'archive/index.json'), 'utf8'));
+  // The archive checkout owns stored work. Runtime pairing is selected by the
+  // pinned Git tree, not by moving that checkout back over later reports/WIP.
+  if (!current || !existsSync(resolve(checkout, 'archive/index.json'))) throw Error('Library archive checkout is incomplete; preserve its work before repairing it.');
   const materialized = libraryMaterializedRoot(root), marker = resolve(materialized, '.complete');
   if (!existsSync(marker)) {
+    if (existsSync(materialized)) throw Error('Incomplete library cache must be reviewed before replacement.');
+    const materializeLock = resolve(dirname(materialized), `.${config.revision}.lock`);
+    mkdirSync(dirname(materialized), { recursive: true });
+    const handle = openSync(materializeLock, 'wx');
+    if (existsSync(marker)) { closeSync(handle); unlinkSync(materializeLock); return prepareOwnedLibraryData({ root, fetch }); }
+    const pending = materialized + '.pending';
+    let ownedPending = false;
+    try {
+    if (existsSync(pending)) throw Error('An incomplete materialization is preserved; review it before retrying.');
+    mkdirSync(pending); ownedPending = true;
     for (const [path, entry] of Object.entries(index.files)) {
       if (path.startsWith('reports/')) continue;
-      const output = safeChild(materialized, path);
+      const output = safeChild(pending, path);
       mkdirSync(dirname(output), { recursive: true });
-      writeFileSync(output, decodeArchiveEntry(checkout, entry));
+      writeFileSync(output, decodeArchiveEntry(checkout, entry, config.revision));
     }
-    writeFileSync(marker, config.revision + '\n');
-  }
-  // Report callers need complete original evidence, rather than shortened pages.
-  const reportRoot = libraryReportRoot(root), reportMarker = resolve(dirname(reportRoot), '.reports-complete');
-  if (!existsSync(reportMarker)) {
-    mkdirSync(reportRoot, { recursive: true });
-    for (const [path, entry] of Object.entries(index.files)) if (path.startsWith('reports/')) {
-      const output = safeChild(reportRoot, path.slice('reports/'.length));
-      mkdirSync(dirname(output), { recursive: true }); writeFileSync(output, decodeArchiveEntry(checkout, entry));
-    }
-    const copyNewReports = (directory, prefix) => {
-      if (!existsSync(directory)) return;
-      for (const entry of readdirSync(directory, { withFileTypes: true })) {
-        const path = prefix + '/' + entry.name;
-        if (entry.isDirectory()) copyNewReports(resolve(directory, entry.name), path);
-        else if (entry.isFile() && !index.files[path]) {
-          const output = safeChild(reportRoot, path.slice('reports/'.length));
-          mkdirSync(dirname(output), { recursive: true }); writeFileSync(output, readFileSync(resolve(directory, entry.name)));
-        }
+    writeFileSync(resolve(pending, '.complete'), config.revision + '\n');
+    writeFileSync(resolve(pending, '.cache-owner.json'), JSON.stringify({ schema: 'pando-materialized-cache-v1', revision: config.revision,
+      files: Object.fromEntries(Object.entries(index.files).filter(([path]) => !path.startsWith('reports/')).map(([path, entry]) => [path, entry.sha256])) }));
+    renameSync(pending, materialized);
+    } catch (error) {
+      // Only the fresh output created under our held revision lock is disposable.
+      if (ownedPending && existsSync(pending) && !existsSync(materialized)) {
+        // Do not traverse links introduced by another writer.
+        const noLinks = path => readdirSync(path, { withFileTypes: true }).every(entry => !entry.isSymbolicLink() && (!entry.isDirectory() || noLinks(resolve(path, entry.name))));
+        if (noLinks(pending)) rmSync(pending, { recursive: true });
       }
-    };
-    copyNewReports(resolve(checkout, 'reports'), 'reports');
-    const excludePath = resolve(checkout, git(checkout, ['rev-parse', '--git-path', 'info/exclude']));
-    const exclude = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
-    if (!exclude.split(/\r?\n/).includes('/.working/')) { mkdirSync(dirname(excludePath), { recursive: true }); writeFileSync(excludePath, exclude + '\n/.working/\n'); }
-    writeFileSync(reportMarker, config.revision + '\n');
+      throw error;
+    } finally { closeSync(handle); unlinkSync(materializeLock); }
   }
+  const cacheOwner = resolve(materialized, '.cache-owner.json');
+  if (!existsSync(cacheOwner)) {
+    const files = Object.fromEntries(Object.entries(index.files).filter(([path]) => !path.startsWith('reports/')).map(([path, entry]) => [path, entry.sha256]));
+    if (pristineCache(materialized, files)) writeFileSync(cacheOwner, JSON.stringify({ schema: 'pando-materialized-cache-v1', revision: config.revision, files }));
+  }
+  const reportRoot = libraryReportRoot(root);
+  mkdirSync(reportRoot, { recursive: true });
+  const registry = resolve(checkout, '.working/report-owner.json');
+  const registration = existsSync(registry) ? JSON.parse(readFileSync(registry, 'utf8')) : { path: relative(resolve(checkout, '.working'), reportRoot) };
+  registration.revision = current;
+  writeFileSync(registry, JSON.stringify(registration));
+  const excludePath = resolve(checkout, git(checkout, ['rev-parse', '--git-path', 'info/exclude']));
+  const exclude = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
+  if (!exclude.split(/\r?\n/).includes('/.working/')) { mkdirSync(dirname(excludePath), { recursive: true }); writeFileSync(excludePath, exclude + '\n/.working/\n'); }
   for (const path of config.mounts) {
     const output = safeChild(root, path);
     const target = path === 'reports' ? reportRoot : safeChild(materialized, path);
@@ -107,12 +228,17 @@ export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
     }
     symlinkSync(target, output, process.platform === 'win32' ? 'junction' : 'dir');
   }
+  retireOwnedCaches(root, materialized);
   return { repository: config.repository, revision: config.revision, checkout, materialized, files: index.files };
 }
 
 // App-owned writers store their output here; the data repository runs no tools.
-export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null } = {}) {
-  const data = prepareLibraryData({ root });
+export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [] } = {}) {
+  if (!prefixes?.length) throw Error("Storage requires explicit library prefixes.");
+  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths }));
+}
+function storeOwnedLibraryData({ root, push, prefixes, removePaths }) {
+  const data = prepareOwnedLibraryData({ root, fetch: true });
   if (git(data.checkout, ['status', '--porcelain'])) throw Error('Preserve existing data checkout edits before storing library material.');
   if (prefixes && (!Array.isArray(prefixes) || !prefixes.length || prefixes.some(path =>
     typeof path !== 'string' || !/^[\w.-]+(?:\/[\w.-]+)*$/.test(path) || path.split('/').some(part => part === '..' || part === '.')
@@ -150,20 +276,26 @@ export function storeLibraryData({ root = defaultRoot, push = false, prefixes = 
       put(path, readable);
     }
   };
+  if (removePaths.some(path => !included(path) || !/^[\w.-]+(?:\/[\w.-]+)*$/.test(path) || path.split('/').some(part => part === '..' || part === '.'))) throw Error('Invalid explicit library deletion.');
+  for (const path of removePaths) if (path.startsWith('reports/') && existsSync(safeChild(libraryReportRoot(root), path.slice(8)))) {
+    throw Error(`Preserve or remove the working original before archiving its deletion: ${path}`);
+  }
+  const removed = new Set(removePaths);
   const seen = new Set();
   const visit = (directory, prefix) => {
-    if (!traversable(prefix)) return;
+    if (!traversable(prefix) || !existsSync(directory)) return;
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
       const path = prefix + '/' + entry.name;
       if (entry.isSymbolicLink()) throw Error(`Unexpected nested library link: ${path}`);
       if (entry.isDirectory()) visit(resolve(directory, entry.name), path);
-      else if (entry.isFile() && included(path)) { seen.add(path); store(path, readFileSync(resolve(directory, entry.name))); }
+      else if (entry.isFile() && included(path) && !removed.has(path)) { seen.add(path); store(path, readFileSync(resolve(directory, entry.name))); }
     }
   };
   const managedMounts = libraryConfig(root).mounts.filter(path => path !== 'reports');
   for (const path of managedMounts) visit(safeChild(data.materialized, path), path);
   visit(libraryReportRoot(root), 'reports');
   for (const [path, entry] of Object.entries(index.files)) {
+    if (path.startsWith('reports/') && !removed.has(path)) continue;
     if (!included(path) || !(path.startsWith('reports/') || managedMounts.some(mount => path.startsWith(mount + '/'))) || seen.has(path)) continue;
     delete index.files[path];
     if ((entry.stored === path || path.startsWith('reports/')) && existsSync(safeChild(data.checkout, path))) unlinkSync(safeChild(data.checkout, path));
@@ -184,21 +316,36 @@ export function storeLibraryData({ root = defaultRoot, push = false, prefixes = 
   git(data.checkout, ['add', '--sparse', '--', 'archive', 'assets/data', 'objects', 'library.json', 'reports']);
   if (git(data.checkout, ['diff', '--cached', '--name-only'])) git(data.checkout, ['-c', 'user.name=Pando library publisher', '-c', 'user.email=library-publisher@users.noreply.github.com', 'commit', '-m', `Store app-produced library material from ${index.sourceRevision}`]);
   const revision = git(data.checkout, ['rev-parse', 'HEAD']);
+  const registry = resolve(data.checkout, '.working/report-owner.json');
+  const owner = JSON.parse(readFileSync(registry, 'utf8')); owner.revision = revision;
+  writeFileSync(registry, JSON.stringify(owner));
   if (push) {
     const token = process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
     const env = token ? { ...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from('x-access-token:' + token).toString('base64')}` } : process.env;
-    execFileSync('git', ['-c', 'core.fsync=none', '-c', 'core.fsyncObjectFiles=false', 'push', 'origin', `HEAD:${index.branch}`], { cwd: data.checkout, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    execFileSync('git', [...gitOptions, 'push', 'origin', `HEAD:${index.branch}`], { cwd: data.checkout, env, stdio: ['ignore', 'pipe', 'pipe'] });
   }
-  const config = libraryConfig(root); config.revision = revision;
-  writeFileSync(resolve(root, 'config/library-data.json'), JSON.stringify(config, null, 2) + '\n');
+  if (!prefixes.every(path => path === 'reports' || path.startsWith('reports/'))) {
+    const config = libraryConfig(root); config.revision = revision;
+    writeFileSync(resolve(root, 'config/library-data.json'), JSON.stringify(config, null, 2) + '\n');
+  }
   return revision;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const prefixes = process.argv.filter(arg => arg.startsWith('--include-prefix=')).map(arg => arg.slice('--include-prefix='.length));
-  const storeOptions = { push: process.argv.includes('--push'), prefixes: prefixes.length ? prefixes : null };
+  const separator = process.argv.indexOf('--');
+  const selected = separator < 0 ? [] : process.argv.slice(separator + 1).filter(path => !path.startsWith('-'));
+  if (!prefixes.length && process.argv.includes('--store-and-stage')) for (const path of selected) {
+    let logical = relative(defaultRoot, resolve(defaultRoot, path)).replaceAll('\\', '/');
+    const original = relative(libraryReportRoot(defaultRoot), resolve(defaultRoot, path)).replaceAll('\\', '/');
+    if (!original.startsWith('../') && !isAbsolute(original)) logical = 'reports/' + original;
+    logical = logical.split(/[*?[]/)[0].replace(/\/$/, '');
+    if (libraryConfig().mounts.some(mount => logical === mount || logical.startsWith(mount + '/'))) prefixes.push(logical);
+  }
+  const storeOptions = { push: process.argv.includes('--push'), prefixes: prefixes.length ? prefixes : null,
+    removePaths: process.argv.filter(arg => arg.startsWith('--remove-path=')).map(arg => arg.slice(14)) };
   if (process.argv.includes('--store-and-stage')) {
-    storeLibraryData(storeOptions);
+    if (prefixes.length) storeLibraryData(storeOptions);
     const root = defaultRoot, mounts = libraryConfig(root).mounts;
     const paths = process.argv.slice(process.argv.indexOf('--') + 1).filter(path => !path.startsWith('-')).filter(path => {
       const logical = relative(root, resolve(root, path)).replaceAll('\\', '/');

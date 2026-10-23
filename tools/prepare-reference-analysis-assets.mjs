@@ -33,8 +33,14 @@ await put('tesseract.mjs', Buffer.from(upstreamTesseract.replace(workerHookAncho
 await put('worker.min.js', await readFile(join(tesseract, 'dist/worker.min.js')));
 await put('TESSERACT-LICENSE', await readFile(join(tesseract, 'LICENSE.md')));
 await put('WORKER-LICENSE', await readFile(join(tesseract, 'dist/worker.min.js.LICENSE.txt')));
-for (const name of (await readdir(core)).filter(name => /^tesseract-core[\w-]*\.wasm(?:\.js)?$/.test(name)).sort())
-  await put('core/' + name, await readFile(join(core, name)));
+for (const name of (await readdir(core)).filter(name => /^tesseract-core[\w-]*\.wasm\.js$/.test(name)).sort()) {
+  const bytes = await readFile(join(core, name));
+  const embedded = bytes.toString().match(/["'](AGFzbQE[A-Za-z0-9+/=]+)["']/);
+  if (!embedded || !Buffer.from(embedded[1], 'base64').equals(await readFile(join(core, name.slice(0, -3))))) {
+    throw Error('Pinned OCR execution variant must embed its complete WASM: ' + name);
+  }
+  await put('core/' + name, bytes);
+}
 for (const name of ['ort.wasm.min.mjs', 'ort-wasm-simd-threaded.mjs', 'ort-wasm-simd-threaded.wasm']) {
   await put(name, await readFile(join(ort, name)));
 }
