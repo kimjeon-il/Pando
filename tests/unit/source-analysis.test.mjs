@@ -25,3 +25,20 @@ test('JavaScript analysis preserves alias bindings and detects real global acces
 test('JavaScript analysis fails visibly on malformed code', () => {
   assert.throws(() => parseJavaScript('export const broken = ;', { filePath: 'broken.js' }), /broken\.js.*Unexpected token/);
 });
+
+test('successive analyses preserve earlier AST, scopes, source type and syntax errors', () => {
+  const first = parseJavaScript('export const original = document.title;');
+  const firstAst = first.ast, firstScope = first.scopeManager;
+  const common = parseJavaScript('return require("node:fs");', { sourceType: 'commonjs' });
+  assert.equal(common.ast.sourceType, 'commonjs');
+  assert.throws(() => parseJavaScript('export const broken = ;', { filePath: 'second.js' }), /second\.js.*Unexpected token/);
+  const script = parseJavaScript('var ordinary = 1;', { sourceType: 'script' });
+  assert.equal(script.ast.sourceType, 'script');
+  const last = parseJavaScript('export const last = 2;');
+  assert.equal(last.ast.sourceType, 'module');
+  assert.equal(first.ast, firstAst);
+  assert.equal(first.scopeManager, firstScope);
+  assert.equal(first.getText(), 'export const original = document.title;');
+  assert.ok(first.scopeManager.globalScope.through.some(reference => reference.identifier.name === 'document'));
+  assert.equal(first.ast.body[0].declaration.declarations[0].id.name, 'original');
+});
