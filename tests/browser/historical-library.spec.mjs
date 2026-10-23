@@ -91,7 +91,7 @@ test('catalog search loads only the index and repeated selection loads one uncha
 });
 
 test('East Germany static import preserves identity, archive, history and original source', async ({ page }, testInfo) => {
-  test.setTimeout(240_000);
+  test.setTimeout(process.env.PANDOLAB_DDR_EVIDENCE_DIR?420_000:240_000);
   const errors = await openLibrary(page);
   await page.locator('#territorialLibraryReferenceDateInput').fill('1989-04-25');
   await page.locator('#territorialLibrarySearchInput').fill('동독');
@@ -100,4 +100,60 @@ test('East Germany static import preserves identity, archive, history and origin
   await expect(page.locator('#territorialLibraryPreview details')).toHaveCount(0);
   await expect(page.locator('#territorialLibraryPreview svg path')).toHaveCount(1);
   await importFiniteSource(page, testInfo, 'state:deutsche-demokratische-republik', errors, { referenceDate: '1989-04-25' });
+  const imported=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().find(e=>e.properties.sourceEntityId==='state:deutsche-demokratische-republik'));
+  const source=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL_LIBRARY.get('state:deutsche-demokratische-republik'));
+  expect(source.geometryVersions[0].sourceId).toContain('adopted-dos-lsib-11.4+bkg-vg25');
+  expect(source.geometryVersions[0].boundarySupplement.sections.filter(s=>s.id.startsWith('vg25-')).map(s=>s.id)).toEqual([
+    'vg25-schaalsee-lake', 'vg25-bavaria-central', 'vg25-saxony-bavaria',
+    'vg25-eichsfeld-north', 'vg25-harz-ecker', 'vg25-geismar-spahl',
+    'vg25-wolfenbuettel-hornburg',
+    'vg25-eichsfeld-glasehausen', 'vg25-schaalsee-mustin-thurow-land',
+    'vg25-ratzeburg-wakenitz-south', 'vg25-kiekbusch-mechower-west-shore',
+    'vg25-wakenitz-palingen-remaining', 'vg25-schaalsee-northern-remaining',
+    'vg25-gudow-lauenburg-land', 'vg25-altmark-diesdorf-land', 'vg25-altmark-stresow-land',
+    'vg25-helmstedt-lappwald-land', 'vg25-ecker-lower-foothills',
+    'vg25-suedharz-ellrich-land', 'vg25-rhon-point-alpha-land',
+    'vg25-delvenau-approved-map',
+  ]);
+  expect(source.geometryVersions[0].boundarySupplement.sections.filter(s=>s.id.startsWith('tk25as-')).map(s=>s.id)).toEqual([
+    'tk25as-elbe-neuhaus-printed-claim', 'tk25as-elbe-schnackenburg-printed-claim'
+  ]);
+  expect(imported.geometry).toEqual(source.geometryVersions[0].geometry);
+  if(process.env.PANDOLAB_DDR_EVIDENCE_DIR){
+    const {writeFile}=await import('node:fs/promises'),{gzipSync}=await import('node:zlib');
+    const {productionGeoPackage}=await import('../helpers/production-geopackage.mjs');
+    const out=process.env.PANDOLAB_DDR_EVIDENCE_DIR;
+    const focus=async (target,projection)=>{
+      await target.evaluate(projection=>{const host=window.__PANDOLAB_MAP_HOST__;host.setViewState({projection,view:{...host.getViewState(),flatCenter:[12.5,52],flatZoom:12,globeRotation:[-12.5,-52,0],globeZoom:14}});host.requestRepaint('ddr-source-review');},projection);
+      await target.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    };
+    await focus(page,'flat');await page.screenshot({path:out+'/app-web-shell-import.png'});
+    const receipt=await page.evaluate(()=>window.__libraryBuildFileSnapshot());
+    await writeFile(out+'/app-file-receipt.json.gz',gzipSync(Buffer.from(JSON.stringify(receipt)),{level:9}));
+    const audits=receipt.project.sourceInfo.imports.filter(row=>row.batchPrecisionAudit).map(row=>row.batchPrecisionAudit);
+    expect(audits).toHaveLength(1);expect(audits[0].sourceEntityIds).toContain(source.entityId);
+    expect(audits[0].discards).toHaveLength(4);
+    const encoded=await productionGeoPackage('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);
+    const bytes=Buffer.from(encoded.buffer);
+    await writeFile(out+'/app-export.gpkg.gz',gzipSync(bytes,{level:9}));
+    const viewer=await page.context().newPage(),viewerErrors=[];
+    viewer.on('pageerror',error=>viewerErrors.push(error.message));
+    await viewer.goto('/?debug=1&demTerrain=raster');
+    await expect(viewer.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
+    const packagePath=testInfo.outputPath('DDR-1989-source-review.gpkg');
+    await writeFile(packagePath,bytes);
+    await viewer.locator('#projectFileInput').setInputFiles(packagePath);
+    await expect.poll(()=>viewer.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities.some(e=>e.properties.sourceEntityId==='state:deutsche-demokratische-republik')),{timeout:90000}).toBe(true);
+    await expect(viewer.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
+    const opened=await viewer.evaluate(id=>{const document=window.__PANDOLAB_VIEWER__.documentSnapshot();
+      const binding=document.timelineRecords.geometryBindings.find(row=>row.entityId===id);
+      return {audits:document.sourceInfo.imports.filter(row=>row.batchPrecisionAudit).map(row=>row.batchPrecisionAudit),
+        geometry:document.geometries.find(g=>g.id===binding.geometryRef.id&&g.version===binding.geometryRef.version).geojson};},imported.id);
+    expect(opened.audits).toEqual(audits);
+    expect(opened.geometry).toEqual(source.geometryVersions[0].geometry);
+    await focus(viewer,'globe');await viewer.screenshot({path:out+'/web-viewer-file.png'});
+    expect(viewerErrors).toEqual([]);
+    await writeFile(out+'/web-app-proof.json',JSON.stringify({sourceId:source.entityId,geometryVersion:source.geometryVersions[0].versionId,objectId:imported.id,webFileBytes:bytes.length,appImport:true,undoRedo:true,webFileGeometryEqual:true,precisionAudits:audits,webErrors:viewerErrors,appErrors:errors}));
+    await viewer.close();
+  }
 });

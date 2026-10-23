@@ -121,7 +121,7 @@ async function libraryAssemblyHarness(t,finite,{impacts=false,entities}={}) {
     territorialServicesA:{createTerritorialFeature},objectPresentation:{territorialEntityName:entity=>entity.properties.name},
     surfaces:{uid:()=>`generated-${++allocated}`},workspaceUiA:{},workspaceUiB:{},feedback:{},
     spatialQuery:{mapEditClient:{sourcesCurrent:revision=>revision===h.client.state().epoch,execute:async(operation,{payload})=>{
-      assert.equal(operation,'territorial-library-batch');return {sourceRevision:h.client.state().epoch,result:{features:payload.countries,removedIds:[],
+      assert.equal(operation,'territorial-library-batch');return {sourceRevision:h.client.state().epoch,result:{features:payload.countries,removedIds:[],precisionDiscards:[],
         affectedIds:payload.countries.map(row=>row.id),donorIds:[],transfers:[],deleted:0,impacts:impacts?[{name:'A',area:1,deleted:false}]:[]}};}}},
     objectDisplay:{invalidateObjectPresentation:()=>operations.push('layers')},spatialRecords:{scheduleMapObjectSpatialIndexRebuild:()=>operations.push('index')},
     projectSession:{saveState:{markNewProject:()=>operations.push('new-project')}},

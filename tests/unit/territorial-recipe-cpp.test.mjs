@@ -11,9 +11,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const recipePath = path.join(root, 'tools/historical-library/east-germany-1989.recipe.json');
 const recipe = JSON.parse(readFileSync(recipePath, 'utf8'));
 const lineage = JSON.parse(readFileSync(path.join(root, recipe.output), 'utf8'));
-const oracle = lineage.entities
-  .find((entity) => entity.entityId === recipe.entityId)
-  ?.geometryVersions.find((version) => version.versionId === recipe.id)?.geometry;
+const oracle = lineage.geometryVersions.find((version) => version.versionId === recipe.id)?.geometry;
 const binary = process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 
 function comparisonSummary(actual, expected) {
