@@ -1,6 +1,7 @@
 #include <pandoeditor/timeline-resolver.h>
 #include <pandoeditor/temporal.h>
 #include <algorithm>
+#include <unordered_map>
 
 namespace pandoeditor {
 bool validityContainsAtEnd(const Validity& validity,const TemporalValue& point) {
@@ -29,12 +30,21 @@ namespace {
 bool active(const Validity& validity,const TemporalValue& point) {
     return validityContainsAtEnd(validity,point);
 }
-template<class Rows> const typename Rows::value_type* selected(const Rows& rows,const std::string& id,
-                                                                  const TemporalValue& point) {
-    const auto it=std::find_if(rows.begin(),rows.end(),[&](const auto& row){
-        return row.entityId==id&&active(row.validity,point);
+template<class Row> using RowsByEntity=std::unordered_map<std::string,std::vector<const Row*>>;
+template<class Row> RowsByEntity<Row> indexRows(const std::vector<Row>& rows) {
+    RowsByEntity<Row> index;
+    for(const auto& row:rows)index[row.entityId].push_back(&row);
+    return index;
+}
+template<class Row> const Row* selected(const RowsByEntity<Row>& index,const std::string& id,
+                                      const TemporalValue& point) {
+    const auto found=index.find(id);
+    if(found==index.end())return nullptr;
+    const auto& rows=found->second;
+    const auto it=std::find_if(rows.begin(),rows.end(),[&](const auto* row){
+        return active(row->validity,point);
     });
-    return it==rows.end()?nullptr:&*it;
+    return it==rows.end()?nullptr:*it;
 }
 }
 const ResolvedEntity* ResolvedWorld::find(const std::string& id) const {
@@ -93,23 +103,32 @@ ResolvedWorld resolveWorld(const TimelineRecords& records,const TimelineValidati
     if(cursor.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
     const auto point=temporalMonthEnd(cursor.canonical);
     const auto normalized=normalizeTimelineRecords(records,context);
+    // Read-only indexes live only as long as this normalized snapshot. Keep
+    // record order inside each entity and evaluate dates at the same point.
+    const auto lifetimes=indexRows(normalized.lifetimes);
+    const auto geometries=indexRows(normalized.geometryBindings);
+    const auto parents=indexRows(normalized.parentRelations);
+    const auto properties=indexRows(normalized.propertyBindings);
     ResolvedWorld result;result.month=cursor.canonical;
     for(const auto& identity:context.entities) {
-        const auto* lifetime=selected(normalized.lifetimes,identity.id,point);
+        const auto* lifetime=selected(lifetimes,identity.id,point);
         if(!lifetime)continue;
-        const auto* geometry=selected(normalized.geometryBindings,identity.id,point);
-        const auto* parent=selected(normalized.parentRelations,identity.id,point);
+        const auto* geometry=selected(geometries,identity.id,point);
+        const auto* parent=selected(parents,identity.id,point);
         if(!geometry)continue; // Validated paired coverage may be absent during a lifetime.
         result.entities.push_back({identity.id,geometry->geometryRef,parent->parentId,parent->coverageMode});
         result.entities.back().validity=lifetime->validity;
-        for(const auto& property:normalized.propertyBindings)if(property.entityId==identity.id&&active(property.validity,point))
-            result.entities.back().properties[property.property]=property.value;
+        const auto found=properties.find(identity.id);
+        if(found!=properties.end())for(const auto* property:found->second)if(active(property->validity,point))
+            result.entities.back().properties[property->property]=property->value;
     }
+    std::unordered_map<std::string,const ResolvedEntity*> resolvedById;
+    for(const auto& entity:result.entities)resolvedById.emplace(entity.id,&entity);
     for(auto& entity:result.entities) {
         auto parent=entity.parentId;
         while(!parent.empty()) {
             entity.ancestors.push_back(parent);
-            parent=result.find(parent)->parentId;
+            parent=resolvedById.at(parent)->parentId;
         }
         entity.rootId=entity.ancestors.empty()?entity.id:entity.ancestors.back();
     }
