@@ -8452,6 +8452,29 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
 
 .territorial-label-item { pointer-events: bounding-box; }
 
+.map-attribution {
+  position: absolute;
+  z-index: 6;
+  top: calc(var(--ui-shell-topbar-height) + var(--ui-map-edge));
+  right: max(var(--ui-map-edge), env(safe-area-inset-right));
+  max-width: calc(100% - var(--ui-map-edge) * 2 - var(--ui-touch-height) - var(--ui-space-2));
+  display: grid;
+  gap: var(--ui-space-0-5);
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border-radius: var(--ui-radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--design-font-xs);
+  line-height: 1.4;
+  pointer-events: auto;
+}
+
+.map-attribution a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 /* source: assets/css/utilities/accessibility.css */
 
 /* Canonical utilities / accessibility. */
