@@ -26,14 +26,23 @@ async function source(t) {
     assets[type] = { file, sha256: hash(await readFile(join(root, 'assets/wasm', file))) };
   }
   await put('assets/wasm/pandoeditor-core.manifest.json', JSON.stringify({ schema: 'pandoeditor-core-wasm', abiVersion: 1, assets }));
+  const ocrBytes = Buffer.from('OCR'), runtimeBytes = Buffer.from('export default {};');
+  const languages = { eng: { url: 'eng.traineddata.gz', bytes: ocrBytes.length, sha256: hash(ocrBytes) } };
+  await put('assets/vendor/reference-analysis/tesseract.mjs', runtimeBytes);
+  await put('assets/vendor/reference-analysis/manifest.json', JSON.stringify({ schemaVersion: 1, languages,
+    files: { 'tesseract.mjs': { bytes: runtimeBytes.length, sha256: hash(runtimeBytes) } } }));
+  await put('assets/data/reference-analysis/v1/ocr/eng.traineddata.gz', ocrBytes);
+  await put('assets/data/reference-analysis/v1/ocr/manifest.json', JSON.stringify({ schemaVersion: 1, languages }));
   return { root, put };
 }
 
-test('stages the real frontend and exact WASM pair without any world data', async t => {
+test('stages the real frontend, exact WASM pair and local OCR without world data', async t => {
   const { root } = await source(t);
   const result = await stagePrototype({ root });
   assert.ok(result.files.some(file => file.path === 'assets/js/app.js'));
-  assert.ok(result.files.every(file => !file.path.startsWith('assets/data/')));
+  assert.ok(result.files.every(file => !file.path.startsWith('assets/data/') || file.path.startsWith('assets/data/reference-analysis/')));
+  assert.equal(await readFile(join(result.directory, 'assets/data/reference-analysis/v1/ocr/eng.traineddata.gz'), 'utf8'), 'OCR');
+  assert.equal(result.referenceAnalysis.modelAvailable, false);
   assert.equal(await readFile(join(result.directory, 'assets/js/app.js'), 'utf8'), 'export const realApplication = true;');
   const html = await readFile(join(result.directory, 'index.html'), 'utf8');
   assert.match(html, /shell\/startup\.js/);
@@ -64,6 +73,12 @@ test('rejects a modified WASM asset instead of blessing a new hash', async t => 
   const { root, put } = await source(t);
   await put('assets/wasm/pandoeditor-core.wasm', 'tampered');
   await assert.rejects(stagePrototype({ root }), /WASM.*hash|hash.*WASM/i);
+});
+
+test('rejects altered local OCR weights instead of packaging unverified bytes', async t => {
+  const { root, put } = await source(t);
+  await put('assets/data/reference-analysis/v1/ocr/eng.traineddata.gz', 'TAMPERED');
+  await assert.rejects(stagePrototype({ root }), /Reference analysis resource mismatch/);
 });
 
 test('requires the explicit editor base and never falls back to the viewer HTML', async t => {
