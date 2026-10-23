@@ -9,7 +9,7 @@ import math
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageOps
-from corpus import CHANNELS, validate_corpus, evaluation_groups, corpus_path, corpus_fingerprint
+from corpus import CHANNELS, RASTER_ORIGINS, validate_corpus, evaluation_groups, corpus_path, corpus_fingerprint
 from model import ReferenceBoundaryModel, boundary_loss
 from evaluation import boundary_counts, metrics
 
@@ -29,7 +29,7 @@ class MapTiles(torch.utils.data.Dataset):
                 width, height = ImageOps.exif_transpose(source).size
             annotation = json.loads(corpus_path(self.root, sheet['annotations']).read_text(encoding='utf-8'))
             validity = None
-            if annotation.get('origin') in {'publisher-layer-export', 'semap-human-mask-export'}:
+            if annotation.get('origin') in RASTER_ORIGINS:
                 with Image.open(corpus_path(self.root, annotation['validRaster']['path'])) as source:
                     validity = np.asarray(source).copy()
             for y in range(0, height, SIZE - OVERLAP):
@@ -50,7 +50,7 @@ class MapTiles(torch.utils.data.Dataset):
         annotation = json.loads((self.root / sheet["annotations"]).read_text(encoding="utf-8"))
         if annotation.get("width") != width or annotation.get("height") != height:
             raise ValueError("Annotations must use oriented original image dimensions")
-        if annotation.get('origin') in {'publisher-layer-export', 'semap-human-mask-export'}:
+        if annotation.get('origin') in RASTER_ORIGINS:
             arrays = []
             for field in ['raster', 'validRaster']:
                 with Image.open(corpus_path(self.root, annotation[field]['path'])) as raster:
@@ -95,7 +95,7 @@ def raster_supervision(root, sheets):
     counts = np.zeros((len(CHANNELS), 2), dtype=np.int64)
     for sheet in sheets:
         annotation = json.loads(corpus_path(root, sheet['annotations']).read_text(encoding='utf-8'))
-        if annotation.get('origin') not in {'publisher-layer-export', 'semap-human-mask-export'}:
+        if annotation.get('origin') not in RASTER_ORIGINS:
             raise ValueError('Training-only mode requires verified raster labels')
         with Image.open(corpus_path(root, annotation['raster']['path'])) as image:
             target = np.asarray(image, dtype=np.uint8)
@@ -130,6 +130,16 @@ def balanced_tile_indices(datasets, epoch, seed):
     return result
 
 
+def require_macro_scope(sheets, root):
+    if not sheets or any(sheet.get('geographicScope') not in {'world', 'continent', 'country'}
+                         or not sheet.get('scopeEvidence') for sheet in sheets):
+        raise ValueError('Verified whole-map macro scope required for every training source')
+    for sheet in sheets:
+        annotation = json.loads(corpus_path(root, sheet['annotations']).read_text(encoding='utf-8'))
+        if annotation.get('origin') != 'macro-vector-supervision':
+            raise ValueError('Source-bound macro supervision required; manifest scope alone is insufficient')
+
+
 def train(args, corpus, root):
     if args.initialize_checkpoint and not args.training_only:
         raise ValueError('Checkpoint initialization requires training-only mode until lineage independence is verified')
@@ -137,6 +147,8 @@ def train(args, corpus, root):
     sets = {split: [sheet for sheet in sheets if sheet["split"] == split] for split in ["train", "validation", "test"]}
     if not sets['train'] or (not args.training_only and any(not rows for rows in sets.values())):
         raise ValueError("Training requires separate real train, validation and test map families")
+    if args.macro_only:
+        require_macro_scope(sets['train'], root)
     output = pathlib.Path(args.output)
     if output.exists() or output.with_suffix('.pending.pt').exists():
         raise ValueError('Training output already exists; preserve the existing model')
@@ -145,6 +157,8 @@ def train(args, corpus, root):
     if args.auxiliary_corpus:
         auxiliary_path = pathlib.Path(args.auxiliary_corpus).resolve()
         auxiliary = validate_corpus(json.loads(auxiliary_path.read_text(encoding='utf-8')), auxiliary_path.parent, training_only=True)
+        if args.macro_only:
+            require_macro_scope(auxiliary['sheets'], auxiliary_path.parent)
         if set(row['id'] for row in sheets) & set(row['id'] for row in auxiliary['sheets']):
             raise ValueError('Duplicate sheet identity across training corpora')
         datasets.append(MapTiles(auxiliary_path.parent, auxiliary['sheets']))
@@ -212,6 +226,7 @@ def train(args, corpus, root):
                             initialization=initialization,
                             sampling='balanced-corpora-originals-with-coverage' if args.balance_sources else 'uniform-tiles',
                             samplingSeed=20261023 if args.balance_sources else None,
+                            geographicFocus='macro-only' if args.macro_only else 'unrestricted',
                             learningRate=args.learning_rate, freezeEncoderEpochs=args.freeze_encoder_epochs,
                             trainingUsedSheetIds=used_ids, tilesPerCorpus=[len(dataset) for dataset in datasets],
                             epoch=epoch, seed=20261022, corpusSha256=fingerprint,
@@ -306,6 +321,7 @@ if __name__ == "__main__":
     parser.add_argument('--auxiliary-corpus', help='Additional verified training-only raster corpus')
     parser.add_argument('--initialize-checkpoint', help='Continue training from an actual trained checkpoint')
     parser.add_argument('--balance-sources', action='store_true', help='Visit every original and balance corpora/source items each epoch')
+    parser.add_argument('--macro-only', action='store_true', help='Require verified world/continent/country map scope for every source')
     parser.add_argument('--learning-rate', type=float, default=1e-4)
     parser.add_argument('--freeze-encoder-epochs', type=int, default=2)
     args = parser.parse_args()
@@ -315,6 +331,8 @@ if __name__ == "__main__":
         parser.error('--auxiliary-corpus requires training-only train')
     if args.initialize_checkpoint and not (args.command == 'train' and args.training_only):
         parser.error('--initialize-checkpoint requires training-only train')
+    if args.macro_only and args.command != 'train':
+        parser.error('--macro-only is only valid for train')
     if args.epochs < 1 or args.batch < 1:
         parser.error('Positive epochs and batch required')
     if not math.isfinite(args.learning_rate) or not 0 < args.learning_rate <= .01 or args.freeze_encoder_epochs < 0:

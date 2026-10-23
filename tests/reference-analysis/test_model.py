@@ -14,6 +14,27 @@ from train import MapTiles, optimizer_update, train
 
 
 class ModelInterfaceTests(unittest.TestCase):
+    def test_macro_guard_cannot_be_bypassed_by_relabelling_a_micro_manifest(self):
+        from train import require_macro_scope
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            for origin in ['semap-human-mask-export', 'publisher-layer-export']:
+                (root/'labels.json').write_text(json.dumps(dict(origin=origin)), encoding='utf-8')
+                with self.assertRaisesRegex(ValueError, 'macro'):
+                    require_macro_scope([dict(geographicScope='country', scopeEvidence='whole map',
+                                              annotations='labels.json')], root)
+
+    def test_macro_only_training_rejects_micro_and_unverified_source_scope(self):
+        from train import require_macro_scope
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            (root/'labels.json').write_text(json.dumps(dict(origin='macro-vector-supervision')), encoding='utf-8')
+            require_macro_scope([dict(geographicScope='world', scopeEvidence='whole published world map', annotations='labels.json')], root)
+            for row in [dict(geographicScope='city', scopeEvidence='city map'),
+                        dict(geographicScope='country'), dict(scopeEvidence='unknown')]:
+                with self.assertRaisesRegex(ValueError, 'macro'):
+                    require_macro_scope([row], root)
+
     def test_balanced_training_sees_every_original_without_large_sheets_dominating(self):
         from train import balanced_tile_indices
         first = SimpleNamespace(tiles=[(0, i, 0) for i in range(90)] + [(1, 0, 0)],

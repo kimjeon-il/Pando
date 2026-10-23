@@ -265,3 +265,40 @@ it measures fitting only, never independent accuracy or model-release approval.
 Dataset citation: Petitpierre, Gomez Donoso and Kriesel, *Semantic Segmentation Map
 Dataset (Semap)*, EPFL, [pinned record 19048095](https://zenodo.org/records/19048095),
 annotations CC BY 4.0, image reuse conditions in the authors' `license_images.md`.
+
+## Macro-first continuation
+
+`macro-source-catalog.json` pins a bounded pilot of whole published world/country
+maps, distinct from the city patches and detailed US Topo sheets above. Acquire
+the catalogued PDFs with `acquire-sources.py`; run `macro.py` from this app checkout
+against the external sources directory. It reuses the current raster corpus,
+trainer, inspection and ONNX verification owners. No product/runtime owner changes.
+
+The CIA world map uses conservative adjacency of the actual printed country-fill
+palette: clear interiors supply negatives and visible white seams between
+different fills supply positives. Sea/coast, same-colour seams, text holes and
+ambiguous pixels remain unknown. The Canada national map uses source-legend
+stroke signatures including colour, width and dash pattern; visible source colour
+is checked because PDF drawing extraction can expose clipped/hidden paths. The
+legend and unclassified boundary marks are excluded. These masks are explicitly
+`source-derived-weak`, not independently reviewed truth or historical attribution.
+Validation recomputes source image/masks/statistics; source and rights metadata,
+PDF bytes and whole-map scope are hash-bound in the corpus fingerprint.
+
+```powershell
+$macroCorpus = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/macro-political'
+$macroModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/macro-v1'
+& $trainingPython tools/reference-analysis/acquire-sources.py --catalog tools/reference-analysis/macro-source-catalog.json --output "$macroCorpus/sources"
+& $trainingPython tools/reference-analysis/macro.py --sources "$macroCorpus/sources"
+& $trainingPython tools/reference-analysis/train.py train --training-only --macro-only --corpus "$macroCorpus/corpus.training.json" --initialize-checkpoint 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v2/boundary.pt' --output "$macroModel/boundary.pt" --epochs 8 --batch 1 --device cuda --balance-sources --learning-rate 0.00001 --freeze-encoder-epochs 2
+& $trainingPython tools/reference-analysis/train.py export --checkpoint "$macroModel/boundary.pt" --output "$macroModel/boundary.onnx"
+& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$macroCorpus/corpus.training.json" --checkpoint "$macroModel/boundary.pt" --baseline-checkpoint 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v2/boundary.pt' --onnx "$macroModel/boundary.onnx" --output "$macroModel/diagnostics"
+```
+
+Macro scope records a verified whole-map extent, not a count of cropped tiles or
+rotation/colour variants. This pilot contains two actual originals and does not
+establish diversity across continents, languages, atlas families or historical
+periods. Only international/administrative channels have supervision; the other
+channels remain unobserved/suppressed in this continuation. Keep pending weights
+outside the active runtime path. Reuse `verify-trained-onnx.mjs` for actual local
+WASM parity, and report source-tile fitting separately from independent accuracy.

@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "purpose": "macro-only-source-derived-training-pilot",
+  "sources": [
+    {
+      "id": "cia-world-political-2021",
+      "familyId": "cia-world-political-robinson",
+      "editionId": "cia-february-2021",
+      "duplicateGroup": "cia-world-political-2021",
+      "language": "eng",
+      "script": "Latin",
+      "mapKind": "color",
+      "published": "2021-02",
+      "format": "pdf",
+      "materialKind": "published-macro-pdf",
+      "rightsReviewed": true,
+      "geographicScope": "world",
+      "scopeEvidence": "Complete single-page political world map, Robinson projection, printed scale 1:35,000,000",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/CIA_World_Map_Political_2021.pdf",
+      "metadataUrl": "https://commons.wikimedia.org/wiki/File:CIA_World_Map_Political_2021.pdf",
+      "originalPublisherUrl": "https://www.cia.gov/the-world-factbook/static/a3923845c9726ba40450a039d3f3b96b/world_pol.pdf",
+      "rightsUrl": "https://www.cia.gov/site-policies/",
+      "license": "CIA public-domain map; credit Central Intelligence Agency; retain all map notices and archival mirror provenance",
+      "uncertainty": "Archived publisher reproduction; former official URL now redirects to retirement story. Colour adjacency is weak supervision, not independent border truth.",
+      "supervision": {
+        "strategy": "country-fill-adjacency",
+        "radiusPixels": 2,
+        "countryFillColors": [
+          [
+            0.7377,
+            0.7415,
+            0.8094
+          ],
+          [
+            0.7023,
+            0.7757,
+            0.7805
+          ],
+          [
+            0.9084,
+            0.7417,
+            0.6026
+          ],
+          [
+            0.7762,
+            0.7991,
+            0.6183
+          ],
+          [
+            0.9064,
+            0.8127,
+            0.5264
+          ],
+          [
+            0.8518,
+            0.7199,
+            0.7359
+          ],
+          [
+            0.8524,
+            0.7763,
+            0.6115
+          ]
+        ]
+      },
+      "sha256": "78881fcb06202245a3c195cf480bb4c9bd1ff1fbb913685cf0ff16f0ca264204",
+      "expectedBytes": 23624840,
+      "maximumBytes": 33554432
+    },
+    {
+      "id": "nrcan-canada-national",
+      "familyId": "atlas-canada-national-reference",
+      "editionId": "nrcan-canada-credit-2024",
+      "duplicateGroup": "nrcan-canada-national",
+      "language": "eng",
+      "script": "Latin",
+      "mapKind": "color",
+      "published": null,
+      "catalogPublication": "2022",
+      "copyrightYear": "2024",
+      "format": "pdf",
+      "materialKind": "published-macro-pdf",
+      "rightsReviewed": true,
+      "geographicScope": "country",
+      "scopeEvidence": "Complete national Canada PDF with all provinces/territories and adjacent foreign areas; official small-scale reference collection",
+      "url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/Geographical-maps_Carte-geographique/SmallScaleReferenceMaps/english_canada/colour/Canada.pdf",
+      "metadataUrl": "https://open.canada.ca/data/en/dataset/e9ffaaa6-c8f0-4c88-be9a-5d019a919ad8",
+      "rightsUrl": "https://open.canada.ca/en/open-government-licence-canada",
+      "license": "Contains information licensed under the Open Government Licence - Canada. Source: Natural Resources Canada, Atlas of Canada. Retain Crown copyright and map credits.",
+      "uncertainty": "Portal collection date 2022 differs from PDF copyright credit 2024; publication date not inferred. Source legend signatures supply weak boundary supervision.",
+      "supervision": {
+        "strategy": "boundary-stroke-signatures",
+        "channels": {
+          "international": [
+            {
+              "color": [
+                0.57499045,
+                0.58558023,
+                0.59577328
+              ],
+              "width": 1.0,
+              "dashes": [
+                8.5,
+                2.5,
+                1.6,
+                2.5
+              ]
+            }
+          ],
+          "administrative": [
+            {
+              "color": [
+                0.43253222,
+                0.46181428,
+                0.48445868
+              ],
+              "width": 1.0,
+              "dashes": [
+                5.0,
+                3.0
+              ]
+            }
+          ]
+        },
+        "unknownStrokes": [
+          {
+            "color": [
+              0.57499045,
+              0.58558023,
+              0.59577328
+            ],
+            "width": 1.0,
+            "dashes": [
+              2.0,
+              2.0
+            ]
+          }
+        ]
+      },
+      "sha256": "954101b51bce0f3313394e960e4bb1b4570d03c4b03b2f2b08166073afea731a",
+      "expectedBytes": 1078628,
+      "maximumBytes": 33554432,
+      "excludedRegionsNormalized": [
+        [
+          0.74,
+          0.02,
+          0.995,
+          0.29
+        ]
+      ]
+    }
+  ]
+}
