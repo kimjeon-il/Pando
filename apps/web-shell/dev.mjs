@@ -21,8 +21,10 @@ export async function startDevelopmentServer({ repository = root, port = 4175, p
   repository = resolve(repository);
   let current = await createDevelopmentAssets({ root: repository, profile });
   let revision = 0, error = null, pending = null, dirty = false, timer;
-  const listeners = new Set(), watchers = [];
-  const reloadSource = Buffer.from(`const events = new EventSource('/__shell/events'); let revision; events.onmessage = event => { if (revision !== undefined && revision !== event.data) location.reload(); revision = event.data; };`);
+  const watchers = [];
+  // Android's Tauri asset proxy buffers streaming responses. A short request
+  // works through that same origin on both native platforms.
+  const reloadSource = Buffer.from(`let revision; async function check() { try { const state = await fetch('/__shell/health', { cache: 'no-store' }).then(response => response.json()); if (revision !== undefined && revision !== state.revision) { location.reload(); return; } revision = state.revision; } catch {} setTimeout(check, 1000); } check();`);
   const decorate = () => {
     const html = current.assets.get('index.html').bytes;
     current.assets.set('index.html', { bytes: Buffer.concat([html, Buffer.from('<script type="module" src="shell/dev-reload.js"></script>')]) });
@@ -43,7 +45,6 @@ export async function startDevelopmentServer({ repository = root, port = 4175, p
         try {
           const next = await createDevelopmentAssets({ root: repository, profile });
           current = next; decorate(); if (observe) await updateLease(); error = null; revision++;
-          for (const response of listeners) response.write(`data: ${revision}\n\n`);
         } catch (failure) { error = failure.message; console.error('Development assets rejected:', error); }
       } while (dirty);
     })().finally(() => { pending = null; });
@@ -55,12 +56,6 @@ export async function startDevelopmentServer({ repository = root, port = 4175, p
     handleRequest(request, response, pathname) {
       if (pathname === '/__shell/health') {
         response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ root: repository, profile, revision, error, executionMode: 'development' })); return true;
-      }
-      if (pathname === '/__shell/events') {
-        if (request.method === 'HEAD') { response.writeHead(200).end(); return true; }
-        response.writeHead(200, { 'Content-Type': 'text/event-stream', 'Connection': 'keep-alive' });
-        response.write(`data: ${revision}\n\n`); listeners.add(response);
-        response.on('close', () => listeners.delete(response)); return true;
       }
       if (pathname === '/' || pathname === '/index.html') {
         const hashes = [...current.assets.get('index.html').bytes.toString().matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
@@ -81,7 +76,6 @@ export async function startDevelopmentServer({ repository = root, port = 4175, p
   }
   return { server, refresh, get evidence() { return current.evidence; }, async close() {
     clearTimeout(timer); for (const watcher of watchers) watcher.close();
-    for (const response of listeners) response.end();
     if (pending) await pending;
     await new Promise(resolve => server.close(resolve));
     if (observe) await unlink(lease);
