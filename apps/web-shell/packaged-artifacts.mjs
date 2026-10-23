@@ -7,17 +7,19 @@ import { requireBuildSpace } from './dev.mjs';
 const shell = fileURLToPath(new URL('./', import.meta.url));
 const target = resolve(process.env.CARGO_TARGET_DIR || resolve(shell, 'src-tauri/target'));
 const android = process.argv.includes('--android');
+const abi = process.argv.find(arg => arg.startsWith('--abi='))?.slice(6) || 'arm64';
+if (!['arm64', 'x86_64'].includes(abi)) throw Error('Unsupported packaged Android ABI.');
 if (process.argv.includes('--build')) {
   await requireBuildSpace(shell);
   execFileSync(process.execPath, [resolve(shell, 'node_modules/@tauri-apps/cli/tauri.js'), 'build', '--debug', '--no-bundle', '--target', 'x86_64-pc-windows-gnu', '--features', 'custom-protocol'],
     { cwd: shell, stdio: 'inherit', env: { ...process.env, CARGO_INCREMENTAL: '0', PANDOLAB_SHELL_DEVELOPMENT: '0' } });
 }
-const source = android ? resolve(shell, 'src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk') : resolve(target, 'x86_64-pc-windows-gnu/debug/pandolab-web-shell.exe');
+const source = android ? resolve(shell, `src-tauri/gen/android/app/build/outputs/apk/${abi}/debug/app-${abi}-debug.apk`) : resolve(target, 'x86_64-pc-windows-gnu/debug/pandolab-web-shell.exe');
 const directory = resolve(target, android ? 'packaged/android' : 'packaged/windows');
-const output = resolve(directory, android ? 'app-arm64-debug.apk' : 'pandolab-web-shell.exe');
+const output = resolve(directory, android ? `app-${abi}-debug.apk` : 'pandolab-web-shell.exe');
 const exists = path => stat(path).then(() => true, () => false);
 const preserve = process.argv.includes('--preserve-existing');
-const modeMarker = resolve(target, android ? '.development-output-android' : '.development-output-windows');
+const modeMarker = resolve(target, android ? `.development-output-android-${abi}` : '.development-output-windows');
 if (!preserve && !await exists(source)) throw Error(`Packaged native artifact is missing: ${source}`);
 if (preserve && !await exists(output) && await exists(modeMarker) && await exists(source)) throw Error('An offline artifact is missing; refusing to label a development binary as packaged.');
 if (!(process.argv.includes('--preserve-existing') && await exists(output)) && await exists(source)) {
