@@ -1,10 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
 import { parse } from 'yaml';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { loadRepository, planApplicationChecks } from '../../scripts/plan-application-checks.mjs';
+import { loadRepository, planApplicationChecks, matchesPattern } from '../../scripts/plan-application-checks.mjs';
+
+test('every current browser workflow can be assigned before CI dependency planning', () => {
+  const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
+  const groups = catalog.groups.filter(group => group.kind === 'browser');
+  const unregistered = readdirSync(new URL('../browser/', import.meta.url)).filter(name => name.endsWith('.spec.mjs'))
+    .map(name => 'tests/browser/' + name).filter(file => !groups.some(group => group.testPatterns.some(pattern => matchesPattern(file, pattern))));
+  assert.deepEqual(unregistered, []);
+});
 
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'pando-check-plan-'));
