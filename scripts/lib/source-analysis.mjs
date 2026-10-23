@@ -1,10 +1,7 @@
 import { Linter } from 'eslint';
 
-// Parsing is synchronous. verify resets its source/scope state on each text
-// input; previously returned SourceCode objects keep their own AST and scopes.
-const linter = new Linter();
-
 export function parseJavaScript(source, { filePath = 'source.js', sourceType = 'module' } = {}) {
+  const linter = new Linter();
   const messages = linter.verify(source, { languageOptions: { ecmaVersion: 'latest', sourceType } });
   const failure = messages.find(message => message.fatal);
   const code = linter.getSourceCode();
