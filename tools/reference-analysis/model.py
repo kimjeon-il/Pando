@@ -54,12 +54,15 @@ def skeleton(value, iterations=10):
     return result
 
 
-def boundary_loss(logits, target, valid):
+def boundary_loss(logits, target, valid, positive_weight=None):
+    valid = valid.expand_as(logits)
     probability = torch.sigmoid(logits) * valid
     truth = target * valid
-    bce = (F.binary_cross_entropy_with_logits(logits, target, reduction="none") * valid).sum() / (valid.sum() * logits.shape[1]).clamp_min(1)
+    weight = None if positive_weight is None else torch.as_tensor(positive_weight, device=logits.device, dtype=logits.dtype).view(1, -1, 1, 1)
+    bce = (F.binary_cross_entropy_with_logits(logits, target, reduction="none", pos_weight=weight) * valid).sum() / valid.sum().clamp_min(1)
     axes = (0, 2, 3)
-    dice = 1 - ((2 * (probability * truth).sum(axes) + 1) / (probability.sum(axes) + truth.sum(axes) + 1)).mean()
+    active = (valid.sum(axes) > 0).to(logits.dtype)
+    dice = ((1 - (2 * (probability * truth).sum(axes) + 1) / (probability.sum(axes) + truth.sum(axes) + 1)) * active).sum() / active.sum().clamp_min(1)
     predicted_skeleton, true_skeleton = skeleton(probability[:, :3]), skeleton(truth[:, :3])
     precision = ((predicted_skeleton * truth[:, :3]).sum() + 1) / (predicted_skeleton.sum() + 1)
     recall = ((true_skeleton * probability[:, :3]).sum() + 1) / (true_skeleton.sum() + 1)

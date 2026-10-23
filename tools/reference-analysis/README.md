@@ -9,8 +9,9 @@ report originals; the readable archive pages may contain abbreviated text.
 
 The application can run local OCR, georeference checks, semantic inference and
 shared boundary review. The bundled OCR catalog has 29 recognition variants plus
-OSD. There is no reviewed segmentation corpus or approved release checkpoint in
-the current data. `verify-model.py` exports an untrained interface diagnostic into
+OSD. There is no independently reviewed segmentation corpus or approved release
+checkpoint in the current data. Publisher-derived training is available below.
+`verify-model.py` exports an untrained interface diagnostic into
 the fixed ignored build directory; it is never a release model.
 
 `prepare-reference-analysis-assets.mjs` applies the documented
@@ -130,9 +131,11 @@ alone do not provide the three independent families needed for training.
 ## Commands
 
 The fixed development environment is `build-native/python/Scripts/python.exe`.
-Top-level dependency versions are in `requirements.txt`. The installed CPU
-environment verifies architecture/export; CUDA training dependencies and real
-device profiling are separate checks.
+Top-level dependency versions are in `requirements.txt`. CPU verifies
+architecture/export; install matching official CUDA PyTorch/torchvision wheels
+in this same environment for GPU training. Check the interpreter's ABI, available
+disk space and the GPU's supported architecture before installing. Do not create
+another virtual environment or retain downloaded wheel copies.
 
 ```powershell
 $trainingPython = 'D:/dev/worktrees/ui/build-native/python/Scripts/python.exe'
@@ -159,3 +162,86 @@ tolerance `max(2px, original stroke width / 2)`; it does not count overlapping t
 predictions multiple times. Generated inference masters stay in original pixels.
 The review derivative keeps its immutable master and edit commands. Historical
 attribution and historical screen-space geometry accuracy are separate evaluations.
+
+## Publisher-derived first training checkpoint
+
+`usgs-source-catalog.json` pins five actual US Topo GeoPDFs with download hashes,
+publication dates and reuse conditions. Keep original PDFs and generated
+`notices/` together: map-specific third-party credits still apply. `publisher.py`
+uses their optional-content layers, with imagery and shaded relief switched off,
+to create source-derived multi-label training masks. International and state/
+county boundaries, hydrography, transport, glyph boxes and map frame are distinct
+channels. Boundary pixels covered by text are ignored. Coast is unobserved;
+water polygons are not silently relabelled as coastline.
+
+```powershell
+$publisherCorpus = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/usgs-publisher'
+$firstModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/usgs-publisher-v1'
+& $trainingPython tools/reference-analysis/acquire-sources.py --catalog tools/reference-analysis/usgs-source-catalog.json --output "$publisherCorpus/sources"
+& $trainingPython tools/reference-analysis/publisher.py --sources "$publisherCorpus/sources"
+$env:TORCH_HOME = "$firstModel/encoder"
+& $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --output "$firstModel/boundary.pt" --epochs 12 --batch 1 --device cuda
+& $trainingPython tools/reference-analysis/train.py export --checkpoint "$firstModel/boundary.pt" --output "$firstModel/boundary.onnx"
+& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --checkpoint "$firstModel/boundary.pt" --onnx "$firstModel/boundary.onnx" --output "$firstModel/diagnostics"
+```
+
+All five maps share one production family, so all belong to `train`. The explicit
+`--training-only` path validates PDF, generator, source metadata and raster hashes;
+it never sets human `reviewed` or manufactures validation/test splits. The normal
+corpus validator/evaluator rejects this training-only corpus and checkpoint.
+Training uses CUDA mixed precision when available, six-channel validity, capped
+positive class weights and a suppressed unobserved coast output. Checkpoint
+selection uses training loss only, with `validationLoss: null`. The data identity
+includes image/annotation/raster/source bytes, not just the manifest. Preserve the
+encoder's upstream URL, hash and terms with the training evidence.
+
+The inspection command checks ONNX structure and writes actual-map prediction
+overlays plus float32 inputs/PyTorch logits for a real ORT WASM parity check.
+Those selected training-tile diagnostics measure execution and fitting only;
+they do not measure held-out accuracy, generalization or historical correctness.
+Keep pending trained weights in the external model directory. Do not place them
+at the active `reference-analysis/v1` release path before independent evaluation
+and device checks pass.
+
+## Diverse real-map auxiliary training
+
+The user's condition-diversity requirement takes precedence over adding more
+similar US Topo sheets. `semap.py` imports up to four source items from each of
+seven institutions in the authors' Semap real-image training partition. Pages
+and tiles from one item count once. Synthetic samples, original validation/test
+samples, restricted/non-commercial/unclear image-rights rows and unreviewed
+semantic substitutions are excluded. Exact HTTP ranges retrieve selected ZIP
+members; the 2GB image ZIP and unrelated large model are never downloaded. Range
+lengths, member ZIP CRCs and local SHA256 hashes are checked. Whole large-archive
+MD5 verification is not claimed for these partial downloads. Preserve the pinned
+author documentation, image-rights table, original patch and original label PNG.
+
+Semap's manually annotated water/road classes provide auxiliary `hydro` and
+`transport` supervision. Explicit built/non-built pixels provide their negatives;
+background and contours stay ignored. All five other output channels are unknown
+on these patches. Different source institutions are not asserted to be independent
+production families, languages or historical dates. Unknown language/script/date
+remain `und`/`Unknown`/null and do not count as script evaluation coverage. The
+color/monochrome field records a raster-chroma heuristic for inventory only.
+
+```powershell
+$auxiliaryCorpus = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/semap-diverse'
+$diverseModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v1'
+& $trainingPython tools/reference-analysis/semap.py --output $auxiliaryCorpus
+& $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus "$auxiliaryCorpus/corpus.training.json" --initialize-checkpoint "$firstModel/boundary.pt" --output "$diverseModel/boundary.pt" --epochs 4 --batch 1 --device cuda
+& $trainingPython tools/reference-analysis/train.py export --checkpoint "$diverseModel/boundary.pt" --output "$diverseModel/boundary.onnx"
+& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus "$auxiliaryCorpus/corpus.training.json" --checkpoint "$diverseModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/diagnostics"
+& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus "$auxiliaryCorpus/corpus.training.json" --view-corpus auxiliary --checkpoint "$diverseModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/auxiliary-diagnostics"
+node tools/reference-analysis/verify-trained-onnx.mjs --base http://127.0.0.1:4287/ --model reports/reference-analysis/models/diverse-v1/boundary.onnx --diagnostics reports/reference-analysis/models/diverse-v1/diagnostics --output "$diverseModel/onnx-wasm-parity.json"
+```
+
+The last command needs a local static server for this worktree. It checks the
+trained ONNX hash, actual output shape/finite values and PyTorch numerical parity,
+blocks external requests and records timing. It does not bypass the application's
+release gate. Fine-tuning records attempted batches, successful optimizer updates
+and AMP-overflow skips separately; the original first-stage run's successful
+update count was not recorded and must not be reconstructed from batch count.
+
+Dataset citation: Petitpierre, Gomez Donoso and Kriesel, *Semantic Segmentation Map
+Dataset (Semap)*, EPFL, [pinned record 19048095](https://zenodo.org/records/19048095),
+annotations CC BY 4.0, image reuse conditions in the authors' `license_images.md`.
