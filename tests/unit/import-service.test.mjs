@@ -91,6 +91,42 @@ test('country merge planner replaces matching IDs without mutating inputs', asyn
   assert.equal(current.features[0].properties.name, 'Old');
 });
 
+test('merge planning computes unchanged incoming bounds once per operation and keeps validation order', async () => {
+  const visits = [];
+  let validations = 0;
+  const planner = createCountryImportMergePlanner({
+    clipper: { union: (...items) => items[0], difference: left => left, intersection: () => [] },
+    clone: structuredClone, featureCountryId: feature => feature.id, countryName: feature => feature.id,
+    geometryBounds: geometry => { visits.push(geometry); return [0, 0, 1, 1]; },
+    boundsOverlap: () => false,
+    normalizeGeometry: coordinates => coordinates.length ? { type: 'Polygon', coordinates } : null,
+    geometryCoordinates: geometry => geometry.coordinates, planarArea: () => 0, areaKm2: () => 0,
+    validateCountryCollection: async () => { validations++; return { overlapAreaKm2: 0 }; },
+  });
+  const current = { type: 'FeatureCollection', features: ['A', 'B', 'C'].map(id => country(id)) };
+  const incoming = { type: 'FeatureCollection', features: [country('D')] };
+  const before = JSON.stringify({ current, incoming });
+  for (const strategy of ['id-replace', 'territory-replacement']) {
+    visits.length = 0;
+    const result = await planner(current, incoming, strategy);
+    assert.deepEqual(result.countriesData.features.map(feature => feature.id), ['A', 'B', 'C', 'D']);
+    assert.equal(result.canCommit, true);
+    assert.equal(visits.length, 4, 'three distinct existing geometries plus one unchanged incoming geometry');
+    assert.deepEqual(visits.filter(geometry => current.features.some(feature => feature.geometry === geometry)), current.features.map(feature => feature.geometry));
+    assert.equal(JSON.stringify({ current, incoming }), before);
+  }
+  assert.equal(validations, 1, 'territory replacement retains its final validation');
+  visits.length = 0;
+  await planner({ features: [] }, incoming, 'id-replace');
+  assert.equal(visits.length, 0, 'no speculative bounds work when there are no comparisons');
+  // A new operation must recompute changed input; no cross-operation cache.
+  current.features[0].geometry.coordinates[0][0][0] = 3;
+  visits.length = 0;
+  await planner(current, incoming, 'territory-replacement');
+  assert.equal(visits.length, 4);
+  assert.equal(visits[0].coordinates[0][0][0], 3);
+});
+
 test('imported-wins authoritatively replaces the same country instead of unioning its old geometry', async () => {
   const unionArgumentCounts = [];
   const clipper = {
