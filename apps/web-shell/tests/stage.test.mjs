@@ -96,8 +96,19 @@ test('development reload publishes validated changes and preserves the native ou
   t.after(() => server.close());
   const base = `http://127.0.0.1:${server.server.address().port}`;
   assert.match(await fetch(base).then(response => response.text()), /dev-reload.js/);
+  const reload = await fetch(base + '/shell/dev-reload.js').then(response => response.text());
+  let nextCheck, reloads = 0;
+  // The Android asset proxy supports completed responses, not streaming SSE.
+  await new Promise(resolve => runInNewContext(reload, {
+    fetch: path => fetch(base + path),
+    location: { reload: () => reloads++ },
+    setTimeout: check => { nextCheck = check; resolve(); },
+  }));
+  assert.equal(reloads, 0);
   await put('assets/js/app.js', 'export const updated = true;');
   await server.refresh();
+  await nextCheck();
+  assert.equal(reloads, 1, 'a completed health response reloads without an EventSource');
   assert.match(await fetch(base + '/assets/js/app.js').then(response => response.text()), /updated = true/);
   assert.equal((await fetch(base + '/__shell/health').then(response => response.json())).revision, 1);
   assert.equal(await readFile(join(root, 'apps/web-shell/src-tauri/target/native.exe'), 'utf8'), 'unchanged native');
