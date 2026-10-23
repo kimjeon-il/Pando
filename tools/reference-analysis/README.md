@@ -206,9 +206,11 @@ and device checks pass.
 ## Diverse real-map auxiliary training
 
 The user's condition-diversity requirement takes precedence over adding more
-similar US Topo sheets. `semap.py` imports up to four source items from each of
-seven institutions in the authors' Semap real-image training partition. Pages
-and tiles from one item count once. Synthetic samples, original validation/test
+similar US Topo sheets. `semap.py` selects informative distinct originals across
+twelve permitted institution IDs, including compound French/German IDs, in the
+authors' Semap real-image training partition. It checks labels before downloading
+images, requiring supervised pixels on at least 3% and hydro/transport pixels on
+at least 0.5% of the patch. Pages and tiles from one item count once. Synthetic samples, original validation/test
 samples, restricted/non-commercial/unclear image-rights rows and unreviewed
 semantic substitutions are excluded. Exact HTTP ranges retrieve selected ZIP
 members; the 2GB image ZIP and unrelated large model are never downloaded. Range
@@ -226,13 +228,15 @@ color/monochrome field records a raster-chroma heuristic for inventory only.
 
 ```powershell
 $auxiliaryCorpus = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/semap-diverse'
-$diverseModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v1'
-& $trainingPython tools/reference-analysis/semap.py --output $auxiliaryCorpus
-& $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus "$auxiliaryCorpus/corpus.training.json" --initialize-checkpoint "$firstModel/boundary.pt" --output "$diverseModel/boundary.pt" --epochs 4 --batch 1 --device cuda
+$auxiliaryManifest = "$auxiliaryCorpus/corpus.expanded.training.json"
+$previousModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v1'
+$diverseModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v2'
+& $trainingPython tools/reference-analysis/semap.py --output $auxiliaryCorpus --per-institution 12 --maximum-maps 96 --manifest-name corpus.expanded.training.json
+& $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --initialize-checkpoint "$previousModel/boundary.pt" --output "$diverseModel/boundary.pt" --epochs 6 --batch 1 --device cuda --balance-sources --learning-rate 0.00003 --freeze-encoder-epochs 0
 & $trainingPython tools/reference-analysis/train.py export --checkpoint "$diverseModel/boundary.pt" --output "$diverseModel/boundary.onnx"
-& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus "$auxiliaryCorpus/corpus.training.json" --checkpoint "$diverseModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/diagnostics"
-& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus "$auxiliaryCorpus/corpus.training.json" --view-corpus auxiliary --checkpoint "$diverseModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/auxiliary-diagnostics"
-node tools/reference-analysis/verify-trained-onnx.mjs --base http://127.0.0.1:4287/ --model reports/reference-analysis/models/diverse-v1/boundary.onnx --diagnostics reports/reference-analysis/models/diverse-v1/diagnostics --output "$diverseModel/onnx-wasm-parity.json"
+& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/diagnostics"
+& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --view-corpus auxiliary --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/auxiliary-diagnostics"
+node tools/reference-analysis/verify-trained-onnx.mjs --base http://127.0.0.1:4287/ --model reports/reference-analysis/models/diverse-v2/boundary.onnx --diagnostics reports/reference-analysis/models/diverse-v2/diagnostics --output "$diverseModel/onnx-wasm-parity.json"
 ```
 
 The last command needs a local static server for this worktree. It checks the
@@ -241,6 +245,22 @@ blocks external requests and records timing. It does not bypass the application'
 release gate. Fine-tuning records attempted batches, successful optimizer updates
 and AMP-overflow skips separately; the original first-stage run's successful
 update count was not recorded and must not be reconstructed from batch count.
+
+The expanded manifest reuses the original pool and old immutable labels instead
+of copying another corpus. Cached members must match remote ZIP CRC/length.
+Validation pins rights/partition files and recomputes current semantic masks from
+the original author PNG. A producer code hash is immutable provenance, not a
+requirement that historical selection code equal the latest implementation.
+Changed semantic conversion still fails. Ordinary independent-evaluation and
+application release gates remain strict.
+
+`--balance-sources` visits at least one tile from every original each epoch,
+balances corpus quotas and samples additional originals uniformly, so a large
+USGS sheet cannot outweigh many small historical originals by tile count alone.
+Sampling is deterministic per epoch/seed and recorded in the checkpoint. The
+lower continuation learning rate and encoder-freeze duration are also recorded.
+Before/after inspection uses the actual initializer on identical training tiles;
+it measures fitting only, never independent accuracy or model-release approval.
 
 Dataset citation: Petitpierre, Gomez Donoso and Kriesel, *Semantic Segmentation Map
 Dataset (Semap)*, EPFL, [pinned record 19048095](https://zenodo.org/records/19048095),

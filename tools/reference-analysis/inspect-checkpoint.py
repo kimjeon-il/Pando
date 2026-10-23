@@ -13,11 +13,26 @@ from corpus import CHANNELS, corpus_fingerprint, validate_corpus
 from train import MapTiles, load_model
 
 
+def prediction_statistics(probability, expected, known):
+    predicted = probability >= .55
+    return {name: dict(supervisedPixels=int(known[c].sum()), targetPixels=int((expected[c] & known[c]).sum()),
+                       predictedPixels=int((predicted[c] & known[c]).sum()),
+                       overlapPixels=int((expected[c] & predicted[c] & known[c]).sum()),
+                       probabilityMin=float(probability[c].min()), probabilityMax=float(probability[c].max()))
+            for c, name in enumerate(CHANNELS)}
+
+
 def inspect(args):
     manifest = pathlib.Path(args.corpus).resolve()
     root = manifest.parent
     corpus = validate_corpus(json.loads(manifest.read_text(encoding='utf-8')), root, training_only=True)
     model, checkpoint = load_model(args.checkpoint, 'cpu')
+    baseline, baseline_sha = None, None
+    if args.baseline_checkpoint:
+        baseline_sha = hashlib.sha256(pathlib.Path(args.baseline_checkpoint).read_bytes()).hexdigest()
+        if checkpoint['initialization']['sha256'] != baseline_sha:
+            raise ValueError('Comparison must use the actual initializer checkpoint')
+        baseline, _ = load_model(args.baseline_checkpoint, 'cpu')
     if args.auxiliary_corpus:
         auxiliary_path = pathlib.Path(args.auxiliary_corpus)
         auxiliary = validate_corpus(json.loads(auxiliary_path.read_text(encoding='utf-8')), auxiliary_path.parent, training_only=True)
@@ -54,6 +69,9 @@ def inspect(args):
             if not torch.isfinite(logits).all():
                 raise RuntimeError('Trained checkpoint produced non-finite logits')
             probability = logits.sigmoid()[0].numpy()
+            prior = None if baseline is None else baseline(tile[None], overview[None], position[None]).sigmoid()[0].numpy()
+            if prior is not None and not np.isfinite(prior).all():
+                raise RuntimeError('Baseline produced non-finite outputs')
             expected = target.numpy() > .5
             known = valid.numpy() > .5
             predicted = probability >= .55
@@ -62,31 +80,31 @@ def inspect(args):
                 source = source.convert('RGB').crop((x, y, x + 512, y + 512))
             original = np.asarray(source).copy()
             panels = [original]
-            for active in [expected, predicted]:
+            for active in [expected, *([] if prior is None else [prior >= .55]), predicted]:
                 overlay = original.copy()
                 for c in [3, 4, 5, 6, 1, 0]:
                     mask = active[c] & known[c]
                     overlay[mask] = (overlay[mask] * .2 + colors[c] * .8).astype(np.uint8)
                 panels.append(overlay)
-            canvas = Image.new('RGB', (1536, 540), 'white')
+            canvas = Image.new('RGB', (512 * len(panels), 540), 'white')
             for i, panel in enumerate(panels):
                 canvas.paste(Image.fromarray(panel), (512 * i, 28))
             draw = ImageDraw.Draw(canvas)
-            for i, title in enumerate(['Real map input', 'Publisher-derived training target', 'Trained prediction (threshold 0.55)']):
+            titles = ['Real map input', 'Source training target', *([] if prior is None else ['Before continuation']), 'Trained prediction (threshold 0.55)']
+            for i, title in enumerate(titles):
                 draw.text((512 * i + 8, 8), title, fill='black')
-            canvas.save(output / (sheet['id'] + '.jpg'), quality=95)
-            statistics = {}
-            for c, name in enumerate(CHANNELS):
-                statistics[name] = dict(supervisedPixels=int(known[c].sum()), targetPixels=int((expected[c] & known[c]).sum()),
-                                        predictedPixels=int((predicted[c] & known[c]).sum()),
-                                        overlapPixels=int((expected[c] & predicted[c] & known[c]).sum()),
-                                        probabilityMin=float(probability[c].min()), probabilityMax=float(probability[c].max()))
-            rows.append(dict(sheetId=sheet['id'], tileIndex=index, pixelOrigin=[x, y], channels=statistics))
+            preview = sheet['id'] + '.jpg' if len(rows) < args.maximum_previews else None
+            if preview:
+                canvas.save(output / preview, quality=95)
+            statistics = prediction_statistics(probability, expected, known)
+            rows.append(dict(sheetId=sheet['id'], tileIndex=index, pixelOrigin=[x, y], channels=statistics, previewFile=preview,
+                             baselineChannels=None if prior is None else prediction_statistics(prior, expected, known)))
             if len(rows) == 1 and args.view_corpus == 'primary':
                 for name, value in [('tile', tile[None]), ('overview', overview[None]), ('position', position[None]), ('expected-logits', logits)]:
                     value.numpy().astype('<f4').tofile(output / (name + '.f32'))
     report = dict(schemaVersion=1, purpose='training-set-diagnostic-only', viewCorpus=args.view_corpus, independentEvaluation=False,
                   releaseApproved=False, checkpointSha256=hashlib.sha256(pathlib.Path(args.checkpoint).read_bytes()).hexdigest(),
+                  baselineCheckpointSha256=baseline_sha,
                   onnxSha256=hashlib.sha256(pathlib.Path(args.onnx).read_bytes()).hexdigest(),
                   corpusSha256=checkpoint['corpusSha256'], trainingBatches=checkpoint['steps'],
                   optimizerUpdates=checkpoint['optimizerUpdates'],
@@ -102,6 +120,10 @@ if __name__ == '__main__':
         parser.add_argument('--' + key, required=True)
     parser.add_argument('--auxiliary-corpus')
     parser.add_argument('--view-corpus', choices=['primary', 'auxiliary'], default='primary')
+    parser.add_argument('--baseline-checkpoint')
+    parser.add_argument('--maximum-previews', type=int, default=24)
     args = parser.parse_args()
+    if not 0 <= args.maximum_previews <= 1024:
+        parser.error('Preview budget must be 0..1024')
     torch.set_num_threads(2)
     inspect(args)
