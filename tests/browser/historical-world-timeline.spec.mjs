@@ -7,6 +7,35 @@ test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
 async function month(page, value) {
   await setEditorMonth(page, value);
 }
+
+test('exact timeline lookup preserves dated names, geometry, locks and committed Undo/Redo', async ({ page }) => {
+  test.setTimeout(180000);
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await gotoEditor(page, '/?debug=1&renderer=canvas');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
+  await month(page, '2012-10');
+  const id = 'UKR', original = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), id);
+  const name = '시간축 정확성 회귀';
+  await page.evaluate(({ id, name }) => window.PANDOLAB_TERRITORIAL.setName(id, name), { id, name });
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.name, id)).toBe(name);
+  await month(page, '2012-09');
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.name, id)).toBe(original.properties.name);
+  await month(page, '2012-10');
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.name, id)).toBe(name);
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setLocked(id, true), id);
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.isLocked(id), id)).toBe(true);
+  await page.locator('#undoBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.isLocked(id), id)).toBe(false);
+  await page.locator('#undoBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.name, id)).toBe(original.properties.name);
+  await page.locator('#redoBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.name, id)).toBe(name);
+  const final = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), id);
+  expect(final.geometry).toEqual(original.geometry);
+  expect(final.id).toBe(original.id);
+  expect(final.properties.parentId).toBe(original.properties.parentId);
+  expect(errors).toEqual([]);
+});
 test('new world reset materializes one source month and editor navigation keeps that snapshot', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await gotoEditor(page, '/?debug=1&renderer=canvas');
