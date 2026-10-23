@@ -20,49 +20,25 @@
       "sha256": "45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac",
       "bytes": 466
     },
-    "core/tesseract-core-lstm.wasm": {
-      "sha256": "66b17df6e20c5329a17ffa9c202a47eaa3e32500b253d4c7f38e7f2bc01457c3",
-      "bytes": 2855361
-    },
     "core/tesseract-core-lstm.wasm.js": {
       "sha256": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680",
       "bytes": 3896484
-    },
-    "core/tesseract-core-relaxedsimd-lstm.wasm": {
-      "sha256": "7985c92d4c64e7267d24cadffe1b2a1da6bf8aa55fdcaf953fe94fe122a24545",
-      "bytes": 2862266
     },
     "core/tesseract-core-relaxedsimd-lstm.wasm.js": {
       "sha256": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3",
       "bytes": 3905767
     },
-    "core/tesseract-core-relaxedsimd.wasm": {
-      "sha256": "45f8c9b516df326b6ae6b493ed3a6289df5cbd10490e7b6ff8bf5b12ea42d1da",
-      "bytes": 3456075
-    },
     "core/tesseract-core-relaxedsimd.wasm.js": {
       "sha256": "843074aa5bad1cc6421b74a86201768ced9f244795e4d81435435a61a40ce535",
       "bytes": 4697227
-    },
-    "core/tesseract-core-simd-lstm.wasm": {
-      "sha256": "34e8d50cac216427d86bf397d610fdd9f49492539bbcdfbfccc4eda20c810bea",
-      "bytes": 2857601
     },
     "core/tesseract-core-simd-lstm.wasm.js": {
       "sha256": "c58b46a4c796c0b8afccf77591d5b875b6896b45d402bbce8caa6f5362447b38",
       "bytes": 3899472
     },
-    "core/tesseract-core-simd.wasm": {
-      "sha256": "7d237a13edfeb0fa2f104744fccde0a00e0c076c3e23b7a8fc7af75ec9af2c3e",
-      "bytes": 3451410
-    },
     "core/tesseract-core-simd.wasm.js": {
       "sha256": "6b61ef4e911b5cf57e656bbfe983d6e2b3711a02dd164154ddda064566e8e09d",
       "bytes": 4690932
-    },
-    "core/tesseract-core.wasm": {
-      "sha256": "c7f5ace62ac0ad065e71e9c6725f1d7cdf82e7eda8fba532cbb9563964da7098",
-      "bytes": 3449168
     },
     "core/tesseract-core.wasm.js": {
       "sha256": "0bc6ce3e5fbbd0cd89706cf2fd70960e3372f4f01ee24265b26990808aaeb286",

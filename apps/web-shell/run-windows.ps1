@@ -12,9 +12,13 @@ if ($EnvironmentScript) { . $EnvironmentScript }
 if (-not $BinaryPath) {
     $targetRoot = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { Join-Path $PSScriptRoot 'src-tauri/target' }
     $candidates = @(
+        (Join-Path $targetRoot 'packaged/windows/pandolab-web-shell.exe'),
         (Join-Path $targetRoot 'x86_64-pc-windows-gnu/debug/pandolab-web-shell.exe'),
         (Join-Path $targetRoot 'x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe')
     )
+    if (Test-Path -LiteralPath (Join-Path $targetRoot '.development-output-windows')) {
+        $candidates = @((Join-Path $targetRoot 'packaged/windows/pandolab-web-shell.exe'))
+    }
     $BinaryPath = $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 }
 if (-not $BinaryPath) { throw 'Prototype EXE missing. Build the Windows prototype first.' }

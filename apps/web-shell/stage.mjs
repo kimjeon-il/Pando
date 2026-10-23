@@ -1,14 +1,16 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { access, lstat, mkdir, open, readFile, readdir, realpath, rm, unlink, writeFile } from 'node:fs/promises';
+import { access, lstat, mkdir, open, readFile, readdir, realpath, rename, rm, unlink, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
+import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
 import { tinyFixture } from './fixture.mjs';
 import { installNetworkGuard } from './network-guard.js';
 import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
 import { referenceAnalysisAssetPlan } from './reference-analysis-plan.mjs';
 import { prepareLibraryData } from '../../tools/library-data.mjs';
+import { previewFileIdentity } from '../../scripts/p3-preview-server.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(here, '../..');
@@ -29,37 +31,84 @@ export async function stagePrototype({ root = repository, profile = 'small-proje
     if (error.code === 'EEXIST') throw new Error('Shell staging is already running; wait for the current build.', { cause: error });
     throw error;
   }
-  try { return await stageOwnedPrototype({ root, profile }); }
+  const directory = join(parent, 'dist'), pending = join(parent, '.dist-pending'), previous = join(parent, '.dist-previous');
+  try {
+    for (const path of [directory, pending, previous]) if (await exists(path) && !await exists(join(path, ownership))) throw new Error('Output directory ownership is not established; no files removed.');
+    if (await exists(previous)) {
+      if (!await exists(directory)) await rename(previous, directory);
+      else await rm(previous, { recursive: true });
+    }
+    if (await exists(pending)) await rm(pending, { recursive: true });
+    const result = await stageOwnedPrototype({ root, profile, directory: pending });
+    if (await exists(directory)) await rename(directory, previous);
+    try { await rename(pending, directory); }
+    catch (error) { if (await exists(previous)) await rename(previous, directory); throw error; }
+    if (await exists(previous)) await rm(previous, { recursive: true });
+    return { ...result, directory };
+  } catch (error) {
+    if (await exists(join(pending, ownership))) await rm(pending, { recursive: true });
+    throw error;
+  }
   finally { await lock.close(); await unlink(lockPath); }
 }
 
-async function stageOwnedPrototype({ root, profile }) {
+export async function createDevelopmentAssets({ root = repository, profile = 'full-world' } = {}) {
+  const assets = new Map();
+  const evidence = await stageOwnedPrototype({ root, profile, assets, directory: null });
+  assets.set('shell/stage-evidence.json', { bytes: Buffer.from(JSON.stringify({ ...evidence, executionMode: 'development' })) });
+  return { assets, evidence };
+}
+
+async function stageOwnedPrototype({ root, profile, directory, assets = null }) {
   root = resolve(root);
   const generator = join(root, 'scripts/generate-build-metadata.mjs');
   if (await exists(generator)) prepareLibraryData({ root });
-  if (await exists(generator)) execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
+  if (!assets && await exists(generator)) execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
   const buildSource = await readFile(join(root, 'assets/js/build-meta.js'), 'utf8');
-  const buildMeta = JSON.parse(buildSource.match(/Object\.freeze\(([\s\S]*)\);\s*$/)?.[1] || '{}');
+  let buildMeta = JSON.parse(buildSource.match(/Object\.freeze\(([\s\S]*)\);\s*$/)?.[1] || '{}');
   const workerFiles = new Set(Object.values(buildMeta.workerAssets || {}).flatMap(asset => asset.files));
   const workerHashes = Object.assign({}, ...Object.values(buildMeta.workerAssets || {}).map(asset => asset.sha256));
-  const directory = join(root, 'apps/web-shell/dist');
-  if (await exists(directory)) {
-    if (!await exists(join(directory, ownership))) throw new Error('Output directory ownership is not established; no files removed.');
-    // Only this fixed, owned generated directory may be replaced.
-    if (resolve(directory) !== resolve(root, 'apps/web-shell/dist')) throw new Error('Unsafe output directory');
-    await rm(directory, { recursive: true });
+  const workerSources = new Map();
+  if (assets && await exists(join(root, 'assets/js/workers'))) {
+    const workerAssets = {};
+    for (const entry of await readdir(join(root, 'assets/js/workers'))) if (entry.endsWith('-worker.js')) {
+      const path = 'assets/js/workers/' + entry;
+      const generated = await buildWorkerAsset({ root, entry: path });
+      workerAssets[path] = { url: generated.url, files: [...generated.files.keys()], sha256: Object.fromEntries([...generated.files].map(([path, bytes]) => [path, hash(bytes)])) };
+      for (const [path, bytes] of generated.files) workerSources.set(path, Buffer.from(bytes));
+    }
+    buildMeta = { ...buildMeta, workerAssets };
+    workerFiles.clear(); for (const asset of Object.values(workerAssets)) for (const path of asset.files) workerFiles.add(path);
+    Object.assign(workerHashes, ...Object.values(workerAssets).map(asset => asset.sha256));
   }
-  await mkdir(directory, { recursive: true });
-  await writeFile(join(directory, ownership), 'PandoLab web-shell generated files only\n');
+  if (directory) {
+    await mkdir(directory, { recursive: true });
+    await writeFile(join(directory, ownership), 'PandoLab web-shell generated files only\n');
+  }
   const files = [];
   const emit = async (path, bytes, source = null) => {
+    if (assets) {
+      let direct = false, file, identity;
+      // WASM/glue and manifests are mutable build inputs. Keep their last valid
+      // bytes so an incomplete rebuild cannot invalidate the published graph.
+      if (source === slash(path) && !slash(path).startsWith('assets/wasm/') && !path.endsWith('.json') && await exists(join(root, source))) {
+        file = await realpath(join(root, source));
+        const before = previewFileIdentity(await lstat(file, { bigint: true }));
+        direct = Buffer.from(bytes).equals(await readFile(file));
+        identity = previewFileIdentity(await lstat(file, { bigint: true }));
+        direct &&= before === identity;
+      }
+      assets.set(slash(path), direct ? { file, identity } : { bytes: Buffer.from(bytes) });
+    } else {
     const target = resolve(directory, path);
     if (!target.startsWith(directory + '\\') && !target.startsWith(directory + '/')) throw new Error(`Unsafe staged path: ${path}`);
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, bytes);
+    }
     files.push({ path: slash(path), bytes: Buffer.byteLength(bytes), sha256: hash(bytes), ...(source ? { source } : {}) });
   };
   async function copyTree(path) {
+    if (assets && path === 'assets/worker-runtime') { for (const [path, bytes] of workerSources) await emit(path, bytes); return; }
     if (!await exists(join(root, path))) return;
     for (const entry of await readdir(join(root, path), { withFileTypes: true })) {
       const child = join(path, entry.name);
@@ -70,6 +119,7 @@ async function stageOwnedPrototype({ root, profile }) {
         let bytes = await readFile(join(root, child));
         if (workerFiles.has(slash(child)) && hash(Buffer.from(bytes.toString('utf8').replaceAll('\r\n', '\n'))) !== workerHashes[slash(child)]) throw new Error(`Immutable Worker asset mismatch: ${child}`);
         if (slash(child) === 'assets/js/build-meta.js') {
+          if (assets) bytes = Buffer.from('globalThis.PANDOLAB_BUILD_META = Object.freeze(' + JSON.stringify(buildMeta) + ');');
           bytes = Buffer.concat([bytes, Buffer.from(`\nglobalThis.PANDOLAB_BUILD_META = Object.freeze({ ...globalThis.PANDOLAB_BUILD_META, resourceProfile: '${profile}' });\n`)]);
         }
         if (/(?:^|\/)assets\/js\/workers\//.test(slash(child)) && child.endsWith('.js')) {
@@ -194,7 +244,7 @@ async function stageOwnedPrototype({ root, profile }) {
       && files.some(file => file.path.startsWith('assets/data/') && !file.path.startsWith('assets/data/reference-analysis/v1/') && file.path !== buildMeta.physicalLand?.url && file.path !== 'assets/data/physical-land/v1/manifest.json'))) {
     throw new Error('Shell staging exceeded the selected offline profile');
   }
-  await writeFile(join(directory, 'shell/stage-evidence.json'), JSON.stringify(result, null, 2));
+  if (directory) await writeFile(join(directory, 'shell/stage-evidence.json'), JSON.stringify({ ...result, directory: join(root, 'apps/web-shell/dist') }, null, 2));
   return result;
 }
 

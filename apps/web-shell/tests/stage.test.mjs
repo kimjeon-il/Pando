@@ -5,7 +5,8 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
-import { stagePrototype } from '../stage.mjs';
+import { createDevelopmentAssets, stagePrototype } from '../stage.mjs';
+import { startDevelopmentServer } from '../dev.mjs';
 import { REFERENCE_IMAGE_STYLE_SOURCES } from '../../../assets/js/modules/reference-image-style-sources.js';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -71,8 +72,40 @@ test('stages the runtime reference style catalog and every lazily loaded stylesh
 
 test('rejects a modified WASM asset instead of blessing a new hash', async t => {
   const { root, put } = await source(t);
+  await stagePrototype({ root });
+  const previous = await readFile(join(root, 'apps/web-shell/dist/index.html'));
   await put('assets/wasm/pandoeditor-core.wasm', 'tampered');
   await assert.rejects(stagePrototype({ root }), /WASM.*hash|hash.*WASM/i);
+  assert.deepEqual(await readFile(join(root, 'apps/web-shell/dist/index.html')), previous);
+});
+
+test('development assets reuse the validated stage plan without writing dist', async t => {
+  const { root, put } = await source(t);
+  const plan = await createDevelopmentAssets({ root, profile: 'small-project' });
+  assert.equal(plan.assets.get('assets/js/app.js').file, join(root, 'assets/js/app.js'));
+  assert.match(plan.assets.get('index.html').bytes.toString(), /shell\/startup.js/);
+  await assert.rejects(readFile(join(root, 'apps/web-shell/dist/index.html')), /ENOENT/);
+  await put('assets/js/app.js', 'export const updated = true;');
+  assert.equal(await readFile(plan.assets.get('assets/js/app.js').file, 'utf8'), 'export const updated = true;');
+});
+
+test('development reload publishes validated changes and preserves the native output', async t => {
+  const { root, put } = await source(t);
+  await put('apps/web-shell/src-tauri/target/native.exe', 'unchanged native');
+  const server = await startDevelopmentServer({ repository: root, port: 0, profile: 'small-project', observe: false });
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.server.address().port}`;
+  assert.match(await fetch(base).then(response => response.text()), /dev-reload.js/);
+  await put('assets/js/app.js', 'export const updated = true;');
+  await server.refresh();
+  assert.match(await fetch(base + '/assets/js/app.js').then(response => response.text()), /updated = true/);
+  assert.equal((await fetch(base + '/__shell/health').then(response => response.json())).revision, 1);
+  assert.equal(await readFile(join(root, 'apps/web-shell/src-tauri/target/native.exe'), 'utf8'), 'unchanged native');
+  assert.equal((await fetch(base + '/config/library-data.json')).status, 404);
+  const wasm = Buffer.from(await fetch(base + '/assets/wasm/pandoeditor-core.wasm').then(response => response.arrayBuffer()));
+  await put('assets/wasm/pandoeditor-core.wasm', 'invalid replacement');
+  await server.refresh();
+  assert.deepEqual(Buffer.from(await fetch(base + '/assets/wasm/pandoeditor-core.wasm').then(response => response.arrayBuffer())), wasm);
 });
 
 test('rejects altered local OCR weights instead of packaging unverified bytes', async t => {

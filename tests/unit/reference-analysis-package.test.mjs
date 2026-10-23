@@ -12,6 +12,9 @@ test('pinned reference vendor assets retain their manifest byte identity after c
     assert.equal(bytes.length, entry.bytes, path);
     assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256, path);
   }
+  const cores = Object.keys(manifest.files).filter(path => path.startsWith('core/'));
+  assert.equal(cores.length, 6, 'each of the six execution variants owns its embedded WASM');
+  assert.ok(cores.every(path => path.endsWith('.wasm.js')));
 });
 
 test('reference packaging owns exactly manifest-listed runtime and local OCR weights', () => {
