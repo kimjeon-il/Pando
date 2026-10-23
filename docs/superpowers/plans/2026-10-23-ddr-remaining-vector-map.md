@@ -55,3 +55,18 @@
 - [x] Store evidence and report, commit locally, and leave main/remote deployment unchanged.
 
 2026-10-23 batch: user approved the 10km/30km northern map previews. Applied only Ratzeburg/southern Wakenitz and Kiekbusch/Mechower western-shore VG25 windows (10 arcs). Period-map-derived production tracing was unnecessary. Exact-date independent positional accuracy remains unmeasured. Other held regions require further documentary/vector/map work; this checklist does not claim all remaining sectors complete. Focused checks: Python10, import/mesh1, Web/App workflow1 passed. Existing Czechoslovakia compiler exclusion remains unchanged and is reported separately.
+
+## Continuation: every remaining sector
+
+- [x] Inventory every held region, retain known period/source/topology exceptions, and search authoritative historical vector/raster services.
+- [x] Read LGLN2016 marker/survey-record continuity and its Elbe/Warme Bode exceptions; combine regional evidence with fixed VG25.
+- [x] Apply9 further admitted windows through existing recipe crossing-to-crossing operation; preserve eight explicitly held water/coast regions.
+- [x] Update frozen baselines/affected regressions; witness new test fail before generation and11 focused Python cases pass after generation.
+- [x] Prepare4 new provider-georeferenced period-map previews with per-sheet metadata and gaps identified; show them before tracing.
+- [x] Receive user review for these4 actual previews, then reconstruct only historically interpretable covered parts. Other missing period maps remain work to do.
+- [x] Digitize the approved maps' actual political-boundary symbols, preserve raster/masters separately, and apply historically interpretable covered arcs through the canonical recipe. Elbe competing-claim and dated-map uncertainty must stay explicit.
+- [x] Finish runtime dependencies, focused import/mesh and Web/App workflow, final review; archive and local commit after final evidence is written.
+
+Base app8526d2b5 / data bfc9adcc. Read-only whole-batch review at the end; no broad suites, no release.137 logged replacement operations do not mean137 independent new historical boundary segments or complete replacement of the9 geographic regions. A candidate southeastern Eichsfeld window was rejected for having no admissible crossing. Report: reports/geography/east-germany-remaining-all-2026-10-23.md.
+
+Approved map phase: Delvenau covered window reuses VG25 (8logged operations); Neuhaus/Schnackenburg printed Elbe claim references connect only actual crossing arcs (3+2). Raw rasters/masters remain private; external derived-use licensing unresolved, local provisional only. Broad tripoint candidate rejected for conflict/reversing fragments against preserved international LSIB; narrow trial no substantive delta. Final reviewer found one Neuhaus nonclosed tracing backtrack; approved raster reread, unsupported overshoot vertex removed, failing directional regression added, focused Python13PASS. Final runtime/source/transport+compiled-scope evidence stored; final Web/App1PASS with6144MiB Node heap after one process-level failure; cause unconfirmed. No more checks.

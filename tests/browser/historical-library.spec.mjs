@@ -109,6 +109,14 @@ test('East Germany static import preserves identity, archive, history and origin
     'vg25-wolfenbuettel-hornburg',
     'vg25-eichsfeld-glasehausen', 'vg25-schaalsee-mustin-thurow-land',
     'vg25-ratzeburg-wakenitz-south', 'vg25-kiekbusch-mechower-west-shore',
+    'vg25-wakenitz-palingen-remaining', 'vg25-schaalsee-northern-remaining',
+    'vg25-gudow-lauenburg-land', 'vg25-altmark-diesdorf-land', 'vg25-altmark-stresow-land',
+    'vg25-helmstedt-lappwald-land', 'vg25-ecker-lower-foothills',
+    'vg25-suedharz-ellrich-land', 'vg25-rhon-point-alpha-land',
+    'vg25-delvenau-approved-map',
+  ]);
+  expect(source.geometryVersions[0].boundarySupplement.sections.filter(s=>s.id.startsWith('tk25as-')).map(s=>s.id)).toEqual([
+    'tk25as-elbe-neuhaus-printed-claim', 'tk25as-elbe-schnackenburg-printed-claim'
   ]);
   expect(imported.geometry).toEqual(source.geometryVersions[0].geometry);
   if(process.env.PANDOLAB_DDR_EVIDENCE_DIR){
@@ -121,6 +129,7 @@ test('East Germany static import preserves identity, archive, history and origin
     };
     await focus(page,'flat');await page.screenshot({path:out+'/app-web-shell-import.png'});
     const receipt=await page.evaluate(()=>window.__libraryBuildFileSnapshot());
+    await writeFile(out+'/app-file-receipt.json.gz',gzipSync(Buffer.from(JSON.stringify(receipt)),{level:9}));
     const audits=receipt.project.sourceInfo.imports.filter(row=>row.batchPrecisionAudit).map(row=>row.batchPrecisionAudit);
     expect(audits).toHaveLength(1);expect(audits[0].sourceEntityIds).toContain(source.entityId);
     expect(audits[0].discards).toHaveLength(4);
