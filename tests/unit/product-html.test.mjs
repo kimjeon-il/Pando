@@ -49,7 +49,7 @@ test('both maps expose shared OSM credit and the ODbL source/derivative archive'
  const { renderProductHtml } = await import('../../scripts/lib/product-html.mjs');
  const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
  const pages = renderProductHtml(read);
- const fragment = read('ui/fragments/map-attribution.html').trim();
+ const fragment = read('ui/fragments/map-attribution.html').replaceAll('\r\n', '\n').trim();
  for (const page of Object.values(pages)) {
   assert.equal(page.split(fragment).length - 1, 1);
   assert.match(page, /<aside class="map-attribution" aria-label="지도 데이터 출처">/);
