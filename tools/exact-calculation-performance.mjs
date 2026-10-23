@@ -18,6 +18,8 @@ const baseline = execFileSync('git', ['rev-parse', '--verify', arg('--baseline')
 const output = resolve(arg('--output'));
 const only = process.argv.includes('--only') ? arg('--only') : null;
 assert.ok(only === null || ['timeline', 'source-analysis', 'import'].includes(only), 'Unknown --only operation');
+const timelineSizes = process.argv.includes('--timeline-sizes') ? arg('--timeline-sizes').split(',').map(Number) : [16, 256, 2048];
+assert.ok(timelineSizes.length && timelineSizes.every(size => Number.isSafeInteger(size) && size > 0 && size <= 10000), 'Invalid --timeline-sizes');
 const scratch = resolve(dirname(output), 'baseline-' + baseline.slice(0, 12));
 mkdirSync(scratch, { recursive: true });
 const sha256 = value => createHash('sha256').update(value).digest('hex');
@@ -108,7 +110,7 @@ async function pairs(name, before, after, inputSha256, work = null) {
     candidateMedianMs: median(samples.map(s => s.candidateMs)), baselineWasmMemoryBytes: beforeRuntime.memoryBytes(),
     candidateWasmMemoryBytes: afterRuntime.memoryBytes(), samples, work });
 }
-for (const size of only && only !== 'timeline' ? [] : [16, 256, 2048]) {
+for (const size of only && only !== 'timeline' ? [] : timelineSizes) {
   const { records, context } = timelineInput(size), original = JSON.stringify(records);
   for (const month of ['1909-12', '1910-01', '1912-07', '1915-12', '1916-01']) {
     assert.deepEqual(afterCore.timelineResolveWorld(records, context, month), beforeCore.timelineResolveWorld(records, context, month)); parityCases++;
