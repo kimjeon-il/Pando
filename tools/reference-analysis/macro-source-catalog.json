@@ -148,6 +148,187 @@
           0.29
         ]
       ]
+    },
+    {
+      "id": "cia-asia-political",
+      "familyId": "cia-asia-political-azimuthal",
+      "editionId": "cia-asia-803612ai-2013",
+      "duplicateGroup": "cia-asia-political-2013",
+      "language": "eng",
+      "script": "Latin",
+      "mapKind": "color",
+      "published": "2013",
+      "printedEditionCode": "803612AI (G00543) 8-13",
+      "format": "pdf",
+      "materialKind": "published-macro-pdf",
+      "rightsReviewed": true,
+      "geographicScope": "continent",
+      "scopeEvidence": "Complete Asia continental map, printed 1:48,000,000 and Azimuthal Equal-Area Projection; whole-map frame inspected.",
+      "url": "https://maps.lib.utexas.edu/maps/middle_east_and_asia/asia_pol_2013.pdf",
+      "metadataUrl": "https://maps.lib.utexas.edu/maps/asia.html",
+      "rightsUrl": "https://www.cia.gov/site-policies/",
+      "license": "CIA public-domain map; credit Central Intelligence Agency and University of Texas Libraries archival reproduction; retain source notices.",
+      "uncertainty": "Colour adjacency is source-derived weak supervision. Same-colour, coastal and obscured boundaries remain unknown. Broad disputed India/Pakistan/China area is excluded; map notices do not establish sovereignty.",
+      "supervision": {
+        "strategy": "country-fill-adjacency",
+        "radiusPixels": 2,
+        "countryFillColors": [
+          [
+            1.0,
+            0.9686274509803922,
+            0.6
+          ],
+          [
+            1.0,
+            0.8,
+            0.3058823529411765
+          ],
+          [
+            0.8352941176470589,
+            0.8823529411764706,
+            0.3568627450980392
+          ],
+          [
+            0.5372549019607843,
+            0.7803921568627451,
+            0.396078431372549
+          ],
+          [
+            0.21176470588235294,
+            0.7333333333333333,
+            0.611764705882353
+          ],
+          [
+            0.596078431372549,
+            0.8313725490196079,
+            0.7607843137254902
+          ],
+          [
+            0.7333333333333333,
+            0.7137254901960784,
+            0.34901960784313724
+          ],
+          [
+            0.9803921568627451,
+            0.7058823529411765,
+            0.5764705882352941
+          ],
+          [
+            0.7215686274509804,
+            0.596078431372549,
+            0.5058823529411764
+          ],
+          [
+            0.5568627450980392,
+            0.7333333333333333,
+            0.8156862745098039
+          ],
+          [
+            0.996078431372549,
+            0.8588235294117647,
+            0.7058823529411765
+          ],
+          [
+            0.8705882352941177,
+            0.45098039215686275,
+            0.38823529411764707
+          ]
+        ]
+      },
+      "excludedRegionsNormalized": [
+        [
+          0.25,
+          0.5,
+          0.55,
+          0.62
+        ]
+      ],
+      "sha256": "237637e50984e545118628910c65200d0fd723ed9f0fcadd12eb0a26d5af2ea6",
+      "expectedBytes": 463827,
+      "maximumBytes": 33554432
+    },
+    {
+      "id": "nrcan-canada-monochrome",
+      "familyId": "atlas-canada-national-reference",
+      "editionId": "nrcan-canada-credit-2024",
+      "duplicateGroup": "nrcan-canada-national",
+      "language": "eng",
+      "script": "Latin",
+      "mapKind": "monochrome",
+      "published": null,
+      "catalogPublication": "2022",
+      "copyrightYear": "2024",
+      "format": "pdf",
+      "materialKind": "published-macro-pdf",
+      "rightsReviewed": true,
+      "geographicScope": "country",
+      "scopeEvidence": "Complete national Canada monochrome PDF; same full-country geometry and publisher edition as the colour variant, with its own printed legend.",
+      "url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/Geographical-maps_Carte-geographique/SmallScaleReferenceMaps/english_canada/b&w/Canadab&w.pdf",
+      "metadataUrl": "https://open.canada.ca/data/en/dataset/e9ffaaa6-c8f0-4c88-be9a-5d019a919ad8",
+      "rightsUrl": "https://open.canada.ca/en/open-government-licence-canada",
+      "license": "Contains information licensed under the Open Government Licence - Canada. Source: Natural Resources Canada, Atlas of Canada. Retain Crown copyright and map credits.",
+      "uncertainty": "Publisher monochrome variant, not another independent original or evaluation source. Publication date remains unknown; PDF copyright says 2024.",
+      "supervision": {
+        "strategy": "boundary-stroke-signatures",
+        "channels": {
+          "international": [
+            {
+              "color": [
+                0.57499045,
+                0.58558023,
+                0.59577328
+              ],
+              "width": 1.0,
+              "dashes": [
+                8.5,
+                2.5,
+                1.6,
+                2.5
+              ]
+            }
+          ],
+          "administrative": [
+            {
+              "color": [
+                0.43253222,
+                0.46181428,
+                0.48445868
+              ],
+              "width": 1.0,
+              "dashes": [
+                5.0,
+                3.0
+              ]
+            }
+          ]
+        },
+        "unknownStrokes": [
+          {
+            "color": [
+              0.57499045,
+              0.58558023,
+              0.59577328
+            ],
+            "width": 1.0,
+            "dashes": [
+              2.0,
+              2.0
+            ]
+          }
+        ]
+      },
+      "sha256": "358cfad7e8329f019c820bc0b9e83b482e721eb09ebf6106d2e1580623f0b1b4",
+      "expectedBytes": 841931,
+      "maximumBytes": 33554432,
+      "excludedRegionsNormalized": [
+        [
+          0.74,
+          0.02,
+          0.995,
+          0.29
+        ]
+      ],
+      "variantOf": "nrcan-canada-national"
     }
   ]
 }

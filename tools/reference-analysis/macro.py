@@ -193,6 +193,15 @@ def prepare(source, root, maximum_dimension=2560):
     for field, suffix in [('raster', '.mask.png'), ('validRaster', '.valid.png')]:
         path = f'derived/{key}{suffix}'
         annotation[field] = dict(path=path, sha256=digest(files[path]))
+    existing = root / sheet['annotations']
+    if existing.exists():
+        # The recorded generator is immutable provenance, not a requirement to
+        # regenerate unchanged evidence whenever manifest/selection code changes.
+        previous = json.loads(existing.read_text(encoding='utf-8'))
+        generator_hash = previous.get('producer', {}).get('sha256', '')
+        if not re.fullmatch('[a-f0-9]{64}', generator_hash):
+            raise ValueError('Existing macro evidence differs: invalid producer')
+        annotation['producer']['sha256'] = generator_hash
     files[sheet['annotations']] = (json.dumps(annotation, indent=2)+'\n').encode()
     # Validate all conflicts before writing; do not partially replace evidence.
     for name, value in files.items():
@@ -208,23 +217,45 @@ def prepare(source, root, maximum_dimension=2560):
     return sheet
 
 
+def prepare_corpus(sources, maximum_dimension=2560, manifest_name='corpus.training.json'):
+    if (not isinstance(manifest_name, str) or '..' in manifest_name
+            or not re.fullmatch('[a-z0-9][a-z0-9.-]*\\.json', manifest_name)):
+        raise ValueError('Safe single macro manifest filename required')
+    sources = pathlib.Path(sources).resolve()
+    if sources.is_relative_to(pathlib.Path(__file__).resolve().parents[2]):
+        raise ValueError('Macro materials belong in external library storage')
+    root = sources.parent
+    target = root / manifest_name
+    if target.is_symlink() or target.resolve().parent != root:
+        raise ValueError('Safe single macro manifest filename required')
+    originals = [path for path in sorted(sources.glob('*.pdf')) if path.with_suffix('.source.json').is_file()]
+    sheets = [prepare(path, root, maximum_dimension) for path in originals]
+    if not sheets:
+        raise ValueError('Verified macro sources required')
+    value = dict(schemaVersion=1, trainingOnly=True, sheets=sheets)
+    validate_corpus(value, root, training_only=True)
+    if target.exists():
+        recorded = json.loads(target.read_text(encoding='utf-8'))
+        # Order and serialized bytes participate in the training fingerprint.
+        # Reuse an identical inventory in its recorded order without rewriting.
+        order = [row['id'] for row in recorded['sheets']]
+        by_id = {row['id']: row for row in sheets}
+        if len(order) == len(sheets) and set(order) == set(by_id):
+            value['sheets'] = [by_id[key] for key in order]
+        if recorded != value:
+            raise ValueError('Existing macro corpus differs')
+    else:
+        with target.open('xb') as output:
+            output.write((json.dumps(value, indent=2)+'\n').encode())
+    return target
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--sources', type=pathlib.Path, required=True)
     parser.add_argument('--maximum-dimension', type=int, default=2560)
+    parser.add_argument('--manifest-name', default='corpus.training.json')
     args = parser.parse_args()
-    if args.sources.resolve().is_relative_to(pathlib.Path(__file__).resolve().parents[2]):
-        parser.error('Macro materials belong in external library storage')
-    root = args.sources.resolve().parent
-    sources = [path for path in sorted(args.sources.glob('*.pdf')) if path.with_suffix('.source.json').is_file()]
-    sheets = [prepare(path, root, args.maximum_dimension) for path in sources]
-    if not sheets:
-        parser.error('Verified macro sources required')
-    value = dict(schemaVersion=1, trainingOnly=True, sheets=sheets)
-    validate_corpus(value, root, training_only=True)
-    target = root / 'corpus.training.json'
-    payload = (json.dumps(value, indent=2)+'\n').encode()
-    if target.exists() and target.read_bytes() != payload:
-        raise ValueError('Existing macro corpus differs')
-    target.write_bytes(payload)
-    print(json.dumps(dict(manifest=str(target), maps=len(sheets), focus='macro-only')))
+    target = prepare_corpus(args.sources, args.maximum_dimension, args.manifest_name)
+    value = json.loads(target.read_text(encoding='utf-8'))
+    print(json.dumps(dict(manifest=str(target), maps=len(value['sheets']), focus='macro-only')))
