@@ -46,4 +46,4 @@
 
 ## 외부 자료 저장소
 
-라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library-data`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 경로 helper가 제공하는 외부 원문 작업본에 작성하고 `node tools/library-data.mjs --store`로 자료 저장소 `reports/`에 보관한다. 자료 저장소는 보관용이며 검사·테스트·재생성을 실행하지 않는다.
+라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library-data`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 두 언어의 경로 helper가 공유하는 `.working/report-owner.json`의 고정 원문 작업본에 작성한다. 기존 작업본을 재사용하고 요청한 원문만 복원하며, 자료 준비 때 보고서 전체를 복제하지 않는다. `node tools/library-data.mjs --store --include-prefix=reports/<범위>`로 지정한 변경만 보관하고 보고서만 저장하면 런타임 자료 핀을 바꾸지 않는다. 미복원 파일의 부재를 삭제로 해석하지 않는다. 보관 원문 삭제는 원문 작업 범위에서 파일을 명시적으로 보존·이동하거나 삭제한 뒤 `--remove-path=reports/<파일>`로 명시한다. 자료 저장소는 보관용이며 검사·테스트·재생성을 실행하지 않는다.

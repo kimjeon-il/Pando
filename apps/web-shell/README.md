@@ -6,6 +6,27 @@ world data; the opt-in full-world profile packages the current manifest-pinned
 country, historical and prepared geometry assets.
 This is the sole app execution and development entrypoint.
 
+## 반복 개발
+
+저장소 루트에서 `pnpm --dir apps/web-shell dev:windows` 또는 `dev:android`를
+실행한다. 기본 개발 프로필은 `full-world`이며 `http://127.0.0.1:4175`의
+검증된 자산을 사용한다. 처음 네이티브 실행기를 만든 뒤 HTML·CSS·JS 수정은
+화면만 재로딩한다. C++ 변경은 기존 도구로 WASM과 manifest를 함께 재생성하면
+검증 후 재로딩한다. Rust·권한·브리지 변경 때만 증분 빌드와 재시작이 필요하다.
+같은 워크트리 서버를 재사용하며 다른 작업이 4175를 점유하면 종료시킨다거나
+임의 포트를 추가하지 않는다. 서버만 필요하면 `dev:server`를 실행한다.
+
+Android는 연결된 기기를 우선 사용하고, 없으면 기존 `Medium_Phone` AVD를
+사용한다. 새 AVD나 SDK 이미지는 만들지 않는다. ADB reverse를 통해 같은
+loopback 서버로 연결하며 종료 시 reverse를 제거한다. 개발 debug 빌드만
+127.0.0.1의 cleartext 통신을 허용한다. 패키징 명령은 이 예외를 끈다.
+
+네이티브 빌드는 여유 공간 15GiB와 예상 증가량에 2GiB의 여유를 요구한다.
+Cargo 의존성 경로를 재사용하며 앱의 소스 줄 디버그 정보만 남긴다. 패키징은
+증분 캐시를 끄고 마지막 오프라인 EXE/APK 한 벌을 `target/packaged/`에 유지한다.
+개발 실행 후에도 `run-windows`는 보존된 오프라인 EXE를 선택한다.
+구현은 [Tauri 개발 서버 방식](https://v2.tauri.app/develop/)을 따른다.
+
 ## Resource profiles (2-3A–C)
 
 The default **small-project** profile is the 15-coordinate offline smoke
@@ -91,7 +112,8 @@ Native/Gradle output is captured under `src-tauri/target/android-*-build.log`.
 Double-click `apps/web-shell/run-windows.bat` to launch the existing debug build.
 It prefers PowerShell 7, loads the optional local GNU helper when available, and
 adds the pinned Cargo WebView2Loader directory to that process's PATH. It creates
-no installer or extra copy of the executable or its dependencies. You can also
+no installer. The last offline executable and its loader are retained once in
+the fixed `target/packaged/windows` directory. You can also
 run `./apps/web-shell/run-windows.ps1` directly. If a custom
 `CARGO_TARGET_DIR` is set, pass the resulting executable with `-BinaryPath`.
 No commands in this README deploy, push, or modify `main`.

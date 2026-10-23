@@ -13,8 +13,10 @@ val tauriProperties = Properties().apply {
         propFile.inputStream().use { load(it) }
     }
 }
+val shellDevelopment = providers.environmentVariable("PANDOLAB_SHELL_DEVELOPMENT").orNull == "1"
 
 android {
+    if (shellDevelopment) sourceSets.getByName("debug").res.srcDir("src/development/res")
     compileSdk {
         version = release(37) { minorApiLevel = 0 }
     }
