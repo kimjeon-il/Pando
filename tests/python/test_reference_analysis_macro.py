@@ -10,11 +10,61 @@ import pymupdf
 from PIL import Image
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / 'tools/reference-analysis'))
-from macro import fill_adjacency_supervision, stroke_matches, prepare
+from macro import fill_adjacency_supervision, stroke_matches, prepare, prepare_corpus
 from corpus import validate_corpus
 
 
 class MacroSupervisionTests(unittest.TestCase):
+    def test_expanded_manifest_preserves_original_and_rejects_output_escape(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            sources = root / 'sources'
+            sources.mkdir()
+            source = self.fixture(sources)
+            first = prepare_corpus(sources, 160)
+            original = first.read_bytes()
+            second = sources / 'second.pdf'
+            second.write_bytes(source.read_bytes())
+            metadata = json.loads(source.with_suffix('.source.json').read_text())
+            metadata['id'] = 'macro-fixture-second'
+            second.with_suffix('.source.json').write_text(json.dumps(metadata), encoding='utf-8')
+            expanded = prepare_corpus(sources, 160, 'corpus.conditions.training.json')
+            self.assertEqual(len(json.loads(expanded.read_text())['sheets']), 2)
+            self.assertEqual(first.read_bytes(), original)
+            self.assertEqual(prepare_corpus(sources, 160, expanded.name).read_bytes(), expanded.read_bytes())
+            recorded = json.loads(expanded.read_text())
+            recorded['sheets'].reverse()
+            expanded.write_bytes(json.dumps(recorded, separators=(',', ':')).encode())
+            recorded_bytes = expanded.read_bytes()
+            self.assertEqual(prepare_corpus(sources, 160, expanded.name).read_bytes(), recorded_bytes,
+                             'Repreparation must preserve recorded training order and fingerprint bytes')
+            with self.assertRaisesRegex(ValueError, 'Existing macro corpus differs'):
+                prepare_corpus(sources, 160)
+            for name in ['../escape.json', 'nested/corpus.json', 'bad..json', 'corpus.txt']:
+                with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'manifest filename'):
+                    prepare_corpus(sources, 160, name)
+            self.assertFalse((root.parent / 'escape.json').exists())
+
+    def test_reprepare_preserves_generator_provenance_but_not_changed_supervision(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            source = self.fixture(root)
+            sheet = prepare(source, root, 160)
+            path = root / sheet['annotations']
+            annotation = json.loads(path.read_text())
+            annotation['producer']['sha256'] = 'a' * 64
+            path.write_bytes((json.dumps(annotation, indent=2) + '\n').encode())
+            original = path.read_bytes()
+            self.assertEqual(prepare(source, root, 160), sheet)
+            self.assertEqual(path.read_bytes(), original)
+            validate_corpus(dict(schemaVersion=1, trainingOnly=True, sheets=[sheet]), root, training_only=True)
+            annotation['width'] += 1
+            path.write_bytes((json.dumps(annotation, indent=2) + '\n').encode())
+            changed = path.read_bytes()
+            with self.assertRaisesRegex(ValueError, 'Existing macro evidence differs'):
+                prepare(source, root, 160)
+            self.assertEqual(path.read_bytes(), changed)
+
     def fixture(self, root):
         source = root / 'fixture.pdf'
         with pymupdf.open() as doc:
