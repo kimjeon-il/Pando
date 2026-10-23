@@ -269,8 +269,7 @@ WebStorageBaseline admitWebStorageBaseline(const ProjectSnapshot& current,const 
 }
 WebStorageBaseline admitWebStorageAssetBaseline(const ProjectSnapshot& current,const WebStorageAssetSource& input,const PlatformPorts& ports,WebStorageBaselineKind kind) {
     require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED","A flag validator is required.");
-    require(!input.baseDataset.empty()&&input.sourceMonth.size()==7&&input.sourceMonth[4]=='-'&&
-        input.sourceMonth.find_first_not_of("0123456789-")==std::string::npos,"PL-SCHEMA-BASE","Stored source dataset or month is invalid.");
+    require(!input.baseDataset.empty(),"PL-SCHEMA-BASE","Stored source dataset is invalid.");
     const auto month=parseTemporal(input.sourceMonth);require(month.precision=="month"&&month.canonical==input.sourceMonth,"PL-SCHEMA-BASE","Stored source month is invalid.");
     auto decoded=decodeAssetBytes(input);auto root=normalizedFullRoot(codecjson::parse(decoded,ports.parsedTextPolicy));decoded.clear();
     auto document=decodeWebValue(root,ports);auto data=std::make_shared<WebStorageBaseline::Data>();data->identities=std::move(root.object.at("territorialEntities"));root=V{};

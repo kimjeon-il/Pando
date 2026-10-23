@@ -37,7 +37,7 @@ export async function composeViewer({ productMode, meta }) {
   const diagnostics=createDiagnosticLog({limit:250});
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
   tooltipController.bind();
-  const viewStorage=createBrowserProjectStorage({productMode,indexedDB:window.indexedDB,localStorage:window.localStorage,databaseName:'pandolab-editor',storeName:'projects',projectKey:'active-project',viewKey:'active-view',fallbackKey:'pandolab-editor-project'});
+  const viewStorage=createBrowserProjectStorage({productMode,indexedDB:window.indexedDB,localStorage:window.localStorage,databaseName:'pandolab-viewer',storeName:'views',viewKey:'active-view'});
   const owners=createMapOwners({productMode,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));syncStatus();},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectVisible:(group,id)=>map.objectQuery.objectRefVisible(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
   const surfaces=owners.workspaceSurfaces;
   const selectController=createSelectController({document,window});selectController.enhanceAll();

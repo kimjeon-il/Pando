@@ -49,6 +49,7 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   expect(after.presentationCheckpoint).toBe(before.presentationCheckpoint);
   expect(await page.evaluate(()=>localStorage.getItem('pandolab-editor-project'))).toBe('preserve-existing-editor-autosave');
   expect(await page.evaluate(()=>window.__openedDatabases)).not.toContain('pandolab-editor');
+  expect(await page.evaluate(()=>window.__openedDatabases)).toContain('pandolab-viewer');
   expect(errors).toEqual([]);
 });
 }
