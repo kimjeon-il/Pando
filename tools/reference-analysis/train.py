@@ -4,6 +4,8 @@ import hashlib
 import json
 import pathlib
 import random
+import collections
+import math
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageOps
@@ -105,6 +107,29 @@ def raster_supervision(root, sheets):
     return counts
 
 
+def balanced_tile_indices(datasets, epoch, seed):
+    """Visit every original, balance corpora, then sample originals uniformly."""
+    rng = random.Random(seed + epoch)
+    total = sum(len(dataset.tiles) for dataset in datasets)
+    result, offset, corpora = [], 0, []
+    for dataset in datasets:
+        groups = collections.defaultdict(list)
+        for i, tile in enumerate(dataset.tiles):
+            groups[dataset.sheets[tile[0]]['duplicateGroup']].append(offset + i)
+        if not groups:
+            raise ValueError('Balanced training requires supervised original maps')
+        corpora.append(groups)
+        offset += len(dataset.tiles)
+    quota = max(math.ceil(total / len(corpora)), max(map(len, corpora)))
+    for groups in corpora:
+        keys = sorted(groups)
+        selected = [rng.choice(groups[key]) for key in keys]
+        selected.extend(rng.choice(groups[rng.choice(keys)]) for _ in range(quota - len(selected)))
+        result.extend(selected)
+    rng.shuffle(result)
+    return result
+
+
 def train(args, corpus, root):
     if args.initialize_checkpoint and not args.training_only:
         raise ValueError('Checkpoint initialization requires training-only mode until lineage independence is verified')
@@ -143,17 +168,20 @@ def train(args, corpus, root):
         for channel in unobserved:
             model.head.weight[channel].zero_()
             model.head.bias[channel].fill_(-20)
-    loader = torch.utils.data.DataLoader(torch.utils.data.ConcatDataset(datasets), batch_size=args.batch, shuffle=True, num_workers=0)
+    training_dataset = torch.utils.data.ConcatDataset(datasets)
     validation = None if args.training_only else torch.utils.data.DataLoader(MapTiles(root, sets["validation"]), batch_size=1, num_workers=0)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=1e-4)
     amp = str(args.device).startswith('cuda')
     scaler = torch.amp.GradScaler('cuda', enabled=amp)
     best, steps, updates, skipped = float("inf"), 0, 0, 0
     for epoch in range(args.epochs):
+        sampler = balanced_tile_indices(datasets, epoch, 20261023) if args.balance_sources else None
+        loader = torch.utils.data.DataLoader(training_dataset, batch_size=args.batch, sampler=sampler,
+                                            shuffle=sampler is None, num_workers=0)
         for parameter in model.encoder.parameters():
-            parameter.requires_grad_(epoch >= 2)
+            parameter.requires_grad_(epoch >= args.freeze_encoder_epochs)
         model.train()
-        if epoch < 2:
+        if epoch < args.freeze_encoder_epochs:
             model.encoder.eval()
         losses = []
         for batch in loader:
@@ -182,6 +210,9 @@ def train(args, corpus, root):
             torch.save(dict(schemaVersion=1, model=model.state_dict(), classes=CHANNELS, trained=True,
                             steps=steps, stepCountKind='attempted-batches', optimizerUpdates=updates, skippedUpdates=skipped,
                             initialization=initialization,
+                            sampling='balanced-corpora-originals-with-coverage' if args.balance_sources else 'uniform-tiles',
+                            samplingSeed=20261023 if args.balance_sources else None,
+                            learningRate=args.learning_rate, freezeEncoderEpochs=args.freeze_encoder_epochs,
                             trainingUsedSheetIds=used_ids, tilesPerCorpus=[len(dataset) for dataset in datasets],
                             epoch=epoch, seed=20261022, corpusSha256=fingerprint,
                             sheetIds={key: [row["id"] for row in value] for key, value in sets.items()},
@@ -274,6 +305,9 @@ if __name__ == "__main__":
     parser.add_argument("--training-only", action='store_true', help='Train publisher-derived labels without claiming independent evaluation')
     parser.add_argument('--auxiliary-corpus', help='Additional verified training-only raster corpus')
     parser.add_argument('--initialize-checkpoint', help='Continue training from an actual trained checkpoint')
+    parser.add_argument('--balance-sources', action='store_true', help='Visit every original and balance corpora/source items each epoch')
+    parser.add_argument('--learning-rate', type=float, default=1e-4)
+    parser.add_argument('--freeze-encoder-epochs', type=int, default=2)
     args = parser.parse_args()
     if args.training_only and args.command != 'train':
         parser.error('--training-only is only valid for train')
@@ -283,6 +317,8 @@ if __name__ == "__main__":
         parser.error('--initialize-checkpoint requires training-only train')
     if args.epochs < 1 or args.batch < 1:
         parser.error('Positive epochs and batch required')
+    if not math.isfinite(args.learning_rate) or not 0 < args.learning_rate <= .01 or args.freeze_encoder_epochs < 0:
+        parser.error('Finite learning rate in (0,.01] and non-negative encoder freeze epochs required')
     random.seed(20261022)
     np.random.seed(20261022)
     torch.manual_seed(20261022)

@@ -72,11 +72,15 @@ def validate_publisher_annotation(annotation, sheet, root):
 
 
 def validate_semap_annotation(annotation, sheet, root):
-    script = pathlib.Path(__file__).with_name('semap.py')
-    expected = dict(script='tools/reference-analysis/semap.py',
-                    sha256=hashlib.sha256(script.read_bytes().replace(b'\r\n', b'\n')).hexdigest())
+    import io
+    import zipfile
+    import numpy as np
+    from semap import convert_labels, member_identity, INSTITUTIONS, FILES
+    producer = annotation.get('producer', {})
     if (annotation.get('reviewed') is not False or annotation.get('schemaVersion') != 1
-            or annotation.get('producer') != expected or annotation.get('authorPartition') != 'train'
+            or producer.get('script') != 'tools/reference-analysis/semap.py'
+            or not re.fullmatch('[a-f0-9]{64}', producer.get('sha256', ''))
+            or annotation.get('authorPartition') != 'train'
             or annotation.get('synthetic') is not False or annotation.get('observedChannels') != ['hydro', 'transport']
             or annotation.get('labelMapping') != {'4': 'hydro', '5': 'transport'}):
         raise ValueError('Verified real-only Semap auxiliary provenance required')
@@ -86,6 +90,27 @@ def validate_semap_annotation(annotation, sheet, root):
         if hashlib.sha256(corpus_path(root, spec['path']).read_bytes()).hexdigest() != spec['sha256']:
             raise ValueError('Semap source evidence hash changed')
     validate_training_rasters(annotation, sheet, root)
+    member = annotation.get('originalImageMember', '')
+    identity = member_identity(member)
+    key = pathlib.PurePosixPath(member).stem
+    sources = {pathlib.PurePosixPath(spec['path']).name: spec for spec in annotation['sourceFiles']}
+    if (not identity or identity[0] not in INSTITUTIONS or set(sources) != {key + '.jpg', key + '.png', 'partitions.zip', 'license_images.md', 'README.md'}
+            or sources[key + '.jpg']['path'] != sheet['image'] or sources[key + '.jpg']['sha256'] != sheet['sha256']):
+        raise ValueError('Licensed real Semap member identity required')
+    for name in ['partitions.zip', 'license_images.md', 'README.md']:
+        value = corpus_path(root, sources[name]['path']).read_bytes()
+        if len(value) != FILES[name][0] or hashlib.md5(value).hexdigest() != FILES[name][1]:
+            raise ValueError('Pinned Semap split/rights documentation differs')
+    with zipfile.ZipFile(io.BytesIO(corpus_path(root, sources['partitions.zip']['path']).read_bytes())) as partitions:
+        names = [name for name in partitions.namelist() if name.endswith('/train.txt') or name == 'train.txt']
+        if len(names) != 1 or key not in partitions.read(names[0]).decode().split():
+            raise ValueError('Original Semap author training partition required')
+    with Image.open(corpus_path(root, sources[key + '.png']['path'])) as source:
+        expected = convert_labels(np.asarray(source))
+    for field, array in zip(['raster', 'validRaster'], expected):
+        with Image.open(corpus_path(root, annotation[field]['path'])) as raster:
+            if not np.array_equal(array, np.asarray(raster)):
+                raise ValueError('Semap source label conversion differs')
 
 
 def validate_training_rasters(annotation, sheet, root):
