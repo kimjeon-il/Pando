@@ -33,7 +33,7 @@ try {
     ort.env.wasm.proxy = false;
     ort.env.wasm.wasmPaths = new URL('assets/vendor/reference-analysis/', base).href;
     async function bytes(relative) {
-      const response = await fetch(new URL(relative, base));
+      const response = await globalThis.fetch(new URL(relative, base));
       if (!response.ok) throw Error(`HTTP ${response.status}: ${relative}`);
       return response.arrayBuffer();
     }
@@ -42,7 +42,7 @@ try {
       throw Error('Actual pending training-only manifest required');
     }
     const modelBytes = await bytes(model);
-    const sha256 = [...new Uint8Array(await crypto.subtle.digest('SHA-256', modelBytes))].map(v => v.toString(16).padStart(2, '0')).join('');
+    const sha256 = [...new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', modelBytes))].map(v => v.toString(16).padStart(2, '0')).join('');
     if (sha256 !== manifest.model.sha256 || modelBytes.byteLength !== manifest.model.bytes) throw Error('Trained ONNX identity mismatch');
     const inputs = {};
     for (const [name, shape] of [['tile', [1, 3, 512, 512]], ['overview', [1, 3, 256, 256]], ['position', [1, 4]]]) {
@@ -69,7 +69,7 @@ try {
         modelSha256: sha256, trainingBatches: manifest.trainingBatches, optimizerUpdates: manifest.optimizerUpdates, outputShape: logits.dims,
         finite, maximumAbsoluteError, meanAbsoluteError: sum / expected.length,
         loadMilliseconds: loaded - started, inferenceMilliseconds: finished - loaded,
-        userAgent: navigator.userAgent };
+        userAgent: globalThis.navigator.userAgent };
     } finally { await session.release(); }
   }, { base: base.href, model: values.model, diagnostics: values.diagnostics });
   result.requests = [...requests].sort();
