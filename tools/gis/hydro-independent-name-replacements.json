@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "status": "staged-for-generator-not-yet-runtime-packaged",
+  "reference": {
+    "dataset": "HydroRIVERS v0.13.2 OSM-name inventory",
+    "naturalEarthRiversBaseSha256": "3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99",
+    "mainstemSamplesPerSystem": 81,
+    "note": "Only verified mainstem name substitutions; geometry is unchanged; OSM matching is skipped for listed IDs."
+  },
+  "replacements": [
+    {
+      "systemId": "20680587",
+      "previousNameKo": "과디아나강",
+      "nameKo": "과달키비르강",
+      "aliases": [
+        "Guadalquivir"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Guadalquivir",
+        "sampleCoverage": 0.975
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.boe.es/buscar/act.php?id=BOE-A-2013-5319"
+        }
+      ]
+    },
+    {
+      "systemId": "40485117",
+      "previousNameKo": "아라카와강",
+      "nameKo": "도네강",
+      "aliases": [
+        "Tone",
+        "利根川"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Tone",
+        "sampleCoverage": 1
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.ktr.mlit.go.jp/river/shihon/river_shihon00000122.html"
+        }
+      ]
+    },
+    {
+      "systemId": "41279826",
+      "previousNameKo": "브라마푸트라강/얄룽창포강",
+      "nameKo": "살윈강",
+      "aliases": [
+        "Salween"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Salween",
+        "sampleCoverage": 0.963
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "international-basin-reference",
+          "url": "https://www.fao.org/aquastat/en/countries-and-basins/transboundary-river-basins/salween/"
+        }
+      ]
+    },
+    {
+      "systemId": "50261309",
+      "previousNameKo": "마하캄강",
+      "nameKo": "바리토강",
+      "aliases": [
+        "Barito"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Barito",
+        "sampleCoverage": 0.926
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://sda.pu.go.id/balai/bwskalimantan3/profil/sejarah"
+        }
+      ]
+    },
+    {
+      "systemId": "70576631",
+      "previousNameKo": "서스쿼해나강",
+      "nameKo": "델라웨어강",
+      "aliases": [
+        "Delaware"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Delaware",
+        "sampleCoverage": 0.914
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://water.usgs.gov/GIS/huc_name.html"
+        }
+      ]
+    }
+  ]
+}
