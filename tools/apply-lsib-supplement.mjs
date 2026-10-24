@@ -9,6 +9,7 @@ import {entityFileName,territorialSourceRoot} from './territorial-entity-sources
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function applyLsibSupplement(candidate,{root=territorialSourceRoot,check=false}={}){
   if(candidate.schemaVersion!==1 || candidate.sourceId!=='dos-lsib-11.4' || !candidate.changes?.length)throw new Error('Invalid LSIB candidate');
+  const selections=new Map(JSON.parse(fs.readFileSync(path.join(root,'views/world.json'),'utf8')).selections.map(row=>[row.entityId,row.geometryVersionId]));
   const writes=[];
   for(const change of candidate.changes){
     if(typeof change.sourceId!=='string'||!change.sourceId.length||!Array.isArray(change.sourceAttributions))throw new Error('Candidate source provenance is required');
@@ -17,7 +18,7 @@ export function applyLsibSupplement(candidate,{root=territorialSourceRoot,check=
     if(!/^[a-f0-9]{64}$/.test(change.inputFileSha256)||sha(before)!==change.inputFileSha256)throw new Error(`LSIB source changed after candidate calculation: ${change.entityId}`);
     const entity=JSON.parse(before);
     const version=entity.geometryVersions.find(row=>row.versionId===change.geometryVersionId);
-    if(!version || version.datePrecision!=='current')throw new Error(`Historical source must not be overwritten: ${change.entityId}`);
+    if(!version || version.versionId!==selections.get(entity.entityId)||version.validTo!==null)throw new Error(`Historical source must not be overwritten: ${change.entityId}`);
     const geometry=sharedCalculationCore.normalizePolygonGeometry(change.geometry);
     if(!geometry || !geometry.coordinates.length)throw new Error(`Failed C++ geometry normalization: ${change.entityId}`);
     version.geometry=geometry;

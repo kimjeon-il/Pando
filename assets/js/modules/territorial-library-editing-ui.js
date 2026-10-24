@@ -10,7 +10,7 @@ export function applyLibrarySourceFields(source,fields){
  entity.sourceInfo={...entity.sourceInfo,title:String(fields.sourceTitle||'').trim(),url:String(fields.sourceUrl||'').trim(),license:String(fields.sourceLicense||'').trim()};
  const version=entity.geometryVersions.find(v=>v.versionId===fields.versionId);
  if(!version)throw new Error('편집할 경계 버전을 선택하세요.');
- Object.assign(version,{validFrom:endpoint(fields.versionFrom),validTo:endpoint(fields.versionTo),certainty:fields.certainty,datePrecision:fields.datePrecision});
+ Object.assign(version,{validFrom:endpoint(fields.versionFrom),validTo:endpoint(fields.versionTo),certainty:fields.certainty});
  if(fields.representativeGeometryVersionId){
   if(!entity.geometryVersions.some(v=>v.versionId===fields.representativeGeometryVersionId))throw new Error('대표 형상 버전이 없습니다.');
   entity.metadata={...entity.metadata,representativeGeometryVersionId:fields.representativeGeometryVersionId};
@@ -43,10 +43,9 @@ export function createTerritorialLibraryEditingUi({document,window,host,service,
  field('sourceTitle','출처 이름');field('sourceUrl','출처 주소');field('sourceLicense','이용 조건');
  const versionSelect=field('versionId','경계 버전','select');field('versionFrom','경계 시작일');field('versionTo','경계 종료일');
  const representativeSelect=field('representativeGeometryVersionId','대표 형상','select');
- const certainty=field('certainty','경계 확실성','select'),precision=field('datePrecision','날짜 정밀도','select');
+ const certainty=field('certainty','경계 확실성','select');
  function option(select,value,label){const node=document.createElement('option');node.value=value;node.textContent=label;select.append(node);}
  for(const [value,label]of [['high','확인됨'],['medium','일부 불확실'],['low','낮음']])option(certainty,value,label);
- for(const [value,label]of [['exact','정확한 날짜'],['reference-date','자료 기준일'],['reference-year','자료 기준연도'],['historical-range','역사적 기간'],['approximate','근사 시기'],['current','현재 자료'],['date','일'],['month','월'],['year','연']])option(precision,value,label);
  const flag=field('flag','국기 이미지','file');flag.accept='image/png,image/jpeg,image/webp,image/svg+xml';
  const flagPreview=document.createElement('img');flagPreview.className='territorial-library-source-flag';flagPreview.alt='국기 미리보기';form.append(flagPreview);
  section.append(title,description,form,toolbar);host.append(section);
@@ -76,9 +75,6 @@ export function createTerritorialLibraryEditingUi({document,window,host,service,
   representativeSelect.value=working.metadata.representativeGeometryVersionId||'';
   versionSelect.value=versionId;const version=working.geometryVersions.find(v=>v.versionId===versionId)||working.geometryVersions[0];versionId=version.versionId;
   controls.versionFrom.value=version.validFrom||'';controls.versionTo.value=version.validTo||'';certainty.value=version.certainty||'medium';
-  const datePrecision=version.datePrecision||'date';
-  if(![...precision.options].some(node=>node.value===datePrecision))option(precision,datePrecision,datePrecision);
-  precision.value=datePrecision;
   const url=working.metadata.defaultFlagDataUrl||'';flagPreview.hidden=!url;if(url)flagPreview.src=url;else flagPreview.removeAttribute('src');flag.value='';
  }
  async function open(entity,version){
@@ -121,7 +117,7 @@ export function createTerritorialLibraryEditingUi({document,window,host,service,
  action(globalActions,'다시 실행',async()=>{if(editor.redo())await restoreForm();},'redo');
  action(toolbar,'변경 취소',async()=>{editor.discard();await reload({discard:true});},'discard');
  action(toolbar,'지도에서 경계 편집',async()=>{if(formDirty||editor.snapshot().dirty)throw new Error('메타데이터 변경을 먼저 저장하세요.');await repository.openGeometry(working.entityId,versionId);},'geometry');
- action(toolbar,'시기 버전 추가',async()=>{collect();const current=working.geometryVersions.find(v=>v.versionId===versionId);const next={...structuredClone(current),versionId:`${working.entityId}:${crypto.randomUUID()}`,validFrom:null,validTo:null,datePrecision:'date',certainty:'medium'};
+ action(toolbar,'시기 버전 추가',async()=>{collect();const current=working.geometryVersions.find(v=>v.versionId===versionId);const next={...structuredClone(current),versionId:`${working.entityId}:${crypto.randomUUID()}`,validFrom:null,validTo:null,certainty:'medium'};
   working.geometryVersions.push(next);versionId=next.versionId;formDirty=true;fill();updateStatus('새 버전과 기존 버전의 기간이 겹치지 않도록 지정하세요.');},'add-version');
  action(toolbar,'선택 버전 삭제',async()=>{if(working.geometryVersions.length===1)throw new Error('마지막 경계 버전은 삭제할 수 없습니다.');collect();working.geometryVersions=working.geometryVersions.filter(v=>v.versionId!==versionId);versionId=working.geometryVersions[0].versionId;if(!working.geometryVersions.some(v=>v.versionId===working.metadata.representativeGeometryVersionId))working.metadata.representativeGeometryVersionId=versionId;formDirty=true;fill();},'delete-version');
  action(toolbar,'이 경계로 새 자료 만들기',async()=>{collect();if(editor.snapshot().dirty)throw new Error('현재 변경을 먼저 저장하세요.');const identity=crypto.randomUUID().replaceAll('-','');working.entityId=`state:custom_${identity}`;working.lineageId=`custom-${identity}`;working.names={ko:'새 자료'};

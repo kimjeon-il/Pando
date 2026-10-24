@@ -165,7 +165,7 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
             row.identity.baseName=row.identity.kind==UnitKind::General?row.identity.name:"";row.identity.nameExplicit=true;
             row.identity.sourceEntityId=selection.libraryId;row.identity.sourceGeometryVersion=selection.geometryVersionId;
             row.identity.metadata=selection.metadata.empty()?"{}":selection.metadata;
-            row.identity.libraryOrigin=LibraryOrigin{selection.libraryId,selection.geometryVersionId,addition.referenceDate,selection.sourceId,"2",selection.certainty,selection.datePrecision,selection.partial,selection.missingSourceIds};
+            row.identity.libraryOrigin=LibraryOrigin{selection.libraryId,selection.geometryVersionId,addition.referenceDate,selection.sourceId,"2",selection.certainty,selection.partial,selection.missingSourceIds};
             row.geometry=selection.geometry;row.parentId=addition.parent?addition.parent->id:"";
             row.coverageMode=!addition.instanceId.empty()&&!row.parentId.empty()?"partition":"explicit";
             row.style=addition.initialObjectStyle.value_or(ObjectStyle{});row.countryDetails=addition.initialCountryDetails;row.symbol=addition.initialSymbolStyle;
@@ -215,7 +215,7 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
         if(!addition.instanceId.empty()||addition.initialCountryDetails||addition.initialSymbolStyle||addition.initialObjectStyle)
             unit.metadata=selection.metadata.empty()?"{}":selection.metadata;
         unit.libraryOrigin=LibraryOrigin{selection.libraryId,selection.geometryVersionId,
-            addition.referenceDate,selection.sourceId,"2",selection.certainty,selection.datePrecision,
+            addition.referenceDate,selection.sourceId,"2",selection.certainty,
             selection.partial,selection.missingSourceIds};
         document.units.push_back(std::move(unit));
         const auto owner=territorialRef(id);

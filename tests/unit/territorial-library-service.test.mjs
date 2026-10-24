@@ -7,7 +7,7 @@ const geometry = {type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[0,0]]]};
 const entity = (entityId, parentEntityId = '', validTo = null) => ({
   schemaVersion:2,entityId,lineageId:'sample',entityKind:'general',names:{ko:entityId},alternateNames:[],parentEntityId,
   lifetime:{validFrom:null,validTo},
-  geometryVersions:[{versionId:`${entityId}:v1`,validFrom:null,validTo,geometry,certainty:'high',datePrecision:'current',sourceId:'fixture'}],
+  geometryVersions:[{versionId:`${entityId}:v1`,validFrom:null,validTo,geometry,certainty:'high',sourceId:'fixture'}],
   metadata:{},sourceInfo:{},instantiation:{mode:'independent',countryUpdates:{}},
 });
 function freeze(value) {
@@ -103,8 +103,8 @@ test('dated search distinguishes availability, gaps, explicit absence and unknow
 test('direct coarse search and descriptor APIs retain period-end selection while UI dates select day one', async () => {
   const history = entity('state:history');history.lifetime.validFrom='1900';
   history.geometryVersions = [
-    {...history.geometryVersions[0],versionId:'history:early',validFrom:'1900',validTo:'1953-07-26',datePrecision:'year'},
-    {...history.geometryVersions[0],versionId:'history:late',validFrom:'1953-07-27',validTo:null,datePrecision:'date'},
+    {...history.geometryVersions[0],versionId:'history:early',validFrom:'1900',validTo:'1953-07-26',},
+    {...history.geometryVersions[0],versionId:'history:late',validFrom:'1953-07-27',validTo:null,},
   ];
   const f = fixture({entities:[history]});await f.service.load();
   for (const raw of ['1953','1953-07']) {
@@ -117,7 +117,7 @@ test('direct coarse search and descriptor APIs retain period-end selection while
     const ui = (await f.service.instantiateDescriptors(['state:history'],date))[0];
     assert.equal(ui.geometryVersionId,'history:early');assert.equal(ui.metadata.sourceReferenceDate,date);
     assert.deepEqual(ui.metadata.sourceGeometryValidity,{validFrom:'1900',validTo:'1953-07-26'});
-    assert.equal(ui.metadata.geometryDatePrecision,'year');
+    assert.equal(Object.hasOwn(ui.metadata,'geometryDatePrecision'),false);
   }
 });
 
@@ -143,9 +143,9 @@ function datedEntity(entityId = 'state:history') {
   const value = entity(entityId);
   value.lifetime = {validFrom:'1900',validTo:null};
   value.geometryVersions = [
-    {...value.geometryVersions[0],versionId:`${entityId}:early`,validFrom:'1900',validTo:'1953-07-26',datePrecision:'year'},
-    {...value.geometryVersions[0],versionId:`${entityId}:late`,validFrom:'1953-07-27',validTo:'2000-12-31',datePrecision:'date'},
-    {...value.geometryVersions[0],versionId:`${entityId}:recent`,validFrom:'2001',validTo:null,datePrecision:'year'},
+    {...value.geometryVersions[0],versionId:`${entityId}:early`,validFrom:'1900',validTo:'1953-07-26',},
+    {...value.geometryVersions[0],versionId:`${entityId}:late`,validFrom:'1953-07-27',validTo:'2000-12-31',},
+    {...value.geometryVersions[0],versionId:`${entityId}:recent`,validFrom:'2001',validTo:null,},
   ];
   return value;
 }

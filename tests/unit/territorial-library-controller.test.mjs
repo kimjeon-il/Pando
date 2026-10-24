@@ -15,7 +15,7 @@ const entity = (id, extra = {}) => catalogEntity({ entityId: `state:${id}`, enti
 const gdr = () => entity('gdr', { names: { ko: '독일 민주공화국' }, alternateNames: ['동독'],
   lifetime: { validFrom: '1949-10-07', validTo: '1990-10-02' },
   metadata: { referenceDate: '1989-04-25', dissolutionDate: '1990-10-03', approximateGeometry: true, pilot: true },
-  geometryVersions: [{ versionId: 'gdr:1989', validFrom: '1989-04-25', validTo: '1989-04-25', certainty: 'medium', datePrecision: 'reference-date', geometry }] });
+  geometryVersions: [{ versionId: 'gdr:1989', validFrom: '1989-04-25', validTo: '1989-04-25', certainty: 'medium', geometry }] });
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const textOf = node => [node.textContent, ...node.children.map(textOf)].join(' ');
 
@@ -143,7 +143,7 @@ test('year and month inputs consistently select the first day for search, previe
 });
 
 test('blank representative discloses untouched coarse source date and imports the exact preview version', async () => {
-  const source = entity('coarse', { metadata: {}, geometryVersions: [{ versionId: 'coarse:v1', validFrom: null, validTo: null, datePrecision: 'year', geometry }] });
+  const source = entity('coarse', { metadata: {}, geometryVersions: [{ versionId: 'coarse:v1', validFrom: null, validTo: null, geometry }] });
   const before = JSON.stringify(source); let descriptors;
   const h = harness({ entities: [source], snapshots: [{ id: 'pilot', referenceDate: '1991', entityRefs: [source.entityId] }],
     instantiate: async (ids, date, depth) => { descriptors = await h.service.instantiateDescriptors(ids, date, depth); return { added: 1 }; } });

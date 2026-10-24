@@ -113,10 +113,10 @@ class SupplementTests(unittest.TestCase):
             originals, selections = {}, []
             for code, geometry in geometries.items():
                 entity = {'entityId': f'state:{code}', 'sourceInfo': {'featureId': code},
-                          'lifetime': {'validFrom': '1900-01-01', 'validTo': None}, 'parentEntityId': '',
+                          'lifetime': {'validFrom': '1900-01-01', 'validTo': None}, 'parentEntityId': '', 'metadata': {'representativeGeometryVersionId': code},
                           'geometryVersions': [
-                              {'versionId': code, 'datePrecision': 'current', 'sourceId': 'natural-earth-5.1.1', 'geometry': geometry},
-                              {'versionId': code + ':past', 'datePrecision': 'day', 'geometry': geometry}]}
+                              {'versionId': code, 'validFrom': None, 'validTo': None, 'sourceId': 'natural-earth-5.1.1', 'geometry': geometry},
+                              {'versionId': code + ':past', 'validFrom': '1900', 'validTo': '1910', 'geometry': geometry}]}
                 if code == 'FRA':
                     entity['geometryVersions'][0]['modernBoundarySupplement'] = {
                         'boundaries': [{'countries': ['AND', 'FRA'], 'sourceId': module.SOURCE_ID}]}
@@ -160,7 +160,7 @@ class SupplementTests(unittest.TestCase):
             france = next(c for c in candidate['changes'] if c['entityId'] == 'state:FRA')
             self.assertEqual(france['supplement']['boundaries'][0]['countries'], ['AND', 'FRA'])
             entity = json.loads(originals['MCO'])
-            entity['geometryVersions'][0]['datePrecision'] = 'day'
+            entity['geometryVersions'][0]['validTo'] = '1910-01-01'
             (source / 'countries/state-MCO.json').write_text(json.dumps(entity), encoding='utf-8')
             with self.assertRaisesRegex(ValueError, 'Historical'):
                 module.targeted_candidates(root, output, ['FRA/MCO'], coast_manifest=file)
@@ -250,11 +250,9 @@ class SupplementTests(unittest.TestCase):
             for code, geometry in geometries.items():
                 version_id = f'state:{code}:current'
                 entity = {'entityId': f'state:{code}', 'sourceInfo': {'featureId': code},
-                    'lifetime': {'validFrom': '1900-01-01', 'validTo': None}, 'parentEntityId': None,
-                    'geometryVersions': [{'versionId': version_id, 'datePrecision': 'current',
-                        'validFrom': None, 'validTo': None, 'geometry': geometry, 'sourceId': 'natural-earth-5.1.1'},
-                        {'versionId': f'state:{code}:past', 'datePrecision': 'day',
-                         'validFrom': '1900-01-01', 'validTo': '1910-01-01', 'geometry': geometry}]}
+                    'lifetime': {'validFrom': '1900-01-01', 'validTo': None}, 'parentEntityId': None, 'metadata': {'representativeGeometryVersionId': version_id},
+                    'geometryVersions': [{'versionId': version_id, 'validFrom': None, 'validTo': None, 'geometry': geometry, 'sourceId': 'natural-earth-5.1.1'},
+                        {'versionId': f'state:{code}:past', 'validFrom': '1900-01-01', 'validTo': '1910-01-01', 'geometry': geometry}]}
                 path = source / 'countries' / f'state-{code}.json'
                 module.json_write(path, entity)
                 originals[code] = path.read_bytes()
@@ -308,10 +306,8 @@ class SupplementTests(unittest.TestCase):
             (root / official_file).write_bytes(official_raw + b'changed')
             with self.assertRaisesRegex(ValueError, 'pinned evidence'):
                 module.targeted_candidates(root, output, ['ITA/SMR'], manifest_file)
-            versions = json.loads(originals['AND'])['geometryVersions']
-            versions[0]['datePrecision'] = 'day'
             entity = json.loads(originals['AND'])
-            entity['geometryVersions'] = versions
+            entity['geometryVersions'][0]['validTo'] = '1910-01-01'
             module.json_write(source / 'countries/state-AND.json', entity)
             with self.assertRaisesRegex(ValueError, 'Historical'):
                 module.targeted_candidates(root, output, ['AND/FRA'])

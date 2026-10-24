@@ -239,6 +239,17 @@ test('library batch validates nested subunits from parent chains without a store
   await assert.rejects(client.execute('territorial-library-batch', { payload: { countries: [], units: [invalid] } }), /부모|상위/);
 });
 
+test('library batch imports a new sovereign and its constituent units without losing typed parent identity', {timeout:15000},async t=>{
+  const original=feature('A',square(0,0,10,10));
+  const sovereign=feature('S',square(0,0,5,10));
+  const units=[feature('C',square(0,0,2.5,10),{parentId:'S'}),feature('D',square(2.5,0,5,10),{parentId:'S'})];
+  const before=structuredClone({original,sovereign,units}),client=harness(t,[{feature:original}]);
+  const result=(await client.execute('territorial-library-batch',{payload:{countries:[sovereign],units}})).result;
+  assert.equal(result.features.find(row=>row.id==='S').properties.entityKind,'general');
+  assert.deepEqual(result.features.find(row=>row.id==='S').geometry,sovereign.geometry);
+  assert.deepEqual(result.donorIds,['A']);assert.deepEqual({original,sovereign,units},before);
+});
+
 test('snap broad phase retains edges crossing the date line', async t => {
   const client = harness(t, [{ kind: 'country', feature: feature('island', square(179, 5, -179, 6)) }]);
   const snap = await client.execute('territorial-snap', { payload: { coordinate: [180, 5], margin: 0.1 } });

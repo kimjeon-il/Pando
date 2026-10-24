@@ -17,6 +17,7 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
     geometryBounds, boundsOverlap, normalizeGeometry: normalizeClippingResult, geometryCoordinates: multiCoordinates,
     planarArea: area, areaKm2: geometryAreaKm2, validateCountryCollection: () => ({ overlapAreaKm2: 0 }) });
   let draft = { type: 'FeatureCollection', features: originals };
+  const all = new Map([...originals, ...existingUnits, ...payload.countries, ...payload.units].map(feature => [featureId(feature), feature]));
   const originalsById = new Map(originals.map(feature => [featureId(feature), feature]));
   const affected = new Set(), donors = new Set(), transfers = [], impacts = [];
   // Incoming/expanded roots can gain land. Donor roots are obtained solely by
@@ -39,11 +40,16 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
     }
     deleted += plan.counts.deleted;
     transfers.push({ targetId: featureId(feature), geometry, donorIds: plan.donorIds });
-    draft = plan.countriesData;
+    // The geometry planner emits import rows. Keep the admitted typed identity
+    // so incoming constituent units can resolve their newly imported parent.
+    draft = { ...plan.countriesData, features: plan.countriesData.features.map(row => {
+      const identity = all.get(featureId(row));
+      if (!identity) throw new Error('Library geometry result has an unknown territorial identity.');
+      return { ...identity, geometry: row.geometry };
+    }) };
     await checkpoint();
   };
   for (const feature of payload.countries) await merge(feature);
-  const all = new Map([...originals, ...existingUnits, ...payload.countries, ...payload.units].map(feature => [featureId(feature), feature]));
   const units = payload.units, unitIds = new Set(units.map(featureId)), groups = new Map();
   for (const unit of units.filter(unit => (unit.properties.entityKind === 'general' && !!unit.properties.parentId) && !unitIds.has(String(unit.properties.parentId)))) {
     const id = territorialRootId(unit, id => all.get(id));

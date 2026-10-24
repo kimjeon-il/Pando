@@ -88,14 +88,15 @@ export function buildKoreanBoundaryGeometry(countries,lines) {
 
 // Re-running Korean reconstruction must preserve supplements on China's other
 // borders. An already present Paektu chain is a no-op, including ring ordering.
-export function refineChinesePaektuSource(entity,lines,sourceFile) {
+export function refineChinesePaektuSource(entity,lines,sourceFile,geometryVersionId) {
+  if(!entity.geometryVersions.some(version=>version.versionId===geometryVersionId&&version.validTo===null))throw new Error('Missing open Chinese display geometry');
   const sino=lines.features.find(f=>f.properties.CC1_GENC3==='CHN'&&f.properties.CC2_GENC3==='PRK');
   const start=[128.14425,41.754713],end=[128.597556,42.027126],through=[128.054643,41.998316];
   const chain=lineBetween(sino.geometry.coordinates,start,end).filter((p,i,a)=>!i||!same(p,a[i-1]));
   const edge=(a,b)=>[JSON.stringify(a),JSON.stringify(b)].sort().join('|');
   let changed=false;
   const geometryVersions=entity.geometryVersions.map(version=>{
-    if(version.datePrecision!=='current')return version;
+    if(version.versionId!==geometryVersionId)return version;
     const edges=new Set(polygons(version.geometry).flatMap(p=>p).flatMap(ring=>ring.slice(1).map((p,i)=>edge(ring[i],p))));
     if(chain.slice(1).every((p,i)=>edges.has(edge(chain[i],p))))return version;
     changed=true;
@@ -131,7 +132,7 @@ export function run({check=false}={}) {
       unresolvedSegments:['Period river-island allocation outside Paektu not independently digitized']}),
     independentPeriodScreenDeltaChecked:false,sourceFile,
   });
-  const version=(id,from,to,geometry,phase)=>({versionId:id,validFrom:from,validTo:to,datePrecision:'date',
+  const version=(id,from,to,geometry,phase)=>({versionId:id,validFrom:from,validTo:to,
     certainty:'medium',sourceId:phase==='38th-parallel'?'korean-38th-parallel':'dos-lsib-11.4',
     geometry,historicalProvenance:provenance(phase,id.startsWith('state:PRK:'))});
   const replacements=new Map([
@@ -153,7 +154,9 @@ export function run({check=false}={}) {
       assert.deepEqual(current,update(current),`Stale Korean source: ${entityId}`);
     }else updateTerritorialSource(entityId,update);
   }
-  const updateChina=entity=>refineChinesePaektuSource(entity,lines,sourceFile);
+  const selectedChina=read('assets/data/territorial-entities/source/views/world.json').selections.find(row=>row.entityId==='state:CHN');
+  if(!selectedChina)throw new Error('Chinese world display selection is required');
+  const updateChina=entity=>refineChinesePaektuSource(entity,lines,sourceFile,selectedChina.geometryVersionId);
   if(check){const current=readTerritorialSource('state:CHN');
     assert.deepEqual(current,updateChina(current),'Stale Chinese Paektu counterpart');}
   else updateTerritorialSource('state:CHN',updateChina);

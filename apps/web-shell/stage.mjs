@@ -262,8 +262,10 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     fixture: fixture ? { entityCount: fixture.entityCount, coordinateCount: fixture.coordinateCount, sha256: fixtureHash } : null,
     worldData, referenceAnalysis: { bytes: referencePlan.bytes, modelAvailable: !!referenceBoundary }, files, bytes: files.reduce((sum, file) => sum + file.bytes, 0) };
   const limit = (profile === 'map-data' ? 256 : 80) * 1024 * 1024 + referencePlan.bytes;
+  const physicalPaths=new Set([buildMeta.physicalLand?.url,'assets/data/physical-land/v1/manifest.json',
+    ...(buildMeta.physicalWaterHistory||[]).flatMap(row=>[row.land.url,row.water.url])]);
   if (result.bytes > limit || (profile === 'test-fixture'
-      && files.some(file => file.path.startsWith('assets/data/') && !file.path.startsWith('assets/data/reference-analysis/v1/') && file.path !== buildMeta.physicalLand?.url && file.path !== 'assets/data/physical-land/v1/manifest.json'))) {
+      && files.some(file => file.path.startsWith('assets/data/') && !file.path.startsWith('assets/data/reference-analysis/v1/') && !physicalPaths.has(file.path)))) {
     throw new Error('Shell staging exceeded the selected offline profile');
   }
   if (directory) await writeFile(join(directory, 'shell/stage-evidence.json'), JSON.stringify({ ...result, directory: join(root, 'apps/web-shell/dist') }, null, 2));

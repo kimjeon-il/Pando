@@ -146,6 +146,18 @@ test('the verification fixture loads through the current builtin country transpo
   assert.equal(project.timelineRecords.parentRelations.find(row => row.entityId === 'shell-child-a').parentId, 'shell-country-a');
 });
 
+test('test-fixture staging retains required historical physical backgrounds without world objects',async t=>{
+  const {root,put}=await source(t);
+  const physicalLand={url:'assets/data/physical-land/v1/modern.gz'};
+  const context={land:{url:'assets/data/physical-land/v1/historical-land.gz'},water:{url:'assets/data/physical-land/v1/historical-water.gz'}};
+  await put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({physicalLand,physicalWaterHistory:[context]})+');');
+  await put('assets/data/physical-land/v1/manifest.json',JSON.stringify({asset:physicalLand,historicalWaterbodies:[context]}));
+  for(const asset of [physicalLand,context.land,context.water])await put(asset.url,'physical');
+  const result=await stagePrototype({root,profile:'test-fixture',verification:true});
+  for(const asset of [physicalLand,context.land,context.water])assert.ok(result.files.some(file=>file.path===asset.url));
+  assert.equal(result.files.some(file=>file.path==='assets/data/world/huge.bin'),false);
+});
+
 test('stages the runtime reference style catalog and every lazily loaded stylesheet', async t => {
   const { root, put } = await source(t);
   const catalog = 'assets/js/modules/reference-image-style-sources.js';

@@ -22,7 +22,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             "parentEntityId", "geometryVersions", "sourceInfo",
         ):
             self.assertIn(field, MODEL)
-        for field in ("validFrom", "validTo", "datePrecision", "certainty", "sourceId"):
+        for field in ("validFrom", "validTo", "certainty", "sourceId"):
             for entity in PILOT["entities"]:
                 for version in entity["geometryVersions"]:
                     self.assertIn(field, version)
@@ -67,21 +67,21 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             "state:indonesia",
             "state:north-schleswig",
         }
-        self.assertEqual(east_germany["geometryVersions"][0]["datePrecision"], "reference-date")
+        self.assertNotIn("datePrecision", east_germany["geometryVersions"][0])
         self.assertEqual(east_germany["geometryVersions"][0]["certainty"], "medium")
         self.assertEqual(east_germany["instantiation"]["mode"], "territory-replacement")
         for entity in pilot_entities:
             if entity["entityKind"] != "general" or entity is east_germany or entity["entityId"] == "state:nagorno-karabakh":
                 continue
             if entity.get("parentEntityId"):
-                self.assertEqual(entity["geometryVersions"][0]["datePrecision"], "reference-year")
+                self.assertNotIn("datePrecision", entity["geometryVersions"][0])
                 self.assertEqual(entity["geometryVersions"][0]["certainty"], "medium")
                 continue
             if entity["entityId"] in supplemental_ids:
-                self.assertEqual(entity["geometryVersions"][0]["datePrecision"], "reference-date")
+                self.assertNotIn("datePrecision", entity["geometryVersions"][0])
                 self.assertEqual(entity["geometryVersions"][0]["certainty"], "medium")
                 continue
-            self.assertEqual(entity["geometryVersions"][0]["datePrecision"], "approximate")
+            self.assertNotIn("datePrecision", entity["geometryVersions"][0])
             self.assertEqual(entity["geometryVersions"][0]["certainty"], "low")
 
     def test_supplemental_historical_countries_have_territory_replacement_versions(self):
@@ -140,7 +140,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
         self.assertNotIn("territoryMerge", entity["metadata"])
         self.assertEqual(version["versionId"], "ostpreussen-1878-1920-r3")
-        self.assertEqual(version["datePrecision"], "exact")
+        self.assertNotIn("datePrecision", version)
         self.assertEqual(version["certainty"], "medium")
         self.assertTrue(entity["metadata"]["approximateGeometry"])
         self.assertFalse(entity["metadata"]["production"])

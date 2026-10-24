@@ -37,7 +37,7 @@ def encoded_metadata(rows: list) -> bytes:
 
 
 def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
-            source_file: Path) -> tuple[dict, bytes, dict]:
+            source_file: Path, *, lake_substitutions: dict | None = None) -> tuple[dict, bytes, dict]:
     if manifest.get("version") != "0.13.2" or manifest.get("schema") != "pandolab-water-shards-v5":
         raise ValueError("This metadata-only revision is pinned to the Hydro v0.13.2 format")
     if len(bundle) != manifest["container"]["bytes"] or digest(bundle) != manifest["container"]["sha256"]:
@@ -64,7 +64,14 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
     system_changes = Counter()
     system_old = {}
     alias_removals = {}
+    lake_changes = Counter()
     for row in next_core:
+        lake_review = (lake_substitutions or {}).get(row.get("awId"))
+        if lake_review:
+            if row["category"] != "lake" or row["name"] != lake_review["previousNameKo"]:
+                raise ValueError("Original lake identity/name mismatch")
+            row["name"] = lake_review["nameKo"]
+            lake_changes[row["awId"]] += 1
         ident = str(row.get("systemId") or "")
         review = substitutions.get(ident)
         if not review:
@@ -102,6 +109,8 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
         system_changes[ident] += 1
     if set(system_changes) != set(substitutions):
         raise ValueError("Missing reviewed source system from existing bundle")
+    if set(lake_changes) != set(lake_substitutions or {}):
+        raise ValueError("Missing reviewed lake from existing bundle")
     if set(next_detail_by_fid) != set(detail_by_fid):
         raise ValueError("Detail FID identity changed")
     by_fid = {int(row["fid"]): str(row.get("systemId") or "") for row in next_core}
@@ -132,10 +141,16 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
     new_manifest["container"]["sha256"] = digest(updated_bundle)
     new_manifest["stats"]["compressedBytes"] = offset
     new_manifest["cache"]["name"] = "pandolab-water-v0.13.2-independent-" + digest(new_parts[1])[:16]
-    new_manifest["sources"]["independentHydronymReplacements"] = {
-        "file": source_file.name, "sha256": digest(source_file.read_bytes()),
-        "replacedSystems": len(substitutions), "geometryChanged": False
-    }
+    if substitutions:
+        new_manifest["sources"]["independentHydronymReplacements"] = {
+            "file": source_file.name, "sha256": digest(source_file.read_bytes()),
+            "replacedSystems": len(substitutions), "geometryChanged": False
+        }
+    if lake_substitutions:
+        new_manifest["sources"]["lakeNameCorrections"] = {
+            "file": source_file.name, "sha256": digest(source_file.read_bytes()),
+            "names": lake_substitutions, "geometryChanged": False
+        }
     total = len(substitutions)
     new_manifest["stats"]["osmWaterwayMatchCount"] -= total
     new_manifest["sources"]["osmWaterways"]["matchedSystems"] -= total
@@ -162,6 +177,7 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
     return new_manifest, updated_bundle, {
         "changedSystemIds": sorted(system_changes, key=int),
         "changedCoreFragments": sum(system_changes.values()),
+        "changedLakeFragments": dict(lake_changes),
         "originalNameBySystem": system_old,
         "removedOriginalAliasesTributariesRelations": alias_removals,
         "originalIndexSha256": digest(original_parts[0]),

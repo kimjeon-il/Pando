@@ -47,7 +47,7 @@ test('published metadata follows pinned manifests, preserves local edits and rej
   put('assets/data/places/manifest.json',JSON.stringify({shards:{}}));
   const history='assets/data/builtin-world/generated/v1/index.json';
   put('assets/data/builtin-world/generated/v1/entities.json', '{"entities":[]}');
-  const historical=revision=>JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,revision,
+  const historical=revision=>JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,revision,
     transport:{url:'entities.json'},entities:[]})+'\n';
   put(history,historical(1));
   const dataRoot = join(root, '.library-data/repository');

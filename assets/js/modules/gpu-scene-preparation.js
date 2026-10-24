@@ -110,7 +110,8 @@ export function prepareGpuBaseScene({ mesh, overrideMesh, frame, scene, budgetBy
     territoryItems: selectedItems.filter(item => item.kind === 'polygon' && item.packet.role === 'territorial-fill')
       .sort((a, b) => b.packet.territoryDepth - a.packet.territoryDepth || b.packet.order - a.packet.order),
     physicalLandItems: selectedItems.filter(item => item.kind === 'polygon' && item.packet.role === 'physical-land'),
-    independentItems: selectedItems.filter(item => item.packet.role !== 'physical-land' && (item.kind !== 'polygon' || item.packet.role !== 'territorial-fill')),
+    physicalWaterItems: selectedItems.filter(item => item.kind === 'polygon' && item.packet.role === 'physical-water'),
+    independentItems: selectedItems.filter(item => !['physical-land','physical-water'].includes(item.packet.role) && (item.kind !== 'polygon' || item.packet.role !== 'territorial-fill')),
     deferredOverlayKeys, failedOverlayKeys, overlayUploadBytes, overrunCount,
   };
 }

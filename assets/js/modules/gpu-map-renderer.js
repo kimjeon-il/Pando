@@ -3359,6 +3359,7 @@ export function createGpuMapRenderer(deps) {
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.objects,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
+        mapOcean: { color: theme.ocean, fillAlpha: 1 },
         countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
         prepared: preparedBaseScene,
       }, { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
@@ -3579,7 +3580,9 @@ export function createGpuMapRenderer(deps) {
       const interactionResult = drawGpuInteractionPass({ gl, frame: activeFrameContext, viewState,
         viewport: { size: { width: cssWidth, height: cssHeight }, dpr: effectivePixelRatio, pixelWidth, pixelHeight },
         fillTarget, fillTargetReady, prepared: preparedInteraction },
-      { fillCache: interactionFillCache, strokeCache: interactionStrokeCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryBoundaryMask, drawCountryRanges: drawCountryInteractionFills });
+      { fillCache: interactionFillCache, strokeCache: interactionStrokeCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro,
+        drawPhysicalWaterMask:()=>polygonOverlayPass.drawPackets(preparedBaseScene.physicalWaterItems.map(item=>item.packet),activeFrameContext,{preparedOnly:true}),
+        drawCountryBoundaryMask, drawCountryRanges: drawCountryInteractionFills });
       lastInteractionFillResult = interactionResult.genericFillResult;
       lastSelectionRenderResult = interactionResult.selection;
       sceneCacheInteractionDrawCount += 1;
@@ -3810,6 +3813,7 @@ export function createGpuMapRenderer(deps) {
         },
         'territorial-fill': () => globalThis.PandoLabCanvasSceneComposition.drawTerritorialFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr),
         'country-boundary': () => renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures),
+        'physical-water': () => globalThis.PandoLabCanvasSceneComposition.drawPhysicalWater(ctx2d,canvasPath,canvasScenePolygons(),{color:theme.ocean,fillAlpha:1}),
       };
       const protection = {
         key: [frame.signature, physicalStyleStateRevision, hydroPreparation.acceptedRevision,
@@ -3818,6 +3822,7 @@ export function createGpuMapRenderer(deps) {
         draw: mask => {
           const maskPath = frame.createCanvasPath(mask);
           for (const role of mapVisualOrder('hydro')) renderCanvasHydro(maskPath, theme, mask, true, role);
+          globalThis.PandoLabCanvasSceneComposition.drawPhysicalWater(mask,maskPath,canvasScenePolygons(),{color:'#000000',fillAlpha:1});
           renderCanvasCountryBoundaries(maskPath, theme, countryFeatures, mask, true);
         },
       };
