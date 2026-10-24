@@ -6,10 +6,7 @@
     "main", "library-geometry-*"
   ],
   "permissions": [
-    "allow-write-probe-file",
-    "allow-read-probe-file",
     "allow-write-diagnostic-report",
-    "allow-finish-probe",
     "allow-begin-document-write",
     "allow-append-document-chunk",
     "allow-finish-document-write",

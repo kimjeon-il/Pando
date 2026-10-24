@@ -1,4 +1,4 @@
-import { finishDiagnostics } from './native-storage.js';
+import { finishDiagnostics } from './probe-storage.js';
 
 export function inspectFullWorldRuntime(scope = globalThis, {
   expectedSourceCount = 258, expectedModelCount = 254, expectedRootCount = 207,

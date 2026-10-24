@@ -4,8 +4,10 @@ mod library_sync;
 mod library_commands;
 mod storage;
 mod document_transfer;
+mod runtime_options;
 
 use serde::Serialize;
+#[cfg(feature = "verification")]
 use sha2::{Digest, Sha256};
 use std::{
     path::PathBuf,
@@ -19,22 +21,27 @@ const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
     "/../dist/shell/stage-evidence.json"
 ));
 
-#[derive(Default)]
-struct ProbeOptions {
-    auto: bool,
-    physical_immediate: bool,
-    reference_analysis: bool,
-    probe_hold_ms: u64,
-    profile_id: Option<String>,
-    diagnostic_output: Option<PathBuf>,
+struct RuntimeState {
+    #[cfg(feature = "verification")]
+    options: runtime_options::RuntimeOptions,
     write_lock: Mutex<()>,
 }
 
+fn shell_initialization() -> String {
+    format!(
+        "Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {}, writable: false, configurable: false }});\
+         Object.defineProperty(globalThis, 'PANDOLAB_SHELL_VERIFICATION', {{ value: {}, writable: false, configurable: false }});",
+        cfg!(windows), cfg!(feature = "verification")
+    )
+}
+
+#[cfg(feature = "verification")]
 #[derive(Serialize)]
 struct WrittenFile {
     path: String,
     sha256: String,
 }
+#[cfg(feature = "verification")]
 #[derive(Serialize)]
 struct ReadFile {
     contents: String,
@@ -58,10 +65,11 @@ fn validate_size(contents: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(feature = "verification")]
 #[tauri::command]
 async fn write_probe_file(app: tauri::AppHandle, contents: String) -> Result<WrittenFile, String> {
     validate_size(contents.as_bytes())?;
-    let options = app.state::<ProbeOptions>();
+    let options = app.state::<RuntimeState>();
     let _guard = options
         .write_lock
         .lock()
@@ -77,6 +85,7 @@ async fn write_probe_file(app: tauri::AppHandle, contents: String) -> Result<Wri
     })
 }
 
+#[cfg(feature = "verification")]
 #[tauri::command]
 async fn read_probe_file(app: tauri::AppHandle) -> Result<ReadFile, String> {
     let path = profile_dir(&app)?.join("small-project.json");
@@ -89,7 +98,7 @@ async fn read_probe_file(app: tauri::AppHandle) -> Result<ReadFile, String> {
 
 #[cfg(not(feature = "custom-protocol"))]
 fn embedded_build_summary() -> Result<serde_json::Value, String> {
-    Ok(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false }))
+    Ok(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false, "verification": cfg!(feature = "verification") }))
 }
 
 #[cfg(feature = "custom-protocol")]
@@ -130,6 +139,7 @@ fn embedded_build_summary() -> Result<serde_json::Value, String> {
     if selected.is_empty() {
         return Err("Missing embedded WASM file evidence".into());
     }
+    summary.insert("verification".into(), serde_json::json!(cfg!(feature = "verification")));
     summary.insert("files".into(), serde_json::Value::Array(selected));
     Ok(serde_json::Value::Object(summary))
 }
@@ -147,14 +157,15 @@ fn persist_report(
         .insert("embeddedBuild".into(), embedded_build_summary()?);
     let contents = serde_json::to_vec_pretty(&report).map_err(|error| error.to_string())?;
     validate_size(&contents)?;
-    let options = app.state::<ProbeOptions>();
+    let options = app.state::<RuntimeState>();
     let _guard = options
         .write_lock
         .lock()
         .map_err(|error| error.to_string())?;
     let path = profile_dir(app)?.join("diagnostic-report.json");
     storage::atomic_write(&path, &contents).map_err(|error| error.to_string())?;
-    if let Some(external) = &options.diagnostic_output {
+    #[cfg(feature = "verification")]
+    if let Some(external) = &options.options.diagnostic_output {
         storage::atomic_write(external, &contents).map_err(|error| error.to_string())?;
     }
     Ok(ReportFile {
@@ -170,13 +181,14 @@ async fn write_diagnostic_report(
     persist_report(&app, report)
 }
 
+#[cfg(feature = "verification")]
 #[tauri::command]
 async fn finish_probe(
     app: tauri::AppHandle,
     report: serde_json::Value,
 ) -> Result<ReportFile, String> {
     let written = persist_report(&app, report)?;
-    if app.state::<ProbeOptions>().auto {
+    if app.state::<RuntimeState>().options.auto {
         // Every report file has been flushed and atomically replaced before exit.
         // A short grace period also lets the invoking promise resolve.
         let handle = app.clone();
@@ -201,68 +213,43 @@ fn local_navigation(url: &tauri::Url) -> bool {
         )
 }
 
-fn probe_options() -> Result<ProbeOptions, String> {
-    let mut options = ProbeOptions::default();
-    #[cfg(windows)]
-    {
-        let mut args = std::env::args_os().skip(1);
-        while let Some(arg) = args.next() {
-            if arg == "--probe-auto" {
-                options.auto = true;
-            } else if arg == "--probe-physical-immediate" {
-                options.physical_immediate = true;
-            } else if arg == "--probe-reference-analysis" {
-                options.reference_analysis = true;
-            } else if arg == "--probe-hold-ms" {
-                let requested = args.next().ok_or("--probe-hold-ms requires milliseconds")?;
-                let duration = requested.to_string_lossy().parse::<u64>()
-                    .map_err(|_| "--probe-hold-ms must be an integer")?;
-                if !(1000..=30_000).contains(&duration) {
-                    return Err("--probe-hold-ms must be between 1000 and 30000".into());
-                }
-                options.probe_hold_ms = duration;
-            } else if arg == "--probe-profile-id" {
-                let requested = args.next().ok_or("--probe-profile-id requires an identifier")?;
-                let value = requested.to_string_lossy();
-                if value.len() > 24 || value.is_empty()
-                    || !value.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-') {
-                    return Err("Invalid probe profile identifier".into());
-                }
-                options.profile_id = Some(value.to_string());
-            } else if arg == "--diagnostic-output" {
-                let path = PathBuf::from(
-                    args.next()
-                        .ok_or("--diagnostic-output requires an absolute filename")?,
-                );
-                if !path.is_absolute() || path.file_name().is_none() {
-                    return Err("Diagnostic output must be an absolute filename".into());
-                }
-                options.diagnostic_output = Some(path);
-            }
-        }
-        if !options.auto && (options.physical_immediate || options.reference_analysis
-            || options.probe_hold_ms > 0 || options.profile_id.is_some()) {
-            return Err("Performance flags require --probe-auto".into());
-        }
-    }
-    Ok(options)
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let options = probe_options().expect("invalid prototype arguments");
-    let auto = options.auto;
-    let library_available = cfg!(windows);
-    let physical_immediate = options.auto && options.physical_immediate;
-    let reference_analysis = options.auto && options.reference_analysis;
-    let probe_hold_ms = if options.probe_hold_ms > 0 { options.probe_hold_ms } else { 500 };
-    let profile_id = options.profile_id.clone();
+    #[cfg(windows)]
+    if std::env::args_os().any(|arg| arg == "--build-info") {
+        println!("{}", embedded_build_summary().expect("invalid embedded build identity"));
+        return;
+    }
+    let _options = runtime_options::parse(std::env::args_os().skip(1)).expect("invalid shell arguments");
+    #[cfg(feature = "verification")]
+    let probe_script = {
+        let auto = _options.auto;
+        let physical_immediate = _options.auto && _options.physical_immediate;
+        let reference_analysis = _options.auto && _options.reference_analysis;
+        let probe_hold_ms = if _options.probe_hold_ms > 0 { _options.probe_hold_ms } else { 500 };
+        format!(
+            "Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
+             Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__', {{ value: {physical_immediate}, writable: false }});\
+             Object.defineProperty(window, '__PANDOLAB_SHELL_REFERENCE_ANALYSIS__', {{ value: {reference_analysis}, writable: false }});\
+             Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_HOLD_MS__', {{ value: {probe_hold_ms}, writable: false }});"
+        )
+    };
+    #[cfg(feature = "verification")]
+    let profile_id = _options.profile_id.clone();
     tauri::Builder::default()
-        .manage(options)
+        .manage(RuntimeState {
+            #[cfg(feature = "verification")]
+            options: _options,
+            write_lock: Mutex::new(())
+        })
         .manage(document_transfer::TransferManager::default())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe,
+        .invoke_handler(tauri::generate_handler![
+            #[cfg(feature = "verification")] write_probe_file,
+            #[cfg(feature = "verification")] read_probe_file,
+            #[cfg(feature = "verification")] finish_probe,
+            write_diagnostic_report,
             document_transfer::begin_document_write, document_transfer::append_document_chunk,
             document_transfer::finish_document_write, document_transfer::begin_document_read,
             document_transfer::read_document_chunk, document_transfer::abort_document_transfer,
@@ -276,20 +263,16 @@ pub fn run() {
                 .inner_size(1280.0, 820.0)
                 .on_navigation(local_navigation)
                 .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
-                .initialization_script(format!(
-                    "Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {library_available}, writable: false, configurable: false }});\
-                     Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
-                     Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__', {{ value: {physical_immediate}, writable: false }});\
-                     Object.defineProperty(window, '__PANDOLAB_SHELL_REFERENCE_ANALYSIS__', {{ value: {reference_analysis}, writable: false }});\
-                     Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_HOLD_MS__', {{ value: {probe_hold_ms}, writable: false }});"
-                ));
+                .initialization_script(shell_initialization());
+            #[cfg(feature = "verification")]
+            let builder = builder.initialization_script(probe_script.clone());
             #[cfg(windows)]
             let builder = builder.data_directory({
                 let directory = app.path().app_local_data_dir()?.join("test-profile");
-                match &profile_id {
-                    Some(id) => directory.join(format!("webview2-benchmark-{id}")),
-                    None => directory.join("webview2"),
-                }
+                let webview = directory.join("webview2");
+                #[cfg(feature = "verification")]
+                let webview = profile_id.as_ref().map(|id| directory.join(format!("webview2-benchmark-{id}"))).unwrap_or(webview);
+                webview
             });
             builder.build()?;
             Ok(())

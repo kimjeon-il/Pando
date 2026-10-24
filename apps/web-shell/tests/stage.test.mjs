@@ -7,9 +7,42 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { createDevelopmentAssets, stagePrototype } from '../stage.mjs';
 import { startDevelopmentServer } from '../dev.mjs';
+import { assertOrdinaryBuild, assertVerificationBuild, windowsBuildArguments } from '../packaged-artifacts.mjs';
+import { createBuiltinWorldLoader } from '../../../assets/js/modules/builtin-world-loader.js';
 import { REFERENCE_IMAGE_STYLE_SOURCES } from '../../../assets/js/modules/reference-image-style-sources.js';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+test('native build mode controls features and rejects the wrong artifact identity', () => {
+  assert.ok(windowsBuildArguments(true).includes('custom-protocol,verification'));
+  assert.ok(windowsBuildArguments(true).includes('src-tauri/tauri.verification.json'));
+  assert.ok(!windowsBuildArguments(false).includes('custom-protocol,verification'));
+  assert.throws(() => assertOrdinaryBuild({ verification: true }), /verification/);
+  assert.throws(() => assertOrdinaryBuild({ executionMode: 'development', verification: false }), /offline/);
+  assert.throws(() => assertOrdinaryBuild({}), /identity/);
+  assert.doesNotThrow(() => assertOrdinaryBuild({ verification: false }));
+  assert.throws(() => assertVerificationBuild({ verification: false }), /verification/);
+  assert.doesNotThrow(() => assertVerificationBuild({ verification: true }));
+});
+
+test('startup errors use ordinary reporting except in the auto verification window', async () => {
+  const source = (await readFile(new URL('../startup.js', import.meta.url), 'utf8'))
+    .replace(/^import .*;\r?\n/gm, '').replaceAll('import.meta.url', '"https://shell.test/shell/startup.js"')
+    .replace('const verification = null;', 'const verification = globalThis.testVerification;');
+  for (const [verification, auto, expected] of [[false, false, 'report'], [true, false, 'report'], [true, true, 'finish']]) {
+    const calls = [];
+    await runInNewContext(source, {
+      testVerification: verification ? { finishDiagnostics: async report => calls.push(['finish', report]) } : null,
+      writeDiagnosticReport: async report => calls.push(['report', report]),
+      document: { readyState: 'complete', getElementById: () => null },
+      window: { d3: {}, __PANDOLAB_SHELL_AUTO__: auto }, console: { error() {} },
+    });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][0], expected);
+    assert.equal(calls[0][1].stage, 'startup');
+    assert.match(calls[0][1].error.message, /dependencies are unavailable/);
+    assert.ok(calls[0][1].error.stack);
+  }
+});
 async function source(t) {
   const root = await mkdtemp(join(tmpdir(), 'pandolab-shell-stage-'));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -54,6 +87,37 @@ test('stages the real frontend, exact WASM pair and local OCR without world data
   assert.equal(result.profile, 'small-project');
   assert.equal(result.fixture.entityCount, 3);
   assert.ok(result.fixture.coordinateCount <= 100);
+});
+
+test('verification assets are opt-in and disappear on the next ordinary stage', async t => {
+  const { root } = await source(t);
+  const ordinary = await stagePrototype({ root });
+  const names = result => result.files.map(file => file.path);
+  assert.equal(ordinary.verification, false);
+  assert.ok(!names(ordinary).includes('shell/diagnostics.js'));
+  assert.ok(!names(ordinary).includes('shell/full-world-probe.js'));
+  assert.doesNotMatch(await readFile(join(ordinary.directory, 'shell/startup.js'), 'utf8'), /import.*(?:diagnostics|full-world-probe|reference-analysis-probe)/);
+  const verified = await stagePrototype({ root, verification: true });
+  assert.ok(names(verified).includes('shell/verification.js'));
+  assert.ok(names(verified).includes('shell/probe-storage.js'));
+  assert.equal(JSON.parse(await readFile(join(verified.directory, 'shell/stage-profile.json'))).verification, true);
+  await stagePrototype({ root });
+  await assert.rejects(readFile(join(ordinary.directory, 'shell/verification.js')), /ENOENT/);
+  assert.ok(names(ordinary).includes('assets/vendor/reference-analysis/tesseract.mjs'));
+});
+
+test('the verification fixture loads through the current builtin country transport', async t => {
+  const { root } = await source(t);
+  const result = await stagePrototype({ root, verification: true });
+  const profile = JSON.parse(await readFile(join(result.directory, 'shell/stage-profile.json')));
+  const loader = createBuiltinWorldLoader({
+    manifestUrl: 'https://shell.test/shell/fixture-world.json', manifestSpec: profile.builtinWorld,
+    dataRevision: 'test-fixture', cacheStorage: null,
+    fetchFn: async url => new Response(await readFile(join(result.directory, new URL(url).pathname))),
+  });
+  const { project } = await loader.loadProject('2026-10', '2026-10');
+  assert.equal(project.territorialEntities.length, 3);
+  assert.equal(project.timelineRecords.parentRelations.find(row => row.entityId === 'shell-child-a').parentId, 'shell-country-a');
 });
 
 test('stages the runtime reference style catalog and every lazily loaded stylesheet', async t => {

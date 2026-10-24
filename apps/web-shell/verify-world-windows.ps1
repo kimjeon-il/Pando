@@ -3,6 +3,9 @@ param(
   [string]$OutputDirectory = (Join-Path $PSScriptRoot '../../build-native/web-shell')
 )
 $ErrorActionPreference = 'Stop'
+& node (Join-Path $PSScriptRoot 'packaged-artifacts.mjs') "--verify-binary=$BinaryPath"
+if ($LASTEXITCODE -ne 0) { throw 'The requested executable is not a verification build.' }
+
 $executable = (Resolve-Path -LiteralPath $BinaryPath).Path
 if ([IO.Path]::GetFileName($executable) -ne 'pandolab-web-shell.exe') {
   throw 'Only the trial PandoLab WebView app is allowed.'

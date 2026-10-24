@@ -1,7 +1,6 @@
 const CHUNK_BYTES = 256 * 1024;
 const DOCUMENT_LIMIT = 256 * 1024 * 1024;
-const PROBE_LIMIT = 1024 * 1024;
-const invokeNative = (command, payload) => {
+export const invokeNative = (command, payload) => {
   if (typeof globalThis.__TAURI_INTERNALS__?.invoke !== 'function') {
     throw new Error('Native shell bridge is unavailable; browser execution cannot pass native checks.');
   }
@@ -76,7 +75,7 @@ export function createNativeStorage(invoke = invokeNative) {
     for (let index = 0; index < selection.files.length; index++) {
       const file = selection.files[index];
       const bytes = [];
-      let size = 0, done = false;
+      let size = 0, done;
       try {
         do {
           const part = await invoke('read_document_chunk', { token: file.token });
@@ -118,20 +117,9 @@ export function createNativeStorage(invoke = invokeNative) {
       return { cancelled: false, files: selected.files.map(file =>
         new File([file.blob], selectedGisName(file.path))) };
     },
-    writeProbeFile: contents => {
-      if (typeof contents !== 'string' || new TextEncoder().encode(contents).length > PROBE_LIMIT) {
-        throw new Error('Probe file exceeds the 1 MiB limit.');
-      }
-      return invoke('write_probe_file', { contents });
-    },
-    readProbeFile: () => invoke('read_probe_file', {}),
     writeDiagnosticReport: report => invoke('write_diagnostic_report', { report }),
-    finishDiagnostics: report => {
-      globalThis.__PANDOLAB_SHELL_REPORT__ = report;
-      return invoke('finish_probe', { report });
-    },
   });
 }
 const native = createNativeStorage();
 export const { saveProjectFile, saveExportFile, openProjectFile, openGisFiles,
-  writeProbeFile, readProbeFile, writeDiagnosticReport, finishDiagnostics } = native;
+  writeDiagnosticReport } = native;

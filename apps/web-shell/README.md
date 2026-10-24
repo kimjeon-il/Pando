@@ -2,9 +2,30 @@
 
 The Tauri 2 application for Windows x64 and Android arm64. It embeds the
 existing Web frontend staged by `stage.mjs`. The default smoke profile omits
-world data; the opt-in full-world profile packages the current manifest-pinned
+world data for small fixture tests; normal build commands use full-world and package the current manifest-pinned
 country, historical and prepared geometry assets.
 This is the sole app execution and development entrypoint.
+
+## 일반 앱과 검증 실행기
+
+`build:windows`, `build:android`, `dev:windows`, `dev:android`는 검증 도구를
+포함하지 않는다. 일반 앱에는 시험 파일 저장·자동 종료 명령, 진단 화면,
+세계지도·참조 이미지 측정 스크립트와 시험 이미지를 넣지 않는다. 실제 OCR,
+방향 감지, 프로젝트 파일 입출력과 오류 보고는 유지한다.
+
+검증할 때만 `build:verification:windows` 또는 `build:verification:android`를
+사용한다. 작은 저장 시험은 `PANDOLAB_SHELL_PROFILE=small-project`로 선택한다.
+기존 `stage:verification` 명령은 검증 자산만 준비하며 네이티브 앱을 빌드하지 않는다.
+검증 빌드의 자산·Cargo feature·Tauri 권한이 다르면 빌드를 실패시킨다.
+직접 Tauri 명령을 쓰는 CI는 `PANDOLAB_SHELL_VERIFICATION=1`,
+`--features custom-protocol,verification`,
+`--config src-tauri/tauri.verification.json`을 함께 지정한다.
+
+검증 실행기는 기존 Cargo 경로에서 재사용하고 `target/packaged/`의 일반
+오프라인 실행기를 덮어쓰지 않는다. Windows 검증 스크립트는 실행 파일의
+`--build-info`를 확인한다. 일반 앱은 `--probe-*`·`--diagnostic-output` 옵션을
+거부하며 시작 실패는 고정된 진단 보고서로 기록한다. 개발 서버와 일반
+오프라인 앱은 검증 기능을 포함하지 않는다.
 
 ## 반복 개발
 
@@ -120,7 +141,9 @@ No commands in this README deploy, push, or modify `main`.
 
 ## Narrow native bridge
 
-The frontend invokes these commands through `window.__TAURI_INTERNALS__.invoke`:
+The frontend invokes these commands through `window.__TAURI_INTERNALS__.invoke`.
+`write_probe_file`, `read_probe_file`, and `finish_probe` exist only in explicit
+verification builds; `write_diagnostic_report` remains available in ordinary builds:
 
 | Command | Argument | Result |
 | --- | --- | --- |
