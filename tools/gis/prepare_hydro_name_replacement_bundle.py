@@ -14,7 +14,7 @@ import hashlib
 import json
 from collections import Counter
 from pathlib import Path
-from gis.hydro_independent_name_policy import load_independent_hydronyms
+from hydro_independent_name_policy import load_independent_hydronyms
 
 
 def digest(value: bytes) -> str:
@@ -139,8 +139,9 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
     for i in [0, *range(3, len(new_parts))]:
         if new_parts[i] != original_parts[i]:
             raise AssertionError("Hydro geometry/index bytes changed")
+    next_core_by_fid = {int(row["fid"]): row for row in next_core}
     for row in next_detail:
-        if str(next_core[int(row["fid"])].get("systemId")) in substitutions and row.get("osmRelationIds"):
+        if str(next_core_by_fid[int(row["fid"])].get("systemId")) in substitutions and row.get("osmRelationIds"):
             raise ValueError("OSM relation ID survived replacement")
     return new_manifest, updated_bundle, {
         "changedSystemIds": sorted(system_changes, key=int),
