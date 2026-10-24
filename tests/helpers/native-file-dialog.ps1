@@ -4,6 +4,7 @@ param(
   [ValidateSet('Open','Save')][string]$Mode = 'Open'
 )
 $ErrorActionPreference = 'Stop'
+$OutputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $absoluteTarget = [IO.Path]::GetFullPath($TargetPath)
 if (-not [IO.Path]::IsPathRooted($TargetPath)) { throw 'An absolute test file path is required.' }
 if ($Mode -eq 'Open' -and -not (Test-Path -LiteralPath $absoluteTarget -PathType Leaf)) { throw 'Test input does not exist.' }
@@ -24,13 +25,17 @@ if (-not $dialog) { throw 'The test-owned native file dialog did not appear.' }
 $fileComboCondition = New-Object System.Windows.Automation.PropertyCondition($element::AutomationIdProperty, '1148')
 $combo = $dialog.FindFirst($scope::Descendants, $fileComboCondition)
 $editCondition = New-Object System.Windows.Automation.PropertyCondition($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
-$fileEdit = if ($combo) { $combo.FindFirst($scope::Descendants, $editCondition) } else { $null }
+$fileEdit = if ($combo -and $combo.GetCurrentPropertyValue([System.Windows.Automation.AutomationElement]::IsValuePatternAvailableProperty)) { $combo } elseif ($combo) { $combo.FindFirst($scope::Descendants, $editCondition) } else { $null }
 if (-not $fileEdit) {
   foreach ($candidate in $dialog.FindAll($scope::Descendants, $editCondition)) {
-    if ($candidate.Current.AutomationId -eq '1001' -or $candidate.Current.Name -match 'File name|파일 이름') { $fileEdit=$candidate; break }
+    if ($candidate.Current.AutomationId -eq '1001' -or $candidate.Current.Name -match 'File name') { $fileEdit=$candidate; break }
   }
 }
-if (-not $fileEdit) { throw 'The native file-name edit control is unavailable.' }
+if (-not $fileEdit) {
+  $comboCondition = New-Object System.Windows.Automation.PropertyCondition($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::ComboBox)
+  $details = @($dialog.FindAll($scope::Descendants, $comboCondition) | ForEach-Object { @{ id=$_.Current.AutomationId; name=$_.Current.Name; className=$_.Current.ClassName; valuePattern=$_.GetCurrentPropertyValue($element::IsValuePatternAvailableProperty) } }) | ConvertTo-Json -Compress
+  throw "The native file-name edit control is unavailable: $details"
+}
 $value = $fileEdit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
 $value.SetValue($absoluteTarget)
 $acceptCondition = New-Object System.Windows.Automation.PropertyCondition($element::AutomationIdProperty, '1')

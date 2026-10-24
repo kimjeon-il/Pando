@@ -49,7 +49,10 @@ export function createToolBindings() {
     listen((0, dependencies.platform.$)('addLakeBtn'), 'click', async () => {
       await dependencies.genericEditingB.requestDraftDiscard(async () => dependencies.workspaceUiA.completeToolStart(await dependencies.countryEditingB.enterTerrainGenericFeatureMode('lake')));
     });
-    for (const id of ['hydroVerticesBtn','genericVerticesBtn']) listen(dependencies.platform.$(id),'click',()=>dependencies.domains.editingDomain.handleInteraction({type:'object-edit-start',targetRef:dependencies.projectState.state.selected}));
+    listen(dependencies.platform.$('hydroVerticesBtn'),'click',async()=>{
+      try { await dependencies.domains.editingDomain.handleInteraction({type:'object-edit-start',targetRef:dependencies.projectState.state.selected}); }
+      catch(error) { dependencies.feedback.reportOperationError(error,'좌표 편집을 시작하지 못했습니다.','PL-HYDRO-EDIT-001',3200); }
+    });
     listen(dependencies.platform.$('vertexPlacementBtn'),'click',()=>{const editing=dependencies.domains.editingDomain;Promise.resolve(editing.handleInteraction({type:editing.snapshot().vertexPlacement?'vertex-placement-cancel':'vertex-placement-start',projectGeneration:editing.snapshot().projectGeneration})).catch(error=>dependencies.feedback.reportOperationError(error,'위치 지정을 시작하지 못했습니다.','PL-VERTEX-PLACE',3200));});
     listen((0, dependencies.platform.$)('modePrimaryBtn'), 'click', () => { void (0, dependencies.taskPresentation.runModePrimaryAction)(); });
     for (const [id, command] of [['multiDrawnAddBtn', dependencies.countryCommitFlow.addMultiDraftPart], ['multiDrawnUndoBtn', dependencies.countryCommitFlow.undoMultiDraftPart]]) {
