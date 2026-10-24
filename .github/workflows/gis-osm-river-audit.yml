@@ -108,13 +108,14 @@ jobs:
                                  if row['name']!=match['name'] and row['nameKo']),default=0)
                   assert abs(competing-conservative['otherNamedNECoverage'])<0.001,entry['systemId']
                   assert match['meanDistanceDegrees'] <= 0.04,entry['systemId']
-              confluence=entry.get('basinConfluenceReview')
+              confluence=entry.get('basinConfluenceReview') or entry.get('independentBasinRename')
               if confluence:
                   trib=next((row for row in candidates
                              if row['name']==confluence['namedTributaryNE']),None)
                   assert trib is not None,entry['systemId']
                   assert abs(trib['sampleCoverage']-confluence['tributarySampleCoverage'])<0.001,entry['systemId']
-                  assert match['sampleCoverage']+trib['sampleCoverage']>=0.75,entry['systemId']
+                  threshold=0.90 if entry.get('independentBasinRename') else 0.75
+                  assert match['sampleCoverage']+trib['sampleCoverage']>=threshold,entry['systemId']
                   assert match['meanDistanceDegrees']<=0.05,entry['systemId']
                   assert trib['meanDistanceDegrees']<=0.05,entry['systemId']
           print('Source-independent 81-sample geometry comparisons reproduced for all reviewed river systems')
@@ -139,10 +140,10 @@ jobs:
           root=Path('/tmp/hydro-independent-five')
           proof=json.loads((root/'proof.json').read_text())
           manifest=json.loads((root/'manifest.json').read_text())
-          assert len(proof['changedSystemIds']) == 37
-          assert proof['remainingOsmMatchedSystems'] == 36
-          assert proof['sourceIndependentSystemCount'] == 37
-          assert proof['renamedSystemCount'] == 7
+          assert len(proof['changedSystemIds']) == 38
+          assert proof['remainingOsmMatchedSystems'] == 35
+          assert proof['sourceIndependentSystemCount'] == 38
+          assert proof['renamedSystemCount'] == 8
           assert proof['nameUnchangedSourceReplacementCount'] == 30
           assert proof['originalIndexSha256'] == proof['newIndexSha256']
           assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']
