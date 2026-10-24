@@ -65,6 +65,19 @@ ROWS = [
     ("kvirila_chiatura", "Kvirila", 43+16.674/60, 42+17.118/60, GEORGIA, "NEA EU4Environment 2022 site 2"),
     ("jejora_oni", "Jejora", 43+25.796/60, 42+34.429/60, GEORGIA, "NEA EU4Environment 2022 site 3"),
     ("krikhula_ambrolauri", "Krikhula", 43+8.933/60, 42+31.302/60, GEORGIA, "NEA EU4Environment 2022 site 9"),
+    ("enguri_vichnishi", "Enguri", 42+54.218/60, 42+56.510/60, GEORGIA, "NEA EU4Environment 2022 site 14"),
+    ("enguri_mestia", "Enguri", 42+44.876/60, 43+4.523/60, GEORGIA, "NEA EU4Environment 2022 site 15"),
+    ("enguri_potskho", "Enguri", 42+1.727/60, 42+43.774/60, GEORGIA, "NEA EU4Environment 2022 site 19"),
+    ("enguri_khaishi", "Enguri", 42+10.692/60, 42+56.693/60, GEORGIA, "NEA EU4Environment 2022 site 20"),
+    ("enguri_anaklia_mouth", "Enguri", 41+33.614/60, 42+23.535/60, GEORGIA, "NEA EU4Environment 2022 site 24"),
+    ("dolra_ushkhvani", "Dolra (Enguri tributary)", 42+36.143/60, 43+2.671/60, GEORGIA, "NEA EU4Environment 2022 site 16"),
+    ("nakra_intake", "Nakra (Enguri tributary)", 42+22.822/60, 43+4.184/60, GEORGIA, "NEA EU4Environment 2022 site 17"),
+    ("nenskra_marghi", "Nenskra (Enguri tributary)", 42+11.403/60, 43+1.100/60, GEORGIA, "NEA EU4Environment 2022 site 18"),
+    ("chanistskali_jikhashkari", "Chanistskali (Enguri tributary)", 42+1.507/60, 42+29.785/60, GEORGIA, "NEA EU4Environment 2022 site 21"),
+    ("chkhoushia_zugdidi", "Chkhoushia (Enguri tributary)", 41+50.793/60, 42+29.428/60, GEORGIA, "NEA EU4Environment 2022 site 22"),
+    ("jumi_darcheli", "Jumi (Enguri tributary)", 41+40.852/60, 42+25.800/60, GEORGIA, "NEA EU4Environment 2022 site 23"),
+    ("khobistskali_gamogma", "Khobistskali", 41+50.293/60, 42+16.371/60, GEORGIA, "NEA EU4Environment 2022 site 25"),
+    ("khobistskali_khobi", "Khobistskali", 41+54.586/60, 42+18.804/60, GEORGIA, "NEA EU4Environment 2022 site 26"),
 ]
 POINTS = {row[0]: {"id":row[0], "river":row[1], "lon":row[2], "lat":row[3],
                    "source":row[4], "description":row[5]} for row in ROWS}
@@ -77,8 +90,8 @@ GROUPS = {
     "20456598": ["atlas_zhem", "atlas_ural"],
     "20532766": ["sulak_field_01", "sulak_field_02", "terek_mouth"],
     "20540915": ["sulak_field_01", "sulak_field_02", "terek_mouth"],
-    "20561290": [k for k in POINTS if k.startswith(("rioni_", "tskh_", "kvirila_", "jejora_", "krikhula_"))],
-    "20565620": [k for k in POINTS if k.startswith(("rioni_", "tskh_", "kvirila_", "jejora_", "krikhula_"))],
+    "20561290": [k for k in POINTS if k.startswith(("rioni_", "tskh_", "kvirila_", "jejora_", "krikhula_", "enguri_", "dolra_", "nakra_", "nenskra_", "chanistskali_", "chkhoushia_", "jumi_", "khobistskali_"))],
+    "20565620": [k for k in POINTS if k.startswith(("rioni_", "tskh_", "kvirila_", "jejora_", "krikhula_", "enguri_", "dolra_", "nakra_", "nenskra_", "chanistskali_", "chkhoushia_", "jumi_", "khobistskali_"))],
 }
 CRS = {
     "10521208": "EPSG:32633", "10526283": "EPSG:32633",
