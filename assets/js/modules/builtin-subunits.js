@@ -23,7 +23,7 @@ const relationships = {
     '원본·파생 데이터: https://github.com/kimjeon-il/PandoLab-library-data/blob/0b080946cda3c9150ac07693b6c5b03951313027/reports/geography/ne-selected-20261023/odbl-source-and-derivative.zip',
     '임대협정: https://old.adilet.zan.kz/rus/docs/U950002195_',
     '표시 경계는 약 1km 수준으로 일반화한 파생본이며, 법적 측량선으로 확정하지 않았습니다.',
-  ].join('\\n') },
+  ].join('\n') },
 };
 // UUIDv8 application namespace, stable across loads, preview/canonical and Undo.
 export const builtinSubunitId = sourceId => `d34b00a1-9b13-8000-8000-000000${[...sourceId].map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('')}`;
@@ -77,10 +77,10 @@ export function classifyBuiltinCountries(collection) {
           '바이코누르 임대구역 접경 일부: 임대협정 공식 좌표와 시르다리야강 우안 OpenStreetMap 파생 자료를 함께 사용한 표시용 경계.',
           '© OpenStreetMap contributors · ODbL 1.0 · https://www.openstreetmap.org/copyright',
           '원본·파생 데이터: https://github.com/kimjeon-il/PandoLab-library-data/blob/0b080946cda3c9150ac07693b6c5b03951313027/reports/geography/ne-selected-20261023/odbl-source-and-derivative.zip',
-        ].join('\\n');
+        ].join('\n');
         countries.push({ ...feature, properties: {
           ...feature.properties,
-          notes: [feature.properties?.notes, boundaryNote].filter(Boolean).join('\\n\\n'),
+          notes: [feature.properties?.notes, boundaryNote].filter(Boolean).join('\n\n'),
         } });
       } else {
         countries.push(feature);
