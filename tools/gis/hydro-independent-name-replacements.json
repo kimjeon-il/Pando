@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "29-independently-reviewed-systems-awaiting-verified-staged-package",
+  "status": "33-independent-river-source-reviews-staged-pending-bundle-validation",
   "reference": {
     "dataset": "HydroRIVERS v0.13.2 OSM-name inventory",
     "naturalEarthRiversBaseSha256": "3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99",
@@ -8,6 +8,43 @@
     "note": "Only verified mainstem name substitutions; geometry is unchanged; OSM matching is skipped for listed IDs."
   },
   "replacements": [
+    {
+      "systemId": "20081953",
+      "previousNameKo": "북드비나강",
+      "nameKo": "북드비나강",
+      "aliases": [
+        "Northern Dvina",
+        "Северная Двина"
+      ],
+      "tributaryNames": [
+        "비체그다강"
+      ],
+      "naturalEarth": {
+        "name": "Northern Dvina",
+        "sampleCoverage": 0.494
+      },
+      "hydroRiversRegion": "eu",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Vychegda",
+        "tributarySampleCoverage": 0.444,
+        "reason": "Russian government waterway list identifies Northern Dvina and Vychegda as separate confluencing watercourses, with named basin identity."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.consultant.ru/document/cons_doc_LAW_40441/526e96dcf757c61b65432d68902b24c3b6a25b51/"
+        },
+        {
+          "kind": "government-water",
+          "url": "https://29.mchs.gov.ru/deyatelnost/press-centr/novosti/5720635"
+        }
+      ]
+    },
     {
       "systemId": "20282220",
       "previousNameKo": "엘베강",
@@ -123,6 +160,38 @@
       "hydroRiversRegion": "eu"
     },
     {
+      "systemId": "20446779",
+      "previousNameKo": "루아르강",
+      "nameKo": "루아르강",
+      "aliases": [
+        "Loire"
+      ],
+      "tributaryNames": [
+        "Vienne"
+      ],
+      "naturalEarth": {
+        "name": "Loire",
+        "sampleCoverage": 0.407
+      },
+      "hydroRiversRegion": "eu",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Vienne",
+        "tributarySampleCoverage": 0.642,
+        "reason": "French prefecture separately identifies the Loire and Vienne confluence near Candes-Saint-Martin; previously mixed Seine is a separate river."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.prefectures-regions.gouv.fr/pays-de-la-loire/DOCUMENTS-PUBLICATIONS/Environnement-Classement-de-la-confluence-de-la-Loire-et-de-la-Vienne"
+        }
+      ]
+    },
+    {
       "systemId": "20452421",
       "previousNameKo": "돈강",
       "nameKo": "돈강",
@@ -205,6 +274,46 @@
         }
       ],
       "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20498112",
+      "previousNameKo": "도나우강",
+      "nameKo": "도나우강",
+      "aliases": [
+        "Danube"
+      ],
+      "tributaryNames": [
+        "드라바강",
+        "사바강",
+        "티서강",
+        "인강",
+        "프루트강"
+      ],
+      "naturalEarth": {
+        "name": "Danube",
+        "sampleCoverage": 0.58
+      },
+      "hydroRiversRegion": "eu",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Sava",
+        "tributarySampleCoverage": 0.284,
+        "reason": "ICPDR confirms the Danube and its Sava, Drava, Tisza, Inn and Prut tributaries and describes the Sava confluence at Belgrade."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.icpdr.org/danube-basin/danube-river-basin"
+        },
+        {
+          "kind": "international-river-commission",
+          "url": "https://www.icpdr.org/danube-basin/sub-basins/sava-basin"
+        }
+      ]
     },
     {
       "systemId": "20588291",
@@ -745,6 +854,43 @@
         }
       ],
       "hydroRiversRegion": "na"
+    },
+    {
+      "systemId": "70617856",
+      "previousNameKo": "새크라멘토강",
+      "nameKo": "새크라멘토강",
+      "aliases": [
+        "Sacramento"
+      ],
+      "tributaryNames": [
+        "피트강",
+        "페더강"
+      ],
+      "naturalEarth": {
+        "name": "Sacramento",
+        "sampleCoverage": 0.58
+      },
+      "hydroRiversRegion": "na",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Pit",
+        "tributarySampleCoverage": 0.383,
+        "reason": "USGS Sacramento watershed and California DWR establish Pit and Feather as Sacramento tributaries; San Joaquin is separate until the delta confluence."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.usgs.gov/centers/california-water-science-center/central-valley-regional-overview"
+        },
+        {
+          "kind": "government-river-basin",
+          "url": "https://water.ca.gov/Programs/Integrated-Science-and-Engineering/Feather-River-Program"
+        }
+      ]
     },
     {
       "systemId": "70816878",

@@ -108,6 +108,15 @@ jobs:
                                  if row['name']!=match['name'] and row['nameKo']),default=0)
                   assert abs(competing-conservative['otherNamedNECoverage'])<0.001,entry['systemId']
                   assert match['meanDistanceDegrees'] <= 0.04,entry['systemId']
+              confluence=entry.get('basinConfluenceReview')
+              if confluence:
+                  trib=next((row for row in candidates
+                             if row['name']==confluence['namedTributaryNE']),None)
+                  assert trib is not None,entry['systemId']
+                  assert abs(trib['sampleCoverage']-confluence['tributarySampleCoverage'])<0.001,entry['systemId']
+                  assert match['sampleCoverage']+trib['sampleCoverage']>=0.75,entry['systemId']
+                  assert match['meanDistanceDegrees']<=0.05,entry['systemId']
+                  assert trib['meanDistanceDegrees']<=0.05,entry['systemId']
           print('Source-independent 81-sample geometry comparisons reproduced for all reviewed river systems')
           PY
       - name: Verify independently researched river-name records
@@ -130,11 +139,11 @@ jobs:
           root=Path('/tmp/hydro-independent-five')
           proof=json.loads((root/'proof.json').read_text())
           manifest=json.loads((root/'manifest.json').read_text())
-          assert len(proof['changedSystemIds']) == 29
-          assert proof['remainingOsmMatchedSystems'] == 44
-          assert proof['sourceIndependentSystemCount'] == 29
+          assert len(proof['changedSystemIds']) == 33
+          assert proof['remainingOsmMatchedSystems'] == 40
+          assert proof['sourceIndependentSystemCount'] == 33
           assert proof['renamedSystemCount'] == 7
-          assert proof['nameUnchangedSourceReplacementCount'] == 22
+          assert proof['nameUnchangedSourceReplacementCount'] == 26
           assert proof['originalIndexSha256'] == proof['newIndexSha256']
           assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']
           assert manifest['metadata']['featureCount'] == 16548
