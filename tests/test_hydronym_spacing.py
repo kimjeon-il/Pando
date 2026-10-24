@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -15,6 +16,11 @@ SPEC.loader.exec_module(BUILDER)
 
 
 class HydronymSpacingTests(unittest.TestCase):
+    def test_aral_names_use_canonical_korean_sea_names(self):
+        aliases=json.loads((TOOLS.parent/'assets/data/hydro/hydronym-ko-overrides.json').read_text(encoding='utf-8'))['aliases']
+        for old,expected in [('사우스아랄씨','남아랄해'),('노스아랄씨','북아랄해'),('사우스아랄씨호','남아랄해'),('노스아랄씨호','북아랄해')]:
+            self.assertEqual(BUILDER.normalize_hydronym(old,'lake',aliases),expected)
+
     def test_compound_korean_names_are_compact(self):
         for name, category, expected in [
             ("세인트 폴 강", "river", "세인트폴강"),
