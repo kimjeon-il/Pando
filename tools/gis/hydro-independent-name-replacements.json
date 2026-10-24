@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "staged-for-generator-not-yet-runtime-packaged",
+  "status": "sixteen-verified-records-staged-for-generator-and-isolated-packfile",
   "reference": {
     "dataset": "HydroRIVERS v0.13.2 OSM-name inventory",
     "naturalEarthRiversBaseSha256": "3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99",
@@ -8,6 +8,161 @@
     "note": "Only verified mainstem name substitutions; geometry is unchanged; OSM matching is skipped for listed IDs."
   },
   "replacements": [
+    {
+      "systemId": "20282220",
+      "previousNameKo": "엘베강",
+      "nameKo": "엘베강",
+      "aliases": [
+        "Elbe",
+        "Labe"
+      ],
+      "tributaryNames": [
+        "블타바강"
+      ],
+      "naturalEarth": {
+        "name": "Elbe",
+        "sampleCoverage": 0.975
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://undine.bafg.de/elbe/extremereignisse/elbe_hw2013.html"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20323928",
+      "previousNameKo": "라인강",
+      "nameKo": "라인강",
+      "aliases": [
+        "Rhine"
+      ],
+      "tributaryNames": [
+        "마인강",
+        "모젤강",
+        "아레강"
+      ],
+      "naturalEarth": {
+        "name": "Rhine",
+        "sampleCoverage": 0.914
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "international-river-commission",
+          "url": "https://www.iksr.org/en/topics/pollution/international-warning-and-alarm-plan/rhine-alarm-model"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20342955",
+      "previousNameKo": "스헬데강",
+      "nameKo": "스헬데강",
+      "aliases": [
+        "Scheldt",
+        "Escaut"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Scheldt",
+        "sampleCoverage": 0.988
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://etat.environnement.wallonie.be/contents/indicatorsheets/EAU%202.html"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20457454",
+      "previousNameKo": "남부크강",
+      "nameKo": "남부크강",
+      "aliases": [
+        "Southern Bug",
+        "Південний Буг"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Southern Bug",
+        "sampleCoverage": 0.926
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://buvrpb.davr.gov.ua/vodni-resursy/hidrohrafichna-merezha"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20478829",
+      "previousNameKo": "드네스트르강",
+      "nameKo": "드네스트르강",
+      "aliases": [
+        "Dniester",
+        "Nistru"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Dniester",
+        "sampleCoverage": 1
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://gov.md/en/comunicate-de-presa-bpr/environmental-experts-discuss-critical-hydrological-situation-nistru-river"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20673409",
+      "previousNameKo": "과디아나강",
+      "nameKo": "과디아나강",
+      "aliases": [
+        "Guadiana",
+        "Río Guadiana"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Guadiana",
+        "sampleCoverage": 0.852
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.miteco.gob.es/es/agua/planes-y-estrategias/informes-de-viabilidad-de-obras-hidraulicas/chguadiana2.html"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
     {
       "systemId": "20680587",
       "previousNameKo": "과디아나강",
@@ -58,6 +213,55 @@
       "hydroRiversRegion": "as"
     },
     {
+      "systemId": "40505530",
+      "previousNameKo": "낙동강",
+      "nameKo": "낙동강",
+      "aliases": [
+        "Nakdong"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Nakdong",
+        "sampleCoverage": 0.988
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.me.go.kr/ndg"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "41261061",
+      "previousNameKo": "시탕강",
+      "nameKo": "시탕강",
+      "aliases": [
+        "Sittaung",
+        "Sittong"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Sittong",
+        "sampleCoverage": 0.988
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "research-institute",
+          "url": "https://www.sei.org/publications/climate-change-sittaung-river/"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
       "systemId": "41279826",
       "previousNameKo": "브라마푸트라강/얄룽창포강",
       "nameKo": "살윈강",
@@ -77,6 +281,56 @@
         {
           "kind": "international-basin-reference",
           "url": "https://www.fao.org/aquastat/en/countries-and-basins/transboundary-river-basins/salween/"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "41339527",
+      "previousNameKo": "짜오프라야강",
+      "nameKo": "짜오프라야강",
+      "aliases": [
+        "Chao Phraya",
+        "แม่น้ำเจ้าพระยา"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Chao Phraya",
+        "sampleCoverage": 1
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.rid.go.th/th/rid_news/28956"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "41347969",
+      "previousNameKo": "바강",
+      "nameKo": "바강",
+      "aliases": [
+        "Ba",
+        "Sông Ba"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Ba",
+        "sampleCoverage": 1
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://dwrm.mae.gov.vn/bo-nong-nghiep-va-moi-truong-phe-duyet-quy-hoach-tong-hop-luu-vuc-song-ba-den-nam-2030-tam-nhin-2050-16754.htm"
         }
       ],
       "hydroRiversRegion": "as"
@@ -125,6 +379,32 @@
         {
           "kind": "government-hydrology",
           "url": "https://water.usgs.gov/GIS/huc_name.html"
+        }
+      ],
+      "hydroRiversRegion": "na"
+    },
+    {
+      "systemId": "70580124",
+      "previousNameKo": "서스쿼해나강",
+      "nameKo": "서스쿼해나강",
+      "aliases": [
+        "Susquehanna"
+      ],
+      "tributaryNames": [
+        "W. 브랜치 서스케하나강"
+      ],
+      "naturalEarth": {
+        "name": "Susquehanna",
+        "sampleCoverage": 0.988
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-river-commission",
+          "url": "https://www.srbc.net/"
         }
       ],
       "hydroRiversRegion": "na"
