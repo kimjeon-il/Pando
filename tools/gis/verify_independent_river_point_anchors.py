@@ -35,11 +35,29 @@ ANCHORS = {
         "kind": "Secondary transcription of river monograph (1987); not an official GIS line",
         "source": "https://silkadv.com/en/content/ural-river-kazakhstan",
     },
+    "russian_sulak_2024_field_mouth": {
+        "name": "Sulak", "lon": 47.537988, "lat": 43.259126,
+        "kind": "Independent academic field sampling of Sulak on 12 August 2024",
+        "source": "https://www.mdpi.com/2073-4441/17/23/3390",
+    },
+    "russian_sulak_2024_field_upstream": {
+        "name": "Sulak", "lon": 47.1130054, "lat": 43.3657051,
+        "kind": "Independent academic field sampling of Sulak on 12 August 2024",
+        "source": "https://www.mdpi.com/2073-4441/17/23/3390",
+    },
+    "russian_terek_register_mouth": {
+        "name": "Terek", "lon": 47 + 33 / 60 + 35 / 3600,
+        "lat": 43 + 35 / 60 + 43 / 3600,
+        "kind": "Secondary hydrological gazetteer giving Russian GVR ID 07020000212108200002513",
+        "source": "https://waterresources.ru/reki/terek/",
+    },
 }
 CANDIDATE_IDS = {
     "20071308": ["finnish_nls_oulujoki", "finnish_nls_siikajoki"],
     "20075401": ["finnish_nls_oulujoki", "finnish_nls_siikajoki"],
     "20456598": ["kazakh_emba_atlas_location", "kazakh_ural_atlas_location"],
+    "20532766": ["russian_sulak_2024_field_mouth", "russian_sulak_2024_field_upstream", "russian_terek_register_mouth"],
+    "20540915": ["russian_sulak_2024_field_mouth", "russian_sulak_2024_field_upstream", "russian_terek_register_mouth"],
 }
 
 
@@ -71,8 +89,10 @@ def compare(decoded):
 
     rows = []
     for sid, features in sorted(systems.items()):
-        crs = "EPSG:32635" if sid.startswith("200") else "EPSG:32640"
-        # 35N for Finland (E 24-29°), 40N for Emba (E 53-58°).
+        crs = ("EPSG:32635" if sid in {"20071308", "20075401"}
+               else "EPSG:32638" if sid in {"20532766", "20540915"}
+               else "EPSG:32640")
+        # 35N Finland; 38N western Dagestan; 40N Emba, each local metric UTM zone.
         project = Transformer.from_crs("EPSG:4326", crs, always_xy=True).transform
         inverse = Transformer.from_crs(crs, "EPSG:4326", always_xy=True).transform
         lines = []
