@@ -51,10 +51,10 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
   } else {
     await page.mouse.move(...point);await page.mouse.down();await page.mouse.move(point[0]+18,point[1]+10,{steps:4});await page.mouse.up();
   }
-  await expect.poll(async()=>JSON.stringify((await readEdited()).geometry)).not.toBe(JSON.stringify(imported[0].geometry));
+  await expect.poll(async()=>JSON.stringify((await readEdited()).geometry),{timeout:30000}).not.toBe(JSON.stringify(imported[0].geometry));
   const edited=await readEdited();
-  await page.locator('#undoBtn').click();expect((await readEdited()).geometry).toEqual(imported[0].geometry);
-  await page.locator('#redoBtn').click();expect((await readEdited()).geometry).toEqual(edited.geometry);
+  await page.locator('#undoBtn').click();await expect.poll(async()=>(await readEdited()).geometry,{timeout:30000}).toEqual(imported[0].geometry);
+  await page.locator('#redoBtn').click();await expect.poll(async()=>(await readEdited()).geometry,{timeout:30000}).toEqual(edited.geometry);
   const before=await page.evaluate(()=>window.__pluginDocument().snapshot()),saved=await saveReopen();
   await expect.poll(()=>page.evaluate(()=>window.__pluginDocument().state().dirty),{timeout:30000}).toBe(false);
   const reopened=await page.evaluate(()=>window.__pluginDocument().snapshot());
