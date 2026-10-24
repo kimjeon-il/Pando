@@ -115,7 +115,7 @@ jobs:
           node scripts/generate-build-metadata.mjs --check
           echo 'Generated tracked changes in temporary CI checkout:'
           git diff --name-only | head -60
-          node apps/web-shell/stage.mjs --profile=small-project
+          node apps/web-shell/stage.mjs --profile=small-project --verification
           node apps/web-shell/check-stage.mjs
           node --input-type=module -e "
             import assert from 'node:assert/strict';

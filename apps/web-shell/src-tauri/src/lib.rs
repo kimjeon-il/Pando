@@ -98,7 +98,7 @@ async fn read_probe_file(app: tauri::AppHandle) -> Result<ReadFile, String> {
 
 #[cfg(not(feature = "custom-protocol"))]
 fn embedded_build_summary() -> Result<serde_json::Value, String> {
-    Ok(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false, "verification": cfg!(feature = "verification") }))
+    Ok(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false, "profile": "full-world", "verification": cfg!(feature = "verification") }))
 }
 
 #[cfg(feature = "custom-protocol")]
@@ -108,6 +108,7 @@ fn embedded_build_summary() -> Result<serde_json::Value, String> {
     let mut summary = serde_json::Map::new();
     for key in [
         "schema",
+        "profile",
         "commit",
         "trackedDiffSha256",
         "coreSourceSha256",

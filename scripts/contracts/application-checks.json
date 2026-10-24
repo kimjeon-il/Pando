@@ -461,7 +461,8 @@
       "argv": [
         "node",
         "apps/web-shell/stage.mjs",
-        "--profile=small-project"
+        "--profile=small-project",
+        "--verification"
       ],
       "requires": [
         "generated"
@@ -999,6 +1000,7 @@
   ],
   "runtimeBases": {
     "apps/web-shell/startup.js": "assets/js",
+    "apps/web-shell/verification.js": "assets/js",
     "assets/js/modules/app-runtime-dependencies.js": "assets/js"
   },
   "runtimeHelperBases": {

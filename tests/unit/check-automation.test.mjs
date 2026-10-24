@@ -88,6 +88,19 @@ test('shell Node tools and nested tests keep source-relative paths', () => {
   assert.deepEqual(repo.dependencies('apps/web-shell/tests/probe.test.mjs'), ['apps/web-shell/fixture.mjs']);
 });
 
+test('verification startup resolves versioned fixture modules at the declared runtime base', () => {
+  const f = fixture();
+  const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
+  f.catalog.runtimeBases = catalog.runtimeBases;
+  f.catalog.relocatedSources = catalog.relocatedSources;
+  f.put('apps/web-shell/verification.js', "export function startFixture({ versionedAsset }) { return import(versionedAsset('./modules/leaf.js').href); }");
+  f.put('tests/unit/verification.test.mjs', "import '../../apps/web-shell/verification.js';");
+  const repo = f.repository();
+  assert.deepEqual(repo.dependencies('apps/web-shell/verification.js'), ['assets/js/modules/leaf.js']);
+  const plan = planApplicationChecks({ changedFiles: ['assets/js/modules/leaf.js'], repository: repo });
+  assert.ok(plan.unitTests.includes('tests/unit/verification.test.mjs'));
+});
+
 test('module URL reads retain root configuration and workflow consumers', () => {
   const f = fixture();
   f.put('package.json', '{}'); f.put('playwright.config.js'); f.put('.github/workflows/application-architecture.yml');

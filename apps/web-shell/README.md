@@ -1,9 +1,9 @@
 # PandoLab Windows·Android 앱
 
 The Tauri 2 application for Windows x64 and Android arm64. It embeds the
-existing Web frontend staged by `stage.mjs`. The default smoke profile omits
-world data for small fixture tests; normal build commands use full-world and package the current manifest-pinned
-country, historical and prepared geometry assets.
+existing Web frontend staged by `stage.mjs`. Ordinary builds and development
+use full-world with manifest-pinned country, historical and prepared geometry assets.
+The small-project fixture is available only in explicit verification builds.
 This is the sole app execution and development entrypoint.
 
 ## 일반 앱과 검증 실행기
@@ -14,7 +14,8 @@ This is the sole app execution and development entrypoint.
 방향 감지, 프로젝트 파일 입출력과 오류 보고는 유지한다.
 
 검증할 때만 `build:verification:windows` 또는 `build:verification:android`를
-사용한다. 작은 저장 시험은 `PANDOLAB_SHELL_PROFILE=small-project`로 선택한다.
+사용한다. 작은 저장 시험은 검증 명령에만 `PANDOLAB_SHELL_PROFILE=small-project`를
+함께 지정한다. 일반 빌드·개발 실행에서는 이 값을 자료 준비나 출력 생성 전에 거부한다.
 기존 `stage:verification` 명령은 검증 자산만 준비하며 네이티브 앱을 빌드하지 않는다.
 검증 빌드의 자산·Cargo feature·Tauri 권한이 다르면 빌드를 실패시킨다.
 직접 Tauri 명령을 쓰는 CI는 `PANDOLAB_SHELL_VERIFICATION=1`,
@@ -50,11 +51,12 @@ Cargo 의존성 경로를 재사용하며 앱의 소스 줄 디버그 정보만 
 
 ## Resource profiles (2-3A–C)
 
-The default **small-project** profile is the 15-coordinate offline smoke
-fixture. Its original tests, size restrictions and storage namespace remain
-unchanged.
+The verification-only **small-project** profile is the 15-coordinate offline
+smoke fixture. Its tests, size restrictions and storage namespace remain unchanged.
+It can be staged only for verification. The development server and ordinary
+offline artifact preservation always reject it.
 
-The opt-in **full-world** profile uses the *same* progressive Web startup as
+The default **full-world** profile uses the *same* progressive Web startup as
 the public website (`assets/js/bootstrap.js`, `data-loader-worker.js`,
 the verified C++/WASM core, preview geometry and canonical GPU mesh).
 The original Web menu and DOM are packaged, not recreated for Tauri.
@@ -66,16 +68,19 @@ unreferenced older versions are excluded.
 For Windows PowerShell (from the repository root):
 
 ```powershell
-$env:PANDOLAB_SHELL_PROFILE = 'full-world'
 pnpm --dir apps/web-shell build:windows
+
+# Explicit fixture verification only:
+$env:PANDOLAB_SHELL_PROFILE = 'small-project'
+pnpm --dir apps/web-shell build:verification:windows
 Remove-Item Env:PANDOLAB_SHELL_PROFILE
 ```
 
-For Android, set the same environment variable before
-`pnpm --dir apps/web-shell build:android`. Alternatively
+For Android, `pnpm --dir apps/web-shell build:android` also defaults to full-world.
+Use `build:verification:android` with the small-project variable only for fixture checks. Alternatively,
 `pnpm --dir apps/web-shell stage:world` creates a full-world staging
 snapshot **only**; subsequent Tauri builds restage using the environment
-variable, so it must also be set for the build.
+and require verification mode when small-project is selected.
 
 The full-world profile includes manifest-pinned offline HydroRIVERS and built-in places.
 Both are off by default and load only when explicitly enabled in View. Project-created
