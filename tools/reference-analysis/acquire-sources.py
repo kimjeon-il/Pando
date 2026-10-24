@@ -7,6 +7,10 @@ import datetime
 import hashlib
 import json
 import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from report_paths import report_argument
 import shutil
 import urllib.request
 
@@ -86,6 +90,8 @@ if __name__ == "__main__":
     parser.add_argument("--catalog", type=pathlib.Path, default=pathlib.Path(__file__).with_name("source-catalog.json"))
     parser.add_argument("--output", type=pathlib.Path, required=True)
     args = parser.parse_args()
+    args.catalog = pathlib.Path(report_argument(args.catalog, access='read'))
+    args.output = pathlib.Path(report_argument(args.output, access='write'))
     workspace = pathlib.Path(__file__).resolve().parents[2]
     if args.output.resolve().is_relative_to(workspace):
         parser.error("Original materials must be stored outside the application worktree")

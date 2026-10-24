@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, unlinkSync } from 'node:fs';
+import { withLibraryOutputs } from './library-data.mjs';
 import { resolve, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
@@ -97,7 +98,7 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
   if (check) {
     if (!existsSync(currentPath) || readFileSync(currentPath, 'utf8') !== expected) throw new Error('Stale world/current.json');
   }
-  for (const role of Object.keys(ROLES)) {
+  const publish = () => { for (const role of Object.keys(ROLES)) {
     const target = resolve(data, bundle.assets[role].url);
     const bytes = original[role];
     if (existsSync(target)) {
@@ -117,6 +118,9 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
     finally { if (existsSync(temp)) unlinkSync(temp); }
     if (manifestOverride) writeFileSync(seedPath, `${JSON.stringify(seed, null, 2)}\n`);
   }
+  };
+  if (check) publish();
+  else withLibraryOutputs({ root, paths: [currentPath, ...(manifestOverride ? [seedPath] : []), ...Object.values(bundle.assets).map(asset => resolve(data, asset.url)).filter(path => !existsSync(path))] }, publish);
   return { bundle, validatedAssets: Object.keys(ROLES).length, check };
 }
 

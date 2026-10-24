@@ -4,16 +4,16 @@
  * Outputs: a portable catalog, one PLAC v3 shard, and a hashed search/viewport manifest.
  */
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { withLibraryOutputs } from './library-data.mjs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { encodePlaceTile, decodePlaceTile } from '../assets/js/modules/place-codec.js';
 import { normalizePlace, normalizePlaceQuery, PLACE_LIMITS } from '../assets/js/modules/place-contract.js';
+import { reportPath } from './report-paths.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const REVIEW_DIR = join(ROOT, 'reports/places');
 const OUTPUT_DIR = join(ROOT, 'assets/data/places');
-const RELEASE_APPROVALS = join(REVIEW_DIR, 'runtime-release-approvals-v1.json');
 const REVIEW_FILE = /^tier1-major-cities-batch\d{2}[-a-z0-9]*\.json$/u;
 
 const hash = (name, bytes) => createHash(name).update(bytes).digest('hex');
@@ -115,7 +115,7 @@ export function validateRuntimeApproval(record, batchNumber) {
     throw new Error('Unverified historical city staging cannot enter runtime: ' + record.geonameId);
 }
 
-export function deriveReleaseCatalog(directory = REVIEW_DIR, approvalsPath = RELEASE_APPROVALS) {
+export function deriveReleaseCatalog(directory = reportPath('reports/places', { access: 'read' }), approvalsPath = join(directory, 'runtime-release-approvals-v1.json')) {
   const files = readdirSync(directory).filter(name => REVIEW_FILE.test(name)).sort();
   if (!files.length) throw new Error('No reviewed place batches');
   const approvalBytes = canonicalPlaceTextBytes(readFileSync(approvalsPath));
@@ -214,7 +214,7 @@ export function publishPlaceRelease({ check = false } = {}) {
     ['places-v1.bin', generated.bytes],
     ['manifest.json', Buffer.from(generated.manifestText)],
   ];
-  for (const [name, bytes] of outputs) {
+  const publish = () => { for (const [name, bytes] of outputs) {
     const filename = join(OUTPUT_DIR, name);
     if (check) {
       let existing;
@@ -223,7 +223,9 @@ export function publishPlaceRelease({ check = false } = {}) {
       const checked = name.endsWith('.json') ? canonicalPlaceTextBytes(existing) : existing;
       if (!checked.equals(bytes)) throw new Error('Place release asset drift: ' + filename);
     } else writeFileSync(filename, bytes);
-  }
+  } };
+  if (check) publish();
+  else withLibraryOutputs({ root: ROOT, paths: outputs.map(([name]) => join(OUTPUT_DIR, name)) }, publish);
   return { records: generated.recordCount, bytes: generated.bytes.length,
     searchPrefixes: Object.keys(generated.manifest.search).length, check };
 }

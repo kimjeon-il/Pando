@@ -6,6 +6,7 @@ and source provenance are saved. This does NOT trace or certify the 1914 border.
 """
 from __future__ import annotations
 
+from library_data import write_library_text
 import hashlib
 import io
 import json
@@ -168,7 +169,7 @@ def main():
             details["status"] = "sample-failed"
             details["error"] = f"{type(ex).__name__}: {str(ex)[:450]}"
 
-    OUTPUT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+    write_library_text(OUTPUT,json.dumps(report, ensure_ascii=False, indent=2) + "\n",
                       encoding="utf-8")
     print(json.dumps({
         "outcome": [
