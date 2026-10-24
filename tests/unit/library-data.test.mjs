@@ -10,6 +10,23 @@ import { gzipSync } from 'node:zlib';
 import { compactLibraryCheckout, decodeArchiveEntry, prepareLibraryData, libraryReportRoot, libraryReportEditRoot, libraryMaterializedRoot, withLibraryWrite, hydrateReports, safeChild, storeLibraryData } from '../../tools/library-data.mjs';
 import { reportPath } from '../../tools/report-paths.mjs';
 
+test('public release paths remain directly archivable from the storage Git tree', t => {
+  const parent=mkdtempSync(join(tmpdir(),'pando-public-release-store-')),root=join(parent,'app'),checkout=join(root,'.library-data/repository');
+  t.after(()=>rmSync(parent,{recursive:true,force:true}));
+  const put=(base,path,bytes)=>{mkdirSync(dirname(join(base,path)),{recursive:true});writeFileSync(join(base,path),bytes);};
+  const git=(base,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:base,encoding:'utf8',stdio:'pipe'}).trim();
+  for(const base of [root,checkout]){mkdirSync(base,{recursive:true});git(base,'init','-q');git(base,'config','user.name','Fixture');git(base,'config','user.email','fixture@example.invalid');}
+  put(checkout,'archive/index.json',JSON.stringify({branch:'main',files:{}}));put(checkout,'library.json','{}');
+  git(checkout,'add','.');git(checkout,'commit','-qm','source');
+  put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:git(checkout,'rev-parse','HEAD'),mounts:['assets/data','reports']}));
+  put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
+  prepareLibraryData({root,fetch:false});
+  const paths=['assets/data/library-channel/current.json',`assets/data/library-releases/${'a'.repeat(64)}/manifest.json`];
+  withLibraryWrite({root,prefixes:paths},()=>{for(const path of paths)put(root,path,'{"release":"'+'x'.repeat(200)+'"}');});
+  storeLibraryData({root,prefixes:paths});
+  for(const path of paths){const entry=JSON.parse(git(checkout,'show','HEAD:archive/index.json')).files[path];assert.equal(entry.stored,path);assert.equal(entry.encoding,'identity');assert.equal(git(checkout,'show',`HEAD:${path}`),readFileSync(join(root,path),'utf8'));}
+});
+
 test('external materialization restores exact gzip bytes and rejects corrupt transfers', t => {
   const root = mkdtempSync(join(tmpdir(), 'pando-library-transfer-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));

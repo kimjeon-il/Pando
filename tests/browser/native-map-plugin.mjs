@@ -8,8 +8,9 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { instrumentMapPlugin,verifyMapPluginFlow } from './helpers/map-plugin-flow.mjs';
 const run=promisify(execFile);
-const {values}=parseArgs({options:{platform:{type:'string'},port:{type:'string'},pid:{type:'string'},fixture:{type:'string'},output:{type:'string'},serial:{type:'string',default:'emulator-5554'}}});
+const {values}=parseArgs({options:{platform:{type:'string'},port:{type:'string'},pid:{type:'string'},fixture:{type:'string'},output:{type:'string'},serial:{type:'string',default:'emulator-5554'},'windows-dialog-policy':{type:'string'}}});
 if(!['windows','android'].includes(values.platform)||!values.port||!values.fixture||!values.output)throw new Error('--platform windows|android --port --fixture --output required');
+if(values['windows-dialog-policy'] && (values.platform!=='windows' || values['windows-dialog-policy']!=='RemoteSigned'))throw new Error('Only explicitly authorized Windows RemoteSigned process policy is supported');
 const output=resolve(values.output);await mkdir(output,{recursive:true});
 const fixture=resolve(values.fixture),collection=JSON.parse(await readFile(fixture,'utf8'));
 const adb='D:/Android/Sdk/platform-tools/adb.exe',serial=values.serial;
@@ -18,7 +19,8 @@ const fileName='pando-map-plugin-'+values.platform+'-'+Date.now()+'.gpkg';
 const saved=join(output,fileName),deviceSaved='/sdcard/Download/'+fileName,deviceInput='/sdcard/Download/pando-map-plugin-input.geojson';
 const nativeDialog=async(path,mode)=>{
   if(!values.pid)throw new Error('--pid required for the test-owned Windows host');
-  const result=await run('powershell.exe',['-NoProfile','-File',resolve('tests/helpers/native-file-dialog.ps1'),'-OwnerProcessId',values.pid,'-TargetPath',path,'-Mode',mode],{windowsHide:true,timeout:20000});
+  const policy=values['windows-dialog-policy']?['-ExecutionPolicy',values['windows-dialog-policy']]:[];
+  const result=await run('powershell.exe',['-NoProfile',...policy,'-File',resolve('tests/helpers/native-file-dialog.ps1'),'-OwnerProcessId',values.pid,'-TargetPath',path,'-Mode',mode],{windowsHide:true,timeout:20000});
   return JSON.parse(result.stdout.trim());
 };
 async function nodes() {

@@ -1298,8 +1298,12 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
     const isReport = path.startsWith('reports/');
     if (index.files[path]?.sha256 === sha256 && (!isReport || index.files[path].stored === path)) return;
     const packed = isReport ? bytes : gzipSync(bytes, { level: 9 });
-    const identity = isReport || runtimeDirectories.has(dirname(path)) || packed.length >= bytes.length;
-    const stored = isReport || runtimeDirectories.has(dirname(path)) ? path : `archive/blobs/${sha256}.${identity ? 'bin' : 'gz'}`;
+    // Pages overlays these public paths with git archive, independently of a
+    // branch's runtime pin. They must remain present in the Git tree.
+    const direct = isReport || path.startsWith('assets/data/library-channel/')
+      || path.startsWith('assets/data/library-releases/') || runtimeDirectories.has(dirname(path));
+    const identity = direct || packed.length >= bytes.length;
+    const stored = direct ? path : `archive/blobs/${sha256}.${identity ? 'bin' : 'gz'}`;
     put(stored, identity ? bytes : packed);
     index.files[path] = { stored, encoding: identity ? 'identity' : 'gzip', sha256, bytes: bytes.length };
   };
