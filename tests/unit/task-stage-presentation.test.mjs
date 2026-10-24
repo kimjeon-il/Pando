@@ -821,3 +821,16 @@ test('non-merge preview retains the original general target label', async t => {
   assert.ok(labels.includes('대상'), 'other editors should retain the existing review terminology');
   assert.ok(!labels.includes('합쳐질 객체'));
 });
+
+test('country border target picker hides only uncalculated metadata and restores it for editing', async t => {
+  const f = await fixture(t, {
+    tool: 'territorial-border', boundaryEditSeedEntityId: 'COUNTRY',
+    boundaryEditEntityIds: ['COUNTRY'], boundaryEditPhase: 'selecting',
+    boundaryPreparation: { status: 'ready' }, geometryPreview: { session: null },
+  });
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  f.state.boundaryEditPhase = 'editing';
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+});

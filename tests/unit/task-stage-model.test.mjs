@@ -107,3 +107,27 @@ test('country and independent region wording stays as before; generic feature me
   }, null, {}, { territorialEntityById: get });
   assert.equal(removedGenericView, null);
 });
+
+test('country border selection uses country roles while subunit boundary retains its existing flow', () => {
+  const get = resolver([country('DEU'), country('POL'), unit('SUB-1'), unit('SUB-2')]);
+  const state = {
+    tool: 'territorial-border', boundaryEditSeedEntityId: 'DEU',
+    boundaryEditEntityIds: ['DEU'], boundaryEditPhase: 'selecting',
+    geometryPreview: { session: null },
+  };
+  const view = taskWorkflowPresentation(state, null, {}, { territorialEntityById: get });
+  assert.deepEqual([view.name, view.stage, view.step, view.total],
+    ['국경 조정', '상대 국가', 1, 3]);
+  assert.deepEqual(view.cards.map(card => [card.role, card.placeholder]),
+    [['기준 국가', '선택'], ['상대 국가', '국가 선택']]);
+  state.boundaryEditEntityIds.push('POL');
+  assert.deepEqual(taskWorkflowPresentation(state, null, {}, { territorialEntityById: get }).cards[1].refs.map(ref => ref.id), ['POL']);
+
+  state.boundaryEditSeedEntityId = 'SUB-1';
+  state.boundaryEditEntityIds = ['SUB-1', 'SUB-2'];
+  state.boundaryEditPhase = 'editing';
+  const subunitView = taskWorkflowPresentation(state, null, {}, { territorialEntityById: get });
+  assert.deepEqual([subunitView.name, subunitView.stage, subunitView.step, subunitView.total],
+    ['경계 조정', '경계 편집', 1, 2]);
+  assert.equal(subunitView.cards[0].role, '기준 객체');
+});
