@@ -6,6 +6,7 @@ import {
   hydroTileSpecsForWindow,
   hydroViewportSizeClass,
 } from '../../assets/js/modules/hydro-tile-window.js';
+import { hydroVisibilityThresholdForMapZoom } from '../../assets/js/modules/physical-resources.js';
 
 const manifest = Object.freeze({
   stages: Object.freeze([
@@ -26,6 +27,32 @@ function flatWindow(overrides = {}) {
     ...overrides,
   });
 }
+
+test('published four hydro stages open only at map zoom 3.5, 7, 14, and 28', () => {
+  const fourStageManifest = { stages: [
+    { id: 0, minZoom: 6.0, columns: 8, rows: 4 },
+    { id: 1, minZoom: 6.7, columns: 16, rows: 8 },
+    { id: 2, minZoom: 7.0, columns: 32, rows: 16 },
+    { id: 3, minZoom: 7.5, columns: 64, rows: 32 },
+  ] };
+  const cases = [
+    [1, []], [3.4999, []],
+    [3.5, [0]], [6.9999, [0]],
+    [7, [0, 1]], [13.9999, [0, 1]],
+    [14, [0, 1, 2]], [27.9999, [0, 1, 2]],
+    [28, [0, 1, 2, 3]], [32, [0, 1, 2, 3]], [64, [0, 1, 2, 3]],
+  ];
+  for (const [zoom, expected] of cases) {
+    const window = createHydroTileWindow({
+      manifest: fourStageManifest,
+      projection: 'flat',
+      threshold: hydroVisibilityThresholdForMapZoom(zoom),
+      width: 900, height: 700, scale: 1600, flatCenter: [0, 0],
+    });
+    assert.deepEqual(window.windows.map(stage => stage.stage), expected, `map zoom ${zoom}`);
+  }
+  assert.equal(hydroVisibilityThresholdForMapZoom(Number.NaN), Number.NEGATIVE_INFINITY);
+});
 
 test('hydro tile window ignores raw view revision inside the same quantized window', () => {
   const first = flatWindow({ flatCenter: [10, 20], viewRevision: 1 });
