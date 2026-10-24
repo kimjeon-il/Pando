@@ -118,7 +118,22 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             and isinstance(renamed_basin.get("reason"), str)
             and len(renamed_basin["reason"]) >= 100
         )
-        if not any((natural_earth_valid, station_valid, conservative_valid, confluence_valid, rename_valid)):
+        # For already correctly named rivers whose HydroRIVERS selected
+        # reach extends beyond sparse 1:10m Natural Earth coverage, accept
+        # an independently documented official mainstem only if no other
+        # named reference river competes with it anywhere on the audit path.
+        partial = item.get("partialExistingNameReview")
+        partial_valid = (
+            isinstance(partial, dict)
+            and partial.get("method") == "government-confirmed-existing-mainstem-no-independent-rival"
+            and item.get("previousNameKo") == korean_name
+            and isinstance(geom, dict) and bool(geom.get("name"))
+            and isinstance(coverage, (int, float)) and 0.45 <= coverage < 0.70
+            and isinstance(partial.get("strongestOtherNENameCoverage"), (float, int))
+            and 0 <= partial["strongestOtherNENameCoverage"] <= 0.05
+            and isinstance(partial.get("reason"), str) and len(partial["reason"]) >= 100
+        )
+        if not any((natural_earth_valid, station_valid, conservative_valid, confluence_valid, rename_valid, partial_valid)):
             raise ValueError(f"Missing independent mainstem evidence for system {system_id}")
         evidence = item.get("independentSources")
         if not isinstance(evidence, list) or len(evidence) < 2:
@@ -145,9 +160,15 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             raise ValueError(f"Government or intergovernmental river basin authority needed for {system_id}")
         if rename_valid and not ({"public-domain-vector", "government-hydrology", "government-ministry-geography", "government-river-identification"} <= kinds):
             raise ValueError(f"Multiple independent government sources needed for river rename {system_id}")
+        if partial_valid and not (
+            "public-domain-vector" in kinds
+            and "government-hydrology" in kinds
+            and bool(kinds & {"government-river-monitoring", "government-river-atlas"})
+        ):
+            raise ValueError(f"Two official, name-specific institutional references needed for partial mainstem {system_id}")
         if not independent_vector and not independent_gauges:
             raise ValueError(f"Independent geodata and named hydrology evidence required for {system_id}")
-        if not any((natural_earth_valid, independent_gauges, conservative_valid, confluence_valid, rename_valid)):
+        if not any((natural_earth_valid, independent_gauges, conservative_valid, confluence_valid, rename_valid, partial_valid)):
             raise ValueError(f"Missing verified independent mainstem corroboration for {system_id}")
         verified[system_id] = item
     return verified

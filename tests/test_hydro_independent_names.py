@@ -18,7 +18,7 @@ PATH = ROOT / "tools/gis/hydro-independent-name-replacements.json"
 class IndependentHydronymReviewTests(unittest.TestCase):
     def test_replacements_include_gauge_verified_brazos_and_texas_colorado(self):
         rows = load_independent_hydronyms(PATH)
-        self.assertEqual(len(rows), 38)
+        self.assertEqual(len(rows), 40)
         self.assertEqual(set(rows), {
             "20282220", "20323928", "20342955", "20457454",
             "20478829", "20673409", "20680587", "40485117",
@@ -30,6 +30,7 @@ class IndependentHydronymReviewTests(unittest.TestCase):
             "40190238", "40613666",
             "20081953", "20446779", "20498112", "70617856",
             "10047863", "20244836", "40017702", "70814357", "20265844",
+            "20386022", "40279876",
         })
         renamed = {key: value["nameKo"] for key, value in rows.items()
                    if value["previousNameKo"] != value["nameKo"]}
@@ -61,6 +62,9 @@ class IndependentHydronymReviewTests(unittest.TestCase):
         self.assertEqual(rows["20265844"]["tributaryNames"], ["부크강", "나레프강"])
         self.assertNotIn("Drwęca", rows["20265844"]["aliases"])
         self.assertIn("independentBasinRename", rows["20265844"])
+        for key in ("20386022", "40279876"):
+            self.assertEqual(rows[key]["nameKo"], rows[key]["previousNameKo"])
+            self.assertEqual(rows[key]["partialExistingNameReview"]["strongestOtherNENameCoverage"], 0)
         self.assertNotIn("리오그란데강", rows["70814357"]["tributaryNames"])
         self.assertEqual(rows["20244836"]["tributaryNames"], ["네리스강"])
         self.assertEqual(rows["40017702"]["tributaryNames"], ["우수리강"])
@@ -176,6 +180,25 @@ class IndependentHydronymReviewTests(unittest.TestCase):
                 target.write_text(json.dumps(edited), encoding="utf-8")
                 with self.assertRaises(ValueError):
                     load_independent_hydronyms(target)
+
+    def test_partial_name_reviews_require_no_competing_named_rivers(self):
+        original = json.loads(PATH.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "invalid-partial.json"
+            for failure in ("competing-river", "name-mutation", "missing-government", "too-weak"):
+                obj = copy.deepcopy(original)
+                row = next(item for item in obj["replacements"] if item["systemId"] == "20386022")
+                if failure == "competing-river":
+                    row["partialExistingNameReview"]["strongestOtherNENameCoverage"] = 0.4
+                elif failure == "name-mutation":
+                    row["nameKo"] = "테베레강"
+                elif failure == "missing-government":
+                    row["independentSources"] = [row["independentSources"][0]]
+                else:
+                    row["naturalEarth"]["sampleCoverage"] = 0.2
+                output.write_text(json.dumps(obj), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_independent_hydronyms(output)
 
     def test_old_osm_only_basins_are_not_assigned_names_in_bulk(self):
         rows = load_independent_hydronyms(PATH)
