@@ -20,7 +20,8 @@ const saved=join(output,fileName),deviceSaved='/sdcard/Download/'+fileName,devic
 const nativeDialog=async(path,mode)=>{
   if(!values.pid)throw new Error('--pid required for the test-owned Windows host');
   const policy=values['windows-dialog-policy']?['-ExecutionPolicy',values['windows-dialog-policy']]:[];
-  const result=await run('powershell.exe',['-NoProfile',...policy,'-File',resolve('tests/helpers/native-file-dialog.ps1'),'-OwnerProcessId',values.pid,'-TargetPath',path,'-Mode',mode],{windowsHide:true,timeout:20000});
+  const wait=mode==='Save'?120:10;
+  const result=await run('powershell.exe',['-NoProfile',...policy,'-File',resolve('tests/helpers/native-file-dialog.ps1'),'-OwnerProcessId',values.pid,'-TargetPath',path,'-Mode',mode,'-WaitSeconds',String(wait)],{windowsHide:true,timeout:(wait+10)*1000});
   return JSON.parse(result.stdout.trim());
 };
 async function nodes() {
@@ -51,11 +52,14 @@ async function saveAndroidFile(name) {
   const refreshed=await nodes(),button=refreshed.find(n=>['SAVE','Save','저장'].includes(n.text) && /Button/.test(n.class));
   await tap(button);
 }
+const progress=phase=>process.stderr.write(JSON.stringify({platform:values.platform,phase})+'\n');
+progress('connect-native');
 const browser=await chromium.connectOverCDP('http://127.0.0.1:'+values.port,{noDefaults:true});
 const context=browser.contexts()[0],page=context.pages()[0];page.setDefaultTimeout(15000);
 const events=[];page.on('console',message=>{if(message.type()==='error')events.push(message.text());});
 try {
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
+  progress('native-ready');
   // Preserve the current reference collection through its existing export API
   // before switching the test to an isolated autosave namespace.
   const preserved=await page.evaluate(async()=>{
@@ -71,30 +75,39 @@ try {
   // Keep one loaded application revision while another chat updates the shared
   // checkout. Only the development reloader is paused, never application I/O.
   await page.route('**/shell/dev-reload.js*',route=>route.fulfill({contentType:'application/javascript',body:'export {};'}));
+  await page.route('**/shell/native-storage.js*',async route=>{
+    const response=await route.fetch(),source=await response.text();
+    const call='return globalThis.__TAURI_INTERNALS__.invoke(command, payload);';
+    if(!source.includes(call))throw new Error('Native transport observation point changed');
+    await route.fulfill({response,body:source.replace(call,'(window.__nativeCommands ||= []).push(command);'+call)});
+  });
   await page.route('**/shell/runtime-profile.js*',async route=>{
     const response=await route.fetch(),source=await response.text();
     await route.fulfill({response,body:source.replace('pandoeditor-web-shell-world-v1','pando-map-plugin-validation-'+Date.now())});
   });
   await page.reload();await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
+  progress('isolated-ready');
   const platform=await page.evaluate(()=>{
     if(typeof globalThis.__TAURI_INTERNALS__?.invoke!=='function')throw new Error('Actual native bridge required');
-    const invoke=globalThis.__TAURI_INTERNALS__.invoke;window.__nativeCommands=[];
-    globalThis.__TAURI_INTERNALS__.invoke=(command,...args)=>{window.__nativeCommands.push(command);return invoke(command,...args);};
+    window.__nativeCommands ||= [];
     return {url:location.href,userAgent:navigator.userAgent,width:window.innerWidth,height:window.innerHeight};
   });
   if(values.platform==='android'){expect(platform.width).toBeGreaterThan(platform.height);await android('push',fixture,deviceInput);}
   const result=await verifyMapPluginFlow(page,collection,{
     touch:values.platform==='android',
+    onStep:progress,
     openGis:async()=>{
       await page.locator('#openGisBtn').click();
       if(values.platform==='windows')await nativeDialog(fixture,'Open');else await openAndroidFile(basename(deviceInput));
     },
     saveReopen:async()=>{
       await page.locator('#mobileFileBtn').click();await page.locator('#saveProjectBtn').click();
-      // The native destination dialog opens after GeoPackage construction and
-      // chunk transfer, not immediately after the Save button is clicked.
-      await expect.poll(()=>page.evaluate(()=>window.__nativeCommands.includes('finish_document_write')),{timeout:120000}).toBe(true);
-      if(values.platform==='windows')await nativeDialog(saved,'Save');else await saveAndroidFile(fileName);
+      // A native modal can block WebView/CDP callbacks. Start the owned picker
+      // helper while encoding/transfer runs; it waits for the actual dialog.
+      if(values.platform==='windows')await nativeDialog(saved,'Save');else {
+        await expect.poll(()=>page.evaluate(()=>window.__nativeCommands.includes('finish_document_write')),{timeout:120000}).toBe(true);
+        await saveAndroidFile(fileName);
+      }
       await expect.poll(()=>page.evaluate(()=>window.__pluginDocument().state().dirty),{timeout:30000}).toBe(false);
       await page.evaluate(()=>{window.__nativeReopened=false;window.addEventListener('pandolab:project-changed',event=>{if(event.detail?.reason==='project-load')window.__nativeReopened=true;});});
       await page.locator('#mobileFileBtn').click();await page.locator('#openProjectBtn').click();

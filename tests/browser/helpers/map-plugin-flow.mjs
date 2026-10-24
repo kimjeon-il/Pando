@@ -9,11 +9,12 @@ export async function instrumentMapPlugin(page) {
   }
 }
 
-export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,touch=false}) {
+export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,touch=false,onStep=()=>{}}) {
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
   const read=()=>page.evaluate(()=>window.__pluginDocument().snapshot().genericFeatures);
   expect(await read()).toEqual([]);
+  onStep('open-gis');
   await page.locator('#mobileFileBtn').click();await page.locator('#fileAdvancedBtn').click();await openGis();
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({timeout:30000});
   await page.locator('#gisTargetType').evaluate(select=>{select.value='generic';select.dispatchEvent(new select.ownerDocument.defaultView.Event('change',{bubbles:true}));});
@@ -21,6 +22,7 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
   await expect(page.locator('#gisImportModal')).toBeHidden();
   await expect.poll(async()=>(await read()).length).toBe(collection.features.length);
   const imported=await read();
+  onStep('imported');
   expect(imported[0].properties.source.details.imageSha256).toBe(collection.features[0].properties.source.details.imageSha256);
   await page.locator('#undoBtn').click();await expect.poll(async()=>(await read()).length).toBe(0);
   await page.locator('#redoBtn').click();await expect.poll(async()=>(await read()).length).toBe(collection.features.length);
@@ -44,6 +46,7 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
     .filter(({node,rect})=>rect.width>0 && rect.x>10 && rect.y>80 && document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)===node)
     .map(({rect})=>[rect.x+rect.width/2,rect.y+rect.height/2])[0]);
   expect(point).toBeTruthy();
+  onStep('move-vertex');
   if(touch) {
     const session=await page.context().newCDPSession(page);
     const send=(type,points)=>session.send('Input.dispatchTouchEvent',{type,touchPoints:points.map(p=>({x:p[0],y:p[1],id:1,radiusX:2,radiusY:2,force:1}))});
@@ -53,8 +56,10 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
   }
   await expect.poll(async()=>JSON.stringify((await readEdited()).geometry),{timeout:30000}).not.toBe(JSON.stringify(imported[0].geometry));
   const edited=await readEdited();
+  onStep('geometry-committed');
   await page.locator('#undoBtn').click();await expect.poll(async()=>(await readEdited()).geometry,{timeout:30000}).toEqual(imported[0].geometry);
   await page.locator('#redoBtn').click();await expect.poll(async()=>(await readEdited()).geometry,{timeout:30000}).toEqual(edited.geometry);
+  onStep('save-reopen');
   const before=await page.evaluate(()=>window.__pluginDocument().snapshot()),saved=await saveReopen();
   await expect.poll(()=>page.evaluate(()=>window.__pluginDocument().state().dirty),{timeout:30000}).toBe(false);
   const reopened=await page.evaluate(()=>window.__pluginDocument().snapshot());

@@ -1,7 +1,8 @@
 param(
   [Parameter(Mandatory=$true)][int]$OwnerProcessId,
   [Parameter(Mandatory=$true)][string]$TargetPath,
-  [ValidateSet('Open','Save')][string]$Mode = 'Open'
+  [ValidateSet('Open','Save')][string]$Mode = 'Open',
+  [ValidateRange(1,120)][int]$WaitSeconds = 10
 )
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
@@ -34,17 +35,28 @@ public static class PandoNativeFileDialog {
     EnumWindows((window,state)=>{if(Owned(window,processId)&&Class(window)=="#32770"){found=window;return false;}return true;},IntPtr.Zero);
     return found;
   }
-  public static void Choose(IntPtr dialog, int processId, string path) {
-    if(!Owned(dialog,processId)||Class(dialog)!="#32770")throw new Exception("Dialog owner changed");
-    IntPtr edit=IntPtr.Zero,accept=IntPtr.Zero;
+  private static bool Controls(IntPtr dialog, int processId, out IntPtr edit, out IntPtr accept) {
+    IntPtr filename=IntPtr.Zero,button=IntPtr.Zero;
     EnumChildWindows(dialog,(window,state)=>{
       if(Owned(window,processId)) {
-        if(GetDlgCtrlID(window)==1148&&Class(window)=="Edit")edit=window;
-        if(GetDlgCtrlID(window)==1&&Class(window)=="Button")accept=window;
+        if(GetDlgCtrlID(window)==1148&&Class(window)=="Edit")filename=window;
+        if(GetDlgCtrlID(window)==1&&Class(window)=="Button")button=window;
       }
       return true;
     },IntPtr.Zero);
-    if(edit==IntPtr.Zero||accept==IntPtr.Zero||!IsChild(dialog,edit)||!IsChild(dialog,accept))throw new Exception("Expected owned filename/accept controls unavailable");
+    edit=filename;accept=button;
+    return edit!=IntPtr.Zero&&accept!=IntPtr.Zero&&IsChild(dialog,edit)&&IsChild(dialog,accept);
+  }
+  public static bool Ready(IntPtr dialog, int processId) { IntPtr edit,accept;return Controls(dialog,processId,out edit,out accept); }
+  public static string Describe(IntPtr dialog) {
+    var controls=new StringBuilder();
+    EnumChildWindows(dialog,(window,state)=>{string name=Class(window);if(name=="Edit"||name=="Button"||name.StartsWith("ComboBox"))controls.Append(GetDlgCtrlID(window)).Append(":").Append(name).Append(";");return true;},IntPtr.Zero);
+    return controls.ToString();
+  }
+  public static void Choose(IntPtr dialog, int processId, string path) {
+    if(!Owned(dialog,processId)||Class(dialog)!="#32770")throw new Exception("Dialog owner changed");
+    IntPtr edit,accept;
+    if(!Controls(dialog,processId,out edit,out accept))throw new Exception("Expected owned filename/accept controls unavailable: "+Describe(dialog));
     UIntPtr result;
     if(SetText(edit,0x000C,IntPtr.Zero,path,2,10000,out result)==IntPtr.Zero||result==UIntPtr.Zero)throw new Exception("Setting test filename failed");
     if(!Owned(dialog,processId)||Click(accept,0x00F5,IntPtr.Zero,IntPtr.Zero,2,10000,out result)==IntPtr.Zero)throw new Exception("Accepting test filename failed");
@@ -52,11 +64,12 @@ public static class PandoNativeFileDialog {
 }
 '@
 $dialog = [IntPtr]::Zero
-for ($attempt=0; $attempt -lt 50; $attempt++) {
+for ($attempt=0; $attempt -lt $WaitSeconds*5; $attempt++) {
   $dialog = [PandoNativeFileDialog]::Find($OwnerProcessId)
   if ($dialog -ne [IntPtr]::Zero) { break }
   Start-Sleep -Milliseconds 200
 }
 if ($dialog -eq [IntPtr]::Zero) { throw 'The test-owned native file dialog did not appear.' }
+for ($attempt=0; $attempt -lt 25 -and -not [PandoNativeFileDialog]::Ready($dialog,$OwnerProcessId); $attempt++) { Start-Sleep -Milliseconds 200 }
 [PandoNativeFileDialog]::Choose($dialog, $OwnerProcessId, $absoluteTarget)
 @{ handled=$true; mode=$Mode; ownerProcessId=$OwnerProcessId; path=$absoluteTarget } | ConvertTo-Json -Compress
