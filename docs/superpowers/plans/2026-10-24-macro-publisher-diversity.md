@@ -45,3 +45,15 @@ and deleted. Local inference server stopped; retain final experiment evidence.
 Storage-only main commit98f59a88 was pushed; its7 storage and7 Pages staging
 tests passed, Pages build/deploy succeeded and live metadata matches main.
 The independent Architecture workflow was cancelled, not a claimed green check.
+
+Step5 complete. The same fresh reviewer verified actual PT/ONNX hashes,
+fingerprint,64 preserved artifacts and all7 metric rows; no inconsistency found.
+Scoped archive snapshot1019444257e25c02b3087dad901d80903dbb0c58 recovered73 raw
+files byte-for-byte, added31 logical files, and preserved6027 non-target entries.
+Final storage0af3381dec667c93fbf87805123a5afea30fa495 additionally stores the
+verification record and final report, both separately recovered byte-for-byte.
+Runtime pin/report owner are unchanged. Code commit00a80b5b records the change;
+final archive evidence lives in the external original report owner. Training
+weights remain pending/not-applied, with Canada BW international regression
+and road false positives recorded. No new app build, training-environment copy
+or leftover task-owned temporary file. Concurrent application WIP is preserved.
