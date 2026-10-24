@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {writeLibraryOutput} from './library-data.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage} from '../assets/js/modules/territorial-library.js';
@@ -61,6 +62,6 @@ export function updateTerritorialSource(entityId,update,root=territorialSourceRo
   if(replacement.entityId!==entityId)throw new Error('Source update changed identity');
   const validated=normalizeTerritorialLibraryEntity(replacement);byId.set(entityId,validated);
   validateMembership(readTerritorialLineages(root),byId);
-  fs.writeFileSync(path.join(root,'countries',entityFileName(entityId)),`${JSON.stringify(replacement,null,2)}\n`);
+  writeLibraryOutput(path.join(root,'countries',entityFileName(entityId)),`${JSON.stringify(replacement,null,2)}\n`);
   return validated;
 }

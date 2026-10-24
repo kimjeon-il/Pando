@@ -40,15 +40,15 @@ jobs:
           paths=set(subprocess.check_output(['git','ls-files','-z']).decode().strip('\x00').split('\x00'))
           reports=[p for p in paths if p.startswith('reports/')]
           assert len(reports)==1957, f'unexpected report count {len(reports)}'
-          assert len([p for p in paths if p.startswith('reports/research/siachen/')])==54
+          assert len([p for p in paths if p.startswith('reports/borders/reconstruction/siachen/')])==54
           assert not any(p.startswith('assets/data/research/siachen/') for p in paths)
           assert not any(p.startswith('native/') for p in paths)
           assert not any(p.startswith('.superpowers/') for p in paths)
           assert 'reports/places/source-manifest.json' in paths
-          assert 'reports/geography/netherlands/phase0-current-representation-inventory.json' in paths
+          assert 'reports/borders/reconstruction/netherlands/phase0-current-representation-inventory.json' in paths
           for batch in range(152,195):
             for name in ('results.json','source-notes.json'):
-              path=f'reports/hydro-names/reconstruction-2026-10-09/batch-r{batch}/{name}'
+              path=f'reports/hydro/names/reconstruction-2026-10-09/batch-r{batch}/{name}'
               assert path in paths, path
           print('PASS: report inventory and research evidence checked; no retired app or legacy copies')
           PY

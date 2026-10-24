@@ -48,7 +48,7 @@ local worktree. Web lives at the repository root, the application in
   repository, data or build copies per task. Reuse permanent worktrees, fixed
   build directories, dependencies and valid incremental caches.
 - Keep library archive contents in the shared Git object store. Check out
-  metadata only and hydrate requested data or report originals on demand.
+  metadata only for archive blobs. Full report originals live once in the shared library root reports/; hydrate only requested alternate editions.
   Do not expand all archive blobs or reports in every worktree. An unhydrated
   file is not a deletion; never stage its absence as one.
 - Retain materialized caches only while referenced by a worktree pin, mount,
@@ -90,8 +90,31 @@ local worktree. Web lives at the repository root, the application in
 - `kimjeon-il/PandoLab-library-data` owns library objects, runtime data, original GIS sources and all reports/evidence. This repository contains app/web code, generators, contracts, fixtures, tests and development specifications only.
 - The data repository is storage only. Do not run tests, validators, GIS regeneration or check workflows there. Run only narrowly relevant application checks in Pando.
 - `config/library-data.json` pins the paired data revision for this branch. Run `node tools/library-data.mjs` to prepare the fixed ignored data cache and mounts. Never add mounted data to app Git.
-- Stored reports belong to the external checkout's `reports/`, following its README and TEMPLATE. `tools/report-paths.mjs` and `tools/report_paths.py` share the fixed original owner registered in `.working/report-owner.json`, reusing existing originals and restoring only requested paths. Runtime preparation must not restore all reports. Use `node tools/library-data.mjs --store --include-prefix=reports/<scope>` to archive selected changes; report-only storage leaves the runtime pin unchanged. Missing unhydrated reports are not deletions; explicit removals require `--remove-path=reports/<file>` after the original has been explicitly preserved elsewhere or removed from the working scope. Keep sources, revision, scope and unverified claims; preserve compressed original evidence.
+- Stored reports belong to the external checkout's `reports/`, following its README and TEMPLATE. `tools/report-paths.mjs` and `tools/report_paths.py` share the central raw originals in the shared library root `reports/`, with explicit read/write access, `.owners.json` revisions, `.variants/<sha256>` editions and independent `.edits/<branch>` work. Runtime preparation must not restore all reports. Use `node tools/library-data.mjs --store --include-prefix=reports/<scope>` to archive selected changes; report-only storage leaves the runtime pin unchanged. Missing unhydrated reports are not deletions; explicit removals require `--remove-path=reports/<file>` after the original has been explicitly preserved elsewhere or removed from the working scope. Keep sources, revision, scope and unverified claims; preserve historical compressed evidence and all unique original bytes.
 - Keep branch-specific data/WASM pairings; do not replace a work branch pin with main's pin without reviewing the actual data changes.
+
+### Report task completion (mandatory)
+
+- Writing or editing a report/evidence file is not task completion. After finishing the task's selected report scopes, run `node tools/library-data.mjs --publish-reports --include-prefix=reports/<scope>`. This single operation archives originals, commits only those reports to the shared library main, pushes, and verifies the remote bytes. Run it again after any later report edit, including final evidence updates.
+- Use `node tools/library-data.mjs --check-reports --include-prefix=reports/<scope>` for a fresh completion check. Record the verified library commit and scope in the final response. A local file, local commit, or successful application deployment alone does not establish remote report archival.
+- Publishing completed task-owned report scopes has standing user authorization. This does not authorize publishing unfinished drafts, other tasks' scopes, runtime data changes, private application commits, application main integration, or deployment. Keep branch-specific runtime pins and other work intact.
+- Scope completion explicitly; never publish all reports merely to hide a missing selected scope. Do not publish on every file write or run a background full-project watcher. Report-only completion must not prepare/copy runtime datasets.
+- If storage is locked, main diverges, or publication/remote verification fails, preserve originals and pending commits, report the exact incomplete step, and do not claim report completion. Do not remove another writer's lock, stash/reset work, force-push, or silently include unrelated unpublished history.
+
+
+### Report subjects and independent editions
+
+Use only `reports/borders`, `reports/hydro`, `reports/places`, `reports/terrain`,
+`reports/map-analysis` and `reports/development` for new report scopes. Borders
+use `history`, `reconstruction` and `validation`; hydro uses `names`,
+`calibration`, `connectivity` and `releases`; map-analysis uses `corpus`, `models`
+and `reports`; development uses `ui`, `rendering`, `performance`, `ci`,
+`integrations`, `releases`, `storage` and `native`. Keep attachments with their
+report and use Node/Python report helpers with these canonical paths; do not
+recreate retired categories or legacy aliases. Keep runtime/GIS mounts fixed.
+Runtime pins and report revisions are independent. Preserve each owner's
+report revision and its `refs/pando/reports/<owner>` protection during runtime
+preparation/storage and publish only explicitly completed report scopes.
 
 ## Historical GIS reconstruction policy (mandatory)
 

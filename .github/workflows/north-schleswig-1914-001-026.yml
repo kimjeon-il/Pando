@@ -33,7 +33,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- tools/historical-library/sources/german-empire-1914/north-schleswig-001-026 tools/historical-library/land-borders "$(python tools/report_paths.py tools/historical-library/land-borders)"/german-denmark-1914-north-schleswig-001-026.diagnostics.json
+          node tools/library-data.mjs --store-and-stage --push -- tools/historical-library/sources/german-empire-1914/north-schleswig-001-026 tools/historical-library/land-borders reports/borders/reconstruction/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.diagnostics.json
           if git diff --cached --quiet; then
             echo "No generated changes."
           else

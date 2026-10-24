@@ -11,7 +11,7 @@ on:
       - 'apps/web-shell/**'
       - 'index.html'
       - 'reports/README.md'
-      - 'reports/development/testing/soviet-*'
+      - 'reports/development/performance/soviet-*'
       - 'tests/unit/**'
       - 'tests/browser/soviet-edit-entry-profile.spec.mjs'
       - 'package.json'

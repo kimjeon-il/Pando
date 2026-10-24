@@ -2,7 +2,7 @@
 // Code and its pinned external runtime assets preserve relative asset URLs.
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { prepareLibraryData } from '../tools/library-data.mjs';
@@ -45,6 +45,7 @@ export function stagePreview({root,output,branch}) {
     if(total>maxBytes)throw Error('P3_PREVIEW_MAX_BYTES_EXCEEDED');
     mkdirSync(dirname(target),{recursive:true});
     copyFileSync(input,target);
+    chmodSync(target,0o600);
     if(sha(readFileSync(target))!==sha(b))throw Error('P3_PREVIEW_COPY_MISMATCH: '+name);
     entries.push({path:name,bytes:b.length,sha256:sha(b)});
   }

@@ -46,7 +46,7 @@ jobs:
           from pathlib import Path
           base=Path("tools/historical-library/land-borders")
           stem="german-denmark-1914-north-schleswig-001-026"
-          a=json.loads((report_path("tools/historical-library/land-borders")/(stem+".stone26-transition.audit.json")).read_text())
+          a=json.loads((report_path("reports/borders/reconstruction/germany/north-schleswig", access="read")/(stem+".stone26-transition.audit.json")).read_text())
           g=json.loads((base/(stem+".stone26-transition.provisional.geojson")).read_text())
           assert a["referenceDate"]=="1914-07-31"
           assert a["currentMasterUnmodified"]
@@ -79,7 +79,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           node tools/library-data.mjs --store-and-stage --push -- \
-            "$(python tools/report_paths.py tools/historical-library/land-borders)"/german-denmark-1914-north-schleswig-001-026.stone26-transition.audit.json \
+            reports/borders/reconstruction/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.stone26-transition.audit.json \
             tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.stone26-transition.provisional.geojson
           if git diff --cached --quiet; then
             echo "Derived candidates unchanged."

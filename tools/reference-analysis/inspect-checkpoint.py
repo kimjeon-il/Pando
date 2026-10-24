@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw
 
 from corpus import CHANNELS, corpus_fingerprint, validate_corpus
 from train import MapTiles, load_model
+from report_paths import report_argument
 
 
 def prediction_statistics(probability, expected, known):
@@ -125,5 +126,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if not 0 <= args.maximum_previews <= 1024:
         parser.error('Preview budget must be 0..1024')
+    for field in vars(args):
+        if field in ['corpus', 'auxiliary_corpus', 'checkpoint', 'baseline_checkpoint', 'onnx']:
+            setattr(args, field, report_argument(getattr(args, field), access='read', siblings=field in ['corpus', 'auxiliary_corpus']))
+    args.output = report_argument(args.output, access='write')
     torch.set_num_threads(2)
     inspect(args)

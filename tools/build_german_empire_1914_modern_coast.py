@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from library_data import write_library_text
 import json, math, pathlib, requests
 from shapely.geometry import shape, mapping, box, Point, MultiPolygon, Polygon
 from shapely.ops import unary_union, transform
@@ -14,7 +15,7 @@ WORLD=ROOT/"assets/data/countries-ne-5.1.1.geojson"
 OUTDIR=ROOT/"tools/historical-library/working"
 SRCDIR=ROOT/"tools/historical-library/sources/german-empire-1914"
 OUTDIR.mkdir(parents=True,exist_ok=True); SRCDIR.mkdir(parents=True,exist_ok=True)
-REPORT_DIR=report_path("tools/historical-library/working")
+REPORT_DIR=report_path("reports/borders/reconstruction/germany/diagnostics", access='write')
 REPORT_DIR.mkdir(parents=True,exist_ok=True)
 
 HGIS_URL="https://raw.githubusercontent.com/acdh-oeaw/histogis-data/master/single_files/deutsches-reich__1871-02-27_1919-12-31.geojson"
@@ -141,9 +142,9 @@ for name,pt,expected in [
     if got!=expected: raise SystemExit(f"control point failed: {name} got={got}")
 
 src_hgis=SRCDIR/"histogis-deutsches-reich-1871-1919.geojson"
-src_hgis.write_text(json.dumps(hgis,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
-(SRCDIR/"helgoland-osm-preserved.geojson").write_text(json.dumps({"type":"Feature","properties":{"name":"Helgoland","source":"Pleiades-preserved OSM relation 3787052"},"geometry":mapping(helgo)},ensure_ascii=False,separators=(",",":")),encoding="utf-8")
-(SRCDIR/"dune-osm-way-273992076.geojson").write_text(json.dumps({"type":"Feature","properties":{"name":"Düne","source":"OpenStreetMap way 273992076"},"geometry":mapping(dune)},ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(src_hgis,json.dumps(hgis,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(SRCDIR/"helgoland-osm-preserved.geojson",json.dumps({"type":"Feature","properties":{"name":"Helgoland","source":"Pleiades-preserved OSM relation 3787052"},"geometry":mapping(helgo)},ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(SRCDIR/"dune-osm-way-273992076.geojson",json.dumps({"type":"Feature","properties":{"name":"Düne","source":"OpenStreetMap way 273992076"},"geometry":mapping(dune)},ensure_ascii=False,separators=(",",":")),encoding="utf-8")
 
 feature={"type":"Feature","id":"historical-country:deutsches-reich:1914-modern-coast-r1","properties":{
     "name":"Deutsches Reich","englishName":"German Empire","referenceDate":"1914-07-31",
@@ -153,7 +154,7 @@ feature={"type":"Feature","id":"historical-country:deutsches-reich:1914-modern-c
     "heligoland":"High-resolution modern Helgoland/Düne geometry retained."
 },"geometry":mapping(W)}
 out={"type":"FeatureCollection","name":"pandolab-german-empire-1914-modern-coast-r1","features":[feature]}
-(OUTDIR/"german-empire-1914-modern-coast.geojson").write_text(json.dumps(out,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(OUTDIR/"german-empire-1914-modern-coast.geojson",json.dumps(out,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
 
 diag={
     "referenceDate":"1914-07-31",
@@ -176,5 +177,5 @@ diag={
         f"No intended geometry change outside the {COAST_BUFFER_M/1000:g} km modern-coast surgery zone."
     ]
 }
-(REPORT_DIR/"german-empire-1914-modern-coast.diagnostics.json").write_text(json.dumps(diag,ensure_ascii=False,indent=2),encoding="utf-8")
+write_library_text(REPORT_DIR/"german-empire-1914-modern-coast.diagnostics.json",json.dumps(diag,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(diag,ensure_ascii=False,indent=2))
