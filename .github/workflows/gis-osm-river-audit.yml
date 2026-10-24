@@ -5,6 +5,7 @@ on:
     branches: [work/gis]
     paths:
       - tools/inventory-osm-hydronyms.py
+      - tools/gis/compare_osm_hydro_natural_earth.py
       - .github/workflows/gis-osm-river-audit.yml
   workflow_dispatch:
 
@@ -27,8 +28,39 @@ jobs:
             --manifest assets/data/hydro/v0.13.2/manifest.json \
             --bundle assets/data/hydro/v0.13.2/hydro.bin \
             --output /tmp/osm-hydro-inventory.json
+      - name: Decode original Hydro geometry using the published production decoder
+        run: |
+          node tools/decode-hydro-connectivity.mjs \
+            assets/data/hydro/v0.13.2 /tmp/hydro-decoded.json
+      - name: Acquire hash-verified public-domain Natural Earth name geometry
+        run: |
+          python - <<'PY'
+          import hashlib, json, urllib.request
+          from pathlib import Path
+          manifest=json.loads(Path('assets/data/hydro/v0.13.2/manifest.json').read_text())
+          expected=next(x['sha256'] for x in manifest['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson')
+          url='https://raw.githubusercontent.com/kimjeon-il/Pando/6b0c501dd09029ef237e90c1ef55fdb82bdf315f/assets/data/hydro/rivers_base.geojson'
+          request=urllib.request.Request(url,headers={'User-Agent':'PandoLab-GIS-audit/1.0'})
+          with urllib.request.urlopen(request,timeout=90) as response:
+              data=response.read()
+          actual=hashlib.sha256(data).hexdigest()
+          if actual!=expected: raise ValueError('Natural Earth reference source SHA-256 mismatch '+actual+' != '+expected)
+          Path('/tmp/ne-rivers-base.geojson').write_bytes(data)
+          print('NE_RIVER_REFERENCE_SHA='+actual,flush=True)
+          PY
+      - name: Independently compare 73 Hydro mainstem routes with Natural Earth
+        run: |
+          python -m pip install --quiet shapely
+          python tools/gis/compare_osm_hydro_natural_earth.py \
+            --decoded /tmp/hydro-decoded.json \
+            --natural-earth /tmp/ne-rivers-base.geojson \
+            --expected-sha256 "$(python -c "import json; m=json.load(open('assets/data/hydro/v0.13.2/manifest.json')); print(next(x['sha256'] for x in m['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson'))")" \
+            --inventory /tmp/osm-hydro-inventory.json \
+            --output /tmp/osm-ne-crosscheck.json
       - uses: actions/upload-artifact@v4
         with:
           name: gis-osm-hydro-inventory
-          path: /tmp/osm-hydro-inventory.json
+          path: |
+            /tmp/osm-hydro-inventory.json
+            /tmp/osm-ne-crosscheck.json
           retention-days: 14
