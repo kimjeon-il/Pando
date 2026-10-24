@@ -3,6 +3,7 @@
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 import { resolveSelectChoice } from './select-option-policy.js';
+import { builtinHydroSourceNotes } from './object-property-presentation.js';
 
 export function createPropertySelection() {
   let dependencies;
@@ -329,7 +330,10 @@ export function createPropertySelection() {
         name: source.properties?.name || '',
         category,
         editorColor: dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[category].color,
-        notes: `판도연구소 내장 ${(0, dependencies.hydroPresentation.hydroCategoryLabel)(category)} 편집용 복사본 · 원본 ${source.properties?.pandolab_id || source.id}`,
+        notes: [
+          `판도연구소 내장 ${(0, dependencies.hydroPresentation.hydroCategoryLabel)(category)} 편집용 복사본 · 원본 ${source.properties?.pandolab_id || source.id}`,
+          builtinHydroSourceNotes(source.properties),
+        ].filter(Boolean).join('\n\n'),
         source: source.properties?.source || `판도연구소 내장 ${(0, dependencies.hydroPresentation.hydroCategoryLabel)(category)}`,
         sourceFeatureId: source.properties?.pandolab_id || source.id,
       },

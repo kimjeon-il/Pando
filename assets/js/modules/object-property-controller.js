@@ -1,4 +1,4 @@
-import { presentObjectHeading } from './object-property-presentation.js';
+import { presentObjectHeading, builtinHydroSourceNotes } from './object-property-presentation.js';
 import { isBuiltinPlaceId } from './place-contract.js';
 import { resolvePlaceLabelRows } from './place-name-display.js';
 import { temporalMonthEnd } from './temporal.js';
@@ -311,6 +311,10 @@ export function createObjectPropertyController(runtime = {}) {
     $('hydroColorPopover').setAttribute('aria-label', `${category} 색상 팔레트`);
     $('hydroEditFields').classList.toggle('hidden', !editable);
     $('hydroBuiltinHelp').classList.toggle('hidden', editable);
+    const builtinNotes = editable ? '' : builtinHydroSourceNotes(properties);
+    $('hydroBuiltinNotes').hidden = editable || !builtinNotes;
+    $('hydroBuiltinNotes').classList.toggle('hidden', editable || !builtinNotes);
+    $('hydroBuiltinNotesInput').value = builtinNotes;
     const copyActionSection = $('copyHydroBtn').closest('.editor-action-section');
     if (copyActionSection) copyActionSection.hidden = editable;
     syncActionTab('hydro');

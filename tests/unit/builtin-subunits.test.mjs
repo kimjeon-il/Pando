@@ -49,6 +49,8 @@ test('Guantanamo and Baikonur separate parent from controller or lessee', () => 
   assert.equal(unit('USG').properties.metadata.builtinSubunit.controllerCountryId, 'USA');
   assert.equal(unit('KAB').properties.parentId, 'KAZ');
   assert.equal(unit('KAB').properties.metadata.builtinSubunit.lesseeCountryId, 'RUS');
+  assert.match(unit('KAB').properties.notes, /OpenStreetMap.*(?:\n|.)*ODbL/u);
+  assert.match(result.countries.features.find(feature => feature.id === 'KAZ').properties.notes, /OpenStreetMap.*(?:\n|.)*ODbL/u);
   assert.throws(() => classifyBuiltinCountries({ ...source, features: source.features.filter(f => f.id !== 'CUB') }), /원본\/부모 누락/);
 });
 

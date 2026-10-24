@@ -559,9 +559,12 @@ export function createTaskPresentation() {
     const mergeChoosingTargets = !preview
       && (state.tool === 'merge-country' && !!state.mergeSourceCountryId
         || state.tool === 'merge-territorial-unit' && !!state.territorialUnitMergeSourceId);
-    // The keeper card and selected-target list already identify the active
-    // merge. Display the existing date/impact details when preview is ready.
-    dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden', annexBeforeReview || mergeChoosingTargets);
+    // A border target-picker also identifies its countries in the existing
+    // role cards. Hide only uncalculated metadata, then restore it in edit/review.
+    const borderChoosingTargets = !preview && state.tool === 'territorial-border'
+      && state.boundaryEditPhase === 'selecting';
+    dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden',
+      annexBeforeReview || mergeChoosingTargets || borderChoosingTargets);
     const taskInput = dependencies.platform.$('modeTaskInput');
     taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),

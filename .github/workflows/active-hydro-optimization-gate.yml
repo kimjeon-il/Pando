@@ -28,6 +28,9 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /.nvmrc
+            /.github/actions/library-data/
+            /tools/library-data.mjs
+            /config/library-data.json
             /tools/check-current-hydro-layout.mjs
             /tests/unit/current-hydro-layout.test.mjs
             /tests/unit/hydro-packfile.test.mjs
