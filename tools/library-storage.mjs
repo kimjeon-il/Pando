@@ -2,7 +2,7 @@
 // library-data.mjs. Every deletion below has a locally verified retained copy.
 import { execFileSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readSync, readdirSync, realpathSync, renameSync, rmdirSync, statfsSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readSync, readdirSync, realpathSync, renameSync, rmdirSync, statfsSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defaultRoot, discardDeadLibraryLock, libraryCheckout, libraryConfig, libraryMaterializedRoot, libraryOwnerId, librarySharedCheckout, libraryWriteLeases, prepareOwnedLibraryData, reportContext, runtimeMaterializationPeak, synchronizeRuntimeManifest, withLibraryLock } from './library-data.mjs';

@@ -141,7 +141,7 @@ test('the verification fixture loads through the current builtin country transpo
     dataRevision: 'test-fixture', cacheStorage: null,
     fetchFn: async url => new Response(await readFile(join(result.directory, new URL(url).pathname))),
   });
-  const { project } = await loader.loadProject('2026-10', '2026-10');
+  const { project } = await loader.loadProject('2026-10');
   assert.equal(project.territorialEntities.length, 3);
   assert.equal(project.timelineRecords.parentRelations.find(row => row.entityId === 'shell-child-a').parentId, 'shell-country-a');
 });
