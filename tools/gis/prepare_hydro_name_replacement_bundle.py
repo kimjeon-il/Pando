@@ -115,6 +115,7 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
     updated_bundle = b"".join(new_parts)
     new_manifest["container"]["bytes"] = offset
     new_manifest["container"]["sha256"] = digest(updated_bundle)
+    new_manifest["stats"]["compressedBytes"] = offset
     new_manifest["cache"]["name"] = "pandolab-water-v0.13.2-independent-" + digest(new_parts[1])[:16]
     new_manifest["sources"]["independentHydronymReplacements"] = {
         "file": source_file.name, "sha256": digest(source_file.read_bytes()),
