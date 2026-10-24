@@ -81,6 +81,14 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     dependencyCache.set(file, found);
     if (!executable(file) || !exists(file)) return [...found];
     const source = parseJavaScript(read(file), { filePath: file });
+    const relocation = (catalog.relocatedSources || []).find(row => file.startsWith(row.source) && matches(file, row.files));
+    const output = relocation ? relocation.output + file.slice(relocation.source.length) : file;
+    function relativeTarget(value) {
+      const target = posix.normalize(posix.join(posix.dirname(output), value.split(/[?#]/)[0]));
+      if (target === '..' || target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
+      return relocation && target.startsWith(relocation.output)
+        ? relocation.source + target.slice(relocation.output.length) : target;
+    }
     const bindings = new Map();
     walkJavaScript(source, node => { if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') bindings.set(node.id.name, node.init); });
     function specifier(node, visited = new Set()) {
@@ -97,12 +105,6 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
         const value = specifier(node.arguments[0], visited);
         if (file.startsWith('tests/browser/') && node.arguments[1] && /location\.href$/.test(source.getText(node.arguments[1]))
           && value?.startsWith('../modules/')) return 'assets/js/modules/' + value.slice('../modules/'.length);
-        const relocation = (catalog.relocatedSources || []).find(row => file.startsWith(row.source));
-        if (value?.startsWith('.') && relocation && node.arguments[1] && source.getText(node.arguments[1]) === 'import.meta.url') {
-          const output = relocation.output + file.slice(relocation.source.length);
-          const target = posix.normalize(posix.join(posix.dirname(output), value));
-          return target.startsWith(relocation.output) ? relocation.source + target.slice(relocation.output.length) : target;
-        }
         return value;
       }
       if (node.type === 'CallExpression') {
@@ -120,7 +122,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       value = value.split(/[?#]/)[0].replace(/\/$/, '');
       if (browserUrl && file.startsWith('tests/browser/') && /^(?:\.\/|\/)assets\//.test(value)) value = value.replace(/^(?:\.\/|\/)/, '');
       let target;
-      if (value.startsWith('.')) target = posix.normalize(posix.join(posix.dirname(file), value));
+      if (value.startsWith('.')) target = relativeTarget(value);
       else if (/^(?:assets|tests|scripts|tools|apps|shared|contracts|config)\//.test(value)) target = value;
       else return;
       if (target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
@@ -143,9 +145,9 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
         else if (product(file) && !(dynamicExpressions[file] || []).includes(source.getText(node.source))) throw Error('Uncatalogued dynamic dependency in ' + file + ': ' + source.getText(node.source));
       }
       if (node.type === 'NewExpression' && node.callee.name === 'URL') {
-        const value = specifier(node.arguments[0]);
-        const target = value?.startsWith('.') ? posix.normalize(posix.join(posix.dirname(file), value)) : value;
-        const directory = value && (value.endsWith('/') || value === '.' || value === '..');
+        const input = specifier(node.arguments[0]), value = specifier(node);
+        const target = value?.startsWith('.') ? relativeTarget(value) : value;
+        const directory = input && (input.endsWith('/') || input === '.' || input === '..');
         const consumed = source.getAncestors(node).at(-1)?.callee?.name === 'readdirSync';
         if (!directory || target?.startsWith('tests/fixtures/') || consumed) add(value);
       }
