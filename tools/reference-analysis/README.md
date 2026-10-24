@@ -326,3 +326,19 @@ immutable. This changes training labels, not the count of independent maps.
 Wider palette adjacency is still weak supervision and can join narrow water
 gaps. Inspect targets and compare both checkpoints against the same revised
 targets; scores measured against different masks are not comparable.
+
+The publisher-diversity continuation adds the Geoscience Australia folio map,
+edition 3 (GEOCAT 73102), with its printed CC BY 3.0 Australia notice retained.
+The full-country source includes relief tints, roads, railways and rivers. Only
+the visibly matching state-boundary stroke supplies administrative supervision;
+the legend/footer is excluded. Its PDF rotation is applied to image, boundary
+and glyph-exclusion planes together, without interpolation or writing the PDF.
+Normalized exclusion rectangles refer to the final visibly oriented image.
+
+After acquiring the expanded catalog into the same source directory, preserve
+the prior manifests and use `--manifest-name corpus.publishers.training.json`
+with the existing `--metadata-directory` seam recipe. This is five publisher
+inputs and four distinct original groups; Canada colour/monochrome remain one
+group. It adds a production family, not independent accuracy or non-Latin
+coverage. Continue from the actual macro-v3 checkpoint with original-group
+balancing, and compare both checkpoints against these identical targets.

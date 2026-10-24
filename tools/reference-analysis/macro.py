@@ -86,9 +86,13 @@ def derive(source, metadata, maximum_dimension):
     if not isinstance(maximum_dimension, int) or not 64 <= maximum_dimension <= 4096:
         raise ValueError('Bounded macro render required')
     with pymupdf.open(source) as doc:
-        if len(doc) != 1 or doc[0].rotation != 0:
-            raise ValueError('Single unrotated macro map required')
+        if len(doc) != 1:
+            raise ValueError('Single-page macro map required')
         page = doc[0]
+        # Paths and glyph boxes use unrotated PDF coordinates. Rasterize all
+        # three planes there, then rotate them together without interpolation.
+        rotation = page.rotation
+        page.set_rotation(0)
         scale = maximum_dimension / max(page.rect.width, page.rect.height)
         matrix = pymupdf.Matrix(scale, scale)
         pix = page.get_pixmap(matrix=matrix, alpha=False)
@@ -144,13 +148,17 @@ def derive(source, metadata, maximum_dimension):
         obscured = np.asarray(text).astype(bool)
         masks[obscured] = 0
         valid[obscured] = 0
+        if rotation:
+            image, masks, valid = (np.rot90(value, -rotation // 90).copy()
+                                   for value in (image, masks, valid))
+        height, width = masks.shape
         for region in metadata.get('excludedRegionsNormalized', []):
             if (len(region) != 4 or not all(isinstance(value, (int, float)) and math.isfinite(value) for value in region)
                     or not 0 <= region[0] < region[2] <= 1 or not 0 <= region[1] < region[3] <= 1):
                 raise ValueError('Bounded explicit macro exclusion rectangle required')
             x0, y0, x1, y1 = region
-            ys = slice(math.floor(y0 * pix.height), math.ceil(y1 * pix.height))
-            xs = slice(math.floor(x0 * pix.width), math.ceil(x1 * pix.width))
+            ys = slice(math.floor(y0 * height), math.ceil(y1 * height))
+            xs = slice(math.floor(x0 * width), math.ceil(x1 * width))
             masks[ys, xs] = 0
             valid[ys, xs] = 0
         # Opaque raster-only maps cannot silently generate empty supervision.

@@ -329,6 +329,44 @@
         ]
       ],
       "variantOf": "nrcan-canada-national"
+    },
+    {
+      "id": "ga-australia-general-reference",
+      "familyId": "geoscience-australia-folio-reference",
+      "editionId": "ga-geocat-73102-edition-3",
+      "duplicateGroup": "ga-australia-folio-edition-3",
+      "language": "eng",
+      "script": "Latin",
+      "mapKind": "color",
+      "published": null,
+      "copyrightYear": "2011",
+      "printedEditionCode": "AUSTRALIA FOLIO MAP, EDITION 3, GEOCAT 73102",
+      "format": "pdf",
+      "materialKind": "published-macro-pdf",
+      "rightsReviewed": true,
+      "geographicScope": "country",
+      "scopeEvidence": "Complete national Australia folio map; Simple Conic Projection, standard parallels 18S and 36S; publisher A3 reference-map series. Roads, rail, rivers and hypsometric tints remain in the source input.",
+      "url": "https://www.ga.gov.au/bigobj/GA20891.pdf",
+      "metadataUrl": "https://www.ga.gov.au/scientific-topics/national-location-information/topographic-maps-data/theme-and-reference-maps/reference-maps",
+      "rightsUrl": "https://creativecommons.org/licenses/by/3.0/au/",
+      "license": "Copyright Commonwealth of Australia (Geoscience Australia) 2011, Australia Folio Map edition 3, GEOCAT 73102. Printed Creative Commons Attribution 3.0 Australia Licence. Retain map notices and attribution; derived raster/masks are modifications. Logo and coat of arms are excluded from supervision and no endorsement is implied.",
+      "uncertainty": "Publication date is not inferred from the 2011 copyright or 2006 population data. Only visible state-boundary legend strokes provide weak supervision; no international/coast/road labels or independent historical truth are asserted.",
+      "supervision": {
+        "strategy": "boundary-stroke-signatures",
+        "channels": {
+          "administrative": [
+            {
+              "color": [0.7568475008010864, 0.7058671116828918, 0.0],
+              "width": 1.559000015258789,
+              "dashes": []
+            }
+          ]
+        }
+      },
+      "excludedRegionsNormalized": [[0.0, 0.79, 0.55, 1.0]],
+      "sha256": "c68ddeef790eacafd1ade0f8353fe8818e3b1e3f01083fdb9bbe0a93e4c3ae57",
+      "expectedBytes": 1333408,
+      "maximumBytes": 8388608
     }
   ]
 }
