@@ -3,7 +3,7 @@ globalThis.PANDOLAB_BUILD_META = Object.freeze({
   "appVersion": "0.36.0",
   "buildId": "0.36.0-build-release-151b5eec",
   "assetRevision": "0.36.0-build-release-151b5eec",
-  "dataRevision": "data-f777e9ebc91317886562d4b8631e62b7",
+  "dataRevision": "data-9dd69366163f7b030c6e32399ce95da3",
   "territorialIndex": {
     "encoding": "identity",
     "compressedBytes": 684671,
