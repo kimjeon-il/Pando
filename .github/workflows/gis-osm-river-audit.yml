@@ -87,6 +87,7 @@ jobs:
           assert proof['originalIndexSha256'] == proof['newIndexSha256']
           assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']
           assert manifest['metadata']['featureCount'] == 16548
+          assert manifest['stats']['compressedBytes'] == manifest['container']['bytes']
           assert manifest['version'] == '0.13.2'
           print('Independent source candidate passed metadata and geometry integrity checks')
           PY
