@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import { sharedSourceManifest } from '../../tools/package-shared-core-assets.mjs';
+import { libraryMaterializedRoot, libraryReportRoot } from '../../tools/library-data.mjs';
 import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
   plan, assertArtifactsCurrent } from '../../scripts/p2-artifact-plan.mjs';
 import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,
@@ -322,8 +323,8 @@ test('staging excludes private data cache and baselines existing external mounts
   const head=f.commit();
   const staged=await stageArtifacts(f.root,{families:['a'],expectedSourceSha:head,stageDir:'build-native/p2/external',
     prepareData:({root})=>{
-      const materialized=join(root,'.library-data/materialized',revision,'assets/data');
-      const reports=join(root,'.library-data/repository/.working',revision,'reports');
+      const materialized=join(libraryMaterializedRoot(root),'assets/data');
+      const reports=libraryReportRoot(root);
       mkdirSync(materialized,{recursive:true});mkdirSync(reports,{recursive:true});mkdirSync(join(root,'assets'),{recursive:true});
       writeFileSync(join(materialized,'existing.bin'),'existing runtime');
       writeFileSync(join(reports,'existing.md'),'existing evidence');
