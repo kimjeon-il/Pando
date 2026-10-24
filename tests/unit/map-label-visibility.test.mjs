@@ -1,3 +1,4 @@
+import { resourceCapabilities } from '../../assets/js/modules/resource-capabilities.js';
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import { defaultUserPreferences, normalizeUserPreferences } from '../../assets/js/modules/user-preferences.js';
 import assert from 'node:assert/strict';
@@ -143,7 +144,7 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
     renderers: { labelLayout: () => { const layout = controller.visibleLabelLayout(); layouts.push(layout); return layout; } },
   });
   let baseInvalidations = 0, workspaceUpdates = 0;
-  const settings = createMapSettings({viewPresentation:{applyPresentation:payload=>{workspaceUpdates++;return viewing.session.applyViewingPresentation(payload);}}});
+  const settings = createMapSettings({capabilities:resourceCapabilities('editor'),viewPresentation:{applyPresentation:payload=>{workspaceUpdates++;return viewing.session.applyViewingPresentation(payload);}}});
   settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, {
     state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
     reportOperationError: error => assert.fail(error.stack),
@@ -209,7 +210,7 @@ test('place language toggles persist independently and invalidate only label lay
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelectorAll: () => [] } });
   t.after(() => { if (previous) Object.defineProperty(globalThis, 'document', previous); else delete globalThis.document; });
-  const settings = createMapSettings();
+  const settings = createMapSettings({capabilities:resourceCapabilities('editor')});
   let current = defaultUserPreferences(), invalidations = 0, saved = 0;
   const flat = {
     reportOperationError: error => assert.fail(error.stack),

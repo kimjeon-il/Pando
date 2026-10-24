@@ -64,6 +64,11 @@ async function autosavedDistributions(page) {
 
 test('distribution controls stay inside the single view submenu on desktop and mobile', async ({ page }) => {
   test.setTimeout(90_000);
+  await page.route('**/modules/app-property-selection.js*', async route => {
+    const source = await (await route.fetch()).text();
+    await route.fulfill({ contentType: 'text/javascript', body: source.replace('window.PANDOLAB_DISTRIBUTIONS = Object.freeze({',
+      'window.__removeDistributionEntry = id => dependencies.objectModelA.distributionService.removeEntry(id);window.PANDOLAB_DISTRIBUTIONS = Object.freeze({') });
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await openApp(page);
   const group = page.locator('#distributionMenuGroup');
@@ -79,6 +84,14 @@ test('distribution controls stay inside the single view submenu on desktop and m
   await page.locator('#mapDisplayBtn').click();
 
   await createDistribution(page, '보기 메뉴 검사');
+  await page.locator('#mapDisplayBtn').click();
+  await expect(group).toBeHidden();
+  await page.locator('#mapDisplayBtn').click();
+  await page.locator('#actionsTabBtn').click();
+  await selectUiOption(page, '#distributionTerritorialUnitInput', 'DEU');
+  await page.locator('#distributionValueInput').fill('0');
+  await page.locator('#addTerritorialDistributionBtn').click();
+  await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
   await page.locator('#mapDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toHaveClass(/view-menu-desktop/);
   await expect(group).toBeVisible();
@@ -105,6 +118,33 @@ test('distribution controls stay inside the single view submenu on desktop and m
   await expect(page.locator('#mapDisplaySurface')).not.toHaveClass(/view-menu-desktop/);
   await expect(settings.locator('#layerStylePanel-distributions')).toHaveCount(1);
   await expect(style).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openDistributionViewMenu(page);
+  await page.locator('#distributionBoundaryVisibleInput').focus();
+  await page.evaluate(async () => {
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
+    await window.__removeDistributionEntry(window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id)[0].id);
+  });
+  await expect(group).toBeHidden();
+  await expect(page.locator('#mapDisplayBtn')).toBeFocused();
+  await page.locator('#undoBtn').click();
+  await page.locator('#mapDisplayBtn').click();
+  await expect(group).toBeVisible();
+  await page.locator('#redoBtn').click();
+  if (await page.locator('#mapDisplayBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mapDisplayBtn').click();
+  await expect(group).toBeHidden();
+  await page.locator('#undoBtn').click();
+  await page.locator('#mapDisplayBtn').click();
+  await expect(group).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#mapDisplaySurface')).toHaveClass(/mobile-open/);
+  await page.locator('#distributionBoundaryVisibleInput').focus();
+  await page.evaluate(async () => {
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
+    await window.__removeDistributionEntry(window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id)[0].id);
+  });
+  await expect(group).toBeHidden();
+  await expect(page.locator('#mobileMenuBtn')).toBeFocused();
   expect(errors).toEqual([]);
 });
 
