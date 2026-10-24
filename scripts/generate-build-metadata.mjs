@@ -87,7 +87,15 @@ function collectModuleImports(directory, prefix) {
   }
 }
 collectModuleImports(resolve(projectRoot, 'assets'), './assets');
-const viewerAssets = await collectViewerAssets({ root: projectRoot, availablePaths: [...assetPaths, 'index.html', '.nojekyll'], workerAssets });
+// The current Worker closure is generated in-memory and committed only after the
+// full plan passes. Dependency discovery must see those pending immutable files.
+const pendingAssetPaths = [...pendingText.keys()].map(p => p.slice(projectRoot.length + 1).replaceAll('\\', '/'));
+const viewerAssets = await collectViewerAssets({
+  root: projectRoot,
+  availablePaths: [...new Set([...assetPaths, ...pendingAssetPaths, 'index.html', '.nojekyll'])],
+  workerAssets,
+  readSource: path => pendingText.get(resolve(projectRoot, path)) ?? readFileSync(resolve(projectRoot, path), 'utf8'),
+});
 const viewerModuleImports = Object.fromEntries(Object.entries(moduleImports).filter(([path]) => viewerAssets.has(path.slice(2))));
 
 function stableJson(value) {
