@@ -156,8 +156,6 @@ function entityVersion(entity, date) {
     const representative=versions.find(version=>version.versionId===entity.metadata?.representativeGeometryVersionId);
     if(representative)return representative;
     if (versions.length === 1) return versions[0];
-    const current = versions.filter(version => version.datePrecision === 'current');
-    if (current.length === 1) return current[0];
     fail(`${entity.entityId}: multiple geometry versions; specify --date`);
   }
   const eligible = versions.filter(version => (!version.validFrom || version.validFrom <= date) && (!version.validTo || version.validTo >= date));
@@ -307,12 +305,9 @@ export function inspect(args) {
   for (const row of rows) {
     const entity = loadEntity(row, dataDir);
     const version = entityVersion(entity, args.date);
-    if (args.date && version.datePrecision === 'current' && !version.validFrom && !version.validTo) {
-      fail(`${entity.entityId}: only undated modern geometry is recorded; cannot treat it as historical geometry for ${args.date}`);
-    }
     const props = { entityId: entity.entityId, geometryVersionId: version.versionId, sourceId: version.sourceId ?? row.sourceInfo?.sourceId ?? null };
     if (args.mode === 'summary') summaries.push({ ...props, name: entity.names?.ko ?? null,
-      datePrecision: version.datePrecision ?? null, validFrom: version.validFrom ?? null, validTo: version.validTo ?? null,
+      validFrom: version.validFrom ?? null, validTo: version.validTo ?? null,
       ...geometryStats(version.geometry), compressedBytes: row.compressedBytes });
     else if (args.mode === 'polygon') features.push(...polygonFeatures(version.geometry, props, args.bbox));
     else features.push(...boundaryFeatures(version.geometry, props, args.bbox));

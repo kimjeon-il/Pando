@@ -9,9 +9,9 @@ import { projectForStorage,initializeTestTerritorialState,testCoreProject } from
 const polygon = east => ({type:'Polygon',coordinates:[[[0,0],[0,1],[east,1],[east,0],[0,0]]]});
 function completeCatalog() {
   return normalizeTerritorialLibraryEntity({schemaVersion:2,entityId:'state:synthetic',entityKind:'general',names:{ko:'Synthetic only'},lifetime:{validFrom:'1948-08-15',validTo:null},geometryVersions:[
-    {versionId:'snapshot:1948',validFrom:'1948-08-15',validTo:'1953-07-26',geometry:polygon(1),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
-    {versionId:'snapshot:1953',validFrom:'1953-07-27',validTo:'2000-12-31',geometry:polygon(2),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
-    {versionId:'snapshot:current',validFrom:'2001-01-01',validTo:null,geometry:polygon(3),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
+    {versionId:'snapshot:1948',validFrom:'1948-08-15',validTo:'1953-07-26',geometry:polygon(1),sourceId:'synthetic',certainty:'high'},
+    {versionId:'snapshot:1953',validFrom:'1953-07-27',validTo:'2000-12-31',geometry:polygon(2),sourceId:'synthetic',certainty:'high'},
+    {versionId:'snapshot:current',validFrom:'2001-01-01',validTo:null,geometry:polygon(3),sourceId:'synthetic',certainty:'high'},
   ]});
 }
 function storageInput(entity) {
