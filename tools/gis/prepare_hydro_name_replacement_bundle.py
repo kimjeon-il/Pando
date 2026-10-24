@@ -85,6 +85,13 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
         alias_removals[ident] = alias_removals.get(ident, 0) + count
         for key in ("aliases", "tributaryNames", "osmRelationIds"):
             detail_row.pop(key, None)
+        # Each visible river fragment carries the same independent source URLs,
+        # so a clicked fragment can display provenance without a second lookup.
+        references = list(dict.fromkeys(src["url"] for src in review["independentSources"]))
+        if not references or any("openstreetmap" in url.lower() or
+                                 "overpass" in url.lower() for url in references):
+            raise ValueError(f"Non-independent source URL for {ident}")
+        detail_row["independentSourceUrls"] = references
         if int(row["fragmentIndex"]) == 0:
             if review["aliases"]:
                 detail_row["aliases"] = list(review["aliases"])
@@ -97,6 +104,14 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
         raise ValueError("Missing reviewed source system from existing bundle")
     if set(next_detail_by_fid) != set(detail_by_fid):
         raise ValueError("Detail FID identity changed")
+    by_fid = {int(row["fid"]): str(row.get("systemId") or "") for row in next_core}
+    for detail_row in next_detail:
+        sid = by_fid[int(detail_row["fid"])]
+        if sid not in substitutions:
+            continue
+        expected = list(dict.fromkeys(src["url"] for src in substitutions[sid]["independentSources"]))
+        if detail_row.get("independentSourceUrls") != expected or detail_row.get("osmRelationIds"):
+            raise ValueError(f"Unverified provenance survived system {sid}")
     if len(next_core) != len(core):
         raise ValueError("Core count changed")
 
