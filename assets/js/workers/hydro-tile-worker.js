@@ -415,6 +415,7 @@ function readPack(bytes, packId) {
         system_id: metadata.systemId || '', mainstem_name_ko: metadata.mainstemNameKo || metadata.name || '',
         role: metadata.role || '', aliases: metadata.aliases || [], tributary_names: metadata.tributaryNames || [],
         osm_relation_ids: metadata.osmRelationIds || [],
+        independent_source_urls: metadata.independentSourceUrls || [],
         min_zoom: manifest.stages[stage].minZoom, stage, stroke_width: width, stroke_widths: widthProfile, pack_id: packId,
       },
       geometry, __awBounds: bounds,
