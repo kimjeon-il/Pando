@@ -97,7 +97,28 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             and isinstance(confluence.get("reason"), str)
             and len(confluence["reason"]) >= 40
         )
-        if not natural_earth_valid and not station_valid and not conservative_valid and not confluence_valid:
+        # Rename a falsely identified logical river network only when an
+        # independent government river authority establishes the source-name
+        # mismatch, and two separately named Natural Earth reaches align
+        # with the correct downstream basin.
+        renamed_basin = item.get("independentBasinRename")
+        rename_valid = (
+            isinstance(renamed_basin, dict)
+            and renamed_basin.get("method") == "independent-government-basin-rename"
+            and item.get("previousNameKo") != korean_name
+            and isinstance(geom, dict) and bool(geom.get("name"))
+            and isinstance(coverage, (int, float)) and coverage >= 0.5
+            and isinstance(renamed_basin.get("namedTributaryNE"), str)
+            and renamed_basin["namedTributaryNE"] != geom["name"]
+            and isinstance(renamed_basin.get("tributarySampleCoverage"), (int, float))
+            and renamed_basin["tributarySampleCoverage"] >= 0.3
+            and coverage + renamed_basin["tributarySampleCoverage"] >= 0.9
+            and isinstance(renamed_basin.get("sourceErroneousTributaryName"), str)
+            and len(renamed_basin["sourceErroneousTributaryName"]) >= 3
+            and isinstance(renamed_basin.get("reason"), str)
+            and len(renamed_basin["reason"]) >= 100
+        )
+        if not any((natural_earth_valid, station_valid, conservative_valid, confluence_valid, rename_valid)):
             raise ValueError(f"Missing independent mainstem evidence for system {system_id}")
         evidence = item.get("independentSources")
         if not isinstance(evidence, list) or len(evidence) < 2:
@@ -122,9 +143,11 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             and bool(kinds & {"government-hydrology", "multilateral-basin-agency"})
         ):
             raise ValueError(f"Government or intergovernmental river basin authority needed for {system_id}")
+        if rename_valid and not ({"public-domain-vector", "government-hydrology", "government-ministry-geography", "government-river-identification"} <= kinds):
+            raise ValueError(f"Multiple independent government sources needed for river rename {system_id}")
         if not independent_vector and not independent_gauges:
             raise ValueError(f"Independent geodata and named hydrology evidence required for {system_id}")
-        if not natural_earth_valid and not independent_gauges and not conservative_valid and not confluence_valid:
+        if not any((natural_earth_valid, independent_gauges, conservative_valid, confluence_valid, rename_valid)):
             raise ValueError(f"Missing verified independent mainstem corroboration for {system_id}")
         verified[system_id] = item
     return verified

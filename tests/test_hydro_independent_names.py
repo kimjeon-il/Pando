@@ -18,7 +18,7 @@ PATH = ROOT / "tools/gis/hydro-independent-name-replacements.json"
 class IndependentHydronymReviewTests(unittest.TestCase):
     def test_replacements_include_gauge_verified_brazos_and_texas_colorado(self):
         rows = load_independent_hydronyms(PATH)
-        self.assertEqual(len(rows), 37)
+        self.assertEqual(len(rows), 38)
         self.assertEqual(set(rows), {
             "20282220", "20323928", "20342955", "20457454",
             "20478829", "20673409", "20680587", "40485117",
@@ -29,7 +29,7 @@ class IndependentHydronymReviewTests(unittest.TestCase):
             "20336821", "20452421", "20588291", "41225082", "50170097",
             "40190238", "40613666",
             "20081953", "20446779", "20498112", "70617856",
-            "10047863", "20244836", "40017702", "70814357",
+            "10047863", "20244836", "40017702", "70814357", "20265844",
         })
         renamed = {key: value["nameKo"] for key, value in rows.items()
                    if value["previousNameKo"] != value["nameKo"]}
@@ -41,6 +41,7 @@ class IndependentHydronymReviewTests(unittest.TestCase):
             "70576631": "델라웨어강",
             "70816878": "브래저스강",
             "70819626": "콜로라도강",
+            "20265844": "비스와강",
         })
         self.assertEqual(rows["20282220"]["aliases"], ["Elbe", "Labe"])
         self.assertEqual(rows["20282220"]["tributaryNames"], ["블타바강"])
@@ -57,6 +58,9 @@ class IndependentHydronymReviewTests(unittest.TestCase):
         self.assertNotIn("Seine", rows["20446779"]["aliases"])
         self.assertNotIn("San Joaquin", rows["70617856"]["aliases"])
         self.assertNotIn("리오그란데강", rows["70814357"]["aliases"])
+        self.assertEqual(rows["20265844"]["tributaryNames"], ["부크강", "나레프강"])
+        self.assertNotIn("Drwęca", rows["20265844"]["aliases"])
+        self.assertIn("independentBasinRename", rows["20265844"])
         self.assertNotIn("리오그란데강", rows["70814357"]["tributaryNames"])
         self.assertEqual(rows["20244836"]["tributaryNames"], ["네리스강"])
         self.assertEqual(rows["40017702"]["tributaryNames"], ["우수리강"])
@@ -152,6 +156,26 @@ class IndependentHydronymReviewTests(unittest.TestCase):
                 output.write_text(json.dumps(candidate), encoding="utf-8")
                 with self.assertRaises(ValueError):
                     load_independent_hydronyms(output)
+
+    def test_wrong_basin_rename_does_not_get_approved(self):
+        obj = json.loads(PATH.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "bad-renaming.json"
+            for failing in ("too-few-samples", "missing-ministry", "wrong-identity-method", "rename-to-same-name"):
+                edited = copy.deepcopy(obj)
+                entry = next(row for row in edited["replacements"] if row["systemId"] == "20265844")
+                if failing == "too-few-samples":
+                    entry["independentBasinRename"]["tributarySampleCoverage"] = 0.1
+                elif failing == "missing-ministry":
+                    entry["independentSources"] = [s for s in entry["independentSources"]
+                                                    if s["kind"] != "government-ministry-geography"]
+                elif failing == "wrong-identity-method":
+                    entry["independentBasinRename"]["method"] = "auto-bbox-rename"
+                else:
+                    entry["nameKo"] = "드르벵차강"
+                target.write_text(json.dumps(edited), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_independent_hydronyms(target)
 
     def test_old_osm_only_basins_are_not_assigned_names_in_bulk(self):
         rows = load_independent_hydronyms(PATH)
