@@ -4,12 +4,16 @@ import hashlib
 import io
 import json
 import pathlib
+import sys
 import random
 import collections
 import math
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageOps, ImageEnhance, ImageFilter
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from report_paths import report_argument
+
 from corpus import CHANNELS, RASTER_ORIGINS, validate_corpus, evaluation_groups, corpus_path, corpus_fingerprint
 from model import ReferenceBoundaryModel, boundary_loss
 from evaluation import boundary_counts, metrics
@@ -376,6 +380,10 @@ if __name__ == "__main__":
     np.random.seed(20261022)
     torch.manual_seed(20261022)
     torch.set_num_threads(2)
+    for field in vars(args):
+        if field in ['corpus', 'auxiliary_corpus', 'checkpoint', 'initialize_checkpoint']:
+            setattr(args, field, report_argument(getattr(args, field), access='read', siblings=field in ['corpus', 'auxiliary_corpus']))
+    args.output = report_argument(args.output, access='write')
     pathlib.Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     if args.command == "export":
         export(args)

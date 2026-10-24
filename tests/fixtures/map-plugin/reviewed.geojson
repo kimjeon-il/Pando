@@ -1,0 +1,293 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "45ec9463-6767-4710-a751-0d0e3c1d0fec",
+      "geometry": {
+        "coordinates": [
+          [
+            -118.77318018319616,
+            58.769338416200995
+          ],
+          [
+            -118.00879861928178,
+            58.75453405370469
+          ],
+          [
+            -118.00903897934099,
+            58.69254736116788
+          ],
+          [
+            -117.79666625602047,
+            58.69991405538869
+          ],
+          [
+            -117.62708855744302,
+            58.62315848738292
+          ],
+          [
+            -117.45719037878659,
+            58.629051842759566
+          ],
+          [
+            -117.45735061882607,
+            58.58772738106836
+          ],
+          [
+            -117.07507971684913,
+            58.60098743066582
+          ],
+          [
+            -116.43868262706522,
+            58.437127435717805
+          ],
+          [
+            -116.1838353590806,
+            58.445967468782776
+          ],
+          [
+            -116.18407571913981,
+            58.38398077624596
+          ],
+          [
+            -115.63206687854594,
+            58.361809719528864
+          ],
+          [
+            -115.58967245390157,
+            58.34262082752742
+          ],
+          [
+            -115.37729973058106,
+            58.34998752174823
+          ],
+          [
+            -115.16508724730001,
+            58.316029754277835
+          ],
+          [
+            -114.95303500405845,
+            58.24074752511622
+          ],
+          [
+            -114.61323864674561,
+            58.25253423586952
+          ],
+          [
+            -114.57092434212097,
+            58.21268311302248
+          ],
+          [
+            -114.31631743419558,
+            58.15953645355063
+          ],
+          [
+            -113.67943962429324,
+            58.11964984367624
+          ],
+          [
+            -113.63720543968834,
+            58.059136489983594
+          ],
+          [
+            -112.15107709656314,
+            57.986729964455634
+          ],
+          [
+            -111.42965079743128,
+            57.84647887804155
+          ],
+          [
+            -110.75013820282535,
+            57.84939006870254
+          ],
+          [
+            -110.45321699027532,
+            57.75639228638365
+          ],
+          [
+            -109.98615723900966,
+            57.73127455197823
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "schemaVersion": 2,
+        "name": "",
+        "notes": "",
+        "color": "#e26a44",
+        "locked": false,
+        "source": {
+          "schemaVersion": 1,
+          "kind": "plugin",
+          "dataset": "pando-map-tools",
+          "sourceId": "67825bcd24499cd6e08e2dab561e1d455ee12d6869ae290f4e4e7a4e74320e3b",
+          "sourceFormat": "raster",
+          "sourceType": "boundary-line",
+          "version": "04ee59b043d1fde4a4c407fc079bdb03ba051eceb8adfb4784e7e67c62f7b39c",
+          "importedAt": "",
+          "details": {
+            "candidateId": "line:91",
+            "imageSha256": "67825bcd24499cd6e08e2dab561e1d455ee12d6869ae290f4e4e7a4e74320e3b",
+            "sourceDate": null,
+            "sourceDateVerification": "unverified",
+            "dataRevision": "d401965fdbbcb53b54602b1d8736554b8ebc7dda",
+            "model": {
+              "schemaVersion": 1,
+              "architecture": "mobilenetv3-unet-context-v1",
+              "classes": [
+                "international",
+                "administrative",
+                "coast",
+                "hydro",
+                "transport",
+                "text",
+                "frame"
+              ],
+              "tileSize": 512,
+              "overlap": 64,
+              "overviewSize": 256,
+              "model": {
+                "url": "boundary.onnx",
+                "sha256": "04ee59b043d1fde4a4c407fc079bdb03ba051eceb8adfb4784e7e67c62f7b39c",
+                "bytes": 16697571
+              },
+              "corpusSha256": "336008e64a4531325ba396aaba2dbdbe70c2ab29fd1e5faee09d64d0c49791ef",
+              "evaluationStatus": "pending",
+              "releaseApproved": false,
+              "trainingOnly": true,
+              "trainingBatches": 1460,
+              "optimizerUpdates": 1452,
+              "stepCountKind": "attempted-batches",
+              "unobservedChannels": [
+                "coast",
+                "hydro",
+                "transport",
+                "text",
+                "frame"
+              ],
+              "observedChannels": [
+                "international",
+                "administrative"
+              ]
+            },
+            "mappingSignature": "a2c834095b6ad45a5dbbaed9375359c3777730a66c4aca2bf4f731704e3726f7",
+            "reviewStatus": "reviewed-provisional",
+            "historicalAccuracy": "unverified",
+            "jobId": "d68fe5a7-a320-42c5-b25c-098150e56d3f",
+            "revision": 2,
+            "boundaryEdits": [
+              {
+                "revision": 1,
+                "command": {
+                  "type": "control-points",
+                  "mode": "affine",
+                  "points": [
+                    {
+                      "id": "whitehorse",
+                      "image": [
+                        0.14839797639123103,
+                        0.40945454545454546
+                      ],
+                      "coordinate": [
+                        -135.0568,
+                        60.7212
+                      ]
+                    },
+                    {
+                      "id": "yellowknife",
+                      "image": [
+                        0.2951096121416526,
+                        0.4829090909090909
+                      ],
+                      "coordinate": [
+                        -114.3718,
+                        62.454
+                      ]
+                    },
+                    {
+                      "id": "iqaluit",
+                      "image": [
+                        0.6357504215851602,
+                        0.4290909090909091
+                      ],
+                      "coordinate": [
+                        -68.5167,
+                        63.7467
+                      ]
+                    },
+                    {
+                      "id": "ottawa",
+                      "image": [
+                        0.6795952782462057,
+                        0.8458181818181818
+                      ],
+                      "coordinate": [
+                        -75.69812,
+                        45.41117
+                      ]
+                    },
+                    {
+                      "id": "winnipeg",
+                      "image": [
+                        0.44013490725126475,
+                        0.7861818181818182
+                      ],
+                      "coordinate": [
+                        -97.1384,
+                        49.8951
+                      ]
+                    },
+                    {
+                      "id": "vancouver",
+                      "image": [
+                        0.12647554806070826,
+                        0.7287272727272728
+                      ],
+                      "coordinate": [
+                        -123.12,
+                        49.2827
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "revision": 2,
+                "command": {
+                  "type": "review",
+                  "georeference": true,
+                  "boundaries": true,
+                  "selectedIds": [
+                    "line:91"
+                  ]
+                }
+              }
+            ],
+            "coordinateMapping": {
+              "exifOrientation": 1,
+              "encodedSize": [
+                2560,
+                1979
+              ],
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "width": 2560,
+                "height": 1979
+              },
+              "analysisSize": [
+                1137,
+                879
+              ],
+              "coordinateSpace": "exif-oriented-original-pixels"
+            },
+            "sourceEvidence": null
+          }
+        }
+      }
+    }
+  ]
+}

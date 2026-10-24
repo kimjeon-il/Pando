@@ -4,6 +4,7 @@ import { readFile, writeFile, mkdir, access, readdir } from 'node:fs/promises';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { REFERENCE_OCR_LANGUAGES } from '../assets/js/modules/reference-image-ocr-runtime.js';
+import { withLibraryOutputs } from './library-data.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const vendor = resolve(root, 'assets/vendor/reference-analysis');
@@ -61,7 +62,7 @@ for (const language of ['osd', ...REFERENCE_OCR_LANGUAGES]) {
     if (!response.ok) throw Error('OCR language download failed: ' + language + ' HTTP ' + response.status, { cause: error });
     const { gzipSync } = await import('node:zlib');
     bytes = gzipSync(Buffer.from(await response.arrayBuffer()));
-    await mkdir(dirname(path), { recursive: true }); await writeFile(path, bytes);
+    await withLibraryOutputs({paths:[path]},async()=>{await mkdir(dirname(path), { recursive: true }); await writeFile(path, bytes);});
   }
   manifest.languages[language] = { url: name, sha256: hash(bytes), bytes: bytes.length };
 }
@@ -70,6 +71,7 @@ if (check) {
   if (hash(await readFile(join(vendor, 'manifest.json'))) !== hash(json)) throw Error('Stale reference analysis manifest.');
 } else {
   await writeFile(join(vendor, 'manifest.json'), json);
-  await writeFile(join(data, 'ocr', 'manifest.json'), JSON.stringify({ schemaVersion: 1, source: `https://github.com/tesseract-ocr/tessdata_fast/tree/${commit}`, languages: manifest.languages }, null, 2) + '\n');
+  const manifestPath=join(data,'ocr','manifest.json');
+  await withLibraryOutputs({paths:[manifestPath]},()=>writeFile(manifestPath, JSON.stringify({ schemaVersion: 1, source: `https://github.com/tesseract-ocr/tessdata_fast/tree/${commit}`, languages: manifest.languages }, null, 2) + '\n'));
 }
 console.log(`Reference analysis runtime ${check ? 'verified' : 'prepared'}: ${Object.keys(manifest.files).length} assets, ${Object.keys(manifest.languages).length} offline language packs.`);

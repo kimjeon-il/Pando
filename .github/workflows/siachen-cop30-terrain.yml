@@ -30,7 +30,7 @@ jobs:
           from report_paths import report_path
           import json
           from pathlib import Path
-          p=report_path("assets/data/research/siachen")
+          p=report_path("reports/borders/reconstruction/siachen", access="read")
           r=json.loads((p/'sia_bilafond_dem_comparison.json').read_text())
           assert 'Copernicus' in r['sources']['copernicus_dem']['dataset']
           assert r['sector']['sample_count'] > 60
@@ -46,18 +46,20 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/
           if ! git diff --cached --quiet; then
             git commit -m "research: record Copernicus GLO30 Saltoro terrain diagnostics"
             git push origin HEAD:work/gis
           fi
+      - name: Resolve branch report artifacts
+        run: echo "PANDO_REPORT_ARTIFACTS=$(python tools/report_paths.py reports/borders/reconstruction/siachen --access read)" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
           name: sia-bilafond-cop30-terrain
           path: |
-            "$(python tools/report_paths.py assets/data/research/siachen)"/sia_bilafond_dem_comparison.json
-            "$(python tools/report_paths.py assets/data/research/siachen)"/sia_bilafond_dem_samples.geojson
-            "$(python tools/report_paths.py assets/data/research/siachen)"/sia_bilafond_cop30_relief.png
-            "$(python tools/report_paths.py assets/data/research/siachen)"/sia_bilafond_sia_osm_transect.png
-            "$(python tools/report_paths.py assets/data/research/siachen)"/sia_bilafond_bila_osm_transect.png
-            reports/research/siachen/README_dem_sia_bilafond.md
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/sia_bilafond_dem_comparison.json
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/sia_bilafond_dem_samples.geojson
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/sia_bilafond_cop30_relief.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/sia_bilafond_sia_osm_transect.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/sia_bilafond_bila_osm_transect.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/README_dem_sia_bilafond.md

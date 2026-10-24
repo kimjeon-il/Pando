@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { reportPath } from '../../../tools/report-paths.mjs';
 
 const root = fileURLToPath(new URL('../dist/', import.meta.url));
-const output = resolve(reportPath('reports/development/testing/web-shell/browser-preflight.json'), '..');
+const output = resolve(reportPath('reports/development/native/web-shell/browser-preflight.json', { access: 'write' }), '..');
 const evidence = JSON.parse(await readFile(resolve(root, 'shell/stage-evidence.json'), 'utf8'));
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
   '.wasm': 'application/wasm', '.css': 'text/css', '.woff2': 'font/woff2', '.svg': 'image/svg+xml' };

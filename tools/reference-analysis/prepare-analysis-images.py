@@ -4,6 +4,10 @@ import hashlib
 import json
 import math
 import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from report_paths import report_argument
 
 from PIL import Image
 
@@ -71,6 +75,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--sources", type=pathlib.Path, required=True)
     args = parser.parse_args()
+    args.sources = pathlib.Path(report_argument(args.sources, access='write'))
     if args.sources.resolve().is_relative_to(pathlib.Path(__file__).resolve().parents[2]):
         parser.error("App input derivatives belong to external material storage")
     results = [prepare(path) for path in sorted(args.sources.glob("*.jpg")) if not path.stem.endswith("-analysis")]

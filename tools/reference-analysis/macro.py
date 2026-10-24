@@ -8,11 +8,15 @@ import io
 import json
 import math
 import pathlib
+import sys
 import re
 
 import numpy as np
 import pymupdf
 from PIL import Image, ImageDraw, ImageFilter
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from report_paths import report_argument
 
 from corpus import CHANNELS, validate_corpus
 
@@ -291,6 +295,7 @@ if __name__ == '__main__':
     parser.add_argument('--manifest-name', default='corpus.training.json')
     parser.add_argument('--metadata-directory', type=pathlib.Path, help='Contained alternate supervision metadata; originals are preserved')
     args = parser.parse_args()
+    args.sources = report_argument(args.sources, access='write')
     target = prepare_corpus(args.sources, args.maximum_dimension, args.manifest_name, metadata_directory=args.metadata_directory)
     value = json.loads(target.read_text(encoding='utf-8'))
     print(json.dumps(dict(manifest=str(target), maps=len(value['sheets']), focus='macro-only')))

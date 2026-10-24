@@ -3,6 +3,10 @@ import argparse
 import hashlib
 import json
 import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from report_paths import report_argument
 import re
 import importlib.metadata
 
@@ -338,6 +342,12 @@ if __name__ == "__main__":
     parser.add_argument("--output")
     parser.add_argument("--prepare-review", type=pathlib.Path, metavar="SOURCE_DIRECTORY")
     args = parser.parse_args()
+    if args.prepare_review:
+        args.prepare_review = pathlib.Path(report_argument(args.prepare_review, access='write'))
+    args.corpus = report_argument(args.corpus, access='read', siblings=True)
+    args.reports = report_argument(args.reports, access='read')
+    args.sources = report_argument(args.sources, access='read')
+    args.output = report_argument(args.output, access='write')
     if args.prepare_review:
         if any([args.corpus, args.reports, args.sources, args.output]):
             parser.error("--prepare-review takes only the acquired source directory")

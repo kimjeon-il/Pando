@@ -31,7 +31,7 @@ jobs:
             /tools/research-hydro-names.mjs
             /tools/promote-hydro-names.mjs
             /tools/lib/
-            /reports/hydro-names/
+            /reports/hydro/names/
             /tests/unit/river-territory-partition-serbia.test.mjs
             /assets/js/
             /assets/data/hydro/v0.13.2/

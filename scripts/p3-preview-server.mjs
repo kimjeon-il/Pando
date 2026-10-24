@@ -1,9 +1,11 @@
 // Read-only, branch-local HTTP preview for GitHub Codespaces.
 // Nothing outside index.html and assets/ is exposed by the forwarded port.
-import { createReadStream, realpathSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, realpathSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { reportPath } from '../tools/report-paths.mjs';
+import {libraryConfig,libraryMaterializedRoot} from '../tools/library-data.mjs';
 
 const sourceRoot=fileURLToPath(new URL('../', import.meta.url));
 const MIME=Object.freeze({
@@ -30,7 +32,7 @@ function contained(root,file) {
   const rel=relative(root,file);
   return rel!=='' && rel!=='..' && !rel.startsWith('..'+sep) && !rel.startsWith('/') && !rel.startsWith('\\');
 }
-function readOnlyResponse(req,res,root,options) {
+function readOnlyResponse(req,res,root,options,runtime) {
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Cache-Control','no-store');
   if(req.method!=='GET' && req.method!=='HEAD') {
@@ -48,8 +50,11 @@ function readOnlyResponse(req,res,root,options) {
     return;
   }
   const filename=pathname==='/'?'index.html':pathname.slice(1);
-  if (options.assets) {
-    const asset = options.assets().get(filename);
+  const isReport = options.reports === true && filename.startsWith('reports/');
+  if (options.assets || isReport) {
+    let asset;
+    try { asset = isReport ? { file: reportPath(filename, { root, access: 'read' }) } : options.assets().get(filename); }
+    catch { res.writeHead(404).end('Report not found'); return; }
     if (!asset) { res.writeHead(404).end('Not found'); return; }
     let bytes = asset.bytes, file = asset.file, size;
     try {
@@ -82,7 +87,8 @@ function readOnlyResponse(req,res,root,options) {
   let file,stats;
   try {
     file=realpathSync(resolve(root,filename));
-    if(!contained(root,file)) {res.writeHead(403).end('Forbidden');return;}
+    const mounted=runtime&&runtime.mounts.some(mount=>filename.startsWith(mount+'/'))&&file===resolve(runtime.path,filename);
+    if(!contained(root,file)&&!mounted) {res.writeHead(403).end('Forbidden');return;}
     stats=statSync(file);
     if(!stats.isFile()) {res.writeHead(404).end('Not found');return;}
   } catch {res.writeHead(404).end('Not found');return;}
@@ -99,7 +105,8 @@ function readOnlyResponse(req,res,root,options) {
 
 export function createP3PreviewServer(root=sourceRoot, options={}) {
   const resolved=realpathSync(resolve(root));
-  return createServer((req,res)=>readOnlyResponse(req,res,resolved,options));
+  const runtime=existsSync(resolve(resolved,'config/library-data.json'))?{path:libraryMaterializedRoot(resolved),mounts:libraryConfig(resolved).mounts.filter(path=>path!=='reports')}:null;
+  return createServer((req,res)=>readOnlyResponse(req,res,resolved,options,runtime));
 }
 
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {

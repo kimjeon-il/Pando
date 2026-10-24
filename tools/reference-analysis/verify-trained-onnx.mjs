@@ -1,4 +1,5 @@
 // Actual trained-model ORT WASM/PyTorch parity, using only a local static server.
+import { reportPath } from '../report-paths.mjs';
 import { chromium } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -76,6 +77,7 @@ try {
   if (externalRequests.size) throw Error('Unexpected external requests: ' + [...externalRequests].join(', '));
   result.externalRequests = 0;
   result.verifierSha256 = createHash('sha256').update(readFileSync(new URL(import.meta.url))).digest('hex');
-  writeFileSync(values.output, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+  const output = values.output.startsWith('reports/') ? reportPath(values.output, { access: 'write' }) : values.output;
+  writeFileSync(output, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
   console.log(JSON.stringify(result));
 } finally { await browser.close(); }

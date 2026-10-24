@@ -51,7 +51,7 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   const shell = join(process.env.SystemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe');
   const run = (...args) => execFileSync(shell, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script, '-RepositoryRoot', root, ...args], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
   const preview = run();
-  assert.equal(existsSync(join(data, '.working')), false, 'preview creates no report directories or files');
+  assert.equal(existsSync(join(data, 'reports')), false, 'preview creates no report directories or files');
   assert.match(preview, /WOULD REMOVE/);
   assert.ok(revisions.every(id => existsSync(join(materialized, id))), 'preview must keep every cache');
   assert.ok(ids.every(id => existsSync(worker(id))), 'preview must keep generated copies');
@@ -62,16 +62,15 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   assert.equal(existsSync(worker(ids[0])), false);
   for (const id of ids.slice(1)) assert.ok(existsSync(worker(id)), 'current, tracked, unrecognized and staged Workers must remain');
   assert.deepEqual(readFileSync(join(data, storedPath)), bytes);
-  const reports = join(data, '.working/current/reports/reference-analysis');
+  const reports = join(data, 'reports/.edits/main/reference-analysis');
   const reportFiles = readdirSync(reports).filter(name => name.endsWith('.json'));
   const saved = reportFiles.map(name => JSON.parse(readFileSync(join(reports, name), 'utf8').replace(/^\uFEFF/, ''))).find(row => row.apply);
   assert.equal(saved.entries.filter(row => row.status === 'removed').length, 2);
   assert.ok(saved.deletedBytes > 0);
   assert.equal(typeof saved.freeBytesBefore, 'number');
   assert.equal(typeof saved.freeBytesAfter, 'number');
-  put(join(data, '.working/report-owner.json'), JSON.stringify({ path: 'fixed-original/reports', revision: revisions[0] }));
   run('-Apply'); // Repeating an approved cleanup does not affect protected paths.
-  const rerun = readdirSync(join(data, '.working/fixed-original/reports/reference-analysis')).map(name => JSON.parse(readFileSync(join(data, '.working/fixed-original/reports/reference-analysis', name), 'utf8').replace(/^\uFEFF/, '')))[0];
+  const rerun = readdirSync(join(data, 'reports/.edits/main/reference-analysis')).map(name => JSON.parse(readFileSync(join(data, 'reports/.edits/main/reference-analysis', name), 'utf8').replace(/^\uFEFF/, ''))).at(-1);
   assert.equal(rerun.deletedBytes, 0);
   assert.ok(existsSync(join(materialized, revisions[0])));
 

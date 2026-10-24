@@ -22,7 +22,7 @@ from report_paths import report_path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "tools/historical-library/sources/german-empire-1914/north-schleswig-001-026"
 BORDER = ROOT / "tools/historical-library/land-borders"
-REPORT_DIR = report_path("tools/historical-library/land-borders")
+REPORT_DIR = report_path("reports/borders/reconstruction/germany/north-schleswig", access='write')
 PREFIX = "german-denmark-1914-north-schleswig-001-026"
 EJERLAV_PATH = SOURCE / "seem-by-ejerlav-current.geojson"
 EJERLAV_META_PATH = SOURCE / "seem-by-ejerlav-current.provenance.json"

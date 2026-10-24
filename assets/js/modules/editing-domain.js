@@ -647,7 +647,7 @@ export function createEditingDomain({
         const source = geometry.resolveObjectFeature?.(event.targetRef);
         const detached = source ? structuredClone(source) : null;
         const selectedVertex = editableVertices(detached).find(item => item.key === String(event.vertexKey || ''));
-        if (!source || !detached || !selectedVertex || geometry.canEditObject?.(source, selectedVertex) === false) began = false;
+        if (!source || !detached || !selectedVertex || geometry.canEditObject?.(source, selectedVertex, activeGesture.targetRef) === false) began = false;
         else {
           activeGesture.session = {
             kind: 'object',
@@ -675,7 +675,7 @@ export function createEditingDomain({
     return geometry.resolveObjectFeature(gesture.targetRef) === session.source
       && session.source.geometry === session.sourceGeometry
       && geometryRevision(session.sourceGeometry) === session.sourceGeometryRevision
-      && geometry.canEditObject?.(session.source, session.vertex) !== false;
+      && geometry.canEditObject?.(session.source, session.vertex, gesture.targetRef) !== false;
   };
 
   const applyGestureMove = async event => {
@@ -693,6 +693,7 @@ export function createEditingDomain({
       setEditableVertex(session.detached, session.vertex, value);
       session.vertex = editableVertices(session.detached).find(item => item.key === session.vertex.key) || session.vertex;
       geometry.previewObjectGesture?.({
+        targetRef: activeGesture.targetRef,
         source: session.source,
         feature: session.detached,
         vertex: session.vertex,
@@ -744,13 +745,14 @@ export function createEditingDomain({
     try {
       if (gesture.session?.kind === 'object') {
         const editDomain = gesture.targetRef?.domain === 'hydro' ? 'hydro' : 'generic';
-        if (editDomain === 'hydro' && gesture.session.changed
+        if (gesture.session.changed
           && ['Polygon', 'MultiPolygon'].includes(gesture.session.detached.geometry?.type)) {
           const issue = validateGeometry(gesture.session.detached).find(row => row.severity !== 'warning');
           if (issue) throw Object.assign(new Error(issue.message), { code: 'PL-HYDRO-GEOMETRY', issue });
         }
         result = await applyGeometryPatch(editDomain, {
           commit: () => geometry.commitObjectGesture?.({
+            targetRef: gesture.targetRef,
             source: gesture.session.source,
             feature: gesture.session.detached,
             beforeGeometry: gesture.session.beforeGeometry,

@@ -717,7 +717,7 @@ def main():
         fetch(args.cache)
     elif args.command == "build":
         build(args.cache, args.stats or ROOT / "reports" / "places" / "geonames-statistics.json",
-              args.report or report_path("docs/place-data-audit.md"))
+              args.report or report_path("reports/places/place-data-audit.md", access='write'))
     else:
         overrides = args.review_overrides
         default_reviews = ROOT / "reports" / "places" / "candidate-reviews.json"
@@ -725,7 +725,7 @@ def main():
         if overrides is None and args.reviews == default_reviews and default_overrides.exists():
             overrides = default_overrides
         review(args.cache, args.reviews, args.stats or ROOT / "reports" / "places" / "candidate-review-summary.json",
-               args.report or report_path("docs/place-candidate-review.md"), overrides)
+               args.report or report_path("reports/places/place-candidate-review.md", access='write'), overrides)
 
 
 if __name__ == "__main__":

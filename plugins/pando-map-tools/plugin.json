@@ -1,1 +1,15 @@
-{"name":"pando-map-tools","version":"0.1.0","description":"Pando reference-map training with the existing local Python tools; no QGIS or additional desktop application."}
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pando-map-tools",
+  "version": "0.2.0",
+  "description": "Independent map analysis, structured revision, GeoJSON export and optional training using existing Pando tools; no GIS application or server.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Pando Map Tools",
+        "shortDescription": "Analyze maps and export reviewed GIS data",
+        "category": "Developer Tools"
+      }
+    }
+  }
+}

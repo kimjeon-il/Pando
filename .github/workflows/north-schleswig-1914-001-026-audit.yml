@@ -8,8 +8,8 @@ on:
       - tools/audit_north_schleswig_1914_001_026.py
       - .github/workflows/north-schleswig-1914-001-026-audit.yml
       - tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.geojson
-      - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.diagnostics.json
-      - tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.diagnostics.json
+      - reports/borders/reconstruction/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.diagnostics.json
+      - reports/borders/reconstruction/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.diagnostics.json
 
 permissions:
   contents: write
@@ -38,7 +38,7 @@ jobs:
           node tools/library-data.mjs --store-and-stage --push -- \
             tools/historical-library/sources/german-empire-1914/north-schleswig-001-026/seem-by-ejerlav-current.geojson \
             tools/historical-library/sources/german-empire-1914/north-schleswig-001-026/seem-by-ejerlav-current.provenance.json \
-            "$(python tools/report_paths.py tools/historical-library/land-borders)"/german-denmark-1914-north-schleswig-001-026.audit.json
+            reports/borders/reconstruction/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.audit.json
           if git diff --cached --quiet; then
             echo "No audit changes."
           else

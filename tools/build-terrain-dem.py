@@ -606,36 +606,38 @@ def main():
     parser.add_argument("--repair-polar-min-level", type=int, default=0)
     parser.add_argument("--repair-polar-max-level", type=int, default=5)
     args = parser.parse_args()
-    if args.reuse_dem:
-        if not args.tint_zip or not args.glaciated_areas or not args.countries:
-            parser.error('--reuse-dem requires --tint-zip, --glaciated-areas and --countries')
-        rebuild_tint_release(args.reuse_dem, args.tint_zip, args.glaciated_areas, args.countries, args.output)
-    elif args.repair_output:
-        manifest_path = args.output/'manifest.json'
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        previous_report_path = args.output/'build-report.json'
-        previous_report = json.loads(previous_report_path.read_text(encoding='utf-8')) if previous_report_path.exists() else {}
-        if args.etopo:
-            restore_polar_gutter_shade(args.output, args.etopo, args.repair_polar_min_level, args.repair_polar_max_level)
-        for level in manifest['levels']:
-            print(json.dumps({'level': level['id'], 'reconciledTiles': reconcile_gutters(args.output, level)}), flush=True)
-        assets_sha, reports = asset_summary(args.output, manifest['levels'])
-        old_generation = manifest.pop('generation', {})
-        manifest['assetsSha256'] = assets_sha
-        manifest_path.write_bytes((json.dumps(manifest, ensure_ascii=False, indent=2)+'\n').encode('utf-8'))
-        report = {'completed': True, 'totalBytes': sum(item['bytes'] for item in reports)
-                  +(args.output/'tint.webp').stat().st_size,
-                  'seconds': previous_report.get('seconds', old_generation.get('seconds')),
-                  'peakWorkingSetBytes': previous_report.get('peakWorkingSetBytes', old_generation.get('peakWorkingSetBytes')),
-                  'levelReports': [dict(report, seconds=previous_report.get('levelReports', old_generation.get('levelReports', [{}]*len(reports)))[index].get('seconds'))
-                                   for index, report in enumerate(reports)],
-                  'manifestSha256': sha256(manifest_path)}
-        (args.output/'build-report.json').write_bytes((json.dumps(report, indent=2)+'\n').encode('utf-8'))
-        print(json.dumps(report), flush=True)
-    else:
-        if not args.etopo or not args.tint_zip or not args.glaciated_areas or not args.countries:
-            parser.error('--etopo, --tint-zip, --glaciated-areas and --countries are required for generation')
-        build(args.etopo, args.tint_zip, args.output, args.glaciated_areas, args.countries)
+    from library_data import library_output
+    with library_output([args.output]):
+        if args.reuse_dem:
+            if not args.tint_zip or not args.glaciated_areas or not args.countries:
+                parser.error('--reuse-dem requires --tint-zip, --glaciated-areas and --countries')
+            rebuild_tint_release(args.reuse_dem, args.tint_zip, args.glaciated_areas, args.countries, args.output)
+        elif args.repair_output:
+            manifest_path = args.output/'manifest.json'
+            manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+            previous_report_path = args.output/'build-report.json'
+            previous_report = json.loads(previous_report_path.read_text(encoding='utf-8')) if previous_report_path.exists() else {}
+            if args.etopo:
+                restore_polar_gutter_shade(args.output, args.etopo, args.repair_polar_min_level, args.repair_polar_max_level)
+            for level in manifest['levels']:
+                print(json.dumps({'level': level['id'], 'reconciledTiles': reconcile_gutters(args.output, level)}), flush=True)
+            assets_sha, reports = asset_summary(args.output, manifest['levels'])
+            old_generation = manifest.pop('generation', {})
+            manifest['assetsSha256'] = assets_sha
+            manifest_path.write_bytes((json.dumps(manifest, ensure_ascii=False, indent=2)+'\n').encode('utf-8'))
+            report = {'completed': True, 'totalBytes': sum(item['bytes'] for item in reports)
+                      +(args.output/'tint.webp').stat().st_size,
+                      'seconds': previous_report.get('seconds', old_generation.get('seconds')),
+                      'peakWorkingSetBytes': previous_report.get('peakWorkingSetBytes', old_generation.get('peakWorkingSetBytes')),
+                      'levelReports': [dict(report, seconds=previous_report.get('levelReports', old_generation.get('levelReports', [{}]*len(reports)))[index].get('seconds'))
+                                       for index, report in enumerate(reports)],
+                      'manifestSha256': sha256(manifest_path)}
+            (args.output/'build-report.json').write_bytes((json.dumps(report, indent=2)+'\n').encode('utf-8'))
+            print(json.dumps(report), flush=True)
+        else:
+            if not args.etopo or not args.tint_zip or not args.glaciated_areas or not args.countries:
+                parser.error('--etopo, --tint-zip, --glaciated-areas and --countries are required for generation')
+            build(args.etopo, args.tint_zip, args.output, args.glaciated_areas, args.countries)
 
 
 if __name__ == "__main__":
