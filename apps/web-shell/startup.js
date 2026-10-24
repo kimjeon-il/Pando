@@ -14,20 +14,20 @@ async function start() {
     if (!response.ok) throw new Error('The bundled shell profile is missing.');
     return response.json();
   });
-  if (profileMeta.mode !== 'full-world' && !verification) throw new Error('Ordinary startup requires the full-world profile.');
+  if (profileMeta.mode !== 'map-data' && !verification) throw new Error('Ordinary startup requires the map-data profile.');
   if (profileMeta.verification !== !!verification
       || (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function'
         && globalThis.PANDOLAB_SHELL_VERIFICATION !== !!verification)) {
     throw new Error('Verification assets do not match the native application.');
   }
-  installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'full-world' });
+  installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'map-data' });
   const assetBase = new URL('../assets/js/', import.meta.url);
   const versionedAsset = relative => {
     const url = new URL(relative, assetBase);
     url.searchParams.set('v', meta.assetRevision);
     return url;
   };
-  const profile = profileMeta.mode === 'full-world'
+  const profile = profileMeta.mode === 'map-data'
     ? await createRuntimeProfile(profileMeta) : await verification.createFixtureProfile(profileMeta);
   let libraryGeometryContext = null;
   if (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function') {
@@ -35,7 +35,7 @@ async function start() {
       await import(versionedAsset('./modules/library-geometry-context.js').href);
     const request = parseNativeLibraryGeometryRequest(location.search, true);
     if (request) {
-      if (profile.mode !== 'full-world') throw new Error('라이브러리 형상 편집에는 전체 지도 앱이 필요합니다.');
+      if (profile.mode !== 'map-data') throw new Error('라이브러리 형상 편집에는 실제 지도 자료를 포함한 앱이 필요합니다.');
       const [{ createNativeLibraryRepository }, { createRepositoryTerritorialLoader },
         { createTerritorialLibraryService }] = await Promise.all([
         import(versionedAsset('./modules/native-library-repository.js').href),
@@ -51,8 +51,8 @@ async function start() {
       document.title = libraryGeometryContext.title;
     }
   }
-  if (profile.mode === 'full-world') {
-    // The full-world shell must take precisely the website's progressive WebGL
+  if (profile.mode === 'map-data') {
+    // The map-data shell must take precisely the website's progressive WebGL
     // preview -> canonical country packet -> canonical mesh startup path.
     globalThis.__PANDOLAB_SHELL_PLATFORM__ = Object.freeze({
       ...profile.platform,

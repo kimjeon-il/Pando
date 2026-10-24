@@ -2,9 +2,12 @@
 
 The Tauri 2 application for Windows x64 and Android arm64. It embeds the
 existing Web frontend staged by `stage.mjs`. Ordinary builds and development
-use full-world with manifest-pinned country, historical and prepared geometry assets.
-The small-project fixture is available only in explicit verification builds.
+use `map-data` with manifest-pinned country, historical and prepared geometry assets.
+The `test-fixture` profile is available only in explicit verification builds.
 This is the sole app execution and development entrypoint.
+
+프로필은 앱에 넣을 자료를 선택하며, 사용자가 만들 프로젝트의 범위나 크기를 제한하지 않는다.
+`map-data`는 실제 지도 자료, `test-fixture`는 검증용 합성 자료를 뜻한다.
 
 ## 일반 앱과 검증 실행기
 
@@ -14,7 +17,7 @@ This is the sole app execution and development entrypoint.
 방향 감지, 프로젝트 파일 입출력과 오류 보고는 유지한다.
 
 검증할 때만 `build:verification:windows` 또는 `build:verification:android`를
-사용한다. 작은 저장 시험은 검증 명령에만 `PANDOLAB_SHELL_PROFILE=small-project`를
+사용한다. 작은 저장 시험은 검증 명령에만 `PANDOLAB_SHELL_PROFILE=test-fixture`를
 함께 지정한다. 일반 빌드·개발 실행에서는 이 값을 자료 준비나 출력 생성 전에 거부한다.
 기존 `stage:verification` 명령은 검증 자산만 준비하며 네이티브 앱을 빌드하지 않는다.
 검증 빌드의 자산·Cargo feature·Tauri 권한이 다르면 빌드를 실패시킨다.
@@ -31,7 +34,7 @@ This is the sole app execution and development entrypoint.
 ## 반복 개발
 
 저장소 루트에서 `pnpm --dir apps/web-shell dev:windows` 또는 `dev:android`를
-실행한다. 기본 개발 프로필은 `full-world`이며 `http://127.0.0.1:4175`의
+실행한다. 기본 개발 프로필은 `map-data`이며 `http://127.0.0.1:4175`의
 검증된 자산을 사용한다. 처음 네이티브 실행기를 만든 뒤 HTML·CSS·JS 수정은
 화면만 재로딩한다. C++ 변경은 기존 도구로 WASM과 manifest를 함께 재생성하면
 검증 후 재로딩한다. Rust·권한·브리지 변경 때만 증분 빌드와 재시작이 필요하다.
@@ -51,12 +54,12 @@ Cargo 의존성 경로를 재사용하며 앱의 소스 줄 디버그 정보만 
 
 ## Resource profiles (2-3A–C)
 
-The verification-only **small-project** profile is the 15-coordinate offline
+The verification-only **test-fixture** profile is the 15-coordinate offline
 smoke fixture. Its tests, size restrictions and storage namespace remain unchanged.
 It can be staged only for verification. The development server and ordinary
 offline artifact preservation always reject it.
 
-The default **full-world** profile uses the *same* progressive Web startup as
+The default **map-data** profile uses the *same* progressive Web startup as
 the public website (`assets/js/bootstrap.js`, `data-loader-worker.js`,
 the verified C++/WASM core, preview geometry and canonical GPU mesh).
 The original Web menu and DOM are packaged, not recreated for Tauri.
@@ -71,18 +74,18 @@ For Windows PowerShell (from the repository root):
 pnpm --dir apps/web-shell build:windows
 
 # Explicit fixture verification only:
-$env:PANDOLAB_SHELL_PROFILE = 'small-project'
+$env:PANDOLAB_SHELL_PROFILE = 'test-fixture'
 pnpm --dir apps/web-shell build:verification:windows
 Remove-Item Env:PANDOLAB_SHELL_PROFILE
 ```
 
-For Android, `pnpm --dir apps/web-shell build:android` also defaults to full-world.
-Use `build:verification:android` with the small-project variable only for fixture checks. Alternatively,
-`pnpm --dir apps/web-shell stage:world` creates a full-world staging
+For Android, `pnpm --dir apps/web-shell build:android` also defaults to map-data.
+Use `build:verification:android` with the test-fixture variable only for fixture checks. Alternatively,
+`pnpm --dir apps/web-shell stage:map-data` creates a map-data staging
 snapshot **only**; subsequent Tauri builds restage using the environment
-and require verification mode when small-project is selected.
+and require verification mode when test-fixture is selected.
 
-The full-world profile includes manifest-pinned offline HydroRIVERS and built-in places.
+The map-data profile includes manifest-pinned offline HydroRIVERS and built-in places.
 Both are off by default and load only when explicitly enabled in View. Project-created
 water objects and labels remain editable independently. Terrain data and its menu are
 excluded from the app. The public Web retains its backgrounds. New app projects start
@@ -163,7 +166,7 @@ verification builds; `write_diagnostic_report` remains available in ordinary bui
 | `read_document_chunk` | `{token}` | `{contents: base64Chunk, done}` |
 | `abort_document_transfer` | `{token}` | `boolean` |
 
-The diagnostic snapshot filename is `small-project.json`; the report filename is
+The diagnostic snapshot filename is `test-fixture.json`; the report filename is
 `diagnostic-report.json`. Both have a strict 1 MiB UTF-8 byte limit, checked before
 creating directories. Local writes use a flushed adjacent temporary file and an
 atomic replacement; failure preserves the previous destination. Reads are bounded
@@ -177,7 +180,7 @@ project/GIS document size is 256 MiB, with up to 16 GIS files per import.
 Small probe and diagnostic files retain the original 1 MiB bound. Android provider
 URIs that do not expose a file extension are rejected instead of being assigned
 a misleading GIS format. Full-project file sizes and provider-name recovery belong
-to the later full-world app expansion.
+to the later map-data app expansion.
 
 Android pickers return `content://` URIs, which the filesystem plugin opens through
 the platform provider. Android export uses `ACTION_CREATE_DOCUMENT` and writes a

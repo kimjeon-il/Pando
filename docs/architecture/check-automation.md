@@ -22,7 +22,7 @@ A renamed module follows current imports. A removed dependency must be removed f
 
 ## Execution and CI
 
-Prerequisites run before consumers. Identical commands share results only within the same prerequisite context, so small-project and full-world staging are each verified after their own stage operation. Staging writes only generated output; validation uses --check and never regenerates tracked sources or updates expectations. Current generated assets and shared Core are required before browser workflows.
+Prerequisites run before consumers. Identical commands share results only within the same prerequisite context, so test-fixture and map-data staging are each verified after their own stage operation. Staging writes only generated output; validation uses --check and never regenerates tracked sources or updates expectations. Current generated assets and shared Core are required before browser workflows.
 
 Application Architecture owns automatic PR/main application checks. P3 runs the same command on work-branch/artifact-result SHAs after existing P2 ordering. UI, place and reference-image workflows remain explicit manual entrypoints without copied automatic test lists. Manual default Application Architecture covers all automatic groups; focused scopes and P1/P3 manual choices remain explicit. P2 auto dispatch remains affected-only.
 

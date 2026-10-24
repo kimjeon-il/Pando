@@ -20,8 +20,8 @@ export function createPhysicalSourceConfiguration({assetBaseUrl,dataRevision,res
  const local=params.get('demTerrain')==='local'?`http://127.0.0.1:4174/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`:null;
  const dev=devManifest||local?new URL(String(devManifest||local),location.href):null;
  const selection=selectTerrainManifestUrls({official:new URL(`https://kimjeon-il.github.io/PandoLab-library-data/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),
-  raster,dev:resourceProfile==='full-world'?null:dev,preview:params.get('demTerrain')==='preview',
-  rasterOnly:resourceProfile==='full-world'||params.get('demTerrain')==='raster',defaultDem:true});
+  raster,dev:resourceProfile==='map-data'?null:dev,preview:params.get('demTerrain')==='preview',
+  rasterOnly:resourceProfile==='map-data'||params.get('demTerrain')==='raster',defaultDem:true});
  return Object.freeze({PHYSICAL_DATA_BASE_URL:dataBase,TERRAIN_RASTER_MANIFEST_URL:raster,TERRAIN_DEV_DEM_MANIFEST_URL:dev,
   TERRAIN_PRIMARY_MANIFEST_URL:selection.primary,TERRAIN_FALLBACK_MANIFEST_URL:selection.fallback,TERRAIN_SOURCE_CHOICE:selection.source});
 }

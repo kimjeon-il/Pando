@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
-import { createDevelopmentAssets, stagePrototype } from '../stage.mjs';
+import { createDevelopmentAssets, stagePrototype, validateShellProfile } from '../stage.mjs';
 import { startDevelopmentServer } from '../dev.mjs';
 import { assertOrdinaryBuild, assertVerificationBuild, windowsBuildArguments } from '../packaged-artifacts.mjs';
 import { createBuiltinWorldLoader } from '../../../assets/js/modules/builtin-world-loader.js';
@@ -14,24 +14,30 @@ import { REFERENCE_IMAGE_STYLE_SOURCES } from '../../../assets/js/modules/refere
 import { createRuntimeProfile } from '../runtime-profile.js';
 
 import { worldFixture } from './helpers/world-fixture.mjs';
+test('data profile names describe real map data and a verification fixture', () => {
+  assert.doesNotThrow(() => validateShellProfile('map-data', false));
+  assert.doesNotThrow(() => validateShellProfile('test-fixture', true));
+  assert.throws(() => validateShellProfile('test-fixture', false), /verification/i);
+  for (const name of ['full-world', 'small-project']) assert.throws(() => validateShellProfile(name, true), /Unknown/);
+});
 test('ordinary staging and development reject the test profile before creating output', async t => {
   const root = await mkdtemp(join(tmpdir(), 'pandolab-profile-rejection-'));
   t.after(() => rm(root, { recursive: true, force: true }));
-  await assert.rejects(stagePrototype({ root, profile: 'small-project' }), /verification/i);
-  await assert.rejects(createDevelopmentAssets({ root, profile: 'small-project' }), /verification/i);
-  await assert.rejects(startDevelopmentServer({ repository: root, port: 0, profile: 'small-project', observe: false }), /verification/i);
+  await assert.rejects(stagePrototype({ root, profile: 'test-fixture' }), /verification/i);
+  await assert.rejects(createDevelopmentAssets({ root, profile: 'test-fixture' }), /verification/i);
+  await assert.rejects(startDevelopmentServer({ repository: root, port: 0, profile: 'test-fixture', observe: false }), /verification/i);
   await assert.rejects(stat(join(root, 'apps')), /ENOENT/);
 });
 
-test('ordinary artifact identity rejects a non-world resource profile', () => {
-  assert.throws(() => assertOrdinaryBuild({ verification: false, profile: 'small-project' }), /full-world/i);
+test('ordinary artifact identity rejects the verification fixture profile', () => {
+  assert.throws(() => assertOrdinaryBuild({ verification: false, profile: 'test-fixture' }), /map-data/i);
 });
 
 test('ordinary runtime profile refuses the fixture before loading its assets', async t => {
-  const profile = { mode: 'small-project', verification: false,
+  const profile = { mode: 'test-fixture', verification: false,
     builtinWorld: { url: './fixture-world.json', sha256: 'a'.repeat(64) }, countriesUrl: './fixture-countries.json' };
   t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify(profile)));
-  await assert.rejects(createRuntimeProfile(profile), /full-world/i);
+  await assert.rejects(createRuntimeProfile(profile), /map-data/i);
 });
 
 test('an environment-selected fixture cannot start ordinary development or a packaging build', async t => {
@@ -41,10 +47,10 @@ test('an environment-selected fixture cannot start ordinary development or a pac
   for (const [script, args, verification] of [['dev.mjs', [], '1'], ['packaged-artifacts.mjs', ['--build'], '0']]) {
     const result = spawnSync(process.execPath, [fileURLToPath(new URL('../' + script, import.meta.url)), ...args], {
       encoding: 'utf8', timeout: 15000,
-      env: { ...process.env, PANDOLAB_SHELL_PROFILE: 'small-project', PANDOLAB_SHELL_VERIFICATION: verification, CARGO_TARGET_DIR: target },
+      env: { ...process.env, PANDOLAB_SHELL_PROFILE: 'test-fixture', PANDOLAB_SHELL_VERIFICATION: verification, CARGO_TARGET_DIR: target },
     });
     assert.equal(result.status, 1, result.stderr);
-    assert.match(result.stderr, /small-project.*verification/i);
+    assert.match(result.stderr, /test-fixture.*verification/i);
   }
   await assert.rejects(stat(target), /ENOENT/);
 });
@@ -55,9 +61,9 @@ test('native build mode controls features and rejects the wrong artifact identit
   assert.throws(() => assertOrdinaryBuild({ verification: true }), /verification/);
   assert.throws(() => assertOrdinaryBuild({ executionMode: 'development', verification: false }), /offline/);
   assert.throws(() => assertOrdinaryBuild({}), /identity/);
-  assert.doesNotThrow(() => assertOrdinaryBuild({ verification: false, profile: 'full-world' }));
+  assert.doesNotThrow(() => assertOrdinaryBuild({ verification: false, profile: 'map-data' }));
   assert.throws(() => assertVerificationBuild({ verification: false }), /verification/);
-  assert.doesNotThrow(() => assertVerificationBuild({ verification: true, profile: 'small-project' }));
+  assert.doesNotThrow(() => assertVerificationBuild({ verification: true, profile: 'test-fixture' }));
 });
 
 test('startup errors use ordinary reporting except in the auto verification window', async () => {
@@ -88,7 +94,7 @@ async function source(t) {
 
 test('stages the real frontend, exact WASM pair and local OCR without world data', async t => {
   const { root } = await source(t);
-  const result = await stagePrototype({ root, profile: 'small-project', verification: true });
+  const result = await stagePrototype({ root, profile: 'test-fixture', verification: true });
   assert.ok(result.files.some(file => file.path === 'assets/js/app.js'));
   assert.ok(result.files.every(file => !file.path.startsWith('assets/data/') || file.path.startsWith('assets/data/reference-analysis/')));
   assert.equal(await readFile(join(result.directory, 'assets/data/reference-analysis/v1/ocr/eng.traineddata.gz'), 'utf8'), 'OCR');
@@ -100,7 +106,7 @@ test('stages the real frontend, exact WASM pair and local OCR without world data
   assert.match(html, /Editor/);
   assert.doesNotMatch(html, /Viewer only/);
   assert.doesNotMatch(html, /src="assets\/js\/bootstrap\.js/);
-  assert.equal(result.profile, 'small-project');
+  assert.equal(result.profile, 'test-fixture');
   assert.equal(result.fixture.entityCount, 3);
   assert.ok(result.fixture.coordinateCount <= 100);
 });
@@ -110,12 +116,12 @@ test('verification assets are opt-in and disappear on the next ordinary stage', 
   const ordinary = await stagePrototype({ root });
   const names = result => result.files.map(file => file.path);
   assert.equal(ordinary.verification, false);
-  assert.equal(ordinary.profile, 'full-world');
+  assert.equal(ordinary.profile, 'map-data');
   assert.equal(ordinary.fixture, null);
   assert.ok(!names(ordinary).includes('shell/diagnostics.js'));
   assert.ok(!names(ordinary).includes('shell/full-world-probe.js'));
   assert.doesNotMatch(await readFile(join(ordinary.directory, 'shell/startup.js'), 'utf8'), /import.*(?:diagnostics|full-world-probe|reference-analysis-probe)/);
-  const verified = await stagePrototype({ root, profile: 'small-project', verification: true });
+  const verified = await stagePrototype({ root, profile: 'test-fixture', verification: true });
   assert.ok(names(verified).includes('shell/verification.js'));
   assert.ok(names(verified).includes('shell/probe-storage.js'));
   assert.equal(JSON.parse(await readFile(join(verified.directory, 'shell/stage-profile.json'))).verification, true);
@@ -128,7 +134,7 @@ test('verification assets are opt-in and disappear on the next ordinary stage', 
 
 test('the verification fixture loads through the current builtin country transport', async t => {
   const { root } = await source(t);
-  const result = await stagePrototype({ root, profile: 'small-project', verification: true });
+  const result = await stagePrototype({ root, profile: 'test-fixture', verification: true });
   const profile = JSON.parse(await readFile(join(result.directory, 'shell/stage-profile.json')));
   const loader = createBuiltinWorldLoader({
     manifestUrl: 'https://shell.test/shell/fixture-world.json', manifestSpec: profile.builtinWorld,
