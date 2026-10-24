@@ -1,6 +1,7 @@
+import { writeLibraryOutput } from './library-data.mjs';
 import { createHash } from 'node:crypto';
 import { sharedSourceManifest } from './package-shared-core-assets.mjs';
-import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
@@ -98,7 +99,7 @@ for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeComp
   // published content hashes do not change when generated on Windows.
   compressed[9] = 3;
   const hash = sha256(compressed), url = `${destination}/polygon-mesh-sha256-${hash}.bin.gz`;
-  mkdirSync(dirname(resolve(root, url)), { recursive: true }); writeFileSync(resolve(root, url), compressed);
+  mkdirSync(dirname(resolve(root, url)), { recursive: true }); writeLibraryOutput(resolve(root, url), compressed);
   meshes[digest] = { url, sha256: hash, encoding: 'gzip', compressedBytes: compressed.length, decodedBytes: encoded.length };
   bytes += compressed.length; count++;
   if (count % 25 === 0) console.log(`Prepared ${count}/${geometries.size} fixed polygon meshes`);
@@ -107,5 +108,5 @@ const manifest = { schema: 'pandolab-prepared-polygon-meshes', schemaVersion: 2,
   meshFormatVersion: POLYGON_MESH_FORMAT_VERSION,
   algorithmVersion: engine.MESH_ALGORITHM_REVISION, algorithmSourceSha256,
   maxEdgeDegrees: engine.MAX_RENDER_EDGE_DEGREES, inputHashes, precisionDiscards, meshes };
-writeFileSync(resolve(root, `${destination}/manifest.json`), JSON.stringify(manifest, null, 2) + '\n');
+writeLibraryOutput(resolve(root, `${destination}/manifest.json`), JSON.stringify(manifest, null, 2) + '\n');
 console.log(`Prepared ${count} fixed polygon meshes (${bytes} compressed bytes; ${reused} unchanged meshes reused).`);

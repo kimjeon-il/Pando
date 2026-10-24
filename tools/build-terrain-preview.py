@@ -322,7 +322,12 @@ def main() -> None:
                 raise ValueError("Rebuilt preview differs from committed bytes")
         result["reproducible"] = True
     else:
-        result = verify(options.output) if options.check else build(options.output, options.cache)
+        if options.check:
+            result = verify(options.output)
+        else:
+            from library_data import library_output
+            with library_output([options.output]):
+                result = build(options.output, options.cache)
     print(json.dumps(result, sort_keys=True))
 
 

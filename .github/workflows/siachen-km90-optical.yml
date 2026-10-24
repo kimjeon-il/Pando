@@ -33,7 +33,7 @@ jobs:
           from report_paths import report_path
           import json
           from pathlib import Path
-          p=report_path("assets/data/research/siachen")
+          p=report_path("reports/borders/reconstruction/siachen", access="read")
           a=json.loads((p/'siachen_s2_km90_corridor.json').read_text())
           assert a['years']['2025']['item_id']=='S2B_43SFV_20250923_0_L2A'
           assert a['years']['2026']['item_id']=='S2B_43SFV_20260829_0_L2A'
@@ -44,14 +44,16 @@ jobs:
           print('PASS: 2025 and 2026 comparison georeferenced and source-fixed')
           PY
 
+      - name: Resolve branch report artifacts
+        run: echo "PANDO_REPORT_ARTIFACTS=$(python tools/report_paths.py reports/borders/reconstruction/siachen --access read)" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
           name: siachen-km90-optical
           path: |
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_*_km90_corridor.png
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_km90_corridor.json
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_km90_corridor.geojson
-            reports/research/siachen/README_s2_km90.md
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_s2_*_km90_corridor.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_s2_km90_corridor.json
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_s2_km90_corridor.geojson
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/README_s2_km90.md
 
       - name: Commit research outputs with concurrent-branch retry
         env:
@@ -59,7 +61,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_*_km90_corridor.png "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_km90_corridor.* "$(python tools/report_paths.py assets/data/research/siachen)"/README_s2_km90.md
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/siachen_s2_*_km90_corridor.png reports/borders/reconstruction/siachen/siachen_s2_km90_corridor.* reports/borders/reconstruction/siachen/README_s2_km90.md
           if ! git diff --cached --quiet; then
             git commit -m "research: record optical km90 anomaly crosscheck"
             for attempt in 1 2 3 4 5; do

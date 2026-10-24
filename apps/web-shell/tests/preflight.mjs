@@ -5,9 +5,10 @@ import { resolve, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import { createHash } from 'node:crypto';
+import { reportPath } from '../../../tools/report-paths.mjs';
 
 const root = fileURLToPath(new URL('../dist/', import.meta.url));
-const output = fileURLToPath(new URL('../../../build-native/web-shell/', import.meta.url));
+const output = resolve(reportPath('reports/development/native/web-shell/browser-preflight.json', { access: 'write' }), '..');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
   '.wasm': 'application/wasm', '.css': 'text/css', '.woff2': 'font/woff2', '.svg': 'image/svg+xml' };
 const configuration = JSON.parse(await readFile(new URL('../src-tauri/tauri.conf.json', import.meta.url), 'utf8'));

@@ -2,8 +2,12 @@
 
 Run these tools from the PandoLab worktree. The library checkout is storage only.
 Original maps, annotations, checkpoints, ONNX weights and reports belong in the
-external library, not application Git. Use `tools/report-paths.mjs` for complete
-report originals; the readable archive pages may contain abbreviated text.
+external library, not application Git. Full report originals live in the shared
+library root `reports/`. Resolve branch-specific reads with
+`node tools/report-paths.mjs reports/<path> read`; use `write` for an independent
+`.edits/<branch>` copy before changing a report or producing new output.
+`EXTERNAL_LIBRARY_REPORTS` below is a placeholder for the appropriate resolved
+read or write location. Existing compressed historical revisions remain readable.
 
 ## Current state
 
@@ -30,8 +34,8 @@ listed but skipped. Existing originals are verified rather than overwritten;
 failed downloads remove only their own exclusively created `.part` file.
 
 ```powershell
-& build-native/python/Scripts/python.exe tools/reference-analysis/acquire-sources.py --output EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/sources
-& build-native/python/Scripts/python.exe tools/reference-analysis/prepare-analysis-images.py --sources EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/sources
+& build-native/python/Scripts/python.exe tools/reference-analysis/acquire-sources.py --output EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
+& build-native/python/Scripts/python.exe tools/reference-analysis/prepare-analysis-images.py --sources EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
 ```
 
 The second command preserves the master and makes an 8MP app input only when
@@ -108,7 +112,7 @@ Prepare a draft directly from the verified acquired JPEG sources, without making
 another image copy:
 
 ```powershell
-& build-native/python/Scripts/python.exe tools/reference-analysis/corpus.py --prepare-review EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/sources
+& build-native/python/Scripts/python.exe tools/reference-analysis/corpus.py --prepare-review EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
 ```
 
 This writes `labels/<source-id>.json` and `corpus.draft.json` beside `sources/`.
@@ -141,7 +145,7 @@ another virtual environment or retain downloaded wheel copies.
 $trainingPython = 'D:/dev/worktrees/ui/build-native/python/Scripts/python.exe'
 $corpusPath = 'EXTERNAL_LIBRARY_CORPUS/corpus.json'
 $checkpointPath = 'EXTERNAL_LIBRARY_WEIGHTS/boundary.pt'
-$evaluationPath = 'EXTERNAL_LIBRARY_REPORTS/boundary-evaluation.json'
+$evaluationPath = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/reports/boundary-evaluation.json'
 $onnxPath = 'EXTERNAL_LIBRARY_RUNTIME/boundary.onnx'
 
 & $trainingPython tools/reference-analysis/corpus.py --corpus $corpusPath
@@ -175,8 +179,8 @@ channels. Boundary pixels covered by text are ignored. Coast is unobserved;
 water polygons are not silently relabelled as coastline.
 
 ```powershell
-$publisherCorpus = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/usgs-publisher'
-$firstModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/usgs-publisher-v1'
+$publisherCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/usgs-publisher'
+$firstModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/usgs-publisher-v1'
 & $trainingPython tools/reference-analysis/acquire-sources.py --catalog tools/reference-analysis/usgs-source-catalog.json --output "$publisherCorpus/sources"
 & $trainingPython tools/reference-analysis/publisher.py --sources "$publisherCorpus/sources"
 $env:TORCH_HOME = "$firstModel/encoder"
@@ -227,16 +231,16 @@ remain `und`/`Unknown`/null and do not count as script evaluation coverage. The
 color/monochrome field records a raster-chroma heuristic for inventory only.
 
 ```powershell
-$auxiliaryCorpus = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/semap-diverse'
+$auxiliaryCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/semap-diverse'
 $auxiliaryManifest = "$auxiliaryCorpus/corpus.expanded.training.json"
-$previousModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v1'
-$diverseModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v2'
+$previousModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v1'
+$diverseModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v2'
 & $trainingPython tools/reference-analysis/semap.py --output $auxiliaryCorpus --per-institution 12 --maximum-maps 96 --manifest-name corpus.expanded.training.json
 & $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --initialize-checkpoint "$previousModel/boundary.pt" --output "$diverseModel/boundary.pt" --epochs 6 --batch 1 --device cuda --balance-sources --learning-rate 0.00003 --freeze-encoder-epochs 0
 & $trainingPython tools/reference-analysis/train.py export --checkpoint "$diverseModel/boundary.pt" --output "$diverseModel/boundary.onnx"
 & $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/diagnostics"
 & $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --view-corpus auxiliary --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/auxiliary-diagnostics"
-node tools/reference-analysis/verify-trained-onnx.mjs --base http://127.0.0.1:4287/ --model reports/reference-analysis/models/diverse-v2/boundary.onnx --diagnostics reports/reference-analysis/models/diverse-v2/diagnostics --output "$diverseModel/onnx-wasm-parity.json"
+node tools/reference-analysis/verify-trained-onnx.mjs --base http://127.0.0.1:4287/ --model reports/map-analysis/models/diverse-v2/boundary.onnx --diagnostics reports/map-analysis/models/diverse-v2/diagnostics --output "$diverseModel/onnx-wasm-parity.json"
 ```
 
 The last command needs a local static server for this worktree. It checks the
@@ -286,13 +290,13 @@ Validation recomputes source image/masks/statistics; source and rights metadata,
 PDF bytes and whole-map scope are hash-bound in the corpus fingerprint.
 
 ```powershell
-$macroCorpus = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/corpus/macro-political'
-$macroModel = 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/macro-v1'
+$macroCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/macro-political'
+$macroModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v1'
 & $trainingPython tools/reference-analysis/acquire-sources.py --catalog tools/reference-analysis/macro-source-catalog.json --output "$macroCorpus/sources"
 & $trainingPython tools/reference-analysis/macro.py --sources "$macroCorpus/sources"
-& $trainingPython tools/reference-analysis/train.py train --training-only --macro-only --corpus "$macroCorpus/corpus.training.json" --initialize-checkpoint 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v2/boundary.pt' --output "$macroModel/boundary.pt" --epochs 8 --batch 1 --device cuda --balance-sources --learning-rate 0.00001 --freeze-encoder-epochs 2
+& $trainingPython tools/reference-analysis/train.py train --training-only --macro-only --corpus "$macroCorpus/corpus.training.json" --initialize-checkpoint 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v2/boundary.pt' --output "$macroModel/boundary.pt" --epochs 8 --batch 1 --device cuda --balance-sources --learning-rate 0.00001 --freeze-encoder-epochs 2
 & $trainingPython tools/reference-analysis/train.py export --checkpoint "$macroModel/boundary.pt" --output "$macroModel/boundary.onnx"
-& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$macroCorpus/corpus.training.json" --checkpoint "$macroModel/boundary.pt" --baseline-checkpoint 'EXTERNAL_LIBRARY_REPORTS/reference-analysis/models/diverse-v2/boundary.pt' --onnx "$macroModel/boundary.onnx" --output "$macroModel/diagnostics"
+& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$macroCorpus/corpus.training.json" --checkpoint "$macroModel/boundary.pt" --baseline-checkpoint 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v2/boundary.pt' --onnx "$macroModel/boundary.onnx" --output "$macroModel/diagnostics"
 ```
 
 Macro scope records a verified whole-map extent, not a count of cropped tiles or

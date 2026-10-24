@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import { writeLibraryOutput } from './library-data.mjs';
 // Individual source object boundary for the native historical geometry recipe engine.
 // All coordinate construction, topology, projection and winding live in C++.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -105,7 +106,7 @@ export function run(argv = process.argv.slice(2)) {
     const comparable = replaceRecipeGeometry(candidate, recipe, stored);
     assert.deepEqual(comparable, original, `Historical library metadata is stale: ${recipe.output}`);
   } else {
-    writeFileSync(outputPath, `${JSON.stringify(candidate, null, 2)}\n`);
+    writeLibraryOutput(outputPath, `${JSON.stringify(candidate, null, 2)}\n`);
   }
   process.stdout.write(JSON.stringify({ geometryVersion: recipe.id,
     componentCount: geometry.coordinates.length, output: recipe.output, check }) + '\n');

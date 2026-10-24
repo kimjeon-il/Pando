@@ -4,6 +4,7 @@ explicit manual trace of the official 1902–1930-group historical map.
 
 DO NOT infer a 1914 tidal shoreline or land polygon from this line.
 """
+from library_data import write_library_text
 import argparse
 import hashlib
 import json
@@ -25,7 +26,7 @@ def write(path, data, check):
         if not path.exists() or path.read_text(encoding="utf-8")!=content:
             raise RuntimeError("candidate artifact is not reproducible or is stale: "+str(path))
     else:
-        path.write_text(content,encoding="utf-8")
+        write_library_text(path,content,encoding="utf-8")
 
 def xy_to_lonlat(p,bbox,im):
     x,y=p
