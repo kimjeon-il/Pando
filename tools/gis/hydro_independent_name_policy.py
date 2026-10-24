@@ -59,7 +59,25 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
                 and isinstance(gauges.get("checkedAgainstSystemId"), str)
                 and gauges["checkedAgainstSystemId"] != system_id
             )
-        if not natural_earth_valid and not station_valid:
+        # Smaller named reaches within a correctly labelled basin need a
+        # stricter, separately audited low-coverage exception. It is limited
+        # to preserving an already-published name, with government material,
+        # an independently named Natural Earth mainstem, and no competing NE
+        # watercourse of comparable reach.
+        conservative = item.get("conservativeMainstemReview")
+        conservative_valid = (
+            isinstance(conservative, dict)
+            and conservative.get("method") == "official-corroborated-original-name"
+            and item.get("previousNameKo") == korean_name
+            and isinstance(geom, dict)
+            and isinstance(geom.get("name"), str) and bool(geom["name"])
+            and isinstance(coverage, (int, float)) and 0.70 <= coverage < 0.85
+            and isinstance(conservative.get("otherNamedNECoverage"), (int, float))
+            and 0 <= conservative["otherNamedNECoverage"] < 0.15
+            and isinstance(conservative.get("reason"), str)
+            and len(conservative["reason"]) >= 24
+        )
+        if not natural_earth_valid and not station_valid and not conservative_valid:
             raise ValueError(f"Missing independent mainstem evidence for system {system_id}")
         evidence = item.get("independentSources")
         if not isinstance(evidence, list) or len(evidence) < 2:
@@ -77,9 +95,11 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             kinds.add(kind)
         independent_vector = "public-domain-vector" in kinds and len(kinds) >= 2
         independent_gauges = station_valid and {"government-hydrology", "government-gauging"} <= kinds
+        if conservative_valid and not ({"government-hydrology", "public-domain-vector"} <= kinds):
+            raise ValueError(f"Official river authority needed for conservative mainstem {system_id}")
         if not independent_vector and not independent_gauges:
             raise ValueError(f"Independent geodata and named hydrology evidence required for {system_id}")
-        if not natural_earth_valid and not independent_gauges:
-            raise ValueError(f"Missing verified non-Natural-Earth station corroboration for {system_id}")
+        if not natural_earth_valid and not independent_gauges and not conservative_valid:
+            raise ValueError(f"Missing verified independent mainstem corroboration for {system_id}")
         verified[system_id] = item
     return verified

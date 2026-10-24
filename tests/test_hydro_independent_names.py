@@ -18,7 +18,7 @@ PATH = ROOT / "tools/gis/hydro-independent-name-replacements.json"
 class IndependentHydronymReviewTests(unittest.TestCase):
     def test_replacements_include_gauge_verified_brazos_and_texas_colorado(self):
         rows = load_independent_hydronyms(PATH)
-        self.assertEqual(len(rows), 22)
+        self.assertEqual(len(rows), 27)
         self.assertEqual(set(rows), {
             "20282220", "20323928", "20342955", "20457454",
             "20478829", "20673409", "20680587", "40485117",
@@ -26,6 +26,7 @@ class IndependentHydronymReviewTests(unittest.TestCase):
             "41347969", "50261309", "70576631", "70580124",
             "70816878", "70819626",
             "40145639", "40351117", "41392598", "70842751",
+            "20336821", "20452421", "20588291", "41225082", "50170097",
         })
         renamed = {key: value["nameKo"] for key, value in rows.items()
                    if value["previousNameKo"] != value["nameKo"]}
@@ -45,6 +46,11 @@ class IndependentHydronymReviewTests(unittest.TestCase):
         self.assertEqual(rows["40351117"]["tributaryNames"], ["훈강"])
         self.assertEqual(rows["41392598"]["nameKo"], "메콩강")
         self.assertEqual(rows["70842751"]["nameKo"], "리오그란데강")
+        self.assertEqual(rows["41225082"]["nameKo"], "람강")
+        for ident in ("20336821","20452421","20588291","50170097"):
+            self.assertEqual(rows[ident]["previousNameKo"], rows[ident]["nameKo"])
+            self.assertIn("conservativeMainstemReview", rows[ident])
+
         for ident in ("70816878", "70819626"):
             self.assertEqual(rows[ident]["officialStationEvidence"]["agency"], "USGS")
             self.assertEqual(len(rows[ident]["officialStationEvidence"]["stationIds"]), 3)
@@ -90,6 +96,25 @@ class IndependentHydronymReviewTests(unittest.TestCase):
                 output.write_text(json.dumps(candidate), encoding="utf-8")
                 with self.assertRaises(ValueError):
                     load_independent_hydronyms(output)
+
+    def test_conservative_name_review_must_have_non_conflicting_independent_evidence(self):
+        original = json.loads(PATH.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "weak.json"
+            for wrong in ("identity-changed", "competitor-name", "unsupported-low-coverage", "no-government-source"):
+                candidate = copy.deepcopy(original)
+                entry = next(row for row in candidate["replacements"] if row["systemId"] == "20336821")
+                if wrong == "identity-changed":
+                    entry["nameKo"] = "오데르강"
+                elif wrong == "competitor-name":
+                    entry["conservativeMainstemReview"]["otherNamedNECoverage"] = 0.40
+                elif wrong == "unsupported-low-coverage":
+                    entry["naturalEarth"]["sampleCoverage"] = 0.21
+                else:
+                    entry["independentSources"] = [entry["independentSources"][0]]
+                target.write_text(json.dumps(candidate), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_independent_hydronyms(target)
 
     def test_old_osm_only_basins_are_not_assigned_names_in_bulk(self):
         rows = load_independent_hydronyms(PATH)
