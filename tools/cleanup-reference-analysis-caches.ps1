@@ -3,8 +3,11 @@
 Preview: .\tools\cleanup-reference-analysis-caches.ps1
 Delete verified unused copies: .\tools\cleanup-reference-analysis-caches.ps1 -Apply
 Add -IncludeRetiredAppBinaries -IncludeEmulatorSnapshots for retired native
-executables and stopped Android emulators' Quick Boot snapshots. No backups
-are created. Sources, installed apps, SDKs, Git history and active builds stay.
+executables and stopped Android emulators' Quick Boot snapshots. Use
+-IncludeGitTemporaryPacks for abandoned, unindexed Git packing output after
+offline reference verification. Preview writes no files. Applied results use
+the canonical report owner. No backups are created. Sources, installed apps,
+SDKs, Git history and active builds stay.
 ##>
 [CmdletBinding()]
 param(
@@ -15,6 +18,7 @@ param(
     [switch]$SkipDataCaches,
     [switch]$IncludeRetiredAppBinaries,
     [switch]$IncludeEmulatorSnapshots,
+    [switch]$IncludeGitTemporaryPacks,
     [string]$AndroidAvdRoot = 'D:/Android/avd'
 )
 
@@ -31,7 +35,7 @@ function Invoke-GitText([string]$Root, [string[]]$Arguments, [string[]]$InputLin
     try {
         [Console]::OutputEncoding = $OutputEncoding
         $output = if ($InputLines.Count) { @($InputLines | & $script:Git -C $Root @Arguments 2>&1) } else { @(& $script:Git -C $Root @Arguments 2>&1) }
-        if ($LASTEXITCODE -ne 0) { throw ('Git failed: ' + ($output -join "`n")) }
+        if ($LASTEXITCODE -ne 0) { throw ('Git failed: ' + (($output | Select-Object -Last 12) -join "`n")) }
         return ($output -join "`n")
     } finally { [Console]::OutputEncoding = $consoleEncoding }
 }
@@ -98,6 +102,18 @@ function Get-Protection {
         $config = Get-Content -LiteralPath (Join-Path $root 'config/library-data.json') -Raw | ConvertFrom-Json
         if ($config.revision -notmatch '^[a-f0-9]{40}$') { throw "Invalid active pin in $root" }
         [void]$pins.Add($config.revision)
+        if (Test-Path -LiteralPath (Join-Path $root '.library-data/prepare.lock')) { throw 'A library preparation or storage operation is running.' }
+        $leasePath = Join-Path $root '.library-data/dev-server.json'
+        if (Test-Path -LiteralPath $leasePath) {
+            $lease = Get-Content -LiteralPath $leasePath -Raw | ConvertFrom-Json
+            if (Get-Process -Id $lease.pid -ErrorAction SilentlyContinue) {
+                foreach ($activePath in $lease.materialized) {
+                    $active = [IO.Path]::GetFullPath($activePath)
+                    $prefix = $cacheRoot + [IO.Path]::DirectorySeparatorChar
+                    if ($active.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { [void]$pins.Add($active.Substring($prefix.Length).Split([char[]]@('\', '/'))[0]) }
+                }
+            }
+        }
         foreach ($mount in $config.mounts) {
             $path = Join-Path $root $mount
             if (-not (Test-Path -LiteralPath $path)) { continue }
@@ -134,18 +150,35 @@ function Remove-CheckedDirectory([string]$Path, [string]$ExpectedParent) {
     if (Test-Path -LiteralPath $full) { throw 'Cleanup did not finish.' }
 }
 
+function Assert-GitIdle([string]$Common) {
+    $running = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(git|git-pack-objects|git-index-pack)\.exe$' })
+    if ($running.Count) { throw 'A Git operation is running; preserve temporary packs.' }
+    if (@(Get-ChildItem -LiteralPath $Common -Filter '*.lock' -File -Force | Where-Object { $_.Name -ne 'pando-library.lock' }).Count -or (Test-Path -LiteralPath (Join-Path $Common 'gc.pid'))) { throw 'Git has an operation lock; preserve temporary packs.' }
+}
+
 $protection = Get-Protection
-$pin = (Get-Content -LiteralPath (Join-Path $RepositoryRoot 'config/library-data.json') -Raw | ConvertFrom-Json).revision
-$reportDirectory = Join-Path $dataRoot ".working/$pin/reports/reference-analysis"
-[void](New-Item -ItemType Directory -Path $reportDirectory -Force)
+$modulePath = Join-Path $PSScriptRoot 'library-data.mjs'
+$reportRoot = & node $modulePath --report-root $RepositoryRoot
+if ($LASTEXITCODE -ne 0 -or -not $reportRoot) { throw 'Cannot resolve the canonical report owner.' }
+$reportDirectory = Get-ChildPath $reportRoot 'reference-analysis'
 $reportPath = Join-Path $reportDirectory ('cleanup-result-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.json')
+$drive = New-Object IO.DriveInfo ([IO.Path]::GetPathRoot($cacheRoot))
+$freeBytesBefore = $drive.AvailableFreeSpace
 $rows = New-Object 'System.Collections.Generic.List[object]'
 [long]$deletedBytes = 0
 [long]$eligibleBytes = 0
 $oldLazyFetch = $env:GIT_NO_LAZY_FETCH
+$oldOptionalLocks = $env:GIT_OPTIONAL_LOCKS
 $env:GIT_NO_LAZY_FETCH = '1'
+$env:GIT_OPTIONAL_LOCKS = '0'
+$lockStream = $null
+$common = Invoke-GitText $dataRoot @('rev-parse', '--git-common-dir')
+if (-not [IO.Path]::IsPathRooted($common)) { $common = Join-Path $dataRoot $common }
+$lockPath = Join-Path $common 'pando-library.lock'
 
 try {
+    if ($Apply) { $lockStream = [IO.File]::Open($lockPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None) }
+    elseif (Test-Path -LiteralPath $lockPath) { throw 'Library storage is already running.' }
     foreach ($directory in $(if (-not $SkipDataCaches) { Get-ChildItem -LiteralPath $cacheRoot -Force -Directory })) {
         $id = $directory.Name
         if ($id -notmatch '^[a-f0-9]{40}$' -or ($Revision.Count -and $Revision -notcontains $id)) { continue }
@@ -172,9 +205,22 @@ try {
                 [void]$archiveReferences.Add($entry.stored)
                 $expected[$filePath] = $entry
             }
-            if (-not $expected.Count -or $actualFiles.Count -ne $expected.Count + 1) { throw 'Extra or missing files; preserve cache.' }
+            $ownerPath = Join-Path $target '.cache-owner.json'
+            $markerCount = 1
+            if (Test-Path -LiteralPath $ownerPath) {
+                $owner = Get-Content -LiteralPath $ownerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                if ($owner.schema -ne 'pando-materialized-cache-v1' -or $owner.revision -ne $id) { throw 'Invalid cache ownership record.' }
+                $ownerFiles = @($owner.files.PSObject.Properties)
+                if ($ownerFiles.Count -ne $expected.Count) { throw 'Ownership record does not match the archived files.' }
+                foreach ($property in $ownerFiles) {
+                    $ownedPath = Get-ChildPath $target $property.Name
+                    if (-not $expected.ContainsKey($ownedPath) -or $expected[$ownedPath].sha256 -ne $property.Value) { throw 'Ownership digest does not match the archive.' }
+                }
+                $markerCount++
+            }
+            if (-not $expected.Count -or $actualFiles.Count -ne $expected.Count + $markerCount) { throw 'Extra or missing files; preserve cache.' }
             foreach ($file in $actualFiles) {
-                if ($file.FullName.Equals($marker, [StringComparison]::OrdinalIgnoreCase)) { continue }
+                if ($file.FullName.Equals($marker, [StringComparison]::OrdinalIgnoreCase) -or $file.FullName.Equals($ownerPath, [StringComparison]::OrdinalIgnoreCase)) { continue }
                 if (-not $expected.ContainsKey($file.FullName)) { throw "Unarchived file: $($file.FullName)" }
                 $entry = $expected[$file.FullName]
                 if ($file.Length -ne [long]$entry.bytes) { throw "Modified file size: $($file.FullName)" }
@@ -237,6 +283,13 @@ try {
                 }
                 $eligibleBytes += $row.bytes; $row.status = 'verified-unused'
                 if ($Apply) {
+                    $protection = Get-Protection
+                    foreach ($root in $protection.Roots) {
+                        foreach ($relativeMeta in @('assets/js/build-meta.js', 'apps/web-shell/dist/assets/js/build-meta.js')) {
+                            $meta = Join-Path $root $relativeMeta
+                            if ((Test-Path -LiteralPath $meta) -and (Get-Content -LiteralPath $meta -Raw).Contains("assets/worker-runtime/$id/")) { throw 'Worker became active during verification.' }
+                        }
+                    }
                     if (-not (Test-UnchangedFiles $files $target)) { throw 'Worker changed during verification.' }
                     Remove-CheckedDirectory $target $runtimeParent
                     $deletedBytes += $row.bytes; $row.status = 'removed'; Write-Host "REMOVED $target"
@@ -312,6 +365,46 @@ try {
         }
     }
 
+    if ($IncludeGitTemporaryPacks -and -not $Revision.Count) {
+        $packRoot = [IO.Path]::GetFullPath((Join-Path $common 'objects/pack'))
+        if ((Resolve-DirectoryTarget $packRoot) -ne $packRoot) { throw 'Git pack directory is a link.' }
+        $packs = @(Get-ChildItem -LiteralPath $packRoot -File -Filter 'tmp_pack_*' | Where-Object { $_.Name -match '^tmp_pack_[A-Za-z0-9]{6}$' })
+        $packVerificationError = $null
+        if ($packs.Count) {
+            try {
+                Assert-GitIdle $common
+                # These names are not part of Git's object database. Prove all
+                # locally required objects for refs and paired pins readable
+                # offline. A partial clone may intentionally lack promisor
+                # blobs; do not fetch them or confuse them with corruption.
+                $pins = @((Get-Protection).Pins)
+                [void](Invoke-GitText $dataRoot (@('rev-list', '--objects', '--all', '--quiet', '--missing=allow-promisor') + $pins))
+            } catch { $packVerificationError = $_.Exception.Message }
+        }
+        foreach ($file in $packs) {
+            $row = [ordered]@{ kind = 'abandoned-git-pack'; path = $file.FullName; status = 'checking'; bytes = $file.Length; reason = '' }
+            $rows.Add($row)
+            try {
+                if ($packVerificationError) { throw $packVerificationError }
+                Assert-GitIdle $common
+                if ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Temporary pack is a link.' }
+                if (Test-Path -LiteralPath ($file.FullName + '.idx')) { throw 'Temporary pack has an index; review it separately.' }
+                if ($file.DirectoryName -ne $packRoot -or (Resolve-DirectoryTarget $packRoot) -ne $packRoot) { throw 'Temporary pack is outside the verified directory.' }
+                $stream = [IO.File]::Open($file.FullName, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
+                $stream.Dispose()
+                $eligibleBytes += $file.Length; $row.status = 'verified-unused'
+                if ($Apply) {
+                    Assert-GitIdle $common
+                    $now = Get-Item -LiteralPath $file.FullName
+                    if ($now.Length -ne $file.Length -or $now.LastWriteTimeUtc -ne $file.LastWriteTimeUtc) { throw 'Temporary pack changed during verification.' }
+                    Remove-Item -LiteralPath $file.FullName -Force -ErrorAction Stop
+                    if (Test-Path -LiteralPath $file.FullName) { throw 'Temporary pack deletion did not finish.' }
+                    $deletedBytes += $file.Length; $row.status = 'removed'; Write-Host "REMOVED $($file.FullName)"
+                } else { Write-Host "WOULD REMOVE $($file.FullName) ($($file.Length) bytes)" }
+            } catch { $row.status = 'protected-or-failed'; $row.reason = $_.Exception.Message; Write-Warning "KEEP $($file.FullName): $($row.reason)" }
+        }
+    }
+
     if ($IncludeEmulatorSnapshots -and -not $Revision.Count -and (Test-Path -LiteralPath $AndroidAvdRoot)) {
         $avdRoot = [IO.Path]::GetFullPath($AndroidAvdRoot).TrimEnd('\', '/')
         if ((Resolve-DirectoryTarget $avdRoot) -ne $avdRoot) { throw 'AVD root is a link.' }
@@ -324,7 +417,8 @@ try {
             try {
                 if ($avd.Attributes -band [IO.FileAttributes]::ReparsePoint -or (Resolve-DirectoryTarget $parent) -ne $parent) { throw 'AVD or snapshots parent is a link.' }
                 $files = Get-PlainFiles $target
-                if (-not ($files | Where-Object { $_.Name -eq 'snapshot.pb' })) { throw 'Unrecognized snapshot layout.' }
+                $incompleteRamOnly = $files.Count -eq 1 -and $files[0].FullName -eq (Join-Path $target 'ram.img')
+                if (-not ($files | Where-Object { $_.FullName -eq (Join-Path $target 'snapshot.pb') }) -and -not $incompleteRamOnly) { throw 'Unrecognized snapshot layout.' }
                 $running = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(emulator|qemu-system-.*|qemu)\.exe$' })
                 if ($running.Count) { throw 'An emulator is running.' }
                 foreach ($file in $files) { $row.bytes += $file.Length }
@@ -341,8 +435,14 @@ try {
     }
 } finally {
     $env:GIT_NO_LAZY_FETCH = $oldLazyFetch
-    [ordered]@{ schemaVersion = 1; at = (Get-Date).ToUniversalTime().ToString('o'); apply = [bool]$Apply; repository = $RepositoryRoot; cacheRoot = $cacheRoot; eligibleBytes = $eligibleBytes; deletedBytes = $deletedBytes; entries = @($rows.ToArray()) } |
-        ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $reportPath -Encoding UTF8
+    $env:GIT_OPTIONAL_LOCKS = $oldOptionalLocks
+    if ($lockStream) { $lockStream.Dispose(); Remove-Item -LiteralPath $lockPath -Force }
+    $freeBytesAfter = (New-Object IO.DriveInfo ([IO.Path]::GetPathRoot($cacheRoot))).AvailableFreeSpace
+    $result = [ordered]@{ schemaVersion = 1; at = (Get-Date).ToUniversalTime().ToString('o'); apply = [bool]$Apply; repository = $RepositoryRoot; cacheRoot = $cacheRoot; freeBytesBefore = $freeBytesBefore; freeBytesAfter = $freeBytesAfter; freeBytesDelta = $freeBytesAfter - $freeBytesBefore; eligibleBytes = $eligibleBytes; deletedBytes = $deletedBytes; entries = @($rows.ToArray()) }
+    if ($Apply) {
+        [void](New-Item -ItemType Directory -Path $reportDirectory -Force)
+        $result | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $reportPath -Encoding UTF8
+        Write-Host "Report: $reportPath"
+    } else { $result | ConvertTo-Json -Depth 10 }
     Write-Host ('Eligible: {0:N2} GiB; removed: {1:N2} GiB' -f ($eligibleBytes / 1GB), ($deletedBytes / 1GB))
-    Write-Host "Report: $reportPath"
 }

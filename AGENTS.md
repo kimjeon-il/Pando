@@ -38,25 +38,51 @@ local worktree. Web lives at the repository root, the application in
 
 ## Storage and generated-file cleanup (mandatory)
 
-- Before large builds, downloads, or copies, check free space on the target
-  drive. Avoid duplicate outputs and unnecessary full copies; reuse existing
-  dependencies, data caches, and incremental build directories where valid.
-- When cleanup is needed, unused caches, temporary files, duplicate generated
-  outputs, and failed-operation remnants may be removed without separate user
-  approval, including files from earlier tasks, after verifying both that they
-  are reproducible and that no current build, running app, verification
-  workflow, or other worktree depends on them.
-- Preserve active incremental build caches and outputs required for current
-  execution or verification. Being generated or Git-ignored alone does not
-  establish that a file is unused or safe to remove.
-- Protect source files, user data, uncommitted or untracked work, original
-  materials and evidence, and permanent worktrees and branches. Discarding
-  these still requires explicit user approval.
-- Before deletion, verify each target's purpose, resolve its absolute path, and
-  confirm it stays within the intended cache, build, or temporary-file location.
-  Do not traverse junctions or symbolic links into another repository or shared
-  cache.
-- After cleanup, report the removed targets and measured storage reclaimed.
+- Cleanup is part of task completion. Before finishing, remove task-owned
+  temporary files, failed downloads, verification copies and reproducible
+  outputs whose use has ended. Report the size and concrete reason for each
+  remaining temporary or obsolete output. "It might be useful later" is not
+  a retention reason: retained generated files need a current consumer,
+  execution path or verification purpose.
+- Do not back up disposable caches before deleting them. Do not create full
+  repository, data or build copies per task. Reuse permanent worktrees, fixed
+  build directories, dependencies and valid incremental caches.
+- Keep library archive contents in the shared Git object store. Check out
+  metadata only and hydrate requested data or report originals on demand.
+  Do not expand all archive blobs or reports in every worktree. An unhydrated
+  file is not a deletion; never stage its absence as one.
+- Retain materialized caches only while referenced by a worktree pin, mount,
+  running app, development server or verification workflow. Verify all these
+  consumers before retiring a cache. Unused, reproducible caches, duplicate
+  generated outputs and failed-operation remnants, including earlier tasks'
+  files, may be removed without another approval after verification.
+- JS/CSS changes use the development reload workflow. C++ changes rebuild
+  the affected WASM; native changes incrementally build only the affected
+  platform. Generate installation packages only for an actual release or
+  packaging verification. Preserve active incremental caches, SDKs and
+  development/training environments; deleting them just to rebuild them is
+  wasteful.
+- Training retains active resume/best checkpoints and results designated as
+  evaluation evidence. Remove superseded reproducible intermediates. Protect
+  original maps, labels and unique evaluation evidence.
+- Before an operation expected to add at least 1 GiB, check reuse options,
+  peak additional disk use (including temporary copies), and destination free
+  space. Require that peak plus 5 GiB headroom; otherwise clean verified
+  disposable files or reduce the operation's batch size before starting.
+- Source files, personal data, unfinished/untracked work, original materials,
+  unique evidence, and permanent worktrees/branches remain protected. Their
+  destruction requires explicit approval. A filename, age, or Git-ignored
+  status alone is never evidence that a file is disposable. Verify duplicates
+  by content hash and actual recoverability, not remote availability alone.
+- Resolve every deletion target's absolute path and confirm it remains inside
+  the intended cache/build/temporary location. Recheck consumers immediately
+  before deletion. Never traverse junctions or symbolic links into other
+  locations. Do not bypass an execution-policy rejection with another tool.
+- Use the existing preparation, storage and cleanup commands for scoped
+  checks; do not add an always-running full-project validation hook.
+- Report removed targets and logical bytes separately from measured drive
+  free-space change. Explain the current use of retained large generated
+  outputs, and distinguish successful, skipped and blocked deletions.
 
 
 ## External library data and reports (mandatory)
