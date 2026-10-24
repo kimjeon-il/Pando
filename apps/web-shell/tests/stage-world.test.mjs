@@ -53,7 +53,7 @@ async function fixture(t) {
   const country=await pinned('assets/data/builtin-world/generated/v1/countries/state-ABC-sha256-'+sha(Buffer.from('COUNTRY'))+'.json.gz',Buffer.from('COUNTRY'));
   const historicPath='assets/data/builtin-world/generated/v1/index.json';
   const transport=await pinned('assets/data/builtin-world/generated/v1/transport/countries-sha256-'+country.sha256+'.bin',Buffer.from('COUNTRY'));
-  const historicSpec=await pinned(historicPath,Buffer.from(JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,
+  const historicSpec=await pinned(historicPath,Buffer.from(JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,
     transport:{...transport,url:transport.url.split('/v1/')[1],schemaVersion:1,encoding:'identity'},
     entities:[{...country,file:country.url.split('/v1/')[1],offset:0}]})));
   const libPath = 'assets/data/territorial-entities/generated/v2/';

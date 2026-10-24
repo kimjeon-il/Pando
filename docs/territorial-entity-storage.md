@@ -4,13 +4,25 @@
 descriptions in the dated execution record below. Work is on permanent `work/gis`;
 this change does not merge main or deploy.
 
+The 2026-10-25 interval contract removes `datePrecision` and the device-current
+selection mode. Geometry selection uses only the entity lifetime and inclusive
+`validFrom` / `validTo` endpoints; year/month/day precision is carried by those
+endpoint strings. The editor and typed library provenance have no separate
+precision field. Undated representative selection remains an explicit version ID.
+The country catalog payload is schema 2: one `timelineRecords` object, one
+`sourceBindings` array and one coverage array per country, with no `modes` map.
+The existing `generated/v1` directory name is a publication path, not its payload
+schema. Unknown endpoints remain null; completing other extant objects' dates is
+deferred, and their unbounded coverage is not a historical accuracy claim.
+
 - Authoritative source: `assets/data/territorial-entities/source/countries/<entityId with colon replaced by hyphen>.json`.
   Each object owns its metadata, lifetime and all dated geometry versions.
 - Reference-only lineage schema 2: `source/lineages/<lineageId>.json` with
   `lineageId`, `names`, `entityRefs`, explicit `relations`. No geometry is duplicated.
 - Entity/index schema 2: `entityId`, `names`, `alternateNames`, `lifetime`,
   `geometryVersions[].versionId`, provenance, administrative parent and instantiation.
-- 281 entities / 262 lineages. Identity, lifetime and historical geometry are preserved.
+- Country counts are published by the generated index. Identity and historical
+  coordinates are preserved; approved period changes are recorded with their sources.
   Eligible modern land-boundary intervals are supplemented from pinned LSIB 11.4;
   source details and withheld intervals are recorded in `reports/geography/country-files-lsib-2026-10-21.md`.
 - `metadata.representativeGeometryVersionId` explicitly selects an object's undated

@@ -19,30 +19,30 @@ function fixture({cacheStorage=null,assets=files}={}){
  return {loader,calls,peak:()=>peak,corrupt:(value=true)=>{corrupt=value;}};
 }
 test('concurrent month queries share one packed download and later months need no country requests',async()=>{
- const f=fixture();const [historical]=await Promise.all([f.loader.loadProject('2014-02','2027-01'),f.loader.loadProject('2014-01','2027-01')]);
+ const f=fixture();const [historical]=await Promise.all([f.loader.loadProject('2014-02'),f.loader.loadProject('2014-01')]);
  assert.ok(historical.project.territorialEntities.some(row=>row.id==='state:test-ukraine'));
  assert.deepEqual(f.calls,['index.json',JSON.parse(files.get('index.json')).transport.url]);
- const count=f.calls.length;await f.loader.loadProject('2014-02','2027-01');assert.equal(f.calls.length,count);
- await f.loader.loadProject('2027-01','2027-01');assert.equal(f.calls.length,count);
+ const count=f.calls.length;await f.loader.loadProject('2014-02');assert.equal(f.calls.length,count);
+ await f.loader.loadProject('2027-01');assert.equal(f.calls.length,count);
  assert.equal(f.calls.some(file=>file.startsWith('countries/')),false);
  assert.equal(f.calls.some(file=>file.includes('world-project')),false);
 });
 test('a fresh loader reuses the verified catalog and packed bytes from Cache Storage',async()=>{
  const values=new Map();
  const cacheStorage={open:async()=>({match:async key=>values.get(key)?.clone(),put:async(key,response)=>{values.set(key,response.clone());},delete:async key=>values.delete(key)})};
- const first=fixture({cacheStorage});await first.loader.loadProject('2014-02','2027-01');
- const second=fixture({cacheStorage});const result=await second.loader.loadProject('2014-02','2027-01');
+ const first=fixture({cacheStorage});await first.loader.loadProject('2014-02');
+ const second=fixture({cacheStorage});const result=await second.loader.loadProject('2014-02');
  assert.ok(result.project.territorialEntities.length);assert.equal(second.calls.length,0);
 });
 test('an invalid packed byte range is rejected without downloading individual countries',async()=>{
  const assets=new Map(files),index=JSON.parse(assets.get('index.json'));index.entities[0].offset=1;
  assets.set('index.json',Buffer.from(JSON.stringify(index)));
- const f=fixture({assets});await assert.rejects(f.loader.loadProject('2014-02','2027-01'),/descriptor|range/);
+ const f=fixture({assets});await assert.rejects(f.loader.loadProject('2014-02'),/descriptor|range/);
  assert.ok(f.calls.every(file=>file==='index.json'));
 });
 test('country integrity failure rejects the whole query and the same loader can retry',async()=>{
- const f=fixture();f.corrupt();await assert.rejects(f.loader.loadProject('2014-02','2027-01'),/크기|무결성|size|integrity/);
- f.corrupt(false);assert.ok((await f.loader.loadProject('2014-02','2027-01')).project.territorialEntities.length);
+ const f=fixture();f.corrupt();await assert.rejects(f.loader.loadProject('2014-02'),/크기|무결성|size|integrity/);
+ f.corrupt(false);assert.ok((await f.loader.loadProject('2014-02')).project.territorialEntities.length);
 });
 test('selected country snapshot restores from autosave without reconstructing its original calendar context',async t=>{
  const owner=await createNodeCoreProject(startupDocument([]),{appVersion:'fixture'});t.after(()=>owner.dispose());

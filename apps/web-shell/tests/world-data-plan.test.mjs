@@ -24,7 +24,7 @@ function fixture() {
     territorialIndex: pin('assets/data/territorial-entities/generated/v2/index.json'),
     preparedPolygonMeshes: pin('assets/data/prepared-polygons/generated/v2/manifest.json'),
   };
-  const historical={schema:'pandolab-builtin-world',schemaVersion:1,
+  const historical={schema:'pandolab-builtin-world',schemaVersion:2,
     transport:{...pin('transport/countries-sha256-'+SHA+'.bin'),schemaVersion:1,encoding:'identity'},
     entities:[{file:'countries/state-ABC-sha256-'+SHA+'.json.gz',sha256:SHA,compressedBytes:3,decodedBytes:3,offset:0}]};
   const library = { schemaVersion: 2, entities: [{ file: 'state-ABC.json.gz', sha256: SHA, compressedBytes: 3 }] };

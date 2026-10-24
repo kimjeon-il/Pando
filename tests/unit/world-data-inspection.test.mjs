@@ -27,7 +27,7 @@ const baseFixture = () => {
   ].map(({ id, name, lineageId, geometry, bbox }) => {
     const file = `${id.replace(':', '-')}.json.gz`;
     const entity = { entityId: id, names: { ko: name }, geometryVersions: [{ versionId: `${id}:v1`, validFrom: null,
-      validTo: null, datePrecision: 'current', sourceId: 'fixture', geometry }] };
+      validTo: null, sourceId: 'fixture', geometry }] };
     const binary = gzipSync(`${JSON.stringify(entity)}\n`);
     fs.writeFileSync(path.join(chunks, file), binary);
     return { entityId: id, lineageId, names: { ko: name }, geometryVersionCount: 1,
@@ -137,8 +137,8 @@ test('rejects huge unscoped read, too many entities and invalid calendar date', 
   assert.notEqual(cli(f.data, '--mode', 'summary').status, 0);
   assert.notEqual(cli(f.data, '--mode', 'summary', '--bbox', '-10,-10,30,30', '--max-entities', '1').status, 0);
   assert.notEqual(cli(f.data, '--country', 'TST', '--date', '2026-02-30').status, 0);
-  assert.match(cli(f.data, '--country', 'TST', '--date', '1914-01-01').stderr, /only undated modern geometry/);
-  assert.notEqual(cli(f.data, '--country', 'TST', '--date', '2026-10-06').status, 0);
+  assert.equal(cli(f.data, '--country', 'TST', '--date', '1914-01-01').status, 0);
+  assert.equal(cli(f.data, '--country', 'TST', '--date', '2026-10-06').status, 0);
   assert.equal(cli(f.data, '--country', 'TST').status, 0);
   assert.notEqual(cli(f.data, '--mode', 'list', '--date', '1914-01-01').status, 0);
 });

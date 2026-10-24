@@ -17,7 +17,7 @@ import {confirmLibraryGeometryBeforeUnload} from '../../assets/js/modules/app-gl
 
 const polygon=(left,right)=>({type:'Polygon',coordinates:[[[left,0],[right,0],[right,1],[left,1],[left,0]]]});
 const version=(versionId,geometry,validFrom='1900-01-01',validTo='1900-12-31')=>
-  ({versionId,validFrom,validTo,datePrecision:'day',certainty:'confirmed',sourceId:'map',geometry});
+  ({versionId,validFrom,validTo,certainty:'confirmed',sourceId:'map',geometry});
 const entity=(id,geometry,from='1900-01-01',to='1900-12-31')=>({
   schemaVersion:2,entityId:id,entityKind:'general',lineageId:id,names:{ko:id},alternateNames:[],
   lifetime:{validFrom:from,validTo:to},parentEntityId:'',geometryVersions:[version(`${id}-v1`,geometry,from,to)],

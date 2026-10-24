@@ -39,7 +39,7 @@ export function createBuiltinSession({ builtinWorldLoader = null } = {}) {
   }
 
   async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
-    const key=month+':'+deviceCurrentMonth();
+    const key=month;
     const domain=dependencies.domains.projectDomain;
     if(projectBaseline?.queryKey===key&&domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
     const stale=()=>Object.assign(new Error('Builtin source request was superseded'),{name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
@@ -51,7 +51,7 @@ export function createBuiltinSession({ builtinWorldLoader = null } = {}) {
           manifestSpec:spec,dataRevision:meta.dataRevision});
       }
       const expectedGeneration=domain.getGeneration();
-      const {project}=await builtinWorldLoader.loadProject(month,deviceCurrentMonth(),{isCurrent});
+      const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
       const decoded=new TextEncoder().encode(JSON.stringify(project));
       const sourceBytes=decoded;
       const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',sourceBytes))].map(value=>value.toString(16).padStart(2,'0')).join('');

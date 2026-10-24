@@ -46,13 +46,13 @@ for(const context of readJson(physicalManifestPath).historicalWaterbodies||[])
 const sourceIndex=readJson('assets/data/territorial-entities/generated/v2/index.json');
 for(const entity of sourceIndex.entities)source(`assets/data/territorial-entities/generated/v2/${entity.file}`);
 const months=new Set();
-for(const country of countries)for(const rows of Object.values(country.modes))for(const row of [...rows.geometryBindings,...rows.parentRelations])
+for(const country of countries)for(const row of [...country.timelineRecords.geometryBindings,...country.timelineRecords.parentRelations])
  for(const value of [row.validFrom,row.validTo])if(value)for(const offset of [-1,0,1])months.add(shiftTemporalMonth(value.slice(0,-3),offset));
 const precisionDiscards=[],seenScopes=new Set();
-for(const month of [...months].sort())for(const currentMonth of [null,month]){
- const mode=currentMonth===null?'dated':'current',wanted=selectBuiltinCountries(index,month,currentMonth),ids=new Set(wanted.map(row=>row.entityId));
+for(const month of [...months].sort()){
+ const wanted=selectBuiltinCountries(index,month),ids=new Set(wanted.map(row=>row.entityId));
  const active=countries.filter(row=>ids.has(row.entityId));
- const relation=country=>country.modes[mode].parentRelations.find(row=>temporalContains(row,temporalMonthEnd(month)));
+ const relation=country=>country.timelineRecords.parentRelations.find(row=>temporalContains(row,temporalMonthEnd(month)));
  const needed=new Set();
  for(const country of active){const row=relation(country);if(row?.parentId){needed.add(country.entityId);needed.add(row.parentId);}}
  let expanded=true;
@@ -62,9 +62,9 @@ for(const month of [...months].sort())for(const currentMonth of [null,month]){
  if(!needed.size)continue;
  const selected=active.filter(country=>needed.has(country.entityId));
  const signature=JSON.stringify(selected.map(country=>[country.entityId,relation(country)?.parentId,
-  country.modes[mode].geometryBindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.geometryRef]));
+  country.timelineRecords.geometryBindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.geometryRef]));
  if(seenScopes.has(signature))continue;seenScopes.add(signature);
- const project=assembleBuiltinWorld({...index,entities:wanted.filter(row=>needed.has(row.entityId))},selected,month,currentMonth);
+ const project=assembleBuiltinWorld({...index,entities:wanted.filter(row=>needed.has(row.entityId))},selected,month);
  const archive=createGeometryVersionStore(project.geometries),world=resolveWorld(project.territorialEntities,project.timelineRecords,archive,month);
  const features=world.entities.map(row=>({...row.identity,geometry:row.geometry,properties:{...row.identity.properties,parentId:row.parentId}}));
  const byId=new Map(features.map(feature=>[feature.id,feature]));

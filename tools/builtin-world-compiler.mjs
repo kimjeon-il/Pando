@@ -68,7 +68,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     const sources = entities.filter(entity => currentIds.has(entity.entityId) && sourceFeatureIds.includes(entity.sourceInfo?.featureId));
     if (!sources.length) throw new Error(`Missing current identity: ${feature.id}`);
     for (const source of sources) sourceToProject.set(source.entityId, feature.id);
-    const info = { projectEntityId: feature.id, sourceEntityIds: sources.map(source => source.entityId).sort(), sourceFeatureIds, currentGeometryRef: null };
+    const info = { projectEntityId: feature.id, sourceEntityIds: sources.map(source => source.entityId).sort(), sourceFeatureIds };
     sourceIdentities.push(info);
     const primary = sources.find(source => source.sourceInfo.featureId === sourceFeature);
     const lifetime = bounds(primary.lifetime);
@@ -79,7 +79,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
       lifetime: structuredClone(primary.lifetime), geometryVersions: primary.geometryVersions.map(withoutGeometry), geometryBindings: [] };
     const windows=primary.geometryVersions.map(row=>{
       const interval=intersection(lifetime,bounds(row));
-      return interval && {...interval,versionId:row.versionId,currentOnly:row.datePrecision==='current',
+      return interval && {...interval,versionId:row.versionId,
         geometry:row.versionId===version.versionId?feature.geometry:row.geometry,
         parentId:feature.properties.parentId,coverageMode:feature.properties.coverageMode,
         currentSnapshot:row.versionId===version.versionId};
@@ -108,17 +108,15 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     const windows = entity.geometryVersions.map(version => {
       const available = bounds(version);
       const interval = available && intersection(lifetime, available);
-      return interval && { ...interval, currentOnly:version.datePrecision==='current', geometry: version.geometry, versionId: version.versionId,
+      return interval && { ...interval, geometry: version.geometry, versionId: version.versionId,
         parentId: sourceToProject.get(entity.parentEntityId) || entity.parentEntityId,
         coverageMode: entity.instantiation.coverageMode || 'explicit' };
     }).filter(Boolean);
     definitions.set(entity.entityId, { identity: identity(feature), currentSnapshot: false, windows });
-    sourceIdentities.push({ projectEntityId: entity.entityId, sourceEntityIds: [entity.entityId], sourceFeatureIds: [], currentGeometryRef: null });
+    sourceIdentities.push({ projectEntityId: entity.entityId, sourceEntityIds: [entity.entityId], sourceFeatureIds: [] });
   }
-  const eligibleWindows=(definition,mode)=>definition.windows.filter(window=>mode==='dated'?!window.currentOnly:
-    definition.currentSnapshot?window.currentSnapshot:window.end===null);
   const archive = createGeometryVersionStore(), byGeometry = new Map();
-  const contexts={}, adjustments = [];
+  const adjustments = [];
   const refByObject=new WeakMap();
   const geometryRef = geometry => {
     if(refByObject.has(geometry))return refByObject.get(geometry);
@@ -127,9 +125,8 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     const ref=byGeometry.get(hash);refByObject.set(geometry,ref);return ref;
   };
   const ordered = [...definitions].sort(([a], [b]) => a.localeCompare(b, 'en'));
-  for(const mode of ['dated','current']) {
   const events=new Map();
-  for(const definition of definitions.values())for(const window of eligibleWindows(definition,mode)){
+  for(const definition of definitions.values())for(const window of definition.windows){
     if(window.start)events.set(date(window.start),window.start);
     if(window.end){const next=shiftDay(window.end,1);events.set(date(next),next);}
   }
@@ -143,8 +140,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     const start = index === 0 ? null : cuts[index - 1], end = index === cuts.length ? null : shiftDay(cuts[index], -1);
     let candidates = [];
     for (const [id, definition] of ordered) {
-      let active = eligibleWindows(definition,mode).filter(window=>covers(window,start));
-      if(active.some(window=>!window.currentOnly))active=active.filter(window=>!window.currentOnly);
+      let active = definition.windows.filter(window=>covers(window,start));
       if (active.length > 1) throw new Error(`Overlapping geometry intervals: ${id}`);
       if (active.length) candidates.push({ ...active[0], entityId: id, currentSnapshot: active[0].currentSnapshot ?? definition.currentSnapshot,
         validFrom: start && date(start), validTo: end && date(end) });
@@ -168,10 +164,9 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     const surviving=new Map(candidates.map(row=>[row.entityId,row]));
     const hasParent=row=>!row.parentId || (surviving.has(row.parentId)&&hasParent(surviving.get(row.parentId)));
     candidates=candidates.filter(hasParent);
-    adjustments.push(...adjusted.adjustments.map(row => ({ ...row, mode, validFrom: start && date(start), validTo: end && date(end) })));
+    adjustments.push(...adjusted.adjustments.map(row => ({ ...row, validFrom: start && date(start), validTo: end && date(end) })));
     for (const candidate of candidates) {
       const definition = definitions.get(candidate.entityId), ref = geometryRef(candidate.geometry);
-      if (definition.currentSnapshot) definition.info.currentGeometryRef = ref;
       let rows = rowsByEntity.get(candidate.entityId);
       if (!rows) rowsByEntity.set(candidate.entityId, rows = { availability: [], geometryBindings: [], parentRelations: [] });
       const base = { entityId: candidate.entityId, validFrom: start && date(start), validTo: end && date(end) };
@@ -193,9 +188,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     for (const name of ['geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));
   }
   const normalized = normalizeTimelineRecords(records, { entities: identities.map(row => ({ id: row.id, entityKind: row.properties.entityKind })), geometryExists: ref => archive.get(ref) !== null });
-  contexts[mode]={identities,records:normalized,sourceBindings,
-    availability:new Map([...rowsByEntity].map(([id,rows])=>[id,rows.availability]))};
-  }
+  const availability=new Map([...rowsByEntity].map(([id,rows])=>[id,rows.availability]));
   const snapshot={documentId:'6dcead54-3bc5-4ca2-a4f5-455305bba911',physicalSourceInfo:{},territorialEntities:[],fullAutosave:true,projectFields:{
     timelineRecords:{schemaVersion:2,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]},geometries:[],sourceInfo:null,
     labels:[],genericFeatures:[],hydroEdits:[],distributionLayers:[],distributionEntries:[],labelSettings:{},
@@ -208,21 +201,17 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   const countries=[];
   const allGeometry=archive.snapshot();
   for(const [id,definition] of ordered){
-    const modes={};
-    for(const mode of ['dated','current']){
-      const records=contexts[mode].records;
-      modes[mode]=Object.fromEntries(Object.entries(records).map(([key,value])=>[key,
-        Array.isArray(value)?value.filter(row=>row.entityId===id):value]));
-    }
-    if(!modes.dated.lifetimes.length&&!modes.current.lifetimes.length)continue;
-    const refs=new Set(Object.values(modes).flatMap(rows=>rows.geometryBindings.map(row=>JSON.stringify(row.geometryRef))));
+    const timelineRecords=Object.fromEntries(Object.entries(normalized).map(([key,value])=>[key,
+      Array.isArray(value)?value.filter(row=>row.entityId===id):value]));
+    if(!timelineRecords.lifetimes.length)continue;
+    const refs=new Set(timelineRecords.geometryBindings.map(row=>JSON.stringify(row.geometryRef)));
     const geometries=allGeometry.filter(row=>refs.has(JSON.stringify({id:row.id,version:row.version})));
-    countries.push({schemaVersion:1,entityId:id,identity:definition.identity,modes,geometries,
-      sourceBindings:Object.fromEntries(['dated','current'].map(mode=>[mode,contexts[mode].sourceBindings.get(id)||[]]))});
+    countries.push({schemaVersion:2,entityId:id,identity:definition.identity,timelineRecords,geometries,
+      sourceBindings:sourceBindings.get(id)||[]});
   }
-  const index={schema:'pandolab-builtin-world',schemaVersion:1,template,
-    entities:countries.map(country=>({entityId:country.entityId,coverage:Object.fromEntries(Object.entries(country.modes).map(([mode,rows])=>
-      [mode,contexts[mode].availability.get(country.entityId)?.map(({validFrom,validTo})=>({validFrom,validTo}))||[]]))})),sourceIdentities};
+  const index={schema:'pandolab-builtin-world',schemaVersion:2,template,
+    entities:countries.map(country=>({entityId:country.entityId,
+      coverage:availability.get(country.entityId)?.map(({validFrom,validTo})=>({validFrom,validTo}))||[]})),sourceIdentities};
   return {index,countries,coverageReport:{schemaVersion:2,adjustments,
     entities:countries.map(country=>({entityId:country.entityId,
       lifetime:structuredClone(country.identity.properties.metadata.historicalTimeline.lifetime),

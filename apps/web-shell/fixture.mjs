@@ -28,10 +28,10 @@ export function tinyFixture() {
   const builtinCountries=project.territorialEntities.map(identity=>{
     const records=Object.fromEntries(Object.entries(project.timelineRecords).map(([key,value])=>[key,Array.isArray(value)?value.filter(row=>row.entityId===identity.id):value]));
     const refs=new Set(records.geometryBindings.map(row=>row.geometryRef.id));
-    return {schemaVersion:1,entityId:identity.id,identity,modes:{dated:records,current:structuredClone(records)},sourceBindings:{dated:[],current:[]},geometries:project.geometries.filter(row=>refs.has(row.id))};
+    return {schemaVersion:2,entityId:identity.id,identity,timelineRecords:records,sourceBindings:[],geometries:project.geometries.filter(row=>refs.has(row.id))};
   });
-  const builtinIndex={schema:'pandolab-builtin-world',schemaVersion:1,template,entities:builtinCountries.map(row=>({entityId:row.entityId,
-    coverage:{dated:[{validFrom:null,validTo:null}],current:[{validFrom:null,validTo:null}]}}))};
+  const builtinIndex={schema:'pandolab-builtin-world',schemaVersion:2,template,entities:builtinCountries.map(row=>({entityId:row.entityId,
+    coverage:[{validFrom:null,validTo:null}]}))};
   return {project,builtinIndex,builtinCountries,countries:{type:'FeatureCollection',features},entityCount:features.length,
     coordinateCount:features.reduce((count,row)=>count+row.geometry.coordinates[0].length,0)};
 }

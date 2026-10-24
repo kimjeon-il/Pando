@@ -129,13 +129,12 @@ LibraryOrigin libraryOrigin(const V& v,ProjectDocument& d,const std::string& pat
     origin.sourceId=str(field(v,"sourceId"));
     origin.sourceVersion=str(field(v,"sourceVersion"));
     origin.certainty=str(field(v,"certainty"));
-    origin.datePrecision=str(field(v,"datePrecision"));
     origin.partial=boolean(field(v,"partial"));
     for(const auto& ref:array(field(v,"missingLibraryRefs")))
         origin.missingLibraryRefs.push_back(str(ref));
     unknown(d,10,v,path,
             {"libraryId","geometryVersionId","referenceDate","sourceId","sourceVersion",
-             "certainty","datePrecision","partial","missingLibraryRefs"});
+             "certainty","partial","missingLibraryRefs"});
     return origin;
 }
 V libraryOriginValue(const LibraryOrigin& origin) {
@@ -145,7 +144,7 @@ V libraryOriginValue(const LibraryOrigin& origin) {
                    {"geometryVersionId",V::str(origin.geometryVersionId)},
                    {"referenceDate",origin.referenceDate?V::str(*origin.referenceDate):V{}},
                    {"sourceId",V::str(origin.sourceId)},{"sourceVersion",V::str(origin.sourceVersion)},
-                   {"certainty",V::str(origin.certainty)},{"datePrecision",V::str(origin.datePrecision)},
+                   {"certainty",V::str(origin.certainty)},
                    {"partial",V::boolean(origin.partial)},{"missingLibraryRefs",missing}});
 }
 Point point(const V& v) {

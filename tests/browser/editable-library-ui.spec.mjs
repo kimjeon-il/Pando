@@ -70,12 +70,13 @@ test('reload validates external file candidates and activates only a valid sourc
  expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.saved.records['state:KOR'].geometryVersions[0].historicalProvenance.evidenceStatus)).toBe('provisional');
  expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.publishCalls)).toBe(0);
 });
-test('editing a name preserves the actual source date precision vocabulary',async({page})=>{
+test('editing a name preserves the exact interval without a separate precision control',async({page})=>{
  await page.goto('/tests/fixtures/editable-library-ui.html?entity=state:east-prussia');
  await page.getByRole('button',{name:'원본 편집',exact:true}).click();
- await expect(page.getByLabel('날짜 정밀도',{exact:true})).toHaveValue('exact');
+ await expect(page.getByLabel('날짜 정밀도',{exact:true})).toHaveCount(0);
+ const dates=[await page.getByLabel('경계 시작일',{exact:true}).inputValue(),await page.getByLabel('경계 종료일',{exact:true}).inputValue()];
  await page.getByLabel('한국어 이름',{exact:true}).fill('동프로이센 이름 수정');
  await page.getByRole('button',{name:'저장',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('동기화 대기');
- expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.saved.records['state:east-prussia'].geometryVersions[0].datePrecision)).toBe('exact');
+ expect(await page.evaluate(()=>{const v=window.LIBRARY_UI_TEST.saved.records['state:east-prussia'].geometryVersions[0];return [v.validFrom,v.validTo];})).toEqual(dates);
 });

@@ -141,7 +141,7 @@ export async function importFiniteSource(page, testInfo, id, errors, { reference
   expect(added[0].geometry).toEqual(selected.geometry);
   expect(added[0].properties).toMatchObject({validFrom:timelineEditsEnabled?editMonth:null,validTo:null,sourceGeometryVersion:selected.versionId,
     metadata:{sourceLifetime:source.lifetime,sourceGeometryValidity:{validFrom:selected.validFrom,validTo:selected.validTo},
-      sourceReferenceDate:referenceDate,sourceInfo:source.sourceInfo,geometryCertainty:selected.certainty,geometryDatePrecision:selected.datePrecision}});
+      sourceReferenceDate:referenceDate,sourceInfo:source.sourceInfo,geometryCertainty:selected.certainty}});
   await expect(page.locator('#territorialLibraryReferenceDateInput')).toHaveValue(inputDate);
   const after=await stateProof(page,id);
   expect(after.history.checkpoint).not.toBe(before.history.checkpoint);

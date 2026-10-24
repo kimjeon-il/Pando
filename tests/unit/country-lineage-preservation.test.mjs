@@ -59,7 +59,7 @@ test('281 identities preserve all original coordinates and 294 validated territo
    assert.equal(mask.excludedModernPolygonIndices.length,25);
    const excluded=new Set(mask.excludedModernPolygonIndices);
    assert.deepEqual(versions[0].geometry.coordinates,versions[4].geometry.coordinates.filter((_,i)=>!excluded.has(i)));
-   assert.deepEqual(versions.slice(0,4).map(v=>[v.datePrecision,v.certainty]),Array.from({length:4},()=>['approximate','low']));
+   assert.deepEqual(versions.slice(0,4).map(v=>v.certainty),Array.from({length:4},()=> 'low'));
    continue;
   }
   if(e.entityId==='state:TLS'){
@@ -109,7 +109,7 @@ test('281 identities preserve all original coordinates and 294 validated territo
   assert.equal(proxy.versionId,extension.id);
   assert.equal(proxy.validFrom,extension.from);
   assert.equal(proxy.validTo,extension.to);
-  assert.equal(proxy.datePrecision,'approximate');
+  assert.equal(Object.hasOwn(proxy,'datePrecision'),false);
   assert.equal(proxy.certainty,'low');
   assert.equal(proxy.instantiation.mode,'territory-replacement');
   assert.equal(proxy.historicalProvenance.verifiedHistoricalGeometry,false);
