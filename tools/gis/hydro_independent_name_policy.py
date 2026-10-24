@@ -35,11 +35,32 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             ):
                 raise ValueError(f"Invalid verified {key} for system {system_id}")
         geom = item.get("naturalEarth")
-        if not isinstance(geom, dict) or not isinstance(geom.get("name"), str) or not geom["name"]:
-            raise ValueError(f"Missing Natural Earth candidate for system {system_id}")
-        coverage = geom.get("sampleCoverage")
-        if not isinstance(coverage, (float, int)) or not 0.85 <= coverage <= 1.0:
-            raise ValueError(f"Insufficient independent mainstem sampling for system {system_id}")
+        coverage = geom.get("sampleCoverage") if isinstance(geom, dict) else None
+        natural_earth_valid = (isinstance(geom, dict) and isinstance(geom.get("name"), str)
+                               and bool(geom["name"]) and isinstance(coverage, (int, float))
+                               and 0.85 <= coverage <= 1.0)
+        # Natural Earth omits some named tributaries. For those, independently
+        # labelled USGS gauging stations must match the actual HydroRIVERS
+        # mainstem and be well separated from a competing watercourse.
+        gauges = item.get("officialStationEvidence")
+        station_valid = False
+        if isinstance(gauges, dict):
+            station_ids = gauges.get("stationIds")
+            station_valid = (
+                gauges.get("agency") == "USGS"
+                and isinstance(station_ids, list)
+                and len(station_ids) >= 3
+                and len(set(station_ids)) == len(station_ids)
+                and all(isinstance(code, str) and code.startswith("USGS-") for code in station_ids)
+                and isinstance(gauges.get("maximumMatchingStationDistanceKm"), (int, float))
+                and 0 <= gauges["maximumMatchingStationDistanceKm"] <= 1.0
+                and isinstance(gauges.get("nearestDifferentBasinStationKm"), (int, float))
+                and gauges["nearestDifferentBasinStationKm"] >= 20.0
+                and isinstance(gauges.get("checkedAgainstSystemId"), str)
+                and gauges["checkedAgainstSystemId"] != system_id
+            )
+        if not natural_earth_valid and not station_valid:
+            raise ValueError(f"Missing independent mainstem evidence for system {system_id}")
         evidence = item.get("independentSources")
         if not isinstance(evidence, list) or len(evidence) < 2:
             raise ValueError(f"Missing multiple independent references for system {system_id}")
@@ -54,7 +75,11 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             if "openstreetmap" in url.casefold() or "overpass" in url.casefold() or kind.lower() == "osm":
                 raise ValueError(f"OSM cannot be a replacement source for system {system_id}")
             kinds.add(kind)
-        if "public-domain-vector" not in kinds or len(kinds) < 2:
-            raise ValueError(f"Natural Earth and other independent reference required for {system_id}")
+        independent_vector = "public-domain-vector" in kinds and len(kinds) >= 2
+        independent_gauges = station_valid and {"government-hydrology", "government-gauging"} <= kinds
+        if not independent_vector and not independent_gauges:
+            raise ValueError(f"Independent geodata and named hydrology evidence required for {system_id}")
+        if not natural_earth_valid and not independent_gauges:
+            raise ValueError(f"Missing verified non-Natural-Earth station corroboration for {system_id}")
         verified[system_id] = item
     return verified
