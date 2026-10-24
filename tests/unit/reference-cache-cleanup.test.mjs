@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
 
 test('PowerShell cleanup previews safely and deletes only unused verified synthetic copies', { skip: process.platform !== 'win32' }, t => {
@@ -31,6 +31,7 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
     git(data, 'add', '.');git(data, 'commit', '-qm', 'fixture ' + i);
     const revision = git(data, 'rev-parse', 'HEAD');revisions.push(revision);
     put(join(materialized, revision, '.complete'), revision + '\n');
+    put(join(materialized, revision, '.cache-owner.json'), JSON.stringify({ schema: 'pando-materialized-cache-v1', revision, files: { [payloadPath]: sha256 } }));
     if (i !== 5) put(join(materialized, revision, payloadPath), i === 3 ? Buffer.from('modified') : bytes);
     if (i === 4) put(join(materialized, revision, 'unfinished.txt'), 'keep this work');
     if (i === 6) symlinkSync(data, join(materialized, revision, 'linked-source'), 'junction');
@@ -50,22 +51,28 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   const shell = join(process.env.SystemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe');
   const run = (...args) => execFileSync(shell, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script, '-RepositoryRoot', root, ...args], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
   const preview = run();
+  assert.equal(existsSync(join(data, '.working')), false, 'preview creates no report directories or files');
   assert.match(preview, /WOULD REMOVE/);
   assert.ok(revisions.every(id => existsSync(join(materialized, id))), 'preview must keep every cache');
   assert.ok(ids.every(id => existsSync(worker(id))), 'preview must keep generated copies');
   const applied = run('-Apply');
   assert.match(applied, /REMOVED/);
-  assert.equal(existsSync(join(materialized, revisions[2])), false, 'only a verified inactive cache is removed');
+  assert.equal(existsSync(join(materialized, revisions[2])), false, 'only a verified inactive cache is removed: ' + applied);
   for (const index of [0, 1, 3, 4, 5, 6]) assert.ok(existsSync(join(materialized, revisions[index])), 'active, mounted, dirty, extra, incomplete or linked cache must remain');
   assert.equal(existsSync(worker(ids[0])), false);
   for (const id of ids.slice(1)) assert.ok(existsSync(worker(id)), 'current, tracked, unrecognized and staged Workers must remain');
   assert.deepEqual(readFileSync(join(data, storedPath)), bytes);
-  const reports = join(data, '.working', revisions[0], 'reports/reference-analysis');
+  const reports = join(data, '.working/current/reports/reference-analysis');
   const reportFiles = readdirSync(reports).filter(name => name.endsWith('.json'));
   const saved = reportFiles.map(name => JSON.parse(readFileSync(join(reports, name), 'utf8').replace(/^\uFEFF/, ''))).find(row => row.apply);
   assert.equal(saved.entries.filter(row => row.status === 'removed').length, 2);
   assert.ok(saved.deletedBytes > 0);
+  assert.equal(typeof saved.freeBytesBefore, 'number');
+  assert.equal(typeof saved.freeBytesAfter, 'number');
+  put(join(data, '.working/report-owner.json'), JSON.stringify({ path: 'fixed-original/reports', revision: revisions[0] }));
   run('-Apply'); // Repeating an approved cleanup does not affect protected paths.
+  const rerun = readdirSync(join(data, '.working/fixed-original/reports/reference-analysis')).map(name => JSON.parse(readFileSync(join(data, '.working/fixed-original/reports/reference-analysis', name), 'utf8').replace(/^\uFEFF/, '')))[0];
+  assert.equal(rerun.deletedBytes, 0);
   assert.ok(existsSync(join(materialized, revisions[0])));
 
   const native = join(root, 'apps/web-shell/src-tauri/target/x86_64-pc-windows-gnu/debug');
@@ -78,6 +85,9 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   const avds = join(root, 'fixture-avds'), avd = join(avds, 'fixture.avd'), snapshot = join(avd, 'snapshots/default_boot');
   put(join(avd, 'config.ini'), 'AvdId=fixture\n');put(join(avd, 'userdata-qemu.img.qcow2'), 'installed application data');
   put(join(snapshot, 'snapshot.pb'), 'rebuildable quickboot');put(join(snapshot, 'ram.img'), 'memory cache');
+  const abandoned = join(avds, 'abandoned.avd/snapshots/default_boot');
+  put(join(avds, 'abandoned.avd/config.ini'), 'AvdId=abandoned\n');
+  put(join(abandoned, 'ram.img'), 'incomplete quickboot memory');
   const retiredQt = join(root, 'build-native/p9/qt-pair-4418b791/qt-runtime/candidate-ui_tests.exe');
   const qtInput = join(dirname(retiredQt), '../input.json');
   put(retiredQt, 'compiled retired Qt test');put(qtInput, 'original benchmark input');
@@ -86,7 +96,40 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   assert.ok(existsSync(snapshot));assert.ok(existsSync(retired));
   run('-Apply', ...cleanupArgs);
   assert.equal(existsSync(snapshot), false);assert.equal(existsSync(retired), false);
+  assert.equal(existsSync(abandoned), false, 'stopped incomplete quickboot RAM is disposable');
   assert.equal(existsSync(retiredQt), false);assert.ok(existsSync(qtInput));
   assert.ok(existsSync(current));assert.ok(existsSync(activeCopy));
   assert.equal(readFileSync(join(avd, 'userdata-qemu.img.qcow2'), 'utf8'), 'installed application data');
+  const packRoot = join(data, '.git/objects/pack');
+  put(join(packRoot, 'tmp_pack_a1B2c3'), 'incomplete generated pack');
+  put(join(packRoot, 'unrecognized.tmp'), 'preserve unknown files');
+  const packArgs = ['-SkipDataCaches', '-SkipWorkerRuntimes', '-IncludeGitTemporaryPacks'];
+  assert.match(run(...packArgs), /WOULD REMOVE/);
+  assert.ok(existsSync(join(packRoot, 'tmp_pack_a1B2c3')));
+  run('-Apply', ...packArgs);
+  assert.equal(existsSync(join(packRoot, 'tmp_pack_a1B2c3')), false);
+  assert.equal(readFileSync(join(packRoot, 'unrecognized.tmp'), 'utf8'), 'preserve unknown files');
+  assert.equal(git(data, 'show', `HEAD:${storedPath}`), 'original');
+  const blob = git(data, 'rev-parse', `HEAD:${storedPath}`);
+  const blobPath = join(data, '.git/objects', blob.slice(0, 2), blob.slice(2)), originalBlob = readFileSync(blobPath);
+  rmSync(blobPath);
+  put(join(packRoot, 'tmp_pack_d4E5f6'), 'preserve until offline refs are verified');
+  put(join(snapshot, 'ram.img'), 'another incomplete quickboot');
+  run('-Apply', ...packArgs, '-IncludeEmulatorSnapshots', '-AndroidAvdRoot', avds);
+  assert.ok(existsSync(join(packRoot, 'tmp_pack_d4E5f6')), 'missing archived objects prevent pack cleanup');
+  assert.equal(existsSync(snapshot), false, 'failed pack verification does not prevent independent cleanup');
+  writeFileSync(blobPath, originalBlob);
+  git(data, 'config', 'uploadpack.allowFilter', 'true');
+  const partial = join(root, 'partial-library');
+  git(root, 'clone', '--filter=blob:none', '--no-checkout', pathToFileURL(data).href, partial);
+  assert.throws(() => execFileSync('git', ['-C', partial, 'cat-file', '-e', blob], {env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:'pipe'}), 'fixture really has an unhydrated promisor blob');
+  const partialPack = join(partial, '.git/objects/pack/tmp_pack_g7H8i9');
+  put(partialPack, 'reproducible interrupted packing output');
+  const previousDataRoot = process.env.PANDOLAB_LIBRARY_DATA_ROOT;
+  try {
+    process.env.PANDOLAB_LIBRARY_DATA_ROOT = partial;
+    run('-Apply', ...packArgs);
+    assert.equal(existsSync(partialPack), false, 'legitimate partial-clone omissions do not retain disposable packs');
+    assert.throws(() => execFileSync('git', ['-C', partial, 'cat-file', '-e', blob], {env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:'pipe'}), 'cleanup never hydrates promised objects');
+  } finally { if(previousDataRoot===undefined)delete process.env.PANDOLAB_LIBRARY_DATA_ROOT;else process.env.PANDOLAB_LIBRARY_DATA_ROOT=previousDataRoot; }
 });
