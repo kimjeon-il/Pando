@@ -1,0 +1,46 @@
+name: GIS independent river point screen
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/gis/verify_independent_river_point_anchors.py'
+      - '.github/workflows/gis-independent-river-point-screen.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-published-hydro-against-independent-points:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Mount pinned library hydro data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install read-only geometric comparison dependencies
+        run: python -m pip install --quiet "shapely>=2,<3" "pyproj>=3,<4"
+      - name: Decode version-pinned Hydro through production decoder
+        run: node tools/decode-hydro-connectivity.mjs assets/data/hydro/v0.13.2 /tmp/pando-hydro-point-decoded.json
+      - name: Compare independent NLS/Kazakh river name anchors with original Hydro mainstems
+        run: |
+          python tools/gis/verify_independent_river_point_anchors.py \
+            --decoded /tmp/pando-hydro-point-decoded.json \
+            --output /tmp/pando-independent-river-point-screen.json
+      - name: Preserve isolated source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gis-independent-river-point-screen
+          path: /tmp/pando-independent-river-point-screen.json
+          if-no-files-found: warn
+          retention-days: 14
