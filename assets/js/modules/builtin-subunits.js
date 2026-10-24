@@ -25,6 +25,28 @@ const relationships = {
     '표시 경계는 약 1km 수준으로 일반화한 파생본이며, 법적 측량선으로 확정하지 않았습니다.',
   ].join('\n') },
 };
+
+// Current-map attribution: only the Baikonur lease geometry and Kazakhstan's
+// shared edge use the OSM-derived riverbank line. Do not credit OSM for the rest
+// of Kazakhstan's Natural Earth geometry or for historical reference shapes.
+export function appendBaikonurBoundaryAttribution(notes, sourceCountryId) {
+  const sourceId = String(sourceCountryId || '');
+  if (sourceId !== 'KAB' && sourceId !== 'KAZ') return String(notes || '');
+  const original = String(notes || '');
+  const archive = 'https://github.com/kimjeon-il/PandoLab-library-data/blob/0b080946cda3c9150ac07693b6c5b03951313027/reports/geography/ne-selected-20261023/odbl-source-and-derivative.zip';
+  if (original.includes(archive)) return original;
+  const scope = sourceId === 'KAB'
+    ? '바이코누르 임대구역 경계: 공식 임대협정 좌표와 시르다리야강 우안 OpenStreetMap 파생 자료.'
+    : '바이코누르와 접하는 카자흐스탄 경계 일부: 공식 임대협정 좌표와 시르다리야강 우안 OpenStreetMap 파생 자료.';
+  return [original, [
+    scope,
+    '© OpenStreetMap contributors · ODbL 1.0 · https://www.openstreetmap.org/copyright',
+    '원본·파생 데이터: ' + archive,
+    '공식 협정: https://old.adilet.zan.kz/rus/docs/U950002195_',
+    '약 1km 수준으로 일반화한 표시용 경계이며, 법적 측량선으로 확정하지 않았습니다.',
+  ].join('\n')].filter(Boolean).join('\n\n');
+}
+
 // UUIDv8 application namespace, stable across loads, preview/canonical and Undo.
 export const builtinSubunitId = sourceId => `d34b00a1-9b13-8000-8000-000000${[...sourceId].map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('')}`;
 export const BUILTIN_SUBUNITS = Object.freeze([
@@ -73,14 +95,9 @@ export function classifyBuiltinCountries(collection) {
       if (String(feature.id) === 'KAZ') {
         // Only the shared edge with the Baikonur lease has OSM-derived detail.
         // The remaining Kazakhstan geometry is not attributed to OSM.
-        const boundaryNote = [
-          '바이코누르 임대구역 접경 일부: 임대협정 공식 좌표와 시르다리야강 우안 OpenStreetMap 파생 자료를 함께 사용한 표시용 경계.',
-          '© OpenStreetMap contributors · ODbL 1.0 · https://www.openstreetmap.org/copyright',
-          '원본·파생 데이터: https://github.com/kimjeon-il/PandoLab-library-data/blob/0b080946cda3c9150ac07693b6c5b03951313027/reports/geography/ne-selected-20261023/odbl-source-and-derivative.zip',
-        ].join('\n');
         countries.push({ ...feature, properties: {
           ...feature.properties,
-          notes: [feature.properties?.notes, boundaryNote].filter(Boolean).join('\n\n'),
+          notes: appendBaikonurBoundaryAttribution(feature.properties?.notes, 'KAZ'),
         } });
       } else {
         countries.push(feature);
@@ -90,7 +107,7 @@ export function classifyBuiltinCountries(collection) {
     subunits.push(createTerritorialFeature({
       id: row.id, entityKind: 'general', name: feature.properties.name, geometry: feature.geometry,
       parentId: row.parentId, coverageMode: 'explicit',
-      notes: row.note || '',
+      notes: row.sourceCountryId === 'KAB' ? appendBaikonurBoundaryAttribution(row.note, 'KAB') : row.note || '',
       metadata: {
         builtinSubunit: { revision: BUILTIN_SUBUNIT_REVISION, sourceCountryId: row.sourceCountryId,
           relationshipBasis: row.basis || 'default-map-belonging',
