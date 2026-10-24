@@ -34,6 +34,27 @@ KOREA_STATION="https://yss.purpleo.kr/article/277"
 RIMGIS="https://river.go.kr/intro/nationOrigin.do"
 NGA="https://geonames.nga.mil/geonames/GNSHome/"
 NGA_RYESONG="https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?outFields=%2A&where=ufi+%3D+-191071"
+TUM_OB="https://dahiti.dgfi.tum.de/en/38692/"
+TUM_AMU="https://dahiti.dgfi.tum.de/en/12348/"
+KERKI_SCIENCE="https://www.mdpi.com/2073-4441/17/5/721"
+RUS_IRTYSH="https://www.snt-bugorok.ru/level/uroven-vody-v-irtyshe-u-goroda-khanty-mansiisk-segodnya"
+RUS_FISH_LEGAL="https://fish.gov.ru/wp-content/uploads/2025/11/zs.pdf"
+CENTRAL_ASIA=[
+ {"id":"tmu_amu_12348","name":"Amu Darya river (satellite water level reference)","lon":65.5596,"lat":37.6545,
+  "kind":"German-TUM-DAHITI-water-level-site","source":TUM_AMU},
+ {"id":"kerki_2025_paper","name":"Amu Darya Kerki hydrometric station","lon":65.25,"lat":37.83,
+  "kind":"named-hydrometric-station-scholarly-coordinate","source":KERKI_SCIENCE},
+]
+OB_SYSTEM=[
+ {"id":"tum_ob_38692","name":"Ob river satellite water level point","lon":65.7292,"lat":65.69,
+  "kind":"German-TUM-DAHITI-satellite-water-level-site","source":TUM_OB},
+ {"id":"hydromet_irtysh_hanty","name":"Irtysh hydrometric station Khanty-Mansiysk","lon":68.9853,"lat":60.9882,
+  "kind":"federal-hydromet-coordinates-from-independent-secondary-reproduction","source":RUS_IRTYSH},
+ {"id":"ru_fish_irtysh_slushkinskaya","name":"Irtysh legally defined fishing boundary (not gauge)","lon":69+49/60+10.558/3600,"lat":60+12/60+36.419/3600,
+  "kind":"Russian-federal-fisheries-statutory-river-coordinate","source":RUS_FISH_LEGAL},
+ {"id":"ru_fish_irtysh_sotnikovskaya","name":"Irtysh legally defined fishing boundary (not gauge)","lon":69+52/60+37.268/3600,"lat":60+19/60+46.732/3600,
+  "kind":"Russian-federal-fisheries-statutory-river-coordinate","source":RUS_FISH_LEGAL},
+]
 SCA_POINTS=[
  {"id":"sca_port_said_marina","name":"Suez navigation canal Port Said marina","lon":32.3150132,"lat":31.2561108,"kind":"government-navigation-facility","source":SUEZ_OFFICIAL},
  {"id":"sca_ismailia_marina","name":"Suez navigation canal Ismailia marina","lon":32.2712444,"lat":30.5849802,"kind":"government-navigation-facility","source":SUEZ_OFFICIAL},
@@ -52,7 +73,9 @@ OTHER_NON_STATION=[
   "source":"https://www.nibr.go.kr/aiibook/access/ecatalogt.jsp?Dir=1069&callmode=admin&catimage=&eclang=ko&start=12&um=s"},
 ]
 STATIC={
+ "20628098":CENTRAL_ASIA,
  "20773860":SCA_POINTS, "20774342":SCA_POINTS,
+ "30145067":OB_SYSTEM,
  "40414035":YESONG,
  "40415850":OTHER_NON_STATION,
  "40423228":SOUTH_KOREA,
@@ -180,7 +203,9 @@ def main():
        "ngaCounts":result["ngaCounts"],
        "items":[{"id":x["systemId"],"name":x["publishedNameKo"],
           "lengthKm":x["mainstemTotalLengthKm"],
-          "points":[(y["id"],y["distanceToPublishedMainstemKm"]) for y in x["independentPoints"]]}
+          "points":[(y["id"],y["distanceToPublishedMainstemKm"],y["designatedName"]) for y in x["independentPoints"]],
+          "closestPoints":sorted([(y["id"],y["distanceToPublishedMainstemKm"],y["designatedName"])
+                for y in x["independentPoints"]],key=lambda z:z[1])[:12]}
          for x in items]
     },ensure_ascii=False,separators=(",",":")),flush=True)
 
