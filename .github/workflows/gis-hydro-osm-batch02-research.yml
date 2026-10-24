@@ -101,10 +101,11 @@ jobs:
               columns=[x[1] for x in con.execute(f'PRAGMA table_info("{gauge}")')]
               mapping={x.upper():x for x in columns}
               out["gaugeFields"]=columns
-              for field in ("LON","LAT","CODE","NAME"):
+              # The source's actual schema labels the hydrometric station NAME_ENG
+              # and the named channel RIVER. They must not be conflated.
+              for field in ("LON","LAT","CODE","RIVER","BASIN","NAME_ENG"):
                 if field not in mapping:raise ValueError("Missing scientific source gauge field "+field)
-              cols=[mapping[x] for x in ("LON","LAT","CODE","NAME")]
-              if "BASIN" in mapping:cols.append(mapping["BASIN"])
+              cols=[mapping[x] for x in ("LON","LAT","CODE","RIVER","BASIN","NAME_ENG")]
               quoted=",".join('"'+x+'"' for x in cols)
               rows=con.execute(f'SELECT {quoted} FROM "{gauge}"').fetchall()
               bbox={
@@ -119,7 +120,7 @@ jobs:
                   if not(w<=lon<=e and s<=lat<=n):continue
                   out["gauges"].append({"candidateSystem":sid,"longitude":lon,"latitude":lat,
                       "code":str(row[2]),"river":str(row[3]),
-                      "basin":str(row[4]) if len(row)>4 else None})
+                      "basin":str(row[4]),"station":str(row[5])})
               con.close()
               out["downloadStatus"]="verified-original-geopackage"
               out["sourceGaugeCount"]=len(rows)
