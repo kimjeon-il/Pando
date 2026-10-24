@@ -18,7 +18,7 @@ PATH = ROOT / "tools/gis/hydro-independent-name-replacements.json"
 class IndependentHydronymReviewTests(unittest.TestCase):
     def test_replacements_include_gauge_verified_brazos_and_texas_colorado(self):
         rows = load_independent_hydronyms(PATH)
-        self.assertEqual(len(rows), 29)
+        self.assertEqual(len(rows), 33)
         self.assertEqual(set(rows), {
             "20282220", "20323928", "20342955", "20457454",
             "20478829", "20673409", "20680587", "40485117",
@@ -28,6 +28,7 @@ class IndependentHydronymReviewTests(unittest.TestCase):
             "40145639", "40351117", "41392598", "70842751",
             "20336821", "20452421", "20588291", "41225082", "50170097",
             "40190238", "40613666",
+            "20081953", "20446779", "20498112", "70617856",
         })
         renamed = {key: value["nameKo"] for key, value in rows.items()
                    if value["previousNameKo"] != value["nameKo"]}
@@ -52,6 +53,12 @@ class IndependentHydronymReviewTests(unittest.TestCase):
         self.assertNotIn("메콩강", rows["40613666"]["aliases"])
         self.assertNotIn("메콩강", rows["40613666"]["tributaryNames"])
         self.assertEqual(rows["40190238"]["tributaryNames"], ["판지강"])
+        self.assertNotIn("Seine", rows["20446779"]["aliases"])
+        self.assertNotIn("San Joaquin", rows["70617856"]["aliases"])
+        self.assertNotIn("메콩강", rows["20498112"]["tributaryNames"])
+        for ident in ("20081953", "20446779", "20498112", "70617856"):
+            self.assertEqual(rows[ident]["nameKo"], rows[ident]["previousNameKo"])
+            self.assertIn("basinConfluenceReview", rows[ident])
         for ident in ("20336821","20452421","20588291","50170097"):
             self.assertEqual(rows[ident]["previousNameKo"], rows[ident]["nameKo"])
             self.assertIn("conservativeMainstemReview", rows[ident])
@@ -120,6 +127,25 @@ class IndependentHydronymReviewTests(unittest.TestCase):
                 target.write_text(json.dumps(candidate), encoding="utf-8")
                 with self.assertRaises(ValueError):
                     load_independent_hydronyms(target)
+
+    def test_basin_confluence_cannot_be_guessed(self):
+        original = json.loads(PATH.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "invalid-basin.json"
+            for problem in ("wrong-river", "weak-tributary", "no-official-source", "wrong-basin"):
+                candidate = copy.deepcopy(original)
+                row = next(item for item in candidate["replacements"] if item["systemId"] == "20498112")
+                if problem == "wrong-river":
+                    row["basinConfluenceReview"]["namedTributaryNE"] = "Danube"
+                elif problem == "weak-tributary":
+                    row["basinConfluenceReview"]["tributarySampleCoverage"] = 0.01
+                elif problem == "no-official-source":
+                    row["independentSources"] = [row["independentSources"][0]]
+                else:
+                    row["nameKo"] = "오데르강"
+                output.write_text(json.dumps(candidate), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_independent_hydronyms(output)
 
     def test_old_osm_only_basins_are_not_assigned_names_in_bulk(self):
         rows = load_independent_hydronyms(PATH)
