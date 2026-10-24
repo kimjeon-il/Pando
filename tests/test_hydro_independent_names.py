@@ -18,13 +18,14 @@ PATH = ROOT / "tools/gis/hydro-independent-name-replacements.json"
 class IndependentHydronymReviewTests(unittest.TestCase):
     def test_replacements_include_gauge_verified_brazos_and_texas_colorado(self):
         rows = load_independent_hydronyms(PATH)
-        self.assertEqual(len(rows), 18)
+        self.assertEqual(len(rows), 22)
         self.assertEqual(set(rows), {
             "20282220", "20323928", "20342955", "20457454",
             "20478829", "20673409", "20680587", "40485117",
             "40505530", "41261061", "41279826", "41339527",
             "41347969", "50261309", "70576631", "70580124",
             "70816878", "70819626",
+            "40145639", "40351117", "41392598", "70842751",
         })
         renamed = {key: value["nameKo"] for key, value in rows.items()
                    if value["previousNameKo"] != value["nameKo"]}
@@ -40,6 +41,10 @@ class IndependentHydronymReviewTests(unittest.TestCase):
         self.assertEqual(rows["20282220"]["aliases"], ["Elbe", "Labe"])
         self.assertEqual(rows["20282220"]["tributaryNames"], ["블타바강"])
         self.assertEqual(rows["20323928"]["tributaryNames"], ["마인강", "모젤강", "아레강"])
+        self.assertEqual(rows["40351117"]["nameKo"], "압록강")
+        self.assertEqual(rows["40351117"]["tributaryNames"], ["훈강"])
+        self.assertEqual(rows["41392598"]["nameKo"], "메콩강")
+        self.assertEqual(rows["70842751"]["nameKo"], "리오그란데강")
         for ident in ("70816878", "70819626"):
             self.assertEqual(rows[ident]["officialStationEvidence"]["agency"], "USGS")
             self.assertEqual(len(rows[ident]["officialStationEvidence"]["stationIds"]), 3)
