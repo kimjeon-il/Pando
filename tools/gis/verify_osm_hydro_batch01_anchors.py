@@ -21,6 +21,7 @@ BATCH = (
 CHAD = "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf"
 POLAND = "https://danepubliczne.imgw.pl/api/data/hydro/format/html"
 GEORGIA = "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf"
+NVE = "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf"
 FIN_OULU = "https://finto.fi/yso-paikat/fi/page/p204727"
 FIN_SIIKA = "https://finto.fi/yso-paikat/en/page/p139542"
 EMBA = "https://silkadv.com/ru/node/4653"
@@ -65,6 +66,16 @@ ROWS = [
     ("kvirila_chiatura", "Kvirila", 43+16.674/60, 42+17.118/60, GEORGIA, "NEA EU4Environment 2022 site 2"),
     ("jejora_oni", "Jejora", 43+25.796/60, 42+34.429/60, GEORGIA, "NEA EU4Environment 2022 site 3"),
     ("krikhula_ambrolauri", "Krikhula", 43+8.933/60, 42+31.302/60, GEORGIA, "NEA EU4Environment 2022 site 9"),
+    ("rioni_nve_chaladidi", "Rioni", 41+56/60, 42+12/60, NVE, "NVE/Georgia NEA 2017 gauge 141 Chaladidi, coordinates rounded to minute"),
+    ("rioni_nve_patara_poti", "Rioni", 41+47/60, 42+11/60, NVE, "NVE/Georgia NEA 2017 gauge 142 Patara-Poti, rounded"),
+    ("rioni_nve_poti", "Rioni", 41+41/60, 42+9/60, NVE, "NVE/Georgia NEA 2017 gauge 143 Poti bridge, rounded"),
+    ("rioni_nve_poti_north", "Rioni", 41+39/60, 42+10/60, NVE, "NVE/Georgia NEA 2017 gauge 144 northern branch, rounded"),
+    ("rioni_nve_samtredia", "Rioni", 42+20/60, 42+8/60, NVE, "NVE/Georgia NEA 2017 gauge 139 Samtredia, rounded"),
+    ("rioni_nve_dapnari", "Rioni", 42+7/60, 42+19/60, NVE, "NVE/Georgia NEA 2017 gauge 140 Dapnari, rounded"),
+    ("rioni_nve_kutaisi", "Rioni", 42+42/60, 42+16/60, NVE, "NVE/Georgia NEA 2017 gauge 136 Kutaisi, rounded"),
+    ("kvirila_nve_mouth", "Kvirila", 42+44/60, 42+11/60, NVE, "NVE/Georgia NEA 2017 gauge 178 Kvirila mouth, rounded"),
+    ("kvirila_nve_zestaponi", "Kvirila", 43+2/60, 42+6/60, NVE, "NVE/Georgia NEA 2017 gauge 174 Zestaponi, rounded"),
+    ("kvirila_nve_ajameti", "Kvirila", 42+47/60, 42+12/60, NVE, "NVE/Georgia NEA 2017 gauge 177 Ajameti, rounded"),
     ("enguri_vichnishi", "Enguri", 42+54.218/60, 42+56.510/60, GEORGIA, "NEA EU4Environment 2022 site 14"),
     ("enguri_mestia", "Enguri", 42+44.876/60, 43+4.523/60, GEORGIA, "NEA EU4Environment 2022 site 15"),
     ("enguri_potskho", "Enguri", 42+1.727/60, 42+43.774/60, GEORGIA, "NEA EU4Environment 2022 site 19"),
