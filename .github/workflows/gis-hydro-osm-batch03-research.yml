@@ -52,6 +52,32 @@ jobs:
           assert data['baseline']=='HydroRIVERS v0.13.2'
           assert all(x['mainstemLengthKm']>0 and x['mainstemLineSegments']>=1 for x in data['items'])
           print('FINAL_11_RESEARCH_SCREEN_SUCCESS')
+          # Human-readable audit is bounded to a short global summary; the
+          # complete point-to-mainstem measurements are emitted in chunks
+          # below so they can be archived as an exact permanent research record.
+          for item in data['items']:
+            points=item['independentPointChecks']
+            for offset in range(0,max(len(points),1),25):
+              payload={
+                 'systemId':item['systemId'],'nameKo':item['originalNameKo'],
+                 'mainstemLengthKm':item['mainstemLengthKm'],
+                 'mainstemFeatures':item['mainstemFeatures'],
+                 'mainstemLineSegments':item['mainstemLineSegments'],
+                 'pointCount':len(points),'chunkIndex':offset//25,
+                 'points':points[offset:offset+25],
+              }
+              print('OSM_BATCH03_POINT_CHUNK='+json.dumps(payload,ensure_ascii=False,separators=(',',':')),flush=True)
+          for query in data['governmentQueryReceipts']:
+            payload={
+              'id':query['systemId'],'kind':query['kind'],
+              'status':query['status'],'responseSha256':query.get('responseSha256'),
+              'raw':query.get('rawFeatureCount',0),
+              'unique':query.get('uniqueRiverPointCount',0),
+              'limit':query.get('exceededTransferLimit',False),
+              'failureClass':query.get('failureClass'),
+              'url':query['url'],
+            }
+            print('OSM_BATCH03_QUERY_RECEIPT='+json.dumps(payload,ensure_ascii=False,separators=(',',':')),flush=True)
           PY
       - uses: actions/upload-artifact@v4
         with:
