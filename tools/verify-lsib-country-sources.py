@@ -32,6 +32,7 @@ def main():
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     data = root / 'assets/data/territorial-entities/source'
+    display_versions = {row['entityId']: row['geometryVersionId'] for row in json.loads((data / 'views/world.json').read_text(encoding='utf-8'))['selections']}
     lineages = [json.loads(p.read_text(encoding='utf-8')) for p in sorted((data / 'lineages').glob('*.json'))]
     requests = [f'{args.base}:assets/data/territorial-entities/source/countries/{lineage["lineageId"]}.json' for lineage in lineages]
     result = subprocess.run(['git', 'cat-file', '--batch'], cwd=root, input=('\n'.join(requests) + '\n').encode(), capture_output=True, check=True)
@@ -58,7 +59,7 @@ def main():
         assert current['parentEntityId'] == original['parentEntityId'], f'Parent changed: {entity_id}'
         for previous, version in zip(original['geometryVersions'], current['geometryVersions']):
             assert (version['validFrom'], version['validTo']) == (previous['validFrom'], previous['validTo'])
-            if previous.get('datePrecision') != 'current':
+            if previous.get('validTo') is not None or previous['versionId'] != display_versions.get(entity_id):
                 assert version == previous, f'Historical version overwritten: {entity_id}/{version["versionId"]}'
                 historical += 1
         if entity_id not in changed:
@@ -67,7 +68,7 @@ def main():
             assert check == original, f'Unrelated source changed: {entity_id}'
             unchanged += 1
         else:
-            version = next(v for v in current['geometryVersions'] if v['versionId'] == current['metadata']['representativeGeometryVersionId'])
+            version = next(v for v in current['geometryVersions'] if v['versionId'] == display_versions[entity_id])
             assert shape(version['geometry']).is_valid, f'Invalid final polygon: {entity_id}'
     view = json.loads((data / 'views/world.json').read_text(encoding='utf-8'))
     before_world, after_world = [], []

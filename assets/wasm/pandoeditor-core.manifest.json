@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "ee4dd6e83a1fd1bbbccd8da36f04017463b3985576504a9c774eace798977a64",
+  "sourceSha256": "dd222091475843be993912db749c47b4ddf4fe89e23c3a97fe234058b2de5278",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -57,7 +57,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
-      "sha256": "f8888c3fc7c3e28a9f629a7d63237f9a55c36abee88e07dd6247ed44228c04e7"
+      "sha256": "f5136ac5efe19f6c66fd3d4b96948791cb1886320d8c70522d05365e2e02e8e0"
     },
     {
       "path": "shared/core/include/pandoeditor/geometry-types.h",
@@ -97,7 +97,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/historicallibrary.h",
-      "sha256": "5e3a96ed034a07c69b5efd6ab6c314800f2a683be6fa8eb3c24746fe9d6f8779"
+      "sha256": "9753a52e67c04ed8cbe2cea43bddcb1908cb037bd9608c9976780f43cd114b2c"
     },
     {
       "path": "shared/core/include/pandoeditor/hydroformat.h",
@@ -321,11 +321,11 @@
     },
     {
       "path": "shared/core/src/historicalinstantiation.cpp",
-      "sha256": "1403759300d51028248f17930db637361c2f702643b6ae332ed572413f96eab7"
+      "sha256": "a8516eb121a3ebe2d834206bb594fee840107d7c80f18922e7da026f77bfcc42"
     },
     {
       "path": "shared/core/src/historicallibrary.cpp",
-      "sha256": "8bd4b8794483b70d736557137a3dd7cb4e385ff4ee3c1954439659f595804808"
+      "sha256": "2f58129859a3f72aeb3809250f51adb2c07b36020d925e038d572fc688f2abe9"
     },
     {
       "path": "shared/core/src/hydroformat.cpp",
@@ -381,7 +381,7 @@
     },
     {
       "path": "shared/core/src/projectcodec.cpp",
-      "sha256": "122c65aa68e4f2954d7f8aa4167e31e9aed5f24aa27b531fb34fdbcb8a152722"
+      "sha256": "9aa88bbb092e83ec34c2bc6cfad711d8c8b9aa07bd767ff270e2db05c6693b63"
     },
     {
       "path": "shared/core/src/referenceboundaries.cpp",
@@ -615,7 +615,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "f04925bbbc19db29cdbd30e67993d5d01670331a0e98abc18aa483c72cc93a03"
+      "sha256": "9fed5323db896efdaf3472e7aef5169c9c7eeb4b43fa7ca68d9d066136093fcf"
     }
   }
 }

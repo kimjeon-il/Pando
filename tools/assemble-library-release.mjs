@@ -64,7 +64,7 @@ export function assembleLibraryRelease({ root, output, revision, sourceRevision 
   for (const entry of index.entities) copy(`territorial-entities/generated/v2/${relativeDataPath(entry.file)}`, entry.sha256);
 
   const historical = json(copy(RELEASE_ASSETS.builtinWorld));
-  if (historical.schema !== 'pandolab-builtin-world' || historical.schemaVersion !== 1 || !Array.isArray(historical.entities)) throw new Error('Invalid publication builtin world');
+  if (historical.schema !== 'pandolab-builtin-world' || historical.schemaVersion !== 2 || !Array.isArray(historical.entities)) throw new Error('Invalid publication builtin world');
   for(const entry of historical.entities)copy(`builtin-world/generated/v1/${relativeDataPath(entry.file)}`,entry.sha256);
   copy(`builtin-world/generated/v1/${relativeDataPath(historical.transport.url)}`,historical.transport.sha256);
 

@@ -22,7 +22,7 @@ function fixture() {
   write('territorial-entities/generated/v2/index.json', JSON.stringify({ schemaVersion: 2, entities: [{ file: 'state-AAA.json.gz', ...chunk }], lineages: [], snapshots: [] }));
   const country=write('builtin-world/generated/v1/countries/AAA.json.gz','country');
   const packed=write('builtin-world/generated/v1/transport/packed.bin','country');
-  write('builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,entities:[{...country,file:'countries/AAA.json.gz'}],transport:{...packed,url:'transport/packed.bin'}}));
+  write('builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,entities:[{...country,file:'countries/AAA.json.gz'}],transport:{...packed,url:'transport/packed.bin'}}));
   const source = write('territorial-entities/generated/current-world.geojson', 'world');
   const worldAsset = write('world/objects/countries-preview-sha256-' + 'c'.repeat(64) + '.geojson.gz', 'preview');
   const shared = write('countries-preview-shared-v0.36.1.json.gz', 'shared');
@@ -50,7 +50,7 @@ test('assembles a content-checked immutable release and a last-written activatio
 test('rejects a missing referenced asset without activating the pointer', () => {
   const { root, output } = fixture();
   const file = join(root, 'assets/data/builtin-world/generated/v1/index.json');
-  writeFileSync(file, JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:1,entities:[{file:'countries/missing.gz',sha256:'0'.repeat(64)}]}));
+  writeFileSync(file, JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,entities:[{file:'countries/missing.gz',sha256:'0'.repeat(64)}]}));
   assert.throws(() => assembleLibraryRelease({ root, output, revision, sourceRevision }), /Missing|missing|없습니다/);
   assert.throws(() => readFileSync(join(output, 'assets/data/library-channel/current.json')));
 });

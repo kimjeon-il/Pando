@@ -95,7 +95,7 @@ test('the paired Korean/Chinese changes preserve the Korean land union and produ
   assert.deepEqual(clippingOperationWithPrecisionRetry('intersection',current[0],current[1]),[]);
   assert.deepEqual(clippingOperationWithPrecisionRetry('intersection',current[1],current[2]),[]);
   assert.equal(china.geometryVersions.length,1,'A local counterpart correction must not invent Chinese historical coverage');
-  assert.equal(china.geometryVersions[0].datePrecision,'current');
+  assert.equal(Object.hasOwn(china.geometryVersions[0],'datePrecision'),false);
   assert.equal(contains(north,'1964-03-20',[128.045,42.016]),false,'northwest Cheonji belongs to China');
   assert.equal(contains(china,'2026-10-06',[128.045,42.016]),true);
   assert.equal(contains(north,'1964-03-20',[128.07,42.006]),true,'southeast Cheonji belongs to North Korea');
@@ -106,7 +106,7 @@ test('Korean reconstruction preserves the supplemented Chinese counterpart byte 
   const china=readCountry('CHN');
   const lines=JSON.parse(fs.readFileSync(new URL('../../tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson',import.meta.url)));
   assert.ok(china.geometryVersions[0].modernBoundarySupplement);
-  assert.deepEqual(refineChinesePaektuSource(china,lines,'unused-on-unchanged-chain'),china);
+  assert.deepEqual(refineChinesePaektuSource(china,lines,'unused-on-unchanged-chain',china.metadata.representativeGeometryVersionId),china);
 });
 
 test('the actual published timeline retains Korean creation dates and the June/July 1953 geometry change',()=>{

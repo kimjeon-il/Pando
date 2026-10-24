@@ -15,8 +15,8 @@ function result() {
 }
 async function view(month) {
   const state = createEmptyTerritorialState();
-  const data=result(),ids=new Set(selectBuiltinCountries(data.index,month,'2026-10').map(row=>row.entityId));
-  const project=assembleBuiltinWorld(data.index,data.countries.filter(row=>ids.has(row.entityId)),month,'2026-10');
+  const data=result(),ids=new Set(selectBuiltinCountries(data.index,month).map(row=>row.entityId));
+  const project=assembleBuiltinWorld(data.index,data.countries.filter(row=>ids.has(row.entityId)),month);
   await initializeTestTerritorialState(state,null,{project});
   const owner=testCoreProject(state),store=owner.entityStore;
   try {
@@ -42,10 +42,10 @@ test('monthEndDoesNotExtendExactSourceDates', async () => {
   const day = records.lifetimes.find(row => row.entityId === 'state:single-day');
   assert.equal(day.validFrom, '1989-04-25'); assert.equal(day.validTo, '1989-04-25');
 });
-test('undated modern geometry is restricted to the device-current query context', async () => {
-  assert.equal(await visible('RUS', '2026-09'), false);
+test('unbounded source geometry uses its intervals rather than the device month', async () => {
+  assert.equal(await visible('RUS', '2026-09'), true);
   assert.equal(await visible('RUS', '2026-10'), true);
-  assert.equal(await visible('RUS', '2026-11'), false);
+  assert.equal(await visible('RUS', '2026-11'), true);
 });
 
 test('a current snapshot selecting an explicitly dated version retains its entire source coverage', () => {
@@ -53,7 +53,7 @@ test('a current snapshot selecting an explicitly dated version retains its entir
   const source = input.entities.find(row => row.sourceInfo?.featureId === 'KOR');
   source.lifetime = {validFrom:'1948-08-15',validTo:null};
   const current = source.geometryVersions[0];
-  Object.assign(current,{validFrom:'1953-07-27',datePrecision:'date'});
+  Object.assign(current,{validFrom:'1953-07-27'});
   source.geometryVersions.unshift({...structuredClone(current),versionId:'KOR:38th-parallel',
     validFrom:'1948-08-15',validTo:'1953-07-26'});
   const historic = source.geometryVersions[0].geometry.coordinates[0];
@@ -75,14 +75,14 @@ test('parentCoverageLimitsChildPresence', async () => {
 test('source lifetime retains precision independently of country geometry availability',()=>{
   const input=historicalWorldCases();
   input.entities.find(row=>row.entityId==='current:KOR').lifetime.validFrom='1948-08-15';
-  const catalog=compileFixture(input),current=contextProject(catalog,'current');
+  const catalog=compileFixture(input),current=contextProject(catalog);
   assert.deepEqual(current.timelineRecords.lifetimes.find(row=>row.entityId==='KOR'),
     {id:'historical-world:lifetimes:KOR:0',entityId:'KOR',validFrom:'1948-08-15',validTo:null});
   const unknown=current.timelineRecords.lifetimes.find(row=>row.entityId==='RUS');
   assert.equal(unknown.validFrom,null);assert.equal(unknown.validTo,null);
   const rows=catalog.project.timelineRecords.lifetimes.filter(row=>row.entityId==='state:parent');
   assert.equal(rows.length,1);assert.equal(rows[0].validFrom,'1900');assert.equal(rows[0].validTo,'1903');
-  assert.equal(selectBuiltinCountries(catalog.index,'1901-07','2026-10').some(row=>row.entityId==='state:parent'),false);
+  assert.equal(selectBuiltinCountries(catalog.index,'1901-07').some(row=>row.entityId==='state:parent'),false);
 });
 
 test('resolved source lifetime stays whole across a geometry gap',async()=>{
