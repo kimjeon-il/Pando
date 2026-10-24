@@ -24,3 +24,25 @@ test('legacy core-only OSM name evidence still gets licence attribution', () => 
   assert.match(notes, /© OpenStreetMap contributors/);
   assert.doesNotMatch(notes, /relation\/\d+/);
 });
+
+test('verified independent references appear exactly once and no ODbL remains on OSM-free river', () => {
+  const notes = builtinHydroSourceNotes({
+    source: 'HydroRIVERS 1.0 · independently verified river names',
+    independent_source_urls: ['https://www.naturalearthdata.com/', 'https://www.gov.pl/', 'https://www.gov.pl/'],
+    osm_relation_ids: [],
+  });
+  assert.match(notes, /OSM 대체/);
+  assert.match(notes, /naturalearthdata/);
+  assert.equal(notes.match(/https:\/\/www\.gov\.pl\//g)?.length, 1);
+  assert.doesNotMatch(notes, /© OpenStreetMap contributors/);
+});
+
+test('remaining OSM relation still credits ODbL when independent sources are also present', () => {
+  const notes = builtinHydroSourceNotes({
+    source: 'HydroRIVERS 1.0',
+    independent_source_urls: ['https://www.naturalearthdata.com/'],
+    osm_relation_ids: [123456],
+  });
+  assert.match(notes, /OSM 대체/);
+  assert.match(notes, /© OpenStreetMap contributors/);
+});
