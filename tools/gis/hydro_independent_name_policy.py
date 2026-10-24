@@ -117,8 +117,11 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
         independent_gauges = station_valid and {"government-hydrology", "government-gauging"} <= kinds
         if conservative_valid and not ({"government-hydrology", "public-domain-vector"} <= kinds):
             raise ValueError(f"Official river authority needed for conservative mainstem {system_id}")
-        if confluence_valid and not ({"government-hydrology", "public-domain-vector"} <= kinds):
-            raise ValueError(f"Official confluence authority needed for basin {system_id}")
+        if confluence_valid and not (
+            "public-domain-vector" in kinds
+            and bool(kinds & {"government-hydrology", "multilateral-basin-agency"})
+        ):
+            raise ValueError(f"Government or intergovernmental river basin authority needed for {system_id}")
         if not independent_vector and not independent_gauges:
             raise ValueError(f"Independent geodata and named hydrology evidence required for {system_id}")
         if not natural_earth_valid and not independent_gauges and not conservative_valid and not confluence_valid:
