@@ -2,8 +2,8 @@
 """Build PandoLab v0.13.1 connected river systems and Natural Earth lake shards.
 
 HydroRIVERS provides canonical river geometry. Natural Earth provides the
-global 1:10m lake geometry and enriches matched river names. Reviewed Korean
-name overrides can supply additional independently validated names. Selected source
+global 1:10m lake geometry and enriches matched river names. Optional OSM
+waterway relation metadata enriches Korean names and river-system aliases. Selected source
 coordinates are quantized to 1e-6 degree Int32 and delta-varint encoded without
 vertex simplification. Display packs contain geometry only; metadata is stored
 once in a compressed sidecar.
@@ -92,6 +92,7 @@ class BuiltFeature:
     role: str = ""
     aliases: list[str] | None = None
     tributary_names: list[str] | None = None
+    osm_relation_ids: list[int] | None = None
 
 
 @dataclass
@@ -177,6 +178,78 @@ def normalize_hydronym(name: str, category: str, overrides: dict[str, str]) -> s
     if category == "lake" and re.search(r"[가-힣]$", value) and not value.endswith(("호", "호수", "해", "만", "저수지")):
         value += "호"
     return value
+
+
+class OsmWaterwayIndex:
+    """Compact matcher for an Overpass `out tags bb` waterway-relation export."""
+
+    def __init__(self, path: Path | None, overrides: dict[str, str]):
+        self.path = path
+        self.overrides = overrides
+        self.rows: list[dict[str, Any]] = []
+        self.boxes: list[Polygon] = []
+        self.tree: STRtree | None = None
+        if path is None or not path.exists():
+            return
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for element in payload.get("elements") or []:
+            tags = element.get("tags") or {}
+            bounds = element.get("bounds") or {}
+            if element.get("type") != "relation" or tags.get("type") != "waterway":
+                continue
+            if not all(key in bounds for key in ("minlon", "minlat", "maxlon", "maxlat")):
+                continue
+            extent = (
+                float(bounds["minlon"]), float(bounds["minlat"]),
+                float(bounds["maxlon"]), float(bounds["maxlat"]),
+            )
+            if extent[2] <= extent[0] or extent[3] <= extent[1]:
+                continue
+            names = [str(tags.get(key) or "").strip() for key in ("name:ko", "name", "name:en")]
+            names = list(dict.fromkeys(name for name in names if name))
+            if not names:
+                continue
+            self.rows.append({
+                "id": int(element.get("id") or 0), "bounds": extent,
+                "nameKo": normalize_hydronym(str(tags.get("name:ko") or ""), "river", overrides),
+                "names": names,
+            })
+            self.boxes.append(box(*extent))
+        if self.boxes:
+            self.tree = STRtree(self.boxes)
+
+    def match(self, bounds: tuple[float, float, float, float]) -> dict[str, Any] | None:
+        if self.tree is None:
+            return None
+        target = box(*bounds)
+        span_x = max(bounds[2] - bounds[0], 0.05)
+        span_y = max(bounds[3] - bounds[1], 0.05)
+        target_center = target.centroid
+        candidates: list[tuple[float, int]] = []
+        for raw_index in self.tree.query(target.buffer(max(span_x, span_y) * 0.08 + 0.05)):
+            index = int(raw_index)
+            candidate = self.boxes[index]
+            intersection = target.intersection(candidate).area
+            union = target.union(candidate).area
+            overlap = intersection / union if union else 0.0
+            candidate_bounds = self.rows[index]["bounds"]
+            edge_error = (
+                abs(candidate_bounds[0] - bounds[0]) / span_x + abs(candidate_bounds[2] - bounds[2]) / span_x
+                + abs(candidate_bounds[1] - bounds[1]) / span_y + abs(candidate_bounds[3] - bounds[3]) / span_y
+            )
+            center_error = math.hypot(
+                (candidate.centroid.x - target_center.x) / span_x,
+                (candidate.centroid.y - target_center.y) / span_y,
+            )
+            score = edge_error + center_error * 0.8 - overlap * 2.0
+            if overlap >= 0.12 or (center_error <= 0.35 and edge_error <= 2.5):
+                candidates.append((score, index))
+        if not candidates:
+            return None
+        candidates.sort()
+        if len(candidates) > 1 and candidates[1][0] <= candidates[0][0] + 0.15:
+            return None
+        return self.rows[candidates[0][1]]
 
 
 def shapefile_source_files(path: Path) -> list[dict[str, str]]:
@@ -1559,6 +1632,7 @@ class PackBuilder:
             **({"role": feature.role} if feature.role else {}),
             **({"aliases": feature.aliases} if feature.aliases else {}),
             **({"tributaryNames": feature.tributary_names} if feature.tributary_names else {}),
+            **({"osmRelationIds": feature.osm_relation_ids} if feature.osm_relation_ids else {}),
             **({"terminal": feature.terminal} if feature.terminal else {}),
         })
 
@@ -1631,7 +1705,7 @@ class PackBuilder:
         index_target.write_bytes(gzip.compress(bytes(raw_index), compresslevel=9, mtime=0))
         index_row = {"url": "index.bin.gz", "bytes": index_target.stat().st_size, "sha256": sha256(index_target), "tileCount": len(index_tiles), "logicalFeatureCount": len(logical_packs)}
         ordered_metadata = sorted(self.metadata, key=lambda item: item["fid"])
-        detail_keys = ("sourceId", "source", "aliases", "tributaryNames")
+        detail_keys = ("sourceId", "source", "aliases", "tributaryNames", "osmRelationIds")
         core_metadata = [
             {key: value for key, value in item.items() if key not in set(detail_keys)}
             for item in ordered_metadata
@@ -1723,6 +1797,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--natural-earth-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--drainage-free-raster", type=Path, required=True)
+    parser.add_argument("--osm-waterways", type=Path, help="Overpass `out tags bb` waterway relation JSON")
     parser.add_argument("--hydronym-overrides", type=Path, help="한국어 수계명 교정 JSON")
     return parser.parse_args()
 
@@ -1738,6 +1813,8 @@ def main() -> None:
     reviewed_hydronyms = set(hydronym_overrides.values()) | {
         str(value["nameKo"]).strip() for value in system_name_overrides.values()
     }
+    osm_path = args.osm_waterways.resolve() if args.osm_waterways else None
+    osm_index = OsmWaterwayIndex(osm_path, hydronym_overrides)
     rivers_base, lakes_base = load_ne_base(hydro_root)
     guides = ReferenceGuides(rivers_base)
     countries_path = hydro_root.parent / "countries-ne-5.1.1.geojson"
@@ -1748,6 +1825,7 @@ def main() -> None:
     logical_fid = 0
     source_rows: list[dict[str, Any]] = []
     river_names_enriched = 0
+    osm_name_matches = 0
     unnamed_system_count = 0
     for code in RIVER_CODES:
         path = find_unique(roots, f"HydroRIVERS_v10_{code}.shp")
@@ -1779,26 +1857,35 @@ def main() -> None:
             f"→ {len(systems):,}개 수계/{len(chains):,}개 chain · 국경 정렬 {border_stats['borderAlignedLengthKm']:,.1f}km",
             flush=True,
         )
+        region_osm_matches = 0
         region_named_systems = 0
         for system in systems:
             system_id = int(system["systemId"])
             system_override = system_name_overrides.get(str(system_id))
             mainstem_index = int(system["mainstemIndex"])
-            ne_mainstem_name = normalize_hydronym(
-                matched_names.get(mainstem_index, ""), "river", hydronym_overrides
-            )
+            chain_osm_matches = {
+                index: osm_index.match(geometry_bounds(chain_geometry(chains[index])))
+                for index in system["chainIndexes"]
+            }
+            osm_match = chain_osm_matches.get(mainstem_index)
+            osm_name = str((osm_match or {}).get("nameKo") or "")
+            ne_mainstem_name = normalize_hydronym(matched_names.get(mainstem_index, ""), "river", hydronym_overrides)
             ne_other_names = sorted({
                 normalize_hydronym(matched_names.get(index, ""), "river", hydronym_overrides)
                 for index in system["chainIndexes"] if matched_names.get(index)
             } - {""})
+            osm_names = sorted({
+                normalize_hydronym(name, "river", hydronym_overrides)
+                for match in chain_osm_matches.values() if match
+                for name in match.get("names", [])
+            } - {""})
             reviewed_name = next((
-                name for name in [ne_mainstem_name, *ne_other_names]
+                name for name in [ne_mainstem_name, *ne_other_names, normalize_hydronym(osm_name, "river", hydronym_overrides), *osm_names]
                 if name in reviewed_hydronyms
             ), "")
             display_name = normalize_hydronym(
                 str((system_override or {}).get("nameKo") or "")
-                or reviewed_name or ne_mainstem_name
-                or (ne_other_names[0] if ne_other_names else ""),
+                or reviewed_name or osm_name or ne_mainstem_name or (ne_other_names[0] if ne_other_names else ""),
                 "river", hydronym_overrides,
             )
             if display_name:
@@ -1806,14 +1893,22 @@ def main() -> None:
             else:
                 display_name = f"미명명 수계 {system_id}"
                 unnamed_system_count += 1
+            matched_osm_relations = sorted({
+                int(match["id"]) for match in chain_osm_matches.values() if match
+            })
+            if matched_osm_relations:
+                region_osm_matches += 1
+                osm_name_matches += 1
             aliases = sorted(set(
-                ne_other_names + list((system_override or {}).get("aliases") or [])
+                ne_other_names + osm_names + list((system_override or {}).get("aliases") or [])
             ) - {"", display_name})
-            tributary_names = sorted({
+            tributary_names = sorted(({
                 normalize_hydronym(matched_names.get(index, ""), "river", hydronym_overrides)
-                for index in system["chainIndexes"]
-                if index != mainstem_index and matched_names.get(index)
-            } - {"", display_name})
+                for index in system["chainIndexes"] if index != mainstem_index and matched_names.get(index)
+            } | {
+                normalize_hydronym(str((chain_osm_matches.get(index) or {}).get("nameKo") or ""), "river", hydronym_overrides)
+                for index in system["chainIndexes"] if index != mainstem_index
+            }) - {"", display_name})
             fragment_rows: list[tuple[int, list[RiverReach]]] = []
             for chain_index in system["chainIndexes"]:
                 fragment_rows.extend((chain_index, fragment) for fragment in stage_fragments(chains[chain_index]))
@@ -1839,7 +1934,7 @@ def main() -> None:
                     source_id=",".join(str(reach.source_id) for reach in fragment),
                     source=(
                         f"HydroRIVERS 1.0 · Natural Earth border {'/'.join(border_pair)}"
-                        if border_pair else "HydroRIVERS 1.0"
+                        if border_pair else "HydroRIVERS 1.0 · OSM waterway names" if matched_osm_relations else "HydroRIVERS 1.0"
                     ),
                     width=max((max(widths) for widths in width_profile), default=start.width),
                     geometry=geometry,
@@ -1853,6 +1948,7 @@ def main() -> None:
                     role="mainstem" if chain_index == mainstem_index else "tributary",
                     aliases=aliases if fragment_index == 0 else None,
                     tributary_names=tributary_names if fragment_index == 0 else None,
+                    osm_relation_ids=matched_osm_relations if matched_osm_relations and fragment_index == 0 else None,
                     terminal=(
                         {
                             "class": terminal_reach.terminal_class,
@@ -1873,6 +1969,7 @@ def main() -> None:
             "chainCount": len(chains),
             "systemCount": len(systems),
             "nameMatches": region_named_systems,
+            "osmMatches": region_osm_matches,
         })
         del reaches, chains, systems
 
@@ -1929,10 +2026,11 @@ def main() -> None:
     stats["riverSystemCount"] = sum(row.get("systemCount", 0) for row in source_rows)
     stats["namedRiverSystemCount"] = river_names_enriched
     stats["unnamedRiverSystemCount"] = unnamed_system_count
+    stats["osmWaterwayMatchCount"] = osm_name_matches
     manifest = {
         "version": VERSION,
         "schema": "pandolab-water-shards-v5",
-        "dataset": "HydroRIVERS 1.0 systems · Natural Earth 5.0.0 1:10m lakes · Natural Earth 5.1.1 border alignment",
+        "dataset": "HydroRIVERS 1.0 systems · OSM waterway names · Natural Earth 5.0.0 1:10m lakes · Natural Earth 5.1.1 border alignment",
         "crs": "EPSG:4326",
         "coordinatePolicy": (
             "Hydro source vertices retained outside border-aligned display fragments; "
@@ -1998,10 +2096,15 @@ def main() -> None:
             "drainageFreeWaterMask": {"file": args.drainage_free_raster.name, "sha256": sha256(args.drainage_free_raster)},
             "hydroRivers": source_rows,
             "naturalEarthLakes": {"file": "lakes_base.geojson", "sha256": sha256(hydro_root / "lakes_base.geojson"), "selected": selected_lakes},
+            "osmWaterways": (
+                {"file": osm_path.name, "sha256": sha256(osm_path), "matchedSystems": osm_name_matches, "license": "ODbL"}
+                if osm_path and osm_path.exists() else {"file": None, "matchedSystems": 0, "license": "ODbL"}
+            ),
             "hydronymOverrides": {"file": overrides_path.name, "sha256": sha256(overrides_path)},
             "nameEnrichment": {
                 "namedRiverSystems": river_names_enriched,
                 "unnamedRiverSystems": unnamed_system_count,
+                "osmMatches": osm_name_matches,
             },
         },
     }
