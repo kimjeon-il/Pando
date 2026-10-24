@@ -22,7 +22,7 @@ export function inspectFullWorldRuntime(scope = globalThis, {
   const workers = Array.isArray(network.workers) ? network.workers : [];
   const blocked = Array.isArray(network.blocked) ? network.blocked : [];
   const checks = {
-    packageProfile: meta.resourceProfile === 'full-world' ? 'PASS' : 'FAIL',
+    packageProfile: meta.resourceProfile === 'map-data' ? 'PASS' : 'FAIL',
     builtinWorld: meta.builtinWorld?.sha256 ? 'PASS' : 'FAIL',
     sourceCountryCount: sourceCountryCount === expectedSourceCount ? 'PASS' : 'FAIL',
     modelEntityCount: countryCount === expectedModelCount ? 'PASS' : 'FAIL',

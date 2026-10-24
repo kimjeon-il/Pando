@@ -39,7 +39,7 @@ const polygonPreparation = meshCoreReady.then(() => Promise.all([
       return publicDataAssetUrl(self.location.href, asset);
     } });
   return createPreparedPolygonMeshStore({ engine,
-    loadManifest: meta.resourceProfile === 'small-project' ? null : async () => {
+    loadManifest: meta.resourceProfile === 'test-fixture' ? null : async () => {
       if (!spec) throw new Error('Required prepared polygon manifest is missing from build metadata');
       const result = await loadAsset(spec, 'mesh', 'polygon-manifest', 'Prepared polygon manifest', buffer => JSON.parse(new TextDecoder().decode(buffer)));
       const manifest = result.value;

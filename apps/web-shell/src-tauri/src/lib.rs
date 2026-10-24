@@ -74,7 +74,7 @@ async fn write_probe_file(app: tauri::AppHandle, contents: String) -> Result<Wri
         .write_lock
         .lock()
         .map_err(|error| error.to_string())?;
-    let path = profile_dir(&app)?.join("small-project.json");
+    let path = profile_dir(&app)?.join("test-fixture.json");
     storage::atomic_write(&path, contents.as_bytes()).map_err(|error| error.to_string())?;
     Ok(WrittenFile {
         path: path.display().to_string(),
@@ -88,7 +88,7 @@ async fn write_probe_file(app: tauri::AppHandle, contents: String) -> Result<Wri
 #[cfg(feature = "verification")]
 #[tauri::command]
 async fn read_probe_file(app: tauri::AppHandle) -> Result<ReadFile, String> {
-    let path = profile_dir(&app)?.join("small-project.json");
+    let path = profile_dir(&app)?.join("test-fixture.json");
     let contents = storage::read_bounded(&path).map_err(|error| error.to_string())?;
     Ok(ReadFile {
         contents,
@@ -98,7 +98,7 @@ async fn read_probe_file(app: tauri::AppHandle) -> Result<ReadFile, String> {
 
 #[cfg(not(feature = "custom-protocol"))]
 fn embedded_build_summary() -> Result<serde_json::Value, String> {
-    Ok(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false, "profile": "full-world", "verification": cfg!(feature = "verification") }))
+    Ok(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false, "profile": "map-data", "verification": cfg!(feature = "verification") }))
 }
 
 #[cfg(feature = "custom-protocol")]

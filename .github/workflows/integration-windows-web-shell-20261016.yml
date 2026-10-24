@@ -1,4 +1,4 @@
-name: Integrated full-world Windows WebView verification
+name: Integrated map-data Windows WebView verification
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 45
     env:
-      PANDOLAB_SHELL_PROFILE: full-world
+      PANDOLAB_SHELL_PROFILE: map-data
       PANDOLAB_SHELL_VERIFICATION: "1"
       TAURI_CONFIG: '{"app":{"security":{"capabilities":["prototype-main","verification"]}}}'
       CARGO_TERM_COLOR: always
@@ -60,13 +60,13 @@ jobs:
         run: |
           node --test tests/unit/editor-resource-capabilities.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs apps/web-shell/tests/stage-world.test.mjs apps/web-shell/tests/stage.test.mjs apps/web-shell/tests/network-guard.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Stage and hash the actual committed full-world data
+      - name: Stage and hash the actual committed map data
         shell: pwsh
         run: |
-          node apps/web-shell/stage.mjs --profile=full-world
+          node apps/web-shell/stage.mjs --profile=map-data
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $stage = Get-Content apps/web-shell/dist/shell/stage-evidence.json -Raw | ConvertFrom-Json
-          if ($stage.profile -ne 'full-world' -or $stage.worldData.countryCount -ne 258 -or
+          if ($stage.profile -ne 'map-data' -or $stage.worldData.countryCount -ne 258 -or
               $stage.worldData.modelEntityCount -ne 254 -or
               $stage.worldData.rootCount -ne 207 -or
               $stage.worldData.mergedSourceCount -ne 4 -or
@@ -83,7 +83,7 @@ jobs:
             }
           }
           Write-Output "Verified $($stage.worldData.fileCount) pinned world files ($($stage.worldData.bytes) bytes)."
-      - name: Build full-world Windows Tauri app using native MSVC
+      - name: Build map-data Windows Tauri app using native MSVC
         shell: pwsh
         run: |
           pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
@@ -93,7 +93,7 @@ jobs:
         run: |
           cargo test --manifest-path apps/web-shell/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc --features custom-protocol,verification
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Execute the actual full-world Windows WebView app
+      - name: Execute the actual map-data Windows WebView app
         shell: pwsh
         run: |
           ./apps/web-shell/verify-world-windows.ps1 -BinaryPath 'apps/web-shell/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe'

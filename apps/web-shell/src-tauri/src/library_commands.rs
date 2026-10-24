@@ -24,7 +24,7 @@ fn asset(app: &tauri::AppHandle, path: &str) -> Result<Vec<u8>> {
         .get(path.into())
         .map(|asset| asset.bytes.to_vec())
         .ok_or_else(|| {
-            format!("Packaged library source unavailable: {path}; full-world package required")
+            format!("Packaged library source unavailable: {path}; map-data package required")
         })
 }
 async fn run<F>(app: tauri::AppHandle, operation: &'static str, f: F) -> Result<Value>

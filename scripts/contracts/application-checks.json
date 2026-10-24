@@ -461,7 +461,7 @@
       "argv": [
         "node",
         "apps/web-shell/stage.mjs",
-        "--profile=small-project",
+        "--profile=test-fixture",
         "--verification"
       ],
       "requires": [
@@ -503,7 +503,7 @@
       "argv": [
         "node",
         "apps/web-shell/stage.mjs",
-        "--profile=full-world"
+        "--profile=map-data"
       ],
       "requires": [
         "app-small-verify"
@@ -882,6 +882,7 @@
     "tests/**"
   ],
   "passiveInputs": [
+    "tools/reference-analysis/README.md",
     "assets/js/vendor/**",
     "assets/vendor/**",
     "assets/fonts/**",

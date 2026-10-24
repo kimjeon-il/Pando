@@ -6,7 +6,7 @@ function runtime({ renderer = 'webgl2', blocked = [] } = {}) {
   const handlers = new Map();
   const scope = {
     PANDOLAB_BUILD_META: {
-      resourceProfile: 'full-world', dataRevision: 'data-' + 'a'.repeat(32),
+      resourceProfile: 'map-data', dataRevision: 'data-' + 'a'.repeat(32),
       builtinWorld: { sha256: 'c'.repeat(64) },
     },
     __PANDOLAB_STARTUP_METRICS__: {
@@ -31,7 +31,7 @@ function runtime({ renderer = 'webgl2', blocked = [] } = {}) {
   return scope;
 }
 
-test('full-world probe requires canonical world, actual WebGL and original Worker', () => {
+test('map-data probe requires canonical world, actual WebGL and original Worker', () => {
   const scope = runtime();
   const report = inspectFullWorldRuntime(scope);
   assert.equal(report.ok, true);
@@ -44,11 +44,11 @@ test('full-world probe requires canonical world, actual WebGL and original Worke
   assert.equal(Object.keys(report.checks).length,12);
   assert.equal(Object.hasOwn(report.observed,'physicalDeferredUntilReady'),false);
 });
-test('full-world probe fails canvas fallback and any blocked remote request', () => {
+test('map-data probe fails canvas fallback and any blocked remote request', () => {
   assert.equal(inspectFullWorldRuntime(runtime({ renderer: 'canvas' })).ok, false);
   assert.equal(inspectFullWorldRuntime(runtime({ blocked: [{ url: 'https://untrusted.invalid' }] })).ok, false);
 });
-test('full-world probe records actual ready event and writes a result once', async () => {
+test('map-data probe records actual ready event and writes a result once', async () => {
   const scope = runtime(), reports = [];
   const finished = new Promise(resolve => {
     installFullWorldProbe({ scope, timeoutMs: 300, readyDelayMs: 0,
@@ -60,7 +60,7 @@ test('full-world probe records actual ready event and writes a result once', asy
   assert.equal(report.ok, true);
   assert.equal(reports.length, 1);
 });
-test('full-world probe records errors rather than claiming ready', async () => {
+test('map-data probe records errors rather than claiming ready', async () => {
   const scope = runtime(), output = new Promise(resolve => {
     installFullWorldProbe({ scope, timeoutMs: 300, reportFn: resolve });
   });

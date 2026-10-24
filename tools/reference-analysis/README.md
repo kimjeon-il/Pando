@@ -40,8 +40,8 @@ original-pixel ratios and keeps source-family identity. Inventory distinguishes
 masters, official downsample candidates and these app derivatives. No training
 labels or accuracy results are inferred from a resized map.
 
-Native runtime proof uses the full-world shell and an explicit small source map:
-set `PANDOLAB_SHELL_PROFILE=full-world` and `PANDOLAB_REFERENCE_PROBE_SOURCE` before
+Native runtime proof uses the map-data shell and an explicit small source map:
+set `PANDOLAB_SHELL_PROFILE=map-data` and `PANDOLAB_REFERENCE_PROBE_SOURCE` before
 the fixed Windows build, then run it with `--probe-auto --probe-reference-analysis
 --probe-profile-id reference-analysis --diagnostic-output ABSOLUTE_REPORT_PATH`.
 This exercises genuine local OCR, moving-view independent place search and

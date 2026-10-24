@@ -5,10 +5,10 @@ import { join } from 'node:path';
 import { stagePrototype } from '../stage.mjs';
 import { worldFixture as fixture } from './helpers/world-fixture.mjs';
 
-test('full-world stage selects manifest-pinned Web resources and keeps the canonical bootstrap intact', async t => {
+test('map-data stage selects manifest-pinned Web resources and keeps the canonical bootstrap intact', async t => {
   const { root, transport } = await fixture(t);
-  const staged = await stagePrototype({ root, profile: 'full-world' });
-  assert.equal(staged.profile, 'full-world');
+  const staged = await stagePrototype({ root, profile: 'map-data' });
+  assert.equal(staged.profile, 'map-data');
   assert.equal(staged.worldData.countryCount, 258);
   assert.equal(staged.worldData.modelEntityCount, 254);
   assert.equal(staged.worldData.mergedSourceCount, 4);
@@ -21,7 +21,7 @@ test('full-world stage selects manifest-pinned Web resources and keeps the canon
   assert.equal(await readFile(join(staged.directory, 'assets/js/bootstrap.js'), 'utf8'),
     'globalThis.startedByWebBootstrap = true;');
   const mode = JSON.parse(await readFile(join(staged.directory, 'shell/stage-profile.json')));
-  assert.equal(mode.mode, 'full-world');
+  assert.equal(mode.mode, 'map-data');
   assert.equal(mode.dataRevision, 'data-' + 'b'.repeat(32));
   assert.ok(staged.files.some(file => file.path.endsWith('/state-ABC.json.gz')));
   assert.ok(staged.files.some(file => file.path.endsWith('/hydro.bin')));
@@ -30,14 +30,14 @@ test('full-world stage selects manifest-pinned Web resources and keeps the canon
   assert.equal(await readFile(join(staged.directory, transport.url), 'utf8'), 'COUNTRY');
   assert.equal(staged.files.some(file => file.path.includes('builtin-world/generated/v1/countries/')), false);
 });
-test('full-world stage refuses tampered pinned immutable data', async t => {
+test('map-data stage refuses tampered pinned immutable data', async t => {
   const { root, put, mesh } = await fixture(t);
   await put(mesh.url, 'TAMPERED');
-  await assert.rejects(stagePrototype({ root, profile: 'full-world' }), /Pinned world resource mismatch/);
+  await assert.rejects(stagePrototype({ root, profile: 'map-data' }), /Pinned world resource mismatch/);
 });
 
-test('full-world stage rejects a corrupted builtin country transport before packaging', async t => {
+test('map-data stage rejects a corrupted builtin country transport before packaging', async t => {
   const { root, put, transport } = await fixture(t);
   await put(transport.url, 'TAMPERED');
-  await assert.rejects(stagePrototype({ root, profile: 'full-world' }), /Pinned world resource mismatch/);
+  await assert.rejects(stagePrototype({ root, profile: 'map-data' }), /Pinned world resource mismatch/);
 });

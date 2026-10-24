@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { parse } from 'yaml';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -31,6 +31,18 @@ function fixture() {
   put('scripts/generate.mjs');
   return { root, put, catalog, repository: () => loadRepository(root, { catalog }) };
 }
+
+test('reference-analysis command documentation is a passive CI input', t => {
+  const f = fixture();
+  t.after(() => rmSync(f.root, { recursive: true, force: true }));
+  const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
+  f.catalog.productRoots = catalog.productRoots;
+  f.catalog.passiveInputs = catalog.passiveInputs;
+  f.put('tools/reference-analysis/README.md', 'Use PANDOLAB_SHELL_PROFILE=map-data.');
+  const plan = planApplicationChecks({ changedFiles: ['tools/reference-analysis/README.md'], repository: f.repository() });
+  assert.deepEqual(plan.unitTests, []);
+  assert.deepEqual(plan.browserSpecs, []);
+});
 
 test('application CI prepares pinned data before planning and executing registered checks', () => {
   const workflow = parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8'));

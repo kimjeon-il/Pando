@@ -106,7 +106,7 @@ jobs:
           node --test
           --test-name-pattern="stages the runtime reference style catalog"
           apps/web-shell/tests/stage.test.mjs
-      - name: '4b. Actual small-project App staging and source identity'
+      - name: '4b. Actual test-fixture App staging and source identity'
         if: ${{ contains(github.event.head_commit.message, '[stage-only]') }}
         run: |
           # Compare the actual app package against source-matched generated assets,
@@ -115,7 +115,7 @@ jobs:
           node scripts/generate-build-metadata.mjs --check
           echo 'Generated tracked changes in temporary CI checkout:'
           git diff --name-only | head -60
-          node apps/web-shell/stage.mjs --profile=small-project --verification
+          node apps/web-shell/stage.mjs --profile=test-fixture --verification
           node apps/web-shell/check-stage.mjs
           node --input-type=module -e "
             import assert from 'node:assert/strict';

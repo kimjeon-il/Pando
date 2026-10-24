@@ -14,7 +14,7 @@ export function installWorld(profile) {
 }
 
 export async function createFixtureProfile(profile) {
-  if (profile.mode !== 'small-project' || profile.verification !== true) throw new Error('The small-project profile requires explicit verification.');
+  if (profile.mode !== 'test-fixture' || profile.verification !== true) throw new Error('The test-fixture profile requires explicit verification.');
   const profileUrl = new URL('./stage-profile.json', import.meta.url);
   const manifestUrl = new URL(profile.builtinWorld.url, profileUrl);
   const countriesUrl = new URL(profile.countriesUrl, profileUrl);
@@ -23,7 +23,7 @@ export async function createFixtureProfile(profile) {
   }
   const { createBuiltinWorldLoader } = await import(new URL('../assets/js/modules/builtin-world-loader.js', import.meta.url));
   return Object.freeze({
-    mode: 'small-project',
+    mode: 'test-fixture',
     countriesUrl,
     platform: Object.freeze({
       builtinWorldLoader: createBuiltinWorldLoader({

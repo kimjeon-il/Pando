@@ -1,12 +1,12 @@
 /** Ordinary app runtime: the real pinned world only. */
 export async function createRuntimeProfile(profile) {
-  if (profile.mode !== 'full-world') throw new Error('Ordinary runtime requires the full-world profile.');
+  if (profile.mode !== 'map-data') throw new Error('Ordinary runtime requires the map-data profile.');
   const profileUrl = new URL('./stage-profile.json', import.meta.url);
   const meta = globalThis.PANDOLAB_BUILD_META;
-  if (!meta?.builtinWorld || meta.resourceProfile !== 'full-world'
+  if (!meta?.builtinWorld || meta.resourceProfile !== 'map-data'
       || profile.dataRevision !== meta.dataRevision
       || profile.assetRevision !== meta.assetRevision) {
-    throw new Error('Bundled full-world assets do not match the running application.');
+    throw new Error('Bundled map-data assets do not match the running application.');
   }
   const root = new URL('../', import.meta.url);
   const worldManifest = new URL('assets/data/world/current.json', root);
@@ -18,7 +18,7 @@ export async function createRuntimeProfile(profile) {
     throw new Error('Bundled world manifest has no canonical 258-country dataset.');
   }
   return Object.freeze({
-    mode: 'full-world',
+    mode: 'map-data',
     platform: Object.freeze({
       builtinHydroAvailable: true,
       builtinPlacesAvailable: true,
