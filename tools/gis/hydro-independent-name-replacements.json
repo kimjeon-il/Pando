@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "22-independently-researched-river-name-and-relation-records-staged",
+  "status": "27-independent-river-source-reviews-staged-requires-bundle-verification",
   "reference": {
     "dataset": "HydroRIVERS v0.13.2 OSM-name inventory",
     "naturalEarthRiversBaseSha256": "3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99",
@@ -64,6 +64,40 @@
       "hydroRiversRegion": "eu"
     },
     {
+      "systemId": "20336821",
+      "previousNameKo": "템스강",
+      "nameKo": "템스강",
+      "aliases": [
+        "Thames",
+        "River Thames"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Thames",
+        "sampleCoverage": 0.728
+      },
+      "hydroRiversRegion": "eu",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0,
+        "reason": "UK Environment Agency river navigation and basin district records confirm the Thames; no conflicting independently named river near audited 81-point mainstem."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.gov.uk/guidance/thames-river-basin-district-river-basin-management-plan-updated-2022"
+        },
+        {
+          "kind": "government-river-navigation",
+          "url": "https://www.gov.uk/check-river-conditions-and-closures/river-thames"
+        }
+      ]
+    },
+    {
       "systemId": "20342955",
       "previousNameKo": "스헬데강",
       "nameKo": "스헬데강",
@@ -87,6 +121,40 @@
         }
       ],
       "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20452421",
+      "previousNameKo": "돈강",
+      "nameKo": "돈강",
+      "aliases": [
+        "Don",
+        "Дон"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Don",
+        "sampleCoverage": 0.815
+      },
+      "hydroRiversRegion": "eu",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0.037,
+        "reason": "Rosvodresursy and Rostov-on-Don public water records identify the Don basin; the separate Donets sub-river is not promoted to system alias."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://voda.gov.ru/press-tsenter/news/federalnye/559696/"
+        },
+        {
+          "kind": "government-water",
+          "url": "https://rostov-gorod.ru/press_room/news/8891/115134/"
+        }
+      ]
     },
     {
       "systemId": "20457454",
@@ -137,6 +205,42 @@
         }
       ],
       "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20588291",
+      "previousNameKo": "도루강",
+      "nameKo": "도루강",
+      "aliases": [
+        "Douro",
+        "Duero"
+      ],
+      "tributaryNames": [
+        "에슬라강"
+      ],
+      "naturalEarth": {
+        "name": "Douro",
+        "sampleCoverage": 0.741
+      },
+      "hydroRiversRegion": "eu",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0.074,
+        "reason": "Portuguese national dam register describes Rio Douro mainstem; Spanish Duero basin authority independently lists River Esla as tributary."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://cnpgb.apambiente.pt/content/r%C3%A9gua"
+        },
+        {
+          "kind": "government-river-basin",
+          "url": "https://mirame.chduero.es/chduero/public/naturalElements/river"
+        }
+      ]
     },
     {
       "systemId": "20673409",
@@ -298,6 +402,36 @@
       "hydroRiversRegion": "as"
     },
     {
+      "systemId": "41225082",
+      "previousNameKo": "람강",
+      "nameKo": "람강",
+      "aliases": [
+        "Sông Lam",
+        "Sông Cả",
+        "Cả"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Cả",
+        "sampleCoverage": 0.852
+      },
+      "hydroRiversRegion": "as",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://mae.gov.vn/quan-ly-dieu-phoi-lien-vung-luu-vuc-song-ca-21850.htm"
+        },
+        {
+          "kind": "provincial-government-hydrology",
+          "url": "https://ngheandost.gov.vn/csdl-khxhnv/dat-va-nguoi-xu-nghe/thuc-trang-va-nguyen-nhan-sat-lo-bo-song-lam-nhung-nam-gan-day-225.html"
+        }
+      ]
+    },
+    {
       "systemId": "41261061",
       "previousNameKo": "시탕강",
       "nameKo": "시탕강",
@@ -427,6 +561,40 @@
         {
           "kind": "korean-government-study",
           "url": "https://www.ksp.go.kr/pageView/info/797"
+        }
+      ]
+    },
+    {
+      "systemId": "50170097",
+      "previousNameKo": "마하캄강",
+      "nameKo": "마하캄강",
+      "aliases": [
+        "Mahakam",
+        "Sungai Mahakam"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Mahakam",
+        "sampleCoverage": 0.79
+      },
+      "hydroRiversRegion": "au",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0,
+        "reason": "Indonesian public works names the Mahakam catchment and its Kalimantan IV basin unit; no other independently named river near the audited mainstem points."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://sda.pu.go.id/profil/bws"
+        },
+        {
+          "kind": "government-water",
+          "url": "https://sda.pu.go.id/balai/bwskalimantan4/page/4"
         }
       ]
     },

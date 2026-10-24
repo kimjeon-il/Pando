@@ -87,6 +87,29 @@ jobs:
               assert abs(recorded['nearestDifferentBasinStationKm']-measured['nearestDifferentBasinStationKm'])<0.002
           print('Both station-based source exemptions reproduced against original Hydro geometry')
           PY
+      - name: Verify all lower-coverage candidate river names against independent Natural Earth line comparison
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          review=json.loads(Path('tools/gis/hydro-independent-name-replacements.json').read_text())['replacements']
+          ne=json.loads(Path('/tmp/osm-ne-crosscheck.json').read_text())['items']
+          ne_by_id={str(row['systemId']):row for row in ne}
+          for entry in review:
+              if entry.get('naturalEarth') is None: continue
+              candidates=ne_by_id[entry['systemId']]['naturalEarthCandidates']
+              match=next((row for row in candidates if row['name'] == entry['naturalEarth']['name']),None)
+              assert match is not None, entry['systemId']
+              assert abs(match['sampleCoverage'] - entry['naturalEarth']['sampleCoverage']) < 0.001, entry['systemId']
+              conservative=entry.get('conservativeMainstemReview')
+              if conservative:
+                  assert candidates[0]['name']==match['name'],entry['systemId']
+                  competing=max((row['sampleCoverage'] for row in candidates
+                                 if row['name']!=match['name'] and row['nameKo']),default=0)
+                  assert abs(competing-conservative['otherNamedNECoverage'])<0.001,entry['systemId']
+                  assert match['meanDistanceDegrees'] <= 0.04,entry['systemId']
+          print('Source-independent 81-sample geometry comparisons reproduced for all reviewed river systems')
+          PY
       - name: Verify independently researched river-name records
         run: |
           python -m unittest discover -s tests -p 'test_hydro_independent_names.py' -v
@@ -107,11 +130,11 @@ jobs:
           root=Path('/tmp/hydro-independent-five')
           proof=json.loads((root/'proof.json').read_text())
           manifest=json.loads((root/'manifest.json').read_text())
-          assert len(proof['changedSystemIds']) == 22
-          assert proof['remainingOsmMatchedSystems'] == 51
-          assert proof['sourceIndependentSystemCount'] == 22
+          assert len(proof['changedSystemIds']) == 27
+          assert proof['remainingOsmMatchedSystems'] == 46
+          assert proof['sourceIndependentSystemCount'] == 27
           assert proof['renamedSystemCount'] == 7
-          assert proof['nameUnchangedSourceReplacementCount'] == 15
+          assert proof['nameUnchangedSourceReplacementCount'] == 20
           assert proof['originalIndexSha256'] == proof['newIndexSha256']
           assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']
           assert manifest['metadata']['featureCount'] == 16548
