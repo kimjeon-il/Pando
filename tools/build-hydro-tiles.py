@@ -34,6 +34,7 @@ from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, P
 from shapely.ops import linemerge, nearest_points, transform, unary_union
 from shapely.strtree import STRtree
 from hydro_connectivity import repair_connections, audit_parts
+from gis.hydro_independent_name_policy import load_independent_hydronyms
 
 
 VERSION = "0.13.1"
@@ -1799,6 +1800,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--drainage-free-raster", type=Path, required=True)
     parser.add_argument("--osm-waterways", type=Path, help="Overpass `out tags bb` waterway relation JSON")
     parser.add_argument("--hydronym-overrides", type=Path, help="한국어 수계명 교정 JSON")
+    parser.add_argument("--independent-hydronym-replacements", type=Path, help="OSM 비의존 수계별 이름 검증표")
     return parser.parse_args()
 
 
@@ -1810,6 +1812,11 @@ def main() -> None:
     overrides_path = args.hydronym_overrides.resolve() if args.hydronym_overrides else hydro_root / "hydronym-ko-overrides.json"
     hydronym_overrides = load_hydronym_overrides(overrides_path)
     system_name_overrides = load_hydronym_system_overrides(overrides_path)
+    independent_path = (args.independent_hydronym_replacements.resolve()
+                        if args.independent_hydronym_replacements
+                        else Path(__file__).resolve().parent / "gis" / "hydro-independent-name-replacements.json")
+    independent_hydronyms = load_independent_hydronyms(independent_path)
+    applied_independent_hydronyms: set[str] = set()
     reviewed_hydronyms = set(hydronym_overrides.values()) | {
         str(value["nameKo"]).strip() for value in system_name_overrides.values()
     }
@@ -1862,8 +1869,10 @@ def main() -> None:
         for system in systems:
             system_id = int(system["systemId"])
             system_override = system_name_overrides.get(str(system_id))
+            independent_replacement = independent_hydronyms.get(str(system_id))
             mainstem_index = int(system["mainstemIndex"])
-            chain_osm_matches = {
+            # Replacement systems must not even consult OSM relation matches.
+            chain_osm_matches = {} if independent_replacement else {
                 index: osm_index.match(geometry_bounds(chain_geometry(chains[index])))
                 for index in system["chainIndexes"]
             }
@@ -1884,7 +1893,8 @@ def main() -> None:
                 if name in reviewed_hydronyms
             ), "")
             display_name = normalize_hydronym(
-                str((system_override or {}).get("nameKo") or "")
+                str((independent_replacement or {}).get("nameKo") or "")
+                or str((system_override or {}).get("nameKo") or "")
                 or reviewed_name or osm_name or ne_mainstem_name or (ne_other_names[0] if ne_other_names else ""),
                 "river", hydronym_overrides,
             )
@@ -1909,6 +1919,12 @@ def main() -> None:
                 normalize_hydronym(str((chain_osm_matches.get(index) or {}).get("nameKo") or ""), "river", hydronym_overrides)
                 for index in system["chainIndexes"] if index != mainstem_index
             }) - {"", display_name})
+            if independent_replacement:
+                # Independently verified names and aliases replace every OSM-
+                # derived name and relation for this logical system.
+                aliases = sorted(independent_replacement["aliases"])
+                tributary_names = sorted(independent_replacement["tributaryNames"])
+                applied_independent_hydronyms.add(str(system_id))
             fragment_rows: list[tuple[int, list[RiverReach]]] = []
             for chain_index in system["chainIndexes"]:
                 fragment_rows.extend((chain_index, fragment) for fragment in stage_fragments(chains[chain_index]))
@@ -1973,6 +1989,9 @@ def main() -> None:
         })
         del reaches, chains, systems
 
+    unapplied_independent = sorted(set(independent_hydronyms) - applied_independent_hydronyms)
+    if unapplied_independent:
+        raise RuntimeError("Independent hydronym systems missing from HydroRIVERS: " + ", ".join(unapplied_independent))
     selected_lakes = 0
     print("[lakes] Natural Earth 1:10m 전 세계 기본 호수를 읽는 중입니다.", flush=True)
     for index, raw_feature in enumerate(lakes_base):
@@ -2101,6 +2120,12 @@ def main() -> None:
                 if osm_path and osm_path.exists() else {"file": None, "matchedSystems": 0, "license": "ODbL"}
             ),
             "hydronymOverrides": {"file": overrides_path.name, "sha256": sha256(overrides_path)},
+            "independentHydronymReplacements": {
+                "file": independent_path.name,
+                "sha256": sha256(independent_path),
+                "replacedSystems": len(applied_independent_hydronyms),
+                "geometryChanged": False,
+            },
             "nameEnrichment": {
                 "namedRiverSystems": river_names_enriched,
                 "unnamedRiverSystems": unnamed_system_count,
