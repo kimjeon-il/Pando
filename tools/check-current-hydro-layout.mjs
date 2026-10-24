@@ -95,7 +95,7 @@ export async function auditLayout(root,{allowRetired=false}={}) {
   const current=listFiles(dir),declared=[relative(dir,manifestPath).replaceAll('\\','/'),manifest.container.url];
   const nameEvidence=manifest.sources?.independentHydronymReplacements;
   if(nameEvidence){
-    ensure(typeof nameEvidence.file==='string'&&/^[\\w.-]+\\.json$/.test(nameEvidence.file)
+    ensure(typeof nameEvidence.file==='string'&&/^[\w.-]+\.json$/.test(nameEvidence.file)
       &&validHash(nameEvidence.sha256),'Invalid independent river-name source declaration');
     const sourceBytes=readFileSync(inside(dir,nameEvidence.file));
     ensure(hash(sourceBytes)===nameEvidence.sha256,'Independent river-name source SHA-256 mismatch');
