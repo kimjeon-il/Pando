@@ -61,7 +61,13 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
       if (!page.isClosed()) await route.fulfill({ path: demManifest, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' } });
       return;
     }
-    const file = resolve(sourceCache, pathname.slice(pathname.indexOf('/terrain/') + 1));
+    // The generator pins the original L0/L1 DEM bytes under v0.13.0 while
+    // v0.13.3 publishes those tiles with its updated tint and manifest.
+    const relative = pathname.slice(pathname.indexOf('/terrain/') + 1);
+    const tile = /^terrain\/v0\.13\.3\/([01])\/(\d+-\d+\.webp)$/.exec(relative);
+    const file = resolve(sourceCache, tile
+      ? `terrain/v0.13.0/${tile[1]}/${tile[2]}`
+      : relative);
     if (!existsSync(file)) { await route.fulfill({ status: 503, body: 'fixed uncached detail failure' }); return; }
     await route.fulfill({ path: file, contentType: 'image/webp', headers: { 'Access-Control-Allow-Origin': '*' } });
   });
@@ -75,13 +81,16 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 60000 });
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection)).toBe('globe');
     await page.evaluate(() => {
-      const map = document.getElementById('map'), rect = map.getBoundingClientRect();
-      const zoom = window.__PANDOLAB_MAP_HOST__.getViewState().globeZoom;
-      map.dispatchEvent(new window.WheelEvent('wheel', { bubbles: true, cancelable: true,
-        clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2, deltaY: -Math.log(2 / zoom) / 0.0013 }));
+      // This fixed fixture owns only L0/L1 tiles. Keep the camera within that
+      // coverage while testing the real preview-to-DEM renderer transition.
+      const host = window.__PANDOLAB_MAP_HOST__;
+      host.setViewState({projection:'globe',view:{...host.getViewState(),globeZoom:1,globeRotation:[0,0,0]}});
+      host.requestRepaint('pinned-dem-fixture');
     });
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainDetailTileCount || 0), { timeout: 30000 }).toBeGreaterThan(0);
     const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__);
+    expect(metrics.terrainSource).toBe('dem-derived-canvas');
+    expect(metrics.terrainDemCacheBytes).toBeGreaterThan(0);
     expect(metrics.terrainDatasetVersion).toBe('0.13.3');
     expect(metrics.terrainDemCacheBytes).toBeLessThanOrEqual(96 * 1024 * 1024);
     await terrainStyle(page, 'physical');

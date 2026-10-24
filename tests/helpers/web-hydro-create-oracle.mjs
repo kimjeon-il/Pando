@@ -12,10 +12,9 @@ for (const row of manifest.files) {
     || createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== row.blob)
     throw new Error(`Frozen supplemental Git blob changed: ${row.path}`);
 }
-const [{ createHydroSettings }, { genericFeatureGeometryKind }, { prepareProjectForStorage }, { normalizeColorValue }] = await Promise.all([
-  loadWebOracle('assets/js/modules/physical-settings.js'),
+const [{ createHydroSettings }, { genericFeatureGeometryKind }, { normalizeColorValue }] = await Promise.all([
+  loadWebOracle('assets/js/modules/app-hydro-settings.js'),
   loadWebOracle('assets/js/modules/generic-feature-service.js'),
-  loadWebOracle('assets/js/modules/project-state.js'),
   import(new URL('assets/js/modules/color-adapter.js', root)),
 ]);
 const environment = await readFile(new URL('assets/js/modules/app-environment.js', root), 'utf8');
@@ -25,16 +24,12 @@ export const originalHydroToolConfig = Object.fromEntries(['river', 'lake'].map(
   return [category, { color }];
 }));
 
-export function originalHydroCreate(input, seed) {
+export function originalNormalizedHydro(input) {
   const owner = createHydroSettings();
   owner.connect({ objectPresentation: { genericFeatureGeometryKind }, colorModel: { normalizeEditorColor: normalizeColorValue },
     hydroPresentation: { HYDRO_TOOL_CONFIG: originalHydroToolConfig } });
-  const normalized = owner.normalizeHydroEdit(structuredClone(input));
-  const project = structuredClone(seed);
-  project.hydroEdits = [normalized];
-  // The detached input retains every other seed field; only old hydro-specific view keys refer to absent objects.
-  project.layerPresentation.objectStyles = Object.fromEntries(Object.entries(project.layerPresentation.objectStyles).filter(([key]) => !key.startsWith('hydro:')));
-  project.layerPresentation.objectOrder = project.layerPresentation.objectOrder.filter(key => !key.startsWith('hydro:'));
-  project.itemVisibility = Object.fromEntries(Object.entries(project.itemVisibility).filter(([key]) => !key.startsWith('hydro:')));
-  return { normalized, saved: prepareProjectForStorage(project).hydroEdits[0] };
+  // The frozen serializer preserves normalized hydro bytes unchanged. Compare
+  // that value directly; the current Core still exercises storage and Undo/Redo,
+  // without feeding a current project into an obsolete project-schema reader.
+  return owner.normalizeHydroEdit(structuredClone(input));
 }
