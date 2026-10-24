@@ -946,6 +946,7 @@ function canvasFallbackWorkerMain() {
           },
           'territorial-fill': () => self.PandoLabCanvasSceneComposition.drawTerritorialFills(context, geoPath, message.scenePolygons || [], substrate, dpr),
           'country-boundary': () => renderCountryBoundaries(message, projection, dpr),
+          'physical-water': () => self.PandoLabCanvasSceneComposition.drawPhysicalWater(context,geoPath,message.scenePolygons||[],{color:theme.ocean,fillAlpha:1}),
         };
         const protection = {
           key: [message.viewRevision, message.projectionRevision, pixelWidth, pixelHeight, physicalStyleRevision,
@@ -953,6 +954,7 @@ function canvasFallbackWorkerMain() {
             countrySharedBoundary?.geometryRevision, styleRevision].join(':'),
           draw: mask => {
             for (const role of message.visualOrder.hydro) renderHydroPass(message, projection, dpr, role, mask, true);
+            self.PandoLabCanvasSceneComposition.drawPhysicalWater(mask,createCanvasPath(projection,mask),message.scenePolygons||[],{color:'#000000',fillAlpha:1});
             renderCountryBoundaries(message, projection, dpr, mask, true);
           },
         };

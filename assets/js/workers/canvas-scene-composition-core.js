@@ -74,7 +74,7 @@
     return cached;
   }
   function drawOverlays(context, path, polygons, strokes, dpr, protection = null) {
-    const items = [...polygons.filter(packet => packet.role !== 'territorial-fill' && packet.role !== 'physical-land').map(packet => ({ packet, polygon: true })),
+    const items = [...polygons.filter(packet => !['territorial-fill','physical-land','physical-water'].includes(packet.role)).map(packet => ({ packet, polygon: true })),
       ...strokes.map(packet => ({ packet, polygon: false }))].sort((a, b) => Number(a.packet.order || 0) - Number(b.packet.order || 0));
     const protectedArea = items.some(item => item.polygon) ? protectionFor(context, dpr, protection) : null;
     for (const { packet, polygon } of items) {
@@ -211,6 +211,10 @@
       context.restore();
     }
   }
-  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawTerritorialFills, drawOverlays, drawGeneralLand, drawEmphasis, geometryFor,
+  function drawPhysicalWater(context,path,packets,style) {
+    for(const packet of packets)if(packet.role==='physical-water')drawPolygon(context,path,{...packet,blendMode:'normal',style});
+    context.globalAlpha=1;context.globalCompositeOperation='source-over';
+  }
+  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawPhysicalWater, drawTerritorialFills, drawOverlays, drawGeneralLand, drawEmphasis, geometryFor,
     countryBoundaryBatches, drawStrokes });
 })(globalThis);

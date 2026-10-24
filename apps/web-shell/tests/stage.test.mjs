@@ -56,6 +56,18 @@ test('stages the real frontend, exact WASM pair and local OCR without world data
   assert.ok(result.fixture.coordinateCount <= 100);
 });
 
+test('small-project staging retains required historical physical backgrounds without world objects',async t=>{
+  const {root,put}=await source(t);
+  const physicalLand={url:'assets/data/physical-land/v1/modern.gz'};
+  const context={land:{url:'assets/data/physical-land/v1/historical-land.gz'},water:{url:'assets/data/physical-land/v1/historical-water.gz'}};
+  await put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({physicalLand,physicalWaterHistory:[context]})+');');
+  await put('assets/data/physical-land/v1/manifest.json',JSON.stringify({asset:physicalLand,historicalWaterbodies:[context]}));
+  for(const asset of [physicalLand,context.land,context.water])await put(asset.url,'physical');
+  const result=await stagePrototype({root});
+  for(const asset of [physicalLand,context.land,context.water])assert.ok(result.files.some(file=>file.path===asset.url));
+  assert.equal(result.files.some(file=>file.path==='assets/data/world/huge.bin'),false);
+});
+
 test('stages the runtime reference style catalog and every lazily loaded stylesheet', async t => {
   const { root, put } = await source(t);
   const catalog = 'assets/js/modules/reference-image-style-sources.js';

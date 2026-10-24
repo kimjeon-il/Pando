@@ -103,6 +103,9 @@ export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}
     const land = getPhysicalLand();
     if (land) replaceGpuSceneDomain('physical-land', { polygons: [{ key: 'physical-land', role: 'physical-land', geometryRevision: land.revision,
       geometry: land.geometry, protected: true, order: -20000, style: { color: '#ffffff', fillAlpha: 1 } }] });
+    else replaceGpuSceneDomain('physical-land',{});
+    replaceGpuSceneDomain('physical-water',{polygons:land?.water?[{key:'physical-water',role:'physical-water',geometryRevision:land.waterRevision,
+      geometry:land.water,protected:true,order:-19000,style:{color:'#ffffff',fillAlpha:1}}]:[]});
     const overlayOrderSignature = JSON.stringify(dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS);
     if (syncGpuRenderScene.overlayOrderSignature !== overlayOrderSignature) {
       syncGpuRenderScene.overlayOrderSignature = overlayOrderSignature;

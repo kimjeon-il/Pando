@@ -12,6 +12,7 @@ const VISUAL_ROLES = Object.freeze([
   { role: 'river', scope: 'base', hydro: true },
   { role: 'border-river', scope: 'base', hydro: true },
   { role: 'country-boundary', scope: 'base' },
+  { role: 'physical-water', scope: 'base' },
   // Mixed overlays retain group/object order and protect base water/borders.
   { role: 'independent-overlay', scope: 'base' },
   { role: 'candidate', scope: 'selection', priority: 1, aliases: ['reference', 'unchosen-result'] },
