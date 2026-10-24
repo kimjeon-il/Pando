@@ -177,7 +177,7 @@ pub fn finish_document_write(
         return Err("Document transfer is not a writer".into());
     };
     if len == 0 { return Err("Cannot save an empty document".into()); }
-    File::open(&spool.0).and_then(|file| file.sync_all()).map_err(|e| e.to_string())?;
+    crate::storage::sync_file(&spool.0).map_err(|e| e.to_string())?;
     let Some(path) = picker(&app, &kind).blocking_save_file() else {
         return Ok(SavedFile { cancelled: true, path: None });
     };

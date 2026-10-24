@@ -31,7 +31,7 @@ test('WebGL DEM failure uses the new preview through color, gray and view change
   await terrainStyle(page, 'political');
   await page.evaluate(() => {
     const host = window.__PANDOLAB_MAP_HOST__, view = host.getViewState();
-    host.setViewState({ projection: 'flat', view: { ...view, flatZoom: 8, flatCenter: [180, 30] } });
+    host.setViewState({ projection: 'globe', view: { ...view, globeZoom: 8, globeRotation: [-180, -30, 0] } });
     host.requestRepaint('preview-dateline');
   });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetLevel)).toBe(1);
@@ -76,7 +76,7 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection)).toBe('globe');
     await page.evaluate(() => {
       const map = document.getElementById('map'), rect = map.getBoundingClientRect();
-      const zoom = window.__PANDOLAB_MAP_HOST__.getViewState().zoom;
+      const zoom = window.__PANDOLAB_MAP_HOST__.getViewState().globeZoom;
       map.dispatchEvent(new window.WheelEvent('wheel', { bubbles: true, cancelable: true,
         clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2, deltaY: -Math.log(2 / zoom) / 0.0013 }));
     });
