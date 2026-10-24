@@ -22,7 +22,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
 from report_paths import report_path
 
-OUT = report_path("assets/data/research/siachen")
+OUT = report_path("reports/borders/reconstruction/siachen", access='write')
 OUT.mkdir(parents=True, exist_ok=True)
 OSM_SOURCE_URL = ("https://raw.githubusercontent.com/"
     "uncovering-world/travel-regions-extraction/"

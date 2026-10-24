@@ -29,7 +29,7 @@ jobs:
           from report_paths import report_path
           import json
           from pathlib import Path
-          p=report_path("assets/data/research/siachen")
+          p=report_path("reports/borders/reconstruction/siachen", access="read")
           m=json.loads((p/"siachen_agpl_discrepancy_diagnostic.json").read_text())
           assert 1 < m["by_source_scale"]["10m"]["rgi_overlap_pakistan_km2"] < 2
           assert m["line_through_ice"]["intersected_length_km"] > 0
@@ -42,17 +42,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/
           if ! git diff --cached --quiet; then
             git commit -m "research: record spatial diagnosis of AGPL and ice overlaps"
             git push origin HEAD:work/gis
           fi
+      - name: Resolve branch report artifacts
+        run: echo "PANDO_REPORT_ARTIFACTS=$(python tools/report_paths.py reports/borders/reconstruction/siachen --access read)" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
           name: siachen-ice-agpl-discrepancy
           path: |
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_agpl_discrepancy_diagnostic.json
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_glacier_agpl_discrepancy.geojson
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_agpl_discrepancy_overview.png
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_agpl_discrepancy_zoom.png
-            reports/research/siachen/README_discrepancy.md
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_agpl_discrepancy_diagnostic.json
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_glacier_agpl_discrepancy.geojson
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_agpl_discrepancy_overview.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_agpl_discrepancy_zoom.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/README_discrepancy.md

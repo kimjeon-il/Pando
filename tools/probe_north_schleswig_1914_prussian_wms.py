@@ -5,6 +5,7 @@ Only service metadata is saved. A WMS service which does not spatially cover
 historic Danish Schleswig cannot validate our border even if it displays
 maps from 1878–1880. No raster scanning or publication occurs here.
 """
+from library_data import write_library_text
 import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -101,7 +102,7 @@ def main():
     except (requests.RequestException, ET.ParseError, RuntimeError) as ex:
         report["status"] = "not-accessible"
         report["error"] = f"{type(ex).__name__}: {str(ex)[:450]}"
-    TARGET.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_library_text(TARGET,json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "status": report["status"],
         "httpStatus": report.get("httpStatus"),

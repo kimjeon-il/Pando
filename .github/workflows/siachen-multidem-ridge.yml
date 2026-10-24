@@ -33,7 +33,7 @@ jobs:
           from report_paths import report_path
           import json
           from pathlib import Path
-          p=report_path("assets/data/research/siachen")
+          p=report_path("reports/borders/reconstruction/siachen", access="read")
           x=json.loads((p/'siachen_multidem_ridge_comparison.json').read_text())
           assert 'COP30' in x['sources']
           assert len(x['sources'])>=2
@@ -45,24 +45,23 @@ jobs:
               assert '1600' in st['DEM']['COP30']['search_windows_m']
           print('SUCCESS: four pass sites and six DEM profiles verified')
           PY
+      - name: Resolve branch report artifacts
+        run: echo "PANDO_REPORT_ARTIFACTS=$(python tools/report_paths.py reports/borders/reconstruction/siachen --access read)" >> "$GITHUB_ENV"
       - name: Upload studies irrespective of Git branch contention
         uses: actions/upload-artifact@v4
         with:
           name: siachen-saltoro-dem-cross-source
           path: |
-            reports/research/siachen/siachen_multidem_*.png
-            assets/data/research/siachen/siachen_multidem_*.png
-            reports/research/siachen/siachen_multidem_ridge_comparison.json
-            assets/data/research/siachen/siachen_multidem_ridge_comparison.json
-            reports/research/siachen/README_multidem_ridge.md
-            assets/data/research/siachen/README_multidem_ridge.md
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_multidem_*.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_multidem_ridge_comparison.json
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/README_multidem_ridge.md
       - name: Commit source data to research branch
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_multidem_* "$(python tools/report_paths.py assets/data/research/siachen)"/README_multidem_ridge.md
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/siachen_multidem_* reports/borders/reconstruction/siachen/README_multidem_ridge.md
           if ! git diff --cached --quiet; then
             git commit -m "research: source-record independent Saltoro DEM comparison"
             for attempt in 1 2 3 4; do

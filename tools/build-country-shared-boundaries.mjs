@@ -1,3 +1,4 @@
+import { writeLibraryOutput } from './library-data.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
@@ -52,6 +53,6 @@ for (const [quality, input, output] of inputs.filter(([quality]) => !qualityArgu
     // Gzip headers and DEFLATE encodings vary by platform and zlib version.
     // Verify the exact generated content, including geometry order and signatures.
     if (!fs.existsSync(destination) || !gunzipSync(fs.readFileSync(destination)).equals(content)) throw new Error(`${output} is stale`);
-  } else fs.writeFileSync(destination, payload);
+  } else writeLibraryOutput(destination, payload);
   console.log(`${quality}: ${countries.length} countries, ${segments.length} segments, ${payload.length} bytes`);
 }
