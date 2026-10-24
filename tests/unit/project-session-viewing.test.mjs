@@ -23,7 +23,8 @@ test('camera snapshots and restored views use navigation without workspace surfa
   uiFactoriesA:{createAtomicMapStateController},mapNavigation:ports.mapNavigation});
  session.initializeMapWorkScheduler();
  const camera=session.atomicMapStateController;
- assert.equal(camera.commit(camera.begin(),{projection:'flat',view:{flatZoom:1000,globeZoom:.01}}),true);
+ assert.equal(camera.commit(camera.begin(),{projection:'globe',view:{flatZoom:1000,globeZoom:.01}}),true);
+ assert.equal(session.state.projection,'globe');
  assert.equal(session.state.view.flatZoom,64);assert.equal(session.state.view.globeZoom,.72);
  const history=createHistoryAssembly();let restored=0;
  history.connect({domains:{projectDomain:{snapshot:()=>({documentId:'current'})}},projectState:{state:session.state},
