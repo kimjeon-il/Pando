@@ -23,7 +23,8 @@ export function assembleBuiltinWorld(index,countries,month,currentMonth=null){
   const identity=structuredClone(country.identity);
   if(mode==='current'){
    const sourceId=identity.properties?.metadata?.builtinSubunit?.sourceCountryId === 'KAB' ? 'KAB' : identity.id;
-   identity.properties.notes=appendBaikonurBoundaryAttribution(identity.properties.notes,sourceId);
+   if(sourceId==='KAB'||sourceId==='KAZ')
+    identity.properties.notes=appendBaikonurBoundaryAttribution(identity.properties.notes,sourceId);
   }
   const bindings=country.sourceBindings[mode];
   if(identity.properties.metadata?.historicalTimeline)identity.properties.metadata.historicalTimeline.geometryBindings=bindings;
