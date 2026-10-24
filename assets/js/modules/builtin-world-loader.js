@@ -1,4 +1,5 @@
 import {createStoredAssetLoader} from './stored-asset-loader.js';
+import {appendBaikonurBoundaryAttribution} from './builtin-subunits.js';
 import {parseTemporal,temporalContains,temporalMonthEnd} from './temporal.js';
 
 const modeFor=(month,currentMonth)=>month===currentMonth?'current':'dated';
@@ -20,6 +21,10 @@ export function assembleBuiltinWorld(index,countries,month,currentMonth=null){
   const country=byId.get(entry.entityId);
   if(country?.schemaVersion!==1||country.identity?.id!==entry.entityId)throw new Error('Builtin country identity mismatch');
   const identity=structuredClone(country.identity);
+  if(mode==='current'){
+   const sourceId=identity.properties?.metadata?.builtinSubunit?.sourceCountryId === 'KAB' ? 'KAB' : identity.id;
+   identity.properties.notes=appendBaikonurBoundaryAttribution(identity.properties.notes,sourceId);
+  }
   const bindings=country.sourceBindings[mode];
   if(identity.properties.metadata?.historicalTimeline)identity.properties.metadata.historicalTimeline.geometryBindings=bindings;
   identity.properties.sourceGeometryVersion=bindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.sourceVersionId||'';
