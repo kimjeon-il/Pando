@@ -15,6 +15,46 @@ from corpus import validate_corpus
 
 
 class MacroSupervisionTests(unittest.TestCase):
+    def test_alternate_metadata_reuses_source_image_and_keeps_original_evidence(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            sources = root / 'sources'
+            sources.mkdir()
+            source = self.fixture(sources)
+            original = prepare_corpus(sources, 160)
+            before = {path.relative_to(root): path.read_bytes() for path in root.rglob('*') if path.is_file()}
+            recipes = root / 'recipes/seams'
+            recipes.mkdir(parents=True)
+            metadata = json.loads(source.with_suffix('.source.json').read_text())
+            metadata['id'] += '-seams'
+            metadata['supervision']['radiusPixels'] = 4
+            recipe = recipes / source.with_suffix('.source.json').name
+            recipe.write_text(json.dumps(metadata), encoding='utf-8')
+            expanded = prepare_corpus(sources, 160, 'corpus.seams.training.json', metadata_directory=recipes)
+            old_sheet = json.loads(original.read_text())['sheets'][0]
+            sheet = json.loads(expanded.read_text())['sheets'][0]
+            self.assertEqual(sheet['image'], old_sheet['image'])
+            self.assertNotEqual(sheet['annotations'], old_sheet['annotations'])
+            self.assertEqual(sheet['duplicateGroup'], old_sheet['duplicateGroup'])
+            annotation = json.loads((root / sheet['annotations']).read_text())
+            self.assertEqual(annotation['sourcePdf'], source.relative_to(root).as_posix())
+            self.assertEqual(annotation['sourceMetadata'], recipe.relative_to(root).as_posix())
+            validate_corpus(json.loads(expanded.read_text()), root, training_only=True)
+            self.assertEqual(prepare_corpus(sources, 160, expanded.name, metadata_directory=recipes), expanded)
+            for path, contents in before.items():
+                self.assertEqual((root / path).read_bytes(), contents, str(path))
+            self.assertEqual(len(list((root / 'derived').glob('*.jpg'))), 1)
+            metadata['duplicateGroup'] = 'invented-new-original'
+            recipe.write_text(json.dumps(metadata), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'original identity'):
+                prepare_corpus(sources, 160, 'corpus.bad.training.json', metadata_directory=recipes)
+            recipe.write_text(json.dumps({**metadata, 'duplicateGroup': old_sheet['duplicateGroup']}), encoding='utf-8')
+            (recipes / 'unknown.source.json').write_text('{}', encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'Unmatched'):
+                prepare_corpus(sources, 160, 'corpus.bad.training.json', metadata_directory=recipes)
+            with self.assertRaisesRegex(ValueError, 'Contained metadata directory'):
+                prepare_corpus(sources, 160, 'corpus.bad.training.json', metadata_directory=root.parent)
+
     def test_expanded_manifest_preserves_original_and_rejects_output_escape(self):
         with tempfile.TemporaryDirectory() as folder:
             root = pathlib.Path(folder)
