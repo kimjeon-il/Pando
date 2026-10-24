@@ -73,17 +73,18 @@ test('base pass draws map substrate before terrain and preserves territory, coun
     } };
   const range = { ranges: [{ first: 0, count: 3 }] };
   const result = drawGpuBaseScene({ gl, frame: {}, width: 10, height: 10,
-    terrainVisible: true, terrainStyle: 'neutral', countriesVisible: true, mapSubstrate: { color: '#cccccc', fillAlpha: 1 },
-    countries: { mesh: { triangleIndices: { length: 3 } }, landMaskProgram: 'mask', fillProgram: 'country' },
+    terrainVisible: true, terrainStyle: 'neutral', countriesVisible: true, mapSubstrate: { color: '#cccccc', fillAlpha: 1 },mapOcean:{color:'#006b8b',fillAlpha:1},
+    countries: { mesh: { triangleIndices: { length: 3 } }, fillProgram: 'country' },
     prepared: { baseTriangleDraw: range, baseBoundaryDraw: range, overrideTriangleDraw: range, overrideBoundaryDraw: range,
+      physicalLandItems:[{kind:'polygon',packet:{key:'physical-land',role:'physical-land'}}],physicalWaterItems:[{kind:'polygon',packet:{key:'historical-water',role:'physical-water'}}],
       deferredOverlayKeys: new Set(), failedOverlayKeys: new Set(), territoryItems: [
         { kind: 'polygon', packet: { key: 'parent', role: 'territorial-fill', territoryDepth: 1, order: 1 } },
         { kind: 'polygon', packet: { key: 'child', role: 'territorial-fill', territoryDepth: 2, order: 2 } },
       ].reverse(), independentItems: [{ kind: 'polygon', packet: { key: 'generic' } }, { kind: 'stroke', packet: { key: 'line' } }] },
-  }, { drawOceanSubstrate() {}, polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[10] ? 'substrate' : args[0]),
+  }, { drawOceanSubstrate() {}, polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[0]),
     renderTerrain: () => calls.push('terrain'), drawHydro: category => calls.push(category),
     drawCountryBoundaryStrokes: () => { calls.push('boundary'); return { succeeded: true }; } });
-  assert.deepEqual(calls, ['child-substrate', 'parent-substrate', 'substrate', 'mask', 'child', 'parent', 'terrain', 'child', 'parent', 'country', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary', 'generic', 'stroke']);
+  assert.deepEqual(calls, ['physical-land-substrate','physical-land','terrain', 'child', 'parent', 'country', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary','historical-water', 'lake', 'lake-boundary', 'river', 'border-river','historical-water', 'boundary', 'generic', 'stroke']);
   assert.deepEqual(result.overlayMissingKeys, []);
 });
 
@@ -188,17 +189,17 @@ test('interaction pass submits prepared priorities and ranges then composites be
   const dependencies = { polygonOverlayPass,
     strokeRenderer: { drawBatches: packets => { calls.push(...packets.map(packet => packet.key)); return { succeeded: true }; } },
     selectionPass: { draw: () => { calls.push('selection'); return {}; } },
-    drawHydro: category => calls.push(category), drawCountryRanges: ranges => { if (ranges.base.length) { assert.deepEqual(ranges.base, [{ first: 2, count: 3 }]); calls.push('country'); } },
+    drawHydro: category => calls.push(category), drawPhysicalWaterMask:()=>calls.push('physical-water-mask'), drawCountryRanges: ranges => { if (ranges.base.length) { assert.deepEqual(ranges.base, [{ first: 2, count: 3 }]); calls.push('country'); } },
     fillCache: { finishScene: () => calls.push('finish'), composite: () => { calls.push('composite'); return true; } } };
   const result = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTargetReady: true, prepared: plan }, dependencies);
   assert.equal(result.fillOwner, 'gpu');
-  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'preview', 'country', 'primary', 'hover', 'finish', 'composite', 'selection', 'preview-outline']);
+  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'physical-water-mask', 'preview', 'country', 'primary', 'hover', 'finish', 'composite', 'selection', 'preview-outline']);
   calls.length = 0;
   const fallback = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTargetReady: true, prepared: { ...plan, fillReady: false } }, dependencies);
   assert.equal(fallback.fillOwner, 'svg');
   assert.deepEqual(fallback.genericFillResult.renderedKeys, []);
   assert.deepEqual(fallback.previewResults[0].missingKeys, ['preview']);
-  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'finish', 'selection', 'preview-outline']);
+  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'physical-water-mask', 'finish', 'selection', 'preview-outline']);
 });
 
 test('interaction pass skips unneeded water/border masks when no GPU fill is requested', () => {
@@ -217,7 +218,7 @@ test('interaction pass skips unneeded water/border masks when no GPU fill is req
     polygonOverlayPass: { ...polygonOverlayPass, drawPackets: skip, drawResourceItems: skip },
     strokeRenderer: { drawBatches: skip },
     selectionPass: { draw: () => { calls.push('selection'); return { succeeded: true }; } },
-    drawHydro: skip, drawCountryBoundaryMask: skip, drawCountryRanges: skip,
+    drawHydro: skip, drawCountryBoundaryMask: skip, drawPhysicalWaterMask:skip, drawCountryRanges: skip,
     fillCache: { finishScene: skip, composite: skip },
   });
   assert.deepEqual(calls, ['selection']);

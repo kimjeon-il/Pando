@@ -1,4 +1,5 @@
 import { createStoredAssetLoader } from './stored-asset-loader.js';
+import { parseTemporal, temporalContains, temporalMonthEnd } from './temporal.js';
 // Hydro v0.13.2 keeps its published 6.0/6.7/7.0/7.5 stage metadata.
 // Gate those existing stages by actual map zoom; no geometry, names, or basin
 // selection data need to be rewritten.
@@ -23,11 +24,45 @@ export function hydroVisibilityThresholdForMapZoom(mapZoom) {
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
+export function selectPhysicalWaterContext(contexts,date) {
+  const point=parseTemporal(date);
+  if(!point)return null;
+  const when=point.precision==='month'?temporalMonthEnd(point):point;
+  return contexts.find(row=>temporalContains(row,when))||null;
+}
 export function createPhysicalResources({ capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
   let dependencies;
   let terrainService;
   let hydroService;
   let physicalLand = null, landLoading = null;
+  const historicalContexts=new Map();
+  let requestedHistoryId=null;
+  function currentPhysicalContext() {
+    const rows=globalThis.PANDOLAB_BUILD_META.physicalWaterHistory;
+    if(!Array.isArray(rows))throw new Error('Missing pinned historical physical-water manifest.');
+    const row=selectPhysicalWaterContext(rows,dependencies.projectState.state.timelineCursor);
+    const nextId=row?.id||null;
+    if(nextId!==requestedHistoryId){
+      requestedHistoryId=nextId;
+      if(row&&historicalContexts.get(row.id)?.status==='error')historicalContexts.delete(row.id);
+    }
+    if(!row)return physicalLand;
+    if(!historicalContexts.has(row.id)) {
+      const entry={status:'loading',value:null,promise:null};
+      historicalContexts.set(row.id,entry);
+      const loader=createStoredAssetLoader({dataRevision:globalThis.PANDOLAB_BUILD_META.dataRevision,
+        resolveUrl:spec=>new URL(spec.url.replace(/^assets\/data\//,''),dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL).href});
+      const decode=buffer=>JSON.parse(new TextDecoder().decode(buffer));
+      entry.promise=Promise.all([loader.loadAsset(row.land,'background',row.id+'-land','역사 육지 배경',decode),loader.loadAsset(row.water,'background',row.id+'-water','역사 수역',decode)])
+        .then(([land,water])=>{
+          if(land.value.type!=='MultiPolygon'||water.value.type!=='Polygon')throw new Error('Invalid historical physical-water geometry.');
+          entry.value=Object.freeze({geometry:land.value,revision:row.land.sha256,water:water.value,waterRevision:row.water.sha256});
+          entry.status='ready';
+          dependencies.domains.renderingDomain.invalidateProject('historical-physical-water-ready');
+        }).catch(error=>{entry.status='error';dependencies.feedback.reportOperationError(error,'역사 수역 자료를 준비하지 못해 기본 육지 배경을 유지합니다. 시점을 바꿨다가 돌아오면 다시 불러옵니다.','PL-PHYSICAL-HISTORY-001',4200);});
+    }
+    return historicalContexts.get(row.id).value||physicalLand;
+  }
   function loadPhysicalLandMask() {
     if (physicalLand) return Promise.resolve(physicalLand);
     if (!landLoading) landLoading = (async () => {
@@ -264,7 +299,7 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
     connect,
     initializeTerrainService,
     loadPhysicalLandMask,
-    get physicalLand() { return physicalLand; },
+    get physicalLand() { return currentPhysicalContext(); },
     get hydroEditColor() { return hydroEditColor; },
     get hydroFeatureInView() { return hydroFeatureInView; },
     get hydroRenderGroups() { return hydroRenderGroups; },

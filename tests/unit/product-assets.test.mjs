@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync, readdirSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -64,6 +64,16 @@ test('viewer data closure follows current manifest references and excludes sourc
  assert.equal(paths.has('assets/data/historical-world/generated/v1/world-project.json.gz'),false);
  for(const path of ['assets/data/territorial-entities/source/countries/raw.json','assets/data/prepared-polygons/generated/v1/old.bin','assets/data/world/orphan.bin'])assert.equal(paths.has(path),false,path);
  f.files.delete('assets/data/world/a.bin');await assert.rejects(f.collect(),/missing/i);
+});
+
+test('viewer closure retains historical physical land and water as required manifest dependencies',async()=>{
+ const f=fixture();
+ try{
+  f.put('assets/data/physical-land/v1/manifest.json',JSON.stringify({asset:{url:'assets/data/physical-land/v1/modern.gz'},historicalWaterbodies:[{land:{url:'assets/data/physical-land/v1/historical-land.gz'},water:{url:'assets/data/physical-land/v1/historical-water.gz'}}]}));
+  for(const name of ['modern','historical-land','historical-water'])f.put(`assets/data/physical-land/v1/${name}.gz`);
+  const paths=await f.collect();for(const name of ['modern','historical-land','historical-water'])assert.ok(paths.has(`assets/data/physical-land/v1/${name}.gz`));
+  f.files.delete('assets/data/physical-land/v1/historical-water.gz');await assert.rejects(f.collect(),/missing/i);
+ }finally{assert.equal(dirname(f.root),tmpdir());assert.ok(f.root.startsWith(join(tmpdir(),'pando-viewer-assets-')));rmSync(f.root,{recursive:true,force:true});}
 });
 
 test('viewer closure rejects missing, editor-only and unresolved dynamic dependencies', async () => {

@@ -94,7 +94,11 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
         dataAsset(manifest.sources.independentHydronymReplacements.file,base);
     }else if(path.includes('/places/')){
       for(const item of Object.values(manifest.shards))dataAsset(item.url,base);
-    }else if(path.includes('/physical-land/'))dataAsset(manifest.asset.url,base);
+    }else if(path.includes('/physical-land/')){
+      dataAsset(manifest.asset.url,base);
+      for(const context of manifest.historicalWaterbodies||[])
+        for(const item of [context.land,context.water])dataAsset(item.url,'assets/data/');
+    }
     else if(path.includes('/terrain-preview/')){
       for(const key of Object.keys(manifest.tiles))dataAsset(key,base);
     }
