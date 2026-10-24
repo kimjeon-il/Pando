@@ -6,6 +6,11 @@ on:
     paths:
       - tools/inventory-osm-hydronyms.py
       - tools/gis/compare_osm_hydro_natural_earth.py
+      - tools/gis/hydro_independent_name_policy.py
+      - tools/gis/hydro-independent-name-replacements.json
+      - tools/gis/prepare_hydro_name_replacement_bundle.py
+      - tests/test_hydro_independent_names.py
+      - tools/build-hydro-tiles.py
       - .github/workflows/gis-osm-river-audit.yml
   workflow_dispatch:
 
@@ -57,10 +62,41 @@ jobs:
             --expected-sha256 "$(python -c "import json; m=json.load(open('assets/data/hydro/v0.13.2/manifest.json')); print(next(x['sha256'] for x in m['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson'))")" \
             --inventory /tmp/osm-hydro-inventory.json \
             --output /tmp/osm-ne-crosscheck.json
+      - name: Verify independently researched river-name records
+        run: |
+          python -m unittest discover -s tests -p 'test_hydro_independent_names.py' -v
+      - name: Rebuild only verified-name metadata into an isolated candidate
+        run: |
+          python tools/gis/prepare_hydro_name_replacement_bundle.py \
+            --manifest assets/data/hydro/v0.13.2/manifest.json \
+            --bundle assets/data/hydro/v0.13.2/hydro.bin \
+            --replacements tools/gis/hydro-independent-name-replacements.json \
+            --output-dir /tmp/hydro-independent-five
+      - name: Verify candidate by reusing the production geometry decoder
+        run: |
+          node tools/decode-hydro-connectivity.mjs \
+            /tmp/hydro-independent-five /tmp/hydro-independent-five-decoded.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/hydro-independent-five')
+          proof=json.loads((root/'proof.json').read_text())
+          manifest=json.loads((root/'manifest.json').read_text())
+          assert len(proof['changedSystemIds']) == 5
+          assert proof['remainingOsmMatchedSystems'] == 68
+          assert proof['originalIndexSha256'] == proof['newIndexSha256']
+          assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']
+          assert manifest['metadata']['featureCount'] == 16548
+          assert manifest['version'] == '0.13.2'
+          print('Independent source candidate passed metadata and geometry integrity checks')
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: gis-osm-hydro-inventory
           path: |
             /tmp/osm-hydro-inventory.json
             /tmp/osm-ne-crosscheck.json
+            /tmp/hydro-independent-five/manifest.json
+            /tmp/hydro-independent-five/hydro.bin
+            /tmp/hydro-independent-five/proof.json
           retention-days: 14
