@@ -90,6 +90,32 @@ class MacroSupervisionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Contained metadata directory'):
                 prepare_corpus(sources, 160, 'corpus.bad.training.json', metadata_directory=root.parent)
 
+    def test_revised_exclusions_have_distinct_labels_and_preserve_consumed_evidence(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            sources = root / 'sources'
+            sources.mkdir()
+            source = self.fixture(sources)
+            original = prepare_corpus(sources, 160)
+            before = {path.relative_to(root): path.read_bytes() for path in root.rglob('*') if path.is_file()}
+            recipes = root / 'recipes/exclusions-r2'
+            recipes.mkdir(parents=True)
+            metadata = json.loads(source.with_suffix('.source.json').read_text())
+            metadata['id'] += '-exclusions-r2'
+            metadata['excludedRegionsNormalized'].append([.4, .3, .6, .7])
+            recipe = recipes / source.with_suffix('.source.json').name
+            recipe.write_text(json.dumps(metadata), encoding='utf-8')
+            revised = prepare_corpus(sources, 160, 'corpus.exclusions-r2.json', metadata_directory=recipes)
+            sheet = json.loads(revised.read_text())['sheets'][0]
+            annotation = json.loads((root / sheet['annotations']).read_text())
+            for field in ['raster', 'validRaster']:
+                pixels = np.asarray(Image.open(root / annotation[field]['path']))
+                self.assertFalse(pixels[36:84, 64:96].any(), field)
+            self.assertEqual(sheet['image'], json.loads(original.read_text())['sheets'][0]['image'])
+            for path, contents in before.items():
+                self.assertEqual((root / path).read_bytes(), contents, str(path))
+            validate_corpus(json.loads(revised.read_text()), root, training_only=True)
+
     def test_expanded_manifest_preserves_original_and_rejects_output_escape(self):
         with tempfile.TemporaryDirectory() as folder:
             root = pathlib.Path(folder)
