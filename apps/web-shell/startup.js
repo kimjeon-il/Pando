@@ -14,7 +14,7 @@ async function start() {
     if (!response.ok) throw new Error('The bundled shell profile is missing.');
     return response.json();
   });
-  if (!['small-project', 'full-world'].includes(profileMeta.mode)) throw new Error('Unknown shell resource profile.');
+  if (profileMeta.mode !== 'full-world' && !verification) throw new Error('Ordinary startup requires the full-world profile.');
   if (profileMeta.verification !== !!verification
       || (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function'
         && globalThis.PANDOLAB_SHELL_VERIFICATION !== !!verification)) {
@@ -27,7 +27,8 @@ async function start() {
     url.searchParams.set('v', meta.assetRevision);
     return url;
   };
-  const profile = await createRuntimeProfile();
+  const profile = profileMeta.mode === 'full-world'
+    ? await createRuntimeProfile(profileMeta) : await verification.createFixtureProfile(profileMeta);
   let libraryGeometryContext = null;
   if (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function') {
     const { parseNativeLibraryGeometryRequest, createLibraryGeometryContext } =
@@ -72,41 +73,7 @@ async function start() {
     });
     return;
   }
-  window.PANDOLAB_APP_VERSION = meta.appVersion;
-  window.PANDOLAB_ASSET_REVISION = meta.assetRevision;
-  window.PANDOLAB_DATA_REVISION = meta.dataRevision;
-  window.PANDOLAB_ASSET_BASE_URL = assetBase.href;
-  window.PANDOLAB_LABEL_ANCHORS = {};
-  window.__PANDOLAB_STARTUP_METRICS__ = { source: 'desktop-tiny-fixture', startupPhase: 'project-loading' };
-  let modalStyles;
-  window.PANDOLAB_ENSURE_MODAL_STYLES = () => modalStyles ||= new Promise((resolve, reject) => {
-    const style = document.createElement('link');
-    style.rel = 'stylesheet';
-    style.href = versionedAsset('../css/ui-modal.bundle.css').href;
-    style.dataset.pandolabUiModal = 'ui-modal-bundle';
-    style.addEventListener('load', () => resolve(style), { once: true });
-    style.addEventListener('error', () => { modalStyles = null; reject(new Error('Modal styles unavailable.')); }, { once: true });
-    document.head.append(style);
-  });
-  const countries = await fetch(profile.countriesUrl);
-  if (!countries.ok) throw new Error(`Shell geometry unavailable (${countries.status}).`);
-  window.PANDOLAB_COUNTRIES = await countries.json();
-  const { composeApplication } = await import(versionedAsset('./modules/app-composition.js').href);
-  let diagnostics;
-  const application = await composeApplication({ productMode: 'editor', revision: meta.assetRevision,
-    platform: { ...profile.platform, fileAccess: createNativeStorage() },
-    onComposed: async runtime => { if (verification) diagnostics = await verification.installDiagnostics(runtime); },
-  });
-  if (!await application.start()) throw new Error('The application could not finish startup.');
-  const { initializeUiRuntime } = await import(versionedAsset('./modules/ui-runtime.js').href);
-  initializeUiRuntime(document);
-  document.body.classList.remove('is-loading');
-  document.getElementById('bootstrapLoading').hidden = true;
-  document.getElementById('app').removeAttribute('aria-busy');
-  window.__PANDOLAB_STARTUP_METRICS__.startupPhase = 'canonical-ready';
-  window.dispatchEvent(new CustomEvent('pandolab:interactive'));
-  window.__PANDOLAB_SHELL_READY__ = true;
-  if (verification && window.__PANDOLAB_SHELL_AUTO__) await diagnostics.run();
+  await verification.startFixture({ profile, meta, assetBase, versionedAsset });
 }
 
 start().catch(async error => {

@@ -14,6 +14,9 @@ fn main() {
         let evidence: serde_json::Value = serde_json::from_str(
             &std::fs::read_to_string("../dist/shell/stage-evidence.json").expect("Missing stage evidence")
         ).expect("Invalid stage evidence");
+        let profile = evidence["profile"].as_str().expect("Missing staged resource profile");
+        assert!(profile == "full-world" || (verification && profile == "small-project"),
+            "The small-project profile requires a verification native build");
         assert_eq!(evidence["verification"].as_bool(), Some(verification),
             "Staged verification assets and native feature must match");
     }

@@ -19,9 +19,14 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const exists = async path => access(path).then(() => true, () => false);
 const slash = path => path.replaceAll('\\', '/');
 
-/** Preserve the smoke profile and stage full-world data only when explicitly selected. */
-export async function stagePrototype({ root = repository, profile = 'small-project', verification = false } = {}) {
+export function validateShellProfile(profile, verification) {
   if (!['small-project', 'full-world'].includes(profile)) throw new Error('Unknown shell staging profile.');
+  if (profile === 'small-project' && verification !== true) throw new Error('The small-project profile requires explicit verification.');
+}
+
+/** Ordinary app builds always use the real world; fixture staging is verification-only. */
+export async function stagePrototype({ root = repository, profile = 'full-world', verification = false } = {}) {
+  validateShellProfile(profile, verification);
   const parent = resolve(root, 'apps/web-shell');
   await mkdir(parent, { recursive: true });
   const lockPath = join(parent, '.stage-lock');
@@ -60,6 +65,7 @@ export async function createDevelopmentAssets({ root = repository, profile = 'fu
 }
 
 async function stageOwnedPrototype({ root, profile, verification, directory, assets = null }) {
+  validateShellProfile(profile, verification);
   root = resolve(root);
   const generator = join(root, 'scripts/generate-build-metadata.mjs');
   if (await exists(generator)) prepareLibraryData({ root });

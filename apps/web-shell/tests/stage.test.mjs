@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { createDevelopmentAssets, stagePrototype } from '../stage.mjs';
@@ -10,8 +11,43 @@ import { startDevelopmentServer } from '../dev.mjs';
 import { assertOrdinaryBuild, assertVerificationBuild, windowsBuildArguments } from '../packaged-artifacts.mjs';
 import { createBuiltinWorldLoader } from '../../../assets/js/modules/builtin-world-loader.js';
 import { REFERENCE_IMAGE_STYLE_SOURCES } from '../../../assets/js/modules/reference-image-style-sources.js';
+import { createRuntimeProfile } from '../runtime-profile.js';
 
-const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+import { worldFixture } from './helpers/world-fixture.mjs';
+test('ordinary staging and development reject the test profile before creating output', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'pandolab-profile-rejection-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await assert.rejects(stagePrototype({ root, profile: 'small-project' }), /verification/i);
+  await assert.rejects(createDevelopmentAssets({ root, profile: 'small-project' }), /verification/i);
+  await assert.rejects(startDevelopmentServer({ repository: root, port: 0, profile: 'small-project', observe: false }), /verification/i);
+  await assert.rejects(stat(join(root, 'apps')), /ENOENT/);
+});
+
+test('ordinary artifact identity rejects a non-world resource profile', () => {
+  assert.throws(() => assertOrdinaryBuild({ verification: false, profile: 'small-project' }), /full-world/i);
+});
+
+test('ordinary runtime profile refuses the fixture before loading its assets', async t => {
+  const profile = { mode: 'small-project', verification: false,
+    builtinWorld: { url: './fixture-world.json', sha256: 'a'.repeat(64) }, countriesUrl: './fixture-countries.json' };
+  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify(profile)));
+  await assert.rejects(createRuntimeProfile(profile), /full-world/i);
+});
+
+test('an environment-selected fixture cannot start ordinary development or a packaging build', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'pandolab-profile-cli-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const target = join(root, 'unused-target');
+  for (const [script, args, verification] of [['dev.mjs', [], '1'], ['packaged-artifacts.mjs', ['--build'], '0']]) {
+    const result = spawnSync(process.execPath, [fileURLToPath(new URL('../' + script, import.meta.url)), ...args], {
+      encoding: 'utf8', timeout: 15000,
+      env: { ...process.env, PANDOLAB_SHELL_PROFILE: 'small-project', PANDOLAB_SHELL_VERIFICATION: verification, CARGO_TARGET_DIR: target },
+    });
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr, /small-project.*verification/i);
+  }
+  await assert.rejects(stat(target), /ENOENT/);
+});
 test('native build mode controls features and rejects the wrong artifact identity', () => {
   assert.ok(windowsBuildArguments(true).includes('custom-protocol,verification'));
   assert.ok(windowsBuildArguments(true).includes('src-tauri/tauri.verification.json'));
@@ -19,9 +55,9 @@ test('native build mode controls features and rejects the wrong artifact identit
   assert.throws(() => assertOrdinaryBuild({ verification: true }), /verification/);
   assert.throws(() => assertOrdinaryBuild({ executionMode: 'development', verification: false }), /offline/);
   assert.throws(() => assertOrdinaryBuild({}), /identity/);
-  assert.doesNotThrow(() => assertOrdinaryBuild({ verification: false }));
+  assert.doesNotThrow(() => assertOrdinaryBuild({ verification: false, profile: 'full-world' }));
   assert.throws(() => assertVerificationBuild({ verification: false }), /verification/);
-  assert.doesNotThrow(() => assertVerificationBuild({ verification: true }));
+  assert.doesNotThrow(() => assertVerificationBuild({ verification: true, profile: 'small-project' }));
 });
 
 test('startup errors use ordinary reporting except in the auto verification window', async () => {
@@ -44,35 +80,15 @@ test('startup errors use ordinary reporting except in the auto verification wind
   }
 });
 async function source(t) {
-  const root = await mkdtemp(join(tmpdir(), 'pandolab-shell-stage-'));
-  t.after(() => rm(root, { recursive: true, force: true }));
-  const put = async (path, bytes) => { await mkdir(join(root, path, '..'), { recursive: true }); await writeFile(join(root, path), bytes); };
-  await put('index.html', '<html>Viewer only</html>');
+  const { root, put } = await worldFixture(t);
   await put('apps/web-shell/editor.html', '<html><head><base href="../../" data-product-base="editor" /></head><body>Editor<script src="assets/js/bootstrap.js?v=test" defer></script></body></html>');
   await put('assets/js/app.js', 'export const realApplication = true;');
-  await put('assets/js/build-meta.js', 'globalThis.PANDOLAB_BUILD_META={};');
-  await put('assets/data/world/huge.bin', 'NEVER PACKAGE WORLD DATA');
-  await put('assets/wasm/pandoeditor-core.js', 'export default async()=>({});');
-  await put('assets/wasm/pandoeditor-core.wasm', new Uint8Array([0, 97, 115, 109]));
-  const assets = {};
-  for (const type of ['js', 'wasm']) {
-    const file = `pandoeditor-core.${type}`;
-    assets[type] = { file, sha256: hash(await readFile(join(root, 'assets/wasm', file))) };
-  }
-  await put('assets/wasm/pandoeditor-core.manifest.json', JSON.stringify({ schema: 'pandoeditor-core-wasm', abiVersion: 1, assets }));
-  const ocrBytes = Buffer.from('OCR'), runtimeBytes = Buffer.from('export default {};');
-  const languages = { eng: { url: 'eng.traineddata.gz', bytes: ocrBytes.length, sha256: hash(ocrBytes) } };
-  await put('assets/vendor/reference-analysis/tesseract.mjs', runtimeBytes);
-  await put('assets/vendor/reference-analysis/manifest.json', JSON.stringify({ schemaVersion: 1, languages,
-    files: { 'tesseract.mjs': { bytes: runtimeBytes.length, sha256: hash(runtimeBytes) } } }));
-  await put('assets/data/reference-analysis/v1/ocr/eng.traineddata.gz', ocrBytes);
-  await put('assets/data/reference-analysis/v1/ocr/manifest.json', JSON.stringify({ schemaVersion: 1, languages }));
   return { root, put };
 }
 
 test('stages the real frontend, exact WASM pair and local OCR without world data', async t => {
   const { root } = await source(t);
-  const result = await stagePrototype({ root });
+  const result = await stagePrototype({ root, profile: 'small-project', verification: true });
   assert.ok(result.files.some(file => file.path === 'assets/js/app.js'));
   assert.ok(result.files.every(file => !file.path.startsWith('assets/data/') || file.path.startsWith('assets/data/reference-analysis/')));
   assert.equal(await readFile(join(result.directory, 'assets/data/reference-analysis/v1/ocr/eng.traineddata.gz'), 'utf8'), 'OCR');
@@ -94,21 +110,25 @@ test('verification assets are opt-in and disappear on the next ordinary stage', 
   const ordinary = await stagePrototype({ root });
   const names = result => result.files.map(file => file.path);
   assert.equal(ordinary.verification, false);
+  assert.equal(ordinary.profile, 'full-world');
+  assert.equal(ordinary.fixture, null);
   assert.ok(!names(ordinary).includes('shell/diagnostics.js'));
   assert.ok(!names(ordinary).includes('shell/full-world-probe.js'));
   assert.doesNotMatch(await readFile(join(ordinary.directory, 'shell/startup.js'), 'utf8'), /import.*(?:diagnostics|full-world-probe|reference-analysis-probe)/);
-  const verified = await stagePrototype({ root, verification: true });
+  const verified = await stagePrototype({ root, profile: 'small-project', verification: true });
   assert.ok(names(verified).includes('shell/verification.js'));
   assert.ok(names(verified).includes('shell/probe-storage.js'));
   assert.equal(JSON.parse(await readFile(join(verified.directory, 'shell/stage-profile.json'))).verification, true);
   await stagePrototype({ root });
   await assert.rejects(readFile(join(ordinary.directory, 'shell/verification.js')), /ENOENT/);
+  await assert.rejects(readFile(join(ordinary.directory, 'shell/fixture-world.json')), /ENOENT/);
+  await assert.rejects(stat(join(ordinary.directory, 'shell/transport')), /ENOENT/);
   assert.ok(names(ordinary).includes('assets/vendor/reference-analysis/tesseract.mjs'));
 });
 
 test('the verification fixture loads through the current builtin country transport', async t => {
   const { root } = await source(t);
-  const result = await stagePrototype({ root, verification: true });
+  const result = await stagePrototype({ root, profile: 'small-project', verification: true });
   const profile = JSON.parse(await readFile(join(result.directory, 'shell/stage-profile.json')));
   const loader = createBuiltinWorldLoader({
     manifestUrl: 'https://shell.test/shell/fixture-world.json', manifestSpec: profile.builtinWorld,
@@ -145,7 +165,7 @@ test('rejects a modified WASM asset instead of blessing a new hash', async t => 
 
 test('development assets reuse the validated stage plan without writing dist', async t => {
   const { root, put } = await source(t);
-  const plan = await createDevelopmentAssets({ root, profile: 'small-project' });
+  const plan = await createDevelopmentAssets({ root });
   assert.equal(plan.assets.get('assets/js/app.js').file, join(root, 'assets/js/app.js'));
   assert.match(plan.assets.get('index.html').bytes.toString(), /shell\/startup.js/);
   await assert.rejects(readFile(join(root, 'apps/web-shell/dist/index.html')), /ENOENT/);
@@ -156,7 +176,7 @@ test('development assets reuse the validated stage plan without writing dist', a
 test('development reload publishes validated changes and preserves the native output', async t => {
   const { root, put } = await source(t);
   await put('apps/web-shell/src-tauri/target/native.exe', 'unchanged native');
-  const server = await startDevelopmentServer({ repository: root, port: 0, profile: 'small-project', observe: false });
+  const server = await startDevelopmentServer({ repository: root, port: 0, observe: false });
   t.after(() => server.close());
   const base = `http://127.0.0.1:${server.server.address().port}`;
   assert.match(await fetch(base).then(response => response.text()), /dev-reload.js/);

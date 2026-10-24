@@ -1,64 +1,29 @@
-/** Explicit, local-only asset selection for the desktop prototype. */
-export async function createRuntimeProfile() {
+/** Ordinary app runtime: the real pinned world only. */
+export async function createRuntimeProfile(profile) {
+  if (profile.mode !== 'full-world') throw new Error('Ordinary runtime requires the full-world profile.');
   const profileUrl = new URL('./stage-profile.json', import.meta.url);
-  const response = await fetch(profileUrl);
-  if (!response.ok) throw new Error(`Shell profile unavailable (${response.status}).`);
-  const profile = await response.json();
-  if (profile.mode === 'full-world') {
-    const meta = globalThis.PANDOLAB_BUILD_META;
-    if (!meta?.builtinWorld || meta.resourceProfile !== 'full-world'
-        || profile.dataRevision !== meta.dataRevision
-        || profile.assetRevision !== meta.assetRevision) {
-      throw new Error('Bundled full-world assets do not match the running application.');
-    }
-    const root = new URL('../', import.meta.url);
-    const worldManifest = new URL('assets/data/world/current.json', root);
-    if (worldManifest.origin !== profileUrl.origin) throw new Error('World bundle escaped the local application origin.');
-    const response = await fetch(worldManifest);
-    if (!response.ok) throw new Error('Bundled world manifest unavailable.');
-    const world = await response.json();
-    if (world.schema !== 'pandolab-world-bundle' || world.source?.countryCount !== 258) {
-      throw new Error('Bundled world manifest has no canonical 258-country dataset.');
-    }
-    return Object.freeze({
-      mode: 'full-world',
-      platform: Object.freeze({
-        builtinHydroAvailable: true,
-        builtinPlacesAvailable: true,
-        startupMesh: 'builtin',
-        storageNamespace: 'pandoeditor-web-shell-world-v1',
-      }),
-    });
+  const meta = globalThis.PANDOLAB_BUILD_META;
+  if (!meta?.builtinWorld || meta.resourceProfile !== 'full-world'
+      || profile.dataRevision !== meta.dataRevision
+      || profile.assetRevision !== meta.assetRevision) {
+    throw new Error('Bundled full-world assets do not match the running application.');
   }
-  if (profile.mode !== 'small-project') throw new Error('Unsupported shell resource profile.');
-  const manifestUrl = new URL(profile.builtinWorld.url, profileUrl);
-  const countriesUrl = new URL(profile.countriesUrl, profileUrl);
-  for (const url of [manifestUrl, countriesUrl]) {
-    if (url.origin !== profileUrl.origin) throw new Error('Shell fixture assets must use the local application origin.');
+  const root = new URL('../', import.meta.url);
+  const worldManifest = new URL('assets/data/world/current.json', root);
+  if (worldManifest.origin !== profileUrl.origin) throw new Error('World bundle escaped the local application origin.');
+  const response = await fetch(worldManifest);
+  if (!response.ok) throw new Error('Bundled world manifest unavailable.');
+  const world = await response.json();
+  if (world.schema !== 'pandolab-world-bundle' || world.source?.countryCount !== 258) {
+    throw new Error('Bundled world manifest has no canonical 258-country dataset.');
   }
-  const { createBuiltinWorldLoader } = await import(new URL('../assets/js/modules/builtin-world-loader.js', import.meta.url));
   return Object.freeze({
-    mode: 'small-project',
-    countriesUrl,
+    mode: 'full-world',
     platform: Object.freeze({
-      builtinWorldLoader: createBuiltinWorldLoader({
-        manifestUrl: manifestUrl.href,
-        manifestSpec: profile.builtinWorld,
-        dataRevision: 'pandoeditor-shell-fixture-v1',
-        fetchFn: (target, options) => {
-          const url = new URL(target, profileUrl);
-          if (url.origin !== profileUrl.origin || !url.pathname.startsWith(new URL('./', profileUrl).pathname)) {
-            throw new Error('Historical fixture source escaped the local shell assets.');
-          }
-          return fetch(url, options);
-        },
-        // The shell must not share the website's world cache or its cleanup.
-        cacheStorage: null,
-      }),
-      builtinHydroAvailable: false,
-      builtinPlacesAvailable: false,
-      startupMesh: 'project',
-      storageNamespace: 'pandoeditor-web-shell-prototype-v1',
+      builtinHydroAvailable: true,
+      builtinPlacesAvailable: true,
+      startupMesh: 'builtin',
+      storageNamespace: 'pandoeditor-web-shell-world-v1',
     }),
   });
 }
