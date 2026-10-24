@@ -106,8 +106,9 @@ def compare(decoded: dict, reference: dict, reference_hash: str) -> dict:
             "maxDistanceKm": round(max(d), 3),
         }
     gov_bounds = [round(float(x), 1) for x in government_geometries.bounds]
-    if gov_bounds[0] > 16200000 or gov_bounds[2] < 16000000:
-        raise ValueError("Government source is not in Australia's UTM zone 55")
+    if not (100000 <= gov_bounds[0] <= gov_bounds[2] <= 900000
+            and 5700000 <= gov_bounds[1] <= gov_bounds[3] <= 6500000):
+        raise ValueError(f"Government Yarra source outside Victoria UTM55 bounds: {gov_bounds}")
     return {
         "schema": "pando-government-vector-hydronym-v1",
         "systemId": RIVER_ID,
