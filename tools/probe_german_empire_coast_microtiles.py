@@ -4,6 +4,7 @@
 Creates *ephemeral* map images and compact source metadata only. Does NOT
 digitize historic land borders automatically or assert 1914 map accuracy.
 """
+from library_data import write_library_text
 import base64, hashlib, io, json, os
 from pathlib import Path
 import requests
@@ -105,7 +106,7 @@ def main():
         j["tiles"].append(rec)
     j["runId"]=os.environ.get("GITHUB_RUN_ID")
     j["successfulRasters"]=sum(x["status"]=="raster-obtained" for p in j["tiles"] for x in p["layers"])
-    REPORT.write_text(json.dumps(j,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    write_library_text(REPORT,json.dumps(j,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("===GIS_MICROTILE_REPORT===")
     print(json.dumps({"successfulRasters":j["successfulRasters"],"runId":j["runId"],
         "tileResults":{p["id"]:[x["status"] for x in p["layers"]] for p in j["tiles"]}}))

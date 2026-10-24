@@ -32,7 +32,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
 from report_paths import report_path
 
-OUT = report_path("assets/data/research/siachen")
+OUT = report_path("reports/borders/reconstruction/siachen", access='write')
 OUT.mkdir(parents=True, exist_ok=True)
 TILE = "Copernicus_DSM_COG_10_N35_00_E076_00_DEM"
 DEM_URL = "https://copernicus-dem-30m.s3.amazonaws.com/" + TILE + "/" + TILE + ".tif"

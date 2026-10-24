@@ -33,7 +33,7 @@ jobs:
           from report_paths import report_path
           import json
           from pathlib import Path
-          p=report_path("assets/data/research/siachen")
+          p=report_path("reports/borders/reconstruction/siachen", access="read")
           x=json.loads((p/'siachen_s2_optical_comparison.json').read_text())
           assert set(x['scenes']) == {'2025','2026'}
           for year,record in x['scenes'].items():
@@ -50,23 +50,22 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_*_optical.png
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_optical_comparison.json
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/README_s2_optical.md
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/siachen_s2_*_optical.png
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/siachen_s2_optical_comparison.json
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/README_s2_optical.md
           if ! git diff --cached --quiet; then
             git commit -m "research: record Sentinel-2 georeferenced optical comparisons"
             git fetch origin work/gis
             git rebase origin/work/gis
             git push origin HEAD:work/gis
           fi
+      - name: Resolve branch report artifacts
+        run: echo "PANDO_REPORT_ARTIFACTS=$(python tools/report_paths.py reports/borders/reconstruction/siachen --access read)" >> "$GITHUB_ENV"
       - name: Upload optical image and source data
         uses: actions/upload-artifact@v4
         with:
           name: siachen-sentinel2-optical
           path: |
-            reports/research/siachen/siachen_s2_*_optical.png
-            assets/data/research/siachen/siachen_s2_*_optical.png
-            reports/research/siachen/siachen_s2_optical_comparison.json
-            assets/data/research/siachen/siachen_s2_optical_comparison.json
-            reports/research/siachen/README_s2_optical.md
-            assets/data/research/siachen/README_s2_optical.md
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_s2_*_optical.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_s2_optical_comparison.json
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/README_s2_optical.md

@@ -8,6 +8,7 @@ maintenance operation because the BKG service is updated annually.
 
 from __future__ import annotations
 
+from library_data import write_library_text
 import json
 import pathlib
 import hashlib
@@ -71,7 +72,7 @@ def normalized_collection(raw: dict, *, source_crs: str, source_layer: str = "")
 
 def write_json(name: str, payload: dict) -> None:
     path = OUTPUT / name
-    path.write_text(
+    write_library_text(path,
         json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n",
         encoding="utf-8",
     )

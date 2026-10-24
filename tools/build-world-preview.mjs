@@ -1,3 +1,4 @@
+import { writeLibraryOutput } from './library-data.mjs';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -180,7 +181,7 @@ function compareOrWrite(filePath, bytes) {
     return;
   }
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, bytes);
+  writeLibraryOutput(filePath, bytes);
 }
 
 function checkedGzip(filePath, generated) {

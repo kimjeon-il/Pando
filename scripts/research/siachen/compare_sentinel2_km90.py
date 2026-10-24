@@ -19,7 +19,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
 from report_paths import report_path
 
-ROOT=report_path("assets/data/research/siachen")
+ROOT=report_path("reports/borders/reconstruction/siachen", access='write')
 INPUT=ROOT/"siachen_s2_optical_comparison.json"
 ANALYSIS=ROOT/"sia_bilafond_dem_comparison.json"
 BBOX=[76.725,35.501,76.796,35.548]

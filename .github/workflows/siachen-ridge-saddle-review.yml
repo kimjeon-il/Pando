@@ -32,7 +32,7 @@ jobs:
           from report_paths import report_path
           import json
           from pathlib import Path
-          path=report_path("assets/data/research/siachen")
+          path=report_path("reports/borders/reconstruction/siachen", access="read")
           v=json.loads((path/'siachen_saltoro_ridge_terrain_diagnostics.json').read_text())
           assert set(v['studies'])=={'mid_ridge_90km','sia_la','bilafond_north'}
           assert len(v['saddle_site_points'])==5
@@ -49,20 +49,22 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_saltoro_ridge_terrain_diagnostics.json
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_saltoro_ridge_terrain_diagnostics.geojson
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/README_saltoro_terrain_continuity.md
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_terrain_90km_profile_*.png
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/siachen_saltoro_ridge_terrain_diagnostics.json
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/siachen_saltoro_ridge_terrain_diagnostics.geojson
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/README_saltoro_terrain_continuity.md
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen/siachen_terrain_90km_profile_*.png
           if ! git diff --cached --quiet; then
             git commit -m "research: save Saltoro DEM crest and pass-saddle diagnostic"
             git fetch origin work/gis
             git rebase origin/work/gis
             git push origin HEAD:work/gis
           fi
+      - name: Resolve branch report artifacts
+        run: echo "PANDO_REPORT_ARTIFACTS=$(python tools/report_paths.py reports/borders/reconstruction/siachen --access read)" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
           name: siachen-ridge-saddle-review
           path: |
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_saltoro_ridge_terrain_diagnostics.*
-            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_terrain_90km_profile_*.png
-            reports/research/siachen/README_saltoro_terrain_continuity.md
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_saltoro_ridge_terrain_diagnostics.*
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/siachen_terrain_90km_profile_*.png
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/README_saltoro_terrain_continuity.md

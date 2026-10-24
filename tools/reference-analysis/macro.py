@@ -8,11 +8,15 @@ import io
 import json
 import math
 import pathlib
+import sys
 import re
 
 import numpy as np
 import pymupdf
 from PIL import Image, ImageDraw, ImageFilter
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from report_paths import report_argument
 
 from corpus import CHANNELS, validate_corpus
 
@@ -213,6 +217,7 @@ if __name__ == '__main__':
     parser.add_argument('--sources', type=pathlib.Path, required=True)
     parser.add_argument('--maximum-dimension', type=int, default=2560)
     args = parser.parse_args()
+    args.sources = pathlib.Path(report_argument(args.sources, access='write'))
     if args.sources.resolve().is_relative_to(pathlib.Path(__file__).resolve().parents[2]):
         parser.error('Macro materials belong in external library storage')
     root = args.sources.resolve().parent

@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
 from report_paths import report_path
 
-OUT=report_path("assets/data/research/siachen")
+OUT=report_path("reports/borders/reconstruction/siachen", access='write')
 FILE_G="siachen_glacier_rgi7.geojson"
 FILE_L="siachen_agpl_osm_candidate.geojson"
 FILE_P="siachen_control_split_ne_10m.geojson"

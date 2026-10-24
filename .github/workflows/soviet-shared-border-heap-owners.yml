@@ -25,7 +25,7 @@ jobs:
         run: |
           git merge-base --is-ancestor "$MAIN_BASE" HEAD
           git diff --name-only "$MAIN_BASE" HEAD |
-            grep -Ev '^(\.github/workflows/soviet-main-long-cycle-memory\.yml|tests/browser/soviet-main-long-cycle\.spec\.mjs|tests/browser/helpers/soviet-memory-attribution\.mjs|\.github/workflows/soviet-shared-border-heap-owners\.yml|tests/browser/soviet-shared-border-heap-owners\.spec\.mjs|reports/development/testing/web-shell-physical-startup-2026-10-16\.md)$' > /tmp/non-test-diffs || true
+            grep -Ev '^(\.github/workflows/soviet-main-long-cycle-memory\.yml|tests/browser/soviet-main-long-cycle\.spec\.mjs|tests/browser/helpers/soviet-memory-attribution\.mjs|\.github/workflows/soviet-shared-border-heap-owners\.yml|tests/browser/soviet-shared-border-heap-owners\.spec\.mjs|reports/development/native/web-shell-physical-startup-2026-10-16\.md)$' > /tmp/non-test-diffs || true
           test ! -s /tmp/non-test-diffs || { cat /tmp/non-test-diffs; exit 1; }
       - uses: actions/setup-node@v4
         with:

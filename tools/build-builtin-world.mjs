@@ -3,6 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
+import {withLibraryOutputs} from './library-data.mjs';
 import {readTerritorialSources,territorialSourceRoot} from './territorial-entity-sources.mjs';
 import {buildCurrentWorld} from './territorial-current-world.mjs';
 import {compileBuiltinWorldCatalog} from './builtin-world-compiler.mjs';
@@ -41,6 +42,7 @@ export function buildBuiltinWorldPublication({input=null,policyFile=new URL('../
  return files;
 }
 export function writeBuiltinWorldPublication(files,directory=output,{check=false}={}){
+ const publish=()=>{
  for(const [file,bytes] of files){
   const target=path.join(directory,file);
   if(check){if(!fs.existsSync(target)||!fs.readFileSync(target).equals(bytes))throw new Error(`Stale builtin world data: ${file}`);}
@@ -48,6 +50,10 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
    fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes);
   }
  }
+ };
+ if(check)return publish();
+ const paths=[...files].filter(([file,bytes])=>!fs.existsSync(path.join(directory,file))||!fs.readFileSync(path.join(directory,file)).equals(bytes)).map(([file])=>path.join(directory,file));
+ return withLibraryOutputs({paths},publish);
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const existing=process.argv.includes('--pack-existing');

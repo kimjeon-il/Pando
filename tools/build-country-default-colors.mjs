@@ -2,7 +2,7 @@ import { reportPath } from './report-paths.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 // The approved research table owns the palette and its source provenance.
-const sourceUrl = reportPath('docs/research/country-default-colors.json');
+const sourceUrl = reportPath('reports/borders/data/country-default-colors.json', { access: 'read' });
 const outputUrl = new URL('../assets/js/modules/country-default-colors.js', import.meta.url);
 const source = JSON.parse(readFileSync(sourceUrl, 'utf8'));
 if (source.status !== 'confirmed') throw new Error('국가 기본색이 확정되지 않았습니다.');
