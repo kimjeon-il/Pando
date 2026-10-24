@@ -1,0 +1,59 @@
+name: Refresh Hydro Worker and build metadata
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-hydro-metadata-refresh.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gis-hydro-worker-metadata-refresh
+  cancel-in-progress: false
+
+jobs:
+  targeted-metadata-refresh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 2
+      - name: Mount pinned Hydro version
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Recreate immutable Worker execution closure using current source
+        run: |
+          node scripts/generate-build-metadata.mjs
+          node scripts/generate-build-metadata.mjs --check
+      - name: Check Hydro provenance and published package identity
+        run: |
+          node --test tests/unit/hydro-source-notes.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+          node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out "$RUNNER_TEMP/hydro-release-proof.json"
+      - name: Commit only regenerated Viewer and App source-matched metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- assets/worker-runtime assets/js/build-meta.js index.html apps/web-shell/editor.html README.md
+          if git diff --cached --quiet; then
+            echo "Matching generated metadata already committed"
+          else
+            git diff --cached --check
+            git commit -m 'build(gis): refresh source-matched Hydro viewer and App metadata'
+            git push origin HEAD:refs/heads/work/gis
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gis-hydro-metadata-refresh-evidence
+          path: ${{ runner.temp }}/hydro-release-proof.json
+          if-no-files-found: warn
