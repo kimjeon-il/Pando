@@ -998,7 +998,7 @@ python tools/calibrate-hydro.py `
   --hydrorivers-root <HydroRIVERS-대륙별-파일-폴더> `
   --hydrolakes <HydroLAKES_polys_v10.shp> `
   --natural-earth-root assets/data/hydro `
-  --output reports/hydro-calibration
+  --output reports/hydro/calibration/
 ```
 
 `results.json`에는 공식, 단계별 원시 지표, 중복률, 입력 파일 정보가 들어 있습니다. 비교 PNG는 동일 범위·등거리 경위도 화면·동일 선폭으로 생성했습니다. 회색은 양쪽에 공통인 Natural Earth 기본 수계입니다. 한반도는 Natural Earth 지역 보충 자료가 없으므로 현재 전 세계 기본 수계를 왼쪽 기준으로 표시하며 최적화 목적함수에는 넣지 않았습니다.

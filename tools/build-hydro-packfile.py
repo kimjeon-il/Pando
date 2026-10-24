@@ -99,7 +99,14 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT / "assets/data/hydro/v0.13.2")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
-    print(json.dumps(create(args.source, args.output, check_only=args.check), indent=2))
+    if args.check:
+        result = create(args.source, args.output, check_only=True)
+    else:
+        from library_data import library_output
+        with library_output([args.output]):
+            result = create(args.source, args.output, check_only=False)
+    print(json.dumps(result, indent=2))
+
 
 if __name__ == "__main__":
     main()

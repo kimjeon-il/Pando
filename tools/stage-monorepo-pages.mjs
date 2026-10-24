@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collectViewerAssets } from '../scripts/lib/product-assets.mjs';
@@ -113,7 +113,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
     mkdirSync(dirname(output), { recursive: true });
     if (file.generated) writeFileSync(output, channelBytes);
     else if (file.convertedCrLf) writeFileSync(output, sourceBytes(file));
-    else copyFileSync(resolve(root, file.path), output);
+    else { copyFileSync(resolve(root, file.path), output); chmodSync(output, 0o600); }
     if (hash('sha256', readFileSync(output)) !== file.sha256) throw Error(`Staged copy mismatch: ${file.path}`);
   }
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();

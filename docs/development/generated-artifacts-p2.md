@@ -50,4 +50,4 @@ gh workflow run generated-artifacts-p2.yml --ref work/objects -f scope=auto
 
 ## 검증 상태
 
-이 문서는 실행 계약이다. 구현 여부와 실제 실행 증거, 미검증 항목은 `reports/development/testing/p6-p9-execution-2026-10-16.md`에 기록한다. 그래프 등록만으로 실제 자산 재생성·앱/웹 동등성·성능 통과를 뜻하지 않는다.
+이 문서는 실행 계약이다. 구현 여부와 실제 실행 증거, 미검증 항목은 `reports/development/performance/p6-p9-execution-2026-10-16.md`에 기록한다. 그래프 등록만으로 실제 자산 재생성·앱/웹 동등성·성능 통과를 뜻하지 않는다.

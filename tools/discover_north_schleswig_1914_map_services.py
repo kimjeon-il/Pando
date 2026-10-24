@@ -7,6 +7,7 @@ certify candidate-border positions.
 """
 from __future__ import annotations
 
+from library_data import write_library_text
 import argparse
 import json
 import re
@@ -154,7 +155,7 @@ def main():
         if working:
             break
 
-    OUT.write_text(json.dumps(discovery, ensure_ascii=False, indent=2) + "\n",
+    write_library_text(OUT,json.dumps(discovery, ensure_ascii=False, indent=2) + "\n",
                    encoding="utf-8")
     print(json.dumps({
         "status": "catalog-searchable" if working else "catalog-not-accessible",
