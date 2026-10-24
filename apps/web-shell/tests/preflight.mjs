@@ -5,9 +5,11 @@ import { resolve, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import { createHash } from 'node:crypto';
+import { reportPath } from '../../../tools/report-paths.mjs';
 
 const root = fileURLToPath(new URL('../dist/', import.meta.url));
-const output = fileURLToPath(new URL('../../../build-native/web-shell/', import.meta.url));
+const output = resolve(reportPath('reports/development/testing/web-shell/browser-preflight.json'), '..');
+const evidence = JSON.parse(await readFile(resolve(root, 'shell/stage-evidence.json'), 'utf8'));
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
   '.wasm': 'application/wasm', '.css': 'text/css', '.woff2': 'font/woff2', '.svg': 'image/svg+xml' };
 const configuration = JSON.parse(await readFile(new URL('../src-tauri/tauri.conf.json', import.meta.url), 'utf8'));
@@ -31,12 +33,14 @@ try {
   browser = await chromium.launch({ channel: 'msedge', headless: true });
   const page = await browser.newPage({ viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1 });
   const errors = [];
+  const requests = [];
+  page.on('request', request => { requests.push(new URL(request.url()).pathname); });
   page.on('pageerror', error => { errors.push(error.message); console.error(error.stack); });
   page.on('console', message => {
     if (message.type() === 'error' && !message.text().startsWith('[PANDOEDITOR-SHELL-DIAGNOSTIC] Error: Native shell bridge is unavailable')) console.error(message.text());
   });
   await page.goto(`http://127.0.0.1:${server.address().port}/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
-  await page.waitForFunction(() => window.__PANDOLAB_SHELL_READY__ || window.__PANDOLAB_SHELL_REPORT__?.stage === 'startup', null, { timeout: 25000 });
+  await page.waitForFunction(() => window.__PANDOLAB_SHELL_READY__ || window.__PANDOLAB_SHELL_REPORT__?.stage === 'startup', null, { timeout: 90000 });
   assert.equal(await page.evaluate(() => window.__PANDOLAB_SHELL_READY__), true, 'The shell startup must complete under its real CSP.');
   await page.waitForFunction(() => window.__PANDOLAB_GPU_METRICS__?.countryBaseIndexCount > 0, null, { timeout: 15000 });
   const result = await page.evaluate(() => ({ ready: window.__PANDOLAB_SHELL_READY__, startup: window.__PANDOLAB_SHELL_REPORT__,
@@ -45,11 +49,13 @@ try {
     indices: result.metrics?.countryBaseIndexCount, triangles: result.metrics?.triangleCount,
     entities: result.entities, blocked: result.network?.blocked, errors }, null, 2));
   assert.equal(result.ready, true, JSON.stringify(result.startup));
-  assert.equal(result.entities.length, 3);
+  assert.equal(result.entities.length, evidence.worldData?.modelEntityCount || evidence.fixture.entityCount);
   assert.match(result.metrics.renderer, /^webgl/);
   assert.deepEqual(result.network.blocked, []);
   assert.deepEqual(errors, []);
-  const commands = await page.evaluate(async () => {
+  let commands = null;
+  if (evidence.verification) {
+  commands = await page.evaluate(async () => {
     try { await window.__PANDOLAB_SHELL_DIAGNOSTICS__.run(); }
     catch { /* A browser has no native file bridge; it must not claim that check passed. */ }
     return window.__PANDOLAB_SHELL_DIAGNOSTICS__.snapshot();
@@ -59,9 +65,13 @@ try {
   for (const key of ['webgl', 'worker', 'wasm', 'autosave']) assert.equal(commands.checks[key].status, 'PASS', JSON.stringify(commands.report));
   assert.equal(commands.checks.nativeFile.status, 'FAIL');
   assert.match(commands.report.error.message, /Native shell bridge is unavailable/);
+  } else {
+    assert.equal(await page.evaluate(() => typeof window.__PANDOLAB_SHELL_DIAGNOSTICS__), 'undefined');
+    assert.ok(!requests.some(path => /\/shell\/(?:verification|probe-storage|diagnostics|full-world-probe|reference-analysis-probe)\./.test(path)), 'Ordinary startup must not load verification tools');
+  }
   await mkdir(output, { recursive: true });
   await writeFile(resolve(output, 'browser-preflight.json'), JSON.stringify({ browserOnly: true, viewport: { width: 1024, height: 768 },
-    source: 'actual frontend under shell CSP', bootstrap: result, commands, errors }, null, 2));
+    source: 'actual frontend under shell CSP', verification: evidence.verification, bootstrap: result, commands, errors }, null, 2));
   await page.screenshot({ path: resolve(output, 'browser-preflight.png') });
   console.log('Browser-only real-frontend preflight passed; this does not certify native WebView or Android.');
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

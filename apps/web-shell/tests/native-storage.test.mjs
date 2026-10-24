@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { createProbeStorage } from '../probe-storage.js';
 import { createNativeStorage, encodeBytes, decodeBytes } from '../native-storage.js';
 
 function simulatedNative(files = []) {
@@ -40,6 +41,16 @@ function simulatedNative(files = []) {
   };
   return { invoke, writes, chunks, events };
 }
+
+test('ordinary storage exposes error reporting but no verification commands', async () => {
+  const calls = [];
+  const storage = createNativeStorage(async (...args) => { calls.push(args); return { path: 'diagnostic-report.json' }; });
+  assert.equal(storage.writeProbeFile, undefined);
+  assert.equal(storage.readProbeFile, undefined);
+  assert.equal(storage.finishDiagnostics, undefined);
+  await storage.writeDiagnosticReport({ ok: false, error: { message: 'startup failed' } });
+  assert.equal(calls[0][0], 'write_diagnostic_report');
+});
 test('project bridge roundtrips binary bytes through bounded native chunks', async () => {
   const bytes = new Uint8Array([0, 255, 1, 128, 39, 10]);
   const native = simulatedNative([{ path: 'C:/picked.gpkg', bytes }]);
@@ -67,7 +78,7 @@ test('oversized document is blocked before IPC while tiny probe remains bounded'
   Object.defineProperty(largeBlob, 'size', { value: 256 * 1024 * 1024 + 1 });
   await assert.rejects(storage.saveProjectFile(largeBlob), /256 MiB/);
   assert.equal(invoked, false);
-  assert.throws(() => storage.writeProbeFile('a'.repeat(1024 * 1024 + 1)), /1 MiB/);
+  assert.throws(() => createProbeStorage(async () => { invoked = true; }).writeProbeFile('a'.repeat(1024 * 1024 + 1)), /1 MiB/);
   assert.equal(invoked, false);
 });
 test('cancelled user selection is not counted as saved project', async () => {

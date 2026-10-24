@@ -1,4 +1,5 @@
-import { writeProbeFile, readProbeFile, finishDiagnostics, saveProjectFile, openProjectFile, writeDiagnosticReport } from './native-storage.js';
+import { saveProjectFile, openProjectFile, writeDiagnosticReport } from './native-storage.js';
+import { writeProbeFile, readProbeFile, finishDiagnostics } from './probe-storage.js';
 import { assertSmallProject } from './fixture-limits.js';
 
 const COUNTRY = 'shell-country-a';

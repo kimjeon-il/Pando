@@ -101,13 +101,15 @@ export async function composeViewer({ productMode, meta }) {
     if(!await projectDomain.open(reader,options))return;
     if(request!==projectDomain.getOpenRevision())return;
     const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
-    const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),'globe');
-    map.viewState.projection=initial.projection;map.viewState.view=initial.view;
-    let workspace=null;
-    try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
-    if(request!==projectDomain.getOpenRevision())return;
-    map.projectSession.restoreViewingPresentation(workspace);
     if(preserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:preserved});
+    else {
+      const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),'globe');
+      map.viewState.projection=initial.projection;map.viewState.view=initial.view;
+      let workspace=null;
+      try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
+      if(request!==projectDomain.getOpenRevision())return;
+      map.projectSession.restoreViewingPresentation(workspace);
+    }
     await map.loadPhysicalLandMask();
     await map.objectCatalog.pruneLayerItemVisibility();
     if(!preserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
@@ -116,7 +118,6 @@ export async function composeViewer({ productMode, meta }) {
     await searchController.completeHydration();
     if(request!==projectDomain.getOpenRevision())return;
     map.loadPhysicalResources();
-    display.renderMapDisplaySettings();
     search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';status.hidden=true;
     return true;
     } catch(error){if(request===projectDomain.getOpenRevision()){
@@ -133,7 +134,7 @@ export async function composeViewer({ productMode, meta }) {
   const files=createFileController({productMode,elements:{projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')},projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
   action(get('builtinMapBtn'),'click',()=>builtinClock.followNow());
-  display=createMapSettings({viewPresentation:map,onLayerVisibilityChange:async(key,enabled)=>{if(enabled&&(key==='rivers'||key==='lakes'))await owners.physicalResources.loadHydroData(true);if(enabled&&key==='labels')await owners.territorialLabels.preparePlaces({force:true});}});
+  display=createMapSettings({capabilities:owners.capabilities,viewPresentation:map,onLayerVisibilityChange:async(key,enabled)=>{if(enabled&&(key==='rivers'||key==='lakes'))await owners.physicalResources.loadHydroData(true);if(enabled&&key==='labels')await owners.territorialLabels.preparePlaces({force:true});}});
   display.connect({
     platform:{$:id=>get(id==='app'?'viewer':id),deepClone:structuredClone,clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},
     navigation:map.navigation,domains:{renderingDomain:map.renderingDomain,objectSearchController:searchController},rendering:{gpuMapRenderer:map.renderer},objectDisplay:map.objectCatalog,distributionPresentation:map.distributionPresentation,feedback:{reportOperationError:report},
@@ -142,7 +143,7 @@ export async function composeViewer({ productMode, meta }) {
     applicationServicesB:{layerStyle},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
     preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;}},
     hydroModel:owners.hydroSettings,
-    workspaceUiA:surfaces,
+    workspaceUiA:surfaces,workspaceUiB:surfaces,
   });
   display.initializeLAYER_STYLE_TARGETS();
   const navigationBindings=createNavigationBindings({productMode});

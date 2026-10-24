@@ -10,6 +10,7 @@ name = "pandolab_web_shell_lib"
 crate-type = ["cdylib", "rlib"]
 
 [build-dependencies]
+serde_json = { version = "=1.0.154" }
 tauri-build = { version = "=2.7.3", features = [] }
 
 [dependencies]
@@ -23,6 +24,7 @@ base64 = "=0.23.1"
 flate2 = "=1.1.10"
 
 [features]
+verification = []
 custom-protocol = ["tauri/custom-protocol"]
 
 [profile.dev]

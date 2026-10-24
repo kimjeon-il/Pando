@@ -25,7 +25,8 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "projectState",
     "rendering",
     "territorialModel",
-    "workspaceUiA"
+    "workspaceUiA",
+    "workspaceUiB"
   ],
   "historyAssembly": [
     "builtinBaseline",

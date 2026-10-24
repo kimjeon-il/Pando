@@ -81,11 +81,14 @@ async function evaluate(expression) {
 }
 
 try {
-  const startupExpression = "(() => ({ ready: document.querySelector('#app')?.getAttribute('data-readiness'), nativeBridge: typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function', launcher: !!document.querySelector('.reference-image-launcher'), map: !!document.getElementById('map'), title: document.title, url: location.href }))()";
+  const startupExpression = "(async () => { const profile = await fetch(new URL('shell/stage-profile.json', location.href)).then(response => response.json()); return ({ verification: globalThis.PANDOLAB_SHELL_VERIFICATION, stagedVerification: profile.verification, ready: document.querySelector('#app')?.getAttribute('data-readiness'), nativeBridge: typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function', launcher: !!document.querySelector('.reference-image-launcher'), map: !!document.getElementById('map'), title: document.title, url: location.href }); })()";
   const startup = await repeat('Native Android WebView failed to become interactive', async () => {
     const state = await evaluate(startupExpression);
     return state?.ready === 'enhanced' && state.nativeBridge && state.launcher && state.map ? state : null;
   }, { attempts: 60 });
+
+  assert.equal(startup.verification, true, 'Android native runtime must be an explicit verification build');
+  assert.equal(startup.stagedVerification, true, 'Android staged assets must be an explicit verification build');
 
   const clicked = await evaluate("(() => { const launcher = document.querySelector('.reference-image-launcher'); if (!launcher) return false; launcher.click(); return true; })()");
   assert.equal(clicked, true, 'Native UI did not expose the reference-image launcher');

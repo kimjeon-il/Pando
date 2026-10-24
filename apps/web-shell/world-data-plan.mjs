@@ -1,4 +1,4 @@
-// The packaged full-world data closure is derived only from the Web manifests.
+// The packaged map data closure is derived only from the Web manifests.
 // Keep current world, local physical map and place shard resources together.
 const HEX = /^[a-f0-9]{64}$/;
 const PREFIX = 'assets/data/';

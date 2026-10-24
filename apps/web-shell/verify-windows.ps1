@@ -4,6 +4,7 @@ param(
     [string]$EnvironmentScript
 )
 $ErrorActionPreference = 'Stop'
+
 if ($EnvironmentScript) { . $EnvironmentScript }
 $resolvedBinary = (Resolve-Path -LiteralPath $BinaryPath).Path
 if ([IO.Path]::GetFileName($resolvedBinary) -ne 'pandolab-web-shell.exe') {
@@ -17,6 +18,8 @@ if (Test-Path -LiteralPath $nativeBuildDir -PathType Container) {
         Select-Object -First 1
     if ($loaderDirectory) { $env:Path = "$loaderDirectory;$env:Path" }
 }
+& node (Join-Path $PSScriptRoot 'packaged-artifacts.mjs') "--verify-binary=$BinaryPath"
+if ($LASTEXITCODE -ne 0) { throw 'The requested executable is not a verification build.' }
 $resolvedOutput = [IO.Path]::GetFullPath($OutputDirectory)
 [IO.Directory]::CreateDirectory($resolvedOutput) | Out-Null
 foreach ($phase in @('write', 'reopen')) {

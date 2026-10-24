@@ -19,9 +19,14 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const exists = async path => access(path).then(() => true, () => false);
 const slash = path => path.replaceAll('\\', '/');
 
-/** Preserve the smoke profile and stage full-world data only when explicitly selected. */
-export async function stagePrototype({ root = repository, profile = 'small-project' } = {}) {
-  if (!['small-project', 'full-world'].includes(profile)) throw new Error('Unknown shell staging profile.');
+export function validateShellProfile(profile, verification) {
+  if (!['test-fixture', 'map-data'].includes(profile)) throw new Error('Unknown shell staging profile.');
+  if (profile === 'test-fixture' && verification !== true) throw new Error('The test-fixture profile requires explicit verification.');
+}
+
+/** Ordinary app builds always use the real world; fixture staging is verification-only. */
+export async function stagePrototype({ root = repository, profile = 'map-data', verification = false } = {}) {
+  validateShellProfile(profile, verification);
   const parent = resolve(root, 'apps/web-shell');
   await mkdir(parent, { recursive: true });
   const lockPath = join(parent, '.stage-lock');
@@ -39,7 +44,7 @@ export async function stagePrototype({ root = repository, profile = 'small-proje
       else await rm(previous, { recursive: true });
     }
     if (await exists(pending)) await rm(pending, { recursive: true });
-    const result = await stageOwnedPrototype({ root, profile, directory: pending });
+    const result = await stageOwnedPrototype({ root, profile, verification, directory: pending });
     if (await exists(directory)) await rename(directory, previous);
     try { await rename(pending, directory); }
     catch (error) { if (await exists(previous)) await rename(previous, directory); throw error; }
@@ -52,14 +57,15 @@ export async function stagePrototype({ root = repository, profile = 'small-proje
   finally { await lock.close(); await unlink(lockPath); }
 }
 
-export async function createDevelopmentAssets({ root = repository, profile = 'full-world' } = {}) {
+export async function createDevelopmentAssets({ root = repository, profile = 'map-data' } = {}) {
   const assets = new Map();
-  const evidence = await stageOwnedPrototype({ root, profile, assets, directory: null });
+  const evidence = await stageOwnedPrototype({ root, profile, verification: false, assets, directory: null });
   assets.set('shell/stage-evidence.json', { bytes: Buffer.from(JSON.stringify({ ...evidence, executionMode: 'development' })) });
   return { assets, evidence };
 }
 
-async function stageOwnedPrototype({ root, profile, directory, assets = null }) {
+async function stageOwnedPrototype({ root, profile, verification, directory, assets = null }) {
+  validateShellProfile(profile, verification);
   root = resolve(root);
   const generator = join(root, 'scripts/generate-build-metadata.mjs');
   if (await exists(generator)) prepareLibraryData({ root });
@@ -124,7 +130,7 @@ async function stageOwnedPrototype({ root, profile, directory, assets = null }) 
         }
         if (/(?:^|\/)assets\/js\/workers\//.test(slash(child)) && child.endsWith('.js')) {
           const strict = /^(?:\s|\/\*[\s\S]*?\*\/|\/\/[^\r\n]*(?:\r?\n|$))*(['"])use strict\1\s*;/.test(bytes.toString('utf8'));
-          bytes = Buffer.concat([Buffer.from(`${strict ? "'use strict';\n" : ''}/* Shell-only request guard; original worker follows. */\n(${installNetworkGuard.toString()})(globalThis, { allowBundledData: ${profile === 'full-world'} });\n`), bytes]);
+          bytes = Buffer.concat([Buffer.from(`${strict ? "'use strict';\n" : ''}/* Shell-only request guard; original worker follows. */\n(${installNetworkGuard.toString()})(globalThis, { allowBundledData: ${profile === 'map-data'} });\n`), bytes]);
         }
         await emit(child, bytes, slash(child));
       }
@@ -169,11 +175,19 @@ async function stageOwnedPrototype({ root, profile, directory, assets = null }) 
   if (!bootstrap.test(html)) throw new Error('The current frontend bootstrap entry was not found.');
   await emit('index.html', html.replace(productBase, '<base href="./" data-product-base="editor" />')
     .replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'apps/web-shell/editor.html (shell entry only)');
-  for (const file of ['startup.js', 'runtime-profile.js', 'diagnostics.js', 'native-storage.js', 'network-guard.js', 'full-world-probe.js', 'reference-analysis-probe.js', 'fixture-limits.js', 'diagnostics.css']) {
-    if (await exists(join(here, file))) await emit(`shell/${file}`, await readFile(join(here, file)), `apps/web-shell/${file}`);
+  const shellFiles = ['startup.js', 'runtime-profile.js', 'native-storage.js', 'network-guard.js'];
+  if (verification) shellFiles.push('verification.js', 'probe-storage.js', 'diagnostics.js', 'full-world-probe.js', 'reference-analysis-probe.js', 'fixture-limits.js', 'diagnostics.css');
+  for (const file of shellFiles) {
+    let bytes = await readFile(join(here, file));
+    if (file === 'startup.js' && verification) {
+      const source = bytes.toString();
+      if (!source.includes('const verification = null;')) throw Error('Missing verification staging boundary.');
+      bytes = Buffer.from(source.replace('const verification = null;', "import * as verification from './verification.js';"));
+    }
+    await emit('shell/' + file, bytes, 'apps/web-shell/' + file);
   }
   if (process.env.PANDOLAB_REFERENCE_PROBE_SOURCE) {
-    if (profile !== 'full-world') throw new Error('Reference runtime proof requires the full-world profile.');
+    if (!verification || profile !== 'map-data') throw new Error('Reference runtime proof requires a map-data verification build.');
     const bytes = await readFile(process.env.PANDOLAB_REFERENCE_PROBE_SOURCE);
     if (bytes.length > 8 * 1024 * 1024) throw new Error('Native reference probe source exceeds 8 MiB.');
     await emit('shell/reference-probe.jpg', bytes);
@@ -182,22 +196,30 @@ async function stageOwnedPrototype({ root, profile, directory, assets = null }) 
   let fixture = null;
   let fixtureHash = null;
   let worldData = null;
-  if (profile === 'small-project') {
+  if (profile === 'test-fixture') {
     fixture = tinyFixture();
     if (await exists(join(root, 'package.json'))) fixture.project.version = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version;
     if (fixture.coordinateCount > 100) throw new Error('Prototype fixture exceeds the 100-coordinate limit');
     fixture.builtinIndex.template.version=fixture.project.version;
+    const countryChunks = [];
+    let offset = 0;
     for(const country of fixture.builtinCountries){
       const decoded=Buffer.from(JSON.stringify(country)),stored=gzipSync(decoded,{level:9});
       const file=`countries/${country.entityId}-sha256-${hash(stored)}.json.gz`;
-      await emit('shell/'+file,stored);
-      Object.assign(fixture.builtinIndex.entities.find(row=>row.entityId===country.entityId),{file,encoding:'gzip',sha256:hash(stored),compressedBytes:stored.length,decodedBytes:decoded.length});
+      Object.assign(fixture.builtinIndex.entities.find(row=>row.entityId===country.entityId),{file,offset,encoding:'gzip',sha256:hash(stored),compressedBytes:stored.length,decodedBytes:decoded.length});
+      countryChunks.push(stored);
+      offset += stored.length;
     }
+    const transport = Buffer.concat(countryChunks), transportHash = hash(transport);
+    const transportUrl = `transport/countries-sha256-${transportHash}.bin`;
+    fixture.builtinIndex.transport = { schemaVersion: 1, url: transportUrl, encoding: 'identity', sha256: transportHash,
+      compressedBytes: transport.length, decodedBytes: transport.length };
+    await emit('shell/' + transportUrl, transport);
     const world=Buffer.from(JSON.stringify(fixture.builtinIndex));fixtureHash=hash(world);
     await emit('shell/fixture-world.json',world);
     await emit('shell/fixture-countries.json',JSON.stringify(fixture.countries));
     const builtinWorld={url:'./fixture-world.json',encoding:'identity',sha256:hash(world),compressedBytes:world.length,decodedBytes:world.length};
-    await emit('shell/stage-profile.json',JSON.stringify({mode:profile,builtinWorld,countriesUrl:'./fixture-countries.json'}));
+    await emit('shell/stage-profile.json',JSON.stringify({mode:profile,verification,builtinWorld,countriesUrl:'./fixture-countries.json'}));
   } else {
      const {plan,meta}=await loadFullWorldAssetPlan(path=>readFile(join(root,path),'utf8'));
    const dataRoot = await realpath(resolve(root, 'assets/data'));
@@ -221,7 +243,7 @@ async function stageOwnedPrototype({ root, profile, directory, assets = null }) 
       mergedSourceCount: plan.mergedSourceCount, sourceSha256: plan.sourceSha256,
       fileCount: plan.entries.length, bytes: packagedBytes, dataRevision: meta.dataRevision };
     await emit('shell/stage-profile.json', JSON.stringify({
-      mode: profile, assetRevision: meta.assetRevision, dataRevision: meta.dataRevision,
+      mode: profile, verification, assetRevision: meta.assetRevision, dataRevision: meta.dataRevision,
       world: { countryCount: plan.countryCount, rootCount: plan.rootCount,
         worldFileCount: plan.worldFileCount, physicalFileCount: plan.physicalFileCount,
         unitCount: plan.unitCount, modelEntityCount: plan.modelEntityCount,
@@ -234,13 +256,13 @@ async function stageOwnedPrototype({ root, profile, directory, assets = null }) 
     trackedDiffSha256 = hash(execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: root, windowsHide: true, maxBuffer: 8 * 1024 * 1024 }));
   } catch { /* Synthetic staging tests have no Git directory. */ }
   const dataPin = await exists(join(root, 'config/library-data.json')) ? JSON.parse(await readFile(join(root, 'config/library-data.json'), 'utf8')) : null;
-  const result = { schema: 'pandolab-web-shell-stage', profile, directory, commit, trackedDiffSha256,
+  const result = { schema: 'pandolab-web-shell-stage', profile, verification, directory, commit, trackedDiffSha256,
     dataRepository: dataPin?.repository, dataCommit: dataPin?.revision,
     coreSourceSha256: coreManifest.sourceSha256 || null,
     fixture: fixture ? { entityCount: fixture.entityCount, coordinateCount: fixture.coordinateCount, sha256: fixtureHash } : null,
     worldData, referenceAnalysis: { bytes: referencePlan.bytes, modelAvailable: !!referenceBoundary }, files, bytes: files.reduce((sum, file) => sum + file.bytes, 0) };
-  const limit = (profile === 'full-world' ? 256 : 80) * 1024 * 1024 + referencePlan.bytes;
-  if (result.bytes > limit || (profile === 'small-project'
+  const limit = (profile === 'map-data' ? 256 : 80) * 1024 * 1024 + referencePlan.bytes;
+  if (result.bytes > limit || (profile === 'test-fixture'
       && files.some(file => file.path.startsWith('assets/data/') && !file.path.startsWith('assets/data/reference-analysis/v1/') && file.path !== buildMeta.physicalLand?.url && file.path !== 'assets/data/physical-land/v1/manifest.json'))) {
     throw new Error('Shell staging exceeded the selected offline profile');
   }
@@ -250,7 +272,8 @@ async function stageOwnedPrototype({ root, profile, directory, assets = null }) 
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const profile = process.argv.find(arg => arg.startsWith('--profile='))?.slice('--profile='.length)
-    || process.env.PANDOLAB_SHELL_PROFILE || 'small-project';
-  const result = await stagePrototype({ profile });
+    || process.env.PANDOLAB_SHELL_PROFILE || 'map-data';
+  const verification = process.argv.includes('--verification') || process.env.PANDOLAB_SHELL_VERIFICATION === '1';
+  const result = await stagePrototype({ profile, verification });
   console.log(`Staged ${result.profile}: ${result.files.length} files, ${result.bytes} bytes, ${result.worldData?.countryCount || result.fixture?.entityCount} entities (${result.commit}).`);
 }

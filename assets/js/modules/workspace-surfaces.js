@@ -206,8 +206,9 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
       && lastOverlayTrigger.getAttribute('aria-controls') === panelId
       ? lastOverlayTrigger
       : null;
-    const trigger = rememberedTrigger || (0, dependencies.platform.$)(ids[surface])
-      || (lastOverlayTrigger?.getClientRects().length ? lastOverlayTrigger : (0, dependencies.platform.$)('map'));
+    const trigger = rememberedTrigger || [(0, dependencies.platform.$)(ids[surface]),
+      isMobile() ? (0, dependencies.platform.$)('mobileMenuBtn') : lastOverlayTrigger,
+      (0, dependencies.platform.$)('map')].find(candidate => candidate?.getClientRects().length > 0);
     trigger?.focus({ preventScroll: true });
   }
 

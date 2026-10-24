@@ -23,7 +23,9 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 45
     env:
-      PANDOLAB_SHELL_PROFILE: full-world
+      PANDOLAB_SHELL_PROFILE: map-data
+      PANDOLAB_SHELL_VERIFICATION: "1"
+      TAURI_CONFIG: '{"app":{"security":{"capabilities":["prototype-main","verification"]}}}'
       CARGO_TERM_COLOR: always
     steps:
       - name: Preserve Git byte-for-byte release resources
@@ -51,7 +53,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Check full-world and physical-loading unit contracts
+      - name: Check map-data and physical-loading unit contracts
         shell: pwsh
         run: |
           node --test tests/unit/editor-resource-capabilities.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs
@@ -59,10 +61,10 @@ jobs:
       - name: Stage the same canonical world and physical resources once
         shell: pwsh
         run: |
-          node apps/web-shell/stage.mjs --profile=full-world
+          node apps/web-shell/stage.mjs --profile=map-data
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $stage = Get-Content apps/web-shell/dist/shell/stage-evidence.json -Raw | ConvertFrom-Json
-          if ($stage.profile -ne 'full-world' -or
+          if ($stage.profile -ne 'map-data' -or
               $stage.worldData.countryCount -ne 258 -or
               $stage.worldData.worldFileCount -ne 597 -or
               $stage.worldData.physicalFileCount -ne 13 -or
@@ -72,12 +74,12 @@ jobs:
       - name: Build one Windows WebView2 executable for both startup policies
         shell: pwsh
         run: |
-          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc
+          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify native diagnostic and file transfer contracts
         shell: pwsh
         run: |
-          cargo test --manifest-path apps/web-shell/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc
+          cargo test --manifest-path apps/web-shell/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc --features custom-protocol,verification
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: A/B on same runner, isolated cold profiles, 3 runs per mode
         shell: pwsh

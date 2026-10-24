@@ -6,15 +6,18 @@
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "stage": "node stage.mjs",
-    "stage:world": "node stage.mjs --profile=full-world",
+    "stage:map-data": "node stage.mjs --profile=map-data",
     "tauri": "tauri",
-    "build:windows": "node packaged-artifacts.mjs --build --features custom-protocol",
+    "build:windows": "node packaged-artifacts.mjs --build",
     "init:android": "tauri android init --ci && node src-tauri/sync-android.mjs && node src-tauri/sync-android.mjs --check",
-    "build:android": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File src-tauri/build-android.ps1 && node packaged-artifacts.mjs --android",
+    "build:android": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File src-tauri/build-android.ps1",
     "test:native": "cargo test --manifest-path src-tauri/Cargo.toml",
     "dev:windows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File dev.ps1 windows",
     "dev:android": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File dev.ps1 android",
-    "dev:server": "node dev.mjs"
+    "dev:server": "node dev.mjs",
+    "build:verification:windows": "node packaged-artifacts.mjs --build --verification",
+    "build:verification:android": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File src-tauri/build-android.ps1 -Verification",
+    "stage:verification": "node stage.mjs --verification"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.12.3"
