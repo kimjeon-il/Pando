@@ -68,6 +68,25 @@ jobs:
           python tools/gis/check_official_usgs_hydro_gauges.py \
             --decoded /tmp/hydro-decoded.json \
             --output /tmp/usgs-official-anchor-check.json
+      - name: Verify USGS station evidence is tied to the exact published Hydro geometry
+        run: |
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/gis')
+          from hydro_independent_name_policy import load_independent_hydronyms
+          stations=json.loads(Path('/tmp/usgs-official-anchor-check.json').read_text())
+          review=load_independent_hydronyms(Path('tools/gis/hydro-independent-name-replacements.json'))
+          for ident in ('70816878','70819626'):
+              measured=stations['candidateSystems'][ident]
+              recorded=review[ident]['officialStationEvidence']
+              own={r['station'] for r in stations['stationRows'] if r['independentHydrography']==measured['candidateName']}
+              assert measured['criteriaSatisfied'],ident
+              assert set(recorded['stationIds'])==own,ident
+              assert abs(recorded['maximumMatchingStationDistanceKm']-measured['maxMatchingStationDistanceKm'])<0.002
+              assert abs(recorded['nearestDifferentBasinStationKm']-measured['nearestDifferentBasinStationKm'])<0.002
+          print('Both station-based source exemptions reproduced against original Hydro geometry')
+          PY
       - name: Verify independently researched river-name records
         run: |
           python -m unittest discover -s tests -p 'test_hydro_independent_names.py' -v
@@ -88,10 +107,10 @@ jobs:
           root=Path('/tmp/hydro-independent-five')
           proof=json.loads((root/'proof.json').read_text())
           manifest=json.loads((root/'manifest.json').read_text())
-          assert len(proof['changedSystemIds']) == 16
-          assert proof['remainingOsmMatchedSystems'] == 57
-          assert proof['sourceIndependentSystemCount'] == 16
-          assert proof['renamedSystemCount'] == 5
+          assert len(proof['changedSystemIds']) == 18
+          assert proof['remainingOsmMatchedSystems'] == 55
+          assert proof['sourceIndependentSystemCount'] == 18
+          assert proof['renamedSystemCount'] == 7
           assert proof['nameUnchangedSourceReplacementCount'] == 11
           assert proof['originalIndexSha256'] == proof['newIndexSha256']
           assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']

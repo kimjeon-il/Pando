@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "sixteen-verified-records-staged-for-generator-and-isolated-packfile",
+  "status": "18-independently-researched-systems-staged-for-generator-and-isolated-packfile",
   "reference": {
     "dataset": "HydroRIVERS v0.13.2 OSM-name inventory",
     "naturalEarthRiversBaseSha256": "3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99",
@@ -408,6 +408,78 @@
         }
       ],
       "hydroRiversRegion": "na"
+    },
+    {
+      "systemId": "70816878",
+      "previousNameKo": "리오그란데강",
+      "nameKo": "브래저스강",
+      "aliases": [
+        "Brazos",
+        "Brazos River"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Brazos",
+        "sampleCoverage": 0.765
+      },
+      "hydroRiversRegion": "na",
+      "officialStationEvidence": {
+        "agency": "USGS",
+        "stationIds": [
+          "USGS-08116650",
+          "USGS-08114000",
+          "USGS-08117300"
+        ],
+        "maximumMatchingStationDistanceKm": 0.371,
+        "nearestDifferentBasinStationKm": 40.811,
+        "checkedAgainstSystemId": "70819626"
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.twdb.texas.gov/surfacewater/rivers/river_basins/brazos/index.asp"
+        },
+        {
+          "kind": "government-gauging",
+          "url": "https://waterdata.usgs.gov/monitoring-location/USGS-08117300/"
+        }
+      ]
+    },
+    {
+      "systemId": "70819626",
+      "previousNameKo": "리오그란데강",
+      "nameKo": "콜로라도강",
+      "aliases": [
+        "Colorado River (Texas)"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": null,
+      "hydroRiversRegion": "na",
+      "officialStationEvidence": {
+        "agency": "USGS",
+        "stationIds": [
+          "USGS-08162500",
+          "USGS-08162504",
+          "USGS-08162501"
+        ],
+        "maximumMatchingStationDistanceKm": 0.199,
+        "nearestDifferentBasinStationKm": 44.988,
+        "checkedAgainstSystemId": "70816878"
+      },
+      "independentSources": [
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.twdb.texas.gov/surfacewater/rivers/river_basins/colorado/index.asp"
+        },
+        {
+          "kind": "government-gauging",
+          "url": "https://waterdata.usgs.gov/monitoring-location/USGS-08162504/"
+        }
+      ]
     }
   ]
 }
