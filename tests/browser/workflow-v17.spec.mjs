@@ -371,7 +371,7 @@ test('merge removal, boundary and coast use actual role cards and the shared spa
   await captureLayouts(page, 'merge-review');
   await page.locator('#modeCancelBtn').click();
   await page.locator('#modeCancelBtn').click();
-  for (const [button, role] of [['editEntityBorderBtn', '기준 객체'], ['editEntityCoastBtn', '대상 객체']]) {
+  for (const [button, role] of [['editEntityBorderBtn', '기준 국가'], ['editEntityCoastBtn', '대상 객체']]) {
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.locator('#actionsTabBtn').click();
     await page.locator('#' + button).click();
