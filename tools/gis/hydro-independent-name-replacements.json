@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "37-independently-corroborated-osm-river-system-records-awaiting-pack-verification",
+  "status": "38-independent-source-river-systems-staged-awaiting-tested-hydro-metadata",
   "reference": {
     "dataset": "HydroRIVERS v0.13.2 OSM-name inventory",
     "naturalEarthRiversBaseSha256": "3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99",
@@ -117,6 +117,49 @@
         {
           "kind": "government-river-register",
           "url": "https://am.lrv.lt/lt/naujienos/spalio-1-d-isigalioja-draudimas-zvejoti-lasisiniu-zuvu-migracijai-ir-nerstui-svarbiose-upese-sToC/"
+        }
+      ]
+    },
+    {
+      "systemId": "20265844",
+      "previousNameKo": "드르벵차강",
+      "nameKo": "비스와강",
+      "aliases": [
+        "Vistula",
+        "Wisła"
+      ],
+      "tributaryNames": [
+        "부크강",
+        "나레프강"
+      ],
+      "naturalEarth": {
+        "name": "Vistula",
+        "sampleCoverage": 0.519
+      },
+      "hydroRiversRegion": "eu",
+      "independentBasinRename": {
+        "method": "independent-government-basin-rename",
+        "namedTributaryNE": "Western Bug",
+        "tributarySampleCoverage": 0.407,
+        "sourceErroneousTributaryName": "Drwęca",
+        "reason": "Natural Earth centerline repeatedly matches the Vistula and Western Bug, not the much shorter Drwęca. Polish water administration identifies Bug flowing to Narew and Narew flowing to Vistula, while government county description establishes Drwęca as merely a separate tributary of Vistula."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.gov.pl/web/wody-polskie/komunikaty-nawigacyjne"
+        },
+        {
+          "kind": "government-ministry-geography",
+          "url": "https://www.gov.pl/web/infrastruktura/wspolpraca-miedzynarodowa-w-gospodarce-wodnej"
+        },
+        {
+          "kind": "government-river-identification",
+          "url": "https://samorzad.gov.pl/web/powiat-nowomiejski/informacja-o-powiecie"
         }
       ]
     },
