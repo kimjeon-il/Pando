@@ -1,0 +1,34 @@
+name: GIS OSM river name dependency inventory
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - tools/inventory-osm-hydronyms.py
+      - .github/workflows/gis-osm-river-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Mount pinned external geographic data
+        uses: ./.github/actions/library-data
+      - name: Extract 73 matched systems without modifying map data
+        run: |
+          python tools/inventory-osm-hydronyms.py \
+            --manifest assets/data/hydro/v0.13.2/manifest.json \
+            --bundle assets/data/hydro/v0.13.2/hydro.bin \
+            --output /tmp/osm-hydro-inventory.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gis-osm-hydro-inventory
+          path: /tmp/osm-hydro-inventory.json
+          retention-days: 14
