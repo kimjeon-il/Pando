@@ -53,6 +53,77 @@ test('transitive source changes choose related units and declared HTTP browser c
   assert.equal(plan.manualTests.includes('tests/browser/measure.spec.mjs'), true);
 });
 
+test('staged shell imports, re-exports and module URLs resolve to their source owners', () => {
+  const f = fixture();
+  f.catalog.relocatedSources = [{ source: 'apps/web-shell/', output: 'shell/', files: ['apps/web-shell/*.js'] }];
+  f.put('apps/web-shell/native.js');
+  f.put('assets/js/workers/place-worker.js');
+  f.put('apps/assets/js/modules/leaf.js', 'throw Error("wrong source owner");');
+  f.put('apps/web-shell/reference-analysis-probe.js', `
+    import './native.js';
+    import { value } from '../assets/js/modules/leaf.js';
+    export { value as terrain } from '../assets/js/modules/terrain.js';
+    export * from './native.js';
+    const load = () => import('../assets/js/modules/other.js?revision=1');
+    const worker = new URL('../assets/js/workers/place-worker.js?cache=../../misleading#revision', import.meta.url);
+  `);
+  f.put('tests/unit/probe.test.mjs', "import '../../apps/web-shell/reference-analysis-probe.js';");
+  const repo = f.repository();
+  assert.deepEqual(repo.dependencies('apps/web-shell/reference-analysis-probe.js').sort(), [
+    'apps/web-shell/native.js', 'assets/js/modules/leaf.js', 'assets/js/modules/other.js',
+    'assets/js/modules/terrain.js', 'assets/js/workers/place-worker.js',
+  ]);
+  const plan = planApplicationChecks({ changedFiles: ['assets/js/workers/place-worker.js'], repository: repo });
+  assert.deepEqual(plan.unitTests, ['tests/unit/probe.test.mjs']);
+});
+
+test('shell Node tools and nested tests keep source-relative paths', () => {
+  const f = fixture();
+  f.catalog.relocatedSources = [{ source: 'apps/web-shell/', output: 'shell/', files: ['apps/web-shell/*.js'] }];
+  f.put('apps/web-shell/fixture.mjs', "import '../../assets/js/modules/leaf.js';");
+  f.put('apps/web-shell/stage.mjs', "import './fixture.mjs'; const input = new URL('../../assets/js/modules/other.js', import.meta.url);");
+  f.put('apps/web-shell/tests/probe.test.mjs', "import '../fixture.mjs';");
+  const repo = f.repository();
+  assert.deepEqual(repo.dependencies('apps/web-shell/stage.mjs').sort(), ['apps/web-shell/fixture.mjs', 'assets/js/modules/other.js']);
+  assert.deepEqual(repo.dependencies('apps/web-shell/tests/probe.test.mjs'), ['apps/web-shell/fixture.mjs']);
+});
+
+test('module URL reads retain root configuration and workflow consumers', () => {
+  const f = fixture();
+  f.put('package.json', '{}'); f.put('playwright.config.js'); f.put('.github/workflows/application-architecture.yml');
+  f.put('tests/unit/config.test.mjs', `
+    readFileSync(new URL('../../package.json', import.meta.url));
+    readFileSync(new URL('../../playwright.config.js', import.meta.url));
+    readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url));
+  `);
+  const repo = f.repository();
+  assert.deepEqual(repo.dependencies('tests/unit/config.test.mjs').sort(), [
+    '.github/workflows/application-architecture.yml', 'package.json', 'playwright.config.js',
+  ]);
+  for (const file of ['package.json', 'playwright.config.js', '.github/workflows/application-architecture.yml'])
+    assert.deepEqual(planApplicationChecks({ changedFiles: [file], repository: repo }).unitTests, ['tests/unit/config.test.mjs']);
+});
+
+test('staged dependencies still reject missing imports and paths outside the bundle root', () => {
+  const f = fixture();
+  f.catalog.relocatedSources = [{ source: 'apps/web-shell/', output: 'shell/', files: ['apps/web-shell/*.js'] }];
+  f.put('apps/web-shell/missing.js', "import '../assets/js/modules/missing.js';");
+  f.put('apps/web-shell/escape.js', "import '../../outside.js';");
+  assert.throws(() => f.repository().dependencies('apps/web-shell/missing.js'), /Missing dependency assets\/js\/modules\/missing\.js/);
+  assert.throws(() => f.repository().dependencies('apps/web-shell/escape.js'), /outside repository/);
+});
+
+test('nested GIS Python changes select their existing external workflow', () => {
+  const f = fixture();
+  const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
+  const check = catalog.externalChecks.find(row => row.id === 'gis-python');
+  f.catalog.externalChecks = [check]; f.put(check.workflow);
+  const changedFiles = ['tools/gis/verify_osm_hydro_batch01_anchors.py', 'scripts/research/check.py', 'tests/test_hydro_independent_names.py'];
+  changedFiles.forEach(file => f.put(file));
+  const plan = planApplicationChecks({ changedFiles, repository: f.repository() });
+  assert.deepEqual(plan.externalChecks.map(row => row.id), ['gis-python']);
+});
+
 test('new and moved tests are discovered; an unregistered browser test fails coverage', () => {
   const f = fixture(); f.put('tests/unit/new.test.mjs', "import './terrain.test.mjs';");
   assert.ok(planApplicationChecks({ changedFiles: ['tests/unit/new.test.mjs'], repository: f.repository() }).unitTests.includes('tests/unit/new.test.mjs'));

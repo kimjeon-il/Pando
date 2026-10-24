@@ -1007,6 +1007,7 @@
     {
       "source": "apps/web-shell/",
       "output": "shell/",
+      "files": ["apps/web-shell/*.js"],
       "reason": "stage.mjs copies the shell modules beneath shell/ in the app bundle."
     }
   ],
@@ -1038,7 +1039,14 @@
       "id": "gis-python",
       "inputs": [
         "tools/*.py",
+        "tools/**/*.py",
         "scripts/*.py",
+        "scripts/gis/*.py",
+        "scripts/gis/**/*.py",
+        "scripts/research/*.py",
+        "scripts/research/**/*.py",
+        "tests/*.py",
+        "tests/**/*.py",
         "tests/python/**"
       ],
       "workflow": ".github/workflows/gis-python-p4.yml",
