@@ -69,11 +69,28 @@ class IndependentHydronymReviewTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     load_independent_hydronyms(temp)
 
+    def test_station_based_qualification_rejects_spurious_gauges(self):
+        original = json.loads(PATH.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "broken.json"
+            for mutation in ("far-from-mainstem", "not-separated", "missing-gauge-source"):
+                candidate = copy.deepcopy(original)
+                entry = next(row for row in candidate["replacements"] if row["systemId"] == "70819626")
+                if mutation == "far-from-mainstem":
+                    entry["officialStationEvidence"]["maximumMatchingStationDistanceKm"] = 15.0
+                elif mutation == "not-separated":
+                    entry["officialStationEvidence"]["nearestDifferentBasinStationKm"] = 0.2
+                else:
+                    entry["independentSources"] = entry["independentSources"][:1]
+                output.write_text(json.dumps(candidate), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_independent_hydronyms(output)
+
     def test_old_osm_only_basins_are_not_assigned_names_in_bulk(self):
         rows = load_independent_hydronyms(PATH)
         self.assertNotIn("41023100", rows)  # Indus/Ravi: more source review
         self.assertNotIn("20773860", rows)  # Suez Canal: feature class review
-        self.assertNotIn("70816878", rows)  # Brazos: Korean orthography review
+        self.assertNotIn("70814357", rows)  # Mississippi tributaries: mixed relation review
         self.assertNotIn("41386179", rows)  # Saigon: unnamed master; no promotion
 
 
