@@ -6,7 +6,17 @@ import {
   buildReferenceImagePlaceSymbolCandidates,
   findReferenceImagePointSymbol,
   findReferenceImagePointSymbolNearTextBox,
+  referenceImagePointRasterFromRgba,
 } from '../../assets/js/modules/reference-image-auto-georef.js';
+
+test('analysis RGBA pixels are converted to the point detector luminance contract',()=>{
+  const width=120,height=100,data=new Uint8Array(width*height*4).fill(255);
+  for(let y=40;y<=46;y++) for(let x=64;x<=70;x++) if((x-67)**2+(y-43)**2<=9) {const i=(y*width+x)*4;data[i]=data[i+1]=data[i+2]=25;}
+  const raster=referenceImagePointRasterFromRgba({width,height,data});
+  const result=findReferenceImagePointSymbol(raster,[62/119,46/99],{searchRadiusPx:14});
+  assert.ok(result);
+  assert.ok(Math.abs(result.pixel[0]-67)<.2);
+});
 
 function makeRaster(width = 120, height = 100, background = 236) {
   return { width, height, luma: new Uint8Array(width * height).fill(background) };

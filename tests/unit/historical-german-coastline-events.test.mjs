@@ -59,7 +59,7 @@ test('period map inventory marks geologic editions and lacks implied georeferenc
 });
 
 test('Dollart–Jade modern-coast densification does not claim validated 1914 shorelines', () => {
-  const url = reportPath('tools/historical-library/working/german-empire-1914-northsea-dollart-jade.diagnostics.json');
+  const url = reportPath('reports/borders/reconstruction/germany/diagnostics/german-empire-1914-northsea-dollart-jade.diagnostics.json', { access: 'read' });
   const report = JSON.parse(readFileSync(url, 'utf8'));
   assert.equal(report.status, 'applied'); // applied only to the working geometry
   assert.equal(report.historicalValidation.geometryPatchApplied, 'modern-detail-densification-only');

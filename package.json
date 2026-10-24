@@ -6,6 +6,8 @@
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "data:prepare": "node tools/library-data.mjs",
+    "reports:publish": "node tools/library-data.mjs --publish-reports",
+    "reports:check": "node tools/library-data.mjs --check-reports",
     "build:country-default-colors": "node tools/build-country-default-colors.mjs",
     "check:country-default-colors": "node tools/build-country-default-colors.mjs --check",
     "build:country-schema": "pnpm build:current-world",

@@ -1,3 +1,4 @@
+import { writeLibraryOutput } from './library-data.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
@@ -18,7 +19,7 @@ const index={schemaVersion:2,lineages:readTerritorialLineages(),entities:entitie
  const previous=fs.existsSync(destination)?fs.readFileSync(destination):null;
  const {stored,changed}=selectTerritorialChunkBytes(bytes,previous);
  if(check&&changed)throw new Error(`Stale territorial chunk: ${file}`);
- if(!check&&changed)fs.writeFileSync(destination,stored);
+ if(!check&&changed)writeLibraryOutput(destination,stored);
  return territorialIndexEntry(entity,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:bytes.length});
  }),snapshots:fs.readdirSync(path.join(territorialSourceRoot,'snapshots')).filter(f=>f.endsWith('.json')).sort().map(file=>{
  const snapshot=JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'snapshots',file),'utf8'));
@@ -33,5 +34,5 @@ for(const file of fs.readdirSync(output)) if(!expectedFiles.has(file) && !proces
 // with the corresponding chunk. Do not publish a source-only change.
 const indexBytes=`${JSON.stringify(index,null,2)}\n`;
 if(check){if(fs.readFileSync(path.join(output,'index.json'),'utf8').replaceAll('\r\n','\n')!==indexBytes)throw new Error('Stale territorial index');}
-else fs.writeFileSync(path.join(output,'index.json'),indexBytes);
+else writeLibraryOutput(path.join(output,'index.json'),indexBytes);
 console.log(`${check?'Checked':'Built'} ${entities.length} territorial chunks and ${index.snapshots.length} reference snapshots`);

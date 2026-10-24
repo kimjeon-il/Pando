@@ -1,6 +1,7 @@
+import { writeLibraryOutput } from './library-data.mjs';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,7 +13,7 @@ const sourceFile = resolve(data, 'world-preview-v' + sourceVersion + '.json');
 const destinationFile = resolve(data, 'world-preview-v' + releaseVersion + '.json');
 const seedFile = resolve(data, 'world/build-input.json');
 const readJson = file => JSON.parse(readFileSync(file, 'utf8'));
-const writeJson = (file, value) => writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
+const writeJson = (file, value) => writeLibraryOutput(file, JSON.stringify(value, null, 2) + '\n');
 const old = readJson(sourceFile);
 assert.equal(old.version, sourceVersion);
 assert.equal(old.assets.canonicalMesh.url, 'world-mesh-v0.12.6.bin.gz');

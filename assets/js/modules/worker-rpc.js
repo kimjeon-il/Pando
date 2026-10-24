@@ -130,6 +130,7 @@ export function createWorkerRpcClient({
       requestId: entry.requestId,
       projectRevision: entry.projectRevision,
       retryable: raw.retryable === true,
+      cause: raw,
     });
   }
 

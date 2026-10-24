@@ -538,18 +538,17 @@ export function createDomainAssembly() {
         boundaryDraftActive: () => dependencies.projectState.state.tool === 'country-coast' || dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'editing',
         resolveObjectFeature: targetRef => {
           if (targetRef?.domain === 'hydro') return dependencies.projectState.state.hydroEdits.find(item => String(item.id) === String(targetRef.id)) || null;
+          if (targetRef?.domain === 'generic') return dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(targetRef.id)) || null;
           return null;
         },
-        canEditObject: feature => {
-          const ref = (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: feature?.properties?.category, id: feature?.id });
+        canEditObject: (feature, _vertex, targetRef) => {
+          const ref = (0, dependencies.selectionServices.normalizeObjectRef)(targetRef);
           if (!(0, dependencies.objectOperationsA.objectRefVisible)(ref)) return false;
           if (feature?.properties?.locked === true) {
             (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 꼭짓점을 이동하세요.', 'error', 3200);
             return false;
           }
-          const hydroEdit = (0, dependencies.hydroModel.isHydroEditFeature)(feature);
-          if (!hydroEdit) return false;
-          return true;
+          return ref.domain === 'generic' || (0, dependencies.hydroModel.isHydroEditFeature)(feature);
         },
         captureObjectGestureSnapshot: () => ({ expectedEpoch: commandOwner.state().epoch,projectGeneration: projectDomain.getGeneration() }),
         getObjectVertexTarget: requestedRef => {
@@ -562,32 +561,40 @@ export function createDomainAssembly() {
             return feature ? { targetRef: (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro',
               type: feature.properties.category, id: String(feature.id) }), mode: 'hydro', feature } : null;
           }
+          if (selected?.domain === 'generic') {
+            if (!(0, dependencies.objectOperationsA.objectRefVisible)(selected)) return null;
+            const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(selected.id));
+            return feature && ['LineString','MultiLineString','Polygon','MultiPolygon'].includes(feature.geometry.type)
+              ? { targetRef: (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'generic',type: 'feature',id: feature.id }),mode: 'generic',feature } : null;
+          }
           return null;
         },
-        previewObjectGesture: ({ source, feature, segments, gestureId }) => {
+        previewObjectGesture: ({ targetRef, source, feature, segments, gestureId }) => {
           if (dependencies.geometryOperations.editPreviewController.snapshot().gestureId === gestureId) {
             (0, dependencies.gpuRenderingB.updateActiveEditPreview)(segments);
           } else (0, dependencies.gpuRenderingA.beginActiveEditPreview)({
-            key: `hydro:${source.id}`, gestureId, segments,
-            targetRefs: [(0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: source.properties.category, id: source.id })],
+            key: `${targetRef.domain}:${source.id}`, gestureId, segments,
+            targetRefs: [(0, dependencies.selectionServices.normalizeObjectRef)(targetRef)],
           });
           return feature;
         },
-        commitObjectGesture: async ({ source, feature, changed, snapshot, previewId }) => {
-          const hydroEdit = (0, dependencies.hydroModel.isHydroEditFeature)(source);
+        commitObjectGesture: async ({ targetRef, source, feature, changed, snapshot, previewId }) => {
+          const hydroEdit = targetRef.domain === 'hydro';
           if (!changed) {
             renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-preview-no-change');
             return false;
           }
-          const result=await projectDomain.executeCommand({ commandId: 'hydro.geometry',expectedEpoch: snapshot.expectedEpoch,
-            targets: [{ domain: 'hydro',id: source.id }],payload: { id: source.id,geometry: feature.geometry } });
+          const result=await projectDomain.executeCommand(hydroEdit ? { commandId: 'hydro.geometry',expectedEpoch: snapshot.expectedEpoch,
+            targets: [{ domain: 'hydro',id: source.id }],payload: { id: source.id,geometry: feature.geometry } }
+            : { commandId: 'content.edit',expectedEpoch: snapshot.expectedEpoch,targets: [{ domain: 'generic',id: source.id }],
+              payload: { domain: 'generic',id: source.id,value: feature,create: false } });
           if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
           if(!result.changed || snapshot.projectGeneration!==projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
-          const accepted=documentModel.get({ domain: 'hydro',id: source.id });
+          const accepted=documentModel.get({ domain: targetRef.domain,id: source.id });
           if (hydroEdit) dependencies.spatialQuery.mapObjectGeometryRevisions.hydro += 1;
           else dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
           if (previewId) dependencies.geometryOperations.editPreviewController.handoff(previewId, {
-            kind: 'object', objectKey: (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: source.properties.category, id: source.id }).key,
+            kind: 'object', objectKey: (0, dependencies.selectionServices.normalizeObjectRef)(targetRef).key,
             geometry: accepted.geometry, geometryRevision: geometryRevision(accepted.geometry),
           });
           renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-edit-commit');

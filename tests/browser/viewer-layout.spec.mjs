@@ -17,7 +17,7 @@ test('existing surfaces preserve project and selection across portrait, tablet a
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset)).toBe(fixture.project.baseDataset);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
   const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
-  mkdirSync('reports/images/viewer-editor',{recursive:true});
+  mkdirSync('reports/development/ui/viewer-editor',{recursive:true});
   for(const viewport of [{width:390,height:844},{width:768,height:1024},{width:1024,height:768},{width:844,height:390}]){
     await page.setViewportSize(viewport);
     await page.locator('#objectSearchBtn').click();
@@ -31,7 +31,7 @@ test('existing surfaces preserve project and selection across portrait, tablet a
     expect(panel.x).toBeGreaterThanOrEqual(0);expect(panel.y).toBeGreaterThanOrEqual(0);
     expect(panel.x+panel.width).toBeLessThanOrEqual(viewport.width);
     expect(panel.y+panel.height).toBeLessThanOrEqual(viewport.height);
-    await page.screenshot({path:`reports/images/viewer-editor/current-${viewport.width}x${viewport.height}.png`});
+    await page.screenshot({path:`reports/development/ui/viewer-editor/current-${viewport.width}x${viewport.height}.png`});
     await closeViewingDisplay(page);
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
     expect((await page.evaluate(()=>window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([{domain:'territorial',type:'entity',id:'A',key:'territorial:entity:A'}]);

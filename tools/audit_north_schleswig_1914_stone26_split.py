@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 B = ROOT / "tools/historical-library/land-borders"
 SRC = ROOT / "tools/historical-library/sources/german-empire-1914/north-schleswig-001-026"
 STEM = "german-denmark-1914-north-schleswig-001-026"
-AUDIT = report_path("tools/historical-library/land-borders") / (STEM + ".stone26-transition.audit.json")
+AUDIT = report_path("reports/borders/reconstruction/germany/north-schleswig", access='write') / (STEM + ".stone26-transition.audit.json")
 PARTS = B / (STEM + ".stone26-transition.provisional.geojson")
 VIEW = ROOT / "tools/historical-library/review-output/north-schleswig-1914-001-026/stone26-transition"
 WMS = "https://wms.kartenforum.slub-dresden.de/map/10006007"

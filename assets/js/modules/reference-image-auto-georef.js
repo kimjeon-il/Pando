@@ -448,7 +448,11 @@ export function createReferenceImagePointRaster(image, { maxDimension = 1600 } =
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('Reference image analysis canvas is unavailable');
   context.drawImage(image, 0, 0, width, height);
-  const pixels = context.getImageData(0, 0, width, height).data;
+  return referenceImagePointRasterFromRgba(context.getImageData(0, 0, width, height), { sourceWidth, sourceHeight, scale });
+}
+
+export function referenceImagePointRasterFromRgba({ width, height, data: pixels }, { sourceWidth = width, sourceHeight = height, scale = 1 } = {}) {
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || pixels.length !== width * height * 4) throw new TypeError('Invalid point raster RGBA pixels.');
   const luma = new Uint8Array(width * height);
   for (let source = 0, target = 0; source < pixels.length; source += 4, target += 1) {
     luma[target] = Math.round(

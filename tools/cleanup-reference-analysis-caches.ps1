@@ -13,6 +13,8 @@ SDKs, Git history and active builds stay.
 param(
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
     [switch]$Apply,
+    [switch]$ReportWorkingCopiesOnly,
+    [switch]$LibraryStorageOnly,
     [string[]]$Revision = @(),
     [switch]$SkipWorkerRuntimes,
     [switch]$SkipDataCaches,
@@ -27,6 +29,31 @@ $ErrorActionPreference = 'Stop'
 $script:Git = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $RepositoryRoot = [IO.Path]::GetFullPath($RepositoryRoot).TrimEnd('\', '/')
 if (-not (Test-Path -LiteralPath (Join-Path $RepositoryRoot 'config/library-data.json'))) { throw 'Not a PandoLab checkout.' }
+if ($LibraryStorageOnly) {
+    if ($ReportWorkingCopiesOnly) { throw 'Select one scoped cleanup mode.' }
+    $taskArguments = @((Join-Path $PSScriptRoot 'library-storage.mjs'), "--root=$RepositoryRoot")
+    if ($Apply) { $taskArguments += '--apply' }
+    & node @taskArguments
+    if ($LASTEXITCODE -ne 0) { throw 'Library storage maintenance stopped; retain its recovery journal and originals, then resume with the same command.' }
+    return
+}
+if ($ReportWorkingCopiesOnly) {
+    $taskArguments = @((Join-Path $PSScriptRoot 'library-data.mjs'), '--centralize-reports', "--root=$RepositoryRoot")
+    if ($Apply) { $taskArguments += '--apply' }
+    $taskOutput = & node @taskArguments
+    if ($LASTEXITCODE -ne 0) { throw 'Report centralization failed; preserve its recovery journal and originals.' }
+    $taskOutput | Write-Output
+    if ($Apply) {
+        $taskEditRoot = & node (Join-Path $PSScriptRoot 'library-data.mjs') --report-edit-root $RepositoryRoot
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the cleanup evidence owner.' }
+        $taskReportDirectory = Join-Path $taskEditRoot 'development/storage'
+        [void](New-Item -ItemType Directory -Path $taskReportDirectory -Force)
+        $taskReportPath = Join-Path $taskReportDirectory ('centralization-result-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.json')
+        $taskOutput | Set-Content -LiteralPath $taskReportPath -Encoding UTF8
+        Write-Output "Report: $taskReportPath"
+    }
+    return
+}
 foreach ($id in $Revision) { if ($id -notmatch '^[a-f0-9]{40}$') { throw 'Revision must be a full 40-character data commit.' } }
 
 function Invoke-GitText([string]$Root, [string[]]$Arguments, [string[]]$InputLines = @()) {
@@ -158,9 +185,9 @@ function Assert-GitIdle([string]$Common) {
 
 $protection = Get-Protection
 $modulePath = Join-Path $PSScriptRoot 'library-data.mjs'
-$reportRoot = & node $modulePath --report-root $RepositoryRoot
+$reportRoot = & node $modulePath --report-edit-root $RepositoryRoot
 if ($LASTEXITCODE -ne 0 -or -not $reportRoot) { throw 'Cannot resolve the canonical report owner.' }
-$reportDirectory = Get-ChildPath $reportRoot 'reference-analysis'
+$reportDirectory = Get-ChildPath $reportRoot 'development/storage'
 $reportPath = Join-Path $reportDirectory ('cleanup-result-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.json')
 $drive = New-Object IO.DriveInfo ([IO.Path]::GetPathRoot($cacheRoot))
 $freeBytesBefore = $drive.AvailableFreeSpace

@@ -147,7 +147,7 @@ export function run({check=false}={}) {
     const update=entity=>({...entity,lifetime:{validFrom:value.from,validTo:null},geometryVersions:value.versions,
       sourceInfo:{...entity.sourceInfo,sourceId:'natural-earth-5.1.1+dos-lsib-11.4',
         title:'Natural Earth coastlines with US Department of State LSIB 11.4 Korean boundaries',geometrySha256:sha(value.geometry)},
-      metadata:{...entity.metadata,historicalBoundaryEvidence:'provisional',boundaryEvidenceFile:'reports/geography/korea-boundaries-2026-10-21.md'}});
+      metadata:{...entity.metadata,historicalBoundaryEvidence:'provisional',boundaryEvidenceFile:'reports/borders/reconstruction/korea-boundaries-2026-10-21.md'}});
     if(check){
       const current=readTerritorialSource(entityId);
       assert.deepEqual(current,update(current),`Stale Korean source: ${entityId}`);

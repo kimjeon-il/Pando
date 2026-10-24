@@ -96,6 +96,15 @@ test('RPC client sends canonical request metadata and preserves transferables', 
   assert.equal(client.stats().transferredRequests, 1);
 });
 
+test('operation error keeps the worker technical stack as its cause',async()=>{
+  const worker=fakeWorker((message,current)=>{
+    if(message.type==='request') Promise.resolve().then(()=>current.onmessage({data:resultFor(message,null,{ok:false,error:{message:'OCR failed',code:'OCR',category:'OPERATION',stack:'remote-stack: recognizeInProcess'}})}));
+  });
+  const client=createWorkerRpcClient({createWorker:()=>worker});
+  await assert.rejects(client.request('map.ocr',{}),error=>error.code==='OCR' && error.cause?.stack==='remote-stack: recognizeInProcess');
+  client.stop();
+});
+
 test('RPC timeout cancels the worker request and reports a typed error', async () => {
   let timeoutCallback = null;
   const worker = fakeWorker();
