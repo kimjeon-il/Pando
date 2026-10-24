@@ -18,7 +18,7 @@ PATH = ROOT / "tools/gis/hydro-independent-name-replacements.json"
 class IndependentHydronymReviewTests(unittest.TestCase):
     def test_replacements_include_gauge_verified_brazos_and_texas_colorado(self):
         rows = load_independent_hydronyms(PATH)
-        self.assertEqual(len(rows), 27)
+        self.assertEqual(len(rows), 29)
         self.assertEqual(set(rows), {
             "20282220", "20323928", "20342955", "20457454",
             "20478829", "20673409", "20680587", "40485117",
@@ -27,6 +27,7 @@ class IndependentHydronymReviewTests(unittest.TestCase):
             "70816878", "70819626",
             "40145639", "40351117", "41392598", "70842751",
             "20336821", "20452421", "20588291", "41225082", "50170097",
+            "40190238", "40613666",
         })
         renamed = {key: value["nameKo"] for key, value in rows.items()
                    if value["previousNameKo"] != value["nameKo"]}
@@ -47,6 +48,10 @@ class IndependentHydronymReviewTests(unittest.TestCase):
         self.assertEqual(rows["41392598"]["nameKo"], "메콩강")
         self.assertEqual(rows["70842751"]["nameKo"], "리오그란데강")
         self.assertEqual(rows["41225082"]["nameKo"], "람강")
+        self.assertEqual(rows["40613666"]["nameKo"], "장강")
+        self.assertNotIn("메콩강", rows["40613666"]["aliases"])
+        self.assertNotIn("메콩강", rows["40613666"]["tributaryNames"])
+        self.assertEqual(rows["40190238"]["tributaryNames"], ["판지강"])
         for ident in ("20336821","20452421","20588291","50170097"):
             self.assertEqual(rows[ident]["previousNameKo"], rows[ident]["nameKo"])
             self.assertIn("conservativeMainstemReview", rows[ident])
