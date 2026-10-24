@@ -1,9 +1,8 @@
 import { createRuntimeProfile } from './runtime-profile.js';
-import { installDiagnostics } from './diagnostics.js';
-import { createNativeStorage, finishDiagnostics } from './native-storage.js';
+import { createNativeStorage, writeDiagnosticReport } from './native-storage.js';
 import { installNetworkGuard } from './network-guard.js';
-import { installFullWorldProbe } from './full-world-probe.js';
-import { installReferenceRuntimeProbe } from './reference-analysis-probe.js';
+// Replaced by the staging owner only for verification builds.
+const verification = null;
 
 async function start() {
   if (document.readyState === 'loading' && (!globalThis.PANDOLAB_BUILD_META || !window.d3)) {
@@ -15,22 +14,28 @@ async function start() {
     if (!response.ok) throw new Error('The bundled shell profile is missing.');
     return response.json();
   });
-  if (!['small-project', 'full-world'].includes(profileMeta.mode)) throw new Error('Unknown shell resource profile.');
-  installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'full-world' });
+  if (profileMeta.mode !== 'map-data' && !verification) throw new Error('Ordinary startup requires the map-data profile.');
+  if (profileMeta.verification !== !!verification
+      || (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function'
+        && globalThis.PANDOLAB_SHELL_VERIFICATION !== !!verification)) {
+    throw new Error('Verification assets do not match the native application.');
+  }
+  installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'map-data' });
   const assetBase = new URL('../assets/js/', import.meta.url);
   const versionedAsset = relative => {
     const url = new URL(relative, assetBase);
     url.searchParams.set('v', meta.assetRevision);
     return url;
   };
-  const profile = await createRuntimeProfile();
+  const profile = profileMeta.mode === 'map-data'
+    ? await createRuntimeProfile(profileMeta) : await verification.createFixtureProfile(profileMeta);
   let libraryGeometryContext = null;
   if (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function') {
     const { parseNativeLibraryGeometryRequest, createLibraryGeometryContext } =
       await import(versionedAsset('./modules/library-geometry-context.js').href);
     const request = parseNativeLibraryGeometryRequest(location.search, true);
     if (request) {
-      if (profile.mode !== 'full-world') throw new Error('라이브러리 형상 편집에는 전체 지도 앱이 필요합니다.');
+      if (profile.mode !== 'map-data') throw new Error('라이브러리 형상 편집에는 실제 지도 자료를 포함한 앱이 필요합니다.');
       const [{ createNativeLibraryRepository }, { createRepositoryTerritorialLoader },
         { createTerritorialLibraryService }] = await Promise.all([
         import(versionedAsset('./modules/native-library-repository.js').href),
@@ -46,8 +51,8 @@ async function start() {
       document.title = libraryGeometryContext.title;
     }
   }
-  if (profile.mode === 'full-world') {
-    // The full-world shell must take precisely the website's progressive WebGL
+  if (profile.mode === 'map-data') {
+    // The map-data shell must take precisely the website's progressive WebGL
     // preview -> canonical country packet -> canonical mesh startup path.
     globalThis.__PANDOLAB_SHELL_PLATFORM__ = Object.freeze({
       ...profile.platform,
@@ -57,14 +62,7 @@ async function start() {
     window.addEventListener('pandolab:ready', () => {
       window.__PANDOLAB_SHELL_READY__ = true;
     }, { once: true });
-    if (!libraryGeometryContext && globalThis.__PANDOLAB_SHELL_REFERENCE_ANALYSIS__) installReferenceRuntimeProbe();
-    else if (!libraryGeometryContext) installFullWorldProbe({
-      readyDelayMs: globalThis.__PANDOLAB_SHELL_AUTO__ === true
-        ? (Number(globalThis.__PANDOLAB_SHELL_PROBE_HOLD_MS__) || 500) : 500,
-      expectedSourceCount: profileMeta.world.countryCount,
-      expectedModelCount: profileMeta.world.modelEntityCount,
-      expectedRootCount: profileMeta.world.rootCount,
-    });
+    if (verification && !libraryGeometryContext) verification.installWorld(profileMeta);
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = versionedAsset('./bootstrap.js').href;
@@ -75,41 +73,7 @@ async function start() {
     });
     return;
   }
-  window.PANDOLAB_APP_VERSION = meta.appVersion;
-  window.PANDOLAB_ASSET_REVISION = meta.assetRevision;
-  window.PANDOLAB_DATA_REVISION = meta.dataRevision;
-  window.PANDOLAB_ASSET_BASE_URL = assetBase.href;
-  window.PANDOLAB_LABEL_ANCHORS = {};
-  window.__PANDOLAB_STARTUP_METRICS__ = { source: 'desktop-tiny-fixture', startupPhase: 'project-loading' };
-  let modalStyles;
-  window.PANDOLAB_ENSURE_MODAL_STYLES = () => modalStyles ||= new Promise((resolve, reject) => {
-    const style = document.createElement('link');
-    style.rel = 'stylesheet';
-    style.href = versionedAsset('../css/ui-modal.bundle.css').href;
-    style.dataset.pandolabUiModal = 'ui-modal-bundle';
-    style.addEventListener('load', () => resolve(style), { once: true });
-    style.addEventListener('error', () => { modalStyles = null; reject(new Error('Modal styles unavailable.')); }, { once: true });
-    document.head.append(style);
-  });
-  const countries = await fetch(profile.countriesUrl);
-  if (!countries.ok) throw new Error(`Shell geometry unavailable (${countries.status}).`);
-  window.PANDOLAB_COUNTRIES = await countries.json();
-  const { composeApplication } = await import(versionedAsset('./modules/app-composition.js').href);
-  let diagnostics;
-  const application = await composeApplication({ productMode: 'editor', revision: meta.assetRevision,
-    platform: { ...profile.platform, fileAccess: createNativeStorage() },
-    onComposed: async runtime => { diagnostics = await installDiagnostics(runtime); },
-  });
-  if (!await application.start()) throw new Error('The application could not finish startup.');
-  const { initializeUiRuntime } = await import(versionedAsset('./modules/ui-runtime.js').href);
-  initializeUiRuntime(document);
-  document.body.classList.remove('is-loading');
-  document.getElementById('bootstrapLoading').hidden = true;
-  document.getElementById('app').removeAttribute('aria-busy');
-  window.__PANDOLAB_STARTUP_METRICS__.startupPhase = 'canonical-ready';
-  window.dispatchEvent(new CustomEvent('pandolab:interactive'));
-  window.__PANDOLAB_SHELL_READY__ = true;
-  if (window.__PANDOLAB_SHELL_AUTO__) await diagnostics.run();
+  await verification.startFixture({ profile, meta, assetBase, versionedAsset });
 }
 
 start().catch(async error => {
@@ -121,6 +85,9 @@ start().catch(async error => {
   const report = { schema: 'pandolab-web-shell-diagnostics', ok: false, stage: 'startup',
     error: { name: String(error.name || 'Error'), code: String(error.code || ''), message: String(error.message || error), stack: String(error.stack || '') },
   };
-  try { await finishDiagnostics(report); }
+  try {
+    if (verification && window.__PANDOLAB_SHELL_AUTO__ === true) await verification.finishDiagnostics(report);
+    else await writeDiagnosticReport(report);
+  }
   catch (reportError) { console.error('[PANDOEDITOR-SHELL-REPORT]', reportError); }
 });

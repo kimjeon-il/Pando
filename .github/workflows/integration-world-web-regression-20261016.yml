@@ -35,12 +35,12 @@ jobs:
           node scripts/check-version.mjs
       - name: Stage actual manifest-pinned full world
         run: |
-          node apps/web-shell/stage.mjs --profile=full-world
+          node apps/web-shell/stage.mjs --profile=map-data
           node --input-type=module -e "
             import fs from 'node:fs';
             import assert from 'node:assert/strict';
             const s=JSON.parse(fs.readFileSync('apps/web-shell/dist/shell/stage-evidence.json','utf8'));
-            assert.equal(s.profile,'full-world');
+            assert.equal(s.profile,'map-data');
             assert.equal(s.worldData.countryCount,258);
             assert.equal(s.worldData.modelEntityCount,254);
             assert.equal(s.worldData.rootCount,207);

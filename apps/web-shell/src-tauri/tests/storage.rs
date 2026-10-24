@@ -30,7 +30,7 @@ impl Drop for TestDir {
 #[test]
 fn roundtrip_replaces_existing_utf8_contents() {
     let dir = TestDir::new();
-    let path = dir.0.join("profile/small-project.json");
+    let path = dir.0.join("profile/test-fixture.json");
     storage::atomic_write(&path, "이전 내용".as_bytes()).unwrap();
     storage::atomic_write(&path, "{\"label\":\"서울\"}".as_bytes()).unwrap();
     assert_eq!(
@@ -43,7 +43,7 @@ fn roundtrip_replaces_existing_utf8_contents() {
 #[test]
 fn oversize_write_does_not_create_parent_or_change_previous_file() {
     let dir = TestDir::new();
-    let path = dir.0.join("new-profile/small-project.json");
+    let path = dir.0.join("new-profile/test-fixture.json");
     let oversized = vec![b'x'; storage::MAX_FILE_BYTES + 1];
     assert!(storage::atomic_write(&path, &oversized).is_err());
     assert!(!path.parent().unwrap().exists());

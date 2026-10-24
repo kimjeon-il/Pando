@@ -4,6 +4,9 @@ param(
   [ValidateRange(1000, 30000)][int]$HoldAfterReadyMs = 12000
 )
 $ErrorActionPreference = 'Stop'
+& node (Join-Path $PSScriptRoot 'packaged-artifacts.mjs') "--verify-binary=$BinaryPath"
+if ($LASTEXITCODE -ne 0) { throw 'The requested executable is not a verification build.' }
+
 $exe = (Resolve-Path -LiteralPath $BinaryPath).Path
 if ([IO.Path]::GetFileName($exe) -ne 'pandolab-web-shell.exe') {
   throw 'Only the PandoLab trial WebView executable can be benchmarked.'

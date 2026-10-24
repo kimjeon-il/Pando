@@ -1,10 +1,13 @@
 param(
     [switch]$Development,
+    [switch]$Verification,
     [switch]$Watch,
     [ValidateSet('arm64-v8a','x86_64')][string]$Abi = 'arm64-v8a',
     [string]$DeviceSerial
 )
 $ErrorActionPreference = 'Stop'
+if ($Development -and $Verification) { throw 'Development execution does not include verification tools.' }
+$env:PANDOLAB_SHELL_VERIFICATION = if ($Verification) { '1' } else { '0' }
 $env:PANDOLAB_SHELL_DEVELOPMENT = if ($Development) { '1' } else { '0' }
 $env:CARGO_INCREMENTAL = if ($Development) { '1' } else { '0' }
 $shellDirectory = Split-Path -Parent $PSScriptRoot
@@ -43,10 +46,18 @@ if ($Development) {
     $nativeArguments = @($cli, 'android', 'dev', '--host', '127.0.0.1', '--config', 'src-tauri/tauri.dev.json')
     if (-not $Watch) { $nativeArguments += '--no-watch' }
 } else {
-    $nativeArguments = @($cli, 'android', 'build', '--debug', '--apk', '--target', $rustTarget, '--features', 'custom-protocol')
+    $nativeArguments = @($cli, 'android', 'build', '--debug', '--apk', '--target', $rustTarget, '--features', $(if ($Verification) { 'custom-protocol,verification' } else { 'custom-protocol' }))
+    if ($Verification) { $nativeArguments += @('--config', 'src-tauri/tauri.verification.json') }
+}
+function Complete-Packaging {
+    if ($Development) { return }
+    $packagingArguments = @((Join-Path $shellDirectory 'packaged-artifacts.mjs'), '--android', '--record-android', "--abi=$arch")
+    if ($Verification) { $packagingArguments += '--verification' }
+    & node @packagingArguments
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 $nativeExit = Invoke-LoggedBuild 'node' $nativeArguments $shellDirectory $nativeLog
-if ($nativeExit -eq 0) { exit 0 }
+if ($nativeExit -eq 0) { Complete-Packaging; exit 0 }
 
 # The pinned CLI finishes Cargo before trying this privileged Windows symlink.
 # Reuse that completed native output only for this specific packaging failure.
@@ -69,7 +80,8 @@ $gradleExit = Invoke-LoggedBuild './gradlew.bat' @(
     "-PabiList=$Abi", "-ParchList=$arch", "-PtargetList=$rustTarget",
     '--no-daemon', '--max-workers=2', '--console=plain'
 ) (Join-Path $PSScriptRoot 'gen/android') $gradleLog
-if ($gradleExit -ne 0 -or -not $Development) { exit $gradleExit }
+if ($gradleExit -ne 0) { exit $gradleExit }
+if (-not $Development) { Complete-Packaging; exit 0 }
 if (-not $DeviceSerial) { throw 'Development installation needs the selected ADB serial.' }
 $apk = Join-Path $PSScriptRoot "gen/android/app/build/outputs/apk/$arch/debug/app-$arch-debug.apk"
 & adb -s $DeviceSerial install -r -t $apk

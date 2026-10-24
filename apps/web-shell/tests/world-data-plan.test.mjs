@@ -51,7 +51,7 @@ function fixture() {
   };
   return { meta, world, historical, library, prepared, terrain, hydro, places };
 }
-test('full-world manifest closure includes active historical and prepared geometry only', () => {
+test('map-data manifest closure includes active historical and prepared geometry only', () => {
   const plan = buildFullWorldAssetPlan(fixture());
   const paths = plan.entries.map(item => item.path);
   assert.equal(plan.countryCount, 258);
@@ -72,7 +72,7 @@ test('full-world manifest closure includes active historical and prepared geomet
   assert.ok(paths.includes('assets/data/places/places-v1.bin'));
   assert.equal(paths.filter(path => /terrain-preview|hydro|places/.test(path)).length, 4);
 });
-test('full-world manifest closure rejects traversal, remote paths and altered hash paths', () => {
+test('map-data manifest closure rejects traversal, remote paths and altered hash paths', () => {
   const bad = fixture();
   bad.library.entities[0].file = '../outside.json.gz';
   assert.throws(() => buildFullWorldAssetPlan(bad), /resource name/);
@@ -84,7 +84,7 @@ test('full-world manifest closure rejects traversal, remote paths and altered ha
   assert.throws(() => buildFullWorldAssetPlan(mismatch), /immutable path/);
 });
 
-test('full-world packaging requires the current pinned country transport', () => {
+test('map-data packaging requires the current pinned country transport', () => {
   for (const change of [
     value => { delete value.historical.transport; },
     value => { value.historical.transport.url = '../outside.bin'; },

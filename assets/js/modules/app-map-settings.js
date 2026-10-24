@@ -10,7 +10,10 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ viewPresentation = null,authoredStyles=false,onLayerVisibilityChange=null } = {}) {
+export function createMapSettings({ capabilities,viewPresentation = null,authoredStyles=false,onLayerVisibilityChange=null } = {}) {
+  if (!capabilities || ['builtinHydro', 'builtinPlaces', 'terrain'].some(key => typeof capabilities[key] !== 'boolean')) {
+    throw new TypeError('Map settings require resource capabilities.');
+  }
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let desktopViewMenuPath = [];
@@ -19,6 +22,7 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
   let displayMenuLayout = null;
   let displayMenuGesture = null;
   let pendingDisplayMenuLayout = false;
+  let focusedMenuControl = null;
   let desktopViewMenuPositioner;
   const displayMenuPresentation = new Map();
   function connect(ports) {
@@ -368,7 +372,7 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
   }
 
   function setDesktopViewMenuGroup(group, { toggle = false } = {}) {
-    if (!desktopMenuOpen() || !group) return false;
+    if (!desktopMenuOpen() || !group || !mapDisplayAvailability()[group]) return false;
     cancelDesktopMenuTimers();
     const index = desktopViewMenuPath.indexOf(group);
     const parent = desktopMenuTrigger(group)?.dataset.mapDisplayParent;
@@ -494,6 +498,20 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
     return true;
   }
 
+  function mapDisplayAvailability() {
+    const state = dependencies.projectState.state;
+    const layerIds = new Set(state.distributionLayers.map(layer => layer.id));
+    return {
+      objects: state.territorialEntities.length > 0,
+      distribution: state.distributionEntries.some(entry => layerIds.has(entry.layerId)),
+      rivers: capabilities.builtinHydro || state.hydroEdits.some(feature => feature.properties.category === 'river'),
+      lakes: capabilities.builtinHydro || state.hydroEdits.some(feature => feature.properties.category === 'lake'),
+      labels: capabilities.builtinPlaces || state.labels.length > 0,
+      genericFeatures: state.genericFeatures.length > 0,
+      terrain: capabilities.terrain,
+    };
+  }
+
   function renderMapDisplaySettings() {
     for (const input of document.querySelectorAll('#mapDisplaySurface input[data-layer-visibility]')) {
       input.checked = dependencies.projectState.state.layerVisibility[input.dataset.layerVisibility] !== false;
@@ -501,21 +519,26 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
     for (const input of document.querySelectorAll('[data-territorial-symbol]')) {
       input.checked = dependencies.projectState.state.layerVisibility[input.dataset.territorialSymbol] !== false;
     }
-    const hasDistribution = (dependencies.projectState.state.distributionLayers || []).length > 0;
-    const available = {
-      genericFeaturesVisible: dependencies.projectState.state.genericFeatures.length > 0,
-    };
-    for (const [id, visible] of Object.entries(available)) {
-      document.querySelector(`[data-map-display-group="${id.replace(/Visible$/, '')}"]`)?.classList.toggle('hidden', !visible);
-      const index = desktopViewMenuPath.indexOf(id.replace(/Visible$/, ''));
-      if (!visible && index !== -1) desktopViewMenuPath = desktopViewMenuPath.slice(0, index);
-      if (!visible) dependencies.objectModelA.expandedMapDisplayGroups.delete(id.replace(/Visible$/, ''));
+    const surface = (0, dependencies.platform.$)('mapDisplaySurface');
+    // Core pending guards can blur a disabled menu input before this refresh.
+    const focusedControl = document.activeElement === document.body
+      && (surface?.classList.contains('surface-open') || surface?.classList.contains('mobile-open'))
+      ? focusedMenuControl : document.activeElement;
+    let closeGroup = false, restoreFocus = false;
+    for (const [group, available] of Object.entries(mapDisplayAvailability())) {
+      const container = group === 'distribution' ? (0, dependencies.platform.$)('distributionMenuGroup')
+        : document.querySelector(`[data-map-display-group="${group}"]`);
+      if (!available) {
+        if (container && !container.classList.contains('hidden')) cancelDesktopMenuTimers();
+        restoreFocus ||= !!container?.contains(focusedControl);
+        closeGroup ||= desktopViewMenuPath.includes(group);
+        dependencies.objectModelA.expandedMapDisplayGroups.delete(group);
+      }
+      container?.classList.toggle('hidden', !available);
     }
-    (0, dependencies.platform.$)('distributionMenuGroup')?.classList.toggle('hidden', !hasDistribution);
-    if (!hasDistribution && desktopViewMenuPath.includes('distribution')) {
-      desktopViewMenuPath = [];
-    }
-    syncMapDisplayDisclosures();
+    if (closeGroup) closeDesktopViewMenuGroup();
+    else syncMapDisplayDisclosures();
+    if (restoreFocus) dependencies.workspaceUiB.focusSurfaceTrigger('display');
     syncDistributionPresentationControls();
     (0, dependencies.hydroModel.syncPhysicalControls)();
     syncDesktopMenuChecks();
@@ -525,6 +548,9 @@ export function createMapSettings({ viewPresentation = null,authoredStyles=false
     if(!viewPresentation)requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
+    surface.addEventListener('focusin', event => { focusedMenuControl = event.target; });
+    document.addEventListener('focusin', event => { if (!surface.contains(event.target)) focusedMenuControl = null; });
+    window.addEventListener('pandolab:project-changed', renderMapDisplaySettings);
     const state=dependencies.projectState.state;
     for(const input of surface.querySelectorAll('[data-map-background]')) {
       const key=input.dataset.mapBackground;

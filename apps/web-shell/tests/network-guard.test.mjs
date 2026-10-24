@@ -14,7 +14,7 @@ test('allows the local verified engine but records and blocks world and remote r
   assert.equal(result.blocked.length, 2);
 });
 
-test('full-world profile permits bundled assets but blocks remote origins', async () => {
+test('map-data profile permits bundled assets but blocks remote origins', async () => {
   const fetched = [];
   const scope = { location: new URL('https://tauri.localhost/'),
     fetch: async target => { fetched.push(target); return new Response('packaged'); } };
