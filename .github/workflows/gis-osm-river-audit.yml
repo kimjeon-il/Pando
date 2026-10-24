@@ -6,6 +6,7 @@ on:
     paths:
       - tools/inventory-osm-hydronyms.py
       - tools/gis/compare_osm_hydro_natural_earth.py
+      - tools/gis/verify_victorian_yarra_source.py
       - tools/gis/check_official_usgs_hydro_gauges.py
       - tools/gis/hydro_independent_name_policy.py
       - tools/gis/hydro-independent-name-replacements.json
@@ -108,6 +109,13 @@ jobs:
                                  if row['name']!=match['name'] and row['nameKo']),default=0)
                   assert abs(competing-conservative['otherNamedNECoverage'])<0.001,entry['systemId']
                   assert match['meanDistanceDegrees'] <= 0.04,entry['systemId']
+              cross_border=entry.get('crossBorderNameReview')
+              if cross_border:
+                  rivals=[z for z in candidates if z['name']!=match['name'] and z.get('nameKo')]
+                  max_rival=max((z['sampleCoverage'] for z in rivals),default=0)
+                  assert abs(max_rival-cross_border['strongestOtherNENameCoverage'])<0.001,entry['systemId']
+                  assert 0.35<=match['sampleCoverage']<0.45,entry['systemId']
+                  assert match['meanDistanceDegrees']<0.06,entry['systemId']
               partial=entry.get('partialExistingNameReview')
               if partial:
                   assert candidates[0]['name'] == match['name'],entry['systemId']
@@ -126,6 +134,27 @@ jobs:
                   assert match['meanDistanceDegrees']<=0.05,entry['systemId']
                   assert trib['meanDistanceDegrees']<=0.05,entry['systemId']
           print('Source-independent 81-sample geometry comparisons reproduced for all reviewed river systems')
+          PY
+      - name: Reproduce the independent Victorian Yarra government river vector check
+        run: |
+          python -m pip install --quiet pyproj
+          python tools/gis/verify_victorian_yarra_source.py \
+            --decoded /tmp/hydro-decoded.json \
+            --output /tmp/yarra-government-vector-validated.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          match=json.loads(Path('/tmp/yarra-government-vector-validated.json').read_text())
+          review=json.loads(Path('tools/gis/hydro-independent-name-replacements.json').read_text())
+          by_id={row['systemId']:row for row in review['replacements']}
+          recorded=by_id['50798885']['officialGovernmentVectorEvidence']
+          assert match['source']['sourceGeoJSONSha256']==recorded['sourceGeoJSONSha256']
+          assert match['hydroSamplesToNamedGovernmentRiver']['samples']==recorded['hydroMainstemSamples']
+          assert abs(match['hydroSamplesToNamedGovernmentRiver']['within1km']-recorded['within1kmHydroToGovernment'])<0.0002
+          assert abs(match['governmentSamplesToHydroMainstem']['within1km']-recorded['within1kmGovernmentToHydro'])<0.0002
+          assert abs(match['hydroSamplesToNamedGovernmentRiver']['p90DistanceKm']-recorded['p90DistanceKm'])<0.01
+          assert match['source']['license']=='CC BY 4.0'
+          print('Victoria government river centerline spatial verification reproduced')
           PY
       - name: Verify independently researched river-name records
         run: |
@@ -147,11 +176,11 @@ jobs:
           root=Path('/tmp/hydro-independent-five')
           proof=json.loads((root/'proof.json').read_text())
           manifest=json.loads((root/'manifest.json').read_text())
-          assert len(proof['changedSystemIds']) == 40
-          assert proof['remainingOsmMatchedSystems'] == 33
-          assert proof['sourceIndependentSystemCount'] == 40
+          assert len(proof['changedSystemIds']) == 42
+          assert proof['remainingOsmMatchedSystems'] == 31
+          assert proof['sourceIndependentSystemCount'] == 42
           assert proof['renamedSystemCount'] == 8
-          assert proof['nameUnchangedSourceReplacementCount'] == 32
+          assert proof['nameUnchangedSourceReplacementCount'] == 34
           assert proof['originalIndexSha256'] == proof['newIndexSha256']
           assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']
           assert manifest['metadata']['featureCount'] == 16548
@@ -166,6 +195,7 @@ jobs:
             /tmp/osm-hydro-inventory.json
             /tmp/osm-ne-crosscheck.json
             /tmp/usgs-official-anchor-check.json
+            /tmp/yarra-government-vector-validated.json
             /tmp/hydro-independent-five/manifest.json
             /tmp/hydro-independent-five/hydro.bin
             /tmp/hydro-independent-five/proof.json
