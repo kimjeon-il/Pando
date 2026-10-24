@@ -92,7 +92,7 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             and bool(confluence["namedTributaryNE"])
             and confluence["namedTributaryNE"] != geom["name"]
             and isinstance(confluence.get("tributarySampleCoverage"), (int, float))
-            and 0.20 <= confluence["tributarySampleCoverage"] < 1.0
+            and 0.19 <= confluence["tributarySampleCoverage"] < 1.0
             and coverage + confluence["tributarySampleCoverage"] >= 0.75
             and isinstance(confluence.get("reason"), str)
             and len(confluence["reason"]) >= 40
