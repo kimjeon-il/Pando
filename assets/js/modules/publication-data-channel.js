@@ -91,7 +91,7 @@ export function publicDataAssetUrl(scriptUrl, asset) {
 
 export function resolveWorkerDataChannel(options) {
   const profile = options?.buildMeta?.resourceProfile;
-  if (profile === 'small-project' || profile === 'full-world') {
+  if (profile === 'test-fixture' || profile === 'map-data') {
     return Promise.resolve(Object.freeze({ meta: options.buildMeta, status: 'bundled', sourceRevision: null }));
   }
   if (profile != null) throw new Error(`Unknown bundled resource profile: ${profile}`);

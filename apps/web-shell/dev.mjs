@@ -4,7 +4,7 @@ import { mkdir, readFile, statfs, unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createP3PreviewServer } from '../../scripts/p3-preview-server.mjs';
-import { createDevelopmentAssets } from './stage.mjs';
+import { createDevelopmentAssets, validateShellProfile } from './stage.mjs';
 import { libraryMaterializedRoot } from '../../tools/library-data.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -17,7 +17,7 @@ export async function requireBuildSpace(path = root, expectedGiB = 4) {
   return freeGiB;
 }
 
-export async function startDevelopmentServer({ repository = root, port = 4175, profile = 'full-world', observe = true } = {}) {
+export async function startDevelopmentServer({ repository = root, port = 4175, profile = 'map-data', observe = true } = {}) {
   repository = resolve(repository);
   let current = await createDevelopmentAssets({ root: repository, profile });
   let revision = 0, error = null, pending = null, dirty = false, timer;
@@ -83,17 +83,21 @@ export async function startDevelopmentServer({ repository = root, port = 4175, p
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  if (process.argv.includes('--check-space')) await requireBuildSpace();
-  else {
+  const profile = process.env.PANDOLAB_SHELL_PROFILE || 'map-data';
+  if (process.argv.includes('--check-space')) {
+    validateShellProfile(profile, process.env.PANDOLAB_SHELL_VERIFICATION === '1');
+    await requireBuildSpace();
+  } else {
+    validateShellProfile(profile, false);
     let existing;
     try { existing = await globalThis.fetch(developmentOrigin + '/__shell/health', { signal: globalThis.AbortSignal.timeout(1000) }).then(response => response.json()); } catch { /* Bind below reports an occupied non-shell port. */ }
     if (existing) {
-      if (existing.root !== resolve(root) || existing.profile !== 'full-world') throw Error('Port 4175 belongs to another worktree or profile.');
+      if (existing.root !== resolve(root) || existing.profile !== profile) throw Error('Port 4175 belongs to another worktree or profile.');
       console.log('Reusing existing development server:', developmentOrigin);
     } else {
-      const app = await startDevelopmentServer();
+      const app = await startDevelopmentServer({ profile });
       for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { app.close().then(() => process.exit(0), failure => { console.error(failure); process.exit(1); }); });
-      console.log('Validated full-world development assets:', developmentOrigin);
+      console.log('Validated map-data development assets:', developmentOrigin);
     }
   }
 }

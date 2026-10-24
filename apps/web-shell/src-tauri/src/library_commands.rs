@@ -24,7 +24,7 @@ fn asset(app: &tauri::AppHandle, path: &str) -> Result<Vec<u8>> {
         .get(path.into())
         .map(|asset| asset.bytes.to_vec())
         .ok_or_else(|| {
-            format!("Packaged library source unavailable: {path}; full-world package required")
+            format!("Packaged library source unavailable: {path}; map-data package required")
         })
 }
 async fn run<F>(app: tauri::AppHandle, operation: &'static str, f: F) -> Result<Value>
@@ -183,7 +183,7 @@ pub async fn library_open_geometry(
         url.query().ok_or("Missing library window query")?
     );
     WebviewWindowBuilder::new(&app, &label, WebviewUrl::App(path.into()))
-        .initialization_script(format!("Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {}, writable: false, configurable: false }});", cfg!(windows)))
+        .initialization_script(crate::shell_initialization())
         .title("PandoLab 자료 경계 편집")
         .inner_size(1280.0, 820.0)
         .on_navigation(crate::local_navigation)

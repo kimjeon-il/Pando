@@ -21,7 +21,9 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 60
     env:
-      PANDOLAB_SHELL_PROFILE: small-project
+      PANDOLAB_SHELL_PROFILE: test-fixture
+      PANDOLAB_SHELL_VERIFICATION: "1"
+      TAURI_CONFIG: '{"app":{"security":{"capabilities":["prototype-main","verification"]}}}'
       CARGO_TERM_COLOR: always
     steps:
       - name: Preserve Git byte identities on Windows
@@ -45,12 +47,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify the exact small-project application resources
+      - name: Verify the exact test-fixture application resources
         shell: pwsh
         run: |
           node scripts/generate-build-metadata.mjs --check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node apps/web-shell/stage.mjs --profile=small-project
+          node apps/web-shell/stage.mjs --profile=test-fixture
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node apps/web-shell/check-stage.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -62,7 +64,7 @@ jobs:
       - name: Build native Windows MSVC Tauri executable
         shell: pwsh
         run: |
-          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc
+          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Execute the real WebView2 app twice and verify persistent data
         shell: pwsh
@@ -110,7 +112,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 80
     env:
-      PANDOLAB_SHELL_PROFILE: small-project
+      PANDOLAB_SHELL_PROFILE: test-fixture
+      PANDOLAB_SHELL_VERIFICATION: "1"
+      TAURI_CONFIG: '{"app":{"security":{"capabilities":["prototype-main","verification"]}}}'
       CARGO_TERM_COLOR: always
       NDK_VERSION: '27.3.13750724'
     steps:
@@ -148,7 +152,7 @@ jobs:
         run: |
           node scripts/generate-build-metadata.mjs --check
           node apps/web-shell/src-tauri/sync-android.mjs --check
-          pnpm --dir apps/web-shell exec tauri android build --debug --apk --target x86_64
+          pnpm --dir apps/web-shell exec tauri android build --debug --apk --target x86_64 --features custom-protocol,verification --config src-tauri/tauri.verification.json
           find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print
       - name: Enable KVM for the x86_64 emulator
         run: |

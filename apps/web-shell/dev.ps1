@@ -1,5 +1,6 @@
 param([ValidateSet('windows','android')][string]$Platform = 'windows')
 $ErrorActionPreference = 'Stop'
+$env:PANDOLAB_SHELL_VERIFICATION = '0'
 $shellDirectory = $PSScriptRoot
 $ownedServer = $null
 if (Test-Path -LiteralPath 'D:/build/toolchains/env-tauri-gnu.ps1') { . 'D:/build/toolchains/env-tauri-gnu.ps1' }
@@ -61,7 +62,7 @@ try {
         $health = $null
         try { $health = Invoke-RestMethod 'http://127.0.0.1:4175/__shell/health' -TimeoutSec 2 } catch {}
         $repository = [IO.Path]::GetFullPath((Join-Path $shellDirectory '../..')).TrimEnd('\','/')
-        if ($health -and ($health.root -ne $repository -or $health.profile -ne 'full-world')) { throw 'Port 4175 belongs to another worktree or profile.' }
+        if ($health -and ($health.root -ne $repository -or $health.profile -ne 'map-data')) { throw 'Port 4175 belongs to another worktree or profile.' }
         if (-not $health) {
             $serverLogs = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { Join-Path $shellDirectory 'src-tauri/target' }
             New-Item -ItemType Directory -Force -Path $serverLogs | Out-Null
@@ -72,7 +73,7 @@ try {
                 Start-Sleep -Milliseconds 500
                 try { $health = Invoke-RestMethod 'http://127.0.0.1:4175/__shell/health' -TimeoutSec 2 } catch {}
             }
-            if ($health.root -ne $repository -or $health.profile -ne 'full-world') { throw 'Port 4175 belongs to another worktree or profile.' }
+            if ($health.root -ne $repository -or $health.profile -ne 'map-data') { throw 'Port 4175 belongs to another worktree or profile.' }
         }
         # Tauri matches its positional selector against the device name, not the
         # ADB serial. With one connected device, let it select that exact device.

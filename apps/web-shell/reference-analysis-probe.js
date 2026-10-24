@@ -1,4 +1,4 @@
-import { finishDiagnostics } from './native-storage.js';
+import { finishDiagnostics } from './probe-storage.js';
 import { inspectFullWorldRuntime } from './full-world-probe.js';
 import { createReferenceAnalysisClient } from '../assets/js/modules/reference-image-analysis-client.js';
 import { createPlaceRuntime } from '../assets/js/modules/place-runtime.js';

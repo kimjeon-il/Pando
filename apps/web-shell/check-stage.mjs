@@ -10,6 +10,10 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
  const directory=resolve(root,'apps/web-shell/dist');
  const evidence=JSON.parse(await readFile(resolve(directory,'shell/stage-evidence.json'),'utf8'));
  const profile=JSON.parse(await readFile(resolve(directory,'shell/stage-profile.json'),'utf8'));
+ assert.equal(profile.verification, evidence.verification, 'Stage mode identity mismatch');
+ const verificationFiles = ['verification.js','probe-storage.js','diagnostics.js','full-world-probe.js','reference-analysis-probe.js','fixture-limits.js','diagnostics.css'];
+ for (const file of verificationFiles) assert.equal(evidence.files.some(entry => entry.path === 'shell/' + file), evidence.verification, file);
+ if (!evidence.verification) assert.ok(!evidence.files.some(entry => entry.path.startsWith('shell/reference-probe.')));
  assert.ok(evidence.files.some(file=>file.path==='index.html'));
  const metadataSource = await readFile(resolve(directory,'assets/js/build-meta.js'),'utf8');
  const metadata = JSON.parse(metadataSource.match(/Object\.freeze\(([\s\S]*?)\);/)?.[1] || '{}');
@@ -28,7 +32,7 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
  assert.ok(evidence.files.some(file=>file.path===metadata.physicalLand.url), 'Physical substrate must be bundled in both profiles');
  const html=await readFile(resolve(directory,'index.html'),'utf8');
  assert.match(html,/assets\/js\/bootstrap\.js/);assert.doesNotMatch(html,/<script\b[^>]*src=["'][^"']*assets\/js\/viewer\.js/);
- if(profile.mode==='full-world'){
+ if(profile.mode==='map-data'){
    const {plan}=await loadFullWorldAssetPlan(path=>readFile(resolve(root,path),'utf8'));
    for(const key of ['worldFileCount','physicalFileCount','countryCount','rootCount','unitCount','modelEntityCount','mergedSourceCount','sourceSha256'])assert.equal(evidence.worldData[key],plan[key],key);
    assert.equal(evidence.worldData.fileCount,plan.entries.length);

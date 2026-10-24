@@ -36,11 +36,13 @@ test('a prepared mesh requested by an immutable Worker resolves below the Pages 
 });
 
 test('bundled native Worker keeps its build data without requesting the public channel', async () => {
-  const meta = { ...built, resourceProfile: 'small-project' };
-  const result = await resolveWorkerDataChannel({ baseUrl: base, buildMeta: meta,
-    fetchFn: () => { throw new Error('native data network guard'); } });
-  assert.equal(result.meta, meta);
-  assert.equal(result.status, 'bundled');
+  for (const resourceProfile of ['map-data', 'test-fixture']) {
+    const meta = { ...built, resourceProfile };
+    const result = await resolveWorkerDataChannel({ baseUrl: base, buildMeta: meta,
+      fetchFn: () => { throw new Error('native data network guard'); } });
+    assert.equal(result.meta, meta);
+    assert.equal(result.status, 'bundled');
+  }
 });
 function fixture({ pointer = { schema: 'pandolab-data-channel', schemaVersion: 1, revision, manifestSha256 }, online = true, cached = null } = {}) {
   const reads = [];
