@@ -114,6 +114,9 @@ def derive(source, metadata, maximum_dimension):
             masks, valid = fill_adjacency_supervision(labels, specification['radiusPixels'])
         elif specification['strategy'] == 'boundary-stroke-signatures':
             drawings = page.get_drawings()
+            band = specification.get('knownBandRadiusPixels')
+            if band is not None and (type(band) is not int or not 1 <= band <= 32):
+                raise ValueError('Bounded known supervision band required')
             for channel, signatures in specification['channels'].items():
                 if channel not in {'international', 'administrative'}:
                     raise ValueError('Only catalogued macro boundary strokes supported')
@@ -124,7 +127,9 @@ def derive(source, metadata, maximum_dimension):
                 for signature in signatures:
                     visible |= np.max(np.abs(image.astype(np.float32) / 255 - signature['color']), axis=2) <= .15
                 masks[pixels & visible] |= 1 << CHANNELS.index(channel)
-                valid |= 1 << CHANNELS.index(channel)
+                known = np.ones(masks.shape, dtype=bool) if band is None else np.asarray(
+                    Image.fromarray((pixels & visible).astype(np.uint8)).filter(ImageFilter.MaxFilter(2 * band + 1))).astype(bool)
+                valid[known] |= 1 << CHANNELS.index(channel)
             for signature in specification.get('unknownStrokes', []):
                 unknown = stroke_mask(page, drawings, [signature], matrix)
                 unknown = np.asarray(Image.fromarray(unknown.astype(np.uint8)).filter(ImageFilter.MaxFilter(5))).astype(bool)
@@ -184,7 +189,9 @@ def prepare(source, root, maximum_dimension=2560, metadata_path=None):
     metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
     original = json.loads(original_metadata_path.read_text(encoding='utf-8'))
     if metadata_path != original_metadata_path:
-        immutable = lambda value: {key: item for key, item in value.items() if key not in {'id', 'supervision'}}
+        # Exclusions are supervision too. A revised edition keeps its own id
+        # and masks while reusing immutable source bytes and original grouping.
+        immutable = lambda value: {key: item for key, item in value.items() if key not in {'id', 'supervision', 'excludedRegionsNormalized'}}
         if immutable(metadata) != immutable(original) or metadata['id'] == original['id']:
             raise ValueError('Alternate supervision must preserve original identity with a distinct id')
     if metadata['sha256'] != digest(source.read_bytes()) or not re.fullmatch('[a-z0-9-]+', metadata['id']):

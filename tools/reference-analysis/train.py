@@ -1,6 +1,7 @@
 """Train/evaluate/export real reviewed maps. Run from the application checkout."""
 import argparse
 import hashlib
+import io
 import json
 import pathlib
 import random
@@ -8,7 +9,7 @@ import collections
 import math
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw, ImageOps, ImageEnhance, ImageFilter
 from corpus import CHANNELS, RASTER_ORIGINS, validate_corpus, evaluation_groups, corpus_path, corpus_fingerprint
 from model import ReferenceBoundaryModel, boundary_loss
 from evaluation import boundary_counts, metrics
@@ -22,8 +23,9 @@ def tensor(image):
 
 
 class MapTiles(torch.utils.data.Dataset):
-    def __init__(self, root, sheets):
+    def __init__(self, root, sheets, *, augment_conditions=False):
         self.root, self.sheets, self.tiles = pathlib.Path(root), sheets, []
+        self.augment_conditions, self.epoch = augment_conditions, 0
         for index, sheet in enumerate(sheets):
             with Image.open(self.root / sheet["image"]) as source:
                 width, height = ImageOps.exif_transpose(source).size
@@ -74,6 +76,31 @@ class MapTiles(torch.utils.data.Dataset):
         tile = Image.new("RGB", (SIZE, SIZE), (255, 255, 255))
         tile.paste(image.crop((x, y, min(x + SIZE, width), min(y + SIZE, height))), (0, 0))
         overview = image.resize((256, 256), Image.Resampling.BILINEAR)
+        if self.augment_conditions:
+            rng = random.Random(20261024 + self.epoch * 1000003 + index)
+            gray = rng.random() < .25
+            contrast, brightness, saturation = rng.uniform(.75, 1.25), rng.uniform(.85, 1.1), rng.uniform(.5, 1.3)
+            resolution, blur, quality = rng.choice([.5, .75, 1]), rng.choice([0, .25, .5]), rng.choice([55, 75, 95])
+
+            def scan_conditions(value):
+                if gray:
+                    value = ImageOps.grayscale(value).convert('RGB')
+                value = ImageEnhance.Color(value).enhance(saturation)
+                value = ImageEnhance.Contrast(value).enhance(contrast)
+                value = ImageEnhance.Brightness(value).enhance(brightness)
+                if resolution != 1:
+                    size = value.size
+                    value = value.resize(tuple(round(n * resolution) for n in size), Image.Resampling.BILINEAR)
+                    value = value.resize(size, Image.Resampling.BILINEAR)
+                if blur:
+                    value = value.filter(ImageFilter.GaussianBlur(blur))
+                buffer = io.BytesIO()
+                value.save(buffer, format='JPEG', quality=quality)
+                buffer.seek(0)
+                with Image.open(buffer) as encoded:
+                    return encoded.convert('RGB')
+
+            tile, overview = scan_conditions(tile), scan_conditions(overview)
         return tensor(tile), tensor(overview), torch.tensor([x / width, y / height, min(SIZE, width - x) / width, min(SIZE, height - y) / height]), target, validity, sheet_index
 
 
@@ -152,7 +179,7 @@ def train(args, corpus, root):
     output = pathlib.Path(args.output)
     if output.exists() or output.with_suffix('.pending.pt').exists():
         raise ValueError('Training output already exists; preserve the existing model')
-    datasets = [MapTiles(root, sets['train'])]
+    datasets = [MapTiles(root, sets['train'], augment_conditions=args.augment_conditions)]
     supervision = raster_supervision(root, sets['train']) if args.training_only else None
     if args.auxiliary_corpus:
         auxiliary_path = pathlib.Path(args.auxiliary_corpus).resolve()
@@ -161,7 +188,7 @@ def train(args, corpus, root):
             require_macro_scope(auxiliary['sheets'], auxiliary_path.parent)
         if set(row['id'] for row in sheets) & set(row['id'] for row in auxiliary['sheets']):
             raise ValueError('Duplicate sheet identity across training corpora')
-        datasets.append(MapTiles(auxiliary_path.parent, auxiliary['sheets']))
+        datasets.append(MapTiles(auxiliary_path.parent, auxiliary['sheets'], augment_conditions=args.augment_conditions))
         supervision += raster_supervision(auxiliary_path.parent, auxiliary['sheets'])
         sets['train'] = [*sets['train'], *auxiliary['sheets']]
     fingerprint = corpus_fingerprint(args.corpus, args.auxiliary_corpus)
@@ -189,6 +216,8 @@ def train(args, corpus, root):
     scaler = torch.amp.GradScaler('cuda', enabled=amp)
     best, steps, updates, skipped = float("inf"), 0, 0, 0
     for epoch in range(args.epochs):
+        for dataset in datasets:
+            dataset.epoch = epoch
         sampler = balanced_tile_indices(datasets, epoch, 20261023) if args.balance_sources else None
         loader = torch.utils.data.DataLoader(training_dataset, batch_size=args.batch, sampler=sampler,
                                             shuffle=sampler is None, num_workers=0)
@@ -227,6 +256,9 @@ def train(args, corpus, root):
                             sampling='balanced-corpora-originals-with-coverage' if args.balance_sources else 'uniform-tiles',
                             samplingSeed=20261023 if args.balance_sources else None,
                             geographicFocus='macro-only' if args.macro_only else 'unrestricted',
+                            conditionAugmentation=dict(version='paired-photometric-scan-v1', seed=20261024,
+                                geometry='unchanged', grayscaleProbability=.25, contrast=[.75,1.25], brightness=[.85,1.1],
+                                saturation=[.5,1.3], resolution=[.5,.75,1], blur=[0,.25,.5], jpegQuality=[55,75,95]) if args.augment_conditions else None,
                             learningRate=args.learning_rate, freezeEncoderEpochs=args.freeze_encoder_epochs,
                             trainingUsedSheetIds=used_ids, tilesPerCorpus=[len(dataset) for dataset in datasets],
                             epoch=epoch, seed=20261022, corpusSha256=fingerprint,
@@ -322,6 +354,7 @@ if __name__ == "__main__":
     parser.add_argument('--initialize-checkpoint', help='Continue training from an actual trained checkpoint')
     parser.add_argument('--balance-sources', action='store_true', help='Visit every original and balance corpora/source items each epoch')
     parser.add_argument('--macro-only', action='store_true', help='Require verified world/continent/country map scope for every source')
+    parser.add_argument('--augment-conditions', action='store_true', help='Deterministic paired photometric/scan conditions; labels and geometry stay unchanged')
     parser.add_argument('--learning-rate', type=float, default=1e-4)
     parser.add_argument('--freeze-encoder-epochs', type=int, default=2)
     args = parser.parse_args()
@@ -333,6 +366,8 @@ if __name__ == "__main__":
         parser.error('--initialize-checkpoint requires training-only train')
     if args.macro_only and args.command != 'train':
         parser.error('--macro-only is only valid for train')
+    if args.augment_conditions and args.command != 'train':
+        parser.error('--augment-conditions is only valid for train')
     if args.epochs < 1 or args.batch < 1:
         parser.error('Positive epochs and batch required')
     if not math.isfinite(args.learning_rate) or not 0 < args.learning_rate <= .01 or args.freeze_encoder_epochs < 0:

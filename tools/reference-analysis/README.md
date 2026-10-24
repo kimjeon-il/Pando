@@ -342,3 +342,36 @@ inputs and four distinct original groups; Canada colour/monochrome remain one
 group. It adds a production family, not independent accuracy or non-Latin
 coverage. Continue from the actual macro-v3 checkpoint with original-group
 balancing, and compare both checkpoints against these identical targets.
+
+## Macro condition continuation through the Codex plugin
+
+The expanded catalog also pins the GSI Japanese national relief/bathymetry map
+and NRCan Africa continental reference map. GSI's printed country-affiliation
+marks are source-depicted symbols, not asserted legal maritime borders. Uncertain
+marks, broad disputed areas, legends and credits are excluded. Its sparse stroke
+supervision uses `knownBandRadiusPixels: 8`: pixels outside the observed band are
+unknown rather than invented whole-map negatives. Africa supplies conservative
+country-fill seams, with sea/coast, same-colour boundaries and hatched areas left
+unknown. Neither is independently reviewed evaluation truth.
+
+The local `pando-map-tools` Codex plugin uses these existing command-line owners
+and the existing Python/CUDA environment. It requires no QGIS, new desktop app
+or MCP server. Check source/mask dimensions, render overlays with existing Python
+image tools and inspect the actual pixels. Pixel-grid alignment is not geographic
+registration, historical validation or a model quality score.
+
+An exclusion correction uses `--metadata-directory` with a distinct supervision
+id; source image/original metadata and consumed masks remain immutable. The first
+GSI run, macro-v5, was stopped because its disputed-island exclusion missed 38
+positive pixels. Do not export or initialize from that rejected checkpoint. Use
+the corrected exclusion x0.28..0.42/y0.46..0.56, verify target and validity there
+are zero, and restart from the last admitted macro-v4 checkpoint into macro-v6.
+
+`train.py train --augment-conditions` varies colour/grayscale, brightness,
+contrast, saturation, blur, resolution and JPEG compression using a deterministic
+paired recipe for the tile and overview. It does not change coordinates, masks,
+validity, sampler membership or source identity. Recipes vary by epoch/tile and
+are recorded in the checkpoint. These are synthetic acquisition conditions, not
+additional original maps, languages or evaluation groups. Evaluation and inspection
+remain unaugmented. Combine it with `--macro-only --balance-sources`, continue from
+the actual admitted prior checkpoint, and use a new output directory.

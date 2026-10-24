@@ -367,6 +367,70 @@
       "sha256": "c68ddeef790eacafd1ade0f8353fe8818e3b1e3f01083fdb9bbe0a93e4c3ae57",
       "expectedBytes": 1333408,
       "maximumBytes": 8388608
+    },
+    {
+      "id": "gsi-japan-national-japanese",
+      "familyId": "gsi-japan-national-azimuthal",
+      "editionId": "gsi-japan-national-20221220",
+      "duplicateGroup": "gsi-japan-national-20221220",
+      "language": "jpn",
+      "script": "Japanese",
+      "mapKind": "color",
+      "published": null,
+      "format": "pdf",
+      "materialKind": "published-macro-pdf",
+      "rightsReviewed": true,
+      "geographicScope": "country",
+      "scopeEvidence": "Official national Japan A4 map based on 1:5,000,000 Japan and Surroundings, 2017 revision; country-scale relief, Japanese labels, boundary symbols, roads and distance circles.",
+      "url": "https://web1.gsi.go.jp/common/000247485.pdf",
+      "originalPublisherUrl": "https://www.gsi.go.jp/common/000247485.pdf",
+      "metadataUrl": "https://www.gsi.go.jp/chizuhensyu/chizuhensyu41009.html",
+      "rightsUrl": "https://www.gsi.go.jp/chizuhensyu/chizuhensyu41009.html",
+      "license": "Geospatial Information Authority of Japan: free download/reuse with source attribution, no application required per official source page. Retain GSI and GEBCO credits; no endorsement or sovereignty claim.",
+      "uncertainty": "Only printed country-affiliation boundary symbols (not asserted legal maritime borders) supply weak international-depiction supervision. Disputed/undetermined dashed marks, legend, credits and broad disputed-island areas are excluded. No prefectural/coast labels or historical sovereignty inference. Date remains unknown; source references 2017 base revision.",
+      "supervision": {
+        "strategy": "boundary-stroke-signatures",
+        "knownBandRadiusPixels": 8,
+        "channels": { "international": [{ "color": [0.13669031858444214, 0.12195010483264923, 0.1252918243408203], "width": 0.800000011920929, "dashes": [4, 0.8, 0.5, 0.8, 0.5, 3] }] },
+        "unknownStrokes": [
+          { "color": [0.13391317427158356, 0.09860379993915558, 0.08125428855419159], "width": 0.800000011920929, "dashes": [4, 4, 4] },
+          { "color": [0.13669031858444214, 0.12195010483264923, 0.1252918243408203], "width": 0.800000011920929, "dashes": [4, 4, 4] }
+        ]
+      },
+      "excludedRegionsNormalized": [[0, 0, 1, 0.096], [0.05, 0.11, 0.32, 0.36], [0, 0.93, 1, 1], [0.55, 0.18, 0.92, 0.36], [0.28, 0.46, 0.42, 0.56], [0.06, 0.67, 0.19, 0.76]],
+      "sha256": "3b6fe3c79a50d263435aa99d90881040a5ef9f02d545508fdfc9072b10429784",
+      "expectedBytes": 1669011,
+      "maximumBytes": 4194304
+    },
+    {
+      "id": "nrcan-africa-national-reference",
+      "familyId": "atlas-canada-continental-reference",
+      "editionId": "nrcan-africa-copyright-2024",
+      "duplicateGroup": "nrcan-africa-copyright-2024",
+      "language": "eng",
+      "script": "Latin",
+      "mapKind": "color",
+      "published": null,
+      "copyrightYear": "2024",
+      "format": "pdf",
+      "materialKind": "published-macro-pdf",
+      "rightsReviewed": true,
+      "geographicScope": "continent",
+      "scopeEvidence": "Complete Africa continental reference map, Robinson (world) projection; official Atlas of Canada raster-in-PDF, printed Crown copyright2024. Country-fill seams only, not modern external borders.",
+      "url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/Geographical-maps_Carte-geographique/SmallScaleReferenceMaps/english_continental/colour/Africa.pdf",
+      "metadataUrl": "https://natural-resources.canada.ca/maps-tools-publications/maps/atlas-canada/reference-maps",
+      "rightsUrl": "https://open.canada.ca/en/open-government-licence-canada",
+      "license": "Contains information licensed under the Open Government Licence - Canada. Source: Natural Resources Canada, Atlas of Canada. Retain Crown copyright2024 and all source notices.",
+      "uncertainty": "Raster source has no embedded glyph boxes. Only narrow seams between distinct printed country fills are positives; sea/coast, same-colour boundaries and gray external lands stay unknown. Disputed hatched areas and footer/locator maps excluded. Source-derived weak, not independent truth; copyright year is not publication date.",
+      "supervision": {
+        "strategy": "country-fill-adjacency",
+        "radiusPixels": 4,
+        "countryFillColors": [[0.7411764705882353, 0.615686274509804, 0.7607843137254902], [0.9137254901960784, 0.5529411764705883, 0.7058823529411765], [0.6901960784313725, 0.615686274509804, 0.4588235294117647], [0.8509803921568627, 0.7647058823529411, 0.4666666666666667], [0.5215686274509804, 0.7411764705882353, 0.5882352941176471], [0.9098039215686274, 0.592156862745098, 0.4745098039215686], [0.8, 0.6039215686274509, 0.4745098039215686], [0.8431372549019608, 0.49411764705882355, 0.5176470588235295]]
+      },
+      "excludedRegionsNormalized": [[0, 0, 1, 0.06], [0, 0.75, 1, 1], [0.14, 0.12, 0.26, 0.24], [0.55, 0.3, 0.65, 0.36]],
+      "sha256": "0359870e117f266ab76fd6fa362a66540fbdd9e41c3717a7643118ace2979408",
+      "expectedBytes": 1197131,
+      "maximumBytes": 4194304
     }
   ]
 }
