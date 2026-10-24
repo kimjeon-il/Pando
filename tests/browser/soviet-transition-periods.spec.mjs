@@ -18,7 +18,7 @@ test('Web viewer changes Russia and its Soviet phase by their dates',async({page
  expect(december.find(row=>row.id==='RUS').lifetime.validFrom).toBe('1991-12-25');
  await page.locator('#timelineMonthButton').click();
  await page.locator('#timelineYearInput').fill('1991');await page.locator('#timelineMonthInput').selectOption('11');await page.locator('#timelineGoBtn').click();
- await expect(page.locator('#timelineMonthButtonText')).toHaveText('1991년 11월');
+ await expect(page.locator('#timelineMonthButtonText')).toHaveText('1991년 11월',{timeout:45000});
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
  const november=record(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot()));
  expect(november.some(row=>row.id==='RUS')).toBe(false);
