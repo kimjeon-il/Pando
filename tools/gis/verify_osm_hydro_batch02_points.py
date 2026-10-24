@@ -52,7 +52,7 @@ OTHER_NON_STATION=[
   "source":"https://www.nibr.go.kr/aiibook/access/ecatalogt.jsp?Dir=1069&callmode=admin&catimage=&eclang=ko&start=12&um=s"},
 ]
 STATIC={
- "20773860":SUEZ_POINTS, "20774342":SUEZ_POINTS,
+ "20773860":SCA_POINTS, "20774342":SCA_POINTS,
  "40414035":YESONG,
  "40415850":OTHER_NON_STATION,
  "40423228":SOUTH_KOREA,
@@ -132,9 +132,13 @@ def main():
     nga={}
     if args.nga and args.nga.exists():
         p=json.loads(args.nga.read_text())
+        seen_ufi = set()
         for f in p.get("features",[]):
             sid=str(f.get("candidateSystem") or "")
             if sid in NGA_TARGETS:
+                unique=(sid, str(f.get("ufi")))
+                if unique in seen_ufi: continue
+                seen_ufi.add(unique)
                 lon,lat=f.get("longitude"),f.get("latitude")
                 if isinstance(lon,(int,float)) and isinstance(lat,(int,float)):
                     nga.setdefault(sid,[]).append({
