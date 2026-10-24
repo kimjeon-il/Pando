@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
+import { mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -184,7 +184,7 @@ test('rejects a modified WASM asset instead of blessing a new hash', async t => 
 test('development assets reuse the validated stage plan without writing dist', async t => {
   const { root, put } = await source(t);
   const plan = await createDevelopmentAssets({ root });
-  assert.equal(plan.assets.get('assets/js/app.js').file, join(root, 'assets/js/app.js'));
+  assert.equal(plan.assets.get('assets/js/app.js').file, await realpath(join(root, 'assets/js/app.js')));
   assert.match(plan.assets.get('index.html').bytes.toString(), /shell\/startup.js/);
   await assert.rejects(readFile(join(root, 'apps/web-shell/dist/index.html')), /ENOENT/);
   await put('assets/js/app.js', 'export const updated = true;');

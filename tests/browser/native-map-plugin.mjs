@@ -79,7 +79,8 @@ try {
     const response=await route.fetch(),source=await response.text();
     const call='return globalThis.__TAURI_INTERNALS__.invoke(command, payload);';
     if(!source.includes(call))throw new Error('Native transport observation point changed');
-    await route.fulfill({response,body:source.replace(call,'(window.__nativeCommands ||= []).push(command);'+call)});
+    const observed="(window.__nativeCommands ||= []).push(command); const pending=globalThis.__TAURI_INTERNALS__.invoke(command,payload); return command==='finish_document_write'?pending.then(result=>{window.__nativeWriteResult=result;return result;}):pending;";
+    await route.fulfill({response,body:source.replace(call,observed)});
   });
   await page.route('**/shell/runtime-profile.js*',async route=>{
     const response=await route.fetch(),source=await response.text();
@@ -109,6 +110,9 @@ try {
         await saveAndroidFile(fileName);
       }
       await expect.poll(()=>page.evaluate(()=>window.__pluginDocument().state().dirty),{timeout:30000}).toBe(false);
+      const writeResult=await page.evaluate(()=>window.__nativeWriteResult);
+      expect(writeResult.cancelled).toBe(false);
+      if(values.platform==='windows')expect(resolve(writeResult.path)).toBe(saved);
       await page.evaluate(()=>{window.__nativeReopened=false;window.addEventListener('pandolab:project-changed',event=>{if(event.detail?.reason==='project-load')window.__nativeReopened=true;});});
       await page.locator('#mobileFileBtn').click();await page.locator('#openProjectBtn').click();
       if(values.platform==='windows')await nativeDialog(saved,'Open');else await openAndroidFile(fileName);

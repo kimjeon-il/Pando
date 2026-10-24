@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { originalHydroCreate } from '../helpers/web-hydro-create-oracle.mjs';
+import { originalNormalizedHydro } from '../helpers/web-hydro-create-oracle.mjs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 
 const seed = JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
@@ -13,23 +13,22 @@ const inputs = [
 ];
 
 for (const input of inputs) test(`raw ${input.geometry.type} hydro creation preserves original missing fields, opaque properties and storage`, async t => {
-  const expected = originalHydroCreate(input, seed);
-  assert.deepEqual(expected.saved, expected.normalized);
-  assert.equal(Object.hasOwn(expected.normalized.properties, 'locked'), false);
-  assert.equal(Object.hasOwn(expected.normalized.properties, 'source'), false);
-  assert.equal(Object.hasOwn(expected.normalized.properties, 'visible'), false);
-  assert.deepEqual(expected.normalized.properties.unknown, input.properties.unknown);
-  assert.deepEqual(expected.normalized.properties.color, input.properties.color);
+  const expected = originalNormalizedHydro(input);
+  assert.equal(Object.hasOwn(expected.properties, 'locked'), false);
+  assert.equal(Object.hasOwn(expected.properties, 'source'), false);
+  assert.equal(Object.hasOwn(expected.properties, 'visible'), false);
+  assert.deepEqual(expected.properties.unknown, input.properties.unknown);
+  assert.deepEqual(expected.properties.color, input.properties.color);
   const owner = await createNodeCoreProject(seed); t.after(() => owner.dispose());
   const before = owner.documentModel.snapshot();
   const result = await owner.project.executeCommand({ commandId: 'hydro.edit', targets: [{ domain: 'hydro',id: input.id }],
     payload: { domain: 'hydro', id: input.id, value: input, create: true } });
   assert.equal(result.ok, true, JSON.stringify(result.error));
-  assert.deepEqual(owner.documentModel.get({ domain: 'hydro',id: input.id }), expected.normalized);
+  assert.deepEqual(owner.documentModel.get({ domain: 'hydro',id: input.id }), expected);
   const exported = await owner.client.exportSnapshot({ format: 'pandolab-project-state', version: seed.version, savedAt: seed.savedAt });
-  assert.deepEqual(JSON.parse(exported.storageJson).hydroEdits.find(row => row.id === input.id), expected.saved);
+  assert.deepEqual(JSON.parse(exported.storageJson).hydroEdits.find(row => row.id === input.id), expected);
   assert.equal(await owner.project.undo(), true);
   assert.deepEqual(owner.documentModel.snapshot(), before);
   assert.equal(await owner.project.redo(), true);
-  assert.deepEqual(owner.documentModel.get({ domain: 'hydro',id: input.id }), expected.normalized);
+  assert.deepEqual(owner.documentModel.get({ domain: 'hydro',id: input.id }), expected);
 });
