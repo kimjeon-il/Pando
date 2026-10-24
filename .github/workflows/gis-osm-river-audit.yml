@@ -159,6 +159,8 @@ jobs:
       - name: Verify independently researched river-name records
         run: |
           python -m unittest discover -s tests -p 'test_hydro_independent_names.py' -v
+      - name: Verify feature-level independent-source notes
+        run: node --test tests/unit/hydro-source-notes.test.mjs
       - name: Rebuild only verified-name metadata into an isolated candidate
         run: |
           python tools/gis/prepare_hydro_name_replacement_bundle.py \
@@ -186,6 +188,20 @@ jobs:
           assert manifest['metadata']['featureCount'] == 16548
           assert manifest['stats']['compressedBytes'] == manifest['container']['bytes']
           assert manifest['version'] == '0.13.2'
+          published=json.loads(Path('/tmp/hydro-independent-five-decoded.json').read_text())['features']
+          reviews=json.loads(Path('/tmp/hydro-independent-five/hydro-independent-name-replacements.json').read_text())['replacements']
+          by_id={r['systemId']:r for r in reviews}
+          checked=0
+          for item in published:
+              md=item['metadata']
+              review=by_id.get(str(md.get('systemId') or ''))
+              if review is None: continue
+              expected=list(dict.fromkeys(s['url'] for s in review['independentSources']))
+              assert md['independentSourceUrls']==expected,md['fid']
+              assert not md.get('osmRelationIds'),md['fid']
+              checked+=1
+          assert checked == 1895,checked
+          print('Independent source URLs preserved for all 1,895 reviewed fragments')
           print('Independent source candidate passed metadata and geometry integrity checks')
           PY
       - uses: actions/upload-artifact@v4
@@ -199,4 +215,5 @@ jobs:
             /tmp/hydro-independent-five/manifest.json
             /tmp/hydro-independent-five/hydro.bin
             /tmp/hydro-independent-five/proof.json
+            /tmp/hydro-independent-five/hydro-independent-name-replacements.json
           retention-days: 14
