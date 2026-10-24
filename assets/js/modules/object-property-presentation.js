@@ -30,3 +30,4 @@ export function builtinHydroSourceNotes(properties = {}) {
       ...(relationIds.length ? ['OSM relation: ' + relationIds.map(id => 'https://www.openstreetmap.org/relation/' + id).join(', ')] : []),
     ] : []),
   ].join('\n');
+}
