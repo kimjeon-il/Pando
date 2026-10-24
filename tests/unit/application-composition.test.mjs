@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createBuiltinSession } from '../../assets/js/modules/builtin-session.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { resourceCapabilities } from '../../assets/js/modules/resource-capabilities.js';
 
 const root = new URL('../../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
@@ -29,7 +30,7 @@ test('all owners construct without DOM access, connect once, and expose every re
   for (const {file:name,factory:factoryName,owner:handleName} of definitions) {
     const module = await import(new URL(`assets/js/modules/${name}`, root));
     assert.ok(factoryName, name);
-    const owner = module[factoryName]();
+    const owner = module[factoryName](handleName === 'mapSettings' ? { capabilities: resourceCapabilities('editor') } : undefined);
     owners.set(handleName, owner);
     const handle = Object.create(owner);
     Object.defineProperty(handle, 'connect', { value(ports) {

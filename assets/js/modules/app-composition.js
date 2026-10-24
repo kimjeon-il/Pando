@@ -67,7 +67,7 @@ export async function composeApplication({ productMode, revision, platform = {},
     import(new URL(`./app-connect-project-io.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-connect-lifecycle-ui.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
   ]);
-  const {builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,platform,
+  const {capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,platform,
     resolveVisibilityGroup:ref=>objectCommands.layerGroupForObjectRef(ref),closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectVisible:(group,id)=>objectCommands.objectRefVisible(objectCommands.layerItemObjectRef(group,id)),
     editing:{getAttachmentState: referenceImageProjectAssets.state,beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
       persistView:()=>domainAssembly.projectDomain.queueViewAutosave(),getEditPreview:()=>geometryPreview.editPreviewController.packet(),
@@ -98,7 +98,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   const objectMetadata = factoryObjectMetadata.createObjectMetadata();
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
-  const mapSettings = factoryMapSettings.createMapSettings({viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onLayerVisibilityChange:async(key,enabled)=>{if(!enabled)return;if(key==='rivers'||key==='lakes')await physicalResources.loadHydroData(true);if(key==='labels')await territorialLabels.preparePlaces({force:true});}});
+  const mapSettings = factoryMapSettings.createMapSettings({capabilities,viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onLayerVisibilityChange:async(key,enabled)=>{if(!enabled)return;if(key==='rivers'||key==='lakes')await physicalResources.loadHydroData(true);if(key==='labels')await territorialLabels.preparePlaces({force:true});}});
   const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace,
     libraryGeometryContext:platform.libraryGeometryContext });
   const projectRestore = factoryProjectRestore.createProjectRestore();
