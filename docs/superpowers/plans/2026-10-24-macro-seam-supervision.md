@@ -45,4 +45,16 @@ precision regressed; keep trainingOnly/pending/releaseApproved=false.
 Task4: focused checks and fresh read-only code/artifact review complete; no
 important or minor findings remain. Reviewer independently checked model hashes,
 corpus fingerprint,37 preserved inputs/3 initializer artifacts and all six metric
-rows. Scoped archival and final commit remain executor actions.
+rows. Code committed43271b7b. Scoped archival byte-verified29 files; all6035
+non-target archive entries unchanged. Final data storage revision
+d8df0da62ba3ba9e52b38ac4ada693687ca45b37; verified snapshot
+4182bee7a24e0f828bf0f218d49a3b03ec0f9aa0. Runtime pin remains
+d401965fdbbcb53b54602b1d8736554b8ebc7dda and original report owner unchanged.
+The verification JSON itself was separately stored and byte-checked. No main
+integration, push, active-model promotion or deployment. Temporary inference
+server stopped; retain originals and compressed model/diagnostic evidence.
+
+Final rulings: training-only scope preserves independent/device release gates;
+the fresh reviewer did not rerun training/WASM/tests, whose execution was already
+observed by the implementer. Scoped archival/commit were independently verified
+by the executor after review. No remaining review finding was deferred.
