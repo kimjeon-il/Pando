@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "38-independent-source-river-systems-staged-awaiting-tested-hydro-metadata",
+  "status": "40-river-source-systems-staged-with-independent-geometry-evidence-pending-ci",
   "reference": {
     "dataset": "HydroRIVERS v0.13.2 OSM-name inventory",
     "naturalEarthRiversBaseSha256": "3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99",
@@ -276,6 +276,40 @@
         }
       ],
       "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20386022",
+      "previousNameKo": "센강",
+      "nameKo": "센강",
+      "aliases": [
+        "Seine",
+        "La Seine"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Seine",
+        "sampleCoverage": 0.469
+      },
+      "hydroRiversRegion": "eu",
+      "partialExistingNameReview": {
+        "method": "government-confirmed-existing-mainstem-no-independent-rival",
+        "strongestOtherNENameCoverage": 0,
+        "reason": "French Seine-Normandie public water agency identifies the Seine from Source-Seine to Le Havre, while DRIEAT monitors the actual middle Seine and distinguishes its Marne and Oise tributaries. No other independent named line is near the audited 81-point HydroRIVERS mainstem."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://eau-seine-normandie.fr/agence-de-leau/le-bassin-de-la-seine"
+        },
+        {
+          "kind": "government-river-monitoring",
+          "url": "https://www.drieat.ile-de-france.developpement-durable.gouv.fr/vigicrues-a29.html"
+        }
+      ]
     },
     {
       "systemId": "20446779",
@@ -618,6 +652,44 @@
         {
           "kind": "multilateral-basin-science",
           "url": "https://documents.worldbank.org/en/publication/documents-reports/documentdetail/663361468283187700"
+        }
+      ]
+    },
+    {
+      "systemId": "40279876",
+      "previousNameKo": "두만강",
+      "nameKo": "두만강",
+      "aliases": [
+        "Tumen",
+        "图们江"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Tumen",
+        "sampleCoverage": 0.506
+      },
+      "hydroRiversRegion": "as",
+      "partialExistingNameReview": {
+        "method": "government-confirmed-existing-mainstem-no-independent-rival",
+        "strongestOtherNENameCoverage": 0,
+        "reason": "South Korean Ministry of Unification North Korea Atlas names the Tumen River running from Mt. Baekdu to the East Sea, while the Chinese Changbaishan Administration independently maps its upper source and identifies it as a border river."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.changbaishan.gov.cn/zjzbs/zrzy/201612/t20161229_208378.html"
+        },
+        {
+          "kind": "government-river-atlas",
+          "url": "https://nkinfo.unikorea.go.kr/nkp/search/search.do?query=%EB%91%90%EB%A7%8C%EA%B0%95"
+        },
+        {
+          "kind": "government-gazetteer",
+          "url": "https://dfz.jl.gov.cn/zsjl/201111/t20111122_5216469.html"
         }
       ]
     },

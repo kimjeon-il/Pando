@@ -108,6 +108,13 @@ jobs:
                                  if row['name']!=match['name'] and row['nameKo']),default=0)
                   assert abs(competing-conservative['otherNamedNECoverage'])<0.001,entry['systemId']
                   assert match['meanDistanceDegrees'] <= 0.04,entry['systemId']
+              partial=entry.get('partialExistingNameReview')
+              if partial:
+                  assert candidates[0]['name'] == match['name'],entry['systemId']
+                  rivals=[row for row in candidates if row['name']!=match['name'] and row['nameKo']]
+                  max_rival=max((row['sampleCoverage'] for row in rivals),default=0)
+                  assert abs(max_rival-partial['strongestOtherNENameCoverage'])<0.001,entry['systemId']
+                  assert max_rival<=0.05 and match['meanDistanceDegrees']<=0.025,entry['systemId']
               confluence=entry.get('basinConfluenceReview') or entry.get('independentBasinRename')
               if confluence:
                   trib=next((row for row in candidates
@@ -140,11 +147,11 @@ jobs:
           root=Path('/tmp/hydro-independent-five')
           proof=json.loads((root/'proof.json').read_text())
           manifest=json.loads((root/'manifest.json').read_text())
-          assert len(proof['changedSystemIds']) == 38
-          assert proof['remainingOsmMatchedSystems'] == 35
-          assert proof['sourceIndependentSystemCount'] == 38
+          assert len(proof['changedSystemIds']) == 40
+          assert proof['remainingOsmMatchedSystems'] == 33
+          assert proof['sourceIndependentSystemCount'] == 40
           assert proof['renamedSystemCount'] == 8
-          assert proof['nameUnchangedSourceReplacementCount'] == 30
+          assert proof['nameUnchangedSourceReplacementCount'] == 32
           assert proof['originalIndexSha256'] == proof['newIndexSha256']
           assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']
           assert manifest['metadata']['featureCount'] == 16548
