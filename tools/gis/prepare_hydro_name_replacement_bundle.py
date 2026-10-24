@@ -199,6 +199,9 @@ def main() -> None:
         json.dumps(new_manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     (output / "hydro.bin").write_bytes(new_bundle)
+    # Keep provenance input alongside published manifest so each cited
+    # URL remains individually auditable after pinning the runtime bundle.
+    (output / args.replacements.name).write_bytes(args.replacements.read_bytes())
     (output / "proof.json").write_text(
         json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
