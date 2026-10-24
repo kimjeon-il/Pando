@@ -92,7 +92,16 @@ export async function auditLayout(root,{allowRetired=false}={}) {
   const manifestPath=inside(root,webPath),dir=dirname(manifestPath);
   const manifestBuffer=readFileSync(manifestPath),manifest=JSON.parse(manifestBuffer);
   const roles=manifestRoles(manifest),packed=readFileSync(inside(dir,manifest.container.url));
-  const current=listFiles(dir),declared=[relative(dir,manifestPath).replaceAll('\\','/'),manifest.container.url].sort();
+  const current=listFiles(dir),declared=[relative(dir,manifestPath).replaceAll('\\','/'),manifest.container.url];
+  const nameEvidence=manifest.sources?.independentHydronymReplacements;
+  if(nameEvidence){
+    ensure(typeof nameEvidence.file==='string'&&/^[\\w.-]+\\.json$/.test(nameEvidence.file)
+      &&validHash(nameEvidence.sha256),'Invalid independent river-name source declaration');
+    const sourceBytes=readFileSync(inside(dir,nameEvidence.file));
+    ensure(hash(sourceBytes)===nameEvidence.sha256,'Independent river-name source SHA-256 mismatch');
+    declared.push(nameEvidence.file);
+  }
+  declared.sort();
   ensure(JSON.stringify(current)===JSON.stringify(declared),'Current hydro package contains missing or undeclared files');
   ensure(packed.length===manifest.container.bytes&&hash(packed)===manifest.container.sha256,'Hydro container byte count or SHA-256 differs');
   for(const segment of roles){
