@@ -1,0 +1,80 @@
+name: GIS OSM replacement research batch 01
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/gis/verify_osm_hydro_batch01_anchors.py'
+      - '.github/workflows/gis-hydro-osm-batch01-research.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  first-ten-independent-stations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare immutable published hydro reference
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install independent metric projection and polyline checks
+        run: python -m pip install --quiet "shapely>=2,<3" "pyproj>=3,<4"
+      - name: Decode exactly the public HydroRIVERS version with the production decoder
+        run: node tools/decode-hydro-connectivity.mjs assets/data/hydro/v0.13.2 /tmp/batch01-decoded.json
+      - name: Measure every first-ten system against independent named stations
+        run: |
+          python tools/gis/verify_osm_hydro_batch01_anchors.py \
+            --decoded /tmp/batch01-decoded.json \
+            --output /tmp/batch01-independent-stations.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('/tmp/batch01-independent-stations.json').read_text())
+          expected=['10521208','10526283','20071308','20075401','20282318','20456598','20532766','20540915','20561290','20565620']
+          assert [x['systemId'] for x in j['items']]==expected
+          assert j['osmSourcesNotUsed'] and j['metadataNotModified']
+          assert all(len(x['independentStations'])>=2 for x in j['items'])
+          print('Independent spatial screen of all 10 pending systems succeeded, no name applied')
+          PY
+      - name: Probe Finland NLS national INSPIRE river-vector read-only endpoint
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, urllib.request, pathlib
+          from urllib.parse import urlencode
+          root='https://avoin-paikkatieto.maanmittauslaitos.fi/inspire-hydrography/features/v1/collections/watercourse/items'
+          query=urlencode({'bbox':'24.70,64.75,24.95,64.9','limit':4,'f':'json'})
+          receipt={'provider':'National Land Survey of Finland','url':root,'status':'unavailable','downloadedRawLinesIntoRuntime':False}
+          try:
+              with urllib.request.urlopen(urllib.request.Request(root+'?'+query,headers={'Accept':'application/geo+json, application/json','User-Agent':'PandoLab-GIS-name-audit/1.0'}),timeout=18) as response:
+                  buf=response.read(1000001)
+                  if len(buf)>1000000: raise ValueError('truncated or oversized sample')
+                  obj=json.loads(buf)
+                  if 'features' not in obj or obj.get('type') not in ('FeatureCollection',None): raise ValueError('unexpected service response')
+                  receipt.update(status='sample-retrieved',featureCount=len(obj['features']),
+                                 sampleProperties=list(obj['features'][0].get('properties',{})) if obj['features'] else [])
+          except Exception as error:
+              receipt['failureClass']=type(error).__name__
+              receipt['note']='The endpoint could not be tested in this action. It is not evidence of missing national data.'
+          pathlib.Path('/tmp/batch01-finnish-api-probe.json').write_text(json.dumps(receipt,indent=2))
+          print('FINNISH_API_PROBE='+json.dumps(receipt,separators=(',',':')))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gis-osm-batch01-independent-evidence
+          path: |
+            /tmp/batch01-independent-stations.json
+            /tmp/batch01-finnish-api-probe.json
+          retention-days: 30
+          if-no-files-found: warn
