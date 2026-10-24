@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 
-test('published metadata verifies actual manifest bytes and rejects stale hashes after asset regeneration', t => {
+test('published metadata follows pinned manifests, preserves local edits and rejects stale asset hashes', t => {
   const root=mkdtempSync(join(tmpdir(),'pando-build-meta-'));
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   const put=(path,bytes)=>{mkdirSync(dirname(join(root,path)),{recursive:true});writeFileSync(join(root,path),bytes);};
@@ -24,10 +24,13 @@ test('published metadata verifies actual manifest bytes and rejects stale hashes
   put('assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2', 'font fixture');
   put('assets/css/app.css', '@font-face { font-family: "Pretendard Variable"; src: url("../fonts/pretendard-v1.3.9/PretendardVariable.woff2"); }');
   mkdirSync(join(root,'assets/js/workers'),{recursive:true});
+  mkdirSync(join(root,'assets/worker-runtime'),{recursive:true});
   put('assets/js/main.js','export const current = true;');
   put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META = Object.freeze({});\n');
-  for(const path of ['world/current.json','terrain-preview/v0.13.3-p1/manifest.json','hydro/v0.13.2/manifest.json',
-    'places/manifest.json','territorial-entities/generated/v2/index.json','prepared-polygons/generated/v2/manifest.json'])put('assets/data/'+path,'{}\n');
+  const metadataPaths=['world/current.json','terrain-preview/v0.13.3-p1/manifest.json','hydro/v0.13.2/manifest.json',
+    'places/manifest.json','territorial-entities/generated/v2/index.json','prepared-polygons/generated/v2/manifest.json',
+    'physical-land/v1/manifest.json','builtin-world/generated/v1/index.json','reference-analysis/v1/ocr/manifest.json'];
+  for(const path of metadataPaths)put('assets/data/'+path,'{}\n');
   const land=JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]});
   put('assets/data/countries-ne-5.1.1.geojson',land);
   put('assets/data/physical-land/v1/geometry.json', land);
@@ -51,9 +54,19 @@ test('published metadata verifies actual manifest bytes and rejects stale hashes
   put('.library-data/repository/archive/index.json', '{"files":{}}');
   const git = (...args) => execFileSync('git', ['-c', 'core.fsync=none', '-c', 'user.name=Test',
     '-c', 'user.email=test@example.invalid', ...args], { cwd: dataRoot, encoding: 'utf8', stdio: 'pipe' }).trim();
-  git('init', '-q'); git('add', '.'); git('commit', '-qm', 'fixture archive');
-  mkdirSync(join(root, '.library-data/materialized', git('rev-parse', 'HEAD')), { recursive: true });
-  put('config/library-data.json', JSON.stringify({ repository: 'example/library-data', revision: git('rev-parse', 'HEAD'), mounts: [] }));
+  git('init', '-q');
+  const pinData=()=>{
+    const files={};
+    for(const relative of metadataPaths){
+      const path='assets/data/'+relative,bytes=readFileSync(join(root,path));
+      put('.library-data/repository/'+path,bytes);
+      files[path]={stored:path,encoding:'identity',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
+    }
+    put('.library-data/repository/archive/index.json',JSON.stringify({files}));
+    git('add','.');git('commit','-qm','fixture archive');
+    put('config/library-data.json',JSON.stringify({repository:'example/library-data',revision:git('rev-parse','HEAD'),mounts:[]}));
+  };
+  pinData();
   const run=(...args)=>execFileSync(process.execPath,['scripts/generate-build-metadata.mjs',...args],{
     cwd:root,env:{...process.env,PANDOLAB_BUILD_ID:'fixed-source',PANDOLAB_LIBRARY_DATA_ROOT:dataRoot},stdio:'pipe'});
   run();run('--check');
@@ -70,6 +83,11 @@ test('published metadata verifies actual manifest bytes and rejects stale hashes
   assert.doesNotMatch(readFileSync(join(root,'index.html'),'utf8'),/assets\/js\/app\.js/);
   assert.match(readFileSync(join(root,'apps/web-shell/editor.html'),'utf8'),/assets\/js\/app\.js\?v=1\.2\.3-build-fixed-source/);
   put(history,historical(2));
+  run('--check');run();
+  assert.equal(readFileSync(join(root,history),'utf8'),historical(2),'metadata generation must preserve unarchived cache edits');
+  const unchanged=JSON.parse(readFileSync(join(root,'assets/js/build-meta.js'),'utf8').match(/Object\.freeze\(([\s\S]*)\);\s*$/)[1]);
+  assert.equal(unchanged.builtinWorld.sha256,createHash('sha256').update(historical(1)).digest('hex'));
+  pinData();
   assert.throws(()=>run('--check'),/Command failed/);
   run();run('--check');
   const source=readFileSync(join(root,'assets/js/build-meta.js'),'utf8');
