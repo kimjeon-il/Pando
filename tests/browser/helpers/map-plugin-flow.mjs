@@ -30,7 +30,15 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
     host.requestRepaint('plugin-import-test');return await window.__pluginSelectGeneric(feature.id);
   });
   expect(selection).not.toBe(false);
-  await page.locator('#actionsTabBtn').click({timeout:8000});await page.locator('#genericVerticesBtn').click({timeout:8000});
+  // Imported generic lines use the current semantic conversion workflow before
+  // their coordinates can be edited through the hydro editor.
+  await expect(page.locator('#genericFeatureConvertType')).toHaveValue('river');
+  await page.locator('#convertGenericFeatureBtn').click();
+  await expect.poll(async()=>(await read()).length).toBe(collection.features.length-1);
+  const readEdited=()=>page.evaluate(()=>window.__pluginDocument().snapshot().hydroEdits[0]);
+  await expect.poll(async()=>(await readEdited())?.geometry).toEqual(imported[0].geometry);
+  expect((await readEdited()).properties.metadata.compatibilitySource.source.details.imageSha256).toBe(collection.features[0].properties.source.details.imageSha256);
+  await page.locator('#actionsTabBtn').click({timeout:8000});await page.locator('#hydroVerticesBtn').click({timeout:8000});
   await expect(page.locator('circle.vertex-handle').first()).toBeVisible();
   const point=await page.locator('circle.vertex-handle').evaluateAll(nodes=>nodes.map(node=>({node,rect:node.getBoundingClientRect()}))
     .filter(({node,rect})=>rect.width>0 && rect.x>10 && rect.y>80 && document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)===node)
@@ -43,12 +51,13 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
   } else {
     await page.mouse.move(...point);await page.mouse.down();await page.mouse.move(point[0]+18,point[1]+10,{steps:4});await page.mouse.up();
   }
-  await expect.poll(async()=>JSON.stringify((await read())[0].geometry)).not.toBe(JSON.stringify(imported[0].geometry));
-  const edited=await read();
-  await page.locator('#undoBtn').click();expect((await read())[0].geometry).toEqual(imported[0].geometry);
-  await page.locator('#redoBtn').click();expect((await read())[0].geometry).toEqual(edited[0].geometry);
+  await expect.poll(async()=>JSON.stringify((await readEdited()).geometry)).not.toBe(JSON.stringify(imported[0].geometry));
+  const edited=await readEdited();
+  await page.locator('#undoBtn').click();expect((await readEdited()).geometry).toEqual(imported[0].geometry);
+  await page.locator('#redoBtn').click();expect((await readEdited()).geometry).toEqual(edited.geometry);
   const before=await page.evaluate(()=>window.__pluginDocument().snapshot()),saved=await saveReopen();
   await expect.poll(()=>page.evaluate(()=>window.__pluginDocument().state().dirty),{timeout:30000}).toBe(false);
-  expect((await page.evaluate(()=>window.__pluginDocument().snapshot())).genericFeatures).toEqual(before.genericFeatures);expect(errors).toEqual([]);
+  const reopened=await page.evaluate(()=>window.__pluginDocument().snapshot());
+  expect(reopened.genericFeatures).toEqual(before.genericFeatures);expect(reopened.hydroEdits).toEqual(before.hydroEdits);expect(errors).toEqual([]);
   return {importedCount:imported.length,geometryEdited:true,batchUndoRedo:true,editUndoRedo:true,savedReopened:true,sourcePreserved:true,saved,errors};
 }

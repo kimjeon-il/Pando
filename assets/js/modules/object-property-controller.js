@@ -317,6 +317,8 @@ export function createObjectPropertyController(runtime = {}) {
     $('hydroBuiltinNotesInput').value = builtinNotes;
     const copyActionSection = $('copyHydroBtn').closest('.editor-action-section');
     if (copyActionSection) copyActionSection.hidden = editable;
+    const verticesSection = $('hydroVerticesBtn').closest('.editor-action-section');
+    if (verticesSection) verticesSection.hidden = !editable;
     syncActionTab('hydro');
     if (editable) {
       $('hydroNameInput').value = properties.name || '';
