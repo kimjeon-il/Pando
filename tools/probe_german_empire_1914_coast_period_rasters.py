@@ -6,6 +6,7 @@ from a WMS image's broad 1902-1930 layer label.
 """
 from __future__ import annotations
 
+from library_data import write_library_text
 import base64
 import hashlib
 import io
@@ -221,7 +222,7 @@ def main():
     except Exception as exc:
         report["status"]="service-capabilities-unavailable"
         report["capabilitiesError"]=f"{type(exc).__name__}: {str(exc)[:350]}"
-        OUT.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+        write_library_text(OUT,json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
         print(json.dumps({"result":report["status"],"error":report["capabilitiesError"]}))
         return
     by_name = {x["name"]: x for x in layers}
@@ -297,7 +298,7 @@ def main():
     report["status"]="source-overlays-rendered" if successes else "service-read-map-unavailable"
     report["successfulLayerImages"] = successes
     report["ciRunId"] = os.environ.get("GITHUB_RUN_ID")
-    OUT.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    write_library_text(OUT,json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("===GIS_COAST_SUMMARY_JSON===")
     print(json.dumps({"status":report["status"],"run":report["ciRunId"],
                       "successfulImages":successes,

@@ -1,3 +1,4 @@
+import { writeLibraryOutput } from './library-data.mjs';
 import './load-spherical-core.mjs';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -183,7 +184,7 @@ if (offset !== raw.length) throw new Error(`GPU 메시 패킹 길이가 일치�
 
 const compressed = zlib.gzipSync(raw, { level: 9, mtime: 0 });
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-fs.writeFileSync(outputPath, compressed);
+writeLibraryOutput(outputPath, compressed);
 
 console.log(JSON.stringify({
   output: path.relative(projectRoot, outputPath).replaceAll('\\', '/'),

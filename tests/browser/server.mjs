@@ -1,6 +1,7 @@
 import { createReadStream, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
+import { reportPath } from '../../tools/report-paths.mjs';
 
 const root = resolve(process.cwd());
 const port = Number.parseInt(process.env.PANDOLAB_TEST_PORT || '4173', 10);
@@ -13,12 +14,13 @@ const mime = {
 createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url || '/', 'http://127.0.0.1').pathname);
   const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-  const file = resolve(root, relative);
+  let file = resolve(root, relative);
   if (file !== root && !file.startsWith(`${root}${sep}`)) {
     response.writeHead(403).end('Forbidden');
     return;
   }
   try {
+    if (relative.startsWith('reports/')) file = reportPath(relative, { root, access: 'read' });
     const stats = statSync(file);
     if (!stats.isFile()) throw new Error('Not a file');
     response.writeHead(200, { 'Content-Type': mime[extname(file).toLowerCase()] || 'application/octet-stream',
