@@ -156,7 +156,9 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
         "beforeBundleSha256": digest(bundle),
         "afterBundleSha256": digest(updated_bundle),
         "remainingOsmMatchedSystems": new_manifest["stats"]["osmWaterwayMatchCount"],
-        "originalNameCorrectionCount": total,
+        "sourceIndependentSystemCount": total,
+        "renamedSystemCount": sum(v["nameKo"] != v["previousNameKo"] for v in substitutions.values()),
+        "nameUnchangedSourceReplacementCount": sum(v["nameKo"] == v["previousNameKo"] for v in substitutions.values()),
         "runtimeDeployed": False
     }
 

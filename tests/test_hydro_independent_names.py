@@ -16,18 +16,27 @@ PATH = ROOT / "tools/gis/hydro-independent-name-replacements.json"
 
 
 class IndependentHydronymReviewTests(unittest.TestCase):
-    def test_replacements_are_exactly_the_five_independently_checked_systems(self):
+    def test_replacements_have_five_renamings_and_eleven_source_only_cleanups(self):
         rows = load_independent_hydronyms(PATH)
+        self.assertEqual(len(rows), 16)
         self.assertEqual(set(rows), {
-            "20680587", "40485117", "41279826", "50261309", "70576631"
+            "20282220", "20323928", "20342955", "20457454",
+            "20478829", "20673409", "20680587", "40485117",
+            "40505530", "41261061", "41279826", "41339527",
+            "41347969", "50261309", "70576631", "70580124",
         })
-        self.assertEqual({key: value["nameKo"] for key, value in rows.items()}, {
+        renamed = {key: value["nameKo"] for key, value in rows.items()
+                   if value["previousNameKo"] != value["nameKo"]}
+        self.assertEqual(renamed, {
             "20680587": "과달키비르강",
             "40485117": "도네강",
             "41279826": "살윈강",
             "50261309": "바리토강",
             "70576631": "델라웨어강",
         })
+        self.assertEqual(rows["20282220"]["aliases"], ["Elbe", "Labe"])
+        self.assertEqual(rows["20282220"]["tributaryNames"], ["블타바강"])
+        self.assertEqual(rows["20323928"]["tributaryNames"], ["마인강", "모젤강", "아레강"])
         for item in rows.values():
             self.assertFalse(any("openstreetmap" in src["url"].lower()
                                  for src in item["independentSources"]))

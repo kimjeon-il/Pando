@@ -82,8 +82,11 @@ jobs:
           root=Path('/tmp/hydro-independent-five')
           proof=json.loads((root/'proof.json').read_text())
           manifest=json.loads((root/'manifest.json').read_text())
-          assert len(proof['changedSystemIds']) == 5
-          assert proof['remainingOsmMatchedSystems'] == 68
+          assert len(proof['changedSystemIds']) == 16
+          assert proof['remainingOsmMatchedSystems'] == 57
+          assert proof['sourceIndependentSystemCount'] == 16
+          assert proof['renamedSystemCount'] == 5
+          assert proof['nameUnchangedSourceReplacementCount'] == 11
           assert proof['originalIndexSha256'] == proof['newIndexSha256']
           assert proof['originalGeometryShardsSha256'] == proof['newGeometryShardsSha256']
           assert manifest['metadata']['featureCount'] == 16548
