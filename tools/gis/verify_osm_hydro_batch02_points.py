@@ -63,10 +63,24 @@ SCA_POINTS=[
 SOUTH_KOREA=[
  {"id":"ag_namhan_station_277","name":"Namhan River water-level site (Korea Rural Community Corporation data reproduction)","lon":127.6866667,"lat":37.18305556,"kind":"government-derived-station-point-secondary-reproduction","source":KOREA_STATION,"licenseLead":WAMIS_AG},
 ]
-YESONG=[
- {"id":"nga_ufi_minus191071_yesong","name":"Yesong-gang","lon":126.395278,"lat":37.885278,
-  "kind":"US-NGA-GNS-named-stream-location-not-centerline","source":NGA_RYESONG},
-]
+# Captured unchanged UFI and coordinates from NGA's public ArcGIS service
+# during the initial 2026-10-24 audit run 40059851369. The GNS endpoint
+# occasionally times out; a verified named-point fallback prevents empty
+# evidence on transient API failures. It is not a substitute for river lines.
+GNS_ANCHORS={
+ "40364680":[{"id":"nga_ufi_minus173649_chongchon","name":"청천강",
+   "lon":125.458889,"lat":39.575833,"kind":"US-NGA-GNS-named-stream-location-not-centerline",
+   "source":"https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-173649&outFields=*&f=json"}],
+ "40391614":[{"id":"nga_ufi_minus187951_taedong","name":"대동강",
+   "lon":125.465828,"lat":38.720416,"kind":"US-NGA-GNS-named-stream-location-not-centerline",
+   "source":"https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-187951&outFields=*&f=json"}],
+ "40414035":[{"id":"nga_ufi_minus191071_yesong","name":"예성강",
+   "lon":126.395278,"lat":37.885278,"kind":"US-NGA-GNS-named-stream-location-not-centerline",
+   "source":NGA_RYESONG}],
+ "40415850":[{"id":"nga_ufi_minus708771_imjin","name":"림진강",
+   "lon":126.663889,"lat":37.785,"kind":"US-NGA-GNS-named-stream-location-not-centerline",
+   "source":"https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-708771&outFields=*&f=json"}],
+}
 OTHER_NON_STATION=[
  {"id":"nibr_imjin_wetland_zone_centroid","name":"Imjin River ecological study zone centroid (NOT a river station)","lon":126.769,"lat":37.887,
   "kind":"ecological-area-centroid-not-hydrographic-observation",
@@ -76,8 +90,10 @@ STATIC={
  "20628098":CENTRAL_ASIA,
  "20773860":SCA_POINTS, "20774342":SCA_POINTS,
  "30145067":OB_SYSTEM,
- "40414035":YESONG,
- "40415850":OTHER_NON_STATION,
+ "40364680":GNS_ANCHORS["40364680"],
+ "40391614":GNS_ANCHORS["40391614"],
+ "40414035":GNS_ANCHORS["40414035"],
+ "40415850":[*GNS_ANCHORS["40415850"],*OTHER_NON_STATION],
  "40423228":SOUTH_KOREA,
 }
 NGA_TARGETS={
@@ -171,7 +187,12 @@ def main():
                     })
     items=[]
     for sid in IDS:
-        anchors=[*STATIC.get(sid,[]),*external.get(sid,[]),*nga.get(sid,[])]
+        named_live_nga=nga.get(sid,[])
+        # Avoid counting the same GNS feature twice when both the live query
+        # and the separately documented point snapshot are available.
+        static=[p for p in STATIC.get(sid,[])
+                if not (named_live_nga and p["kind"]=="US-NGA-GNS-named-stream-location-not-centerline")]
+        anchors=[*static,*external.get(sid,[]),*named_live_nga]
         # Deduplicate named observation locations without suppressing sources.
         seen=set()
         anchors=[p for p in anchors if not ((p["id"],p["lon"],p["lat"]) in seen or seen.add((p["id"],p["lon"],p["lat"])))]
@@ -204,8 +225,11 @@ def main():
        "items":[{"id":x["systemId"],"name":x["publishedNameKo"],
           "lengthKm":x["mainstemTotalLengthKm"],
           "points":[(y["id"],y["distanceToPublishedMainstemKm"],y["designatedName"]) for y in x["independentPoints"]],
-          "closestPoints":sorted([(y["id"],y["distanceToPublishedMainstemKm"],y["designatedName"])
-                for y in x["independentPoints"]],key=lambda z:z[1])[:12]}
+          "closestPoints":sorted([{
+                "id":y["id"],"distanceKm":y["distanceToPublishedMainstemKm"],
+                "name":y["designatedName"],"referenceLonLat":y["referenceLonLat"],
+                "sourceKind":y["sourceKind"],"url":y["independentSource"]}
+                for y in x["independentPoints"]],key=lambda z:z["distanceKm"])[:12]}
          for x in items]
     },ensure_ascii=False,separators=(",",":")),flush=True)
 
