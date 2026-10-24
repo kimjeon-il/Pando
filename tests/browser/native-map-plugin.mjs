@@ -68,6 +68,9 @@ try {
   }
   const preservation={sourceCount:preserved.sources?.length || 0,recordCount:preserved.records?.length || preserved.images?.length || 0};
   await instrumentMapPlugin(page);
+  // Keep one loaded application revision while another chat updates the shared
+  // checkout. Only the development reloader is paused, never application I/O.
+  await page.route('**/shell/dev-reload.js*',route=>route.fulfill({contentType:'application/javascript',body:'export {};'}));
   await page.route('**/shell/runtime-profile.js*',async route=>{
     const response=await route.fetch(),source=await response.text();
     await route.fulfill({response,body:source.replace('pandoeditor-web-shell-world-v1','pando-map-plugin-validation-'+Date.now())});
@@ -88,6 +91,9 @@ try {
     },
     saveReopen:async()=>{
       await page.locator('#mobileFileBtn').click();await page.locator('#saveProjectBtn').click();
+      // The native destination dialog opens after GeoPackage construction and
+      // chunk transfer, not immediately after the Save button is clicked.
+      await expect.poll(()=>page.evaluate(()=>window.__nativeCommands.includes('finish_document_write')),{timeout:120000}).toBe(true);
       if(values.platform==='windows')await nativeDialog(saved,'Save');else await saveAndroidFile(fileName);
       await expect.poll(()=>page.evaluate(()=>window.__pluginDocument().state().dirty),{timeout:30000}).toBe(false);
       await page.evaluate(()=>{window.__nativeReopened=false;window.addEventListener('pandolab:project-changed',event=>{if(event.detail?.reason==='project-load')window.__nativeReopened=true;});});
