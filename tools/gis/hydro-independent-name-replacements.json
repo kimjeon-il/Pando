@@ -29,7 +29,8 @@
           "kind": "government-hydrology",
           "url": "https://www.boe.es/buscar/act.php?id=BOE-A-2013-5319"
         }
-      ]
+      ],
+      "hydroRiversRegion": "eu"
     },
     {
       "systemId": "40485117",
@@ -53,7 +54,8 @@
           "kind": "government-hydrology",
           "url": "https://www.ktr.mlit.go.jp/river/shihon/river_shihon00000122.html"
         }
-      ]
+      ],
+      "hydroRiversRegion": "as"
     },
     {
       "systemId": "41279826",
@@ -76,7 +78,8 @@
           "kind": "international-basin-reference",
           "url": "https://www.fao.org/aquastat/en/countries-and-basins/transboundary-river-basins/salween/"
         }
-      ]
+      ],
+      "hydroRiversRegion": "as"
     },
     {
       "systemId": "50261309",
@@ -99,7 +102,8 @@
           "kind": "government-hydrology",
           "url": "https://sda.pu.go.id/balai/bwskalimantan3/profil/sejarah"
         }
-      ]
+      ],
+      "hydroRiversRegion": "au"
     },
     {
       "systemId": "70576631",
@@ -122,7 +126,8 @@
           "kind": "government-hydrology",
           "url": "https://water.usgs.gov/GIS/huc_name.html"
         }
-      ]
+      ],
+      "hydroRiversRegion": "na"
     }
   ]
 }
