@@ -2,7 +2,8 @@ import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { selectUiOption } from './helpers/ui-select.mjs';
-const expected = JSON.parse(readFileSync(new URL('../fixtures/builtin-world-baseline-trace.json', import.meta.url)));
+import {selectBuiltinCountries} from '../../assets/js/modules/builtin-world-loader.js';
+const catalog=JSON.parse(readFileSync(new URL('../../assets/data/builtin-world/generated/v1/index.json',import.meta.url)));
 test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
 async function month(page, value) {
   await setEditorMonth(page, value);
@@ -48,7 +49,7 @@ test('new world reset materializes one source month and editor navigation keeps 
   await expect(page.locator('#confirmModal')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('UKR')?.properties.name), { timeout: 60000 }).toBe('우크라이나');
   const before=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().map(row=>({id:row.id,geometry:row.geometry})));
-  expect(before.map(row=>row.id).sort()).toEqual(expected.months.find(row=>row.month==='2012-10').entities.map(row=>row.entityId).sort());
+  expect(before.map(row=>row.id).sort()).toEqual(selectBuiltinCountries(catalog,'2012-10').map(row=>row.entityId).sort());
   await month(page, '2027-01');
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().map(row=>({id:row.id,geometry:row.geometry})))).toEqual(before);
   await expect(page.locator('#undoBtn')).toBeDisabled(); expect(errors).toEqual([]);

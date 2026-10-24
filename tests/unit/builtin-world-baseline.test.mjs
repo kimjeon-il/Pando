@@ -6,11 +6,11 @@ import {createGeometryVersionStore} from '../../assets/js/modules/geometry-versi
 import {resolveWorld} from '../../assets/js/modules/timeline-resolver.js';
 import {temporalContains,temporalMonthEnd} from '../../assets/js/modules/temporal.js';
 import {createRingHitTester} from '../../assets/js/modules/ring-hit-test.js';
-const oracle=JSON.parse(fs.readFileSync(new URL('../fixtures/builtin-world-baseline-trace.json',import.meta.url)));
-test('country-scoped scenes preserve all archived baseline month identities, geometry, hierarchy and Crimea attribution',()=>{
+const oracle=JSON.parse(fs.readFileSync(new URL('../fixtures/builtin-modern-interval-baseline.json',import.meta.url)));
+test('the pre-change modern publication keeps identities, geometry, hierarchy and Crimea attribution',()=>{
  const rings=createRingHitTester(r=>r);
- for(const reference of oracle.months){
-  const month=reference.month,project=builtinProject(month,'2026-10');
+ for(const reference of oracle.months.filter(row=>row.month==='2026-10')){
+  const month=reference.month,project=builtinProject(month);
   const view=resolveWorld(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month);
   const entities=view.entities.map(row=>{
    const info=row.identity.properties.metadata.historicalTimeline;

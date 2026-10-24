@@ -14,7 +14,7 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
       || world.source?.countryCount !== 258 || !world.assets) {
     throw new Error('Current world manifest is not a 258-country world bundle.');
   }
-  if (historical?.schema !== 'pandolab-builtin-world' || historical.schemaVersion !== 1 || !Array.isArray(historical.entities)) {
+  if (historical?.schema !== 'pandolab-builtin-world' || historical.schemaVersion !== 2 || !Array.isArray(historical.entities)) {
     throw new Error('Builtin world country index is unavailable.');
   }
   if (library?.schemaVersion !== 2 || !Array.isArray(library.entities) || !library.entities.length

@@ -24,14 +24,14 @@ struct SourceProvenance {
 struct LibraryOrigin {
     std::string libraryId,geometryVersionId;
     std::optional<std::string> referenceDate;
-    std::string sourceId,sourceVersion,certainty,datePrecision;
+    std::string sourceId,sourceVersion,certainty;
     bool partial=false;
     std::vector<std::string> missingLibraryRefs;
     bool operator==(const LibraryOrigin& other) const {
         return std::tie(libraryId,geometryVersionId,referenceDate,sourceId,sourceVersion,
-                        certainty,datePrecision,partial,missingLibraryRefs)==
+                        certainty,partial,missingLibraryRefs)==
                std::tie(other.libraryId,other.geometryVersionId,other.referenceDate,other.sourceId,
-                        other.sourceVersion,other.certainty,other.datePrecision,other.partial,
+                        other.sourceVersion,other.certainty,other.partial,
                         other.missingLibraryRefs);
     }
 };

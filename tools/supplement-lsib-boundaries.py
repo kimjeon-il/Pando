@@ -567,7 +567,7 @@ def targeted_candidates(root, output, targets, reference_manifest=None, coast_ma
         raw_entity = (source / 'countries' / f'state-{code}.json').read_bytes()
         entity = json.loads(raw_entity)
         version = next(v for v in entity['geometryVersions'] if v['versionId'] == selections[entity['entityId']])
-        if entity['sourceInfo']['featureId'] != code or version.get('datePrecision') != 'current':
+        if entity['sourceInfo']['featureId'] != code or version.get('validTo') is not None:
             raise ValueError(f'Historical or mismatched source must not be overwritten: {code}')
         entities[code], versions[code], geometries[code] = entity, version, version['geometry']
         hashes[code] = hashlib.sha256(raw_entity).hexdigest()
@@ -749,6 +749,8 @@ def main():
         source_bytes = (source_root / 'countries' / (entity_id.replace(':', '-') + '.json')).read_bytes()
         entity = json.loads(source_bytes)
         version = next(v for v in entity['geometryVersions'] if v['versionId'] == selection['geometryVersionId'])
+        if version.get('validTo') is not None:
+            raise ValueError(f'Historical display geometry is protected: {entity_id}')
         code = entity['sourceInfo']['featureId']
         entities[code], versions[code], geometries[code] = entity, version, copy.deepcopy(version['geometry'])
         input_hashes[code] = hashlib.sha256(source_bytes).hexdigest()
@@ -766,8 +768,6 @@ def main():
         if not matches:
             entry['reason'] = 'no-matching-LSIB-country-pair'; report.append(entry); continue
         reviewed.update(r['properties']['ID'] for r in matches)
-        if any(versions[code].get('datePrecision') != 'current' for code in pair):
-            entry['reason'] = 'existing-dated-historical-geometry-protected'; report.append(entry); continue
         disputed = pair in protected_pairs or any(r['line'].intersects(disputed_geometry) for r in matches)
         reasons = [exclusion_reason(r['properties'], disputed) for r in matches]
         if any(reasons):

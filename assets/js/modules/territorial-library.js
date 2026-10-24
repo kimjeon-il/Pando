@@ -163,7 +163,7 @@ export function instantiateLibraryEntity(entity, referenceDate, geometryVersionI
     entityId: entity.entityId, geometryVersionId: version.versionId, entityKind: entity.entityKind,
     name: entity.names.ko || entity.names.en || Object.values(entity.names)[0], parentEntityId: entity.parentEntityId,
     geometry: structuredClone(version.geometry), validFrom: null, validTo: null,
-    metadata: {...structuredClone(entity.metadata), ...(version.historicalProvenance ? {historicalProvenance:structuredClone(version.historicalProvenance)} : {}), sourceInfo: structuredClone(entity.sourceInfo), sourceLifetime:structuredClone(entity.lifetime), sourceGeometryValidity:{validFrom:version.validFrom,validTo:version.validTo}, sourceReferenceDate:referenceDate, geometryCertainty: version.certainty, geometryDatePrecision: version.datePrecision},
+    metadata: {...structuredClone(entity.metadata), ...(version.historicalProvenance ? {historicalProvenance:structuredClone(version.historicalProvenance)} : {}), sourceInfo: structuredClone(entity.sourceInfo), sourceLifetime:structuredClone(entity.lifetime), sourceGeometryValidity:{validFrom:version.validFrom,validTo:version.validTo}, sourceReferenceDate:referenceDate, geometryCertainty: version.certainty},
     instantiation: structuredClone(version.instantiation || entity.instantiation),
   };
 }

@@ -98,7 +98,9 @@ def main() -> None:
         if sys.argv[1:] == ["--vg25"]:
             write_json(captured_path.name, collection)
         german = json.loads((ROOT / "assets/data/territorial-entities/source/countries/state-DEU.json").read_text(encoding="utf-8"))
-        german_version = next(version for version in german["geometryVersions"] if version["datePrecision"] == "current")
+        world_view = json.loads((ROOT / "assets/data/territorial-entities/source/views/world.json").read_text(encoding="utf-8"))
+        display_id = next(row["geometryVersionId"] for row in world_view["selections"] if row["entityId"] == german["entityId"])
+        german_version = next(version for version in german["geometryVersions"] if version["versionId"] == display_id and version["validTo"] is None)
         if "dos-lsib-11.4" not in german_version["sourceId"]:
             raise RuntimeError("Current German source does not contain the adopted LSIB boundary")
         write_json("adopted-german-lsib-exterior.geojson", {

@@ -28,11 +28,11 @@ export function drawGpuBaseScene(input, passes) {
 }
 
 function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
-  terrainVisible, terrainStyle, countriesVisible, mapSubstrate, countries, prepared },
+  terrainVisible, terrainStyle, countriesVisible, mapSubstrate, mapOcean, countries, prepared },
   { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, overrideTriangleDraw,
-    territoryItems, physicalLandItems = [], independentItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
+    territoryItems, physicalLandItems = [], physicalWaterItems = [], independentItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
       const overlayRenderedKeys = [];
       const overlayMissingKeys = [];
       const overlayFailures = [];
@@ -124,6 +124,10 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       resetGpuNormalBlend(gl);
         },
         'country-boundary': () => { countryStrokeResult = drawCountryBoundaryStrokes(); },
+        'physical-water': () => {
+          gl.disable(gl.STENCIL_TEST);
+          for(const item of physicalWaterItems)drawOverlay({...item,packet:{...item.packet,style:mapOcean}});
+        },
         'independent-overlay': () => {
       // Reserve base water and borders, then submit every independent visual
       // in scene order. Only fills are clipped by these protected pixels.
@@ -135,6 +139,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         gl.colorMask(false, false, false, false);
         for (const role of mapVisualOrder('hydro')) drawHydro(role);
+        for(const item of physicalWaterItems)drawOverlay(item);
         drawCountryBoundaryStrokes();
         gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);

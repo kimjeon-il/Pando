@@ -25,7 +25,7 @@ test('public Web viewer keeps source lifetime separate from selected country ava
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 120000 });
     await expect(page.locator('#timelinePopover')).toBeHidden();
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState().timelineCursor)).toBe(month);
-    expect(await lifetime()).toEqual(month==='2026-10'?{validFrom:'1830-10-04',validTo:null}:null);
+    expect(await lifetime()).toEqual({validFrom:'1830-10-04',validTo:null});
   }
   expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState().checkpoint)).toBe(before);
   expect(errors).toEqual([]);
