@@ -4,7 +4,7 @@ import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, st
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
-import { prepareLibraryData } from '../tools/library-data.mjs';
+import { decodeArchiveEntry, libraryCheckout, libraryConfig } from '../tools/library-data.mjs';
 import { collectViewerAssets } from './lib/product-assets.mjs';
 import { renderProductHtml } from './lib/product-html.mjs';
 import { buildWorkerAsset } from './lib/worker-assets.mjs';
@@ -18,11 +18,20 @@ const editorPath = resolve(projectRoot, 'apps/web-shell/editor.html');
 const readmePath = resolve(projectRoot, 'README.md');
 const checkOnly = process.argv.includes('--check');
 const pendingText = new Map();
-prepareLibraryData({ root: projectRoot });
+// A mounted runtime cache may contain another task's unarchived data edits.
+// Release identity belongs to the immutable data pin, without rewriting that cache.
+const library = libraryConfig(projectRoot), checkout = libraryCheckout(projectRoot);
+const libraryIndex = JSON.parse(execFileSync('git', ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0',
+  'show', `${library.revision}:archive/index.json`], { cwd: checkout, maxBuffer: 16 * 1024 * 1024 }));
+function readPinnedData(path) {
+  const entry = libraryIndex.files[path];
+  assert.ok(entry, `Missing pinned metadata input: ${path}`);
+  return decodeArchiveEntry(checkout, entry, library.revision);
+}
 // Metadata consumes the published land derivative; GIS generation has its own owner.
-const landManifest = JSON.parse(readFileSync(resolve(projectRoot, 'assets/data/physical-land/v1/manifest.json')));
+const landManifest = JSON.parse(readPinnedData('assets/data/physical-land/v1/manifest.json'));
 const physicalLandOutput = { manifest: landManifest };
-const terrainSource = JSON.parse(readFileSync(resolve(projectRoot, 'assets/data/terrain-preview/v0.13.3-p1/manifest.json')));
+const terrainSource = JSON.parse(readPinnedData('assets/data/terrain-preview/v0.13.3-p1/manifest.json'));
 assert.equal(landManifest.sourceSha256, terrainSource.sourceDem.landMaskSha256, 'Physical land must use the pinned terrain mask source.');
 function publishText(path, source) {
   if (checkOnly) assert.equal(readFileSync(path, 'utf8').replaceAll('\r\n', '\n'), source.replaceAll('\r\n', '\n'), `Stale build metadata output: ${path}`);
@@ -109,8 +118,7 @@ function stableJson(value) {
 function buildDataRevision() {
   const digest = createHash('sha256');
   for (const relativePath of DATA_MANIFEST_PATHS) {
-    const absolutePath = resolve(projectRoot, relativePath);
-    const source = readFileSync(absolutePath, 'utf8');
+    const source = readPinnedData(relativePath).toString('utf8');
     let value;
     try {
       value = JSON.parse(source);
@@ -126,14 +134,14 @@ function buildDataRevision() {
 }
 
 const dataRevision = buildDataRevision();
-const indexBytes = readFileSync(resolve(projectRoot, 'assets/data/territorial-entities/generated/v2/index.json'));
+const indexBytes = readPinnedData('assets/data/territorial-entities/generated/v2/index.json');
 const territorialIndex = { encoding: 'identity', compressedBytes: indexBytes.length, decodedBytes: indexBytes.length,
   sha256: createHash('sha256').update(indexBytes).digest('hex') };
-const historicalBytes = readFileSync(resolve(projectRoot, 'assets/data/builtin-world/generated/v1/index.json'));
+const historicalBytes = readPinnedData('assets/data/builtin-world/generated/v1/index.json');
 const builtinWorld = { url: 'assets/data/builtin-world/generated/v1/index.json', encoding: 'identity',
   compressedBytes: historicalBytes.length, decodedBytes: historicalBytes.length,
   sha256: createHash('sha256').update(historicalBytes).digest('hex') };
-const preparedPolygonBytes = readFileSync(resolve(projectRoot, 'assets/data/prepared-polygons/generated/v2/manifest.json'));
+const preparedPolygonBytes = readPinnedData('assets/data/prepared-polygons/generated/v2/manifest.json');
 const preparedPolygonMeshes = { url: 'assets/data/prepared-polygons/generated/v2/manifest.json', encoding: 'identity',
   compressedBytes: preparedPolygonBytes.length, decodedBytes: preparedPolygonBytes.length,
   sha256: createHash('sha256').update(preparedPolygonBytes).digest('hex'),
