@@ -245,7 +245,9 @@ export function createImportService({
       return { status: 'planned', plan: buildPlan('territorial', result, context) };
     }
     const importedFeatures = result.collection?.features || [];
-    const structuredIssues = importedFeatures.flatMap(validateStructuredGeometry);
+    const structuredIssues = importedFeatures
+      .filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type))
+      .flatMap(validateStructuredGeometry);
     if (structuredIssues.length) throw new Error(`가져온 geometry가 올바르지 않습니다. ${structuredIssues[0].message}`);
     const kind = resolvedTarget === EXCHANGE_TARGETS.DISTRIBUTION ? 'distribution' : 'generic';
     return { status: 'planned', plan: buildPlan(kind, result, context) };
