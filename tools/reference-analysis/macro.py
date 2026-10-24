@@ -165,20 +165,31 @@ def image_bytes(array, format):
     return buffer.getvalue()
 
 
-def prepare(source, root, maximum_dimension=2560):
+def prepare(source, root, maximum_dimension=2560, metadata_path=None):
     root, source = pathlib.Path(root).resolve(), pathlib.Path(source).resolve()
     if not source.is_relative_to(root) or source.suffix != '.pdf':
         raise ValueError('Contained macro source PDF required')
-    metadata_path = source.with_suffix('.source.json')
+    original_metadata_path = source.with_suffix('.source.json')
+    metadata_path = pathlib.Path(metadata_path or original_metadata_path).resolve()
+    if not metadata_path.is_relative_to(root):
+        raise ValueError('Contained source metadata required')
     metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+    original = json.loads(original_metadata_path.read_text(encoding='utf-8'))
+    if metadata_path != original_metadata_path:
+        immutable = lambda value: {key: item for key, item in value.items() if key not in {'id', 'supervision'}}
+        if immutable(metadata) != immutable(original) or metadata['id'] == original['id']:
+            raise ValueError('Alternate supervision must preserve original identity with a distinct id')
     if metadata['sha256'] != digest(source.read_bytes()) or not re.fullmatch('[a-z0-9-]+', metadata['id']):
         raise ValueError('Pinned source identity required')
     image, masks, valid, credits = derive(source, metadata, maximum_dimension)
     key = metadata['id']
-    files = {f'derived/{key}.jpg': image_bytes(image, 'JPEG'), f'derived/{key}.mask.png': image_bytes(masks, 'PNG'),
-             f'derived/{key}.valid.png': image_bytes(valid, 'PNG'), f'notices/{key}.txt': (metadata['url']+'\n'+metadata['license']+'\n'+credits).encode()}
+    image_key = original['id']
+    if not re.fullmatch('[a-z0-9-]+', image_key):
+        raise ValueError('Pinned source identity required')
+    files = {f'derived/{image_key}.jpg': image_bytes(image, 'JPEG'), f'derived/{key}.mask.png': image_bytes(masks, 'PNG'),
+             f'derived/{key}.valid.png': image_bytes(valid, 'PNG'), f'notices/{image_key}.txt': (metadata['url']+'\n'+metadata['license']+'\n'+credits).encode()}
     sheet = dict(id=key, familyId=metadata['familyId'], editionId=metadata['editionId'], duplicateGroup=metadata['duplicateGroup'],
-                 split='train', image=f'derived/{key}.jpg', sha256=digest(files[f'derived/{key}.jpg']), annotations=f'labels/{key}.json',
+                 split='train', image=f'derived/{image_key}.jpg', sha256=digest(files[f'derived/{image_key}.jpg']), annotations=f'labels/{key}.json',
                  mapKind=metadata['mapKind'], language=metadata['language'], script=metadata['script'],
                  geographicScope=metadata['geographicScope'], scopeEvidence=metadata['scopeEvidence'],
                  source={name: metadata.get(name) for name in ['url', 'metadataUrl', 'license', 'rightsUrl', 'published']})
@@ -217,7 +228,7 @@ def prepare(source, root, maximum_dimension=2560):
     return sheet
 
 
-def prepare_corpus(sources, maximum_dimension=2560, manifest_name='corpus.training.json'):
+def prepare_corpus(sources, maximum_dimension=2560, manifest_name='corpus.training.json', *, metadata_directory=None):
     if (not isinstance(manifest_name, str) or '..' in manifest_name
             or not re.fullmatch('[a-z0-9][a-z0-9.-]*\\.json', manifest_name)):
         raise ValueError('Safe single macro manifest filename required')
@@ -229,7 +240,15 @@ def prepare_corpus(sources, maximum_dimension=2560, manifest_name='corpus.traini
     if target.is_symlink() or target.resolve().parent != root:
         raise ValueError('Safe single macro manifest filename required')
     originals = [path for path in sorted(sources.glob('*.pdf')) if path.with_suffix('.source.json').is_file()]
-    sheets = [prepare(path, root, maximum_dimension) for path in originals]
+    alternate = {}
+    if metadata_directory is not None:
+        directory = pathlib.Path(metadata_directory).resolve()
+        if not directory.is_relative_to(root) or directory == sources or not directory.is_dir():
+            raise ValueError('Contained metadata directory distinct from original sources required')
+        alternate = {path.name: path for path in directory.glob('*.source.json')}
+        if not alternate or set(alternate) - {path.with_suffix('.source.json').name for path in originals}:
+            raise ValueError('Unmatched or empty alternate source metadata')
+    sheets = [prepare(path, root, maximum_dimension, alternate.get(path.with_suffix('.source.json').name)) for path in originals]
     if not sheets:
         raise ValueError('Verified macro sources required')
     value = dict(schemaVersion=1, trainingOnly=True, sheets=sheets)
@@ -255,7 +274,8 @@ if __name__ == '__main__':
     parser.add_argument('--sources', type=pathlib.Path, required=True)
     parser.add_argument('--maximum-dimension', type=int, default=2560)
     parser.add_argument('--manifest-name', default='corpus.training.json')
+    parser.add_argument('--metadata-directory', type=pathlib.Path, help='Contained alternate supervision metadata; originals are preserved')
     args = parser.parse_args()
-    target = prepare_corpus(args.sources, args.maximum_dimension, args.manifest_name)
+    target = prepare_corpus(args.sources, args.maximum_dimension, args.manifest_name, metadata_directory=args.metadata_directory)
     value = json.loads(target.read_text(encoding='utf-8'))
     print(json.dumps(dict(manifest=str(target), maps=len(value['sheets']), focus='macro-only')))

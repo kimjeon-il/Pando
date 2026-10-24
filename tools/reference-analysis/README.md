@@ -313,3 +313,16 @@ existing different manifest or changed raster/annotation is never overwritten.
 Recorded generator hashes remain immutable provenance when source recomputation
 confirms that all supervision is unchanged. Current selection/CLI edits do not
 invalidate unchanged source labels.
+
+For a supervision revision, place alternate full `.source.json` records in a
+contained directory such as `recipes/seams-r4/` and pass
+`--metadata-directory "$macroCorpus/recipes/seams-r4"` with a new
+`--manifest-name corpus.seams.training.json`. Names must match original metadata
+filenames. Only `id` (which must be distinct) and `supervision` may change;
+original group, publisher, rights, source hash and all other fields remain fixed.
+The importer reuses the original PDF, JPEG and notices and writes separate
+hash-bound masks/annotation. Original metadata, manifests and checkpoints remain
+immutable. This changes training labels, not the count of independent maps.
+Wider palette adjacency is still weak supervision and can join narrow water
+gaps. Inspect targets and compare both checkpoints against the same revised
+targets; scores measured against different masks are not comparable.
