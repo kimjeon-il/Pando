@@ -6,6 +6,7 @@ on:
     paths:
       - tools/inventory-osm-hydronyms.py
       - tools/gis/compare_osm_hydro_natural_earth.py
+      - tools/gis/check_official_usgs_hydro_gauges.py
       - tools/gis/hydro_independent_name_policy.py
       - tools/gis/hydro-independent-name-replacements.json
       - tools/gis/prepare_hydro_name_replacement_bundle.py
@@ -62,6 +63,11 @@ jobs:
             --expected-sha256 "$(python -c "import json; m=json.load(open('assets/data/hydro/v0.13.2/manifest.json')); print(next(x['sha256'] for x in m['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson'))")" \
             --inventory /tmp/osm-hydro-inventory.json \
             --output /tmp/osm-ne-crosscheck.json
+      - name: Independently check suspect Texas streams against USGS field stations
+        run: |
+          python tools/gis/check_official_usgs_hydro_gauges.py \
+            --decoded /tmp/hydro-decoded.json \
+            --output /tmp/usgs-official-anchor-check.json
       - name: Verify independently researched river-name records
         run: |
           python -m unittest discover -s tests -p 'test_hydro_independent_names.py' -v
@@ -100,6 +106,7 @@ jobs:
           path: |
             /tmp/osm-hydro-inventory.json
             /tmp/osm-ne-crosscheck.json
+            /tmp/usgs-official-anchor-check.json
             /tmp/hydro-independent-five/manifest.json
             /tmp/hydro-independent-five/hydro.bin
             /tmp/hydro-independent-five/proof.json
