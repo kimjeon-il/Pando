@@ -10,11 +10,46 @@ import pymupdf
 from PIL import Image
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / 'tools/reference-analysis'))
-from macro import fill_adjacency_supervision, stroke_matches, prepare, prepare_corpus
+from macro import fill_adjacency_supervision, stroke_matches, prepare, prepare_corpus, derive
 from corpus import validate_corpus
 
 
 class MacroSupervisionTests(unittest.TestCase):
+    def test_rotated_pdf_aligns_visible_strokes_and_text_without_changing_source(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            metadata = dict(geographicScope='country', scopeEvidence='fixture only',
+                            materialKind='published-macro-pdf', rightsReviewed=True,
+                            license='fixture only; never training data', supervision=dict(
+                                strategy='boundary-stroke-signatures', channels=dict(administrative=[
+                                    dict(color=[0., 0., 0.], width=2., dashes=[])])))
+            with pymupdf.open() as doc:
+                page = doc.new_page(width=160, height=100)
+                page.draw_line((40, 12), (40, 88), color=(0, 0, 0), width=2)
+                page.insert_text((25, 51), 'Town', fontsize=13)
+                base = root / 'base.pdf'
+                doc.save(base)
+            image, target, valid, _ = derive(base, metadata, 160)
+            self.assertTrue((target & 2).any())
+            self.assertFalse(valid[42:50, 38:42].all(), 'Glyphs must exclude supervision')
+            for rotation in (90, 180, 270):
+                with self.subTest(rotation=rotation):
+                    path = root / f'rotation-{rotation}.pdf'
+                    with pymupdf.open(base) as doc:
+                        doc[0].set_rotation(rotation)
+                        doc.save(path)
+                    original = path.read_bytes()
+                    actual = derive(path, metadata, 160)
+                    for expected, received in zip((image, target, valid), actual[:3]):
+                        np.testing.assert_array_equal(received, np.rot90(expected, -rotation // 90))
+                    excluded = derive(path, {**metadata, 'excludedRegionsNormalized': [[0, 0, 1, .125]]}, 160)
+                    edge = int(np.ceil(excluded[1].shape[0] / 8))
+                    self.assertFalse(excluded[1][:edge].any())
+                    self.assertFalse(excluded[2][:edge].any())
+                    np.testing.assert_array_equal(excluded[1][edge:], actual[1][edge:])
+                    np.testing.assert_array_equal(excluded[2][edge:], actual[2][edge:])
+                    self.assertEqual(path.read_bytes(), original)
+
     def test_alternate_metadata_reuses_source_image_and_keeps_original_evidence(self):
         with tempfile.TemporaryDirectory() as folder:
             root = pathlib.Path(folder)
