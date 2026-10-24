@@ -133,7 +133,46 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             and 0 <= partial["strongestOtherNENameCoverage"] <= 0.05
             and isinstance(partial.get("reason"), str) and len(partial["reason"]) >= 100
         )
-        if not any((natural_earth_valid, station_valid, conservative_valid, confluence_valid, rename_valid, partial_valid)):
+        # Official named state-supplied river vector is an independent way to
+        # verify basins missing from Natural Earth's named line reference.
+        # Geometry is compared offline and never copied into runtime assets.
+        gov_vector = item.get("officialGovernmentVectorEvidence")
+        gov_vector_valid = (
+            isinstance(gov_vector, dict)
+            and gov_vector.get("method") == "official-government-polyline-confirmation"
+            and item.get("previousNameKo") == korean_name
+            and isinstance(gov_vector.get("namedFeature"), str)
+            and bool(gov_vector["namedFeature"])
+            and isinstance(gov_vector.get("referenceLayer"), str)
+            and gov_vector["referenceLayer"].startswith("https://")
+            and isinstance(gov_vector.get("sourceGeoJSONSha256"), str)
+            and bool(re.fullmatch(r"[0-9a-f]{64}", gov_vector["sourceGeoJSONSha256"]))
+            and isinstance(gov_vector.get("hydroMainstemSamples"), int)
+            and gov_vector["hydroMainstemSamples"] >= 100
+            and isinstance(gov_vector.get("within1kmHydroToGovernment"), (float,int))
+            and 0.95 <= gov_vector["within1kmHydroToGovernment"] <= 1
+            and isinstance(gov_vector.get("within1kmGovernmentToHydro"), (float,int))
+            and 0.85 <= gov_vector["within1kmGovernmentToHydro"] <= 1
+            and isinstance(gov_vector.get("p90DistanceKm"), (float,int))
+            and 0 <= gov_vector["p90DistanceKm"] <= 0.75
+        )
+        # Cross-border rivers often have substantial name-free gaps in the
+        # simplified Natural Earth network. Retain the existing name only
+        # after two adjacent states have independently identified it.
+        cross_border = item.get("crossBorderNameReview")
+        cross_border_valid = (
+            isinstance(cross_border, dict)
+            and cross_border.get("method") == "bulgarian-greek-institutional-mainstem-confirmation"
+            and item.get("previousNameKo") == korean_name
+            and isinstance(geom, dict) and bool(geom.get("name"))
+            and isinstance(coverage, (float,int)) and 0.35 <= coverage < 0.45
+            and isinstance(cross_border.get("strongestOtherNENameCoverage"), (float,int))
+            and 0 <= cross_border["strongestOtherNENameCoverage"] <= 0.05
+            and isinstance(cross_border.get("reason"), str)
+            and len(cross_border["reason"]) >= 160
+        )
+        if not any((natural_earth_valid, station_valid, conservative_valid, confluence_valid,
+                    rename_valid, partial_valid, gov_vector_valid, cross_border_valid)):
             raise ValueError(f"Missing independent mainstem evidence for system {system_id}")
         evidence = item.get("independentSources")
         if not isinstance(evidence, list) or len(evidence) < 2:
@@ -166,9 +205,15 @@ def load_independent_hydronyms(path: Path) -> dict[str, dict[str, Any]]:
             and bool(kinds & {"government-river-monitoring", "government-river-atlas"})
         ):
             raise ValueError(f"Two official, name-specific institutional references needed for partial mainstem {system_id}")
-        if not independent_vector and not independent_gauges:
+        official_vector_sources = {"government-river-vector", "government-river-authority", "government-open-data-license"}
+        if gov_vector_valid and not official_vector_sources <= kinds:
+            raise ValueError(f"Government vector, authority and license missing for {system_id}")
+        if cross_border_valid and not {"public-domain-vector", "government-hydrology", "government-crossborder-hydrology", "international-crossborder-programme"} <= kinds:
+            raise ValueError(f"Two adjacent governments and separate regional source required for {system_id}")
+        if not independent_vector and not independent_gauges and not gov_vector_valid:
             raise ValueError(f"Independent geodata and named hydrology evidence required for {system_id}")
-        if not any((natural_earth_valid, independent_gauges, conservative_valid, confluence_valid, rename_valid, partial_valid)):
+        if not any((natural_earth_valid, independent_gauges, conservative_valid, confluence_valid,
+                    rename_valid, partial_valid, gov_vector_valid, cross_border_valid)):
             raise ValueError(f"Missing verified independent mainstem corroboration for {system_id}")
         verified[system_id] = item
     return verified

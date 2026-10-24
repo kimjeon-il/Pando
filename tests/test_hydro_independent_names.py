@@ -18,7 +18,7 @@ PATH = ROOT / "tools/gis/hydro-independent-name-replacements.json"
 class IndependentHydronymReviewTests(unittest.TestCase):
     def test_replacements_include_gauge_verified_brazos_and_texas_colorado(self):
         rows = load_independent_hydronyms(PATH)
-        self.assertEqual(len(rows), 40)
+        self.assertEqual(len(rows), 42)
         self.assertEqual(set(rows), {
             "20282220", "20323928", "20342955", "20457454",
             "20478829", "20673409", "20680587", "40485117",
@@ -30,7 +30,7 @@ class IndependentHydronymReviewTests(unittest.TestCase):
             "40190238", "40613666",
             "20081953", "20446779", "20498112", "70617856",
             "10047863", "20244836", "40017702", "70814357", "20265844",
-            "20386022", "40279876",
+            "20386022", "40279876", "20597827", "50798885",
         })
         renamed = {key: value["nameKo"] for key, value in rows.items()
                    if value["previousNameKo"] != value["nameKo"]}
@@ -70,6 +70,10 @@ class IndependentHydronymReviewTests(unittest.TestCase):
         self.assertEqual(rows["40017702"]["tributaryNames"], ["우수리강"])
         self.assertIn("백나일강", rows["10047863"]["tributaryNames"])
         self.assertNotIn("메콩강", rows["20498112"]["tributaryNames"])
+        self.assertEqual(rows["50798885"]["nameKo"], "야라강")
+        self.assertEqual(rows["50798885"]["officialGovernmentVectorEvidence"]["within1kmHydroToGovernment"], 0.9876)
+        self.assertEqual(rows["20597827"]["crossBorderNameReview"]["strongestOtherNENameCoverage"], 0)
+        self.assertEqual(rows["20597827"]["tributaryNames"], ["툰자강"])
         for ident in ("20081953", "20446779", "20498112", "70617856"):
             self.assertEqual(rows[ident]["nameKo"], rows[ident]["previousNameKo"])
             self.assertIn("basinConfluenceReview", rows[ident])
@@ -199,6 +203,29 @@ class IndependentHydronymReviewTests(unittest.TestCase):
                 output.write_text(json.dumps(obj), encoding="utf-8")
                 with self.assertRaises(ValueError):
                     load_independent_hydronyms(output)
+
+    def test_official_state_vector_and_cross_border_guards(self):
+        original = json.loads(PATH.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as directory:
+            tmp = Path(directory) / "invalid-official-source.json"
+            for mutation in ("weak-vector", "bad-vector-hash", "missing-vector-license", "wrong-border-name", "unrelated-river", "missing-greek-authority"):
+                item = copy.deepcopy(original)
+                by_id = {row["systemId"]: row for row in item["replacements"]}
+                if mutation == "weak-vector":
+                    by_id["50798885"]["officialGovernmentVectorEvidence"]["within1kmHydroToGovernment"] = 0.12
+                elif mutation == "bad-vector-hash":
+                    by_id["50798885"]["officialGovernmentVectorEvidence"]["sourceGeoJSONSha256"] = "x"*64
+                elif mutation == "missing-vector-license":
+                    by_id["50798885"]["independentSources"] = by_id["50798885"]["independentSources"][:2]
+                elif mutation == "wrong-border-name":
+                    by_id["20597827"]["nameKo"] = "오데르강"
+                elif mutation == "unrelated-river":
+                    by_id["20597827"]["crossBorderNameReview"]["strongestOtherNENameCoverage"] = 0.5
+                else:
+                    by_id["20597827"]["independentSources"] = [z for z in by_id["20597827"]["independentSources"] if z["kind"] != "government-crossborder-hydrology"]
+                tmp.write_text(json.dumps(item), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_independent_hydronyms(tmp)
 
     def test_old_osm_only_basins_are_not_assigned_names_in_bulk(self):
         rows = load_independent_hydronyms(PATH)
