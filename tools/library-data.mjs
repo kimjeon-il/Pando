@@ -7,7 +7,7 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 
 export const defaultRoot = fileURLToPath(new URL('../', import.meta.url));
 const gitOptions = ['-c', 'core.fsync=none', '-c', 'core.fsyncObjectFiles=false', '-c', 'maintenance.auto=false', '-c', 'gc.auto=0'];
-const git = (root, args) => execFileSync('git', [...gitOptions, ...args], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+const git = (root, args) => execFileSync('git', [...gitOptions, ...args], { cwd: root, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' }, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
 export function libraryConfig(root = defaultRoot) {
   const config = JSON.parse(readFileSync(resolve(root, 'config/library-data.json'), 'utf8'));
   if (!/^[\w-]+\/[\w.-]+$/.test(config.repository) || !/^[a-f0-9]{40}$/.test(config.revision)) throw Error('Invalid pinned library configuration');
@@ -34,6 +34,9 @@ export function libraryReportRoot(root = defaultRoot) {
 // Restore only the requested original. Existing files, including unfinished
 // evidence, belong to the caller and are never overwritten by hydration.
 export function hydrateReports({ root = defaultRoot, path } = {}) {
+  return withLibraryLock(root, () => hydrateOwnedReports({ root, path }));
+}
+function hydrateOwnedReports({ root, path }) {
   const reportRoot = libraryReportRoot(root);
   safeChild(reportRoot, path);
   const checkout = libraryCheckout(root), registry = resolve(checkout, '.working/report-owner.json');
@@ -138,8 +141,123 @@ function withLibraryLock(root, operation) {
   let lock;
   try { lock = openSync(lockPath, 'wx'); }
   catch (error) { throw Error('Library preparation is already running; preserve its outputs and retry after it finishes.', { cause: error }); }
-  try { return operation(); }
+  try { writeFileSync(lock, JSON.stringify({ pid: process.pid, root })); return withCheckoutLock(libraryCheckout(root), operation); }
   finally { closeSync(lock); unlinkSync(lockPath); }
+}
+function withCheckoutLock(checkout, operation) {
+  if (!existsSync(resolve(checkout, '.git'))) return operation();
+  const common = resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir']));
+  const path = resolve(common, 'pando-library.lock');
+  let handle;
+  try { handle = openSync(path, 'wx'); }
+  catch (error) { throw Error('Library storage is already running in another worktree; retry after it finishes.', { cause: error }); }
+  try { writeFileSync(handle, JSON.stringify({ pid: process.pid, checkout })); return operation(); }
+  finally { closeSync(handle); unlinkSync(path); }
+}
+
+const sparseMetadata = ['/*', '!/*/', '/archive/', '!/archive/*', '/archive/index.json'];
+function setMetadataCheckout(checkout) {
+  execFileSync('git', [...gitOptions, 'sparse-checkout', 'set', '--no-cone', '--stdin'], {
+    cwd: checkout, input: sparseMetadata.join('\n') + '\n', stdio: ['pipe', 'pipe', 'pipe'],
+  });
+}
+function plainChild(checkout, path, checkedDirectories = new Map()) {
+  const output = safeChild(checkout, path);
+  for (let current = dirname(output); current !== checkout; current = dirname(current)) {
+    if (checkedDirectories.get(current) === false) return null;
+    if (checkedDirectories.get(current) === true) break;
+    let stamp;
+    try { stamp = lstatSync(current); } catch (error) { if (error.code === 'ENOENT') { checkedDirectories.set(current, false); return null; } throw error; }
+    if (stamp.isSymbolicLink()) throw Error(`Linked checkout path must be preserved: ${path}`);
+    checkedDirectories.set(current, true);
+  }
+  return output;
+}
+// Evict working copies only: shared Git objects, refs, and report originals stay.
+// Read every candidate object offline and compare raw bytes, bounded per batch.
+export function compactLibraryCheckout({ checkout, apply = false } = {}) {
+  checkout = realpathSync(checkout);
+  if (!apply) {
+    const common = resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir']));
+    if (existsSync(resolve(common, 'pando-library.lock'))) throw Error('Library storage is already running.');
+    return compactOwnedCheckout(checkout, false);
+  }
+  return withCheckoutLock(checkout, () => compactOwnedCheckout(checkout, apply));
+}
+function compactOwnedCheckout(checkout, apply) {
+  const result = { checkout, status: 'protected', eligibleBytes: 0, deletedBytes: 0, files: 0 };
+  if (git(checkout, ['status', '--porcelain'])) return { ...result, reason: 'Checkout has local edits or untracked work.' };
+  const head = git(checkout, ['rev-parse', 'HEAD']);
+  const tree = git(checkout, ['ls-tree', '-rz', 'HEAD']).split('\0').filter(Boolean).map(line => {
+    const match = /^(\d+) blob ([a-f0-9]+)\t([\s\S]+)$/.exec(line);
+    if (!match) throw Error('Unsupported or unavailable archive tree entry; preserve checkout.');
+    return { mode: match[1], oid: match[2], path: match[3] };
+  });
+  const excluded = tree.filter(item => item.path.includes('/') && item.path !== 'archive/index.json');
+  const parents = [...new Set(excluded.map(item => item.path.split('/')[0]))];
+  const unknown = parents.length ? git(checkout, ['ls-files', '--others', '-z', '--', ...parents]) : '';
+  if (unknown) return { ...result, reason: 'Excluded directories contain untracked or ignored files.' };
+  const checkedDirectories = new Map();
+  const candidates = excluded.filter(item => {
+    const path = plainChild(checkout, item.path, checkedDirectories);
+    if (!path) return false;
+    let stamp;
+    try { stamp = lstatSync(path); } catch (error) { if (error.code === 'ENOENT') return false; throw error; }
+    if (!/^100[0-7]{3}$/.test(item.mode) || !stamp.isFile()) throw Error(`Unsupported checkout file: ${item.path}`);
+    item.bytes = stamp.size;
+    return true;
+  });
+  const verified = [];
+  for (let offset = 0; offset < candidates.length;) {
+    const batch = []; let size = 0;
+    do { const item = candidates[offset++]; batch.push(item); size += item.bytes; }
+    while (offset < candidates.length && size + candidates[offset].bytes < 16 * 1024 * 1024);
+    const packed = execFileSync('git', [...gitOptions, 'cat-file', '--batch'], {
+      cwd: checkout, env: { ...process.env, GIT_NO_LAZY_FETCH: '1' },
+      input: batch.map(item => item.oid).join('\n') + '\n', maxBuffer: size + batch.length * 128 + 1024,
+    });
+    let cursor = 0;
+    for (const item of batch) {
+      const end = packed.indexOf(10, cursor), header = packed.subarray(cursor, end).toString();
+      if (header !== `${item.oid} blob ${item.bytes}`) throw Error(`Offline archive object unavailable: ${item.path}`);
+      const archived = packed.subarray(end + 1, end + 1 + item.bytes);
+      const algorithm = item.oid.length === 64 ? 'sha256' : 'sha1';
+      if (createHash(algorithm).update(`blob ${item.bytes}\0`).update(archived).digest('hex') !== item.oid) throw Error(`Corrupt Git archive object: ${item.path}`);
+      const path = plainChild(checkout, item.path, checkedDirectories), stamp = lstatSync(path);
+      if (!stamp.isFile() || stamp.isSymbolicLink()) throw Error(`Linked checkout file: ${item.path}`);
+      if (!readFileSync(path).equals(archived)) return { ...result, reason: `Modified raw checkout bytes: ${item.path}` };
+      verified.push({ ...item, stamp });
+      cursor = end + 1 + item.bytes + 1;
+    }
+  }
+  result.eligibleBytes = verified.reduce((sum, item) => sum + item.bytes, 0);
+  result.files = verified.length;
+  result.status = 'verified-unused';
+  if (!apply) return result;
+  if (git(checkout, ['rev-parse', 'HEAD']) !== head || git(checkout, ['status', '--porcelain'])) throw Error('Checkout changed during compaction review.');
+  if (parents.length && git(checkout, ['ls-files', '--others', '-z', '--', ...parents])) throw Error('Untracked files appeared during compaction review.');
+  checkedDirectories.clear();
+  for (const item of verified) {
+    const stamp = lstatSync(plainChild(checkout, item.path, checkedDirectories));
+    if (!stamp.isFile() || stamp.isSymbolicLink()) throw Error(`Linked checkout file: ${item.path}`);
+    if (stamp.size !== item.stamp.size || stamp.mtimeMs !== item.stamp.mtimeMs || stamp.ctimeMs !== item.stamp.ctimeMs) throw Error('Checkout file changed during review.');
+  }
+  git(checkout, ['update-index', '--refresh']);
+  setMetadataCheckout(checkout);
+  result.deletedBytes = verified.filter(item => !existsSync(resolve(checkout, item.path))).reduce((sum, item) => sum + item.bytes, 0);
+  if (verified.some(item => existsSync(resolve(checkout, item.path)))) throw Error('Verified checkout copies remain after sparse checkout.');
+  // Keep the canonical storage pathspecs usable by the permanent worktrees.
+  // Empty directories cost no payload copies and cannot stage sparse deletions.
+  for (const path of ['assets', 'assets/data', 'objects', 'reports']) {
+    const output = safeChild(checkout, path);
+    if (existsSync(output)) {
+      const stamp = lstatSync(output);
+      if (!stamp.isDirectory() || stamp.isSymbolicLink()) throw Error(`Unexpected library directory: ${path}`);
+    } else mkdirSync(output);
+  }
+  if (git(checkout, ['status', '--porcelain']) || git(checkout, ['rev-parse', 'HEAD']) !== head) throw Error('Unexpected checkout state after compaction.');
+  result.status = 'compacted';
+  return result;
 }
 function prepareOwnedLibraryData({ root, fetch }) {
   root = resolve(root); const checkout = libraryCheckout(root);
@@ -149,8 +267,7 @@ function prepareOwnedLibraryData({ root, fetch }) {
     mkdirSync(dirname(checkout), { recursive: true });
     execFileSync('git', [...gitOptions, '-c', 'core.autocrlf=false', 'clone', '--filter=blob:none', '--no-checkout', `https://github.com/${config.repository}.git`, checkout], { stdio: 'inherit' });
     git(checkout, ['config', 'core.autocrlf', 'false']);
-    git(checkout, ['sparse-checkout', 'init', '--cone']);
-    git(checkout, ['sparse-checkout', 'set', 'assets/data', 'archive', 'objects', 'reports']);
+    setMetadataCheckout(checkout);
     // A no-checkout clone has no working snapshot yet, not user deletions.
     git(checkout, ['fetch', '--filter=blob:none', 'origin', config.revision]);
     git(checkout, ['checkout', '--detach', config.revision]);
@@ -229,7 +346,8 @@ function prepareOwnedLibraryData({ root, fetch }) {
     symlinkSync(target, output, process.platform === 'win32' ? 'junction' : 'dir');
   }
   retireOwnedCaches(root, materialized);
-  return { repository: config.repository, revision: config.revision, checkout, materialized, files: index.files };
+  const compaction = compactOwnedCheckout(checkout, true);
+  return { repository: config.repository, revision: config.revision, checkout, materialized, files: index.files, compaction };
 }
 
 // App-owned writers store their output here; the data repository runs no tools.
@@ -251,6 +369,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths }) {
   const index = JSON.parse(readFileSync(indexPath, 'utf8'));
   const runtimeDirectories = new Set(Object.entries(index.files).filter(([path, entry]) => path.startsWith('assets/data/') && path === entry.stored).map(([path]) => dirname(path)));
   const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+  const changed = new Set();
   const put = (path, bytes) => {
     const output = safeChild(data.checkout, path);
     mkdirSync(dirname(output), { recursive: true });
@@ -258,6 +377,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths }) {
     const temporary = output + `.${process.pid}.pending`;
     writeFileSync(temporary, bytes);
     renameSync(temporary, output);
+    changed.add(path);
   };
   const store = (path, bytes) => {
     const sha256 = digest(bytes);
@@ -298,7 +418,11 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths }) {
     if (path.startsWith('reports/') && !removed.has(path)) continue;
     if (!included(path) || !(path.startsWith('reports/') || managedMounts.some(mount => path.startsWith(mount + '/'))) || seen.has(path)) continue;
     delete index.files[path];
-    if ((entry.stored === path || path.startsWith('reports/')) && existsSync(safeChild(data.checkout, path))) unlinkSync(safeChild(data.checkout, path));
+    if (entry.stored === path || path.startsWith('reports/')) {
+      if (existsSync(safeChild(data.checkout, path))) unlinkSync(safeChild(data.checkout, path));
+      // A sparse path may have no physical copy but still needs index removal.
+      if (git(data.checkout, ['ls-files', '--', path])) git(data.checkout, ['update-index', '--force-remove', '--', path]);
+    }
   }
   // The existing native source schema remains the only editable library format.
   if (storeNativeObjects) {
@@ -313,12 +437,16 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths }) {
   }
   index.sourceRevision = git(root, ['rev-parse', 'HEAD']);
   put('archive/index.json', Buffer.from(JSON.stringify(index) + '\n'));
-  git(data.checkout, ['add', '--sparse', '--', 'archive', 'assets/data', 'objects', 'library.json', 'reports']);
+  if (changed.size) execFileSync('git', [...gitOptions, '--literal-pathspecs', 'add', '--sparse', '--pathspec-from-file=-', '--pathspec-file-nul'], {
+    cwd: data.checkout, input: [...changed].join('\0') + '\0', stdio: ['pipe', 'pipe', 'pipe'],
+  });
   if (git(data.checkout, ['diff', '--cached', '--name-only'])) git(data.checkout, ['-c', 'user.name=Pando library publisher', '-c', 'user.email=library-publisher@users.noreply.github.com', 'commit', '-m', `Store app-produced library material from ${index.sourceRevision}`]);
   const revision = git(data.checkout, ['rev-parse', 'HEAD']);
   const registry = resolve(data.checkout, '.working/report-owner.json');
   const owner = JSON.parse(readFileSync(registry, 'utf8')); owner.revision = revision;
   writeFileSync(registry, JSON.stringify(owner));
+  const compaction = compactOwnedCheckout(data.checkout, true);
+  if (compaction.status !== 'compacted') throw Error(`Stored library checkout could not be compacted: ${compaction.reason}`);
   if (push) {
     const token = process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
     const env = token ? { ...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from('x-access-token:' + token).toString('base64')}` } : process.env;
@@ -332,6 +460,9 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths }) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (process.argv[2] === '--report-root') {
+    console.log(libraryReportRoot(process.argv[3] || defaultRoot));
+  } else {
   const prefixes = process.argv.filter(arg => arg.startsWith('--include-prefix=')).map(arg => arg.slice('--include-prefix='.length));
   const separator = process.argv.indexOf('--');
   const selected = separator < 0 ? [] : process.argv.slice(separator + 1).filter(path => !path.startsWith('-'));
@@ -354,4 +485,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     git(root, ['add', '--', 'config/library-data.json', ...paths]);
   } else if (process.argv.includes('--store')) console.log(`Library stored: ${storeLibraryData(storeOptions)}`);
   else { const result = prepareLibraryData(); console.log(`Library mounted: ${result.repository}@${result.revision}`); }
+  }
 }
