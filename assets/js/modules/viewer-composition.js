@@ -101,13 +101,15 @@ export async function composeViewer({ productMode, meta }) {
     if(!await projectDomain.open(reader,options))return;
     if(request!==projectDomain.getOpenRevision())return;
     const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
-    const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),'globe');
-    map.viewState.projection=initial.projection;map.viewState.view=initial.view;
-    let workspace=null;
-    try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
-    if(request!==projectDomain.getOpenRevision())return;
-    map.projectSession.restoreViewingPresentation(workspace);
     if(preserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:preserved});
+    else {
+      const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),'globe');
+      map.viewState.projection=initial.projection;map.viewState.view=initial.view;
+      let workspace=null;
+      try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
+      if(request!==projectDomain.getOpenRevision())return;
+      map.projectSession.restoreViewingPresentation(workspace);
+    }
     await map.loadPhysicalLandMask();
     await map.objectCatalog.pruneLayerItemVisibility();
     if(!preserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
