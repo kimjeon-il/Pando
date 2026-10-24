@@ -183,7 +183,7 @@ pub async fn library_open_geometry(
         url.query().ok_or("Missing library window query")?
     );
     WebviewWindowBuilder::new(&app, &label, WebviewUrl::App(path.into()))
-        .initialization_script(format!("Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {}, writable: false, configurable: false }});", cfg!(windows)))
+        .initialization_script(crate::shell_initialization())
         .title("PandoLab 자료 경계 편집")
         .inner_size(1280.0, 820.0)
         .on_navigation(crate::local_navigation)

@@ -1,9 +1,8 @@
 import { createRuntimeProfile } from './runtime-profile.js';
-import { installDiagnostics } from './diagnostics.js';
-import { createNativeStorage, finishDiagnostics } from './native-storage.js';
+import { createNativeStorage, writeDiagnosticReport } from './native-storage.js';
 import { installNetworkGuard } from './network-guard.js';
-import { installFullWorldProbe } from './full-world-probe.js';
-import { installReferenceRuntimeProbe } from './reference-analysis-probe.js';
+// Replaced by the staging owner only for verification builds.
+const verification = null;
 
 async function start() {
   if (document.readyState === 'loading' && (!globalThis.PANDOLAB_BUILD_META || !window.d3)) {
@@ -16,6 +15,11 @@ async function start() {
     return response.json();
   });
   if (!['small-project', 'full-world'].includes(profileMeta.mode)) throw new Error('Unknown shell resource profile.');
+  if (profileMeta.verification !== !!verification
+      || (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function'
+        && globalThis.PANDOLAB_SHELL_VERIFICATION !== !!verification)) {
+    throw new Error('Verification assets do not match the native application.');
+  }
   installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'full-world' });
   const assetBase = new URL('../assets/js/', import.meta.url);
   const versionedAsset = relative => {
@@ -57,14 +61,7 @@ async function start() {
     window.addEventListener('pandolab:ready', () => {
       window.__PANDOLAB_SHELL_READY__ = true;
     }, { once: true });
-    if (!libraryGeometryContext && globalThis.__PANDOLAB_SHELL_REFERENCE_ANALYSIS__) installReferenceRuntimeProbe();
-    else if (!libraryGeometryContext) installFullWorldProbe({
-      readyDelayMs: globalThis.__PANDOLAB_SHELL_AUTO__ === true
-        ? (Number(globalThis.__PANDOLAB_SHELL_PROBE_HOLD_MS__) || 500) : 500,
-      expectedSourceCount: profileMeta.world.countryCount,
-      expectedModelCount: profileMeta.world.modelEntityCount,
-      expectedRootCount: profileMeta.world.rootCount,
-    });
+    if (verification && !libraryGeometryContext) verification.installWorld(profileMeta);
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = versionedAsset('./bootstrap.js').href;
@@ -98,7 +95,7 @@ async function start() {
   let diagnostics;
   const application = await composeApplication({ productMode: 'editor', revision: meta.assetRevision,
     platform: { ...profile.platform, fileAccess: createNativeStorage() },
-    onComposed: async runtime => { diagnostics = await installDiagnostics(runtime); },
+    onComposed: async runtime => { if (verification) diagnostics = await verification.installDiagnostics(runtime); },
   });
   if (!await application.start()) throw new Error('The application could not finish startup.');
   const { initializeUiRuntime } = await import(versionedAsset('./modules/ui-runtime.js').href);
@@ -109,7 +106,7 @@ async function start() {
   window.__PANDOLAB_STARTUP_METRICS__.startupPhase = 'canonical-ready';
   window.dispatchEvent(new CustomEvent('pandolab:interactive'));
   window.__PANDOLAB_SHELL_READY__ = true;
-  if (window.__PANDOLAB_SHELL_AUTO__) await diagnostics.run();
+  if (verification && window.__PANDOLAB_SHELL_AUTO__) await diagnostics.run();
 }
 
 start().catch(async error => {
@@ -121,6 +118,9 @@ start().catch(async error => {
   const report = { schema: 'pandolab-web-shell-diagnostics', ok: false, stage: 'startup',
     error: { name: String(error.name || 'Error'), code: String(error.code || ''), message: String(error.message || error), stack: String(error.stack || '') },
   };
-  try { await finishDiagnostics(report); }
+  try {
+    if (verification && window.__PANDOLAB_SHELL_AUTO__ === true) await verification.finishDiagnostics(report);
+    else await writeDiagnosticReport(report);
+  }
   catch (reportError) { console.error('[PANDOEDITOR-SHELL-REPORT]', reportError); }
 });

@@ -460,7 +460,8 @@
       ],
       "argv": [
         "node",
-        "apps/web-shell/stage.mjs"
+        "apps/web-shell/stage.mjs",
+        "--profile=small-project"
       ],
       "requires": [
         "generated"

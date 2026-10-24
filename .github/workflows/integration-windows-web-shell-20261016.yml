@@ -26,6 +26,8 @@ jobs:
     timeout-minutes: 45
     env:
       PANDOLAB_SHELL_PROFILE: full-world
+      PANDOLAB_SHELL_VERIFICATION: "1"
+      TAURI_CONFIG: '{"app":{"security":{"capabilities":["prototype-main","verification"]}}}'
       CARGO_TERM_COLOR: always
     steps:
       - name: Disable Windows Git line-ending conversion
@@ -84,12 +86,12 @@ jobs:
       - name: Build full-world Windows Tauri app using native MSVC
         shell: pwsh
         run: |
-          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc
+          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Validate native Rust storage and command contracts
         shell: pwsh
         run: |
-          cargo test --manifest-path apps/web-shell/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc
+          cargo test --manifest-path apps/web-shell/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc --features custom-protocol,verification
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Execute the actual full-world Windows WebView app
         shell: pwsh
