@@ -94,9 +94,9 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
     const ids = [...new Set((state.boundaryEditEntityIds || []).map(text))];
     const source = state.boundaryEditSeedEntityId || ids[0];
     const subunit = (territorialEntityById(source)?.properties.entityKind === 'general' && !!territorialEntityById(source)?.properties.parentId);
-    const type = '객체';
+    const type = subunit ? '객체' : '국가';
     const selecting = state.boundaryEditPhase === 'selecting';
-    name = '경계 조정';
+    name = subunit ? '경계 조정' : '국경 조정';
     stage = preview ? '변경 확인' : selecting ? `상대 ${type}` : '경계 편집';
     step = preview ? subunit ? 2 : 3 : selecting ? 1 : subunit ? 1 : 2;
     total = subunit ? 2 : 3;

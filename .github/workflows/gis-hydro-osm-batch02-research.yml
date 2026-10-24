@@ -1,0 +1,165 @@
+name: GIS OSM replacement research batch 02
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/gis/verify_osm_hydro_batch02_points.py'
+      - '.github/workflows/gis-hydro-osm-batch02-research.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-source-batch02:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Mount paired, published Hydro v0.13.2
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install independent geometry projection software
+        run: python -m pip install --quiet "shapely>=2,<3" "pyproj>=3,<4"
+      - name: Decode Hydro exactly with production runtime
+        run: node tools/decode-hydro-connectivity.mjs assets/data/hydro/v0.13.2 /tmp/batch02-decoded.json
+      - name: Query NGA US government non-OSM named-stream locations
+        run: |
+          python - <<'PY'
+          import json,urllib.parse,urllib.request,pathlib
+          base="https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query"
+          requests=[
+            ("40391614","ufi = -187951"),
+            ("40414035","ufi = -191071"),
+            ("40415850","ufi = -708771"),
+            ("40364680","cc_ft = 'PRK' AND fc = 'H' AND full_name LIKE '%청천강%'"),
+          ]
+          out={"schema":"nga-stream-point-screen-v1","provider":"United States National Geospatial-Intelligence Agency GNS","governmentSite":"https://geonames.nga.mil/geonames/GNSHome/","features":[],"queries":[]}
+          for sid,where in requests:
+            query=urllib.parse.urlencode({"where":where,"outFields":"ufi,uni,lat_dd,long_dd,full_name,desig_cd,cc_ft","returnGeometry":"false","f":"json","resultRecordCount":20})
+            url=base+"?"+query
+            audit={"candidateSystem":sid,"where":where,"url":url,"status":"failed"}
+            try:
+              req=urllib.request.Request(url,headers={"User-Agent":"PandoLab-independent-toponym-research/1.0","Accept":"application/json"})
+              with urllib.request.urlopen(req,timeout=20) as response:
+                data=json.loads(response.read(200000))
+              if "error" in data:raise ValueError("ArcGIS REST service returned error")
+              features=data.get("features",[])
+              for feat in features:
+                a=feat.get("attributes") or {}
+                if a.get("desig_cd") not in ("STM","STMI","STMC"):continue
+                if not (isinstance(a.get("lat_dd"),(int,float)) and isinstance(a.get("long_dd"),(int,float))):continue
+                name=str(a.get("full_name") or "").strip()
+                if sid=="40364680" and "청천" not in name:continue
+                if sid=="40391614" and not any(s in name.lower() for s in ("taedong","daedong","대동")):continue
+                if sid=="40414035" and not any(s in name.lower() for s in ("yes","ryes","례성","예성")):continue
+                if sid=="40415850" and not any(s in name.lower() for s in ("imjin","rimjin","임진","림진")):continue
+                row={"candidateSystem":sid,"ufi":a.get("ufi"),"latitude":a["lat_dd"],
+                     "longitude":a["long_dd"],"name":name,"designation":a["desig_cd"],"sourceQuery":url}
+                if row not in out["features"]:out["features"].append(row)
+              audit.update(status="queried",records=len(features))
+            except Exception as error:audit.update(errorClass=type(error).__name__,note="Unreachable NGA API is not evidence that names are absent")
+            out["queries"].append(audit)
+          pathlib.Path("/tmp/batch02-nga.json").write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n")
+          print("BATCH02_NGA="+json.dumps(out,ensure_ascii=False,separators=(",",":")),flush=True)
+          PY
+      - name: Acquire checksum-verified 2023 Central Asia scientific Hydromet gauge locations
+        run: |
+          python - <<'PY'
+          import hashlib,json,sqlite3,urllib.request,pathlib
+          expected="97f883aa7014c05555c792e579e9b645"
+          urls=[
+            "https://zenodo.org/records/7743778/files/CA-discharge.gpkg?download=1",
+            "https://zenodo.org/api/records/7743778/files/CA-discharge.gpkg/content",
+          ]
+          out={"schema":"pando-ca-2023-gauges-research-v1","provenance":"2023-CA-discharge","source":"https://zenodo.org/records/7743778","downloadStatus":"not-available","gauges":[]}
+          dest=pathlib.Path("/tmp/CA-discharge.gpkg")
+          for url in urls:
+            try:
+              req=urllib.request.Request(url,headers={"User-Agent":"PandoLab-hydro-river-research/1.0","Accept":"application/octet-stream"})
+              with urllib.request.urlopen(req,timeout=30) as resp:
+                if resp.headers.get("Content-Length") and int(resp.headers["Content-Length"])>45_000_000:raise ValueError("Unexpected file size")
+                data=resp.read(45_000_001)
+              if len(data)>45_000_000 or hashlib.md5(data).hexdigest()!=expected:raise ValueError("Unverified file MD5; do not use")
+              dest.write_bytes(data)
+              con=sqlite3.connect(f"file:{dest}?mode=ro",uri=True)
+              layers=con.execute("SELECT table_name,data_type FROM gpkg_contents").fetchall()
+              out["verifiedMd5"]=expected
+              out["sourceSha256"]=hashlib.sha256(data).hexdigest()
+              out["layers"]=layers
+              gauge=next((x[0] for x in layers if x[0].lower()=="gauges"),None)
+              if not gauge:raise ValueError("Missing expected gauges layer")
+              con.row_factory=sqlite3.Row
+              columns=[x[1] for x in con.execute(f'PRAGMA table_info("{gauge}")')]
+              mapping={x.upper():x for x in columns}
+              out["gaugeFields"]=columns
+              # The source's actual schema labels the hydrometric station NAME_ENG
+              # and the named channel RIVER. They must not be conflated.
+              for field in ("LON","LAT","CODE","RIVER","BASIN","NAME_ENG"):
+                if field not in mapping:raise ValueError("Missing scientific source gauge field "+field)
+              cols=[mapping[x] for x in ("LON","LAT","CODE","RIVER","BASIN","NAME_ENG")]
+              quoted=",".join('"'+x+'"' for x in cols)
+              rows=con.execute(f'SELECT {quoted} FROM "{gauge}"').fetchall()
+              bbox={
+                  "20628098":(55.0,34.0,66.5,40.2),
+                  "40188382":(66.8,41.8,76.8,45.8),
+              }
+              for row in rows:
+                try:
+                  lon,lat=float(row[0]),float(row[1])
+                except (ValueError,TypeError):continue
+                for sid,(w,s,e,n) in bbox.items():
+                  if not(w<=lon<=e and s<=lat<=n):continue
+                  out["gauges"].append({"candidateSystem":sid,"longitude":lon,"latitude":lat,
+                      "code":str(row[2]),"river":str(row[3]),
+                      "basin":str(row[4]),"station":str(row[5])})
+              con.close()
+              out["downloadStatus"]="verified-original-geopackage"
+              out["sourceGaugeCount"]=len(rows)
+              break
+            except Exception as error:
+              out.setdefault("downloadErrors",[]).append({"class":type(error).__name__,"url":url,
+                  "note":"Data access or format failure; no river identity can be inferred."})
+          pathlib.Path("/tmp/batch02-ca-gauges.json").write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n")
+          print("BATCH02_CA_SUMMARY="+json.dumps({k:v for k,v in out.items() if k!="gauges"},ensure_ascii=False,separators=(",",":")),flush=True)
+          print("BATCH02_CA_GAUGE_SAMPLE="+json.dumps(out["gauges"][:15],ensure_ascii=False,separators=(",",":")),flush=True)
+          PY
+      - name: Compare all 10 pending river mainstems against real independent locations
+        run: |
+          python tools/gis/verify_osm_hydro_batch02_points.py \
+            --decoded /tmp/batch02-decoded.json \
+            --external-gauges /tmp/batch02-ca-gauges.json \
+            --nga /tmp/batch02-nga.json \
+            --output /tmp/batch02-source-independent-point-audit.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt=json.loads(Path("/tmp/batch02-source-independent-point-audit.json").read_text())
+          assert receipt["studyCount"]==10
+          assert receipt["originalVersion"]=="0.13.2"
+          assert not receipt["publishedHydroGeometryChanged"]
+          assert not receipt["publishedRiverNameMetadataChanged"]
+          assert not receipt["osmRelationUsedAsReference"]
+          assert [r["systemId"] for r in receipt["items"]]==[
+            "20628098","20773860","20774342","30145067","40188382",
+            "40364680","40391614","40414035","40415850","40423228"]
+          print("All 10 systems spatially examined; no production data mutation")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gis-osm-batch02-research-evidence
+          path: |
+            /tmp/batch02-nga.json
+            /tmp/batch02-ca-gauges.json
+            /tmp/batch02-source-independent-point-audit.json
+          retention-days: 30
+          if-no-files-found: warn

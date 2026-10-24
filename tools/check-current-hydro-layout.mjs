@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Read-only validation of the current Web hydro package and real Worker.
 import {createHash,webcrypto} from 'node:crypto';
-import {readFileSync,readdirSync,lstatSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
+import {readFileSync,readdirSync,lstatSync,realpathSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {dirname,join,resolve,relative,isAbsolute,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gunzipSync} from 'node:zlib';
@@ -20,7 +20,17 @@ function inside(root,path) {
   const full=resolve(root,path),rel=relative(resolve(root),full);
   ensure(rel&&rel!=='..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel),'Unsafe hydro path: '+path);
   let cursor=full;
-  while(cursor!==resolve(root)){if(existsSync(cursor))ensure(!lstatSync(cursor).isSymbolicLink(),'Hydro symlink: '+path);cursor=dirname(cursor);}
+  while(cursor!==resolve(root)){
+    if(existsSync(cursor)&&lstatSync(cursor).isSymbolicLink()){
+      const logical=relative(resolve(root),cursor).replaceAll('\\','/');
+      const configPath=resolve(root,'config/library-data.json');
+      const pin=existsSync(configPath)?JSON.parse(readFileSync(configPath,'utf8')).revision:null;
+      const allowed=pin&&resolve(root,'.library-data/materialized',pin,'assets/data');
+      ensure(logical==='assets/data'&&allowed&&realpathSync(cursor)===realpathSync(allowed),
+        'Hydro symlink: '+path);
+    }
+    cursor=dirname(cursor);
+  }
   return full;
 }
 
@@ -92,7 +102,16 @@ export async function auditLayout(root,{allowRetired=false}={}) {
   const manifestPath=inside(root,webPath),dir=dirname(manifestPath);
   const manifestBuffer=readFileSync(manifestPath),manifest=JSON.parse(manifestBuffer);
   const roles=manifestRoles(manifest),packed=readFileSync(inside(dir,manifest.container.url));
-  const current=listFiles(dir),declared=[relative(dir,manifestPath).replaceAll('\\','/'),manifest.container.url].sort();
+  const current=listFiles(dir),declared=[relative(dir,manifestPath).replaceAll('\\','/'),manifest.container.url];
+  const nameEvidence=manifest.sources?.independentHydronymReplacements;
+  if(nameEvidence){
+    ensure(typeof nameEvidence.file==='string'&&/^[\w.-]+\.json$/.test(nameEvidence.file)
+      &&validHash(nameEvidence.sha256),'Invalid independent river-name source declaration');
+    const sourceBytes=readFileSync(inside(dir,nameEvidence.file));
+    ensure(hash(sourceBytes)===nameEvidence.sha256,'Independent river-name source SHA-256 mismatch');
+    declared.push(nameEvidence.file);
+  }
+  declared.sort();
   ensure(JSON.stringify(current)===JSON.stringify(declared),'Current hydro package contains missing or undeclared files');
   ensure(packed.length===manifest.container.bytes&&hash(packed)===manifest.container.sha256,'Hydro container byte count or SHA-256 differs');
   for(const segment of roles){

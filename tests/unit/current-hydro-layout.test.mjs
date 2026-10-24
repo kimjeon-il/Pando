@@ -35,6 +35,8 @@ function makeFixture(shardCount=4){
   };
   const manifestBytes=Buffer.from(JSON.stringify(manifest)+'\n');
   write(main+manifest.container.url,blob);write(CURRENT_MANIFEST,manifestBytes);
+  const independent=manifest.sources?.independentHydronymReplacements;
+  if(independent)write(main+independent.file,readFileSync(new URL('../../'+main+independent.file,import.meta.url)));
   for(const file of ['hydro-shard-store.js','hydro-tile-worker.js'])write('assets/js/workers/'+file,
     readFileSync(new URL('../../assets/js/workers/'+file,import.meta.url)));
   return {root,manifest,blob,manifestBytes,write};
@@ -53,7 +55,7 @@ test('current Web package and real Worker validate exact bytes without an app mi
   const result=await auditLayout(f.root);
   assert.equal(result.passed,true);
   assert.equal(result.manifestPath,main+'manifest.json');
-  assert.equal(result.activeFiles,2);
+  assert.equal(result.activeFiles, f.manifest.sources?.independentHydronymReplacements ? 3 : 2);
   assert.equal(result.previousFileCount,0);
   assert.equal(result.roles.length,f.manifest.shards.length+3);
   assert.equal(result.runtime.range.ready,true);
@@ -101,4 +103,11 @@ test('segment pins detect changed payload identity independently of the containe
   const changed=structuredClone(f.manifest);changed.index.sha256='0'.repeat(64);
   f.write(CURRENT_MANIFEST,JSON.stringify(changed));
   await assert.rejects(auditLayout(f.root),/Hydro segment SHA-256 differs: index/);
+}));
+
+test('explicitly declared independent river-name source must match its SHA-256',()=>fixture(async f=>{
+  const info=f.manifest.sources?.independentHydronymReplacements;
+  assert.ok(info);
+  f.write(main+info.file,'tampered');
+  await assert.rejects(auditLayout(f.root),/Independent river-name source SHA-256 mismatch/);
 }));

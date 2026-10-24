@@ -90,6 +90,8 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
     }else if(path.includes('/hydro/')){
       dataAsset(manifest.container.url,base);
       for(const item of [manifest.index,manifest.metadata?.core,manifest.metadata?.detail,...manifest.shards])if(item?.url)dataAsset(item.url,base);
+      if(manifest.sources?.independentHydronymReplacements?.file)
+        dataAsset(manifest.sources.independentHydronymReplacements.file,base);
     }else if(path.includes('/places/')){
       for(const item of Object.values(manifest.shards))dataAsset(item.url,base);
     }else if(path.includes('/physical-land/'))dataAsset(manifest.asset.url,base);

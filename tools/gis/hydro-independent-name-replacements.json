@@ -1,0 +1,1352 @@
+{
+  "schemaVersion": 1,
+  "status": "42-independent-source-reviews-with-official-victoria-vector-and-maritsa-border",
+  "reference": {
+    "dataset": "HydroRIVERS v0.13.2 OSM-name inventory",
+    "naturalEarthRiversBaseSha256": "3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99",
+    "mainstemSamplesPerSystem": 81,
+    "note": "Only verified mainstem name substitutions; geometry is unchanged; OSM matching is skipped for listed IDs."
+  },
+  "replacements": [
+    {
+      "systemId": "10047863",
+      "previousNameKo": "나일강",
+      "nameKo": "나일강",
+      "aliases": [
+        "Nile"
+      ],
+      "tributaryNames": [
+        "백나일강",
+        "청나일강",
+        "소밧강"
+      ],
+      "naturalEarth": {
+        "name": "Nile",
+        "sampleCoverage": 0.556
+      },
+      "hydroRiversRegion": "af",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "White Nile",
+        "tributarySampleCoverage": 0.198,
+        "reason": "Nile Basin Initiative distinguishes the Main Nile, White Nile, Blue Nile and Sobat reaches; White Nile and Blue Nile meet at Khartoum and the named river flows downstream as Nile."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "multilateral-basin-agency",
+          "url": "https://nilebasin.org/nile-basin"
+        },
+        {
+          "kind": "international-hydrometric-agency",
+          "url": "https://nilebasin.org/en/content/nile-navigation-nilenav"
+        }
+      ]
+    },
+    {
+      "systemId": "20081953",
+      "previousNameKo": "북드비나강",
+      "nameKo": "북드비나강",
+      "aliases": [
+        "Northern Dvina",
+        "Северная Двина"
+      ],
+      "tributaryNames": [
+        "비체그다강"
+      ],
+      "naturalEarth": {
+        "name": "Northern Dvina",
+        "sampleCoverage": 0.494
+      },
+      "hydroRiversRegion": "eu",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Vychegda",
+        "tributarySampleCoverage": 0.444,
+        "reason": "Russian government waterway list identifies Northern Dvina and Vychegda as separate confluencing watercourses, with named basin identity."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.consultant.ru/document/cons_doc_LAW_40441/526e96dcf757c61b65432d68902b24c3b6a25b51/"
+        },
+        {
+          "kind": "government-water",
+          "url": "https://29.mchs.gov.ru/deyatelnost/press-centr/novosti/5720635"
+        }
+      ]
+    },
+    {
+      "systemId": "20244836",
+      "previousNameKo": "네만강",
+      "nameKo": "네만강",
+      "aliases": [
+        "Neman",
+        "Nemunas"
+      ],
+      "tributaryNames": [
+        "네리스강"
+      ],
+      "naturalEarth": {
+        "name": "Neman",
+        "sampleCoverage": 0.358
+      },
+      "hydroRiversRegion": "eu",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Neris",
+        "tributarySampleCoverage": 0.679,
+        "reason": "Lithuanian Environment Ministry reports Neris as a major Nemunas tributary; its mouth at Kaunas joins the Nemunas river. Distinct river labels are retained at the confluence."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://am.lrv.lt/uploads/am/documents/files/Raudonoji%20knyga/index.html"
+        },
+        {
+          "kind": "government-river-register",
+          "url": "https://am.lrv.lt/lt/naujienos/spalio-1-d-isigalioja-draudimas-zvejoti-lasisiniu-zuvu-migracijai-ir-nerstui-svarbiose-upese-sToC/"
+        }
+      ]
+    },
+    {
+      "systemId": "20265844",
+      "previousNameKo": "드르벵차강",
+      "nameKo": "비스와강",
+      "aliases": [
+        "Vistula",
+        "Wisła"
+      ],
+      "tributaryNames": [
+        "부크강",
+        "나레프강"
+      ],
+      "naturalEarth": {
+        "name": "Vistula",
+        "sampleCoverage": 0.519
+      },
+      "hydroRiversRegion": "eu",
+      "independentBasinRename": {
+        "method": "independent-government-basin-rename",
+        "namedTributaryNE": "Western Bug",
+        "tributarySampleCoverage": 0.407,
+        "sourceErroneousTributaryName": "Drwęca",
+        "reason": "Natural Earth centerline repeatedly matches the Vistula and Western Bug, not the much shorter Drwęca. Polish water administration identifies Bug flowing to Narew and Narew flowing to Vistula, while government county description establishes Drwęca as merely a separate tributary of Vistula."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.gov.pl/web/wody-polskie/komunikaty-nawigacyjne"
+        },
+        {
+          "kind": "government-ministry-geography",
+          "url": "https://www.gov.pl/web/infrastruktura/wspolpraca-miedzynarodowa-w-gospodarce-wodnej"
+        },
+        {
+          "kind": "government-river-identification",
+          "url": "https://samorzad.gov.pl/web/powiat-nowomiejski/informacja-o-powiecie"
+        }
+      ]
+    },
+    {
+      "systemId": "20282220",
+      "previousNameKo": "엘베강",
+      "nameKo": "엘베강",
+      "aliases": [
+        "Elbe",
+        "Labe"
+      ],
+      "tributaryNames": [
+        "블타바강"
+      ],
+      "naturalEarth": {
+        "name": "Elbe",
+        "sampleCoverage": 0.975
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://undine.bafg.de/elbe/extremereignisse/elbe_hw2013.html"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20323928",
+      "previousNameKo": "라인강",
+      "nameKo": "라인강",
+      "aliases": [
+        "Rhine"
+      ],
+      "tributaryNames": [
+        "마인강",
+        "모젤강",
+        "아레강"
+      ],
+      "naturalEarth": {
+        "name": "Rhine",
+        "sampleCoverage": 0.914
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "international-river-commission",
+          "url": "https://www.iksr.org/en/topics/pollution/international-warning-and-alarm-plan/rhine-alarm-model"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20336821",
+      "previousNameKo": "템스강",
+      "nameKo": "템스강",
+      "aliases": [
+        "Thames",
+        "River Thames"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Thames",
+        "sampleCoverage": 0.728
+      },
+      "hydroRiversRegion": "eu",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0,
+        "reason": "UK Environment Agency river navigation and basin district records confirm the Thames; no conflicting independently named river near audited 81-point mainstem."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.gov.uk/guidance/thames-river-basin-district-river-basin-management-plan-updated-2022"
+        },
+        {
+          "kind": "government-river-navigation",
+          "url": "https://www.gov.uk/check-river-conditions-and-closures/river-thames"
+        }
+      ]
+    },
+    {
+      "systemId": "20342955",
+      "previousNameKo": "스헬데강",
+      "nameKo": "스헬데강",
+      "aliases": [
+        "Scheldt",
+        "Escaut"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Scheldt",
+        "sampleCoverage": 0.988
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://etat.environnement.wallonie.be/contents/indicatorsheets/EAU%202.html"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20386022",
+      "previousNameKo": "센강",
+      "nameKo": "센강",
+      "aliases": [
+        "Seine",
+        "La Seine"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Seine",
+        "sampleCoverage": 0.469
+      },
+      "hydroRiversRegion": "eu",
+      "partialExistingNameReview": {
+        "method": "government-confirmed-existing-mainstem-no-independent-rival",
+        "strongestOtherNENameCoverage": 0,
+        "reason": "French Seine-Normandie public water agency identifies the Seine from Source-Seine to Le Havre, while DRIEAT monitors the actual middle Seine and distinguishes its Marne and Oise tributaries. No other independent named line is near the audited 81-point HydroRIVERS mainstem."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://eau-seine-normandie.fr/agence-de-leau/le-bassin-de-la-seine"
+        },
+        {
+          "kind": "government-river-monitoring",
+          "url": "https://www.drieat.ile-de-france.developpement-durable.gouv.fr/vigicrues-a29.html"
+        }
+      ]
+    },
+    {
+      "systemId": "20446779",
+      "previousNameKo": "루아르강",
+      "nameKo": "루아르강",
+      "aliases": [
+        "Loire"
+      ],
+      "tributaryNames": [
+        "Vienne"
+      ],
+      "naturalEarth": {
+        "name": "Loire",
+        "sampleCoverage": 0.407
+      },
+      "hydroRiversRegion": "eu",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Vienne",
+        "tributarySampleCoverage": 0.642,
+        "reason": "French prefecture separately identifies the Loire and Vienne confluence near Candes-Saint-Martin; previously mixed Seine is a separate river."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.prefectures-regions.gouv.fr/pays-de-la-loire/DOCUMENTS-PUBLICATIONS/Environnement-Classement-de-la-confluence-de-la-Loire-et-de-la-Vienne"
+        }
+      ]
+    },
+    {
+      "systemId": "20452421",
+      "previousNameKo": "돈강",
+      "nameKo": "돈강",
+      "aliases": [
+        "Don",
+        "Дон"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Don",
+        "sampleCoverage": 0.815
+      },
+      "hydroRiversRegion": "eu",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0.037,
+        "reason": "Rosvodresursy and Rostov-on-Don public water records identify the Don basin; the separate Donets sub-river is not promoted to system alias."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://voda.gov.ru/press-tsenter/news/federalnye/559696/"
+        },
+        {
+          "kind": "government-water",
+          "url": "https://rostov-gorod.ru/press_room/news/8891/115134/"
+        }
+      ]
+    },
+    {
+      "systemId": "20457454",
+      "previousNameKo": "남부크강",
+      "nameKo": "남부크강",
+      "aliases": [
+        "Southern Bug",
+        "Південний Буг"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Southern Bug",
+        "sampleCoverage": 0.926
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://buvrpb.davr.gov.ua/vodni-resursy/hidrohrafichna-merezha"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20478829",
+      "previousNameKo": "드네스트르강",
+      "nameKo": "드네스트르강",
+      "aliases": [
+        "Dniester",
+        "Nistru"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Dniester",
+        "sampleCoverage": 1
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://gov.md/en/comunicate-de-presa-bpr/environmental-experts-discuss-critical-hydrological-situation-nistru-river"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20498112",
+      "previousNameKo": "도나우강",
+      "nameKo": "도나우강",
+      "aliases": [
+        "Danube"
+      ],
+      "tributaryNames": [
+        "드라바강",
+        "사바강",
+        "티서강",
+        "인강",
+        "프루트강"
+      ],
+      "naturalEarth": {
+        "name": "Danube",
+        "sampleCoverage": 0.58
+      },
+      "hydroRiversRegion": "eu",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Sava",
+        "tributarySampleCoverage": 0.284,
+        "reason": "ICPDR confirms the Danube and its Sava, Drava, Tisza, Inn and Prut tributaries and describes the Sava confluence at Belgrade."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.icpdr.org/danube-basin/danube-river-basin"
+        },
+        {
+          "kind": "international-river-commission",
+          "url": "https://www.icpdr.org/danube-basin/sub-basins/sava-basin"
+        }
+      ]
+    },
+    {
+      "systemId": "20588291",
+      "previousNameKo": "도루강",
+      "nameKo": "도루강",
+      "aliases": [
+        "Douro",
+        "Duero"
+      ],
+      "tributaryNames": [
+        "에슬라강"
+      ],
+      "naturalEarth": {
+        "name": "Douro",
+        "sampleCoverage": 0.741
+      },
+      "hydroRiversRegion": "eu",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0.074,
+        "reason": "Portuguese national dam register describes Rio Douro mainstem; Spanish Duero basin authority independently lists River Esla as tributary."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://cnpgb.apambiente.pt/content/r%C3%A9gua"
+        },
+        {
+          "kind": "government-river-basin",
+          "url": "https://mirame.chduero.es/chduero/public/naturalElements/river"
+        }
+      ]
+    },
+    {
+      "systemId": "20597827",
+      "previousNameKo": "마리차강",
+      "nameKo": "마리차강",
+      "aliases": [
+        "Maritsa",
+        "Evros",
+        "Meriç"
+      ],
+      "tributaryNames": [
+        "툰자강"
+      ],
+      "naturalEarth": {
+        "name": "Maritsa",
+        "sampleCoverage": 0.37
+      },
+      "hydroRiversRegion": "eu",
+      "crossBorderNameReview": {
+        "method": "bulgarian-greek-institutional-mainstem-confirmation",
+        "strongestOtherNENameCoverage": 0,
+        "reason": "Bulgarian East Aegean Basin Directorate independently identifies Maritsa as the river crossing the Greek and Turkish borders and Tundzha as a tributary. The Greek Regional Administration identifies Evros with the river at its delta and tributaries, and European Commission confirms Maritsa-Meriç-Evros as its cross-border name. Existing HydroRIVERS 81-point mainstem has no competing independent named river despite sparse Natural Earth detail."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://earbd.bg/indexdetails.php?menu_id=226"
+        },
+        {
+          "kind": "government-crossborder-hydrology",
+          "url": "https://www.pamth.gov.gr/en/anaklisi-tis-apagoreysis-alieias-ston-potamo-evro-stoys-parapotamoys-toy-sta-kanalia-kai-stoys-loipoys-ydatinoys-schimatismoys-2/"
+        },
+        {
+          "kind": "international-crossborder-programme",
+          "url": "https://ec.europa.eu/futurium/en/system/files/ged/interreg_25years_en.pdf"
+        }
+      ]
+    },
+    {
+      "systemId": "20673409",
+      "previousNameKo": "과디아나강",
+      "nameKo": "과디아나강",
+      "aliases": [
+        "Guadiana",
+        "Río Guadiana"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Guadiana",
+        "sampleCoverage": 0.852
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.miteco.gob.es/es/agua/planes-y-estrategias/informes-de-viabilidad-de-obras-hidraulicas/chguadiana2.html"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "20680587",
+      "previousNameKo": "과디아나강",
+      "nameKo": "과달키비르강",
+      "aliases": [
+        "Guadalquivir"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Guadalquivir",
+        "sampleCoverage": 0.975
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.boe.es/buscar/act.php?id=BOE-A-2013-5319"
+        }
+      ],
+      "hydroRiversRegion": "eu"
+    },
+    {
+      "systemId": "40017702",
+      "previousNameKo": "아무르강",
+      "nameKo": "아무르강",
+      "aliases": [
+        "Amur",
+        "Heilongjiang",
+        "黑龙江"
+      ],
+      "tributaryNames": [
+        "우수리강"
+      ],
+      "naturalEarth": {
+        "name": "Amur",
+        "sampleCoverage": 0.593
+      },
+      "hydroRiversRegion": "as",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Ussuri",
+        "tributarySampleCoverage": 0.444,
+        "reason": "Russian Federal Water Resources Agency identifies the Amur and the Ussuri River among Amur tributaries; the Ussuri is a distinct tributary rather than another identity of the Amur."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://voda.gov.ru/maps/khabarovskiy-kray/"
+        },
+        {
+          "kind": "government-fisheries",
+          "url": "https://atu.fish.gov.ru/press/regionalnye-novosti/organy-rybookhrany-rossii-i-kitaya-proveli-sovmestnyy-kontrol-na-reke-amur-i-ussuri/"
+        }
+      ]
+    },
+    {
+      "systemId": "40145639",
+      "previousNameKo": "시르다리야강",
+      "nameKo": "시르다리야강",
+      "aliases": [
+        "Syr Darya"
+      ],
+      "tributaryNames": [
+        "나린강"
+      ],
+      "naturalEarth": {
+        "name": "Syr Dar",
+        "sampleCoverage": 0.877
+      },
+      "hydroRiversRegion": "as",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "international-water-resources",
+          "url": "https://unece.org/environment-policy/water/areas-work-convention_protocol/country-dialogues/kazakhstan"
+        },
+        {
+          "kind": "international-water-resources",
+          "url": "https://documents.worldbank.org/en/publication/documents-reports/documentdetail/663361468283187700"
+        }
+      ]
+    },
+    {
+      "systemId": "40190238",
+      "previousNameKo": "아무다리야강",
+      "nameKo": "아무다리야강",
+      "aliases": [
+        "Amu Darya"
+      ],
+      "tributaryNames": [
+        "판지강"
+      ],
+      "naturalEarth": {
+        "name": "Amu Darya",
+        "sampleCoverage": 0.716
+      },
+      "hydroRiversRegion": "as",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0.025,
+        "reason": "World Bank independently identifies the Amu Darya basin with Panj upstream; nearest competing NE river represents only a short distinct headwater reach."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.worldbank.org/en/news/press-release/2026/07/21/world-bank-support-improves-central-asia-water-management-and-conservation"
+        },
+        {
+          "kind": "multilateral-basin-science",
+          "url": "https://documents.worldbank.org/en/publication/documents-reports/documentdetail/663361468283187700"
+        }
+      ]
+    },
+    {
+      "systemId": "40279876",
+      "previousNameKo": "두만강",
+      "nameKo": "두만강",
+      "aliases": [
+        "Tumen",
+        "图们江"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Tumen",
+        "sampleCoverage": 0.506
+      },
+      "hydroRiversRegion": "as",
+      "partialExistingNameReview": {
+        "method": "government-confirmed-existing-mainstem-no-independent-rival",
+        "strongestOtherNENameCoverage": 0,
+        "reason": "South Korean Ministry of Unification North Korea Atlas names the Tumen River running from Mt. Baekdu to the East Sea, while the Chinese Changbaishan Administration independently maps its upper source and identifies it as a border river."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.changbaishan.gov.cn/zjzbs/zrzy/201612/t20161229_208378.html"
+        },
+        {
+          "kind": "government-river-atlas",
+          "url": "https://nkinfo.unikorea.go.kr/nkp/search/search.do?query=%EB%91%90%EB%A7%8C%EA%B0%95"
+        },
+        {
+          "kind": "government-gazetteer",
+          "url": "https://dfz.jl.gov.cn/zsjl/201111/t20111122_5216469.html"
+        }
+      ]
+    },
+    {
+      "systemId": "40351117",
+      "previousNameKo": "압록강",
+      "nameKo": "압록강",
+      "aliases": [
+        "Yalu",
+        "鸭绿江"
+      ],
+      "tributaryNames": [
+        "훈강"
+      ],
+      "naturalEarth": {
+        "name": "Yalu",
+        "sampleCoverage": 1
+      },
+      "hydroRiversRegion": "as",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "korean-government-geography",
+          "url": "https://nkinfo.unikorea.go.kr/nkp/search/search.do?query=%EC%95%95%EB%A1%9D%EA%B0%95"
+        },
+        {
+          "kind": "chinese-provincial-geography",
+          "url": "https://dfz.jl.gov.cn/zsjl/201809/t20180929_5216605.html"
+        }
+      ]
+    },
+    {
+      "systemId": "40485117",
+      "previousNameKo": "아라카와강",
+      "nameKo": "도네강",
+      "aliases": [
+        "Tone",
+        "利根川"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Tone",
+        "sampleCoverage": 1
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.ktr.mlit.go.jp/river/shihon/river_shihon00000122.html"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "40505530",
+      "previousNameKo": "낙동강",
+      "nameKo": "낙동강",
+      "aliases": [
+        "Nakdong"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Nakdong",
+        "sampleCoverage": 0.988
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.me.go.kr/ndg"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "40613666",
+      "previousNameKo": "장강",
+      "nameKo": "장강",
+      "aliases": [
+        "Yangtze",
+        "长江",
+        "Chang Jiang"
+      ],
+      "tributaryNames": [
+        "간장강",
+        "자링강",
+        "한강"
+      ],
+      "naturalEarth": {
+        "name": "Yangtze",
+        "sampleCoverage": 0.728
+      },
+      "hydroRiversRegion": "as",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0.123,
+        "reason": "China MWR independently identifies Yangtze mainstem and named Han, Jialing, Gan tributaries; the formerly mixed Mekong relation is a different river system."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://slj.cq.gov.cn/zwgk_250/zfxxgkml/jczwgk/sxgcgl/sxgcyxaqgl/202204/t20220402_10585421.html"
+        },
+        {
+          "kind": "provincial-government-geography",
+          "url": "https://www.fohb.gov.cn/info/2023-05/20230510085700_241.html"
+        }
+      ]
+    },
+    {
+      "systemId": "41225082",
+      "previousNameKo": "람강",
+      "nameKo": "람강",
+      "aliases": [
+        "Sông Lam",
+        "Sông Cả",
+        "Cả"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Cả",
+        "sampleCoverage": 0.852
+      },
+      "hydroRiversRegion": "as",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://mae.gov.vn/quan-ly-dieu-phoi-lien-vung-luu-vuc-song-ca-21850.htm"
+        },
+        {
+          "kind": "provincial-government-hydrology",
+          "url": "https://ngheandost.gov.vn/csdl-khxhnv/dat-va-nguoi-xu-nghe/thuc-trang-va-nguyen-nhan-sat-lo-bo-song-lam-nhung-nam-gan-day-225.html"
+        }
+      ]
+    },
+    {
+      "systemId": "41261061",
+      "previousNameKo": "시탕강",
+      "nameKo": "시탕강",
+      "aliases": [
+        "Sittaung",
+        "Sittong"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Sittong",
+        "sampleCoverage": 0.988
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "research-institute",
+          "url": "https://www.sei.org/publications/climate-change-sittaung-river/"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "41279826",
+      "previousNameKo": "브라마푸트라강/얄룽창포강",
+      "nameKo": "살윈강",
+      "aliases": [
+        "Salween"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Salween",
+        "sampleCoverage": 0.963
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "international-basin-reference",
+          "url": "https://www.fao.org/aquastat/en/countries-and-basins/transboundary-river-basins/salween/"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "41339527",
+      "previousNameKo": "짜오프라야강",
+      "nameKo": "짜오프라야강",
+      "aliases": [
+        "Chao Phraya",
+        "แม่น้ำเจ้าพระยา"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Chao Phraya",
+        "sampleCoverage": 1
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.rid.go.th/th/rid_news/28956"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "41347969",
+      "previousNameKo": "바강",
+      "nameKo": "바강",
+      "aliases": [
+        "Ba",
+        "Sông Ba"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Ba",
+        "sampleCoverage": 1
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://dwrm.mae.gov.vn/bo-nong-nghiep-va-moi-truong-phe-duyet-quy-hoach-tong-hop-luu-vuc-song-ba-den-nam-2030-tam-nhin-2050-16754.htm"
+        }
+      ],
+      "hydroRiversRegion": "as"
+    },
+    {
+      "systemId": "41392598",
+      "previousNameKo": "메콩강",
+      "nameKo": "메콩강",
+      "aliases": [
+        "Mekong"
+      ],
+      "tributaryNames": [
+        "문강",
+        "스레폭강",
+        "오우강",
+        "콩강",
+        "톤레 삽강"
+      ],
+      "naturalEarth": {
+        "name": "Mekong",
+        "sampleCoverage": 0.901
+      },
+      "hydroRiversRegion": "as",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "international-river-commission",
+          "url": "https://www.mrcmekong.org/geography/"
+        },
+        {
+          "kind": "korean-government-study",
+          "url": "https://www.ksp.go.kr/pageView/info/797"
+        }
+      ]
+    },
+    {
+      "systemId": "50170097",
+      "previousNameKo": "마하캄강",
+      "nameKo": "마하캄강",
+      "aliases": [
+        "Mahakam",
+        "Sungai Mahakam"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Mahakam",
+        "sampleCoverage": 0.79
+      },
+      "hydroRiversRegion": "au",
+      "conservativeMainstemReview": {
+        "method": "official-corroborated-original-name",
+        "otherNamedNECoverage": 0,
+        "reason": "Indonesian public works names the Mahakam catchment and its Kalimantan IV basin unit; no other independently named river near the audited mainstem points."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://sda.pu.go.id/profil/bws"
+        },
+        {
+          "kind": "government-water",
+          "url": "https://sda.pu.go.id/balai/bwskalimantan4/page/4"
+        }
+      ]
+    },
+    {
+      "systemId": "50261309",
+      "previousNameKo": "마하캄강",
+      "nameKo": "바리토강",
+      "aliases": [
+        "Barito"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Barito",
+        "sampleCoverage": 0.926
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://sda.pu.go.id/balai/bwskalimantan3/profil/sejarah"
+        }
+      ],
+      "hydroRiversRegion": "au"
+    },
+    {
+      "systemId": "50798885",
+      "previousNameKo": "야라강",
+      "nameKo": "야라강",
+      "aliases": [
+        "Yarra River",
+        "Birrarung"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": null,
+      "hydroRiversRegion": "au",
+      "officialGovernmentVectorEvidence": {
+        "method": "official-government-polyline-confirmation",
+        "provider": "Victoria Department of Transport and Planning",
+        "namedFeature": "Yarra River (Birrarung)",
+        "referenceLayer": "https://spatial.planning.vic.gov.au/server/rest/services/yarra_river_land/MapServer/0",
+        "sourceGeoJSONSha256": "70a2b0c84e9094258c64514d1392f7ef712fbaa7312754a7b80296e3dbb50fb6",
+        "hydroMainstemSamples": 161,
+        "governmentFeatures": 1,
+        "within1kmHydroToGovernment": 0.9876,
+        "within1kmGovernmentToHydro": 0.9876,
+        "p90DistanceKm": 0.338,
+        "originalHydroMainstemLengthKm": 163.597,
+        "independentGovernmentRiverLengthKm": 252.752,
+        "validationRun": "https://github.com/kimjeon-il/Pando/actions/runs/40053442174"
+      },
+      "independentSources": [
+        {
+          "kind": "government-river-vector",
+          "url": "https://spatial.planning.vic.gov.au/server/rest/services/yarra_river_land/MapServer/0"
+        },
+        {
+          "kind": "government-river-authority",
+          "url": "https://www.melbournewater.com.au/water-and-environment/water-management/rivers-and-creeks/yarra-river"
+        },
+        {
+          "kind": "government-open-data-license",
+          "url": "https://discover.data.vic.gov.au/en_AU/dataset/vicmap-hydro-watercourse-line"
+        }
+      ]
+    },
+    {
+      "systemId": "70576631",
+      "previousNameKo": "서스쿼해나강",
+      "nameKo": "델라웨어강",
+      "aliases": [
+        "Delaware"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Delaware",
+        "sampleCoverage": 0.914
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://water.usgs.gov/GIS/huc_name.html"
+        }
+      ],
+      "hydroRiversRegion": "na"
+    },
+    {
+      "systemId": "70580124",
+      "previousNameKo": "서스쿼해나강",
+      "nameKo": "서스쿼해나강",
+      "aliases": [
+        "Susquehanna"
+      ],
+      "tributaryNames": [
+        "W. 브랜치 서스케하나강"
+      ],
+      "naturalEarth": {
+        "name": "Susquehanna",
+        "sampleCoverage": 0.988
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-river-commission",
+          "url": "https://www.srbc.net/"
+        }
+      ],
+      "hydroRiversRegion": "na"
+    },
+    {
+      "systemId": "70617856",
+      "previousNameKo": "새크라멘토강",
+      "nameKo": "새크라멘토강",
+      "aliases": [
+        "Sacramento"
+      ],
+      "tributaryNames": [
+        "피트강",
+        "페더강"
+      ],
+      "naturalEarth": {
+        "name": "Sacramento",
+        "sampleCoverage": 0.58
+      },
+      "hydroRiversRegion": "na",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Pit",
+        "tributarySampleCoverage": 0.383,
+        "reason": "USGS Sacramento watershed and California DWR establish Pit and Feather as Sacramento tributaries; San Joaquin is separate until the delta confluence."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.usgs.gov/centers/california-water-science-center/central-valley-regional-overview"
+        },
+        {
+          "kind": "government-river-basin",
+          "url": "https://water.ca.gov/Programs/Integrated-Science-and-Engineering/Feather-River-Program"
+        }
+      ]
+    },
+    {
+      "systemId": "70814357",
+      "previousNameKo": "미시시피강",
+      "nameKo": "미시시피강",
+      "aliases": [
+        "Mississippi"
+      ],
+      "tributaryNames": [
+        "아칸소강",
+        "미주리강",
+        "오하이오강",
+        "레드강"
+      ],
+      "naturalEarth": {
+        "name": "Mississippi",
+        "sampleCoverage": 0.481
+      },
+      "hydroRiversRegion": "na",
+      "basinConfluenceReview": {
+        "method": "official-basin-named-confluence",
+        "namedTributaryNE": "Arkansas",
+        "tributarySampleCoverage": 0.346,
+        "reason": "USGS and EPA identify Arkansas, Missouri, Ohio and Red rivers as tributaries of the Mississippi River; the Rio Grande belongs to a separate basin and must not be copied as alias."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.epa.gov/ms-htf/mississippiatchafalaya-river-basin-marb"
+        },
+        {
+          "kind": "government-geology",
+          "url": "https://pubs.usgs.gov/ha/ha730/ch_f/F-text1.html"
+        },
+        {
+          "kind": "government-watershed-research",
+          "url": "https://pubs.usgs.gov/circ/1375/C1375.pdf"
+        }
+      ]
+    },
+    {
+      "systemId": "70816878",
+      "previousNameKo": "리오그란데강",
+      "nameKo": "브래저스강",
+      "aliases": [
+        "Brazos",
+        "Brazos River"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Brazos",
+        "sampleCoverage": 0.765
+      },
+      "hydroRiversRegion": "na",
+      "officialStationEvidence": {
+        "agency": "USGS",
+        "stationIds": [
+          "USGS-08116650",
+          "USGS-08114000",
+          "USGS-08117300"
+        ],
+        "maximumMatchingStationDistanceKm": 0.371,
+        "nearestDifferentBasinStationKm": 40.811,
+        "checkedAgainstSystemId": "70819626"
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.twdb.texas.gov/surfacewater/rivers/river_basins/brazos/index.asp"
+        },
+        {
+          "kind": "government-gauging",
+          "url": "https://waterdata.usgs.gov/monitoring-location/USGS-08117300/"
+        }
+      ]
+    },
+    {
+      "systemId": "70819626",
+      "previousNameKo": "리오그란데강",
+      "nameKo": "콜로라도강",
+      "aliases": [
+        "Colorado River (Texas)"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": null,
+      "hydroRiversRegion": "na",
+      "officialStationEvidence": {
+        "agency": "USGS",
+        "stationIds": [
+          "USGS-08162500",
+          "USGS-08162504",
+          "USGS-08162501"
+        ],
+        "maximumMatchingStationDistanceKm": 0.199,
+        "nearestDifferentBasinStationKm": 44.988,
+        "checkedAgainstSystemId": "70816878"
+      },
+      "independentSources": [
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.twdb.texas.gov/surfacewater/rivers/river_basins/colorado/index.asp"
+        },
+        {
+          "kind": "government-gauging",
+          "url": "https://waterdata.usgs.gov/monitoring-location/USGS-08162504/"
+        }
+      ]
+    },
+    {
+      "systemId": "70842751",
+      "previousNameKo": "리오그란데강",
+      "nameKo": "리오그란데강",
+      "aliases": [
+        "Rio Grande",
+        "Río Bravo"
+      ],
+      "tributaryNames": [
+        "콘초강"
+      ],
+      "naturalEarth": {
+        "name": "Grande",
+        "sampleCoverage": 0.901
+      },
+      "hydroRiversRegion": "na",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.twdb.texas.gov/surfacewater/rivers/river_basins/riogrande/"
+        },
+        {
+          "kind": "international-boundary-commission",
+          "url": "https://www.ibwc.gov/treaties/"
+        }
+      ]
+    }
+  ]
+}
