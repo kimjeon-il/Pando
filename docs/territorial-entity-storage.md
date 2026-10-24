@@ -24,7 +24,7 @@ deferred, and their unbounded coverage is not a historical accuracy claim.
 - Country counts are published by the generated index. Identity and historical
   coordinates are preserved; approved period changes are recorded with their sources.
   Eligible modern land-boundary intervals are supplemented from pinned LSIB 11.4;
-  source details and withheld intervals are recorded in `reports/geography/country-files-lsib-2026-10-21.md`.
+  source details and withheld intervals are recorded in `reports/borders/data/country-files-lsib-2026-10-21.md`.
 - `metadata.representativeGeometryVersionId` explicitly selects an object's undated
   representative. Importing it records a null reference date; explicit dated queries
   still use that object's lifetime and version validity without a fallback.
@@ -194,7 +194,7 @@ Final report must separate changed/new/deleted files, schema, same storage path,
 multi-version evidence, canonical/lazy-load paths, parity, command counts, builds,
 performance, and remaining work, and freeze the final candidate SHA.
 
-추가 집중 비교 완료: 기준·후보 cold/warm 각 3회, 총 12회. 초기 ready 중앙값 cold 24622.3→24226.9ms, warm 26395.4→24034.6ms, 실제 pan/zoom CPU 제출 p95 cold 19.7→19.3ms, warm 20.4→19.4ms. 그러나 cold bufferData CPU 제출 2.3→2.8ms(+21.7%)와 warm used heap 426823492→476396433 bytes(+11.6%)가 5% gate를 넘었다. 수집 명령 종료 코드 0은 성능 gate 통과를 뜻하지 않는다. used heap은 아직 회수되지 않은 garbage를 포함하며, 이 결과만으로 원인을 코드 변경이나 GC 차이라고 확정하지 않는다. 전체 GPU 실행 완료 시간·GC 후 retained heap은 미검증이다. 실패를 보존한 산출물은 `reports/development/testing/territorial-entity-storage/performance.json`이다. 후보 SHA·M15·M16은 미확정이다. 변경 파일 ESLint 종료 코드 0. 전체 검사는 반복하지 않았다.
+추가 집중 비교 완료: 기준·후보 cold/warm 각 3회, 총 12회. 초기 ready 중앙값 cold 24622.3→24226.9ms, warm 26395.4→24034.6ms, 실제 pan/zoom CPU 제출 p95 cold 19.7→19.3ms, warm 20.4→19.4ms. 그러나 cold bufferData CPU 제출 2.3→2.8ms(+21.7%)와 warm used heap 426823492→476396433 bytes(+11.6%)가 5% gate를 넘었다. 수집 명령 종료 코드 0은 성능 gate 통과를 뜻하지 않는다. used heap은 아직 회수되지 않은 garbage를 포함하며, 이 결과만으로 원인을 코드 변경이나 GC 차이라고 확정하지 않는다. 전체 GPU 실행 완료 시간·GC 후 retained heap은 미검증이다. 실패를 보존한 산출물은 `reports/development/storage/territorial-entity-storage/performance.json`이다. 후보 SHA·M15·M16은 미확정이다. 변경 파일 ESLint 종료 코드 0. 전체 검사는 반복하지 않았다.
 
 장면 보존 실패 분류: 원격 기준 SHA의 기존 WebGL2 검사 1개를 동일 조건으로 실행했고, 라이브러리를 열기 전 같은 sceneCache valid 대기에서 동일 실패(1 실패·0 통과·0 skip)를 재현했다. 따라서 WebGL2 선행 실패는 기존 문제(C)이며 이번 catalog 교체의 회귀로 판정하지 않는다. WebGL1의 기준 재실행은 미실행이고 두 후보 사례의 후속 country-add 표시 구간도 아직 검증하지 못했다. 기존 assertion은 유지했다.
 
@@ -229,7 +229,7 @@ M15의 성능 gate는 미통과 상태로 남긴다. 배포 완료와 전체 계
 
 ### 요청한 산출물 13항목
 
-1. 변경 파일 전체: `reports/development/testing/territorial-entity-storage/file-inventory.json`의 M 목록.
+1. 변경 파일 전체: `reports/development/storage/territorial-entity-storage/file-inventory.json`의 M 목록.
 2. 추가 파일 전체: 같은 산출물의 A 목록. source 284개와 gzip 284개를 포함한다.
 3. 삭제 파일 전체: 같은 산출물의 D 목록. historical-only model/service/controller,
    pilot JSON, retired validator/builder, 미사용 Natural Earth gzip과 구형 unit 파일을 제거했다.

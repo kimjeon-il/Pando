@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from library_data import write_library_text
 import json, pathlib, re, requests
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
@@ -16,7 +17,7 @@ def get_json(url, **kwargs):
     return r.json()
 
 rel=get_json(REL_URL)
-(OUT/"graensestien-relation-11260903-full.json").write_text(json.dumps(rel,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(OUT/"graensestien-relation-11260903-full.json",json.dumps(rel,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
 
 # Reconstruct all relation member ways with coordinates, preserving relation-member order.
 elems=rel.get("elements",[])
@@ -55,7 +56,7 @@ route_geo={"type":"FeatureCollection","features":[
     {"type":"Feature","properties":{"source":"OSM relation 11260903","chainIndex":i,"coordinateCount":len(c)},"geometry":{"type":"LineString","coordinates":c}}
     for i,c in enumerate(chains)
 ]}
-(OUT/"graensestien-route-reference.geojson").write_text(json.dumps(route_geo,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(OUT/"graensestien-route-reference.geojson",json.dumps(route_geo,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
 
 # Boundary stones/markers in western sector, broad enough to include marker 1 through Gelsbro.
 query=r"""[out:json][timeout:90];
@@ -69,7 +70,7 @@ out body;"""
 rr=requests.post(OVERPASS,data={"data":query},headers=UA,timeout=120)
 rr.raise_for_status()
 markers=rr.json()
-(OUT/"west-boundary-markers-overpass.json").write_text(json.dumps(markers,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(OUT/"west-boundary-markers-overpass.json",json.dumps(markers,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
 
 # Normalize likely 1864-1920 border stones and parse numeric references.
 def numref(tags):
@@ -101,7 +102,7 @@ marker_fc={"type":"FeatureCollection","features":[
     {"type":"Feature","id":f"osm-node-{x['osmNodeId']}","properties":{k:v for k,v in x.items() if k not in ("lon","lat")},"geometry":{"type":"Point","coordinates":[x["lon"],x["lat"]]}}
     for x in candidates
 ]}
-(OUT/"west-boundary-marker-candidates.geojson").write_text(json.dumps(marker_fc,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(OUT/"west-boundary-marker-candidates.geojson",json.dumps(marker_fc,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
 
 summary={
     "relationId":REL_ID,
@@ -112,5 +113,5 @@ summary={
     "candidateCount":len(candidates),
     "numberedCandidates":[{"number":x["number"],"osmNodeId":x["osmNodeId"],"lon":x["lon"],"lat":x["lat"],"rawRef":x["rawRef"]} for x in candidates if x["number"] is not None],
 }
-(OUT/"west-source-summary.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
+write_library_text(OUT/"west-source-summary.json",json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(summary,ensure_ascii=False,indent=2))

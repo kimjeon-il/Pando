@@ -5,6 +5,7 @@ targets move all three countries together. The unchanged outer land mask,
 island components and special/disputed boundaries remain authoritative exclusions.
 Raw LSIB evidence is retained separately from the <=0.5px presentation derivative.
 """
+from library_data import library_output, write_library_bytes, write_library_text
 import argparse
 import copy
 import gzip
@@ -70,7 +71,7 @@ def reviewed_reference(root, manifest_path):
 
 def json_write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    write_library_text(path,json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
 def reviewed_coast_reference(root, manifest_path):
@@ -709,7 +710,7 @@ def main():
     archive = Path(args.archive)
     outer = zipfile.ZipFile(archive)
     checksum = next(n for n in outer.namelist() if n.endswith('.txt'))
-    (evidence / 'upstream-checksums.txt').write_bytes(outer.read(checksum))
+    write_library_bytes(evidence / 'upstream-checksums.txt',outer.read(checksum))
     inner_bytes = outer.read(next(n for n in outer.namelist() if n.endswith('.zip')))
     inner = zipfile.ZipFile(io.BytesIO(inner_bytes))
     shp = inner.read(next(n for n in inner.namelist() if n.endswith('.shp')))
@@ -717,11 +718,11 @@ def main():
     records = read_shapefile(dbf, shp)
     json_write(evidence / 'line-index.json', [{'properties':r['properties'],'bbox':r['line'].bounds} for r in records])
     readme = next(n for n in inner.namelist() if 'ReadMe' in n)
-    (evidence / 'upstream-readme.txt').write_bytes(inner.read(readme))
+    write_library_bytes(evidence / 'upstream-readme.txt',inner.read(readme))
     # Exact raw vectors are preserved independently of product simplification.
     master_path = evidence / 'boundaries.geojson.gz'
     if not master_path.exists():
-        with master_path.open('wb') as target:
+        with library_output([master_path]), master_path.open('wb') as target:
             with gzip.GzipFile(fileobj=target, mode='wb', mtime=0, compresslevel=6) as stream:
                 stream.write(b'{"type":"FeatureCollection","features":[')
                 for index, record in enumerate(records):

@@ -48,15 +48,16 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- "$(python tools/report_paths.py assets/data/research/siachen)"
+          node tools/library-data.mjs --store-and-stage --push -- reports/borders/reconstruction/siachen
           if ! git diff --cached --quiet; then
             git commit -m "research: add verified Siachen glacier GeoJSON and comparison"
             git push origin HEAD:work/gis
           fi
+      - name: Resolve branch report artifacts
+        run: echo "PANDO_REPORT_ARTIFACTS=$(python tools/report_paths.py reports/borders/reconstruction/siachen --access read)" >> "$GITHUB_ENV"
       - name: Upload GIS files
         uses: actions/upload-artifact@v4
         with:
           name: siachen-rgi7-study
           path: |
-            reports/research/siachen/
-            assets/data/research/siachen/
+            ${{ env.PANDO_REPORT_ARTIFACTS }}/

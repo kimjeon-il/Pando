@@ -3,6 +3,7 @@
 // are left byte-for-byte intact; generated map assets are rebuilt separately.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {writeLibraryOutput} from './library-data.mjs';
 import {readTerritorialSources,updateTerritorialSource} from './territorial-entity-sources.mjs';
 
 const root = new URL('../', import.meta.url);
@@ -51,7 +52,7 @@ for (const filename of ['rivers_base.geojson', 'lakes_base.geojson', 'hydronym-k
     count += 1;
     return `"${key}":${gap}${JSON.stringify(compact)}`;
   });
-  if (output !== source) fs.writeFileSync(path, output);
+  if (output !== source) writeLibraryOutput(path, output);
   hydroChanges[filename] = count;
 }
 console.log(JSON.stringify({ countryNamesChanged, hydroNameFieldsChanged: hydroChanges }));

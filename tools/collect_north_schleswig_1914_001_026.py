@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from library_data import write_library_text
 import json, pathlib, requests, xml.etree.ElementTree as ET, time
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
@@ -14,7 +15,7 @@ def get_json(url):
 
 # OSM hiking relation: spatial aid only, not treated as the historical border.
 route=get_json("https://api.openstreetmap.org/api/0.6/relation/11260903/full.json")
-(OUT/"graensestien-osm-relation-11260903.full.json").write_text(
+write_library_text(OUT/"graensestien-osm-relation-11260903.full.json",
     json.dumps(route,ensure_ascii=False,separators=(",",":")),encoding="utf-8"
 )
 
@@ -85,8 +86,8 @@ for w in candidate_ways+context_ways:
 
 candidates={"nodes":candidate_nodes,"ways":candidate_ways}
 context={"nodes":context_nodes,"ways":context_ways}
-(OUT/"osm-historic-border-candidates.json").write_text(json.dumps(candidates,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
-(OUT/"osm-endpoint-context.json").write_text(json.dumps(context,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(OUT/"osm-historic-border-candidates.json",json.dumps(candidates,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+write_library_text(OUT/"osm-endpoint-context.json",json.dumps(context,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
 
 
 
@@ -108,7 +109,7 @@ for rel in parish_relations:
     try:
         data=get_json(f"https://api.openstreetmap.org/api/0.6/relation/{rid}/full.json")
         parish_full[str(rid)]=data
-        (OUT/f"osm-parish-relation-{rid}.full.json").write_text(
+        write_library_text(OUT/f"osm-parish-relation-{rid}.full.json",
             json.dumps(data,ensure_ascii=False,separators=(",",":")),encoding="utf-8"
         )
     except Exception as exc:
@@ -131,7 +132,7 @@ dagi_params={
 dagi_response=requests.get(dagi_url,params=dagi_params,headers=UA,timeout=180)
 dagi_response.raise_for_status()
 dagi_parishes=dagi_response.json()
-(OUT/"dagi-current-parishes-sector.geojson").write_text(
+write_library_text(OUT/"dagi-current-parishes-sector.geojson",
     json.dumps(dagi_parishes,ensure_ascii=False,separators=(",",":")),encoding="utf-8"
 )
 
@@ -152,5 +153,5 @@ summary={
   "dagiParishFeatureCount":len(dagi_parishes.get("features",[])),
   "dagiParishProperties":[f.get("properties",{}) for f in dagi_parishes.get("features",[])],
 }
-(OUT/"collection-summary.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
+write_library_text(OUT/"collection-summary.json",json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(summary,ensure_ascii=False,indent=2))
