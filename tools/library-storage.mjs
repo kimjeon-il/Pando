@@ -197,8 +197,17 @@ function removeLegacy(root,shared,journal,save){
   for(const owner of journal.roots){const path=resolve(owner.root,'.library-data/dev-server.json');if(existsSync(path)&&!processAlive(JSON.parse(readFileSync(path,'utf8')).pid))unlinkSync(path);}
   journal.phase='caches-removed';save();
 }
+export function snapshotGitStorage(shared,progress=()=>{}){
+  if(resolve(shared,git(shared,['rev-parse','--git-common-dir']))!==resolve(shared,'.git'))throw Error('Git storage must run at the common repository root');
+  progress('hashing existing local Git packs');
+  const packs=contentFiles(containedPath(shared,'.git/objects/pack')).filter(f=>/^pack-[a-f0-9]{40}\.(pack|idx|rev|promisor|mtimes)$/.test(f.logical)).map(f=>recordFile(shared,f.path));
+  const promisor=new Set();for(const p of packs.filter(p=>p.path.endsWith('.promisor')))for(const oid of indexObjects(resolve(shared,p.path.slice(0,-9)+'.idx')))promisor.add(oid);
+  progress('enumerating every local Git object, including unreachable objects');
+  const objects=localObjects(shared),id=randomUUID();progress(`inventoried ${objects.length} local objects`);
+  return {id,schema:'pando-git-storage-v1',stagingPath:`.git/pando-repack-${id}`,packs,objects,promisor:[...promisor].sort(),gitState:state(shared),deleted:[],phase:'inventoried'};
+}
 export function repackLocalObjects(shared,journal,save=()=>{}){
-  const packRoot=containedPath(shared,'.git/objects/pack'),staging=containedPath(shared,`.pando-store/repack-${journal.id}`);
+  const packRoot=containedPath(shared,'.git/objects/pack'),staging=containedPath(shared,journal.stagingPath||`.pando-store/repack-${journal.id}`);
   if(!journal.newPacks){
     assertState(shared,journal.gitState);
     if(!sameSet(localObjects(shared).map(o=>o.oid),journal.objects.map(o=>o.oid)))throw Error('Local object set changed before packing');

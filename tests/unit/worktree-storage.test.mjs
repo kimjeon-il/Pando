@@ -102,6 +102,10 @@ test('retired Qt SDK views share exact bytes while unknown owners and executable
   assert.equal(result.entries.filter(x=>x.status==='shared').length,2);
   assert.equal(statSync(join(views[0],'Qt6Core.dll'),{bigint:true}).ino,statSync(join(views[1],'Qt6Core.dll'),{bigint:true}).ino);
   assert.equal(statSync(join(views[2],'Qt6Core.dll')).nlink,1);
+  const retired=shareRetiredQtRuntimes({root,roots:[root],settings,processes:[],apply:true,retire:true});
+  assert.equal(retired.entries.filter(x=>x.status==='removed-runtime').length,2);
+  assert.equal(existsSync(views[0]),false);assert.equal(existsSync(views[1]),false);
+  mkdirSync(views[0],{recursive:true});writeFileSync(join(views[0],'source-identity.json'),JSON.stringify({qtVersion:'6.8.3',binaries:{baseline:{file:'baseline-ui_tests.exe'}}}));
   writeFileSync(join(views[0],'baseline-ui_tests.exe'),'still needed');
   assert.ok(shareRetiredQtRuntimes({root,roots:[root],settings,processes:[]}).entries.some(x=>/executable/i.test(x.reason||'')));
 });
