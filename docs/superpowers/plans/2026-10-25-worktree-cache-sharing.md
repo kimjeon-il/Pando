@@ -76,10 +76,10 @@
 
 **Interfaces:** Small actual C++/Rust library probes in fixed `build-native/cache-probe` in two existing roots. Check hit/miss stats, changed source/header/options, execution, dep-info and macro/environment identity; do not normalize unsafe paths merely to get hits.
 
-- [ ] Run actual compiler and staging/development-file reads; verify unchanged runtime pins, existing WIP, source and staged bytes, readonly IDs and separate writable state.
-- [ ] Review whole branch with a fresh reviewer, address important findings with focused regression tests.
-- [ ] Remove own probes/downloads, completed journals and verified unused copies; retain only currently consumed build caches and audit evidence.
-- [ ] Measure logical removal, file-ID deduplication and D: free-space change separately; publish selected report and run fresh `--check-reports`; commit and push task-owned source branch.
+- [x] Run actual compiler and staging/development-file reads; verify unchanged runtime pins, existing WIP, source and staged bytes, readonly IDs and separate writable state.
+- [x] Review whole branch with a fresh reviewer, address important findings with focused regression tests.
+- [x] Remove own probes/downloads, completed journals and verified unused copies; retain only currently consumed build caches and audit evidence.
+- [x] Measure logical removal, file-ID deduplication and D: free-space change separately; publish selected report and run fresh `--check-reports`; commit and push task-owned source branch.
 
 ## Execution ledger
 
@@ -106,3 +106,9 @@
 - Real Qt migration complete: 6,787 files shared; two tiny runtime folders without source identity remain protected. No unique SDK bytes or replay paths were removed.
 - Initial forced pnpm repair also imported non-host optional binaries; native platform resolution and scoped cleanup removed those views, then evicted only newly created unreferenced task downloads with exact store hash/ID proof. All five Windows esbuild smoke checks pass and unsupported installed package count is zero.
 - Final inventory: content/file-ID reduction 783,552,722 bytes in the selected cache cohort including the application pool, adjusted for 253,035,104 bytes of already-existing library blobs now referenced. This is distinct from actual NTFS allocation/free-space change.
+
+- Task 5 complete: selected report published and freshly checked at library commit `3076d3beb111a18bd03fc7ec21693784c7741da6`, scope `reports/development/storage/permanent-worktree-cache-20261025`, 2 remote-verified files.
+- Implementation commit `6db1f2e2aa2cd6b91552377c4907bc92dd7f3143` pushed and matched origin/work/objects. Final completion-state confirms all five pins and the same readonly manifest file ID; main/GIS/Places/Objects clean, UI WIP retained.
+- WIP count correction: 234 NUL status records include 15 rename source records. Completion contains 219 dirty paths; three original paths were edited concurrently by the other UI task. The report was corrected and re-published; no UI source was written by this cleanup.
+- Compiler probe cache cleanup: 44 toy verification cache objects (78,282 bytes) removed after stopping the owned server; Pando cache restarted empty with its 2GiB cap. No branch incremental target was removed.
+- Remaining verification temporary paths: zero; App verification stage/server, both probe directories, downloads, completed journals and temporary audit scripts removed. Private audit metadata remains the report current consumer.
