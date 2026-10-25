@@ -70,7 +70,8 @@ public static class PandoNativeFileDialog {
   }
   private static Input Key(ushort key, ushort scan, uint flags) { return new Input { type=1, data=new InputData { keyboard=new Keyboard { key=key,scan=scan,flags=flags } } }; }
   private static void TypeFilename(IntPtr dialog, IntPtr edit, int processId, string path) {
-    if(!SetForegroundWindow(dialog)||GetForegroundWindow()!=dialog)throw new Exception("Test-owned dialog could not be activated");
+    if(GetForegroundWindow()!=dialog)SetForegroundWindow(dialog);
+    if(GetForegroundWindow()!=dialog)throw new Exception("Test-owned dialog could not be activated; expected="+dialog+", foreground="+GetForegroundWindow());
     uint owner;uint targetThread=GetWindowThreadProcessId(edit,out owner),thread=GetCurrentThreadId();
     if(owner!=(uint)processId||!AttachThreadInput(thread,targetThread,true))throw new Exception("Test-owned filename focus unavailable");
     try {

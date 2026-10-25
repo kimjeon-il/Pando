@@ -1,56 +1,48 @@
 # PandoLab Windows·Android 앱
 
-The Tauri 2 application for Windows x64 and Android arm64. It embeds the
-existing Web frontend staged by `stage.mjs`. Ordinary builds and development
-use `map-data` with manifest-pinned country, historical and prepared geometry assets.
-The `test-fixture` profile is available only in explicit verification builds.
-This is the sole app execution and development entrypoint.
+Windows MSVC x64와 Android ARM64 앱이다. 평소 개발은 Node·Git·브라우저·빌드된 앱·ADB를 사용한다.
+Rust1.99.1·C++·Android SDK/NDK 컴파일은 GitHub Actions가 담당하며 로컬 컴파일이나 SDK 자동 설치는 없다.
 
-프로필은 앱에 넣을 자료를 선택하며, 사용자가 만들 프로젝트의 범위나 크기를 제한하지 않는다.
-`map-data`는 실제 지도 자료, `test-fixture`는 검증용 합성 자료를 뜻한다.
+## 실행과 원격 빌드
 
-## 일반 앱과 검증 실행기
+저장소 루트에서 실행한다. Windows 실행 정책이 pnpm.ps1을 막으면 pnpm.cmd를 사용한다.
 
-`build:windows`, `build:android`, `dev:windows`, `dev:android`는 검증 도구를
-포함하지 않는다. 일반 앱에는 시험 파일 저장·자동 종료 명령, 진단 화면,
-세계지도·참조 이미지 측정 스크립트와 시험 이미지를 넣지 않는다. 실제 OCR,
-방향 감지, 프로젝트 파일 입출력과 오류 보고는 유지한다.
+```powershell
+pnpm.cmd --dir apps/web-shell dev:windows
+pnpm.cmd --dir apps/web-shell dev:android -- --serial=DEVICE_SERIAL
+pnpm.cmd --dir apps/web-shell build:windows
+pnpm.cmd --dir apps/web-shell build:android
+pnpm.cmd --dir apps/web-shell test:native
+```
 
-검증할 때만 `build:verification:windows` 또는 `build:verification:android`를
-사용한다. 작은 저장 시험은 검증 명령에만 `PANDOLAB_SHELL_PROFILE=test-fixture`를
-함께 지정한다. 일반 빌드·개발 실행에서는 이 값을 자료 준비나 출력 생성 전에 거부한다.
-기존 `stage:verification` 명령은 검증 자산만 준비하며 네이티브 앱을 빌드하지 않는다.
-검증 빌드의 자산·Cargo feature·Tauri 권한이 다르면 빌드를 실패시킨다.
-직접 Tauri 명령을 쓰는 CI는 `PANDOLAB_SHELL_VERIFICATION=1`,
-`--features custom-protocol,verification`,
-`--config src-tauri/tauri.verification.json`을 함께 지정한다.
+개발 앱은 명시적인 Cargo development feature로 빌드한다. 화면·지도 자료를 내장하지 않고
+같은 작업트리의 http://127.0.0.1:4175를 읽는다. JS/CSS는 서버 재로딩으로 반영한다.
+같은 네이티브 입력 해시의 CI 실행기는 재사용한다. 없으면 원격 브랜치의 현재 커밋을 빌드
+요청하고 검증 후 받는다. 미커밋 네이티브 입력은 커밋·푸시 오류로 중단하며 자동 커밋하지 않는다.
+C++ 변경은 기존 P2의 소스 일치 WASM 생성·게시 절차를 거친다. JS/CSS와 runtime pin 변경은
+개발 실행기 재빌드를 유발하지 않는다. 다른 작업트리가4175를 사용하면 중단한다.
+서버만 실행하려면 dev:server를 사용한다.
 
-검증 실행기는 기존 Cargo 경로에서 재사용하고 `target/packaged/`의 일반
-오프라인 실행기를 덮어쓰지 않는다. Windows 검증 스크립트는 실행 파일의
-`--build-info`를 확인한다. 일반 앱은 `--probe-*`·`--diagnostic-output` 옵션을
-거부하며 시작 실패는 고정된 진단 보고서로 기록한다. 개발 서버와 일반
-오프라인 앱은 검증 기능을 포함하지 않는다.
+Android는 USB 디버깅을 허용한 ARM64 실기기를 사용한다. 여러 기기가 있으면 serial이 필요하다.
+에뮬레이터는 자동 실행하지 않는다. ADB reverse로 같은 서버에 연결하고 자신이 만든 연결만
+종료 시 제거한다. APK 인증서를 pin과 설치된 앱 양쪽에 대조한 뒤 업데이트 설치한다.
+불일치는 중단하며 앱 삭제·데이터 초기화는 하지 않는다.
 
-## 반복 개발
+build:*는 자료를 내장하는 offline CI 산출물 요청이다. build:verification:*는 명시적인
+verification 모드다. development와 verification을 섞을 수 없다. 일반 앱·개발 서버는 map-data만
+허용한다. test:native는 Windows CI 단위검사를 요청한다. fixture 프로필의 원격 빌드 요청은 제공하지 않는다.
+일반 앱에는 시험 파일 쓰기·자동 종료 명령이 없다. 검증 스크립트는 build-info를 확인한다.
 
-저장소 루트에서 `pnpm --dir apps/web-shell dev:windows` 또는 `dev:android`를
-실행한다. 기본 개발 프로필은 `map-data`이며 `http://127.0.0.1:4175`의
-검증된 자산을 사용한다. 처음 네이티브 실행기를 만든 뒤 HTML·CSS·JS 수정은
-화면만 재로딩한다. C++ 변경은 기존 도구로 WASM과 manifest를 함께 재생성하면
-검증 후 재로딩한다. Rust·권한·브리지 변경 때만 증분 빌드와 재시작이 필요하다.
-같은 워크트리 서버를 재사용하며 다른 작업이 4175를 점유하면 종료시킨다거나
-임의 포트를 추가하지 않는다. 서버만 필요하면 `dev:server`를 실행한다.
+packaged-artifacts.mjs가 CI 요청·다운로드·검증을 소유한다. Manifest는 소스 커밋, 네이티브 입력
+SHA-256, 플랫폼, 실행 모드, 도구 버전과 파일별 크기·SHA-256을 기록한다. Windows build-info와
+Android APK 인증서도 확인한다. 실행기는 공용 D:/build/cache/pandolab/native/<입력 SHA-256>에서
+blob pool과 읽기 전용 하드링크를 공유한다. 브랜치별 참조는 .library-data/native-artifacts.json이다.
+실패한 전송은 현재 정상 실행기를 보존하고 다음 요청에서 재시도한다. Actions artifact 보존 기간은7일이며
+Cargo target·SDK·Gradle 중간 산출물은 포함하지 않는다.
 
-Android는 연결된 기기를 우선 사용하고, 없으면 기존 `Medium_Phone` AVD를
-사용한다. 새 AVD나 SDK 이미지는 만들지 않는다. ADB reverse를 통해 같은
-loopback 서버로 연결하며 종료 시 reverse를 제거한다. 개발 debug 빌드만
-127.0.0.1의 cleartext 통신을 허용한다. 패키징 명령은 이 예외를 끈다.
-
-네이티브 빌드는 여유 공간 15GiB와 예상 증가량에 2GiB의 여유를 요구한다.
-Cargo 의존성 경로를 재사용하며 앱의 소스 줄 디버그 정보만 남긴다. 패키징은
-증분 캐시를 끄고 마지막 오프라인 EXE/APK 한 벌을 `target/packaged/`에 유지한다.
-개발 실행 후에도 `run-windows`는 보존된 오프라인 EXE를 선택한다.
-구현은 [Tauri 개발 서버 방식](https://v2.tauri.app/develop/)을 따른다.
+run-windows.bat는 Node로 offline 산출물을 검증하고 실행한다. 로컬 컴파일러를 비활성화할 때는
+node tools/worktree-storage.mjs --disable-local-compiler를 사용한다. App blob 공유와 라이브러리
+공유 저장소는 계속 활성 상태다. main 통합과 제품 배포는 별도 승인 범위다.
 
 ## Resource profiles (2-3A–C)
 
@@ -80,10 +72,9 @@ Remove-Item Env:PANDOLAB_SHELL_PROFILE
 ```
 
 For Android, `pnpm --dir apps/web-shell build:android` also defaults to map-data.
-Use `build:verification:android` with the test-fixture variable only for fixture checks. Alternatively,
+Remote builds currently use map-data. For local staging-only fixture checks,
 `pnpm --dir apps/web-shell stage:map-data` creates a map-data staging
-snapshot **only**; subsequent Tauri builds restage using the environment
-and require verification mode when test-fixture is selected.
+snapshot **only**. This does not compile an application.
 
 The map-data profile includes manifest-pinned offline HydroRIVERS and built-in places.
 Both are off by default and load only when explicitly enabled in View. Project-created
@@ -102,50 +93,6 @@ The application identifier is `com.pandolab.webshell.prototype`. Fixed prototype
 files live below the OS application-data directory in `test-profile/`. Windows
 WebView2 also uses a dedicated `test-profile/webview2` directory, so its browser
 storage is separate from normal browser sessions.
-
-## Build
-
-Install the repository dependencies with the pinned pnpm version, then:
-
-```powershell
-# This machine's optional user-scoped GNU/Android toolchain helper:
-. 'D:/build/toolchains/env-tauri-gnu.ps1'
-pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
-pnpm --dir apps/web-shell build:windows
-pnpm --dir apps/web-shell build:android
-```
-
-The tested Windows prototype uses Rust's `x86_64-pc-windows-gnu` target, existing
-MinGW GCC 13.1, user-scoped binutils 2.47, and installed WebView2. The helper above
-sets these paths without changing the existing SDK installation or machine-wide settings.
-This GNU route is a prototype workaround; Tauri's documented Windows toolchain
-uses MSVC. Older MinGW binutils cannot read the current Rust symbol directives.
-The Windows GNU build also explicitly disables implicit exports on its unused
-DLL to avoid PE's export-count limit; its executable and Android exports are
-unaffected. Android needs Java 17, Android SDK/NDK and Rust's
-`aarch64-linux-android` target. Set `JAVA_HOME`, `ANDROID_HOME`, and `NDK_HOME`
-to the installed toolchains before Android initialization/build. The commands
-produce debug artifacts only; Android builds an APK without starting an emulator.
-The Windows command builds a plain EXE without installer or portable bundle.
-The Android scaffold is included under `src-tauri/gen/android`; normal builds
-reuse it. `init:android` is a regeneration command. Regeneration must retain its
-SDK 37.0 minor-API selection, 1 GiB/two-worker Gradle limits, and disabled cleartext
-traffic in debug builds.
-On Windows without symbolic-link privilege, the Android helper recognizes only
-the pinned CLI's specific post-Cargo symlink failure. It hard-links the completed
-arm64 library into the existing JNI build directory on the same volume, then runs
-only `assembleArm64Debug`, excluding the already completed Rust task. It requires
-no administrator permission or SDK edits. Other native errors stop the build.
-Native/Gradle output is captured under `src-tauri/target/android-*-build.log`.
-
-Double-click `apps/web-shell/run-windows.bat` to launch the existing debug build.
-It prefers PowerShell 7, loads the optional local GNU helper when available, and
-adds the pinned Cargo WebView2Loader directory to that process's PATH. It creates
-no installer. The last offline executable and its loader are retained once in
-the fixed `target/packaged/windows` directory. You can also
-run `./apps/web-shell/run-windows.ps1` directly. If a custom
-`CARGO_TARGET_DIR` is set, pass the resulting executable with `-BinaryPath`.
-No commands in this README deploy, push, or modify `main`.
 
 ## Narrow native bridge
 
