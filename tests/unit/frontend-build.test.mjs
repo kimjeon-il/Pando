@@ -28,12 +28,13 @@ test('clean LF and CRLF checkouts share identical immutable frontend bytes while
  const f=fixture(t);
  f.put('shared/frontend/css/app.css','.x { color: red; }\n');
  f.put('apps/viewer/js/viewer.js','export const viewer=true;\n');
+ f.put('shared/frontend/static/vendor/NOTICE','Copyright fixture\nTerms remain unchanged.\n');
  const binary=Buffer.from([137,80,78,71,13,10,26,10,255]);
  f.put('shared/frontend/static/img/proof.png',binary);
  const lf=await buildFrontendSnapshot(f.options);
  const crlf=await buildFrontendSnapshot({...f.options,readSourceBytes:path=>{
   const bytes=readFileSync(join(f.root,path));
-  return /\.(?:[cm]?js|json|css|html|svg|txt|md)$/.test(path)?Buffer.from(bytes.toString('utf8').replace(/\r?\n/g,'\r\n')):bytes;
+  return /\.(?:[cm]?js|json|css|html|svg|txt|md)$|\/(?:LICENSE|NOTICE)$/.test(path)?Buffer.from(bytes.toString('utf8').replace(/\r?\n/g,'\r\n')):bytes;
  }});
  assert.equal(crlf.sourceSha256,lf.sourceSha256);
  assert.deepEqual([...crlf.assets].map(([path,row])=>[path,row.bytes]),[...lf.assets].map(([path,row])=>[path,row.bytes]));
