@@ -1,23 +1,17 @@
 // Scoped migration/maintenance. Runtime preparation and write ownership stay in
 // library-data.mjs. Every deletion below has a locally verified retained copy.
 import { execFileSync } from 'node:child_process';
-import { createHash, randomUUID } from 'node:crypto';
-import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readSync, readdirSync, realpathSync, renameSync, rmdirSync, statfsSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmdirSync, statfsSync, statSync, unlinkSync } from 'node:fs';
 import { basename, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defaultRoot, discardDeadLibraryLock, libraryCheckout, libraryConfig, libraryMaterializedRoot, libraryOwnerId, librarySharedCheckout, libraryWriteLeases, prepareOwnedLibraryData, reportContext, runtimeMaterializationPeak, synchronizeRuntimeManifest, withLibraryLock, libraryRuntimeLeasePaths } from './library-data.mjs';
 import { atomicStorageJSON, containedPath, contentFiles, contentHash, contentPath, linkContent, removeContentLink, shareContentFile } from './library-content.mjs';
 
+import {fileHash,recordFile,gitStorageState,indexObjects,removeEmpty,localObjects,repackLocalObjects} from './library-git.mjs';
+
 const environment = () => ({ ...process.env, GIT_NO_LAZY_FETCH: '1', GIT_OPTIONAL_LOCKS: '0' });
 const git = (root, args, input = undefined) => execFileSync('git', ['-c','gc.auto=0','-c','maintenance.auto=false',...args], { cwd: root, env: environment(), input, encoding:'utf8', maxBuffer:128*1024**2, stdio:['pipe','pipe','pipe'] }).trim();
-const hashBuffer = Buffer.allocUnsafe(4*1024**2);
-export function fileHash(path) {
-  const hash = createHash('sha256'), handle = openSync(path, 'r'), buffer = hashBuffer;
-  try { for (;;) { const size = readSync(handle, buffer, 0, buffer.length, null); if (!size) break; hash.update(buffer.subarray(0,size)); } }
-  finally { closeSync(handle); }
-  return hash.digest('hex');
-}
-const recordFile = (base, path) => { const s = statSync(path,{bigint:true}); return { path:relative(base,path).replaceAll('\\','/'), bytes:Number(s.size), sha256:fileHash(path), id:`${s.dev}:${s.ino}` }; };
 const same = (path, item) => existsSync(path) && lstatSync(path).isFile() && !lstatSync(path).isSymbolicLink() && statSync(path).size === item.bytes && fileHash(path) === item.sha256;
 function space(shared) { const s = statfsSync(shared); return s.bavail * s.bsize; }
 function footprint(shared) {
@@ -40,26 +34,6 @@ function consumers(roots, shared, {allowRoot=null,reclaim=false}={}) {
     }
   }
 }
-function state(shared) {
-  const common=resolve(shared,git(shared,['rev-parse','--git-common-dir']));
-  const worktrees=git(shared,['worktree','list','--porcelain']);
-  const roots=worktrees.split('\n').filter(s=>s.startsWith('worktree ')).map(s=>resolve(s.slice(9)));
-  return { refs:git(shared,['for-each-ref','--format=%(refname) %(objectname) %(symref)']), worktrees,
-    heads:roots.map(root=>({root,head:git(root,['rev-parse','HEAD']),status:git(root,['status','--porcelain','--untracked-files=no'])})),
-    reflogs:contentFiles(common).filter(f=>f.logical.startsWith('logs/')||/^worktrees\/[^/]+\/logs\//.test(f.logical)).map(f=>({path:f.logical,sha256:fileHash(f.path)})) };
-}
-function assertState(shared, before) { if(JSON.stringify(state(shared))!==JSON.stringify(before))throw Error('Git refs, HEAD, reflogs or working state changed during storage maintenance; old objects remain protected.'); }
-export function localObjects(shared) {
-  return git(shared,['cat-file','--batch-all-objects','--unordered','--buffer','--batch-check=%(objectname) %(objecttype) %(objectsize)']).split('\n').filter(Boolean).map(line=>{const [oid,type,bytes]=line.split(' ');if(!/^[a-f0-9]{40}$/.test(oid)||!/^\d+$/.test(bytes))throw Error('Invalid local object enumeration');return {oid,type,bytes:Number(bytes)};}).sort((a,b)=>a.oid.localeCompare(b.oid));
-}
-function packObjects(index) {
-  return git(dirname(index),['verify-pack','-v',index]).split('\n').filter(line=>/^[a-f0-9]{40} /.test(line)).map(line=>line.slice(0,40)).sort();
-}
-function indexObjects(index) {
-  return git(dirname(index),['show-index'],readFileSync(index)).split('\n').filter(Boolean).map(line=>{const oid=line.split(' ')[1];if(!/^[a-f0-9]{40}$/.test(oid))throw Error('Invalid pack index object');return oid;}).sort();
-}
-const sameSet=(a,b)=>JSON.stringify([...new Set(a)].sort())===JSON.stringify([...new Set(b)].sort());
-function removeEmpty(directory) { for(const name of readdirSync(directory)){const p=containedPath(directory,name);if(!lstatSync(p).isDirectory())throw Error(`Unexpected migration remnant: ${p}`);removeEmpty(p);}rmdirSync(directory); }
 function snapshot(root, shared, roots, progress=()=>{}, reclaim=false) {
   consumers(roots,shared,{allowRoot:root,reclaim});
   progress('hashing legacy cache sources');
@@ -89,7 +63,7 @@ function snapshot(root, shared, roots, progress=()=>{}, reclaim=false) {
   const objects=localObjects(shared), promisor=new Set(),packed=new Set();let entries=0;
   for(const p of packs.filter(f=>f.path.endsWith('.idx'))){const ids=indexObjects(resolve(shared,p.path));entries+=ids.length;ids.forEach(oid=>packed.add(oid));if(existsSync(resolve(shared,p.path.slice(0,-4)+'.promisor')))ids.forEach(oid=>promisor.add(oid));}
   progress('measuring file IDs and Git reference state');
-  return {schema:'pando-library-storage-v1',id:randomUUID(),startedAt:new Date().toISOString(),roots:roots.map(r=>({root:r,owner:libraryOwnerId(r),config:libraryConfig(r),configHash:fileHash(resolve(r,'config/library-data.json'))})),before:footprint(shared),legacy,liveViews,immutable,misplaced,indexes,packs,objects,promisor:[...promisor].sort(),gitState:state(shared),packEntries:entries,packedUnique:packed.size,phase:'inventoried',deleted:[],relocated:[]};
+  return {schema:'pando-library-storage-v1',id:randomUUID(),startedAt:new Date().toISOString(),roots:roots.map(r=>({root:r,owner:libraryOwnerId(r),config:libraryConfig(r),configHash:fileHash(resolve(r,'config/library-data.json'))})),before:footprint(shared),legacy,liveViews,immutable,misplaced,indexes,packs,objects,promisor:[...promisor].sort(),gitState:gitStorageState(shared),packEntries:entries,packedUnique:packed.size,phase:'inventoried',deleted:[],relocated:[]};
 }
 function migrationHeadroom(shared,journal) {
   const directory=resolve(shared,'.pando-store/blobs'),pool=new Set(existsSync(directory)?readdirSync(directory):[]),indexes=new Map();
@@ -195,65 +169,6 @@ function removeLegacy(root,shared,journal,save){
   const oldScripts=resolve(shared,'.local-preserved');if(existsSync(oldScripts)&&!readdirSync(oldScripts).length)rmdirSync(oldScripts);
   for(const owner of journal.roots)for(const path of libraryRuntimeLeasePaths(owner.root))if(existsSync(path)&&!processAlive(JSON.parse(readFileSync(path,'utf8')).pid))unlinkSync(path);
   journal.phase='caches-removed';save();
-}
-export function snapshotGitStorage(shared,progress=()=>{}){
-  if(resolve(shared,git(shared,['rev-parse','--git-common-dir']))!==resolve(shared,'.git'))throw Error('Git storage must run at the common repository root');
-  progress('hashing existing local Git packs');
-  const packs=contentFiles(containedPath(shared,'.git/objects/pack')).filter(f=>/^pack-[a-f0-9]{40}\.(pack|idx|rev|promisor|mtimes)$/.test(f.logical)).map(f=>recordFile(shared,f.path));
-  const promisor=new Set();for(const p of packs.filter(p=>p.path.endsWith('.promisor')))for(const oid of indexObjects(resolve(shared,p.path.slice(0,-9)+'.idx')))promisor.add(oid);
-  progress('enumerating every local Git object, including unreachable objects');
-  const objects=localObjects(shared),id=randomUUID();progress(`inventoried ${objects.length} local objects`);
-  return {id,schema:'pando-git-storage-v1',stagingPath:`.git/pando-repack-${id}`,packs,objects,promisor:[...promisor].sort(),gitState:state(shared),deleted:[],phase:'inventoried'};
-}
-export function repackLocalObjects(shared,journal,save=()=>{}){
-  const packRoot=containedPath(shared,'.git/objects/pack'),staging=containedPath(shared,journal.stagingPath||`.pando-store/repack-${journal.id}`);
-  if(!journal.newPacks){
-    assertState(shared,journal.gitState);
-    if(!sameSet(localObjects(shared).map(o=>o.oid),journal.objects.map(o=>o.oid)))throw Error('Local object set changed before packing');
-    const peak=Math.ceil(journal.objects.reduce((sum,o)=>sum+o.bytes,0)*1.06);
-    if(space(shared)<peak+5*1024**3)throw Error(`New Git packs need ${peak} bytes plus 5 GiB headroom`);
-    mkdirSync(staging,{recursive:true});
-    const promised=new Set(journal.promisor),newPacks=[];
-    for(const [name,ids] of [['promisor',journal.promisor],['local',journal.objects.filter(o=>!promised.has(o.oid)).map(o=>o.oid)]]){
-      if(!ids.length)continue;
-      const prefix=containedPath(staging,name),hash=git(shared,['pack-objects','--non-empty','--threads=2',prefix],ids.join('\n')+'\n');
-      if(!/^[a-f0-9]{40}$/.test(hash))throw Error('Unexpected pack output');
-      const base=`${prefix}-${hash}`,actual=packObjects(base+'.idx');
-      if(!sameSet(actual,ids))throw Error('New standalone pack does not contain its exact local object partition');
-      if(name==='promisor')writeFileSync(base+'.promisor','');
-      newPacks.push({base,hash,promisor:name==='promisor',objects:actual});
-    }
-    if(!sameSet(newPacks.flatMap(p=>p.objects),journal.objects.map(o=>o.oid)))throw Error('New pack union differs');
-    journal.newPacks=newPacks;save();
-  }
-  for(const pack of journal.newPacks)for(const ext of ['pack','idx',...(pack.promisor?['promisor']:[])]){
-    const source=pack.base+'.'+ext,target=containedPath(packRoot,`pack-${pack.hash}.${ext}`);
-    if(existsSync(source)){if(existsSync(target)){if(fileHash(source)!==fileHash(target))throw Error('Pack destination collision');}else renameSync(source,target);}
-    if(!existsSync(target))throw Error('New pack installation incomplete');
-  }
-  for(const pack of journal.newPacks)if(!sameSet(packObjects(resolve(packRoot,`pack-${pack.hash}.idx`)),pack.objects))throw Error('Installed pack differs');
-  assertState(shared,journal.gitState);
-  if(!sameSet(localObjects(shared).map(o=>o.oid),journal.objects.map(o=>o.oid)))throw Error('Local object set changed during packing');
-  git(shared,['multi-pack-index','write','--stdin-packs'],journal.newPacks.map(p=>`pack-${p.hash}.idx`).join('\n')+'\n');
-  git(shared,['multi-pack-index','verify']);
-  journal.phase='packs-installed';save();
-  const keep=new Set(journal.newPacks.flatMap(p=>['pack','idx','promisor'].map(ext=>`pack-${p.hash}.${ext}`)));
-  for(const item of journal.packs){
-    if(keep.has(basename(item.path)))continue;
-    const path=containedPath(packRoot,resolve(shared,item.path));if(!existsSync(path))continue;
-    if(!same(path,item))throw Error(`Old pack changed: ${path}`);
-    unlinkSync(path);journal.deleted.push({...item,reason:'exact complete object set verified in new local packs'});
-  }
-  const loose=contentFiles(resolve(shared,'.git/objects')).filter(f=>/^[a-f0-9]{2}\/[a-f0-9]{38}$/.test(f.logical)).map(f=>recordFile(shared,f.path));
-  git(shared,['prune-packed']);
-  for(const item of loose)if(!existsSync(resolve(shared,item.path)))journal.deleted.push({...item,reason:'verified packed local object'});
-  if(!sameSet(localObjects(shared).map(o=>o.oid),journal.objects.map(o=>o.oid)))throw Error('Local objects missing after pack replacement');
-  for(const pack of journal.newPacks)packObjects(resolve(packRoot,`pack-${pack.hash}.idx`));
-  assertState(shared,journal.gitState);
-  // Failed writes in this journal-owned staging folder are no longer useful:
-  // every local object has been independently verified in the installed packs.
-  for(const file of contentFiles(staging))unlinkSync(containedPath(staging,file.path));
-  if(existsSync(staging))removeEmpty(staging);journal.phase='git-compacted';save();
 }
 function verify(shared,journal){
   let originals=0,viewFiles=0,sharedFiles=0,privateFiles=0;

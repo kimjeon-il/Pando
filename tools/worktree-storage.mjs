@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { atomicStorageJSON, containedPath, contentHash, contentFiles, contentPath, publishContent, linkContentView, removeContentView, recoverContentPermissions } from './library-content.mjs';
 import { libraryStagingContent, librarySharedCheckout, withLibraryLock, discardDeadLibraryLock } from './library-data.mjs';
 import { previewGeneratedCleanup, applyGeneratedCleanup } from './worktree-generated.mjs';
-import { snapshotGitStorage, repackLocalObjects } from './library-storage.mjs';
+import { snapshotGitStorage, repackLocalObjects } from './library-git.mjs';
 
 const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const schema='pando-worktree-storage-v1';

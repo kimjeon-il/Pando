@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { contentFiles, contentHash } from '../../tools/library-content.mjs';
 import { prepareLibraryData, withLibraryWrite, libraryMaterializedRoot } from '../../tools/library-data.mjs';
-import { libraryStorage, localObjects, repackLocalObjects, snapshotGitStorage } from '../../tools/library-storage.mjs';
+import { libraryStorage } from '../../tools/library-storage.mjs';
+import { compactDuplicatePacks, localObjects, repackLocalObjects, snapshotGitStorage } from '../../tools/library-git.mjs';
 const git=(root,args,input)=>execFileSync('git',['-c','core.autocrlf=false','-c','gc.auto=0',...args],{cwd:root,input,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim();
 const put=(path,bytes)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);};
 function fixture(t){
@@ -26,6 +27,52 @@ function fixture(t){
   const unreachable=git(data,['hash-object','-w','--stdin'],'unreachable local bytes');
   return {app,ui,data,legacy,logical,unreachable};
 }
+
+test('incremental Git compaction resumes without dropping promised or unreachable objects',t=>{
+  const f=fixture(t),before=localObjects(f.data),refs=git(f.data,['show-ref']);
+  assert.deepEqual(compactDuplicatePacks(f.data,{stopAfter:'inventoried'}),{interruptedAt:'inventoried'});
+  const pending=join(f.data,'.git/pando-git-compaction.pending.json');
+  assert.ok(existsSync(pending));
+  assert.equal(compactDuplicatePacks(f.data).compacted,true);
+  assert.deepEqual(localObjects(f.data),before);assert.equal(git(f.data,['show-ref']),refs);
+  assert.equal(git(f.data,['cat-file','-p',f.unreachable]),'unreachable local bytes');
+  const packRoot=join(f.data,'.git/objects/pack');
+  const ids=readdirSync(packRoot).filter(n=>n.endsWith('.idx')).flatMap(n=>git(f.data,['show-index'],readFileSync(join(packRoot,n))).split('\n').map(line=>line.split(' ')[1]));
+  assert.equal(ids.length,new Set(ids).size);
+  const promised=readdirSync(packRoot).filter(n=>n.endsWith('.promisor')).flatMap(n=>git(f.data,['show-index'],readFileSync(join(packRoot,n.replace('.promisor','.idx')))).split('\n').map(line=>line.split(' ')[1]));
+  assert.ok(promised.includes(git(f.data,['rev-parse','HEAD:'+f.logical])));
+  assert.equal(existsSync(pending),false);assert.equal(compactDuplicatePacks(f.data).compacted,false);
+});
+
+test('incremental Git compaction restarts an undeleted inventory after a legitimate object addition',t=>{
+  const f=fixture(t);compactDuplicatePacks(f.data,{stopAfter:'inventoried'});
+  const oid=git(f.data,['hash-object','-w','--stdin'],'concurrent unique bytes');
+  assert.equal(compactDuplicatePacks(f.data).compacted,true);
+  assert.equal(git(f.data,['cat-file','-p',oid]),'concurrent unique bytes');
+  assert.equal(existsSync(join(f.data,'.git/pando-git-compaction.pending.json')),false);
+});
+
+test('a damaged retained pack cannot justify deleting a valid duplicate original',t=>{
+  const f=fixture(t),packRoot=join(f.data,'.git/objects/pack');
+  const kept=readdirSync(packRoot).filter(n=>n.endsWith('.pack')).sort((a,b)=>statSync(join(packRoot,b)).size-statSync(join(packRoot,a)).size)[0];
+  const path=join(packRoot,kept),bytes=readFileSync(path),oid=git(f.data,['rev-parse','HEAD:'+f.logical]);
+  const offset=Number(git(f.data,['show-index'],readFileSync(path.replace('.pack','.idx'))).split('\n').find(line=>line.split(' ')[1]===oid).split(' ')[0]);
+  writeFileSync(path.replace('.pack','.promisor'),'');
+  bytes[offset+6]^=1;chmodSync(path,0o600);writeFileSync(path,bytes);
+  const before=readdirSync(packRoot).sort();
+  assert.throws(()=>compactDuplicatePacks(f.data),/pack|checksum|integrity/);
+  assert.deepEqual(readdirSync(packRoot).sort(),before,'the valid source pack must remain until retained payload integrity passes');
+});
+
+test('only a byte-proven prefix of a verified complete pack is retired as a failed download',t=>{
+  const f=fixture(t),packRoot=join(f.data,'.git/objects/pack'),before=localObjects(f.data);
+  const source=readdirSync(packRoot).find(n=>n.endsWith('.pack')),bytes=readFileSync(join(packRoot,source));
+  const duplicate=join(packRoot,'tmp_pack_proven'),unknown=join(packRoot,'tmp_pack_unknown');
+  writeFileSync(duplicate,bytes.subarray(0,Math.floor(bytes.length/2)));writeFileSync(unknown,'unverified unique unfinished bytes');
+  compactDuplicatePacks(f.data);
+  assert.equal(existsSync(duplicate),false);assert.equal(readFileSync(unknown,'utf8'),'unverified unique unfinished bytes');
+  assert.deepEqual(localObjects(f.data),before);
+});
 
 test('standalone application Git compaction preserves unreachable objects and all worktree states',t=>{
  const f=fixture(t),unreachable=git(f.app,['hash-object','-w','--stdin'],'private unreachable app bytes');

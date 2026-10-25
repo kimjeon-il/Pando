@@ -3,7 +3,7 @@
 import {existsSync,lstatSync,mkdirSync,readFileSync,readlinkSync,readdirSync,renameSync,rmdirSync,statfsSync,unlinkSync,chmodSync,realpathSync} from 'node:fs';
 import {resolve,dirname,relative,isAbsolute,sep} from 'node:path';
 import {atomicStorageJSON,containedPath,contentFiles,contentHash} from './library-content.mjs';
-import {fileHash} from './library-storage.mjs';
+import {fileHash} from './library-git.mjs';
 
 const schema='pando-generated-cleanup-v1';
 const presentPath=path=>{try{lstatSync(path);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}};
