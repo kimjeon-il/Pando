@@ -3,7 +3,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { chmodSync, closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, renameSync, rmdirSync, statfsSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gunzipSync, gzipSync } from 'node:zlib';
+import { gzipSync } from 'node:zlib';
+import { decodeLibraryArchiveBytes } from './library-archive.mjs';
 import { REPORT_SUBJECTS, organizedReportPath, reportDocumentDetails, reportSubjectReadmes, rewriteReportArtifact } from './library-report-layout.mjs';
 import { atomicStorageJSON, containedPath, contentFiles, contentHash, contentPath, linkContent, makePrivate, publishContent, recoverContentPermissions, removeContentLink, replaceLibraryFile, shareContentFile } from './library-content.mjs';
 
@@ -470,12 +471,7 @@ export function decodeArchiveEntry(checkout, entry, revision = null, {fetch=fals
   let stored;
   try { stored = readFileSync(safeChild(checkout, entry.stored)); }
   catch (error) { if (!revision) throw error; }
-  const decode = stored => {
-    if (!['gzip', 'identity'].includes(entry.encoding)) throw Error('Unknown library archive encoding');
-    const bytes = entry.encoding === 'gzip' ? gunzipSync(stored) : stored;
-    if (bytes.length !== entry.bytes || createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw Error(`Library transfer is corrupt: ${entry.stored}`);
-    return bytes;
-  };
+  const decode = stored => decodeLibraryArchiveBytes(stored, entry);
   if (revision) {
     try { return decode(stored); } catch { /* The storage HEAD may contain a newer runtime resource. */ }
     stored = execFileSync('git', [...gitOptions, 'show', revision + ':' + entry.stored], { cwd: checkout, env: { ...process.env, GIT_NO_LAZY_FETCH: fetch?'0':'1' }, maxBuffer: Math.max(entry.bytes * 2, 16 * 1024 * 1024), stdio:['pipe','pipe','pipe'] });
