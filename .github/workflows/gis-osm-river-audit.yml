@@ -4,7 +4,8 @@ on:
   push:
     branches: [work/gis]
     paths:
-      - tools/inventory-osm-hydronyms.py
+      - tools/inventory-osm-hydronyms.mjs
+      - tests/unit/osm-hydro-inventory.test.mjs
       - tools/gis/compare_osm_hydro_natural_earth.py
       - tools/gis/verify_victorian_yarra_source.py
       - tools/gis/check_official_usgs_hydro_gauges.py
@@ -29,9 +30,12 @@ jobs:
           persist-credentials: false
       - name: Mount pinned external geographic data
         uses: ./.github/actions/library-data
-      - name: Extract 73 matched systems without modifying map data
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Extract verified matched systems without modifying map data
         run: |
-          python tools/inventory-osm-hydronyms.py \
+          node tools/inventory-osm-hydronyms.mjs \
             --manifest assets/data/hydro/v0.13.2/manifest.json \
             --bundle assets/data/hydro/v0.13.2/hydro.bin \
             --output /tmp/osm-hydro-inventory.json

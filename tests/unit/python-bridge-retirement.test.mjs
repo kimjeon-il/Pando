@@ -19,7 +19,7 @@ test('Python files only decrease from the original reviewed 101-file migration i
   const original = [...inventory.matchAll(/^- `([^`]+\.py)`$/gm)].map(match => match[1]);
   assert.equal(original.length, 101, 'the reviewed migration inventory must cover 101 files');
   assert.equal(new Set(original).size, 101, 'the initial inventory must not contain duplicates');
-  assert.ok(remaining.length <= 92, `Python file count grew: ${remaining.length}`);
+  assert.ok(remaining.length <= 91, `Python file count exceeded B1 baseline: ${remaining.length}`);
   for (const path of remaining) assert.ok(original.includes(path), `Unreviewed Python file: ${path}`);
 });
 
