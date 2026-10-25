@@ -1,3 +1,5 @@
+import { resourceKey, resourceUpdate } from './resource-update-policy.js';
+import { geometryRevisionKey } from './geometry-versions.js';
 /** CountryIndex: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -13,7 +15,7 @@ export function createCountryIndex() {
   let countryLabelAnchorRequestId;
   let countryLabelAnchorFlight;
   let labelFallbackQueue;
-  const countryLabelAnchorGeometries = new Map();
+  const countryLabelAnchorDependencies = new Map();
   function connect(ports) {
     if (dependencies) throw new Error('country-index already connected');
     dependencies = ports;
@@ -164,7 +166,7 @@ export function createCountryIndex() {
     pendingCountryLabelAnchors.clear();
     countryLabelAnchorVersions.clear();
     countryLabelAnchors.clear();
-    countryLabelAnchorGeometries.clear();
+    countryLabelAnchorDependencies.clear();
     countryLabelAnchorRequestId += 1;
   }
 
@@ -206,9 +208,9 @@ export function createCountryIndex() {
   function scheduleCountryLabelAnchors(ids = null, delay = 30) {
     const requested = ids ? new Set([...ids].map(String)) : null;
     const sources = (0, dependencies.countries.builtinTerritorialScene)();
-    for (const id of countryLabelAnchorGeometries.keys()) {
+    for (const id of countryLabelAnchorDependencies.keys()) {
       if (sources.labelById.has(id)) continue;
-      countryLabelAnchorGeometries.delete(id);
+      countryLabelAnchorDependencies.delete(id);
       countryLabelAnchors.delete(id);
       pendingCountryLabelAnchors.delete(id);
       countryLabelAnchorVersions.delete(id);
@@ -217,9 +219,12 @@ export function createCountryIndex() {
     for (const feature of sources.labelById.values()) {
       const id = String(feature?.id || '');
       if (requested && !requested.has(id) && !requested.has(String(sources.labelRefs.get(id)?.id))) continue;
-      const previousGeometry = countryLabelAnchorGeometries.get(id);
-      countryLabelAnchorGeometries.set(id, feature.geometry);
-      if ((!previousGeometry || previousGeometry === feature.geometry)
+      const previous = countryLabelAnchorDependencies.get(id) || null;
+      const next = { source: 'country-anchor', content: geometryRevisionKey(feature.geometry),
+        preparation: resourceKey(['anchor-v1']), context: null, presentation: 'anchor' };
+      const change = resourceUpdate(previous, next);
+      countryLabelAnchorDependencies.set(id, next);
+      if ((!previous || !change.prepare)
         && (validLabelAnchor(countryLabelAnchors.get(id)) || pendingCountryLabelAnchors.has(id))) continue;
       countryLabelAnchors.delete(id);
       countryLabelAnchorVersions.set(id, (countryLabelAnchorVersions.get(id) || 0) + 1);

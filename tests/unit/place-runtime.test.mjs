@@ -1,6 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+test('date reevaluation with equal place records retains the admitted snapshot and its allocations', async () => {
+  let admissions=0, publications=0;
+  const record=normalizePlace({source:'synthetic',sourceId:'same',name:'Same',kind:'city',coordinates:[1,2]});
+  const runtime=createPlaceRuntime({admitReferences:async()=>{admissions++;},onSnapshot:()=>{publications++;},
+    rpc:{stop(){},request:async()=>({result:{records:[structuredClone(record)],signature:'same-visible-tiles'}})}});
+  await runtime.prepare({presentation:{month:'1900-01'}});
+  const before=runtime.snapshot();
+  await runtime.prepare({presentation:{month:'1900-02'}});
+  assert.equal(admissions,1);
+  assert.equal(publications,1);
+  assert.strictEqual(runtime.snapshot(),before);
+  runtime.dispose();
+});
+
 test('reference search ignores interaction and presentation without publishing project identities', async () => {
   const calls = []; let admissions = 0;
   const place = normalizePlace({ source: 'synthetic', sourceId: 'old', name: 'Old name', kind: 'city', coordinates: [1, 2] });

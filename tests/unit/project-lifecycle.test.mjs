@@ -66,7 +66,7 @@ test('new project retains its replacement boundary until the prepared visual swa
   let releaseSwap,signalSwapStarted;
   const held=new Promise(resolve => { releaseSwap=resolve; }),started=new Promise(resolve => { signalSwapStarted=resolve; });
   const { domain }=await fixture(t,{ replaceSnapshot: async (_project,options) => {
-    assert.equal(options.preserveBuiltinMesh,true);signalSwapStarted();await held;return true;
+    assert.equal(options.prepared.builtinMeshReady,true);signalSwapStarted();await held;return true;
   } });
   const pending=domain.createProject({initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'});await started;
   assert.equal(domain.isReplacing(),true);assert.equal(domain.getGeneration(),1);

@@ -17,7 +17,7 @@ function harness() {
   };
   const prepare = strokes => prepareGpuBaseScene({ scene: { polygons: [], strokes },
     frame: { projectGeneration: 7 }, presentedStrokeDomains }, { strokeRenderer });
-  const ready = (...rows) => rows.forEach(row => resources.add(`scene-stroke:7:${row.sourceKey}`));
+  const ready = (...rows) => rows.forEach(row => resources.add(`scene-stroke:${row.sourceKey}`));
   const accept = result => commitGpuStrokeDomains({ frameId: 1, projectGeneration: 7,
     overlayRenderedKeys: result.overlayItems.map(row => row.packet.key), overlayMissingKeys: [],
     strokeDomainReplacements: result.strokeDomainReplacements }, { frameId: 1, projectGeneration: 7 }, presentedStrokeDomains, strokeRenderer);
@@ -39,7 +39,7 @@ test('a stroke domain retains A while every replacement resource in B is prepare
   assert.equal(h.presentedStrokeDomains.get('boundaries')[0].packet, a, 'preparation is not presentation');
   h.accept(prepared);
   assert.deepEqual(h.presentedStrokeDomains.get('boundaries').map(row => row.packet), [b, extra]);
-  assert.deepEqual(h.released, [`scene-stroke:7:${a.sourceKey}`]);
+  assert.deepEqual(h.released, [`scene-stroke:${a.sourceKey}`]);
 });
 test('failed and stale presentation cannot release A or promote a prepared B', () => {
   const h = harness(), a = packet('a', 1), b = packet('a', 2); h.ready(a); h.accept(h.prepare([a])); h.ready(b);
@@ -94,19 +94,24 @@ test('empty domains, removed objects and disabled strokes do not leave old geome
   assert.deepEqual(h.prepare([{ ...a, style: { alpha: 0, width: 2 } }]).overlayItems, []);
   assert.deepEqual(h.prepare([]).overlayItems, []);
 });
-test('a new project generation cannot display or reuse the previous project resource', () => {
+test('a new project can reuse the exact requested resource but cannot display previous project fallback', () => {
   const h = harness(), a = packet('a', 1); h.ready(a); h.accept(h.prepare([a]));
   const result = prepareGpuBaseScene({ scene: { strokes: [a] }, frame: { projectGeneration: 8 },
     presentedStrokeDomains: new Map() }, { strokeRenderer: {
     hasPreparedResource: row => h.resources.has(row.key), ensureResource: () => ({ resource: null, reason: 'upload-pending' }),
   } });
-  assert.deepEqual(result.overlayItems, []);
+  assert.deepEqual(result.overlayItems.map(row=>row.packet), [a]);
+  const changed=prepareGpuBaseScene({scene:{strokes:[packet('a',2)]},frame:{projectGeneration:8},
+    presentedStrokeDomains:h.presentedStrokeDomains},{strokeRenderer:{
+      hasPreparedResource:row=>h.resources.has(row.key),ensureResource:()=>({resource:null,reason:'upload-pending'}),
+    }});
+  assert.deepEqual(changed.overlayItems,[]);
 });
 test('a failed prepared B draw redraws eligible A before publication and cannot promote B', () => {
   const h = harness(), a = packet('line', 1), b = packet('line', 2); h.ready(a); h.accept(h.prepare([a])); h.ready(b);
   const prepared = h.prepare([b]), drawn = [];
   const gl = new Proxy({}, { get: (_target, key) => /^[A-Z_]+$/.test(key) ? key : () => {} });
-  const result = drawGpuBaseScene({ gl, frame: { frameId: 1, projectGeneration: 7 }, countries: {}, prepared }, {
+  const result = drawGpuBaseScene({ gl, frame: { frameId: 1, projectGeneration: 7 }, surfacePresentation:{quality:'canonical'}, countries: {}, prepared }, {
     drawOceanSubstrate() {}, drawHydro() {}, drawCountryBoundaryStrokes() {}, strokeRenderer: { ...h,
       hasResource: key => h.resources.has(key),
       drawBatches: rows => { const row = rows[0]; drawn.push(row.geometryRevision);
@@ -126,7 +131,7 @@ test('a failed prepared B draw redraws eligible A before publication and cannot 
 test('failure of both B and eligible A is a failed presentation with no promotion', () => {
   const h = harness(), a = packet('line', 1), b = packet('line', 2); h.ready(a); h.accept(h.prepare([a])); h.ready(b);
   const gl = new Proxy({}, { get: (_target, key) => /^[A-Z_]+$/.test(key) ? key : () => {} });
-  const result = drawGpuBaseScene({ gl, frame: { frameId: 1, projectGeneration: 7 }, countries: {}, prepared: h.prepare([b]) }, {
+  const result = drawGpuBaseScene({ gl, frame: { frameId: 1, projectGeneration: 7 }, surfacePresentation:{quality:'canonical'}, countries: {}, prepared: h.prepare([b]) }, {
     drawOceanSubstrate() {}, drawHydro() {}, drawCountryBoundaryStrokes() {}, strokeRenderer: {
       hasResource: () => true, drawBatches: rows => ({ renderedKeys: [], missingKeys: rows.map(row => row.key) }),
     },

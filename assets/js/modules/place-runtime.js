@@ -1,13 +1,14 @@
 import { createWorkerRpcClient } from './worker-rpc.js';
 import { createLatestWorkerJobScheduler, createWorkerCancellationError } from './worker-job-scheduler.js';
 import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from './place-contract.js';
+import { resourceKey, resourceUpdate } from './resource-update-policy.js';
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
 
 /** Canonical owner of the builtin label snapshot and Worker lifecycle. */
 export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],getPresentation=()=>null,admitReferences } = {}) {
   if (typeof manifestUrl !== 'string' || !manifestUrl) throw new TypeError('Place manifest URL must be a nonempty string');
   if(typeof admitReferences!=='function')throw new TypeError('Place publication requires its accepted identity admission boundary.');
-  let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedKey=null, referenceSequence=0;
+  let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedDependencies=null, snapshotDependencies=null, referenceSequence=0;
   const retained=new Map();
   let publication=Promise.resolve();
   // A Worker can finish the next request while the previous C++ admission is
@@ -41,9 +42,9 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
   }
   async function prepare(view) {
     desired=view; if (closed || moving) return false;
-    const key=JSON.stringify(view);
-    if (key === requestedKey) return false;
-    requestedKey=key;
+    const requested={source:manifestUrl,content:'place-source',preparation:resourceKey(view),context:null,presentation:'viewport-query'};
+    if (!resourceUpdate(requestedDependencies,requested).prepare) return false;
+    requestedDependencies=requested;
     const current=++revision;
     try {
       const job=scheduler.enqueue({ jobKey: 'viewport', targetRevision: current, payload: { view }, metadata: { controller: new AbortController() } });
@@ -51,23 +52,28 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       if (closed || moving || current !== revision) return false;
       if (!Array.isArray(result.records) || result.records.length > PLACE_LIMITS.candidates) throw new RangeError('Place snapshot candidate budget exceeded');
       const records=Object.freeze(result.records.map(normalizePlace));
+      const next={source:manifestUrl,content:resourceKey(records),preparation:'place-normalization-v1',context:null,
+        presentation:resourceKey(result.signature || 'records')};
       return await publishAccepted(async()=>{
         if(closed || moving || current!==revision)return false;
-        await admitReferences(()=>references(records));
+        const change=resourceUpdate(snapshotDependencies,next);
+        if(!change.present)return false;
+        if(change.input)await admitReferences(()=>references(records));
         if(closed || moving || current!==revision) {
           if(!closed)await admitReferences(()=>references());
           return false;
         }
-        snapshot=Object.freeze({ ...result, revision: current, records });
+        snapshot=Object.freeze({ ...result, revision: current, records:change.input?records:snapshot.records });
+        snapshotDependencies=next;
         onSnapshot(snapshot); return true;
       });
     } catch (error) {
-      if(current===revision)requestedKey=null;
+      if(current===revision)requestedDependencies=null;
       if(!closed && current===revision && !error.cancelled && error.name!=='AbortError' && error.code!=='PL-CORE-STALE')onError(error);
       return false;
     }
   }
-  function cancelViewport() { requestedKey=null; revision++; scheduler.cancelKey('viewport'); }
+  function cancelViewport() { requestedDependencies=null; revision++; scheduler.cancelKey('viewport'); }
   return Object.freeze({
     prepare,
     cancelViewport,

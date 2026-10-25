@@ -1,6 +1,7 @@
 import { createGpuResourceLifecycle } from './gpu-resource-lifecycle.js';
 import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
 import { createHydroViewRequests } from './hydro-view-requests.js';
+import { resourceKey, resourceUpdate } from './resource-update-policy.js';
 
 // Owns hydro transport, revision gates, RPC settlement, pack cache and upload
 // lifetimes. Application feature registration and UI presentation are callbacks.
@@ -17,7 +18,6 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     let hydroWorker = null;
     let hydroWorkerReady = false;
     let hydroWorkerGeneration = 0;
-    let hydroWorkerIncludesGeometry = false;
     let hydroWorkerReadyPromise = Promise.resolve(false);
     let hydroWorkerReadyResolve = null;
     let hydroWorkerReadyTimer = 0;
@@ -44,6 +44,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     const hydroLogicalQueryRequests = new Map();
     let hydroFeatureRequestId = 0;
     let hydroCacheCompletionNotified = false;
+    let sourceDependencies = null;
 
     function settleHydroRpc(requests, requestId, value, error = null) {
       const pending = requests.get(requestId);
@@ -183,14 +184,14 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     function scheduleHydroUpload(entry) {
       if (disposed || !gl || !entry || entry.resources || entry.uploadQueued || !uploadScheduler) return;
       entry.uploadQueued = true;
-      const generation = projectGeneration, contextGeneration = renderDeviceContextRevision;
+      const contextGeneration = renderDeviceContextRevision;
       const epoch = uploadEpoch;
       const key = 'hydro:' + (++stagingSequence); entry.uploadKey = key;
       void uploadScheduler.enqueueUpload({
-        key, projectGeneration: generation, contextGeneration, priority: 40,
+        key, contextGeneration, priority: 40,
         dispose: () => { entry.uploadKey = null; entry.uploadQueued = false; deleteHydroPackResources(entry); },
         step: ({ byteBudget }) => {
-          if (disposed || entry.uploadKey !== key || epoch !== uploadEpoch || generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
+          if (disposed || entry.uploadKey !== key || epoch !== uploadEpoch || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
           const before = metrics.hydroUploadBytes;
           uploadHydroPack(entry, byteBudget);
           if (entry.resources) { entry.uploadKey = null; entry.uploadQueued = false; queueHydroRender('hydro-upload-ready'); }
@@ -281,11 +282,19 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       }
       if (message.type === 'pack') {
         if (Number(message.revision || 0) < hydroAcceptedRevision) return;
+        const dependencies={source:sourceDependencies.source,content:resourceKey([sourceDependencies.content,Number(message.packId)]),
+          preparation:sourceDependencies.preparation,context:gl?[gl,renderDeviceContextRevision]:null,presentation:'hydro-pack'};
+        const previous=hydroPacks.get(Number(message.packId));
+        if(previous && !resourceUpdate(previous.dependencies,dependencies).prepare) {
+          previous.dependencies=dependencies;previous.lastUsed=performance.now();
+          if(isWebGlRenderer())scheduleHydroUpload(previous);
+          return;
+        }
         const meshData = message.mesh || {};
         const features = message.features || [];
         const descriptors = message.descriptors || [];
         const entry = {
-          id: Number(message.packId), features, descriptors, resources: null, uploadQueued: false, lastUsed: performance.now(),
+          id: Number(message.packId), features, descriptors, dependencies, resources: null, uploadQueued: false, lastUsed: performance.now(),
           mesh: {
             riverStarts: new Int32Array(meshData.riverStarts || 0),
             riverEnds: new Int32Array(meshData.riverEnds || 0),
@@ -307,7 +316,6 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
           },
         };
         entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0);
-        const previous = hydroPacks.get(entry.id);
         if (previous) retireHydroPack(previous);
         hydroPacks.set(entry.id, entry);
         registerHydroPack(entry);
@@ -373,35 +381,37 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       if (released.length) hydroWorker?.postMessage({ type: 'release', packIds: released });
     }
 
-    function setHydroManifest(nextManifest, sourceUrl, { restart = false } = {}) {
+    function setHydroManifest(nextManifest, sourceUrl) {
       if (disposed) return Promise.resolve(false);
       const normalizedManifest = nextManifest?.stages?.length ? nextManifest : null;
       const normalizedUrl = sourceUrl ? new URL(sourceUrl) : null;
       const wantedIncludeGeometry = getMode() === 'canvas2d';
-      const sameManifest = hydroManifest === normalizedManifest
-        && String(hydroManifestUrl || '') === String(normalizedUrl || '');
-
-      if (!restart && sameManifest && hydroWorker && hydroWorkerIncludesGeometry === wantedIncludeGeometry) {
+      const nextDependencies = { source: String(normalizedUrl || 'hydro:none'), content: resourceKey(normalizedManifest),
+        preparation: resourceKey(['hydro-pack-v1', wantedIncludeGeometry]), context: null, presentation: 'source' };
+      const change = resourceUpdate(sourceDependencies, nextDependencies);
+      if (!change.prepare && hydroWorker) {
         onConnect();
         return hydroWorkerReady ? Promise.resolve(true) : hydroWorkerReadyPromise;
       }
 
       hydroManifest = normalizedManifest;
       hydroManifestUrl = normalizedUrl;
+      sourceDependencies = nextDependencies;
       retireHydroWorkerGeneration(new Error('강·호수 로더가 다시 시작되었습니다.'));
       const generation = hydroWorkerGeneration;
-      hydroWorkerIncludesGeometry = wantedIncludeGeometry;
       hydroViewRequestedRevision = 0;
       hydroViewRequests.reset();
       hydroVisibleTileCache = { signature: '', tiles: [], key: '', window: null };
       hydroAcceptedRevision = 0;
-      hydroActivePackIds.clear();
       queueHydroRender('hydro-manifest');
-      for (const entry of hydroPacks.values()) retireHydroPack(entry);
-      for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
-      hydroEditEntries = [];
-      hydroEditRevision = -1;
-      onReset();
+      if(change.prepare) {
+        hydroActivePackIds.clear();
+        for (const entry of hydroPacks.values()) retireHydroPack(entry);
+        for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
+        hydroEditEntries = [];
+        hydroEditRevision = -1;
+        onReset();
+      }
       if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') {
         hydroWorkerReadyPromise = Promise.resolve(false);
         return hydroWorkerReadyPromise;
@@ -445,7 +455,16 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     gl = null;
   }
   function setContext(context) {
-    resetGpu();
+    const dependencies = (device, revision, version) => ({ source: 'hydro-resident', content: 'packs',
+      preparation: resourceKey(['hydro-gpu-v1', version]), context: device ? [device, revision] : null, presentation: 'buffers' });
+    const change = resourceUpdate(dependencies(gl, renderDeviceContextRevision, glVersion),
+      dependencies(context.gl, context.contextGeneration, context.version));
+    if (change.prepare || change.upload) resetGpu();
+    if (projectGeneration !== context.projectGeneration) {
+      const error = Object.assign(new Error('Project replaced during hydro query'), { name: 'AbortError', cancelled: true });
+      for (const requests of [hydroFeatureRequests, hydroLogicalQueryRequests])
+        for (const id of requests.keys()) settleHydroRpc(requests, id, null, error);
+    }
     ({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: uploadScheduler } = context);
     for (const entry of [...hydroPacks.values(), ...hydroEditEntries]) scheduleHydroUpload(entry);
   }
@@ -465,7 +484,6 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
   return Object.freeze({
     setManifest: setHydroManifest, requestView: requestHydroView, loadFeature: loadHydroLogicalFeature, queryFeatures: queryHydroLogicalFeatures,
     retry: retryHydroCache, setContext, resetGpu, replaceEdits, dispose,
-    restart() { return setHydroManifest(hydroManifest, hydroManifestUrl, { restart: true }); },
     connectPort(port) { hydroWorker?.postMessage({ type: 'hydro-port', port }, [port]); },
     setInteraction(active) { hydroWorker?.postMessage({ type: 'interaction', active }); },
     hasWorker: () => !!hydroWorker,
@@ -474,6 +492,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     activeIds: () => [...hydroActivePackIds], pack: id => hydroPacks.get(id), entries: () => [...hydroPacks.values()], editEntries: () => [...hydroEditEntries],
     metrics: () => ({ ...metrics, hydroTileWindowSignature: hydroVisibleTileCache.signature }),
     stats: () => ({ ...metrics, hydroTileWindowSignature: hydroVisibleTileCache.signature, hydroPacksLoaded: hydroPacks.size,
+      hydroPendingUploadCount: [...hydroPacks.values(), ...hydroEditEntries].filter(entry => entry.uploadQueued).length,
       hydroFeaturePendingCount: hydroFeatureRequests.size, hydroLogicalQueryPendingCount: hydroLogicalQueryRequests.size,
       hydroPacksActive: hydroActivePackIds.size, hydroEditRevision, hydroEditBatchCount: hydroEditEntries.length,
       hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0) }),

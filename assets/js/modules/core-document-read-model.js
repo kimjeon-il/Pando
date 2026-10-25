@@ -37,7 +37,7 @@ export function createCoreDocumentReadModel(initialProject) {
     // Cloning the entire archive first duplicated every coordinate allocation.
     const { geometries: geometryRows, ...properties } = value;
     const candidate=structuredClone(properties);
-    const nextGeometries=createGeometryVersionStore(geometryRows);
+    const nextGeometries=createGeometryVersionStore(geometryRows,{reuse:geometries});
     const next=freeze({ ...candidate,geometries: nextGeometries.snapshot() });
     project=next;
     geometries=nextGeometries;

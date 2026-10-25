@@ -152,7 +152,7 @@ test('canonical startup is input-gated and strictly sequential', () => {
 test('new project reuses a prepared built-in mesh instead of scheduling a world rebuild', () => {
   assert.match(gpuRenderer, /function ensureBuiltinMeshBaseline/);
   assert.match(gpuRenderer, /function activateBuiltinMeshBaseline/);
-  assert.match(gpuRenderer, /preserveBuiltinMesh/);
+  assert.match(gpuRenderer, /resourceUpdate/);
   assert.match(loader, /builtin-mesh-only/);
   assert.match(loader, /type: 'builtin-mesh-ready'/);
   assert.match(bootstrap, /identity:\s*data\.identity \|\| null/);

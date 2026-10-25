@@ -1,9 +1,10 @@
 'use strict';
 const assetRevision = new URL(self.location.href).searchParams.get('v') || '';
-importScripts(...['../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js', './canvas-terrain-dem-core.js']
+importScripts(...['../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js', './canvas-terrain-dem-core.js', './resource-update-policy-core.js']
   .map(path => { const url = new URL(path, self.location.href); url.searchParams.set('v', assetRevision); return url.href; }));
 
 function canvasFallbackWorkerMain() {
+    const {resourceKey,resourceUpdate}=self.PandoLabResourceUpdatePolicy;
     let canvas = null;
     let context = null;
     let substrate = null;
@@ -52,15 +53,17 @@ function canvasFallbackWorkerMain() {
     const boundaryOutlineCache = new WeakMap();
     const hydroSegments = new WeakMap();
     const hydroProfileWidths = new WeakMap();
-    let projectedPathKey = '';
+    let projectedPathDependencies = null;
     let projectedPaths = new WeakMap();
 
     function createCanvasPath(projection, target) {
       // Presentation-only cache of exact D3 output. Keep only the current view;
-      // geometry replacement/revisions and project changes cannot reuse old paths.
-      const key = JSON.stringify([projectGeneration, geometryRevision, projection.scale(), projection.translate(),
-        projection.rotate(), projection.center(), projection.clipAngle(), projection.clipExtent(), projection.precision()]);
-      if (key !== projectedPathKey) { projectedPathKey = key; projectedPaths = new WeakMap(); }
+      // Each immutable geometry has its own cache entry; only actual projection
+      // inputs invalidate the complete command cache.
+      const next={source:'d3-projection',content:'canvas-path-v1',context:null,presentation:'commands',
+        preparation:resourceKey([projection.scale(),projection.translate(),projection.rotate(),projection.center(),projection.clipAngle(),projection.clipExtent(),projection.precision()])};
+      if(resourceUpdate(projectedPathDependencies,next).prepare)projectedPaths=new WeakMap();
+      projectedPathDependencies=next;
       const cache = projectedPaths;
       let recording;
       const recorder = {
@@ -98,7 +101,16 @@ function canvasFallbackWorkerMain() {
       for (const channel of ['scenePolygons', 'interactionPolygons', 'sceneStrokes']) {
         if (!Array.isArray(message[channel])) continue;
         const previous = new Map((lastRenderMessage?.[channel] || []).map(packet => [packet.key, packet]));
-        updated[channel] = message[channel].map(packet => packet.ringCoordinates || packet.startsEnds ? packet : { ...previous.get(packet.key), ...packet });
+        updated[channel] = message[channel].map(packet => {
+          const prior=previous.get(packet.key);
+          const merged=packet.ringCoordinates || packet.startsEnds ? packet : {...prior,...packet};
+          if(prior && typeof packet.sourceKey==='string') {
+            const dependency=row=>({source:'canvas-packet',content:row.sourceKey,preparation:'packet-geometry-v1',context:null,presentation:'geometry'});
+            if(typeof prior.sourceKey==='string' && !resourceUpdate(dependency(prior),dependency(packet)).prepare)
+              for(const key of ['ringCoordinates','ringOffsets','polygonOffsets','startsEnds'])if(prior[key])merged[key]=prior[key];
+          }
+          return merged;
+        });
       }
       lastRenderMessage = { ...(lastRenderMessage || {}), ...updated, type: 'render' };
       return lastRenderMessage;
@@ -843,14 +855,17 @@ function canvasFallbackWorkerMain() {
     }
 
     function retainCountryGeometry(feature, previous) {
-      return typeof feature.boundaryGeometryRevision === 'string'
-        && feature.boundaryGeometryRevision === previous?.boundaryGeometryRevision
-        ? { ...feature, geometry: previous.geometry } : feature;
+      const key=feature.boundaryGeometryRevision;
+      if(typeof key!=='string')return feature;
+      const dependency=content=>({source:'canvas-country',content,preparation:'geometry-v1',context:null,presentation:'geometry'});
+      const change=resourceUpdate(previous?.boundaryGeometryRevision ? dependency(previous.boundaryGeometryRevision) : null,dependency(key));
+      if(!change.prepare)return {...feature,geometry:previous.geometry};
+      if(!feature.geometry)throw new Error('Canvas country geometry is missing for a changed dependency');
+      return feature;
     }
 
-    function replaceCountryFeatures(incoming, generation) {
-      const previous = Number(generation || projectGeneration) === projectGeneration
-        ? new Map(features.map((feature, index) => [countryId(feature, index), feature])) : new Map();
+    function replaceCountryFeatures(incoming) {
+      const previous = new Map(features.map((feature, index) => [countryId(feature, index), feature]));
       return incoming.map((feature, index) => retainCountryGeometry(feature, previous.get(countryId(feature, index))));
     }
 
@@ -900,10 +915,10 @@ function canvasFallbackWorkerMain() {
         const theme = message.theme;
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
         const geoPath = createCanvasPath(projection, context);
-        const visibleLand = message.visible ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
+        const visibleLand = message.visible && message.surfacePresentation.quality !== 'pending' ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
         const landShapes = self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || []);
         const terrainPlan = terrainRenderPlan(message, projection, width, height, dpr);
-        const substrateKey = JSON.stringify([projectedPathKey, pixelWidth, pixelHeight, dpr, message.terrainDpr,
+        const substrateKey = JSON.stringify([projectedPathDependencies.preparation, pixelWidth, pixelHeight, dpr, message.terrainDpr,
           message.physicalSettings?.terrainVisible, message.physicalSettings?.terrainStyle, message.darkTheme,
           theme.baseLandAlpha, theme.defaultLand, terrainManifest?.version, terrainDemManifest?.version,
           terrainPlan?.drawSpecs.filter(spec => terrainTiles.has(spec.key)).map(spec => spec.key),
@@ -1015,7 +1030,7 @@ function canvasFallbackWorkerMain() {
       const message = event.data || {};
       if (message.projectGeneration != null && Number(message.projectGeneration) < projectGeneration) return;
       if (message.type === 'init') {
-        features = replaceCountryFeatures(message.features || [], message.projectGeneration);
+        features = replaceCountryFeatures(message.features || []);
         geometryRevision = Number(message.geometryRevision || 0);
         projectGeneration = Number(message.projectGeneration || 0);
         countrySharedBoundary = message.sharedBoundary || null;
@@ -1053,9 +1068,9 @@ function canvasFallbackWorkerMain() {
         const incomingGeneration = Number(message.projectGeneration ?? projectGeneration);
         if (incomingGeneration < projectGeneration) return;
         if (incomingGeneration > projectGeneration) {
-          geometryRevision = 0; countrySharedBoundary = null; substrateState = null;
+          geometryRevision = 0; countrySharedBoundary = null;
           hydroEditFeatures = []; hydroEditRevision = -1;
-          lastRenderMessage = { ...lastRenderMessage, scenePolygons: [], sceneStrokes: [], interactionPolygons: [], interactionFillItems: [] };
+          lastRenderMessage = { ...lastRenderMessage, interactionPolygons: [], interactionFillItems: [], countryEmphasis: {} };
         }
         if (incomingGeometryRevision < geometryRevision) {
           self.postMessage({
@@ -1065,7 +1080,7 @@ function canvasFallbackWorkerMain() {
           });
           return;
         }
-        features = replaceCountryFeatures(message.features || [], message.projectGeneration);
+        features = replaceCountryFeatures(message.features || []);
         if (message.fills) mergeRenderState({ fills: message.fills });
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);

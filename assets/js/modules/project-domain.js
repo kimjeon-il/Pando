@@ -369,9 +369,7 @@ export function createProjectDomain({
       replacementStarted = true;
       await onReplacementState(true, reason);
       persistence?.cancelPending?.();
-      const nextGeneration = await bumpGeneration(`project-${reason}`, reason === 'new'
-        ? { preserveBuiltinMesh: prepared?.builtinMeshReady === true }
-        : null);
+      const nextGeneration = await bumpGeneration(`project-${reason}`);
       if(reason==='new'||reason==='builtin') {
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
         await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
@@ -388,7 +386,6 @@ export function createProjectDomain({
         reason, generation: nextGeneration, skipRenderReset: true,
         ...(reason === 'new' ? {
           prepared: { ...prepared,project: documentModel.snapshot() },
-          preserveBuiltinMesh: prepared?.builtinMeshReady === true,
         } : {}),
       });
       if (result === false) throw new Error('Project replacement was rejected.');

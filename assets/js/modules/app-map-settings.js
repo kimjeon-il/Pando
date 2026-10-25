@@ -563,7 +563,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
         dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
         dependencies.domains.renderingDomain.invalidateBaseScene('background-preference');
         dependencies.domains.renderingDomain.invalidateLabels('background-preference');
-        dependencies.domains.objectSearchController.render(true);
+        dependencies.domains.objectSearchController.render();
       }));
     }
     const visibilityInputs = [

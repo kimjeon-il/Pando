@@ -1,4 +1,5 @@
 import { MAP_SURFACE_LOW_SCALE } from './country-mesh-zoom-policy.js';
+import { resourceKey, resourceUpdate } from './resource-update-policy.js';
 // Owns terrain requests, retries, decoded bitmaps, upload queue, textures and grids.
 // prepare() returns ready draw records; drawing never initiates preparation.
 export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMobile, invalidate, geoDistance }) {
@@ -7,6 +8,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
   let activeFrameContext = null, view = {};
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
+  let dependencies = { source: 'terrain', content: 'null', preparation: 'terrain-v1', context: null, presentation: 'tiles' };
   let tint = null, tintFallback = null, tintPending = false, pendingDecodedBytes = 0, unusableReported = false;
   let requiredKeys = new Set(), resolutionLimited = false, preparationFailure = '';
   const controllers = new Set(), retryTimers = new Set(), uploadKeys = new Set();
@@ -564,11 +566,18 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
   return Object.freeze({
     setContext(next) {
       if (disposed) return;
-      if (gl !== next.gl || contextRevision !== next.contextGeneration) reset();
+      const nextDependencies = { ...dependencies, context: next.gl ? [next.gl, next.contextGeneration] : null };
+      const change = resourceUpdate(dependencies, nextDependencies);
+      if (change.upload) reset();
+      dependencies = nextDependencies;
       gl = next.gl; ready = next.ready; uploadScheduler = next.scheduler;
       projectGeneration = next.projectGeneration; contextRevision = next.contextGeneration;
     },
-    setManifest(manifest) { if (JSON.stringify(terrainManifest) !== JSON.stringify(manifest)) reset(); terrainManifest = manifest; },
+    setManifest(manifest) {
+      const next = { ...dependencies, content: resourceKey(manifest) };
+      if (resourceUpdate(dependencies, next).input) reset();
+      dependencies = next; terrainManifest = manifest;
+    },
     prepare(frame, nextView) { activeFrameContext = frame; view = nextView; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
     request: requestTerrainTile,
     tintTexture: () => tint?.texture || tintFallback?.texture || null,

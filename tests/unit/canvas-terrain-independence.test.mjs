@@ -37,7 +37,10 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
     project.scale = function(value) { if (!arguments.length) return scale; scale = value; return project; };
     project.translate = function(value) { if (!arguments.length) return translate; translate = value; return project; };
     project.center = function(value) { if (!arguments.length) return center; center = value; return project; };
-    for (const field of ['rotate', 'precision', 'clipExtent', 'clipAngle']) project[field] = () => project;
+    for (const [field,initial] of Object.entries({rotate:[0,0,0],precision:.1,clipExtent:null,clipAngle:90})) {
+      let current=initial;
+      project[field]=function(value){if(!arguments.length)return current;current=value;return project;};
+    }
     return project;
   }
   const scope = {
@@ -66,6 +69,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
       }, { once: true });
     });
   new Function('self', terrainCoreSource)(scope);
+  new Function('self', readFileSync(new URL('../../assets/js/workers/resource-update-policy-core.js',import.meta.url),'utf8'))(scope);
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
     'ImageData', 'performance', 'setTimeout', workerSource.replace('self.onmessage = event => {',
       'self.drawTerrainTriangle = drawTexturedTriangle; self.onmessage = event => {'))(
@@ -91,7 +95,10 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
     projectGeneration: 1, geometryRevision: 0, viewRevision: 1, revision: 1,
     styleRevision: 1, physicalStyleRevision: 1,
   };
-  const send = message => scope.onmessage({ data: message });
+  const send = message => {
+    scope.onmessage({ data: message });
+    if(messages.at(-1)?.type==='error')throw new Error(messages.at(-1).message);
+  };
   send({ ...frame, type: 'init', features,
     terrainDemManifestUrl: expectDem ? 'https://example.test/expected-dem.json' : undefined,
     terrainManifestUrl: 'https://example.test/assets/data/terrain/v0.12.6/manifest.json' });
@@ -186,8 +193,8 @@ test('Canvas keeps world coverage and the physical mask independently of politic
   h.send({ type: 'replace-data', features: [modified, h.features[1]],
     geometryRevision: 1, projectGeneration: 1 });
   h.paths.length = 0; h.drawn.length = 0; h.render();
-  assert.ok(h.paths.includes(h.land.geometry), 'the independent mask survives a political geometry revision');
-  assert.equal(h.drawn.length, 6, 'country edits do not evict world terrain coverage');
+  assert.deepEqual(h.substrates.at(-1), [h.land.geometry], 'the independent mask survives a political geometry revision');
+  assert.equal(h.drawn.length, 0, 'country edits reuse the prepared physical background');
   h.paths.length = 0; h.render({ visible: false });
   assert.deepEqual(h.paths, []);
   assert.deepEqual(h.substrates.at(-1), [h.land.geometry], 'physical land remains when every political object is hidden');

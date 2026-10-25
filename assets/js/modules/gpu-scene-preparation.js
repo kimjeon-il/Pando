@@ -2,10 +2,10 @@ import { INTERACTION_ROLE_PRIORITY } from './layer-presentation.js';
 import { countryDrawRangesForFrame } from './gpu-country-ranges.js';
 
 // A scene key identifies a visual; a resource key identifies its immutable GPU
-// geometry in one project generation. Uploading B must not overwrite active A.
+// geometry. Project generation admits a frame, not the reusable allocation.
 export function sceneStrokeResourcePacket(packet, projectGeneration) {
   if (!packet.sourceKey) throw new TypeError('Scene strokes require a geometry sourceKey.');
-  return Object.freeze({ ...packet, visualKey: packet.key, projectGeneration, key: `scene-stroke:${projectGeneration}:${packet.sourceKey}` });
+  return Object.freeze({ ...packet, visualKey: packet.key, projectGeneration, key: `scene-stroke:${packet.sourceKey}` });
 }
 
 // Called only after the selected base scene was actually presented, never from
