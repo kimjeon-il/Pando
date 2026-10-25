@@ -1,13 +1,61 @@
 // Local application storage owner. Library bytes remain owned by library-data.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, mkdirSync, writeFileSync, unlinkSync, readdirSync, statfsSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, writeFileSync, unlinkSync, readdirSync, statfsSync, openSync, closeSync, lstatSync, rmdirSync, statSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { atomicStorageJSON, containedPath, contentHash } from './library-content.mjs';
+import { atomicStorageJSON, containedPath, contentHash, contentFiles, contentPath, publishContent, linkContentView, removeContentView, recoverContentPermissions } from './library-content.mjs';
+import { libraryStagingContent, librarySharedCheckout, withLibraryLock, discardDeadLibraryLock } from './library-data.mjs';
 
 const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const schema='pando-worktree-storage-v1';
 export const cacheLimit=2*1024**3;
+const stageMarker='.pandolab-web-shell-stage';
+function ownedStage(root,directory){
+  const allowed=['dist','.dist-pending','.dist-previous'].map(name=>resolve(root,'apps/web-shell',name));
+  if(!allowed.includes(resolve(directory)))throw Error('Not an owned App stage destination');
+  directory=containedPath(root,directory);
+  const marker=containedPath(directory,stageMarker);
+  if(!existsSync(marker)||!lstatSync(marker).isFile())throw Error('App stage ownership is not established');
+  return {viewRoot:directory,marker:stageMarker};
+}
+function withStorageLock(root,settings,operation){
+  mkdirSync(settings.cacheRoot,{recursive:true});
+  const path=containedPath(settings.cacheRoot,'storage.lock');
+  discardDeadLibraryLock(path);let fd;
+  try{fd=openSync(path,'wx');}catch(error){throw Error('Worktree storage is already running; preserve its journal and retry',{cause:error});}
+  try{writeFileSync(fd,JSON.stringify({pid:process.pid,root}));recoverContentPermissions({root:settings.cacheRoot,blobDirectory:'blobs'});return operation();}
+  finally{closeSync(fd);unlinkSync(path);}
+}
+export function writeStagedContent({root,directory,path,bytes,source=null,settings=storageSettings(root)}){
+  const view=ownedStage(root,directory),target=containedPath(directory,path);mkdirSync(dirname(target),{recursive:true});
+  if(!settings){writeFileSync(target,bytes);return;}
+  return withStorageLock(root,settings,()=>{
+    const sha256=contentHash(bytes),shared=libraryStagingContent({root,source,sha256,bytes:bytes.length});
+    if(shared)return withLibraryLock(root,()=>linkContentView(shared,sha256,target,view));
+    const store={root:settings.cacheRoot,blobDirectory:'blobs'},blob=publishContent(store,bytes);
+    return linkContentView(store,blob.sha256,target,view);
+  });
+}
+export function removeStagedDirectory({root,directory,settings=storageSettings(root)}){
+  const view=ownedStage(root,directory);
+  const operation=()=>{
+    const files=contentFiles(directory);
+    for(const file of files.filter(f=>f.logical!==stageMarker)){
+      const s=lstatSync(file.path);
+      if(s.nlink===1&&(s.mode&0o200)){unlinkSync(file.path);continue;}
+      const sha256=contentHash(readFileSync(file.path)),stores=[];
+      if(settings)stores.push({root:settings.cacheRoot,blobDirectory:'blobs'});
+      if(existsSync(join(root,'config/library-data.json')))stores.push(librarySharedCheckout(root));
+      const store=stores.find(store=>{const blob=contentPath(store,sha256);return existsSync(blob)&&statSync(blob,{bigint:true}).ino===statSync(file.path,{bigint:true}).ino;});
+      if(!store)throw Error(`Unowned readonly staging file must be preserved: ${file.path}`);
+      if(typeof store==='string')withLibraryLock(root,()=>removeContentView(store,file.path,view));
+      else removeContentView(store,file.path,view);
+    }
+    const prune=path=>{for(const entry of readdirSync(path,{withFileTypes:true}))if(entry.isDirectory()){const child=containedPath(directory,join(path,entry.name));prune(child);rmdirSync(child);}};
+    prune(directory);unlinkSync(join(directory,stageMarker));rmdirSync(directory);
+  };
+  return settings?withStorageLock(root,settings,operation):operation();
+}
 export function commonGit(root){return resolve(root,execFileSync('git',['-C',root,'rev-parse','--git-common-dir'],{encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','pipe']}).trim());}
 export function storageSettings(root){
   if(!existsSync(join(root,'.git')))return null;

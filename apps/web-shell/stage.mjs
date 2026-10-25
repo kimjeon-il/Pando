@@ -11,6 +11,7 @@ import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
 import { referenceAnalysisAssetPlan } from './reference-analysis-plan.mjs';
 import { prepareLibraryData } from '../../tools/library-data.mjs';
 import { previewFileIdentity } from '../../scripts/p3-preview-server.mjs';
+import { writeStagedContent, removeStagedDirectory } from '../../tools/worktree-storage.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(here, '../..');
@@ -41,17 +42,17 @@ export async function stagePrototype({ root = repository, profile = 'map-data', 
     for (const path of [directory, pending, previous]) if (await exists(path) && !await exists(join(path, ownership))) throw new Error('Output directory ownership is not established; no files removed.');
     if (await exists(previous)) {
       if (!await exists(directory)) await rename(previous, directory);
-      else await rm(previous, { recursive: true });
+      else removeStagedDirectory({root,directory:previous});
     }
-    if (await exists(pending)) await rm(pending, { recursive: true });
+    if (await exists(pending)) removeStagedDirectory({root,directory:pending});
     const result = await stageOwnedPrototype({ root, profile, verification, directory: pending });
     if (await exists(directory)) await rename(directory, previous);
     try { await rename(pending, directory); }
     catch (error) { if (await exists(previous)) await rename(previous, directory); throw error; }
-    if (await exists(previous)) await rm(previous, { recursive: true });
+    if (await exists(previous)) removeStagedDirectory({root,directory:previous});
     return { ...result, directory };
   } catch (error) {
-    if (await exists(join(pending, ownership))) await rm(pending, { recursive: true });
+    if (await exists(join(pending, ownership))) removeStagedDirectory({root,directory:pending});
     throw error;
   }
   finally { await lock.close(); await unlink(lockPath); }
@@ -109,7 +110,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     const target = resolve(directory, path);
     if (!target.startsWith(directory + '\\') && !target.startsWith(directory + '/')) throw new Error(`Unsafe staged path: ${path}`);
     await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, bytes);
+    writeStagedContent({root,directory,path,bytes:Buffer.from(bytes),source});
     }
     files.push({ path: slash(path), bytes: Buffer.byteLength(bytes), sha256: hash(bytes), ...(source ? { source } : {}) });
   };
