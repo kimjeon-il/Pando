@@ -14,7 +14,7 @@ const crc32=bytes=>{
 export function zipFixture(name,text,{deflate=false,corruptCrc=false}={}){
  const filename=Buffer.from(name,'utf8'),bytes=Buffer.from(text,'utf8');
  const data=deflate?deflateRawSync(bytes):bytes,method=deflate?8:0;
- const crc=crc32(bytes)^(corruptCrc?1:0);
+ const crc=(crc32(bytes)^(corruptCrc?1:0))>>>0;
  const dt=((2026-1980)<<9)|(10<<5)|1;
  const local=Buffer.alloc(30),central=Buffer.alloc(46),eocd=Buffer.alloc(22);
  local.writeUInt32LE(0x04034b50,0);local.writeUInt16LE(20,4);
