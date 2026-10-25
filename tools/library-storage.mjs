@@ -51,7 +51,7 @@ function state(shared) {
 }
 function assertState(shared, before) { if(JSON.stringify(state(shared))!==JSON.stringify(before))throw Error('Git refs, HEAD, reflogs or working state changed during storage maintenance; old objects remain protected.'); }
 export function localObjects(shared) {
-  return git(shared,['cat-file','--batch-all-objects','--batch-check=%(objectname) %(objecttype) %(objectsize)']).split('\n').filter(Boolean).map(line=>{const [oid,type,bytes]=line.split(' ');if(!/^[a-f0-9]{40}$/.test(oid)||!/^\d+$/.test(bytes))throw Error('Invalid local object enumeration');return {oid,type,bytes:Number(bytes)};}).sort((a,b)=>a.oid.localeCompare(b.oid));
+  return git(shared,['cat-file','--batch-all-objects','--unordered','--buffer','--batch-check=%(objectname) %(objecttype) %(objectsize)']).split('\n').filter(Boolean).map(line=>{const [oid,type,bytes]=line.split(' ');if(!/^[a-f0-9]{40}$/.test(oid)||!/^\d+$/.test(bytes))throw Error('Invalid local object enumeration');return {oid,type,bytes:Number(bytes)};}).sort((a,b)=>a.oid.localeCompare(b.oid));
 }
 function packObjects(index) {
   return git(dirname(index),['verify-pack','-v',index]).split('\n').filter(line=>/^[a-f0-9]{40} /.test(line)).map(line=>line.slice(0,40)).sort();

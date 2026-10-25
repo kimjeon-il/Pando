@@ -29,7 +29,7 @@ export function cargoRetirementRequests({root,seeds,protectedPartitions=[]}){
   for(const f of files)if(f.logical.startsWith(partition+'/deps/')&&new RegExp('-'+hash+'(?:\\.|$)').test(f.logical))add(f.path);
  }
  const requested=new Set(requests.map(r=>r.path));
- for(const f of files){const match=f.logical.match(/^(.*)\/build\/([^/]+)\//);if(!match||protectedPartitions.includes(match[1]))continue;
+ for(const f of files){const match=f.logical.match(/^((?:[^/]+\/)?(?:debug|release))\/build\/([^/]+)\//);if(!match||protectedPartitions.includes(match[1]))continue;
   const fp=resolve(target,match[1],'.fingerprint',match[2]);if(directories.get(fp)?.some(n=>keep.has(n.path)))continue;
   const build=resolve(target,match[1],'build',match[2]),rel=relative(root,build).replaceAll('\\','/');if(!requested.has(rel)){add(build);requested.add(rel);}
  }

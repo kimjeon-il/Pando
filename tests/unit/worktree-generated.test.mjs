@@ -30,9 +30,14 @@ test('Cargo retirement follows exact dependency fingerprints across host and tar
  fp('x86_64-pc-windows-gnu/debug','pandolab-web-shell-aaaaaaaaaaaaaaaa',33,[11]);
  put(root,base+'/debug/build/build-host-1111111111111111/output.exe');put(root,base+'/debug/build/build-host-2222222222222222/output.exe');
  put(root,base+'/debug/build/orphan-3333333333333333/output.exe');
+ put(root,base+'/debug/build/build-host-1111111111111111/out/build/generated/file.obj');
+ put(root,base+'/release/build/orphan-4444444444444444/output.exe');
+ put(root,base+'/x86_64-pc-windows-gnu/release/build/orphan-5555555555555555/output.exe');
  const result=cargoRetirementRequests({root,seeds:['x86_64-pc-windows-gnu/debug/.fingerprint/pandolab-web-shell-aaaaaaaaaaaaaaaa/lib-app.json']});
  assert.ok(result.requests.some(r=>r.path.endsWith('build/build-host-2222222222222222')));assert.ok(!result.requests.some(r=>r.path.endsWith('build/build-host-1111111111111111')));
  assert.ok(result.requests.some(r=>r.path.endsWith('build/orphan-3333333333333333')),'incomplete retired build without a fingerprint has no active dependency consumer');
+ assert.ok(!result.requests.some(r=>r.path.includes('out/build/')),'nested build directories inside retained OUT_DIR are not Cargo partitions');
+ for(const hash of ['4444444444444444','5555555555555555'])assert.ok(result.requests.some(r=>r.path.endsWith('build/orphan-'+hash)),'host and target release partitions are inspected');
  assert.throws(()=>cargoRetirementRequests({root,seeds:['missing.json']}),/seed/i);
  fp('aarch64-linux-android/debug','protected-arm-bbbbbbbbbbbbbbbb',44,[22]);
  const protectedResult=cargoRetirementRequests({root,seeds:['x86_64-pc-windows-gnu/debug/.fingerprint/pandolab-web-shell-aaaaaaaaaaaaaaaa/lib-app.json'],protectedPartitions:['aarch64-linux-android/debug']});
