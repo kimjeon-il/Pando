@@ -39,6 +39,7 @@ export function cargoRetirementRequests({root,seeds,protectedPartitions=[]}){
 const identity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}`;};
 const scopePattern=/^(?:apps\/editor\/(?:src-tauri\/(?:target|gen\/android\/(?:app\/build|build|\.gradle)))(?:\/|$)|apps\/web-shell(?:\/|$)|(?:apps\/editor\/)?node_modules\/\.pnpm(?:\/|$)|assets\/(?:worker-runtime(?:\/|$)|css\/ui(?:-modal|-viewer)?\.bundle\.css$|js\/(?:build-meta\.js$|workers\/resource-update-policy-core\.js$))|(?:index\.html|\.nojekyll)$|build-native\/(?:p9|core-ci-webgl|predicate-comparison|wasm|cache-probe)(?:\/|$)|\.superpowers\/sdd\/[^/]+(?:\/|$)|test-results(?:\/|$))/;
 const dependencyPattern=/^(?:(?:apps\/editor\/)?node_modules\/\.pnpm|apps\/web-shell\/node_modules(?:\.before-[^/]+)?)(?:\/|$)/;
+const evidencePattern=/^build-native\/(?:reference-analysis(?:\/|$)|reference-release(?:\/|$)|ui-main-sync-20261021(?:\/|$)|(?:editable-library-|polygon-quality-|resource-update-)[^/]+\.(?:log|png|md|txt)$|macro-source-preview\.png$|library-merge-paths\.txt$)/;
 const compilerPatterns={
  'android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|\.temp)(?:\/|$)/,
  toolchains:/^(?:binutils-new|cargo|cmake|gradle|rustup|sccache)(?:\/|$)/,
@@ -65,7 +66,7 @@ function retirementPath(root,path){
 function validate(root,path,roots,protectedPaths=[],compilerScopes=[]){
  if(!roots.includes(resolve(root)))throw Error('Unknown worktree scope');
  const target=retirementPath(root,path),rel=relative(root,target).replaceAll('\\','/');
- if(!scopePattern.test(rel)&&!compilerScopes.some(scope=>resolve(scope.root)===resolve(root)&&compilerPatterns[scope.kind]?.test(rel)))throw Error(`Unknown generated scope: ${rel}`);
+ if(!scopePattern.test(rel)&&!evidencePattern.test(rel)&&!compilerScopes.some(scope=>resolve(scope.root)===resolve(root)&&compilerPatterns[scope.kind]?.test(rel)))throw Error(`Unknown generated scope: ${rel}`);
  if(protectedPaths.some(p=>p===target||p.startsWith(target+sep)))throw Error(`Protected source or WIP: ${target}`);
  return target;
 }
@@ -85,6 +86,7 @@ export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPa
  assertIdle(roots,consumers,targets);const entries=[],seen=new Set();
  for(const request of requests){
   if(!['delete','relocate'].includes(request.action)||!request.reason?.trim())throw Error('Explicit action and recovery/producer reason required');
+  if(evidencePattern.test(relative(request.root,resolve(request.root,request.path)).replaceAll('\\','/'))&&request.action!=='relocate')throw Error('Unique retired evidence must be relocated');
   const target=validate(request.root,request.path,roots,protectedPaths,compilerScopes);if(!existsSync(target))continue;
   const directory=lstatSync(target).isDirectory();let files;
   if(directory&&dependencyPattern.test(relative(request.root,target).replaceAll('\\','/'))){files=[];const scan=p=>{const s=lstatSync(p);if(s.isDirectory()&&!s.isSymbolicLink())for(const name of readdirSync(p))scan(resolve(p,name));else files.push({path:p});};scan(target);}else files=directory?contentFiles(target):[{path:target}];

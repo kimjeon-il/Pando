@@ -9,6 +9,14 @@ import {previewGeneratedCleanup,applyGeneratedCleanup,cargoRetirementRequests} f
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-generated-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function put(root,path,text='generated'){mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),text);}
 function options(root){return {roots:[root],requests:[{root,path:'build-native/p9/retired/output.exe',reason:'retired reproducible native test',action:'delete'}],consumers:[],protectedPaths:[]};}
+test('closed validation evidence can only be relocated with exact bytes',t=>{
+ const root=fixture(t),evidence=fixture(t);put(root,'build-native/resource-update-native.log','original proof');
+ const request={root,path:'build-native/resource-update-native.log',reason:'completed validation provenance',action:'delete'};
+ assert.throws(()=>previewGeneratedCleanup({roots:[root],requests:[request]}),/must be relocated/);
+ const o={roots:[root],requests:[{...request,action:'relocate',destination:join(evidence,'native.log')}],relocationRoots:[evidence]};
+ const manifest=previewGeneratedCleanup(o);assert.equal(applyGeneratedCleanup({...o,manifest}).relocatedBytes,14);
+ assert.equal(readFileSync(join(evidence,'native.log'),'utf8'),'original proof');
+});
 test('retired dependency links are unlinked without traversing their shared store',t=>{
  const root=fixture(t),shared=fixture(t);put(shared,'keep.js','shared package');
  mkdirSync(join(root,'node_modules/.pnpm'),{recursive:true});symlinkSync(shared,join(root,'node_modules/.pnpm/shared-package'),'junction');
