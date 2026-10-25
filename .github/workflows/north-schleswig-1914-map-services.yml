@@ -25,13 +25,54 @@ jobs:
           node-version: '24'
       - name: Offline source-proven catalogue tests
         run: node --test tests/unit/north-schleswig-map-services.test.mjs
-      - name: Prepare only pinned external GIS source descriptors
-        uses: ./.github/actions/library-data
+      - name: Verify and extract exactly one pinned sheet index, without hydrating the library
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-native/gis
+          REV=$(node -p "require('./config/library-data.json').revision")
+          BASE="https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/$REV"
+          curl --fail --location --retry 3 --connect-timeout 15 --max-time 120 \
+            "$BASE/archive/index.json" -o build-native/gis/library-archive-index.json
+          node --input-type=module - <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const logical='tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.sheets.json';
+          const index=JSON.parse(readFileSync('build-native/gis/library-archive-index.json','utf8'));
+          const entry=index.files?.[logical];
+          if(!entry||typeof entry.stored!=='string'
+            ||!/^archive\/blobs\/[a-f0-9]{64}\.(?:gz|bin)$/.test(entry.stored)
+            ||!/^[a-f0-9]{64}$/.test(entry.sha256)
+            ||!Number.isSafeInteger(entry.bytes)||entry.bytes<1||entry.bytes>2*1024*1024)
+            throw Error('Missing/invalid pinned map-sheet archive descriptor');
+          writeFileSync('build-native/gis/sheet-source-receipt.json',
+            JSON.stringify({logical,entry},null,2)+'\n',{flag:'wx'});
+          JS
+          STORE=$(node -p "require('./build-native/gis/sheet-source-receipt.json').entry.stored")
+          curl --fail --location --retry 3 --connect-timeout 15 --max-time 120 \
+            "$BASE/$STORE" -o build-native/gis/sheet-source-stored.bin
+          node --input-type=module - <<'JS'
+          import {createHash} from 'node:crypto';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          const entry=JSON.parse(readFileSync('build-native/gis/sheet-source-receipt.json','utf8')).entry;
+          const archived=readFileSync('build-native/gis/sheet-source-stored.bin');
+          const raw=entry.encoding==='gzip'?gunzipSync(archived)
+            :entry.encoding==='none'||entry.encoding==='raw'?archived:null;
+          if(!raw)throw Error('Unsupported original archive encoding');
+          const hash=createHash('sha256').update(raw).digest('hex');
+          if(raw.length!==entry.bytes||hash!==entry.sha256)
+            throw Error('Pinned historical sheet source has unexpected bytes');
+          const data=JSON.parse(raw.toString('utf8'));
+          if(!Array.isArray(data.sheets)||data.sheets.length!==4)
+            throw Error('Pinned SLUB sheet list is incomplete');
+          writeFileSync('build-native/gis/verified-sheets.json',raw,{flag:'wx'});
+          console.log('PINNED_SCHLESWIG_SHEETS='+JSON.stringify({count:data.sheets.length,sha256:hash}));
+          JS
       - name: Query public index only, preserving original report bytes
         run: |
           mkdir -p build-native/gis
           node tools/discover-north-schleswig-map-services.mjs \
-            --sheets tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.sheets.json \
+            --sheets build-native/gis/verified-sheets.json \
             --output build-native/gis/north-schleswig-slub-catalogue.json --execute
       - name: Reject claims of historical map acquisition or border verification
         run: |
