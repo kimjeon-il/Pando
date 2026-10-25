@@ -1,4 +1,4 @@
-import {buildFrontendIndex,emitFrontendModule} from './lib/frontend-layout.mjs';
+import {buildFrontendIndex,emitFrontendModule,frontendGeneratedOwners} from './lib/frontend-layout.mjs';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -76,7 +76,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (!pattern.includes('*') && !owners.has(pattern)) throw Error('Missing registered test: ' + pattern);
   }
   const frontendIndex=buildFrontendIndex(root),publicBySource=new Map([...frontendIndex.values()].map(row=>[row.sourcePath,row.publicPath]));
-  const sourcePath=path=>frontendIndex.get(path)?.sourcePath||path;
+  const sourcePath=path=>frontendGeneratedOwners[path]||frontendIndex.get(path)?.sourcePath||path;
   const dependencyCache = new Map();
   function dependencies(file) {
     if (dependencyCache.has(file)) return dependencyCache.get(file);
