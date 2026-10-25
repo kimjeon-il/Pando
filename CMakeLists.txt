@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 # Shared C++/WASM and GIS tools; the application lives in apps/web-shell.
 project(PandoLab LANGUAGES CXX)
+include(cmake/compiler-cache.cmake)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
