@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
+import { buildFrontendIndex } from '../scripts/lib/frontend-layout.mjs';
 
 export const PREVIEW_ROOT = 'assets/data/terrain-preview/v0.13.3-p1/';
 export const DEM_SOURCE = 'contracts/terrain/preview-dem-source.json';
@@ -45,7 +46,7 @@ export function auditTerrainPreview(root = resolve(import.meta.dirname, '..')) {
   const result = validatePreviewCorpus(manifest, files, json(DEM_SOURCE), sha('sha256', read('assets/data/countries-ne-5.1.1.geojson')));
   for (const path of ['assets/data/terrain/v0.12.6', 'assets/data/terrain/v0.12.0'])
     if (existsSync(resolve(root, path))) result.errors.push(`Retired raster remains: ${path}`);
-  const active = filesUnder(resolve(root, 'assets/js')).filter(path => /\.js$/.test(path));
+  const active = [...buildFrontendIndex(root).values()].filter(asset => asset.sourcePath.endsWith('.js')).map(asset => resolve(root, asset.sourcePath));
   active.push(...['tools/stage-monorepo-pages.mjs', 'tools/prepare-pages-release-bundle.mjs', 'tools/plan-pages-deployment-footprint.mjs', 'scripts/generate-build-metadata.mjs'].map(path => resolve(root, path)));
   for (const path of active) if (/terrain\/v0\.12\.6\//.test(readFileSync(path, 'utf8'))) result.errors.push(`Active old raster reference: ${path}`);
   return { schema: 'pando-terrain-preview-audit', version: 1, ...result,

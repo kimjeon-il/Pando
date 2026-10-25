@@ -85,7 +85,7 @@ test('country asset producers and runtime no longer derive data names from packa
   const previewProducer = source('tools/build-world-preview.mjs');
   const meshProducer = source('tools/build-world-mesh.mjs');
   const boundaryProducer = source('tools/build-country-shared-boundaries.mjs');
-  const metadata = source('scripts/generate-build-metadata.mjs');
+  const metadata = source('scripts/lib/frontend-build.mjs');
   const runtime = source('shared/frontend/js/workers/data-loader-worker.js');
   const renderer = source('shared/frontend/js/modules/gpu-map-renderer.js');
   for (const text of [previewProducer, meshProducer]) {

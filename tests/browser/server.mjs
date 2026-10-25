@@ -1,13 +1,13 @@
 import {mkdirSync,writeFileSync,unlinkSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
-import {createDevelopmentAssets} from '../../apps/editor/stage.mjs';
+import {developmentAssets} from '../../scripts/frontend-dev-server.mjs';
 import {createP3PreviewServer} from '../../scripts/p3-preview-server.mjs';
 import {prepareLibraryData,libraryRuntimeLeasePath} from '../../tools/library-data.mjs';
 
 const root=resolve(process.cwd()),port=Number(process.env.PANDOLAB_TEST_PORT||4173);
 const prepared=prepareLibraryData({root}),snapshot=await buildFrontendSnapshot({root});
-const {assets}=await createDevelopmentAssets({root,frontendSnapshot:snapshot});
+const {assets}=await developmentAssets({repository:root,product:'viewer',prepared,snapshot});
 for(const [path,asset]of snapshot.assets)assets.set(path,{bytes:asset.bytes});
 assets.set('__editor/index.html',{bytes:Buffer.from(snapshot.html.editor.replace('href="../../" data-product-base="editor"','href="/" data-product-base="editor"'))});
 const lease=libraryRuntimeLeasePath(root,'verification');

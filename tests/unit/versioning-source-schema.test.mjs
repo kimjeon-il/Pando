@@ -1,9 +1,12 @@
+import {fileURLToPath} from 'node:url';
+import {buildFrontendIndex,frontendAsset} from '../../scripts/lib/frontend-layout.mjs';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const root=new URL('../../',import.meta.url);
-const file=p=>readFileSync(new URL(p,root),'utf8');
+const sourceRoot=fileURLToPath(root),index=buildFrontendIndex(sourceRoot);
+const file=p=>index.has(p)?frontendAsset(sourceRoot,p,{index}).bytes.toString('utf8'):readFileSync(new URL(p,root),'utf8');
 const project=file('assets/js/modules/project-state.js');
 const domain=file('assets/js/modules/project-domain.js');
 const serializer=file('assets/js/modules/project-serializer.js');
@@ -15,7 +18,8 @@ const gis=file('assets/js/gis-adapters.js');
 test('project data follows its C++-compatible schema and UUID identity policy',()=>{
   assert.match(serializer,/schemaVersion = PROJECT_SCHEMA_VERSION/);
   assert.match(serializer,/schemaVersion,/);
-  assert.match(domain,/commandOwner\.inspectImport\(JSON\.stringify\(splitPackage\(project\)\.core\)/);
+  assert.match(domain,/commandOwner\.inspectImport\(JSON\.stringify\(currentProject\(project\)\)/);
+  assert.match(domain,/return documentModel\.snapshot\(\)/);
   assert.match(version,/export const PROJECT_SCHEMA_VERSION = 14/);
   assert.match(project,/export \{ PROJECT_SCHEMA_VERSION \}/);
   assert.doesNotMatch(project,/migrateProject/);
@@ -24,9 +28,7 @@ test('project data follows its C++-compatible schema and UUID identity policy',(
   assert.match(project,/crypto\.randomUUID/);
 });
 test('runtime no longer embeds legacy territorial/thematic feature aliases',()=>{
-  const modulesDir=new URL('assets/js/modules/',root);
-  const sources=readdirSync(modulesDir).filter(name=>name.endsWith('.js'))
-    .map(name=>readFileSync(new URL(name,modulesDir),'utf8')).join('\n');
+  const sources=[...index.keys()].filter(p=>p.startsWith('assets/js/modules/')&&p.endsWith('.js')).map(file).join('\n');
   const combined=[sources,territorial,distribution].join('\n');
   assert.doesNotMatch(combined,/migrateLegacyCountryRegions/);
   assert.doesNotMatch(combined,/migrateThematicGenericFeatures/);

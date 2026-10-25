@@ -6,6 +6,7 @@ import { TextDecoder } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { buildFrontendIndex, frontendAsset } from '../scripts/lib/frontend-layout.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [input, output] = process.argv.slice(2);
@@ -32,8 +33,10 @@ const context = vm.createContext({ TextDecoder, URL, performance, structuredClon
 context.self = context;
 context.onmessage = null;
 context.importScripts = () => {};
+const frontend = buildFrontendIndex(root);
 for (const file of ['vendor/earcut.min.js', 'workers/geographic-boundary-core.js', 'workers/hydro-tile-worker.js']) {
-  vm.runInContext(fs.readFileSync(path.join(root, 'assets/js', file), 'utf8'), context);
+  const asset = frontendAsset(root, 'assets/js/' + file, { index: frontend });
+  vm.runInContext(asset.bytes.toString('utf8'), context, { filename: asset.sourcePath });
 }
 vm.runInContext('manifest = inputManifest', context);
 const decoder = vm.runInContext('({ readGlobalIndex, readFeatureMetadata, readPack, packSpecs, featureMetadata })', context);

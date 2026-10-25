@@ -20,7 +20,8 @@ test('map-data stage selects manifest-pinned Web resources and keeps the canonic
     'globalThis.startedByWebBootstrap = true;');
   const mode = JSON.parse(await readFile(join(staged.directory, 'shell/stage-profile.json')));
   assert.equal(mode.mode, 'map-data');
-  assert.equal(mode.dataRevision, 'data-' + 'b'.repeat(32));
+  assert.equal(mode.dataRevision,staged.dataRevision);
+  assert.match(mode.dataRevision,/^data-[a-f0-9]{32}$/);
   assert.ok(staged.files.some(file => file.path.endsWith('/state-ABC.json.gz')));
   assert.ok(staged.files.some(file => file.path.endsWith('/hydro.bin')));
   assert.ok(staged.files.some(file => file.path.endsWith('/places-v1.bin')));
