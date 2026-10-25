@@ -283,6 +283,7 @@ export function storageSettings(root){
   const path=join(commonGit(root),'pando-storage.json');
   if(!existsSync(path))return null;
   const settings=JSON.parse(readFileSync(path,'utf8'));
+  if(settings.schema===schema&&settings.compilerEnabled===false)return settings;
   if(settings.schema!==schema||settings.version!=='0.19.0'||!/^[a-f0-9]{64}$/.test(settings.toolSha256))throw Error('Invalid activated worktree storage configuration');
   return settings;
 }
@@ -293,6 +294,12 @@ export function assertCompilerCacheServer(settings,server){
 }
 export function compilerCacheEnvironment({root=repository,env=process.env,settings=storageSettings(root)}={}){
   const result={...env};if(!settings)return result;
+  if(settings.schema!==schema)throw Error('Invalid compiler cache configuration');
+  if(settings.compilerEnabled===false){
+    for(const key of ['RUSTC_WRAPPER','CMAKE_C_COMPILER_LAUNCHER','CMAKE_CXX_COMPILER_LAUNCHER','EM_COMPILER_WRAPPER'])if(result[key]===settings.tool)delete result[key];
+    if(result.SCCACHE_DIR&&resolve(result.SCCACHE_DIR)===resolve(settings.cacheRoot,'sccache'))for(const key of Object.keys(result))if(key.startsWith('SCCACHE_'))delete result[key];
+    return result;
+  }
   if(settings.schema!==schema||!Number.isInteger(settings.port)||settings.port<1024||settings.port>65535)throw Error('Invalid compiler cache configuration');
   if(!existsSync(settings.tool)||contentHash(readFileSync(settings.tool))!==settings.toolSha256)throw Error('Activated compiler cache tool integrity failed');
   const values={RUSTC_WRAPPER:settings.tool,CMAKE_C_COMPILER_LAUNCHER:settings.tool,CMAKE_CXX_COMPILER_LAUNCHER:settings.tool,
@@ -307,6 +314,21 @@ export function compilerCacheEnvironment({root=repository,env=process.env,settin
     assertCompilerCacheServer(settings,server);
   }
   return result;
+}
+function stopOwnedCompilerServer(settings){
+  const command=`@(Get-NetTCPConnection -LocalPort ${settings.port} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object {Get-CimInstance Win32_Process -Filter ('ProcessId='+$_)} | Select-Object ProcessId,ExecutablePath) | ConvertTo-Json -Compress`;
+  const text=execFileSync('powershell.exe',['-NoProfile','-Command',command],{encoding:'utf8',windowsHide:true}).trim(),owners=text?[JSON.parse(text)].flat():[];
+  if(!owners.length)return;
+  if(owners.length!==1||resolve(owners[0].ExecutablePath||'')!==resolve(settings.tool))throw Error('Compiler port belongs to another process; preserve it');
+  if(contentHash(readFileSync(settings.tool))!==settings.toolSha256)throw Error('Compiler server executable changed');
+  const env={...process.env,SCCACHE_DIR:join(settings.cacheRoot,'sccache'),SCCACHE_SERVER_PORT:String(settings.port),SCCACHE_CACHE_SIZE:String(cacheLimit)};
+  const server=JSON.parse(execFileSync(settings.tool,['--show-stats','--stats-format=json'],{env,encoding:'utf8',windowsHide:true}));assertCompilerCacheServer(settings,server);
+  execFileSync(settings.tool,['--stop-server'],{env,stdio:'pipe',windowsHide:true});
+}
+export function deactivateCompilerCache({root=repository,settings=storageSettings(root),processes=runningStorageConsumers(),stopServer=stopOwnedCompilerServer}={}){
+  if(!settings)throw Error('Application storage is not activated');
+  if(processes.some(p=>/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle)\.exe$/i.test(p.Name||'')||/^java(w)?\.exe$/i.test(p.Name||'')&&/gradle/i.test(p.CommandLine||'')))throw Error('An active native build blocks compiler deactivation');
+  return withStorageLock(root,settings,()=>{if(settings.compilerEnabled!==false)stopServer(settings);const next={...settings,compilerEnabled:false};atomicStorageJSON(join(commonGit(root),'pando-storage.json'),next);return{compilerActive:false,applicationStorageActive:true,cacheRoot:settings.cacheRoot};});
 }
 export async function activateCompilerCache(root=repository){
   const versions=JSON.parse(readFileSync(join(root,'config/toolchain-versions.json'),'utf8')).sccache;
@@ -368,11 +390,14 @@ async function main(){
   }
   const retirement=args.find(x=>x.startsWith('--retire-generated='))?.slice('--retire-generated='.length);
   if(retirement){
-    const roots=permanentWorktrees(root),settings=storageSettings(root),input=JSON.parse(readFileSync(retirement,'utf8'));
+    const worktrees=permanentWorktrees(root),settings=storageSettings(root),input=JSON.parse(readFileSync(retirement,'utf8'));
+    const compilerScopes=args.includes('--retire-compilers')?[...worktrees.map(root=>({root,kind:'worktree'})),{root:'D:/build/toolchains',kind:'toolchains'},{root:'C:/Users/taeeu/AppData/Local/Android/Sdk',kind:'android-sdk'},{root:'D:/Android/Sdk',kind:'android-sdk'},{root:'D:/build/cache/pandolab',kind:'compiler-cache'}]:[];
+    if(compilerScopes.length&&settings?.compilerEnabled!==false)throw Error('Disable local compilers after actual runtime acceptance before retiring SDKs');
+    const roots=[...new Set([...worktrees,...compilerScopes.map(s=>s.root)])];
     if(!settings)throw Error('Worktree storage activation required');
-    const protectedPaths=roots.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(p=>p&&/^(build-native\/|\.superpowers\/|test-results\/|apps\/web-shell\/src-tauri\/(target|gen\/android))/.test(p)).map(p=>resolve(app,p)));
+    const protectedPaths=worktrees.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(p=>p&&/^(build-native\/|\.superpowers\/|test-results\/|apps\/web-shell\/src-tauri\/(target|gen\/android))/.test(p)).map(p=>resolve(app,p)));
     const relocationRoots=[resolve(librarySharedCheckout(root),'private-evidence/worktree-storage/generated-cleanup-20261025'),resolve('D:/build/toolchains')];
-    const options={roots,consumers:runningStorageConsumers(),refreshConsumers:runningStorageConsumers,protectedPaths,relocationRoots,progress:message=>console.error('Generated cleanup: '+message)};
+    const options={roots,compilerScopes,consumers:runningStorageConsumers(),refreshConsumers:runningStorageConsumers,protectedPaths,relocationRoots,progress:message=>console.error('Generated cleanup: '+message)};
     const operation=()=>input.schema?applyGeneratedCleanup({...options,manifest:input,journal:resolve(settings.cacheRoot,'generated-retirement.pending.json')}):previewGeneratedCleanup({...options,requests:input.requests});
     if(!!input.schema!==args.includes('--apply'))throw Error('Preview requires requests; apply requires the exact preview manifest');
     const result=args.includes('--apply')?withStorageLock(root,settings,operation):operation();
@@ -380,8 +405,9 @@ async function main(){
     console.log(JSON.stringify({entries:result.entries?.length,deletedBytes:result.deletedBytes,relocatedBytes:result.relocatedBytes,payloadBytesUnlinked:result.payloadBytesUnlinked,output}));return;
   }
   if(args.includes('--activate-compiler-cache'))return activateCompilerCache(root);
-  const compilerValues=()=>Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));
-  if(args.includes('--compiler-config')){const settings=storageSettings(root);console.log(JSON.stringify({active:!!settings,env:settings?compilerValues():{}}));return;}
+  if(args.includes('--disable-local-compiler')){console.log(JSON.stringify(deactivateCompilerCache({root})));return;}
+  const compilerValues=()=>storageSettings(root)?.compilerEnabled===false?{}:Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));
+  if(args.includes('--compiler-config')){const settings=storageSettings(root);console.log(JSON.stringify({active:!!settings&&settings.compilerEnabled!==false,env:settings?compilerValues():{}}));return;}
   if(args.includes('--compiler-env')){console.log(JSON.stringify(storageSettings(root)?compilerValues():{}));return;}
   if(args.includes('--with-compiler-cache')){
     const index=args.indexOf('--'),command=args.slice(index+1);

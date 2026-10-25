@@ -37,10 +37,16 @@ export function cargoRetirementRequests({root,seeds,protectedPartitions=[]}){
 }
 const identity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}`;};
 const scopePattern=/^(?:apps\/web-shell\/(?:src-tauri\/(?:target|gen\/android\/(?:app\/build|build|\.gradle)))(?:\/|$)|build-native\/(?:p9|core-ci-webgl|predicate-comparison|wasm|cache-probe)(?:\/|$)|\.superpowers\/sdd\/[^/]+(?:\/|$)|test-results(?:\/|$))/;
-function validate(root,path,roots,protectedPaths=[]){
+const compilerPatterns={
+ 'android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|\.temp)(?:\/|$)/,
+ toolchains:/^(?:binutils-new|cargo|cmake|gradle|rustup|sccache)(?:\/|$)/,
+ 'compiler-cache':/^sccache(?:\/|$)/,
+ worktree:/^build-native\/(?:emsdk|p1)(?:\/|$)/,
+};
+function validate(root,path,roots,protectedPaths=[],compilerScopes=[]){
  if(!roots.map(resolvePath=>resolve(resolvePath)).includes(resolve(root)))throw Error('Unknown worktree scope');
  const target=containedPath(root,path),rel=relative(root,target).replaceAll('\\','/');
- if(!scopePattern.test(rel))throw Error(`Unknown generated scope: ${rel}`);
+ if(!scopePattern.test(rel)&&!compilerScopes.some(scope=>resolve(scope.root)===resolve(root)&&compilerPatterns[scope.kind]?.test(rel)))throw Error(`Unknown generated scope: ${rel}`);
  if(protectedPaths.some(p=>resolve(p)===target||resolve(p).startsWith(target+'/')||resolve(p).startsWith(target+'\\')))throw Error(`Protected source or WIP: ${target}`);
  return target;
 }
@@ -54,30 +60,31 @@ function destination(entry,relocationRoots){
  if(!base)throw Error('Relocation destination is outside the approved storage scope');
  return containedPath(base,entry.destination);
 }
-export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPaths=[],relocationRoots=[]}){
+export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPaths=[],relocationRoots=[],compilerScopes=[]}){
  assertIdle(roots,consumers);const entries=[],seen=new Set();
  for(const request of requests){
   if(!['delete','relocate'].includes(request.action)||!request.reason?.trim())throw Error('Explicit action and recovery/producer reason required');
-  const target=validate(request.root,request.path,roots,protectedPaths);if(!existsSync(target))continue;
+  const target=validate(request.root,request.path,roots,protectedPaths,compilerScopes);if(!existsSync(target))continue;
   const directory=lstatSync(target).isDirectory();const files=directory?contentFiles(target):[{path:target}];
   for(const f of files){
-   const path=validate(request.root,f.path,roots,protectedPaths);if(seen.has(path))throw Error('Overlapping generated requests');seen.add(path);
+   const path=validate(request.root,f.path,roots,protectedPaths,compilerScopes);if(seen.has(path))throw Error('Overlapping generated requests');seen.add(path);
    const s=lstatSync(path,{bigint:true});if(!s.isFile()||s.isSymbolicLink())throw Error('Linked or non-file output must be preserved');
    const row={root:resolve(request.root),path:relative(request.root,path).replaceAll('\\','/'),scope:request.path,action:request.action,reason:request.reason,bytes:Number(s.size),identity:identity(path),sha256:fileHash(path),links:Number(s.nlink),mode:Number(s.mode)};
    if(request.action==='relocate'){row.destination=directory?resolve(request.destination,relative(target,path)):resolve(request.destination);destination(row,relocationRoots);}
    entries.push(row);
   }
  }
- return {schema,roots:roots.map(p=>resolve(p)),relocationRoots:relocationRoots.map(p=>resolve(p)),createdAt:new Date().toISOString(),entries};
+ return {schema,compilerScopes,roots:roots.map(p=>resolve(p)),relocationRoots:relocationRoots.map(p=>resolve(p)),createdAt:new Date().toISOString(),entries};
 }
-export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsumers=()=>consumers,protectedPaths=[],relocationRoots=manifest.relocationRoots||[],journal=null,afterRemoved=()=>{},afterMutation=()=>{},progress=()=>{}}){
+export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsumers=()=>consumers,protectedPaths=[],relocationRoots=manifest.relocationRoots||[],journal=null,afterRemoved=()=>{},afterMutation=()=>{},progress=()=>{},compilerScopes=[]}){
+ if(JSON.stringify(manifest.compilerScopes||[])!==JSON.stringify(compilerScopes))throw Error('Compiler retirement scope mismatch');
  if(manifest.schema!==schema||JSON.stringify(manifest.roots)!==JSON.stringify(roots.map(p=>resolve(p))))throw Error('Manifest scope mismatch');
  assertIdle(roots,consumers);
  const digest=contentHash(Buffer.from(JSON.stringify(manifest)));let state={schema,digest,completedCount:0,pending:null,deletedBytes:0,relocatedBytes:0,payloadBytesUnlinked:0};
  if(journal&&existsSync(journal)){state=JSON.parse(readFileSync(journal,'utf8'));if(state.digest!==digest)throw Error('A different cleanup journal is pending');}
  if(!Number.isInteger(state.completedCount)||state.completedCount<0||state.completedCount>manifest.entries.length)throw Error('Invalid cleanup completion cursor');
  const save=()=>{if(journal)atomicStorageJSON(journal,state);};
- const check=e=>{const p=validate(e.root,e.path,roots,protectedPaths);if(!existsSync(p))return p;if(identity(p)!==e.identity||fileHash(p)!==e.sha256)throw Error(`Stale or changed output: ${p}`);return p;};
+ const check=e=>{const p=validate(e.root,e.path,roots,protectedPaths,compilerScopes);if(!existsSync(p))return p;if(identity(p)!==e.identity||fileHash(p)!==e.sha256)throw Error(`Stale or changed output: ${p}`);return p;};
  // Preflight the entire remaining batch, so a stale late entry removes nothing.
  progress('checking remaining manifest hashes');
  for(const e of manifest.entries.slice(state.completedCount)){check(e);if(e.action==='relocate'){const d=destination(e,relocationRoots);if(existsSync(d)&&fileHash(d)!==e.sha256)throw Error(`Different relocation evidence: ${d}`);}else if(e.action!=='delete')throw Error('Unknown manifest action');}
@@ -99,7 +106,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
  }
  const prune=p=>{if(!existsSync(p)||!lstatSync(p).isDirectory())return;for(const e of readdirSync(p,{withFileTypes:true})){if(e.isSymbolicLink())throw Error('Linked output encountered during empty-directory cleanup');if(e.isDirectory())prune(containedPath(p,e.name));}if(!readdirSync(p).length)rmdirSync(p);};
  const scopes=new Map(manifest.entries.map(e=>[e.root+'|'+e.scope,e]));
- for(const e of scopes.values()){const p=validate(e.root,e.scope,roots,protectedPaths);if(existsSync(p)&&lstatSync(p).isDirectory())prune(p);}
+ for(const e of scopes.values()){const p=validate(e.root,e.scope,roots,protectedPaths,compilerScopes);if(existsSync(p)&&lstatSync(p).isDirectory())prune(p);}
  if(journal&&existsSync(journal))unlinkSync(journal);
  return {...state,freeBytes:statfsSync(roots[0]).bavail*statfsSync(roots[0]).bsize};
 }

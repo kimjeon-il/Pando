@@ -28,3 +28,12 @@ GIS C++와 지명은 해당 범위만 선택한다. 문서·보고서만 바뀌�
 
 P1은 공통 C++·경량 계약, P2는 생성물, P3는 웹 계약·브라우저, P4는 GIS 원본 도구를 담당한다.
 실제 Windows·Android 앱 실행과 기기 성능은 별도 전용 검증이며 생략을 성공으로 표시하지 않는다.
+
+## CI 개발 실행기
+
+수동 scope=native 또는 native-tests와 native_platform=windows/android/android-x86_64/all,
+native_mode=development/offline/verification을 사용한다. 개발용 자동 빌드는 상설 브랜치의
+네이티브 입력 변경만 선택하며 JS/CSS와 자료 pin 변경은 재컴파일하지 않는다.
+Windows는 MSVC x64, Android 기본은 ARM64, Rust는1.99.1이다. Android x86_64·offline·검증 실행기는
+명시적으로 요청한다. SDK·Cargo target을 다운로드 artifact에 담거나 새 영구 빌드 캐시를 만들지 않는다.
+로컬 요청/검증 owner와 서명·입력 해시·7일 보존 계약은 apps/web-shell/README.md를 따른다.
