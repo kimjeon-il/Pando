@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { restoreEntitiesFromDelta } from '../../assets/js/modules/project-state.js';
-import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
+import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { restoreEntitiesFromDelta } from "../../shared/frontend/js/modules/project-state.js";
+import { PROJECT_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
 const entity=(id,entityKind='general',options={})=>createTerritorialFeature({id,entityKind,geometry,name:id,...options});

@@ -59,12 +59,12 @@ jobs:
           node --input-type=module <<'NODE'
           import { execFileSync } from 'node:child_process';
           const changes=execFileSync('git',['status','--porcelain=v1','-z','--untracked-files=all']).toString('utf8').split('\0').filter(Boolean).map(row=>row.slice(3));
-          const allowed=path=>path==='assets/js/build-meta.js'||path==='index.html'||path==='README.md'||path==='apps/web-shell/editor.html'||path.startsWith('assets/worker-runtime/');
+          const allowed=path=>path==='assets/js/build-meta.js'||path==='index.html'||path==='README.md'||path==='apps/editor/editor.html'||path.startsWith('assets/worker-runtime/');
           const invalid=changes.filter(path=>!allowed(path));
           if(invalid.length)throw Error('Unexpected generated paths: '+invalid.join(', '));
           console.log('Generated candidate files: '+changes.length);
           NODE
-          git add -A assets/js/build-meta.js index.html README.md apps/web-shell/editor.html assets/worker-runtime
+          git add -A assets/js/build-meta.js index.html README.md apps/editor/editor.html assets/worker-runtime
           if git diff --cached --quiet; then exit 0; fi
           actual="$(git ls-remote origin refs/heads/work/objects | cut -f1)"
           test "$actual" = "$GITHUB_SHA" || { echo 'Branch changed; refusing generated publication'; exit 1; }

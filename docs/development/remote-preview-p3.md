@@ -28,7 +28,7 @@ GitHub 저장소 **Actions → P3 Remote preview and browser verification → �
 
 ## 앱 검증
 
-앱 실행·빌드는 `apps/web-shell/README.md`와 전용 Windows·Android workflow를 따른다.
+앱 실행·빌드는 `apps/editor/README.md`와 전용 Windows·Android workflow를 따른다.
 P3는 웹 미리보기와 브라우저 검사만 담당한다.
 
 ## 실행 조건과 검증 경계

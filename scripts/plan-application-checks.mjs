@@ -1,3 +1,4 @@
+import {buildFrontendIndex} from './lib/frontend-layout.mjs';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +13,7 @@ export function matchesPattern(file, pattern) {
 }
 const matches = (file, patterns = []) => patterns.some(pattern => matchesPattern(file, pattern));
 const executable = file => /\.[cm]?js$/.test(file) && !/\/(?:vendor|worker-runtime|fixtures|gen|target|dist)\//.test(file);
-const product = file => /^(?:assets\/js\/|apps\/web-shell\/)/.test(file);
+const product = file => /^(?:shared\/frontend\/js\/|apps\/(?:editor|viewer)\/)/.test(file);
 
 export function loadRepository(root = process.cwd(), { catalog } = {}) {
   if (root instanceof URL) root = fileURLToPath(root);
@@ -28,7 +29,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       return [file];
     });
   }
-  const files = ['assets', 'apps/web-shell', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows']
+  const files = ['assets', 'apps/editor', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows']
     .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
   const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
   const ids = new Set();
@@ -74,10 +75,13 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {
     if (!pattern.includes('*') && !owners.has(pattern)) throw Error('Missing registered test: ' + pattern);
   }
+  const frontendIndex=buildFrontendIndex(root),publicBySource=new Map([...frontendIndex.values()].map(row=>[row.sourcePath,row.publicPath]));
+  const sourcePath=path=>frontendIndex.get(path)?.sourcePath||path;
   const dependencyCache = new Map();
   function dependencies(file) {
     if (dependencyCache.has(file)) return dependencyCache.get(file);
-    const found = new Set(runtimeDependencies[file] || []);
+    const publicFile=publicBySource.get(file)||file;
+    const found = new Set((runtimeDependencies[publicFile] || []).map(sourcePath));
     dependencyCache.set(file, found);
     if (!executable(file) || !exists(file)) return [...found];
     const source = parseJavaScript(read(file), { filePath: file });
@@ -126,6 +130,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       else if (/^(?:assets|tests|scripts|tools|apps|shared|contracts|config)\//.test(value)) target = value;
       else return;
       if (target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
+      target=sourcePath(target);
       if (strict && !exists(target)) throw Error(`Missing dependency ${target} in ${file}`);
       if (exists(target)) found.add(target);
     }
@@ -142,7 +147,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
               || !list.elements.every(item => typeof item.value === 'string')) return false;
             list.elements.forEach(item => add(expression.left.value + item.value, true)); return true;
           })) { /* Literal array-map module identities were added above. */ }
-        else if (product(file) && !(dynamicExpressions[file] || []).includes(source.getText(node.source))) throw Error('Uncatalogued dynamic dependency in ' + file + ': ' + source.getText(node.source));
+        else if (product(file) && !(dynamicExpressions[publicFile] || []).includes(source.getText(node.source))) throw Error('Uncatalogued dynamic dependency in ' + file + ': ' + source.getText(node.source));
       }
       if (node.type === 'NewExpression' && node.callee.name === 'URL') {
         const input = specifier(node.arguments[0]), value = specifier(node);
@@ -263,7 +268,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   const unitTests = [...selected].filter(file => file.includes('/unit/')).sort();
   const browserSpecs = [...selected].filter(file => file.includes('/browser/')).sort();
   if (unitTests.some(file => file === 'tests/unit/core-document-world-wasm.test.mjs' ||
-    (parents.get('assets/js/modules/temporal.js') && isConsumer(file, 'assets/js/modules/temporal.js'))) && repo.catalog.prerequisites?.core) prerequisites.add('core');
+    (parents.get('shared/frontend/js/modules/temporal.js') && isConsumer(file, 'shared/frontend/js/modules/temporal.js'))) && repo.catalog.prerequisites?.core) prerequisites.add('core');
   function isConsumer(target, dependency, seen = new Set()) {
     if (target === dependency) return true;
     if (seen.has(dependency)) return false; seen.add(dependency);

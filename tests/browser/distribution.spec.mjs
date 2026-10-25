@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { selectUiOption } from './helpers/ui-select.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 async function openApp(page) {
   const errors = [];

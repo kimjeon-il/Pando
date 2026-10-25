@@ -8,8 +8,8 @@ import { withLibraryOutputs } from './library-data.mjs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
-import { encodePlaceTile, decodePlaceTile } from '../assets/js/modules/place-codec.js';
-import { normalizePlace, normalizePlaceQuery, PLACE_LIMITS } from '../assets/js/modules/place-contract.js';
+import { encodePlaceTile, decodePlaceTile } from "../shared/frontend/js/modules/place-codec.js";
+import { normalizePlace, normalizePlaceQuery, PLACE_LIMITS } from "../shared/frontend/js/modules/place-contract.js";
 import { reportPath } from './report-paths.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));

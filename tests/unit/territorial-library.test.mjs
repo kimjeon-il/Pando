@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLibraryEntity, TERRITORIAL_LIBRARY_SCHEMA_VERSION } from '../../assets/js/modules/territorial-library.js';
+import { normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLibraryEntity, TERRITORIAL_LIBRARY_SCHEMA_VERSION } from "../../apps/editor/frontend/js/modules/territorial-library.js";
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
 const entity = () => ({ schemaVersion: 2, entityId: 'state:sample', entityKind: 'general', names: {ko:'Sample',en:'Sample'}, lifetime: {validFrom: null, validTo: null}, geometryVersions: [{versionId: 'sample:current', validFrom: null, validTo: null, geometry, certainty: 'high', sourceId: 'test'}], metadata: { note: 'preserved' }, sourceInfo: { license: 'test' } });

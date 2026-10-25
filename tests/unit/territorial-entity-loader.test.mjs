@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import test from 'node:test';
-import {createTerritorialEntityLoader} from '../../assets/js/modules/territorial-entity-loader.js';
+import {createTerritorialEntityLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
 import {territorialDataRoot} from '../../tools/territorial-entity-sources.mjs';
 const root=path.join(territorialDataRoot,'generated/v2');
 function fixture(corrupt=false,wrongMetadata=false){

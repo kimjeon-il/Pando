@@ -1,6 +1,6 @@
 import {expect,test} from '@playwright/test';
 import {deflateSync} from 'node:zlib';
-import {terrainDemFragmentSource} from '../../assets/js/modules/terrain-dem-shaders.js';
+import {terrainDemFragmentSource} from "../../shared/frontend/js/modules/terrain-dem-shaders.js";
 
 test.use({viewport:{width:1440,height:900},launchOptions:{args:process.platform==='win32'?['--use-angle=d3d11']:[]},trace:'off'});
 

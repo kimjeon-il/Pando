@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createSurfaceTabsController } from '../../assets/js/modules/surface-tabs-controller.js';
+import { createSurfaceTabsController } from "../../apps/editor/frontend/js/modules/surface-tabs-controller.js";
 
 function classList(initial = []) {
   const values = new Set(initial);

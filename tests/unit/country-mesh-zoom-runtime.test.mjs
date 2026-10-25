@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGpuMapRenderer } from '../../assets/js/modules/gpu-map-renderer.js';
+import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 
 function fixture(t) {
   const oldWindow = globalThis.window;

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mapVisualOrder, mapVisualRank, INTERACTION_ROLE_PRIORITY, SELECTION_PAINT_ORDER, overlayVisualOrder } from '../../assets/js/modules/layer-presentation.js';
-import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
-import { createRenderDevice } from '../../assets/js/modules/render-device.js';
+import { mapVisualOrder, mapVisualRank, INTERACTION_ROLE_PRIORITY, SELECTION_PAINT_ORDER, overlayVisualOrder } from "../../shared/frontend/js/modules/layer-presentation.js";
+import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
+import { createRenderDevice } from "../../shared/frontend/js/modules/render-device.js";
 
 test('one policy orders paint, claim, selection and SVG roles without changing overlay object order', () => {
   assert.deepEqual(mapVisualOrder('hydro'), ['lake', 'lake-boundary', 'river', 'border-river']);

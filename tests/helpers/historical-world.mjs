@@ -1,5 +1,5 @@
 import { staticAutosaveProject } from './timeline-project.mjs';
-import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
+import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
 export function smallHistoricalWorld({ currentId = 'RUS', currentGeometry = null } = {}) {
   const geometry = { type: 'Polygon', coordinates: [[[33, 44], [35, 44], [35, 46], [33, 46], [33, 44]]] };
   const project = structuredClone(staticAutosaveProject({}, normalizeCountryCollection({ features: [

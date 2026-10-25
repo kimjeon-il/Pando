@@ -1,8 +1,10 @@
+import {buildFrontendIndex,frontendAsset,emitFrontendModule} from './lib/frontend-layout.mjs';
+import {renderProductHtml} from './lib/product-html.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as versionContract from '../assets/js/modules/version-contract.js';
-import { EXCHANGE_TARGETS, EXCHANGE_TARGET_DESCRIPTORS } from '../assets/js/modules/exchange-adapter-registry.js';
+import * as versionContract from "../shared/frontend/js/modules/version-contract.js";
+import { EXCHANGE_TARGETS, EXCHANGE_TARGET_DESCRIPTORS } from "../apps/editor/frontend/js/modules/exchange-adapter-registry.js";
 import { parseJavaScript } from './lib/source-analysis.mjs';
 
 const owner = 'assets/js/modules/version-contract.js';
@@ -84,10 +86,9 @@ export function checkVersionArchitecture(root) {
   const failures = [], sources = new Map();
   const read = file => fs.readFileSync(path.join(root, file), 'utf8');
   failures.push(...auditVersionDisplays({ version: JSON.parse(read('package.json')).version,
-    readme: read('README.md'), html: read('apps/web-shell/editor.html') }));
-  const modules = 'assets/js/modules';
-  for (const name of fs.readdirSync(path.join(root, modules)).filter(name => name.endsWith('.js')))
-    sources.set(`${modules}/${name}`, fs.readFileSync(path.join(root, modules, name), 'utf8'));
+    readme: read('README.md'), html: renderProductHtml(read).editor }));
+  const index=buildFrontendIndex(root);
+  for(const row of index.values())if(row.publicPath.startsWith('assets/js/modules/')&&row.publicPath.endsWith('.js'))sources.set(row.publicPath,emitFrontendModule(frontendAsset(root,row.publicPath,{index}).bytes.toString('utf8'),row.sourcePath,index));
   const schemaNames = Object.keys(versionContract).filter(name => name.endsWith('_SCHEMA_VERSION'));
   failures.push(...auditSchemaOwners(sources, schemaNames));
   for (const name of schemaNames) if (!Number.isInteger(versionContract[name])) failures.push(`${name} must be an integer`);

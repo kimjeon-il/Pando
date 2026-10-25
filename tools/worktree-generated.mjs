@@ -7,7 +7,7 @@ import {fileHash} from './library-storage.mjs';
 
 const schema='pando-generated-cleanup-v1';
 export function cargoRetirementRequests({root,seeds,protectedPartitions=[]}){
- const target=containedPath(root,'apps/web-shell/src-tauri/target'),files=contentFiles(target),nodes=new Map(),hashes=new Map(),directories=new Map();
+ const target=containedPath(root,'apps/editor/src-tauri/target'),files=contentFiles(target),nodes=new Map(),hashes=new Map(),directories=new Map();
  const exactJSON=text=>JSON.parse(text,(key,value,context)=>typeof value==='number'?context.source:value);
  for(const f of files.filter(f=>f.logical.includes('/.fingerprint/')&&f.logical.endsWith('.json'))){
   const fingerprint=f.path.slice(0,-5);if(!existsSync(fingerprint))continue;
@@ -36,7 +36,7 @@ export function cargoRetirementRequests({root,seeds,protectedPartitions=[]}){
  return {requests,seeds,kept,retired,unresolved};
 }
 const identity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}`;};
-const scopePattern=/^(?:apps\/web-shell\/(?:src-tauri\/(?:target|gen\/android\/(?:app\/build|build|\.gradle)))(?:\/|$)|build-native\/(?:p9|core-ci-webgl|predicate-comparison|wasm|cache-probe)(?:\/|$)|\.superpowers\/sdd\/[^/]+(?:\/|$)|test-results(?:\/|$))/;
+const scopePattern=/^(?:apps\/editor\/(?:src-tauri\/(?:target|gen\/android\/(?:app\/build|build|\.gradle)))(?:\/|$)|build-native\/(?:p9|core-ci-webgl|predicate-comparison|wasm|cache-probe)(?:\/|$)|\.superpowers\/sdd\/[^/]+(?:\/|$)|test-results(?:\/|$))/;
 const compilerPatterns={
  'android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|\.temp)(?:\/|$)/,
  toolchains:/^(?:binutils-new|cargo|cmake|gradle|rustup|sccache)(?:\/|$)/,
@@ -69,7 +69,7 @@ function validate(root,path,roots,protectedPaths=[],compilerScopes=[]){
 function assertIdle(roots,consumers,targets=roots){
  const norm=p=>String(p||'').replaceAll('\\','/').toLowerCase();
  for(const c of consumers)for(const root of targets){const r=norm(root),build=/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|emulator|qemu-system-[\w-]+)\.exe$/i.test(c.Name||'')||(/^java(?:w)?\.exe$/i.test(c.Name||'')&&/gradle/i.test(c.CommandLine||''));if(norm(c.ExecutablePath).startsWith(r+'/')||norm(c.CommandLine).includes(r)||c.globalBuild||build)throw Error(`Active consumer blocks cleanup: ${c.ProcessId||''} ${c.Name||''}`);}
- for(const root of roots)for(const p of ['apps/web-shell/.stage-lock','.library-data/prepare.lock'])if(existsSync(containedPath(root,p)))throw Error(`Active consumer lock: ${root}/${p}`);
+ for(const root of roots)for(const p of ['apps/editor/.stage-lock','.library-data/prepare.lock'])if(existsSync(containedPath(root,p)))throw Error(`Active consumer lock: ${root}/${p}`);
 }
 function destination(entry,relocationRoots){
  const base=relocationRoots.find(p=>{const rel=relative(resolve(p),resolve(entry.destination));return rel&&!rel.startsWith('..')&&!resolve(entry.destination).startsWith(resolve(entry.root)+'/');});

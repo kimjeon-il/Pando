@@ -7,12 +7,12 @@ import { createServer } from 'node:http';
 import { Worker } from 'node:worker_threads';
 import { once } from 'node:events';
 import { buildSyntheticPlaces } from '../helpers/place-synthetic.mjs';
-import { createWorkerRpcClient } from '../../assets/js/modules/worker-rpc.js';
-import { PLACE_LIMITS } from '../../assets/js/modules/place-contract.js';
+import { createWorkerRpcClient } from "../../shared/frontend/js/modules/worker-rpc.js";
+import { PLACE_LIMITS } from "../../shared/frontend/js/modules/place-contract.js";
 import { placeView } from '../helpers/place-view.mjs';
-import { createFrameProjectors } from '../../assets/js/modules/map-visual-frame.js';
-import { placeLabelDimensions, automaticLabelSettings } from '../../assets/js/modules/label-layout.js';
-import { layoutLabels } from '../../assets/js/modules/label-layout.js';
+import { createFrameProjectors } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { placeLabelDimensions, automaticLabelSettings } from "../../shared/frontend/js/modules/label-layout.js";
+import { layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
 
 test('one million synthetic places use bounded actual Worker viewport queries and main layout', {timeout:120000}, async t=>{
   const directory=await mkdtemp(join(tmpdir(),'pandolab-place-million-')); const started=performance.now();

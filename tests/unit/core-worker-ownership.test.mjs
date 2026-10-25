@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCoreWorkerRuntime } from '../../assets/js/modules/core-worker-runtime.js';
+import { createCoreWorkerRuntime } from "../../shared/frontend/js/modules/core-worker-runtime.js";
 
 const context = { throwIfCancelled() {} };
 test('every Worker operation uses one document session and retired timeline transports cannot construct another owner', async () => {

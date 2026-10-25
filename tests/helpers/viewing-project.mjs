@@ -1,10 +1,10 @@
-import {createProjectSession} from '../../assets/js/modules/project-session.js';
-import {createAtomicMapStateController} from '../../assets/js/modules/map-state-transition.js';
-import {createTerritorialEntityStore} from '../../assets/js/modules/territorial-entity-store.js';
-import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
-import {DISTRIBUTION_RENDER_MODES} from '../../assets/js/modules/distribution-model.js';
-import {createObjectQuery} from '../../assets/js/modules/object-query.js';
-import {normalizeObjectRef} from '../../assets/js/modules/object-selection-controller.js';
+import {createProjectSession} from "../../shared/frontend/js/modules/project-session.js";
+import {createAtomicMapStateController} from "../../shared/frontend/js/modules/map-state-transition.js";
+import {createTerritorialEntityStore} from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer-presentation.js";
+import {DISTRIBUTION_RENDER_MODES} from "../../shared/frontend/js/modules/distribution-model.js";
+import {createObjectQuery} from "../../shared/frontend/js/modules/object-query.js";
+import {normalizeObjectRef} from "../../shared/frontend/js/modules/object-selection-controller.js";
 
 /** Real shared viewing owner over an accepted Core document; no model implementation in tests. */
 export function createTestViewingSession(owner){

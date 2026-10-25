@@ -145,7 +145,7 @@
       "level": "windows-only",
       "workflow": ".github/workflows/integration-windows-startup-memory-ab-20261016.yml",
       "tests": [
-        "apps/web-shell/measure-windows-startup.ps1"
+        "apps/editor/measure-windows-startup.ps1"
       ]
     }
   ],

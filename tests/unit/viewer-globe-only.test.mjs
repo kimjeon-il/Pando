@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProductModePolicy } from '../../assets/js/modules/product-mode-policy.js';
-import { createProjectSession } from '../../assets/js/modules/project-session.js';
-import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';
-import { createCameraNavigation } from '../../assets/js/modules/camera-navigation.js';
-import { createMapLayoutMetricsSnapshot } from '../../assets/js/modules/map-layout-metrics.js';
-import { initialBoundsView } from '../../assets/js/modules/project-setup.js';
+import { createProductModePolicy } from "../../shared/frontend/js/modules/product-mode-policy.js";
+import { createProjectSession } from "../../shared/frontend/js/modules/project-session.js";
+import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
+import { createCameraNavigation } from "../../shared/frontend/js/modules/camera-navigation.js";
+import { createMapLayoutMetricsSnapshot } from "../../shared/frontend/js/modules/map-layout-metrics.js";
+import { initialBoundsView } from "../../shared/frontend/js/modules/project-setup.js";
 
 for (const [mode, projection, rejected] of [['viewer','globe','flat'],['editor','flat','globe']]) {
   test(`${mode} admits its fixed projection and rejects an explicit switch`,()=>{

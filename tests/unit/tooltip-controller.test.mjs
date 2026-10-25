@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
+import { createTooltipController } from "../../shared/frontend/js/modules/tooltip-controller.js";
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 function fixture() {

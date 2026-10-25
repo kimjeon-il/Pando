@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMapVisualFrame, isMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
+import { createMapVisualFrame, isMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 
 test('globe visual frame derives CSS and GPU values from one immutable snapshot', () => {
   const frame = createMapVisualFrame({

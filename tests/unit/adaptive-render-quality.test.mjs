@@ -5,7 +5,7 @@ import {
   createAdaptiveRenderQualityController,
   renderQualityProfile,
   resolveInitialRenderQuality,
-} from '../../assets/js/modules/adaptive-render-quality.js';
+} from "../../shared/frontend/js/modules/adaptive-render-quality.js";
 
 test('device hints choose a conservative initial quality without relying on user agent strings', () => {
   assert.equal(resolveInitialRenderQuality({ deviceMemory: 2, hardwareConcurrency: 8 }), 'coarse');

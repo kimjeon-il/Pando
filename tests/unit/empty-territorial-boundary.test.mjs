@@ -1,8 +1,9 @@
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildCountrySharedBoundarySegments, buildTerritorialInternalBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
+import { buildCountrySharedBoundarySegments, buildTerritorialInternalBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
 
 test('no polygon units never inspect canonical country geometry', () => {
   const countries = [{ get geometry() { throw new Error('must not inspect countries'); } }];
@@ -91,7 +92,7 @@ test('exclusive child territory keeps its land contact and excludes its coast an
 
 test('Hong Kong and Macao source coastlines never enter the persistent child boundary scene', () => {
   const feature = id => {
-    const source = JSON.parse(readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`, import.meta.url), 'utf8'));
+    const source = JSON.parse(readFileSync(repositoryFrontendUrl(`assets/data/territorial-entities/source/countries/state-${id}.json`), 'utf8'));
     return { type: 'Feature', id, properties: { entityKind: source.entityKind, parentId: source.parentEntityId.replace('state:', '') }, geometry: source.geometryVersions[0].geometry };
   };
   const root = feature('CHN'), children = [feature('HKG'), feature('MAC')];

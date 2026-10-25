@@ -17,8 +17,8 @@ const sourceEncoding=bytes=>Buffer.from(new TextDecoder('utf-8',{fatal:true})
   .decode(bytes).replace(/\r\n/g,'\n'));
 
 export const OUTPUTS=Object.freeze({
-  wasm:Object.freeze(['assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm',
-    'assets/wasm/pandoeditor-core.manifest.json'])
+  wasm:Object.freeze(['shared/frontend/static/wasm/pandoeditor-core.js','shared/frontend/static/wasm/pandoeditor-core.wasm',
+    'shared/frontend/static/wasm/pandoeditor-core.manifest.json'])
 });
 
 function absolute(rootDir,p) {
@@ -39,7 +39,7 @@ function matches(rootDir,p,expected,{text=false}={}) {
 
 export function wasmStatus(rootDir=root,pin=null) {
   const config=pin||json(rootDir,'config/toolchain-versions.json');
-  const manifest=attempt(()=>json(rootDir,'assets/wasm/pandoeditor-core.manifest.json'));
+  const manifest=attempt(()=>json(rootDir,'shared/frontend/static/wasm/pandoeditor-core.manifest.json'));
   const currentSource=sharedSourceManifest(rootDir);
   const reasons=[];
   if(manifest?.schema!=='pandoeditor-core-wasm'||manifest.abiVersion!==1)
@@ -53,7 +53,7 @@ export function wasmStatus(rootDir=root,pin=null) {
   for(const name of ['js','wasm']) {
     const entry=manifest?.assets?.[name];
     const filename=name==='js'?'pandoeditor-core.js':'pandoeditor-core.wasm';
-    if(entry?.file!==filename||!matches(rootDir,'assets/wasm/'+filename,entry?.sha256))
+    if(entry?.file!==filename||!matches(rootDir,'shared/frontend/static/wasm/'+filename,entry?.sha256))
       reasons.push(name+' bytes/hash');
   }
   return {needed:reasons.length>0,reasons,sourceSha256:currentSource.sourceSha256};

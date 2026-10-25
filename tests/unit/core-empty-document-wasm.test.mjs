@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProjectSession } from '../../assets/js/modules/project-session.js';
-import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
+import { createProjectSession } from "../../shared/frontend/js/modules/project-session.js";
+import { normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
 import { createNodeCoreDocument } from '../helpers/core-session.mjs';
-import { createCoreDocumentReadModel } from '../../assets/js/modules/core-document-read-model.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 
 test('the application startup seed is a complete empty current-format input accepted by the same C++ document owner',async () => {
   const session=createProjectSession();session.connect({ readiness: { DATA_READINESS: { PREVIEW: 'preview' } },

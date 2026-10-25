@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
+import { validateGeometry } from "../shared/frontend/js/modules/geometry-validation.js";
 import {updateTerritorialSource} from './territorial-entity-sources.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

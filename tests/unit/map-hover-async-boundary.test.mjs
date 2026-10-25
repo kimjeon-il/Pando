@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
-import { createPointerTargets } from '../../assets/js/modules/pointer-targets.js';
-import { createGpuScene } from '../../assets/js/modules/gpu-scene.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
+import { createPointerTargets } from "../../shared/frontend/js/modules/pointer-targets.js";
+import { createGpuScene } from "../../shared/frontend/js/modules/gpu-scene.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 
 const ref = id => normalizeObjectRef({ domain: 'territorial', type: 'entity', id });
 const hit = id => ({ ref: ref(id), feature: { id, geometry: { type: 'Point', coordinates: [0,0] } } });
@@ -131,7 +131,7 @@ test('missing Core hover dependencies fail through the responsible operation and
 });
 
 function labelHandlers() {
-  const source=readFileSync(new URL('../../assets/js/modules/label-presentation.js',import.meta.url),'utf8');
+  const source=readFileSync(new URL("../../shared/frontend/js/modules/label-presentation.js",import.meta.url),'utf8');
   const start=source.indexOf("    enter.on('mouseenter.hover'",source.indexOf('  const renderUserLabels ='));
   const end=source.indexOf("    enter.append('circle')",start),handlers={},queue=acknowledgements(),diagnostics=[];
   const enter={on(type,handler){handlers[type]=handler;return enter;}};

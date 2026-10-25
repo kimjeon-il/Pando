@@ -73,7 +73,7 @@ jobs:
       - name: Verify the original (noninstrumented) pinned C++ WASM has been published by P2
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           node --check tests/browser/soviet-real-edit-commit-cancel.spec.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Complete actual 1989 Soviet draggable coast, preview discard, Core confirm, Undo-Redo-Undo and retained source refs

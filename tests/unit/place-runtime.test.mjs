@@ -45,8 +45,8 @@ test('reference search uses the scheduler abort signal and rejects after disposa
   await assert.rejects(runtime.search('Old', { scope: 'reference' }), error => error.name === 'AbortError');
 });
 import { setImmediate } from 'node:timers';
-import { createPlaceRuntime } from '../../assets/js/modules/place-runtime.js';
-import { normalizePlace, PLACE_LIMITS } from '../../assets/js/modules/place-contract.js';
+import { createPlaceRuntime } from "../../shared/frontend/js/modules/place-runtime.js";
+import { normalizePlace, PLACE_LIMITS } from "../../shared/frontend/js/modules/place-contract.js";
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return { promise, resolve, reject }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 

@@ -1,8 +1,8 @@
-import { TIMELINE_RECORD_SCHEMA_VERSION } from '../../assets/js/modules/timeline-records.js';
+import { TIMELINE_RECORD_SCHEMA_VERSION } from "../../shared/frontend/js/modules/timeline-records.js";
 import { readFileSync } from 'node:fs';
 import { createNodeCoreProject } from './core-project.mjs';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
-import { coreSelectionRefToWeb, webSelectionRefToCore } from '../../assets/js/modules/core-object-ref.js';
+import { createSelectionDomain } from "../../shared/frontend/js/modules/selection-domain.js";
+import { coreSelectionRefToWeb, webSelectionRefToCore } from "../../shared/frontend/js/modules/core-object-ref.js";
 
 /** Tiny actual Worker fixture. Runtime IDs remain literal; file admission is not weakened. */
 export async function createNodeSelection({ territorialIds = ['A','B','C','D','DEU','TUR','country-custom-123','shared:id'],

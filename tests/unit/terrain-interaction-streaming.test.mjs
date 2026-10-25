@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createGpuUploadScheduler} from '../../assets/js/modules/gpu-upload-scheduler.js';
-import {createGpuTerrainPreparation} from '../../assets/js/modules/gpu-terrain-preparation.js';
+import {createGpuUploadScheduler} from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
+import {createGpuTerrainPreparation} from "../../shared/frontend/js/modules/gpu-terrain-preparation.js";
 
 test('a reusable scene image cannot bypass the canonical current-view terrain preparation',()=>{
-  const source=readFileSync(new URL('../../assets/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const source=readFileSync(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js",import.meta.url),'utf8');
   const render=source.slice(source.indexOf('function renderWebGl('),source.indexOf('function renderCanvasHydro('));
   const prepare=render.indexOf('prepareTerrain('),cache=render.indexOf('const exactSceneCacheHit');
   assert.ok(prepare>=0&&prepare<cache,'terrain scheduling must run before both exact and reprojected scene-cache shortcuts');

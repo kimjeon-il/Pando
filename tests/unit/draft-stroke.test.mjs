@@ -9,7 +9,7 @@ import {
   draftStrokeProfile,
   finalizeDraftStroke,
   simplifyDraftStrokeSamples,
-} from '../../assets/js/modules/draft-stroke.js';
+} from "../../apps/editor/frontend/js/modules/draft-stroke.js";
 
 const sample = (x, y, lon = x, lat = y) => ({ screen: [x, y], coordinate: [lon, lat] });
 

@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
 import {createNodeSelection} from '../helpers/core-selection.mjs';
-import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
-import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
-import { createGpuMapRenderer } from '../../assets/js/modules/gpu-map-renderer.js';
+import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
+import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 
 // Only the DOM/D3 adapter and render device are doubles; selection planning,
 // staging, coordinator invalidation and accepted-frame reconciliation are real.

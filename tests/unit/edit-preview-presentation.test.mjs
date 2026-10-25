@@ -1,11 +1,11 @@
-import {createEditingPresentation} from '../../assets/js/modules/editing-presentation.js';
+import {createEditingPresentation} from "../../apps/editor/frontend/js/modules/editing-presentation.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createEditPreviewController } from '../../assets/js/modules/edit-preview-controller.js';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
-import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
-import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
+import { createEditPreviewController } from "../../apps/editor/frontend/js/modules/edit-preview-controller.js";
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
+import { createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
 
 function harness(renderer = 'webgl2', { directFallback = false, objectSuccessor = false, stableView = false } = {}) {
   const preview = createEditPreviewController();

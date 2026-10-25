@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createObjectSearchModel,visibleObjectSearchRows} from '../../assets/js/modules/object-search-model.js';
+import {createObjectSearchModel,visibleObjectSearchRows} from "../../shared/frontend/js/modules/object-search-model.js";
 const model = data => createObjectSearchModel({items:group=>data[group]||[],groups:Object.keys(data),
   itemRef:(group,id)=>({key:`${group}:${id}`}),compare:(a,b)=>a.name.localeCompare(b.name)});
 test('flat search preserves explicit object identity, name ordering, parent text and type matching without folder state',()=>{

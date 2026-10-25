@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createPersistenceService} from '../../assets/js/modules/persistence-service.js';
+import {createPersistenceService} from "../../apps/editor/frontend/js/modules/persistence-service.js";
 test('workspace restore uses document identity across saves and rejects another document camera',async()=>{
   const saved={documentId:'A',savedAt:'new-save'},writes=[],tasks=new Map();let current='A';
   const service=createPersistenceService({storage:{readProject:async()=>saved,readFallback:()=>null,

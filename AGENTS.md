@@ -6,8 +6,8 @@ or `AGENTS.override.md` provides more specific rules.
 ## Branch and permanent worktree policy (mandatory)
 
 Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
-local worktree. Web lives at the repository root, the application in
-`apps/web-shell/`, and common C++ in `shared/`; all use the same commit and branch:
+local worktree. Web source lives in `apps/viewer/`, shared frontend source in `shared/frontend/`, the application in
+`apps/editor/`, and common C++ in `shared/`; all use the same commit and branch:
 
 - Reuse the long-lived branches `work/ui`, `work/objects`, `work/gis`, and
   `work/places` according to the task's primary purpose; `main` is the

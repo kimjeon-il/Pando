@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createMapRenderCoordinator, MAP_RENDER_MASKS } from '../../assets/js/modules/map-render-coordinator.js';
-import { drawGpuBaseScene } from '../../assets/js/modules/gpu-base-scene-pass.js';
-import { createInitialDocument } from '../../assets/js/modules/initial-document.js';
-import { createCoreDocumentReadModel } from '../../assets/js/modules/core-document-read-model.js';
-import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
-import { resolveMapTheme } from '../../assets/js/modules/map-theme.js';
+import { createMapRenderCoordinator, MAP_RENDER_MASKS } from "../../shared/frontend/js/modules/map-render-coordinator.js";
+import { drawGpuBaseScene } from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
+import { createInitialDocument } from "../../shared/frontend/js/modules/initial-document.js";
+import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
+import { createGeometryVersionStore } from "../../shared/frontend/js/modules/geometry-version-store.js";
+import { resolveMapTheme } from "../../shared/frontend/js/modules/map-theme.js";
 
 test('project replacement preserves the presented scene without moving labels into the new document', () => {
   const frames=[],calls=[];let blocked=true;

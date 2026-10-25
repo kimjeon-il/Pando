@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
-import { coreSelectionRefToWeb, webSelectionRefToCore } from '../../assets/js/modules/core-object-ref.js';
+import { createSelectionDomain } from "../../shared/frontend/js/modules/selection-domain.js";
+import { coreSelectionRefToWeb, webSelectionRefToCore } from "../../shared/frontend/js/modules/core-object-ref.js";
 
 const A = Object.freeze({ domain: 'territorial', type: 'entity', id: 'A' });
 const B = Object.freeze({ domain: 'territorial', type: 'entity', id: 'B' });

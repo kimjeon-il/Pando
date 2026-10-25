@@ -4,8 +4,8 @@ import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { coreFileProjection, productionGeoPackage } from '../helpers/production-geopackage.mjs';
-import { createInitialDocument } from '../../assets/js/modules/initial-document.js';
-import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
+import { createInitialDocument } from "../../shared/frontend/js/modules/initial-document.js";
+import { PROJECT_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 
 const fixturePath = kind => fileURLToPath(new URL(`../fixtures/timeline-exchange/${kind}.gpkg`, import.meta.url));
 const fixtureJson = async kind => JSON.parse(await readFile(new URL(`../fixtures/timeline-exchange/${kind}.json`, import.meta.url),'utf8'));

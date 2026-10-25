@@ -1,14 +1,15 @@
-import '../../assets/js/workers/canvas-scene-composition-core.js';
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
+import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveMapInteractionStyle, resolveInteractionEntries, resolveMapStrokeStyle } from '../../assets/js/modules/map-interaction-style.js';
-import { mapInteractionEntries as interactionEntries } from '../../assets/js/modules/interaction-roles.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createMapDisplayPreparation } from '../../assets/js/modules/map-display-preparation.js';
+import { resolveMapInteractionStyle, resolveInteractionEntries, resolveMapStrokeStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
+import { mapInteractionEntries as interactionEntries } from "../../shared/frontend/js/modules/interaction-roles.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
+import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
 import { createNodeSelection } from '../helpers/core-selection.mjs';
-import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
+import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
 
 const mapInteractionEntries = (snapshot, state, options = {}) => {
   const entities = options.entities || state.territorialEntities || [];
@@ -107,7 +108,7 @@ test('a pending owned boundary does not poison its ready geometry cache', () => 
 });
 
 test('common role contracts reject tool colors and keep boundary preparation out of render callbacks', async () => {
-  const read = name => readFile(new URL(`../../assets/js/${name}`, import.meta.url), 'utf8');
+  const read = name => readFile(repositoryFrontendUrl(`assets/js/${name}`), 'utf8');
   const [packets, rendering, pass, worker] = await Promise.all([
     read('modules/app-interaction-packets.js'), read('modules/rendering-domain.js'),
     read('modules/selection-pass.js'), read('workers/canvas-render-worker.js'),

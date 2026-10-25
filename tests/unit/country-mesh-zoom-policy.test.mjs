@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resolveCountryMeshQuality } from '../../assets/js/modules/country-mesh-zoom-policy.js';
-import * as surfacePolicy from '../../assets/js/modules/country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality } from "../../shared/frontend/js/modules/country-mesh-zoom-policy.js";
+import * as surfacePolicy from "../../shared/frontend/js/modules/country-mesh-zoom-policy.js";
 
 test('prepared country geometry stays hidden until its background frame is presented', () => {
   const prepared = { cssScale: 700, canonicalReady: true, backgroundPresented: false };

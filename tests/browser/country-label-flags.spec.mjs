@@ -2,9 +2,9 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
-import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
+import { assertCurrentProjectSchema } from "../../shared/frontend/js/modules/project-state.js";
 
 // Tracing stalls focused software WebGL even with screencast frames disabled.
 // Keep failure screenshots and the explicit exact model/frame proofs below.

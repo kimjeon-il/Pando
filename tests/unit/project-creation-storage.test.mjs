@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createInitialDocument} from '../../assets/js/modules/initial-document.js';
+import {createInitialDocument} from "../../shared/frontend/js/modules/initial-document.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 
 test('new documents have independent identity and only one creation setup',()=>{

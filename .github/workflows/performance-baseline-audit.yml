@@ -49,7 +49,7 @@ jobs:
           node --test tests/unit/performance-baseline-contract.test.mjs tests/unit/soviet-memory-attribution.test.mjs tests/unit/runtime-performance-metrics.test.mjs
       - name: Verify retained object and country spatial-index contracts
         run: |
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           node --test tests/unit/core-document-runtime.test.mjs tests/unit/boundary-spatial-index-packed.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/country-shared-boundary-state.test.mjs
   current-worker-evidence:
     needs: reusable-metrics

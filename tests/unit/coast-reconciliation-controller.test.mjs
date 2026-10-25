@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCoastReconciliationController } from '../../assets/js/modules/coast-reconciliation-controller.js';
+import { createCoastReconciliationController } from "../../apps/editor/frontend/js/modules/coast-reconciliation-controller.js";
 
 function createController() {
   const hidden = new Set(['hidden']);

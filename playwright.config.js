@@ -28,6 +28,6 @@ export default defineConfig({
     command: `${JSON.stringify(process.execPath)} tests/browser/server.mjs`,
     url: testBaseUrl,
     reuseExistingServer: true,
-    timeout: 20_000,
+    timeout: 120_000,
   },
 });

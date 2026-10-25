@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGpuResourceBudget } from '../../assets/js/modules/gpu-resource-budget.js';
+import { createGpuResourceBudget } from "../../shared/frontend/js/modules/gpu-resource-budget.js";
 
 test('GPU byte budget evicts inactive low-priority LRU resources first', () => {
   const budget = createGpuResourceBudget({ byteBudget: 100 });

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { setImmediate } from 'node:timers';
 import test from 'node:test';
 
-const source = readFileSync(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+const source = readFileSync(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
 const initializeSource = source.slice(source.indexOf('    function initializeSharedGpuPasses() {'),
   source.indexOf('    function handleSharedGpuContextLost() {'));
 

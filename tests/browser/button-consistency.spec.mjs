@@ -7,7 +7,7 @@ const root = new URL('../../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
 const bundles = buildUiBundles(fileURLToPath(root));
 const styles = [read('assets/css/app.css'), bundles.main, bundles.modal, read('assets/css/viewer.css')].join('\n');
-const sprite = read('apps/web-shell/editor.html').match(/<svg class="icon-sprite"[^>]*>[\s\S]*?<\/svg>/)[0];
+const sprite = read('apps/editor/editor.html').match(/<svg class="icon-sprite"[^>]*>[\s\S]*?<\/svg>/)[0];
 const icon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M12 4v16"/></svg>';
 const sourceButton = (path, id) => {
   const button = read(path).match(new RegExp(`<button\\b[^>]*id="${id}"[^>]*>[\\s\\S]*?<\\/button>`))?.[0];

@@ -2,6 +2,23 @@
   "schema": "pando-application-checks-v1",
   "groups": [
     {
+      "id": "frontend-layout",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/frontend-*.test.mjs",
+        "tests/unit/dependency-preparation.test.mjs",
+        "tests/unit/dependency-store-hook.test.mjs"
+      ],
+      "inputs": [
+        "apps/viewer/**",
+        "apps/editor/frontend/**",
+        "shared/frontend/**",
+        "scripts/lib/frontend-*.mjs",
+        "scripts/frontend-dev-server.mjs",
+        "tools/worktree-storage.mjs"
+      ]
+    },
+    {
       "id": "ui-contracts",
       "kind": "unit",
       "testPatterns": [
@@ -13,11 +30,16 @@
         "tests/unit/hydro-metadata-edit.test.mjs"
       ],
       "inputs": [
-        "assets/css/**",
-        "assets/js/modules/ui-*.js",
-        "assets/js/modules/surface-*.js",
-        "apps/web-shell/startup.js",
-        "apps/web-shell/network-guard.js"
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
+        "shared/frontend/js/modules/ui-*.js",
+        "apps/editor/frontend/js/modules/ui-*.js",
+        "apps/viewer/js/modules/ui-*.js",
+        "shared/frontend/js/modules/surface-*.js",
+        "apps/editor/frontend/js/modules/surface-*.js",
+        "apps/viewer/js/modules/surface-*.js",
+        "apps/editor/startup.js",
+        "apps/editor/network-guard.js"
       ]
     },
     {
@@ -27,8 +49,10 @@
         "tests/unit/place-*.test.mjs"
       ],
       "inputs": [
-        "assets/js/modules/place-*.js",
-        "assets/js/modules/territorial-labels.js",
+        "shared/frontend/js/modules/place-*.js",
+        "apps/editor/frontend/js/modules/place-*.js",
+        "apps/viewer/js/modules/place-*.js",
+        "shared/frontend/js/modules/territorial-labels.js",
         "assets/data/places/**"
       ]
     },
@@ -113,18 +137,26 @@
         "tests/browser/country-map-substrate.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/terrain-*.js",
-        "assets/js/modules/physical-*.js",
-        "assets/js/modules/gpu-terrain-*.js",
-        "assets/js/modules/gpu-base-scene-pass.js",
-        "assets/js/workers/canvas-terrain-*.js",
+        "shared/frontend/js/modules/terrain-*.js",
+        "apps/editor/frontend/js/modules/terrain-*.js",
+        "apps/viewer/js/modules/terrain-*.js",
+        "shared/frontend/js/modules/physical-*.js",
+        "apps/editor/frontend/js/modules/physical-*.js",
+        "apps/viewer/js/modules/physical-*.js",
+        "shared/frontend/js/modules/gpu-terrain-*.js",
+        "apps/editor/frontend/js/modules/gpu-terrain-*.js",
+        "apps/viewer/js/modules/gpu-terrain-*.js",
+        "shared/frontend/js/modules/gpu-base-scene-pass.js",
+        "shared/frontend/js/workers/canvas-terrain-*.js",
+        "apps/editor/frontend/js/workers/canvas-terrain-*.js",
+        "apps/viewer/js/workers/canvas-terrain-*.js",
         "assets/data/terrain-*/**",
         "assets/data/physical-land/**",
-        "assets/js/workers/canvas-render-worker.js",
-        "assets/js/workers/canvas-scene-composition-core.js",
-        "assets/js/modules/gpu-scene.js",
-        "assets/js/modules/gpu-scene-preparation.js",
-        "assets/js/modules/gpu-map-renderer.js"
+        "shared/frontend/js/workers/canvas-render-worker.js",
+        "shared/frontend/js/workers/canvas-scene-composition-core.js",
+        "shared/frontend/js/modules/gpu-scene.js",
+        "shared/frontend/js/modules/gpu-scene-preparation.js",
+        "shared/frontend/js/modules/gpu-map-renderer.js"
       ],
       "requires": [
         "generated",
@@ -145,10 +177,14 @@
         "tests/browser/ussr-1922-caspian.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/*boundary*.js",
-        "assets/js/modules/country-contact-core.js",
-        "assets/js/modules/country-stroke-preparation.js",
-        "assets/js/workers/*boundary*.js"
+        "shared/frontend/js/modules/*boundary*.js",
+        "apps/editor/frontend/js/modules/*boundary*.js",
+        "apps/viewer/js/modules/*boundary*.js",
+        "shared/frontend/js/modules/country-contact-core.js",
+        "shared/frontend/js/modules/country-stroke-preparation.js",
+        "shared/frontend/js/workers/*boundary*.js",
+        "apps/editor/frontend/js/workers/*boundary*.js",
+        "apps/viewer/js/workers/*boundary*.js"
       ],
       "requires": [
         "generated",
@@ -173,12 +209,20 @@
         "tests/browser/visual-frame-sync.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/gpu-*.js",
-        "assets/js/modules/map-display-*.js",
-        "assets/js/modules/render-*.js",
-        "assets/js/modules/map-visual-*.js",
-        "assets/js/workers/canvas-render-worker.js",
-        "assets/js/workers/gpu-mesh-worker.js"
+        "shared/frontend/js/modules/gpu-*.js",
+        "apps/editor/frontend/js/modules/gpu-*.js",
+        "apps/viewer/js/modules/gpu-*.js",
+        "shared/frontend/js/modules/map-display-*.js",
+        "apps/editor/frontend/js/modules/map-display-*.js",
+        "apps/viewer/js/modules/map-display-*.js",
+        "shared/frontend/js/modules/render-*.js",
+        "apps/editor/frontend/js/modules/render-*.js",
+        "apps/viewer/js/modules/render-*.js",
+        "shared/frontend/js/modules/map-visual-*.js",
+        "apps/editor/frontend/js/modules/map-visual-*.js",
+        "apps/viewer/js/modules/map-visual-*.js",
+        "shared/frontend/js/workers/canvas-render-worker.js",
+        "shared/frontend/js/workers/gpu-mesh-worker.js"
       ],
       "requires": [
         "generated",
@@ -206,11 +250,21 @@
         "tests/browser/timeline-*.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/object-*.js",
-        "assets/js/modules/territorial-*.js",
-        "assets/js/modules/generic-*.js",
-        "assets/js/modules/distribution-*.js",
-        "assets/js/modules/selection-*.js"
+        "shared/frontend/js/modules/object-*.js",
+        "apps/editor/frontend/js/modules/object-*.js",
+        "apps/viewer/js/modules/object-*.js",
+        "shared/frontend/js/modules/territorial-*.js",
+        "apps/editor/frontend/js/modules/territorial-*.js",
+        "apps/viewer/js/modules/territorial-*.js",
+        "shared/frontend/js/modules/generic-*.js",
+        "apps/editor/frontend/js/modules/generic-*.js",
+        "apps/viewer/js/modules/generic-*.js",
+        "shared/frontend/js/modules/distribution-*.js",
+        "apps/editor/frontend/js/modules/distribution-*.js",
+        "apps/viewer/js/modules/distribution-*.js",
+        "shared/frontend/js/modules/selection-*.js",
+        "apps/editor/frontend/js/modules/selection-*.js",
+        "apps/viewer/js/modules/selection-*.js"
       ],
       "requires": [
         "generated",
@@ -228,11 +282,21 @@
         "tests/browser/startup-restored-country.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/project-*.js",
-        "assets/js/modules/app-file-*.js",
-        "assets/js/modules/app-project-*.js",
-        "assets/js/modules/core-document-*.js",
-        "assets/js/workers/project-*-worker.js"
+        "shared/frontend/js/modules/project-*.js",
+        "apps/editor/frontend/js/modules/project-*.js",
+        "apps/viewer/js/modules/project-*.js",
+        "shared/frontend/js/modules/app-file-*.js",
+        "apps/editor/frontend/js/modules/app-file-*.js",
+        "apps/viewer/js/modules/app-file-*.js",
+        "shared/frontend/js/modules/app-project-*.js",
+        "apps/editor/frontend/js/modules/app-project-*.js",
+        "apps/viewer/js/modules/app-project-*.js",
+        "shared/frontend/js/modules/core-document-*.js",
+        "apps/editor/frontend/js/modules/core-document-*.js",
+        "apps/viewer/js/modules/core-document-*.js",
+        "shared/frontend/js/workers/project-*-worker.js",
+        "apps/editor/frontend/js/workers/project-*-worker.js",
+        "apps/viewer/js/workers/project-*-worker.js"
       ],
       "requires": [
         "generated",
@@ -249,14 +313,19 @@
         "tests/browser/shared-map-*.spec.mjs",
         "tests/browser/shared-view*.spec.mjs",
         "tests/browser/view-focus-actions.spec.mjs",
-        "tests/browser/unified-objects.spec.mjs"
+        "tests/browser/unified-objects.spec.mjs",
+        "tests/browser/map-startup-publication.spec.mjs",
+        "tests/browser/map-surface-quality.spec.mjs",
+        "tests/browser/resource-dependency-reuse.spec.mjs"
       ],
       "inputs": [
-        "assets/js/viewer.js",
-        "assets/js/modules/object-query.js",
-        "assets/js/modules/object-search-*.js",
-        "assets/js/modules/place-name-display.js",
-        "assets/js/modules/layer-presentation.js"
+        "apps/viewer/js/viewer.js",
+        "shared/frontend/js/modules/object-query.js",
+        "shared/frontend/js/modules/object-search-*.js",
+        "apps/editor/frontend/js/modules/object-search-*.js",
+        "apps/viewer/js/modules/object-search-*.js",
+        "shared/frontend/js/modules/place-name-display.js",
+        "shared/frontend/js/modules/layer-presentation.js"
       ],
       "requires": [
         "generated",
@@ -274,7 +343,9 @@
         "tests/browser/historical-world-*.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/*library*.js",
+        "shared/frontend/js/modules/*library*.js",
+        "apps/editor/frontend/js/modules/*library*.js",
+        "apps/viewer/js/modules/*library*.js",
         "assets/data/historical-world/**",
         "assets/data/territorial-entities/**"
       ],
@@ -291,9 +362,15 @@
         "tests/browser/hydro-*.spec.mjs"
       ],
       "inputs": [
-        "assets/js/gis-*.js",
-        "assets/js/modules/gis-*.js",
-        "assets/js/modules/*hydro*.js",
+        "shared/frontend/js/gis-*.js",
+        "apps/editor/frontend/js/gis-*.js",
+        "apps/viewer/js/gis-*.js",
+        "shared/frontend/js/modules/gis-*.js",
+        "apps/editor/frontend/js/modules/gis-*.js",
+        "apps/viewer/js/modules/gis-*.js",
+        "shared/frontend/js/modules/*hydro*.js",
+        "apps/editor/frontend/js/modules/*hydro*.js",
+        "apps/viewer/js/modules/*hydro*.js",
         "assets/data/hydro/**"
       ],
       "requires": [
@@ -310,8 +387,8 @@
       ],
       "inputs": [
         "plugins/pando-map-tools/**",
-        "assets/js/modules/generic-feature-service.js",
-        "assets/js/gis-io.js"
+        "apps/editor/frontend/js/modules/generic-feature-service.js",
+        "apps/editor/frontend/js/gis-io.js"
       ],
       "requires": [
         "generated",
@@ -352,11 +429,16 @@
         "tests/browser/info-*.spec.mjs"
       ],
       "inputs": [
-        "assets/css/**",
-        "assets/js/modules/ui-*.js",
-        "assets/js/modules/surface-*.js",
-        "apps/web-shell/startup.js",
-        "apps/web-shell/network-guard.js"
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
+        "shared/frontend/js/modules/ui-*.js",
+        "apps/editor/frontend/js/modules/ui-*.js",
+        "apps/viewer/js/modules/ui-*.js",
+        "shared/frontend/js/modules/surface-*.js",
+        "apps/editor/frontend/js/modules/surface-*.js",
+        "apps/viewer/js/modules/surface-*.js",
+        "apps/editor/startup.js",
+        "apps/editor/network-guard.js"
       ],
       "requires": [
         "generated",
@@ -381,8 +463,12 @@
       "id": "worker-contracts",
       "kind": "command",
       "inputs": [
-        "assets/js/workers/**",
-        "assets/js/modules/worker-*.js",
+        "shared/frontend/js/workers/**",
+        "apps/editor/frontend/js/workers/**",
+        "apps/viewer/js/workers/**",
+        "shared/frontend/js/modules/worker-*.js",
+        "apps/editor/frontend/js/modules/worker-*.js",
+        "apps/viewer/js/modules/worker-*.js",
         "scripts/lib/worker-assets.mjs"
       ],
       "argv": [
@@ -395,8 +481,12 @@
       "id": "runtime-boundaries",
       "kind": "command",
       "inputs": [
-        "assets/js/modules/app-*.js",
-        "assets/js/modules/*-domain.js",
+        "shared/frontend/js/modules/app-*.js",
+        "apps/editor/frontend/js/modules/app-*.js",
+        "apps/viewer/js/modules/app-*.js",
+        "shared/frontend/js/modules/*-domain.js",
+        "apps/editor/frontend/js/modules/*-domain.js",
+        "apps/viewer/js/modules/*-domain.js",
         "scripts/check-runtime-boundaries.mjs"
       ],
       "argv": [
@@ -409,10 +499,13 @@
       "id": "ui-architecture",
       "kind": "command",
       "inputs": [
-        "assets/css/**",
-        "assets/js/modules/ui-*.js",
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
+        "shared/frontend/js/modules/ui-*.js",
+        "apps/editor/frontend/js/modules/ui-*.js",
+        "apps/viewer/js/modules/ui-*.js",
         "index.html",
-        "apps/web-shell/editor.html",
+        "apps/editor/editor.html",
         "scripts/check-ui-*.mjs"
       ],
       "argv": [
@@ -425,7 +518,9 @@
       "id": "territorial-storage",
       "kind": "command",
       "inputs": [
-        "assets/js/modules/territorial-*.js",
+        "shared/frontend/js/modules/territorial-*.js",
+        "apps/editor/frontend/js/modules/territorial-*.js",
+        "apps/viewer/js/modules/territorial-*.js",
         "scripts/contracts/territorial-storage-access.json"
       ],
       "argv": [
@@ -444,7 +539,9 @@
         "scripts/lib/product-assets.mjs",
         "scripts/lib/worker-assets.mjs",
         "assets/data/**",
-        "assets/js/workers/**"
+        "shared/frontend/js/workers/**",
+        "apps/editor/frontend/js/workers/**",
+        "apps/viewer/js/workers/**"
       ],
       "argv": [
         "node",
@@ -457,17 +554,20 @@
       "id": "app-small-stage",
       "kind": "command",
       "inputs": [
-        "apps/web-shell/**",
+        "apps/editor/**",
         "scripts/lib/product-assets.mjs",
         "scripts/lib/worker-assets.mjs",
-        "assets/js/modules/worker-asset-url.js",
-        "assets/js/**",
-        "assets/css/**",
+        "shared/frontend/js/modules/worker-asset-url.js",
+        "shared/frontend/js/**",
+        "apps/editor/frontend/js/**",
+        "apps/viewer/js/**",
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
         "assets/data/physical-land/**"
       ],
       "argv": [
         "node",
-        "apps/web-shell/stage.mjs",
+        "apps/editor/stage.mjs",
         "--profile=test-fixture",
         "--verification"
       ],
@@ -479,17 +579,20 @@
       "id": "app-small-verify",
       "kind": "command",
       "inputs": [
-        "apps/web-shell/**",
+        "apps/editor/**",
         "scripts/lib/product-assets.mjs",
         "scripts/lib/worker-assets.mjs",
-        "assets/js/modules/worker-asset-url.js",
-        "assets/js/**",
-        "assets/css/**",
+        "shared/frontend/js/modules/worker-asset-url.js",
+        "shared/frontend/js/**",
+        "apps/editor/frontend/js/**",
+        "apps/viewer/js/**",
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
         "assets/data/physical-land/**"
       ],
       "argv": [
         "node",
-        "apps/web-shell/check-stage.mjs"
+        "apps/editor/check-stage.mjs"
       ],
       "requires": [
         "app-small-stage"
@@ -499,17 +602,20 @@
       "id": "app-world-stage",
       "kind": "command",
       "inputs": [
-        "apps/web-shell/**",
+        "apps/editor/**",
         "scripts/lib/product-assets.mjs",
         "scripts/lib/worker-assets.mjs",
-        "assets/js/modules/worker-asset-url.js",
-        "assets/js/**",
-        "assets/css/**",
+        "shared/frontend/js/modules/worker-asset-url.js",
+        "shared/frontend/js/**",
+        "apps/editor/frontend/js/**",
+        "apps/viewer/js/**",
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
         "assets/data/physical-land/**"
       ],
       "argv": [
         "node",
-        "apps/web-shell/stage.mjs",
+        "apps/editor/stage.mjs",
         "--profile=map-data"
       ],
       "requires": [
@@ -520,17 +626,20 @@
       "id": "app-world-verify",
       "kind": "command",
       "inputs": [
-        "apps/web-shell/**",
+        "apps/editor/**",
         "scripts/lib/product-assets.mjs",
         "scripts/lib/worker-assets.mjs",
-        "assets/js/modules/worker-asset-url.js",
-        "assets/js/**",
-        "assets/css/**",
+        "shared/frontend/js/modules/worker-asset-url.js",
+        "shared/frontend/js/**",
+        "apps/editor/frontend/js/**",
+        "apps/viewer/js/**",
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
         "assets/data/physical-land/**"
       ],
       "argv": [
         "node",
-        "apps/web-shell/check-stage.mjs"
+        "apps/editor/check-stage.mjs"
       ],
       "requires": [
         "app-world-stage"
@@ -543,8 +652,10 @@
         "tests/browser/place-runtime.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/place-*.js",
-        "assets/js/modules/territorial-labels.js",
+        "shared/frontend/js/modules/place-*.js",
+        "apps/editor/frontend/js/modules/place-*.js",
+        "apps/viewer/js/modules/place-*.js",
+        "shared/frontend/js/modules/territorial-labels.js",
         "assets/data/places/**"
       ],
       "requires": [
@@ -556,12 +667,14 @@
       "id": "lint",
       "kind": "command",
       "inputs": [
-        "assets/js/**",
+        "shared/frontend/js/**",
+        "apps/editor/frontend/js/**",
+        "apps/viewer/js/**",
         "scripts/**",
         "tests/**",
         "tools/*.mjs",
-        "apps/web-shell/*.js",
-        "apps/web-shell/*.mjs"
+        "apps/editor/*.js",
+        "apps/editor/*.mjs"
       ],
       "argv": [
         "node",
@@ -573,9 +686,15 @@
       "id": "commands",
       "kind": "command",
       "inputs": [
-        "assets/js/modules/*-service.js",
-        "assets/js/modules/*-domain.js",
-        "assets/js/modules/core-document-*.js"
+        "shared/frontend/js/modules/*-service.js",
+        "apps/editor/frontend/js/modules/*-service.js",
+        "apps/viewer/js/modules/*-service.js",
+        "shared/frontend/js/modules/*-domain.js",
+        "apps/editor/frontend/js/modules/*-domain.js",
+        "apps/viewer/js/modules/*-domain.js",
+        "shared/frontend/js/modules/core-document-*.js",
+        "apps/editor/frontend/js/modules/core-document-*.js",
+        "apps/viewer/js/modules/core-document-*.js"
       ],
       "argv": [
         "node",
@@ -586,9 +705,13 @@
       "id": "provenance",
       "kind": "command",
       "inputs": [
-        "assets/js/modules/source-provenance.js",
-        "assets/js/modules/generic-*.js",
-        "assets/js/modules/project-*.js"
+        "shared/frontend/js/modules/source-provenance.js",
+        "shared/frontend/js/modules/generic-*.js",
+        "apps/editor/frontend/js/modules/generic-*.js",
+        "apps/viewer/js/modules/generic-*.js",
+        "shared/frontend/js/modules/project-*.js",
+        "apps/editor/frontend/js/modules/project-*.js",
+        "apps/viewer/js/modules/project-*.js"
       ],
       "argv": [
         "node",
@@ -599,8 +722,12 @@
       "id": "version-contract",
       "kind": "command",
       "inputs": [
-        "assets/js/modules/project-*.js",
-        "assets/js/modules/*-adapter-*.js",
+        "shared/frontend/js/modules/project-*.js",
+        "apps/editor/frontend/js/modules/project-*.js",
+        "apps/viewer/js/modules/project-*.js",
+        "shared/frontend/js/modules/*-adapter-*.js",
+        "apps/editor/frontend/js/modules/*-adapter-*.js",
+        "apps/viewer/js/modules/*-adapter-*.js",
         "scripts/generate-build-metadata.mjs"
       ],
       "argv": [
@@ -612,8 +739,12 @@
       "id": "renderer-contract",
       "kind": "command",
       "inputs": [
-        "assets/js/modules/gpu-*.js",
-        "assets/js/modules/render-*.js"
+        "shared/frontend/js/modules/gpu-*.js",
+        "apps/editor/frontend/js/modules/gpu-*.js",
+        "apps/viewer/js/modules/gpu-*.js",
+        "shared/frontend/js/modules/render-*.js",
+        "apps/editor/frontend/js/modules/render-*.js",
+        "apps/viewer/js/modules/render-*.js"
       ],
       "argv": [
         "node",
@@ -624,7 +755,8 @@
       "id": "ui-spacing",
       "kind": "command",
       "inputs": [
-        "assets/css/**"
+        "shared/frontend/css/**",
+        "apps/viewer/css/**"
       ],
       "argv": [
         "node",
@@ -635,10 +767,13 @@
       "id": "ui-components",
       "kind": "command",
       "inputs": [
-        "assets/css/**",
-        "assets/js/modules/ui-*.js",
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
+        "shared/frontend/js/modules/ui-*.js",
+        "apps/editor/frontend/js/modules/ui-*.js",
+        "apps/viewer/js/modules/ui-*.js",
         "index.html",
-        "apps/web-shell/editor.html"
+        "apps/editor/editor.html"
       ],
       "argv": [
         "node",
@@ -649,8 +784,11 @@
       "id": "ui-layering",
       "kind": "command",
       "inputs": [
-        "assets/css/**",
-        "assets/js/modules/ui-*.js"
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
+        "shared/frontend/js/modules/ui-*.js",
+        "apps/editor/frontend/js/modules/ui-*.js",
+        "apps/viewer/js/modules/ui-*.js"
       ],
       "argv": [
         "node",
@@ -661,10 +799,14 @@
       "id": "ui-ia",
       "kind": "command",
       "inputs": [
-        "assets/js/modules/ui-*.js",
-        "assets/js/modules/surface-*.js",
+        "shared/frontend/js/modules/ui-*.js",
+        "apps/editor/frontend/js/modules/ui-*.js",
+        "apps/viewer/js/modules/ui-*.js",
+        "shared/frontend/js/modules/surface-*.js",
+        "apps/editor/frontend/js/modules/surface-*.js",
+        "apps/viewer/js/modules/surface-*.js",
         "index.html",
-        "apps/web-shell/editor.html"
+        "apps/editor/editor.html"
       ],
       "argv": [
         "node",
@@ -675,8 +817,12 @@
       "id": "object-registry",
       "kind": "command",
       "inputs": [
-        "assets/js/modules/*object*.js",
-        "assets/js/modules/*registry*.js"
+        "shared/frontend/js/modules/*object*.js",
+        "apps/editor/frontend/js/modules/*object*.js",
+        "apps/viewer/js/modules/*object*.js",
+        "shared/frontend/js/modules/*registry*.js",
+        "apps/editor/frontend/js/modules/*registry*.js",
+        "apps/viewer/js/modules/*registry*.js"
       ],
       "argv": [
         "node",
@@ -783,8 +929,11 @@
       "id": "web-stage",
       "kind": "command",
       "inputs": [
-        "assets/js/**",
-        "assets/css/**",
+        "shared/frontend/js/**",
+        "apps/editor/frontend/js/**",
+        "apps/viewer/js/**",
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
         "assets/data/**",
         "tools/stage-monorepo-pages.mjs",
         "scripts/lib/product-assets.mjs"
@@ -894,7 +1043,7 @@
   },
   "productRoots": [
     "assets/**",
-    "apps/web-shell/**",
+    "apps/editor/**",
     "shared/**",
     "scripts/**",
     "tools/**",
@@ -903,7 +1052,9 @@
   ],
   "passiveInputs": [
     "tools/reference-analysis/README.md",
-    "assets/js/vendor/**",
+    "shared/frontend/js/vendor/**",
+    "apps/editor/frontend/js/vendor/**",
+    "apps/viewer/js/vendor/**",
     "assets/vendor/**",
     "assets/fonts/**",
     "assets/icons/**",
@@ -936,8 +1087,10 @@
         "tests/unit/check-*.test.mjs"
       ],
       "inputs": [
-        "assets/js/modules/app-composition.js",
-        "assets/js/modules/app-capability-ports*.js",
+        "apps/editor/frontend/js/modules/app-composition.js",
+        "shared/frontend/js/modules/app-capability-ports*.js",
+        "apps/editor/frontend/js/modules/app-capability-ports*.js",
+        "apps/viewer/js/modules/app-capability-ports*.js",
         "scripts/plan-application-checks.mjs",
         "scripts/run-application-checks.mjs",
         "scripts/contracts/application-checks.json",
@@ -951,9 +1104,11 @@
         "tests/browser/web-viewer.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/**",
+        "shared/frontend/js/modules/**",
+        "apps/editor/frontend/js/modules/**",
+        "apps/viewer/js/modules/**",
         "index.html",
-        "apps/web-shell/editor.html"
+        "apps/editor/editor.html"
       ]
     },
     {
@@ -966,8 +1121,8 @@
       "inputs": [
         "scripts/lib/product-assets.mjs",
         "scripts/lib/worker-assets.mjs",
-        "assets/js/modules/project-session.js",
-        "assets/js/modules/object-query.js"
+        "shared/frontend/js/modules/project-session.js",
+        "shared/frontend/js/modules/object-query.js"
       ]
     },
     {
@@ -1020,23 +1175,13 @@
     }
   ],
   "runtimeBases": {
-    "apps/web-shell/startup.js": "assets/js",
-    "apps/web-shell/verification.js": "assets/js",
-    "assets/js/modules/app-runtime-dependencies.js": "assets/js"
+    "apps/editor/startup.js": "assets/js",
+    "apps/editor/verification.js": "assets/js",
+    "apps/editor/frontend/js/modules/app-runtime-dependencies.js": "assets/js"
   },
   "runtimeHelperBases": {
     "versionedModuleUrl": "assets/js"
   },
-  "relocatedSources": [
-    {
-      "source": "apps/web-shell/",
-      "output": "shell/",
-      "files": [
-        "apps/web-shell/*.js"
-      ],
-      "reason": "stage.mjs copies the shell modules beneath shell/ in the app bundle."
-    }
-  ],
   "manualScopes": {
     "map-rendering": [
       "tests/browser/country-map-substrate.spec.mjs",

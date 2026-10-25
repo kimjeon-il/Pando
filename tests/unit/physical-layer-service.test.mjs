@@ -1,10 +1,10 @@
-import {createPhysicalResources} from '../../assets/js/modules/physical-resources.js';
+import {createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
 import { readFileSync } from 'node:fs';
 
-import { createHydroService, createTerrainService } from '../../assets/js/modules/physical-layer-service.js';
+import { createHydroService, createTerrainService } from "../../shared/frontend/js/modules/physical-layer-service.js";
 
 const rasterManifest = JSON.parse(readFileSync(new URL('../../assets/data/terrain-preview/v0.13.3-p1/manifest.json', import.meta.url)));
 

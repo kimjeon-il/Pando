@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { commitSelectionFallbackCoverage } from '../../assets/js/modules/selection-fallback-coverage.js';
-import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
-import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
+import { commitSelectionFallbackCoverage } from "../../shared/frontend/js/modules/selection-fallback-coverage.js";
+import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
+import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from "../../shared/frontend/js/modules/map-render-coordinator.js";
 
 function fixture() {
   const nodes = [];

@@ -1,17 +1,17 @@
-import { resourceCapabilities } from '../../assets/js/modules/resource-capabilities.js';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
-import { defaultUserPreferences, normalizeUserPreferences } from '../../assets/js/modules/user-preferences.js';
+import { resourceCapabilities } from "../../shared/frontend/js/modules/resource-capabilities.js";
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { defaultUserPreferences, normalizeUserPreferences } from "../../shared/frontend/js/modules/user-preferences.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import {createTestViewingSession} from '../helpers/viewing-project.mjs';
-import { createTerritorialLabels } from '../../assets/js/modules/territorial-labels.js';
-import { createApplicationPorts, MAP_RESOURCE_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
-import { createMapSettings } from '../../assets/js/modules/app-map-settings.js';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
-import { layoutTerritorialFlags } from '../../assets/js/modules/territorial-label-flags.js';
-import { automaticLabelSettings, labelKey, layoutLabels, LABEL_PRIORITIES } from '../../assets/js/modules/label-layout.js';
+import { createTerritorialLabels } from "../../shared/frontend/js/modules/territorial-labels.js";
+import { createApplicationPorts, MAP_RESOURCE_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports.js";
+import { createMapSettings } from "../../shared/frontend/js/modules/app-map-settings.js";
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
+import { layoutTerritorialFlags } from "../../shared/frontend/js/modules/territorial-label-flags.js";
+import { automaticLabelSettings, labelKey, layoutLabels, LABEL_PRIORITIES } from "../../shared/frontend/js/modules/label-layout.js";
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 function fixture(visibility = {}) {

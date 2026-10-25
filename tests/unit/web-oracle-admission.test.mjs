@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createSelectionDomain } from "../../shared/frontend/js/modules/selection-domain.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 
 const root = new URL('../fixtures/portability/web-9300609-oracle/', import.meta.url);
 

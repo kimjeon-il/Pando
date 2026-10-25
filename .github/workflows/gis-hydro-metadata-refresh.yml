@@ -45,7 +45,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- assets/worker-runtime assets/js/build-meta.js index.html apps/web-shell/editor.html README.md
+          git add -- assets/worker-runtime assets/js/build-meta.js index.html apps/editor/editor.html README.md
           if git diff --cached --quiet; then
             echo "Matching generated metadata already committed"
           else

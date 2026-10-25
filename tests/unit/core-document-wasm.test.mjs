@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreDocument } from '../helpers/core-session.mjs';
-import { createCoreDocumentReadModel } from '../../assets/js/modules/core-document-read-model.js';
+import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
 
 const seed = () => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
 const field = (id, name, value) => ({ commandId: 'territorial.field', targets: [{ domain: 'territorial', id }], payload: { id, field: name, value } });

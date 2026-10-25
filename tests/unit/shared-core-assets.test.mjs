@@ -26,7 +26,7 @@ test('packages paired byte hashes and detects changed sources and missing output
   assert.equal(manifest.compiler.version,'4.0.20');
   assert.equal(manifest.inputs.length,2);
   assert.deepEqual(await packageSharedCoreAssets(root,build,{check:true}),manifest);
-  writeFileSync(join(root,'assets/wasm/pandoeditor-core.wasm'),Buffer.from('changed'));
+  writeFileSync(join(root,'shared/frontend/static/wasm/pandoeditor-core.wasm'),Buffer.from('changed'));
   await assert.rejects(packageSharedCoreAssets(root,build,{check:true}),error=>{
     assert.match(error.message,/WASM binary artifact stale/);
     assert.match(error.actual,/^[a-f0-9]{64}$/);
@@ -62,7 +62,7 @@ test('packages JavaScript with the committed LF bytes before fixing its manifest
   const path=join(build,'pandoeditor-core.js'),lf=readFileSync(path);
   writeFileSync(path,lf.toString('utf8').replace(/\n/g,'\r\n'));
   const manifest=await packageSharedCoreAssets(root,build);
-  assert.deepEqual(readFileSync(join(root,'assets/wasm/pandoeditor-core.js')),lf);
+  assert.deepEqual(readFileSync(join(root,'shared/frontend/static/wasm/pandoeditor-core.js')),lf);
   assert.equal(manifest.assets.js.sha256,createHash('sha256').update(lf).digest('hex'));
   assert.deepEqual(await packageSharedCoreAssets(root,build,{check:true}),manifest);
 });

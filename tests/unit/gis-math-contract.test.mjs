@@ -5,10 +5,10 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
-import * as boundary from '../../assets/js/modules/geographic-boundary.js';
-import { distanceKm, geometryAreaKm2, lineDistanceKm } from '../../assets/js/modules/geometry-metrics.js';
-import * as partitions from '../../assets/js/modules/river-territory-partition.js';
-import { validateCollection } from '../../assets/js/modules/gis-geometry-validation.js';
+import * as boundary from "../../shared/frontend/js/modules/geographic-boundary.js";
+import { distanceKm, geometryAreaKm2, lineDistanceKm } from "../../apps/editor/frontend/js/modules/geometry-metrics.js";
+import * as partitions from "../../apps/editor/frontend/js/modules/river-territory-partition.js";
+import { validateCollection } from "../../apps/editor/frontend/js/modules/gis-geometry-validation.js";
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
 import { sphericalCore } from '../helpers/spherical-core.mjs';
 
@@ -27,7 +27,7 @@ function loadClassic(relativePath, globalName, context) {
 function createBoundaryWorker() {
   const context = vm.createContext({ console, self: null });
   context.self = context;
-  vm.runInContext(read('assets/js/workers/geographic-boundary-core.js'), context);
+  vm.runInContext(read('shared/frontend/js/workers/geographic-boundary-core.js'), context);
   return context.PandoLabGeographicBoundary;
 }
 
@@ -108,7 +108,7 @@ test('GIS Worker validates canonical geometry and reports the shared physical ov
 test('main validator and actual GIS Worker agree on normal, empty, invalid, precision and date-line fixtures', async t => {
   const worker = createGisWorkerHarness(t);
   const clipperContext = vm.createContext({});
-  vm.runInContext(read('assets/js/vendor/polygon-clipping.min.js'), clipperContext);
+  vm.runInContext(read('shared/frontend/js/vendor/polygon-clipping.min.js'), clipperContext);
   const fixtures = [
     { name: 'normal', collection: { type: 'FeatureCollection', features: [polygonFeature('normal', [ring(0, 0, 2, 2)])] } },
     { name: 'empty', collection: { type: 'FeatureCollection', features: [] } },
@@ -165,7 +165,7 @@ test('country normalizer and GPU mesh preserve winding, finite packets and owner
 
 test('river partition browser contract is deterministic and non-mutating', () => {
   const clipperContext = vm.createContext({});
-  vm.runInContext(read('assets/js/vendor/polygon-clipping.min.js'), clipperContext);
+  vm.runInContext(read('shared/frontend/js/vendor/polygon-clipping.min.js'), clipperContext);
   const donors = [
     { countryId: 'donor-a', geometryRevision: 1, geometry: { type: 'Polygon', coordinates: [ring(0, 0, 10, 10)] } },
     { countryId: 'donor-b', geometryRevision: 1, geometry: { type: 'MultiPolygon', coordinates: [[ring(20, 0, 30, 10)], [ring(40, 0, 41, 1)]] } },
@@ -190,17 +190,17 @@ test('river partition browser contract is deterministic and non-mutating', () =>
 
 test('GIS contract test sources stay worker-safe and do not revive removed paths', () => {
   const workerSources = [
-    read('assets/js/workers/geographic-boundary-core.js'),
-    read('assets/js/workers/gis-geometry-worker.js'),
-    read('assets/js/workers/gpu-mesh-core.js'),
+    read('shared/frontend/js/workers/geographic-boundary-core.js'),
+    read('apps/editor/frontend/js/workers/gis-geometry-worker.js'),
+    read('shared/frontend/js/workers/gpu-mesh-core.js'),
   ].join('\n');
   assert.doesNotMatch(workerSources, /document\.|window\.|getContext\(|activeProjection\(|state\.view/);
   const productionSources = [
-    read('assets/js/modules/geographic-boundary.js'),
-    read('assets/js/modules/river-territory-partition.js'),
+    read('shared/frontend/js/modules/geographic-boundary.js'),
+    read('apps/editor/frontend/js/modules/river-territory-partition.js'),
     workerSources,
   ].join('\n');
   assert.doesNotMatch(productionSources, /gpu-state-scope|selection-coverage|annex-source-v1|frontier-pocket/);
-  assert.match(read('assets/js/workers/geographic-boundary-core.js'), /180/);
-  assert.match(read('assets/js/modules/geographic-boundary.js'), /atPole|atDateLine/);
+  assert.match(read('shared/frontend/js/workers/geographic-boundary-core.js'), /180/);
+  assert.match(read('shared/frontend/js/modules/geographic-boundary.js'), /atPole|atDateLine/);
 });

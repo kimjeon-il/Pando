@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createObjectQuery} from '../../assets/js/modules/object-query.js';
-import {normalizeObjectRef} from '../../assets/js/modules/object-selection-controller.js';
+import {createObjectQuery} from "../../shared/frontend/js/modules/object-query.js";
+import {normalizeObjectRef} from "../../shared/frontend/js/modules/object-selection-controller.js";
 test('one category visibility controls searchable objects regardless of their source',()=>{
  const state={layerVisibility:{genericFeatures:false,labels:true,rivers:true},itemVisibility:{hydro:{}},physicalSettings:{}};
  const query=createObjectQuery({selectionServices:{normalizeObjectRef},projectState:{state},

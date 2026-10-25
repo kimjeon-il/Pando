@@ -1,3 +1,4 @@
+import {buildFrontendSnapshot,readFrontendInput,hasFrontendInput} from './lib/frontend-build.mjs';
 import { readApplicationImplementations } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -5,14 +6,17 @@ import process from 'node:process';
 import { UI_AUDIT_STYLE_SOURCES } from './lib/ui-source-catalog.mjs';
 
 const root = process.cwd();
-const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const html = read('apps/web-shell/editor.html');
+const frontend=await buildFrontendSnapshot({root});
+const readInput=(file,encoding)=>readFrontendInput(frontend,file,encoding);
+const inputExists=file=>hasFrontendInput(frontend,file);
+const read = relative => readInput(path.join(root, relative), 'utf8');
+const html = read('__editor/index.html');
 const cssBySource = new Map(UI_AUDIT_STYLE_SOURCES.map(relativePath => [relativePath, read(relativePath)]));
 const css = [...cssBySource.values()].join('\n');
 const legacyCss = cssBySource.get('assets/css/app.css') || '';
 const app = readApplicationImplementations();
-const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');
-const selectController = read('assets/js/modules/select-controller.js');
+const gpuRenderer = read('shared/frontend/js/modules/gpu-map-renderer.js');
+const selectController = read('shared/frontend/js/modules/select-controller.js');
 const failures = [];
 
 const requiredPrimitives = [
@@ -56,7 +60,7 @@ for (const match of app.matchAll(/document\.createElement\(['"]button['"]\)/g)) 
 
 for (const match of html.matchAll(/<input\b([^>]*\btype=["']color["'][^>]*)>/gi)) {
   if (!/\bui-native-color-input\b/.test(match[1]) || !/aria-hidden=["']true["']/.test(match[1])) {
-    failures.push(`visible native color input near apps/web-shell/editor.html offset ${match.index}`);
+    failures.push(`visible native color input near __editor/index.html offset ${match.index}`);
   }
 }
 if (!/select\.classList\.add\(['"]ui-native-select['"]\)/.test(selectController)) {
@@ -99,7 +103,7 @@ for (const [id, classes] of floatingContracts) {
 for (const match of html.matchAll(/<div\b([^>]*\brole=["']dialog["'][^>]*)>/gi)) {
   const attributes = match[1];
   if (!/\bui-(?:dialog|popover|color-popover)\b/.test(attributes)) {
-    failures.push(`dialog surface lacks shared dialog/popover class near apps/web-shell/editor.html offset ${match.index}`);
+    failures.push(`dialog surface lacks shared dialog/popover class near __editor/index.html offset ${match.index}`);
   }
 }
 for (const legacy of ['gis-modal', 'gis-modal-card', 'gis-modal-header', 'gis-modal-kicker', 'gis-modal-actions', 'gis-progress', 'gis-source-report', 'gis-security-note']) {

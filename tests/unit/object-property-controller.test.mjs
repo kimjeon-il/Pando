@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectPropertyController } from '../../assets/js/modules/object-property-controller.js';
+import { createObjectPropertyController } from "../../apps/editor/frontend/js/modules/object-property-controller.js";
 
 function setup(runtime = {}) {
   const nodes = new Map();

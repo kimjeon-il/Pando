@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import '../../assets/js/vendor/polygon-clipping.min.js';
-import { createTerritorialFeature, territorialRootId } from '../../assets/js/modules/territorial-units.js';
-import { normalizePolygonGeometry } from '../../assets/js/modules/map-edit-geometry.js';
-import { calculateTerritorialEdit } from '../../assets/js/modules/map-edit-territorial-commands.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import { createTerritorialFeature, territorialRootId } from "../../shared/frontend/js/modules/territorial-units.js";
+import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
+import { calculateTerritorialEdit } from "../../apps/editor/frontend/js/modules/map-edit-territorial-commands.js";
 
 const square = (x0, y0, x1, y1) => normalizePolygonGeometry({ type: 'Polygon',
   coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });

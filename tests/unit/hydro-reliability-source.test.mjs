@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { createGpuMapRenderer } from '../../assets/js/modules/gpu-map-renderer.js';
-import { mapVisualOrder } from '../../assets/js/modules/layer-presentation.js';
+import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import { mapVisualOrder } from "../../shared/frontend/js/modules/layer-presentation.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -145,14 +145,14 @@ test('fragment pack replacement and disposal retain the existing Canvas aggregat
 });
 
 test('hydro worker reports typed init/view completion and failures', () => {
-  const source = read('assets/js/workers/hydro-tile-worker.js');
+  const source = read('shared/frontend/js/workers/hydro-tile-worker.js');
   for (const token of ["type: 'ready'", "type: 'init-error'", "type: 'view-ready'", "type: 'view-error'"]) {
     assert.ok(source.includes(token), `missing ${token}`);
   }
 });
 
 test('hydro worker probes Range with GET and can abort background cache', () => {
-  const source = read('assets/js/workers/hydro-tile-worker.js');
+  const source = read('shared/frontend/js/workers/hydro-tile-worker.js');
   assert.ok(source.includes("Range: 'bytes=0-0'"));
   assert.ok(!source.includes("method: 'HEAD'"));
   assert.ok(source.includes('new AbortController()'));
@@ -161,18 +161,18 @@ test('hydro worker probes Range with GET and can abort background cache', () => 
 });
 
 test('hydro preparation separates requested and loaded views and treats cache failure as unavailable', () => {
-  const source = read('assets/js/modules/gpu-hydro-preparation.js');
+  const source = read('shared/frontend/js/modules/gpu-hydro-preparation.js');
   assert.ok(source.includes('hydroViewRequests.start(key, hydroRequestRevision + 1)'));
   assert.ok(source.includes('hydroViewRequests.ready(revision)'));
   assert.ok(source.includes('hydroViewRequests.fail(revision, message)'));
   assert.ok(source.includes("loadState.hydroCache = 'unavailable';"));
-  assert.ok(read('assets/js/modules/hydro-view-requests.js').includes('message.retryable !== false'));
+  assert.ok(read('shared/frontend/js/modules/hydro-view-requests.js').includes('message.retryable !== false'));
   assert.ok(!source.includes("hydroViewKey = key"));
 });
 
 test('app waits for actual hydro worker readiness and retries manifests', () => {
   const app = readApplicationOwners('physical-resources', 'layer-list', 'hydro-settings');
-  const service = read('assets/js/modules/physical-layer-service.js');
+  const service = read('shared/frontend/js/modules/physical-layer-service.js');
   assert.ok(app.includes('await gpuMapRenderer.setHydroManifest(manifest, manifestUrl)'));
   assert.ok(app.includes("state.physicalLoadState.hydroWorker = 'starting';"));
   assert.ok(app.includes("state.physicalLoadState.hydroManifest = 'loading';"));
@@ -183,7 +183,7 @@ test('app waits for actual hydro worker readiness and retries manifests', () => 
 
 test('rivers and lakes share the landforms folder while retaining hydro item visibility', () => {
   const source = readApplicationOwners('physical-resources', 'layer-list', 'hydro-settings');
-  const model = read('assets/js/modules/object-search-model.js');
+  const model = read('shared/frontend/js/modules/object-search-model.js');
   assert.ok(!source.includes('HYDRO_FOLDER_STATE_PREFIX'));
   assert.ok(model.includes("name: '지형지물'"));
   assert.ok(model.includes("layerGroup === 'hydro') bundles[1].items.push(item)"));
@@ -192,10 +192,10 @@ test('rivers and lakes share the landforms folder while retaining hydro item vis
 });
 
 test('all hydro renderers inherit ocean colour with only the configured layer opacity', () => {
-  const rendering = read('assets/js/modules/rendering-domain.js');
-  const css = read('assets/css/features/map-rendering.css');
-  const gpu = read('assets/js/modules/gpu-map-renderer.js');
-  const canvas = read('assets/js/workers/canvas-render-worker.js');
+  const rendering = read('shared/frontend/js/modules/rendering-domain.js');
+  const css = read('shared/frontend/css/features/map-rendering.css');
+  const gpu = read('shared/frontend/js/modules/gpu-map-renderer.js');
+  const canvas = read('shared/frontend/js/workers/canvas-render-worker.js');
   const canvasHydro = canvas.slice(canvas.indexOf('function renderHydroPass'), canvas.indexOf('function pickHydroFeature'));
   assert.match(css, /\.hydro-lake-group\s*\{\s*fill: var\(--map-ocean\);\s*fill-opacity: 1;\s*stroke: var\(--map-ocean\)/);
   assert.match(css, /\.hydro-river-group\s*\{\s*fill: none;\s*stroke: var\(--map-ocean\);\s*stroke-opacity: 1/);
@@ -211,16 +211,16 @@ test('all hydro renderers inherit ocean colour with only the configured layer op
 });
 
 test('bootstrap cache revision comes from generated build metadata', () => {
-  const bootstrap = read('assets/js/bootstrap.js');
+  const bootstrap = read('apps/editor/frontend/js/bootstrap.js');
   const metadata = read('assets/js/build-meta.js');
   assert.ok(bootstrap.includes('buildMeta.assetRevision'));
   assert.match(metadata, /"assetRevision":\s*"[0-9]+\.[0-9]+\.[0-9]+-build-[A-Za-z0-9._-]+"/);
 });
 
 test('completed hydro renders before canonical country boundaries in every native path', () => {
-  const gpu = read('assets/js/modules/gpu-map-renderer.js');
-  const worker = read('assets/js/workers/canvas-render-worker.js');
-  const webgl = read('assets/js/modules/gpu-base-scene-pass.js');
+  const gpu = read('shared/frontend/js/modules/gpu-map-renderer.js');
+  const worker = read('shared/frontend/js/workers/canvas-render-worker.js');
+  const webgl = read('shared/frontend/js/modules/gpu-base-scene-pass.js');
   assert.ok(gpu.includes('const result = drawGpuBaseScene('));
   for (const backend of ['gpu', 'canvas']) {
     const order = mapVisualOrder('base', backend);

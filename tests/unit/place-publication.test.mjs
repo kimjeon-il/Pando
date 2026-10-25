@@ -3,10 +3,10 @@ import test from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { canonicalPlaceTextBytes, generatePlaceRelease, validateRuntimeApproval } from '../../tools/build-place-runtime.mjs';
-import { decodePlaceTile } from '../../assets/js/modules/place-codec.js';
-import { normalizePlace } from '../../assets/js/modules/place-contract.js';
-import { resolvePlaceLabelRows } from '../../assets/js/modules/place-name-display.js';
-import { createPlaceWorkerStore } from '../../assets/js/modules/place-worker-store.js';
+import { decodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
+import { normalizePlace } from "../../shared/frontend/js/modules/place-contract.js";
+import { resolvePlaceLabelRows } from "../../shared/frontend/js/modules/place-name-display.js";
+import { createPlaceWorkerStore } from "../../shared/frontend/js/modules/place-worker-store.js";
 
 const assets = new URL('../../assets/data/places/', import.meta.url);
 const read = name => readFileSync(new URL(name, assets));

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createDistributionService } from '../../assets/js/modules/distribution-service.js';
+import { createDistributionService } from "../../apps/editor/frontend/js/modules/distribution-service.js";
 
 function fixture(initial = { distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'overlap', boundaryVisible: true } }) {
   let projection = Object.freeze(initial), acknowledge;

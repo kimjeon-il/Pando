@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createMapOwners} from '../../assets/js/modules/map-owner-composition.js';
-import {createRenderQuality} from '../../assets/js/modules/render-quality.js';
-import {createReadinessNotifications} from '../../assets/js/modules/app-readiness-notifications.js';
+import {createMapOwners} from "../../shared/frontend/js/modules/map-owner-composition.js";
+import {createRenderQuality} from "../../shared/frontend/js/modules/render-quality.js";
+import {createReadinessNotifications} from "../../apps/editor/frontend/js/modules/app-readiness-notifications.js";
 
 test('readonly owner graph rejects editor capability registration before constructing any state',()=>{
  assert.throws(()=>createMapOwners({productMode:'viewer',editing:{persistView(){}}}),/cannot register editing/);

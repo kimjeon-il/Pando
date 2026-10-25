@@ -7,7 +7,7 @@ on:
       - 'assets/js/modules/boundary-spatial-index.js'
       - 'assets/js/modules/boundary-topology.js'
       - 'tests/unit/boundary-spatial-index-packed.test.mjs'
-      - 'assets/wasm/pandoeditor-core.manifest.json'
+      - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
   workflow_dispatch:
 permissions:
   contents: read

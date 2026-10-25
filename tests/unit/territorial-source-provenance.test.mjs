@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {normalizeTerritorialIdentity} from '../../assets/js/modules/territorial-units.js';
+import {normalizeTerritorialIdentity} from "../../shared/frontend/js/modules/territorial-units.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import {productionGeoPackage,spatialColumns} from '../helpers/production-geopackage.mjs';
 const input=()=>{

@@ -1,17 +1,17 @@
 import { testCoreProject, initializeTestTerritorialState,executeTerritorialTestCommand } from '../helpers/timeline-project.mjs';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { createTerritorialFeature, normalizeTerritorialEntities, TERRITORIAL_ENTITY_KINDS } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { resolveTerritorialColor } from '../../assets/js/modules/color-adapter.js';
-import { MAP_OBJECT_TYPES } from '../../assets/js/modules/map-object-categories.js';
+import { createTerritorialFeature, normalizeTerritorialEntities, TERRITORIAL_ENTITY_KINDS } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialScopeResolver } from "../../shared/frontend/js/modules/territorial-scope.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { resolveTerritorialColor } from "../../shared/frontend/js/modules/color-adapter.js";
+import { MAP_OBJECT_TYPES } from "../../shared/frontend/js/modules/map-object-categories.js";
 
 const context = vm.createContext({});
-vm.runInContext(fs.readFileSync(new URL('../../assets/js/vendor/polygon-clipping.min.js', import.meta.url), 'utf8'), context);
+vm.runInContext(fs.readFileSync(new URL("../../shared/frontend/js/vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
 const engine = context.polygonClipping;
 const geometry = (x = 0) => ({ type: 'Polygon', coordinates: [[[x, 0], [x + 1, 0], [x + 1, 1], [x, 1], [x, 0]]] });
 const unit = (id, parentId = 'DNK', extra = {}) => createTerritorialFeature({ id, entityKind: 'general', parentId, coverageMode: 'explicit', geometry: geometry(4), ...extra });

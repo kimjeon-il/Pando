@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createSelectionPacket } from '../../assets/js/modules/selection-packet.js';
-import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
-import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
+import { createSelectionPacket } from "../../shared/frontend/js/modules/selection-packet.js";
+import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
+import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
 
 test('common entity keys survive the static boundary optimization and geometry replacement', () => {
   const key = 'territorial:entity:A';

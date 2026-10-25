@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
-import { createHistoryAssembly } from '../../assets/js/modules/app-history-assembly.js';
-import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
+import { createHistoryAssembly } from "../../apps/editor/frontend/js/modules/app-history-assembly.js";
+import { createSaveStateController } from "../../apps/editor/frontend/js/modules/save-state-controller.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import {createCoreStartupState,startupBaseline,startupDocument} from '../helpers/core-startup.mjs';
 

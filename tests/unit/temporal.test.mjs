@@ -12,7 +12,7 @@ import {
   compareTemporalKeys,
   temporalFollowingDay,
   shiftTemporalMonth,
-} from '../../assets/js/modules/temporal.js';
+} from "../../shared/frontend/js/modules/temporal.js";
 
 test('calendar validation handles leap years and rejects impossible dates', () => {
   assert.equal(parseTemporal('2000-02-29').canonical, '2000-02-29');

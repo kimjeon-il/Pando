@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import test from 'node:test';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
-import {selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
+import {selectGeometryVersion} from "../../apps/editor/frontend/js/modules/territorial-library.js";
 const data = new URL('../../assets/data/',import.meta.url);
 const baseline = JSON.parse(fs.readFileSync(new URL('../fixtures/territorial-entity-baseline.json',import.meta.url),'utf8'));
 const sha = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');

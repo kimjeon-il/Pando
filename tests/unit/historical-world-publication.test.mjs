@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {gunzipSync} from 'node:zlib';
 import {buildBuiltinWorldPublication,buildBuiltinWorldPartialPublication,writeBuiltinWorldPublication} from '../../tools/build-builtin-world.mjs';
-import {territorialIndexEntry} from '../../assets/js/modules/territorial-index-entry.js';
+import {territorialIndexEntry} from "../../apps/editor/frontend/js/modules/territorial-index-entry.js";
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';
 test('country publication is deterministic, has no aggregate project and detects stale output',t=>{

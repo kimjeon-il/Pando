@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createBuiltinMonthClock} from '../../assets/js/modules/builtin-month-clock.js';
+import {createBuiltinMonthClock} from "../../shared/frontend/js/modules/builtin-month-clock.js";
 test('device month advances across years, manual mode stays put and builtin reset follows again',async()=>{
  let now=new Date(2026,9,31,23,59),calls=[];
  const clock=createBuiltinMonthClock({now:()=>now,applyMonth:async month=>{calls.push(month);return true;}});

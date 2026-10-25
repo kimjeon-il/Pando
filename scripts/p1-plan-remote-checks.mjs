@@ -39,7 +39,7 @@ export function classifyPaths(paths, capability = {}, manual = 'auto') {
   const available = {
     core: capability.core ?? has('shared/CMakeLists.txt'),
     gisTools: capability.gisTools ?? has('tools/cpp/CMakeLists.txt'),
-    web: capability.web ?? has('assets/js/modules/temporal.js'),
+    web: capability.web ?? has('shared/frontend/js/modules/temporal.js'),
   };
   const out = { ui:false, objects:false, gis:false, places:false,
     core:false, wasm:false, gisTools:false, python:false,
@@ -63,10 +63,10 @@ export function classifyPaths(paths, capability = {}, manual = 'auto') {
         out.infra=true;
         for (const key of ['ui','objects','gis','places','core','wasm','gisTools']) mark(key);
       }
-      if (/^shared\//.test(path)) { mark('core'); mark('wasm'); }
+      if (/^shared\/(?:core|wasm|tests|third_party)\/|^shared\/CMakeLists\.txt$/.test(path)) { mark('core'); mark('wasm'); }
       if (/^tools\/cpp\//.test(path)) {mark('gis');mark('gisTools');}
-      if (/^(apps\/web-shell\/|assets\/css\/|index\.html$|assets\/js\/|playwright\.|tests\/browser\/)/.test(path)) mark('ui');
-      if (/^(assets\/js\/modules\/(project|object|timeline|temporal|territorial|editing|distribution|generic)|contracts\/objects\/|tests\/unit\/(project|object|timeline|temporal|territorial))/.test(path)) mark('objects');
+      if (/^(apps\/(?:editor|viewer)\/|shared\/frontend\/|playwright\.|tests\/browser\/)/.test(path)) mark('ui');
+      if (/^((?:shared\/frontend\/js|apps\/editor\/frontend\/js)\/modules\/(project|object|timeline|temporal|territorial|editing|distribution|generic)|contracts\/objects\/|tests\/unit\/(project|object|timeline|temporal|territorial))/.test(path)) mark('objects');
       // Python research edits are handled by the independent GIS Python CI.
       if (!path.endsWith('.py') && /^(assets\/data\/(territorial|hydro|terrain|historical|world)|tools\/(build-(world|terrain|country|territorial|historical|hydro)|.*(gis|hydro|terrain))|tests\/python\/)/.test(path)) mark('gis');
       if (/^(assets\/data\/places\/|contracts\/places\/|reports\/places\/|tools\/(build-place|place-)|tests\/unit\/place-)/.test(path)) mark('places');

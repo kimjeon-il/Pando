@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
-import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
+import { createSaveStateController } from "../../apps/editor/frontend/js/modules/save-state-controller.js";
 
 test('file save encodes Core output and a late device write cannot clean a newer complete document',async () => {
   const seed=JSON.parse(await readFile(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8')),

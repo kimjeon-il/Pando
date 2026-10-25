@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {createNativeLibraryRepository} from '../../assets/js/modules/native-library-repository.js';
-import {createRepositoryTerritorialLoader} from '../../assets/js/modules/territorial-entity-loader.js';
-import {encodeTerritorialIndexEntry} from '../../assets/js/modules/territorial-index-entry.js';
+import {createNativeLibraryRepository} from "../../apps/editor/frontend/js/modules/native-library-repository.js";
+import {createRepositoryTerritorialLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
+import {encodeTerritorialIndexEntry} from "../../apps/editor/frontend/js/modules/territorial-index-entry.js";
 const base=new URL('../../assets/data/territorial-entities/generated/v2/',import.meta.url);
 const index=JSON.parse(readFileSync(new URL('index.json',base),'utf8'));
 test('external repository revision invalidates loaded entities after an atomic source save',async()=>{

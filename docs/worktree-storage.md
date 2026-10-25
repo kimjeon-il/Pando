@@ -6,7 +6,7 @@
 
 현재 work/ui의 개발·빌드 진입점은 CI 실행기를 받는다. Rust·C++·Android 컴파일은
 Actions에서 수행하고 로컬에는 Node·Git·브라우저·앱·ADB를 남긴다. SDK 자동 설치와
-로컬 컴파일 fallback은 없다. 세부 사용법은 apps/web-shell/README.md를 따른다.
+로컬 컴파일 fallback은 없다. 세부 사용법은 apps/editor/README.md를 따른다.
 
 `node tools/worktree-storage.mjs --disable-local-compiler`는 활성 빌드를 거부하고,
 소유한 sccache 서버만 확인 후 종료한다. 공통 Git의 pando-storage.json에 compilerEnabled=false를

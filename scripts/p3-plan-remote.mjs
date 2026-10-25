@@ -13,14 +13,14 @@ export function classifyP3(paths,{web}={},scope='auto') {
     throw Error('P3_INVALID_SCOPE: '+scope);
   if(scope==='acceptance')return {...classifyP3(paths,{web},'all'),scope,acceptance:true};
   paths=paths.filter(path=>!path.endsWith('.md'));
-  const availableWeb=web ?? present(root,'index.html');
+  const availableWeb=web ?? present(root,'apps/viewer/templates/index.html');
   const infra=paths.some(path=>[
     '.github/workflows/remote-preview-p3.yml',
     'scripts/p3-plan-remote.mjs','scripts/p3-stage-preview.mjs',
     'tests/unit/p3-remote-plan.test.mjs','tests/browser/p3-remote-preview.spec.mjs',
     'CMakePresets.json','config/toolchain-versions.json'
   ].includes(path));
-  const webTouched=infra||paths.some(p=>/^(apps\/web-shell\/|assets\/|index\.html$|\.nojekyll$|contracts\/|tests\/browser\/|playwright\.config\.js$|shared\/)/.test(p));
+  const webTouched=infra||paths.some(p=>/^(apps\/(?:editor|viewer)\/|assets\/|index\.html$|\.nojekyll$|contracts\/|tests\/browser\/|playwright\.config\.js$|shared\/)/.test(p));
   const preview=availableWeb && scope!=='off' && (scope==='all'||
     scope==='preview'||scope==='browser'||(scope==='auto'&&webTouched));
   const browser=availableWeb && scope!=='off' && (scope==='all'||

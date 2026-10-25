@@ -12,14 +12,14 @@ const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf
 const failures = [];
 const expect = (condition, message) => { if (!condition) failures.push(message); };
 
-const renderer = read('assets/js/modules/gpu-map-renderer.js');
-const selection = read('assets/js/modules/selection-pass.js');
-const stroke = read('assets/js/modules/gpu-stroke-renderer.js');
-const scene = read('assets/js/modules/render-scene.js');
-const coordinator = read('assets/js/modules/map-render-coordinator.js');
-const meshWorker = read('assets/js/workers/gpu-mesh-worker.js');
+const renderer = read('shared/frontend/js/modules/gpu-map-renderer.js');
+const selection = read('shared/frontend/js/modules/selection-pass.js');
+const stroke = read('shared/frontend/js/modules/gpu-stroke-renderer.js');
+const scene = read('shared/frontend/js/modules/render-scene.js');
+const coordinator = read('shared/frontend/js/modules/map-render-coordinator.js');
+const meshWorker = read('shared/frontend/js/workers/gpu-mesh-worker.js');
 const app = readApplicationOwners('map-host', 'gpu-scene');
-const css = read('assets/css/app.css');
+const css = read('shared/frontend/css/app.css');
 
 expect(renderer.includes('createRenderDevice({'), 'main GPU renderer must own the RenderDevice');
 expect(renderer.includes('createGpuStrokeRenderer({'), 'main GPU renderer must own the shared stroke renderer');

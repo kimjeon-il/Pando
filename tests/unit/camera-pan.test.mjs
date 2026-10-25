@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {panCameraView} from '../../assets/js/modules/camera-pan.js';
+import {panCameraView} from "../../shared/frontend/js/modules/camera-pan.js";
 test('both hosts share globe sensitivity, flat longitude wrapping and latitude clamps',()=>{
  const view={globeRotation:[0,0,0],globeZoom:4,flatCenter:[179,0]};
  assert.equal(panCameraView(view,'globe',100,100),true);

@@ -1,15 +1,16 @@
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
-import {normalizeTerritorialLibraryEntity,selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
-import {createRingHitTester} from '../../assets/js/modules/ring-hit-test.js';
-import {clippingOperationWithPrecisionRetry} from '../../assets/js/modules/polygon-clipping-calculation.js';
+import {normalizeTerritorialLibraryEntity,selectGeometryVersion} from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
+import {clippingOperationWithPrecisionRetry} from "../../apps/editor/frontend/js/modules/polygon-clipping-calculation.js";
 import {builtinProject} from '../helpers/builtin-world.mjs';
-import {createGeometryVersionStore} from '../../assets/js/modules/geometry-version-store.js';
-import {resolveWorld} from '../../assets/js/modules/timeline-resolver.js';
+import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
+import {resolveWorld} from "../../shared/frontend/js/modules/timeline-resolver.js";
 import {refineChinesePaektuSource} from '../../tools/build-korean-boundaries.mjs';
 
-const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`,import.meta.url))));
+const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(repositoryFrontendUrl(`assets/data/territorial-entities/source/countries/state-${id}.json`))));
 const korea=readCountry('KOR'),north=readCountry('PRK');
 const rings=createRingHitTester(ring=>ring);
 const contains=(entity,date,point)=>{

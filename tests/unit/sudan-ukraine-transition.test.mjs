@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
-import {selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
+import {selectGeometryVersion} from "../../apps/editor/frontend/js/modules/territorial-library.js";
 import {builtinProject} from '../helpers/builtin-world.mjs';
-import {createGeometryVersionStore} from '../../assets/js/modules/geometry-version-store.js';
-import {resolvedTimelineViews} from '../../assets/js/modules/timeline-resolver.js';
-import {createRingHitTester} from '../../assets/js/modules/ring-hit-test.js';
+import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
+import {resolvedTimelineViews} from "../../shared/frontend/js/modules/timeline-resolver.js";
+import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
 
 const ids=['state:SDN','state:SDS','state:UKR'];
 const read=()=>new Map(readTerritorialSources().filter(x=>ids.includes(x.entityId)).map(x=>[x.entityId,x]));

@@ -48,3 +48,15 @@ test('shared and viewer code cannot acquire an editor implementation through an 
  assert.throws(()=>emitFrontendModule(`import '../../editor/frontend/js/private.js';`,'apps/viewer/js/viewer.js',index),/product|ownership/i);
  assert.throws(()=>emitFrontendModule(`import '../../../apps/editor/frontend/js/private.js';`,'shared/frontend/js/common.js',index),/product|ownership/i);
 });
+
+test('a declared generated module is resolved by public identity without a source placeholder',t=>{
+ const root=fixture(t);put(root,'apps/viewer/js/viewer.js');const index=buildFrontendIndex(root);
+ const emitted=emitFrontendModule(`const meta=new URL('../../../assets/js/build-meta.js',import.meta.url);`,'apps/viewer/js/viewer.js',index);
+ assert.ok(emitted.includes('./build-meta.js'));
+});
+
+test('native Worker URL literals resolve in their published shell namespace',t=>{
+ const root=fixture(t);put(root,'apps/editor/diagnostics.js');put(root,'apps/editor/frontend/js/workers/gis-gpkg-worker.js');const index=buildFrontendIndex(root);
+ const emitted=emitFrontendModule(`const worker=new URL('../assets/js/workers/gis-gpkg-worker.js',import.meta.url);`,'apps/editor/diagnostics.js',index);
+ assert.ok(emitted.includes('../assets/js/workers/gis-gpkg-worker.js'));
+});

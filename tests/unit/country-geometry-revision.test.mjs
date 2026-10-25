@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCountryGeometryRevisionTracker } from '../../assets/js/modules/gpu-map-renderer.js';
+import { createCountryGeometryRevisionTracker } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 
 test('a stale geometry result cannot clear a newer pending country revision', () => {
   const tracker = createCountryGeometryRevisionTracker();

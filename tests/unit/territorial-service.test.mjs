@@ -2,10 +2,10 @@ import { testCoreProject, initializeTestTerritorialState, executeTerritorialTest
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
 
 async function fixture() {
   const state = {

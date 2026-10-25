@@ -65,7 +65,7 @@ jobs:
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           echo "OBJ098_BUILT_SOURCE_MATCHED_LOCAL_WASM"
       - run: pnpm exec playwright install --with-deps chromium
       - name: Actual Soviet coastline drag, preview discard and Core confirmation, Undo and Redo

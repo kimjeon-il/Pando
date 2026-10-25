@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installSurfaceMetrics } from '../../assets/js/modules/surface-metrics.js';
+import { installSurfaceMetrics } from "../../apps/editor/frontend/js/modules/surface-metrics.js";
 
 test('surface metrics measures header sizes and tracks layout resize', () => {
   const node = (classes, width, clientWidth, height) => {

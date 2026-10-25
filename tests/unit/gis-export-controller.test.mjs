@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGisExportController } from '../../assets/js/modules/gis-export-controller.js';
+import { createGisExportController } from "../../apps/editor/frontend/js/modules/gis-export-controller.js";
 
 function fixture(downloadOverride = null) {
   const node = () => {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectDeletion } from '../../assets/js/modules/app-object-deletion.js';
+import { createObjectDeletion } from "../../apps/editor/frontend/js/modules/app-object-deletion.js";
 
 function setup() {
   let resolve, reject, generation = 1;

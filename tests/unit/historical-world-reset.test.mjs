@@ -2,9 +2,9 @@ import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCom
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { smallHistoricalWorld } from '../helpers/historical-world.mjs';
-import { createEmptyTerritorialState } from '../../assets/js/modules/territorial-entity-store.js';
-import { createProjectRestore } from '../../assets/js/modules/app-project-restore.js';
-import { createProjectSnapshots } from '../../assets/js/modules/app-project-snapshots.js';
+import { createEmptyTerritorialState } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createProjectRestore } from "../../apps/editor/frontend/js/modules/app-project-restore.js";
+import { createProjectSnapshots } from "../../apps/editor/frontend/js/modules/app-project-snapshots.js";
 const noop = () => {};
 const methods = (...names) => Object.fromEntries(names.map(name => [name, noop]));
 test('resetWorldPreservesHistoricalIntervals', async () => {

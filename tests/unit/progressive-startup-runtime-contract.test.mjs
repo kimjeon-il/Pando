@@ -3,12 +3,12 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
 import { applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
-import { createProgressiveStartup } from '../../assets/js/modules/app-progressive-startup.js';
-import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createProgressiveStartup } from "../../apps/editor/frontend/js/modules/app-progressive-startup.js";
+import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { createCoreStartupState,startupDocument,historicalStartupDocument,startupBaseline } from '../helpers/core-startup.mjs';
 
-const source = readFileSync(new URL('../../assets/js/modules/app-progressive-startup.js', import.meta.url), 'utf8');
+const source = readFileSync(new URL("../../apps/editor/frontend/js/modules/app-progressive-startup.js", import.meta.url), 'utf8');
 
 test('progressive and canonical startup share one ordered runtime initializer', () => {
   assert.match(source, /async function initializeStartupRuntime\(/);

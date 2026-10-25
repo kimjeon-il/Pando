@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createBoundarySpatialIndex } from '../../assets/js/modules/boundary-spatial-index.js';
+import { createBoundarySpatialIndex } from "../../shared/frontend/js/modules/boundary-spatial-index.js";
 
 function fixture() {
   const values = [], boxes = [];

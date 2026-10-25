@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createNodeCoreDocument } from '../helpers/core-session.mjs';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
 const { createDistributionLayer,createDistributionEntry }=await loadWebOracle('assets/js/modules/distribution-model.js');
-import {assertCurrentProjectSchema} from '../../assets/js/modules/project-state.js';
+import {assertCurrentProjectSchema} from "../../shared/frontend/js/modules/project-state.js";
 function originalInput() {
   const input=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
   input.distributionLayers[0]=createDistributionLayer({ ...input.distributionLayers[0],metadata: ['a',{sourceRef:'retained'}] });

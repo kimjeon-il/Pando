@@ -1,6 +1,7 @@
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
+import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
 import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import {coreFileProjection} from '../helpers/production-geopackage.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +11,7 @@ import { Blob, File } from 'node:buffer';
 import { TextEncoder, TextDecoder } from 'node:util';
 
 const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
-const html = read('apps/web-shell/editor.html');
+const html = read('apps/editor/editor.html');
 test('export choices use unique current categories and UI has no merged duplicate labels', () => {
   const fieldset = html.match(/<fieldset class="gis-export-layers">[\s\S]*?<\/fieldset>/)[0];
   const values = [...fieldset.matchAll(/value="([^"]+)"/g)].map(match => match[1]);
@@ -26,7 +27,7 @@ test('child-only GeoJSON export writes one layer and omits administrative fields
   context.window = context; context.self = context;
   for (const file of ['gis-adapters.js', 'vendor/fflate/fflate.min.js', 'gis-io.js']) {
     vm.runInContext(read(`assets/js/${file}`), context, {
-      filename: new URL(`../../assets/js/${file}`, import.meta.url).href,
+      filename: repositoryFrontendUrl(`assets/js/${file}`).href,
       importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER,
     });
   }
@@ -55,8 +56,8 @@ test('project GeoPackage routes the complete snapshot directly to the production
     document: { currentScript: { src: 'https://example.test/assets/js/gis-io.js' } },
     location: { href: 'https://example.test/' } });
   context.window = context; context.self = context;
-  vm.runInContext(read('assets/js/gis-adapters.js'), context);
-  vm.runInContext(read('assets/js/gis-io.js').replace('window.PandoLabGIS = Object.freeze({',
+  vm.runInContext(read('apps/editor/frontend/js/gis-adapters.js'), context);
+  vm.runInContext(read('apps/editor/frontend/js/gis-io.js').replace('window.PandoLabGIS = Object.freeze({',
     'window.setExportDependencies = (gdal, worker) => { getGdal = async () => gdal; callGpkgWorker = worker; }; window.PandoLabGIS = Object.freeze({'), context);
   const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
   const territorialEntities = [['r', 'general', ''], ['c', 'general', 'r'], ['z', 'regional', '']]

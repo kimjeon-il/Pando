@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createColorPicker } from '../../assets/js/modules/app-color-picker.js';
+import { createColorPicker } from "../../apps/editor/frontend/js/modules/app-color-picker.js";
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 test('territorial color picker waits for the command and contains a rejected Worker acknowledgement', async t => {

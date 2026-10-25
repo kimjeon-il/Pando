@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planSelectionEntry, planHoverEntry, selectionCoverage, selectionFrameOwnership } from '../../assets/js/modules/selection-overlay-plan.js';
-import * as plans from '../../assets/js/modules/selection-overlay-plan.js';
-import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
-import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
-import { createGpuPolygonOverlayPass } from '../../assets/js/modules/gpu-polygon-overlay-pass.js';
+import { planSelectionEntry, planHoverEntry, selectionCoverage, selectionFrameOwnership } from "../../shared/frontend/js/modules/selection-overlay-plan.js";
+import * as plans from "../../shared/frontend/js/modules/selection-overlay-plan.js";
+import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
+import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
+import { createGpuPolygonOverlayPass } from "../../shared/frontend/js/modules/gpu-polygon-overlay-pass.js";
 
 const feature = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [] } };
 const base = { ref: { domain: 'territorial', type: 'entity', id: 'DEU', key: 'territorial:entity:DEU' },

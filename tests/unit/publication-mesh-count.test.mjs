@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decodeCountryMesh } from '../../assets/js/modules/country-mesh-codec.js';
+import { decodeCountryMesh } from "../../shared/frontend/js/modules/country-mesh-codec.js";
 
 test('current snapshot mesh count follows its verified header and identity list', () => {
   const buffer = new ArrayBuffer(84);

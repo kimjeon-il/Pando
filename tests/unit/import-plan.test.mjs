@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeImportPlan, targetRequiresExistingProject } from '../../assets/js/modules/import-plan.js';
+import { normalizeImportPlan, targetRequiresExistingProject } from "../../apps/editor/frontend/js/modules/import-plan.js";
 test('current entity import keeps the actual field mapping and an optional parent', () => {
   const plan = normalizeImportPlan({ sourceFormat: 'GPKG', targetType: 'general', parentId: 'A', openMode: 'replace', featureCount: 3,
     layerCandidates: [{ name: 'entities', geometryType: 'MultiPolygon', featureCount: 3 }], propertyMapping: { id: 'id', name: 'name', parent: 'parent_id' } });

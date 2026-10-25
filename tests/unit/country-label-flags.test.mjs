@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { layoutTerritorialFlags } from '../../assets/js/modules/territorial-label-flags.js';
+import { layoutTerritorialFlags } from "../../shared/frontend/js/modules/territorial-label-flags.js";
 const item = (id, x) => ({ sourceType: 'territorial', source: { id }, box: { left: x, right: x + 30, top: 0, bottom: 20 } });
 const options = { zoom: 2, enabled: true, flagUrl: f => f.id === 'NONE' ? null : `/${f.id}.svg`, isVisible: f => f.id !== 'SUBUNIT' };
 test('flags require zoom, toggle, per-type eligibility and an actual flag', () => {

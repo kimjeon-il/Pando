@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import test from 'node:test';
-import { BUILTIN_SUBUNITS, BUILTIN_SUBUNIT_REVISION } from '../../assets/js/modules/builtin-subunits.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialFillResolver } from '../../assets/js/modules/territorial-fill-style.js';
+import { BUILTIN_SUBUNITS, BUILTIN_SUBUNIT_REVISION } from "../../shared/frontend/js/modules/builtin-subunits.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialFillResolver } from "../../shared/frontend/js/modules/territorial-fill-style.js";
 import { geometryFingerprint, matchesDefaultPreview, previewSourceForProject,
-  projectPreviewGeometryRows, PROJECT_PREVIEW_ALGORITHM_REVISION } from '../../assets/js/modules/project-preview-policy.js';
+  projectPreviewGeometryRows, PROJECT_PREVIEW_ALGORITHM_REVISION } from "../../shared/frontend/js/modules/project-preview-policy.js";
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 

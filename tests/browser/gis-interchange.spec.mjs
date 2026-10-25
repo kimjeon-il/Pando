@@ -4,8 +4,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import '../../assets/js/gis-adapters.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import "../../apps/editor/frontend/js/gis-adapters.js";
 
 const eastPrussiaFixture = process.env.PANDOLAB_EAST_PRUSSIA_FILE || 'tests/fixtures/east-prussia-1900-import.geojson';
 const eastPrussiaGeometry = JSON.parse(readFileSync(eastPrussiaFixture, 'utf8')).features[0].geometry;

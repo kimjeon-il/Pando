@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createBuiltinMeshResourceLoader } from '../../assets/js/modules/builtin-mesh-resource.js';
+import { createBuiltinMeshResourceLoader } from "../../shared/frontend/js/modules/builtin-mesh-resource.js";
 
 test('disposing an in-flight built-in loader settles the request and ignores late delivery', async () => {
   let worker, terminations = 0;

@@ -1,8 +1,8 @@
 import { Worker } from 'node:worker_threads';
-import { createGisGeometryValidator } from '../../../assets/js/modules/import-service.js';
+import { createGisGeometryValidator } from "../../../apps/editor/frontend/js/modules/import-service.js";
 
 export function createGisWorkerHarness(t) {
-  const script = new URL('../../../assets/js/workers/gis-geometry-worker.js', import.meta.url).href;
+  const script = new URL("../../../apps/editor/frontend/js/workers/gis-geometry-worker.js", import.meta.url).href;
   const worker = new Worker(`
     const { parentPort } = require('node:worker_threads');
     const fs = require('node:fs'), vm = require('node:vm');

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
 
-const source=readFileSync(new URL('../../assets/js/modules/polygon-geometry.js',import.meta.url),'utf8');
+const source=readFileSync(new URL("../../shared/frontend/js/modules/polygon-geometry.js",import.meta.url),'utf8');
 const ring=[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]];
 
 function loadedCore() {

@@ -1,12 +1,16 @@
-import fs from 'node:fs';
 import { Linter } from 'eslint';
 
-const directory = new URL('../../assets/js/modules/', import.meta.url);
+import {resolve} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import {buildFrontendIndex,frontendAsset,emitFrontendModule} from './frontend-layout.mjs';
+const root=fileURLToPath(new URL('../../',import.meta.url)),index=buildFrontendIndex(root);
+export function applicationModuleUrl(name){const entry=frontendAsset(root,'assets/js/modules/'+name,{index});return pathToFileURL(resolve(root,entry.sourcePath));}
+const readModule=name=>{const entry=frontendAsset(root,'assets/js/modules/'+name,{index});return emitFrontendModule(entry.bytes.toString('utf8'),entry.sourcePath,index);};
 
 
 /** Owner IDs come from real composition bindings, independently of file naming. */
 export function applicationOwnerDefinitions(){
- const source=fs.readFileSync(new URL('app-composition.js',directory),'utf8');
+ const source=readModule('app-composition.js');
  const linter=new Linter();linter.verify(source,{languageOptions:{ecmaVersion:'latest',sourceType:'module'}});
  const ast=linter.getSourceCode()?.ast;if(!ast)throw new Error('Application composition does not parse');
  const nodes=[];
@@ -27,7 +31,7 @@ export function applicationOwnerDefinitions(){
   &&files.has(node.init.callee?.object?.name)&&node.init.callee.property?.name.startsWith('create')
   &&!files.get(node.init.callee.object.name).includes('capability-ports'))
   .map(node=>({owner:node.id.name,file:files.get(node.init.callee.object.name),factory:node.init.callee.property.name}));
- const commonSource=fs.readFileSync(new URL('map-owner-composition.js',directory),'utf8');
+ const commonSource=readModule('map-owner-composition.js');
  linter.verify(commonSource,{languageOptions:{ecmaVersion:'latest',sourceType:'module'}});
  const commonAst=linter.getSourceCode().ast,imports=new Map();
  for(const node of commonAst.body)if(node.type==='ImportDeclaration')for(const spec of node.specifiers)imports.set(spec.local.name,node.source.value.replace(/^\.\//,''));
@@ -43,7 +47,7 @@ export function applicationOwnerDefinitions(){
 export function readApplicationOwners(...owners) {
   const files=new Map(applicationOwnerDefinitions().map(row=>[row.owner,row.file]));
   return owners.map(owner => {const id=owner.replace(/-([a-z])/g,(_match,letter)=>letter.toUpperCase());
-    const file=files.get(id);if(!file)throw new Error(`Unknown application owner: ${owner}`);return fs.readFileSync(new URL(file,directory),'utf8');}).map(source=>source
+    const file=files.get(id);if(!file)throw new Error(`Unknown application owner: ${owner}`);return readModule(file);}).map(source=>source
     .replace(/\(0, dependencies\.[$\w]+\.([$\w]+)\)/g, '$1')
     .replace(/\bdependencies\.[$\w]+\.([$\w]+)/g, '$1')
     .replace(/\(0, dependencies\.([$\w]+)\)/g, '$1')

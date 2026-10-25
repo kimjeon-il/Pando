@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTerritorialDrafts } from '../../assets/js/modules/app-territorial-drafts.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { createTerritorialDrafts } from "../../apps/editor/frontend/js/modules/app-territorial-drafts.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { OBJECT_EDITING_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports.js";
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] };

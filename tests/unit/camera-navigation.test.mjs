@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCameraNavigation } from '../../assets/js/modules/camera-navigation.js';
-import { normalizeMapSurfaceDragDelta } from '../../assets/js/modules/map-host.js';
-import { equirectangularCenterForAnchor } from '../../assets/js/modules/map-layout-metrics.js';
+import { createCameraNavigation } from "../../shared/frontend/js/modules/camera-navigation.js";
+import { normalizeMapSurfaceDragDelta } from "../../shared/frontend/js/modules/map-host.js";
+import { equirectangularCenterForAnchor } from "../../shared/frontend/js/modules/map-layout-metrics.js";
 
 test('continuous zoom can defer Worker settle and view persistence until the gesture ends', () => {
   const events = [];

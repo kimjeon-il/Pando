@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto';
-import { normalizeTemporalInterval, parseTemporal } from '../assets/js/modules/temporal.js';
-import { normalizeCountryCollection } from '../assets/js/modules/country-feature.js';
-import { classifyBuiltinCountries, builtinSubunitSourceId } from '../assets/js/modules/builtin-subunits.js';
-import { BUILTIN_TERRITORY_MERGES } from '../assets/js/modules/builtin-territory-policy.js';
-import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from '../assets/js/modules/territorial-units.js';
-import { createGeometryVersionStore } from '../assets/js/modules/geometry-version-store.js';
-import { normalizeTimelineRecords } from '../assets/js/modules/timeline-records.js';
-import { createProjectSerializer } from '../assets/js/modules/project-serializer.js';
-import { DISTRIBUTION_MODES } from '../assets/js/modules/distribution-model.js';
+import { normalizeTemporalInterval, parseTemporal } from "../shared/frontend/js/modules/temporal.js";
+import { normalizeCountryCollection } from "../shared/frontend/js/modules/country-feature.js";
+import { classifyBuiltinCountries, builtinSubunitSourceId } from "../shared/frontend/js/modules/builtin-subunits.js";
+import { BUILTIN_TERRITORY_MERGES } from "../shared/frontend/js/modules/builtin-territory-policy.js";
+import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../shared/frontend/js/modules/territorial-units.js";
+import { createGeometryVersionStore } from "../shared/frontend/js/modules/geometry-version-store.js";
+import { normalizeTimelineRecords } from "../shared/frontend/js/modules/timeline-records.js";
+import { createProjectSerializer } from "../apps/editor/frontend/js/modules/project-serializer.js";
+import { DISTRIBUTION_MODES } from "../shared/frontend/js/modules/distribution-model.js";
 import { adjustHistoricalTerritories, historicalWorldClipper,createHistoricalTerritoryCache } from './historical-world-territories.mjs';
 
 const compare = (a, b) => {

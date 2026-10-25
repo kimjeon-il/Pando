@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {builtinProject} from '../helpers/builtin-world.mjs';
-import {createGeometryVersionStore} from '../../assets/js/modules/geometry-version-store.js';
-import {resolveWorld} from '../../assets/js/modules/timeline-resolver.js';
-import {temporalContains,temporalMonthEnd} from '../../assets/js/modules/temporal.js';
-import {createRingHitTester} from '../../assets/js/modules/ring-hit-test.js';
+import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
+import {resolveWorld} from "../../shared/frontend/js/modules/timeline-resolver.js";
+import {temporalContains,temporalMonthEnd} from "../../shared/frontend/js/modules/temporal.js";
+import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
 const oracle=JSON.parse(fs.readFileSync(new URL('../fixtures/builtin-modern-interval-baseline.json',import.meta.url)));
 test('the pre-change modern publication keeps identities, geometry, hierarchy and Crimea attribution',()=>{
  const rings=createRingHitTester(r=>r);

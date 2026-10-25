@@ -2,16 +2,16 @@ import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
-import { createPointerTargets } from '../../assets/js/modules/pointer-targets.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
-import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
+import { createPointerTargets } from "../../shared/frontend/js/modules/pointer-targets.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
+import { createMapInputPresentation } from "../../shared/frontend/js/modules/map-input-presentation.js";
+import { createTooltipController } from "../../shared/frontend/js/modules/tooltip-controller.js";
 import {createNodeSelection} from '../helpers/core-selection.mjs';
 import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 const sandbox = {};
-vm.runInNewContext(readFileSync(new URL('../../assets/js/vendor/d3.min.js', import.meta.url), 'utf8'), sandbox);
+vm.runInNewContext(readFileSync(new URL("../../shared/frontend/js/vendor/d3.min.js", import.meta.url), 'utf8'), sandbox);
 const d3 = sandbox.d3;
 
 function node(name, parent = null) {
@@ -87,7 +87,7 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
   pointers.initializeHoverPickFrame();
   const peer = node('user-label', interaction), peerText = node('peer-text', peer);
   peer.__data__ = { id: 'PLACE', kind: peerKind };
-  const renderingSource = readFileSync(new URL('../../assets/js/modules/label-presentation.js', import.meta.url), 'utf8');
+  const renderingSource = readFileSync(new URL("../../shared/frontend/js/modules/label-presentation.js", import.meta.url), 'utf8');
   const start = renderingSource.indexOf("    enter.on('mouseenter.hover'", renderingSource.indexOf('  const renderUserLabels ='));
   const end = renderingSource.indexOf("    enter.append('circle')", start);
   // Register the existing peer-label hover owner with real D3, then allow its
@@ -220,7 +220,7 @@ async function draftFixture(t, tool) {
   vertex.__data__ = { index: 1 };
   const handleHit = node('handle-hit', handle), vertexHit = node('vertex-hit', vertex);
   const events = [];
-  const source = readFileSync(new URL('../../assets/js/modules/editing-presentation.js', import.meta.url), 'utf8');
+  const source = readFileSync(new URL("../../apps/editor/frontend/js/modules/editing-presentation.js", import.meta.url), 'utf8');
   const context = {
     d3, segment, handle, vertex, interaction: { d3 }, layer: { node: () => root }, isMobile: () => false,
     getPacket:()=>editing.createRenderPacket(),

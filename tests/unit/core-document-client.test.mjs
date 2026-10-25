@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCoreDocumentClient } from '../../assets/js/modules/core-document-client.js';
+import { createCoreDocumentClient } from "../../shared/frontend/js/modules/core-document-client.js";
 
 function fixture({ onTransition } = {}) {
   const sent = [], effects = [];

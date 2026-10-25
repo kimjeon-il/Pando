@@ -5,10 +5,10 @@ on:
     branches: ['work/integration-ui-objects-20261016']
     paths:
       - '.github/workflows/integration-windows-startup-memory-ab-20261016.yml'
-      - 'apps/web-shell/measure-windows-startup.ps1'
-      - 'apps/web-shell/src-tauri/src/lib.rs'
-      - 'apps/web-shell/startup.js'
-      - 'apps/web-shell/full-world-probe.js'
+      - 'apps/editor/measure-windows-startup.ps1'
+      - 'apps/editor/src-tauri/src/lib.rs'
+      - 'apps/editor/startup.js'
+      - 'apps/editor/full-world-probe.js'
   workflow_dispatch:
 
 permissions:
@@ -51,19 +51,19 @@ jobs:
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+          pnpm --dir apps/editor install --ignore-workspace --frozen-lockfile
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Check map-data and physical-loading unit contracts
         shell: pwsh
         run: |
-          node --test tests/unit/editor-resource-capabilities.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs
+          node --test tests/unit/editor-resource-capabilities.test.mjs apps/editor/tests/full-world-probe.test.mjs apps/editor/tests/world-data-plan.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Stage the same canonical world and physical resources once
         shell: pwsh
         run: |
-          node apps/web-shell/stage.mjs --profile=map-data
+          node apps/editor/stage.mjs --profile=map-data
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $stage = Get-Content apps/web-shell/dist/shell/stage-evidence.json -Raw | ConvertFrom-Json
+          $stage = Get-Content apps/editor/dist/shell/stage-evidence.json -Raw | ConvertFrom-Json
           if ($stage.profile -ne 'map-data' -or
               $stage.worldData.countryCount -ne 258 -or
               $stage.worldData.worldFileCount -ne 597 -or
@@ -74,17 +74,17 @@ jobs:
       - name: Build one Windows WebView2 executable for both startup policies
         shell: pwsh
         run: |
-          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
+          pnpm --dir apps/editor exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify native diagnostic and file transfer contracts
         shell: pwsh
         run: |
-          cargo test --manifest-path apps/web-shell/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc --features custom-protocol,verification
+          cargo test --manifest-path apps/editor/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc --features custom-protocol,verification
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: A/B on same runner, isolated cold profiles, 3 runs per mode
         shell: pwsh
         run: |
-          ./apps/web-shell/measure-windows-startup.ps1 -BinaryPath 'apps/web-shell/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe' -HoldAfterReadyMs 30000
+          ./apps/editor/measure-windows-startup.ps1 -BinaryPath 'apps/editor/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe' -HoldAfterReadyMs 30000
           $data = Get-Content build-native/web-shell/paired-startup-memory.json -Raw | ConvertFrom-Json
           if ($data.schema -ne 'pandolab-windows-webview-paired-startup-memory' -or
               $data.summary.immediate.count -ne 3 -or $data.summary.deferred.count -ne 3) {
@@ -102,4 +102,4 @@ jobs:
           path: |
             build-native/web-shell/paired-startup-memory.json
             build-native/web-shell/world-pair-*.json
-            apps/web-shell/dist/shell/stage-evidence.json
+            apps/editor/dist/shell/stage-evidence.json

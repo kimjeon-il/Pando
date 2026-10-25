@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createDocumentSessionRuntime } from '../../assets/js/modules/core-document-runtime.js';
+import { createDocumentSessionRuntime } from "../../shared/frontend/js/modules/core-document-runtime.js";
 
 const context = () => ({ throwIfCancelled() {} });
 function fixture() {

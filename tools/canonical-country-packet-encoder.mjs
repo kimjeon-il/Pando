@@ -1,6 +1,6 @@
 import { TextEncoder } from 'node:util';
 
-import { CANONICAL_COUNTRY_PACKET_MAGIC } from '../assets/js/modules/canonical-country-packet.js';
+import { CANONICAL_COUNTRY_PACKET_MAGIC } from "../shared/frontend/js/modules/canonical-country-packet.js";
 
 const FORMAT_VERSION = 1;
 const HEADER_WORDS = 20;

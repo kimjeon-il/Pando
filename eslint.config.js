@@ -23,14 +23,14 @@ const nodeGlobals = {
 };
 
 export default [
-  { ignores: ['node_modules/**', 'playwright-report/**', 'test-results/**', 'assets/js/vendor/**',
+  { ignores: ['node_modules/**', 'playwright-report/**', 'test-results/**', 'shared/frontend/js/vendor/**', 'shared/frontend/static/vendor/**', 'shared/frontend/static/wasm/**', 'assets/**', 'apps/editor/src-tauri/**',
     // Immutable Git blob test inputs are admitted by web-oracle.mjs and its
     // provenance/import-closure tests; they are not active application source.
     'tests/fixtures/portability/web-9300609-oracle/**',
     'tests/fixtures/shared-core/web-m97/lifecycle-source/**'] },
   js.configs.recommended,
   {
-    files: ['assets/js/**/*.js', 'apps/web-shell/*.js'],
+    files: ['shared/frontend/js/**/*.js', 'apps/editor/frontend/js/**/*.js', 'apps/viewer/js/**/*.js', 'apps/editor/*.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...browserGlobals, console: 'readonly' } },
     rules: {
       'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }],
@@ -40,14 +40,14 @@ export default [
     },
   },
   {
-    files: ['assets/js/modules/gpu-stroke-renderer.js'],
+    files: ['shared/frontend/js/modules/gpu-stroke-renderer.js'],
     rules: {
       // Resource allocation is deliberately initialized before the guarded cleanup path.
       'no-useless-assignment': 'off',
     },
   },
   {
-    files: ['assets/js/workers/**/*.js'],
+    files: ['shared/frontend/js/workers/**/*.js', 'apps/editor/frontend/js/workers/**/*.js'],
     languageOptions: {
       sourceType: 'script',
       globals: {
@@ -59,23 +59,23 @@ export default [
   },
   {
     files: [
-      'assets/js/workers/data-loader-worker.js',
-      'assets/js/workers/place-worker.js',
-      'assets/js/workers/map-display-worker.js',
-      'assets/js/workers/river-territory-partition-worker.js',
-      'assets/js/workers/core-session-worker.js',
-      'assets/js/workers/core-viewer-session-worker.js',
-      'assets/js/workers/gpkg-read-core.js',
+      'shared/frontend/js/workers/data-loader-worker.js',
+      'shared/frontend/js/workers/place-worker.js',
+      'shared/frontend/js/workers/map-display-worker.js',
+      'apps/editor/frontend/js/workers/river-territory-partition-worker.js',
+      'apps/editor/frontend/js/workers/core-session-worker.js',
+      'shared/frontend/js/workers/core-viewer-session-worker.js',
+      'shared/frontend/js/workers/gpkg-read-core.js',
     ],
     languageOptions: { sourceType: 'module' },
   },
   {
-    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', '.github/scripts/**/*.mjs', 'tools/**/*.mjs', 'native/tools/**/*.mjs', 'apps/web-shell/**/*.mjs', 'plugins/pando-map-tools/**/*.mjs', '*.config.js'],
+    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', '.github/scripts/**/*.mjs', 'tools/**/*.mjs', 'native/tools/**/*.mjs', 'apps/editor/**/*.mjs', 'plugins/pando-map-tools/**/*.mjs', '*.config.js', '.pnpmfile.mjs'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: nodeGlobals },
     rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
   },
   {
-    files: ['tests/browser/**/*.mjs', 'apps/web-shell/tests/**/*.mjs'],
+    files: ['tests/browser/**/*.mjs', 'apps/editor/tests/**/*.mjs'],
     languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
   },
 ];

@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import '../../assets/js/vendor/polygon-clipping.min.js';
-import '../../assets/js/modules/territorial-edit-plan.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import "../../shared/frontend/js/modules/territorial-edit-plan.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 
 const kernel = globalThis.PandoLabTerritorialEdit.createKernel(globalThis.polygonClipping);
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });

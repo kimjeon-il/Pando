@@ -286,7 +286,7 @@ test('fixture gate validates the complete current canonical Node module closure'
 test('fixture gate follows side-effect imports, re-exports and corpus bytes and rejects unknown dynamic imports', async t => {
   const { checkBoundaryFixtureEquivalence } = await runner();
   const baselineRoot = matchingFixtureRoot(t);
-  const file = join(baselineRoot, 'assets/js/modules/territorial-units.js');
+  const file = join(baselineRoot, 'shared/frontend/js/modules/territorial-units.js');
   const original = readFileSync(file, 'utf8');
   writeFileSync(file, `${original}\nimport('./unverified.js');\n`);
   assert.throws(() => checkBoundaryFixtureEquivalence(root, baselineRoot), /Unverified dynamic fixture import/);

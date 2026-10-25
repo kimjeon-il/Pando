@@ -1,3 +1,4 @@
+import {repositoryFrontendSnapshot,nodeWorkerScript} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -6,30 +7,33 @@ import { TextEncoder, TextDecoder } from 'node:util';
 import { File, btoa } from 'node:buffer';
 import vm from 'node:vm';
 import test from 'node:test';
-import { readProjectFile } from '../../assets/js/modules/project-file-reader.js';
-import { createInitialDocument } from '../../assets/js/modules/initial-document.js';
+import { readProjectFile } from "../../shared/frontend/js/modules/project-file-reader.js";
+import { createInitialDocument } from "../../shared/frontend/js/modules/initial-document.js";
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
 // Execute the production read Worker and sql.js; adapt only browser transport to Node.
-const sqlDirectory = new URL('../../assets/js/vendor/sql/', import.meta.url);
+const sqlDirectory = new URL('../../shared/frontend/js/vendor/sql/', import.meta.url);
 const sqlContext = vm.createContext({ module: { exports: {} }, require: createRequire(import.meta.url), process,
   __dirname: fileURLToPath(sqlDirectory), Buffer, console, TextEncoder, TextDecoder });
 vm.runInContext(readFileSync(new URL('sql-wasm.js', sqlDirectory), 'utf8'), sqlContext);
 const SQL = await sqlContext.initSqlJs({ wasmBinary: readFileSync(new URL('sql-wasm.wasm', sqlDirectory)) });
 
+const frontendSnapshot=await repositoryFrontendSnapshot();
 function installReaderWorker(t) {
-  const original = globalThis.Worker;
+  const original = globalThis.Worker,originalURL=globalThis.URL,originalMeta=globalThis.PANDOLAB_BUILD_META;
+  globalThis.PANDOLAB_BUILD_META=frontendSnapshot.buildMeta;
+  globalThis.URL=class extends originalURL{constructor(value,base){super(value,base);if(this.protocol==='file:'&&this.pathname.endsWith('/shared/frontend/js/workers/project-read-worker.js'))return new originalURL('https://fixture.invalid/assets/js/workers/project-read-worker.js');}};
   const workers = [];
   globalThis.Worker = class {
     constructor(url) {
       workers.push(this);
       this.context = vm.createContext({ URL, console, TextEncoder, TextDecoder, Uint8Array, btoa,
-        location: { href: url.href }, initSqlJs: async () => SQL, importScripts() {},
+        location: { href: 'https://fixture.invalid/assets/js/workers/project-read-worker.js' }, initSqlJs: async () => SQL, importScripts() {},
         postMessage: data => { if (!this.terminated) this.onmessage({ data }); } });
       this.context.self = this.context;
-      vm.runInContext(readFileSync(url, 'utf8'), this.context, { filename: url.href,
-        importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER });
+      assert.ok(url.pathname.endsWith('/project-read-worker.js'));
+      vm.runInContext(nodeWorkerScript(frontendSnapshot,'assets/js/workers/project-read-worker.js'), this.context, { filename:'https://fixture.invalid/assets/js/workers/project-read-worker.js',importModuleDynamically:vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER });
     }
     postMessage(message, transfer) {
       const data = structuredClone(message, { transfer });
@@ -37,7 +41,7 @@ function installReaderWorker(t) {
     }
     terminate() { this.terminated = true; }
   };
-  t.after(() => { if (original === undefined) delete globalThis.Worker; else globalThis.Worker = original; });
+  t.after(() => { globalThis.URL=originalURL;globalThis.PANDOLAB_BUILD_META=originalMeta;if (original === undefined) delete globalThis.Worker; else globalThis.Worker = original; });
   return workers;
 }
 

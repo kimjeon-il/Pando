@@ -1,13 +1,13 @@
 import {testCoreProject,snapshotTestTerritorialState,initializeTestTerritorialState,executeTestCommand,executeTerritorialTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subunitSelectionPolicy, boundaryTouchesGeometry } from '../../assets/js/modules/territorial-interaction-policy.js';
-import * as interactionPolicy from '../../assets/js/modules/territorial-interaction-policy.js';
+import { subunitSelectionPolicy, boundaryTouchesGeometry } from "../../apps/editor/frontend/js/modules/territorial-interaction-policy.js";
+import * as interactionPolicy from "../../apps/editor/frontend/js/modules/territorial-interaction-policy.js";
 import {readFileSync} from 'node:fs';
-import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { BUILTIN_SUBUNITS,territorialSceneDisplayId } from '../../assets/js/modules/builtin-subunits.js';
+import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer-presentation.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { BUILTIN_SUBUNITS,territorialSceneDisplayId } from "../../shared/frontend/js/modules/builtin-subunits.js";
 
 const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
 const country = (id, notes = '') => createTerritorialFeature({ id, entityKind: 'general', notes, geometry });

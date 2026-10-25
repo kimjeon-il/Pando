@@ -52,7 +52,7 @@ jobs:
             assets/data/territorial-entities/generated/v2 \
             assets/data/builtin-world/generated/v1 \
             assets/data/prepared-polygons/generated/v2 \
-            assets/js/build-meta.js index.html apps/web-shell/editor.html README.md
+            assets/js/build-meta.js index.html apps/editor/editor.html README.md
           git diff --cached --check
           while IFS= read -r changed; do
             case "$changed" in
@@ -63,7 +63,7 @@ jobs:
               assets/data/builtin-world/generated/v1/coverage-report.json|\
               assets/data/prepared-polygons/generated/v2/manifest.json|\
               assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-*.bin.gz|\
-              assets/js/build-meta.js|index.html|apps/web-shell/editor.html|README.md)
+              assets/js/build-meta.js|index.html|apps/editor/editor.html|README.md)
                 echo "EXPECTED: $changed" ;;
               *) echo "OUT-OF-SCOPE ASSET CHANGE: $changed" >&2; exit 1 ;;
             esac

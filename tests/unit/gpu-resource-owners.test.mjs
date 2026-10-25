@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as lifecycleModule from '../../assets/js/modules/gpu-resource-lifecycle.js';
-import { createGpuUploadScheduler } from '../../assets/js/modules/gpu-upload-scheduler.js';
-import { createGpuWorkerChannels } from '../../assets/js/modules/gpu-worker-channels.js';
+import * as lifecycleModule from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
+import { createGpuUploadScheduler } from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
+import { createGpuWorkerChannels } from "../../shared/frontend/js/modules/gpu-worker-channels.js";
 
 test('renderer upload cancellation leaves another scheduler consumer live', async () => {
   assert.equal(typeof lifecycleModule.createGpuUploadScope, 'function');

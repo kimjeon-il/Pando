@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-await import('../../assets/js/vendor/polygon-clipping.min.js');
+await import("../../shared/frontend/js/vendor/polygon-clipping.min.js");
 const {
   buildRiverTerritoryPartitions,
   composeRiverBoundaryTerritoryComponents,
@@ -10,7 +10,7 @@ const {
   RIVER_TERRITORY_PARTITION_CONFIG,
   riverTerritoryPartitionConfigFingerprint,
   riverTerritoryAreaKm2,
-} = await import('../../assets/js/modules/river-territory-partition.js');
+} = await import("../../apps/editor/frontend/js/modules/river-territory-partition.js");
 
 const clipper = globalThis.polygonClipping;
 

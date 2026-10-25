@@ -27,7 +27,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/modules/territorial-entity-repository.js"
+        "shared/frontend/js/modules/territorial-entity-repository.js"
       ],
       "tools": [
         "node"
@@ -91,7 +91,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/modules/builtin-world-loader.js"
+        "shared/frontend/js/modules/builtin-world-loader.js"
       ],
       "tools": [
         "node"
@@ -105,7 +105,7 @@
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "assets/js/workers/gpu-mesh-core.js"
+        "shared/frontend/js/workers/gpu-mesh-core.js"
       ],
       "outputs": [],
       "generate": [
@@ -138,8 +138,8 @@
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "assets/js/vendor/d3.min.js",
-        "assets/js/workers/gpu-mesh-core.js"
+        "shared/frontend/js/vendor/d3.min.js",
+        "shared/frontend/js/workers/gpu-mesh-core.js"
       ],
       "outputs": [],
       "generate": [
@@ -189,7 +189,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/workers/data-loader-worker.js"
+        "shared/frontend/js/workers/data-loader-worker.js"
       ],
       "tools": [
         "node"
@@ -217,7 +217,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/modules/country-shared-boundary-cache.js"
+        "shared/frontend/js/modules/country-shared-boundary-cache.js"
       ],
       "tools": [
         "node"
@@ -233,7 +233,7 @@
         "wasm"
       ],
       "inputs": [
-        "assets/js/workers/gpu-mesh-core.js"
+        "shared/frontend/js/workers/gpu-mesh-core.js"
       ],
       "outputs": [
         "assets/data/prepared-polygons/generated/v2/"
@@ -252,7 +252,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/modules/prepared-polygon-mesh.js"
+        "shared/frontend/js/modules/prepared-polygon-mesh.js"
       ],
       "tools": [
         "node"
@@ -288,7 +288,7 @@
         ]
       ],
       "consumers": [
-        "assets/js/modules/place-runtime.js"
+        "shared/frontend/js/modules/place-runtime.js"
       ],
       "tools": [
         "node"
@@ -302,7 +302,7 @@
       "generate": [],
       "validate": [],
       "consumers": [
-        "assets/js/workers/data-loader-worker.js"
+        "shared/frontend/js/workers/data-loader-worker.js"
       ],
       "tools": [
         "python"
@@ -319,7 +319,7 @@
       "generate": [],
       "validate": [],
       "consumers": [
-        "assets/js/workers/data-loader-worker.js"
+        "shared/frontend/js/workers/data-loader-worker.js"
       ],
       "tools": [
         "python"
@@ -327,54 +327,6 @@
       "resolve": "terrain",
       "manual": true,
       "blockedReason": "Raw DEM, tint and glaciated-area source paths must be explicitly pinned for this GIS run; automatic downloads are forbidden."
-    },
-    {
-      "id": "build-metadata",
-      "dependencies": [
-        "wasm",
-        "territorial",
-        "builtin-world",
-        "world-bundle",
-        "prepared-mesh",
-        "shared-boundaries",
-        "places",
-        "hydro",
-        "terrain"
-      ],
-      "inputs": [
-        "package.json",
-        {
-          "prefix": "assets/js/",
-          "pattern": "^(?!assets/js/build-meta\\.js$).*\\.js$"
-        }
-      ],
-      "outputs": [
-        "assets/js/build-meta.js",
-        "index.html",
-        "apps/web-shell/editor.html",
-        "README.md"
-      ],
-      "generate": [
-        [
-          "node",
-          "scripts/generate-build-metadata.mjs"
-        ]
-      ],
-      "validate": [
-        [
-          "node",
-          "scripts/generate-build-metadata.mjs",
-          "--check"
-        ]
-      ],
-      "consumers": [
-        "assets/js/bootstrap.js",
-        "assets/js/modules/app-builtin-session.js",
-        "assets/js/workers/gpu-mesh-worker.js"
-      ],
-      "tools": [
-        "node"
-      ]
     }
   ]
 }

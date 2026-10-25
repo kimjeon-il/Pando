@@ -3,7 +3,7 @@ import test from 'node:test';
 import { Worker } from 'node:worker_threads';
 
 test('preview Worker preserves canonical validator coordinates for topology repair', async t => {
-  const script = new URL('../../assets/js/workers/project-preview-worker.js', import.meta.url).href;
+  const script = new URL("../../apps/editor/frontend/js/workers/project-preview-worker.js", import.meta.url).href;
   const coreAdapter = new URL('../helpers/node-core-wasm-loader.mjs', import.meta.url).href;
   const worker = new Worker(`
     const { parentPort } = require('node:worker_threads');
@@ -59,7 +59,7 @@ test('preview Worker preserves canonical validator coordinates for topology repa
 
 
 test('preview key and cache validation do not initialize topology or a WASM heap',async t=>{
-  const script=new URL('../../assets/js/workers/project-preview-worker.js',import.meta.url).href;
+  const script=new URL("../../apps/editor/frontend/js/workers/project-preview-worker.js",import.meta.url).href;
   const workerScript=[
     "const {parentPort}=require('node:worker_threads');",
     "const fs=require('node:fs'),vm=require('node:vm');",

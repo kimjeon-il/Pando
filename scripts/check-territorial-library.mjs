@@ -3,7 +3,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
-import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
+import { validateGeometry } from "../shared/frontend/js/modules/geometry-validation.js";
 import {readTerritorialSources} from '../tools/territorial-entity-sources.mjs';
 import {buildCurrentWorld} from '../tools/territorial-current-world.mjs';
 import '../tools/load-spherical-core.mjs';

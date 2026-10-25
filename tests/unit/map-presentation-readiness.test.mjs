@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mapPresentationReadiness } from '../../assets/js/modules/startup-readiness.js';
+import { mapPresentationReadiness } from "../../shared/frontend/js/modules/startup-readiness.js";
 
 const ready = { boundaryReady: true, terrainVisible: true,
   terrain: { terrainReady: true }, targetKey: 'current', presentedKey: 'current', band: 'low' };

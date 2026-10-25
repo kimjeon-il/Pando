@@ -30,7 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Verify shipped C++ WASM source and changed JS syntax
         run: |
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           node --check assets/js/modules/boundary-topology.js
           node --check assets/js/modules/country-contact-core.js
           node --check tests/unit/boundary-source-row-compact.test.mjs

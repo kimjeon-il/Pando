@@ -7,7 +7,7 @@ test('phone landscape switches one right panel, preserves camera and adapts to k
     const source = await (await route.fetch()).text();
     await route.fulfill({ contentType: 'text/javascript', body: source.replace('dependencies = ports;', 'dependencies = ports; window.__phoneEditing = () => editingDomain;') });
   });
-  await page.goto('/apps/web-shell/editor.html?debug=1&demTerrain=raster');
+  await page.goto('/__editor/index.html?debug=1&demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'phone-landscape');
   const view = () => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());

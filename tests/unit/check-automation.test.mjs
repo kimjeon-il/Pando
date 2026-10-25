@@ -19,14 +19,14 @@ function fixture() {
   const put = (path, source = '') => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source); };
   const catalog = { schema: 'pando-application-checks-v1', groups: [
     { id: 'units', kind: 'unit', testPatterns: ['tests/unit/*.test.mjs'], inputs: [] },
-    { id: 'terrain', kind: 'browser', testPatterns: ['tests/browser/terrain-*.spec.mjs'], inputs: ['assets/js/modules/terrain.js'], requires: ['generated'] },
+    { id: 'terrain', kind: 'browser', testPatterns: ['tests/browser/terrain-*.spec.mjs'], inputs: ['shared/frontend/js/modules/terrain.js'], requires: ['generated'] },
     { id: 'manual', kind: 'browser', mode: 'manual', reason: 'Controlled measurement', testPatterns: ['tests/browser/measure.spec.mjs'], inputs: [] },
-  ], prerequisites: { generated: { argv: ['node', 'scripts/generate.mjs'] } }, productRoots: ['assets/**', 'apps/**', 'scripts/**'] };
-  put('assets/js/modules/terrain.js', "export { value } from './leaf.js';");
-  put('assets/js/modules/leaf.js', 'export const value = 1;');
-  put('assets/js/modules/other.js', 'export const unrelated = 2;');
-  put('tests/unit/terrain.test.mjs', "import '../../assets/js/modules/terrain.js';");
-  put('tests/unit/other.test.mjs', "import '../../assets/js/modules/other.js';");
+  ], prerequisites: { generated: { argv: ['node', 'scripts/generate.mjs'] } }, productRoots: ['shared/frontend/**', 'apps/**', 'scripts/**'] };
+  put('shared/frontend/js/modules/terrain.js', "export { value } from './leaf.js';");
+  put('shared/frontend/js/modules/leaf.js', 'export const value = 1;');
+  put('shared/frontend/js/modules/other.js', 'export const unrelated = 2;');
+  put('tests/unit/terrain.test.mjs', "import '../../shared/frontend/js/modules/terrain.js';");
+  put('tests/unit/other.test.mjs', "import '../../shared/frontend/js/modules/other.js';");
   put('tests/browser/terrain-time.spec.mjs'); put('tests/browser/measure.spec.mjs');
   put('scripts/generate.mjs');
   return { root, put, catalog, repository: () => loadRepository(root, { catalog }) };
@@ -57,7 +57,7 @@ test('application CI prepares pinned data before planning and executing register
 
 test('transitive source changes choose related units and declared HTTP browser consumers', () => {
   const f = fixture();
-  const plan = planApplicationChecks({ changedFiles: ['assets/js/modules/leaf.js'], repository: f.repository() });
+  const plan = planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/leaf.js'], repository: f.repository() });
   assert.deepEqual(plan.unitTests, ['tests/unit/terrain.test.mjs']);
   assert.deepEqual(plan.browserSpecs, ['tests/browser/terrain-time.spec.mjs']);
   assert.deepEqual(plan.prerequisites, ['generated']);
@@ -67,37 +67,37 @@ test('transitive source changes choose related units and declared HTTP browser c
 
 test('staged shell imports, re-exports and module URLs resolve to their source owners', () => {
   const f = fixture();
-  f.catalog.relocatedSources = [{ source: 'apps/web-shell/', output: 'shell/', files: ['apps/web-shell/*.js'] }];
-  f.put('apps/web-shell/native.js');
-  f.put('assets/js/workers/place-worker.js');
-  f.put('apps/assets/js/modules/leaf.js', 'throw Error("wrong source owner");');
-  f.put('apps/web-shell/reference-analysis-probe.js', `
+  f.catalog.relocatedSources = [{ source: 'apps/editor/', output: 'shell/', files: ['apps/editor/*.js'] }];
+  f.put('apps/editor/native.js');
+  f.put('shared/frontend/js/workers/place-worker.js');
+  f.put('apps/shared/frontend/js/modules/leaf.js', 'throw Error("wrong source owner");');
+  f.put('apps/editor/reference-analysis-probe.js', `
     import './native.js';
-    import { value } from '../assets/js/modules/leaf.js';
-    export { value as terrain } from '../assets/js/modules/terrain.js';
+    import { value } from '../shared/frontend/js/modules/leaf.js';
+    export { value as terrain } from '../shared/frontend/js/modules/terrain.js';
     export * from './native.js';
-    const load = () => import('../assets/js/modules/other.js?revision=1');
-    const worker = new URL('../assets/js/workers/place-worker.js?cache=../../misleading#revision', import.meta.url);
+    const load = () => import('../shared/frontend/js/modules/other.js?revision=1');
+    const worker = new URL('../shared/frontend/js/workers/place-worker.js?cache=../../misleading#revision', import.meta.url);
   `);
-  f.put('tests/unit/probe.test.mjs', "import '../../apps/web-shell/reference-analysis-probe.js';");
+  f.put('tests/unit/probe.test.mjs', "import '../../apps/editor/reference-analysis-probe.js';");
   const repo = f.repository();
-  assert.deepEqual(repo.dependencies('apps/web-shell/reference-analysis-probe.js').sort(), [
-    'apps/web-shell/native.js', 'assets/js/modules/leaf.js', 'assets/js/modules/other.js',
-    'assets/js/modules/terrain.js', 'assets/js/workers/place-worker.js',
+  assert.deepEqual(repo.dependencies('apps/editor/reference-analysis-probe.js').sort(), [
+    'apps/editor/native.js', 'shared/frontend/js/modules/leaf.js', 'shared/frontend/js/modules/other.js',
+    'shared/frontend/js/modules/terrain.js', 'shared/frontend/js/workers/place-worker.js',
   ]);
-  const plan = planApplicationChecks({ changedFiles: ['assets/js/workers/place-worker.js'], repository: repo });
+  const plan = planApplicationChecks({ changedFiles: ['shared/frontend/js/workers/place-worker.js'], repository: repo });
   assert.deepEqual(plan.unitTests, ['tests/unit/probe.test.mjs']);
 });
 
 test('shell Node tools and nested tests keep source-relative paths', () => {
   const f = fixture();
-  f.catalog.relocatedSources = [{ source: 'apps/web-shell/', output: 'shell/', files: ['apps/web-shell/*.js'] }];
-  f.put('apps/web-shell/fixture.mjs', "import '../../assets/js/modules/leaf.js';");
-  f.put('apps/web-shell/stage.mjs', "import './fixture.mjs'; const input = new URL('../../assets/js/modules/other.js', import.meta.url);");
-  f.put('apps/web-shell/tests/probe.test.mjs', "import '../fixture.mjs';");
+  f.catalog.relocatedSources = [{ source: 'apps/editor/', output: 'shell/', files: ['apps/editor/*.js'] }];
+  f.put('apps/editor/fixture.mjs', "import '../../shared/frontend/js/modules/leaf.js';");
+  f.put('apps/editor/stage.mjs', "import './fixture.mjs'; const input = new URL('../../shared/frontend/js/modules/other.js', import.meta.url);");
+  f.put('apps/editor/tests/probe.test.mjs', "import '../fixture.mjs';");
   const repo = f.repository();
-  assert.deepEqual(repo.dependencies('apps/web-shell/stage.mjs').sort(), ['apps/web-shell/fixture.mjs', 'assets/js/modules/other.js']);
-  assert.deepEqual(repo.dependencies('apps/web-shell/tests/probe.test.mjs'), ['apps/web-shell/fixture.mjs']);
+  assert.deepEqual(repo.dependencies('apps/editor/stage.mjs').sort(), ['apps/editor/fixture.mjs', 'shared/frontend/js/modules/other.js']);
+  assert.deepEqual(repo.dependencies('apps/editor/tests/probe.test.mjs'), ['apps/editor/fixture.mjs']);
 });
 
 test('verification startup resolves versioned fixture modules at the declared runtime base', () => {
@@ -105,11 +105,11 @@ test('verification startup resolves versioned fixture modules at the declared ru
   const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
   f.catalog.runtimeBases = catalog.runtimeBases;
   f.catalog.relocatedSources = catalog.relocatedSources;
-  f.put('apps/web-shell/verification.js', "export function startFixture({ versionedAsset }) { return import(versionedAsset('./modules/leaf.js').href); }");
-  f.put('tests/unit/verification.test.mjs', "import '../../apps/web-shell/verification.js';");
+  f.put('apps/editor/verification.js', "export function startFixture({ versionedAsset }) { return import(versionedAsset('./modules/leaf.js').href); }");
+  f.put('tests/unit/verification.test.mjs', "import '../../apps/editor/verification.js';");
   const repo = f.repository();
-  assert.deepEqual(repo.dependencies('apps/web-shell/verification.js'), ['assets/js/modules/leaf.js']);
-  const plan = planApplicationChecks({ changedFiles: ['assets/js/modules/leaf.js'], repository: repo });
+  assert.deepEqual(repo.dependencies('apps/editor/verification.js'), ['shared/frontend/js/modules/leaf.js']);
+  const plan = planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/leaf.js'], repository: repo });
   assert.ok(plan.unitTests.includes('tests/unit/verification.test.mjs'));
 });
 
@@ -131,11 +131,11 @@ test('module URL reads retain root configuration and workflow consumers', () => 
 
 test('staged dependencies still reject missing imports and paths outside the bundle root', () => {
   const f = fixture();
-  f.catalog.relocatedSources = [{ source: 'apps/web-shell/', output: 'shell/', files: ['apps/web-shell/*.js'] }];
-  f.put('apps/web-shell/missing.js', "import '../assets/js/modules/missing.js';");
-  f.put('apps/web-shell/escape.js', "import '../../outside.js';");
-  assert.throws(() => f.repository().dependencies('apps/web-shell/missing.js'), /Missing dependency assets\/js\/modules\/missing\.js/);
-  assert.throws(() => f.repository().dependencies('apps/web-shell/escape.js'), /outside repository/);
+  f.catalog.relocatedSources = [{ source: 'apps/editor/', output: 'shell/', files: ['apps/editor/*.js'] }];
+  f.put('apps/editor/missing.js', "import '../shared/frontend/js/modules/missing.js';");
+  f.put('apps/editor/escape.js', "import '../../outside.js';");
+  assert.throws(() => f.repository().dependencies('apps/editor/missing.js'), /Missing dependency shared\/frontend\/js\/modules\/missing\.js/);
+  assert.throws(() => f.repository().dependencies('apps/editor/escape.js'), /outside repository/);
 });
 
 test('nested GIS Python changes select their existing external workflow', () => {
@@ -167,21 +167,21 @@ test('docs-only changes skip runtime work and unknown product code fails registr
   const f = fixture(); const repo = f.repository();
   const docs = planApplicationChecks({ changedFiles: ['reports/a.md'], repository: repo });
   assert.deepEqual(docs.unitTests, []); assert.deepEqual(docs.browserSpecs, []);
-  f.put('assets/js/modules/unlinked.js', 'export const orphan = 1;');
-  assert.throws(() => planApplicationChecks({ changedFiles: ['assets/js/modules/unlinked.js'], repository: f.repository() }), /unclassified.*unlinked/i);
+  f.put('shared/frontend/js/modules/unlinked.js', 'export const orphan = 1;');
+  assert.throws(() => planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/unlinked.js'], repository: f.repository() }), /unclassified.*unlinked/i);
 });
 
 test('an unknown computed executable import fails with its owner and does not invent a dependency', () => {
-  const f = fixture(); f.put('assets/js/modules/terrain.js', 'export const load = path => import(path);');
-  assert.throws(() => planApplicationChecks({ changedFiles: ['assets/js/modules/terrain.js'], repository: f.repository() }), /dynamic.*terrain.js/i);
+  const f = fixture(); f.put('shared/frontend/js/modules/terrain.js', 'export const load = path => import(path);');
+  assert.throws(() => planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/terrain.js'], repository: f.repository() }), /dynamic.*terrain.js/i);
 });
 
 test('classic mixed arguments cannot hide a computed script behind a literal script', () => {
   const f = fixture();
-  f.catalog.groups[1].inputs.push('assets/js/workers/canvas-render-worker.js');
-  f.put('assets/js/workers/canvas-render-worker.js', "importScripts('./known.js', event.data.module);");
-  f.put('assets/js/workers/known.js', 'self.known = true;');
-  assert.throws(() => planApplicationChecks({ changedFiles: ['assets/js/workers/canvas-render-worker.js'], repository: f.repository() }), /dynamic.*canvas-render-worker/i);
+  f.catalog.groups[1].inputs.push('shared/frontend/js/workers/canvas-render-worker.js');
+  f.put('shared/frontend/js/workers/canvas-render-worker.js', "importScripts('./known.js', event.data.module);");
+  f.put('shared/frontend/js/workers/known.js', 'self.known = true;');
+  assert.throws(() => planApplicationChecks({ changedFiles: ['shared/frontend/js/workers/canvas-render-worker.js'], repository: f.repository() }), /dynamic.*canvas-render-worker/i);
 });
 
 test('fixed fixture directories are data leaves and their child changes retain test consumers', () => {

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorySelectionWorkflow } from '../../assets/js/modules/app-territory-selection-workflow.js';
-import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorySelectionWorkflow } from "../../apps/editor/frontend/js/modules/app-territory-selection-workflow.js";
+import { OBJECT_EDITING_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports.js";
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 const geometry = id => ({ type: 'MultiPolygon', coordinates: [[[[id, 0], [id + 1, 0], [id + 1, 1], [id, 0]]]] });

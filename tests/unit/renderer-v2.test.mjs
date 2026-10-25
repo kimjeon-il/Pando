@@ -4,9 +4,9 @@ import test from 'node:test';
 import {
   GPU_STROKE_FLAGS,
   buildGpuStrokeInstances,
-} from '../../assets/js/modules/gpu-stroke-renderer.js';
-import { createMapRenderCoordinator, MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from '../../assets/js/modules/map-render-coordinator.js';
-import { createRenderSceneBuilder } from '../../assets/js/modules/render-scene.js';
+} from "../../shared/frontend/js/modules/gpu-stroke-renderer.js";
+import { createMapRenderCoordinator, MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from "../../shared/frontend/js/modules/map-render-coordinator.js";
+import { createRenderSceneBuilder } from "../../shared/frontend/js/modules/render-scene.js";
 test('connected stroke preprocessing emits neighbor topology, joins and terminal caps', () => {
   const geometry = buildGpuStrokeInstances(new Float32Array([
     0, 0, 1, 0,

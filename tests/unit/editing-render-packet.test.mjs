@@ -1,5 +1,5 @@
-import {createEditingPresentation} from '../../assets/js/modules/editing-presentation.js';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
+import {createEditingPresentation} from "../../apps/editor/frontend/js/modules/editing-presentation.js";
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -7,9 +7,9 @@ import {
   createEditingRenderPacket,
   EMPTY_EDITING_RENDER_PACKET,
   freezeEditingGeometry,
-} from '../../assets/js/modules/editing-render-packet.js';
+} from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
 import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
 
 const assertDeepFrozen = value => {
   if (!value || typeof value !== 'object') return;

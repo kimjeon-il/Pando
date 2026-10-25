@@ -6,8 +6,8 @@ import {
   buildStrokeGeometryPacket,
   createRenderSceneBuilder,
   isRenderScene,
-} from '../../assets/js/modules/render-scene.js';
-import { scaleInteractionStroke } from '../../assets/js/modules/map-interaction-style.js';
+} from "../../shared/frontend/js/modules/render-scene.js";
+import { scaleInteractionStroke } from "../../shared/frontend/js/modules/map-interaction-style.js";
 
 test('stroke packets preserve explicit view scaling and drawing controls', () => {
   const scene = createRenderSceneBuilder().build({ strokes: [{ key: 'draft', geometryRevision: 1,

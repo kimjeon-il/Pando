@@ -1,8 +1,8 @@
-import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
+import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createEditPreviewController } from '../../assets/js/modules/edit-preview-controller.js';
+import { createEditPreviewController } from "../../apps/editor/frontend/js/modules/edit-preview-controller.js";
 
 test('edit preview reuses its typed buffer and exposes only the latest segments', () => {
   let clock = 0;

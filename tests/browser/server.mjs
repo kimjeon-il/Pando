@@ -1,39 +1,20 @@
-import { createReadStream, statSync } from 'node:fs';
-import { createServer } from 'node:http';
-import { extname, resolve, sep } from 'node:path';
-import { reportPath } from '../../tools/report-paths.mjs';
+import {mkdirSync,writeFileSync,unlinkSync} from 'node:fs';
+import {resolve,dirname} from 'node:path';
+import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
+import {createDevelopmentAssets} from '../../apps/editor/stage.mjs';
+import {createP3PreviewServer} from '../../scripts/p3-preview-server.mjs';
+import {prepareLibraryData,libraryRuntimeLeasePath} from '../../tools/library-data.mjs';
 
-const root = resolve(process.cwd());
-const port = Number.parseInt(process.env.PANDOLAB_TEST_PORT || '4173', 10);
-const mime = {
-  '.bin': 'application/octet-stream', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
-  '.png': 'image/png', '.svg': 'image/svg+xml', '.wasm': 'application/wasm', '.webp': 'image/webp',
-};
-
-createServer((request, response) => {
-  const pathname = decodeURIComponent(new URL(request.url || '/', 'http://127.0.0.1').pathname);
-  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-  let file = resolve(root, relative);
-  if (file !== root && !file.startsWith(`${root}${sep}`)) {
-    response.writeHead(403).end('Forbidden');
-    return;
-  }
-  try {
-    if (relative.startsWith('reports/')) file = reportPath(relative, { root, access: 'read' });
-    const stats = statSync(file);
-    if (!stats.isFile()) throw new Error('Not a file');
-    response.writeHead(200, { 'Content-Type': mime[extname(file).toLowerCase()] || 'application/octet-stream',
-      'Content-Length': stats.size });
-    const stream = createReadStream(file);
-    response.on('close', () => stream.destroy());
-    response.on('error', () => stream.destroy());
-    stream.on('error', () => {
-      if (!response.headersSent) response.writeHead(500).end('Read error');
-      else response.destroy();
-    });
-    stream.pipe(response);
-  } catch {
-    response.writeHead(404).end('Not found');
-  }
-}).listen(port, '127.0.0.1', () => console.log(`PandoLab test server: http://127.0.0.1:${port}`));
+const root=resolve(process.cwd()),port=Number(process.env.PANDOLAB_TEST_PORT||4173);
+const prepared=prepareLibraryData({root}),snapshot=await buildFrontendSnapshot({root});
+const {assets}=await createDevelopmentAssets({root,frontendSnapshot:snapshot});
+for(const [path,asset]of snapshot.assets)assets.set(path,{bytes:asset.bytes});
+assets.set('__editor/index.html',{bytes:Buffer.from(snapshot.html.editor.replace('href="../../" data-product-base="editor"','href="/" data-product-base="editor"'))});
+const lease=libraryRuntimeLeasePath(root,'verification');
+mkdirSync(dirname(lease),{recursive:true});
+writeFileSync(lease,JSON.stringify({pid:process.pid,root,product:'verification',materialized:[prepared.materialized]}));
+const server=createP3PreviewServer(root,{assets:()=>assets,reports:true});
+server.listen(port,'127.0.0.1',()=>console.log(`PandoLab test server: http://127.0.0.1:${port}`));
+const release=()=>{try{unlinkSync(lease);}catch(error){if(error.code!=='ENOENT')throw error;}};
+process.once('exit',release);
+for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>server.close(()=>process.exit(0)));

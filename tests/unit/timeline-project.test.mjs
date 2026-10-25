@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
+import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { assertCurrentProjectSchema } from "../../shared/frontend/js/modules/project-state.js";
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 
 import { projectForStorage } from '../helpers/timeline-project.mjs';

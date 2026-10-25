@@ -1,17 +1,18 @@
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
+import {applicationModuleUrl} from '../../scripts/lib/application-source.mjs';
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
 import { createNodeSelection } from '../helpers/core-selection.mjs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
-import { createGisDomain } from '../../assets/js/modules/gis-domain.js';
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
+import { createGisDomain } from "../../apps/editor/frontend/js/modules/gis-domain.js";
 import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
-import { MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from '../../assets/js/modules/map-render-coordinator.js';
+import { MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from "../../shared/frontend/js/modules/map-render-coordinator.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -138,7 +139,7 @@ test('rendering domain commits label positions synchronously in the coordinator 
 test('non-rendering domains have no direct platform ownership', () => {
   const modules = ['project-domain.js', 'selection-domain.js', 'gis-domain.js', 'editing-domain.js'];
   for (const name of modules) {
-    const source = fs.readFileSync(path.join(root, 'assets/js/modules', name), 'utf8');
+    const source = fs.readFileSync(applicationModuleUrl(name), 'utf8');
     for (const token of ['document.', 'window.', 'getContext(', 'createElement(']) {
       assert.equal(source.includes(token), false, `${name} does not use ${token}`);
     }
@@ -211,7 +212,7 @@ test('app delegates interaction rendering to rendering domain', () => {
   assert.doesNotMatch(source, /renderingDomain\?\.render(?:Draft|DraftInsertionHandle|Vertices|Snap)\?\./);
   assert.match(source, /renderingDomain\?\.invalidateEditingOverlays\(/);
   assert.doesNotMatch(source, /mapRenderCoordinator|MAP_RENDER_DIRTY/);
-  const renderingSource = fs.readFileSync(path.join(root, 'assets/js/modules/rendering-domain.js'), 'utf8');
+  const renderingSource = fs.readFileSync(path.join(root, 'shared/frontend/js/modules/rendering-domain.js'), 'utf8');
   assert.match(renderingSource, /gpuInteraction:\s*renderGpuInteraction/);
 });
 
@@ -249,7 +250,7 @@ test('selection domain projects Core selection and hover revisions without seria
     selectionRenderInvalidationCount: 2,
   });
   assert.equal(Object.isFrozen(hovered.selection.items), true);
-  assert.doesNotMatch(fs.readFileSync(path.join(root, 'assets/js/modules/selection-domain.js'), 'utf8'), /JSON\.stringify/);
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'shared/frontend/js/modules/selection-domain.js'), 'utf8'), /JSON\.stringify/);
 });
 
 test('rendering domain owns domain-specific invalidation masks', () => {
@@ -291,6 +292,7 @@ test('view-only selection rendering reprojects only existing SVG fallbacks witho
     requestFrame: callback => { frames.push(callback); return frames.length; },
     prepareView: ({ frameId }) => testFrame(frameId, 8, () => { projectedPaths += 1; return 'M0,0L1,1'; }),
     gpuMapRenderer: {
+      getRuntimeState(){return {renderer:'svg',projectRenderBlocked:false};},
       renderInteraction() {
         gpuInteractionRenders += 1;
         return { succeeded: true };
@@ -318,6 +320,7 @@ test('view-only selection rendering is a no-op when no SVG fallback exists', () 
     requestFrame: callback => { frames.push(callback); return frames.length; },
     prepareView: ({ frameId }) => testFrame(frameId, 9),
     gpuMapRenderer: {
+      getRuntimeState(){return {renderer:'svg',projectRenderBlocked:false};},
       renderInteraction() {
         gpuInteractionRenders += 1;
         return { succeeded: true };

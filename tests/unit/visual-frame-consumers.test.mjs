@@ -1,10 +1,10 @@
-import {createEditingPresentation} from '../../assets/js/modules/editing-presentation.js';
+import {createEditingPresentation} from "../../apps/editor/frontend/js/modules/editing-presentation.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
-import { createGpuMapRenderer } from '../../assets/js/modules/gpu-map-renderer.js';
-import { createMapHost } from '../../assets/js/modules/map-workspace-host.js';
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
+import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import { createMapHost } from "../../shared/frontend/js/modules/map-workspace-host.js";
 
 const frame = () => createMapVisualFrame({ frameId: 8, viewRevision: 3,
   viewState: { projection: 'flat', size: { width: 300, height: 200 }, translate: [150, 100], scale: 40, dpr: 2 },

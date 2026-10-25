@@ -1,11 +1,11 @@
 import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {prepareBoundaryFeature,buildBoundaryTopologyFromSegments} from '../../assets/js/modules/boundary-topology.js';
-import {computeCountrySharedContacts} from '../../assets/js/modules/country-contact-core.js';
-import {buildRenderableBoundarySegments} from '../../assets/js/modules/geographic-boundary.js';
-import {padBoundaryBounds,segmentBounds} from '../../assets/js/modules/boundary-spatial-index.js';
-import {sharedCalculationCore} from '../../assets/js/modules/temporal.js';
+import {prepareBoundaryFeature,buildBoundaryTopologyFromSegments} from "../../shared/frontend/js/modules/boundary-topology.js";
+import {computeCountrySharedContacts} from "../../shared/frontend/js/modules/country-contact-core.js";
+import {buildRenderableBoundarySegments} from "../../shared/frontend/js/modules/geographic-boundary.js";
+import {padBoundaryBounds,segmentBounds} from "../../shared/frontend/js/modules/boundary-spatial-index.js";
+import {sharedCalculationCore} from "../../shared/frontend/js/modules/temporal.js";
 
 const rectangle=(id,w,s,e,n)=>({id,geometry:{type:'Polygon',coordinates:[[
   [w,s],[e,s],[e,n],[w,n],[w,s],

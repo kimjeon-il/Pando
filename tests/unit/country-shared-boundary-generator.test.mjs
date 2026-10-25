@@ -1,3 +1,4 @@
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
@@ -5,7 +6,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 
 const worldBundle = JSON.parse(fs.readFileSync(new URL('../../assets/data/world/current.json', import.meta.url), 'utf8'));
 const archiveName = worldBundle.compatibility.sharedBoundaries.preview;
-const archive = fs.readFileSync(new URL(`../../assets/data/${archiveName}`, import.meta.url));
+const archive = fs.readFileSync(repositoryFrontendUrl(`assets/data/${archiveName}`));
 const decoded = gunzipSync(archive);
 
 async function checkArchive(t, replacement, { missing = false } = {}) {
@@ -65,7 +66,7 @@ test('shared boundary generator rejects missing archives', async t => {
 
 test('offline source and browser packet share compiled grouping, phase and seam rules', async () => {
   const {prepareCountrySharedBoundaryPacket}=await import(
-    '../../assets/js/modules/country-shared-boundary-packet.js');
+    "../../shared/frontend/js/modules/country-shared-boundary-packet.js");
   const sources=[
     {start:[179.8,30],end:[-179.8,30],ownerIds:['E','W']},
     {start:[0,0],end:[0,.25],ownerIds:['A','B']},

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { setImmediate } from 'node:timers';
-import { createProjectUiBridge } from '../../assets/js/modules/project-ui-bridge.js';
-import { createPersistenceService } from '../../assets/js/modules/persistence-service.js';
+import { createProjectUiBridge } from "../../apps/editor/frontend/js/modules/project-ui-bridge.js";
+import { createPersistenceService } from "../../apps/editor/frontend/js/modules/persistence-service.js";
 
 function fixture({ archive = async () => {} } = {}) {
   const modals = [];

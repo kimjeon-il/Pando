@@ -3,7 +3,7 @@ import test from 'node:test';
 
 const ready = dataRevision => ({ rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'event', operation: 'map-edit.ready', payload: { dataRevision } });
 
-import { createMapEditWorkerClient } from '../../assets/js/modules/map-edit-worker-client.js';
+import { createMapEditWorkerClient } from "../../apps/editor/frontend/js/modules/map-edit-worker-client.js";
 
 test('timed out geometry calculation terminates its worker and retries from current project data', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });

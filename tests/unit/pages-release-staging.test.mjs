@@ -78,7 +78,7 @@ test('offline materialization verifies Git Blob and produces byte identical file
 test('modified source contents fail exact Git Blob verification',async()=>{
  const x=setup();
  try{
-  writeFileSync(join(x.root,'assets/js/gis-io.js'),'changed');
+  writeFileSync(join(x.root,'apps/editor/frontend/js/gis-io.js'),'changed');
   await assert.rejects(stageCandidate(x.profile,x.lock,x.root,join(x.temp,'staged')),/size changed|digest/);
  }finally{rmSync(x.temp,{recursive:true,force:true});}
 });

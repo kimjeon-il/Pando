@@ -1,8 +1,8 @@
 import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import '../../assets/js/workers/gpu-mesh-core.js';
-import { createCountryMeshPreparation } from '../../assets/js/modules/country-mesh-preparation.js';
+import "../../shared/frontend/js/workers/gpu-mesh-core.js";
+import { createCountryMeshPreparation } from "../../shared/frontend/js/modules/country-mesh-preparation.js";
 const engine = globalThis.PandoLabGpuMeshCore;
 const shape = (id, size = 2) => ({ id, geometry: { type: 'Polygon', coordinates: [[[0,0],[size,0],[size,2],[0,2],[0,0]]] } });
 const context = { throwIfCancelled() {} };

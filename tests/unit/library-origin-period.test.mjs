@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {loadNodeCore} from '../../tools/load-node-core.mjs';
-import {createTerritorialFeature} from '../../assets/js/modules/territorial-units.js';
+import {createTerritorialFeature} from "../../shared/frontend/js/modules/territorial-units.js";
 import {startupDocument} from '../helpers/core-startup.mjs';
 
 test('typed library provenance round-trips dates and source identity without a precision flag',async()=>{

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { workerAssetUrl } from '../../assets/js/modules/worker-asset-url.js';
+import { workerAssetUrl } from "../../shared/frontend/js/modules/worker-asset-url.js";
 
 test('all viewer workers inherit the selected independent data release pin', () => {
   const input = new URL('https://example.test/Pando/assets/js/workers/gpu-mesh-worker.js?mode=preview');

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const context = { self: {} };
-vm.runInNewContext(fs.readFileSync(new URL('../../assets/js/workers/canvas-terrain-dem-core.js', import.meta.url), 'utf8'), context);
+vm.runInNewContext(fs.readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8'), context);
 const { colorAt, sampleTint, convertTile, affineTransform, flatTileRectangle, triangleClip } = context.self.PandoLabCanvasTerrainDem;
 
 test('Canvas DEM reads encoded elevation, tint, and shade without treating RGB as a raster', () => {

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGenericCommands } from '../../assets/js/modules/app-generic-commands.js';
-import { createCountryModes } from '../../assets/js/modules/app-country-modes.js';
-import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createGenericCommands } from "../../apps/editor/frontend/js/modules/app-generic-commands.js";
+import { createCountryModes } from "../../apps/editor/frontend/js/modules/app-country-modes.js";
+import { createEditingDomain } from "../../apps/editor/frontend/js/modules/editing-domain.js";
 
 const held = () => {
   let resolve, reject;

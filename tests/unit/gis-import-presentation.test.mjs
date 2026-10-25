@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 test('import fields separate selection, settings and impact confirmation', () => {
-  const html = fs.readFileSync(new URL('../../apps/web-shell/editor.html', import.meta.url), 'utf8');
+  const html = fs.readFileSync(new URL('../../apps/editor/editor.html', import.meta.url), 'utf8');
   for (const [id, step] of Object.entries({ gisLayerRow: 0, gisTargetTypeRow: 1, gisDistributionValueRow: 1,
     gisCoastReferenceRow: 3, gisParentUnitRow: 3, gisAdvancedMapping: 2,
     gisImportImpact: 4, gisFinalSummary: 4 })) {
@@ -30,7 +30,7 @@ test('import groups setup fields and returns to visible advanced controls after 
     getElementById: id => ids[id] || null,
   };
   const window = { PandoLabGisAdapters: {} };
-  const source = fs.readFileSync(new URL('../../assets/js/gis-io.js', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL("../../apps/editor/frontend/js/gis-io.js", import.meta.url), 'utf8')
     .replace('window.PandoLabGIS = Object.freeze({', 'window.presentation = { setImportMobileStep, revealAdvancedField, projectRoute() { importSourceKind = "project"; importStepRoute = [4]; setImportMobileStep(4); } }; window.PandoLabGIS = Object.freeze({');
   vm.runInNewContext(source, { window, document, URL, requestAnimationFrame: fn => fn() });
   window.presentation.setImportMobileStep(0);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
 
 test('disposal cancels persistence and rejects pending or late snapshot exports as cancellation',async()=>{
   let release,started,cancelled=0;

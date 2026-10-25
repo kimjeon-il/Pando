@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { prepareGpuBaseScene } from '../../assets/js/modules/gpu-scene-preparation.js';
-import { drawGpuBaseScene } from '../../assets/js/modules/gpu-base-scene-pass.js';
-import '../../assets/js/workers/canvas-scene-composition-core.js';
-import { createGpuScene } from '../../assets/js/modules/gpu-scene.js';
-import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { layerObjectRank, OVERLAY_GROUPS } from '../../assets/js/modules/layer-presentation.js';
+import { prepareGpuBaseScene } from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
+import { drawGpuBaseScene } from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
+import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
+import { createGpuScene } from "../../shared/frontend/js/modules/gpu-scene.js";
+import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
+import { layerObjectRank, OVERLAY_GROUPS } from "../../shared/frontend/js/modules/layer-presentation.js";
 
 for (const style of ['political', 'physical']) {
     test(`${style} prepares the common land mask before its terrain passes`, () => {

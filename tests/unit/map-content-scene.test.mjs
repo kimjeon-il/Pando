@@ -2,17 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createDistributionLayer, createDistributionEntry } from '../../assets/js/modules/distribution-model.js';
-import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
-import { resolveMapTheme } from '../../assets/js/modules/map-theme.js';
-import { normalizeGenericFeatureSemantics } from '../../assets/js/modules/generic-feature-service.js';
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createDistributionLayer, createDistributionEntry } from "../../shared/frontend/js/modules/distribution-model.js";
+import { normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
+import { resolveMapTheme } from "../../shared/frontend/js/modules/map-theme.js";
+import { normalizeGenericFeatureSemantics } from "../../apps/editor/frontend/js/modules/generic-feature-service.js";
 
-import {readDomainColor,COLOR_DOMAINS} from '../../assets/js/modules/color-adapter.js';
-import {createMapContentPresentation} from '../../assets/js/modules/map-content-presentation.js';
-import {layerStyle,overlayVisualOrder} from '../../assets/js/modules/layer-presentation.js';
-import {normalizeObjectRef} from '../../assets/js/modules/object-selection-controller.js';
-import {DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES} from '../../assets/js/modules/distribution-model.js';
+import {readDomainColor,COLOR_DOMAINS} from "../../shared/frontend/js/modules/color-adapter.js";
+import {createMapContentPresentation} from "../../shared/frontend/js/modules/map-content-presentation.js";
+import {layerStyle,overlayVisualOrder} from "../../shared/frontend/js/modules/layer-presentation.js";
+import {normalizeObjectRef} from "../../shared/frontend/js/modules/object-selection-controller.js";
+import {DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES} from "../../shared/frontend/js/modules/distribution-model.js";
 const square = { type: 'Polygon', coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]] };
 const line = { type: 'LineString', coordinates: [[1,1],[2,2]] };
 const ids = Object.fromEntries(['point','line','area','label','lake','population','temperature','expired','low','high','old','other','expired-entry']

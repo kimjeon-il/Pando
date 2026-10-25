@@ -45,7 +45,7 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   for (const id of ids) put(join(worker(id), 'assets/js/worker.js'), 'self.fixture = true;\n');
   put(join(worker(ids[3]), 'manual-notes.txt'), 'keep unrecognized data');
   put(join(root, 'assets/js/build-meta.js'), 'current assets/worker-runtime/' + ids[1] + '/entry.js');
-  put(join(root, 'apps/web-shell/dist/assets/js/build-meta.js'), 'staged assets/worker-runtime/' + ids[4] + '/entry.js');
+  put(join(root, 'apps/editor/dist/assets/js/build-meta.js'), 'staged assets/worker-runtime/' + ids[4] + '/entry.js');
   git(root, 'add', 'config', '.gitignore', 'assets/js/build-meta.js', 'assets/worker-runtime/' + ids[2]);git(root, 'commit', '-qm', 'fixture code');
   const script = fileURLToPath(new URL('../../tools/cleanup-reference-analysis-caches.ps1', import.meta.url));
   const shell = join(process.env.SystemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe');
@@ -74,7 +74,7 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   assert.equal(rerun.deletedBytes, 0);
   assert.ok(existsSync(join(materialized, revisions[0])));
 
-  const native = join(root, 'apps/web-shell/src-tauri/target/x86_64-pc-windows-gnu/debug');
+  const native = join(root, 'apps/editor/src-tauri/target/x86_64-pc-windows-gnu/debug');
   const retired = join(native, 'deps/pandolab_web_shell-0123456789abcdef.exe');
   const activeCopy = join(native, 'deps/pandolab_web_shell-1123456789abcdef.exe');
   const current = join(native, 'pandolab-web-shell.exe');

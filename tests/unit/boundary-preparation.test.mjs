@@ -1,12 +1,12 @@
 import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createBoundaryPreparation } from '../../assets/js/modules/boundary-preparation.js';
-import { topologyNodeKey } from '../../assets/js/modules/boundary-topology.js';
-import { createBoundarySpatialIndex } from '../../assets/js/modules/boundary-spatial-index.js';
-import { boundaryViewBounds, prepareBoundaryDisplay, queryBoundaryDisplay } from '../../assets/js/modules/boundary-display.js';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
-import { adoptBoundaryRenderPacket, createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
+import { createBoundaryPreparation } from "../../apps/editor/frontend/js/modules/boundary-preparation.js";
+import { topologyNodeKey } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { createBoundarySpatialIndex } from "../../shared/frontend/js/modules/boundary-spatial-index.js";
+import { boundaryViewBounds, prepareBoundaryDisplay, queryBoundaryDisplay } from "../../apps/editor/frontend/js/modules/boundary-display.js";
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { adoptBoundaryRenderPacket, createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
 
 const feature = (id, ring, properties = {}) => ({ type: 'Feature', id, properties, geometry: { type: 'Polygon', coordinates: [ring] } });
 const fixtures = () => [

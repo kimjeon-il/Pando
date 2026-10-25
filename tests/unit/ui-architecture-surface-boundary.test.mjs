@@ -16,7 +16,7 @@ function auditSurface(t, surface) {
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, source);
   };
-  put('apps/web-shell/editor.html', `
+  put('apps/editor/editor.html', `
     <button id="createMenuBtn" aria-haspopup="menu"></button>
     <section id="createMenu" class="workspace-surface surface-create ui-sheet" role="menu"></section>
     ${surface}

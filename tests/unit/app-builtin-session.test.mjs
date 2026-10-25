@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createBuiltinSession } from '../../assets/js/modules/builtin-session.js';
+import { createBuiltinSession } from "../../shared/frontend/js/modules/builtin-session.js";
 
 test('country source preparation is independent from an unresolved render geometry promise and preserves source errors',async t=>{
  const previous=globalThis.window;globalThis.window={PANDOLAB_CANONICAL_GEOMETRY_PROMISE:new Promise(()=>{})};t.after(()=>{globalThis.window=previous;});

@@ -41,7 +41,7 @@ jobs:
           node --check scripts/research/instrument-core-territorial-inner.mjs
           node --check tests/browser/soviet-core-candidate-cpp.spec.mjs
           pnpm exec eslint scripts/research/instrument-core-candidate-cpp.mjs scripts/research/instrument-core-territorial-inner.mjs tests/browser/soviet-core-candidate-cpp.spec.mjs
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           git diff --exit-code -- shared/core/src/commandbatch.cpp shared/core/src/commands.cpp shared/wasm/session-bindings.cpp
       - name: Inject C++ times ONLY inside this disposable runner
         run: |
@@ -84,7 +84,7 @@ jobs:
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
       - run: pnpm exec playwright install --with-deps chromium
       - name: Run actual 1989 Soviet drag with instrumented C++ / same Worker and Core
         env:

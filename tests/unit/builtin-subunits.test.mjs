@@ -1,16 +1,16 @@
 import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
-import { staticTimelineViews } from '../../assets/js/modules/timeline-static-view.js';
-import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
-import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
+import { staticTimelineViews } from "../../apps/editor/frontend/js/modules/timeline-static-view.js";
+import { createGeometryVersionStore } from "../../shared/frontend/js/modules/geometry-version-store.js";
+import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from '../../assets/js/modules/builtin-subunits.js';
-import { normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
-import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from '../../assets/js/modules/builtin-territory-policy.js';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { restoreEntitiesFromDelta } from '../../assets/js/modules/project-state.js';
+import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from "../../shared/frontend/js/modules/builtin-subunits.js";
+import { normalizeTerritorialEntities } from "../../shared/frontend/js/modules/territorial-units.js";
+import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
+import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { restoreEntitiesFromDelta } from "../../shared/frontend/js/modules/project-state.js";
 
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const before = JSON.stringify(source);

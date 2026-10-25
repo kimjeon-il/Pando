@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGisDomain } from '../../assets/js/modules/gis-domain.js';
-import { createMapAudit } from '../../assets/js/modules/app-map-audit.js';
-import { createGpuMeshWorkerJobs } from '../../assets/js/modules/gpu-mesh-worker-jobs.js';
+import { createGisDomain } from "../../apps/editor/frontend/js/modules/gis-domain.js";
+import { createMapAudit } from "../../apps/editor/frontend/js/modules/app-map-audit.js";
+import { createGpuMeshWorkerJobs } from "../../shared/frontend/js/modules/gpu-mesh-worker-jobs.js";
 
 function workerHarness() {
   const sent = [];

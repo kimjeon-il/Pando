@@ -3,11 +3,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket,
-} from '../../assets/js/modules/country-shared-boundary-packet.js';
+} from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
 import {
   serializeCountrySharedBoundarySegments, buildCountrySharedBoundarySegments,
-} from '../../assets/js/modules/boundary-topology.js';
-import { geometryRevisionKey } from '../../assets/js/modules/geometry-versions.js';
+} from "../../shared/frontend/js/modules/boundary-topology.js";
+import { geometryRevisionKey } from "../../shared/frontend/js/modules/geometry-versions.js";
 
 const rectangle = (id, west, south, east, north) => {
   const geometry = { type: 'Polygon',

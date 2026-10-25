@@ -1,3 +1,4 @@
+import {renderProductHtml} from './lib/product-html.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -5,12 +6,12 @@ import {
   GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS,
   GENERIC_FEATURE_SCHEMA_VERSION,
   normalizeGenericFeatureCollection,
-} from '../assets/js/modules/generic-feature-service.js';
+} from "../apps/editor/frontend/js/modules/generic-feature-service.js";
 import {
   SOURCE_PROVENANCE_SCHEMA_VERSION,
-} from '../assets/js/modules/source-provenance.js';
-import { MAP_OBJECT_TYPES } from '../assets/js/modules/map-object-categories.js';
-import { objectActionApplies } from '../assets/js/modules/object-action-registry.js';
+} from "../shared/frontend/js/modules/source-provenance.js";
+import { MAP_OBJECT_TYPES } from "../shared/frontend/js/modules/map-object-categories.js";
+import { objectActionApplies } from "../apps/editor/frontend/js/modules/object-action-registry.js";
 
 const root = process.cwd();
 const failures = [];
@@ -47,19 +48,19 @@ for (const properties of [{ schemaVersion: 1 }, { schemaVersion: 2, role: 'terri
   if (!rejected) fail('Retired Generic schema/fields were accepted');
 }
 
-const staticUiSource = read('apps/web-shell/editor.html');
+const staticUiSource = renderProductHtml(read).editor;
 for (const marker of ['genericFeatureConversionSection', 'convertGenericFeatureBtn']) {
   if (!staticUiSource.includes(marker)) fail(`canonical Generic fallback UI is missing marker: ${marker}`);
 }
-const projectStateSource = read('assets/js/modules/project-state.js');
+const projectStateSource = read('shared/frontend/js/modules/project-state.js');
 for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS']) {
   if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance validation marker: ${marker}`);
 }
-const serializerSource = read('assets/js/modules/project-serializer.js');
+const serializerSource = read('apps/editor/frontend/js/modules/project-serializer.js');
 for (const marker of ["purpose: 'lossless-fallback'", 'directCreation: false', 'sourceProvenanceSchemaVersion']) {
   if (!serializerSource.includes(marker)) fail(`serializer is missing Generic fallback contract marker: ${marker}`);
 }
-const invariantsSource = read('assets/js/modules/project-invariants.js');
+const invariantsSource = read('shared/frontend/js/modules/project-invariants.js');
 if (!invariantsSource.includes('PL-INV-GENERIC-SOURCE')) fail('runtime project invariants do not validate Generic source provenance');
 
 if (failures.length) {

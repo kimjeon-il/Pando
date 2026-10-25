@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import * as previewPolicy from '../../assets/js/modules/project-preview-policy.js';
-import { validateGeometry } from '../../assets/js/modules/geometry-validation.js';
-import { inspectTopologyPreviewFeatures } from '../../assets/js/modules/project-preview-topology.js';
-import '../../assets/js/modules/polygon-clipping-core.js';
+import * as previewPolicy from "../../shared/frontend/js/modules/project-preview-policy.js";
+import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
+import { inspectTopologyPreviewFeatures } from "../../shared/frontend/js/modules/project-preview-topology.js";
+import "../../shared/frontend/js/modules/polygon-clipping-core.js";
 
 const inspectCandidate = features => inspectTopologyPreviewFeatures(features, { validateGeometry, clipper: globalThis.polygonClipping });
 const admit = (source, candidate) => previewPolicy.validatePreviewDisplay(source, candidate, { inspectCandidate });

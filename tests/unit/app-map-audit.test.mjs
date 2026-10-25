@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createMapAudit } from '../../assets/js/modules/app-map-audit.js';
-import { connectMapInteraction } from '../../assets/js/modules/app-connect-map-interaction.js';
-import { MAP_INTERACTION_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports-map-interaction.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from '../../assets/js/modules/worker-rpc.js';
+import { createMapAudit } from "../../apps/editor/frontend/js/modules/app-map-audit.js";
+import { connectMapInteraction } from "../../apps/editor/frontend/js/modules/app-connect-map-interaction.js";
+import { MAP_INTERACTION_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports-map-interaction.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from "../../shared/frontend/js/modules/worker-rpc.js";
 
 test('the application connector sends current repository entities to the audit Worker and accepts its result', async t => {
   const previousWorker = globalThis.Worker;

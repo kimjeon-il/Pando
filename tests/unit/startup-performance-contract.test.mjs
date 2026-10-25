@@ -5,26 +5,26 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
-const app = read('assets/js/modules/mobile-sheet-presentation.js')+readFileSync(new URL('../../assets/js/modules/app-runtime-dependencies.js',import.meta.url),'utf8')+readApplicationOwners('domain-assembly', 'territorial-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
-const rendering = read('assets/js/modules/map-content-presentation.js')+read('assets/js/modules/rendering-domain.js');
-const gpuScene = read('assets/js/modules/gpu-scene.js');
-const coordinator = read('assets/js/modules/map-render-coordinator.js');
-const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');
-const terrainPreparation = read('assets/js/modules/gpu-terrain-preparation.js');
-const mapVisualFrame = read('assets/js/modules/map-visual-frame.js');
-const bootstrap = read('assets/js/bootstrap.js');
-const loader = read('assets/js/workers/data-loader-worker.js');
-const storedAssetLoader = read('assets/js/modules/stored-asset-loader.js');
-const projectRestore = read('assets/js/modules/app-project-restore.js');
-const lifecycleWiring = read('assets/js/modules/app-connect-lifecycle-ui.js');
-const foundationPorts = read('assets/js/modules/app-capability-ports-foundation.js');
-const meshResourceLoader = read('assets/js/modules/builtin-mesh-resource.js');
+const app = read('shared/frontend/js/modules/mobile-sheet-presentation.js')+readFileSync(new URL("../../apps/editor/frontend/js/modules/app-runtime-dependencies.js",import.meta.url),'utf8')+readApplicationOwners('domain-assembly', 'territorial-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
+const rendering = read('shared/frontend/js/modules/map-content-presentation.js')+read('shared/frontend/js/modules/rendering-domain.js');
+const gpuScene = read('shared/frontend/js/modules/gpu-scene.js');
+const coordinator = read('shared/frontend/js/modules/map-render-coordinator.js');
+const gpuRenderer = read('shared/frontend/js/modules/gpu-map-renderer.js');
+const terrainPreparation = read('shared/frontend/js/modules/gpu-terrain-preparation.js');
+const mapVisualFrame = read('shared/frontend/js/modules/map-visual-frame.js');
+const bootstrap = read('apps/editor/frontend/js/bootstrap.js');
+const loader = read('shared/frontend/js/workers/data-loader-worker.js');
+const storedAssetLoader = read('shared/frontend/js/modules/stored-asset-loader.js');
+const projectRestore = read('apps/editor/frontend/js/modules/app-project-restore.js');
+const lifecycleWiring = read('apps/editor/frontend/js/modules/app-connect-lifecycle-ui.js');
+const foundationPorts = read('apps/editor/frontend/js/modules/app-capability-ports-foundation.js');
+const meshResourceLoader = read('shared/frontend/js/modules/builtin-mesh-resource.js');
 const metadata = read('assets/js/build-meta.js');
 const bundle = read('assets/css/ui.bundle.css');
-const surfaces = read('assets/css/layout/surfaces.css');
-const editorShell = read('assets/css/components/editor-shell.css');
+const surfaces = read('shared/frontend/css/layout/surfaces.css');
+const editorShell = read('shared/frontend/css/components/editor-shell.css');
 const modalBundle = read('assets/css/ui-modal.bundle.css');
-const indexHtml = read('apps/web-shell/editor.html');
+const indexHtml = read('apps/editor/editor.html');
 
 test('render resources use frame snapshots instead of Proxy traps', () => {
   assert.doesNotMatch(app, /createLiveResources|new\s+Proxy/);
@@ -127,7 +127,7 @@ test('mobile sheet drag stays compositor-only until snap settlement', () => {
 test('map chrome avoids live backdrop blur over animated map content', () => {
   assert.doesNotMatch(editorShell, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
   assert.doesNotMatch(surfaces, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
-  assert.doesNotMatch(read('apps/web-shell/editor.html'), /selection-card|selectionToolbar/);
+  assert.doesNotMatch(read('apps/editor/editor.html'), /selection-card|selectionToolbar/);
 });
 
 test('canonical startup is input-gated and strictly sequential', () => {

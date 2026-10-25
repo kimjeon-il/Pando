@@ -1,6 +1,6 @@
 # P1 — 원격 개발 검사
 
-현재 앱 실행·개발 기준은 `apps/web-shell`이다. 웹·앱은 같은 커밋의 웹 UI, Worker와 WASM을 사용한다.
+현재 앱 실행·개발 기준은 `apps/editor`이다. 웹·앱은 같은 커밋의 웹 UI, Worker와 WASM을 사용한다.
 공통 C++ 소스는 `shared/`, GIS 도구는 `tools/cpp/`에서 관리한다.
 
 ## 도구 및 CMake
@@ -8,7 +8,7 @@
 버전 정본은 `config/toolchain-versions.json`이다. Node 24, pnpm 11.19.0,
 CMake 3.31.6, Emscripten 4.0.20을 해당 작업에만 준비한다.
 GIS Python 3.12 검사는 별도 `gis-python-p4.yml`에서 수행한다.
-앱 Rust·Android SDK 준비는 `apps/web-shell/README.md`를 따른다.
+앱 Rust·Android SDK 준비는 `apps/editor/README.md`를 따른다.
 
 | 프리셋 | 범위 |
 | --- | --- |
@@ -36,4 +36,4 @@ native_mode=development/offline/verification을 사용한다. 개발용 자동 �
 네이티브 입력 변경만 선택하며 JS/CSS와 자료 pin 변경은 재컴파일하지 않는다.
 Windows는 MSVC x64, Android 기본은 ARM64, Rust는1.99.1이다. Android x86_64·offline·검증 실행기는
 명시적으로 요청한다. SDK·Cargo target을 다운로드 artifact에 담거나 새 영구 빌드 캐시를 만들지 않는다.
-로컬 요청/검증 owner와 서명·입력 해시·7일 보존 계약은 apps/web-shell/README.md를 따른다.
+로컬 요청/검증 owner와 서명·입력 해시·7일 보존 계약은 apps/editor/README.md를 따른다.

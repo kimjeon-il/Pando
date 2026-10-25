@@ -2,7 +2,7 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
-import { defaultUserPreferences, STORAGE_KEY } from '../../assets/js/modules/user-preferences.js';
+import { defaultUserPreferences, STORAGE_KEY } from "../../shared/frontend/js/modules/user-preferences.js";
 import { withNativeActionDiagnostics } from './helpers/native-action-diagnostics.mjs';
 
 const hydroSearchDiagnostic = {

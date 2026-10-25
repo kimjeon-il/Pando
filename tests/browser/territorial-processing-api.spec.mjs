@@ -1,6 +1,6 @@
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
-import { PROJECT_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
+import { PROJECT_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 test.use({ channel: 'chromium' });
 
 test('common entities feed editing, undo, autosave and restoration', async ({ page }) => {

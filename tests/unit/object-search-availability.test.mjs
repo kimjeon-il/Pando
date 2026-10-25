@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createObjectCatalog} from '../../assets/js/modules/object-catalog.js';
-import {createObjectQuery} from '../../assets/js/modules/object-query.js';
-import {normalizeObjectRef} from '../../assets/js/modules/object-selection-controller.js';
-import {createTerritorialEntityRepository} from '../../assets/js/modules/territorial-entity-repository.js';
+import {createObjectCatalog} from "../../shared/frontend/js/modules/object-catalog.js";
+import {createObjectQuery} from "../../shared/frontend/js/modules/object-query.js";
+import {normalizeObjectRef} from "../../shared/frontend/js/modules/object-selection-controller.js";
+import {createTerritorialEntityRepository} from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 
 test('search uses current existence and display visibility without truncating literal IDs',()=>{
  const entities=[{type:'Feature',id:'alpha:one',properties:{name:'기간 객체',entityKind:'general',parentId:'',validFrom:'1900-01-01',validTo:'1914-12-31'},geometry:{type:'Point',coordinates:[0,0]}}];
@@ -28,7 +28,7 @@ test('search uses current existence and display visibility without truncating li
 });
 
 test('built-in selection and hover descriptions use the same active period name as search and map labels', async () => {
- const {normalizePlace}=await import('../../assets/js/modules/place-contract.js');
+ const {normalizePlace}=await import("../../shared/frontend/js/modules/place-contract.js");
  const place=normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',kind:'capital',coordinates:[30.52,50.45],nameTimeline:[{fromYear:1801,ko:'키예프'},{fromDate:'1991-08-24',ko:'키이우'}]});
  const state={timelineCursor:'1990-01'};
  const query=createObjectQuery({projectState:{state},preferences:{userPreferences:{labels:{place:{languages:{ko:true}}}}},selectionServices:{normalizeObjectRef},labelPresentation:{labelById:()=>place}});

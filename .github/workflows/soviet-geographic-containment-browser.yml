@@ -28,7 +28,7 @@ jobs:
       - name: P2 source-matched WASM and focused boundary contracts
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           node --check tests/browser/soviet-real-edit-commit-cancel.spec.mjs
           pnpm exec eslint tests/browser/soviet-real-edit-commit-cancel.spec.mjs
           node --test tests/unit/boundary-source-row-compact.test.mjs tests/unit/country-contact-core.test.mjs

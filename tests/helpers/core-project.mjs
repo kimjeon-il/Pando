@@ -1,6 +1,6 @@
 import { createNodeCoreDocument } from './core-session.mjs';
-import { createCoreDocumentReadModel } from '../../assets/js/modules/core-document-read-model.js';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
+import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
 
 /** Actual C++ Worker + production application command boundary, no domain reducer mock. */
 export async function createNodeCoreProject(seed,platformPorts = {}) {

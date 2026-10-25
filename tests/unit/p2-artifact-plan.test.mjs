@@ -24,7 +24,7 @@ test('builtin country family replaces the retired aggregate throughout the artif
  for(const command of [...family.generate,...family.validate])assert.ok(readFileSync(join(root,command[1])).length);
  for(const consumer of family.consumers)assert.ok(readFileSync(join(root,consumer)).length);
  assert.ok(graph.find(row=>row.id==='prepared-mesh').dependencies.includes('builtin-world'));
- assert.ok(graph.find(row=>row.id==='build-metadata').dependencies.includes('builtin-world'));
+ assert.equal(graph.some(row=>row.id==='build-metadata'),false);
 });
 function fixture(t) {
   const root=mkdtempSync(join(tmpdir(),'pando-p2-'));
@@ -36,14 +36,14 @@ function fixture(t) {
   put('shared/CMakeLists.txt','project(Shared)\n');
   put('shared/core/src/calc.cpp','int calc=1;\n');
   const identity=sharedSourceManifest(root);
-  put('assets/wasm/pandoeditor-core.js','export default()=>{};\n');
-  put('assets/wasm/pandoeditor-core.wasm',Buffer.from([0,97,115,109,1,0,0,0]));
-  put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify({
+  put('shared/frontend/static/wasm/pandoeditor-core.js','export default()=>{};\n');
+  put('shared/frontend/static/wasm/pandoeditor-core.wasm',Buffer.from([0,97,115,109,1,0,0,0]));
+  put('shared/frontend/static/wasm/pandoeditor-core.manifest.json',JSON.stringify({
     schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:identity.sourceSha256,
     compiler:{name:'emscripten',version:'4.0.20'},inputs:identity.inputs,
     assets:{
-      js:{file:'pandoeditor-core.js',sha256:digest(get('assets/wasm/pandoeditor-core.js'))},
-      wasm:{file:'pandoeditor-core.wasm',sha256:digest(get('assets/wasm/pandoeditor-core.wasm'))}
+      js:{file:'pandoeditor-core.js',sha256:digest(get('shared/frontend/static/wasm/pandoeditor-core.js'))},
+      wasm:{file:'pandoeditor-core.wasm',sha256:digest(get('shared/frontend/static/wasm/pandoeditor-core.wasm'))}
     }
   }));
   return {root,put,get};
@@ -60,7 +60,7 @@ test('a changed C++ input only invalidates its compiled WASM pair',t=>{
   assert.match(p.statuses.wasm.reasons.join(';'),/source fingerprint/);
 });
 test('missing or corrupted WASM runtime cannot be called up to date',t=>{
-  const f=fixture(t);f.put('assets/wasm/pandoeditor-core.wasm','corrupt');
+  const f=fixture(t);f.put('shared/frontend/static/wasm/pandoeditor-core.wasm','corrupt');
   assert.equal(wasmStatus(f.root).needed,true);
   assert.match(wasmStatus(f.root).reasons.join(';'),/wasm bytes\/hash/);
 });
@@ -80,9 +80,9 @@ test('scope overrides are explicit and controller changes do not rebuild current
   assert.throws(()=>selectJobs(fresh,[],'unsupported'),/P2_INVALID_SCOPE/);
 });
 test('publishing is limited to declared generated artifacts, not source or test fixtures',()=>{
-  assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.js'],{wasm:true});
+  assertSafeGeneratedPaths(['shared/frontend/static/wasm/pandoeditor-core.js'],{wasm:true});
   assert.throws(()=>assertSafeGeneratedPaths(['shared/core/src/project.cpp'],{wasm:true}),/P2_UNEXPECTED_GENERATED_FILE/);
-  assert.throws(()=>assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.wasm'],{wasm:false}),/P2_UNEXPECTED_GENERATED_FILE/);
+  assert.throws(()=>assertSafeGeneratedPaths(['shared/frontend/static/wasm/pandoeditor-core.wasm'],{wasm:false}),/P2_UNEXPECTED_GENERATED_FILE/);
   assert.throws(()=>assertSafeGeneratedPaths(['tests/fixtures/geometry/cut-corpus.json'],{geometry:true}),/P2_UNEXPECTED_GENERATED_FILE/);
 });
 
@@ -211,10 +211,10 @@ function remoteFixture(t,{failValidation=false}={}) {
 
 test('publication commits WASM then Web and writes the remote once at the final SHA',async t=>{
   const f=remoteFixture(t);
-  f.put('assets/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
-  const manifest=JSON.parse(f.get('assets/wasm/pandoeditor-core.manifest.json'));
-  manifest.assets.js.sha256=digest(f.get('assets/wasm/pandoeditor-core.js'));
-  f.put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
+  f.put('shared/frontend/static/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
+  const manifest=JSON.parse(f.get('shared/frontend/static/wasm/pandoeditor-core.manifest.json'));
+  manifest.assets.js.sha256=digest(f.get('shared/frontend/static/wasm/pandoeditor-core.js'));
+  f.put('shared/frontend/static/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
   const result=await publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true,
     beforeFinalGuard:()=>assert.equal(f.remoteHead(),f.source,'intermediate commits must remain local')});
   assert.deepEqual(result.commits.map(c=>c.phase),['wasm','web']);
@@ -228,10 +228,10 @@ test('publication commits WASM then Web and writes the remote once at the final 
 
 test('Web validation failure keeps a successful local WASM commit off the remote',async t=>{
   const f=remoteFixture(t,{failValidation:true});
-  f.put('assets/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
-  const manifest=JSON.parse(f.get('assets/wasm/pandoeditor-core.manifest.json'));
-  manifest.assets.js.sha256=digest(f.get('assets/wasm/pandoeditor-core.js'));
-  f.put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
+  f.put('shared/frontend/static/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
+  const manifest=JSON.parse(f.get('shared/frontend/static/wasm/pandoeditor-core.manifest.json'));
+  manifest.assets.js.sha256=digest(f.get('shared/frontend/static/wasm/pandoeditor-core.js'));
+  f.put('shared/frontend/static/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
   await assert.rejects(publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true}),/Command failed/);
   assert.notEqual(f.git('rev-parse','HEAD'),f.source,'WASM was committed locally before Web validation');
   assert.equal(f.remoteHead(),f.source,'failed Web outputs cannot publish the intermediate WASM commit');
@@ -269,18 +269,9 @@ test('a concurrent remote commit survives the final publication guard',async t=>
 });
 
 
-test('metadata staging accepts both generated product HTML entries under the real output contract',async t=>{
- const metadata=JSON.parse(readFileSync(new URL('../../config/generated-artifacts.json',import.meta.url),'utf8')).families.find(f=>f.id==='build-metadata');
- const f=graphFixture(t);f.families.splice(0,f.families.length,{...metadata,dependencies:[],inputs:['input/a.txt'],generate:[['node','tools/generate.mjs']],validate:[]});f.config();
- f.put('index.html','old viewer');f.put('apps/web-shell/editor.html','old editor');const head=f.commit();
- const staged=await stageArtifacts(f.root,{families:['build-metadata'],expectedSourceSha:head,stageDir:'build-native/p2/product-html',run:(_command,cwd)=>{
-  for(const path of ['index.html','apps/web-shell/editor.html','assets/js/build-meta.js','README.md']){mkdirSync(dirname(join(cwd,path)),{recursive:true});writeFileSync(join(cwd,path),'generated '+path);}
- }});
- assert.ok(staged.paths.includes('index.html'));assert.ok(staged.paths.includes('apps/web-shell/editor.html'));
- assert.equal(f.get('apps/web-shell/editor.html').toString(),'old editor');
- publishArtifacts(f.root,{stageDir:'build-native/p2/product-html',expectedSourceSha:head});
- assert.equal(f.get('apps/web-shell/editor.html').toString(),'generated apps/web-shell/editor.html');
- assert.equal(f.get('input/a.txt').toString(),'source-a');
+test('frontend metadata and HTML are derived outputs rather than Git publication families',()=>{
+ const graph=artifactGraph(fileURLToPath(new URL('../../',import.meta.url)));
+ for(const family of graph)for(const output of family.outputs)assert.equal(['index.html','apps/editor/editor.html','assets/js/build-meta.js'].includes(output),false);
 });
 
 test('world bundle ownership follows the current manifest rather than every cached object', t => {

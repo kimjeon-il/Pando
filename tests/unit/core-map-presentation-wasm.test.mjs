@@ -1,8 +1,8 @@
-import { resourceCapabilities } from '../../assets/js/modules/resource-capabilities.js';
+import { resourceCapabilities } from "../../shared/frontend/js/modules/resource-capabilities.js";
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createMapSettings } from '../../assets/js/modules/app-map-settings.js';
+import { createMapSettings } from "../../shared/frontend/js/modules/app-map-settings.js";
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { createTestViewingSession } from '../helpers/viewing-project.mjs';
 

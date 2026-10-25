@@ -5,7 +5,7 @@ on:
     branches: ['work/ui']
     paths:
       - '.github/workflows/web-shell-world-validation.yml'
-      - 'apps/web-shell/**'
+      - 'apps/editor/**'
   workflow_dispatch:
 
 permissions:
@@ -48,29 +48,29 @@ jobs:
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+          pnpm --dir apps/editor install --ignore-workspace --frozen-lockfile
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Run focused canonical shell and file tests
         shell: pwsh
         run: |
-          node --test apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs apps/web-shell/tests/stage-world.test.mjs apps/web-shell/tests/stage.test.mjs apps/web-shell/tests/network-guard.test.mjs
+          node --test apps/editor/tests/full-world-probe.test.mjs apps/editor/tests/world-data-plan.test.mjs apps/editor/tests/stage-world.test.mjs apps/editor/tests/stage.test.mjs apps/editor/tests/network-guard.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Stage and hash the actual committed map data
         shell: pwsh
         run: |
-          node apps/web-shell/stage.mjs --profile=map-data
+          node apps/editor/stage.mjs --profile=map-data
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node apps/web-shell/check-stage.mjs
+          node apps/editor/check-stage.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build map-data Windows Tauri app using native MSVC
         shell: pwsh
         run: |
-          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
+          pnpm --dir apps/editor exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Execute the actual map-data Windows WebView app
         shell: pwsh
         run: |
-          ./apps/web-shell/verify-world-windows.ps1 -BinaryPath 'apps/web-shell/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe'
+          ./apps/editor/verify-world-windows.ps1 -BinaryPath 'apps/editor/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe'
       - name: Preserve proof even if GUI execution fails
         if: always()
         uses: actions/upload-artifact@v4
@@ -78,5 +78,5 @@ jobs:
           name: web-shell-windows-world-validation-${{ github.sha }}
           if-no-files-found: warn
           path: |
-            apps/web-shell/dist/shell/stage-evidence.json
+            apps/editor/dist/shell/stage-evidence.json
             build-native/web-shell/world-windows.json

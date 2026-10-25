@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { placeView } from '../helpers/place-view.mjs';
-import { createPlaceWorkerStore, readPlaceResponse } from '../../assets/js/modules/place-worker-store.js';
-import { normalizePlace, PLACE_LIMITS } from '../../assets/js/modules/place-contract.js';
-import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
+import { createPlaceWorkerStore, readPlaceResponse } from "../../shared/frontend/js/modules/place-worker-store.js";
+import { normalizePlace, PLACE_LIMITS } from "../../shared/frontend/js/modules/place-contract.js";
+import { encodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const records = Array.from({ length: 20 }, (_, i) => normalizePlace({ source: 'synthetic', sourceId: String(i), name: `서울 ${i}`, coordinates: [127 + i / 100, 37], kind: 'city', minZoom: 0, priority: i }));
 function fixture() {

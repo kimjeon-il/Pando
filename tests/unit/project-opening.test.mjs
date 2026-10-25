@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createInitialDocument} from '../../assets/js/modules/initial-document.js';
+import {createInitialDocument} from "../../shared/frontend/js/modules/initial-document.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 const seed=()=>createInitialDocument({appVersion:'0.36.0',baseDataset:'initial'});
 const project=name=>({...seed(),baseDataset:name});

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProjectUiBridge } from '../../assets/js/modules/project-ui-bridge.js';
+import { createProjectUiBridge } from "../../apps/editor/frontend/js/modules/project-ui-bridge.js";
 
 function fixture({ undoProject, redoProject, draftInputActive = () => false, undoDraft, redoDraft,
   getEditingSnapshot = () => ({ processing: false, previewActive: false }), returnToEditing } = {}) {

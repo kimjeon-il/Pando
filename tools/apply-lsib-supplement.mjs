@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {sharedCalculationCore} from '../assets/js/modules/temporal.js';
-import {normalizeTerritorialLibraryEntity} from '../assets/js/modules/territorial-library.js';
+import {sharedCalculationCore} from "../shared/frontend/js/modules/temporal.js";
+import {normalizeTerritorialLibraryEntity} from "../apps/editor/frontend/js/modules/territorial-library.js";
 import {entityFileName,territorialSourceRoot} from './territorial-entity-sources.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');

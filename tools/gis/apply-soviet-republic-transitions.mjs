@@ -3,7 +3,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {readTerritorialSources,updateTerritorialSource} from '../territorial-entity-sources.mjs';
-import {normalizeTerritorialLibraryEntity} from '../../assets/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity} from "../../apps/editor/frontend/js/modules/territorial-library.js";
 
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const previousDay=day=>{const value=new Date(day+'T00:00:00Z');value.setUTCDate(value.getUTCDate()-1);return value.toISOString().slice(0,10);};

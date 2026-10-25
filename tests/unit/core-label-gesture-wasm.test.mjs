@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
 import { historySnapshotFixture } from '../helpers/editable-history-fixture.mjs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createGenericCommands } from '../../assets/js/modules/app-generic-commands.js';
+import { createGenericCommands } from "../../apps/editor/frontend/js/modules/app-generic-commands.js";
 
 const original = Object.assign({}, ...await Promise.all([
   'tests/helpers/timeline-project.mjs', 'assets/js/modules/app-project-snapshots.js',

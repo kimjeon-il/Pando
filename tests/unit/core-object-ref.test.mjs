@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { webObjectRefToCore, webSelectionRefToCore, coreSelectionRefToWeb } from '../../assets/js/modules/core-object-ref.js';
+import { webObjectRefToCore, webSelectionRefToCore, coreSelectionRefToWeb } from "../../shared/frontend/js/modules/core-object-ref.js";
 
 test('Web selection types cross the native command boundary explicitly without changing IDs', () => {
   for (const [domain, type, native] of [['territorial', 'entity', 'territorial'], ['generic', 'feature', 'generic'],

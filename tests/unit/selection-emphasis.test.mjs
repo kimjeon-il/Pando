@@ -6,7 +6,7 @@ import test from 'node:test';
 import {
   buildSelectionBoundarySegments,
   buildSelectionChannelSignature,
-} from '../../assets/js/modules/selection-stroke-geometry.js';
+} from "../../shared/frontend/js/modules/selection-stroke-geometry.js";
 
 test('selection boundaries keep polygon holes and independent multipolygon rings', () => {
   const polygon = {
@@ -32,13 +32,13 @@ test('selection line geometries stay independent and dateline crossings are spli
 });
 
 test('selection emphasis renderer does not use GL_LINES or lineWidth', async () => {
-  const source = await readFile(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
+  const source = await readFile(new URL("../../shared/frontend/js/modules/selection-pass.js", import.meta.url), 'utf8');
   assert.doesNotMatch(source, /gl\.LINES/);
   assert.doesNotMatch(source, /lineWidth/);
 });
 
 test('shared stroke renderer includes a one-time offscreen health check and gates availability on it', async () => {
-  const source = await readFile(new URL('../../assets/js/modules/gpu-stroke-renderer.js', import.meta.url), 'utf8');
+  const source = await readFile(new URL("../../shared/frontend/js/modules/gpu-stroke-renderer.js", import.meta.url), 'utf8');
   assert.match(source, /function runSelfTest\(\)/);
   assert.match(source, /gl\.readPixels\(0, 0, 16, 16/);
   assert.match(source, /gpuHealth === 'healthy'/);
@@ -64,9 +64,9 @@ test('selection channel signatures use keys and geometry revisions instead of ob
 });
 
 test('country interaction boundaries reuse stable shared resources and draw only requested owners', async () => {
-  const selection = await readFile(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
-  const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
-  const meshCore = await readFile(new URL('../../assets/js/workers/gpu-mesh-core.js', import.meta.url), 'utf8');
+  const selection = await readFile(new URL("../../shared/frontend/js/modules/selection-pass.js", import.meta.url), 'utf8');
+  const gpu = await readFile(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
+  const meshCore = await readFile(new URL("../../shared/frontend/js/workers/gpu-mesh-core.js", import.meta.url), 'utf8');
   assert.doesNotMatch(selection, /lineIndices|countryIndices/);
   assert.match(selection, /snapshot\.strokeResources/);
   assert.match(selection, /ownerIds:\s*\[id\]/);
@@ -92,7 +92,7 @@ test('country interaction boundaries reuse stable shared resources and draw only
 });
 
 test('country interaction fill consumes only the prepared emphasized ranges', async () => {
-  const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+  const gpu = await readFile(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
   const start = gpu.indexOf('function drawCountryInteractionFills');
   const end = gpu.indexOf('function drawCountryBoundaryMask', start);
   assert.ok(start >= 0 && end > start, 'country interaction fill helper must remain isolated');
@@ -106,9 +106,9 @@ test('country interaction fill consumes only the prepared emphasized ranges', as
 });
 
 test('territorial persistent boundaries use the shared GPU scene stroke domain', async () => {
-  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
-  const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
-  const preparation = await readFile(new URL('../../assets/js/modules/map-display-preparation.js', import.meta.url), 'utf8');
+  const rendering = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
+  const gpu = await readFile(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
+  const preparation = await readFile(new URL("../../shared/frontend/js/modules/map-display-preparation.js", import.meta.url), 'utf8');
   assert.match(preparation, /buildTerritorialInternalBoundarySegments/);
   assert.doesNotMatch(rendering, /buildTerritorialInternalBoundarySegments/);
   assert.match(rendering, /replaceGpuSceneDomain\?\.\('territorial-boundaries'/);
@@ -116,8 +116,8 @@ test('territorial persistent boundaries use the shared GPU scene stroke domain',
 });
 
 test('SelectionPass is independent from canvas and shares the main renderer context lifecycle', async () => {
-  const selectionPass = await readFile(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
-  const renderer = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+  const selectionPass = await readFile(new URL("../../shared/frontend/js/modules/selection-pass.js", import.meta.url), 'utf8');
+  const renderer = await readFile(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
   assert.doesNotMatch(selectionPass, /getContext\s*\(/);
   assert.doesNotMatch(selectionPass, /addEventListener\s*\(/);
   assert.doesNotMatch(selectionPass, /removeEventListener\s*\(/);
@@ -130,11 +130,11 @@ test('SelectionPass is independent from canvas and shares the main renderer cont
 
 test('selection data travels through one packet contract and main-renderer interaction draw', async () => {
   const app = readApplicationOwners('gpu-scene', 'domain-assembly');
-  const packet = await readFile(new URL('../../assets/js/modules/selection-packet.js', import.meta.url), 'utf8');
-  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const packet = await readFile(new URL("../../shared/frontend/js/modules/selection-packet.js", import.meta.url), 'utf8');
+  const rendering = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
   assert.match(packet, /countryBoundaryRevision/);
   assert.match(packet, /territorialBoundaryRevision/);
-  const { createSelectionPacket } = await import('../../assets/js/modules/selection-packet.js');
+  const { createSelectionPacket } = await import("../../shared/frontend/js/modules/selection-packet.js");
   const selectionPacket = createSelectionPacket({ channels: { primary: [{ key: 'territorial:entity:A' }] } });
   assert.equal(selectionPacket.channels.primary[0].key, 'territorial:entity:A');
   assert.equal(Object.isFrozen(selectionPacket.channels.primary), true);
@@ -149,7 +149,7 @@ test('selection data travels through one packet contract and main-renderer inter
 
 test('selection overlay commits staged SVG only after GPU draw coverage is known', async () => {
   const app = readApplicationOwners('gpu-scene', 'domain-assembly');
-  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const rendering = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
   const start = rendering.indexOf('const renderSelectionOverlayFrame');
   const end = rendering.indexOf('const renderSelection =', start);
   const source = rendering.slice(start, end);

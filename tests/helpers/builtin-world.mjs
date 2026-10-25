@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {assembleBuiltinWorld,selectBuiltinCountries} from '../../assets/js/modules/builtin-world-loader.js';
+import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 
 const root=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url);
 let catalog;

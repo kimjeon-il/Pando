@@ -5,7 +5,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readSync, readdirSync, realpathSync, renameSync, rmdirSync, statfsSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defaultRoot, discardDeadLibraryLock, libraryCheckout, libraryConfig, libraryMaterializedRoot, libraryOwnerId, librarySharedCheckout, libraryWriteLeases, prepareOwnedLibraryData, reportContext, runtimeMaterializationPeak, synchronizeRuntimeManifest, withLibraryLock } from './library-data.mjs';
+import { defaultRoot, discardDeadLibraryLock, libraryCheckout, libraryConfig, libraryMaterializedRoot, libraryOwnerId, librarySharedCheckout, libraryWriteLeases, prepareOwnedLibraryData, reportContext, runtimeMaterializationPeak, synchronizeRuntimeManifest, withLibraryLock, libraryRuntimeLeasePaths } from './library-data.mjs';
 import { atomicStorageJSON, containedPath, contentFiles, contentHash, contentPath, linkContent, removeContentLink, shareContentFile } from './library-content.mjs';
 
 const environment = () => ({ ...process.env, GIT_NO_LAZY_FETCH: '1', GIT_OPTIONAL_LOCKS: '0' });
@@ -34,8 +34,7 @@ function consumers(roots, shared, {allowRoot=null,reclaim=false}={}) {
   for(const root of roots) {
     if(root!==allowRoot&&reclaim)discardDeadLibraryLock(resolve(root,'.library-data/prepare.lock'));
     if(root!==allowRoot && existsSync(resolve(root,'.library-data/prepare.lock'))) throw Error(`Preparation is running: ${root}`);
-    const server=resolve(root,'.library-data/dev-server.json');
-    if(existsSync(server)){
+    for(const server of libraryRuntimeLeasePaths(root))if(existsSync(server)){
       const lease=JSON.parse(readFileSync(server,'utf8'));
       if(processAlive(lease.pid)) throw Error(`Development server ${lease.pid} must be normally stopped before storage migration: ${root}`);
     }
@@ -194,7 +193,7 @@ function removeLegacy(root,shared,journal,save){
     unlinkSync(source);journal.deleted.push({...item,reason:'byte-exact local application Git blob'});
   }
   const oldScripts=resolve(shared,'.local-preserved');if(existsSync(oldScripts)&&!readdirSync(oldScripts).length)rmdirSync(oldScripts);
-  for(const owner of journal.roots){const path=resolve(owner.root,'.library-data/dev-server.json');if(existsSync(path)&&!processAlive(JSON.parse(readFileSync(path,'utf8')).pid))unlinkSync(path);}
+  for(const owner of journal.roots)for(const path of libraryRuntimeLeasePaths(owner.root))if(existsSync(path)&&!processAlive(JSON.parse(readFileSync(path,'utf8')).pid))unlinkSync(path);
   journal.phase='caches-removed';save();
 }
 export function snapshotGitStorage(shared,progress=()=>{}){

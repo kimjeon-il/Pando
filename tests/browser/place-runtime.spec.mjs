@@ -1,7 +1,7 @@
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { createHash } from 'node:crypto';
-import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
+import { encodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
 test.use({ viewport:{width:1440,height:900} });

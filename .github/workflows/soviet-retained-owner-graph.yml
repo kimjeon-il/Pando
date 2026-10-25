@@ -34,7 +34,7 @@ jobs:
           node --check tests/browser/soviet-retained-owners-breakdown.spec.mjs
           pnpm exec eslint scripts/research/instrument-shared-boundary-retainers.mjs tests/browser/soviet-retained-owners-breakdown.spec.mjs
           git diff --exit-code -- assets/js/modules/country-shared-boundary-packet.js assets/js/modules/boundary-topology.js
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
       - run: pnpm exec playwright install --with-deps chromium
       - name: Temporarily expose closure owners in disposable runner checkout
         env:

@@ -5,9 +5,9 @@ import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
 import {buildCurrentWorld} from '../../tools/territorial-current-world.mjs';
 import {encodeCanonicalCountryPacket} from '../../tools/canonical-country-packet-encoder.mjs';
-import {buildCountrySharedBoundarySegments,serializeCountrySharedBoundarySegments} from '../../assets/js/modules/boundary-topology.js';
-import {countryGeometrySignature} from '../../assets/js/modules/country-shared-boundary-cache.js';
-import {classifyBuiltinCountries} from '../../assets/js/modules/builtin-subunits.js';
+import {buildCountrySharedBoundarySegments,serializeCountrySharedBoundarySegments} from "../../shared/frontend/js/modules/boundary-topology.js";
+import {countryGeometrySignature} from "../../shared/frontend/js/modules/country-shared-boundary-cache.js";
+import {classifyBuiltinCountries} from "../../shared/frontend/js/modules/builtin-subunits.js";
 const root=new URL('../../',import.meta.url);
 const worldBundle=JSON.parse(fs.readFileSync(new URL('assets/data/world/current.json',root),'utf8'));
 test('explicit world view exactly reproduces generated features and encoded PCG bytes',()=>{

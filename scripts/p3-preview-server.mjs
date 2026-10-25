@@ -112,7 +112,8 @@ export function createP3PreviewServer(root=sourceRoot, options={}) {
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const port=Number(process.env.PANDOLAB_PREVIEW_PORT||4173);
   if(!Number.isInteger(port)||port<1||port>65535)throw Error('Invalid PANDOLAB_PREVIEW_PORT');
-  createP3PreviewServer().listen(port,'0.0.0.0',()=>{
-    console.log('P3 branch preview ready at http://127.0.0.1:'+port+'/');
-  });
+  const {startDevelopmentServer}=await import('./frontend-dev-server.mjs');
+  const app=await startDevelopmentServer({product:'viewer',port});
+  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>app.close().then(()=>process.exit(0),error=>{console.error(error);process.exit(1);}));
+  console.log('P3 branch preview ready at http://127.0.0.1:'+port+'/');
 }

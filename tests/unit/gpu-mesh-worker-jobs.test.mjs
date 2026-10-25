@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGpuMeshWorkerJobs } from '../../assets/js/modules/gpu-mesh-worker-jobs.js';
+import { createGpuMeshWorkerJobs } from "../../shared/frontend/js/modules/gpu-mesh-worker-jobs.js";
 
 test('polygon preparation accepts finite progress across a long batch but still times out a stalled batch', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });

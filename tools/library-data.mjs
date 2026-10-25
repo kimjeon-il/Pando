@@ -26,6 +26,14 @@ export function libraryCheckout(root = defaultRoot) {
 export function libraryMaterializedRoot(root = defaultRoot) {
   return resolve(librarySharedCheckout(root), '.pando-cache/materialized', libraryOwnerId(root), libraryConfig(root).revision);
 }
+export function libraryRuntimeLeasePath(root,product,pid=process.pid){
+  if(!['viewer','editor','verification'].includes(product)||!Number.isInteger(pid)||pid<1)throw Error('Invalid frontend runtime lease');
+  return resolve(root,'.library-data/runtime-leases',product+'-'+pid+'.json');
+}
+export function libraryRuntimeLeasePaths(root){
+  const directory=resolve(root,'.library-data/runtime-leases');
+  return existsSync(directory)?readdirSync(directory).filter(name=>/^(viewer|editor|verification)-[1-9]\d*\.json$/.test(name)).map(name=>resolve(directory,name)):[];
+}
 export function libraryReportRoot(root = defaultRoot) {
   return resolve(librarySharedCheckout(root), 'reports');
 }
@@ -41,8 +49,8 @@ export function librarySharedCheckout(root = defaultRoot) {
 // exact archived blob without linking its live (possibly private) input file.
 // Callers hold the canonical library lock while linking/removing.
 const stagingContexts=new Map();
-export function libraryStagingContent({root=defaultRoot,source,sha256,bytes}) {
-  if(!source?.startsWith('assets/')||!existsSync(resolve(root,'config/library-data.json')))return null;
+export function libraryStagingContent({root=defaultRoot,sha256,bytes}) {
+  if(!existsSync(resolve(root,'config/library-data.json')))return null;
   libraryConfig(root);const checkout=libraryCheckout(root);
   let context=stagingContexts.get(root);
   if(context?.checkout!==checkout){context={checkout,shared:librarySharedCheckout(root)};stagingContexts.set(root,context);}
@@ -434,8 +442,7 @@ function retireOwnedCaches(root, current) {
   for (const worktree of roots) {
     if (!existsSync(resolve(worktree, 'config/library-data.json'))) continue;
     active.add(libraryMaterializedRoot(worktree));
-    const lease = resolve(worktree, '.library-data/dev-server.json');
-    if (existsSync(lease)) {
+    for(const lease of libraryRuntimeLeasePaths(worktree))if (existsSync(lease)) {
       const record = JSON.parse(readFileSync(lease, 'utf8'));
       try { process.kill(record.pid, 0); for (const path of record.materialized) active.add(path); }
       catch (error) { if (error.code !== 'ESRCH') return; }

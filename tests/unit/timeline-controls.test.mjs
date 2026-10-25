@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { shiftTimelineMonth, timelineMonthLabel, installTimelineControls } from '../../assets/js/modules/timeline-controls.js';
+import { shiftTimelineMonth, timelineMonthLabel, installTimelineControls } from "../../shared/frontend/js/modules/timeline-controls.js";
 
 test('timeline navigation handles months, years, BCE and extended years without year zero', () => {
   assert.equal(shiftTimelineMonth('1914-07', -1), '1914-06');

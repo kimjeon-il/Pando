@@ -2,7 +2,7 @@
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
-이 저장소는 웹(루트), [Windows·Android 앱](apps/web-shell/README.md), [공통 C++ 코어](shared/README.md), [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)를 함께 관리합니다. 앱 실행·개발 기준은 `apps/web-shell`이며, 웹 화면·Worker·WASM·자료를 같은 커밋에서 사용합니다.
+이 저장소는 웹(루트), [Windows·Android 앱](apps/editor/README.md), [공통 C++ 코어](shared/README.md), [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)를 함께 관리합니다. 앱 실행·개발 기준은 `apps/editor`이며, 웹 화면·Worker·WASM·자료를 같은 커밋에서 사용합니다.
 
 v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·단위·숫자값으로 관리합니다. 소수·0·음수를 저장할 수 있고, 분포별 자동 또는 직접 지정한 값 범위로 색 농도를 정합니다. 보기 메뉴에서는 모든 분포를 겹쳐 보거나 한 분포만 표시할 수 있습니다.
 
@@ -17,13 +17,18 @@ v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·�
 
 ## 로컬 실행
 
-이 프로젝트는 Worker와 외부 데이터 파일을 사용하므로 `index.html`을 직접 더블클릭하지 마세요.
+먼저 `pnpm.cmd deps:prepare`로 공용 의존성을 준비합니다.
 
-```powershell
-python -m http.server 8080
-```
+| 명령 | 용도 |
+| --- | --- |
+| `pnpm.cmd dev:web` | PC·모바일 웹, localhost:4173 |
+| `pnpm.cmd dev:editor` | 편집기 개발 서버, localhost:4175 |
+| `pnpm.cmd dev:windows` | CI Windows 실행기와 개발 서버 |
+| `pnpm.cmd dev:android` | CI ARM64 APK·ADB 실기기와 개발 서버 |
+| `pnpm.cmd build:web` | viewer 전용 정적 산출물 |
+| `pnpm.cmd build:windows` / `build:android` | 대응 CI 오프라인 산출물 요청·검증 |
 
-브라우저에서 `http://localhost:8080/`을 엽니다.
+소스와 생성물의 위치는 [폴더·생성물 운영](docs/workspace-layout.md)을 참고하세요. 생성 HTML을 직접 열지 말고 개발 서버를 사용합니다. Rust·Android SDK·Emscripten은 로컬에 설치하지 않습니다.
 
 ## 검사 실행
 

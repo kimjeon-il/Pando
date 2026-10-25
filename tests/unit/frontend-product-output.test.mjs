@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {frontendFixture} from '../helpers/frontend-build-fixture.mjs';
+import {buildFrontendSnapshot,selectFrontendProduct} from '../../scripts/lib/frontend-build.mjs';
+test('the web build selects only viewer assets and verifies each pinned runtime file',async t=>{const f=frontendFixture(t),all=await buildFrontendSnapshot(f.options),readRuntimeAsset=path=>Buffer.from(JSON.stringify(f.metadata[path]));const viewer=selectFrontendProduct(all,'viewer',{readRuntimeAsset});assert.equal(viewer.product,'viewer');assert.equal(viewer.assets.has('assets/js/bootstrap.js'),false);assert.equal(viewer.assets.has('shell/startup.js'),false);assert.ok(viewer.assets.has('assets/data/hydro/v0.13.2/data.bin'));assert.notEqual(viewer.sourceSha256,all.sourceSha256);assert.deepEqual(new Set(viewer.assets.keys()),all.viewerPaths);});

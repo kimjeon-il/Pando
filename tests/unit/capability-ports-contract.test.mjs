@@ -1,8 +1,8 @@
-import {applicationOwnerDefinitions} from '../../scripts/lib/application-source.mjs';
+import {applicationOwnerDefinitions,applicationModuleUrl} from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createFoundationPorts } from '../../assets/js/modules/app-capability-ports-foundation.js';
+import { createFoundationPorts } from "../../apps/editor/frontend/js/modules/app-capability-ports-foundation.js";
 
 test('foundation editor capabilities expose the actual presentation methods without aliases', () => {
   const territorialPropertyController = { closeTransient() {}, syncInteraction() {} };
@@ -33,7 +33,7 @@ test('required editor capabilities fail before initialization and after their ow
 });
 
 const root = new URL('../../', import.meta.url);
-const read = relativePath => readFileSync(new URL(relativePath, root), 'utf8');
+const read = relativePath => readFileSync(relativePath.startsWith('assets/js/modules/')?applicationModuleUrl(relativePath.slice(18)):new URL(relativePath, root), 'utf8');
 const spatialOwners = [
   'camera-navigation.js',
   'app-readiness-notifications.js',
@@ -97,7 +97,7 @@ function assertOwnerPortAccesses({ ports, contract, files }) {
 }
 
 test('every owner access is declared by an injected capability port', async () => {
-  const portModuleUrl = new URL('assets/js/modules/app-capability-ports.js', root);
+  const portModuleUrl = applicationModuleUrl('app-capability-ports.js');
   assert.equal(existsSync(portModuleUrl), true, 'missing capability port registry');
   const module = await import(portModuleUrl.href);
   const providers = new Proxy({}, {
@@ -111,13 +111,13 @@ test('every owner access is declared by an injected capability port', async () =
   assert.deepEqual(Object.keys(module.MAP_RESOURCE_OWNER_PORTS).sort(), mapResourceOwners.map(ownerName).sort());
   assertOwnerPortAccesses({ ports, contract: module.SPATIAL_DATA_OWNER_PORTS, files: spatialOwners });
   assertOwnerPortAccesses({ ports, contract: module.MAP_RESOURCE_OWNER_PORTS, files: mapResourceOwners });
-  const composition = read('assets/js/modules/app-composition.js');
+  const composition = read('apps/editor/frontend/js/modules/app-composition.js');
   assert.match(composition, /createApplicationPorts/);
   assert.match(composition, /ports:\s*applicationPorts/g);
 });
 
 test('remaining connector domains expose owner contracts without flat dependency access', async () => {
-  const module = await import(new URL('assets/js/modules/app-capability-ports.js', root).href);
+  const module = await import(applicationModuleUrl('app-capability-ports.js').href);
   const providers = new Proxy({}, {
     get: (_target, provider) => new Proxy({}, {
       get: (_providerTarget, field) => `${String(provider)}.${String(field)}`,
@@ -139,7 +139,7 @@ test('map-resources writes use explicit capability commands', async () => {
     environment: { resolvedAccentColor: '#000000', userPreferences: { theme: 'system' } },
   };
   const providers = new Proxy(state, { get: (target, key) => target[key] ||= {} });
-  const { createApplicationPorts } = await import(new URL('assets/js/modules/app-capability-ports.js', root).href);
+  const { createApplicationPorts } = await import(applicationModuleUrl('app-capability-ports.js').href);
   const ports = createApplicationPorts(providers);
   ports.geometryMutation.setApplyingWorkerResult(true);
   ports.distributionPresentation.bumpVisibilityRevision();
@@ -150,7 +150,7 @@ test('map-resources writes use explicit capability commands', async () => {
 });
 
 test('environment provides the platform values consumed by boundary editing', async () => {
-  const { createEnvironment } = await import(new URL('assets/js/modules/app-environment.js', root).href);
+  const { createEnvironment } = await import(applicationModuleUrl('app-environment.js').href);
   const previousMatchMedia = globalThis.matchMedia;
   const previousClipper = globalThis.polygonClipping;
   const clipper = { intersection() {} };
@@ -169,7 +169,7 @@ test('environment provides the platform values consumed by boundary editing', as
 });
 
 test('application capability ports are frozen, shared and bounded to twelve members', async () => {
-  const module = await import(new URL('assets/js/modules/app-capability-ports.js', root).href);
+  const module = await import(applicationModuleUrl('app-capability-ports.js').href);
   const { createApplicationPorts, MAP_RESOURCE_OWNER_PORTS, SPATIAL_DATA_OWNER_PORTS } = module;
   const providers = new Proxy({}, {
     get: (_target, provider) => new Proxy({}, {
@@ -190,10 +190,10 @@ test('application capability ports are frozen, shared and bounded to twelve memb
 });
 
 test('P5-6 interaction preparation failure retains the explicit user-visible reporting port',async()=>{
-  const module=await import('../../assets/js/modules/app-capability-ports.js');
+  const module=await import("../../apps/editor/frontend/js/modules/app-capability-ports.js");
   assert.ok(module.MAP_RESOURCE_OWNER_PORTS.interactionPackets.includes('feedback'));
-  const source=read('assets/js/modules/app-interaction-packets.js');
+  const source=read('apps/editor/frontend/js/modules/app-interaction-packets.js');
   assert.match(source,/dependencies\.feedback\.reportOperationError\(/);
-  const ports=read('assets/js/modules/app-capability-ports.js');
+  const ports=read('apps/editor/frontend/js/modules/app-capability-ports.js');
   assert.match(ports,/get reportOperationError\(\) \{ return providers\.readinessNotifications\.reportOperationError; \}/);
 });

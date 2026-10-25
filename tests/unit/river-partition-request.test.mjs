@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { createRiverCandidates } from '../../assets/js/modules/app-river-candidates.js';
+import { createRiverCandidates } from "../../apps/editor/frontend/js/modules/app-river-candidates.js";
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
-import { MAP_INTERACTION_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { MAP_INTERACTION_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports.js";
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 function harness() {

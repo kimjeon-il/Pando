@@ -2,18 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {createHistoryAssembly} from '../../assets/js/modules/app-history-assembly.js';
-import {resolveStartupSource} from '../../assets/js/modules/app-progressive-startup.js';
-import {saveBoundDocument} from '../../assets/js/modules/app-file-bindings.js';
-import {assertCurrentProjectSchema} from '../../assets/js/modules/project-state.js';
-import {restoreTimelineStorage} from '../../assets/js/modules/timeline-storage.js';
+import {createHistoryAssembly} from "../../apps/editor/frontend/js/modules/app-history-assembly.js";
+import {resolveStartupSource} from "../../apps/editor/frontend/js/modules/app-progressive-startup.js";
+import {saveBoundDocument} from "../../apps/editor/frontend/js/modules/app-file-bindings.js";
+import {assertCurrentProjectSchema} from "../../shared/frontend/js/modules/project-state.js";
+import {restoreTimelineStorage} from "../../shared/frontend/js/modules/timeline-storage.js";
 import {prepareLibraryGeometryWorkspace, collectLibraryGeometryChanges,
-  parseNativeLibraryGeometryRequest, createLibraryGeometryContext} from '../../assets/js/modules/library-geometry-context.js';
-import {createRepositoryTerritorialLoader} from '../../assets/js/modules/territorial-entity-loader.js';
-import {createTerritorialLibraryService} from '../../assets/js/modules/territorial-library-service.js';
-import {markEditedLibrarySource} from '../../assets/js/modules/territorial-library-provenance.js';
-import {sharedCalculationCore} from '../../assets/js/modules/temporal.js';
-import {confirmLibraryGeometryBeforeUnload} from '../../assets/js/modules/app-global-input-bindings.js';
+  parseNativeLibraryGeometryRequest, createLibraryGeometryContext} from "../../apps/editor/frontend/js/modules/library-geometry-context.js";
+import {createRepositoryTerritorialLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
+import {createTerritorialLibraryService} from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
+import {markEditedLibrarySource} from "../../apps/editor/frontend/js/modules/territorial-library-provenance.js";
+import {sharedCalculationCore} from "../../shared/frontend/js/modules/temporal.js";
+import {confirmLibraryGeometryBeforeUnload} from "../../apps/editor/frontend/js/modules/app-global-input-bindings.js";
 
 const polygon=(left,right)=>({type:'Polygon',coordinates:[[[left,0],[right,0],[right,1],[left,1],[left,0]]]});
 const version=(versionId,geometry,validFrom='1900-01-01',validTo='1900-12-31')=>

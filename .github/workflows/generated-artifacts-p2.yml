@@ -166,11 +166,11 @@ jobs:
           cmake --build --preset pando-wasm
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
       - name: Verify published compiled identity and package hashes
-        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
       - name: Verify the changed geographic contact and common fill kernels
         if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal'
         env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
         run: >-
           node --test shared/tests/p5-country-contact-wasm.test.mjs
           shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
@@ -179,7 +179,7 @@ jobs:
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
         env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
         run: >-
           node --test shared/tests/temporal-editing.test.mjs
           tests/unit/place-names.test.mjs tests/unit/territorial-library-service.test.mjs
@@ -188,9 +188,9 @@ jobs:
         with:
           name: temporal-wasm-${{ github.sha }}
           path: |
-            assets/wasm/pandoeditor-core.js
-            assets/wasm/pandoeditor-core.wasm
-            assets/wasm/pandoeditor-core.manifest.json
+            shared/frontend/static/wasm/pandoeditor-core.js
+            shared/frontend/static/wasm/pandoeditor-core.wasm
+            shared/frontend/static/wasm/pandoeditor-core.manifest.json
           if-no-files-found: error
           retention-days: 7
       - name: Test the compiled runtime ABI and bounded document session
@@ -198,7 +198,7 @@ jobs:
         shell: bash
         run: |
           node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs
-          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-packet-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs shared/tests/p5-boundary-refinement-wasm.test.mjs shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-country-contact-wasm.test.mjs tests/unit/boundary-lines.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/shared/frontend/static/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-packet-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs shared/tests/p5-boundary-refinement-wasm.test.mjs shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-country-contact-wasm.test.mjs tests/unit/boundary-lines.test.mjs
 
       - name: Verify P6 product calculation adapters
         if: inputs.verification == 'full'
@@ -233,6 +233,6 @@ jobs:
           name: p2-generated-${{ steps.publish.outputs.result_sha }}
           path: |
             build-native/p2/artifact-evidence.json
-            assets/wasm/pandoeditor-core.manifest.json
+            shared/frontend/static/wasm/pandoeditor-core.manifest.json
           if-no-files-found: error
           retention-days: 14

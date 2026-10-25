@@ -1,9 +1,9 @@
 import { executeTerritorialTestCommand,testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 const entity=(id,entityKind,options={})=>createTerritorialFeature({id,entityKind,geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]},...options});
 async function fixture() {
  const state={stateRevision:0,territorialEntities:[entity('A','general',{color:'#123456',metadata:{capital:'capital'}}),entity('B','general'),entity('S','general',{parentId:'A'}),entity('T','general',{parentId:'S'}),entity('U','general',{parentId:'A'}),entity('R','regional',{}),entity('I','regional')]};

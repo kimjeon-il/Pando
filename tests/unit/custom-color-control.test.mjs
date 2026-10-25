@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseColorHex, hexToRgb, rgbToHex, rgbToHsv, hsvToRgb, rgbToHsl, hslToRgb } from '../../assets/js/modules/custom-color-control.js';
+import { parseColorHex, hexToRgb, rgbToHex, rgbToHsv, hsvToRgb, rgbToHsl, hslToRgb } from "../../apps/editor/frontend/js/modules/custom-color-control.js";
 
 test('custom colors normalize short HEX and reject invalid or alpha values', () => {
   assert.equal(parseColorHex(' #AbC '), '#aabbcc');

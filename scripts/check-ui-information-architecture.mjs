@@ -1,3 +1,4 @@
+import {buildFrontendSnapshot,readFrontendInput,hasFrontendInput} from './lib/frontend-build.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -5,15 +6,18 @@ import {
   MAP_OBJECT_CATEGORIES,
   MAP_OBJECT_CATEGORY_ORDER,
   MAP_OBJECT_TYPES,
-} from '../assets/js/modules/map-object-categories.js';
+} from "../shared/frontend/js/modules/map-object-categories.js";
 import { uiSourcePath } from './lib/ui-source-catalog.mjs';
 
 const root = process.cwd();
-const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
-const html = read('apps/web-shell/editor.html');
+const frontend=await buildFrontendSnapshot({root});
+const readInput=(file,encoding)=>readFrontendInput(frontend,file,encoding);
+const inputExists=file=>hasFrontendInput(frontend,file);
+const read = relativePath => readInput(path.join(root, relativePath), 'utf8');
+const html = read('__editor/index.html');
 const contentCss = read(uiSourcePath('content'));
 const uiTokens = read(uiSourcePath('tokens'));
-const surfaceController = read('assets/js/modules/surface-controller.js');
+const surfaceController = read('shared/frontend/js/modules/surface-controller.js');
 const failures = [];
 
 const surfaceContracts = Object.freeze([

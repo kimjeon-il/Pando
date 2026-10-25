@@ -2,8 +2,8 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
-import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
-import { defaultUserPreferences, STORAGE_KEY } from '../../assets/js/modules/user-preferences.js';
+import { assertCurrentProjectSchema } from "../../shared/frontend/js/modules/project-state.js";
+import { defaultUserPreferences, STORAGE_KEY } from "../../shared/frontend/js/modules/user-preferences.js";
 import { withPollTimingDiagnostics, logMapDiagnostic, withDiagnosticDeadline } from './helpers/map-diagnostics.mjs';
 
 test.use({ viewport: { width: 1440, height: 900 }, trace: 'off',

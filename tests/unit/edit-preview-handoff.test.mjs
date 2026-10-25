@@ -1,12 +1,12 @@
 import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createEditPreviewController } from '../../assets/js/modules/edit-preview-controller.js';
+import { createEditPreviewController } from "../../apps/editor/frontend/js/modules/edit-preview-controller.js";
 import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
-import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
-import { calculateEditPreview } from '../../assets/js/modules/map-edit-preview-calculations.js';
-import { createBoundaryPreparation } from '../../assets/js/modules/boundary-preparation.js';
-import '../../assets/js/vendor/polygon-clipping.min.js';
+import { createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
+import { calculateEditPreview } from "../../apps/editor/frontend/js/modules/map-edit-preview-calculations.js";
+import { createBoundaryPreparation } from "../../apps/editor/frontend/js/modules/boundary-preparation.js";
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 
 const segments = [{ start: [0, 0], end: [2, 3] }];
 const successor = { kind: 'geometry-preview', sessionId: 'result-b', revision: 4 };

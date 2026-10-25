@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createConfirmModalController } from '../../assets/js/modules/confirm-modal-controller.js';
-import { createObjectSearchController } from '../../assets/js/modules/object-search-controller.js';
-import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
+import { createConfirmModalController } from "../../apps/editor/frontend/js/modules/confirm-modal-controller.js";
+import { createObjectSearchController } from "../../shared/frontend/js/modules/object-search-controller.js";
+import { createTooltipController } from "../../shared/frontend/js/modules/tooltip-controller.js";
 
 function fakeElement() {
   const listeners = new Map();

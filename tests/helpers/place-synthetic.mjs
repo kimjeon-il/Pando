@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { normalizePlace, comparePlaces } from '../../assets/js/modules/place-contract.js';
-import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
+import { normalizePlace, comparePlaces } from "../../shared/frontend/js/modules/place-contract.js";
+import { encodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 

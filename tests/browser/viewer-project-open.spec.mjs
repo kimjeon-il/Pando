@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
-import { createInitialDocument } from '../../assets/js/modules/initial-document.js';
-import { createDistributionLayer, createDistributionEntry } from '../../assets/js/modules/distribution-model.js';
+import { createInitialDocument } from "../../shared/frontend/js/modules/initial-document.js";
+import { createDistributionLayer, createDistributionEntry } from "../../shared/frontend/js/modules/distribution-model.js";
 import { openViewingDisplay, closeViewingDisplay } from './helpers/viewing-display.mjs';
 
 let first;

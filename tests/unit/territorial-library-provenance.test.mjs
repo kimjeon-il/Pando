@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {markEditedLibrarySource} from '../../assets/js/modules/territorial-library-provenance.js';
+import {markEditedLibrarySource} from "../../apps/editor/frontend/js/modules/territorial-library-provenance.js";
 
 const polygon=right=>({type:'Polygon',coordinates:[[[0,0],[right,0],[right,1],[0,1],[0,0]]]});
 const entity=()=>({entityId:'state:Test',metadata:{geometrySha256:'metadata-old'},

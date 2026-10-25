@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectPresentation } from '../../assets/js/modules/object-presentation.js';
-import { normalizeGenericFeatureSemantics } from '../../assets/js/modules/generic-feature-service.js';
+import { createObjectPresentation } from "../../shared/frontend/js/modules/object-presentation.js";
+import { normalizeGenericFeatureSemantics } from "../../apps/editor/frontend/js/modules/generic-feature-service.js";
 
 test('generic display preserves canonical geometry independently of country revisions and source attributes', () => {
   const feature = normalizeGenericFeatureSemantics({

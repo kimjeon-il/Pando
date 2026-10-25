@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as policy from '../../assets/js/modules/resource-update-policy.js';
+import * as policy from "../../shared/frontend/js/modules/resource-update-policy.js";
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from '../../assets/js/modules/gpu-blend-utils.js';
-import { compileGpuShader, linkGpuProgram } from '../../assets/js/modules/gpu-shader-utils.js';
-import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from '../../assets/js/modules/gpu-view-uniforms.js';
-import { createSceneColorCache } from '../../assets/js/modules/scene-color-cache.js';
+import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from "../../shared/frontend/js/modules/gpu-blend-utils.js";
+import { compileGpuShader, linkGpuProgram } from "../../shared/frontend/js/modules/gpu-shader-utils.js";
+import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from "../../shared/frontend/js/modules/gpu-view-uniforms.js";
+import { createSceneColorCache } from "../../shared/frontend/js/modules/scene-color-cache.js";
 
 function createFakeGl({ compileOk = true, linkOk = true, validateShaderSource = false } = {}) {
   let nextId = 1;

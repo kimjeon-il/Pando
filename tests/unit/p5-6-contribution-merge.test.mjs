@@ -2,8 +2,8 @@ import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mergeSharedBoundaryContributions,
-  buildCountrySharedBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
-import { createCountrySharedBoundaryState } from '../../assets/js/modules/country-shared-boundary-packet.js';
+  buildCountrySharedBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { createCountrySharedBoundaryState } from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
 
 const ref=(featureId,segmentIndex,extra={})=>({
   featureId,polygonIndex:0,ringIndex:0,segmentIndex,...extra

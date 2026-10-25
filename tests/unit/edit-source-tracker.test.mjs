@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createEditSourceTracker } from '../../assets/js/modules/edit-source-tracker.js';
+import { createEditSourceTracker } from "../../apps/editor/frontend/js/modules/edit-source-tracker.js";
 
 test('source deltas separate metadata, coordinates, object namespaces and removals', () => {
   const tracker = createEditSourceTracker();

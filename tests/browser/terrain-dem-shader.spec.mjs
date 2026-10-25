@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { terrainDemFragmentSource } from '../../assets/js/modules/terrain-dem-shaders.js';
+import { terrainDemFragmentSource } from "../../shared/frontend/js/modules/terrain-dem-shaders.js";
 
 // Keep CI deterministic, but allow the same pixel regressions on a native GPU.
 const angleBackend = process.env.PANDOLAB_TEST_ANGLE_BACKEND || 'swiftshader';

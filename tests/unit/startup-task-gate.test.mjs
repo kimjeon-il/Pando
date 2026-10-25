@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createStartupTaskGate } from '../../assets/js/modules/startup-task-gate.js';
+import { createStartupTaskGate } from "../../apps/editor/frontend/js/modules/startup-task-gate.js";
 
 function createClock() {
   let current = 0;

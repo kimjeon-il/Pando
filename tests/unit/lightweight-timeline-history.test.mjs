@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHistoryAssembly } from '../../assets/js/modules/app-history-assembly.js';
+import { createHistoryAssembly } from "../../apps/editor/frontend/js/modules/app-history-assembly.js";
 import { readFileSync } from 'node:fs';
 
 function fixture(t) {
@@ -62,6 +62,6 @@ test('invalid stale month cannot abort a valid document restore', async t => {
 });
 
 test('the startup composition exposes the persisted cursor restoration capability', () => {
-  const source = readFileSync(new URL('../../assets/js/modules/app-capability-ports-lifecycle-ui.js', import.meta.url), 'utf8');
+  const source = readFileSync(new URL("../../apps/editor/frontend/js/modules/app-capability-ports-lifecycle-ui.js", import.meta.url), 'utf8');
   assert.match(source, /\["applyAutosavedTimeline","historyAssembly","applyAutosavedTimeline"\]/);
 });

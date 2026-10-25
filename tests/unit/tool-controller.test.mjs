@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { toolDraftDefinition } from '../../assets/js/modules/tool-controller.js';
+import { toolDraftDefinition } from "../../apps/editor/frontend/js/modules/tool-controller.js";
 
 test('draft tools derive line and polygon behavior from one definition table', () => {
   assert.deepEqual(toolDraftDefinition('river'), { shape: 'line', profile: 'river' });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMapInputController } from '../../assets/js/modules/map-input-controller.js';
+import { createMapInputController } from "../../shared/frontend/js/modules/map-input-controller.js";
 
 class PointerSurface {
   captured = [];

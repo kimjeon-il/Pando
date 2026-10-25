@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { createSemanticIcon } from '../../assets/js/modules/icon-utils.js';
+import { createSemanticIcon } from "../../shared/frontend/js/modules/icon-utils.js";
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 import test from 'node:test';
-import { createTerritorialPropertyController } from '../../assets/js/modules/territorial-property-controller.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
+import { createTerritorialPropertyController } from "../../apps/editor/frontend/js/modules/territorial-property-controller.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 
 const square = side => ({ type: 'Polygon', coordinates: [[[0, 0], [0, side], [side, side], [side, 0], [0, 0]]] });
 

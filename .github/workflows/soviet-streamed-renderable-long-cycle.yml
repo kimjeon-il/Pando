@@ -25,7 +25,7 @@ jobs:
           node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
       - run: pnpm exec playwright install --with-deps chromium
       - name: 12 Soviet/modern returns and final 30-second idle
         env:

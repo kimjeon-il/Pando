@@ -9,15 +9,15 @@ import { fileURLToPath } from 'node:url';
 import {
   resolveRenderPixelRatioValue,
   visibleFlatWorldOffsets,
-} from '../../assets/js/modules/gpu-map-renderer.js';
+} from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 import {
   DATA_READINESS,
   READINESS_EVENTS,
   canMutateProject,
   resolveStartupLoadPolicy,
   transitionDataReadiness,
-} from '../../assets/js/modules/startup-readiness.js';
-import { inspectCanonicalCountryPacket } from '../../assets/js/modules/canonical-country-packet.js';
+} from "../../shared/frontend/js/modules/startup-readiness.js";
+import { inspectCanonicalCountryPacket } from "../../shared/frontend/js/modules/canonical-country-packet.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const worldBundle = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world/current.json'), 'utf8'));
@@ -42,8 +42,8 @@ const previewMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets
 const previewMeshHeader = meshHeader(previewMeshBytes);
 const canonicalMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data', manifest.assets.canonicalMesh.url)));
 const canonicalMeshHeader = meshHeader(canonicalMeshBytes);
-const workerSource = fs.readFileSync(path.join(root, 'assets/js/workers/data-loader-worker.js'), 'utf8');
-const storedAssetSource = fs.readFileSync(path.join(root, 'assets/js/modules/stored-asset-loader.js'), 'utf8');
+const workerSource = fs.readFileSync(path.join(root, 'shared/frontend/js/workers/data-loader-worker.js'), 'utf8');
+const storedAssetSource = fs.readFileSync(path.join(root, 'shared/frontend/js/modules/stored-asset-loader.js'), 'utf8');
 const appSource = readApplicationOwners('progressive-startup');
 
 function countCoordinates(value) {

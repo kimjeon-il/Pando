@@ -11,7 +11,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       await gate; await route.continue();
     });
     try {
-      await page.goto(`/apps/web-shell/editor.html?debug=1&renderer=${renderer}`,{waitUntil:'domcontentloaded'});
+      await page.goto(`/__editor/index.html?debug=1&renderer=${renderer}`,{waitUntil:'domcontentloaded'});
       await page.waitForFunction(()=>window.__PANDOLAB_RENDER_DEBUG__ && window.__PANDOLAB_MAP_HOST__);
       await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;
         host.setViewState({projection:'flat',view:{...host.getViewState(),flatCenter:[24.6,38.5],flatZoom:32}});

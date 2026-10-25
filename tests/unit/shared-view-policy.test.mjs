@@ -1,11 +1,11 @@
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {createCoreDocumentReadModel} from '../../assets/js/modules/core-document-read-model.js';
-import {createMapHost} from '../../assets/js/modules/map-workspace-host.js';
+import {createCoreDocumentReadModel} from "../../shared/frontend/js/modules/core-document-read-model.js";
+import {createMapHost} from "../../shared/frontend/js/modules/map-workspace-host.js";
 import assert from 'node:assert/strict';
-import {createRenderQuality} from '../../assets/js/modules/render-quality.js';
-import {createTerritorialEntityStore} from '../../assets/js/modules/territorial-entity-store.js';
-import {createHydroSettings} from '../../assets/js/modules/physical-settings.js';
+import {createRenderQuality} from "../../shared/frontend/js/modules/render-quality.js";
+import {createTerritorialEntityStore} from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import {createHydroSettings} from "../../shared/frontend/js/modules/physical-settings.js";
 
 test('terrain intents retain the last enabled mode and reject unknown modes',()=>{
  const settings={terrainVisible:true,terrainStyle:'physical',hydroLayers:{rivers_hydro:false}};

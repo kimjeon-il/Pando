@@ -8,7 +8,7 @@ import {withLibraryOutputs,libraryConfig,libraryCheckout,decodeArchiveEntry} fro
 import {readTerritorialSources,readTerritorialSource,territorialSourceRoot,territorialDataRoot} from './territorial-entity-sources.mjs';
 import {buildCurrentWorld} from './territorial-current-world.mjs';
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments} from './builtin-world-compiler.mjs';
-import {BUILTIN_SUBUNITS} from '../assets/js/modules/builtin-subunits.js';
+import {BUILTIN_SUBUNITS} from "../shared/frontend/js/modules/builtin-subunits.js";
 
 const output=fileURLToPath(new URL('../assets/data/builtin-world/generated/v1/',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');

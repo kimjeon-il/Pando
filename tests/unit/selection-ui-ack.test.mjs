@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
+import { createSelectionUiController } from "../../shared/frontend/js/modules/selection-ui-controller.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 
 const ref=normalizeObjectRef({ domain: 'generic',type: 'feature',id: 'G' });
 function fixture() {

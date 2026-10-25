@@ -13,7 +13,7 @@ await page.setViewportSize({width:1440,height:900});
 const url = new URL(page.url());
 url.search = '?debug=1&demTerrain=raster&renderer=webgl2';
 try {
-  await verifyEditingRecovery(page, {url:url.href, afterBoot: async () => { await page.locator('#shellDiagnostics summary').click(); }, domainSource:readFileSync(new URL('../../../apps/web-shell/dist/assets/js/modules/app-domain-assembly.js',import.meta.url),'utf8'), tap: async locator => {
+  await verifyEditingRecovery(page, {url:url.href, afterBoot: async () => { await page.locator('#shellDiagnostics summary').click(); }, domainSource:readFileSync(new URL('../../../apps/editor/dist/assets/js/modules/app-domain-assembly.js',import.meta.url),'utf8'), tap: async locator => {
     await cdp.send('Emulation.setTouchEmulationEnabled', {enabled:true,maxTouchPoints:1});
     await locator.click({trial:true});
     const box = await locator.boundingBox();

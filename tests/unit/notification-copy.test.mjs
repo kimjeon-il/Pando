@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compactNotificationMessage } from '../../assets/js/modules/notification-copy.js';
+import { compactNotificationMessage } from "../../shared/frontend/js/modules/notification-copy.js";
 
 test('short notification copy is preserved', () => {
   assert.equal(compactNotificationMessage('저장했습니다.'), '저장했습니다.');

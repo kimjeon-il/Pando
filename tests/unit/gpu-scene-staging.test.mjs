@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { prepareGpuBaseScene, commitGpuStrokeDomains } from '../../assets/js/modules/gpu-scene-preparation.js';
-import { drawGpuBaseScene } from '../../assets/js/modules/gpu-base-scene-pass.js';
+import { prepareGpuBaseScene, commitGpuStrokeDomains } from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
+import { drawGpuBaseScene } from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
 
 const packet = (key, revision, domain = 'boundaries', objectKey = '') => ({
   key, domain, objectKey, sourceKey: `stroke:${key}:${revision}:high:flat`, geometryRevision: revision,

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGpuTerrainPreparation } from '../../assets/js/modules/gpu-terrain-preparation.js';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
+import { createGpuTerrainPreparation } from "../../shared/frontend/js/modules/gpu-terrain-preparation.js";
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 
 function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl } = {}) {
   const requests = [];

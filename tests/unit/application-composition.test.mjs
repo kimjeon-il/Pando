@@ -1,19 +1,19 @@
-import {applicationOwnerDefinitions} from '../../scripts/lib/application-source.mjs';
+import {applicationOwnerDefinitions,applicationModuleUrl} from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createBuiltinSession } from '../../assets/js/modules/builtin-session.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { resourceCapabilities } from '../../assets/js/modules/resource-capabilities.js';
+import { createBuiltinSession } from "../../shared/frontend/js/modules/builtin-session.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { resourceCapabilities } from "../../shared/frontend/js/modules/resource-capabilities.js";
 
 const root = new URL('../../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
-const composition = read('assets/js/modules/app-composition.js');
+const composition = read('apps/editor/frontend/js/modules/app-composition.js');
 const definitions=applicationOwnerDefinitions();
 const moduleNames=[...composition.matchAll(/\.\/([\w-]+\.js)\?v=/g)].map(match=>match[1]);
 
 test('entry stays below 400 nonempty lines and owns only versioned composition/startup', () => {
-  const source = read('assets/js/app.js');
+  const source = read('apps/editor/frontend/js/app.js');
   assert.ok(source.split(/\r?\n/).filter(line => line.trim()).length <= 400);
   assert.doesNotMatch(source, /\bfunction\b|=>|document\.|addEventListener\(|new (?:Map|Set|Worker)/);
   assert.match(source, /await composeApplication\(\{ productMode: 'editor', revision, platform \}\)/);
@@ -26,9 +26,9 @@ test('all owners construct without DOM access, connect once, and expose every re
   const owners = new Map();
   const handles = { runtime: {} };
   const portsByOwner = new Map();
-  const runtimeSource = read('assets/js/modules/app-runtime-dependencies.js');
+  const runtimeSource = read('apps/editor/frontend/js/modules/app-runtime-dependencies.js');
   for (const {file:name,factory:factoryName,owner:handleName} of definitions) {
-    const module = await import(new URL(`assets/js/modules/${name}`, root));
+    const module = await import(applicationModuleUrl(`${name}`));
     assert.ok(factoryName, name);
     const owner = module[factoryName](handleName === 'mapSettings' ? { capabilities: resourceCapabilities('editor') } : undefined);
     owners.set(handleName, owner);
@@ -40,10 +40,10 @@ test('all owners construct without DOM access, connect once, and expose every re
     } });
     handles[handleName] = handle;
   }
-  const { createApplicationPorts } = await import(new URL('assets/js/modules/app-capability-ports.js', root));
+  const { createApplicationPorts } = await import(applicationModuleUrl('app-capability-ports.js'));
   handles.ports = createApplicationPorts(handles);
   for (const name of moduleNames.filter(name => /connect-/.test(name))) {
-    const module = await import(new URL(`assets/js/modules/${name}`, root));
+    const module = await import(applicationModuleUrl(`${name}`));
     Object.values(module)[0](handles);
   }
   assert.equal(portsByOwner.size, owners.size);
@@ -89,7 +89,7 @@ test('all owners construct without DOM access, connect once, and expose every re
 
 test('object editing consumes the shared territory component UI through application ports', () => {
   const providers = composition.match(/const applicationProviders = \{([\s\S]*?)\n\s*\};/)?.[1] || '';
-  const contract = read('assets/js/modules/app-capability-ports-object-editing.js');
+  const contract = read('apps/editor/frontend/js/modules/app-capability-ports-object-editing.js');
   assert.match(providers, /\bterritoryComponentUi\b/);
   assert.match(contract, /"territoryComponentUi"/);
 });

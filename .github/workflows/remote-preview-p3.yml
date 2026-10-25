@@ -159,6 +159,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Stage a reproducible branch Web snapshot without deploying Pages
         env:
           PREVIEW_PATH: ${{ runner.temp }}/p3-preview/${{ needs.plan.outputs.slug }}

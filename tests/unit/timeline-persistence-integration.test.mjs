@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import * as projectState from '../../assets/js/modules/project-state.js';
-import * as serializerModule from '../../assets/js/modules/project-serializer.js';
+import * as projectState from "../../shared/frontend/js/modules/project-state.js";
+import * as serializerModule from "../../apps/editor/frontend/js/modules/project-serializer.js";
 import { projectForStorage, staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createPersistenceService } from '../../assets/js/modules/persistence-service.js';
-import { projectPreviewGeometryRows } from '../../assets/js/modules/project-preview-policy.js';
-import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createPersistenceService } from "../../apps/editor/frontend/js/modules/persistence-service.js";
+import { projectPreviewGeometryRows } from "../../shared/frontend/js/modules/project-preview-policy.js";
+import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
 
 const shape = { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] };
 const baseFeature = () => createTerritorialFeature({ id: 'A', entityKind: 'general', name: 'A', geometry: shape });

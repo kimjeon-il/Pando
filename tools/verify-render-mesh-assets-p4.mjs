@@ -5,8 +5,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { decodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from '../assets/js/modules/polygon-mesh-codec.js';
-import '../assets/js/workers/gpu-mesh-core.js';
+import { decodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from "../shared/frontend/js/modules/polygon-mesh-codec.js";
+import "../shared/frontend/js/workers/gpu-mesh-core.js";
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const data = resolve(root, 'assets/data');

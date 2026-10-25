@@ -1,17 +1,17 @@
-import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
+import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCountryCommits } from '../../assets/js/modules/app-country-commits.js';
-import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
-import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
-import { buildGeometryPreview } from '../../assets/js/modules/geometry-preview.js';
+import { createCountryCommits } from "../../apps/editor/frontend/js/modules/app-country-commits.js";
+import { OBJECT_EDITING_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports.js";
+import { createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
+import { buildGeometryPreview } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
-import '../../assets/js/vendor/polygon-clipping.min.js';
-import { hasCanonicalPolygonWinding, normalizePolygonGeometry } from '../../assets/js/modules/map-edit-geometry.js';
-import { validateGeometry as validateStructuredGeometry } from '../../assets/js/modules/geometry-validation.js';
-import { createCutGeometry } from '../../assets/js/modules/app-cut-geometry.js';
-import { createTerritoryComponents } from '../../assets/js/modules/app-territory-components.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import { hasCanonicalPolygonWinding, normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
+import { validateGeometry as validateStructuredGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
+import { createCutGeometry } from "../../apps/editor/frontend/js/modules/app-cut-geometry.js";
+import { createTerritoryComponents } from "../../apps/editor/frontend/js/modules/app-territory-components.js";
 
 const box = (x0, y0, x1, y1) => ({
   type: 'Polygon',

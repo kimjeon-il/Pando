@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
 
-const commands = readFileSync(new URL('../../assets/js/modules/app-object-commands.js', import.meta.url), 'utf8');
-const search = readFileSync(new URL('../../assets/js/modules/object-search-controller.js', import.meta.url), 'utf8');
+const commands = readFileSync(new URL("../../apps/editor/frontend/js/modules/app-object-commands.js", import.meta.url), 'utf8');
+const search = readFileSync(new URL("../../shared/frontend/js/modules/object-search-controller.js", import.meta.url), 'utf8');
 
 test('object lock mutations synchronize search rows without rebuilding object presentation', () => {
   const batch = applicationFunctionSource(commands, 'batchSetLocked');

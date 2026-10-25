@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
+import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 
 function setup(tool) {
   let resolve, reject, generation = 1;

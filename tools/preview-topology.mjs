@@ -1,8 +1,8 @@
 import { feature as topologyFeature } from 'topojson-client';
 import { topology } from 'topojson-server';
 import { presimplify, quantile } from 'topojson-simplify';
-import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
-import { buildTopologyPreview as buildSharedTopologyPreview, inspectTopologyPreviewFeatures } from '../assets/js/modules/project-preview-topology.js';
+import { validateGeometry } from "../shared/frontend/js/modules/geometry-validation.js";
+import { buildTopologyPreview as buildSharedTopologyPreview, inspectTopologyPreviewFeatures } from "../shared/frontend/js/modules/project-preview-topology.js";
 
 function inspectCandidate(candidate) {
   const core=globalThis.PandoLabSphericalCore;

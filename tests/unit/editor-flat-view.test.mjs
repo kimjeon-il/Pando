@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resourceCapabilities } from '../../assets/js/modules/resource-capabilities.js';
-import { createProductModePolicy } from '../../assets/js/modules/product-mode-policy.js';
-import { defaultUserPreferences, normalizeUserPreferences } from '../../assets/js/modules/user-preferences.js';
-import { createCameraNavigation } from '../../assets/js/modules/camera-navigation.js';
-import { createProjectSession } from '../../assets/js/modules/project-session.js';
-import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';
-import { createMapLayoutMetricsSnapshot } from '../../assets/js/modules/map-layout-metrics.js';
-import { createMapProjection } from '../../assets/js/modules/map-projection.js';
+import { resourceCapabilities } from "../../shared/frontend/js/modules/resource-capabilities.js";
+import { createProductModePolicy } from "../../shared/frontend/js/modules/product-mode-policy.js";
+import { defaultUserPreferences, normalizeUserPreferences } from "../../shared/frontend/js/modules/user-preferences.js";
+import { createCameraNavigation } from "../../shared/frontend/js/modules/camera-navigation.js";
+import { createProjectSession } from "../../shared/frontend/js/modules/project-session.js";
+import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
+import { createMapLayoutMetricsSnapshot } from "../../shared/frontend/js/modules/map-layout-metrics.js";
+import { createMapProjection } from "../../shared/frontend/js/modules/map-projection.js";
 
 test('editor policy excludes globe and decorations without changing viewer support or preferences', () => {
   const editor = resourceCapabilities('editor'), viewer = resourceCapabilities('viewer');

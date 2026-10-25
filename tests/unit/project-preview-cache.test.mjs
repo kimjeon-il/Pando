@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
 
-import { createProjectPreviewCache } from '../../assets/js/modules/project-preview-cache.js';
+import { createProjectPreviewCache } from "../../apps/editor/frontend/js/modules/project-preview-cache.js";
 
 function previewCache(t, options = {}) {
   const workers = [];

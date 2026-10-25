@@ -1,6 +1,6 @@
 import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -10,7 +10,7 @@ import {
   createCountryImportMergePlanner,
   createGisGeometryValidator,
   createImportService,
-} from '../../assets/js/modules/import-service.js';
+} from "../../apps/editor/frontend/js/modules/import-service.js";
 
 const country = (id, name = id) => ({
   type: 'Feature',

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 
 test('project domain resolves a month without changing stored project', async () => {

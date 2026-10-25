@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreDocument } from '../helpers/core-session.mjs';
-import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createEditingDomain } from "../../apps/editor/frontend/js/modules/editing-domain.js";
 
 const fixture = name => JSON.parse(readFileSync(new URL(`../fixtures/portability/${name}.json`,import.meta.url),'utf8'));
 const webDraft = snapshot => ({ coords: snapshot.coords, inputPhase: snapshot.inputPhase,

@@ -41,7 +41,7 @@ jobs:
       - name: Verify source-only candidate and C++ contact identity before browsers
         run: |
           cd candidate
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           node --check assets/js/modules/country-contact-core.js
           node --check tests/browser/soviet-contact-wire-reencode.spec.mjs
           pnpm exec eslint assets/js/modules/country-contact-core.js tests/browser/soviet-contact-wire-reencode.spec.mjs

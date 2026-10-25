@@ -1,6 +1,6 @@
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
-import { COUNTRY_DEFAULT_COLORS } from '../../assets/js/modules/country-default-colors.js';
+import { COUNTRY_DEFAULT_COLORS } from "../../shared/frontend/js/modules/country-default-colors.js";
 
 test.use({ viewport: { width: 1366, height: 900 }, trace: 'off', actionTimeout: 10_000, launchOptions: { args: [
   '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox',

@@ -2,8 +2,8 @@ import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boundarySourceSegments, prepareBoundaryFeature, createPreparedBoundaryStore,
-  buildBoundaryTopologyFromSegments, buildCountrySharedBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
-import { computeCountrySharedContacts } from '../../assets/js/modules/country-contact-core.js';
+  buildBoundaryTopologyFromSegments, buildCountrySharedBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { computeCountrySharedContacts } from "../../shared/frontend/js/modules/country-contact-core.js";
 
 const rectangle = (id, x1, y1, x2, y2) => ({ id, geometry: { type: 'Polygon', coordinates: [[
   [x1,y1], [x2,y1], [x2,y2], [x1,y2], [x1,y1],

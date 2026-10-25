@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
-import { readAtlasTables } from '../../assets/js/workers/gpkg-read-core.js';
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
+import { readAtlasTables } from "../../shared/frontend/js/workers/gpkg-read-core.js";
 import { productionSql } from '../helpers/production-geopackage.mjs';
 
 test('retired project attachments are rejected before Core validation or replacement', async () => {

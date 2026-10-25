@@ -29,7 +29,7 @@ jobs:
       - name: Install pinned dependencies, validate reusable C++ WASM, and lint unmodified diagnosis
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           node --check scripts/research/instrument-core-candidate-stages.mjs
           node --check tests/browser/soviet-core-candidate-stages.spec.mjs
           pnpm exec eslint scripts/research/instrument-core-candidate-stages.mjs tests/browser/soviet-core-candidate-stages.spec.mjs

@@ -1,12 +1,12 @@
 import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import '../../assets/js/vendor/earcut.min.js';
-import '../../assets/js/workers/gpu-mesh-core.js';
-import { buildRefinedBoundarySegments, MAX_BOUNDARY_EDGE_DEGREES } from '../../assets/js/modules/geographic-boundary.js';
-import { buildTerritorialInternalBoundarySegments, buildCountrySharedBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
-import { prepareCountrySharedBoundaryPacket } from '../../assets/js/modules/country-shared-boundary-packet.js';
-import { excludeAncestorHighlightBoundary } from '../../assets/js/modules/territorial-highlight-boundary.js';
+import "../../shared/frontend/js/vendor/earcut.min.js";
+import "../../shared/frontend/js/workers/gpu-mesh-core.js";
+import { buildRefinedBoundarySegments, MAX_BOUNDARY_EDGE_DEGREES } from "../../shared/frontend/js/modules/geographic-boundary.js";
+import { buildTerritorialInternalBoundarySegments, buildCountrySharedBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { prepareCountrySharedBoundaryPacket } from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
+import { excludeAncestorHighlightBoundary } from "../../shared/frontend/js/modules/territorial-highlight-boundary.js";
 
 const rectangle = (id, west, south, east, north, rootId = id) => ({
   type: 'Feature', id, boundaryRootId: rootId,
