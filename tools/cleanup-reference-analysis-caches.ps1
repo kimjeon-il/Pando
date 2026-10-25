@@ -15,6 +15,8 @@ param(
     [switch]$Apply,
     [switch]$ReportWorkingCopiesOnly,
     [switch]$LibraryStorageOnly,
+    [switch]$WorktreeStorageOnly,
+    [string]$RetireGeneratedManifest,
     [string[]]$Revision = @(),
     [switch]$SkipWorkerRuntimes,
     [switch]$SkipDataCaches,
@@ -29,6 +31,16 @@ $ErrorActionPreference = 'Stop'
 $script:Git = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $RepositoryRoot = [IO.Path]::GetFullPath($RepositoryRoot).TrimEnd('\', '/')
 if (-not (Test-Path -LiteralPath (Join-Path $RepositoryRoot 'config/library-data.json'))) { throw 'Not a PandoLab checkout.' }
+if ($RetireGeneratedManifest -and -not $WorktreeStorageOnly) { throw 'RetireGeneratedManifest requires WorktreeStorageOnly.' }
+if ($WorktreeStorageOnly) {
+    if ($LibraryStorageOnly -or $ReportWorkingCopiesOnly) { throw 'Select one scoped cleanup mode.' }
+    $taskArguments = @((Join-Path $PSScriptRoot 'worktree-storage.mjs'), "--root=$RepositoryRoot")
+    if ($RetireGeneratedManifest) { $taskArguments += "--retire-generated=$([IO.Path]::GetFullPath($RetireGeneratedManifest))" }
+    if ($Apply) { $taskArguments += '--apply' }
+    & node @taskArguments
+    if ($LASTEXITCODE -ne 0) { throw 'Worktree storage stopped; preserve its journal and originals, then resume.' }
+    return
+}
 if ($LibraryStorageOnly) {
     if ($ReportWorkingCopiesOnly) { throw 'Select one scoped cleanup mode.' }
     $taskArguments = @((Join-Path $PSScriptRoot 'library-storage.mjs'), "--root=$RepositoryRoot")
