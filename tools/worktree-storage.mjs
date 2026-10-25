@@ -174,7 +174,7 @@ const retiredQtRuns=['qt-pair-70789caf-failed','qt-pair-4418b791','qt-pair-9bd07
 export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers()}={}){
   if(!settings)throw Error('Worktree storage is not activated');
   const store={root:settings.cacheRoot,blobDirectory:'blobs'};
-  const validate=(app,directory)=>{
+  const validate=(app,directory,scan=true)=>{
     if(!roots.map(resolvePath=>resolve(resolvePath)).includes(resolve(app)))throw Error('Unknown runtime worktree');
     const path=containedPath(app,directory),relativePath=path.slice(resolve(app).length+1).replaceAll('\\','/');
     if(!retiredQtRuns.some(run=>relativePath.startsWith(`build-native/p9/${run}/`))||!path.endsWith('qt-runtime'))throw Error('Unknown retired runtime scope');
@@ -182,7 +182,8 @@ export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees
     if(!existsSync(marker))throw Error('No source identity: preserve unique SDK material');
     const identity=JSON.parse(readFileSync(marker,'utf8'));
     if(identity.qtVersion!=='6.8.3'||!identity.binaries||Object.values(identity.binaries).some(row=>typeof row.file!=='string'))throw Error('Unknown runtime ownership');
-    const files=contentFiles(path);
+    for(const binary of Object.values(identity.binaries))if(existsSync(containedPath(path,binary.file)))throw Error('A historical executable still consumes this runtime');
+    const files=scan?contentFiles(path):[];
     if(files.some(file=>file.logical.endsWith('.exe')))throw Error('A historical executable still consumes this runtime');
     if(processes.length)throw Error('A build/application consumer is active');
     return {view:{viewRoot:path,marker:'source-identity.json'},files};
@@ -190,7 +191,7 @@ export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees
   const operation=()=>{
     const entries=[],journal=containedPath(settings.cacheRoot,'runtime-migration.pending.json'),before=statfsSync(settings.cacheRoot);
     const finish=row=>{
-      const {view}=validate(row.root,row.directory),target=containedPath(row.directory,row.path),blob=contentPath(store,row.sha256);
+      const {view}=validate(row.root,row.directory,false),target=containedPath(row.directory,row.path),blob=contentPath(store,row.sha256);
       if(!existsSync(blob)||contentHash(readFileSync(blob))!==row.sha256||statSync(blob).size!==row.bytes)throw Error('Runtime recovery blob differs');
       if(existsSync(target)&&contentHash(readFileSync(target))!==row.sha256)throw Error('Runtime changed; preserve recovery journal');
       linkContentView(store,row.sha256,target,view);
@@ -221,6 +222,7 @@ export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees
 }
 export function removeStagedDirectory({root,directory,settings=storageSettings(root)}){
   const view=ownedStage(root,directory);
+  const libraryStore=existsSync(join(root,'config/library-data.json'))?librarySharedCheckout(root):null;
   const operation=()=>{
     const files=contentFiles(directory);
     for(const file of files.filter(f=>f.logical!==stageMarker)){
@@ -228,16 +230,16 @@ export function removeStagedDirectory({root,directory,settings=storageSettings(r
       if(s.nlink===1&&(s.mode&0o200)){unlinkSync(file.path);continue;}
       const sha256=contentHash(readFileSync(file.path)),stores=[];
       if(settings)stores.push({root:settings.cacheRoot,blobDirectory:'blobs'});
-      if(existsSync(join(root,'config/library-data.json')))stores.push(librarySharedCheckout(root));
+      if(libraryStore)stores.push(libraryStore);
       const store=stores.find(store=>{const blob=contentPath(store,sha256);return existsSync(blob)&&statSync(blob,{bigint:true}).ino===statSync(file.path,{bigint:true}).ino;});
       if(!store)throw Error(`Unowned readonly staging file must be preserved: ${file.path}`);
-      if(typeof store==='string')withLibraryLock(root,()=>removeContentView(store,file.path,view));
-      else removeContentView(store,file.path,view);
+      removeContentView(store,file.path,view);
     }
     const prune=path=>{for(const entry of readdirSync(path,{withFileTypes:true}))if(entry.isDirectory()){const child=containedPath(directory,join(path,entry.name));prune(child);rmdirSync(child);}};
     prune(directory);unlinkSync(join(directory,stageMarker));rmdirSync(directory);
   };
-  return settings?withStorageLock(root,settings,operation):operation();
+  const remove=()=>libraryStore?withLibraryLock(root,operation):operation();
+  return settings?withStorageLock(root,settings,remove):remove();
 }
 export function commonGit(root){return resolve(root,execFileSync('git',['-C',root,'rev-parse','--git-common-dir'],{encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','pipe']}).trim());}
 export function storageSettings(root){
@@ -247,6 +249,11 @@ export function storageSettings(root){
   const settings=JSON.parse(readFileSync(path,'utf8'));
   if(settings.schema!==schema||settings.version!=='0.19.0'||!/^[a-f0-9]{64}$/.test(settings.toolSha256))throw Error('Invalid activated worktree storage configuration');
   return settings;
+}
+export function assertCompilerCacheServer(settings,server){
+  const normalize=value=>value.replace(/\\+/g,'/').replace(/\/$/,'').toLowerCase();
+  const location=server.cache_location?.match(/^Local disk: "(.+)"$/)?.[1];
+  if(server.version!==settings.version||server.max_cache_size!==cacheLimit||!location||normalize(location)!==normalize(join(settings.cacheRoot,'sccache'))||server.basedirs?.length)throw Error('Activated compiler cache server ownership/configuration mismatch');
 }
 export function compilerCacheEnvironment({root=repository,env=process.env,settings=storageSettings(root)}={}){
   const result={...env};if(!settings)return result;
@@ -261,8 +268,7 @@ export function compilerCacheEnvironment({root=repository,env=process.env,settin
   }
   if(settings.version){
     const server=JSON.parse(execFileSync(settings.tool,['--show-stats','--stats-format=json'],{env:result,encoding:'utf8',windowsHide:true,timeout:15000}));
-    const normalize=value=>value.replace(/\\+/g,'/').toLowerCase();
-    if(server.version!==settings.version||server.max_cache_size!==cacheLimit||!normalize(server.cache_location).includes(normalize(join(settings.cacheRoot,'sccache')))||server.basedirs?.length)throw Error('Activated compiler cache server ownership/configuration mismatch');
+    assertCompilerCacheServer(settings,server);
   }
   return result;
 }
