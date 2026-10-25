@@ -14,7 +14,7 @@ test('Node application source parser preserves a multiline owner and nested body
 function following(){ return null; }`;
   const owner=applicationFunctionSource(source,'operation');
   assert.ok(owner.includes('return { result: false };'));
-  assert.ok(owner.startsWith('export async function operation('));
+  assert.ok(owner.startsWith('async function operation('));
   assert.doesNotMatch(owner,/following/);
   assert.throws(()=>applicationFunctionSource(source,'missing'),/Missing application function/);
 });
