@@ -123,7 +123,7 @@ test('actual process termination releases only its dead-owned migration stage le
 });
 test('blob pruning never deletes the sole content referenced by either pending migration journal',t=>{
   const root=fixture(t),settings={cacheRoot:join(root,'cache')},blob=publishContent({root:settings.cacheRoot,blobDirectory:'blobs'},Buffer.from('only recoverable SDK'));
-  for(const name of ['migration.pending.json','runtime-migration.pending.json']){
+  for(const name of ['migration.pending.json','runtime-migration.pending.json','generated-retirement.pending.json','app-git-compaction.pending.json']){
     const journal=join(settings.cacheRoot,name);writeFileSync(journal,JSON.stringify({schema:'pando-worktree-storage-v1',entry:{sha256:blob.sha256}}));
     assert.throws(()=>pruneApplicationBlobs({root,roots:[root],settings,processes:[],apply:true}),/pending|journal|recovery/i);
     assert.equal(readFileSync(blob.path,'utf8'),'only recoverable SDK');assert.ok(existsSync(journal));unlinkSync(journal);
