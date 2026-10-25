@@ -8,5 +8,10 @@
   "emsdkCommit": "e4fe26ef59168ff44f4c23c466e497bf60b3411e",
   "linuxRunner": "ubuntu-24.04",
   "windowsRunner": "windows-2022",
+  "sccache": {
+    "version": "0.19.0",
+    "url": "https://github.com/mozilla/sccache/releases/download/v0.19.0/sccache-v0.19.0-x86_64-pc-windows-msvc.zip",
+    "sha256": "28be8c61f6b2c89b9eb2869f6af7f78e6f992e78a8abae0ce855fcc129cbeac1"
+  },
   "scope": "Web/shared C++/WASM/GIS CI versions; Tauri app toolchains are documented in apps/web-shell"
 }

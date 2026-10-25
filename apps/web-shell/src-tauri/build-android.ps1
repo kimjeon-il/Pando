@@ -21,6 +21,7 @@ if (Test-Path -LiteralPath 'D:/build/toolchains/env-tauri-gnu.ps1' -PathType Lea
     . 'D:/build/toolchains/env-tauri-gnu.ps1'
 }
 $targetDirectory = if ($env:CARGO_TARGET_DIR) { [System.IO.Path]::GetFullPath($env:CARGO_TARGET_DIR) } else { Join-Path $PSScriptRoot 'target' }
+. (Join-Path $PSScriptRoot '../../../tools/compiler-cache.ps1') -RepositoryRoot ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')))
 New-Item -ItemType Directory -Force -Path $targetDirectory | Out-Null
 $nativeLog = Join-Path $targetDirectory 'android-native-build.log'
 $gradleLog = Join-Path $targetDirectory 'android-gradle-build.log'

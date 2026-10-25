@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { contentFiles, contentHash } from '../../tools/library-content.mjs';
 import { prepareLibraryData, withLibraryWrite, libraryMaterializedRoot } from '../../tools/library-data.mjs';
-import { libraryStorage, localObjects, repackLocalObjects } from '../../tools/library-storage.mjs';
+import { libraryStorage, localObjects, repackLocalObjects, snapshotGitStorage } from '../../tools/library-storage.mjs';
 const git=(root,args,input)=>execFileSync('git',['-c','core.autocrlf=false','-c','gc.auto=0',...args],{cwd:root,input,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim();
 const put=(path,bytes)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);};
 function fixture(t){
@@ -26,6 +26,14 @@ function fixture(t){
   const unreachable=git(data,['hash-object','-w','--stdin'],'unreachable local bytes');
   return {app,ui,data,legacy,logical,unreachable};
 }
+
+test('standalone application Git compaction preserves unreachable objects and all worktree states',t=>{
+ const f=fixture(t),unreachable=git(f.app,['hash-object','-w','--stdin'],'private unreachable app bytes');
+ const snapshot=snapshotGitStorage(f.app);const before=localObjects(f.app),refs=git(f.app,['show-ref']);
+ repackLocalObjects(f.app,snapshot);
+ assert.deepEqual(localObjects(f.app),before);assert.equal(git(f.app,['show-ref']),refs);assert.equal(git(f.app,['cat-file','-p',unreachable]),'private unreachable app bytes');
+ assert.equal(existsSync(join(f.app,'.pando-store')),false,'application compaction uses common Git staging, not a library store');
+});
 test('migration resumes, retains dirty bytes independently, compacts all local objects and removes actual old copies',t=>{
   const f=fixture(t),objects=localObjects(f.data),refs=git(f.data,['show-ref']),head=git(f.data,['rev-parse','HEAD']);
   const preview=libraryStorage({root:f.ui});assert.equal(preview.legacyCaches.length,1);assert.ok(existsSync(f.legacy));
