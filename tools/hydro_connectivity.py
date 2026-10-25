@@ -5,6 +5,8 @@ import argparse
 import hashlib
 import json
 import math
+import os
+import subprocess
 import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -184,6 +186,57 @@ def repair_connections(parts, raw, region):
                             'before': list(part['points'][index]), 'after': list(plan['point'])})
             part['points'][index] = list(plan['point'])
     return changes
+
+
+
+def repair_connections_native(parts, raw, region):
+    """Use the C++ junction owner; validate every result before mutating feature coordinates."""
+    binary = os.environ.get('PANDO_HYDRO_CONNECTIVITY_BINARY')
+    if not binary:
+        raise RuntimeError('PANDO_HYDRO_CONNECTIVITY_BINARY is required for Hydro generation')
+    payload = {'parts': {str(source): rows for source, rows in parts.items()},
+               'raw': raw, 'region': region}
+    completed = subprocess.run(
+        [binary], input=json.dumps(payload, ensure_ascii=False, separators=(',', ':')),
+        text=True, encoding='utf-8', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        check=True, timeout=180)
+    result = json.loads(completed.stdout)
+    if not isinstance(result, dict) or not isinstance(result.get('parts'), dict) or not isinstance(result.get('changes'), list):
+        raise ValueError('Invalid native Hydro junction result')
+    if set(result['parts']) != set(payload['parts']):
+        raise ValueError('Native repair changed source ID membership')
+    expected, updates = [], []
+    for source, original_rows in payload['parts'].items():
+        returned = result['parts'][source]
+        if not isinstance(returned, list) or len(returned) != len(original_rows):
+            raise ValueError('Native repair changed split reach cardinality')
+        for row_index, (old, new) in enumerate(zip(original_rows, returned)):
+            if not isinstance(new, dict) or {
+                    key: value for key, value in old.items() if key != 'points'} != {
+                    key: value for key, value in new.items() if key != 'points'}:
+                raise ValueError('Native repair changed feature metadata')
+            before, after = old['points'], new.get('points')
+            if not isinstance(after, list) or len(before) != len(after) or not before:
+                raise ValueError('Native repair changed vertex count')
+            for index, (a, b) in enumerate(zip(before, after)):
+                if list(a) == b:
+                    continue
+                if index not in (0, len(before) - 1):
+                    raise ValueError('Native repair changed interior vertices')
+                endpoint_index = 0 if index == 0 else -1
+                expected.append((old['fid'], old['part'], endpoint_index, tuple(a), tuple(b)))
+                updates.append((parts[int(source)][row_index]['points'], index, list(b)))
+    actual = []
+    for change in result['changes']:
+        if change.get('region') != region or change.get('index') not in (0, -1):
+            raise ValueError('Invalid native repair receipt')
+        actual.append((change['fid'], change['part'], change['index'],
+                       tuple(change['before']), tuple(change['after'])))
+    if Counter(expected) != Counter(actual):
+        raise ValueError('Native repair mutations disagree with receipts')
+    for points, index, value in updates:
+        points[index] = value
+    return result['changes']
 
 
 def main():
