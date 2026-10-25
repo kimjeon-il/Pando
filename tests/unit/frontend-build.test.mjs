@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {existsSync} from 'node:fs';
+import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
 import {frontendFixture as fixture} from '../helpers/frontend-build-fixture.mjs';
@@ -22,4 +22,20 @@ test('a stylesheet edit changes the frontend input identity without native compi
  const after=await buildFrontendSnapshot(f.options);
  assert.notEqual(before.sourceSha256,after.sourceSha256);
  assert.equal(before.dataRevision,after.dataRevision);
+});
+
+test('clean LF and CRLF checkouts share identical immutable frontend bytes while binary files stay exact',async t=>{
+ const f=fixture(t);
+ f.put('shared/frontend/css/app.css','.x { color: red; }\n');
+ f.put('apps/viewer/js/viewer.js','export const viewer=true;\n');
+ const binary=Buffer.from([137,80,78,71,13,10,26,10,255]);
+ f.put('shared/frontend/static/img/proof.png',binary);
+ const lf=await buildFrontendSnapshot(f.options);
+ const crlf=await buildFrontendSnapshot({...f.options,readSourceBytes:path=>{
+  const bytes=readFileSync(join(f.root,path));
+  return /\.(?:[cm]?js|json|css|html|svg|txt|md)$/.test(path)?Buffer.from(bytes.toString('utf8').replace(/\r?\n/g,'\r\n')):bytes;
+ }});
+ assert.equal(crlf.sourceSha256,lf.sourceSha256);
+ assert.deepEqual([...crlf.assets].map(([path,row])=>[path,row.bytes]),[...lf.assets].map(([path,row])=>[path,row.bytes]));
+ assert.deepEqual(crlf.assets.get('assets/img/proof.png').bytes,binary);
 });
