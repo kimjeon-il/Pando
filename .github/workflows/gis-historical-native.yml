@@ -1,0 +1,40 @@
+name: Historical GIS native recipe contracts
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/cpp/build-territorial-recipe.cpp'
+      - 'tools/historical-library/german-empire-1914-base.recipe.json'
+      - 'tests/unit/gis-german-base-native.test.mjs'
+      - '.github/workflows/gis-historical-native.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-hgis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build canonical GEOS/PROJ recipe engine
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF \
+            -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Test native axis correction, island selection and protected recipe status
+        run: |
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node --test tests/unit/gis-german-base-native.test.mjs

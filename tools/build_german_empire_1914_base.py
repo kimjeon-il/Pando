@@ -141,7 +141,7 @@ def load_hgis_states(recipe: dict[str, Any]):
     if not path.is_file():
         raise RuntimeError(
             f"missing local HGIS 1914 source: {path.relative_to(ROOT)}\n"
-            "Run: python tools/fetch_german_empire_1914_source.py\n"
+            "Run: node tools/fetch-german-empire-1914-source.mjs\n"
             "or place an EPSG:4326 copy there manually."
         )
     payload = load_json(path)
