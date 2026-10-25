@@ -326,3 +326,18 @@ test('staging excludes private data cache and baselines existing external mounts
   assert.ok(staged.paths.includes('out/a.txt'));
   assert.equal(staged.paths.some(path=>path.startsWith('.library-data/')||path==='assets/data/existing.bin'||path==='reports/existing.md'),false);
 });
+
+test('report ownership bookkeeping is excluded while unexpected logical reports are rejected',async t=>{
+ const f=graphFixture(t);
+ const run=(command,cwd)=>{
+  execFileSync(process.execPath,command.slice(1),{cwd,stdio:'pipe'});
+  for(const path of ['reports/.variants/original','reports/.edits/owner/draft.md','reports/.owners.json']){
+   mkdirSync(dirname(join(cwd,path)),{recursive:true});writeFileSync(join(cwd,path),'library ownership bytes');
+  }
+ };
+ const staged=await stageArtifacts(f.root,{families:['a'],expectedSourceSha:f.head,stageDir:'build-native/p2/report-controls',run});
+ assert.deepEqual(staged.paths.filter(p=>p.startsWith('reports/')),[]);
+ await assert.rejects(stageArtifacts(f.root,{families:['a'],expectedSourceSha:f.head,stageDir:'build-native/p2/unowned-report',run:(command,cwd)=>{
+  run(command,cwd);mkdirSync(join(cwd,'reports/development'),{recursive:true});writeFileSync(join(cwd,'reports/development/unexpected.md'),'unique report');
+ }}),/P2_UNEXPECTED_GENERATED_FILE: reports\/development\/unexpected.md/);
+});

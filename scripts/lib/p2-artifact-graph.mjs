@@ -41,7 +41,7 @@ function files(root,p) {
   const path=safePath(root,p);
   if(!existsSync(path))return [];
   if(!statSync(path).isDirectory())return [p];
-  return readdirSync(path).sort().flatMap(name=>files(root,p.replace(/\/$/,'')+'/'+name));
+  return readdirSync(path).filter(name=>p!=='reports'||!name.startsWith('.')).sort().flatMap(name=>files(root,p.replace(/\/$/,'')+'/'+name));
 }
 function expand(root,selectors) {
   return [...new Set(selectors.flatMap(value=>{
