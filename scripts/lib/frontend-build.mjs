@@ -54,7 +54,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const readBytes=readSourceBytes??(path=>readFileSync(resolve(root,path)));
  readSourceBytes=path=>{
   const bytes=readBytes(path);
-  return /\.(?:[cm]?js|json|css|html|svg|txt|md)$/i.test(path)
+  return /\.(?:[cm]?js|json|css|html|svg|txt|md)$|\/(?:LICENSE|NOTICE)$/i.test(path)
    ?Buffer.from(bytes.toString('utf8').replaceAll('\r\n','\n')):bytes;
  };
  const appVersion=String(JSON.parse(readSourceBytes('package.json')).version||'');
