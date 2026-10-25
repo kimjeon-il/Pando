@@ -74,7 +74,7 @@ export function createRenderQuality({beforeMeshRebuild=null}={}) {
       onStaged:()=>{if(current()){renderer.syncCountryMeshQuality();dependencies.domains.renderingDomain.invalidateProject('canonical-staging-ready');}}}):
       await renderer.rebuildFromCountries(features||dependencies.countries.builtinTerritorialScene({canonical:true}).collection.features,{projectGeneration,reason});
     if(!current()||applied===false)return false;
-    renderer.syncCountryMeshQuality();dependencies.projectState.state.countryVisualPhase='canonical';
+    renderer.syncCountryMeshQuality();
     applyAdaptiveRenderQuality({refreshScene:false,reason:'canonical-ready'});
     dependencies.domains.renderingDomain.invalidateProject(reason);return true;
     } catch (error) {

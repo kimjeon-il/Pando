@@ -72,10 +72,11 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
         - layerObjectRank(dependencies.projectState.state.layerPresentation, left.key);
   }
 
-  // Picking uses editable geometry even when the display uses preview coordinates.
+  // Pointer hits follow the presented surface; commands still use canonical data.
   function territorialObjectsAt(screenPoint, coord, records = dependencies.spatialRecords.indexedMapObjectCandidates(screenPoint)) {
+    if (dependencies.projectState.state.countryVisualPhase === 'pending') return [];
     return records.filter(record => record.domain === 'territorial').flatMap(record => {
-      const feature = dependencies.territorialModel.entityRepository.get(record.id);
+      const feature = dependencies.objectModelB.territorialScope.displayFeature(record.id);
       const ref = dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'entity', id: record.id });
       if (!feature || !objectRefSelectable(ref)) return [];
       dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;

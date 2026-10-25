@@ -233,7 +233,7 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; }
     getContext() { return { canvas: this, setTransform() {}, clearRect() {}, drawImage() {},
-      save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, arc() {}, closePath() {}, stroke() {}, setLineDash() {} }; }
+      save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, arc() {}, closePath() {}, stroke() {}, fill() {}, setLineDash() {} }; }
     transferToImageBitmap() {
       if (renderError) throw renderError;
       return { close() {} };
@@ -245,35 +245,43 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
   scope.self = scope;
   scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(readFileSync(new URL(url), 'utf8'), scope));
   vm.runInContext(readFileSync(script, 'utf8'), scope);
-  const buildBoundary = scope.PandoLabGeographicBoundary.buildRenderableBoundarySegments;
-  let boundaryBuildCount = 0;
-  scope.PandoLabGeographicBoundary.buildRenderableBoundarySegments = (...args) => { boundaryBuildCount++; return buildBoundary(...args); };
+  const pathFactory = scope.d3.geo.path;
+  let pathBuildCount = 0;
+  scope.d3.geo.path = () => {
+    const original = pathFactory(), path = geometry => { pathBuildCount++; return original(geometry); };
+    for (const field of ['projection','context']) path[field] = function(...args) {
+      const result = original[field](...args); return args.length ? path : result;
+    };
+    return path;
+  };
   const send = message => scope.onmessage({ data: message });
   send({ type: 'init', projectGeneration: 2, revision: 2, viewRevision: 2, styleRevision: 1,
-    width: 20, height: 20, theme, features, visible: true, visualOrder });
-  return { replies, send, runTimer: () => timers.shift()(), boundaryBuildCount: () => boundaryBuildCount };
+    surfacePresentation: { targetQuality: 'canonical', quality: 'canonical' },
+    width: 20, height: 20, theme, features, visible: true, visualOrder,
+    fills: Object.fromEntries(features.map(row=>[row.id,{color:'#ffffff',fillAlpha:1}])) });
+  return { replies, send, runTimer: () => timers.shift()(), pathBuildCount: () => pathBuildCount };
 }
 
-test('the real Canvas Worker keeps unchanged monthly country geometry and outlines across replace-data', () => {
+test('the real Canvas Worker reuses unchanged projected country geometry across replace-data', () => {
   const row = (key, east = 1) => ({ type: 'Feature', id: 'ROOT', boundaryGeometryRevision: key, properties: {},
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [east, 0], [east, 1], [0, 1], [0, 0]]] } });
-  const { replies, send, boundaryBuildCount } = canvasRuntime({ features: [row('allocation:0')],
+  const { replies, send, pathBuildCount } = canvasRuntime({ features: [row('allocation:0')],
     theme: { border: '#ffffff', borderAlpha: 1, strokes: { country: { width: 1 } } },
-    visualOrder: { base: ['country-boundary'], hydro: [] } });
+    visualOrder: { base: ['country-fill'], hydro: [] } });
   const paint = (projectGeneration = 2) => {
     send({ type: 'view', renderRequestId: 1, frameId: 1, revision: 2, viewRevision: 2, projectGeneration });
     assert.equal(replies.at(-1).message.type, 'frame', replies.at(-1).message.message);
   };
-  paint(); assert.equal(boundaryBuildCount(), 1);
+  paint(); assert.equal(pathBuildCount(), 1);
   send({ type: 'replace-data', geometryRevision: 0, projectGeneration: 2,
     features: [structuredClone(row('allocation:0'))] });
-  paint(); assert.equal(boundaryBuildCount(), 1);
+  paint(); assert.equal(pathBuildCount(), 1);
   send({ type: 'patch', geometryRevision: 1, projectGeneration: 2,
     features: [row('new-allocation:0', 2)] });
-  paint(); assert.equal(boundaryBuildCount(), 2);
+  paint(); assert.equal(pathBuildCount(), 2);
   send({ type: 'replace-data', geometryRevision: 1, projectGeneration: 3,
     features: [row('new-allocation:0', 2)] });
-  paint(3); assert.equal(boundaryBuildCount(), 3);
+  paint(3); assert.equal(pathBuildCount(), 3);
 });
 
 test('the Worker echoes a submission identity only for its direct view result, never a hydro redraw', () => {

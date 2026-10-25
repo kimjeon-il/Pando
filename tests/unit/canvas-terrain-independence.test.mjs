@@ -51,6 +51,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
       drawGeneralLand(_ctx, _path, polygons) { substrates.push(polygons.filter(packet => packet.role === 'physical-land').map(packet => packet.geometry)); },
       drawTerritorialFills() {}, drawOverlays() {}, drawEmphasis() {},
       countryBoundaryBatches: () => [], drawStrokes() {}, geometryFor: packet => packet.geometry,
+      generalLandShapes: packets => packets.filter(packet => packet.role === 'physical-land').map(packet => packet.geometry),
     },
     postMessage(message) { messages.push(message); },
   };
@@ -69,6 +70,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   const features = [country('VISIBLE'), country('HIDDEN')];
   const land = { key: 'physical-land', role: 'physical-land', geometry: country('LAND', 2).geometry };
   const frame = {
+    surfacePresentation: { targetQuality: 'canonical', quality: 'canonical' },
     width: 1000, height: 600, dpr: 1, terrainDpr: 2, meshQuality: 'preview',
     renderProjection: { scale: 350, translate: [500, 300] }, projection: 'flat',
     view: { flatCenter: [0, 0], flatZoom: 1 },

@@ -28,11 +28,19 @@ export function drawGpuBaseScene(input, passes) {
 }
 
 function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
-  terrainVisible, terrainStyle, countriesVisible, mapSubstrate, mapOcean, countries, prepared },
+  terrainVisible, terrainStyle, countriesVisible, surfacePresentation, mapSubstrate, mapOcean, countries, prepared },
   { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, overrideTriangleDraw,
     territoryItems, physicalLandItems = [], physicalWaterItems = [], independentItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
+  const surfaceReady = surfacePresentation.quality !== 'pending';
+  const drawCountrySurface = baseLand => {
+    drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES,
+      null, paletteTexture, null, null, baseTriangleDraw.ranges, baseLand);
+    if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer,
+      overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture,
+      null, null, overrideTriangleDraw.ranges, baseLand);
+  };
       const overlayRenderedKeys = [];
       const overlayMissingKeys = [];
       const overlayFailures = [];
@@ -112,18 +120,15 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       gl.enable(gl.STENCIL_TEST);
       gl.stencilFunc(gl.EQUAL, 0, 0xff);
       gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
-      for (const item of territoryItems) drawOverlay(item);
+      if (surfaceReady) for (const item of territoryItems) drawOverlay(item);
         },
         'country-fill': () => {
       resetGpuNormalBlend(gl);
-      if (countriesVisible && mesh) {
-        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
-      }
+      if (surfaceReady && countriesVisible && mesh) drawCountrySurface(false);
       gl.disable(gl.STENCIL_TEST);
       resetGpuNormalBlend(gl);
         },
-        'country-boundary': () => { countryStrokeResult = drawCountryBoundaryStrokes(); },
+        'country-boundary': () => { if (surfaceReady) countryStrokeResult = drawCountryBoundaryStrokes(); },
         'physical-water': () => {
           gl.disable(gl.STENCIL_TEST);
           for(const item of physicalWaterItems)drawOverlay({...item,packet:{...item.packet,style:mapOcean}});
@@ -161,6 +166,8 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       }
 
   return { overlayRenderedKeys, overlayMissingKeys, overlayFailures, countryStrokeResult,
+    surface: { quality: surfacePresentation.quality, landSource: surfaceReady ? `physical-${surfacePresentation.quality}` : 'physical-background',
+      countryIndexCount: surfaceReady && countriesVisible && mesh ? mesh.triangleIndices.length + (overrideMesh?.triangleIndices?.length || 0) : 0 },
     frameId: activeFrameContext.frameId, projectGeneration: activeFrameContext.projectGeneration,
     strokeDomainReplacements: prepared.strokeDomainReplacements };
 }

@@ -73,6 +73,7 @@ test('base pass draws map substrate before terrain and preserves territory, coun
     } };
   const range = { ranges: [{ first: 0, count: 3 }] };
   const result = drawGpuBaseScene({ gl, frame: {}, width: 10, height: 10,
+    surfacePresentation: { quality: 'canonical' },
     terrainVisible: true, terrainStyle: 'neutral', countriesVisible: true, mapSubstrate: { color: '#cccccc', fillAlpha: 1 },mapOcean:{color:'#006b8b',fillAlpha:1},
     countries: { mesh: { triangleIndices: { length: 3 } }, fillProgram: 'country' },
     prepared: { baseTriangleDraw: range, baseBoundaryDraw: range, overrideTriangleDraw: range, overrideBoundaryDraw: range,
@@ -81,7 +82,7 @@ test('base pass draws map substrate before terrain and preserves territory, coun
         { kind: 'polygon', packet: { key: 'parent', role: 'territorial-fill', territoryDepth: 1, order: 1 } },
         { kind: 'polygon', packet: { key: 'child', role: 'territorial-fill', territoryDepth: 2, order: 2 } },
       ].reverse(), independentItems: [{ kind: 'polygon', packet: { key: 'generic' } }, { kind: 'stroke', packet: { key: 'line' } }] },
-  }, { drawOceanSubstrate() {}, polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[0]),
+  }, { drawOceanSubstrate() {}, polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[10] ? 'country-substrate' : args[0]),
     renderTerrain: () => calls.push('terrain'), drawHydro: category => calls.push(category),
     drawCountryBoundaryStrokes: () => { calls.push('boundary'); return { succeeded: true }; } });
   assert.deepEqual(calls, ['physical-land-substrate','physical-land','terrain', 'child', 'parent', 'country', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary','historical-water', 'lake', 'lake-boundary', 'river', 'border-river','historical-water', 'boundary', 'generic', 'stroke']);

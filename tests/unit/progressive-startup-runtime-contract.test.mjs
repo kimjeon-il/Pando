@@ -66,12 +66,12 @@ test('canonical promotion discards a worker initialized from preview geometry be
 });
 
 function deferred() {
-  let resolve;
-  const promise = new Promise(done => { resolve = done; });
-  return { promise, resolve };
+  let resolve, reject;
+  const promise = new Promise((done,fail) => { resolve = done; reject = fail; });
+  return { promise, resolve, reject };
 }
 
-async function startupFixture(t, { project = null, terrainError = null } = {}) {
+async function startupFixture(t, { project = null } = {}) {
   const noop = () => {};
   const geometry = deferred();
   const previewFrame = deferred();
@@ -156,10 +156,6 @@ async function startupFixture(t, { project = null, terrainError = null } = {}) {
     readinessUi: { applyDataReadinessEvent: event => calls.push(['readiness', event]) },
     startupCommands: { markRuntimeReady: noop },
     feedback: { setActionStatus: noop, reportOperationError: (...args) => errors.push(args) },
-    physicalResources: { loadTerrainManifest: () => {
-      calls.push(['terrain']);
-      return terrainError ? Promise.reject(terrainError) : new Promise(() => {});
-    } },
   });
   startup.init().catch(error => errors.push(error));
   return { previewFrame, interactive, editable, geometry, calls, errors, state };
@@ -189,35 +185,30 @@ test('canonical geometry reaches the common Store before editing resumes while t
   assert.deepEqual(fixture.errors, []);
 });
 
-test('painted preview starts terrain without waiting for canonical data or terrain completion', async t => {
+test('canonical startup becomes editable without waiting for a preview frame', async t => {
   const fixture = await startupFixture(t);
-  await new Promise(resolve => setImmediate(resolve));
-  assert.equal(fixture.calls.some(([kind]) => kind === 'terrain'), false);
-  fixture.previewFrame.resolve(true);
   await fixture.interactive.promise;
-  assert.equal(fixture.calls.filter(([kind]) => kind === 'terrain').length, 1);
-  assert.ok(fixture.calls.findIndex(([kind]) => kind === 'terrain')
-    > fixture.calls.findIndex(([kind, event]) => kind === 'readiness' && event === 'preview-ready'));
+  fixture.geometry.resolve({countries:normalizeCountryCollection(window.PANDOLAB_COUNTRIES),canonicalCountryStore:{}});
+  await fixture.editable.promise;
+  assert.deepEqual(fixture.errors,[]);
 });
 
-test('terrain rejection is handled independently of canonical startup', async t => {
-  const error = new Error('terrain startup failed');
-  const fixture = await startupFixture(t, { terrainError: error });
-  fixture.previewFrame.resolve(true);
+test('preview frame failure is reported without blocking canonical startup', async t => {
+  const error = new Error('preview presentation failed');
+  const fixture = await startupFixture(t);
   await fixture.interactive.promise;
+  fixture.previewFrame.reject(error);
+  fixture.geometry.resolve({countries:normalizeCountryCollection(window.PANDOLAB_COUNTRIES),canonicalCountryStore:{}});
+  await fixture.editable.promise;
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(fixture.errors.length, 1);
   assert.equal(fixture.errors[0][0], error);
-  assert.equal(fixture.errors[0][2], 'PL-TERRAIN-001');
+  assert.equal(fixture.errors[0][2], 'PL-PREVIEW-FRAME-001');
 });
 
 test('uncached saved geometry uses validated exact state while builtin preview stays disabled', async t => {
   const fixture = await startupFixture(t, { project: startupDocument(normalizeCountryCollection({ features: [{ id:'edited',geometry: { type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]] } }] }).features) });
   await fixture.interactive.promise;
-  assert.equal(fixture.calls.some(([kind]) => kind === 'terrain'), false);
   assert.deepEqual(fixture.state.territorialEntities.map(entity => entity.id), ['edited']);
   assert.equal(fixture.calls.find(([kind]) => kind === 'initialize')[1].allowPreview, false);
-  const progressive = applicationFunctionSource(source, 'initProgressive');
-  assert.match(progressive, /await completeGeometryInitialization[\s\S]*if \(hasStoredCountryGeometry\) startTerrainLoading\(\)/);
-  assert.doesNotMatch(applicationFunctionSource(source, 'completeMeshEnhancement'), /loadTerrainManifest|startTerrainLoading/);
 });
