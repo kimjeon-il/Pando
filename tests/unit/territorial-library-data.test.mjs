@@ -53,3 +53,78 @@ test('Artsakh uses the right-originating white stepped flag motif', () => {
   assert.match(svg, /M36 0h-6/);
 });
 
+
+test('historical library maintains one dated identity and independently scoped source geometry versions',()=>{
+  const sources=readTerritorialSources();
+  assert.ok(sources.length>=258,'Expected canonical and historical entities');
+  const ids=new Set();
+  for(const e of sources){
+    assert.ok(!ids.has(e.entityId),e.entityId+' duplicated');
+    ids.add(e.entityId);
+    assert.equal(e.schemaVersion,2);
+    assert.ok(Array.isArray(e.geometryVersions)&&e.geometryVersions.length>0,e.entityId);
+    assert.equal(e.entityKind,'general');
+    for(const version of e.geometryVersions){
+      for(const property of ['validFrom','validTo','certainty','sourceId'])
+        assert.ok(Object.hasOwn(version,property),e.entityId+'/'+version.versionId+': '+property);
+      assert.ok(['Polygon','MultiPolygon'].includes(version.geometry?.type),
+        e.entityId+'/'+version.versionId+' missing polygon source');
+    }
+  }
+  assert.ok(ids.has('state:deutsche-demokratische-republik'));
+  assert.ok(ids.has('state:north-schleswig'));
+});
+
+test('1989 DDR and 1900 North Schleswig retain provisional dates, identity and catalog source warnings',()=>{
+  const data=new Map(readTerritorialSources().map(e=>[e.entityId,e]));
+  const ddr=data.get('state:deutsche-demokratische-republik');
+  assert.equal(ddr.names.ko,'독일 민주공화국');
+  assert.equal(ddr.lifetime.validFrom,'1949-10-07');
+  assert.equal(ddr.lifetime.validTo,'1990-10-02');
+  assert.equal(ddr.metadata.referenceDate,'1989-04-25');
+  assert.equal(ddr.instantiation.mode,'territory-replacement');
+  assert.ok(ddr.geometryVersions.some(v=>v.certainty==='medium' && v.geometry.type==='MultiPolygon'));
+  const north=data.get('state:north-schleswig');
+  assert.equal(north.names.ko,'북슐레스비히');
+  assert.equal(north.entityKind,'general');
+  assert.equal(north.instantiation.mode,'territory-replacement');
+  assert.equal(north.metadata.approximateGeometry,true);
+  const historical=north.geometryVersions.find(v=>v.versionId==='north-schleswig-1900-r3');
+  assert.ok(historical);
+  assert.equal(historical.validFrom,'1900-01-01');
+  assert.equal(historical.validTo,'1900-01-01');
+  assert.equal(historical.geometry.type,'MultiPolygon');
+});
+
+test('territory replacements preserve historical versions in current countries without duplicate historic identities',()=>{
+  const byId=new Map(readTerritorialSources().map(e=>[e.entityId,e]));
+  for(const [id,versionId,start,end] of [
+    ['state:IDN','state:indonesia:1945-2002-r1','1975-12-07','1999-10-24'],
+    ['state:UKR','state:ukraine:1991-2014-r1','1991-08-24','2014-03-17'],
+    ['state:SDN','state:sudan:1956-2011-r1','1956-01-01','2011-07-08'],
+  ]){
+    const e=byId.get(id);
+    assert.ok(e,'Missing historical counterpart '+id);
+    const version=e.geometryVersions.find(v=>v.versionId===versionId);
+    assert.ok(version,'Historical version missing: '+versionId);
+    assert.deepEqual([version.validFrom,version.validTo],[start,end]);
+    assert.equal(version.instantiation.mode,'territory-replacement');
+  }
+  for(const retired of ['state:indonesia','state:ukraine','state:sudan'])
+    assert.equal(byId.has(retired),false,retired+' must not duplicate an existing political identity');
+});
+
+test('Soviet constituent republics remain flagged political entities, not administrative layers',()=>{
+  const children=readTerritorialSources().filter(e=>e.parentEntityId==='state:soviet-union');
+  // 1922 founders include a separately recorded Transcaucasian predecessor:
+  // do not freeze the old Python assumption of exactly 15 children.
+  assert.ok(children.length>=15,'Canonical Soviet republic membership is incomplete');
+  const ids=new Set();
+  for(const child of children){
+    assert.ok(!ids.has(child.entityId),'Repeated Soviet child identity');
+    ids.add(child.entityId);
+    assert.equal(child.entityKind,'general');
+    assert.equal(Object.hasOwn(child,'adminLevel'),false);
+    assert.match(child.metadata.defaultFlagDataUrl||'',/^data:image\/svg\+xml;base64,/);
+  }
+});
