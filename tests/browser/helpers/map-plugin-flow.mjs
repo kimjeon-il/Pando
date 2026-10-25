@@ -88,12 +88,17 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
   onStep('converted');
   await clickControl(page,page.locator('#actionsTabBtn'),touch,touchInput);await clickControl(page,page.locator('#hydroVerticesBtn'),touch,touchInput);
   await expect(page.locator('circle.vertex-handle').first()).toBeVisible();
-  const point=await page.locator('circle.vertex-handle').evaluateAll(nodes=>nodes.map(node=>({node,rect:node.getBoundingClientRect()}))
+  let point=await page.locator('circle.vertex-handle').evaluateAll(nodes=>nodes.map(node=>({node,rect:node.getBoundingClientRect()}))
     .filter(({node,rect})=>rect.width>0 && rect.x>10 && rect.y>80 && document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)===node)
     .map(({rect})=>[rect.x+rect.width/2,rect.y+rect.height/2])[0]);
   expect(point).toBeTruthy();
   onStep('move-vertex');
   if(touch) {
+    await touchInput({type:'tap',point});
+    await expect(page.locator('#objectChooser')).toBeVisible();
+    await clickControl(page,page.locator('#objectChooserList [data-object-chooser-index]').first(),touch,touchInput);
+    await expect(page.locator('#objectChooser')).toBeHidden();
+    point=await page.locator('circle.vertex-handle.selected').evaluate(node=>{const r=node.getBoundingClientRect();return[r.x+r.width/2,r.y+r.height/2];});
     await touchInput({type:'drag',from:point,to:[point[0]+24,point[1]+12]});
   } else {
     await page.mouse.move(...point);await page.mouse.down();await page.mouse.move(point[0]+18,point[1]+10,{steps:4});await page.mouse.up();

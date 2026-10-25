@@ -26,7 +26,11 @@ const nativeDialog=async(path,mode)=>{
   return JSON.parse(result.stdout.trim());
 };
 async function nodes() {
-  const dumped=await android('shell','uiautomator','dump','/data/local/tmp/pando-map-plugin.xml');
+  const dumped=await android('shell','uiautomator','dump','/data/local/tmp/pando-map-plugin.xml').catch(error=>{
+    // Samsung may kill the dumper after it has successfully written its XML.
+    if(error.code===137&&error.stdout.includes('UI hierchary dumped to:'))return {stdout:error.stdout};
+    throw error;
+  });
   if(!dumped.stdout.includes('UI hierchary dumped to:'))return [];
   const {stdout}=await android('shell','cat','/data/local/tmp/pando-map-plugin.xml');
   return [...stdout.matchAll(/<node\b([^>]+)>/gu)].map(match=>Object.fromEntries([...match[1].matchAll(/([\w-]+)="([^"]*)"/gu)].map(row=>[row[1],row[2].replaceAll('&amp;','&').replaceAll('&quot;','"')])));
@@ -72,6 +76,9 @@ async function openAndroidFile(name) {
 async function saveAndroidFile(name) {
   const rows=await waitAndroidPicker(),edit=rows.find(n=>n.class==='android.widget.EditText');
   await tap(edit);await android('shell','input','keyevent','123',...Array(80).fill('67'));await android('shell','input','text',name);
+  // Landscape Samsung IME uses an extract screen covering the provider's Save button.
+  const ime=await android('shell','dumpsys','input_method');
+  if(/mInputShown=true/.test(ime.stdout))await android('shell','input','keyevent','4');
   const refreshed=await nodes(),button=refreshed.find(n=>['SAVE','Save','저장'].includes(n.text) && /Button/.test(n.class));
   await tap(button);
 }

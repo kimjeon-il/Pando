@@ -162,6 +162,12 @@ Focused storage and navigation tests:
 pnpm --dir apps/web-shell test:native
 ```
 
-The storage tests can also run without building Tauri: compile
-`src-tauri/tests/storage.rs` with `rustc --edition 2021 --test`, then run the resulting
-test executable. Test output or build success alone does not verify a device flow.
+This command requests the focused native tests in GitHub Actions with the pinned
+toolchain. A local Rust installation is not required. Test output or build
+success alone does not verify a device flow.
+
+## PC·Android 공통 계산 검증
+
+실제 WebView CDP 포트를 지정해 `node tests/browser/native-computation-parity.mjs --windows=PORT --android=PORT --output=FILE`로 동일 WASM 바이트, 폴리곤 계산·wrapping과 렌더링 형상 패킷·배율 정책을 대조한다.
+이는 모든 기능·상황의 동등성을 대신하는 검사는 아니다. 실제 파일 선택·편집·저장·재열기도 별도로 확인한다.
+Android의 CDP 캡처에는 GPU 지도 레이어가 누락될 수 있으므로, 실제 표시 확인에는 기기 자체 screencap을 함께 사용한다.
