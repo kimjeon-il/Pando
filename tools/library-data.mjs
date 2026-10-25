@@ -7,6 +7,7 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 import { decodeLibraryArchiveBytes } from './library-archive.mjs';
 import { REPORT_SUBJECTS, organizedReportPath, reportDocumentDetails, reportSubjectReadmes, rewriteReportArtifact } from './library-report-layout.mjs';
 import { atomicStorageJSON, containedPath, contentFiles, contentHash, contentPath, linkContent, makePrivate, publishContent, recoverContentPermissions, removeContentLink, replaceLibraryFile, shareContentFile } from './library-content.mjs';
+import {compactDuplicatePacks} from './library-git.mjs';
 
 export const defaultRoot = fileURLToPath(new URL('../', import.meta.url));
 const gitOptions = ['-c', 'core.fsync=none', '-c', 'core.fsyncObjectFiles=false', '-c', 'core.autocrlf=false', '-c', 'maintenance.auto=false', '-c', 'gc.auto=0'];
@@ -517,13 +518,14 @@ export function prefetchArchiveEntries({checkout,revision,entries,additionalByte
   const ids=[...objects.keys()];if(!ids.length)return {fetched:0};
   const check=oids=>execFileSync('git',[...gitOptions,'cat-file','--batch-check=%(objectname) %(objecttype)'],{cwd:checkout,input:oids.join('\n')+'\n',encoding:'utf8',env:{...process.env,GIT_NO_LAZY_FETCH:'1'},maxBuffer:4*1024*1024,stdio:['pipe','pipe','pipe']}).trim().split('\n');
   const missing=check(ids).filter(line=>line.endsWith(' missing')).map(line=>line.split(' ')[0]);
-  if(!missing.length)return {fetched:0};
+  if(!missing.length){compactDuplicatePacks(checkout);return {fetched:0};}
   const peak=additionalBytes+missing.reduce((n,oid)=>n+objects.get(oid),0);
   if(peak>=1024**3){const disk=statfsSync(checkout);if(disk.bavail*disk.bsize<peak+5*1024**3)throw Error('Archive fetch and materialization require their peak plus 5GiB headroom');}
   // Match Git's promisor fetch recipe: commit negotiation assumes local blobs
   // are present and can omit a delta base from a metadata-only partial clone.
   for(let at=0;at<missing.length;at+=128)execFileSync('git',[...gitOptions,'-c','fetch.negotiationAlgorithm=noop','fetch','--no-tags','--no-write-fetch-head','--recurse-submodules=no','--filter=blob:none','--stdin','origin'],{cwd:checkout,input:missing.slice(at,at+128).join('\n')+'\n',env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:['pipe','pipe','pipe']});
   if(check(missing).some(line=>!line.endsWith(' blob')))throw Error('Archive prefetch did not restore the requested blobs');
+  compactDuplicatePacks(checkout);
   return {fetched:missing.length};
 }
 export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
@@ -549,7 +551,10 @@ function withCheckoutLock(checkout, operation, maintenance = false, organizing =
     writeFileSync(handle, JSON.stringify({ pid: process.pid, checkout })); recoverContentPermissions(dirname(common));
     if (!maintenance && existsSync(resolve(dirname(common), '.pando-store/storage-migration.pending.json'))) throw Error('Library storage migration must resume before preparing or editing data.');
     if (!organizing && existsSync(resolve(dirname(common), '.pando-store/report-organization.pending.json'))) throw Error('Report organization must resume before preparing or editing data.');
-    return operation();
+    if(!maintenance||existsSync(resolve(common,'pando-git-compaction.pending.json')))compactDuplicatePacks(checkout);
+    const result=operation();
+    if(!maintenance)compactDuplicatePacks(checkout);
+    return result;
   }
   finally { closeSync(handle); unlinkSync(path); }
 }

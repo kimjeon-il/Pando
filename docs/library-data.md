@@ -30,6 +30,8 @@
 
 전체 저장소 정리는 `./tools/cleanup-reference-analysis-caches.ps1 -LibraryStorageOnly`로 미리보고 `-Apply`로 적용한다. 실행 중인 서버·쓰기 lease를 확인하고, 현재 pin과 미보관 작업본을 보존한 뒤 구 캐시만 제거한다. Git 정리는 미참조 객체를 포함한 모든 로컬 객체를 promisor 여부에 따라 다시 압축하고, 새 pack의 정확한 객체 집합·무결성과 refs·HEAD·reflog를 검증한다. 과거 index 사본과 서로 다른 옛 작업본은 `private-evidence/storage-migrations/<작업 ID>/`에 출처와 함께 보존한다. 중단 시 같은 명령으로 `.pando-store/storage-migration.pending.json`을 재개한다. 종료가 확인된 잠금 소유자의 파일만 회수하며 실행 중인 작업의 잠금은 보존한다.
 
+Git 다운로드가 이미 있는 델타 기준 객체를 새 pack에 다시 포함할 수 있으므로, 자료 준비·읽기·저장·보고서 게시 및 확인은 같은 라이브러리 잠금 안에서 Git 중복도 정리한다. `tools/library-git.mjs`가 기존 pack을 재사용하고 겹치는 pack의 고유 객체만 독립 pack으로 보존한다. 삭제 전에 남길 pack의 실제 내용과 새 pack의 무결성, 모든 로컬 객체 집합과 refs·HEAD·reflog를 검증하며 이력 만료나 원격 재다운로드를 복구 근거로 삼지 않는다. `.git/pando-git-compaction.pending.json`은 다음 작업에서 재개한다. 원본 pack이 모두 그대로인 삭제 전 단계에서는 추가된 객체를 보존해 계획을 다시 만들고, 원본이 달라지거나 사라졌으면 삭제를 중단한다. 일반 자료 준비에서 라이브러리 전체 캐시를 복제하거나 전체 Git 저장소를 매번 재압축하지 않는다.
+
 ## 보고서 완료 명령
 
 현재 작업에서 작성·수정을 끝낸 범위를 명시한다. 파일 쓰기나 경로 helper 호출 중에는 공개하지 않고, 작업 완료 시 아래 한 명령으로 **전체 원문 보관 → 보고서 커밋 → 푸시 → 원격 원문 검증**을 수행한다. `--push`를 따로 기억할 필요가 없다.
