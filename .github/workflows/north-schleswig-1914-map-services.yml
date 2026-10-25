@@ -1,57 +1,91 @@
-name: Discover original 1914 Denmark-border map sources
+name: SLUB North Schleswig historic map catalog (read-only)
 
 on:
-  workflow_dispatch:
   push:
     branches: [work/gis]
     paths:
-      - tools/discover_north_schleswig_1914_map_services.py
-      - .github/workflows/north-schleswig-1914-map-services.yml
-      - tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.sheets.json
+      - 'tools/discover-north-schleswig-map-services.mjs'
+      - 'tests/unit/north-schleswig-map-services.test.mjs'
+      - '.github/workflows/north-schleswig-1914-map-services.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: north-schleswig-1914-map-catalog
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  discover-map-sources:
-    runs-on: ubuntu-latest
+  north-schleswig-catalog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: work/gis
-      - name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
-      - uses: actions/setup-python@v5
+          persist-credentials: false
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install --disable-pip-version-check requests
-      - name: Query public SLUB historical map catalog, preserving failures
-        run: python tools/discover_north_schleswig_1914_map_services.py
-      - name: Require explicit absence of historic raster comparison
+          node-version: '24'
+      - name: Offline source-proven catalogue tests
+        run: node --test tests/unit/north-schleswig-map-services.test.mjs
+      - name: Verify and extract exactly one pinned sheet index, without hydrating the library
+        shell: bash
         run: |
-          python - <<'PY'
-          import json
-          p="tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.slub-discovery.json"
-          d=json.load(open(p))
-          assert d['historicRasterObtained'] is False
-          assert d['historicRasterComparedWithLine'] is False
-          print(d['endpointObservations'])
-          PY
-      - name: Publish provenance report to GIS branch only
-        env:
-          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+          set -euo pipefail
+          mkdir -p build-native/gis
+          REV=$(node -p "require('./config/library-data.json').revision")
+          BASE="https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/$REV"
+          curl --fail --location --retry 3 --connect-timeout 15 --max-time 120 \
+            "$BASE/archive/index.json" -o build-native/gis/library-archive-index.json
+          node --input-type=module - <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const logical='tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.sheets.json';
+          const index=JSON.parse(readFileSync('build-native/gis/library-archive-index.json','utf8'));
+          const entry=index.files?.[logical];
+          if(!entry||typeof entry.stored!=='string'
+            ||!/^archive\/blobs\/[a-f0-9]{64}\.(?:gz|bin)$/.test(entry.stored)
+            ||!/^[a-f0-9]{64}$/.test(entry.sha256)
+            ||!Number.isSafeInteger(entry.bytes)||entry.bytes<1||entry.bytes>2*1024*1024)
+            throw Error('Missing/invalid pinned map-sheet archive descriptor');
+          writeFileSync('build-native/gis/sheet-source-receipt.json',
+            JSON.stringify({logical,entry},null,2)+'\n',{flag:'wx'});
+          JS
+          STORE=$(node -p "require('./build-native/gis/sheet-source-receipt.json').entry.stored")
+          curl --fail --location --retry 3 --connect-timeout 15 --max-time 120 \
+            "$BASE/$STORE" -o build-native/gis/sheet-source-stored.bin
+          node --input-type=module - <<'JS'
+          import {createHash} from 'node:crypto';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          const entry=JSON.parse(readFileSync('build-native/gis/sheet-source-receipt.json','utf8')).entry;
+          const archived=readFileSync('build-native/gis/sheet-source-stored.bin');
+          const raw=entry.encoding==='gzip'?gunzipSync(archived)
+            :entry.encoding==='none'||entry.encoding==='raw'?archived:null;
+          if(!raw)throw Error('Unsupported original archive encoding');
+          const hash=createHash('sha256').update(raw).digest('hex');
+          if(raw.length!==entry.bytes||hash!==entry.sha256)
+            throw Error('Pinned historical sheet source has unexpected bytes');
+          const data=JSON.parse(raw.toString('utf8'));
+          if(!Array.isArray(data.sheets)||data.sheets.length!==4)
+            throw Error('Pinned SLUB sheet list is incomplete');
+          writeFileSync('build-native/gis/verified-sheets.json',raw,{flag:'wx'});
+          console.log('PINNED_SCHLESWIG_SHEETS='+JSON.stringify({count:data.sheets.length,sha256:hash}));
+          JS
+      - name: Query public index only, preserving original report bytes
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node tools/library-data.mjs --store-and-stage --push -- tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.slub-discovery.json
-          if git diff --cached --quiet; then
-            echo "No discovery changes."
-          else
-            git commit -m "data(gis): record SLUB public map catalogue reachability"
-            git pull --rebase origin work/gis
-            git push origin HEAD:work/gis
-          fi
+          mkdir -p build-native/gis
+          node tools/discover-north-schleswig-map-services.mjs \
+            --sheets build-native/gis/verified-sheets.json \
+            --output build-native/gis/north-schleswig-slub-catalogue.json --execute
+      - name: Reject claims of historical map acquisition or border verification
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          const x=JSON.parse(readFileSync('build-native/gis/north-schleswig-slub-catalogue.json','utf8'));
+          if(x.historicRasterObtained!==false||x.historicRasterComparedWithLine!==false)
+            throw Error('Catalogue discovery cannot certify any historical border');
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: north-schleswig-slub-catalogue-receipt
+          path: build-native/gis/north-schleswig-slub-catalogue.json
+          retention-days: 14
+          if-no-files-found: warn
