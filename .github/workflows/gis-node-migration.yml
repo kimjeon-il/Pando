@@ -27,6 +27,7 @@ on:
       - 'tests/unit/font-assets.test.mjs'
       - 'tests/unit/application-source-extraction.test.mjs'
       - 'tests/unit/layer-lock-sync.test.mjs'
+      - 'tests/unit/python-bridge-retirement.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -58,5 +59,5 @@ jobs:
           node --check tools/lib/geonames-review.mjs
           node --check tools/lib/geonames-statistics.mjs
           node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/report-paths.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs
-          node --test tests/unit/application-source-extraction.test.mjs tests/unit/layer-lock-sync.test.mjs tests/unit/p4-python-isolation.test.mjs tests/unit/boundary-capture-comparison.test.mjs
-          pnpm exec eslint tools/build-place-candidates.mjs tools/lib/geonames-zip.mjs tools/lib/geonames-policy.mjs tools/lib/geonames-review.mjs tools/lib/geonames-statistics.mjs tools/place-batch-pipeline.mjs tools/download-terrain-source.mjs tools/build-hydro-packfile.mjs tools/report-paths.mjs scripts/gis/run-source.mjs scripts/summarize-boundary-capture-evidence.mjs tests/helpers/geonames-fixtures.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs tests/unit/application-source-extraction.test.mjs tests/unit/layer-lock-sync.test.mjs
+          node --test tests/unit/application-source-extraction.test.mjs tests/unit/layer-lock-sync.test.mjs tests/unit/python-bridge-retirement.test.mjs tests/unit/p4-python-isolation.test.mjs tests/unit/boundary-capture-comparison.test.mjs
+          pnpm exec eslint tools/build-place-candidates.mjs tools/lib/geonames-zip.mjs tools/lib/geonames-policy.mjs tools/lib/geonames-review.mjs tools/lib/geonames-statistics.mjs tools/place-batch-pipeline.mjs tools/download-terrain-source.mjs tools/build-hydro-packfile.mjs tools/report-paths.mjs scripts/gis/run-source.mjs scripts/summarize-boundary-capture-evidence.mjs tests/helpers/geonames-fixtures.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs tests/unit/application-source-extraction.test.mjs tests/unit/layer-lock-sync.test.mjs tests/unit/python-bridge-retirement.test.mjs
