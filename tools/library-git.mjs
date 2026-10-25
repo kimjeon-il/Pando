@@ -63,7 +63,7 @@ export function compactDuplicatePacks(checkout,{stopAfter=null}={}){
     if(!overlapping.length&&!temporary.length)return {compacted:false,deletedBytes:0};
     const packObjectIds=[...new Set(overlapping.flatMap(p=>p.ids))].filter(oid=>!seen.has(oid));
     const names=new Set(overlapping.map(p=>p.name.slice(0,-4)));
-    const packs=[...contentFiles(packRoot).filter(f=>/\.(pack|idx|rev|promisor|mtimes)$/.test(f.logical)&&names.has(f.logical.replace(/\.[^.]+$/,''))).map(f=>recordFile(shared,f.path)),...temporary];
+    const packs=[...contentFiles(packRoot).filter(f=>/\.(pack|idx|rev|promisor|mtimes|keep)$/.test(f.logical)&&names.has(f.logical.replace(/\.[^.]+$/,''))).map(f=>recordFile(shared,f.path)),...temporary];
     const id=randomUUID();journal={schema:'pando-git-storage-v1',id,stagingPath:'.git/pando-repack-'+id,packs,objects:localObjects(shared),promisor:[...promisor],packObjectIds,retainedIndexes:keep.map(p=>p.name),gitState:gitStorageState(shared),deleted:[],phase:'inventoried'};
     packHeadroom(shared,journal.objects,packObjectIds);
     atomicStorageJSON(pending,journal);
@@ -105,7 +105,7 @@ export function removeEmpty(directory) { for(const name of readdirSync(directory
 export function snapshotGitStorage(shared,progress=()=>{}){
   if(resolve(shared,git(shared,['rev-parse','--git-common-dir']))!==resolve(shared,'.git'))throw Error('Git storage must run at the common repository root');
   progress('hashing existing local Git packs');
-  const packs=contentFiles(containedPath(shared,'.git/objects/pack')).filter(f=>/^pack-[a-f0-9]{40}\.(pack|idx|rev|promisor|mtimes)$/.test(f.logical)).map(f=>recordFile(shared,f.path));
+  const packs=contentFiles(containedPath(shared,'.git/objects/pack')).filter(f=>/^pack-[a-f0-9]{40}\.(pack|idx|rev|promisor|mtimes|keep)$/.test(f.logical)).map(f=>recordFile(shared,f.path));
   const promisor=new Set();for(const p of packs.filter(p=>p.path.endsWith('.promisor')))for(const oid of indexObjects(resolve(shared,p.path.slice(0,-9)+'.idx')))promisor.add(oid);
   progress('enumerating every local Git object, including unreachable objects');
   const objects=localObjects(shared),id=randomUUID();progress(`inventoried ${objects.length} local objects`);

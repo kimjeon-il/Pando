@@ -59,7 +59,7 @@ function snapshot(root, shared, roots, progress=()=>{}, reclaim=false) {
   const indexes=['migration.index','finalize.index'].map(name=>resolve(shared,'.git',name)).filter(existsSync).map(path=>recordFile(shared,path));
   const liveViews=roots.filter(r=>existsSync(resolve(libraryMaterializedRoot(r),'.complete'))).map(root=>({root,files:contentFiles(libraryMaterializedRoot(root)).filter(f=>!['.complete','.cache-owner.json'].includes(f.logical)).map(f=>recordFile(shared,f.path))}));
   progress('hashing Git packs and enumerating every local object');
-  const packs=contentFiles(resolve(shared,'.git/objects/pack')).filter(f=>/^pack-[a-f0-9]{40}\.(pack|idx|rev|promisor|mtimes)$/.test(f.logical)).map(f=>recordFile(shared,f.path));
+  const packs=contentFiles(resolve(shared,'.git/objects/pack')).filter(f=>/^pack-[a-f0-9]{40}\.(pack|idx|rev|promisor|mtimes|keep)$/.test(f.logical)).map(f=>recordFile(shared,f.path));
   const objects=localObjects(shared), promisor=new Set(),packed=new Set();let entries=0;
   for(const p of packs.filter(f=>f.path.endsWith('.idx'))){const ids=indexObjects(resolve(shared,p.path));entries+=ids.length;ids.forEach(oid=>packed.add(oid));if(existsSync(resolve(shared,p.path.slice(0,-4)+'.promisor')))ids.forEach(oid=>promisor.add(oid));}
   progress('measuring file IDs and Git reference state');

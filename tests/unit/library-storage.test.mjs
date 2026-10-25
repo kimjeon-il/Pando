@@ -67,10 +67,13 @@ test('a damaged retained pack cannot justify deleting a valid duplicate original
 test('only a byte-proven prefix of a verified complete pack is retired as a failed download',t=>{
   const f=fixture(t),packRoot=join(f.data,'.git/objects/pack'),before=localObjects(f.data);
   const source=readdirSync(packRoot).find(n=>n.endsWith('.pack')),bytes=readFileSync(join(packRoot,source));
+  const obsolete=readdirSync(packRoot).filter(n=>n.endsWith('.pack')).sort((a,b)=>statSync(join(packRoot,b)).size-statSync(join(packRoot,a)).size)[0];
+  const keep=join(packRoot,obsolete.replace('.pack','.keep'));writeFileSync(keep,'');
   const duplicate=join(packRoot,'tmp_pack_proven'),unknown=join(packRoot,'tmp_pack_unknown');
   writeFileSync(duplicate,bytes.subarray(0,Math.floor(bytes.length/2)));writeFileSync(unknown,'unverified unique unfinished bytes');
   compactDuplicatePacks(f.data);
   assert.equal(existsSync(duplicate),false);assert.equal(readFileSync(unknown,'utf8'),'unverified unique unfinished bytes');
+  assert.equal(existsSync(keep),false,'a replaced source pack must not leave its obsolete keep marker');
   assert.deepEqual(localObjects(f.data),before);
 });
 
