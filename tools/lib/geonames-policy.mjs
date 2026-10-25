@@ -44,7 +44,7 @@ export function parseRow(line,context='row'){
     population:fields[14]?Number(fields[14]):0,timezone:fields[17],modificationDate:fields[18],
   };
   validateRecord(record,context);
-  return [record,!Boolean(fields[14])];
+  return [record,!fields[14]];
 }
 export function validateRecord(row,context='row'){
   if(!Number.isSafeInteger(row?.geonameId)||row.geonameId<=0||!row.name)

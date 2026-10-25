@@ -143,7 +143,7 @@ test('ZIP metadata, deflate, entire-member CRC and source checksum reject bad da
  assert.ok(rows[0].includes('서울'));
  snapshot(cache,'allCountries',[sourceLine()],{corruptCrc:true});
  await rejectsAsync(()=>verifyZip(join(cache,'allCountries.zip'),'allCountries.txt'),/CRC/);
- await rejectsAsync(async()=>{for await(const _ of sourceRows('allCountries',cache)){}},/CRC/);
+ await rejectsAsync(async()=>{for await(const row of sourceRows('allCountries',cache)){assert.ok(row);}},/CRC/);
 });
 test('review overrides update only explicit ID decision and never mutate original',()=>{
  const row=rec({}),ledgerObj=ledger([row],['hold']);
