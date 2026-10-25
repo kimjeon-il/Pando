@@ -4,7 +4,9 @@ import { mkdtemp, writeFile, readFile, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { validateEnvironment, verifyBundle, nodeManifest, collectSourceFiles } from '../../tools/reference-analysis/cloud-probe.mjs';
+import { validateEnvironment, verifyBundle, runProbe } from '../../tools/reference-analysis/cloud-probe.mjs';
+import { nodeManifest, collectSourceFiles } from '../../tools/reference-analysis/runtime-assets.mjs';
+import * as probe from '../../tools/reference-analysis/cloud-probe.mjs';
 
 test('environment gate requires observed Work cloud execution rather than a local smoke test',()=>{
   const receipt={surface:'chatgpt-work-cloud',verdict:'passed',checks:{platform:{os:'Linux'},node:{status:'passed'},file_read_write:{status:'passed'}}};
@@ -29,7 +31,7 @@ test('bundle verification rejects changed bytes, traversal, and missing files',a
 });
 
 test('diagnostic source closure includes dynamic numerical owners but excludes product build outputs',async()=>{
-  const files=await collectSourceFiles();
+  const files=await collectSourceFiles(undefined,{diagnostics:true});
   for(const name of ['plugins/pando-map-tools/lib/engine.mjs','assets/js/modules/temporal.js','tools/load-node-core.mjs','tools/reference-analysis/verify-trained-onnx.mjs'])assert(files.includes(name),name);
   assert(files.some(name=>name.startsWith('shared/core/src/')));
   assert(!files.some(name=>name.startsWith('build-native/')||name.startsWith('.git/')||name.startsWith('node_modules/')));
@@ -42,4 +44,40 @@ test('generated runtime dependencies are exact versions from the installed produ
   assert(Object.keys(manifest.overrides).length>5);
   assert(Object.values(manifest.overrides).every(version=>/^\d+\.\d+\.\d+(?:[-+].+)?$/.test(version)));
   assert(!manifest.scripts);assert(!manifest.devDependencies);
+});
+
+test('product source closure excludes diagnostic runners, training and generated Python caches',async()=>{
+  const files=await collectSourceFiles(undefined,{diagnostics:false});
+  assert(!files.includes('tools/reference-analysis/cloud-probe.mjs'));
+  assert(!files.includes('tools/reference-analysis/verify-trained-onnx.mjs'));
+  assert(!files.some(path=>path.includes('__pycache__')||path.endsWith('.pyc')||path.includes('skills/pando-map-training/')));
+});
+
+test('repeated export or resume is rejected before changing the job or a successful receipt',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'map-cloud-repeat-'));
+  try {
+    const bundle=join(dir,'bundle'),output=join(dir,'results');await mkdir(bundle);await mkdir(output);
+    await writeFile(join(bundle,'probe.json'),JSON.stringify({schemaVersion:1,files:[]}));
+    await writeFile(join(output,'map.job.json'),'unchanged job');
+    for(const stage of ['export','resume']) {
+      const receipt=join(output,stage+'.json');await writeFile(receipt,'previous successful receipt');
+      await assert.rejects(runProbe({bundle,output,stage,selection:'unused'}),error=>error.code==='PL-MAP-PROBE-EXISTS');
+      assert.equal(await readFile(receipt,'utf8'),'previous successful receipt');
+      assert.equal(await readFile(join(output,'map.job.json'),'utf8'),'unchanged job');
+    }
+    await assert.rejects(runProbe({bundle,output:bundle,stage:'map'}),/outside.*bundle/i);
+  } finally {await rm(dir,{recursive:true,force:true});}
+});
+
+test('analysis receives the packaged source evidence and keeps original-PDF and raster identities separate',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'map-cloud-evidence-'));
+  try {
+    await mkdir(join(dir,'inputs'));const evidence={id:'map',license:'source terms',sha256:'original-pdf-hash'};
+    await writeFile(join(dir,'inputs/provenance.json'),JSON.stringify(evidence));
+    assert.equal(typeof probe.probeAnalysisOptions,'function');
+    const options=await probe.probeAnalysisOptions(dir,{options:{languages:['eng'],maxPixels:1000000}});
+    assert.deepEqual(options.provenance,evidence);assert.deepEqual(options.languages,['eng']);
+    assert.equal(options.input,join(dir,'inputs/map.jpg'));assert.equal(options.modelPath,join(dir,'model/boundary.manifest.json'));
+    assert.equal(options.sha256,undefined);
+  } finally {await rm(dir,{recursive:true,force:true});}
 });

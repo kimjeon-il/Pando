@@ -2,6 +2,7 @@ import { readFile, writeFile, access } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { resolve, dirname } from 'node:path';
 import { workspace, workspaceModule, requireWorkspace, core, assertRuntimeResources } from './workspace.mjs';
+import { ensureOcrLanguage } from './runtime.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
 import { raster, cropRaster, resizeRaster, pngRaster } from './raster.mjs';
 import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob, georeferenceQuality } from './jobs.mjs';
@@ -32,6 +33,7 @@ export async function readModel(path) {
 async function withOcrWorker(language,run,signal) {
   check(signal);
   const langPath=resolve(workspace,'assets/data/reference-analysis/v1/ocr');
+  await ensureOcrLanguage(workspace,language,{signal});
   await access(resolve(langPath,language+'.traineddata.gz'));
   const languageManifest=JSON.parse(await readFile(resolve(langPath,'manifest.json'),'utf8'));
   const languageSpec=languageManifest.languages[language],languageBytes=await readFile(resolve(langPath,language+'.traineddata.gz'));

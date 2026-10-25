@@ -1,17 +1,18 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pando-map-tools",
-  "version": "0.3.0",
+  "version": "0.4.1",
   "description": "Analyze map images, refine georeferencing and boundary candidates, export GeoJSON, and train map models.",
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "Map Toolkit",
         "shortDescription": "Analyze maps and export reviewed GIS data",
-        "longDescription": "Turn map images into reviewed GeoJSON using local OCR, georeferencing and boundary models. From a phone, use a Codex/Remote conversation connected to the computer that holds the workspace and shared data. Analysis runs on that computer.",
+        "longDescription": "Find or attach map images and PDFs, review georeferencing and provisional boundary candidates, and download GeoJSON. The private Work installation runs in the cloud without a connected PC. Local developer analysis and separately requested training reuse the existing workspace.",
         "defaultPrompt": [
-          "Map Toolkit으로 첨부한 지도를 분석하고 경계 후보를 GeoJSON으로 만들어줘",
-          "Map Toolkit으로 기존 분석 결과를 검토하고 경계를 수정해줘"
+          "Map Toolkit으로 첨부한 지도를 분석하고 검토한 경계를 GeoJSON으로 만들어줘",
+          "Map Toolkit으로 이 지역과 시기의 거시지도를 찾아 분석해줘",
+          "Map Toolkit으로 현재 분석의 기준점과 경계를 수정해줘"
         ],
         "category": "Developer Tools",
         "brandColor": "#0F766E",

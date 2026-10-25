@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import io
+import json
 import pathlib
 import tempfile
 import unittest
@@ -80,6 +81,45 @@ class SourceAcquisitionTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(original.read_bytes()).hexdigest(), digest)
             self.assertEqual(inputs.prepare(original, maximum_pixels=1000), result)
             self.assertFalse(list(pathlib.Path(directory).glob("*.part")))
+
+
+class MapSourceTests(unittest.TestCase):
+    def source(self, format, data):
+        return dict(id='macro-map', url='https://example.invalid/map', format=format,
+                    rightsReviewed=True, license='public-domain', maximumBytes=1024,
+                    sha256=hashlib.sha256(data).hexdigest(), published='2024', depictedDate='1922')
+
+    def test_png_and_webp_keep_original_bytes_and_source_dates(self):
+        for format, data in [('png', b'\x89PNG\r\n\x1a\noriginal'), ('webp', b'RIFF\x08\0\0\0WEBPoriginal')]:
+            with self.subTest(format=format), tempfile.TemporaryDirectory() as directory:
+                source = self.source(format, data)
+                result = sources.acquire(source, directory, opener=lambda request, **kwargs: io.BytesIO(data))
+                self.assertEqual(result['status'], 'acquired-unlabelled')
+                target = pathlib.Path(directory) / ('macro-map.' + format)
+                self.assertEqual(target.read_bytes(), data)
+                provenance = json.loads((pathlib.Path(directory) / 'macro-map.source.json').read_text())
+                self.assertEqual(provenance['published'], '2024')
+                self.assertEqual(provenance['depictedDate'], '1922')
+                self.assertFalse(provenance['trainingReady'])
+                self.assertEqual(sources.acquire(source, directory, opener=lambda _, **kwargs: self.fail('must reuse source'))['status'], 'verified-existing')
+
+    def test_rejects_non_https_before_access_and_leaves_existing_original_unchanged(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.source('pdf', b'%PDF-original')
+            source['url'] = 'file:///private/original.pdf'
+            with self.assertRaisesRegex(ValueError, 'HTTPS'):
+                sources.acquire(source, directory, opener=lambda _, **kwargs: self.fail('must not access a local URL'))
+            self.assertEqual(list(pathlib.Path(directory).iterdir()), [])
+
+    def test_failed_signature_or_budget_removes_only_its_temporary_download(self):
+        for data in [b'not-png', b'\x89PNG\r\n\x1a\n' + b'x' * 2048]:
+            with self.subTest(length=len(data)), tempfile.TemporaryDirectory() as directory:
+                unrelated = pathlib.Path(directory) / 'another-map.part'
+                unrelated.write_bytes(b'protected')
+                with self.assertRaises(ValueError):
+                    sources.acquire(self.source('png', data), directory, opener=lambda _, **kwargs: io.BytesIO(data))
+                self.assertEqual(unrelated.read_bytes(), b'protected')
+                self.assertEqual([path.name for path in pathlib.Path(directory).iterdir()], ['another-map.part'])
 
 
 if __name__ == "__main__":

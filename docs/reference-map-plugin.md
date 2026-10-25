@@ -1,28 +1,47 @@
 # Independent map analysis
 
-`plugins/pando-map-tools` provides the `pando-map-analysis` skill alongside the
-existing training skill. Analysis runs in Node and the existing Python runtime;
-Pando, QGIS, a browser, a server and an additional environment are not required.
-An installed plugin binds to the existing `work/ui` checkout with `--workspace`.
-Its cache contains code/instructions only. OCR packs, place shards and model
-weights are read from their existing shared locations, never copied into it.
+Map Toolkit reuses `plugins/pando-map-tools` for both local development and
+private ChatGPT Work analysis. The private installation runs without PC Remote,
+a ZIP upload, QGIS, an MCP server, an API key or a separate Python environment.
+The source also retains the separately requested training skill; the cloud
+analysis distribution excludes training code and environments.
 
-## Mobile access
+## Private Work distribution
 
-Use a Codex/Remote conversation connected to this PC and request "Map Toolkit으로
-첨부한 지도를 분석해줘". The host runs the same installed plugin with
-`--workspace D:/dev/worktrees/ui`; the phone does not need the analysis runtime.
-Keep the host online. Use the attached original file when it is accessible and
-return the preview and GeoJSON through supported conversation file delivery.
-If either attachment access or delivery is unavailable, report that limitation
-instead of substituting a Windows path and claiming the phone workflow passed.
+`tools/reference-analysis/package-private-plugin.mjs` builds from a full source
+SHA already pushed to `origin/work/ui`, paired with its pinned library revision.
+It collects the same source/dependency closure as `cloud-probe.mjs`, packages
+verified common source/WASM, English/OSD OCR and place seeds, and lazily fetches
+other requested OCR languages from pinned public library blobs. The pending
+macro-v6 model is included only in the private archive, never application Git
+or a public report. The managed analysis skill contains the engine and runtime
+seed once; runtime preparation reuses a hash-keyed cache without copying weights.
+The installation records the immutable code/data revisions and byte identities.
 
-This local installation is separate from the account's general ChatGPT plugin
-list. Uploading its skills does not deploy the local runtimes, models or shared
-data to a cloud conversation. Mobile standalone execution and account-directory
-registration are not established by a successful host-side runtime check.
-See [remote connections](https://learn.chatgpt.com/docs/remote-connections) and
-[local plugin packaging](https://developers.openai.com/plugins/build/plugins).
+```powershell
+node tools/reference-analysis/package-private-plugin.mjs --revision <pushed-full-SHA> --directory <private-new-output> --model <existing-private-manifest>
+```
+
+Upload the private archive with Plugin Creator's guarded update of the existing
+Map Toolkit ID. Remove explicitly listed retired files in that same update.
+Preserve the private audience and store account-specific IDs/links only in
+platform settings. Do not silently publish the model or switch to a server when
+private delivery is unavailable. Version 0.4.1 replaces the 0.4.0 delivery probe.
+
+The analysis skill accepts an original attachment, URL or map-search request.
+Codex uses existing web tools to select a source when extent, depicted period,
+map type and rights are clear, asking only when interpretation is unresolved.
+Survey/publication/revision dates and later historical reconstructions are
+recorded separately. Bounded JPEG/PDF/PNG/WebP acquisition and training corpus
+acquisition share `lib/map_source.py`; source bytes are never overwritten.
+User maps and outputs remain private and are never automatically published.
+
+The installed skill runs `<skill_root>/scripts/map.mjs` without local paths.
+The same active Work environment can reload jobs on subsequent turns. Expired
+environment recovery is outside the contract. Return actual downloads for the
+GeoJSON, PNG, analysis JSON and report and verify their completion hashes.
+Web/cloud checks do not establish phone selection or download behavior; those
+require an actual phone with PC Remote disconnected.
 
 The CLI has three entrypoints:
 
