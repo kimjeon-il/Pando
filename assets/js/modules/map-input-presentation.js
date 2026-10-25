@@ -1,7 +1,6 @@
 
 export function createMapInputPresentation({
   productMode='editor',
-  referenceInput=null,
   getElement: $,
   window,
   d3,
@@ -104,11 +103,9 @@ export function createMapInputPresentation({
       // Own the complete map surface so native touch/pinch gestures cannot
       // escape through a child SVG hit target and become page zoom.
       element: $('map'),
-      beginExternalGesture: (point,event)=>getInputSnapshot().projectReplacing||!referenceInput?null:referenceInput.beginGesture(point,event,{spacePan:getInputSnapshot().spacePanActive}),
       interactiveTarget: (target, event) => {
         if (getInputSnapshot().projectReplacing) return true;
-        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel,.reference-image-workflow-guide,.project-bounds-picker')) return true;
-        if(referenceInput&&referenceInput.isActive())return false;
+        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.project-bounds-picker')) return true;
         if (target?.closest?.('.map-overlay-layer')) return true;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);

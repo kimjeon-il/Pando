@@ -297,7 +297,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     if (!packageState) throw new Error('현재 프로젝트 형식의 저장 정보가 필요합니다.');
     const entities = normalizeTerritorialIdentities(packageState.territorialEntities);
     const territorialEntities = applyImportedPackageAssets(result.atlasMetadata, entities);
-    await projectDomain.load({ ...packageState, ...(result.atlasMetadata.packageAssets ? { packageAssets: result.atlasMetadata.packageAssets } : {}), territorialEntities,
+    await projectDomain.load({ ...packageState, territorialEntities,
       sourceInfo: packageState.sourceInfo });
     setActionStatus(`객체 ${territorialEntityRepository.list().length}개를 새 프로젝트로 열었습니다.`, 'success', 3200);
   }

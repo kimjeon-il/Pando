@@ -24,8 +24,7 @@ export function installNetworkGuard(scope = globalThis, { allowBundledData = fal
     const dataPath = decodeURIComponent(url.pathname);
     const bundledData = dataPath.startsWith('/assets/data/');
     const physicalLand = /^\/assets\/data\/physical-land\/v1\/(?:geometry\.json\.gz|manifest\.json)$/.test(dataPath);
-    const referenceAnalysis = /^\/assets\/data\/reference-analysis\/v1\/(?:ocr\/(?:manifest\.json|[a-z_]+\.traineddata\.gz)|boundary\.manifest\.json|[\w.-]+\.onnx)$/.test(dataPath);
-    if ((!ipc && url.origin !== origin) || (bundledData && !allowBundledData && !physicalLand && !referenceAnalysis)) {
+    if ((!ipc && url.origin !== origin) || (bundledData && !allowBundledData && !physicalLand)) {
       record('blocked', row);
       throw new Error(`Prototype resource request blocked: ${url.href}`);
     }

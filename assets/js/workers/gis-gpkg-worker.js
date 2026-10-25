@@ -241,7 +241,6 @@ function writeAtlasTables(db, payload) {
   const settings = { ...state };
   delete settings.countryAssets;
   delete settings.hydroCollections;
-  delete settings.packageAssets;
   db.run('INSERT INTO pandolab_project_settings (setting_key, json_value) VALUES (?, ?)', ['project_state', JSON.stringify(settings)]);
 
   createAttributeTable(db, 'pandolab_country_assets', 'country_id TEXT PRIMARY KEY NOT NULL, mime_type TEXT NOT NULL, image_data BLOB NOT NULL', 'PandoLab country flag assets');
@@ -252,14 +251,6 @@ function writeAtlasTables(db, payload) {
   }
   assetInsert.free();
 
-  const images = state.packageAssets?.referenceImages;
-  if (images) {
-    db.run('INSERT INTO pandolab_project_settings (setting_key, json_value) VALUES (?, ?)', ['reference_images', JSON.stringify({ schemaVersion: images.schemaVersion, records: images.records })]);
-    createAttributeTable(db, 'pandolab_reference_sources', 'source_hash TEXT PRIMARY KEY NOT NULL, mime_type TEXT NOT NULL, image_data BLOB NOT NULL', 'PandoLab shared reference image originals');
-    const insert = db.prepare('INSERT INTO pandolab_reference_sources (source_hash, mime_type, image_data) VALUES (?, ?, ?)');
-    for (const source of images.sources) insert.run([source.sha256, source.mimeType, base64ToBytes(source.base64)]);
-    insert.free();
-  }
 
   createAttributeTable(db, 'pandolab_source_info', 'info_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'PandoLab source provenance');
   db.run('INSERT INTO pandolab_source_info (info_key, json_value) VALUES (?, ?)', ['source', JSON.stringify(state.sourceInfo || {})]);
@@ -270,11 +261,7 @@ async function writeGeoPackage(buffer, projectState, options = {}) {
     if(!Object.hasOwn(options,'spatialState') || options.spatialState!==null && typeof options.spatialState!=='object')
       throw Object.assign(new TypeError('The canonical Core file spatial projection is required.'),{code:'PL-GPKG-SPATIAL-PROJECTION'});
   }
-  if (projectState.packageAssets) {
-    const { unpackReferenceImages } = await import('../modules/reference-image-package.js');
-    if (projectState.packageAssets.schemaVersion !== 1 || Object.keys(projectState.packageAssets).some(key => !['schemaVersion', 'referenceImages', 'referenceImagesDirty'].includes(key))) throw new TypeError('Unsupported project package assets.');
-    await unpackReferenceImages(projectState.packageAssets.referenceImages);
-  }
+  if (Object.hasOwn(projectState,'packageAssets')) throw new TypeError('Unsupported retired project attachments.');
   const SQL = await getSql();
   const db = new SQL.Database(new Uint8Array(buffer));
   try {

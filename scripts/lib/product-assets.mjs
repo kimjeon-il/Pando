@@ -25,17 +25,13 @@ export const dynamicExpressions = Object.freeze({
   'assets/js/modules/core-wasm-loader.js': ['url'],
   'assets/js/workers/canvas-render-worker.js': ['validationUrl.href'],
   'assets/js/workers/place-worker.js': ['storeModuleUrl.href'],
-  'assets/js/modules/reference-image-ocr-runtime.js': ['runtimeUrl.href'],
-  'assets/js/modules/reference-image-analysis-engine.js': ['onnxRuntimeUrl.href'],
 });
 const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-(?:composition|runtime-dependencies|domain-assembly|lifecycle-assembly|project-restore|project-snapshots|country-commits|generic-commands|object-commands|global-input-bindings|file-bindings|tool-bindings|editor-bindings|territorial-drafts|territory-selection-workflow|geometry-preview|history-assembly|gis-assembly|library-assembly)|editing-|editor-map-click|spatial-edit-registration|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;
 const slash = path => path.replaceAll('\\', '/');
 const stripQuery = path => path.split(/[?#]/, 1)[0];
 
-export const isEditorOnlyAsset = path => editorOnly.test(path)
-  || path.startsWith('assets/vendor/reference-analysis/')
-  || path.startsWith('assets/js/modules/reference-image-')
-  || path === 'assets/js/workers/reference-image-analysis-worker.js';
+// Processing remnants must never become public viewer assets.
+export const isEditorOnlyAsset = path => editorOnly.test(path) || path.startsWith('assets/vendor/reference-analysis/');
 
 export async function collectViewerAssets({ root, availablePaths, readSource = path => readFileSync(resolve(root, path), 'utf8'), workerAssets = null }) {
   root = resolve(root);

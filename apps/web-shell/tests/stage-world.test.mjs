@@ -16,8 +16,6 @@ test('map-data stage selects manifest-pinned Web resources and keeps the canonic
   assert.equal(staged.worldData.worldFileCount, 14);
   assert.equal(staged.worldData.physicalFileCount, 4);
   assert.equal(staged.fixture, null);
-  assert.equal(staged.referenceAnalysis.modelAvailable, false);
-  assert.ok(staged.files.some(file => file.path === 'assets/data/reference-analysis/v1/ocr/eng.traineddata.gz'));
   assert.equal(await readFile(join(staged.directory, 'assets/js/bootstrap.js'), 'utf8'),
     'globalThis.startedByWebBootstrap = true;');
   const mode = JSON.parse(await readFile(join(staged.directory, 'shell/stage-profile.json')));

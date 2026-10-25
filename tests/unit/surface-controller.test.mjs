@@ -27,7 +27,7 @@ function fixture(initialLayout) {
   const elements = Object.fromEntries([
     'objectSearchSurface', 'mapDisplaySurface', 'editorSurface', 'createMenu', 'objectSearchBtn',
     'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'createMenuBtn', 'mobileEditBtn',
-    'mobileFileBtn', 'mobileBackdrop', 'mobileCreateBtn', 'referenceImageSurface', 'referenceImageBtn',
+    'mobileFileBtn', 'mobileBackdrop', 'mobileCreateBtn',
   ].map(id => [id, element(id)]));
   const workspace = element('workspace');
   const body = element('body');
@@ -47,33 +47,7 @@ function fixture(initialLayout) {
   };
 }
 
-test('reference image is the only mobile sheet and restores its trigger state across layout changes', () => {
-  const { controller, elements, setLayout } = fixture('wide');
-  controller.open('editor');
-  assert.equal(controller.open('reference'), true);
-  controller.render();
-  assert.equal(controller.isOpen('editor'), true);
-  setLayout('mobile');
-  controller.syncLayout('wide');
-  controller.render();
-  assert.equal(controller.activeMobileSheet, 'reference');
-  assert.equal(controller.isOpen('editor'), false);
-  assert.equal(elements.referenceImageBtn.getAttribute('aria-expanded'), 'true');
-  assert.equal(elements.referenceImageSurface.getAttribute('role'), 'dialog');
-  controller.open('display');
-  controller.render();
-  assert.equal(controller.isOpen('reference'), false);
-  assert.equal(elements.referenceImageSurface.inert, true);
-  assert.equal(elements.referenceImageBtn.getAttribute('aria-expanded'), 'false');
-  controller.open('reference');
-  setLayout('compact');
-  controller.syncLayout('mobile');
-  controller.render();
-  assert.equal(controller.isOpen('reference'), true);
-  controller.close('reference');
-  controller.render();
-  assert.equal(elements.referenceImageSurface.inert, true);
-});
+
 
 test('compact search preserves the editor and synchronizes ARIA while replacing competing menus', () => {
   const { controller, elements } = fixture('compact');
@@ -106,6 +80,7 @@ test('retired layer surface cannot change command surfaces', () => {
   controller.open('search');
   const before = controller.render();
   assert.equal(controller.open('layers'), false);
+  assert.equal(controller.open('reference'), false);
   assert.deepEqual(controller.render(), before);
 });
 
@@ -268,19 +243,19 @@ test('an active editor surface follows the responsive transition to mobile', () 
 test('phone landscape keeps one explicit panel and preserves the active panel across rotation', () => {
   const { controller, elements, setLayout } = fixture('phone-landscape');
   assert.equal(controller.open('editor', { automatic: true }), false);
-  for (const surface of ['editor', 'search', 'display', 'create', 'reference']) {
+  for (const surface of ['editor', 'search', 'display', 'create']) {
     controller.open(surface);
     controller.render();
-    assert.equal(['editor', 'search', 'display', 'create', 'reference'].filter(key => controller.isOpen(key)).length, 1);
+    assert.equal(['editor', 'search', 'display', 'create'].filter(key => controller.isOpen(key)).length, 1);
   }
-  assert.equal(elements.referenceImageSurface.inert, false);
+  assert.equal(elements.createMenu.inert, false);
   assert.equal(elements.editorSurface.inert, true);
   setLayout('mobile');
   controller.syncLayout('phone-landscape');
-  assert.equal(controller.render().activeMobileSheet, 'reference');
+  assert.equal(controller.render().activeMobileSheet, 'create');
   setLayout('phone-landscape');
   controller.syncLayout('mobile');
-  assert.equal(controller.render().activeMobileSheet, 'reference');
-  controller.close('reference');
+  assert.equal(controller.render().activeMobileSheet, 'create');
+  controller.close('create');
   assert.equal(controller.render().activeMobileSheet, null);
 });

@@ -31,7 +31,7 @@ if(process.argv.includes('--sample-root')) {
   const cutCases=JSON.parse(read('tests/fixtures/shared-core/web-m97/cut-corpus.json')).map(row=>row.payload);
   const river=await load('assets/js/modules/river-territory-partition.js');
   const riverCases=JSON.parse(read('tests/fixtures/shared-core/web-m972-river/synthetic-cases.json'));
-  const reference=await load('assets/js/modules/reference-image-georef.js');
+  const reference=await load('plugins/pando-map-tools/lib/analysis/georef.mjs');
   const refCases=JSON.parse(read('tests/fixtures/shared-core/reference-calibration.json'));
   const operations={
     cut(){for(const input of cutCases){const result=cut.prepareCutInWorker(input,globalThis.PandoLabPolygonGeometry,globalThis.d3,globalThis.polygonClipping);assert.equal(typeof result.valid,'boolean');}},

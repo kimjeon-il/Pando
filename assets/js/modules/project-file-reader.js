@@ -12,7 +12,7 @@ export async function readProjectFile(file) {
       if (!data.ok) { finish(new Error(data.error)); return; }
       try {
         const project = data.metadata.projectState;
-        finish(null, { ...project, ...(data.metadata.packageAssets ? { packageAssets: data.metadata.packageAssets } : {}), territorialEntities: applyImportedPackageAssets(data.metadata, project.territorialEntities) });
+        finish(null, { ...project, territorialEntities: applyImportedPackageAssets(data.metadata, project.territorialEntities) });
       } catch (error) { finish(error); }
     };
     worker.postMessage({ action: 'read', buffer }, [buffer]);

@@ -1,6 +1,6 @@
 /* Canonical layout / surfaces. */
 
-[data-layout="wide"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search, .surface-reference) {
+[data-layout="wide"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
   bottom: var(--ui-shell-statusbar-height);
 }
 
@@ -21,17 +21,17 @@
   right: 0;
 }
 
-[data-layout="wide"] .workspace-surface:not(.surface-reference, .view-menu-desktop, .search-toolbar-desktop) > .surface-header {
+[data-layout="wide"] .workspace-surface:not(.view-menu-desktop, .search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.surface-reference, .view-menu-desktop, .search-toolbar-desktop) > .surface-header {
+[data-layout="compact"] .workspace-surface:not(.view-menu-desktop, .search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search, .surface-reference) {
+[data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
   position: fixed;
   z-index: 36;
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));

@@ -1,4 +1,3 @@
-import { installReferenceImageEditingBridge } from './reference-image-editing-bridge.js';
 import {saveBoundDocument} from './app-file-bindings.js';
 
 export function confirmLibraryGeometryBeforeUnload(event,context){
@@ -8,10 +7,6 @@ export function confirmLibraryGeometryBeforeUnload(event,context){
   event.returnValue='';
   return true;
 }
-import {
-  cancelReferenceImageInput, handleReferenceImageKey, referenceImageInputActive,
-  referenceImageSurfaceOpen, setReferenceImageSpacePan,
-} from './reference-image-input.js';
 
 /** GlobalInputBindings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -30,8 +25,6 @@ export function createGlobalInputBindings({libraryGeometryContext=null}={}) {
       try { await dependencies.domains.editingDomain.cancelActiveGesture(reason); }
       catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 편집 동작을 취소하지 못했습니다.','PL-DRAFT-CANCEL-001',4200); }
     };
-    installReferenceImageEditingBridge(() => dependencies.domains.editingDomain, error => dependencies.feedback.reportOperationError(error,
-      '참조 이미지 추적선을 편집 초안에 적용하지 못했습니다.', 'PL-REFERENCE-DRAFT-001', 4200));
     document.addEventListener('keydown', async e => {
       if (dependencies.projectState.state.projectReplacing) {
         e.preventDefault();
@@ -54,19 +47,6 @@ export function createGlobalInputBindings({libraryGeometryContext=null}={}) {
       }
       const tag = document.activeElement?.tagName;
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable;
-      const blockingModal = [...document.querySelectorAll('[aria-modal="true"]')].some(node => !node.hidden && !node.classList.contains('hidden') && node.getClientRects().length);
-      if (!blockingModal && !editingText && handleReferenceImageKey(e)) { e.preventDefault(); e.stopImmediatePropagation(); return; }
-      if (!blockingModal && !editingText && e.code === 'Space'
-        && (referenceImageInputActive() || referenceImageSurfaceOpen())
-        && !e.target?.closest?.('button,[role="button"]')) {
-        setReferenceImageSpacePan(true);
-        (0, dependencies.platform.$)('map')?.classList.add('is-reference-space-pan');
-        dependencies.projectState.state.spacePanActive = true;
-        dependencies.lifecycleUi.mapInteractionGate.setForcedPan(true);
-        dependencies.mapView.mapHost?.setForcedPan?.(true);
-        dependencies.taskPresentation.syncEditingContext();
-        e.preventDefault(); return;
-      }
       // Let focused controls handle Enter/Space once, through their normal click/change event.
       if (['Enter', ' '].includes(e.key) && document.activeElement?.closest('button, [role="button"]')) return;
       if (e.code === 'Space' && !editingText && (dependencies.domains.editingDomain?.draftInputActive?.() || ['territorial-border', 'country-coast'].includes(dependencies.projectState.state.tool) || dependencies.projectState.state.selected?.domain === 'generic' || (dependencies.projectState.state.selected?.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id)))) {
@@ -188,8 +168,6 @@ export function createGlobalInputBindings({libraryGeometryContext=null}={}) {
 
     document.addEventListener('keyup', e => {
       if (e.code !== 'Space') return;
-      setReferenceImageSpacePan(false);
-      (0, dependencies.platform.$)('map')?.classList.remove('is-reference-space-pan');
       dependencies.projectState.state.spacePanActive = false;
       dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
       dependencies.mapView.mapHost?.setForcedPan?.(false);
@@ -197,9 +175,6 @@ export function createGlobalInputBindings({libraryGeometryContext=null}={}) {
       dependencies.taskPresentation.syncEditingContext();
     });
     window.addEventListener('blur', () => {
-      setReferenceImageSpacePan(false);
-      (0, dependencies.platform.$)('map')?.classList.remove('is-reference-space-pan');
-      cancelReferenceImageInput();
       dependencies.lifecycleUi.mapInputController?.cancel?.();
       cancelDraftGesture('window-blur');
       dependencies.projectState.state.spacePanActive = false;
@@ -209,8 +184,6 @@ export function createGlobalInputBindings({libraryGeometryContext=null}={}) {
       dependencies.taskPresentation.syncEditingContext();
     });
     const clearAssistedPan = () => {
-      setReferenceImageSpacePan(false);
-      (0, dependencies.platform.$)('map')?.classList.remove('is-reference-space-pan');
       dependencies.projectState.state.spacePanActive = false;
       dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
       dependencies.mapView.mapHost?.setForcedPan?.(false);

@@ -12,6 +12,17 @@ SPEC.loader.exec_module(adapter)
 
 
 class RasterTests(unittest.TestCase):
+    def test_single_page_pdf_accepts_cli_null_page(self):
+        with tempfile.TemporaryDirectory(prefix='pando-pdf-single-') as directory:
+            path = pathlib.Path(directory) / 'map.pdf'
+            with fitz.open() as document:
+                document.new_page(width=100, height=60)
+                document.save(path)
+            for page in (None, 1):
+                metadata, _ = adapter.run({'action': 'read', 'path': str(path), 'page': page})
+                self.assertEqual(metadata['mapping']['page'], 1)
+                self.assertEqual(metadata['originalWidth'], 200)
+
     def test_crop_mapping_preserves_original_and_flattens_alpha(self):
         with tempfile.TemporaryDirectory(prefix='pando-raster-') as directory:
             path = pathlib.Path(directory) / 'original.png'

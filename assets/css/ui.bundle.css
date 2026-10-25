@@ -2925,48 +2925,6 @@ body.map-sheet-dragging {
   gap: var(--design-button-gap);
 }
 
-/* The reference dock uses the shared Surface chrome and stable content rails. */
-.workspace-surface.surface-reference {
-  --ui-surface-border-left: var(--ui-border-width) solid var(--border);
-  padding: var(--ui-space-0);
-  color: var(--text);
-}
-
-/* Keep the sheet's existing interior width while the shared Surface paints it. */
-.app-root[data-layout="mobile"] .workspace-surface.surface-reference {
-  --ui-surface-border-right: var(--ui-border-width) solid var(--border);
-  --ui-surface-border-bottom: var(--ui-border-width) solid var(--border);
-}
-
-.surface-reference > .surface-header {
-  gap: var(--ui-space-2);
-  padding: var(--ui-space-3);
-}
-
-.surface-reference > .surface-header > .surface-header-title > strong {
-  font-size: var(--ui-font-section);
-  font-weight: var(--ui-weight-semibold);
-}
-
-.surface-reference > .surface-body {
-  padding: var(--ui-space-3);
-}
-
-.surface-reference > .surface-footer {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-2);
-  padding: var(--ui-space-2);
-}
-
-.surface-reference > .surface-footer[hidden] {
-  display: none;
-}
-
-.app-root:is([data-layout="wide"], [data-layout="compact"]) .surface-reference.reference-image-collapsed > .surface-header {
-  padding: var(--ui-space-2) var(--ui-space-1);
-}
-
 .surface-tabs .ui-tab::after {
   content: "";
   position: absolute;
@@ -5307,7 +5265,7 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
 
 /* Canonical layout / surfaces. */
 
-[data-layout="wide"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search, .surface-reference) {
+[data-layout="wide"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
   bottom: var(--ui-shell-statusbar-height);
 }
 
@@ -5328,17 +5286,17 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
   right: 0;
 }
 
-[data-layout="wide"] .workspace-surface:not(.surface-reference, .view-menu-desktop, .search-toolbar-desktop) > .surface-header {
+[data-layout="wide"] .workspace-surface:not(.view-menu-desktop, .search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.surface-reference, .view-menu-desktop, .search-toolbar-desktop) > .surface-header {
+[data-layout="compact"] .workspace-surface:not(.view-menu-desktop, .search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search, .surface-reference) {
+[data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
   position: fixed;
   z-index: 36;
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));

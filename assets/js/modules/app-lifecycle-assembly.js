@@ -1,4 +1,3 @@
-import {beginReferenceImageGesture,referenceImageInputActive} from './reference-image-input.js';
 /** LifecycleAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -174,7 +173,7 @@ export function createLifecycleAssembly() {
         dependencies.domainControllers.initializeDomainBoundaries,
         () => {
           mapInputPresentation = (0, dependencies.uiFactoriesB.createMapInputPresentation)({
-            productMode:'editor',referenceInput:{beginGesture:beginReferenceImageGesture,isActive:referenceImageInputActive},
+            productMode:'editor',
             getElement: dependencies.platform.$,
             window,
             d3: dependencies.platform.d3,

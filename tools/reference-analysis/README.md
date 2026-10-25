@@ -11,27 +11,18 @@ read or write location. Existing compressed historical revisions remain readable
 
 ## Current state
 
-The application can run local OCR, georeference checks, semantic inference and
-shared boundary review. The bundled OCR catalog has 29 recognition variants plus
-OSD. There is no independently reviewed segmentation corpus or approved release
-checkpoint in the current data. Publisher-derived training is available below.
-`verify-model.py` exports an untrained interface diagnostic into
-the fixed ignored build directory; it is never a release model.
+The independent map plugin runs local Node OCR, georeference checks and semantic
+inference, then exports ordinary GeoJSON for Pando review/edit/import. The shared
+OCR catalog has 29 recognition variants plus OSD. No independently approved
+release checkpoint is claimed. Publisher-derived training remains available below.
 
-`prepare-reference-analysis-assets.mjs` applies the documented
-`raw-worker-lifecycle-v1` hook to the pinned Tesseract 7 browser distribution.
-It requires one exact upstream anchor and records the patch in the runtime
-manifest. This exposes the raw Worker before initialization so the OCR operation
-can own startup cancellation, language-load failures and later Worker crashes.
-The same owner releases the local WebView2 Blob bootstrap and error listeners;
-no global Worker replacement or alternate OCR implementation is installed.
-
-The pinned source catalog and `acquire-sources.py` add actual Persian/Urdu map
-seeds to an external inventory. They record item rights, uncertain dates, exact
-download hashes and whether a file is an official downsample. They never create
-labels or mark a corpus reviewed. Arabic sources with unresolved item rights are
-listed but skipped. Existing originals are verified rather than overwritten;
-failed downloads remove only their own exclusively created `.part` file.
+prepare-reference-analysis-assets.mjs prepares/checks only the shared pinned
+language files. Tesseract and ONNX Runtime reuse installed Node dependencies;
+there is no browser runtime bundle, Blob bootstrap or static server. The plugin
+Worker owns OCR startup cancellation and failures. verify-model.py exports an
+untrained interface diagnostic into the fixed ignored build directory; run
+node --test tests/reference-analysis/onnx-interface.test.mjs only to check its
+actual Node/WASM interface. This diagnostic is never a release model.
 
 ```powershell
 & build-native/python/Scripts/python.exe tools/reference-analysis/acquire-sources.py --output EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
@@ -44,13 +35,11 @@ original-pixel ratios and keeps source-family identity. Inventory distinguishes
 masters, official downsample candidates and these app derivatives. No training
 labels or accuracy results are inferred from a resized map.
 
-Native runtime proof uses the map-data shell and an explicit small source map:
-set `PANDOLAB_SHELL_PROFILE=map-data` and `PANDOLAB_REFERENCE_PROBE_SOURCE` before
-the fixed Windows build, then run it with `--probe-auto --probe-reference-analysis
---probe-profile-id reference-analysis --diagnostic-output ABSOLUTE_REPORT_PATH`.
-This exercises genuine local OCR, moving-view independent place search and
-shared-source packaging. Its `releaseReady` remains false: it does not certify a
-trained boundary model or Android memory/time targets.
+Analysis runtime proof uses the plugin CLI with local map/model paths. Native
+application proof uses `tests/browser/native-map-plugin.mjs` for ordinary GIS
+import, explicit editing, Undo/Redo and actual native save/reopen. Neither check
+certifies independent model accuracy or Android analysis memory/time targets;
+analysis runs in the plugin, outside the application.
 
 ## Corpus contract
 
@@ -82,7 +71,7 @@ A corpus manifest uses `schemaVersion: 1` and `sheets`. Each sheet records:
 All three split sets must have separate real map families. A family, edition or
 duplicate group cannot cross train/validation/test. Arabic, Persian and Urdu use
 separate evaluation groups. The language catalog is read from the same generated
-runtime manifest as the application. A screenshot or a linked source is an
+shared OCR manifest used by the plugin. A screenshot or a linked source is an
 inventory candidate, not an annotated original.
 
 Labels use EXIF-oriented original pixel coordinates and dimensions:
@@ -155,11 +144,11 @@ $onnxPath = 'EXTERNAL_LIBRARY_RUNTIME/boundary.onnx'
 ```
 
 Export deliberately produces a pending, unapproved manifest. Do not change those
-fields merely to enable the UI. Release requires independent region accuracy,
-map-family/script boundary metrics, topology validity and genuine Windows/Android
-offline/performance evidence from the approved plan. Application packaging rejects
-pending weights. App inference expects `boundary.onnx` and its
-`boundary.manifest.json` under the pinned `reference-analysis/v1` data directory.
+fields merely to enable execution. Independent release evaluation requires region
+accuracy, map-family/script boundary metrics, topology validity and measured
+runtime performance. Pending models may generate reviewed provisional plugin
+candidates. Pando packages no analysis model; model files stay in the shared
+external model scope. Generic import/device workflow checks are separate.
 
 The evaluator blends the complete original sheet before calculating distance
 tolerance `max(2px, original stroke width / 2)`; it does not count overlapping tile
@@ -240,13 +229,12 @@ $diverseModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v2'
 & $trainingPython tools/reference-analysis/train.py export --checkpoint "$diverseModel/boundary.pt" --output "$diverseModel/boundary.onnx"
 & $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/diagnostics"
 & $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --view-corpus auxiliary --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/auxiliary-diagnostics"
-node tools/reference-analysis/verify-trained-onnx.mjs --base http://127.0.0.1:4287/ --model reports/map-analysis/models/diverse-v2/boundary.onnx --diagnostics reports/map-analysis/models/diverse-v2/diagnostics --output "$diverseModel/onnx-wasm-parity.json"
+node tools/reference-analysis/verify-trained-onnx.mjs --model reports/map-analysis/models/diverse-v2/boundary.onnx --diagnostics reports/map-analysis/models/diverse-v2/diagnostics --output "$diverseModel/onnx-wasm-parity.json"
 ```
 
-The last command needs a local static server for this worktree. It checks the
-trained ONNX hash, actual output shape/finite values and PyTorch numerical parity,
-blocks external requests and records timing. It does not bypass the application's
-release gate. Fine-tuning records attempted batches, successful optimizer updates
+The last command reads local files in the existing Node WASM runtime. It checks
+the trained ONNX hash, actual output shape/finite values and PyTorch numerical
+parity, and records timing. It does not change model release/evaluation status. Fine-tuning records attempted batches, successful optimizer updates
 and AMP-overflow skips separately; the original first-stage run's successful
 update count was not recorded and must not be reconstructed from batch count.
 
@@ -256,7 +244,7 @@ Validation pins rights/partition files and recomputes current semantic masks fro
 the original author PNG. A producer code hash is immutable provenance, not a
 requirement that historical selection code equal the latest implementation.
 Changed semantic conversion still fails. Ordinary independent-evaluation and
-application release gates remain strict.
+model release criteria remain independent of provisional plugin execution.
 
 `--balance-sources` visits at least one tile from every original each epoch,
 balances corpus quotas and samples additional originals uniformly, so a large
@@ -379,3 +367,29 @@ are recorded in the checkpoint. These are synthetic acquisition conditions, not
 additional original maps, languages or evaluation groups. Evaluation and inspection
 remain unaugmented. Combine it with `--macro-only --balance-sources`, continue from
 the actual admitted prior checkpoint, and use a new output directory.
+
+## Work cloud execution probe
+
+`cloud-probe.mjs` packages only the existing plugin's source dependency closure,
+verified WASM/source identity inputs, exact runtime dependency versions, pending
+macro-v6 model, English/OSD packs, current place search data and the previously
+reviewed Canadian monochrome map. It does not train or implement another engine.
+
+Run `pack --environment <observed-environment.json> --output <new external dir>`
+only after observing a real ChatGPT Work cloud environment. The receipt must
+identify `surface: "chatgpt-work-cloud"`, a passed environment check and Linux
+execution. The ZIP is a temporary transfer artifact, not an archival report.
+
+In that same Work conversation, extract the verified ZIP, install the exact
+dependencies from its generated `workspace/package.json` using
+`npm install --ignore-scripts --no-audit --no-fund --package-lock=false`, and use
+`run --bundle <bundle> --output <results outside bundle> --python <python>
+--stage components --surface chatgpt-work-cloud`. Continue with `map` only after
+components pass. Review the actual map overlay and supply a JSON array of current
+candidate IDs with `--selection` for `export`, then `resume` on the next turn.
+
+The surface flag labels an execution; it is not proof of its location. Retain
+the real Work tool execution evidence. Windows preflights must remain labeled
+`local-preflight`. Failures must not be reported as model accuracy, successful
+mobile plugin installation or PC-independent execution. Do not switch to another
+cloud product, a paid API or an MCP server when the selected Work path is blocked.

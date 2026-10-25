@@ -4,7 +4,7 @@ import process from 'node:process';
 import { collectCssRules } from './lib/css-analysis.mjs';
 import { buildUiBundles } from './build-ui-bundle.mjs';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
-import { UI_BUNDLE_SOURCES, UI_MODAL_SOURCES, UI_REFERENCE_IMAGE_SOURCES } from './lib/ui-source-catalog.mjs';
+import { UI_BUNDLE_SOURCES, UI_MODAL_SOURCES } from './lib/ui-source-catalog.mjs';
 
 const root = process.cwd();
 const requiredLayeredFiles = UI_BUNDLE_SOURCES;
@@ -44,11 +44,6 @@ for (const relativePath of requiredLayeredFiles) {
 }
 for (const relativePath of modalSourceFiles) {
   if (!fs.existsSync(path.join(root, relativePath))) failures.push(`missing modal stylesheet source: ${relativePath}`);
-}
-for (const relativePath of UI_REFERENCE_IMAGE_SOURCES) {
-  if (!fs.existsSync(path.join(root, relativePath))) failures.push(`missing lazy reference stylesheet source: ${relativePath}`);
-  if (requiredLayeredFiles.includes(relativePath) || modalSourceFiles.includes(relativePath))
-    failures.push(`reference stylesheet must stay in its lazy feature: ${relativePath}`);
 }
 
 if (!fs.existsSync(componentDocPath)) {

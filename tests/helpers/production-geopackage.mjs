@@ -10,6 +10,7 @@ const sqlContext = vm.createContext({ module: { exports: {} }, require: createRe
   __dirname: fileURLToPath(sqlDir), Buffer, console, TextEncoder, TextDecoder });
 vm.runInContext(readFileSync(new URL('sql-wasm.js', sqlDir), 'utf8'), sqlContext);
 const SQL = await sqlContext.initSqlJs({ wasmBinary: readFileSync(new URL('sql-wasm.wasm', sqlDir)) });
+export { SQL as productionSql };
 const workerUrl = new URL('../../assets/js/workers/gis-gpkg-worker.js', import.meta.url);
 const worker = vm.createContext({ URL, console, TextEncoder, TextDecoder, structuredClone, Uint8Array, DataView,
   atob, btoa, initSqlJs: async () => SQL, location: { href: workerUrl.href } });

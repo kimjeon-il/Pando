@@ -12,20 +12,16 @@ test('one catalog owns canonical, modal and audit UI stylesheet inputs', async (
     UI_AUDIT_STYLE_SOURCES,
     UI_BUNDLE_SOURCES,
     UI_MODAL_SOURCES,
-    UI_REFERENCE_IMAGE_SOURCES,
     uiSourcePath,
   } = await import(catalogUrl.href);
 
   assert.ok(UI_BUNDLE_SOURCES.length > 0);
   assert.ok(UI_MODAL_SOURCES.length > 0);
   assert.ok(UI_MODAL_SOURCES.every(file => !UI_BUNDLE_SOURCES.includes(file)));
-  assert.ok(UI_REFERENCE_IMAGE_SOURCES?.length > 0, 'lazy reference styles must have a canonical source list');
-  assert.ok(UI_REFERENCE_IMAGE_SOURCES.every(file => !UI_BUNDLE_SOURCES.includes(file)), 'reference styles must stay lazy');
   assert.deepEqual(UI_AUDIT_STYLE_SOURCES, [
     'assets/css/app.css',
     ...UI_BUNDLE_SOURCES,
     ...UI_MODAL_SOURCES,
-    ...UI_REFERENCE_IMAGE_SOURCES,
   ]);
   for (const role of ['tokens', 'content', 'surface', 'menus'])
     assert.ok(UI_BUNDLE_SOURCES.includes(uiSourcePath(role)), `${role} must resolve to a current bundle source`);

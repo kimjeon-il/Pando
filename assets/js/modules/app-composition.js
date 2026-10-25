@@ -1,6 +1,5 @@
 import {createMapOwners} from './map-owner-composition.js';
 import {handleEditorMapClick} from './editor-map-click.js';
-import { referenceImageProjectAssets } from './reference-image-store.js';
 /** Compose owners, connect their explicit ports, then initialize in dependency order. */
 export async function composeApplication({ productMode, revision, platform = {}, onComposed = null }) {
   if (productMode !== 'editor') throw new TypeError('The application entry requires editor product mode.');
@@ -69,7 +68,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   ]);
   const {capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,platform,
     resolveVisibilityGroup:ref=>objectCommands.layerGroupForObjectRef(ref),closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectVisible:(group,id)=>objectCommands.objectRefVisible(objectCommands.layerItemObjectRef(group,id)),
-    editing:{getAttachmentState: referenceImageProjectAssets.state,beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
+    editing:{beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
       persistView:()=>domainAssembly.projectDomain.queueViewAutosave(),getEditPreview:()=>geometryPreview.editPreviewController.packet(),
       handleMapClick:point=>handleEditorMapClick(point,applicationPorts),
       onBackgroundClear:()=>workspaceSurfaces.closeSurface('editor',{restoreFocus:false}),
@@ -229,12 +228,12 @@ export async function composeApplication({ productMode, revision, platform = {},
   editorBindings.initializeEDITOR_COMMAND_ROW_ICONS();
   lifecycleAssembly.initializeLifecycle();
   const lifecycle = lifecycleAssembly.lifecycle;
-  let startedWithReferenceImages;
+  let startedApplication;
   return Object.freeze({
     ...lifecycle,
     start() {
-      if (startedWithReferenceImages) return startedWithReferenceImages;
-      startedWithReferenceImages = lifecycle.start().then(async started => {
+      if (startedApplication) return startedApplication;
+      startedApplication = lifecycle.start().then(async started => {
         if (!started) return started;
         if(platform.libraryGeometryContext)platform.libraryGeometryContext.attachRuntime(Object.freeze({
           projectDomain:domainAssembly.projectDomain,entityRepository:domainAssembly.territorialEntityRepository,
@@ -254,34 +253,9 @@ export async function composeApplication({ productMode, revision, platform = {},
         }));
         window.addEventListener('pandolab:project-changed', taskPresentation.syncEditingContext);
         taskPresentation.syncEditingContext();
-        const launcher=document.getElementById('referenceImageBtn');let referenceLoading=null;
-        const loadReference=event=>{
-          event.preventDefault();event.stopImmediatePropagation();
-          if(referenceLoading)return;
-          launcher.disabled=true;
-          referenceLoading=(async()=>{
-          const { installReferenceImageFeature } = await import(`./reference-image-bootstrap.js?v=${encodeURIComponent(revision)}`);
-          await installReferenceImageFeature({
-            revision, workspaceSurfaces,
-            getGeneration: () => domainAssembly.projectDomain.getGeneration(),
-            isBlocked: () => projectSession.state.projectReplacing || projectSession.state.modeProcessing,
-            searchPlaces: (query, options) => territorialLabels.builtinPlaces.search(query, options),
-            genericFeatureService: objectPresentation.genericFeatureService,
-            onFeaturesApplied: () => domainAssembly.renderingDomain.invalidateGenericPatch('reference-image-analysis'),
-            onCollectionChanged: () => { projectSession.saveState.sync();domainAssembly.projectDomain.queueAutosave(); },
-            confirm: options => new Promise(resolve => {
-              projectRestore.openConfirmModal({ ...options, onConfirm: () => resolve(true), onCancel: () => resolve(false) });
-            }),
-          });
-          })().then(()=>{launcher.removeEventListener('click',loadReference,true);launcher.disabled=false;launcher.click();}).catch(error=>{
-            referenceLoading=null;launcher.disabled=false;console.error('Reference image initialization failed',error);
-            document.getElementById('selectionStatus').textContent='이미지 도구를 불러오지 못했습니다. 다시 시도하세요.';
-          });
-        };
-        launcher.addEventListener('click',loadReference,true);
         return started;
       });
-      return startedWithReferenceImages;
+      return startedApplication;
     },
   });
 }

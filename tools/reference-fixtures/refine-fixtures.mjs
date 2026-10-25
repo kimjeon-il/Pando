@@ -1,7 +1,7 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-const load=async name=>import(new URL('../../assets/js/modules/'+name,import.meta.url).href);
-const web=await load('reference-image-line-refiner.js'),georef=await load('reference-image-georef.js');
+const load=async name=>import(new URL('../../plugins/pando-map-tools/lib/analysis/'+name,import.meta.url).href);
+const web=await load('line-refiner.mjs'),georef=await load('georef.mjs');
 const cases=[{id:'offset-line',edge:'vertical',uv:[[.45,.15],[.45,.85]]},{id:'turn',edge:'turn',uv:[[.45,.15],[.45,.8],[.85,.8]]},{id:'weak',edge:'weak',uv:[[.5,.15],[.5,.85]]}];
 const fixtures=cases.map(input=>{
  const data=[];for(let y=0;y<64;y++)for(let x=0;x<64;x++){const v=input.edge==='weak'?128:(x>=32&&(input.edge!=='turn'||y<54))?255:0;data.push(v,v,v,255)}

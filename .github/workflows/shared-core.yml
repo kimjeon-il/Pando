@@ -40,7 +40,7 @@ on:
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
       - 'tools/stage-monorepo-pages.mjs'
-      - 'assets/js/modules/reference-image-*.js'
+      - 'plugins/pando-map-tools/lib/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -85,7 +85,7 @@ on:
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
       - 'tools/stage-monorepo-pages.mjs'
-      - 'assets/js/modules/reference-image-*.js'
+      - 'plugins/pando-map-tools/lib/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -243,10 +243,10 @@ jobs:
           tests/unit/persistence-service.test.mjs tests/unit/autosave-recovery-ui.test.mjs
           tests/unit/runtime-performance-metrics.test.mjs tests/unit/project-preview-cache.test.mjs
           tests/unit/project-preview-policy.test.mjs
-      - name: Async reference-image draft acknowledgement boundaries
+      - name: Plugin boundary graph and retired attachment contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/reference-image-editing-bridge.test.mjs tests/unit/reference-image-draft-ack.test.mjs
+          tests/unit/map-analysis-graph.test.mjs tests/unit/map-plugin-cutover.test.mjs
       - name: Core-owned generic and distribution service contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
@@ -268,7 +268,7 @@ jobs:
           node tools/reference-fixtures/calibration-fixtures.mjs
           node tools/reference-fixtures/trace-fixtures.mjs
           node tools/reference-fixtures/refine-fixtures.mjs
-          node --test tests/unit/reference-shared-runtime.test.mjs
+          node --test tests/unit/map-analysis-core.test.mjs
       - name: Pages source exclusion and complete required runtime
         run: node --test tests/unit/monorepo-pages-staging.test.mjs
       - name: Record the bounded native and WASM source evidence

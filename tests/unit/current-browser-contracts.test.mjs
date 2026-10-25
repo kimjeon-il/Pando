@@ -5,7 +5,7 @@ import { parse as parseYaml } from 'yaml';
 import { loadRepository, planApplicationChecks } from '../../scripts/plan-application-checks.mjs';
 
 const workflow = parseYaml(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8'));
-const workflows = ['application-architecture', 'ui-architecture', 'place-runtime', 'reference-image-integration']
+const workflows = ['application-architecture', 'ui-architecture', 'place-runtime']
   .map(name => ({ name, document: parseYaml(readFileSync(new URL(`../../.github/workflows/${name}.yml`, import.meta.url), 'utf8')) }));
 const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url), 'utf8'));
 const MANUAL_SCOPES = workflow.on.workflow_dispatch.inputs.browser_scope.options;

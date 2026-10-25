@@ -22,7 +22,7 @@ def source(spec):
         with fitz.open(path) as document:
             if len(document) > 1 and spec.get('page') is None:
                 raise ValueError('Multi-page PDF requires an explicit 1-based page')
-            page_number = spec.get('page', 1)
+            page_number = 1 if spec.get('page') is None else spec['page']
             if not isinstance(page_number, int) or not 1 <= page_number <= len(document):
                 raise ValueError('Invalid PDF page')
             page = document[page_number - 1]

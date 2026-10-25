@@ -81,23 +81,21 @@ async function evaluate(expression) {
 }
 
 try {
-  const startupExpression = "(async () => { const profile = await fetch(new URL('shell/stage-profile.json', location.href)).then(response => response.json()); return ({ verification: globalThis.PANDOLAB_SHELL_VERIFICATION, stagedVerification: profile.verification, ready: document.querySelector('#app')?.getAttribute('data-readiness'), nativeBridge: typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function', launcher: !!document.querySelector('.reference-image-launcher'), map: !!document.getElementById('map'), title: document.title, url: location.href }); })()";
+  const startupExpression = "(async () => { const profile = await fetch(new URL('shell/stage-profile.json', location.href)).then(response => response.json()); return ({ verification: globalThis.PANDOLAB_SHELL_VERIFICATION, stagedVerification: profile.verification, ready: document.querySelector('#app')?.getAttribute('data-readiness'), nativeBridge: typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function', fileCommands: !!document.getElementById('openGisBtn'), map: !!document.getElementById('map'), title: document.title, url: location.href }); })()";
   const startup = await repeat('Native Android WebView failed to become interactive', async () => {
     const state = await evaluate(startupExpression);
-    return state?.ready === 'enhanced' && state.nativeBridge && state.launcher && state.map ? state : null;
+    return state?.ready === 'enhanced' && state.nativeBridge && state.fileCommands && state.map ? state : null;
   }, { attempts: 60 });
 
   assert.equal(startup.verification, true, 'Android native runtime must be an explicit verification build');
   assert.equal(startup.stagedVerification, true, 'Android staged assets must be an explicit verification build');
 
-  const clicked = await evaluate("(() => { const launcher = document.querySelector('.reference-image-launcher'); if (!launcher) return false; launcher.click(); return true; })()");
-  assert.equal(clicked, true, 'Native UI did not expose the reference-image launcher');
-  const referenceExpression = "(() => { const panel = document.getElementById('referenceImageSurface'); const footer = panel?.querySelector('.reference-image-editing-summary'); return { installed: typeof globalThis.__PANDOLAB_REFERENCE_IMAGES__?.open === 'function', visible: !!panel && !panel.hidden, workspaceOwned: panel?.parentElement?.classList?.contains('workspace') === true, commonSurface: !!panel && ['workspace-surface', 'surface-reference', 'ui-sheet'].every(name => panel.classList.contains(name)), header: !!panel?.querySelector(':scope > .surface-header'), body: !!panel?.querySelector(':scope > .surface-body'), footer: footer?.parentElement === panel, actions: !!footer?.querySelector('[data-ref-auxiliary-actions] [data-ref-line-actions]') && !!footer?.querySelector('[data-ref-auxiliary-actions] [data-ref-live-wire-actions]'), cssLoaded: [...document.styleSheets].some(sheet => sheet.href?.includes('reference-images.css')) }; })()";
-  const reference = await repeat('Native Android reference-image Surface did not initialize', async () => {
-    const state = await evaluate(referenceExpression);
-    return state.installed && state.visible && state.workspaceOwned && state.commonSurface
-      && state.header && state.body && state.footer && state.actions && state.cssLoaded ? state : null;
-  }, { attempts: 50 });
+  // Exercise the current file-menu interaction; full import/edit/persistence is
+  // covered separately by native-map-plugin.mjs with an actual plugin export.
+  const direct = await evaluate("(() => { const button = document.getElementById('mobileFileBtn'); const direct = !!button?.getClientRects().length; (direct ? button : document.getElementById('mobileMenuBtn')).click(); return direct; })()");
+  if (!direct) await repeat('Native Android global menu did not open', () => evaluate("(() => { const button = document.getElementById('mobileMenuFileBtn'); if (!button?.getClientRects().length) return false; button.click(); return true; })()"));
+  await repeat('Native Android file menu did not open', () => evaluate("(() => { const button = document.getElementById('fileAdvancedBtn'); if (!button?.getClientRects().length) return false; button.click(); return true; })()"));
+  const fileMenu = await repeat('Native Android ordinary GIS import command unavailable', () => evaluate("(() => { const button = document.getElementById('openGisBtn'), input = document.getElementById('gisFileInput'); return button?.getClientRects().length && !button.disabled && input?.accept.includes('.geojson') ? { ordinaryGisImport: true, acceptedFormats: input.accept } : null; })()"));
 
   const proof = {
     schema: 'pandolab-android-native-webview-p6',
@@ -107,7 +105,7 @@ try {
     webviewSocket: socket,
     browserTarget: target.url,
     startup,
-    reference,
+    fileMenu,
     ok: true,
   };
   mkdirSync('build-native/web-shell', { recursive: true });

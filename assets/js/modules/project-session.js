@@ -11,7 +11,7 @@ const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: 
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createProjectSession({productMode='editor',capabilities=resourceCapabilities(productMode),resolveVisibilityGroup,onViewingChange=null,getAttachmentState}={}) {
+export function createProjectSession({productMode='editor',capabilities=resourceCapabilities(productMode),resolveVisibilityGroup,onViewingChange=null}={}) {
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Project session requires immutable product mode.');
   const productPolicy=createProductModePolicy(productMode);
   const viewingFields=new Set(['layerVisibility','layerPresentation','itemVisibility','physicalSettings','distributionSettings']);
@@ -169,7 +169,6 @@ export function createProjectSession({productMode='editor',capabilities=resource
 
     if(productMode==='editor')(saveState = (0, dependencies.uiFactoriesB.createSaveStateController)({
       getDocumentState: () => dependencies.domains.commandOwner?.state() ?? null,
-      getAttachmentState,
       onChange: (...args) => dependencies.lifecycleUi.projectUi.syncSaveStatus(...args) }));
 
   }
