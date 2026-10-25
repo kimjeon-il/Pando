@@ -520,7 +520,9 @@ export function prefetchArchiveEntries({checkout,revision,entries,additionalByte
   if(!missing.length)return {fetched:0};
   const peak=additionalBytes+missing.reduce((n,oid)=>n+objects.get(oid),0);
   if(peak>=1024**3){const disk=statfsSync(checkout);if(disk.bavail*disk.bsize<peak+5*1024**3)throw Error('Archive fetch and materialization require their peak plus 5GiB headroom');}
-  for(let at=0;at<missing.length;at+=128)execFileSync('git',[...gitOptions,'fetch','--no-tags','--no-write-fetch-head','--filter=blob:none','--stdin','origin'],{cwd:checkout,input:missing.slice(at,at+128).join('\n')+'\n',env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:['pipe','pipe','pipe']});
+  // Match Git's promisor fetch recipe: commit negotiation assumes local blobs
+  // are present and can omit a delta base from a metadata-only partial clone.
+  for(let at=0;at<missing.length;at+=128)execFileSync('git',[...gitOptions,'-c','fetch.negotiationAlgorithm=noop','fetch','--no-tags','--no-write-fetch-head','--recurse-submodules=no','--filter=blob:none','--stdin','origin'],{cwd:checkout,input:missing.slice(at,at+128).join('\n')+'\n',env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:['pipe','pipe','pipe']});
   if(check(missing).some(line=>!line.endsWith(' blob')))throw Error('Archive prefetch did not restore the requested blobs');
   return {fetched:missing.length};
 }
