@@ -85,3 +85,12 @@
 
 - Design approved by user on 2026-10-25. Native in-session execution follows the existing implementation request; no further plan approval round is needed.
 - Baseline: clean work/objects at `83a2e102`; other branches at synchronized `93b6e1b1`; UI WIP protected. All five materialized runtime mounts verified at `127e51c3`; sampled manifest has identical readonly file ID across views.
+- Task 1 complete: `95d6df0b`; immutable view tests RED to GREEN, 7/7.
+- Task 2 complete: `42bf5bc5`; compiler environment/exit tests RED to GREEN. Official archive installed and owned server reports 2GiB at port 42427.
+- Task 3 complete: `66a48d88`; actual stage ownership/read-only/private copy tests GREEN with existing stage tests.
+- Task 4 implementation and first apply complete: 3,630 staged files converted, all five pnpm lockfiles unchanged; independent views use one native store. Extra 803 app blobs identical to archived library bytes were replaced and removed: 253,035,104 logical bytes, measured +254,701,568 drive bytes for that prune operation.
+- Task 5 in progress: 34 focused tests pass; 11 actual native/Rust/CMake probe scenarios pass and probe output directories removed.
+- Ruling: keep Rust cwd in its native key and test shared registry-style dependency source/cwd with separate branch outputs — sccache 0.19.0 deliberately keys workspace cwd; weakening it would risk wrong macro/debug paths. Branch workspace incremental state remains independent; cross-workspace crate cache hits are not promised.
+- Ruling: share source-identified retired Qt runtime SDK files without removing unique SDK bytes or their logical replay paths — original Qt 6.8.3 installation is not currently available, so deletion of unique SDK bytes would lose local recovery. Unknown-identity runtime folders remain protected.
+- Interrupted migration re-preview: owned app hardlink removal changes the peer inode ctime. Regression now checks file ID/size/mtime/hash for known owned app links while retaining full identity checks for private files. Interrupted journal resumes are tested after a target unlink.
+- Pnpm offline-only install found missing locked packages; repaired using frozen lockfile and prefer-offline imports, with lifecycle scripts disabled. No package version or lockfile changed.

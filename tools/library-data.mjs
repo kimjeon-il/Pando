@@ -36,18 +36,19 @@ export function librarySharedCheckout(root = defaultRoot) {
   if (!existsSync(resolve(checkout, '.git'))) return checkout;
   return dirname(resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir'])));
 }
-// Explicit read-only staging contract. Private edits are snapshots, never shared
-// mutable inputs. Callers hold the canonical library lock while linking/removing.
+// Explicit immutable snapshot contract. A staged older edition can reuse the
+// exact archived blob without linking its live (possibly private) input file.
+// Callers hold the canonical library lock while linking/removing.
+const stagingContexts=new Map();
 export function libraryStagingContent({root=defaultRoot,source,sha256,bytes}) {
-  if(!source?.startsWith('assets/data/')||!existsSync(resolve(root,'config/library-data.json')))return null;
-  const view=libraryMaterializedRoot(root),manifest=resolve(view,'.cache-owner.json');
-  if(!existsSync(manifest))return null;
-  const record=JSON.parse(readFileSync(manifest,'utf8')),entry=record.files[source];
-  if(record.schema!=='pando-shared-runtime-v1'||record.revision!==libraryConfig(root).revision||entry?.storage!=='shared'||entry.sha256!==sha256||entry.bytes!==bytes)return null;
-  const shared=librarySharedCheckout(root),blob=contentPath(shared,sha256),input=resolve(view,source);
-  if(!existsSync(blob)||!existsSync(input))throw Error('Recorded immutable staging input is missing');
-  const a=lstatSync(blob,{bigint:true}),b=lstatSync(input,{bigint:true});
-  if(a.isSymbolicLink()||!a.isFile()||a.ino!==b.ino||a.dev!==b.dev||Number(a.size)!==bytes||contentHash(readFileSync(blob))!==sha256||(Number(a.mode)&0o200))throw Error('Immutable staging input integrity failed');
+  if(!source?.startsWith('assets/')||!existsSync(resolve(root,'config/library-data.json')))return null;
+  libraryConfig(root);const checkout=libraryCheckout(root);
+  let context=stagingContexts.get(root);
+  if(context?.checkout!==checkout){context={checkout,shared:librarySharedCheckout(root)};stagingContexts.set(root,context);}
+  const {shared}=context,blob=contentPath(shared,sha256);
+  if(!existsSync(blob))return null;
+  const a=lstatSync(blob,{bigint:true});
+  if(a.isSymbolicLink()||!a.isFile()||Number(a.size)!==bytes||contentHash(readFileSync(blob))!==sha256||(Number(a.mode)&0o200))throw Error('Immutable staging snapshot integrity failed');
   return shared;
 }
 const reportDigest = bytes => createHash('sha256').update(bytes).digest('hex');

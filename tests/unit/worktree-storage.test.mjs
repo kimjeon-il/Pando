@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, statSync, chmodSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, statSync, chmodSync, existsSync, unlinkSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { compilerCacheEnvironment, writeStagedContent, removeStagedDirectory } from '../../tools/worktree-storage.mjs';
-import { contentHash, contentFiles } from '../../tools/library-content.mjs';
+import { compilerCacheEnvironment, writeStagedContent, removeStagedDirectory, previewWorktreeStorage, applyWorktreeStorage, pruneApplicationBlobs, shareRetiredQtRuntimes } from '../../tools/worktree-storage.mjs';
+import { contentHash, contentFiles, publishContent } from '../../tools/library-content.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -38,4 +38,64 @@ test('owned staging shares IDs, rejects writes, and removing a stage protects ot
   removeStagedDirectory({root:roots[0],directory:join(roots[0],'apps/web-shell/dist'),settings});
   assert.equal(existsSync(a),false);assert.equal(readFileSync(b,'utf8'),'original');assert.equal(statSync(b).mode&0o200,0);
   assert.throws(()=>writeStagedContent({root:roots[1],directory:join(roots[1],'elsewhere'),path:'file',bytes:Buffer.from('unsafe'),settings}),/owned|stage/i);
+});
+test('cleanup applies only evidence-matching idle stage files and resumes an interrupted conversion',t=>{
+  const root=fixture(t),app=join(root,'app'),directory=join(app,'apps/web-shell/dist'),settings={cacheRoot:join(root,'cache')};
+  mkdirSync(directory,{recursive:true});writeFileSync(join(directory,'.pandolab-web-shell-stage'),'owned');
+  writeFileSync(join(directory,'same.bin'),'original');writeFileSync(join(directory,'changed.bin'),'private change');
+  mkdirSync(join(directory,'shell'));writeFileSync(join(directory,'shell/stage-evidence.json'),JSON.stringify({schema:'pandolab-web-shell-stage',files:[
+    {path:'same.bin',bytes:8,sha256:contentHash(Buffer.from('original')),root:'outside',directory:'outside'},{path:'changed.bin',bytes:8,sha256:contentHash(Buffer.from('original'))}]}));
+  const options={root:app,roots:[app],settings,processes:[]};
+  const preview=previewWorktreeStorage(options);assert.equal(preview.entries.filter(x=>x.status==='eligible').length,1);
+  assert.equal(statSync(join(directory,'same.bin')).nlink,1);
+  assert.throws(()=>applyWorktreeStorage({...options,afterPrepared:()=>{unlinkSync(join(directory,'same.bin'));throw Error('interruption');}}),/interruption/);
+  assert.ok(existsSync(join(settings.cacheRoot,'migration.pending.json')));
+  const result=applyWorktreeStorage(options);assert.equal(result.recovered.path,'same.bin');assert.equal(result.entries.filter(x=>x.status==='already-shared').length,1);
+  assert.equal(existsSync(join(settings.cacheRoot,'migration.pending.json')),false);
+  assert.equal(readFileSync(join(directory,'changed.bin'),'utf8'),'private change');
+  assert.equal(previewWorktreeStorage(options).entries.filter(x=>x.status==='eligible').length,0);
+  writeFileSync(join(app,'apps/web-shell/.stage-lock'),'active');
+  assert.match(previewWorktreeStorage(options).entries[0].reason,/active/i);
+});
+test('staging reuses archived immutable bytes even when its live runtime edition has changed',t=>{
+  const root=fixture(t),settings={cacheRoot:join(root,'cache')},directory=join(root,'apps/web-shell/dist');
+  mkdirSync(directory,{recursive:true});writeFileSync(join(directory,'.pandolab-web-shell-stage'),'owned');
+  mkdirSync(join(root,'config'));writeFileSync(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:'a'.repeat(40),mounts:['assets/data']}));
+  writeStagedContent({root,directory,path:'old-edition.bin',bytes:Buffer.from('archived edition'),settings});
+  const shared=join(root,'.library-data/repository');const blob=publishContent(shared,Buffer.from('archived edition'));
+  writeStagedContent({root,directory,path:'old-edition.bin',bytes:Buffer.from('archived edition'),source:'assets/data/older.bin',settings});
+  assert.equal(statSync(join(directory,'old-edition.bin'),{bigint:true}).ino,statSync(blob.path,{bigint:true}).ino);
+  assert.equal(statSync(blob.path).mode&0o200,0);
+});
+test('cross-store migration preserves a peer whose hardlink ctime changes, then removes only orphan blobs',t=>{
+  const root=fixture(t),settings={cacheRoot:join(root,'cache')},roots=[join(root,'a'),join(root,'b')],shared=join(root,'library');
+  const bytes=Buffer.from('archived bytes'),sha256=contentHash(bytes);
+  for(const app of roots){
+    const directory=join(app,'apps/web-shell/dist');mkdirSync(join(directory,'shell'),{recursive:true});writeFileSync(join(directory,'.pandolab-web-shell-stage'),'owned');
+    writeStagedContent({root:app,directory,path:'data.bin',bytes,settings});
+    writeFileSync(join(directory,'shell/stage-evidence.json'),JSON.stringify({schema:'pandolab-web-shell-stage',files:[{path:'data.bin',source:'assets/data/old.bin',bytes:bytes.length,sha256}]}));
+    mkdirSync(join(app,'config'));writeFileSync(join(app,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:'b'.repeat(40),mounts:['assets/data']}));
+    mkdirSync(join(app,'.library-data'));mkdirSync(shared,{recursive:true});symlinkSync(shared,join(app,'.library-data/repository'),'junction');
+  }
+  try{
+    const blob=publishContent(shared,bytes),result=applyWorktreeStorage({root:roots[0],roots,settings,processes:[]});
+    assert.equal(result.entries.filter(x=>x.status==='shared').length,2);
+    for(const app of roots)assert.equal(statSync(join(app,'apps/web-shell/dist/data.bin'),{bigint:true}).ino,statSync(blob.path,{bigint:true}).ino);
+    const retained=publishContent({root:settings.cacheRoot,blobDirectory:'blobs'},Buffer.from('unreferenced'));
+    const preview=pruneApplicationBlobs({root:roots[0],roots,settings,processes:[]});assert.equal(preview.deletedBytes,0);assert.ok(existsSync(retained.path));
+    const removed=pruneApplicationBlobs({root:roots[0],roots,settings,processes:[],apply:true});assert.equal(removed.deletedBytes,bytes.length+12);
+    assert.ok(existsSync(blob.path));assert.equal(statSync(blob.path).mode&0o200,0);
+  }finally{for(const app of roots)unlinkSync(join(app,'.library-data/repository'));}
+});
+test('retired Qt SDK views share exact bytes while unknown owners and executable-bearing views remain protected',t=>{
+  const root=fixture(t),settings={cacheRoot:join(root,'cache')};
+  const views=['qt-pair-9bd078c7','qt-pair-ad3ba73b-baseline','qt-pair-b81c6173-candidate'].map(x=>join(root,'build-native/p9',x,'qt-runtime'));
+  for(const directory of views){mkdirSync(directory,{recursive:true});writeFileSync(join(directory,'Qt6Core.dll'),'same SDK bytes');}
+  for(const directory of views.slice(0,2))writeFileSync(join(directory,'source-identity.json'),JSON.stringify({qtVersion:'6.8.3',binaries:{baseline:{file:'baseline-ui_tests.exe'}}}));
+  const result=shareRetiredQtRuntimes({root,roots:[root],settings,processes:[],apply:true});
+  assert.equal(result.entries.filter(x=>x.status==='shared').length,2);
+  assert.equal(statSync(join(views[0],'Qt6Core.dll'),{bigint:true}).ino,statSync(join(views[1],'Qt6Core.dll'),{bigint:true}).ino);
+  assert.equal(statSync(join(views[2],'Qt6Core.dll')).nlink,1);
+  writeFileSync(join(views[0],'baseline-ui_tests.exe'),'still needed');
+  assert.ok(shareRetiredQtRuntimes({root,roots:[root],settings,processes:[]}).entries.some(x=>/executable/i.test(x.reason||'')));
 });
