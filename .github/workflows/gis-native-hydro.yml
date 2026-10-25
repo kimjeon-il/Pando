@@ -1,0 +1,38 @@
+name: GIS native Hydro junction contracts
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/cpp/CMakeLists.txt'
+      - 'tools/cpp/hydro/connectivity-junctions.cpp'
+      - 'tests/unit/hydro-connectivity-native.test.mjs'
+      - '.github/workflows/gis-native-hydro.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-hydro:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build only the standalone C++ Hydro junction engine
+        run: |
+          cmake -S tools/cpp -B build-native/hydro -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF \
+            -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF \
+            -DPANDO_BUILD_HYDRO_CONNECTIVITY=ON
+          cmake --build build-native/hydro --target pando-hydro-connectivity
+      - name: Verify source-proven confluence and border-alignment invariants
+        env:
+          PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
+        run: node --test tests/unit/hydro-connectivity-native.test.mjs
