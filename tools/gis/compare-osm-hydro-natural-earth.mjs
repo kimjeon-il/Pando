@@ -7,9 +7,31 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const cmp = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-const pythonRound = (value, digits) => {
-  const s=value*10**digits, f=Math.floor(s), d=s-f;
-  return (d>0.5?f+1:d<0.5?f:f%2===0?f:f+1)/(10**digits);
+// CPython round(float, digits) rounds the *binary64 operand*, not an exact
+// decimal or the integer microdegree. Halfway handling therefore cannot be
+// reconstructed by multiplying a double by 10**digits (or dividing the raw
+// microdegree by 100); both can change which side of a tie the operand lies on.
+// Scale the exact IEEE-754 significand as integers, then apply ties-to-even.
+const roundBits = new DataView(new ArrayBuffer(8));
+export const pythonRound = (value, digits) => {
+  if(!Number.isFinite(value)||!Number.isInteger(digits)||digits<0||digits>9)
+    throw Error('Invalid Natural Earth precision');
+  if(value===0)return value;
+  roundBits.setFloat64(0,Math.abs(value),false);
+  const bits=roundBits.getBigUint64(0,false);
+  const exponent=Number((bits>>52n)&0x7ffn);
+  const fraction=bits&((1n<<52n)-1n);
+  const significand=exponent===0?fraction:(1n<<52n)|fraction;
+  const shift=(exponent===0?-1022:exponent-1023)-52;
+  const scale=10n**BigInt(digits);
+  let numerator=significand*scale,denominator=1n;
+  if(shift>=0)numerator<<=BigInt(shift);
+  else denominator<<=BigInt(-shift);
+  let quotient=numerator/denominator;
+  const remainder=numerator%denominator,twice=remainder*2n;
+  if(twice>denominator||(twice===denominator&&quotient%2n===1n))quotient++;
+  const rounded=Number(quotient)/Number(scale);
+  return value<0?-rounded:rounded;
 };
 export function naturalEarthHydronym(feature) {
   const p=feature?.properties || {};
@@ -62,8 +84,8 @@ function interpolate(polyline,position) {
 const lower=value=>value.toLowerCase();
 const bound=value=>{
   if(!Number.isSafeInteger(value))throw Error('Invalid published Hydro bounds');
-  const s=value/100,f=Math.floor(s),fraction=s-f;
-  return (fraction>0.5?f+1:fraction<0.5?f:f%2===0?f:f+1)/10000;
+  // Exact parity: Python round(value / 1e6, 4), including binary64 half ties.
+  return pythonRound(value/1e6,4);
 };
 const unionBbox=rows=>[0,1,2,3].map(i=>bound(rows.reduce((value,row)=>
   i<2?Math.min(value,row.bounds[i]):Math.max(value,row.bounds[i]),i<2?Infinity:-Infinity)));
