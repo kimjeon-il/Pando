@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 
 const root=new URL('../../',import.meta.url);
 const getJSON=path=>JSON.parse(readFileSync(new URL(path,root),'utf8'));
@@ -12,7 +13,7 @@ const previewData=()=>{
   return JSON.parse(gunzipSync(readFileSync(new URL(
     'assets/data/countries-preview-v'+version+'.geojson.gz',root))));
 };
-const source=(path)=>readFileSync(new URL(path,root),'utf8');
+const source=path=>readFileSync(repositoryFrontendUrl(path),'utf8');
 const polygons=geo=>geo.type==='Polygon'?[geo.coordinates]:geo.coordinates;
 const ringArea=ring=>ring.slice(1).reduce((sum,[x,y],i)=>{
   const [a,b]=ring[i];return sum+a*y-x*b;
