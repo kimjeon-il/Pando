@@ -11,7 +11,7 @@ import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
 import { referenceAnalysisAssetPlan } from './reference-analysis-plan.mjs';
 import { prepareLibraryData } from '../../tools/library-data.mjs';
 import { previewFileIdentity } from '../../scripts/p3-preview-server.mjs';
-import { writeStagedContent, removeStagedDirectory } from '../../tools/worktree-storage.mjs';
+import { writeStagedContent, removeStagedDirectory, storageSettings } from '../../tools/worktree-storage.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(here, '../..');
@@ -68,6 +68,7 @@ export async function createDevelopmentAssets({ root = repository, profile = 'ma
 async function stageOwnedPrototype({ root, profile, verification, directory, assets = null }) {
   validateShellProfile(profile, verification);
   root = resolve(root);
+  const storage = assets ? null : storageSettings(root);
   const generator = join(root, 'scripts/generate-build-metadata.mjs');
   if (await exists(generator)) prepareLibraryData({ root });
   if (!assets && await exists(generator)) execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
@@ -110,7 +111,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     const target = resolve(directory, path);
     if (!target.startsWith(directory + '\\') && !target.startsWith(directory + '/')) throw new Error(`Unsafe staged path: ${path}`);
     await mkdir(dirname(target), { recursive: true });
-    writeStagedContent({root,directory,path,bytes:Buffer.from(bytes),source});
+    writeStagedContent({root,directory,path,bytes:Buffer.from(bytes),source,settings:storage});
     }
     files.push({ path: slash(path), bytes: Buffer.byteLength(bytes), sha256: hash(bytes), ...(source ? { source } : {}) });
   };
