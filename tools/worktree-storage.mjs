@@ -95,6 +95,20 @@ export function applyWorktreeStorage(options={}){
   return withStorageLock(root,settings,()=>{
     const journal=containedPath(settings.cacheRoot,'migration.pending.json');
     const consumers=()=>options.processes??runningStorageConsumers();
+    // Reclaim only this migration's explicit lease after proving its PID dead.
+    // Empty, unknown, foreign-root and live-owner stage locks stay protected.
+    for(const app of roots){
+      const lease=containedPath(app,'apps/web-shell/.stage-lock');if(!existsSync(lease)||!lstatSync(lease).isFile())continue;
+      let owner;try{owner=JSON.parse(readFileSync(lease,'utf8'));}catch{continue;}
+      if(owner.schema==='pando-worktree-stage-migration-v1'&&owner.operation==='share immutable stage'&&owner.root===app)discardDeadLibraryLock(lease);
+    }
+    const withStageLease=(app,operation)=>{
+      if(!roots.map(x=>resolve(x)).includes(resolve(app)))throw Error('Unknown migration lease owner');
+      const busy=stageBusy(app,consumers());if(busy)throw Error(busy);
+      const lease=containedPath(app,'apps/web-shell/.stage-lock'),fd=openSync(lease,'wx');
+      try{writeFileSync(fd,JSON.stringify({schema:'pando-worktree-stage-migration-v1',pid:process.pid,root:app,operation:'share immutable stage'}));return operation();}
+      finally{closeSync(fd);unlinkSync(lease);}
+    };
     const finish=(entry,ownedStageLease=false)=>{
       if(!roots.map(x=>resolve(x)).includes(resolve(entry.root)))throw Error('Recovery entry is outside registered worktrees');
       if(!ownedStageLease){const busy=stageBusy(entry.root,consumers());if(busy)throw Error(busy);}
@@ -107,7 +121,7 @@ export function applyWorktreeStorage(options={}){
       unlinkSync(journal);
     };
     let recovered=null;
-    if(existsSync(journal)){const record=JSON.parse(readFileSync(journal,'utf8'));if(record.schema!==schema)throw Error('Unknown migration journal');finish(record.entry);recovered=record.entry;}
+    if(existsSync(journal)){const record=JSON.parse(readFileSync(journal,'utf8'));if(record.schema!==schema)throw Error('Unknown migration journal');withStageLease(record.entry.root,()=>finish(record.entry,true));recovered=record.entry;}
     const result=previewWorktreeStorage({root,roots,settings,processes:consumers()});result.apply=true;result.recovered=recovered;
     const fs=statfsSync(settings.cacheRoot);result.freeBytesBefore=fs.bavail*fs.bsize;
     const unique=new Map();
@@ -116,10 +130,7 @@ export function applyWorktreeStorage(options={}){
     if(result.peakAdditionalBytes>3*1024**3||result.freeBytesBefore<result.peakAdditionalBytes+5*1024**3)throw Error('Insufficient migration peak/headroom');
     for(const app of roots){
       const rows=result.entries.filter(x=>x.status==='eligible'&&x.root===app);if(!rows.length)continue;
-      const busy=stageBusy(app,consumers());if(busy)throw Error(busy);
-      const lease=containedPath(app,'apps/web-shell/.stage-lock'),fd=openSync(lease,'wx');
-      try{
-        writeFileSync(fd,JSON.stringify({pid:process.pid,root:app,operation:'share immutable stage'}));
+      withStageLease(app,()=>{
         for(const row of rows){
           const target=containedPath(row.directory,row.path);
           // Removing another owned hardlink changes ctime for this same inode.
@@ -130,7 +141,7 @@ export function applyWorktreeStorage(options={}){
           atomicStorageJSON(journal,{schema,entry:row});options.afterPrepared?.(row);
           finish(row,true);row.status='shared';
         }
-      }finally{closeSync(fd);unlinkSync(lease);}
+      });
     }
     const after=statfsSync(settings.cacheRoot);result.freeBytesAfter=after.bavail*after.bsize;result.freeBytesDelta=result.freeBytesAfter-result.freeBytesBefore;
     return result;
@@ -139,6 +150,7 @@ export function applyWorktreeStorage(options={}){
 export function pruneApplicationBlobs({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers()}={}){
   if(!settings)throw Error('Worktree storage is not activated');
   const operation=()=>{
+    for(const name of ['migration.pending.json','runtime-migration.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error(`Pending recovery journal blocks blob pruning: ${name}`);
     const busy=roots.map(app=>stageBusy(app,processes)).find(Boolean);if(busy)throw Error(busy);
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'blobs'),entries=[];
     const before=statfsSync(settings.cacheRoot);

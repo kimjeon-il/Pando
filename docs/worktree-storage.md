@@ -17,6 +17,8 @@ node D:/dev/worktrees/objects/tools/worktree-storage.mjs --root=D:/dev/worktrees
 
 동일 pin도 수정 중인 입력과 옵션/ABI가 다르면 캐시를 공유하지 않는다. 캐시 적중은 컴파일러 결정성이나 기존 WASM 재현성 CI의 통과를 뜻하지 않는다. 상설 브랜치 간 소스 통합은 별도의 명시적 요청을 따른다.
 
+이 호스트의 Emscripten 4.0.20은 내부 Clang wrapper 호출까지 확인했지만, sccache 0.19.0이 기본 `-Xclang` 인수를 지원하지 않아 3회 모두 캐시를 우회했다. WASM object는 정상 생성됐고 컴파일 옵션을 제거하지 않았다. 따라서 현재 확보한 적중은 Rust 의존성과 네이티브 C++이며, WASM 컴파일 캐시 적중은 완료 성과에 포함하지 않는다.
+
 ## 실제 정리
 
 ```powershell
@@ -29,6 +31,8 @@ node tools/worktree-storage.mjs --share-retired-qt --apply
 ```
 
 미리보기는 source evidence의 SHA-256/크기와 실제 stage 파일을 비교한다. 적용은 전용 storage lock과 각 App stage writer lock을 유지하고 파일 ID·hash를 재검사한다. stage 증거와 다른 파일은 private/unfinished로 보존한다. 중단 시 `migration.pending.json`을 보존하고 동일 `--apply` 또는 `--resume`으로 재개한다. 원본 바이트는 pool 검증 후에만 교체한다. 다른 작업의 잠금은 제거하지 않는다.
+
+강제 종료된 정리 프로세스가 남긴 명시적인 PID/root/schema의 stage lease만 PID가 죽었음을 확인한 뒤 재개할 수 있다. 살아 있는 소유자와 빈/알 수 없는 잠금은 보호한다. 어떤 migration journal이라도 남아 있으면 blob GC는 복구 완료 전까지 중지한다.
 
 기존 staging 소비 경로를 유지하며, library revision이 바뀌었더라도 이전 staging 바이트와 정확히 같은 불변 library blob이 있으면 이를 재사용한다. live private input을 링크하지 않는다. 쓰기는 새 pending stage를 만드는 기존 owner를 통해 수행한다. 기존 공유 stage를 직접 수정하면 실패한다.
 
