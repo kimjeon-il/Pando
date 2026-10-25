@@ -318,6 +318,15 @@ change.
   validation commands by default.
 - Choose the smallest set of checks that can reasonably detect regressions
   caused by the current change.
+- For place names, country names, lifetimes and other data-only edits, check
+  only the edited records and their directly affected outputs. Do not scan,
+  hash-audit or validate every record of the same kind for preservation proof.
+  Inspect test setup/imports before running it: a focused test file must not
+  silently load and validate the entire real dataset. Use small synthetic
+  fixtures for generator logic, and explicit entity scopes for real data.
+- Reuse unchanged generated country assets. When generation needs connected
+  geometry or parent dependencies, report that input scope separately from
+  the records selected for data validation; do not add a whole-catalog check.
 - Expand the test scope only when:
   - the change crosses multiple architectural boundaries
   - shared infrastructure was modified

@@ -27,10 +27,11 @@ jobs:
         run: |
           node tools/build-country-default-colors.mjs --check
           node --test tests/unit/historical-german-coastline-events.test.mjs tests/unit/historical-netherlands-coast-phase0.test.mjs
-      - name: Python syntax for changed place and GIS research generators
+      - name: Python syntax for maintained GIS generators
         run: |
-          python -m compileall -q scripts/research/siachen
-          python -m py_compile tools/build-place-candidates.py tools/build_north_schleswig_1914_001_026.py tools/audit_north_schleswig_1914_001_026.py tools/audit_north_schleswig_1914_stone26_split.py tools/build_german_empire_1914_modern_coast.py
+          python -m compileall -q scripts/gis
+          node --check tools/build-place-candidates.mjs
+          python -m py_compile tools/build_north_schleswig_1914_001_026.py tools/audit_north_schleswig_1914_001_026.py tools/audit_north_schleswig_1914_stone26_split.py tools/build_german_empire_1914_modern_coast.py
       - name: Validate inventory and deleted legacy locations
         shell: bash
         run: |
@@ -54,7 +55,6 @@ jobs:
           PY
       - name: Verify old and new report layout resolution
         run: |
-          python -m unittest tests/test_report_paths.py
           node --test tests/unit/report-paths.test.mjs
 
   web-mobile:

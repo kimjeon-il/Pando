@@ -22,6 +22,7 @@ import re
 import shutil
 import stat
 import struct
+import subprocess
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -33,8 +34,14 @@ from shapely.affinity import translate
 from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, Polygon, box, shape
 from shapely.ops import linemerge, nearest_points, transform, unary_union
 from shapely.strtree import STRtree
-from hydro_connectivity import repair_connections, audit_parts
-from gis.hydro_independent_name_policy import load_independent_hydronyms
+from hydro_connectivity import repair_connections_native, audit_parts
+# Transitional producer: Node is the sole reviewer of independent source evidence.
+def load_independent_hydronyms(path):
+    checked = subprocess.run(
+        ["node", str(Path(__file__).resolve().parent / "gis/hydro-independent-name-policy.mjs"),
+         "--input", str(path)], capture_output=True, text=True, encoding="utf-8", check=True)
+    return json.loads(checked.stdout)
+
 
 
 VERSION = "0.13.1"
@@ -1399,7 +1406,7 @@ def normalize_network_connections(chains, original_network, region):
                     'fid': reach.source_id, 'part': index, 'points': points,
                     'aligned': bool(reach.border_pair), 'system': str(reach.main_river),
                 })
-    changes = repair_connections(parts, original_network, region)
+    changes = repair_connections_native(parts, original_network, region)
     report = audit_parts(parts, original_network)
     return {'changedPorts': len(changes), 'changes': changes, 'remaining': report['issues']}
 

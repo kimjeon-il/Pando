@@ -12,9 +12,16 @@ import copy
 import gzip
 import hashlib
 import json
+import subprocess
 from collections import Counter
 from pathlib import Path
-from hydro_independent_name_policy import load_independent_hydronyms
+# Transitional producer: source review is owned by the Node validation contract.
+def load_independent_hydronyms(path):
+    checked = subprocess.run(
+        ["node", str(Path(__file__).with_name("hydro-independent-name-policy.mjs")),
+         "--input", str(path)], capture_output=True, text=True, encoding="utf-8", check=True)
+    return json.loads(checked.stdout)
+
 
 
 def digest(value: bytes) -> str:
@@ -78,8 +85,11 @@ def rewrite(manifest: dict, bundle: bytes, substitutions: dict,
             continue
         if row["category"] != "river" or not row.get("awId") == f"hydro-system:{ident}":
             raise ValueError("Invalid published Hydro system ID for replacement")
-        if row["name"] != review["previousNameKo"]:
-            raise ValueError(f"Original name mismatch for {ident}: {row['name']}")
+        # Some published systems already have the independently reviewed Korean
+        # display name but still retain legacy OSM provenance. Accept exactly the
+        # documented previous or approved name; never infer a third identity.
+        if row["name"] not in (review["previousNameKo"], review["nameKo"]):
+            raise ValueError(f"Original/approved name mismatch for {ident}: {row['name']}")
         previous = system_old.setdefault(ident, row["name"])
         if previous != row["name"]:
             raise ValueError(f"Fragment name divergence for {ident}")

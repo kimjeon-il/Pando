@@ -18,6 +18,21 @@ if(PANDO_BUILD_COUNTRY_VALIDATOR)
     endif()
 endif()
 
+option(PANDO_BUILD_HYDRO_CONNECTIVITY "Build the standalone native HydroRIVERS junction repair engine" OFF)
+if(PANDO_BUILD_HYDRO_CONNECTIVITY)
+    add_executable(pando-hydro-connectivity
+        hydro/connectivity-junctions.cpp
+        ../../shared/core/src/losslessjson.cpp)
+    target_include_directories(pando-hydro-connectivity PRIVATE ../../shared/core/include)
+    if(MSVC)
+        target_compile_options(pando-hydro-connectivity PRIVATE /utf-8)
+    else()
+        # The existing shared losslessjson.cpp triggers GCC's indentation warning;
+        # keep all other warnings fatal without editing the shared Web/WASM codec.
+        target_compile_options(pando-hydro-connectivity PRIVATE -Wall -Wextra -Werror -Wno-error=misleading-indentation -pedantic)
+    endif()
+endif()
+
 option(PANDO_BUILD_TERRITORIAL_RECIPE "Build the GEOS/PROJ historical recipe engine" OFF)
 if(PANDO_BUILD_TERRITORIAL_RECIPE)
     find_package(PkgConfig REQUIRED)

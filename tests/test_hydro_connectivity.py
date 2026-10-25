@@ -1,12 +1,13 @@
 import copy
 import importlib.util
+import os
 import sys
 import unittest
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parents[1] / 'tools'
 sys.path.insert(0, str(TOOLS))
-from hydro_connectivity import audit_parts, endpoints, repair_connections
+from hydro_connectivity import audit_parts, endpoints, repair_connections, repair_connections_native
 
 spec = importlib.util.spec_from_file_location('hydro_test_builder', TOOLS / 'build-hydro-tiles.py')
 builder = importlib.util.module_from_spec(spec)
@@ -102,6 +103,46 @@ class HydroConnectivityTests(unittest.TestCase):
         repair_connections(parts, raw, 'eu')
         self.assertEqual(audit_parts(parts, raw)['issues'], [])
 
+    @unittest.skipUnless(os.environ.get('PANDO_HYDRO_CONNECTIVITY_BINARY'), 'C++ native Hydro binary required')
+    def test_native_correction_matches_the_existing_python_source_oracle(self):
+        scenarios = ['baseline', 'original-mismatch', 'border-conflict', 'long-gap',
+                     'system-mismatch', 'split-reach', 'region-gate', 'microdegree',
+                     'upstream-aligned', 'natural-terminal']
+        for scenario in scenarios:
+            with self.subTest(scenario=scenario):
+                parts, raw = fixture()
+                region = 'eu'
+                if scenario == 'original-mismatch':
+                    raw[1]['end'] = [0.9, 0]
+                if scenario == 'border-conflict':
+                    parts[1][0]['aligned'] = True
+                if scenario == 'long-gap':
+                    parts[2][0]['points'][0] = [1.5, 0]
+                if scenario == 'system-mismatch':
+                    parts[3][0]['system'] = 'other'
+                if scenario == 'split-reach':
+                    parts[2] = [
+                        dict(fid=2, part=1, points=[[1.5, 0], [2, 0]], aligned=True, system='10'),
+                        dict(fid=2, part=0, points=[[1.002, 0], [1.5, 0]], aligned=True, system='10'),
+                    ]
+                if scenario == 'region-gate':
+                    region = 'as'
+                if scenario == 'microdegree':
+                    parts[2][0]['points'][0] = [1.000001, 0]
+                if scenario == 'upstream-aligned':
+                    parts[1][0]['aligned'] = True
+                    parts[2][0]['aligned'] = False
+                if scenario == 'natural-terminal':
+                    raw[1]['next'] = 0
+                reference, raw_before = copy.deepcopy(parts), copy.deepcopy(raw)
+                expected_changes = repair_connections(reference, raw, region)
+                actual_changes = repair_connections_native(parts, raw, region)
+                self.assertEqual(parts, reference)
+                self.assertEqual(actual_changes, expected_changes)
+                self.assertEqual(raw, raw_before)
+                self.assertEqual(repair_connections_native(parts, raw, region), [])
+
+    @unittest.skipUnless(os.environ.get('PANDO_HYDRO_CONNECTIVITY_BINARY'), 'C++ native Hydro binary required')
     def test_fresh_generator_uses_the_same_connector(self):
         parts, raw = fixture()
         def reach(source):

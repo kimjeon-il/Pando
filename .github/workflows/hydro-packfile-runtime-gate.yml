@@ -6,7 +6,7 @@ on:
     paths:
       - 'assets/js/workers/hydro-shard-store.js'
       - 'assets/js/workers/hydro-tile-worker.js'
-      - 'tools/build-hydro-packfile.py'
+      - 'tools/build-hydro-packfile.mjs'
       - 'tests/unit/hydro-packfile.test.mjs'
       - '.github/workflows/hydro-packfile-runtime-gate.yml'
   workflow_dispatch:
@@ -28,8 +28,14 @@ jobs:
             /assets/js/workers/hydro-shard-store.js
             /assets/js/workers/hydro-tile-worker.js
             /assets/data/hydro/v0.13.2/
-            /tools/build-hydro-packfile.py
+            /tools/build-hydro-packfile.mjs
             /tests/unit/hydro-packfile.test.mjs
+            /tests/unit/hydro-packfile-builder.test.mjs
+            /tools/library-data.mjs
+            /tools/library-report-layout.mjs
+            /tools/library-content.mjs
+            /config/library-data.json
+            /.github/actions/library-data/action.yml
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
@@ -45,10 +51,12 @@ jobs:
             /assets/data/hydro/v0.13.1/
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Verify byte-equivalent package and atomic HTTP Range behavior
         run: |
-          python3 tools/build-hydro-packfile.py --source historical-hydro/assets/data/hydro/v0.13.1 --check
+          node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" 
+          node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" --check
+          node --test tests/unit/hydro-packfile-builder.test.mjs
           node --check assets/js/workers/hydro-tile-worker.js
           node --check assets/js/workers/hydro-shard-store.js
           node --test tests/unit/hydro-packfile.test.mjs

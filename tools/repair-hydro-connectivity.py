@@ -13,7 +13,7 @@ import json
 import sys
 from pathlib import Path
 
-from hydro_connectivity import ORDER, audit, load_sources, parts_by_source, repair_connections
+from hydro_connectivity import ORDER, audit, load_sources, parts_by_source, repair_connections_native
 
 spec = importlib.util.spec_from_file_location('hydro_builder', Path(__file__).with_name('build-hydro-tiles.py'))
 builder = importlib.util.module_from_spec(spec)
@@ -46,7 +46,7 @@ def main():
     changes, region_results = [], {}
     expected = {(x['source'], x['downstream']) for x in before['issues']}
     for region in ORDER:
-        region_changes = repair_connections(parts, raw, region)
+        region_changes = repair_connections_native(parts, raw, region)
         changes.extend(region_changes)
         after = audit(features, raw)
         if {(x['source'], x['downstream']) for x in after['issues']} - expected:
@@ -55,7 +55,7 @@ def main():
         if region_results[region].get('repairable', 0):
             raise ValueError(f'Repairable gaps remain after {region}')
         print(f'{region}: {len(region_changes)} ports changed; {region_results[region].get("issues", 0)} unresolved', flush=True)
-    if any(repair_connections(parts, raw, region) for region in ORDER):
+    if any(repair_connections_native(parts, raw, region) for region in ORDER):
         raise ValueError('Repair is not idempotent')
     changed_fids = {change['fid'] for change in changes}
     by_fid = {row['metadata']['fid']: row for row in features}

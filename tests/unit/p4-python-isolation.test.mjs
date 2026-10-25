@@ -29,14 +29,14 @@ test('raw Python GIS inputs only run from the dedicated opt-in workflow and CLI'
   assert.match(wf,/historical-geometry:/);
   assert.doesNotMatch(wf,/^\s+schedule:/m);
   assert.ok(wf.includes("github.event_name == 'workflow_dispatch'"));
-  const cli=read('scripts/gis/run-source.py');
-  assert.match(cli,/add_argument\("--execute", action="store_true"/);
-  assert.match(cli,/if not namespace\.execute:\s+return 0/);
-  assert.match(cli,/subprocess\.run\(command, cwd=REPO, check=False\)/);
+  const cli=read('scripts/gis/run-source.mjs');
+  assert.match(cli,/--execute/);
+  assert.match(cli,/if\(!execute\)return 0/);
+  assert.match(cli,/spawn\(command\[0\]/);
 });
 test('Python-only GIS edits select no standard Web/core/WASM job',()=>{
   const caps={core:true,gisTools:true,web:true};
-  for(const path of ['tools/build-terrain-dem.py','scripts/research/siachen/compare_independent_dem_saltoro.py',
+  for(const path of ['tools/build-terrain-dem.py','tools/gis/verify_independent_river_point_anchors.py',
       'tests/python/test_build_terrain_dem.py']){
     const plan=classifyPaths([path],caps);
     assert.equal(plan.python,true,path);

@@ -82,11 +82,12 @@ export function territorialSceneDisplayId(feature, countryIds) {
 }
 
 /** Only call for fresh built-in projects. Never a project-file migration. */
-export function classifyBuiltinCountries(collection) {
+export function classifyBuiltinCountries(collection, { availableSourceIds = null } = {}) {
   const features = collection?.features || [];
   const ids = new Set(features.map(feature => String(feature.id)));
   for (const row of BUILTIN_SUBUNITS) {
-    if (!ids.has(row.sourceCountryId) || !ids.has(row.parentId)) throw new Error(`기본 하위단위 원본/부모 누락: ${row.sourceCountryId} → ${row.parentId}`);
+    if (availableSourceIds && !ids.has(row.sourceCountryId)) continue;
+    if (!ids.has(row.sourceCountryId) || !(availableSourceIds || ids).has(row.parentId)) throw new Error(`기본 하위단위 원본/부모 누락: ${row.sourceCountryId} → ${row.parentId}`);
   }
   const countries = [], subunits = [];
   for (const feature of features) {
