@@ -26,5 +26,30 @@ jobs:
           node-version: '24'
       - name: Prepare pinned source-only data in the application checkout
         uses: ./.github/actions/library-data
+      - name: Diagnose pinned historical geometry identities without mutating the library
+        run: |
+          node --input-type=module - <<'JS'
+          import {createHash} from 'node:crypto';
+          import {readTerritorialSources} from './tools/territorial-entity-sources.mjs';
+          const sources=readTerritorialSources();
+          const east=sources.find(x=>x.entityId==='state:east-prussia');
+          if(!east)throw Error('East Prussia object missing');
+          const versions=east.geometryVersions.map(version=>({
+            versionId:version.versionId,certainty:version.certainty,
+            coordinateSha256:createHash('sha256').update(JSON.stringify(version.geometry)).digest('hex'),
+          }));
+          const children=sources.filter(x=>x.parentEntityId==='state:soviet-union').map(x=>({
+            entityId:x.entityId,flagged:Boolean(x.metadata?.defaultFlagDataUrl),
+            approximateGeometry:x.metadata?.approximateGeometry??null,
+            historicalProvenance:x.metadata?.historicalProvenance??null,
+          }));
+          console.log('HISTORICAL_GEOMETRY_DIAGNOSTIC='+JSON.stringify({
+            libraryPin:JSON.parse((await import('node:fs')).readFileSync('config/library-data.json','utf8')).revision,
+            eastPrussia:{metadataGeometrySha:east.metadata?.geometrySha256,
+              sourceInfoGeometrySha:east.sourceInfo?.geometrySha256,
+              versions},
+            sovietChildren:children,
+          }));
+          JS
       - name: Verify immutable historical objects with current Node rules
         run: node --test tests/unit/territorial-library-data.test.mjs tests/unit/borneo-country-geometry.test.mjs
