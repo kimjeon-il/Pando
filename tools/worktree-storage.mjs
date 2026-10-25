@@ -176,7 +176,7 @@ const fileIdentity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}
 const payloadIdentity=path=>fileIdentity(path).split(':').slice(0,4).join(':');
 export function runningStorageConsumers(){
   if(process.platform!=='win32')throw Error('Consumer inventory requires this Windows host');
-  const command="Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|emulator|qemu-system-[\\w-]+|pandolab.*|baseline-ui_tests|candidate-ui_tests)\\.exe$' -or ($_.Name -match '^java(w)?\\.exe$' -and $_.CommandLine -match 'gradle') -or ($_.Name -match '^(msedgewebview2|chrome|msedge)\\.exe$' -and $_.CommandLine -match 'PandoLab|worktrees') -or ($_.Name -eq 'node.exe' -and $_.CommandLine -match 'stage\\.mjs|dev\\.mjs|tauri.*(dev|build)') } | Select-Object ProcessId,Name,CommandLine,ExecutablePath | ConvertTo-Json -Compress";
+  const command="Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|emulator|qemu-system-[\\w-]+|pandolab.*|baseline-ui_tests|candidate-ui_tests)\\.exe$' -or ($_.Name -match '^java(w)?\\.exe$' -and $_.CommandLine -match 'gradle') -or ($_.Name -match '^(msedgewebview2|chrome|msedge)\\.exe$' -and $_.CommandLine -match 'PandoLab|worktrees') -or ($_.Name -eq 'node.exe' -and $_.CommandLine -match 'stage\\.mjs|dev\\.mjs|frontend-dev-server\\.mjs|tests[\\\\/]browser[\\\\/]server\\.mjs|tools[\\\\/]build-[\\w-]+\\.mjs|tauri.*(dev|build)') } | Select-Object ProcessId,Name,CommandLine,ExecutablePath | ConvertTo-Json -Compress";
   const json=execFileSync('powershell.exe',['-NoProfile','-Command',command],{encoding:'utf8',windowsHide:true}).trim();
   return json?[JSON.parse(json)].flat():[];
 }

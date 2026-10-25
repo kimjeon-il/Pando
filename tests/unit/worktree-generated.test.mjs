@@ -9,6 +9,14 @@ import {previewGeneratedCleanup,applyGeneratedCleanup,cargoRetirementRequests} f
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-generated-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function put(root,path,text='generated'){mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),text);}
 function options(root){return {roots:[root],requests:[{root,path:'build-native/p9/retired/output.exe',reason:'retired reproducible native test',action:'delete'}],consumers:[],protectedPaths:[]};}
+test('retired dependency links are unlinked without traversing their shared store',t=>{
+ const root=fixture(t),shared=fixture(t);put(shared,'keep.js','shared package');
+ mkdirSync(join(root,'node_modules/.pnpm'),{recursive:true});symlinkSync(shared,join(root,'node_modules/.pnpm/shared-package'),'junction');
+ put(root,'node_modules/.pnpm/lock.yaml','old install metadata');
+ const o={roots:[root],requests:[{root,path:'node_modules/.pnpm',action:'delete',reason:'metadata points to the prepared global virtual store'}],consumers:[]};
+ const manifest=previewGeneratedCleanup(o),result=applyGeneratedCleanup({...o,manifest});
+ assert.equal(result.deletedBytes,20);assert.equal(readFileSync(join(shared,'keep.js'),'utf8'),'shared package');assert.equal(existsSync(join(root,'node_modules/.pnpm')),false);
+});
 test('preview is read-only; apply rejects stale hashes before deleting anything',t=>{
  const root=fixture(t),o=options(root);put(root,o.requests[0].path);const m=previewGeneratedCleanup(o);assert.ok(existsSync(join(root,o.requests[0].path)));writeFileSync(join(root,o.requests[0].path),'changed');assert.throws(()=>applyGeneratedCleanup({...o,manifest:m}),/changed|stale/i);assert.equal(readFileSync(join(root,o.requests[0].path),'utf8'),'changed');
 });
