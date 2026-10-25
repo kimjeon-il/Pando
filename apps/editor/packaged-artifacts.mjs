@@ -62,7 +62,8 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
     return selectNativeRun(runs.filter(r=>r.event==='push'),expected)||selectNativeRun(runs.filter(r=>r.event!=='push'),expected);
   };
   let run=find();
-  if(!run||run.status==='completed'&&run.conclusion!=='success'){
+  const availablePushArtifact=run?.event==='push'&&artifactsByRun.get(run.id)?.some(a=>a.name===artifactName&&!a.expired);
+  if(!run||run.status==='completed'&&run.conclusion!=='success'&&!availablePushArtifact){
     if(testNative&&platform!=='windows')throw Error('Native unit tests run on Windows; Android runtime verification is a separate device workflow');
     minimumId=run?run.id+1:0;gh(['workflow','run',pin.workflow,'--repo',pin.repository,'--ref',branch,'-f','scope='+(testNative?'native-tests':'native'),'-f','native_platform='+platform,'-f','native_mode='+mode]);run=null;
   }
