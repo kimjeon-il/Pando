@@ -23,7 +23,6 @@ TASK_SOURCES = {
     "hydro-connectivity": "tools/repair-hydro-connectivity.py",
     "physical-data": "tools/build-physical-data.py",
     "place-candidates": "tools/build-place-candidates.py",
-    "historical-topography-probe": "scripts/research/siachen/compare_independent_dem_saltoro.py",
 }
 
 
