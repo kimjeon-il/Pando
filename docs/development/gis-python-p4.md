@@ -62,7 +62,7 @@ node scripts/gis/run-source.mjs --help
 
 `scripts/gis/run-source.mjs`가 기존 GIS 실행기의 default dry-run 및 명시적 `--execute`를 소유한다. Node로 이식된 명령(`hydro-packfile`, `place-candidates`)은 Node 프로세스로 실행하고, 아직 미이식 GIS 원본은 독립 Python CLI를 호출한다. `scripts/summarize-boundary-capture-evidence.mjs`가 기존 trace·diagnostics 계약을 Node에서 수행한다. `report-paths.mjs`에는 Python의 `report_argument` 동작과 같은 `reportArgument`가 추가되었다.
 
-A2에서 Python 실행기와 중복 Python 테스트 6개를 제거했다. 다만 `library_data.py`, `report_paths.py`, `tests/application_source.py`는 나머지 GIS·AI 생성기/검사의 호출자가 제거되지 않았으므로 후속 B/C/E 전환 시 해당 호출처와 동시에 정리한다. 영구적으로 남기는 항목은 아니다.
+A2에서 Python 실행기와 중복 Python 테스트 6개를 제거했다. 후속 정리에서 잠금 동기화 Python 회귀 검사를 Node로 이전해 추가 1개를 삭제하고, 수계 Python 테스트의 `tests.application_source` 의존성을 직접 파일 읽기로 제거했다. 다만 `library_data.py`, `report_paths.py`, `tests/application_source.py`는 나머지 GIS·AI 생성기/검사의 호출자가 제거되지 않았으므로 후속 B/C/E 전환 시 해당 호출처와 동시에 정리한다. 영구적으로 남기는 항목은 아니다.
 
 ## 남겨둔 테스트와 안전 규칙
 

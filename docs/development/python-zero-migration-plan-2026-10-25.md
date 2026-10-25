@@ -10,7 +10,8 @@
 - **A0:** `work/gis`에 `gis-node-migration.yml`을 추가하고 기존 Node 생성기 3종 회귀 테스트 실행 통과 ([Actions 40170378584](https://github.com/kimjeon-il/Pando/actions/runs/40170378584)).
 - **A1:** `build-place-candidates.py`를 Node 정책·ZIP streaming/CRC·review/감사 모듈로 이전하고 Python 테스트를 Node 24개 테스트로 대체. `fetch/build/review` 명령, dry-run와 source checksum, ID별 evidence, 현대 데이터의 역사적 도시 승인 금지를 검증 ([Actions 40171323978](https://github.com/kimjeon-il/Pando/actions/runs/40171323978)).
 - **A2 1차:** Node GIS launcher, reportArgument, 브라우저 캡처 trace 분석, 폰트·함수 소스 단위 테스트로 Python CLI/테스트 6개 교체. [Actions 40171812270](https://github.com/kimjeon-il/Pando/actions/runs/40171812270) 통과.
-- **현재:** 처음 101개 중 8개 삭제, **93개 Python** 잔존. 지도·AI·국경 생성기, 외부 원본·런타임은 미변경. 테스트 합격은 고정 synthetic fixture에 대한 것이며 전 세계 GeoNames 원본 바이트 전수 비교를 대신하지 않는다.
+- **A2 잔여 정리 2차:** `tests/test_v0306_layer_lock_sync.py`의 잠금 검색 동기화 검사를 `tests/unit/layer-lock-sync.test.mjs`로 이관하고 Python 원본을 삭제. `tests/test_hydro_tiles.py`는 JS 환경값 파일을 직접 읽도록 바꿔 `tests.application_source`에 의존하지 않음. 반복된 Node 워크플로 경로 항목도 정리. 현재 `tests/application_source.py`의 직접 호출자는 `tests/test_v0280_historical_library.py`이며 해당 역사 데이터 검사는 후속 C 단계에서 Node로 이전 후 제거한다.
+- **현재:** 처음 101개 중 9개 삭제, **92개 Python** 잔존. 지도·AI·국경 생성기, 외부 원본·런타임은 미변경. 테스트 합격은 고정 synthetic fixture에 대한 것이며 전 세계 GeoNames 원본 바이트 전수 비교를 대신하지 않는다.
 - **A2 의존성 차단 (삭제 선택지 없음):** `tools/library_data.py`(C/B Python 원본 생성기의 Node lease 호출), `tools/report_paths.py`(C/E Python의 보고서 경로), `tests/application_source.py`(B/C Python 테스트) 3개는 소비자가 아직 Python이다. *다음 B/C/E 변환 단위마다* 해당 사용처를 C++/Node로 옮기고, 마지막 사용처가 사라지는 커밋에서 래퍼/헬퍼를 삭제한다. 단순 파일 삭제로 CI나 데이터 출처를 깨지 않는다.
 - **후속 단계:** B=Hydro·DEM 28개, C=역사국경 38개, D=QGIS·래스터 5개, E=AI 19개. A2의 세 파일은 이 그룹 안의 호출자 정리로 함께 제거되며 최종 검사 `git ls-files '*.py' '*.pyi' '*.ipynb'`는 0이어야 한다.
 
