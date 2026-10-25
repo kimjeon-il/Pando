@@ -1,6 +1,6 @@
 # DEM 기반 지형 표시와 경량 대체 자료
 
-웹과 `apps/web-shell`은 DEM `0.13.3`을 주 지형 자료로 사용한다. 대체 자료는
+웹과 `apps/editor`은 DEM `0.13.3`을 주 지형 자료로 사용한다. 대체 자료는
 `assets/data/terrain-preview/v0.13.3-p1/`의 LOD 0·1 타일 8개와 manifest다.
 총 크기는 **3,365,441 bytes**이며 32,000,000 bytes 한도를 적용한다.
 
@@ -58,7 +58,7 @@ pnpm exec playwright test tests/browser/terrain-preview.spec.mjs
 않으며 `--output`으로 빈 출력 위치를 명시한다. 승인된 pin과 기대 해시는 자동
 갱신하지 않는다.
 
-앱의 staging·저장 연결 검사는 `apps/web-shell/tests/`에서 수행한다.
+앱의 staging·저장 연결 검사는 `apps/editor/tests/`에서 수행한다.
 
 `terrain-preview-gate.yml`은 재생성·출처·폐기 자산·브라우저 표시를 확인한다.
 Pages 필수 자산 검사도 새 manifest를 사용한다. 기존 v0.12.6 자료는 과거 증거이며 현행 배포 판정에 사용하지 않는다.

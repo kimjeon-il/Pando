@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMapObjectSpatialIndex } from '../../assets/js/modules/map-object-spatial-index.js';
+import { createMapObjectSpatialIndex } from "../../shared/frontend/js/modules/map-object-spatial-index.js";
 
 test('queries only nearby map objects and updates entries', () => {
   const index = createMapObjectSpatialIndex({ cellSize: 5 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { connectBoundarySegments } from '../../assets/js/modules/boundary-lines.js';
+import { connectBoundarySegments } from "../../shared/frontend/js/modules/boundary-lines.js";
 
 test('short reversed segments form a continuous line for dash spacing', () => {
   const lines = connectBoundarySegments([[[0, 0], [1, 0]], [[2, 0], [1, 0]], [[2, 0], [3, 0]]]);

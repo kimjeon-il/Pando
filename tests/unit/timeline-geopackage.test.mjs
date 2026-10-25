@@ -2,12 +2,12 @@ import { productionGeoPackage as request, spatialLayerCount } from '../helpers/p
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { prepareProjectForStorage } from '../../assets/js/modules/project-state.js';
+import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { prepareProjectForStorage } from "../../shared/frontend/js/modules/project-state.js";
 import { projectForStorage, staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { readFile } from 'node:fs/promises';
-import { prepareProjectForActivation } from '../../assets/js/modules/project-state.js';
+import { prepareProjectForActivation } from "../../shared/frontend/js/modules/project-state.js";
 
 const serialize = snapshot => createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base',
   distributionModes: ['territorial','geometry'], terrainDataset: 'terrain', hydroDataset: 'hydro', readSnapshot: () => snapshot }).buildProject();

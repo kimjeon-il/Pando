@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createTerritorialConversion } from '../../assets/js/modules/app-territorial-conversion.js';
+import { createTerritorialConversion } from "../../apps/editor/frontend/js/modules/app-territorial-conversion.js";
 
 const seed = () => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
 

@@ -5,7 +5,7 @@ import test from 'node:test';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-import { buildRenderableStrokeFeature, hasAreaGeometry } from '../../assets/js/modules/geometry-preview.js';
+import { buildRenderableStrokeFeature, hasAreaGeometry } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const countries = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/countries-preview-v0.36.0.geojson.gz'))));

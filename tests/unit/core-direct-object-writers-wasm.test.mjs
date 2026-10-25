@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createObjectMetadata } from '../../assets/js/modules/app-object-metadata.js';
-import { createObjectDeletion } from '../../assets/js/modules/app-object-deletion.js';
-import { createTerritorialConversion } from '../../assets/js/modules/app-territorial-conversion.js';
+import { createObjectMetadata } from "../../apps/editor/frontend/js/modules/app-object-metadata.js";
+import { createObjectDeletion } from "../../apps/editor/frontend/js/modules/app-object-deletion.js";
+import { createTerritorialConversion } from "../../apps/editor/frontend/js/modules/app-territorial-conversion.js";
 
 const seed=() => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
 test('direct hydro/label property and delete UI delegates to the complete C++ document/history owner',async () => {

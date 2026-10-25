@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';
+import {preparedDependencyConfiguration} from '../../.pnpmfile.mjs';
+test('ordinary pnpm commands retain the prepared local graph store and CI stays independent',t=>{const root=mkdtempSync(join(tmpdir(),'pando-deps-'));t.after(()=>rmSync(root,{recursive:true,force:true}));mkdirSync(join(root,'.library-data'));const store=join(root,'shared-store');writeFileSync(join(root,'.library-data/dependencies.json'),JSON.stringify({schema:'pando-dependency-store-v1',store}));const cfg=preparedDependencyConfiguration({storeDir:'wrong'},{root,ci:false});assert.equal(cfg.enableGlobalVirtualStore,true);assert.equal(cfg.storeDir,store);assert.deepEqual(preparedDependencyConfiguration({storeDir:'ci'},{root,ci:true}),{storeDir:'ci'});});

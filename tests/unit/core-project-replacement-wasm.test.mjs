@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
 
 test('a failed post-load platform replacement restores the same C++ full history, selection and detached draft',async () => {
   const seed=JSON.parse(await readFile(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));

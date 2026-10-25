@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 test('both products read project files through the common project transaction; viewer exposes no edit actions',async()=>{
- const {createFileController}=await import('../../assets/js/modules/file-controller.js');
+ const {createFileController}=await import("../../shared/frontend/js/modules/file-controller.js");
  for(const productMode of ['viewer','editor']){
   const events=[],input={dataset:{},click(){events.push('picker');},addEventListener(){}};
   const file={name:'current.gpkg'},project={format:'current'};

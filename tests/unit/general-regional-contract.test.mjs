@@ -2,10 +2,10 @@ import { testCoreProject, initializeTestTerritorialState,executeTerritorialTestC
 import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
+import { createTerritorialFeature, normalizeTerritorialEntities } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
 
 const geometry = () => ({ type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] });
 const entity = (id, entityKind = 'general', parentId = '') => createTerritorialFeature({ id, entityKind, parentId, geometry: geometry() });
@@ -78,7 +78,7 @@ const store = createTerritorialEntityStore({ documentModel:testCoreProject(state
 
 
 test('regional redraw keeps the full independent shape, including overlap and outside land', async () => {
-  const { calculateRegionRedraw } = await import('../../assets/js/modules/map-edit-territorial-commands.js');
+  const { calculateRegionRedraw } = await import("../../apps/editor/frontend/js/modules/map-edit-territorial-commands.js");
   const source = entity('R', 'regional');
   const before = structuredClone(source);
   const draft = { type: 'Polygon', coordinates: [[[-2,-2],[-2,3],[3,3],[3,-2],[-2,-2]]] };

@@ -1,11 +1,11 @@
-import '../../assets/js/vendor/polygon-clipping.min.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import {initializeTestTerritorialState,testCoreProject} from './timeline-project.mjs';
-import {createGisImportTransactionCommitter} from '../../assets/js/modules/gis-import-transaction.js';
-import {createLandRelations} from '../../assets/js/modules/app-land-relations.js';
-import {territorialRootId,TERRITORIAL_COVERAGE_MODES} from '../../assets/js/modules/territorial-units.js';
-import {DISTRIBUTION_MODES} from '../../assets/js/modules/distribution-model.js';
-import {applyImportedPackageAssets} from '../../assets/js/modules/import-service.js';
-import {createGenericFeatureService,normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from '../../assets/js/modules/generic-feature-service.js';
+import {createGisImportTransactionCommitter} from "../../apps/editor/frontend/js/modules/gis-import-transaction.js";
+import {createLandRelations} from "../../apps/editor/frontend/js/modules/app-land-relations.js";
+import {territorialRootId,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
+import {DISTRIBUTION_MODES} from "../../shared/frontend/js/modules/distribution-model.js";
+import {applyImportedPackageAssets} from "../../apps/editor/frontend/js/modules/import-service.js";
+import {createGenericFeatureService,normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from "../../apps/editor/frontend/js/modules/generic-feature-service.js";
 
 /** Real C++ command/preview owner; only platform I/O, prompts and display hooks are test doubles. */
 export async function createGisCoreFixture(territorialEntities=[],{fields={},runtime={},platformPorts={}}={}) {

@@ -7,7 +7,7 @@ import {
   writeDomainColor,
   resolveTerritorialColor,
   countryDefaultColor,
-} from '../../assets/js/modules/color-adapter.js';
+} from "../../shared/frontend/js/modules/color-adapter.js";
 
 test('common color adapter reads each editable domain and reports defaults', () => {
   const country = { properties: { entityKind: 'general', parentId: '', name: '테스트국', style: { color: '#112233' } } };

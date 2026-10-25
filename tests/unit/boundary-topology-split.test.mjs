@@ -1,7 +1,7 @@
 import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildBoundaryTopologyFromSegments } from '../../assets/js/modules/boundary-topology.js';
+import { buildBoundaryTopologyFromSegments } from "../../shared/frontend/js/modules/boundary-topology.js";
 
 const raw = (featureId, segmentIndex, a, b) => ({
   featureId, polygonIndex: 0, ringIndex: 0,

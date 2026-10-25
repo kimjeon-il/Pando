@@ -29,7 +29,7 @@ on:
       - 'shared/tests/boundary-split-tests.cpp'
       - 'shared/tests/country-contact-tests.cpp'
       - 'shared/tests/CMakeLists.txt'
-      - 'assets/wasm/pandoeditor-core.manifest.json'
+      - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/boundary-lines.js'
       - 'assets/js/modules/geographic-boundary.js'
       - 'tests/unit/boundary-display-refinement.test.mjs'
@@ -105,7 +105,7 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFileSync, appendFileSync } from 'node:fs';
           import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
-          const manifest=JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json','utf8'));
+          const manifest=JSON.parse(readFileSync('shared/frontend/static/wasm/pandoeditor-core.manifest.json','utf8'));
           const ready=sharedSourceManifest(process.cwd()).sourceSha256===manifest.sourceSha256;
           appendFileSync(process.env.GITHUB_OUTPUT,'ready='+ready+'\n');
           if (!ready) console.log('P2 source-matched WASM publication must precede this generator verification.');

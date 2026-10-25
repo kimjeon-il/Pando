@@ -9,7 +9,7 @@ const root = path.resolve(here, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 
 test('country palettes keep storage and use dirty-domain sub-image uploads', () => {
-  const source = read('assets/js/modules/gpu-map-renderer.js');
+  const source = read('shared/frontend/js/modules/gpu-map-renderer.js');
   const gpuDrawPasses = source.slice(source.indexOf('function drawBaseSceneContent'), source.indexOf('function renderCanvasHydro'));
   assert.ok(source.includes('let palettePixels = null;'));
   assert.ok(source.includes("const paletteDirty = { base: true, emphasis: true };"));
@@ -20,10 +20,10 @@ test('country palettes keep storage and use dirty-domain sub-image uploads', () 
 });
 
 test('WebGL locations and frame projection state are cached', () => {
-  const gpu = read('assets/js/modules/gpu-map-renderer.js');
-  const visualFrame = read('assets/js/modules/map-visual-frame.js');
-  const selection = read('assets/js/modules/selection-pass.js');
-  const stroke = read('assets/js/modules/gpu-stroke-renderer.js');
+  const gpu = read('shared/frontend/js/modules/gpu-map-renderer.js');
+  const visualFrame = read('shared/frontend/js/modules/map-visual-frame.js');
+  const selection = read('shared/frontend/js/modules/selection-pass.js');
+  const stroke = read('shared/frontend/js/modules/gpu-stroke-renderer.js');
   assert.ok(gpu.includes('let uniformLocationCache = new WeakMap();'));
   assert.ok(visualFrame.includes('function createMapVisualFrame'));
   assert.ok(gpu.includes('activeFrameContext = visualFrame;'));
@@ -37,7 +37,7 @@ test('WebGL locations and frame projection state are cached', () => {
 });
 
 test('a newly promoted scene cache texture is presented in the same view frame', () => {
-  const gpu = read('assets/js/modules/gpu-map-renderer.js');
+  const gpu = read('shared/frontend/js/modules/gpu-map-renderer.js');
   const renderWebGl = gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro'));
   const finish = renderWebGl.indexOf('sceneColorCache.finishScene(null, viewSignature, projectGeneration)');
   const present = renderWebGl.indexOf('sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })', finish);
@@ -49,7 +49,7 @@ test('a newly promoted scene cache texture is presented in the same view frame',
 });
 
 test('visible terrain shares the upload budget while background hydro waits for quiet input', async () => {
-  const { createGpuUploadScheduler } = await import('../../assets/js/modules/gpu-upload-scheduler.js');
+  const { createGpuUploadScheduler } = await import("../../shared/frontend/js/modules/gpu-upload-scheduler.js");
   const frames = [], submitted = [];
   let now = 0;
   const scheduler = createGpuUploadScheduler({ requestFrame: callback => (frames.push(callback), frames.length),
@@ -67,8 +67,8 @@ test('visible terrain shares the upload budget while background hydro waits for 
 });
 
 test('physical data and visibility changes invalidate the cached base scene', () => {
-  const source = read('assets/js/modules/gpu-map-renderer.js');
-  const terrain = read('assets/js/modules/gpu-terrain-preparation.js');
+  const source = read('shared/frontend/js/modules/gpu-map-renderer.js');
+  const terrain = read('shared/frontend/js/modules/gpu-terrain-preparation.js');
   assert.match(source, /function invalidatePhysicalScene\([\s\S]*?sceneColorCache\.invalidate\(reason\);[\s\S]*?invalidateGpuFrame\(reason\);/);
   assert.match(source, /function setTerrainManifest\([\s\S]*?invalidatePhysicalScene\('terrain-manifest'\);/);
   assert.match(source, /function invalidateHydroVisibility\([\s\S]*?queueHydroRender\('hydro-visibility'\);/);
@@ -81,8 +81,8 @@ test('physical data and visibility changes invalidate the cached base scene', ()
 });
 
 test('Canvas Worker persists independently revisioned view and style state', () => {
-  const renderer = read('assets/js/modules/gpu-map-renderer.js');
-  const worker = read('assets/js/workers/canvas-render-worker.js');
+  const renderer = read('shared/frontend/js/modules/gpu-map-renderer.js');
+  const worker = read('shared/frontend/js/workers/canvas-render-worker.js');
   for (const type of ["type: 'view'", "type: 'style'", "type: 'physical-style'", "type: 'patch'"]) {
     assert.ok(renderer.includes(type), `missing renderer message ${type}`);
   }
@@ -102,9 +102,9 @@ test('Canvas Worker persists independently revisioned view and style state', () 
 });
 
 test('map edit calculation preserves originals and shares untouched country objects', async () => {
-  await import('../../assets/js/vendor/polygon-clipping.min.js');
-  const { createCountryCommandCalculator } = await import('../../assets/js/modules/map-edit-country-commands.js');
-  const { normalizePolygonGeometry } = await import('../../assets/js/modules/map-edit-geometry.js');
+  await import("../../shared/frontend/js/vendor/polygon-clipping.min.js");
+  const { createCountryCommandCalculator } = await import("../../apps/editor/frontend/js/modules/map-edit-country-commands.js");
+  const { normalizePolygonGeometry } = await import("../../shared/frontend/js/modules/map-edit-geometry.js");
   const square = x => normalizePolygonGeometry({ type: 'Polygon', coordinates: [[[x, 0], [x + 1, 0], [x + 1, 1], [x, 1], [x, 0]]] });
   const countries = new Map(['source', 'target', 'untouched'].map((id, index) => [id, { type: 'Feature', id, properties: {}, geometry: square(index) }]));
   const before = structuredClone(countries);
@@ -116,8 +116,8 @@ test('map edit calculation preserves originals and shares untouched country obje
 });
 
 test('large-data overlays use domain caches and multi-tier culling', () => {
-  const rendering = read('assets/js/modules/rendering-domain.js');
-  const index = read('assets/js/modules/map-object-spatial-index.js');
+  const rendering = read('shared/frontend/js/modules/rendering-domain.js');
+  const index = read('shared/frontend/js/modules/map-object-spatial-index.js');
   assert.ok(rendering.includes('const buildDistributionRenderRows ='));
   assert.ok(rendering.includes('const visibleDistributionRenderRows ='));
   assert.ok(rendering.includes('distributionRenderRowCache'));
@@ -128,8 +128,8 @@ test('large-data overlays use domain caches and multi-tier culling', () => {
 });
 
 test('interactive vertex drags use a session GPU preview without geometry Worker work', () => {
-  const editing = read('assets/js/modules/editing-domain.js');
-  const rendering = read('assets/js/modules/rendering-domain.js');
+  const editing = read('apps/editor/frontend/js/modules/editing-domain.js');
+  const rendering = read('shared/frontend/js/modules/rendering-domain.js');
   const gestureMove = editing.slice(editing.indexOf('const applyGestureMove ='), editing.indexOf('const flushPendingMove ='));
   assert.ok(gestureMove.includes('geometry.previewObjectGesture?.('));
   assert.ok(gestureMove.includes('geometry.moveBoundaryGesture?.('));
@@ -141,9 +141,9 @@ test('interactive vertex drags use a session GPU preview without geometry Worker
 });
 
 test('expensive edit workers use revisioned latest-wins scheduling', () => {
-  const client = read('assets/js/modules/map-edit-worker-client.js');
-  const renderer = read('assets/js/modules/gpu-map-renderer.js');
-  const worker = read('assets/js/workers/map-edit-worker.js');
+  const client = read('apps/editor/frontend/js/modules/map-edit-worker-client.js');
+  const renderer = read('shared/frontend/js/modules/gpu-map-renderer.js');
+  const worker = read('apps/editor/frontend/js/workers/map-edit-worker.js');
   assert.ok(client.includes('createLatestWorkerJobScheduler'));
   assert.ok(client.includes('geometryRevision'));
   assert.ok(client.includes('targetRevision'));

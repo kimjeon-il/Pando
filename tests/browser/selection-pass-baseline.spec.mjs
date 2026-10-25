@@ -1,7 +1,7 @@
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
-import { decideSelectionRedrawStrategy } from '../../assets/js/modules/selection-performance-baseline.js';
+import { decideSelectionRedrawStrategy } from "../../apps/editor/frontend/js/modules/selection-performance-baseline.js";
 
 const nextPresentedFrame = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 

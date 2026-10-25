@@ -1,11 +1,12 @@
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { collectCssRules } from '../../scripts/lib/css-analysis.mjs';
 import { parseJavaScript, walkJavaScript } from '../../scripts/lib/source-analysis.mjs';
 
-import { createRenderDevice, isRenderDevice } from '../../assets/js/modules/render-device.js';
-import { createSelectionPacket } from '../../assets/js/modules/selection-packet.js';
+import { createRenderDevice, isRenderDevice } from "../../shared/frontend/js/modules/render-device.js";
+import { createSelectionPacket } from "../../shared/frontend/js/modules/selection-packet.js";
 
 test('RenderDevice exposes the shared WebGL1 capability contract', () => {
   const extensions = new Map([
@@ -56,7 +57,7 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
 });
 
 test('map CSS keeps base, GPU, overlay and interaction layers in painting order', async () => {
-  const css = await readFile(new URL('../../assets/css/components/map-viewport.css', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../../shared/frontend/css/components/map-viewport.css', import.meta.url), 'utf8');
   const rules = collectCssRules(css);
   const zIndex = selector => {
     const values = rules.filter(rule => !rule.context && rule.selectors.includes(selector))
@@ -74,7 +75,7 @@ test('map CSS keeps base, GPU, overlay and interaction layers in painting order'
 
 test('main renderer creates the RenderDevice while selection consumes an injected device', async () => {
   for (const [file, ownsDevice] of [['gpu-map-renderer.js', true], ['selection-pass.js', false]]) {
-    const code = parseJavaScript(await readFile(new URL(`../../assets/js/modules/${file}`, import.meta.url), 'utf8'), { filePath: file });
+    const code = parseJavaScript(await readFile(repositoryFrontendUrl(`assets/js/modules/${file}`), 'utf8'), { filePath: file });
     const factories = new Set(code.ast.body.filter(node => node.type === 'ImportDeclaration'
       && node.source.value.endsWith('/render-device.js')).flatMap(node => node.specifiers
       .filter(item => item.imported?.name === 'createRenderDevice').map(item => item.local.name)));

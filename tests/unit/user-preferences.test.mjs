@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultUserPreferences, normalizeUserPreferences } from '../../assets/js/modules/user-preferences.js';
+import { defaultUserPreferences, normalizeUserPreferences } from "../../shared/frontend/js/modules/user-preferences.js";
 
 test('background preferences contain no separate source visibility switches', () => {
   const normalized = normalizeUserPreferences({ version: 2, backgrounds: { viewer: { builtinHydro: false, builtinPlaces: false } } });

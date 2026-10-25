@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
-import {createLibraryAssembly} from '../../assets/js/modules/app-library-assembly.js';
-import {normalizePolygonGeometry} from '../../assets/js/modules/map-edit-geometry.js';
-vm.runInThisContext(fs.readFileSync(new URL('../../assets/js/vendor/d3.min.js',import.meta.url),'utf8'));
+import {createLibraryAssembly} from "../../apps/editor/frontend/js/modules/app-library-assembly.js";
+import {normalizePolygonGeometry} from "../../shared/frontend/js/modules/map-edit-geometry.js";
+vm.runInThisContext(fs.readFileSync(new URL("../../shared/frontend/js/vendor/d3.min.js",import.meta.url),'utf8'));
 
 test('production library SVG fits a correctly wound display copy and leaves source coordinates unchanged',async t=>{
   const beforeDocument=globalThis.document,beforeWindow=globalThis.window;

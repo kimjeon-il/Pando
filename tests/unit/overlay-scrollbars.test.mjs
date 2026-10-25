@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { scrollbarGeometry, installOverlayScrollbars } from '../../assets/js/modules/overlay-scrollbars.js';
+import { scrollbarGeometry, installOverlayScrollbars } from "../../apps/editor/frontend/js/modules/overlay-scrollbars.js";
 
 test('overlay thumb represents native scroll range and clamps overscroll', () => {
   assert.deepEqual(scrollbarGeometry(200, 800, 300), { maximum: 600, thumb: 50, travel: 150, top: 75 });

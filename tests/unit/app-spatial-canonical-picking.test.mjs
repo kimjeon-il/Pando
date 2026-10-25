@@ -1,12 +1,12 @@
 import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createSpatialIndex } from '../../assets/js/modules/spatial-index.js';
-import { createMapObjectSpatialIndex } from '../../assets/js/modules/map-object-spatial-index.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
+import { createSpatialIndex } from "../../shared/frontend/js/modules/spatial-index.js";
+import { createMapObjectSpatialIndex } from "../../shared/frontend/js/modules/map-object-spatial-index.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialScopeResolver } from "../../shared/frontend/js/modules/territorial-scope.js";
 
 const square = x => ({ type: 'Polygon', coordinates: [[[x, 0], [x, 10], [x + 10, 10], [x + 10, 0], [x, 0]]] });
 

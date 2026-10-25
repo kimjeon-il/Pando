@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeTerritorialLibraryEntity, selectGeometryVersion } from '../../assets/js/modules/territorial-library.js';
-import { restoreTimelineStorage, snapshotTimelineStorage } from '../../assets/js/modules/timeline-storage.js';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
+import { normalizeTerritorialLibraryEntity, selectGeometryVersion } from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import { restoreTimelineStorage, snapshotTimelineStorage } from "../../shared/frontend/js/modules/timeline-storage.js";
+import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { assertCurrentProjectSchema } from "../../shared/frontend/js/modules/project-state.js";
 import { projectForStorage,initializeTestTerritorialState,testCoreProject } from '../helpers/timeline-project.mjs';
 
 const polygon = east => ({type:'Polygon',coordinates:[[[0,0],[0,1],[east,1],[east,0],[0,0]]]});

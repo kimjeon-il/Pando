@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGpuMapRenderer } from '../../assets/js/modules/gpu-map-renderer.js';
-import { createGpuResourceLifecycle } from '../../assets/js/modules/gpu-resource-lifecycle.js';
+import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import { createGpuResourceLifecycle } from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
 
 test('disposing an awaited frame settles AbortError and a late callback is inert', async t => {
   let callback;

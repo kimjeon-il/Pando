@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import vm from 'node:vm';
 const context=vm.createContext({});
-vm.runInContext(readFileSync(new URL('../assets/js/vendor/polygon-clipping.min.js',import.meta.url),'utf8'),context);
+vm.runInContext(readFileSync(new URL("../shared/frontend/js/vendor/polygon-clipping.min.js",import.meta.url),'utf8'),context);
 const clip=context.polygonClipping;
 const box=(x,y,w,h)=>[[[[x,y],[x+w,y],[x+w,y+h],[x,y+h],[x,y]]]];
 const cases=[];

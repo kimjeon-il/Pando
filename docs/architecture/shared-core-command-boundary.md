@@ -8,7 +8,7 @@
 
 UI는 기존 object adapter, 기능 서비스, 편집 workflow에서 입력을 수집한다.
 웹 `ProjectDomain`은 application 명령을 순서대로 처리하고 Core에 전달한다.
-앱은 `apps/web-shell`의 웹 입력·Worker 경로와 플랫폼 저장 어댑터를 사용한다.
+앱은 `apps/editor`의 웹 입력·Worker 경로와 플랫폼 저장 어댑터를 사용한다.
 서비스·UI·렌더러는 문서, revision, 이력 또는 dirty를 직접 수정하지 않는다.
 
 `TerritorialEntityStore`와 Repository는 승인된 읽기 모델과 현재 월의

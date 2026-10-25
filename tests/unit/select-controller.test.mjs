@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { filterSelectOptions, normalizeSelectQuery } from '../../assets/js/modules/select-controller.js';
-import { resolveSelectChoice, selectableOptions } from '../../assets/js/modules/select-option-policy.js';
+import { filterSelectOptions, normalizeSelectQuery } from "../../shared/frontend/js/modules/select-controller.js";
+import { resolveSelectChoice, selectableOptions } from "../../shared/frontend/js/modules/select-option-policy.js";
 
 test('select search normalizes width case and whitespace', () => {
   assert.equal(normalizeSelectQuery('  ＤＥＵ  '), 'deu');

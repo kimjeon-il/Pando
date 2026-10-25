@@ -8,7 +8,7 @@ on:
       - 'assets/css/**'
       - 'tests/browser/timeline-controls.spec.mjs'
       - 'assets/data/**'
-      - 'apps/web-shell/**'
+      - 'apps/editor/**'
       - 'index.html'
       - 'reports/README.md'
       - 'reports/development/performance/soviet-*'
@@ -58,10 +58,10 @@ jobs:
           tests/unit/gis-export-controller.test.mjs
           tests/unit/project-save-picker.test.mjs
           tests/unit/editor-resource-capabilities.test.mjs
-          apps/web-shell/tests/world-data-plan.test.mjs
-          apps/web-shell/tests/stage-world.test.mjs
-          apps/web-shell/tests/full-world-probe.test.mjs
-          apps/web-shell/tests/native-storage.test.mjs
+          apps/editor/tests/world-data-plan.test.mjs
+          apps/editor/tests/stage-world.test.mjs
+          apps/editor/tests/full-world-probe.test.mjs
+          apps/editor/tests/native-storage.test.mjs
       - name: Verify WebGL selection and GPU pass integration
         run: >
           node --test

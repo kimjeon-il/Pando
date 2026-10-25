@@ -1,16 +1,15 @@
+import {pagesRepositoryFixture} from '../helpers/frontend-pages-fixture.mjs';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 import test from 'node:test';
 import { classifyP3, scheduleP3, previewSlug } from '../../scripts/p3-plan-remote.mjs';
 import { stagePreview } from '../../scripts/p3-stage-preview.mjs';
-import { createRuntimePerformanceMetrics } from '../../assets/js/modules/runtime-performance-metrics.js';
+import { createRuntimePerformanceMetrics } from "../../shared/frontend/js/modules/runtime-performance-metrics.js";
 
 const full={web:true};
 test('Web-only changes select preview and browser, without application compilation',()=>{
-  assert.deepEqual(['preview','browser'].map(k=>classifyP3(['assets/css/ui.css'],full)[k]),
+  assert.deepEqual(['preview','browser'].map(k=>classifyP3(['shared/frontend/css/ui.css'],full)[k]),
     [true,true]);
 });
 test('shared C++ changes select Web safety checks',()=>{
@@ -34,44 +33,24 @@ test('manual modes and branch slugs reject unexpected strings',()=>{
   for (const invalid of ['../../main','main','work/','work/UPPER','work/../escape','work/nested/branch','work/.hidden'])
     assert.throws(()=>previewSlug(invalid),/P3_UNSUPPORTED_PREVIEW_BRANCH/);
 });
-function fixture(t) {
-  const base=mkdtempSync(join(tmpdir(),'pando-p3-stage-'));
-  t.after(()=>rmSync(base,{recursive:true,force:true}));
-  const root=join(base,'repo'),output=join(base,'preview');
-  mkdirSync(root,{recursive:true});
-  const put=(name,bytes)=>{
-    const file=join(root,name);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,bytes);
-  };
-  put('index.html','<html><head><title>Test</title></head><body>Map</body></html>');
-  put('.nojekyll','');
-  put('assets/data/world/current.json','{}');
-  put('assets/js/workers/core-session-worker.js','/* fixture */');
-  put('assets/wasm/pandoeditor-core.js','// fixture');
-  put('assets/wasm/pandoeditor-core.wasm',Buffer.from([0,97,115,109,1,0,0,0]));
-  put('assets/wasm/pandoeditor-core.manifest.json','{}');
-  put('native/secret.txt','excluded');
-  execFileSync('git',['init','-q'],{cwd:root});
-  execFileSync('git',['add','.'],{cwd:root});
-  execFileSync('git',['-c','user.email=ci@example.invalid','-c','user.name=CI',
-    'commit','-qm','fixture'],{cwd:root});
-  return {root,output,put};
-}
-test('static preview copies tracked HTML/assets but no native code',t=>{
-  const x=fixture(t);
-  const m=stagePreview({...x,branch:'work/objects'});
+async function fixture(t){const f=await pagesRepositoryFixture(t);return {...f,output:f.stage};}
+
+test('static preview emits the committed viewer closure without native code',async t=>{
+  const x=await fixture(t);
+  const m=await stagePreview({...x,branch:'work/objects'});
   assert.equal(m.branch,'work/objects');assert.equal(m.mode,'downloadable-static-snapshot');
-  assert.equal(m.publicUrl,null);assert.equal(m.files,7);
-  assert.equal(readFileSync(join(x.output,'index.html'),'utf8').includes('Map'),true);
+  assert.equal(m.publicUrl,null);assert.equal(m.files,m.included.length);
+  assert.equal(readFileSync(join(x.output,'index.html'),'utf8').includes('Viewer'),true);
   assert.deepEqual(readFileSync(join(x.output,'assets/wasm/pandoeditor-core.wasm')),
     Buffer.from([0,97,115,109,1,0,0,0]));
   assert.throws(()=>readFileSync(join(x.output,'native/secret.txt')),/ENOENT/);
 });
-test('preview refuses an untracked or missing required WASM pair',t=>{
-  const x=fixture(t);rmSync(join(x.root,'assets/wasm/pandoeditor-core.wasm'));
-  assert.throws(()=>stagePreview({...x,branch:'work/objects'}),/ENOENT|P3_PREVIEW/);
+test('preview refuses an untracked or missing required WASM pair',async t=>{
+  const x=await fixture(t);rmSync(join(x.root,'shared/frontend/static/wasm/pandoeditor-core.wasm'));
+  await assert.rejects(stagePreview({...x,branch:'work/objects'}),/ENOENT|protected|source file/);
 });
-test('preview never writes over the repository checkout',t=>{
-  const x=fixture(t);
+test('preview never writes over the repository checkout',async t=>{
+  const x=await fixture(t);
   assert.throws(()=>stagePreview({root:x.root,output:join(x.root,'public'),
     branch:'work/objects'}),/P3_PREVIEW_OUTPUT_INSIDE_SOURCE/);
 });
@@ -100,7 +79,7 @@ test('P3 startup telemetry preserves late interactive, editable and ready milest
 
 
 test('app documentation changes do not rebuild the app',()=>{
-  const result=classifyP3(['apps/web-shell/README.md','shared/README.md'],full);
+  const result=classifyP3(['apps/editor/README.md','shared/README.md'],full);
   for(const key of ['preview','browser'])assert.equal(result[key],false,key);
 });
 

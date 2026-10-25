@@ -1,13 +1,13 @@
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
-import { createTaskPresentation } from '../../assets/js/modules/app-task-presentation.js';
-import { shouldShowTaskInputInstruction } from '../../assets/js/modules/app-task-stage-model.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createToolBindings } from '../../assets/js/modules/app-tool-bindings.js';
-import { MAP_INTERACTION_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { createTaskPresentation } from "../../apps/editor/frontend/js/modules/app-task-presentation.js";
+import { shouldShowTaskInputInstruction } from "../../apps/editor/frontend/js/modules/app-task-stage-model.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createToolBindings } from "../../apps/editor/frontend/js/modules/app-tool-bindings.js";
+import { MAP_INTERACTION_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports.js";
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 

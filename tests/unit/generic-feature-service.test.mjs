@@ -5,7 +5,7 @@ import {
   createGenericFeatureService,
   normalizeGenericFeatureCollection,
   normalizeGenericFeatureSemantics,
-} from '../../assets/js/modules/generic-feature-service.js';
+} from "../../apps/editor/frontend/js/modules/generic-feature-service.js";
 
 const genericFeature = (id, geometry = { type: 'Point', coordinates: [1, 2] }, properties = {}) => ({
   type: 'Feature', id, geometry, properties: { schemaVersion: 2, name: id, color: '#123456', ...properties },

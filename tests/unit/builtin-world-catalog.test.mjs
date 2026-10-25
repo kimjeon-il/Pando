@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {compileBuiltinWorldCatalog} from '../../tools/builtin-world-compiler.mjs';
-import {assembleBuiltinWorld,selectBuiltinCountries} from '../../assets/js/modules/builtin-world-loader.js';
+import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 
 let built;
 function fixture(){

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import '../../assets/js/vendor/polygon-clipping.min.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 const module = await import('../../tools/historical-world-territories.mjs').catch(error => {
   if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
   return {};

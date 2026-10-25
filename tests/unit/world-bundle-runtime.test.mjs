@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
-import { validateWorldBundle, worldAssetUrl } from '../../assets/js/modules/world-bundle-manifest.js';
+import { validateWorldBundle, worldAssetUrl } from "../../shared/frontend/js/modules/world-bundle-manifest.js";
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const types = Object.freeze({
@@ -86,8 +86,8 @@ test('country asset producers and runtime no longer derive data names from packa
   const meshProducer = source('tools/build-world-mesh.mjs');
   const boundaryProducer = source('tools/build-country-shared-boundaries.mjs');
   const metadata = source('scripts/generate-build-metadata.mjs');
-  const runtime = source('assets/js/workers/data-loader-worker.js');
-  const renderer = source('assets/js/modules/gpu-map-renderer.js');
+  const runtime = source('shared/frontend/js/workers/data-loader-worker.js');
+  const renderer = source('shared/frontend/js/modules/gpu-map-renderer.js');
   for (const text of [previewProducer, meshProducer]) {
     assert.doesNotMatch(text, /packageJson\.version|package\.json.*version/);
   }

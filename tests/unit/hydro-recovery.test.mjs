@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { createHash } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
-import { createHydroViewRequests } from '../../assets/js/modules/hydro-view-requests.js';
+import { createHydroViewRequests } from "../../shared/frontend/js/modules/hydro-view-requests.js";
 
 test('render frames cannot bypass backoff or exhaustion; stale timers and responses are ignored', () => {
   const timers = new Map();
@@ -59,7 +59,7 @@ test('switching tile keys invalidates old retry callbacks without clearing failu
 
 function harness({ badRange = false, badFull = false, quota = false, payload = gzipSync(Buffer.from('water')) } = {}) {
   const scope = { self: {}, Response, Uint8Array };
-  vm.runInNewContext(readFileSync(new URL('../../assets/js/workers/hydro-shard-store.js', import.meta.url), 'utf8'), scope);
+  vm.runInNewContext(readFileSync(new URL("../../shared/frontend/js/workers/hydro-shard-store.js", import.meta.url), 'utf8'), scope);
   const spec = { id: 0, bytes: payload.length, sha256: createHash('sha256').update(payload).digest('hex'), url: 'shard0' };
   const entries = new Map([['unrelated', new Response('keep')]]);
   const calls = [];

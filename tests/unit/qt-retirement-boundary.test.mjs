@@ -14,7 +14,7 @@ test('retired app tree and build variants are absent', () => {
     assert.ok(presets.configurePresets.some(p => p.name === name), name);
 });
 test('current WebView application, common algorithms and required fixtures remain', () => {
-  for (const path of ['apps/web-shell/src-tauri/src/main.rs', 'shared/core/src/geometrypredicates.cpp',
+  for (const path of ['apps/editor/src-tauri/src/main.rs', 'shared/core/src/geometrypredicates.cpp',
     'assets/data/hydro/v0.13.2/manifest.json', 'tests/fixtures/shared-core/reference-calibration.json',
     'tests/fixtures/shared-core/web-m97/cut-corpus.json', 'contracts/terrain/preview-dem-source.json'])
     assert.ok(exists(path), path);

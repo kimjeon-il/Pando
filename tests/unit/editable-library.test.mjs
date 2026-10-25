@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {createTerritorialLibraryService} from '../../assets/js/modules/territorial-library-service.js';
-import {createTerritorialLibraryEditor} from '../../assets/js/modules/territorial-library-editor.js';
+import {createTerritorialLibraryService} from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
+import {createTerritorialLibraryEditor} from "../../apps/editor/frontend/js/modules/territorial-library-editor.js";
 
 const base=new URL('../../assets/data/territorial-entities/generated/v2/',import.meta.url);
 const index=JSON.parse(readFileSync(new URL('index.json',base),'utf8'));

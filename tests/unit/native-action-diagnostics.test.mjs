@@ -5,7 +5,7 @@ import { mkdtempSync } from 'node:fs';
 import fs, { readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createRuntimePerformanceMetrics } from '../../assets/js/modules/runtime-performance-metrics.js';
+import { createRuntimePerformanceMetrics } from "../../shared/frontend/js/modules/runtime-performance-metrics.js";
 import { installLongAnimationFrameProbe } from '../browser/helpers/long-animation-frame-diagnostics.mjs';
 import { withNativeActionDiagnostics, nativeActionProbe } from '../browser/helpers/native-action-diagnostics.mjs';
 

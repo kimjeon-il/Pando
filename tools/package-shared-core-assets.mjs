@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import {frontendWasmRoot} from '../scripts/lib/frontend-layout.mjs';
 
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function sharedSourceManifest(root) {
@@ -40,7 +41,7 @@ export async function packageSharedCoreAssets(rootInput,buildInput,{check=false,
   const manifest={schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:identity.sourceSha256,
     compiler:{name:'emscripten',version:'4.0.20'},inputs:identity.inputs,
     assets:{js:{file:'pandoeditor-core.js',sha256:sha256(js)},wasm:{file:'pandoeditor-core.wasm',sha256:sha256(wasm)}}};
-  const destination=join(root,'assets/wasm');
+  const destination=join(root,frontendWasmRoot);
   if(check) {
     assert.equal(sha256(readFileSync(join(destination,manifest.assets.js.file))),manifest.assets.js.sha256,'WASM JavaScript artifact stale');
     assert.equal(sha256(readFileSync(join(destination,manifest.assets.wasm.file))),manifest.assets.wasm.sha256,'WASM binary artifact stale');

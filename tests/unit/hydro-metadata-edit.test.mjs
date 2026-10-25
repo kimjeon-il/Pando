@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createObjectMetadata } from '../../assets/js/modules/app-object-metadata.js';
-import { createGpuMapRenderer } from '../../assets/js/modules/gpu-map-renderer.js';
+import { createObjectMetadata } from "../../apps/editor/frontend/js/modules/app-object-metadata.js";
+import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 
 const seed = () => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {createTerritorialLibraryService} from '../../assets/js/modules/territorial-library-service.js';
-import {selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
+import {createTerritorialLibraryService} from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
+import {selectGeometryVersion} from "../../apps/editor/frontend/js/modules/territorial-library.js";
 
 const geometry = {type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[0,0]]]};
 const entity = (entityId, parentEntityId = '', validTo = null) => ({

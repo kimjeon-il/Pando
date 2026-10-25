@@ -1,10 +1,10 @@
 import {gotoEditor,setEditorMonth} from './helpers/editor-entry.mjs';
-import {shiftTimelineMonth} from '../../assets/js/modules/timeline-controls.js';
+import {shiftTimelineMonth} from "../../shared/frontend/js/modules/timeline-controls.js";
 import {test,expect} from '@playwright/test';
 import {writeFileSync} from 'node:fs';
 import {coreFileProjection,productionGeoPackage} from '../helpers/production-geopackage.mjs';
 import {startupDocument} from '../helpers/core-startup.mjs';
-import {createTerritorialFeature} from '../../assets/js/modules/territorial-units.js';
+import {createTerritorialFeature} from "../../shared/frontend/js/modules/territorial-units.js";
 
 test('viewing policies share selection settings, passes, base scene, controls and geometry refresh',async({browser},testInfo)=>{
  test.setTimeout(360000);

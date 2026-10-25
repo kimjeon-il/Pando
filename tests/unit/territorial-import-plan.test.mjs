@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import '../../assets/js/vendor/polygon-clipping.min.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import {
   assignImportedCountries,
   buildTerritorialImportTransactionPlan,
-} from '../../assets/js/modules/territorial-import-plan.js';
+} from "../../apps/editor/frontend/js/modules/territorial-import-plan.js";
 
 const clipper = globalThis.polygonClipping;
 

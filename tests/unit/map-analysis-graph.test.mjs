@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { sharedCalculationCore as core } from '../../assets/js/modules/temporal.js';
+import { sharedCalculationCore as core } from "../../shared/frontend/js/modules/temporal.js";
 const calculate = (op, input) => JSON.parse(core.referenceImageCalculate(op, JSON.stringify(input)));
 const points = [[0, 0], [1, 0], [0, 1], [1, 1], [0.3, 0.5], [0.7, 0.5]].map(([u, v], i) =>
   ({ id: String(i), image: [u, v], coordinate: [10 + 20 * u, 50 - 10 * v] }));

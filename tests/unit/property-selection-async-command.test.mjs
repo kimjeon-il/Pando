@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createPropertySelection } from '../../assets/js/modules/app-property-selection.js';
+import { createPropertySelection } from "../../apps/editor/frontend/js/modules/app-property-selection.js";
 
 function held() {
   let resolve, reject;

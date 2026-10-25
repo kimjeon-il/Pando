@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
-import {createProjectSession} from '../../assets/js/modules/project-session.js';
+import {createProjectSession} from "../../shared/frontend/js/modules/project-session.js";
 const id='33000000-0000-4000-8000-000000000037',sourceId='river:original';
 test('hydro copy, delete and Undo/Redo derive source suppression without saving temporary background settings',async t=>{
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url)));

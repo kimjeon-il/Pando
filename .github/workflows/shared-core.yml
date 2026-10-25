@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'shared/**'
-      - 'assets/wasm/**'
+      - 'shared/frontend/static/wasm/**'
       - 'assets/js/modules/**'
       - 'assets/js/vendor/**'
       - 'assets/js/workers/core-session-worker.js'
@@ -49,7 +49,7 @@ on:
     branches: [main]
     paths:
       - 'shared/**'
-      - 'assets/wasm/**'
+      - 'shared/frontend/static/wasm/**'
       - 'assets/js/modules/**'
       - 'assets/js/vendor/**'
       - 'assets/js/workers/core-session-worker.js'
@@ -281,7 +281,7 @@ jobs:
           import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
           const source = sourceIdentity(process.cwd());
           if (!source.clean) throw Error('Official shared-core evidence requires a clean checkout');
-          const manifest = JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json'));
+          const manifest = JSON.parse(readFileSync('shared/frontend/static/wasm/pandoeditor-core.manifest.json'));
           const shared = sharedSourceManifest(process.cwd());
           if (shared.sourceSha256 !== manifest.sourceSha256) throw Error('Compiled shared source mismatch');
           const hashFile = path => ({ path, sha256: sha256(readFileSync(resolve(path))) });

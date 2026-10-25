@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createMapContentPresentation} from '../../assets/js/modules/map-content-presentation.js';
-import {normalizeLayerPresentation,layerStyle,overlayVisualOrder} from '../../assets/js/modules/layer-presentation.js';
+import {createMapContentPresentation} from "../../shared/frontend/js/modules/map-content-presentation.js";
+import {normalizeLayerPresentation,layerStyle,overlayVisualOrder} from "../../shared/frontend/js/modules/layer-presentation.js";
 const feature={type:'Feature',id:'literal:area',properties:{name:'Area'},geometry:{type:'Polygon',coordinates:[[[0,0],[0,2],[2,2],[2,0],[0,0]]]}};
 test('the canonical content owner produces generic fill and boundary packets without modifying model geometry',()=>{
  const state={genericFeatures:[feature],layerVisibility:{genericFeatures:true},layerPresentation:normalizeLayerPresentation()};

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
-const app = readFileSync(new URL('../../assets/js/modules/app-runtime-dependencies.js',import.meta.url),'utf8')+readApplicationOwners('project-session', 'domain-assembly', 'river-candidates', 'territory-components', 'territory-selection-workflow');
+const app = readFileSync(new URL("../../apps/editor/frontend/js/modules/app-runtime-dependencies.js",import.meta.url),'utf8')+readApplicationOwners('project-session', 'domain-assembly', 'river-candidates', 'territory-components', 'territory-selection-workflow');
 const renderer = fs.readFileSync(new URL('assets/js/modules/gpu-map-renderer.js', root), 'utf8');
 const worker = fs.readFileSync(new URL('assets/js/workers/river-territory-partition-worker.js', root), 'utf8');
 

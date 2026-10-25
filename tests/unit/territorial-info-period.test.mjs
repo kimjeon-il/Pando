@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import * as propertyEditor from '../../assets/js/modules/territorial-property-controller.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import * as propertyEditor from "../../apps/editor/frontend/js/modules/territorial-property-controller.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 for (const [input, validFrom, validTo] of [
   ['1871-01-18 ~ 1918-11-09', '1871-01-18', '1918-11-09'],

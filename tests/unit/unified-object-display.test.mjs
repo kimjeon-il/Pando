@@ -1,13 +1,13 @@
 import {createTestViewingSession} from '../helpers/viewing-project.mjs';
-import {createObjectPicking} from '../../assets/js/modules/object-picking.js';
+import {createObjectPicking} from "../../shared/frontend/js/modules/object-picking.js";
 import {readFileSync} from 'node:fs';
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {MAP_DISPLAY_TARGETS} from '../../assets/js/modules/map-display-catalog.js';
-import {normalizeLayerPresentation,layerStyle} from '../../assets/js/modules/layer-presentation.js';
-import {createObjectQuery} from '../../assets/js/modules/object-query.js';
-import {normalizeObjectRef} from '../../assets/js/modules/object-selection-controller.js';
+import {MAP_DISPLAY_TARGETS} from "../../shared/frontend/js/modules/map-display-catalog.js";
+import {normalizeLayerPresentation,layerStyle} from "../../shared/frontend/js/modules/layer-presentation.js";
+import {createObjectQuery} from "../../shared/frontend/js/modules/object-query.js";
+import {normalizeObjectRef} from "../../shared/frontend/js/modules/object-selection-controller.js";
 
 test('all territorial objects share one display group irrespective of kind or parent',()=>{
  const rows={A:{id:'A',properties:{entityKind:'general',parentId:''}},B:{id:'B',properties:{entityKind:'general',parentId:'A'}},R:{id:'R',properties:{entityKind:'regional',parentId:'A'}}};

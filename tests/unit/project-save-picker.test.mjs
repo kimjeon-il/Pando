@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createFileController } from '../../assets/js/modules/file-controller.js';
+import { createFileController } from "../../shared/frontend/js/modules/file-controller.js";
 const { Blob } = globalThis;
 
 test('destination picker opens synchronously before encoding and writes the chosen file', async () => {

@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { collectViewerAssets } from '../scripts/lib/product-assets.mjs';
+import {buildFrontendSnapshot} from '../scripts/lib/frontend-build.mjs';
 import { prepareLibraryData } from './library-data.mjs';
-import { BASELINE_DATA_CHANNEL } from '../assets/js/modules/publication-data-channel.js';
 
 const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = [
@@ -56,70 +55,35 @@ function isEquivalentCrLfCheckout(working, committed) {
 
 export async function stageWebPages(rootInput, stageInput, manifestInput, { skipChecks = false } = {}) {
   const root = resolve(rootInput), stage = resolve(stageInput), manifest = resolve(manifestInput);
-  const library = prepareLibraryData({ root });
-  const generator = resolve(root, 'scripts/generate-build-metadata.mjs');
-  const metadataCheck = skipChecks ? 'skipped' : existsSync(generator) ? 'passed' : 'unavailable';
-  if (metadataCheck === 'passed') execFileSync(process.execPath, [generator, '--check'], { cwd: root, stdio: 'pipe' });
   if (within(root, stage) || stage === root) throw Error('Pages stage must be outside the source repository');
-  if (within(root, manifest) || manifest === root || within(stage, manifest)) {
-    throw Error('Pages evidence must be outside the source repository and stage');
-  }
+  if (within(root, manifest) || manifest === root || within(stage, manifest)) throw Error('Pages evidence must be outside source and stage');
   if (existsSync(stage) || existsSync(manifest)) throw Error('Pages stage or evidence already exists');
-  const all = gitFiles(root);
-  if (library) for (const [path, entry] of Object.entries(library.files)) {
-    if (!path.startsWith('assets/data/')) continue;
-    all.push({ path, mode: '100644', bytes: entry.bytes, blob: null, sha256: entry.sha256, data: true });
+  const all=gitFiles(root),byPath=new Map(all.map(file=>[file.path,file]));
+  const readSourceBytes=path=>{
+    const file=byPath.get(path);if(!file)throw Error('Uncommitted frontend source: '+path);
+    const target=resolve(root,path);if(!within(root,target)||!lstatSync(target).isFile())throw Error('Invalid source file: '+path);
+    const working=readFileSync(target);if(blobHash(working)===file.blob)return working;
+    const committed=committedBlob(root,file);
+    if(!working.equals(committed)&&!isEquivalentCrLfCheckout(working,committed))throw Error('Committed frontend source changed or mismatch: '+path);
+    return committed;
+  };
+  // The generator and native-free staging recipe must also belong to HEAD.
+  for(const file of all)if(/^(?:scripts\/|tools\/stage-monorepo-pages\.mjs$|tools\/library-(?:data|archive)\.mjs$|config\/library-data\.json$)/.test(file.path))readSourceBytes(file.path);
+  const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
+  const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes});
+  if([...snapshot.viewerPaths].some(path=>path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))for(const name of ['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json']){const path='assets/wasm/'+name;if(!snapshot.assets.has(path))throw Error('Missing protected Web URL: '+path);snapshot.viewerPaths.add(path);}
+  const library=prepareLibraryData({root}),payload=new Map(),files=[];
+  for(const path of snapshot.viewerPaths){
+    const generated=snapshot.assets.get(path);let bytes,sourcePath=null;
+    if(generated){bytes=generated.bytes;sourcePath=generated.sourcePath;}
+    else{const spec=library.files[path];if(!path.startsWith('assets/data/')||!spec)throw Error('Missing protected Web URL: '+path);bytes=readFileSync(resolve(library.materialized,path));if(bytes.length!==spec.bytes||hash('sha256',bytes)!==spec.sha256)throw Error('Pinned library transfer mismatch: '+path);}
+    payload.set(path,bytes);files.push({path,sourcePath,bytes:bytes.length,sha256:hash('sha256',bytes),generated:!sourcePath});
   }
-  const sourceBytes = file => file.data ? readFileSync(resolve(library.materialized, file.path)) : committedBlob(root, file);
-  const excludedNativeFiles = all.filter(file => file.path.startsWith('native/')).length;
-  const excludedSharedFiles = all.filter(file => file.path.startsWith('shared/')).length;
-  const excludedAppFiles = all.filter(file => file.path.startsWith('apps/')).length;
-  const byPath = new Map(all.map(file => [file.path, file]));
-  const viewerPaths = await collectViewerAssets({ root, availablePaths: all.map(file => file.path),
-    readSource: path => sourceBytes(byPath.get(path)).toString('utf8') });
-  const web = all.filter(file => viewerPaths.has(file.path));
-  const paths = new Set(web.map(file => file.path));
-  const required=[...REQUIRED];
-  if([...paths].some(path => path === 'assets/js/workers/core-viewer-session-worker.js'
-    || path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))required.push(
-    'assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm','assets/wasm/pandoeditor-core.manifest.json');
-  for (const path of required) if (!paths.has(path)) throw Error(`Missing protected Web URL: ${path}`);
-  const channelPath = 'assets/data/library-channel/current.json';
-  const channelBytes = Buffer.from(JSON.stringify(BASELINE_DATA_CHANNEL) + '\n');
-  const total = web.reduce((sum, file) => sum + file.bytes, 0) + channelBytes.length;
-  if (total > LIMIT_BYTES) throw Error(`Pages site exceeds ${LIMIT_BYTES} bytes: ${total}`);
-  const files = web.map(file => {
-    if (file.mode !== '100644' && file.mode !== '100755') throw Error(`Unsupported source mode: ${file.path}`);
-    const source = resolve(root, file.path);
-    if (!within(root, source) || !existsSync(source) || !lstatSync(source).isFile()) {
-      throw Error(`Invalid source file: ${file.path}`);
-    }
-    const working = readFileSync(source);
-    const exact = working.length === file.bytes && (file.data ? hash('sha256', working) === file.sha256 : blobHash(working) === file.blob);
-    const committed = exact ? working : sourceBytes(file);
-    if (file.data && !exact) throw Error(`Pinned library transfer mismatch: ${file.path}`);
-    if (!exact && !isEquivalentCrLfCheckout(working, committed)) {
-      throw Error(`Committed Web file changed or mismatch: ${file.path}`);
-    }
-    return { path: file.path, blob: file.blob, bytes: file.bytes,
-      sha256: hash('sha256', committed), convertedCrLf: !exact };
-  });
-  files.push({ path: channelPath, blob: null, bytes: channelBytes.length,
-    sha256: hash('sha256', channelBytes), generated: true });
-  mkdirSync(stage, { recursive: true });
-  for (const file of files) {
-    const output = resolve(stage, file.path);
-    if (!within(stage, output)) throw Error(`Invalid Pages output: ${file.path}`);
-    mkdirSync(dirname(output), { recursive: true });
-    if (file.generated) writeFileSync(output, channelBytes);
-    else if (file.convertedCrLf) writeFileSync(output, sourceBytes(file));
-    else { copyFileSync(resolve(root, file.path), output); chmodSync(output, 0o600); }
-    if (hash('sha256', readFileSync(output)) !== file.sha256) throw Error(`Staged copy mismatch: ${file.path}`);
-  }
-  const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-  const evidence = { schema: 'pando-web-pages-staging', productMode: 'viewer', sourceCommit, metadataCheck, fileCount: files.length,
-    dataRepository: library?.repository, dataCommit: library?.revision,
-    bytes: total, limitBytes: LIMIT_BYTES, excludedNativeFiles, excludedSharedFiles, excludedAppFiles, files };
+  for(const path of REQUIRED)if(!payload.has(path))throw Error('Missing protected Web URL: '+path);
+  const total=files.reduce((n,f)=>n+f.bytes,0);if(total>LIMIT_BYTES)throw Error('Pages site exceeds size limit: '+total);
+  mkdirSync(stage,{recursive:true});
+  for(const file of files){const output=resolve(stage,file.path);if(!within(stage,output))throw Error('Invalid Pages output');mkdirSync(dirname(output),{recursive:true});writeFileSync(output,payload.get(file.path));if(hash('sha256',readFileSync(output))!==file.sha256)throw Error('Staged copy mismatch');}
+  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');
   return evidence;

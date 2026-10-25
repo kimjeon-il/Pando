@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { makeSvgSceneProxy, rendererOwnsSceneGeometry } from '../../assets/js/modules/render-channel-ownership.js';
-import * as ownership from '../../assets/js/modules/render-channel-ownership.js';
-import { createGpuScene } from '../../assets/js/modules/gpu-scene.js';
-import { createInteractionPackets } from '../../assets/js/modules/app-interaction-packets.js';
-import { createRenderSceneBuilder, buildPolygonGeometryPacket } from '../../assets/js/modules/render-scene.js';
+import { makeSvgSceneProxy, rendererOwnsSceneGeometry } from "../../shared/frontend/js/modules/render-channel-ownership.js";
+import * as ownership from "../../shared/frontend/js/modules/render-channel-ownership.js";
+import { createGpuScene } from "../../shared/frontend/js/modules/gpu-scene.js";
+import { createInteractionPackets } from "../../apps/editor/frontend/js/modules/app-interaction-packets.js";
+import { createRenderSceneBuilder, buildPolygonGeometryPacket } from "../../shared/frontend/js/modules/render-scene.js";
 
 test('scene ownership stays reserved through recovery without claiming startup ownership', () => {
   for (const renderer of ['webgl2', 'webgl1', 'webgl-recovering', 'canvas-worker', 'canvas2d']) {
@@ -125,7 +125,7 @@ test('rejoining unchanged interaction packets preserves ownership until geometry
 });
 
 test('persistent territorial paint and derived boundaries have only the scene renderer as visual owner', async () => {
-  const source = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const source = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
   const territorialStart = source.indexOf('const renderTerritorialUnits');
   const territorialEnd = source.indexOf('const renderGenericFeatures', territorialStart);
   const territorial = source.slice(territorialStart, territorialEnd);

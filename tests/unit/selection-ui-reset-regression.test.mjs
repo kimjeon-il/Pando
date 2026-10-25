@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { createNodeSelection } from '../helpers/core-selection.mjs';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
+import { createSelectionUiController } from "../../shared/frontend/js/modules/selection-ui-controller.js";
 
 const country = id => normalizeObjectRef({ domain: 'territorial', type: 'entity', id });
 
@@ -134,8 +134,8 @@ test('dispose cancels a queued selection frame permanently', async t => {
 });
 
 test('application reset and lifecycle disposal wire the selection UI controller at the canonical boundaries', async () => {
-  const domainSource = await readFile(new URL('../../assets/js/modules/app-domain-assembly.js', import.meta.url), 'utf8');
-  const lifecycleSource = await readFile(new URL('../../assets/js/modules/app-lifecycle-assembly.js', import.meta.url), 'utf8');
+  const domainSource = await readFile(new URL("../../apps/editor/frontend/js/modules/app-domain-assembly.js", import.meta.url), 'utf8');
+  const lifecycleSource = await readFile(new URL("../../apps/editor/frontend/js/modules/app-lifecycle-assembly.js", import.meta.url), 'utf8');
 
   assert.match(domainSource, /await selectionDomain\.resetProject\(event\.generation\);\s*selectionUiController\.resetProject\(\);/);
 

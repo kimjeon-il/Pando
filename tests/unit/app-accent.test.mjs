@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { accentTokens } from '../../assets/js/modules/app-accent.js';
-import { resolveAccentPreset } from '../../assets/js/modules/accent-presets.js';
-import { normalizeUserPreferences, saveUserPreferences } from '../../assets/js/modules/user-preferences.js';
-import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
+import { accentTokens } from "../../shared/frontend/js/modules/app-accent.js";
+import { resolveAccentPreset } from "../../shared/frontend/js/modules/accent-presets.js";
+import { normalizeUserPreferences, saveUserPreferences } from "../../shared/frontend/js/modules/user-preferences.js";
+import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
 
 test('accent preset normalizes independently from preserved label and selection settings', () => {
   for (const value of [undefined, null, 'invalid', '#123', '#123456ff']) assert.equal(normalizeUserPreferences({ version: 2, appearance: { accentColor: value } }).appearance.accentPreset, 'blue');

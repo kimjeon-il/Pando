@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGpuHydroPreparation } from '../../assets/js/modules/gpu-hydro-preparation.js';
+import { createGpuHydroPreparation } from "../../shared/frontend/js/modules/gpu-hydro-preparation.js";
 
 function fixture(t) {
   globalThis.Worker = class {};

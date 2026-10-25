@@ -4,7 +4,7 @@ import test from 'node:test';
 
 // Exercise the renderer's private scene entrypoint without constructing a GL device.
 // The real function body is evaluated with only its GPU collaborators substituted.
-const source = readFileSync(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+const source = readFileSync(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
 const start = source.indexOf('    function ensureCountryIdScene() {');
 const end = source.indexOf('    function pick(screenPoint)', start);
 assert.ok(start >= 0 && end > start);

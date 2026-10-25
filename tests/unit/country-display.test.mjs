@@ -1,9 +1,9 @@
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
-import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { normalizeCountryFeature } from "../../shared/frontend/js/modules/country-feature.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { territorialSelectionStatus } from '../../assets/js/modules/country-display.js';
+import { territorialSelectionStatus } from "../../apps/editor/frontend/js/modules/country-display.js";
 
 test('geographic names are displayed exactly as stored in the entity', async () => {
   for (const [id, name] of [['ALD', '올란드'], ['FRO', '페로'], ['PCN', '핏케언'], ['MHL', '마셜'], ['CYM', '케이맨'], ['COK', '쿡'], ['SLB', '솔로몬'], ['FLK', '포클랜드'], ['MNP', '북마리아나'], ['CSI', '산호해']]) {

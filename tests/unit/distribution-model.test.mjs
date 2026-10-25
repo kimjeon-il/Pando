@@ -4,7 +4,7 @@ import {
   DISTRIBUTION_MODES, DISTRIBUTION_SCHEMA_VERSION, createDistributionEntry, createDistributionLayer,
   distributionValueAlpha, distributionValueRange, normalizeDistributionEntries, normalizeDistributionLayers,
   validateDistributionModel,
-} from '../../assets/js/modules/distribution-model.js';
+} from "../../shared/frontend/js/modules/distribution-model.js";
 
 const square = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] };
 

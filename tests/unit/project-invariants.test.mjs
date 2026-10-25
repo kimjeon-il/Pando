@@ -1,11 +1,11 @@
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
   assertProjectReferenceIntegrity,
   validateProjectReferenceIntegrity,
-} from '../../assets/js/modules/project-invariants.js';
+} from "../../shared/frontend/js/modules/project-invariants.js";
 
 const polygon = () => ({ type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] });
 const country = id => createTerritorialFeature({id,entityKind:'general',name:id,geometry:polygon()});

@@ -1,20 +1,20 @@
 import '../helpers/spherical-core.mjs';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
-import { resolveMapStrokeStyle } from '../../assets/js/modules/map-interaction-style.js';
-import { createEnvironment } from '../../assets/js/modules/app-environment.js';
-import { layerStyle, normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { resolveMapStrokeStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
+import { createEnvironment } from "../../apps/editor/frontend/js/modules/app-environment.js";
+import { layerStyle, normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildCountrySharedBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
-import { prepareCountrySharedBoundaryPacket, visibleCountrySharedSegments, shouldShowSharedCountryBorders, createCountrySharedBoundaryState } from '../../assets/js/modules/country-shared-boundary-packet.js';
-import { countryGeometrySignature, changedCountryGeometryIds } from '../../assets/js/modules/country-shared-boundary-cache.js';
-import '../../assets/js/workers/canvas-scene-composition-core.js';
-import { connectBoundarySegments } from '../../assets/js/modules/boundary-lines.js';
+import { buildCountrySharedBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { prepareCountrySharedBoundaryPacket, visibleCountrySharedSegments, shouldShowSharedCountryBorders, createCountrySharedBoundaryState } from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
+import { countryGeometrySignature, changedCountryGeometryIds } from "../../shared/frontend/js/modules/country-shared-boundary-cache.js";
+import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
+import { connectBoundarySegments } from "../../shared/frontend/js/modules/boundary-lines.js";
 
 const displayLength = segments => segments.reduce((sum, segment) => sum
   + Math.hypot(segment.end[0] - segment.start[0], segment.end[1] - segment.start[1]), 0);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { snapLineEndpointsToBoundary } from '../../assets/js/modules/territorial-geometry.js';
+import { snapLineEndpointsToBoundary } from "../../apps/editor/frontend/js/modules/territorial-geometry.js";
 
 
 

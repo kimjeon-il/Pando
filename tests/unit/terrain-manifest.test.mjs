@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { terrainAssetUrl, terrainRasterManifestUrl, validateTerrainManifest } from '../../assets/js/modules/terrain-manifest.js';
-import * as terrainSources from '../../assets/js/modules/terrain-manifest.js';
+import { terrainAssetUrl, terrainRasterManifestUrl, validateTerrainManifest } from "../../shared/frontend/js/modules/terrain-manifest.js";
+import * as terrainSources from "../../shared/frontend/js/modules/terrain-manifest.js";
 
 const raster = {
   version: '0.12.6', crs: 'EPSG:4326', extent: [-180, -90, 180, 90], gutter: 1,

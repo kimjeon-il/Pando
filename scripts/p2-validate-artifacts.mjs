@@ -5,8 +5,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
-import { decodeCountryMesh } from '../assets/js/modules/country-mesh-codec.js';
-import { decodePolygonMesh } from '../assets/js/modules/polygon-mesh-codec.js';
+import { decodeCountryMesh } from "../shared/frontend/js/modules/country-mesh-codec.js";
+import { decodePolygonMesh } from "../shared/frontend/js/modules/polygon-mesh-codec.js";
 import { safePath } from './lib/p2-artifact-graph.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));

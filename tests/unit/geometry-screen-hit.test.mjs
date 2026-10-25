@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { geometryHitsScreenPoint, projectedLineDistance, projectedPointDistance } from '../../assets/js/modules/geometry-screen-hit.js';
-import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
+import { geometryHitsScreenPoint, projectedLineDistance, projectedPointDistance } from "../../shared/frontend/js/modules/geometry-screen-hit.js";
+import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
 
 const project = ([x, y]) => [x * 10, y * 10];
 const options = overrides => ({ project, contains: () => false, coordinateBounds: () => [0, 0, 10, 10], zoom: 1, boundsCache: new WeakMap(), ...overrides });

@@ -1,10 +1,10 @@
-import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createEditingDomain } from "../../apps/editor/frontend/js/modules/editing-domain.js";
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { validateWebFlagDataUrl } from '../../assets/js/modules/country-flags.js';
+import { validateWebFlagDataUrl } from "../../shared/frontend/js/modules/country-flags.js";
 
-const modulePath=resolve(process.env.PANDOEDITOR_WASM_MODULE || fileURLToPath(new URL('../../assets/wasm/pandoeditor-core.js',import.meta.url)));
+const modulePath=resolve(process.env.PANDOEDITOR_WASM_MODULE || fileURLToPath(new URL("../../shared/frontend/static/wasm/pandoeditor-core.js",import.meta.url)));
 const { default: createCore }=await import(pathToFileURL(modulePath));
 const core=await createCore({ wasmBinary: await readFile(modulePath.replace(/\.js$/,'.wasm')) });
 if (core.coreAbiVersion!==1 || core.coreCompilerVersion!=='4.0.20' || !/^[a-f0-9]{64}$/.test(core.coreSourceSha256))

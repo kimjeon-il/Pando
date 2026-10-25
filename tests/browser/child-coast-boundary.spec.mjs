@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { coreFileProjection, productionGeoPackage } from '../helpers/production-geopackage.mjs';
 import { startupDocument } from '../helpers/core-startup.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 test.use({ viewport: { width: 1440, height: 900 }, trace: 'off' });
 
@@ -61,7 +61,7 @@ export function createRenderingDomain(options) {
   }});
 }` });
     });
-    await page.goto(mode === 'viewer' ? `/?renderer=${renderer}&debug=1` : `/apps/web-shell/editor.html?renderer=${renderer}&debug=1`);
+    await page.goto(mode === 'viewer' ? `/?renderer=${renderer}&debug=1` : `/__editor/index.html?renderer=${renderer}&debug=1`);
     await expect(page.locator(mode === 'viewer' ? '#viewerStatus' : '#app'))
       .toHaveAttribute(mode === 'viewer' ? 'data-ready' : 'data-readiness', mode === 'viewer' ? 'true' : /editable|enhanced/, { timeout: 120_000 });
     await page.evaluate(() => {

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createTerritorialFeature,normalizeTerritorialEntities} from '../../assets/js/modules/territorial-units.js';
-import {normalizeCountryFeature} from '../../assets/js/modules/country-feature.js';
+import {createTerritorialFeature,normalizeTerritorialEntities} from "../../shared/frontend/js/modules/territorial-units.js";
+import {normalizeCountryFeature} from "../../shared/frontend/js/modules/country-feature.js";
 import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 
 const polygon=(x=0,size=2)=>({type:'Polygon',coordinates:[[[x,0],[x,size],[x+size,size],[x+size,0],[x,0]]]});

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Worker } from 'node:worker_threads';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
 const feature = (id, geometry, properties = {}) => createTerritorialFeature({ id, geometry, entityKind: 'general', ...properties });
@@ -22,7 +22,7 @@ const execute = (requestId, operation, payload, revisions = { sourceRevision: 1 
 // Run the unchanged Worker script and real calculation modules. Only module delivery
 // and timer delivery are gated, so state-changing messages can interleave deterministically.
 function rawWorker(t, heldModule = '') {
-  const script = new URL('../../assets/js/workers/map-edit-worker.js', import.meta.url).href;
+  const script = new URL("../../apps/editor/frontend/js/workers/map-edit-worker.js", import.meta.url).href;
   const coreAdapter = new URL('../helpers/node-core-wasm-loader.mjs', import.meta.url).href;
   const worker = new Worker(`
     const { parentPort } = require('node:worker_threads');

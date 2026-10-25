@@ -1,13 +1,13 @@
-import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
+import { normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
 import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
+import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialScopeResolver } from "../../shared/frontend/js/modules/territorial-scope.js";
 
 const square = (x, size) => ({ type: 'Polygon', coordinates: [[[x, 0], [x, size], [x + size, size], [x + size, 0], [x, 0]]] });
 test('territorial hits use the displayed geometry and withhold pending surfaces', async () => {

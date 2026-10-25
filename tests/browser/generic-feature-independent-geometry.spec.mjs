@@ -1,7 +1,7 @@
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
-import { GENERIC_FEATURE_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
+import { GENERIC_FEATURE_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 
 test('restored generic geometry ignores source ownership metadata', async ({ page }) => {
   test.setTimeout(60_000);

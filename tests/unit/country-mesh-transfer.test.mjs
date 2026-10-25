@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { packCountryMeshFeatures, unpackCountryMeshFeatures } from '../../assets/js/modules/country-mesh-transfer.js';
+import { packCountryMeshFeatures, unpackCountryMeshFeatures } from "../../shared/frontend/js/modules/country-mesh-transfer.js";
 
 test('presentation transfer preserves doubles, holes, polygon order and IDs without detaching source geometry', async () => {
   const ring = [[0.1234567890123, -5], [2, 1], [4, 2], [0.1234567890123, -5]];

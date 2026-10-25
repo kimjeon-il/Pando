@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import '../../assets/js/workers/canvas-scene-composition-core.js';
+import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
 
 const draw = globalThis.PandoLabCanvasSceneComposition.drawStrokes;
 const context = () => ({ save() {}, restore() {}, setLineDash() {}, beginPath() {}, stroke() {} });

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import * as stage from '../../assets/js/modules/app-task-stage-model.js';
+import * as stage from "../../apps/editor/frontend/js/modules/app-task-stage-model.js";
 
 const state = overrides => ({
   tool: 'annex-territory', territorialEntities: [], geometryPreview: { session: null },

@@ -2,9 +2,9 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
-import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
+import { assertCurrentProjectSchema } from "../../shared/frontend/js/modules/project-state.js";
 
 async function openMap(page) {
   page.setDefaultTimeout(12_000);

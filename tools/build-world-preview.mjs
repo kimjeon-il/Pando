@@ -6,12 +6,12 @@ import vm from 'node:vm';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
-import { inspectCanonicalCountryPacket } from '../assets/js/modules/canonical-country-packet.js';
+import { validateGeometry } from "../shared/frontend/js/modules/geometry-validation.js";
+import { inspectCanonicalCountryPacket } from "../shared/frontend/js/modules/canonical-country-packet.js";
 import { encodeCanonicalCountryPacket } from './canonical-country-packet-encoder.mjs';
 import { buildTopologyPreview } from './preview-topology.mjs';
-import { classifyBuiltinCountries } from '../assets/js/modules/builtin-subunits.js';
-import { geometryFingerprint } from '../assets/js/modules/project-preview-policy.js';
+import { classifyBuiltinCountries } from "../shared/frontend/js/modules/builtin-subunits.js";
+import { geometryFingerprint } from "../shared/frontend/js/modules/project-preview-policy.js";
 import { verifyGzipAssetBytes } from '../scripts/lib/gzip-asset-verification.mjs';
 import './load-spherical-core.mjs';
 

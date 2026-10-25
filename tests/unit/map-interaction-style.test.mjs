@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveMapStrokeStyle, interactionStrokeScale, resolveMapInteractionStyle, scaleInteractionStroke } from '../../assets/js/modules/map-interaction-style.js';
+import { resolveMapStrokeStyle, interactionStrokeScale, resolveMapInteractionStyle, scaleInteractionStroke } from "../../shared/frontend/js/modules/map-interaction-style.js";
 
 const darkTokens = { accent: '#cda95d', textStrong: '#f2f4f6' };
 const lightTokens = { accent: '#315e9d', textStrong: '#11161c' };

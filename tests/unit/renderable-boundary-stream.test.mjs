@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import {
   buildRenderableBoundarySegments, forEachRenderableBoundarySegment,
   createRenderableBoundarySegmentView,
-} from '../../assets/js/modules/geographic-boundary.js';
-import { prepareBoundaryFeature } from '../../assets/js/modules/boundary-topology.js';
+} from "../../shared/frontend/js/modules/geographic-boundary.js";
+import { prepareBoundaryFeature } from "../../shared/frontend/js/modules/boundary-topology.js";
 
 const cases = [
   ['closed polygon', { type: 'Polygon', coordinates: [[[0,0],[2,0],[2,2],[0,2],[0,0]]] }],

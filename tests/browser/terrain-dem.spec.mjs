@@ -2,7 +2,7 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { TERRAIN_DEM_VERSION } from '../../assets/js/modules/terrain-manifest.js';
+import { TERRAIN_DEM_VERSION } from "../../shared/frontend/js/modules/terrain-manifest.js";
 
 const output = process.env.PANDOLAB_DEM_OUTPUT_DIR;
 const available = !!output && existsSync(path.join(output, 'manifest.json'));

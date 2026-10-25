@@ -2,17 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Worker } from 'node:worker_threads';
 import { readFileSync } from 'node:fs';
-import { createMapEditWorkerClient } from '../../assets/js/modules/map-edit-worker-client.js';
-import '../../assets/js/vendor/polygon-clipping.min.js';
-import { area, multiCoordinates, hasCanonicalPolygonWinding } from '../../assets/js/modules/map-edit-geometry.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
+import { createMapEditWorkerClient } from "../../apps/editor/frontend/js/modules/map-edit-worker-client.js";
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import { area, multiCoordinates, hasCanonicalPolygonWinding } from "../../shared/frontend/js/modules/map-edit-geometry.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { normalizeCountryFeature } from "../../shared/frontend/js/modules/country-feature.js";
 import { loadVerifiedCore } from '../helpers/node-core-wasm-loader.mjs';
 
 globalThis.PandoLabSphericalCore = await loadVerifiedCore();
 
 function harness(t, rows, { failFirstClipMethod = '' } = {}) {
-  const script = new URL('../../assets/js/workers/map-edit-worker.js', import.meta.url).href;
+  const script = new URL("../../apps/editor/frontend/js/workers/map-edit-worker.js", import.meta.url).href;
   const coreAdapter = new URL('../helpers/node-core-wasm-loader.mjs', import.meta.url).href;
   const createWorker = () => {
     const worker = new Worker(`

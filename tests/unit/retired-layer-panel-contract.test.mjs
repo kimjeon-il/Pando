@@ -1,3 +1,4 @@
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
@@ -5,7 +6,7 @@ import { test } from 'node:test';
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
 
 test('retired layer-panel runtime and stylesheet are absent', () => {
-  const runtime = read('assets/js/modules/ui-runtime.js');
+  const runtime = read('apps/editor/frontend/js/modules/ui-runtime.js');
   const cssSources = [
     'assets/css/app.css',
     'assets/css/layout/surfaces.css',
@@ -16,7 +17,7 @@ test('retired layer-panel runtime and stylesheet are absent', () => {
     'assets/css/components/feedback.css',
   ].map(read).join('\n');
 
-  assert.equal(existsSync(new URL('../../assets/css/features/layer-panel.css', import.meta.url)), false);
+  assert.equal(existsSync(repositoryFrontendUrl('assets/css/features/layer-panel.css')), false);
   for (const retired of ['bindVisualStepper', 'bindGisExportFormat']) assert.doesNotMatch(runtime, new RegExp(retired));
   for (const retired of ['.surface-map', '.left-panel', '.layer-panel-footer', '.layer-action-bar', '.layer-child', '.layer-folder']) {
     assert.doesNotMatch(cssSources, new RegExp(retired.replace('.', '\\.')));
@@ -24,8 +25,8 @@ test('retired layer-panel runtime and stylesheet are absent', () => {
 });
 
 test('current create, display and editor surfaces retain mobile sheet handles', () => {
-  const html = read('apps/web-shell/editor.html');
-  const controller = read('assets/js/modules/surface-controller.js');
+  const html = read('apps/editor/editor.html');
+  const controller = read('shared/frontend/js/modules/surface-controller.js');
 
   for (const [surface, panel, trigger] of [
     ['create', 'createMenu', 'mobileCreateBtn'],
@@ -43,8 +44,8 @@ test('current create, display and editor surfaces retain mobile sheet handles', 
 });
 
 test('current GIS controls do not depend on retired visual option cards', () => {
-  const html = read('apps/web-shell/editor.html');
-  const modalCss = read('assets/css/components/modals.css');
+  const html = read('apps/editor/editor.html');
+  const modalCss = read('shared/frontend/css/components/modals.css');
 
   assert.match(html, /id="gisStepIndicator"/);
   assert.match(html, /<select id="gisExportFormat"/);

@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { loadNodeCore } from '../../tools/load-node-core.mjs';
-import { validateWebFlagDataUrl } from '../../assets/js/modules/country-flags.js';
-import { createCoreDocumentClient } from '../../assets/js/modules/core-document-client.js';
-import { createCoreWorkerRuntime } from '../../assets/js/modules/core-worker-runtime.js';
+import { validateWebFlagDataUrl } from "../../shared/frontend/js/modules/country-flags.js";
+import { createCoreDocumentClient } from "../../shared/frontend/js/modules/core-document-client.js";
+import { createCoreWorkerRuntime } from "../../shared/frontend/js/modules/core-worker-runtime.js";
 
 const context = { throwIfCancelled() {} };
 // Core acknowledgements include temporary viewing fields outside authored storage.

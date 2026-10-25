@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createCoreDocumentReadModel } from '../../assets/js/modules/core-document-read-model.js';
+import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
 
 const seed = () => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
 const emptyDelta = () => ({ objects: [], orders: orders(seed()), geometries: [], removedGeometryRefs: [], timelineRecords: null, presentation: null, provenance: null,header: null });

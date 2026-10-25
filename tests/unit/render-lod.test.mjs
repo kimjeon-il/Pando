@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resolveRenderLod, simplifyRenderGeometry } from '../../assets/js/modules/render-lod.js';
+import { resolveRenderLod, simplifyRenderGeometry } from "../../shared/frontend/js/modules/render-lod.js";
 
 const wavyLine = {
   type: 'LineString',

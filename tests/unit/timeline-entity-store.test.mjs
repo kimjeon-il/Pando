@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { snapshotTimelineStorage } from '../../assets/js/modules/timeline-storage.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { snapshotTimelineStorage } from "../../shared/frontend/js/modules/timeline-storage.js";
 import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 
 const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,2],[2,2],[2,0],[0,0]]] };

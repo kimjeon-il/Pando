@@ -3,12 +3,12 @@ const verifiedNodeCoreUrl = new URL('../../tools/load-spherical-core.mjs', impor
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Worker } from 'node:worker_threads';
-import { createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket } from '../../assets/js/modules/country-shared-boundary-packet.js';
-import { boundarySourceSegments, buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments, hasOpposingBoundaryInteriors } from '../../assets/js/modules/boundary-topology.js';
-import { countryGeometrySignature } from '../../assets/js/modules/country-shared-boundary-cache.js';
-import { geometryRevisionKey } from '../../assets/js/modules/geometry-versions.js';
-import { MAX_BOUNDARY_EDGE_DEGREES } from '../../assets/js/modules/geographic-boundary.js';
-import { sharedCalculationCore } from '../../assets/js/modules/temporal.js';
+import { createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket } from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
+import { boundarySourceSegments, buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments, hasOpposingBoundaryInteriors } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { countryGeometrySignature } from "../../shared/frontend/js/modules/country-shared-boundary-cache.js";
+import { geometryRevisionKey } from "../../shared/frontend/js/modules/geometry-versions.js";
+import { MAX_BOUNDARY_EDGE_DEGREES } from "../../shared/frontend/js/modules/geographic-boundary.js";
+import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 
 const rectangle = (id, west, south, east, north, root = id) => {
   const geometry = { type: 'Polygon', coordinates: [[[west, south], [east, south], [east, north], [west, north], [west, south]]] };
@@ -296,7 +296,7 @@ test('precomputed cache resolves source refs once and later patches reuse untouc
 });
 
 function countryWorker(t, cache, quality = 'preview') {
-  const moduleUrl = new URL('../../assets/js/workers/country-shared-boundary-worker.js', import.meta.url).href;
+  const moduleUrl = new URL("../../shared/frontend/js/workers/country-shared-boundary-worker.js", import.meta.url).href;
   const wrapper = `import { parentPort, workerData } from 'node:worker_threads';
     import { gzipSync } from 'node:zlib';
     globalThis.self = { location: { href: ${JSON.stringify(moduleUrl)} }, postMessage: (...args) => parentPort.postMessage(...args) };
@@ -355,7 +355,7 @@ test('the real Worker coalesces rapid replace patches and deletions while preser
   const old = [rectangle('A', 0, 0, 1, 1), rectangle('B', 1, 0, 2, 1), rectangle('OLD_ONLY', 100, 0, 101, 1)];
   const cache = { version: 1, quality: 'preview', signatures: Object.fromEntries(old.map(row => [row.id, countryGeometrySignature(row)])),
     segments: serializeCountrySharedBoundarySegments(buildCountrySharedBoundarySegments(old)) };
-  const moduleUrl = new URL('../../assets/js/workers/country-shared-boundary-worker.js', import.meta.url).href;
+  const moduleUrl = new URL("../../shared/frontend/js/workers/country-shared-boundary-worker.js", import.meta.url).href;
   const wrapper = `import { parentPort, workerData } from 'node:worker_threads';
     import { gzipSync } from 'node:zlib';
     let release;

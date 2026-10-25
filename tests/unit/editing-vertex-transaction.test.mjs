@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
-import { touchGeometry } from '../../assets/js/modules/geometry-versions.js';
+import { touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
 
 test('object vertex gesture keeps canonical geometry detached until one commit', async () => {
   const source = {

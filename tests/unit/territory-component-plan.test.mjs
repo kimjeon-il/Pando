@@ -1,14 +1,15 @@
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import '../helpers/spherical-core.mjs';
-import '../../assets/js/vendor/polygon-clipping.min.js';
-import '../../assets/js/modules/polygon-geometry.js';
-import { createTerritoryComponentPlan } from '../../assets/js/modules/territory-component-plan.js';
-import { createTerritoryComponents } from '../../assets/js/modules/app-territory-components.js';
-import { composeRiverBoundaryTerritoryComponents } from '../../assets/js/modules/river-territory-partition.js';
-import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import "../../shared/frontend/js/modules/polygon-geometry.js";
+import { createTerritoryComponentPlan } from "../../apps/editor/frontend/js/modules/territory-component-plan.js";
+import { createTerritoryComponents } from "../../apps/editor/frontend/js/modules/app-territory-components.js";
+import { composeRiverBoundaryTerritoryComponents } from "../../apps/editor/frontend/js/modules/river-territory-partition.js";
+import { createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
 
 const normalize = globalThis.PandoLabPolygonGeometry.normalizePolygonGeometry;
 const clipper = globalThis.polygonClipping;
@@ -19,7 +20,7 @@ const plan = createTerritoryComponentPlan({ clipper, normalize });
 
 for (const filename of ['countries-preview-v0.33.0.geojson.gz', 'countries-ne-5.1.1.geojson']) {
   test(`Russia preparation preserves every original polygon without clipping: ${filename}`, async () => {
-    const bytes = readFileSync(new URL(`../../assets/data/${filename}`, import.meta.url));
+    const bytes = readFileSync(repositoryFrontendUrl(`assets/data/${filename}`));
     const source = JSON.parse(filename.endsWith('.gz') ? gunzipSync(bytes) : bytes).features.find(f => f.id === 'RUS');
     const forbidden = () => assert.fail('unedited source must not run polygon operations');
     const fast = createTerritoryComponentPlan({ clipper: { union: forbidden, difference: forbidden, intersection: forbidden }, normalize: forbidden });

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import {writeLibraryOutput} from './library-data.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage} from '../assets/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage} from "../apps/editor/frontend/js/modules/territorial-library.js";
 
 export const territorialDataRoot=fileURLToPath(new URL('../assets/data/territorial-entities/',import.meta.url));
 export const territorialSourceRoot=process.env.PANDOLAB_LIBRARY_SOURCE_ROOT

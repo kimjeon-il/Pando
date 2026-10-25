@@ -1,13 +1,13 @@
 import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import '../../assets/js/vendor/polygon-clipping.min.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { hasCanonicalPolygonWinding, area } from '../../assets/js/modules/map-edit-geometry.js';
-import { touchGeometry } from '../../assets/js/modules/geometry-versions.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialScopeResolver } from "../../shared/frontend/js/modules/territorial-scope.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { hasCanonicalPolygonWinding, area } from "../../shared/frontend/js/modules/map-edit-geometry.js";
+import { touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
 import '../../tools/load-spherical-core.mjs';
 const square = (x0, x1) => ({ type: 'Polygon', coordinates: [[[x0,0],[x0,2],[x1,2],[x1,0],[x0,0]]] });
 

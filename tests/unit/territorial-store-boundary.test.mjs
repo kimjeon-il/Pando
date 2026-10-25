@@ -1,10 +1,11 @@
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { createObjectPresentation } from '../../assets/js/modules/object-presentation.js';
+import { createObjectPresentation } from "../../shared/frontend/js/modules/object-presentation.js";
 
-const read = name => readFile(new URL(`../../assets/js/modules/${name}`, import.meta.url), 'utf8');
+const read = name => readFile(repositoryFrontendUrl(`assets/js/modules/${name}`), 'utf8');
 
 test('presentation does not expose retired transaction or validation APIs', () => {
   const presentation = createObjectPresentation();

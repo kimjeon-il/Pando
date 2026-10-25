@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createMapSettings } from '../../assets/js/modules/app-map-settings.js';
-import { resourceCapabilities } from '../../assets/js/modules/resource-capabilities.js';
-import { createInitialDocument } from '../../assets/js/modules/initial-document.js';
-import { createDistributionLayer, createDistributionEntry } from '../../assets/js/modules/distribution-model.js';
+import { createMapSettings } from "../../shared/frontend/js/modules/app-map-settings.js";
+import { resourceCapabilities } from "../../shared/frontend/js/modules/resource-capabilities.js";
+import { createInitialDocument } from "../../shared/frontend/js/modules/initial-document.js";
+import { createDistributionLayer, createDistributionEntry } from "../../shared/frontend/js/modules/distribution-model.js";
 
 test('map settings require the existing resource capabilities', () => {
   assert.throws(() => createMapSettings(), /capabilities/i);

@@ -1,8 +1,8 @@
-import '../assets/js/vendor/polygon-clipping.min.js';
+import "../shared/frontend/js/vendor/polygon-clipping.min.js";
 import './load-spherical-core.mjs';
-import '../assets/js/modules/polygon-geometry.js';
-import '../assets/js/modules/territorial-edit-plan.js';
-import { normalizeTemporalInterval, compareTemporal } from '../assets/js/modules/temporal.js';
+import "../shared/frontend/js/modules/polygon-geometry.js";
+import "../shared/frontend/js/modules/territorial-edit-plan.js";
+import { normalizeTemporalInterval, compareTemporal } from "../shared/frontend/js/modules/temporal.js";
 
 export const historicalWorldClipper = globalThis.polygonClipping;
 // Geometry versions are immutable; one compilation owns and releases this

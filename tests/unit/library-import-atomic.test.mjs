@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
-import {createTerritorialFeature,TERRITORIAL_COVERAGE_MODES} from '../../assets/js/modules/territorial-units.js';
-import {createLibraryAssembly} from '../../assets/js/modules/app-library-assembly.js';
-import {createTerritorialLibraryService} from '../../assets/js/modules/territorial-library-service.js';
-import {TERRITORIAL_LIBRARY_SCHEMA_VERSION,normalizeTerritorialLibraryEntity} from '../../assets/js/modules/territorial-library.js';
-import {createTerritorialEntityLoader} from '../../assets/js/modules/territorial-entity-loader.js';
-import * as libraryOwnership from '../../assets/js/modules/library-ownership.js';
+import {createTerritorialFeature,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
+import {createLibraryAssembly} from "../../apps/editor/frontend/js/modules/app-library-assembly.js";
+import {createTerritorialLibraryService} from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
+import {TERRITORIAL_LIBRARY_SCHEMA_VERSION,normalizeTerritorialLibraryEntity} from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import {createTerritorialEntityLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
+import * as libraryOwnership from "../../apps/editor/frontend/js/modules/library-ownership.js";
 
 const noop=()=>{};
 const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};

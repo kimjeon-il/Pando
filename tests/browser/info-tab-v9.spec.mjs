@@ -2,7 +2,7 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
-import { currentCountryFlagUrl } from '../../assets/js/modules/country-flags.js';
+import { currentCountryFlagUrl } from "../../shared/frontend/js/modules/country-flags.js";
 import { selectUiOption } from './helpers/ui-select.mjs';
 
 test('editor derives live hierarchy in Relations, focuses only via GPS and preserves metadata validation and history', async ({ page }, testInfo) => {

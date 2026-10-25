@@ -5,7 +5,7 @@ import test from 'node:test';
 import {
   createMapLayoutMetricsSnapshot,
   equirectangularCenterForAnchor,
-} from '../../assets/js/modules/map-layout-metrics.js';
+} from "../../shared/frontend/js/modules/map-layout-metrics.js";
 
 const appSource = readApplicationOwners('map-projection', 'camera-navigation', 'map-host', 'workspace-surfaces', 'global-input-bindings');
 

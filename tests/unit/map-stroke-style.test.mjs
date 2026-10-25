@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as policy from '../../assets/js/modules/map-interaction-style.js';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
+import * as policy from "../../shared/frontend/js/modules/map-interaction-style.js";
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 
 const frame = dpr => createMapVisualFrame({ frameId: 1, viewState: { projection: 'flat', size: { width: 1200, height: 700 },
   scale: 1200 / (2 * Math.PI) * 0.75, translate: [600, 350], dpr } });

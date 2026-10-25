@@ -2,19 +2,19 @@ import { readApplicationOwners, applicationFunctionSource } from '../../scripts/
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import '../../assets/js/vendor/polygon-clipping.min.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
-import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
-import { createCountryIndex } from '../../assets/js/modules/country-index.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
+import { createObjectCommands } from "../../apps/editor/frontend/js/modules/app-object-commands.js";
+import { createCountryIndex } from "../../shared/frontend/js/modules/country-index.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialScopeResolver } from "../../shared/frontend/js/modules/territorial-scope.js";
 
 const appSource = readApplicationOwners('camera-navigation', 'object-commands');
 const navigationBindingsSource = readApplicationOwners('navigation-bindings');
-const htmlSource = await readFile(new URL('../../apps/web-shell/editor.html', import.meta.url), 'utf8');
+const htmlSource = await readFile(new URL('../../apps/editor/editor.html', import.meta.url), 'utf8');
 
 function functionSource(name, nextName) {
   const start = appSource.indexOf(`function ${name}`);

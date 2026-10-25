@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Worker } from 'node:worker_threads';
-import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from '../../assets/js/modules/worker-rpc.js';
+import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from "../../shared/frontend/js/modules/worker-rpc.js";
 
 test('actual mesh Worker transfers every output buffer and detaches its originals', { timeout: 5000 }, async t => {
-  const script = new URL('../../assets/js/workers/gpu-mesh-worker.js', import.meta.url).href;
+  const script = new URL("../../shared/frontend/js/workers/gpu-mesh-worker.js", import.meta.url).href;
   const worker = new Worker(`
     const { parentPort } = require('node:worker_threads');
     const fs = require('node:fs'), vm = require('node:vm');

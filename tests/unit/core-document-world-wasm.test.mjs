@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreDocument } from '../helpers/core-session.mjs';
-import { createCoreDocumentReadModel } from '../../assets/js/modules/core-document-read-model.js';
+import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
 
 test('the whole document Worker resolves every frozen Web world field through its own Project and immutable read model', async () => {
   const input = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json',import.meta.url),'utf8'));

@@ -2,7 +2,7 @@ import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { selectUiOption } from './helpers/ui-select.mjs';
-import {selectBuiltinCountries} from '../../assets/js/modules/builtin-world-loader.js';
+import {selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 const catalog=JSON.parse(readFileSync(new URL('../../assets/data/builtin-world/generated/v1/index.json',import.meta.url)));
 test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
 async function month(page, value) {

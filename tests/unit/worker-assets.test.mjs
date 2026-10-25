@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
-import { workerAssetUrl } from '../../assets/js/modules/worker-asset-url.js';
+import { workerAssetUrl } from "../../shared/frontend/js/modules/worker-asset-url.js";
 
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'pando-worker-assets-'));

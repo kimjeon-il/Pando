@@ -1,7 +1,7 @@
 {
   "owners": [
     {
-      "file": "assets/js/gis-adapters.js",
+      "file": "apps/editor/frontend/js/gis-adapters.js",
       "functions": [
         "countryGeometryIndex"
       ],
@@ -12,7 +12,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/gis-adapters.js",
+      "file": "apps/editor/frontend/js/gis-adapters.js",
       "functions": [
         "territorialRows"
       ],
@@ -23,7 +23,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/gis-io.js",
+      "file": "apps/editor/frontend/js/gis-io.js",
       "functions": [
         "exportGeoPackage"
       ],
@@ -34,7 +34,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/app-library-assembly.js",
+      "file": "apps/editor/frontend/js/modules/app-library-assembly.js",
       "functions": [
         "instantiateTerritorialLibraryEntities"
       ],
@@ -45,7 +45,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/app-library-assembly.js",
+      "file": "apps/editor/frontend/js/modules/app-library-assembly.js",
       "functions": [
         "assertCurrent"
       ],
@@ -56,7 +56,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/app-progressive-startup.js",
+      "file": "apps/editor/frontend/js/modules/app-progressive-startup.js",
       "functions": [
         "completeGeometryInitialization"
       ],
@@ -67,7 +67,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/app-progressive-startup.js",
+      "file": "apps/editor/frontend/js/modules/app-progressive-startup.js",
       "functions": [
         "init"
       ],
@@ -78,7 +78,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/app-project-restore.js",
+      "file": "apps/editor/frontend/js/modules/app-project-restore.js",
       "functions": [
         "applyAtlasState"
       ],
@@ -89,7 +89,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/gis-import-transaction.js",
+      "file": "apps/editor/frontend/js/modules/gis-import-transaction.js",
       "functions": [
         "applyImportedReplacement"
       ],
@@ -100,7 +100,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/gis-import-transaction.js",
+      "file": "apps/editor/frontend/js/modules/gis-import-transaction.js",
       "functions": [
         "commitGisMerge"
       ],
@@ -111,7 +111,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/gpu-map-renderer.js",
+      "file": "shared/frontend/js/modules/gpu-map-renderer.js",
       "functions": [
         "markPreviewFramePresented"
       ],
@@ -122,7 +122,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/gpu-map-renderer.js",
+      "file": "shared/frontend/js/modules/gpu-map-renderer.js",
       "functions": [
         "activateBuiltinMeshBaseline"
       ],
@@ -133,7 +133,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/gpu-map-renderer.js",
+      "file": "shared/frontend/js/modules/gpu-map-renderer.js",
       "functions": [
         "compactCountryOverrides"
       ],
@@ -144,7 +144,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/gpu-map-renderer.js",
+      "file": "shared/frontend/js/modules/gpu-map-renderer.js",
       "functions": [
         "renderCanvasFallback"
       ],
@@ -155,7 +155,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/gpu-map-renderer.js",
+      "file": "shared/frontend/js/modules/gpu-map-renderer.js",
       "functions": [
         "canvasWorkerStyleMessage"
       ],
@@ -166,7 +166,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/gpu-map-renderer.js",
+      "file": "shared/frontend/js/modules/gpu-map-renderer.js",
       "functions": [
         "activateCanvasFallback"
       ],
@@ -177,7 +177,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/project-state.js",
+      "file": "shared/frontend/js/modules/project-state.js",
       "functions": [
         "assertCurrentProjectSchema"
       ],
@@ -188,7 +188,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/rendering-domain.js",
+      "file": "shared/frontend/js/modules/rendering-domain.js",
       "functions": [
         "buildDistributionRenderRows"
       ],
@@ -199,7 +199,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/rendering-domain.js",
+      "file": "shared/frontend/js/modules/rendering-domain.js",
       "functions": [
         "selectionGeometryRevision"
       ],
@@ -210,7 +210,7 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/gis-io.js",
+      "file": "apps/editor/frontend/js/gis-io.js",
       "functions": [
         "inspectFiles",
         "gisSpatialSnapshot"
@@ -222,7 +222,7 @@
       "reason": "Reads detached validated identities; derives spatial Features from canonical records."
     },
     {
-      "file": "assets/js/modules/builtin-session.js",
+      "file": "shared/frontend/js/modules/builtin-session.js",
       "functions": [
         "prepareProjectBaseline"
       ],
@@ -233,7 +233,7 @@
       "reason": "Reads detached source metadata for existing dataset and preview decisions; source document admission and hash checks are owned by C++."
     },
     {
-      "file": "assets/js/modules/project-preview-policy.js",
+      "file": "shared/frontend/js/modules/project-preview-policy.js",
       "functions": [
         "previewEntities"
       ],
@@ -244,7 +244,7 @@
       "reason": "Reads metadata identities and immutable bindings to derive preview Features without choosing a date."
     },
     {
-      "file": "assets/js/modules/project-serializer.js",
+      "file": "apps/editor/frontend/js/modules/project-serializer.js",
       "functions": [
         "content",
         "buildAutosave"
@@ -256,7 +256,7 @@
       "reason": "Encodes detached current-format data for offline tooling. Live save and autosave use C++ exportSnapshot, never a second writable model."
     },
     {
-      "file": "assets/js/modules/project-state.js",
+      "file": "shared/frontend/js/modules/project-state.js",
       "functions": [
         "prepareProjectForStorage",
         "prepareProjectForActivation"
@@ -269,7 +269,7 @@
       "reason": "Only writes detached candidates; validates storage separately from static UI activation."
     },
     {
-      "file": "assets/js/workers/gis-gpkg-worker.js",
+      "file": "apps/editor/frontend/js/workers/gis-gpkg-worker.js",
       "functions": [
         "writeGeoPackage"
       ],
@@ -280,7 +280,7 @@
       "reason": "Derives static spatial views from validated detached records; complex files retain canonical JSON only."
     },
     {
-      "file": "assets/js/modules/project-session.js",
+      "file": "shared/frontend/js/modules/project-session.js",
       "functions": [
         "installDocumentProjection"
       ],
@@ -291,7 +291,7 @@
       "reason": "Installs getter-only JavaScript properties with Object.defineProperties. These properties read accepted Core state; this function never writes document values."
     },
     {
-      "file": "assets/js/modules/core-document-read-model.js",
+      "file": "shared/frontend/js/modules/core-document-read-model.js",
       "functions": [
         "worldAgainst"
       ],
@@ -302,7 +302,7 @@
       "reason": "Reads immutable accepted identities to attach source-pinned C++ resolved rows and geometry buffers. Does not resolve timeline rules or mutate the document."
     },
     {
-      "file": "assets/js/modules/map-content-presentation.js",
+      "file": "shared/frontend/js/modules/map-content-presentation.js",
       "functions": [
         "buildDistributionRenderRows"
       ],
@@ -313,7 +313,7 @@
       "reason": "Derive display rows from the accepted territorial projection; no canonical document writes."
     },
     {
-      "file": "assets/js/modules/project-file-reader.js",
+      "file": "shared/frontend/js/modules/project-file-reader.js",
       "functions": [
         "readProjectFile"
       ],

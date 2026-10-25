@@ -1,8 +1,8 @@
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {currentCountryFlagUrl} from '../assets/js/modules/country-flags.js';
-import {BUILTIN_SUBUNITS} from '../assets/js/modules/builtin-subunits.js';
+import {currentCountryFlagUrl} from "../shared/frontend/js/modules/country-flags.js";
+import {BUILTIN_SUBUNITS} from "../shared/frontend/js/modules/builtin-subunits.js";
 const root=fileURLToPath(new URL('../',import.meta.url));
 const parents=new Map(BUILTIN_SUBUNITS.map(({sourceCountryId,parentId})=>[sourceCountryId,parentId]));
 const sha=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');

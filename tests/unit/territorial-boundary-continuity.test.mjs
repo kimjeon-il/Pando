@@ -1,13 +1,13 @@
 import '../helpers/spherical-core.mjs';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { normalizeLayerPresentation, layerStyle } from '../../assets/js/modules/layer-presentation.js';
-import { buildTerritorialInternalBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { normalizeLayerPresentation, layerStyle } from "../../shared/frontend/js/modules/layer-presentation.js";
+import { buildTerritorialInternalBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 
 const rectangle = (west, south, east, north) => ({ type: 'Polygon',

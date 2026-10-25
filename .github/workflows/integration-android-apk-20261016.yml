@@ -50,15 +50,15 @@ jobs:
       - name: Install JavaScript dependencies
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+          pnpm --dir apps/editor install --ignore-workspace --frozen-lockfile
       - name: Validate native bridge and map-data asset plan
         run: |
-          node --test apps/web-shell/tests/native-storage.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs
-          node apps/web-shell/stage.mjs --profile=map-data
+          node --test apps/editor/tests/native-storage.test.mjs apps/editor/tests/full-world-probe.test.mjs apps/editor/tests/world-data-plan.test.mjs
+          node apps/editor/stage.mjs --profile=map-data
           node --input-type=module -e "
             import fs from 'node:fs';
             import assert from 'node:assert/strict';
-            const s=JSON.parse(fs.readFileSync('apps/web-shell/dist/shell/stage-evidence.json','utf8'));
+            const s=JSON.parse(fs.readFileSync('apps/editor/dist/shell/stage-evidence.json','utf8'));
             assert.equal(s.profile,'map-data');
             assert.equal(s.worldData.countryCount,258);
             assert.equal(s.worldData.worldFileCount,597);
@@ -67,18 +67,18 @@ jobs:
             console.log('ANDROID_STAGE_PASS', JSON.stringify(s.worldData));
           "
       - name: Build arm64 Android debug APK from the common Web runtime
-        run: pnpm --dir apps/web-shell exec tauri android build --debug --apk --target aarch64
+        run: pnpm --dir apps/editor exec tauri android build --debug --apk --target aarch64
       - name: Validate APK output exists
         run: |
-          find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print
-          test -n "$(find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
+          find apps/editor/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print
+          test -n "$(find apps/editor/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
       - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: integrated-android-debug-${{ github.sha }}
           path: |
-            apps/web-shell/dist/shell/stage-evidence.json
-            apps/web-shell/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-            apps/web-shell/src-tauri/gen/android/app/build/outputs/logs/
+            apps/editor/dist/shell/stage-evidence.json
+            apps/editor/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            apps/editor/src-tauri/gen/android/app/build/outputs/logs/
           if-no-files-found: warn
           retention-days: 7

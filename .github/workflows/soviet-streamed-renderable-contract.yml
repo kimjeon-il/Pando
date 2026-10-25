@@ -31,7 +31,7 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Verify compiled WASM source match and stream parity
         run: |
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           pnpm exec eslint assets/js/modules/geographic-boundary.js assets/js/modules/boundary-topology.js assets/js/modules/country-shared-boundary-packet.js tests/unit/renderable-boundary-stream.test.mjs
           node --test tests/unit/renderable-boundary-stream.test.mjs
       - name: Verify stateful country contacts, outline clipping and edits

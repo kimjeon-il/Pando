@@ -4,7 +4,7 @@ import test from 'node:test';
 import {
   buildGpuStrokeInstances,
   resolveGpuStrokeRanges,
-} from '../../assets/js/modules/gpu-stroke-renderer.js';
+} from "../../shared/frontend/js/modules/gpu-stroke-renderer.js";
 
 test('instanced stroke geometry keeps finite non-degenerate segments only', () => {
   const result = buildGpuStrokeInstances(new Float32Array([

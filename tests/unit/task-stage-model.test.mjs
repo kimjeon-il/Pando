@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   taskTargetRefs,
   taskWorkflowPresentation,
-} from '../../assets/js/modules/app-task-stage-model.js';
+} from "../../apps/editor/frontend/js/modules/app-task-stage-model.js";
 
 const country = id => ({ id, properties: { entityKind: 'general', name: id } });
 const unit = (id, type = 'subunit', parentId = 'A') => ({
@@ -53,7 +53,7 @@ test('task workflow presentation derives territorial type without raw unit stora
 });
 
 test('editing context distinguishes inspection, impact, preview and temporary panning', async () => {
- const {editingContextPresentation}=await import('../../assets/js/modules/app-task-stage-model.js');
+ const {editingContextPresentation}=await import("../../apps/editor/frontend/js/modules/app-task-stage-model.js");
  const state={tool:'territorial-border',geometryPreview:{session:null}};
  const options={state,draft:{coords:[[0,0]],inputPhase:'refine'},month:'1914-07',targets:[{name:'A'},{name:'B'}]};
  const draft=editingContextPresentation(options);assert.equal(draft.stage,'초안');assert.equal(draft.period,'변경 기간 계산 전');assert.match(draft.view,/월 말/);

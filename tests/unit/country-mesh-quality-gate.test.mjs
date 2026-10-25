@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decideCountryPatchPresentation } from '../../assets/js/modules/country-mesh-quality-gate.js';
+import { decideCountryPatchPresentation } from "../../shared/frontend/js/modules/country-mesh-quality-gate.js";
 
 test('preview base queues country patches instead of mixing a canonical override into the frame', () => {
   assert.deepEqual(decideCountryPatchPresentation({ renderer: 'webgl2', canonicalMeshReady: false, ids: ['GRC'] }), {

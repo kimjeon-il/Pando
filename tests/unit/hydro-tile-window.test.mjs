@@ -5,8 +5,8 @@ import {
   createHydroTileWindow,
   hydroTileSpecsForWindow,
   hydroViewportSizeClass,
-} from '../../assets/js/modules/hydro-tile-window.js';
-import { hydroVisibilityThresholdForMapZoom } from '../../assets/js/modules/physical-resources.js';
+} from "../../shared/frontend/js/modules/hydro-tile-window.js";
+import { hydroVisibilityThresholdForMapZoom } from "../../shared/frontend/js/modules/physical-resources.js";
 
 const manifest = Object.freeze({
   stages: Object.freeze([
@@ -146,7 +146,7 @@ test('quantized globe windows conservatively retain every legacy visible tile', 
 });
 
 test('gpu hydro request cache no longer includes raw view revision', () => {
-  const source = fs.readFileSync(new URL('../../assets/js/modules/gpu-hydro-preparation.js', import.meta.url), 'utf8');
+  const source = fs.readFileSync(new URL("../../shared/frontend/js/modules/gpu-hydro-preparation.js", import.meta.url), 'utf8');
   const start = source.indexOf('function requestHydroView');
   const end = source.indexOf('function loadHydroLogicalFeature', start);
   const requestSource = source.slice(start, end);

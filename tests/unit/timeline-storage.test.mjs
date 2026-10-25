@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { snapshotTimelineStorage, restoreTimelineStorage } from '../../assets/js/modules/timeline-storage.js';
+import { snapshotTimelineStorage, restoreTimelineStorage } from "../../shared/frontend/js/modules/timeline-storage.js";
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 
 for (const row of timelineStorageCases()) test(`storage: ${row.name}`, () => {

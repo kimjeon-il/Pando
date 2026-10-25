@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
+import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
 
 test('render interaction allows view invalidation without preparing builtin places until settle', () => {
   let prepared = 0;

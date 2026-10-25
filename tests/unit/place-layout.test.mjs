@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { layoutLabels } from '../../assets/js/modules/label-layout.js';
-import { PLACE_LIMITS } from '../../assets/js/modules/place-contract.js';
-import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
+import { layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
+import { PLACE_LIMITS } from "../../shared/frontend/js/modules/place-contract.js";
+import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from "../../shared/frontend/js/modules/map-render-coordinator.js";
 test('High layout has an absolute cap including selected and pinned candidates', () => {
   const records=Array.from({length:10000},(_,i)=>({ key: String(i), point: [i*5,10], width:1,height:1, priority:i, pinned:true, selected:i===9999 }));
   const metrics={}; const placed=layoutLabels(records,{ metrics });

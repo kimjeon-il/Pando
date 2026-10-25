@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { prepareCountryStroke, countryStrokeTransferables } from '../../assets/js/modules/country-stroke-preparation.js';
-import { buildGpuStrokeInstances } from '../../assets/js/modules/gpu-stroke-geometry.js';
-import { createRingHitTester } from '../../assets/js/modules/ring-hit-test.js';
-import { decodeCountryMesh } from '../../assets/js/modules/country-mesh-codec.js';
+import { prepareCountryStroke, countryStrokeTransferables } from "../../shared/frontend/js/modules/country-stroke-preparation.js";
+import { buildGpuStrokeInstances } from "../../shared/frontend/js/modules/gpu-stroke-geometry.js";
+import { createRingHitTester } from "../../shared/frontend/js/modules/ring-hit-test.js";
+import { decodeCountryMesh } from "../../shared/frontend/js/modules/country-mesh-codec.js";
 
 test('Worker preparation preserves exact stroke instances and owner layout', () => {
   const startsEnds = new Float32Array([0, 0, 1, 0, 1, 0, 1, 1, 10, 0, 11, 0]);

@@ -1,12 +1,12 @@
-import {TERRITORIAL_SCHEMA_VERSION} from '../../assets/js/modules/territorial-units.js';
+import {TERRITORIAL_SCHEMA_VERSION} from "../../shared/frontend/js/modules/territorial-units.js";
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 import { createNodeCoreProject } from './core-project.mjs';
 import { loadWebOracle } from './web-oracle.mjs';
-import { DISTRIBUTION_MODES } from '../../assets/js/modules/distribution-model.js';
+import { DISTRIBUTION_MODES } from "../../shared/frontend/js/modules/distribution-model.js";
 import { afterEach } from 'node:test';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
 import {createTestViewingSession} from './viewing-project.mjs';
 
 // These original factories only construct detached scenario inputs. Current

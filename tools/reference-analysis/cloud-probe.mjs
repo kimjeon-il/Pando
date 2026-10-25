@@ -91,7 +91,7 @@ export async function runProbe({bundle,output,python='python',stage='components'
       const {createCalculatedReferenceWarp}=await plugin('analysis/core.mjs');const points=[{id:'a',image:[0,0],coordinate:[10,20]},{id:'b',image:[1,0],coordinate:[20,20]},{id:'c',image:[0,1],coordinate:[10,10]},{id:'d',image:[1,1],coordinate:[20,10]}];
       const warp=createCalculatedReferenceWarp('warp',{points,mode:'affine'});assert(warp.ok);const projected=warp.project([.5,.5]);assert(projected.every(Number.isFinite));result.checks.wasm={verdict:'passed',projected};
       const env={...process.env};await exec(process.execPath,[join(workspace,'tools/reference-analysis/verify-trained-onnx.mjs'),'--model',join(bundle,'model/boundary.onnx'),'--diagnostics',join(bundle,'diagnostics'),'--output',join(output,'onnx-parity.json')],{env,windowsHide:true,maxBuffer:2*1024*1024});result.checks.onnx=await json(join(output,'onnx-parity.json'));
-      const {createPlaceWorkerStore}=await import(pathToFileURL(join(workspace,'assets/js/modules/place-worker-store.js'))),placeRoot=join(workspace,'assets/data/places');
+      const {createPlaceWorkerStore}=await import(pathToFileURL(join(workspace,'shared/frontend/js/modules/place-worker-store.js'))),placeRoot=join(workspace,'assets/data/places');
       const store=createPlaceWorkerStore({manifest:await json(join(placeRoot,'manifest.json')),fetchBytes:spec=>readFile(join(placeRoot,spec.url))});
       const places=await store.search('London',{signal:null,throwIfCancelled(){},emitEvent(){}});assert.match(JSON.stringify(places),/London/i);result.checks.places={verdict:'passed',query:'London',result:places};
     } else if(stage==='map') {

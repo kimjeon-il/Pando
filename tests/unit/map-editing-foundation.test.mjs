@@ -2,14 +2,14 @@ import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBoundaryTopology, moveTopologyNodes, planCoastEdit, planSharedBoundaryEdit, topologyNodeKey } from '../../assets/js/modules/boundary-topology.js';
-import { geometryAreaKm2, lineDistanceKm, percentChange } from '../../assets/js/modules/geometry-metrics.js';
-import { beginGeometryPreview, clearGeometryPreview, createGeometryPreviewState, previewIsCurrent } from '../../assets/js/modules/geometry-preview.js';
-import { resolveSnap, snapThreshold } from '../../assets/js/modules/geometry-snap.js';
-import { runMapAudit, validateGeometry } from '../../assets/js/modules/geometry-validation.js';
-import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from '../../assets/js/modules/label-layout.js';
-import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { buildBoundaryTopology, moveTopologyNodes, planCoastEdit, planSharedBoundaryEdit, topologyNodeKey } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { geometryAreaKm2, lineDistanceKm, percentChange } from "../../apps/editor/frontend/js/modules/geometry-metrics.js";
+import { beginGeometryPreview, clearGeometryPreview, createGeometryPreviewState, previewIsCurrent } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
+import { resolveSnap, snapThreshold } from "../../apps/editor/frontend/js/modules/geometry-snap.js";
+import { runMapAudit, validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
+import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
+import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 const feature = (id, coordinates) => ({
   type: 'Feature',

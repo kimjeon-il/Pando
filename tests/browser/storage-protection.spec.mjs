@@ -2,7 +2,7 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
-import { GENERIC_FEATURE_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
+import { GENERIC_FEATURE_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 
 for (const cancelFirst of [true, false]) {
 test(`startup save conflict restores safely ${cancelFirst ? 'after cancel and persistent retry' : 'with an immediate choice'}`, async ({ page }) => {

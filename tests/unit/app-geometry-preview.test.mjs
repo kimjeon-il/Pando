@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createGeometryPreview} from '../../assets/js/modules/app-geometry-preview.js';
-import {createEditPreviewController} from '../../assets/js/modules/edit-preview-controller.js';
-import {beginGeometryPreview,clearGeometryPreview,previewIsCurrent} from '../../assets/js/modules/geometry-preview.js';
+import {createGeometryPreview} from "../../apps/editor/frontend/js/modules/app-geometry-preview.js";
+import {createEditPreviewController} from "../../apps/editor/frontend/js/modules/edit-preview-controller.js";
+import {beginGeometryPreview,clearGeometryPreview,previewIsCurrent} from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 
 async function fixture(t,{execute}={}) {

@@ -3,7 +3,7 @@ import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test as base } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { boundaryRevisionTimingFixture, isBoundaryRevisionComparison } from './helpers/boundary-revision-timings.mjs';
 
 const comparison = isBoundaryRevisionComparison();

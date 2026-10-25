@@ -1,4 +1,4 @@
-import { normalizeTimelineRecords } from "../../assets/js/modules/timeline-records.js";
+import { normalizeTimelineRecords } from "../../shared/frontend/js/modules/timeline-records.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -6,7 +6,7 @@ import {
   TERRITORIAL_COVERAGE_MODES,
   createTerritorialFeature,
   normalizeTerritorialEntities,
-} from '../../assets/js/modules/territorial-units.js';
+} from "../../shared/frontend/js/modules/territorial-units.js";
 import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCommand} from '../helpers/timeline-project.mjs';
 
 const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({

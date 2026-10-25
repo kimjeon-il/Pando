@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createPropertyEditorBindings } from '../../assets/js/modules/property-editor-bindings.js';
+import { createPropertyEditorBindings } from "../../apps/editor/frontend/js/modules/property-editor-bindings.js";
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 test('property field and entry event boundaries await failures with operation and technical error context', async () => {

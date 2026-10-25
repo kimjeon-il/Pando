@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { TERRITORIAL_SCHEMA_VERSION, normalizeTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { TERRITORIAL_SCHEMA_VERSION, normalizeTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
-await import('../../assets/js/gis-adapters.js');
+await import("../../apps/editor/frontend/js/gis-adapters.js");
 const adapters = globalThis.PandoLabGisAdapters;
 
 const polygon = (left = 0, right = 2) => ({

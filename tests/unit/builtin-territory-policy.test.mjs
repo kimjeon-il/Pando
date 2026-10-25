@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from '../../assets/js/modules/builtin-territory-policy.js';
-import { effectiveTerritorialFlagUrl } from '../../assets/js/modules/country-flags.js';
+import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
+import { effectiveTerritorialFlagUrl } from "../../shared/frontend/js/modules/country-flags.js";
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const context = vm.createContext({});
-vm.runInContext(readFileSync(new URL('../../assets/js/vendor/polygon-clipping.min.js', import.meta.url), 'utf8'), context);
+vm.runInContext(readFileSync(new URL("../../shared/frontend/js/vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
 const polygons = g => g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
 
 test('four island merges are disjoint, input-preserving, idempotent and preserve all other geometries', () => {

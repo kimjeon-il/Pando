@@ -30,4 +30,4 @@ export function historicalWorldCases() {
     policy: { schemaVersion: 1, unknownPeerOverlap: 'exclude-from-all', replacements: [] },
   };
 }
-import { BUILTIN_SUBUNITS } from '../../assets/js/modules/builtin-subunits.js';
+import { BUILTIN_SUBUNITS } from "../../shared/frontend/js/modules/builtin-subunits.js";

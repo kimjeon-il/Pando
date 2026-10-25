@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
+import { createGeometryVersionStore } from "../../shared/frontend/js/modules/geometry-version-store.js";
 
 const shape = () => ({type:'Polygon',coordinates:[[[0,0],[0,2],[2,2],[2,0],[0,0]]]});
 const ref = (version = 1, id = 'shape-a') => ({id,version});

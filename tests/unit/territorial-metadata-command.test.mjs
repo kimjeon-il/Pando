@@ -1,13 +1,13 @@
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import test from 'node:test';
-import '../../assets/js/vendor/polygon-clipping.min.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 globalThis.window = { polygonClipping: globalThis.polygonClipping };
 import assert from 'node:assert/strict';
-import { createObjectMetadata } from '../../assets/js/modules/app-object-metadata.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
+import { createObjectMetadata } from "../../apps/editor/frontend/js/modules/app-object-metadata.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
 
 async function fixture(configure = () => {}, wrapService = service => service) {
   let generation = 1;

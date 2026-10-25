@@ -2,6 +2,11 @@ import {existsSync,lstatSync,readdirSync,readFileSync} from 'node:fs';
 import {resolve,posix} from 'node:path';
 import {Linter} from 'eslint';
 
+export const frontendTemplates=Object.freeze({web:'apps/viewer/templates/index.html',editor:'apps/editor/templates/index.html'});
+export const frontendFragmentRoot='shared/frontend/ui/fragments';
+export const frontendWasmRoot='shared/frontend/static/wasm';
+const generatedModulePaths=new Set(['assets/js/build-meta.js','assets/js/workers/resource-update-policy-core.js']);
+
 // Source ownership is independent of the deployed URL namespace.
 export const frontendRoots=Object.freeze([
  {sourcePath:'shared/frontend/js',publicPath:'assets/js',product:'shared'},
@@ -69,12 +74,14 @@ export function emitFrontendModule(source,sourcePath,index){
   if(!reference.specifier.startsWith('.'))continue;
   const at=reference.specifier.search(/[?#]/),file=at<0?reference.specifier:reference.specifier.slice(0,at),suffix=at<0?'':reference.specifier.slice(at);
   if(reference.kind==='url'&&!/\.m?js$/.test(file))continue;
-  const targetPath=posix.normalize(posix.join(posix.dirname(sourcePath),file)),target=bySource.get(targetPath);
+  const targetPath=posix.normalize(posix.join(posix.dirname(sourcePath),file));
+  const target=bySource.get(targetPath)||(reference.kind==='url'?index.get(posix.normalize(posix.join(posix.dirname(sourceEntry.publicPath),file))):null);
   let publicPath;
   if(target){
    if(target.product!=='shared'&&target.product!==sourceEntry.product)throw Error('Frontend product ownership violation: '+sourcePath+' -> '+target.sourcePath);
    publicPath=target.publicPath;
   }
+  else if(generatedModulePaths.has(targetPath))publicPath=targetPath;
   else if(targetPath==='tools/load-node-core.mjs'&&sourceEntry.publicPath==='assets/js/modules/temporal.js')publicPath=targetPath;
   else throw Error('Private or unmapped frontend import: '+sourcePath+' -> '+reference.specifier);
   let specifier=posix.relative(posix.dirname(sourceEntry.publicPath),publicPath);if(!specifier.startsWith('.'))specifier='./'+specifier;

@@ -27,7 +27,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           pnpm exec eslint tests/browser/soviet-worker-move-source.spec.mjs
           node --test tests/unit/boundary-preparation.test.mjs tests/unit/country-contact-core.test.mjs
       - run: pnpm exec playwright install --with-deps chromium

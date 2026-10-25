@@ -9,7 +9,7 @@ import {
   isRetryableHttpStatus,
   retryDelay,
   withRetry,
-} from '../../assets/js/modules/reliability-core.js';
+} from "../../shared/frontend/js/modules/reliability-core.js";
 
 test('cancellation errors use the shared abort contract', () => {
   const cancellation = createCancellationError('사용자가 취소했습니다.');
@@ -105,7 +105,7 @@ test('retryDelay honors the maximum', () => {
 });
 
 test('fetchWithRetry retries transient HTTP failures but not 404', async () => {
-  const { fetchWithRetry } = await import('../../assets/js/modules/reliability-core.js');
+  const { fetchWithRetry } = await import("../../shared/frontend/js/modules/reliability-core.js");
   const originalFetch = globalThis.fetch;
   try {
     let transientCalls = 0;

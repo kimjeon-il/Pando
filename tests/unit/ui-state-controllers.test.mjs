@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 import { createNodeSelection } from '../helpers/core-selection.mjs';
-import { moveOverlayGroup, normalizeLayerPresentation, OVERLAY_GROUPS } from '../../assets/js/modules/layer-presentation.js';
-import { AUTOSAVE_STATES, createSaveStateController, FILE_SAVE_STATES } from '../../assets/js/modules/save-state-controller.js';
+import { moveOverlayGroup, normalizeLayerPresentation, OVERLAY_GROUPS } from "../../shared/frontend/js/modules/layer-presentation.js";
+import { AUTOSAVE_STATES, createSaveStateController, FILE_SAVE_STATES } from "../../apps/editor/frontend/js/modules/save-state-controller.js";
 
 const country = id => ({ domain: 'territorial', type: 'entity', id });
 

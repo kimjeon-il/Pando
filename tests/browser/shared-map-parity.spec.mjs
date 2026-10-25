@@ -1,11 +1,11 @@
 import {test,expect} from '@playwright/test';
 import {writeFileSync} from 'node:fs';
 import {coreFileProjection,productionGeoPackage} from '../helpers/production-geopackage.mjs';
-import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
+import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer-presentation.js";
 import {startupDocument} from '../helpers/core-startup.mjs';
-import {createTerritorialFeature} from '../../assets/js/modules/territorial-units.js';
-import {createDistributionLayer,createDistributionEntry} from '../../assets/js/modules/distribution-model.js';
-import {normalizeGenericFeatureSemantics} from '../../assets/js/modules/generic-feature-service.js';
+import {createTerritorialFeature} from "../../shared/frontend/js/modules/territorial-units.js";
+import {createDistributionLayer,createDistributionEntry} from "../../shared/frontend/js/modules/distribution-model.js";
+import {normalizeGenericFeatureSemantics} from "../../apps/editor/frontend/js/modules/generic-feature-service.js";
 
 const flag='data:image/svg+xml;base64,'+Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8"><path fill="red" d="M0 0h12v8H0z"/></svg>').toString('base64');
 async function observe(page){
@@ -52,7 +52,7 @@ test('web and editor use the same hover flags and child boundary scene',async({b
  for(const mode of ['viewer','editor']){
   const page=await browser.newPage({viewport:{width:1440,height:900}});page.setDefaultTimeout(20000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));await observe(page);
-  await page.goto(mode==='viewer'?'/':'/apps/web-shell/editor.html?debug=1');
+  await page.goto(mode==='viewer'?'/':'/__editor/index.html?debug=1');
   await expect(page.locator(mode==='viewer'?'#viewerStatus':'#app')).toHaveAttribute(mode==='viewer'?'data-ready':'data-readiness',mode==='viewer'?'true':'enhanced',{timeout:120000});
   await page.evaluate(()=>{window.__parityOpened=false;window.addEventListener('pandolab:project-changed',event=>{if(!event.detail||event.detail.reason==='project-load')window.__parityOpened=true;});});
   await page.locator('#mobileFileBtn').click();

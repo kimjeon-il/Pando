@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeTemporal } from '../../assets/js/modules/temporal.js';
-import { normalizeTimelineRecords } from '../../assets/js/modules/timeline-records.js';
+import { normalizeTemporal } from "../../shared/frontend/js/modules/temporal.js";
+import { normalizeTimelineRecords } from "../../shared/frontend/js/modules/timeline-records.js";
 import { timelineCases, timelineContext } from '../fixtures/timeline-records-cases.mjs';
 
 for (const row of timelineCases()) {

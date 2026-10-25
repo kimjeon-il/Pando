@@ -68,7 +68,7 @@ jobs:
           node --input-type=module <<'JS'
           import fs from 'node:fs';
           import {execFileSync} from 'node:child_process';
-          import {nativeBuildSelection,nativeTargets} from './apps/web-shell/native-contract.mjs';
+          import {nativeBuildSelection,nativeTargets} from './apps/editor/native-contract.mjs';
           const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
           let paths=[];
           if(!process.env.MANUAL_SCOPE.startsWith('native')){
@@ -144,11 +144,11 @@ jobs:
         shell: bash
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+          pnpm --dir apps/editor install --ignore-workspace --frozen-lockfile
       - uses: ./.github/actions/library-data
         if: inputs.native_mode == 'offline' || inputs.native_mode == 'verification'
       - name: Check native contracts
-        run: node --test apps/web-shell/tests/native-contract.test.mjs apps/web-shell/tests/native-build.test.mjs
+        run: node --test apps/editor/tests/native-contract.test.mjs apps/editor/tests/native-build.test.mjs
       - name: Build only the requested execution mode
         env:
           PANDO_ANDROID_DEBUG_STORE_PASSWORD: ${{ secrets.PANDO_ANDROID_DEBUG_STORE_PASSWORD }}
@@ -157,7 +157,7 @@ jobs:
           NATIVE_MODE: ${{ inputs.native_mode || 'development' }}
           NATIVE_TEST: ${{ inputs.scope == 'native-tests' && '--test-native' || '' }}
         shell: bash
-        run: node apps/web-shell/packaged-artifacts.mjs --ci-build --platform="$NATIVE_PLATFORM" --mode="$NATIVE_MODE" $NATIVE_TEST
+        run: node apps/editor/packaged-artifacts.mjs --ci-build --platform="$NATIVE_PLATFORM" --mode="$NATIVE_MODE" $NATIVE_TEST
       - uses: actions/upload-artifact@v4
         with:
           name: native-${{ matrix.platform }}-${{ inputs.native_mode || 'development' }}-${{ github.sha }}

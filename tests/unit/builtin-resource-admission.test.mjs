@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
-import { createPlaceRuntime } from '../../assets/js/modules/place-runtime.js';
-import { normalizePlace } from '../../assets/js/modules/place-contract.js';
-import { createPhysicalResources } from '../../assets/js/modules/physical-resources.js';
+import { createPlaceRuntime } from "../../shared/frontend/js/modules/place-runtime.js";
+import { normalizePlace } from "../../shared/frontend/js/modules/place-contract.js";
+import { createPhysicalResources } from "../../shared/frontend/js/modules/physical-resources.js";
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};

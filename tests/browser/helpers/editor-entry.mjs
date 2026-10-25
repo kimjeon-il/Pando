@@ -3,7 +3,7 @@ const timelinePages = new WeakSet();
 export function editorTestUrl(input = '/') {
   const url = new URL(input, 'https://editor-test.invalid/');
   if (!['http:', 'https:'].includes(url.protocol) || !['/', '/index.html'].includes(url.pathname)) return input;
-  url.pathname = '/apps/web-shell/editor.html';
+  url.pathname = '/__editor/index.html';
   return /^[a-z]+:\/\//i.test(input) ? url.href : `${url.pathname}${url.search}${url.hash}`;
 }
 

@@ -3,9 +3,9 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
-import {createEmptyTerritorialState} from '../../assets/js/modules/territorial-entity-store.js';
-import {createCoreDocumentReadModel} from '../../assets/js/modules/core-document-read-model.js';
-import {createTerritorialFeature} from '../../assets/js/modules/territorial-units.js';
+import {createEmptyTerritorialState} from "../frontend/js/modules/territorial-entity-store.js";
+import {createCoreDocumentReadModel} from "../frontend/js/modules/core-document-read-model.js";
+import {createTerritorialFeature} from "../frontend/js/modules/territorial-units.js";
 
 const modulePath=resolve(process.env.PANDOEDITOR_WASM_MODULE ?? 'build-native/wasm/wasm/pandoeditor-core.js');
 const {default:createCore}=await import(pathToFileURL(modulePath));

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { territorialSelectionStatus } from '../../assets/js/modules/country-display.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
+import { territorialSelectionStatus } from "../../apps/editor/frontend/js/modules/country-display.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 import { createNodeSelection } from '../helpers/core-selection.mjs';
 
 const namedRef = (type, id, displayName = '같은 이름') => ({ domain: 'territorial', type, id, displayName });

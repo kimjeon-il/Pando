@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
+import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 const scope={};
-vm.runInNewContext(readFileSync(new URL('../../assets/js/vendor/d3.min.js',import.meta.url),'utf8'),scope);
+vm.runInNewContext(readFileSync(new URL("../../shared/frontend/js/vendor/d3.min.js",import.meta.url),'utf8'),scope);
 
 /** Test view uses the same D3 camera and canonical projection frame as the app. */
 export function placeView(raw={}) {

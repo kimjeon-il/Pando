@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const workerSource = readFileSync(new URL('../../assets/js/workers/canvas-render-worker.js', import.meta.url), 'utf8');
-const terrainCoreSource = readFileSync(new URL('../../assets/js/workers/canvas-terrain-dem-core.js', import.meta.url), 'utf8');
+const workerSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-render-worker.js", import.meta.url), 'utf8');
+const terrainCoreSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
 const manifest = { gutter: 1, urlTemplate: 'terrain/v0.12.6/{level}/{column}-{row}.webp', levels: [
   { id: 0, width: 1350, height: 675, columns: 2, rows: 1, tileSize: 1024 },
   { id: 1, width: 2700, height: 1350, columns: 3, rows: 2, tileSize: 1024 },

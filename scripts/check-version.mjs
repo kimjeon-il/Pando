@@ -2,11 +2,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {buildFrontendSnapshot} from './lib/frontend-build.mjs';
 import { isEditorOnlyAsset } from './lib/product-assets.mjs';
 
 const scriptsDirectory = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const projectRoot = resolve(scriptsDirectory, '..');
-const read = relativePath => readFileSync(resolve(projectRoot, relativePath), 'utf8');
+const snapshot=await buildFrontendSnapshot({root:projectRoot});
+const read=path=>path==='apps/editor/editor.html'?snapshot.html.editor:snapshot.assets.has(path)?snapshot.assets.get(path).bytes.toString('utf8'):readFileSync(resolve(projectRoot,path),'utf8');
 const failures = [];
 const expect = (condition, message) => { if (!condition) failures.push(message); };
 
@@ -14,7 +16,7 @@ const packageJson = JSON.parse(read('package.json'));
 const appVersion = String(packageJson.version || '').trim();
 const productEntries = [
   { path: 'index.html', mode: 'viewer', entry: 'assets/js/viewer.js' },
-  { path: 'apps/web-shell/editor.html', mode: 'editor', entry: 'assets/js/bootstrap.js' },
+  { path: 'apps/editor/editor.html', mode: 'editor', entry: 'assets/js/bootstrap.js' },
 ];
 const buildMetaSource = read('assets/js/build-meta.js');
 const metaMatch = buildMetaSource.match(/PANDOLAB_BUILD_META\s*=\s*Object\.freeze\((\{[\s\S]*?\})\);/);
@@ -46,7 +48,7 @@ try {
     const source = new URL(specifier, 'https://build.invalid/');
     const destination = new URL(target, 'https://build.invalid/');
     expect(specifier.startsWith('./assets/js/') && specifier.endsWith('.js')
-      && existsSync(resolve(projectRoot, specifier)), `현재 모듈 파일이 없습니다: ${specifier}`);
+      && snapshot.assets.has(specifier.slice(2)), `현재 모듈 파일이 없습니다: ${specifier}`);
     expect(source.origin === destination.origin && source.pathname === destination.pathname
       && destination.searchParams.get('v') === buildMeta?.assetRevision,
       `브라우저 모듈 버전이 일치하지 않습니다: ${specifier}`);
@@ -61,7 +63,7 @@ const bundlePath = 'assets/data/world/current.json';
 expect(existsSync(resolve(projectRoot, bundlePath)), `${bundlePath} 데이터 매니페스트가 없습니다.`);
 if (existsSync(resolve(projectRoot, bundlePath))) {
   try {
-    const { validateWorldBundle } = await import('../assets/js/modules/world-bundle-manifest.js');
+    const { validateWorldBundle } = await import("../shared/frontend/js/modules/world-bundle-manifest.js");
     const bundle = validateWorldBundle(JSON.parse(read(bundlePath)));
     for (const [role, asset] of Object.entries(bundle.assets)) {
       expect(existsSync(resolve(projectRoot, 'assets/data', asset.url)),

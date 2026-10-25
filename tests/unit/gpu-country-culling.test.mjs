@@ -8,7 +8,7 @@ import {
   countryDrawRangesForFrame,
   createCountryTriangleRangeMap,
   mergeCountryDrawRanges,
-} from '../../assets/js/modules/gpu-map-renderer.js';
+} from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -122,7 +122,7 @@ test('selection range map is materialized from metadata without reading triangle
 });
 
 test('selection interaction hot path performs only precomputed map lookups', () => {
-  const source = fs.readFileSync(path.join(projectRoot, 'assets/js/modules/gpu-scene-preparation.js'), 'utf8');
+  const source = fs.readFileSync(path.join(projectRoot, 'shared/frontend/js/modules/gpu-scene-preparation.js'), 'utf8');
   const start = source.indexOf('function prepareGpuInteractionPlan(');
   assert.ok(start >= 0);
   const interactionSource = source.slice(start);

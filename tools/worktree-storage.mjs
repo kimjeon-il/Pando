@@ -12,10 +12,57 @@ const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const schema='pando-worktree-storage-v1';
 export const cacheLimit=2*1024**3;
 const stageMarker='.pandolab-web-shell-stage';
-function ownedStage(root,directory){
-  const allowed=['dist','.dist-pending','.dist-previous'].map(name=>resolve(root,'apps/web-shell',name));
+export function workspaceOutputRoot(root,settings=storageSettings(root)){
+  return settings?containedPath(settings.cacheRoot,'workspaces/'+contentHash(Buffer.from(resolve(root).toLowerCase())).slice(0,16)):resolve(root,'.library-data/output');
+}
+export function editorStageRoot(root,settings=storageSettings(root)){return resolve(workspaceOutputRoot(root,settings),'editor');}
+export function dependencyPreparationArguments({root,store}){
+  return ['--dir',root,'install','--frozen-lockfile','--config.enableGlobalVirtualStore=true','--store-dir='+store,'--package-import-method=hardlink','--config.confirmModulesPurge=false'];
+}
+export function prepareDependencies(root=repository){
+  const settings=storageSettings(root);if(!settings)throw Error('Activate application storage before dependency preparation');
+  const version=JSON.parse(readFileSync(resolve(root,'package.json'))).packageManager;
+  const executable=process.env.npm_execpath||resolve(dirname(execFileSync(process.platform==='win32'?'where.exe':'which',['pnpm'],{encoding:'utf8'}).split(/\r?\n/)[0]),'node_modules/pnpm/bin/pnpm.cjs');
+  const pnpm=execFileSync(process.execPath,[executable,'--version'],{encoding:'utf8'}).trim();if(version!=='pnpm@'+pnpm)throw Error('Use the pinned pnpm version: '+version);
+  const store=containedPath(settings.cacheRoot,'pnpm/store');
+  atomicStorageJSON(resolve(root,'.library-data/dependencies.json'),{schema:'pando-dependency-store-v1',store});
+  for(const project of [root,resolve(root,'apps/editor')]){
+    const args=dependencyPreparationArguments({root:project,store});if(project!==root)args.push('--ignore-workspace');
+    execFileSync(process.execPath,[executable,...args],{cwd:root,stdio:'inherit',windowsHide:true});
+  }
+  return {pnpm,store,projects:[root,resolve(root,'apps/editor')]};
+}
+export function installFrontendSnapshot({root,snapshot,settings=storageSettings(root)||{cacheRoot:resolve(root,'.library-data/cache')},afterFile=()=>{}}){
+  if(!/^[a-f0-9]{64}$/.test(snapshot.sourceSha256))throw Error('Invalid frontend input identity');
+  return withStorageLock(root,settings,()=>{
+    const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'frontend/'+snapshot.sourceSha256),pending=directory+'.pending',marker='frontend-manifest.json';
+    const journal=containedPath(settings.cacheRoot,'frontend-install.pending.json');
+    const files=[...snapshot.assets].map(([path,entry])=>({path,sourcePath:entry.sourcePath||null,bytes:entry.bytes.length,sha256:contentHash(entry.bytes)}));
+    const manifest={schema:'pando-frontend-v1',product:snapshot.product||'common',sourceCommit:snapshot.sourceCommit,sourceSha256:snapshot.sourceSha256,dataCommit:snapshot.dataCommit,files};
+    if(existsSync(journal)&&JSON.stringify(JSON.parse(readFileSync(journal)).manifest)!==JSON.stringify(manifest))throw Error('Resume the pending frontend installation first');
+    const verify=dir=>{for(const file of files){const target=containedPath(dir,file.path),s=lstatSync(target);if(s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256||(s.mode&0o200))throw Error('Frontend immutable output differs: '+file.path);}};
+    if(!existsSync(directory)){
+      const peak=files.reduce((n,f)=>n+f.bytes,0),disk=statfsSync(settings.cacheRoot);
+      if(peak>=1024**3&&disk.bavail*disk.bsize<peak+5*1024**3)throw Error('Frontend output requires payload plus 5GiB headroom');
+      mkdirSync(pending,{recursive:true});atomicStorageJSON(journal,{root,manifest});atomicStorageJSON(resolve(pending,marker),manifest);
+      for(const file of files){
+        const shared=libraryStagingContent({root,sha256:file.sha256,bytes:file.bytes}),view={viewRoot:pending,marker};
+        if(shared)withLibraryLock(root,()=>linkContentView(shared,file.sha256,containedPath(pending,file.path),view));
+        else{const blob=publishContent(store,snapshot.assets.get(file.path).bytes);linkContentView(store,blob.sha256,containedPath(pending,file.path),view);}
+        afterFile(file);
+      }
+      verify(pending);renameSync(pending,directory);
+    }
+    if(JSON.stringify(JSON.parse(readFileSync(resolve(directory,marker))))!==JSON.stringify(manifest))throw Error('Frontend identity collision');
+    verify(directory);if(existsSync(journal))unlinkSync(journal);
+    const pointer=resolve(root,'.library-data/frontend-artifacts.json'),references=existsSync(pointer)?JSON.parse(readFileSync(pointer)):{};
+    references[manifest.product]={directory,sourceSha256:snapshot.sourceSha256};atomicStorageJSON(pointer,references);return directory;
+  });
+}
+function ownedStage(root,directory,settings=storageSettings(root)){
+  const allowed=['dist','.dist-pending','.dist-previous'].map(name=>resolve(editorStageRoot(root,settings),name));
   if(!allowed.includes(resolve(directory)))throw Error('Not an owned App stage destination');
-  directory=containedPath(root,directory);
+  directory=containedPath(editorStageRoot(root,settings),directory);
   const marker=containedPath(directory,stageMarker);
   if(!existsSync(marker)||!lstatSync(marker).isFile())throw Error('App stage ownership is not established');
   return {viewRoot:directory,marker:stageMarker};
@@ -32,11 +79,11 @@ function removePreviousAppLink(settings,target,view,newStore,sha256){
   const appStore={root:settings.cacheRoot,blobDirectory:'blobs'},previous=contentPath(appStore,sha256),next=contentPath(newStore,sha256);
   if(existsSync(target)&&existsSync(previous)&&previous!==next&&statSync(target,{bigint:true}).ino===statSync(previous,{bigint:true}).ino)removeContentView(appStore,target,view);
 }
-export function writeStagedContent({root,directory,path,bytes,source=null,settings=storageSettings(root)}){
-  const view=ownedStage(root,directory),target=containedPath(directory,path);mkdirSync(dirname(target),{recursive:true});
+export function writeStagedContent({root,directory,path,bytes,settings=storageSettings(root)}){
+  const view=ownedStage(root,directory,settings),target=containedPath(directory,path);mkdirSync(dirname(target),{recursive:true});
   if(!settings){writeFileSync(target,bytes);return;}
   return withStorageLock(root,settings,()=>{
-    const sha256=contentHash(bytes),shared=libraryStagingContent({root,source,sha256,bytes:bytes.length});
+    const sha256=contentHash(bytes),shared=libraryStagingContent({root,sha256,bytes:bytes.length});
     if(shared)return withLibraryLock(root,()=>{removePreviousAppLink(settings,target,view,shared,sha256);return linkContentView(shared,sha256,target,view);});
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},blob=publishContent(store,bytes);
     return linkContentView(store,blob.sha256,target,view);
@@ -75,28 +122,28 @@ export function runningStorageConsumers(){
   return json?[JSON.parse(json)].flat():[];
 }
 export function permanentWorktrees(root=repository){return execFileSync('git',['-C',root,'worktree','list','--porcelain'],{encoding:'utf8',windowsHide:true}).split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>resolve(line.slice(9)));}
-function stageBusy(root,processes){
-  if(existsSync(join(root,'apps/web-shell/.stage-lock')))return 'Active App stage writer lock';
+function stageBusy(root,processes,settings=storageSettings(root)){
+  if(existsSync(join(editorStageRoot(root,settings),'.stage-lock')))return 'Active App stage writer lock';
   if(processes.length)return `Active build/App/development consumer: ${processes.map(p=>p.ProcessId+':'+p.Name).join(', ')}`;
   return null;
 }
 function stageContentStore(root,settings,file){
-  const shared=libraryStagingContent({root,source:file.source,sha256:file.sha256,bytes:file.bytes});
+  const shared=libraryStagingContent({root,sha256:file.sha256,bytes:file.bytes});
   return shared||{root:settings.cacheRoot,blobDirectory:'blobs'};
 }
 export function previewWorktreeStorage({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),processes=runningStorageConsumers()}={}){
   if(!settings)throw Error('Activate worktree storage before planning shared views');
   const entries=[];
   for(const app of roots){
-    const directory=join(app,'apps/web-shell/dist');if(!existsSync(directory))continue;
-    const busy=stageBusy(app,processes);
+    const directory=join(editorStageRoot(app,settings),'dist');if(!existsSync(directory))continue;
+    const busy=stageBusy(app,processes,settings);
     if(busy){entries.push({root:app,directory,status:'protected',reason:busy});continue;}
     try{
-      ownedStage(app,directory);
+      ownedStage(app,directory,settings);
       const evidence=JSON.parse(readFileSync(containedPath(directory,'shell/stage-evidence.json'),'utf8'));
       if(evidence.schema!=='pandolab-web-shell-stage'||!Array.isArray(evidence.files))throw Error('Unknown stage evidence');
       for(const file of evidence.files){
-          const row={path:file.path,sha256:file.sha256,bytes:file.bytes,source:file.source,root:app,directory,status:'protected'};entries.push(row);
+          const row={path:file.path,sha256:file.sha256,bytes:file.bytes,sourcePath:file.sourcePath,root:app,directory,status:'protected'};entries.push(row);
         try{
           if(!/^[a-f0-9]{64}$/.test(file.sha256)||!Number.isSafeInteger(file.bytes)||file.bytes<0||[stageMarker,'shell/stage-evidence.json'].includes(file.path))throw Error('Invalid stage path/hash/size');
           const path=containedPath(directory,file.path);const s=lstatSync(path);
@@ -124,21 +171,21 @@ export function applyWorktreeStorage(options={}){
     // Reclaim only this migration's explicit lease after proving its PID dead.
     // Empty, unknown, foreign-root and live-owner stage locks stay protected.
     for(const app of roots){
-      const lease=containedPath(app,'apps/web-shell/.stage-lock');if(!existsSync(lease)||!lstatSync(lease).isFile())continue;
+      const lease=containedPath(editorStageRoot(app,settings),'.stage-lock');if(!existsSync(lease)||!lstatSync(lease).isFile())continue;
       let owner;try{owner=JSON.parse(readFileSync(lease,'utf8'));}catch{continue;}
       if(owner.schema==='pando-worktree-stage-migration-v1'&&owner.operation==='share immutable stage'&&owner.root===app)discardDeadLibraryLock(lease);
     }
     const withStageLease=(app,operation)=>{
       if(!roots.map(x=>resolve(x)).includes(resolve(app)))throw Error('Unknown migration lease owner');
-      const busy=stageBusy(app,consumers());if(busy)throw Error(busy);
-      const lease=containedPath(app,'apps/web-shell/.stage-lock'),fd=openSync(lease,'wx');
+      const busy=stageBusy(app,consumers(),settings);if(busy)throw Error(busy);
+      const lease=containedPath(editorStageRoot(app,settings),'.stage-lock'),fd=openSync(lease,'wx');
       try{writeFileSync(fd,JSON.stringify({schema:'pando-worktree-stage-migration-v1',pid:process.pid,root:app,operation:'share immutable stage'}));return operation();}
       finally{closeSync(fd);unlinkSync(lease);}
     };
     const finish=(entry,ownedStageLease=false)=>{
       if(!roots.map(x=>resolve(x)).includes(resolve(entry.root)))throw Error('Recovery entry is outside registered worktrees');
-      if(!ownedStageLease){const busy=stageBusy(entry.root,consumers());if(busy)throw Error(busy);}
-      const view=ownedStage(entry.root,entry.directory),target=containedPath(entry.directory,entry.path),store=stageContentStore(entry.root,settings,entry),blob=contentPath(store,entry.sha256);
+      if(!ownedStageLease){const busy=stageBusy(entry.root,consumers(),settings);if(busy)throw Error(busy);}
+      const view=ownedStage(entry.root,entry.directory,settings),target=containedPath(entry.directory,entry.path),store=stageContentStore(entry.root,settings,entry),blob=contentPath(store,entry.sha256);
       if(!existsSync(blob)||contentHash(readFileSync(blob))!==entry.sha256||statSync(blob).size!==entry.bytes)throw Error('Recovery content integrity failed');
       if(existsSync(target)&&contentHash(readFileSync(target))!==entry.sha256)throw Error('Changed recovery target must be preserved');
       if(typeof store==='string')withLibraryLock(entry.root,()=>{removePreviousAppLink(settings,target,view,store,entry.sha256);linkContentView(store,entry.sha256,target,view);});
@@ -177,7 +224,7 @@ export function pruneApplicationBlobs({root=repository,roots=permanentWorktrees(
   if(!settings)throw Error('Worktree storage is not activated');
   const operation=()=>{
     for(const name of ['migration.pending.json','runtime-migration.pending.json','generated-retirement.pending.json','app-git-compaction.pending.json','native-install.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error(`Pending recovery journal blocks blob pruning: ${name}`);
-    const busy=roots.map(app=>stageBusy(app,processes)).find(Boolean);if(busy)throw Error(busy);
+    const busy=roots.map(app=>stageBusy(app,processes,settings)).find(Boolean);if(busy)throw Error(busy);
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'blobs'),entries=[];
     const before=statfsSync(settings.cacheRoot);
     for(const file of contentFiles(directory)){
@@ -257,7 +304,7 @@ export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees
   return apply?withStorageLock(root,settings,operation):operation();
 }
 export function removeStagedDirectory({root,directory,settings=storageSettings(root)}){
-  const view=ownedStage(root,directory);
+  const view=ownedStage(root,directory,settings);
   const libraryStore=existsSync(join(root,'config/library-data.json'))?librarySharedCheckout(root):null;
   const operation=()=>{
     const files=contentFiles(directory);
@@ -395,7 +442,7 @@ async function main(){
     if(compilerScopes.length&&settings?.compilerEnabled!==false)throw Error('Disable local compilers after actual runtime acceptance before retiring SDKs');
     const roots=[...new Set([...worktrees,...compilerScopes.map(s=>s.root)])];
     if(!settings)throw Error('Worktree storage activation required');
-    const protectedPaths=worktrees.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(p=>p&&/^(build-native\/|\.superpowers\/|test-results\/|apps\/web-shell\/src-tauri\/(target|gen\/android))/.test(p)).map(p=>resolve(app,p)));
+    const protectedPaths=worktrees.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(p=>p&&/^(build-native\/|\.superpowers\/|test-results\/|apps\/editor\/src-tauri\/(target|gen\/android))/.test(p)).map(p=>resolve(app,p)));
     const relocationRoots=[resolve(librarySharedCheckout(root),'private-evidence/worktree-storage/generated-cleanup-20261025'),resolve('D:/build/toolchains')];
     const proof=args.find(x=>x.startsWith('--verified-compiler-preview='))?.slice('--verified-compiler-preview='.length);
     const options={roots,compilerScopes,consumers:runningStorageConsumers(),refreshConsumers:runningStorageConsumers,protectedPaths,relocationRoots,verifiedPreview:proof?JSON.parse(readFileSync(proof,'utf8')):null,progress:message=>console.error('Generated cleanup: '+message)};
@@ -405,6 +452,7 @@ async function main(){
     const output=args.find(x=>x.startsWith('--output='))?.slice(9);if(output)atomicStorageJSON(resolve(output),result);
     console.log(JSON.stringify({entries:result.entries?.length,deletedBytes:result.deletedBytes,relocatedBytes:result.relocatedBytes,payloadBytesUnlinked:result.payloadBytesUnlinked,output}));return;
   }
+  if(args.includes('--prepare-dependencies')){console.log(JSON.stringify(prepareDependencies(root)));return;}
   if(args.includes('--activate-compiler-cache'))return activateCompilerCache(root);
   if(args.includes('--disable-local-compiler')){console.log(JSON.stringify(deactivateCompilerCache({root})));return;}
   const compilerValues=()=>storageSettings(root)?.compilerEnabled===false?{}:Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { excludeAncestorHighlightBoundary } from '../../assets/js/modules/territorial-highlight-boundary.js';
-import { createMapDisplayPreparation } from '../../assets/js/modules/map-display-preparation.js';
+import { excludeAncestorHighlightBoundary } from "../../shared/frontend/js/modules/territorial-highlight-boundary.js";
+import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
 
 const polygon = coordinates => ({ type: 'Polygon', coordinates: [coordinates] });
 const length = feature => feature.geometry.coordinates.reduce((total, line) => total + line.slice(1).reduce((sum, point, index) => sum + Math.hypot(point[0] - line[index][0], point[1] - line[index][1]), 0), 0);

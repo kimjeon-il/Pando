@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createLatestWorkerJobScheduler } from '../../assets/js/modules/worker-job-scheduler.js';
+import { createLatestWorkerJobScheduler } from "../../shared/frontend/js/modules/worker-job-scheduler.js";
 
 const deferred = () => {
   let resolve;

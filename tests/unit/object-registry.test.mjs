@@ -9,13 +9,13 @@ import {
   objectTypeKeyForRef,
   objectTypeLabel,
   presentationGroupForObjectType,
-} from '../../assets/js/modules/map-object-categories.js';
+} from "../../shared/frontend/js/modules/map-object-categories.js";
 import {
   OBJECT_ACTIONS,
   objectActionApplies,
   resolveObjectAction,
-} from '../../assets/js/modules/object-action-registry.js';
-import { ACTION_UI_BINDINGS } from '../../assets/js/modules/object-registry-presenter.js';
+} from "../../apps/editor/frontend/js/modules/object-action-registry.js";
+import { ACTION_UI_BINDINGS } from "../../apps/editor/frontend/js/modules/object-registry-presenter.js";
 
 test('object registry exposes canonical domain/category/editor metadata', () => {
   assert.equal(MAP_OBJECT_TYPES.entity.domain, 'territorial');

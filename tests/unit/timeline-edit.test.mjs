@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } from '../../assets/js/modules/timeline-edit.js';
-import { normalizeTimelineRecords } from '../../assets/js/modules/timeline-records.js';
+import { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } from "../../apps/editor/frontend/js/modules/timeline-edit.js";
+import { normalizeTimelineRecords } from "../../shared/frontend/js/modules/timeline-records.js";
 
 const records = { schemaVersion: 2, lifetimes: [], geometryBindings: [
   { id: 'A:original', entityId: 'A', validFrom: '1914-06-15', validTo: '1915-12', geometryRef: { id: 'shape', version: 1 } },

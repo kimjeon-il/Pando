@@ -5,10 +5,10 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 // The runtime boundary topology now uses the source-pinned C++ integral.
 import './load-spherical-core.mjs';
 import { fileURLToPath } from 'node:url';
-import { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments } from '../assets/js/modules/boundary-topology.js';
-import { sharedCalculationCore } from '../assets/js/modules/temporal.js';
-import { countryGeometrySignature } from '../assets/js/modules/country-shared-boundary-cache.js';
-import { classifyBuiltinCountries } from '../assets/js/modules/builtin-subunits.js';
+import { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments } from "../shared/frontend/js/modules/boundary-topology.js";
+import { sharedCalculationCore } from "../shared/frontend/js/modules/temporal.js";
+import { countryGeometrySignature } from "../shared/frontend/js/modules/country-shared-boundary-cache.js";
+import { classifyBuiltinCountries } from "../shared/frontend/js/modules/builtin-subunits.js";
 
 // The source contact topology and grouped chain-conservation check both use
 // the same C++ kernel as the Web worker. Keep cache serialization and exact v1

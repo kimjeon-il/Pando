@@ -1,16 +1,16 @@
 import { testCoreProject, initializeTestTerritorialState, snapshotTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
-import { createObjectPicking } from '../../assets/js/modules/object-picking.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
-import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
-import {createSelectionDomain} from '../../assets/js/modules/selection-domain.js';
-import {webSelectionRefToCore,coreSelectionRefToWeb} from '../../assets/js/modules/core-object-ref.js';
+import { createObjectCommands } from "../../apps/editor/frontend/js/modules/app-object-commands.js";
+import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
+import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
+import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer-presentation.js";
+import {createSelectionDomain} from "../../shared/frontend/js/modules/selection-domain.js";
+import {webSelectionRefToCore,coreSelectionRefToWeb} from "../../shared/frontend/js/modules/core-object-ref.js";
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] };
 async function fixture({ fail = false, child = false } = {}) {

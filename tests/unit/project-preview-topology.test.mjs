@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadVerifiedCore } from '../helpers/node-core-wasm-loader.mjs';
-import { validateGeometry } from '../../assets/js/modules/geometry-validation.js';
-import { inspectTopologyPreviewFeatures } from '../../assets/js/modules/project-preview-topology.js';
+import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
+import { inspectTopologyPreviewFeatures } from "../../shared/frontend/js/modules/project-preview-topology.js";
 
 const box=(x,y,w,h)=>[[x,y],[x+w,y],[x+w,y+h],[x,y+h],[x,y]];
 const feature=(coordinates,type='Polygon',id='shape')=>({type:'Feature',id,properties:{},geometry:{type,coordinates}});

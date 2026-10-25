@@ -6,7 +6,7 @@ import {
   MAP_RENDER_DIRTY,
   MAP_RENDER_MASKS,
   RenderInvalidationError,
-} from '../../assets/js/modules/map-render-coordinator.js';
+} from "../../shared/frontend/js/modules/map-render-coordinator.js";
 
 function fixture() {
   const calls = [];

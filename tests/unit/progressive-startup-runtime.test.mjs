@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
-import { createProgressiveStartup } from '../../assets/js/modules/app-progressive-startup.js';
-import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
-import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
-import { geometryRevision } from '../../assets/js/modules/geometry-versions.js';
+import { createProgressiveStartup } from "../../apps/editor/frontend/js/modules/app-progressive-startup.js";
+import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
+import { createTerritorialScopeResolver } from "../../shared/frontend/js/modules/territorial-scope.js";
+import { geometryRevision } from "../../shared/frontend/js/modules/geometry-versions.js";
 import { createCoreStartupState,startupDocument,historicalStartupDocument,startupBaseline } from '../helpers/core-startup.mjs';
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 

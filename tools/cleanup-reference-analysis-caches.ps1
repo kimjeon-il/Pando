@@ -309,7 +309,7 @@ try {
                 if ((Invoke-GitText $RepositoryRoot @('ls-files', '--', "assets/worker-runtime/$id")).Trim()) { throw 'Tracked Worker assets are preserved.' }
                 $protection = Get-Protection
                 foreach ($root in $protection.Roots) {
-                    foreach ($relativeMeta in @('assets/js/build-meta.js', 'apps/web-shell/dist/assets/js/build-meta.js')) {
+                    foreach ($relativeMeta in @('assets/js/build-meta.js', 'apps/editor/dist/assets/js/build-meta.js')) {
                         $meta = Join-Path $root $relativeMeta
                         if ((Test-Path -LiteralPath $meta) -and (Get-Content -LiteralPath $meta -Raw).Contains("assets/worker-runtime/$id/")) { throw 'Worker copy is referenced by a current worktree or app stage.' }
                     }
@@ -324,7 +324,7 @@ try {
                 if ($Apply) {
                     $protection = Get-Protection
                     foreach ($root in $protection.Roots) {
-                        foreach ($relativeMeta in @('assets/js/build-meta.js', 'apps/web-shell/dist/assets/js/build-meta.js')) {
+                        foreach ($relativeMeta in @('assets/js/build-meta.js', 'apps/editor/dist/assets/js/build-meta.js')) {
                             $meta = Join-Path $root $relativeMeta
                             if ((Test-Path -LiteralPath $meta) -and (Get-Content -LiteralPath $meta -Raw).Contains("assets/worker-runtime/$id/")) { throw 'Worker became active during verification.' }
                         }
@@ -338,7 +338,7 @@ try {
     }
     if ($IncludeRetiredAppBinaries -and -not $Revision.Count) {
         foreach ($root in (Get-Protection).Roots) {
-            $nativeRoot = Join-Path $root 'apps/web-shell/src-tauri/target/x86_64-pc-windows-gnu/debug'
+            $nativeRoot = Join-Path $root 'apps/editor/src-tauri/target/x86_64-pc-windows-gnu/debug'
             $current = Join-Path $nativeRoot 'pandolab-web-shell.exe'
             $deps = Join-Path $nativeRoot 'deps'
             if (-not (Test-Path -LiteralPath $current) -or -not (Test-Path -LiteralPath $deps)) { continue }

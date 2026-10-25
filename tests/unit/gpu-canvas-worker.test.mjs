@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { createGpuCanvasWorker } from '../../assets/js/modules/gpu-canvas-worker.js';
+import { createGpuCanvasWorker } from "../../shared/frontend/js/modules/gpu-canvas-worker.js";
 
 test('project replacement retains a ready worker and rejects old completion without releasing the new frame', () => {
   const { channel, sent, receive, complete, presented } = transport();
@@ -246,7 +246,7 @@ for (const nativeError of [false, true]) {
 // and timer delivery are the only browser facilities replaced for this protocol test.
 function canvasRuntime({ renderError = null, features = [], theme = {}, visualOrder = { base: [], hydro: [] } } = {}) {
   const replies = [], timers = [];
-  const script = new URL('../../assets/js/workers/canvas-render-worker.js', import.meta.url);
+  const script = new URL("../../shared/frontend/js/workers/canvas-render-worker.js", import.meta.url);
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; }
     getContext() { return { canvas: this, setTransform() {}, clearRect() {}, drawImage() {},

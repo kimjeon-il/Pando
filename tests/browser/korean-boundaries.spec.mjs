@@ -6,7 +6,7 @@ test.use({viewport:{width:1440,height:900},trace:'off'});
 test('Korean lifetimes and exact historical library dates use the published geometry',async({page},info)=>{
   test.setTimeout(240000);
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('/apps/web-shell/editor.html?debug=1&demTerrain=raster');
+  await page.goto('/__editor/index.html?debug=1&demTerrain=raster');
   const result=await verifyKoreanBoundaryWorkflow(page,{screenshotPath:info.outputPath('korean-library.png')});
   expect(errors).toEqual([]);
   await writeFile(info.outputPath('korean-library.json'),JSON.stringify({...result,errors},null,2));

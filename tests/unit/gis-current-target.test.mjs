@@ -6,7 +6,7 @@ import vm from 'node:vm';
 test('unknown external layers require a type; current generic sources are explicitly selectable', () => {
   const window = { PandoLabGisAdapters: {} };
   const document = { currentScript: { src: 'http://localhost/assets/js/gis-io.js' }, getElementById: () => ({ value: '' }) };
-  const source = fs.readFileSync(new URL('../../assets/js/gis-io.js', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL("../../apps/editor/frontend/js/gis-io.js", import.meta.url), 'utf8')
     .replace('window.PandoLabGIS = Object.freeze({', 'window.testApi = { suggestedTarget, importMappingFromUi }; window.PandoLabGIS = Object.freeze({');
   vm.runInNewContext(source, { window, document, URL });
   const layer = { layerName: 'unknown', geometryType: 'Polygon' };
@@ -17,7 +17,7 @@ test('unknown external layers require a type; current generic sources are explic
   assert.throws(() => window.testApi.importMappingFromUi(), /가져올 종류를 선택/);
   document.getElementById = () => ({ value: 'generic' });
   assert.equal(window.testApi.importMappingFromUi().targetType, 'generic');
-  const html = fs.readFileSync(new URL('../../apps/web-shell/editor.html', import.meta.url), 'utf8');
+  const html = fs.readFileSync(new URL('../../apps/editor/editor.html', import.meta.url), 'utf8');
   const select = html.match(/<select id="gisTargetType">([\s\S]*?)<\/select>/)[1];
   assert.match(select, /value="generic"/);
   assert.doesNotMatch(select, /value="(?:country|subunit|region)"/);

@@ -8,7 +8,7 @@ import {
   currentCountryFlagCode,
   currentCountryFlagUrl,
   effectiveTerritorialFlagUrl,
-  } from '../../assets/js/modules/country-flags.js';
+  } from "../../shared/frontend/js/modules/country-flags.js";
 import {
   EXPECTED_COUNTRY_FLAG_EXCLUDED_IDS,
   EXPECTED_COUNTRY_FLAG_LEGACY_4X3_CODES,

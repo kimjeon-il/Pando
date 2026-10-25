@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createObjectQuery} from '../../assets/js/modules/object-query.js';
-import {createTerritorialFeature} from '../../assets/js/modules/territorial-units.js';
-import {createTerritorialEntityRepository} from '../../assets/js/modules/territorial-entity-repository.js';
-import {normalizeObjectRef} from '../../assets/js/modules/object-selection-controller.js';
-import {effectiveTerritorialFlagUrl} from '../../assets/js/modules/country-flags.js';
+import {createObjectQuery} from "../../shared/frontend/js/modules/object-query.js";
+import {createTerritorialFeature} from "../../shared/frontend/js/modules/territorial-units.js";
+import {createTerritorialEntityRepository} from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import {normalizeObjectRef} from "../../shared/frontend/js/modules/object-selection-controller.js";
+import {effectiveTerritorialFlagUrl} from "../../shared/frontend/js/modules/country-flags.js";
 
 test('the shared territorial display view resolves default, custom and absent flags for hover',()=>{
  const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};

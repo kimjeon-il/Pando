@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
 import { createNodeSelection } from '../helpers/core-selection.mjs';
-import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
-import { createPropertyEditorBindings } from '../../assets/js/modules/property-editor-bindings.js';
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
+import { createSelectionUiController } from "../../shared/frontend/js/modules/selection-ui-controller.js";
+import { createPropertyEditorBindings } from "../../apps/editor/frontend/js/modules/property-editor-bindings.js";
 
 const country = id => normalizeObjectRef({ domain: 'territorial', type: 'entity', id });
 

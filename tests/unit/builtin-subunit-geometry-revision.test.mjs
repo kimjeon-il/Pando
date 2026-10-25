@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createBuiltinSession } from '../../assets/js/modules/builtin-session.js';
-import { builtinSubunitId, builtinSubunitSourceId } from '../../assets/js/modules/builtin-subunits.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { geometryRevision, touchGeometry } from '../../assets/js/modules/geometry-versions.js';
-import { layerStyle } from '../../assets/js/modules/layer-presentation.js';
+import { createBuiltinSession } from "../../shared/frontend/js/modules/builtin-session.js";
+import { builtinSubunitId, builtinSubunitSourceId } from "../../shared/frontend/js/modules/builtin-subunits.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { geometryRevision, touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
+import { layerStyle } from "../../shared/frontend/js/modules/layer-presentation.js";
 
 const square = x => ({ type: 'Polygon', coordinates: [[[x, 0], [x, 1], [x + 1, 1], [x + 1, 0], [x, 0]]] });
 

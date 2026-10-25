@@ -4,7 +4,7 @@ import test from 'node:test';
 import {
   createSelectionPerformanceBaseline,
   decideSelectionRedrawStrategy,
-} from '../../assets/js/modules/selection-performance-baseline.js';
+} from "../../apps/editor/frontend/js/modules/selection-performance-baseline.js";
 
 test('selection baseline ignores two warmups and locks after twenty samples', () => {
   const baseline = createSelectionPerformanceBaseline();

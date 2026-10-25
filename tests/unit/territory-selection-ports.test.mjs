@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createMapInteractionPorts } from '../../assets/js/modules/app-capability-ports-map-interaction.js';
-import { createToolBindings } from '../../assets/js/modules/app-tool-bindings.js';
+import { createMapInteractionPorts } from "../../apps/editor/frontend/js/modules/app-capability-ports-map-interaction.js";
+import { createToolBindings } from "../../apps/editor/frontend/js/modules/app-tool-bindings.js";
 const { EventTarget, Event } = globalThis;
 
 const selectionPortNames = ['territorySelectionA', 'territorySelectionB', 'territorySelectionC'];

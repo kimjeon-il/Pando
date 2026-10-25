@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDistributionEntry, createDistributionLayer, distributionValueRange, distributionValueAlpha, normalizeDistributionLayers } from '../../assets/js/modules/distribution-model.js';
+import { createDistributionEntry, createDistributionLayer, distributionValueRange, distributionValueAlpha, normalizeDistributionLayers } from "../../shared/frontend/js/modules/distribution-model.js";
 
 test('generic distribution stores a unit, a scale, and signed values without a type', () => {
   const parent = createDistributionLayer({ id: 'population', name: '인구밀도', unit: '명/km²' });

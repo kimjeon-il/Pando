@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {applyLibrarySourceFields} from '../../assets/js/modules/territorial-library-editing-ui.js';
+import {applyLibrarySourceFields} from "../../apps/editor/frontend/js/modules/territorial-library-editing-ui.js";
 test('source form updates exact dates and selected version without replacing identity or other versions',()=>{
  const source={entityId:'state:KOR',names:{ko:'한국',en:'Korea',ja:'韓国'},lifetime:{validFrom:null,validTo:null},sourceInfo:{sourceId:'original'},metadata:{},
   geometryVersions:[{versionId:'early',validFrom:'1948-08-15',validTo:'1953-07-26',geometry:{type:'Polygon',coordinates:[]}},

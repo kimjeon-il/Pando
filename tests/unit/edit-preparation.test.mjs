@@ -3,17 +3,17 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import '../helpers/spherical-core.mjs';
-vm.runInThisContext(readFileSync(new URL('../../assets/js/vendor/d3.min.js', import.meta.url), 'utf8'));
-import '../../assets/js/vendor/polygon-clipping.min.js';
-import '../../assets/js/modules/polygon-geometry.js';
-import { prepareCutInWorker } from '../../assets/js/modules/cut-worker-preparation.js';
-import { createTerritoryComponentPlan } from '../../assets/js/modules/territory-component-plan.js';
-import { normalizePolygonGeometry } from '../../assets/js/modules/map-edit-geometry.js';
-import { geometrySegmentIndex, segmentQueryBounds, territorialSegmentCandidates } from '../../assets/js/modules/geometry-segment-index.js';
-import '../../assets/js/modules/territorial-edit-plan.js';
-import { createMapDisplayPreparation } from '../../assets/js/modules/map-display-preparation.js';
-import { createGeometrySnapshotPool, touchGeometry } from '../../assets/js/modules/geometry-versions.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+vm.runInThisContext(readFileSync(new URL("../../shared/frontend/js/vendor/d3.min.js", import.meta.url), 'utf8'));
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import "../../shared/frontend/js/modules/polygon-geometry.js";
+import { prepareCutInWorker } from "../../apps/editor/frontend/js/modules/cut-worker-preparation.js";
+import { createTerritoryComponentPlan } from "../../apps/editor/frontend/js/modules/territory-component-plan.js";
+import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
+import { geometrySegmentIndex, segmentQueryBounds, territorialSegmentCandidates } from "../../apps/editor/frontend/js/modules/geometry-segment-index.js";
+import "../../shared/frontend/js/modules/territorial-edit-plan.js";
+import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
+import { createGeometrySnapshotPool, touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 const square = { type: 'Polygon', coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]] };
 

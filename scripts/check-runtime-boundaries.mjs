@@ -1,14 +1,15 @@
 import fs from 'node:fs';
+import {buildFrontendIndex} from './lib/frontend-layout.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readApplicationImplementations, readApplicationOwners } from './lib/application-source.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const modulesDirectory = path.join(root, 'assets/js/modules');
-const moduleFiles = fs.readdirSync(modulesDirectory)
-  .filter(name => name.endsWith('.js'))
-  .map(name => path.join(modulesDirectory, name));
+const frontend=buildFrontendIndex(root);
+const modules=[...frontend.values()].filter(row=>row.publicPath.startsWith('assets/js/modules/')&&row.publicPath.endsWith('.js'));
+const moduleFiles=modules.map(row=>path.resolve(root,row.sourcePath));
 const sourceByFile = new Map(moduleFiles.map(file => [file, fs.readFileSync(file, 'utf8')]));
+const sourceByName=new Map(modules.map(row=>[path.basename(row.publicPath),sourceByFile.get(path.resolve(root,row.sourcePath))]));
 
 function localImports(file, source) {
   const imports = [];
@@ -74,7 +75,7 @@ const domFreeModules = [
   'editing-render-packet.js',
 ];
 for (const name of domFreeModules) {
-  const source = sourceByFile.get(path.join(modulesDirectory, name));
+  const source = sourceByName.get(name);
   if (!source) throw new Error(`Missing runtime boundary module: ${name}`);
   for (const token of ['document.', 'querySelector(', 'getElementById(']) {
     if (source.includes(token)) throw new Error(`${name} must remain DOM-free: ${token}`);
@@ -89,13 +90,13 @@ const domainContracts = new Map([
   ['rendering-domain.js', 'createRenderingDomain'],
 ]);
 for (const [name, factory] of domainContracts) {
-  const source = sourceByFile.get(path.join(modulesDirectory, name));
+  const source = sourceByName.get(name);
   if (!source || !new RegExp(`export\\s+function\\s+${factory}\\b`).test(source)) {
     throw new Error(`${name} must expose ${factory} as its domain boundary`);
   }
 }
 for (const name of ['project-domain.js', 'selection-domain.js', 'gis-domain.js', 'editing-domain.js']) {
-  const source = sourceByFile.get(path.join(modulesDirectory, name)) || '';
+  const source = sourceByName.get(name) || '';
   for (const token of ['document.', 'window.', 'getContext(', 'createElement(']) {
     if (source.includes(token)) throw new Error(`${name} must remain platform-free: ${token}`);
   }
@@ -103,30 +104,30 @@ for (const name of ['project-domain.js', 'selection-domain.js', 'gis-domain.js',
 
 // These services receive platform capabilities at composition, not from globals.
 for (const name of ['editing-domain.js', 'territorial-service.js', 'persistence-service.js']) {
-  const source = sourceByFile.get(path.join(modulesDirectory, name));
+  const source = sourceByName.get(name);
   for (const token of ['globalThis.requestAnimationFrame', 'globalThis.setTimeout', 'globalThis.crypto', 'indexedDB.open(', 'localStorage.setItem(']) {
     if (source.includes(token)) throw new Error(`${name} must use its injected platform boundary: ${token}`);
   }
 }
 
-const selectionPassSource = sourceByFile.get(path.join(modulesDirectory, 'selection-pass.js')) || '';
+const selectionPassSource = sourceByName.get('selection-pass.js') || '';
 for (const token of ['getContext(', 'addEventListener(', 'removeEventListener(']) {
   if (selectionPassSource.includes(token)) throw new Error(`selection-pass.js must not own canvas/context lifecycle: ${token}`);
 }
-if (sourceByFile.has(path.join(modulesDirectory, 'selection-canvas-host.js'))) {
+if (sourceByName.has('selection-canvas-host.js')) {
   throw new Error('selection-canvas-host.js must be removed after single-context integration');
 }
 for (const name of ['gpu-polygon-overlay-pass.js', 'gpu-stroke-renderer.js', 'selection-pass.js']) {
-  const source = sourceByFile.get(path.join(modulesDirectory, name)) || '';
+  const source = sourceByName.get(name) || '';
   if (source.includes('getContext(')) throw new Error(`${name} must receive the shared RenderDevice instead of creating a context`);
 }
 
-const gpuRendererSource = sourceByFile.get(path.join(modulesDirectory, 'gpu-map-renderer.js')) || '';
+const gpuRendererSource = sourceByName.get('gpu-map-renderer.js') || '';
 for (const token of ['webglcontextlost', 'webglcontextrestored', 'createRenderDevice({']) {
   if (!gpuRendererSource.includes(token)) throw new Error(`gpu-map-renderer.js must own the shared WebGL lifecycle: ${token}`);
 }
 
-const javascriptFiles = [path.join(root, 'assets/js/app.js'), ...moduleFiles];
+const javascriptFiles = [path.join(root, 'apps/editor/frontend/js/app.js'), ...moduleFiles];
 for (const file of javascriptFiles) {
   if (path.basename(file) === 'browser-project-storage.js') continue;
   const source = fs.readFileSync(file, 'utf8');
@@ -135,7 +136,7 @@ for (const file of javascriptFiles) {
   }
 }
 
-const entrySource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+const entrySource = fs.readFileSync(path.join(root, 'apps/editor/frontend/js/app.js'), 'utf8');
 const appSource = readApplicationImplementations();
 const appLogicalLineCount = entrySource.split(/\r?\n/).filter(line => line.trim()).length;
 if (appLogicalLineCount > 400) {
@@ -144,7 +145,7 @@ if (appLogicalLineCount > 400) {
 if (/\bfunction\b|=>|document\.|addEventListener\(|\bnew\s+(?:Map|Set|Worker)\b/.test(entrySource)) {
   throw new Error('app.js must contain only revisioned loading, composition and lifecycle startup');
 }
-const bootstrapSource = fs.readFileSync(path.join(root, 'assets/js/bootstrap.js'), 'utf8');
+const bootstrapSource = fs.readFileSync(path.join(root, 'apps/editor/frontend/js/bootstrap.js'), 'utf8');
 if (appSource.includes("worker.postMessage({ type: 'execute'")) {
   throw new Error('app.js bypasses map-edit-worker-client.js');
 }
@@ -169,16 +170,16 @@ for (const legacyFunction of [
     throw new Error(`app.js retains a mixed selection/editor owner: ${legacyFunction}`);
   }
 }
-const selectionDomainSource = sourceByFile.get(path.join(modulesDirectory, 'selection-domain.js')) || '';
-const renderingDomainSource = sourceByFile.get(path.join(modulesDirectory, 'rendering-domain.js')) || '';
-const projectDomainSource = sourceByFile.get(path.join(modulesDirectory, 'project-domain.js')) || '';
-const gisDomainSource = sourceByFile.get(path.join(modulesDirectory, 'gis-domain.js')) || '';
+const selectionDomainSource = sourceByName.get('selection-domain.js') || '';
+const renderingDomainSource = sourceByName.get('rendering-domain.js') || '';
+const projectDomainSource = sourceByName.get('project-domain.js') || '';
+const gisDomainSource = sourceByName.get('gis-domain.js') || '';
 if (selectionDomainSource.includes('JSON.stringify')) {
   throw new Error('selection-domain.js must use controller change events instead of serialized snapshots');
 }
 
-const editingDomainSource = sourceByFile.get(path.join(modulesDirectory, 'editing-domain.js')) || '';
-const editingPacketSource = sourceByFile.get(path.join(modulesDirectory, 'editing-render-packet.js')) || '';
+const editingDomainSource = sourceByName.get('editing-domain.js') || '';
+const editingPacketSource = sourceByName.get('editing-render-packet.js') || '';
 if (!editingDomainSource.includes("from './editing-render-packet.js'")) {
   throw new Error('EditingDomain must own immutable EditingRenderPacket creation');
 }
@@ -260,16 +261,16 @@ for (const symbol of removedRuntimeSymbols) {
   if (runtimeSources.some(source => pattern.test(source))) throw new Error(`Removed runtime symbol was reintroduced: ${symbol}`);
 }
 
-const canonicalPacketSource = sourceByFile.get(path.join(modulesDirectory, 'canonical-country-packet.js')) || '';
-const labelLayoutSource = sourceByFile.get(path.join(modulesDirectory, 'label-layout.js')) || '';
-const countryFlagsSource = sourceByFile.get(path.join(modulesDirectory, 'country-flags.js')) || '';
+const canonicalPacketSource = sourceByName.get('canonical-country-packet.js') || '';
+const labelLayoutSource = sourceByName.get('label-layout.js') || '';
+const countryFlagsSource = sourceByName.get('country-flags.js') || '';
 if (canonicalPacketSource.includes('encodeCanonicalCountryPacket')) {
   throw new Error('canonical packet encoder must remain build-only under tools/');
 }
 if (labelLayoutSource.includes('layoutLabelsLegacy')) {
   throw new Error('legacy label layout must remain outside the runtime module graph');
 }
-if (fs.existsSync(path.join(modulesDirectory, 'renderer-v2-contract.js'))) {
+if (sourceByName.has('renderer-v2-contract.js')) {
   throw new Error('architecture-only renderer contract must not be shipped as a runtime module');
 }
 for (const symbol of [
@@ -318,7 +319,7 @@ const privateModuleDeclarations = new Map([
   ['worker-rpc.js', ['createWorkerRpcError', 'createCanonicalWorkerRpcCodec']],
 ]);
 for (const [name, symbols] of privateModuleDeclarations) {
-  const source = sourceByFile.get(path.join(modulesDirectory, name)) || '';
+  const source = sourceByName.get(name) || '';
   for (const symbol of symbols) {
     const exported = new RegExp(`\\bexport\\s+(?:async\\s+)?(?:const|function)\\s+${symbol}\\b`);
     if (exported.test(source)) throw new Error(`${name} exposes internal-only declaration: ${symbol}`);
@@ -348,7 +349,7 @@ for (const name of removedGlobalAssignments) {
   if (runtimeSources.some(source => assignment.test(source))) throw new Error(`Write-only global facade was reintroduced: ${name}`);
 }
 
-const coordinatorSource = sourceByFile.get(path.join(modulesDirectory, 'map-render-coordinator.js')) || '';
+const coordinatorSource = sourceByName.get('map-render-coordinator.js') || '';
 for (const token of ['mapRenderCoordinator', 'MAP_RENDER_DIRTY', 'invalidateMask']) {
   if (appSource.includes(token)) throw new Error(`app.js bypasses RenderingDomain invalidation ownership: ${token}`);
 }
@@ -440,7 +441,7 @@ for (const [source, methods] of removedDomainFacadeMethods) {
     }
   }
 }
-const lifecycleSource = sourceByFile.get(path.join(modulesDirectory, 'application-lifecycle.js')) || '';
+const lifecycleSource = sourceByName.get('application-lifecycle.js') || '';
 if (!readApplicationOwners('lifecycle-assembly').includes('createApplicationLifecycle({') || !entrySource.includes('void application.start();')) {
   throw new Error('app.js must start through the application composition root');
 }

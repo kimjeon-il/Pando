@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import {buildFrontendIndex,frontendAsset,emitFrontendModule} from './lib/frontend-layout.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
@@ -54,10 +54,8 @@ export function auditWorkerArchitecture(sources) {
 
 export function checkWorkerArchitecture(root) {
   const sources = new Map();
-  for (const directory of ['assets/js/modules', 'assets/js/workers']) {
-    for (const name of fs.readdirSync(path.join(root, directory)).filter(name => name.endsWith('.js')))
-      sources.set(`${directory}/${name}`, fs.readFileSync(path.join(root, directory, name), 'utf8'));
-  }
+  const index=buildFrontendIndex(root);
+  for(const row of index.values())if(/^assets\/js\/(?:modules|workers)\/.*\.js$/.test(row.publicPath))sources.set(row.publicPath,emitFrontendModule(frontendAsset(root,row.publicPath,{index}).bytes.toString('utf8'),row.sourcePath,index));
   return auditWorkerArchitecture(sources);
 }
 

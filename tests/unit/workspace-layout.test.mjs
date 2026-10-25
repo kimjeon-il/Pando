@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createWorkspaceLayoutDetector } from '../../assets/js/modules/workspace-layout.js';
+import { createWorkspaceLayoutDetector } from "../../shared/frontend/js/modules/workspace-layout.js";
 
 test('phone landscape requires coarse input, landscape and layout height below 600', () => {
   const detect = createWorkspaceLayoutDetector();

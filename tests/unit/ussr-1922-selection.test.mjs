@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {normalizeTerritorialLibraryEntity,selectGeometryVersion,territorialEntityExistsAt} from '../../assets/js/modules/territorial-library.js';
-import {selectBuiltinCountries,assembleBuiltinWorld} from '../../assets/js/modules/builtin-world-loader.js';
+import {normalizeTerritorialLibraryEntity,selectGeometryVersion,territorialEntityExistsAt} from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import {selectBuiltinCountries,assembleBuiltinWorld} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 import {gunzipSync} from 'node:zlib';
 
 const root=new URL('../../assets/data/territorial-entities/source/countries/',import.meta.url);

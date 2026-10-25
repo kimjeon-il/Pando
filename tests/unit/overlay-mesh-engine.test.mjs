@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import '../../assets/js/workers/gpu-mesh-core.js';
-import { buildPolygonGeometryPacket } from '../../assets/js/modules/render-scene.js';
+import "../../shared/frontend/js/workers/gpu-mesh-core.js";
+import { buildPolygonGeometryPacket } from "../../shared/frontend/js/modules/render-scene.js";
 
-import { simplifyRenderGeometry } from '../../assets/js/modules/render-lod.js';
+import { simplifyRenderGeometry } from "../../shared/frontend/js/modules/render-lod.js";
 
 const polygon = rings => ({ type: 'Polygon', coordinates: rings });
 const square = (left, bottom, right, top) => [[left, bottom], [right, bottom], [right, top], [left, top], [left, bottom]];

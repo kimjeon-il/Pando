@@ -6,10 +6,10 @@ import {
   PERFORMANCE_METRIC_NAMES,
   createRuntimePerformanceMetrics,
   installRuntimePerformanceMetrics,
-} from '../../assets/js/modules/runtime-performance-metrics.js';
-import {createGeometryPreview} from '../../assets/js/modules/app-geometry-preview.js';
+} from "../../shared/frontend/js/modules/runtime-performance-metrics.js";
+import {createGeometryPreview} from "../../apps/editor/frontend/js/modules/app-geometry-preview.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
-import { createPersistenceService } from '../../assets/js/modules/persistence-service.js';
+import { createPersistenceService } from "../../apps/editor/frontend/js/modules/persistence-service.js";
 
 class FakePerformanceObserver {
   static instances = [];

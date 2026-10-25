@@ -10,7 +10,7 @@ import {
   canonicalCountryPacketTransferables,
   createCanonicalCountryStore,
   inspectCanonicalCountryPacket,
-} from '../../assets/js/modules/canonical-country-packet.js';
+} from "../../shared/frontend/js/modules/canonical-country-packet.js";
 import { encodeCanonicalCountryPacket } from '../../tools/canonical-country-packet-encoder.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');

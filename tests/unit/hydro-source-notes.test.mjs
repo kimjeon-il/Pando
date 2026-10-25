@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { builtinHydroSourceNotes } from '../../assets/js/modules/object-property-presentation.js';
+import { builtinHydroSourceNotes } from "../../apps/editor/frontend/js/modules/object-property-presentation.js";
 
 test('source notes are omitted for rivers not enriched with OpenStreetMap data', () => {
   assert.equal(builtinHydroSourceNotes({ source: 'HydroRIVERS 1.0', osm_relation_ids: [] }), '');

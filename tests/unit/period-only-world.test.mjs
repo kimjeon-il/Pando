@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';
 import {compileBuiltinWorldCatalog} from '../../tools/builtin-world-compiler.mjs';
-import {selectBuiltinCountries,assembleBuiltinWorld} from '../../assets/js/modules/builtin-world-loader.js';
+import {selectBuiltinCountries,assembleBuiltinWorld} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 
 test('a single interval catalog selects the same source regardless of the device month',()=>{
  const input=withExplicitView(historicalWorldCases());

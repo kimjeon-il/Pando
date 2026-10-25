@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import {readTerritorialSources,territorialDataRoot} from '../../tools/territorial-entity-sources.mjs';
-import {normalizeTerritorialLibraryIndex,selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryIndex,selectGeometryVersion} from "../../apps/editor/frontend/js/modules/territorial-library.js";
 import path from 'node:path';
 test('current and dated snapshots use identical reference-only storage and covered versions',()=>{
   const sources=new Map(readTerritorialSources().map(e=>[e.entityId,e]));

@@ -31,7 +31,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Verify edge singleton and multi-owner Map transitions
         run: |
-          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
           pnpm exec eslint assets/js/modules/country-shared-boundary-packet.js tests/unit/shared-edge-singleton.test.mjs tests/browser/soviet-retained-owners-breakdown.spec.mjs
           node --test tests/unit/shared-edge-singleton.test.mjs
       - name: Verify unchanged country contact, cached-seed, and incremental editing contracts

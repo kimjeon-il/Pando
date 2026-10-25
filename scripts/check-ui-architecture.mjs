@@ -1,13 +1,17 @@
+import {buildFrontendSnapshot,readFrontendInput,hasFrontendInput} from './lib/frontend-build.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { collectCssRules } from './lib/css-analysis.mjs';
 
 const root = process.cwd();
-const cssRoot = path.join(root, 'assets', 'css');
-const htmlPath = path.join(root, 'apps/web-shell/editor.html');
+const frontend=await buildFrontendSnapshot({root});
+const readInput=(file,encoding)=>readFrontendInput(frontend,file,encoding);
+const inputExists=file=>hasFrontendInput(frontend,file);
+const cssRoot = path.join(root, 'shared/frontend/css');
+const htmlPath = path.join(root, '__editor/index.html');
 const policyDocPath = path.join(root, 'docs', 'architecture', 'ui-architecture.md');
-const html = fs.readFileSync(htmlPath, 'utf8');
+const html = readInput(htmlPath, 'utf8');
 const failures = [];
 
 const cssLayers = new Set(['tokens', 'primitives', 'components', 'layout', 'features', 'utilities']);
@@ -47,7 +51,7 @@ const surfaceContracts = Object.freeze([
 ]);
 
 function walkCssFiles(directory, relative = '') {
-  if (!fs.existsSync(directory)) return [];
+  if (!inputExists(directory)) return [];
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const nextRelative = path.posix.join(relative, entry.name);
     const target = path.join(directory, entry.name);
@@ -155,10 +159,10 @@ function requireSurfaceContract({ id, variant, headerKind }) {
 }
 
 for (const retiredPath of retiredUiArtifacts) {
-  if (fs.existsSync(path.join(root, retiredPath))) failures.push(`retired UI artifact must not exist: ${retiredPath}`);
+  if (inputExists(path.join(root, retiredPath))) failures.push(`retired UI artifact must not exist: ${retiredPath}`);
 }
 
-if (!fs.existsSync(policyDocPath)) {
+if (!inputExists(policyDocPath)) {
   failures.push('missing UI architecture policy: docs/architecture/ui-architecture.md');
 }
 
@@ -172,7 +176,7 @@ for (const relativePath of cssFiles) {
   const normalized = relativePath.replaceAll('\\', '/');
   const segments = normalized.split('/');
   const absolute = path.join(cssRoot, relativePath);
-  const source = fs.readFileSync(absolute, 'utf8');
+  const source = readInput(absolute, 'utf8');
 
   if (segments.length === 1) {
     if (productEntryCssBudgets.has(normalized)) {
@@ -234,7 +238,7 @@ for (const relativePath of cssFiles) {
 
 for (const requiredPrimitive of ['workspace-surface', 'surface-header', 'surface-tabs', 'surface-body', 'surface-content']) {
   const found = cssFiles.some(relativePath => {
-    const source = fs.readFileSync(path.join(cssRoot, relativePath), 'utf8');
+    const source = readInput(path.join(cssRoot, relativePath), 'utf8');
     return new RegExp(`\\.${requiredPrimitive}\\b`).test(source);
   });
   if (!found) failures.push(`missing canonical surface primitive: .${requiredPrimitive}`);

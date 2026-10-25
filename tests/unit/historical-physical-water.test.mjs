@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {selectPhysicalWaterContext,createPhysicalResources} from '../../assets/js/modules/physical-resources.js';
+import {selectPhysicalWaterContext,createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
 import {createHash} from 'node:crypto';
-import {drawGpuBaseScene} from '../../assets/js/modules/gpu-base-scene-pass.js';
-import '../../assets/js/workers/canvas-scene-composition-core.js';
+import {drawGpuBaseScene} from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
+import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
 
 test('reviewed physical geography includes approved selection through May12,1925',()=>{
  const historical={validFrom:'1922-12-30',validTo:'1925-05-12',id:'caspian1922'};

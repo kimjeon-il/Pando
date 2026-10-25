@@ -3,11 +3,11 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
-const uiRuntime = read('assets/js/modules/ui-runtime.js');
-const persistence = read('assets/js/modules/persistence-service.js');
-const transaction = read('assets/js/modules/app-geometry-preview.js');
-const projectDomain = read('assets/js/modules/project-domain.js');
-const metrics = read('assets/js/modules/runtime-performance-metrics.js');
+const uiRuntime = read('apps/editor/frontend/js/modules/ui-runtime.js');
+const persistence = read('apps/editor/frontend/js/modules/persistence-service.js');
+const transaction = read('apps/editor/frontend/js/modules/app-geometry-preview.js');
+const projectDomain = read('shared/frontend/js/modules/project-domain.js');
+const metrics = read('shared/frontend/js/modules/runtime-performance-metrics.js');
 
 test('runtime performance collector is installed once from the canonical UI runtime', () => {
   assert.match(uiRuntime, /installRuntimePerformanceMetrics/);

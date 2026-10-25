@@ -12,7 +12,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const baselinePath=path.join(root,'assets/js/modules/.p5-legacy-country-shared-boundary-packet.js');
 if(!fs.existsSync(baselinePath))throw new Error('Pinned pre-P5 packet adapter is missing');
 const [modern,old]=await Promise.all([
-  import('../assets/js/modules/country-shared-boundary-packet.js'),
+  import("../shared/frontend/js/modules/country-shared-boundary-packet.js"),
   import(pathToFileURL(baselinePath).href),
 ]);
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'assets/data/world/current.json'),'utf8'));

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { SURFACE_OPEN_ORIGINS, createSurfaceController } from '../../assets/js/modules/surface-controller.js';
+import { SURFACE_OPEN_ORIGINS, createSurfaceController } from "../../shared/frontend/js/modules/surface-controller.js";
 
 function classList() {
   const values = new Set();

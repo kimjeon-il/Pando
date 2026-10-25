@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
-import { createEditorWorkspacePresentation } from '../../assets/js/modules/editor-workspace-presentation.js';
+import { createEditorWorkspacePresentation } from "../../apps/editor/frontend/js/modules/editor-workspace-presentation.js";
 
 function fixture({ initiallyBlocked = false } = {}) {
   const node = () => {

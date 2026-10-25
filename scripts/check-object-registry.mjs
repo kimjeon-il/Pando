@@ -7,9 +7,9 @@ import {
   MAP_OBJECT_CATEGORY_ORDER,
   MAP_OBJECT_TYPES,
   categoryForCreateItem,
-} from '../assets/js/modules/map-object-categories.js';
-import { OBJECT_ACTIONS, objectActionApplies } from '../assets/js/modules/object-action-registry.js';
-import { ACTION_UI_BINDINGS } from '../assets/js/modules/object-registry-presenter.js';
+} from "../shared/frontend/js/modules/map-object-categories.js";
+import { OBJECT_ACTIONS, objectActionApplies } from "../apps/editor/frontend/js/modules/object-action-registry.js";
+import { ACTION_UI_BINDINGS } from "../apps/editor/frontend/js/modules/object-registry-presenter.js";
 
 const root = process.cwd();
 const failures = [];
@@ -83,7 +83,7 @@ for (const [actionId, elementIds] of Object.entries(requiredBindings)) {
   }
 }
 
-const uiRuntimeSource = fs.readFileSync(path.join(root, 'assets/js/modules/ui-runtime.js'), 'utf8');
+const uiRuntimeSource = fs.readFileSync(path.join(root, 'apps/editor/frontend/js/modules/ui-runtime.js'), 'utf8');
 if (!uiRuntimeSource.includes("import { installObjectRegistryPresenter } from './object-registry-presenter.js';")) {
   fail('canonical UI runtime must import the object registry presenter');
 }

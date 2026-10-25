@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
 
 test('territorial service adapts actual C++ metadata, locks and retained parent candidates without Web model/history writes',async () => {
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));

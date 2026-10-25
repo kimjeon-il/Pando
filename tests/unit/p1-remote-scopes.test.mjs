@@ -13,7 +13,7 @@ test('toolchain has one pinned source for Node, pnpm, Python and C++ compilers',
   assert.equal(versions.cmake,'3.31.6');
 });
 test('CSS edits do not start C++/WASM or GIS tools', () => {
-  const p=classifyPaths(['assets/css/ui.css'],all);
+  const p=classifyPaths(['shared/frontend/css/ui.css'],all);
   assert.equal(p.web,true);
   assert.equal(p.ui,true);
   for(const flag of ['core','wasm','gisTools','python','places']) assert.equal(p[flag],false,flag);
@@ -26,7 +26,7 @@ test('core source triggers standalone C++ and WASM only when the source exists',
   assert.equal(legacy.core,false);assert.equal(legacy.wasm,false);
 });
 test('WebView shell changes select the current Web app checks', () => {
-  assert.equal(classifyPaths(['apps/web-shell/startup.js'],all).web,true);
+  assert.equal(classifyPaths(['apps/editor/startup.js'],all).web,true);
 });
 test('GIS Python and city records stay in their own scopes', () => {
   const gis=classifyPaths(['tools/build-terrain-dem.py'],all);
@@ -58,6 +58,6 @@ test('manual scope can explicitly opt into full diagnostics', () => {
 
 
 test('app and shared documentation do not start compilation', () => {
-  const result=classifyPaths(['apps/web-shell/README.md','shared/README.md'],all);
+  const result=classifyPaths(['apps/editor/README.md','shared/README.md'],all);
   for(const key of ['web','core','wasm','gisTools'])assert.equal(result[key],false,key);
 });

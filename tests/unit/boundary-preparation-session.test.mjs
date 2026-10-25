@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { territorialRootId } from '../../assets/js/modules/territorial-units.js';
-import { createGeometryPreview } from '../../assets/js/modules/app-geometry-preview.js';
+import { territorialRootId } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createGeometryPreview } from "../../apps/editor/frontend/js/modules/app-geometry-preview.js";
 
 function fixture() {
   const requests = [], counters = { stop: 0, refresh: 0 };

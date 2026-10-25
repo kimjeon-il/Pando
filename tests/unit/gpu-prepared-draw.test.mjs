@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGpuPolygonOverlayPass } from '../../assets/js/modules/gpu-polygon-overlay-pass.js';
-import { createGpuStrokeRenderer } from '../../assets/js/modules/gpu-stroke-renderer.js';
-import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
-import { drawGpuBaseScene } from '../../assets/js/modules/gpu-base-scene-pass.js';
-import { drawGpuInteractionPass } from '../../assets/js/modules/gpu-interaction-pass.js';
-import { prepareGpuBaseScene, prepareGpuInteractionPlan } from '../../assets/js/modules/gpu-scene-preparation.js';
+import { createGpuPolygonOverlayPass } from "../../shared/frontend/js/modules/gpu-polygon-overlay-pass.js";
+import { createGpuStrokeRenderer } from "../../shared/frontend/js/modules/gpu-stroke-renderer.js";
+import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
+import { drawGpuBaseScene } from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
+import { drawGpuInteractionPass } from "../../shared/frontend/js/modules/gpu-interaction-pass.js";
+import { prepareGpuBaseScene, prepareGpuInteractionPlan } from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
 
 function glFixture() {
   const gl = { createShader: () => ({}), createProgram: () => ({}), createBuffer: () => ({}),

@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
 import { createOriginalFullDocumentFixture } from '../helpers/web-full-document-fixture.mjs';
 
-const runtimePath = resolve(process.env.PANDOEDITOR_WASM_MODULE ?? fileURLToPath(new URL('../../assets/wasm/pandoeditor-core.js',import.meta.url)));
+const runtimePath = resolve(process.env.PANDOEDITOR_WASM_MODULE ?? fileURLToPath(new URL("../../shared/frontend/static/wasm/pandoeditor-core.js",import.meta.url)));
 const [runtimeBytes, wasmBytes, seedBytes] = await Promise.all([
   readFile(runtimePath), readFile(runtimePath.replace(/\.js$/, '.wasm')),
   readFile(new URL('../fixtures/portability/web-document-seed.json', import.meta.url)),

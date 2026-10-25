@@ -7,7 +7,7 @@ import {
   planCoastReconciliation,
   planCoastReconciliations,
   validateCoastReplacement,
-} from '../../assets/js/modules/coast-reconciliation.js';
+} from "../../apps/editor/frontend/js/modules/coast-reconciliation.js";
 
 const square = () => ({
   type: 'Polygon',

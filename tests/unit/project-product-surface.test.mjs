@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createProjectDomain} from '../../assets/js/modules/project-domain.js';
+import {createProjectDomain} from "../../shared/frontend/js/modules/project-domain.js";
 
 test('project domains require explicit product mode and only editors register mutation/persistence APIs',()=>{
  assert.throws(()=>createProjectDomain({}),/product mode/i);

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGpuUploadScheduler } from '../../assets/js/modules/gpu-upload-scheduler.js';
-import { prepareMeshSpatialBlocks, visibleSpatialBlockRanges } from '../../assets/js/modules/mesh-spatial-blocks.js';
+import { createGpuUploadScheduler } from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
+import { prepareMeshSpatialBlocks, visibleSpatialBlockRanges } from "../../shared/frontend/js/modules/mesh-spatial-blocks.js";
 
 function clock() {
   const frames = []; let time = 0;

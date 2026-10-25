@@ -1,3 +1,4 @@
+import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import test, { after } from 'node:test';
 import { readFileSync, mkdtempSync } from 'node:fs';
@@ -114,7 +115,7 @@ test('diagnostic deadlines clear timers after successful and rejected reads', as
 });
 
 
-const canvasTransportSource = readFileSync(new URL('../../assets/js/modules/gpu-canvas-worker.js', import.meta.url), 'utf8');
+const canvasTransportSource = readFileSync(new URL("../../shared/frontend/js/modules/gpu-canvas-worker.js", import.meta.url), 'utf8');
 function observedCanvasTransport() {
   const scope = { window: {}, performance: { now: () => 123 }, setTimeout, clearTimeout };
   vm.runInNewContext(`(${installCanvasTransportDiagnostics.toString()})()`, scope);
@@ -292,8 +293,8 @@ test('whole-case color failure emits cached stage/errors/sample even when its pa
 });
 
 
-const selectionPassSource = readFileSync(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
-const strokeRendererSource = readFileSync(new URL('../../assets/js/modules/gpu-stroke-renderer.js', import.meta.url), 'utf8');
+const selectionPassSource = readFileSync(new URL("../../shared/frontend/js/modules/selection-pass.js", import.meta.url), 'utf8');
+const strokeRendererSource = readFileSync(new URL("../../shared/frontend/js/modules/gpu-stroke-renderer.js", import.meta.url), 'utf8');
 
 test('stroke queue summaries identify signature, per-job progress and bytes ahead without retaining geometry', () => {
   const job = (part, offset, signature) => ({ part, offset, signature, geometry: { instances: new Uint8Array(100), nodes: new Uint8Array(60) }, buffers: [{ forbidden: true }] });
@@ -332,7 +333,7 @@ let observedGpuModuleSequence = 0;
 async function observedGpuModule(name, source, instrument, scope) {
   globalThis.__mapDiagnosticTestWindow = scope.window;
   try {
-    const url = new URL(`../../assets/js/modules/${name}`, import.meta.url);
+    const url = repositoryFrontendUrl(`assets/js/modules/${name}`);
     const patched = instrument(source).replace(/from '(\.\/[^']+)'/g, (_, relative) => `from '${new URL(relative, url).href}'`);
     return await import(`data:text/javascript,${encodeURIComponent(`// probe module ${++observedGpuModuleSequence}\nconst window = globalThis.__mapDiagnosticTestWindow;\n` + patched)}`);
   } finally { delete globalThis.__mapDiagnosticTestWindow; }

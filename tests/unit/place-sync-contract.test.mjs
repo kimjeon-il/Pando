@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { PLACE_LANGUAGES, PLACE_LIMITS, PLACE_TILE_FORMAT, normalizePlace, DEFAULT_PLACE_LANGUAGES, togglePlaceLanguage } from '../../assets/js/modules/place-contract.js';
-import { resolvePlaceLabelRows } from '../../assets/js/modules/place-name-display.js';
-import { PLACE_LABEL_METRICS, placeLabelDimensions } from '../../assets/js/modules/label-layout.js';
-import { encodePlaceTile, decodePlaceTile } from '../../assets/js/modules/place-codec.js';
+import { PLACE_LANGUAGES, PLACE_LIMITS, PLACE_TILE_FORMAT, normalizePlace, DEFAULT_PLACE_LANGUAGES, togglePlaceLanguage } from "../../shared/frontend/js/modules/place-contract.js";
+import { resolvePlaceLabelRows } from "../../shared/frontend/js/modules/place-name-display.js";
+import { PLACE_LABEL_METRICS, placeLabelDimensions } from "../../shared/frontend/js/modules/label-layout.js";
+import { encodePlaceTile, decodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
 
 const contract = JSON.parse(readFileSync(new URL('../../contracts/places/v3.json', import.meta.url), 'utf8'));
 test('portable place contract exposes the exact binary and language policy', () => {

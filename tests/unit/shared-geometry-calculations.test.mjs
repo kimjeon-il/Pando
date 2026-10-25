@@ -2,11 +2,11 @@ import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCutGeometry } from '../../assets/js/modules/app-cut-geometry.js';
-import { geometryBounds } from '../../assets/js/modules/map-edit-geometry.js';
+import { createCutGeometry } from "../../apps/editor/frontend/js/modules/app-cut-geometry.js";
+import { geometryBounds } from "../../shared/frontend/js/modules/map-edit-geometry.js";
 import {
   clippingOperationWithPrecisionRetry,
-} from '../../assets/js/modules/polygon-clipping-calculation.js';
+} from "../../apps/editor/frontend/js/modules/polygon-clipping-calculation.js";
 
 const EMPTY_BOUNDS = [Infinity, Infinity, -Infinity, -Infinity];
 

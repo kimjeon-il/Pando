@@ -1,6 +1,6 @@
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
-import { TERRAIN_RASTER_VERSION } from '../../assets/js/modules/terrain-manifest.js';
+import { TERRAIN_RASTER_VERSION } from "../../shared/frontend/js/modules/terrain-manifest.js";
 
 const layouts = [
   { name: 'wide', viewport: { width: 1440, height: 900 } },

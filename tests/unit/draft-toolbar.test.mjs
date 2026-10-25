@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTaskPresentation, draftToolbarStatus, multiDraftReviewActive } from '../../assets/js/modules/app-task-presentation.js';
-import { MAP_INTERACTION_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { createTaskPresentation, draftToolbarStatus, multiDraftReviewActive } from "../../apps/editor/frontend/js/modules/app-task-presentation.js";
+import { MAP_INTERACTION_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports.js";
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 const options = (overrides = {}) => ({

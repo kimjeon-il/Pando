@@ -5,7 +5,7 @@ import {
   EXCHANGE_TARGETS,
   exchangeTargetDescriptor,
   normalizeExchangeTarget,
-} from '../../assets/js/modules/exchange-adapter-registry.js';
+} from "../../apps/editor/frontend/js/modules/exchange-adapter-registry.js";
 
 test('exchange targets own canonical domain and fallback metadata', () => {
   assert.equal(exchangeTargetDescriptor('general').domain, 'territorial');

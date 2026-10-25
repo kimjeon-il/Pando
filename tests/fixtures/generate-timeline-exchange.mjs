@@ -1,6 +1,6 @@
-import {TERRITORIAL_SCHEMA_VERSION} from '../../assets/js/modules/territorial-units.js';
+import {TERRITORIAL_SCHEMA_VERSION} from "../../shared/frontend/js/modules/territorial-units.js";
 import { mkdir, writeFile } from 'node:fs/promises';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
 import { projectForStorage } from '../helpers/timeline-project.mjs';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
 

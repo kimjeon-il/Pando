@@ -2,8 +2,8 @@ import {initializeTestTerritorialState,testCoreProject,staticAutosaveProject,exe
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { createEmptyTerritorialState } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createEmptyTerritorialState } from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 test('dated store publishes selected month while retaining all historical identities', async () => {
   const project = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json', import.meta.url), 'utf8'));

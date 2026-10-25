@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { shiftTimelineMonth, timelineMonthLabel } from '../../assets/js/modules/timeline-controls.js';
+import { shiftTimelineMonth, timelineMonthLabel } from "../../shared/frontend/js/modules/timeline-controls.js";
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
 test.use({ trace: 'off', hasTouch: true, actionTimeout: 15000 });

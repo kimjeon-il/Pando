@@ -5,9 +5,9 @@ import {
   prepareLibraryOwnership,
   shouldShowTerritorialParentChoice,
   territorialParentChoices,
-} from '../../assets/js/modules/library-ownership.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+} from "../../apps/editor/frontend/js/modules/library-ownership.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
 const country = id => createTerritorialFeature({ id, entityKind: 'general', name: id, geometry });

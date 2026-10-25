@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTerritorialLibraryController } from '../../assets/js/modules/territorial-library-controller.js';
-import { createTerritorialLibraryService } from '../../assets/js/modules/territorial-library-service.js';
-import { selectGeometryVersion } from '../../assets/js/modules/territorial-library.js';
-import { shouldShowTerritorialParentChoice } from '../../assets/js/modules/library-ownership.js';
-import { resolveSelectChoice } from '../../assets/js/modules/select-option-policy.js';
+import { createTerritorialLibraryController } from "../../apps/editor/frontend/js/modules/territorial-library-controller.js";
+import { createTerritorialLibraryService } from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
+import { selectGeometryVersion } from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import { shouldShowTerritorialParentChoice } from "../../apps/editor/frontend/js/modules/library-ownership.js";
+import { resolveSelectChoice } from "../../shared/frontend/js/modules/select-option-policy.js";
 import { catalogEntity } from '../helpers/territorial-catalog.mjs';
-import { createEnvironment } from '../../assets/js/modules/app-environment.js';
+import { createEnvironment } from "../../apps/editor/frontend/js/modules/app-environment.js";
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]] };
 const entity = (id, extra = {}) => catalogEntity({ entityId: `state:${id}`, entityKind: 'general', names: { en: id },

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canvasCountryGeometrySignature } from '../../assets/js/modules/gpu-map-renderer.js';
-import { touchGeometry } from '../../assets/js/modules/geometry-versions.js';
+import { canvasCountryGeometrySignature } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import { touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
 
 const feature = id => ({ id, geometry: { type:'Polygon', coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]] },
   properties: { entityKind:'general', style:{} } });

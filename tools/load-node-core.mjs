@@ -2,15 +2,16 @@ import { createHash, webcrypto } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { loadVerifiedCore } from '../assets/js/modules/core-wasm-loader.js';
+import { loadVerifiedCore } from "../shared/frontend/js/modules/core-wasm-loader.js";
 import { sharedSourceManifest } from './package-shared-core-assets.mjs';
+import {frontendWasmRoot} from '../scripts/lib/frontend-layout.mjs';
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
 export async function loadNodeCore({ root = fileURLToPath(new URL('../', import.meta.url)),
   modulePath = process.env.PANDOEDITOR_WASM_MODULE } = {}) {
   try {
-    const assets = resolve(root, 'assets/wasm');
+    const assets = resolve(root, frontendWasmRoot);
     const manifest = JSON.parse(await readFile(resolve(assets, 'pandoeditor-core.manifest.json'), 'utf8'));
     const sourceSha256 = sharedSourceManifest(root).sourceSha256;
     const compiledPath = resolve(modulePath || resolve(assets, manifest.assets?.js?.file || 'pandoeditor-core.js'));

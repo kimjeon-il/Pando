@@ -1,11 +1,11 @@
-import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
+import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer-presentation.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import '../../assets/js/vendor/polygon-clipping.min.js';
-import {createLandRelations} from '../../assets/js/modules/app-land-relations.js';
-import {createCountryCommandCalculator} from '../../assets/js/modules/map-edit-country-commands.js';
-import {createTerritorialFeature,territorialRootId,TERRITORIAL_COVERAGE_MODES} from '../../assets/js/modules/territorial-units.js';
-import {DISTRIBUTION_MODES} from '../../assets/js/modules/distribution-model.js';
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import {createLandRelations} from "../../apps/editor/frontend/js/modules/app-land-relations.js";
+import {createCountryCommandCalculator} from "../../apps/editor/frontend/js/modules/map-edit-country-commands.js";
+import {createTerritorialFeature,territorialRootId,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
+import {DISTRIBUTION_MODES} from "../../shared/frontend/js/modules/distribution-model.js";
 import {testCoreProject,initializeTestTerritorialState} from '../helpers/timeline-project.mjs';
 
 const square=(x0,y0,x1,y1)=>({type:'Polygon',coordinates:[[[x0,y0],[x0,y1],[x1,y1],[x1,y0],[x0,y0]]]});

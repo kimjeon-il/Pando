@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { objectRefKey } from '../assets/js/modules/object-selection-controller.js';
+import { objectRefKey } from "../shared/frontend/js/modules/object-selection-controller.js";
 import { createObjectSelectionController as baselineController } from '../tests/fixtures/portability/baseline-selection.mjs';
 import { createNodeSelection } from '../tests/helpers/core-selection.mjs';
 

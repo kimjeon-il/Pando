@@ -10,7 +10,7 @@ function sources(directory) {
     return entry.isDirectory() ? sources(file) : entry.name.endsWith('.js') ? [file] : [];
   });
 }
-const entries = sources('assets/js').flatMap(file => auditTerritorialStorage(fs.readFileSync(path.join(root, file), 'utf8'), file));
+const entries = ['shared/frontend/js','apps/editor/frontend/js','apps/viewer/js'].flatMap(sources).flatMap(file => auditTerritorialStorage(fs.readFileSync(path.join(root, file), 'utf8'), file));
 if (process.argv.includes('--inventory')) {
   console.log(JSON.stringify(entries, null, 2));
 } else {

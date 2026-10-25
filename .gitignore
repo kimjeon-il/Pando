@@ -4,17 +4,17 @@ reports/hydro-calibration/.cache/
 reports/places/.cache/
 node_modules/
 /build-native/
-/apps/web-shell/dist/
-/apps/web-shell/.stage-lock
-/apps/web-shell/.dist-pending/
-/apps/web-shell/.dist-previous/
-/apps/web-shell/src-tauri/target/
-/apps/web-shell/src-tauri/gen/schemas/
-/apps/web-shell/src-tauri/gen/android/.gradle/
-/apps/web-shell/src-tauri/gen/android/.kotlin/
-/apps/web-shell/src-tauri/gen/android/**/build/
-/apps/web-shell/src-tauri/gen/android/.tauri/
-/apps/web-shell/src-tauri/gen/android/local.properties
+/apps/editor/dist/
+/apps/editor/.stage-lock
+/apps/editor/.dist-pending/
+/apps/editor/.dist-previous/
+/apps/editor/src-tauri/target/
+/apps/editor/src-tauri/gen/schemas/
+/apps/editor/src-tauri/gen/android/.gradle/
+/apps/editor/src-tauri/gen/android/.kotlin/
+/apps/editor/src-tauri/gen/android/**/build/
+/apps/editor/src-tauri/gen/android/.tauri/
+/apps/editor/src-tauri/gen/android/local.properties
 playwright-report/
 test-results/
 .terrain-preview-cache/
@@ -34,3 +34,15 @@ tools/historical-library/generated/german-empire-1914-base.diagnostics.json
 /tools/historical-library/review-output
 /tools/historical-library/land-borders
 /.codex-remote-attachments/
+
+# Generated frontend outputs are owned by the immutable cache.
+/index.html
+/.nojekyll
+/apps/editor/editor.html
+/assets/js/
+/assets/css/
+/assets/worker-runtime/
+
+# Machine-local dependency store configuration
+/.npmrc
+/apps/editor/.npmrc

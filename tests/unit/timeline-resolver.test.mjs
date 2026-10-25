@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { restoreTimelineStorage } from '../../assets/js/modules/timeline-storage.js';
-import { initialTimelineMonth, resolveWorld, resolvedTimelineViews } from '../../assets/js/modules/timeline-resolver.js';
+import { restoreTimelineStorage } from "../../shared/frontend/js/modules/timeline-storage.js";
+import { initialTimelineMonth, resolveWorld, resolvedTimelineViews } from "../../shared/frontend/js/modules/timeline-resolver.js";
 import { sphericalCore } from '../helpers/spherical-core.mjs';
 
 const project = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json', import.meta.url), 'utf8'));

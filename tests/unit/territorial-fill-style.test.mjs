@@ -1,11 +1,11 @@
 import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTerritorialFillResolver } from '../../assets/js/modules/territorial-fill-style.js';
-import { normalizeLayerPresentation, resolveLayerDisplayColor } from '../../assets/js/modules/layer-presentation.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { createTerritorialFillResolver } from "../../shared/frontend/js/modules/territorial-fill-style.js";
+import { normalizeLayerPresentation, resolveLayerDisplayColor } from "../../shared/frontend/js/modules/layer-presentation.js";
+import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 
 const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
 const country = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry });

@@ -1,6 +1,6 @@
-import {createEmptyTerritorialState} from '../../assets/js/modules/territorial-entity-store.js';
+import {createEmptyTerritorialState} from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -10,8 +10,8 @@ import {
   assertCurrentProjectSchema,
   createProjectObjectId,
   pickProjectFields,
-} from '../../assets/js/modules/project-state.js';
-import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
+} from "../../shared/frontend/js/modules/project-state.js";
+import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
 
 const state = {projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
   sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],

@@ -1,4 +1,4 @@
-import {normalizeGenericFeatureSemantics} from '../../assets/js/modules/generic-feature-service.js';
+import {normalizeGenericFeatureSemantics} from "../../apps/editor/frontend/js/modules/generic-feature-service.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';

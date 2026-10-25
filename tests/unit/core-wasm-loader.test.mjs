@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 import test from 'node:test';
-import { loadVerifiedCore } from '../../assets/js/modules/core-wasm-loader.js';
+import { loadVerifiedCore } from "../../shared/frontend/js/modules/core-wasm-loader.js";
 
 const bytes = value => new Uint8Array(Buffer.from(value));
 const hash = async value => Buffer.from(await webcrypto.subtle.digest('SHA-256', value)).toString('hex');

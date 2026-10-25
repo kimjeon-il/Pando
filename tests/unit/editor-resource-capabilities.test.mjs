@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {resourceCapabilities} from '../../assets/js/modules/resource-capabilities.js';
-import {createPhysicalResources} from '../../assets/js/modules/physical-resources.js';
+import {resourceCapabilities} from "../../shared/frontend/js/modules/resource-capabilities.js";
+import {createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
 import {createHash} from 'node:crypto';
 test('editor disables terrain construction and starts builtin hydro only on request',async t=>{
   const bytes=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[]}));

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { createInitialDocument } from '../../assets/js/modules/initial-document.js';
+import { createInitialDocument } from "../../shared/frontend/js/modules/initial-document.js";
 import { coreFileProjection, productionGeoPackage } from '../helpers/production-geopackage.mjs';
 
 /** Current C++ export receipt and the editor's real GeoPackage byte encoder. */

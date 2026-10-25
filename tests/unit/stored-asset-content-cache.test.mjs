@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { TextDecoder } from 'node:util';
-import { createStoredAssetLoader } from '../../assets/js/modules/stored-asset-loader.js';
+import { createStoredAssetLoader } from "../../shared/frontend/js/modules/stored-asset-loader.js";
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const CACHE = 'pandolab-world-content-v1';

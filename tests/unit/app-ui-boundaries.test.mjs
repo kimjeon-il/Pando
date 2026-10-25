@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createApplicationLifecycle } from '../../assets/js/modules/application-lifecycle.js';
-import { createProjectUiBridge } from '../../assets/js/modules/project-ui-bridge.js';
-import { createPropertyEditorBindings } from '../../assets/js/modules/property-editor-bindings.js';
-import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
-import { createGisWorkflowController } from '../../assets/js/modules/gis-workflow-controller.js';
-import { createMapDebugController } from '../../assets/js/modules/map-debug-controller.js';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createApplicationLifecycle } from "../../shared/frontend/js/modules/application-lifecycle.js";
+import { createProjectUiBridge } from "../../apps/editor/frontend/js/modules/project-ui-bridge.js";
+import { createPropertyEditorBindings } from "../../apps/editor/frontend/js/modules/property-editor-bindings.js";
+import { createMapInputPresentation } from "../../shared/frontend/js/modules/map-input-presentation.js";
+import { createGisWorkflowController } from "../../apps/editor/frontend/js/modules/gis-workflow-controller.js";
+import { createMapDebugController } from "../../apps/editor/frontend/js/modules/map-debug-controller.js";
+import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 const { EventTarget, Event, CustomEvent } = globalThis;
 

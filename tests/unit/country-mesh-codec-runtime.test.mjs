@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import test from 'node:test';
-import { decodeCountryMesh } from '../../assets/js/modules/country-mesh-codec.js';
+import { decodeCountryMesh } from "../../shared/frontend/js/modules/country-mesh-codec.js";
 
 const countryCount=258;
 function emptyMeshWithRevision(revision) {

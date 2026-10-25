@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createPersistenceService } from '../../assets/js/modules/persistence-service.js';
-import { createBrowserProjectStorage } from '../../assets/js/modules/browser-project-storage.js';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
+import { createPersistenceService } from "../../apps/editor/frontend/js/modules/persistence-service.js";
+import { createBrowserProjectStorage } from "../../shared/frontend/js/modules/browser-project-storage.js";
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
 
 const receipt = (project, checkpoint = null) => ({ project, checkpoint });
 function barrier() {

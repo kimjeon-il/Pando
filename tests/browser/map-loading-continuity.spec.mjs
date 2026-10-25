@@ -31,7 +31,7 @@ test('new project keeps the old map through slow Core replacement and resize, th
     const source=await(await route.fetch()).text();await route.fulfill({contentType:'text/javascript',body:source.replace('dependencies = ports;','dependencies = ports;window.__loadingDomain=()=>projectDomain;')});
   });
   try{
-    await page.goto('/apps/web-shell/editor.html?debug=1');
+    await page.goto('/__editor/index.html?debug=1');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60000});
     const before=await coloredMapPixels(page);expect(before).toBeGreaterThan(10000);
     await page.locator('#newProjectBtn').evaluate(b=>b.click());

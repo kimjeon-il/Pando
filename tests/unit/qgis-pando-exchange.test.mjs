@@ -6,8 +6,8 @@ import { resolve, join, relative, isAbsolute } from 'node:path';
 import test from 'node:test';
 import { createGisCoreFixture } from '../helpers/gis-core-fixture.mjs';
 import { qgisFixture as original } from '../fixtures/qgis/pando.mjs';
-import { createImportService } from '../../assets/js/modules/import-service.js';
-import { validateGeometry } from '../../assets/js/modules/geometry-validation.js';
+import { createImportService } from "../../apps/editor/frontend/js/modules/import-service.js";
+import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
 
 test('the real import planner accepts mixed generic geometry and still rejects invalid polygons', async () => {
   const collection = structuredClone(original);

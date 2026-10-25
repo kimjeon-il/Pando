@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
-import { validateCollection } from '../../assets/js/modules/gis-geometry-validation.js';
-import { GIS_GEOMETRY_TIMEOUT_MS, createGisGeometryValidator, createImportService } from '../../assets/js/modules/import-service.js';
+import { validateCollection } from "../../apps/editor/frontend/js/modules/gis-geometry-validation.js";
+import { GIS_GEOMETRY_TIMEOUT_MS, createGisGeometryValidator, createImportService } from "../../apps/editor/frontend/js/modules/import-service.js";
 import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
 
@@ -99,7 +99,7 @@ test('GIS validator rejects timed out work, disposes its worker and permits a fr
 
 test('current territorial import validates the complete batch and publishes only changed root IDs', async () => {
   const context = vm.createContext({});
-  vm.runInContext(fs.readFileSync(new URL('../../assets/js/vendor/polygon-clipping.min.js', import.meta.url), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(new URL("../../shared/frontend/js/vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
   const {store,repository,events,rootPatches:patches,committer}=await createGisCoreFixture([],{runtime:{uid:()=> 'source',polygonClipping:context.polygonClipping}});
   let result = { targetType: 'general', collection: { type: 'FeatureCollection', features: [
     feature('A', square), { ...feature('child', square), properties: { parent_id: 'A' } },

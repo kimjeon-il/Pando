@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
+import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
 
 test('project history publishes lifecycle effects after the canonical Worker history acknowledgement', async () => {
   let resolve;
