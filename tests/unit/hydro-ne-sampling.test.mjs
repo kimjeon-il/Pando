@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { compareNaturalEarthMainstems, naturalEarthHydronym,
-  pointToLineDistance, runNaturalEarthScreen } from '../../tools/gis/compare-osm-hydro-natural-earth.mjs';
+  pointToLineDistance, pythonRound, runNaturalEarthScreen } from '../../tools/gis/compare-osm-hydro-natural-earth.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const ne = () => ({features:[
@@ -30,6 +30,45 @@ test('81 independent name samples preserve support and source name without modif
   assert.equal(result.items[0].naturalEarthCandidates[0].sampleCoverage,1);
   assert.equal(result.items[0].naturalEarthCandidates[0].meanDistanceDegrees,0);
   assert.deepEqual(a,before);
+});
+test('published microdegree bounds match Python binary64 tie-side rounding',()=>{
+  const cases=[
+    [1000050,1.0001],[-12345550,-12.3455],
+    [9876550,9.8765],[10234550,10.2346],
+  ];
+  for(const [micro,expected] of cases)
+    assert.equal(pythonRound(micro/1e6,4),expected,'microdegree '+micro);
+  const raw=decoded(),sourceBefore=structuredClone(raw);
+  raw.features[0].metadata.bounds=[1000050,-12345550,9876550,10234550];
+  const proof=compareNaturalEarthMainstems(raw,ne(),scope());
+  assert.deepEqual(proof.items[0].mainstemBounds,[1.0001,-12.3455,9.8765,10.2346]);
+  assert.deepEqual(sourceBefore,decoded());
+});
+test('published Hydro system 20532766 preserves its three source mainstem fragments and exact Python bbox',()=>{
+  // SHA-verified Hydro v0.13.2: f0832dd2...; metadata core: 048449cc...
+  // The raw latitude 43.243750 is represented just below its decimal tie in binary64.
+  const bounds=[
+    [42431250,43243750,45000000,43600000],
+    [44000000,43400000,46800000,43781250],
+    [46000000,43600000,47552083,43700000],
+  ];
+  const chains=[
+    [[42.43125,43.24375],[44.9,43.6]],
+    [[44,43.4],[46.8,43.78125]],
+    [[46,43.6],[47.552083,43.7]],
+  ];
+  const decodedSource={features:chains.map((coordinates,i)=>({
+    metadata:{systemId:'20532766',role:'mainstem',bounds:bounds[i]},
+    geometry:{type:'LineString',coordinates},
+  }))};
+  const inputBefore=structuredClone(decodedSource);
+  const result=compareNaturalEarthMainstems(decodedSource,ne(),{
+    items:[{systemId:'20532766',nameKo:'source-name'}],
+  });
+  assert.equal(result.items[0].mainstemFragments,3);
+  assert.deepEqual(result.items[0].mainstemBounds,[42.4312,43.2437,47.5521,43.7812]);
+  assert.equal(pythonRound(43243750/1e6,4),43.2437);
+  assert.deepEqual(decodedSource,inputBefore);
 });
 test('single named river is counted once per location even with overlapping NE segments',()=>{
   const data=ne();
