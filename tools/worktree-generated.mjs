@@ -40,6 +40,8 @@ const scopePattern=/^(?:apps\/web-shell\/(?:src-tauri\/(?:target|gen\/android\/(
 const compilerPatterns={
  'android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|\.temp)(?:\/|$)/,
  toolchains:/^(?:binutils-new|cargo|cmake|gradle|rustup|sccache)(?:\/|$)/,
+ 'retired-android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|platform-tools|licenses|\.knownPackages|\.sdk|\.temp)(?:\/|$)/,
+ avd:/^medium_phone(?:\.avd(?:\/|$)|\.ini$)/,
  'compiler-cache':/^sccache(?:\/|$)/,
  worktree:/^build-native\/(?:emsdk|p1)(?:\/|$)/,
 };
@@ -52,7 +54,7 @@ function validate(root,path,roots,protectedPaths=[],compilerScopes=[]){
 }
 function assertIdle(roots,consumers){
  const norm=p=>String(p||'').replaceAll('\\','/').toLowerCase();
- for(const c of consumers)for(const root of roots){const r=norm(root),build=/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle)\.exe$/i.test(c.Name||'')||(/^java(?:w)?\.exe$/i.test(c.Name||'')&&/gradle/i.test(c.CommandLine||''));if(norm(c.ExecutablePath).startsWith(r+'/')||norm(c.CommandLine).includes(r)||c.globalBuild||build)throw Error(`Active consumer blocks cleanup: ${c.ProcessId||''} ${c.Name||''}`);}
+ for(const c of consumers)for(const root of roots){const r=norm(root),build=/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|emulator|qemu-system-[\w-]+)\.exe$/i.test(c.Name||'')||(/^java(?:w)?\.exe$/i.test(c.Name||'')&&/gradle/i.test(c.CommandLine||''));if(norm(c.ExecutablePath).startsWith(r+'/')||norm(c.CommandLine).includes(r)||c.globalBuild||build)throw Error(`Active consumer blocks cleanup: ${c.ProcessId||''} ${c.Name||''}`);}
  for(const root of roots)for(const p of ['apps/web-shell/.stage-lock','.library-data/prepare.lock'])if(existsSync(containedPath(root,p)))throw Error(`Active consumer lock: ${root}/${p}`);
 }
 function destination(entry,relocationRoots){
