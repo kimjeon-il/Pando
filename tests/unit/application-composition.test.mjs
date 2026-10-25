@@ -1,4 +1,4 @@
-import {applicationOwnerDefinitions} from '../../scripts/lib/application-source.mjs';
+import {applicationOwnerDefinitions,applicationFunctionSource} from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -123,4 +123,21 @@ test('the phase-aware scene provides a common label ref for each general root', 
   owner.connect({ objectModelB: { territorialScope: { displayEntities: () => [feature] } }, projectState: { state: { layerPresentation: {} } } });
   const scene = owner.builtinTerritorialScene();
   assert.deepEqual(scene.labelRefs.get('A'), { domain: 'territorial', type: 'entity', id: 'A' });
+});
+
+test('Node application source parser keeps nested body and multiline parameters',()=>{
+  const source = `export async function operation({
+  defaults = {},
+}) {
+  if(defaults.enabled){
+    return { result: true };
+  }
+  return { result: false };
+}
+function following(){ return null; }`;
+  const owner=applicationFunctionSource(source,'operation');
+  assert.ok(owner.includes('return { result: false };'));
+  assert.ok(owner.startsWith('export async function operation('));
+  assert.doesNotMatch(owner,/following/);
+  assert.throws(()=>applicationFunctionSource(source,'missing'),/Missing application function/);
 });

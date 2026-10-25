@@ -55,7 +55,6 @@ jobs:
           PY
       - name: Verify old and new report layout resolution
         run: |
-          python -m unittest tests/test_report_paths.py
           node --test tests/unit/report-paths.test.mjs
 
   web-mobile:

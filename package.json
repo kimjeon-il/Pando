@@ -66,7 +66,7 @@
     "check:geometry-runtime": "node --test tests/unit/p6-polygon-core.test.mjs tests/unit/edit-preparation.test.mjs",
     "test:gis-python": "python -m unittest discover -s tests -p \"test_*.py\" && python -m unittest discover -s tests/python -p \"test_*.py\"",
     "check:affected": "node scripts/run-application-checks.mjs",
-    "test:gis-node": "node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs"
+    "test:gis-node": "node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/report-paths.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
