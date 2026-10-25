@@ -48,7 +48,7 @@ export async function composeViewer({ productMode, meta }) {
   let openingPreserved=null;
   const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
-    onProjectReset:async event=>{previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{preserveBuiltinMesh:event.preserveBuiltinMesh===true});},
+    onProjectReset:async event=>{previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation);},
     replaceSnapshot:async()=>{await map.setSession(activeSession,{prepareView:async()=>{
       const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
       if(openingPreserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:openingPreserved});
@@ -81,7 +81,7 @@ export async function composeViewer({ productMode, meta }) {
     mapHostViewB:{queueMapResize:()=>{owners.mapHost.queueMapResize('panel-layout');}},
     platformConfigurationB:{selectController},get mapNavigation(){return map.navigation;}});
   surfaces.initializeWorkspaceSurfaces();
-  map=createViewerMap({owners,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),meta,projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render(true);},onError:report});
+  map=createViewerMap({owners,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),meta,projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report});
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,
     layerItemObjectRef:map.objectQuery.layerItemObjectRef,selectionDomain,
@@ -97,7 +97,7 @@ export async function composeViewer({ productMode, meta }) {
   // replacement below. The resource owner handles errors and shared requests.
   map.loadPhysicalResources({includeHydro:false});
   const syncStatus=()=>{if(map&&!projectDomain.isOpening())selectionUiController.syncNow(null,{force:true});};
-  const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.cancelSearch();searchController.render(true);};
+  const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.render();};
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
       if(builtinActive){await builtinClock.selectMonth(month);return;}

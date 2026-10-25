@@ -19,6 +19,34 @@ The map mode supplies the land substrate: theme land color without terrain, gray
 
 ## Geometry and view ownership
 
+### Common dependency rule
+
+Dates, view changes and project generations trigger evaluation, not blanket
+resource disposal. `resource-update-policy.js` is the pure shared decision
+owner. Resource owners supply source/content keys, preparation conditions,
+the actual graphics context and its generation, and presentation conditions.
+It reports input, CPU preparation, GPU upload and presentation changes.
+Classic Canvas workers load a generated adapter built from this exact module;
+the adapter has no separately maintained policy implementation.
+An owner retains its own keys and resources; no global resource-state mirror
+or element-specific date/project exceptions are permitted.
+
+Temporal lifetime/property/geometry queries still run. Compare their effective
+results before scheduling work. Equal country geometry and membership retain
+the complete mesh, shared strokes and spatial blocks. A name/color/flag change
+updates the dependent presentation, while unchanged hydro packs, terrain,
+land/water geometry, place data and asset bytes remain resident. Context loss
+requires device reconstruction only. Existing budgets and explicit eviction
+still apply; a missing result must be prepared even when its dependency key
+matches an evicted entry.
+
+Use verified content hashes or immutable geometry references within their
+source namespace. Copied allocations and unrelated global revisions do not
+establish changes. Hash new geometry at its admission/revision boundary, not
+on every date or frame. Stale completions may populate a matching immutable
+cache but cannot publish a newer view. Selection, drafts, user edits and
+history retain their existing project replacement semantics.
+
 Canonical GeoJSON remains lossless. Render LOD is derived only for cached render packets and never writes back to project geometry. Geometry caches are keyed by geometry revision, LOD and projection. Pan, zoom and rotation update frame uniforms; a view-only render must not trigger scene triangulation, stroke topology rebuilds, or mesh compilation.
 
 `RenderScene` is immutable and revisioned. Geometry-heavy country mesh work remains Worker-compiled and transferable. New expensive CPU geometry preprocessing should use Worker RPC instead of introducing another request protocol.

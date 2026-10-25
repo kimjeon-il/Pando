@@ -298,7 +298,7 @@ test('the real Canvas Worker reuses unchanged projected country geometry across 
   paint(); assert.equal(pathBuildCount(), 2);
   send({ type: 'replace-data', geometryRevision: 1, projectGeneration: 3,
     features: [row('new-allocation:0', 2)] });
-  paint(3); assert.equal(pathBuildCount(), 3);
+  paint(3); assert.equal(pathBuildCount(), 2, 'a new delivery generation cannot invalidate unchanged projected geometry');
 });
 
 test('Canvas data acknowledgements identify their project and obsolete data cannot acknowledge a new project', () => {

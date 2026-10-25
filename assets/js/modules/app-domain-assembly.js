@@ -137,7 +137,6 @@ export function createDomainAssembly() {
           projectGeneration: options?.generation,
           skipRenderReset: options?.skipRenderReset === true,
           prepared: options?.prepared,
-          preserveBuiltinMesh: options?.preserveBuiltinMesh === true,
           catalogAlreadyAdmitted: true,
         };
         if (project) return (0, dependencies.projectRestore.applyAtlasState)(project, options?.reason === 'load', resetOptions);
@@ -192,7 +191,7 @@ export function createDomainAssembly() {
         await selectionDomain.resetProject(event.generation);
         selectionUiController.resetProject();
         await editingDomain.resetProject(event.generation);
-        renderingDomain?.resetProjectGeneration(event.generation, { preserveBuiltinMesh: event.preserveBuiltinMesh === true });
+        renderingDomain?.resetProjectGeneration(event.generation);
       },
     });
 

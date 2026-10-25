@@ -37,6 +37,18 @@ test('document load replaces the same readonly facade atomically and releases th
   assert.equal(model.snapshot(),loaded);
 });
 
+test('accepted replacement reuses equal immutable geometry while rejecting changed coordinates under the same reference', () => {
+  const project=seed(), model=createCoreDocumentReadModel(project);
+  const row=project.geometries[0],ref={id:row.id,version:row.version},before=model.geometry(ref);
+  model.acceptLoadedProject(structuredClone(project));
+  assert.strictEqual(model.geometry(ref),before);
+  const changed=structuredClone(project);
+  const visit=value=>{if(typeof value[0]==='number')value[0]+=.125;else visit(value[0]);};
+  visit(changed.geometries[0].geojson.coordinates);
+  model.acceptLoadedProject(changed);
+  assert.notStrictEqual(model.geometry(ref),before);
+});
+
 test('a complete C++ document delta changes only its authoritative object and retains every other domain exactly', () => {
   const project = seed();
   const model = createCoreDocumentReadModel(project);

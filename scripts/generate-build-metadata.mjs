@@ -8,6 +8,7 @@ import { decodeArchiveEntry, libraryCheckout, libraryConfig } from '../tools/lib
 import { collectViewerAssets } from './lib/product-assets.mjs';
 import { renderProductHtml } from './lib/product-html.mjs';
 import { buildWorkerAsset } from './lib/worker-assets.mjs';
+import { transform } from 'esbuild';
 
 const scriptsDirectory = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const projectRoot = resolve(scriptsDirectory, '..');
@@ -70,9 +71,17 @@ if (checkOnly) assert.ok(recordedMeta?.buildId?.startsWith(`${appVersion}-build-
 const buildId = checkOnly ? recordedMeta.buildId : `${appVersion}-build-${safeBuildId || 'local'}`;
 const assetRevision = buildId;
 const workerAssets = {};
+// Classic Workers consume the same pure module as ESM owners. The adapter is
+// generated, never a second hand-maintained invalidation implementation.
+const policyCorePath = resolve(projectRoot, 'assets/js/workers/resource-update-policy-core.js');
+const policyCore = await transform(readFileSync(resolve(projectRoot, 'assets/js/modules/resource-update-policy.js'), 'utf8'),
+  { format: 'iife', globalName: 'PandoLabResourceUpdatePolicy', target: 'es2022', legalComments: 'none' });
+publishText(policyCorePath, '// Generated from modules/resource-update-policy.js. Do not edit.\n'
+  + policyCore.code + '\nself.PandoLabResourceUpdatePolicy = PandoLabResourceUpdatePolicy;\n');
 for (const name of readdirSync(resolve(projectRoot, 'assets/js/workers')).filter(name => name.endsWith('-worker.js')).sort()) {
   const entry = `assets/js/workers/${name}`;
-  const generated = await buildWorkerAsset({ root: projectRoot, entry });
+  const generated = await buildWorkerAsset({ root: projectRoot, entry,
+    readSource: path => pendingText.get(resolve(projectRoot, path)) ?? readFileSync(resolve(projectRoot, path), 'utf8') });
   workerAssets[entry] = { url: generated.url, files: [...generated.files.keys()].sort(),
     sha256: Object.fromEntries([...generated.files].sort(([a], [b]) => a.localeCompare(b))
       .map(([path, source]) => [path, createHash('sha256').update(source).digest('hex')])) };

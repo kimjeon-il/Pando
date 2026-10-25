@@ -282,7 +282,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
         const refs = selection.items.filter(ref => ref.domain === 'label');
         return [refs.find(ref => ref.key === selection.primaryKey)?.id, ...refs.map(ref => ref.id)].filter(Boolean);
       },
-      onSettled: () => { dependencies.domains.objectSearchController.cancelSearch(); dependencies.domains.objectSearchController.render(true); },
+      onSettled: () => { dependencies.domains.objectSearchController.render(); },
       onSnapshot: () => dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'),
       onError: error => dependencies.feedback.reportOperationError(error, '내장 지명을 불러오지 못했습니다.', 'PL-PLACE-LOAD-001'),
     });

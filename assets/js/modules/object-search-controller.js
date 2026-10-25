@@ -1,6 +1,7 @@
 import { normalizeObjectRef } from './object-selection-controller.js';
 import { normalizePlaceQuery, PLACE_LIMITS } from './place-contract.js';
 import { createObjectSearchModel, visibleObjectSearchRows } from './object-search-model.js';
+import { resourceKey, resourceUpdate } from './resource-update-policy.js';
 
 /**
  * Object search is deliberately flat. The project still owns object grouping and
@@ -22,8 +23,7 @@ export function createObjectSearchController({
   onSearchError = () => {},
 } = {}) {
   let searchTimer = 0;
-  let renderedRevision = -1;
-  let renderedSearch = '';
+  let renderedDependencies = null;
   let renderedSearchRefs = [];
   let hydrated = false;
   let disposed = false;
@@ -107,6 +107,10 @@ export function createObjectSearchController({
   }
 
   function commitRows(query, rows) {
+    const next = { source: 'object-search', content: resourceKey(rows.map(item =>
+      [item.key, item.id, item.layerGroup, item.name || '', item.typeLabel || '', item.flagUrl || ''])),
+      preparation: 'search-rows-v1', context: null, presentation: resourceKey([query, builtinTruncated]) };
+    if (!resourceUpdate(renderedDependencies, next).present) { syncSelection(); return false; }
     const results = elements.searchResults;
     results.replaceChildren();
     renderedSearchRefs = rows.map(item => item.ref).filter(Boolean);
@@ -114,6 +118,8 @@ export function createObjectSearchController({
     else if (query) results.append(createEmptyState('검색 결과가 없습니다.', '내장 지명은 두 글자 이상으로 이름의 앞부분을 검색하세요.'));
     commands.syncCanonicalControls?.(results);
     syncSelection();
+    renderedDependencies = next;
+    return true;
   }
 
   function combinedRows(query) {
@@ -123,9 +129,10 @@ export function createObjectSearchController({
 
   function requestBuiltinRows(query) {
     const normalized = normalizePlaceQuery(query);
-    const context=JSON.stringify([normalized,model.snapshot().builtinContext]);
-    if (model.snapshot().searchActive === false || builtinQuery === context) return;
-    builtinQuery = context;
+    const next = { source: 'builtin-search', content: resourceKey([normalized, model.snapshot().builtinContext ?? null]),
+      preparation: 'search-v1', context: null, presentation: 'results' };
+    if (model.snapshot().searchActive === false || !resourceUpdate(builtinQuery, next).prepare) return;
+    builtinQuery = next;
     const generation = ++searchGeneration;
     cancelBuiltinSearch();
     builtinRows = [];
@@ -147,22 +154,15 @@ export function createObjectSearchController({
     });
   }
 
-  function render(force = false) {
+  function render() {
     if (disposed) return false;
     const snapshot = model.snapshot();
     const query = String(snapshot.search || '').trim();
-    if (!force && renderedRevision === snapshot.revision && renderedSearch === query) return false;
     const results = elements.searchResults;
     if (!results) return false;
-    results.replaceChildren();
     results.classList.toggle('hidden', !query);
-    renderedSearchRefs = [];
     requestBuiltinRows(query);
-    commitRows(query, query ? combinedRows(query) : []);
-    renderedRevision = snapshot.revision;
-    renderedSearch = query;
-    syncSelection();
-    return true;
+    return commitRows(query, query ? combinedRows(query) : []);
   }
 
   function syncSelection() {
@@ -240,7 +240,7 @@ export function createObjectSearchController({
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(() => {
         commands.commitSearch?.();
-        render(true);
+        render();
       }, searchDelay);
     });
     elements.searchClear?.addEventListener('click', () => {
@@ -323,7 +323,7 @@ export function createAppObjectSearchController(runtime = {}) {
     builtinRecordVisible: record => state.resourceCapabilities?.builtinPlaces!==false&&state.layerVisibility?.labels!==false&&state.itemVisibility?.labels?.[record.id]!==false&&!(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
     onSearchError: runtime.onSearchError,
     model: {
-      snapshot: () => ({ builtinContext:JSON.stringify([state.timelineCursor,state.layerVisibility?.labels,state.itemVisibility?.labels]),revision: state.objectPresentationRevision, search: state.objectSearch, searchActive: runtime.isSearchOpen(),
+      snapshot: () => ({ builtinContext:JSON.stringify([state.timelineCursor,state.layerVisibility?.labels,state.itemVisibility?.labels]),search: state.objectSearch, searchActive: runtime.isSearchOpen(),
         searchSurfaceOpen: runtime.isSearchSurfaceOpen() }),
       items: listObjectSearchItems,
       itemRef: layerItemObjectRef,

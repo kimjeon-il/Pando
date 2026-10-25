@@ -1,3 +1,5 @@
+import { resourceKey, resourceUpdate } from './resource-update-policy.js';
+import { geometryRevisionKey } from './geometry-versions.js';
 /** Empty detached startup input; C++ admits it before editable data is loaded. */
 export function createEmptyTerritorialState() {
   const geometries=Object.freeze([]);
@@ -12,27 +14,17 @@ export function createTerritorialEntityStore({ documentModel,commandOwner,onEnti
   for (const method of ['state','subscribeTransitions','resolveWorld','setTimelineCursor'])
     if (typeof commandOwner?.[method]!=='function') throw new TypeError(`The same C++ document owner is required: ${method}.`);
   let previous=documentModel.territorialViews();
-  let previousWorld=documentModel.world();
-  const unsubscribe=commandOwner.subscribeTransitions((_result,operation) => {
-    // Geometry IDs and versions are scoped to the accepted document archive.
-    const documentReplaced=['core.document-load','core.document-load-baseline','core.document-initialize','core.document-replacement-rollback'].includes(operation);
+  const dependencies = rows => ({ source: 'territorial-root-geometry',
+    content: resourceKey(rows.filter(feature => feature.properties.entityKind === 'general' && !feature.properties.parentId)
+      .map(feature => [feature.id, geometryRevisionKey(feature.geometry)])), preparation: 'roots-v1', context: null, presentation: 'roots' });
+  const unsubscribe=commandOwner.subscribeTransitions(() => {
     const next=documentModel.territorialViews();
-    const nextWorld=documentModel.world();
     const before=new Map(previous.map(row => [row.id,row])),after=new Map(next.map(row => [row.id,row]));
     const changedIds=new Set([...before.keys(),...after.keys()].filter(id => before.get(id)!==after.get(id)));
     const prior=previous;
     previous=next;
-    const beforeRefs=new Map((previousWorld?.entities || []).map(row=>[row.id,row.geometryRef]));
-    const afterRefs=new Map((nextWorld?.entities || []).map(row=>[row.id,row.geometryRef]));
-    previousWorld=nextWorld;
     if (changedIds.size) {
-      const root = feature => feature?.properties.entityKind === 'general' && !feature.properties.parentId;
-      const rootGeometryChanged = [...changedIds].some(id => {
-        const beforeRow = before.get(id), afterRow = after.get(id);
-        const beforeRef=beforeRefs.get(id),afterRef=afterRefs.get(id);
-        return (root(beforeRow) || root(afterRow)) && (documentReplaced || beforeRef?.id !== afterRef?.id || beforeRef?.version !== afterRef?.version
-          || root(beforeRow) !== root(afterRow));
-      });
+      const rootGeometryChanged = resourceUpdate(dependencies(prior), dependencies(next)).prepare;
       onEntitiesReplaced(next,{ changedIds,previous: prior,rootGeometryChanged });
     }
   });

@@ -995,10 +995,10 @@ export function createRenderingDomain({
     interaction.applyGpuInteractionCoverage?.(result);
     return result;
   };
-  const resetProjectGeneration = (generation, { preserveBuiltinMesh = false } = {}) => {
+  const resetProjectGeneration = generation => {
     active();
     resetTerritorialBoundaryCache();
-    gpuMapRenderer?.resetProjectRenderState?.({ generation, preserveBuiltinMesh });
+    gpuMapRenderer?.resetProjectRenderState?.({ generation });
     return generation;
   };
   const getStats = () => Object.freeze({

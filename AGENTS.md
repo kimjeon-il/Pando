@@ -266,6 +266,23 @@ support forward.
 
 ## Rendering
 
+- All map resources follow the common dependency policy in
+  `assets/js/modules/resource-update-policy.js`. A date, viewport, project
+  generation or unrelated revision change alone must not discard resources.
+  Reuse unchanged inputs and prepared results; refresh only dependencies that
+  actually changed, separating input loading, CPU preparation, GPU upload and
+  presentation. Temporal queries must still evaluate current lifetimes and
+  bindings before comparing their effective results.
+- Keep dependency keys in the existing resource owner. Use verified source
+  hashes, geometry content/version identities and actual preparation inputs;
+  do not use copied-object identity or serialize all coordinates per date/frame.
+  Context loss invalidates device resources, not valid downloaded/CPU results.
+  Project selection, drafts, edits, history and delivery generation remain
+  project-scoped even when immutable resources are reusable.
+- Replace superseded per-element reset/reuse predicates, callers and tests
+  with this policy. Do not keep parallel invalidation rules, add a second cache
+  manager, or retrofit unrelated paths that already reuse resources correctly.
+
 - Keep one visual owner for each rendered geometry whenever possible.
 - Do not let SVG, Canvas, and WebGL independently render and own the same visual
   state without an explicit ownership/fallback rule.

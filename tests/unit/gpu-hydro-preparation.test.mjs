@@ -29,6 +29,51 @@ function fakeTimers(t) {
   return timers;
 }
 
+test('equal manifest content retains its Worker across cloned metadata', async t => {
+  const { owner, workers, manifest } = fixture(t);
+  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
+  workers[0].onmessage({ data: { type: 'ready' } }); await ready;
+  const reused = owner.setManifest(structuredClone(manifest), 'https://example.test/hydro/index.json');
+  assert.equal(workers.length, 1);
+  assert.equal(await reused, true);
+});
+
+test('equal immutable pack delivery and a transport retry retain prepared pack allocations', async t => {
+  const {owner,workers,manifest,registrations}=fixture(t);
+  const ready=owner.setManifest(manifest,'https://example.test/hydro/index.json');
+  workers[0].onmessage({data:{type:'ready'}});await ready;
+  const message={type:'pack',revision:1,packId:7,mesh:{riverStarts:new Int32Array([1,2,3,4])}};
+  workers[0].onmessage({data:message});const pack=owner.pack(7);
+  workers[0].onmessage({data:structuredClone(message)});
+  assert.strictEqual(owner.pack(7),pack);
+  assert.equal(registrations.length,1);
+  workers[0].onerror({message:'transport failed'});
+  const retried=owner.setManifest(structuredClone(manifest),'https://example.test/hydro/index.json');
+  workers[1].onmessage({data:{type:'ready'}});await retried;
+  assert.strictEqual(owner.pack(7),pack);
+});
+
+test('document generation changes retain uploaded hydro buffers in the same context', async t => {
+  const { owner, workers, manifest } = fixture(t);
+  const jobs = [], deleted = [];
+  const gl = { createBuffer: () => ({}), bindBuffer() {}, bufferData() {}, bufferSubData() {},
+    isBuffer: value => typeof value === 'object', deleteBuffer: value => deleted.push(value) };
+  const scheduler = { enqueueUpload: job => { jobs.push(job); return Promise.resolve(); }, cancelKey() {} };
+  owner.setContext({ gl, version: 2, projectGeneration: 1, contextGeneration: 1, scheduler });
+  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
+  workers[0].onmessage({ data: { type: 'ready' } }); await ready;
+  workers[0].onmessage({ data: { type: 'pack', revision: 1, packId: 7, mesh: { riverStarts: new Int32Array([1, 2, 3, 4]) } } });
+  for (const job of jobs) while (!job.step({ byteBudget: 1024 }).done) { /* Drain the actual owner upload. */ }
+  const resources = owner.pack(7).resources, uploads = jobs.length;
+  owner.setContext({ gl, version: 2, projectGeneration: 2, contextGeneration: 1, scheduler });
+  assert.equal(deleted.length, 0);
+  assert.equal(jobs.length, uploads);
+  assert.strictEqual(owner.pack(7).resources, resources);
+  owner.setContext({ gl, version: 2, projectGeneration: 2, contextGeneration: 2, scheduler });
+  assert.ok(deleted.length > 0);
+  assert.ok(jobs.length > uploads);
+});
+
 test('a ready Worker crash retires its generation and settles both RPC kinds without removing packs', async t => {
   const timers = fakeTimers(t);
   const { owner, workers, manifest, phases, errors } = fixture(t);
@@ -58,7 +103,7 @@ test('a ready Worker crash retires its generation and settles both RPC kinds wit
   await assert.rejects(owner.loadFeature(12), /준비되지/);
 });
 
-test('pack replacement, pruning, manifest reset and disposal pair each registration with retirement', async t => {
+test('pack reuse, pruning, source replacement and disposal pair each registration with retirement', async t => {
   const { owner, workers, manifest, registrations, messages } = fixture(t);
   const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
   const worker = workers[0];
@@ -70,14 +115,14 @@ test('pack replacement, pruning, manifest reset and disposal pair each registrat
   const old = owner.pack(7);
   send(7);
   const replacement = owner.pack(7);
-  assert.notStrictEqual(replacement, old);
-  assert.deepEqual(registrations, [['register', old], ['unregister', old], ['register', replacement]]);
+  assert.strictEqual(replacement, old);
+  assert.deepEqual(registrations, [['register', old]]);
   send(8, 9 * 1024 * 1024);
   assert.equal(owner.entries().length, 0);
   assert.deepEqual(messages.at(-1), { type: 'release', packIds: [7, 8] });
   send(9);
   const resetPack = owner.pack(9);
-  const restarted = owner.restart();
+  const restarted = owner.setManifest({ ...manifest, index: { sha256: 'changed-source' } }, 'https://example.test/hydro/index.json');
   assert.deepEqual(registrations.at(-1), ['unregister', resetPack]);
   workers[1].onmessage({ data: { type: 'ready' } }); await restarted;
   workers[1].onmessage({ data: { type: 'pack', packId: 10, revision: 1, mesh: {} } });
@@ -110,7 +155,9 @@ test('retiring a replaced pack unregisters it before cancelling upload and relea
   const old = owner.pack(7);
   const oldJob = [...jobs.values()][0];
   oldJob.step({ byteBudget: 8 });
-  send();
+  const replaced=owner.setManifest({...manifest,index:{sha256:'replacement-source'}},'https://example.test/hydro/index.json');
+  workers[1].onmessage({data:{type:'ready'}});await replaced;
+  workers[1].onmessage({data:{type:'pack',revision:2,packId:7,mesh:{riverStarts:new Int32Array([1,2,3,4])}}});
   assert.equal(deleted.length, 1);
   assert.equal(old.uploadState, null);
   assert.equal(jobs.size, 1);
@@ -171,7 +218,7 @@ test('hydro owner owns readiness, restart RPC settlement, stale delivery and req
   assert.equal(messages[1].type, 'view');
   const pending = owner.loadFeature(12);
   const rejected = assert.rejects(pending, /다시 시작/);
-  const restart = owner.restart();
+  const restart = owner.setManifest({ ...manifest, index: { sha256: 'changed-source' } }, 'https://example.test/hydro/index.json');
   await rejected;
   workers[0].onmessage({ data: { type: 'pack', packId: 99, revision: 100, mesh: {} } });
   assert.equal(owner.entries().length, 0);

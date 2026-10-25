@@ -113,16 +113,25 @@ test('search rerender replaces the range order with the newly visible results', 
   assert.equal(selectionDomain.primary().id, 'C');
 });
 
+test('an unrelated global revision retains the same search rows and flag image allocations', async t => {
+  const { controller, results, snapshot } = await setup(t);
+  const before = [...results.children];
+  snapshot.revision++;
+  assert.equal(controller.render(), false);
+  assert.deepEqual(results.children, before);
+  before.forEach((row,index)=>assert.strictEqual(results.children[index],row));
+});
+
 const builtin=id=>normalizePlace({source:'synthetic',sourceId:id,name:'서울',kind:'capital',coordinates:[127,37]});
 test('late builtin results cannot replace a newer query or a cleared search', async t => {
   const jobs=[];
   const {controller,results,snapshot}=await setup(t,{builtinSearch:query=>new Promise(resolve=>jobs.push({query,resolve}))});
-  await tick();snapshot.search='서울';controller.render(true);await tick();
+  await tick();snapshot.search='서울';controller.render();await tick();
   jobs[1].resolve({records:[builtin('new')]});await tick();
   jobs[0].resolve({records:[builtin('old')]});await tick();
   assert.deepEqual(results.children.map(row=>row.children[0]?.dataset.itemId),['builtin:place:synthetic:new']);
-  snapshot.search='다른';controller.render(true);await tick();
-  snapshot.search='';controller.render(true);jobs[2].resolve({records:[builtin('cleared')]});await tick();
+  snapshot.search='다른';controller.render();await tick();
+  snapshot.search='';controller.render();jobs[2].resolve({records:[builtin('cleared')]});await tick();
   assert.equal(results.children.length,0);
 });
 test('cancelled search can retry the same prefix after interaction settles', async t => {
@@ -131,18 +140,18 @@ test('cancelled search can retry the same prefix after interaction settles', asy
     if(calls++===0) throw Object.assign(new Error('moving'),{name:'AbortError',cancelled:true});
     return {records:[builtin('settled')]};
   }});
-  await tick();controller.render(true);await tick();
+  await tick();controller.render();await tick();
   assert.equal(calls,2);
   assert.ok(results.children.some(row=>row.children[0]?.dataset.itemId==='builtin:place:synthetic:settled'));
 });
 test('closing search cancels its result lifetime and opening resumes the same prefix', async t => {
   const jobs=[];
   const {controller,snapshot,results}=await setup(t,{builtinSearch:()=>new Promise(resolve=>jobs.push(resolve))});
-  await tick();snapshot.searchActive=false;controller.cancelSearch();controller.render(true);
+  await tick();snapshot.searchActive=false;controller.cancelSearch();controller.render();
   jobs[0]({records:[builtin('closed')]});await tick();
   assert.equal(jobs.length,1);
   assert.ok(!results.children.some(row=>row.children[0]?.dataset.itemId==='builtin:place:synthetic:closed'));
-  snapshot.searchActive=true;controller.render(true);await tick();jobs[1]({records:[builtin('opened')]});await tick();
+  snapshot.searchActive=true;controller.render();await tick();jobs[1]({records:[builtin('opened')]});await tick();
   assert.ok(results.children.some(row=>row.children[0]?.dataset.itemId==='builtin:place:synthetic:opened'));
   controller.dispose();
 });
@@ -160,7 +169,7 @@ test('editable copies suppress their builtin source in current search rows witho
   await tick();
   snapshot.search = '서울';
   snapshot.revision += 1;
-  controller.render(true);
+  controller.render();
   await tick();
   assert.ok(results.children.some(row => row.children[0]?.dataset.itemId === 'builtin:place:synthetic:copied-source'));
   const callsAfterLoad = calls;
@@ -189,7 +198,7 @@ async function hoverLifecycle(t) {
   const surfaces = createSurfaceController({ getElement: id => nodes.get(id), getLayout: () => 'wide', document });
   surfaces.open('search');
   const places = createPlaceRuntime({ admitReferences:async ()=>{}, rpc: { request: async () => ({ result: { records: [], signature: 'test' } }), stop() {} },
-    onSettled: () => { controller.cancelSearch(); controller.render(true); } });
+    onSettled: () => { controller.cancelSearch(); controller.render(); } });
   const close = () => { surfaces.close('search'); controller.cancelSearch(); };
   const domains = { selectionDomain: domain };
   // Execute the real bindLayerUI composition: its query predicate combines the
@@ -253,7 +262,7 @@ test('cancelling or refreshing still-open search retains its valid row hover and
   f.controller.cancelSearch();
   assert.equal(f.domain.snapshot().hover.key, f.ref.key); assert.equal(f.domain.primary().key, f.ref.key);
   const input = f.nodes.get('objectSearchInput'); input.value = '검증 강';
-  input.listeners.get('input')({ currentTarget: input }); f.controller.render(true);
+  input.listeners.get('input')({ currentTarget: input }); f.controller.render();
   assert.equal(f.isOpen(), true); assert.equal(f.domain.snapshot().hover.key, f.ref.key);
   assert.equal(f.domain.primary().key, f.ref.key); f.dispose();
 });
@@ -322,9 +331,9 @@ test('cached builtin results follow current month and visibility and restore the
   invalidateObjectPresentation(){},selectObjectSearchItem(){},closeSearchAfterSingleSelection(){},focusObjectRef(){},createEmptyState:element,
   isSearchOpen:()=>true,isSearchSurfaceOpen:()=>true,builtinSearch:async()=>{calls++;return {records:[{id:'builtin:place:synthetic:seoul',kind:'city',name:'서울'}],displayNames:{'builtin:place:synthetic:seoul':'서울'}};},cancelBuiltinSearch(){}});
  const rows=()=>nodes.get('objectSearchResults').children.filter(row=>row.children[0]?.dataset.itemId);
- controller.render(true);await tick();assert.equal(rows().length,1);
- state.layerVisibility.labels=false;controller.render(true);await tick();assert.equal(rows().length,0);
- state.layerVisibility.labels=true;controller.render(true);await tick();assert.equal(rows().length,1);assert.equal(calls,2);
- state.timelineCursor='1915-01';controller.render(true);await tick();assert.equal(calls,3);
- state.itemVisibility.labels={'builtin:place:synthetic:seoul':false};controller.render(true);await tick();assert.equal(rows().length,0);controller.dispose();
+ controller.render();await tick();assert.equal(rows().length,1);
+ state.layerVisibility.labels=false;controller.render();await tick();assert.equal(rows().length,0);
+ state.layerVisibility.labels=true;controller.render();await tick();assert.equal(rows().length,1);assert.equal(calls,2);
+ state.timelineCursor='1915-01';controller.render();await tick();assert.equal(calls,3);
+ state.itemVisibility.labels={'builtin:place:synthetic:seoul':false};controller.render();await tick();assert.equal(rows().length,0);controller.dispose();
 });
