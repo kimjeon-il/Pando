@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { compareNaturalEarthMainstems, naturalEarthHydronym,
-  pointToLineDistance, runNaturalEarthScreen } from '../../tools/gis/compare-osm-hydro-natural-earth.mjs';
+  pointToLineDistance, pythonRound, runNaturalEarthScreen } from '../../tools/gis/compare-osm-hydro-natural-earth.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const ne = () => ({features:[
@@ -30,6 +30,19 @@ test('81 independent name samples preserve support and source name without modif
   assert.equal(result.items[0].naturalEarthCandidates[0].sampleCoverage,1);
   assert.equal(result.items[0].naturalEarthCandidates[0].meanDistanceDegrees,0);
   assert.deepEqual(a,before);
+});
+test('published microdegree bounds match Python binary64 tie-side rounding',()=>{
+  const cases=[
+    [1000050,1.0001],[-12345550,-12.3455],
+    [9876550,9.8765],[10234550,10.2346],
+  ];
+  for(const [micro,expected] of cases)
+    assert.equal(pythonRound(micro/1e6,4),expected,'microdegree '+micro);
+  const raw=decoded(),sourceBefore=structuredClone(raw);
+  raw.features[0].metadata.bounds=[1000050,-12345550,9876550,10234550];
+  const proof=compareNaturalEarthMainstems(raw,ne(),scope());
+  assert.deepEqual(proof.items[0].mainstemBounds,[1.0001,-12.3455,9.8765,10.2346]);
+  assert.deepEqual(sourceBefore,decoded());
 });
 test('single named river is counted once per location even with overlapping NE segments',()=>{
   const data=ne();
