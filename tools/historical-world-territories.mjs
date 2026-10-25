@@ -5,6 +5,12 @@ import '../assets/js/modules/territorial-edit-plan.js';
 import { normalizeTemporalInterval, compareTemporal } from '../assets/js/modules/temporal.js';
 
 export const historicalWorldClipper = globalThis.polygonClipping;
+// Geometry versions are immutable; one compilation owns and releases this
+// in-memory cache. Dates, policy decisions and precision budgets remain local
+// to each adjustment call.
+export function createHistoricalTerritoryCache(clipper=historicalWorldClipper){
+  return {clipper,wrapped:new WeakMap(),areas:new WeakMap(),keys:new WeakMap(),nextKey:0,operations:new Map()};
+}
 function intersects(a, b) {
   const left = normalizeTemporalInterval(a.validFrom, a.validTo), right = normalizeTemporalInterval(b.validFrom, b.validTo);
   return !(left.end && right.start && compareTemporal(left.end, right.start, { leftBoundary: 'end' }) < 0)
@@ -12,10 +18,11 @@ function intersects(a, b) {
 }
 
 /** Resolve source ambiguity without assigning ownership by array order. */
-export function adjustHistoricalTerritories(input, policy, clipper = historicalWorldClipper) {
+export function adjustHistoricalTerritories(input, policy, clipper = historicalWorldClipper, cache=createHistoricalTerritoryCache(clipper)) {
   if (policy.schemaVersion !== 1 || policy.unknownPeerOverlap !== 'exclude-from-all' || !Array.isArray(policy.replacements)) throw new Error('Invalid historical territory policy');
+  if(cache.clipper!==clipper)throw new Error('Historical territory cache belongs to another clipper');
   const kernel = globalThis.PandoLabTerritorialEdit.createKernel(clipper);
-  const wrapped = new WeakMap();
+  const wrapped = cache.wrapped;
   const coordinates = geometry => {
     if (!wrapped.has(geometry)) wrapped.set(geometry, globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(geometry, clipper));
     const value = wrapped.get(geometry);
@@ -24,19 +31,19 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   const owners = new WeakMap(input.filter(row => row.geometry).map(row => [row.geometry, row.entityId]));
   const owner = geometry => owners.get(geometry) || 'intermediate';
   let discardedPrecisionAreaM2 = 0, discardedPrecisionComponents = 0;
+  const recordPrecision=row=>{
+    discardedPrecisionAreaM2+=row.areaM2;discardedPrecisionComponents++;
+    if(discardedPrecisionComponents>10||discardedPrecisionAreaM2>0.5)throw new Error('HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED');
+    adjustments.push({...row});
+  };
   const shape = (value, operation) => {
     if (!value.length) return null;
     try {
       return globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry(value, {
         onPrecisionDiscard({ polygonIndex, areaM2 }) {
-          discardedPrecisionAreaM2 += areaM2;
-          discardedPrecisionComponents += 1;
-          if (discardedPrecisionComponents > 10 || discardedPrecisionAreaM2 > 0.5) {
-            throw new Error('HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED');
-          }
           const relation = operation.startsWith('difference ') || operation.startsWith('intersection ')
             ? operation.slice(operation.indexOf(' ') + 1).split(' / ') : [];
-          adjustments.push({
+          recordPrecision({
             entityId: relation[0] || 'numeric-clipping',
             kind: 'certified-clipping-precision-artifact',
             relatedIds: relation[1] ? [relation[1]] : [],
@@ -52,9 +59,18 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
       throw new Error(`HISTORICAL_CLIP_INVALID: ${operation}, components=${value.length}, shortRings=${JSON.stringify(failing.slice(0, 8))}: ${error.message}`, { cause: error });
     }
   };
-  const intersection = (a, b) => shape(clipper.intersection(coordinates(a), coordinates(b)), `intersection ${owner(a)} / ${owner(b)}`);
-  const difference = (a, b) => shape(clipper.difference(coordinates(a), coordinates(b)), `difference ${owner(a)} / ${owner(b)}`);
-  const significant = (geometry, reference) => geometry && kernel.area(geometry) > Math.max(1e-10, kernel.area(reference) * 1e-9);
+  const evaluate=(name,geometries,operation)=>{
+    const ids=geometries.map(geometry=>{if(!cache.keys.has(geometry))cache.keys.set(geometry,++cache.nextKey);return cache.keys.get(geometry);});
+    const key=JSON.stringify([name,ids,operation]),previous=cache.operations.get(key);
+    if(previous){for(const row of previous.precision)recordPrecision(row);return previous.geometry;}
+    const offset=adjustments.length,geometry=shape(clipper[name](...geometries.map(coordinates)),operation);
+    cache.operations.set(key,{geometry,precision:adjustments.slice(offset)});
+    return geometry;
+  };
+  const intersection = (a, b) => evaluate('intersection',[a,b],`intersection ${owner(a)} / ${owner(b)}`);
+  const difference = (a, b) => evaluate('difference',[a,b],`difference ${owner(a)} / ${owner(b)}`);
+  const area=geometry=>{if(!cache.areas.has(geometry))cache.areas.set(geometry,kernel.area(geometry));return cache.areas.get(geometry);};
+  const significant = (geometry, reference) => geometry && area(geometry) > Math.max(1e-10, area(reference) * 1e-9);
   const candidates = input.map(row => ({ ...row })).sort((a, b) => a.entityId.localeCompare(b.entityId, 'en'));
   const byId = new Map(candidates.map(row => [row.entityId, row])), changed = new Set(), adjustments = [];
   const replace = (row, geometry, kind, relatedIds) => {
@@ -105,7 +121,7 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   }
   for (const row of candidates) if (overlaps.has(row.entityId)) {
     const parts = overlaps.get(row.entityId);
-    const union = shape(clipper.union(...parts.map(part => coordinates(part.geometry))), `overlap-union ${row.entityId}`);
+    const union = evaluate('union',parts.map(part=>part.geometry),`overlap-union ${row.entityId}`);
     replace(row, difference(row.geometry, union), 'unknown-peer-overlap', parts.map(part => part.entityId).sort());
   }
   clipChildren();

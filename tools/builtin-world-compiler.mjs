@@ -8,7 +8,7 @@ import { createGeometryVersionStore } from '../assets/js/modules/geometry-versio
 import { normalizeTimelineRecords } from '../assets/js/modules/timeline-records.js';
 import { createProjectSerializer } from '../assets/js/modules/project-serializer.js';
 import { DISTRIBUTION_MODES } from '../assets/js/modules/distribution-model.js';
-import { adjustHistoricalTerritories, historicalWorldClipper } from './historical-world-territories.mjs';
+import { adjustHistoricalTerritories, historicalWorldClipper,createHistoricalTerritoryCache } from './historical-world-territories.mjs';
 
 const compare = (a, b) => {
   for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1;
@@ -51,7 +51,7 @@ const identity = feature => ({ type: 'Feature', id: feature.id, geometry: null,
 const withoutGeometry = ({ geometry, ...value }) => structuredClone(value);
 
 /** Build an ordinary editable project; library inputs and raw intervals stay immutable. */
-export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper }) {
+export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper, availableSourceIds = null }) {
   if(view?.schemaVersion!==1 || !Array.isArray(view.selections) || Object.hasOwn(view,'referenceDate'))throw new Error('Invalid world view');
   if (!policy || policy.schemaVersion !== 1) throw new Error('Missing historical world policy');
   const selection=new Map(view.selections.map(row=>[row.entityId,row.geometryVersionId]));
@@ -60,7 +60,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   if (bySource.size !== entities.length) throw new Error('Duplicate source entity');
   const currentIds = new Set(selection.keys());
   for (const id of currentIds) if (!bySource.has(id)) throw new Error(`Missing current source: ${id}`);
-  const classified = classifyBuiltinCountries(normalizeCountryCollection(currentWorld));
+  const classified = classifyBuiltinCountries(normalizeCountryCollection(currentWorld), { availableSourceIds });
   const definitions = new Map(), sourceToProject = new Map(), sourceIdentities = [];
   for (const feature of [...classified.countries.features, ...classified.subunits]) {
     const sourceFeature = builtinSubunitSourceId(feature) || feature.id;
@@ -136,6 +136,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   }
   const cuts=[...events.values()].sort(compare);
   const rowsByEntity=new Map(),sourceBindings=new Map();
+  const territoryCache=createHistoricalTerritoryCache(clipper);
   for (let index = 0; index <= cuts.length; index++) {
     const start = index === 0 ? null : cuts[index - 1], end = index === cuts.length ? null : shiftDay(cuts[index], -1);
     let candidates = [];
@@ -159,14 +160,14 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
       targetEntityId: sourceToProject.get(rule.targetEntityId) || rule.targetEntityId,
       priorityEntityId: sourceToProject.get(rule.priorityEntityId) || rule.priorityEntityId,
     })) };
-    const adjusted = adjustHistoricalTerritories(candidates, mappedPolicy, clipper);
+    const adjusted = adjustHistoricalTerritories(candidates, mappedPolicy, clipper,territoryCache);
     candidates = adjusted.candidates;
     const surviving=new Map(candidates.map(row=>[row.entityId,row]));
     const hasParent=row=>!row.parentId || (surviving.has(row.parentId)&&hasParent(surviving.get(row.parentId)));
     candidates=candidates.filter(hasParent);
     adjustments.push(...adjusted.adjustments.map(row => ({ ...row, validFrom: start && date(start), validTo: end && date(end) })));
     for (const candidate of candidates) {
-      const definition = definitions.get(candidate.entityId), ref = geometryRef(candidate.geometry);
+      const ref = geometryRef(candidate.geometry);
       let rows = rowsByEntity.get(candidate.entityId);
       if (!rows) rowsByEntity.set(candidate.entityId, rows = { availability: [], geometryBindings: [], parentRelations: [] });
       const base = { entityId: candidate.entityId, validFrom: start && date(start), validTo: end && date(end) };
@@ -212,8 +213,25 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   const index={schema:'pandolab-builtin-world',schemaVersion:2,template,
     entities:countries.map(country=>({entityId:country.entityId,
       coverage:availability.get(country.entityId)?.map(({validFrom,validTo})=>({validFrom,validTo}))||[]})),sourceIdentities};
-  return {index,countries,coverageReport:{schemaVersion:2,adjustments,
+  return {index,countries,coverageReport:{schemaVersion:2,adjustments:coalesceCoverageAdjustments(adjustments),
     entities:countries.map(country=>({entityId:country.entityId,
       lifetime:structuredClone(country.identity.properties.metadata.historicalTimeline.lifetime),
       availability:index.entities.find(row=>row.entityId===country.entityId).coverage}))}};
+}
+
+// Unrelated countries can introduce extra temporal cuts. Keep evidence in the
+// same maximal intervals whether a component is compiled alone or in a world.
+export function coalesceCoverageAdjustments(adjustments) {
+  const groups=new Map();
+  for(const row of adjustments){
+    const {validFrom,validTo,...value}=row,key=JSON.stringify(value);
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push({...value,validFrom,validTo});
+  }
+  return [...groups].sort(([a],[b])=>a.localeCompare(b,'en')).flatMap(([,values])=>{
+    values.sort((a,b)=>a.validFrom===null?-1:b.validFrom===null?1:compare(parseTemporal(a.validFrom).startKey,parseTemporal(b.validFrom).startKey));
+    const rows=[];
+    for(const row of values)append(rows,row,()=>true);
+    return rows;
+  });
 }

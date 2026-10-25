@@ -302,6 +302,21 @@ Linux Node 22 CI와 로컬 Windows Node 24 사이의 정확한 재생성 차이 
 국가 원본만 바꾸면 GPU 면과 공유 경계 캐시가 이전 국경을 표시할 수 있다. 기존 상설 GIS 작업트리에서 아래 순서로 필요한 파생 자료를 생성한다. 검사가 포함된 package 스크립트를 대신 실행할 필요는 없다.
 
 1. `build-territorial-entity-chunks.mjs` → `build-territorial-current-world.mjs` → `build-builtin-world.mjs`
+
+국명·존속기간 등 일부 정본만 바꿀 때 기본 지도의 부분 생성은
+`node tools/build-builtin-world.mjs --entities=state:KHM,state:VNM`으로 실행한다.
+먼저 `--plan`을 붙이면 원본을 읽거나 산출물을 쓰지 않고 연결 범위를 볼 수 있다.
+부모·자식, 과거 형상 겹침, 명시적 대체 규칙으로 연결된 부분만 기존 컴파일러로
+생성하며 무관한 국가 파일은 저장된 바이트를 재사용한다. 합본 전송 파일과
+색인은 함께 갱신한다. `config/library-data.json`의 기존 핀을 기준으로 이전
+색인을 읽으므로, 정본·chunk를 수정한 뒤 자료를 보관하기 전에 실행한다.
+보기 선택이나 전역 겹침 정책 자체가 바뀌면 이 부분 생성 명령은 거부한다.
+검증은 수정한 ID의 정본·chunk·기본 지도 결과만 대상으로 하며, 전체 국가 검사나
+전체 보존 해시 대조를 추가하지 않는다.
+미선택 자료의 진행 중인 수정이 연결 범위에 있으면 명시적으로 중단한다.
+생성된 입력 기록에는 실제 재생성한 판본과 재사용한 이전 판본을 구분해 담는다.
+동일한 형상 Boolean 연산은 생성 1회 동안 메모리에서 재사용하며, 날짜 구간별
+판정·수치 정밀도 기록과 허용 한도는 매번 유지한다. 디스크 캐시는 만들지 않는다.
 2. `build-world-mesh.mjs` → `build-world-preview.mjs` → `build-world-bundle.mjs`
 3. `build-country-shared-boundaries.mjs` → `build-prepared-polygon-mesh.mjs`
 4. `scripts/generate-build-metadata.mjs`
