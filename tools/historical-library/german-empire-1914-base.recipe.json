@@ -138,5 +138,85 @@
         52.229
       ]
     }
-  }
+  },
+  "operations": [
+    {
+      "id": "hgis-state-union",
+      "operation": "union",
+      "source": "hgisStates"
+    },
+    {
+      "id": "hgis-axis-corrected",
+      "operation": "axis-linear-correction",
+      "input": "hgis-state-union",
+      "longitude": {
+        "intercept": -0.0268725,
+        "slope": 0.0011841
+      },
+      "latitude": {
+        "intercept": -0.1088705,
+        "slope": 0.0024464
+      }
+    },
+    {
+      "id": "modern-deu",
+      "operation": "union",
+      "source": "canonicalCountries",
+      "selector": {
+        "field": "__feature_id__",
+        "values": [
+          "DEU"
+        ]
+      }
+    },
+    {
+      "id": "heligoland-components",
+      "operation": "select-components-in-bbox",
+      "input": "modern-deu",
+      "bbox": [
+        7.85,
+        54.16,
+        7.95,
+        54.21
+      ],
+      "expectedComponents": 2,
+      "insidePoints": {
+        "Heligoland main island": [
+          7.893,
+          54.19
+        ],
+        "Dune": [
+          7.918,
+          54.188
+        ]
+      }
+    },
+    {
+      "id": "heligoland-window",
+      "operation": "bbox",
+      "bbox": [
+        7.8,
+        54.12,
+        8,
+        54.25
+      ]
+    },
+    {
+      "id": "without-heligoland-window",
+      "operation": "difference",
+      "inputs": [
+        "hgis-axis-corrected",
+        "heligoland-window"
+      ]
+    },
+    {
+      "id": "german-1914-candidate",
+      "operation": "union",
+      "inputs": [
+        "without-heligoland-window",
+        "heligoland-components"
+      ]
+    }
+  ],
+  "nativeStatus": "pending-actual-hgis-source-hash-and-geometry-oracle"
 }

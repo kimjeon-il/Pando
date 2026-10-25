@@ -134,7 +134,7 @@ licensed.
 Prepare the source and build the working base with:
 
 ```powershell
-python tools/fetch_german_empire_1914_source.py
+node tools/fetch-german-empire-1914-source.mjs
 python tools/build_german_empire_1914_base.py
 python tools/build_german_empire_1914_base.py --check
 ```
@@ -143,7 +143,7 @@ If Harvard/NYU WFS access is unavailable, download **Germany State Boundaries,
 1914, German Historical GIS** manually, convert it to EPSG:4326 GeoJSON, then:
 
 ```powershell
-python tools/fetch_german_empire_1914_source.py --from-file PATH_TO_GEOJSON
+node tools/fetch-german-empire-1914-source.mjs --from-file PATH_TO_GEOJSON
 ```
 
 The build performs these steps deterministically:
