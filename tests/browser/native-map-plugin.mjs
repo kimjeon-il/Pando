@@ -101,7 +101,7 @@ try {
   await instrumentMapPlugin(page);
   // Keep one loaded application revision while another chat updates the shared
   // checkout. Only the development reloader is paused, never application I/O.
-  await page.route('**/shell/dev-reload.js*',route=>route.fulfill({contentType:'application/javascript',body:'export {};'}));
+  await page.route('**/__frontend/reload.js*',route=>route.fulfill({contentType:'application/javascript',body:'export {};'}));
   await page.route('**/shell/native-storage.js*',async route=>{
     const source=await moduleSource(route);
     const call='return globalThis.__TAURI_INTERNALS__.invoke(command, payload);';

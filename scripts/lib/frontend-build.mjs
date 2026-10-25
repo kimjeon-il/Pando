@@ -46,7 +46,8 @@ function pinnedContext(root){
 const stable=value=>Array.isArray(value)?'['+value.map(stable).join(',')+']':value&&typeof value==='object'?'{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}':JSON.stringify(value);
 
 /** Build both frontend products from source, without writing into a checkout. */
-export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,workerSourceTransform=(_path,source)=>source}={}){
+export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,workerSourceTransform=(_path,source)=>source}={}){
+ if(resourceProfile!==undefined&&!['map-data','test-fixture'].includes(resourceProfile))throw Error('Invalid frontend resource profile');
  root=resolve(root);const pinned=readPinnedData?null:pinnedContext(root);
  readPinnedData??=pinned.read;dataPaths??=pinned.dataPaths;
  sourceCommit??=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
@@ -85,7 +86,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const dataRevision='data-'+hash(metadataPaths.map(path=>path+'\0'+stable(metadata[path])+'\0').join('')).slice(0,32);
  const dataIdentity=path=>{const bytes=readPinnedData(path);return{encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)};};
  const builtinPath=metadataPaths[6],preparedPath=metadataPaths[7];
- const buildMeta={appVersion,buildId,assetRevision,dataRevision,territorialIndex:dataIdentity(metadataPaths[5]),builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},workerAssets,physicalLand:land.asset,physicalWaterHistory:land.historicalWaterbodies||[]};
+ const buildMeta={appVersion,buildId,assetRevision,dataRevision,...resourceProfile?{resourceProfile}:{},territorialIndex:dataIdentity(metadataPaths[5]),builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},workerAssets,physicalLand:land.asset,physicalWaterHistory:land.historicalWaterbodies||[]};
  generated('assets/js/build-meta.js','// Generated product identity.\nglobalThis.PANDOLAB_BUILD_META = Object.freeze('+JSON.stringify(buildMeta,null,2)+');\n');
  const templates=renderProductHtml(sourceText),moduleImports=Object.fromEntries([...assets.keys()].filter(p=>p.startsWith('assets/js/')&&p.endsWith('.js')).map(p=>['./'+p,'./'+p+'?v='+encodeURIComponent(assetRevision)]));
  const render=(template,imports)=>{
