@@ -158,6 +158,39 @@ public:
         proj_destroy(operation);
         return own(result,"coordinate transform");
     }
+    Shape affineAxes(const Shape& shape,const V& longitude,const V& latitude) {
+        struct Correction {double lonI,lonS,latI,latS;};
+        Correction c{number(field(longitude,"intercept")),number(field(longitude,"slope")),
+            number(field(latitude,"intercept")),number(field(latitude,"slope"))};
+        const auto transform=[](double* x,double* y,void* context)->int {
+            const auto& c=*static_cast<Correction*>(context);
+            const double lon=*x,lat=*y;
+            *x=lon+c.lonI+lon*c.lonS;
+            *y=lat+c.latI+lat*c.latS;
+            return std::isfinite(*x)&&std::isfinite(*y)?1:0;
+        };
+        return own(GEOSGeom_transformXY_r(context_,shape.get(),transform,&c),
+            "longitude/latitude affine correction");
+    }
+    Shape rectangle(const V& bounds) {
+        const auto& b=array(bounds);
+        if(b.size()!=4)throw std::runtime_error("Historical bbox must have four values");
+        const double w=number(b[0]),s=number(b[1]),e=number(b[2]),n=number(b[3]);
+        if(!std::isfinite(w)||!std::isfinite(s)||!std::isfinite(e)||!std::isfinite(n)
+            ||w>=e||s>=n||w < -180||e>180||s < -90||n>90)
+            throw std::runtime_error("Invalid historical bbox");
+        auto geometry=V::obj();geometry.object["type"]=V::str("Polygon");
+        auto rings=V::arr(),ring=V::arr();
+        const std::array<std::array<double,2>,5> points{{
+            {w,s},{e,s},{e,n},{w,n},{w,s}}};
+        for(const auto& xy:points) {
+            auto point=V::arr();point.array={V::num(xy[0]),V::num(xy[1])};
+            ring.array.push_back(std::move(point));
+        }
+        rings.array.push_back(std::move(ring));
+        geometry.object["coordinates"]=std::move(rings);
+        return parse(geometry);
+    }
     Shape polygonize(const Shape& linework) {
         const auto lines=parts(linework);
         std::vector<const GEOSGeometry*> rows;
@@ -414,6 +447,33 @@ class Recipe {
         }
         return result;
     }
+    Shape selectBboxComponents(const V& op) {
+        auto region=engine_.rectangle(field(op,"bbox"));
+        auto input=resolve(str(field(op,"input")));
+        std::vector<Shape> selected;
+        for(const auto& part:engine_.parts(input)) {
+            if(engine_.type(part.get())!=GEOS_POLYGON)continue;
+            auto overlap=engine_.intersection(part,region);
+            if(!engine_.empty(overlap.get())&&engine_.area(overlap.get())>0)
+                selected.push_back(part);
+        }
+        const auto expected=number(field(op,"expectedComponents"));
+        if(expected<1||std::floor(expected)!=expected
+            ||selected.size()!=static_cast<std::size_t>(expected))
+            throw std::runtime_error("Historical island component count differs");
+        auto result=engine_.normalize(engine_.collection(selected,GEOS_MULTIPOLYGON));
+        if(const auto* points=optional(op,"insidePoints")) {
+            if(points->kind!=V::Object)throw std::runtime_error("Expected named island anchors");
+            for(const auto& [name,xy]:points->object) {
+                const auto& pair=array(xy);
+                if(pair.size()!=2)throw std::runtime_error("Invalid island anchor: "+name);
+                auto marker=engine_.point(number(pair[0]),number(pair[1]));
+                if(!engine_.covers(result.get(),marker.get()))
+                    throw std::runtime_error("Historical island does not cover anchor: "+name);
+            }
+        }
+        return result;
+    }
     Shape source(const std::string& id,const std::string& target="EPSG:4326",const V* selector=nullptr) {
         const auto& definition=field(field(recipe_,"sources"),id);
         const auto& document=sources_.at(id);
@@ -511,7 +571,12 @@ public:
                 if(inputs.size()!=2)throw std::runtime_error("Binary recipe operation needs two inputs");
                 auto left=resolve(str(inputs[0])),right=resolve(str(inputs[1]));
                 result=kind=="difference"?engine_.difference(left,right):engine_.intersection(left,right);
-            } else if(kind=="polygonize-mask")result=mask(operation);
+            } else if(kind=="axis-linear-correction") {
+                result=engine_.affineAxes(resolve(str(field(operation,"input"))),
+                    field(operation,"longitude"),field(operation,"latitude"));
+            } else if(kind=="bbox")result=engine_.rectangle(field(operation,"bbox"));
+            else if(kind=="select-components-in-bbox")result=selectBboxComponents(operation);
+            else if(kind=="polygonize-mask")result=mask(operation);
             else if(kind=="boundary-supplement")result=supplement(operation);
             else if(kind=="canonical-boundary-reconcile") {
                 auto candidate=resolve(str(field(operation,"input")));
