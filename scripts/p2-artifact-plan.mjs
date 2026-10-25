@@ -121,8 +121,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   } else if(args.includes('--evidence'))console.log(JSON.stringify(artifactEvidence(root,{
     resultSha:value('--result-sha'),expectedSourceSha:options.expectedSourceSha,evidenceFile:value('--evidence-file')}),null,2));
   else {
-    const difference=changedPaths({base:process.env.PANDO_P2_BASE_SHA||''});
-    const result=plan(root,{changes:difference.paths,manual:process.env.PANDO_P2_SCOPE||'auto',families});
+    const manual=process.env.PANDO_P2_SCOPE||'auto';
+    const changes=manual==='verify'?[]:changedPaths({base:process.env.PANDO_P2_BASE_SHA||''}).paths;
+    const result=plan(root,{changes,manual,families});
     if(args.includes('--check')) {
       const scope=process.env.PANDO_P2_SCOPE||'all';
       const selected=families.length?families:scope==='wasm'?['wasm']:['wasm',...artifactGraph(root).filter(f=>!f.manual).map(f=>f.id)];

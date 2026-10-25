@@ -69,6 +69,8 @@ jobs:
       - name: Test source fingerprint, rebuild selection, publication guard
         if: github.event_name == 'push' || inputs.verification == 'full'
         run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs
+      - name: Read the declared place-report generation inputs
+        run: node tools/report-paths.mjs reports/places read
       - name: Select only stale source-derived assets
         id: scopes
         env:
@@ -112,6 +114,8 @@ jobs:
       - name: Install frozen dependencies for current data generators
         if: needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Read the declared place-report generation inputs
+        run: node tools/report-paths.mjs reports/places read
       - uses: jwlawson/actions-setup-cmake@v2
         if: needs.plan.outputs.wasm == 'true'
         with:
