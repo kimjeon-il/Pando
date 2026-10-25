@@ -48,12 +48,18 @@ async function waitAndroidPicker() {
 async function openAndroidFile(name) {
   await waitAndroidPicker();
   for(let attempt=0;attempt<12;attempt++) {
-    const rows=await nodes(),file=rows.find(n=>n.text===name);
+    const rows=await nodes(),file=rows.find(n=>n.text===name&&n['resource-id']==='android:id/title');
     if(file){
       await tap(file);
       await new Promise(resolve=>setTimeout(resolve,500));
       if(!(await nodes()).some(row=>row.package==='com.google.android.documentsui'))return;
       continue;
+    }
+    const search=rows.find(n=>n.package==='com.google.android.documentsui'&&/^(Search|\uac80\uc0c9)$/.test(n['content-desc']||''));
+    if(search){
+      await tap(search);const field=(await nodes()).find(n=>n.package==='com.google.android.documentsui'&&n['resource-id']==='com.google.android.documentsui:id/search_src_text');
+      if(!field)throw new Error('Document search field did not appear');
+      await tap(field);await android('shell','input','text',name);await android('shell','input','keyevent','66');continue;
     }
     const downloads=rows.find(n=>['Downloads','Download','다운로드'].includes(n.text) && n.class==='android.widget.TextView');
     if(downloads){await tap(downloads);continue;}

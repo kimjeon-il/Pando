@@ -1,3 +1,4 @@
+import {nativeBuildArguments} from '../native-producer.mjs';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -8,7 +9,7 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { createDevelopmentAssets, stagePrototype, validateShellProfile } from '../stage.mjs';
 import { startDevelopmentServer } from '../dev.mjs';
-import { assertOrdinaryBuild, assertVerificationBuild, nativeBuildArguments } from '../packaged-artifacts.mjs';
+import { assertOrdinaryBuild, assertVerificationBuild } from '../packaged-artifacts.mjs';
 import { createBuiltinWorldLoader } from '../../../assets/js/modules/builtin-world-loader.js';
 import { createRuntimeProfile } from '../runtime-profile.js';
 

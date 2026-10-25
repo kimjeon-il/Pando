@@ -312,6 +312,6 @@ mod tests {
         ] {
             assert!(!local_navigation(&url.parse().unwrap()), "{url}");
         }
-        assert_eq!(local_navigation(&"http://127.0.0.1:4175/index.html".parse().unwrap()), !cfg!(feature = "custom-protocol"));
+        assert_eq!(local_navigation(&"http://127.0.0.1:4175/index.html".parse().unwrap()), cfg!(feature = "development"));
     }
 }
