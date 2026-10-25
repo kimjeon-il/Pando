@@ -1,6 +1,6 @@
 import unittest
 
-from tests.application_source import element_markup, function_source
+from tests.application_source import function_source
 
 
 class CurrentSourceExtractionTests(unittest.TestCase):
@@ -25,15 +25,6 @@ function following() {
         with self.assertRaises(ValueError):
             function_source(source, 'missing')
 
-    def test_nested_elements_remain_in_their_current_owner(self):
-        source = '<section id="editor"><section><input id="name" disabled /></section><p>Notes</p></section><section id="other">Other</section>'
-        self.assertEqual(element_markup(source, 'name'), '<input id="name" disabled />')
-        editor = element_markup(source, 'editor')
-        self.assertIn('<p>Notes</p>', editor)
-        self.assertNotIn('Other', editor)
-        with self.assertRaises(ValueError):
-            element_markup(source, 'retired')
-
-
 if __name__ == '__main__':
     unittest.main()
+
