@@ -16,7 +16,8 @@
 - **B2 C++ 1차:** Python `hydro_connectivity.py`의 NEXT_DOWN 기반 합류점 보정 규칙을 독립 `tools/cpp/hydro/connectivity-junctions.cpp`에 C++17로 이식하고 단위 회귀 검증을 추가했다. 양자화 1e-6°, 다수 지류·split reach, aligned border anchor, 원본 접속 0.5m와 표시 접속 25km 한계를 검증한다. Python 생성기·자료/manifest와 WASM은 아직 변경하지 않았다. 네이티브 도구의 검증된 통합과 원본 대조 전까지 기존 Python 원본은 유지한 뒤 B2 완료 시 삭제한다.
 - **B1 명칭 정책 2차:** 독립 HydroRIVERS 명칭 승인 42개 검토 원장, OSM 거절·USGS·Natural Earth·정부 벡터·국경 간 출처 판정 규칙을 Node 단일 정책으로 이관. 기존 생성기/메타데이터 재패킹에서 임시 Node CLI 호출을 통해 검증하며 Python 정책 모듈/테스트 원본은 제거. 배포 데이터/원본 바이트는 수정하지 않음.
 - **B2 실제 생성 경로 연결:** Python `build-hydro-tiles.py`와 `repair-hydro-connectivity.py`의 합류점 보정이 `PANDO_HYDRO_CONNECTIVITY_BINARY`로 독립 C++ GIS 실행기를 필수 호출한다. `hydro_connectivity.py`의 과거 계산은 고정 비교 oracle로만 사용하며 자동 폴백을 금지한다. 반환된 포트 변경과 변경 영수증을 전수 대조한 후 메모리 안의 좌표만 갱신한다. 고정 10종 접속 사례에 대해 Python·C++ 결과 동등성을 검증한다. **전 세계 HydroRIVERS 원본 전수 재생성/바이트 해시 비교는 아직 미완료**.
-- **현재:** 처음 101개 중 12개 삭제, **89개 Python** 잔존. 지도·AI·국경 생성기, 외부 원본·런타임은 미변경. 테스트 합격은 고정 synthetic fixture에 대한 것이며 전 세계 GeoNames 원본 바이트 전수 비교를 대신하지 않는다.
+- **B1 USGS 출처 감사 3차:** 정부 USGS 관측점 6곳의 수계 중심선 거리 측정을 Node로 옮기고 Python 코드를 제거했다. 고정 synthetic 테스트와 현재 게시된 v0.13.2에서 확보한 과거 Python 거리 oracle의 수치 12개를 별도로 검증한다. 기존 OSM 대응 73개와 독립 이름 검토 42개는 검증 목적이 달라 별도 후보셋으로 대조하여 KeyError(10047863)를 없애되 승인 조건을 낮추지 않는다.
+- **현재:** 처음 101개 중 13개 삭제, **88개 Python** 잔존. 지도·AI·국경 생성기, 외부 원본·런타임은 미변경. 테스트 합격은 고정 synthetic fixture에 대한 것이며 전 세계 GeoNames 원본 바이트 전수 비교를 대신하지 않는다.
 - **A2 의존성 차단 (삭제 선택지 없음):** `tools/library_data.py`(C/B Python 원본 생성기의 Node lease 호출), `tools/report_paths.py`(C/E Python의 보고서 경로), `tests/application_source.py`(B/C Python 테스트) 3개는 소비자가 아직 Python이다. *다음 B/C/E 변환 단위마다* 해당 사용처를 C++/Node로 옮기고, 마지막 사용처가 사라지는 커밋에서 래퍼/헬퍼를 삭제한다. 단순 파일 삭제로 CI나 데이터 출처를 깨지 않는다.
 - **후속 단계:** B=Hydro·DEM 28개, C=역사국경 38개, D=QGIS·래스터 5개, E=AI 19개. A2의 세 파일은 이 그룹 안의 호출자 정리로 함께 제거되며 최종 검사 `git ls-files '*.py' '*.pyi' '*.ipynb'`는 0이어야 한다.
 

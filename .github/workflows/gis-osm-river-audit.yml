@@ -8,7 +8,8 @@ on:
       - tests/unit/osm-hydro-inventory.test.mjs
       - tools/gis/compare_osm_hydro_natural_earth.py
       - tools/gis/verify_victorian_yarra_source.py
-      - tools/gis/check_official_usgs_hydro_gauges.py
+      - tools/gis/check-official-usgs-hydro-gauges.mjs
+      - tests/unit/hydro-usgs-official-gauges.test.mjs
       - tools/gis/hydro-independent-name-policy.mjs
       - tools/gis/hydro-independent-name-replacements.json
       - tools/gis/prepare_hydro_name_replacement_bundle.py
@@ -70,11 +71,28 @@ jobs:
             --output /tmp/osm-ne-crosscheck.json
       - name: Independently check suspect Texas streams against USGS field stations
         run: |
-          python tools/gis/check_official_usgs_hydro_gauges.py \
+          node tools/gis/check-official-usgs-hydro-gauges.mjs \
             --decoded /tmp/hydro-decoded.json \
             --output /tmp/usgs-official-anchor-check.json
       - name: Validate independently sourced names with the canonical Node policy
         run: node tools/gis/hydro-independent-name-policy.mjs --input tools/gis/hydro-independent-name-replacements.json > /tmp/hydro-independent-review-validated.json
+      - name: Verify pinned USGS station distances against the original Python audit oracle
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          const proof=JSON.parse(fs.readFileSync('/tmp/usgs-official-anchor-check.json','utf8'));
+          const oracle=[
+            ['USGS-08116650',0.218,48.839],['USGS-08114000',0.143,44.988],
+            ['USGS-08117300',0.371,60.091],['USGS-08162500',40.811,0.199],
+            ['USGS-08162504',57.549,0.153],['USGS-08162501',51.828,0.061],
+          ];
+          for(let i=0;i<oracle.length;i++){
+            const row=proof.stationRows[i], [id,brazos,colorado]=oracle[i];
+            if(row.station!==id||Math.abs(row.distancesToHydroMainstemKm['70816878']-brazos)>0.0011
+                ||Math.abs(row.distancesToHydroMainstemKm['70819626']-colorado)>0.0011)
+              throw Error('Independent pinned USGS metric changed: '+id);
+          }
+          JS
       - name: Verify USGS station evidence is tied to the exact published Hydro geometry
         run: |
           python - <<'PY'
@@ -93,13 +111,37 @@ jobs:
               assert abs(recorded['nearestDifferentBasinStationKm']-measured['nearestDifferentBasinStationKm'])<0.002
           print('Both station-based source exemptions reproduced against original Hydro geometry')
           PY
+      - name: Check all 42 reviewed mainstems independently of the 73 OSM-matched systems
+        run: |
+          node tools/gis/hydro-independent-name-policy.mjs \
+            --input tools/gis/hydro-independent-name-replacements.json \
+            > /tmp/hydro-independent-review-validated.json
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          const verified=JSON.parse(fs.readFileSync('/tmp/hydro-independent-review-validated.json','utf8'));
+          fs.writeFileSync('/tmp/reviewed-mainstem-scope.json',JSON.stringify({
+            items:Object.entries(verified).map(([systemId,value])=>({systemId,nameKo:value.previousNameKo}))
+          }));
+          JS
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          const m=JSON.parse(fs.readFileSync('assets/data/hydro/v0.13.2/manifest.json','utf8'));
+          const expected=m.sources.naturalEarthNameReference.find(row=>row.file==='rivers_base.geojson')?.sha256;
+          if(!expected)throw Error('Missing pinned Natural Earth source hash');
+          fs.writeFileSync('/tmp/hydro-ne-reference.sha256',expected);
+          JS
+          python tools/gis/compare_osm_hydro_natural_earth.py \
+            --decoded /tmp/hydro-decoded.json --natural-earth /tmp/ne-rivers-base.geojson \
+            --expected-sha256 "$(cat /tmp/hydro-ne-reference.sha256)" \
+            --inventory /tmp/reviewed-mainstem-scope.json \
+            --output /tmp/reviewed-ne-crosscheck.json
       - name: Verify all lower-coverage candidate river names against independent Natural Earth line comparison
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           review=json.loads(Path('tools/gis/hydro-independent-name-replacements.json').read_text())['replacements']
-          ne=json.loads(Path('/tmp/osm-ne-crosscheck.json').read_text())['items']
+          ne=json.loads(Path('/tmp/reviewed-ne-crosscheck.json').read_text())['items']
           ne_by_id={str(row['systemId']):row for row in ne}
           for entry in review:
               if entry.get('naturalEarth') is None: continue
