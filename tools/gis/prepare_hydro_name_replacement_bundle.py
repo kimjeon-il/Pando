@@ -12,9 +12,16 @@ import copy
 import gzip
 import hashlib
 import json
+import subprocess
 from collections import Counter
 from pathlib import Path
-from hydro_independent_name_policy import load_independent_hydronyms
+# Transitional producer: source review is owned by the Node validation contract.
+def load_independent_hydronyms(path):
+    checked = subprocess.run(
+        ["node", str(Path(__file__).with_name("hydro-independent-name-policy.mjs")),
+         "--input", str(path)], capture_output=True, text=True, encoding="utf-8", check=True)
+    return json.loads(checked.stdout)
+
 
 
 def digest(value: bytes) -> str:
