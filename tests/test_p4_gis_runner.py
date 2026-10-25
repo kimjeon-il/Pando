@@ -28,14 +28,20 @@ class GisRunnerIsolationTests(unittest.TestCase):
         for task, path in (
             ("hydro-tiles", "tools/build-hydro-tiles.py"),
             ("historical-border", "tools/build_german_empire_1914_base.py"),
-            ("historical-topography-probe",
-             "scripts/research/siachen/compare_independent_dem_saltoro.py"),
         ):
             with self.subTest(task=task):
                 result = subprocess.run([sys.executable, str(RUNNER), "--task", task],
                                         cwd=ROOT, capture_output=True, text=True, check=False)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(json.loads(result.stdout)["source"], path)
+
+    def test_retired_siachen_task_is_not_dispatchable(self):
+        result = subprocess.run(
+            [sys.executable, str(RUNNER), "--task", "historical-topography-probe"],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("invalid choice", result.stderr)
 
     def test_arbitrary_python_execution_is_not_supported(self):
         result = subprocess.run([sys.executable, str(RUNNER), "--task",
