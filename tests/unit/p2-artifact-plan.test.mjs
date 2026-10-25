@@ -9,6 +9,7 @@ import test from 'node:test';
 import { sharedSourceManifest } from '../../tools/package-shared-core-assets.mjs';
 import { libraryMaterializedRoot, libraryReportRoot, librarySharedCheckout, withLibraryOutputs } from '../../tools/library-data.mjs';
 import {publishContent,linkContent} from '../../tools/library-content.mjs';
+import {reportPath} from '../../tools/report-paths.mjs';
 import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
   plan, assertArtifactsCurrent } from '../../scripts/p2-artifact-plan.mjs';
 import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,
@@ -410,4 +411,23 @@ test('result evidence verifies mounted output from the committed library pin, no
  f.put('config/library-data.json',JSON.stringify({repository:'example/data',revision:dataGit('rev-parse','HEAD'),mounts:['assets/data']}));
  const corrupted=f.commit();
  assert.throws(()=>artifactEvidence(f.root,{resultSha:corrupted,expectedSourceSha:f.head,evidenceFile:'build-native/p2/corrupt-evidence.json',families:['a']}),/corrupt/);
+});
+
+test('report fingerprints follow the owner read view when originals are stored only as variants',t=>{
+ const f=graphFixture(t),checkout=join(f.root,'.library-data/repository'),logical='reports/places/tier1-major-cities-batch01.json',bytes=Buffer.from('{"records":[]}\n');
+ mkdirSync(join(checkout,'reports/places'),{recursive:true});mkdirSync(join(checkout,'archive'),{recursive:true});
+ const dataGit=(...args)=>execFileSync('git',args,{cwd:checkout,stdio:'pipe'}).toString().trim();
+ dataGit('init','-q');dataGit('config','user.email','fixture@example.invalid');dataGit('config','user.name','Fixture');
+ writeFileSync(join(checkout,logical),bytes);
+ writeFileSync(join(checkout,'archive/index.json'),JSON.stringify({reportLayout:'subjects-v1',files:{[logical]:{stored:logical,encoding:'identity',bytes:bytes.length,sha256:digest(bytes)}}}));
+ dataGit('add','.');dataGit('commit','-qm','report edition');const revision=dataGit('rev-parse','HEAD');
+ rmSync(join(checkout,logical));
+ f.put('.gitignore','build-native/\n.library-data/\nreports/\n');
+ f.put('config/library-data.json',JSON.stringify({repository:'example/data',revision,mounts:['reports']}));
+ symlinkSync(join(checkout,'reports'),join(f.root,'reports'),process.platform==='win32'?'junction':'dir');
+ f.families[0].inputs=[{prefix:'reports/places/',pattern:'batch01\\.json$'}];f.config();
+ const view=reportPath('reports/places',{root:f.root,access:'read'});
+ assert.equal(readFileSync(join(view,'tier1-major-cities-batch01.json'),'utf8'),bytes.toString());
+ const status=graphStatus(f.root).statuses.a;
+ assert.deepEqual(status.inputs,{[logical]:digest(bytes)});
 });
