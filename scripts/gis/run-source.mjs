@@ -3,7 +3,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
-import { dirname, extname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));

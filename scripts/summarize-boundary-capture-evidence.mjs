@@ -46,7 +46,7 @@ export function contextOptions(row) {
 async function* linesBounded(zip,member){
   let fragments=[],lineSize=0;
   for await(const chunk of zipMemberChunks(zip,member)){
-    let start=0,pos=0;
+    let start=0,pos;
     while((pos=chunk.indexOf(10,start))!==-1){
       const fragment=chunk.subarray(start,pos);
       lineSize+=fragment.length+1;

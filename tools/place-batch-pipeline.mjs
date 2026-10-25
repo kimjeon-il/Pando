@@ -24,7 +24,7 @@ export function writeNewJson(path,value){
  try{
    writeFileSync(temp,JSON.stringify(value,null,2)+'\n',{flag:'wx'});
    linkSync(temp,dest); // atomically create; never clobber an existing reviewed file
- }catch(error){if(error.code==='EEXIST')throw Error('Refusing to overwrite existing file: '+dest);throw error;}
+ }catch(error){if(error.code==='EEXIST')throw new Error('Refusing to overwrite existing file: '+dest,{cause:error});throw error;}
  finally{rmSync(temp,{force:true});}
 }
 export function registered(places=PLACES){

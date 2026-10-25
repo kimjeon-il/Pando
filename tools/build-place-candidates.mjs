@@ -28,7 +28,6 @@ export function writeJson(path,contents){
   mkdirSync(dirname(path),{recursive:true});
   writeFileSync(path,JSON.stringify(contents,null,2)+'\n');
 }
-const attemptsURL=name=>BASE_URL+name+'.zip';
 async function downloadBody(url,file,fetcher) {
   const result=await fetcher(url,{headers:{'User-Agent':'PandoLab-place-data-audit/1',
     'Accept-Encoding':'identity'},signal:AbortSignal.timeout(900000)});
@@ -113,9 +112,6 @@ export async function fetchSources(cache=CACHE,options={}){
     throw Error('Both official sources failed; see fetch-attempts.json before selecting a verified mirror');
   return attempts;
 }
-const countBy=(rows,key)=>{const map=new Map();for(const row of rows){
-  const k=key(row);map.set(k,(map.get(k)||0)+1);
-}return map;};
 const patchedReport=(current,generated)=>{
   if(current.split(GENERATED_START).length!==2||current.split(GENERATED_END).length!==2)
     throw Error('Report requires exactly one generated statistics marker pair');
