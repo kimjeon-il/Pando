@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { zipFixture } from '../helpers/geonames-fixtures.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const configUrl = new URL('../../playwright.boundary-capture.config.mjs', import.meta.url);
@@ -275,34 +276,34 @@ test('runner records a thrown evidence reader error and continues all arms', asy
   assert.doesNotMatch(readFileSync(result.summaryPath, 'utf8'), /secret context/);
 });
 
-const analyzerUrl = new URL('../../scripts/summarize-boundary-capture-evidence.py', import.meta.url);
+const analyzerUrl = new URL('../../scripts/summarize-boundary-capture-evidence.mjs', import.meta.url);
 function analyzeFixture(t, { screenshots = true, frames = screenshots ? 2 : 0, snapshots = 3,
   corrupt = false, missing = false, missingDiagnostics = false } = {}) {
   assert.ok(existsSync(analyzerUrl), 'the bounded post-exit evidence reader must exist');
   const directory = withOutput(t);
-  const output = join(directory, 'artifacts');
-  const evidence = join(directory, 'evidence');
-  const fixture = spawnSync('python3', ['-c', `
-import json, pathlib, zipfile
-root=pathlib.Path(${JSON.stringify(output)}); root.mkdir()
-if not ${missing ? 'True' : 'False'}:
-    with zipfile.ZipFile(root/'trace.zip','w') as z:
-        rows=[{'type':'context-options','origin':'library','browserName':'chromium','playwrightVersion':'1.62.1',
-            'options':{'viewport':{'width':1280,'height':720},'isMobile':False,'hasTouch':False,'httpCredentials':{'password':'do not export'}}}]
-        rows += [{'type':'frame-snapshot','snapshot':{'html':['do not export geometry']}}] * ${snapshots}
-        rows += [{'type':'screencast-frame','sha1':'not copied'}] * ${frames}
-        z.writestr('0-trace.trace', 'broken json' if ${corrupt ? 'True' : 'False'} else '\\n'.join(json.dumps(row) for row in rows))
-        z.writestr('resources/src@unit.txt','source')
-if not ${missingDiagnostics ? 'True' : 'False'}:
-    (root/'boundary-project-undo-native-action.json').write_text(json.dumps({'label':'boundary-project-undo','host':{'outcome':'fulfilled','durationMs':11}}))
-    (root/'boundary-project-undo-cpu-summary.json').write_text(json.dumps({'label':'boundary-project-undo','status':'captured'}))
-`], { encoding: 'utf8' });
-  assert.equal(fixture.status, 0, fixture.stderr);
-  const result = spawnSync('python3', [fileURLToPath(analyzerUrl), output, evidence, String(screenshots)],
-    { encoding: 'utf8' });
+  const output = join(directory, 'artifacts'), evidence = join(directory, 'evidence');
+  mkdirSync(output);
+  if (!missing) {
+    const rows = [{ type:'context-options',origin:'library',browserName:'chromium',
+      playwrightVersion:'1.62.1',options:{viewport:{width:1280,height:720},
+        isMobile:false,hasTouch:false,httpCredentials:{password:'do not export'}} },
+      ...Array.from({length:snapshots},()=>({type:'frame-snapshot',
+        snapshot:{html:['do not export geometry']}})),
+      ...Array.from({length:frames},()=>({type:'screencast-frame',sha1:'not copied'}))];
+    const text = corrupt ? 'broken json' : rows.map(row=>JSON.stringify(row)).join('\n');
+    writeFileSync(join(output,'trace.zip'),zipFixture('resources/src@unit.trace',text,{deflate:true}));
+  }
+  if (!missingDiagnostics) {
+    writeFileSync(join(output,'boundary-project-undo-native-action.json'),
+      JSON.stringify({label:'boundary-project-undo',host:{outcome:'fulfilled',durationMs:11}}));
+    writeFileSync(join(output,'boundary-project-undo-cpu-summary.json'),
+      JSON.stringify({label:'boundary-project-undo',status:'captured'}));
+  }
+  const result=spawnSync(process.execPath,
+    [fileURLToPath(analyzerUrl),output,evidence,String(screenshots)],{encoding:'utf8'});
   assert.ifError(result.error);
-  const metadata = JSON.parse(readFileSync(join(evidence, 'trace-metadata.json'), 'utf8'));
-  return { result, metadata, evidence };
+  const metadata=JSON.parse(readFileSync(join(evidence,'trace-metadata.json'),'utf8'));
+  return {result,metadata,evidence};
 }
 
 for (const screenshots of [true, false]) {
