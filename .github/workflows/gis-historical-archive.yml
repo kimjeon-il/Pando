@@ -96,10 +96,17 @@ jobs:
             schema:'pando-gis-c1-licensed-source-readiness-v1',libraryRevision:revision,
             records:recorded,
             recipeHgisSha256:recipe.sources.hgisStates.sha256??null,
+            recipeCanonicalSha256:recipe.sources.canonicalCountries.sha256??null,
+            canonicalShaCompatible:Boolean(recorded.canonicalNaturalEarthSource.sha256
+              &&recipe.sources.canonicalCountries.sha256?.toLowerCase()===
+                 recorded.canonicalNaturalEarthSource.sha256.toLowerCase()),
             readyForOriginalGeometryParity:Boolean(recorded.licensedHgisOriginal.present
               &&recorded.canonicalNaturalEarthSource.present
               &&recorded.german1914GeneratedOracle.present
-              &&recipe.sources.hgisStates.sha256),
+              &&recipe.sources.hgisStates.sha256?.toLowerCase()===
+                 recorded.licensedHgisOriginal.sha256.toLowerCase()
+              &&recipe.sources.canonicalCountries.sha256?.toLowerCase()===
+                 recorded.canonicalNaturalEarthSource.sha256.toLowerCase()),
             warning:'Archival index only. An entry does not grant redistribution rights or prove saved bytes.',
           };
           writeFileSync('build-native/historical/c1-source-readiness.json',
