@@ -1,6 +1,6 @@
 // Local application storage owner. Library bytes remain owned by library-data.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, mkdirSync, writeFileSync, unlinkSync, readdirSync, statfsSync, openSync, closeSync, lstatSync, rmdirSync, statSync, chmodSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, writeFileSync, unlinkSync, readdirSync, statfsSync, openSync, closeSync, lstatSync, rmdirSync, statSync, chmodSync, renameSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atomicStorageJSON, containedPath, contentHash, contentFiles, contentPath, publishContent, linkContentView, removeContentView, recoverContentPermissions } from './library-content.mjs';
@@ -40,6 +40,30 @@ export function writeStagedContent({root,directory,path,bytes,source=null,settin
     if(shared)return withLibraryLock(root,()=>{removePreviousAppLink(settings,target,view,shared,sha256);return linkContentView(shared,sha256,target,view);});
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},blob=publishContent(store,bytes);
     return linkContentView(store,blob.sha256,target,view);
+  });
+}
+export function installNativeArtifactView({root,source,manifest,settings=storageSettings(root),afterFile=()=>{}}){
+  if(!settings)throw Error('Activate application storage before installing native artifacts');
+  if(manifest.schema!==1||!/^[a-f0-9]{64}$/.test(manifest.nativeInputSha256)||!['windows','android','android-x86_64'].includes(manifest.platform)||!['development','offline','verification'].includes(manifest.mode))throw Error('Invalid native artifact identity');
+  return withStorageLock(root,settings,()=>{
+    const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'native/'+manifest.nativeInputSha256),pending=directory+'.pending',journal=containedPath(settings.cacheRoot,'native-install.pending.json');
+    if(existsSync(journal)&&JSON.parse(readFileSync(journal)).manifest.nativeInputSha256!==manifest.nativeInputSha256)throw Error('Resume the pending native artifact installation first');
+    const checkFiles=(dir,value)=>{for(const f of value.files){const target=containedPath(dir,f.path);if(statSync(target).size!==f.bytes||contentHash(readFileSync(target))!==f.sha256||(statSync(target).mode&0o200))throw Error('Native artifact view changed or became writable');}};
+    if(!existsSync(directory)){
+      const bytes=manifest.files.reduce((n,f)=>n+f.bytes,0),disk=statfsSync(settings.cacheRoot);
+      if(bytes>=1024**3&&disk.bavail*disk.bsize<bytes+5*1024**3)throw Error('Native installation requires payload plus 5GiB headroom');
+      mkdirSync(pending,{recursive:true});
+      if(existsSync(join(pending,'native-artifact.json'))&&JSON.stringify(JSON.parse(readFileSync(join(pending,'native-artifact.json'))))!==JSON.stringify(manifest))throw Error('Pending native artifact differs; preserve it for recovery');
+      atomicStorageJSON(join(pending,'native-artifact.json'),manifest);atomicStorageJSON(journal,{root,source,manifest});
+      const view={viewRoot:pending,marker:'native-artifact.json'};
+      for(const f of manifest.files){if(!['pandolab-web-shell.exe','WebView2Loader.dll','app.apk'].includes(f.path))throw Error('Unexpected native artifact path');const input=containedPath(source,f.path),bytes=readFileSync(input);if(bytes.length!==f.bytes||contentHash(bytes)!==f.sha256)throw Error('Downloaded native artifact changed');publishContent(store,bytes);linkContentView(store,f.sha256,containedPath(pending,f.path),view);afterFile(f);}
+      checkFiles(pending,manifest);renameSync(pending,directory);
+    }
+    const current=JSON.parse(readFileSync(containedPath(directory,'native-artifact.json')));
+    if(current.nativeInputSha256!==manifest.nativeInputSha256||current.platform!==manifest.platform||current.mode!==manifest.mode)throw Error('Native view identity changed');checkFiles(directory,current);
+    if(existsSync(journal))unlinkSync(journal);
+    const pointer=containedPath(root,'.library-data/native-artifacts.json'),bindings=existsSync(pointer)?JSON.parse(readFileSync(pointer)):{};
+    bindings[manifest.platform+'-'+manifest.mode]={directory,nativeInputSha256:manifest.nativeInputSha256};atomicStorageJSON(pointer,bindings);return directory;
   });
 }
 const fileIdentity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}`;};
@@ -152,7 +176,7 @@ export function applyWorktreeStorage(options={}){
 export function pruneApplicationBlobs({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers()}={}){
   if(!settings)throw Error('Worktree storage is not activated');
   const operation=()=>{
-    for(const name of ['migration.pending.json','runtime-migration.pending.json','generated-retirement.pending.json','app-git-compaction.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error(`Pending recovery journal blocks blob pruning: ${name}`);
+    for(const name of ['migration.pending.json','runtime-migration.pending.json','generated-retirement.pending.json','app-git-compaction.pending.json','native-install.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error(`Pending recovery journal blocks blob pruning: ${name}`);
     const busy=roots.map(app=>stageBusy(app,processes)).find(Boolean);if(busy)throw Error(busy);
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'blobs'),entries=[];
     const before=statfsSync(settings.cacheRoot);
