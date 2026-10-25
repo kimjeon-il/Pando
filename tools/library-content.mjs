@@ -6,13 +6,31 @@ import { chmodSync, copyFileSync, existsSync, linkSync, lstatSync, mkdirSync, re
 import { dirname, relative, resolve, sep, isAbsolute } from 'node:path';
 
 export const contentHash = bytes => createHash('sha256').update(bytes).digest('hex');
+const storeRoot = store => typeof store === 'string' ? store : store.root;
+const blobDirectory = store => typeof store === 'string' ? '.pando-store/blobs' : store.blobDirectory;
+const permissionMarker = store => containedPath(storeRoot(store), blobDirectory(store) === '.pando-store/blobs' ? '.pando-store/.permission-restore.json' : '.permission-restore.json');
+function contentTarget(store, target) {
+  if (typeof store === 'object' && store.view) {
+    const { viewRoot, marker } = store.view;
+    if (!/^[.\w-]+$/.test(marker)) throw Error('Invalid content view ownership marker');
+    const owner = containedPath(viewRoot, marker);
+    if (!existsSync(owner) || !lstatSync(owner).isFile()) throw Error('Content view ownership is not established');
+    return containedPath(viewRoot, target);
+  }
+  return containedPath(storeRoot(store), target);
+}
+const viewStore = (store, view) => ({ root: storeRoot(store), blobDirectory: blobDirectory(store), view });
+export const linkContentView = (store, sha256, target, view) => linkContent(viewStore(store, view), sha256, target);
+export const removeContentView = (store, target, view) => removeContentLink(viewStore(store, view), target);
+export const makeContentViewPrivate = (store, target, view) => makePrivate(viewStore(store, view), target);
 export function contentPath(shared, sha256) {
   if (!/^[a-f0-9]{64}$/.test(sha256)) throw Error('Invalid content hash');
-  return containedPath(shared, `.pando-store/blobs/${sha256}`);
+  return containedPath(storeRoot(shared), `${blobDirectory(shared)}/${sha256}`);
 }
 export function containedPath(base, value) {
   base = resolve(base); const target = resolve(base, value), rel = relative(base, target);
   if (!rel || rel === '..' || rel.startsWith('..' + sep) || isAbsolute(rel)) throw Error(`Path escaped library scope: ${target}`);
+  for (let p = base; dirname(p) !== p; p = dirname(p)) if (existsSync(p) && lstatSync(p).isSymbolicLink()) throw Error(`Linked library scope must be preserved: ${p}`);
   for (let p = target; p !== base; p = dirname(p)) if (existsSync(p) && lstatSync(p).isSymbolicLink()) throw Error(`Linked library path must be preserved: ${p}`);
   return target;
 }
@@ -36,7 +54,7 @@ function exactContent(path, sha256, bytes) {
   if (s.isSymbolicLink() || !s.isFile() || (bytes !== undefined && s.size !== bytes) || contentHash(readFileSync(path)) !== sha256) throw Error(`Modified content pool object: ${path}`);
 }
 export function recoverContentPermissions(shared) {
-  const marker = containedPath(shared, '.pando-store/.permission-restore.json');
+  const marker = permissionMarker(shared);
   if (!existsSync(marker)) return;
   const { sha256 } = JSON.parse(readFileSync(marker, 'utf8')), blob = contentPath(shared, sha256);
   if (existsSync(blob)) { exactContent(blob, sha256); chmodSync(blob, 0o400); }
@@ -56,7 +74,7 @@ export function publishContent(shared, bytes) {
   chmodSync(path, 0o400); return { path, sha256, bytes: bytes.length };
 }
 export function removeContentLink(shared, target) {
-  target = containedPath(shared, target); recoverContentPermissions(shared);
+  target = contentTarget(shared, target); recoverContentPermissions(shared);
   const s = lstatSync(target); if (!s.isFile()) throw Error('Expected a plain content link');
   if ((s.mode & 0o200) && s.nlink === 1) { unlinkSync(target); return; }
   const sha256 = contentHash(readFileSync(target)), blob = contentPath(shared, sha256);
@@ -65,14 +83,14 @@ export function removeContentLink(shared, target) {
   const same = statSync(target, { bigint: true }).ino === statSync(blob, { bigint: true }).ino;
   if (s.nlink > 1 && !same) throw Error(`Unowned hardlink must be preserved: ${target}`);
   if (!same) { chmodSync(target, 0o600); unlinkSync(target); return; }
-  const marker = containedPath(shared, '.pando-store/.permission-restore.json');
+  const marker = permissionMarker(shared);
   atomicStorageJSON(marker, { sha256 });
   try { chmodSync(blob, 0o600); unlinkSync(target); }
   finally { if (existsSync(blob)) chmodSync(blob, 0o400); if (existsSync(marker)) unlinkSync(marker); }
 }
 export function linkContent(shared, sha256, target) {
   recoverContentPermissions(shared); const blob = contentPath(shared, sha256);
-  target = containedPath(shared, target); exactContent(blob, sha256);
+  target = contentTarget(shared, target); exactContent(blob, sha256);
   if (target === blob) return target;
   mkdirSync(dirname(target), { recursive: true });
   if (existsSync(target)) {
@@ -83,7 +101,7 @@ export function linkContent(shared, sha256, target) {
   linkSync(blob, target); chmodSync(blob, 0o400); return target;
 }
 export function shareContentFile(shared, source, expected = null) {
-  source = containedPath(shared, source); recoverContentPermissions(shared);
+  source = contentTarget(shared, source); recoverContentPermissions(shared);
   const bytes = readFileSync(source), sha256 = contentHash(bytes);
   if (expected && (sha256 !== expected.sha256 || bytes.length !== expected.bytes)) throw Error(`Original changed before sharing: ${source}`);
   const blob = contentPath(shared, sha256); mkdirSync(dirname(blob), { recursive: true });
@@ -93,8 +111,8 @@ export function shareContentFile(shared, source, expected = null) {
   return { sha256, bytes: bytes.length, path: blob };
 }
 export function makePrivate(shared, target) {
-  target = containedPath(shared, target); recoverContentPermissions(shared);
-  const poolRelative=relative(resolve(shared,'.pando-store/blobs'),target);
+  target = contentTarget(shared, target); recoverContentPermissions(shared);
+  const poolRelative=relative(resolve(storeRoot(shared),blobDirectory(shared)),target);
   if(poolRelative!=='..'&&!poolRelative.startsWith('..'+sep)&&!isAbsolute(poolRelative))throw Error('The immutable pool cannot become a writable working file');
   if (!existsSync(target)) return target;
   const s = lstatSync(target); if (!s.isFile()) throw Error('Expected a plain writable file');
@@ -109,7 +127,7 @@ export function makePrivate(shared, target) {
   return target;
 }
 export function replaceLibraryFile(shared, target, bytes) {
-  target = containedPath(shared, target); mkdirSync(dirname(target), { recursive: true });
+  target = contentTarget(shared, target); mkdirSync(dirname(target), { recursive: true });
   const temporary = target + `.${process.pid}.pending`;
   let created = false;
   try {
