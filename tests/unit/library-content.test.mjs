@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, statSync, chmodSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, statSync, chmodSync, rmSync, existsSync, symlinkSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as content from '../../tools/library-content.mjs';
@@ -57,4 +57,36 @@ test('an independent readonly edit becomes writable while the pool itself stays 
   content.makePrivate(root,edit);writeFileSync(edit,'updated');assert.equal(readFileSync(edit,'utf8'),'updated');
   const blob=content.publishContent(root,Buffer.from('immutable'));
   assert.throws(()=>content.makePrivate(root,blob.path));assert.equal(statSync(blob.path).mode&0o200,0);
+});
+
+test('explicit owned external views share immutable bytes and isolate edits',t=>{
+  const root=fixture(t), store={root:join(root,'cache'),blobDirectory:'blobs'};
+  const a=join(root,'app-a'),b=join(root,'app-b');
+  for(const view of [a,b]){mkdirSync(view);writeFileSync(join(view,'.stage-owner'),'owned');}
+  const blob=content.publishContent(store,Buffer.from('shared stage'));
+  for(const view of [a,b])content.linkContentView(store,blob.sha256,join(view,'data.bin'),{viewRoot:view,marker:'.stage-owner'});
+  assert.equal(statSync(join(a,'data.bin'),{bigint:true}).ino,statSync(join(b,'data.bin'),{bigint:true}).ino);
+  assert.throws(()=>writeFileSync(join(a,'data.bin'),'unsafe'));
+  content.makeContentViewPrivate(store,join(a,'data.bin'),{viewRoot:a,marker:'.stage-owner'});
+  writeFileSync(join(a,'data.bin'),'private');
+  assert.equal(readFileSync(join(b,'data.bin'),'utf8'),'shared stage');
+  content.removeContentView(store,join(b,'data.bin'),{viewRoot:b,marker:'.stage-owner'});
+  assert.equal(statSync(blob.path).mode&0o200,0);
+  assert.throws(()=>content.linkContentView(store,blob.sha256,join(root,'escape.bin'),{viewRoot:a,marker:'.stage-owner'}),/scope|escape/i);
+  assert.throws(()=>content.linkContentView(store,blob.sha256,join(root,'unowned/file'),{viewRoot:join(root,'unowned'),marker:'.stage-owner'}),/owner/i);
+});
+
+test('external views reject junctions and permission recovery preserves immutable peers',t=>{
+  const root=fixture(t),store={root:join(root,'cache'),blobDirectory:'blobs'},view=join(root,'view');
+  mkdirSync(view);writeFileSync(join(view,'.stage-owner'),'owned');
+  const blob=content.publishContent(store,Buffer.from('original'));
+  const link=join(root,'junction');symlinkSync(view,link,'junction');
+  try{assert.throws(()=>content.linkContentView(store,blob.sha256,join(link,'file'),{viewRoot:link,marker:'.stage-owner'}),/Linked/);}
+  finally{unlinkSync(link);}
+  const nested=join(view,'nested');symlinkSync(root,nested,'junction');
+  try{assert.throws(()=>content.linkContentView(store,blob.sha256,join(nested,'outside'),{viewRoot:view,marker:'.stage-owner'}),/Linked/);}
+  finally{unlinkSync(nested);}
+  chmodSync(blob.path,0o600);content.atomicStorageJSON(join(store.root,'.permission-restore.json'),{sha256:blob.sha256});
+  content.recoverContentPermissions(store);
+  assert.equal(statSync(blob.path).mode&0o200,0);assert.equal(existsSync(join(store.root,'.permission-restore.json')),false);
 });
