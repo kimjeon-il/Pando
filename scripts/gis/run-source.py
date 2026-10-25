@@ -22,7 +22,7 @@ TASK_SOURCES = {
     "hydro-packfile": "tools/build-hydro-packfile.mjs",
     "hydro-connectivity": "tools/repair-hydro-connectivity.py",
     "physical-data": "tools/build-physical-data.py",
-    "place-candidates": "tools/build-place-candidates.py",
+    "place-candidates": "tools/build-place-candidates.mjs",
 }
 
 

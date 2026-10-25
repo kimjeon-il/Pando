@@ -4,7 +4,7 @@
 
 ## 역할 구분
 
-- `tools/build-place-candidates.py`: 공식 GeoNames 스냅샷으로 현대 정착지 후보 추출과 ID별 유지/보류/제외 검토. 이 도구의 `candidate()` 포함 정책을 변경하지 않는다.
+- `tools/build-place-candidates.mjs`: 공식 GeoNames 스냅샷으로 현대 정착지 후보 추출과 ID별 유지/보류/제외 검토. 이 도구의 `candidate()` 포함 정책을 변경하지 않는다.
 - `tools/place-batch-pipeline.mjs`: 검토된 후보 풀에서 *미등록 ID* 선별, 출처 해시 대조, 조사 대기열 출력, 역사 명칭이 조사 완료된 JSON의 기계적 검증 및 **새** 차수 파일 생성.
 - 연구자/검수자: A(단순)·B(공통 규칙)·C(복잡) 구분과 실제 명칭·날짜·공용어·근거 검증. 이 판단은 GeoNames의 국가·인구·코드만으로 자동화하지 않는다.
 
@@ -17,7 +17,7 @@
 node tools/place-batch-pipeline.mjs audit
 
 # 2. 기존 확인·보류 판정까지 반영된 공식 후보 풀을 생성 (검증된 .cache 원본 필요)
-python -X utf8 tools/build-place-candidates.py review
+node tools/build-place-candidates.mjs review
 
 # 3. 16차의 조사 대상 최대 25개를 중복 없이 선별 (전 세계 / 현대 인구 기반 발견 순서)
 node tools/place-batch-pipeline.mjs plan --batch 16 --limit 25 \
