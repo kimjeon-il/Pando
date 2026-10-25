@@ -27,7 +27,9 @@ if(PANDO_BUILD_HYDRO_CONNECTIVITY)
     if(MSVC)
         target_compile_options(pando-hydro-connectivity PRIVATE /utf-8)
     else()
-        target_compile_options(pando-hydro-connectivity PRIVATE -Wall -Wextra -Werror -pedantic)
+        # The existing shared losslessjson.cpp triggers GCC's indentation warning;
+        # keep all other warnings fatal without editing the shared Web/WASM codec.
+        target_compile_options(pando-hydro-connectivity PRIVATE -Wall -Wextra -Werror -Wno-error=misleading-indentation -pedantic)
     endif()
 endif()
 
