@@ -49,3 +49,33 @@ test('currentSnapshotRetainsExplicitOverseasGeometry', () => {
   const rows = [candidate('overseas', 10, 12, 'parent'), candidate('parent', 0, 5)].map(row => ({ ...row, currentSnapshot: true }));
   assert.deepEqual(adjust(rows).candidates, rows);
 });
+
+test('one compilation reuses exact Boolean results across date cuts without freezing dates or changed geometry',()=>{
+ assert.equal(typeof module.createHistoricalTerritoryCache,'function');
+ let calls=0;
+ const clipper=Object.fromEntries(['intersection','difference','union'].map(name=>[name,(...args)=>{calls++;return globalThis.polygonClipping[name](...args);} ]));
+ const cache=module.createHistoricalTerritoryCache(clipper),rows=[candidate('east',0,6),candidate('west',4,10)];
+ const first=module.adjustHistoricalTerritories(rows,policy,clipper,cache),initialCalls=calls;
+ const later=rows.map(row=>({...row,validFrom:'2000-01-01',validTo:'2001-12-31'}));
+ const reused=module.adjustHistoricalTerritories(later,policy,clipper,cache);
+ assert.equal(calls,initialCalls,'the same geometry operations are evaluated once');
+ assert.deepEqual(reused,module.adjustHistoricalTerritories(later,policy));
+ assert.equal(reused.candidates[0].validFrom,'2000-01-01');
+ assert.deepEqual(reused.adjustments,first.adjustments);
+ const edited=[{...later[0],geometry:box(0,3)},later[1]];
+ assert.deepEqual(module.adjustHistoricalTerritories(edited,policy,clipper,cache),module.adjustHistoricalTerritories(edited,policy));
+ assert.ok(calls>initialCalls,'a different geometry must calculate its own result');
+});
+
+test('reused Boolean results replay precision evidence and retain each interval discard budget',()=>{
+ const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
+  [46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const clipper={...globalThis.polygonClipping,intersection:(...args)=>[...globalThis.polygonClipping.intersection(...args),[artifact]]};
+ const cache=module.createHistoricalTerritoryCache(clipper),rows=[candidate('east',0,6),candidate('west',4,10)];
+ const first=module.adjustHistoricalTerritories(rows,policy,clipper,cache);
+ assert.ok(first.adjustments.some(row=>row.kind==='certified-clipping-precision-artifact'));
+ assert.deepEqual(module.adjustHistoricalTerritories(rows,policy,clipper,cache),first);
+ const many=Array.from({length:6},(_,index)=>candidate(`source${index}`,index*10,index*10+2));
+ const budget=module.createHistoricalTerritoryCache(clipper);
+ for(let run=0;run<2;run++)assert.throws(()=>module.adjustHistoricalTerritories(many,policy,clipper,budget),/HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED/);
+});

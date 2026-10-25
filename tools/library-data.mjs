@@ -441,6 +441,9 @@ function retireOwnedCaches(root, current) {
     if (active.has(directory) || !existsSync(owner)) continue;
     const record = JSON.parse(readFileSync(owner, 'utf8'));
     if (record.revision !== item.name || record.schema !== 'pando-shared-runtime-v1') continue;
+    // Private WIP is never eligible for retirement. Do not hash its entire
+    // runtime dataset merely to reach that already-known preservation result.
+    if (Object.values(record.files).some(entry => entry.storage !== 'shared')) continue;
     if (libraryWriteLeases(librarySharedCheckout(root)).some(lease => lease.alive && lease.view === directory)) continue;
     if (pristineCache(directory, record.files)) removeRuntimeView(librarySharedCheckout(root), directory, record);
   }
@@ -1269,6 +1272,16 @@ function recordReportOwner(root, source, paths) {
   git(shared, ['update-ref', `refs/pando/reports/${owner}`, revision]);
   registry.owners[owner] = { revision }; writeReportRegistry(root, registry);
 }
+export function storeNativeLibraryObjects({libraryIndex,previousLibrary,previousIndex,readChunk,put}) {
+  const previous=new Map(previousIndex.entities.map(entry=>[entry.entityId,entry.sha256])),entities={};
+  for(const entry of libraryIndex.entities){
+    const old=previousLibrary.entities?.[entry.entityId];
+    if(old&&previous.get(entry.entityId)===entry.sha256){entities[entry.entityId]=old;continue;}
+    const bytes=Buffer.from(JSON.stringify(JSON.parse(gunzipSync(readChunk(entry))))+'\n');
+    const hash=contentHash(bytes);put(`objects/${hash}.json`,bytes);entities[entry.entityId]=hash;
+  }
+  return entities;
+}
 function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }) {
   const data = reportData || prepareOwnedLibraryData({ root, fetch: true });
   if (libraryWriteLeases(librarySharedCheckout(root)).some(lease => lease.alive && lease.owner === libraryOwnerId(root) && lease.prefixes.some(a => prefixes.some(b => scopesOverlap(a, b))))) throw Error('Finish the active library write lease before storing this scope');
@@ -1342,12 +1355,11 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   // The existing native source schema remains the only editable library format.
   if (storeNativeObjects) {
   const indexBytes = readFileSync(resolve(data.materialized, 'assets/data/territorial-entities/generated/v2/index.json'));
-  const libraryIndex = JSON.parse(indexBytes), source = { schemaVersion: 1, indexHash: digest(indexBytes), entities: {} };
+  const libraryIndex = JSON.parse(indexBytes), previousLibrary=JSON.parse(readFileSync(resolve(data.checkout,'library.json')));
+  const previousIndex=previousLibrary.indexHash?JSON.parse(git(data.checkout,['show',`HEAD:objects/${previousLibrary.indexHash}.json`],{allowFetch:true})):{entities:[]};
+  const source = { schemaVersion: 1, indexHash: digest(indexBytes), entities: storeNativeLibraryObjects({libraryIndex,previousLibrary,previousIndex,
+    readChunk:entry=>readFileSync(resolve(data.materialized,'assets/data/territorial-entities/generated/v2',entry.file)),put}) };
   put(`objects/${source.indexHash}.json`, indexBytes);
-  for (const entry of libraryIndex.entities) {
-    const bytes = Buffer.from(JSON.stringify(JSON.parse(gunzipSync(readFileSync(resolve(data.materialized, 'assets/data/territorial-entities/generated/v2', entry.file))))) + '\n');
-    const hash = digest(bytes); put(`objects/${hash}.json`, bytes); source.entities[entry.entityId] = hash;
-  }
   put('library.json', Buffer.from(JSON.stringify(source) + '\n'));
   }
   index.sourceRevision = git(root, ['rev-parse', 'HEAD']);
