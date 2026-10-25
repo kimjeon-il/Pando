@@ -31,7 +31,8 @@ async function primeBase({ owner, requests, jobs }, frame, view) {
   const previousBitmap = globalThis.createImageBitmap;
   globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
   try {
-    owner.prepare(frame, view);
+    owner.prepare({ ...frame, scale: 50 }, view);
+    await settle();
     for (const request of requests.filter(request => /\/0\//.test(request.url))) {
       request.resolve({ ok: true, blob: async () => ({}) });
       await settle();
@@ -70,70 +71,29 @@ function assertWorldCoverage(prepared) {
 }
 
 for (const representation of ['dem-relief-v1', 'raster-rgba-v1']) {
-  test(`${representation} cannot publish fine coverage ahead of the complete world reserve`, async t => {
+  test(representation + ' publishes current detail without downloading the offscreen world reserve', async t => {
     const { owner, requests, jobs } = fixture(t);
     t.after(() => owner.dispose());
     globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
     t.after(() => { delete globalThis.createImageBitmap; });
     owner.setManifest({ ...mobileManifest, representation });
-    const frame = { mode: 1, scale: 1200, dpr: 1, viewport: [1000, 800],
-      viewState: { projection: 'flat', projectionCenter: [0, 0] } };
+    const frame = { mode: 1, scale: 1200, dpr: 1, viewport: [1000, 800], viewState: { projection: 'flat', projectionCenter: [0, 0] } };
     const view = { ...mobileView(), projection: 'flat', flatCenter: [0, 0], devicePixelRatio: 1 };
-    owner.prepare(frame, view);
-    const upload = async request => {
-      request.resolve({ ok: true, blob: async () => ({}) });
-      await settle();
-      for (const job of jobs.splice(0)) while (!job.step().done) { /* Real owner uploads. */ }
-    };
-    const fine = requests.filter(request => request.url.includes('/2/'));
-    assert.equal(fine.length, owner.stats().terrainTargetTileCount);
-    for (const request of fine) await upload(request);
-    assert.deepEqual(owner.prepare(frame, view), [], 'complete current detail still needs a world reserve before publication');
-    assert.equal(owner.stats().terrainTargetTilesLoaded, owner.stats().terrainTargetTileCount);
-    await upload(requests[0]);
-    assert.deepEqual(owner.prepare(frame, view), [], 'half a world reserve is insufficient');
-    await upload(requests[1]);
-    const ready = owner.prepare(frame, view);
-    assert.equal(ready.length, fine.length);
-    const distant = owner.prepare({ ...frame, viewState: { ...frame.viewState, projectionCenter: [160, 60] } },
-      { ...view, flatCenter: [160, 60] });
-    assertWorldCoverage(distant);
-  });
-
-  test(`${representation} starts with complete base coverage and retains it when rotating into uncached terrain`, async t => {
-    const { owner, requests, jobs, deleted } = fixture(t, () => {}, { mobile: true });
-    globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
-    t.after(() => { delete globalThis.createImageBitmap; });
-    t.after(() => owner.dispose());
-    owner.setManifest({ ...mobileManifest, representation });
-    const frame = { mode: 1, scale: 1200, dpr: 1, viewport: [1000, 800],
-      viewState: { projection: 'flat', projectionCenter: [0, 0] } };
-    const view = { ...mobileView(), projection: 'flat', flatCenter: [0, 0], devicePixelRatio: 1,
-      cacheBudgetBytes: 8 * 1024 * 1024 };
-    owner.prepare(frame, view);
-    assert.deepEqual(requests.map(request => new URL(request.url).pathname), ['/0/0-0', '/0/1-0'],
-      'world coverage must enter the mobile fetch slots before detail');
-    const upload = async request => {
-      request.resolve({ ok: true, blob: async () => ({}) });
-      await settle();
-      for (const job of jobs.splice(0)) while (!job.step().done) { /* Real owner GPU uploads. */ }
-    };
-    await upload(requests[0]);
-    assert.equal(owner.prepare(frame, view).length, 0, 'do not publish half of the initial base');
-    await upload(requests[1]);
-    const base = owner.prepare(frame, view);
-    assertWorldCoverage(base);
-    const textures = base.map(tile => tile.texture);
-    const detail = requests.find(request => request.url.includes('/2/'));
-    await upload(detail);
-    assertWorldCoverage(owner.prepare(frame, view));
-    for (const style of ['political', 'physical']) {
-      const distant = owner.prepare({ ...frame, viewState: { ...frame.viewState, projectionCenter: [160, 60] } },
-        { ...view, physicalStyle: style, flatCenter: [160, 60] });
-      assertWorldCoverage(distant);
-      assert.ok(distant.some(tile => textures.includes(tile.texture)));
+    assert.deepEqual(owner.prepare(frame, view), []);
+    assert.ok(requests.slice(0, owner.stats().terrainTargetTileCount).every(request => request.url.includes('/2/')), 'visible target owns all initial fetch slots');
+    for (const request of requests.filter(request => request.url.includes('/2/'))) {
+      request.resolve({ ok: true, blob: async () => ({}) }); await settle();
+      for (const job of jobs.splice(0)) while (!job.step().done) {}
     }
-    assert.ok(textures.every(texture => !deleted.includes(texture)), 'base survives cache pressure and a changed view');
+    const ready = owner.prepare(frame, view);
+    assert.equal(ready.length, owner.stats().terrainTargetTileCount);
+    assert.ok(ready.every(tile => tile.spec.level === 2));
+    assert.equal(owner.stats().terrainReady, true);
+    const targetKey = owner.stats().terrainTargetKey;
+    const distant = owner.prepare({ ...frame, viewState: { ...frame.viewState, projectionCenter: [160, 60] } }, { ...view, flatCenter: [160, 60] });
+    assert.deepEqual(distant, []);
+    assert.equal(owner.stats().terrainReady, false);
+    assert.notEqual(owner.stats().terrainTargetKey, targetKey);
   });
 }
 
@@ -189,7 +149,7 @@ test('terrain readiness requires uploaded world reserve and reports the source r
 });
 
 for (const failDetail of [false, true]) {
-test(`exhausted base${failDetail ? ' and detail' : ''} failures report unusable coverage instead of waiting forever`, async t => {
+test(`exhausted target${failDetail ? ' and reserve' : ''} failures report unusable coverage instead of waiting forever`, async t => {
   const failures = [];
   const { owner, requests, jobs } = fixture(t, reason => failures.push(reason));
   t.after(() => owner.dispose());
@@ -201,8 +161,8 @@ test(`exhausted base${failDetail ? ' and detail' : ''} failures report unusable 
   owner.setManifest(mobileManifest);
   const frame = mobileFrame(), view = mobileView();
   owner.prepare(frame, view);
-  const unavailable = ['/0/0-0'];
-  if (failDetail) unavailable.push(new URL(requests.find(request => request.url.includes('/2/')).url).pathname);
+  const unavailable = ['/2/0-0'];
+  if (failDetail) unavailable.push('/0/0-0');
   const failedRequests = new Set(), responded = new Set();
   for (let attempt = 0; attempt < 4; attempt++) {
     for (let index = 0; index < requests.length; index++) {
@@ -225,7 +185,7 @@ test(`exhausted base${failDetail ? ' and detail' : ''} failures report unusable 
   assert.equal(failures.length, 1, 'report through the existing source failure boundary');
   assert.equal(owner.stats().terrainReady, false, 'retry exhaustion cannot be readiness');
   assert.equal(owner.stats().terrainFailed, true);
-  assert.match(failures[0], /0\/0-0: 지형 타일 HTTP 503/, 'preserve the failing tile and technical cause');
+  assert.match(failures[0], /2\/0-0: 지형 타일 HTTP 503/, 'preserve the failing tile and technical cause');
   owner.prepare(frame, view);
   assert.equal(failures.length, 1, 'report once until the source resets');
 });
@@ -277,53 +237,6 @@ test('complete world base stays protected while GPU-ready detail replaces visibl
   assert.ok(owner.prepare(detailedFrame, view).some(tile => tile.texture === coarse[1].texture));
 });
 
-test('zoom keeps loaded terrain until replacement tiles finish decoding and GPU upload', async t => {
-  const setup = fixture(t, () => {}, { mobile: true });
-  const { owner, requests, jobs } = setup;
-  globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
-  t.after(() => { delete globalThis.createImageBitmap; });
-  owner.setManifest(mobileManifest);
-  const previousFrame = { ...mobileFrame(), scale: 250 };
-  await primeBase(setup, previousFrame, mobileView());
-  for (let index = 2; index < requests.length; index++) {
-    requests[index].resolve({ ok: true, blob: async () => ({}) });
-    await settle();
-    for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
-  }
-  const previous = owner.prepare(previousFrame, mobileView());
-  assert.equal(previous.length, 8);
-  assert.ok(previous.every(tile => tile.spec.level === 1));
-  assert.equal(owner.stats().terrainRenderedLevel, 1);
-  const priorRequestCount = requests.length;
-  const promoted = owner.prepare(mobileFrame(), mobileView());
-  assertWorldCoverage(promoted);
-  assert.ok(previous.every(old => promoted.some(tile => tile.texture === old.texture)));
-  assert.equal(owner.stats().terrainRenderedLevel, 1);
-  assert.equal(owner.stats().terrainLevel, 2);
-  await settle();
-  assert.ok(requests.slice(priorRequestCount).every(request => new URL(request.url).pathname.startsWith('/2/')));
-  requests[priorRequestCount].resolve({ ok: true, blob: async () => ({}) });
-  await settle();
-  const decoded = owner.prepare(mobileFrame(), mobileView());
-  assert.deepEqual(decoded.map(tile => tile.spec.key), promoted.map(tile => tile.spec.key), 'decoding alone must not replace fallback coverage');
-  for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
-  const ready = owner.prepare(mobileFrame(), mobileView());
-  assert.equal(ready.length, decoded.length + 1, 'partial detail must paint over the retained terrain');
-  assert.equal(ready.at(-1).spec.level, 2);
-  assertWorldCoverage(ready);
-  assert.equal(owner.stats().terrainRenderedLevel, 2);
-  for (let index = priorRequestCount + 1; index < requests.length; index++) {
-    requests[index].resolve({ ok: true, blob: async () => ({}) });
-    await settle();
-    for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain target uploads. */ }
-  }
-  const complete = owner.prepare(mobileFrame(), mobileView());
-  assert.equal(owner.stats().terrainTargetTilesLoaded, owner.stats().terrainTargetTileCount);
-  assert.ok(complete.length > 0);
-  assert.ok(complete.every(tile => tile.spec.level === 2), 'ready target tiles replace the retained terrain');
-  owner.dispose();
-});
-
 test('rotating the mobile globe drops queued tiles from the old view', async t => {
   const longitudeDistance = (left, right) => Math.abs((((left[0] - right[0]) + 540) % 360) - 180) * Math.PI / 180;
   const setup = fixture(t, () => {}, { mobile: true, geoDistance: longitudeDistance });
@@ -368,8 +281,7 @@ test('a request batch starts center tiles before viewport-edge tiles', t => {
   owner.setManifest(mobileManifest);
   const frame = { mode: 1, scale: 1200, dpr: 1, viewport: [3000, 2000], viewState: { projection: 'flat', projectionCenter: [0, 0] } };
   owner.prepare(frame, { ...mobileView(), devicePixelRatio: 1, projection: 'flat', flatCenter: [0, 0] });
-  assert.deepEqual(requests.slice(0, 2).map(request => new URL(request.url).pathname), ['/0/0-0', '/0/1-0']);
-  const first = requests.slice(2, 6).map(request => new URL(request.url).pathname).sort();
+  const first = requests.slice(0, 4).map(request => new URL(request.url).pathname).sort();
   assert.deepEqual(first, ['/2/3-1', '/2/3-2', '/2/4-1', '/2/4-2']);
   owner.dispose();
 });
@@ -416,7 +328,7 @@ test('in-flight neighbouring prefetch cannot block queued tiles in the current v
 });
 
 for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]]) {
-  test(`zoom transition ${previousLevel} to ${nextLevel} preserves loaded detail until replacement arrives`, async t => {
+  test(`zoom transition ${previousLevel} to ${nextLevel} admits fallback only at low scale while replacement uploads`, async t => {
     const { owner, requests, jobs } = fixture(t);
     globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
     t.after(() => { delete globalThis.createImageBitmap; });
@@ -436,16 +348,15 @@ for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]])
     const nextFrame = { ...mobileFrame(), scale: nextScale };
     const waiting = owner.prepare(nextFrame, view);
     assert.equal(owner.stats().terrainLevel, nextLevel);
-    assert.ok(waiting.length > 0, 'loaded detail must keep painting during the zoom transition');
-    assert.ok(before.every(old => waiting.some(tile => tile.texture === old.texture)), 'previous detail is retained above the world base');
-    assertWorldCoverage(waiting);
+    if (nextScale > 504) assert.deepEqual(waiting, [], 'high scale never magnifies cached lower resolution');
+    else { assert.ok(waiting.length > 0); assert.ok(before.every(old => waiting.some(tile => tile.texture === old.texture))); assertWorldCoverage(waiting); }
     assert.ok(requests.slice(priorRequestCount).every(request => new URL(request.url).pathname.startsWith(`/${nextLevel}/`)));
     requests[priorRequestCount].resolve({ ok: true, blob: async () => ({}) });
     await settle();
     for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain uploads. */ }
     const partial = owner.prepare(nextFrame, view);
-    assert.ok(partial.some(tile => tile.spec.level === previousLevel));
-    assert.equal(partial.at(-1).spec.level, nextLevel, 'newly ready target tiles paint over retained detail');
+    if (nextScale > 504) assert.deepEqual(partial, [], 'partial high-scale coverage stays hidden');
+    else { assert.ok(partial.some(tile => tile.spec.level === previousLevel)); assert.equal(partial.at(-1).spec.level, nextLevel); }
     for (let index = priorRequestCount + 1; index < requests.length; index++) {
       requests[index].resolve({ ok: true, blob: async () => ({}) });
       await settle();

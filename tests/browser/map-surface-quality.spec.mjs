@@ -16,7 +16,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;
         host.setViewState({projection:'flat',view:{...host.getViewState(),flatCenter:[24.6,38.5],flatZoom:32}});
         host.requestRepaint('surface-quality-regression');});
-      await expect.poll(async()=>(await stats(page)).surfacePresentation).toEqual({targetQuality:'canonical',quality:'pending'});
+      await expect.poll(async()=>(await stats(page)).surfacePresentation).toEqual({targetQuality:'canonical',geometryQuality:'pending',quality:'pending'});
       await expect.poll(async()=>(await stats(page)).screenScale).toBeGreaterThan(6000);
       if(renderer==='webgl2')await expect.poll(async()=>(await stats(page)).surfaceDraw)
         .toEqual({quality:'pending',landSource:'physical-background',countryIndexCount:0});
@@ -24,13 +24,14 @@ for (const renderer of ['webgl2', 'canvas']) {
       await page.screenshot({path:info.outputPath('high-pending.png')});
       release();
       await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
-      await expect.poll(async()=>(await stats(page)).surfacePresentation).toEqual({targetQuality:'canonical',quality:'canonical'});
+      await expect.poll(async()=>(await stats(page)).surfacePresentation).toEqual({targetQuality:'canonical',geometryQuality:'canonical',quality:'canonical'});
+      await expect.poll(async()=>{const s=await stats(page);return s.countriesPublishedGeneration===s.projectGeneration;}).toBe(true);
       if(renderer==='webgl2')await expect.poll(async()=>(await stats(page)).surfaceDraw?.landSource).toBe('physical-canonical');
       await page.screenshot({path:info.outputPath('high-ready.png')});
       await page.evaluate(()=>{const h=window.__PANDOLAB_MAP_HOST__;h.setViewState({projection:'flat',view:{...h.getViewState(),flatZoom:1.5}});h.requestRepaint('surface-low');});
       await expect.poll(async()=>(await stats(page)).surfacePresentation.targetQuality).toBe('preview');
       const low=await stats(page);
-      expect(low.activeMeshQuality).toBe(low.previewDisplayCertificate?.valid?'preview':'canonical');
+      await expect.poll(async()=>(await stats(page)).activeMeshQuality).toBe(low.previewDisplayCertificate?.valid?'preview':'canonical');
       expect(errors).toEqual([]);
     } finally {release();}
   });

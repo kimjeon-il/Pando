@@ -1,5 +1,6 @@
 import { createLatestWorkerJobScheduler } from './worker-job-scheduler.js';
 import { createWorkerRpcClient } from './worker-rpc.js';
+import { packCountryMeshFeatures } from './country-mesh-transfer.js';
 
 // Scheduling owns latest-wins policy; RPC owns transport and request lifetime.
 export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = createWorker, isCurrent, onMesh = () => {}, onError = () => {} }) {
@@ -19,14 +20,18 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     });
     rebuildBusy = true;
     try {
-      const response = await current.request('geometry.mesh', { features: payload.features || [] }, {
+      const packed = payload.features?.length
+        ? await packCountryMeshFeatures(payload.features, { isCurrent: () => rebuildRpc === current && accepts() })
+        : { rows: [], coordinates: new Float64Array() };
+      const response = await current.request('geometry.mesh', packed, {
+        transfer: [packed.coordinates.buffer],
         projectRevision: payload.projectGeneration, metadata: { geometryRevision: payload.geometryRevision },
         progress: { operation: 'geometry.mesh-progress', total: (payload.features || []).length + 3 },
       });
       return accepts() ? response.result : null;
     } catch (error) {
       if (error.code === 'PL-WORKER-RPC-TIMEOUT' && rebuildRpc === current) cancelRebuild();
-      if (error.cancelled || !accepts()) return null;
+      if (error.cancelled || error.name === 'AbortError' || !accepts()) return null;
       throw error;
     } finally {
       if (rebuildRpc === current) rebuildBusy = false;
@@ -45,11 +50,12 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     cancelRunning: () => { rpc?.stop('superseded'); rpc = null; },
     execute: async entry => {
       const operation = entry.payload?.polygonPreparation ? 'geometry.prepare' : 'geometry.mesh';
-      const requestPayload = entry.payload?.polygonPreparation || { features: entry.payload?.features || [] };
+      const requestPayload = entry.payload?.polygonPreparation || await packCountryMeshFeatures(entry.payload?.features || [], { isCurrent: () => isCurrent(entry) });
       const response = await ensureRpc().request(operation, requestPayload, {
         requestId: entry.requestId, projectRevision: entry.targetRevision,
+        transfer: operation === 'geometry.mesh' ? [requestPayload.coordinates.buffer] : [],
         progress: operation === 'geometry.mesh'
-          ? { operation: 'geometry.mesh-progress', total: (requestPayload.features || []).length + 3 }
+          ? { operation: 'geometry.mesh-progress', total: requestPayload.rows.length + 3 }
           : { operation: 'geometry.prepare-progress', total: requestPayload.items.length + 1 },
         metadata: { geometryRevision: entry.geometryRevision, targetRevision: entry.targetRevision, jobKey: entry.jobKey, payload: { token: entry.payload?.token } },
       });

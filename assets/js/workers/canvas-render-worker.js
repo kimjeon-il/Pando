@@ -286,14 +286,14 @@ function canvasFallbackWorkerMain() {
       } finally { demManifestLoading = false; }
     }
 
-    function requestTerrainTile(spec, priority = 0) {
+    function requestTerrainTile(spec, priority = 0, pump = true) {
       if (!terrainManifest || terrainTiles.has(spec.key) || terrainRequests.has(spec.key) || terrainQueuedKeys.has(spec.key)) return;
       const previousFailure = terrainFailures.get(spec.key);
       if (previousFailure?.retryAt > performance.now()) return;
       terrainQueuedKeys.add(spec.key);
       terrainFetchQueue.push({ spec, priority: Number(priority || 0) });
       terrainFetchQueue.sort((left, right) => right.priority - left.priority || left.spec.key.localeCompare(right.spec.key));
-      pumpTerrainFetchQueue();
+      if (pump) pumpTerrainFetchQueue();
     }
 
     function pumpTerrainFetchQueue() {
@@ -306,14 +306,16 @@ function canvasFallbackWorkerMain() {
 
     function startTerrainTileRequest(spec, priority) {
       const previousFailure = terrainFailures.get(spec.key);
+      const controller = new AbortController();
       terrainActiveFetches += 1;
-      const request = fetch(terrainTileUrl(spec))
+      const request = fetch(terrainTileUrl(spec), { signal: controller.signal })
         .then(response => {
           if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
           return response.blob();
         })
         .then(prepareTerrainBitmap)
         .then(images => {
+          if (controller.signal.aborted) { images.physical?.close?.(); images.political?.close?.(); return; }
           terrainFailures.delete(spec.key);
           terrainTiles.set(spec.key, { ...images, lastUsed: performance.now() });
           while (terrainTiles.size > 40) {
@@ -326,6 +328,7 @@ function canvasFallbackWorkerMain() {
           self.postMessage({ type: 'terrain-ready', count: terrainTiles.size, key: spec.key });
         })
         .catch(error => {
+          if (controller.signal.aborted) return;
           const attempts = Number(previousFailure?.attempts || 0) + 1;
           const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
           terrainFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
@@ -333,11 +336,12 @@ function canvasFallbackWorkerMain() {
           self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) });
         })
         .finally(() => {
-          terrainRequests.delete(spec.key);
+          if (terrainRequests.get(spec.key)?.promise === request) terrainRequests.delete(spec.key);
           terrainActiveFetches = Math.max(0, terrainActiveFetches - 1);
+          if (controller.signal.aborted && terrainProtectedKeys.has(spec.key)) requestTerrainTile(spec, priority, false);
           pumpTerrainFetchQueue();
         });
-      terrainRequests.set(spec.key, request);
+      terrainRequests.set(spec.key, { promise: request, controller });
     }
 
     async function loadTerrainManifest(url) {
@@ -487,9 +491,9 @@ function canvasFallbackWorkerMain() {
       const baseLevel = levels[0];
       const baseSpecs = visibleTerrainTileSpecs(baseLevel, message, projection, width, height, true);
       const baseReady = baseSpecs.every(spec => terrainTiles.has(spec.key));
-      const terrainComplete = baseReady && targetSpecs.every(spec => terrainTiles.has(spec.key));
+      const terrainComplete = targetSpecs.every(spec => terrainTiles.has(spec.key));
       const missingSpecs = targetSpecs.filter(spec => !terrainTiles.has(spec.key));
-      const fallbackSpecs = missingSpecs.length
+      const fallbackSpecs = missingSpecs.length && message.terrainAllowFallback
         ? levels.filter(level => level.id !== targetLevel.id && level.id !== baseLevel.id)
           .flatMap(level => visibleTerrainTileSpecs(level, message, projection, width, height))
           .filter(spec => terrainTiles.has(spec.key) && missingSpecs.some(target =>
@@ -503,11 +507,12 @@ function canvasFallbackWorkerMain() {
       let demSpecs = demLevel ? visibleTerrainTileSpecs(demLevel, message, projection, width, height, false) : [];
       // Cache pressure may evict unretained tiles, never lower camera source resolution.
       const demNeighbours = demLevel ? terrainNeighbourSpecs(demLevel, demSpecs) : [];
-      const drawSpecs = baseReady
-        ? [...baseSpecs, ...fallbackSpecs, ...(targetLevel.id === baseLevel.id ? [] : targetSpecs)] : [];
+      const demComplete = (!terrainDemManifestUrl || !!terrainDemManifest && !!terrainTint) && demSpecs.every(spec => demTiles.has(spec.key));
+      const hold = (!message.terrainAllowFallback || message.backgroundPending) && (!terrainComplete || !demComplete);
+      const drawSpecs = hold ? [] : [...(message.terrainAllowFallback && baseReady ? baseSpecs : []), ...fallbackSpecs, ...targetSpecs];
       const sourceLevel = demLevel || targetLevel;
       const desiredWidth = 2 * Math.PI * projection.scale() * Math.max(1, Number(message.terrainDpr || dpr)) * 1.12;
-      return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs,
+      return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs, hold,
         resolutionLimited: sourceLevel.width < desiredWidth };
     }
 
@@ -526,11 +531,13 @@ function canvasFallbackWorkerMain() {
         terrainQueuedKeys.delete(key);
         terrainFetchQueue.splice(index, 1);
       }
-      // Acquire complete world coverage before filling the fetch slots with
-      // detailed tiles. The world base remains pinned across view changes.
-      for (const spec of baseSpecs) requestTerrainTile(spec, 50_000);
-      for (const spec of targetSpecs) requestTerrainTile(spec, 30_000);
-      for (const spec of neighbours) requestTerrainTile(spec, 120);
+      // Fill one priority batch before opening network slots.
+      const visibleKeys = new Set(targetSpecs.map(spec => spec.key));
+      for (const [key, request] of terrainRequests) if (!visibleKeys.has(key) && !terrainComplete) request.controller.abort();
+      for (const spec of targetSpecs) requestTerrainTile(spec, 30_000, false);
+      for (const spec of baseSpecs) requestTerrainTile(spec, 5_000, false);
+      if (terrainComplete) for (const spec of neighbours) requestTerrainTile(spec, 120, false);
+      pumpTerrainFetchQueue();
       for (let index = demQueue.length - 1; index >= 0; index -= 1) {
         if (wantedDem.has(demQueue[index].spec.key)) continue;
         demQueuedKeys.delete(demQueue[index].spec.key);
@@ -538,6 +545,7 @@ function canvasFallbackWorkerMain() {
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
       for (const spec of demNeighbours) requestDemTile(spec, 120);
+      if (plan.hold) return false;
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
       context.globalAlpha = 1;
@@ -596,14 +604,14 @@ function canvasFallbackWorkerMain() {
 
     function updateTerrainFrameStats(plan) {
       if (!plan) { terrainFrameStats = { terrainReady: false, terrainFailed: terrainManifestFailure }; return; }
-      const { demSpecs, demLevel, targetLevel, baseSpecs, targetSpecs, terrainComplete } = plan;
+      const { demSpecs, demLevel, targetLevel, targetSpecs, terrainComplete } = plan;
       const exhausted = (specs, tiles, failures) => specs.some(spec => !tiles.has(spec.key) && Number(failures.get(spec.key)?.attempts || 0) >= 4);
       terrainFrameStats = {
         terrainReady: terrainComplete && (!terrainDemManifestUrl || !!terrainDemManifest && !!terrainTint)
           && demSpecs.every(spec => demTiles.has(spec.key)),
-        terrainFailed: demManifestAttempts >= 4 || exhausted([...baseSpecs, ...targetSpecs], terrainTiles, terrainFailures) || exhausted(demSpecs, demTiles, demFailures),
+        terrainFailed: demManifestAttempts >= 4 || exhausted(targetSpecs, terrainTiles, terrainFailures) || exhausted(demSpecs, demTiles, demFailures),
         terrainResolutionLimited: plan.resolutionLimited,
-        terrainTargetKey: `${projectGeneration}:${terrainManifest.version}:${terrainDemManifest?.version || ''}:${[...baseSpecs, ...targetSpecs].map(spec => spec.key).sort().join(',')}:dem:${demSpecs.map(spec => spec.key).sort().join(',')}`,
+        terrainTargetKey: `${projectGeneration}:${terrainManifest.version}:${terrainDemManifest?.version || ''}:${targetSpecs.map(spec => spec.key).sort().join(',')}:dem:${demSpecs.map(spec => spec.key).sort().join(',')}`,
         terrainRepresentation: demSpecs.some(spec => demTiles.has(spec.key)) ? 'dem-relief-v1' : 'raster-rgba-v1',
         terrainDatasetVersion: demSpecs.some(spec => demTiles.has(spec.key)) ? terrainDemManifest.version : terrainManifest.version,
         terrainSource: demSpecs.some(spec => demTiles.has(spec.key)) ? 'dem-derived-canvas' : 'dem-preview',
@@ -1005,6 +1013,7 @@ function canvasFallbackWorkerMain() {
     }
     self.onmessage = event => {
       const message = event.data || {};
+      if (message.projectGeneration != null && Number(message.projectGeneration) < projectGeneration) return;
       if (message.type === 'init') {
         features = replaceCountryFeatures(message.features || [], message.projectGeneration);
         geometryRevision = Number(message.geometryRevision || 0);
@@ -1041,6 +1050,13 @@ function canvasFallbackWorkerMain() {
         }
       } else if (message.type === 'data' || message.type === 'replace-data') {
         const incomingGeometryRevision = Number(message.geometryRevision || 0);
+        const incomingGeneration = Number(message.projectGeneration ?? projectGeneration);
+        if (incomingGeneration < projectGeneration) return;
+        if (incomingGeneration > projectGeneration) {
+          geometryRevision = 0; countrySharedBoundary = null; substrateState = null;
+          hydroEditFeatures = []; hydroEditRevision = -1;
+          lastRenderMessage = { ...lastRenderMessage, scenePolygons: [], sceneStrokes: [], interactionPolygons: [], interactionFillItems: [] };
+        }
         if (incomingGeometryRevision < geometryRevision) {
           self.postMessage({
             type: 'data-ready', revision: Number(message.revision || 0), geometryRevision,
@@ -1054,7 +1070,7 @@ function canvasFallbackWorkerMain() {
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);
         // Keep the previously presented shared strokes until the matching
-        // replacement is published. A new project starts with a fresh Worker.
+        // replacement is published. New generations retain only terrain resources.
         self.postMessage({
           type: 'data-ready',
           revision: Number(message.revision || 0),

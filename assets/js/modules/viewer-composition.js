@@ -45,10 +45,24 @@ export async function composeViewer({ productMode, meta }) {
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,initialProject:createInitialDocument({appVersion:meta.appVersion})});
   await documentSession.commandOwner.load(JSON.stringify(documentSession.documentModel.snapshot()));
+  let openingPreserved=null;
   const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
     onProjectReset:async event=>{previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{preserveBuiltinMesh:event.preserveBuiltinMesh===true});},
-    replaceSnapshot:async()=>{await map.setSession(activeSession);return true;},
+    replaceSnapshot:async()=>{await map.setSession(activeSession,{prepareView:async()=>{
+      const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
+      if(openingPreserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:openingPreserved});
+      else {
+        const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),'globe');
+        map.viewState.projection=initial.projection;map.viewState.view=initial.view;
+        let workspace=null;
+        try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
+        map.projectSession.restoreViewingPresentation(workspace);
+      }
+      await map.loadPhysicalLandMask();
+      map.loadPhysicalResources();
+      if(!openingPreserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
+    }});return true;},
     restoreReplacement:()=>map.setSession(activeSession,{view:previousView})});
   let selectionUiController;
   const selectionDomain=createSelectionDomain({commandOwner:documentSession.commandOwner,projectDomain,
@@ -94,25 +108,15 @@ export async function composeViewer({ productMode, meta }) {
   });
   const open=async (reader,options)=>{
     const preserved=options?.preserveView?map.capturePresentation():null;
+    openingPreserved=preserved;
     const request=projectDomain.getOpenRevision()+1;
     status.textContent='지도 불러오는 중…';status.hidden=false;
     status.dataset.ready='false';
     try {
     if(!await projectDomain.open(reader,options))return;
     if(request!==projectDomain.getOpenRevision())return;
-    const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
-    if(preserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:preserved});
-    else {
-      const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),'globe');
-      map.viewState.projection=initial.projection;map.viewState.view=initial.view;
-      let workspace=null;
-      try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
-      if(request!==projectDomain.getOpenRevision())return;
-      map.projectSession.restoreViewingPresentation(workspace);
-    }
     await map.loadPhysicalLandMask();
     await map.objectCatalog.pruneLayerItemVisibility();
-    if(!preserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
     await map.update();
     window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
     await searchController.completeHydration();

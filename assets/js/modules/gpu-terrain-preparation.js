@@ -1,3 +1,4 @@
+import { MAP_SURFACE_LOW_SCALE } from './country-mesh-zoom-policy.js';
 // Owns terrain requests, retries, decoded bitmaps, upload queue, textures and grids.
 // prepare() returns ready draw records; drawing never initiates preparation.
 export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMobile, invalidate, geoDistance }) {
@@ -286,12 +287,12 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
 
     function scheduleTerrainUpload() {
       if (!uploadScheduler || !terrainUploadQueue.length) return;
-      const generation = projectGeneration, contextGeneration = contextRevision, uploadEpoch = epoch;
+      const contextGeneration = contextRevision, uploadEpoch = epoch;
       const queue = terrainUploadQueue;
-      const key = 'terrain:' + generation + ':' + contextGeneration + ':' + uploadEpoch;
+      const key = 'terrain:' + contextGeneration + ':' + uploadEpoch;
       uploadKeys.add(key);
       void uploadScheduler.enqueueUpload({
-        key, projectGeneration: generation, contextGeneration, priority: 40, allowDuringInteraction: true,
+        key, contextGeneration, priority: 40, allowDuringInteraction: true,
         dispose: () => { if (uploadEpoch === epoch) discardUploads(queue); },
         step: () => {
           if (uploadEpoch !== epoch || disposed) throw Object.assign(new Error('Stale terrain upload'), { name: 'AbortError' });
@@ -386,7 +387,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const baseLevel = terrainManifest.levels[0];
       const baseSpecs = visibleTerrainTileSpecs(baseLevel, true, frameContext);
       const baseKeys = new Set(baseSpecs.map(spec => spec.key));
-      requiredKeys = new Set([...baseKeys, ...targetSpecs.map(spec => spec.key)]);
+      requiredKeys = new Set(targetSpecs.map(spec => spec.key));
       const baseReady = baseSpecs.every(spec => terrainTiles.has(spec.key));
       terrainLastLevel = Number(targetLevel?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
@@ -397,7 +398,8 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       // over the missing target regions, including when zooming out, and pin
       // exactly those draw resources against eviction during replacement uploads.
       const missingSpecs = targetSpecs.filter(spec => !terrainTiles.has(spec.key));
-      const fallbackSpecs = missingSpecs.length
+      const cssScale = Math.abs(frameContext.scale) / Math.max(1, frameContext.dpr);
+      const fallbackSpecs = missingSpecs.length && cssScale <= MAP_SURFACE_LOW_SCALE
         ? [...(baseLevel.id !== targetLevel.id && baseReady ? baseSpecs : []),
           ...terrainManifest.levels.filter(level => level.id !== targetLevel.id && level.id !== baseLevel.id)
           .flatMap(level => visibleTerrainTileSpecs(level, false, frameContext))
@@ -430,7 +432,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const rotation = frameContext.viewState?.rotation || view.rotation;
       const center = projection === 'flat' ? frameContext.viewState?.projectionCenter || view.flatCenter
         : [-Number(rotation?.[0] || 0), -Number(rotation?.[1] || 0)];
-      for (const spec of baseSpecs) requestTerrainTile(spec, 50_000, false);
+      for (const spec of baseSpecs) requestTerrainTile(spec, 5_000, false);
       for (const spec of targetSpecs) {
         const [west, north, east, south] = spec.bounds;
         const tileCenter = [(west + east) / 2, (north + south) / 2];
@@ -443,16 +445,17 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const visibleTilesWaiting = terrainFetchQueue.some(entry => terrainTargetTileKeys.has(entry.spec.key));
       for (const [key, request] of terrainTileRequests) {
         if (!terrainRetentionKeys.has(key)
-            || (visibleTilesWaiting && !terrainTargetTileKeys.has(key) && !baseKeys.has(key))) request.controller.abort();
+            || (visibleTilesWaiting && !terrainTargetTileKeys.has(key))) request.controller.abort();
       }
       // Fill the current-view batch before starting fetches so array traversal
       // cannot consume all slots with far-away tiles ahead of the center.
       pumpTerrainFetchQueue();
       terrainRenderedLevel = -1;
       const prepared = [];
-      // Publish only after the world reserve is GPU-ready: even complete
-      // current detail cannot cover a subsequent turn into an uncached region.
-      const drawSpecs = baseReady ? [...fallbackSpecs, ...targetSpecs] : [];
+      // Detail is atomic for the current viewport. Never magnify a reserve
+      // tile into high-scale coverage while the required tiles are pending.
+      const drawSpecs = cssScale > MAP_SURFACE_LOW_SCALE && (missingSpecs.length || !tintReady)
+        ? [] : [...fallbackSpecs, ...targetSpecs];
       for (const spec of drawSpecs) {
         const tile = terrainTiles.get(spec.key);
         if (!tile) continue;
@@ -462,9 +465,9 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       }
       const exhausted = spec => Number(terrainTileFailures.get(spec.key)?.attempts || 0) >= 4;
       if (!prepared.length && targetSpecs.length && !unusableReported
-          && baseSpecs.some(exhausted)) {
+          && targetSpecs.some(exhausted)) {
         unusableReported = true;
-        const failedBase = baseSpecs.find(exhausted);
+        const failedBase = targetSpecs.find(exhausted);
         onUnusable?.(`지형 바탕 타일을 불러오지 못했습니다: ${failedBase.key}: ${terrainTileFailures.get(failedBase.key).error.message}`);
       }
       return prepared;
@@ -561,11 +564,11 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
   return Object.freeze({
     setContext(next) {
       if (disposed) return;
-      if (gl !== next.gl || projectGeneration !== next.projectGeneration || contextRevision !== next.contextGeneration) reset();
+      if (gl !== next.gl || contextRevision !== next.contextGeneration) reset();
       gl = next.gl; ready = next.ready; uploadScheduler = next.scheduler;
       projectGeneration = next.projectGeneration; contextRevision = next.contextGeneration;
     },
-    setManifest(manifest) { if (terrainManifest !== manifest) reset(); terrainManifest = manifest; },
+    setManifest(manifest) { if (JSON.stringify(terrainManifest) !== JSON.stringify(manifest)) reset(); terrainManifest = manifest; },
     prepare(frame, nextView) { activeFrameContext = frame; view = nextView; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
     request: requestTerrainTile,
     tintTexture: () => tint?.texture || tintFallback?.texture || null,

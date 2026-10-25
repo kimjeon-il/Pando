@@ -12,9 +12,9 @@ export function resolveCountryMeshQuality({ cssScale, previous = null, focus = f
 
 /** Country paint, land, borders and picking consume this same decision. */
 export function resolveMapSurfacePresentation({ canonicalReady = false, previewReady = false,
-  previewVerified = false, ...view }) {
+  previewVerified = false, backgroundPresented = true, ...view }) {
   const targetQuality = resolveCountryMeshQuality(view);
-  const quality = targetQuality === 'preview' && previewReady && previewVerified
+  const geometryQuality = targetQuality === 'preview' && previewReady && previewVerified
     ? 'preview' : canonicalReady ? 'canonical' : 'pending';
-  return Object.freeze({ targetQuality, quality });
+  return Object.freeze({ targetQuality, geometryQuality, quality: backgroundPresented ? geometryQuality : 'pending' });
 }

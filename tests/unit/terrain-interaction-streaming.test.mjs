@@ -63,8 +63,48 @@ function terrain(t){
   const frame={mode:1,scale:1000,dpr:1,viewport:[200,200],viewState:{projection:'flat',projectionCenter:[0,0]}};
   const view={visible:true,physicalStyle:'political',projection:'flat',flatCenter:[0,0],width:200,height:200,devicePixelRatio:1,cacheBudgetBytes:32*1024*1024};
   t.after(()=>{owner.dispose();c.scheduler.dispose();});
-  return {c,owner,requests,uploads,frame,view};
+  return {c,owner,requests,uploads,frame,view,gl};
 }
+
+test('same terrain and graphics context survive project replacement without reloading or uploading',async t=>{
+  const f=terrain(t);f.owner.prepare(f.frame,f.view);
+  for(let round=0;round<16&&!f.owner.stats().terrainReady;round++){
+    for(const request of f.requests.splice(0))request.resolve({ok:true,blob:async()=>({})});
+    await settle();f.c.tick();await settle();f.owner.prepare(f.frame,f.view);
+  }
+  const before=f.owner.stats();assert.equal(before.terrainReady,true);
+  f.owner.setContext({gl:f.gl,ready:true,scheduler:f.c.scheduler,projectGeneration:2,contextGeneration:1});
+  const drawn=f.owner.prepare(f.frame,f.view),after=f.owner.stats();
+  assert.equal(after.terrainReady,true);
+  assert.equal(after.terrainUploadCount,before.terrainUploadCount);
+  assert.equal(after.terrainTilesLoaded,before.terrainTilesLoaded);
+  assert.notEqual(after.terrainTargetKey,before.terrainTargetKey,'presentation completion still belongs to the new project');
+  assert.ok(drawn.every(tile=>tile.spec.level===after.terrainLevel));
+});
+
+test('high-scale target delays cannot expose a magnified world-base tile',async t=>{
+  const f=terrain(t),low={...f.frame,scale:100};f.owner.prepare(low,f.view);
+  for(let round=0;round<8;round++){
+    const pending=f.requests.splice(0);
+    for(const request of pending){if(request.url.includes('/0/'))request.resolve({ok:true,blob:async()=>({})});else f.requests.push(request);}
+    await settle();f.c.tick();await settle();f.owner.prepare(low,f.view);
+  }
+  f.owner.prepare(f.frame,f.view);
+  assert.ok(f.owner.stats().terrainTilesLoaded>0);
+  assert.equal(f.owner.stats().terrainReady,false);
+  assert.deepEqual(f.owner.prepare(f.frame,f.view),[],'sharp target coverage must be complete before either terrain pass appears');
+});
+
+test('document cancellation cannot discard already decoded terrain uploads',async t=>{
+  const f=terrain(t);f.owner.prepare(f.frame,f.view);
+  for(const request of f.requests.splice(0))request.resolve({ok:true,blob:async()=>({})});
+  await settle();
+  assert.ok(f.owner.stats().terrainPendingDecodedBytes>0);
+  f.c.scheduler.cancelGeneration(1);
+  f.owner.setContext({gl:f.gl,ready:true,scheduler:f.c.scheduler,projectGeneration:2,contextGeneration:1});
+  for(let n=0;n<8;n++){f.c.tick();await settle();}
+  assert.ok(f.owner.stats().terrainTilesLoaded>0);
+});
 
 test('real terrain owner presents downloaded detail before a continuous gesture ends',async t=>{
   const f=terrain(t);f.c.scheduler.noteInput(true);f.owner.prepare(f.frame,f.view);
@@ -91,7 +131,7 @@ test('neighbour prefetch cannot start before visible tiles are GPU-ready',async 
 
 test('prefetch uses spare capacity and releases both fetch slots when the current viewport changes',async t=>{
   const f=terrain(t);f.owner.prepare(f.frame,f.view);
-  for(let round=0;round<16&&!f.owner.stats().terrainReady;round++){
+  for(let round=0;round<16&&(!f.owner.stats().terrainReady||f.owner.stats().terrainTilesLoaded<f.owner.stats().terrainTargetTileCount+2);round++){
     for(const request of f.requests.splice(0))request.resolve({ok:true,blob:async()=>({})});
     await settle();f.c.tick();await settle();f.owner.prepare(f.frame,f.view);
   }
