@@ -55,3 +55,23 @@ Cargo 정리는 현재 seed와 보존할 ABI의 모든 fingerprint에서 호스�
 앱 Git 정리는 공통 저장소에서 미참조 객체까지 포함해 기존 객체 집합을 완전히 보존하는 새 pack을 검증한 뒤 사본만 제거한다. refs/reflog 만료, prune, 원격 복구 의존은 없다. 새 pack의 예상 최대 공간에 5 GiB 여유가 있어야 하며 중단 시 `app-git-compaction.pending.json`으로 재개한다.
 
 CMake와 Emscripten 버전은 config/toolchain-versions.json을 기준으로 CI에서 준비한다.
+
+## CI 전환 후 컴파일 도구 정리
+
+Windows 앱과 Android 실기기 검증 후 로컬 compiler를 비활성화한 상태에서만 다음 범위를 허용한다.
+
+```powershell
+node tools/worktree-storage.mjs --retire-generated=requests.json --retire-compilers --output=manifest.json
+node tools/worktree-storage.mjs --retire-generated=manifest.json --retire-compilers --apply --output=result.json
+```
+
+고정된 Pando toolchain, 종료된 target/CMake/Emscripten 출력과 지정된 Android SDK/AVD 범위만 대상으로 한다.
+현재 platform-tools와 GPU Python은 허용 범위에 없다. 실행 중인 compiler·emulator·QEMU는 차단한다.
+이미 공용 native view로 전환된 앱·서버는 보존하며, 삭제 대상의 경로를 사용하는 소비자는 계속 차단한다.
+미리보기와 적용은 파일 ID·크기·SHA-256·경로·junction을 확인한다. 적용 중 전체 사전 검사의 해시는
+OS change time까지 동일한 파일에 한해서만 재사용하고, 메타데이터가 달라졌으면 다시 해시한다.
+완료된 미리보기의 해시를 재사용할 때는 `--verified-compiler-preview=<receipt.json>`으로
+정확한 manifest SHA-256과 검사 시작 시각을 결합한 로컬 증거를 지정한다. 검사 시작 이후
+상태가 바뀐 파일은 다시 해시한다. 적용 journal은 250개 파일 단위의 write-ahead 계획을
+먼저 저장하며, 중단 후 같은 manifest로 재개해 삭제량을 한 번만 계산한다.
+고유 AVD 프로젝트·증거는 먼저 내보내고 독립 해시를 대조한 뒤에만 AVD를 정리한다.
