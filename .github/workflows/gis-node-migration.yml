@@ -9,6 +9,10 @@ on:
       - 'tools/place-batch-pipeline.mjs'
       - 'tools/build-place-candidates.mjs'
       - 'tools/lib/geonames-zip.mjs'
+      - 'tools/lib/geonames-policy.mjs'
+      - 'tools/lib/geonames-review.mjs'
+      - 'tools/lib/geonames-statistics.mjs'
+      - 'tests/helpers/geonames-fixtures.mjs'
       - 'tools/report-paths.mjs'
       - 'scripts/gis/run-source.mjs'
       - 'scripts/summarize-boundary-capture-evidence.mjs'
@@ -38,4 +42,5 @@ jobs:
           node --check tools/build-hydro-packfile.mjs
           node --check tools/download-terrain-source.mjs
           node --check tools/place-batch-pipeline.mjs
-          node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs
+          node --check tools/build-place-candidates.mjs
+          node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs

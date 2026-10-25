@@ -68,7 +68,7 @@ export async function plan(candidates,places=PLACES,{batch,limit=25,countries=[]
    !Number.isSafeInteger(minPopulation)||minPopulation<0)throw Error('Invalid batch, limit or minimum population');
  const {files,known}=registered(places);
  if(files.some(name=>new RegExp('batch0*'+batch+'(?:-|\\.)').test(name)))throw Error('Batch '+batch+' already exists');
- if(!existsSync(candidates))throw Error('Candidate cache not found: '+candidates+'; run build-place-candidates.py review first');
+ if(!existsSync(candidates))throw Error('Candidate cache not found: '+candidates+'; run build-place-candidates.mjs review first');
  const digest=await fileHash(candidates);
  if(reviewedSummary&&readJson(reviewedSummary)?.refinedArtifact?.sha256!==digest)
    throw Error('Candidate cache SHA-256 differs from the reviewed source summary');
