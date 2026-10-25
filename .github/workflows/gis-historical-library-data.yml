@@ -5,6 +5,7 @@ on:
     branches: [work/gis]
     paths:
       - tests/unit/territorial-library-data.test.mjs
+      - tests/unit/borneo-country-geometry.test.mjs
       - tests/unit/python-bridge-retirement.test.mjs
       - '.github/workflows/gis-historical-library-data.yml'
   workflow_dispatch:
@@ -26,4 +27,4 @@ jobs:
       - name: Prepare pinned source-only data in the application checkout
         uses: ./.github/actions/library-data
       - name: Verify immutable historical objects with current Node rules
-        run: node --test tests/unit/territorial-library-data.test.mjs
+        run: node --test tests/unit/territorial-library-data.test.mjs tests/unit/borneo-country-geometry.test.mjs
