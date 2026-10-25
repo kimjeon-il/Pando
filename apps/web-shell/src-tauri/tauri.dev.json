@@ -1,6 +1,8 @@
 {
   "build": {
     "devUrl": "http://127.0.0.1:4175",
+    "frontendDist": "http://127.0.0.1:4175",
+    "beforeBuildCommand": null,
     "beforeDevCommand": "node dev.mjs"
   }
 }

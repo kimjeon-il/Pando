@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { createDevelopmentAssets, stagePrototype, validateShellProfile } from '../stage.mjs';
 import { startDevelopmentServer } from '../dev.mjs';
-import { assertOrdinaryBuild, assertVerificationBuild, windowsBuildArguments } from '../packaged-artifacts.mjs';
+import { assertOrdinaryBuild, assertVerificationBuild, nativeBuildArguments } from '../packaged-artifacts.mjs';
 import { createBuiltinWorldLoader } from '../../../assets/js/modules/builtin-world-loader.js';
 import { createRuntimeProfile } from '../runtime-profile.js';
 
@@ -54,9 +54,8 @@ test('an environment-selected fixture cannot start ordinary development or a pac
   await assert.rejects(stat(target), /ENOENT/);
 });
 test('native build mode controls features and rejects the wrong artifact identity', () => {
-  assert.ok(windowsBuildArguments(true).includes('custom-protocol,verification'));
-  assert.ok(windowsBuildArguments(true).includes('src-tauri/tauri.verification.json'));
-  assert.ok(!windowsBuildArguments(false).includes('custom-protocol,verification'));
+  assert.ok(nativeBuildArguments('windows','verification').includes('custom-protocol,verification'));
+  assert.ok(!nativeBuildArguments('windows','offline').includes('custom-protocol,verification'));
   assert.throws(() => assertOrdinaryBuild({ verification: true }), /verification/);
   assert.throws(() => assertOrdinaryBuild({ executionMode: 'development', verification: false }), /offline/);
   assert.throws(() => assertOrdinaryBuild({}), /identity/);

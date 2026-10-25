@@ -24,11 +24,13 @@ base64 = "=0.23.1"
 flate2 = "=1.1.10"
 
 [features]
+development = []
 verification = []
 custom-protocol = ["tauri/custom-protocol"]
 
 [profile.dev]
 incremental = false
+debug = 0
 
 [profile.dev.package.pandolab-web-shell]
 debug = 1

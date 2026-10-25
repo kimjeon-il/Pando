@@ -25,13 +25,138 @@ on:
           - core
           - wasm
           - all
+          - native
+          - native-tests
+      native_platform:
+        description: Native artifact target
+        type: choice
+        options: [all, windows, android, android-x86_64]
+        default: all
+      native_mode:
+        description: Native execution mode
+        type: choice
+        options: [development, offline, verification]
+        default: development
 permissions:
   contents: read
 concurrency:
   group: p1-remote-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
+  native-plan:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    outputs:
+      needed: ${{ steps.native.outputs.needed }}
+      matrix: ${{ steps.native.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Select affected native targets
+        id: native
+        env:
+          BASE_SHA: ${{ github.event.before }}
+          MANUAL_SCOPE: ${{ github.event_name == 'workflow_dispatch' && inputs.scope || '' }}
+          REQUEST_PLATFORM: ${{ inputs.native_platform || 'all' }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {nativeBuildSelection,nativeTargets} from './apps/web-shell/native-contract.mjs';
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          let paths=[];
+          if(!process.env.MANUAL_SCOPE.startsWith('native')){
+            let base=process.env.BASE_SHA;
+            if(!/^[a-f0-9]{40}$/.test(base||'')||/^0+$/.test(base))base=git('rev-parse','HEAD^');
+            try{git('cat-file','-e',base+'^{commit}');}catch{git('fetch','--no-tags','--depth=1','origin',base);}
+            paths=git('diff','--name-only',base,'HEAD').split('\n');
+          }
+          const platform=process.env.MANUAL_SCOPE==='native-tests'?'windows':process.env.MANUAL_SCOPE==='native'?process.env.REQUEST_PLATFORM:undefined;
+          const selected=nativeBuildSelection(paths,{platform});
+          const matrix={include:selected.map(platform=>({platform,runner:platform==='windows'?'windows-2022':'ubuntu-24.04',target:nativeTargets[platform]}))};
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'needed='+!!selected.length+'\nmatrix='+JSON.stringify(matrix)+'\n');
+          JS
+  native-artifact:
+    needs: native-plan
+    if: needs.native-plan.outputs.needed == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.native-plan.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Preserve source line identities
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Check peak native build headroom
+        env:
+          NATIVE_MODE: ${{ inputs.native_mode || 'development' }}
+        run: node -e "const s=require('fs').statfsSync('.');const peak=process.env.NATIVE_MODE==='development'?10:12;const free=s.bavail*s.bsize/2**30;console.log({freeGiB:free,peakAdditionalGiB:peak,requiredHeadroomGiB:5});if(free<peak+5)throw Error('Insufficient native build peak plus 5GiB headroom');"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.99.1'
+          targets: ${{ matrix.target }}
+      - uses: actions/setup-java@v4
+        if: matrix.platform != 'windows'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare Android compiler and existing debug signer
+        if: matrix.platform != 'windows'
+        shell: bash
+        env:
+          DEBUG_KEYSTORE: ${{ secrets.PANDO_ANDROID_DEBUG_KEYSTORE_B64 }}
+          DEBUG_STORE_PASSWORD: ${{ secrets.PANDO_ANDROID_DEBUG_STORE_PASSWORD }}
+          DEBUG_KEY_PASSWORD: ${{ secrets.PANDO_ANDROID_DEBUG_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$DEBUG_KEYSTORE"
+          test -n "$DEBUG_STORE_PASSWORD"
+          test -n "$DEBUG_KEY_PASSWORD"
+          mkdir -p "$HOME/.android"
+          printf '%s' "$DEBUG_KEYSTORE" | base64 --decode > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+          sdkmanager --install 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;27.3.13750724'
+          echo "NDK_HOME=$ANDROID_HOME/ndk/27.3.13750724" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.3.13750724" >> "$GITHUB_ENV"
+      - name: Install producer dependencies
+        shell: bash
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+      - uses: ./.github/actions/library-data
+        if: inputs.native_mode == 'offline' || inputs.native_mode == 'verification'
+      - name: Check native contracts
+        run: node --test apps/web-shell/tests/native-contract.test.mjs apps/web-shell/tests/native-build.test.mjs
+      - name: Build only the requested execution mode
+        env:
+          NATIVE_PLATFORM: ${{ matrix.platform }}
+          NATIVE_MODE: ${{ inputs.native_mode || 'development' }}
+          NATIVE_TEST: ${{ inputs.scope == 'native-tests' && '--test-native' || '' }}
+        shell: bash
+        run: node apps/web-shell/packaged-artifacts.mjs --ci-build --platform="$NATIVE_PLATFORM" --mode="$NATIVE_MODE" $NATIVE_TEST
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.platform }}-${{ inputs.native_mode || 'development' }}-${{ github.sha }}
+          path: build-native/native-artifacts/${{ matrix.platform }}/${{ inputs.native_mode || 'development' }}/
+          if-no-files-found: error
+          retention-days: 7
   plan:
+    if: github.event_name != 'workflow_dispatch' || !startsWith(inputs.scope, 'native')
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:

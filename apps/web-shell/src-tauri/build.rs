@@ -1,5 +1,18 @@
 fn main() {
     let verification = cfg!(feature = "verification");
+    let development = cfg!(feature = "development");
+    assert!(!(development && verification), "Development and verification modes cannot be combined");
+    println!("cargo:rerun-if-env-changed=PANDOLAB_NATIVE_BUILD_INFO");
+    let identity = std::env::var("PANDOLAB_NATIVE_BUILD_INFO").expect("CI native build identity is required");
+    let identity_json: serde_json::Value = serde_json::from_str(&identity).expect("Invalid native build identity");
+    let mode = if development { "development" } else if verification { "verification" } else { "offline" };
+    assert_eq!(identity_json["mode"].as_str(), Some(mode), "Native execution mode mismatch");
+    assert_eq!(identity_json["target"].as_str(), std::env::var("TARGET").ok().as_deref(), "Native target mismatch");
+    for (field, length) in [("sourceCommit", 40), ("nativeInputSha256", 64)] {
+        let value = identity_json[field].as_str().expect("Missing native build identity field");
+        assert!(value.len() == length && value.bytes().all(|b| b.is_ascii_hexdigit()), "Invalid native source identity");
+    }
+    std::fs::write(std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("native-build-info.json"), identity).expect("Write native build identity");
     println!("cargo:rerun-if-env-changed=PANDOLAB_SHELL_VERIFICATION");
     assert_eq!(std::env::var("PANDOLAB_SHELL_VERIFICATION").as_deref() == Ok("1"), verification,
         "Verification staging option and Cargo feature must match");
@@ -9,7 +22,9 @@ fn main() {
     let capability = config.pointer("/app/security/capabilities").and_then(|v| v.as_array())
         .is_some_and(|values| values.iter().any(|v| v.as_str() == Some("verification")));
     assert_eq!(capability, verification, "Verification capability and Cargo feature must match");
-    if cfg!(feature = "custom-protocol") {
+    if development {
+        assert_eq!(config.pointer("/build/frontendDist").and_then(|v| v.as_str()), Some("http://127.0.0.1:4175"), "Development must use the fixed loopback origin");
+    } else {
         println!("cargo:rerun-if-changed=../dist/shell/stage-evidence.json");
         let evidence: serde_json::Value = serde_json::from_str(
             &std::fs::read_to_string("../dist/shell/stage-evidence.json").expect("Missing stage evidence")
