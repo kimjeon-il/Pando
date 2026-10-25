@@ -1,0 +1,29 @@
+name: Historical library source data invariants (Node)
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - tests/unit/territorial-library-data.test.mjs
+      - tests/unit/python-bridge-retirement.test.mjs
+      - '.github/workflows/gis-historical-library-data.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  historical-data:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare pinned source-only data in the application checkout
+        uses: ./.github/actions/library-data
+      - name: Verify immutable historical objects with current Node rules
+        run: node --test tests/unit/territorial-library-data.test.mjs
