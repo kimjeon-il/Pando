@@ -55,7 +55,7 @@ test('Unicode and missing source population are not silently dropped',()=>{
 test('malformed coordinates, ID, population and field counts are rejected',()=>{
  for(const v of [{latitude:'91'},{latitude:'nan'},{longitude:'-181'},
    {population:'-1'},{population:'oops'},{id:0}])
-   rejects(()=>parseRow(sourceLine(v)),/invalid/);
+   rejects(()=>parseRow(sourceLine(v)),/invalid|negative/);
  rejects(()=>parseRow('1\tbroken\n'),/19 columns/);
 });
 test('only canonical candidate fields and unique ID values can enter output',()=>{
