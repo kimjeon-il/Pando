@@ -9,10 +9,10 @@ on:
       - tools/gis/compare_osm_hydro_natural_earth.py
       - tools/gis/verify_victorian_yarra_source.py
       - tools/gis/check_official_usgs_hydro_gauges.py
-      - tools/gis/hydro_independent_name_policy.py
+      - tools/gis/hydro-independent-name-policy.mjs
       - tools/gis/hydro-independent-name-replacements.json
       - tools/gis/prepare_hydro_name_replacement_bundle.py
-      - tests/test_hydro_independent_names.py
+      - tests/unit/hydro-independent-name-policy.test.mjs
       - tools/build-hydro-tiles.py
       - .github/workflows/gis-osm-river-audit.yml
   workflow_dispatch:
@@ -73,15 +73,16 @@ jobs:
           python tools/gis/check_official_usgs_hydro_gauges.py \
             --decoded /tmp/hydro-decoded.json \
             --output /tmp/usgs-official-anchor-check.json
+      - name: Validate independently sourced names with the canonical Node policy
+        run: node tools/gis/hydro-independent-name-policy.mjs --input tools/gis/hydro-independent-name-replacements.json > /tmp/hydro-independent-review-validated.json
       - name: Verify USGS station evidence is tied to the exact published Hydro geometry
         run: |
           python - <<'PY'
           import json,sys
           from pathlib import Path
           sys.path.insert(0,'tools/gis')
-          from hydro_independent_name_policy import load_independent_hydronyms
           stations=json.loads(Path('/tmp/usgs-official-anchor-check.json').read_text())
-          review=load_independent_hydronyms(Path('tools/gis/hydro-independent-name-replacements.json'))
+          review=json.loads(Path('/tmp/hydro-independent-review-validated.json').read_text())
           for ident in ('70816878','70819626'):
               measured=stations['candidateSystems'][ident]
               recorded=review[ident]['officialStationEvidence']
@@ -162,7 +163,7 @@ jobs:
           PY
       - name: Verify independently researched river-name records
         run: |
-          python -m unittest discover -s tests -p 'test_hydro_independent_names.py' -v
+          node --test tests/unit/hydro-independent-name-policy.test.mjs
       - name: Verify feature-level independent-source notes
         run: node --test tests/unit/hydro-source-notes.test.mjs
       - name: Rebuild only verified-name metadata into an isolated candidate
