@@ -75,6 +75,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Check preview and build plan without installing SDKs
         run: node --test tests/unit/p3-remote-plan.test.mjs tests/unit/p3-preview-server.test.mjs
       - name: Fetch source-change base for artifact result verification

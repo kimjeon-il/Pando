@@ -46,7 +46,7 @@ function pinnedContext(root){
 const stable=value=>Array.isArray(value)?'['+value.map(stable).join(',')+']':value&&typeof value==='object'?'{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}':JSON.stringify(value);
 
 /** Build both frontend products from source, without writing into a checkout. */
-export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes}={}){
+export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,workerSourceTransform=(_path,source)=>source}={}){
  root=resolve(root);const pinned=readPinnedData?null:pinnedContext(root);
  readPinnedData??=pinned.read;dataPaths??=pinned.dataPaths;
  sourceCommit??=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
@@ -58,7 +58,8 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const sourceText=path=>{const bytes=readSourceBytes(path);sourceInputs.push({sourcePath:path,sha256:hash(bytes)});return bytes.toString('utf8');};
  for(const entry of index.values()){
   const original=readSourceBytes(entry.sourcePath);sourceInputs.push({sourcePath:entry.sourcePath,sha256:hash(original)});
-  const bytes=entry.publicPath.endsWith('.js')&&!/\/vendor\/|\/wasm\//.test(entry.publicPath)?Buffer.from(emitFrontendModule(original.toString('utf8'),entry.sourcePath,index)):original;
+  let bytes=entry.publicPath.endsWith('.js')&&!/\/vendor\/|\/wasm\//.test(entry.publicPath)?Buffer.from(emitFrontendModule(original.toString('utf8'),entry.sourcePath,index)):original;
+  if(entry.publicPath.startsWith('assets/js/workers/')&&entry.publicPath.endsWith('.js'))bytes=Buffer.from(workerSourceTransform(entry.publicPath,bytes.toString('utf8')));
   assets.set(entry.publicPath,{...entry,bytes});
  }
  const generated=(path,bytes,product='shared')=>assets.set(path,{publicPath:path,sourcePath:null,product,bytes:Buffer.isBuffer(bytes)?bytes:Buffer.from(bytes)});

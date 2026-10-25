@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {editorStageRoot} from '../../tools/worktree-storage.mjs';
 import { createHash } from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
@@ -7,7 +8,7 @@ import {loadFullWorldAssetPlan} from './world-data-plan.mjs';
 
 /** Verify the current product contract, independently of a historical file count. */
 export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.meta.url)),'../..')){
- const directory=resolve(root,'apps/editor/dist');
+ const directory=resolve(editorStageRoot(root),'dist');
  const evidence=JSON.parse(await readFile(resolve(directory,'shell/stage-evidence.json'),'utf8'));
  const profile=JSON.parse(await readFile(resolve(directory,'shell/stage-profile.json'),'utf8'));
  assert.equal(profile.verification, evidence.verification, 'Stage mode identity mismatch');
@@ -22,17 +23,14 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
    for (const path of asset.files) {
      assert.match(path, /^assets\/worker-runtime\/[a-f0-9]{32}\/assets\//);
      const source = (await readFile(resolve(directory,path),'utf8')).replaceAll('\r\n','\n');
-     // Shell guards are intentionally prepended only to Worker/helper files.
-     const canonical = source.includes('/* Shell-only request guard; original worker follows. */')
-       ? source.slice(source.indexOf('\n', source.indexOf('})(globalThis, { allowBundledData:')) + 1) : source;
-     assert.equal(createHash('sha256').update(canonical).digest('hex'), asset.sha256[path], path);
+     assert.equal(createHash('sha256').update(source).digest('hex'), asset.sha256[path], path);
    }
  }
  assert.ok(evidence.files.some(file=>file.path===metadata.physicalLand.url), 'Physical substrate must be bundled in both profiles');
  const html=await readFile(resolve(directory,'index.html'),'utf8');
  assert.match(html,/assets\/js\/bootstrap\.js/);assert.doesNotMatch(html,/<script\b[^>]*src=["'][^"']*assets\/js\/viewer\.js/);
  if(profile.mode==='map-data'){
-   const {plan}=await loadFullWorldAssetPlan(path=>readFile(resolve(root,path),'utf8'));
+   const {plan}=await loadFullWorldAssetPlan(path=>path==='assets/js/build-meta.js'?Promise.resolve(metadataSource):readFile(resolve(root,path),'utf8'));
    for(const key of ['worldFileCount','physicalFileCount','countryCount','rootCount','unitCount','modelEntityCount','mergedSourceCount','sourceSha256'])assert.equal(evidence.worldData[key],plan[key],key);
    assert.equal(evidence.worldData.fileCount,plan.entries.length);
    const staged=new Set(evidence.files.map(file=>file.path));

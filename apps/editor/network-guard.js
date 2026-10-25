@@ -1,4 +1,9 @@
-/** Also serialized into real Worker entrypoints by the shell-only staging step. */
+/** Serialized before Worker closure hashing so URLs identify the actual bytes. */
+export function guardWorkerSource(source,{allowBundledData=false}={}){
+  const guard='/* Native request boundary. */\n('+installNetworkGuard.toString()+')(globalThis,{allowBundledData:'+String(allowBundledData)+'});\n';
+  const directive=/^((?:\s|\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)*(['"])use strict\2\s*;)/;
+  return directive.test(source)?source.replace(directive,match=>match+'\n'+guard):guard+source;
+}
 export function installNetworkGuard(scope = globalThis, { allowBundledData = false } = {}) {
   if (scope.__PANDOLAB_SHELL_NETWORK__) return scope.__PANDOLAB_SHELL_NETWORK__;
   const state = { requests: [], blocked: [], workers: [] };

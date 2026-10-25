@@ -1,4 +1,5 @@
 import { writeLibraryOutput } from './library-data.mjs';
+import { buildFrontendIndex, frontendAsset } from '../scripts/lib/frontend-layout.mjs';
 import './load-spherical-core.mjs';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -18,9 +19,10 @@ const outputPath = path.resolve(
 );
 const MESH_FORMAT_VERSION = 2;
 const MESH_HEADER_WORDS = 12;
+const frontend = buildFrontendIndex(projectRoot);
 function loadClassicScript(relativePath, globalName) {
-  const filePath = path.join(projectRoot, relativePath);
-  vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), { filename: filePath });
+  const asset = frontendAsset(projectRoot, relativePath.replaceAll('\\', '/'), { index: frontend });
+  vm.runInThisContext(asset.bytes.toString('utf8'), { filename: asset.sourcePath });
   const value = globalThis[globalName];
   if (!value) throw new Error(`${relativePath}에서 ${globalName}을 불러오지 못했습니다.`);
   return value;

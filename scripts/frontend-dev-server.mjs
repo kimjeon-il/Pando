@@ -10,9 +10,9 @@ import {prepareLibraryData,libraryMaterializedRoot,libraryRuntimeLeasePath} from
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 export const developmentOrigin='http://127.0.0.1:4175';
-export async function developmentAssets({repository,product,prepared}){
+export async function developmentAssets({repository,product,prepared,snapshot}){
  if(product==='editor')return (await import('../apps/editor/stage.mjs')).createDevelopmentAssets({root:repository});
- const snapshot=await buildFrontendSnapshot({root:repository}),assets=new Map();
+ snapshot??=await buildFrontendSnapshot({root:repository});const assets=new Map();
  for(const path of snapshot.viewerPaths){
   if(snapshot.assets.has(path)){assets.set(path,{bytes:snapshot.assets.get(path).bytes});continue;}
   if(!path.startsWith('assets/data/')||!prepared?.files[path])throw Error('Unowned viewer data resource: '+path);

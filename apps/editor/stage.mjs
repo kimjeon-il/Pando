@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
 import { tinyFixture } from './fixture.mjs';
-import { installNetworkGuard } from './network-guard.js';
+import { guardWorkerSource } from './network-guard.js';
 import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
 import { previewFileIdentity } from '../../scripts/p3-preview-server.mjs';
 import { writeStagedContent, removeStagedDirectory, storageSettings, editorStageRoot } from '../../tools/worktree-storage.mjs';
@@ -62,18 +62,18 @@ export async function stagePrototype({ root = repository, profile = 'map-data', 
   finally { await lock.close(); await unlink(lockPath); }
 }
 
-export async function createDevelopmentAssets({ root = repository, profile = 'map-data', frontendSnapshot } = {}) {
+export async function createDevelopmentAssets({ root = repository, profile = 'map-data' } = {}) {
   const assets = new Map();
-  const evidence = await stageOwnedPrototype({ root, profile, verification: false, assets, directory: null, frontendSnapshot });
+  const evidence = await stageOwnedPrototype({ root, profile, verification: false, assets, directory: null });
   assets.set('shell/stage-evidence.json', { bytes: Buffer.from(JSON.stringify({ ...evidence, executionMode: 'development' })) });
   return { assets, evidence };
 }
 
-async function stageOwnedPrototype({ root, profile, verification, directory, assets = null, frontendSnapshot }) {
+async function stageOwnedPrototype({ root, profile, verification, directory, assets = null }) {
   validateShellProfile(profile, verification);
   root = resolve(root);
   const storage = assets ? null : storageSettings(root);
-  const snapshot = frontendSnapshot || await buildFrontendSnapshot({root});
+  const snapshot = await buildFrontendSnapshot({root,workerSourceTransform:(_path,source)=>guardWorkerSource(source,{allowBundledData:profile==='map-data'})});
   const buildMeta = snapshot.buildMeta;
   if (directory) {
     await mkdir(directory, { recursive: true });
@@ -118,11 +118,6 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     if(profile==='test-fixture'&&path.startsWith('assets/data/'))continue;
     let bytes=entry.bytes;
     if(path==='assets/js/build-meta.js')bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.PANDOLAB_BUILD_META = Object.freeze({ ...globalThis.PANDOLAB_BUILD_META, resourceProfile: '+JSON.stringify(profile)+' });\n')]);
-    if(/(?:^|\/)assets\/js\/workers\//.test(path)&&path.endsWith('.js')){
-      const guard='/* Native request boundary. */\n('+installNetworkGuard.toString()+')(globalThis,{allowBundledData:'+String(profile==='map-data')+'});\n',source=bytes.toString('utf8');
-      const directive=/^((?:\s|\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)*(['"])use strict\2\s*;)/;
-      bytes=Buffer.from(directive.test(source)?source.replace(directive,match=>match+'\n'+guard):guard+source);
-    }
     await emit(path,bytes,entry.sourcePath);
   }
   if(buildMeta.physicalLand){
@@ -211,7 +206,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     trackedDiffSha256 = hash(execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: root, windowsHide: true, maxBuffer: 32 * 1024 * 1024, stdio: ['ignore','pipe','pipe'] }));
   } catch { /* Synthetic staging tests have no Git directory. */ }
   const dataPin = await exists(join(root, 'config/library-data.json')) ? JSON.parse(await readFile(join(root, 'config/library-data.json'), 'utf8')) : null;
-  const result = { schema: 'pandolab-web-shell-stage', frontendInputSha256:snapshot.sourceSha256, profile, verification, directory, commit, trackedDiffSha256,
+  const result = { schema: 'pandolab-web-shell-stage', frontendInputSha256:snapshot.sourceSha256, dataRevision:snapshot.dataRevision, profile, verification, directory, commit, trackedDiffSha256,
     dataRepository: dataPin?.repository, dataCommit: dataPin?.revision,
     coreSourceSha256: coreManifest.sourceSha256 || null,
     fixture: fixture ? { entityCount: fixture.entityCount, coordinateCount: fixture.coordinateCount, sha256: fixtureHash } : null,

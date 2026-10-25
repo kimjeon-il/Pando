@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Read-only validation of the current Web hydro package and real Worker.
+import {libraryMaterializedRoot} from './library-data.mjs';
 import {buildFrontendIndex,frontendAsset} from '../scripts/lib/frontend-layout.mjs';
 import {createHash,webcrypto} from 'node:crypto';
 import {readFileSync,readdirSync,lstatSync,realpathSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
@@ -26,7 +27,7 @@ function inside(root,path) {
       const logical=relative(resolve(root),cursor).replaceAll('\\','/');
       const configPath=resolve(root,'config/library-data.json');
       const pin=existsSync(configPath)?JSON.parse(readFileSync(configPath,'utf8')).revision:null;
-      const allowed=pin&&resolve(root,'.library-data/materialized',pin,'assets/data');
+      const allowed=pin&&resolve(libraryMaterializedRoot(root),'assets/data');
       ensure(logical==='assets/data'&&allowed&&realpathSync(cursor)===realpathSync(allowed),
         'Hydro symlink: '+path);
     }

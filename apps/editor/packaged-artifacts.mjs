@@ -21,8 +21,9 @@ export function assertOrdinaryBuild(info) {
 export function assertVerificationBuild(info) {
   if (info.verification !== true) throw Error('This check requires an explicit verification build.');
 }
-export function selectNativeRun(runs,{head,workflowId,repository,title}){
-  return runs.find(run=>run.head_sha===head&&run.workflow_id===workflowId&&run.head_repository?.full_name===repository&&run.display_title===title)||null;
+export function selectNativeRun(runs,{head,workflowId,repository,title,artifactName,artifactsByRun}){
+  return runs.find(run=>run.head_sha===head&&run.workflow_id===workflowId&&run.head_repository?.full_name===repository
+    &&(run.display_title===title||(run.event==='push'&&run.status==='completed'&&artifactName&&artifactsByRun?.get(run.id)?.some(a=>a.name===artifactName&&!a.expired))))||null;
 }
 export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform='windows',mode='development',testNative=false,pollMs=5000,timeoutMs=65*60*1000,github}={}){
   const identity=nativeInputIdentity(root,{platform,mode}),settings=storageSettings(root);
@@ -53,7 +54,13 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
   };
   const workflow=api(`repos/${pin.repository}/actions/workflows/${pin.workflow}`),title=`Native ${testNative?'tests ':''}${platform} ${mode} ${head}`;
   let minimumId=0,minimumAttempt=0,artifact,retriedArtifact=false;
-  const find=()=>selectNativeRun(api(`repos/${pin.repository}/actions/workflows/${workflow.id}/runs?head_sha=${head}&event=workflow_dispatch&per_page=30`).workflow_runs.filter(r=>r.id>=minimumId),{head,workflowId:workflow.id,repository:pin.repository,title});
+  const artifactName=`native-${platform}-${mode}-${head}`,artifactsByRun=new Map();
+  const find=()=>{
+    const runs=api(`repos/${pin.repository}/actions/workflows/${workflow.id}/runs?head_sha=${head}&per_page=30`).workflow_runs.filter(r=>r.id>=minimumId);
+    if(!testNative&&mode==='development')for(const run of runs)if(run.event==='push'&&run.status==='completed'&&!artifactsByRun.has(run.id))artifactsByRun.set(run.id,api(`repos/${pin.repository}/actions/runs/${run.id}/artifacts?per_page=100`).artifacts);
+    const expected={head,workflowId:workflow.id,repository:pin.repository,title,artifactName,artifactsByRun};
+    return selectNativeRun(runs.filter(r=>r.event==='push'),expected)||selectNativeRun(runs.filter(r=>r.event!=='push'),expected);
+  };
   let run=find();
   if(!run||run.status==='completed'&&run.conclusion!=='success'){
     if(testNative&&platform!=='windows')throw Error('Native unit tests run on Windows; Android runtime verification is a separate device workflow');
@@ -63,9 +70,10 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
   while(Date.now()<deadline){
     run=find();if(run){const status=run.status+(run.conclusion?'/'+run.conclusion:'');if(status!==last){console.error('Native CI '+run.html_url+': '+status);last=status;}
       if(run.status==='completed'&&(run.run_attempt||1)>=minimumAttempt){
-        if(run.conclusion!=='success')throw Error('Native CI failed: '+run.html_url);
-        const name=`native-${platform}-${mode}-${head}`,artifacts=api(`repos/${pin.repository}/actions/runs/${run.id}/artifacts?per_page=100`).artifacts;
+        if(run.event!=='push'&&run.conclusion!=='success')throw Error('Native CI failed: '+run.html_url);
+        const name=artifactName,artifacts=artifactsByRun.get(run.id)||api(`repos/${pin.repository}/actions/runs/${run.id}/artifacts?per_page=100`).artifacts;
         artifact=artifacts.find(a=>a.name===name&&!a.expired);if(artifact)break;
+        if(run.conclusion!=='success')throw Error('Native CI failed: '+run.html_url);
         if(retriedArtifact)throw Error('CI succeeded without its required native artifact: '+run.html_url);
         minimumAttempt=(run.run_attempt||1)+1;retriedArtifact=true;gh(['run','rerun',String(run.id),'--repo',pin.repository]);
       }
@@ -73,7 +81,6 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
     await new Promise(r=>setTimeout(r,pollMs));
   }
   if(!run||!artifact)throw Error('Native CI is still running; retry to resume the same request');
-  const artifactName=`native-${platform}-${mode}-${head}`;
   const disk=await statfsForDownload(settings.cacheRoot),peak=artifact.size_in_bytes*3;
   if(peak>=1024**3&&disk<peak+5*1024**3)throw Error('Native artifact download requires peak plus 5GiB headroom');
   const download=containedPath(settings.cacheRoot,`native-downloads/${run.id}-${platform}-${mode}`),owner=download+'.owner.json';
