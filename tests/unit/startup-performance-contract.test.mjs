@@ -1,4 +1,5 @@
 import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
+import {repositoryFrontendSnapshot} from '../helpers/frontend-source.mjs';
 import { UI_BUNDLE_SOURCES } from '../../scripts/lib/ui-source-catalog.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -19,12 +20,13 @@ const projectRestore = read('apps/editor/frontend/js/modules/app-project-restore
 const lifecycleWiring = read('apps/editor/frontend/js/modules/app-connect-lifecycle-ui.js');
 const foundationPorts = read('apps/editor/frontend/js/modules/app-capability-ports-foundation.js');
 const meshResourceLoader = read('shared/frontend/js/modules/builtin-mesh-resource.js');
-const metadata = read('assets/js/build-meta.js');
-const bundle = read('assets/css/ui.bundle.css');
+const snapshot=await repositoryFrontendSnapshot();
+const metadata = snapshot.assets.get('assets/js/build-meta.js').bytes.toString('utf8');
+const bundle = snapshot.assets.get('assets/css/ui.bundle.css').bytes.toString('utf8');
 const surfaces = read('shared/frontend/css/layout/surfaces.css');
 const editorShell = read('shared/frontend/css/components/editor-shell.css');
-const modalBundle = read('assets/css/ui-modal.bundle.css');
-const indexHtml = read('apps/editor/editor.html');
+const modalBundle = snapshot.assets.get('assets/css/ui-modal.bundle.css').bytes.toString('utf8');
+const indexHtml = snapshot.html.editor;
 
 test('render resources use frame snapshots instead of Proxy traps', () => {
   assert.doesNotMatch(app, /createLiveResources|new\s+Proxy/);
@@ -36,7 +38,7 @@ test('render resources use frame snapshots instead of Proxy traps', () => {
   assert.match(rendering, /renderResourceProxyCount/);
   assert.match(coordinator, /callRenderer\('beginFrame'/);
   assert.match(rendering, /coordinator\s*=\s*createMapRenderCoordinator\(\{/);
-  assert.match(rendering, /renderers:\s*{\s*beginFrame,/);
+  assert.match(rendering, /renderers:\s*{[\s\S]*?\bbeginFrame,/);
   assert.doesNotMatch(app, /createMapRenderCoordinator|beginFrame:\s*frameContext/);
 });
 
@@ -91,7 +93,7 @@ test('data and asset revisions remain separate contracts', () => {
   assert.match(metadata, /"dataRevision":\s*"data-[a-f0-9]{32}"/);
   assert.match(loader, /const DATA_REVISION/);
   assert.match(storedAssetLoader, /const DATA_CACHE_PREFIX = 'pandolab-data-'/);
-  assert.match(loader, /url\.searchParams\.set\('v', DATA_REVISION\)/);
+  assert.match(loader, /MANIFEST_URL\.searchParams\.set\('v', DATA_REVISION\)/);
   assert.match(bootstrap, /window\.PANDOLAB_DATA_REVISION = DATA_REVISION/);
   assert.match(bootstrap, /firstCanonicalFrameMs: null/);
   assert.match(bootstrap, /canonicalFrameFallbackCount: 0/);
@@ -127,7 +129,7 @@ test('mobile sheet drag stays compositor-only until snap settlement', () => {
 test('map chrome avoids live backdrop blur over animated map content', () => {
   assert.doesNotMatch(editorShell, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
   assert.doesNotMatch(surfaces, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
-  assert.doesNotMatch(read('apps/editor/editor.html'), /selection-card|selectionToolbar/);
+  assert.doesNotMatch(indexHtml, /selection-card|selectionToolbar/);
 });
 
 test('canonical startup is input-gated and strictly sequential', () => {

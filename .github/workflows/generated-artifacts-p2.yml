@@ -212,6 +212,8 @@ jobs:
       - name: Commit verified phases locally, then publish one guarded result
         id: publish
         shell: bash
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'

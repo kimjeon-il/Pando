@@ -7,7 +7,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSy
   renameSync, unlinkSync, writeFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
-import { libraryConfig, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData } from '../../tools/library-data.mjs';
+import { libraryConfig, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData, withLibraryOutputs } from '../../tools/library-data.mjs';
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
@@ -18,7 +18,7 @@ const normalize=p=>p.replaceAll('\\','/');
 const git=(root,args)=>execFileSync('git',args,{cwd:root,maxBuffer:32*1024*1024}).toString('utf8').trim();
 const json=(root,p)=>JSON.parse(readFileSync(safePath(root,p),'utf8'));
 const optionalJson=(root,p)=>existsSync(safePath(root,p))?json(root,p):null;
-function writeJson(root,p,value) {const path=safePath(root,p);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,JSON.stringify(value,null,2)+'\n');}
+function writeJson(root,p,value) {const path=safePath(root,p);mkdirSync(dirname(path),{recursive:true});withLibraryOutputs({root,paths:[path]},()=>writeFileSync(path,JSON.stringify(value,null,2)+'\n'));}
 
 export function safePath(root,p) {
   assert.ok(typeof p==='string'&&p&&!isAbsolute(p)&&!p.includes('\\')&&!p.includes('\0'),'P2_UNSAFE_PATH: '+p);
@@ -277,6 +277,7 @@ export function publishArtifacts(root,{stageDir,expectedSourceSha,expectedRemote
   guard(root,{expectedSourceSha,expectedRemoteSha,branch});
   // Entry manifests and the graph receipt become visible after their data.
   const paths=[...publication.paths].sort((a,b)=>Number(/(?:manifest|current|index)\.json$/.test(a)||a===RECEIPT_PATH)-Number(/(?:manifest|current|index)\.json$/.test(b)||b===RECEIPT_PATH));
+  return withLibraryOutputs({root,paths:paths.map(path=>safePath(root,path))},()=>{
   const written=[];
   for(const p of paths)if(publication.before[p]!==null) {
     const backup=safePath(stage,'backup/'+p);mkdirSync(dirname(backup),{recursive:true});copyFileSync(safePath(root,p),backup);
@@ -303,6 +304,7 @@ export function publishArtifacts(root,{stageDir,expectedSourceSha,expectedRemote
     }
     unlinkSync(safePath(stage,'publish-journal.json'));throw error;
   }
+  });
 }
 
 export function artifactEvidence(root,{resultSha,expectedSourceSha,evidenceFile,families=null}) {

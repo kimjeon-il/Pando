@@ -2,24 +2,49 @@
 // then locally commit WASM and Web outputs before one guarded push.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { root, OUTPUTS, wasmStatus, assertArtifactsCurrent, assertSafeGeneratedPaths } from './p2-artifact-plan.mjs';
 import { artifactGraph, graphStatus, stageArtifacts, publishArtifacts, assertBranchState,
   artifactEvidence, verifyArtifactFamilies } from './lib/p2-artifact-graph.mjs';
+import {libraryConfig,libraryCheckout,libraryMaterializedRoot,storeLibraryData,prepareLibraryData} from '../tools/library-data.mjs';
 
 const git=(cwd,args)=>execFileSync('git',args,{cwd,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}).toString('utf8').trim();
 const paths=(cwd,args)=>git(cwd,[...args,'-z']).split('\0').filter(Boolean);
 const validWorkBranch = branch => /^work\/[a-z0-9][a-z0-9-]{0,63}$/.test(branch);
 
+// Archive validated mounted outputs through their storage owner. Application
+// Git receives only the paired revision, never the mounted payload itself.
+export function archiveGeneratedLibraryOutputs(cwd,changed,{store=storeLibraryData,prepare=prepareLibraryData}={}){
+  if(!existsSync(resolve(cwd,'config/library-data.json')))return{changedPaths:changed,libraryRevision:null};
+  const before=libraryConfig(cwd),mounted=path=>before.mounts.some(mount=>mount!=='reports'&&(path===mount||path.startsWith(mount+'/')));
+  const runtime=changed.filter(mounted);if(!runtime.length)return{changedPaths:changed,libraryRevision:null};
+  const prefixes=[...new Set(runtime.map(path=>path.startsWith('assets/data/territorial-entities/')?'assets/data/territorial-entities':path))];
+  const record=JSON.parse(readFileSync(resolve(libraryMaterializedRoot(cwd),'.cache-owner.json'))),selected=new Set(runtime);
+  for(const [path,file]of Object.entries(record.files))if(file.storage==='private'&&!selected.has(path)&&prefixes.some(prefix=>path===prefix||path.startsWith(prefix+'/')))throw Error('P2_UNRELATED_RUNTIME_WIP: '+path);
+  if(store===storeLibraryData){
+    const checkout=libraryCheckout(cwd),index=JSON.parse(readFileSync(resolve(checkout,'archive/index.json')));
+    const remote=git(checkout,['ls-remote','origin','refs/heads/'+index.branch]).split(/\s/)[0];
+    assert.equal(git(checkout,['rev-parse','HEAD']),remote,'P2_LIBRARY_BASE_NOT_REMOTE: preserve pending history before choosing a clean published base');
+    const pinned=JSON.parse(git(checkout,['show',before.revision+':archive/index.json']));
+    for(const path of new Set([...Object.keys(index.files),...Object.keys(pinned.files)]))if(!path.startsWith('reports/')&&!prefixes.some(prefix=>path===prefix||path.startsWith(prefix+'/')))assert.equal(index.files[path]?.sha256,pinned.files[path]?.sha256,'P2_LIBRARY_BASE_RUNTIME_CHANGED: '+path);
+  }
+  const revision=store({root:cwd,push:true,prefixes}),after=libraryConfig(cwd);
+  assert.equal(after.revision,revision,'P2_LIBRARY_PIN_NOT_STORED');
+  assert.deepEqual({...after,revision:before.revision},before,'P2_UNEXPECTED_LIBRARY_CONFIG_CHANGE');
+  prepare({root:cwd,fetch:false});
+  return{changedPaths:[...changed.filter(path=>!mounted(path)),'config/library-data.json'],libraryRevision:revision};
+}
+
 function commitOutputs(cwd,changed,families,message) {
   if(!changed.length)return false;
   assertSafeGeneratedPaths(changed,Object.fromEntries(families.map(id=>[id,true])),cwd);
-  git(cwd,['add','-A','--',...changed]);
+  const archived=archiveGeneratedLibraryOutputs(cwd,changed);
+  git(cwd,['add','-A','--',...archived.changedPaths]);
   git(cwd,['diff','--cached','--check']);
   const staged=paths(cwd,['diff','--cached','--name-only']);
-  assertSafeGeneratedPaths(staged,Object.fromEntries(families.map(id=>[id,true])),cwd);
+  assertSafeGeneratedPaths(staged.filter(path=>!(archived.libraryRevision&&path==='config/library-data.json')),Object.fromEntries(families.map(id=>[id,true])),cwd);
   if(!staged.length)return false;
   git(cwd,['commit','-m',message+' [skip ci]']);return true;
 }
@@ -59,6 +84,7 @@ export async function publishGeneratedArtifacts(cwd=root,{
       assert.deepEqual(selection.blockedFamilies,[],'P2_BLOCKED_GENERATION');
       const families=selection.selectedFamilies;
       if(families.length) {
+        if(process.env.GITHUB_ACTIONS==='true'&&existsSync(resolve(cwd,'config/library-data.json'))&&!process.env.PANDOLAB_LIBRARY_WRITE_TOKEN)throw Error('P2_LIBRARY_WRITE_TOKEN_REQUIRED: configure the storage-repository-only Actions secret before generation');
         const sourceSha=git(cwd,['rev-parse','HEAD']),stageDir=stagePrefix+'-web';
         await stageArtifacts(cwd,{families,expectedSourceSha:sourceSha,stageDir});
         const publication=publishArtifacts(cwd,{stageDir,expectedSourceSha:sourceSha,

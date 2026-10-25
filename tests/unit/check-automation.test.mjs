@@ -214,3 +214,11 @@ test('computing a script base URL does not make every sibling script a consumed 
   f.catalog.groups.push({ id: 'validation', kind: 'command', inputs: [], argv: ['node', 'scripts/check.mjs'] });
   assert.deepEqual(f.repository().dependencies('scripts/check.mjs'), []);
 });
+test('classic generated metadata resolves to its source owner without a root output file',()=>{
+ const f=fixture(),worker='shared/frontend/js/workers/generated-meta-worker.js',owner='scripts/lib/frontend-build.mjs';
+ f.put(worker,"importScripts('../build-meta.js');");f.put(owner,'export const generated = true;');
+ f.catalog.groups[1].inputs.push(worker);const repo=f.repository();
+ assert.equal(repo.exists('assets/js/build-meta.js'),false);
+ assert.ok(repo.dependencies(worker).includes(owner));
+ assert.ok(planApplicationChecks({changedFiles:[owner],repository:repo}).browserSpecs.includes('tests/browser/terrain-time.spec.mjs'));
+});

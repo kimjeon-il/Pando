@@ -6,7 +6,8 @@ const require=createRequire(import.meta.url);
 export const frontendTemplates=Object.freeze({web:'apps/viewer/templates/index.html',editor:'apps/editor/templates/index.html'});
 export const frontendFragmentRoot='shared/frontend/ui/fragments';
 export const frontendWasmRoot='shared/frontend/static/wasm';
-const generatedModulePaths=new Set(['assets/js/build-meta.js','assets/js/workers/resource-update-policy-core.js']);
+export const frontendGeneratedOwners=Object.freeze({'assets/js/build-meta.js':'scripts/lib/frontend-build.mjs','assets/js/workers/resource-update-policy-core.js':'scripts/lib/frontend-build.mjs'});
+const generatedModulePaths=new Set(Object.keys(frontendGeneratedOwners));
 
 // Source ownership is independent of the deployed URL namespace.
 export const frontendRoots=Object.freeze([

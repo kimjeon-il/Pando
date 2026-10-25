@@ -1,12 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { timelineCases } from '../fixtures/timeline-records-cases.mjs';
+import {repositoryFrontendSnapshot} from '../helpers/frontend-source.mjs';
 
 test('a cached pre-C++ temporal module cannot mix with the current timeline modules', async ({ page }) => {
   const root = new URL('../../', import.meta.url);
-  const html = readFileSync(new URL('index.html', root), 'utf8');
-  const meta = readFileSync(new URL('assets/js/build-meta.js', root), 'utf8');
-  const revision = JSON.parse(meta.match(/Object\.freeze\((\{[\s\S]*?\})\);/)[1]).assetRevision;
+  const snapshot=await repositoryFrontendSnapshot(),html=snapshot.html.viewer,revision=snapshot.buildMeta.assetRevision;
   const importMap = html.match(/<script\b[^>]*id="pandolab-module-import-map"[^>]*>[\s\S]*?<\/script>/)?.[0] || '';
   const stale = readFileSync(new URL('tests/fixtures/portability/web-9300609-oracle/assets/js/modules/temporal.js', root), 'utf8');
   const temporalRequests = [];
