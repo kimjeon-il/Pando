@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, statSync, chmodSync, existsSync, unlinkSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { compilerCacheEnvironment, writeStagedContent, removeStagedDirectory, previewWorktreeStorage, applyWorktreeStorage, pruneApplicationBlobs, shareRetiredQtRuntimes } from '../../tools/worktree-storage.mjs';
+import { compilerCacheEnvironment, assertCompilerCacheServer, writeStagedContent, removeStagedDirectory, previewWorktreeStorage, applyWorktreeStorage, pruneApplicationBlobs, shareRetiredQtRuntimes } from '../../tools/worktree-storage.mjs';
 import { contentHash, contentFiles, publishContent } from '../../tools/library-content.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +23,12 @@ test('activated compiler cache verifies its tool and preserves branch target and
   assert.throws(()=>compilerCacheEnvironment({root,settings,env:{RUSTC_WRAPPER:'another'}}),/conflict/i);
   assert.throws(()=>compilerCacheEnvironment({root,settings,env:{SCCACHE_DIR:'another'}}),/conflict/i);
   writeFileSync(tool,'corrupted');assert.throws(()=>compilerCacheEnvironment({root,settings,env:{}}),/integrity/i);
+});
+test('compiler server ownership uses an exact cache directory rather than a matching prefix',()=>{
+  const settings={version:'0.19.0',cacheRoot:'D:/build/cache/pandolab'};
+  const stats={version:'0.19.0',max_cache_size:2147483648,basedirs:[],cache_location:'Local disk: "D:\\\\build\\\\cache\\\\pandolab\\\\sccache"'};
+  assert.doesNotThrow(()=>assertCompilerCacheServer(settings,stats));
+  assert.throws(()=>assertCompilerCacheServer(settings,{...stats,cache_location:'Local disk: "D:\\\\build\\\\cache\\\\pandolab\\\\sccache-other"'}),/ownership|configuration/);
 });
 test('explicit compiler command forwards its exit status without shell interpolation',t=>{
   const root=fixture(t), script=fileURLToPath(new URL('../../tools/worktree-storage.mjs',import.meta.url));

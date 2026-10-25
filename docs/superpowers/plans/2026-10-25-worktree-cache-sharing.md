@@ -1,6 +1,6 @@
 # Permanent Worktree Cache Sharing Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Share immutable staging and compiler outputs across the five permanent worktrees and actually remove verified redundant copies.
 
@@ -33,10 +33,10 @@
 
 **Interfaces:** Preserve current string-root API. Add explicit store configuration `{root, blobDirectory, viewRoots}` for owned application stores, and external-view operations `linkContentView`, `removeContentView`, `makeContentViewPrivate`, restricted to an existing plain ownership marker. Library pool paths remain unchanged.
 
-- [ ] Add failing tests: external owned views share IDs; writes fail; private edits isolate; unknown markers, root/nested junctions and corrupt pool bytes fail; interrupted permission recovery restores readonly.
-- [ ] Run `node --test tests/unit/library-content.test.mjs` and observe RED.
-- [ ] Implement scoped external views using the existing content owner, with permission journal including exact target/store ownership.
-- [ ] Run the same focused test and observe GREEN; commit task-owned files.
+- [x] Add failing tests: external owned views share IDs; writes fail; private edits isolate; unknown markers, root/nested junctions and corrupt pool bytes fail; interrupted permission recovery restores readonly.
+- [x] Run `node --test tests/unit/library-content.test.mjs` and observe RED.
+- [x] Implement scoped external views using the existing content owner, with permission journal including exact target/store ownership.
+- [x] Run the same focused test and observe GREEN; commit task-owned files.
 
 ### Task 2: Local compiler-cache owner and build entrypoints
 
@@ -44,10 +44,10 @@
 
 **Interfaces:** `compilerCacheEnvironment({root,env}) -> env`; CLI `--activate-compiler-cache`, `--compiler-env`, `--with-compiler-cache -- command args`. Read local activation from common Git config; verify tool version/digest, cache size, owned server endpoint; preserve current incremental settings and fail on conflicting wrappers.
 
-- [ ] Add failing tests for unconfigured hosts, exact environment, independent targets, wrapper conflicts, corrupt/missing activated tool, command exit propagation and local activation ownership.
-- [ ] Run `node --test tests/unit/worktree-storage.test.mjs` and observe RED.
-- [ ] Implement compiler setup and standard entrypoints without changing shared source fingerprints; no global environment mutation.
-- [ ] Verify tests GREEN, parse PowerShell, inspect CMake configure on the fixed probe path; commit.
+- [x] Add failing tests for unconfigured hosts, exact environment, independent targets, wrapper conflicts, corrupt/missing activated tool, command exit propagation and local activation ownership.
+- [x] Run `node --test tests/unit/worktree-storage.test.mjs` and observe RED.
+- [x] Implement compiler setup and standard entrypoints without changing shared source fingerprints; no global environment mutation.
+- [x] Verify tests GREEN, parse PowerShell, inspect CMake configure on the fixed probe path; commit.
 
 ### Task 3: Share immutable App staging
 
@@ -55,9 +55,9 @@
 
 **Interfaces:** `writeStagedContent({root,directory,path,bytes,source})`, `removeStagedDirectory({root,directory})`. Existing stage lock/ownership remains authoritative. Library source reuse validates record hash and file ID; private inputs use app immutable snapshots. Existing synthetic tests remain isolated and never access real host cache.
 
-- [ ] Add failing tests: two independent stages share IDs; staging deletion preserves readonly peers; modified/private source does not leak; unknown outputs and active lock survive.
-- [ ] Run the focused tests RED; integrate snapshot/pool reuse and permission-safe stage removal.
-- [ ] Run `node --test apps/web-shell/tests/stage.test.mjs tests/unit/worktree-storage.test.mjs tests/unit/library-content.test.mjs` GREEN; commit.
+- [x] Add failing tests: two independent stages share IDs; staging deletion preserves readonly peers; modified/private source does not leak; unknown outputs and active lock survive.
+- [x] Run the focused tests RED; integrate snapshot/pool reuse and permission-safe stage removal.
+- [x] Run `node --test apps/web-shell/tests/stage.test.mjs tests/unit/worktree-storage.test.mjs tests/unit/library-content.test.mjs` GREEN; commit.
 
 ### Task 4: Preview/apply and actual migration
 
@@ -65,10 +65,10 @@
 
 **Interfaces:** CLI `--preview` (default) / `--apply` enumerates permanent worktrees and only recognized owned stage outputs; explicit hash/identity journal records each conversion. Cleanup script `-WorktreeStorageOnly [-Apply]` dispatches this owner. Inventory lists protected generated outputs separately. `--resume` repairs journaled operations before new mutation.
 
-- [ ] Add failing synthetic tests for stale records, active process/lease, path escapes, interruption before/after link replacement, idempotent apply, peak limits and byte accounting.
-- [ ] Implement and run tests GREEN; commit.
-- [ ] Recheck all WIP, pin/mount/process/lease state and free space; install verified sccache and activate local compiler cache.
-- [ ] Preview/apply active stage sharing, pnpm native-store reuse and verified obsolete generated outputs; record every applied/skipped target with exact reason and bytes. Never remove unique or active data.
+- [x] Add failing synthetic tests for stale records, active process/lease, path escapes, interruption before/after link replacement, idempotent apply, peak limits and byte accounting.
+- [x] Implement and run tests GREEN; commit.
+- [x] Recheck all WIP, pin/mount/process/lease state and free space; install verified sccache and activate local compiler cache.
+- [x] Preview/apply active stage sharing, pnpm native-store reuse and verified obsolete generated outputs; record every applied/skipped target with exact reason and bytes. Never remove unique or active data.
 
 ### Task 5: Real consumers, compiler probes and completion
 
@@ -100,3 +100,9 @@
 - Final: minor (deferred): CMake checks configured C++ launcher conflicts but not an independently configured C launcher from CMake cache. Current root enables only CXX, so no current C compilation is affected; a future C-language target needs that guard before using this integration.
 - Final: Ruling: verify ongoing operations and compiler/tool provenance with direct local evidence rather than reviewer reruns — review was read-only and deliberately excluded ongoing apply/install/push; actual audits, hashes and command results remain completion evidence — a missing operational check would invalidate only that completion claim and must remain disclosed.
 - Ruling: Emscripten 4.0.20 internal Clang is correctly wrapped but sccache bypasses unsupported `-Xclang` flags — preserve compiler semantics rather than changing flags for hits — WASM gets no compiler-cache speedup with this pinned tool; native C++ and Rust cache sharing remain verified.
+
+- Final: fixed exact compiler server directory ownership (a matching directory prefix is insufficient); targeted regression RED to GREEN and full relevant suite 37/37.
+- Real consumer proof complete: actual map-data stage 1,842 files, all SHA-256 and readonly shared IDs verified; HTTP index/WASM/physical manifest 200 with matching source bytes; verification stage removed.
+- Real Qt migration complete: 6,787 files shared; two tiny runtime folders without source identity remain protected. No unique SDK bytes or replay paths were removed.
+- Initial forced pnpm repair also imported non-host optional binaries; native platform resolution and scoped cleanup removed those views, then evicted only newly created unreferenced task downloads with exact store hash/ID proof. All five Windows esbuild smoke checks pass and unsupported installed package count is zero.
+- Final inventory: content/file-ID reduction 783,552,722 bytes in the selected cache cohort including the application pool, adjusted for 253,035,104 bytes of already-existing library blobs now referenced. This is distinct from actual NTFS allocation/free-space change.
