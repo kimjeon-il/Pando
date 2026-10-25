@@ -144,7 +144,7 @@ jobs:
         shell: bash
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          pnpm --dir apps/editor install --ignore-workspace --frozen-lockfile
+          pnpm --dir apps/editor install --frozen-lockfile
       - uses: ./.github/actions/library-data
         if: inputs.native_mode == 'offline' || inputs.native_mode == 'verification'
       - name: Check native contracts

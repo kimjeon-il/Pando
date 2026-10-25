@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { createHash, webcrypto } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 
-const base = new URL('../../assets/js/workers/', import.meta.url);
+const base = new URL('../../shared/frontend/js/workers/', import.meta.url);
 const storeSource = readFileSync(new URL('hydro-shard-store.js', base), 'utf8');
 const workerSource = readFileSync(new URL('hydro-tile-worker.js', base), 'utf8');
 const manifestPath = 'assets/data/hydro/v0.13.2/manifest.json';

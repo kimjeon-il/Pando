@@ -37,8 +37,8 @@ function makeFixture(shardCount=4){
   write(main+manifest.container.url,blob);write(CURRENT_MANIFEST,manifestBytes);
   const independent=manifest.sources?.independentHydronymReplacements;
   if(independent)write(main+independent.file,readFileSync(new URL('../../'+main+independent.file,import.meta.url)));
-  for(const file of ['hydro-shard-store.js','hydro-tile-worker.js'])write('assets/js/workers/'+file,
-    readFileSync(new URL('../../assets/js/workers/'+file,import.meta.url)));
+  for(const file of ['hydro-shard-store.js','hydro-tile-worker.js'])write('shared/frontend/js/workers/'+file,
+    readFileSync(new URL('../../shared/frontend/js/workers/'+file,import.meta.url)));
   return {root,manifest,blob,manifestBytes,write};
 }
 async function fixture(run,shardCount){const f=makeFixture(shardCount);try{return await run(f);}finally{rmSync(f.root,{recursive:true,force:true});}}

@@ -50,7 +50,7 @@ jobs:
       - name: Install JavaScript dependencies
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          pnpm --dir apps/editor install --ignore-workspace --frozen-lockfile
+          pnpm --dir apps/editor install --frozen-lockfile
       - name: Validate native bridge and map-data asset plan
         run: |
           node --test apps/editor/tests/native-storage.test.mjs apps/editor/tests/full-world-probe.test.mjs apps/editor/tests/world-data-plan.test.mjs

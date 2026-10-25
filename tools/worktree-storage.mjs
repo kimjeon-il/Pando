@@ -27,7 +27,7 @@ export function prepareDependencies(root=repository){
   const store=containedPath(settings.cacheRoot,'pnpm/store');
   atomicStorageJSON(resolve(root,'.library-data/dependencies.json'),{schema:'pando-dependency-store-v1',store});
   for(const project of [root,resolve(root,'apps/editor')]){
-    const args=dependencyPreparationArguments({root:project,store});if(project!==root)args.push('--ignore-workspace');
+    const args=dependencyPreparationArguments({root:project,store});
     execFileSync(process.execPath,[executable,...args],{cwd:root,stdio:'inherit',windowsHide:true});
   }
   return {pnpm,store,projects:[root,resolve(root,'apps/editor')]};
@@ -35,6 +35,7 @@ export function prepareDependencies(root=repository){
 export function installFrontendSnapshot({root,snapshot,settings=storageSettings(root)||{cacheRoot:resolve(root,'.library-data/cache')},afterFile=()=>{}}){
   if(!/^[a-f0-9]{64}$/.test(snapshot.sourceSha256))throw Error('Invalid frontend input identity');
   return withStorageLock(root,settings,()=>{
+    const install=()=>{
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'frontend/'+snapshot.sourceSha256),pending=directory+'.pending',marker='frontend-manifest.json';
     const journal=containedPath(settings.cacheRoot,'frontend-install.pending.json');
     const files=[...snapshot.assets].map(([path,entry])=>({path,sourcePath:entry.sourcePath||null,bytes:entry.bytes.length,sha256:contentHash(entry.bytes)}));
@@ -47,7 +48,7 @@ export function installFrontendSnapshot({root,snapshot,settings=storageSettings(
       mkdirSync(pending,{recursive:true});atomicStorageJSON(journal,{root,manifest});atomicStorageJSON(resolve(pending,marker),manifest);
       for(const file of files){
         const shared=libraryStagingContent({root,sha256:file.sha256,bytes:file.bytes}),view={viewRoot:pending,marker};
-        if(shared)withLibraryLock(root,()=>linkContentView(shared,file.sha256,containedPath(pending,file.path),view));
+        if(shared)linkContentView(shared,file.sha256,containedPath(pending,file.path),view);
         else{const blob=publishContent(store,snapshot.assets.get(file.path).bytes);linkContentView(store,blob.sha256,containedPath(pending,file.path),view);}
         afterFile(file);
       }
@@ -57,6 +58,8 @@ export function installFrontendSnapshot({root,snapshot,settings=storageSettings(
     verify(directory);if(existsSync(journal))unlinkSync(journal);
     const pointer=resolve(root,'.library-data/frontend-artifacts.json'),references=existsSync(pointer)?JSON.parse(readFileSync(pointer)):{};
     references[manifest.product]={directory,sourceSha256:snapshot.sourceSha256};atomicStorageJSON(pointer,references);return directory;
+    };
+    return existsSync(resolve(root,'config/library-data.json'))?withLibraryLock(root,install):install();
   });
 }
 function ownedStage(root,directory,settings=storageSettings(root)){

@@ -7,7 +7,8 @@
       "testPatterns": [
         "tests/unit/frontend-*.test.mjs",
         "tests/unit/dependency-preparation.test.mjs",
-        "tests/unit/dependency-store-hook.test.mjs"
+        "tests/unit/dependency-store-hook.test.mjs",
+        "tests/unit/library-runtime-prefetch.test.mjs"
       ],
       "inputs": [
         "apps/viewer/**",
@@ -450,7 +451,7 @@
       "kind": "command",
       "inputs": [
         "package.json",
-        "assets/js/build-meta.js",
+        "scripts/lib/frontend-build.mjs",
         "scripts/check-version.mjs"
       ],
       "argv": [
@@ -504,8 +505,8 @@
         "shared/frontend/js/modules/ui-*.js",
         "apps/editor/frontend/js/modules/ui-*.js",
         "apps/viewer/js/modules/ui-*.js",
-        "index.html",
-        "apps/editor/editor.html",
+        "apps/viewer/templates/index.html",
+        "apps/editor/templates/index.html",
         "scripts/check-ui-*.mjs"
       ],
       "argv": [
@@ -533,8 +534,8 @@
       "id": "assets",
       "kind": "command",
       "inputs": [
-        "assets/worker-runtime/**",
-        "assets/js/build-meta.js",
+        "scripts/lib/worker-assets.mjs",
+        "scripts/lib/frontend-build.mjs",
         "scripts/generate-build-metadata.mjs",
         "scripts/lib/product-assets.mjs",
         "scripts/lib/worker-assets.mjs",
@@ -772,8 +773,8 @@
         "shared/frontend/js/modules/ui-*.js",
         "apps/editor/frontend/js/modules/ui-*.js",
         "apps/viewer/js/modules/ui-*.js",
-        "index.html",
-        "apps/editor/editor.html"
+        "apps/viewer/templates/index.html",
+        "apps/editor/templates/index.html"
       ],
       "argv": [
         "node",
@@ -805,8 +806,8 @@
         "shared/frontend/js/modules/surface-*.js",
         "apps/editor/frontend/js/modules/surface-*.js",
         "apps/viewer/js/modules/surface-*.js",
-        "index.html",
-        "apps/editor/editor.html"
+        "apps/viewer/templates/index.html",
+        "apps/editor/templates/index.html"
       ],
       "argv": [
         "node",
@@ -1048,15 +1049,16 @@
     "scripts/**",
     "tools/**",
     "contracts/**",
-    "tests/**"
+    "tests/**",
+    "apps/viewer/**"
   ],
   "passiveInputs": [
     "tools/reference-analysis/README.md",
     "shared/frontend/js/vendor/**",
     "apps/editor/frontend/js/vendor/**",
     "apps/viewer/js/vendor/**",
-    "assets/vendor/**",
-    "assets/fonts/**",
+    "shared/frontend/static/vendor/**",
+    "shared/frontend/static/fonts/**",
     "assets/icons/**",
     "assets/flags/**"
   ],
@@ -1107,8 +1109,8 @@
         "shared/frontend/js/modules/**",
         "apps/editor/frontend/js/modules/**",
         "apps/viewer/js/modules/**",
-        "index.html",
-        "apps/editor/editor.html"
+        "apps/viewer/templates/index.html",
+        "apps/editor/templates/index.html"
       ]
     },
     {

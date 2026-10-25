@@ -1,6 +1,7 @@
 import {existsSync,lstatSync,readdirSync,readFileSync} from 'node:fs';
 import {resolve,posix} from 'node:path';
-import {Linter} from 'eslint';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
 
 export const frontendTemplates=Object.freeze({web:'apps/viewer/templates/index.html',editor:'apps/editor/templates/index.html'});
 export const frontendFragmentRoot='shared/frontend/ui/fragments';
@@ -49,8 +50,9 @@ export function frontendAsset(root,publicPath,{index=buildFrontendIndex(root),pr
  if(product==='viewer'&&entry.product==='editor')throw Error('Viewer reaches editor product source: '+publicPath);
  return {...entry,bytes:readFileSync(resolve(root,entry.sourcePath))};
 }
-const parser=new Linter();
+let parser;
 export function frontendModuleReferences(source){
+ parser??=new (require('eslint').Linter)();
  const errors=parser.verify(source,{languageOptions:{ecmaVersion:2024,sourceType:'module',parserOptions:{range:true}}});
  if(errors.some(e=>e.fatal))throw Error('Frontend module does not parse: '+errors.find(e=>e.fatal).message);
  const code=parser.getSourceCode(),references=[];
