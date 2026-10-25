@@ -4,6 +4,23 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { createGpuCanvasWorker } from '../../assets/js/modules/gpu-canvas-worker.js';
 
+test('project replacement retains a ready worker and rejects old completion without releasing the new frame', () => {
+  const { channel, sent, receive, complete, presented } = transport();
+  receive({ type: 'ready' });
+  channel.queueFrame({ type: 'view', revision: 9, projectGeneration: 2 });
+  const old = sent[0];
+  channel.resetGeneration(3);
+  channel.queueFrame({ type: 'view', revision: 1, projectGeneration: 3 });
+  complete(old, { bitmap: { close() {} } });
+  assert.equal(channel.busy, true);
+  assert.equal(presented.length, 0);
+  complete(sent[1]);
+  assert.equal(channel.busy, false);
+  assert.equal(presented.length, 1);
+  assert.equal(channel.ready, true);
+  channel.terminate();
+});
+
 test('Canvas owner coalesces busy frames and closes stale bitmaps before notifying the presenter', () => {
   const sent = [], presented = [], stale = [];
   const native = { postMessage: value => sent.push(value), terminate() {} };

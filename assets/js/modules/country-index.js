@@ -87,7 +87,7 @@ export function createCountryIndex() {
   }
 
   function drainCountryLabelFallback() {
-    if (dependencies.projectState.state.mapMoving || document.hidden || navigator.scheduling?.isInputPending?.()) {
+    if (dependencies.projectState.state.countryVisualPhase === 'pending' || dependencies.projectState.state.mapMoving || document.hidden || navigator.scheduling?.isInputPending?.()) {
       dependencies.projectState.mapWorkScheduler.scheduleIdle('country-label-fallback', drainCountryLabelFallback, 100); return;
     }
     const start = performance.now();
@@ -219,7 +219,7 @@ export function createCountryIndex() {
       if (requested && !requested.has(id) && !requested.has(String(sources.labelRefs.get(id)?.id))) continue;
       const previousGeometry = countryLabelAnchorGeometries.get(id);
       countryLabelAnchorGeometries.set(id, feature.geometry);
-      if (!requested && (!previousGeometry || previousGeometry === feature.geometry)
+      if ((!previousGeometry || previousGeometry === feature.geometry)
         && (validLabelAnchor(countryLabelAnchors.get(id)) || pendingCountryLabelAnchors.has(id))) continue;
       countryLabelAnchors.delete(id);
       countryLabelAnchorVersions.set(id, (countryLabelAnchorVersions.get(id) || 0) + 1);

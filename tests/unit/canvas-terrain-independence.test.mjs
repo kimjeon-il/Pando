@@ -55,9 +55,16 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
     },
     postMessage(message) { messages.push(message); },
   };
-  const fetch = url => url.endsWith('manifest.json')
+  const fetch = (url, options = {}) => url.endsWith('manifest.json')
     ? Promise.resolve({ ok: true, json: async () => manifest })
-    : new Promise(resolve => requests.push({ url, resolve, completed: false }));
+    : new Promise((resolve, reject) => {
+      const request = { url, resolve, completed: false };
+      requests.push(request);
+      options.signal?.addEventListener('abort', () => {
+        request.completed = true;
+        reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+      }, { once: true });
+    });
   new Function('self', terrainCoreSource)(scope);
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
     'ImageData', 'performance', 'setTimeout', workerSource.replace('self.onmessage = event => {',
@@ -70,6 +77,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   const features = [country('VISIBLE'), country('HIDDEN')];
   const land = { key: 'physical-land', role: 'physical-land', geometry: country('LAND', 2).geometry };
   const frame = {
+    terrainAllowFallback: true, backgroundPending: false,
     surfacePresentation: { targetQuality: 'canonical', quality: 'canonical' },
     width: 1000, height: 600, dpr: 1, terrainDpr: 2, meshQuality: 'preview',
     renderProjection: { scale: 350, translate: [500, 300] }, projection: 'flat',
@@ -124,18 +132,16 @@ test('Canvas terrain skips wholly offscreen triangles while keeping crossing and
 
 test('Canvas terrain demand ignores country preview and backing DPR, but follows source DPR', async () => {
   const h = canvasTerrainRuntime(); await settle(); h.render();
-  assert.deepEqual(h.levels(), [0, 0], 'world base consumes both initial fetch slots');
-  assert.equal(h.messages.at(-1).terrainComplete, false);
+  assert.deepEqual(h.levels(), [2, 2], 'current visible detail consumes both initial fetch slots');
   assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
-  await h.deliver(h.find('/0/0-0.webp'));
-  await h.deliver(h.find('/0/1-0.webp'));
-  h.render();
-  assert.ok(h.levels().includes(2), 'preview countries cannot restrict terrain to low LOD');
-  assert.ok(h.levels().every(level => level === 0 || level === 2));
+  for (let round=0; round<30 && !h.messages.filter(message=>message.type==='frame').at(-1).terrainStats.terrainReady; round++) {
+    const request=h.requests.find(request=>!request.completed); if(!request)break;
+    await h.deliver(request);h.render();
+  }
   h.render({ meshQuality: 'canonical', dpr: 1.5 });
   assert.ok(h.levels().every(level => level === 0 || level === 2));
   h.render({ meshQuality: 'preview', terrainDpr: 1 });
-  await h.deliver(h.requests.find(request => !request.completed && /\/2\//.test(request.url)));
+  await settle();
   assert.ok(h.levels().includes(1), 'a lower source DPR selects a lower terrain level');
 });
 
@@ -164,10 +170,10 @@ test('Canvas cannot acknowledge raster coverage while requested DEM and tint are
 });
 
 test('Canvas keeps world coverage and the physical mask independently of political geometry and visibility', async () => {
-  const h = canvasTerrainRuntime(); await settle(); h.render();
+  const h = canvasTerrainRuntime(); await settle(); h.render({terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
   assert.equal(h.drawn.length, 0);
   await h.deliver(h.find('/0/0-0.webp'));
-  h.render(); assert.equal(h.drawn.length, 0, 'do not expose a half-loaded world base');
+  h.render({backgroundPending:true,terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}}); assert.equal(h.drawn.length, 0, 'do not expose a half-loaded world base');
   await h.deliver(h.find('/0/1-0.webp'));
   h.drawn.length = 0; h.substrates.length = 0;
   h.render();
@@ -193,7 +199,7 @@ test('Canvas keeps world coverage and the physical mask independently of politic
 });
 
 test('Canvas reuses physical terrain through political changes and invalidates it for camera, physical mask and tile changes', async () => {
-  const h=canvasTerrainRuntime();await settle();h.render();
+  const h=canvasTerrainRuntime();await settle();h.render({terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
   await h.deliver(h.find('/0/0-0.webp'));await h.deliver(h.find('/0/1-0.webp'));h.render();
   h.drawn.length=0;
   h.render({fills:{VISIBLE:{fillAlpha:0,color:''}}});
@@ -219,7 +225,7 @@ test('Canvas reuses physical terrain through political changes and invalidates i
 });
 
 test('Canvas neighbour prefetch does not redraw the ready viewport terrain', async () => {
-  const h=canvasTerrainRuntime();await settle();h.render();
+  const h=canvasTerrainRuntime();await settle();h.render({terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
   await h.deliver(h.find('/0/0-0.webp'));await h.deliver(h.find('/0/1-0.webp'));h.render();
   for(let count=0;!h.find('/2/0-0.webp') && count<30;count++) {
     const pending=h.requests.find(request=>!request.completed);

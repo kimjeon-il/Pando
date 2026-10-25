@@ -20,7 +20,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation, MAP_SURFACE_LOW_SCALE } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -210,6 +210,7 @@ export function createGpuMapRenderer(deps) {
     let renderDevice = null;
     let renderDeviceContextRevision = 0;
     let uploadScheduler = null;
+    let terrainUploadScheduler = null;
     let stagingSequence = 0;
     let pendingCanonicalCommit = null;
     let projectGeneration = 0;
@@ -266,6 +267,9 @@ export function createGpuMapRenderer(deps) {
     let countryDisplayHistoryValid = false;
     let qualityProjection = null, scaleQuality = null;
     let presentedMapKey = '';
+    let backgroundPresentedKey = '', countriesPublishedGeneration = -1;
+    let firstBackgroundFrameMs = null;
+    let firstCountryPublishedMs = null;
     let countryFocusPending = false;
     let countryEditingActive = false;
     let countryPropertyEditingActive = false;
@@ -334,16 +338,20 @@ export function createGpuMapRenderer(deps) {
         canonicalReady: canonicalMeshReady,
         previewReady: previewAllowed && (isWebGlRenderer() ? meshVariants.has('preview') : !!previewSurfaceFeatures?.length),
         previewVerified: landReady,
+        backgroundPresented: countriesPublishedGeneration === projectGeneration
+          || !!backgroundPresentedKey && backgroundPresentedKey === backgroundTargetKey(),
       });
       desiredCountryMeshQuality = nextPresentation.targetQuality;
       const changed = nextPresentation.quality !== surfacePresentation.quality;
       surfacePresentation = nextPresentation;
       const quality = surfacePresentation.quality;
       state.countryVisualPhase = quality;
-      if (quality !== 'pending' && (changed || quality !== activeMeshQuality)) {
-        if (isWebGlRenderer()) activateMeshVariant(quality, { renderFrame: false });
-        else { activeMeshQuality = quality; meshQuality = quality; meshSwitchCount += 1; }
+      const geometryQuality = surfacePresentation.geometryQuality;
+      if (geometryQuality !== 'pending' && geometryQuality !== activeMeshQuality) {
+        if (isWebGlRenderer()) activateMeshVariant(geometryQuality, { renderFrame: false });
+        else { activeMeshQuality = geometryQuality; meshQuality = geometryQuality; meshSwitchCount += 1; }
       }
+      state.countryVisualPhase = quality;
       if (!projectRenderBlocked && quality !== 'pending') countryDisplayHistoryValid = true;
       if (changed) {
         pickSceneKey = ''; canvasLastStyleSignature = ''; canvasLastCountryGeometrySignature = '';
@@ -358,14 +366,14 @@ export function createGpuMapRenderer(deps) {
     }
 
     function surfaceScenePolygons() {
-      return (renderScene?.polygons || []).map(packet => surfacePresentation.quality === 'preview'
+      return (renderScene?.polygons || []).map(packet => surfacePresentation.geometryQuality === 'preview'
         ? previewLandPackets.get(packet.sourceKey) || packet : packet);
     }
 
     function currentTerrainReadiness() {
       if (isWebGlRenderer()) return terrainPreparation?.stats() || {};
       if (rendererMode === 'canvas-worker') return canvasTerrainStats;
-      return { ...canvasTerrainStats, terrainReady: !!canvasPreviewAtlas,
+      return { ...canvasTerrainStats, terrainReady: canvasPreviewAdequate(lastVisualFrame),
         terrainFailed: !!canvasPreviewError,
         terrainResolutionLimited: !!canvasPreviewAtlas && canvasPreviewAtlas.physical.width < 2 * Math.PI * (lastVisualFrame?.cssScale || 1) * Math.min(isMobile() ? 2 : 3, window.devicePixelRatio || 1) * 1.12 };
     }
@@ -396,9 +404,30 @@ export function createGpuMapRenderer(deps) {
 
     function recordMapPresentation(frame, resourcesDrawn = true) {
       const terrain = currentTerrainReadiness();
+      resourcesDrawn = resourcesDrawn && (renderScene?.polygons || []).some(packet => packet.role === 'physical-land');
       const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady;
       presentedMapKey = resourcesDrawn && terrainDrawn ? mapTargetKey(frame, terrain) : '';
+      if (resourcesDrawn && (terrainDrawn || terrain.terrainFailed)) {
+        if (surfacePresentation.quality !== 'pending') {
+          countriesPublishedGeneration = projectGeneration;
+          firstCountryPublishedMs ??= Math.max(0, performance.now() - rendererStartedAt);
+        }
+        const key = backgroundTargetKey(frame, terrain);
+        if (backgroundPresentedKey !== key) {
+          backgroundPresentedKey = key;
+          firstBackgroundFrameMs ??= Math.max(0, performance.now() - rendererStartedAt);
+          if (countriesPublishedGeneration !== projectGeneration) invalidateGpuFrame('background-presented');
+        }
+      }
       publishMapReadiness();
+    }
+
+    function backgroundTargetKey(frame = lastVisualFrame, terrain = currentTerrainReadiness()) {
+      if (!frame || !renderScene) return '';
+      return JSON.stringify([projectGeneration, renderDeviceContextRevision,
+        (renderScene.polygons || []).filter(packet => packet.role === 'physical-land').map(packet => packet.sourceKey),
+        frame.cssViewport, frame.cssScale, frame.cssTranslate, frame.viewState?.rotation, frame.viewState?.projection,
+        physicalStyleStateRevision, !!state.physicalSettings.terrainVisible, terrain.terrainTargetKey]);
     }
 
     function retryMapPreparation() {
@@ -533,7 +562,7 @@ export function createGpuMapRenderer(deps) {
     }
     function prepareTerrain(frame) {
       if(!terrainPreparation)return;
-      terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
+      terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: terrainUploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
       preparedTerrain = terrainPreparation.prepare(frame, {
         visible: state.physicalSettings.terrainVisible,
         physicalStyle: state.physicalSettings.terrainStyle,
@@ -1551,6 +1580,7 @@ export function createGpuMapRenderer(deps) {
 
     function handleSharedGpuContextLost() {
       renderDeviceContextRevision += 1;
+      backgroundPresentedKey = ''; countriesPublishedGeneration = -1;
       terrainPreparation?.reset();
       hydroPreparation.resetGpu();
       lifecycle.releaseContext(gl);
@@ -1723,6 +1753,8 @@ export function createGpuMapRenderer(deps) {
 
     async function activateBuiltinMeshBaseline({ projectGeneration: requestedGeneration = projectGeneration, onStaged = null } = {}) {
       if (Number(requestedGeneration) !== projectGeneration || !builtinMeshBaseline?.mesh) return false;
+      projectRenderBlocked = false;
+      invalidateGpuFrame('accepted-project-background');
       if (!isWebGlRenderer()) {
         onStaged?.();
         const rebuilt = await rebuildFromCountries((canonicalCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))), {
@@ -2204,7 +2236,6 @@ export function createGpuMapRenderer(deps) {
       geometryRevisionTracker.reset();
       countryPatchPresentation = null;
       stopPatchWorkerJobs('geometry-reset');
-      patchJobScheduler.cancelRebuild();
       countryOverrideIds.clear();
       deferredCountryPatchIds.clear();
       overrideFeatureSnapshots.clear();
@@ -2242,6 +2273,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function resetProjectRenderState({ generation = null, preserveBuiltinMesh = false } = {}) {
+      backgroundPresentedKey = ''; countriesPublishedGeneration = -1;
       previewSurfaceFeatures = null; previewDisplayCertificate = null; previewCertificateRevision = ''; previewLandPackets.clear();
       surfacePresentation = Object.freeze({ targetQuality: 'canonical', quality: 'pending' });
       desiredCountryMeshQuality = 'preview';
@@ -2267,7 +2299,9 @@ export function createGpuMapRenderer(deps) {
         : projectGeneration + 1;
       projectRenderBlocked = true;
       if (canvasWorker) {
-        canvasWorker.terminate(); canvasWorker = null; canvasWorkerNeedsRestart = true;
+        canvasWorker.resetGeneration(projectGeneration);
+        canvasSentGeometry.clear();
+        canvasLastCountryGeometrySignature = ''; canvasLastStyleSignature = ''; canvasLastPhysicalStyleSignature = '';
       }
       canvasDataReplacementResolver?.(); canvasDataReplacementResolver = null;
       void hydroPreparation.restart();
@@ -2301,7 +2335,7 @@ export function createGpuMapRenderer(deps) {
         meshQuality = previewAllowed ? 'preview' : 'canonical';
         canonicalMeshReady = false;
       }
-      terrainPreparation?.reset();
+      // Terrain belongs to its data/context identity, not the document generation.
       // Keep the previously committed pixels in place while a new project is
       // prepared.  They are replaced only by the prepared canonical frame.
       return projectGeneration;
@@ -2346,6 +2380,10 @@ export function createGpuMapRenderer(deps) {
       projectGeneration: taskProjectGeneration = projectGeneration,
     } = {}) {
       if (Number(taskProjectGeneration) !== projectGeneration) return Promise.resolve(false);
+      // This entry is reached after Core admission and scene invalidation.
+      // Let the new physical background render while its country mesh builds.
+      projectRenderBlocked = false;
+      invalidateGpuFrame('accepted-project-background');
       prepareCountrySharedBoundary({ features, replace: true });
       const task = geometryRevisionTracker.beginTask(geometryRevision);
       stopPatchWorkerJobs(reason);
@@ -3403,13 +3441,14 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawBaseSceneContent() {
-      if (!gl || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
+      if (!gl || !activeFrameContext || !preparedBaseScene) return false;
       if (!mesh && (!preparedBaseScene.physicalLandItems.length || preparedBaseScene.physicalLandItems.some(({ packet }) =>
         preparedBaseScene.deferredOverlayKeys.has(packet.key) || preparedBaseScene.failedOverlayKeys.has(packet.key)))) return false;
       const theme = mapTheme();
       const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         surfacePresentation,
-        terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
+        terrainVisible: state.physicalSettings.terrainVisible && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet))
+          && (countriesPublishedGeneration === projectGeneration || currentTerrainReadiness().terrainReady), terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.objects,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         mapOcean: { color: theme.ocean, fillAlpha: 1 },
@@ -3491,7 +3530,7 @@ export function createGpuMapRenderer(deps) {
 
     function renderWebGl(visualFrame, { interactionOnly = false } = {}) {
       if (!gl) return null;
-      if (projectRenderBlocked) return renderPreservedProjectFrame();
+      if (projectRenderBlocked && !renderScene) return renderPreservedProjectFrame();
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('GPU render requires a MapVisualFrame.');
       resize(visualFrame);
       activeFrameContext = visualFrame;
@@ -3644,7 +3683,9 @@ export function createGpuMapRenderer(deps) {
       displayedRenderRevision = currentRenderRevision;
       if (mesh && baseResult && !baseSubmissionFailed) markPreviewFramePresented();
       if (!webglContextLost && baseResult && !baseSubmissionFailed) recordMapPresentation(visualFrame,
-        baseResult.countryStrokeResult?.succeeded === true && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length);
+        (surfacePresentation.quality === 'pending' || baseResult.countryStrokeResult?.succeeded === true)
+          && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet))
+          && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length);
       frameTimes.push(performance.now() - started);
       if (!webglContextLost && !baseSubmissionFailed) commitGpuStrokeDomains(baseResult, visualFrame, presentedStrokeDomains, strokeRenderer);
       if (frameTimes.length > 240) frameTimes.shift();
@@ -3722,6 +3763,11 @@ export function createGpuMapRenderer(deps) {
     let canvasPreviewAtlas = null;
     let canvasPreviewLoad = null;
     let canvasPreviewError = '';
+    function canvasPreviewAdequate(frame) {
+      if (!canvasPreviewAtlas || !frame) return false;
+      const needed = 2 * Math.PI * frame.cssScale * Math.min(isMobile() ? 2 : 3, window.devicePixelRatio || 1) * 1.12;
+      return canvasPreviewAtlas.physical.width >= Math.min(needed, canvasPreviewAtlas.maxWidth);
+    }
     async function loadCanvasPreview() {
       if (canvasPreviewLoad) return canvasPreviewLoad;
       canvasPreviewLoad = (async () => {
@@ -3729,7 +3775,9 @@ export function createGpuMapRenderer(deps) {
         if (!response.ok) throw new Error(`지형 미리보기 HTTP ${response.status}`);
         const manifest = validateTerrainManifest(await response.json());
         if (manifest.representation !== TERRAIN_RASTER_FORMAT) throw new Error('지형 미리보기 형식이 올바르지 않습니다.');
-        for (const level of manifest.levels) {
+        const desired = 2 * Math.PI * (lastVisualFrame?.cssScale || 1) * Math.min(isMobile() ? 2 : 3, window.devicePixelRatio || 1) * 1.12;
+        const chosen = manifest.levels.find(level => level.width >= desired) || manifest.levels.at(-1);
+        for (const level of [chosen]) {
           const physical = document.createElement('canvas'), political = document.createElement('canvas');
           physical.width = political.width = level.width;
           physical.height = political.height = level.height;
@@ -3764,7 +3812,7 @@ export function createGpuMapRenderer(deps) {
             };
             draw(physical, rgb); draw(political, gray);
           }
-          canvasPreviewAtlas = { physical, political };
+          canvasPreviewAtlas = { physical, political, maxWidth: manifest.levels.at(-1).width };
           canvasTerrainStats = { terrainSource: 'dem-preview', terrainDatasetVersion: manifest.version,
             terrainRepresentation: TERRAIN_RASTER_FORMAT, terrainRenderedLevel: level.id,
             terrainCacheBytes: level.width * level.height * 8 };
@@ -3774,12 +3822,13 @@ export function createGpuMapRenderer(deps) {
         canvasPreviewError = String(error?.message || error);
         publishMapReadiness();
         reportOperationError(error, '지형 미리보기를 불러오지 못했습니다.', 'PL-TERRAIN-001', 0);
-      });
+      }).finally(() => { canvasPreviewLoad = null; });
       return canvasPreviewLoad;
     }
     function drawCanvasPreview(frame, style, canvasPath) {
       if (!state.physicalSettings.terrainVisible) return;
       if (!canvasPreviewAtlas) { void loadCanvasPreview(); return; }
+      if (!canvasPreviewAdequate(frame)) { void loadCanvasPreview(); return; }
       const image = canvasPreviewAtlas[style];
       const dpr = pixelWidth / cssWidth;
       ctx2d.save();
@@ -3970,6 +4019,7 @@ export function createGpuMapRenderer(deps) {
       return {
         type: 'style',
         surfacePresentation,
+        backgroundPending: countriesPublishedGeneration !== projectGeneration,
         styleRevision: ++canvasStyleRevision,
         visible: !!state.layerVisibility.objects,
         hiddenCountryIds: features.map(feature => String(feature.id)).filter(id => !isCountryVisibleById(id)),
@@ -4019,6 +4069,8 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(frame)) throw new TypeError('Canvas Worker view requires a MapVisualFrame.');
       const view = frame.viewState;
       return {
+        terrainAllowFallback: frame.cssScale <= MAP_SURFACE_LOW_SCALE,
+        backgroundPending: countriesPublishedGeneration !== projectGeneration,
         type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
         presentationKey: mapTargetKey(frame, { terrainTargetKey: '' }),
@@ -4064,6 +4116,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function postCanvasWorkerMessage(message) {
+      message = { ...message, projectGeneration };
       if (['init', 'replace-data', 'patch-countries'].includes(message.type) && message.features)
         message = { ...message, features: message.features.map(feature => ({ ...feature,
           boundaryGeometryRevision: geometryRevisionKey(feature.geometry) })) };
@@ -4167,6 +4220,7 @@ export function createGpuMapRenderer(deps) {
 
     function receiveCanvasWorkerMessage(event) {
       const message = event.data || {};
+      if (message.projectGeneration != null && Number(message.projectGeneration) !== projectGeneration) { message.bitmap?.close?.(); return; }
       if (message.type === 'ready') {
         postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroPreparation.editRevision, features: state.hydroEdits || [] });
         canvasLastStyleSignature = '';
@@ -4484,6 +4538,8 @@ export function createGpuMapRenderer(deps) {
 
     async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, countryPatchIds = [], onStaged = null, quality = 'canonical', builtinIdentity = null, projectGeneration: requestedGeneration = projectGeneration }) {
       if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
+      projectRenderBlocked = false;
+      invalidateGpuFrame('accepted-project-background');
       const startupPatch = normalizeCountryPatchRequest(countryPatchIds);
       let patchMesh = null;
       if (startupPatch.features.length && isWebGlRenderer()) {
@@ -4887,7 +4943,7 @@ export function createGpuMapRenderer(deps) {
         activeMeshQuality: surfacePresentation.quality,
         desiredCountryMeshQuality,
         countryFocusPending,
-        firstCanonicalFrameMs,
+        firstCanonicalFrameMs, firstBackgroundFrameMs, firstCountryPublishedMs, countriesPublishedGeneration, backgroundPresentedKey,
         canonicalFrameFallbackCount,
         projectGeneration,
         terrainRepresentation: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d'
@@ -4944,7 +5000,7 @@ export function createGpuMapRenderer(deps) {
         selectionOnlyBaseDrawCount: sceneCacheSelectionOnlyBaseDrawCount,
         sceneCacheFallbackFrame,
         canonicalFrameFallbackCount,
-        firstCanonicalFrameMs,
+        firstCanonicalFrameMs, firstBackgroundFrameMs, firstCountryPublishedMs, countriesPublishedGeneration, backgroundPresentedKey,
         polygonOverlay: polygonOverlayPass.stats(),
         stroke: strokeRenderer.stats(),
         selection: selectionPass?.stats?.() || null,
@@ -5114,7 +5170,9 @@ export function createGpuMapRenderer(deps) {
       getUploadByteBudget: () => renderQuality.uploadBudgetBytes,
       setUploadScheduler: scheduler => {
         uploadScheduler?.cancelAll();
+        terrainUploadScheduler?.cancelAll();
         uploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
+        terrainUploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
         strokeRenderer.setUploadScheduler(uploadScheduler);
         polygonOverlayPass.setUploadScheduler(uploadScheduler);
         if (gl) hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: uploadScheduler });

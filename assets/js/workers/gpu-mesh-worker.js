@@ -17,6 +17,7 @@ const meshCoreReady = import('../modules/temporal.js')
 meshCoreReady.catch(() => {}); // Each mesh operation awaits this prerequisite.
 const strokePreparation = import(`../modules/country-stroke-preparation.js?v=${encodeURIComponent(assetRevision)}`);
 const blockPreparation = import(`../modules/mesh-spatial-blocks.js?v=${encodeURIComponent(assetRevision)}`);
+const meshTransfer = import(`../modules/country-mesh-transfer.js?v=${encodeURIComponent(assetRevision)}`);
 const polygonPreparation = meshCoreReady.then(() => Promise.all([
   import(`../modules/prepared-polygon-mesh.js?v=${encodeURIComponent(assetRevision)}`),
   import(`../modules/stored-asset-loader.js?v=${encodeURIComponent(assetRevision)}`),
@@ -114,7 +115,8 @@ self.PandoLabWorkerRpc.install({
     },
     'geometry.mesh': async (payload, context) => {
       context.throwIfCancelled();
-      const mesh = await buildMesh(payload?.features || [], context);
+      const { unpackCountryMeshFeatures } = await meshTransfer;
+      const mesh = await buildMesh(unpackCountryMeshFeatures(payload), context);
       context.throwIfCancelled();
       return self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
     },

@@ -53,3 +53,21 @@ test('invalid block ranges fall back rather than submitting invalid indices', ()
   const m = prepareMeshSpatialBlocks(mesh()); m.spatialBlocks.triangle.ranges[1] = 100;
   assert.equal(visibleSpatialBlockRanges(m, { mode: 0 }), null);
 });
+
+test('large spatial partitions preserve every oriented primitive and use bounded median selection', () => {
+  const count=18000,positions=new Int32Array(count*6),indices=new Uint32Array(count*3);
+  for(let i=0;i<count;i++){
+    const x=((i*7919)%36000-18000)*10000,y=((i*6271)%16000-8000)*10000;
+    positions.set([x,y,x+1000,y,x,y+1000],i*6);indices.set([i*3,i*3+1,i*3+2],i*3);
+  }
+  const m={positions,triangleIndices:indices,lineIndices:new Uint32Array(),countryTriangleRanges:new Uint32Array([0,indices.length]),countryBoundaryRanges:new Uint32Array([0,0])};
+  const original=structuredClone(m);prepareMeshSpatialBlocks(m);
+  assert.deepEqual(m.positions,original.positions);
+  assert.deepEqual(m.countryTriangleRanges,original.countryTriangleRanges);
+  const seen=new Set();
+  for(let i=0;i<m.triangleIndices.length;i+=3){const id=m.triangleIndices[i]/3;assert.equal(Number.isInteger(id),true);assert.equal(seen.has(id),false);seen.add(id);assert.deepEqual([...m.triangleIndices.subarray(i,i+3)],[id*3,id*3+1,id*3+2]);}
+  assert.equal(seen.size,count);
+  assert.ok(m.spatialPreparation?.partitionComparisons>0);
+  assert.ok(m.spatialPreparation.partitionComparisons<count*30,'median selection must not fully sort every recursive partition');
+  const repeat=structuredClone(original);prepareMeshSpatialBlocks(repeat);assert.deepEqual(repeat.triangleIndices,m.triangleIndices);
+});

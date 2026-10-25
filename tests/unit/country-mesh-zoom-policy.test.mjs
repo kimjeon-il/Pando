@@ -3,6 +3,13 @@ import test from 'node:test';
 import { resolveCountryMeshQuality } from '../../assets/js/modules/country-mesh-zoom-policy.js';
 import * as surfacePolicy from '../../assets/js/modules/country-mesh-zoom-policy.js';
 
+test('prepared country geometry stays hidden until its background frame is presented', () => {
+  const prepared = { cssScale: 700, canonicalReady: true, backgroundPresented: false };
+  assert.equal(surfacePolicy.resolveMapSurfacePresentation(prepared).quality, 'pending');
+  assert.equal(surfacePolicy.resolveMapSurfacePresentation(prepared).geometryQuality, 'canonical');
+  assert.equal(surfacePolicy.resolveMapSurfacePresentation({ ...prepared, backgroundPresented: true }).quality, 'canonical');
+});
+
 test('CSS scale uses inclusive thresholds, keeps history in the band and starts precise', () => {
   for (const previous of ['preview', 'canonical']) {
     assert.equal(resolveCountryMeshQuality({ cssScale: 504, previous }), 'preview');
@@ -32,25 +39,25 @@ test('invalid scale cannot silently choose simplified geometry', () => {
 test('one surface decision withholds both country and land preview at high scale while precise data is pending', () => {
   assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 700,
     canonicalReady: false, previewReady: true, previewVerified: true }),
-  { targetQuality: 'canonical', quality: 'pending' });
+  { targetQuality: 'canonical', geometryQuality: 'pending', quality: 'pending' });
 });
 
 test('a verified low-scale surface can return to simplified display after precise preparation', () => {
   assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 400,
     canonicalReady: true, previewReady: true, previewVerified: true }),
-  { targetQuality: 'preview', quality: 'preview' });
+  { targetQuality: 'preview', geometryQuality: 'preview', quality: 'preview' });
   assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 400,
     canonicalReady: true, previewReady: true, previewVerified: false }),
-  { targetQuality: 'preview', quality: 'canonical' });
+  { targetQuality: 'preview', geometryQuality: 'canonical', quality: 'canonical' });
 });
 
 test('selection and missing or invalid derivatives cannot silently admit a simplified surface', () => {
   for (const flags of [{ selected: true }, { editing: true }, { focus: true }]) {
     assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 100,
       canonicalReady: false, previewReady: true, previewVerified: true, ...flags }),
-    { targetQuality: 'canonical', quality: 'pending' });
+    { targetQuality: 'canonical', geometryQuality: 'pending', quality: 'pending' });
   }
   assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 100,
     canonicalReady: false, previewReady: true, previewVerified: false }),
-  { targetQuality: 'preview', quality: 'pending' });
+  { targetQuality: 'preview', geometryQuality: 'pending', quality: 'pending' });
 });

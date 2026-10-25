@@ -301,9 +301,9 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   inputPresentation.bindSvg(d3.select(element));
   mapHost.startMapResizeObserver();
   return Object.freeze({
-    async setSession(next,{view=null}={}){
+    async setSession(next,{view=null,prepareView=null}={}){
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
-      session=next;rootGeometryDirty=true;projectSession.setViewingPresentation(view||{},{reset:true});await update();
+      session=next;rootGeometryDirty=true;projectSession.setViewingPresentation(view||{},{reset:true});if(prepareView)await prepareView();await update();
     },
     cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),

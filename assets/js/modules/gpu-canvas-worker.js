@@ -57,6 +57,12 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     get onerror() { return onerror; }, set onerror(handler) { onerror = handler; },
     get ready() { return ready; }, get busy() { return inFlightRenderRequestId !== null; }, get hasPendingFrame() { return !!pendingFrame; },
     postMessage,
+    resetGeneration(next) {
+      generation = Number(next);
+      pendingFrame = null; inFlightRenderRequestId = null;
+      requestedRevision = 0; displayedRevision = 0;
+      for (const id of picks.keys()) settlePick(id, null);
+    },
     queueFrame(message) {
       if (!live || Number(message.projectGeneration) !== generation) return;
       requestedRevision = Math.max(requestedRevision, Number(message.revision || 0));

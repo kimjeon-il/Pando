@@ -1,5 +1,23 @@
 // Worker-side index reordering only: vertex values and primitive winding stay exact.
 export function prepareMeshSpatialBlocks(mesh) {
+  const started=performance.now();
+  let partitionComparisons=0;
+  function selectMedian(order, middle, compare) {
+    let left=0,right=order.length-1;
+    while(left<right){
+      const center=(left+right)>>>1;
+      let a=order[left],b=order[center];const c=order[right];
+      if(compare(a,b)>0)[a,b]=[b,a];
+      if(compare(b,c)>0)b=compare(a,c)>0?a:c;
+      const pivot=b;let low=left,high=right;
+      while(low<=high){
+        while(compare(order[low],pivot)<0)low++;
+        while(compare(order[high],pivot)>0)high--;
+        if(low<=high){const value=order[low];order[low++]=order[high];order[high--]=value;}
+      }
+      if(middle<=high)right=high;else if(middle>=low)left=low;else break;
+    }
+  }
   const vectors = new Float64Array(mesh.positions.length / 2 * 3);
   for (let i = 0; i < mesh.positions.length / 2; i++) {
     const lon = mesh.positions[i * 2] * Math.PI / 180e6, lat = mesh.positions[i * 2 + 1] * Math.PI / 180e6;
@@ -20,8 +38,8 @@ export function prepareMeshSpatialBlocks(mesh) {
       const node = { first, count: order.length * stride, left: -1, right: -1, box, geo }; nodes.push(node);
       if (order.length > limit) {
         let axis = 0; for (let a = 1; a < 3; a++) if (box[a + 3] - box[a] > box[axis + 3] - box[axis]) axis = a;
-        order.sort((a, b) => centroids[a * 3 + axis] - centroids[b * 3 + axis] || a - b);
         const middle = Math.floor(order.length / 2);
+        selectMedian(order,middle,(a,b)=>{partitionComparisons++;return centroids[a*3+axis]-centroids[b*3+axis]||a-b;});
         node.left = partition(order.subarray(0, middle), first); node.right = partition(order.subarray(middle), first + middle * stride);
       } else {
         let target = first;
@@ -40,6 +58,7 @@ export function prepareMeshSpatialBlocks(mesh) {
   const boundaries = build(mesh.lineIndices, mesh.countryBoundaryRanges, 2, 4096);
   mesh.triangleIndices = triangles.indices; mesh.lineIndices = boundaries.indices;
   mesh.spatialBlocks = { version: 1, triangle: triangles.tree, boundary: boundaries.tree };
+  mesh.spatialPreparation={partitionComparisons,milliseconds:performance.now()-started};
   return mesh;
 }
 
