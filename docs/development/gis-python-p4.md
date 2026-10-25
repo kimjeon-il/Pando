@@ -50,6 +50,14 @@ python scripts/gis/run-source.py --help
 - 독일제국·북슐레스비히 원본 수집 및 WMS 오버레이 연구 도구는 역사 지도 이미지의 영구 보존·최종 반영 여부가 확정되지 않아 유지한다. OSM 수계 독립 출처 대체 도구도 진행 중인 작업에 필요하므로 유지한다.
 - 기존 실행기가 사용하는 소스 추출 헬퍼와 독립적인 동독·보르네오·LSIB·수계 Python 검사는 보존했다.
 
+## 2026-10-25 Node.js 오프라인 도구 이전 1단계
+
+- `tools/download-terrain-source.py`를 `tools/download-terrain-source.mjs`로 교체했다. HTTP 206·Content-Range·원본 변경 검사를 유지하며 실패 시 기존 부분 다운로드 파일을 보존한다.
+- `tools/build-hydro-packfile.py`를 `tools/build-hydro-packfile.mjs`로 교체했다. 원본 압축 조각의 해시·길이·offset 동등성을 검증한다. 과거 데이터 재생성 Actions는 변경된 현재 수계 명칭을 덮어쓰지 않고 임시 공간에 재현한다.
+- `tools/place-batch-pipeline.py`의 audit/plan/finalize를 `tools/place-batch-pipeline.mjs`로 전환했다. 출처 해시, 조사 여부, 중복 ID, 날짜·명칭, 신규 파일 생성 제한을 Node 회귀 검사로 유지한다.
+- 기존 Python 전용 테스트 `tests/python/test_library_writers.py`, `tests/test_place_batch_pipeline.py`는 Node 테스트로 대체했다. `library_data.py`와 `report_paths.py`는 다른 Python 생성기와의 호환을 위해 유지한다.
+- 대규모 GeoNames 원본 후보 도구 `build-place-candidates.py`는 후보 편입·검토 정책 23개 테스트가 별도로 있어 무검증 삭제하지 않는다. 남은 GIS/DEM/AI 학습 코드도 이번 Node 전환에서 제외한다.
+
 ## 남겨둔 테스트와 안전 규칙
 
 - `package.json`의 과거 `test:python`/새 `test:gis-python`은 **수동 실행 전용**. 기본 `pnpm test`에서 삭제했다. `check:versioning`의 프로젝트 스키마 점검은 동일 역할의 Node 단위검사 `tests/unit/versioning-source-schema.test.mjs`로 옮겼다.

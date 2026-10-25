@@ -83,11 +83,11 @@ def fetch_source(name, cache):
                     last_modified = response.headers.get("Last-Modified")
                     etag = response.headers.get("ETag")
                     resolved_url = response.url
-                # The downloader preallocates its target. Never resume a failed
-                # preallocated file on length alone: use a fresh temporary target.
+                # The Node downloader validates Content-Range and writes transactionally.
+                # Each fetch uses a fresh staging destination for independent ZIP/CRC review.
                 with tempfile.NamedTemporaryFile(dir=cache, suffix=".zip.part", delete=False) as fresh:
                     partial = Path(fresh.name)
-                subprocess.run([sys.executable, str(ROOT / "tools" / "download-terrain-source.py"),
+                subprocess.run(["node", str(ROOT / "tools" / "download-terrain-source.mjs"),
                                 "--url", url, "--output", str(partial), "--workers", "6", "--chunk-mib", "8"],
                                check=True, timeout=900)
                 with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=30) as response:

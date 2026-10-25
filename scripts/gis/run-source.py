@@ -19,7 +19,7 @@ TASK_SOURCES = {
     "terrain-dem": "tools/build-terrain-dem.py",
     "terrain-preview": "tools/build-terrain-preview.py",
     "hydro-tiles": "tools/build-hydro-tiles.py",
-    "hydro-packfile": "tools/build-hydro-packfile.py",
+    "hydro-packfile": "tools/build-hydro-packfile.mjs",
     "hydro-connectivity": "tools/repair-hydro-connectivity.py",
     "physical-data": "tools/build-physical-data.py",
     "place-candidates": "tools/build-place-candidates.py",
@@ -34,7 +34,8 @@ def build_command(task: str, args: list[str]) -> list[str]:
         raise ValueError("GIS source path escaped repository")
     if args and args[0] == "--":
         args = args[1:]
-    return [sys.executable, str(source), *args]
+    command = ["node"] if source.suffix == ".mjs" else [sys.executable]
+    return [*command, str(source), *args]
 
 
 def main(argv: list[str] | None = None) -> int:

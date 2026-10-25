@@ -5,37 +5,37 @@
 ## 역할 구분
 
 - `tools/build-place-candidates.py`: 공식 GeoNames 스냅샷으로 현대 정착지 후보 추출과 ID별 유지/보류/제외 검토. 이 도구의 `candidate()` 포함 정책을 변경하지 않는다.
-- `tools/place-batch-pipeline.py`: 검토된 후보 풀에서 *미등록 ID* 선별, 출처 해시 대조, 조사 대기열 출력, 역사 명칭이 조사 완료된 JSON의 기계적 검증 및 **새** 차수 파일 생성.
+- `tools/place-batch-pipeline.mjs`: 검토된 후보 풀에서 *미등록 ID* 선별, 출처 해시 대조, 조사 대기열 출력, 역사 명칭이 조사 완료된 JSON의 기계적 검증 및 **새** 차수 파일 생성.
 - 연구자/검수자: A(단순)·B(공통 규칙)·C(복잡) 구분과 실제 명칭·날짜·공용어·근거 검증. 이 판단은 GeoNames의 국가·인구·코드만으로 자동화하지 않는다.
 
 ## 작업 명령
 
-저장소 루트에서 실행한다. Python 3.11+ 표준 라이브러리만 사용한다.
+저장소 루트에서 실행한다. 배치 계획·검증은 프로젝트에서 고정한 Node.js 24를 사용한다. 공식 GeoNames 후보 생성기 `build-place-candidates.py`는 아직 Python을 사용한다.
 
 ```sh
 # 1. 기존 배치의 등록 수·연혁 수·ID 중복 점검
-python -X utf8 tools/place-batch-pipeline.py audit
+node tools/place-batch-pipeline.mjs audit
 
 # 2. 기존 확인·보류 판정까지 반영된 공식 후보 풀을 생성 (검증된 .cache 원본 필요)
 python -X utf8 tools/build-place-candidates.py review
 
 # 3. 16차의 조사 대상 최대 25개를 중복 없이 선별 (전 세계 / 현대 인구 기반 발견 순서)
-python -X utf8 tools/place-batch-pipeline.py plan --batch 16 --limit 25 \
+node tools/place-batch-pipeline.mjs plan --batch 16 --limit 25 \
   --output reports/places/batch16-research-queue.json
 
 # 특정 현재 국가 코드에 한정하려면 --countries TR,IR,SA 등의 옵션을 추가한다.
 # 4. 역사 자료를 조사하여 검증된 v6 records[] JSON을 별도 준비한 뒤 검사한다.
-python -X utf8 tools/place-batch-pipeline.py finalize \
+node tools/place-batch-pipeline.mjs finalize \
   --input reports/places/.cache/batch16-reviewed.json \
   --output reports/places/tier1-major-cities-batch16-reviewed.json --check
 
 # 5. 모든 쟁점을 확인한 뒤 --check를 빼고 새 차수 JSON을 생성한다.
-python -X utf8 tools/place-batch-pipeline.py finalize \
+node tools/place-batch-pipeline.mjs finalize \
   --input reports/places/.cache/batch16-reviewed.json \
   --output reports/places/tier1-major-cities-batch16-reviewed.json
 
 # 6. 독립 단위 검사
-python -X utf8 -m unittest discover -s tests -p test_place_batch_pipeline.py -v
+node --test tests/unit/place-batch-pipeline.test.mjs
 ```
 
 `plan`은 출력 경로를 생략하면 결과 JSON을 터미널에 출력한다. 정상 상태에서 `.cache/refined-candidates.ndjson`이 없으면 `review`를 먼저 실행해야 한다. `.cache`의 검증된 ZIP 소스 자체가 없는 환경에서는 기존 `fetch`→`build`→`review` 순서를 적용하되, 원본 스냅샷이 바뀌면 기존 판정 근거·해시를 먼저 재검토한다. 임의의 후보 파일을 시험할 때만 `--candidates ... --skip-source-hash-check`를 사용한다.
