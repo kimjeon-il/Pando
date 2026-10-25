@@ -43,7 +43,7 @@ test('an environment-selected fixture cannot start ordinary development or a pac
   const root = await mkdtemp(join(tmpdir(), 'pandolab-profile-cli-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const target = join(root, 'unused-target');
-  for (const [script, args, verification] of [['dev.mjs', [], '1'], ['packaged-artifacts.mjs', ['--build'], '0']]) {
+  for (const [script, args, verification] of [['dev.mjs', [], '1'], ['packaged-artifacts.mjs', ['--fetch','--platform=windows','--mode=offline'], '0']]) {
     const result = spawnSync(process.execPath, [fileURLToPath(new URL('../' + script, import.meta.url)), ...args], {
       encoding: 'utf8', timeout: 15000,
       env: { ...process.env, PANDOLAB_SHELL_PROFILE: 'test-fixture', PANDOLAB_SHELL_VERIFICATION: verification, CARGO_TARGET_DIR: target },
