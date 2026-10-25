@@ -73,7 +73,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
   validateShellProfile(profile, verification);
   root = resolve(root);
   const storage = assets ? null : storageSettings(root);
-  const snapshot = await buildFrontendSnapshot({root,workerSourceTransform:(_path,source)=>guardWorkerSource(source,{allowBundledData:profile==='map-data'})});
+  const snapshot = await buildFrontendSnapshot({root,resourceProfile:profile,workerSourceTransform:(_path,source)=>guardWorkerSource(source,{allowBundledData:profile==='map-data'})});
   const buildMeta = snapshot.buildMeta;
   if (directory) {
     await mkdir(directory, { recursive: true });
@@ -117,7 +117,6 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     if(path==='index.html'||path==='.nojekyll'||path.startsWith('shell/')||path.startsWith('assets/wasm/')||entry.product==='viewer')continue;
     if(profile==='test-fixture'&&path.startsWith('assets/data/'))continue;
     let bytes=entry.bytes;
-    if(path==='assets/js/build-meta.js')bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.PANDOLAB_BUILD_META = Object.freeze({ ...globalThis.PANDOLAB_BUILD_META, resourceProfile: '+JSON.stringify(profile)+' });\n')]);
     await emit(path,bytes,entry.sourcePath);
   }
   if(buildMeta.physicalLand){

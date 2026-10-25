@@ -51,8 +51,8 @@ test('preview refuses an untracked or missing required WASM pair',async t=>{
 });
 test('preview never writes over the repository checkout',async t=>{
   const x=await fixture(t);
-  assert.throws(()=>stagePreview({root:x.root,output:join(x.root,'public'),
-    branch:'work/objects'}),/P3_PREVIEW_OUTPUT_INSIDE_SOURCE/);
+  await assert.rejects(stagePreview({root:x.root,output:join(x.root,'public'),
+    branch:'work/objects'}),/outside the source repository/);
 });
 
 test('P3 startup telemetry preserves late interactive, editable and ready milestones', () => {
