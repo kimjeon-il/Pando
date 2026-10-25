@@ -181,6 +181,7 @@ export function runningStorageConsumers(){
   return json?[JSON.parse(json)].flat():[];
 }
 export function permanentWorktrees(root=repository){return execFileSync('git',['-C',root,'worktree','list','--porcelain'],{encoding:'utf8',windowsHide:true}).split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>resolve(line.slice(9)));}
+export function protectedWorktreeFiles(roots){return roots.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(Boolean).map(path=>resolve(app,path)));}
 function stageBusy(root,processes,settings=storageSettings(root)){
   if(existsSync(join(editorStageRoot(root,settings),'.stage-lock')))return 'Active App stage writer lock';
   if(processes.length)return `Active build/App/development consumer: ${processes.map(p=>p.ProcessId+':'+p.Name).join(', ')}`;
@@ -501,8 +502,8 @@ async function main(){
     if(compilerScopes.length&&settings?.compilerEnabled!==false)throw Error('Disable local compilers after actual runtime acceptance before retiring SDKs');
     const roots=[...new Set([...worktrees,...compilerScopes.map(s=>s.root)])];
     if(!settings)throw Error('Worktree storage activation required');
-    const protectedPaths=worktrees.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(p=>p&&/^(build-native\/|\.superpowers\/|test-results\/|apps\/editor\/src-tauri\/(target|gen\/android))/.test(p)).map(p=>resolve(app,p)));
-    const relocationRoots=[resolve(librarySharedCheckout(root),'private-evidence/worktree-storage/generated-cleanup-20261025'),resolve('D:/build/toolchains')];
+    const protectedPaths=protectedWorktreeFiles(worktrees);
+    const relocationRoots=[resolve(librarySharedCheckout(root),'private-evidence/worktree-storage/generated-cleanup-20261025'),resolve(librarySharedCheckout(root),'private-evidence/worktree-storage/workspace-layout-20261025'),resolve('D:/build/toolchains')];
     const proof=args.find(x=>x.startsWith('--verified-compiler-preview='))?.slice('--verified-compiler-preview='.length);
     const options={roots,compilerScopes,consumers:runningStorageConsumers(),refreshConsumers:runningStorageConsumers,protectedPaths,relocationRoots,verifiedPreview:proof?JSON.parse(readFileSync(proof,'utf8')):null,progress:message=>console.error('Generated cleanup: '+message)};
     const operation=()=>input.schema?applyGeneratedCleanup({...options,manifest:input,journal:resolve(settings.cacheRoot,'generated-retirement.pending.json')}):previewGeneratedCleanup({...options,requests:input.requests});
