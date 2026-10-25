@@ -7,6 +7,8 @@ on:
       - tools/inventory-osm-hydronyms.mjs
       - tests/unit/osm-hydro-inventory.test.mjs
       - tools/gis/compare_osm_hydro_natural_earth.py
+      - tools/gis/compare-osm-hydro-natural-earth.mjs
+      - tests/unit/hydro-ne-sampling.test.mjs
       - tools/gis/verify_victorian_yarra_source.py
       - tools/gis/check-official-usgs-hydro-gauges.mjs
       - tests/unit/hydro-usgs-official-gauges.test.mjs
@@ -69,6 +71,39 @@ jobs:
             --expected-sha256 "$(python -c "import json; m=json.load(open('assets/data/hydro/v0.13.2/manifest.json')); print(next(x['sha256'] for x in m['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson'))")" \
             --inventory /tmp/osm-hydro-inventory.json \
             --output /tmp/osm-ne-crosscheck.json
+      - name: Compare current Node Natural Earth name screen with Python source oracle (73 systems)
+        run: |
+          node tools/gis/compare-osm-hydro-natural-earth.mjs \
+            --decoded /tmp/hydro-decoded.json \
+            --natural-earth /tmp/ne-rivers-base.geojson \
+            --expected-sha256 "$(node -e "let m=require('./assets/data/hydro/v0.13.2/manifest.json');process.stdout.write(m.sources.naturalEarthNameReference.find(x=>x.file==='rivers_base.geojson').sha256)")" \
+            --inventory /tmp/osm-hydro-inventory.json \
+            --output /tmp/osm-ne-crosscheck-node.json
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          const python=JSON.parse(fs.readFileSync('/tmp/osm-ne-crosscheck.json','utf8'));
+          const node=JSON.parse(fs.readFileSync('/tmp/osm-ne-crosscheck-node.json','utf8'));
+          if(python.items.length!==node.items.length || python.naturalEarthNamedParts!==node.naturalEarthNamedParts)
+            throw Error('NE source counts differ');
+          const diffs=[];
+          for(let i=0;i<python.items.length;i++){
+            const a=python.items[i],b=node.items[i];
+            if(a.systemId!==b.systemId||a.mainstemFragments!==b.mainstemFragments||
+              JSON.stringify(a.mainstemBounds)!==JSON.stringify(b.mainstemBounds))
+              throw Error('Hydro geometry mismatch for '+a.systemId);
+            if(a.naturalEarthCandidates.length!==b.naturalEarthCandidates.length){
+              diffs.push({systemId:a.systemId,reason:'candidate count'});continue;
+            }
+            for(let k=0;k<a.naturalEarthCandidates.length;k++){
+              const x=a.naturalEarthCandidates[k],y=b.naturalEarthCandidates[k];
+              if(x.name!==y.name||x.nameKo!==y.nameKo || x.supportingSamples!==y.supportingSamples
+                  ||Math.abs(x.meanDistanceDegrees-y.meanDistanceDegrees)>0.00002)
+                diffs.push({systemId:a.systemId,candidate:k,original:x,node:y});
+            }
+          }
+          if(diffs.length)throw Error('Python/Node NE source sampling mismatch: '+JSON.stringify(diffs.slice(0,4)));
+          console.log('Python/Node pinned NE comparison matched for '+python.items.length+' Hydro systems');
+          JS
       - name: Independently check suspect Texas streams against USGS field stations
         run: |
           node tools/gis/check-official-usgs-hydro-gauges.mjs \
