@@ -5,6 +5,9 @@ import json
 import pathlib
 import tempfile
 import unittest
+import sys
+import urllib.request
+from types import SimpleNamespace
 from unittest.mock import patch
 
 path = pathlib.Path(__file__).resolve().parents[2] / "tools/reference-analysis/acquire-sources.py"
@@ -17,6 +20,25 @@ image_spec.loader.exec_module(inputs)
 
 
 class SourceAcquisitionTests(unittest.TestCase):
+    def test_default_acquisition_blocks_unencrypted_redirect_before_following_it(self):
+        module = sys.modules['map_source']
+        handler_type = getattr(module, 'HttpsMapRedirect', None)
+        self.assertIsNotNone(handler_type)
+        body = b'\x89PNG\r\n\x1a\nmap'
+        source = {'id': 'redirect', 'url': 'https://provider.example/map.png', 'format': 'png',
+                  'rightsReviewed': True, 'license': 'public-domain', 'maximumBytes': 100}
+        def build(handler):
+            self.assertIsInstance(handler, handler_type)
+            request = urllib.request.Request(source['url'])
+            with self.assertRaisesRegex(ValueError, 'HTTPS'):
+                handler.redirect_request(request, None, 302, 'redirect', {}, 'http://other.example/map.png')
+            redirect = handler.redirect_request(request, None, 302, 'redirect', {}, 'https://other.example/map.png')
+            self.assertEqual(redirect.full_url, 'https://other.example/map.png')
+            return SimpleNamespace(open=lambda *_args, **_kwargs: io.BytesIO(body))
+        with tempfile.TemporaryDirectory() as directory, patch('map_source.urllib.request.build_opener', side_effect=build) as builder:
+            self.assertEqual(sources.acquire(source, directory)['status'], 'acquired-unlabelled')
+            builder.assert_called_once()
+
     def test_publisher_pdf_is_preserved_as_pdf_and_checked_by_its_own_signature(self):
         body = b'%PDF-1.7\nsource publisher content\n%%EOF'
         source = {'id': 'usgs-sheet', 'format': 'pdf', 'rightsReviewed': True, 'license': 'public-domain',

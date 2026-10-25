@@ -3,7 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { chmodSync, closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, renameSync, rmdirSync, statfsSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gzipSync } from 'node:zlib';
+import { gunzipSync, gzipSync } from 'node:zlib';
 import { decodeLibraryArchiveBytes } from './library-archive.mjs';
 import { REPORT_SUBJECTS, organizedReportPath, reportDocumentDetails, reportSubjectReadmes, rewriteReportArtifact } from './library-report-layout.mjs';
 import { atomicStorageJSON, containedPath, contentFiles, contentHash, contentPath, linkContent, makePrivate, publishContent, recoverContentPermissions, removeContentLink, replaceLibraryFile, shareContentFile } from './library-content.mjs';
