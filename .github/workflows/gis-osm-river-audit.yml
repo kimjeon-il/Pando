@@ -90,7 +90,7 @@ jobs:
             const a=python.items[i],b=node.items[i];
             if(a.systemId!==b.systemId||a.mainstemFragments!==b.mainstemFragments||
               JSON.stringify(a.mainstemBounds)!==JSON.stringify(b.mainstemBounds))
-              throw Error('Hydro geometry mismatch for '+a.systemId);
+              throw Error('Hydro geometry mismatch for '+a.systemId+JSON.stringify({python:{mainstemFragments:a.mainstemFragments,mainstemBounds:a.mainstemBounds},node:{mainstemFragments:b.mainstemFragments,mainstemBounds:b.mainstemBounds}}));
             if(a.naturalEarthCandidates.length!==b.naturalEarthCandidates.length){
               diffs.push({systemId:a.systemId,reason:'candidate count'});continue;
             }
