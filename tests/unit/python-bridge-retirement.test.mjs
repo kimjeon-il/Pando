@@ -23,8 +23,8 @@ test('Python files only decrease within the reviewed original and integration in
   const additions = [...integration.matchAll(/^- `([^`]+\.py)`$/gm)].map(match => match[1]);
   assert.deepEqual(additions, ['plugins/pando-map-tools/lib/map_source.py'], 'integration additions require an explicit reviewed inventory');
   const originalRemaining = remaining.filter(path => original.includes(path));
-  assert.ok(originalRemaining.length <= 82, `Original Python file count exceeded C2 baseline: ${originalRemaining.length}`);
-  assert.ok(remaining.length <= 82 + additions.length, `Python file count exceeded reviewed inventories: ${remaining.length}`);
+  assert.ok(originalRemaining.length <= 81, `Original Python file count exceeded C2 baseline: ${originalRemaining.length}`);
+  assert.ok(remaining.length <= 81 + additions.length, `Python file count exceeded reviewed inventories: ${remaining.length}`);
   for (const path of remaining) assert.ok(original.includes(path) || additions.includes(path), `Unreviewed Python file: ${path}`);
 });
 
