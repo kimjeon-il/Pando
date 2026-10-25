@@ -16,7 +16,7 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function selectFrontendProduct(snapshot,product,{readRuntimeAsset}={}){
  if(product!=='viewer')throw Error('Unknown distributable frontend product');
  const assets=new Map();
- for(const path of snapshot.viewerPaths){
+ for(const path of [...snapshot.viewerPaths].sort()){
   const entry=snapshot.assets.get(path);
   if(entry){if(entry.product==='editor')throw Error('Editor source entered the viewer output');assets.set(path,entry);}
   else{if(!path.startsWith('assets/data/'))throw Error('Unowned runtime resource');assets.set(path,{publicPath:path,sourcePath:path,product:'shared',bytes:readRuntimeAsset(path)});}
@@ -82,8 +82,9 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const workerAssets={};
  for(const entry of [...assets.keys()].filter(p=>/^assets\/js\/workers\/.*-worker\.js$/.test(p)).sort()){
   const built=await buildWorkerAsset({root,entry,readSource:read});
-  workerAssets[entry]={url:built.url,files:[...built.files.keys()].sort(),sha256:Object.fromEntries([...built.files].map(([p,bytes])=>[p,hash(bytes)]))};
-  const product=index.get(entry).product;for(const [path,bytes]of built.files)generated(path,bytes,product);
+  const files=[...built.files].sort(([a],[b])=>a<b?-1:a>b?1:0);
+  workerAssets[entry]={url:built.url,files:files.map(([path])=>path),sha256:Object.fromEntries(files.map(([p,bytes])=>[p,hash(bytes)]))};
+  const product=index.get(entry).product;for(const [path,bytes]of files)generated(path,bytes,product);
  }
  const metadata=Object.fromEntries(metadataPaths.map(path=>[path,JSON.parse(readPinnedData(path))]));
  const land=metadata[metadataPaths[2]],terrain=metadata[metadataPaths[1]];
