@@ -8,6 +8,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSy
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
 import { libraryConfig, libraryCheckout, decodeArchiveEntry, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData, withLibraryOutputs } from '../../tools/library-data.mjs';
+import {reportPath} from '../../tools/report-paths.mjs';
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
@@ -37,21 +38,25 @@ export function safePath(root,p) {
   }
   return target;
 }
-function files(root,p) {
-  const path=safePath(root,p);
+function inputPath(root,p) {
+  return p.startsWith('reports/')&&existsSync(resolve(root,'config/library-data.json'))
+    ?reportPath(p.replace(/\/$/,''),{root,access:'read'}):safePath(root,p);
+}
+function files(root,p,path=safePath(root,p)) {
   if(!existsSync(path))return [];
   if(!statSync(path).isDirectory())return [p];
-  return readdirSync(path).filter(name=>p!=='reports'||!name.startsWith('.')).sort().flatMap(name=>files(root,p.replace(/\/$/,'')+'/'+name));
+  return readdirSync(path).filter(name=>p!=='reports'||!name.startsWith('.')).sort().flatMap(name=>files(root,p.replace(/\/$/,'')+'/'+name,resolve(path,name)));
 }
-function expand(root,selectors) {
+function expand(root,selectors,{source=false}={}) {
+  const selectedFiles=p=>files(root,p,source?inputPath(root,p):safePath(root,p));
   return [...new Set(selectors.flatMap(value=>{
-    if(typeof value==='string')return value.endsWith('/')?files(root,value):[value];
-    return files(root,value.prefix).filter(p=>new RegExp(value.pattern).test(p));
+    if(typeof value==='string')return value.endsWith('/')?selectedFiles(value):[value];
+    return selectedFiles(value.prefix).filter(p=>new RegExp(value.pattern).test(p));
   }))].sort();
 }
 function hashes(root,paths,{source=false}={}) {
   return Object.fromEntries(paths.map(p=>{
-    const path=safePath(root,p);
+    const path=source?inputPath(root,p):safePath(root,p);
     if(!existsSync(path))return [p,null];
     let bytes=readFileSync(path);
     if(source&&/\.(?:[cm]?js|json|geojson|txt|py|ya?ml|cmake)$/.test(p))bytes=Buffer.from(bytes.toString('utf8').replaceAll('\r\n','\n'));
@@ -143,7 +148,7 @@ export function graphStatus(root,{wasm=null,requested=[],force=false}={}) {
   const statuses={},byId=new Map(graph.map(f=>[f.id,f]));
   requested.forEach(id=>assert.ok(byId.has(id),'P2_INVALID_FAMILY: '+id));
   for(const f of graph) {
-    const inputs=hashes(root,expand(root,f.inputs),{source:true});
+    const inputs=hashes(root,expand(root,f.inputs,{source:true}),{source:true});
     const generatorHashes=hashes(root,f.sources,{source:true});
     const tools=Object.fromEntries((f.tools||[]).map(k=>[k,pins[k]??null]));
     const dependencies=Object.fromEntries(f.dependencies.map(id=>[id,id==='wasm'
