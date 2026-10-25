@@ -106,34 +106,3 @@ test('real GIS GeoJSON export and reimport preserve original provenance and deta
   expect(result.id).not.toBe(result.oldId);
   expect(result.properties).toEqual(result.expected);
 });
-
-test('failed reference-image initial read blocks additions and retry reads safely without startup writes', async ({ page }) => {
-  await page.addInitScript(() => {
-    window.referenceWrites = 0;
-    const put = window.IDBObjectStore.prototype.put;
-    window.IDBObjectStore.prototype.put = function (...args) {
-      if (this.transaction.db.name === 'pandolab-reference-images') window.referenceWrites++;
-      return put.apply(this, args);
-    };
-    const open = indexedDB.open.bind(indexedDB);
-    let failed = false;
-    indexedDB.open = (name, ...args) => {
-      if (name === 'pandolab-reference-images' && !failed) {
-        failed = true;
-        const request = { error: new Error('reference read denied') };
-        setTimeout(() => request.onerror(), 0);
-        return request;
-      }
-      return open(name, ...args);
-    };
-  });
-  await gotoEditor(page, '/?renderer=canvas');
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.locator('#referenceImageBtn').click();
-  await expect(page.locator('[data-ref-storage-message]')).toContainText('원본을 보존');
-  await expect(page.locator('[data-ref-action="add"]')).toBeDisabled();
-  expect(await page.evaluate(() => window.referenceWrites)).toBe(0);
-  await page.locator('[data-ref-action="retry-storage"]').click();
-  await expect(page.locator('[data-ref-action="add"]')).toBeEnabled();
-  expect(await page.evaluate(() => window.referenceWrites)).toBe(0);
-});

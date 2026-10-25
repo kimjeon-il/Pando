@@ -214,7 +214,7 @@ jobs:
         run: |
           if [ "$RETRY_FAILED" = true ]; then
             node --test --test-name-pattern='wide source' tests/unit/map-edit-preparation-worker.test.mjs
-            node --test tests/unit/p6-polygon-core.test.mjs tests/unit/reference-shared-runtime.test.mjs tests/unit/river-territory-partition.test.mjs
+            node --test tests/unit/p6-polygon-core.test.mjs tests/unit/map-analysis-core.test.mjs tests/unit/river-territory-partition.test.mjs
           else
             node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
           fi
@@ -248,7 +248,7 @@ jobs:
             tests/browser/performance-observability.spec.mjs \
             --workers=1 --retries=0 --max-failures=1 --output=test-results/p3-browser \
             2>&1 | tee test-results/p3-browser.log
-      - name: Verify affected Web editing, persistence and reference workflows
+      - name: Verify affected Web editing, persistence and plugin import workflows
         if: inputs.browser_flows != false && (inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed))
         shell: bash
         env:
@@ -260,9 +260,9 @@ jobs:
           mkdir -p test-results/p9-browser
           reuse=()
           if [ "$RETRY_FAILED" = true ]; then reuse=(--grep-invert 'a child cut'); fi
-          pattern='annex - (polygon|components|line multiple crossings)|a child cut|live-wire accepts|line refinement accepts|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'
+          pattern='annex - (polygon|components|line multiple crossings)|a child cut|plugin GeoJSON|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'
           if [ -n "$PANDO_BROWSER_TESTS" ]; then pattern="$PANDO_BROWSER_TESTS"; fi
-          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep "$pattern" "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
+          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/map-plugin-import.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep "$pattern" "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Compare initial display, edit readiness, frames and JS heap against the fixed baseline
         if: ${{ !cancelled() && steps.acceptance_inputs.outcome == 'success' && steps.acceptance_baseline.outcome == 'success' }}
         env:

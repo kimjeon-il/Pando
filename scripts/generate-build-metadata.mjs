@@ -50,7 +50,6 @@ const DATA_MANIFEST_PATHS = Object.freeze([
   'assets/data/territorial-entities/generated/v2/index.json',
   'assets/data/builtin-world/generated/v1/index.json',
   'assets/data/prepared-polygons/generated/v2/manifest.json',
-  'assets/data/reference-analysis/v1/ocr/manifest.json',
 ]);
 
 function gitRevision() {

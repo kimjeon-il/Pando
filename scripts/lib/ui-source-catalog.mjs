@@ -1,4 +1,3 @@
-import { REFERENCE_IMAGE_STYLE_SOURCES } from '../../assets/js/modules/reference-image-style-sources.js';
 
 const sourceEntries = Object.freeze([
   Object.freeze({ role: 'application-tokens', path: 'assets/css/tokens/application-tokens.css' }),
@@ -43,12 +42,10 @@ const viewerRoles = new Set(['application-tokens', 'component-tokens', 'tokens',
   'accessibility', 'map-rendering']);
 export const UI_VIEWER_SOURCES = Object.freeze(sourceEntries.filter(entry => viewerRoles.has(entry.role)).map(entry => entry.path));
 export const UI_MODAL_SOURCES = Object.freeze(modalEntries.map(entry => entry.path));
-export const UI_REFERENCE_IMAGE_SOURCES = Object.freeze(REFERENCE_IMAGE_STYLE_SOURCES.map(path => `assets/${path}`));
 export const UI_AUDIT_STYLE_SOURCES = Object.freeze([
   'assets/css/app.css',
   ...UI_BUNDLE_SOURCES,
   ...UI_MODAL_SOURCES,
-  ...UI_REFERENCE_IMAGE_SOURCES,
 ]);
 
 export function uiSourcePath(role) {

@@ -243,7 +243,10 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     for (const file of members) {
       const sources = affected(file);
       const bindings = (repo.catalog.bindings || []).filter(binding => matches(file, binding.tests));
-      const linked = bindings.flatMap(binding => expand(binding.inputs).flatMap(input => affected(input)));
+      const linked = bindings.flatMap(binding => [
+        ...changed.filter(file => matches(file, binding.inputs)),
+        ...expand(binding.inputs).flatMap(input => affected(input))
+      ]);
       const why = [...new Set([...sources, ...linked, ...groupReasons])];
       if (why.length || requestedGroups.includes(group.id) || (infrastructure && group.kind === 'unit')) {
         selected.add(file); reasons[file] = why.length ? why : ['check infrastructure changed'];

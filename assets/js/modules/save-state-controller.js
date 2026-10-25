@@ -6,13 +6,12 @@ export const FILE_SAVE_STATES = Object.freeze({
   SAVED: 'saved', DOWNLOAD_CREATED: 'download-created', ERROR: 'error',
 });
 
-/** Device I/O status reads Core document checkpoints and the separate package attachment owner. */
-export function createSaveStateController({ getDocumentState,getAttachmentState = () => ({ dirty: false, revision: 0 }),onChange = () => {},now = () => new Date() } = {}) {
+/** Device I/O status reads Core document checkpoints. */
+export function createSaveStateController({ getDocumentState,onChange = () => {},now = () => new Date() } = {}) {
   if (typeof getDocumentState!=='function') throw new TypeError('The canonical C++ document state reader is required.');
   let fileDisposition=FILE_SAVE_STATES.NEVER_SAVED;
   let fileOperation=null;
   let operationEpoch=null;
-  let operationAttachmentRevision=null;
   const io={ autosave: AUTOSAVE_STATES.IDLE,lastAutosavedAt: null,lastFileSavedAt: null,
     autosaveFallback: '',autosaveRecovery: false };
   function snapshot() {
@@ -20,10 +19,9 @@ export function createSaveStateController({ getDocumentState,getAttachmentState 
     if (core!==null && (!Number.isSafeInteger(core?.epoch) || typeof core.documentDirty!=='boolean'
       || typeof core.presentationDirty!=='boolean' || !Number.isSafeInteger(core.checkpoint)
       || !Number.isSafeInteger(core.presentationCheckpoint))) throw new TypeError('A complete C++ dirty/checkpoint state is required.');
-    const attachments = getAttachmentState(), attachmentDirty = attachments.dirty;
-    const dirty=attachmentDirty || (core!==null && (core.documentDirty || core.presentationDirty));
-    const file=fileOperation && core?.epoch===operationEpoch && attachments.revision===operationAttachmentRevision ? fileOperation : dirty ? FILE_SAVE_STATES.DIRTY : fileDisposition;
-    return Object.freeze({ ...io,file,attachmentDirty,documentDirty: core?.documentDirty ?? false,
+    const dirty=core!==null && (core.documentDirty || core.presentationDirty);
+    const file=fileOperation && core?.epoch===operationEpoch ? fileOperation : dirty ? FILE_SAVE_STATES.DIRTY : fileDisposition;
+    return Object.freeze({ ...io,file,documentDirty: core?.documentDirty ?? false,
       presentationDirty: core?.presentationDirty ?? false,hasUnsavedChanges: dirty,
       currentContentToken: core===null ? null : `content:${core.checkpoint}`,
       currentPresentationToken: core===null ? null : `presentation:${core.presentationCheckpoint}`,
@@ -31,7 +29,7 @@ export function createSaveStateController({ getDocumentState,getAttachmentState 
   }
   const emit=reason => { const accepted=snapshot();onChange(accepted,reason);return accepted; };
   const disposition=(file,reason) => { fileDisposition=file;fileOperation=null;operationEpoch=null;return emit(reason); };
-  const operation=(file,reason) => { fileOperation=file;operationEpoch=getDocumentState()?.epoch ?? null;operationAttachmentRevision=getAttachmentState().revision;return emit(reason); };
+  const operation=(file,reason) => { fileOperation=file;operationEpoch=getDocumentState()?.epoch ?? null;return emit(reason); };
   return Object.freeze({
     snapshot,
     // This receipt contains platform statuses only; Core replacement capsules

@@ -24,7 +24,7 @@ export function createMapOwners({productMode,platform={},editing=null,isObjectVi
   const capabilities=resourceCapabilities(productMode,platform);
   const builtinSession=createBuiltinSession({builtinWorldLoader:platform.builtinWorldLoader});
   const workspaceSurfaces=createWorkspaceSurfaces({productMode});
-  const projectSession=createProjectSession({productMode,capabilities,resolveVisibilityGroup,onViewingChange,getAttachmentState:editing?.getAttachmentState});
+  const projectSession=createProjectSession({productMode,capabilities,resolveVisibilityGroup,onViewingChange});
   const renderQuality=createRenderQuality({beforeMeshRebuild:editing?.beforeMeshRebuild});
   const pointerTargets=createPointerTargets({isDraggingDraft:editing?.isDraggingDraft});
   const cameraNavigation=createCameraNavigation({persistView:editing?.persistView});

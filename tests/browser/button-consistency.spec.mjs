@@ -2,12 +2,11 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { buildUiBundles } from '../../scripts/build-ui-bundle.mjs';
-import { UI_REFERENCE_IMAGE_SOURCES } from '../../scripts/lib/ui-source-catalog.mjs';
 
 const root = new URL('../../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
 const bundles = buildUiBundles(fileURLToPath(root));
-const styles = [read('assets/css/app.css'), bundles.main, bundles.modal, ...UI_REFERENCE_IMAGE_SOURCES.map(read), read('assets/css/viewer.css')].join('\n');
+const styles = [read('assets/css/app.css'), bundles.main, bundles.modal, read('assets/css/viewer.css')].join('\n');
 const sprite = read('apps/web-shell/editor.html').match(/<svg class="icon-sprite"[^>]*>[\s\S]*?<\/svg>/)[0];
 const icon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M12 4v16"/></svg>';
 const sourceButton = (path, id) => {
@@ -46,7 +45,6 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
         <div class='workflow-map-session fixture-row'><div class='mode-draft-actions'>${['modeDraftInsertBtn', 'modeDraftDeleteBtn', 'modeDraftRedrawBtn', 'modeDraftDoneBtn'].map(id => sourceButton('ui/templates/editor.html', id)).join('')}</div>
           <button class='ui-button icon-btn workflow-result-remove' data-icon-check='result-remove' aria-label='선택 제외'>${icon}</button></div>
         <div class="surface-editor fixture-row"><button class="ui-button icon-btn editor-relation-focus" data-icon-check="relation" aria-label="위치">${icon}</button></div>
-        <div class="reference-image-panel fixture-row"><button class="ui-button icon-btn reference-image-list-action" data-icon-check="reference" aria-label="순서">${icon}</button></div>
         <div class='ui-search-field'><span></span><input type='search' aria-label='검색'><button class='ui-button ui-icon-button ui-search-clear' data-icon-check='clear' aria-label='검색 지우기'>${icon}</button></div>
         <div class="action-status ui-toast"><span></span><strong>완료</strong>${sourceButton('ui/fragments/notification.html', 'notificationCloseBtn')}</div>
         <div class="territorial-library-time-control">${sourceButton('ui/templates/editor.html', 'territorialLibraryTimeSuggestBtn')}

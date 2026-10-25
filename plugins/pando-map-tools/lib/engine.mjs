@@ -1,17 +1,19 @@
 import { readFile, writeFile, access } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { resolve, dirname } from 'node:path';
-import { workspace, workspaceModule, requireWorkspace, core, calculate } from './workspace.mjs';
+import { workspace, workspaceModule, requireWorkspace, core, assertRuntimeResources } from './workspace.mjs';
+import { calculateReferenceImage as calculate } from './analysis/core.mjs';
 import { raster, cropRaster, resizeRaster, pngRaster } from './raster.mjs';
 import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob, georeferenceQuality } from './jobs.mjs';
-const { referenceImageTilePlan, REFERENCE_BOUNDARY_CHANNELS }=await workspaceModule('assets/js/modules/reference-image-analysis-tiles.js');
-const { inferReferenceBoundaries }=await workspaceModule('assets/js/modules/reference-boundary-inference.js');
-const { referenceOcrLanguagesForScript, REFERENCE_OCR_LANGUAGES, referenceOcrBlocks, referenceOcrOriginalBox }=await workspaceModule('assets/js/modules/reference-image-ocr-runtime.js');
-const { normalizeReferenceImageOcrBlocks }=await workspaceModule('assets/js/modules/reference-image-ocr.js');
-const { detectReferenceMapLayout }=await workspaceModule('assets/js/modules/reference-image-layout.js');
-const { detectReferenceGraticule }=await workspaceModule('assets/js/modules/reference-image-grid.js');
-const { findReferenceImagePointSymbolNearTextBox, referenceImagePointRasterFromRgba }=await workspaceModule('assets/js/modules/reference-image-auto-georef.js');
-const { resolveReferenceImagePlaceDetections }=await workspaceModule('assets/js/modules/reference-image-place-match.js');
+import { referenceImageTilePlan, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
+import { inferReferenceBoundaries } from './analysis/inference.mjs';
+import { referenceOcrLanguagesForScript, REFERENCE_OCR_LANGUAGES, referenceOcrBlocks, referenceOcrOriginalBox } from './analysis/ocr-catalog.mjs';
+import { normalizeReferenceImageOcrBlocks } from './analysis/ocr.mjs';
+import { detectReferenceMapLayout } from './analysis/layout.mjs';
+import { detectReferenceGraticule } from './analysis/grid.mjs';
+import { findReferenceImagePointSymbolNearTextBox, referenceImagePointRasterFromRgba } from './analysis/symbols.mjs';
+import { resolveReferenceImagePlaceDetections } from './analysis/place-match.mjs';
+const {version:pluginVersion}=JSON.parse(await readFile(new URL('../plugin.json',import.meta.url),'utf8'));
 const { createPlaceWorkerStore }=await workspaceModule('assets/js/modules/place-worker-store.js');
 const { createWorkerRpcClient }=await workspaceModule('assets/js/modules/worker-rpc.js');
 
@@ -126,19 +128,20 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
   const {manifest,bytes}=await readModel(modelPath);
   const pin=JSON.parse(await readFile(resolve(workspace,'config/library-data.json'),'utf8'));
   let job=createJob({path,sha256:digest(sourceBytes),width:image.originalWidth,height:image.originalHeight,mapping:image.mapping,page},
-    {dataRevision:pin.revision,model:manifest,modelManifestPath:resolve(modelPath),coreManifestSha256:digest(await readFile(resolve(workspace,'assets/wasm/pandoeditor-core.manifest.json'))),
-      engineSha256:digest(await readFile(new URL('./engine.mjs',import.meta.url))),pluginVersion:'0.2.0',nodeVersion:process.version},
+    {dataRevision:pin.revision,model:manifest,modelManifestPath:resolve(modelPath),pluginVersion,nodeVersion:process.version},
     {date,languages,page,rect,provenance,maxPixels});
   if(previous) {
     assertJob(previous);
     if(previous.source.sha256!==job.source.sha256) throw new Error('Source signature changed before region analysis.');
     job.id=previous.id;job.revision=previous.revision+1;
     job.history=[...previous.history,{revision:job.revision,command:{type:'region',rect}}];
-    job.inferenceHistory=[...(previous.inferenceHistory || []),...(previous.segmentation?[{revision:previous.revision,source:previous.source,segmentation:previous.segmentation}]:[])];
+    job.inferenceHistory=[...(previous.inferenceHistory || []),...(previous.segmentation?[{revision:previous.revision,source:previous.source,resources:previous.resources,segmentation:previous.segmentation}]:[])];
     job=sealJob(job);
   }
   await saveJob(jobPath,job);
   try {
+    const ocrManifestPath=resolve(workspace,'assets/data/reference-analysis/v1/ocr/manifest.json');
+    const ocrManifestBytes=await readFile(ocrManifestPath),ocrManifest=JSON.parse(ocrManifestBytes);
     const ocr=await recognize(image,languages,signal,progress);check(signal);
     const fullUv=uv=>[(image.mapping.rect.x+uv[0]*(image.mapping.rect.width-1))/(image.originalWidth-1),(image.mapping.rect.y+uv[1]*(image.mapping.rect.height-1))/(image.originalHeight-1)];
     const pointRaster=referenceImagePointRasterFromRgba(image);
@@ -152,7 +155,7 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     const layout=detectReferenceMapLayout(image,{blocks:ocr.rows}),grid=detectReferenceGraticule(image,ocr.rows);
     job.ocr={orientation:ocr.orientation,detections};job.layout={...layout,panels:layout.panels.map(p=>({...p,sourceRect:box(p.sourceRect)}))};
     job.grid={...grid,labels:grid.labels.map(v=>({...v,boundingBox:box(v.boundingBox)})),points:grid.points.map(v=>({...v,image:fullUv(v.image)}))};
-    const placeRoot=resolve(workspace,'assets/data/places'),placeManifest=JSON.parse(await readFile(resolve(placeRoot,'manifest.json'),'utf8'));
+    const placeRoot=resolve(workspace,'assets/data/places'),placeManifestBytes=await readFile(resolve(placeRoot,'manifest.json')),placeManifest=JSON.parse(placeManifestBytes);
     const store=createPlaceWorkerStore({manifest:placeManifest,fetchBytes:spec=>readFile(resolve(placeRoot,spec.url))});
     const context={signal,throwIfCancelled:()=>check(signal),emitEvent:(_event,data)=>progress(data)};
     job.matching=await resolveReferenceImagePlaceDetections(detections,{search:query=>store.search(query,context),mapDate:date,allowAmbiguous:true,maxDetections:256,maxSearchQueries:1024,maxPlaces:20000});
@@ -184,10 +187,20 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     const graph=originalGraph(core.referenceBoundaryGraph(image.width,image.height,mask.labels,mask.confidence,{threshold:.55,simplifyTolerance:.75}),image);
     job.graph=graph;job.segmentation={signature:digest({source:job.source,model:manifest.model.sha256}),rawGraph:structuredClone(graph)};
     job.resources.ocrLanguageHashes={};
-    for(const language of ['osd',...job.ocr.orientation.languages]) job.resources.ocrLanguageHashes[language]=digest(await readFile(resolve(workspace,'assets/data/reference-analysis/v1/ocr',language+'.traineddata.gz')));
+    for(const language of ['osd',...job.ocr.orientation.languages]) {
+      const actual=digest(await readFile(resolve(workspace,'assets/data/reference-analysis/v1/ocr',language+'.traineddata.gz')));
+      if(actual!==ocrManifest.languages[language]?.sha256) throw new Error('OCR language resources changed during analysis.');
+      job.resources.ocrLanguageHashes[language]=actual;
+    }
+    job.resources.ocrManifestSha256=digest(ocrManifestBytes);job.resources.placeManifestSha256=digest(placeManifestBytes);
     job.resources.placeRevision=placeManifest.revision;job.status=job.warp?.ok?'needs-review':'needs-georeference';
     check(signal);
     if(digest(await readFile(path))!==job.source.sha256) throw new Error('Source image signature changed during analysis.');
+    assertRuntimeResources(job.resources);
+    if(JSON.parse(await readFile(resolve(workspace,'config/library-data.json'),'utf8')).revision!==pin.revision
+      || digest(await readFile(ocrManifestPath))!==job.resources.ocrManifestSha256
+      || digest(await readFile(resolve(placeRoot,'manifest.json')))!==job.resources.placeManifestSha256
+      || digest((await readModel(modelPath)).manifest)!==digest(manifest)) throw new Error('Analysis resource signatures changed during analysis.');
     job=sealJob(job);await saveJob(jobPath,job);
     return job;
   } catch(error) {
@@ -196,6 +209,7 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
   }
 }
 export async function renderPreview(job,path,signal) {
+  assertJob(job);
   if(digest(await readFile(job.source.path))!==job.source.sha256) throw new Error('Original image hash changed.');
   const result=await raster({action:'preview',path:job.source.path,page:job.source.page,job},null,signal);
   await writeFile(path,result.data);
@@ -227,13 +241,13 @@ export async function reviseWithRaster(job,command,signal) {
   const image=await raster({action:'read',path:job.source.path,page:job.source.page,maxPixels:1_000_000},null,signal);
   let points;
   if(command.type==='refine-line') {
-    const {buildReferenceImageGradientField,refineReferenceImageLine}=await workspaceModule('assets/js/modules/reference-image-line-refiner.js');
+    const {buildReferenceImageGradientField,refineReferenceImageLine}=await import('./analysis/line-refiner.mjs');
     const field=buildReferenceImageGradientField(image,{sourceWidth:image.originalWidth,sourceHeight:image.originalHeight});
     const result=refineReferenceImageLine({field,roughPoints:chain.points,corridorRadius:command.corridorPixels || 12,simplifyTolerance:command.simplifyPixels || .75});
     if(!result.ok) throw new Error(`Line refinement failed: ${result.reason}`);
     points=result.points;
   } else {
-    const {buildReferenceImageLiveWireField,traceReferenceImageLinearAnchors}=await workspaceModule('assets/js/modules/reference-image-live-wire.js');
+    const {buildReferenceImageLiveWireField,traceReferenceImageLinearAnchors}=await import('./analysis/live-wire.mjs');
     const field=buildReferenceImageLiveWireField(image,{sourceWidth:image.originalWidth,sourceHeight:image.originalHeight});
     const trace=traceReferenceImageLinearAnchors(field,command.anchors);check(signal);
     if(!trace.ok) throw new Error(`Live-Wire failed: ${trace.reason}`);

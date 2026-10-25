@@ -1,6 +1,6 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-const url=new URL('../../assets/js/modules/reference-image-georef.js',import.meta.url);
+const url=new URL('../../plugins/pando-map-tools/lib/analysis/georef.mjs',import.meta.url);
 const web=await import(url.href);
 const point=(id,u,v,x,y)=>({id,image:[u,v],coordinate:[x,y]});
 const cases=[

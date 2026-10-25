@@ -33,14 +33,18 @@
       ]
     },
     {
-      "id": "reference-contracts",
+      "id": "map-analysis-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/reference-image-*.test.mjs"
+        "tests/unit/map-analysis-*.test.mjs",
+        "tests/unit/map-plugin-import.test.mjs",
+        "tests/unit/map-plugin-cutover.test.mjs",
+        "tests/unit/map-plugin-hydro-history.test.mjs",
+        "tests/unit/qgis-pando-exchange.test.mjs"
       ],
       "inputs": [
-        "assets/js/modules/reference-image*.js",
-        "assets/css/features/reference-image*.css"
+        "plugins/pando-map-tools/**",
+        "tools/reference-fixtures/**"
       ]
     },
     {
@@ -137,7 +141,8 @@
         "tests/browser/country-shared-boundary.spec.mjs",
         "tests/browser/date-line-outline.spec.mjs",
         "tests/browser/territorial-boundary-*.spec.mjs",
-        "tests/browser/territorial-child-fill-comparison.spec.mjs"
+        "tests/browser/territorial-child-fill-comparison.spec.mjs",
+        "tests/browser/ussr-1922-caspian.spec.mjs"
       ],
       "inputs": [
         "assets/js/modules/*boundary*.js",
@@ -297,14 +302,16 @@
       ]
     },
     {
-      "id": "reference-images",
+      "id": "map-plugin-import",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/reference-image-*.spec.mjs"
+        "tests/browser/map-plugin-import.spec.mjs",
+        "tests/browser/qgis-pando-exchange.spec.mjs"
       ],
       "inputs": [
-        "assets/js/modules/reference-image*.js",
-        "assets/css/features/reference-image*.css"
+        "plugins/pando-map-tools/**",
+        "assets/js/modules/generic-feature-service.js",
+        "assets/js/gis-io.js"
       ],
       "requires": [
         "generated",
@@ -855,6 +862,19 @@
       "requires": [
         "core"
       ]
+    },
+    {
+      "id": "map-plugin-runtime",
+      "kind": "unit",
+      "mode": "manual",
+      "reason": "Requires the existing local Python/Pillow/PyMuPDF environment and pinned OCR resources; run explicitly for headless plugin runtime verification.",
+      "testPatterns": [
+        "tests/unit/map-plugin.test.mjs"
+      ],
+      "inputs": [
+        "plugins/pando-map-tools/**",
+        "tools/reference-analysis/**"
+      ]
     }
   ],
   "prerequisites": {
@@ -1011,7 +1031,9 @@
     {
       "source": "apps/web-shell/",
       "output": "shell/",
-      "files": ["apps/web-shell/*.js"],
+      "files": [
+        "apps/web-shell/*.js"
+      ],
       "reason": "stage.mjs copies the shell modules beneath shell/ in the app bundle."
     }
   ],
@@ -1099,7 +1121,7 @@
       "acceptance": [
         "ui-contracts",
         "place-contracts",
-        "reference-contracts",
+        "map-analysis-contracts",
         "object-contracts",
         "gis-contracts"
       ],
@@ -1112,7 +1134,7 @@
         "viewer",
         "library",
         "hydro-gis",
-        "reference-images",
+        "map-plugin-import",
         "ui",
         "places"
       ]

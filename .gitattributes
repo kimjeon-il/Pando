@@ -17,8 +17,6 @@ assets/data/terrain-preview/**/*.json text eol=lf
 assets/wasm/pandoeditor-core.js text eol=lf
 assets/wasm/pandoeditor-core.manifest.json text eol=lf
 assets/wasm/pandoeditor-core.wasm binary
-# Packaged reference runtimes are pinned by byte hash, including text assets.
-assets/vendor/reference-analysis/** -text
 tests/fixtures/portability/web-9300609-oracle/** text eol=lf
 tests/fixtures/portability/web-9300609-hydro-create/** -text
 tests/fixtures/portability/web-9300609-hydro-hidden/** -text

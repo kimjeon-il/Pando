@@ -37,6 +37,20 @@ const manifest = { schemaVersion: 1, evaluationStatus: 'pending', releaseApprove
   classes: ['international','administrative','coast','hydro','transport','text','frame'],
   unobservedChannels: ['coast','hydro','transport','text','frame'],
   tileSize:512, overlap:64, overviewSize:256, model:{url:'boundary.onnx',bytes:123,sha256:'a'.repeat(64)} };
+test('production jobs bind all calculation helpers and refuse missing or changed runtime identity', async()=>{
+  let job=createJob({path:'map.png',sha256:'a'.repeat(64),width:100,height:100},{dataRevision:'test'});
+  job.status='needs-georeference';job=sealJob(job);
+  for(const field of ['coreManifestSha256','producerSha256']) for(const value of [undefined,'0'.repeat(64)]) {
+    const stale=structuredClone(job);stale.resources[field]=value;
+    const signed=sealJob(stale);
+    assert.throws(()=>reviseJob(signed,{type:'control-points',points:[]}),/runtime.*changed|runtime.*identity/i);
+    await assert.rejects(exportJob(signed,'unused-runtime-output',{preview:async()=>{throw new Error('Must not render');}}),/runtime.*changed|runtime.*identity/i);
+  }
+  assert.ok(job.resources.producerInputs['plugin/lib/analysis/core.mjs']);
+  assert.ok(job.resources.producerInputs['plugin/lib/analysis/georef.mjs']);
+  assert.ok(job.resources.producerInputs['plugin/lib/raster.py']);
+  assert.equal(reviseJob(job,{type:'control-points',points:[]}).status,'needs-georeference');
+});
 test('candidate execution preserves pending approval and excludes unobserved classes', () => {
   const result=validateCandidateModel(manifest);
   assert.equal(result.releaseApproved,false);

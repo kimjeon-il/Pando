@@ -1,8 +1,6 @@
 import {createEditingPresentation} from './editing-presentation.js';
 import {createMapDisplayClient} from './map-display-client.js';
 import { rememberCutPreparation } from './cut-preparation-cache.js';
-import { resetReferenceImageSession } from './reference-image-input.js';
-import { referenceImageProjectAssets } from './reference-image-store.js';
 import { geometryRevision } from './geometry-versions.js';
 import { freezeEditingGeometry } from './editing-render-packet.js';
 import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
@@ -161,7 +159,6 @@ export function createDomainAssembly() {
         if (!window.PandoLabGIS?.exportGeoPackage) throw new Error('GeoPackage 저장 모듈을 불러오지 못했습니다.');
         return window.PandoLabGIS.exportGeoPackage(project, () => undefined,{ spatialState });
       },
-      referenceImages: referenceImageProjectAssets,
       restoreReplacement: async (project, generation) => {
         await (0, dependencies.projectRestore.applyAtlasState)(project, false, { projectGeneration: generation,skipRenderReset: true,
           preserveCoreSession: true,catalogAlreadyAdmitted: true });
@@ -179,7 +176,6 @@ export function createDomainAssembly() {
       onReplacementState: async (replacing, reason) => {
         dependencies.projectState.state.projectReplacing = replacing;
         if (replacing) {
-          resetReferenceImageSession();
           await editingDomain.cancelActiveGesture(`project-${reason}-preparing`);
           if (reason === 'new') (0, dependencies.feedback.setActionStatus)('새 프로젝트 준비 중…', 'working', 0);
         }

@@ -204,10 +204,10 @@ jobs:
         if: inputs.verification == 'full'
         run: >-
           node --test tests/unit/p6-polygon-core.test.mjs
-          tests/unit/reference-shared-runtime.test.mjs
+          tests/unit/map-analysis-core.test.mjs
           tests/unit/edit-preparation.test.mjs
-          tests/unit/reference-image-georef.test.mjs tests/unit/reference-image-transform.test.mjs
-          tests/unit/reference-image-live-wire.test.mjs tests/unit/reference-image-line-refiner.test.mjs
+          tests/unit/map-analysis-georef.test.mjs
+          tests/unit/map-analysis-live-wire.test.mjs tests/unit/map-analysis-line-refiner.test.mjs
           tests/unit/river-territory-partition.test.mjs
       - name: Commit verified phases locally, then publish one guarded result
         id: publish

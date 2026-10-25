@@ -60,7 +60,7 @@
     "check:place-sync": "node --test tests/unit/place-sync-contract.test.mjs",
     "build:places": "node tools/build-place-runtime.mjs",
     "check:places": "node tools/build-place-runtime.mjs --check && node --test tests/unit/place-publication.test.mjs",
-    "check:reference-runtime": "node --test tests/unit/reference-shared-runtime.test.mjs",
+    "check:map-analysis-runtime": "node --test tests/unit/map-analysis-core.test.mjs",
     "package:shared-core": "node tools/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm",
     "check:shared-core-assets": "node tools/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm --check",
     "check:geometry-runtime": "node --test tests/unit/p6-polygon-core.test.mjs tests/unit/edit-preparation.test.mjs",

@@ -1,10 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, mkdtemp, writeFile, readFile, rename, rm, lstat } from 'node:fs/promises';
 import { resolve, join, dirname, basename } from 'node:path';
-import { calculate, workspaceModule } from './workspace.mjs';
+import { workspaceModule, runtimeResources, assertRuntimeResources } from './workspace.mjs';
+import { calculateReferenceImage as calculate } from './analysis/core.mjs';
 const { normalizeSourceProvenance, SOURCE_KINDS } = await workspaceModule('assets/js/modules/source-provenance.js');
 const { GENERIC_FEATURE_SCHEMA_VERSION } = await workspaceModule('assets/js/modules/version-contract.js');
-const { validateReferenceBoundaryTensorContract, REFERENCE_BOUNDARY_CHANNELS } = await workspaceModule('assets/js/modules/reference-image-analysis-tiles.js');
+import { validateReferenceBoundaryTensorContract, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
 
 export const digest = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');
 export const sealJob = job => { const { signature: _signature, ...body } = job; return { ...body, signature: digest(body) }; };
@@ -12,6 +13,7 @@ export function assertJob(job) {
   const {signature,...body}=job;
   if (job.schemaVersion!==1 || signature!==digest(body)) throw new Error('Job signature mismatch; use structured revise commands.');
   if (['cancelled','failed','running'].includes(job.status)) throw new Error(`Job is ${job.status}.`);
+  assertRuntimeResources(job.resources);
 }
 export function validateCandidateModel(input) {
   // Reuse the app's tensor/asset contract, while approval remains separate from
@@ -23,7 +25,7 @@ export function validateCandidateModel(input) {
   return {...structuredClone(input),observedChannels:REFERENCE_BOUNDARY_CHANNELS.filter(v=>!unknown.includes(v))};
 }
 export function createJob(source, resources, options={}) {
-  return sealJob({schemaVersion:1,id:randomUUID(),revision:0,status:'running',source:structuredClone(source),resources:structuredClone(resources),
+  return sealJob({schemaVersion:1,id:randomUUID(),revision:0,status:'running',source:structuredClone(source),resources:{...runtimeResources(),...structuredClone(resources)},
     options:structuredClone(options),calibration:null,warp:null,quality:null,graph:null,segmentation:null,history:[],review:null,diagnostics:[]});
 }
 export function georeferenceQuality(points,mode,source) {
@@ -118,7 +120,7 @@ export async function exportJob(job,directory,{preview,signal}={}) {
     await writeFile(join(staging,'report.md'),`# Map analysis ${job.id}\n\nSource: ${job.source.path}\nSHA256: ${job.source.sha256}\nDate: ${job.options.date || 'unconfirmed'} (unverified)\nSource evidence: ${JSON.stringify(job.options.provenance || null)}\n\nModel: ${job.resources.model?.model.sha256 || 'none'}\nModel status: ${job.resources.model?.evaluationStatus || 'none'}; output is provisional.\nUnobserved classes: ${(job.resources.model?.unobservedChannels || []).join(', ')}\nData revision: ${job.resources.dataRevision}\nHistorical accuracy: unverified. Names, ownership and validity are unspecified.\n\nChecks: shared C++ projection/topology; structured revision signature; selected closed faces only.\nGeoreference diagnostics: ${JSON.stringify(job.quality)}\n\nImport features.geojson with Pando’s ordinary GIS import as generic objects; edit, Undo/Redo and save.\nIndependent model accuracy and historical source accuracy were not established by this export.\n`);
     const hashes={};for (const name of ['features.geojson','analysis.json','preview.png','report.md']) hashes[name]=digest(await readFile(join(staging,name)));
     await writeFile(join(staging,'complete.json'),JSON.stringify({jobId:job.id,revision:job.revision,hashes},null,2)+'\n');
-    signal?.throwIfAborted();await rename(staging,directory);
+    signal?.throwIfAborted();assertRuntimeResources(job.resources);await rename(staging,directory);
     return {directory,featureCount:features.features.length,hashes};
   } catch(error) {
     // This freshly created directory contains only this operation's files.

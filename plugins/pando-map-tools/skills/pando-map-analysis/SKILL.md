@@ -9,6 +9,21 @@ dependencies, `build-native/python/Scripts/python.exe`, verified C++ WASM and
 shared OCR/place/model files. No GIS application, server, browser or new Python
 environment is needed. Training remains a separate explicitly requested task.
 
+## Mobile and remote requests
+
+Run the same entrypoint on the connected computer, with `--workspace
+D:/dev/worktrees/ui`, even when the conversation's working directory differs.
+The phone supplies the request; OCR, inference and shared data stay on the host.
+Use the actual accessible path of an attached original map. Do not ask a phone
+user to invent a Windows path or treat a displayed image as an accessible file.
+If the original attachment is unavailable, ask for the original file in the chat.
+Return the preview and GeoJSON through the conversation's supported file
+delivery when available; a Windows path alone does not establish mobile delivery.
+If file delivery or the host is unavailable, explain the missing step. A cloud
+ChatGPT conversation cannot access this PC's files merely by installing the skill.
+Do not create a server, copy the shared datasets or report phone verification
+without an actual phone-side result.
+
 Keep jobs and results in a selected external report scope. Originals are read
 only. For historical borders, first read the workspace's
 `docs/historical-border-reconstruction-policy.md`. Preserve the source graph;
@@ -70,6 +85,10 @@ to `features.geojson`, `preview.png`, `analysis.json`, `report.md` and describe
 uncertainty. Failed/cancelled jobs cannot export. Pando uses its ordinary
 **generic object** import, then edit, Undo/Redo, save/reopen. Do not add an app
 bridge or a dedicated analysis review UI.
+
+Jobs require their original plugin-helper and core identity. After an upgrade,
+reanalyze into a new job; never restamp an old job or bypass a stale-runtime
+error. Existing jobs and exported evidence remain original records.
 
 Publish/check completed evidence with the workspace's scoped report commands.
 Keep originals, final jobs/history and designated evidence. Clean temporary

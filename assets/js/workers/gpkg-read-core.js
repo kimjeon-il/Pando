@@ -17,24 +17,16 @@ export async function readAtlasTables(buffer, getSql) {
   const SQL = await getSql();
   const db = new SQL.Database(new Uint8Array(buffer));
   try {
+    if (tableExists(db,'pandolab_reference_sources')) throw new TypeError('Unsupported retired project attachments.');
     const result = { projectState: null, countryAssets: [], sourceInfo: null };
     if (tableExists(db, 'pandolab_project_settings')) {
       const rows = db.exec("SELECT json_value FROM pandolab_project_settings WHERE setting_key='project_state' LIMIT 1");
       if (rows[0]?.values?.[0]?.[0]) {
         result.projectState = JSON.parse(rows[0].values[0][0]);
+        if (Object.hasOwn(result.projectState,'packageAssets')) throw new TypeError('Unsupported retired project attachments.');
       }
-      const images = db.exec("SELECT json_value FROM pandolab_project_settings WHERE setting_key='reference_images' LIMIT 1");
-      if (images[0]?.values?.[0]?.[0]) {
-        const referenceImages = { ...JSON.parse(images[0].values[0][0]), sources: [] };
-        if (!tableExists(db, 'pandolab_reference_sources')) throw new Error('참조 이미지 원본 테이블이 없습니다.');
-        const statement = db.prepare('SELECT source_hash, mime_type, image_data FROM pandolab_reference_sources');
-        while (statement.step()) {
-          const row = statement.get(), bytes = new Uint8Array(row[2]);
-          referenceImages.sources.push({ sha256: String(row[0]), mimeType: String(row[1]), bytes: bytes.length, base64: bytesToBase64(bytes) });
-        }
-        statement.free();
-        result.packageAssets = { schemaVersion: 1, referenceImages };
-      }
+      if (db.exec("SELECT 1 FROM pandolab_project_settings WHERE setting_key='reference_images' LIMIT 1")[0]?.values.length)
+        throw new TypeError('Unsupported retired project attachments.');
     }
     if (tableExists(db, 'pandolab_country_assets')) {
       const statement = db.prepare('SELECT country_id, mime_type, image_data FROM pandolab_country_assets');

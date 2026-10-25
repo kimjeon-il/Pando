@@ -53,13 +53,14 @@ weights already trained on rejected targets. Cancel only owned training jobs.
 Run focused condition/macro/model checks for actual changes. After real GPU
 training, export ONNX and inspect identical unaugmented targets against the actual
 baseline with inspect-checkpoint.py. Verify ONNX/PyTorch parity locally using
-verify-trained-onnx.mjs with external requests blocked. Reuse a running static
-server or tests/browser/server.mjs and stop a server started only for that check.
+verify-trained-onnx.mjs in the existing Node WASM runtime. Pass local model and
+diagnostic paths; no browser, static server or --base argument is used.
 
 Training-tile fitting is not held-out accuracy. Keep trainingOnly true,
 evaluationStatus pending, releaseApproved false and map application not-applied
 until independent evaluation and actual device checks justify a separately
-authorized release. Do not install pending weights at the active app path.
+authorized release. Keep weights in the shared model scope. Provisional plugin
+use requires review and never promotes the model approval fields.
 
 Archive selected external corpus/model/report prefixes using the existing library
 storage command. Keep active/best checkpoints and designated evaluation evidence;

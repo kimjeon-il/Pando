@@ -10,7 +10,6 @@ import { createDevelopmentAssets, stagePrototype, validateShellProfile } from '.
 import { startDevelopmentServer } from '../dev.mjs';
 import { assertOrdinaryBuild, assertVerificationBuild, windowsBuildArguments } from '../packaged-artifacts.mjs';
 import { createBuiltinWorldLoader } from '../../../assets/js/modules/builtin-world-loader.js';
-import { REFERENCE_IMAGE_STYLE_SOURCES } from '../../../assets/js/modules/reference-image-style-sources.js';
 import { createRuntimeProfile } from '../runtime-profile.js';
 
 import { worldFixture } from './helpers/world-fixture.mjs';
@@ -92,13 +91,13 @@ async function source(t) {
   return { root, put };
 }
 
-test('stages the real frontend, exact WASM pair and local OCR without world data', async t => {
+test('stages the real frontend and exact WASM pair without analysis resources or world data', async t => {
   const { root } = await source(t);
   const result = await stagePrototype({ root, profile: 'test-fixture', verification: true });
   assert.ok(result.files.some(file => file.path === 'assets/js/app.js'));
-  assert.ok(result.files.every(file => !file.path.startsWith('assets/data/') || file.path.startsWith('assets/data/reference-analysis/')));
-  assert.equal(await readFile(join(result.directory, 'assets/data/reference-analysis/v1/ocr/eng.traineddata.gz'), 'utf8'), 'OCR');
-  assert.equal(result.referenceAnalysis.modelAvailable, false);
+  assert.ok(result.files.every(file => !file.path.startsWith('assets/data/')));
+  assert.ok(result.files.every(file => !file.path.includes('reference-analysis')));
+  assert.equal(Object.hasOwn(result,'referenceAnalysis'), false);
   assert.equal(await readFile(join(result.directory, 'assets/js/app.js'), 'utf8'), 'export const realApplication = true;');
   const html = await readFile(join(result.directory, 'index.html'), 'utf8');
   assert.match(html, /shell\/startup\.js/);
@@ -129,7 +128,7 @@ test('verification assets are opt-in and disappear on the next ordinary stage', 
   await assert.rejects(readFile(join(ordinary.directory, 'shell/verification.js')), /ENOENT/);
   await assert.rejects(readFile(join(ordinary.directory, 'shell/fixture-world.json')), /ENOENT/);
   await assert.rejects(stat(join(ordinary.directory, 'shell/transport')), /ENOENT/);
-  assert.ok(names(ordinary).includes('assets/vendor/reference-analysis/tesseract.mjs'));
+  assert.ok(names(ordinary).every(path=>!path.includes('reference-analysis')));
 });
 
 test('the verification fixture loads through the current builtin country transport', async t => {
@@ -158,19 +157,7 @@ test('test-fixture staging retains required historical physical backgrounds with
   assert.equal(result.files.some(file=>file.path==='assets/data/world/huge.bin'),false);
 });
 
-test('stages the runtime reference style catalog and every lazily loaded stylesheet', async t => {
-  const { root, put } = await source(t);
-  const catalog = 'assets/js/modules/reference-image-style-sources.js';
-  const catalogSource = await readFile(new URL(`../../../${catalog}`, import.meta.url), 'utf8');
-  await put(catalog, catalogSource);
-  for (const path of REFERENCE_IMAGE_STYLE_SOURCES) await put(`assets/${path}`, `/* ${path} */`);
-  const result = await stagePrototype({ root });
-  assert.equal(await readFile(join(result.directory, catalog), 'utf8'), catalogSource);
-  for (const path of REFERENCE_IMAGE_STYLE_SOURCES) {
-    assert.equal(await readFile(join(result.directory, 'assets', path), 'utf8'), `/* ${path} */`);
-  }
-  assert.ok(result.files.every(file => !file.path.startsWith('scripts/')), 'runtime must not require build-only scripts');
-});
+
 
 test('rejects a modified WASM asset instead of blessing a new hash', async t => {
   const { root, put } = await source(t);
@@ -221,11 +208,7 @@ test('development reload publishes validated changes and preserves the native ou
   assert.deepEqual(Buffer.from(await fetch(base + '/assets/wasm/pandoeditor-core.wasm').then(response => response.arrayBuffer())), wasm);
 });
 
-test('rejects altered local OCR weights instead of packaging unverified bytes', async t => {
-  const { root, put } = await source(t);
-  await put('assets/data/reference-analysis/v1/ocr/eng.traineddata.gz', 'TAMPERED');
-  await assert.rejects(stagePrototype({ root }), /Reference analysis resource mismatch/);
-});
+
 
 test('requires the explicit editor base and never falls back to the viewer HTML', async t => {
   const { root, put } = await source(t);
