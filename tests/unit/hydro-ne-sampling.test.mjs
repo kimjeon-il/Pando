@@ -44,6 +44,32 @@ test('published microdegree bounds match Python binary64 tie-side rounding',()=>
   assert.deepEqual(proof.items[0].mainstemBounds,[1.0001,-12.3455,9.8765,10.2346]);
   assert.deepEqual(sourceBefore,decoded());
 });
+test('published Hydro system 20532766 preserves its three source mainstem fragments and exact Python bbox',()=>{
+  // SHA-verified Hydro v0.13.2: f0832dd2...; metadata core: 048449cc...
+  // The raw latitude 43.243750 is represented just below its decimal tie in binary64.
+  const bounds=[
+    [42431250,43243750,45000000,43600000],
+    [44000000,43400000,46800000,43781250],
+    [46000000,43600000,47552083,43700000],
+  ];
+  const chains=[
+    [[42.43125,43.24375],[44.9,43.6]],
+    [[44,43.4],[46.8,43.78125]],
+    [[46,43.6],[47.552083,43.7]],
+  ];
+  const decodedSource={features:chains.map((coordinates,i)=>({
+    metadata:{systemId:'20532766',role:'mainstem',bounds:bounds[i]},
+    geometry:{type:'LineString',coordinates},
+  }))};
+  const inputBefore=structuredClone(decodedSource);
+  const result=compareNaturalEarthMainstems(decodedSource,ne(),{
+    items:[{systemId:'20532766',nameKo:'source-name'}],
+  });
+  assert.equal(result.items[0].mainstemFragments,3);
+  assert.deepEqual(result.items[0].mainstemBounds,[42.4312,43.2437,47.5521,43.7812]);
+  assert.equal(pythonRound(43243750/1e6,4),43.2437);
+  assert.deepEqual(decodedSource,inputBefore);
+});
 test('single named river is counted once per location even with overlapping NE segments',()=>{
   const data=ne();
   data.features.push(structuredClone(data.features[0]));
