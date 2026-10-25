@@ -10,11 +10,20 @@ import urllib.parse
 FORMATS = {'jpeg': '.jpg', 'pdf': '.pdf', 'png': '.png', 'webp': '.webp'}
 
 
-def acquire(source, root, opener=urllib.request.urlopen):
+class HttpsMapRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if urllib.parse.urlparse(newurl).scheme != 'https':
+            raise ValueError('Map source redirects require HTTPS')
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def acquire(source, root, opener=None):
     if source.get("rightsReviewed") is not True or not source.get("license"):
         return {"id": source["id"], "status": "rights-unverified"}
     if urllib.parse.urlparse(source["url"]).scheme != "https":
         raise ValueError("Map source download requires HTTPS")
+    if opener is None:
+        opener = urllib.request.build_opener(HttpsMapRedirect()).open
     name = source["id"]
     if not name or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789-" for c in name):
         raise ValueError("Unsafe source id")
