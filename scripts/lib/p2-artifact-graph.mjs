@@ -7,7 +7,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSy
   renameSync, unlinkSync, writeFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
-import { libraryConfig, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData, withLibraryOutputs } from '../../tools/library-data.mjs';
+import { libraryConfig, libraryCheckout, decodeArchiveEntry, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData, withLibraryOutputs } from '../../tools/library-data.mjs';
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
@@ -310,8 +310,17 @@ export function publishArtifacts(root,{stageDir,expectedSourceSha,expectedRemote
 export function artifactEvidence(root,{resultSha,expectedSourceSha,evidenceFile,families=null}) {
   assert.match(resultSha||'',/^[a-f0-9]{40}$/);assert.match(expectedSourceSha||'',/^[a-f0-9]{40}$/);
   execFileSync('git',['merge-base','--is-ancestor',expectedSourceSha,resultSha],{cwd:root});
-  const committed=p=>execFileSync('git',['show',resultSha+':'+p],{cwd:root,maxBuffer:256*1024*1024});
-  const listed=git(root,['ls-tree','--name-only',resultSha,'--',RECEIPT_PATH]);
+  const appCommitted=p=>execFileSync('git',['show',resultSha+':'+p],{cwd:root,maxBuffer:256*1024*1024});
+  const config=git(root,['ls-tree','--name-only',resultSha,'--','config/library-data.json'])?JSON.parse(appCommitted('config/library-data.json')):null;
+  const checkout=config?libraryCheckout(root):null;
+  const archive=config?JSON.parse(execFileSync('git',['show',config.revision+':archive/index.json'],{cwd:checkout,maxBuffer:32*1024*1024})):null;
+  const mounted=p=>config?.mounts.some(mount=>mount!=='reports'&&(p===mount||p.startsWith(mount+'/')));
+  const committed=p=>{
+    if(!mounted(p))return appCommitted(p);
+    assert.ok(archive.files[p],'P2_RESULT_LIBRARY_PATH_MISSING: '+p);
+    return decodeArchiveEntry(checkout,archive.files[p],config.revision);
+  };
+  const listed=mounted(RECEIPT_PATH)?archive.files[RECEIPT_PATH]:git(root,['ls-tree','--name-only',resultSha,'--',RECEIPT_PATH]);
   const receipt=listed?JSON.parse(committed(RECEIPT_PATH)):{families:{}};
   if(families!==null) {
     for(const id of families)assert.ok(receipt.families[id],'P2_MISSING_RESULT_FAMILY: '+id);
@@ -329,7 +338,7 @@ export function artifactEvidence(root,{resultSha,expectedSourceSha,evidenceFile,
     const bytes=committed('shared/frontend/static/wasm/'+spec.file);assert.equal(sha(bytes),spec.sha256,'P2_RESULT_WASM_MISMATCH: '+kind);
     wasmAssets[kind]={sha256:spec.sha256,bytes:bytes.length};
   }
-  const evidence={schema:'pandolab-p2-result-evidence',schemaVersion:1,sourceSha:expectedSourceSha,resultSha,
+  const evidence={schema:'pandolab-p2-result-evidence',schemaVersion:1,sourceSha:expectedSourceSha,resultSha,...(config?{libraryRevision:config.revision}:{}),
     verifiedScope:['wasm',...Object.keys(receipt.families)],
     wasm:{manifestSha256:sha(wasmManifestBytes),sourceSha256:wasmManifest.sourceSha256,assets:wasmAssets},
     intermediateSourceShas:[...new Set(Object.values(receipt.families).map(f=>f.sourceSha))],families:receipt.families};
