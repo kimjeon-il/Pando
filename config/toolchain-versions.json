@@ -13,5 +13,6 @@
     "url": "https://github.com/mozilla/sccache/releases/download/v0.19.0/sccache-v0.19.0-x86_64-pc-windows-msvc.zip",
     "sha256": "28be8c61f6b2c89b9eb2869f6af7f78e6f992e78a8abae0ce855fcc129cbeac1"
   },
-  "scope": "Web/shared C++/WASM/GIS CI versions; Tauri app toolchains are documented in apps/web-shell"
+  "scope": "Web/shared C++/WASM/GIS CI versions; Tauri app toolchains are documented in apps/web-shell",
+  "rust": "1.99.1"
 }

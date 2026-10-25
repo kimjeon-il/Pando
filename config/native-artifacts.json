@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "repository": "kimjeon-il/Pando",
+  "workflow": "remote-development-p1.yml",
+  "artifactRetentionDays": 7,
+  "androidCertificateSha256": "2fab34b4d4e070915c515741689fb5349c8606cc03c8295b273d359bd4e67bdd"
+}

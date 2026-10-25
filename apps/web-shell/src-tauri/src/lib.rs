@@ -15,11 +15,12 @@ use std::{
 };
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
-#[cfg(feature = "custom-protocol")]
+#[cfg(not(feature = "development"))]
 const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../dist/shell/stage-evidence.json"
 ));
+const NATIVE_BUILD_INFO: &str = include_str!(concat!(env!("OUT_DIR"), "/native-build-info.json"));
 
 struct RuntimeState {
     #[cfg(feature = "verification")]
@@ -30,8 +31,9 @@ struct RuntimeState {
 fn shell_initialization() -> String {
     format!(
         "Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {}, writable: false, configurable: false }});\
-         Object.defineProperty(globalThis, 'PANDOLAB_SHELL_VERIFICATION', {{ value: {}, writable: false, configurable: false }});",
-        cfg!(windows), cfg!(feature = "verification")
+         Object.defineProperty(globalThis, 'PANDOLAB_SHELL_VERIFICATION', {{ value: {}, writable: false, configurable: false }});\
+         Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_BUILD_INFO', {{ value: Object.freeze({}), writable: false, configurable: false }});",
+        cfg!(windows), cfg!(feature = "verification"), NATIVE_BUILD_INFO
     )
 }
 
@@ -96,12 +98,14 @@ async fn read_probe_file(app: tauri::AppHandle) -> Result<ReadFile, String> {
     })
 }
 
-#[cfg(not(feature = "custom-protocol"))]
+#[cfg(feature = "development")]
 fn embedded_build_summary() -> Result<serde_json::Value, String> {
-    Ok(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false, "profile": "map-data", "verification": cfg!(feature = "verification") }))
+    let mut info: serde_json::Value = serde_json::from_str(NATIVE_BUILD_INFO).map_err(|e| e.to_string())?;
+    info.as_object_mut().unwrap().extend(serde_json::json!({ "executionMode": "development", "origin": "http://127.0.0.1:4175", "embeddedAssets": false, "profile": "map-data", "verification": false }).as_object().unwrap().clone());
+    Ok(info)
 }
 
-#[cfg(feature = "custom-protocol")]
+#[cfg(not(feature = "development"))]
 fn embedded_build_summary() -> Result<serde_json::Value, String> {
     let evidence: serde_json::Value = serde_json::from_str(EMBEDDED_STAGE_EVIDENCE)
         .map_err(|error| format!("Invalid embedded stage evidence: {error}"))?;
@@ -142,6 +146,9 @@ fn embedded_build_summary() -> Result<serde_json::Value, String> {
     }
     summary.insert("verification".into(), serde_json::json!(cfg!(feature = "verification")));
     summary.insert("files".into(), serde_json::Value::Array(selected));
+    let native: serde_json::Value = serde_json::from_str(NATIVE_BUILD_INFO).map_err(|e| e.to_string())?;
+    summary.extend(native.as_object().unwrap().clone());
+    summary.insert("executionMode".into(), serde_json::json!(if cfg!(feature = "verification") { "verification" } else { "offline" }));
     Ok(serde_json::Value::Object(summary))
 }
 
@@ -202,7 +209,7 @@ async fn finish_probe(
 }
 
 fn local_navigation(url: &tauri::Url) -> bool {
-    #[cfg(not(feature = "custom-protocol"))]
+    #[cfg(feature = "development")]
     if url.scheme() == "http" && url.host_str() == Some("127.0.0.1") && url.port() == Some(4175)
         && url.username().is_empty() && url.password().is_none() { return true; }
     url.username().is_empty()
