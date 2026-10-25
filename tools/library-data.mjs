@@ -40,10 +40,19 @@ export function libraryReportRoot(root = defaultRoot) {
 export function libraryReportEditRoot(root = defaultRoot) {
   return resolve(libraryReportRoot(root), '.edits', libraryOwnerId(root));
 }
+const sharedGitContexts=new Map();
+function sharedGitDirectory(checkout){
+  const control=resolve(checkout,'.git'),stamp=lstatSync(control,{bigint:true});
+  const identity=stamp.isFile()?readFileSync(control,'utf8'):String(stamp.dev)+':'+String(stamp.ino);
+  const prior=sharedGitContexts.get(checkout);
+  if(prior?.identity===identity)return prior.directory;
+  const directory=resolve(checkout,git(checkout,['rev-parse','--git-common-dir']));
+  sharedGitContexts.set(checkout,{identity,directory});return directory;
+}
 export function librarySharedCheckout(root = defaultRoot) {
   const checkout = libraryCheckout(root);
   if (!existsSync(resolve(checkout, '.git'))) return checkout;
-  return dirname(resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir'])));
+  return dirname(sharedGitDirectory(checkout));
 }
 // Explicit immutable snapshot contract. A staged older edition can reuse the
 // exact archived blob without linking its live (possibly private) input file.
@@ -62,8 +71,14 @@ export function libraryStagingContent({root=defaultRoot,sha256,bytes}) {
 }
 const reportDigest = bytes => createHash('sha256').update(bytes).digest('hex');
 export function libraryOwnerId(root) {
-  if (!existsSync(resolve(root, '.git'))) return 'main';
-  const branch = git(root, ['branch', '--show-current']);
+  const control=resolve(root,'.git');if(!existsSync(control))return 'main';
+  let directory=control;
+  if(lstatSync(control).isFile()){
+    const match=/^gitdir: (.+)\r?\n?$/.exec(readFileSync(control,'utf8'));if(!match)throw Error('Invalid permanent worktree Git directory');
+    directory=resolve(root,match[1]);
+  }
+  const head=readFileSync(resolve(directory,'HEAD'),'utf8').trim();
+  const branch=/^ref: refs\/heads\/(.+)$/.exec(head)?.[1]||'';
   return branch.startsWith('work/') ? branch.slice(5).replaceAll('/', '-') : 'main';
 }
 function reportRegistry(root) {
@@ -488,6 +503,27 @@ export function decodeArchiveEntry(checkout, entry, revision = null, {fetch=fals
   }
   return decode(stored);
 }
+// Fetch only requested pinned archive blobs. Serial lazy fetches add one network
+// round trip per resource and can exhaust a fresh CI job's preparation budget.
+export function prefetchArchiveEntries({checkout,revision,entries,additionalBytes=0}){
+  if(!/^[a-f0-9]{40}$/.test(revision))throw Error('Invalid archive revision');
+  const byPath=new Map(entries.map(entry=>[entry.stored,entry])),wanted=new Set(byPath.keys()),objects=new Map();
+  const tree=git(checkout,['ls-tree','-rz',revision]);
+  for(const row of tree.split('\0').filter(Boolean)){
+    const match=/^\d+ blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(row);
+    if(match&&wanted.has(match[2])){const entry=byPath.get(match[2]);objects.set(match[1],Math.max(objects.get(match[1])||0,2*entry.bytes+1024));wanted.delete(match[2]);}
+  }
+  if(wanted.size)throw Error('Pinned archive paths are missing: '+[...wanted].join(', '));
+  const ids=[...objects.keys()];if(!ids.length)return {fetched:0};
+  const check=oids=>execFileSync('git',[...gitOptions,'cat-file','--batch-check=%(objectname) %(objecttype)'],{cwd:checkout,input:oids.join('\n')+'\n',encoding:'utf8',env:{...process.env,GIT_NO_LAZY_FETCH:'1'},maxBuffer:4*1024*1024,stdio:['pipe','pipe','pipe']}).trim().split('\n');
+  const missing=check(ids).filter(line=>line.endsWith(' missing')).map(line=>line.split(' ')[0]);
+  if(!missing.length)return {fetched:0};
+  const peak=additionalBytes+missing.reduce((n,oid)=>n+objects.get(oid),0);
+  if(peak>=1024**3){const disk=statfsSync(checkout);if(disk.bavail*disk.bsize<peak+5*1024**3)throw Error('Archive fetch and materialization require their peak plus 5GiB headroom');}
+  for(let at=0;at<missing.length;at+=128)execFileSync('git',[...gitOptions,'fetch','--no-tags','--no-write-fetch-head','--filter=blob:none','--stdin','origin'],{cwd:checkout,input:missing.slice(at,at+128).join('\n')+'\n',env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:['pipe','pipe','pipe']});
+  if(check(missing).some(line=>!line.endsWith(' blob')))throw Error('Archive prefetch did not restore the requested blobs');
+  return {fetched:missing.length};
+}
 export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
   return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch }));
 }
@@ -502,7 +538,7 @@ export function withLibraryLock(root, operation, { maintenance = false, organizi
 }
 function withCheckoutLock(checkout, operation, maintenance = false, organizing = false) {
   if (!existsSync(resolve(checkout, '.git'))) return operation();
-  const common = resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir']));
+  const common = sharedGitDirectory(checkout);
   const path = resolve(common, 'pando-library.lock');
   let handle;
   try { discardDeadLibraryLock(path); handle = openSync(path, 'wx'); }
@@ -689,6 +725,7 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
   if (additional >= 1024 ** 3) {
     const disk = statfsSync(shared); if (disk.bavail * disk.bsize < additional + 5 * 1024 ** 3) throw Error('Runtime sharing requires its peak additional bytes plus 5 GiB headroom');
   }
+  if(fetch)prefetchArchiveEntries({checkout:libraryCheckout(root),revision:config.revision,entries:incoming.filter(([path,entry])=>!existsSync(containedPath(source,path))&&!present.has(entry.sha256)).map(([,entry])=>entry),additionalBytes:additional});
   mkdirSync(pending, { recursive: true });
   const write = (logical, bytes, expected = null) => {
     const output = safeChild(pending, logical), sha256 = contentHash(bytes);
@@ -706,6 +743,10 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
     if (existsSync(previous)) {
       if (!lstatSync(previous).isFile() || lstatSync(previous).isSymbolicLink()) throw Error(`Unexpected old runtime source: ${previous}`);
       write(logical, readFileSync(previous), entry);
+    } else if(present.has(entry.sha256)) {
+      const bytes=readFileSync(contentPath(shared,entry.sha256));
+      if(bytes.length!==entry.bytes||contentHash(bytes)!==entry.sha256)throw Error('Existing immutable runtime blob changed: '+logical);
+      write(logical,bytes,entry);
     } else write(logical, decodeArchiveEntry(libraryCheckout(root), entry, config.revision,{fetch}), entry);
   }
   if (existsSync(source)) for (const file of sourceFiles) {

@@ -67,17 +67,16 @@ test('transitive source changes choose related units and declared HTTP browser c
 
 test('staged shell imports, re-exports and module URLs resolve to their source owners', () => {
   const f = fixture();
-  f.catalog.relocatedSources = [{ source: 'apps/editor/', output: 'shell/', files: ['apps/editor/*.js'] }];
   f.put('apps/editor/native.js');
   f.put('shared/frontend/js/workers/place-worker.js');
   f.put('apps/shared/frontend/js/modules/leaf.js', 'throw Error("wrong source owner");');
   f.put('apps/editor/reference-analysis-probe.js', `
     import './native.js';
-    import { value } from '../shared/frontend/js/modules/leaf.js';
-    export { value as terrain } from '../shared/frontend/js/modules/terrain.js';
+    import { value } from '../../shared/frontend/js/modules/leaf.js';
+    export { value as terrain } from '../../shared/frontend/js/modules/terrain.js';
     export * from './native.js';
-    const load = () => import('../shared/frontend/js/modules/other.js?revision=1');
-    const worker = new URL('../shared/frontend/js/workers/place-worker.js?cache=../../misleading#revision', import.meta.url);
+    const load = () => import('../../shared/frontend/js/modules/other.js?revision=1');
+    const worker = new URL('../../shared/frontend/js/workers/place-worker.js?cache=../../misleading#revision', import.meta.url);
   `);
   f.put('tests/unit/probe.test.mjs', "import '../../apps/editor/reference-analysis-probe.js';");
   const repo = f.repository();
@@ -132,10 +131,10 @@ test('module URL reads retain root configuration and workflow consumers', () => 
 test('staged dependencies still reject missing imports and paths outside the bundle root', () => {
   const f = fixture();
   f.catalog.relocatedSources = [{ source: 'apps/editor/', output: 'shell/', files: ['apps/editor/*.js'] }];
-  f.put('apps/editor/missing.js', "import '../shared/frontend/js/modules/missing.js';");
-  f.put('apps/editor/escape.js', "import '../../outside.js';");
-  assert.throws(() => f.repository().dependencies('apps/editor/missing.js'), /Missing dependency shared\/frontend\/js\/modules\/missing\.js/);
-  assert.throws(() => f.repository().dependencies('apps/editor/escape.js'), /outside repository/);
+  f.put('apps/editor/missing.js', "import './missing-dependency.js';");
+  f.put('apps/editor/escape.js', "import '../../../outside.js';");
+  assert.throws(() => f.repository().dependencies('apps/editor/missing.js'), /unmapped frontend import.*missing-dependency/);
+  assert.throws(() => f.repository().dependencies('apps/editor/escape.js'), /outside repository|unmapped frontend import.*outside/);
 });
 
 test('nested GIS Python changes select their existing external workflow', () => {

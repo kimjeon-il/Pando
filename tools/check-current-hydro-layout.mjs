@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Read-only validation of the current Web hydro package and real Worker.
+import {buildFrontendIndex,frontendAsset} from '../scripts/lib/frontend-layout.mjs';
 import {createHash,webcrypto} from 'node:crypto';
 import {readFileSync,readdirSync,lstatSync,realpathSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {dirname,join,resolve,relative,isAbsolute,sep} from 'node:path';
@@ -83,8 +84,9 @@ async function verifyWorker(root,manifest,packed,{supportsRange}) {
       return new Response(packed.subarray(first,last+1),{status:206,headers:{'Content-Range':'bytes '+first+'-'+last+'/'+packed.length}});
     }};
   const context=vm.createContext(scope);
+  const frontend=buildFrontendIndex(root);
   for(const file of ['hydro-shard-store.js','hydro-tile-worker.js'])vm.runInContext(
-    readFileSync(inside(root,'assets/js/workers/'+file),'utf8'),context,{filename:file,timeout:5000});
+    frontendAsset(root,'assets/js/workers/'+file,{index:frontend}).bytes.toString('utf8'),context,{filename:file,timeout:5000});
   await scope.onmessage({data:{type:'init',manifest,baseUrl,assetRevision:manifest.version,dataRevision:manifest.version,includeGeometry:false}});
   ensure(messages.at(-1)?.type==='ready','Current hydro Worker rejected package: '+(messages.at(-1)?.message||'missing ready result'));
   await vm.runInContext('rangeSupportPromise',context);

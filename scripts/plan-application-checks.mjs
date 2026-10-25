@@ -1,4 +1,4 @@
-import {buildFrontendIndex} from './lib/frontend-layout.mjs';
+import {buildFrontendIndex,emitFrontendModule} from './lib/frontend-layout.mjs';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -84,14 +84,13 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     const found = new Set((runtimeDependencies[publicFile] || []).map(sourcePath));
     dependencyCache.set(file, found);
     if (!executable(file) || !exists(file)) return [...found];
-    const source = parseJavaScript(read(file), { filePath: file });
-    const relocation = (catalog.relocatedSources || []).find(row => file.startsWith(row.source) && matches(file, row.files));
-    const output = relocation ? relocation.output + file.slice(relocation.source.length) : file;
+    const text=publicBySource.has(file)?emitFrontendModule(read(file),file,frontendIndex):read(file);
+    const source = parseJavaScript(text, { filePath: file });
+    const output = publicFile;
     function relativeTarget(value) {
       const target = posix.normalize(posix.join(posix.dirname(output), value.split(/[?#]/)[0]));
       if (target === '..' || target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
-      return relocation && target.startsWith(relocation.output)
-        ? relocation.source + target.slice(relocation.output.length) : target;
+      return target;
     }
     const bindings = new Map();
     walkJavaScript(source, node => { if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') bindings.set(node.id.name, node.init); });

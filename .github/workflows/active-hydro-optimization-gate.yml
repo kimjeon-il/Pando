@@ -7,8 +7,8 @@ on:
       - 'tools/check-current-hydro-layout.mjs'
       - 'tests/unit/current-hydro-layout.test.mjs'
       - 'tests/unit/hydro-packfile.test.mjs'
-      - 'assets/js/workers/hydro-tile-worker.js'
-      - 'assets/js/workers/hydro-shard-store.js'
+      - 'shared/frontend/js/workers/hydro-tile-worker.js'
+      - 'shared/frontend/js/workers/hydro-shard-store.js'
       - 'assets/data/hydro/**'
       - '.github/workflows/active-hydro-optimization-gate.yml'
   workflow_dispatch:
@@ -29,13 +29,14 @@ jobs:
           sparse-checkout: |
             /.nvmrc
             /.github/actions/library-data/
-            /tools/library-data.mjs
+            /tools/library-*.mjs
+            /scripts/lib/frontend-layout.mjs
             /config/library-data.json
             /tools/check-current-hydro-layout.mjs
             /tests/unit/current-hydro-layout.test.mjs
             /tests/unit/hydro-packfile.test.mjs
-            /assets/js/workers/hydro-tile-worker.js
-            /assets/js/workers/hydro-shard-store.js
+            /shared/frontend/js/workers/hydro-tile-worker.js
+            /shared/frontend/js/workers/hydro-shard-store.js
             /assets/data/hydro/
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data

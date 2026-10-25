@@ -4,8 +4,8 @@ on:
   push:
     branches: [work/gis]
     paths:
-      - 'assets/js/workers/hydro-shard-store.js'
-      - 'assets/js/workers/hydro-tile-worker.js'
+      - 'shared/frontend/js/workers/hydro-shard-store.js'
+      - 'shared/frontend/js/workers/hydro-tile-worker.js'
       - 'tools/build-hydro-packfile.mjs'
       - 'tests/unit/hydro-packfile.test.mjs'
       - '.github/workflows/hydro-packfile-runtime-gate.yml'
@@ -25,13 +25,14 @@ jobs:
           filter: blob:none
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            /assets/js/workers/hydro-shard-store.js
-            /assets/js/workers/hydro-tile-worker.js
+            /shared/frontend/js/workers/hydro-shard-store.js
+            /shared/frontend/js/workers/hydro-tile-worker.js
             /assets/data/hydro/v0.13.2/
             /tools/build-hydro-packfile.mjs
             /tests/unit/hydro-packfile.test.mjs
             /tests/unit/hydro-packfile-builder.test.mjs
-            /tools/library-data.mjs
+            /tools/library-*.mjs
+            /scripts/lib/frontend-layout.mjs
             /tools/library-report-layout.mjs
             /tools/library-content.mjs
             /config/library-data.json
@@ -57,6 +58,6 @@ jobs:
           node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" 
           node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" --check
           node --test tests/unit/hydro-packfile-builder.test.mjs
-          node --check assets/js/workers/hydro-tile-worker.js
-          node --check assets/js/workers/hydro-shard-store.js
+          node --check shared/frontend/js/workers/hydro-tile-worker.js
+          node --check shared/frontend/js/workers/hydro-shard-store.js
           node --test tests/unit/hydro-packfile.test.mjs

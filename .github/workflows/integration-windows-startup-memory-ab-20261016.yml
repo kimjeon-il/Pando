@@ -51,7 +51,7 @@ jobs:
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          pnpm --dir apps/editor install --ignore-workspace --frozen-lockfile
+          pnpm --dir apps/editor install --frozen-lockfile
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Check map-data and physical-loading unit contracts
         shell: pwsh
