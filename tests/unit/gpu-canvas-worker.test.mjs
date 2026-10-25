@@ -301,6 +301,16 @@ test('the real Canvas Worker reuses unchanged projected country geometry across 
   paint(3); assert.equal(pathBuildCount(), 3);
 });
 
+test('Canvas data acknowledgements identify their project and obsolete data cannot acknowledge a new project', () => {
+  const { send, replies } = canvasRuntime();
+  send({ type: 'replace-data', projectGeneration: 3, geometryRevision: 0, features: [] });
+  assert.equal(replies.at(-1).message.type, 'data-ready');
+  assert.equal(replies.at(-1).message.projectGeneration, 3);
+  const count = replies.length;
+  send({ type: 'replace-data', projectGeneration: 2, geometryRevision: 99, features: [] });
+  assert.equal(replies.length, count);
+});
+
 test('the Worker echoes a submission identity only for its direct view result, never a hydro redraw', () => {
   const { replies, send, runTimer } = canvasRuntime();
   assert.equal(replies[0].message.type, 'ready');

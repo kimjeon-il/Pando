@@ -1059,7 +1059,7 @@ function canvasFallbackWorkerMain() {
         }
         if (incomingGeometryRevision < geometryRevision) {
           self.postMessage({
-            type: 'data-ready', revision: Number(message.revision || 0), geometryRevision,
+            type: 'data-ready', projectGeneration, revision: Number(message.revision || 0), geometryRevision,
             taskToken: Number(message.taskToken || 0), ids: message.ids || [],
             replaceAll: true, stale: true,
           });
@@ -1072,7 +1072,7 @@ function canvasFallbackWorkerMain() {
         // Keep the previously presented shared strokes until the matching
         // replacement is published. New generations retain only terrain resources.
         self.postMessage({
-          type: 'data-ready',
+          type: 'data-ready', projectGeneration,
           revision: Number(message.revision || 0),
           geometryRevision,
           taskToken: Number(message.taskToken || 0),
@@ -1083,7 +1083,7 @@ function canvasFallbackWorkerMain() {
         const incomingGeometryRevision = Number(message.geometryRevision || 0);
         if (incomingGeometryRevision < geometryRevision) {
           self.postMessage({
-            type: 'data-ready', revision: Number(message.revision || 0), geometryRevision,
+            type: 'data-ready', projectGeneration, revision: Number(message.revision || 0), geometryRevision,
             taskToken: Number(message.taskToken || 0), ids: message.ids || [],
             replaceAll: false, stale: true,
           });
@@ -1112,7 +1112,7 @@ function canvasFallbackWorkerMain() {
         // Keep the previously presented shared strokes until the matching
         // replacement is published. A new project starts with a fresh Worker.
         self.postMessage({
-          type: 'data-ready',
+          type: 'data-ready', projectGeneration,
           revision: Number(message.revision || 0),
           geometryRevision,
           taskToken: Number(message.taskToken || 0),
