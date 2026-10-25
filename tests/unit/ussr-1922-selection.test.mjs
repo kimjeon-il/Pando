@@ -29,3 +29,20 @@ test('published December world includes founders with the reviewed source versio
  for(const entity of project.territorialEntities)assert.equal(entity.properties.sourceGeometryVersion,entity.id+':1922-12-30-reviewed-v2');
  for(const id of ids.slice(1))assert.equal(project.timelineRecords.parentRelations.find(row=>row.entityId===id).parentId,ids[0]);
 });
+
+test('USSR does not exist before its exact founding day',()=>{
+ const ussr=entities[0];
+ assert.equal(ussr.lifetime.validFrom,'1922-12-30');
+ assert.equal(ussr.geometryVersions.some(version=>version.versionId.endsWith('-before-reviewed-day')),false);
+ for(const date of ['1922-01-01','1922-01-31','1922-11-30','1922-12-29']){
+  assert.equal(territorialEntityExistsAt(ussr,date),false,date);
+  assert.equal(selectGeometryVersion(ussr,date),null,date);
+ }
+ for(const date of ['1922-12-30','1922-12-31']){
+  assert.equal(territorialEntityExistsAt(ussr,date),true,date);
+  assert.equal(selectGeometryVersion(ussr,date)?.versionId,ussr.entityId+':1922-12-30-reviewed-v2');
+ }
+ const index=JSON.parse(readFileSync(new URL('../../assets/data/builtin-world/generated/v1/index.json',import.meta.url)));
+ for(let month=1;month<=11;month++)assert.equal(selectBuiltinCountries(index,`1922-${String(month).padStart(2,'0')}`).some(row=>row.entityId===ussr.entityId),false);
+ assert.equal(selectBuiltinCountries(index,'1922-12').some(row=>row.entityId===ussr.entityId),true);
+});

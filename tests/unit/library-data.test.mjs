@@ -10,6 +10,22 @@ import { gzipSync } from 'node:zlib';
 import { compactLibraryCheckout, decodeArchiveEntry, prepareLibraryData, libraryReportRoot, libraryReportEditRoot, libraryMaterializedRoot, withLibraryWrite, hydrateReports, safeChild, storeLibraryData } from '../../tools/library-data.mjs';
 import { reportPath } from '../../tools/report-paths.mjs';
 
+test('native library storage reuses unedited object references without reading their chunks',async()=>{
+  const {storeNativeLibraryObjects}=await import('../../tools/library-data.mjs');
+  assert.equal(typeof storeNativeLibraryObjects,'function');
+  const old='a'.repeat(64),reads=[],writes=[];
+  const entities=storeNativeLibraryObjects({libraryIndex:{entities:[{entityId:'state:edited',sha256:'new'},{entityId:'state:untouched',sha256:'same'}]},
+    previousLibrary:{entities:{'state:edited':'b'.repeat(64),'state:untouched':old}},
+    previousIndex:{entities:[{entityId:'state:edited',sha256:'old'},{entityId:'state:untouched',sha256:'same'}]},
+    readChunk:entry=>{reads.push(entry.entityId);if(entry.entityId==='state:untouched')throw new Error('unrelated source read');return gzipSync(Buffer.from('{"entityId":"state:edited","lifetime":{"validFrom":"1841","validTo":null}}'));},
+    put:(path,bytes)=>writes.push({path,text:bytes.toString()})});
+  assert.deepEqual(reads,['state:edited']);
+  assert.equal(entities['state:untouched'],old);
+  assert.equal(writes.length,1);
+  assert.equal(writes[0].text,'{"entityId":"state:edited","lifetime":{"validFrom":"1841","validTo":null}}\n');
+  assert.equal(writes[0].path,`objects/${entities['state:edited']}.json`);
+});
+
 test('public release paths remain directly archivable from the storage Git tree', t => {
   const parent=mkdtempSync(join(tmpdir(),'pando-public-release-store-')),root=join(parent,'app'),checkout=join(root,'.library-data/repository');
   t.after(()=>rmSync(parent,{recursive:true,force:true}));
