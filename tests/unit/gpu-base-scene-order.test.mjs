@@ -27,16 +27,17 @@ for (const style of ['political', 'physical']) {
           return { renderedKeys: packets.map(packet => packet.key), missingKeys: [] };
         } };
       drawGpuBaseScene({ gl, frame: {}, width: 10, height: 10, terrainVisible: true,
+        surfacePresentation: { quality: 'canonical' },
         terrainStyle: style, countriesVisible: false,
         countries: { mesh: { triangleIndices: { length: 3 } }, overrideMesh: { triangleIndices: { length: 3 } },
-          landMaskProgram: 'land-mask' },
+          fillProgram: 'country-surface' },
         prepared: { baseTriangleDraw: range, baseBoundaryDraw: range, overrideTriangleDraw: range, overrideBoundaryDraw: range,
           deferredOverlayKeys: new Set(), failedOverlayKeys: new Set(),
           physicalLandItems: [{ kind: 'polygon', packet: { key: 'physical-land', role: 'physical-land' } }],
           territoryItems: [{ kind: 'polygon', packet: { key: 'general', role: 'territorial-fill' } }],
           independentItems: [{ kind: 'polygon', packet: { key: 'regional', role: 'regional-overlay' } }] },
       }, { drawOceanSubstrate() {}, polygonOverlayPass, strokeRenderer: {},
-        drawProgram() {},
+        drawProgram: (...args) => { if (args[10] && !state.color) events.push({kind:'mask-physical',key:'country-surface',...state}); },
         renderTerrain: pass => events.push({ kind: pass, ...state }),
         drawHydro() {}, drawCountryBoundaryStrokes: () => ({ succeeded: true }) });
       assert.deepEqual(events.map(event => event.kind),
@@ -46,7 +47,7 @@ for (const style of ['political', 'physical']) {
         assert.equal(event.color, false);
         assert.equal(event.func, 'ALWAYS');
       }
-      assert.equal(events[0].key, 'physical-land', 'independent regions must not add land to the mask');
+      assert.equal(events[0].key, 'physical-land', 'the paired physical source survives country removal and visibility changes');
       for (const event of events.slice(1)) {
         assert.equal(event.stencil, true);
         assert.equal(event.color, true);
@@ -71,7 +72,7 @@ test('WebGL mixes overlays by order and protects base water and borders from fil
     drawBatches: packets => record(packets, 'stroke') };
   const scene = { polygons: [{ key: 'upper-fill', order: 200 }], strokes: [{ key: 'lower-line', sourceKey: 'stroke:lower-line:1', order: 100 }] };
   const prepared = prepareGpuBaseScene({ scene, frame: {}, presentedStrokeDomains: new Map() }, { polygonOverlayPass, strokeRenderer });
-  drawGpuBaseScene({ gl, frame: {}, countriesVisible: false, terrainVisible: false, countries: {}, prepared },
+  drawGpuBaseScene({ gl, frame: {}, surfacePresentation:{quality:'canonical'},countriesVisible: false, terrainVisible: false, countries: {}, prepared },
     { drawOceanSubstrate() {}, renderTerrain() {}, drawHydro: kind => events.push({ key: kind, ...state }),
       drawCountryBoundaryStrokes: () => events.push({ key: 'base-borders', ...state }), polygonOverlayPass, strokeRenderer });
   const lineResourceKey = prepared.overlayItems.find(item => item.kind === 'stroke').resourcePacket.key;
@@ -94,6 +95,7 @@ test('changing overlay order keeps the frontmost stroke or fill aligned with can
     layerPresentation: { overlayOrder: ['genericFeatures', 'objects'] } };
   const records = [{ domain: 'territorial', id: 'R' }, { domain: 'generic', id: 'G' }];
   const ports = { projectState: { state }, selectionServices: { normalizeObjectRef }, renderScene: { OVERLAY_GROUPS },
+    objectModelB: {territorialScope:{displayFeature:id=>id==='R'?region:null}},
     applicationServicesB: { layerObjectRank }, territorialModel: { entityRepository: { get: id => id === 'R' ? region : null, ancestors: () => [] } },
     objectLookup: { isObjectAvailable:()=>true, objectRefExists: () => true }, layerPresentation: { isLayerItemVisible: () => true },
     surfaces: { isMobile: () => false }, rendering: { selectionPerformanceMetrics: {} },

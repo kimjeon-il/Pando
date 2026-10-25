@@ -548,9 +548,7 @@ function canvasFallbackWorkerMain() {
         // Use the same adopted country geometry as the Canvas substrate
         // and country fills, including country visibility and edit patches.
         const landPath = createCanvasPath(projection, context);
-        for (const packet of message.scenePolygons || []) {
-          if (packet.role === 'physical-land') landPath(self.PandoLabCanvasSceneComposition.geometryFor(packet));
-        }
+        for (const geometry of self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || [])) landPath(geometry);
         context.clip();
       }
       if (message.projection === 'globe') {
@@ -586,9 +584,7 @@ function canvasFallbackWorkerMain() {
           context.setTransform(dpr, 0, 0, dpr, 0, 0);
           context.beginPath();
           const landPath = createCanvasPath(projection, context);
-          for (const packet of message.scenePolygons || []) {
-            if (packet.role === 'physical-land') landPath(self.PandoLabCanvasSceneComposition.geometryFor(packet));
-          }
+          for (const geometry of self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || [])) landPath(geometry);
           context.clip();
           drawDem('land');
           context.restore();
@@ -859,6 +855,7 @@ function canvasFallbackWorkerMain() {
       return outline;
     }
     function renderCountryBoundaries(message, projection, dpr, target = context, reserve = false) {
+      if (message.surfacePresentation.quality === 'pending' || countrySharedBoundary?.sourceQuality !== message.surfacePresentation.quality) return;
       const theme = message.theme, path = createCanvasPath(projection, target);
       const sharedOnly = message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical';
       target.save(); target.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -896,8 +893,7 @@ function canvasFallbackWorkerMain() {
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
         const geoPath = createCanvasPath(projection, context);
         const visibleLand = message.visible ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
-        const landShapes = (message.scenePolygons || []).filter(packet => packet.role === 'physical-land')
-          .map(packet => self.PandoLabCanvasSceneComposition.geometryFor(packet));
+        const landShapes = self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || []);
         const terrainPlan = terrainRenderPlan(message, projection, width, height, dpr);
         const substrateKey = JSON.stringify([projectedPathKey, pixelWidth, pixelHeight, dpr, message.terrainDpr,
           message.physicalSettings?.terrainVisible, message.physicalSettings?.terrainStyle, message.darkTheme,
@@ -918,7 +914,7 @@ function canvasFallbackWorkerMain() {
           substrate: () => {
         context.globalAlpha = theme.baseLandAlpha;
         context.fillStyle = theme.defaultLand;
-        self.PandoLabCanvasSceneComposition.drawGeneralLand(context, geoPath, message.scenePolygons || [], visibleLand);
+        self.PandoLabCanvasSceneComposition.drawGeneralLand(context, geoPath, message.scenePolygons || []);
         context.globalAlpha = 1;
           },
           terrain: () => {
@@ -944,7 +940,7 @@ function canvasFallbackWorkerMain() {
           context.fill();
         }
           },
-          'territorial-fill': () => self.PandoLabCanvasSceneComposition.drawTerritorialFills(context, geoPath, message.scenePolygons || [], substrate, dpr),
+          'territorial-fill': () => self.PandoLabCanvasSceneComposition.drawTerritorialFills(context, geoPath, message.scenePolygons || [], substrate, dpr, message.surfacePresentation),
           'country-boundary': () => renderCountryBoundaries(message, projection, dpr),
           'physical-water': () => self.PandoLabCanvasSceneComposition.drawPhysicalWater(context,geoPath,message.scenePolygons||[],{color:theme.ocean,fillAlpha:1}),
         };

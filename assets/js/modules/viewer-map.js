@@ -270,7 +270,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   }
   const selectionPerformanceMetrics={};
 
-  objectPicking.connect({projectState:{state},platform:{d3,$:id=>document.getElementById(id),clamp},
+  objectPicking.connect({projectState:{state},objectModelB:objectPresentation,platform:{d3,$:id=>document.getElementById(id),clamp},
     selectionServices:{normalizeObjectRef},objectLookup:objectQuery,objectOperationsA:objectQuery,territorialModel:{entityRepository:repository},
     layerPresentation:{isLayerItemVisible:objectCatalog.isLayerItemVisible},renderScene:{OVERLAY_GROUPS},mapView:mapProjection,
     labelPresentation:{currentMapZoom:currentZoom},cutGeometry:{coordinateBounds},landRelations:{pointInCountryFeature:(coord,feature)=>hitTester.containsGeometry(coord,feature.geometry)},

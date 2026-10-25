@@ -167,6 +167,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
         { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
     };
     for (const feature of renderCountries.labelById.values()) {
+      if (dependencies.projectState.state.countryVisualPhase === 'pending') continue;
       const id = String(feature.id || '');
       const group = 'objects';
       const namesVisible = visibility.name;

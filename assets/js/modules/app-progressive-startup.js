@@ -117,7 +117,6 @@ export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeomet
     const previewAllowed = dependencies.rendering.gpuMapRenderer.getRuntimeState?.().previewAllowed !== false;
     dependencies.projectState.state.auditPreviewTerritorialUnits = previewAllowed
       ? dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) : null;
-    dependencies.projectState.state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
 
     if (restored) {
       if(baseline)requireCurrentBaseline(baseline,dependencies.domains.projectDomain.getGeneration());
@@ -350,15 +349,11 @@ export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeomet
     (0, dependencies.mapHostViewB.resizeMap)();
     dependencies.lifecycleUi.projectUi.syncHistory();
     await dependencies.domains.editingDomain.setTool('select', { announce: false });
-    let previewFrameReady = false;
     if (allowPreview) {
       const framePromise = dependencies.rendering.gpuMapRenderer.waitForPreviewFrame();
-      previewFrameReady = await Promise.race([
-        framePromise,
-        new Promise(resolve => setTimeout(() => resolve(false), 4000)),
-      ]);
-      if (previewFrameReady) (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.PREVIEW_READY);
-      else framePromise.then(presented => {
+      // Geometry preparation must never wait for a preview that the shared
+      // surface policy may withhold at the current scale.
+      framePromise.then(presented => {
         if (presented && !(0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness)) {
           (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.PREVIEW_READY);
         }
@@ -369,7 +364,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin',libraryGeomet
       timelineMonth: dependencies.domains.commandOwner.state()?.timelineCursor || '',
       projectGeneration: dependencies.rendering.gpuMapRenderer.getProjectGeneration?.() };
     (0, dependencies.feedback.setActionStatus)(
-      hasStoredCountryGeometry || !previewFrameReady ? '저장된 지도 복원 중…' : '미리보기 표시 완료. 편집 데이터 준비 중…',
+      hasStoredCountryGeometry ? '저장된 지도 복원 중…' : '정밀 경계 준비 중…',
       'working',
       0,
     );

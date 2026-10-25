@@ -26,15 +26,16 @@
     context.fillStyle = packet.style.color;
     context.fill();
   }
+  function generalLandShapes(packets) {
+    return packets.filter(packet => packet.role === 'physical-land').map(geometryFor);
+  }
   function drawGeneralLand(context, path, packets) {
     context.beginPath();
-    for (const packet of packets) {
-      if (packet.role !== 'physical-land') continue;
-      path(geometryFor(packet));
-    }
+    for (const geometry of generalLandShapes(packets)) path(geometry);
     context.fill();
   }
-  function drawTerritorialFills(context, path, packets, substrate, dpr) {
+  function drawTerritorialFills(context, path, packets, substrate, dpr, surfacePresentation) {
+    if (surfacePresentation.quality === 'pending') return;
     const territories = packets.filter(packet => packet.role === 'territorial-fill')
       .sort((a, b) => a.territoryDepth - b.territoryDepth || a.order - b.order);
     for (const packet of territories) {
@@ -215,6 +216,6 @@
     for(const packet of packets)if(packet.role==='physical-water')drawPolygon(context,path,{...packet,blendMode:'normal',style});
     context.globalAlpha=1;context.globalCompositeOperation='source-over';
   }
-  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawPhysicalWater, drawTerritorialFills, drawOverlays, drawGeneralLand, drawEmphasis, geometryFor,
+  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawPhysicalWater, drawTerritorialFills, drawOverlays, drawGeneralLand, generalLandShapes, drawEmphasis, geometryFor,
     countryBoundaryBatches, drawStrokes });
 })(globalThis);
