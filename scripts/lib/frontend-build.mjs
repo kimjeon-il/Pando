@@ -51,7 +51,12 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  root=resolve(root);const pinned=readPinnedData?null:pinnedContext(root);
  readPinnedData??=pinned.read;dataPaths??=pinned.dataPaths;
  sourceCommit??=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
- readSourceBytes??=path=>readFileSync(resolve(root,path));
+ const readBytes=readSourceBytes??(path=>readFileSync(resolve(root,path)));
+ readSourceBytes=path=>{
+  const bytes=readBytes(path);
+  return /\.(?:[cm]?js|json|css|html|svg|txt|md)$/i.test(path)
+   ?Buffer.from(bytes.toString('utf8').replaceAll('\r\n','\n')):bytes;
+ };
  const appVersion=String(JSON.parse(readSourceBytes('package.json')).version||'');
  if(!/^\d+\.\d+\.\d+$/.test(appVersion))throw Error('Invalid frontend version');
  const buildId=appVersion+'-build-'+(process.env.PANDOLAB_BUILD_ID||sourceCommit.slice(0,12)).replace(/[^A-Za-z0-9._-]/g,'-'),assetRevision=buildId;
