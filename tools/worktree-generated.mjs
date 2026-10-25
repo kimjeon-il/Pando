@@ -6,6 +6,7 @@ import {atomicStorageJSON,containedPath,contentFiles,contentHash} from './librar
 import {fileHash} from './library-storage.mjs';
 
 const schema='pando-generated-cleanup-v1';
+const presentPath=path=>{try{lstatSync(path);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}};
 export function cargoRetirementRequests({root,seeds,protectedPartitions=[]}){
  const target=containedPath(root,'apps/editor/src-tauri/target'),files=contentFiles(target),nodes=new Map(),hashes=new Map(),directories=new Map();
  const exactJSON=text=>JSON.parse(text,(key,value,context)=>typeof value==='number'?context.source:value);
@@ -117,7 +118,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
  const verified=new Map();
  const stamp=s=>`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}:${s.nlink}:${s.mode}`;
  const check=(e,reuse=false)=>{
-  const p=validate(e.root,e.path,roots,protectedPaths,compilerScopes);if(!existsSync(p))return p;
+  const p=validate(e.root,e.path,roots,protectedPaths,compilerScopes);if(!presentPath(p))return p;
   const before=lstatSync(p,{bigint:true}),current=stamp(before);
   if(`${before.dev}:${before.ino}:${before.size}:${before.mtimeNs}`!==e.identity)throw Error(`Stale or changed output: ${p}`);
   // Preflight hashes all bytes once. Before unlinking, reuse only an unchanged
@@ -141,7 +142,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
   if(!state.batch){
    const start=state.completedCount,end=Math.min(start+250,manifest.entries.length),links=new Map(),files=[];
    for(let index=start;index<end;index++){
-    const e=manifest.entries[index],p=check(e,true),present=existsSync(p);let physicalBytes=0;
+    const e=manifest.entries[index],p=check(e,true),present=presentPath(p);let physicalBytes=0;
     if(present&&e.action==='delete'){const s=lstatSync(p,{bigint:true}),key=s.dev+':'+s.ino,left=links.get(key)??Number(s.nlink);physicalBytes=left===1?e.bytes:0;links.set(key,left-1);}
     files.push({present:present||state.pending?.index===index,physicalBytes:state.pending?.index===index?state.pending.physicalBytes:physicalBytes});
    }
@@ -151,7 +152,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
   }
   for(let index=state.completedCount;index<state.batch.end;index++){
    const e=manifest.entries[index],planned=state.batch.files[index-state.batch.start],p=check(e,true);
-   if(!existsSync(p)){if(e.action==='relocate'&&(!existsSync(destination(e,relocationRoots))||fileHash(e.destination)!==e.sha256))throw Error('Missing relocation original and destination');finish(index,e,planned.present,planned.physicalBytes);continue;}
+   if(!presentPath(p)){if(e.action==='relocate'&&(!existsSync(destination(e,relocationRoots))||fileHash(e.destination)!==e.sha256))throw Error('Missing relocation original and destination');finish(index,e,planned.present,planned.physicalBytes);continue;}
    const s=lstatSync(p),physicalBytes=e.action==='delete'&&s.nlink===1?e.bytes:0;
    if(physicalBytes!==planned.physicalBytes){planned.physicalBytes=physicalBytes;save();}
    if(e.action==='relocate'){
