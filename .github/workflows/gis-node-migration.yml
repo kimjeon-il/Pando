@@ -43,4 +43,8 @@ jobs:
           node --check tools/download-terrain-source.mjs
           node --check tools/place-batch-pipeline.mjs
           node --check tools/build-place-candidates.mjs
+          node --check tools/lib/geonames-zip.mjs
+          node --check tools/lib/geonames-policy.mjs
+          node --check tools/lib/geonames-review.mjs
+          node --check tools/lib/geonames-statistics.mjs
           node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs
