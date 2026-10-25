@@ -42,6 +42,14 @@ python scripts/gis/run-source.py --help
 
 시아첸 연구용 Python 스크립트 8개와 전용 GitHub Actions 8개는 `work/gis`에서 정리했다. 공통 GIS 수동 실행기에서 폐기된 `historical-topography-probe` 작업도 제거했다. 지도 PNG 22개, GeoJSON 11개, Markdown 보고서 13개, JSON 분석 자료 8개는 [외부 라이브러리의 시아첸 보고서 폴더](https://github.com/kimjeon-il/PandoLab-library-data/tree/main/reports/borders/reconstruction/siachen)에 그대로 보관한다. 기존 조사 코드는 Git 이력에서 복구할 수 있다. 앱·웹 런타임과 공통 GIS 생성기는 변경하지 않았다.
 
+## 2026-10-25 2차 GIS/Python 정리
+
+- 과거 v0.12.6~v0.30.8 UI·런타임 소스 문자열 검사 중 Node/C++ 회귀 검사와 겹치는 Python 검사를 정리했다. 현재의 Node 단위·브라우저·공통 Core 검사는 그대로 유지한다.
+- 원본이 Git 이력에 고정된 구형 Hydro v0.12.3~v0.12.5 복원·재패킹·보고 도구와 전용 Actions 검사는 종료했다. 기존 아카이브 데이터 및 보고서는 삭제하지 않았다.
+- 호출처가 없는 일회성 수계 wrapper, 인도네시아 섬 감사, preview topology 진단, DEM peak-memory 측정, LSIB 보고서 생성기를 제거했다. 현재 Hydro/DEM/국경 생성기와 독립 형상 검증은 유지한다.
+- 독일제국·북슐레스비히 원본 수집 및 WMS 오버레이 연구 도구는 역사 지도 이미지의 영구 보존·최종 반영 여부가 확정되지 않아 유지한다. OSM 수계 독립 출처 대체 도구도 진행 중인 작업에 필요하므로 유지한다.
+- 기존 실행기가 사용하는 소스 추출 헬퍼와 독립적인 동독·보르네오·LSIB·수계 Python 검사는 보존했다.
+
 ## 남겨둔 테스트와 안전 규칙
 
 - `package.json`의 과거 `test:python`/새 `test:gis-python`은 **수동 실행 전용**. 기본 `pnpm test`에서 삭제했다. `check:versioning`의 프로젝트 스키마 점검은 동일 역할의 Node 단위검사 `tests/unit/versioning-source-schema.test.mjs`로 옮겼다.
