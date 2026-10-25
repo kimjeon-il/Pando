@@ -40,6 +40,6 @@ test('Android sync reports an uninitialized scaffold instead of creating a parti
   assert.ok(existsSync(script), 'Android regeneration needs a canonical source sync');
   const { syncAndroid } = await import(script.href);
   const directory = await mkdtemp(join(tmpdir(), 'pandolab-android-uninitialized-'));
-  await assert.rejects(syncAndroid({ directory }), /init:android/);
+  await assert.rejects(syncAndroid({ directory }), /CI native producer/);
   assert.equal(existsSync(join(directory, activity)), false);
 });
