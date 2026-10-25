@@ -5,7 +5,6 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const rad = Math.PI / 180;
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const cmp = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const pythonRound = (value, digits) => {
