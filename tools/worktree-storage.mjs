@@ -5,6 +5,8 @@ import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atomicStorageJSON, containedPath, contentHash, contentFiles, contentPath, publishContent, linkContentView, removeContentView, recoverContentPermissions } from './library-content.mjs';
 import { libraryStagingContent, librarySharedCheckout, withLibraryLock, discardDeadLibraryLock } from './library-data.mjs';
+import { previewGeneratedCleanup, applyGeneratedCleanup } from './worktree-generated.mjs';
+import { snapshotGitStorage, repackLocalObjects } from './library-storage.mjs';
 
 const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const schema='pando-worktree-storage-v1';
@@ -44,7 +46,7 @@ const fileIdentity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}
 const payloadIdentity=path=>fileIdentity(path).split(':').slice(0,4).join(':');
 export function runningStorageConsumers(){
   if(process.platform!=='win32')throw Error('Consumer inventory requires this Windows host');
-  const command="Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(cargo|rustc|rust-lld|cmake|ninja|msbuild|pandolab.*|baseline-ui_tests|candidate-ui_tests)\\.exe$' -or ($_.Name -eq 'node.exe' -and $_.CommandLine -match 'stage\\.mjs|dev\\.mjs|tauri.*(dev|build)') } | Select-Object ProcessId,Name,CommandLine,ExecutablePath | ConvertTo-Json -Compress";
+  const command="Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|pandolab.*|baseline-ui_tests|candidate-ui_tests)\\.exe$' -or ($_.Name -match '^java(w)?\\.exe$' -and $_.CommandLine -match 'gradle') -or ($_.Name -match '^(msedgewebview2|chrome|msedge)\\.exe$' -and $_.CommandLine -match 'PandoLab|worktrees') -or ($_.Name -eq 'node.exe' -and $_.CommandLine -match 'stage\\.mjs|dev\\.mjs|tauri.*(dev|build)') } | Select-Object ProcessId,Name,CommandLine,ExecutablePath | ConvertTo-Json -Compress";
   const json=execFileSync('powershell.exe',['-NoProfile','-Command',command],{encoding:'utf8',windowsHide:true}).trim();
   return json?[JSON.parse(json)].flat():[];
 }
@@ -171,7 +173,7 @@ export function pruneApplicationBlobs({root=repository,roots=permanentWorktrees(
   return apply?withStorageLock(root,settings,operation):operation();
 }
 const retiredQtRuns=['qt-pair-70789caf-failed','qt-pair-4418b791','qt-pair-9bd078c7','qt-pair-ad3ba73b-baseline','qt-pair-ad3ba73b-candidate','qt-pair-b81c6173-baseline','qt-pair-b81c6173-candidate'];
-export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers()}={}){
+export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers(),retire=false}={}){
   if(!settings)throw Error('Worktree storage is not activated');
   const store={root:settings.cacheRoot,blobDirectory:'blobs'};
   const validate=(app,directory,scan=true)=>{
@@ -204,6 +206,16 @@ export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees
       const directories=[join(runRoot,'qt-runtime'),...readdirSync(runRoot,{withFileTypes:true}).filter(x=>x.isDirectory()&&x.name.startsWith('p9-windows-qt-')).map(x=>join(runRoot,x.name,'qt-runtime'))].filter(existsSync);
       for(const directory of directories){
         let checked;try{checked=validate(app,directory);}catch(error){entries.push({root:app,directory,status:'protected',reason:error.message});continue;}
+        if(retire){
+          const files=checked.files.filter(f=>f.logical!=='source-identity.json'),marker=containedPath(directory,'source-identity.json');
+          // Only already-owned shared SDK views qualify; unknown local bytes stay.
+          const owned=files.every(f=>{const blob=contentPath(store,contentHash(readFileSync(f.path)));return existsSync(blob)&&statSync(blob,{bigint:true}).ino===statSync(f.path,{bigint:true}).ino;});
+          if(!owned){entries.push({root:app,directory,status:'protected',reason:'Runtime includes unowned bytes'});continue;}
+          const sourceIdentityText=readFileSync(marker,'utf8');
+          const row={root:app,directory,status:apply?'removed-runtime':'retired-runtime',bytes:files.reduce((n,f)=>n+f.bytes,0),sourceIdentity:JSON.parse(sourceIdentityText),sourceIdentityText,sourceIdentitySha256:contentHash(Buffer.from(sourceIdentityText))};entries.push(row);
+          if(apply){for(const f of files)removeContentView(store,f.path,checked.view);unlinkSync(marker);const prune=p=>{for(const e of readdirSync(p,{withFileTypes:true})){if(!e.isDirectory()||e.isSymbolicLink())throw Error('Unexpected runtime remnant');prune(containedPath(p,e.name));}rmdirSync(p);};prune(directory);}
+          continue;
+        }
         for(const file of checked.files.filter(x=>x.logical!=='source-identity.json')){
           const identity=fileIdentity(file.path),bytes=readFileSync(file.path),sha256=contentHash(bytes),blob=contentPath(store,sha256),s=lstatSync(file.path);
           const row={root:app,directory,path:file.logical,sha256,bytes:bytes.length,status:'eligible'};entries.push(row);
@@ -314,6 +326,35 @@ export async function activateCompilerCache(root=repository){
 
 async function main(){
   const args=process.argv.slice(2),root=resolve(args.find(x=>x.startsWith('--root='))?.slice(7)||repository);
+  if(args.includes('--compact-git')){
+    const shared=dirname(commonGit(root)),settings=storageSettings(root),progress=message=>console.error('App Git storage: '+message);
+    if(!settings)throw Error('Worktree storage activation required');
+    const operation=()=>{
+      const journalPath=containedPath(settings.cacheRoot,'app-git-compaction.pending.json');
+      const busy=execFileSync('powershell.exe',['-NoProfile','-Command',"@(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(git|git-pack-objects|git-index-pack)\\.exe$' }).Count"],{encoding:'utf8',windowsHide:true}).trim();
+      if(busy!=='0')throw Error('Another Git operation is active; retry after it finishes');
+      const journal=existsSync(journalPath)?JSON.parse(readFileSync(journalPath,'utf8')):snapshotGitStorage(shared,progress);
+      const save=()=>atomicStorageJSON(journalPath,journal);
+      if(args.includes('--apply')){save();progress('packing and independently verifying all local objects');repackLocalObjects(shared,journal,save);}
+      const output=args.find(x=>x.startsWith('--output='))?.slice(9);if(output)atomicStorageJSON(resolve(output),journal);
+      if(args.includes('--apply'))unlinkSync(journalPath);
+      console.log(JSON.stringify({objects:journal.objects.length,phase:journal.phase,deletedBytes:journal.deleted.reduce((n,x)=>n+x.bytes,0),output}));
+    };
+    return args.includes('--apply')?withStorageLock(root,settings,operation):operation();
+  }
+  const retirement=args.find(x=>x.startsWith('--retire-generated='))?.slice('--retire-generated='.length);
+  if(retirement){
+    const roots=permanentWorktrees(root),settings=storageSettings(root),input=JSON.parse(readFileSync(retirement,'utf8'));
+    if(!settings)throw Error('Worktree storage activation required');
+    const protectedPaths=roots.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(p=>p&&/^(build-native\/|\.superpowers\/|test-results\/|apps\/web-shell\/src-tauri\/(target|gen\/android))/.test(p)).map(p=>resolve(app,p)));
+    const relocationRoots=[resolve(librarySharedCheckout(root),'private-evidence/worktree-storage/generated-cleanup-20261025'),resolve('D:/build/toolchains')];
+    const options={roots,consumers:runningStorageConsumers(),refreshConsumers:runningStorageConsumers,protectedPaths,relocationRoots,progress:message=>console.error('Generated cleanup: '+message)};
+    const operation=()=>input.schema?applyGeneratedCleanup({...options,manifest:input,journal:resolve(settings.cacheRoot,'generated-retirement.pending.json')}):previewGeneratedCleanup({...options,requests:input.requests});
+    if(!!input.schema!==args.includes('--apply'))throw Error('Preview requires requests; apply requires the exact preview manifest');
+    const result=args.includes('--apply')?withStorageLock(root,settings,operation):operation();
+    const output=args.find(x=>x.startsWith('--output='))?.slice(9);if(output)atomicStorageJSON(resolve(output),result);
+    console.log(JSON.stringify({entries:result.entries?.length,deletedBytes:result.deletedBytes,relocatedBytes:result.relocatedBytes,payloadBytesUnlinked:result.payloadBytesUnlinked,output}));return;
+  }
   if(args.includes('--activate-compiler-cache'))return activateCompilerCache(root);
   const compilerValues=()=>Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));
   if(args.includes('--compiler-config')){const settings=storageSettings(root);console.log(JSON.stringify({active:!!settings,env:settings?compilerValues():{}}));return;}
@@ -324,7 +365,7 @@ async function main(){
     const result=spawnSync(command[0],command.slice(1),{cwd:process.cwd(),env:compilerCacheEnvironment({root}),stdio:'inherit',windowsHide:true});
     if(result.error)throw result.error;process.exitCode=result.status??1;return;
   }
-  const result=args.includes('--share-retired-qt')?shareRetiredQtRuntimes({root,apply:args.includes('--apply')}):args.includes('--prune-blobs')?pruneApplicationBlobs({root,apply:args.includes('--apply')}):args.includes('--apply')||args.includes('--resume')?applyWorktreeStorage({root}):previewWorktreeStorage({root});
+  const result=args.includes('--retire-qt-runtimes')?shareRetiredQtRuntimes({root,apply:args.includes('--apply'),retire:true}):args.includes('--share-retired-qt')?shareRetiredQtRuntimes({root,apply:args.includes('--apply')}):args.includes('--prune-blobs')?pruneApplicationBlobs({root,apply:args.includes('--apply')}):args.includes('--apply')||args.includes('--resume')?applyWorktreeStorage({root}):previewWorktreeStorage({root});
   const output=args.find(x=>x.startsWith('--output='))?.slice(9);
   if(output)atomicStorageJSON(resolve(output),result);
   console.log(JSON.stringify({apply:result.apply,entries:result.entries.length,statuses:Object.fromEntries([...new Set(result.entries.map(x=>x.status))].map(status=>[status,result.entries.filter(x=>x.status===status).length])),freeBytesDelta:result.freeBytesDelta,output}));
