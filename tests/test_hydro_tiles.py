@@ -9,13 +9,12 @@ import unittest
 from collections import defaultdict
 from pathlib import Path
 import re
-from tests.application_source import read_module
 
 from shapely.geometry import LineString, MultiLineString, shape
 
 
 ROOT = Path(__file__).parents[1]
-HYDRO_VERSION = re.search(r"HYDRO_DATA_VERSION = '([^']+)'", read_module(ROOT, "app-environment.js")).group(1)
+HYDRO_VERSION = re.search(r"HYDRO_DATA_VERSION = '([^']+)'", (ROOT / "assets/js/modules/app-environment.js").read_text(encoding="utf-8")).group(1)
 DATA = ROOT / "assets" / "data" / "hydro" / ("v" + HYDRO_VERSION)
 KOREA_BOUNDS = (124.0, 33.0, 131.0, 43.0)
 
