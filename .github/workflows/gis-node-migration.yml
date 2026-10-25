@@ -23,6 +23,9 @@ on:
       - 'tests/unit/gis-source-launcher.test.mjs'
       - 'tests/unit/report-paths.test.mjs'
       - 'tests/unit/boundary-capture-comparison.test.mjs'
+      - 'tests/unit/boundary-capture-evidence.test.mjs'
+      - 'tests/unit/gis-source-launcher.test.mjs'
+      - 'tests/unit/font-assets.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -43,8 +46,10 @@ jobs:
           node --check tools/download-terrain-source.mjs
           node --check tools/place-batch-pipeline.mjs
           node --check tools/build-place-candidates.mjs
+          node --check scripts/gis/run-source.mjs
+          node --check scripts/summarize-boundary-capture-evidence.mjs
           node --check tools/lib/geonames-zip.mjs
           node --check tools/lib/geonames-policy.mjs
           node --check tools/lib/geonames-review.mjs
           node --check tools/lib/geonames-statistics.mjs
-          node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs
+          node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/report-paths.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs

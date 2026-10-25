@@ -18,8 +18,8 @@ export function runBoundaryCaptureComparison({
   outputRoot = join(cwd, 'test-results/boundary-capture-comparison'),
   env = process.env,
   execute = spawnSync,
-  collectEvidence = ({ output, evidence, screenshots, cwd, logFile }) => spawnSync('python3',
-    [join(cwd, 'scripts/summarize-boundary-capture-evidence.py'), output, evidence, String(screenshots)],
+  collectEvidence = ({ output, evidence, screenshots, cwd, logFile }) => spawnSync(process.execPath,
+    [join(cwd, 'scripts/summarize-boundary-capture-evidence.mjs'), output, evidence, String(screenshots)],
     { cwd, shell: false, timeout: 60_000, stdio: ['ignore', logFile, logFile] }),
   readHead = () => execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim(),
 } = {}) {

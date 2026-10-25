@@ -15,19 +15,19 @@ Python 3.12 환경에서 필요한 경우에만 개별 도구의 원본 의존 �
 
 ```bash
 # 대상 작업과 전달 인수만 표시. 아무 것도 생성하거나 다운로드하지 않음.
-python scripts/gis/run-source.py --task terrain-dem -- \
+node scripts/gis/run-source.mjs --task terrain-dem -- \
   --etopo /external/ETOPO_2022.tif --tint-zip /external/HYP_HR.zip \
   --glaciated-areas /external/ice.geojson \
   --countries assets/data/countries-ne-5.1.1.geojson --output /external/dem-output
 
 # 필요한 원본과 의존성을 별도로 준비한 뒤 사용자가 명시적으로 실행.
-python scripts/gis/run-source.py --task terrain-dem --execute -- \
+node scripts/gis/run-source.mjs --task terrain-dem --execute -- \
   --etopo /external/ETOPO_2022.tif --tint-zip /external/HYP_HR.zip \
   --glaciated-areas /external/ice.geojson \
   --countries assets/data/countries-ne-5.1.1.geojson --output /external/dem-output
 
 # 특정 수계/역사/지명 도구 목록 확인
-python scripts/gis/run-source.py --help
+node scripts/gis/run-source.mjs --help
 ```
 
 호출 가능한 작업: `historical-border`, `historical-coast`, `terrain-dem`, `terrain-preview`, `hydro-tiles`, `hydro-packfile`, `hydro-connectivity`, `physical-data`, `place-candidates`. 지정된 원본 파이프라인은 인수·해시·원본 추적 정책을 기존 도구에서 처리하므로 래퍼가 파일 내용을 임의 변경하지 않는다. `--execute` 없이는 호출 계획만 표시한다. 이들 중 간척·해안선 가공은 **역사 타임라인 자동 조사에서 제외**된 별개 연구 작업이다.
