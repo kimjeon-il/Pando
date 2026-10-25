@@ -157,8 +157,8 @@ export async function review(cache,reviewsPath,statsPath,reportPath,overridesPat
       sha256:await hashFile(artifact),bytes:readFileSync(artifact).length}};
   WRITE(statsPath,stats);
   const start='<!-- geonames-statistics:start -->',end='<!-- geonames-statistics:end -->';
-  const [before,rest]=content.split(start),after=rest.split(end)[1];
-  writeFileSync(reportPath,before+start+'\n\n'+renderReviews(stats)+'\n'+end+after);
+  const [before,rest]=content.split(start),suffix=rest.split(end)[1];
+  writeFileSync(reportPath,before+start+'\n\n'+renderReviews(stats)+'\n'+end+suffix);
   return stats;
 }
 function parseRowForReview(line) {
