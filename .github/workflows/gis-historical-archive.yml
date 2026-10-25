@@ -5,6 +5,8 @@ on:
     branches: [work/gis]
     paths:
       - '.github/workflows/gis-historical-archive.yml'
+      - 'config/library-data.json'
+      - 'tools/historical-library/german-empire-1914-base.recipe.json'
   workflow_dispatch:
 
 permissions:
@@ -66,10 +68,50 @@ jobs:
           console.log('NORTH_SCHLESWIG_ARCHIVE_INVENTORY='+JSON.stringify({
             counts:report.counts,missing:report.missing,readyForDeletion:false}));
           JS
+      - name: Verify whether licensed HGIS originals and 1914 geometry oracles exist in the pinned archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-native/historical
+          node --input-type=module - <<'JS'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const index=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/pando-archive-index.json','utf8'));
+          const recipe=JSON.parse(readFileSync('tools/historical-library/german-empire-1914-base.recipe.json','utf8'));
+          const revision=JSON.parse(readFileSync('config/library-data.json','utf8')).revision;
+          const files=index.files;
+          const original='tools/historical-library/sources/german-empire-1914/hgis-germany-states-1914.geojson';
+          const output='tools/historical-library/generated/german-empire-1914-base.geojson';
+          const targets={
+            licensedHgisOriginal:original,
+            german1914GeneratedOracle:output,
+            canonicalNaturalEarthSource:recipe.sources.canonicalCountries.path,
+          };
+          const recorded=Object.fromEntries(Object.entries(targets).map(([label,path])=>{
+            const entry=files[path];
+            if(entry&&(!/^[a-f0-9]{64}$/i.test(entry.sha256||'')||
+              !Number.isSafeInteger(entry.bytes)))throw Error('Invalid pinned original receipt: '+path);
+            return [label,{path,present:Boolean(entry),sha256:entry?.sha256??null,bytes:entry?.bytes??null}];
+          }));
+          const result={
+            schema:'pando-gis-c1-licensed-source-readiness-v1',libraryRevision:revision,
+            records:recorded,
+            recipeHgisSha256:recipe.sources.hgisStates.sha256??null,
+            readyForOriginalGeometryParity:Boolean(recorded.licensedHgisOriginal.present
+              &&recorded.canonicalNaturalEarthSource.present
+              &&recorded.german1914GeneratedOracle.present
+              &&recipe.sources.hgisStates.sha256),
+            warning:'Archival index only. An entry does not grant redistribution rights or prove saved bytes.',
+          };
+          writeFileSync('build-native/historical/c1-source-readiness.json',
+            JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+          console.log('HISTORICAL_C1_SOURCE_READINESS='+JSON.stringify(result));
+          JS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: north-schleswig-archive-preservation-inventory
-          path: build-native/historical/north-schleswig-archive-inventory.json
+          path: |
+            build-native/historical/north-schleswig-archive-inventory.json
+            build-native/historical/c1-source-readiness.json
           retention-days: 14
           if-no-files-found: warn

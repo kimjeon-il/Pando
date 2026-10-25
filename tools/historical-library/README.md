@@ -55,10 +55,15 @@ The checked-in files below are the only geometry inputs used by that build:
 - PandoLab's canonical `DEU` polygon from Natural Earth Admin 0 v5.1.1, used to
   reuse the exact Baltic/coast/Poland/Czech exterior boundary.
 
-`python tools/fetch-east-germany-sources.py` explicitly refreshes the source
-subsets. It is not part of the normal build because BKG is updated annually.
-After a deliberate refresh, review the geometry and update the recipe SHA-256
-values before committing. CShapes is not an input and no CShapes-derived
+`node tools/fetch-east-germany-sources.mjs --mode full` prepares a read-only
+candidate inventory. Add `--execute` only after reviewing the pinned BKG and
+Natural Earth source scope; it writes exclusively to previously absent files.
+`--mode vg25` captures the five eastern states, while `--mode vg25-captured`
+rechecks an existing capture and its adopted canonical DEU exterior. Use
+`--output-dir` to stage new candidates outside the approved source root.
+Unlike the old Python collector, existing approved originals are never
+overwritten. Reviewed candidate bytes and source hashes must be explicitly
+accepted into the recipe after comparing the provenance; BKG updates annually. CShapes is not an input and no CShapes-derived
 coordinate is distributed.
 
 The recipe performs union, difference and canonical-boundary reconciliation.
