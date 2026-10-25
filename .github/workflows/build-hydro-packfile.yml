@@ -1,27 +1,29 @@
-# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
-name: Build immutable Hydro v0.13.2 two-file package
+# Reproduction of historical pinned source; never overwrites independently updated deployed Hydro metadata.
+name: Reproduce immutable Hydro v0.13.2 source packfile
 
 on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build:
+  reproduce:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: true
+          persist-credentials: false
           filter: blob:none
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            /tools/build-hydro-packfile.py
-            /assets/data/hydro/v0.13.2/
-      - name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
+            /tools/build-hydro-packfile.mjs
+            /tools/library-data.mjs
+            /tools/library-report-layout.mjs
+            /tools/library-content.mjs
+            /config/library-data.json
+            /tests/unit/hydro-packfile-builder.test.mjs
       - uses: actions/checkout@v4
         with:
           repository: kimjeon-il/Pando
@@ -33,23 +35,17 @@ jobs:
           sparse-checkout: |
             /assets/data/hydro/v0.13.0/
             /assets/data/hydro/v0.13.1/
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
-      - name: Build container without re-encoding source fragments
+          node-version: '24'
+      - name: Reproduce and verify historical fragments outside the published asset tree
         run: |
-          python tools/build-hydro-packfile.py --source historical-hydro/assets/data/hydro/v0.13.1
-          python tools/build-hydro-packfile.py --source historical-hydro/assets/data/hydro/v0.13.1 --check
-      - name: Commit only the two output files to the existing GIS branch
-        env:
-          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          node tools/library-data.mjs --store-and-stage --push -- assets/data/hydro/v0.13.2/manifest.json assets/data/hydro/v0.13.2/hydro.bin
-          if git diff --cached --quiet; then
-            echo 'Two-file hydro package already matches deterministic builder'
-          else
-            git commit -m 'data(gis): produce v0.13.2 two-file lossless hydro package'
-            git push origin HEAD:refs/heads/work/gis
-          fi
+          node --test tests/unit/hydro-packfile-builder.test.mjs
+          node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/historical-hydro-v0.13.2"
+          node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/historical-hydro-v0.13.2" --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pinned-original-hydro-v0.13.2-reproduction
+          path: |
+            ${{ runner.temp }}/historical-hydro-v0.13.2/hydro.bin
+            ${{ runner.temp }}/historical-hydro-v0.13.2/manifest.json

@@ -27,6 +27,7 @@ class GisRunnerIsolationTests(unittest.TestCase):
     def test_hydro_and_historical_are_explicitly_allowlisted(self):
         for task, path in (
             ("hydro-tiles", "tools/build-hydro-tiles.py"),
+            ("hydro-packfile", "tools/build-hydro-packfile.mjs"),
             ("historical-border", "tools/build_german_empire_1914_base.py"),
         ):
             with self.subTest(task=task):
