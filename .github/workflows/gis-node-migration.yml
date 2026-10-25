@@ -26,6 +26,7 @@ on:
       - 'tests/unit/boundary-capture-evidence.test.mjs'
       - 'tests/unit/gis-source-launcher.test.mjs'
       - 'tests/unit/font-assets.test.mjs'
+      - 'tests/unit/application-source-extraction.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -40,6 +41,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Check migrated Node implementations
         run: |
           node --check tools/build-hydro-packfile.mjs
@@ -53,3 +58,5 @@ jobs:
           node --check tools/lib/geonames-review.mjs
           node --check tools/lib/geonames-statistics.mjs
           node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/report-paths.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs
+          node --test tests/unit/application-source-extraction.test.mjs tests/unit/p4-python-isolation.test.mjs tests/unit/boundary-capture-comparison.test.mjs
+          pnpm exec eslint tools/build-place-candidates.mjs tools/lib/geonames-zip.mjs tools/lib/geonames-policy.mjs tools/lib/geonames-review.mjs tools/lib/geonames-statistics.mjs tools/place-batch-pipeline.mjs tools/download-terrain-source.mjs tools/build-hydro-packfile.mjs tools/report-paths.mjs scripts/gis/run-source.mjs scripts/summarize-boundary-capture-evidence.mjs tests/helpers/geonames-fixtures.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs tests/unit/application-source-extraction.test.mjs

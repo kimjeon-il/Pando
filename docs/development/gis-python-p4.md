@@ -58,6 +58,12 @@ node scripts/gis/run-source.mjs --help
 - 기존 Python 전용 테스트 `tests/python/test_library_writers.py`, `tests/test_place_batch_pipeline.py`는 Node 테스트로 대체했다. `library_data.py`와 `report_paths.py`는 다른 Python 생성기와의 호환을 위해 유지한다.
 - 대규모 GeoNames 후보 도구는 `build-place-candidates.mjs`의 ZIP CRC/streaming·원본 해시·후보 포함 정책·ID별 review 테스트로 대체한다. 기존 Python 검사의 계약은 Node 테스트로 이관했으며 실데이터 재생성은 별도 원본 필요. 남은 GIS/DEM/AI 학습 코드도 이번 Node 전환에서 제외한다.
 
+## A0~A2 Node 실행 정리 (2026-10-25)
+
+`scripts/gis/run-source.mjs`가 기존 GIS 실행기의 default dry-run 및 명시적 `--execute`를 소유한다. Node로 이식된 명령(`hydro-packfile`, `place-candidates`)은 Node 프로세스로 실행하고, 아직 미이식 GIS 원본은 독립 Python CLI를 호출한다. `scripts/summarize-boundary-capture-evidence.mjs`가 기존 trace·diagnostics 계약을 Node에서 수행한다. `report-paths.mjs`에는 Python의 `report_argument` 동작과 같은 `reportArgument`가 추가되었다.
+
+A2에서 Python 실행기와 중복 Python 테스트 6개를 제거했다. 다만 `library_data.py`, `report_paths.py`, `tests/application_source.py`는 나머지 GIS·AI 생성기/검사의 호출자가 제거되지 않았으므로 후속 B/C/E 전환 시 해당 호출처와 동시에 정리한다. 영구적으로 남기는 항목은 아니다.
+
 ## 남겨둔 테스트와 안전 규칙
 
 - `package.json`의 과거 `test:python`/새 `test:gis-python`은 **수동 실행 전용**. 기본 `pnpm test`에서 삭제했다. `check:versioning`의 프로젝트 스키마 점검은 동일 역할의 Node 단위검사 `tests/unit/versioning-source-schema.test.mjs`로 옮겼다.
