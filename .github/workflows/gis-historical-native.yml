@@ -8,6 +8,8 @@ on:
       - 'tools/cpp/historical-linework-audit.inc'
       - 'tools/cpp/historical-caspian-generalization.inc'
       - 'tests/unit/gis-caspian-generalize-native.test.mjs'
+      - 'tools/gis/generalize-approved-caspian-display.mjs'
+      - 'tests/unit/gis-caspian-display-packaging.test.mjs'
       - 'tools/gis/verify-historical-linework.mjs'
       - 'tests/unit/gis-historical-linework-native.test.mjs'
       - 'tools/gis/verify-approved-caspian-network.mjs'
@@ -47,6 +49,7 @@ jobs:
           node --test tests/unit/gis-german-base-native.test.mjs tests/unit/gis-historical-linework-native.test.mjs
           node --test tests/unit/gis-caspian-source-zip.test.mjs
           node --test tests/unit/gis-caspian-generalize-native.test.mjs
+          node --test tests/unit/gis-caspian-display-packaging.test.mjs
 
       - name: Fetch only immutable Caspian 1922 approved source archive
         run: |
@@ -86,10 +89,20 @@ jobs:
           node tools/gis/verify-approved-caspian-network.mjs \
             --zip build-native/historical/approved-caspian-1922.zip \
             | tee build-native/historical/caspian-1922-native-receipt.jsonl
+      - name: Generalize the actual 266-reach Caspian display in C++ without touching masters
+        run: |
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node tools/gis/generalize-approved-caspian-display.mjs \
+            --zip build-native/historical/approved-caspian-1922.zip \
+            --output build-native/historical/caspian-1922-native-candidate.json \
+            | tee build-native/historical/caspian-1922-native-display-receipt.jsonl
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: caspian-1922-native-source-parity
-          path: build-native/historical/caspian-1922-native-receipt.jsonl
+          path: |
+            build-native/historical/caspian-1922-native-receipt.jsonl
+            build-native/historical/caspian-1922-native-display-receipt.jsonl
           retention-days: 14
           if-no-files-found: warn
