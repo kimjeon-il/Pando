@@ -1,0 +1,41 @@
+name: Historical Prussian original SHA provenance
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - tools/gis/check-historical-source-provenance.mjs
+      - tests/unit/historical-source-provenance.test.mjs
+      - .github/workflows/gis-historical-provenance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/unit/historical-source-provenance.test.mjs
+      - name: Identify the current approved external library revision
+        run: |
+          mkdir -p build-native/historical
+          OLD=1879138b54b2c9f8c173bf5575b108e3f1f8139b
+          NEW=$(node -p "require('./config/library-data.json').revision")
+          node tools/gis/check-historical-source-provenance.mjs \
+            --before "$OLD" --after "$NEW" \
+            | tee build-native/historical/east-prussia-forensics.jsonl
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: east-prussia-pinned-original-forensics
+          path: build-native/historical/east-prussia-forensics.jsonl
+          retention-days: 14
+          if-no-files-found: warn
