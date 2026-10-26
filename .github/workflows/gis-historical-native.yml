@@ -85,7 +85,7 @@ jobs:
           mkdir -p build-native/historical
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
           node tools/gis/verify-german-1914-originals.mjs \
-            --output build-native/historical/german-1914-originals-receipt.json \
+            --output build-native/historical/german-1914-originals-receipt.json --probe-wfs \
             | tee build-native/historical/german-1914-originals-receipt.jsonl
       - name: Fetch only immutable Caspian 1922 approved source archive
         run: |

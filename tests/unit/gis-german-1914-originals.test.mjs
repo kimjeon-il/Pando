@@ -3,7 +3,8 @@ import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import test from 'node:test';
 import {inventory,extractArchived,verifyHistoricalStateSource,verifyCanonicalDEU,
-  audit,PATHS,APPROVED_NE_SHA,HISTOGIS_SHA,WORKING_SHA,DIAGNOSTICS_SHA}
+  audit,PATHS,APPROVED_NE_SHA,HISTOGIS_SHA,WORKING_SHA,DIAGNOSTICS_SHA,
+  hgisWfsUrl,probeOfficialHGIS}
  from '../../tools/gis/verify-german-1914-originals.mjs';
 
 const hash=b=>createHash('sha256').update(b).digest('hex');
@@ -76,4 +77,33 @@ test('an archived secondary working map cannot be promoted to HGIS',async()=>{
      fixtures[Object.keys(fixtures).find(k=>PATHS[k]===path)],
    native:()=>({passed:true,componentCount:2}),
  }),/digest/);
+});
+
+test('official WFS probe uses only named Harvard endpoints, and never archives unpinned candidates',async()=>{
+ const geometry={type:'Polygon',coordinates:[sq(4.490331,47.03629,23.157687,56.025202)]};
+ const payload={type:'FeatureCollection',
+   features:Array.from({length:26},(_,i)=>({
+     ...german('State '+i),geometry,
+   }))};
+ const bytes=Buffer.from(JSON.stringify(payload));
+ const servers=['https://example.org/official-hgis'];
+ let calls=0;
+ const r=await probeOfficialHGIS(recipe(),{servers,
+   fetcher:async url=>{
+     calls++;
+     assert.equal(new URL(url).searchParams.get('typeName'),
+       'vector_public:GHGIS1914GERMANY');
+     return {ok:true,arrayBuffer:async()=>bytes};
+   },
+ });
+ assert.equal(calls,1);
+ assert.equal(r.status,'available-unpinned-candidate');
+ assert.equal(r.features,26);
+ assert.equal(r.persisted,false);
+ assert.equal(r.approvedForPublication,false);
+ const denied=await probeOfficialHGIS(recipe(),{servers,
+   fetcher:async()=>({ok:false,status:403})});
+ assert.equal(denied.status,'no-validated-official-response');
+ assert.match(denied.attempts[0].error,/403/);
+ assert.equal(hgisWfsUrl(servers[0]).includes('GetFeature'),true);
 });
