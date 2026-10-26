@@ -13,9 +13,33 @@ export function workerAssetUrl(value, meta = globalThis.PANDOLAB_BUILD_META) {
   const url = new URL(asset.url, base);
   url.searchParams.set('v', meta.assetRevision);
   for (const [key, parameter] of original.searchParams) if (key !== 'v') url.searchParams.set(key, parameter);
-  if (meta.publicReleaseManifestSha256) {
-    url.searchParams.set('publicationRevision', meta.dataRevision);
-    url.searchParams.set('publicationManifestSha256', meta.publicReleaseManifestSha256);
-  }
+  if (!meta.dataRevision) throw new Error('Missing Worker data revision');
+  url.searchParams.set('dataRevision', meta.dataRevision);
   return url;
+}
+
+export function runtimeDataRoot(scriptUrl) {
+  const url = new URL(scriptUrl), offset = url.pathname.indexOf('/assets/');
+  if (offset < 0) throw new Error('Missing runtime asset root');
+  url.pathname = url.pathname.slice(0, offset + 1); url.search = ''; url.hash = '';
+  return url;
+}
+
+export function runtimeDataAssetUrl(scriptUrl, asset) {
+  if (typeof asset?.url !== 'string' || !asset.url.startsWith('assets/data/')
+    || /(?:\.\.|[?\\#])/.test(asset.url) || !/^[a-f0-9]{64}$/.test(asset.sha256)) {
+    throw new Error('Invalid runtime data asset');
+  }
+  const url = new URL(asset.url, runtimeDataRoot(scriptUrl));
+  url.searchParams.set('sha256', asset.sha256);
+  return url;
+}
+
+export function workerBuildMeta(scriptUrl, meta) {
+  const params = new URL(scriptUrl).searchParams;
+  if (!meta?.assetRevision || !meta.dataRevision
+    || params.get('v') !== meta.assetRevision || params.get('dataRevision') !== meta.dataRevision) {
+    throw new Error('Worker build/data revision mismatch; reload the application');
+  }
+  return meta;
 }

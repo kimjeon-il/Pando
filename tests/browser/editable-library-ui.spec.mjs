@@ -3,17 +3,19 @@ import {test,expect} from '@playwright/test';
 test('explicit representative survives source save and reload and imports without an invented date',async({page})=>{
  await page.goto('/tests/fixtures/editable-library-ui.html');
  await page.getByRole('button',{name:'원본 편집',exact:true}).click();
+ await expect(page.getByRole('button',{name:'공개 Web에 게시',exact:true})).toHaveCount(0);
  const id='state:KOR:38th-parallel-1948';
  await page.getByLabel('대표 형상',{exact:true}).selectOption(id);
  await page.getByRole('button',{name:'저장',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('동기화 대기');
+ await page.getByRole('button',{name:'GitHub 동기화',exact:true}).click();
+ expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.syncCalls)).toBeGreaterThan(0);
  expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.saved.records['state:KOR'].metadata.representativeGeometryVersionId)).toBe(id);
  await page.reload();await page.getByRole('button',{name:'원본 편집',exact:true}).click();
  await expect(page.getByLabel('대표 형상',{exact:true})).toHaveValue(id);
  const imported=await page.evaluate(()=>window.LIBRARY_UI_TEST.importRepresentative());
  expect(imported.versionId).toBe(id);expect(imported.referenceDate).toBeNull();
  expect(imported.geometryMatches).toBe(true);
- expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.publishCalls)).toBe(0);
  await expect(page.locator('#failure')).toHaveText('');
 });
 test('a committed write with locked derivative files retains its success receipt and warning',async({page})=>{
@@ -40,7 +42,6 @@ test('owner source UI preserves exact dates and saved edits across reload withou
  await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('대한민국 로컬 수정');
  await page.getByRole('button',{name:'저장',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('동기화 대기');
- expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.publishCalls)).toBe(0);
  await page.reload();await page.getByRole('button',{name:'원본 편집',exact:true}).click();
  await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('대한민국 로컬 수정');
  await expect(page.getByLabel('존속 시작일',{exact:true})).toHaveValue('1948-08-15');
@@ -68,7 +69,6 @@ test('reload validates external file candidates and activates only a valid sourc
  await page.getByRole('button',{name:'원본 편집',exact:true}).click();
  await expect(page.getByLabel('한국어 이름',{exact:true})).toHaveValue('외부 파일 수정');
  expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.saved.records['state:KOR'].geometryVersions[0].historicalProvenance.evidenceStatus)).toBe('provisional');
- expect(await page.evaluate(()=>window.LIBRARY_UI_TEST.publishCalls)).toBe(0);
 });
 test('editing a name preserves the exact interval without a separate precision control',async({page})=>{
  await page.goto('/tests/fixtures/editable-library-ui.html?entity=state:east-prussia');

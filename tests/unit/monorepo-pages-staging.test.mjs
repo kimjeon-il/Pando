@@ -27,12 +27,10 @@ test('stages committed viewer assets while excluding editor and repository sourc
   const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
   assert.equal(evidence.dataRepository, 'example/library-data');
   assert.match(evidence.dataCommit, /^[0-9a-f]{40}$/);
-  const channelPath = 'assets/data/library-channel/current.json';
-  const channelBytes = readFileSync(join(stage, channelPath));
-  assert.deepEqual(JSON.parse(channelBytes), { schema: 'pandolab-data-channel', schemaVersion: 1, mode: 'baseline' });
-  const channel = evidence.files.find(file => file.path === channelPath);
-  assert.equal(channel.bytes, channelBytes.length);
-  assert.equal(channel.sha256, createHash('sha256').update(channelBytes).digest('hex'));
+  assert.equal(meta.sourceCommit, evidence.sourceCommit);
+  assert.equal(meta.dataCommit, evidence.dataCommit);
+  assert.equal(existsSync(join(stage, 'assets/data/library-channel')), false);
+  assert.equal(existsSync(join(stage, 'assets/data/library-releases')), false);
   assert.equal(evidence.fileCount,evidence.files.length);
   assert.equal(evidence.bytes, evidence.files.reduce((total, file) => total + file.bytes, 0));
   assert.equal(evidence.excludedNativeFiles, 1);
@@ -41,13 +39,13 @@ test('stages committed viewer assets while excluding editor and repository sourc
   assert.equal(evidence.files.some(file => file.path.startsWith('native/')), false);
 });
 
-test('final evidence describes overlaid publication files and their current hashes', async t => {
+test('final evidence describes the staged files and their current hashes', async t => {
   const { root, stage, manifest } = await fixture(t);
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.equal(result.status, 0, result.stderr);
   const before = JSON.parse(readFileSync(manifest, 'utf8'));
-  put(stage, 'assets/data/library-channel/current.json', '{"revision":"published"}\n');
-  put(stage, 'assets/data/library-releases/published/manifest.json', '{"release":true}\n');
+  put(stage, 'assets/data/places/manifest.json', '{"shards":{"new":{}}}\n');
+  put(stage, 'assets/data/places/new.bin', 'new bytes');
   const final = run(process.execPath, [script, '--finalize', '--stage', stage, '--manifest', manifest], root);
   assert.equal(final.status, 0, final.stderr);
   const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
@@ -59,6 +57,20 @@ test('final evidence describes overlaid publication files and their current hash
     assert.equal(file.bytes, bytes.length);
     assert.equal(file.sha256, createHash('sha256').update(bytes).digest('hex'));
   }
+});
+
+test('storage HEAD and a stale publication channel cannot replace the committed data pin', async t => {
+  const { root, stage, manifest } = await fixture(t), data = join(root, '.library-data/repository');
+  const pin = JSON.parse(readFileSync(join(root, 'config/library-data.json'))).revision;
+  put(data, 'assets/data/library-channel/current.json', '{"revision":"stale-independent-release"}');
+  put(data, 'assets/data/world/current.json', '{"assets":{},"wrongSource":true}');
+  assert.equal(run('git', ['add', '.'], data).status, 0);
+  assert.equal(run('git', ['commit', '-qm', 'different storage head'], data).status, 0);
+  const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(JSON.parse(readFileSync(manifest)).dataCommit, pin);
+  assert.deepEqual(JSON.parse(readFileSync(join(stage, 'assets/data/world/current.json'))), { assets: {} });
+  assert.equal(existsSync(join(stage, 'assets/data/library-channel')), false);
 });
 
 test('required Worker cannot publish with a missing WASM pair member', async t => {

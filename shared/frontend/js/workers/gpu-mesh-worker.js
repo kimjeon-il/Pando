@@ -21,23 +21,17 @@ const meshTransfer = import(`../modules/country-mesh-transfer.js?v=${encodeURICo
 const polygonPreparation = meshCoreReady.then(() => Promise.all([
   import(`../modules/prepared-polygon-mesh.js?v=${encodeURIComponent(assetRevision)}`),
   import(`../modules/stored-asset-loader.js?v=${encodeURIComponent(assetRevision)}`),
-  import(`../modules/publication-data-channel.js?v=${encodeURIComponent(assetRevision)}`),
+  import(`../modules/worker-asset-url.js?v=${encodeURIComponent(assetRevision)}`),
 ])).then(async ([{ createPreparedPolygonMeshStore }, { createStoredAssetLoader },
-  { publicDataRoot, publicDataAssetUrl, resolveWorkerDataChannel }]) => {
+  { runtimeDataAssetUrl, workerBuildMeta }]) => {
   const engine = self.PandoLabGpuMeshCore;
-  const params = new URL(self.location.href).searchParams;
-  const { meta } = await resolveWorkerDataChannel({ baseUrl: publicDataRoot(self.location.href),
-    buildMeta: globalThis.PANDOLAB_BUILD_META,
-    expectedRevision: params.get('publicationRevision'),
-    expectedManifestSha256: params.get('publicationManifestSha256') });
+  const meta = workerBuildMeta(self.location.href, globalThis.PANDOLAB_BUILD_META);
   const spec = meta.preparedPolygonMeshes;
   const { loadAsset } = createStoredAssetLoader({ dataRevision: meta.dataRevision,
     cachePolicy: 'immutable', resolveUrl: asset => {
-      const baseline = asset.url.startsWith('assets/data/prepared-polygons/generated/v2/');
-      const published = asset.url.startsWith(`assets/data/library-releases/${meta.dataRevision}/prepared-polygons/generated/v2/`);
-      if ((!baseline && !published) || asset.url.includes('..'))
+      if (!asset.url.startsWith('assets/data/prepared-polygons/generated/v2/') || asset.url.includes('..'))
         throw new Error('Invalid prepared polygon asset path');
-      return publicDataAssetUrl(self.location.href, asset);
+      return runtimeDataAssetUrl(self.location.href, asset);
     } });
   return createPreparedPolygonMeshStore({ engine,
     loadManifest: meta.resourceProfile === 'test-fixture' ? null : async () => {

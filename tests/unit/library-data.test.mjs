@@ -60,6 +60,31 @@ test('archive paths cannot escape their explicit storage root', () => {
   assert.equal(safeChild(root, 'archive/file.gz'), join(root, 'archive/file.gz'));
 });
 
+test('runtime storage advances the pin only after a remotely confirmed push and preserves rejected work', t => {
+  const parent=mkdtempSync(join(tmpdir(),'pando-runtime-push-')), root=join(parent,'app'), data=join(root,'.library-data/repository'), remote=join(parent,'remote');
+  t.after(()=>rmSync(parent,{recursive:true,force:true}));
+  const put=(base,path,bytes)=>{mkdirSync(dirname(join(base,path)),{recursive:true});writeFileSync(join(base,path),bytes);};
+  const git=(base,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:base,encoding:'utf8',stdio:'pipe'}).trim();
+  for(const base of [root,data]){mkdirSync(base,{recursive:true});git(base,'init','-q');git(base,'config','user.name','Fixture');git(base,'config','user.email','fixture@example.invalid');}
+  mkdirSync(remote);git(remote,'init','--bare','-q');
+  const path='assets/data/value.bin', bytes=Buffer.from('first');
+  put(data,path,bytes);put(data,'library.json','{}');
+  put(data,'archive/index.json',JSON.stringify({branch:'main',files:{[path]:{stored:path,encoding:'identity',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}}}));
+  git(data,'add','.');git(data,'commit','-qm','initial');git(data,'remote','add','origin',remote);git(data,'push','origin','HEAD:main');
+  put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:git(data,'rev-parse','HEAD'),mounts:['assets/data','reports']}));
+  put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
+  prepareLibraryData({root,fetch:false});
+  withLibraryWrite({root,prefixes:[path]},()=>put(root,path,'second'));
+  const revision=storeLibraryData({root,prefixes:[path],push:true});
+  assert.equal(JSON.parse(readFileSync(join(root,'config/library-data.json'))).revision,revision);
+  assert.equal(git(data,'ls-remote','origin','refs/heads/main').split(/\s+/)[0],revision);
+  put(remote,'hooks/pre-receive','#!/bin/sh\nexit 1\n');
+  withLibraryWrite({root,prefixes:[path]},()=>put(root,path,'preserved rejected update'));
+  assert.throws(()=>storeLibraryData({root,prefixes:[path],push:true}),/push|rejected/);
+  assert.equal(JSON.parse(readFileSync(join(root,'config/library-data.json'))).revision,revision);
+  assert.notEqual(git(data,'rev-parse','HEAD'),revision);
+});
+
 test('checkout compaction preserves dirty, ignored and linked work and is offline and idempotent', t => {
   const checkout = mkdtempSync(join(tmpdir(), 'pando-compact-'));
   t.after(() => rmSync(checkout, { recursive: true, force: true }));
