@@ -10,6 +10,9 @@ on:
       - 'tools/cpp/historical-caspian-physical.inc'
       - 'tools/cpp/historical-source-geometry-compare.inc'
       - 'tools/cpp/historical-ussr-partition-audit.inc'
+      - 'tools/cpp/historical-lsib-source-audit.inc'
+      - 'tools/gis/verify-lsib-country-sources.mjs'
+      - 'tests/unit/gis-lsib-source-native.test.mjs'
       - 'tests/unit/gis-historical-source-compare.test.mjs'
       - 'tests/unit/gis-caspian-physical-native.test.mjs'
       - 'tests/unit/gis-caspian-generalize-native.test.mjs'
@@ -77,6 +80,7 @@ jobs:
           node --test tests/unit/gis-caspian-physical-native.test.mjs
           node --test tests/unit/gis-historical-source-compare.test.mjs
           node --test tests/unit/gis-ussr-1922-partition-native.test.mjs
+          node --test tests/unit/gis-lsib-source-native.test.mjs
           node --test tests/unit/ussr-1922-approved-followups.test.mjs
           node --test tests/unit/ussr-1922-country-replay.test.mjs
           node --test tests/unit/ussr-1922-physical-replay.test.mjs

@@ -7,6 +7,9 @@
 
 ## 실행 현황 — A0~A2 (2026-10-25)
 
+- **C1 LSIB 원본/세계 국경 무변경 감사 Node+C++ 전환 (2026-10-27):** `verify-lsib-country-sources.py`의 git 원본 lineage/국가 ID/명칭/기간/과거 geometryVersion 보존 검사 및 검증 영수증을 `tools/gis/verify-lsib-country-sources.mjs`로 이관. GEOS 변경된 현대 다각형 유효성 및 세계 모든 폴리곤의 방향 무관 이진64 선분 홀짝 집계는 `--audit-lsib-modern-sources`에 집중. Node·네이티브 synthetic 정상·실패 회귀검사와 역사 GIS CI 경로를 추가하고 Python 검사기를 제거. 원본 국가 지오메트리/LSIB 자료 및 브라우저 지도를 건드리지 않음. **외부 라이브러리 실제 source-baseline 재현 검증은 별도 미완료**이며, 이 항목은 검증도구 이전이지 국경선 보정 승인이나 `supplement-lsib-boundaries.py` 전체 대체가 아님.
+
+
 - **A0:** `work/gis`에 `gis-node-migration.yml`을 추가하고 기존 Node 생성기 3종 회귀 테스트 실행 통과 ([Actions 40170378584](https://github.com/kimjeon-il/Pando/actions/runs/40170378584)).
 - **A1:** `build-place-candidates.py`를 Node 정책·ZIP streaming/CRC·review/감사 모듈로 이전하고 Python 테스트를 Node 24개 테스트로 대체. `fetch/build/review` 명령, dry-run와 source checksum, ID별 evidence, 현대 데이터의 역사적 도시 승인 금지를 검증 ([Actions 40171323978](https://github.com/kimjeon-il/Pando/actions/runs/40171323978)).
 - **A2 1차:** Node GIS launcher, reportArgument, 브라우저 캡처 trace 분석, 폰트·함수 소스 단위 테스트로 Python CLI/테스트 6개 교체. [Actions 40171812270](https://github.com/kimjeon-il/Pando/actions/runs/40171812270) 통과.

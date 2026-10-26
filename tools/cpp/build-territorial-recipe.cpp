@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -643,6 +645,7 @@ public:
 #include "historical-caspian-physical.inc"
 #include "historical-source-geometry-compare.inc"
 #include "historical-ussr-partition-audit.inc"
+#include "historical-lsib-source-audit.inc"
 }
 
 int main(int argc,char** argv) {
@@ -690,6 +693,11 @@ int main(int argc,char** argv) {
         if(argc==3 && std::string(argv[1])=="--audit-partition") {
             const auto value=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
             std::cout<<auditCanonicalHistoricalPartition(value).encode()<<'\n';
+            return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--audit-lsib-modern-sources") {
+            const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
+            std::cout<<auditLSIBModernSources(input).encode()<<'\n';
             return 0;
         }
         if(argc==3 && std::string(argv[1])=="--audit-linework") {
