@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {mkdtempSync,readFileSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {gunzipSync} from 'node:zlib';
@@ -68,6 +68,17 @@ test('staged gzip/manifest are reproducible and do not overwrite approved origin
  assert.throws(()=>stagePhysicalCandidates(candidate,destination),/must be new/);
  assert.deepEqual(m,manifest(assets),'Existing manifest must remain unchanged');
 });
+test('physical staging rejects root, sibling-prefix and absolute escape paths',t=>{
+ const dir=mkdtempSync(join(tmpdir(),'caspian-stage-'));
+ t.after(()=>rmSync(dir,{recursive:true,force:true}));
+ const outside=join(dir,'outside.json');
+ for(const [i,path] of ['.','../outside.json','../proposed-peer/outside.json',outside].entries()){
+   assert.throws(()=>stagePhysicalCandidates(new Map([[path,Buffer.from('must not write')]]),join(dir,'proposed-'+i)),/escapes staging root/);
+ }
+ assert.equal(existsSync(outside),false);
+ assert.equal(existsSync(join(dir,'proposed-peer/outside.json')),false);
+});
+
 test('native proof must show zero sovereign displacement and the exact 68 Caspian holes',()=>{
  const proof={land:current,metrics:{
    historicalWaterHoles:68,unchangedFarPolygonCount:200,
