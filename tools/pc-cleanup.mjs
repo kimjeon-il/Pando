@@ -25,7 +25,7 @@ export function classifyEditorChild(path){
 export function cacheDirectories(home){
  const local=join(home,'AppData/Local'),roaming=join(home,'AppData/Roaming');
  const paths=[join(home,'.codex/cache'),...['pnpm-cache','npm-cache','pip/Cache'].map(p=>join(local,p))];
- for(const base of [join(local,'Microsoft/Edge/User Data/Default'),join(roaming,'Codex/web/Codex')]){
+ for(const base of [join(local,'Microsoft/Edge/User Data/Default'),join(roaming,'Codex/web/Codex'),join(local,'Temp/pandolab-release-20261021/native-profile-packaged/EBWebView/Default')]){
   const profiles=base.endsWith('Codex')?[join(base,'Default'),join(base,'Default/Partitions')]:[base];
   for(const profile of profiles){
    if(basename(profile)==='Partitions'&&existsSync(profile))for(const name of readdirSync(profile))for(const cache of ['Cache','Code Cache','GPUCache','DawnGraphiteCache','DawnWebGPUCache'])paths.push(join(profile,name,cache));
@@ -146,7 +146,7 @@ export function discoverProfile({home,library,offline=false,processes=[]}){
   }
  }
  for(const cache of cacheDirectories(home)){
-  const isLive=/[\\/]Codex[\\/]|[\\/]Edge[\\/]/i.test(cache)||cache===join(home,'.codex/cache');
+  const isLive=/[\\/]Codex[\\/]|[\\/]Edge[\\/]|native-profile-packaged/i.test(cache)||cache===join(home,'.codex/cache');
   if(isLive&&!offline){preserved.push({path:cache,reason:'offline phase: live Codex/Edge cache'});continue;}
   for(const child of children(cache))add(cache,child.name,'pc-cache','delete','reproducible metadata/download/browser cache; persistent profile state excluded');
  }
