@@ -970,7 +970,12 @@ V webSnapshotValue(const ProjectDocument& d,const WebStorageContext& context) {
 ProjectDocument replaceWebTerritorialSource(const ProjectDocument& content,const ProjectDocument& source,const std::string& month) {
     auto next=content;next.units=source.units;next.countryDetails=source.countryDetails;next.symbols=source.symbols;
     next.timelineRecords=source.timelineRecords;next.geometries=GeometryStore{};next.geometryProvenance=GeometryProvenance{};
-    for(const auto& ref:semanticArchive(source)) {
+    const auto territorialOnly=[](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[](const auto& row){return row.objectRef.domain!="territorial";}),rows.end());};
+    territorialOnly(next.timelineRecords.lifetimes);territorialOnly(next.timelineRecords.geometryBindings);
+    territorialOnly(next.timelineRecords.parentRelations);territorialOnly(next.timelineRecords.propertyBindings);
+    std::set<GeometryRef> sourceGeometryRefs;
+    for(const auto& row:next.timelineRecords.geometryBindings)sourceGeometryRefs.insert(row.geometryRef);
+    for(const auto& ref:sourceGeometryRefs) {
         next.geometries.retainFrom(source.geometries,ref,ref);next.geometryProvenance.originalArchive.insert(ref);
     }
     next.presentation.objectStyles=source.presentation.objectStyles;

@@ -21,7 +21,10 @@ void ownedCommandBoundaries(const std::string& seed) {
     assert(!groupVisible(session.project().document().presentation.webPresentation,"labels"));
     assert(session.undo(session.projectState().epoch).result.changed());assert(!groupVisible(session.project().document().presentation.webPresentation,"labels"));
     session.documentLoad(seed,"2026-10");const auto inspectedBefore=session.documentSnapshot();const auto inspectedEpoch=session.projectState().epoch;
-    const auto inspected=session.inspectImport(seed,{},"2026-10");assert(inspected.world.entities.size()==4);
+    const auto inspected=session.inspectImport(seed,{},"2026-10");
+    assert(inspected.world.entities.size()==5);
+    for(const auto* id:{"A","B","C","R"})assert(inspected.world.find(territorialRef(id)));
+    assert(inspected.world.find({"hydro",session.project().document().hydro.at(0).id}));
     assert(session.documentSnapshot()==inspectedBefore&&session.projectState().epoch==inspectedEpoch&&!session.projectState().canUndo);
     const auto label=session.project().document().labels.at(0).id,original=session.storageSnapshot();
     const auto begin=session.labelGestureApply("begin",label,{},session.projectState().epoch);assert(begin.result.changed());
@@ -330,7 +333,7 @@ int main() {
         assert(result.month=="2026-09"&&result.month==projected.month);
         assert(result.entities.size()==projected.entities.size());
         for(std::size_t i=0;i<result.entities.size();++i) {
-            assert(result.entities[i].id==projected.entities[i].id);
+            assert(result.entities[i].objectRef==projected.entities[i].objectRef);
             assert(result.entities[i].geometryRef==projected.entities[i].geometryRef);
             assert(result.entities[i].parentId==projected.entities[i].parentId);
         }
