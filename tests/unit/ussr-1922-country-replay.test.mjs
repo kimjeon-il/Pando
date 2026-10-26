@@ -69,7 +69,7 @@ test('missing old founder, unexpected source identity and changed provenance fai
  delete previous[FOUNDER_IDS[0]];
  assert.throws(()=>buildUSSRApprovedSnapshot(inputs,previous),/source missing/);
  const p=approved();p.features[3].id='state:extra';
- assert.throws(()=>buildUSSRApprovedSnapshot(p,before()),/identities changed/);
+ assert.throws(()=>buildUSSRApprovedSnapshot(p,before()),/founders changed/);
  assert.match(USSR_ZIP_SHA,/^[a-f0-9]{64}$/);
 });
 test('staging writes an exclusive review candidate and never overwrites it',t=>{
