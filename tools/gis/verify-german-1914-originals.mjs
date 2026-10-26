@@ -121,6 +121,47 @@ export function verifyHistoricalStateSource(payload,recipe){
   return {features:payload.features.length,namedStates:names.size,
     coordinateCount:vertices,bounds:extent};
 }
+// Official distributor endpoints only. The probe reads a response into memory
+// for provenance/shape checks; it never saves licensed raw HGIS polygons or
+// upgrades an unpinned public response into approved historical map data.
+export const OFFICIAL_WFS=Object.freeze([
+  'https://geodata-proxy.lib.harvard.edu/geoserver/proxy/requestfile/wfs',
+  'https://geodata.lib.harvard.edu/vector_public/wfs',
+]);
+export function hgisWfsUrl(base){
+  const url=new URL(base);
+  for(const [key,value] of Object.entries({
+    service:'WFS',version:'1.0.0',request:'GetFeature',
+    typeName:'vector_public:GHGIS1914GERMANY',
+    outputFormat:'application/json',srsName:'EPSG:4326',
+  }))url.searchParams.set(key,value);
+  return url.toString();
+}
+export async function probeOfficialHGIS(recipe,{fetcher=fetch,servers=OFFICIAL_WFS}={}){
+  const attempts=[];
+  for(const server of servers){
+    try{
+      const r=await fetcher(hgisWfsUrl(server),{
+        headers:{'User-Agent':'PandoLab historical GIS provenance audit/1'},
+        signal:AbortSignal.timeout(12000),
+      });
+      check(r.ok,'Official HGIS service HTTP '+r.status);
+      const bytes=Buffer.from(await r.arrayBuffer());
+      check(bytes.length>0 && bytes.length<=MAX,
+        'Official HGIS service returned an empty or oversized candidate');
+      const stats=verifyHistoricalStateSource(JSON.parse(bytes.toString('utf8')),recipe);
+      return {status:'available-unpinned-candidate',officialServer:server,
+        candidateSha256:hash(bytes),...stats,
+        persisted:false,approvedForPublication:false,rawCoordinatesShared:false,
+        attempts};
+    }catch(error){
+      attempts.push({officialServer:server,error:String(error?.message||error).slice(0,220)});
+    }
+  }
+  return {status:'no-validated-official-response',persisted:false,
+    approvedForPublication:false,rawCoordinatesShared:false,attempts};
+}
+
 export function verifyCanonicalDEU(payload){
   check(payload?.type==='FeatureCollection'&&Array.isArray(payload.features),
     'Natural Earth source is not a FeatureCollection');
@@ -216,10 +257,11 @@ export async function audit(index,recipe,{
 export async function main(argv=process.argv.slice(2),{
   readRemote=fetchBytes,
 }={}){
-  let output;
+  let output,probeWfs=false;
   for(let i=0;i<argv.length;i++){
     if(argv[i]==='--output'&&argv[i+1]&&!output)output=resolve(argv[++i]);
-    else throw Error('Usage: --output NEW_PRIVATE_RECEIPT.json');
+    else if(argv[i]==='--probe-wfs'&&!probeWfs)probeWfs=true;
+    else throw Error('Usage: --output NEW_PRIVATE_RECEIPT.json [--probe-wfs]');
   }
   check(output,'A fresh report output file is required');
   check(!existsSync(output),'Never overwrite previous historical original evidence');
@@ -234,6 +276,8 @@ export async function main(argv=process.argv.slice(2),{
     revision:config.revision,
     readOriginal:path=>readRemote(base+path),
   });
+  if(probeWfs &&!evidence.originalHGIS1914Verified)
+    evidence.officialWfsProbe=await probeOfficialHGIS(recipe);
   mkdirSync(dirname(output),{recursive:true});
   writeFileSync(output,JSON.stringify(evidence,null,2)+'\n',{flag:'wx'});
   console.log('GERMAN_1914_ORIGINALS='+JSON.stringify(evidence));
