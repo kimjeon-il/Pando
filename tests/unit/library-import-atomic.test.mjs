@@ -93,11 +93,11 @@ test('post-confirm platform failure rolls back actual document, selection, draft
   assert.deepEqual(await h.client.selectionSnapshot(),selection);assert.deepEqual(await h.client.draftSnapshot(),draft);assert.deepEqual(h.events,[]);
 });
 
-async function libraryAssemblyHarness(t,finite,{impacts=false,entities}={}) {
+async function libraryAssemblyHarness(t,finite,{impacts=false,entities,water=false}={}) {
   const h=await harness(t,{entities}),previousDocument=globalThis.document;
   globalThis.document={querySelector:()=>null};t.after(()=>{globalThis.document=previousDocument;});
   const entityId='state:fixture',sourceGeometry={type:'Polygon',coordinates:[[[2,0],[2,1],[3,1],[3,0],[2,0]]]};
-  const entity=normalizeTerritorialLibraryEntity({entityId,lineageId:'fixture',entityKind:'general',names:{en:'Fixture'},schemaVersion:2,
+  const entity=normalizeTerritorialLibraryEntity({entityId,lineageId:'fixture',entityKind:water?'lake':'general',names:{en:'Fixture'},schemaVersion:2,
     lifetime:{validFrom:finite?'1900':null,validTo:finite?'1991-12':null},metadata:{defaultFlagDataUrl:'data:image/svg+xml;base64,ZmxhZw==',fixtureProvenance:'immutable-source'},
     sourceInfo:{title:'Fixture source',license:'test'},geometryVersions:[{versionId:'fixture:1',geometry:sourceGeometry,
       validFrom:finite?'1900':null,validTo:finite?'1991-12':null}]});
@@ -189,4 +189,14 @@ test('GIS library commit limits pair checks to growing roots without dropping do
   assert.equal(calls.length,1);
   assert.deepEqual(calls[0].affected,['A','NEW']);
   assert.deepEqual(calls[0].options,{overlapAffectedIds:['NEW']});
+});
+
+test('water library import uses one common Core batch, preserves country identities and Undo/Redo',async t=>{
+ const h=await libraryAssemblyHarness(t,true,{water:true}),before=snapshot(h),checkpoint=h.client.state().checkpoint;
+ const result=await h.api.instantiate(h.entityId,'1923-01');assert.equal(result.added,1);
+ assert.deepEqual(h.documentModel.snapshot().territorialEntities,before.territorialEntities);
+ const water=h.documentModel.snapshot().hydroEdits.at(-1);assert.equal(water.properties.category,'lake');assert.equal(water.geometry,null);
+ assert.equal(h.documentModel.snapshot().timelineRecords.parentRelations.some(row=>row.objectRef.domain==='hydro'),false);
+ assert.equal(h.client.state().checkpoint,checkpoint+1);
+ const after=snapshot(h);await h.project.undo();assert.deepEqual(snapshot(h),before);await h.project.redo();assert.deepEqual(snapshot(h),after);
 });

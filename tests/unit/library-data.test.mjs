@@ -66,6 +66,7 @@ test('runtime storage advances the pin only after a remotely confirmed push and 
   const put=(base,path,bytes)=>{mkdirSync(dirname(join(base,path)),{recursive:true});writeFileSync(join(base,path),bytes);};
   const git=(base,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:base,encoding:'utf8',stdio:'pipe'}).trim();
   for(const base of [root,data]){mkdirSync(base,{recursive:true});git(base,'init','-q');git(base,'config','user.name','Fixture');git(base,'config','user.email','fixture@example.invalid');}
+  git(root,'branch','-m','main');
   mkdirSync(remote);git(remote,'init','--bare','-q');
   const path='assets/data/value.bin', bytes=Buffer.from('first');
   put(data,path,bytes);put(data,'library.json','{}');
@@ -248,4 +249,27 @@ test('a fresh no-checkout clone is populated before the local edit guard', t => 
     const available=execFileSync('git',['cat-file','--batch-all-objects','--batch-check=%(objectname)'],{cwd:join(root,'.library-data/repository'),encoding:'utf8',env:{...process.env,GIT_NO_LAZY_FETCH:'1'}}).trim().split('\n');
     assert.equal(available.includes(git('rev-parse','HEAD:reports/unrequested.md')),false,'runtime prepare never downloads unrequested report blobs');
   } finally { keys.forEach((key, at) => previous[at] === undefined ? delete process.env[key] : process.env[key] = previous[at]); }
+});
+
+test('runtime storage targets the app branch and keeps the pinned unselected inputs', t => {
+ const parent=mkdtempSync(join(tmpdir(),'pando-runtime-branch-')),root=join(parent,'app'),data=join(root,'.library-data/repository'),remote=join(parent,'remote');
+ t.after(()=>rmSync(parent,{recursive:true,force:true}));
+ const put=(base,path,bytes)=>{mkdirSync(dirname(join(base,path)),{recursive:true});writeFileSync(join(base,path),bytes);};
+ const git=(base,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:base,encoding:'utf8',stdio:'pipe'}).trim();
+ for(const base of [root,data]){mkdirSync(base,{recursive:true});git(base,'init','-q');git(base,'config','user.name','Fixture');git(base,'config','user.email','fixture@example.invalid');}
+ git(root,'branch','-m','work/objects');mkdirSync(remote);git(remote,'init','--bare','-q');
+ const spec=(path,bytes)=>({stored:path,encoding:'identity',bytes:Buffer.byteLength(bytes),sha256:createHash('sha256').update(bytes).digest('hex')});
+ const path='assets/data/value.bin',other='assets/data/unselected.bin',index={branch:'main',files:{[path]:spec(path,'first'),[other]:spec(other,'pinned')}};
+ put(data,path,'first');put(data,other,'pinned');put(data,'library.json','{}');put(data,'archive/index.json',JSON.stringify(index));
+ git(data,'add','.');git(data,'commit','-qm','initial');git(data,'remote','add','origin',remote);git(data,'push','origin','HEAD:main');const baseline=git(data,'rev-parse','HEAD');
+ put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:baseline,mounts:['assets/data','reports']}));put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
+ prepareLibraryData({root,fetch:false});
+ // An archive checkout can own later work independently of its selected runtime pin.
+ index.files[other]={...spec(other,'archive-head'),stored:'archive/blobs/unselected-head.bin'};put(data,'archive/blobs/unselected-head.bin','archive-head');put(data,'archive/index.json',JSON.stringify(index));git(data,'add','--sparse','archive/index.json','archive/blobs/unselected-head.bin');git(data,'commit','-qm','separate stored work');
+ withLibraryWrite({root,prefixes:[path]},()=>put(root,path,'second'));
+ const revision=storeLibraryData({root,prefixes:[path],push:true});
+ assert.equal(git(data,'ls-remote','origin','refs/heads/main').split(/\s+/)[0],baseline,'private runtime storage must not publish main');
+ assert.equal(git(data,'ls-remote','origin','refs/heads/work/objects').split(/\s+/)[0],revision);
+ const stored=JSON.parse(git(data,'show',revision+':archive/index.json'));
+ assert.equal(stored.branch,'work/objects');assert.deepEqual(stored.files[other],spec(other,'pinned'));
 });

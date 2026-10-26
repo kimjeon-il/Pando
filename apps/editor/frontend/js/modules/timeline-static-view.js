@@ -4,7 +4,7 @@ const unsupported = () => { throw Object.assign(new Error('시간 기록의 활�
 export function assertStaticTimeline(records, entities) {
   if (!records || !Array.isArray(entities) || records.propertyBindings.length) unsupported();
   for (const entity of entities) for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) {
-    const rows = records[name].filter(record => record.entityId === entity.id);
+    const rows = records[name].filter(record => record.objectRef.id === entity.id);
     if (rows.length !== 1 || rows[0].validFrom !== null || rows[0].validTo !== null) unsupported();
   }
   return true;
@@ -12,8 +12,8 @@ export function assertStaticTimeline(records, entities) {
 
 export function staticTimelineViews(identities, records, geometries) {
   assertStaticTimeline(records, identities);
-  const binding = new Map(records.geometryBindings.map(record => [record.entityId, record]));
-  const parents = new Map(records.parentRelations.map(record => [record.entityId, record]));
+  const binding = new Map(records.geometryBindings.map(record => [record.objectRef.id, record]));
+  const parents = new Map(records.parentRelations.map(record => [record.objectRef.id, record]));
   return identities.map(identity => {
     const freeze = value => { if (value && typeof value === 'object') {
       for (const child of Object.values(value)) freeze(child); Object.freeze(value);

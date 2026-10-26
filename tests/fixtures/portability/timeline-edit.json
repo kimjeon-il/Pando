@@ -2,78 +2,105 @@
   "schema": "timeline-edit-parity-v1",
   "entities": [
     {
-      "id": "A",
+      "objectRef": {
+        "domain": "territorial",
+        "id": "A"
+      },
       "entityKind": "general"
     },
     {
-      "id": "B",
+      "objectRef": {
+        "domain": "territorial",
+        "id": "B"
+      },
       "entityKind": "general"
     }
   ],
   "records": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "lifetimes": [
       {
         "id": "life:A",
-        "entityId": "A",
         "validFrom": "1914-06-15",
-        "validTo": null
+        "validTo": null,
+        "objectRef": {
+          "domain": "territorial",
+          "id": "A"
+        }
       },
       {
         "id": "life:B",
-        "entityId": "B",
         "validFrom": null,
-        "validTo": null
+        "validTo": null,
+        "objectRef": {
+          "domain": "territorial",
+          "id": "B"
+        }
       }
     ],
     "geometryBindings": [
       {
         "id": "A:original",
-        "entityId": "A",
         "validFrom": "1914-06-15",
         "validTo": "1915-12-31",
         "geometryRef": {
           "id": "shape",
           "version": 1
+        },
+        "objectRef": {
+          "domain": "territorial",
+          "id": "A"
         }
       },
       {
         "id": "A:future",
-        "entityId": "A",
         "validFrom": "1916",
         "validTo": null,
         "geometryRef": {
           "id": "shape",
           "version": 3
+        },
+        "objectRef": {
+          "domain": "territorial",
+          "id": "A"
         }
       },
       {
         "id": "B:shape",
-        "entityId": "B",
         "validFrom": null,
         "validTo": null,
         "geometryRef": {
           "id": "shape",
           "version": 1
+        },
+        "objectRef": {
+          "domain": "territorial",
+          "id": "B"
         }
       }
     ],
     "parentRelations": [
       {
         "id": "parent:A",
-        "entityId": "A",
         "validFrom": "1914-06-15",
         "validTo": null,
         "parentId": "",
-        "coverageMode": "explicit"
+        "coverageMode": "explicit",
+        "objectRef": {
+          "domain": "territorial",
+          "id": "A"
+        }
       },
       {
         "id": "parent:B",
-        "entityId": "B",
         "validFrom": null,
         "validTo": null,
         "parentId": "",
-        "coverageMode": "explicit"
+        "coverageMode": "explicit",
+        "objectRef": {
+          "domain": "territorial",
+          "id": "B"
+        }
       }
     ],
     "propertyBindings": []
@@ -85,79 +112,103 @@
       "month": "1914-07",
       "version": 2,
       "expected": {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "lifetimes": [
           {
             "id": "life:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "life:B",
-            "entityId": "B",
             "validFrom": null,
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "geometryBindings": [
           {
             "id": "A:original",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": "1914-06",
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "A:original:1914-07",
-            "entityId": "A",
             "validFrom": "1914-07",
             "validTo": "1915-12-31",
             "geometryRef": {
               "id": "shape",
               "version": 2
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "A:future",
-            "entityId": "A",
             "validFrom": "1916",
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 3
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "B:shape",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
             }
           }
         ],
         "parentRelations": [
           {
             "id": "parent:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": null,
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "parent:B",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "propertyBindings": []
@@ -169,69 +220,90 @@
       "month": "1914-06",
       "version": 2,
       "expected": {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "lifetimes": [
           {
             "id": "life:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "life:B",
-            "entityId": "B",
             "validFrom": null,
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "geometryBindings": [
           {
             "id": "A:original",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": "1915-12-31",
             "geometryRef": {
               "id": "shape",
               "version": 2
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "A:future",
-            "entityId": "A",
             "validFrom": "1916",
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 3
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "B:shape",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
             }
           }
         ],
         "parentRelations": [
           {
             "id": "parent:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": null,
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "parent:B",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "propertyBindings": []
@@ -243,69 +315,90 @@
       "month": "1914-07",
       "version": 1,
       "expected": {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "lifetimes": [
           {
             "id": "life:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "life:B",
-            "entityId": "B",
             "validFrom": null,
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "geometryBindings": [
           {
             "id": "A:original",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": "1915-12-31",
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "A:future",
-            "entityId": "A",
             "validFrom": "1916",
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 3
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "B:shape",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
             }
           }
         ],
         "parentRelations": [
           {
             "id": "parent:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": null,
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "parent:B",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "propertyBindings": []
@@ -319,77 +412,101 @@
       "parentId": "B",
       "coverageMode": "partition",
       "expected": {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "lifetimes": [
           {
             "id": "life:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "life:B",
-            "entityId": "B",
             "validFrom": null,
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "geometryBindings": [
           {
             "id": "A:original",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": "1915-12-31",
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "A:future",
-            "entityId": "A",
             "validFrom": "1916",
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 3
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "B:shape",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
             }
           }
         ],
         "parentRelations": [
           {
             "id": "parent:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": "1914-06",
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "parent:A:1914-07",
-            "entityId": "A",
             "validFrom": "1914-07",
             "validTo": null,
             "parentId": "B",
-            "coverageMode": "partition"
+            "coverageMode": "partition",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "parent:B",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "propertyBindings": []
@@ -400,59 +517,77 @@
       "op": "truncate",
       "month": "1914-07",
       "expected": {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "lifetimes": [
           {
             "id": "life:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
-            "validTo": "1914-06"
+            "validTo": "1914-06",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "life:B",
-            "entityId": "B",
             "validFrom": null,
-            "validTo": null
+            "validTo": null,
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "geometryBindings": [
           {
             "id": "A:original",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": "1914-06",
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
             }
           },
           {
             "id": "B:shape",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "geometryRef": {
               "id": "shape",
               "version": 1
+            },
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
             }
           }
         ],
         "parentRelations": [
           {
             "id": "parent:A",
-            "entityId": "A",
             "validFrom": "1914-06-15",
             "validTo": "1914-06",
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "A"
+            }
           },
           {
             "id": "parent:B",
-            "entityId": "B",
             "validFrom": null,
             "validTo": null,
             "parentId": "",
-            "coverageMode": "explicit"
+            "coverageMode": "explicit",
+            "objectRef": {
+              "domain": "territorial",
+              "id": "B"
+            }
           }
         ],
         "propertyBindings": []

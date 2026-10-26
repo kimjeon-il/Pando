@@ -70,7 +70,7 @@ test('viewer data closure follows current manifest references and excludes sourc
 test('viewer closure retains historical physical land and water as required manifest dependencies',async()=>{
  const f=fixture();
  try{
-  f.put('assets/data/physical-land/v1/manifest.json',JSON.stringify({asset:{url:'assets/data/physical-land/v1/modern.gz'},historicalWaterbodies:[{land:{url:'assets/data/physical-land/v1/historical-land.gz'},water:{url:'assets/data/physical-land/v1/historical-water.gz'}}]}));
+  f.put('assets/data/physical-land/v1/manifest.json',JSON.stringify({asset:{url:'assets/data/physical-land/v1/modern.gz'},waterObjects:{geometries:[{land:{url:'assets/data/physical-land/v1/historical-land.gz'},asset:{url:'assets/data/physical-land/v1/historical-water.gz'}}]}}));
   for(const name of ['modern','historical-land','historical-water'])f.put(`assets/data/physical-land/v1/${name}.gz`);
   const paths=await f.collect();for(const name of ['modern','historical-land','historical-water'])assert.ok(paths.has(`assets/data/physical-land/v1/${name}.gz`));
   f.files.delete('assets/data/physical-land/v1/historical-water.gz');await assert.rejects(f.collect(),/missing/i);

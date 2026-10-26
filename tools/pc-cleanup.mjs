@@ -108,6 +108,7 @@ export function confirmRecovery(directory){
 export function checkedConsumers({processes,offline,policy}){
  if(offline)assertOffline(processes);
  if(policy?.requests.some(r=>/^playwright/.test(r.path))&&processes.some(p=>/^(?:msedge|chrome|chrome-headless-shell)\.exe$/i.test(p.Name||'')))throw Error('An active automation browser owner blocks saved Temp scopes');
+ if(policy?.requests.some(r=>/[\\/]Pandoeditor$/i.test(r.root)&&/^cache(?:[\\/]|$)/.test(r.path))&&processes.some(p=>/^pandoeditor\.exe$/i.test(p.Name||'')))throw Error('An active Qt editor owner blocks its profile cache');
  return processes;
 }
 function children(root){return existsSync(root)?readdirSync(root,{withFileTypes:true}):[];}
@@ -124,6 +125,7 @@ export function discoverProfile({home,library,offline=false,processes=[]}){
  function add(root,path,kind,action,reason,destination){
   const source=containedPath(root,path);if(!existsSync(source))return;
   const normalize=value=>String(value||'').replaceAll('\\','/').toLowerCase();
+  if(/[\\/]Pandoeditor$/i.test(root)&&/^cache(?:[\\/]|$)/.test(path)&&processes.some(p=>/^pandoeditor\.exe$/i.test(p.Name||''))){preserved.push({path:source,reason:'active Qt editor owns profile cache'});return;}
   if(processes.some(p=>normalize(p.ExecutablePath).startsWith(normalize(source)+'/')||normalize(p.CommandLine).includes(normalize(source)))){preserved.push({path:source,reason:'active process references exact target'});return;}
   if(lstatSync(source).isSymbolicLink()){preserved.push({path:source,reason:'reparse point: never traverse'});return;}
   if(lstatSync(source).isDirectory()){
