@@ -741,10 +741,12 @@ void applyContent(ProjectDocument& d,const DocumentIndex& before,const ContentEd
                         CommandError::InvalidArguments,"source hydro already hidden");
                     hidden.push_back(*value.sourceFeatureId);
                 }
-                require(edit.geometryBinding.has_value(),CommandError::InvalidArguments,"water geometry binding required");
-                if(edit.create)addStaticObjectRecords(d,edit.target,*edit.geometryBinding);
-                else staticGeometryBinding(d,edit.target).geometryRef=*edit.geometryBinding;
-                staticGeometryBinding(d,edit.target).rendering=edit.geometryRendering.value_or("{}");
+                require(!edit.create||edit.geometryBinding.has_value(),CommandError::InvalidArguments,"water geometry binding required");
+                if(edit.geometryBinding) {
+                    if(edit.create)addStaticObjectRecords(d,edit.target,*edit.geometryBinding);
+                    else staticGeometryBinding(d,edit.target).geometryRef=*edit.geometryBinding;
+                    staticGeometryBinding(d,edit.target).rendering=edit.geometryRendering.value_or("{}");
+                }
                 replaceContentRow(d.hydro,value);
             }
             else if constexpr(std::is_same_v<T,DistributionLayer>) replaceContentRow(d.distributionLayers,value);

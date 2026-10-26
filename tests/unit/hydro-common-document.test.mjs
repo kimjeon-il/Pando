@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
+import {createTerritorialFeature,normalizeTerritorialIdentity,TERRITORIAL_SCHEMA_VERSION} from '../../shared/frontend/js/modules/territorial-units.js';
 
 const id='33000000-0000-4000-8000-000000000031';
 const objectRef={domain:'hydro',id};
@@ -79,4 +80,61 @@ test('bulk water deletion truncates the same timeline and Undo restores the earl
  await owner.client.setTimelineCursor('1922-12');assert.ok(owner.documentModel.get(objectRef));
  await owner.client.setTimelineCursor('1923-01');assert.equal(await owner.project.undo(),true);assert.deepEqual(owner.documentModel.snapshot(),before);
  assert.equal(await owner.project.redo(),true);assert.equal(owner.documentModel.get(objectRef),null);
+});
+
+function withCountry(project,countryId=id) {
+  const ref={domain:'territorial',id:countryId};
+  project.territorialEntities=[normalizeTerritorialIdentity({type:'Feature',id:countryId,geometry:null,
+    properties:{schemaVersion:TERRITORIAL_SCHEMA_VERSION,entityKind:'general',name:'Country'}})];
+  project.geometries.push({id:'country-shape',version:1,geojson:polygon(5)});
+  project.timelineRecords.lifetimes.push({id:'country-life',objectRef:ref,validFrom:null,validTo:null});
+  project.timelineRecords.geometryBindings.push({id:'country-binding',objectRef:ref,validFrom:null,validTo:null,geometryRef:{id:'country-shape',version:1}});
+  project.timelineRecords.parentRelations.push({id:'country-parent',objectRef:ref,validFrom:null,validTo:null,parentId:'',coverageMode:'explicit'});
+  return ref;
+}
+
+test('territorial edits preserve a dated river sharing the same string identity and Undo history',async t=>{
+  const project=seed();project.hydroEdits[0].properties.category='river';
+  for(const row of project.geometries)row.geojson={type:'LineString',coordinates:[[0,0],[row.version,row.version]]};
+  const country=withCountry(project),owner=await createNodeCoreProject(project);t.after(()=>owner.dispose());
+  const before=owner.documentModel.snapshot(),river=owner.documentModel.get(objectRef);
+  const feature=createTerritorialFeature({id:country.id,entityKind:'general',geometry:polygon(6)});
+  const result=await owner.project.executeCommand({commandId:'territorial.patch',targets:[country],payload:{features:[feature]}});
+  assert.equal(result.ok,true,JSON.stringify(result.error));
+  assert.deepEqual(owner.documentModel.territorialViews().find(row=>row.id===country.id).geometry,polygon(6));
+  assert.deepEqual(owner.documentModel.get(objectRef),river);
+  assert.deepEqual(owner.documentModel.snapshot().timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='hydro'),before.timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='hydro'));
+  assert.equal(await owner.project.undo(),true);assert.deepEqual(owner.documentModel.snapshot(),before);
+  assert.equal(await owner.project.redo(),true);assert.deepEqual(owner.documentModel.get(objectRef),river);
+});
+
+test('static territorial replacement preserves water records for shared and distinct string identities',async t=>{
+  for(const countryId of [id,'country']) {
+    const project=seed();project.timelineRecords.geometryBindings=[{id:'water-static',objectRef,validFrom:null,validTo:null,geometryRef:{id:'lake',version:1}}];
+    const country=withCountry(project,countryId),owner=await createNodeCoreProject(project);t.after(()=>owner.dispose());
+    const before=owner.documentModel.snapshot(),water=owner.documentModel.get(objectRef);
+    const result=await owner.project.executeCommand({commandId:'territorial.replace',targets:[country],payload:{features:[createTerritorialFeature({id:country.id,entityKind:'general',geometry:polygon(6)})]}});
+    assert.equal(result.ok,true,JSON.stringify(result.error));
+    assert.deepEqual(owner.documentModel.territorialViews().find(row=>row.id===country.id).geometry,polygon(6));
+    assert.deepEqual(owner.documentModel.get(objectRef),water);
+    assert.deepEqual(owner.documentModel.snapshot().timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='hydro'),before.timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='hydro'));
+    assert.equal(await owner.project.undo(),true);assert.deepEqual(owner.documentModel.snapshot(),before);
+  }
+});
+
+test('multi-period water identity edits and locks retain geometry history through Undo and Redo',async t=>{
+  for(const command of [
+    {commandId:'hydro.metadata',targets:[objectRef],payload:{id,field:'notes',value:'Reviewed note'}},
+    {commandId:'objects.lock',targets:[objectRef],payload:{refs:[objectRef],locked:true}},
+  ]) {
+    const owner=await createNodeCoreProject(seed());t.after(()=>owner.dispose());
+    const before=owner.documentModel.snapshot(),geometry=owner.documentModel.get(objectRef).geometry;
+    const result=await owner.project.executeCommand(command);
+    assert.equal(result.ok,true,JSON.stringify(result.error));
+    assert.deepEqual(owner.documentModel.get(objectRef).geometry,geometry);
+    assert.deepEqual(owner.documentModel.snapshot().timelineRecords,before.timelineRecords);
+    assert.equal(await owner.project.undo(),true);assert.deepEqual(owner.documentModel.snapshot(),before);
+    assert.equal(await owner.project.redo(),true);
+    assert.equal(owner.documentModel.get(objectRef).properties[command.commandId==='objects.lock'?'locked':'notes'],command.commandId==='objects.lock'?true:'Reviewed note');
+  }
 });
