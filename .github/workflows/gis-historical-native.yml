@@ -34,6 +34,9 @@ on:
       - 'tests/unit/gis-caspian-source-zip.test.mjs'
       - 'tools/historical-library/german-empire-1914-base.recipe.json'
       - 'tests/unit/gis-german-base-native.test.mjs'
+      - 'tools/gis/verify-german-1914-originals.mjs'
+      - 'tests/unit/gis-german-1914-originals.test.mjs'
+      - 'tools/fetch-german-empire-1914-source.mjs'
       - '.github/workflows/gis-historical-native.yml'
   workflow_dispatch:
 
@@ -65,6 +68,7 @@ jobs:
         run: |
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
           node --test tests/unit/gis-german-base-native.test.mjs tests/unit/gis-historical-linework-native.test.mjs
+          node --test tests/unit/gis-german-1914-originals.test.mjs
           node --test tests/unit/gis-caspian-source-zip.test.mjs
           node --test tests/unit/gis-caspian-generalize-native.test.mjs
           node --test tests/unit/gis-caspian-display-packaging.test.mjs
@@ -75,6 +79,14 @@ jobs:
           node --test tests/unit/ussr-1922-country-replay.test.mjs
           node --test tests/unit/ussr-1922-physical-replay.test.mjs
 
+      - name: Verify immutable 1914 Germany source inventory and native Heligoland donor
+        run: |
+          set -euo pipefail
+          mkdir -p build-native/historical
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node tools/gis/verify-german-1914-originals.mjs \
+            --output build-native/historical/german-1914-originals-receipt.json \
+            | tee build-native/historical/german-1914-originals-receipt.jsonl
       - name: Fetch only immutable Caspian 1922 approved source archive
         run: |
           mkdir -p build-native/historical
@@ -226,5 +238,6 @@ jobs:
             build-native/historical/ussr-1922-native-compact-report/
             build-native/historical/ussr-1922-drift-review/source-drift.json
             build-native/historical/ussr-1922-approved-followups.json
+            build-native/historical/german-1914-originals-receipt.json
           retention-days: 14
           if-no-files-found: warn
