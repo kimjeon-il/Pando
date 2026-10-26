@@ -11,6 +11,8 @@ on:
       - 'tools/gis/generalize-approved-caspian-display.mjs'
       - 'tests/unit/gis-caspian-display-packaging.test.mjs'
       - 'tests/unit/gis-caspian-pinned-native-oracle.test.mjs'
+      - 'tools/gis/replay-ussr-1922-countries.mjs'
+      - 'tests/unit/ussr-1922-country-replay.test.mjs'
       - 'tests/fixtures/gis-caspian-1922-python-native-oracle.json'
       - 'tools/gis/verify-historical-linework.mjs'
       - 'tests/unit/gis-historical-linework-native.test.mjs'
@@ -52,6 +54,7 @@ jobs:
           node --test tests/unit/gis-caspian-source-zip.test.mjs
           node --test tests/unit/gis-caspian-generalize-native.test.mjs
           node --test tests/unit/gis-caspian-display-packaging.test.mjs
+          node --test tests/unit/ussr-1922-country-replay.test.mjs
 
       - name: Fetch only immutable Caspian 1922 approved source archive
         run: |
@@ -85,6 +88,42 @@ jobs:
           console.log('CASPIAN_PINNED_SOURCE='+JSON.stringify({
             libraryRevision:pin,logical,sha256:sha(original),bytes:original.length}));
           JS
+      - name: Download the separately approved immutable 1922 USSR master for Node identity checks
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          import {createHash} from 'node:crypto';
+          const sha=b=>createHash('sha256').update(b).digest('hex');
+          const pin=JSON.parse(readFileSync('config/library-data.json','utf8')).revision;
+          const base='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+pin+'/';
+          const get=async path=>{
+            const r=await fetch(base+path,{signal:AbortSignal.timeout(120000)});
+            if(!r.ok)throw Error('Pinned library fetch HTTP '+r.status);
+            return Buffer.from(await r.arrayBuffer());
+          };
+          const index=JSON.parse((await get('archive/index.json')).toString('utf8'));
+          const logical='tools/historical-library/sources/ussr-1922-approved/ussr-1922-v2-reviewed-master-20261023.zip';
+          const receipt=index.files?.[logical];
+          const expected='53d5889738d995e76c0f8da7f00fcc36fdb0baaa98f471bfdad41384061ceb8a';
+          if(receipt?.sha256!==expected||receipt.bytes!==1300139
+            ||!/^archive\/blobs\/[a-f0-9]{64}\.(?:gz|bin)$/.test(receipt.stored))
+            throw Error('Pinned Soviet founding evidence is not the approved ZIP');
+          const container=await get(receipt.stored);
+          const original=receipt.encoding==='gzip'?gunzipSync(container):
+            ['raw','none'].includes(receipt.encoding)?container:null;
+          if(!original||original.length!==receipt.bytes||sha(original)!==expected)
+            throw Error('Soviet founding original integrity check failed');
+          writeFileSync('build-native/historical/ussr-1922-approved-master.zip',
+            original,{flag:'wx'});
+          console.log('USSR_1922_PINNED_ZIP='+JSON.stringify({sha256:expected,
+            bytes:original.length,libraryRevision:pin}));
+          JS
+      - name: Verify all five published 1922 country entities against the approved source ZIP
+        run: |
+          node tools/gis/replay-ussr-1922-countries.mjs \
+            --zip build-native/historical/ussr-1922-approved-master.zip \
+            | tee build-native/historical/ussr-1922-country-replay.jsonl
       - name: Compare actual 266-reach approved source with the native GEOS topology owner
         run: |
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
@@ -108,5 +147,6 @@ jobs:
           path: |
             build-native/historical/caspian-1922-native-receipt.jsonl
             build-native/historical/caspian-1922-native-display-receipt.jsonl
+            build-native/historical/ussr-1922-country-replay.jsonl
           retention-days: 14
           if-no-files-found: warn
