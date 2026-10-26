@@ -57,24 +57,27 @@ test('published source differences remain explicitly blocked in a compact report
 });
 test('a fully verified approved 1922 descendant supersedes, but never deletes, the original ZIP comparison',()=>{
   const c=receipt();
+  c.countries.entities[4].geosTopologicalEquals=false;
+  c.countries.entities[4].suitableForAutomaticReapplication=false;
+  c.countries.nonEquivalentFounders=5;
   c.corrections={
     schema:'pando-ussr-1922-approved-descendant-audit-v1',
     status:'approved-followups-verified',pinnedDataRevision:
       APPROVED_DATA_PIN,
     canonicalPublishedVersionVerified:true,originalZipWasNotOverwritten:true,
     sourceObjectsMutated:false,runtimePromotionPerformed:false,
-    correctedFounders:4,unchangedFounders:1,
+    correctedFounders:5,unchangedFounders:0,
     verifiedReportReceipts:Object.values(PROOFS).map(r=>({...r})),
     parentRepublicPartition:{passed:true,founderCount:5},
-    correctionSequence:['2026-10-23-reviewed-ZIP','2026-10-25-dniester','2026-10-25-europe','2026-10-26-central-asia-approved','2026-10-26-bukhara-approved'],
+    correctionSequence:['2026-10-23-reviewed-ZIP','2026-10-25-dniester','2026-10-25-europe','2026-10-26-central-asia-approved','2026-10-26-bukhara-approved','2026-10-26-caucasus-modern-approved'],
     entities:FOUNDER_IDS.map((id,i)=>({
-      entityId:id,approvedCorrection:i!==4,sourceGeometryVerified:true,
+      entityId:id,approvedCorrection:true,sourceGeometryVerified:true,
       validFrom:'1922-12-30',validTo:'1925-05-12',
     })),
   };
   const report=buildCompactReport(c,archived);
   assert.equal(report.json.countries.unresolvedCanonicalGeometryIssues,0);
-  assert.equal(report.json.countries.topologicalDiscrepancies.length,4);
+  assert.equal(report.json.countries.topologicalDiscrepancies.length,5);
   assert.equal(report.json.countries.status,'approved-followups-verified');
   assert.match(report.markdown,/미해결 위상 오류는 0건/);
   assert.match(report.markdown,/중앙아시아 3구간·부하라/);

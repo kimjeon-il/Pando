@@ -175,6 +175,46 @@ workflow.
 The HGIS source contract and local-file policy are documented in
 `sources/german-empire-1914/README.md`.
 
+### German 1914 original-source readiness audit (2026-10-26)
+
+After building `pando-territorial-recipe`, run this independent read-only check:
+
+```sh
+PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" node tools/gis/verify-german-1914-originals.mjs --output build-native/historical/german-1914-origin-check-NEW.json --probe-wfs
+```
+
+The output path must be new. The command verifies the original bytes against the SHA-256
+receipts pinned by `config/library-data.json`, and tests the actual
+Natural Earth DEU Heligoland and Düne geometry with C++/GEOS. The optional
+WFS availability check never persists or publishes Harvard HGIS coordinates.
+
+Pinned data revision `68380579a7c7a1bd8ec97683b7517502c1389c3c`: 
+
+- Natural Earth 5.1.1 national source: SHA-256
+  `52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb`,
+  12,415,778 bytes, 258 country features, one DEU MultiPolygon.
+- Native Heligoland + Düne donor selection: **two valid components**,
+  both mandatory anchor points covered. The earlier incorrect recipe SHA
+  is now replaced with the exact 64-digit source hash.
+- Archived HistoGIS `deutsches-reich 1871–1919` source and its provisional
+  modern-coast German 1914 working geometry: original archive bytes/SHA verified.
+  This is a **different** source from the Harvard 26-state layer.
+- Harvard/NYU 1914 26-state HGIS source
+  (`hgis-germany-states-1914.geojson`) and its generated historical
+  C++/Python geometry oracle: **both absent from the pinned library archive**.
+- Official Harvard WFS probes: proxy fetch failure and legacy WFS HTTP 403.
+  Neither outcome proves the original no longer exists at the provider.
+
+Original HGIS material remains restricted to non-commercial academic research
+unless separately licensed, and no new licensed original has been published.
+Retain the Python production generator and
+`nativeStatus=pending-actual-hgis-source-hash-and-geometry-oracle` until a
+correct 26-state source is lawfully acquired, SHA-pinned, and C++/Python
+reconstruction equivalence is demonstrated with actual source data.
+Passing a synthetic recipe test or the authentic two-island donor check does
+**not** satisfy that original-data gate.
+
+
 ## Worldwide event-based shoreline pilot (October 2026)
 
 The [global historical coastline change workflow](../../docs/historical-coastline-change-workflow.md) reuses the German coastline event catalogue instead of duplicating it by sovereign or year. Its [read-only catalogue registry](sources/coastline-catalogs.json) references the existing German and new Dutch inventories without duplicating event records. The Netherlands pilot adds a [nine-event source index](sources/netherlands/change-events.json), [twelve read-only national-polygon point probes](sources/netherlands/canonical-phase0-probes.json), and a [Phase 0 audit](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/geography/netherlands/phase0-canonical-audit.md).

@@ -10,6 +10,9 @@ on:
       - 'tools/cpp/historical-caspian-physical.inc'
       - 'tools/cpp/historical-source-geometry-compare.inc'
       - 'tools/cpp/historical-ussr-partition-audit.inc'
+      - 'tools/cpp/historical-lsib-source-audit.inc'
+      - 'tools/gis/verify-lsib-country-sources.mjs'
+      - 'tests/unit/gis-lsib-source-native.test.mjs'
       - 'tests/unit/gis-historical-source-compare.test.mjs'
       - 'tests/unit/gis-caspian-physical-native.test.mjs'
       - 'tests/unit/gis-caspian-generalize-native.test.mjs'
@@ -23,6 +26,8 @@ on:
       - 'tools/gis/diagnose-ussr-1922-source-drift.mjs'
       - 'tools/gis/stage-ussr-1922-library-originals.mjs'
       - 'tools/gis/replay-ussr-1922-physical.mjs'
+      - 'tools/gis/verify-ussr-1922-aral-names.mjs'
+      - 'tests/unit/ussr-1922-aral-names.test.mjs'
       - 'tools/gis/report-ussr-1922-caspian.mjs'
       - 'tests/unit/ussr-1922-report-native.test.mjs'
       - 'tests/unit/ussr-1922-physical-replay.test.mjs'
@@ -34,6 +39,9 @@ on:
       - 'tests/unit/gis-caspian-source-zip.test.mjs'
       - 'tools/historical-library/german-empire-1914-base.recipe.json'
       - 'tests/unit/gis-german-base-native.test.mjs'
+      - 'tools/gis/verify-german-1914-originals.mjs'
+      - 'tests/unit/gis-german-1914-originals.test.mjs'
+      - 'tools/fetch-german-empire-1914-source.mjs'
       - '.github/workflows/gis-historical-native.yml'
   workflow_dispatch:
 
@@ -65,16 +73,27 @@ jobs:
         run: |
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
           node --test tests/unit/gis-german-base-native.test.mjs tests/unit/gis-historical-linework-native.test.mjs
+          node --test tests/unit/gis-german-1914-originals.test.mjs
           node --test tests/unit/gis-caspian-source-zip.test.mjs
           node --test tests/unit/gis-caspian-generalize-native.test.mjs
           node --test tests/unit/gis-caspian-display-packaging.test.mjs
           node --test tests/unit/gis-caspian-physical-native.test.mjs
           node --test tests/unit/gis-historical-source-compare.test.mjs
           node --test tests/unit/gis-ussr-1922-partition-native.test.mjs
+          node --test tests/unit/gis-lsib-source-native.test.mjs
           node --test tests/unit/ussr-1922-approved-followups.test.mjs
           node --test tests/unit/ussr-1922-country-replay.test.mjs
           node --test tests/unit/ussr-1922-physical-replay.test.mjs
+          node --test tests/unit/ussr-1922-aral-names.test.mjs
 
+      - name: Verify immutable 1914 Germany source inventory and native Heligoland donor
+        run: |
+          set -euo pipefail
+          mkdir -p build-native/historical
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node tools/gis/verify-german-1914-originals.mjs \
+            --output build-native/historical/german-1914-originals-receipt.json --probe-wfs \
+            | tee build-native/historical/german-1914-originals-receipt.jsonl
       - name: Fetch only immutable Caspian 1922 approved source archive
         run: |
           mkdir -p build-native/historical
@@ -163,7 +182,7 @@ jobs:
             --old-pin d790ac6f0e8fe55e1407cc7a5b29bc696f48384c \
             --output build-native/historical/ussr-1922-drift-review \
             | tee build-native/historical/ussr-1922-drift-review.jsonl
-      - name: Validate approved 1922 Dniester/Europe/Central Asia lineage and five-founder GEOS partition
+      - name: Validate approved 1922 Dniester/Europe lineage and five-founder GEOS partition
         run: |
           set -euo pipefail
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
@@ -201,6 +220,15 @@ jobs:
             --display build-native/historical/caspian-1922-native-candidate.json \
             --stage build-native/historical/caspian-1922-rebuilt-physical-candidate \
             | tee build-native/historical/caspian-1922-physical-replay.jsonl
+      - name: Verify 1922 Aral metadata and unchanged Hydro geometry without retired Python
+        run: |
+          set -euo pipefail
+          node tools/gis/stage-ussr-1922-library-originals.mjs \
+            --scope hydro --output-root build-native/historical/ussr-1922-hydro-originals
+          node tools/gis/verify-ussr-1922-aral-names.mjs \
+            --source-root build-native/historical/ussr-1922-hydro-originals \
+            --output build-native/historical/ussr-1922-aral-node-proof.json \
+            | tee build-native/historical/ussr-1922-aral-node-proof.jsonl
       - name: Verify pinned Python-vs-C++ real Caspian geometry proof without Python dependencies
         run: node --test tests/unit/gis-caspian-pinned-native-oracle.test.mjs
       - name: Condense fully verified 1922 historical GIS evidence in Node
@@ -226,5 +254,7 @@ jobs:
             build-native/historical/ussr-1922-native-compact-report/
             build-native/historical/ussr-1922-drift-review/source-drift.json
             build-native/historical/ussr-1922-approved-followups.json
+            build-native/historical/ussr-1922-aral-node-proof.json
+            build-native/historical/german-1914-originals-receipt.json
           retention-days: 14
           if-no-files-found: warn
