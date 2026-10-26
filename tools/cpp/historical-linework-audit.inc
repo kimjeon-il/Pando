@@ -113,3 +113,94 @@ V correctHistoricalCoordinateTree(const V& request) {
     };
     return recurse(recurse,field(request,"coordinates"));
 }
+
+// A strict canonical country partition proof shared by historical releases.
+// No created geometry leaves this read-only function; all distances/areas use PROJ.
+V auditCanonicalHistoricalPartition(const V& request) {
+    GeometryEngine geos;
+    auto current=geos.parse(field(request,"candidate"));
+    auto canonical=geos.parse(field(request,"canonical"));
+    if(GEOSisValid_r(geos.context(),current.get())!=1
+        ||GEOSisValid_r(geos.context(),canonical.get())!=1)
+        throw std::runtime_error("Historical partition contains invalid geometry");
+    const auto& limits=field(request,"limits");
+    const auto metricArea=[&](const GeometryEngine::Shape& part)->double {
+        const auto metric=geos.project(part,"EPSG:4326","EPSG:3035");
+        return geos.area(metric.get())/1000000.0;
+    };
+    const double currentKm2=metricArea(current);
+    auto outside=geos.difference(current,canonical);
+    auto remainder=geos.difference(canonical,current);
+    auto overlapping=geos.intersection(current,remainder);
+    auto merged=geos.unaryUnion({current,remainder});
+    auto puzzle=geos.own(GEOSSymDifference_r(geos.context(),merged.get(),canonical.get()),
+        "canonical partition symmetric difference");
+    const double outsideKm2=metricArea(outside);
+    const double overlapKm2=metricArea(overlapping);
+    const double puzzleKm2=metricArea(puzzle);
+    const auto round12=[](double number)->std::int64_t {
+        if(!std::isfinite(number)||std::abs(number)>180)
+            throw std::runtime_error("Invalid canonical shared boundary coordinate");
+        return static_cast<std::int64_t>(std::llround(number*1000000000000.0));
+    };
+    using XY=std::pair<std::int64_t,std::int64_t>;
+    std::set<XY> originalVertices;
+    const auto eachCoordinate=[&](const GEOSGeometry* line,const auto& consume) {
+        const auto* seq=GEOSGeom_getCoordSeq_r(geos.context(),line);
+        unsigned length=0;
+        if(!seq||!GEOSCoordSeq_getSize_r(geos.context(),seq,&length))
+            throw std::runtime_error("GEOS canonical coordinate sequence unavailable");
+        for(unsigned i=0;i<length;++i){
+            double x=0,y=0;
+            if(!GEOSCoordSeq_getXY_r(geos.context(),seq,i,&x,&y))
+                throw std::runtime_error("GEOS canonical vertex unreadable");
+            consume(XY{round12(x),round12(y)});
+        }
+    };
+    for(const auto& polygon:geos.parts(canonical)){
+        if(geos.type(polygon.get())!=GEOS_POLYGON)
+            throw std::runtime_error("Canonical source needs polygon components");
+        eachCoordinate(GEOSGetExteriorRing_r(geos.context(),polygon.get()),
+            [&](const XY& item){originalVertices.insert(item);});
+        const int holes=GEOSGetNumInteriorRings_r(geos.context(),polygon.get());
+        for(int i=0;i<holes;++i)
+            eachCoordinate(GEOSGetInteriorRingN_r(geos.context(),polygon.get(),i),
+                [&](const XY& item){originalVertices.insert(item);});
+    }
+    const auto left=geos.boundary(current),right=geos.boundary(canonical);
+    const auto shared=geos.intersection(left,right);
+    std::size_t sharedCount=0;
+    bool canonicalVerticesOnly=true;
+    const auto walk=[&](const auto& self,const GEOSGeometry* shape)->void {
+        if(geos.empty(shape))return;
+        const auto kind=geos.type(shape);
+        if(kind==GEOS_LINESTRING||kind==GEOS_LINEARRING||kind==GEOS_POINT){
+            eachCoordinate(shape,[&](const XY& item){
+                ++sharedCount;
+                if(!originalVertices.count(item))canonicalVerticesOnly=false;
+            });
+            return;
+        }
+        const int count=GEOSGetNumGeometries_r(geos.context(),shape);
+        if(count<0)throw std::runtime_error("GEOS shared boundary collection invalid");
+        for(int i=0;i<count;++i)
+            self(self,GEOSGetGeometryN_r(geos.context(),shape,i));
+    };
+    walk(walk,shared.get());
+    const bool passed=currentKm2>=number(field(limits,"minimumAreaKm2"))
+        &&currentKm2<=number(field(limits,"maximumAreaKm2"))
+        &&outsideKm2<=number(field(limits,"maximumOutsideKm2"))
+        &&overlapKm2<=number(field(limits,"maximumOverlapKm2"))
+        &&puzzleKm2<=number(field(limits,"maximumPuzzleKm2"))
+        &&canonicalVerticesOnly&&sharedCount>0;
+    auto out=V::obj();
+    out.object["schemaVersion"]=V::num(1);
+    out.object["areaKm2"]=V::num(currentKm2);
+    out.object["outsideKm2"]=V::num(outsideKm2);
+    out.object["overlapKm2"]=V::num(overlapKm2);
+    out.object["puzzleDifferenceKm2"]=V::num(puzzleKm2);
+    out.object["sharedVertexCount"]=V::num(static_cast<double>(sharedCount));
+    out.object["sharedVerticesFromCanonical"]=V::boolean(canonicalVerticesOnly);
+    out.object["passed"]=V::boolean(passed);
+    return out;
+}

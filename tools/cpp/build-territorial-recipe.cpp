@@ -648,6 +648,11 @@ int main(int argc,char** argv) {
             std::cout<<correctHistoricalCoordinateTree(input).encode()<<'\n';
             return 0;
         }
+        if(argc==3 && std::string(argv[1])=="--audit-partition") {
+            const auto value=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
+            std::cout<<auditCanonicalHistoricalPartition(value).encode()<<'\n';
+            return 0;
+        }
         if(argc==3 && std::string(argv[1])=="--audit-linework") {
             const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
             std::cout<<auditHistoricalLinework(input).encode()<<'\n';
