@@ -3532,8 +3532,8 @@ export function createGpuMapRenderer(deps) {
       const theme = mapTheme();
       const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         surfacePresentation,
-        terrainVisible: state.physicalSettings.terrainVisible && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet))
-          && (countriesPublishedGeneration === projectGeneration || currentTerrainReadiness().terrainReady), terrainStyle: state.physicalSettings.terrainStyle,
+        terrainVisible: state.physicalSettings.terrainVisible && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet)),
+        terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.objects,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         mapOcean: { color: theme.ocean, fillAlpha: 1 },
@@ -4104,7 +4104,6 @@ export function createGpuMapRenderer(deps) {
       return {
         type: 'style',
         surfacePresentation,
-        backgroundPending: countriesPublishedGeneration !== projectGeneration,
         styleRevision: ++canvasStyleRevision,
         visible: !!state.layerVisibility.objects,
         hiddenCountryIds: features.map(feature => String(feature.id)).filter(id => !isCountryVisibleById(id)),
@@ -4154,7 +4153,6 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(frame)) throw new TypeError('Canvas Worker view requires a MapVisualFrame.');
       const view = frame.viewState;
       return {
-        backgroundPending: countriesPublishedGeneration !== projectGeneration,
         type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
         presentationKey: mapTargetKey(frame, { terrainTargetKey: '' }),
