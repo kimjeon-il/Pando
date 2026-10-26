@@ -82,7 +82,6 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   const features = [country('VISIBLE'), country('HIDDEN')];
   const land = { key: 'physical-land', role: 'physical-land', geometry: country('LAND', 2).geometry };
   const frame = {
-    backgroundPending: false,
     surfacePresentation: { targetQuality: 'canonical', quality: 'canonical' },
     width: 1000, height: 600, dpr: 1, terrainDpr: 2, meshQuality: 'preview',
     renderProjection: { scale: 350, translate: [500, 300] }, projection: 'flat',
@@ -179,6 +178,20 @@ test('Canvas retains ready world tiles across zoom thresholds while target detai
   assert.equal(h.drawn.length, 0, 'explicit terrain visibility still controls painting');
 });
 
+test('Canvas retains ready terrain before political objects can be published', async () => {
+  const h = canvasTerrainRuntime(); await settle();
+  h.render({terrainDpr: 1, renderProjection: {scale: 100, translate: [500, 300]}});
+  await h.deliver(h.find('/0/0-0.webp'));
+  await h.deliver(h.find('/0/1-0.webp'));
+  for (const scale of [503, 800, 503]) {
+    h.drawn.length = 0;
+    h.render({surfacePresentation: {quality: 'pending', targetQuality: 'canonical'},
+      terrainDpr: 1, renderProjection: {scale, translate: [500, 300]}});
+    assert.ok(h.drawn.length > 0, `prepared terrain remains painted before countries at ${scale}`);
+    assert.equal(h.messages.at(-1).terrainStats.terrainReady, false, 'painting does not certify missing detail');
+  }
+});
+
 test('Canvas terrain acknowledges prepared coverage and its source limit in the actual frame', async () => {
   const h = canvasTerrainRuntime(); await settle();
   const view = { presentationKey: 'current-view', terrainDpr: 1, renderProjection: { scale: 100, translate: [500, 300] } };
@@ -207,7 +220,9 @@ test('Canvas keeps world coverage and the physical mask independently of politic
   const h = canvasTerrainRuntime(); await settle(); h.render({terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
   assert.equal(h.drawn.length, 0);
   await h.deliver(h.find('/0/0-0.webp'));
-  h.render({backgroundPending:true,terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}}); assert.equal(h.drawn.length, 0, 'do not expose a half-loaded world base');
+  h.render({surfacePresentation:{quality:'pending',targetQuality:'canonical'},terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
+  assert.ok(h.drawn.length > 0, 'a ready target tile can paint before political objects');
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, false, 'a partial world is not ready coverage');
   await h.deliver(h.find('/0/1-0.webp'));
   h.drawn.length = 0; h.substrates.length = 0;
   h.render();

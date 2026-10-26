@@ -4,18 +4,29 @@ test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
   launchOptions: { args: process.platform === 'win32' ? ['--use-angle=d3d11']
     : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
 
-for (const initialQuality of ['preview', 'detail']) {
+for (const initialQuality of ['preview', 'detail', 'startup']) {
 test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is delayed`, async ({ page, baseURL }) => {
   test.setTimeout(300_000);
+  const overview = initialQuality !== 'detail';
+  if (initialQuality === 'startup') await page.addInitScript(() => {
+    window.__countryMeshGate = new Promise(resolve => { window.__releaseCountryMesh = resolve; });
+  });
   let heldLevel = -1;
   let release;
   const gate = new Promise(resolve => { release = resolve; });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.route('**/modules/gpu-map-renderer.js*', async route => {
-    const response = await route.fetch(), source = await response.text(), anchor = 'prepareTerrain(activeFrameContext);';
+    const response = await route.fetch(), anchor = 'prepareTerrain(activeFrameContext);';
+    let source = await response.text();
+    if (initialQuality === 'startup') {
+      const countryAnchor = "      const nextDependencies = { source: 'country-mesh',";
+      expect(source.split(countryAnchor)).toHaveLength(2);
+      source = source.replace(countryAnchor, `      window.__countryMeshHeld = true; await window.__countryMeshGate;\n${countryAnchor}`);
+    }
     expect(source.split(anchor)).toHaveLength(2);
     await route.fulfill({ response, body: source.replace(anchor, anchor + `
+      window.__terrainDrawTargetLevel = currentTerrainReadiness().terrainLevel;
       if (window.__captureTerrainCoverage) {
         const host = window.__PANDOLAB_MAP_HOST__, points = [];
         const {width, height} = host.getViewportSize();
@@ -50,16 +61,19 @@ test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is
         if (pixels[i + 3] && Math.max(pixels[i], pixels[i + 1], pixels[i + 2]) - Math.min(pixels[i], pixels[i + 1], pixels[i + 2]) > 20) colored++;
       }
       const level = Math.round(Math.log2(size[0] / 1350));
-      window.__terrainDrawPixels.push({ level, colored });
+      const targetLevel = window.__terrainDrawTargetLevel;
+      window.__terrainDrawPixels.push({ level, colored, targetLevel });
       if (window.__terrainDrawPixels.length > 20) window.__terrainDrawPixels.shift();
-      if (colored > 100 && level === window.__terrainExpectedFallbackLevel) window.__captureTerrainDraws = false;
+      if (colored > 100 && level === window.__terrainExpectedFallbackLevel && targetLevel > level) window.__captureTerrainDraws = false;
       return result;
     };
   });
   try {
     const site = process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`;
     await page.goto(new URL('?renderer=webgl2&debug=1', site).href, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
+    if (initialQuality === 'startup') {
+      await expect.poll(() => page.evaluate(() => !!window.__countryMeshHeld), { timeout: 90_000 }).toBe(true);
+    } else await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
     await page.evaluate(quality => {
       const host = window.__PANDOLAB_MAP_HOST__;
       host.setViewState({ projection: 'globe', view: { flatCenter: [30, 40], flatZoom: 1, globeRotation: [-30, -40], globeZoom: quality === 'detail' ? 3 : 1 } });
@@ -71,9 +85,13 @@ test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is
         && m.terrainTargetTilesLoaded === m.terrainTargetTileCount && m.terrainTintReady;
     }, initialQuality), { timeout: 60_000 }).toBe(true);
     const previousLevel = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetLevel);
-    if (initialQuality === 'preview') expect(previousLevel).toBe(1);
+    if (overview) expect(previousLevel).toBe(1);
+    if (initialQuality === 'startup') expect(await page.evaluate(() => {
+      const s = window.__PANDOLAB_VIEWER__.rendererStats();
+      return s.countriesPublishedGeneration === s.projectGeneration;
+    })).toBe(false);
     expect(previousLevel).toBeLessThan(5);
-    heldLevel = initialQuality === 'preview' ? -2 : previousLevel + 1;
+    heldLevel = overview ? -2 : previousLevel + 1;
     await page.evaluate(level => {
       window.__terrainExpectedFallbackLevel = level; window.__captureTerrainDraws = true;
       window.__terrainCoverage = []; window.__captureTerrainCoverage = true;
@@ -82,12 +100,17 @@ test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is
     const center = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
     await page.mouse.move(center.x, center.y);
     // Cross the globe's 2.2x country-detail threshold from the initial overview.
-    await page.mouse.wheel(0, -Math.log(initialQuality === 'preview' ? 3 : 2) / 0.0013);
-    if (initialQuality === 'preview') {
+    if (initialQuality === 'startup') await page.evaluate(() => {
+      const host = window.__PANDOLAB_MAP_HOST__;
+      host.setViewState({ projection: 'globe', view: { ...host.getViewState(), globeZoom: 3 } });
+      host.requestRepaint('terrain-zoom-before-countries');
+    });
+    else await page.mouse.wheel(0, -Math.log(overview ? 3 : 2) / 0.0013);
+    if (overview) {
       await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetLevel), { timeout: 30_000 }).toBeGreaterThan(previousLevel);
       heldLevel = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetLevel);
     } else await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetLevel), { timeout: 30_000 }).toBe(heldLevel);
-    await expect.poll(() => page.evaluate(level => window.__terrainDrawPixels.some(draw => draw.level === level && draw.colored > 100), previousLevel)).toBe(true);
+    await expect.poll(() => page.evaluate(level => window.__terrainDrawPixels.some(draw => draw.level === level && draw.targetLevel > level && draw.colored > 100), previousLevel)).toBe(true);
     expect(await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetTilesLoaded)).toBe(0);
     const assertCoverage = async () => {
       const frames = await page.evaluate(() => window.__terrainCoverage);
@@ -104,7 +127,7 @@ test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is
       await page.mouse.down();
       await page.mouse.move(center.x + 40, center.y + 40, { steps: 5 });
       await page.mouse.up();
-      await expect.poll(() => page.evaluate(level => window.__terrainDrawPixels.some(draw => draw.level === level && draw.colored > 100), previousLevel)).toBe(true);
+      await expect.poll(() => page.evaluate(level => window.__terrainDrawPixels.some(draw => draw.level === level && draw.targetLevel > level && draw.colored > 100), previousLevel)).toBe(true);
       expect(await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetTilesLoaded)).toBe(0);
       await assertCoverage();
     }
@@ -128,12 +151,28 @@ test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is
       renderer: window.__PANDOLAB_VIEWER__.rendererStats().renderer,
     }))));
     throw error;
-  } finally { release(); }
+  } finally {
+    release();
+    if (initialQuality === 'startup' && !page.isClosed()) await page.evaluate(() => window.__releaseCountryMesh?.());
+  }
 });
 }
 
-test('Canvas keeps land and ocean terrain through zoom while new detail is delayed', async ({ page }) => {
+for (const phase of ['loaded', 'startup']) {
+test(`Canvas keeps land and ocean terrain through ${phase} zoom while new detail is delayed`, async ({ page }) => {
   test.setTimeout(240_000);
+  if (phase === 'startup') {
+    await page.addInitScript(() => {
+      window.__countryMeshGate = new Promise(resolve => { window.__releaseCountryMesh = resolve; });
+    });
+    await page.route('**/modules/gpu-map-renderer.js*', async route => {
+      const response = await route.fetch(), source = await response.text();
+      const anchor = "      const nextDependencies = { source: 'country-mesh',";
+      expect(source.split(anchor)).toHaveLength(2);
+      await route.fulfill({response, body: source.replace(anchor,
+        `      window.__countryMeshHeld = true; await window.__countryMeshGate;\n${anchor}`)});
+    });
+  }
   const workers = [], errors = [], heldRequests = [];
   let held = false, release;
   const gate = new Promise(resolve => { release = resolve; });
@@ -159,7 +198,8 @@ test('Canvas keeps land and ocean terrain through zoom while new detail is delay
         const coordinate=projection.invert(point);
         if(coordinate && coordinate.every(Number.isFinite))points.push(coordinate);
       }
-      self.__terrainLast={scale:projection.scale(),baseReady,ready:terrainComplete&&demComplete,points,
+      self.__terrainLast={scale:projection.scale(),baseReady,
+        ready:terrainComplete&&(!terrainDemManifestUrl||!!terrainDemManifest&&!!terrainTint)&&demSpecs.every(spec=>demTiles.has(spec.key)),points,
         tiles:drawSpecs.filter(spec=>terrainTiles.has(spec.key)).map(spec=>spec.bounds)};
       if(self.__captureTerrainCoverage)(self.__terrainFrames??=[]).push(self.__terrainLast);
       ` + anchor).replace(painted, `
@@ -171,16 +211,26 @@ test('Canvas keeps land and ocean terrain through zoom while new detail is delay
   });
   try {
     await page.goto('/?renderer=canvas&debug=1');
-    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
+    if (phase === 'startup') await expect.poll(() => page.evaluate(() => !!window.__countryMeshHeld), {timeout:90000}).toBe(true);
+    else await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
     await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().renderer)).toBe('canvas-worker');
     const worker = workers.find(worker=>worker.url().includes('canvas-render-worker'));
     expect(worker).toBeTruthy();
     await expect.poll(()=>worker.evaluate(()=>!!globalThis.__terrainLast?.ready && globalThis.__terrainLast.baseReady),{timeout:90000}).toBe(true);
+    if (phase === 'startup') expect(await page.evaluate(() => {
+      const s = window.__PANDOLAB_VIEWER__.rendererStats();
+      return s.countriesPublishedGeneration === s.projectGeneration;
+    })).toBe(false);
     const scale = await worker.evaluate(()=>{globalThis.__captureTerrainCoverage=true;globalThis.__terrainFrames=[];return globalThis.__terrainLast.scale;});
     held = true;
     const box = await page.locator('#map').boundingBox();
     await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
-    await page.mouse.wheel(0,-750);
+    if (phase === 'startup') await page.evaluate(() => {
+      const host = window.__PANDOLAB_MAP_HOST__, view = host.getViewState();
+      host.setViewState({projection: 'globe', view: {...view, globeZoom: view.globeZoom * 3}});
+      host.requestRepaint('canvas-zoom-before-countries');
+    });
+    else await page.mouse.wheel(0,-750);
     await expect.poll(()=>heldRequests.length,{timeout:30000}).toBeGreaterThan(0);
     await expect.poll(()=>worker.evaluate(before=>globalThis.__terrainLast.scale>before*1.3 && !globalThis.__terrainLast.ready,scale),{timeout:60000}).toBe(true);
     const frames = await worker.evaluate(()=>globalThis.__terrainFrames);
@@ -207,5 +257,9 @@ test('Canvas keeps land and ocean terrain through zoom while new detail is delay
       worker:await workers.find(worker=>worker.url().includes('canvas-render-worker')).evaluate(()=>({scale:globalThis.__terrainLast?.scale,ready:globalThis.__terrainLast?.ready})),heldRequests,errors,
     }));
     throw error;
-  } finally { release(); }
+  } finally {
+    release();
+    if (phase === 'startup' && !page.isClosed()) await page.evaluate(() => window.__releaseCountryMesh?.());
+  }
 });
+}
