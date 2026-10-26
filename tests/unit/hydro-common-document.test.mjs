@@ -138,3 +138,17 @@ test('multi-period water identity edits and locks retain geometry history throug
     assert.equal(owner.documentModel.get(objectRef).properties[command.commandId==='objects.lock'?'locked':'notes'],command.commandId==='objects.lock'?true:'Reviewed note');
   }
 });
+
+test('territorial source admission keeps authored water once when the source also contains water',async t=>{
+  const project=seed(),country=withCountry(project),owner=await createNodeCoreProject(project);t.after(()=>owner.dispose());
+  const changed=await owner.project.executeCommand({commandId:'hydro.metadata',targets:[objectRef],payload:{id,field:'notes',value:'Owned water note'}});
+  assert.equal(changed.ok,true);
+  const before=owner.documentModel.snapshot(),source=structuredClone(project);
+  source.territorialEntities[0].properties.name='Latest source country';
+  source.geometries.find(row=>row.id==='lake'&&row.version===2).geojson=polygon(9);
+  await owner.client.initialize({project:before,territorialSource:source,preserveCursor:true});
+  assert.equal(owner.documentModel.get(country).properties.name,'Latest source country');
+  assert.equal(owner.documentModel.get(objectRef).properties.notes,'Owned water note');
+  assert.deepEqual(owner.documentModel.get(objectRef).geometry,polygon(3),'unselected source water cannot replace the authored geometry');
+  assert.deepEqual(owner.documentModel.snapshot().timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='hydro'),before.timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='hydro'));
+});

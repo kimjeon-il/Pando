@@ -43,16 +43,18 @@ int main() {
     // Initial static preview uses the same typed territorial reader/allocator.
     auto features=V::arr();const auto root=codecjson::parse(seed);const auto world=session.resolveWorld(session.projectState().timelineCursor);
     for(const auto& row:world.entities) {
-        auto identity=std::find_if(root.object.at("territorialEntities").array.begin(),root.object.at("territorialEntities").array.end(),[&](const auto& value){return value.object.at("id").string==row.id;});assert(identity!=root.object.at("territorialEntities").array.end());
+        if(row.objectRef.domain!="territorial")continue;
+        auto identity=std::find_if(root.object.at("territorialEntities").array.begin(),root.object.at("territorialEntities").array.end(),[&](const auto& value){return value.object.at("id").string==row.objectRef.id;});assert(identity!=root.object.at("territorialEntities").array.end());
         auto feature=*identity;feature.object["geometry"]=projectcodec::webGeometryValue(*session.project().document().geometries.get(row.geometryRef));
         auto& p=feature.object.at("properties");p.object["parentId"]=V::str(row.parentId);p.object["coverageMode"]=V::str(row.coverageMode);p.object["validFrom"]=V{};p.object["validTo"]=V{};
         features.array.push_back(std::move(feature));
     }
+    assert(features.array.size()==root.object.at("territorialEntities").array.size());
     DocumentSession preview(ports);const auto initialized=preview.documentInitialize(seed,"2026-10",false,features,{},0);
     assert(!initialized.dirty&&!initialized.canUndo&&!initialized.timelineEditsEnabled&&isStaticTimeline(preview.project().document()));
     auto emptyRoot=codecjson::parse(seed);
     for(const auto* key:{"territorialEntities","geometries","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries"})emptyRoot.object[key]=V::arr();
-    emptyRoot.object["timelineRecords"]=codecjson::parse("{\"schemaVersion\":2,\"lifetimes\":[],\"geometryBindings\":[],\"parentRelations\":[],\"propertyBindings\":[]}");
+    emptyRoot.object["timelineRecords"]=codecjson::parse("{\"schemaVersion\":3,\"lifetimes\":[],\"geometryBindings\":[],\"parentRelations\":[],\"propertyBindings\":[]}");
     emptyRoot.object["labelSettings"]=V::obj();emptyRoot.object.at("distributionSettings").object["activeLayerId"]=V::str("");emptyRoot.object.at("layerPresentation").object["objectStyles"]=V::obj();emptyRoot.object.at("layerPresentation").object["objectOrder"]=V::arr();
     DocumentSession progressive(ports);progressive.documentLoad(emptyRoot.encode(),"2026-10");
     const auto promoted=progressive.documentInitialize("","2026-10",true,features,{},progressive.projectState().epoch);

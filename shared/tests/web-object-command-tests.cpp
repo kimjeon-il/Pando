@@ -25,8 +25,8 @@ ProjectDocument fixture() {
     PlaceLabel p;p.id="P";p.name="selected label";p.territory=territorialRef("A");p.geometry=geometry(d,"point:P",R"({"type":"Point","coordinates":[1,1]})");d.labels.push_back(p);
     p.id="Q";p.name="retained label";p.geometry=geometry(d,"point:Q",R"({"type":"Point","coordinates":[1,1]})");d.labels.push_back(p);
     GenericFeature g;g.id="G";g.name="generic";g.geometry=geometry(d,"shape:G",polygon);d.genericFeatures.push_back(g);
-    HydroFeature h;h.id="H1";h.name="river 1";h.sourceFeatureId="source";h.geometry=geometry(d,"line:H1",line);d.hydro.push_back(h);
-    h.id="H2";h.geometry=geometry(d,"line:H2",line);d.hydro.push_back(h);
+    HydroFeature h;h.id="H1";h.name="river 1";h.sourceFeatureId="source";d.hydro.push_back(h);addStaticObjectRecords(d,{"hydro",h.id},geometry(d,"line:H1",line));
+    h.id="H2";d.hydro.push_back(h);addStaticObjectRecords(d,{"hydro",h.id},geometry(d,"line:H2",line));
     DistributionLayer l;l.id="M";l.name="other layer";d.distributionLayers.push_back(l);
     l.id="L";l.name="selected layer";d.distributionLayers.push_back(l);
     l.id="C";l.name="locked child";l.locked=true;l.parentId="L";d.distributionLayers.push_back(l);

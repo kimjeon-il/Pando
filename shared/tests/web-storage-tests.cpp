@@ -61,7 +61,7 @@ void immutableBaselineAdmission() {
     const auto base=rows({feature("A"),feature("B"),feature("C")});Project p;p.replace(document(base));
     const auto revision=p.revision(),checkpoint=p.historyCheckpoint();auto admitted=baseline(p,base);
     assert(admitted.baseDataset()=="builtin-v1"&&initialDirtyTerritorialIds(p.snapshot(),admitted).empty());
-    assert(admitted.geometry("A")==p.document().geometries.get(staticGeometryBinding(p.document(),"A").geometryRef));
+    assert(admitted.geometry("A")==p.document().geometries.get(staticGeometryBinding(p.document(),territorialRef("A")).geometryRef));
     assert(admitted.features().array[0].object.at("properties").object.at("style").object.at("color").string=="#AbCdEf");
     auto input=payload("features",base);input.object["baseDataset"]=V::str("builtin-v1");input.object["fingerprint"]=V::str(std::string(64,'0'));
     rejects([&]{admitWebStorageBaseline(p.snapshot(),input,ports);},"PL-SCHEMA-BASE");
@@ -90,7 +90,7 @@ void deltaOrderHistoryAndExpansion() {
     assert(changes.size()==4&&changes[0].object.at("id").string=="C"&&changes[1].object.at("id").string=="M"&&changes[2].object.at("id").string=="A"&&changes[3].object.at("id").string=="N");
     assert(delta.object.at("removedIds").array[0].string=="B");
     auto restored=decodeWebStorage(bytes,ports,&admitted);assert(restored.units.size()==4&&restored.units[0].id=="A"&&restored.units[1].id=="C"&&restored.units[2].id=="M"&&restored.units[3].id=="N");
-    assert(restored.units[1].notes=="edited"&&restored.geometries.get(staticGeometryBinding(restored,"C").geometryRef));
+    assert(restored.units[1].notes=="edited"&&restored.geometries.get(staticGeometryBinding(restored,territorialRef("C")).geometryRef));
     rejects([&]{encodeWebStorage(p.snapshot(),ports,context,&admitted,{"C"});},"CORE_STORAGE_DIRTY_IDS");
     assert(p.historyCheckpoint()==checkpoint&&p.revision()==revision);
     rejects([&]{decodeWebStorage(bytes,ports);},"PL-SCHEMA-BASE");
@@ -127,10 +127,10 @@ void geometryOnlyChangesStillCarryIdentityAndArchive() {
     auto changed=feature("A").object.at("geometry");changed.object["coordinates"]=json("[[[0,0],[3,0],[3,2],[0,0]]]");
     auto request=payload("geometry",changed);request.object["id"]=V::str("A");apply(p,"territorial.geometry",request);
     assert((initialDirtyTerritorialIds(p.snapshot(),admitted)==std::vector<std::string>{"A"}));
-    assert(admitted.geometry("A")==pristine&&!sameGeometryValue(*pristine,*p.document().geometries.get(staticGeometryBinding(p.document(),"A").geometryRef)));
+    assert(admitted.geometry("A")==pristine&&!sameGeometryValue(*pristine,*p.document().geometries.get(staticGeometryBinding(p.document(),territorialRef("A")).geometryRef)));
     WebStorageContext context;context.format="pandolab-autosave";const auto bytes=encodeWebStorage(p.snapshot(),ports,context,&admitted,{"A"});
     const auto saved=json(bytes);assert(saved.object.at("entityDelta").object.at("changed").array.size()==1&&saved.object.at("geometries").array.size()==2);
-    const auto restored=decodeWebStorage(bytes,ports,&admitted);assert(restored.geometries.versions().size()==2&&sameGeometryValue(*restored.geometries.get(staticGeometryBinding(restored,"A").geometryRef),*p.document().geometries.get(staticGeometryBinding(p.document(),"A").geometryRef)));
+    const auto restored=decodeWebStorage(bytes,ports,&admitted);assert(restored.geometries.versions().size()==2&&sameGeometryValue(*restored.geometries.get(staticGeometryBinding(restored,territorialRef("A")).geometryRef),*p.document().geometries.get(staticGeometryBinding(p.document(),territorialRef("A")).geometryRef)));
     assert(p.undo()&&initialDirtyTerritorialIds(p.snapshot(),admitted).empty());
 }
 std::vector<std::uint8_t> gzip(const std::string& bytes) {
@@ -188,8 +188,8 @@ void storageValidatesTheCanonicalExportOnce() {
         const auto restored=decodeWebStorage(bytes,ports,&admitted);
         assert(restored.units.size()==1&&restored.units[0].id=="A");
         assert(restored.symbols.at(territorialRef("A")).embeddedDataUrl=="data:image/png;base64,AA==");
-        assert(sameGeometryValue(*restored.geometries.get(staticGeometryBinding(restored,"A").geometryRef),
-            *p.document().geometries.get(staticGeometryBinding(p.document(),"A").geometryRef)));
+        assert(sameGeometryValue(*restored.geometries.get(staticGeometryBinding(restored,territorialRef("A")).geometryRef),
+            *p.document().geometries.get(staticGeometryBinding(p.document(),territorialRef("A")).geometryRef)));
     }
 }
 int main(){originalFingerprintGoldens();immutableBaselineAdmission();deltaOrderHistoryAndExpansion();autosaveSelectionDoesNotInferMonthMode();geometryOnlyChangesStillCarryIdentityAndArchive();storedGzipPinAndFullInactiveCatalog();storageValidatesTheCanonicalExportOnce();std::cout<<"Web storage tests passed\n";}

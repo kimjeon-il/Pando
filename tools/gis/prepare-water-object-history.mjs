@@ -6,6 +6,7 @@ import {pathToFileURL} from 'node:url';
 import '../../shared/frontend/js/vendor/polygon-clipping.min.js';
 import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
 import {territorialIndexEntry} from '../../apps/editor/frontend/js/modules/territorial-index-entry.js';
+import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
 import {withLibraryWrite} from '../library-data.mjs';
 import {packBuiltinWorldFiles,writeBuiltinWorldPublication} from '../build-builtin-world.mjs';
 
@@ -28,7 +29,7 @@ export function modernCaspianWater(land) {
   const islands=joined.filter(polygon=>inside(bounds(polygon[0]),box));
   const water=islands.length?globalThis.polygonClipping.difference([ring],...islands):[[ring]];
   if(water.length!==1)throw Error('Existing NE Caspian is not one water polygon');
-  return {type:'Polygon',coordinates:water[0]};
+  return sharedCalculationCore.normalizePolygonGeometry({type:'Polygon',coordinates:water[0]},false);
 }
 
 export function waterObjectCatalog(entity,assets) {

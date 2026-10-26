@@ -40,12 +40,6 @@ for(const renderer of ['webgl2','canvas'])test(`selected ${renderer} relief dist
       return {renderer:s.renderer,readiness:s.mapReadiness,terrain:Object.fromEntries(Object.entries(s).filter(([key])=>key.startsWith('terrain')))};
     })));throw error;
   });
-  await page.screenshot({path:testInfo.outputPath('terrain-with-borders-and-labels.png')});
-  await page.evaluate(()=>{
-    for(const id of ['objectsVisible','labelsVisible','riversVisible','lakesVisible']){
-      const input=document.getElementById(id);if(input?.checked)input.click();
-    }
-  });
   const settled=async()=>{
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     await expect.poll(()=>page.evaluate(()=>{
@@ -54,6 +48,15 @@ for(const renderer of ['webgl2','canvas'])test(`selected ${renderer} relief dist
         ||s.canvasDisplayedStyleRevision===s.canvasStyleRevision&&!s.canvasWorkerBusy&&!s.canvasWorkerHasPendingFrame);
     }),{timeout:60000}).toBe(true);
   };
+  await settled();
+  const visibleLand=await samples(page,await page.locator('canvas.gpu-map-canvas').first().screenshot());
+  for(const rgba of visibleLand)expect(Math.max(rgba[0],rgba[1])-rgba[2],'land is actually painted before the overlay capture').toBeGreaterThan(8);
+  await page.screenshot({path:testInfo.outputPath('terrain-with-borders-and-labels.png')});
+  await page.evaluate(()=>{
+    for(const id of ['objectsVisible','labelsVisible','riversVisible','lakesVisible']){
+      const input=document.getElementById(id);if(input?.checked)input.click();
+    }
+  });
   await settled();
   const before=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState());
   for(const style of ['physical','political']){
