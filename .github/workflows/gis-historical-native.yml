@@ -7,6 +7,8 @@ on:
       - 'tools/cpp/build-territorial-recipe.cpp'
       - 'tools/cpp/historical-linework-audit.inc'
       - 'tools/cpp/historical-caspian-generalization.inc'
+      - 'tools/cpp/historical-caspian-physical.inc'
+      - 'tests/unit/gis-caspian-physical-native.test.mjs'
       - 'tests/unit/gis-caspian-generalize-native.test.mjs'
       - 'tools/gis/generalize-approved-caspian-display.mjs'
       - 'tests/unit/gis-caspian-display-packaging.test.mjs'
@@ -55,6 +57,7 @@ jobs:
           node --test tests/unit/gis-caspian-source-zip.test.mjs
           node --test tests/unit/gis-caspian-generalize-native.test.mjs
           node --test tests/unit/gis-caspian-display-packaging.test.mjs
+          node --test tests/unit/gis-caspian-physical-native.test.mjs
           node --test tests/unit/ussr-1922-country-replay.test.mjs
 
       - name: Fetch only immutable Caspian 1922 approved source archive
