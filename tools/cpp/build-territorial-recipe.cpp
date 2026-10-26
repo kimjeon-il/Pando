@@ -639,6 +639,7 @@ public:
     }
 };
 #include "historical-linework-audit.inc"
+#include "historical-caspian-generalization.inc"
 }
 
 int main(int argc,char** argv) {
@@ -646,6 +647,18 @@ int main(int argc,char** argv) {
         if(argc==3 && std::string(argv[1])=="--axis-correct-tree") {
             const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
             std::cout<<correctHistoricalCoordinateTree(input).encode()<<'\n';
+            return 0;
+        }
+        if(argc==4 && std::string(argv[1])=="--generalize-caspian") {
+            const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
+            auto result=generalizeHistoricalCaspian(input);
+            const fs::path output=fs::absolute(argv[3]);
+            if(fs::exists(output))throw std::runtime_error("Refusing to replace prior Caspian result");
+            std::ofstream writeOutput(output,std::ios::binary|std::ios::trunc);
+            if(!writeOutput)throw std::runtime_error("Cannot create native Caspian result");
+            writeOutput<<result.encode()<<'\n';
+            if(!writeOutput)throw std::runtime_error("Caspian result write failed");
+            std::cout<<field(result,"metrics").encode()<<'\n';
             return 0;
         }
         if(argc==3 && std::string(argv[1])=="--audit-partition") {
