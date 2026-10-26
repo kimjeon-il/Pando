@@ -9,7 +9,7 @@ const base='../../assets/data/territorial-entities/generated/v2/';
 const selectedId=new URLSearchParams(location.search).get('entity')||'state:KOR';
 const initial=await (await fetch(base+'index.json')).json();
 let saved=JSON.parse(localStorage.getItem('library-ui-component-test')||'null')||{revision:'initial',index:initial,records:{},status:{state:'queued'}};
-let publishCalls=0,external=[],warningOnCommit=false,openCalls=0;
+let syncCalls=0,external=[],warningOnCommit=false,openCalls=0;
 const repository={snapshot:()=>saved,open:async()=>{openCalls++;if(warningOnCommit&&saved.warning)throw new Error('working files remain locked');return saved;},
  async readEntity(id){if(saved.records[id])return structuredClone(saved.records[id]);const file=saved.index.entities.find(e=>e.entityId===id).file;
   const response=await fetch(base+file);return JSON.parse(await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).text());},
@@ -18,13 +18,13 @@ const repository={snapshot:()=>saved,open:async()=>{openCalls++;if(warningOnComm
   saved={revision:crypto.randomUUID(),index:request.index,status:{state:'queued'},records:{...saved.records,...Object.fromEntries(request.entities.map(e=>[e.entityId,e]))}};
   for(const id of request.deletedEntityIds)delete saved.records[id];external=[];if(warningOnCommit)saved.warning={code:'PL-LIBRARY-WORKING-REFRESH',message:'저장 완료 · 작업 파일 갱신 대기'};localStorage.setItem('library-ui-component-test',JSON.stringify(saved));return saved;},
  externalChanges:async()=>({expectedRevision:saved.revision,externalRevision:'component-working-revision',entities:external,deletedEntityIds:[]}),
- sync:async()=>({state:'queued'}),publish:async()=>{publishCalls++;return {state:'requested'};},resolveConflict:async()=>{},openGeometry:async()=>{throw new Error('Native geometry window is outside this component test');}};
+ sync:async()=>{syncCalls++;return {state:'queued'};},resolveConflict:async()=>{},openGeometry:async()=>{throw new Error('Native geometry window is outside this component test');}};
 const service=createTerritorialLibraryService({loader:createRepositoryTerritorialLoader(repository)});await service.load();
 const host=document.getElementById('sourceHost'),preview=document.getElementById('preview');
 let ui;
 async function render(){preview.replaceChildren();const entity=await service.loadEntity(selectedId);ui.decorate({entity,version:entity.geometryVersions[0],host:preview});}
 ui=createTerritorialLibraryEditingUi({document,window,host,service,repository,refresh:render,reportError:error=>{document.getElementById('failure').textContent=error.message;}});
-await render();window.LIBRARY_UI_TEST={get saved(){return saved;},get publishCalls(){return publishCalls;},get openCalls(){return openCalls;},importRepresentative:async()=>{
+await render();window.LIBRARY_UI_TEST={get saved(){return saved;},get syncCalls(){return syncCalls;},get openCalls(){return openCalls;},importRepresentative:async()=>{
 const entity=await service.loadEntity(selectedId);const selection=service.resolveSelection(selectedId,null);
 const result=await service.instantiateDescriptors([selectedId],null);
 const value=result[0],version=entity.geometryVersions.find(v=>v.versionId===selection.geometryVersionId);

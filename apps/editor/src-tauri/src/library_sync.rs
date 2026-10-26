@@ -304,19 +304,3 @@ pub fn sync(repo: &Repository, api: &impl Api, validated_revision: Option<&str>)
     repo.set_state(&state)?;
     Ok(Repository::status(&state))
 }
-pub fn publish(repo: &Repository, api: &impl Api, revision: &str) -> Result<Value> {
-    let state = repo.state()?;
-    if state.revision != revision
-        || state.synced_revision.as_deref() != Some(revision)
-        || state.conflict.is_some()
-    {
-        return Err("Library publication requires the current synced revision".into());
-    }
-    let sha = state
-        .remote_revision
-        .as_deref()
-        .ok_or("Missing synced Git revision")?;
-    git_sha(sha)?;
-    api.request("POST","repos/kimjeon-il/Pando/actions/workflows/library-publish.yml/dispatches",Some(json!({"ref":"main","inputs":{"sourceRepository":source_repository(),"sourceRevision":sha,"revision":revision}})))?;
-    Ok(json!({"state":"dispatched","sourceRevision":sha}))
-}

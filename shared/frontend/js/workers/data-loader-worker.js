@@ -1,11 +1,7 @@
-import { publicDataRoot, resolveWorkerDataChannel } from '../modules/publication-data-channel.js';
+import { runtimeDataRoot, workerBuildMeta } from '../modules/worker-asset-url.js';
 const workerAssetRevision = new URL(self.location.href).searchParams.get('v') || '';
 await import(`../../../../assets/js/build-meta.js?v=${encodeURIComponent(workerAssetRevision)}`);
-const { meta: buildMeta } = await resolveWorkerDataChannel({
-  baseUrl: publicDataRoot(self.location.href), buildMeta: globalThis.PANDOLAB_BUILD_META,
-  expectedRevision: new URL(self.location.href).searchParams.get('publicationRevision'),
-  expectedManifestSha256: new URL(self.location.href).searchParams.get('publicationManifestSha256'),
-});
+const buildMeta = workerBuildMeta(self.location.href, globalThis.PANDOLAB_BUILD_META);
 if (!buildMeta) throw new Error('빌드 메타데이터를 불러오지 못했습니다.');
 const APP_VERSION = String(buildMeta.appVersion || '');
 const ASSET_REVISION = String(buildMeta.assetRevision || workerAssetRevision);
@@ -30,10 +26,6 @@ const loadPolicy = resolveStartupLoadPolicy({
   saveData: params.get('saveData') === 'true',
 });
 
-const MANIFEST_URL = buildMeta.worldBundle?.url
-  ? new URL(buildMeta.worldBundle.url, publicDataRoot(self.location.href))
-  : new URL('../../data/world/current.json', self.location.href);
-MANIFEST_URL.searchParams.set('v', DATA_REVISION);
 const phaseProgress = { preview: new Map(), geometry: new Map(), mesh: new Map() };
 let manifest = null;
 let previewReady = false;
@@ -62,13 +54,10 @@ function report(phase, key, message, loaded = 0, total = 0, done = false, extra 
 
 const { createStoredAssetLoader } = await import(`../modules/stored-asset-loader.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const { parseVerifiedWorldBundle, worldAssetUrl } = await import(`../modules/world-bundle-manifest.js?v=${encodeURIComponent(ASSET_REVISION)}`);
-const worldDataRoot = buildMeta.worldBundle?.url
-  ? new URL('../', MANIFEST_URL)
-  : new URL('../../data/', self.location.href);
-const publishedManifestLoader = buildMeta.worldBundle
-  ? createStoredAssetLoader({ dataRevision: DATA_REVISION,
-    resolveUrl: spec => new URL(spec.url, publicDataRoot(self.location.href)) })
-  : null;
+const worldDataRoot = new URL('assets/data/', runtimeDataRoot(self.location.href));
+if (!buildMeta.worldBundle) throw new Error('Required pinned world manifest is missing');
+const manifestLoader = createStoredAssetLoader({ dataRevision: DATA_REVISION,
+  resolveUrl: spec => new URL(spec.url, runtimeDataRoot(self.location.href)) });
 const { loadAsset, cleanupOldCoreCaches } = createStoredAssetLoader({
   dataRevision: DATA_REVISION,
   cachePolicy: 'immutable',
@@ -131,14 +120,9 @@ function assetMetrics(result, parseMilliseconds = 0) {
 }
 
 async function loadManifest() {
-  if (publishedManifestLoader) {
-    const { value } = await publishedManifestLoader.loadAsset(buildMeta.worldBundle,
-      'preview', 'world-manifest', '세계지도 목록', bytes => parseVerifiedWorldBundle(bytes, buildMeta.worldBundle));
-    return value;
-  }
-  const response = await fetch(MANIFEST_URL, { cache: 'no-cache' });
-  if (!response.ok) throw new Error(`시작 데이터 manifest 요청에 실패했습니다. (${response.status})`);
-  return parseVerifiedWorldBundle(await response.arrayBuffer(), buildMeta.worldBundle || null);
+  const { value } = await manifestLoader.loadAsset(buildMeta.worldBundle,
+    'preview', 'world-manifest', '세계지도 목록', bytes => parseVerifiedWorldBundle(bytes, buildMeta.worldBundle));
+  return value;
 }
 
 async function loadJsonAsset(spec, phase, key, label, countryCollection = false, signal = null) {

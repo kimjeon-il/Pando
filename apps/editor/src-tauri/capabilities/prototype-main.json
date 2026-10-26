@@ -14,6 +14,6 @@
     "allow-read-document-chunk",
     "allow-abort-document-transfer",
     "allow-library-open", "allow-library-read-entity", "allow-library-commit",
-    "allow-library-sync", "allow-library-publish", "allow-library-conflict", "allow-library-open-geometry", "allow-library-read-external-changes", "allow-library-read-candidate"
+    "allow-library-sync", "allow-library-conflict", "allow-library-open-geometry", "allow-library-read-external-changes", "allow-library-read-candidate"
   ]
 }

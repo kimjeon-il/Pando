@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       skip_checks:
-        description: Skip separate metadata and library release validators
+        description: Skip optional staging metadata checks (pinned transfer hashes remain required)
         type: boolean
         default: false
 
@@ -39,19 +39,7 @@ jobs:
           args=()
           if [[ "$SKIP_DEPLOY_CHECKS" == "1" ]]; then args+=(--skip-checks); fi
           node tools/stage-monorepo-pages.mjs --root . --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json" "${args[@]}"
-      - name: Overlay independently published data from the storage repository
-        shell: bash
-        run: |
-          DATA_ROOT="$GITHUB_WORKSPACE/.library-data/repository"
-          git -C "$DATA_ROOT" fetch --filter=blob:none origin main
-          if git -C "$DATA_ROOT" cat-file -e FETCH_HEAD:assets/data/library-channel/current.json 2>/dev/null; then
-            git -C "$DATA_ROOT" archive FETCH_HEAD assets/data/library-channel assets/data/library-releases | tar -xf - -C "$RUNNER_TEMP/pages-site"
-            if [[ "$SKIP_DEPLOY_CHECKS" != "1" ]]; then
-              node tools/assemble-library-release.mjs --verify-archive --output "$RUNNER_TEMP/pages-site"
-              node tools/check-library-release-code.mjs --site "$RUNNER_TEMP/pages-site"
-            fi
-          fi
-      - name: Record the final viewer and publication artifact
+      - name: Record the final viewer and pinned data artifact
         run: node tools/stage-monorepo-pages.mjs --finalize --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json"
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -67,11 +55,45 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Refuse to deploy a superseded main commit
+        id: current
+        shell: bash
+        run: |
+          current="$(git ls-remote origin refs/heads/main | cut -f1)"
+          test -n "$current" || { echo 'Cannot verify current main'; exit 1; }
+          if [[ "$current" == "$GITHUB_SHA" ]]; then
+            echo 'deploy=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'deploy=false' >> "$GITHUB_OUTPUT"
+            echo "Superseded by $current; preserving the current site" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/download-artifact@v4
+        if: steps.current.outputs.deploy == 'true'
+        with:
+          name: pages-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/pages-verification
       - id: deployment
+        if: steps.current.outputs.deploy == 'true'
         uses: actions/deploy-pages@v4
+      - name: Verify the actual public code and pinned data bytes
+        if: steps.current.outputs.deploy == 'true'
+        run: node tools/verify-pages-deployment.mjs --url '${{ steps.deployment.outputs.page_url }}' --manifest "$RUNNER_TEMP/pages-verification/pages-evidence.json" --output "$RUNNER_TEMP/pages-verification/live.json"
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.current.outputs.deploy == 'true'
+        with:
+          name: pages-live-${{ github.sha }}
+          path: ${{ runner.temp }}/pages-verification
+          if-no-files-found: error

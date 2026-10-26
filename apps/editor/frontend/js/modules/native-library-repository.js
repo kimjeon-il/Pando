@@ -38,7 +38,6 @@ export function createNativeLibraryRepository({invoke=globalThis.__TAURI_INTERNA
   externalChanges:()=>invoke('library_read_external_changes',{}),
   commit:async request=>accept(await invoke('library_commit',{request})),
   sync,
-  publish:revision=>invoke('library_publish',{revision}),
   resolveConflict:async choice=>accept(await invoke('library_conflict',{choice})),
   openGeometry:(entityId,versionId)=>invoke('library_open_geometry',{entityId,versionId}),
   snapshot:()=>receipt,
