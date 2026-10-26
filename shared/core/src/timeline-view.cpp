@@ -34,7 +34,15 @@ void applyProperties(ProjectDocument& document,const TimelineRecords& records,co
     const auto point=temporalMonthEnd(month);
     std::map<std::string,TerritorialUnit*> units;for(auto& unit:document.units)units.emplace(unit.id,&unit);
     for(const auto& row:records.propertyBindings)if(validityContainsAtEnd(row.validity,point)) {
-        auto& unit=*units.at(row.entityId);const auto ref=territorialRef(unit.id);const auto value=codecjson::parse(row.value);
+        if(row.objectRef.domain=="hydro") {
+            auto found=std::find_if(document.hydro.begin(),document.hydro.end(),[&](const auto& water){return water.id==row.objectRef.id;});
+            if(found==document.hydro.end())throw TimelineError("TIMELINE_ENTITY","Water identity missing.");
+            const auto value=codecjson::parse(row.value);
+            if(row.property=="name")found->name=value.object.at("name").string;
+            else if(row.property=="color")found->color=static_cast<std::uint32_t>(std::stod(value.object.at("color").raw));
+            continue;
+        }
+        auto& unit=*units.at(row.objectRef.id);const auto ref=territorialRef(unit.id);const auto value=codecjson::parse(row.value);
         if(row.property=="name") {unit.name=value.object.at("name").string;unit.nameExplicit=value.object.at("nameExplicit").raw=="true";}
         else if(row.property=="color") {auto& style=document.presentation.objectStyles.at(ref);style.color=static_cast<std::uint32_t>(std::stod(value.object.at("color").raw));style.explicitColor=value.object.at("explicitColor").raw=="true";}
         else {
@@ -55,12 +63,12 @@ TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const st
         result.world=*resolved;
     } else {
         result.world=resolveWorld(source.timelineRecords,
-            {timelineEntityCatalog(source),[&](const GeometryRef& ref){return source.geometries.get(ref)!=nullptr;}},month);
+            {timelineEntityCatalog(source),[&](const ObjectRef& owner,const GeometryRef& ref){return source.geometries.get(ref)!=nullptr;}},month);
     }
     result.document=source;
     result.document.timelineRecords={};
     for(const auto& unit:source.units) {
-        const auto* active=result.world.find(unit.id);
+        const auto* active=result.world.find(territorialRef(unit.id));
         GeometryRef geometry;
         std::string parent,coverage="explicit";
         if(active) {
@@ -68,18 +76,26 @@ TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const st
             parent=active->parentId;
             coverage=active->coverageMode;
         } else {
-            result.inactiveIds.insert(unit.id);
+            result.inactiveIds.insert(territorialRef(unit.id));
             const auto found=std::find_if(source.timelineRecords.geometryBindings.begin(),
-                source.timelineRecords.geometryBindings.end(),[&](const auto& row){return row.entityId==unit.id;});
+                source.timelineRecords.geometryBindings.end(),[&](const auto& row){return row.objectRef==territorialRef(unit.id);});
             if(found==source.timelineRecords.geometryBindings.end())
                 throw std::invalid_argument("TIMELINE_GEOMETRY: missing entity binding");
             geometry=found->geometryRef;
         }
         addStaticTerritorialRecords(result.document,unit.id,geometry,parent,coverage);
     }
-    for(const auto& unit:source.units)if(result.inactiveIds.count(unit.id)) {
+    for(const auto& unit:source.units)if(result.inactiveIds.count(territorialRef(unit.id))) {
         const std::string group="objects";
         result.document.presentation.webPresentation.itemVisibility[group][unit.id]=false;
+    }
+    for(const auto& water:source.hydro) {
+        const ObjectRef ref{"hydro",water.id};const auto* active=result.world.find(ref);
+        auto binding=std::find_if(source.timelineRecords.geometryBindings.begin(),source.timelineRecords.geometryBindings.end(),[&](const auto& row){return row.objectRef==ref;});
+        if(binding==source.timelineRecords.geometryBindings.end())throw TimelineError("TIMELINE_GEOMETRY","Missing water binding.");
+        addStaticObjectRecords(result.document,ref,active?active->geometryRef:binding->geometryRef);
+        staticGeometryBinding(result.document,ref).rendering=active?active->rendering:binding->rendering;
+        if(!active){result.inactiveIds.insert(ref);result.document.presentation.webPresentation.itemVisibility["hydro"][water.id]=false;}
     }
     applyProperties(result.document,source.timelineRecords,month);
     return result;
@@ -91,12 +107,12 @@ void captureTimelinePropertyChanges(const ProjectDocument& source,const ProjectD
     for(const auto& unit:beforeView.units)projected.emplace(unit.id,&unit);
     const auto point=temporalMonthEnd(month);
     for(auto& unit:candidate.units) {
-        if(std::none_of(candidate.timelineRecords.lifetimes.begin(),candidate.timelineRecords.lifetimes.end(),[&](const auto& row){return row.entityId==unit.id&&validityContainsAtEnd(row.validity,point);}))continue;
+        if(std::none_of(candidate.timelineRecords.lifetimes.begin(),candidate.timelineRecords.lifetimes.end(),[&](const auto& row){return row.objectRef==territorialRef(unit.id)&&validityContainsAtEnd(row.validity,point);}))continue;
         const auto found=originals.find(unit.id),prior=projected.find(unit.id);
         if(found==originals.end()||prior==projected.end())continue;
         const auto ref=territorialRef(unit.id);
         const auto write=[&](const char* property,const std::string& oldValue,const std::string& nextValue) {
-            if(oldValue!=nextValue)candidate.timelineRecords=replacePropertyBindingAtMonth(candidate.timelineRecords,unit.id,month,property,nextValue);
+            if(oldValue!=nextValue)candidate.timelineRecords=replacePropertyBindingAtMonth(candidate.timelineRecords,territorialRef(unit.id),month,property,nextValue);
         };
         write("name",nameValue(*prior->second),nameValue(unit));
         write("color",colorValue(beforeView.presentation.objectStyles.at(ref)),colorValue(candidate.presentation.objectStyles.at(ref)));
@@ -107,10 +123,27 @@ void captureTimelinePropertyChanges(const ProjectDocument& source,const ProjectD
         const auto symbol=source.symbols.find(ref);
         if(symbol==source.symbols.end())candidate.symbols.erase(ref);else candidate.symbols[ref]=symbol->second;
     }
+    for(auto& water:candidate.hydro) {
+        const ObjectRef ref{"hydro",water.id};
+        const auto old=std::find_if(source.hydro.begin(),source.hydro.end(),[&](const auto& row){return row.id==water.id;});
+        const auto prior=std::find_if(beforeView.hydro.begin(),beforeView.hydro.end(),[&](const auto& row){return row.id==water.id;});
+        if(old==source.hydro.end()||prior==beforeView.hydro.end())continue;
+        if(std::none_of(candidate.timelineRecords.lifetimes.begin(),candidate.timelineRecords.lifetimes.end(),[&](const auto& row){return row.objectRef==ref&&validityContainsAtEnd(row.validity,point);}))continue;
+        if(water.name!=prior->name) {
+            auto value=V::obj();value.object["name"]=V::str(water.name);value.object["nameExplicit"]=V::boolean(true);
+            candidate.timelineRecords=replacePropertyBindingAtMonth(candidate.timelineRecords,ref,month,"name",value.encode());
+        }
+        if(water.color!=prior->color) {
+            auto value=V::obj();value.object["color"]=V::num(water.color);value.object["explicitColor"]=V::boolean(true);
+            candidate.timelineRecords=replacePropertyBindingAtMonth(candidate.timelineRecords,ref,month,"color",value.encode());
+        }
+        water.name=old->name;water.color=old->color;
+    }
+
 }
 void validateTimelineParentChanges(const ProjectDocument& before,const ProjectDocument& after) {
     // Build affected intervals once; validation never scans original segments.
-    std::map<std::string,std::vector<Validity>> geometryChanges,relationChanges;
+    std::map<ObjectRef,std::vector<Validity>> geometryChanges,relationChanges;
     std::map<std::string,const TimelineGeometryBinding*> oldGeometry;
     std::map<std::string,const TimelineParentRelation*> oldRelations;
     for(const auto& row:before.timelineRecords.geometryBindings)oldGeometry.emplace(row.id,&row);
@@ -121,22 +154,22 @@ void validateTimelineParentChanges(const ProjectDocument& before,const ProjectDo
     };
     for(const auto& row:after.timelineRecords.geometryBindings) {
         const auto old=oldGeometry.find(row.id);
-        if(old==oldGeometry.end()||!(old->second->geometryRef==row.geometryRef)||!covers(old->second->validity,row.validity))geometryChanges[row.entityId].push_back(row.validity);
+        if(old==oldGeometry.end()||!(old->second->geometryRef==row.geometryRef)||!covers(old->second->validity,row.validity))geometryChanges[row.objectRef].push_back(row.validity);
     }
     for(const auto& row:after.timelineRecords.parentRelations) {
         const auto old=oldRelations.find(row.id);
-        if(old==oldRelations.end()||old->second->parentId!=row.parentId||old->second->coverageMode!=row.coverageMode||!covers(old->second->validity,row.validity))relationChanges[row.entityId].push_back(row.validity);
+        if(old==oldRelations.end()||old->second->parentId!=row.parentId||old->second->coverageMode!=row.coverageMode||!covers(old->second->validity,row.validity))relationChanges[row.objectRef].push_back(row.validity);
     }
-    std::map<std::string,std::vector<const TimelineGeometryBinding*>> shapes;
+    std::map<ObjectRef,std::vector<const TimelineGeometryBinding*>> shapes;
     std::map<std::pair<GeometryRef,GeometryRef>,bool> containment;
-    for(const auto& row:after.timelineRecords.geometryBindings)shapes[row.entityId].push_back(&row);
+    for(const auto& row:after.timelineRecords.geometryBindings)shapes[row.objectRef].push_back(&row);
     for(const auto& relation:after.timelineRecords.parentRelations)if(!relation.parentId.empty()) {
-        std::vector<Validity> changed=relationChanges[relation.entityId];
-        for(const auto& owner:{relation.entityId,relation.parentId}) {
+        std::vector<Validity> changed=relationChanges[relation.objectRef];
+        for(const auto& owner:{relation.objectRef,territorialRef(relation.parentId)}) {
             const auto found=geometryChanges.find(owner);if(found!=geometryChanges.end())changed.insert(changed.end(),found->second.begin(),found->second.end());
         }
         if(changed.empty())continue;
-        for(const auto* child:shapes[relation.entityId])for(const auto* parent:shapes[relation.parentId]) {
+        for(const auto* child:shapes[relation.objectRef])for(const auto* parent:shapes[territorialRef(relation.parentId)]) {
             if(!std::any_of(changed.begin(),changed.end(),[&](const auto& interval){return overlap({relation.validity,child->validity,parent->validity,interval});}))continue;
             const auto key=std::make_pair(parent->geometryRef,child->geometryRef);
             auto result=containment.find(key);
@@ -146,7 +179,7 @@ void validateTimelineParentChanges(const ProjectDocument& before,const ProjectDo
                 result=containment.emplace(key,geometryContains(*outer,*inner)).first;
             }
             if(!result->second)
-                throw TimelineError("GEOMETRY_OUTSIDE_PARENT","Child "+relation.entityId+" is outside parent "+relation.parentId+" during the edited interval.");
+                throw TimelineError("GEOMETRY_OUTSIDE_PARENT","Child "+relation.objectRef.id+" is outside parent "+relation.parentId+" during the edited interval.");
         }
     }
 }

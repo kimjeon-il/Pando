@@ -132,8 +132,8 @@ void datedRemovalTruncatesWithoutDroppingIdentityOrArchive() {
     for(auto& row:d.timelineRecords.geometryBindings)row.validity.from="2020";for(auto& row:d.timelineRecords.parentRelations)row.validity.from="2020";
     Project p;p.replace(std::move(d));p.setTimelineCursor("2026-10",false);const auto before=p.snapshot();
     assert(apply(p,{{"territorial","A"}}).changed());assert(p.document().units.size()==2&&p.document().timelineRecords.lifetimes[0].validity.to=="2026-09");
-    assert(!p.resolveWorld("2026-10").find("A")&&p.resolveWorld("2026-09").find("A")&&p.document().geometries.versions().size()==before.document().geometries.versions().size());
-    reject(p,{{"territorial","A"}},"not-found");assert(p.undo()&&p.resolveWorld("2026-10").find("A"));
+    assert(!p.resolveWorld("2026-10").find(territorialRef("A"))&&p.resolveWorld("2026-09").find(territorialRef("A"))&&p.document().geometries.versions().size()==before.document().geometries.versions().size());
+    reject(p,{{"territorial","A"}},"not-found");assert(p.undo()&&p.resolveWorld("2026-10").find(territorialRef("A")));
 }
 void physicalViewRebaseRejectsUnrelatedMetadataChanges() {
     const auto original=fixture();

@@ -4,9 +4,9 @@ namespace pandoeditor {
 namespace {
 TimelineRecords validated(const TimelineRecords& records,const GeometryStore& geometries,
                           const std::vector<TimelineEntityIdentity>& entities) {
-    return normalizeTimelineRecords(records,{entities,[&geometries](const GeometryRef& ref) {
+    return normalizeTimelineRecords(records,{entities,[&geometries](const ObjectRef& owner,const GeometryRef& ref) {
         const auto geometry=geometries.get(ref);
-        return geometry && (geometry->type=="Polygon" || geometry->type=="MultiPolygon");
+        return geometry && (owner.domain=="territorial"?(geometry->type=="Polygon"||geometry->type=="MultiPolygon"):(geometry->type=="Polygon"||geometry->type=="MultiPolygon"||geometry->type=="LineString"||geometry->type=="MultiLineString"));
     }});
 }
 }

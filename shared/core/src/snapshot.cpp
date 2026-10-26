@@ -3,7 +3,7 @@
 
 namespace pandoeditor {
 const ProjectDocument& ProjectSnapshot::document() const noexcept { return state_->document; }
-const std::set<std::string>& ProjectSnapshot::inactiveEntityIds() const noexcept { return state_->inactiveIds; }
+const std::set<ObjectRef>& ProjectSnapshot::inactiveObjectRefs() const noexcept { return state_->inactiveIds; }
 const DocumentIndex& ProjectSnapshot::index() const noexcept { return state_->index; }
 const CountryView* ProjectSnapshot::country(const std::string& id) const {
     auto it=state_->countryIndex.find(id); return it==state_->countryIndex.end()?nullptr:&state_->countries[it->second];

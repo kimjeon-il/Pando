@@ -125,6 +125,7 @@ export function createHydroSettings() {
 
   function isHydroFeatureVisible(feature) {
     const id = String(feature?.properties?.pandolab_id || feature?.id || '');
+    if(!dependencies.physicalResources.isHydroObjectActive(feature))return false;
     if (isHydroEditFeature(feature)) {
       const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature.properties?.category);
       return dependencies.projectState.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('hydro', id);

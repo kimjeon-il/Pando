@@ -85,13 +85,15 @@ void indexContentImpl(const ProjectDocument& d,DocumentIndex& idx,bool completeR
     }
     for(std::size_t i=0;i<d.hydro.size();++i) {
         const auto& v=d.hydro[i]; auto ref=add("hydro",v.id,i);
-        const auto type=geometry(ref,v.geometry)->type;
-        require((v.kind=="river" && (type=="LineString" || type=="MultiLineString")) ||
-            (v.kind=="lake" && (type=="Polygon" || type=="MultiPolygon")),"INVALID_HYDRO: geometry or kind");
+        require(v.kind=="river"||v.kind=="lake","INVALID_HYDRO: kind");
+        for(const auto& binding:d.timelineRecords.geometryBindings)if(binding.objectRef==ref) {
+            const auto value=d.geometries.get(binding.geometryRef);require(bool(value),"DANGLING_REF: water geometry");const auto& type=value->type;
+            require((v.kind=="river"&&(type=="LineString"||type=="MultiLineString"))||(v.kind=="lake"&&(type=="Polygon"||type=="MultiPolygon")),"INVALID_HYDRO: geometry kind");
+        }
         require(v.color<=0xffffff,"INVALID_HYDRO: color"); source(v.source);
         const auto annotations=codecjson::parse(v.annotations);
         require(annotations.kind==codecjson::Value::Object,"INVALID_HYDRO: annotations");
-        for(const auto* key:{"name","notes","category","locked","editorColor","source","pandolab_schema_version","pandolab_domain","pandolab_id","sourceFeatureId","visible"})
+        for(const auto* key:{"name","notes","category","locked","editorColor","source","pandolab_schema_version","pandolab_domain","pandolab_id","sourceFeatureId","visible","stroke_width","stroke_widths","border_aligned","connectivity"})
             require(!annotations.object.count(key),"DUPLICATE_HYDRO_PROPERTY_OWNER");
     }
     for(std::size_t i=0;i<d.distributionLayers.size();++i) {
@@ -142,7 +144,7 @@ bool sameContent(const ProjectDocument& a,const ProjectDocument& b) {
     return equalContentRows(a.countryDetails,b.countryDetails,[](const auto& v){return std::tie(v.first,v.second.capital);}) &&
         equalContentRows(a.symbols,b.symbols,[](const auto& v){return std::tie(v.first,v.second.policy,v.second.embeddedDataUrl,v.second.defaultCountryId,v.second.defaultFlagDataUrl);}) &&
         equalContentRows(a.labels,b.labels,[](const auto& v){return std::make_tuple(v.id,v.name,v.kind,v.notes,v.geometry,v.territory,sourceKey(v.source),v.sourcePlaceId,v.metadata,labelWebFields(v));}) &&
-        equalContentRows(a.hydro,b.hydro,[](const auto& v){return std::make_tuple(v.id,v.name,v.kind,v.notes,v.geometry,v.color,v.locked,sourceKey(v.source),v.sourceFeatureId,v.annotations,hydroWebPropertyFields(v));}) &&
+        equalContentRows(a.hydro,b.hydro,[](const auto& v){return std::make_tuple(v.id,v.name,v.kind,v.notes,v.color,v.locked,sourceKey(v.source),v.sourceFeatureId,v.annotations,hydroWebPropertyFields(v));}) &&
         equalContentRows(a.distributionLayers,b.distributionLayers,[](const auto& v){return std::make_tuple(v.id,v.name,v.unit,v.color,v.explicitColor,v.locked,v.parentId,v.groups,validityKey(v.validity),v.metadata,v.valueScale.manual,v.valueScale.manual?v.valueScale.min:0,v.valueScale.manual?v.valueScale.max:1);}) &&
         equalContentRows(a.distributionEntries,b.distributionEntries,[](const auto& v){return std::make_tuple(v.id,v.layerId,v.territory,v.geometry,v.value,v.certainty,v.metadata,validityKey(v.validity));}) &&
         equalContentRows(a.genericFeatures,b.genericFeatures,[](const auto& v){return std::make_tuple(v.id,v.name,v.notes,v.geometry,v.color,v.explicitColor,v.locked,v.fallbackOnly,sourceKey(v.source));}) &&
@@ -152,9 +154,9 @@ bool sameContent(const ProjectDocument& a,const ProjectDocument& b) {
 std::optional<GeometryRef> objectGeometry(const ProjectDocument& d,const DocumentIndex& index,const ObjectRef& ref) {
     const auto found=index.objects.find(ref); if(found==index.objects.end()) return {};
     const auto i=found->second;
-    if(ref.domain=="territorial") return staticGeometryBinding(d,d.units.at(i).id).geometryRef;
+    if(ref.domain=="territorial") return staticGeometryBinding(d,ref).geometryRef;
     if(ref.domain=="label") return d.labels.at(i).geometry;
-    if(ref.domain=="hydro") return d.hydro.at(i).geometry;
+    if(ref.domain=="hydro") return staticGeometryBinding(d,ref).geometryRef;
     if(ref.domain=="generic") return d.genericFeatures.at(i).geometry;
     if(ref.domain=="distributionEntry") {
         const auto& entry=d.distributionEntries.at(i);

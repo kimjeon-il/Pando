@@ -1,3 +1,4 @@
+import { timelineObjectKey } from './timeline-records.js';
 import { sharedCalculationCore } from './temporal.js';
 
 for (const name of ['timelineInitialMonth', 'timelineResolveWorld']) {
@@ -21,6 +22,12 @@ export function initialTimelineMonth(records, currentMonth) {
 /** Map the C++ resolved typed values onto the current Web presentation DTO. */
 export function projectTimelineIdentity(identity, values) {
   if (!Object.keys(values).length) return identity;
+  if(identity.properties?.pandolab_domain==='hydro') {
+    const properties={...identity.properties};
+    if(values.name)properties.name=values.name.name;
+    if(values.color)properties.editorColor='#'+values.color.color.toString(16).padStart(6,'0');
+    return freeze({...identity,properties});
+  }
   const properties = { ...identity.properties, style: { ...identity.properties.style }, metadata: { ...identity.properties.metadata } };
   if (values.name) {
     properties.name = values.name.name;
@@ -40,15 +47,16 @@ export function projectTimelineIdentity(identity, values) {
 /** Only attach Web identities and immutable geometry allocations to C++ world results. */
 export function resolveWorld(identities, records, geometries, month) {
   const context = {
-    entities: identities.map(identity => ({ id: identity.id, entityKind: identity.properties?.entityKind })),
+    entities: identities.map(identity => ({ objectRef: {domain:identity.properties?.pandolab_domain==='hydro'?'hydro':'territorial',id:identity.id}, entityKind: identity.properties?.category || identity.properties?.entityKind })),
     geometryExists: ref => geometries.get(ref) != null,
   };
   const resolved = sharedCalculationCore.timelineResolveWorld(records, context, month);
-  const identityById = new Map(identities.map(identity => [identity.id, identity]));
+  const identityById = new Map(identities.map(identity => [timelineObjectKey({domain:identity.properties?.pandolab_domain==='hydro'?'hydro':'territorial',id:identity.id}), identity]));
   const rows = resolved.entities.map(result => {
     const row = {
-      id: result.id,
-      identity: projectTimelineIdentity(freeze(structuredClone(identityById.get(result.id))), result.properties),
+      id: result.objectRef.id,
+      objectRef: Object.freeze(result.objectRef),
+      identity: projectTimelineIdentity(freeze(structuredClone(identityById.get(timelineObjectKey(result.objectRef)))), result.properties),
       geometryRef: Object.freeze(result.geometryRef),
       geometry: geometries.get(result.geometryRef),
       parentId: result.parentId,
@@ -60,7 +68,7 @@ export function resolveWorld(identities, records, geometries, month) {
     };
     return Object.freeze(row);
   });
-  const byId = new Map(rows.map(row => [row.id, row]));
+  const byId = new Map(rows.filter(row=>row.objectRef.domain==='territorial').map(row => [row.id, row]));
   return Object.freeze({
     month: resolved.month,
     entities: Object.freeze(rows),
@@ -69,7 +77,7 @@ export function resolveWorld(identities, records, geometries, month) {
 }
 
 export function resolvedTimelineViews(identities, records, geometries, month) {
-  return Object.freeze(resolveWorld(identities, records, geometries, month).entities.map(row => {
+  return Object.freeze(resolveWorld(identities, records, geometries, month).entities.filter(row=>row.objectRef.domain==='territorial').map(row => {
     const properties = Object.freeze({ ...row.identity.properties, parentId: row.parentId,
       coverageMode: row.coverageMode, validFrom: row.validFrom, validTo: row.validTo });
     return Object.freeze({ ...row.identity, properties, geometry: row.geometry });

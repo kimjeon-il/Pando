@@ -1,3 +1,4 @@
+import {timelineObjectCatalog} from '../../../../../shared/frontend/js/modules/timeline-records.js';
 import { normalizeTerritorialIdentities, TERRITORIAL_ENTITY_KINDS } from "../../../../../shared/frontend/js/modules/territorial-units.js";
 import { normalizeTerritorialEntities } from "../../../../../shared/frontend/js/modules/territorial-units.js";
 import { assertCurrentProjectSchema, assertProjectBaselineFingerprint } from "../../../../../shared/frontend/js/modules/project-state.js";
@@ -28,7 +29,7 @@ export function createProjectSerializer({ schemaVersion = PROJECT_SCHEMA_VERSION
     const identities = normalizeTerritorialIdentities(snapshot.territorialEntities);
     const fields = snapshot.projectFields;
     const storage = restoreTimelineStorage({ schemaVersion: 1, records: fields?.timelineRecords,
-      geometries: fields?.geometries }, identities.map(feature => ({ id: feature.id, entityKind: feature.properties.entityKind })));
+      geometries: fields?.geometries }, timelineObjectCatalog({...fields,territorialEntities:identities}));
     const result = { ...clone(fields), territorialEntities: identities,
       timelineRecords: storage.records, geometries: storage.geometries.snapshot() };
     assertProjectReferenceIntegrity({ ...result, storageOnly: true });

@@ -51,51 +51,61 @@ std::shared_ptr<const Geometry> GeometryStore::get(const GeometryRef& ref) const
 }
 std::vector<TimelineEntityIdentity> timelineEntityCatalog(const ProjectDocument& d) {
     std::vector<TimelineEntityIdentity> result;
-    for(const auto& unit:d.units)result.push_back({unit.id,unit.kind==UnitKind::General?"general":"regional"});
+    for(const auto& unit:d.units)result.push_back({territorialRef(unit.id),unit.kind==UnitKind::General?"general":"regional"});
+    for(const auto& water:d.hydro)result.push_back({ObjectRef{"hydro",water.id},water.kind});
     return result;
 }
 namespace {
-template<class Rows> bool staticRows(const Rows& rows,const std::string& id) {
+template<class Rows> bool staticRows(const Rows& rows,const ObjectRef& id) {
     std::size_t count=0;
-    for(const auto& row:rows)if(row.entityId==id) {
+    for(const auto& row:rows)if(row.objectRef==id) {
         if(row.validity.from||row.validity.to)return false;
         ++count;
     }
     return count==1;
 }
-template<class Rows> auto& staticRow(Rows& rows,const std::string& id) {
+template<class Rows> auto& staticRow(Rows& rows,const ObjectRef& id) {
     if(!staticRows(rows,id))throw TimelineError("TIMELINE_ACTIVATION","Current editing requires a single unbounded record.");
-    return *std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.entityId==id;});
+    return *std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.objectRef==id;});
 }
 }
 bool isStaticTimeline(const ProjectDocument& d) {
     if(!d.timelineRecords.propertyBindings.empty())return false;
-    for(const auto& unit:d.units)if(!staticRows(d.timelineRecords.lifetimes,unit.id)
-      ||!staticRows(d.timelineRecords.geometryBindings,unit.id)||!staticRows(d.timelineRecords.parentRelations,unit.id))return false;
+    for(const auto& unit:d.units)if(!staticRows(d.timelineRecords.lifetimes,territorialRef(unit.id))
+      ||!staticRows(d.timelineRecords.geometryBindings,territorialRef(unit.id))||!staticRows(d.timelineRecords.parentRelations,territorialRef(unit.id)))return false;
+    for(const auto& water:d.hydro)if(!staticRows(d.timelineRecords.lifetimes,{"hydro",water.id})||!staticRows(d.timelineRecords.geometryBindings,{"hydro",water.id}))return false;
     return true;
 }
 void requireStaticTimeline(const ProjectDocument& d) {
     if(!isStaticTimeline(d))throw TimelineError("TIMELINE_ACTIVATION","Timeline activation requires T3/T4.");
 }
-const TimelineGeometryBinding& staticGeometryBinding(const ProjectDocument& d,const std::string& id) {return staticRow(d.timelineRecords.geometryBindings,id);}
-TimelineGeometryBinding& staticGeometryBinding(ProjectDocument& d,const std::string& id) {return staticRow(d.timelineRecords.geometryBindings,id);}
-const TimelineParentRelation& staticParentRelation(const ProjectDocument& d,const std::string& id) {return staticRow(d.timelineRecords.parentRelations,id);}
-TimelineParentRelation& staticParentRelation(ProjectDocument& d,const std::string& id) {return staticRow(d.timelineRecords.parentRelations,id);}
-const TimelineLifetime& staticLifetime(const ProjectDocument& d,const std::string& id) {return staticRow(d.timelineRecords.lifetimes,id);}
-TimelineLifetime& staticLifetime(ProjectDocument& d,const std::string& id) {return staticRow(d.timelineRecords.lifetimes,id);}
+const TimelineGeometryBinding& staticGeometryBinding(const ProjectDocument& d,const ObjectRef& id) {return staticRow(d.timelineRecords.geometryBindings,id);}
+TimelineGeometryBinding& staticGeometryBinding(ProjectDocument& d,const ObjectRef& id) {return staticRow(d.timelineRecords.geometryBindings,id);}
+const TimelineParentRelation& staticParentRelation(const ProjectDocument& d,const std::string& id) {return staticRow(d.timelineRecords.parentRelations,territorialRef(id));}
+TimelineParentRelation& staticParentRelation(ProjectDocument& d,const std::string& id) {return staticRow(d.timelineRecords.parentRelations,territorialRef(id));}
+const TimelineLifetime& staticLifetime(const ProjectDocument& d,const ObjectRef& id) {return staticRow(d.timelineRecords.lifetimes,id);}
+TimelineLifetime& staticLifetime(ProjectDocument& d,const ObjectRef& id) {return staticRow(d.timelineRecords.lifetimes,id);}
 bool isRootGeneral(const ProjectDocument& d,const TerritorialUnit& u) {
     return u.kind==UnitKind::General&&staticParentRelation(d,u.id).parentId.empty();
 }
 void addStaticTerritorialRecords(ProjectDocument& d,const std::string& id,GeometryRef geometry,
                                  const std::string& parent,const std::string& coverage) {
-    for(const auto& row:d.timelineRecords.lifetimes)require(row.entityId!=id,"DUPLICATE_ID: lifetime owner");
-    d.timelineRecords.lifetimes.push_back({"lifetime:"+id,id,{}});
-    d.timelineRecords.geometryBindings.push_back({"geometry:"+id,id,{},std::move(geometry)});
-    d.timelineRecords.parentRelations.push_back({"parent:"+id,id,{},parent,coverage});
+    addStaticObjectRecords(d,territorialRef(id),std::move(geometry));
+    d.timelineRecords.parentRelations.push_back({"parent:"+id,territorialRef(id),{},parent,coverage});
+}
+void addStaticObjectRecords(ProjectDocument& d,const ObjectRef& ref,GeometryRef geometry) {
+    for(const auto& row:d.timelineRecords.lifetimes)require(row.objectRef!=ref,"DUPLICATE_ID: lifetime owner");
+    const auto key=ref.domain+":"+ref.id;
+    d.timelineRecords.lifetimes.push_back({"lifetime:"+key,ref,{}});
+    d.timelineRecords.geometryBindings.push_back({"geometry:"+key,ref,{},std::move(geometry)});
+}
+void removeObjectTimelineRecords(ProjectDocument& d,const ObjectRef& ref) {
+    const auto erase=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return row.objectRef==ref;}),rows.end());};
+    erase(d.timelineRecords.lifetimes);erase(d.timelineRecords.geometryBindings);erase(d.timelineRecords.parentRelations);erase(d.timelineRecords.propertyBindings);
 }
 void removeTerritorialRecords(ProjectDocument& d,const std::vector<std::string>& ids) {
     const std::set<std::string> removed(ids.begin(),ids.end());
-    const auto erase=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return removed.count(row.entityId);}),rows.end());};
+    const auto erase=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return row.objectRef.domain=="territorial" && removed.count(row.objectRef.id);}),rows.end());};
     erase(d.timelineRecords.lifetimes);erase(d.timelineRecords.geometryBindings);erase(d.timelineRecords.parentRelations);
 }
 namespace {
@@ -119,12 +129,12 @@ DocumentIndex validateDocumentImpl(const ProjectDocument& d,void(*readContent)(c
     }
     readContent(d,idx);
     for(const auto& [ref,s]:d.presentation.objectStyles) require(idx.objects.count(ref)&&s.color<=0xffffff&&opacity(s.opacity),"INVALID_STYLE");
-    const auto records=normalizeTimelineRecords(d.timelineRecords,{timelineEntityCatalog(d),[&](const GeometryRef& ref){
-        const auto geometry=d.geometries.get(ref);return geometry&&(geometry->type=="Polygon"||geometry->type=="MultiPolygon");
+    const auto records=normalizeTimelineRecords(d.timelineRecords,{timelineEntityCatalog(d),[&](const ObjectRef& owner,const GeometryRef& ref){
+        const auto geometry=d.geometries.get(ref);return geometry&&(owner.domain=="territorial"?(geometry->type=="Polygon"||geometry->type=="MultiPolygon"):(geometry->type=="Polygon"||geometry->type=="MultiPolygon"||geometry->type=="LineString"||geometry->type=="MultiLineString"));
     }});
-    for(const auto& binding:records.geometryBindings)idx.geometryUsers[binding.geometryRef].push_back(territorialRef(binding.entityId));
+    for(const auto& binding:records.geometryBindings)idx.geometryUsers[binding.geometryRef].push_back(binding.objectRef);
     for(std::size_t i=0;i<records.parentRelations.size();++i) {
-        const auto& row=records.parentRelations[i];const auto owner=territorialRef(row.entityId);
+        const auto& row=records.parentRelations[i];const auto owner=territorialRef(row.objectRef.id);
         idx.parentRelationsByUnit[owner].push_back(i);
         if(!row.parentId.empty()) {const auto parent=territorialRef(row.parentId);idx.children[parent].push_back(owner);idx.dependents[parent].push_back(owner);}
     }
@@ -151,7 +161,7 @@ std::vector<CountryView> countryViews(const ProjectDocument& d) {
     for(const auto& u:d.units) if(isRootGeneral(d,u)) {
         auto ref=territorialRef(u.id); const auto& s=d.presentation.objectStyles.at(ref);
         const std::uint32_t resolvedColor=s.explicitColor?s.color:countryDefault;
-        result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,u.id).geometryRef)->polygons,resolvedColor,u.notes,s.opacity,u.locked});
+        result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,territorialRef(u.id)).geometryRef)->polygons,resolvedColor,u.notes,s.opacity,u.locked});
     }
     return result;
 }

@@ -14,6 +14,7 @@ struct HistoricalGeometryVersion {
     std::string certainty="unknown", sourceId, notes;
     bool partial=false;
     std::vector<std::string> missingSourceIds;
+    std::string rendering="{}";
 };
 struct HistoricalInstantiationPolicy {
     std::string mode="independent";
@@ -21,7 +22,7 @@ struct HistoricalInstantiationPolicy {
 };
 struct HistoricalEntity {
     std::string libraryId;
-    UnitKind type=UnitKind::General;
+    std::optional<UnitKind> type=UnitKind::General;
     std::string canonicalName;
     std::map<std::string,std::string> displayNames;
     std::vector<std::string> alternateNames;
@@ -41,7 +42,7 @@ struct WorldSnapshot {
 };
 struct HistoricalSelection {
     std::string libraryId,geometryVersionId,name;
-    UnitKind type=UnitKind::General;
+    std::optional<UnitKind> type=UnitKind::General;
     Geometry geometry; // A copy; editing this never changes the catalog.
     Validity validity;
     std::string parentLibraryId,sovereignLibraryId;
@@ -49,6 +50,8 @@ struct HistoricalSelection {
     std::string metadata,sourceInfo,certainty,sourceId;
     bool partial=false;
     std::vector<std::string> missingSourceIds;
+    std::string catalogKind;
+    std::string rendering="{}";
 };
 enum class HistoricalStatus { All, Current, Past };
 struct HistoricalSearch {
@@ -56,7 +59,7 @@ struct HistoricalSearch {
     HistoricalStatus status=HistoricalStatus::All;
     std::string referenceDate,geographicRegion;
 };
-UnitKind historicalUnitKind(const std::string& raw);
+std::optional<UnitKind> historicalUnitKind(const std::string& raw);
 class HistoricalLibrary {
 public:
     HistoricalLibrary(int schemaVersion,std::vector<HistoricalEntity> entities,

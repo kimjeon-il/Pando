@@ -49,6 +49,8 @@ struct ContentEdit {
     // independently verifies owner, reference and the actual geometry digest;
     // no claimed hash or caller flag authorizes archive omission.
     std::optional<InlineGeometryAllocation> inlineAllocation;
+    std::optional<GeometryRef> geometryBinding;
+    std::optional<std::string> geometryRendering;
 };
 enum class ContentImportKind { Generic,Distribution };
 struct ContentBatchEdit { ContentImportKind kind=ContentImportKind::Generic;std::vector<ContentEdit> edits; };

@@ -17,7 +17,7 @@ ObjectRef administrativeRoot(const ProjectDocument& d,ObjectRef ref) {
     for(std::size_t i=0;i<d.units.size();++i){const auto& p=staticParentRelation(d,ref.id);if(p.parentId.empty())return ref;ref=territorialRef(p.parentId);}
     throw std::invalid_argument("PARENT_CYCLE");
 }
-std::shared_ptr<const Geometry> shape(const ProjectDocument& d,const ObjectRef& ref){return d.geometries.get(staticGeometryBinding(d,ref.id).geometryRef);}
+std::shared_ptr<const Geometry> shape(const ProjectDocument& d,const ObjectRef& ref){return d.geometries.get(staticGeometryBinding(d,territorialRef(ref.id)).geometryRef);}
 void unlocked(const TerritorialUnit& u){if(u.locked)throw std::invalid_argument("LOCKED");}
 TerritorialMutationPlan initial(const ProjectSnapshot& s,TerritorialMutationKind kind,TerritorialMutationIntent intent) {
     requireStaticTimeline(s.document());TerritorialMutationPlan p; p.projectInstanceId=s.instanceId();p.documentId=s.document().documentId;p.baseRevision=s.revision();p.kind=kind;p.intent=std::move(intent);return p;
@@ -90,7 +90,7 @@ TerritorialMutationPlan planCreate(const ProjectSnapshot& s,const CreateTerritor
 }
 TerritorialMutationPlan planDelete(const ProjectSnapshot& s,const DeleteTerritorialIntent& in) {
     if(in.targets.empty())throw std::invalid_argument("INVALID_TARGETS");auto p=initial(s,TerritorialMutationKind::DeleteUnits,in);p.targets=in.targets;p.affectedObjects=in.targets;p.requiresConfirmation=true;
-    for(const auto& ref:in.targets){const auto& u=unit(s,ref);unlocked(u);for(const auto& r:s.document().timelineRecords.parentRelations)if(r.parentId==ref.id&&std::find(in.targets.begin(),in.targets.end(),territorialRef(r.entityId))==in.targets.end())throw std::invalid_argument("HAS_BASE_CHILD");guard(p,s.document(),ref,"delete");requireRewritableGuards(p,s.document());
+    for(const auto& ref:in.targets){const auto& u=unit(s,ref);unlocked(u);for(const auto& r:s.document().timelineRecords.parentRelations)if(r.parentId==ref.id&&std::find(in.targets.begin(),in.targets.end(),territorialRef(r.objectRef.id))==in.targets.end())throw std::invalid_argument("HAS_BASE_CHILD");guard(p,s.document(),ref,"delete");requireRewritableGuards(p,s.document());
         for(const auto& extension:s.document().extensions) {
             if(extension.status=="migrationArchive")continue;
             if(extension.jsonPointer=="/distributionEntries"||extension.jsonPointer=="/genericFeatures")p.rewrites.push_back({extension.jsonPointer,ReferenceRewriteOperation::RemoveEntry,ref.id,{}});
@@ -158,7 +158,7 @@ TerritorialMutationPlan planMerge(const ProjectSnapshot& s,const MergeTerritoria
     p.geometry.kind=GeometryRequirementKind::WorkerPatch;p.geometry.operation="merge";p.geometry.readOwners=owners;
     p.geometry.replacements.push_back({in.target,in.target});
     for(const auto& donor:in.donors){p.geometry.replacements.push_back({donor,donor});p.geometry.removableOwners.push_back(donor);guard(p,s.document(),donor,"delete");guard(p,s.document(),donor,"geometry");
-        for(const auto& relation:s.document().timelineRecords.parentRelations)if(relation.parentId==donor.id){const auto child=territorialRef(relation.entityId);p.affectedObjects.push_back(child);unlocked(unit(s,child));guard(p,s.document(),child,"relation");}
+        for(const auto& relation:s.document().timelineRecords.parentRelations)if(relation.parentId==donor.id){const auto child=territorialRef(relation.objectRef.id);p.affectedObjects.push_back(child);unlocked(unit(s,child));guard(p,s.document(),child,"relation");}
         for(const auto& extension:s.document().extensions)if(extension.status!="migrationArchive") {
             if(extension.jsonPointer=="/distributionEntries"||extension.jsonPointer=="/genericFeatures")p.rewrites.push_back({extension.jsonPointer,ReferenceRewriteOperation::ReplaceId,donor.id,in.target.id});
             else if(extension.jsonPointer=="/itemVisibility"||extension.jsonPointer=="/labelSettings")p.rewrites.push_back({extension.jsonPointer,ReferenceRewriteOperation::ReplaceId,donor.id,in.target.id});

@@ -37,7 +37,7 @@ export function buildBuiltinWorldPublication({input=null,policyFile=new URL('../
  const currentWorld=input?.currentWorld||buildCurrentWorld({entities,view});
  const {index,countries,coverageReport}=compileBuiltinWorldCatalog({entities,view,currentWorld,policy});
  const files=encodeCountries(index,countries);
- recordBuiltinWorldInputs(index,input?.sourceIndex?Object.fromEntries(input.sourceIndex.entities.map(row=>[row.entityId,row.sha256])):
+ recordBuiltinWorldInputs(index,input?.sourceIndex?Object.fromEntries(input.sourceIndex.entities.filter(row=>!['river','lake'].includes(row.entityType)).map(row=>[row.entityId,row.sha256])):
   Object.fromEntries(entities.map(row=>[row.entityId,sha(JSON.stringify(row))])),view,policy);
  packBuiltinWorldFiles(index,files);
  files.set('coverage-report.json',Buffer.from(JSON.stringify(coverageReport)+'\n'));
