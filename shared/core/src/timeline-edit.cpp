@@ -24,13 +24,13 @@ std::string nextRecordId(const TimelineRecords& rows,const std::string& base) {
     return result;
 }
 template<class Rows,class Change> TimelineEditResult replace(const TimelineRecords& original,Rows TimelineRecords::* field,
-        const std::string& id,const std::string& cursor,Change change) {
+        const ObjectRef& id,const std::string& cursor,Change change) {
     const auto month=parseTemporal(cursor);
     if(month.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
     const auto point=temporalMonthEnd(month.canonical);
     auto result=original;
     auto& rows=result.*field;
-    const auto it=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.entityId==id&&active(row.validity,point);});
+    const auto it=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.objectRef==id&&active(row.validity,point);});
     if(it==rows.end())throw TimelineError("TIMELINE_INACTIVE","entity has no record at month end");
     auto changed=*it;
     if(!change(changed))return {original,false};
@@ -44,13 +44,14 @@ template<class Rows,class Change> TimelineEditResult replace(const TimelineRecor
     return {std::move(result),true};
 }
 }
-TimelineRecords replaceGeometryBindingAtMonth(const TimelineRecords& rows,const std::string& id,
-                                               const std::string& month,GeometryRef next) {
+TimelineRecords replaceGeometryBindingAtMonth(const TimelineRecords& rows,const ObjectRef& id,
+                                               const std::string& month,GeometryRef next,std::optional<std::string> rendering) {
     return replace(rows,&TimelineRecords::geometryBindings,id,month,[&](auto& row){
-        if(row.geometryRef==next)return false;row.geometryRef=next;return true;
+        const auto metadata=rendering.value_or(row.rendering);
+        if(row.geometryRef==next&&row.rendering==metadata)return false;row.geometryRef=next;row.rendering=metadata;return true;
     }).records;
 }
-TimelineRecords replaceParentRelationAtMonth(const TimelineRecords& rows,const std::string& id,
+TimelineRecords replaceParentRelationAtMonth(const TimelineRecords& rows,const ObjectRef& id,
                                               const std::string& month,const std::string& parentId,
                                               const std::string& coverageMode) {
     return replace(rows,&TimelineRecords::parentRelations,id,month,[&](auto& row){
@@ -59,16 +60,16 @@ TimelineRecords replaceParentRelationAtMonth(const TimelineRecords& rows,const s
     }).records;
 }
 TimelineEditResult editTimelineRecordAtMonth(const TimelineRecords& original,const std::string& collection,
-    const std::string& id,const std::string& month,const TimelineEditPatch& patch) {
+    const ObjectRef& id,const std::string& month,const TimelineEditPatch& patch) {
     if(collection=="geometryBindings") {
         if(patch.parentId||patch.coverageMode)throw TimelineError("TIMELINE_EDIT_PATCH","Unexpected parent patch field.");
         return replace(original,&TimelineRecords::geometryBindings,id,month,[&](auto& row) {
-            if(!patch.geometryRef||row.geometryRef==*patch.geometryRef)return false;
-            row.geometryRef=*patch.geometryRef;return true;
+            const auto ref=patch.geometryRef.value_or(row.geometryRef);const auto metadata=patch.rendering.value_or(row.rendering);
+            if(row.geometryRef==ref&&row.rendering==metadata)return false;row.geometryRef=ref;row.rendering=metadata;return true;
         });
     }
     if(collection=="parentRelations") {
-        if(patch.geometryRef)throw TimelineError("TIMELINE_EDIT_PATCH","Unexpected geometry patch field.");
+        if(patch.geometryRef||patch.rendering)throw TimelineError("TIMELINE_EDIT_PATCH","Unexpected geometry patch field.");
         return replace(original,&TimelineRecords::parentRelations,id,month,[&](auto& row) {
             const auto nextParent=patch.parentId.value_or(row.parentId);
             const auto nextCoverage=patch.coverageMode.value_or(row.coverageMode);
@@ -78,19 +79,19 @@ TimelineEditResult editTimelineRecordAtMonth(const TimelineRecords& original,con
     }
     throw TimelineError("TIMELINE_EDIT_COLLECTION","Unsupported timeline record collection.");
 }
-TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,const std::string& id,
+TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,const ObjectRef& id,
                                               const std::string& cursor,bool preserveFutureChanges) {
     const auto month=parseTemporal(cursor);
     if(month.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
     const auto lastMonth=shiftTemporalMonth(month.canonical,-1);
     auto result=original;
-    const auto lifetime=std::find_if(original.lifetimes.begin(),original.lifetimes.end(),[&](const auto& row){return row.entityId==id&&active(row.validity,temporalMonthEnd(month.canonical));});
+    const auto lifetime=std::find_if(original.lifetimes.begin(),original.lifetimes.end(),[&](const auto& row){return row.objectRef==id&&active(row.validity,temporalMonthEnd(month.canonical));});
     if(lifetime==original.lifetimes.end())return original;
     const auto lifetimeEnd=normalizeTemporalInterval(lifetime->validity.from,lifetime->validity.to).end;
     std::optional<TemporalValue> resume;
     if(preserveFutureChanges) {
         const auto point=temporalMonthEnd(month.canonical);
-        const auto inspect=[&](const auto& rows){for(const auto& row:rows)if(row.entityId==id&&row.validity.from) {
+        const auto inspect=[&](const auto& rows){for(const auto& row:rows)if(row.objectRef==id&&row.validity.from) {
             const auto start=parseTemporal(*row.validity.from);
             if(point.endKey<start.startKey&&(!resume||start.startKey<resume->startKey))resume=start;
         }};
@@ -101,7 +102,7 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
         std::vector<Row> kept;
         kept.reserve(rows.size());
         for(auto row:rows) {
-            if(row.entityId!=id){kept.push_back(std::move(row));continue;}
+            if(row.objectRef!=id){kept.push_back(std::move(row));continue;}
             const auto interval=normalizeTemporalInterval(row.validity.from,row.validity.to);
             if(lifetimeEnd&&interval.start&&lifetimeEnd->endKey<interval.start->startKey){kept.push_back(std::move(row));continue;}
             if(interval.end&&interval.end->endKey<month.startKey){kept.push_back(std::move(row));continue;}
@@ -121,19 +122,19 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
     truncate(result.lifetimes);truncate(result.geometryBindings);truncate(result.parentRelations);truncate(result.propertyBindings);
     // Explicit deletion of the final map interval removes the project identity
     // through existing callers, even when source lifetime dates precede the map.
-    if(std::none_of(result.geometryBindings.begin(),result.geometryBindings.end(),[&](const auto& row){return row.entityId==id;})) {
-        const auto erase=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return row.entityId==id;}),rows.end());};
+    if(std::none_of(result.geometryBindings.begin(),result.geometryBindings.end(),[&](const auto& row){return row.objectRef==id;})) {
+        const auto erase=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return row.objectRef==id;}),rows.end());};
         erase(result.lifetimes);erase(result.parentRelations);erase(result.propertyBindings);
     }
     return result;
 }
-TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords& original,const std::string& id,
+TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords& original,const ObjectRef& id,
     const std::string& cursor,const std::string& property,const std::string& value) {
     const auto month=parseTemporal(cursor);
     if(month.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
     auto result=original;const auto point=temporalMonthEnd(month.canonical);
     auto& rows=result.propertyBindings;
-    auto selected=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.entityId==id&&row.property==property&&active(row.validity,point);});
+    auto selected=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.objectRef==id&&row.property==property&&active(row.validity,point);});
     if(selected!=rows.end()) {
         if(selected->value==value)return result;
         auto changed=*selected;changed.value=value;
@@ -143,10 +144,10 @@ TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords& original,co
         }else *selected=std::move(changed);
         return result;
     }
-    const auto life=std::find_if(result.lifetimes.begin(),result.lifetimes.end(),[&](const auto& row){return row.entityId==id&&active(row.validity,point);});
+    const auto life=std::find_if(result.lifetimes.begin(),result.lifetimes.end(),[&](const auto& row){return row.objectRef==id&&active(row.validity,point);});
     if(life==result.lifetimes.end())throw TimelineError("TIMELINE_INACTIVE","property owner is inactive");
     auto end=life->validity.to;
-    for(const auto& row:rows)if(row.entityId==id&&row.property==property&&row.validity.from) {
+    for(const auto& row:rows)if(row.objectRef==id&&row.property==property&&row.validity.from) {
         const auto start=parseTemporal(*row.validity.from);
         if(month.startKey<start.startKey) {
             const auto nextMonth=start.precision=="year"?start.canonical+"-01":start.precision=="date"?start.canonical.substr(0,start.canonical.size()-3):start.canonical;
@@ -156,13 +157,13 @@ TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords& original,co
         }
     }
     const auto begin=life->validity.from&&month.startKey<parseTemporal(*life->validity.from).startKey?*life->validity.from:month.canonical;
-    rows.push_back({nextRecordId(original,"property:"+id+":"+property+":"+month.canonical),id,{begin,end},property,value});
+    rows.push_back({nextRecordId(original,"property:"+id.domain+":"+id.id+":"+property+":"+month.canonical),id,{begin,end},property,value});
     return result;
 }
 }
 
 namespace pandoeditor {
-std::vector<TimelineChangePeriod> timelineChangePeriods(const TimelineRecords& before,const TimelineRecords& after,const std::vector<std::string>& ids) {
+std::vector<TimelineChangePeriod> timelineChangePeriods(const TimelineRecords& before,const TimelineRecords& after,const std::vector<ObjectRef>& ids) {
     const TemporalKey low{std::numeric_limits<int>::min(),1,1},high{std::numeric_limits<int>::max(),1,1};
     const auto start=[&](const Validity& v){return v.from?parseTemporal(*v.from).startKey:low;};
     const auto end=[&](const Validity& v){return v.to?temporalFollowingDay(parseTemporal(*v.to).endKey):high;};
@@ -174,15 +175,15 @@ std::vector<TimelineChangePeriod> timelineChangePeriods(const TimelineRecords& b
     std::vector<TimelineChangePeriod> result;
     for(const auto& id:ids) {
         std::set<TemporalKey> points{low,high};
-        const auto collect=[&](const auto& rows){for(const auto& r:rows)if(r.entityId==id){points.insert(start(r.validity));points.insert(end(r.validity));}};
+        const auto collect=[&](const auto& rows){for(const auto& r:rows)if(r.objectRef==id){points.insert(start(r.validity));points.insert(end(r.validity));}};
         for(const auto* records:{&before,&after}){collect(records->lifetimes);collect(records->geometryBindings);collect(records->parentRelations);collect(records->propertyBindings);}
         const auto signature=[&](const TimelineRecords& records,const TemporalKey& key){
             std::vector<std::string> parts;
-            const auto contains=[&](const auto& r){return r.entityId==id && !(key<start(r.validity)) && key<end(r.validity);};
+            const auto contains=[&](const auto& r){return r.objectRef==id && !(key<start(r.validity)) && key<end(r.validity);};
             bool alive=false;for(const auto& r:records.lifetimes)if(contains(r))alive=true;
             if(!alive)return parts;
             parts.push_back("alive");
-            for(const auto& r:records.geometryBindings)if(contains(r)){parts.push_back("geometry");parts.push_back(r.geometryRef.id);parts.push_back(std::to_string(r.geometryRef.version));}
+            for(const auto& r:records.geometryBindings)if(contains(r)){parts.push_back("geometry");parts.push_back(r.geometryRef.id);parts.push_back(std::to_string(r.geometryRef.version));parts.push_back(r.rendering);}
             for(const auto& r:records.parentRelations)if(contains(r)){parts.push_back("parent");parts.push_back(r.parentId);parts.push_back(r.coverageMode);}
             std::map<std::string,std::string> properties;for(const auto& r:records.propertyBindings)if(contains(r))properties[r.property]=r.value;
             for(const auto& p:properties){parts.push_back(p.first);parts.push_back(p.second);}return parts;

@@ -14,7 +14,7 @@ export function exchangeProject(kind) {
   } });
   snapshot.territorialEntities = [identity('A'), identity('B'), identity('C'), identity('R', 'regional')];
   const records = snapshot.projectFields.timelineRecords;
-  const record = (id, entityId, validFrom = null, validTo = null) => ({ id, entityId, validFrom, validTo });
+  const record = (id, entityId, validFrom = null, validTo = null) => ({ id, objectRef:{domain:'territorial',id:entityId}, validFrom, validTo });
   records.lifetimes = snapshot.territorialEntities.map(entity => record('life:'+entity.id, entity.id));
   records.geometryBindings = snapshot.territorialEntities.map(entity => ({ ...record('shape:'+entity.id, entity.id), geometryRef: { id: 'shape', version: 1 } }));
   records.parentRelations = snapshot.territorialEntities.map(entity => ({ ...record('parent:'+entity.id, entity.id),
@@ -25,15 +25,15 @@ export function exchangeProject(kind) {
     [[[179,0],[-179,0],[-179,1],[179,0]]],
   ] };
   if (kind === 'complex') {
-    records.geometryBindings = records.geometryBindings.filter(row => row.entityId !== 'A');
+    records.geometryBindings = records.geometryBindings.filter(row => row.objectRef.id !== 'A');
     records.geometryBindings.push({ ...record('A:old','A',null,'1914-06'), geometryRef: { id:'shape', version:1 } },
       { ...record('A:new','A','1914-07',null), geometryRef: { id:'shape', version:2 } });
-    records.lifetimes = records.lifetimes.filter(row => row.entityId !== 'B');
+    records.lifetimes = records.lifetimes.filter(row => row.objectRef.id !== 'B');
     records.lifetimes.push(record('B:ancient','B','-0001','0001'), record('B:modern','B','1910-01-02','1920-03'));
-    records.geometryBindings = records.geometryBindings.filter(row => row.entityId !== 'B');
+    records.geometryBindings = records.geometryBindings.filter(row => row.objectRef.id !== 'B');
     records.geometryBindings.push({ ...record('B:ancient-shape','B','-0001','0001'), geometryRef:{id:'shape',version:1} },
       { ...record('B:modern-shape','B','1910-01-02','1920-03'), geometryRef:{id:'shape',version:1} });
-    records.parentRelations = records.parentRelations.filter(row => row.entityId !== 'B');
+    records.parentRelations = records.parentRelations.filter(row => row.objectRef.id !== 'B');
     records.parentRelations.push({ ...record('B:ancient-parent','B','-0001','0001'), parentId:'A',coverageMode:'partition' },
       { ...record('B:old-parent','B','1910-01-02','1915'),parentId:'A',coverageMode:'partition' },
       { ...record('B:new-parent','B','1916','1920-03'),parentId:'C',coverageMode:'explicit' });

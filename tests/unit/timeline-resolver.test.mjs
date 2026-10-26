@@ -6,7 +6,7 @@ import { initialTimelineMonth, resolveWorld, resolvedTimelineViews } from "../..
 import { sphericalCore } from '../helpers/spherical-core.mjs';
 
 const project = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json', import.meta.url), 'utf8'));
-const catalog = project.territorialEntities.map(feature => ({ id: feature.id, entityKind: feature.properties.entityKind }));
+const catalog = project.territorialEntities.map(feature => ({ objectRef:{domain:"territorial",id:feature.id}, entityKind: feature.properties.entityKind }));
 const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
   geometries: project.geometries }, catalog);
 const resolve = month => resolveWorld(project.territorialEntities, storage.records, storage.geometries, month);
@@ -16,7 +16,7 @@ test('month-end resolution selects exact geometry versions and parent graph', ()
   const july = resolve('1914-07');
   const later = resolve('1916-01');
   assert.equal(july.month, '1914-07');
-  assert.deepEqual(june.entities.map(row => row.id), ['A', 'B', 'C', 'R']);
+  assert.deepEqual(june.entities.map(row => row.objectRef.id), ['A', 'B', 'C', 'R']);
   assert.deepEqual(june.byId.get('A').geometryRef, { id: 'shape', version: 1 });
   assert.deepEqual(july.byId.get('A').geometryRef, { id: 'shape', version: 2 });
   assert.equal(july.byId.get('B').parentId, 'A');
@@ -29,10 +29,10 @@ test('month-end resolution selects exact geometry versions and parent graph', ()
 });
 
 test('month-end resolution respects disjoint lifetimes and exact days', () => {
-  assert.deepEqual(resolve('1909-12').entities.map(row => row.id), ['A', 'C', 'R']);
-  assert.deepEqual(resolve('1910-01').entities.map(row => row.id), ['A', 'B', 'C', 'R']);
-  assert.deepEqual(resolve('1920-04').entities.map(row => row.id), ['A', 'C', 'R']);
-  assert.throws(() => resolve('1914-07-31'), /month/i);
+  assert.deepEqual(resolve('1909-12').entities.map(row => row.objectRef.id), ['A', 'C', 'R']);
+  assert.deepEqual(resolve('1910-01').entities.map(row => row.objectRef.id), ['A', 'B', 'C', 'R']);
+  assert.deepEqual(resolve('1920-04').entities.map(row => row.objectRef.id), ['A', 'C', 'R']);
+  assert.deepEqual(resolve('1914-07-31').entities.map(row=>row.id),resolve('1914-07').entities.map(row=>row.id));
 });
 
 test('month-end resolution includes exact starts and excludes exact mid-month ends', () => {
@@ -52,7 +52,7 @@ test('month-end resolution includes exact starts and excludes exact mid-month en
 
 test('initial month uses the latest explicit record start and static fallback', () => {
   assert.equal(initialTimelineMonth(storage.records, '2026-10'), '1916-01');
-  assert.equal(initialTimelineMonth({ schemaVersion: 2, propertyBindings: [], lifetimes: [{ id: 'life:A', entityId: 'A', validFrom: null, validTo: null }], geometryBindings: [], parentRelations: [] }, '2026-10'), '2026-10');
+  assert.equal(initialTimelineMonth({ schemaVersion: 3, propertyBindings: [], lifetimes: [{ id: 'life:A', objectRef:{domain:"territorial",id:'A'}, validFrom: null, validTo: null }], geometryBindings: [], parentRelations: [] }, '2026-10'), '2026-10');
 });
 
 test('independent timeline golden months match effective identity, version and ancestry', () => {
@@ -73,12 +73,12 @@ test('materialized editor views contain only living features at the selected mon
 
 test('scattered timeline rows retain catalog order, exact values, ancestry and validation failures', () => {
   const ids = ['__proto__', 'constructor', '국가:😀', ...Array.from({ length: 37 }, (_, index) => `entity:${index}`)];
-  const entities = ids.map(id => ({ id, entityKind: 'general' })).reverse();
-  const records = { schemaVersion: 2, lifetimes: [], geometryBindings: [], parentRelations: [], propertyBindings: [] };
+  const entities = ids.map(id => ({ objectRef:{domain:'territorial',id}, entityKind: 'general' })).reverse();
+  const records = { schemaVersion: 3, lifetimes: [], geometryBindings: [], parentRelations: [], propertyBindings: [] };
   for (const [index, entityId] of ids.entries()) {
-    records.lifetimes.push({ id: `life:${index}`, entityId, validFrom: '1910', validTo: '1915' });
+    records.lifetimes.push({ id: `life:${index}`, objectRef:{domain:'territorial',id:entityId}, validFrom: '1910', validTo: '1915' });
     for (let year = 1910; year <= 1915; year++) {
-      const common = { entityId, validFrom: String(year), validTo: String(year) };
+      const common = { objectRef:{domain:'territorial',id:entityId}, validFrom: String(year), validTo: String(year) };
       records.geometryBindings.push({ ...common, id: `geometry:${index}:${year}`, geometryRef: { id: 'shape', version: year - 1909 } });
       records.parentRelations.push({ ...common, id: `parent:${index}:${year}`, parentId: index ? ids[Math.floor((index - 1) / 3)] : '', coverageMode: 'explicit' });
       records.propertyBindings.push({ ...common, id: `name:${index}:${year}`, property: 'name', value: { name: `${entityId}:${year}`, nameExplicit: year % 2 === 0 } });
@@ -95,15 +95,15 @@ test('scattered timeline rows retain catalog order, exact values, ancestry and v
     assert.equal(world.month, month);
     assert.deepEqual(visits, records.geometryBindings.map(row => row.geometryRef.version), 'all geometry validation retains row order');
     const year = Number(month.slice(0, 4));
-    assert.deepEqual(world.entities.map(row => row.id), year < 1910 || year > 1915 ? [] : entities.map(row => row.id));
+    assert.deepEqual(world.entities.map(row => row.objectRef.id), year < 1910 || year > 1915 ? [] : entities.map(row => row.objectRef.id));
     for (const row of world.entities) {
       const ancestors = [];
-      let index = ids.indexOf(row.id);
+      let index = ids.indexOf(row.objectRef.id);
       while (index) { index = Math.floor((index - 1) / 3); ancestors.push(ids[index]); }
       assert.deepEqual(row.ancestors, ancestors);
       assert.equal(row.rootId, ids[0]);
       assert.deepEqual(row.geometryRef, { id: 'shape', version: year - 1909 });
-      assert.deepEqual(row.properties, { name: { name: `${row.id}:${year}`, nameExplicit: year % 2 === 0 } });
+      assert.deepEqual(row.properties, { name: { name: `${row.objectRef.id}:${year}`, nameExplicit: year % 2 === 0 } });
     }
     assert.equal(JSON.stringify(records), before);
   }

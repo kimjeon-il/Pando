@@ -85,14 +85,14 @@ bool territorialDataChanged(const ProjectDocument& before,const TerritorialUnit&
         if(std::tie(a.policy,a.embeddedDataUrl,a.defaultCountryId,a.defaultFlagDataUrl)!=std::tie(b.policy,b.embeddedDataUrl,b.defaultCountryId,b.defaultFlagDataUrl))return true;
     }
     const auto lifetimes=[](const ProjectDocument& d,const std::string& id) {
-        std::vector<Validity> result;for(const auto& row:d.timelineRecords.lifetimes)if(row.entityId==id)result.push_back(row.validity);return result;
+        std::vector<Validity> result;for(const auto& row:d.timelineRecords.lifetimes)if(row.objectRef==territorialRef(id))result.push_back(row.validity);return result;
     };
     const auto validity=[](const Validity& a,const Validity& b){return a.from==b.from&&a.to==b.to;};
     const auto a=lifetimes(before,old.id),b=lifetimes(after,next.id);
     if(a.size()!=b.size()||!std::equal(a.begin(),a.end(),b.begin(),validity))return true;
     std::vector<const TimelineGeometryBinding*> ga,gb;
-    for(const auto& row:before.timelineRecords.geometryBindings)if(row.entityId==old.id)ga.push_back(&row);
-    for(const auto& row:after.timelineRecords.geometryBindings)if(row.entityId==next.id)gb.push_back(&row);
+    for(const auto& row:before.timelineRecords.geometryBindings)if(row.objectRef==territorialRef(old.id))ga.push_back(&row);
+    for(const auto& row:after.timelineRecords.geometryBindings)if(row.objectRef==territorialRef(next.id))gb.push_back(&row);
     if(ga.size()!=gb.size())return true;
     for(std::size_t i=0;i<ga.size();++i) {
         if(!validity(ga[i]->validity,gb[i]->validity))return true;
@@ -100,13 +100,13 @@ bool territorialDataChanged(const ProjectDocument& before,const TerritorialUnit&
         if(first!=second&&(!first||!second||!sameGeometryValue(*first,*second)))return true;
     }
     std::vector<const TimelineParentRelation*> pa,pb;
-    for(const auto& row:before.timelineRecords.parentRelations)if(row.entityId==old.id)pa.push_back(&row);
-    for(const auto& row:after.timelineRecords.parentRelations)if(row.entityId==next.id)pb.push_back(&row);
+    for(const auto& row:before.timelineRecords.parentRelations)if(row.objectRef==territorialRef(old.id))pa.push_back(&row);
+    for(const auto& row:after.timelineRecords.parentRelations)if(row.objectRef==territorialRef(next.id))pb.push_back(&row);
     if(pa.size()!=pb.size())return true;
     for(std::size_t i=0;i<pa.size();++i)if(!validity(pa[i]->validity,pb[i]->validity)||pa[i]->parentId!=pb[i]->parentId||pa[i]->coverageMode!=pb[i]->coverageMode)return true;
     std::vector<std::tuple<std::string,std::optional<std::string>,std::optional<std::string>,std::string>> propertiesA,propertiesB;
-    for(const auto& row:before.timelineRecords.propertyBindings)if(row.entityId==old.id)propertiesA.emplace_back(row.property,row.validity.from,row.validity.to,row.value);
-    for(const auto& row:after.timelineRecords.propertyBindings)if(row.entityId==next.id)propertiesB.emplace_back(row.property,row.validity.from,row.validity.to,row.value);
+    for(const auto& row:before.timelineRecords.propertyBindings)if(row.objectRef==territorialRef(old.id))propertiesA.emplace_back(row.property,row.validity.from,row.validity.to,row.value);
+    for(const auto& row:after.timelineRecords.propertyBindings)if(row.objectRef==territorialRef(next.id))propertiesB.emplace_back(row.property,row.validity.from,row.validity.to,row.value);
     return propertiesA!=propertiesB;
 }
 std::vector<std::string> dirtyTerritorialOrder(const ProjectDocument& before,const ProjectDocument& after) {
@@ -232,13 +232,13 @@ ProjectSnapshot Project::snapshotForView() const {
 ResolvedWorld Project::resolveWorld(const std::string& month) const {
     const auto& d=document();
     return pandoeditor::resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),
-        [&](const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}},month);
+        [&](const ObjectRef& owner,const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}},month);
 }
 const ProjectDocument& Project::document() const noexcept { return state_->document; }
 const ProjectDocument& Project::viewDocument() const noexcept {
     return viewState_?viewState_->document:state_->document;
 }
-const std::set<std::string>& Project::inactiveEntityIds() const noexcept {
+const std::set<ObjectRef>& Project::inactiveObjectRefs() const noexcept {
     return viewState_?viewState_->inactiveIds:state_->inactiveIds;
 }
 const std::vector<CountryView>& Project::countries() const noexcept {
@@ -432,7 +432,7 @@ bool Project::travelHistory(bool forward,const ProjectSnapshot& prepared) {
 }
 bool Project::undo() { return travelHistory(false,historySnapshot(false)); }
 bool Project::hasActiveObject(const ObjectRef& ref) const noexcept {
-    return index().objects.count(ref)!=0&&(ref.domain!="territorial"||!inactiveEntityIds().count(ref.id));
+    return index().objects.count(ref)!=0&&!inactiveObjectRefs().count(ref);
 }
 bool Project::redo() { return travelHistory(true,historySnapshot(true)); }
 void Project::markSaved() noexcept { saved_=state_; savedCheckpoint_=checkpoint_;savedPresentationCheckpoint_=presentationCheckpoint_; }

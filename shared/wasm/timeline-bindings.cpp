@@ -27,11 +27,11 @@ bool arrayValue(const val& value) {
 void array(const val& value,const char* code) {
     if(!arrayValue(value))fail(code,"Expected an array.");
 }
-void shape(const val& value,std::initializer_list<const char*> fields,const char* code) {
+void shape(const val& value,std::initializer_list<const char*> fields,const char* code,const char* optional=nullptr) {
     if(value.isNull()||!is(value,"object")||arrayValue(value))
         fail(code,"Expected an object.");
     auto keys=val::global("Object").call<val>("keys",value);
-    if(keys["length"].as<unsigned>()!=fields.size())fail(code,"Unexpected or missing fields.");
+    if(keys["length"].as<unsigned>()!=fields.size()+(optional&&val::global("Object").call<bool>("hasOwn",value,std::string(optional))?1:0))fail(code,"Unexpected or missing fields.");
     for(auto field:fields)
         if(!val::global("Object").call<bool>("hasOwn",value,std::string(field)))
             fail(code,"Missing field.");
@@ -71,13 +71,20 @@ val webRef(const GeometryRef& ref) {
     value.set("id",webText(ref.id));value.set("version",ref.version);
     return value;
 }
+ObjectRef readObjectRef(const val& value) {
+    shape(value,{"domain","id"},"TIMELINE_ENTITY");
+    return {readText(value["domain"],"TIMELINE_ENTITY",false),readText(value["id"],"TIMELINE_ID",false)};
+}
+val webObjectRef(const ObjectRef& ref) {
+    auto value=val::object();value.set("domain",webText(ref.domain));value.set("id",webText(ref.id));return value;
+}
 Validity readValidity(const val& record) {
     return {endpoint(record["validFrom"]),endpoint(record["validTo"])};
 }
-val common(const std::string& id,const std::string& entityId,const Validity& validity) {
+val common(const std::string& id,const ObjectRef& objectRef,const Validity& validity) {
     auto output=val::object();
     output.set("id",webText(id));
-    output.set("entityId",webText(entityId));
+    output.set("objectRef",webObjectRef(objectRef));
     output.set("validFrom",webEndpoint(validity.from));
     output.set("validTo",webEndpoint(validity.to));
     return output;
@@ -89,25 +96,25 @@ TimelineRecords readRecords(const val& input) {
     TimelineRecords records;
     const auto lifetimes=input["lifetimes"],bindings=input["geometryBindings"],parents=input["parentRelations"];
     array(lifetimes,"TIMELINE_SCHEMA");array(bindings,"TIMELINE_SCHEMA");array(parents,"TIMELINE_SCHEMA");
-    const auto readCommon=[](const val& value)->std::pair<std::string,std::string>{
+    const auto readCommon=[](const val& value)->std::pair<std::string,ObjectRef>{
         return {readText(value["id"],"TIMELINE_ID",false),
-                readText(value["entityId"],"TIMELINE_ID",false)};
+                readObjectRef(value["objectRef"])};
     };
     for(unsigned i=0;i<lifetimes["length"].as<unsigned>();++i) {
         const auto row=lifetimes[i];
-        shape(row,{"id","entityId","validFrom","validTo"},"TIMELINE_SCHEMA");
+        shape(row,{"id","objectRef","validFrom","validTo"},"TIMELINE_SCHEMA");
         const auto [id,entity]=readCommon(row);
         records.lifetimes.push_back({id,entity,readValidity(row)});
     }
     for(unsigned i=0;i<bindings["length"].as<unsigned>();++i) {
         const auto row=bindings[i];
-        shape(row,{"id","entityId","validFrom","validTo","geometryRef"},"TIMELINE_SCHEMA");
+        shape(row,{"id","objectRef","validFrom","validTo","geometryRef"},"TIMELINE_SCHEMA","rendering");
         const auto [id,entity]=readCommon(row);
-        records.geometryBindings.push_back({id,entity,readValidity(row),readRef(row["geometryRef"])});
+        records.geometryBindings.push_back({id,entity,readValidity(row),readRef(row["geometryRef"]),row["rendering"].isUndefined()?"{}":val::global("JSON").call<val>("stringify",row["rendering"]).as<std::string>()});
     }
     for(unsigned i=0;i<parents["length"].as<unsigned>();++i) {
         const auto row=parents[i];
-        shape(row,{"id","entityId","validFrom","validTo","parentId","coverageMode"},"TIMELINE_SCHEMA");
+        shape(row,{"id","objectRef","validFrom","validTo","parentId","coverageMode"},"TIMELINE_SCHEMA");
         const auto [id,entity]=readCommon(row);
         records.parentRelations.push_back({id,entity,readValidity(row),
             readText(row["parentId"],"TIMELINE_PARENT"),
@@ -115,7 +122,7 @@ TimelineRecords readRecords(const val& input) {
     }
     const auto properties=input["propertyBindings"];array(properties,"TIMELINE_SCHEMA");
     for(unsigned i=0;i<properties["length"].as<unsigned>();++i) {
-        const auto row=properties[i];shape(row,{"id","entityId","validFrom","validTo","property","value"},"TIMELINE_SCHEMA");
+        const auto row=properties[i];shape(row,{"id","objectRef","validFrom","validTo","property","value"},"TIMELINE_SCHEMA");
         const auto [id,entity]=readCommon(row);
         records.propertyBindings.push_back({id,entity,readValidity(row),readText(row["property"],"TIMELINE_PROPERTY"),
             val::global("JSON").call<val>("stringify",row["value"]).as<std::string>()});
@@ -127,21 +134,21 @@ val webRecords(const TimelineRecords& records) {
     result.set("schemaVersion",records.schemaVersion);
     unsigned index=0;
     for(const auto& row:records.lifetimes)
-        lifetimes.set(index++,common(row.id,row.entityId,row.validity));
+        lifetimes.set(index++,common(row.id,row.objectRef,row.validity));
     index=0;
     for(const auto& row:records.geometryBindings) {
-        auto value=common(row.id,row.entityId,row.validity);
-        value.set("geometryRef",webRef(row.geometryRef));bindings.set(index++,value);
+        auto value=common(row.id,row.objectRef,row.validity);
+        value.set("geometryRef",webRef(row.geometryRef));if(row.rendering!="{}")value.set("rendering",val::global("JSON").call<val>("parse",row.rendering));bindings.set(index++,value);
     }
     index=0;
     for(const auto& row:records.parentRelations) {
-        auto value=common(row.id,row.entityId,row.validity);
+        auto value=common(row.id,row.objectRef,row.validity);
         value.set("parentId",webText(row.parentId));
         value.set("coverageMode",webText(row.coverageMode));parents.set(index++,value);
     }
     result.set("lifetimes",lifetimes);result.set("geometryBindings",bindings);
     index=0;for(const auto& row:records.propertyBindings) {
-        auto value=common(row.id,row.entityId,row.validity);value.set("property",webText(row.property));
+        auto value=common(row.id,row.objectRef,row.validity);value.set("property",webText(row.property));
         value.set("value",val::global("JSON").call<val>("parse",row.value));properties.set(index++,value);
     }
     result.set("propertyBindings",properties);result.set("parentRelations",parents);return result;
@@ -156,12 +163,12 @@ TimelineValidationContext context(const val& value) {
         const auto identity=entities[i];
         if(identity.isNull()||!is(identity,"object")||arrayValue(identity))
             fail("TIMELINE_ENTITY","Expected an identity.");
-        result.entities.push_back({readText(identity["id"],"TIMELINE_ID",false),
+        result.entities.push_back({readObjectRef(identity["objectRef"]),
             readText(identity["entityKind"],"TIMELINE_KIND")});
     }
     const auto exists=value["geometryExists"];
-    result.geometryExists=[exists](const GeometryRef& ref) {
-        const val response=exists(webRef(ref));
+    result.geometryExists=[exists](const ObjectRef& owner,const GeometryRef& ref) {
+        const val response=exists(webRef(ref),webObjectRef(owner));
         return is(response,"boolean")&&response.as<bool>();
     };
     return result;
@@ -172,7 +179,8 @@ val webWorld(const ResolvedWorld& world) {
     unsigned index=0;
     for(const auto& row:world.entities) {
         auto value=val::object(),ancestors=val::array();
-        value.set("id",webText(row.id));value.set("geometryRef",webRef(row.geometryRef));
+        value.set("objectRef",webObjectRef(row.objectRef));value.set("geometryRef",webRef(row.geometryRef));
+        value.set("rendering",val::global("JSON").call<val>("parse",row.rendering));
         value.set("parentId",webText(row.parentId));value.set("coverageMode",webText(row.coverageMode));
         value.set("rootId",webText(row.rootId));
         value.set("validFrom",webEndpoint(row.validity.from));value.set("validTo",webEndpoint(row.validity.to));
@@ -254,7 +262,7 @@ std::string initialMonth(val input,const std::string& currentMonth) {
 val resolvedWorld(val input,val contextInput,const std::string& month) {
     return boundary([&] {return webWorld(resolveWorld(readRecords(input),context(contextInput),month));});
 }
-val editRecord(val input,const std::string& collection,const std::string& entityId,
+val editRecord(val input,const std::string& collection,val objectRef,
                const std::string& month,val patch) {
     return boundary([&] {
         const auto original=readRecords(input);
@@ -265,21 +273,22 @@ val editRecord(val input,const std::string& collection,const std::string& entity
         for(unsigned i=0;i<keys["length"].as<unsigned>();++i) {
             const auto key=keys[i].as<std::string>();
             if(collection=="geometryBindings"&&key=="geometryRef")changes.geometryRef=readRef(patch["geometryRef"]);
+            else if(collection=="geometryBindings"&&key=="rendering")changes.rendering=val::global("JSON").call<val>("stringify",patch["rendering"]).as<std::string>();
             else if(collection=="parentRelations"&&key=="parentId")
                 changes.parentId=readText(patch["parentId"],"TIMELINE_PARENT");
             else if(collection=="parentRelations"&&key=="coverageMode")
                 changes.coverageMode=readText(patch["coverageMode"],"TIMELINE_COVERAGE");
             else fail("TIMELINE_EDIT_PATCH","Unsupported timeline patch field.");
         }
-        const auto outcome=editTimelineRecordAtMonth(original,collection,entityId,month,changes);
+        const auto outcome=editTimelineRecordAtMonth(original,collection,readObjectRef(objectRef),month,changes);
         auto output=val::object();
         output.set("changed",outcome.changed);
         output.set("records",outcome.changed?webRecords(outcome.records):val::null());
         return output;
     });
 }
-val truncateEntity(val input,const std::string& entityId,const std::string& month) {
-    return boundary([&]{return webRecords(truncateTimelineEntityAtMonth(readRecords(input),entityId,month));});
+val truncateEntity(val input,val objectRef,const std::string& month) {
+    return boundary([&]{return webRecords(truncateTimelineEntityAtMonth(readRecords(input),readObjectRef(objectRef),month));});
 }
 }
 EMSCRIPTEN_BINDINGS(pandoeditor_timeline_calculations) {

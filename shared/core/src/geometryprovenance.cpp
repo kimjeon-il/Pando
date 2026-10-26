@@ -109,12 +109,11 @@ std::map<std::string,std::string> geometryProvenanceOpaqueSlots(const ProjectDoc
 std::map<GeometryRef,std::vector<ObjectRef>> geometryProvenanceUsers(const ProjectDocument& d) {
     std::map<GeometryRef,std::vector<ObjectRef>> result;
     for(const auto& row:d.labels)result[row.geometry].push_back({"label",row.id});
-    for(const auto& row:d.hydro)result[row.geometry].push_back({"hydro",row.id});
     for(const auto& row:d.genericFeatures)result[row.geometry].push_back({"generic",row.id});
     for(const auto& row:d.distributionEntries)if(row.geometry)result[*row.geometry].push_back({"distributionEntry",row.id});
     // Enumerate every historical record, without using static-view accessors or
     // ownership-aware validation of the not-yet-reconciled candidate.
-    for(const auto& row:d.timelineRecords.geometryBindings)result[row.geometryRef].push_back(territorialRef(row.entityId));
+    for(const auto& row:d.timelineRecords.geometryBindings)result[row.geometryRef].push_back(row.objectRef);
     return result;
 }
 void GeometryProvenanceCodecAccess::sealVerifiedOpaqueBaseline(ProjectDocument& document) {

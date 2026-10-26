@@ -1,3 +1,4 @@
+import { geometryReferenceFor } from './geometry-version-store.js';
 import { mapVisualOrder } from './layer-presentation.js';
 import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
@@ -28,6 +29,18 @@ import { mapPresentationReadiness } from './startup-readiness.js';
 import { shouldShowSharedCountryBorders } from './country-shared-boundary-packet.js';
 import { geometryRevisionKey } from './geometry-versions.js';
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
+
+export function hydroEditResourceDependencies(features,baseFid,displayColor) {
+  const rows=features.filter(feature=>feature.geometry).map(feature=>{
+    const ref=geometryReferenceFor(feature.geometry);
+    if(!ref)throw new Error('Hydro rendering requires an admitted geometry version.');
+    return {id:feature.id,ref,category:feature.properties.category,rendering:feature.properties.stroke_widths || null,
+      width:feature.properties.stroke_width || 1,aligned:feature.properties.border_aligned===true,
+      color:feature.properties.editorColor || displayColor(feature.properties.category)};
+  });
+  return {source:'common-object-geometry',content:resourceKey(rows.map(({id,ref,category})=>({id,ref,category}))),
+    preparation:resourceKey({algorithm:1,baseFid,rows:rows.map(({id,ref,category,...inputs})=>inputs)}),context:null,presentation:'hydro-edits'};
+}
 import '../workers/canvas-terrain-dem-core.js';
 
 const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
@@ -482,7 +495,8 @@ export function createGpuMapRenderer(deps) {
     let hydroVisibilityWidth = 1;
     let hydroVisibilityHeight = 1;
     const hydroEditFeatureByFid = new Map();
-    let hydroEditSource = null;
+    let hydroEditDependencies = null;
+    let hydroEditGeneration=0;
     const hydroDescriptorPacksByLogicalId = new Map();
     const hydroDescriptorPacksByFid = new Map();
     let interactionActive = false, hydroVisibilityDirty = true;
@@ -496,7 +510,7 @@ export function createGpuMapRenderer(deps) {
       queueHydroRender, reportOperationError, setActionStatus, onConnect: connectHydroCanvasWorkers,
       onLoadState: status => Object.assign(state.physicalLoadState, status),
       onReset: () => { hydroVisibilityDirty = true; hydroEditFeatureByFid.clear(); state.hydroFragmentsByLogicalId = new Map();
-        setHydroEdits(state.hydroEdits || [], Number(state.stateRevision || 0)); },
+        setHydroEdits(state.hydroEdits || []); },
     });
     let fillVao = null;
     let positionBuffer = null;
@@ -2905,12 +2919,14 @@ export function createGpuMapRenderer(deps) {
           const ids = aligned ? borderRiverFeatureIds : riverFeatureIds;
           const startWidths = aligned ? borderRiverStartWidths : riverStartWidths;
           const endWidths = aligned ? borderRiverEndWidths : riverEndWidths;
-          for (const part of hydroLineParts(feature.geometry)) for (let index = 0; index < part.length - 1; index += 1) {
+          for (const [partIndex,part] of hydroLineParts(feature.geometry).entries()) for (let index = 0; index < part.length - 1; index += 1) {
             starts.push(Math.round(part[index][0] * 1e6), Math.round(part[index][1] * 1e6));
             ends.push(Math.round(part[index + 1][0] * 1e6), Math.round(part[index + 1][1] * 1e6));
             ids.push(fid);
             const width = Number(feature.properties?.stroke_width || 1);
-            startWidths.push(width); endWidths.push(width);
+            const profile=feature.properties?.stroke_widths;
+            const widths=profile?.[partIndex];
+            startWidths.push(Number(widths?.[index] ?? width)); endWidths.push(Number(widths?.[index+1] ?? width));
           }
           continue;
         }
@@ -2953,14 +2969,18 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
-    function setHydroEdits(features = [], revision = 0) {
-      const nextRevision = Number(revision || 0);
-      // History can replace the canonical collection without changing country
-      // geometry revision. Both its source and revision identify this cache.
-      if (features === hydroEditSource && nextRevision === hydroPreparation.editRevision) return false;
+    function setHydroEdits(features = []) {
+      const baseFid = Math.max(0, Number(hydroPreparation.manifest?.stats?.featureCount || 0));
+      const dependencies=hydroEditResourceDependencies(features,baseFid,hydroDisplayColor);
+      const rebuild=resourceUpdate(hydroEditDependencies,dependencies).prepare;
+      // Picking follows current presentation metadata even when the mesh is reusable.
+      if(!rebuild){
+        const byId=new Map(features.map(feature=>[feature.id,feature]));
+        for(const [fid,feature] of hydroEditFeatureByFid)hydroEditFeatureByFid.set(fid,byId.get(feature.id));
+        return false;
+      }
       const entries = [];
       hydroEditFeatureByFid.clear();
-      const baseFid = Math.max(0, Number(hydroPreparation.manifest?.stats?.featureCount || 0));
       let nextFid = baseFid;
       const groups = new Map();
       for (const feature of features || []) {
@@ -2978,8 +2998,8 @@ export function createGpuMapRenderer(deps) {
         entries.push(entry);
         nextFid += group.features.length;
       }
-      hydroPreparation.replaceEdits(entries, nextRevision);
-      hydroEditSource = features;
+      hydroPreparation.replaceEdits(entries, ++hydroEditGeneration);
+      hydroEditDependencies = dependencies;
       hydroVisibilityDirty = true;
       if (rendererMode === 'canvas-worker' && canvasWorker) postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroPreparation.editRevision, features: features || [] });
       invalidatePhysicalScene('hydro-edit-data');
@@ -3151,6 +3171,7 @@ export function createGpuMapRenderer(deps) {
       if (!packs?.size) {
         hydroDescriptorPacksByLogicalId.delete(logicalId);
         state.hydroFeatureCache.delete(logicalId);
+        state.hydroFeatureCatalogRevision=(state.hydroFeatureCatalogRevision||0)+1;
         return;
       }
       const rows = [...packs.values()].flat();
@@ -3181,6 +3202,7 @@ export function createGpuMapRenderer(deps) {
       aggregate.__awCentroid = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
       aggregate.__awRadius = Math.min(180, Math.hypot(b[2] - b[0], b[3] - b[1]) / 2);
       state.hydroFeatureCache.set(logicalId, aggregate);
+      state.hydroFeatureCatalogRevision=(state.hydroFeatureCatalogRevision||0)+1;
       for (const descriptor of rows) state.hydroFeatureByFid.set(Number(descriptor.fid), aggregate);
     }
 
@@ -3236,6 +3258,7 @@ export function createGpuMapRenderer(deps) {
       if (!fragments?.size) {
         state.hydroFragmentsByLogicalId.delete(logicalId);
         state.hydroFeatureCache.delete(logicalId);
+        state.hydroFeatureCatalogRevision=(state.hydroFeatureCatalogRevision||0)+1;
         return null;
       }
       const ordered = [...fragments.values()].sort((left, right) => (
@@ -3263,6 +3286,7 @@ export function createGpuMapRenderer(deps) {
       }
       prepareHydroFeature(aggregate);
       state.hydroFeatureCache.set(logicalId, aggregate);
+      state.hydroFeatureCatalogRevision=(state.hydroFeatureCatalogRevision||0)+1;
       for (const fragment of ordered) state.hydroFeatureByFid.set(Number(fragment.properties?.__fid), aggregate);
       return aggregate;
     }

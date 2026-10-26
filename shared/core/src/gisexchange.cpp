@@ -96,8 +96,8 @@ GisTerritorialImportPlan planTerritorialGisImport(const ProjectSnapshot& project
     validateDocument(candidate);
     for(std::size_t i=0;i<candidate.units.size();++i)if(isRootGeneral(candidate,candidate.units[i]))
         for(std::size_t j=i+1;j<candidate.units.size();++j)if(isRootGeneral(candidate,candidate.units[j])) {
-            const auto& left=*candidate.geometries.get(staticGeometryBinding(candidate,candidate.units[i].id).geometryRef);
-            const auto& right=*candidate.geometries.get(staticGeometryBinding(candidate,candidate.units[j].id).geometryRef);
+            const auto& left=*candidate.geometries.get(staticGeometryBinding(candidate,territorialRef(candidate.units[i].id)).geometryRef);
+            const auto& right=*candidate.geometries.get(staticGeometryBinding(candidate,territorialRef(candidate.units[j].id)).geometryRef);
             if(geometrySignificantOverlap(left,right))
                 throw std::invalid_argument("GIS_COUNTRY_OVERLAP");
         }
@@ -112,7 +112,7 @@ void applyTerritorialGisImport(ProjectDocument& document,const GisTerritorialImp
     std::set<std::string> seen;
     std::set<ObjectRef> patched;
     auto replace=[&](TerritorialUnit& unit,const Geometry& geometry) {
-        auto& binding=staticGeometryBinding(document,unit.id);GeometryRef ref=binding.geometryRef;
+        auto& binding=staticGeometryBinding(document,territorialRef(unit.id));GeometryRef ref=binding.geometryRef;
         do {
             if(ref.version==std::numeric_limits<std::uint32_t>::max())
                 throw std::invalid_argument("INVALID_GIS_PLAN: geometry version overflow");

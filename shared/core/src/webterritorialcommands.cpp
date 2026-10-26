@@ -83,8 +83,8 @@ const TerritorialUnit& active(const ProjectSnapshot& snapshot,const std::string&
     if(found==snapshot.index().objects.end())throw TimelineError(code,"Territorial entity was not found.");
     if(!snapshot.timelineMonth().empty()) {
         const auto& d=snapshot.document();const auto world=resolveWorld(d.timelineRecords,
-            {timelineEntityCatalog(d),[&](const GeometryRef& geometry){return bool(d.geometries.get(geometry));}},snapshot.timelineMonth());
-        if(!world.find(id))throw TimelineError(code,"Territorial entity is inactive.");
+            {timelineEntityCatalog(d),[&](const ObjectRef& owner,const GeometryRef& geometry){return bool(d.geometries.get(geometry));}},snapshot.timelineMonth());
+        if(!world.find(territorialRef(id)))throw TimelineError(code,"Territorial entity is inactive.");
     }
     return snapshot.document().units.at(found->second);
 }

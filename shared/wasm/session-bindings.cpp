@@ -43,10 +43,11 @@ std::string text(const val& value,const char* code,bool empty=false) {
 val webString(const std::string& value) {return val::global("JSON").call<val>("parse",codecjson::Value::str(value).encode());}
 val optional(const std::optional<std::string>& value) { return value?webString(*value):val::null(); }
 val geometry(const GeometryRef& ref) { auto value=val::object();value.set("id",webString(ref.id));value.set("version",ref.version);return value; }
+val object(const ObjectRef& ref) { auto value=val::object();value.set("domain",webString(ref.domain));value.set("id",webString(ref.id));return value; }
 val world(const ResolvedWorld& result) {
     auto value=val::object(),entities=val::array();value.set("month",result.month);
     unsigned i=0;for(const auto& row:result.entities) {
-        auto v=val::object();v.set("id",webString(row.id));v.set("geometryRef",geometry(row.geometryRef));
+        auto v=val::object();v.set("objectRef",object(row.objectRef));v.set("geometryRef",geometry(row.geometryRef));v.set("rendering",val::global("JSON").call<val>("parse",row.rendering));
         v.set("parentId",webString(row.parentId));v.set("coverageMode",webString(row.coverageMode));v.set("rootId",webString(row.rootId));
         v.set("validFrom",optional(row.validity.from));v.set("validTo",optional(row.validity.to));
         auto ancestors=val::array();unsigned j=0;for(const auto& id:row.ancestors)ancestors.set(j++,webString(id));
@@ -488,7 +489,8 @@ public:
                 }
                 auto features=val::array();unsigned index=0;
                 for(const auto& row:session_.project().resolveWorld(session_.project().timelineCursor()).entities) {
-                    const auto identity=identities.call<val>("get",webString(row.id));
+                    if(row.objectRef.domain!="territorial")continue;
+                    const auto identity=identities.call<val>("get",webString(row.objectRef.id));
                     const auto versions=archive.call<val>("get",webString(row.geometryRef.id));
                     if(identity.isUndefined()||versions.isUndefined())fail("CORE_EXPORT_PROJECTION","Missing static export identity or geometry.");
                     const auto shape=versions.call<val>("get",row.geometryRef.version);
@@ -496,7 +498,7 @@ public:
                     auto feature=val::object(),properties=val::global("Object").call<val>("assign",val::object(),identity["properties"]);
                     properties.set("parentId",webString(row.parentId));properties.set("coverageMode",webString(row.coverageMode));
                     properties.set("validFrom",optional(row.validity.from));properties.set("validTo",optional(row.validity.to));
-                    feature.set("type",std::string("Feature"));feature.set("id",webString(row.id));feature.set("properties",properties);feature.set("geometry",shape);
+                    feature.set("type",std::string("Feature"));feature.set("id",webString(row.objectRef.id));feature.set("properties",properties);feature.set("geometry",shape);
                     features.set(index++,feature);
                 }
                 spatial.set("territorialEntities",features);
@@ -513,10 +515,10 @@ public:
             if(!preview)fail("PREVIEW_CONSUMED","The candidate is absent or replaced.");
             const auto& change=preview->change();const auto& candidate=change.after();
             auto value=val::object();value.set("delta",val::global("JSON").call<val>("parse",projectcodec::encodeWebDelta(change.before(),candidate,change.impact())));
-            auto resolved=world(pandoeditor::resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const GeometryRef& ref){return bool(candidate.geometries.get(ref));}},session_.project().timelineCursor()));
-            std::vector<std::string> ids;for(const auto& ref:change.impact().changedObjects)if(ref.domain=="territorial")ids.push_back(ref.id);
+            auto resolved=world(pandoeditor::resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(candidate.geometries.get(ref));}},session_.project().timelineCursor()));
+            std::vector<ObjectRef> ids;for(const auto& ref:change.impact().changedObjects)if(ref.domain=="territorial"||ref.domain=="hydro")ids.push_back(ref);
             auto periods=val::array();for(const auto& period:timelineChangePeriods(change.before().timelineRecords,candidate.timelineRecords,ids)){
-                auto row=val::object();row.set("entityId",period.entityId);row.set("from",optional(period.from));row.set("until",optional(period.until));periods.call<void>("push",row);
+                auto row=val::object();row.set("entityId",period.objectRef.id);row.set("from",optional(period.from));row.set("until",optional(period.until));periods.call<void>("push",row);
             }
             value.set("temporalImpact",periods);
             resolved.set("sourceEpoch",epoch);value.set("world",resolved);return value;

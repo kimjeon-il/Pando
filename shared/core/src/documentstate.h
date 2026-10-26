@@ -17,19 +17,19 @@ struct DocumentState {
     std::map<ObjectRef,ObjectPropertyView> properties;
     std::vector<CountryView> countries;
     std::map<std::string, std::size_t> countryIndex;
-    std::set<std::string> inactiveIds;
+    std::set<ObjectRef> inactiveIds;
 
     DocumentState() = default; // unloaded Project only
     DocumentState(ProjectDocument candidate,CommandBatchStage)
         :document(std::move(candidate)),index(validateCommandBatchInterim(document)){}
-    explicit DocumentState(ProjectDocument candidate,std::set<std::string> inactive={})
+    explicit DocumentState(ProjectDocument candidate,std::set<ObjectRef> inactive={})
         : document(std::move(candidate)), index(validateDocument(document)), inactiveIds(std::move(inactive))
     {
         if(!isStaticTimeline(document))return;
         properties=objectPropertyViews(document);
         auto allCountries=countryViews(document);
         countries.reserve(allCountries.size());
-        for(const auto& view:allCountries)if(!inactiveIds.count(view.id))countries.push_back(view);
+        for(const auto& view:allCountries)if(!inactiveIds.count(territorialRef(view.id)))countries.push_back(view);
         for (std::size_t i = 0; i < countries.size(); ++i)
             countryIndex.emplace(countries[i].id, i);
     }

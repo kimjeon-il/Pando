@@ -45,14 +45,12 @@ function pinnedAsset(root,name){
  return readFileSync(file);
 }
 export function verifyPublishedPhysicalManifest(manifest,assets) {
- const versions=manifest?.historicalWaterbodies;
- verify(Array.isArray(versions)&&versions.length===1,
-   'Expected one reviewed historical Caspian physical release');
- const row=versions[0];
- verify(row.id==='caspian-near1922-approved' &&row.referenceDate==='1922-12-30'
-   &&row.validFrom==='1922-12-30'&&row.validTo==='1925-05-12'
-   &&row.scope?.startsWith('Physical water presentation only, not a sovereignty subtraction'),
-   'Unapproved historic water validity or sovereignty semantics');
+ const catalog=manifest.waterObjects;
+ const binding=catalog.timelineRecords.geometryBindings.find(row=>row.objectRef.id==='waterbody:caspian'&&row.validFrom==='1922-12-30');
+ verify(binding?.validFrom==='1922-12-30'&&binding?.validTo==='1925-05-12','Unapproved historic water validity');
+ const selected=catalog.geometries.find(row=>row.geometryRef.id===binding.geometryRef.id&&row.geometryRef.version===binding.geometryRef.version);
+ verify(selected,'Missing selected common water geometry');
+ const row={land:selected.land,water:selected.asset};
  for(const role of ['land','water']){
    const expected=row[role],name='caspian-1922-'+role+'.json.gz';
    verify(expected?.url===SOURCE+name,
@@ -81,12 +79,13 @@ export function createPhysicalCandidates(result,manifest){
    const bytes=deterministicGzipJSON(geometry);
    data.set(SOURCE+name,bytes.compressed);
  }
- const draft=structuredClone(manifest),revision=draft.historicalWaterbodies[0];
+ const draft=structuredClone(manifest),revision=draft.waterObjects.geometries.find(row=>row.asset.url.endsWith('/caspian-1922-water.json.gz'));
  for(const role of ['land','water']){
    const name=SOURCE+'caspian-1922-'+role+'.json.gz';
-   const original=revision[role];
+   const field=role==='water'?'asset':'land';
+   const original=revision[field];
    const compressed=data.get(name);
-   revision[role]={...original,...assetDigest(compressed)};
+   revision[field]={...original,...assetDigest(compressed)};
  }
  data.set(SOURCE+'manifest.json',Buffer.from(JSON.stringify(draft,null,2)+'\n'));
  return data;

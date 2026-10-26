@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -69,7 +69,7 @@ test('viewer data closure follows current manifest references and excludes sourc
 test('viewer closure retains historical physical land and water as required manifest dependencies',async()=>{
  const f=fixture();
  try{
-  f.put('assets/data/physical-land/v1/manifest.json',JSON.stringify({asset:{url:'assets/data/physical-land/v1/modern.gz'},historicalWaterbodies:[{land:{url:'assets/data/physical-land/v1/historical-land.gz'},water:{url:'assets/data/physical-land/v1/historical-water.gz'}}]}));
+  f.put('assets/data/physical-land/v1/manifest.json',JSON.stringify({asset:{url:'assets/data/physical-land/v1/modern.gz'},waterObjects:{geometries:[{land:{url:'assets/data/physical-land/v1/historical-land.gz'},asset:{url:'assets/data/physical-land/v1/historical-water.gz'}}]}}));
   for(const name of ['modern','historical-land','historical-water'])f.put(`assets/data/physical-land/v1/${name}.gz`);
   const paths=await f.collect();for(const name of ['modern','historical-land','historical-water'])assert.ok(paths.has(`assets/data/physical-land/v1/${name}.gz`));
   f.files.delete('assets/data/physical-land/v1/historical-water.gz');await assert.rejects(f.collect(),/missing/i);
@@ -97,9 +97,9 @@ test('runtime worker catalog includes classic Worker imports and rejects a missi
 
 test('actual viewer graph contains render and read Workers without editor execution entries', async () => {
   const root = fileURLToPath(new URL('../../', import.meta.url));
-  const availablePaths = readdirSync(join(root, 'assets'), { recursive: true, withFileTypes: true })
-    .filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name).slice(root.length).replaceAll('\\', '/'));
-  const paths = await collectViewerAssets({ root, availablePaths: [...availablePaths, 'index.html', '.nojekyll'] });
+  const {buildFrontendSnapshot}=await import('../../scripts/lib/frontend-build.mjs');
+  const snapshot=await buildFrontendSnapshot({root});
+  const paths=new Set(snapshot.viewerPaths);
   for (const name of ['core-viewer-session-worker', 'project-read-worker', 'gpu-mesh-worker', 'canvas-render-worker', 'hydro-tile-worker'])
     {
       assert.equal(paths.has(`assets/js/workers/${name}.js`), false, name);

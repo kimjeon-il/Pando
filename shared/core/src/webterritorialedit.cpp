@@ -33,15 +33,16 @@ ActiveFrame activeFrame(const ProjectSnapshot& snapshot) {
     if(snapshot.timelineEditsEnabled()) {
         require(!snapshot.timelineMonth().empty(),"TIMELINE_ACTIVATION","A timeline month is required.");
         const auto point=parseTemporal(snapshot.timelineMonth());require(point.precision=="month","INVALID_TIMELINE_CURSOR","Month precision is required.");
-        const auto world=resolveWorld(source.timelineRecords,{timelineEntityCatalog(source),[&](const GeometryRef& ref){return bool(source.geometries.get(ref));}},snapshot.timelineMonth());
+        const auto world=resolveWorld(source.timelineRecords,{timelineEntityCatalog(source),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(source.geometries.get(ref));}},snapshot.timelineMonth());
         for(const auto& resolved:world.entities) {
-            const auto found=snapshot.index().objects.find(territorialRef(resolved.id));require(found!=snapshot.index().objects.end(),"invalid","Territorial identity is missing.");
+            if(resolved.objectRef.domain!="territorial")continue;
+            const auto found=snapshot.index().objects.find(resolved.objectRef);require(found!=snapshot.index().objects.end(),"invalid","Territorial identity is missing.");
             append(d.units.at(found->second),resolved.geometryRef,resolved.parentId,resolved.coverageMode,resolved.validity);
         }
     } else {
         require(isStaticTimeline(d),"TIMELINE_ACTIVATION","Static records are required before month editing is activated.");
         for(const auto& unit:d.units) {
-            const auto& parent=staticParentRelation(d,unit.id);append(unit,staticGeometryBinding(d,unit.id).geometryRef,parent.parentId,parent.coverageMode,staticLifetime(d,unit.id).validity);
+            const auto& parent=staticParentRelation(d,unit.id);append(unit,staticGeometryBinding(d,territorialRef(unit.id)).geometryRef,parent.parentId,parent.coverageMode,staticLifetime(d,territorialRef(unit.id)).validity);
         }
     }
     return frame;
@@ -160,22 +161,22 @@ void setIdentity(ProjectDocument& d,const WebTerritorialFeature& row,bool append
 }
 void applyStatic(ProjectDocument& d,const Rows& next) {
     std::set<std::string> ids;for(const auto& row:next)ids.insert(row.identity.id);
-    const auto filter=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return !ids.count(row.entityId);}),rows.end());};
+    const auto filter=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return !ids.count(row.objectRef.id);}),rows.end());};
     filter(d.timelineRecords.lifetimes);filter(d.timelineRecords.geometryBindings);filter(d.timelineRecords.parentRelations);filter(d.timelineRecords.propertyBindings);
     std::vector<std::string> deleted;for(const auto& unit:d.units)if(!ids.count(unit.id))deleted.push_back(unit.id);
     for(const auto& id:deleted)eraseIdentity(d,id);
     Allocator allocate(d);
     for(const auto& row:next) {
         require(!row.validity.from&&!row.validity.to,"TIMELINE_ACTIVATION","Dated creation or validity changes require month editing.");
-        const auto& id=row.identity.id;auto binding=std::find_if(d.timelineRecords.geometryBindings.begin(),d.timelineRecords.geometryBindings.end(),[&](const auto& value){return value.entityId==id;});
+        const auto& id=row.identity.id;auto binding=std::find_if(d.timelineRecords.geometryBindings.begin(),d.timelineRecords.geometryBindings.end(),[&](const auto& value){return value.objectRef.id==id;});
         if(binding==d.timelineRecords.geometryBindings.end()) {
             const auto geometry=allocate.version("territorial-geometry:"+id,row.geometry);
-            d.timelineRecords.geometryBindings.push_back({allocate.record("geometry:"+id),id,{},geometry});
+            d.timelineRecords.geometryBindings.push_back({allocate.record("geometry:"+id),territorialRef(id),{},geometry});
         } else if(!sameGeometryValue(*d.geometries.get(binding->geometryRef),row.geometry))binding->geometryRef=allocate.version(binding->geometryRef.id,row.geometry);
-        if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.entityId==id;}))
-            d.timelineRecords.lifetimes.push_back({allocate.record("lifetime:"+id),id,{}});
-        auto parent=std::find_if(d.timelineRecords.parentRelations.begin(),d.timelineRecords.parentRelations.end(),[&](const auto& value){return value.entityId==id;});
-        if(parent==d.timelineRecords.parentRelations.end())d.timelineRecords.parentRelations.push_back({allocate.record("parent:"+id),id,{},row.parentId,row.coverageMode});
+        if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.objectRef.id==id;}))
+            d.timelineRecords.lifetimes.push_back({allocate.record("lifetime:"+id),territorialRef(id),{}});
+        auto parent=std::find_if(d.timelineRecords.parentRelations.begin(),d.timelineRecords.parentRelations.end(),[&](const auto& value){return value.objectRef.id==id;});
+        if(parent==d.timelineRecords.parentRelations.end())d.timelineRecords.parentRelations.push_back({allocate.record("parent:"+id),territorialRef(id),{},row.parentId,row.coverageMode});
         else {parent->parentId=row.parentId;parent->coverageMode=row.coverageMode;}
         setIdentity(d,row);
     }
@@ -186,14 +187,14 @@ void applyStatic(ProjectDocument& d,const Rows& next) {
 void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,const std::string& month,bool preserveFutureChanges) {
     const auto previous=indexRows(before.rows),after=indexRows(next);
     for(const auto& row:before.rows)if(!after.count(row.identity.id)) {
-        d.timelineRecords=truncateTimelineEntityAtMonth(d.timelineRecords,row.identity.id,month,preserveFutureChanges);
-        if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.entityId==row.identity.id;}))eraseIdentity(d,row.identity.id);
+        d.timelineRecords=truncateTimelineEntityAtMonth(d.timelineRecords,territorialRef(row.identity.id),month,preserveFutureChanges);
+        if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.objectRef.id==row.identity.id;}))eraseIdentity(d,row.identity.id);
     }
     Allocator allocate(d);
     const auto parentPeriod=[&](std::string parentId,bool mapCoverage) -> Validity {
         while(!parentId.empty()) {
             if(const auto old=previous.find(parentId);old!=previous.end())return mapCoverage
-                ?timelineMapCoverageAtMonth(d.timelineRecords,parentId,month):before.rows[old->second].validity;
+                ?timelineMapCoverageAtMonth(d.timelineRecords,territorialRef(parentId),month):before.rows[old->second].validity;
             parentId=next[after.at(parentId)].parentId;
         }
         return {};
@@ -206,9 +207,9 @@ void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,co
             const auto geometry=allocate.fresh(id,row.geometry);const Validity interval{month,parentPeriod(row.parentId,false).to};
             const auto coverage=parentPeriod(row.parentId,true);
             const Validity mapInterval{coverage.from&&parseTemporal(month).startKey<parseTemporal(*coverage.from).startKey?coverage.from:month,coverage.to};
-            d.timelineRecords.lifetimes.push_back({allocate.record("lifetime:"+id),id,interval});
-            d.timelineRecords.geometryBindings.push_back({allocate.record("geometry:"+id),id,mapInterval,geometry});
-            d.timelineRecords.parentRelations.push_back({allocate.record("parent:"+id),id,mapInterval,row.parentId,row.coverageMode});
+            d.timelineRecords.lifetimes.push_back({allocate.record("lifetime:"+id),territorialRef(id),interval});
+            d.timelineRecords.geometryBindings.push_back({allocate.record("geometry:"+id),territorialRef(id),mapInterval,geometry});
+            d.timelineRecords.parentRelations.push_back({allocate.record("parent:"+id),territorialRef(id),mapInterval,row.parentId,row.coverageMode});
             setIdentity(d,row,true);
         } else {
             const auto& original=before.rows[old->second];
@@ -216,10 +217,10 @@ void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,co
             setIdentity(d,row);
             if(!sameGeometryValue(row.geometry,original.geometry)) {
                 const auto geometry=allocate.version(before.bindings.at(id).id,row.geometry);
-                d.timelineRecords=replaceGeometryBindingAtMonth(d.timelineRecords,id,month,geometry);
+                d.timelineRecords=replaceGeometryBindingAtMonth(d.timelineRecords,territorialRef(id),month,geometry);
             }
             if(row.parentId!=original.parentId||row.coverageMode!=original.coverageMode) {
-                d.timelineRecords=replaceParentRelationAtMonth(d.timelineRecords,id,month,row.parentId,row.coverageMode);
+                d.timelineRecords=replaceParentRelationAtMonth(d.timelineRecords,territorialRef(id),month,row.parentId,row.coverageMode);
             }
         }
     }
@@ -232,7 +233,7 @@ ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot& snapshot,const We
         const auto projected=timelineDocumentView(snapshot.document(),snapshot.timelineMonth());
         captureTimelinePropertyChanges(snapshot.document(),projected.document,candidate,snapshot.timelineMonth());
     }else applyStatic(candidate,next);
-    candidate.timelineRecords=normalizeTimelineRecords(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const GeometryRef& ref){
+    candidate.timelineRecords=normalizeTimelineRecords(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){
         const auto geometry=candidate.geometries.get(ref);return geometry&&(geometry->type=="Polygon"||geometry->type=="MultiPolygon");}});
     if(context!=TerritorialEditContext::SourceAdmission)validateTimelineParentChanges(snapshot.document(),candidate);
     return candidate;

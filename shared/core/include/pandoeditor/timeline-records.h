@@ -1,27 +1,33 @@
 #pragma once
 #include <pandoeditor/geometry-types.h>
+#include <pandoeditor/presentation.h>
 #include <functional>
 #include <stdexcept>
 
 namespace pandoeditor {
-inline constexpr std::uint32_t TimelineRecordSchemaVersion = 2;
+inline constexpr std::uint32_t TimelineRecordSchemaVersion = 3;
 
 struct TimelineLifetime {
-    std::string id, entityId;
+    std::string id;
+    ObjectRef objectRef;
     Validity validity;
 };
 struct TimelineGeometryBinding {
-    std::string id, entityId;
+    std::string id;
+    ObjectRef objectRef;
     Validity validity;
     GeometryRef geometryRef;
+    std::string rendering="{}";
 };
 struct TimelineParentRelation {
-    std::string id, entityId;
+    std::string id;
+    ObjectRef objectRef;
     Validity validity;
     std::string parentId, coverageMode;
 };
 struct TimelinePropertyBinding {
-    std::string id, entityId;
+    std::string id;
+    ObjectRef objectRef;
     Validity validity;
     // name, flag, or color. The validated value is lossless canonical JSON.
     std::string property, value;
@@ -34,10 +40,10 @@ struct TimelineRecords {
     std::vector<TimelinePropertyBinding> propertyBindings;
 };
 // A read-only validation input, not another persisted entity collection.
-struct TimelineEntityIdentity { std::string id, entityKind; };
+struct TimelineEntityIdentity { ObjectRef objectRef; std::string entityKind; };
 struct TimelineValidationContext {
     std::vector<TimelineEntityIdentity> entities;
-    std::function<bool(const GeometryRef&)> geometryExists;
+    std::function<bool(const ObjectRef&,const GeometryRef&)> geometryExists;
 };
 class TimelineError : public std::invalid_argument {
 public:

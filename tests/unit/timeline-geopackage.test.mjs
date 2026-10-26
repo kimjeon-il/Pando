@@ -1,4 +1,4 @@
-import { productionGeoPackage as request, spatialLayerCount } from '../helpers/production-geopackage.mjs';
+import { productionGeoPackage as request, spatialLayerCount,coreFileProjection } from '../helpers/production-geopackage.mjs';
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,15 +9,16 @@ import { createTerritorialFeature } from "../../shared/frontend/js/modules/terri
 import { readFile } from 'node:fs/promises';
 import { prepareProjectForActivation } from "../../shared/frontend/js/modules/project-state.js";
 
+const writeProject=async project=>{const receipt=await coreFileProjection(project);return request('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);};
 const serialize = snapshot => createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base',
   distributionModes: ['territorial','geometry'], terrainDataset: 'terrain', hydroDataset: 'hydro', readSnapshot: () => snapshot }).buildProject();
 
-for (const kind of ['complex','static','empty']) test(`production GeoPackage worker round-trips ${kind} v10 project`, async () => {
+for (const kind of ['complex','static','empty']) test(`production GeoPackage worker round-trips ${kind} v14 project`, async () => {
   const snapshot = kind === 'complex' ? projectForStorage() : staticSerializerSnapshot({ fullAutosave: true,
     territorialEntities: kind === 'empty' ? [] : [createTerritorialFeature({ id: 'A', entityKind: 'general', name: 'A',
       geometry: { type: 'Polygon', coordinates: [[[179,0],[-179,0],[-179,1],[179,0]]] }, metadata: { capital: '서울', source: 'original' } })] });
   const project = serialize(snapshot);
-  const written = await request('write', new ArrayBuffer(0), project);
+  const written = await writeProject(project);
   const read = await request('read', written.buffer);
   assert.deepEqual(prepareProjectForStorage(read.metadata.projectState), prepareProjectForStorage(project));
   const count = spatialLayerCount(written.buffer);
@@ -26,7 +27,7 @@ for (const kind of ['complex','static','empty']) test(`production GeoPackage wor
 
 for (const row of timelineStorageCases().filter(row => row.expected === 'OK')) test(`production file matrix: ${row.name}`, async () => {
   const project = serialize(projectForStorage(row));
-  const written = await request('write', new ArrayBuffer(0), project);
+  const written = await writeProject(project);
   const read = await request('read', written.buffer);
   assert.deepEqual(prepareProjectForStorage(read.metadata.projectState), prepareProjectForStorage(project));
 });
@@ -51,7 +52,7 @@ for (const kind of ['static', 'complex', 'calendar-boundaries']) test(`fixed ${k
   const bytes = await readFile(exchangeFile(`${kind}.gpkg`));
   const read = await request('read', bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
   assert.deepEqual(exchangeContent(prepareProjectForStorage(read.metadata.projectState)), expected);
-  const written = await request('write', new ArrayBuffer(0), project);
+  const written = await writeProject(project);
   const reread = await request('read', written.buffer);
   assert.deepEqual(exchangeContent(prepareProjectForStorage(reread.metadata.projectState)), expected);
   if (kind !== 'static') assert.equal(spatialLayerCount(written.buffer), 0);
@@ -67,6 +68,6 @@ for (const [name, mutate, code] of [
   const project = await exchangeJson('calendar-boundaries.json'); mutate(project);
   const before = structuredClone(project);
   assert.throws(() => prepareProjectForStorage(project), { code });
-  await assert.rejects(request('write', new ArrayBuffer(0), project), { code });
+  await assert.rejects(writeProject(project), { code });
   assert.deepEqual(project, before);
 });
