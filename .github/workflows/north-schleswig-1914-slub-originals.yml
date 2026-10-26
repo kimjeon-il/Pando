@@ -40,6 +40,8 @@ jobs:
           if(p.originalFullSheetScanArchived!==false || p.readyForPermanentLicensedArchive!==false)
             throw Error('Do not promote restricted period-map views');
           if(p.mapProbes.length!==4)throw Error('Four historic map sheets required');
+          if(p.successfulRasterViews!==4 || p.completePrivateResearchSnapshot!==true)
+            throw Error('Four independently decoded WMS map views and overlays required; a 0/4 run is not successful acquisition');
           console.log('NORTH_SCHLESWIG_PRIVATE_STAGING='+JSON.stringify({
             mapViews:p.successfulRasterViews,
             archivedFullScans:false,
