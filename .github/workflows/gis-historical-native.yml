@@ -12,6 +12,7 @@ on:
       - 'tests/unit/gis-caspian-display-packaging.test.mjs'
       - 'tests/unit/gis-caspian-pinned-native-oracle.test.mjs'
       - 'tools/gis/replay-ussr-1922-countries.mjs'
+      - 'tools/gis/stage-ussr-1922-library-originals.mjs'
       - 'tests/unit/ussr-1922-country-replay.test.mjs'
       - 'tests/fixtures/gis-caspian-1922-python-native-oracle.json'
       - 'tools/gis/verify-historical-linework.mjs'
@@ -119,9 +120,17 @@ jobs:
           console.log('USSR_1922_PINNED_ZIP='+JSON.stringify({sha256:expected,
             bytes:original.length,libraryRevision:pin}));
           JS
+      - name: Materialize only SHA-checked USSR country source originals in a private staging directory
+        run: |
+          set -euo pipefail
+          node tools/gis/stage-ussr-1922-library-originals.mjs \
+            --scope countries \
+            --output-root build-native/historical/ussr-1922-existing
       - name: Verify all five published 1922 country entities against the approved source ZIP
         run: |
+          set -euo pipefail
           node tools/gis/replay-ussr-1922-countries.mjs \
+            --source-root build-native/historical/ussr-1922-existing \
             --zip build-native/historical/ussr-1922-approved-master.zip \
             | tee build-native/historical/ussr-1922-country-replay.jsonl
       - name: Compare actual 266-reach approved source with the native GEOS topology owner
