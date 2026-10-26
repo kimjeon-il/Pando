@@ -9,6 +9,7 @@ on:
       - 'tools/cpp/historical-caspian-generalization.inc'
       - 'tools/cpp/historical-caspian-physical.inc'
       - 'tools/cpp/historical-source-geometry-compare.inc'
+      - 'tools/cpp/historical-ussr-partition-audit.inc'
       - 'tests/unit/gis-historical-source-compare.test.mjs'
       - 'tests/unit/gis-caspian-physical-native.test.mjs'
       - 'tests/unit/gis-caspian-generalize-native.test.mjs'
@@ -16,6 +17,9 @@ on:
       - 'tests/unit/gis-caspian-display-packaging.test.mjs'
       - 'tests/unit/gis-caspian-pinned-native-oracle.test.mjs'
       - 'tools/gis/replay-ussr-1922-countries.mjs'
+      - 'tools/gis/audit-ussr-1922-approved-followups.mjs'
+      - 'tests/unit/gis-ussr-1922-partition-native.test.mjs'
+      - 'tests/unit/ussr-1922-approved-followups.test.mjs'
       - 'tools/gis/diagnose-ussr-1922-source-drift.mjs'
       - 'tools/gis/stage-ussr-1922-library-originals.mjs'
       - 'tools/gis/replay-ussr-1922-physical.mjs'
@@ -66,6 +70,8 @@ jobs:
           node --test tests/unit/gis-caspian-display-packaging.test.mjs
           node --test tests/unit/gis-caspian-physical-native.test.mjs
           node --test tests/unit/gis-historical-source-compare.test.mjs
+          node --test tests/unit/gis-ussr-1922-partition-native.test.mjs
+          node --test tests/unit/ussr-1922-approved-followups.test.mjs
           node --test tests/unit/ussr-1922-country-replay.test.mjs
           node --test tests/unit/ussr-1922-physical-replay.test.mjs
 
@@ -157,6 +163,15 @@ jobs:
             --old-pin d790ac6f0e8fe55e1407cc7a5b29bc696f48384c \
             --output build-native/historical/ussr-1922-drift-review \
             | tee build-native/historical/ussr-1922-drift-review.jsonl
+      - name: Validate approved 1922 Dniester/Europe/Central Asia lineage and five-founder GEOS partition
+        run: |
+          set -euo pipefail
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node tools/gis/audit-ussr-1922-approved-followups.mjs \
+            --zip build-native/historical/ussr-1922-approved-master.zip \
+            --source-root build-native/historical/ussr-1922-existing \
+            --output build-native/historical/ussr-1922-approved-followups.json \
+            | tee build-native/historical/ussr-1922-approved-followups.jsonl
       - name: Compare actual 266-reach approved source with the native GEOS topology owner
         run: |
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
@@ -197,6 +212,7 @@ jobs:
             --network build-native/historical/caspian-1922-native-receipt.jsonl \
             --display build-native/historical/caspian-1922-native-display-receipt.jsonl \
             --physical build-native/historical/caspian-1922-physical-replay.jsonl \
+            --corrections build-native/historical/ussr-1922-approved-followups.jsonl \
             --report-directory build-native/historical/ussr-1922-native-compact-report
       - uses: actions/upload-artifact@v4
         if: always()
@@ -209,5 +225,6 @@ jobs:
             build-native/historical/caspian-1922-physical-replay.jsonl
             build-native/historical/ussr-1922-native-compact-report/
             build-native/historical/ussr-1922-drift-review/source-drift.json
+            build-native/historical/ussr-1922-approved-followups.json
           retention-days: 14
           if-no-files-found: warn
