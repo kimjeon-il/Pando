@@ -269,6 +269,52 @@ export function nativeHistoricalGeometryComparison(approved,published,id,{
     return JSON.parse(result.stdout);
   }finally{rmSync(directory,{recursive:true,force:true});}
 }
+
+/** Non-promoting comparison inventory: source mismatches are evidence, not approval. */
+export function auditApprovedFounderGeometry(display,root=ROOT,{
+  comparePublishedGeometry=nativeHistoricalGeometryComparison,
+}={}){
+  fail(display?.type==='FeatureCollection' &&display.features?.length===5,
+    'Approved five-founder source required');
+  const rows=new Map(display.features.map(f=>[f.id,f]));
+  fail(rows.size===5 && FOUNDER_IDS.every(id=>rows.has(id)),
+    'Approved USSR source identities changed');
+  const metrics=[];
+  for(const id of FOUNDER_IDS){
+    const sourcePath=resolve(root,countryFile(id));
+    fail(existsSync(sourcePath),'Missing pinned country original: '+id);
+    const entity=JSON.parse(readFileSync(sourcePath,'utf8'));
+    const version=entity.geometryVersions?.find(v=>v.versionId===id+reviewedSuffix);
+    fail(version?.validFrom===VALID_FROM &&version?.validTo===VALID_TO
+      &&version?.reviewedMasterSha256===MEMBER_HASHES[MASTER]
+      &&version?.displaySha256===MEMBER_HASHES[DISPLAY]
+      &&entity.sourceInfo?.approved1922?.sourceZip===baseSource,
+    'Pinned country provenance/validity differs: '+id);
+    const approved=rows.get(id).geometry,published=version.geometry;
+    const exact=comparable(approved)===comparable(published);
+    const proof=exact?{schemaVersion:1,passed:true,
+      sameGeometryTopologically:true,symmetricDifferenceSquareDegrees:0,
+      boundaryHausdorffDegrees:0}:
+      comparePublishedGeometry(approved,published,id);
+    fail(proof?.schemaVersion===1 &&typeof proof.passed==='boolean'
+      &&Number.isFinite(proof.symmetricDifferenceSquareDegrees)
+      &&Number.isFinite(proof.boundaryHausdorffDegrees),
+      'Invalid GEOS evidence for '+id);
+    metrics.push({entityId:id,exactCoordinateRepresentation:exact,
+      geosTopologicalEquals:proof.sameGeometryTopologically===true,
+      areaDifferenceSquareDegrees:proof.symmetricDifferenceSquareDegrees,
+      boundaryHausdorffDegrees:proof.boundaryHausdorffDegrees,
+      suitableForAutomaticReapplication:proof.passed===true,
+      ...(exact?{}:{firstCoordinateDifference:
+        geometryDiscrepancy(approved,published).first})});
+  }
+  const changed=metrics.filter(x=>!x.suitableForAutomaticReapplication);
+  return {schema:'pando-ussr-1922-sources-verified-audit-v1',
+    status:changed.length?'source-geometry-difference-blocked':'same-geometry-proven',
+    evidenceComputed:true,founders:metrics.length,nonEquivalentFounders:changed.length,
+    automaticSourceReplacementApproved:false,libraryDataMutated:false,entities:metrics};
+}
+
 export function verifyAppliedUSSRMetadata(display,root=ROOT,{
   comparePublishedGeometry=nativeHistoricalGeometryComparison,
 }={}){
@@ -298,15 +344,23 @@ export function stageSnapshot(plan,output){
   return plan.changedFiles;
 }
 export async function main(argv=process.argv.slice(2)){
-  let zip,output,sourceRoot=ROOT;
+  let zip,output,sourceRoot=ROOT,auditOnly=false;
   for(let i=0;i<argv.length;i++){
     if(argv[i]==='--zip'&&!zip&&argv[i+1])zip=argv[++i];
     else if(argv[i]==='--stage'&&!output&&argv[i+1])output=argv[++i];
     else if(argv[i]==='--source-root'&&argv[i+1])sourceRoot=resolve(argv[++i]);
+    else if(argv[i]==='--audit-differences')auditOnly=true;
     else throw Error('Usage: --zip PINNED_ZIP [--source-root FROZEN_ARCHIVE_DIR] [--stage EMPTY_DIRECTORY]');
   }
   fail(zip,'Approved 1922 USSR ZIP required');
+  fail(!(auditOnly&&output),'An unapproved source difference cannot be staged');
   const approved=await loadApprovedUSSR(zip);
+  if(auditOnly){
+    const audited=auditApprovedFounderGeometry(approved.display,sourceRoot);
+    const receipt={...audited,zipSha256:approved.zipSha256};
+    console.log('USSR_1922_SOURCE_GEOMETRY_AUDIT='+JSON.stringify(receipt));
+    return receipt;
+  }
   const plan=verifyAppliedUSSRMetadata(approved.display,sourceRoot);
   if(output)stageSnapshot(plan,output);
   const result={schema:'pando-ussr-1922-country-replay-v1',
