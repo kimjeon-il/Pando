@@ -479,6 +479,8 @@ export async function activateCompilerCache(root=repository){
 
 async function main(){
   const args=process.argv.slice(2),root=resolve(args.find(x=>x.startsWith('--root='))?.slice(7)||repository);
+  const pcMode=args.find(x=>x.startsWith('--cleanup-c-drive='))?.split('=')[1];
+  if(pcMode){const {cleanupCDrive}=await import('./pc-cleanup.mjs');return cleanupCDrive({mode:pcMode,root,settings:storageSettings(root),library:librarySharedCheckout(root)});}
   if(args.includes('--compact-git')){
     const shared=dirname(commonGit(root)),settings=storageSettings(root),progress=message=>console.error('App Git storage: '+message);
     if(!settings)throw Error('Worktree storage activation required');

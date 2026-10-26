@@ -1,6 +1,6 @@
 // Explicit generated-output retirement used by the permanent-worktree owner.
 // Discovery is separate from apply: no directory is disposable merely by age.
-import {existsSync,lstatSync,mkdirSync,readFileSync,readlinkSync,readdirSync,renameSync,rmdirSync,statfsSync,unlinkSync,chmodSync,realpathSync} from 'node:fs';
+import {existsSync,lstatSync,mkdirSync,readFileSync,readlinkSync,readdirSync,renameSync,rmdirSync,statfsSync,unlinkSync,chmodSync,realpathSync,copyFileSync,constants} from 'node:fs';
 import {resolve,dirname,relative,isAbsolute,sep} from 'node:path';
 import {atomicStorageJSON,containedPath,contentFiles,contentHash} from './library-content.mjs';
 import {fileHash} from './library-git.mjs';
@@ -41,6 +41,11 @@ const scopePattern=/^(?:apps\/editor\/(?:src-tauri\/(?:target|gen\/android\/(?:a
 const dependencyPattern=/^(?:(?:apps\/editor\/)?node_modules\/\.pnpm|apps\/web-shell\/node_modules(?:\.before-[^/]+)?)(?:\/|$)/;
 const evidencePattern=/^build-native\/(?:reference-analysis(?:\/|$)|reference-release(?:\/|$)|ui-main-sync-20261021(?:\/|$)|(?:editable-library-|polygon-quality-|resource-update-)[^/]+\.(?:log|png|md|txt)$|macro-source-preview\.png$|library-merge-paths\.txt$)/;
 const compilerPatterns={
+ 'retired-cargo':/^(?:main|gis|objects)-cargo-gnu(?:\/|$)/,
+ 'pc-cache':/^[^/]+(?:\/|$)/,
+ 'pc-evidence':/^[^/]+(?:\/|$)/,
+ 'pc-temp':/^(?:pando-(?:check-plan|viewer-assets|worker-assets|pages|check-diff|assembly-test|core-assets|provenance-check|publication-test|cleanup-test)-[^/]+|playwright(?:_chromiumdev_profile|-artifacts|-transform)-[^/]+|pando-checks-[^/]+\/web-site)(?:\/|$)/,
+ 'retired-editor':/^(?:android\/(?:sdk|gradle|downloads|java|build-x86_64)|cache|installer|windows-portable|m91-linker-tools|crash-analysis-[^/]+\/(?:windbg[^/]*\.(?:msix|msixbundle)|debugger|symbols)|(?:integration-[^/]+-release-\d+|m91-release-[^/]+|main-[^/]+-release-\d+)\/(?:build|zip-[^/]+|portable|publish|retired-[^/]+|previous-portable[^/]*|previous-integration[^/]*|windows-portable|download-[^/]+|Pandoeditor-[^/]+\.zip))(?:\/|$)/,
  'android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|\.temp)(?:\/|$)/,
  toolchains:/^(?:binutils-new|cargo|cmake|gradle|rustup|sccache)(?:\/|$)/,
  'retired-android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|platform-tools|licenses|\.knownPackages|\.sdk|\.temp)(?:\/|$)/,
@@ -63,10 +68,10 @@ function retirementPath(root,path){
  if(normalized(actual)!==normalized(existing))return containedPath(base,target);
  return target;
 }
-function validate(root,path,roots,protectedPaths=[],compilerScopes=[]){
+function validate(root,path,roots,protectedPaths=[],compilerScopes=[],action='delete'){
  if(!roots.includes(resolve(root)))throw Error('Unknown worktree scope');
  const target=retirementPath(root,path),rel=relative(root,target).replaceAll('\\','/');
- if(!scopePattern.test(rel)&&!evidencePattern.test(rel)&&!compilerScopes.some(scope=>resolve(scope.root)===resolve(root)&&compilerPatterns[scope.kind]?.test(rel)))throw Error(`Unknown generated scope: ${rel}`);
+ if(!scopePattern.test(rel)&&!evidencePattern.test(rel)&&!compilerScopes.some(scope=>resolve(scope.root)===resolve(root)&&compilerPatterns[scope.kind]?.test(rel)&&(scope.kind!=='pc-evidence'||action==='relocate')))throw Error(`Unknown generated scope: ${rel}`);
  if(protectedPaths.some(p=>p===target||p.startsWith(target+sep)))throw Error(`Protected source or WIP: ${target}`);
  return target;
 }
@@ -87,11 +92,11 @@ export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPa
  for(const request of requests){
   if(!['delete','relocate'].includes(request.action)||!request.reason?.trim())throw Error('Explicit action and recovery/producer reason required');
   if(evidencePattern.test(relative(request.root,resolve(request.root,request.path)).replaceAll('\\','/'))&&request.action!=='relocate')throw Error('Unique retired evidence must be relocated');
-  const target=validate(request.root,request.path,roots,protectedPaths,compilerScopes);if(!existsSync(target))continue;
+  const target=validate(request.root,request.path,roots,protectedPaths,compilerScopes,request.action);if(!existsSync(target))continue;
   const directory=lstatSync(target).isDirectory();let files;
   if(directory&&dependencyPattern.test(relative(request.root,target).replaceAll('\\','/'))){files=[];const scan=p=>{const s=lstatSync(p);if(s.isDirectory()&&!s.isSymbolicLink())for(const name of readdirSync(p))scan(resolve(p,name));else files.push({path:p});};scan(target);}else files=directory?contentFiles(target):[{path:target}];
   for(const f of files){
-   const path=validate(request.root,f.path,roots,protectedPaths,compilerScopes);if(seen.has(path))throw Error('Overlapping generated requests');seen.add(path);
+   const path=validate(request.root,f.path,roots,protectedPaths,compilerScopes,request.action);if(seen.has(path))throw Error('Overlapping generated requests');seen.add(path);
    const s=lstatSync(path,{bigint:true}),link=s.isSymbolicLink()&&dependencyPattern.test(relative(request.root,path).replaceAll('\\','/'))&&request.action==='delete';if((!s.isFile()||s.isSymbolicLink())&&!link)throw Error('Linked or non-file output must be preserved');
    const row={root:resolve(request.root),path:relative(request.root,path).replaceAll('\\','/'),scope:request.path,action:request.action,reason:request.reason,bytes:link?0:Number(s.size),identity:identity(path),sha256:link?contentHash(Buffer.from(readlinkSync(path))):fileHash(path),links:Number(s.nlink),mode:Number(s.mode),...link?{kind:'dependency-link'}:{}};
    if(request.action==='relocate'){row.destination=directory?resolve(request.destination,relative(target,path)):resolve(request.destination);destination(row,relocationRoots);}
@@ -120,7 +125,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
  const verified=new Map();
  const stamp=s=>`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}:${s.nlink}:${s.mode}`;
  const check=(e,reuse=false)=>{
-  const p=validate(e.root,e.path,roots,protectedPaths,compilerScopes);if(!presentPath(p))return p;
+  const p=validate(e.root,e.path,roots,protectedPaths,compilerScopes,e.action);if(!presentPath(p))return p;
   const before=lstatSync(p,{bigint:true}),current=stamp(before);
   if(`${before.dev}:${before.ino}:${before.size}:${before.mtimeNs}`!==e.identity)throw Error(`Stale or changed output: ${p}`);
   // Preflight hashes all bytes once. Before unlinking, reuse only an unchanged
@@ -158,7 +163,20 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
    const s=lstatSync(p),physicalBytes=e.action==='delete'&&s.nlink===1?e.bytes:0;
    if(physicalBytes!==planned.physicalBytes){planned.physicalBytes=physicalBytes;save();}
    if(e.action==='relocate'){
-    const d=destination(e,relocationRoots);mkdirSync(dirname(d),{recursive:true});if(!existsSync(d)){renameSync(p,d);if(fileHash(d)!==e.sha256||lstatSync(d).size!==e.bytes)throw Error('Relocation verification failed');}else unlinkSync(p);
+    const d=destination(e,relocationRoots);mkdirSync(dirname(d),{recursive:true});
+    const verify=path=>{const s=lstatSync(path);if(!s.isFile()||s.isSymbolicLink()||s.size!==e.bytes||fileHash(path)!==e.sha256)throw Error('Relocation verification failed: '+path);};
+    if(!existsSync(d)){
+     try{renameSync(p,d);}catch(error){
+      if(error.code!=='EXDEV')throw error;
+      const pending=d+'.pando-relocating-'+e.sha256;
+      if(presentPath(pending))verify(pending);else copyFileSync(p,pending,constants.COPYFILE_EXCL);
+      verify(pending);check(e);destination(e,relocationRoots);
+      if(presentPath(d))throw Error('Relocation destination appeared during copy',{cause:error});
+      renameSync(pending,d);
+     }
+    }
+    verify(d);
+    if(presentPath(p)){check(e);unlinkSync(p);}
    }else if(e.kind==='dependency-link'){
     if(!s.isSymbolicLink()||!dependencyPattern.test(e.path))throw Error('Dependency link changed before removal');
     unlinkSync(p);
@@ -173,7 +191,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
 
  const prune=p=>{if(!existsSync(p)||!lstatSync(p).isDirectory())return;for(const e of readdirSync(p,{withFileTypes:true})){if(e.isSymbolicLink())throw Error('Linked output encountered during empty-directory cleanup');if(e.isDirectory())prune(containedPath(p,e.name));}if(!readdirSync(p).length)rmdirSync(p);};
  const scopes=new Map(manifest.entries.map(e=>[e.root+'|'+e.scope,e]));
- for(const e of scopes.values()){const p=validate(e.root,e.scope,roots,protectedPaths,compilerScopes);if(existsSync(p)&&lstatSync(p).isDirectory())prune(p);}
+ for(const e of scopes.values()){const p=validate(e.root,e.scope,roots,protectedPaths,compilerScopes,e.action);if(existsSync(p)&&lstatSync(p).isDirectory())prune(p);}
  if(journal&&existsSync(journal))unlinkSync(journal);
  return {...state,freeBytes:statfsSync(roots[0]).bavail*statfsSync(roots[0]).bsize};
 }
