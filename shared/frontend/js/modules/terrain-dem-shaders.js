@@ -5,7 +5,11 @@ const common = (sample) => `
   vec4 demSample(vec2 pixel) {
     return ${sample}(uTerrain, (pixel + vec2(0.5)) / uTextureSize);
   }
-  float derivedShade(vec2 uv) {
+  float reliefShade(float illumination) {
+    float neutral = 0.27 + 0.73 * 0.70710678;
+    return clamp(neutral + ((0.27 + 0.73 * illumination) - neutral) * 1.3, 0.16, 1.0);
+  }
+  vec2 terrainSurface(vec2 uv, float precomputedShade) {
     vec2 point = uv * uTextureSize - vec2(0.5);
     vec2 cell = floor(point);
     vec2 fraction = fract(point);
@@ -13,6 +17,10 @@ const common = (sample) => `
     float h10 = elevation(demSample(cell + vec2(1.0, 0.0)));
     float h01 = elevation(demSample(cell + vec2(0.0, 1.0)));
     float h11 = elevation(demSample(cell + vec2(1.0, 1.0)));
+    float height = mix(mix(h00, h10, fraction.x), mix(h01, h11, fraction.x), fraction.y);
+    if (abs(vLonLat.y) >= 89.5) {
+      return vec2(height, reliefShade(max(0.0, (precomputedShade - 0.42) / 0.58)));
+    }
     // Central differences of decoded, bilinear heights at point +/- 0.5
     // texel. The four original corners plus one outer column and row share
     // all eight samples; the existing one-pixel gutter covers the footprint.
@@ -35,9 +43,13 @@ const common = (sample) => `
     float northMeters = 20015114.442 / uLevelSize.y;
     float riseEast = mix(eastDifferences.x, eastDifferences.y, fraction.y) / eastMeters;
     float riseNorth = -mix(southDifferences.x, southDifferences.y, fraction.x) / northMeters;
-    vec3 normal = normalize(vec3(-riseEast, -riseNorth, 1.0));
+    vec3 normal = normalize(vec3(-riseEast * 2.0, -riseNorth * 2.0, 1.0));
     vec3 light = vec3(-0.5, 0.5, 0.70710678);
-    return 0.42 + 0.58 * max(0.0, dot(normal, light));
+    float illumination = 0.55 * max(0.0, dot(normal, light))
+      + 0.20 * max(0.0, dot(normal, vec3(-0.70710678, 0.0, 0.70710678)))
+      + 0.15 * max(0.0, dot(normal, vec3(0.0, 0.70710678, 0.70710678)))
+      + 0.10 * max(0.0, dot(normal, vec3(-0.5, -0.5, 0.70710678)));
+    return vec2(height, reliefShade(illumination));
   }
   vec3 seaColor(float heightMeters) {
     float depth = pow(clamp(-heightMeters / 8000.0, 0.0, 1.0), 0.6);
@@ -45,16 +57,24 @@ const common = (sample) => `
   }
   vec3 terrainColor() {
     vec4 encodedPixel = ${sample}(uTerrain, vUv);
-    float shade = encodedPixel.b;
-    if (uDetailedShade > 0.5 && abs(vLonLat.y) < 89.5) {
-      shade = derivedShade(vUv);
+    vec2 surface = terrainSurface(vUv, encodedPixel.b);
+    float height = max(0.0, surface.x);
+    float factor = clamp(surface.y / (0.27 + 0.73 * 0.70710678), 0.38, 1.3);
+    if (uPhysicalStyle < 0.5) {
+      float tone = mix(0.58, 0.88, smoothstep(0.0, 6000.0, height));
+      return vec3(tone * factor);
     }
-    if (uPhysicalStyle < 0.5) return vec3(shade);
     vec3 baseColor = uLandPass > 0.5
       ? ${sample}(uTint, vec2((vLonLat.x + 180.0) / 360.0, (90.0 - vLonLat.y) / 180.0)).rgb
-      : seaColor(elevation(encodedPixel));
-    float flatSurfaceShade = 0.42 + 0.58 * 0.70710678;
-    return baseColor * clamp(shade / flatSurfaceShade, 0.5, 1.2);
+      : seaColor(surface.x);
+    if (uLandPass > 0.5) {
+      vec3 heightColor = mix(vec3(0.43, 0.62, 0.39), vec3(0.68, 0.72, 0.44), smoothstep(0.0, 1000.0, height));
+      heightColor = mix(heightColor, vec3(0.72, 0.57, 0.39), smoothstep(1000.0, 2500.0, height));
+      heightColor = mix(heightColor, vec3(0.72, 0.68, 0.62), smoothstep(2500.0, 4500.0, height));
+      heightColor = mix(heightColor, vec3(0.96, 0.95, 0.90), smoothstep(4500.0, 6500.0, height));
+      baseColor = mix(baseColor, heightColor, 0.6);
+    }
+    return baseColor * factor;
   }
 `;
 
@@ -75,7 +95,6 @@ export function terrainDemFragmentSource(glVersion) {
     uniform int uMode;
     uniform float uPhysicalStyle;
     uniform float uLandPass;
-    uniform float uDetailedShade;
     uniform float uDarkTheme;
     ${webGl2 ? 'out vec4 outColor;' : ''}
     ${common(webGl2 ? 'texture' : 'texture2D')}

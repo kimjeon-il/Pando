@@ -19,10 +19,10 @@ for (const version of [1,2]) test(`WebGL${version} prepared elevation keeps deta
     const texture=(unit,width,height,rgba)=>{gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,width,height,0,gl.RGBA,gl.UNSIGNED_BYTE,rgba);};
     const pixels=new Uint8Array(4*4*4);for(let i=0;i<pixels.length;i+=4)pixels.set([46,224,128,255],i);
     texture(0,4,4,pixels);texture(1,1,1,new Uint8Array([200,100,50,255]));
-    const loc=name=>gl.getUniformLocation(program,name);gl.uniform1i(loc('uTerrain'),0);gl.uniform1i(loc('uTint'),1);gl.uniform1i(loc('uMode'),1);gl.uniform2f(loc('uTextureSize'),4,4);gl.uniform2f(loc('uLevelSize'),43200,21600);gl.uniform1f(loc('uPhysicalStyle'),0);gl.uniform1f(loc('uLandPass'),1);gl.uniform1f(loc('uDarkTheme'),0);gl.uniform1f(loc('uDetailedShade'),1);
+    const loc=name=>gl.getUniformLocation(program,name);gl.uniform1i(loc('uTerrain'),0);gl.uniform1i(loc('uTint'),1);gl.uniform1i(loc('uMode'),1);gl.uniform2f(loc('uTextureSize'),4,4);gl.uniform2f(loc('uLevelSize'),43200,21600);gl.uniform1f(loc('uPhysicalStyle'),0);gl.uniform1f(loc('uLandPass'),1);gl.uniform1f(loc('uDarkTheme'),0);
     gl.drawArrays(gl.TRIANGLES,0,3);const result=new Uint8Array(4);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,result);return [...result];
   },{fragment:terrainDemFragmentSource(version),version});
-  expect(rgba).toEqual([212,212,212,255]);
+  expect(rgba).toEqual([148,148,148,255]);
 });
 
 function png(width,height){
@@ -51,8 +51,8 @@ test('current-view detail reaches an actual WebGL frame while the pointer remain
     window.__detailedTerrainDraws=[];
     const proto=window.WebGL2RenderingContext.prototype,getLocation=proto.getUniformLocation,draw=proto.drawElements;
     const programs=new WeakMap();
-    proto.getUniformLocation=function(program,name){const value=getLocation.call(this,program,name);if(name==='uDetailedShade')programs.set(program,value);return value;};
-    proto.drawElements=function(...args){const result=draw.apply(this,args);if(window.__captureTerrainDraws){const program=this.getParameter(this.CURRENT_PROGRAM),location=program&&programs.get(program);if(location)window.__detailedTerrainDraws.push(this.getUniform(program,location));}return result;};
+    proto.getUniformLocation=function(program,name){const value=getLocation.call(this,program,name);if(name==='uLevelSize')programs.set(program,value);return value;};
+    proto.drawElements=function(...args){const result=draw.apply(this,args);if(window.__captureTerrainDraws){const program=this.getParameter(this.CURRENT_PROGRAM),location=program&&programs.get(program);if(location)window.__detailedTerrainDraws.push(this.getUniform(program,location)[0]);}return result;};
   });
   await page.goto('/?debug=1',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
@@ -73,7 +73,7 @@ test('current-view detail reaches an actual WebGL frame while the pointer remain
     await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.screenScale>615&&s.screenScale<625&&s.mapReadiness.status==='ready';})).toBe(true);
     await page.evaluate(()=>{window.__detailedTerrainDraws=[];window.__captureTerrainDraws=true;});
     await zoom(650);
-    await expect.poll(()=>page.evaluate(()=>window.__detailedTerrainDraws.includes(1)),{timeout:3000}).toBe(true);
+    await expect.poll(()=>page.evaluate(()=>window.__detailedTerrainDraws.includes(5400)),{timeout:3000}).toBe(true);
     await zoom(3000);
     await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.terrainTargetLevel===4&&s.mapReadiness.status==='ready';})).toBe(true);
     await page.mouse.down();

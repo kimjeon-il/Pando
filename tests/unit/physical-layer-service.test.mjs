@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 
 import { createHydroService, createTerrainService } from "../../shared/frontend/js/modules/physical-layer-service.js";
 
-const rasterManifest = JSON.parse(readFileSync(new URL('../../assets/data/terrain-preview/v0.13.3-p1/manifest.json', import.meta.url)));
+const rasterManifest = JSON.parse(readFileSync(new URL('../../assets/data/terrain-preview/v0.13.3-p2/manifest.json', import.meta.url)));
 
 function response(json, ok = true, status = 200) {
   return { ok, status, async json() { return json; } };

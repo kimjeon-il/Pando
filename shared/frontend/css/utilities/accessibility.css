@@ -1,5 +1,7 @@
 /* Canonical utilities / accessibility. */
 
+.ui-visually-hidden { position: absolute; width: var(--ui-border-width); height: var(--ui-border-width); padding: 0; margin: calc(var(--ui-border-width) * -1); overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
 .action-status {
   min-width: var(--action-status-min-width);
   max-width: var(--action-status-max-width);
@@ -298,32 +300,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 @media (max-width: 799px) {
-  .mobile-bottom-bar .ui-nav-item {
-    position: relative;
-    min-width: 0;
-    height: var(--ui-mobile-bottom-nav-item-height);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--ui-nav-icon-label-gap);
-    padding: var(--ui-space-1) var(--ui-space-0-5);
-    border: var(--ui-border-width) solid transparent;
-    border-radius: var(--ui-radius-control);
-    background: transparent;
-    color: var(--muted);
-    box-shadow: none;
-  }
-}
-
-@media (max-width: 799px) {
-  .mobile-bottom-bar .ui-nav-item strong {
-    font-size: var(--ui-font-md);
-    font-weight: var(--ui-weight-semibold);
-  }
-}
-
-@media (max-width: 799px) {
   .surface-editor .editor-view-tabs .ui-tab {
     justify-content: center;
     font-size: var(--ui-font-md);
@@ -441,12 +417,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 @media (max-width: 799px) {
-  .mobile-bottom-bar .ui-nav-item {
-    min-height: var(--ui-touch-height);
-  }
-}
-
-@media (max-width: 799px) {
   .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) {
     min-height: var(--ui-touch-height);
   }
@@ -479,14 +449,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 @media (max-width: 799px) {
   .workflow-dialog-actions > .btn {
     min-height: var(--ui-touch-height);
-  }
-}
-
-@media (max-width: 799px) {
-  @media (max-width: 360px) {
-    .mobile-bottom-bar .ui-nav-item strong {
-      font-size: max(var(--ui-font-xs), .72rem);
-    }
   }
 }
 

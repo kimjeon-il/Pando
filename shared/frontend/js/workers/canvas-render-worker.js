@@ -519,12 +519,10 @@ function canvasFallbackWorkerMain() {
       let demSpecs = demLevel ? visibleTerrainTileSpecs(demLevel, message, projection, width, height, false) : [];
       // Cache pressure may evict unretained tiles, never lower camera source resolution.
       const demNeighbours = demLevel ? terrainNeighbourSpecs(demLevel, demSpecs) : [];
-      const demComplete = (!terrainDemManifestUrl || !!terrainDemManifest && !!terrainTint) && demSpecs.every(spec => demTiles.has(spec.key));
-      const hold = message.backgroundPending && (!terrainComplete || !demComplete);
-      const drawSpecs = hold ? [] : [...(baseReady ? baseSpecs : []), ...fallbackSpecs, ...targetSpecs];
+      const drawSpecs = [...(baseReady ? baseSpecs : []), ...fallbackSpecs, ...targetSpecs];
       const sourceLevel = demLevel || targetLevel;
       const desiredWidth = 2 * Math.PI * projection.scale() * Math.max(1, Number(message.terrainDpr || dpr)) * 1.12;
-      return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs, hold,
+      return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs,
         resolutionLimited: sourceLevel.width < desiredWidth };
     }
 
@@ -557,7 +555,6 @@ function canvasFallbackWorkerMain() {
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
       for (const spec of demNeighbours) requestDemTile(spec, 120);
-      if (plan.hold) return false;
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
       context.globalAlpha = 1;

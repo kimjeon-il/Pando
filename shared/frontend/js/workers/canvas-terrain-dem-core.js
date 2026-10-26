@@ -2,31 +2,17 @@
 // The Canvas worker consumes the same encoded elevation and tint as WebGL.
 // This module has no fetch, cache, or document state so pixel conversion can be tested independently.
 (typeof self === 'undefined' ? globalThis : self).PandoLabCanvasTerrainDem = (() => {
-  const flatShade = 0.42 + 0.58 * Math.SQRT1_2;
+  const flatShade = 0.27 + 0.73 * Math.SQRT1_2;
   const seaSurface = [0.42, 0.66, 0.82], seaDeep = [0.10, 0.24, 0.39];
+  const heightColors = [[0.43,0.62,0.39],[0.68,0.72,0.44],[0.72,0.57,0.39],[0.72,0.68,0.62],[0.96,0.95,0.90]];
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   const byte = value => Math.round(clamp(value, 0, 1) * 255);
-  function sampleTint(data, width, height, longitude, latitude) {
-    // WebGL samples tint at normalized lon/lat coordinates with LINEAR filtering.
-    const x = clamp((longitude + 180) / 360 * width - 0.5, 0, width - 1);
-    const y = clamp((90 - latitude) / 180 * height - 0.5, 0, height - 1);
-    const x0 = Math.floor(x), y0 = Math.floor(y), x1 = Math.min(width - 1, x0 + 1), y1 = Math.min(height - 1, y0 + 1);
-    const fx = x - x0, fy = y - y0;
-    const at = (column, row, channel) => data[(row * width + column) * 4 + channel] / 255;
-    return [0, 1, 2].map(channel => {
-      const upper = at(x0, y0, channel) * (1 - fx) + at(x1, y0, channel) * fx;
-      const lower = at(x0, y1, channel) * (1 - fx) + at(x1, y1, channel) * fx;
-      return upper * (1 - fy) + lower * fy;
-    });
+  function smoothHeight(height, low, high) {
+    const t=clamp((height-low)/(high-low),0,1);
+    return t*t*(3-2*t);
   }
-  function colorAt(dem, tint, width, height, longitude, latitude) {
-    const elevation = dem[0] * 256 + dem[1] - 12000;
-    const shade = dem[2] / 255;
-    const factor = clamp(shade / flatShade, 0.5, 1.2);
-    const depth = Math.pow(clamp(-elevation / 8000, 0, 1), 0.6);
-    const ocean = [0.42, 0.66, 0.82].map((upper, index) => upper * (1 - depth) + [0.10, 0.24, 0.39][index] * depth);
-    const land = sampleTint(tint, width, height, longitude, latitude);
-    return { land: land.map(value => byte(value * factor)), ocean: ocean.map(value => byte(value * factor)), gray: dem[2] };
+  function reliefShade(illumination) {
+    return clamp(flatShade+((0.27+0.73*illumination)-flatShade)*1.3,0.16,1);
   }
   function convertTile({ dem, width, height, tint, tintWidth, tintHeight,
     bounds, pixelWidth, pixelHeight, levelWidth, levelHeight }) {
@@ -50,24 +36,35 @@
       const northMeters = 20015114.442 / levelHeight;
       for (let column = 0; column < width; column += 1) {
         const offset = (row * width + column) * 4;
-        let shade = dem[offset + 2] / 255;
+        const heightMeters=elevationAt(column,row), height=Math.max(0,heightMeters);
+        let shade = reliefShade(Math.max(0,(dem[offset + 2]/255-0.42)/0.58));
         if (Math.abs(latitude) < 89.5) {
           // At DEM cell centers the WebGL settled shader's bilinear central
           // difference is exactly (next height - previous height) / 2.
           const riseEast = (elevationAt(column + 1, row) - elevationAt(column - 1, row)) * 0.5 / eastMeters;
           const riseNorth = -(elevationAt(column, row + 1) - elevationAt(column, row - 1)) * 0.5 / northMeters;
-          const light = (riseEast * 0.5 - riseNorth * 0.5 + Math.SQRT1_2) / Math.hypot(riseEast, riseNorth, 1);
-          shade = 0.42 + 0.58 * Math.max(0, light);
+          const nx=-riseEast*2,ny=-riseNorth*2,normalLength=Math.hypot(nx,ny,1);
+          const illumination=0.55*Math.max(0,(-nx*0.5+ny*0.5+Math.SQRT1_2)/normalLength)
+            +0.20*Math.max(0,(-nx*Math.SQRT1_2+Math.SQRT1_2)/normalLength)
+            +0.15*Math.max(0,(ny*Math.SQRT1_2+Math.SQRT1_2)/normalLength)
+            +0.10*Math.max(0,(-nx*0.5-ny*0.5+Math.SQRT1_2)/normalLength);
+          shade = reliefShade(illumination);
         }
-        const factor = clamp(shade / flatShade, 0.5, 1.2);
-        const depth = Math.pow(clamp(-elevationAt(column, row) / 8000, 0, 1), 0.6);
+        const factor = clamp(shade / flatShade, 0.38, 1.3);
+        const depth = Math.pow(clamp(-heightMeters / 8000, 0, 1), 0.6);
+        const h1=smoothHeight(height,0,1000),h2=smoothHeight(height,1000,2500),
+          h3=smoothHeight(height,2500,4500),h4=smoothHeight(height,4500,6500);
         const { x0, x1, fx } = tintColumns[column];
         for (let channel = 0; channel < 3; channel += 1) {
           const upper = tint[(y0 * tintWidth + x0) * 4 + channel] * (1 - fx) + tint[(y0 * tintWidth + x1) * 4 + channel] * fx;
           const lower = tint[(y1 * tintWidth + x0) * 4 + channel] * (1 - fx) + tint[(y1 * tintWidth + x1) * 4 + channel] * fx;
-          land[offset + channel] = Math.round(clamp((upper * (1 - fy) + lower * fy) * factor, 0, 255));
+          let heightColor=heightColors[0][channel]*(1-h1)+heightColors[1][channel]*h1;
+          heightColor=heightColor*(1-h2)+heightColors[2][channel]*h2;
+          heightColor=heightColor*(1-h3)+heightColors[3][channel]*h3;
+          heightColor=heightColor*(1-h4)+heightColors[4][channel]*h4;
+          land[offset + channel] = byte(((upper*(1-fy)+lower*fy)/255*0.4+heightColor*0.6)*factor);
           ocean[offset + channel] = byte((seaSurface[channel] * (1 - depth) + seaDeep[channel] * depth) * factor);
-          political[offset + channel] = byte(shade);
+          political[offset + channel] = byte((0.58+0.3*smoothHeight(height,0,6000))*factor);
         }
         land[offset + 3] = ocean[offset + 3] = political[offset + 3] = 255;
       }
@@ -108,5 +105,5 @@
       return [point[0] + (previous[0] + next[0]) * distance, point[1] + (previous[1] + next[1]) * distance];
     });
   }
-  return Object.freeze({ colorAt, sampleTint, convertTile, affineTransform, flatTileRectangle, triangleClip });
+  return Object.freeze({ convertTile, affineTransform, flatTileRectangle, triangleClip });
 })();

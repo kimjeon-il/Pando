@@ -14,7 +14,7 @@ for(const renderer of ['webgl','canvas'])test(`one object menu governs roots, ch
  seed.projectSetup.initialMonth='1914-06';
  await page.evaluate(seed=>window.__displayDomain().load(seed),seed);
  await expect.poll(()=>page.evaluate(()=>window.__displayPorts.projectState.state.timelineCursor)).toBe('1914-06');
- await expect(page.locator('#timelineMonthButton')).toContainText('1914년 6월');
+ await expect(page.locator('#editorTimelineContext')).toContainText('1914년 6월');
  const before=await page.evaluate(()=>window.__displayDomain().snapshot());
  const items=()=>page.evaluate(()=>window.__displayPorts.objectCatalogView.listObjectSearchItems('objects').map(item=>item.id));
  expect(new Set(await items())).toEqual(new Set(['A','B','C','R']));

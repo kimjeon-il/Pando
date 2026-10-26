@@ -240,32 +240,6 @@ body:not([data-layout="mobile"]) .gis-export-dialog .ui-dialog-card {
   padding-inline-start: var(--ui-dialog-padding);
 }
 
-:where(.field-group, .gis-form-grid) :where( input[type="text"], input[type="search"], input[type="number"], textarea, select ):not(.ui-select-control):not(.ui-native-select) {
-  width: 100%;
-  min-height: var(--ui-control-height);
-  padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
-  border: 1px solid var(--component-field-border);
-  border-radius: var(--ui-radius-control);
-  background-color: var(--surface-input);
-  color: var(--text);
-  font-size: var(--ui-font-body);
-  font-weight: var(--ui-weight-regular);
-  outline: 0;
-}
-
-.field-group > select:not(.ui-native-select) {
-  padding-right: var(--ui-select-indicator-space);
-}
-
-.gis-form-grid .field-group > select:not(.ui-native-select) {
-  padding-right: var(--ui-select-indicator-space);
-}
-
-:is(.field-group input, .field-group textarea, .field-group select, .gis-form-grid input, .gis-form-grid select):focus {
-  border-color: var(--accent-border);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
-}
-
 .field-group .ui-select-control {
   width: 100%;
   min-height: var(--ui-control-height);
