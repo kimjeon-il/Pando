@@ -229,15 +229,16 @@ export function stageSnapshot(plan,output){
   return plan.changedFiles;
 }
 export async function main(argv=process.argv.slice(2)){
-  let zip,output;
+  let zip,output,sourceRoot=ROOT;
   for(let i=0;i<argv.length;i++){
     if(argv[i]==='--zip'&&!zip&&argv[i+1])zip=argv[++i];
     else if(argv[i]==='--stage'&&!output&&argv[i+1])output=argv[++i];
-    else throw Error('Usage: --zip PINNED_ZIP [--stage EMPTY_DIRECTORY]');
+    else if(argv[i]==='--source-root'&&argv[i+1])sourceRoot=resolve(argv[++i]);
+    else throw Error('Usage: --zip PINNED_ZIP [--source-root FROZEN_ARCHIVE_DIR] [--stage EMPTY_DIRECTORY]');
   }
   fail(zip,'Approved 1922 USSR ZIP required');
   const approved=await loadApprovedUSSR(zip);
-  const plan=verifyAppliedUSSRMetadata(approved.display);
+  const plan=verifyAppliedUSSRMetadata(approved.display,sourceRoot);
   if(output)stageSnapshot(plan,output);
   const result={schema:'pando-ussr-1922-country-replay-v1',
     zipSha256:approved.zipSha256,mode:plan.mode,founders:plan.founders,
