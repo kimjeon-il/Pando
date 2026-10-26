@@ -16,8 +16,8 @@ function sample(){
   put('assets/data/hydro/v0.13.1/manifest.json',150);
   put('assets/data/hydro/v0.13.2/manifest.json',150);
   put('assets/data/hydro/v0.13.2/hydro.bin',400);
-  put('assets/data/terrain-preview/v0.13.3-p1/manifest.json',100);
-  put('assets/data/terrain-preview/v0.13.3-p1/0/0-0.webp',150);
+  put('assets/data/terrain-preview/v0.13.3-p2/manifest.json',100);
+  put('assets/data/terrain-preview/v0.13.3-p2/0/0-0.webp',150);
   put('assets/data/territorial-entities/generated/v2/index.json',200);
   put('assets/data/territorial-entities/generated/v2/state-USA.json.gz',300);
   put('assets/data/territorial-entities/generated/current-world.geojson',12000000);
@@ -94,7 +94,7 @@ test('missing terrain or historical catalog index blocks artifact',()=>{
 });
 test('size gate uses *uncompressed listed files*, never packed tar.gz size',()=>{
   const {tree,lock,required}=sample();
-  tree.set('assets/data/terrain-preview/v0.13.3-p1/0/0-0.webp',{sha:sha(9),bytes:1000000001});
+  tree.set('assets/data/terrain-preview/v0.13.3-p2/0/0-0.webp',{sha:sha(9),bytes:1000000001});
   const p=buildPublicationProfile(tree,lock,required);
   assert.equal(p.budget.withinLimit,false);
   assert.equal(p.budget.overByBytes,p.budget.includedBytes-1000000000);

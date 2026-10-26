@@ -570,7 +570,7 @@ export function createGpuMapRenderer(deps) {
     });
     let preparedTerrain = [];
     function detailedTerrainShadeActive() {
-      return isWebGlRenderer() && terrainManifest?.representation === TERRAIN_DEM_FORMAT && scaleQuality !== 'preview';
+      return isWebGlRenderer() && terrainManifest?.representation === TERRAIN_DEM_FORMAT;
     }
     function prepareTerrain(frame) {
       if(!terrainPreparation)return;
@@ -1371,7 +1371,7 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
           ['uTerrain', 'uTint', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme',
-            'uTextureSize', 'uLevelSize', 'uLandPass', 'uDetailedShade'], ['aGrid']);
+            'uTextureSize', 'uLevelSize', 'uLandPass'], ['aGrid']);
         return true;
       } catch (error) {
         terrainDemProgram = null;
@@ -3396,7 +3396,6 @@ export function createGpuMapRenderer(deps) {
         gl.uniform2f(cachedUniformLocation(program, 'uTextureSize'), sourceWidth, sourceHeight);
         gl.uniform2f(cachedUniformLocation(program, 'uLevelSize'), sourceLevel.width, sourceLevel.height);
         gl.uniform1f(cachedUniformLocation(program, 'uLandPass'), pass === 'land' ? 1 : 0);
-        gl.uniform1f(cachedUniformLocation(program, 'uDetailedShade'), scaleQuality === 'preview' ? 0 : 1);
       }
       for (const offset of frameContext.worldOffsets) {
         setViewUniforms(program, offset, frameContext);

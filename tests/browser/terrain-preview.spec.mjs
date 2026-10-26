@@ -2,11 +2,12 @@ import { expect, test } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const sourceCache = resolve('.terrain-preview-cache/source');
+const sourceCache = resolve(process.env.PANDOLAB_TERRAIN_SOURCE_CACHE || '.terrain-preview-cache/source');
 const demManifest = resolve('contracts/terrain/preview-dem-source.json');
 const demOrigin = 'https://kimjeon-il.github.io/PandoLab-library-data';
 test.use({ viewport: { width: 960, height: 720 }, launchOptions: {
-  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'],
+  args: process.platform==='win32' ? ['--use-angle=d3d11']
+    : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'],
 } });
 
 async function terrainStyle(page, style) {
@@ -24,7 +25,7 @@ test('WebGL DEM failure uses the new preview through color, gray and view change
   await context.route(`${demOrigin}/terrain/**`, route => route.fulfill({ status: 503, body: 'fixed DEM failure' }));
   await page.goto('/?renderer=webgl2&debug=1', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainDatasetVersion), { timeout: 30000 }).toBe('0.13.3-p1');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainDatasetVersion), { timeout: 30000 }).toBe('0.13.3-p2');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTilesLoaded || 0),{timeout:30000}).toBeGreaterThan(0).catch(async error=>{console.log(await page.evaluate(()=>window.__PANDOLAB_GPU_METRICS__));throw error;});
   await terrainStyle(page, 'physical');
   await page.screenshot({ path: testInfo.outputPath('webgl-preview-color.png') });

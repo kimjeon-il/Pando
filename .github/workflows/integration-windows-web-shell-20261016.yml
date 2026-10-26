@@ -77,7 +77,7 @@ jobs:
           }
           foreach ($path in @('assets/data/hydro/v0.13.2/hydro.bin',
               'assets/data/places/places-v1.bin',
-              'assets/data/terrain-preview/v0.13.3-p1/1/2-1.webp')) {
+              'assets/data/terrain-preview/v0.13.3-p2/1/2-1.webp')) {
             if ($stage.files.Where({ $_.path -eq $path }).Count -ne 1) {
               throw "Missing required offline physical resource: $path"
             }
