@@ -8,7 +8,7 @@ import {createHash} from 'node:crypto';
 import {existsSync,readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {loadApprovedUSSR,DISPLAY,FOUNDER_IDS,comparable,
+import {loadApprovedUSSR,FOUNDER_IDS,comparable,
   nativeHistoricalGeometryComparison} from './replay-ussr-1922-countries.mjs';
 import {fetchPinnedSources,OBJECT_PATHS} from './stage-ussr-1922-library-originals.mjs';
 

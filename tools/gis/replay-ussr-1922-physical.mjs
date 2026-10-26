@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {spawnSync} from 'node:child_process';
 import {existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
-import {dirname,join,resolve} from 'node:path';
+import {dirname,join,resolve,relative,isAbsolute,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
@@ -118,7 +118,9 @@ export function stagePhysicalCandidates(data,outputRoot){
  mkdirSync(destination,{recursive:true});
  for(const [path,bytes] of data){
    const dest=resolve(destination,path);
-   verify(dest.startsWith(destination+'/'),'Physical asset candidate escapes staging root');
+   const rel=relative(destination,dest);
+   verify(rel&&rel!=='..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel),
+     'Physical asset candidate escapes staging root');
    mkdirSync(dirname(dest),{recursive:true});
    writeFileSync(dest,bytes,{flag:'wx'});
  }
