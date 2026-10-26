@@ -83,12 +83,12 @@ export function validateReceipts({countries,network,display,physical,corrections
       &&corrections.originalZipWasNotOverwritten===true
       &&corrections.sourceObjectsMutated===false
       &&corrections.runtimePromotionPerformed===false
-      &&corrections.correctedFounders===4 &&corrections.unchangedFounders===1
+      &&corrections.correctedFounders===5 &&corrections.unchangedFounders===0
       &&approved.size===5
       &&corrections.parentRepublicPartition?.passed===true
       &&corrections.parentRepublicPartition.founderCount===5
       &&approvedReportReceiptsMatch(corrections.verifiedReportReceipts)
-      &&differences.length===4
+      &&differences.length===5
       &&countries.entities.every(row=>{
         const proof=approved.get(row.entityId);
         return proof?.sourceGeometryVerified===true
@@ -170,9 +170,9 @@ export function buildCompactReport(receipts,archive){
     '## 국가 객체',
     '',
     ...(corrections?[
-      '후속 승인된 드네스트르·유럽·중앙아시아 3구간·부하라 수정의 자료 해시와 상호 의존 관계를 검증했습니다.',
+      '후속 승인된 드네스트르·유럽·중앙아시아 3구간·부하라·캅카스 수정의 자료 해시와 상호 의존 관계를 검증했습니다.',
       '현재 고정 자료의 부모–구성공화국 4개 합집합·틈·중복을 C++ GEOS로 재검증했으며, **현재 승인본의 미해결 위상 오류는 0건**입니다.',
-      '아래 네 불일치는 수정 전 2026-10-23 ZIP을 기준으로 한 역사적 변경량이며, 현재 승인본의 오류나 원본 복구 지시가 아닙니다.',
+      '아래 다섯 불일치는 수정 전 2026-10-23 ZIP을 기준으로 한 역사적 변경량이며, 현재 승인본의 오류나 원본 복구 지시가 아닙니다.',
     ]:[
       '총 '+countries.founders+'개 중 **'+discrepancies.length+'개가 승인 원본과 위상적으로 불일치**합니다.',
       '현재 승인된 후속 수정 검증 결과가 없어 자동 동등성 판정은 차단됩니다.',

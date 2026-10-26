@@ -18,8 +18,14 @@ import {loadApprovedUSSR,FOUNDER_IDS,DISPLAY,MASTER,MEMBER_HASHES,
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 export const BASE_APPROVED_DATA_PIN='68380579a7c7a1bd8ec97683b7517502c1389c3c';
 export const CENTRAL_ASIA_DATA_PIN='fa27d79b5d9ef0f2449da5e118a835c1c585c6e3';
-export const APPROVED_DATA_PIN='a963457e578d335fec181f91ad25dfe729e96e1b';
+export const BUKHARA_DATA_PIN='a963457e578d335fec181f91ad25dfe729e96e1b';
+export const CAUCASUS_BASE_DATA_PIN='e79308f832256c70fd9f2ea6b87bfd807e7c1585';
+export const APPROVED_DATA_PIN='dd7ba67d5a35796593bf60d6007f192c8bca7964';
 export const PROOFS=Object.freeze({
+  caucasus:{
+    path:'reports/borders/reconstruction/ussr-caucasus-modern-approved-2026-10-26/integration-proof.json',
+    sha256:'b16b5ca8d1a8b30dcba81ff4905c821c408a7e6551d59a96b0df16a5b53c335b',bytes:2219,
+  },
   bukhara:{
     path:'reports/borders/reconstruction/ussr-bukhara-approved-2026-10-26/integration-proof.json',
     sha256:'e71803d3d26b54fb96674b55dfdc808a45e8dae2b81c897c80da38ad8248c618',bytes:1874,
@@ -54,7 +60,9 @@ export const geometryHash=geometry=>sha(Buffer.from(JSON.stringify(geometry)));
 const fail=(condition,message)=>{if(!condition)throw Error(message);};
 const MATCH_SHA=/^[0-9a-f]{64}$/;
 const YYYY='1922-12-30',END='1925-05-12';
-export const CORRECTED_IDS=Object.freeze(FOUNDER_IDS.slice(0,4));
+export const EUROPE_CORRECTED_IDS=Object.freeze(FOUNDER_IDS.slice(0,4));
+export const CORRECTED_IDS=Object.freeze([...FOUNDER_IDS]);
+export const CAUCASUS_IDS=Object.freeze([FOUNDER_IDS[0],FOUNDER_IDS[4]]);
 export const CENTRAL_ASIA_IDS=Object.freeze(FOUNDER_IDS.slice(0,2));
 export function approvedReportReceiptsMatch(receipts){
   const expected=Object.values(PROOFS);
@@ -97,7 +105,7 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
   const originals=new Map(features.map(f=>[f.id,f]));
   fail(originals.size===5 &&FOUNDER_IDS.every(id=>originals.has(id)),
     'Historical founding republic identities changed');
-  const {dniester,europe,europeManifest,dniesterManifest,guards,centralAsia,bukhara}=reports;
+  const {dniester,europe,europeManifest,dniesterManifest,guards,centralAsia,bukhara,caucasus}=reports;
   fail(centralAsia?.baseDataRevision===BASE_APPROVED_DATA_PIN
     &&centralAsia.validFrom===YYYY&&centralAsia.validTo===END
     &&Array.isArray(centralAsia.entities)&&centralAsia.entities.length===2,
@@ -125,6 +133,21 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
       'waterDatasetsUnchanged','europeGeometryUnchanged','priorThreeSegmentsUnchanged']
       .every(key=>row[key]===true),
     'Bukhara correction period, hashes or locked-scope guards changed: '+id);
+  fail(caucasus?.baseDataRevision===CAUCASUS_BASE_DATA_PIN
+    &&caucasus.previousRuntimePin===BUKHARA_DATA_PIN
+    &&caucasus.validFrom===YYYY&&caucasus.validTo===END
+    &&Array.isArray(caucasus.entities)&&caucasus.entities.length===2,
+    'Caucasus correction must retain its exact report/runtime predecessors, period and two entities');
+  const cc=new Map(caucasus.entities.map(row=>[row.entityId,row]));
+  fail(cc.size===2&&CAUCASUS_IDS.every(id=>cc.has(id)),
+    'Caucasus correction targets must be USSR and TSFSR only');
+  for(const [id,row] of cc)fail(row.sourceVersionId===id+':1922-12-30-reviewed-v2'
+    &&row.validFrom===YYYY&&row.validTo===END
+    &&MATCH_SHA.test(row.sourceBeforeSha256||'')&&MATCH_SHA.test(row.sourceAfterSha256||'')
+    &&['otherPeriodsUnchanged','lifetimeUnchanged','outsideScopeUnchanged',
+      'waterDatasetsUnchanged','europeGeometryUnchanged','priorFourSegmentsUnchanged']
+      .every(key=>row[key]===true),
+    'Caucasus correction period, hashes or locked-scope guards changed: '+id);
   const dr=new Map(dniester?.entities?.map(x=>[x.entityId,x]));
   const er=new Map(europe?.entities?.map(x=>[x.entityId,x]));
   const cr=new Map(europeManifest?.entities?.map(x=>[x.versionId,x]));
@@ -179,7 +202,7 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
         'Founding republic parent has changed: '+id);
     const originalHash=geometryHash(original.geometry);
     const canonicalHash=geometryHash(row.geometry);
-    if(CORRECTED_IDS.includes(id)){
+    if(EUROPE_CORRECTED_IDS.includes(id)){
       const applied=er.get(id),plan=cr.get(row.versionId);
       fail(applied?.sourceVersionId===row.versionId
         &&MATCH_SHA.test(applied.sourceBeforeSha256||'')
@@ -208,17 +231,22 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
           'Central Asian correction chain does not match the approved European successor: '+id);
         const last=bk.get(id);
         fail(last.sourceBeforeSha256===next.sourceAfterSha256
-          &&last.sourceAfterSha256===canonicalHash,
+          &&(cc.has(id)||last.sourceAfterSha256===canonicalHash),
           'Bukhara correction chain does not match the approved Central Asian successor: '+id);
       }
       fail(canonicalHash!==originalHash,
         'A corrected founding version unexpectedly reverted to obsolete ZIP: '+id);
-    } else {
-      fail(canonicalHash===originalHash,
-        'Unmodified Transcaucasian founding geometry drifted from ZIP');
+    }
+    if(id===FOUNDER_IDS[4]){
       fail(entity.lifetime?.validFrom===YYYY
         &&entity.lifetime?.validTo==='1936-12-04',
         'Transcaucasian founding period changed');
+    }
+    if(cc.has(id)){
+      const next=cc.get(id),before=id===FOUNDER_IDS[0]?bk.get(id).sourceAfterSha256:originalHash;
+      fail(next.sourceBeforeSha256===before&&next.sourceAfterSha256===canonicalHash
+        &&canonicalHash!==originalHash,
+        'Caucasus correction does not match its approved predecessor and current geometry: '+id);
     }
     audit.push({entityId:id,baselineSha256:originalHash,
       approvedCurrentSha256:canonicalHash,
@@ -227,7 +255,7 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
     regions.push(row.geometry);
   }
   fail(dr.size===2&&dr.has(FOUNDER_IDS[0])&&dr.has(FOUNDER_IDS[2])
-    &&er.size===4&&CORRECTED_IDS.every(id=>er.has(id)),
+    &&er.size===4&&EUROPE_CORRECTED_IDS.every(id=>er.has(id)),
     'Unapproved USSR founding entity entered the correction lineage');
   fail(partition?.schemaVersion===1 &&partition.passed===true
     &&partition.founderCount===5
@@ -243,8 +271,8 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
     pinnedDataRevision:APPROVED_DATA_PIN,
     correctionSequence:['2026-10-23-reviewed-ZIP',
       '2026-10-25-dniester-hydro-alignment','2026-10-25-europe-approved-exterior',
-      '2026-10-26-central-asia-approved','2026-10-26-bukhara-approved'],
-    correctedFounders:4,unchangedFounders:1,
+      '2026-10-26-central-asia-approved','2026-10-26-bukhara-approved','2026-10-26-caucasus-modern-approved'],
+    correctedFounders:5,unchangedFounders:0,
     canonicalPublishedVersionVerified:true,
     originalZipWasNotOverwritten:true,sourceObjectsMutated:false,
     hasUnapprovedReversion:false,runtimePromotionPerformed:false,

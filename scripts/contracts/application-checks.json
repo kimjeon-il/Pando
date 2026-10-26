@@ -108,6 +108,24 @@
       "inputs": []
     },
     {
+      "id": "ussr-partition-native",
+      "kind": "command",
+      "testPatterns": [
+        "tests/unit/gis-ussr-1922-partition-native.test.mjs"
+      ],
+      "inputs": [
+        "tests/unit/gis-ussr-1922-partition-native.test.mjs",
+        "tools/cpp/build-territorial-recipe.cpp",
+        "tools/cpp/historical-ussr-partition-audit.inc",
+        "tools/cpp/CMakeLists.txt"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-ussr-partition-native.mjs"
+      ],
+      "gisNative": true
+    },
+    {
       "id": "gis-contracts",
       "kind": "unit",
       "testPatterns": [

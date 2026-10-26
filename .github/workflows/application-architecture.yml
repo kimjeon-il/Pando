@@ -78,7 +78,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Install native GIS prerequisites only for selected data checks
         if: steps.plan.outputs.gis_native == 'true'
-        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev libproj-dev zlib1g-dev pkg-config cmake
       - name: Execute the same checks as local development
         env: *a5
         run: node scripts/run-application-checks.mjs --output "$RUNNER_TEMP/application-checks.json"

@@ -21,7 +21,7 @@ const fixture=()=>{
      reviewedMasterSha256:MEMBER_HASHES[MASTER],displaySha256:MEMBER_HASHES[DISPLAY]}],
  }]));
  for(let i=0;i<4;i++)countries[FOUNDER_IDS[i]].geometryVersions[0].geometry=shape(i+8);
- const pairs=CORRECTED_IDS.map(id=>{
+ const pairs=FOUNDER_IDS.slice(0,4).map(id=>{
    const original=approved.features.find(f=>f.id===id);
    const from=geometryHash(original.geometry),to=geometryHash(
      countries[id].geometryVersions[0].geometry);
@@ -72,18 +72,30 @@ const fixture=()=>{
        sourceAfterSha256:geometryHash(countries[r.entityId].geometryVersions[0].geometry),
        priorThreeSegmentsUnchanged:true};
    })};
+ reports.caucasus={baseDataRevision:'e79308f832256c70fd9f2ea6b87bfd807e7c1585',
+   previousRuntimePin:'a963457e578d335fec181f91ad25dfe729e96e1b',
+   validFrom:'1922-12-30',validTo:'1925-05-12',
+   entities:[FOUNDER_IDS[0],FOUNDER_IDS[4]].map((id,i)=>{
+     const before=geometryHash(countries[id].geometryVersions[0].geometry);
+     countries[id].geometryVersions[0].geometry=shape(i+40);
+     return {entityId:id,sourceVersionId:id+':1922-12-30-reviewed-v2',
+       validFrom:'1922-12-30',validTo:'1925-05-12',sourceBeforeSha256:before,
+       sourceAfterSha256:geometryHash(countries[id].geometryVersions[0].geometry),
+       otherPeriodsUnchanged:true,lifetimeUnchanged:true,outsideScopeUnchanged:true,
+       waterDatasetsUnchanged:true,europeGeometryUnchanged:true,priorFourSegmentsUnchanged:true};
+   })};
  const partition={schemaVersion:1,passed:true,founderCount:5,
    parentMinusChildrenSquareDegrees:0,childrenMinusParentSquareDegrees:0,
    largestRepublicOverlapSquareDegrees:0,maximumAllowedSquareDegrees:1e-10,
    republicPairOverlaps:Array.from({length:6},()=>({overlapSquareDegrees:0}))};
  return {approved,countries,reports,partition};
 };
-test('validated corrections preserve all four 1922 revisions and the untouched fifth founder',()=>{
+test('validated corrections preserve all five approved founding revisions',()=>{
  const f=fixture(),baseline=structuredClone(f.countries);
  const result=verifyApprovedFollowups(f);
  assert.equal(result.status,'approved-followups-verified');
- assert.equal(result.correctedFounders,4);
- assert.equal(result.unchangedFounders,1);
+ assert.equal(result.correctedFounders,5);
+ assert.equal(result.unchangedFounders,0);
  assert.equal(result.parentRepublicPartition.passed,true);
  assert.deepEqual(f.countries,baseline,'A geometry auditor must be read-only');
 });
@@ -132,12 +144,12 @@ test('all Central Asian locked-scope guards are mandatory and a European rollbac
  for(const guard of ['otherPeriodsUnchanged','lifetimeUnchanged','outsideScopeUnchanged','waterDatasetsUnchanged','europeGeometryUnchanged']){
   for(const value of [false,undefined]){const f=fixture();f.reports.centralAsia.entities[0][guard]=value;assert.throws(()=>verifyApprovedFollowups(f),/Central Asian/);}
  }
- const f=fixture();f.countries[FOUNDER_IDS[0]].geometryVersions[0].geometry=shape(8);
+ const f=fixture();f.countries[FOUNDER_IDS[1]].geometryVersions[0].geometry=shape(9);
  assert.throws(()=>verifyApprovedFollowups(f),/Bukhara/);
 });
 
 test('Bukhara is a separately pinned successor and cannot erase the prior three segments',()=>{
- const f=fixture();assert.equal(verifyApprovedFollowups(f).correctionSequence.at(-1),'2026-10-26-bukhara-approved');
+ const f=fixture();assert.ok(verifyApprovedFollowups(f).correctionSequence.includes('2026-10-26-bukhara-approved'));
  const changes=[
   f=>{delete f.reports.bukhara;},
   f=>{f.reports.bukhara.baseDataRevision=BASE_APPROVED_DATA_PIN;},
@@ -145,10 +157,32 @@ test('Bukhara is a separately pinned successor and cannot erase the prior three 
   f=>{f.reports.bukhara.entities[1]=structuredClone(f.reports.bukhara.entities[0]);},
   f=>{f.reports.bukhara.entities[1].entityId=FOUNDER_IDS[2];},
   f=>{f.reports.bukhara.entities[0].sourceBeforeSha256=f.reports.europe.entities[0].sourceAfterSha256;},
-  f=>{f.countries[FOUNDER_IDS[0]].geometryVersions[0].geometry=shape(20);},
+  f=>{f.countries[FOUNDER_IDS[1]].geometryVersions[0].geometry=shape(21);},
   f=>{f.reports.bukhara.entities[0].validTo='1925-05-13';},
  ];
  for(const key of ['otherPeriodsUnchanged','lifetimeUnchanged','outsideScopeUnchanged','waterDatasetsUnchanged','europeGeometryUnchanged','priorThreeSegmentsUnchanged'])
   changes.push(f=>{f.reports.bukhara.entities[0][key]=false;});
  for(const mutate of changes){const f=fixture();mutate(f);assert.throws(()=>verifyApprovedFollowups(f),/Bukhara/);}
+});
+
+test('Caucasus follows Bukhara for USSR and immutable ZIP for TSFSR without changing lifetime',()=>{
+ const f=fixture();assert.equal(verifyApprovedFollowups(f).correctionSequence.at(-1),'2026-10-26-caucasus-modern-approved');
+ for(const mutate of [
+  f=>{delete f.reports.caucasus;},
+  f=>{f.reports.caucasus.baseDataRevision='0'.repeat(40);},
+  f=>{f.reports.caucasus.previousRuntimePin=BASE_APPROVED_DATA_PIN;},
+  f=>{f.reports.caucasus.entities.pop();},
+  f=>{f.reports.caucasus.entities[1]=structuredClone(f.reports.caucasus.entities[0]);},
+  f=>{f.reports.caucasus.entities[1].entityId=FOUNDER_IDS[1];},
+  f=>{f.reports.caucasus.entities[0].sourceBeforeSha256=f.reports.centralAsia.entities[0].sourceAfterSha256;},
+  f=>{f.reports.caucasus.entities[1].sourceBeforeSha256='0'.repeat(64);},
+  f=>{f.countries[FOUNDER_IDS[4]].geometryVersions[0].geometry=shape(4);},
+  f=>{f.countries[FOUNDER_IDS[0]].geometryVersions[0].geometry=shape(30);},
+  f=>{f.reports.caucasus.entities[0].validTo='1925-05-13';},
+ ]){const candidate=fixture();mutate(candidate);assert.throws(()=>verifyApprovedFollowups(candidate),/Caucasus/);}
+ for(const key of ['otherPeriodsUnchanged','lifetimeUnchanged','outsideScopeUnchanged','waterDatasetsUnchanged','europeGeometryUnchanged','priorFourSegmentsUnchanged']){
+  const f=fixture();f.reports.caucasus.entities[0][key]=false;assert.throws(()=>verifyApprovedFollowups(f),/Caucasus/);
+ }
+ const changedLifetime=fixture();changedLifetime.countries[FOUNDER_IDS[4]].lifetime.validTo='1936-12-05';
+ assert.throws(()=>verifyApprovedFollowups(changedLifetime),/Transcaucasian founding period/);
 });
