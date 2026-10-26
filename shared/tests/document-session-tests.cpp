@@ -21,7 +21,10 @@ void ownedCommandBoundaries(const std::string& seed) {
     assert(!groupVisible(session.project().document().presentation.webPresentation,"labels"));
     assert(session.undo(session.projectState().epoch).result.changed());assert(!groupVisible(session.project().document().presentation.webPresentation,"labels"));
     session.documentLoad(seed,"2026-10");const auto inspectedBefore=session.documentSnapshot();const auto inspectedEpoch=session.projectState().epoch;
-    const auto inspected=session.inspectImport(seed,{},"2026-10");assert(inspected.world.entities.size()==4);
+    const auto inspected=session.inspectImport(seed,{},"2026-10");
+    assert(inspected.world.entities.size()==5);
+    for(const auto* id:{"A","B","C","R"})assert(inspected.world.find(territorialRef(id)));
+    assert(inspected.world.find({"hydro",session.project().document().hydro.at(0).id}));
     assert(session.documentSnapshot()==inspectedBefore&&session.projectState().epoch==inspectedEpoch&&!session.projectState().canUndo);
     const auto label=session.project().document().labels.at(0).id,original=session.storageSnapshot();
     const auto begin=session.labelGestureApply("begin",label,{},session.projectState().epoch);assert(begin.result.changed());
@@ -118,21 +121,21 @@ void ownedCommandBoundaries(const std::string& seed) {
     assert(!adopted.adoptPreparedCommand(std::move(adoptedPrepared),adoptedOldEpoch).result.ok());
 }
 void pureTimelineContracts() {
-    const TimelineValidationContext context{{{"root","general"},{"child","general"}},[](const GeometryRef& ref){return ref.id=="shape"&&(ref.version==1||ref.version==2);}};
+    const TimelineValidationContext context{{{territorialRef("root"),"general"},{territorialRef("child"),"general"}},[](const ObjectRef&,const GeometryRef& ref){return ref.id=="shape"&&(ref.version==1||ref.version==2);}};
     TimelineRecords records;
-    records.lifetimes={{"life:r","root",{}},{"life:c","child",{{"1900"},{"1920"}}}};
-    records.geometryBindings={{"shape:r","root",{}, {"shape",1}},{"shape:c","child",{{"1900"},{"1920"}}, {"shape",1}}};
-    records.parentRelations={{"parent:r","root",{},"","explicit"},{"parent:c","child",{{"1900"},{"1920"}},"root","partition"}};
+    records.lifetimes={{"life:r",territorialRef("root"),{}},{"life:c",territorialRef("child"),{{"1900"},{"1920"}}}};
+    records.geometryBindings={{"shape:r",territorialRef("root"),{}, {"shape",1}},{"shape:c",territorialRef("child"),{{"1900"},{"1920"}}, {"shape",1}}};
+    records.parentRelations={{"parent:r",territorialRef("root"),{},"","explicit"},{"parent:c",territorialRef("child"),{{"1900"},{"1920"}},"root","partition"}};
     records=normalizeTimelineRecords(records,context);
     assert(initialTimelineMonth(records,"2026-10")=="1900-01");
-    assert(resolveWorld(records,context,"1910-01").find("child")->rootId=="root");
+    assert(resolveWorld(records,context,"1910-01").find(territorialRef("child"))->rootId=="root");
     assert(resolveWorld(records,context,"1899-12").entities.size()==1);
     auto invalid=records;invalid.geometryBindings.at(1).geometryRef={"missing",1};
     try{normalizeTimelineRecords(invalid,context);assert(false);}catch(const TimelineError& error){assert(error.code=="TIMELINE_GEOMETRY");}
-    const auto edited=replaceGeometryBindingAtMonth(records,"child","1914-07",{"shape",2});
-    assert(resolveWorld(edited,context,"1914-06").find("child")->geometryRef.version==1);
-    assert(resolveWorld(edited,context,"1914-07").find("child")->geometryRef.version==2);
-    assert(resolveWorld(records,context,"1914-07").find("child")->geometryRef.version==1);
+    const auto edited=replaceGeometryBindingAtMonth(records,territorialRef("child"),"1914-07",{"shape",2});
+    assert(resolveWorld(edited,context,"1914-06").find(territorialRef("child"))->geometryRef.version==1);
+    assert(resolveWorld(edited,context,"1914-07").find(territorialRef("child"))->geometryRef.version==2);
+    assert(resolveWorld(records,context,"1914-07").find(territorialRef("child"))->geometryRef.version==1);
 }
 int main() {
     pureTimelineContracts();
@@ -330,7 +333,7 @@ int main() {
         assert(result.month=="2026-09"&&result.month==projected.month);
         assert(result.entities.size()==projected.entities.size());
         for(std::size_t i=0;i<result.entities.size();++i) {
-            assert(result.entities[i].id==projected.entities[i].id);
+            assert(result.entities[i].objectRef==projected.entities[i].objectRef);
             assert(result.entities[i].geometryRef==projected.entities[i].geometryRef);
             assert(result.entities[i].parentId==projected.entities[i].parentId);
         }

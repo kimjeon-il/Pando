@@ -1,21 +1,29 @@
 <div id="timelineControls" class="ui-toolbar ui-floating-surface timeline-controls" role="group" aria-label="시점 이동">
-  <button id="timelinePreviousYear" class="ui-button icon-btn ghost timeline-step" type="button" aria-label="1년 이전" data-tooltip="1년 이전"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevrons-left"/></svg></button>
-  <button id="timelinePreviousMonth" class="ui-button icon-btn ghost timeline-step" type="button" aria-label="1개월 이전" data-tooltip="1개월 이전"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-left"/></svg></button>
-  <button id="timelineMonthButton" class="ui-button ghost timeline-month-button" type="button" aria-label="시점 직접 입력" aria-haspopup="dialog" aria-controls="timelinePopover" aria-expanded="false"><svg class="ui-icon timeline-calendar-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-calendar"/></svg><span id="timelineMonthButtonText">현재 시점</span></button>
-  <button id="timelineNextMonth" class="ui-button icon-btn ghost timeline-step" type="button" aria-label="1개월 이후" data-tooltip="1개월 이후"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-  <button id="timelineNextYear" class="ui-button icon-btn ghost timeline-step" type="button" aria-label="1년 이후" data-tooltip="1년 이후"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevrons-right"/></svg></button>
+  <button id="timelinePreviousDecade" class="ui-button icon-btn ghost timeline-step" type="button" aria-label="10년 이전" data-tooltip="10년 이전"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevrons-left"/></svg></button>
+  <button id="timelinePreviousYear" class="ui-button icon-btn ghost timeline-step" type="button" aria-label="1년 이전" data-tooltip="1년 이전"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-left"/></svg></button>
+  <button id="timelineDateButton" class="ui-button ghost timeline-date-button" type="button" aria-label="시점 직접 입력" aria-haspopup="dialog" aria-controls="timelinePopover" aria-expanded="false"><svg class="ui-icon timeline-calendar-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-calendar"/></svg><span class="timeline-date-label"><span id="timelineDateButtonText">현재 시점</span><span id="timelineDateBasis" class="timeline-date-basis"></span></span></button>
+  <button id="timelineNextYear" class="ui-button icon-btn ghost timeline-step" type="button" aria-label="1년 이후" data-tooltip="1년 이후"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+  <button id="timelineNextDecade" class="ui-button icon-btn ghost timeline-step" type="button" aria-label="10년 이후" data-tooltip="10년 이후"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevrons-right"/></svg></button>
   <section id="timelinePopover" class="ui-floating-surface timeline-popover" role="dialog" aria-labelledby="timelinePopoverTitle" hidden>
     <h2 id="timelinePopoverTitle">시점 이동</h2>
-    <form id="timelineDateForm" novalidate>
+    <form id="timelineDateForm" class="ui-field" novalidate>
+      <label for="timelineViewUnit">보기 단위</label>
+      <select id="timelineViewUnit" class="ui-input" data-native-select><option value="year">연도별 보기</option><option value="month">월별 보기</option></select>
       <label for="timelineYearInput">연도</label>
-      <input id="timelineYearInput" class="ui-input" type="text" inputmode="text" autocomplete="off" enterkeyhint="done" spellcheck="false" aria-describedby="timelineYearHint timelineMonthError" />
+      <input id="timelineYearInput" class="ui-input" type="text" inputmode="text" autocomplete="off" enterkeyhint="done" spellcheck="false" aria-describedby="timelineYearHint timelineDateError" />
+      <div id="timelineMonthFields" class="timeline-month-fields" hidden>
       <label for="timelineMonthInput">월</label>
-      <select id="timelineMonthInput" class="ui-input" data-native-select aria-describedby="timelineMonthError">
+      <div class="timeline-month-navigation">
+      <button id="timelinePreviousMonth" class="ui-button icon-btn ghost" type="button" aria-label="1개월 이전" data-tooltip="1개월 이전"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-left"/></svg></button>
+      <select id="timelineMonthInput" class="ui-input" data-native-select aria-describedby="timelineDateError" disabled>
         <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
       </select>
-      <span id="timelineYearHint" class="timeline-year-hint">기원전 1년은 -1로 입력</span>
-      <span id="timelineMonthError" class="timeline-error" role="alert" hidden></span>
-      <button id="timelineGoBtn" class="ui-button btn timeline-go" type="submit">이동</button>
+      <button id="timelineNextMonth" class="ui-button icon-btn ghost" type="button" aria-label="1개월 이후" data-tooltip="1개월 이후"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+      </div>
+      </div>
+      <span id="timelineYearHint" class="timeline-year-hint">연도별은 연말 기준 · 올해는 현재 월 기준<br>기원전 1년은 -1로 입력</span>
+      <span id="timelineDateError" class="timeline-error" role="alert" hidden></span>
+      <div class="ui-dialog-actions timeline-submit"><button id="timelineGoBtn" class="ui-button btn wide" type="submit">이동</button></div>
     </form>
   </section>
 </div>

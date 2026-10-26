@@ -15,7 +15,7 @@ function fixture() {
     digest.update(path + '\0').update(Buffer.from(pin.sha256, 'hex'));
     return [path, pin];
   }));
-  const manifest = { version: '0.13.3-p1', representation: 'raster-rgba-v1', levels: [{ id: 0 }, { id: 1 }], gutter: 1,
+  const manifest = { version: '0.13.3-p2', representation: 'raster-rgba-v1', levels: [{ id: 0 }, { id: 1 }], gutter: 1,
     tiles, assetsSha256: digest.digest('hex'), sourceDem: { version: dem.version, assetsSha256: dem.assetsSha256,
       tintSha256: dem.tint.sha256, landMaskSha256 } };
   files.set('manifest.json', Buffer.from(JSON.stringify(manifest)));

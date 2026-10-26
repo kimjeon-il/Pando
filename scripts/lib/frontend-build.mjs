@@ -32,7 +32,7 @@ export function hasFrontendInput(snapshot,path){
  if(isAbsolute(path))path=relative(snapshot.root,path).replaceAll('\\','/');
  return path==='__editor/index.html'||snapshot.assets.has(path)||existsSync(resolve(snapshot.root,path));
 }
-const metadataPaths=Object.freeze(['assets/data/world/current.json','assets/data/terrain-preview/v0.13.3-p1/manifest.json','assets/data/physical-land/v1/manifest.json','assets/data/hydro/v0.13.2/manifest.json','assets/data/places/manifest.json','assets/data/territorial-entities/generated/v2/index.json','assets/data/builtin-world/generated/v1/index.json','assets/data/prepared-polygons/generated/v2/manifest.json']);
+const metadataPaths=Object.freeze(['assets/data/world/current.json','assets/data/terrain-preview/v0.13.3-p2/manifest.json','assets/data/physical-land/v1/manifest.json','assets/data/hydro/v0.13.2/manifest.json','assets/data/places/manifest.json','assets/data/territorial-entities/generated/v2/index.json','assets/data/builtin-world/generated/v1/index.json','assets/data/prepared-polygons/generated/v2/manifest.json']);
 const pinnedContexts=new Map();
 function pinnedContext(root){
  const configuration=libraryConfig(root),checkout=libraryCheckout(root),key=checkout+'|'+configuration.revision;
@@ -90,7 +90,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const dataRevision='data-'+hash(metadataPaths.map(path=>path+'\0'+stable(metadata[path])+'\0').join('')).slice(0,32);
  const dataIdentity=path=>{const bytes=readPinnedData(path);return{encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)};};
  const builtinPath=metadataPaths[6],preparedPath=metadataPaths[7];
- const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},worldBundle:{url:metadataPaths[0],...dataIdentity(metadataPaths[0])},territorialIndex:dataIdentity(metadataPaths[5]),builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},workerAssets,physicalLand:land.asset,physicalWaterHistory:land.historicalWaterbodies||[]};
+ const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},worldBundle:{url:metadataPaths[0],...dataIdentity(metadataPaths[0])},territorialIndex:dataIdentity(metadataPaths[5]),builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},workerAssets,physicalLand:land.asset,physicalWaterObjects:land.waterObjects||{identities:[],geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}}};
  generated('assets/js/build-meta.js','// Generated product identity.\nglobalThis.PANDOLAB_BUILD_META = Object.freeze('+JSON.stringify(buildMeta,null,2)+');\n');
  const templates=renderProductHtml(sourceText),moduleImports=Object.fromEntries([...assets.keys()].filter(p=>p.startsWith('assets/js/')&&p.endsWith('.js')).map(p=>['./'+p,'./'+p+'?v='+encodeURIComponent(assetRevision)]));
  const render=(template,imports)=>{

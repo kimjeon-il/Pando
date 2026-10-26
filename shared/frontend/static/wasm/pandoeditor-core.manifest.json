@@ -1,0 +1,625 @@
+{
+  "schema": "pandoeditor-core-wasm",
+  "abiVersion": 1,
+  "sourceSha256": "feca29c8b2b72781222f8ff76c0572af5884fae5e5cf715102bb8af7d097279b",
+  "compiler": {
+    "name": "emscripten",
+    "version": "4.0.20"
+  },
+  "inputs": [
+    {
+      "path": "shared/CMakeLists.txt",
+      "sha256": "a58021abc8c4d346efe9d42cedee73d65a605395b98bbb824c5ea8a851ce6543"
+    },
+    {
+      "path": "shared/core/CMakeLists.txt",
+      "sha256": "b804f5e02e0a8b33b0ee78ba826d43a227af695055d98cb4f1d259beeb26b51e"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/boundarychain.h",
+      "sha256": "ae5c0a9c7602850ffafeeed543e2e899d49c481774f6fc70b773d4d614a42822"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/boundarycontact.h",
+      "sha256": "6a5d439981cedd34e103e43913c89554fd88343fec2253c0af65ce23c7126f94"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/boundaryoverlap.h",
+      "sha256": "13bd4c1bd602ec784a79510864b77f8b2868125f16b777dfda1e30f337783979"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/boundarypacket.h",
+      "sha256": "cadd33450f2938aefc67e3b7b85a88c96c3633d6d93f6cf34de6b11ff4d1845e"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/boundaryrefinement.h",
+      "sha256": "9a4e73679ae095a2eaaf8a8eb170cca33c4b947fe8b6986a2466343b3ba6c8dd"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/boundarysplit.h",
+      "sha256": "506383b9f4ed5998822ae0c7eaec84882b4d1c1da0e5e8f3786ee4dd166d9e99"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/commands.h",
+      "sha256": "6256040acbcfbd3fe3c20d41e157364f74d92472cbd76e69212704174bc3e91a"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/countrycontact.h",
+      "sha256": "32e70e8985ae12b63357e8485885584319041668b11755cb6f849e234f8734ca"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/cutgeometry.h",
+      "sha256": "31678a8a1165ac3e58d7209c8eb7473f90b3d1aa4e2c01a48e41c564879f3844"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/document-session.h",
+      "sha256": "f5310fd8804a41e39f52883bb7aa0d95377b04b640ed7f8fdef5c47dea309fc1"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/document.h",
+      "sha256": "461c95cfb900b95e36c7a486aaffb25792c12382b61d87fbeb72f8bec13f65ab"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/geometry-types.h",
+      "sha256": "21ce4dc5b7b2ffbee811df39a299b40e9f326c9adff53fbe0fd17b8a49627df0"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/geometrydraft.h",
+      "sha256": "bedfda9781be656f7ff9411e525e9a439a5f57ea9b5a22de87ce2ae8687ac8a1"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/geometryoperations.h",
+      "sha256": "6c39608827bb242eb9796d8560ee8e6b653224d9a1959559cbddbe07155304d0"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/geometrypredicates.h",
+      "sha256": "852088c0b642e9d9365be708e441bcd8d75f21698aacf9da7a70833990bbe961"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/geometryprovenance.h",
+      "sha256": "c94f7419eeda4b429c5dbdf9759097dca3498a02cc10efcf4f64112a3ac9b7a3"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/geopackagegeometry.h",
+      "sha256": "ed4ce3c163ef788c8a04a35f50060c38149b1f44129e55cd7139b4cdfd12fb8e"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/gisexchange.h",
+      "sha256": "f21107102c0ac90519688c097bcf4193c564e9828c6fc5272aa72ffaf56ebf9f"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/giszip.h",
+      "sha256": "6af78c2a1fde3e60f07b18ed6ac6e8612a1715306e5a581e08adc44f663134ac"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/historicalinstantiation.h",
+      "sha256": "4c6a39cabcf63d6cd608307d6ffcda53fc2ee9b42c00c66bb00caed8798984ca"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/historicallibrary.h",
+      "sha256": "7e5a0839310e893a9d245fe4c800a7cb76b4b4165b649680b77effd3a5667b85"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/hydroformat.h",
+      "sha256": "6adfe8c7eb551302cc1aae539a1efbfbb8b4117a438b58216878d179faeb20e9"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/hydroviewport.h",
+      "sha256": "b4268bb7ee887eea6994eaf3ac604cd0f322a655fe0ce32990a6f3fec57cfd87"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/jobs.h",
+      "sha256": "161d3205c0021a0ade40142f06b9704f117ffcc3355d88c9e35b0c522214bac3"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/losslessjson.h",
+      "sha256": "602008117e54b5d47fff61c7b2a684ca74a31e772f0586f6fca7aae21a2b99af"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/objectproperties.h",
+      "sha256": "7b6317fb7eb9cd1c4d9209cbdcc6abf47ced7a8c4573c938aceff71c4a250a16"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/placenames.h",
+      "sha256": "f302207cf7f7b92df7bbead8f2b2c68a54f7695d59b5f7e20a852c890bdc6539"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/planargraph.h",
+      "sha256": "c3aac495a68c9fc9927f3596616229eab016074820d2220adcb38caa481c733d"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/polygonclipping.h",
+      "sha256": "c901fd80b5c8e67a3e6b43b117a2aa60058fcc5bc624428c18ac5eea989f3adb"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/polygonmesh.h",
+      "sha256": "4a06e0b5ae72dafee79c5416f6cce01e9c06deaa755f02596e353c9b1808fa3e"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/polygonwrapping.h",
+      "sha256": "3c509f6e0d0fe92696e72d7d9fd859b90421eccbfb3a7087168685a10b8b2a68"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/presentation.h",
+      "sha256": "d79f996f998a2128b345187b19f3f63b196e5bc5cd8288f0abc8a2e381701b99"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/presentationcommands.h",
+      "sha256": "920bbef554a66e58e016afdd93f423d21a128d241f32d24b4838f560bfbb154e"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/project.h",
+      "sha256": "c322a80c7d0fd4ab9c07fad01f9d961ec7a45884a963602c8e198e0245f292da"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/projectcodec.h",
+      "sha256": "dfe80b8b33e9191c09e6d51c80a5b3bd8a8b683483499bb3ea2817f34337f284"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/referenceboundaries.h",
+      "sha256": "5957918b1fa24cb6a9cf832be4c7266edf80cf5ada19d523da59d3f0583df9b5"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/referenceimage.h",
+      "sha256": "b1aa96a4032a2d7aa328fa643a521b953a1efbe27c55f6f2ae59181ee7a132f1"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/referencetracing.h",
+      "sha256": "436b543c95a49d5428c04d12547852a938da57de2f0f80fc380059c2231d4057"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/riverpartition.h",
+      "sha256": "a3a41d4d0b0a6ff40e92a9d2b3af39512a604abd6b3e8152bac51f25b40b157e"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/selection.h",
+      "sha256": "1f254f84039f9a5212dd8b21486d68bf267bbc5c644f2a225f61de80ac75d261"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/selectionref.h",
+      "sha256": "7a7b5d79a856c51b3d6a7168523a104d3a156a5d1607ce6c8212389c12761791"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/sphericalpolygon.h",
+      "sha256": "18421fcb650773a22ad783caa1fa4899c20f3844235862e036af61849652ce44"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/temporal.h",
+      "sha256": "183a9a82f5aadd34f25528f2918615cf9980326c4ff8d0d6a2542862f8cc009f"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/territorialmutation.h",
+      "sha256": "1864d0a4e66e497ccaa08eeec6ab9de38695840802a96c05b1b5381d259f91d6"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/timeline-edit.h",
+      "sha256": "4fd8e37ea3214ce1175bad81ac9d89995bb9d5d77c85f210ff11ba271b626c5e"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/timeline-records.h",
+      "sha256": "d159e62bc59561c3ab28ebcfbe8a029eb451311e21bc7a5b946042a80da8003c"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/timeline-resolver.h",
+      "sha256": "6aa9b28aaa7ea91c22c5c76adf10e2b5bce5ae31c230896dde05199e7a057352"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/timeline-storage.h",
+      "sha256": "c826eec5063359e8b695d0b0f9d1e2f79e3f109d3c1976493de9d5242ac1c337"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/timeline-view.h",
+      "sha256": "d9eee70955ff2c0fed835c3a1b28e24c7593d2be3b117e7b0bb6cf5f7dd8ef4c"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/version.h",
+      "sha256": "7d029f120971bf0613b3387e221d81a2a5300c9cdb2163e89c978024756095c6"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/webcommands.h",
+      "sha256": "aac4febd8ffcad81bf85a8dd53652c27c9d215194af97098201de479781e5742"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/webcontentcommands.h",
+      "sha256": "e46a049b56529eaba634bfc2931cbe8c7a787ede133448e666e4e7982cd52d38"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/webobjectcommands.h",
+      "sha256": "5e46dbec6d05c4f5ca7f1a6820901036fa8e582067d11556b80fcee214270706"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/webpresentationcommands.h",
+      "sha256": "6a3b97ac35854f671951f789d585ceb4cea6c1c2e62c03c83f69f4a3464c5619"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/webstorage.h",
+      "sha256": "5c6d6972a5a56eb2dc41da4e2073138cc770d660b109e7c030ea4c8beb276c66"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/webterritorialcommands.h",
+      "sha256": "5bbce7ecd67ac5fa1884c1c65b82c66ff1dbf977c5161f03dfd8915e90a09079"
+    },
+    {
+      "path": "shared/core/src/boundarychain.cpp",
+      "sha256": "870a3019db3ec6a45245cb550f884f9daf63fd80830639c2936656392e35f0e1"
+    },
+    {
+      "path": "shared/core/src/boundarycontact.cpp",
+      "sha256": "5f7a8c04a813bbbd2647c0c9a788f3f269704e82d217d5d1be0a5fd461ff9dd1"
+    },
+    {
+      "path": "shared/core/src/boundaryoverlap.cpp",
+      "sha256": "64c5a209c186fc2ad046be705454dc1332b7e2b5076b94e5ee957105882814ce"
+    },
+    {
+      "path": "shared/core/src/boundarypacket.cpp",
+      "sha256": "4cbc408e8c6e183c62273bc5f34f34a097ffba9dc9b37611b065006d4704af5d"
+    },
+    {
+      "path": "shared/core/src/boundaryrefinement.cpp",
+      "sha256": "d2c9a2083d504d3de8213a0a3f1c4bc59e092c1e86e9979750fd15ea88db12f4"
+    },
+    {
+      "path": "shared/core/src/boundarysplit.cpp",
+      "sha256": "028bbbba7f924fb18aa6991a6392fb4669038d919928cd48fa9101aa153bc14c"
+    },
+    {
+      "path": "shared/core/src/commandbatch.cpp",
+      "sha256": "279cce2def5c8f0ce6b2af734d2529f09510e4d8ab860046b3bc9fa64efb5fda"
+    },
+    {
+      "path": "shared/core/src/commands.cpp",
+      "sha256": "4a6686101f81ed0bb222fd9f25f5fb7c8b8ab081d040c1c9e7ea9b6521433325"
+    },
+    {
+      "path": "shared/core/src/content.cpp",
+      "sha256": "0183eb223e2d065047a5fe96732f621db68e5dc45caaab08fd2fa4228b2fcdad"
+    },
+    {
+      "path": "shared/core/src/countrycontact.cpp",
+      "sha256": "30d31476a2874943d4780f1e4ca6234a18f2456f36772d9fc00cacd1363a0847"
+    },
+    {
+      "path": "shared/core/src/cutgeometry.cpp",
+      "sha256": "ad48300f06b7da124be2cc308e9fa9d58cffaa41d4be243d87d83f7337b26324"
+    },
+    {
+      "path": "shared/core/src/document-session.cpp",
+      "sha256": "a6b84d39eaa547a15d053f9bccfb558341771a1e10358b60842bd102b9f303e0"
+    },
+    {
+      "path": "shared/core/src/document.cpp",
+      "sha256": "fb72565ee85e3d25c2dbba8e3e00effe66993217bf22be5a71561d839d93701a"
+    },
+    {
+      "path": "shared/core/src/documentstate.h",
+      "sha256": "c38718e27869e13a94911520889cfeae8e45867e5daa324faaadaf891b0eb98a"
+    },
+    {
+      "path": "shared/core/src/geometrydraft.cpp",
+      "sha256": "a464fe1231ad79ea7ae18dfbed687f7e16dd2bdbf15ea2f8546693afa31178ff"
+    },
+    {
+      "path": "shared/core/src/geometrypredicates.cpp",
+      "sha256": "20502db7d611a7156ec8f2ef79acf7c73f53709297352bb47a8e74a6b5b1cc54"
+    },
+    {
+      "path": "shared/core/src/geometryprovenance.cpp",
+      "sha256": "bf52ad801ca1d5bfcc4abd99d74f98b459417cba2fbf78a072eee493c7fdae9b"
+    },
+    {
+      "path": "shared/core/src/geopackagegeometry.cpp",
+      "sha256": "5a74cbc0b490c0f0e21835167a90980126f65f1fe16c2c8b6d0fc4c05eafdfd3"
+    },
+    {
+      "path": "shared/core/src/gisexchange.cpp",
+      "sha256": "0d437c3c4813336ed51a136ad78b1bb030e42ecac68ac43eaf96eeb792fbc6d1"
+    },
+    {
+      "path": "shared/core/src/giszip.cpp",
+      "sha256": "057bc5bea545ecc63db3cae7facdb01d1421f8349dfd66f46573b443fbe7e7c2"
+    },
+    {
+      "path": "shared/core/src/historicalinstantiation.cpp",
+      "sha256": "5adbefbd2a97e630dc2905258b260fb63b0c36ee104d2d7c9deaa6c28822f147"
+    },
+    {
+      "path": "shared/core/src/historicallibrary.cpp",
+      "sha256": "5ae6295bfaa01a44c5831bccb909af7de06d317a5ae9f8fe761a880f2ced59c1"
+    },
+    {
+      "path": "shared/core/src/hydroformat.cpp",
+      "sha256": "d17885fc7104c42a3c11d6c11bea4ddbf3d6cda1b6ad0d67921d1125b6e5347f"
+    },
+    {
+      "path": "shared/core/src/hydroviewport.cpp",
+      "sha256": "f58b6fd775fbbc0ae5b8918930052b7c692a9c802a90f852cdfd6f5a54fc830e"
+    },
+    {
+      "path": "shared/core/src/jobs.cpp",
+      "sha256": "afdb3f69694a4efa806fecde0ba5b311d0ddbdba254f7baa81a4afe727552fdb"
+    },
+    {
+      "path": "shared/core/src/losslessjson.cpp",
+      "sha256": "a6881128724334b407ddf36f8c52710abe1023d6677a69cdb0ed0e58978ebf28"
+    },
+    {
+      "path": "shared/core/src/objectproperties.cpp",
+      "sha256": "f5be329fccff7c59de16192083ba047af8cb93e3aa8d5707643e8266d1ba69ee"
+    },
+    {
+      "path": "shared/core/src/placenames.cpp",
+      "sha256": "8f7cac6be3b802819fec98ab018aadd362147fcb1b8ec62609642b1f40f3bc80"
+    },
+    {
+      "path": "shared/core/src/planargraph.cpp",
+      "sha256": "e8a23100ce6be57b2bb30bb19277f64cae6fa879161f943ee345f5fd41568a71"
+    },
+    {
+      "path": "shared/core/src/polygonclipping.cpp",
+      "sha256": "d55dee6406c730bbce58b15694ae27e1ca5e8dc3978f07498561dbd1a41ec850"
+    },
+    {
+      "path": "shared/core/src/polygonmesh.cpp",
+      "sha256": "a8b70721f78b82f14bb7ad5519202cf6346890945e44f0bc5ae4dad9cda83e0b"
+    },
+    {
+      "path": "shared/core/src/polygonwrapping.cpp",
+      "sha256": "291a44e5ebe087bf2e87ca4b4624b1378581c5a2991f0da9aa7f7d9ccd3008dd"
+    },
+    {
+      "path": "shared/core/src/presentation.cpp",
+      "sha256": "9ce0269b411363e7e18c7dd7fc2658a54c58b3eb2d4b029dd6335fb2cf30ebde"
+    },
+    {
+      "path": "shared/core/src/presentationcommands.cpp",
+      "sha256": "344fff23c041573a1e3d37ca7dfa27d9b5aa15c809f2bfbd72ab8afd90b6ccf3"
+    },
+    {
+      "path": "shared/core/src/project.cpp",
+      "sha256": "67f45eab7151685ae1ba1fa0458b6ad07caaaa41a0e5014fb2535e639332a119"
+    },
+    {
+      "path": "shared/core/src/projectcodec.cpp",
+      "sha256": "6c4d5b1942f4a263ed2b379f575f8e0ac56d895c3cdf65c63f5f8afeafc382f1"
+    },
+    {
+      "path": "shared/core/src/referenceboundaries.cpp",
+      "sha256": "49fb3f1a1a0bc4d5c265cd5bf4217c8dd79151a3173820dc82b4d9c06fca8f82"
+    },
+    {
+      "path": "shared/core/src/referenceimage.cpp",
+      "sha256": "737e8eed725719dad0d465a9db19f2add7befbccba3c1f1b8a85f8a8a9a0bd11"
+    },
+    {
+      "path": "shared/core/src/referencetracing.cpp",
+      "sha256": "727140a6a0e7f362d43176679b5f44ac7b7950572e601a873546255124efdecb"
+    },
+    {
+      "path": "shared/core/src/riverpartition.cpp",
+      "sha256": "d4102e9881211705777bdece6ee853a057438d9c286a798c583b65ff0e5eff5c"
+    },
+    {
+      "path": "shared/core/src/snapshot.cpp",
+      "sha256": "04a6ee1f2b1ec5e9cbf379535dae9097a9bd6be4582c0324129558718c96d045"
+    },
+    {
+      "path": "shared/core/src/sphericalpolygon.cpp",
+      "sha256": "cfe213945b555b5f3c37be1ef0cfd34f41c4fc3337cbb47116464c01aceec313"
+    },
+    {
+      "path": "shared/core/src/temporal.cpp",
+      "sha256": "bfb72391ef530c6d96ff1436f36ec394b4d52172067f0297e09f38b3881ce56b"
+    },
+    {
+      "path": "shared/core/src/territorialmutation.cpp",
+      "sha256": "89f4d80d04cfb9f005b91a5e7d097cf652c88e3754846a187d65a2ec761ab0c4"
+    },
+    {
+      "path": "shared/core/src/timeline-edit.cpp",
+      "sha256": "b2e4eecf65f0a2a0b433fa052d364df82e22d1c1e0251b0c3e820e0007fe2e79"
+    },
+    {
+      "path": "shared/core/src/timeline-records.cpp",
+      "sha256": "c7fe1edbd18577c00f94d84e0544b6ac0ff511943c19eb9327fb263b8f3e10f2"
+    },
+    {
+      "path": "shared/core/src/timeline-resolver.cpp",
+      "sha256": "1d41ff05b2b4191727a59ab3e523fd848ca0548cab5b45e6d12b5f18985e05c2"
+    },
+    {
+      "path": "shared/core/src/timeline-storage.cpp",
+      "sha256": "28778a7cb2aeab2b730114681c9966860fc64609a30447ef060bf6649a913b40"
+    },
+    {
+      "path": "shared/core/src/timeline-view.cpp",
+      "sha256": "9a164c68122149e5a70c89f07f1f3a8277f8028ba35316fece7d30fa2282ca8a"
+    },
+    {
+      "path": "shared/core/src/version.cpp.in",
+      "sha256": "0f6aac7ad1f877af5ce83cf04617fefa7465a40fb3c8044e123d5ebf13929fbb"
+    },
+    {
+      "path": "shared/core/src/webcommands.cpp",
+      "sha256": "936a39d71dafe5673c8a07aee4b802bb6ae9425460051ee5a0af869819545143"
+    },
+    {
+      "path": "shared/core/src/webcontentcommands.cpp",
+      "sha256": "d12083e0be4126d314bdb8c33bb343590ad6fdc642bdcc084984332cc55ccf59"
+    },
+    {
+      "path": "shared/core/src/webobjectcommands.cpp",
+      "sha256": "a8bcec81ef83d8cd2a17ad45e3a2863a2aa61bf1446267b38100a596a18c49ea"
+    },
+    {
+      "path": "shared/core/src/webpresentationcommands.cpp",
+      "sha256": "cf2b77c8df087c540e0ee6e406ce25e7b89bf41a77a3a5263302e44268fcab83"
+    },
+    {
+      "path": "shared/core/src/webstorage.cpp",
+      "sha256": "a07362a3a0874f1e90448c4ec911ee0f376676fd7004f631d16303b3de89f0f9"
+    },
+    {
+      "path": "shared/core/src/webterritorialcommands.cpp",
+      "sha256": "b1ac2c4dc1bf6c5323756b754fecabc8c951d7a9bba5da12ed3473f2cd8be9fe"
+    },
+    {
+      "path": "shared/core/src/webterritorialedit.cpp",
+      "sha256": "190edd69b2a44052f192ffecd556382e66fba2d1a991ad76a58aec36f6a581d1"
+    },
+    {
+      "path": "shared/tests/CMakeLists.txt",
+      "sha256": "150f76e1ef802c73ef60c7cd7892d1dc487a243a423f8a782ee77d917227ad61"
+    },
+    {
+      "path": "shared/tests/boundary-chain-tests.cpp",
+      "sha256": "5a0626e933eda5b1786d14e9d0e2d8a94f7039532beb9a91ad419a4a16ed3c43"
+    },
+    {
+      "path": "shared/tests/boundary-interior-tests.cpp",
+      "sha256": "978c4eab7c26ba030d97909ffac4ee3ca3e6bc9b152964e5f8b56f1c0e34e43c"
+    },
+    {
+      "path": "shared/tests/boundary-overlap-tests.cpp",
+      "sha256": "fcb023abaf6ac180a9f9fb3c8aaf0efa1adb551b60e4c26541b4a2ffb1d977c8"
+    },
+    {
+      "path": "shared/tests/boundary-packet-tests.cpp",
+      "sha256": "d20855b51df75b38a30062888b031f49c500c4e9773590c70a9120aa6b8c1189"
+    },
+    {
+      "path": "shared/tests/boundary-refinement-tests.cpp",
+      "sha256": "bdecb94bb95be2f406be607cce9e7594130e626c4b8bdff3cf312da21cc3b057"
+    },
+    {
+      "path": "shared/tests/boundary-split-tests.cpp",
+      "sha256": "5fed06bcf628c51ba0e0b2e06d010d41da25a1613e88295db6975758c44aab4b"
+    },
+    {
+      "path": "shared/tests/country-contact-tests.cpp",
+      "sha256": "843428283c097cb0a8c68f20562629649016611a4a69a8a5a3c583a3c0ace4cb"
+    },
+    {
+      "path": "shared/tests/cut-geometry-probe.cpp",
+      "sha256": "2222e9a20b9ac77a8ceb9aff93debe050f9315a5c69cf3ae53c4cf1c0e8638f8"
+    },
+    {
+      "path": "shared/tests/document-session-tests.cpp",
+      "sha256": "eb3049316701a958738e97117bd7f4a5a851df67684d8fbdbe0c9acb126c8128"
+    },
+    {
+      "path": "shared/tests/geometry-draft-tests.cpp",
+      "sha256": "08e73d24edc54cb3529764c7b416ecaedc90a4886deaca76cd33e95d33f7d13d"
+    },
+    {
+      "path": "shared/tests/hydro-timeline-tests.cpp",
+      "sha256": "aec44cc1d758a596e5cad3a3828efbb76f9b38a1e510e5f1b6e0d7aaee944081"
+    },
+    {
+      "path": "shared/tests/polygon-clipping-probe.cpp",
+      "sha256": "c860a9929e4d82e5f5fa59ac0900c6fd980a72a9e66ddcdf3811411a88869a09"
+    },
+    {
+      "path": "shared/tests/polygon-mesh-tests.cpp",
+      "sha256": "1027459c14839f5da4bab3d22ecaa377cd6297e6900170bc71dead21797238dc"
+    },
+    {
+      "path": "shared/tests/project-codec-tests.cpp",
+      "sha256": "419049dc6cd25a5284d249a5a5e7b4e11727fd47aeb12584bcdd95fba9f29867"
+    },
+    {
+      "path": "shared/tests/reference-image-tests.cpp",
+      "sha256": "42dbc1fe289860ee74b2dd0d1ab453ab743dc6b3457b83f32e90c4b57099191a"
+    },
+    {
+      "path": "shared/tests/river-partition-probe.cpp",
+      "sha256": "74ce06068e38d1edec6a5ee842a8b59f89d6acede7fdcdddf2ffdd94380e5ab8"
+    },
+    {
+      "path": "shared/tests/source-admission-tests.cpp",
+      "sha256": "828659df1bef692364982d87dd75edfdd40eec83d7ccac3df2d065a6445ca2c1"
+    },
+    {
+      "path": "shared/tests/temporal-editing-tests.cpp",
+      "sha256": "15f50845eab9d7fba2024a8e6b1340f937b96c76e6745418cc83d3eb0ff1f22b"
+    },
+    {
+      "path": "shared/tests/territorial-document-fixture.h",
+      "sha256": "2115e83f165ae1f646790affe2d1f6457b7c248112159397c19003c26cafba98"
+    },
+    {
+      "path": "shared/tests/web-content-codec-tests.cpp",
+      "sha256": "b15d9263cc3978a250704502c9c76b57c802ef2da77df947f215fefc343b0bf7"
+    },
+    {
+      "path": "shared/tests/web-content-command-tests.cpp",
+      "sha256": "c97d506793bd284e0261f17e4e33bcede162040cc1f87316cd393a757c2d80d5"
+    },
+    {
+      "path": "shared/tests/web-object-command-tests.cpp",
+      "sha256": "16c318fca71590345e92d2592da083a42b72241fa21ae1b36200e89321f1e834"
+    },
+    {
+      "path": "shared/tests/web-storage-tests.cpp",
+      "sha256": "36366465acf396698125d8ec5ccae78367a78d10fdc1e315a5afe207c0999c23"
+    },
+    {
+      "path": "shared/tests/web-territorial-command-tests.cpp",
+      "sha256": "4f1c5b2fb910a45cd3b69000ff50015149dce19fd83a7e4987da58108297d48b"
+    },
+    {
+      "path": "shared/third_party/earcut/earcut.hpp",
+      "sha256": "3b838bc3f643d34ced850b6d53b19e2d9abdf6c2c067425b02868d131379b3cc"
+    },
+    {
+      "path": "shared/wasm/CMakeLists.txt",
+      "sha256": "b445280961155f075132e1f2f415b30878122e803ca0ea1985b831f08667b256"
+    },
+    {
+      "path": "shared/wasm/boundary-bindings.cpp",
+      "sha256": "2da0bfadccb7862b8a63a4971a554c7ce780bc5397a9d24708a2568ce4006fc5"
+    },
+    {
+      "path": "shared/wasm/cut-bindings.cpp",
+      "sha256": "84d1a2852b791e159b41851a3ee65b749acbec5076c17ef52407f587cc5ad258"
+    },
+    {
+      "path": "shared/wasm/mesh-bindings.cpp",
+      "sha256": "7f22844de0d10d2afa47d98f61313b9d87bcd533913ff5175eb4aad27859a06e"
+    },
+    {
+      "path": "shared/wasm/place-bindings.cpp",
+      "sha256": "47b5a76771b92008f6db168ca6c5310807ca70457e9bacad13d0c84ce7743d92"
+    },
+    {
+      "path": "shared/wasm/polygon-bindings.cpp",
+      "sha256": "febd89c89c25fd594c772b34a87af38285be892dd8a2fc233471a5bff1bb9bac"
+    },
+    {
+      "path": "shared/wasm/reference-bindings.cpp",
+      "sha256": "e6f8936269131002135a4dd65fc75fdb4d091d9a9700961673f94aaaab091a56"
+    },
+    {
+      "path": "shared/wasm/river-bindings.cpp",
+      "sha256": "03119017cb4ee7945cddb9a88cf97445b09706a023ddddeff4d680b6203f3cd0"
+    },
+    {
+      "path": "shared/wasm/session-bindings.cpp",
+      "sha256": "cd0850fdbe84d721bb35855f86881e5a866732dfcee92578ec63456b9a47f174"
+    },
+    {
+      "path": "shared/wasm/timeline-bindings.cpp",
+      "sha256": "e986a85bdc6973a0cd332400e89ab305c8ffcc4fd80f49163d77255b2409d26c"
+    }
+  ],
+  "assets": {
+    "js": {
+      "file": "pandoeditor-core.js",
+      "sha256": "a3e073bd42d892b9616a6b82d956d60c597622d0a127132b5861b445b314486e"
+    },
+    "wasm": {
+      "file": "pandoeditor-core.wasm",
+      "sha256": "3d71fbd75cfd19bb60e18ce36082443c5e6b3fc55de38ff00ce660032858e55f"
+    }
+  }
+}

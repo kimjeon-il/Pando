@@ -1,3 +1,4 @@
+import { normalizeSourceProvenance } from '../../../../../shared/frontend/js/modules/source-provenance.js';
 /** LibraryAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -22,7 +23,7 @@ export function createLibraryAssembly() {
     const projection = dependencies.platform.d3.geo.equirectangular().scale(1).translate([0, 0]);
     const previewPath = dependencies.platform.d3.geo.path().projection(projection);
     // D3 spherical paths need canonical winding; normalize only a display copy.
-    const feature = { type: 'Feature', properties: {}, geometry: (0, dependencies.geometryModel.normalizePolygonGeometry)(version.geometry) };
+    const feature = { type: 'Feature', properties: {}, geometry: entity.entityKind==='river'?version.geometry:(0, dependencies.geometryModel.normalizePolygonGeometry)(version.geometry) };
     const bounds = previewPath.bounds(feature);
     const width = Math.max(Number.EPSILON, bounds[1][0] - bounds[0][0]);
     const height = Math.max(Number.EPSILON, bounds[1][1] - bounds[0][1]);
@@ -31,7 +32,7 @@ export function createLibraryAssembly() {
     projection.scale(scale).translate([210 - scale * center[0], 95 - scale * center[1]]);
     const pathNode = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     pathNode.setAttribute('d', previewPath(feature) || '');
-    pathNode.setAttribute('fill', 'var(--accent-surface)');
+    pathNode.setAttribute('fill', entity.entityKind==='river'?'none':'var(--accent-surface)');
     pathNode.setAttribute('stroke', 'var(--accent-border)');
     pathNode.setAttribute('stroke-width', '1.5');
     pathNode.setAttribute('vector-effect', 'non-scaling-stroke');
@@ -80,17 +81,34 @@ export function createLibraryAssembly() {
           color: item.metadata?.defaultColor || '',
           metadata: item.metadata, sourceEntityId: item.entityId, sourceGeometryVersion: item.geometryVersionId,
         }));
+        const waterFeatures=prepared.filter(item=>['river','lake'].includes(item.entityKind)).map(item=>({
+          type:'Feature',id:item.id,geometry:item.geometry,properties:{pandolab_schema_version:1,pandolab_domain:'hydro',pandolab_id:item.id,
+            ...item.rendering,category:item.entityKind,name:item.name,notes:'',editorColor:'#3388cc',locked:false,
+            ...(item.metadata?.builtinHydroId?{sourceFeatureId:item.metadata.builtinHydroId}:{}),
+            source:normalizeSourceProvenance({kind:'library',dataset:item.metadata?.sourceInfo?.title||'Historical library',sourceId:item.entityId,
+              sourceFormat:'library-object-v2',sourceType:item.entityKind,version:item.geometryVersionId,importedAt:new Date().toISOString(),
+              details:{referenceDate,sourceLifetime:item.metadata?.sourceLifetime,sourceGeometryValidity:item.metadata?.sourceGeometryValidity}})}}));
+        if(!countryFeatures.length&&!units.length)return {descriptors,prepared,countryFeatures,units,waterFeatures,batch:null,sourceRevision:null};
         const response = await dependencies.spatialQuery.mapEditClient.execute('territorial-library-batch', { payload: { countries: countryFeatures, units } });
-        return { descriptors, prepared, countryFeatures, units, batch: response.result, sourceRevision: response.sourceRevision };
+        return { descriptors, prepared, countryFeatures, units, waterFeatures,batch: response.result, sourceRevision: response.sourceRevision };
 
       })().catch(error => { if (batchPreparation === entry) batchPreparation = null; throw error; });
     }
-    const { descriptors, prepared, countryFeatures, units, batch, sourceRevision } = await batchPreparation.promise;
+    const { descriptors, prepared, countryFeatures, units, waterFeatures, batch, sourceRevision } = await batchPreparation.promise;
     assertCurrent();
     if (!prepared.length) return { added: 0, subtracted: 0, deleted: 0, affectedIds: [] };
-    if (!dependencies.spatialQuery.mapEditClient.sourcesCurrent(sourceRevision)) {
+    if (sourceRevision!==null && !dependencies.spatialQuery.mapEditClient.sourcesCurrent(sourceRevision)) {
       batchPreparation = null;
       throw new Error('프로젝트가 변경되었습니다. 추가할 항목을 다시 준비하세요.');
+    }
+    if(!batch) {
+      const project=dependencies.domains.projectDomain;
+      const preparedImport=await project.prepareCommand({commandId:'document.batch',targets:[],payload:{operations:waterFeatures.map(feature=>({commandId:'hydro.copy',targets:[{domain:'hydro',id:feature.id}],payload:{feature}}))}});
+      if(!preparedImport.ok)throw new Error(preparedImport.error?.message||'수계 객체를 준비하지 못했습니다.');
+      assertCurrent();
+      const result=await project.confirmCandidate(preparedImport.candidateId,preparedImport.state.epoch);
+      if(!result.ok)throw new Error(result.error?.message||'수계 객체를 추가하지 못했습니다.');
+      return {added:waterFeatures.length,subtracted:0,deleted:0,affectedIds:waterFeatures.map(feature=>feature.id)};
     }
     const patches = new Map(batch.features.map(feature => [String(feature.id), feature]));
     const removed = new Set(batch.removedIds);
@@ -117,7 +135,7 @@ export function createLibraryAssembly() {
     assertCurrent();
     const result = await committer.commitGisMerge({
       countriesData: { type: 'FeatureCollection', features: countryFeatures },
-      preparedTerritorialUnits: units, landTransfers: transfers, assertCurrent,
+      preparedTerritorialUnits: units, preparedHydro:waterFeatures, landTransfers: transfers, assertCurrent,
       countryUpdates: Object.assign({}, ...prepared.map(item => item.instantiation?.countryUpdates || {})),
       sourceInfo: { imports: prepared.map((item,index) => ({
         ...(item.metadata?.sourceInfo || {}), kind: 'library', sourceId: item.entityId,

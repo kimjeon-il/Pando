@@ -42,8 +42,8 @@ source('assets/data/territorial-entities/generated/current-world.geojson');
 source('assets/data/physical-land/v1/geometry.json.gz');
 const physicalManifestPath='assets/data/physical-land/v1/manifest.json';
 inputHashes[physicalManifestPath]=sha256(readFileSync(resolve(root,physicalManifestPath)));
-for(const context of readJson(physicalManifestPath).historicalWaterbodies||[])
- for(const item of [context.land,context.water])source(item.url);
+for(const context of readJson(physicalManifestPath).waterObjects?.geometries||[])
+ for(const item of [context.land,context.asset])source(item.url);
 const sourceIndex=readJson('assets/data/territorial-entities/generated/v2/index.json');
 for(const entity of sourceIndex.entities)source(`assets/data/territorial-entities/generated/v2/${entity.file}`);
 const months=new Set();

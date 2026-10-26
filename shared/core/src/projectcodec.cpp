@@ -290,20 +290,20 @@ Validity recordInterval(const V& v,bool timelineOwned=false) {
 TimelineRecords timelineRecords(const V& value,ProjectDocument& d) {
     TimelineRecords result;result.schemaVersion=integer(field(value,"schemaVersion"));
     unknown(d,10,value,"/timelineRecords",{"schemaVersion","lifetimes","geometryBindings","parentRelations","propertyBindings"});
-    for(const auto& row:array(field(value,"lifetimes"))){unknown(d,10,row,"/timelineRecords/lifetimes",{"id","entityId","validFrom","validTo"});result.lifetimes.push_back({str(field(row,"id")),str(field(row,"entityId")),recordInterval(row,true)});}
-    for(const auto& row:array(field(value,"geometryBindings"))){unknown(d,10,row,"/timelineRecords/geometryBindings",{"id","entityId","validFrom","validTo","geometryRef"});result.geometryBindings.push_back({str(field(row,"id")),str(field(row,"entityId")),recordInterval(row,true),geometryRef(field(row,"geometryRef"),d,"/timelineRecords/geometryBindings/geometryRef")});}
-    for(const auto& row:array(field(value,"parentRelations"))){unknown(d,10,row,"/timelineRecords/parentRelations",{"id","entityId","validFrom","validTo","parentId","coverageMode"});result.parentRelations.push_back({str(field(row,"id")),str(field(row,"entityId")),recordInterval(row,true),str(field(row,"parentId")),str(field(row,"coverageMode"))});}
+    for(const auto& row:array(field(value,"lifetimes"))){unknown(d,10,row,"/timelineRecords/lifetimes",{"id","objectRef","validFrom","validTo"});result.lifetimes.push_back({str(field(row,"id")),ref(field(row,"objectRef"),d,"/timelineRecords/objectRef"),recordInterval(row,true)});}
+    for(const auto& row:array(field(value,"geometryBindings"))){unknown(d,10,row,"/timelineRecords/geometryBindings",{"id","objectRef","validFrom","validTo","geometryRef","rendering"});result.geometryBindings.push_back({str(field(row,"id")),ref(field(row,"objectRef"),d,"/timelineRecords/objectRef"),recordInterval(row,true),geometryRef(field(row,"geometryRef"),d,"/timelineRecords/geometryBindings/geometryRef"),row.object.count("rendering")?field(row,"rendering").encode():"{}"});}
+    for(const auto& row:array(field(value,"parentRelations"))){unknown(d,10,row,"/timelineRecords/parentRelations",{"id","objectRef","validFrom","validTo","parentId","coverageMode"});result.parentRelations.push_back({str(field(row,"id")),ref(field(row,"objectRef"),d,"/timelineRecords/objectRef"),recordInterval(row,true),str(field(row,"parentId")),str(field(row,"coverageMode"))});}
     for(const auto& row:array(field(value,"propertyBindings"))) {
-        unknown(d,ProjectVersion,row,"/timelineRecords/propertyBindings",{"id","entityId","validFrom","validTo","property","value"});
-        result.propertyBindings.push_back({str(field(row,"id")),str(field(row,"entityId")),recordInterval(row,true),str(field(row,"property")),field(row,"value").encode()});
+        unknown(d,ProjectVersion,row,"/timelineRecords/propertyBindings",{"id","objectRef","validFrom","validTo","property","value"});
+        result.propertyBindings.push_back({str(field(row,"id")),ref(field(row,"objectRef"),d,"/timelineRecords/objectRef"),recordInterval(row,true),str(field(row,"property")),field(row,"value").encode()});
     }
     return result;
 }
 V timelineRecordsValue(const TimelineRecords& records) {
     V life=V::arr(),bindings=V::arr(),parents=V::arr(),properties=V::arr();
-    auto row=[](const auto& record){return object({{"id",V::str(record.id)},{"entityId",V::str(record.entityId)},{"validFrom",record.validity.from?V::str(*record.validity.from):V{}},{"validTo",record.validity.to?V::str(*record.validity.to):V{}}});};
+    auto row=[](const auto& record){return object({{"id",V::str(record.id)},{"objectRef",refValue(record.objectRef)},{"validFrom",record.validity.from?V::str(*record.validity.from):V{}},{"validTo",record.validity.to?V::str(*record.validity.to):V{}}});};
     for(const auto& record:records.lifetimes)life.array.push_back(row(record));
-    for(const auto& record:records.geometryBindings){auto value=row(record);value.object["geometryRef"]=geometryRefValue(record.geometryRef);bindings.array.push_back(std::move(value));}
+    for(const auto& record:records.geometryBindings){auto value=row(record);value.object["geometryRef"]=geometryRefValue(record.geometryRef);if(record.rendering!="{}")value.object["rendering"]=codecjson::parse(record.rendering);bindings.array.push_back(std::move(value));}
     for(const auto& record:records.parentRelations){auto value=row(record);value.object["parentId"]=V::str(record.parentId);value.object["coverageMode"]=V::str(record.coverageMode);parents.array.push_back(std::move(value));}
     for(const auto& record:records.propertyBindings){auto value=row(record);value.object["property"]=V::str(record.property);value.object["value"]=codecjson::parse(record.value);properties.array.push_back(std::move(value));}
     return object({{"schemaVersion",V::num(records.schemaVersion)},{"lifetimes",life},{"geometryBindings",bindings},{"parentRelations",parents},{"propertyBindings",properties}});
@@ -549,7 +549,7 @@ ContentValue readWebContentRow(ProjectDocument& d,const ObjectRef& target,const 
         require(integer(field(p,"pandolab_schema_version"))==1,"UNSUPPORTED_HYDRO_VERSION");
         require(str(field(p,"pandolab_domain"))=="hydro"&&str(field(p,"pandolab_id"))==id,"INVALID_HYDRO_IDENTITY");
         HydroFeature value;value.id=id;value.name=optionalText(p,"name");value.notes=optionalText(p,"notes");value.kind=str(field(p,"category"));
-        value.geometry=geo;value.locked=p.object.count("locked")&&boolean(field(p,"locked"));if(p.object.count("editorColor"))value.color=color(field(p,"editorColor"));
+        value.locked=p.object.count("locked")&&boolean(field(p,"locked"));if(p.object.count("editorColor"))value.color=color(field(p,"editorColor"));
         if(p.object.count("source"))value.source=webSource(field(p,"source"),d);
         const auto sourceId=optionalText(p,"sourceFeatureId");if(!sourceId.empty())value.sourceFeatureId=sourceId;
         value.webPropertyFields.emplace();auto annotations=p;
@@ -689,7 +689,10 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
     if(!create&&found!=snapshot.index().objects.end()) {
         const auto index=found->second;
         if(target.domain=="label")current=document.labels.at(index).geometry;
-        else if(target.domain=="hydro")current=document.hydro.at(index).geometry;
+        else if(target.domain=="hydro") {
+            const auto world=resolveWorld(document.timelineRecords,{timelineEntityCatalog(document),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(document.geometries.get(ref));}},snapshot.timelineMonth());
+            const auto active=world.find(target);require(active,"TIMELINE_INACTIVE: water geometry");current=active->geometryRef;
+        }
         else if(target.domain=="generic")current=document.genericFeatures.at(index).geometry;
         else if(target.domain=="distributionEntry")current=document.distributionEntries.at(index).geometry;
     }
@@ -697,6 +700,8 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
     // geometry store or JSON project is copied to prepare the typed edit.
     ProjectDocument parsing;
     edit.value=readWebContentRow(parsing,target,value,[&](const std::string& domain,const std::string& id,const V& input) {
+        const auto choose=[&]()->GeometryRef {
+        if(target.domain=="hydro"&&input.kind==V::Null){require(current.has_value(),"TIMELINE_GEOMETRY: water identity requires an active shape");return *current;}
         auto shape=geometry(input,parsing,9,"/"+domain+"/geometry");const auto encoded=geometryValue(shape).encode();
         if(current) {
             const auto stored=document.geometries.get(*current);require(bool(stored),"DANGLING_REF: content geometry");
@@ -709,7 +714,24 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
         const auto ref=nextInlineGeometryRef(document.geometries,domain,id);
         edit.inlineAllocation=InlineGeometryAllocation{target,sha256(encoded),false};
         edit.geometry=std::make_pair(ref,std::move(shape));return ref;
+        };
+        const auto result=choose();if(target.domain=="hydro")edit.geometryBinding=result;return result;
     });
+    if(target.domain=="hydro"&&!std::holds_alternative<std::monostate>(edit.value)) {
+        auto& water=std::get<HydroFeature>(edit.value);auto properties=codecjson::parse(water.annotations);auto rendering=V::obj();
+        for(const auto* key:{"stroke_width","stroke_widths","border_aligned","connectivity"}) {
+            const auto found=properties.object.find(key);if(found!=properties.object.end()){rendering.object[key]=found->second;properties.object.erase(found);}
+        }
+        if(rendering.object.empty()&&!edit.create) {
+            const auto world=resolveWorld(document.timelineRecords,{timelineEntityCatalog(document),[&](const ObjectRef&,const GeometryRef& ref){return document.geometries.get(ref)!=nullptr;}},snapshot.timelineMonth());
+            const auto* active=world.find(target);if(active)rendering=codecjson::parse(active->rendering);
+        }
+        if(edit.geometry&&current&&!(edit.geometryBinding==current)) {
+            // Vertex profiles/connectivity describe the old shape, not its replacement.
+            rendering.object.erase("stroke_widths");rendering.object.erase("connectivity");
+        }
+        edit.geometryRendering=rendering.encode();water.annotations=properties.encode();
+    }
     return edit;
 }
 
@@ -724,19 +746,26 @@ ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bo
     auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object)header.object[key]=field(root,key);validateHeader(header,d);d.exchangeMetadata=header.encode();
     d.documentId=str(field(root,"documentId"));require(!d.documentId.empty(),"INVALID_DOCUMENT_ID");
     for(const auto& row:array(field(root,"territorialEntities")))readWebTerritorialIdentity(row,d,ports);
+    for(const auto& row:array(field(root,"hydroEdits"))) {
+        auto value=readWebContentRow(d,{"hydro",str(field(row,"id"))},row,[&](const std::string&,const std::string&,const V& shape){require(shape.kind==V::Null,"INVALID_HYDRO_IDENTITY: geometry belongs to timeline");return GeometryRef{};});
+        d.hydro.push_back(std::get<HydroFeature>(std::move(value)));
+    }
     restoreArchive(root,d);
     for(const auto& property:d.timelineRecords.propertyBindings)if(property.property=="flag") {
         const auto value=codecjson::parse(property.value);
         if(value.object.at("policy").string=="embedded")ports.validateFlagDataUrl(value.object.at("embeddedDataUrl").string);
     }
     for(const auto& [ref,shape]:d.geometries.versions())d.geometryProvenance.originalArchive.insert(ref);
-    const WebGeometryReader readGeometry=[&](const std::string& domain,const std::string& id,const V& value){return inlineGeometry(d,domain,id,value);};
+    const WebGeometryReader readGeometry=[&](const std::string& domain,const std::string& id,const V& value){
+        if(domain=="hydroEdits"){require(value.kind==V::Null,"INVALID_HYDRO_IDENTITY: stored geometry belongs to timeline");auto found=std::find_if(d.timelineRecords.geometryBindings.begin(),d.timelineRecords.geometryBindings.end(),[&](const auto& row){return row.objectRef==ObjectRef{"hydro",id};});require(found!=d.timelineRecords.geometryBindings.end(),"TIMELINE_GEOMETRY: missing water binding");return found->geometryRef;}
+        return inlineGeometry(d,domain,id,value);};
     for(const auto& row:array(field(root,"labels"))) {
         if(!ports.preserveWebAnnotations)unknown(d,10,row,"/labels",{"id","name","kind","notes","coordinates","territorialUnitId","source","sourcePlaceId"});
         d.labels.push_back(std::get<PlaceLabel>(readWebContentRow(d,{"label",str(field(row,"id"))},row,readGeometry)));
     }
     for(const auto* domain:{"hydroEdits","genericFeatures"})for(const auto& row:array(field(root,domain))) {
         const bool generic=std::string(domain)=="genericFeatures";
+        if(!generic)continue;
         if(!generic&&!ports.preserveWebAnnotations) {
             const auto& properties=field(row,"properties");
             unknown(d,10,properties,"/hydroEdits/properties",{"name","notes","category","locked","editorColor","source","pandolab_schema_version","pandolab_domain","pandolab_id","sourceFeatureId"});
@@ -819,7 +848,10 @@ V webHydro(const ProjectDocument& d,const HydroFeature& value,const Geometry* su
     for(const auto& [key,item]:jsonObject(value.annotations).object) {
         require(!props.object.count(key),"DUPLICATE_HYDRO_PROPERTY_OWNER");props.object.emplace(key,item);
     }
-    return webFeature(d,value,props,supplied);
+    if constexpr(std::is_same_v<std::decay_t<decltype(value)>,HydroFeature>){
+        if(!supplied)return object({{"type",V::str("Feature")},{"id",V::str(value.id)},{"geometry",V{}},{"properties",props}});
+        return object({{"type",V::str("Feature")},{"id",V::str(value.id)},{"geometry",geometryValue(*supplied)},{"properties",props}});
+    }else return webFeature(d,value,props,supplied);
 }
 template<class Content> V webInterval(const Content& value) {
     return object({{"id",V::str(value.id)},{"schemaVersion",V::num(3)},{"validFrom",value.validity.from?V::str(*value.validity.from):V{}},
@@ -873,7 +905,7 @@ bool unchangedWebObject(const ProjectDocument& before,const ProjectDocument& aft
     if(ref.domain=="label")return sameContentRow(before.labels,after.labels,ref.id,[](const auto& a,const auto& b){
         return std::tie(a.name,a.kind,a.notes,a.geometry,a.territory,a.sourcePlaceId,a.metadata)==std::tie(b.name,b.kind,b.notes,b.geometry,b.territory,b.sourcePlaceId,b.metadata)&&sameSource(a.source,b.source)&&labelWebFields(a)==labelWebFields(b);});
     if(ref.domain=="hydro")return sameContentRow(before.hydro,after.hydro,ref.id,[](const auto& a,const auto& b){
-        return std::tie(a.name,a.kind,a.notes,a.geometry,a.color,a.locked,a.sourceFeatureId,a.annotations)==std::tie(b.name,b.kind,b.notes,b.geometry,b.color,b.locked,b.sourceFeatureId,b.annotations)&&sameSource(a.source,b.source)&&hydroWebPropertyFields(a)==hydroWebPropertyFields(b);});
+        return std::tie(a.name,a.kind,a.notes,a.color,a.locked,a.sourceFeatureId,a.annotations)==std::tie(b.name,b.kind,b.notes,b.color,b.locked,b.sourceFeatureId,b.annotations)&&sameSource(a.source,b.source)&&hydroWebPropertyFields(a)==hydroWebPropertyFields(b);});
     if(ref.domain=="generic")return sameContentRow(before.genericFeatures,after.genericFeatures,ref.id,[](const auto& a,const auto& b){
         return std::tie(a.name,a.notes,a.geometry,a.color,a.explicitColor,a.locked)==std::tie(b.name,b.notes,b.geometry,b.color,b.explicitColor,b.locked)&&sameSource(a.source,b.source);});
     if(ref.domain=="distributionLayer")return sameContentRow(before.distributionLayers,after.distributionLayers,ref.id,[](const auto& a,const auto& b){
@@ -938,7 +970,12 @@ V webSnapshotValue(const ProjectDocument& d,const WebStorageContext& context) {
 ProjectDocument replaceWebTerritorialSource(const ProjectDocument& content,const ProjectDocument& source,const std::string& month) {
     auto next=content;next.units=source.units;next.countryDetails=source.countryDetails;next.symbols=source.symbols;
     next.timelineRecords=source.timelineRecords;next.geometries=GeometryStore{};next.geometryProvenance=GeometryProvenance{};
-    for(const auto& ref:semanticArchive(source)) {
+    const auto territorialOnly=[](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[](const auto& row){return row.objectRef.domain!="territorial";}),rows.end());};
+    territorialOnly(next.timelineRecords.lifetimes);territorialOnly(next.timelineRecords.geometryBindings);
+    territorialOnly(next.timelineRecords.parentRelations);territorialOnly(next.timelineRecords.propertyBindings);
+    std::set<GeometryRef> sourceGeometryRefs;
+    for(const auto& row:next.timelineRecords.geometryBindings)sourceGeometryRefs.insert(row.geometryRef);
+    for(const auto& ref:sourceGeometryRefs) {
         next.geometries.retainFrom(source.geometries,ref,ref);next.geometryProvenance.originalArchive.insert(ref);
     }
     next.presentation.objectStyles=source.presentation.objectStyles;
@@ -947,7 +984,12 @@ ProjectDocument replaceWebTerritorialSource(const ProjectDocument& content,const
         return inlineShape(next,domain,id,shape);
     };
     for(auto& row:next.labels)row.geometry=bind("label",row.id,row.geometry);
-    for(auto& row:next.hydro)row.geometry=bind("hydroEdits",row.id,row.geometry);
+    for(const auto& row:content.timelineRecords.lifetimes)if(row.objectRef.domain=="hydro")next.timelineRecords.lifetimes.push_back(row);
+    for(auto row:content.timelineRecords.geometryBindings)if(row.objectRef.domain=="hydro"){
+        if(!next.geometries.get(row.geometryRef))next.geometries.retainFrom(content.geometries,row.geometryRef,row.geometryRef);
+        next.geometryProvenance.originalArchive.insert(row.geometryRef);next.timelineRecords.geometryBindings.push_back(row);
+    }
+    for(const auto& row:content.timelineRecords.propertyBindings)if(row.objectRef.domain=="hydro")next.timelineRecords.propertyBindings.push_back(row);
     for(auto& row:next.genericFeatures)row.geometry=bind("genericFeatures",row.id,row.geometry);
     for(auto& row:next.distributionEntries)if(row.geometry)row.geometry=bind("distributionEntry",row.id,*row.geometry);
     normalizePresentation(next,month);
@@ -1005,7 +1047,7 @@ codecjson::Value encodeWebValue(const ProjectSnapshot& snapshot,const PlatformPo
                     "UNSUPPORTED_WEB_EXPORT: non-territorial geometry reference loss");
         }
     };
-    requirePreservedInlineRefs("label",d.labels,restored.labels);requirePreservedInlineRefs("hydro",d.hydro,restored.hydro);
+    requirePreservedInlineRefs("label",d.labels,restored.labels);
     requirePreservedInlineRefs("generic",d.genericFeatures,restored.genericFeatures);requirePreservedInlineRefs("distributionEntry",d.distributionEntries,restored.distributionEntries);
     for(const auto& ref:restored.geometryProvenance.originalArchive) {
         const auto before=d.geometries.get(ref),after=restored.geometries.get(ref);
@@ -1026,7 +1068,6 @@ std::string encodeWebDelta(const ProjectDocument& before,const ProjectDocument& 
     std::set<std::string> identityDomains,geometryDomains;
     const auto contentGeometry=[&](const ProjectDocument& d,const ObjectRef& ref)->std::optional<GeometryRef>{
         if(ref.domain=="label")for(const auto& row:d.labels)if(row.id==ref.id)return row.geometry;
-        if(ref.domain=="hydro")for(const auto& row:d.hydro)if(row.id==ref.id)return row.geometry;
         if(ref.domain=="generic")for(const auto& row:d.genericFeatures)if(row.id==ref.id)return row.geometry;
         if(ref.domain=="distributionEntry")for(const auto& row:d.distributionEntries)if(row.id==ref.id)return row.geometry;
         return {};

@@ -352,7 +352,7 @@ bool DocumentSession::setTimelineCursor(const std::string& month,std::uint32_t e
     // Resolve exactly once. The same temporal result prunes selection, builds
     // the static view and forms the Worker response at the new session epoch.
     const auto world=project_.resolveWorld(month);auto nextSelection=selection_;
-    nextSelection.prune([&](const SelectionRef& ref){return ref.domain=="territorial"?world.find(ref.id)!=nullptr:selectionRefExists(ref);});
+    nextSelection.prune([&](const SelectionRef& ref){return (ref.domain=="territorial"||ref.domain=="hydro")?world.find(ObjectRef{ref.domain,ref.id})!=nullptr:selectionRefExists(ref);});
     // Construct the outbound copy before modifying Project, preserving the
     // existing strong exception boundary if a large allocation fails.
     if(resolvedForResponse)*resolvedForResponse=world;

@@ -275,12 +275,12 @@ export function createProjectSession({productMode='editor',capabilities=resource
     setViewingPresentation({}, {reset:true});
     // Source replacement follows authored hydro edits, independent of temporary visibility.
     const effectiveItemVisibility=()=>{
-      const replaced=documentModel.snapshot().hydroEdits.map(feature=>feature.properties.sourceFeatureId).filter(Boolean);
+      const replaced=documentModel.list('hydro').map(feature=>feature.properties.sourceFeatureId).filter(Boolean);
       return replaced.length?{...viewingPresentation.itemVisibility,hydro:{...viewingPresentation.itemVisibility.hydro,...Object.fromEntries(replaced.map(id=>[id,false]))}}:viewingPresentation.itemVisibility;
     };
     const properties=Object.fromEntries(['documentId','projectSetup','sourceInfo','labels','labelSettings','genericFeatures','hydroEdits','distributionLayers',
       'distributionEntries','distributionSettings','physicalSettings','layerVisibility','itemVisibility','layerPresentation','timelineRecords']
-      .map(name => [name,{ enumerable: true,get: () => name==='itemVisibility'?effectiveItemVisibility():viewingFields.has(name)&&(productMode==='viewer'||name!=='layerPresentation')?viewingPresentation[name]:documentModel.snapshot()[name] }]));
+      .map(name => [name,{ enumerable: true,get: () => name==='hydroEdits'?documentModel.list('hydro'):name==='itemVisibility'?effectiveItemVisibility():viewingFields.has(name)&&(productMode==='viewer'||name!=='layerPresentation')?viewingPresentation[name]:documentModel.snapshot()[name] }]));
     Object.assign(properties,{ territorialEntities: { enumerable: true,get: entityStore.snapshot },geometries: { enumerable: true,get: () => geometries },
       stateRevision: { enumerable: true,get: () => coreState().stateRevision },timelineCursor: { enumerable: true,get: () => coreState().timelineCursor },
       historyDirtyEntityIds: { enumerable: true,get: historyDirtyEntityIds } });

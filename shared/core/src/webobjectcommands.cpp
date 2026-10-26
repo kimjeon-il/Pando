@@ -1,3 +1,4 @@
+#include <pandoeditor/timeline-edit.h>
 #include <pandoeditor/webobjectcommands.h>
 #include <pandoeditor/project.h>
 #include <pandoeditor/losslessjson.h>
@@ -34,8 +35,8 @@ ActiveTerritories activeTerritories(const ProjectSnapshot& snapshot) {
         result.parents.emplace(unit.id,parent);if(unit.kind==UnitKind::General&&parent.empty())result.roots.insert(unit.id);
     };
     if(snapshot.timelineEditsEnabled()||!isStaticTimeline(d)) {
-        const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const GeometryRef& ref){return bool(d.geometries.get(ref));}},snapshot.timelineMonth());
-        for(const auto& row:world.entities)append(d.units.at(snapshot.index().objects.at(territorialRef(row.id))),row.parentId);
+        const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(d.geometries.get(ref));}},snapshot.timelineMonth());
+        for(const auto& row:world.entities)if(row.objectRef.domain=="territorial")append(d.units.at(snapshot.index().objects.at(row.objectRef)),row.parentId);
     } else for(const auto& unit:d.units)append(unit,staticParentRelation(d,unit.id).parentId);
     return result;
 }
@@ -73,9 +74,10 @@ std::string displayId(const ProjectDocument& d,const ActiveTerritories& active,c
 template<class Rows>void erase(Rows& rows,const std::set<std::string>& ids) {
     rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return ids.count(row.id);}),rows.end());
 }
-void restoreHydroSources(ProjectDocument& candidate,const std::set<std::string>& sourceIds) {
+void restoreHydroSources(ProjectDocument& candidate,const std::set<std::string>& sourceIds,const std::string& month) {
+    const auto world=resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef&,const GeometryRef& ref){return candidate.geometries.get(ref)!=nullptr;}},month);
     std::set<std::string> restore;
-    for(const auto& id:sourceIds)if(std::none_of(candidate.hydro.begin(),candidate.hydro.end(),[&](const auto& row){return row.sourceFeatureId==id;}))restore.insert(id);
+    for(const auto& id:sourceIds)if(std::none_of(candidate.hydro.begin(),candidate.hydro.end(),[&](const auto& row){return row.sourceFeatureId==id&&world.find({"hydro",row.id});}))restore.insert(id);
     if(restore.empty())return;
     auto header=codecjson::parse(candidate.exchangeMetadata);const auto settings=header.object.find("physicalSettings");
     require(settings!=header.object.end()&&settings->second.kind==V::Object,"invalid","Copied-hydro removal needs current physical settings.");
@@ -116,8 +118,16 @@ ProjectDocument applyWebObjectRemoval(const ProjectSnapshot& snapshot,const WebO
         }
         return deleting;
     }),candidate.distributionEntries.end());
-    erase(candidate.genericFeatures,removed["generic"]);erase(candidate.hydro,removed["hydro"]);erase(candidate.labels,removed["label"]);
-    restoreHydroSources(candidate,hydroSources);
+    erase(candidate.genericFeatures,removed["generic"]);erase(candidate.labels,removed["label"]);
+    std::set<std::string> retiredWater;
+    for(const auto& id:removed["hydro"]) {
+        const ObjectRef ref{"hydro",id};
+        if(snapshot.timelineEditsEnabled()||!isStaticTimeline(before))candidate.timelineRecords=truncateTimelineEntityAtMonth(candidate.timelineRecords,ref,snapshot.timelineMonth());
+        else removeObjectTimelineRecords(candidate,ref);
+        if(std::none_of(candidate.timelineRecords.lifetimes.begin(),candidate.timelineRecords.lifetimes.end(),[&](const auto& row){return row.objectRef==ref;}))retiredWater.insert(id);
+    }
+    erase(candidate.hydro,retiredWater);
+    restoreHydroSources(candidate,hydroSources,snapshot.timelineMonth());
     auto& view=candidate.presentation.webPresentation;
     for(const auto& id:removed["label"])view.labelSettings.erase({"label",id});
     for(const auto& id:territorialIds) {
@@ -126,7 +136,7 @@ ProjectDocument applyWebObjectRemoval(const ProjectSnapshot& snapshot,const WebO
         view.eraseItemVisibility("objects",id);view.eraseItemVisibility("objectLabels",id);
     }
     // Remove owner-specific styles when their content rows are deleted.
-    for(const auto& ref:intent.refs)if(ref.domain!="territorial") {
+    for(const auto& ref:intent.refs)if(ref.domain!="territorial"&&(ref.domain!="hydro"||retiredWater.count(ref.id))) {
         candidate.presentation.objectStyles.erase(ref);
     }
     // Current Web labels keep the non-owning territorialUnitId annotation;

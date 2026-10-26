@@ -10,7 +10,7 @@ for (const row of timelineCases()) {
     const contextBefore = structuredClone(row.context);
     if (row.expected === 'OK') {
       const result = normalizeTimelineRecords(row.input, timelineContext(row.context));
-      assert.equal(result.schemaVersion, 2);
+      assert.equal(result.schemaVersion, 3);
       const expected = structuredClone(before);
       for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) {
         for (const record of expected[name]) {
@@ -62,13 +62,13 @@ test('returned references do not alias input and cannot be edited', () => {
 test('paired geometry and parent gaps preserve the independent lifetime', () => {
   const { input, context } = timelineCases()[0];
   for (const rows of [input.geometryBindings, input.parentRelations]) {
-    const row = rows.find(row => row.entityId === 'B');
+    const row = rows.find(row => row.objectRef.id === 'B');
     row.validFrom = '2026-10-01';
     row.validTo = '2026-10-31';
   }
   const result = normalizeTimelineRecords(input, timelineContext(context));
   assert.deepEqual(result.lifetimes, input.lifetimes);
   const missingGeometry = structuredClone(input);
-  missingGeometry.geometryBindings.find(row => row.entityId === 'B').validFrom = '2026-10-02';
+  missingGeometry.geometryBindings.find(row => row.objectRef.id === 'B').validFrom = '2026-10-02';
   assert.throws(() => normalizeTimelineRecords(missingGeometry, timelineContext(context)), { code: 'TIMELINE_GAP' });
 });

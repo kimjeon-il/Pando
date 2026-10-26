@@ -1,3 +1,4 @@
+import { timelineObjectCatalog } from './timeline-records.js';
 import {normalizeProjectSetup} from './project-setup.js';
 import { normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS, TERRITORIAL_SCHEMA_VERSION, TERRITORIAL_ENTITY_KINDS } from './territorial-units.js';
 import { createGeometryVersionStore } from './geometry-version-store.js';
@@ -71,7 +72,7 @@ export function restoreEntitiesFromDelta(project, { base, baseDataset, baseDatas
   }).concat([...changes.values()].map(entity => clone(entity)));
   const result = normalizeTerritorialIdentities(entities);
   restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords, geometries: project.geometries },
-    result.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
+    timelineObjectCatalog({...project,territorialEntities:result}));
   return result;
 }
 
@@ -119,7 +120,7 @@ export function prepareProjectForStorage(input, { baseEntities = null, baseDatas
   project.format = 'pandolab-project-state';
   project.territorialEntities = normalizeTerritorialIdentities(project.territorialEntities);
   const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
-    geometries: project.geometries }, project.territorialEntities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
+    geometries: project.geometries }, timelineObjectCatalog(project));
   assertProjectReferenceIntegrity({ ...project, storageOnly: true });
   project.timelineRecords = storage.records;
   project.geometries = storage.geometries.snapshot();
@@ -129,7 +130,7 @@ export function prepareProjectForStorage(input, { baseEntities = null, baseDatas
 export function prepareProjectForActivation(input, options = {}) {
   const project = prepareProjectForStorage(input, options);
   const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
-    geometries: project.geometries }, project.territorialEntities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
+    geometries: project.geometries }, timelineObjectCatalog(project));
   const month = initialTimelineMonth(storage.records, new Date().toISOString().slice(0, 7));
   const views = resolvedTimelineViews(project.territorialEntities, storage.records, storage.geometries, month);
   assertProjectReferenceIntegrity({ ...project, territorialEntities: views, timelineRecords: null });
@@ -213,7 +214,7 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
   }
 
   restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords, geometries: project.geometries },
-    allEntities.map(feature => ({ id: feature.id, entityKind: feature.properties.entityKind })));
+    timelineObjectCatalog({...project,territorialEntities:allEntities}));
 
   assertUniqueProjectIds(project.distributionLayers, '분포 레이어');
   assertUniqueProjectIds(project.distributionEntries, '분포 엔트리');
@@ -261,9 +262,12 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
     if (!sourceValidation.ok) throw schemaError(`${label}의 source provenance가 올바르지 않습니다. ${sourceValidation.issues[0]}`, 'PL-SCHEMA-SOURCE');
   }
   for (const feature of project.hydroEdits || []) {
-    validateObjectGeometry(feature, `편집 수계 ${text(feature?.id)}`);
-    const expectedCategory = ['Polygon', 'MultiPolygon'].includes(feature.geometry.type) ? 'lake'
-      : ['LineString', 'MultiLineString'].includes(feature.geometry.type) ? 'river' : null;
+    if(feature.geometry!==null)throw schemaError('저장 수계 형상은 공통 타임라인에만 보관합니다.','PL-SCHEMA-FIELD');
+    const binding=(project.timelineRecords?.geometryBindings || []).find(row=>row.objectRef.domain==='hydro'&&row.objectRef.id===feature.id);
+    const shape=project.geometries.find(row=>row.id===binding?.geometryRef.id&&row.version===binding?.geometryRef.version)?.geojson;
+    if(!shape)throw schemaError('수계 형상 연결이 없습니다.','PL-SCHEMA-FIELD');
+    const expectedCategory = ['Polygon', 'MultiPolygon'].includes(shape.type) ? 'lake'
+      : ['LineString', 'MultiLineString'].includes(shape.type) ? 'river' : null;
     if (!expectedCategory || feature.properties?.category !== expectedCategory || Object.hasOwn(feature.properties, 'visible'))
       throw schemaError(`편집 수계 ${text(feature?.id)}의 종류 또는 필드가 올바르지 않습니다.`, 'PL-SCHEMA-FIELD');
     requireSchemaVersion(feature?.properties?.pandolab_schema_version, `편집 수계 ${text(feature?.id)}`, 1);

@@ -1360,7 +1360,14 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   const storeNativeObjects = !prefixes || included('assets/data/territorial-entities');
   if (!storeNativeObjects && prefixes.some(path => path.startsWith('assets/data/territorial-entities/'))) throw Error('Store territorial entities as a whole so native objects and runtime data stay paired.');
   const indexPath = resolve(data.checkout, 'archive/index.json');
-  const index = JSON.parse(readFileSync(indexPath, 'utf8'));
+  // A runtime pin owns all unselected data inputs, independently of the
+  // archive checkout's later report or other stored work.
+  if(!reportData)try { git(data.checkout,['merge-base','--is-ancestor',libraryConfig(root).revision,'HEAD']); }
+  catch(error){if(error.status!==1)throw error;throw Error('Integrate the pinned runtime data revision into this archive history before storing; preserve both histories.',{cause:error});}
+  const index = JSON.parse(reportData?readFileSync(indexPath,'utf8'):git(data.checkout,['show',`${libraryConfig(root).revision}:archive/index.json`],{allowFetch:true}));
+  const publicationBranch=reportData?'main':git(root,['symbolic-ref','--short','HEAD']);
+  if(!publicationBranch)throw Error('Runtime publication requires an explicit application branch.');
+  index.branch=publicationBranch;
   const runtimeDirectories = new Set(Object.entries(index.files).filter(([path, entry]) => path.startsWith('assets/data/') && path === entry.stored).map(([path]) => dirname(path)));
   const digest = bytes => createHash('sha256').update(bytes).digest('hex');
   const changed = new Set();
@@ -1442,8 +1449,8 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   if (push) {
     const token = process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
     const env = token ? { ...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from('x-access-token:' + token).toString('base64')}` } : process.env;
-    execFileSync('git', [...gitOptions, 'push', 'origin', `HEAD:${reportData ? 'main' : index.branch}`], { cwd: data.checkout, env, stdio: ['ignore', 'pipe', 'pipe'] });
-    const branch = reportData ? 'main' : index.branch;
+    execFileSync('git', [...gitOptions, 'push', 'origin', `HEAD:${publicationBranch}`], { cwd: data.checkout, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const branch = publicationBranch;
     const remote = execFileSync('git', [...gitOptions, 'ls-remote', '--exit-code', 'origin', `refs/heads/${branch}`], { cwd: data.checkout, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim().split(/\s+/)[0];
     if (remote !== revision) throw Error('Library remote revision changed after push; preserve the stored commit and retry before advancing the pin.');
   }

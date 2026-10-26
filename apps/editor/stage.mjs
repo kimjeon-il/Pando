@@ -120,7 +120,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     await emit(path,bytes,entry.sourcePath);
   }
   if(buildMeta.physicalLand){
-    const paths=new Set(['assets/data/physical-land/v1/manifest.json',buildMeta.physicalLand.url,...(buildMeta.physicalWaterHistory||[]).flatMap(row=>[row.land.url,row.water.url])]);
+    const paths=new Set(['assets/data/physical-land/v1/manifest.json',buildMeta.physicalLand.url,...(buildMeta.physicalWaterObjects?.geometries||[]).flatMap(row=>[row.land.url,row.asset.url])]);
     for(const path of paths){if(!path.startsWith('assets/data/physical-land/')||path.split('/').includes('..'))throw Error('Invalid physical background path');await emit(path,await readFile(join(root,path)),path);}
   }
   const html = snapshot.html.editor;
@@ -212,7 +212,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     worldData, files, bytes: files.reduce((sum, file) => sum + file.bytes, 0) };
   const limit = (profile === 'map-data' ? 256 : 80) * 1024 * 1024;
   const physicalPaths=new Set([buildMeta.physicalLand?.url,'assets/data/physical-land/v1/manifest.json',
-    ...(buildMeta.physicalWaterHistory||[]).flatMap(row=>[row.land.url,row.water.url])]);
+    ...(buildMeta.physicalWaterObjects?.geometries||[]).flatMap(row=>[row.land.url,row.asset.url])]);
   if (result.bytes > limit || (profile === 'test-fixture'
       && files.some(file => file.path.startsWith('assets/data/') && !physicalPaths.has(file.path)))) {
     throw new Error('Shell staging exceeded the selected offline profile');

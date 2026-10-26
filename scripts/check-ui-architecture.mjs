@@ -1,17 +1,20 @@
-import {buildFrontendSnapshot,readFrontendInput,hasFrontendInput} from './lib/frontend-build.mjs';
+import {buildFrontendIndex} from './lib/frontend-layout.mjs';
+import {renderProductHtml} from './lib/product-html.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { collectCssRules } from './lib/css-analysis.mjs';
 
 const root = process.cwd();
-const frontend=await buildFrontendSnapshot({root});
-const readInput=(file,encoding)=>readFrontendInput(frontend,file,encoding);
-const inputExists=file=>hasFrontendInput(frontend,file);
-const cssRoot = path.join(root, 'shared/frontend/css');
-const htmlPath = path.join(root, '__editor/index.html');
+const frontend=buildFrontendIndex(root);
+const sourcePath=file=>{
+  const relative=path.isAbsolute(file)?path.relative(root,file).replaceAll('\\','/'):file;
+  return path.resolve(root,frontend.get(relative)?.sourcePath||relative);
+};
+const readInput=(file,encoding)=>fs.readFileSync(sourcePath(file),encoding);
+const inputExists=file=>fs.existsSync(sourcePath(file));
 const policyDocPath = path.join(root, 'docs', 'architecture', 'ui-architecture.md');
-const html = readInput(htmlPath, 'utf8');
+const html = renderProductHtml(file=>readInput(file,'utf8')).editor;
 const failures = [];
 
 const cssLayers = new Set(['tokens', 'primitives', 'components', 'layout', 'features', 'utilities']);
@@ -41,7 +44,8 @@ const retiredUiArtifacts = Object.freeze([
 const policyExceptions = Object.freeze([]);
 
 const featureOwnedSkinProperties = /^(?:padding(?:-.+)?|border(?:-.+)?|border-radius|background(?:-.+)?|box-shadow)$/;
-const layoutVisualProperties = /^(?:color|fill|stroke|font(?:-.+)?|background(?:-.+)?|border(?:-.+)?|box-shadow|text-shadow)$/;
+const layoutVisualProperties = /^(?:padding(?:-.+)?|color|fill|stroke|font(?:-.+)?|background(?:-.+)?|border(?:-.+)?|box-shadow|text-shadow)$/;
+const productVisualProperties = /^(?:padding(?:-.+)?|color|font(?:-.+)?|line-height|background(?:-.+)?|border(?:-.+)?|box-shadow|text-shadow)$/;
 const tokenizedGeometryProperties = /^(?:padding(?:-.+)?|margin(?:-.+)?|gap|row-gap|column-gap|width|min-width|max-width|height|min-height|max-height|border-radius|top|right|bottom|left|inset(?:-.+)?|outline-offset)$/;
 const rawColorPattern = /(?:#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\()/i;
 const rawPixelPattern = /(?:^|[^\w-])-?(?:\d*\.)?\d+px\b/i;
@@ -49,16 +53,6 @@ const rawPixelPattern = /(?:^|[^\w-])-?(?:\d*\.)?\d+px\b/i;
 const surfaceContracts = Object.freeze([
   Object.freeze({ id: 'editorSurface', variant: 'surface-editor', headerKind: 'handle-only' }),
 ]);
-
-function walkCssFiles(directory, relative = '') {
-  if (!inputExists(directory)) return [];
-  return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
-    const nextRelative = path.posix.join(relative, entry.name);
-    const target = path.join(directory, entry.name);
-    if (entry.isDirectory()) return walkCssFiles(target, nextRelative);
-    return entry.isFile() && entry.name.endsWith('.css') ? [nextRelative] : [];
-  });
-}
 
 function exceptionAllows(file, selector, property) {
   return policyExceptions.some(exception => {
@@ -171,19 +165,26 @@ const createTag = openingTagForId('createMenu');
 if (!/role="menu"/.test(createTag) || !/workspace-surface|ui-sheet|surface-create/.test(createTag)) failures.push('create must reuse the shared surface as a desktop menu and mobile sheet');
 if (!/aria-haspopup="menu"/.test(openingTagForId('createMenuBtn'))) failures.push('layer add trigger must expose menu semantics');
 
-const cssFiles = walkCssFiles(cssRoot);
+const cssFiles = [...frontend.keys()].filter(file=>file.startsWith('assets/css/')&&file.endsWith('.css')).map(file=>file.slice('assets/css/'.length));
 for (const relativePath of cssFiles) {
   const normalized = relativePath.replaceAll('\\', '/');
   const segments = normalized.split('/');
-  const absolute = path.join(cssRoot, relativePath);
+  const absolute = sourcePath('assets/css/'+normalized);
   const source = readInput(absolute, 'utf8');
 
   if (segments.length === 1) {
     if (productEntryCssBudgets.has(normalized)) {
       if (fs.statSync(absolute).size > productEntryCssBudgets.get(normalized)) failures.push(`viewer placement stylesheet exceeds its budget: ${normalized}`);
       for (const rule of collectCssRules(source, { filePath: absolute })) {
-        if (rule.selectors.some(selector => !selector.trim().startsWith('.viewer-root')))
+        if (rule.selectors.some(selector => !/^\.[\w.-]*\bviewer-root\b/.test(selector.trim())))
           failures.push(`viewer placement must remain scoped to its product root: ${rule.prelude}`);
+        if (/(^|[\s>+~,(])#[A-Za-z_][\w-]*/.test(rule.prelude)) failures.push(`ID selector is forbidden in product UI CSS: ${normalized} ${rule.prelude}`);
+        for (const {property,value,important} of rule.declarations) {
+          if (property.startsWith('--')) continue;
+          if (productVisualProperties.test(property)) failures.push(`product CSS may position/size but not reskin UI: ${normalized} ${rule.prelude} { ${property} }`);
+          if (important) failures.push(`!important is forbidden in product UI CSS: ${normalized} ${rule.prelude}`);
+          if (tokenizedGeometryProperties.test(property)&&rawPixelPattern.test(value)) failures.push(`raw px geometry must use a semantic token: ${normalized} ${rule.prelude} { ${property}: ${value} }`);
+        }
       }
       continue;
     }
@@ -238,7 +239,7 @@ for (const relativePath of cssFiles) {
 
 for (const requiredPrimitive of ['workspace-surface', 'surface-header', 'surface-tabs', 'surface-body', 'surface-content']) {
   const found = cssFiles.some(relativePath => {
-    const source = readInput(path.join(cssRoot, relativePath), 'utf8');
+    const source = readInput('assets/css/'+relativePath, 'utf8');
     return new RegExp(`\\.${requiredPrimitive}\\b`).test(source);
   });
   if (!found) failures.push(`missing canonical surface primitive: .${requiredPrimitive}`);

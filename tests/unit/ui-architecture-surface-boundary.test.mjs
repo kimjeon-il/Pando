@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const checker = fileURLToPath(new URL('../../scripts/check-ui-architecture.mjs', import.meta.url));
 
-function auditSurface(t, surface) {
+function auditSurface(t, surface, extraStyles = {}) {
   const root = mkdtempSync(join(tmpdir(), 'pando-ui-surface-boundary-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const put = (relativePath, source) => {
@@ -16,15 +16,17 @@ function auditSurface(t, surface) {
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, source);
   };
-  put('apps/editor/editor.html', `
+  put('apps/editor/templates/index.html', `
     <button id="createMenuBtn" aria-haspopup="menu"></button>
     <section id="createMenu" class="workspace-surface surface-create ui-sheet" role="menu"></section>
     ${surface}
   `);
+  put('apps/viewer/templates/index.html', '<main></main>');
   put('docs/architecture/ui-architecture.md', '# Surface contract fixture\n');
-  put('assets/css/components/surface.css', `
+  put('shared/frontend/css/components/surface.css', `
     .workspace-surface, .surface-header, .surface-tabs, .surface-body, .surface-content {}
   `);
+  for (const [file, source] of Object.entries(extraStyles)) put(file==='viewer.css'?`apps/viewer/css/${file}`:`shared/frontend/css/${file}`, source);
   return spawnSync(process.execPath, [checker], { cwd: root, encoding: 'utf8', timeout: 5000 });
 }
 
@@ -49,6 +51,30 @@ test('UI architecture accepts surface content beyond the old fixed-length window
   const result = auditSurface(t, surface);
   assert.equal(result.status, 0, result.stderr || result.error?.message);
   assert.match(result.stdout, /UI architecture audit passed/);
+});
+
+test('UI architecture checks product control skin even below the product byte budget', t => {
+  const result = auditSurface(t, editorSurface('<div class="surface-content"></div>'), {
+    'viewer.css': '.viewer-root .timeline-popover input { background: var(--panel); padding: var(--ui-space-2); }',
+  });
+  assert.equal(result.status, 1, result.stdout || result.error?.message);
+  assert.match(result.stderr, /product CSS may position\/size but not reskin UI/);
+});
+
+test('UI architecture rejects component padding owned by layout', t => {
+  const result = auditSurface(t, editorSurface('<div class="surface-content"></div>'), {
+    'layout/surfaces.css': '[data-layout="mobile"] .surface-header { padding-block: 0; }',
+  });
+  assert.equal(result.status, 1, result.stdout || result.error?.message);
+  assert.match(result.stderr, /layout CSS may position\/size but not reskin UI/);
+});
+
+test('UI architecture accepts product placement and component-owned skin', t => {
+  const result = auditSurface(t, editorSurface('<div class="surface-content"></div>'), {
+    'viewer.css': '.viewer-root .timeline-popover { position: absolute; bottom: var(--ui-space-2); }',
+    'components/dialogs.css': '.timeline-popover { padding: var(--ui-space-4); background: var(--panel); }',
+  });
+  assert.equal(result.status, 0, result.stderr || result.error?.message);
 });
 
 test('UI architecture rejects content owned by a later sibling surface', t => {

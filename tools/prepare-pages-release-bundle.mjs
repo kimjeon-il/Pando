@@ -51,7 +51,7 @@ export function verifyCandidate(profile,lock,{expectedHead=null}={}){
   for(const path of ['index.html','.nojekyll',
     'assets/js/gis-io.js','assets/js/vendor/gdal/gdal3WebAssembly.wasm',
     'assets/js/vendor/gdal/gdal3WebAssembly.data',
-    'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
+    'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
     'assets/data/hydro/v0.13.2/manifest.json',
     'assets/data/hydro/v0.13.2/hydro.bin',
     'assets/data/territorial-entities/generated/v2/index.json']){
