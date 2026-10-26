@@ -2,8 +2,8 @@
 /**
  * Verify the exact, published post-ZIP 1922 Soviet boundary lineage.
  * The original 2026-10-23 ZIP remains immutable historical provenance.
- * The approved 2026-10-25 Dniester + European corrections are the canonical
- * source for these four 1922 versions, not a reason to revert their geometry.
+ * The approved Dniester, European and 2026-10-26 Central Asian corrections
+ * form the canonical lineage, never a reason to restore obsolete geometry.
  * Does not update application, library, report sources, or deployment assets.
  */
 import {createHash} from 'node:crypto';
@@ -16,8 +16,13 @@ import {loadApprovedUSSR,FOUNDER_IDS,DISPLAY,MASTER,MEMBER_HASHES,
   USSR_ZIP_SHA,comparable} from './replay-ussr-1922-countries.mjs';
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
-export const APPROVED_DATA_PIN='68380579a7c7a1bd8ec97683b7517502c1389c3c';
+export const BASE_APPROVED_DATA_PIN='68380579a7c7a1bd8ec97683b7517502c1389c3c';
+export const APPROVED_DATA_PIN='fa27d79b5d9ef0f2449da5e118a835c1c585c6e3';
 export const PROOFS=Object.freeze({
+  centralAsia:{
+    path:'reports/borders/reconstruction/ussr-central-asia-approved-2026-10-26/integration-proof.json',
+    sha256:'b8104dc18e8980bb84620bcb6be556ef47f9e6aa8818fcf208f5e53a2c61f951',bytes:1923,
+  },
   dniester:{
     path:'reports/borders/reconstruction/ussr-dniester-hydro-alignment-2026-10-25/integration-proof.json',
     sha256:'0842723540eeb58287572f6550cad132e9c403a25c0c21c58feed2b05c7081dc',bytes:2305,
@@ -45,6 +50,14 @@ const fail=(condition,message)=>{if(!condition)throw Error(message);};
 const MATCH_SHA=/^[0-9a-f]{64}$/;
 const YYYY='1922-12-30',END='1925-05-12';
 export const CORRECTED_IDS=Object.freeze(FOUNDER_IDS.slice(0,4));
+export const CENTRAL_ASIA_IDS=Object.freeze(FOUNDER_IDS.slice(0,2));
+export function approvedReportReceiptsMatch(receipts){
+  const expected=Object.values(PROOFS);
+  return Array.isArray(receipts)&&receipts.length===expected.length
+    &&new Set(receipts.map(r=>r?.path)).size===expected.length
+    &&expected.every(e=>MATCH_SHA.test(e.sha256||'')&&Number.isSafeInteger(e.bytes)&&e.bytes>0
+      &&receipts.some(r=>r?.path===e.path&&r.sha256===e.sha256&&r.bytes===e.bytes));
+}
 const get=async url=>{
   const r=await fetch(url,{signal:AbortSignal.timeout(120000)});
   fail(r.ok,'Approved 1922 evidence fetch failed HTTP '+r.status);
@@ -57,6 +70,8 @@ export async function readApprovedCorrectionReports(index,pin,{readRemote=get}={
   const base='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+pin+'/';
   const reports={},receipts=[];
   for(const [key,expected] of Object.entries(PROOFS)){
+    fail(MATCH_SHA.test(expected.sha256||'')&&Number.isSafeInteger(expected.bytes)&&expected.bytes>0,
+      'Approved correction report SHA-256 receipt is not finalized: '+expected.path);
     const entry=index.files[expected.path];
     fail(entry?.stored===expected.path &&entry.encoding==='identity'
       &&entry.bytes===expected.bytes &&entry.sha256===expected.sha256,
@@ -77,7 +92,20 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
   const originals=new Map(features.map(f=>[f.id,f]));
   fail(originals.size===5 &&FOUNDER_IDS.every(id=>originals.has(id)),
     'Historical founding republic identities changed');
-  const {dniester,europe,europeManifest,dniesterManifest,guards}=reports;
+  const {dniester,europe,europeManifest,dniesterManifest,guards,centralAsia}=reports;
+  fail(centralAsia?.baseDataRevision===BASE_APPROVED_DATA_PIN
+    &&centralAsia.validFrom===YYYY&&centralAsia.validTo===END
+    &&Array.isArray(centralAsia.entities)&&centralAsia.entities.length===2,
+    'Central Asian correction must retain its exact baseline, period and two entities');
+  const ca=new Map(centralAsia.entities.map(row=>[row.entityId,row]));
+  fail(ca.size===2&&CENTRAL_ASIA_IDS.every(id=>ca.has(id)),
+    'Central Asian correction targets must be USSR and RSFSR only');
+  for(const [id,row] of ca)fail(row.sourceVersionId===id+':1922-12-30-reviewed-v2'
+    &&row.validFrom===YYYY&&row.validTo===END
+    &&MATCH_SHA.test(row.sourceBeforeSha256||'')&&MATCH_SHA.test(row.sourceAfterSha256||'')
+    &&['otherPeriodsUnchanged','lifetimeUnchanged','outsideScopeUnchanged',
+      'waterDatasetsUnchanged','europeGeometryUnchanged'].every(key=>row[key]===true),
+    'Central Asian correction period, hashes or locked-scope guards changed: '+id);
   const dr=new Map(dniester?.entities?.map(x=>[x.entityId,x]));
   const er=new Map(europe?.entities?.map(x=>[x.entityId,x]));
   const cr=new Map(europeManifest?.entities?.map(x=>[x.versionId,x]));
@@ -136,7 +164,8 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
       const applied=er.get(id),plan=cr.get(row.versionId);
       fail(applied?.sourceVersionId===row.versionId
         &&MATCH_SHA.test(applied.sourceBeforeSha256||'')
-        &&applied.sourceAfterSha256===canonicalHash
+        &&MATCH_SHA.test(applied.sourceAfterSha256||'')
+        &&(ca.has(id)||applied.sourceAfterSha256===canonicalHash)
         &&applied.otherPeriodsUnchanged===true
         &&plan?.versionId===row.versionId
         &&plan.source_valid===true
@@ -152,6 +181,12 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
       } else {
         fail(applied.sourceBeforeSha256===originalHash,
           'Approved European correction did not start from original ZIP: '+id);
+      }
+      if(ca.has(id)){
+        const next=ca.get(id);
+        fail(next.sourceBeforeSha256===applied.sourceAfterSha256
+          &&next.sourceAfterSha256===canonicalHash,
+          'Central Asian correction chain does not match the approved European successor: '+id);
       }
       fail(canonicalHash!==originalHash,
         'A corrected founding version unexpectedly reverted to obsolete ZIP: '+id);
@@ -184,7 +219,8 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
     status:'approved-followups-verified',referenceDate:YYYY,validTo:END,
     pinnedDataRevision:APPROVED_DATA_PIN,
     correctionSequence:['2026-10-23-reviewed-ZIP',
-      '2026-10-25-dniester-hydro-alignment','2026-10-25-europe-approved-exterior'],
+      '2026-10-25-dniester-hydro-alignment','2026-10-25-europe-approved-exterior',
+      '2026-10-26-central-asia-approved'],
     correctedFounders:4,unchangedFounders:1,
     canonicalPublishedVersionVerified:true,
     originalZipWasNotOverwritten:true,sourceObjectsMutated:false,
