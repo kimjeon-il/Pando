@@ -95,9 +95,13 @@ export function validatePhysicalResult(result){
  const m=result?.metrics;
  verify(result?.land?.type==='MultiPolygon'&&result.land.coordinates.length>0
    &&Number.isInteger(m?.unchangedFarPolygonCount)
-   &&m.unchangedFarPolygonCount>=0 && m.fullLandValid===true
+   &&m.unchangedFarPolygonCount>=0
+   &&(m.fullLandValid===true ||
+     (m.modernFullLandValid===false &&m.fullLandValid===false &&
+      m.preexistingGlobalInvalidityPreserved===true))
+   &&m.unchangedFarGeometryPreserved===true
    &&m.patchedLandValid===true &&m.localLandValid===true
-   &&m.modernFullLandValid===true &&m.historicalWaterHoles===68
+   &&typeof m.modernFullLandValid==='boolean' &&m.historicalWaterHoles===68
    &&Number.isFinite(m.modernWaterAreaKm2)
    &&Number.isFinite(m.historicalWaterAreaKm2)
    &&m.outsideRegionDifferenceSquareDegrees<=1e-12

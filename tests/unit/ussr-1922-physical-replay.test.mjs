@@ -71,6 +71,7 @@ test('staged gzip/manifest are reproducible and do not overwrite approved origin
 test('native proof must show zero sovereign displacement and the exact 68 Caspian holes',()=>{
  const proof={land:current,metrics:{
    historicalWaterHoles:68,unchangedFarPolygonCount:200,
+   unchangedFarGeometryPreserved:true,
    outsideRegionDifferenceSquareDegrees:0,
    publishedSymmetricDifferenceSquareDegrees:0,
    modernWaterAreaKm2:429000,historicalWaterAreaKm2:431000,
@@ -78,6 +79,13 @@ test('native proof must show zero sovereign displacement and the exact 68 Caspia
    modernFullLandValid:true,
  }};
  assert.equal(validatePhysicalResult(proof).unchangedFarPolygonCount,200);
+ proof.metrics.modernFullLandValid=false;
+ proof.metrics.fullLandValid=false;
+ proof.metrics.preexistingGlobalInvalidityPreserved=true;
+ assert.equal(validatePhysicalResult(proof).preexistingGlobalInvalidityPreserved,true);
+ proof.metrics.preexistingGlobalInvalidityPreserved=false;
+ assert.throws(()=>validatePhysicalResult(proof),/differs/);
+ proof.metrics.fullLandValid=true;
  proof.metrics.publishedSymmetricDifferenceSquareDegrees=0.1;
  assert.throws(()=>validatePhysicalResult(proof),/differs/);
 });
