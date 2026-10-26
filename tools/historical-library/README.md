@@ -188,7 +188,7 @@ receipts pinned by `config/library-data.json`, and tests the actual
 Natural Earth DEU Heligoland and Düne geometry with C++/GEOS. The optional
 WFS availability check never persists or publishes Harvard HGIS coordinates.
 
-Pinned data revision `68380579a7c7a1bd8ec97683b7517502c1389c3c`: 
+Pinned data revision `68380579a7c7a1bd8ec97683b7517502c1389c3c`:
 
 - Natural Earth 5.1.1 national source: SHA-256
   `52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb`,
