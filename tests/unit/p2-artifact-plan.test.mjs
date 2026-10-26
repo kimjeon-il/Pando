@@ -348,7 +348,7 @@ test('report ownership bookkeeping is excluded while unexpected logical reports 
 
 test('receipt and publication writes detach readonly data and retain the original shared bytes',async t=>{
  const f=graphFixture(t),revision='a'.repeat(40),output='assets/data/example/out.json';
- f.families[0].outputs=[output];f.config();f.put('.gitignore','build-native/\n.library-data/\nassets/data/\n');
+ f.families[0].outputs=[output];f.config();f.put('.gitignore','build-native/\n.library-data/\n/assets/data\n');
  f.put('config/library-data.json',JSON.stringify({repository:'example/data',revision,mounts:['assets/data']}));
  const setup=root=>{
   const shared=librarySharedCheckout(root),view=libraryMaterializedRoot(root),files={};
@@ -360,6 +360,7 @@ test('receipt and publication writes detach readonly data and retain the origina
   return{shared,view,files};
  };
  const original=setup(f.root),head=f.commit(),stageDir='build-native/p2/readonly';
+ assert.equal(f.git('ls-files','--','assets/data'),'','the external data mount must remain untracked on every platform');
  await stageArtifacts(f.root,{families:['a'],expectedSourceSha:head,stageDir,prepareData:({root})=>setup(root),run:(command,cwd)=>{
   if(command[1]==='tools/generate.mjs')withLibraryOutputs({root:cwd,paths:[join(cwd,output)]},()=>writeFileSync(join(cwd,output),'source-a generated'));
   else assert.equal(readFileSync(join(cwd,output),'utf8'),'source-a generated');
