@@ -84,3 +84,32 @@ V auditHistoricalLinework(const V& document) {
     out.object["passed"]=V::boolean(passed);
     return out;
 }
+
+// Coordinates from scanned historical sources may carry a third ordinate.
+// The shared native HGIS axis correction changes only longitude/latitude.
+V correctHistoricalCoordinateTree(const V& request) {
+    const auto& lon=field(request,"longitude"),lat=field(request,"latitude");
+    const double lonOffset=number(field(lon,"intercept")),lonSlope=number(field(lon,"slope"));
+    const double latOffset=number(field(lat,"intercept")),latSlope=number(field(lat,"slope"));
+    const auto recurse=[&](const auto& self,const V& source)->V {
+        if(source.kind!=V::Array||source.array.empty())
+            throw std::runtime_error("Invalid historical coordinate tree");
+        if(source.array[0].kind==V::Number) {
+            if(source.array.size()<2||source.array[1].kind!=V::Number)
+                throw std::runtime_error("Historical coordinate lacks two axes");
+            const double x=number(source.array[0]),y=number(source.array[1]);
+            if(!std::isfinite(x)||!std::isfinite(y)||std::abs(x)>180||std::abs(y)>90)
+                throw std::runtime_error("Historical geographic coordinate invalid");
+            V result=source;
+            result.array[0]=V::num(x+lonOffset+x*lonSlope);
+            result.array[1]=V::num(y+latOffset+y*latSlope);
+            if(!std::isfinite(number(result.array[0]))||!std::isfinite(number(result.array[1])))
+                throw std::runtime_error("Historical affine correction exceeded numeric range");
+            return result;
+        }
+        V out=V::arr();
+        for(const auto& child:source.array)out.array.push_back(self(self,child));
+        return out;
+    };
+    return recurse(recurse,field(request,"coordinates"));
+}

@@ -123,3 +123,32 @@ test('historical recipe enforces GEOS inclusion/exclusion anchors and PROJ metri
    assert.match(bad.stderr,error);
  }
 });
+
+test('native historical HGIS axis-correct-tree modifies XY but retains any extra ordinates',t=>{
+ const dir=mkdtempSync(join(tmpdir(),'hgis-axis-tree-'));
+ t.after(()=>rmSync(dir,{recursive:true,force:true}));
+ const original={
+  coordinates:[[[10,50,123],[10.1,50.1,456]]],
+  longitude:linear.longitude,latitude:linear.latitude,
+ };
+ const path=join(dir,'coords.json'),bytes=JSON.stringify(original);
+ writeFileSync(path,bytes);
+ const result=spawnSync(bin,['--axis-correct-tree',path],{encoding:'utf8'});
+ assert.equal(result.status,0,result.stderr);
+ const converted=JSON.parse(result.stdout);
+ assert.equal(converted[0][0][2],123);
+ assert.equal(converted[0][1][2],456);
+ assert.ok(Math.abs(converted[0][0][0]-9.9849685)<1e-10);
+ assert.ok(Math.abs(converted[0][0][1]-50.0134495)<1e-10);
+ assert.equal(readFileSync(path,'utf8'),bytes,'input evidence must not be modified');
+});
+test('native historical coordinate-tree conversion fails closed on invalid coordinates',t=>{
+ const dir=mkdtempSync(join(tmpdir(),'hgis-axis-invalid-'));
+ t.after(()=>rmSync(dir,{recursive:true,force:true}));
+ const path=join(dir,'coords.json');
+ writeFileSync(path,JSON.stringify({coordinates:[181,50],
+   longitude:linear.longitude,latitude:linear.latitude}));
+ const p=spawnSync(bin,['--axis-correct-tree',path],{encoding:'utf8'});
+ assert.notEqual(p.status,0);
+ assert.match(p.stderr,/geographic coordinate invalid/);
+});

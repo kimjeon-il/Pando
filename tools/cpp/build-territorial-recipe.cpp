@@ -643,6 +643,11 @@ public:
 
 int main(int argc,char** argv) {
     try {
+        if(argc==3 && std::string(argv[1])=="--axis-correct-tree") {
+            const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
+            std::cout<<correctHistoricalCoordinateTree(input).encode()<<'\n';
+            return 0;
+        }
         if(argc==3 && std::string(argv[1])=="--audit-linework") {
             const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
             std::cout<<auditHistoricalLinework(input).encode()<<'\n';
