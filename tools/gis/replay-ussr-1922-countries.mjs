@@ -4,8 +4,10 @@
  * comes unchanged from the SHA-pinned source. Native GEOS owns spatial topology.
  */
 import {createHash} from 'node:crypto';
-import {readFileSync,mkdirSync,existsSync,writeFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import {readFileSync,mkdirSync,existsSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {resolve,relative,join} from 'node:path';
+import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {zipMembers,zipMemberChunks} from '../lib/geonames-zip.mjs';
 
@@ -140,7 +142,9 @@ function snapshotFor(id,feature){
   if(id===FOUNDER_IDS[0])version.constituentRepublicCount=4;
   return version;
 }
-export function buildUSSRApprovedSnapshot(display,countries){
+export function buildUSSRApprovedSnapshot(display,countries,{
+  comparePublishedGeometry=null,
+}={}){
   fail(display?.type==='FeatureCollection' && display.features?.length===5,
     'A verified five-feature approved display source is mandatory');
   const rows=new Map(display.features.map(x=>[x.id,x]));
@@ -161,7 +165,7 @@ export function buildUSSRApprovedSnapshot(display,countries){
   fail(already.every(Boolean)||already.every(x=>!x),
     'Partially applied 1922 USSR founding snapshot must not be overwritten');
   const pathById=Object.fromEntries(FOUNDER_IDS.map(id=>[id,countryFile(id)]));
-  const changes=new Map(),existing=already.every(Boolean);
+  const changes=new Map(),geometryVariations=[],existing=already.every(Boolean);
   if(existing){
     for(const id of FOUNDER_IDS){
       const entity=countries[id],source=rows.get(id),expected=snapshotFor(id,source);
@@ -177,9 +181,22 @@ export function buildUSSRApprovedSnapshot(display,countries){
         geometry:comparable(same?.geometry)===comparable(source.geometry),
         sourceProperties:comparable(same?.sourceProperties)===comparable(source.properties),
       };
+      const geometryDetail=checks.geometry?null:
+        geometryDiscrepancy(source.geometry,same?.geometry);
+      if(!checks.geometry && typeof comparePublishedGeometry==='function'){
+        const proof=comparePublishedGeometry(source.geometry,same.geometry,id);
+        fail(proof?.schemaVersion===1&&proof.passed===true&&
+          proof.sameGeometryTopologically===true&&
+          proof.symmetricDifferenceSquareDegrees===0&&
+          proof.boundaryHausdorffDegrees===0,
+          'Published USSR geometry differs topologically from approved ZIP: '+id+
+          ' '+JSON.stringify({diff:geometryDetail,native:proof}));
+        geometryVariations.push({entityId:id,representationChanged:true,
+          geometryTopologicallyIdentical:true,approvedVersusPublished:geometryDetail,
+          native:proof});
+        checks.geometry=true;
+      }
       const failed=Object.keys(checks).filter(key=>!checks[key]);
-      const geometryDetail=failed.includes('geometry')
-        ?geometryDiscrepancy(source.geometry,same?.geometry):null;
       fail(failed.length===0,
         'Previously applied approved USSR snapshot differs: '+id+' ['+failed.join(',')+']'
           +(geometryDetail?' '+JSON.stringify(geometryDetail):''));
@@ -194,7 +211,8 @@ export function buildUSSRApprovedSnapshot(display,countries){
       &&tsfsr.parentEntityId===FOUNDER_IDS[0],
     'Transcaucasian founder lifetime/parent changed');
     return {mode:'already-applied-verified',founders:FOUNDER_IDS.length,
-      changedFiles:[],before:{},changes,pathById,approved:true};
+      changedFiles:[],before:{},changes,pathById,
+      geometryVariations,approved:true};
   }
   for(const id of FOUNDER_IDS){
     const old=before[id],feature=rows.get(id);
@@ -235,13 +253,31 @@ export function buildUSSRApprovedSnapshot(display,countries){
   return {mode:'staged-candidate',founders:FOUNDER_IDS.length,
     changedFiles:[...changes.keys()],before,changes,pathById,approved:false};
 }
-export function verifyAppliedUSSRMetadata(display,root=ROOT){
+export function nativeHistoricalGeometryComparison(approved,published,id,{
+  binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY,
+}={}){
+  fail(binary&&existsSync(binary),'Native GEOS historical geometry comparator required: '+id);
+  const directory=mkdtempSync(join(tmpdir(),'pando-soviet-geometry-'));
+  try{
+    const input=join(directory,'immutable.json');
+    writeFileSync(input,JSON.stringify({approved,published}),{flag:'wx'});
+    const result=spawnSync(binary,['--compare-historical-geometry',input],{
+      encoding:'utf8',maxBuffer:1024*1024,
+    });
+    fail(!result.error&&result.status===0,
+      'GEOS source comparison failed: '+(result.stderr||result.error?.message||result.status));
+    return JSON.parse(result.stdout);
+  }finally{rmSync(directory,{recursive:true,force:true});}
+}
+export function verifyAppliedUSSRMetadata(display,root=ROOT,{
+  comparePublishedGeometry=nativeHistoricalGeometryComparison,
+}={}){
   const countries={};
   for(const id of FOUNDER_IDS){
     const file=resolve(root,countryFile(id));
     if(existsSync(file))countries[id]=JSON.parse(readFileSync(file,'utf8'));
   }
-  return buildUSSRApprovedSnapshot(display,countries);
+  return buildUSSRApprovedSnapshot(display,countries,{comparePublishedGeometry});
 }
 export function stageSnapshot(plan,output){
   fail(plan.mode==='staged-candidate','No changes to stage in an already approved library');
@@ -276,6 +312,8 @@ export async function main(argv=process.argv.slice(2)){
   const result={schema:'pando-ussr-1922-country-replay-v1',
     zipSha256:approved.zipSha256,mode:plan.mode,founders:plan.founders,
     archivedSourceMemberHashes:approved.hashes,changedFiles:plan.changedFiles,
+    changedRepresentations:plan.geometryVariations??[],
+    exactSourceCoordinateOrderPreserved:(plan.geometryVariations?.length??0)===0,
     liveLibraryUpdated:false};
   console.log('USSR_1922_COUNTRY_REPLAY='+JSON.stringify(result));
   return result;
