@@ -5,6 +5,9 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/cpp/build-territorial-recipe.cpp'
+      - 'tools/cpp/historical-linework-audit.inc'
+      - 'tools/gis/verify-historical-linework.mjs'
+      - 'tests/unit/gis-historical-linework-native.test.mjs'
       - 'tools/historical-library/german-empire-1914-base.recipe.json'
       - 'tests/unit/gis-german-base-native.test.mjs'
       - '.github/workflows/gis-historical-native.yml'
@@ -37,4 +40,4 @@ jobs:
       - name: Test native axis correction, island selection and protected recipe status
         run: |
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
-          node --test tests/unit/gis-german-base-native.test.mjs
+          node --test tests/unit/gis-german-base-native.test.mjs tests/unit/gis-historical-linework-native.test.mjs
