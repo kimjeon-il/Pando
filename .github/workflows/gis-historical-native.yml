@@ -10,6 +10,8 @@ on:
       - 'tests/unit/gis-caspian-generalize-native.test.mjs'
       - 'tools/gis/generalize-approved-caspian-display.mjs'
       - 'tests/unit/gis-caspian-display-packaging.test.mjs'
+      - 'tests/unit/gis-caspian-pinned-native-oracle.test.mjs'
+      - 'tests/fixtures/gis-caspian-1922-python-native-oracle.json'
       - 'tools/gis/verify-historical-linework.mjs'
       - 'tests/unit/gis-historical-linework-native.test.mjs'
       - 'tools/gis/verify-approved-caspian-network.mjs'
@@ -97,77 +99,8 @@ jobs:
             --output build-native/historical/caspian-1922-native-candidate.json \
             | tee build-native/historical/caspian-1922-native-display-receipt.jsonl
 
-      - name: Compare approved 1922 Caspian Python oracle and native GEOS display candidate
-        run: |
-          python3 -m venv build-native/historical/python-parity-oracle
-          build-native/historical/python-parity-oracle/bin/python -m pip install --quiet \
-            'shapely==2.1.2' 'pyproj==3.7.2'
-          build-native/historical/python-parity-oracle/bin/python - <<'PY'
-          import importlib.util,json,math,zipfile
-          from pathlib import Path
-          from shapely.geometry import shape
-          from shapely.ops import transform
-          root=Path.cwd()
-          spec=importlib.util.spec_from_file_location('approved_caspian',
-            root/'tools/gis/apply_ussr_1922_caspian.py')
-          module=importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(module)
-          base=root/'build-native/historical'
-          z=zipfile.ZipFile(base/'approved-caspian-1922.zip')
-          stem='caspian-completion/assembled-completion-candidate/'
-          network=json.loads(z.read(stem+'waterbody-boundary-network.geojson'))
-          approved_water=module.geometry(json.loads(z.read(
-            stem+'polygon-check/waterbody-polygon-candidate.geojson')))
-          python=module.generalize_caspian({'network':network,'water':approved_water})
-          native=json.loads((base/'caspian-1922-native-candidate.json').read_text())
-          py_network=python['network']['features']
-          cpp_network=native['network']['features']
-          mismatched_lengths=[]
-          max_coordinate_difference=0.0
-          mismatch_tol=[]
-          for i,(left,right) in enumerate(zip(py_network,cpp_network)):
-            assert left['properties']==right['properties'],('provenance',i)
-            a,b=left['geometry']['coordinates'],right['geometry']['coordinates']
-            if len(a)!=len(b):
-              mismatched_lengths.append({'reach':i,'python':len(a),'cpp':len(b)})
-              continue
-            for p,q in zip(a,b):
-              max_coordinate_difference=max(max_coordinate_difference,
-                abs(p[0]-q[0]),abs(p[1]-q[1]))
-          for i,(left,right) in enumerate(zip(python['metrics']['perFeatureToleranceMeters'],
-              native['metrics']['perFeatureToleranceMeters'])):
-            if left['id']!=right['id'] or abs(left['tolerance']-right['tolerance'])>1e-8:
-              mismatch_tol.append({'reach':i,'python':left,'cpp':right})
-          python_water=python['water']
-          cpp_water=shape(native['water'])
-          symmetric_area_km2=transform(module.TO_METRIC,
-              python_water.symmetric_difference(cpp_water)).area/1e6
-          outcome={
-            'sourceFeatures':len(py_network),
-            'pythonVerticesAfter':python['metrics']['verticesAfter'],
-            'cppVerticesAfter':native['metrics']['verticesAfter'],
-            'pythonAdaptiveRepairs':python['metrics']['adaptiveLocalRepairs'],
-            'cppAdaptiveRepairs':native['metrics']['adaptiveLocalRepairs'],
-            'pythonWaterHoles':len(python_water.interiors),
-            'cppWaterPolygons':len(cpp_water.geoms),
-            'cppWaterHoles':sum(len(p.interiors) for p in cpp_water.geoms),
-            'featureVertexMismatches':mismatched_lengths[:12],
-            'toleranceMismatches':mismatch_tol[:12],
-            'maxCoordinateDifferenceDegrees':max_coordinate_difference,
-            'symmetricDifferenceKm2':symmetric_area_km2,
-          }
-          print('APPROVED_CASPIAN_PYTHON_NATIVE_PARITY='+json.dumps(outcome,sort_keys=True))
-          (base/'caspian-1922-python-native-comparison.json').write_text(
-            json.dumps(outcome,indent=2)+'\n')
-          assert len(py_network)==len(cpp_network)==266
-          assert not mismatched_lengths and not mismatch_tol
-          assert python['metrics']['verticesAfter']==native['metrics']['verticesAfter']
-          assert python['metrics']['adaptiveLocalRepairs']==native['metrics']['adaptiveLocalRepairs']
-          assert len(python_water.interiors)==68
-          assert len(cpp_water.geoms)==1 and len(cpp_water.geoms[0].interiors)==68
-          assert max_coordinate_difference<=2e-9
-          assert symmetric_area_km2<=0.001
-          PY
+      - name: Verify pinned Python-vs-C++ real Caspian geometry proof without Python dependencies
+        run: node --test tests/unit/gis-caspian-pinned-native-oracle.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -175,6 +108,5 @@ jobs:
           path: |
             build-native/historical/caspian-1922-native-receipt.jsonl
             build-native/historical/caspian-1922-native-display-receipt.jsonl
-            build-native/historical/caspian-1922-python-native-comparison.json
           retention-days: 14
           if-no-files-found: warn
