@@ -66,7 +66,7 @@ test('a fully verified approved 1922 descendant supersedes, but never deletes, t
     correctedFounders:4,unchangedFounders:1,
     verifiedReportReceipts:Object.values(PROOFS).map(r=>({...r})),
     parentRepublicPartition:{passed:true,founderCount:5},
-    correctionSequence:['2026-10-23-reviewed-ZIP','2026-10-25-dniester','2026-10-25-europe'],
+    correctionSequence:['2026-10-23-reviewed-ZIP','2026-10-25-dniester','2026-10-25-europe','2026-10-26-central-asia-approved','2026-10-26-bukhara-approved'],
     entities:FOUNDER_IDS.map((id,i)=>({
       entityId:id,approvedCorrection:i!==4,sourceGeometryVerified:true,
       validFrom:'1922-12-30',validTo:'1925-05-12',
@@ -77,6 +77,7 @@ test('a fully verified approved 1922 descendant supersedes, but never deletes, t
   assert.equal(report.json.countries.topologicalDiscrepancies.length,4);
   assert.equal(report.json.countries.status,'approved-followups-verified');
   assert.match(report.markdown,/미해결 위상 오류는 0건/);
+  assert.match(report.markdown,/중앙아시아 3구간·부하라/);
   for(const mutate of [
     x=>x.corrections.verifiedReportReceipts.pop(),
     x=>{x.corrections.verifiedReportReceipts[0].sha256='0'.repeat(64);},

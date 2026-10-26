@@ -17,8 +17,13 @@ import {loadApprovedUSSR,FOUNDER_IDS,DISPLAY,MASTER,MEMBER_HASHES,
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 export const BASE_APPROVED_DATA_PIN='68380579a7c7a1bd8ec97683b7517502c1389c3c';
-export const APPROVED_DATA_PIN='fa27d79b5d9ef0f2449da5e118a835c1c585c6e3';
+export const CENTRAL_ASIA_DATA_PIN='fa27d79b5d9ef0f2449da5e118a835c1c585c6e3';
+export const APPROVED_DATA_PIN='a963457e578d335fec181f91ad25dfe729e96e1b';
 export const PROOFS=Object.freeze({
+  bukhara:{
+    path:'reports/borders/reconstruction/ussr-bukhara-approved-2026-10-26/integration-proof.json',
+    sha256:'e71803d3d26b54fb96674b55dfdc808a45e8dae2b81c897c80da38ad8248c618',bytes:1874,
+  },
   centralAsia:{
     path:'reports/borders/reconstruction/ussr-central-asia-approved-2026-10-26/integration-proof.json',
     sha256:'b8104dc18e8980bb84620bcb6be556ef47f9e6aa8818fcf208f5e53a2c61f951',bytes:1923,
@@ -92,7 +97,7 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
   const originals=new Map(features.map(f=>[f.id,f]));
   fail(originals.size===5 &&FOUNDER_IDS.every(id=>originals.has(id)),
     'Historical founding republic identities changed');
-  const {dniester,europe,europeManifest,dniesterManifest,guards,centralAsia}=reports;
+  const {dniester,europe,europeManifest,dniesterManifest,guards,centralAsia,bukhara}=reports;
   fail(centralAsia?.baseDataRevision===BASE_APPROVED_DATA_PIN
     &&centralAsia.validFrom===YYYY&&centralAsia.validTo===END
     &&Array.isArray(centralAsia.entities)&&centralAsia.entities.length===2,
@@ -106,6 +111,20 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
     &&['otherPeriodsUnchanged','lifetimeUnchanged','outsideScopeUnchanged',
       'waterDatasetsUnchanged','europeGeometryUnchanged'].every(key=>row[key]===true),
     'Central Asian correction period, hashes or locked-scope guards changed: '+id);
+  fail(bukhara?.baseDataRevision===CENTRAL_ASIA_DATA_PIN
+    &&bukhara.validFrom===YYYY&&bukhara.validTo===END
+    &&Array.isArray(bukhara.entities)&&bukhara.entities.length===2,
+    'Bukhara correction must retain its exact three-segment predecessor, period and two entities');
+  const bk=new Map(bukhara.entities.map(row=>[row.entityId,row]));
+  fail(bk.size===2&&CENTRAL_ASIA_IDS.every(id=>bk.has(id)),
+    'Bukhara correction targets must be USSR and RSFSR only');
+  for(const [id,row] of bk)fail(row.sourceVersionId===id+':1922-12-30-reviewed-v2'
+    &&row.validFrom===YYYY&&row.validTo===END
+    &&MATCH_SHA.test(row.sourceBeforeSha256||'')&&MATCH_SHA.test(row.sourceAfterSha256||'')
+    &&['otherPeriodsUnchanged','lifetimeUnchanged','outsideScopeUnchanged',
+      'waterDatasetsUnchanged','europeGeometryUnchanged','priorThreeSegmentsUnchanged']
+      .every(key=>row[key]===true),
+    'Bukhara correction period, hashes or locked-scope guards changed: '+id);
   const dr=new Map(dniester?.entities?.map(x=>[x.entityId,x]));
   const er=new Map(europe?.entities?.map(x=>[x.entityId,x]));
   const cr=new Map(europeManifest?.entities?.map(x=>[x.versionId,x]));
@@ -185,8 +204,12 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
       if(ca.has(id)){
         const next=ca.get(id);
         fail(next.sourceBeforeSha256===applied.sourceAfterSha256
-          &&next.sourceAfterSha256===canonicalHash,
+          &&MATCH_SHA.test(next.sourceAfterSha256||''),
           'Central Asian correction chain does not match the approved European successor: '+id);
+        const last=bk.get(id);
+        fail(last.sourceBeforeSha256===next.sourceAfterSha256
+          &&last.sourceAfterSha256===canonicalHash,
+          'Bukhara correction chain does not match the approved Central Asian successor: '+id);
       }
       fail(canonicalHash!==originalHash,
         'A corrected founding version unexpectedly reverted to obsolete ZIP: '+id);
@@ -220,7 +243,7 @@ export function verifyApprovedFollowups({approved,countries,reports,partition}){
     pinnedDataRevision:APPROVED_DATA_PIN,
     correctionSequence:['2026-10-23-reviewed-ZIP',
       '2026-10-25-dniester-hydro-alignment','2026-10-25-europe-approved-exterior',
-      '2026-10-26-central-asia-approved'],
+      '2026-10-26-central-asia-approved','2026-10-26-bukhara-approved'],
     correctedFounders:4,unchangedFounders:1,
     canonicalPublishedVersionVerified:true,
     originalZipWasNotOverwritten:true,sourceObjectsMutated:false,
