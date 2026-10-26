@@ -1,0 +1,28 @@
+{
+  "schema": "pando-approved-caspian-python-native-oracle-v1",
+  "pythonReferenceRun": "https://github.com/kimjeon-il/Pando/actions/runs/40278421864",
+  "sourceArchiveSha256": "3df45ab6e7d3a4b1dfac42b29f28cc1c932c3b1be9f866ccd7df6bb769b9a5b4",
+  "sourceNetworkSha256": "f6fce5c05021ae8fa080d8bf350a73aa1f4d4e1016e2a1dfffcc49809fc7361e",
+  "sourceWaterMemberSha256": "a201d7e032824f7b88a114c549390e007172ac1c4d1cb88a17fca1086630f63b",
+  "verifiedNativeCandidateSha256": "96021290ab356a54e0ac82ad88a99a9fcaf30dacef1f64dba727e40f9350888a",
+  "constraints": {
+    "sourceFeatureCount": 266,
+    "verticesBefore": 21771,
+    "verticesAfter": 7063,
+    "holesBefore": 68,
+    "holesAfter": 68,
+    "nonEndpointIntersections": 0,
+    "adaptiveLocalRepairs": 0,
+    "areaBeforeKm2": 430899.55362307234,
+    "areaAfterKm2": 430881.89674501616,
+    "boundaryHausdorffMeters": 299.5051655676505
+  },
+  "comparison": {
+    "maximumCoordinateDifferenceDegrees": 0,
+    "symmetricDifferenceKm2": 0,
+    "unequalFeatureVertexCounts": 0,
+    "unequalFeatureTolerances": 0,
+    "nativeWaterPolygons": 1
+  },
+  "interpretation": "Frozen Ubuntu GEOS 3.13.1 / PROJ 9.5.1 oracle for a reviewed 1922 display derivative, not a sovereignty or surveying accuracy approval."
+}

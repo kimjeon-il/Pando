@@ -201,3 +201,8 @@ The active generation entrypoint is
 `PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" node tools/build-territorial-geometry.mjs --check`.
 It verifies pinned inputs, invokes the C++ recipe engine and compares only the
 target geometry version while preserving curated catalog identity and metadata.
+
+
+### Historical boundary linework (GEOS/PROJ)
+
+Run `node tools/gis/verify-historical-linework.mjs --input FILE.geojson --expected-sha256 SHA256` with `PANDO_TERRITORIAL_RECIPE_BINARY` pointing at the standalone native recipe engine. Inputs are SHA-pinned and read-only. Shared endpoints are permitted; interior crossings, overlaps, T-junctions and self-intersections fail. The geometry and source evidence are neither rewritten nor promoted to a new national border.

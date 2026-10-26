@@ -24,6 +24,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Install Node test dependencies before Borneo source validator
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Prepare pinned source-only data in the application checkout
         uses: ./.github/actions/library-data
       - name: Diagnose pinned historical geometry identities without mutating the library

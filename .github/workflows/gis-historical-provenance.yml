@@ -1,0 +1,59 @@
+name: Historical Prussian original SHA provenance
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - tools/gis/check-historical-source-provenance.mjs
+      - tests/unit/historical-source-provenance.test.mjs
+      - .github/workflows/gis-historical-provenance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/unit/historical-source-provenance.test.mjs
+      - name: Identify the current approved external library revision
+        run: |
+          mkdir -p build-native/historical
+          OLD=1879138b54b2c9f8c173bf5575b108e3f1f8139b
+          NEW=$(node -p "require('./config/library-data.json').revision")
+          node tools/gis/check-historical-source-provenance.mjs \
+            --before "$OLD" --after "$NEW" \
+            | tee build-native/historical/east-prussia-forensics.jsonl
+      - name: Inventory pinned Caspian network and North Schleswig map original paths
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          const pin=JSON.parse(readFileSync('config/library-data.json','utf8')).revision;
+          const url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+pin+'/archive/index.json';
+          const response=await fetch(url,{signal:AbortSignal.timeout(90000)});
+          if(!response.ok)throw Error('Pinned index '+response.status);
+          const idx=await response.json();
+          const relevant=Object.entries(idx.files).filter(([name])=>
+            name.includes('ussr-1922-approved')||name.includes('north-schleswig'));
+          const zip=relevant.filter(([name])=>name.endsWith('.zip'))
+            .map(([path,e])=>({path,bytes:e.bytes,sha256:e.sha256}));
+          const map=relevant.filter(([name])=>/\.(tif|tiff|png|jpg|jpeg|jp2|pdf)(?:\.gz)?$/i.test(name))
+            .map(([path,e])=>({path,bytes:e.bytes,sha256:e.sha256}));
+          console.log('C1_CASPIAN_ARCHIVE_ZIP_PATHS='+JSON.stringify(zip.slice(0,18)));
+          console.log('C2_SCHLESWIG_ARCHIVE_MAP_PATHS='+JSON.stringify(map.slice(0,24)));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: east-prussia-pinned-original-forensics
+          path: build-native/historical/east-prussia-forensics.jsonl
+          retention-days: 14
+          if-no-files-found: warn

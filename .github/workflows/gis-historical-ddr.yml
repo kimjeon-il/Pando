@@ -1,0 +1,51 @@
+name: Historical DDR 1989 approved native source parity
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/cpp/build-territorial-recipe.cpp'
+      - 'tools/cpp/historical-linework-audit.inc'
+      - 'tools/historical-library/east-germany-1989.recipe.json'
+      - 'tools/gis/verify-east-germany-partition.mjs'
+      - 'tests/unit/gis-ddr-native-partition.test.mjs'
+      - '.github/workflows/gis-historical-ddr.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ddr-approved-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Prepare pinned external DDR source and stored geometry
+        uses: ./.github/actions/library-data
+      - name: Build common native GEOS/PROJ historical engine
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF \
+            -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Compare full DDR 1989 native polygon with every stored approved coordinate
+        run: |
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
+          node tools/build-territorial-geometry.mjs --check
+          node --test tests/unit/gis-ddr-native-partition.test.mjs
+          node tools/gis/verify-east-germany-partition.mjs
+      - name: Prove no tracked source data was modified
+        run: |
+          test -z "$(git status --porcelain --untracked-files=no)" \
+            || { git diff --stat; exit 1; }

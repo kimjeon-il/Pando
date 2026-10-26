@@ -1443,6 +1443,9 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
     const token = process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
     const env = token ? { ...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from('x-access-token:' + token).toString('base64')}` } : process.env;
     execFileSync('git', [...gitOptions, 'push', 'origin', `HEAD:${reportData ? 'main' : index.branch}`], { cwd: data.checkout, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const branch = reportData ? 'main' : index.branch;
+    const remote = execFileSync('git', [...gitOptions, 'ls-remote', '--exit-code', 'origin', `refs/heads/${branch}`], { cwd: data.checkout, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim().split(/\s+/)[0];
+    if (remote !== revision) throw Error('Library remote revision changed after push; preserve the stored commit and retry before advancing the pin.');
   }
   if (!prefixes.every(path => path === 'reports' || path.startsWith('reports/'))) {
     const config = libraryConfig(root); config.revision = revision;

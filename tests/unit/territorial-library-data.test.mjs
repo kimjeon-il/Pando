@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
 const historicalData={entities:readTerritorialSources().filter(e=>e.sourceInfo.importProvenance)};
 test('East Prussia r3 library preserves the reviewed geometry and reports its limitations', () => {
@@ -8,9 +9,28 @@ test('East Prussia r3 library preserves the reviewed geometry and reports its li
   const version = entity.geometryVersions[0];
   const coordinates = version.geometry.coordinates.flat(2);
   const coordinateKeys = new Set(coordinates.map(coordinate => coordinate.join(',')));
-  const geometrySha256 = createHash('sha256').update(JSON.stringify(version.geometry)).digest('hex');
-  assert.equal(geometrySha256, '54c45d4de9f5f16e9dffb06eec24aeaef8f89b82aa455fd7c26b1064fe716237');
-  assert.equal(entity.metadata.geometrySha256, geometrySha256);
+  // Hash the approved original, not the normalized read model.
+  const path = new URL('../../assets/data/territorial-entities/source/countries/state-east-prussia.json', import.meta.url);
+  const original = JSON.parse(readFileSync(path, 'utf8'));
+  const approved = original.geometryVersions.find(row => row.versionId === 'ostpreussen-1878-1920-r3');
+  assert.ok(approved, 'Missing frozen East Prussia version');
+  // Both immutable archival revisions (1879138b and 63aebba2) contain
+  // byte-identical East Prussia r3 sources. The historic metadata digest was
+  // already stale in the oldest checked revision; do not silently rewrite it.
+  const archivedBytes = readFileSync(path);
+  assert.equal(createHash('sha256').update(archivedBytes).digest('hex'),
+    '78c64c328f76de923907b3beec12100b62c032af0ad858abe03183a61b726646');
+  const geometrySha256 = createHash('sha256').update(JSON.stringify(approved.geometry)).digest('hex');
+  assert.equal(geometrySha256, '285e75670217a29020bf0dd7de323311f3cdc1e42e3efbb7c462be0ce09d2307');
+  // The review metadata mismatch is retained as explicit unresolved provenance,
+  // never misinterpreted as a recently altered or approved replacement outline.
+  assert.equal(original.metadata.geometrySha256,
+    '54c45d4de9f5f16e9dffb06eec24aeaef8f89b82aa455fd7c26b1064fe716237');
+  assert.equal(entity.metadata.geometrySha256, original.metadata.geometrySha256);
+  assert.notEqual(original.metadata.geometrySha256, geometrySha256,
+    'Resolve old review metadata separately with independent evidence');
+  assert.deepEqual(version.geometry, approved.geometry,
+    'Normalization must preserve exact approved coordinates and component structure');
   assert.equal(version.versionId, 'ostpreussen-1878-1920-r3');
   assert.equal(version.geometry.coordinates.length, 1);
   assert.equal(coordinates.length, 6766);
@@ -125,6 +145,15 @@ test('Soviet constituent republics remain flagged political entities, not admini
     ids.add(child.entityId);
     assert.equal(child.entityKind,'general');
     assert.equal(Object.hasOwn(child,'adminLevel'),false);
-    assert.match(child.metadata.defaultFlagDataUrl||'',/^data:image\/svg\+xml;base64,/);
+    if(child.entityId === 'state:soviet-union-transcaucasian-sfsr') {
+      // Do not invent an unapproved historical flag for the separately dated 1922 founder.
+      assert.equal(child.metadata.defaultFlagDataUrl ?? '', '');
+      assert.equal(child.lifetime.validFrom, '1922-12-30');
+      assert.equal(child.lifetime.validTo, '1936-12-04');
+      assert.equal(child.metadata.approximateGeometry, true);
+    } else {
+      assert.match(child.metadata.defaultFlagDataUrl||'',/^data:image\/svg\+xml;base64,/,
+        child.entityId+': established SSR flag unexpectedly missing');
+    }
   }
 });
