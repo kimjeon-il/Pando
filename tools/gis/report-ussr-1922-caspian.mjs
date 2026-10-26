@@ -11,6 +11,7 @@ import {fileURLToPath} from 'node:url';
 import {FOUNDER_IDS,USSR_ZIP_SHA} from './replay-ussr-1922-countries.mjs';
 import {ARCHIVE_SHA} from './verify-approved-caspian-network.mjs';
 import {validatePhysicalMetrics} from './replay-ussr-1922-physical.mjs';
+import {APPROVED_DATA_PIN} from './audit-ussr-1922-approved-followups.mjs';
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 export const ARCHIVE_BASE='reports/geography/ussr-1922-caspian-application-2026-10-24/';
@@ -30,7 +31,7 @@ export function parseReceipt(source,prefix){
   requireValue(found.length===1,'Expected exactly one receipt: '+prefix);
   return JSON.parse(found[0].slice(prefix.length+1));
 }
-export function validateReceipts({countries,network,display,physical}){
+export function validateReceipts({countries,network,display,physical,corrections=null}){
   requireValue(countries?.schema==='pando-ussr-1922-sources-verified-audit-v1'
     &&countries.zipSha256===USSR_ZIP_SHA &&countries.evidenceComputed===true
     &&countries.libraryDataMutated===false
@@ -73,6 +74,30 @@ export function validateReceipts({countries,network,display,physical}){
   validatePhysicalMetrics(physical.metrics);
   requireValue(physical.publishedGeometryDifferenceSquareDegrees<=1e-12,
     'Physical source comparison did not establish equality');
+  if(corrections!==null){
+    const approved=new Map(corrections?.entities?.map(row=>[row.entityId,row]));
+    requireValue(corrections.schema==='pando-ussr-1922-approved-descendant-audit-v1'
+      &&corrections.status==='approved-followups-verified'
+      &&corrections.pinnedDataRevision===APPROVED_DATA_PIN
+      &&corrections.canonicalPublishedVersionVerified===true
+      &&corrections.originalZipWasNotOverwritten===true
+      &&corrections.sourceObjectsMutated===false
+      &&corrections.runtimePromotionPerformed===false
+      &&corrections.correctedFounders===4 &&corrections.unchangedFounders===1
+      &&approved.size===5
+      &&corrections.parentRepublicPartition?.passed===true
+      &&corrections.parentRepublicPartition.founderCount===5
+      &&corrections.verifiedReportReceipts?.length===5
+      &&differences.length===4
+      &&countries.entities.every(row=>{
+        const proof=approved.get(row.entityId);
+        return proof?.sourceGeometryVerified===true
+          &&proof.approvedCorrection===(row.geosTopologicalEquals!==true)
+          &&proof.validFrom==='1922-12-30'
+          &&proof.validTo==='1925-05-12';
+      }),
+      'Post-ZIP Soviet corrections must have five fully verified canonical geometries');
+  }
   return differences;
 }
 export async function verifyArchivedReports(index,revision,readOriginal,expected=ARCHIVED){
@@ -102,7 +127,7 @@ export function buildCompactReport(receipts,archive){
   requireValue(Array.isArray(archive)&&archive.length===Object.keys(ARCHIVED).length
     &&ARCHIVED['app1922.png'].sha256===archive.find(x=>x.path.endsWith('/app1922.png'))?.sha256,
     'Required archived 1922 reference maps are missing');
-  const {countries,network,display,physical}=receipts;
+  const {countries,network,display,physical,corrections=null}=receipts;
   const result={
     schema:'pando-ussr-1922-caspian-compact-evidence-v1',
     referenceDate:'1922-12-30',geometryDisplayValidUntil:'1925-05-12',
@@ -114,7 +139,12 @@ export function buildCompactReport(receipts,archive){
       topologicalDiscrepancies:discrepancies.map(row=>({
         id:row.entityId,areaDifferenceSquareDegrees:row.areaDifferenceSquareDegrees,
         boundaryHausdorffDegrees:row.boundaryHausdorffDegrees})),
-      status:countries.status,sourceZipSha256:countries.zipSha256},
+      status:corrections?'approved-followups-verified':countries.status,
+      unresolvedCanonicalGeometryIssues:corrections?0:discrepancies.length,
+      approvedFollowupCorrectionCount:corrections?.correctedFounders??0,
+      latestPartition:corrections?.parentRepublicPartition??null,
+      correctionSequence:corrections?.correctionSequence??[],
+      sourceZipSha256:countries.zipSha256},
     caspian:{approvedNetworkReaches:network.featureCount,
       approvedNetworkZipSha256:network.archiveSha256,
       historicalWaterHoles:display.metrics.holesAfter,
@@ -139,8 +169,14 @@ export function buildCompactReport(receipts,archive){
     '',
     '## 국가 객체',
     '',
-    '총 '+countries.founders+'개 중 **'+discrepancies.length+'개가 승인 원본과 위상적으로 불일치**합니다.',
-    '다음 값은 GEOS 면적 차이(도²)이며, 해당 원본을 임의로 같다고 처리하지 않습니다.',
+    ...(corrections?[
+      '후속 승인된 드네스트르·유럽 국경 수정 4건의 자료 해시와 상호 의존 관계를 검증했습니다.',
+      '현재 고정 자료의 부모–구성공화국 4개 합집합·틈·중복을 C++ GEOS로 재검증했으며, **현재 승인본의 미해결 위상 오류는 0건**입니다.',
+      '아래 네 불일치는 수정 전 2026-10-23 ZIP을 기준으로 한 역사적 변경량이며, 현재 승인본의 오류나 원본 복구 지시가 아닙니다.',
+    ]:[
+      '총 '+countries.founders+'개 중 **'+discrepancies.length+'개가 승인 원본과 위상적으로 불일치**합니다.',
+      '현재 승인된 후속 수정 검증 결과가 없어 자동 동등성 판정은 차단됩니다.',
+    ]),
     '',
     '| 국가 객체 ID | GEOS 판정 | 차이(도²) |',
     '| --- | --- | ---: |',
@@ -159,7 +195,8 @@ export function buildCompactReport(receipts,archive){
     '',
     ...archive.map(a=>'- '+a.path.split('/').at(-1)+': SHA-256 '+a.sha256+' ('+a.bytes+'바이트), '+a.url),
     '',
-    '이 보존 파일은 과거 적용 당시 기록입니다. 최신 GEOS 불일치 감사의 판단보다 우선하지 않습니다.',
+    corrections?'과거 원본과 승인 후속본은 별개의 고정 버전입니다. 최초 ZIP 해시와 출처는 보존하되 더 최신인 승인 경계를 덮어쓰지 않습니다.'
+      :'이 보존 파일은 과거 적용 당시 기록입니다. 최신 GEOS 불일치 감사의 판단보다 우선하지 않습니다.',
     '',
   ].join('\n');
   return {json:result,markdown:text};
@@ -178,9 +215,9 @@ export async function main(args=process.argv.slice(2),{
       'Usage: --countries JSONL --network JSONL --display JSONL --physical JSONL --report-directory NEW_DIR');
     names.set(args[i],args[i+1]);
   }
-  for(const key of ['--countries','--network','--display','--physical','--report-directory'])
+  for(const key of ['--countries','--network','--display','--physical','--corrections','--report-directory'])
     requireValue(names.has(key),'Missing historical report argument '+key);
-  requireValue(names.size===5,'Unexpected historical report argument');
+  requireValue(names.size===6,'Unexpected historical report argument');
   const config=JSON.parse(readFileSync(join(ROOT,'config/library-data.json'),'utf8'));
   requireValue(config.repository==='kimjeon-il/PandoLab-library-data'
     &&/^[a-f0-9]{40}$/.test(config.revision),
@@ -195,6 +232,7 @@ export async function main(args=process.argv.slice(2),{
     network:read('--network','CASPIAN_1922_NATIVE_NETWORK_PARITY'),
     display:read('--display','CASPIAN_1922_NATIVE_DISPLAY'),
     physical:read('--physical','USSR_1922_PHYSICAL_REPLAY'),
+    corrections:read('--corrections','USSR_1922_APPROVED_FOLLOWUPS'),
   },originals);
   const directory=resolve(names.get('--report-directory'));
   requireValue(!existsSync(directory),'A historical audit must not overwrite an earlier report');
@@ -203,7 +241,8 @@ export async function main(args=process.argv.slice(2),{
   writeFileSync(join(directory,'summary.json'),JSON.stringify(report.json,null,2)+'\n',{flag:'wx'});
   console.log('USSR_1922_COMPACT_REPORT='+JSON.stringify({
     reportDirectory:directory,archivedFiles:originals.length,
-    countryDiscrepancies:report.json.countries.topologicalDiscrepancies.length,
+    originalZipDifferences:report.json.countries.topologicalDiscrepancies.length,
+    unresolvedCanonicalGeometryIssues:report.json.countries.unresolvedCanonicalGeometryIssues,
     libraryUpdated:false,runtimePromoted:false}));
   return report.json;
 }

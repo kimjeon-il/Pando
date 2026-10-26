@@ -54,6 +54,32 @@ test('published source differences remain explicitly blocked in a compact report
   assert.match(r.markdown,/caspian-comparison-10m.png/);
   assert.match(r.markdown,/기존 GEOS 유효성 결함/);
 });
+test('a fully verified approved 1922 descendant supersedes, but never deletes, the original ZIP comparison',()=>{
+  const c=receipt();
+  c.corrections={
+    schema:'pando-ussr-1922-approved-descendant-audit-v1',
+    status:'approved-followups-verified',pinnedDataRevision:
+      '68380579a7c7a1bd8ec97683b7517502c1389c3c',
+    canonicalPublishedVersionVerified:true,originalZipWasNotOverwritten:true,
+    sourceObjectsMutated:false,runtimePromotionPerformed:false,
+    correctedFounders:4,unchangedFounders:1,
+    verifiedReportReceipts:Array(5).fill({sha256:'a'.repeat(64)}),
+    parentRepublicPartition:{passed:true,founderCount:5},
+    correctionSequence:['2026-10-23-reviewed-ZIP','2026-10-25-dniester','2026-10-25-europe'],
+    entities:FOUNDER_IDS.map((id,i)=>({
+      entityId:id,approvedCorrection:i!==4,sourceGeometryVerified:true,
+      validFrom:'1922-12-30',validTo:'1925-05-12',
+    })),
+  };
+  const report=buildCompactReport(c,archived);
+  assert.equal(report.json.countries.unresolvedCanonicalGeometryIssues,0);
+  assert.equal(report.json.countries.topologicalDiscrepancies.length,4);
+  assert.equal(report.json.countries.status,'approved-followups-verified');
+  assert.match(report.markdown,/미해결 위상 오류는 0건/);
+  const forged=structuredClone(c);
+  forged.corrections.parentRepublicPartition.passed=false;
+  assert.throws(()=>buildCompactReport(forged,archived),/five fully verified/);
+});
 test('contradictory or waived native source evidence cannot generate reports',()=>{
   const c=receipt();c.countries.nonEquivalentFounders=0;
   assert.throws(()=>buildCompactReport(c,archived),/inconsistent/);
