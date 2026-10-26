@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -79,6 +79,7 @@ test('runtime storage advances the pin only after a remotely confirmed push and 
   assert.equal(JSON.parse(readFileSync(join(root,'config/library-data.json'))).revision,revision);
   assert.equal(git(data,'ls-remote','origin','refs/heads/main').split(/\s+/)[0],revision);
   put(remote,'hooks/pre-receive','#!/bin/sh\nexit 1\n');
+  chmodSync(join(remote,'hooks/pre-receive'),0o755);
   withLibraryWrite({root,prefixes:[path]},()=>put(root,path,'preserved rejected update'));
   assert.throws(()=>storeLibraryData({root,prefixes:[path],push:true}),/push|rejected/);
   assert.equal(JSON.parse(readFileSync(join(root,'config/library-data.json'))).revision,revision);
