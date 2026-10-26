@@ -18,8 +18,8 @@ async function evidence(page,testInfo,name,details){
 test('Web December1922 displays the reviewed USSR founders and historical Caspian',async({page},testInfo)=>{
  test.setTimeout(150000);const errors=[];page.on('pageerror',error=>errors.push(error.message));await observePhysicalContext(page);
  await page.goto('/?debug=1&demTerrain=raster');await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
- await page.locator('#timelineMonthButton').click();await page.locator('#timelineYearInput').fill('1922');await page.locator('#timelineMonthInput').selectOption('12');await page.locator('#timelineGoBtn').click();
- await expect(page.locator('#timelineMonthButtonText')).toHaveText('1922년 12월',{timeout:45000});
+ await page.locator('#timelineDateButton').click();await page.locator('#timelineViewUnit').selectOption('month');await page.locator('#timelineYearInput').fill('1922');await page.locator('#timelineMonthInput').selectOption('12');await page.locator('#timelineGoBtn').click();
+ await expect(page.locator('#timelineDateButtonText')).toHaveText('1922년 12월',{timeout:45000});
  await expect.poll(()=>page.evaluate(()=>globalThis.__gisPhysicalProof?.().holes),{timeout:30000}).toBe(68);
  const versions=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities.filter(e=>e.id.startsWith('state:soviet-union')).map(e=>({id:e.id,version:e.properties.sourceGeometryVersion})));
  expect(versions).toHaveLength(5);expect(versions.every(row=>row.version===row.id+':1922-12-30-reviewed-v2')).toBe(true);

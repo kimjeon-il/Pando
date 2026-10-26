@@ -14,7 +14,7 @@ test('editor status bar omits date navigation while editing context remains usab
   }));
   for (const viewport of [{ width: 1440, height: 900 }, { width: 640, height: 360 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(viewport);
-    await expect(page.locator('#timelineControls, #timelinePopover, #timelinePreviousYear, #timelinePreviousMonth, #timelineMonthButton, #timelineMonthInput, #timelineNextMonth, #timelineNextYear')).toHaveCount(0);
+    await expect(page.locator('#timelineControls, #timelinePopover, #timelinePreviousDecade, #timelinePreviousYear, #timelinePreviousMonth, #timelineDateButton, #timelineViewUnit, #timelineMonthInput, #timelineNextMonth, #timelineNextYear, #timelineNextDecade')).toHaveCount(0);
     await expect(page.locator('#projectSaveStatus')).toBeVisible();
     await expect(page.locator('#timelineComparePin, #timelineComparisonPanel')).toHaveCount(0);
     expect(await page.evaluate(() => ({ month: window.__testEditorTimeline.month(), selected: window.__testEditorTimeline.state().selected }))).toEqual(original);

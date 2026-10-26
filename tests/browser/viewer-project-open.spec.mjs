@@ -65,12 +65,12 @@ test('viewer opens the real editor GeoPackage and keeps it through invalid files
   expect(loaded.geometries).toEqual(first.project.geometries);
   expect(loaded.timelineRecords).toEqual(first.project.timelineRecords);
   expect(loaded.projectSetup).toEqual(first.project.projectSetup);
-  await expect(page.locator('#timelineMonthButton')).toHaveAttribute('aria-label', '1914년 6월, 시점 직접 입력');
+  await expect(page.locator('#timelineDateButton')).toHaveAttribute('aria-label', '1914년, 6월말 기준, 시점 직접 입력');
   await page.locator('#objectSearchBtn').click();
   await page.getByLabel('지도에서 찾기', { exact:true }).fill('파일 지도 A');
   await page.locator('#objectSearchResults button').filter({ hasText: '파일 지도 A' }).first().click();
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.notes)).toBe('원본 메타데이터 보존');
-  await page.locator('#timelineMonthButton').click();
+  await page.locator('#timelineDateButton').click();await page.locator('#timelineViewUnit').selectOption('month');
   await page.locator('#timelineYearInput').fill('1914');
   await page.locator('#timelineMonthInput').selectOption('7');
   await page.locator('#timelineYearInput').press('Enter');
