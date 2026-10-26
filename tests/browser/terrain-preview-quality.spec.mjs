@@ -1,74 +1,75 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
-import { expect, test } from '@playwright/test';
-import path from 'node:path';
+import {expect,test} from '@playwright/test';
 
-test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
-  launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+test.use({viewport:{width:1000,height:760},deviceScaleFactor:1,trace:'off',
+  launchOptions:{args:process.platform==='win32'?['--use-angle=d3d11']:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox']}});
 
-for (const renderer of ['webgl2', 'canvas']) {
-  test(`improved ${renderer} terrain paints while the map remains in preview`, async ({ page, baseURL }, testInfo) => {
-    test.setTimeout(150_000);
-    const errors = [], tiles = [];
-    page.on('pageerror', error => errors.push(error.message));
-    const output = process.env.PANDOLAB_DEM_OUTPUT_DIR;
-    await page.route('**/terrain/**', async route => {
-      const pathname = new URL(route.request().url()).pathname;
-      const tile = pathname.match(/\/(\d+)\/\d+-\d+\.webp$/);
-      if (tile) tiles.push(Number(tile[1]));
-      if (renderer === 'webgl2' && output
-          && new URL(route.request().url()).hostname === 'kimjeon-il.github.io') {
-        const relative = pathname.match(/\/terrain\/v[^/]+\/(.*)$/)[1];
-        await route.fulfill({ path: path.join(output, relative),
-          contentType: pathname.endsWith('.webp') ? 'image/webp' : 'application/json',
-          headers: { 'Access-Control-Allow-Origin': '*' } });
-      } else await route.continue();
+// Decode the actual screenshot rather than a discarded WebGL backbuffer.
+async function samples(page,buffer){
+  return page.evaluate(async bytes=>{
+    const image=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/png'}));
+    const copy=document.createElement('canvas');copy.width=image.width;copy.height=image.height;
+    const context=copy.getContext('2d');context.drawImage(image,0,0);image.close();
+    const canvas=document.querySelector('canvas.gpu-map-canvas'),rect=canvas.getBoundingClientRect();
+    const host=window.__PANDOLAB_MAP_HOST__;
+    return [[83,33],[85,33],[87,33],[80,25],[83,25],[86,25]].map(point=>{
+      const xy=host.project(point);
+      return [...context.getImageData(Math.round(xy[0]*copy.width/rect.width),Math.round(xy[1]*copy.height/rect.height),1,1).data];
     });
-    try {
-      const site = process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`;
-      await gotoEditor(page, new URL(`?renderer=${renderer}&debug=1${renderer === 'canvas' ? '&demTerrain=raster' : ''}`, site).href,
-        { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-      await expect(page.locator('.gpu-map-canvas')).toBeVisible();
-      await expect.poll(() => tiles.length, { timeout: 90_000 }).toBeGreaterThan(0);
-      expect(tiles.every(level => level === 0 || level === 1)).toBe(true);
-      if (renderer === 'webgl2') {
-        await expect.poll(() => page.evaluate(() => {
-          const m = window.__PANDOLAB_GPU_METRICS__;
-          return m?.terrainTargetLevel === 1 && m.terrainRenderedLevel === 1
-            && m.terrainTargetTilesSettled && m.terrainTintReady;
-        }), { timeout: 90_000 }).toBe(true);
-      } else {
-        await expect.poll(() => page.evaluate(() => {
-          const canvas = document.querySelector('.gpu-map-canvas');
-          if (!canvas) return 0;
-          const probe = document.createElement('canvas');
-          probe.width = canvas.width; probe.height = canvas.height;
-          const context = probe.getContext('2d');
-          context.drawImage(canvas, 0, 0);
-          const rgba = context.getImageData(0, 0, probe.width, probe.height).data;
-          let blue = 0;
-          for (let i = 0; i < rgba.length; i += 4) if (rgba[i + 3] > 0 && rgba[i + 2] > rgba[i] + 15) blue++;
-          return blue;
-        }), { timeout: 90_000 }).toBeGreaterThan(40_000);
-      }
-      await page.screenshot({ path: testInfo.outputPath(`${renderer}-improved-preview.png`) });
-      expect([...new Set(tiles)].sort()).toEqual([0, 1]);
-      if (renderer === 'webgl2') {
-        await page.evaluate(() => {
-          const host = window.__PANDOLAB_MAP_HOST__;
-          const view = host.getViewState();
-          host.setViewState({ projection: 'flat', view: { ...view, flatCenter: [110, 32], flatZoom: 4 } });
-          host.requestRepaint('terrain-china-quality');
-        });
-        await expect.poll(() => page.evaluate(() => {
-          const m = window.__PANDOLAB_GPU_METRICS__;
-          return m?.terrainTargetLevel > 1 && m.terrainTargetTilesSettled && m.terrainTintReady;
-        }), { timeout: 90_000 }).toBe(true);
-        await page.screenshot({ path: testInfo.outputPath('china-detailed-tint.png') });
-      }
-      expect(errors).toEqual([]);
-    } finally {
-      await page.close();
+  },Array.from(buffer));
+}
+
+for(const renderer of ['webgl2','canvas'])test(`selected ${renderer} relief distinguishes Tibetan plateaus and Indian plains in color and grayscale`,async({page},testInfo)=>{
+  test.setTimeout(240000);
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.addInitScript(()=>localStorage.setItem('pandolab-user-preferences',JSON.stringify({version:2,backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical'}}})));
+  await page.goto(`/?renderer=${renderer}&debug=1`,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
+  await page.evaluate(()=>{
+    const host=window.__PANDOLAB_MAP_HOST__;
+    host.setViewState({projection:'globe',view:{flatCenter:[85,31],flatZoom:1,globeRotation:[-85,-31,0],globeZoom:5.5}});
+    host.requestRepaint('selected-terrain-quality');
+  });
+  await expect.poll(()=>page.evaluate(()=>{
+    const s=window.__PANDOLAB_VIEWER__.rendererStats();
+    return s.terrainReady&&s.mapReadiness.status==='ready'&&s.terrainDatasetVersion==='0.13.3'
+      &&Math.abs(s.screenScale-window.__PANDOLAB_MAP_HOST__.getViewState().scale)<1
+      &&(s.renderer==='webgl2'||s.renderer==='canvas-worker');
+  }),{timeout:150000}).toBe(true).catch(async error=>{
+    console.log('TERRAIN_QUALITY_FAILURE',JSON.stringify(await page.evaluate(()=>{
+      const s=window.__PANDOLAB_VIEWER__.rendererStats();
+      return {renderer:s.renderer,readiness:s.mapReadiness,terrain:Object.fromEntries(Object.entries(s).filter(([key])=>key.startsWith('terrain')))};
+    })));throw error;
+  });
+  await page.screenshot({path:testInfo.outputPath('terrain-with-borders-and-labels.png')});
+  await page.evaluate(()=>{
+    for(const id of ['objectsVisible','labelsVisible','riversVisible','lakesVisible']){
+      const input=document.getElementById(id);if(input?.checked)input.click();
     }
   });
-}
+  const settled=async()=>{
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    await expect.poll(()=>page.evaluate(()=>{
+      const s=window.__PANDOLAB_VIEWER__.rendererStats();
+      return s.mapReadiness.status==='ready'&&(s.renderer!=='canvas-worker'
+        ||s.canvasDisplayedStyleRevision===s.canvasStyleRevision&&!s.canvasWorkerBusy&&!s.canvasWorkerHasPendingFrame);
+    }),{timeout:60000}).toBe(true);
+  };
+  await settled();
+  const before=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState());
+  for(const style of ['physical','political']){
+    await page.locator(style==='physical'?'#terrainPhysicalRadio':'#terrainPoliticalRadio').evaluate(input=>input.click());
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
+    await settled();
+    const image=await page.locator('canvas.gpu-map-canvas').first().screenshot({path:testInfo.outputPath(`selected-${style}.png`)});
+    const colors=await samples(page,image);
+    for(const rgba of colors)expect(rgba[3]).toBe(255);
+    if(style==='political'){
+      for(const rgba of colors)expect(Math.max(...rgba.slice(0,3))-Math.min(...rgba.slice(0,3))).toBeLessThanOrEqual(2);
+      const median=values=>values.sort((a,b)=>a-b)[1];
+      expect(median(colors.slice(0,3).map(c=>c[0]))-median(colors.slice(3).map(c=>c[0]))).toBeGreaterThan(20);
+    }else expect(colors.slice(3).some(c=>c[1]>c[0]+10&&c[1]>c[2]+10)).toBe(true);
+    expect(await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState())).toEqual(before);
+    console.log(JSON.stringify({renderer,style,colors}));
+  }
+  expect(errors).toEqual([]);
+});

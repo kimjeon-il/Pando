@@ -16,7 +16,7 @@ export const runtimeDependencies = Object.freeze({
     'assets/js/workers/country-shared-boundary-worker.js', 'assets/js/workers/canvas-render-worker.js'],
   'assets/js/modules/builtin-mesh-resource.js': ['assets/js/workers/data-loader-worker.js','assets/data/world/current.json'],
   'assets/js/modules/builtin-world-loader.js': ['assets/data/builtin-world/generated/v1/index.json'],
-  'assets/js/modules/physical-source-configuration.js': ['assets/data/terrain-preview/v0.13.3-p1/manifest.json'],
+  'assets/js/modules/physical-source-configuration.js': ['assets/data/terrain-preview/v0.13.3-p2/manifest.json'],
   'assets/js/workers/canvas-render-worker.js': ['assets/js/vendor/d3.min.js', 'assets/js/workers/geographic-boundary-core.js',
     'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js', 'assets/js/modules/terrain-manifest.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
@@ -61,7 +61,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
     'assets/data/prepared-polygons/generated/v2/manifest.json',
     'assets/data/hydro/v0.13.2/manifest.json',
     'assets/data/places/manifest.json',
-    'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
+    'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
     'assets/data/physical-land/v1/manifest.json',
   ];
   const dataAsset=(url,base)=>{

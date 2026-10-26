@@ -121,7 +121,7 @@ export function artifactGraph(root) {
       } else f.outputs.push(...Object.values(seed.sharedBoundaries).map(p=>'assets/data/'+p));
     }
     if(f.resolve==='hydro'||f.resolve==='terrain') {
-      const manifest=f.resolve==='hydro'?'assets/data/hydro/v0.13.2/manifest.json':'assets/data/terrain-preview/v0.13.3-p1/manifest.json';
+      const manifest=f.resolve==='hydro'?'assets/data/hydro/v0.13.2/manifest.json':'assets/data/terrain-preview/v0.13.3-p2/manifest.json';
       f.outputs.push(dirname(manifest).replaceAll('\\','/')+'/');
       f.provenance=provenance(json(root,manifest).sources);
     }

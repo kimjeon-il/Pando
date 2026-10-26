@@ -570,7 +570,7 @@ export function createGpuMapRenderer(deps) {
     });
     let preparedTerrain = [];
     function detailedTerrainShadeActive() {
-      return isWebGlRenderer() && terrainManifest?.representation === TERRAIN_DEM_FORMAT && scaleQuality !== 'preview';
+      return isWebGlRenderer() && terrainManifest?.representation === TERRAIN_DEM_FORMAT;
     }
     function prepareTerrain(frame) {
       if(!terrainPreparation)return;
@@ -1371,7 +1371,7 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
           ['uTerrain', 'uTint', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme',
-            'uTextureSize', 'uLevelSize', 'uLandPass', 'uDetailedShade'], ['aGrid']);
+            'uTextureSize', 'uLevelSize', 'uLandPass'], ['aGrid']);
         return true;
       } catch (error) {
         terrainDemProgram = null;
@@ -3396,7 +3396,6 @@ export function createGpuMapRenderer(deps) {
         gl.uniform2f(cachedUniformLocation(program, 'uTextureSize'), sourceWidth, sourceHeight);
         gl.uniform2f(cachedUniformLocation(program, 'uLevelSize'), sourceLevel.width, sourceLevel.height);
         gl.uniform1f(cachedUniformLocation(program, 'uLandPass'), pass === 'land' ? 1 : 0);
-        gl.uniform1f(cachedUniformLocation(program, 'uDetailedShade'), scaleQuality === 'preview' ? 0 : 1);
       }
       for (const offset of frameContext.worldOffsets) {
         setViewUniforms(program, offset, frameContext);
@@ -3532,8 +3531,8 @@ export function createGpuMapRenderer(deps) {
       const theme = mapTheme();
       const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         surfacePresentation,
-        terrainVisible: state.physicalSettings.terrainVisible && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet))
-          && (countriesPublishedGeneration === projectGeneration || currentTerrainReadiness().terrainReady), terrainStyle: state.physicalSettings.terrainStyle,
+        terrainVisible: state.physicalSettings.terrainVisible && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet)),
+        terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.objects,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         mapOcean: { color: theme.ocean, fillAlpha: 1 },
@@ -4104,7 +4103,6 @@ export function createGpuMapRenderer(deps) {
       return {
         type: 'style',
         surfacePresentation,
-        backgroundPending: countriesPublishedGeneration !== projectGeneration,
         styleRevision: ++canvasStyleRevision,
         visible: !!state.layerVisibility.objects,
         hiddenCountryIds: features.map(feature => String(feature.id)).filter(id => !isCountryVisibleById(id)),
@@ -4154,7 +4152,6 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(frame)) throw new TypeError('Canvas Worker view requires a MapVisualFrame.');
       const view = frame.viewState;
       return {
-        backgroundPending: countriesPublishedGeneration !== projectGeneration,
         type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
         presentationKey: mapTargetKey(frame, { terrainTargetKey: '' }),

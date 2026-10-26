@@ -4,14 +4,14 @@ import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from 
 import { resolve, dirname } from 'node:path';
 import { buildFrontendIndex } from '../scripts/lib/frontend-layout.mjs';
 
-export const PREVIEW_ROOT = 'assets/data/terrain-preview/v0.13.3-p1/';
+export const PREVIEW_ROOT = 'assets/data/terrain-preview/v0.13.3-p2/';
 export const DEM_SOURCE = 'contracts/terrain/preview-dem-source.json';
 const sha = (algorithm, bytes) => createHash(algorithm).update(bytes).digest('hex');
 
 export function validatePreviewCorpus(manifest, files, dem, landMaskSha256) {
   const errors = [];
   const expected = ['manifest.json', '0/0-0.webp', '0/1-0.webp', ...[0, 1].flatMap(row => [0, 1, 2].map(column => `1/${column}-${row}.webp`))];
-  if (manifest.version !== '0.13.3-p1' || manifest.representation !== 'raster-rgba-v1' || manifest.levels?.length !== 2 || manifest.gutter !== 1)
+  if (manifest.version !== '0.13.3-p2' || manifest.representation !== 'raster-rgba-v1' || manifest.levels?.length !== 2 || manifest.gutter !== 1)
     errors.push('Preview representation, LOD or gutter changed');
   if (JSON.stringify([...files.keys()].sort()) !== JSON.stringify([...expected].sort())) errors.push('Preview file inventory incomplete or expanded');
   const totalBytes = [...files.values()].reduce((sum, bytes) => sum + bytes.length, 0);

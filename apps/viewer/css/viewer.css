@@ -1,40 +1,21 @@
 /* Viewer-only placement. Shared controls, surfaces and tokens own the visual language. */
 .app-root.viewer-root { --ui-shell-statusbar-height: 0px; --ui-statusbar-height: 0px; --ui-map-bottom-occupied-height: 0px; --mobile-nav-height: 0px; }
-.viewer-root #map { width: 100%; height: 100%; }
-.viewer-root #viewerCanvas,
-.viewer-root #viewerLabels { position: absolute; inset: 0; width: 100%; height: 100%; }
-.viewer-root #viewerLabels { pointer-events: none; }
-.viewer-root #viewerSelectionStatus { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.viewer-map-tools { position: absolute; z-index: 18; inset: auto max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); min-height: 52px; pointer-events: none; }
+.viewer-root .gpu-map-canvas,
+.viewer-root .map-overlay-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.viewer-root .labels-layer { pointer-events: none; }
+.viewer-root .viewer-map-tools { position: absolute; z-index: 18; inset: auto max(var(--ui-space-4), env(safe-area-inset-right)) max(var(--ui-space-4), env(safe-area-inset-bottom)) max(var(--ui-space-4), env(safe-area-inset-left)); min-height: calc(var(--ui-icon-control-size) + var(--ui-space-2) * 2); pointer-events: none; }
 .app-root.viewer-root .map-command-toolbar { z-index: 18; bottom: 0; left: 50%; right: auto; transform: translateX(-50%); pointer-events: auto; }
-.viewer-root .timeline-controls { position: absolute; z-index: 20; right: 0; bottom: 0; width: min(23rem, 100%); display: grid; grid-template-columns: var(--ui-icon-control-size) var(--ui-icon-control-size) minmax(0, 1fr) var(--ui-icon-control-size) var(--ui-icon-control-size); align-items: center; gap: 0; padding: var(--ui-toolbar-padding); pointer-events: auto; overflow: visible; }
-.timeline-controls .timeline-month-button { display: flex; align-items: center; justify-content: center; gap: var(--ui-control-gap); min-width: 0; min-height: var(--ui-icon-control-size); height: auto; padding: var(--ui-space-1); font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); white-space: normal; }
-.timeline-month-button span { min-width: 0; overflow-wrap: anywhere; line-height: 1.35; }
-.timeline-popover { position: absolute; right: 0; bottom: calc(100% + 8px); width: min(20rem, calc(100vw - 32px)); max-height: calc(100dvh - 120px); overflow-y: auto; padding: 16px; }
-.timeline-popover h2 { margin: 0 0 12px; font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
-.timeline-popover form { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; align-items: center; }
-.timeline-popover input,
-.timeline-popover select { min-width: 0; width: 100%; min-height: var(--ui-control-height); font: inherit; color: var(--text); background: var(--panel); border: var(--ui-border-width) solid var(--map-status-border); border-radius: var(--ui-radius-control); padding: var(--ui-control-padding-y); }
-.timeline-popover [aria-invalid="true"] { border-color: var(--danger); }
-.timeline-year-hint,
-.timeline-error,
-.timeline-go { grid-column: 1 / -1; }
-.timeline-year-hint { color: var(--text-soft); font-size: var(--design-font-xs); }
-.timeline-error { color: var(--danger); font-size: var(--design-font-xs); white-space: normal; }
-.timeline-controls .timeline-go { min-height: var(--ui-control-height); }
-@media (max-width: 799px) {
-  .timeline-popover :is(input, select, .timeline-go) { min-height: var(--ui-touch-height); }
-}
-.viewer-loading { position: absolute; z-index: 19; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: calc(100% - 32px); padding: 8px 12px; border-radius: var(--ui-radius-control); background: var(--panel); color: var(--text); }
-.viewer-map-error { position: absolute; z-index: 19; top: 16px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); display: flex; align-items: center; gap: 12px; padding: 8px 12px; color: var(--text); }
-.viewer-map-error button { flex: 0 0 auto; }
+.viewer-root .timeline-controls { position: absolute; z-index: 20; right: 0; bottom: 0; width: min(23rem, 100%); pointer-events: auto; overflow: visible; }
+.viewer-root .timeline-popover { position: absolute; right: 0; bottom: calc(100% + var(--ui-space-2)); width: min(20rem, calc(100vw - var(--ui-space-8))); max-height: calc(100dvh - 7.5rem); overflow-y: auto; }
+.viewer-root .viewer-loading { position: absolute; z-index: 19; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: calc(100% - var(--ui-space-8)); }
+.viewer-root .viewer-map-error { position: absolute; z-index: 19; top: var(--ui-space-4); left: 50%; transform: translateX(-50%); max-width: calc(100% - var(--ui-space-8)); }
 .viewer-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .map-command-toolbar .map-command-search { display: block; }
 @media (min-width: 900px) and (max-width: 1279px) {
-  .viewer-map-tools:has(.map-command-search.is-expanded) .map-command-toolbar { bottom: calc(100% + 12px); }
+  .viewer-root .viewer-map-tools:has(.map-command-search.is-expanded) .map-command-toolbar { bottom: calc(100% + var(--ui-space-3)); }
 }
 @media (max-width: 899px) {
-  .viewer-root .viewer-map-tools { display: flex; flex-direction: column; align-items: center; gap: 12px; min-height: 0; left: max(8px, env(safe-area-inset-left)); right: max(8px, env(safe-area-inset-right)); }
+  .viewer-root .viewer-map-tools { display: flex; flex-direction: column; align-items: center; gap: var(--ui-space-3); min-height: 0; left: max(var(--ui-space-2), env(safe-area-inset-left)); right: max(var(--ui-space-2), env(safe-area-inset-right)); }
   .app-root.viewer-root .viewer-map-tools .map-command-toolbar { position: relative; inset: auto; width: max-content; transform: none; }
   .viewer-root .timeline-controls { position: relative; inset: auto; }
-  .timeline-popover { right: 50%; transform: translateX(50%); }
+  .viewer-root .timeline-popover { right: 50%; transform: translateX(50%); }
 }

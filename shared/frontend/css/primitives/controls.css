@@ -300,6 +300,7 @@ label:has(> input[type="radio"]) {
   -webkit-tap-highlight-color: transparent;
   border-radius: var(--ui-radius-control);
   font-size: var(--ui-font-body);
+  min-height: var(--ui-control-height);
   font-weight: var(--ui-weight-semibold);
   box-shadow: none;
   transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease;
@@ -399,6 +400,51 @@ label:has(> input[type="radio"]) {
 .ui-field {
   min-width: 0;
 }
+
+/* Visible fields share one skin; native-select proxies stay visually hidden. */
+.ui-input,
+:where(.field-group, .ui-field, .gis-form-grid) :where(input[type="text"], input[type="search"], input[type="number"], textarea, select):not(.ui-select-control, .ui-native-select) {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ui-control-height);
+  padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
+  border: var(--ui-border-width) solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  background-color: var(--surface-input);
+  color: var(--text);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-regular);
+  line-height: var(--ui-line-normal);
+  outline: 0;
+}
+
+select.ui-input:not(.ui-native-select),
+:where(.field-group, .ui-field, .gis-form-grid) select:not(.ui-native-select) { padding-right: var(--ui-select-indicator-space); }
+
+.ui-input:focus,
+:where(.field-group, .ui-field, .gis-form-grid) :where(input, textarea, select):not(.ui-native-select):focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 var(--ui-space-0-5) color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.ui-input[aria-invalid="true"] { border-color: var(--danger); }
+
+/* Two-line date summaries remain text controls, with content-driven height. */
+.ui-button.timeline-date-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-control-gap);
+  min-width: 0;
+  min-height: var(--ui-control-height);
+  height: auto;
+  padding: 0 var(--ui-space-1);
+  white-space: normal;
+}
+
+.timeline-date-button span { min-width: 0; overflow-wrap: anywhere; }
+.timeline-date-label { display: grid; }
+.timeline-date-basis { color: var(--text-soft); font-size: var(--ui-font-sm); font-weight: var(--ui-weight-regular); }
 
 .ui-panel {
   padding: var(--ui-panel-padding);
@@ -894,14 +940,6 @@ input[type="range"].ui-range-progress::-moz-range-progress {
   align-items: center;
 }
 
-.ui-custom-color-hue > span {
-  position: absolute;
-  width: var(--ui-border-width);
-  height: var(--ui-border-width);
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-
 .ui-custom-color-hue input[type="range"] {
   width: 100%;
   min-height: var(--ui-control-height);
@@ -964,25 +1002,7 @@ input[type="range"].ui-range-progress::-moz-range-progress {
 
 .ui-custom-color .ui-field > span {
   color: var(--text-soft);
-  font-size: var(--ui-font-sm);
-}
-
-.ui-custom-color .ui-field input {
-  width: 100%;
-  min-width: 0;
-  padding: var(--ui-space-1) var(--ui-space-2);
-  border: 1px solid var(--component-field-border);
-  border-radius: var(--ui-radius-control);
-  background: var(--surface-input);
-  color: var(--text);
-  font: inherit;
-  font-variant-numeric: tabular-nums;
-}
-
-.ui-custom-color .ui-field input:focus-visible {
-  border-color: var(--accent);
-  outline: 2px solid var(--focus-ring);
-  outline-offset: var(--ui-border-width);
+  font-size: var(--ui-font-body);
 }
 
 .ui-custom-color input[aria-invalid="true"] {
@@ -992,12 +1012,6 @@ input[type="range"].ui-range-progress::-moz-range-progress {
 .ui-custom-color-formats {
   display: flex;
   gap: var(--ui-space-1);
-}
-
-.ui-custom-color-formats .ui-button {
-  padding-inline: var(--ui-space-2);
-  background: transparent;
-  font-size: var(--ui-font-sm);
 }
 
 .ui-custom-color-formats .ui-button[aria-pressed="true"] {
@@ -1027,12 +1041,6 @@ input[type="range"].ui-range-progress::-moz-range-progress {
 @media (max-width: 799px) {
   .ui-color-popover.is-custom {
     max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-map-bottom-occupied-height) - var(--ui-space-4) * 2);
-  }
-}
-
-@media (max-width: 799px) {
-  .ui-custom-color :is(.ui-button, .ui-field input, .ui-custom-color-hue input) {
-    min-height: var(--ui-touch-height);
   }
 }
 
@@ -1167,7 +1175,7 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 }
 
 .ui-button:is(.btn, .create-menu-btn, .mode-primary-btn) {
-  min-height: var(--design-control-md);
+  min-height: var(--ui-control-height);
   height: auto;
   padding-block: var(--ui-space-1);
 }
@@ -1238,19 +1246,19 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 }
 
 :where(.field-group, .ui-field, .gis-form-grid) :where( input[type="text"], input[type="search"], input[type="number"], textarea, select ):not(.ui-native-select) {
-  min-height: var(--design-control-md);
+  min-height: var(--ui-control-height);
   height: auto;
   font-size: var(--design-font-md);
 }
 
 .ui-select-control {
-  min-height: var(--design-control-md);
+  min-height: var(--ui-control-height);
   height: auto;
   font-size: var(--design-font-md);
 }
 
 .ui-search-field {
-  min-height: var(--design-control-md);
+  min-height: var(--ui-control-height);
   height: auto;
   font-size: var(--design-font-md);
 }
@@ -1261,11 +1269,11 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 
 :where(.field-group, .ui-field, .gis-form-grid) textarea {
   height: auto;
-  min-height: var(--design-control-md);
+  min-height: var(--ui-control-height);
 }
 
 .ui-toggle {
-  min-height: var(--design-control-md);
+  min-height: var(--ui-control-height);
   display: inline-flex;
   align-items: center;
 }
@@ -1389,39 +1397,6 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
     min-width: var(--design-toggle-mobile-width);
     height: var(--design-toggle-mobile-height);
     min-height: var(--design-toggle-mobile-height);
-  }
-}
-
-@media (max-width: 799px) {
-  :where(.field-group, .ui-field, .gis-form-grid) :where( input[type="text"], input[type="search"], input[type="number"], textarea, select ):not(.ui-native-select) {
-    min-height: var(--design-control-mobile-height);
-    height: auto;
-  }
-}
-
-@media (max-width: 799px) {
-  .ui-select-control {
-    min-height: var(--design-control-mobile-height);
-    height: auto;
-  }
-}
-
-@media (max-width: 799px) {
-  .ui-search-field {
-    min-height: var(--design-control-mobile-height);
-    height: auto;
-  }
-}
-
-@media (max-width: 799px) {
-  .ui-button:is(.btn, .create-menu-btn, .mode-primary-btn) {
-    min-height: var(--ui-touch-height);
-  }
-}
-
-@media (max-width: 799px) {
-  .ui-toggle {
-    min-height: var(--ui-touch-height);
   }
 }
 

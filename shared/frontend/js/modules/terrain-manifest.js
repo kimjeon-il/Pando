@@ -1,4 +1,4 @@
-export const TERRAIN_RASTER_VERSION = '0.13.3-p1';
+export const TERRAIN_RASTER_VERSION = '0.13.3-p2';
 export const TERRAIN_RASTER_DATASET = 'ETOPO 2022 DEM derived preview';
 export const TERRAIN_DEM_VERSION = '0.13.3';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';

@@ -3,7 +3,7 @@ import {test,expect} from '@playwright/test';
 const stats=page=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
 async function month(page,value){
   const [year,month]=value.split('-');
-  await page.locator('#timelineMonthButton').click();
+  await page.locator('#timelineDateButton').click();await page.locator('#timelineViewUnit').selectOption('month');
   await page.locator('#timelineYearInput').fill(year);
   await page.locator('#timelineMonthInput').selectOption(String(Number(month)));
   await page.locator('#timelineGoBtn').click();

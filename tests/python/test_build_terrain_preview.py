@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -18,6 +19,18 @@ spec.loader.exec_module(preview)
 
 
 class TerrainPreviewTests(unittest.TestCase):
+    def test_selected_elevation_colors_and_gray_match_the_display_contract(self):
+        contract = json.loads((SCRIPT.parents[1] / 'tests/fixtures/terrain-presentation.json').read_text())
+        tint = np.array([[contract['tint']]], dtype=np.uint8)
+        for row in contract['flatLand']:
+            source = np.empty((3, 3, 4), dtype=np.uint8)
+            encoded = row['height'] + 12000
+            source[:] = [encoded >> 8, encoded & 255, 212, 255]
+            original = source.copy()
+            actual = preview.compose_preview_rgba(source, tint, np.ones((3, 3), dtype=bool), 674, 336, 1350, 675)
+            self.assertEqual(actual[1, 1].tolist(), row['rgb'] + [row['gray']], str(row['height']))
+            np.testing.assert_array_equal(source, original)
+
     def test_source_contract_uses_only_required_dem_and_tint_pins(self):
         countries = b'{"type":"FeatureCollection","features":[]}'
         tint_hash = preview.sha256(b"tint")
@@ -73,10 +86,38 @@ class TerrainPreviewTests(unittest.TestCase):
         actual = preview.compose_preview_rgba(source, tint, land, 0, 0, 2, 2)
 
         self.assertEqual(actual.shape, (2, 2, 4))
-        self.assertTrue(np.all(actual[:, :, 3] == 128))
-        ratio = min(1.2, max(0.5, (128 / 255) / (0.42 + 0.58 * 0.70710678)))
-        self.assertEqual(tuple(actual[0, 0, :3]), tuple(np.rint(np.array([100, 150, 200]) * ratio).astype(np.uint8)))
-        self.assertNotEqual(tuple(actual[0, 1, :3]), tuple(actual[0, 0, :3]))
+        np.testing.assert_allclose(actual[0, 0], [106,155,140,148], atol=1)
+        np.testing.assert_allclose(actual[0, 1], [53,98,137,148], atol=1)
+
+    def test_preview_and_canvas_agree_on_slopes_coasts_and_polar_fallback(self):
+        node = r"""
+const fs=require('fs'),vm=require('vm'),scope={self:{}};
+vm.runInNewContext(fs.readFileSync('shared/frontend/js/workers/canvas-terrain-dem-core.js','utf8'),scope);
+const options=JSON.parse(fs.readFileSync(0,'utf8'));
+const result=scope.self.PandoLabCanvasTerrainDem.convertTile(options);
+console.log(JSON.stringify(Object.fromEntries(Object.entries(result).map(([key,value])=>[key,Array.from(value)]))));
+"""
+        width = height = 7
+        grid_y, grid_x = np.indices((height, width))
+        heights = 1200 + 75*(grid_x-3) + 40*(grid_y-3) + 9*(grid_x-3)**2
+        encoded = heights + 12000
+        dem = np.stack((encoded//256, encoded%256, np.full_like(encoded,128), np.full_like(encoded,255)),axis=2).astype(np.uint8)
+        tint = np.array([[[200,100,50,255],[50,150,100,255]],[[80,120,200,255],[220,200,120,255]]],dtype=np.uint8)
+        land = (grid_x+grid_y)%2 == 0
+        level_width, level_height = 400302.28884, 200151.14442
+        for latitude in [0,45,89.6,-89.6]:
+            x_origin = level_width/2-3.5
+            y_origin = (90-latitude)*level_height/180-3.5
+            west = -180+(x_origin+1)*360/level_width
+            north = 90-(y_origin+1)*180/level_height
+            options = dict(dem=dem.ravel().tolist(),width=width,height=height,tint=tint.ravel().tolist(),tintWidth=2,tintHeight=2,
+                           bounds=[west,north,west+5*360/level_width,north-5*180/level_height],pixelWidth=5,pixelHeight=5,
+                           levelWidth=level_width,levelHeight=level_height)
+            cpu = json.loads(subprocess.check_output(['node','-e',node],input=json.dumps(options),text=True,cwd=SCRIPT.parents[1]))
+            actual = preview.compose_preview_rgba(dem,tint,land,x_origin,y_origin,level_width,level_height)
+            rgb = np.where(land[:,:,None],np.array(cpu['land']).reshape(height,width,4),np.array(cpu['ocean']).reshape(height,width,4))
+            rgb[:,:,3] = np.array(cpu['political']).reshape(height,width,4)[:,:,0]
+            self.assertLessEqual(np.max(np.abs(actual.astype(int)-rgb)),2,str(latitude))
 
     def test_land_mask_hole_and_dateline_are_preserved(self):
         countries = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {
