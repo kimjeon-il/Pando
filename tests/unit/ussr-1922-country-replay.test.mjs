@@ -84,3 +84,22 @@ test('staging writes an exclusive review candidate and never overwrites it',t=>{
    'assets/data/territorial-entities/source/countries/state-soviet-union.json')));
  assert.throws(()=>stageSnapshot(draft,target),/must be new/);
 });
+
+test('already published founder geometries must receive strict independent native evidence when their representation differs',()=>{
+ const staged=buildUSSRApprovedSnapshot(approved(),before());
+ const published=Object.fromEntries(FOUNDER_IDS.map(id=>[id,
+   staged.changes.get('assets/data/territorial-entities/source/countries/'+id.replace(':','-')+'.json')]));
+ published[FOUNDER_IDS[0]].geometryVersions.at(-1).geometry.coordinates[0][0].splice(1,0,[.5,0]);
+ assert.throws(()=>buildUSSRApprovedSnapshot(approved(),published),/differs/);
+ const proof={schemaVersion:1,passed:true,sameGeometryTopologically:true,
+   symmetricDifferenceSquareDegrees:0,boundaryHausdorffDegrees:0};
+ const accepted=buildUSSRApprovedSnapshot(approved(),published,{
+   comparePublishedGeometry:()=>proof,
+ });
+ assert.equal(accepted.mode,'already-applied-verified');
+ assert.equal(accepted.geometryVariations.length,1);
+ assert.equal(accepted.geometryVariations[0].entityId,FOUNDER_IDS[0]);
+ assert.throws(()=>buildUSSRApprovedSnapshot(approved(),published,{
+   comparePublishedGeometry:()=>({...proof,passed:false}),
+ }),/differs topologically/);
+});
