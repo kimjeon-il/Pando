@@ -41,6 +41,20 @@ test('native Caspian physical-land rebuild keeps the far land and exactly repair
  assert.equal(result.metrics.fullLandValid,true);
  assert.ok(result.metrics.modernWaterAreaKm2>result.metrics.historicalWaterAreaKm2);
 });
+test('a pre-existing invalid far polygon is preserved and cannot mask local Caspian changes',t=>{
+ const bowtie=[[100,1],[102,2],[100,2],[102,1],[100,1]];
+ const source={modernLand:{type:'MultiPolygon',coordinates:[[exterior,former],[bowtie]]},
+   historicalWater:water(),expectedWaterHoles:0,
+   publishedHistoricalLand:{type:'MultiPolygon',coordinates:[[exterior,current],[bowtie]]}};
+ const {r,result}=compute(t,source);
+ assert.equal(r.status,0,r.stderr);
+ assert.equal(result.metrics.modernFullLandValid,false);
+ assert.equal(result.metrics.fullLandValid,false);
+ assert.equal(result.metrics.preexistingGlobalInvalidityPreserved,true);
+ assert.equal(result.metrics.unchangedFarGeometryPreserved,true);
+ assert.equal(result.metrics.outsideRegionDifferenceSquareDegrees,0);
+ assert.equal(result.metrics.publishedSymmetricDifferenceSquareDegrees,0);
+});
 test('native data validator rejects an altered published historical coastline instead of silently replacing it',t=>{
  const source={modernLand:modern(),historicalWater:water(),
    expectedWaterHoles:0,publishedHistoricalLand:modern()};
