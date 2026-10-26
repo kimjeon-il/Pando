@@ -162,10 +162,10 @@ struct OwnerRecords {
 };
 std::map<std::string,OwnerRecords> ownerRecords(const ProjectDocument& document) {
     std::map<std::string,OwnerRecords> result;
-    for(const auto& row:document.timelineRecords.lifetimes)result[row.entityId].lifetimes.emplace_back(row.id,row.validity.from,row.validity.to);
-    for(const auto& row:document.timelineRecords.geometryBindings)result[row.entityId].bindings.push_back(&row);
-    for(const auto& row:document.timelineRecords.parentRelations)result[row.entityId].parents.emplace_back(row.id,row.validity.from,row.validity.to,row.parentId,row.coverageMode);
-    for(const auto& row:document.timelineRecords.propertyBindings)result[row.entityId].properties.emplace_back(row.id,row.validity.from,row.validity.to,row.property,row.value);
+    for(const auto& row:document.timelineRecords.lifetimes)if(row.objectRef.domain=="territorial")result[row.objectRef.id].lifetimes.emplace_back(row.id,row.validity.from,row.validity.to);
+    for(const auto& row:document.timelineRecords.geometryBindings)if(row.objectRef.domain=="territorial")result[row.objectRef.id].bindings.push_back(&row);
+    for(const auto& row:document.timelineRecords.parentRelations)if(row.objectRef.domain=="territorial")result[row.objectRef.id].parents.emplace_back(row.id,row.validity.from,row.validity.to,row.parentId,row.coverageMode);
+    for(const auto& row:document.timelineRecords.propertyBindings)if(row.objectRef.domain=="territorial")result[row.objectRef.id].properties.emplace_back(row.id,row.validity.from,row.validity.to,row.property,row.value);
     return result;
 }
 bool sameOwner(const ProjectDocument& a,const OwnerRecords& ar,const ProjectDocument& b,const OwnerRecords& br) {
@@ -205,9 +205,9 @@ struct WebStorageBaseline::Data {
         document.geometries=std::move(archive);source=std::make_shared<const ProjectDocument>(std::move(document));
         std::map<std::string,GeometryRef> visible;
         if(!sourceMonth.empty()) {
-            const auto world=resolveWorld(source->timelineRecords,{timelineEntityCatalog(*source),[&](const GeometryRef& ref){return bool(source->geometries.get(ref));}},sourceMonth);
-            for(const auto& row:world.entities)visible.emplace(row.id,row.geometryRef);
-        } else if(isStaticTimeline(*source))for(const auto& row:source->timelineRecords.geometryBindings)visible.emplace(row.entityId,row.geometryRef);
+            const auto world=resolveWorld(source->timelineRecords,{timelineEntityCatalog(*source),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(source->geometries.get(ref));}},sourceMonth);
+            for(const auto& row:world.entities)if(row.objectRef.domain=="territorial")visible.emplace(row.objectRef.id,row.geometryRef);
+        } else if(isStaticTimeline(*source))for(const auto& row:source->timelineRecords.geometryBindings)if(row.objectRef.domain=="territorial")visible.emplace(row.objectRef.id,row.geometryRef);
         features=V::arr();
         for(const auto& identity:source->units) {
             const auto ref=territorialRef(identity.id);const auto details=source->countryDetails.find(ref);const auto symbol=source->symbols.find(ref);
@@ -238,7 +238,7 @@ WebStorageBaseline admitWebStorageBaseline(const ProjectSnapshot& current,const 
     require(dataset.kind==V::String&&!dataset.string.empty()&&validFingerprint(claim),"PL-SCHEMA-BASE","An exact baseline dataset and fingerprint are required.");
     auto data=std::make_shared<WebStorageBaseline::Data>();data->dataset=dataset.string;
     const auto& existing=current.document();std::map<std::string,std::vector<GeometryRef>> ownerShapes;
-    for(const auto& binding:existing.timelineRecords.geometryBindings)ownerShapes[binding.entityId].push_back(binding.geometryRef);
+    for(const auto& binding:existing.timelineRecords.geometryBindings)if(binding.objectRef.domain=="territorial")ownerShapes[binding.objectRef.id].push_back(binding.geometryRef);
     const auto share=[&](const std::string& id,std::shared_ptr<const Geometry> source) {
         if(!source)return source;const auto candidates=ownerShapes.find(id);
         if(candidates!=ownerShapes.end())for(const auto& ref:candidates->second) {
@@ -290,7 +290,7 @@ std::vector<std::string> initialDirtyTerritorialIds(const ProjectSnapshot& snaps
 std::vector<std::string> initialDirtyTerritorialIds(const ProjectDocument& document,const WebStorageBaseline& baseline) {
     std::vector<std::string> result;std::set<std::string> current;
     const bool staticTimeline=baseline.data_->source?false:isStaticTimeline(document);std::map<std::string,GeometryRef> shapes;
-    if(staticTimeline)for(const auto& binding:document.timelineRecords.geometryBindings)shapes.emplace(binding.entityId,binding.geometryRef);
+    if(staticTimeline)for(const auto& binding:document.timelineRecords.geometryBindings)if(binding.objectRef.domain=="territorial")shapes.emplace(binding.objectRef.id,binding.geometryRef);
     const auto currentRecords=baseline.data_->source?ownerRecords(document):std::map<std::string,OwnerRecords>{};
     const auto sourceRecords=baseline.data_->source?ownerRecords(*baseline.data_->source):std::map<std::string,OwnerRecords>{};
     for(const auto& row:document.units)current.insert(row.id);

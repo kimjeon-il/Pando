@@ -1,3 +1,4 @@
+import {normalizeSourceProvenance} from '../../../../../shared/frontend/js/modules/source-provenance.js';
 import {createInitialDocument} from "../../../../../shared/frontend/js/modules/initial-document.js";
 import {createTerritorialFeature, normalizeTerritorialIdentity,
   TERRITORIAL_IDENTITY_FIELDS} from "../../../../../shared/frontend/js/modules/territorial-units.js";
@@ -30,7 +31,7 @@ export function parseNativeLibraryGeometryRequest(search,hasNativeBridge){
   const params=new URLSearchParams(search);
   const entityId=params.get('libraryEntity'),versionId=params.get('libraryVersion');
   if(!entityId&&!versionId)return null;
-  if(!/^[a-z]+:[A-Za-z0-9_-]+$/.test(entityId||'')||!versionId||versionId.length>160)
+  if(!/^[a-z][a-z0-9_-]*:[A-Za-z0-9_-]+$/.test(entityId||'')||!versionId||versionId.length>160)
     throw new Error('라이브러리 형상 편집 대상이 올바르지 않습니다.');
   return Object.freeze({entityId,versionId});
 }
@@ -63,21 +64,27 @@ export async function prepareLibraryGeometryWorkspace({index,readEntity,entityId
   for(const [id,entity]of source){
     const version=selectGeometryVersion(entity,referenceDate);
     if(!version)throw new Error(`${id}: 선택 날짜에 사용할 형상이 없습니다.`);
-    const feature=createTerritorialFeature({id,entityKind:'general',name:entity.names.ko||entity.names.en||id,
-      geometry:version.geometry,sourceEntityId:id,sourceGeometryVersion:version.versionId});
+    const water=['river','lake'].includes(entity.entityKind),projectId=water?crypto.randomUUID():id;
+    const feature=water?{type:'Feature',id:projectId,geometry:copy(version.geometry),properties:{pandolab_schema_version:1,pandolab_domain:'hydro',pandolab_id:projectId,
+      ...copy(version.rendering || {}),category:entity.entityKind,name:entity.names.ko||entity.names.en||id,notes:'',editorColor:'#3388cc',locked:false,
+      sourceEntityId:id,sourceGeometryVersion:version.versionId,source:normalizeSourceProvenance({kind:'library',sourceId:id,version:version.versionId,sourceFormat:'library-object-v2',sourceType:entity.entityKind})}}
+      :createTerritorialFeature({id:projectId,entityKind:'general',name:entity.names.ko||entity.names.en||id,
+        geometry:version.geometry,sourceEntityId:id,sourceGeometryVersion:version.versionId});
     initialFeatures.push(feature);
-    byProjectId.set(id,Object.freeze({entityId:id,versionId:version.versionId}));
-    const properties=Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.filter(key=>Object.hasOwn(feature.properties,key))
-      .map(key=>[key,feature.properties[key]]));
-    project.territorialEntities.push(normalizeTerritorialIdentity({type:'Feature',id,geometry:null,properties}));
-    const geometryRef={id:`library-geometry:${id}`,version:1};
+    byProjectId.set(projectId,Object.freeze({entityId:id,versionId:version.versionId}));
+    if(water){const properties={...feature.properties};for(const key of ['stroke_width','stroke_widths','border_aligned','connectivity'])delete properties[key];project.hydroEdits.push({...feature,geometry:null,properties});}
+    else {
+      const properties=Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.filter(key=>Object.hasOwn(feature.properties,key)).map(key=>[key,feature.properties[key]]));
+      project.territorialEntities.push(normalizeTerritorialIdentity({type:'Feature',id:projectId,geometry:null,properties}));
+    }
+    const geometryRef={id:`library-geometry:${projectId}`,version:1};
     project.geometries.push({...geometryRef,geojson:copy(version.geometry)});
-    const base={entityId:id,validFrom:null,validTo:null};
+    const base={objectRef:{domain:water?"hydro":"territorial",id:projectId},validFrom:null,validTo:null};
     project.timelineRecords.lifetimes.push({id:`library-lifetime:${id}`,...base});
-    project.timelineRecords.geometryBindings.push({id:`library-geometry:${id}`,...base,geometryRef});
-    project.timelineRecords.parentRelations.push({id:`library-parent:${id}`,...base,parentId:'',coverageMode:'explicit'});
+    project.timelineRecords.geometryBindings.push({id:`library-geometry:${id}`,...base,geometryRef,...(water&&version.rendering?{rendering:copy(version.rendering)}:{})});
+    if(!water)project.timelineRecords.parentRelations.push({id:`library-parent:${id}`,...base,parentId:'',coverageMode:'explicit'});
   }
-  return {project,referenceDate,selectedEntityId:entityId,selectedVersionId:versionId,
+  return {project,referenceDate,entityKind:selected.entityKind,selectedProjectId:[...byProjectId].find(([,row])=>row.entityId===entityId)[0],selectedEntityId:entityId,selectedVersionId:versionId,
     source,initialFeatures,byProjectId};
 }
 
@@ -93,16 +100,16 @@ export function collectLibraryGeometryChanges(workspace,acceptedFeatures){
   for(const [id,before]of baseline){
     const after=accepted.get(id),mapping=workspace.byProjectId.get(id);
     if(!mapping||after.properties?.sourceEntityId!==mapping.entityId
-      ||after.properties?.sourceGeometryVersion!==mapping.versionId||!same(after.properties,before.properties))
+      ||after.properties?.sourceGeometryVersion!==mapping.versionId||!same(Object.fromEntries(Object.entries(after.properties).filter(([key])=>!['stroke_widths','connectivity'].includes(key))),Object.fromEntries(Object.entries(before.properties).filter(([key])=>!['stroke_widths','connectivity'].includes(key)))))
       throw new Error(`${id}: 형상 편집 작업에서 자료 정체성이 바뀌었습니다.`);
     if(same(before.geometry,after.geometry))continue;
     const entity=workspace.source.get(mapping.entityId);
     const version=entity.geometryVersions.find(row=>row.versionId===mapping.versionId);
-    if(id!==workspace.selectedEntityId&&!same(interval(version),interval(selectedVersion)))
+    if(id!==workspace.selectedProjectId&&!same(interval(version),interval(selectedVersion)))
       throw new Error(`${id}: 공유 경계 이웃의 원본 유효기간이 다릅니다. 일치하는 기간을 선택하세요.`);
     const updated=copy(entity);
     updated.geometryVersions=updated.geometryVersions.map(row=>row.versionId===mapping.versionId
-      ? {...row,geometry:copy(after.geometry)}:row);
+      ? {...row,geometry:copy(after.geometry),...(row.rendering?{rendering:Object.fromEntries(Object.entries(row.rendering).filter(([key])=>!['stroke_widths','connectivity'].includes(key)))}:{})}:row);
     changed.push(normalizeTerritorialLibraryEntity(updated));
   }
   return changed;
@@ -138,7 +145,7 @@ export function createLibraryGeometryContext({repository,service,entityId,versio
     if(saving)return true;
     if(!workspace||!runtime)return false;
     if(hasActiveDraft())return true;
-    const accepted=runtime.entityRepository.list({kind:'general',parentId:''});
+    const accepted=['river','lake'].includes(workspace.entityKind)?runtime.getState().hydroEdits:runtime.entityRepository.list({kind:'general',parentId:''});
     const baseline=new Map(workspace.initialFeatures.map(row=>[row.id,row]));
     if(accepted.length!==baseline.size)return true;
     const seen=new Set();
@@ -157,7 +164,7 @@ export function createLibraryGeometryContext({repository,service,entityId,versio
       throw new Error('경계 미리보기를 적용하거나 취소한 뒤 저장하세요.');
     saving=true;
     try{
-      const accepted=runtime.entityRepository.list({kind:'general',parentId:''});
+      const accepted=['river','lake'].includes(workspace.entityKind)?runtime.getState().hydroEdits:runtime.entityRepository.list({kind:'general',parentId:''});
       const changed=collectLibraryGeometryChanges(workspace,accepted);
       if(!changed.length)return {changed:false,revision:editor.snapshot().revision};
       await editor.apply({entities:changed,editMethod:'user-map-editor'});

@@ -344,7 +344,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     result.assertCurrent?.();
     if(projectDomain.getGeneration()!==expectedGeneration)throw createCancellationError('프로젝트 변경으로 가져오기를 취소했습니다.');
     const prepared=rejected(await projectDomain.prepareCommand({commandId:result.sourceInfo?.imports?.some(row=>row.kind==='library')?'territorial.library-import':'territorial.import',
-      targets:[],expectedEpoch,payload:{operations:[territorialPatch([...patches.values()],[...removed])],
+      targets:[],expectedEpoch,payload:{operations:[territorialPatch([...patches.values()],[...removed]),...(result.preparedHydro||[]).map(feature=>({commandId:"hydro.copy",targets:[{domain:"hydro",id:feature.id}],payload:{feature}}))],
         sourceInfo:{next:result.sourceInfo ?? null,mergedAt:new Date().toISOString()}}}));
     if(!prepared.changed)return {added:0,subtracted:0,deleted:0,affectedIds:[]};
     try {

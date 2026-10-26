@@ -22,7 +22,7 @@ public:
     std::uint64_t revision() const { return revision_; }
     const std::string& timelineMonth() const noexcept { return timelineMonth_; }
     bool timelineEditsEnabled() const noexcept { return timelineEditsEnabled_; }
-    const std::set<std::string>& inactiveEntityIds() const noexcept;
+    const std::set<ObjectRef>& inactiveObjectRefs() const noexcept;
     const ProjectDocument& document() const noexcept;
     const DocumentIndex& index() const noexcept;
     const CountryView* country(const std::string&) const;
@@ -69,7 +69,7 @@ public:
     void replace(ProjectDocument document);
     const ProjectDocument& document() const noexcept;
     const ProjectDocument& viewDocument() const noexcept;
-    const std::set<std::string>& inactiveEntityIds() const noexcept;
+    const std::set<ObjectRef>& inactiveObjectRefs() const noexcept;
     const std::vector<CountryView>& countries() const noexcept;
     const DocumentIndex& index() const noexcept;
     const DocumentIndex& viewIndex() const noexcept;

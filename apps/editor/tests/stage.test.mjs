@@ -143,15 +143,15 @@ test('the verification fixture loads through the current builtin country transpo
   });
   const { project } = await loader.loadProject('2026-10');
   assert.equal(project.territorialEntities.length, 3);
-  assert.equal(project.timelineRecords.parentRelations.find(row => row.entityId === 'shell-child-a').parentId, 'shell-country-a');
+  assert.equal(project.timelineRecords.parentRelations.find(row => row.objectRef.id === 'shell-child-a').parentId, 'shell-country-a');
 });
 
 test('test-fixture staging retains required historical physical backgrounds without world objects',async t=>{
   const {root,put,pinData}=await source(t);
   const physicalLand={url:'assets/data/physical-land/v1/modern.gz'};
   const context={land:{url:'assets/data/physical-land/v1/historical-land.gz'},water:{url:'assets/data/physical-land/v1/historical-water.gz'}};
-  await put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({physicalLand,physicalWaterHistory:[context]})+');');
-  await put('assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'fixture-land',asset:physicalLand,historicalWaterbodies:[context]}));
+  await put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({physicalLand,physicalWaterObjects:{geometries:[{land:context.land,asset:context.water}]}})+');');
+  await put('assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'fixture-land',asset:physicalLand,waterObjects:{geometries:[{land:context.land,asset:context.water}]}}));
   for(const asset of [physicalLand,context.land,context.water])await put(asset.url,'physical');
   await pinData();
   const result=await stagePrototype({root,profile:'test-fixture',verification:true});
@@ -220,7 +220,7 @@ test('requires the explicit editor base and never falls back to the viewer HTML'
 });
 
 test('will not clear an output directory it does not own', async t => {
-  const { root, put } = await source(t);
+  const { root } = await source(t);
   await import('node:fs/promises').then(async fs=>{await fs.mkdir(join(editorStageRoot(root),'dist'),{recursive:true});await fs.writeFile(join(editorStageRoot(root),'dist/keep.txt'),'unrelated');});
   await assert.rejects(stagePrototype({ root }), /owned|ownership/i);
   assert.equal(await readFile(join(editorStageRoot(root),'dist/keep.txt'), 'utf8'), 'unrelated');

@@ -118,21 +118,21 @@ void ownedCommandBoundaries(const std::string& seed) {
     assert(!adopted.adoptPreparedCommand(std::move(adoptedPrepared),adoptedOldEpoch).result.ok());
 }
 void pureTimelineContracts() {
-    const TimelineValidationContext context{{{"root","general"},{"child","general"}},[](const GeometryRef& ref){return ref.id=="shape"&&(ref.version==1||ref.version==2);}};
+    const TimelineValidationContext context{{{territorialRef("root"),"general"},{territorialRef("child"),"general"}},[](const ObjectRef&,const GeometryRef& ref){return ref.id=="shape"&&(ref.version==1||ref.version==2);}};
     TimelineRecords records;
-    records.lifetimes={{"life:r","root",{}},{"life:c","child",{{"1900"},{"1920"}}}};
-    records.geometryBindings={{"shape:r","root",{}, {"shape",1}},{"shape:c","child",{{"1900"},{"1920"}}, {"shape",1}}};
-    records.parentRelations={{"parent:r","root",{},"","explicit"},{"parent:c","child",{{"1900"},{"1920"}},"root","partition"}};
+    records.lifetimes={{"life:r",territorialRef("root"),{}},{"life:c",territorialRef("child"),{{"1900"},{"1920"}}}};
+    records.geometryBindings={{"shape:r",territorialRef("root"),{}, {"shape",1}},{"shape:c",territorialRef("child"),{{"1900"},{"1920"}}, {"shape",1}}};
+    records.parentRelations={{"parent:r",territorialRef("root"),{},"","explicit"},{"parent:c",territorialRef("child"),{{"1900"},{"1920"}},"root","partition"}};
     records=normalizeTimelineRecords(records,context);
     assert(initialTimelineMonth(records,"2026-10")=="1900-01");
-    assert(resolveWorld(records,context,"1910-01").find("child")->rootId=="root");
+    assert(resolveWorld(records,context,"1910-01").find(territorialRef("child"))->rootId=="root");
     assert(resolveWorld(records,context,"1899-12").entities.size()==1);
     auto invalid=records;invalid.geometryBindings.at(1).geometryRef={"missing",1};
     try{normalizeTimelineRecords(invalid,context);assert(false);}catch(const TimelineError& error){assert(error.code=="TIMELINE_GEOMETRY");}
-    const auto edited=replaceGeometryBindingAtMonth(records,"child","1914-07",{"shape",2});
-    assert(resolveWorld(edited,context,"1914-06").find("child")->geometryRef.version==1);
-    assert(resolveWorld(edited,context,"1914-07").find("child")->geometryRef.version==2);
-    assert(resolveWorld(records,context,"1914-07").find("child")->geometryRef.version==1);
+    const auto edited=replaceGeometryBindingAtMonth(records,territorialRef("child"),"1914-07",{"shape",2});
+    assert(resolveWorld(edited,context,"1914-06").find(territorialRef("child"))->geometryRef.version==1);
+    assert(resolveWorld(edited,context,"1914-07").find(territorialRef("child"))->geometryRef.version==2);
+    assert(resolveWorld(records,context,"1914-07").find(territorialRef("child"))->geometryRef.version==1);
 }
 int main() {
     pureTimelineContracts();

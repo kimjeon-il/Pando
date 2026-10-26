@@ -20,24 +20,16 @@ const source=()=>({
   'caspian-1922-land.json.gz':deterministicGzipJSON(current).compressed,
   'caspian-1922-water.json.gz':deterministicGzipJSON(water).compressed,
 });
-const manifest=assets=>({
-  historicalWaterbodies:[{
-    id:'caspian-near1922-approved',
-    validFrom:'1922-12-30',validTo:'1925-05-12',
-    referenceDate:'1922-12-30',
-    scope:'Physical water presentation only, not a sovereignty subtraction',
-    land:{url:SOURCE+'caspian-1922-land.json.gz',
-      ...assetDigest(assets['caspian-1922-land.json.gz'])},
-    water:{url:SOURCE+'caspian-1922-water.json.gz',
-      ...assetDigest(assets['caspian-1922-water.json.gz'])},
-  }],
-});
+const manifest=assets=>({waterObjects:{timelineRecords:{geometryBindings:[{objectRef:{domain:'hydroBuiltin',id:'waterbody:caspian'},validFrom:'1922-12-30',validTo:'1925-05-12',geometryRef:{id:'caspian-near1922-approved',version:1}}]},geometries:[{geometryRef:{id:'caspian-near1922-approved',version:1},
+ land:{url:SOURCE+'caspian-1922-land.json.gz',...assetDigest(assets['caspian-1922-land.json.gz'])},
+ asset:{url:SOURCE+'caspian-1922-water.json.gz',...assetDigest(assets['caspian-1922-water.json.gz'])}}]}});
+
 test('original publication manifest retains both compressed source-byte receipts and legal periods',()=>{
  const assets=source(),m=manifest(assets);
- assert.equal(verifyPublishedPhysicalManifest(m,assets).id,'caspian-near1922-approved');
- const copy=structuredClone(m);copy.historicalWaterbodies[0].water.sha256='0'.repeat(64);
+ assert.equal(verifyPublishedPhysicalManifest(m,assets).water.sha256,assetDigest(assets['caspian-1922-water.json.gz']).sha256);
+ const copy=structuredClone(m);copy.waterObjects.geometries[0].asset.sha256='0'.repeat(64);
  assert.throws(()=>verifyPublishedPhysicalManifest(copy,assets),/digest differs/);
- const wrong=structuredClone(m);wrong.historicalWaterbodies[0].validFrom='1900-01-01';
+ const wrong=structuredClone(m);wrong.waterObjects.timelineRecords.geometryBindings[0].validFrom='1900-01-01';
  assert.throws(()=>verifyPublishedPhysicalManifest(wrong,assets),/validity/);
 });
 test('Node source adaptor unwraps original feature without inventing a second geometry',()=>{
@@ -57,7 +49,7 @@ test('staged gzip/manifest are reproducible and do not overwrite approved origin
  assert.equal(archive[9],10);
  assert.deepEqual(JSON.parse(gunzipSync(archive)),water);
  const manifestCandidate=JSON.parse(candidate.get(SOURCE+'manifest.json'));
- assert.equal(manifestCandidate.historicalWaterbodies[0].water.sha256,
+ assert.equal(manifestCandidate.waterObjects.geometries[0].asset.sha256,
    assetDigest(archive).sha256);
  const dir=mkdtempSync(join(tmpdir(),'caspian-stage-'));
  t.after(()=>rmSync(dir,{recursive:true,force:true}));

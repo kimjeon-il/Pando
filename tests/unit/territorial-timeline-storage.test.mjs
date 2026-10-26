@@ -19,10 +19,10 @@ function storageInput(entity) {
   // snapshot IDs are not archive IDs. No product ID is inferred or reissued.
   const logicalId='project-object';
   const refs=new Map([['snapshot:1948',{id:'archive-shape',version:7}],['snapshot:1953',{id:'archive-shape',version:11}],['snapshot:current',{id:'archive-shape',version:18}]]);
-  return {entities:[{id:logicalId,entityKind:entity.entityKind}],input:{schemaVersion:1,records:{schemaVersion:1,
-    lifetimes:[{id:'life-existing',entityId:logicalId,...entity.lifetime}],
-    geometryBindings:entity.geometryVersions.map(v=>({id:`binding:${v.versionId}`,entityId:logicalId,validFrom:v.validFrom,validTo:v.validTo,geometryRef:refs.get(v.versionId)})),
-    parentRelations:[{id:'parent-existing',entityId:logicalId,parentId:'',coverageMode:'explicit',...entity.lifetime}],
+  return {entities:[{ objectRef:{domain:"territorial",id:logicalId}, entityKind:entity.entityKind}],input:{schemaVersion:1,records:{schemaVersion:3,propertyBindings:[],
+    lifetimes:[{id:'life-existing',objectRef:{domain:"territorial",id:logicalId},...entity.lifetime}],
+    geometryBindings:entity.geometryVersions.map(v=>({id:`binding:${v.versionId}`,objectRef:{domain:"territorial",id:logicalId},validFrom:v.validFrom,validTo:v.validTo,geometryRef:refs.get(v.versionId)})),
+    parentRelations:[{id:'parent-existing',objectRef:{domain:"territorial",id:logicalId},parentId:'',coverageMode:'explicit',...entity.lifetime}],
   },geometries:[...entity.geometryVersions.map(v=>({...refs.get(v.versionId),geojson:v.geometry})),{id:'unreferenced',version:4,geojson:polygon(4)}]}};
 }
 test('catalog versions retain explicit identities, records and whole archive through production full/delta saves',()=>{
@@ -33,7 +33,7 @@ test('catalog versions retain explicit identities, records and whole archive thr
   for(const fullAutosave of [true,false]){
     const serializer=createProjectSerializer({appVersion:'test',baseDataset:'test-base',distributionModes:['territorial','geometry'],terrainDataset:'test',hydroDataset:'test',readSnapshot:()=>({...snapshot,fullAutosave,baseDatasetFingerprint:'1'.repeat(64),entityDelta:{changed:snapshot.territorialEntities,removedIds:[]}})});
     const saved=serializer.buildAutosave();
-    assert.equal(saved.schemaVersion,10);assert.equal(saved.timelineRecords.schemaVersion,1);
+    assert.equal(saved.schemaVersion,14);assert.equal(saved.timelineRecords.schemaVersion,3);
     assert.deepEqual(saved.timelineRecords,row.input.records);assert.deepEqual(saved.geometries,row.input.geometries);
     assertCurrentProjectSchema(saved,fullAutosave?{}:{baseEntities:snapshot.territorialEntities,baseDataset:'test-base',baseDatasetFingerprint:'1'.repeat(64)});
     const reopened=restoreTimelineStorage({schemaVersion:1,records:saved.timelineRecords,geometries:saved.geometries},row.entities);

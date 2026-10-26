@@ -15,10 +15,10 @@ test('historical timeline edits match the shared web/native golden corpus', () =
     const original = structuredClone(corpus.records);
     let result;
     if (entry.op === 'geometry') result = replaceTimelineRecordAtMonth(original, 'geometryBindings',
-      'A', entry.month, { geometryRef: { id: 'shape', version: entry.version } });
+      {domain:"territorial",id:'A'}, entry.month, { geometryRef: { id: 'shape', version: entry.version } });
     else if (entry.op === 'parent') result = replaceTimelineRecordAtMonth(original, 'parentRelations',
-      'A', entry.month, { parentId: entry.parentId, coverageMode: entry.coverageMode });
-    else if (entry.op === 'truncate') result = truncateTimelineEntityAtMonth(original, 'A', entry.month);
+      {domain:"territorial",id:'A'}, entry.month, { parentId: entry.parentId, coverageMode: entry.coverageMode });
+    else if (entry.op === 'truncate') result = truncateTimelineEntityAtMonth(original, {domain:"territorial",id:'A'}, entry.month);
     else assert.fail('Unknown edit operation');
     assert.deepEqual(result, entry.expected, entry.name);
     assert.deepEqual(original, corpus.records, entry.name + ' must not mutate source');

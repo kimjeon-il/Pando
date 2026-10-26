@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import * as projectState from "../../shared/frontend/js/modules/project-state.js";
@@ -10,15 +11,15 @@ import { projectPreviewGeometryRows } from "../../shared/frontend/js/modules/pro
 import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
 
 const shape = { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] };
-const baseFeature = () => createTerritorialFeature({ id: 'A', entityKind: 'general', name: 'A', geometry: shape });
+const baseFeature = () => createTerritorialFeature({ id:'A', entityKind: 'general', name: 'A', geometry: shape });
 const serializer = snapshot => serializerModule.createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base',
   distributionModes: ['territorial', 'geometry'], readSnapshot: () => snapshot });
 
-test('preview geometry comes from canonical bindings at the initial resolved month', () => {
+test('preview geometry comes from canonical bindings at the initial resolved month', async t => {
   const snapshot = staticSerializerSnapshot({ territorialEntities: [baseFeature()], fullAutosave: true });
   const project = serializer(snapshot).buildProject();
-  assert.deepEqual(projectPreviewGeometryRows(project).countries, [['A', shape]]);
-  assert.deepEqual(projectPreviewGeometryRows(serializer(projectForStorage()).buildProject()).countries.map(row => row[0]), ['A']);
+  const owner=await createNodeCoreProject(project);t.after(()=>owner.dispose());
+  assert.deepEqual(projectPreviewGeometryRows({project,territorialViews:owner.documentModel.territorialViews()}).countries, [['A',shape]]);
 });
 
 test('storage candidates preserve complex timelines and reject dangling project references', () => {

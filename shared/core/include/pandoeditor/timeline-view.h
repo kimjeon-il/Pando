@@ -7,7 +7,7 @@ namespace pandoeditor {
 struct TimelineDocumentView {
     ProjectDocument document;
     ResolvedWorld world;
-    std::set<std::string> inactiveIds;
+    std::set<ObjectRef> inactiveIds;
 };
 
 // A read-only static projection for existing render and pick consumers. The

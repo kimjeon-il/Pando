@@ -2,6 +2,7 @@
 #include <pandoeditor/project.h>
 #include <pandoeditor/geometrypredicates.h>
 #include <pandoeditor/timeline-view.h>
+#include <pandoeditor/losslessjson.h>
 #include <pandoeditor/webterritorialcommands.h>
 #include <algorithm>
 #include <limits>
@@ -13,6 +14,20 @@ namespace {
 const std::string& instanceId(const HistoricalAddition& addition) {
     return addition.instanceId.empty()?addition.selection.libraryId:addition.instanceId;
 }
+bool waterSelection(const HistoricalSelection& value) {return !value.type&&(value.catalogKind=="river"||value.catalogKind=="lake");}
+ObjectRef selectionRef(const HistoricalAddition& value) {return {waterSelection(value.selection)?"hydro":"territorial",instanceId(value)};}
+void addHistoricalWater(ProjectDocument& document,const HistoricalAddition& addition,const std::optional<std::string>& month) {
+    const auto& value=addition.selection;const auto owner=selectionRef(addition);const GeometryRef geometry{"library-geometry:"+owner.domain+":"+owner.id,1};
+    document.geometries.insert(geometry,value.geometry);
+    HydroFeature water;water.id=owner.id;water.name=value.name;water.kind=value.catalogKind;water.source.kind="library";
+    water.source.sourceId=value.libraryId;water.source.version=value.geometryVersionId;water.source.sourceType=value.catalogKind;water.source.sourceFormat="library-object-v2";
+    auto provenance=codecjson::Value::obj();provenance.object["referenceDate"]=addition.referenceDate?codecjson::Value::str(*addition.referenceDate):codecjson::Value{};
+    provenance.object["sourceInfo"]=codecjson::parse(value.sourceInfo.empty()?"{}":value.sourceInfo);water.source.details=provenance.encode();document.hydro.push_back(std::move(water));
+    const Validity period{month,{}};const auto key=owner.domain+":"+owner.id;
+    document.timelineRecords.lifetimes.push_back({"lifetime:"+key,owner,period});
+    document.timelineRecords.geometryBindings.push_back({"geometry:"+key,owner,period,geometry,value.rendering});
+}
+
 }
 HistoricalInstantiationPlan planHistoricalSelections(const ProjectSnapshot& project,
     const std::vector<HistoricalAddition>& selections,
@@ -27,11 +42,13 @@ HistoricalInstantiationPlan planHistoricalSelections(const ProjectSnapshot& proj
     std::set<std::string> ids;std::map<std::string,std::string> batch;
     for(const auto& addition:selections) {
         if(addition.selection.libraryId.empty()||!batch.emplace(addition.selection.libraryId,instanceId(addition)).second||
-           !ids.insert(instanceId(addition)).second||project.index().objects.count(territorialRef(instanceId(addition))))
+           !ids.insert(instanceId(addition)).second||project.index().objects.count(selectionRef(addition)))
             throw std::invalid_argument("DUPLICATE_ID: historical unit");
     }
     for(auto addition:selections) {
         const auto& selection=addition.selection;
+        if(!selection.type && !waterSelection(selection))throw std::invalid_argument("INVALID_LIBRARY: object kind");
+        if(waterSelection(selection)&&(addition.parent||addition.sovereign||addition.asIndependentCountry||addition.initialCountryDetails||addition.initialSymbolStyle||selection.instantiation.mode!="independent"||!selection.parentLibraryId.empty()||!selection.instantiation.countryNameUpdates.empty()))throw std::invalid_argument("INVALID_LIBRARY: water territorial ownership");
         if(!selection.sovereignLibraryId.empty())throw std::invalid_argument("UNSUPPORTED_POLITICAL_RELATION: historical catalog sovereignty");
         if(selection.instantiation.mode!="independent"&&selection.instantiation.mode!="territory-replacement")
             throw std::invalid_argument("INVALID_LIBRARY: unsupported instantiation");
@@ -74,7 +91,7 @@ HistoricalInstantiationPlan planHistoricalSelections(const ProjectSnapshot& proj
            project.document().units.at(found->second).kind!=UnitKind::General||donor==target||
            !targetShape||
            !geometryContains(*targetShape,
-               *view.geometries.get(staticGeometryBinding(view,donor.id).geometryRef)))
+               *view.geometries.get(staticGeometryBinding(view,territorialRef(donor.id)).geometryRef)))
             throw std::invalid_argument("INVALID_LIBRARY: territory transfer target");
     }
     for(const auto& update:plan.countryNameUpdates) {
@@ -146,11 +163,11 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
         const auto existing=[&](const std::string& id)->WebTerritorialFeature& {
             if(const auto found=rows.find(id);found!=rows.end())return edit.features.at(found->second);
             const auto identity=std::find_if(frame.document.units.begin(),frame.document.units.end(),[&](const auto& unit){return unit.id==id;});
-            if(identity==frame.document.units.end()||frame.inactiveIds.count(id))throw TimelineError("not-found","Historical edit target is inactive.");
+            if(identity==frame.document.units.end()||frame.inactiveIds.count(territorialRef(id)))throw TimelineError("not-found","Historical edit target is inactive.");
             WebTerritorialFeature row;row.identity=*identity;const auto owner=territorialRef(id);
             const auto& relation=staticParentRelation(frame.document,id);row.parentId=relation.parentId;row.coverageMode=relation.coverageMode;
-            row.validity=frame.world.find(id)->validity;
-            row.geometry=*frame.document.geometries.get(staticGeometryBinding(frame.document,id).geometryRef);
+            row.validity=frame.world.find(territorialRef(id))->validity;
+            row.geometry=*frame.document.geometries.get(staticGeometryBinding(frame.document,territorialRef(id)).geometryRef);
             row.style=frame.document.presentation.objectStyles.at(owner);
             if(frame.document.countryDetails.count(owner))row.countryDetails=frame.document.countryDetails.at(owner);
             if(frame.document.symbols.count(owner))row.symbol=frame.document.symbols.at(owner);
@@ -159,8 +176,9 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
         for(const auto& patch:plan.territoryReplacements)existing(patch.owner.id).geometry=patch.geometry;
         for(const auto& [id,name]:plan.countryNameUpdates){auto& row=existing(id);row.identity.name=name;row.identity.nameExplicit=true;}
         for(const auto& addition:plan.additions) {
+            if(waterSelection(addition.selection)){addHistoricalWater(document,addition,plan.applicationMonth);continue;}
             const auto& selection=addition.selection;WebTerritorialFeature row;
-            row.identity.id=instanceId(addition);row.identity.kind=addition.asIndependentCountry?UnitKind::General:selection.type;
+            row.identity.id=instanceId(addition);row.identity.kind=addition.asIndependentCountry?UnitKind::General:selection.type.value();
             row.identity.name=addition.asIndependentCountry?addition.countryName:selection.name;
             row.identity.baseName=row.identity.kind==UnitKind::General?row.identity.name:"";row.identity.nameExplicit=true;
             row.identity.sourceEntityId=selection.libraryId;row.identity.sourceGeometryVersion=selection.geometryVersionId;
@@ -173,10 +191,10 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
         }
         for(const auto& [donor,target]:plan.territoryTransfers) {
             edit.removedIds.push_back(donor.id);
-            for(const auto& resolved:frame.world.entities)if(resolved.parentId==donor.id)existing(resolved.id).parentId=target.id;
+            for(const auto& resolved:frame.world.entities)if(resolved.parentId==donor.id)existing(resolved.objectRef.id).parentId=target.id;
         }
         Project bridge;bridge.replace(document);bridge.setTimelineCursor(*plan.applicationMonth);
-        document=applyWebTerritorialEdit(bridge.snapshot(),edit,TerritorialEditContext::LibraryImport);
+        if(!edit.features.empty()||!edit.removedIds.empty())document=applyWebTerritorialEdit(bridge.snapshot(),edit,TerritorialEditContext::LibraryImport);
         return;
     }
     std::set<ObjectRef> replaced;
@@ -186,7 +204,7 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
         auto unit=std::find_if(document.units.begin(),document.units.end(),[&](const auto& u){return u.id==patch.owner.id;});
         if(unit==document.units.end() || (patch.geometry.type!="Polygon" && patch.geometry.type!="MultiPolygon"))
             throw std::invalid_argument("INVALID_LIBRARY: geometry patch target");
-        auto& binding=staticGeometryBinding(document,unit->id);GeometryRef ref=binding.geometryRef;
+        auto& binding=staticGeometryBinding(document,territorialRef(unit->id));GeometryRef ref=binding.geometryRef;
         do {
             if(ref.version==std::numeric_limits<std::uint32_t>::max())throw std::invalid_argument("INVALID_LIBRARY: geometry version overflow");
             ++ref.version;
@@ -200,8 +218,9 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
         unit->name=name;unit->nameExplicit=true;
     }
     for(const auto& addition:plan.additions) {
+        if(waterSelection(addition.selection)){addHistoricalWater(document,addition,std::nullopt);continue;}
         const auto& selection=addition.selection;
-        const auto kind=addition.asIndependentCountry?UnitKind::General:selection.type;
+        const auto kind=addition.asIndependentCountry?UnitKind::General:selection.type.value();
         const auto& id=instanceId(addition);
         GeometryRef ref{"historical-geometry:"+id,1};
         if(document.geometries.get(ref))throw std::invalid_argument("DUPLICATE_ID: historical geometry");

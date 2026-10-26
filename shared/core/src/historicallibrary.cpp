@@ -31,8 +31,9 @@ std::string mode(std::string requested) {
     throw std::invalid_argument("INVALID_LIBRARY: instantiation mode");
 }
 }
-UnitKind historicalUnitKind(const std::string& raw) {
+std::optional<UnitKind> historicalUnitKind(const std::string& raw) {
     const auto type=lower(trim(raw));
+    if(type=="river"||type=="lake")return std::nullopt;
     if(type=="country")return UnitKind::General;
     if(type=="subunit"||type=="territory"||type=="admin")return UnitKind::General;
     if(type=="region")return UnitKind::Regional;
@@ -51,6 +52,7 @@ HistoricalLibrary::HistoricalLibrary(int schemaVersion,std::vector<HistoricalEnt
         if(entity.libraryId.empty()||!entityIds_.emplace(entity.libraryId,i).second)
             throw std::invalid_argument("INVALID_LIBRARY: duplicate or empty entity ID");
         if(entity.canonicalName.empty())entity.canonicalName=entity.libraryId;
+        if(!entity.type&&(!entity.parentLibraryId.empty()||!entity.sovereignLibraryId.empty()||entity.instantiation.mode!="independent"||!entity.instantiation.countryNameUpdates.empty()))throw std::invalid_argument("INVALID_LIBRARY: water ownership");
         entity.validity=normalized(entity.validity);
         entity.instantiation.mode=mode(entity.instantiation.mode);
         std::set<std::string> seen;
@@ -59,7 +61,7 @@ HistoricalLibrary::HistoricalLibrary(int schemaVersion,std::vector<HistoricalEnt
             if(version.id.empty()||!seen.insert(version.id).second)
                 throw std::invalid_argument("INVALID_LIBRARY: duplicate or empty version ID");
             version.validity=normalized(version.validity);
-            if(version.geometry.type!="Polygon"&&version.geometry.type!="MultiPolygon")
+            if(entity.catalogKind=="river"?version.geometry.type!="LineString"&&version.geometry.type!="MultiLineString":version.geometry.type!="Polygon"&&version.geometry.type!="MultiPolygon")
                 throw std::invalid_argument("INVALID_LIBRARY: polygon version required");
             GeometryStore validation;
             validation.insert({version.id,1},version.geometry);
@@ -104,6 +106,7 @@ std::vector<const HistoricalEntity*> HistoricalLibrary::search(const HistoricalS
         ?std::optional<TemporalValue>{}:std::optional<TemporalValue>{parseTemporal(options.referenceDate)};
     for(const auto& entity:entities_) {
         if(!options.type.empty()&&(historicalUnitKind(options.type)!=entity.type||(entity.type==UnitKind::General&&(lower(trim(options.type))=="country")!=(entity.catalogKind=="country"))))continue;
+        if(!options.type.empty()&&!entity.type&&lower(trim(options.type))!=entity.catalogKind)continue;
         if(options.status==HistoricalStatus::Current&&entity.validity.to)continue;
         if(options.status==HistoricalStatus::Past&&!entity.validity.to)continue;
         if(!options.geographicRegion.empty()&&trim(options.geographicRegion)!=entity.geographicRegion)continue;
@@ -185,6 +188,6 @@ HistoricalSelection HistoricalLibrary::instantiate(const std::string& libraryId,
             entity->parentLibraryId,entity->sovereignLibraryId,
             entity->instantiation,entity->metadata,entity->sourceInfo,
             version->certainty,version->sourceId,
-            version->partial,version->missingSourceIds};
+            version->partial,version->missingSourceIds,entity->catalogKind,version->rendering};
 }
 }

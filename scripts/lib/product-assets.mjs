@@ -92,8 +92,8 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
       for(const item of Object.values(manifest.shards))dataAsset(item.url,base);
     }else if(path.includes('/physical-land/')){
       dataAsset(manifest.asset.url,base);
-      for(const context of manifest.historicalWaterbodies||[])
-        for(const item of [context.land,context.water])dataAsset(item.url,'assets/data/');
+      for(const context of manifest.waterObjects?.geometries||[])
+        for(const item of [context.land,context.asset])dataAsset(item.url,'assets/data/');
     }
     else if(path.includes('/terrain-preview/')){
       for(const key of Object.keys(manifest.tiles))dataAsset(key,base);

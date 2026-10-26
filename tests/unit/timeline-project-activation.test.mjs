@@ -9,7 +9,7 @@ const {fingerprintProjectBaseline}=await loadWebOracle('assets/js/modules/projec
 
 function project(staticOnly=false) {
   const source=projectForStorage();
-  if(staticOnly)source.projectFields.timelineRecords.geometryBindings=[{id:'shape-static',entityId:'A',validFrom:null,validTo:null,geometryRef:{id:'shape',version:2}}];
+  if(staticOnly)source.projectFields.timelineRecords.geometryBindings=[{id:'shape-static',objectRef:{domain:"territorial",id:'A'},validFrom:null,validTo:null,geometryRef:{id:'shape',version:2}}];
   return structuredClone(createProjectSerializer({appVersion:'0.34.0',baseDataset:'base',distributionModes:['territorial','geometry'],
     terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>source}).buildProject());
 }

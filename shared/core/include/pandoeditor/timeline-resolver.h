@@ -4,8 +4,9 @@
 
 namespace pandoeditor {
 struct ResolvedEntity {
-    std::string id;
+    ObjectRef objectRef;
     GeometryRef geometryRef;
+    std::string rendering="{}";
     std::string parentId, coverageMode, rootId;
     std::vector<std::string> ancestors;
     Validity validity;
@@ -14,7 +15,7 @@ struct ResolvedEntity {
 struct ResolvedWorld {
     std::string month;
     std::vector<ResolvedEntity> entities;
-    const ResolvedEntity* find(const std::string& id) const;
+    const ResolvedEntity* find(const ObjectRef&) const;
 };
 
 // One inclusive as-of-boundary rule for project and library object histories.
@@ -32,5 +33,5 @@ ResolvedWorld resolveWorld(const TimelineRecords&, const TimelineValidationConte
 std::string initialTimelineMonth(const TimelineRecords&,const std::string& currentMonth);
 // Connected map-data coverage containing the cursor, across adjacent versions.
 // Input records must already be validated; a map-data gap is not a lifetime end.
-Validity timelineMapCoverageAtMonth(const TimelineRecords&,const std::string& id,const std::string& month);
+Validity timelineMapCoverageAtMonth(const TimelineRecords&,const ObjectRef&,const std::string& month);
 }

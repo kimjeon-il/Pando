@@ -26,7 +26,10 @@ for (const input of inputs) test(`raw ${input.geometry.type} hydro creation pres
   assert.equal(result.ok, true, JSON.stringify(result.error));
   assert.deepEqual(owner.documentModel.get({ domain: 'hydro',id: input.id }), expected);
   const exported = await owner.client.exportSnapshot({ format: 'pandolab-project-state', version: seed.version, savedAt: seed.savedAt });
-  assert.deepEqual(JSON.parse(exported.storageJson).hydroEdits.find(row => row.id === input.id), expected);
+  const stored=JSON.parse(exported.storageJson);
+  assert.deepEqual(stored.hydroEdits.find(row => row.id === input.id), {...expected,geometry:null});
+  const binding=stored.timelineRecords.geometryBindings.find(row=>row.objectRef.domain==='hydro'&&row.objectRef.id===input.id);
+  assert.deepEqual(stored.geometries.find(row=>row.id===binding.geometryRef.id&&row.version===binding.geometryRef.version).geojson,expected.geometry);
   assert.equal(await owner.project.undo(), true);
   assert.deepEqual(owner.documentModel.snapshot(), before);
   assert.equal(await owner.project.redo(), true);
