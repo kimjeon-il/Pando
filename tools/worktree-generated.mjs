@@ -106,7 +106,7 @@ export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPa
  }
  return {schema,compilerScopes,roots:roots.map(p=>resolve(p)),relocationRoots:relocationRoots.map(p=>resolve(p)),createdAt:new Date().toISOString(),entries};
 }
-export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsumers=()=>consumers,protectedPaths=[],relocationRoots=manifest.relocationRoots||[],journal=null,afterRemoved=()=>{},afterMutation=()=>{},progress=()=>{},compilerScopes=[],verifiedPreview=null}){
+export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsumers=()=>consumers,protectedPaths=[],relocationRoots=manifest.relocationRoots||[],journal=null,afterRemoved=()=>{},afterMutation=()=>{},progress=()=>{},compilerScopes=[],verifiedPreview=null,copyForRelocation=copyFileSync,retainCompletedJournal=false}){
  roots=roots.map(p=>resolve(p));protectedPaths=protectedPaths.map(p=>resolve(p));
  if(JSON.stringify(manifest.compilerScopes||[])!==JSON.stringify(compilerScopes))throw Error('Compiler retirement scope mismatch');
  if(manifest.schema!==schema||JSON.stringify(manifest.roots)!==JSON.stringify(roots.map(p=>resolve(p))))throw Error('Manifest scope mismatch');
@@ -142,7 +142,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
  progress('checking remaining manifest hashes');
  for(const e of manifest.entries.slice(state.completedCount)){check(e);if(e.action==='relocate'){const d=destination(e,relocationRoots);if(existsSync(d)&&fileHash(d)!==e.sha256)throw Error(`Different relocation evidence: ${d}`);}else if(e.action!=='delete')throw Error('Unknown manifest action');}
  save();
- const finish=(index,e,account=true,physicalBytes=0)=>{if(account){if(e.action==='delete'){state.deletedBytes+=e.bytes;state.payloadBytesUnlinked+=physicalBytes;}else state.relocatedBytes+=e.bytes;}state.pending=null;state.completedCount=index+1;};
+ const finish=(index,e,account=true,physicalBytes=0)=>{if(account){if(e.action==='delete'){state.deletedBytes+=e.bytes;state.payloadBytesUnlinked+=physicalBytes;}else state.relocatedBytes+=e.bytes;}state.pending=null;state.copyPending=null;state.completedCount=index+1;};
  assertIdle(roots,refreshConsumers(),targets);progress('applying verified manifest');
  while(state.completedCount<manifest.entries.length){
   assertIdle(roots,refreshConsumers(),targets);progress(state.completedCount+'/'+manifest.entries.length);
@@ -169,7 +169,17 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
      try{renameSync(p,d);}catch(error){
       if(error.code!=='EXDEV')throw error;
       const pending=d+'.pando-relocating-'+e.sha256;
-      if(presentPath(pending))verify(pending);else copyFileSync(p,pending,constants.COPYFILE_EXCL);
+      if(presentPath(pending)){
+       const temp=lstatSync(pending),owned=state.copyPending?.index===index&&state.copyPending?.path===pending&&state.copyPending?.sourceIdentity===e.identity;
+       if(!temp.isFile()||temp.isSymbolicLink())throw Error('Unknown relocation temporary file',{cause:error});
+       if(temp.size!==e.bytes||fileHash(pending)!==e.sha256){
+        // Only a journal-owned exact source prefix is an interrupted copy.
+        // Unknown, replaced or modified partial data must be preserved.
+        if(!owned||temp.size>e.bytes||fileHash(p,temp.size)!==fileHash(pending))throw Error('Changed or unowned partial relocation copy',{cause:error});
+        check(e);destination(e,relocationRoots);unlinkSync(pending);
+       }
+      }
+      if(!presentPath(pending)){state.copyPending={index,path:pending,sourceIdentity:e.identity};save();copyForRelocation(p,pending,constants.COPYFILE_EXCL);}
       verify(pending);check(e);destination(e,relocationRoots);
       if(presentPath(d))throw Error('Relocation destination appeared during copy',{cause:error});
       renameSync(pending,d);
@@ -192,6 +202,6 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
  const prune=p=>{if(!existsSync(p)||!lstatSync(p).isDirectory())return;for(const e of readdirSync(p,{withFileTypes:true})){if(e.isSymbolicLink())throw Error('Linked output encountered during empty-directory cleanup');if(e.isDirectory())prune(containedPath(p,e.name));}if(!readdirSync(p).length)rmdirSync(p);};
  const scopes=new Map(manifest.entries.map(e=>[e.root+'|'+e.scope,e]));
  for(const e of scopes.values()){const p=validate(e.root,e.scope,roots,protectedPaths,compilerScopes,e.action);if(existsSync(p)&&lstatSync(p).isDirectory())prune(p);}
- if(journal&&existsSync(journal))unlinkSync(journal);
+ if(journal&&!retainCompletedJournal&&existsSync(journal))unlinkSync(journal);
  return {...state,freeBytes:statfsSync(roots[0]).bavail*statfsSync(roots[0]).bsize};
 }

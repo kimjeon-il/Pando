@@ -93,7 +93,31 @@ export async function compactDatabase({path,recovery,receipt,guard,afterBatch=()
  }finally{db.close();}
 }
 const free=()=>Object.fromEntries(['C:/','D:/'].map(p=>{const s=statfsSync(p);return[p,s.bavail*s.bsize];}));
+export function confirmRecovery(directory){
+ for(const name of databaseNames){
+  const receipt=join(directory,name+'.receipt.json');if(!existsSync(receipt))continue;const r=JSON.parse(readFileSync(receipt,'utf8'));
+  if(r.recovery!==resolve(directory,'db-backups',name))throw Error('Recovery backup path changed');
+  if(r.phase==='reopened-confirmed')continue;
+  const recovery=()=>{const path=containedPath(directory,'db-backups/'+name);if(existsSync(path)&&(!lstatSync(path).isFile()||lstatSync(path).isSymbolicLink()))throw Error('Linked or non-file recovery backup must be preserved');return path;};
+  recovery();
+  if(!['verified-awaiting-reopen','reopen-confirmed-removing'].includes(r.phase)||(!existsSync(r.recovery)&&r.phase!=='reopen-confirmed-removing')||(existsSync(r.recovery)&&fileHash(r.recovery)!==r.backupSha256))throw Error('Recovery backup changed');
+  atomicStorageJSON(receipt,{...r,phase:'reopen-confirmed-removing'});if(existsSync(recovery()))unlinkSync(recovery());
+  atomicStorageJSON(receipt,{...r,phase:'reopened-confirmed',backupRemovedAt:new Date().toISOString()});
+ }
+}
+export function checkedConsumers({processes,offline,policy}){
+ if(offline)assertOffline(processes);
+ if(policy?.requests.some(r=>/^playwright/.test(r.path))&&processes.some(p=>/^(?:msedge|chrome|chrome-headless-shell)\.exe$/i.test(p.Name||'')))throw Error('An active automation browser owner blocks saved Temp scopes');
+ return processes;
+}
 function children(root){return existsSync(root)?readdirSync(root,{withFileTypes:true}):[];}
+function linkedDescendant(root){
+ for(const child of children(root)){
+  const path=join(root,child.name);if(child.isSymbolicLink())return path;
+  if(child.isDirectory()){const linked=linkedDescendant(path);if(linked)return linked;}
+ }
+ return null;
+}
 export function discoverProfile({home,library,offline=false,processes=[]}){
  const requests=[],preserved=[],rootKinds=new Map();
  const evidence=join(library,'private-evidence/worktree-storage',task);
@@ -102,6 +126,9 @@ export function discoverProfile({home,library,offline=false,processes=[]}){
   const normalize=value=>String(value||'').replaceAll('\\','/').toLowerCase();
   if(processes.some(p=>normalize(p.ExecutablePath).startsWith(normalize(source)+'/')||normalize(p.CommandLine).includes(normalize(source)))){preserved.push({path:source,reason:'active process references exact target'});return;}
   if(lstatSync(source).isSymbolicLink()){preserved.push({path:source,reason:'reparse point: never traverse'});return;}
+  if(lstatSync(source).isDirectory()){
+   const linked=linkedDescendant(source);if(linked){preserved.push({path:source,reason:'contains a reparse point; preserve whole scope without following it',linked});return;}
+  }
   rootKinds.set(root+'|'+kind,{root,kind});
   requests.push({root,path,action,reason,...destination?{destination}:{}});
  }
@@ -152,7 +179,7 @@ export async function cleanupCDrive({mode,root,settings,library}){
   const offline=mode==='offline',prefix=offline?'offline':'online',manifestPath=join(directory,prefix+'.manifest.json'),resultPath=join(directory,prefix+'.result.json');
   if(mode==='preview'||mode==='apply'||offline){
    const getConsumers=()=>pcProcesses().filter(p=>p.ProcessId!==process.pid),snapshot=getConsumers(),policy=discoverProfile({home,library,offline,processes:snapshot});
-   const options={...policy,consumers:snapshot,refreshConsumers:getConsumers,progress:message=>console.error('C cleanup: '+message)};
+   const options={...policy,consumers:checkedConsumers({policy,offline,processes:snapshot}),refreshConsumers:()=>checkedConsumers({policy,offline,processes:getConsumers()}),progress:message=>console.error('C cleanup: '+message)};
    if(mode==='preview'){
     const startedAtNs=String(BigInt(Date.now())*1000000n),manifest=previewGeneratedCleanup(options);
     atomicStorageJSON(manifestPath,manifest);atomicStorageJSON(join(directory,prefix+'.proof.json'),{schema:'pando-compiler-preview-proof-v1',startedAtNs,manifestSha256:contentHash(Buffer.from(JSON.stringify(manifest))),policySha256:contentHash(Buffer.from(JSON.stringify(policy)))});
@@ -177,8 +204,12 @@ export async function cleanupCDrive({mode,root,settings,library}){
     const moved=manifest.entries.filter(e=>e.action==='relocate').reduce((sum,e)=>sum+e.bytes,0),d=statfsSync('D:/');
     if(moved>=1024**3&&d.bavail*d.bsize<moved+5*1024**3)throw Error('Evidence relocation needs peak bytes plus 5GiB headroom');
     const baseline=join(directory,prefix+'.before.json'),before=existsSync(baseline)?JSON.parse(readFileSync(baseline,'utf8')):free();if(!existsSync(baseline))atomicStorageJSON(baseline,before);
-    const result=applyGeneratedCleanup({...options,...saved,manifest,verifiedPreview:proof.schema?proof:null,journal:join(directory,prefix+'.journal.json')});
+    const result=applyGeneratedCleanup({...options,...saved,manifest,consumers:checkedConsumers({policy:saved,offline,processes:getConsumers()}),refreshConsumers:()=>checkedConsumers({policy:saved,offline,processes:getConsumers()}),verifiedPreview:proof.schema?proof:null,journal:join(directory,prefix+'.journal.json'),retainCompletedJournal:true});
     atomicStorageJSON(resultPath,{...result,allocation,before,after:free(),completedAt:new Date().toISOString()});
+   }
+   const completedJournal=join(directory,prefix+'.journal.json');if(existsSync(completedJournal)){
+    const result=JSON.parse(readFileSync(resultPath,'utf8')),journal=JSON.parse(readFileSync(completedJournal,'utf8'));
+    if(journal.digest!==result.digest||journal.completedCount!==result.completedCount||journal.deletedBytes!==result.deletedBytes||journal.relocatedBytes!==result.relocatedBytes)throw Error('Completed cleanup result/journal mismatch');unlinkSync(completedJournal);
    }
    if(!offline){console.log(readFileSync(resultPath,'utf8'));return;}
    for(const name of databaseNames){
@@ -190,14 +221,7 @@ export async function cleanupCDrive({mode,root,settings,library}){
   }
   if(mode==='confirm'){
    if(!existsSync(join(directory,'offline.completed.json')))throw Error('Offline phase not verified');
-   for(const name of databaseNames){
-    const receipt=join(directory,name+'.receipt.json');if(!existsSync(receipt))continue;const r=JSON.parse(readFileSync(receipt,'utf8'));
-    if(r.recovery!==resolve(directory,'db-backups',name))throw Error('Recovery backup path changed');
-    if(r.phase==='reopened-confirmed')continue;
-    if(!['verified-awaiting-reopen','reopen-confirmed-removing'].includes(r.phase)||(!existsSync(r.recovery)&&r.phase!=='reopen-confirmed-removing')||(existsSync(r.recovery)&&fileHash(r.recovery)!==r.backupSha256))throw Error('Recovery backup changed');
-    atomicStorageJSON(receipt,{...r,phase:'reopen-confirmed-removing'});if(existsSync(r.recovery))unlinkSync(r.recovery);
-    atomicStorageJSON(receipt,{...r,phase:'reopened-confirmed',backupRemovedAt:new Date().toISOString()});
-   }
+   confirmRecovery(directory);
    console.log('Verified recovery copies removed after user restart confirmation.');return;
   }
   throw Error('Expected --cleanup-c-drive=preview|apply|offline|confirm');
