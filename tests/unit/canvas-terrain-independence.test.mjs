@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import * as resourcePolicy from '../../shared/frontend/js/modules/resource-update-policy.js';
 
 const workerSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-render-worker.js", import.meta.url), 'utf8');
 const terrainCoreSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
@@ -69,7 +70,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
       }, { once: true });
     });
   new Function('self', terrainCoreSource)(scope);
-  new Function('self', readFileSync(new URL('../../assets/js/workers/resource-update-policy-core.js',import.meta.url),'utf8'))(scope);
+  scope.PandoLabResourceUpdatePolicy = resourcePolicy;
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
     'ImageData', 'performance', 'setTimeout', workerSource.replace('self.onmessage = event => {',
       'self.drawTerrainTriangle = drawTexturedTriangle; self.onmessage = event => {'))(
@@ -81,7 +82,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   const features = [country('VISIBLE'), country('HIDDEN')];
   const land = { key: 'physical-land', role: 'physical-land', geometry: country('LAND', 2).geometry };
   const frame = {
-    terrainAllowFallback: true, backgroundPending: false,
+    backgroundPending: false,
     surfacePresentation: { targetQuality: 'canonical', quality: 'canonical' },
     width: 1000, height: 600, dpr: 1, terrainDpr: 2, meshQuality: 'preview',
     renderProjection: { scale: 350, translate: [500, 300] }, projection: 'flat',
@@ -150,6 +151,32 @@ test('Canvas terrain demand ignores country preview and backing DPR, but follows
   h.render({ meshQuality: 'preview', terrainDpr: 1 });
   await settle();
   assert.ok(h.levels().includes(1), 'a lower source DPR selects a lower terrain level');
+});
+
+test('Canvas retains ready world tiles across zoom thresholds while target detail is pending', async () => {
+  const h = canvasTerrainRuntime(); await settle();
+  const render = scale => h.render({ terrainDpr: 1, renderProjection: { scale, translate: [500, 300] } });
+  render(100);
+  await h.deliver(h.find('/0/0-0.webp'));
+  await h.deliver(h.find('/0/1-0.webp'));
+  for (const scale of [503, 505, 641, 643, 800, 643, 641, 505, 503]) {
+    h.drawn.length = 0;
+    render(scale);
+    assert.ok(h.drawn.length > 0, `terrain must remain visible at ${scale}`);
+    assert.deepEqual(h.substrates.at(-1), [h.land.geometry]);
+    assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
+  }
+  render(800); await settle();
+  h.drawn.length = 0; render(503);
+  const baseImages = new Set(h.drawn.map(args => args[0]));
+  const detail = h.requests.find(request => !request.completed && /\/2\//.test(request.url));
+  await h.deliver(detail);
+  h.drawn.length = 0; render(503);
+  assert.ok(h.drawn.some(args => !baseImages.has(args[0])), 'ready target tiles overlay the complete world reserve');
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
+  h.drawn.length = 0;
+  h.render({ physicalSettings: { terrainVisible: false, terrainStyle: 'political' } });
+  assert.equal(h.drawn.length, 0, 'explicit terrain visibility still controls painting');
 });
 
 test('Canvas terrain acknowledges prepared coverage and its source limit in the actual frame', async () => {

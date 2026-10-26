@@ -20,7 +20,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation, MAP_SURFACE_LOW_SCALE } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -565,6 +565,8 @@ export function createGpuMapRenderer(deps) {
         else reportOperationError(new Error('Terrain tile loading failed', { cause: new Error(reason) }),
           '지형 타일을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0);
       },
+      onTileFailure: reason => reportOperationError(new Error('Terrain tile loading failed', { cause: new Error(reason) }),
+        '일부 지형 타일을 불러오지 못했습니다. 기존 지형은 유지됩니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0),
     });
     let preparedTerrain = [];
     function detailedTerrainShadeActive() {
@@ -4152,7 +4154,6 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(frame)) throw new TypeError('Canvas Worker view requires a MapVisualFrame.');
       const view = frame.viewState;
       return {
-        terrainAllowFallback: frame.cssScale <= MAP_SURFACE_LOW_SCALE,
         backgroundPending: countriesPublishedGeneration !== projectGeneration,
         type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),

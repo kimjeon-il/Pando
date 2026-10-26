@@ -505,7 +505,7 @@ function canvasFallbackWorkerMain() {
       const baseReady = baseSpecs.every(spec => terrainTiles.has(spec.key));
       const terrainComplete = targetSpecs.every(spec => terrainTiles.has(spec.key));
       const missingSpecs = targetSpecs.filter(spec => !terrainTiles.has(spec.key));
-      const fallbackSpecs = missingSpecs.length && message.terrainAllowFallback
+      const fallbackSpecs = missingSpecs.length
         ? levels.filter(level => level.id !== targetLevel.id && level.id !== baseLevel.id)
           .flatMap(level => visibleTerrainTileSpecs(level, message, projection, width, height))
           .filter(spec => terrainTiles.has(spec.key) && missingSpecs.some(target =>
@@ -520,8 +520,8 @@ function canvasFallbackWorkerMain() {
       // Cache pressure may evict unretained tiles, never lower camera source resolution.
       const demNeighbours = demLevel ? terrainNeighbourSpecs(demLevel, demSpecs) : [];
       const demComplete = (!terrainDemManifestUrl || !!terrainDemManifest && !!terrainTint) && demSpecs.every(spec => demTiles.has(spec.key));
-      const hold = (!message.terrainAllowFallback || message.backgroundPending) && (!terrainComplete || !demComplete);
-      const drawSpecs = hold ? [] : [...(message.terrainAllowFallback && baseReady ? baseSpecs : []), ...fallbackSpecs, ...targetSpecs];
+      const hold = message.backgroundPending && (!terrainComplete || !demComplete);
+      const drawSpecs = hold ? [] : [...(baseReady ? baseSpecs : []), ...fallbackSpecs, ...targetSpecs];
       const sourceLevel = demLevel || targetLevel;
       const desiredWidth = 2 * Math.PI * projection.scale() * Math.max(1, Number(message.terrainDpr || dpr)) * 1.12;
       return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs, hold,
