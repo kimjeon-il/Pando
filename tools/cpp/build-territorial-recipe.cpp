@@ -641,6 +641,7 @@ public:
 #include "historical-linework-audit.inc"
 #include "historical-caspian-generalization.inc"
 #include "historical-caspian-physical.inc"
+#include "historical-source-geometry-compare.inc"
 }
 
 int main(int argc,char** argv) {
@@ -673,6 +674,11 @@ int main(int argc,char** argv) {
             writeOutput<<result.encode()<<'\n';
             if(!writeOutput)throw std::runtime_error("Caspian result write failed");
             std::cout<<field(result,"metrics").encode()<<'\n';
+            return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--compare-historical-geometry") {
+            const auto doc=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
+            std::cout<<compareHistoricalPolygon(doc).encode()<<'\n';
             return 0;
         }
         if(argc==3 && std::string(argv[1])=="--audit-partition") {
