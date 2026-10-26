@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createGpuTerrainPreparation } from "../../shared/frontend/js/modules/gpu-terrain-preparation.js";
 import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 
-function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl } = {}) {
+function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl, onTileFailure = () => {} } = {}) {
   const requests = [];
   const jobs = [];
   const deleted = [];
@@ -17,6 +17,7 @@ function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () =>
     tileUrl: spec => `https://example.test/${spec.key}`,
     tintUrl,
     onUnusable,
+    onTileFailure,
     isMobile: () => mobile,
     invalidate: () => {},
     geoDistance,
@@ -83,7 +84,7 @@ for (const representation of ['dem-relief-v1', 'raster-rgba-v1']) {
     assert.ok(requests.slice(0, owner.stats().terrainTargetTileCount).every(request => request.url.includes('/2/')), 'visible target owns all initial fetch slots');
     for (const request of requests.filter(request => request.url.includes('/2/'))) {
       request.resolve({ ok: true, blob: async () => ({}) }); await settle();
-      for (const job of jobs.splice(0)) while (!job.step().done) {}
+      for (const job of jobs.splice(0)) while (!job.step().done) { /* Upload visible tiles. */ }
     }
     const ready = owner.prepare(frame, view);
     assert.equal(ready.length, owner.stats().terrainTargetTileCount);
@@ -149,9 +150,9 @@ test('terrain readiness requires uploaded world reserve and reports the source r
 });
 
 for (const failDetail of [false, true]) {
-test(`exhausted target${failDetail ? ' and reserve' : ''} failures report unusable coverage instead of waiting forever`, async t => {
-  const failures = [];
-  const { owner, requests, jobs } = fixture(t, reason => failures.push(reason));
+test(`exhausted target${failDetail ? ' and reserve' : ''} failures preserve usable tiles and report detail failure until retry`, async t => {
+  const failures = [], detailFailures = [];
+  const { owner, requests, jobs } = fixture(t, reason => failures.push(reason), { onTileFailure: reason => detailFailures.push(reason) });
   t.after(() => owner.dispose());
   globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
   t.after(() => { delete globalThis.createImageBitmap; });
@@ -180,14 +181,23 @@ test(`exhausted target${failDetail ? ' and reserve' : ''} failures report unusab
     owner.prepare(frame, view);
     if (attempt < 3) { now += 5000; t.mock.timers.tick(5000); await settle(); }
   }
-  assert.equal(owner.prepare(frame, view).length, 0);
+  assert.ok(owner.prepare(frame, view).length > 0, 'ready coverage stays visible despite an exhausted target');
   assert.equal(failedRequests.size, unavailable.length * 4, 'unavailable coverage paths exhaust their real retries');
-  assert.equal(failures.length, 1, 'report through the existing source failure boundary');
+  assert.equal(failures.length, 0, 'do not replace a source while usable coverage is present');
+  assert.equal(detailFailures.length, 1);
   assert.equal(owner.stats().terrainReady, false, 'retry exhaustion cannot be readiness');
   assert.equal(owner.stats().terrainFailed, true);
-  assert.match(failures[0], /2\/0-0: 지형 타일 HTTP 503/, 'preserve the failing tile and technical cause');
+  assert.match(detailFailures[0], /2\/0-0: 지형 타일 HTTP 503/, 'preserve the failing tile and technical cause');
   owner.prepare(frame, view);
-  assert.equal(failures.length, 1, 'report once until the source resets');
+  assert.equal(detailFailures.length, 1, 'report once until retry');
+  owner.request({ key: 'malformed', pixelWidth: 2, pixelHeight: 2 });
+  requests.at(-1).resolve({ ok: true, blob: async () => ({}) });
+  await settle();
+  assert.equal(failures.length, 1, 'a later invalid DEM must still reach the source failure boundary');
+  assert.match(failures[0], /DEM tile dimensions differ/);
+  owner.retry();
+  assert.equal(owner.stats().terrainFailed, false);
+  assert.ok(owner.prepare(frame, view).length > 0);
 });
 }
 
@@ -328,12 +338,12 @@ test('in-flight neighbouring prefetch cannot block queued tiles in the current v
 });
 
 for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]]) {
-  test(`zoom transition ${previousLevel} to ${nextLevel} admits fallback only at low scale while replacement uploads`, async t => {
+  test(`zoom transition ${previousLevel} to ${nextLevel} keeps coverage while replacement uploads at every scale`, async t => {
     const { owner, requests, jobs } = fixture(t);
     globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
     t.after(() => { delete globalThis.createImageBitmap; });
     owner.setManifest(mobileManifest);
-    const view = { ...mobileView(), devicePixelRatio: 1 };
+    const view = { ...mobileView(), devicePixelRatio: 1, cacheBudgetBytes: 256 * 1024 * 1024 };
     const previousFrame = { ...mobileFrame(), scale: previousLevel === 1 ? 500 : 1200 };
     owner.prepare(previousFrame, view);
     for (let index = 0; index < requests.length; index++) {
@@ -348,15 +358,19 @@ for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]])
     const nextFrame = { ...mobileFrame(), scale: nextScale };
     const waiting = owner.prepare(nextFrame, view);
     assert.equal(owner.stats().terrainLevel, nextLevel);
-    if (nextScale > 504) assert.deepEqual(waiting, [], 'high scale never magnifies cached lower resolution');
-    else { assert.ok(waiting.length > 0); assert.ok(before.every(old => waiting.some(tile => tile.texture === old.texture))); assertWorldCoverage(waiting); }
+    assert.ok(waiting.length > 0);
+    assert.ok(before.every(old => waiting.some(tile => tile.texture === old.texture)));
+    assertWorldCoverage(waiting);
+    assert.equal(owner.stats().terrainReady, false, 'coverage is independent of target detail readiness');
     assert.ok(requests.slice(priorRequestCount).every(request => new URL(request.url).pathname.startsWith(`/${nextLevel}/`)));
     requests[priorRequestCount].resolve({ ok: true, blob: async () => ({}) });
     await settle();
     for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain uploads. */ }
     const partial = owner.prepare(nextFrame, view);
-    if (nextScale > 504) assert.deepEqual(partial, [], 'partial high-scale coverage stays hidden');
-    else { assert.ok(partial.some(tile => tile.spec.level === previousLevel)); assert.equal(partial.at(-1).spec.level, nextLevel); }
+    assert.ok(partial.some(tile => tile.spec.level === previousLevel));
+    assert.equal(partial.at(-1).spec.level, nextLevel);
+    assertWorldCoverage(partial);
+    assert.equal(owner.stats().terrainReady, false);
     for (let index = priorRequestCount + 1; index < requests.length; index++) {
       requests[index].resolve({ ok: true, blob: async () => ({}) });
       await settle();
@@ -365,6 +379,12 @@ for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]])
     const completed = owner.prepare(nextFrame, view);
     assert.ok(completed.every(tile => tile.spec.level === nextLevel));
     assert.equal(owner.stats().terrainTargetTilesLoaded, owner.stats().terrainTargetTileCount);
+    for (const scale of [503, 505, 641, 643, 1200, 643, 641, 505, 503]) {
+      const painted = owner.prepare({ ...nextFrame, scale }, view);
+      assert.ok(painted.length, `warm terrain must remain visible at ${scale}`);
+      assertWorldCoverage(painted);
+      assert.equal(owner.stats().terrainReady, true);
+    }
     owner.dispose();
   });
 }
