@@ -6,7 +6,7 @@
 import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {spawnSync} from 'node:child_process';
-import {existsSync,mkdirSync,readFileSync,writeFileSync,copyFileSync} from 'node:fs';
+import {existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {mkdtempSync,rmSync} from 'node:fs';
@@ -58,7 +58,10 @@ export function verifyPublishedPhysicalManifest(manifest,assets) {
    verify(expected?.url===SOURCE+name,
      'Unexpected physical asset URL: '+role);
    const actual=assetDigest(assets[name]);
-   verify(JSON.stringify(actual)===JSON.stringify(expected),
+   verify(expected.encoding===actual.encoding
+     &&expected.compressedBytes===actual.compressedBytes
+     &&expected.decodedBytes===actual.decodedBytes
+     &&expected.sha256===actual.sha256,
      'Published historical '+role+' asset digest differs from manifest');
  }
  return row;
