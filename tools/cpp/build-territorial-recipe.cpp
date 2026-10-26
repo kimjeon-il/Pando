@@ -684,8 +684,7 @@ int main(int argc,char** argv) {
         }
         if(argc==3 && std::string(argv[1])=="--audit-ussr-1922-partition") {
             const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
-            std::cout<<auditUSSR1922Partition(input).encode()<<'
-';
+            std::cout<<auditUSSR1922Partition(input).encode()<<'\n';
             return 0;
         }
         if(argc==3 && std::string(argv[1])=="--audit-partition") {
