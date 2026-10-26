@@ -29,13 +29,17 @@ V compareHistoricalPolygon(const V& request){
     // never relax the zero-area/zero-boundary acceptance contract above.
     const auto evidence=[&](const GeometryEngine::Shape& candidate) {
         std::vector<std::pair<double,std::array<double,4>>> rows;
+        unsigned omittedExtentCount=0;
         for(const auto& polygon:geos.parts(candidate)) {
-            if(geos.type(polygon.get())!=GEOS_POLYGON)continue;
+            if(geos.type(polygon.get())!=GEOS_POLYGON
+                ||geos.empty(polygon.get()))continue;
             const double patchArea=geos.area(polygon.get());
+            if(patchArea<=0)continue;
             double west=0,south=0,east=0,north=0;
             if(!GEOSGeom_getExtent_r(geos.context(),polygon.get(),
-                &west,&south,&east,&north))
-                throw std::runtime_error("Historical patch extent could not be measured");
+                &west,&south,&east,&north)) {
+                ++omittedExtentCount;continue;
+            }
             rows.push_back({patchArea,{west,south,east,north}});
         }
         std::stable_sort(rows.begin(),rows.end(),[](const auto& a,const auto& b){
@@ -43,6 +47,7 @@ V compareHistoricalPolygon(const V& request){
         });
         auto summary=V::obj();
         summary.object["componentCount"]=V::num(static_cast<double>(rows.size()));
+        summary.object["omittedExtentCount"]=V::num(static_cast<double>(omittedExtentCount));
         auto major=V::arr();
         for(size_t i=0;i<std::min<size_t>(rows.size(),8);++i) {
             auto part=V::obj(),bbox=V::arr();
