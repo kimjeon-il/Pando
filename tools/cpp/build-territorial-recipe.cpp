@@ -593,11 +593,17 @@ public:
         return engine_.output(results_.at(str(field(operations.back(),"id"))));
     }
 };
+#include "historical-linework-audit.inc"
 }
 
 int main(int argc,char** argv) {
     try {
-        if(argc!=3)throw std::runtime_error("Usage: pando-territorial-recipe REPOSITORY_ROOT RECIPE_PATH");
+        if(argc==3 && std::string(argv[1])=="--audit-linework") {
+            const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
+            std::cout<<auditHistoricalLinework(input).encode()<<'\n';
+            return 0;
+        }
+        if(argc!=3)throw std::runtime_error("Usage: pando-territorial-recipe REPOSITORY_ROOT RECIPE_PATH | --audit-linework GEOJSON");
         const fs::path root=fs::absolute(argv[1]);
         const fs::path recipePath=fs::absolute(argv[2]);
         Recipe recipe(root,pandoeditor::codecjson::parse(read(recipePath)));
