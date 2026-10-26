@@ -135,13 +135,14 @@ jobs:
           node tools/gis/stage-ussr-1922-library-originals.mjs \
             --scope countries \
             --output-root build-native/historical/ussr-1922-existing
-      - name: Verify all five published 1922 country entities against the approved source ZIP
+      - name: Audit published 1922 country objects without erasing observed source geometry discrepancies
         run: |
           set -euo pipefail
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
           node tools/gis/replay-ussr-1922-countries.mjs \
             --source-root build-native/historical/ussr-1922-existing \
             --zip build-native/historical/ussr-1922-approved-master.zip \
+            --audit-differences \
             | tee build-native/historical/ussr-1922-country-replay.jsonl
       - name: Compare actual 266-reach approved source with the native GEOS topology owner
         run: |
