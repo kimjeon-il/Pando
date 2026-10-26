@@ -32,7 +32,7 @@ export function hasFrontendInput(snapshot,path){
  if(isAbsolute(path))path=relative(snapshot.root,path).replaceAll('\\','/');
  return path==='__editor/index.html'||snapshot.assets.has(path)||existsSync(resolve(snapshot.root,path));
 }
-const metadataPaths=Object.freeze(['assets/data/world/current.json','assets/data/terrain-preview/v0.13.3-p1/manifest.json','assets/data/physical-land/v1/manifest.json','assets/data/hydro/v0.13.2/manifest.json','assets/data/places/manifest.json','assets/data/territorial-entities/generated/v2/index.json','assets/data/builtin-world/generated/v1/index.json','assets/data/prepared-polygons/generated/v2/manifest.json']);
+const metadataPaths=Object.freeze(['assets/data/world/current.json','assets/data/terrain-preview/v0.13.3-p2/manifest.json','assets/data/physical-land/v1/manifest.json','assets/data/hydro/v0.13.2/manifest.json','assets/data/places/manifest.json','assets/data/territorial-entities/generated/v2/index.json','assets/data/builtin-world/generated/v1/index.json','assets/data/prepared-polygons/generated/v2/manifest.json']);
 const pinnedContexts=new Map();
 function pinnedContext(root){
  const configuration=libraryConfig(root),checkout=libraryCheckout(root),key=checkout+'|'+configuration.revision;

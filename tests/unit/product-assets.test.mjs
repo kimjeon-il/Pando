@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collectViewerAssets, isEditorOnlyAsset } from '../../scripts/lib/product-assets.mjs';
+import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
 
 test('version checks and staging share the distinction between common viewing and editor assets',()=>{
   for(const name of ['app-accent','app-map-settings'])assert.equal(isEditorOnlyAsset(`assets/js/modules/${name}.js`),false);
@@ -97,9 +98,7 @@ test('runtime worker catalog includes classic Worker imports and rejects a missi
 
 test('actual viewer graph contains render and read Workers without editor execution entries', async () => {
   const root = fileURLToPath(new URL('../../', import.meta.url));
-  const availablePaths = readdirSync(join(root, 'assets'), { recursive: true, withFileTypes: true })
-    .filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name).slice(root.length).replaceAll('\\', '/'));
-  const paths = await collectViewerAssets({ root, availablePaths: [...availablePaths, 'index.html', '.nojekyll'] });
+  const paths = (await buildFrontendSnapshot({root})).viewerPaths;
   for (const name of ['core-viewer-session-worker', 'project-read-worker', 'gpu-mesh-worker', 'canvas-render-worker', 'hydro-tile-worker'])
     {
       assert.equal(paths.has(`assets/js/workers/${name}.js`), false, name);

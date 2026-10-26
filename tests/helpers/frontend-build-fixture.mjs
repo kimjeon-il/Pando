@@ -14,7 +14,7 @@ export function frontendFixture(t){
  put('apps/viewer/templates/index.html',html('viewer.js'));put('apps/editor/templates/index.html',html('bootstrap.js'));
  const metadata={
   'assets/data/world/current.json':{assets:{}},
-  'assets/data/terrain-preview/v0.13.3-p1/manifest.json':{sourceDem:{landMaskSha256:'land'},tiles:{}},
+  'assets/data/terrain-preview/v0.13.3-p2/manifest.json':{sourceDem:{landMaskSha256:'land'},tiles:{}},
   'assets/data/physical-land/v1/manifest.json':{sourceSha256:'land',asset:{url:'assets/data/physical-land/land.bin'}},
   'assets/data/hydro/v0.13.2/manifest.json':{container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},

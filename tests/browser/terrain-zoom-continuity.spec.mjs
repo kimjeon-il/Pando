@@ -201,6 +201,12 @@ test(`Canvas keeps land and ocean terrain through ${phase} zoom while new detail
       self.__terrainLast={scale:projection.scale(),baseReady,
         ready:terrainComplete&&(!terrainDemManifestUrl||!!terrainDemManifest&&!!terrainTint)&&demSpecs.every(spec=>demTiles.has(spec.key)),points,
         tiles:drawSpecs.filter(spec=>terrainTiles.has(spec.key)).map(spec=>spec.bounds)};
+      self.__terrainCacheReadiness=()=>({baseReady:baseSpecs.every(spec=>terrainTiles.has(spec.key)),
+        ready:targetSpecs.every(spec=>terrainTiles.has(spec.key))&&(!terrainDemManifestUrl||!!terrainDemManifest&&!!terrainTint)&&demSpecs.every(spec=>demTiles.has(spec.key)),
+        missingBase:baseSpecs.filter(spec=>!terrainTiles.has(spec.key)).map(spec=>spec.key),
+        missingDem:demSpecs.filter(spec=>!demTiles.has(spec.key)).map(spec=>spec.key),
+        requests:[...demRequests.keys()],queued:demQueue.map(item=>item.spec.key),
+        failures:[...demFailures.entries()],cacheBytes:demCacheBytes,cacheLimit:demCacheLimit});
       if(self.__captureTerrainCoverage)(self.__terrainFrames??=[]).push(self.__terrainLast);
       ` + anchor).replace(painted, `
       if(self.__captureTerrainCoverage)self.__terrainLast.pixels=[[32,39],[20,35]].map(coordinate=>{
@@ -216,7 +222,20 @@ test(`Canvas keeps land and ocean terrain through ${phase} zoom while new detail
     await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().renderer)).toBe('canvas-worker');
     const worker = workers.find(worker=>worker.url().includes('canvas-render-worker'));
     expect(worker).toBeTruthy();
-    await expect.poll(()=>worker.evaluate(()=>!!globalThis.__terrainLast?.ready && globalThis.__terrainLast.baseReady),{timeout:90000}).toBe(true);
+    // Match the WebGL overview baseline. Initial app framing is not the
+    // subject of this test; the L0/L1 world reserve must precede zooming.
+    const baselineScale = await page.evaluate(() => {
+      const host=window.__PANDOLAB_MAP_HOST__;
+      host.setViewState({projection:'globe',view:{...host.getViewState(),globeZoom:1,globeRotation:[-30,-40,0]}});
+      host.requestRepaint('canvas-terrain-zoom-baseline');
+      return host.getViewState().scale;
+    });
+    // Offscreen reserve uploads need not redraw an already-ready viewport.
+    // Inspect the live resource owner rather than the last painted plan.
+    await expect.poll(()=>worker.evaluate(expectedScale=>{
+      const current=globalThis.__terrainCacheReadiness?.();
+      return Math.abs(globalThis.__terrainLast?.scale-expectedScale)<0.1 && !!current?.ready&&current.baseReady;
+    },baselineScale),{timeout:90000}).toBe(true);
     if (phase === 'startup') expect(await page.evaluate(() => {
       const s = window.__PANDOLAB_VIEWER__.rendererStats();
       return s.countriesPublishedGeneration === s.projectGeneration;
@@ -254,7 +273,7 @@ test(`Canvas keeps land and ocean terrain through ${phase} zoom while new detail
   } catch(error) {
     console.log('CANVAS_TERRAIN_FAILURE',JSON.stringify({
       view:await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState()),
-      worker:await workers.find(worker=>worker.url().includes('canvas-render-worker')).evaluate(()=>({scale:globalThis.__terrainLast?.scale,ready:globalThis.__terrainLast?.ready})),heldRequests,errors,
+      worker:await workers.find(worker=>worker.url().includes('canvas-render-worker')).evaluate(()=>({scale:globalThis.__terrainLast?.scale,ready:globalThis.__terrainLast?.ready,cache:globalThis.__terrainCacheReadiness?.()})),heldRequests,errors,
     }));
     throw error;
   } finally {

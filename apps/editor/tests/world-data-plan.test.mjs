@@ -32,8 +32,8 @@ function fixture() {
     first: pin('assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-' + SHA + '.bin.gz'),
   } };
   const terrain = {
-    version: '0.13.3-p1', representation: 'raster-rgba-v1',
-    urlTemplate: 'terrain-preview/v0.13.3-p1/{level}/{column}-{row}.webp',
+    version: '0.13.3-p2', representation: 'raster-rgba-v1',
+    urlTemplate: 'terrain-preview/v0.13.3-p2/{level}/{column}-{row}.webp',
     tiles: Object.fromEntries([
       '0/0-0.webp', '0/1-0.webp',
       '1/0-0.webp', '1/1-0.webp', '1/2-0.webp',
