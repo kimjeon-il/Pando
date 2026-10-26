@@ -259,3 +259,4 @@
 - `tools/reference-analysis/train.py`
 - `tools/reference-analysis/verify-model.py`
 
+- **C1 1922 카스피해 물리 자산·보고서 Node/C++ 이전(2026-10-26):** 고정된 현대 세계 육지 자료에는 카스피해 수정 범위 밖의 기존 GEOS 유효성 결함이 있음을 확인했다. 전 세계 원본을 암묵적으로 보정하지 않고, 변경 구역 내부와 구역 밖 변동 0을 C++로 검증하도록 수정하여 [실제 원본 GIS CI #40311376516](https://github.com/kimjeon-il/Pando/actions/runs/40311376516)가 통과했다. 세계 원본·게시된 역사 육지의 기존 불완전성은 정직하게 메트릭으로 남겨 둔다. 보고서는 Node가 고정 라이브러리 revision `68380579a7c7a1bd8ec97683b7517502c1389c3c`의 당시 보고서·검증 JSON·비교 지도 PNG 3개를 원본 바이트/SHA로 확인한 뒤, 새 C++ 감사 결과와 결합해 축약 생성한다. 국가 5개 중 4개가 승인 ZIP과 실제 위상 차이를 보이므로 자동 재반영 금지 상태를 명시하며 [실제 보고서 CI #40312343966](https://github.com/kimjeon-il/Pando/actions/runs/40312343966)가 통과했다. 옛 Python 보고서 생성기는 아카이브 내 원본 이미지·보고서 재검증을 전제로 퇴역시키되, 소련 역사 데이터의 배포 승인이나 원본 수정은 수행하지 않았다.
