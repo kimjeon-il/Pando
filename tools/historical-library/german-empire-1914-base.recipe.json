@@ -23,7 +23,7 @@
     "canonicalCountries": {
       "path": "assets/data/countries-ne-5.1.1.geojson",
       "crs": "EPSG:4326",
-      "sha256": "52590CE133A779FC678496844137AEAA0DCA41CECA1621CD7C50169F5EFB",
+      "sha256": "52590CE133A779FC678496844C844137AEAA0DCA41CECA1621CD7C50169F5EFB",
       "license": "Public domain",
       "url": "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/"
     }
