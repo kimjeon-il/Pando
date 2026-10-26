@@ -178,7 +178,8 @@ export async function cleanupCDrive({mode,root,settings,library}){
  return withPcLock(directory,async()=>{
   const offline=mode==='offline',prefix=offline?'offline':'online',manifestPath=join(directory,prefix+'.manifest.json'),resultPath=join(directory,prefix+'.result.json');
   if(mode==='preview'||mode==='apply'||offline){
-   const getConsumers=()=>pcProcesses().filter(p=>p.ProcessId!==process.pid),snapshot=getConsumers(),policy=discoverProfile({home,library,offline,processes:snapshot});
+   const getConsumers=()=>pcProcesses().filter(p=>p.ProcessId!==process.pid),snapshot=getConsumers();
+   const policy=mode==='apply'&&existsSync(join(directory,prefix+'.policy.json'))?JSON.parse(readFileSync(join(directory,prefix+'.policy.json'),'utf8')):discoverProfile({home,library,offline,processes:snapshot});
    const options={...policy,consumers:checkedConsumers({policy,offline,processes:snapshot}),refreshConsumers:()=>checkedConsumers({policy,offline,processes:getConsumers()}),progress:message=>console.error('C cleanup: '+message)};
    if(mode==='preview'){
     const startedAtNs=String(BigInt(Date.now())*1000000n),manifest=previewGeneratedCleanup(options);

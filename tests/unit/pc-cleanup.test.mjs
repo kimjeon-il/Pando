@@ -70,6 +70,7 @@ test('NTFS allocation audit counts selected hardlink data once and retains outsi
  writeFileSync(join(root,'a'),randomBytes(65536));linkSync(join(root,'a'),join(root,'b'));
  const manifest=join(root,'manifest.json'),audit=entries=>{writeFileSync(manifest,JSON.stringify({entries:entries.map(path=>({root,path,action:'delete'}))}));return JSON.parse(execFileSync(python,[fileURLToPath(new URL('../../tools/pc-file-allocation.py',import.meta.url)),manifest],{encoding:'utf8',windowsHide:true}));};
  const one=audit(['a']),two=audit(['a','b']);assert.equal(one.reclaimableAllocation,0);assert.equal(two.uniqueFileIds,1);assert.equal(two.reclaimableAllocation,two.selectedUniqueAllocation);assert.ok(two.reclaimableAllocation>0);
+ const long='long/'.repeat(60)+'allocation.bin';mkdirSync(join(root,long,'..'),{recursive:true});writeFileSync(join(root,long),randomBytes(4096));assert.equal(audit([long]).files,1);
 });
 test('restarting an automation browser after online preview blocks saved Temp scopes',t=>{
  const root=mkdtempSync(join(tmpdir(),'pc-owner-'));t.after(()=>rmSync(root,{recursive:true,force:true}));const path='playwright-artifacts-finished/x';mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),'cache');

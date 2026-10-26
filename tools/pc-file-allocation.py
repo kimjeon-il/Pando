@@ -31,7 +31,11 @@ def audit(manifest):
     kernel.CloseHandle.argtypes = [wintypes.HANDLE]
     groups = {}
     for entry in manifest["entries"]:
-        path = os.path.join(entry["root"], entry["path"])
+        path = os.path.abspath(os.path.join(entry["root"], entry["path"]))
+        # Win32 APIs need normalized extended-length paths; mixed slashes work
+        # in Node but fail at MAX_PATH in this installed Python/Win32 runtime.
+        if not path.startswith("\\\\?\\"):
+            path = "\\\\?\\UNC\\" + path[2:] if path.startswith("\\\\") else "\\\\?\\" + path
         stat = os.lstat(path)
         if stat.st_file_attributes & 0x400:
             raise RuntimeError("Reparse point must be preserved: " + path)
