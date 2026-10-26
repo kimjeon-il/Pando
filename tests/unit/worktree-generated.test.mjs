@@ -9,6 +9,34 @@ import {previewGeneratedCleanup,applyGeneratedCleanup,cargoRetirementRequests} f
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-generated-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function put(root,path,text='generated'){mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),text);}
 function options(root){return {roots:[root],requests:[{root,path:'build-native/p9/retired/output.exe',reason:'retired reproducible native test',action:'delete'}],consumers:[],protectedPaths:[]};}
+
+test('explicit retired Cargo and cache scopes reject escape and preserve Android keys',t=>{
+ const root=fixture(t);put(root,'main-cargo-gnu/debug/deps/x.rlib');put(root,'android/user/debug.keystore','private key');
+ const o={roots:[root],compilerScopes:[{root,kind:'retired-cargo'}],requests:[{root,path:'main-cargo-gnu',reason:'confirmed retired Cargo producer without consumers',action:'delete'}]};
+ const manifest=previewGeneratedCleanup(o);assert.equal(manifest.entries.length,1);applyGeneratedCleanup({...o,manifest});assert.equal(existsSync(join(root,'main-cargo-gnu')),false);
+ assert.throws(()=>previewGeneratedCleanup({...o,requests:[{root,path:'android/user',reason:'not a cache',action:'delete'}]}),/scope/);
+ assert.equal(readFileSync(join(root,'android/user/debug.keystore'),'utf8'),'private key');
+});
+
+test('cross-volume retired evidence is verified at its destination before the source is removed',{skip:process.platform!=='win32'||!existsSync('D:/build/cache/pandolab')},t=>{
+ const root=fixture(t),destination=mkdtempSync('D:/build/cache/pandolab/evidence-test-');t.after(()=>rmSync(destination,{recursive:true,force:true}));
+ put(root,'proof/original.map','unique original bytes');
+ const o={roots:[root],compilerScopes:[{root,kind:'pc-evidence'}],relocationRoots:[destination],requests:[{root,path:'proof',action:'relocate',destination:join(destination,'proof'),reason:'ended unique evidence retained once in library storage'}]};
+ const manifest=previewGeneratedCleanup(o),result=applyGeneratedCleanup({...o,manifest});
+ assert.equal(result.relocatedBytes,21);assert.equal(existsSync(join(root,'proof/original.map')),false);assert.equal(readFileSync(join(destination,'proof/original.map'),'utf8'),'unique original bytes');
+ assert.throws(()=>previewGeneratedCleanup({...o,requests:[{...o.requests[0],action:'delete'}]}),/scope/);
+});
+test('interrupted cross-volume prefix copies resume only with owned journal and intact source',{skip:process.platform!=='win32'||!existsSync('D:/build/cache/pandolab')},t=>{
+ const root=fixture(t),destination=mkdtempSync('D:/build/cache/pandolab/evidence-test-');t.after(()=>rmSync(destination,{recursive:true,force:true}));put(root,'proof/map','original bytes');
+ const o={roots:[root],compilerScopes:[{root,kind:'pc-evidence'}],relocationRoots:[destination],requests:[{root,path:'proof',action:'relocate',destination:join(destination,'proof'),reason:'keep exact original'}]},manifest=previewGeneratedCleanup(o),journal=join(root,'journal.json');
+ assert.throws(()=>applyGeneratedCleanup({...o,manifest,journal,copyForRelocation:(source,pending)=>{writeFileSync(pending,readFileSync(source).subarray(0,4),{flag:'wx'});throw Error('copy interrupted');}}),/interrupted/);
+ assert.ok(existsSync(join(root,'proof/map')));assert.equal(applyGeneratedCleanup({...o,manifest,journal}).relocatedBytes,14);assert.equal(readFileSync(join(destination,'proof/map'),'utf8'),'original bytes');
+});
+test('completed cleanup cursor survives interruption before caller persists its result',t=>{
+ const root=fixture(t),o=options(root);put(root,o.requests[0].path);const manifest=previewGeneratedCleanup(o),journal=join(root,'journal.json');
+ const first=applyGeneratedCleanup({...o,manifest,journal,retainCompletedJournal:true});assert.ok(existsSync(journal));
+ const resumed=applyGeneratedCleanup({...o,manifest,journal,retainCompletedJournal:true});assert.equal(resumed.deletedBytes,first.deletedBytes);assert.equal(resumed.completedCount,manifest.entries.length);
+});
 test('closed validation evidence can only be relocated with exact bytes',t=>{
  const root=fixture(t),evidence=fixture(t);put(root,'build-native/resource-update-native.log','original proof');
  const request={root,path:'build-native/resource-update-native.log',reason:'completed validation provenance',action:'delete'};
