@@ -129,13 +129,6 @@ pub async fn library_sync(
     .await
 }
 #[tauri::command]
-pub async fn library_publish(app: tauri::AppHandle, revision: String) -> Result<Value> {
-    run(app, "PL-LIBRARY-PUBLISH", move |repo| {
-        library_sync::publish(repo, &library_sync::GitHub, &revision)
-    })
-    .await
-}
-#[tauri::command]
 pub async fn library_conflict(app: tauri::AppHandle, choice: String) -> Result<Value> {
     run(app, "PL-LIBRARY-CONFLICT", move |repo| {
         repo.resolve(&choice)

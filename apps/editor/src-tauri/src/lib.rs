@@ -261,7 +261,7 @@ pub fn run() {
             document_transfer::read_document_chunk, document_transfer::abort_document_transfer,
             library_commands::library_open, library_commands::library_read_entity,
             library_commands::library_commit, library_commands::library_sync,
-            library_commands::library_publish, library_commands::library_conflict,
+            library_commands::library_conflict,
             library_commands::library_open_geometry, library_commands::library_read_external_changes, library_commands::library_read_candidate])
         .setup(move |app| {
             let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
