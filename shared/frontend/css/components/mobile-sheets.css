@@ -43,6 +43,30 @@
   display: none;
 }
 
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .mobile-bottom-bar .ui-nav-item {
+  position: relative;
+  min-width: 0;
+  min-height: var(--ui-touch-height);
+  height: var(--ui-mobile-bottom-nav-item-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-nav-icon-label-gap);
+  padding: var(--ui-space-1) var(--ui-space-0-5);
+  border: var(--ui-border-width) solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.app-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .mobile-bottom-bar .ui-nav-item strong {
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-semibold);
+  line-height: var(--ui-line-normal);
+}
+
 @media (max-width: 799px) {
   [data-layout="mobile"] { --ui-shell-topbar-height: 0px; }
 }
@@ -355,15 +379,34 @@
   border-radius: 0;
   background: var(--surface-elevated);
   box-shadow: var(--control-shadow);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet > .surface-header {
+  padding: var(--ui-space-1) var(--ui-space-2);
 }
 
 .app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
   background: var(--mobile-nav-bg);
+  padding: 0;
+}
+
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item {
+  flex: 0 0 auto;
+  min-height: var(--ui-touch-height);
+  height: auto;
+  width: 100%;
+  padding: var(--ui-space-1);
 }
 
 .app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item strong {
-  font-size: var(--ui-phone-landscape-nav-label-size);
+  font-size: var(--ui-font-body);
+  line-height: var(--design-line-normal);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
+
+body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar { padding: var(--ui-space-1); }
 
 .app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] {
   color: var(--accent);
