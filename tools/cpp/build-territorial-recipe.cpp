@@ -551,6 +551,49 @@ class Recipe {
         }
         throw std::runtime_error("West Berlin political boundary did not close");
     }
+
+    // Same historical point/area policy for DDR, Empire, and future recipes.
+    // GEOS owns topology; PROJ owns metric area. No browser/WASM GIS linkage.
+    void verifyResult(const Shape& result,const V& exported) {
+        const auto* policy=optional(recipe_,"validation");
+        if(!policy)return;
+        if(const auto* area=optional(*policy,"areaKm2")) {
+            const auto projected=engine_.project(result,"EPSG:4326","EPSG:3035");
+            const double km2=engine_.area(projected.get())/1000000.0;
+            if(km2<number(field(*area,"minimum"))
+                ||km2>number(field(*area,"maximum")))
+                throw std::runtime_error("Historical recipe projected area outside approved km2 range");
+        }
+        const auto pointTest=[&](const char* label,bool expected) {
+            const auto* points=optional(*policy,label);
+            if(!points)return;
+            if(points->kind!=V::Object)throw std::runtime_error("Named geographic anchors required");
+            for(const auto& [name,raw]:points->object) {
+                const auto& xy=array(raw);
+                if(xy.size()!=2)throw std::runtime_error("Historical anchor is not a longitude/latitude pair");
+                const double lon=number(xy[0]),lat=number(xy[1]);
+                if(!std::isfinite(lon)||!std::isfinite(lat)
+                    ||std::abs(lon)>180||std::abs(lat)>90)
+                    throw std::runtime_error("Historical anchor outside geographic bounds");
+                const auto mark=engine_.point(lon,lat);
+                if(engine_.covers(result.get(),mark.get())!=expected)
+                    throw std::runtime_error(std::string("Historical recipe anchor mismatch: ")+name);
+            }
+        };
+        pointTest("insidePoints",true);
+        pointTest("outsidePoints",false);
+        if(const auto* maximum=optional(*policy,"maximumCoordinates")) {
+            const auto maximumCount=number(*maximum);
+            if(maximumCount<4 || std::floor(maximumCount)!=maximumCount)
+                throw std::runtime_error("Invalid historical coordinate budget");
+            std::size_t count=0;
+            for(const auto& polygon:array(field(exported,"coordinates")))
+                for(const auto& ring:array(polygon))
+                    count+=array(ring).size();
+            if(static_cast<double>(count)>maximumCount)
+                throw std::runtime_error("Historical geometry exceeds approved coordinate budget");
+        }
+    }
 public:
     Recipe(fs::path root,V recipe):root_(std::move(root)),recipe_(std::move(recipe)) {
         for(const auto& [id,definition]:field(recipe_,"sources").object)
@@ -590,7 +633,9 @@ public:
         }
         const auto& operations=array(field(recipe_,"operations"));
         if(operations.empty())throw std::runtime_error("Recipe has no operations");
-        return engine_.output(results_.at(str(field(operations.back(),"id"))));
+        auto result=engine_.output(results_.at(str(field(operations.back(),"id"))));
+        verifyResult(results_.at(str(field(operations.back(),"id"))),result);
+        return result;
     }
 };
 #include "historical-linework-audit.inc"
