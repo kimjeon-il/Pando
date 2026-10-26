@@ -23,6 +23,8 @@ on:
       - 'tools/gis/diagnose-ussr-1922-source-drift.mjs'
       - 'tools/gis/stage-ussr-1922-library-originals.mjs'
       - 'tools/gis/replay-ussr-1922-physical.mjs'
+      - 'tools/gis/verify-ussr-1922-aral-names.mjs'
+      - 'tests/unit/ussr-1922-aral-names.test.mjs'
       - 'tools/gis/report-ussr-1922-caspian.mjs'
       - 'tests/unit/ussr-1922-report-native.test.mjs'
       - 'tests/unit/ussr-1922-physical-replay.test.mjs'
@@ -78,6 +80,7 @@ jobs:
           node --test tests/unit/ussr-1922-approved-followups.test.mjs
           node --test tests/unit/ussr-1922-country-replay.test.mjs
           node --test tests/unit/ussr-1922-physical-replay.test.mjs
+          node --test tests/unit/ussr-1922-aral-names.test.mjs
 
       - name: Verify immutable 1914 Germany source inventory and native Heligoland donor
         run: |
@@ -213,6 +216,15 @@ jobs:
             --display build-native/historical/caspian-1922-native-candidate.json \
             --stage build-native/historical/caspian-1922-rebuilt-physical-candidate \
             | tee build-native/historical/caspian-1922-physical-replay.jsonl
+      - name: Verify 1922 Aral metadata and unchanged Hydro geometry without retired Python
+        run: |
+          set -euo pipefail
+          node tools/gis/stage-ussr-1922-library-originals.mjs \
+            --scope hydro --output-root build-native/historical/ussr-1922-hydro-originals
+          node tools/gis/verify-ussr-1922-aral-names.mjs \
+            --source-root build-native/historical/ussr-1922-hydro-originals \
+            --output build-native/historical/ussr-1922-aral-node-proof.json \
+            | tee build-native/historical/ussr-1922-aral-node-proof.jsonl
       - name: Verify pinned Python-vs-C++ real Caspian geometry proof without Python dependencies
         run: node --test tests/unit/gis-caspian-pinned-native-oracle.test.mjs
       - name: Condense fully verified 1922 historical GIS evidence in Node
@@ -238,6 +250,7 @@ jobs:
             build-native/historical/ussr-1922-native-compact-report/
             build-native/historical/ussr-1922-drift-review/source-drift.json
             build-native/historical/ussr-1922-approved-followups.json
+            build-native/historical/ussr-1922-aral-node-proof.json
             build-native/historical/german-1914-originals-receipt.json
           retention-days: 14
           if-no-files-found: warn
