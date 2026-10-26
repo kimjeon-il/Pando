@@ -15,9 +15,14 @@ V rebuildCaspianPhysical(const V& request) {
         return GEOSGetNumInteriorRings_r(geos.context(),polygon.get());
     };
     const int requested=static_cast<int>(number(field(request,"expectedWaterHoles")));
-    if(requested<0||requested>4096)return V::obj();
+    if(requested<0||requested>4096)
+        throw std::runtime_error("Invalid historical waterbody hole budget");
     if(ringCount(water)!=requested)
         throw std::runtime_error("Caspian source waterbody interior rings changed");
+    if(!geos.covers(geos.rectangle([]{
+        auto b=V::arr();for(const double n:{45.0,35.0,57.0,48.0})
+            b.array.push_back(V::num(n));return b;}()).get(),water.get()))
+        throw std::runtime_error("Historical Caspian water escaped its reconstruction window");
     auto extent=V::arr();
     for(const double n:{45.0,35.0,57.0,48.0})
         extent.array.push_back(V::num(n));
