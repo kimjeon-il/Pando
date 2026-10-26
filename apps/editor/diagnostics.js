@@ -346,7 +346,7 @@ export function installDiagnostics(runtime) {
   }
   const run = () => running ||= execute().finally(() => { running = null; });
   function button(label, action) {
-    const element = document.createElement('button'); element.type = 'button'; element.textContent = label;
+    const element = document.createElement('button'); element.type = 'button'; element.className = 'ui-button btn'; element.textContent = label;
     element.addEventListener('click', async () => {
       element.disabled = true;
       try { await action(); }
