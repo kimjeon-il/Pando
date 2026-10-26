@@ -40,12 +40,13 @@ test('builtin date changes retain the camera across controls and automatic month
   for (const viewport of [{ width: 1280, height: 800 }, { width: 640, height: 480 }]) {
     await page.setViewportSize(viewport);
     const camera = await moveCamera(page);
-    for (const [id, month] of [['timelinePreviousMonth', '2026-09'], ['timelinePreviousYear', '2025-09'], ['timelineNextYear', '2026-09'], ['timelineNextMonth', '2026-10']]) {
+    await page.locator('#timelineDateButton').click(); await page.locator('#timelineViewUnit').selectOption('year'); await page.locator('#timelineGoBtn').click(); await builtinMonthReady(page, '2026-10');
+    for (const [id, month] of [['timelinePreviousYear', '2025-12'], ['timelinePreviousDecade', '2015-12'], ['timelineNextDecade', '2025-12'], ['timelineNextYear', '2026-10']]) {
       await page.locator('#' + id).click(); await builtinMonthReady(page, month);
       expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
       expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().projectSetup.initialMonth)).toBe(month);
     }
-    await page.locator('#timelineMonthButton').click(); await page.locator('#timelineYearInput').fill('1953');
+    await page.locator('#timelineDateButton').click(); await page.locator('#timelineViewUnit').selectOption('month'); await page.locator('#timelineYearInput').fill('1953');
     await page.locator('#timelineMonthInput').selectOption('7'); await page.locator('#timelineYearInput').press('Enter');
     await builtinMonthReady(page, '1953-07');
     expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
@@ -66,16 +67,16 @@ test('failed and superseded builtin month reads keep the camera and last accepte
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await observeBuiltinCamera(page); const camera = await moveCamera(page);
   await page.evaluate(() => { window.__testBuiltinRead = async () => { throw Error('month source unavailable'); }; });
-  await page.locator('#timelinePreviousMonth').click();
-  await expect(page.locator('#timelineMonthError')).toHaveText('month source unavailable');
+  await page.locator('#timelinePreviousYear').click();
+  await expect(page.locator('#timelineDateError')).toHaveText('month source unavailable');
   await builtinMonthReady(page, '2026-10');
   expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
   await page.keyboard.press('Escape');
-  await page.evaluate(() => { window.__testBuiltinRead = month => month === '2026-09' ? new Promise(resolve => { window.__releaseMonthRead = resolve; }) : Promise.resolve(); });
-  await page.locator('#timelinePreviousMonth').click();
+  await page.evaluate(() => { window.__testBuiltinRead = month => month === '2025-12' ? new Promise(resolve => { window.__releaseMonthRead = resolve; }) : Promise.resolve(); });
+  await page.locator('#timelinePreviousYear').click();
   await page.waitForFunction(() => typeof window.__releaseMonthRead === 'function');
-  await page.locator('#timelinePreviousMonth').click();
-  await page.evaluate(() => window.__releaseMonthRead()); await builtinMonthReady(page, '2026-08');
+  await page.locator('#timelinePreviousYear').click();
+  await page.evaluate(() => window.__releaseMonthRead()); await builtinMonthReady(page, '2024-12');
   expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
   expect(errors).toEqual([]);
 });
@@ -93,17 +94,19 @@ test('floating date controls preserve navigation and document state across deskt
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true');
   await expect(page.locator('#mapBottomStatus')).toHaveCount(0);
   await expect(page.locator('#viewerStatus')).toBeHidden();
-  const button = page.locator('#timelineMonthButton'), year = page.locator('#timelineYearInput');
+  const button = page.locator('#timelineDateButton'), year = page.locator('#timelineYearInput');
   const month = page.locator('#timelineMonthInput'), popup = page.locator('#timelinePopover');
   const before = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot());
   let current = '1914-06';
-  await expect(button).toContainText(timelineMonthLabel(current));
-  for (const [id, delta] of [['timelinePreviousMonth', -1], ['timelineNextMonth', 1], ['timelinePreviousYear', -12], ['timelineNextYear', 12]]) {
+  await expect(button).toContainText('1914년');
+  await expect(page.locator('#timelineDateBasis')).toHaveText('6월말 기준');
+  for (const [id, delta] of [['timelinePreviousYear', -12], ['timelineNextYear', 12], ['timelinePreviousDecade', -120], ['timelineNextDecade', 120]]) {
     await expect(page.locator(`#${id} svg use`)).toHaveCount(1);
     expect(await page.locator(`#${id}`).innerText()).not.toMatch(/[«‹›»]/);
     await page.locator(`#${id}`).click();
-    current = shiftTimelineMonth(current, delta);
-    await expect(button).toContainText(timelineMonthLabel(current));
+    current = shiftTimelineMonth(current, delta).replace(/-\d{2}$/, '-12');
+    await expect(button).toContainText(timelineMonthLabel(current).replace(/ \d+월$/, ''));
+    await expect(page.locator('#timelineDateBasis')).toHaveText('연말 기준');
   }
   await page.locator('#preferencesBtn').click();
   await expect(page.locator('#preferencesStatusBarVisibleInput')).toHaveCount(0);
@@ -114,10 +117,21 @@ test('floating date controls preserve navigation and document state across deskt
     if (width < 800) await button.tap(); else await button.click();
     await expect(popup).toBeVisible();
     await expect(year).toBeFocused();
+    await page.locator('#timelineViewUnit').selectOption('month');
+    await expect(month).toBeVisible();
+    await expect(page.locator('#timelineMonthInputControl')).toHaveCount(0);
     await year.fill(value); await month.selectOption(selectedMonth);
     await year.press('Enter');
     await expect(popup).toBeHidden(); await expect(button).toBeFocused();
     await expect(button).toContainText(label);
+    if (width === 1440) {
+      await button.click();
+      await page.locator('#timelineNextMonth').focus(); await page.keyboard.press('Enter');
+      await expect(popup).toBeVisible(); await expect(button).toContainText('1914년 8월');
+      await page.locator('#timelinePreviousMonth').focus(); await page.keyboard.press('Enter');
+      await expect(popup).toBeVisible(); await expect(button).toContainText(label);
+      await page.keyboard.press('Escape');
+    }
     const layout = await page.evaluate(() => {
       const bounds = el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height }; };
       const root = document.getElementById('timelineControls');
@@ -153,7 +167,7 @@ test('floating date controls preserve navigation and document state across deskt
     });
     expect(moveVisible, `date popover action at ${width}px`).toBe(true);
     await year.fill('0'); await page.locator('#timelineGoBtn').click();
-    await expect(page.locator('#timelineMonthError')).toBeVisible(); await expect(button).toContainText(label);
+    await expect(page.locator('#timelineDateError')).toBeVisible(); await expect(button).toContainText(label);
     await year.press('Escape'); await expect(popup).toBeHidden(); await expect(button).toBeFocused();
     await button.click(); await year.fill('1900');
     const map = await page.locator('#map').boundingBox();

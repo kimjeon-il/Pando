@@ -2,19 +2,24 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { buildUiBundles } from '../../scripts/build-ui-bundle.mjs';
+import { buildFrontendIndex, frontendAsset } from '../../scripts/lib/frontend-layout.mjs';
+import { renderProductHtml } from '../../scripts/lib/product-html.mjs';
 
 const root = new URL('../../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
-const bundles = buildUiBundles(fileURLToPath(root));
-const styles = [read('assets/css/app.css'), bundles.main, bundles.modal, read('assets/css/viewer.css')].join('\n');
-const sprite = read('apps/editor/editor.html').match(/<svg class="icon-sprite"[^>]*>[\s\S]*?<\/svg>/)[0];
+const sourceRoot = fileURLToPath(root), sourceIndex = buildFrontendIndex(sourceRoot);
+const bundles = buildUiBundles(sourceRoot, { readSource: path => frontendAsset(sourceRoot, path, { index: sourceIndex }).bytes.toString('utf8') });
+const styles = [read('shared/frontend/css/app.css'), bundles.main, bundles.modal, read('apps/viewer/css/viewer.css')].join('\n');
+const products = renderProductHtml(read);
+const sprite = products.editor.match(/<svg class="icon-sprite"[^>]*>[\s\S]*?<\/svg>/)[0];
 const icon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M12 4v16"/></svg>';
 const sourceButton = (path, id) => {
-  const button = read(path).match(new RegExp(`<button\\b[^>]*id="${id}"[^>]*>[\\s\\S]*?<\\/button>`))?.[0];
+  const source = path === 'apps/editor/templates/index.html' ? products.editor : read(path);
+  const button = source.match(new RegExp(`<button\\b[^>]*id="${id}"[^>]*>[\\s\\S]*?<\\/button>`))?.[0];
   if (!button) throw new Error(`Missing real button ${path}:${id}`);
   return button;
 };
-const literalIcons = ['ui', 'assets/js/modules'].flatMap(directory => readdirSync(new URL(directory + '/', root), { recursive: true })
+const literalIcons = ['shared/frontend/ui', 'shared/frontend/js/modules', 'apps/viewer/js/modules', 'apps/editor/frontend/js/modules'].flatMap(directory => readdirSync(new URL(directory + '/', root), { recursive: true })
   .filter(file => /\.(html|js)$/.test(file)).flatMap(file => [...read(`${directory}/${file}`).matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/g)]
     .filter(match => /<svg\b/.test(match[1]) && !match[1].replace(/<svg\b[\s\S]*?<\/svg>/g, '').replace(/<[^>]*>/g, '').trim())
     .map(match => match[0])));
@@ -39,23 +44,35 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
         <div class="fixture-row" id="ordinary-icons">${['icon-btn', 'icon-btn compact', 'sheet-close-btn',
           'icon-btn editor-focus-action', 'icon-btn distribution-entry-delete'].map((classes, i) =>
           `<button class="ui-button ${classes}" data-icon-check="ordinary-${i}" aria-label="시험 ${i}">${icon}</button>`).join('')}</div>
-        <div class="surface-header fixture-row">${sourceButton('ui/templates/editor.html', 'modeTaskMinimizeBtn')}
+        <div class="surface-header fixture-row">${sourceButton('apps/editor/templates/index.html', 'modeTaskMinimizeBtn')}
           </div>
-        <nav class='topbar-history fixture-row'>${sourceButton('ui/templates/editor.html', 'undoBtn')}${sourceButton('ui/templates/editor.html', 'redoBtn')}</nav>
-        <div class='workflow-map-session fixture-row'><div class='mode-draft-actions'>${['modeDraftInsertBtn', 'modeDraftDeleteBtn', 'modeDraftRedrawBtn', 'modeDraftDoneBtn'].map(id => sourceButton('ui/templates/editor.html', id)).join('')}</div>
+        <nav class='topbar-history fixture-row'>${sourceButton('apps/editor/templates/index.html', 'undoBtn')}${sourceButton('apps/editor/templates/index.html', 'redoBtn')}</nav>
+        <div class='workflow-map-session fixture-row'><div class='mode-draft-actions'>${['modeDraftInsertBtn', 'modeDraftDeleteBtn', 'modeDraftRedrawBtn', 'modeDraftDoneBtn'].map(id => sourceButton('apps/editor/templates/index.html', id)).join('')}</div>
           <button class='ui-button icon-btn workflow-result-remove' data-icon-check='result-remove' aria-label='선택 제외'>${icon}</button></div>
         <div class="surface-editor fixture-row"><button class="ui-button icon-btn editor-relation-focus" data-icon-check="relation" aria-label="위치">${icon}</button></div>
         <div class='ui-search-field'><span></span><input type='search' aria-label='검색'><button class='ui-button ui-icon-button ui-search-clear' data-icon-check='clear' aria-label='검색 지우기'>${icon}</button></div>
-        <div class="action-status ui-toast"><span></span><strong>완료</strong>${sourceButton('ui/fragments/notification.html', 'notificationCloseBtn')}</div>
-        <div class="territorial-library-time-control">${sourceButton('ui/templates/editor.html', 'territorialLibraryTimeSuggestBtn')}
+        <div class="action-status ui-toast"><span></span><strong>완료</strong>${sourceButton('shared/frontend/ui/fragments/notification.html', 'notificationCloseBtn')}</div>
+        <div class="territorial-library-time-control">${sourceButton('apps/editor/templates/index.html', 'territorialLibraryTimeSuggestBtn')}
           <input class="ui-input" aria-label="자료 시점" value="1989-04-25"></div>
-        ${read('ui/fragments/timeline.html')}
+        ${read('shared/frontend/ui/fragments/timeline.html')}
+        <div class="ui-dialog-actions"><button id="baselineAction" class="ui-button btn">이동</button></div>
         <div class="fixture-row"><button id="mixed" class="ui-button btn">${icon}<span>이미지 추가</span></button>
           <div class="ui-menu-list"><button id="menu" class="ui-button btn ghost ui-menu-item">${icon}<span>프로젝트 불러오기</span></button></div></div>
         <button id="command" class="ui-button editor-action-row has-command-row-icon">${icon.replace('ui-icon', 'ui-icon command-row-icon')}
           <span><strong>영역 선택</strong><small>선택한 객체에서 실행</small></span>${icon}</button>
       </main></div>`);
-    const checks = '[data-icon-check], #ordinary-icons ~ .topbar-history button, .mode-draft-actions button, #modeTaskMinimizeBtn, #notificationCloseBtn, #territorialLibraryTimeSuggestBtn, .timeline-step';
+    await page.locator('#timelineDateButtonText').evaluate(node => { node.textContent = '기원전 44년'; });
+    await page.locator('#timelineDateBasis').evaluate(node => { node.textContent = '연말 기준'; });
+    const dateHeight = await page.locator('#timelineDateButton').evaluate(node => node.getBoundingClientRect().height);
+    expect(dateHeight, 'date label follows the common control height').toBe(size);
+    await page.locator('#timelinePopover').evaluate(node => { node.hidden = false; });
+    await page.locator('#timelineMonthFields').evaluate(node => { node.hidden = false; });
+    const buttonStyle = id => page.locator(`#${id}`).evaluate(node => {
+      const style = getComputedStyle(node);
+      return { height: node.getBoundingClientRect().height, radius: style.borderRadius, font: style.fontSize };
+    });
+    expect(await buttonStyle('timelineGoBtn')).toEqual(await buttonStyle('baselineAction'));
+    const checks = '[data-icon-check], #ordinary-icons ~ .topbar-history button, .mode-draft-actions button, #modeTaskMinimizeBtn, #notificationCloseBtn, #territorialLibraryTimeSuggestBtn, .timeline-step, .timeline-month-navigation .icon-btn';
     const metrics = () => page.locator(checks).evaluateAll(elements => elements.filter(button => button.getBoundingClientRect().width > 0).map(button => {
       const box = button.getBoundingClientRect(), svg = button.querySelector('svg').getBoundingClientRect();
       return { name: button.id || button.dataset.iconCheck, width: box.width, height: box.height,
@@ -89,6 +106,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     await page.locator('[data-icon-check="ordinary-0"]').focus();
     await page.locator(checks).evaluateAll(buttons => { for (const button of buttons) { button.disabled = true; button.setAttribute('aria-pressed', 'true'); } });
     expect(await metrics()).toEqual(before);
+    await page.locator('#timelinePopover').evaluate(node => { node.hidden = true; });
     expect(await page.locator('.timeline-controls').evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
   });
 }
