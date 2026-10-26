@@ -5,8 +5,14 @@
 V rebuildCaspianPhysical(const V& request) {
     GeometryEngine geos;
     using Shape=GeometryEngine::Shape;
-    const auto modern=geos.parse(field(request,"modernLand"));
-    const auto water=geos.parse(field(request,"historicalWater"));
+    const auto modern=[&](){
+        try{return geos.parse(field(request,"modernLand"));}
+        catch(const std::exception& e){throw std::runtime_error(std::string("Modern land input: ")+e.what());}
+    }();
+    const auto water=[&](){
+        try{return geos.parse(field(request,"historicalWater"));}
+        catch(const std::exception& e){throw std::runtime_error(std::string("Historic water input: ")+e.what());}
+    }();
     if(GEOSisValid_r(geos.context(),modern.get())!=1
         ||GEOSisValid_r(geos.context(),water.get())!=1)
         throw std::runtime_error("Invalid immutable physical land or historical water");
