@@ -217,7 +217,7 @@ export function stageSnapshot(plan,output){
   mkdirSync(dir,{recursive:true});
   for(const [relativePath,value] of plan.changes){
     const filename=resolve(dir,relativePath);
-    fail(relative(filename,dir).startsWith('..')===false,
+    fail(!relative(dir,filename).startsWith('..') && relative(dir,filename)!=='',
       'Historic object cannot escape staging root');
     mkdirSync(resolve(filename,'..'),{recursive:true});
     writeFileSync(filename,JSON.stringify(value,null,2)+'\n',{flag:'wx'});
