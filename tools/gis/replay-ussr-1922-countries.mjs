@@ -142,14 +142,20 @@ export function buildUSSRApprovedSnapshot(display,countries){
     for(const id of FOUNDER_IDS){
       const entity=countries[id],source=rows.get(id),expected=snapshotFor(id,source);
       const same=entity.geometryVersions.find(v=>v.versionId===id+reviewedSuffix);
-      fail(same?.validFrom===VALID_FROM && same.validTo===VALID_TO
-        &&same.certainty==='medium' &&same.sourceId===expected.sourceId
-        &&same.sourceRights===expected.sourceRights
-        &&same.reviewedMasterSha256===MEMBER_HASHES[MASTER]
-        &&same.displaySha256===MEMBER_HASHES[DISPLAY]
-        &&comparable(same.geometry)===comparable(source.geometry)
-        &&comparable(same.sourceProperties)===comparable(source.properties),
-      'Previously applied approved USSR snapshot differs: '+id);
+      const checks={
+        validFrom:same?.validFrom===VALID_FROM,
+        validTo:same?.validTo===VALID_TO,
+        certainty:same?.certainty==='medium',
+        sourceId:same?.sourceId===expected.sourceId,
+        sourceRights:same?.sourceRights===expected.sourceRights,
+        masterHash:same?.reviewedMasterSha256===MEMBER_HASHES[MASTER],
+        displayHash:same?.displaySha256===MEMBER_HASHES[DISPLAY],
+        geometry:comparable(same?.geometry)===comparable(source.geometry),
+        sourceProperties:comparable(same?.sourceProperties)===comparable(source.properties),
+      };
+      const failed=Object.keys(checks).filter(key=>!checks[key]);
+      fail(failed.length===0,
+        'Previously applied approved USSR snapshot differs: '+id+' ['+failed.join(',')+']');
       fail(entity.sourceInfo?.approved1922?.sourceZip===baseSource
         &&entity.sourceInfo.approved1922.masterSha256===MEMBER_HASHES[MASTER]
         &&entity.sourceInfo.approved1922.displaySha256===MEMBER_HASHES[DISPLAY],
