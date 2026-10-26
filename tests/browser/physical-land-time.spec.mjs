@@ -152,6 +152,8 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     expect(before[3]).toBe(255);
     expect(before.slice(0, 3)).not.toEqual([106, 168, 210]);
     expect(before[1]).toBeGreaterThan(before[2] + 5);
+    await page.locator('#timelineDateButton').click();
+    await page.locator('#timelineViewUnit').selectOption('month');
     await page.locator('#timelinePreviousMonth').click();
     await expect.poll(visibleCount, { timeout: 30_000 }).toBeLessThan(initialCount);
     const empty = await settledPixel();
@@ -163,6 +165,7 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     const restored = await settledPixel();
     console.log(renderer, 'restored', restored, await page.evaluate(() => window.__landProbeMeta));
     expect(restored).toEqual(before);
+    await page.keyboard.press('Escape');
     await page.locator('#mapDisplayBtn').click();
     await page.locator('[data-map-display-row="objects"]').click();
     await page.locator('#objectsVisible').locator('..').click();
@@ -207,8 +210,8 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     const statePath = info.outputPath('viewer-state.json');
     await writeFile(statePath, JSON.stringify(await page.evaluate(() => ({
       document: window.__PANDOLAB_VIEWER__.documentState(),
-      timeline: document.getElementById('timelineMonthButton')?.textContent,
-      timelineError: document.getElementById('timelineMonthError')?.textContent,
+      timeline: document.getElementById('timelineDateButton')?.textContent,
+      timelineError: document.getElementById('timelineDateError')?.textContent,
       renderer: window.__PANDOLAB_VIEWER__.rendererStats(),
     })), null, 2));
     await info.attach('viewer-state', { path: statePath, contentType: 'application/json' });

@@ -41,7 +41,7 @@ function covers(interval, start) {
 }
 function append(rows, row, sameValue) {
   const previous = rows.at(-1);
-  if (previous && previous.entityId === row.entityId && previous.validTo !== null && row.validFrom !== null
+  if (previous && previous.objectRef.domain===row.objectRef.domain && previous.objectRef.id===row.objectRef.id && previous.validTo !== null && row.validFrom !== null
       && date(shiftDay(parseTemporal(previous.validTo).endKey, 1)) === row.validFrom && sameValue(previous, row)) {
     previous.validTo = row.validTo;
   } else rows.push(row);
@@ -52,6 +52,7 @@ const withoutGeometry = ({ geometry, ...value }) => structuredClone(value);
 
 /** Build an ordinary editable project; library inputs and raw intervals stay immutable. */
 export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper, availableSourceIds = null }) {
+  entities=entities.filter(entity=>['general','regional'].includes(entity.entityKind));
   if(view?.schemaVersion!==1 || !Array.isArray(view.selections) || Object.hasOwn(view,'referenceDate'))throw new Error('Invalid world view');
   if (!policy || policy.schemaVersion !== 1) throw new Error('Missing historical world policy');
   const selection=new Map(view.selections.map(row=>[row.entityId,row.geometryVersionId]));
@@ -170,7 +171,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
       const ref = geometryRef(candidate.geometry);
       let rows = rowsByEntity.get(candidate.entityId);
       if (!rows) rowsByEntity.set(candidate.entityId, rows = { availability: [], geometryBindings: [], parentRelations: [] });
-      const base = { entityId: candidate.entityId, validFrom: start && date(start), validTo: end && date(end) };
+      const base = { objectRef: {domain:"territorial",id:candidate.entityId}, validFrom: start && date(start), validTo: end && date(end) };
       append(rows.availability, { ...base }, () => true);
       append(rows.geometryBindings, { ...base, geometryRef: ref }, (a, b) => a.geometryRef.id === b.geometryRef.id);
       append(rows.parentRelations, { ...base, parentId: candidate.parentId, coverageMode: candidate.coverageMode }, (a, b) => a.parentId === b.parentId && a.coverageMode === b.coverageMode);
@@ -181,17 +182,17 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     }
   }
   const identities = normalizeTerritorialIdentities(ordered.filter(([id]) => rowsByEntity.has(id)).map(([, value]) => value.identity));
-  const records = { schemaVersion: 2, lifetimes: [], geometryBindings: [], parentRelations: [], propertyBindings: [] };
+  const records = { schemaVersion: 3, lifetimes: [], geometryBindings: [], parentRelations: [], propertyBindings: [] };
   for (const [id] of ordered) {
     const rows = rowsByEntity.get(id); if (!rows) continue;
-    records.lifetimes.push({ id: `historical-world:lifetimes:${id}:0`, entityId: id,
+    records.lifetimes.push({ id: `historical-world:lifetimes:${id}:0`, objectRef: {domain:"territorial",id},
       ...structuredClone(definitions.get(id).identity.properties.metadata.historicalTimeline.lifetime) });
     for (const name of ['geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));
   }
-  const normalized = normalizeTimelineRecords(records, { entities: identities.map(row => ({ id: row.id, entityKind: row.properties.entityKind })), geometryExists: ref => archive.get(ref) !== null });
+  const normalized = normalizeTimelineRecords(records, { entities: identities.map(row => ({ objectRef: {domain:"territorial",id:row.id}, entityKind: row.properties.entityKind })), geometryExists: ref => archive.get(ref) !== null });
   const availability=new Map([...rowsByEntity].map(([id,rows])=>[id,rows.availability]));
   const snapshot={documentId:'6dcead54-3bc5-4ca2-a4f5-455305bba911',physicalSourceInfo:{},territorialEntities:[],fullAutosave:true,projectFields:{
-    timelineRecords:{schemaVersion:2,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]},geometries:[],sourceInfo:null,
+    timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]},geometries:[],sourceInfo:null,
     labels:[],genericFeatures:[],hydroEdits:[],distributionLayers:[],distributionEntries:[],labelSettings:{},
     distributionSettings:{renderMode:'overlap',activeLayerId:'',boundaryVisible:true},
     projectSetup:{initialMonth:'1970-01',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
@@ -203,7 +204,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   const allGeometry=archive.snapshot();
   for(const [id,definition] of ordered){
     const timelineRecords=Object.fromEntries(Object.entries(normalized).map(([key,value])=>[key,
-      Array.isArray(value)?value.filter(row=>row.entityId===id):value]));
+      Array.isArray(value)?value.filter(row=>row.objectRef.domain==="territorial"&&row.objectRef.id===id):value]));
     if(!timelineRecords.lifetimes.length)continue;
     const refs=new Set(timelineRecords.geometryBindings.map(row=>JSON.stringify(row.geometryRef)));
     const geometries=allGeometry.filter(row=>refs.has(JSON.stringify({id:row.id,version:row.version})));

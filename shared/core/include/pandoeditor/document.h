@@ -61,7 +61,6 @@ struct PlaceLabel {
 std::set<std::string> labelWebFields(const PlaceLabel&);
 struct HydroFeature {
     std::string id, name, kind="river", notes;
-    GeometryRef geometry;
     std::uint32_t color=0x3388cc;
     bool locked=false;
     SourceProvenance source;
@@ -187,15 +186,17 @@ std::optional<GeometryRef> objectGeometry(const ProjectDocument&,const DocumentI
 bool objectLocked(const ProjectDocument&,const DocumentIndex&,const ObjectRef&);
 std::string contentGroup(const ProjectDocument&,const ObjectRef&);
 std::vector<CountryView> countryViews(const ProjectDocument& document);
+void addStaticObjectRecords(ProjectDocument&,const ObjectRef&,GeometryRef);
+void removeObjectTimelineRecords(ProjectDocument&,const ObjectRef&);
 std::vector<TimelineEntityIdentity> timelineEntityCatalog(const ProjectDocument&);
 bool isStaticTimeline(const ProjectDocument&);
 void requireStaticTimeline(const ProjectDocument&);
-const TimelineGeometryBinding& staticGeometryBinding(const ProjectDocument&,const std::string& entityId);
-TimelineGeometryBinding& staticGeometryBinding(ProjectDocument&,const std::string& entityId);
+const TimelineGeometryBinding& staticGeometryBinding(const ProjectDocument&,const ObjectRef& entityId);
+TimelineGeometryBinding& staticGeometryBinding(ProjectDocument&,const ObjectRef& entityId);
 const TimelineParentRelation& staticParentRelation(const ProjectDocument&,const std::string& entityId);
 TimelineParentRelation& staticParentRelation(ProjectDocument&,const std::string& entityId);
-const TimelineLifetime& staticLifetime(const ProjectDocument&,const std::string& entityId);
-TimelineLifetime& staticLifetime(ProjectDocument&,const std::string& entityId);
+const TimelineLifetime& staticLifetime(const ProjectDocument&,const ObjectRef& entityId);
+TimelineLifetime& staticLifetime(ProjectDocument&,const ObjectRef& entityId);
 void addStaticTerritorialRecords(ProjectDocument&,const std::string& entityId,GeometryRef,
                                  const std::string& parentId="",const std::string& coverageMode="explicit");
 void removeTerritorialRecords(ProjectDocument&,const std::vector<std::string>& entityIds);

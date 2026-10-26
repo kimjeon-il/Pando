@@ -38,7 +38,7 @@ CommandResult apply(Project& p,const char* operation,const V& input) {
 }
 V records(const Project& p) {return codecjson::parse(projectcodec::encodeWeb(p.snapshot(),ports)).object.at("timelineRecords");}
 const TimelineGeometryBinding& binding(const Project& p,const std::string& id) {
-    for(const auto& row:p.document().timelineRecords.geometryBindings)if(row.entityId==id&&(!row.validity.to||*row.validity.to!="2026-09"))return row;
+    for(const auto& row:p.document().timelineRecords.geometryBindings)if(row.objectRef.id==id&&(!row.validity.to||*row.validity.to!="2026-09"))return row;
     assert(false);return p.document().timelineRecords.geometryBindings[0];
 }
 void expectCode(Project& p,const char* operation,const V& input,const char* code) {
@@ -73,8 +73,8 @@ void resolvedFeatureReaderKeepsCurrentIdentityAndMetadataOwner() {
 void frozenStaticAndMonthCollisionGoldens() {
     // Preserve the admitted allocation behavior in the current v2 record format,
     // including blank-name creation, archived v7 and colliding record IDs.
-    const auto staticGolden=json(R"({"schemaVersion":2,"lifetimes":[{"id":"lifetime:N","entityId":"A","validFrom":null,"validTo":null},{"id":"lifetime:N:1","entityId":"N","validFrom":null,"validTo":null}],"geometryBindings":[{"id":"geometry:N","entityId":"A","validFrom":null,"validTo":null,"geometryRef":{"id":"territorial-geometry:A","version":1}},{"id":"geometry:N:1","entityId":"N","validFrom":null,"validTo":null,"geometryRef":{"id":"territorial-geometry:N","version":8}}],"parentRelations":[{"id":"parent:N","entityId":"A","validFrom":null,"validTo":null,"parentId":"","coverageMode":"explicit"},{"id":"parent:N:1","entityId":"N","validFrom":null,"validTo":null,"parentId":"","coverageMode":"explicit"}],"propertyBindings":[]})");
-    const auto monthGolden=json(R"({"schemaVersion":2,"lifetimes":[{"id":"lifetime:N","entityId":"A","validFrom":null,"validTo":null},{"id":"lifetime:N:1","entityId":"N","validFrom":"2026-10","validTo":null}],"geometryBindings":[{"id":"geometry:N","entityId":"A","validFrom":null,"validTo":null,"geometryRef":{"id":"territorial-geometry:A","version":1}},{"id":"geometry:N:1","entityId":"N","validFrom":"2026-10","validTo":null,"geometryRef":{"id":"territorial-geometry:N:1","version":1}}],"parentRelations":[{"id":"parent:N","entityId":"A","validFrom":null,"validTo":null,"parentId":"","coverageMode":"explicit"},{"id":"parent:N:1","entityId":"N","validFrom":"2026-10","validTo":null,"parentId":"","coverageMode":"explicit"}],"propertyBindings":[]})");
+    const auto staticGolden=json(R"({"schemaVersion":3,"lifetimes":[{"id":"lifetime:N","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null},{"id":"lifetime:N:1","objectRef":{"domain":"territorial","id":"N"},"validFrom":null,"validTo":null}],"geometryBindings":[{"id":"geometry:N","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null,"geometryRef":{"id":"territorial-geometry:A","version":1}},{"id":"geometry:N:1","objectRef":{"domain":"territorial","id":"N"},"validFrom":null,"validTo":null,"geometryRef":{"id":"territorial-geometry:N","version":8}}],"parentRelations":[{"id":"parent:N","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null,"parentId":"","coverageMode":"explicit"},{"id":"parent:N:1","objectRef":{"domain":"territorial","id":"N"},"validFrom":null,"validTo":null,"parentId":"","coverageMode":"explicit"}],"propertyBindings":[]})");
+    const auto monthGolden=json(R"({"schemaVersion":3,"lifetimes":[{"id":"lifetime:N","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null},{"id":"lifetime:N:1","objectRef":{"domain":"territorial","id":"N"},"validFrom":"2026-10","validTo":null}],"geometryBindings":[{"id":"geometry:N","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null,"geometryRef":{"id":"territorial-geometry:A","version":1}},{"id":"geometry:N:1","objectRef":{"domain":"territorial","id":"N"},"validFrom":"2026-10","validTo":null,"geometryRef":{"id":"territorial-geometry:N:1","version":1}}],"parentRelations":[{"id":"parent:N","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null,"parentId":"","coverageMode":"explicit"},{"id":"parent:N:1","objectRef":{"domain":"territorial","id":"N"},"validFrom":"2026-10","validTo":null,"parentId":"","coverageMode":"explicit"}],"propertyBindings":[]})");
     for(bool month:{false,true}) {
         Project p;p.replace(fixture(true));p.setTimelineCursor("2026-10",false);const auto original=p.snapshot();
         assert(!original.timelineEditsEnabled());if(month)p.setTimelineCursor("2026-10");
@@ -100,12 +100,12 @@ void boundedParentClipsCurrentMonthChildLifetime() {
     assert(apply(p,"territorial.create",payload("feature",feature("B","A"))).changed());
     const auto& timeline=p.document().timelineRecords;
     const auto clipped=Validity{std::string("2026-10"),std::string("2026-10-31")};
-    assert(timeline.lifetimes.back().entityId=="B"&&timeline.lifetimes.back().validity.from==clipped.from&&timeline.lifetimes.back().validity.to==clipped.to);
-    assert(timeline.geometryBindings.back().entityId=="B"&&timeline.geometryBindings.back().validity.from==clipped.from&&timeline.geometryBindings.back().validity.to==clipped.to);
-    assert(timeline.parentRelations.back().entityId=="B"&&timeline.parentRelations.back().validity.from==clipped.from&&timeline.parentRelations.back().validity.to==clipped.to);
-    assert(p.resolveWorld("2026-10").find("B")&&!p.resolveWorld("2026-11").find("B"));
-    assert(p.undo()&&!p.resolveWorld("2026-10").find("B"));
-    assert(p.redo()&&p.resolveWorld("2026-10").find("B")&&!p.resolveWorld("2026-11").find("B"));
+    assert(timeline.lifetimes.back().objectRef.id=="B"&&timeline.lifetimes.back().validity.from==clipped.from&&timeline.lifetimes.back().validity.to==clipped.to);
+    assert(timeline.geometryBindings.back().objectRef.id=="B"&&timeline.geometryBindings.back().validity.from==clipped.from&&timeline.geometryBindings.back().validity.to==clipped.to);
+    assert(timeline.parentRelations.back().objectRef.id=="B"&&timeline.parentRelations.back().validity.from==clipped.from&&timeline.parentRelations.back().validity.to==clipped.to);
+    assert(p.resolveWorld("2026-10").find(territorialRef("B"))&&!p.resolveWorld("2026-11").find(territorialRef("B")));
+    assert(p.undo()&&!p.resolveWorld("2026-10").find(territorialRef("B")));
+    assert(p.redo()&&p.resolveWorld("2026-10").find(territorialRef("B"))&&!p.resolveWorld("2026-11").find(territorialRef("B")));
 }
 void patchOrderReplacementAndExactRemovalAreAtomic() {
     Project p;p.replace(fixture());p.setTimelineCursor("2026-10",false);
@@ -192,7 +192,7 @@ void monthCatalogOrderDateGuardsAndSplitCollisionMatchOriginal() {
     assert(!apply(p,"territorial.replace",payload("features",reordered)).changed());
     assert(p.document().units[0].id=="A"&&p.document().units[1].id=="C"&&p.document().units[2].id=="D");
     apply(p,"territorial.remove",json(R"({"ids":["A"]})"));
-    assert(p.document().units.size()==3&&!p.resolveWorld("2026-10").find("A")&&p.resolveWorld("2026-09").find("A"));
+    assert(p.document().units.size()==3&&!p.resolveWorld("2026-10").find(territorialRef("A"))&&p.resolveWorld("2026-09").find(territorialRef("A")));
     const auto reuse=readWebTerritorialCommand(p.snapshot(),"territorial.create",payload("feature",feature("A")),ports);
     try {applyWebTerritorialEdit(p.snapshot(),std::get<WebTerritorialEdit>(reuse.args.action));assert(false);}
     catch(const TimelineError& error){assert(error.code=="TIMELINE_ACTIVATION");}

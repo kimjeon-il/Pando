@@ -25,8 +25,6 @@
 #shellDiagnostics dd[data-status="RUNNING"] { color: #175baf; }
 #shellDiagnostics dd[data-status="NOT_RUN"], #shellDiagnostics dd[data-status="CANCELLED"] { color: #68768b; }
 #shellDiagnostics .shell-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
-#shellDiagnostics button { padding: 6px 9px; border: 1px solid #bdc9d9; border-radius: 6px; background: #f4f7fb; color: inherit; cursor: pointer; font: inherit; }
-#shellDiagnostics button:disabled { opacity: .5; cursor: wait; }
 #shellDiagnostics .shell-result { margin: 10px 0 0; overflow-wrap: anywhere; }
 
 #shellDiagnostics summary { cursor: pointer; margin-bottom: 8px; }

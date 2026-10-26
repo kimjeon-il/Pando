@@ -1,4 +1,4 @@
-# Web/App v10 exchange fixtures
+# Web/App v14 exchange fixtures
 
 These are fixed web production-codec fixtures for the app import/export task.
 Pinned execution evidence and remaining app discrepancies are recorded in
@@ -11,7 +11,7 @@ Pinned execution evidence and remaining app discrepancies are recorded in
 | calendar-boundaries.json / calendar-boundaries.gpkg | Extended/BCE leap years and February transitions in 1900/2000 |
 | *.expected.json | Exact identities, timeline records, geometry archive and nested metadata expected after exchange |
 
-All files use project schemaVersion **10**, territorial identity **6**, and timelineRecords schemaVersion **1**.
+All files use project schemaVersion **14**, territorial identity **6**, and timelineRecords schemaVersion **3**.
 Territorial Feature.geometry is null. A/B/C are general; R is regional.
 Names, 서울 capital, sourceEntityId/sourceGeometryVersion and nested
 source/originalName metadata must remain unchanged. No sourceLibraryId alias is read.
@@ -27,15 +27,14 @@ In the complex file A uses shape v1 through 1914-06 and v2 from 1914-07.
 B has lifetimes -0001 through 0001 (BCE/CE, no year zero) and 1910-01-02 through
 1920-03. In its modern lifetime B belongs to A through 1915 and C from 1916;
 coverage changes from partition to explicit. Year, month and day precision must
-be preserved exactly. Opening this file in the current web editor must fail with
-TIMELINE_ACTIVATION before changing the active project.
+be preserved exactly. The current editor opens the common timeline and resolves the selected month.
 
 The calendar fixture keeps the same four identities and complete archive. Each
 identity has one bounded February–March lifetime and an explicit root parent:
 A in +12000, B in 1900, C in -0400, R in 2000. A/C/R switch from shape v1 to v2
 on February 29; B switches on March 1 because 1900 is not leap. The old binding
 ends on February 28 inclusively. Month endpoints stay month precision and day
-endpoints stay day precision. The calendar fixture also rejects UI activation.
+endpoints stay day precision. The calendar fixture uses the same month-end resolver.
 The temporal expectations are literal values derived from the existing contract,
 independent of the serializer. Identities/archive reuse the pinned static oracle.
 Do not regenerate expected files from codec output.

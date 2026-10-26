@@ -1,3 +1,4 @@
+import { timelineObjectKey } from './timeline-records.js';
 import { createGeometryVersionStore } from './geometry-version-store.js';
 import { projectTimelineIdentity } from './timeline-resolver.js';
 
@@ -29,6 +30,7 @@ export function createCoreDocumentReadModel(initialProject) {
   let provenance = null;
   let world = null;
   let territorialViews = Object.freeze([]);
+  let hydroViews = Object.freeze([]);
   function acceptLoadedProject(value) {
     if (!value || !Array.isArray(value.geometries)) invalid('A complete accepted C++ storage snapshot is required after document load.');
     for (const field of Object.values(fields)) if (!Array.isArray(value[field]))
@@ -43,12 +45,13 @@ export function createCoreDocumentReadModel(initialProject) {
     geometries=nextGeometries;
     provenance=null;
     world=null;
-    territorialViews=Object.freeze([]);
+    territorialViews=Object.freeze([]);hydroViews=Object.freeze([]);
     return project;
   }
   function list(domain) {
     const field = fields[domain];
     if (!field) invalid(`Unsupported C++ document domain: ${String(domain)}`);
+    if(domain==='hydro' && world)return hydroViews;
     return project[field];
   }
   function get(ref) {
@@ -62,48 +65,53 @@ export function createCoreDocumentReadModel(initialProject) {
       invalid('A detached import world must be distinct from an epoch-pinned active read model.');
     if (!detached && world.sourceEpoch !== expectedEpoch) throw Object.assign(new Error('The C++ world belongs to another document operation epoch.'),
       { code: 'PL-CORE-STALE', name: 'AbortError', cancelled: true });
-    const identities = new Map(sourceProject.territorialEntities.map(identity => [identity.id, identity])), byId = new Map();
+    const identities = new Map([...sourceProject.territorialEntities.map(identity=>[timelineObjectKey({domain:'territorial',id:identity.id}),identity]),...sourceProject.hydroEdits.map(identity=>[timelineObjectKey({domain:'hydro',id:identity.id}),identity])]), byId = new Map();
     const rows = world.entities.map(row => {
-      const identity = identities.get(row.id), geometry = sourceGeometries.get(row.geometryRef);
-      if (!identity || !geometry || byId.has(row.id) || !Array.isArray(row.ancestors))
-        invalid(`The C++ world contains an unknown/duplicate identity or geometry: ${row.id}`);
+      const identity = identities.get(timelineObjectKey(row.objectRef)), geometry = sourceGeometries.get(row.geometryRef);
+      if (!identity || !geometry || byId.has(timelineObjectKey(row.objectRef)) || !Array.isArray(row.ancestors))
+        invalid(`The C++ world contains an unknown/duplicate identity or geometry: ${row.objectRef.id}`);
       for (const field of ['parentId','coverageMode','validFrom','validTo','rootId'])
         if (!Object.hasOwn(row, field)) invalid(`Required C++ world field is missing: ${field}`);
       if (!row.properties || typeof row.properties !== 'object') invalid('C++ temporal property projection is required.');
-      const projected = freeze({ ...structuredClone(row), identity: projectTimelineIdentity(identity, row.properties), geometry });
-      byId.set(row.id, projected);
+      const temporalIdentity=projectTimelineIdentity(identity,row.properties);
+      const effectiveIdentity=row.objectRef.domain==='hydro'?freeze({...temporalIdentity,properties:{...temporalIdentity.properties,...row.rendering}}):temporalIdentity;
+      const projected = freeze({ ...structuredClone(row), id:row.objectRef.id, identity:effectiveIdentity, geometry });
+      byId.set(timelineObjectKey(row.objectRef), projected);
       return projected;
     });
     return Object.freeze({ month: world.month,...(detached ? {} : { sourceEpoch: world.sourceEpoch }), entities: Object.freeze(rows),
-      byId: Object.freeze({ get: id => byId.get(id) }) });
+      byId: Object.freeze({ get: id => byId.get(timelineObjectKey({domain:'territorial',id})), getObject: ref => byId.get(timelineObjectKey(ref)) }) });
   }
   const projectWorld=(value,expectedEpoch) => worldAgainst(value,expectedEpoch,project,geometries);
   const detachedImportProjection=value => {
     const importedWorld=worldAgainst(value,null,project,geometries,true);
     return Object.freeze({ project,world: importedWorld,territorialViews: viewsForWorld(importedWorld) });
   };
-  function viewsForWorld(nextWorld) {
-    const previous=new Map((world?.entities || []).map((row,index) => [row.id,{ row,view: territorialViews[index] }]));
-    const nextViews=Object.freeze(nextWorld.entities.map(row => {
+  function viewsForWorld(nextWorld,domain='territorial') {
+    const oldViews=domain==='hydro'?hydroViews:territorialViews;
+    const previous=new Map((world?.entities || []).filter(row=>row.objectRef.domain===domain).map((row,index) => [row.id,{ row,view: oldViews[index] }]));
+    const nextViews=Object.freeze(nextWorld.entities.filter(row=>row.objectRef.domain===domain).map(row => {
       const prior=previous.get(row.id);
       if (prior && (prior.row.identity===row.identity || (prior.row.identity.id===row.identity.id && JSON.stringify(prior.row.identity.properties)===JSON.stringify(row.identity.properties))) && prior.row.geometry===row.geometry
         && ['parentId','coverageMode','validFrom','validTo'].every(field => prior.row[field]===row[field])) return prior.view;
+      if(domain==='hydro')return freeze({...row.identity,geometry:row.geometry});
       return freeze({ ...row.identity,geometry: row.geometry,properties: { ...row.identity.properties,
         parentId: row.parentId,coverageMode: row.coverageMode,validFrom: row.validFrom,validTo: row.validTo } });
     }));
-    return nextViews;
+    return nextViews.length===oldViews.length&&nextViews.every((row,i)=>row===oldViews[i])?oldViews:nextViews;
   }
   function acceptWorld(value,expectedEpoch) {
     const nextWorld=projectWorld(value,expectedEpoch);
     const nextViews=viewsForWorld(nextWorld);
+    const nextHydroViews=viewsForWorld(nextWorld,'hydro');
     world=nextWorld;
-    territorialViews=nextViews;
+    territorialViews=nextViews;hydroViews=nextHydroViews;
     return nextWorld;
   }
   function rebaseWorld(epoch) {
     if (!world) invalid('A current C++ world must be admitted before rebasing an unchanged timeline.');
-    const entities=world.entities.map(({ id,geometryRef,parentId,coverageMode,validFrom,validTo,rootId,ancestors,properties }) => ({
-      id,geometryRef,parentId,coverageMode,validFrom,validTo,rootId,ancestors,properties,
+    const entities=world.entities.map(({ objectRef,geometryRef,rendering,parentId,coverageMode,validFrom,validTo,rootId,ancestors,properties }) => ({
+      objectRef,geometryRef,rendering,parentId,coverageMode,validFrom,validTo,rootId,ancestors,properties,
     }));
     return acceptWorld({ month: world.month,sourceEpoch: epoch,entities },epoch);
   }

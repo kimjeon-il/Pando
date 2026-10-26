@@ -2,7 +2,7 @@ import { normalizeTemporalInterval, parseTemporal, temporalIntervalsOverlap, sha
 import {createGeometryVersionStore} from "../../../../../shared/frontend/js/modules/geometry-version-store.js";
 
 export const TERRITORIAL_LIBRARY_SCHEMA_VERSION = 2;
-export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional' });
+export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional', RIVER:'river', LAKE:'lake' });
 export function assertTerritorialIndexEntity(entry,entity){
   const keys=['schemaVersion','entityId','lineageId','entityKind','names','alternateNames','lifetime','parentEntityId','instantiation','metadata'];
   const comparable=value=>Array.isArray(value)?value.map(comparable):value&&typeof value==='object'
@@ -56,7 +56,7 @@ function relations(raw) {
 export function normalizeTerritorialLineage(raw) {
   if (raw?.schemaVersion !== 2 || !/^[a-z0-9][a-z0-9_-]*$/.test(raw.lineageId)
     || Object.hasOwn(raw,'entities') || !Array.isArray(raw.entityRefs) || !raw.entityRefs.length
-    || raw.entityRefs.some(id=>!/^[a-z]+:[A-Za-z0-9_-]+$/.test(id))) throw new Error('Invalid lineage schema/identity');
+    || raw.entityRefs.some(id=>!/^[a-z][a-z0-9_-]*:[A-Za-z0-9_-]+$/.test(id))) throw new Error('Invalid lineage schema/identity');
   if (new Set(raw.entityRefs).size !== raw.entityRefs.length) throw new Error('Duplicate lineage entity');
   return freeze({schemaVersion: 2, lineageId: raw.lineageId, names: names(raw.names), entityRefs:[...raw.entityRefs], relations: relations(raw.relations)});
 }
@@ -65,7 +65,7 @@ export function normalizeTerritorialLibraryIndex(raw) {
   if(raw?.schemaVersion!==2 || !Array.isArray(raw.entities) || !Array.isArray(raw.lineages) || !Array.isArray(raw.snapshots))throw new Error('Invalid territorial index schema');
   const ids=new Set();
   for(const entity of raw.entities){
-    if(entity.schemaVersion!==2 || !/^[a-z]+:[A-Za-z0-9_-]+$/.test(entity.entityId) || ids.has(entity.entityId) || !Object.values(LIBRARY_ENTITY_TYPES).includes(entity.entityKind)
+    if(entity.schemaVersion!==2 || !/^[a-z][a-z0-9_-]*:[A-Za-z0-9_-]+$/.test(entity.entityId) || ids.has(entity.entityId) || !Object.values(LIBRARY_ENTITY_TYPES).includes(entity.entityKind)
       || entity.file!==`${entity.entityId.replace(':','-')}.json.gz` || !/^[a-f0-9]{64}$/.test(entity.sha256) || !(entity.compressedBytes>0 && entity.decodedBytes>0)
       || !entity.geometryVersions?.length || entity.geometryVersionCount!==entity.geometryVersions.length || !Array.isArray(entity.bbox) || entity.bbox.length!==4 || entity.bbox.some(v=>!Number.isFinite(v)))throw new Error('Invalid territorial index entry');
     names(entity.names);
@@ -102,7 +102,7 @@ export function normalizeTerritorialLibraryIndex(raw) {
 export function normalizeTerritorialLibraryEntity(raw) {
   if (raw?.schemaVersion !== TERRITORIAL_LIBRARY_SCHEMA_VERSION) throw new Error('Territorial entity schemaVersion mismatch');
   const entityId = text(raw.entityId);
-  if (!/^[a-z]+:[A-Za-z0-9_-]+$/.test(entityId) || !Object.values(LIBRARY_ENTITY_TYPES).includes(raw.entityKind)) throw new Error('Invalid territorial entity identity/kind');
+  if (!/^[a-z][a-z0-9_-]*:[A-Za-z0-9_-]+$/.test(entityId) || !Object.values(LIBRARY_ENTITY_TYPES).includes(raw.entityKind)) throw new Error('Invalid territorial entity identity/kind');
   if (['isHistorical', 'isCurrent', 'libraryId', 'startDate', 'endDate', 'canonicalName', 'displayNames'].some(key => Object.hasOwn(raw, key))) throw new Error('Retired territorial entity fields');
   const lifetime = interval(raw.lifetime);
   if (!Array.isArray(raw.geometryVersions) || !raw.geometryVersions.length) throw new Error(`${entityId}: missing geometry versions`);
@@ -112,7 +112,7 @@ export function normalizeTerritorialLibraryEntity(raw) {
     const id = text(version.versionId);
     if (!id || ids.has(id)) throw new Error(`${entityId}: duplicate/empty geometry version ID`);
     ids.add(id);
-    if (!['Polygon', 'MultiPolygon'].includes(version.geometry?.type) || !Array.isArray(version.geometry.coordinates) || !version.geometry.coordinates.length) throw new Error(`${entityId}: expected Polygon/MultiPolygon`);
+    if (!(raw.entityKind==='river'?['LineString','MultiLineString']:['Polygon', 'MultiPolygon']).includes(version.geometry?.type) || !Array.isArray(version.geometry.coordinates) || !version.geometry.coordinates.length) throw new Error(`${entityId}: expected Polygon/MultiPolygon`);
     // Use the existing archive's structural validator. This isolated registry
     // validates a snapshot; its reference never becomes a project GeometryRef.
     const validated=createGeometryVersionStore([{id,version:1,geojson:version.geometry}]);
@@ -126,6 +126,7 @@ export function normalizeTerritorialLibraryEntity(raw) {
   const instantiation = structuredClone(raw.instantiation || { mode: 'independent', countryUpdates: {} });
   if(raw.metadata?.representativeGeometryVersionId && !ids.has(raw.metadata.representativeGeometryVersionId))throw new Error('Missing representative geometry version');
   if (!['independent', 'territory-replacement'].includes(instantiation.mode)) throw new Error('Invalid territorial instantiation mode');
+  if(['river','lake'].includes(raw.entityKind)&&(text(raw.parentEntityId)||instantiation.mode!=='independent'||Object.keys(instantiation.countryUpdates||{}).length))throw new Error('Water objects cannot have territorial ownership policies');
   return freeze({
     schemaVersion: TERRITORIAL_LIBRARY_SCHEMA_VERSION, entityId, entityKind: raw.entityKind,
     ...(raw.lineageId ? {lineageId:raw.lineageId} : {}),
@@ -162,7 +163,7 @@ export function instantiateLibraryEntity(entity, referenceDate, geometryVersionI
   return {
     entityId: entity.entityId, geometryVersionId: version.versionId, entityKind: entity.entityKind,
     name: entity.names.ko || entity.names.en || Object.values(entity.names)[0], parentEntityId: entity.parentEntityId,
-    geometry: structuredClone(version.geometry), validFrom: null, validTo: null,
+    geometry: structuredClone(version.geometry), rendering:structuredClone(version.rendering || {}), validFrom: null, validTo: null,
     metadata: {...structuredClone(entity.metadata), ...(version.historicalProvenance ? {historicalProvenance:structuredClone(version.historicalProvenance)} : {}), sourceInfo: structuredClone(entity.sourceInfo), sourceLifetime:structuredClone(entity.lifetime), sourceGeometryValidity:{validFrom:version.validFrom,validTo:version.validTo}, sourceReferenceDate:referenceDate, geometryCertainty: version.certainty},
     instantiation: structuredClone(version.instantiation || entity.instantiation),
   };

@@ -90,7 +90,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     if (!hydro.hydroEditLayer) return false;
     const renderer = hydro.gpuMapRenderer?.getRuntimeState?.().renderer;
     const nativeHydro = ['webgl2', 'webgl1', 'canvas-worker', 'canvas2d'].includes(renderer);
-    hydro.gpuMapRenderer?.setHydroEdits?.(state.hydroEdits || [], hydro.getStateRevision?.() || state.stateRevision);
+    hydro.gpuMapRenderer?.setHydroEdits?.(state.hydroEdits || []);
     const riverStyle = hydro.layerStyle?.(state.layerPresentation, 'rivers') || {};
     const lakeStyle = hydro.layerStyle?.(state.layerPresentation, 'lakes') || {};
     const visibleHydroIds = new Set((hydro.visibleMapObjectCandidates?.(['hydro']) || []).map(record => String(record.id)));

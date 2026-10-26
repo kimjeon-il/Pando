@@ -193,3 +193,13 @@ set_tests_properties(reference_image_core_tests PROPERTIES TIMEOUT 20)
 
 add_executable(river_partition_probe river-partition-probe.cpp)
 target_link_libraries(river_partition_probe PRIVATE Pandoeditor::Core)
+
+add_executable(hydro_timeline_tests hydro-timeline-tests.cpp)
+target_link_libraries(hydro_timeline_tests PRIVATE Pandoeditor::Core)
+if(MSVC)
+    target_compile_options(hydro_timeline_tests PRIVATE /UNDEBUG)
+else()
+    target_compile_options(hydro_timeline_tests PRIVATE -UNDEBUG)
+endif()
+add_test(NAME hydro_timeline_tests COMMAND hydro_timeline_tests)
+set_tests_properties(hydro_timeline_tests PROPERTIES TIMEOUT 10)

@@ -60,8 +60,8 @@ export function createCustomColorControl({ documentRef = document, onApply, onCa
       <button type="button" class="ui-button btn ghost" data-custom-eyedropper title="화면에서 색상 추출">스포이트</button>
     </div>
     <div class="ui-custom-color-formats" role="group" aria-label="색상 값 형식">
-      <button type="button" class="ui-button" data-custom-format="rgb" aria-pressed="true">RGB</button>
-      <button type="button" class="ui-button" data-custom-format="hsl" aria-pressed="false">HSL</button>
+      <button type="button" class="ui-button btn ghost" data-custom-format="rgb" aria-pressed="true">RGB</button>
+      <button type="button" class="ui-button btn ghost" data-custom-format="hsl" aria-pressed="false">HSL</button>
     </div>
     <div class="ui-custom-color-channels">${['R', 'G', 'B'].map(name => `<label class="ui-field"><span>${name}</span><input type="number" min="0" max="255" step="1" aria-label="${name}" /></label>`).join('')}</div>
     <p class="ui-custom-color-message hidden" role="status" aria-live="polite"></p>

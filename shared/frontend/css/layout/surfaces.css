@@ -87,8 +87,8 @@
   --ui-surface-shadow: var(--control-shadow);
 }
 
-[data-layout="mobile"] .workspace-surface.mobile-open {
-  transform: translateY(0);
+.app-root[data-layout="mobile"] .workspace-surface.mobile-open {
+  transform: none;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -114,7 +114,6 @@
   grid-template-rows: minmax(var(--ui-touch-height), auto);
   flex-basis: auto;
   min-height: var(--ui-touch-height);
-  padding-block: 0;
   touch-action: none;
   cursor: ns-resize;
 }
@@ -187,7 +186,7 @@
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateY(0);
+  transform: none;
 }
 
 [data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display).mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
@@ -222,7 +221,6 @@
 
 .surface-create > .surface-body {
   overflow: auto;
-  padding: 0;
 }
 
 /* A short touch landscape viewport uses the same surfaces in a side dock. */
@@ -261,7 +259,6 @@
   height: var(--workspace-visible-height, 100dvh);
   min-height: 0;
   max-height: var(--workspace-visible-height, 100dvh);
-  padding-bottom: env(safe-area-inset-bottom);
   overflow: hidden;
   transform: translateX(100%);
   opacity: 0;
@@ -280,7 +277,6 @@
   align-items: center;
   justify-content: space-between;
   min-height: var(--ui-touch-height);
-  padding: var(--ui-space-1) var(--ui-space-2);
   cursor: default;
 }
 .app-root[data-layout="phone-landscape"] .workspace-surface .sheet-drag-handle { display: none; }
@@ -303,14 +299,7 @@
   inset: calc(var(--workspace-visible-top, 0) + var(--phone-nav-width)) auto auto 0;
   width: var(--phone-nav-width);
   height: calc(var(--workspace-visible-height, 100dvh) - var(--phone-nav-width));
-  padding: 0;
   overflow-y: auto;
-}
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar .ui-nav-item {
-  flex: 0 0 var(--ui-touch-height);
-  min-height: var(--ui-touch-height);
-  width: 100%;
-  padding: var(--ui-space-1);
 }
 body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
   display: flex;
@@ -319,7 +308,6 @@ body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
   inset: var(--workspace-visible-top, 0) auto auto 0;
   width: var(--phone-nav-width);
   height: var(--phone-nav-width);
-  padding: var(--ui-space-1);
 }
 .app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
   position: fixed;

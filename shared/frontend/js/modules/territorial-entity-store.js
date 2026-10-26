@@ -3,7 +3,7 @@ import { geometryRevisionKey } from './geometry-versions.js';
 /** Empty detached startup input; C++ admits it before editable data is loaded. */
 export function createEmptyTerritorialState() {
   const geometries=Object.freeze([]);
-  return { territorialEntities: [],timelineRecords: { schemaVersion: 2,lifetimes: [],geometryBindings: [],parentRelations: [],propertyBindings: [] },
+  return { territorialEntities: [],timelineRecords: { schemaVersion: 3,lifetimes: [],geometryBindings: [],parentRelations: [],propertyBindings: [] },
     geometries: Object.freeze({ snapshot: () => geometries,get: () => null }) };
 }
 

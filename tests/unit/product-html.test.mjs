@@ -8,23 +8,25 @@ test('product HTML is generated from one source for each common viewing control'
  const pages=renderProductHtml(read);
  for(const page of Object.values(pages))assert.doesNotMatch(page,/data-map-background="(?:builtinHydro|builtinPlaces)"/);
  for(const key of ['object-search','map-display','preferences','tooltip','notification','map-icons','map-search-control','map-fit-control']){
-  const fragment=read(`ui/fragments/${key}.html`).replaceAll('\r\n','\n').trim();
+  const fragment=read(`shared/frontend/ui/fragments/${key}.html`).replaceAll('\r\n','\n').trim();
   for(const sharedPart of fragment.split(/<!-- include:[a-z-]+ -->/).filter(Boolean)){
    assert.ok(pages.web.includes(sharedPart),`web omitted ${key}`);
    assert.ok(pages.editor.includes(sharedPart),`app omitted ${key}`);
   }
  }
- const terrain=read('ui/fragments/map-terrain.html').replaceAll('\r\n','\n').trim();
- const timeline=read('ui/fragments/timeline.html').replaceAll('\r\n','\n').trim();
+ const terrain=read('shared/frontend/ui/fragments/map-terrain.html').replaceAll('\r\n','\n').trim();
+ const timeline=read('shared/frontend/ui/fragments/timeline.html').replaceAll('\r\n','\n').trim();
  assert.ok(pages.web.includes(timeline));
  assert.doesNotMatch(pages.web,/id="mapBottomStatus"|id="preferencesStatusBarVisibleInput"/);
  assert.match(pages.editor,/id="mapBottomStatus"/);
  assert.match(pages.editor,/id="preferencesStatusBarVisibleInput"/);
  assert.match(timeline,/id="timelinePopover"/);
+ assert.match(timeline,/<select\b[^>]*id="timelineMonthInput"[^>]*data-native-select/);
+ assert.match(timeline,/<select\b[^>]*id="timelineViewUnit"[^>]*data-native-select/);
  assert.doesNotMatch(timeline,/[«‹›»]|timeline-divider/);
  for(const icon of ['chevron-left','chevron-right','chevrons-left','chevrons-right'])
   assert.match(timeline,new RegExp(`href="#icon-${icon}"`));
- assert.doesNotMatch(pages.editor,/timelineControls|timelinePreviousYear|timelinePreviousMonth|timelineMonthButton|timelineMonthInput|timelineNextMonth|timelineNextYear/);
+ assert.doesNotMatch(pages.editor,/timelineControls|timelinePreviousDecade|timelineNextDecade|timelinePreviousYear|timelinePreviousMonth|timelineDateButton|timelineMonthInput|timelineNextMonth|timelineNextYear/);
  assert.doesNotMatch(pages.editor,/timelineComparePin|timelineComparisonPanel|autosaveRecoveryBtn/);
  assert.doesNotMatch(pages.editor,/data-map-display-row="advanced"/);
  assert.doesNotMatch(pages.web,/data-map-display-row="advanced"/);
@@ -40,7 +42,7 @@ test('product HTML is generated from one source for each common viewing control'
  assert.ok(pages.editor.includes('entityNameInput'));
  assert.ok(!pages.web.includes('viewerInfoPanel'));
  for(const page of Object.values(pages))assert.doesNotMatch(page,/zoomInBtn|zoomOutBtn|map-view-toolbar/);
- const changed=renderProductHtml(path=>path==='ui/fragments/tooltip.html'?read(path).replace('role="tooltip"','role="tooltip" data-source-probe="shared"'):read(path));
+ const changed=renderProductHtml(path=>path==='shared/frontend/ui/fragments/tooltip.html'?read(path).replace('role="tooltip"','role="tooltip" data-source-probe="shared"'):read(path));
  assert.ok(changed.web.includes('data-source-probe="shared"'));
  assert.ok(changed.editor.includes('data-source-probe="shared"'));
 });
@@ -49,7 +51,7 @@ test('both maps omit the attribution banner while retaining compact OSM and ODbL
   const { renderProductHtml } = await import('../../scripts/lib/product-html.mjs');
   const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
   const pages = renderProductHtml(read);
-  const fragment = read('ui/fragments/map-attribution.html').replaceAll('\r\n', '\n').trim();
+  const fragment = read('shared/frontend/ui/fragments/map-attribution.html').replaceAll('\r\n', '\n').trim();
   for (const page of Object.values(pages)) {
     assert.equal(page.split(fragment).length - 1, 1);
     assert.doesNotMatch(page, /class="map-attribution"/);

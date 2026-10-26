@@ -249,6 +249,7 @@
 
 @media (max-width: 799px) {
   :root {
+    --ui-control-height: var(--design-control-mobile-height);
     --ui-icon-control-size: var(--ui-icon-control-mobile-size);
     --ui-tree-row-height: var(--design-layer-row-height-mobile);
     --ui-tree-folder-height: var(--design-layer-row-height-mobile);
@@ -256,5 +257,6 @@
 }
 
 :root:has(.app-root[data-layout="phone-landscape"]) {
+  --ui-control-height: var(--design-control-mobile-height);
   --ui-icon-control-size: var(--ui-icon-control-mobile-size);
 }

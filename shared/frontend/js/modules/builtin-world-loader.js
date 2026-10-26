@@ -12,7 +12,7 @@ export function assembleBuiltinWorld(index,countries,month){
  if(byId.size!==countries.length||expected.length!==countries.length)throw new Error('Incomplete builtin country selection');
  const project=structuredClone(index.template),geometries=new Map();
  project.territorialEntities=[];project.geometries=[];
- project.timelineRecords={schemaVersion:2,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
+ project.timelineRecords={schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
  for(const entry of expected){
   const country=byId.get(entry.entityId);
   if(country?.schemaVersion!==2||country.identity?.id!==entry.entityId)throw new Error('Builtin country identity mismatch');

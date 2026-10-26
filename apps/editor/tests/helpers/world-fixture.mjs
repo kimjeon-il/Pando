@@ -73,18 +73,18 @@ export async function worldFixture(t) {
     schemaVersion: 2, meshes: { key: mesh },
   })));
   const terrain = {
-    version: '0.13.3-p1', representation: 'raster-rgba-v1',
-    urlTemplate: 'terrain-preview/v0.13.3-p1/{level}/{column}-{row}.webp',
+    version: '0.13.3-p2', representation: 'raster-rgba-v1',
+    urlTemplate: 'terrain-preview/v0.13.3-p2/{level}/{column}-{row}.webp',
     tiles: {},
   };
   const tiles = ['0/0-0.webp','0/1-0.webp','1/0-0.webp','1/1-0.webp','1/2-0.webp',
     '1/0-1.webp','1/1-1.webp','1/2-1.webp'];
   for (const tile of tiles) {
-    const path = 'assets/data/terrain-preview/v0.13.3-p1/' + tile;
+    const path = 'assets/data/terrain-preview/v0.13.3-p2/' + tile;
     const bytes = Buffer.from(tile);
     terrain.tiles[tile] = { sha256: (await pinned(path, bytes)).sha256, bytes: bytes.length };
   }
-  await put('assets/data/terrain-preview/v0.13.3-p1/manifest.json', JSON.stringify(terrain));
+  await put('assets/data/terrain-preview/v0.13.3-p2/manifest.json', JSON.stringify(terrain));
   const hydroBin = await pinned('assets/data/hydro/v0.13.2/hydro.bin', Buffer.from('HYDRO'));
   await put('assets/data/hydro/v0.13.2/manifest.json', JSON.stringify({
     version: '0.13.2', schema: 'pandolab-water-shards-v5',shards:[],
@@ -106,7 +106,7 @@ export async function worldFixture(t) {
   await put('shared/frontend/js/modules/resource-update-policy.js','export const policy=true;');
   for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))await put(path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   terrain.sourceDem={landMaskSha256:'fixture-land'};
-  await put('assets/data/terrain-preview/v0.13.3-p1/manifest.json',JSON.stringify(terrain));
+  await put('assets/data/terrain-preview/v0.13.3-p2/manifest.json',JSON.stringify(terrain));
   const land=await pinned('assets/data/physical-land/v1/fixture-land.bin',Buffer.from('LAND'));
   await put('assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'fixture-land',asset:land}));
   const library=join(root,'.library-data/repository');

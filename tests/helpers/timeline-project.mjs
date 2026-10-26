@@ -18,7 +18,8 @@ const liveFixtures=new Set();
 /** Detached input construction only; never a current model or command owner. */
 export function staticTerritorialInput(features) {
   const input=structuredClone(createStaticTerritorialSnapshot(features));
-  input.timelineRecords.schemaVersion=2;
+  input.timelineRecords.schemaVersion=3;
+  for(const rows of [input.timelineRecords.lifetimes,input.timelineRecords.geometryBindings,input.timelineRecords.parentRelations])for(const row of rows){row.objectRef={domain:'territorial',id:row.entityId};delete row.entityId;}
   input.timelineRecords.propertyBindings=[];
   return input;
 }
@@ -30,7 +31,7 @@ afterEach(() => {
 export function projectForStorage(row = timelineStorageCases()[0]) {
   return {
     documentId:'8bb52340-ea7a-4f25-9d38-9adeb8332183',physicalSourceInfo:{},
-    territorialEntities: row.entities.map(({ id, entityKind }) => ({ type: 'Feature', id,
+    territorialEntities: row.entities.map(({ objectRef:{id}, entityKind }) => ({ type: 'Feature', id,
       geometry: null, properties: { schemaVersion: TERRITORIAL_SCHEMA_VERSION, entityKind, name: id, notes: '',
         style: {}, locked: false, metadata: {}, sourceFolderId: '', sourceEntityId: '', sourceGeometryVersion: '' } })),
     projectFields: { timelineRecords: structuredClone(row.input.records),

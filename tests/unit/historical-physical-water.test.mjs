@@ -1,24 +1,43 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {selectPhysicalWaterContext,createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
+import {resolvePhysicalWaterObjects,createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
 import {createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {modernCaspianWater} from '../../tools/gis/prepare-water-object-history.mjs';
 import {drawGpuBaseScene} from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
 
-test('reviewed physical geography includes approved selection through May12,1925',()=>{
- const historical={validFrom:'1922-12-30',validTo:'1925-05-12',id:'caspian1922'};
- for(const date of ['','1922-12-29','1925-05-13','1925-05','1991-01-01','2026-10-24'])assert.equal(selectPhysicalWaterContext([historical],date),null);
- assert.equal(selectPhysicalWaterContext([historical],'1922-12-30'),historical);
- assert.equal(selectPhysicalWaterContext([historical],'1922-12-31'),historical);
- assert.equal(selectPhysicalWaterContext([historical],'1922-12'),historical);
- assert.equal(selectPhysicalWaterContext([historical],'1925-04'),historical);
- assert.equal(selectPhysicalWaterContext([historical],'1925-05-12'),historical);
+const objectRef={domain:'hydroBuiltin',id:'waterbody:caspian'};
+test('derived modern water retains islands and uses the small spherical interior',()=>{
+ const square=(w,s,e,n)=>[[w,s],[w,n],[e,n],[e,s],[w,s]];
+ const outer=square(40,30,60,55),water=square(45,36,55,47).reverse(),island=square(48,40,49,41);
+ const land={type:'MultiPolygon',coordinates:[[outer,water],[island]]},before=structuredClone(land);
+ const result=modernCaspianWater(land),scope={};
+ vm.runInNewContext(readFileSync(new URL('../../shared/frontend/js/vendor/d3.min.js',import.meta.url),'utf8'),scope);
+ assert.equal(result.coordinates.length,2);
+ assert.ok(scope.d3.geo.area(result)>0&&scope.d3.geo.area(result)<0.1,'water cannot fill the complementary world');
+ assert.deepEqual(land,before,'source land and islands stay immutable');
+ const points=rings=>[...new Set(rings.flat().map(point=>point.join(',')))].sort();
+ assert.deepEqual(points(result.coordinates),points([water,island]));
+});
+function catalog(land,water) {
+ return {identities:[{objectRef,entityKind:'lake',name:'Caspian',layerId:'lakes_base'}],geometries:[{geometryRef:{id:'reviewed-water',version:1},land,asset:water}],
+  timelineRecords:{schemaVersion:3,lifetimes:[{id:'life',objectRef,validFrom:'1922-12-30',validTo:'1925-05-12'}],parentRelations:[],propertyBindings:[],
+   geometryBindings:[{id:'water',objectRef,validFrom:'1922-12-30',validTo:'1925-05-12',geometryRef:{id:'reviewed-water',version:1}}]}};
+}
+test('reviewed physical geography uses the common object resolver through May12,1925',()=>{
+ const input=catalog({},{});
+ for(const date of ['','1922-12-29','1925-05-13','1925-05','1991-01-01','2026-10-24'])assert.deepEqual(resolvePhysicalWaterObjects(input,date),[]);
+ for(const date of ['1922-12-30','1922-12-31','1922-12','1925-04','1925-05-12']){
+  const selected=resolvePhysicalWaterObjects(input,date);assert.equal(selected.length,1);assert.deepEqual(selected[0].objectRef,objectRef);
+ }
 });
 
 test('GPU water covers political paint once using ocean style and stays separate from territories',()=>{
  const events=[],gl=new Proxy({},{get:(_,key)=>/^[A-Z_]+$/.test(key)?key:()=>{}});
  const range={ranges:[]},water={kind:'polygon',packet:{key:'historic-water',role:'physical-water',style:{color:'wrong'}}};
- drawGpuBaseScene({gl,frame:{},width:10,height:10,terrainVisible:false,countriesVisible:true,mapSubstrate:{},mapOcean:{color:'#125678',fillAlpha:1},countries:{mesh:{triangleIndices:[]}},prepared:{baseTriangleDraw:range,overrideTriangleDraw:range,territoryItems:[],physicalLandItems:[],physicalWaterItems:[water],independentItems:[],deferredOverlayKeys:new Set(),failedOverlayKeys:new Set()}},{drawProgram:()=>events.push('countries'),drawOceanSubstrate(){},renderTerrain(){},drawHydro(){},drawCountryBoundaryStrokes:()=>events.push('borders'),polygonOverlayPass:{hasResource:()=>true,drawPackets(p){events.push(p[0]);return {renderedKeys:[p[0].key]};}},strokeRenderer:{}});
+ drawGpuBaseScene({gl,frame:{},width:10,height:10,terrainVisible:false,countriesVisible:true,surfacePresentation:{quality:"ready",terrainMode:"off",countrySurfaceMode:"political"},mapSubstrate:{},mapOcean:{color:'#125678',fillAlpha:1},countries:{mesh:{triangleIndices:[]}},prepared:{baseTriangleDraw:range,overrideTriangleDraw:range,territoryItems:[],physicalLandItems:[],physicalWaterItems:[water],independentItems:[],deferredOverlayKeys:new Set(),failedOverlayKeys:new Set()}},{drawProgram:()=>events.push('countries'),drawOceanSubstrate(){},renderTerrain(){},drawHydro(){},drawCountryBoundaryStrokes:()=>events.push('borders'),polygonOverlayPass:{hasResource:()=>true,drawPackets(p){events.push(p[0]);return {renderedKeys:[p[0].key]};}},strokeRenderer:{}});
  const painted=events.filter(e=>typeof e==='object');assert.equal(painted.length,1);assert.equal(painted[0].style.color,'#125678');assert.ok(events.indexOf(painted[0])>events.indexOf('borders'));
 });
 
@@ -33,13 +52,13 @@ test('a rejected history load retains the background, avoids a fetch loop and re
  const saved={fetch:globalThis.fetch,meta:globalThis.PANDOLAB_BUILD_META};
  t.after(()=>{globalThis.fetch=saved.fetch;globalThis.PANDOLAB_BUILD_META=saved.meta;});
  const bytes=new Map(),asset=(name,geometry)=>{const body=Buffer.from(JSON.stringify(geometry));bytes.set(name,body);return {url:'assets/data/'+name,encoding:'identity',sha256:createHash('sha256').update(body).digest('hex'),compressedBytes:body.length,decodedBytes:body.length};};
- const modern=asset('modern',{type:'MultiPolygon',coordinates:[]}),land=asset('history-land',{type:'MultiPolygon',coordinates:[]}),water=asset('history-water',{type:'Polygon',coordinates:[]});
- globalThis.PANDOLAB_BUILD_META={dataRevision:'test-history',physicalLand:modern,physicalWaterHistory:[{id:'history',validFrom:'1922-12-30',validTo:'1925-05-12',land,water}]};
+ const modern=asset('modern',{type:'MultiPolygon',coordinates:[]}),land=asset('history-land',{type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[0,0]]]]}),water=asset('history-water',{type:'Polygon',coordinates:[]});
+ globalThis.PANDOLAB_BUILD_META={dataRevision:'test-history',physicalLand:modern,physicalWaterObjects:catalog(land,water)};
  let reject=true,requests=0,failed,ready;
  const failure=new Promise(resolve=>{failed=resolve;}),loaded=new Promise(resolve=>{ready=resolve;});
  globalThis.fetch=async url=>{requests++;if(reject&&String(url).includes('history-land'))throw Error('transient');return new Response(bytes.get(new URL(url).pathname.split('/').at(-1)));};
  const state={timelineCursor:''},resource=createPhysicalResources({capabilities:{terrain:false,builtinHydro:false}});
- resource.connect({projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},domains:{renderingDomain:{invalidateProject:reason=>{if(reason==='historical-physical-water-ready')ready();}}},feedback:{reportOperationError:failed}});
+ resource.connect({projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},domains:{renderingDomain:{invalidateProject:reason=>{if(reason==='physical-water-ready')ready();}}},feedback:{reportOperationError:failed}});
  await resource.loadPhysicalData({includeHydro:false});const initial=resource.physicalLand;
  state.timelineCursor='1922-12';assert.equal(resource.physicalLand,initial);await failure;
  const count=requests;assert.equal(resource.physicalLand,initial);assert.equal(resource.physicalLand,initial);assert.equal(requests,count);

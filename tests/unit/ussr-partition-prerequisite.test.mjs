@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {checkUSSRPartition} from '../../scripts/check-ussr-partition-native.mjs';
 const target='tests/unit/gis-ussr-1922-partition-native.test.mjs';
 test('USSR native test is owned before broad GIS units and selects real native prerequisites',()=>{
@@ -14,7 +15,7 @@ test('only the recipe target is built and all three native tests receive its exe
  assert.equal(calls.length,3);assert.ok(calls[0].argv.includes('-DPANDO_BUILD_TERRITORIAL_RECIPE=ON'));
  assert.deepEqual(calls[1].argv.slice(-2),['--target','pando-territorial-recipe']);
  assert.deepEqual(calls[2].argv.slice(1),['--test',target]);
- assert.equal(calls[2].options.env.PANDO_TERRITORIAL_RECIPE_BINARY,'/fixture/build-native/territorial-recipe/pando-territorial-recipe');
+ assert.equal(calls[2].options.env.PANDO_TERRITORIAL_RECIPE_BINARY,join('/fixture','build-native/territorial-recipe/pando-territorial-recipe'));
 });
 test('missing prerequisites and native assertion failures cannot become skipped successes',()=>{
  assert.throws(()=>checkUSSRPartition({root:'/fixture',env:{},run:()=>({status:1})}),/failed/);

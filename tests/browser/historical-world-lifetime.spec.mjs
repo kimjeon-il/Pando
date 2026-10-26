@@ -14,7 +14,7 @@ test('public Web viewer keeps source lifetime separate from selected country ava
   expect(await lifetime()).toEqual({ validFrom: '1830-10-04', validTo: null });
   const before = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState().checkpoint);
   for (const month of ['2026-09', '2026-11', '2026-10']) {
-    await page.locator('#timelineMonthButton').click();
+    await page.locator('#timelineDateButton').click();await page.locator('#timelineViewUnit').selectOption('month');
     await expect(page.locator('#timelinePopover')).toBeVisible();
     const [year, selectedMonth] = month.split('-');
     await page.locator('#timelineYearInput').fill(year);

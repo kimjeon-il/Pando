@@ -138,3 +138,20 @@
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
+
+.timeline-controls {
+  display: grid;
+  grid-template-columns: var(--ui-icon-control-size) var(--ui-icon-control-size) minmax(0, 1fr) var(--ui-icon-control-size) var(--ui-icon-control-size);
+  align-items: center;
+  gap: 0;
+}
+
+.timeline-popover { padding: var(--ui-space-4); }
+.timeline-popover h2 { margin: 0 0 var(--ui-space-3); font-size: var(--ui-font-title); line-height: var(--design-line-title); font-weight: var(--ui-weight-semibold); }
+.timeline-popover form,
+.timeline-month-fields:not([hidden]) { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--ui-space-2) var(--ui-space-3); align-items: center; }
+.timeline-month-fields:not([hidden]) { grid-column: 1 / -1; }
+.timeline-month-navigation { display: grid; grid-template-columns: var(--ui-icon-control-size) minmax(0, 1fr) var(--ui-icon-control-size); align-items: center; gap: var(--ui-control-gap); min-width: 0; }
+.timeline-year-hint,
+.timeline-error,
+.timeline-submit { grid-column: 1 / -1; }

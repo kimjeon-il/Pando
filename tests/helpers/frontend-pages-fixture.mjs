@@ -34,7 +34,7 @@ export async function pagesRepositoryFixture(t) {
   put(root,'shared/frontend/js/modules/resource-update-policy.js','export const policy=true;');
   for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
-  put(root, 'assets/data/terrain-preview/v0.13.3-p1/manifest.json', '{"tiles":{}}');
+  put(root, 'assets/data/terrain-preview/v0.13.3-p2/manifest.json', '{"tiles":{}}');
   put(root, 'assets/data/hydro/v0.13.2/manifest.json', '{"container":{"url":"hydro.bin"},"shards":[]}');
   put(root, 'assets/data/hydro/v0.13.2/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
@@ -55,7 +55,7 @@ export async function pagesRepositoryFixture(t) {
       sha256: Object.fromEntries([...worker.files].map(([path, source]) => [path, createHash('sha256').update(source).digest('hex')])) }
   } }) + ');');
   put(root,'assets/data/world/current.json','{"assets":{}}');
-  put(root,'assets/data/terrain-preview/v0.13.3-p1/manifest.json','{"sourceDem":{"landMaskSha256":"land"},"tiles":{}}');
+  put(root,'assets/data/terrain-preview/v0.13.3-p2/manifest.json','{"sourceDem":{"landMaskSha256":"land"},"tiles":{}}');
   put(root,'assets/data/physical-land/v1/manifest.json','{"sourceSha256":"land","asset":{"url":"assets/data/physical-land/land.bin"}}');
   put(root,'assets/data/physical-land/land.bin','land');
   put(root,'assets/data/places/manifest.json','{"shards":{}}');

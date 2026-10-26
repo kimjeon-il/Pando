@@ -11,7 +11,7 @@ function setup(){
  const temp=mkdtempSync(join(tmpdir(),'pando-release-stage10-')),root=join(temp,'web');
  const paths=['index.html','.nojekyll','assets/js/gis-io.js',
    'assets/js/vendor/gdal/gdal3WebAssembly.wasm','assets/js/vendor/gdal/gdal3WebAssembly.data',
-   'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
+   'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
    'assets/data/hydro/v0.13.1/manifest.json',
    'assets/data/hydro/v0.13.2/manifest.json',
    'assets/data/hydro/v0.13.2/hydro.bin',
@@ -78,7 +78,7 @@ test('offline materialization verifies Git Blob and produces byte identical file
 test('modified source contents fail exact Git Blob verification',async()=>{
  const x=setup();
  try{
-  writeFileSync(join(x.root,'apps/editor/frontend/js/gis-io.js'),'changed');
+  writeFileSync(join(x.root,'assets/js/gis-io.js'),'changed');
   await assert.rejects(stageCandidate(x.profile,x.lock,x.root,join(x.temp,'staged')),/size changed|digest/);
  }finally{rmSync(x.temp,{recursive:true,force:true});}
 });

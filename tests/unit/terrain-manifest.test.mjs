@@ -35,8 +35,8 @@ test('legacy raster and strict DEM manifests select known representations', () =
 });
 
 test('current DEM preview fixes two LODs, eight tiles, provenance and the size limit', () => {
-  const preview = JSON.parse(readFileSync(new URL('../../assets/data/terrain-preview/v0.13.3-p1/manifest.json', import.meta.url)));
-  assert.equal(validateTerrainManifest(preview).version, '0.13.3-p1');
+  const preview = JSON.parse(readFileSync(new URL('../../assets/data/terrain-preview/v0.13.3-p2/manifest.json', import.meta.url)));
+  assert.equal(validateTerrainManifest(preview).version, '0.13.3-p2');
   assert.throws(() => validateTerrainManifest({ ...preview, levels: preview.levels.slice(0, 1) }), /미리보기/);
   assert.throws(() => validateTerrainManifest({ ...preview, sourceDem: { ...preview.sourceDem, tintSha256: 'changed' } }), /미리보기/);
 });
@@ -54,7 +54,7 @@ test('a tint-only data release uses the same strict DEM representation contract'
 test('relative and absolute data URLs resolve from the manifest without coupling DEM to app revision', () => {
   const appBase = new URL('https://app.example/assets/data/');
   const rasterUrl = terrainRasterManifestUrl(appBase, 'build-1');
-  assert.equal(rasterUrl.href, 'https://app.example/assets/data/terrain-preview/v0.13.3-p1/manifest.json?v=build-1');
+  assert.equal(rasterUrl.href, 'https://app.example/assets/data/terrain-preview/v0.13.3-p2/manifest.json?v=build-1');
   assert.equal(terrainAssetUrl('terrain/v0.13.0/5/0-0.webp', {
     manifestUrl: 'https://cdn.example/terrain/v0.13.0/manifest.json', dataBaseUrl: appBase,
   }).href, 'https://cdn.example/terrain/v0.13.0/5/0-0.webp');

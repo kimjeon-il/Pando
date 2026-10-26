@@ -12,13 +12,13 @@ const owner = async features => {
   return {state,store:testCoreProject(state).entityStore,project:testCoreProject(state).project};
 };
 const saved = ({ state }) => snapshotTimelineStorage(state.timelineRecords, state.geometries,
-  state.territorialEntities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
+  state.territorialEntities.map(entity => ({ objectRef:{domain:"territorial",id:entity.id}, entityKind: entity.properties.entityKind })));
 
 test('actual entity owner publishes one canonical record set and derived static shapes', async () => {
   const o=await owner([feature('A'),feature('B',{parentId:'A'})]);
   assert.equal(o.state.timelineRecords.lifetimes.length, 2);
   assert.equal(o.state.timelineRecords.geometryBindings.length, 2);
-  assert.equal(o.state.timelineRecords.parentRelations.find(record => record.entityId === 'B').parentId, 'A');
+  assert.equal(o.state.timelineRecords.parentRelations.find(record => record.objectRef.id === 'B').parentId, 'A');
   assert.ok(Object.isFrozen(o.state.territorialEntities[0]));
   assert.ok(Object.isFrozen(o.state.territorialEntities[1].properties));
   assert.equal(o.store.snapshot(),testCoreProject(o.state).documentModel.territorialViews());

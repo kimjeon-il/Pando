@@ -65,7 +65,7 @@ return Object.freeze(Object.fromEntries(Object.entries(domain).map(([key,value])
   await expect.poll(()=>page.evaluate(()=>window.__auditOpened),{timeout:90000}).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.__auditState().territorialEntities.length)).toBe(2);
   const beforeMonth=await page.evaluate(()=>({month:window.__auditState().timelineCursor,meshes:window.__auditMeshCalls}));
-  if(mode==='viewer')await page.locator('#timelineNextMonth').click();
+  if(mode==='viewer'){await page.locator('#timelineDateButton').click();await page.locator('#timelineViewUnit').selectOption('month');await page.locator('#timelineNextMonth').click();await page.keyboard.press('Escape');}
   else await setEditorMonth(page,shiftTimelineMonth(beforeMonth.month,1));
   await expect.poll(()=>page.evaluate(()=>window.__auditMonthSettled),{timeout:60000}).toBe(true);
   const afterMonth=await page.evaluate(()=>({month:window.__auditState().timelineCursor,meshes:window.__auditMeshCalls}));

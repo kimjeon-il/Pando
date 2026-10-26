@@ -17,6 +17,12 @@ test('explicit retired Cargo and cache scopes reject escape and preserve Android
  assert.throws(()=>previewGeneratedCleanup({...o,requests:[{root,path:'android/user',reason:'not a cache',action:'delete'}]}),/scope/);
  assert.equal(readFileSync(join(root,'android/user/debug.keystore'),'utf8'),'private key');
 });
+test('explicitly discarded moved work copies can be deleted while GIS originals and keys remain protected',t=>{
+ const root=fixture(t);put(root,'Pandoeditor/old-source/x.cpp','retired copy');put(root,'Temp/original.zip','GIS');put(root,'Pandoeditor/signing.keystore','key');
+ const o={roots:[root],compilerScopes:[{root,kind:'discarded-evidence'}],requests:[{root,path:'Pandoeditor/old-source',action:'delete',reason:'user explicitly discarded retired work copies'}]};
+ const manifest=previewGeneratedCleanup(o);assert.equal(applyGeneratedCleanup({...o,manifest}).deletedBytes,12);
+ for(const path of ['Temp/original.zip','Pandoeditor/signing.keystore'])assert.throws(()=>previewGeneratedCleanup({...o,requests:[{...o.requests[0],path}]}),/scope/);
+});
 
 test('cross-volume retired evidence is verified at its destination before the source is removed',{skip:process.platform!=='win32'||!existsSync('D:/build/cache/pandolab')},t=>{
  const root=fixture(t),destination=mkdtempSync('D:/build/cache/pandolab/evidence-test-');t.after(()=>rmSync(destination,{recursive:true,force:true}));

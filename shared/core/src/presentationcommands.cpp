@@ -46,10 +46,10 @@ PresentationPreparation PresentationCommandProcessor::prepare(const ProjectSnaps
             } else if constexpr(std::is_same_v<T,WebObjectVisibility>) {
                 require(!a.refs.empty());
                 std::vector<ObjectRef> stored;std::vector<std::string> physical;bool all=true;
-                const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}},project.timelineMonth());
+                const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const ObjectRef& owner,const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}},project.timelineMonth());
                 const auto currentGroup=[&](const ObjectRef& ref) {
                     if(ref.domain!="territorial")return contentItemGroup(d,ref);
-                    const auto row=world.find(ref.id);require(bool(row));
+                    const auto row=world.find(ref);require(bool(row));
                     return std::string("objects");
                 };
                 for(const auto& ref:a.refs) {
