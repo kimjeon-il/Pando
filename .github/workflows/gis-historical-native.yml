@@ -17,6 +17,8 @@ on:
       - 'tests/unit/gis-caspian-pinned-native-oracle.test.mjs'
       - 'tools/gis/replay-ussr-1922-countries.mjs'
       - 'tools/gis/stage-ussr-1922-library-originals.mjs'
+      - 'tools/gis/replay-ussr-1922-physical.mjs'
+      - 'tests/unit/ussr-1922-physical-replay.test.mjs'
       - 'tests/unit/ussr-1922-country-replay.test.mjs'
       - 'tests/fixtures/gis-caspian-1922-python-native-oracle.json'
       - 'tools/gis/verify-historical-linework.mjs'
@@ -62,6 +64,7 @@ jobs:
           node --test tests/unit/gis-caspian-physical-native.test.mjs
           node --test tests/unit/gis-historical-source-compare.test.mjs
           node --test tests/unit/ussr-1922-country-replay.test.mjs
+          node --test tests/unit/ussr-1922-physical-replay.test.mjs
 
       - name: Fetch only immutable Caspian 1922 approved source archive
         run: |
@@ -153,6 +156,21 @@ jobs:
             --output build-native/historical/caspian-1922-native-candidate.json \
             | tee build-native/historical/caspian-1922-native-display-receipt.jsonl
 
+      - name: Fetch only the four approved physical land/water assets by SHA-256
+        run: |
+          set -euo pipefail
+          node tools/gis/stage-ussr-1922-library-originals.mjs \
+            --scope physical \
+            --output-root build-native/historical/ussr-1922-physical-originals
+      - name: Regenerate the 1922 water/land physical assets with C++ and compare published land
+        run: |
+          set -euo pipefail
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node tools/gis/replay-ussr-1922-physical.mjs \
+            --source-root build-native/historical/ussr-1922-physical-originals \
+            --display build-native/historical/caspian-1922-native-candidate.json \
+            --stage build-native/historical/caspian-1922-rebuilt-physical-candidate \
+            | tee build-native/historical/caspian-1922-physical-replay.jsonl
       - name: Verify pinned Python-vs-C++ real Caspian geometry proof without Python dependencies
         run: node --test tests/unit/gis-caspian-pinned-native-oracle.test.mjs
       - uses: actions/upload-artifact@v4
@@ -163,5 +181,6 @@ jobs:
             build-native/historical/caspian-1922-native-receipt.jsonl
             build-native/historical/caspian-1922-native-display-receipt.jsonl
             build-native/historical/ussr-1922-country-replay.jsonl
+            build-native/historical/caspian-1922-physical-replay.jsonl
           retention-days: 14
           if-no-files-found: warn
