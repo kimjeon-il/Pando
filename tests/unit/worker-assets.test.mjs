@@ -67,7 +67,7 @@ test('bootstrap metadata imports resolve outside the immutable tree with their r
 
 test('Worker URL resolution requires generated identity and preserves application base and runtime parameters', () => {
   const path = 'assets/js/workers/sample-worker.js';
-  const meta = { assetRevision: 'current', workerAssets: { [path]: { url: `assets/worker-runtime/${'a'.repeat(32)}/${path}` } } };
+  const meta = { assetRevision: 'current', dataRevision: 'data-1', workerAssets: { [path]: { url: `assets/worker-runtime/${'a'.repeat(32)}/${path}` } } };
   const url = workerAssetUrl(new URL('https://example.test/Pando/assets/js/workers/sample-worker.js?mode=read&v=old'), meta);
   assert.equal(url.pathname, `/Pando/assets/worker-runtime/${'a'.repeat(32)}/${path}`);
   assert.equal(url.searchParams.get('mode'), 'read');

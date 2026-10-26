@@ -5,6 +5,17 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/cpp/build-territorial-recipe.cpp'
+      - 'tools/cpp/historical-linework-audit.inc'
+      - 'tools/cpp/historical-caspian-generalization.inc'
+      - 'tests/unit/gis-caspian-generalize-native.test.mjs'
+      - 'tools/gis/generalize-approved-caspian-display.mjs'
+      - 'tests/unit/gis-caspian-display-packaging.test.mjs'
+      - 'tests/unit/gis-caspian-pinned-native-oracle.test.mjs'
+      - 'tests/fixtures/gis-caspian-1922-python-native-oracle.json'
+      - 'tools/gis/verify-historical-linework.mjs'
+      - 'tests/unit/gis-historical-linework-native.test.mjs'
+      - 'tools/gis/verify-approved-caspian-network.mjs'
+      - 'tests/unit/gis-caspian-source-zip.test.mjs'
       - 'tools/historical-library/german-empire-1914-base.recipe.json'
       - 'tests/unit/gis-german-base-native.test.mjs'
       - '.github/workflows/gis-historical-native.yml'
@@ -37,4 +48,65 @@ jobs:
       - name: Test native axis correction, island selection and protected recipe status
         run: |
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
-          node --test tests/unit/gis-german-base-native.test.mjs
+          node --test tests/unit/gis-german-base-native.test.mjs tests/unit/gis-historical-linework-native.test.mjs
+          node --test tests/unit/gis-caspian-source-zip.test.mjs
+          node --test tests/unit/gis-caspian-generalize-native.test.mjs
+          node --test tests/unit/gis-caspian-display-packaging.test.mjs
+
+      - name: Fetch only immutable Caspian 1922 approved source archive
+        run: |
+          mkdir -p build-native/historical
+          node --input-type=module - <<'JS'
+          import {createHash} from 'node:crypto';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+          const pin=JSON.parse(readFileSync('config/library-data.json','utf8')).revision;
+          const base='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+pin+'/';
+          const get=async path=>{
+            const result=await fetch(base+path,{signal:AbortSignal.timeout(120000)});
+            if(!result.ok)throw Error('Pinned source archive HTTP '+result.status);
+            return Buffer.from(await result.arrayBuffer());
+          };
+          const index=JSON.parse((await get('archive/index.json')).toString('utf8'));
+          const logical='tools/historical-library/sources/ussr-1922-approved/caspian-shoreline-completed-candidate-20261024.zip';
+          const entry=index.files?.[logical];
+          const approved='3df45ab6e7d3a4b1dfac42b29f28cc1c932c3b1be9f866ccd7df6bb769b9a5b4';
+          if(!entry||entry.bytes!==13323018||entry.sha256!==approved||
+            !/^archive\/blobs\/[a-f0-9]{64}\.(?:gz|bin)$/.test(entry.stored))
+            throw Error('Pinned Caspian master source or SHA receipt changed');
+          const stored=await get(entry.stored);
+          const original=entry.encoding==='gzip'?gunzipSync(stored):
+            (entry.encoding==='raw'||entry.encoding==='none')?stored:null;
+          if(!original||original.length!==entry.bytes||sha(original)!==approved)
+            throw Error('Caspian source archive integrity mismatch');
+          writeFileSync('build-native/historical/approved-caspian-1922.zip',
+            original,{flag:'wx'});
+          console.log('CASPIAN_PINNED_SOURCE='+JSON.stringify({
+            libraryRevision:pin,logical,sha256:sha(original),bytes:original.length}));
+          JS
+      - name: Compare actual 266-reach approved source with the native GEOS topology owner
+        run: |
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node tools/gis/verify-approved-caspian-network.mjs \
+            --zip build-native/historical/approved-caspian-1922.zip \
+            | tee build-native/historical/caspian-1922-native-receipt.jsonl
+      - name: Generalize the actual 266-reach Caspian display in C++ without touching masters
+        run: |
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
+          node tools/gis/generalize-approved-caspian-display.mjs \
+            --zip build-native/historical/approved-caspian-1922.zip \
+            --output build-native/historical/caspian-1922-native-candidate.json \
+            | tee build-native/historical/caspian-1922-native-display-receipt.jsonl
+
+      - name: Verify pinned Python-vs-C++ real Caspian geometry proof without Python dependencies
+        run: node --test tests/unit/gis-caspian-pinned-native-oracle.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: caspian-1922-native-source-parity
+          path: |
+            build-native/historical/caspian-1922-native-receipt.jsonl
+            build-native/historical/caspian-1922-native-display-receipt.jsonl
+          retention-days: 14
+          if-no-files-found: warn

@@ -1,17 +1,7 @@
 import { composeViewer } from './modules/viewer-composition.js';
-import { publicDataRoot, resolvePublicDataChannel } from "../../../shared/frontend/js/modules/publication-data-channel.js";
 const status = document.getElementById('viewerStatus');
-resolvePublicDataChannel({ baseUrl: publicDataRoot(import.meta.url), buildMeta: globalThis.PANDOLAB_BUILD_META })
-  .then(({ meta, status: dataStatus }) => {
-    globalThis.PANDOLAB_BUILD_META = meta;
-    if (dataStatus === 'offline-verified') {
-      const notice = document.createElement('span');
-      notice.setAttribute('role', 'status');
-      notice.textContent = '오프라인 · 마지막으로 검증한 라이브러리 판본';
-      status.insertAdjacentElement('afterend', notice);
-    }
-    return composeViewer({ productMode: 'viewer', meta });
-  })
+Promise.resolve()
+  .then(() => composeViewer({ productMode: 'viewer', meta: globalThis.PANDOLAB_BUILD_META }))
   .catch(error => {
     console.error('[PL-VIEWER-START]', error);
     status.hidden = false;

@@ -30,6 +30,7 @@ test('external repository revision invalidates loaded entities after an atomic s
 test('native repository requires a real bridge and rejects malformed read receipts',async()=>{
  assert.throws(()=>createNativeLibraryRepository(),/bridge|네이티브/);
  const repo=createNativeLibraryRepository({invoke:async()=>({revision:'',index})});
+ assert.equal(Object.hasOwn(repo,'publish'),false);
  await assert.rejects(repo.open(),/revision|판본/);
 });
 function singleIndex(){

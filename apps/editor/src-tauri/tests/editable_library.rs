@@ -212,9 +212,9 @@ impl Api for NewRemote {
     }
 }
 #[test]
-fn sync_is_fast_forward_only_and_publish_dispatch_is_explicit() {
+fn sync_is_fast_forward_only_and_never_dispatches_a_publication() {
     let r = repo("sync");
-    let first = r
+    r
         .seed(index(&["state:A"]), vec![entity("state:A", "a")])
         .unwrap();
     let api = NewRemote {
@@ -230,17 +230,6 @@ fn sync_is_fast_forward_only_and_publish_dispatch_is_explicit() {
         .borrow()
         .iter()
         .all(|(_, path, _)| !path.ends_with("/dispatches")));
-    library_sync::publish(&r, &api, first["revision"].as_str().unwrap()).unwrap();
-    let calls = api.calls.borrow();
-    let last = calls.last().unwrap();
-    assert_eq!(
-        last.1,
-        "repos/kimjeon-il/Pando/actions/workflows/library-publish.yml/dispatches"
-    );
-    assert_eq!(
-        last.2.as_ref().unwrap()["inputs"]["sourceRevision"],
-        "c".repeat(40)
-    );
 }
 #[test]
 fn rejected_push_does_not_mark_local_revision_synced() {

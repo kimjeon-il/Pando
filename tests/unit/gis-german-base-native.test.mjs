@@ -90,3 +90,65 @@ test('German 1914 production recipe uses the common engine but retains an explic
  assert.equal(recipe.operations[3].expectedComponents,2);
  assert.equal(recipe.referenceDate,'1914-07-31');
 });
+
+test('historical recipe enforces GEOS inclusion/exclusion anchors and PROJ metric area',t=>{
+ const input={provinces:collection([polygon(10,50,11,51)])};
+ const valid=[
+   {id:'source',operation:'union',source:'provinces'}
+ ];
+ const rootDir=mkdtempSync(join(tmpdir(),'gis-policy-'));
+ t.after(()=>rmSync(rootDir,{recursive:true,force:true}));
+ mkdirSync(join(rootDir,'sources'));
+ writeFileSync(join(rootDir,'sources/provinces.json'),JSON.stringify(input.provinces));
+ const spec={sources:{provinces:{path:'sources/provinces.json',crs:'EPSG:4326'}},
+   operations:valid,
+   validation:{areaKm2:{minimum:5000,maximum:25000},
+     insidePoints:{inside:[10.5,50.5]},outsidePoints:{outside:[12,50.5]},
+     maximumCoordinates:100}};
+ const invoke=value=>{
+   const path=join(rootDir,'spec.json');
+   writeFileSync(path,JSON.stringify(value));
+   return spawnSync(bin,[rootDir,path],{encoding:'utf8',cwd:rootDir});
+ };
+ assert.equal(invoke(spec).status,0,'Valid historical anchor and area policy should pass');
+ for(const [mutation,error] of [
+   [x=>x.validation.areaKm2.maximum=1,/projected area/],
+   [x=>x.validation.insidePoints.inside=[12,50.5],/anchor mismatch: inside/],
+   [x=>x.validation.outsidePoints.outside=[10.5,50.5],/anchor mismatch: outside/],
+   [x=>x.validation.maximumCoordinates=4,/coordinate budget/]
+ ]){
+   const copy=structuredClone(spec);mutation(copy);
+   const bad=invoke(copy);
+   assert.notEqual(bad.status,0,error.source);
+   assert.match(bad.stderr,error);
+ }
+});
+
+test('native historical HGIS axis-correct-tree modifies XY but retains any extra ordinates',t=>{
+ const dir=mkdtempSync(join(tmpdir(),'hgis-axis-tree-'));
+ t.after(()=>rmSync(dir,{recursive:true,force:true}));
+ const original={
+  coordinates:[[[10,50,123],[10.1,50.1,456]]],
+  longitude:linear.longitude,latitude:linear.latitude,
+ };
+ const path=join(dir,'coords.json'),bytes=JSON.stringify(original);
+ writeFileSync(path,bytes);
+ const result=spawnSync(bin,['--axis-correct-tree',path],{encoding:'utf8'});
+ assert.equal(result.status,0,result.stderr);
+ const converted=JSON.parse(result.stdout);
+ assert.equal(converted[0][0][2],123);
+ assert.equal(converted[0][1][2],456);
+ assert.ok(Math.abs(converted[0][0][0]-9.9849685)<1e-10);
+ assert.ok(Math.abs(converted[0][0][1]-50.0134495)<1e-10);
+ assert.equal(readFileSync(path,'utf8'),bytes,'input evidence must not be modified');
+});
+test('native historical coordinate-tree conversion fails closed on invalid coordinates',t=>{
+ const dir=mkdtempSync(join(tmpdir(),'hgis-axis-invalid-'));
+ t.after(()=>rmSync(dir,{recursive:true,force:true}));
+ const path=join(dir,'coords.json');
+ writeFileSync(path,JSON.stringify({coordinates:[181,50],
+   longitude:linear.longitude,latitude:linear.latitude}));
+ const p=spawnSync(bin,['--axis-correct-tree',path],{encoding:'utf8'});
+ assert.notEqual(p.status,0);
+ assert.match(p.stderr,/geographic coordinate invalid/);
+});
