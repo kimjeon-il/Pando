@@ -15,6 +15,10 @@ import {digest} from './verify-historical-linework.mjs';
 
 export const WATER_MEMBER='caspian-completion/assembled-completion-candidate/polygon-check/waterbody-polygon-candidate.geojson';
 const requireValue=(ok,message)=>{if(!ok)throw Error(message);};
+const canonical=value=>JSON.stringify(sortJson(value));
+const sortJson=value=>Array.isArray(value)?value.map(sortJson):
+  value&&typeof value==='object'?Object.fromEntries(Object.keys(value)
+    .sort().map(k=>[k,sortJson(value[k])])):value;
 async function zipMemberBytes(path,name,maxBytes=64*1024*1024){
   const members=(await zipMembers(path)).filter(m=>m.name===name);
   requireValue(members.length===1,'Expected exactly one source ZIP member: '+name);
@@ -84,7 +88,7 @@ export function validateDisplayCandidate(input,output){
   for(let i=0;i<input.network.features.length;i++){
     const before=input.network.features[i],after=output.network.features[i];
     requireValue(after.id===before.id
-      &&JSON.stringify(after.properties)===JSON.stringify(before.properties),
+      &&canonical(after.properties)===canonical(before.properties),
       'Native generalization changed historical source identity or provenance: '+i);
     const first=before.geometry.coordinates[0],last=before.geometry.coordinates.at(-1);
     requireValue(JSON.stringify(after.geometry.coordinates[0])===JSON.stringify(first)
@@ -94,7 +98,7 @@ export function validateDisplayCandidate(input,output){
     requireValue(Number.isFinite(tolerance)&&tolerance>=0,
       'Invalid native Caspian source-specific tolerance');
     if(tolerance===0)
-      requireValue(JSON.stringify(after.geometry)===JSON.stringify(before.geometry),
+      requireValue(canonical(after.geometry)===canonical(before.geometry),
         'Protected historical role/line moved: '+i);
   }
   return {
