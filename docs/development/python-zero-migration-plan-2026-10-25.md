@@ -7,6 +7,9 @@
 
 ## 실행 현황 — A0~A2 (2026-10-25)
 
+- **C2 미사용 OSM 북슐레스비히 1864 서부 조사 종료 (2026-10-27):** `fetch_north_schleswig_1864_west_sources.py` 및 `fetch-north-schleswig-1864-west.yml`의 출력 5종(graensestien 원본·route 후보, Overpass 노드·marker 후보·요약)은 지정 경로에서 읽는 현행 소비자가 없으며, 고정 자료 revision `a963457e578d335fec181f91ad25dfe729e96e1b`의 `archive/index.json`에도 등록되지 않았다. 실제 19세기 원도엽이 아니라 OSM 관계/Overpass 후보를 다시 가져오는 실행 경로이므로 신규 Node 수집기로 이식하지 않고 종료한다. 이미 보존된 별도 1914 국경 GeoJSON·보고서·출처 자료와 기존 4개 SLUB 도엽 보존 작업은 수정하지 않는다. 후자는 별도 권리·원본 바이트 확인 완료 전 삭제 금지.
+
+
 - **C1 LSIB 원본/세계 국경 무변경 감사 Node+C++ 전환 (2026-10-27):** `verify-lsib-country-sources.py`의 git 원본 lineage/국가 ID/명칭/기간/과거 geometryVersion 보존 검사 및 검증 영수증을 `tools/gis/verify-lsib-country-sources.mjs`로 이관. GEOS 변경된 현대 다각형 유효성 및 세계 모든 폴리곤의 방향 무관 이진64 선분 홀짝 집계는 `--audit-lsib-modern-sources`에 집중. Node·네이티브 synthetic 정상·실패 회귀검사와 역사 GIS CI 경로를 추가하고 Python 검사기를 제거. 원본 국가 지오메트리/LSIB 자료 및 브라우저 지도를 건드리지 않음. **외부 라이브러리 실제 source-baseline 재현 검증은 별도 미완료**이며, 이 항목은 검증도구 이전이지 국경선 보정 승인이나 `supplement-lsib-boundaries.py` 전체 대체가 아님.
 
 
