@@ -34,6 +34,30 @@ const sort=value=>Array.isArray(value)?value.map(sort)
   :value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort()
     .map(k=>[k,sort(value[k])])):value;
 const clone=value=>structuredClone(value);
+const geometryDiscrepancy=(left,right)=>{
+  let mismatches=0,shapeMismatches=0,maximumDegrees=0,first=null;
+  const visit=(a,b,path)=>{
+    if(typeof a==='number'&&typeof b==='number'){
+      const delta=Math.abs(a-b);
+      if(delta){mismatches++;maximumDegrees=Math.max(maximumDegrees,delta);
+        first??={path,approved:a,published:b,difference:delta};}
+      return;
+    }
+    if(Array.isArray(a)&&Array.isArray(b)){
+      if(a.length!==b.length){shapeMismatches++;first??={path,approvedLength:a.length,publishedLength:b.length};}
+      for(let i=0;i<Math.min(a.length,b.length);i++)visit(a[i],b[i],path+'/'+i);
+      return;
+    }
+    if(a&&b&&typeof a==='object'&&typeof b==='object'){
+      for(const key of new Set([...Object.keys(a),...Object.keys(b)]))
+        visit(a[key],b[key],path+'/'+key);
+      return;
+    }
+    if(a!==b){shapeMismatches++;first??={path,approved:a,published:b};}
+  };
+  visit(left,right,'geometry');
+  return {mismatches,shapeMismatches,maximumDegrees,first};
+};
 const validId=id=>typeof id==='string' && /^state:[a-z0-9-]+$/.test(id);
 
 export async function loadApprovedUSSR(zip,{
@@ -154,8 +178,11 @@ export function buildUSSRApprovedSnapshot(display,countries){
         sourceProperties:comparable(same?.sourceProperties)===comparable(source.properties),
       };
       const failed=Object.keys(checks).filter(key=>!checks[key]);
+      const geometryDetail=failed.includes('geometry')
+        ?geometryDiscrepancy(source.geometry,same?.geometry):null;
       fail(failed.length===0,
-        'Previously applied approved USSR snapshot differs: '+id+' ['+failed.join(',')+']');
+        'Previously applied approved USSR snapshot differs: '+id+' ['+failed.join(',')+']'
+          +(geometryDetail?' '+JSON.stringify(geometryDetail):''));
       fail(entity.sourceInfo?.approved1922?.sourceZip===baseSource
         &&entity.sourceInfo.approved1922.masterSha256===MEMBER_HASHES[MASTER]
         &&entity.sourceInfo.approved1922.displaySha256===MEMBER_HASHES[DISPLAY],
