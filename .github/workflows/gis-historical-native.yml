@@ -138,6 +138,7 @@ jobs:
       - name: Verify all five published 1922 country entities against the approved source ZIP
         run: |
           set -euo pipefail
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
           node tools/gis/replay-ussr-1922-countries.mjs \
             --source-root build-native/historical/ussr-1922-existing \
             --zip build-native/historical/ussr-1922-approved-master.zip \
