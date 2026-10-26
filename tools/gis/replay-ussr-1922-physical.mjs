@@ -91,10 +91,8 @@ export function createPhysicalCandidates(result,manifest){
  data.set(SOURCE+'manifest.json',Buffer.from(JSON.stringify(draft,null,2)+'\n'));
  return data;
 }
-export function validatePhysicalResult(result){
- const m=result?.metrics;
- verify(result?.land?.type==='MultiPolygon'&&result.land.coordinates.length>0
-   &&Number.isInteger(m?.unchangedFarPolygonCount)
+export function validatePhysicalMetrics(m){
+ verify(Number.isInteger(m?.unchangedFarPolygonCount)
    &&m.unchangedFarPolygonCount>=0
    &&(m.fullLandValid===true ||
      (m.modernFullLandValid===false &&m.fullLandValid===false &&
@@ -108,6 +106,11 @@ export function validatePhysicalResult(result){
    &&m.publishedSymmetricDifferenceSquareDegrees<=1e-12,
    'Native physical reconstruction differs from approved source geometry');
  return m;
+}
+export function validatePhysicalResult(result){
+ verify(result?.land?.type==='MultiPolygon'&&result.land.coordinates.length>0,
+   'Native physical reconstruction differs from approved source geometry');
+ return validatePhysicalMetrics(result.metrics);
 }
 export function stagePhysicalCandidates(data,outputRoot){
  const destination=resolve(outputRoot);

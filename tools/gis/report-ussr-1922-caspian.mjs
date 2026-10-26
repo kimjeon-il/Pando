@@ -10,7 +10,7 @@ import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {FOUNDER_IDS,USSR_ZIP_SHA} from './replay-ussr-1922-countries.mjs';
 import {ARCHIVE_SHA} from './verify-approved-caspian-network.mjs';
-import {validatePhysicalResult} from './replay-ussr-1922-physical.mjs';
+import {validatePhysicalMetrics} from './replay-ussr-1922-physical.mjs';
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 export const ARCHIVE_BASE='reports/geography/ussr-1922-caspian-application-2026-10-24/';
@@ -70,7 +70,7 @@ export function validateReceipts({countries,network,display,physical}){
     &&physical.publishedHistoricalAssetsUnchanged===true
     &&physical.runtimePromoted===false,
     'Historical physical asset publication semantics have changed');
-  validatePhysicalResult({land:{type:'MultiPolygon',coordinates:[[]]},metrics:physical.metrics});
+  validatePhysicalMetrics(physical.metrics);
   requireValue(physical.publishedGeometryDifferenceSquareDegrees<=1e-12,
     'Physical source comparison did not establish equality');
   return differences;
