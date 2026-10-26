@@ -10,7 +10,6 @@ import {buildUiBundles} from '../build-ui-bundle.mjs';
 import {buildWorkerAsset} from './worker-assets.mjs';
 import {collectViewerAssets} from './product-assets.mjs';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from '../../tools/library-data.mjs';
-import {BASELINE_DATA_CHANNEL} from '../../shared/frontend/js/modules/publication-data-channel.js';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function selectFrontendProduct(snapshot,product,{readRuntimeAsset}={}){
@@ -69,7 +68,6 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
   assets.set(entry.publicPath,{...entry,bytes});
  }
  const generated=(path,bytes,product='shared')=>assets.set(path,{publicPath:path,sourcePath:null,product,bytes:Buffer.isBuffer(bytes)?bytes:Buffer.from(bytes)});
- generated('assets/data/library-channel/current.json',JSON.stringify(BASELINE_DATA_CHANNEL)+'\n');
  const read=path=>{
   if(assets.has(path))return assets.get(path).bytes.toString('utf8');
   if(path.startsWith('assets/data/'))return readPinnedData(path).toString('utf8');
@@ -92,7 +90,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const dataRevision='data-'+hash(metadataPaths.map(path=>path+'\0'+stable(metadata[path])+'\0').join('')).slice(0,32);
  const dataIdentity=path=>{const bytes=readPinnedData(path);return{encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)};};
  const builtinPath=metadataPaths[6],preparedPath=metadataPaths[7];
- const buildMeta={appVersion,buildId,assetRevision,dataRevision,...resourceProfile?{resourceProfile}:{},territorialIndex:dataIdentity(metadataPaths[5]),builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},workerAssets,physicalLand:land.asset,physicalWaterHistory:land.historicalWaterbodies||[]};
+ const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},worldBundle:{url:metadataPaths[0],...dataIdentity(metadataPaths[0])},territorialIndex:dataIdentity(metadataPaths[5]),builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},workerAssets,physicalLand:land.asset,physicalWaterHistory:land.historicalWaterbodies||[]};
  generated('assets/js/build-meta.js','// Generated product identity.\nglobalThis.PANDOLAB_BUILD_META = Object.freeze('+JSON.stringify(buildMeta,null,2)+');\n');
  const templates=renderProductHtml(sourceText),moduleImports=Object.fromEntries([...assets.keys()].filter(p=>p.startsWith('assets/js/')&&p.endsWith('.js')).map(p=>['./'+p,'./'+p+'?v='+encodeURIComponent(assetRevision)]));
  const render=(template,imports)=>{
@@ -103,7 +101,6 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  };
  generated('index.html',render(templates.web,moduleImports),'viewer');generated('.nojekyll','', 'viewer');
  const viewerPaths=await collectViewerAssets({root,availablePaths:[...assets.keys(),...dataPaths],readSource:read,workerAssets});
- viewerPaths.add('assets/data/library-channel/current.json');
  const viewerImports=Object.fromEntries(Object.entries(moduleImports).filter(([path])=>viewerPaths.has(path.slice(2))));
  const html={viewer:render(templates.web,viewerImports),editor:render(templates.editor,moduleImports)};
  generated('index.html',html.viewer,'viewer');

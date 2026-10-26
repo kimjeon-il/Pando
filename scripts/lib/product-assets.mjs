@@ -6,7 +6,6 @@ import { build } from 'esbuild';
 // Dependencies selected through URLs or classic Worker APIs are reviewed here;
 // static ESM edges are discovered by the same parser used by the build tooling.
 export const runtimeDependencies = Object.freeze({
-  'assets/js/modules/publication-data-channel.js':['assets/data/library-channel/current.json'],
   'assets/js/modules/map-display-client.js':['assets/js/workers/map-display-worker.js'],
   'assets/js/modules/gpu-scene.js':['assets/js/workers/gpu-mesh-worker.js'],
   'assets/js/modules/territorial-labels.js':['assets/data/places/manifest.json','assets/js/workers/place-worker.js'],
