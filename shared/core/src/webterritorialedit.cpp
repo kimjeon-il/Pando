@@ -161,21 +161,21 @@ void setIdentity(ProjectDocument& d,const WebTerritorialFeature& row,bool append
 }
 void applyStatic(ProjectDocument& d,const Rows& next) {
     std::set<std::string> ids;for(const auto& row:next)ids.insert(row.identity.id);
-    const auto filter=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return !ids.count(row.objectRef.id);}),rows.end());};
+    const auto filter=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return row.objectRef.domain=="territorial"&&!ids.count(row.objectRef.id);}),rows.end());};
     filter(d.timelineRecords.lifetimes);filter(d.timelineRecords.geometryBindings);filter(d.timelineRecords.parentRelations);filter(d.timelineRecords.propertyBindings);
     std::vector<std::string> deleted;for(const auto& unit:d.units)if(!ids.count(unit.id))deleted.push_back(unit.id);
     for(const auto& id:deleted)eraseIdentity(d,id);
     Allocator allocate(d);
     for(const auto& row:next) {
         require(!row.validity.from&&!row.validity.to,"TIMELINE_ACTIVATION","Dated creation or validity changes require month editing.");
-        const auto& id=row.identity.id;auto binding=std::find_if(d.timelineRecords.geometryBindings.begin(),d.timelineRecords.geometryBindings.end(),[&](const auto& value){return value.objectRef.id==id;});
+        const auto& id=row.identity.id;const auto owner=territorialRef(id);auto binding=std::find_if(d.timelineRecords.geometryBindings.begin(),d.timelineRecords.geometryBindings.end(),[&](const auto& value){return value.objectRef==owner;});
         if(binding==d.timelineRecords.geometryBindings.end()) {
             const auto geometry=allocate.version("territorial-geometry:"+id,row.geometry);
             d.timelineRecords.geometryBindings.push_back({allocate.record("geometry:"+id),territorialRef(id),{},geometry});
         } else if(!sameGeometryValue(*d.geometries.get(binding->geometryRef),row.geometry))binding->geometryRef=allocate.version(binding->geometryRef.id,row.geometry);
-        if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.objectRef.id==id;}))
+        if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.objectRef==owner;}))
             d.timelineRecords.lifetimes.push_back({allocate.record("lifetime:"+id),territorialRef(id),{}});
-        auto parent=std::find_if(d.timelineRecords.parentRelations.begin(),d.timelineRecords.parentRelations.end(),[&](const auto& value){return value.objectRef.id==id;});
+        auto parent=std::find_if(d.timelineRecords.parentRelations.begin(),d.timelineRecords.parentRelations.end(),[&](const auto& value){return value.objectRef==owner;});
         if(parent==d.timelineRecords.parentRelations.end())d.timelineRecords.parentRelations.push_back({allocate.record("parent:"+id),territorialRef(id),{},row.parentId,row.coverageMode});
         else {parent->parentId=row.parentId;parent->coverageMode=row.coverageMode;}
         setIdentity(d,row);
@@ -188,7 +188,7 @@ void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,co
     const auto previous=indexRows(before.rows),after=indexRows(next);
     for(const auto& row:before.rows)if(!after.count(row.identity.id)) {
         d.timelineRecords=truncateTimelineEntityAtMonth(d.timelineRecords,territorialRef(row.identity.id),month,preserveFutureChanges);
-        if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.objectRef.id==row.identity.id;}))eraseIdentity(d,row.identity.id);
+        if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.objectRef==territorialRef(row.identity.id);} ))eraseIdentity(d,row.identity.id);
     }
     Allocator allocate(d);
     const auto parentPeriod=[&](std::string parentId,bool mapCoverage) -> Validity {
@@ -234,7 +234,7 @@ ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot& snapshot,const We
         captureTimelinePropertyChanges(snapshot.document(),projected.document,candidate,snapshot.timelineMonth());
     }else applyStatic(candidate,next);
     candidate.timelineRecords=normalizeTimelineRecords(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){
-        const auto geometry=candidate.geometries.get(ref);return geometry&&(geometry->type=="Polygon"||geometry->type=="MultiPolygon");}});
+        const auto geometry=candidate.geometries.get(ref);return geometry&&(geometry->type=="Polygon"||geometry->type=="MultiPolygon"||(owner.domain=="hydro"&&(geometry->type=="LineString"||geometry->type=="MultiLineString")));}});
     if(context!=TerritorialEditContext::SourceAdmission)validateTimelineParentChanges(snapshot.document(),candidate);
     return candidate;
 }

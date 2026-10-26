@@ -1063,7 +1063,6 @@ std::string encodeWebDelta(const ProjectDocument& before,const ProjectDocument& 
     std::set<std::string> identityDomains,geometryDomains;
     const auto contentGeometry=[&](const ProjectDocument& d,const ObjectRef& ref)->std::optional<GeometryRef>{
         if(ref.domain=="label")for(const auto& row:d.labels)if(row.id==ref.id)return row.geometry;
-        if(ref.domain=="hydro")for(const auto& row:d.hydro)if(row.id==ref.id)return staticGeometryBinding(d,ref).geometryRef;
         if(ref.domain=="generic")for(const auto& row:d.genericFeatures)if(row.id==ref.id)return row.geometry;
         if(ref.domain=="distributionEntry")for(const auto& row:d.distributionEntries)if(row.id==ref.id)return row.geometry;
         return {};
