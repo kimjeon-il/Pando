@@ -13,7 +13,7 @@ const far=[[100,1],[102,1],[102,2],[100,1]];
 const polygon=rings=>({type:'Polygon',coordinates:rings});
 const modern=()=>({type:'MultiPolygon',coordinates:[[exterior,former],[far]]});
 const installed=()=>({type:'MultiPolygon',coordinates:[[exterior,current],[far]]});
-const water=()=>polygon([[49,40],[53,40],[53,44],[49,44],[49,40]]);
+const water=()=>polygon([[[49,40],[53,40],[53,44],[49,44],[49,40]]]);
 function compute(t,request,{priorOutput=false}={}){
  assert.ok(binary,'Native GEOS/PROJ binary required');
  const dir=mkdtempSync(join(tmpdir(),'caspian-physical-'));
