@@ -11,7 +11,7 @@ import {fileURLToPath} from 'node:url';
 import {FOUNDER_IDS,USSR_ZIP_SHA} from './replay-ussr-1922-countries.mjs';
 import {ARCHIVE_SHA} from './verify-approved-caspian-network.mjs';
 import {validatePhysicalMetrics} from './replay-ussr-1922-physical.mjs';
-import {APPROVED_DATA_PIN} from './audit-ussr-1922-approved-followups.mjs';
+import {APPROVED_DATA_PIN,approvedReportReceiptsMatch} from './audit-ussr-1922-approved-followups.mjs';
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 export const ARCHIVE_BASE='reports/geography/ussr-1922-caspian-application-2026-10-24/';
@@ -87,7 +87,7 @@ export function validateReceipts({countries,network,display,physical,corrections
       &&approved.size===5
       &&corrections.parentRepublicPartition?.passed===true
       &&corrections.parentRepublicPartition.founderCount===5
-      &&corrections.verifiedReportReceipts?.length===5
+      &&approvedReportReceiptsMatch(corrections.verifiedReportReceipts)
       &&differences.length===4
       &&countries.entities.every(row=>{
         const proof=approved.get(row.entityId);

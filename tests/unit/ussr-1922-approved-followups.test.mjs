@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import test from 'node:test';
 import {FOUNDER_IDS,MEMBER_HASHES,MASTER,DISPLAY} from '../../tools/gis/replay-ussr-1922-countries.mjs';
-import {APPROVED_DATA_PIN,PROOFS,CORRECTED_IDS,geometryHash,
+import {APPROVED_DATA_PIN,BASE_APPROVED_DATA_PIN,PROOFS,CORRECTED_IDS,geometryHash,
   readApprovedCorrectionReports,verifyApprovedFollowups}
  from '../../tools/gis/audit-ussr-1922-approved-followups.mjs';
 const shape=i=>({type:'MultiPolygon',coordinates:[[[[i,0],[i+1,0],[i+1,1],[i,0]]]]});
@@ -53,6 +53,17 @@ const fixture=()=>{
    europe:{entities:pairs,romaniaChanged:false,otherCountriesRecomputed:false,
      preparedMeshPolicy:'Keep content-addressed old meshes'},
    europeManifest,guards};
+ reports.centralAsia={baseDataRevision:BASE_APPROVED_DATA_PIN,
+   validFrom:'1922-12-30',validTo:'1925-05-12',
+   entities:FOUNDER_IDS.slice(0,2).map((id,i)=>{
+     const before=geometryHash(countries[id].geometryVersions[0].geometry);
+     countries[id].geometryVersions[0].geometry=shape(i+20);
+     return {entityId:id,sourceVersionId:id+':1922-12-30-reviewed-v2',
+       validFrom:'1922-12-30',validTo:'1925-05-12',
+       sourceBeforeSha256:before,sourceAfterSha256:geometryHash(countries[id].geometryVersions[0].geometry),
+       otherPeriodsUnchanged:true,lifetimeUnchanged:true,outsideScopeUnchanged:true,
+       waterDatasetsUnchanged:true,europeGeometryUnchanged:true};
+   })};
  const partition={schemaVersion:1,passed:true,founderCount:5,
    parentMinusChildrenSquareDegrees:0,childrenMinusParentSquareDegrees:0,
    largestRepublicOverlapSquareDegrees:0,maximumAllowedSquareDegrees:1e-10,
@@ -94,4 +105,25 @@ test('archival document names alone do not constitute verified approval',async()
  await assert.rejects(readApprovedCorrectionReports(index,'0'.repeat(40),{
    readRemote:async()=>Buffer.from('fake'),
  }),/unreviewed data revision/);
+});
+
+test('Central Asian approval is an exact successor of Europe for USSR and RSFSR only',()=>{
+ const f=fixture();const result=verifyApprovedFollowups(f);
+ assert.equal(result.correctionSequence.at(-1),'2026-10-26-central-asia-approved');
+ for(const mutate of [
+  f=>{f.reports.centralAsia.entities[0].sourceBeforeSha256='0'.repeat(64);},
+  f=>{f.reports.centralAsia.entities.pop();},
+  f=>{f.reports.centralAsia.entities.push(structuredClone(f.reports.centralAsia.entities[0]));},
+  f=>{f.reports.centralAsia.entities[1].entityId=FOUNDER_IDS[2];},
+  f=>{f.reports.centralAsia.entities[0].validTo='1925-05-13';},
+  f=>{f.reports.centralAsia.baseDataRevision='0'.repeat(40);},
+  f=>{delete f.reports.centralAsia;},
+ ]){const candidate=fixture();mutate(candidate);assert.throws(()=>verifyApprovedFollowups(candidate),/Central Asian/);}
+});
+test('all Central Asian locked-scope guards are mandatory and a European rollback fails',()=>{
+ for(const guard of ['otherPeriodsUnchanged','lifetimeUnchanged','outsideScopeUnchanged','waterDatasetsUnchanged','europeGeometryUnchanged']){
+  for(const value of [false,undefined]){const f=fixture();f.reports.centralAsia.entities[0][guard]=value;assert.throws(()=>verifyApprovedFollowups(f),/Central Asian/);}
+ }
+ const f=fixture();f.countries[FOUNDER_IDS[0]].geometryVersions[0].geometry=shape(8);
+ assert.throws(()=>verifyApprovedFollowups(f),/Central Asian/);
 });

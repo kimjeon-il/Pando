@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import test from 'node:test';
+import {APPROVED_DATA_PIN,PROOFS} from '../../tools/gis/audit-ussr-1922-approved-followups.mjs';
 import {ARCHIVED,ARCHIVE_BASE,parseReceipt,verifyArchivedReports,
  buildCompactReport} from '../../tools/gis/report-ussr-1922-caspian.mjs';
 import {FOUNDER_IDS,USSR_ZIP_SHA} from '../../tools/gis/replay-ussr-1922-countries.mjs';
@@ -59,11 +60,11 @@ test('a fully verified approved 1922 descendant supersedes, but never deletes, t
   c.corrections={
     schema:'pando-ussr-1922-approved-descendant-audit-v1',
     status:'approved-followups-verified',pinnedDataRevision:
-      '68380579a7c7a1bd8ec97683b7517502c1389c3c',
+      APPROVED_DATA_PIN,
     canonicalPublishedVersionVerified:true,originalZipWasNotOverwritten:true,
     sourceObjectsMutated:false,runtimePromotionPerformed:false,
     correctedFounders:4,unchangedFounders:1,
-    verifiedReportReceipts:Array(5).fill({sha256:'a'.repeat(64)}),
+    verifiedReportReceipts:Object.values(PROOFS).map(r=>({...r})),
     parentRepublicPartition:{passed:true,founderCount:5},
     correctionSequence:['2026-10-23-reviewed-ZIP','2026-10-25-dniester','2026-10-25-europe'],
     entities:FOUNDER_IDS.map((id,i)=>({
@@ -76,6 +77,12 @@ test('a fully verified approved 1922 descendant supersedes, but never deletes, t
   assert.equal(report.json.countries.topologicalDiscrepancies.length,4);
   assert.equal(report.json.countries.status,'approved-followups-verified');
   assert.match(report.markdown,/미해결 위상 오류는 0건/);
+  for(const mutate of [
+    x=>x.corrections.verifiedReportReceipts.pop(),
+    x=>{x.corrections.verifiedReportReceipts[0].sha256='0'.repeat(64);},
+    x=>{x.corrections.verifiedReportReceipts[0].bytes+=1;},
+    x=>{x.corrections.verifiedReportReceipts[0]=structuredClone(x.corrections.verifiedReportReceipts[1]);},
+  ]){const altered=structuredClone(c);mutate(altered);assert.throws(()=>buildCompactReport(altered,archived),/five fully verified/);}
   const forged=structuredClone(c);
   forged.corrections.parentRepublicPartition.passed=false;
   assert.throws(()=>buildCompactReport(forged,archived),/five fully verified/);
