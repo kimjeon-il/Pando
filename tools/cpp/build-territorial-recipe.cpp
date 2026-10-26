@@ -640,6 +640,7 @@ public:
 };
 #include "historical-linework-audit.inc"
 #include "historical-caspian-generalization.inc"
+#include "historical-caspian-physical.inc"
 }
 
 int main(int argc,char** argv) {
@@ -647,6 +648,19 @@ int main(int argc,char** argv) {
         if(argc==3 && std::string(argv[1])=="--axis-correct-tree") {
             const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
             std::cout<<correctHistoricalCoordinateTree(input).encode()<<'\n';
+            return 0;
+        }
+        if(argc==4 && std::string(argv[1])=="--patch-caspian-physical") {
+            const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
+            auto result=rebuildCaspianPhysical(input);
+            const fs::path output=fs::absolute(argv[3]);
+            if(fs::exists(output))
+                throw std::runtime_error("Refusing to replace a historical physical asset candidate");
+            std::ofstream stream(output,std::ios::binary|std::ios::trunc);
+            if(!stream)throw std::runtime_error("Cannot create physical land candidate");
+            stream<<result.encode()<<'\n';
+            if(!stream)throw std::runtime_error("Physical candidate write failed");
+            std::cout<<field(result,"metrics").encode()<<'\n';
             return 0;
         }
         if(argc==4 && std::string(argv[1])=="--generalize-caspian") {
