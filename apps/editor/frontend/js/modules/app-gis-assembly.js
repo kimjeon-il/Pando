@@ -1,9 +1,11 @@
+import {createBrowserFileAccess} from '../../../../../shared/frontend/js/modules/browser-file-access.js';
 /** GisAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createGisAssembly({ fileAccess = null } = {}) {
   let dependencies;
+  let disposed=false;
   let gisWorkflow;
   let gisImportCommitterPromise;
   let requestedVectorTarget;
@@ -66,21 +68,24 @@ export function createGisAssembly({ fileAccess = null } = {}) {
   }
 
   function getGisFileController() {
+    if(disposed)return Promise.reject(Object.assign(new Error('File workflow disposed.'),{name:'AbortError'}));
     if (gisFileControllerPromise) return gisFileControllerPromise;
     gisFileControllerPromise = Promise.resolve().then(() => {
+        const elements={open:dependencies.platform.$('openGisBtn'),input:dependencies.platform.$('gisFileInput'),save:dependencies.platform.$('saveProjectBtn'),projectOpen:dependencies.platform.$('openProjectBtn'),projectInput:dependencies.platform.$('projectFileInput')};
         const controller = (0, dependencies.uiFactoriesA.createFileController)({
           productMode:'editor',reportOperationError:error=>dependencies.feedback.reportOperationError(error,'프로젝트 열기를 완료하지 못했습니다.','PL-FILE-OPEN-001',4200),
-          elements: { open: (0, dependencies.platform.$)('openGisBtn'), input: (0, dependencies.platform.$)('gisFileInput'), save: (0, dependencies.platform.$)('saveProjectBtn'), projectOpen: (0, dependencies.platform.$)('openProjectBtn'), projectInput: (0, dependencies.platform.$)('projectFileInput') },
+          elements,
           setTarget: target => { requestedVectorTarget = target; },
           onFiles: openGisFiles,
           requireCanonicalData: dependencies.readinessUi.requireCanonicalData,
           projectDomain: dependencies.domains.projectDomain,
-          fileAccess,
+          fileAccess:fileAccess||createBrowserFileAccess({productMode:'editor',elements,window,document}),
           setActionStatus: dependencies.feedback.setActionStatus,
           window,
           document,
         });
         controller.bind();
+        if(disposed){controller.dispose();throw Object.assign(new Error('File workflow disposed.'),{name:'AbortError'});}
         return controller;
       })
       .catch(error => {
@@ -170,6 +175,7 @@ export function createGisAssembly({ fileAccess = null } = {}) {
     connect,
     initializeGisWorkflow,
     initializeGisImportCommitterPromise,
+    dispose(){disposed=true;if(gisFileControllerPromise)gisFileControllerPromise.then(controller=>controller.dispose()).catch(error=>{if(error.name!=='AbortError')dependencies.feedback.reportOperationError(error,'파일 입력 정리를 완료하지 못했습니다.','PL-FILE-DISPOSE-001');});},
     get getGisExportController() { return getGisExportController; },
     get getGisFileController() { return getGisFileController; },
     get getGisImportCommitter() { return getGisImportCommitter; },

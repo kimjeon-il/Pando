@@ -1,3 +1,4 @@
+import {createBrowserFileAccess} from '../../../../shared/frontend/js/modules/browser-file-access.js';
 import {connectMapOwner} from "../../../../shared/frontend/js/modules/map-owner-ports.js";
 import {createBrowserProjectStorage} from "../../../../shared/frontend/js/modules/browser-project-storage.js";
 import {initialBoundsView} from "../../../../shared/frontend/js/modules/project-setup.js";
@@ -136,7 +137,8 @@ export async function composeViewer({ productMode, meta }) {
     try {const result=await open(reader,options);if(!result&&resume())builtinActive=previous;return result;}
     catch(error){if(resume())builtinActive=previous;throw error;}
   };
-  const files=createFileController({productMode,elements:{projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')},projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
+  const fileElements={projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')};
+  const files=createFileController({productMode,elements:fileElements,fileAccess:createBrowserFileAccess({productMode,elements:fileElements,window,document}),projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
   action(get('builtinMapBtn'),'click',()=>builtinClock.followNow());
   display=createMapSettings({capabilities:owners.capabilities,viewPresentation:map,onLayerVisibilityChange:async(key,enabled)=>{if(enabled&&(key==='rivers'||key==='lakes'))await owners.physicalResources.loadHydroData(true);if(enabled&&key==='labels')await owners.territorialLabels.preparePlaces({force:true});}});
@@ -164,7 +166,7 @@ export async function composeViewer({ productMode, meta }) {
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
     openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({month:builtinClock.month(),automatic:builtinClock.isAutomatic()})});
   const lifecycle=createApplicationLifecycle({window,startup:()=>builtinClock.followNow(),
-    getDisposables:()=>[builtinClock,{dispose:disposeTimeline},preferencePresentation,surfaces,notifications,searchController,map,selectionUiController,selectionDomain,projectDomain,documentSession.commandOwner],
+    getDisposables:()=>[files,builtinClock,{dispose:disposeTimeline},preferencePresentation,surfaces,notifications,searchController,map,selectionUiController,selectionDomain,projectDomain,documentSession.commandOwner],
     onError:error=>{status.hidden=true;report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
 }
