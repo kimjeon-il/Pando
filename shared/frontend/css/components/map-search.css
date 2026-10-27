@@ -108,20 +108,21 @@
 }
 
 .map-command-toolbar .icon-btn {
-  flex: 0 0 var(--ui-control-height);
+  flex: 0 0 var(--ui-icon-control-size);
 }
 
 .map-command-search {
   position: relative;
   flex: 0 0 auto;
-  width: var(--ui-control-height);
+  width: var(--ui-icon-control-size);
   min-width: 0;
-  height: var(--ui-control-height);
+  height: var(--ui-icon-control-size);
   transition: width 180ms ease;
 }
 
 .map-command-search.is-expanded {
-  width: min(22.5rem, var(--search-toolbar-available-width, calc(100dvw - var(--ui-menu-screen-edge) * 2 - var(--ui-control-height) * 3 - var(--ui-toolbar-gap) * 3 - var(--ui-toolbar-padding) * 2 - var(--ui-space-0-5))));
+  width: min(22.5rem, var(--search-toolbar-available-width, calc(100dvw - var(--ui-menu-screen-edge) * 2 - var(--ui-icon-control-size) * 3 - var(--ui-toolbar-gap) * 3 - var(--ui-toolbar-padding) * 2 - var(--ui-space-0-5))));
+  height: var(--ui-control-height);
 }
 
 .map-command-toolbar:has(.map-command-search.is-expanded) {
