@@ -1,12 +1,12 @@
 {
   "type": "FeatureCollection",
-  "name": "North-Schleswig-coast-reconciliation-regression",
+  "name": "Coast-reconciliation-cancellation-regression",
   "features": [
     {
       "type": "Feature",
-      "id": "NORTH_SCHLESWIG_COAST_TEST",
+      "id": "COAST_CANCELLATION_TEST",
       "properties": {
-        "name": "북슐레스비히 해안 시험 영역",
+        "name": "해안선 시험 영역",
         "sovereign_id": "DEU"
       },
       "geometry": {

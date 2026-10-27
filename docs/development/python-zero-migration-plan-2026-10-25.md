@@ -7,6 +7,9 @@
 
 ## 실행 현황 — A0~A2 (2026-10-25)
 
+- **C2 북슐레스비히 과잉 정밀조사 종료 (2026-10-27, 최신 지시):** Natural Earth 1:10M 표시 축척 대비 불필요했던 북슐레스비히 표석 1~26·SLUB 도엽 4장·교구 경계 중첩·지도 보관 및 권리 검증을 **사업 범위에서 철회**한다. 12개 연구 Python과 대응하는 전용 Node·Actions·테스트를 기능 전환 대신 삭제한다. 기존 보고서의 '삭제 전 원도엽 영구 보존 의무'는 사용자 승인으로 철회되었다. **운영 역사 객체 `state:north-schleswig`, `north-schleswig-1900-r3`, 국가별 색인과 일반 지도 입력·출처 표시는 보존한다.** 외부 라이브러리의 별도 연구 사료는 런타임 핀 이력과 분리해 정리하며, 핀을 무단 전진시키거나 운영 형상을 바꾸지 않는다.
+
+
 - **C2 SLUB 원도엽 영구보존 재검증 (2026-10-27):** [Actions #40342241974](https://github.com/kimjeon-il/Pando/actions/runs/40342241974) 임시 ZIP (아티팩트 12659318765, 만료 2026-11-09, ZIP SHA-256 `d419c5ec1cc2d9d361495b379623bdf31b9c360e5421e81404db6376804ecfe8`)의 **10개 실제 파일을 다운로드해 내부 4개 PNG(1600×1200), 4개 SVG, 영수증 2개를 별도로 열어 검증**했다. 4개 PNG SHA는 `CAPTURED_WMS_VIEWS` 고정 영수증과 일치. 현행 자료 핀 `dd7ba67d5a35796593bf60d6007f192c8bca7964`의 보관 색인에서 해당 도엽 영상/고해상도 원본은 **0개**이다. SLUB는 객체별 PDM·CC BY-SA 4.0·권리유보 정책을 구분하고, 과거 지도 WMS 메타데이터는 1900년 이전 CC BY-SA 4.0이라고 설명하지만 **현재 4개 객체 각각의 이용허락을 확인하지 못했다.** 따라서 고해상도 원본 보존·영구 수장·개별 권리·1914 국경 정확도는 모두 미완료이다. 기존 연구 후보를 원도엽으로 둔갑시키거나 데이터 원본을 변경하지 않는다. 임시 영수증의 `completePrivateResearchSnapshot` 4/4 판정 버그를 수정하고, **0/4 지도 수집을 CI 성공으로 오인하지 않도록** 강화했다. 이미지 원본 공개·Python 조사 코드 삭제는 별도 검증 이후에만 실시한다.
 
 
@@ -109,18 +112,18 @@
 - 고정 ETOPO/색상 tint, mask·NoData, 극지 gutter, LOD 0–5, PNG/WebP RGBA와 투명도, 해시/manifest, 저장소 외부 대용량 파일을 검증. 픽셀 의미 동등성과 바이너리 byte 동등성은 분리해 기록. 인코더 차이가 있으면 검토된 별도 재생성 커밋에서만 manifest 갱신.
 - `tests/python/test_build_terrain_*.py`, 수계 Python 테스트를 각각 Node 고정 입력·CTest C++ 연산 검사로 옮긴 후 삭제.
 
-## 3. 역사 GIS·국경 생성/일회성 조사 마감 (C: 38개)
+## 3. 역사 GIS·국경 생성/일회성 조사 마감 (C: 38개, 최초 매니페스트 기준)
 
 ### C1. 계속 사용할 영토 재구성 엔진
 
 - 독일 1914 기본·현대 해안 후보, 북슐레스비히 후보, Cecilienkoog 및 소련/카스피해·LSIB 생성/보정 함수 → 기존 `tools/cpp/build-territorial-recipe.cpp` 중심의 GEOS/PROJ C++ 기능으로 합치고 Node가 조사 출처·원본 해시·레시피·보고서를 관리.
-- 구체적으로 `build_german_empire_1914_base.py`, `build_german_empire_1914_modern_coast.py`, `build_north_schleswig_1914_001_026.py`, `build_german_cecilienkoog_1905_provisional.py`, `tools/gis/apply_ussr_1922_caspian.py`, `supplement-lsib-boundaries.py`를 대체하는 네이티브 명령·레시피를 작성. 유지할 다른 형태의 도구가 없더라도 Python 파일은 0으로 만듦.
+- 구체적으로 `build_german_empire_1914_base.py`, `build_german_empire_1914_modern_coast.py`, `build_german_cecilienkoog_1905_provisional.py`, `tools/gis/apply_ussr_1922_caspian.py`, `supplement-lsib-boundaries.py`를 대체하는 네이티브 명령·레시피를 작성. 북슐레스비히 세부 생성기 `build_north_schleswig_1914_001_026.py`는 조사 자체 폐기 대상으로 별도 종료한다. 유지할 다른 형태의 도구가 없더라도 Python 파일은 0으로 만듦.
 - 기존 source ZIP·라이선스·시점(1801년 이후)·확정/잠정 표시·도법/축척(Natural Earth 1:10M)·위상·경계 미확정 지점과 증거를 보존. 미세한 좌표 보정을 자동 승인하지 않음.
 
 ### C2. 원본 수집/일회성 이미지 조사 정리
 
-- `fetch-east-germany-sources.py`, `fetch_german_empire_1914_source.py`, `fetch_north_schleswig_1864_west_sources.py`, `collect_north_schleswig_1914_001_026.py`, `discover_north_schleswig_1914_map_services.py` → Node 안전 수집·출처 메타데이터·해시/캐시 도구로 통합.
-- `audit_north_schleswig_*`, `check_north_schleswig_1914_slub_wms.py`, `probe_*`, `render_*`, `review_*`, `verify_north_schleswig_*`는 각 도엽·국경 구간에 대해 **영구 보존된 지도/GeoJSON + 요약 보고서 + 출처/해시 + 미확정 여부** 확인 후 전용 스크립트와 대응 Actions를 제거한다. 재사용되는 WMS·좌표/화면 오차 검사 코드는 Node+네이티브 공통 모듈로 흡수한다. 임시 Actions 이미지의 소멸을 보고서 보존으로 오인하지 않는다.
+- `fetch-east-germany-sources.py`, `fetch_german_empire_1914_source.py` → Node 안전 수집·출처 메타데이터·해시/캐시 도구로 통합.
+- **철회:** `collect_north_schleswig_1914_001_026.py`, `audit_north_schleswig_*`, `render_north_schleswig_*`, `review_north_schleswig_*`, `verify_north_schleswig_*` 및 전용 지도 서비스 조사·중첩·WMS 보존 코드는 사용자 승인으로 삭제한다. 자료의 고정 원본 재수집·영구 보존·권리 검증을 완료 기준으로 두지 않는다. 기존 운영 지도 객체/일반 역사 검증은 유지한다.
 - `tools/gis/baikonur_official_reference.py`, `tools/gis/report_ussr_1922_caspian.py`는 Node 근거·리포트 도구로 이전하고, `verify-lsib-country-sources.py`, `verify-lsib-screen-delta.py`는 네이티브 지오메트리 검사로 이전.
 - 역사/영토 Python 검사 8개는 Node/CTest에 동등성 계약을 옮긴 뒤 제거. 사용하지 않는 별도 조사 스크립트도 **그대로 남겨두지 않고** 증거 보존 절차를 밟아 종료한다.
 
