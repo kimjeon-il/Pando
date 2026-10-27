@@ -151,14 +151,39 @@ test('touch landscape navigation retains its width and wraps common-size labels'
     await page.goto('/assets/css/app.css');
     const nav = products.editor.match(/<nav\b[^>]*class="[^"]*mobile-bottom-bar[^"]*"[\s\S]*?<\/nav>/)?.[0];
     expect(nav).toBeTruthy();
-    await page.setContent(`<meta name="viewport" content="width=device-width, initial-scale=1"><style>${styles}</style>${sprite}<div class="app-root" data-layout="phone-landscape">${nav}</div>`);
+    const menu = products.editor.match(/<div\b[^>]*class="[^"]*mobile-menu-toolbar[^"]*"[\s\S]*?<\/div>/)[0];
+    await page.setContent(`<meta name="viewport" content="width=device-width, initial-scale=1"><style>${styles}</style>${sprite}<div class="app-root" data-layout="phone-landscape"><div class="mobile-workspace-controls">${menu}${nav}</div></div>`);
     expect(await page.evaluate(() => window.matchMedia('(pointer:coarse)').matches)).toBe(true);
     for (const scale of [100,200]) {
       await page.locator('html').evaluate((node, value) => { node.style.fontSize = `${value}%`; }, scale);
       const metrics = await page.locator('.mobile-bottom-bar').evaluate(nav => ({width:nav.getBoundingClientRect().width,overflow:getComputedStyle(nav).overflowY,
         rows:[...nav.querySelectorAll('.ui-nav-item')].map(button=>{ const label=button.querySelector('strong'), b=button.getBoundingClientRect(), l=label.getBoundingClientRect();return {display:getComputedStyle(button).display,font:getComputedStyle(label).fontSize,buttonHeight:b.height,labelHeight:l.height,clipped:button.scrollWidth>button.clientWidth||label.scrollWidth>label.clientWidth,labelBottom:l.bottom,buttonBottom:b.bottom}; })}));
       expect(metrics.width).toBe(48 * scale / 100 + 8); expect(metrics.overflow).toBe('auto');
+      const menuBefore = await page.locator('#mobileMenuBtn').boundingBox();
+      await page.locator('.mobile-bottom-bar').evaluate(node => { node.scrollTop = node.scrollHeight; });
+      expect(await page.locator('#mobileMenuBtn').boundingBox()).toEqual(menuBefore);
       for (const row of metrics.rows) { expect(row.display).toBe('flex'); expect(row.font).toBe(`${14 * scale / 100}px`); expect(row.clipped).toBe(false);expect(row.labelBottom).toBeLessThanOrEqual(row.buttonBottom); }
+    }
+  } finally { await context.close(); }
+});
+
+test('landscape menu shares navigation hover and selected styles', async ({ browser }) => {
+  const context = await browser.newContext({viewport:{width:844,height:390},hasTouch:false});
+  const page = await context.newPage();
+  try {
+    const nav = products.editor.match(/<nav\b[^>]*class="[^"]*mobile-bottom-bar[^"]*"[\s\S]*?<\/nav>/)[0];
+    const menu = products.editor.match(/<div\b[^>]*class="[^"]*mobile-menu-toolbar[^"]*"[\s\S]*?<\/div>/)[0];
+    await page.setContent(`<style>${styles}*,*::after{transition:none!important}</style>${sprite}<div class="app-root" data-layout="phone-landscape"><div class="mobile-workspace-controls">${menu}${nav}</div></div>`);
+    const appearance = selector => page.locator(selector).evaluate(node => {
+      const style=getComputedStyle(node);
+      return [style.color,style.backgroundColor,style.borderColor,style.boxShadow];
+    });
+    for (const selected of [false,true]) {
+      await page.locator('#mobileMenuBtn, #mobileSearchBtn').evaluateAll((buttons,value)=>buttons.forEach(button=>button.setAttribute('aria-expanded',String(value))),selected);
+      await page.locator('#mobileMenuBtn').hover();
+      const menuStyle = await appearance('#mobileMenuBtn');
+      await page.locator('#mobileSearchBtn').hover();
+      expect(await appearance('#mobileSearchBtn')).toEqual(menuStyle);
     }
   } finally { await context.close(); }
 });
@@ -167,7 +192,8 @@ test('narrow portrait navigation never shrinks text below the common body size',
   const nav = products.editor.match(/<nav\b[^>]*class="[^"]*mobile-bottom-bar[^"]*"[\s\S]*?<\/nav>/)[0];
   await page.setViewportSize({width:320,height:700});
   await page.goto('/assets/css/app.css');
-  await page.setContent(`<style>${styles}</style>${sprite}<div class="app-root" data-layout="mobile">${nav}</div>`);
+  const menu = products.editor.match(/<div\b[^>]*class="[^"]*mobile-menu-toolbar[^"]*"[\s\S]*?<\/div>/)[0];
+  await page.setContent(`<style>${styles}</style>${sprite}<div class="app-root" data-layout="mobile"><div class="mobile-workspace-controls">${menu}${nav}</div></div>`);
   for (const font of await page.locator('.ui-nav-item strong').evaluateAll(labels=>labels.map(e=>getComputedStyle(e).fontSize))) expect(font).toBe('14px');
 });
 

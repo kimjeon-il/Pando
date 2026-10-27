@@ -79,7 +79,15 @@
 
 .app-root[data-layout="mobile"] {
   --mobile-nav-height: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom));
-  --ui-map-bottom-occupied-height: calc(var(--mobile-nav-height) + var(--ui-shell-statusbar-height));
+  --ui-map-bottom-occupied-height: calc(var(--workspace-bottom-offset, 0px) + var(--mobile-nav-height) + var(--ui-shell-statusbar-height));
+}
+
+.app-root:not(.viewer-root)[data-layout="mobile"] {
+  --workspace-bottom-offset: max(0px, calc(100dvh - var(--workspace-visible-height, 100dvh) - var(--workspace-visible-top, 0px)));
+}
+
+.app-root:not(.viewer-root)[data-layout="mobile"] .workspace {
+  --projection-safe-bottom: var(--ui-map-bottom-occupied-height);
 }
 
 .reset-view-command {
