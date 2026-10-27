@@ -228,6 +228,43 @@ export function createGpuMapRenderer(deps) {
     let hydroUploadScheduler = null;
     let stagingSequence = 0;
     let pendingCanonicalCommit = null;
+    let temporalPresentation = null;
+    let temporalCanvas = null;
+
+    const temporalPending = () => !!temporalPresentation && !temporalPresentation.presented;
+    function failTemporalPresentation(error) {
+      if (!temporalPending()) return;
+      temporalPresentation.error = error;
+      if (pendingCanonicalCommit?.generation === projectGeneration) {
+        pendingCanonicalCommit.reject(error);
+        pendingCanonicalCommit = null;
+      }
+    }
+    function temporalFrameReady(resourcesDrawn, terrain = currentTerrainReadiness()) {
+      if (!temporalPending()) return true;
+      if (temporalPresentation.error) return false;
+      if (!temporalPresentation.isCurrent() || temporalPresentation.generation !== projectGeneration
+        || temporalPresentation.context !== renderDeviceContextRevision) {
+        failTemporalPresentation(Object.assign(new Error('Temporal presentation superseded'), {name:'AbortError',cancelled:true}));
+        return false;
+      }
+      if (canonicalPromotionError || terrain.terrainFailed) {
+        failTemporalPresentation(new Error(canonicalPromotionError || '다음 시점 지형을 준비하지 못했습니다.'));
+        return false;
+      }
+      const terrainNeeded = state.physicalSettings.terrainVisible && (isWebGlRenderer() ? !!terrainPreparation : true);
+      const boundariesReady = !state.layerVisibility.objects || (countrySharedBoundary?.sourceQuality === surfacePresentation.quality
+        && countrySharedBoundary.sourceProjectGeneration === projectGeneration);
+      return !!resourcesDrawn && canonicalMeshReady && boundariesReady && surfacePresentation.quality !== 'pending'
+        && (!terrainNeeded || terrain.terrainReady);
+    }
+
+    function waitForTemporalPresentation() {
+      if (!temporalPending()) return Promise.resolve(true);
+      if (temporalPresentation.error) return Promise.reject(temporalPresentation.error);
+      if (!temporalPresentation.isCurrent()) return Promise.reject(Object.assign(new Error('Temporal presentation superseded'), {name:'AbortError',cancelled:true}));
+      return waitForCanonicalVisualFrame();
+    }
     let projectGeneration = 0;
     let projectRenderBlocked = false;
     let builtinMeshBaseline = null;
@@ -353,7 +390,7 @@ export function createGpuMapRenderer(deps) {
         canonicalReady: canonicalMeshReady,
         previewReady: previewAllowed && (isWebGlRenderer() ? meshVariants.has('preview') : !!previewSurfaceFeatures?.length),
         previewVerified: landReady,
-        backgroundPresented: countriesPublishedGeneration === projectGeneration
+        backgroundPresented: temporalPending() || countriesPublishedGeneration === projectGeneration
           || !!backgroundPresentedKey && backgroundPresentedKey === backgroundTargetKey(),
       });
       desiredCountryMeshQuality = nextPresentation.targetQuality;
@@ -428,8 +465,10 @@ export function createGpuMapRenderer(deps) {
     function recordMapPresentation(frame, resourcesDrawn = true) {
       const terrain = currentTerrainReadiness();
       resourcesDrawn = resourcesDrawn && (renderScene?.polygons || []).some(packet => packet.role === 'physical-land');
+      if (temporalPending() && !temporalFrameReady(resourcesDrawn, terrain)) { presentedMapKey='';publishMapReadiness();return; }
       const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady;
       presentedMapKey = resourcesDrawn && terrainDrawn ? mapTargetKey(frame, terrain) : '';
+      if (temporalPending() && temporalFrameReady(resourcesDrawn, terrain)) temporalPresentation.frameId = frame.frameId;
       if (resourcesDrawn && (terrainDrawn || terrain.terrainFailed)) {
         if (surfacePresentation.quality !== 'pending') {
           countriesPublishedGeneration = projectGeneration;
@@ -698,6 +737,7 @@ export function createGpuMapRenderer(deps) {
             || Number(data?.geometryRevision) !== geometryRevisionTracker.committedRevision()
             || data?.quality !== activeMeshQuality) return;
           if (data.type === 'error') {
+            failTemporalPresentation(new Error(data.message));
             reportOperationError(Object.assign(new Error(data.message), { operation: 'country-boundary-prepare' }), '객체 경계를 준비하지 못했습니다.', 'PL-COUNTRY-BOUNDARY-001', 4200);
             // Retain the last successfully presented borders even when a
             // replacement Worker job fails.
@@ -718,6 +758,7 @@ export function createGpuMapRenderer(deps) {
           promotePreparedCountryBoundary();
         };
         countryBoundaryWorker.onerror = event => {
+          failTemporalPresentation(event.error || new Error(event.message || 'Boundary Worker failed'));
           reportOperationError(event.error || new Error(event.message || 'Boundary Worker failed'), '객체 경계를 준비하지 못했습니다.', 'PL-COUNTRY-BOUNDARY-002', 4200);
           resetCountrySharedBoundary({ terminate: true, preservePresented: true });
         };
@@ -1634,6 +1675,7 @@ export function createGpuMapRenderer(deps) {
       hydroPreparation.setContext({ gl: null, version: glVersion, scheduler: hydroUploadScheduler,
         projectGeneration, contextGeneration: renderDeviceContextRevision });
       lifecycle.releaseContext(gl);
+      failTemporalPresentation(Object.assign(new Error('Context lost during temporal presentation'), {name:'AbortError'}));
       pendingCanonicalCommit?.reject(Object.assign(new Error('Context lost during canonical commit'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
       uploadScheduler?.cancelAll();
@@ -2334,7 +2376,8 @@ export function createGpuMapRenderer(deps) {
       invalidateGpuFrame('timeline-preview');
     }
 
-    function resetProjectRenderState({ generation = null } = {}) {
+    function resetProjectRenderState({ generation = null, presentation = 'default', isCurrent = () => true, onPresented = () => {} } = {}) {
+      canonicalPromotionError = '';
       backgroundPresentedKey = ''; countriesPublishedGeneration = -1;
       previewSurfaceFeatures = null; previewDisplayCertificate = null; previewCertificateRevision = ''; previewLandPackets.clear();
       surfacePresentation = Object.freeze({ targetQuality: 'canonical', quality: 'pending' });
@@ -2359,6 +2402,10 @@ export function createGpuMapRenderer(deps) {
       projectGeneration = Number.isFinite(requested) && requested > projectGeneration
         ? requested
         : projectGeneration + 1;
+      temporalCanvas = null;
+      temporalPresentation = presentation === 'temporal'
+        ? {generation:projectGeneration,context:renderDeviceContextRevision,isCurrent,onPresented,presented:false,error:null,frameId:null}
+        : null;
       projectRenderBlocked = true;
       if (canvasWorker) {
         canvasWorker.resetGeneration(projectGeneration);
@@ -2402,7 +2449,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function renderPreservedProjectFrame() {
-      if (!projectRenderBlocked) return null;
+      if (!projectRenderBlocked && !temporalPending()) return null;
       if (!isWebGlRenderer() || webglContextLost || !canvas || !sceneColorCache.hasActive()) return { deferred: true };
       const element = rendererUi.getMapElement();
       const dpr = resolveRenderPixelRatio();
@@ -2418,6 +2465,11 @@ export function createGpuMapRenderer(deps) {
         sourceViewport: [previous.width, previous.height], scale: [scale, scale],
         offset: [0, nextHeight - previous.height * scale],
       } });
+      if (temporalPending()) {
+        for (const cache of [interactionFillCache, interactionStrokeCache]) {
+          if (cache.hasActive()) cache.composite(nextWidth, nextHeight, {clearTarget:false,blendOver:true});
+        }
+      }
       return { deferred: true, preserved: true };
     }
 
@@ -2780,8 +2832,13 @@ export function createGpuMapRenderer(deps) {
       const nextHeight = Math.max(1, Math.round(cssHeight * dpr));
       const backingChanged = pixelWidth !== nextWidth || pixelHeight !== nextHeight || canvas.width !== nextWidth || canvas.height !== nextHeight;
       if (backingChanged) {
-        canvas.width = nextWidth;
-        canvas.height = nextHeight;
+        // A Worker candidate has its own backing store. Resize the visible
+        // canvas only when that candidate is accepted, so rotation cannot
+        // clear the retained frame while the Worker is still preparing.
+        if (rendererMode !== 'canvas-worker' || !temporalPending()) {
+          canvas.width = nextWidth;
+          canvas.height = nextHeight;
+        }
         pickFramebuffer = null;
         pickTexture = null;
         pickSceneKey = '';
@@ -3687,6 +3744,14 @@ export function createGpuMapRenderer(deps) {
         if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
           const previousBaseResult = lastBaseSceneResult;
           baseResult = submitBaseScene();
+          if (temporalPending() && !temporalFrameReady(!!baseResult && baseResult.countryStrokeResult?.succeeded === true
+              && preparedBaseScene.physicalLandItems.length > 0
+              && preparedBaseScene.physicalLandItems.every(({packet}) => polygonOverlayPass.hasPreparedResource(packet))
+              && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length)) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            renderPreservedProjectFrame();
+            return {deferred:true,preserved:true};
+          }
           if (baseResult === false) {
             // A failed stroke submission must never publish its staging
             // texture. Keep a usable current-view scene instead.
@@ -3705,10 +3770,16 @@ export function createGpuMapRenderer(deps) {
               // finishScene() only promotes the staging texture and restores
               // the default framebuffer. Present that texture in this frame so
               // the country patch never appears one settled frame late.
-              const promoted = sceneColorCache.finishScene(null, viewSignature, projectGeneration);
+              if (temporalPending()) {
+                if (!sceneColorCache.presentScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
+                  failTemporalPresentation(new Error('다음 시점 화면을 표시하지 못했습니다.'));
+                  return {deferred:true,preserved:true};
+                }
+              }
+              const promoted = temporalPending() || sceneColorCache.finishScene(null, viewSignature, projectGeneration);
               lastBaseSceneResult = baseResult;
               lastSceneFrameContext = activeFrameContext;
-              if (!promoted || !sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) {
+              if (!promoted || (!temporalPending() && !sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true }))) {
                 recordSceneCacheFallback();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 baseResult = submitBaseScene();
@@ -3717,6 +3788,11 @@ export function createGpuMapRenderer(deps) {
             }
           }
         } else {
+          if (temporalPending()) {
+            failTemporalPresentation(new Error('다음 시점 화면 버퍼를 준비하지 못했습니다.'));
+            renderPreservedProjectFrame();
+            return {deferred:true,preserved:true};
+          }
           recordSceneCacheFallback();
           // A failed staging allocation must not clear the only visible
           // scene. Keep the last scene when it belongs to this exact view;
@@ -3976,6 +4052,31 @@ export function createGpuMapRenderer(deps) {
       ctx2d.restore();
     }
     function renderCanvasFallback(frame = lastVisualFrame) {
+      if (!temporalPending()) return drawCanvasFallback(frame);
+      const displayCanvas = canvas, displayContext = ctx2d;
+      temporalCanvas ||= document.createElement('canvas');
+      let ready;
+      try {
+        canvas = temporalCanvas;
+        ctx2d = temporalCanvas.getContext('2d');
+        drawCanvasFallback(frame);
+        ready = temporalFrameReady((renderScene?.polygons || []).some(packet => packet.role === 'physical-land'));
+      } finally { canvas = displayCanvas; ctx2d = displayContext; }
+      if (!ready) return {deferred:true,preserved:true};
+      if (!ctx2d) {
+        replaceCanvas();
+        ctx2d = canvas.getContext('2d', {alpha:true});
+        if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
+      }
+      if (canvas.width !== temporalCanvas.width) canvas.width = temporalCanvas.width;
+      if (canvas.height !== temporalCanvas.height) canvas.height = temporalCanvas.height;
+      ctx2d.setTransform(1,0,0,1,0,0);
+      ctx2d.clearRect(0,0,canvas.width,canvas.height);
+      ctx2d.drawImage(temporalCanvas,0,0);
+      return {succeeded:true,frameId:frame.frameId,viewRevision:frame.viewRevision};
+    }
+
+    function drawCanvasFallback(frame = lastVisualFrame) {
       if (!ctx2d || !canvas) return;
       if (!frame) return;
       if (!isMapVisualFrame(frame) || typeof frame.createCanvasPath !== 'function') throw new TypeError('Canvas requires a MapVisualFrame with a Canvas path projector.');
@@ -4200,7 +4301,8 @@ export function createGpuMapRenderer(deps) {
         sharedBoundary: canvasCountryBoundaryPacket(),
         terrainEnabled:terrainPreparation!==null,
         terrainManifestUrl:terrainPreparation?String(TERRAIN_RASTER_MANIFEST_URL):null,
-        terrainDemManifestUrl:terrainPreparation?String(TERRAIN_PRIMARY_MANIFEST_URL):null,
+        terrainDemManifestUrl:terrainPreparation && String(TERRAIN_PRIMARY_MANIFEST_URL) !== String(TERRAIN_RASTER_MANIFEST_URL)
+          ? String(TERRAIN_PRIMARY_MANIFEST_URL) : null,
       };
       message.type = 'init';
       return message;
@@ -4291,9 +4393,9 @@ export function createGpuMapRenderer(deps) {
       }
       else if (rendererMode === 'canvas-worker') {
         renderCanvasWorker(visualFrame);
-        result = { deferred: true, frameId: visualFrame.frameId, viewRevision: visualFrame.viewRevision };
+        result = { deferred: true, preserved:temporalPending(), frameId: visualFrame.frameId, viewRevision: visualFrame.viewRevision };
       }
-      else if (rendererMode === 'canvas2d') renderCanvasFallback(visualFrame);
+      else if (rendererMode === 'canvas2d') result = renderCanvasFallback(visualFrame);
       publishLightweightMetrics();
       return result;
     }
@@ -4313,14 +4415,18 @@ export function createGpuMapRenderer(deps) {
     }
 
     function failCanvasWorker(message) {
+      const preserveCanvas = temporalPending();
+      failTemporalPresentation(new Error(`Canvas temporal presentation failed: ${message}`));
       console.warn('Canvas worker failed', message);
       canvasWorker?.terminate();
       canvasWorker = null;
-      replaceCanvas();
       rendererMode = 'canvas2d';
-      resize();
-      ctx2d = canvas.getContext('2d', { alpha: true });
-      if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
+      if (!preserveCanvas) {
+        replaceCanvas();
+        resize();
+        ctx2d = canvas.getContext('2d', { alpha: true });
+        if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
+      }
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
       setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
       if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
@@ -4380,6 +4486,14 @@ export function createGpuMapRenderer(deps) {
       const revision = Number(message.revision || 0);
       const geometryRevision = Number(message.geometryRevision || 0);
       if (message.bitmap) {
+        const temporalCommit = temporalPending();
+        if (temporalCommit && (!temporalFrameReady(message.terrainComplete !== false, message.terrainStats || {})
+          || Number(message.projectGeneration) !== projectGeneration)) {
+          message.bitmap.close?.();
+          return;
+        }
+        if (canvas.width !== message.bitmap.width) canvas.width = message.bitmap.width;
+        if (canvas.height !== message.bitmap.height) canvas.height = message.bitmap.height;
         if (canvasWorkerBitmapContext) {
           canvasWorkerBitmapContext.transferFromImageBitmap(message.bitmap);
         } else if (canvasWorker2dContext) {
@@ -4400,6 +4514,7 @@ export function createGpuMapRenderer(deps) {
           projectionRevision: Number(message.projectionRevision || 0),
           projectGeneration: Number(message.projectGeneration || projectGeneration),
           renderer: 'canvas-worker',
+          temporalCommit,
         });
         completeGeometryDisplay(geometryRevisionTracker.pendingIds(), geometryRevision, { renderFrame: false });
         if (message.terrainComplete === false) performanceMetrics.terrainIncompleteFrameCount += 1;
@@ -5065,6 +5180,7 @@ export function createGpuMapRenderer(deps) {
         terrainFallbackReason: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason,
         terrainDetailedShade: detailedTerrainShadeActive(),
         projectRenderBlocked,
+        temporalPresentationPending: temporalPending(),
         sceneCacheValid: sceneColorCache.isValid(),
         ...(rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? canvasTerrainStats : {}),
       };
@@ -5229,6 +5345,8 @@ export function createGpuMapRenderer(deps) {
       if (disposed) return;
       disposed = true;
       projectGeneration += 1; renderDeviceContextRevision += 1;
+      temporalCanvas = null;
+      temporalPresentation = null;
       pendingCanonicalCommit?.reject(Object.assign(new Error('Renderer disposed'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
       // The rendering domain owns the scheduler; the renderer only cancels its jobs.
@@ -5257,7 +5375,8 @@ export function createGpuMapRenderer(deps) {
     return {
       dispose, attach,
       mapReadiness, retryMapPreparation,
-      failMapPreparation: error => { canonicalPromotionError = String(error?.message || error); publishMapReadiness(); },
+      failMapPreparation: error => { canonicalPromotionError = String(error?.message || error);
+        failTemporalPresentation(error instanceof Error ? error : new Error(canonicalPromotionError)); publishMapReadiness(); },
       initialize, replaceBuiltInMesh, renderFrame, renderInteraction, renderPreservedProjectFrame,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, getRenderPixelRatio: resolveRenderPixelRatio, setTerrainManifest, activeTerrainSourceInfo,
@@ -5276,7 +5395,7 @@ export function createGpuMapRenderer(deps) {
       setInteractionStyle, getCountryInteractionBoundaryData,
       setSelectionPass, setRenderScene, setInteractionState, invalidateSceneCache,
       setFramePresentationListener,
-      waitForPreviewFrame,
+      waitForPreviewFrame, waitForTemporalPresentation,
       getSelectionRenderResult: () => lastSelectionRenderResult,
       getRenderDevice: () => renderDevice,
       getUploadByteBudget: () => renderQuality.uploadBudgetBytes,
@@ -5292,6 +5411,12 @@ export function createGpuMapRenderer(deps) {
         if (gl) hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: hydroUploadScheduler });
       },
       commitVisualFrame: frame => {
+        if (temporalPending()) {
+          if (temporalPresentation.frameId !== frame.frameId || !temporalFrameReady(true)) return;
+          temporalPresentation.presented = true;
+          temporalCanvas = null;
+          temporalPresentation.onPresented();
+        }
         // Focus owns a camera session. Only explicit navigation, projection
         // change or project replacement releases it; publishing frames does not.
         if (pendingCanonicalCommit?.generation !== projectGeneration || !pendingCanonicalCommit) return;

@@ -8,6 +8,20 @@ import {
   RenderInvalidationError,
 } from "../../shared/frontend/js/modules/map-render-coordinator.js";
 
+test('a preserved temporal frame holds labels and publishes them with its successful successor', () => {
+  let preserved = true;
+  const calls = [];
+  const frames = [];
+  const coordinator = createMapRenderCoordinator({requestFrame:callback=>frames.push(callback),prepareView:()=>({frameId:1}),
+    renderers:{countries:()=>({preserved,deferred:preserved}),view:()=>({preserved,deferred:preserved}),
+      labelLayout:()=>{calls.push('layout');return {};},territorialLabels:()=>calls.push('labels'),viewPresentation:()=>calls.push('present')}});
+  coordinator.invalidate(MAP_RENDER_MASKS.PROJECT,'temporal-stage');frames.shift()();
+  assert.deepEqual(calls,[]);
+  preserved=false;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME,'temporal-ready');frames.shift()();
+  assert.deepEqual(calls,['layout','labels','present']);
+});
+
 function fixture() {
   const calls = [];
   const frames = [];

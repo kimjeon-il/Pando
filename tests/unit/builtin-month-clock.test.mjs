@@ -32,3 +32,20 @@ test('opening a file suspends pending automatic changes and failure can restore 
  const staleResume=clock.suspend(),manual=clock.selectMonth('1953-07');release(true);await manual;
  assert.equal(staleResume(),false);assert.equal(clock.isAutomatic(),false);
 });
+
+test('a presented frame commits its month once before background opening work finishes',async()=>{
+ let release,commit,commits=[];
+ const clock=createBuiltinMonthClock({onCommitted:month=>commits.push(month),applyMonth:(_month,request)=>{
+  commit=request.commit;return new Promise(resolve=>{release=resolve;});
+ }});
+ const pending=clock.selectMonth('1953-06');
+ assert.equal(clock.month(),null);
+ assert.equal(commit(),true);assert.equal(clock.month(),'1953-06');
+ assert.equal(commit(),false);release(true);await pending;
+ assert.deepEqual(commits,['1953-06']);
+ const stale=clock.selectMonth('1953-07'),oldCommit=commit,oldRelease=release;
+ const latest=clock.selectMonth('1953-08');
+ assert.equal(oldCommit(),false);oldRelease(false);await stale;
+ assert.equal(clock.month(),'1953-06');
+ commit();release(true);await latest;assert.equal(clock.month(),'1953-08');
+});
