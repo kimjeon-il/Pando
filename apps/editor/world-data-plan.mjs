@@ -78,7 +78,7 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
   }
   add(LIBRARY_ROOT + 'index.json', meta.territorialIndex);
   for (const item of library.entities) {
-    if (!/^state-[A-Za-z0-9_-]+\.json\.gz$/.test(item.file || '')) {
+    if (!/^(?:state|waterbody)-[A-Za-z0-9_-]+\.json\.gz$/.test(item.file || '')) {
       throw new Error('Invalid library entity resource name.');
     }
     add(LIBRARY_ROOT + item.file, item);

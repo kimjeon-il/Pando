@@ -84,6 +84,16 @@ test('map-data manifest closure rejects traversal, remote paths and altered hash
   assert.throws(() => buildFullWorldAssetPlan(mismatch), /immutable path/);
 });
 
+test('map-data closure includes authored waterbody resources without relaxing path safety', () => {
+  const input=fixture();
+  input.library.entities.push({file:'waterbody-caspian.json.gz',sha256:SHA,compressedBytes:3});
+  assert.ok(buildFullWorldAssetPlan(input).entries.some(row=>row.path.endsWith('/waterbody-caspian.json.gz')));
+  for(const file of ['waterbody-../outside.json.gz','waterbody-caspian.json.gz?other','https://remote.invalid/waterbody-caspian.json.gz']){
+    input.library.entities.at(-1).file=file;
+    assert.throws(()=>buildFullWorldAssetPlan(input),/resource name/);
+  }
+});
+
 test('map-data packaging requires the current pinned country transport', () => {
   for (const change of [
     value => { delete value.historical.transport; },
