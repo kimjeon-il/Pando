@@ -70,12 +70,12 @@
   z-index: 100;
   top: auto;
   right: 0;
-  bottom: var(--mobile-nav-height);
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
   left: 0;
   width: 100%;
   height: var(--sheet-height, var(--design-sheet-snap-half));
-  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--design-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
-  max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
+  min-height: min(calc(var(--workspace-visible-height, 100dvh) - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--design-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
+  max-height: calc(var(--workspace-visible-height, 100dvh) - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
@@ -170,12 +170,12 @@
   position: fixed;
   z-index: 100;
   right: 0;
-  bottom: var(--mobile-nav-height);
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
   left: 0;
   width: 100%;
   height: var(--sheet-height, var(--design-sheet-snap-half));
-  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--design-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
-  max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
+  min-height: min(calc(var(--workspace-visible-height, 100dvh) - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--design-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
+  max-height: calc(var(--workspace-visible-height, 100dvh) - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -225,24 +225,31 @@
 
 /* A short touch landscape viewport uses the same surfaces in a side dock. */
 .app-root[data-layout="phone-landscape"] {
-  --phone-panel-width: min(var(--ui-phone-landscape-panel-max-width), 45vw);
+  --phone-panel-width: min(var(--ui-phone-landscape-panel-max-width), 45vw, calc(100vw - var(--phone-dock-width) - env(safe-area-inset-left)));
   --phone-nav-width: calc(var(--ui-touch-height) + var(--ui-space-1) * 2);
+  --phone-dock-width: 0px;
   --ui-shell-topbar-height: 0px;
   --mobile-nav-height: 0px;
   grid-template-rows: minmax(0, 1fr);
 }
 
+.app-root:not(.viewer-root)[data-layout="phone-landscape"] {
+  --phone-dock-width: calc(var(--phone-nav-width) + env(safe-area-inset-right));
+}
+
 .app-root[data-layout="phone-landscape"] .topbar { display: none; }
 .app-root[data-layout="phone-landscape"] .workspace {
-  --projection-safe-left: var(--phone-nav-width);
-  --projection-safe-right: 0px;
+  --projection-safe-left: env(safe-area-inset-left);
+  --projection-safe-right: var(--phone-dock-width);
   --projection-safe-top: 0px;
-  --map-safe-left: var(--phone-nav-width);
-  --map-safe-right: 0px;
+  --map-safe-left: var(--projection-safe-left);
+  --map-safe-right: var(--projection-safe-right);
+}
+.app-root.viewer-root[data-layout="phone-landscape"] .workspace {
+  --projection-safe-left: var(--phone-nav-width);
 }
 .app-root[data-layout="phone-landscape"] .workspace:is(.editor-drawer-open, .search-drawer-open, .display-drawer-open, .create-drawer-open, .reference-drawer-open) {
-  --projection-safe-right: var(--phone-panel-width);
-  --map-safe-right: var(--phone-panel-width);
+  --projection-safe-right: calc(var(--phone-dock-width) + var(--phone-panel-width));
 }
 
 .app-root[data-layout="phone-landscape"] .workspace-surface.ui-sheet {
@@ -250,15 +257,15 @@
   flex-direction: column;
   position: fixed;
   z-index: 100;
-  top: var(--workspace-visible-top, 0);
-  right: 0;
+  top: calc(var(--workspace-visible-top, 0px) + env(safe-area-inset-top));
+  right: var(--phone-dock-width);
   bottom: auto;
   left: auto;
   width: var(--phone-panel-width);
   min-width: 0;
-  height: var(--workspace-visible-height, 100dvh);
+  height: calc(var(--workspace-visible-height, 100dvh) - env(safe-area-inset-top));
   min-height: 0;
-  max-height: var(--workspace-visible-height, 100dvh);
+  max-height: calc(var(--workspace-visible-height, 100dvh) - env(safe-area-inset-top));
   overflow: hidden;
   transform: translateX(100%);
   opacity: 0;
@@ -291,44 +298,65 @@
 .app-root[data-layout="phone-landscape"] .workspace-surface :is(button:not(.icon-btn, .ui-icon-button, .sheet-close-btn), input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
 .app-root[data-layout="phone-landscape"] .editor-field-grid { grid-template-columns: minmax(0, 1fr); }
 
-.app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
+.app-root[data-layout="phone-landscape"] .mobile-workspace-controls {
   position: fixed;
   display: flex;
   flex-direction: column;
   z-index: 150;
-  inset: calc(var(--workspace-visible-top, 0) + var(--phone-nav-width)) auto auto 0;
+  inset: var(--workspace-visible-top, 0) 0 auto auto;
+  width: var(--phone-dock-width);
+  height: var(--workspace-visible-height, 100dvh);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
+}
+.app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
+  position: static;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
   width: var(--phone-nav-width);
-  height: calc(var(--workspace-visible-height, 100dvh) - var(--phone-nav-width));
+  min-height: 0;
+  height: auto;
   overflow-y: auto;
 }
 body .app-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
   display: flex;
+  position: static;
+  flex: 0 0 auto;
+  justify-content: center;
+  width: var(--phone-nav-width);
+  height: auto;
+}
+body .app-root.viewer-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
   position: fixed;
   z-index: 180;
   inset: var(--workspace-visible-top, 0) auto auto 0;
-  width: var(--phone-nav-width);
   height: var(--phone-nav-width);
 }
 .app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
   position: fixed;
   z-index: 210;
-  top: var(--workspace-visible-top, 0);
+  top: calc(var(--workspace-visible-top, 0px) + env(safe-area-inset-top));
+  left: auto;
+  right: var(--phone-dock-width);
+  width: var(--phone-panel-width);
+  max-height: calc(var(--workspace-visible-height, 100dvh) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+.app-root.viewer-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
   left: var(--phone-nav-width);
   right: auto;
   width: min(var(--ui-phone-landscape-panel-max-width), calc(100vw - var(--phone-nav-width)));
-  max-height: var(--workspace-visible-height, 100dvh);
-  overflow-y: auto;
 }
 body .app-root[data-layout="phone-landscape"] .mobile-global-menu { display: grid; }
 .app-root[data-layout="phone-landscape"] .mobile-file-back { display: grid; }
 .app-root[data-layout="phone-landscape"] .map-command-toolbar {
   top: auto;
   bottom: calc(var(--ui-statusbar-height) + var(--ui-space-2));
-  left: calc(var(--phone-nav-width) + var(--ui-space-2));
+  left: calc(var(--map-safe-left) + var(--ui-space-2));
   right: auto;
   transform: none;
 }
 .app-root[data-layout="phone-landscape"] .map-command-toolbar :is(.create-menu-command, .map-command-search) { display: none; }
-.app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--phone-nav-width) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
-.app-root[data-layout="phone-landscape"] .status-inner { left: var(--phone-nav-width); right: var(--map-safe-right); }
+.app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--map-safe-left) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
+.app-root[data-layout="phone-landscape"] .status-inner { left: var(--map-safe-left); right: var(--map-safe-right); }
 .app-root[data-layout="phone-landscape"] :is(.status-view, .status-primary, .project-save-status-text) { display: none; }
