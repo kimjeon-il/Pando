@@ -20,7 +20,7 @@ const { EventTarget, Event, CustomEvent } = globalThis;
 function environment(t) {
   const listeners = new Map();
   const window = Object.assign(new EventTarget(), { CustomEvent });
-  const document = { activeElement: null, querySelectorAll: () => [],
+  const document = { activeElement: null, querySelectorAll: () => [],getElementById:()=>({open:false}),
     addEventListener: (type, listener) => listeners.set(type, listener) };
   for (const [name, value] of Object.entries({ window, document, location: { hostname: 'localhost', search: '' },
     localStorage: {}, requestAnimationFrame: () => 1 })) {
@@ -39,6 +39,7 @@ function taskFixture(domainControllers) {
   owner.connect({
     ...capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
       state: { tool: 'select', geometryPreview: { session: null } },
+      editingDomain:{snapshot:()=>({objectVertexEditing:false}),draftInputActive:()=>false},
       $: () => null, hydroToolConfig: () => null, isSpecialTool: () => false,
       setMapModeContextActive() {}, editorWorkspacePresentation: { sync() {} },
     }),
@@ -140,7 +141,7 @@ test('real lifecycle assembly creates editor capabilities before startup task sy
     }),
     domainControllers: foundation.domainControllers,
   });
-  let startupCalls = 0;
+  let startupCalls = 0,landCalls=0;
   const owner = createLifecycleAssembly();
   owner.connect({
     ...capabilityPortsForFixture(LIFECYCLE_UI_OWNER_PORTS.lifecycleAssembly, {
@@ -153,7 +154,9 @@ test('real lifecycle assembly creates editor capabilities before startup task sy
       createMapInputPresentation,
       installWorkflow() {}, markRuntimeReady() {},
       showFatalError: error => assert.fail(error.stack),
+      loadPhysicalLandMask:async()=>{landCalls++;},
       init: () => {
+        assert.equal(landCalls,1);
         startupCalls += 1;
         task.syncMapContextSurfaces();
         globalInput.bindGlobalInputUI();

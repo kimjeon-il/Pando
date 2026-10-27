@@ -2,7 +2,7 @@ import {normalizeTerritorialLibraryIndex,normalizeTerritorialLibraryEntity,asser
 import {validateGeometry} from "../../../../../shared/frontend/js/modules/geometry-validation.js";
 
 // Platform port only. Tokens, files, Git history and remote conflict state stay native.
-export function createNativeLibraryRepository({invoke=globalThis.__TAURI_INTERNALS__?.invoke}={}){
+export function createNativeLibraryRepository({invoke}={}){
  if(typeof invoke!=='function')throw new Error('네이티브 library bridge가 필요합니다.');
  let receipt=null;
  function accept(value){

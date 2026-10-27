@@ -40,6 +40,11 @@ function verifyDocumentBlob(blob) {
 }
 
 export function createNativeStorage(invoke = invokeNative) {
+  const acceptWrite=result=>{
+    if(result?.cancelled)throw Object.assign(new Error('파일 저장 취소'),{name:'AbortError'});
+    if(typeof result?.path!=='string'||!result.path)throw new Error('네이티브 파일 저장 대상이 확정되지 않았습니다.');
+    return {...result,downloaded:false};
+  };
   const abort = async token => {
     try { await invoke('abort_document_transfer', { token }); }
     catch (error) { console.error('[PL-NATIVE-TRANSFER-ABORT]', error); }
@@ -97,19 +102,26 @@ export function createNativeStorage(invoke = invokeNative) {
     return { cancelled: false, files };
   }
   return Object.freeze({
-    saveProjectFile: blob => writeDocument('project', blob),
+    prepareProjectSave(){
+      let ended=false;
+      return Object.freeze({
+        async write(blob){if(ended)throw new Error('File writer already finished.');ended=true;return acceptWrite(await writeDocument('project',blob));},
+        async abort(){ended=true;},
+      });
+    },
     async saveExportFile(filename, blob) {
       const kind = filename === '판도연구소-GIS-데이터.gpkg' ? 'gis-gpkg'
         : filename === '판도연구소-GIS-데이터.zip' ? 'gis-zip' : null;
       if (!kind) throw new Error('Unsupported GIS export file name.');
-      return writeDocument(kind, blob);
+      return acceptWrite(await writeDocument(kind, blob));
     },
     async openProjectFile() {
       const selected = await readDocument('project');
-      if (selected.cancelled) return { cancelled: true, path: null, blob: null };
+      if (selected.cancelled) return { cancelled: true, path: null, file: null };
       if (selected.files.length !== 1) throw new Error('Project picker must return one document.');
-      return { cancelled: false, path: selected.files[0].path,
-        blob: selected.files[0].blob };
+      const chosen=selected.files[0],name=String(chosen.path||'').split(/[\\/]/).pop();
+      return { cancelled: false, path: chosen.path,
+        file:new File([chosen.blob],name&&/\.gpkg$/i.test(name)?name:'판도연구소-프로젝트.gpkg',{type:'application/geopackage+sqlite3'}) };
     },
     async openGisFiles() {
       const selected = await readDocument('gis');
@@ -121,5 +133,5 @@ export function createNativeStorage(invoke = invokeNative) {
   });
 }
 const native = createNativeStorage();
-export const { saveProjectFile, saveExportFile, openProjectFile, openGisFiles,
+export const { prepareProjectSave, saveExportFile, openProjectFile, openGisFiles,
   writeDiagnosticReport } = native;

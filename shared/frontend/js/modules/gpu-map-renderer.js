@@ -43,7 +43,7 @@ export function hydroEditResourceDependencies(features,baseFid,displayColor) {
 }
 import '../workers/canvas-terrain-dem-core.js';
 
-const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
+const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || '';
 const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan, sceneStrokeResourcePacket, commitGpuStrokeDomains }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
   { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_FORMAT, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest }] = await Promise.all([
   import(`./gpu-base-scene-pass.js?v=${encodeURIComponent(rendererAssetRevision)}`),

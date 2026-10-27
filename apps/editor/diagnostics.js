@@ -1,4 +1,4 @@
-import { saveProjectFile, openProjectFile, writeDiagnosticReport } from './native-storage.js';
+import { prepareProjectSave, openProjectFile, writeDiagnosticReport } from './native-storage.js';
 import { writeProbeFile, readProbeFile, finishDiagnostics } from './probe-storage.js';
 import { assertSmallProject } from './fixture-limits.js';
 
@@ -359,7 +359,7 @@ export function installDiagnostics(runtime) {
   button('GPKG 저장', async () => {
     try {
       await projectDomain.save(async blob => {
-        const result = await saveProjectFile(blob);
+        const result = await (await prepareProjectSave()).write(blob);
         if (result.cancelled) throw Object.assign(new Error('파일 저장 취소'), { name: 'AbortError' });
         status('filePickerSave', 'PASS', { path: result.path });
         detail.textContent = `저장 완료: ${result.path}`;
@@ -371,7 +371,7 @@ export function installDiagnostics(runtime) {
     try {
       const file = await openProjectFile();
       if (file.cancelled) throw Object.assign(new Error('파일 열기 취소'), { name: 'AbortError' });
-      const project = await bounded('GeoPackage open', () => readPackage(file.blob));
+      const project = await bounded('GeoPackage open', () => readPackage(file.file));
       assertSmallProject(project);
       await bounded('Core project load', () => projectDomain.load(project));
       status('filePickerOpen', 'PASS', { path: file.path, acceptedEpoch: projectDomain.state().epoch });

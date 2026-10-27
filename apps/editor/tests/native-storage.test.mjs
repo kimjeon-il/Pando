@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createProbeStorage } from '../probe-storage.js';
 import { createNativeStorage, encodeBytes, decodeBytes } from '../native-storage.js';
+const writeProject=async(storage,blob)=>(await storage.prepareProjectSave()).write(blob);
 
 function simulatedNative(files = []) {
   const writes = [], chunks = [], events = [], reading = new Map();
@@ -55,28 +56,28 @@ test('project bridge roundtrips binary bytes through bounded native chunks', asy
   const bytes = new Uint8Array([0, 255, 1, 128, 39, 10]);
   const native = simulatedNative([{ path: 'C:/picked.gpkg', bytes }]);
   const storage = createNativeStorage(native.invoke);
-  assert.equal((await storage.saveProjectFile(new Blob([bytes]))).cancelled, false);
+  assert.equal((await writeProject(storage,new Blob([bytes]))).cancelled, false);
   assert.deepEqual(new Uint8Array(native.writes[0]), bytes);
   const opened = await storage.openProjectFile();
-  assert.deepEqual(new Uint8Array(await opened.blob.arrayBuffer()), bytes);
+  assert.deepEqual(new Uint8Array(await opened.file.arrayBuffer()), bytes);
 });
 test('a document above the prior 1 MiB cap is transferred without a whole-file Base64 value', async () => {
   const bytes = new Uint8Array(1024 * 1024 + 271);
   bytes[bytes.length - 1] = 187;
   const native = simulatedNative([{ path: 'C:/large.gpkg', bytes }]);
   const storage = createNativeStorage(native.invoke);
-  await storage.saveProjectFile(new Blob([bytes]));
+  await writeProject(storage,new Blob([bytes]));
   assert.equal(native.chunks.length, 5);
   assert.equal(native.writes[0].length, bytes.length);
   const selected = await storage.openProjectFile();
-  assert.deepEqual(new Uint8Array(await selected.blob.arrayBuffer()), bytes);
+  assert.deepEqual(new Uint8Array(await selected.file.arrayBuffer()), bytes);
 });
 test('oversized document is blocked before IPC while tiny probe remains bounded', async () => {
   let invoked = false;
   const storage = createNativeStorage(async () => { invoked = true; });
   const largeBlob = Object.create(Blob.prototype);
   Object.defineProperty(largeBlob, 'size', { value: 256 * 1024 * 1024 + 1 });
-  await assert.rejects(storage.saveProjectFile(largeBlob), /256 MiB/);
+  await assert.rejects(writeProject(storage,largeBlob), /256 MiB/);
   assert.equal(invoked, false);
   assert.throws(() => createProbeStorage(async () => { invoked = true; }).writeProbeFile('a'.repeat(1024 * 1024 + 1)), /1 MiB/);
   assert.equal(invoked, false);
@@ -89,8 +90,8 @@ test('cancelled user selection is not counted as saved project', async () => {
     if (command === 'begin_document_read') return { cancelled: true, files: [] };
     throw new Error('Unexpected command ' + command);
   });
-  assert.equal((await storage.saveProjectFile(new Blob(['project']))).cancelled, true);
-  assert.deepEqual(await storage.openProjectFile(), { cancelled: true, path: null, blob: null });
+  await assert.rejects(writeProject(storage,new Blob(['project'])),{name:'AbortError'});
+  assert.deepEqual(await storage.openProjectFile(), { cancelled: true, path: null, file: null });
 });
 test('GIS ZIP and multiselect retain native formats and filename identity', async () => {
   const native = simulatedNative([
@@ -113,6 +114,6 @@ test('native errors abort the transfer and leave the owning file state unchanged
     if (command === 'abort_document_transfer') return true;
     throw new Error('Unexpected command ' + command);
   });
-  await assert.rejects(storage.saveProjectFile(new Blob(['data'])), /disk full/);
+  await assert.rejects(writeProject(storage,new Blob(['data'])), /disk full/);
   assert.deepEqual(calls, ['begin_document_write','append_document_chunk','abort_document_transfer']);
 });

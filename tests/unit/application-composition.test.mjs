@@ -5,6 +5,7 @@ import test from 'node:test';
 import { createBuiltinSession } from "../../shared/frontend/js/modules/builtin-session.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { resourceCapabilities } from "../../shared/frontend/js/modules/resource-capabilities.js";
+import {MAP_OWNER_REQUIRED_PORTS} from '../../shared/frontend/js/modules/map-owner-ports.js';
 
 const root = new URL('../../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
@@ -50,7 +51,14 @@ test('all owners construct without DOM access, connect once, and expose every re
   for (const [name, owner] of owners) {
     assert.throws(() => owner.connect({}), /already connected/, name);
     const ports = portsByOwner.get(name);
-    for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(ports))) {
+    for (const [key, originalDescriptor] of Object.entries(Object.getOwnPropertyDescriptors(ports))) {
+      let descriptor=originalDescriptor;
+      if(MAP_OWNER_REQUIRED_PORTS[name]&&descriptor.get){
+        const value=ports[key];
+        assert.equal(value,handles.ports[key],`${name}.${key} must retain the live application port`);
+        if(value===undefined){assert.equal(MAP_OWNER_REQUIRED_PORTS[name].includes(key),false,`${name}.${key} required port missing`);continue;}
+        descriptor={value};
+      }
       if ('value' in descriptor && descriptor.value && typeof descriptor.value === 'object') {
         assert.equal(Object.isFrozen(descriptor.value), true, `${name}.${key} capability port must be frozen`);
         assert.ok(Object.keys(descriptor.value).length <= 12, `${name}.${key} capability port is too broad`);
