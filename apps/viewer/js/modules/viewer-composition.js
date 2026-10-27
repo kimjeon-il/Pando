@@ -1,3 +1,4 @@
+import {connectMapOwner} from "../../../../shared/frontend/js/modules/map-owner-ports.js";
 import {createBrowserProjectStorage} from "../../../../shared/frontend/js/modules/browser-project-storage.js";
 import {initialBoundsView} from "../../../../shared/frontend/js/modules/project-setup.js";
 import {createNotificationPresentation} from "../../../../shared/frontend/js/modules/notification-presentation.js";
@@ -76,7 +77,7 @@ export async function composeViewer({ productMode, meta }) {
     presenters:{default:ref=>{selectionStatus.textContent=map.objectQuery.objectDisplayInfo(ref).name;}},
     uiActions:{closeChooser:()=>map.closeObjectChooser(),clearPresenter:()=>{selectionStatus.textContent='';},syncLayerRows:()=>searchController.syncSelection()}});
   const activeSession=Object.freeze({...documentSession,projectDomain,selectionDomain,selectionUiController});
-  surfaces.connect({platform:{$:id=>get(id==='app'?'viewer':id)},projectState:{get state(){return map.viewState;}},
+  connectMapOwner('workspaceSurfaces',surfaces,{platform:{$:id=>get(id==='app'?'viewer':id)},projectState:{get state(){return map.viewState;}},
     uiFactoriesB:{createSurfaceController},domains:{get objectSearchController(){return searchController;}},
     mapHostViewB:{queueMapResize:()=>{owners.mapHost.queueMapResize('panel-layout');}},
     platformConfigurationB:{selectController},get mapNavigation(){return map.navigation;}});

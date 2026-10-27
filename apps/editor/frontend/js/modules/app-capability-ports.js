@@ -1,3 +1,4 @@
+import {MAP_OWNER_PORTS} from "../../../../../shared/frontend/js/modules/map-owner-ports.js";
 import { createFoundationPorts, FOUNDATION_OWNER_PORTS } from './app-capability-ports-foundation.js';
 import { createMapInteractionPorts, MAP_INTERACTION_OWNER_PORTS } from './app-capability-ports-map-interaction.js';
 import { createObjectEditingPorts, OBJECT_EDITING_OWNER_PORTS } from './app-capability-ports-object-editing.js';
@@ -9,10 +10,10 @@ export { FOUNDATION_OWNER_PORTS, MAP_INTERACTION_OWNER_PORTS, OBJECT_EDITING_OWN
 
 /** Shared, live capability ports for the spatial-data owner group. */
 export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
-  cameraNavigation: Object.freeze(["countries","domains","feedback","mapNavigation","mapView","objectLookup","physicalData","platform","projectState","rendering","surfaces"]),
+  cameraNavigation: MAP_OWNER_PORTS.cameraNavigation,
   readinessNotifications: Object.freeze(["platform","projectState","readiness","surfaces"]),
-  countryIndex: Object.freeze(["countries","domains","geometryModel","objectDisplay","mapView","platform","projectState","spatialQuery"]),
-  spatialIndex: Object.freeze(["objectModelB","countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
+  countryIndex: MAP_OWNER_PORTS.countryIndex,
+  spatialIndex: MAP_OWNER_PORTS.spatialIndex,
   geometryPreview: Object.freeze(["domains","feedback","geometryEditingCore","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry"]),
   territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel","objectPresentation"]),
   countryValidation: Object.freeze(["countries","domains","geometryModel","geometryPreview","projectState","snapshots","spatialQuery"]),
@@ -196,12 +197,12 @@ export function createSpatialDataPorts(providers) {
 
 export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   cutGeometry: Object.freeze(["geometryModel","geometryMutation","geometryPreview","geometryValidation","mapView","objectPresentation","platform","projectState","spatialQuery","territorialModel","territoryGeometry"]),
-  mapProjection: Object.freeze(["mapLayers","mapLayout","platform","projectState","surfaces"]),
-  objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectDefinitions","objectPresentation","platform","projectState","spatialQuery","territorialModel"]),
-  hydroSettings: Object.freeze(["physicalResources","colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
-  objectCatalog: Object.freeze(["projectSession","colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectDefinitions","objectPresentation","platform","projectState","rendering","territorialModel"]),
-  territorialLabels: Object.freeze(["objectModelB","colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectDefinitions","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel"]),
-  physicalResources: Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
+  mapProjection: MAP_OWNER_PORTS.mapProjection,
+  objectPresentation: MAP_OWNER_PORTS.objectPresentation,
+  hydroSettings: MAP_OWNER_PORTS.hydroSettings,
+  objectCatalog: MAP_OWNER_PORTS.objectCatalog,
+  territorialLabels: MAP_OWNER_PORTS.territorialLabels,
+  physicalResources: MAP_OWNER_PORTS.physicalResources,
   interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","feedback","mapLayers","objectDefinitions","platform","preferences","projectState","renderScene","surfaces"]),
 });
 
