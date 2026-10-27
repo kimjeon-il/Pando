@@ -103,7 +103,14 @@ export async function composeApplication({ productMode, revision, platform = {},
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
   const gisAssembly = factoryGisAssembly.createGisAssembly({ fileAccess: platform.fileAccess });
-  const libraryAssembly = factoryLibraryAssembly.createLibraryAssembly();
+  const libraryAssembly = factoryLibraryAssembly.createLibraryAssembly({openLibrary:async()=>{
+    const meta=globalThis.PANDOLAB_BUILD_META;
+    return runtime.territorialEntityLoaderModule.openTerritorialLibraryAccess({
+      repository:platform.getLibraryRepository?await platform.getLibraryRepository():null,
+      source:{indexUrl:environment.TERRITORIAL_LIBRARY_INDEX_URL,indexSpec:meta.territorialIndex,dataRevision:meta.dataRevision},
+      onSyncError:error=>readinessNotifications.reportOperationError(error,'라이브러리는 로컬 자료로 열었습니다. GitHub 동기화 대기 중입니다.','PL-LIB-SYNC-OPEN'),
+    });
+  }});
   const navigationBindings = factoryNavigationBindings.createNavigationBindings({productMode});
   const toolBindings = factoryToolBindings.createToolBindings();
   const fileBindings = factoryFileBindings.createFileBindings({libraryGeometryContext:platform.libraryGeometryContext});
