@@ -23,6 +23,17 @@ function fakeWindow() {
   return Object.assign(new EventTarget(), { CustomEvent });
 }
 
+test('one lifecycle awaits asynchronous ready work and suppresses completion after disposal',async()=>{
+  const window=fakeWindow(),events=[];let release,entered;
+  const waiting=new Promise(resolve=>{entered=resolve;});
+  window.addEventListener('pandolab:ready',()=>events.push('ready'));
+  const lifecycle=createApplicationLifecycle({window,startup:async()=>{},onReady:async({isActive})=>{
+    entered();await new Promise(resolve=>{release=resolve;});if(isActive())events.push('attached');
+  }});
+  const start=lifecycle.start();assert.equal(lifecycle.start(),start);await waiting;
+  assert.deepEqual(events,[]);lifecycle.dispose();release();assert.equal(await start,false);assert.deepEqual(events,[]);
+});
+
 test('composition runs before startup once, and BFCache does not dispose domains', async () => {
   const window = fakeWindow();
   const events = [];
@@ -114,10 +125,10 @@ test('new project opens setup before creation and save presenter only changes DO
   const ui = createProjectUiBridge({
     getElement, getSaveSnapshot: () => snapshot, closeFileMenu() {},
     getAutosaveRecovery: () => null,
-    setupDialogFactory: options => {setup=options;return {open:mode=>{opened=mode;}};},createProject:()=>resets++,
+    setupDialogFactory: options => {setup=options;return {open:()=>{opened=true;}};},createProject:()=>resets++,
   });
   ui.requestNew();
-  assert.equal(opened,'new');
+  assert.equal(opened,true);
   assert.equal(resets, 0);
   setup.createProject();
   assert.equal(resets, 1);

@@ -1,3 +1,4 @@
+import {MAP_OWNER_PORTS} from "../../../../../shared/frontend/js/modules/map-owner-ports.js";
 import { createReadPorts } from './app-capability-port-utils.js';
 
 export const FOUNDATION_OWNER_PORTS = Object.freeze({
@@ -17,51 +18,9 @@ export const FOUNDATION_OWNER_PORTS = Object.freeze({
     "territorialModel",
     "uiFactoriesB"
   ],
-  "builtinSession": [
-    "domains",
-    "platformConfigurationA",
-    "objectModelB",
-    "applicationServicesA",
-    "applicationServicesB",
-    "countries",
-    "countryRecords",
-    "geometryMutation",
-    "layerPresentation",
-    "objectDefinitions",
-    "platform",
-    "projectState",
-    "rendering",
-    "territorialModel"
-  ],
-  "workspaceSurfaces": [
-    "colorPicker",
-    "countryEditingA",
-    "domainControllers",
-    "mapHostViewB",
-    "mapNavigation",
-    "platform",
-    "platformConfigurationB",
-    "projectServices",
-    "projectState",
-    "taskPresentation",
-    "uiFactoriesA",
-    "uiFactoriesB",
-    "domains"
-  ],
-  "projectSession": [
-    "domains",
-    "applicationConstantsA",
-    "applicationFactories",
-    "lifecycleUi",
-    "modelValidation",
-    "physicalConfig",
-    "platformConfigurationA",
-    "platformConfigurationB",
-    "readiness",
-    "uiFactoriesA",
-    "uiFactoriesB",
-    "mapNavigation"
-  ],
+  "builtinSession": MAP_OWNER_PORTS.builtinSession,
+  "workspaceSurfaces": MAP_OWNER_PORTS.workspaceSurfaces,
+  "projectSession": MAP_OWNER_PORTS.projectSession,
   "objectCommands": [
     "spatialQuery",
     "colorModel",
@@ -125,23 +84,8 @@ export const FOUNDATION_OWNER_PORTS = Object.freeze({
     "surfaces",
     "territorialModel"
   ],
-  "renderQuality": [
-    "feedback",
-    "countries",
-    "domains",
-    "gpuRenderingA",
-    "hydroModel",
-    "mapView",
-    "platformConfigurationB",
-    "preferences",
-    "projectState",
-    "rendering",
-    "selectionServices",
-    "spatialQuery",
-    "surfaces",
-    "uiFactoriesA"
-  ],
-  "pointerTargets": ["countries","domains","draftPresentation","feedback","hydroPresentation","landRelations","layerPresentation","lifecycleUi","mapLayout","mapView","objectOperationsA","objectPicking","physicalResources","physicalServices","platform","projectState","rendering","spatialQuery","surfaces","territorialModel","selectionServices"]
+  "renderQuality": MAP_OWNER_PORTS.renderQuality,
+  "pointerTargets": MAP_OWNER_PORTS.pointerTargets
 });
 
 const PORT_SPECS = Object.freeze({

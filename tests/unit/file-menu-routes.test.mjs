@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import {createBrowserFileAccess} from '../../shared/frontend/js/modules/browser-file-access.js';
 import { createFileController } from "../../shared/frontend/js/modules/file-controller.js";
+const {File}=globalThis;
 
 test('topbar separates history, file, view, settings and help commands', () => {
   const html = readFileSync(new URL('../../apps/editor/editor.html', import.meta.url), 'utf8');
@@ -31,14 +33,12 @@ test('topbar separates history, file, view, settings and help commands', () => {
 });
 
 test('file inputs pass explicit source intent without changing the import target', async () => {
-  const input = () => ({ dataset: {}, files: [{ name: 'test.gpkg' }], value: '', click() {}, addEventListener() {} });
+  const input=()=>({listeners:{},files:[new File(['project'],'test.gpkg')],value:'',click(){},addEventListener(name,fn){this.listeners[name]=fn;},removeEventListener(name){delete this.listeners[name];}});
   const elements = { input: input(), projectInput: input(), projectOpen: { id: 'openProjectBtn', focus() {} } };
   const intents = [];
-  const controller = createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message), elements,readProject:async file=>file,projectDomain:{open:async read=>{intents.push('project');return read();}},onFiles:async(_files,options)=>intents.push(options.sourceKind) });
+  const controller = createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message), elements,fileAccess:createBrowserFileAccess({productMode:'editor',elements}),readProject:async file=>file,projectDomain:{open:async read=>{intents.push('project');return read();}},onFiles:async(_files,options)=>intents.push(options.sourceKind) });
   controller.bind();
-  controller.openProjectPicker();
-  assert.equal(elements.projectInput.dataset.returnFocusId, 'openProjectBtn');
-  await controller.handleChange({ target: elements.projectInput });
-  await controller.handleChange({ target: elements.input });
+  const project=controller.openProjectPicker();elements.projectInput.listeners.change();await project;
+  const gis=controller.openPicker();elements.input.listeners.change();await gis;
   assert.deepEqual(intents, ['project', 'vector']);
 });

@@ -1,3 +1,5 @@
+import {MAP_OWNER_PORTS,connectMapOwner} from '../../../../../shared/frontend/js/modules/map-owner-ports.js';
+
 export function createReadPorts(providers, specs) {
   return Object.freeze(Object.fromEntries(Object.entries(specs).map(([name, entries]) => {
     const descriptors = Object.fromEntries(entries.map(([alias, provider, field]) => [alias, { enumerable: true, get: () => providers[provider][field] }]));
@@ -7,6 +9,10 @@ export function createReadPorts(providers, specs) {
 
 export function connectCapabilityOwners(contracts, owners, ports) {
   for (const [ownerName, portNames] of Object.entries(contracts)) {
+    if(Object.hasOwn(MAP_OWNER_PORTS,ownerName)){
+      connectMapOwner(ownerName,owners[ownerName],ports);
+      continue;
+    }
     owners[ownerName].connect(Object.freeze(Object.fromEntries(portNames.map(portName => [portName, ports[portName]]))));
   }
 }

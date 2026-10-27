@@ -1,7 +1,29 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createFileController } from "../../shared/frontend/js/modules/file-controller.js";
-const { Blob } = globalThis;
+import { createFileController as createController } from "../../shared/frontend/js/modules/file-controller.js";
+import {createBrowserFileAccess} from '../../shared/frontend/js/modules/browser-file-access.js';
+const createFileController=options=>createController({...options,fileAccess:options.fileAccess||createBrowserFileAccess(options)});
+const { Blob,File } = globalThis;
+
+test('prepared file writer aborts when encoding fails before any write',async()=>{
+ const events=[];
+ const controller=createController({productMode:'editor',reportOperationError(){},elements:{save:{}},
+  fileAccess:{prepareProjectSave(){events.push('prepare');return {write(){assert.fail('must not write');},abort(){events.push('abort');}};}},
+  projectDomain:{save(){throw new Error('encode failed');}}});
+ const original=console.error;console.error=()=>{};
+ try{assert.equal(await controller.saveProject(),false);}finally{console.error=original;}
+ assert.deepEqual(events,['prepare','abort']);
+});
+
+test('browser write failure aborts the opened stream and re-enables saving',async()=>{
+ const events=[],button={};
+ const controller=createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message),elements:{save:button},
+  window:{showSaveFilePicker:async()=>({createWritable:async()=>({write:async()=>{throw Error('disk full');},close(){assert.fail('must not close failed write');},abort:async()=>events.push('abort')})})},
+  projectDomain:{save:write=>write(new Blob(['project']))}});
+ const original=console.error;console.error=()=>{};
+ try{assert.equal(await controller.saveProject(),false);}finally{console.error=original;}
+ assert.deepEqual(events,['abort']);assert.equal(button.disabled,false);
+});
 
 test('destination picker opens synchronously before encoding and writes the chosen file', async () => {
   const calls = [];
@@ -57,7 +79,7 @@ test('native project save uses canonical domain writer, not the browser picker',
   const events = [], blob = new Blob(['project']);
   const controller = createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message),
     elements: { save: {} },
-    fileAccess: { async saveProjectFile(value) { assert.equal(value, blob); events.push('native'); return { cancelled: false, path: 'C:/map.gpkg' }; } },
+    fileAccess: { async prepareProjectSave() { return {async write(value) { assert.equal(value, blob); events.push('native'); return { downloaded:false }; },async abort(){}}; } },
     window: { showSaveFilePicker() { assert.fail('browser picker is not used by Tauri'); } },
     projectDomain: { async save(write) { events.push('core'); return write(blob); } },
   });
@@ -68,7 +90,7 @@ test('native project save uses canonical domain writer, not the browser picker',
 test('native project save cancellation is never reported as completed', async () => {
   const controller = createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message),
     elements: { save: {} },
-    fileAccess: { async saveProjectFile() { return { cancelled: true }; } },
+    fileAccess: { async prepareProjectSave() { return {async write() { throw Object.assign(new Error('cancel'),{name:'AbortError'}); },async abort(){}}; } },
     projectDomain: { save: write => write(new Blob(['project'])) },
   });
   assert.equal(await controller.saveProject(), false);
@@ -79,7 +101,7 @@ test('native project open uses the common reader and project transaction and res
   const file = new Blob([new Uint8Array([0, 255, 10])]);
   const controller = createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message),
     elements: { projectOpen: trigger },
-    fileAccess: { async openProjectFile() { events.push('picker'); return { cancelled: false, path: 'C:/test/map.gpkg', blob: file }; } },
+    fileAccess: { async openProjectFile() { events.push('picker'); return { cancelled: false, file:new File([file],'map.gpkg') }; } },
     projectDomain:{open:async read=>{events.push('transaction');return read();}},
     readProject:async chosen=>{
       events.push('read');

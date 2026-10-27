@@ -3,7 +3,7 @@ import { normalizeSourceProvenance } from '../../../../../shared/frontend/js/mod
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createLibraryAssembly() {
+export function createLibraryAssembly({openLibrary}={}) {
   let dependencies;
   let territorialLibraryService;
   let territorialLibraryController;
@@ -168,19 +168,10 @@ export function createLibraryAssembly() {
     await Promise.all([(0, dependencies.libraryServices.ensureTerritorialLibraryRuntime)(), dependencies.gisRuntime.gisWorkflow.ensure(), (0, dependencies.applicationServicesA.ensureModalRuntime)()]);
     const { createTerritorialLibraryService } = dependencies.libraryServices.territorialLibraryServiceModule;
     const { createTerritorialLibraryController } = dependencies.libraryServices.territorialLibraryControllerModule;
-    const {createTerritorialEntityLoader,createRepositoryTerritorialLoader} = dependencies.libraryServices.territorialEntityLoaderModule;
-    const meta = window.PANDOLAB_BUILD_META;
-    let repository=null,editing=null;
-    if(globalThis.PANDOLAB_NATIVE_LIBRARY_AVAILABLE===true&&typeof globalThis.__TAURI_INTERNALS__?.invoke==='function'){
-      const {createNativeLibraryRepository}=await import('./native-library-repository.js');
-      repository=createNativeLibraryRepository();await repository.open();
-      try{await repository.sync();await repository.open();}
-      catch(error){dependencies.feedback.reportOperationError(error,'라이브러리는 로컬 자료로 열었습니다. GitHub 동기화 대기 중입니다.','PL-LIB-SYNC-OPEN');}
-    }
-    territorialLibraryService = createTerritorialLibraryService({loader:repository?createRepositoryTerritorialLoader(repository):createTerritorialEntityLoader({
-      indexUrl: dependencies.platformConfigurationA.TERRITORIAL_LIBRARY_INDEX_URL,
-      indexSpec: meta.territorialIndex, dataRevision: meta.dataRevision,
-    })});
+    if(typeof openLibrary!=='function')throw new TypeError('Library access initializer is required.');
+    const {loader,editingRepository:repository}=await openLibrary();
+    let editing=null;
+    territorialLibraryService = createTerritorialLibraryService({loader});
     if(repository){
       const {createTerritorialLibraryEditingUi}=await import('./territorial-library-editing-ui.js');
       editing=createTerritorialLibraryEditingUi({document,window,host:document.querySelector('.territorial-library-card'),

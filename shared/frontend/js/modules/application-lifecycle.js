@@ -37,7 +37,8 @@ export function createApplicationLifecycle({
       if (disposed) return false;
       await startup();
       if (disposed) return false;
-      onReady();
+      await onReady({isActive:()=>!disposed});
+      if(disposed)return false;
       window.dispatchEvent(new window.CustomEvent('pandolab:ready'));
       return true;
     }).catch(error => {

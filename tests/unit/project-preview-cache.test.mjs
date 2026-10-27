@@ -4,6 +4,10 @@ import { setImmediate } from 'node:timers';
 
 import { createProjectPreviewCache } from "../../apps/editor/frontend/js/modules/project-preview-cache.js";
 
+test('preview execution requires an explicit Worker URL from platform asset resolution',()=>{
+  assert.throws(()=>createProjectPreviewCache({getPreviewSource:async()=>({})}),/Worker URL/);
+});
+
 function previewCache(t, options = {}) {
   const workers = [];
   const warnings = [];
@@ -26,6 +30,7 @@ function previewCache(t, options = {}) {
   const project = {};
   const stored = { geometryKey: 'same-key', baseSourceSha256: 'baseline' };
   const cache = createProjectPreviewCache({
+    workerUrl:'https://fixture.test/assets/worker-runtime/0123456789abcdef0123456789abcdef/assets/js/workers/project-preview-worker.js?v=fixture',
     storage: { readPreview: async () => stored, ...options.storage },
     scheduler: options.scheduler || { cancel() {} },
     getGeometry: options.getGeometry || (() => null),

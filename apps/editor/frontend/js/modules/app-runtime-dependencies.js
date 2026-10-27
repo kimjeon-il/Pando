@@ -7,7 +7,7 @@
 
 import { PROJECT_SCHEMA_VERSION, GENERIC_FEATURE_SCHEMA_VERSION } from "../../../../../shared/frontend/js/modules/version-contract.js";
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '';
 const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, territorialParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`../../../../../shared/frontend/js/modules/builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutTerritorialFlags } = await import(`../../../../../shared/frontend/js/modules/territorial-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);

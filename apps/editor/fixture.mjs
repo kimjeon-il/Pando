@@ -1,5 +1,6 @@
 import { startupDocument } from '../../tests/helpers/core-startup.mjs';
 import { TERRITORIAL_SCHEMA_VERSION } from "../../shared/frontend/js/modules/territorial-units.js";
+import {TIMELINE_RECORD_SCHEMA_VERSION} from '../../shared/frontend/js/modules/timeline-records.js';
 
 export const BASE_DATASET = 'Natural Earth 5.1.1 · Admin 0 Countries · 1:10m · de facto';
 export const SOURCE_MONTH = '2026-10';
@@ -20,13 +21,16 @@ export function tinyFixture() {
   }));
   const project = startupDocument(features);
   project.baseDataset = BASE_DATASET;
-  project.timelineRecords.schemaVersion = 2;
+  project.timelineRecords.schemaVersion = TIMELINE_RECORD_SCHEMA_VERSION;
+  for(const key of ['lifetimes','geometryBindings','parentRelations','propertyBindings']){
+    project.timelineRecords[key]=project.timelineRecords[key].map(({entityId,...row})=>({...row,objectRef:{domain:'territorial',id:entityId}}));
+  }
   project.timelineRecords.propertyBindings = [];
 
   const template=structuredClone(project);template.territorialEntities=[];template.geometries=[];
-  template.timelineRecords={schemaVersion:2,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};delete template.projectSetup;
+  template.timelineRecords={schemaVersion:TIMELINE_RECORD_SCHEMA_VERSION,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};delete template.projectSetup;
   const builtinCountries=project.territorialEntities.map(identity=>{
-    const records=Object.fromEntries(Object.entries(project.timelineRecords).map(([key,value])=>[key,Array.isArray(value)?value.filter(row=>row.entityId===identity.id):value]));
+    const records=Object.fromEntries(Object.entries(project.timelineRecords).map(([key,value])=>[key,Array.isArray(value)?value.filter(row=>row.objectRef.id===identity.id):value]));
     const refs=new Set(records.geometryBindings.map(row=>row.geometryRef.id));
     return {schemaVersion:2,entityId:identity.id,identity,timelineRecords:records,sourceBindings:[],geometries:project.geometries.filter(row=>refs.has(row.id))};
   });
