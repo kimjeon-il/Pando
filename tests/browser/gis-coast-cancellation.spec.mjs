@@ -2,7 +2,7 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
-const fixture = 'tests/fixtures/north-schleswig-coast-import.geojson';
+const fixture = 'tests/fixtures/coast-reconciliation-cancellation.geojson';
 
 async function waitForEditor(page) {
   await page.setViewportSize({ width: 1440, height: 900 });
