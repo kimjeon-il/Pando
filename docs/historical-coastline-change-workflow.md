@@ -5,6 +5,12 @@
 **Branch:** `work/gis`.  
 **Mandatory rules:** [historical reconstruction policy](historical-border-reconstruction-policy.md), [branch/worktree policy](branch-policy.md).
 
+## Netherlands scope reduction — 2026-10-27
+
+The Netherlands pilot is retained only as an event-level historical shoreline index at Natural Earth 1:10M display detail. Prioritize major land/water transformations (Zuiderzee/IJsselmeer, Flevoland, major coastal reclamations) and their chronology. Small harbor fills, local dykes, minor shoreline shifts, and subpixel comparisons do not trigger additional reconstruction by default.
+
+The 12 canonical point probes, 0.5 CSS-pixel baseline and high-resolution 36,029-vertex comparison are legacy *research diagnostics*, not mandatory gates for new historical event implementation. They cannot prove a historical shoreline or justify changing the current national polygon. Keep the existing NLD source geometry and its temporal versions unchanged. Do not erase historical event dates or evidence sources. Reassess individual minor events for removal only after confirming their importance to the 1:10M map.
+
 ## 1. Objective and non-goals
 
 Build historic shorelines across multiple centuries **without storing one full coastline for every country-year**. Reuse a modern baseline wherever the historical shoreline is unchanged, and store independent **geographic change events** tied to dated evidence, physical effects, and local geometry.
