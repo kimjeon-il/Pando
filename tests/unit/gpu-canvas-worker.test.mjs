@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { transformSync } from 'esbuild';
 import { createGpuCanvasWorker } from "../../shared/frontend/js/modules/gpu-canvas-worker.js";
 
 test('project replacement retains a ready worker and rejects old completion without releasing the new frame', () => {
@@ -260,7 +261,11 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
     setTimeout: callback => { timers.push(callback); return timers.length; },
     location: script, postMessage: (message, transfer) => replies.push({ message, transfer }) });
   scope.self = scope;
-  scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(readFileSync(new URL(url), 'utf8'), scope));
+  const policy=transformSync(readFileSync(new URL('../../shared/frontend/js/modules/resource-update-policy.js',import.meta.url),'utf8'),
+    {format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'}).code;
+  scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(new URL(url).pathname.endsWith('/resource-update-policy-core.js')
+    ? policy+'\nself.PandoLabResourceUpdatePolicy=PandoLabResourceUpdatePolicy;'
+    : readFileSync(new URL(url), 'utf8'), scope));
   vm.runInContext(readFileSync(script, 'utf8'), scope);
   const pathFactory = scope.d3.geo.path;
   let pathBuildCount = 0;

@@ -52,7 +52,7 @@ export async function composeViewer({ productMode, meta }) {
   let openingPreserved=null;
   const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
-    onProjectReset:async event=>{previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation);},
+    onProjectReset:async event=>{previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
     replaceSnapshot:async()=>{await map.setSession(activeSession,{prepareView:async()=>{
       const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
       if(openingPreserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:openingPreserved});
@@ -66,8 +66,8 @@ export async function composeViewer({ productMode, meta }) {
       await map.loadPhysicalLandMask();
       map.loadPhysicalResources();
       if(!openingPreserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
-    }});return true;},
-    restoreReplacement:()=>map.setSession(activeSession,{view:previousView})});
+    }});await map.renderer.waitForTemporalPresentation();return true;},
+    restoreReplacement:async()=>{await map.setSession(activeSession,{view:previousView});await map.renderer.waitForTemporalPresentation();}});
   let selectionUiController;
   const selectionDomain=createSelectionDomain({commandOwner:documentSession.commandOwner,projectDomain,
     refAdapter:{fromCore:coreSelectionRefToWeb,toCore:ref=>webSelectionRefToCore(ref,{isStoredHydro:id=>documentSession.documentModel.get({domain:'hydro',id})!==null})},
@@ -102,9 +102,9 @@ export async function composeViewer({ productMode, meta }) {
   map.loadPhysicalResources({includeHydro:false});
   const syncStatus=()=>{if(map&&!projectDomain.isOpening())selectionUiController.syncNow(null,{force:true});};
   const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.render();};
-  const disposeTimeline=installTimelineControls({document,window,getMonth:()=>activeSession?.commandOwner.state().timelineCursor,
+  const disposeTimeline=installTimelineControls({document,window,getMonth:()=>builtinActive&&builtinClock?.month() ? builtinClock.month() : activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
-      if(builtinActive){await builtinClock.selectMonth(month);return;}
+      if(builtinActive)return builtinClock.selectMonth(month);
       const current=activeSession;if(projectDomain.isOpening()||!current)throw new Error('지도를 여는 중입니다.');
       try {await current.commandOwner.setTimelineCursor(month);await map.update();search();syncStatus();}
       catch(error){if(current===activeSession&&!projectDomain.isOpening())throw error;}
@@ -114,26 +114,26 @@ export async function composeViewer({ productMode, meta }) {
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
     const request=projectDomain.getOpenRevision()+1;
-    status.textContent='지도 불러오는 중…';status.hidden=false;
+    status.textContent=options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…';status.hidden=false;
     status.dataset.ready='false';
     try {
-    if(!await projectDomain.open(reader,options))return;
-    if(request!==projectDomain.getOpenRevision())return;
+    if(!await projectDomain.open(reader,options))return false;
+    if(request!==projectDomain.getOpenRevision())return false;
     await map.loadPhysicalLandMask();
     await map.objectCatalog.pruneLayerItemVisibility();
     await map.update();
     window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
     await searchController.completeHydration();
-    if(request!==projectDomain.getOpenRevision())return;
+    if(request!==projectDomain.getOpenRevision())return false;
     map.loadPhysicalResources();
     search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';status.hidden=true;
     return true;
     } catch(error){if(request===projectDomain.getOpenRevision()){
       status.dataset.ready='true';status.hidden=true;throw error;
-    }}
+    }return false;}
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
-  builtinClock=createBuiltinMonthClock({window,document,applyMonth:(month,{isCurrent})=>open(()=>map.prepareBuiltinProject(month,{isCurrent}),{source:'builtin',preserveView:builtinClock.month()!==null}),onCommitted:()=>{builtinActive=true;syncStatus();},onError:report});
+  builtinClock=createBuiltinMonthClock({window,document,applyMonth:(month,{isCurrent,commit})=>open(()=>map.prepareBuiltinProject(month,{isCurrent}),{source:'builtin',isCurrent,onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},presentation:builtinActive&&builtinClock.month()!==null?'temporal':'default',preserveView:builtinClock.month()!==null}),onCommitted:()=>{builtinActive=true;syncStatus();},onError:report});
   const openUserProject=async(reader,options)=>{
     const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;
     try {const result=await open(reader,options);if(!result&&resume())builtinActive=previous;return result;}

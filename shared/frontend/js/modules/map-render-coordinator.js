@@ -112,6 +112,7 @@ export function createMapRenderCoordinator({
   let frameQueued = false;
   let rendering = false;
   let pendingMask = 0;
+  let deferredPresentationMask = 0;
   let interactionActive = false;
   const pendingReasons = new Set();
   const metrics = {
@@ -152,7 +153,7 @@ export function createMapRenderCoordinator({
       return { deferred: true, renderRevision };
     }
     const requestedMask = dirtyMask;
-    let mask = expandedMask(requestedMask);
+    let mask = expandedMask(requestedMask | deferredPresentationMask);
     if (interactionActive) mask &= ~MAP_RENDER_DIRTY.LABEL_LAYOUT;
     const startedAt = now();
     const rendererTimes = {};
@@ -207,6 +208,14 @@ export function createMapRenderCoordinator({
       } else if (!viewFrameResult && (mask & MAP_RENDER_DIRTY.GPU_FRAME)) {
         viewFrameResult = callRenderer('view', rendererTimes, viewState);
       }
+
+      if (viewFrameResult?.preserved) {
+        deferredPresentationMask |= mask & (MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.VIEW_PRESENTATION
+          | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW
+          | MAP_RENDER_DIRTY.LAYER_TREE | MAP_RENDER_DIRTY.HUD | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS);
+        return { deferred: true, renderRevision };
+      }
+      deferredPresentationMask = 0;
 
       if (mask & MAP_RENDER_DIRTY.INTERACTION_OVERLAYS) {
         callRenderer('geometryPreview', rendererTimes, viewState);

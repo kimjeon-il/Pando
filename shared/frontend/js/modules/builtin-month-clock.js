@@ -8,8 +8,10 @@ export function createBuiltinMonthClock({applyMonth,now=()=>new Date(),window=nu
  async function change(month){
   if(parseTemporal(month,{nullable:false}).precision!=='month')throw new Error('A query month is required');
   const ticket=++request,isCurrent=()=>!disposed&&ticket===request;pendingMonth=month;
-  try{const accepted=await applyMonth(month,{isCurrent});if(!isCurrent()||accepted===false)return false;
-   committed=month;onCommitted(month);return true;
+  let presented=false;
+  const commit=()=>{if(!isCurrent()||presented)return false;presented=true;committed=month;onCommitted(month);return true;};
+  try{const accepted=await applyMonth(month,{isCurrent,commit});if(!isCurrent()||accepted===false)return false;
+   if(!presented)commit();return true;
   }catch(error){if(!isCurrent()||error.cancelled)return false;throw error;}
   finally{if(isCurrent())pendingMonth=null;}
  }

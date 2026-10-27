@@ -995,10 +995,10 @@ export function createRenderingDomain({
     interaction.applyGpuInteractionCoverage?.(result);
     return result;
   };
-  const resetProjectGeneration = generation => {
+  const resetProjectGeneration = (generation, presentation = {}) => {
     active();
     resetTerritorialBoundaryCache();
-    gpuMapRenderer?.resetProjectRenderState?.({ generation });
+    gpuMapRenderer?.resetProjectRenderState?.({ generation,...presentation });
     return generation;
   };
   const getStats = () => Object.freeze({
@@ -1117,6 +1117,11 @@ export function createRenderingDomain({
       || Number(result?.projectGeneration || 0) !== Number(frame.projectGeneration || 0)) {
       stats.visualFrameRejectedCount += 1;
       return false;
+    }
+    if (result.temporalCommit) {
+      const layout = renderPass('labelLayout', frame);
+      renderTerritorialLabels(layout, frame);
+      renderUserLabels(layout, frame);
     }
     return commitViewAttachedLayers(frame, result, { canvasPresented: true });
   };
