@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import {buildFrontendIndex} from './lib/frontend-layout.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readApplicationImplementations, readApplicationOwners } from './lib/application-source.mjs';
+import { readApplicationImplementations, readApplicationOwners, domainPublicFacade, assertProjectLifecycleFacade } from './lib/application-source.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const frontend=buildFrontendIndex(root);
@@ -398,13 +398,8 @@ if (!readApplicationOwners('map-host').includes("invalidateViewport?.('resize')"
 }
 if (appSource.includes('renderAll(')) throw new Error('app.js must not retain renderAll compatibility calls');
 
-const domainPublicFacade = source => source.slice(source.lastIndexOf('return Object.freeze({'));
 // Project lifecycle APIs now have production UI consumers, not existence-only facades.
-for (const method of ['createEmpty', 'load', 'save', 'undo', 'redo']) {
-  if (!new RegExp(`\\b${method}\\s*[,:(]`).test(domainPublicFacade(projectDomainSource))) {
-    throw new Error(`ProjectDomain must own project lifecycle: ${method}`);
-  }
-}
+assertProjectLifecycleFacade(projectDomainSource);
 if (/\b(?:historyService|persistenceService)\s*\./.test(appSource)) {
   throw new Error('app.js must use ProjectDomain instead of history/persistence services directly');
 }

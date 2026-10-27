@@ -2,11 +2,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { auditWorkerArchitecture } from '../../scripts/check-worker-architecture.mjs';
 import { auditSchemaOwners, auditVersionDisplays } from '../../scripts/check-version-architecture.mjs';
+import { assertProjectLifecycleFacade } from '../../scripts/lib/application-source.mjs';
+import { readFileSync } from 'node:fs';
 
 const rpc = 'assets/js/modules/worker-rpc.js';
 const host = 'assets/js/workers/worker-rpc-host.js';
 const workerSources = client => new Map([[rpc, 'export function createWorkerRpcClient() {}'],
   [host, 'self.transport = {};'], ['assets/js/modules/renamed-client.js', client]]);
+
+test('project lifecycle guard checks the current domain facade and rejects a missing command',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/project-domain.js',import.meta.url),'utf8');
+  assert.doesNotThrow(()=>assertProjectLifecycleFacade(source));
+  assert.throws(()=>assertProjectLifecycleFacade('return Object.freeze({ load, save, undo, redo });'),/createProject/);
+});
 
 test('RPC architecture accepts aliases, formatting and comment-only private implementation markers', () => {
   const sources = workerSources("import { createWorkerRpcClient as createTransport } from './worker-rpc.js';\n// worker.onmessage = handler; pending = new Map();\nconst client = createTransport({});\nclient.request('operation', {});");
