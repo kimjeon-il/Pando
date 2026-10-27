@@ -18,8 +18,8 @@ function loadClassic(relativePath, globalName) {
   return globalThis[globalName];
 }
 
-const polygonClipping = loadClassic(path.join('assets', 'js', 'vendor', 'polygon-clipping.min.js'), 'polygonClipping');
-const countryGeometry = loadClassic(path.join('assets', 'js', 'modules', 'polygon-geometry.js'), 'PandoLabPolygonGeometry');
+const polygonClipping = loadClassic(path.join('shared', 'frontend', 'js', 'vendor', 'polygon-clipping.min.js'), 'polygonClipping');
+const countryGeometry = loadClassic(path.join('shared', 'frontend', 'js', 'modules', 'polygon-geometry.js'), 'PandoLabPolygonGeometry');
 const countries = buildCurrentWorld();
 const library = {entities:readTerritorialSources()};
 const historicalCountries = library.entities.filter(item => item.sourceInfo.importProvenance && item.entityKind === 'general' && !item.parentEntityId);
