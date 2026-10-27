@@ -1,5 +1,32 @@
 /* Canonical components / surface. */
 
+/* Map consumers read these computed lengths, including viewport/env/calc inputs. */
+@property --projection-safe-left {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --projection-safe-right {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --projection-safe-bottom {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --map-safe-left {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --map-safe-right {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 .overlay-root {
   position: fixed;
   inset: 0;
@@ -175,10 +202,10 @@
   z-index: 100;
   top: auto;
   right: 0;
-  bottom: var(--mobile-nav-height);
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
   left: 0;
   width: 100%;
-  max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height));
+  max-height: calc(var(--workspace-visible-height, 100dvh) - var(--ui-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   border: 1px solid var(--border);
   border-right: 0;
@@ -199,10 +226,10 @@
   z-index: 100;
   top: auto;
   right: 0;
-  bottom: var(--mobile-nav-height);
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
   left: 0;
   width: 100%;
-  max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height));
+  max-height: calc(var(--workspace-visible-height, 100dvh) - var(--ui-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   border: 1px solid var(--border);
   border-right: 0;

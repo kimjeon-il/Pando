@@ -34,6 +34,8 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   let mobileViewportHeight;
   let menuPositionScheduler;
   let searchToolbarPresentation;
+  let navigationObserver;
+  let mobileNavigation;
   let searchFocusFrame = 0;
   let searchComposing = false;
   function connect(ports) {
@@ -76,6 +78,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   function refreshMapSheetMetrics() {
     const panels = Object.values(MOBILE_SHEET_IDS).map(id => (0, dependencies.platform.$)(id)).filter(Boolean);
     syncVisibleViewport();
+    syncMobileNavigationHeight();
     if (layoutMode !== 'mobile') {
       panels.forEach(panel => {
         panel.style.removeProperty('--sheet-height');
@@ -87,6 +90,17 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     panels.forEach(panel => {
       if (mobileSheets.activeDrag?.panel !== panel) mobileSheets.setMobileSheetHeight(panel, mobileSheets.snapIndex.get(panel.id) ?? 1);
     });
+  }
+
+  function syncMobileNavigationHeight() {
+    if (productMode !== 'editor') return false;
+    const app = (0, dependencies.platform.$)('app');
+    const height = layoutMode === 'mobile' ? Math.ceil(mobileNavigation.getBoundingClientRect().height) : 0;
+    const value = height > 0 ? `${height}px` : '';
+    if (app.style.getPropertyValue('--mobile-nav-height') === value) return false;
+    if (value) app.style.setProperty('--mobile-nav-height', value);
+    else app.style.removeProperty('--mobile-nav-height');
+    return true;
   }
 
   function syncEditorPanelControls() {
@@ -163,7 +177,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   function syncFileMenuNotificationOffset() {
     const app = (0, dependencies.platform.$)('app');
     const menu = document.querySelector('.top-actions.mobile-open');
-    if (!app || layoutMode !== 'mobile' || !menu) {
+    if (!app || productMode === 'editor' || layoutMode !== 'mobile' || !menu) {
       app?.style.removeProperty('--file-menu-notification-top');
       return;
     }
@@ -389,6 +403,14 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
 
   function initializeWorkspaceSurfaces() {
     if(productMode==='editor'){
+      mobileNavigation = document.querySelector('.mobile-workspace-controls');
+      if (!mobileNavigation) throw new Error('Editor workspace navigation is missing');
+      navigationObserver = new ResizeObserver(() => {
+        if (!syncMobileNavigationHeight()) return;
+        refreshMapSheetMetrics();
+        dependencies.mapHostViewB.queueMapResize('navigation-height');
+      });
+      navigationObserver.observe(mobileNavigation);
       isPolygonDraftTool=tool=>dependencies.countryEditingA.draftToolConfig(tool)?.shape==='polygon';
       isGenericFeatureDraftTool=tool=>!!dependencies.countryEditingA.draftToolConfig(tool);
       uid=()=>dependencies.projectServices.createProjectObjectId();
@@ -495,14 +517,18 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
       }
       if(event.state?.[MOBILE_SHEET_HISTORY_KEY]){const next={...event.state};delete next[MOBILE_SHEET_HISTORY_KEY];window.history.replaceState(next,'',window.location.href);}
     });
-    if(window.visualViewport)listen(window.visualViewport,'resize', () => { refreshMapSheetMetrics(); menuPositionScheduler.schedule(); });
+    if(window.visualViewport)listen(window.visualViewport,'resize', () => {
+      refreshMapSheetMetrics();
+      menuPositionScheduler.schedule();
+      if(productMode==='editor')dependencies.mapHostViewB.queueMapResize('visual-viewport');
+    });
     if(window.visualViewport)listen(window.visualViewport,'scroll', () => { syncVisibleViewport(); menuPositionScheduler.schedule(); });
   }
 
   return Object.freeze({
     connect,
     initializeWorkspaceSurfaces,openFileMenu,
-    dispose(){listeners.forEach(remove=>remove());if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();if(searchToolbarPresentation)searchToolbarPresentation.dispose();cancelAnimationFrame(searchFocusFrame);},
+    dispose(){listeners.forEach(remove=>remove());if(navigationObserver)navigationObserver.disconnect();if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();if(searchToolbarPresentation)searchToolbarPresentation.dispose();cancelAnimationFrame(searchFocusFrame);},
     get MOBILE_SHEET_IDS() { return MOBILE_SHEET_IDS; },
     get activeCreateMenuItems() { return activeCreateMenuItems; },
     get applyLayoutMode() { return applyLayoutMode; },
