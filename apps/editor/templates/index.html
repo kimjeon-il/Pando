@@ -107,8 +107,9 @@
 
         <div class="map-overlay-layer" aria-label="지도 도구 및 상태">
 
+        <div class="mobile-workspace-controls">
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-menu-toolbar">
-          <button id="mobileMenuBtn" class="ui-button icon-btn mobile-menu-trigger" type="button" aria-label="메뉴 열기" data-tooltip="메뉴 열기" aria-haspopup="menu" aria-controls="mobileGlobalMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <button id="mobileMenuBtn" class="ui-button ui-nav-item mobile-menu-trigger" type="button" aria-label="메뉴 열기" data-tooltip="메뉴 열기" aria-haspopup="menu" aria-controls="mobileGlobalMenu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span><strong>메뉴</strong></button>
         </div>
 
         <nav class="ui-nav adaptive-nav mobile-bottom-bar" aria-label="작업 공간" data-od-id="workspace-navigation">
@@ -118,6 +119,7 @@
             <button id="mobileSearchBtn" class="ui-button ui-nav-item" type="button" aria-controls="objectSearchSurface" aria-label="검색" data-tooltip="검색" aria-expanded="false" data-od-id="workspace-search"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg></span><strong>검색</strong></button>
             <button id="mobileEditBtn" class="ui-button ui-nav-item" type="button" aria-controls="editorSurface" aria-expanded="false" data-od-id="workspace-edit"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
         </nav>
+        </div>
 
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar" aria-label="지도 명령">
           <button id="createMenuBtn" class="ui-button icon-btn create-menu-command" type="button" aria-label="추가" data-tooltip="추가" aria-haspopup="menu" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>

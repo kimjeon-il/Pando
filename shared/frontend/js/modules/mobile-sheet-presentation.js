@@ -14,7 +14,7 @@ export function createMobileSheetPresentation({document,window,getElement,getLay
   const isMobile=()=>getLayout()==='mobile';
   const mobileViewportHeight=()=>window.visualViewport?.height||window.innerHeight;
   function mobileSheetNavHeight() {
-    const nav = document.querySelector('.adaptive-nav');
+    const nav = document.querySelector('.mobile-workspace-controls');
     const height = nav?.getBoundingClientRect().height || 0;
     return height > 0 ? height : 64;
   }
