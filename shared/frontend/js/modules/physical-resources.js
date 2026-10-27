@@ -60,13 +60,13 @@ export function createPhysicalWaterPresentation() {
     return previous;
   };
 }
-export function createPhysicalResources({ capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
+export function createPhysicalResources({ buildMeta,capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
   let dependencies;
   let terrainService;
   let hydroService;
   let physicalLand = null, landLoading = null,physicalAssetLoader=null;
   function storedPhysicalAssets() {
-    if(!physicalAssetLoader)physicalAssetLoader=createStoredAssetLoader({dataRevision:globalThis.PANDOLAB_BUILD_META.dataRevision,
+    if(!physicalAssetLoader)physicalAssetLoader=createStoredAssetLoader({dataRevision:buildMeta.dataRevision,
       resolveUrl:spec=>new URL(spec.url.replace(/^assets\/data\//,''),dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL).href});
     return physicalAssetLoader;
   }
@@ -74,7 +74,7 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
   let requestedWaterKey=null;
   const presentPhysicalWater=createPhysicalWaterPresentation();
   function currentPhysicalContext() {
-    const selected=resolvePhysicalWaterObjects(globalThis.PANDOLAB_BUILD_META.physicalWaterObjects,dependencies.projectState.state.timelineCursor);
+    const selected=resolvePhysicalWaterObjects(buildMeta.physicalWaterObjects,dependencies.projectState.state.timelineCursor);
     if(!selected.length){requestedWaterKey=null;return physicalLand;}
     if(selected.length!==1)throw new Error('Physical land derivative must describe one coherent selected water context.');
     const row=selected[0],key=JSON.stringify(row.geometryRef),id=row.objectRef.id;
@@ -89,7 +89,7 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
       const loader=storedPhysicalAssets();
       const decode=buffer=>JSON.parse(new TextDecoder().decode(buffer));
       entry.promise=Promise.all([
-        row.assets.land.sha256===globalThis.PANDOLAB_BUILD_META.physicalLand.sha256?loadPhysicalLandMask().then(value=>({value:value.geometry})):loader.loadAsset(row.assets.land,'background',key+'-land','육지 배경',decode),
+        row.assets.land.sha256===buildMeta.physicalLand.sha256?loadPhysicalLandMask().then(value=>({value:value.geometry})):loader.loadAsset(row.assets.land,'background',key+'-land','육지 배경',decode),
         loader.loadAsset(row.assets.asset,'background',key+'-water','수역 형상',decode),
       ]).then(async ([land,water])=>{
         if(land.value.type!=='MultiPolygon'||!['Polygon','MultiPolygon'].includes(water.value.type))throw new Error('Invalid physical-water geometry.');
@@ -126,7 +126,7 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
     const state=dependencies.projectState.state,revision=state.hydroFeatureCatalogRevision||0,date=state.timelineCursor;
     if(!date)return false;
     if(!builtinTimelineView || builtinTimelineView.revision!==revision || builtinTimelineView.date!==date) {
-      const catalog=globalThis.PANDOLAB_BUILD_META.physicalWaterObjects;
+      const catalog=buildMeta.physicalWaterObjects;
       const identities=[...catalog.identities],records=structuredClone(catalog.timelineRecords);
       const ids=new Set(identities.map(row=>row.objectRef.id)),refs=new Set(catalog.geometries.map(row=>JSON.stringify(row.geometryRef)));
       for(const value of state.hydroFeatureCache.values()) {
@@ -145,7 +145,7 @@ export function createPhysicalResources({ capabilities = {terrain:true,builtinHy
   function loadPhysicalLandMask() {
     if (physicalLand) return Promise.resolve(physicalLand);
     if (!landLoading) landLoading = (async () => {
-      const meta = globalThis.PANDOLAB_BUILD_META;
+      const meta = buildMeta;
       if (!meta?.physicalLand) throw new Error('Missing pinned physical land asset.');
       const loader = storedPhysicalAssets();
       const result = await loader.loadAsset(meta.physicalLand, 'background', 'physical-land', '육지 배경', buffer => {

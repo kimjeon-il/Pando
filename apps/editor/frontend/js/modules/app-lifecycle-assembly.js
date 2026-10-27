@@ -2,7 +2,7 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createLifecycleAssembly() {
+export function createLifecycleAssembly({onStarted=null,onStopped=null}={}) {
   let dependencies;
   let projectUi;
   let propertyEditorUi;
@@ -215,9 +215,9 @@ export function createLifecycleAssembly() {
         },
       ],
       startup: async () => { await dependencies.physicalResources.loadPhysicalLandMask(); return dependencies.startup.init(); },
-      onReady: () => { dependencies.startupCommands.markRuntimeReady(); },
+      onReady:async context=>{if(onStarted)await onStarted(context);if(context.isActive())dependencies.startupCommands.markRuntimeReady();},
       onError: dependencies.readinessUi.showFatalError,
-      getDisposables: () => [{dispose:dependencies.gisRuntime.disposeFileAccess},{dispose:dependencies.workspaceUiB.disposeWorkspaceSurfaces},{dispose:dependencies.platformConfigurationB.disposeEnvironment},dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain,dependencies.domains.commandOwner],
+      getDisposables: () => [...(onStopped?[{dispose:onStopped}]:[]),{dispose:dependencies.gisRuntime.disposeFileAccess},{dispose:dependencies.workspaceUiB.disposeWorkspaceSurfaces},{dispose:dependencies.platformConfigurationB.disposeEnvironment},dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain,dependencies.domains.commandOwner],
       reportDisposeError: error => dependencies.readiness.reliabilityDiagnostic.push({ category: 'dispose', message: String(error?.message || error) }),
     }));
   }

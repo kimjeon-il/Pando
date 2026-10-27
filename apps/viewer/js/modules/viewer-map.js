@@ -48,7 +48,8 @@ import { createRingHitTester } from "../../../../shared/frontend/js/modules/ring
 import { layoutTerritorialFlags } from "../../../../shared/frontend/js/modules/territorial-label-flags.js";
 
 /** Viewer presentation adapter to the same GPU/Canvas renderer used by the editor. */
-export function createViewerMap({ owners,element, canvas, labelLayer, meta, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,isSafeKoreanErrorMessage,isMobile,diagnostics,getInteractionStyle }) {
+export function createViewerMap({ runtimeContext,owners,element, canvas, labelLayer, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,isSafeKoreanErrorMessage,isMobile,diagnostics,getInteractionStyle }) {
+  const meta=runtimeContext.meta;
   const d3 = globalThis.d3;
   if (!d3) throw new Error('지도 투영 라이브러리를 불러오지 못했습니다.');
   let renderingDomain=null;
@@ -109,8 +110,8 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   Object.assign(readPorts.colorModel,{territorialEntityColor:objectPresentation.territorialEntityColor,genericFeatureColor:objectPresentation.genericFeatureColor});
   const objectQuery=createObjectQuery(readPorts);
   connectMapOwner('objectCatalog',objectCatalog,readPorts);
-  const runtimeAssetUrl = path => {const url=new URL(`../${path}`,import.meta.url);url.searchParams.set('v',meta.assetRevision);return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname)?workerAssetUrl(url,meta):url;};
-  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:new URL('../',import.meta.url),dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile}),
+  const runtimeAssetUrl = path => {const url=runtimeContext.assetUrl(path);return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname)?workerAssetUrl(url,meta):url;};
+  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:runtimeContext.assetBaseUrl,dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile}),
     DATA_REVISION:meta.dataRevision,HYDRO_DATA_VERSION,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET};
   const territorialScope=createTerritorialScopeResolver({entityRepository:repository,clipper:()=>globalThis.polygonClipping,getState:()=>state});
   connectMapOwner('builtinSession',builtinSession,{projectState:{state},territorialModel:{entityRepository:repository},objectModelB:{territorialScope},

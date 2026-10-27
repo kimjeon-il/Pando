@@ -22,13 +22,13 @@ async function start() {
   }
   installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'map-data' });
   const assetBase = new URL('../assets/js/', import.meta.url);
-  const versionedAsset = relative => {
-    const url = new URL(relative, assetBase);
-    url.searchParams.set('v', meta.assetRevision);
-    return url;
-  };
+  const runtimeModuleUrl=new URL('./modules/runtime-context.js',assetBase);
+  runtimeModuleUrl.searchParams.set('v',meta.assetRevision);
+  const {validateBuildMetadata,versionedAssetUrl}=await import(runtimeModuleUrl.href);
+  validateBuildMetadata(meta);
+  const versionedAsset=relative=>versionedAssetUrl(relative,assetBase,meta.assetRevision);
   const profile = profileMeta.mode === 'map-data'
-    ? await createRuntimeProfile(profileMeta) : await verification.createFixtureProfile(profileMeta);
+    ? await createRuntimeProfile(profileMeta,meta) : await verification.createFixtureProfile(profileMeta);
   let repositoryPromise;
   const getLibraryRepository=globalThis.PANDOLAB_NATIVE_LIBRARY_AVAILABLE===true?()=>{
     if(!repositoryPromise)repositoryPromise=import(versionedAsset('./modules/native-library-repository.js').href)

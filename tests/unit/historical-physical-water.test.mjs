@@ -57,7 +57,7 @@ test('a rejected history load retains the background, avoids a fetch loop and re
  let reject=true,requests=0,failed,ready;
  const failure=new Promise(resolve=>{failed=resolve;}),loaded=new Promise(resolve=>{ready=resolve;});
  globalThis.fetch=async url=>{requests++;if(reject&&String(url).includes('history-land'))throw Error('transient');return new Response(bytes.get(new URL(url).pathname.split('/').at(-1)));};
- const state={timelineCursor:''},resource=createPhysicalResources({capabilities:{terrain:false,builtinHydro:false}});
+ const state={timelineCursor:''},resource=createPhysicalResources({buildMeta:globalThis.PANDOLAB_BUILD_META,capabilities:{terrain:false,builtinHydro:false}});
  resource.connect({projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},domains:{renderingDomain:{invalidateProject:reason=>{if(reason==='physical-water-ready')ready();}}},feedback:{reportOperationError:failed}});
  await resource.loadPhysicalData({includeHydro:false});const initial=resource.physicalLand;
  state.timelineCursor='1922-12';assert.equal(resource.physicalLand,initial);await failure;

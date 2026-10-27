@@ -13,7 +13,7 @@ import {createPhysicalSourceConfiguration,HYDRO_TOOL_CONFIG,HYDRO_LAYER_META,TER
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createEnvironment() {
+export function createEnvironment({runtimeContext}={}) {
   let dependencies;
   let preferencePresentation;
   let d3;
@@ -95,9 +95,8 @@ export function createEnvironment() {
   }
 
   function runtimeAssetUrl(relativePath) {
-    const url = new URL(relativePath, PANDOLAB_ASSET_BASE_URL);
-    url.searchParams.set('v', ASSET_REVISION);
-    return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname) ? workerAssetUrl(url) : url;
+    const url=runtimeContext.assetUrl(relativePath);
+    return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname) ? workerAssetUrl(url,runtimeContext.meta) : url;
   }
 
   function assertRuntimeCompatibility() {
@@ -114,22 +113,22 @@ export function createEnvironment() {
   }
 
   function initializeTerritorialGeometry() {
-    (APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || ''));
+    (APP_VERSION = runtimeContext.meta.appVersion);
 
     (FLAT_PROJECTION_KIND = 'equirectangular');
 
 
-    (ASSET_REVISION = String(window.PANDOLAB_ASSET_REVISION || globalThis.PANDOLAB_BUILD_META?.assetRevision || ''));
+    (ASSET_REVISION = runtimeContext.meta.assetRevision);
 
-    (DATA_REVISION = String(window.PANDOLAB_DATA_REVISION || globalThis.PANDOLAB_BUILD_META?.dataRevision || ''));
+    (DATA_REVISION = runtimeContext.meta.dataRevision);
 
     if (!APP_VERSION || !ASSET_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
 
-    (PANDOLAB_ASSET_BASE_URL = window.PANDOLAB_ASSET_BASE_URL || new URL('./assets/js/', location.href).href);
+    (PANDOLAB_ASSET_BASE_URL = runtimeContext.assetBaseUrl);
 
     ({PHYSICAL_DATA_BASE_URL,TERRAIN_RASTER_MANIFEST_URL,TERRAIN_DEV_DEM_MANIFEST_URL,
       TERRAIN_PRIMARY_MANIFEST_URL,TERRAIN_FALLBACK_MANIFEST_URL,TERRAIN_SOURCE_CHOICE}=createPhysicalSourceConfiguration({
-      assetBaseUrl:PANDOLAB_ASSET_BASE_URL,dataRevision:DATA_REVISION,resourceProfile:globalThis.PANDOLAB_BUILD_META?.resourceProfile}));
+      assetBaseUrl:PANDOLAB_ASSET_BASE_URL,dataRevision:DATA_REVISION,resourceProfile:runtimeContext.meta.resourceProfile}));
 
     (TERRITORIAL_LIBRARY_INDEX_URL = new URL('territorial-entities/generated/v2/index.json', PHYSICAL_DATA_BASE_URL));
 
