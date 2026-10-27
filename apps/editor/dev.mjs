@@ -1,6 +1,7 @@
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync,spawn} from 'node:child_process';
+import {setInterval,clearInterval} from 'node:timers';
 import {validateShellProfile} from './stage.mjs';
 import {apkCertificateSha256} from './native-contract.mjs';
 import {startDevelopmentServer,developmentOrigin} from '../../scripts/frontend-dev-server.mjs';
@@ -9,6 +10,12 @@ export function selectAndroidDevice(output,serial){
   const devices=output.split(/\r?\n/).map(line=>line.trim().split(/\s+/)).filter(([name,state])=>state==='device'&&!name.startsWith('emulator-')).map(([name])=>name);
   if(serial){if(!devices.includes(serial))throw Error('Requested physical device is not connected and authorized');return serial;}
   if(devices.length!==1)throw Error('Connect one authorized physical Android device; specify --serial when multiple devices are connected');return devices[0];
+}
+export async function waitForDevelopmentStop(){
+  // Signal listeners alone do not keep Node alive when another launcher owns the server.
+  const keepAlive=setInterval(()=>{},60_000);let stop;
+  try{await new Promise(resolve=>{stop=resolve;process.once('SIGINT',stop);process.once('SIGTERM',stop);});}
+  finally{clearInterval(keepAlive);process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}
 }
 export async function runNativeApplication({platform,mode='development',serial,repository=root}={}){
   const {fetchNativeArtifact}=await import('./packaged-artifacts.mjs');
@@ -53,7 +60,7 @@ export async function runNativeApplication({platform,mode='development',serial,r
       }
       adb(['-s',serial,'shell','am','force-stop',packageName]);adb(['-s',serial,'shell','am','start','-W','-n',packageName+'/.MainActivity']);
       console.log('Android '+mode+' ready on physical device '+serial);
-      if(mode==='development')await new Promise(res=>{shutdown=res;process.once('SIGINT',res);process.once('SIGTERM',res);});
+      if(mode==='development')await waitForDevelopmentStop();
     }
   }finally{
     if(shutdown){process.removeListener('SIGINT',shutdown);process.removeListener('SIGTERM',shutdown);}

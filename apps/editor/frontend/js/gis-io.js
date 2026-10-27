@@ -681,12 +681,8 @@
   }
 
   function openWizardModal() {
-    const fileInput = document.getElementById('gisFileInput');
-    const explicitReturnTarget = fileInput?.dataset.returnFocusId ? document.getElementById(fileInput.dataset.returnFocusId) : null;
-    if (fileInput) delete fileInput.dataset.returnFocusId;
     const active = document.activeElement;
-    if (explicitReturnTarget) wizardReturnFocus = explicitReturnTarget;
-    else if (active instanceof HTMLElement && active !== document.body && active.id !== 'gisFileInput') wizardReturnFocus = active;
+    if (active instanceof HTMLElement && active !== document.body && active.id !== 'gisFileInput') wizardReturnFocus = active;
     document.getElementById('gisImportModal')?.classList.remove('hidden');
     document.body.classList.add('modal-open');
   }

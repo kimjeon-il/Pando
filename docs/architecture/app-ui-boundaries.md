@@ -47,7 +47,9 @@ module URL. The immutable Worker resolver remains the asset-manifest boundary.
 `file-controller.js` owns file workflow and ProjectDomain commands. An explicit
 browser or native file-access port owns pickers, input events, paths/URIs and
 bytes. `prepareProjectSave()` runs before encoding and returns a `write`/`abort`
-destination. Persistence receives its resolved preview Worker URL; it does not
+destination. The browser picker opens during preparation to retain user
+activation. Native transport retains its existing `finish_document_write`
+dialog timing and chunk protocol. Persistence receives its resolved preview Worker URL; it does not
 read platform globals or resolve deployment paths itself.
 
 Library composition injects the existing loader contract and a separate optional
