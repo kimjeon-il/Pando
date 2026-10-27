@@ -65,6 +65,7 @@ export function createHistoryAssembly({ storageNamespace = null, libraryGeometry
       viewKey: dependencies.platformConfigurationA.AUTOSAVE_VIEW_KEY,fallbackKey: storageNamespace ? `${storageNamespace}-project` : dependencies.platformConfigurationB.STORAGE_KEY,
     });
     persistenceService=dependencies.projectServices.createPersistenceService({
+      previewWorkerUrl:dependencies.platform.runtimeAssetUrl('./workers/project-preview-worker.js'),
       storage: browserProjectStorage,scheduler: dependencies.projectState.mapWorkScheduler,
       canPersist: () => dependencies.readiness.canMutateProject(dependencies.projectState.state.dataReadiness),
       buildAutosave: () => dependencies.domains.projectDomain.buildAutosave(),previewBaseline: () => window.PANDOLAB_PREVIEW_BASELINE,

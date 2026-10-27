@@ -8,7 +8,7 @@ import {deviceCurrentMonth} from './builtin-month-clock.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createBuiltinSession({ builtinWorldLoader = null } = {}) {
+export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {}) {
   let dependencies;
   let pristineCountriesFallback;
   let canonicalCountryStore;
@@ -45,7 +45,7 @@ export function createBuiltinSession({ builtinWorldLoader = null } = {}) {
     const stale=()=>Object.assign(new Error('Builtin source request was superseded'),{name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
     const promise=(async()=>{
       if(!builtinWorldLoader){
-        const meta=window.PANDOLAB_BUILD_META;
+        const meta=buildMeta;
         const spec=meta.builtinWorld;
         builtinWorldLoader=createBuiltinWorldLoader({manifestUrl:new URL(spec.url,new URL('../../../',import.meta.url)).href,
           manifestSpec:spec,dataRevision:meta.dataRevision});

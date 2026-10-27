@@ -32,5 +32,31 @@ History candidate preparation belongs to project-state; app-project-snapshots
 performs the existing publication and history wiring. Browser storage I/O belongs
 to browser-project-storage, while persistence-service retains queue/recovery policy.
 
-See [platform-boundaries.md](platform-boundaries.md) for Web/App owners and evidence.
+## Shared product and platform composition
+
+`map-owner-ports.js` owns the allowed and required dependency contracts for the
+shared map owners. Both products connect through this boundary. Ports remain
+live, including accessors and sources installed later in startup. Editor-only
+commands remain in the editor composition; they are not empty Viewer services.
+
+`runtime-context.js` validates the immutable generated build receipt and owns
+versioned asset URL construction. Composition passes that receipt to builtin
+and physical resource owners. Module-relative imports use their versioned
+module URL. The immutable Worker resolver remains the asset-manifest boundary.
+
+`file-controller.js` owns file workflow and ProjectDomain commands. An explicit
+browser or native file-access port owns pickers, input events, paths/URIs and
+bytes. `prepareProjectSave()` runs before encoding and returns a `write`/`abort`
+destination. Persistence receives its resolved preview Worker URL; it does not
+read platform globals or resolve deployment paths itself.
+
+Library composition injects the existing loader contract and a separate optional
+editing repository. Only the native entry interprets native capability globals.
+Remote admission checks, repository revisions and source integrity remain in
+their established owners.
+
+ApplicationLifecycle owns the single startup Promise, awaits ready hooks and
+suppresses late publication after disposal. Product startup/restore work is
+injected; platform shells retain IPC, profile and network security boundaries.
+
 Focused behavior coverage remains in the existing UI/composition/domain tests.

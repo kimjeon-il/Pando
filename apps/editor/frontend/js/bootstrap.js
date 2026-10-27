@@ -3,16 +3,17 @@
 (async () => {
   const buildMeta = globalThis.PANDOLAB_BUILD_META;
   if (!buildMeta) throw new Error('빌드 메타데이터를 불러오지 못했습니다.');
-  const APP_VERSION = String(buildMeta.appVersion || '');
-  const BUILD_ID = String(buildMeta.buildId || '');
   const ASSET_REVISION = String(buildMeta.assetRevision || '');
-  const DATA_REVISION = String(buildMeta.dataRevision || '');
-  if (!APP_VERSION || !BUILD_ID || !ASSET_REVISION || !DATA_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
+  if(!ASSET_REVISION)throw new Error('빌드 자산 판본이 없습니다.');
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
   const MODAL_UI_BUNDLE = '../css/ui-modal.bundle.css';
 
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
+  const runtimeModuleUrl=new URL('./modules/runtime-context.js',assetBaseUrl);
+  runtimeModuleUrl.searchParams.set('v',ASSET_REVISION);
+  const {validateBuildMetadata,versionedAssetUrl}=await import(runtimeModuleUrl.href);
+  const {appVersion:APP_VERSION,buildId:BUILD_ID,dataRevision:DATA_REVISION}=validateBuildMetadata(buildMeta);
   const overlay = document.getElementById('bootstrapLoading');
   const message = document.getElementById('bootstrapLoadingText');
   const probe = document.getElementById('startupProbe');
@@ -128,9 +129,7 @@
   }
 
   function versionedAsset(relativePath) {
-    const url = new URL(relativePath, assetBaseUrl);
-    url.searchParams.set('v', ASSET_REVISION);
-    return url;
+    return versionedAssetUrl(relativePath,assetBaseUrl,ASSET_REVISION);
   }
 
   function installUiRuntime() {

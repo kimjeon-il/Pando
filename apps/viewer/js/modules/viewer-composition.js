@@ -1,3 +1,4 @@
+import {createRuntimeContext} from '../../../../shared/frontend/js/modules/runtime-context.js';
 import {createBrowserFileAccess} from '../../../../shared/frontend/js/modules/browser-file-access.js';
 import {connectMapOwner} from "../../../../shared/frontend/js/modules/map-owner-ports.js";
 import {createBrowserProjectStorage} from "../../../../shared/frontend/js/modules/browser-project-storage.js";
@@ -32,7 +33,8 @@ import { createPreferencesDialog } from "../../../../shared/frontend/js/modules/
 import {createBuiltinMonthClock} from "../../../../shared/frontend/js/modules/builtin-month-clock.js";
 
 export async function composeViewer({ productMode, meta }) {
-  if(productMode!=='viewer'||!meta?.assetRevision)throw new Error('실행 설정이 올바르지 않습니다.');
+  const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url)});
+  if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
   const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display,builtinClock,builtinActive=true;
   const preferencePresentation=createPreferencePresentation({document,window,productMode,onChange:change=>{if(map)map.refreshAppearance(change);}});
@@ -40,7 +42,7 @@ export async function composeViewer({ productMode, meta }) {
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
   tooltipController.bind();
   const viewStorage=createBrowserProjectStorage({productMode,indexedDB:window.indexedDB,localStorage:window.localStorage,databaseName:'pandolab-viewer',storeName:'views',viewKey:'active-view'});
-  const owners=createMapOwners({productMode,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));syncStatus();},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectVisible:(group,id)=>map.objectQuery.objectRefVisible(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
+  const owners=createMapOwners({productMode,buildMeta:runtimeContext.meta,platform:runtimeContext.platform,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));syncStatus();},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectVisible:(group,id)=>map.objectQuery.objectRefVisible(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
   const surfaces=owners.workspaceSurfaces;
   const selectController=createSelectController({document,window});selectController.enhanceAll();
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile()});
@@ -83,7 +85,7 @@ export async function composeViewer({ productMode, meta }) {
     mapHostViewB:{queueMapResize:()=>{owners.mapHost.queueMapResize('panel-layout');}},
     platformConfigurationB:{selectController},get mapNavigation(){return map.navigation;}});
   surfaces.initializeWorkspaceSurfaces();
-  map=createViewerMap({owners,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),meta,projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report});
+  map=createViewerMap({owners,runtimeContext,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report});
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,
     layerItemObjectRef:map.objectQuery.layerItemObjectRef,selectionDomain,

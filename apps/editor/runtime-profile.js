@@ -1,8 +1,7 @@
 /** Ordinary app runtime: the real pinned world only. */
-export async function createRuntimeProfile(profile) {
+export async function createRuntimeProfile(profile,meta) {
   if (profile.mode !== 'map-data') throw new Error('Ordinary runtime requires the map-data profile.');
   const profileUrl = new URL('./stage-profile.json', import.meta.url);
-  const meta = globalThis.PANDOLAB_BUILD_META;
   if (!meta?.builtinWorld || meta.resourceProfile !== 'map-data'
       || profile.dataRevision !== meta.dataRevision
       || profile.assetRevision !== meta.assetRevision) {

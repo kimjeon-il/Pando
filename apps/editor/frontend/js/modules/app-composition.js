@@ -1,7 +1,11 @@
+import {createRuntimeContext} from '../../../../../shared/frontend/js/modules/runtime-context.js';
 import {createMapOwners} from "../../../../../shared/frontend/js/modules/map-owner-composition.js";
 import {handleEditorMapClick} from './editor-map-click.js';
 /** Compose owners, connect their explicit ports, then initialize in dependency order. */
 export async function composeApplication({ productMode, revision, platform = {}, onComposed = null }) {
+  const runtimeContext=createRuntimeContext({productMode,meta:globalThis.PANDOLAB_BUILD_META,assetBaseUrl:new URL('../',import.meta.url),platform});
+  platform=runtimeContext.platform;
+  if(revision!==runtimeContext.meta.assetRevision)throw new Error('Application asset revision mismatch.');
   if (productMode !== 'editor') throw new TypeError('The application entry requires editor product mode.');
   const [
     runtime, factoryEnvironment, factoryObjectCommands, factoryServiceAssembly, factoryReadinessNotifications, factorySpatialEdit,
@@ -66,14 +70,14 @@ export async function composeApplication({ productMode, revision, platform = {},
     import(new URL(`./app-connect-project-io.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-connect-lifecycle-ui.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
   ]);
-  const {capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,platform,
+  const {capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking}=createMapOwners({productMode,buildMeta:runtimeContext.meta,platform,
     resolveVisibilityGroup:ref=>objectCommands.layerGroupForObjectRef(ref),closeActiveOverlay:()=>workspaceSurfaces.closeActiveMobileSheet(),isObjectVisible:(group,id)=>objectCommands.objectRefVisible(objectCommands.layerItemObjectRef(group,id)),
     editing:{beforeMeshRebuild:()=>spatialIndex.mapEditClient.rebase(),isDraggingDraft:()=>countryModes.editingDraftSnapshot().dragging,
       persistView:()=>domainAssembly.projectDomain.queueViewAutosave(),getEditPreview:()=>geometryPreview.editPreviewController.packet(),
       handleMapClick:point=>handleEditorMapClick(point,applicationPorts),
       onBackgroundClear:()=>workspaceSurfaces.closeSurface('editor',{restoreFocus:false}),
       performanceRecorder:{snapshot:(...args)=>serviceAssembly.selectionPerformanceCounterSnapshot(...args),publish:(...args)=>serviceAssembly.publishSelectionPerformanceSample(...args)}}});
-  const environment = factoryEnvironment.createEnvironment();
+  const environment = factoryEnvironment.createEnvironment({runtimeContext});
   const objectCommands = factoryObjectCommands.createObjectCommands();
   const serviceAssembly = factoryServiceAssembly.createServiceAssembly();
   const readinessNotifications = factoryReadinessNotifications.createReadinessNotifications();
@@ -104,7 +108,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
   const gisAssembly = factoryGisAssembly.createGisAssembly({ fileAccess: platform.fileAccess });
   const libraryAssembly = factoryLibraryAssembly.createLibraryAssembly({openLibrary:async()=>{
-    const meta=globalThis.PANDOLAB_BUILD_META;
+    const meta=runtimeContext.meta;
     return runtime.territorialEntityLoaderModule.openTerritorialLibraryAccess({
       repository:platform.getLibraryRepository?await platform.getLibraryRepository():null,
       source:{indexUrl:environment.TERRITORIAL_LIBRARY_INDEX_URL,indexSpec:meta.territorialIndex,dataRevision:meta.dataRevision},
@@ -121,7 +125,27 @@ export async function composeApplication({ productMode, revision, platform = {},
     libraryGeometryContext:platform.libraryGeometryContext,
   });
   const domainAssembly = factoryDomainAssembly.createDomainAssembly();
-  const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly();
+  const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly({onStarted:async({isActive})=>{
+        if(platform.libraryGeometryContext)platform.libraryGeometryContext.attachRuntime(Object.freeze({
+          projectDomain:domainAssembly.projectDomain,entityRepository:domainAssembly.territorialEntityRepository,
+          editingDomain:domainAssembly.editingDomain,getState:()=>projectSession.state,
+        }));
+        if (onComposed) await onComposed(Object.freeze({
+          projectDomain: domainAssembly.projectDomain,
+          entityRepository: domainAssembly.territorialEntityRepository,
+          gpuMapRenderer: serviceAssembly.gpuMapRenderer,
+          persistenceService: historyAssembly.persistenceService,
+          getState: () => projectSession.state,
+          saveState: projectSession.saveState,
+          projectUi: lifecycleAssembly.projectUi,
+          getView: () => mapHost.projectionViewSnapshot(),
+          navigation: cameraNavigation,
+          setTimelineMonth: month => domainAssembly.setTimelineMonth(month),
+        }));
+        if(!isActive())return;
+        window.addEventListener('pandolab:project-changed', taskPresentation.syncEditingContext);
+        taskPresentation.syncEditingContext();
+  },onStopped:()=>window.removeEventListener('pandolab:project-changed',taskPresentation.syncEditingContext)});
   const applicationProviders = {
     runtime, environment, builtinSession, workspaceSurfaces, projectSession, objectCommands,
     serviceAssembly, renderQuality, pointerTargets, cameraNavigation, readinessNotifications,
@@ -234,35 +258,5 @@ export async function composeApplication({ productMode, revision, platform = {},
   libraryAssembly.initializeTerritorialLibraryService();
   editorBindings.initializeEDITOR_COMMAND_ROW_ICONS();
   lifecycleAssembly.initializeLifecycle();
-  const lifecycle = lifecycleAssembly.lifecycle;
-  let startedApplication;
-  return Object.freeze({
-    ...lifecycle,
-    start() {
-      if (startedApplication) return startedApplication;
-      startedApplication = lifecycle.start().then(async started => {
-        if (!started) return started;
-        if(platform.libraryGeometryContext)platform.libraryGeometryContext.attachRuntime(Object.freeze({
-          projectDomain:domainAssembly.projectDomain,entityRepository:domainAssembly.territorialEntityRepository,
-          editingDomain:domainAssembly.editingDomain,getState:()=>projectSession.state,
-        }));
-        if (onComposed) await onComposed(Object.freeze({
-          projectDomain: domainAssembly.projectDomain,
-          entityRepository: domainAssembly.territorialEntityRepository,
-          gpuMapRenderer: serviceAssembly.gpuMapRenderer,
-          persistenceService: historyAssembly.persistenceService,
-          getState: () => projectSession.state,
-          saveState: projectSession.saveState,
-          projectUi: lifecycleAssembly.projectUi,
-          getView: () => mapHost.projectionViewSnapshot(),
-          navigation: cameraNavigation,
-          setTimelineMonth: month => domainAssembly.setTimelineMonth(month),
-        }));
-        window.addEventListener('pandolab:project-changed', taskPresentation.syncEditingContext);
-        taskPresentation.syncEditingContext();
-        return started;
-      });
-      return startedApplication;
-    },
-  });
+  return lifecycleAssembly.lifecycle;
 }

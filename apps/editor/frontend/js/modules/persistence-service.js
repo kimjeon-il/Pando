@@ -21,6 +21,7 @@ export function createPersistenceService({
   onWarning = () => {},
   onRecoveryState = () => {},
   previewGeometry = null,
+  previewWorkerUrl,
   previewProjection = null,
   previewBaseline = () => null,
   now = () => new Date(),
@@ -41,7 +42,7 @@ export function createPersistenceService({
     onRecoveryState(getRecovery());
   };
   const previewCache = previewGeometry && storage.readPreview && storage.writePreview
-    ? createProjectPreviewCache({ storage, scheduler, getGeometry: previewGeometry,
+    ? createProjectPreviewCache({ storage, scheduler, getGeometry: previewGeometry,workerUrl:previewWorkerUrl,
       getBaseline: previewBaseline, getPreviewSource:previewProjection, onWarning }) : null;
   function persist(snapshot = null) {
     if (!snapshot && queuedAutosave) return queuedAutosave;

@@ -32,6 +32,7 @@ function harness(overrides = {}) {
     ...overrides.storage,
   };
   const service = createPersistenceService({
+    previewWorkerUrl:'https://fixture.test/preview-worker.js',
     storage,
     scheduler: {
       scheduleIdle(key, task, delay) { tasks.set(key, { task, delay }); },
