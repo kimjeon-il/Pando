@@ -323,6 +323,20 @@ export function createSceneColorCache({ nearestSampling = false } = {}) {
     }
   }
 
+  // Keep the previous complete target owned by the cache until the candidate
+  // has actually been submitted. A failed publication must not turn it into
+  // the next staging target.
+  function presentScene(pixelWidth, pixelHeight, viewSignature, projectGeneration) {
+    const previous = { activeTarget, stagingTarget, activeViewSignature, stagingViewSignature,
+      activeProjectGeneration, stagingProjectGeneration, width, height, valid, dirty };
+    if (!finishScene(null, viewSignature, projectGeneration)) return false;
+    if (composite(pixelWidth, pixelHeight, {clearTarget:false})) return true;
+    ({ activeTarget, stagingTarget, activeViewSignature, stagingViewSignature,
+      activeProjectGeneration, stagingProjectGeneration, width, height, valid, dirty } = previous);
+    composite(pixelWidth, pixelHeight, {clearTarget:false});
+    return false;
+  }
+
   function handleContextLost() {
     activeTarget = stagingTarget = null;
     quadBuffer = compositeProgram = null;
@@ -352,6 +366,7 @@ export function createSceneColorCache({ nearestSampling = false } = {}) {
     initialize,
     beginScene,
     finishScene,
+    presentScene,
     composite,
     invalidate,
     reset,

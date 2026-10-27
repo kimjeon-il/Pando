@@ -355,7 +355,7 @@ export function createProjectDomain({
     commandQueue=operation.catch(() => {});return operation;
   };
 
-  const replaceAccepted = async (prepared, reason, {isCurrent=()=>true}={}) => {
+  const replaceAccepted = async (prepared, reason, {isCurrent=()=>true,presentation='default',onPresented}={}) => {
     assertActive();
     const requireCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Project opening was superseded.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});};
     requireCurrent();
@@ -369,7 +369,7 @@ export function createProjectDomain({
       replacementStarted = true;
       await onReplacementState(true, reason);
       persistence?.cancelPending?.();
-      const nextGeneration = await bumpGeneration(`project-${reason}`);
+      const nextGeneration = await bumpGeneration(`project-${reason}`, presentation === 'temporal' ? {presentation,isCurrent,onPresented} : null);
       if(reason==='new'||reason==='builtin') {
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
         await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
@@ -402,7 +402,7 @@ export function createProjectDomain({
       if (replacementStarted && checkpoint !== undefined) {
         // Generations stay monotonic so failed replacement workers remain stale.
         try {
-          const rollbackGeneration = await bumpGeneration('project-rollback');
+          const rollbackGeneration = await bumpGeneration('project-rollback',presentation==='temporal'?{presentation}:null);
           await commandOwner.rollbackReplacement(checkpoint.replacementId);
           if(restoreReplacement)await restoreReplacement(documentModel.snapshot(),rollbackGeneration);
           await restoreEditorSession(checkpoint.editor,rollbackGeneration);
@@ -439,11 +439,11 @@ export function createProjectDomain({
     } catch(error) { replacing=false;throw error; }
   };
   const load = (project,options) => replace(project, 'load',options);
-  const open = async (read,{source='project'}={}) => {
+  const open = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented}={}) => {
     assertActive();
     if(!['project','builtin'].includes(source))throw new TypeError('Unknown project source.');
     if(typeof read!=='function')throw new TypeError('Project opening requires its asynchronous source reader.');
-    const ticket=++openRequest,isCurrent=()=>!disposed&&ticket===openRequest;
+    const ticket=++openRequest,isCurrent=()=>!disposed&&ticket===openRequest&&requestCurrent();
     opening=true;
     try {
       // Builtin readers admit a Core baseline. Run them after an earlier
@@ -455,7 +455,7 @@ export function createProjectDomain({
         if(source==='builtin') {
           const baseline=await read();
           if(!baseline||!isCurrent())return false;
-          await replace(baseline,'builtin',{isCurrent});
+          await replace(baseline,'builtin',{isCurrent,presentation,onPresented});
         }
         else await load(project,{isCurrent});
         return isCurrent();
