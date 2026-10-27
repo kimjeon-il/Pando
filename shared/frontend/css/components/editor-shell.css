@@ -12,7 +12,8 @@
 }
 
 .distribution-entry-row {
-  grid-template-columns: minmax(0, 1fr) minmax(5rem, 6rem) var(--ui-control-height);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(5rem, 6rem) var(--ui-icon-control-size);
   gap: var(--ui-space-2);
   align-items: center;
   padding: var(--ui-space-2);
