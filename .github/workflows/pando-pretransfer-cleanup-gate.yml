@@ -31,7 +31,7 @@ jobs:
         run: |
           python -m compileall -q scripts/gis
           node --check tools/build-place-candidates.mjs
-          python -m py_compile tools/build_north_schleswig_1914_001_026.py tools/audit_north_schleswig_1914_001_026.py tools/audit_north_schleswig_1914_stone26_split.py tools/build_german_empire_1914_modern_coast.py
+          python -m py_compile tools/build_german_empire_1914_modern_coast.py
       - name: Validate inventory and deleted legacy locations
         shell: bash
         run: |
