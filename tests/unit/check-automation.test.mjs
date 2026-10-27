@@ -112,6 +112,18 @@ test('verification startup resolves versioned fixture modules at the declared ru
   assert.ok(plan.unitTests.includes('tests/unit/verification.test.mjs'));
 });
 
+test('current native startup metadata seed resolves to the shared runtime owner', t => {
+  const f=fixture();t.after(()=>rmSync(f.root,{recursive:true,force:true}));
+  const catalog=JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json',import.meta.url)));
+  f.catalog.runtimeBases=catalog.runtimeBases;
+  f.catalog.relocatedSources=catalog.relocatedSources;
+  f.put('apps/editor/startup.js',readFileSync(new URL('../../apps/editor/startup.js',import.meta.url),'utf8'));
+  for(const name of ['runtime-profile','native-storage','network-guard'])f.put('apps/editor/'+name+'.js');
+  for(const name of ['native-library-repository','library-geometry-context','territorial-entity-loader','territorial-library-service'])f.put('apps/editor/frontend/js/modules/'+name+'.js');
+  f.put('shared/frontend/js/modules/runtime-context.js');
+  assert.ok(f.repository().dependencies('apps/editor/startup.js').includes('shared/frontend/js/modules/runtime-context.js'));
+});
+
 test('module URL reads retain root configuration and workflow consumers', () => {
   const f = fixture();
   f.put('package.json', '{}'); f.put('playwright.config.js'); f.put('.github/workflows/application-architecture.yml');
