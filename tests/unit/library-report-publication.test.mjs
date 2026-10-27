@@ -70,6 +70,16 @@ test('failed push remains a failure with originals intact and retries the same r
   assert.equal(library.publishLibraryReports({ root: f.root, prefixes: ['reports/development/task'] }).revision, saved);
 });
 
+test('report publication leaves an independent Git maintenance journal untouched',t=>{
+  const f=fixture(t),pending=join(f.shared,'.git/pando-git-compaction.pending.json');
+  const journal=JSON.stringify({owner:'explicit maintenance',phase:'pending'});
+  writeFileSync(pending,journal);
+  const result=library.publishLibraryReports({root:f.root,prefixes:['reports/development/task']});
+  assert.equal(git(f.remote,'rev-parse','main'),result.revision);
+  assert.equal(readFileSync(pending,'utf8'),journal);
+  assert.equal(JSON.parse(readFileSync(join(f.root,'config/library-data.json'),'utf8')).revision,f.revision);
+});
+
 test('publication preserves a busy lock and refuses unpublished non-report work on shared main', t => {
   const f = fixture(t); assert.equal(typeof library.publishLibraryReports, 'function');
   const lock = join(f.shared, '.git/pando-library.lock'); writeFileSync(lock, 'another writer');

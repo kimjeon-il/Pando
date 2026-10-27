@@ -531,16 +531,16 @@ export function prefetchArchiveEntries({checkout,revision,entries,additionalByte
 export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
   return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch }));
 }
-export function withLibraryLock(root, operation, { maintenance = false, organizing = false } = {}) {
+export function withLibraryLock(root, operation, { maintenance = false, organizing = false, compact = true } = {}) {
   const lockPath = resolve(root, '.library-data/prepare.lock');
   mkdirSync(dirname(lockPath), { recursive: true });
   let lock;
   try { discardDeadLibraryLock(lockPath); lock = openSync(lockPath, 'wx'); }
   catch (error) { throw Error('Library preparation is already running; preserve its outputs and retry after it finishes.', { cause: error }); }
-  try { writeFileSync(lock, JSON.stringify({ pid: process.pid, root })); return withCheckoutLock(libraryCheckout(root), operation, maintenance, organizing); }
+  try { writeFileSync(lock, JSON.stringify({ pid: process.pid, root })); return withCheckoutLock(libraryCheckout(root), operation, maintenance, organizing, compact); }
   finally { closeSync(lock); unlinkSync(lockPath); }
 }
-function withCheckoutLock(checkout, operation, maintenance = false, organizing = false) {
+function withCheckoutLock(checkout, operation, maintenance = false, organizing = false, compact = true) {
   if (!existsSync(resolve(checkout, '.git'))) return operation();
   const common = sharedGitDirectory(checkout);
   const path = resolve(common, 'pando-library.lock');
@@ -551,9 +551,10 @@ function withCheckoutLock(checkout, operation, maintenance = false, organizing =
     writeFileSync(handle, JSON.stringify({ pid: process.pid, checkout })); recoverContentPermissions(dirname(common));
     if (!maintenance && existsSync(resolve(dirname(common), '.pando-store/storage-migration.pending.json'))) throw Error('Library storage migration must resume before preparing or editing data.');
     if (!organizing && existsSync(resolve(dirname(common), '.pando-store/report-organization.pending.json'))) throw Error('Report organization must resume before preparing or editing data.');
-    if(!maintenance||existsSync(resolve(common,'pando-git-compaction.pending.json')))compactDuplicatePacks(checkout);
+    // Report-only operations leave independent pack maintenance untouched.
+    if(compact&&(!maintenance||existsSync(resolve(common,'pando-git-compaction.pending.json'))))compactDuplicatePacks(checkout);
     const result=operation();
-    if(!maintenance)compactDuplicatePacks(checkout);
+    if(compact&&!maintenance)compactDuplicatePacks(checkout);
     return result;
   }
   finally { closeSync(handle); unlinkSync(path); }
@@ -1297,10 +1298,10 @@ export function publishLibraryReports({ root = defaultRoot, prefixes } = {}) {
     const data = prepareReportPublication(root, prefixes);
     storeOwnedLibraryData({ root, prefixes, removePaths: [], push: true, reportData: data });
     return checkOwnedReports(root, prefixes);
-  });
+  },{compact:false});
 }
 export function checkLibraryReports({ root = defaultRoot, prefixes } = {}) {
-  return withLibraryLock(root, () => checkOwnedReports(root, prefixes));
+  return withLibraryLock(root, () => checkOwnedReports(root, prefixes),{compact:false});
 }
 
 // App-owned writers store their output here; the data repository runs no tools.
