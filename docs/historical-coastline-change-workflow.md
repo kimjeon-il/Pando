@@ -9,7 +9,7 @@
 
 The nine-event Dutch **date/source catalogue** and one compact historical shoreline report remain the evidence owners. Prioritize Zuiderzee/IJsselmeer, Wieringermeer, Flevoland, and major waterway connections. Treat local harbor fills, separate small artificial islands, dyke microchanges and subpixel shoreline differences as omitted by default unless they change an important state, city, island, or major physical connection.
 
-The previous 12-point country-membership probe, 0.5 CSS-pixel *research* target, 36,029-vertex modern comparison and expanded surface-area diagnostics have been retired from current evidence and tests. Their high-detail conclusions are condensed in the dated report; old Git revisions retain historical records. No historic shoreline vectors were created, and the present NLD geometry, country timeline, hydro data and map are unchanged. Event construction and closure dates are not dates of land formation or proof of historical ownership.
+The previous 12-point probe and expanded area-receipt JSON have been removed from the current archive; the 36,029-vertex comparison and 0.5 CSS-pixel number are legacy research context, **not** current acceptance criteria. A legacy numeric field may remain in the retained event-source metadata, without establishing coastline accuracy. Their high-detail conclusions are condensed in the dated report; old Git revisions retain historical records. No historic shoreline vectors were created, and the present NLD geometry, country timeline, hydro data and map are unchanged. Event construction and closure dates are not dates of land formation or proof of historical ownership.
 
 ## 1. Objective and non-goals
 
