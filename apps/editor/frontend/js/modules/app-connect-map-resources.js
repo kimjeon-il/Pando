@@ -1,4 +1,5 @@
 import { MAP_RESOURCE_OWNER_PORTS } from './app-capability-ports.js';
+import {connectCapabilityOwners} from './app-capability-port-utils.js';
 
 /** Explicit dependency wiring; no state ownership or event registration. */
 export function connectMapResources({
@@ -23,9 +24,5 @@ export function connectMapResources({
     interactionPackets,
   };
 
-  for (const [ownerName, ownerPorts] of Object.entries(MAP_RESOURCE_OWNER_PORTS)) {
-    owners[ownerName].connect(Object.freeze(Object.fromEntries(
-      ownerPorts.map(portName => [portName, ports[portName]]),
-    )));
-  }
+  connectCapabilityOwners(MAP_RESOURCE_OWNER_PORTS,owners,ports);
 }
