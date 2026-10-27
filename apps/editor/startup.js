@@ -22,7 +22,7 @@ async function start() {
   }
   installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'map-data' });
   const assetBase = new URL('../assets/js/', import.meta.url);
-  const runtimeModuleUrl=new URL('./modules/runtime-context.js',assetBase);
+  const runtimeModuleUrl=new URL('../assets/js/modules/runtime-context.js',import.meta.url);
   runtimeModuleUrl.searchParams.set('v',meta.assetRevision);
   const {validateBuildMetadata,versionedAssetUrl}=await import(runtimeModuleUrl.href);
   validateBuildMetadata(meta);
