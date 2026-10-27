@@ -1,4 +1,4 @@
-name: Historical North Schleswig evidence preservation check
+name: Historical Germany 1914 HGIS source readiness
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  preservation-inventory:
+  hgis-readiness:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Read pinned library archive index without modifying research originals
+      - name: Fetch pinned library inventory for German 1914 HGIS only
         shell: bash
         run: |
           set -euo pipefail
@@ -32,42 +32,6 @@ jobs:
           curl --fail --location --retry 3 --connect-timeout 15 --max-time 120 \
             "$URL" --output "$RUNNER_TEMP/pando-archive-index.json"
           mkdir -p build-native/historical
-          node --input-type=module - <<'JS'
-          import fs from 'node:fs';
-          const index=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/pando-archive-index.json','utf8'));
-          if(!index.files || typeof index.files!=='object')throw Error('Missing library archive file index');
-          const rows=Object.entries(index.files).filter(([path])=>path.toLowerCase().includes('north-schleswig'));
-          const classify=path=>{
-            if(/\.(png|jpg|jpeg|tif|tiff|jp2|webp|pdf)(\.gz)?$/i.test(path))return 'mapImages';
-            if(/\.(geojson|gpkg|shp|kml)(\.gz)?$/i.test(path))return 'geometries';
-            if(/\.md(\.gz)?$/i.test(path))return 'reports';
-            if(/\.(json|xml|txt)(\.gz)?$/i.test(path))return 'sourceMetadata';
-            return 'other';
-          };
-          const counts={mapImages:0,geometries:0,reports:0,sourceMetadata:0,other:0};
-          const records=rows.map(([path,v])=>{
-            if(!/^[a-f0-9]{64}$/i.test(v?.sha256||'')||!Number.isSafeInteger(v.bytes))
-              throw Error('Invalid archive SHA/byte receipt: '+path);
-            const category=classify(path);counts[category]++;
-            return {path,category,sha256:v.sha256,bytes:v.bytes,stored:v.stored||null};
-          });
-          const report={
-            schema:'pando-historical-archive-readonly-inventory-v1',scope:'north-schleswig',
-            libraryRevision:JSON.parse(fs.readFileSync('config/library-data.json','utf8')).revision,
-            counts,records,missing:[
-              ...(!counts.mapImages?['permanently archived historical map/overlay images']:[]),
-              ...(!counts.geometries?['verified reference/master GeoJSON']:[]),
-              ...(!counts.reports?['compressed research report']:[]),
-              ...(!counts.sourceMetadata?['source provenance and rights metadata']:[]),
-            ],
-            readyForDeletion:false,
-            caveat:'Index records do not establish archival byte integrity, map rights, 1914 shoreline or legal boundary correctness.',
-          };
-          fs.writeFileSync('build-native/historical/north-schleswig-archive-inventory.json',
-            JSON.stringify(report,null,2)+'\n',{flag:'wx'});
-          console.log('NORTH_SCHLESWIG_ARCHIVE_INVENTORY='+JSON.stringify({
-            counts:report.counts,missing:report.missing,readyForDeletion:false}));
-          JS
       - name: Verify whether licensed HGIS originals and 1914 geometry oracles exist in the pinned archive
         shell: bash
         run: |
@@ -116,9 +80,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: north-schleswig-archive-preservation-inventory
-          path: |
-            build-native/historical/north-schleswig-archive-inventory.json
-            build-native/historical/c1-source-readiness.json
+          name: germany-1914-hgis-source-readiness
+          path: build-native/historical/c1-source-readiness.json
           retention-days: 14
           if-no-files-found: warn

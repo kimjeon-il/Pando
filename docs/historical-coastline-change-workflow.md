@@ -5,6 +5,12 @@
 **Branch:** `work/gis`.  
 **Mandatory rules:** [historical reconstruction policy](historical-border-reconstruction-policy.md), [branch/worktree policy](branch-policy.md).
 
+## Netherlands pilot — closed at 1:10M research scope (2026-10-28)
+
+The nine-event Dutch **date/source catalogue** and one compact historical shoreline report remain the evidence owners. Prioritize Zuiderzee/IJsselmeer, Wieringermeer, Flevoland, and major waterway connections. Treat local harbor fills, separate small artificial islands, dyke microchanges and subpixel shoreline differences as omitted by default unless they change an important state, city, island, or major physical connection.
+
+The previous 12-point probe and expanded area-receipt JSON have been removed from the current archive; the 36,029-vertex comparison and 0.5 CSS-pixel number are legacy research context, **not** current acceptance criteria. A legacy numeric field may remain in the retained event-source metadata, without establishing coastline accuracy. Their high-detail conclusions are condensed in the dated report; old Git revisions retain historical records. No historic shoreline vectors were created, and the present NLD geometry, country timeline, hydro data and map are unchanged. Event construction and closure dates are not dates of land formation or proof of historical ownership.
+
 ## 1. Objective and non-goals
 
 Build historic shorelines across multiple centuries **without storing one full coastline for every country-year**. Reuse a modern baseline wherever the historical shoreline is unchanged, and store independent **geographic change events** tied to dated evidence, physical effects, and local geometry.
@@ -19,8 +25,7 @@ Event inventories are reusable across sovereigns and eras: Germany 1914 coastal 
 
 - **Current national source geometry:** `assets/data/territorial-entities/source/countries/<lineageId>.json` and the existing territorial build pipeline. Generated bundles are **not** authoritative editable source.
 - **German regional event evidence:** `tools/historical-library/sources/german-coastline/change-events.json` and the detailed WMS / dyke / Helgoland evidence alongside it. Do **not** copy those entries into another 'global' country-specific table.
-- **Dutch regional event evidence:** `tools/historical-library/sources/netherlands/change-events.json` and the previously prepared [reverse-chronological source plan](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/geography/netherlands/land-reclamation-reverse-timeline.md).
-- **Read-only Dutch current-baseline point audit:** [phase-0 result](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/geography/netherlands/phase0-canonical-audit.md). Neither this audit nor the nine indexed events contains a digitized historical shoreline.
+- **Dutch dated event evidence:** `tools/historical-library/sources/netherlands/change-events.json` and the [condensed historical Netherlands report](https://github.com/kimjeon-il/PandoLab-library-data/blob/main/reports/borders/reconstruction/netherlands/land-reclamation-reverse-timeline.md). Retired baseline probes and individual area/vertex receipts are not historical shoreline sources or publication prerequisites.
 
 Worldwide catalogue discovery now starts from the [read-only coastline catalogue registry](../tools/historical-library/sources/coastline-catalogs.json). It references German and Dutch regional source catalogues by **path and geographic scope**, without copying events. A future loader may consume this registry; no production loader or current-world build has been changed.
 
@@ -56,7 +61,7 @@ Follow the existing GIS policy's `source-indexed`, `overlay-reviewed`, `screen-d
 
 Use overlapping spatial packages **rather than a separate full audit for every country**. The first pilot packages are:
 
-- **Netherlands:** Maasvlakte 2 modern baseline → phased Rotterdam rollback; then Zuiderzee/Wieringermeer/Flevoland water/land/connection chronology → Lauwerszee / Zeeland / Dollard.
+- **Netherlands:** Zuiderzee/IJsselmeer, Wieringermeer and Flevoland first; review Lauwerszee and IJsselmeer/Markermeer connectivity only when visible at 1:10M. Rotterdam, Zeeland, Dollard and smaller fills are exceptional only where a major coastline or waterway change is demonstrated, not a mandatory high-resolution rollback.
 - **1914 German Empire:** continue existing coastal event list and historical WMS, North Frisian levees, Helgoland and Schleswig land/sea boundary; **do not treat large Natural Earth vs HistoGIS differences as confirmed reclamation**.
 - **Shared Dollard/Ems:** one physical shoreline investigation with *separate* bilateral frontier evidence and sovereignty interpretations.
 
@@ -66,10 +71,10 @@ Remote sensing and modern national GIS can **locate recent candidates**; it cann
 
 ## 6. First-pilot observed facts and limitations
 
-As of 2026-10-09, the built-in NLD source contains **12 polygons, of which nine are European and three Caribbean, with no interior rings**. The [12 point probe](../tools/historical-library/sources/netherlands/canonical-phase0-probes.json) found 11 points inside this **country** polygon, including sample inland water locations, and one point (a published Maasvlakte 2 locality) outside. This is a canonical baseline sample, **not** a coastline inventory, hydrology audit or independently digitized historical screen-delta check.
+The 2026-10-27 [condensed audit report](https://github.com/kimjeon-il/PandoLab-library-data/blob/main/reports/borders/reconstruction/netherlands/land-reclamation-reverse-timeline.md) records the earlier NLD baseline observation: 12 national polygon components (nine European, three Caribbean), inland water included in the country footprint, and an unverified Maasvlakte 2 sample outside the then-published outline. Neither a country containment sample nor subtraction of the bundled lake area proves actual dry land or a missing historical reclamation.
 
-A separate Dutch [nine-event physical catalogue](../tools/historical-library/sources/netherlands/change-events.json) now uses the existing German pattern, with official source references and no invented shoreline switch dates.
+The retained [nine-event source catalogue](../tools/historical-library/sources/netherlands/change-events.json) preserves source references and established construction/closure dates without inventing shoreline geometry. The former point-probe JSON and individual high-detail audit JSON have been retired; their historical findings are included in the compact report.
 
-**Next promotion blocker:** obtain date-specific modern/pre-reclamation coastal vectors for one genuinely local patch (recommended Maasvlakte 2), and verify the current rendered baseline first. No rollback geometry, historical-polygon replacement or actual Web/App source change has yet been performed.
+**Future work, only if a major event warrants it:** independently verify time-specific land and water before/after shapes for the selected 1:10M-visible event. No automatic Rotterdam rollback, full coastline digitization, country replacement or Web/App change is authorized by this pilot.
 
 **Deliberately unchanged:** canonical country source, preview and mesh, built-in lakes/hydro data, other histories, app repository, `main` and live application.

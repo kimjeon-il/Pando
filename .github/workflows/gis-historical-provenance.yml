@@ -32,23 +32,18 @@ jobs:
           node tools/gis/check-historical-source-provenance.mjs \
             --before "$OLD" --after "$NEW" \
             | tee build-native/historical/east-prussia-forensics.jsonl
-      - name: Inventory pinned Caspian network and North Schleswig map original paths
+      - name: Inventory pinned Caspian 1922 source ZIP evidence
         run: |
           node --input-type=module - <<'JS'
           import {readFileSync} from 'node:fs';
           const pin=JSON.parse(readFileSync('config/library-data.json','utf8')).revision;
-          const url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+pin+'/archive/index.json';
-          const response=await fetch(url,{signal:AbortSignal.timeout(90000)});
-          if(!response.ok)throw Error('Pinned index '+response.status);
+          const response=await fetch('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+pin+'/archive/index.json',{signal:AbortSignal.timeout(90000)});
+          if(!response.ok)throw Error('Pinned index HTTP '+response.status);
           const idx=await response.json();
-          const relevant=Object.entries(idx.files).filter(([name])=>
-            name.includes('ussr-1922-approved')||name.includes('north-schleswig'));
-          const zip=relevant.filter(([name])=>name.endsWith('.zip'))
-            .map(([path,e])=>({path,bytes:e.bytes,sha256:e.sha256}));
-          const map=relevant.filter(([name])=>/\.(tif|tiff|png|jpg|jpeg|jp2|pdf)(?:\.gz)?$/i.test(name))
+          const zip=Object.entries(idx.files).filter(([path])=>
+            path.includes('ussr-1922-approved')&&path.endsWith('.zip'))
             .map(([path,e])=>({path,bytes:e.bytes,sha256:e.sha256}));
           console.log('C1_CASPIAN_ARCHIVE_ZIP_PATHS='+JSON.stringify(zip.slice(0,18)));
-          console.log('C2_SCHLESWIG_ARCHIVE_MAP_PATHS='+JSON.stringify(map.slice(0,24)));
           JS
       - uses: actions/upload-artifact@v4
         if: always()
