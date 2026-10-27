@@ -83,28 +83,63 @@ test('display and create reuse their DOM when switching between menu and sheet l
   await expect(page.locator('#createMenu')).toHaveAttribute('data-test-identity', 'create');
 });
 
-test('hamburger is mobile-only and mobile workspace fills the viewport', async ({ page }) => {
+test('menu joins the bottom navigation and follows measured height', async ({ page }) => {
   test.setTimeout(180_000);
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
   await openApp(page, { width: 1366, height: 800 });
   await expect(page.locator('#mobileMenuBtn')).toBeHidden();
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator('#mobileMenuBtn')).toBeVisible();
-  const hamburger = await page.locator('.mobile-menu-toolbar').boundingBox();
-  const hamburgerButton = await page.locator('#mobileMenuBtn').boundingBox();
-  expect(hamburger.x).toBeGreaterThanOrEqual(0);
-  expect(hamburger.width).toBeCloseTo(54, 0);
-  expect(hamburger.height).toBeCloseTo(54, 0);
-  expect(hamburgerButton.width).toBeCloseTo(40, 0);
-  expect(hamburgerButton.height).toBeCloseTo(40, 0);
-  const floatingStyles = await page.evaluate(() => {
-    const keys = ['borderColor', 'borderRadius', 'backgroundColor', 'boxShadow'];
-    const values = selector => {
-      const style = getComputedStyle(document.querySelector(selector));
-      return Object.fromEntries(keys.map(key => [key, style[key]]));
-    };
-    return { hamburger: values('.mobile-menu-toolbar'), command: values('.map-command-toolbar') };
+  await expect(page.locator('#mobileFileBtn')).toBeVisible();
+  for (const width of [390,320]) {
+    await page.setViewportSize({width,height:844});
+    await expect(page.locator('#mobileMenuBtn')).toHaveCount(1);
+    await expect(page.locator('#mobileMenuBtn strong')).toHaveText('메뉴');
+    for (const font of [100,200]) {
+      await page.locator('html').evaluate((node,value)=>{node.style.fontSize=`${value}%`;},font);
+      const bar = await page.locator('.mobile-workspace-controls').boundingBox();
+      await expect.poll(()=>page.locator('#app').evaluate(node=>Number.parseFloat(node.style.getPropertyValue('--mobile-nav-height')))).toBe(Math.ceil(bar.height));
+      const buttons = await page.locator('.mobile-workspace-controls button').evaluateAll(buttons=>buttons.map(button=>{
+        const b=button.getBoundingClientRect(),label=button.querySelector('strong'),l=label.getBoundingClientRect();
+        return {id:button.id,x:b.x,right:b.right,y:b.y,width:b.width,height:b.height,bottom:b.bottom,labelBottom:l.bottom,clipped:label.scrollWidth>label.clientWidth};
+      }).sort((a,b)=>a.x-b.x));
+      expect(buttons).toHaveLength(6);
+      expect(buttons.at(-1).id).toBe('mobileMenuBtn');
+      for (const button of buttons) {
+        expect(button.width).toBeCloseTo(buttons[0].width,0);
+        expect(button.height).toBeCloseTo(buttons[0].height,0);
+        expect(button.clipped).toBe(false);
+        expect(button.labelBottom).toBeLessThanOrEqual(button.bottom);
+      }
+      await page.locator('#mobileMenuBtn').click();
+      await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+      const menu=await page.locator('#mobileGlobalMenu').boundingBox();
+      expect(menu.y+menu.height).toBeLessThanOrEqual(bar.y);
+      expect(menu.x).toBeGreaterThanOrEqual(0);
+      await page.locator('#mobileMenuFileBtn').click();
+      await expect(page.locator('.top-actions')).toBeVisible();
+      const file=await page.locator('.top-actions').boundingBox();
+      expect(file.y+file.height).toBeLessThanOrEqual(bar.y);
+      await page.locator('#mobileFileBackBtn').click();
+      await page.keyboard.press('Escape');
+      await expect(page.locator('#mobileMenuBtn')).toBeFocused();
+      await page.locator('#mobileEditBtn').click();
+      await expect(page.locator('#editorSurface')).toBeVisible();
+      await expect.poll(async()=>{const b=await page.locator('#editorSurface').boundingBox();return Math.abs(b.y+b.height-bar.y);}).toBeLessThanOrEqual(1);
+      await page.locator('#mobileEditBtn').click();
+    }
+  }
+  await page.locator('html').evaluate(node=>{node.style.removeProperty('font-size');});
+  await page.locator('#mobileSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('서울');
+  await page.evaluate(()=>{
+    Object.defineProperty(window.visualViewport,'height',{configurable:true,value:450});
+    window.visualViewport.dispatchEvent(new window.Event('resize'));
   });
-  expect(floatingStyles.hamburger).toEqual(floatingStyles.command);
+  await expect.poll(async()=>{const bar=await page.locator('.mobile-workspace-controls').boundingBox();return Math.round(bar.y+bar.height);}).toBe(450);
+  await expect.poll(async()=>{const sheet=await page.locator('#objectSearchSurface').boundingBox();const bar=await page.locator('.mobile-workspace-controls').boundingBox();return sheet.y+sheet.height-bar.y;}).toBeLessThanOrEqual(1);
+  await expect(page.locator('#objectSearchInput')).toHaveValue('서울');
+  await page.evaluate(()=>{delete window.visualViewport.height;window.visualViewport.dispatchEvent(new window.Event('resize'));});
+  await page.screenshot({path:test.info().outputPath('bottom-menu-320.png')});
   const metrics = await page.evaluate(() => {
     const app = document.querySelector('#app').getBoundingClientRect();
     const workspace = document.querySelector('.workspace').getBoundingClientRect();
@@ -112,4 +147,5 @@ test('hamburger is mobile-only and mobile workspace fills the viewport', async (
   });
   expect(metrics.workspaceTop).toBe(0);
   expect(metrics.workspaceHeight).toBeGreaterThanOrEqual(metrics.appHeight - 1);
+  expect(errors).toEqual([]);
 });

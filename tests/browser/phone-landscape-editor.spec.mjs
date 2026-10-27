@@ -13,6 +13,26 @@ test('phone landscape switches one right panel, preserves camera and adapts to k
   const view = () => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());
   const before = await view();
   const rightInset = () => page.locator('.workspace').evaluate(node => getComputedStyle(node).getPropertyValue('--map-safe-right').trim());
+  const dock = await page.locator('.mobile-workspace-controls').boundingBox();
+  expect(dock.x + dock.width).toBe(844);
+  await expect(page.locator('.mobile-workspace-controls #mobileMenuBtn')).toHaveCount(1);
+  await expect(page.locator('#mobileMenuBtn strong')).toHaveText('메뉴');
+  const menuLabel = await page.locator('#mobileMenuBtn strong').boundingBox();
+  const menuIcon = await page.locator('#mobileMenuBtn svg').boundingBox();
+  expect(menuLabel.y).toBeGreaterThanOrEqual(menuIcon.y + menuIcon.height);
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+  const menu = await page.locator('#mobileGlobalMenu').boundingBox();
+  expect(menu.x + menu.width).toBeCloseTo(dock.x, 0);
+  await page.locator('#mobileMenuFileBtn').click();
+  await expect(page.locator('.top-actions')).toBeVisible();
+  const fileMenu = await page.locator('.top-actions').boundingBox();
+  expect(fileMenu.x + fileMenu.width).toBeCloseTo(dock.x, 0);
+  await page.locator('#mobileFileBackBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#mobileMenuBtn')).toBeFocused();
+  await expect(page.locator('#mobileGlobalMenu')).toBeHidden();
   await page.locator('#mobileEditBtn').click();
   await expect(page.locator('#editorSurface')).toBeVisible();
   const box = await page.locator('#editorSurface').boundingBox();
@@ -31,7 +51,7 @@ test('phone landscape switches one right panel, preserves camera and adapts to k
   await expect.poll(async () => {
     const bounds = await page.locator('#editorSurface').boundingBox();
     return Math.round(bounds.x + bounds.width);
-  }).toBe(844);
+  }).toBe(Math.round(dock.x));
   await page.locator('#mobileSearchBtn').click();
   await expect(page.locator('#editorSurface')).not.toBeVisible();
   await expect(page.locator('#objectSearchSurface')).toBeVisible();
@@ -52,7 +72,7 @@ test('phone landscape switches one right panel, preserves camera and adapts to k
     window.visualViewport.dispatchEvent(new window.Event('resize'));
   });
   await page.locator('#objectSearchCloseBtn').click();
-  await expect.poll(rightInset).toBe('0px');
+  await expect.poll(rightInset).toBe(`${dock.width}px`);
   await expect.poll(view).toEqual(before);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');

@@ -110,7 +110,7 @@
   gap: var(--ui-space-2);
 }
 
-.app-root[data-layout="mobile"] .top-actions {
+.app-root.viewer-root[data-layout="mobile"] .top-actions {
   top: calc(var(--ui-topbar-height) + var(--ui-space-2));
   right: var(--ui-popover-screen-edge);
   width: var(--top-actions-width-alternate);
