@@ -1,6 +1,15 @@
 import {createStoredAssetLoader} from "../../../../../shared/frontend/js/modules/stored-asset-loader.js";
 import {normalizeTerritorialLibraryEntity,normalizeTerritorialLibraryIndex,selectGeometryVersion,assertTerritorialIndexEntity} from './territorial-library.js';
 
+/** Platform composition selects access; UI consumes the existing loader contract. */
+export async function openTerritorialLibraryAccess({repository=null,source,onSyncError}={}){
+  if(!repository)return Object.freeze({loader:createTerritorialEntityLoader(source),editingRepository:null});
+  if(typeof onSyncError!=='function')throw new TypeError('Native library access requires its synchronization error boundary.');
+  await repository.open();
+  try{await repository.sync();await repository.open();}catch(error){onSyncError(error);}
+  return Object.freeze({loader:createRepositoryTerritorialLoader(repository),editingRepository:repository});
+}
+
 export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}) {
   if(!indexUrl || !indexSpec?.sha256 || !dataRevision)throw new Error('Territorial index URL, integrity metadata and data revision are required');
   const base=new URL(indexUrl);

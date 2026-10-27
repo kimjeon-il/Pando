@@ -29,6 +29,13 @@ async function start() {
   };
   const profile = profileMeta.mode === 'map-data'
     ? await createRuntimeProfile(profileMeta) : await verification.createFixtureProfile(profileMeta);
+  let repositoryPromise;
+  const getLibraryRepository=globalThis.PANDOLAB_NATIVE_LIBRARY_AVAILABLE===true?()=>{
+    if(!repositoryPromise)repositoryPromise=import(versionedAsset('./modules/native-library-repository.js').href)
+      .then(({createNativeLibraryRepository})=>createNativeLibraryRepository({invoke:globalThis.__TAURI_INTERNALS__.invoke}))
+      .catch(error=>{repositoryPromise=null;throw error;});
+    return repositoryPromise;
+  }:null;
   let libraryGeometryContext = null;
   if (typeof globalThis.__TAURI_INTERNALS__?.invoke === 'function') {
     const { parseNativeLibraryGeometryRequest, createLibraryGeometryContext } =
@@ -36,13 +43,13 @@ async function start() {
     const request = parseNativeLibraryGeometryRequest(location.search, true);
     if (request) {
       if (profile.mode !== 'map-data') throw new Error('라이브러리 형상 편집에는 실제 지도 자료를 포함한 앱이 필요합니다.');
-      const [{ createNativeLibraryRepository }, { createRepositoryTerritorialLoader },
+      if(!getLibraryRepository)throw new Error('이 플랫폼은 라이브러리 형상 편집을 지원하지 않습니다.');
+      const [{ createRepositoryTerritorialLoader },
         { createTerritorialLibraryService }] = await Promise.all([
-        import(versionedAsset('./modules/native-library-repository.js').href),
         import(versionedAsset('./modules/territorial-entity-loader.js').href),
         import(versionedAsset('./modules/territorial-library-service.js').href),
       ]);
-      const repository = createNativeLibraryRepository({ invoke: globalThis.__TAURI_INTERNALS__.invoke });
+      const repository = await getLibraryRepository();
       const service = createTerritorialLibraryService({ loader: createRepositoryTerritorialLoader(repository) });
       libraryGeometryContext = createLibraryGeometryContext({
         repository, service, ...request, appVersion: meta.appVersion,
@@ -57,6 +64,7 @@ async function start() {
     globalThis.__PANDOLAB_SHELL_PLATFORM__ = Object.freeze({
       ...profile.platform,
       fileAccess: createNativeStorage(),
+      getLibraryRepository,
       libraryGeometryContext,
     });
     window.addEventListener('pandolab:ready', () => {
