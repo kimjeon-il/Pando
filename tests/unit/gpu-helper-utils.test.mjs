@@ -101,6 +101,36 @@ test('SceneColorCache shaders initialize with balanced WebGL sources', () => {
   }
 });
 
+test('SceneColorCache retains its previous active target when candidate publication fails', () => {
+  const gl = createFakeGl();
+  for (const method of ['bindFramebuffer','viewport','texParameteri','texImage2D','framebufferTexture2D',
+    'bindTexture','bindRenderbuffer','deleteTexture','deleteFramebuffer','disable','colorMask','clearColor','clear',
+    'useProgram','enableVertexAttribArray','vertexAttribPointer','activeTexture','disableVertexAttribArray']) {
+    gl[method] = (...args) => gl.calls.push([method,...args]);
+  }
+  let texture = 0, fail = false;
+  gl.createTexture = () => ({texture:++texture});
+  gl.createFramebuffer = () => ({});
+  gl.FRAMEBUFFER_COMPLETE = 100;
+  gl.checkFramebufferStatus = () => gl.FRAMEBUFFER_COMPLETE;
+  gl.drawArrays = () => {if(fail){fail=false;throw new Error('controlled composite failure');}};
+  const cache = createSceneColorCache();
+  cache.initialize({gl,version:2,capabilities:{stencil:false}});
+  assert.equal(cache.beginScene(100,80,'old',1),true);
+  assert.equal(cache.presentScene(100,80,'old',1),true);
+  cache.invalidate('new-date');
+  assert.equal(cache.beginScene(100,80,'new',2),true);
+  fail = true;
+  assert.equal(cache.presentScene(100,80,'new',2),false);
+  assert.equal(cache.hasActiveFor('old',1),true);
+  assert.equal(cache.hasActiveFor('new',2),false);
+  assert.equal(cache.stats().dirty,true);
+  assert.equal(cache.beginScene(100,80,'retry',3),true);
+  assert.equal(cache.presentScene(100,80,'retry',3),true);
+  assert.equal(cache.hasActiveFor('retry',3),true);
+  cache.dispose();
+});
+
 test('GPU blend helper preserves normal and multiply contracts', () => {
   assert.deepEqual(parseGpuColor('#336699'), [0x33 / 255, 0x66 / 255, 0x99 / 255]);
   assert.deepEqual(parseGpuColor('invalid'), [0, 0, 0]);

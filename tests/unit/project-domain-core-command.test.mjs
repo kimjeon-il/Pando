@@ -76,6 +76,23 @@ test('project replacement admits presentation catalog inside its ordered Core tr
   assert.deepEqual(calls,['load','admit-catalog','publish-catalog','present','release']);
 });
 
+test('temporal builtin opening carries its presentation boundary through rollback and retry',async()=>{
+  const resets=[],effects=[],failure=new Error('candidate frame failed');let failed=true,presented=0,current=true;
+  const domain=createProjectDomain({productMode:'viewer',readBuiltinSelectionCatalogs:()=>[],
+    documentModel:{snapshot:()=>({current:true})},
+    commandOwner:{captureReplacement:async()=>7,loadBaseline:async()=>effects.push('load'),
+      rollbackReplacement:async()=>effects.push('rollback'),releaseReplacement:async()=>effects.push('release')},
+    onProjectReset:event=>resets.push(event),replaceSnapshot:()=>{if(failed)throw failure;resets.at(-1).onPresented();},
+    restoreReplacement:()=>effects.push('restore')});
+  const options={source:'builtin',presentation:'temporal',isCurrent:()=>current,onPresented:()=>presented++};
+  const read=async()=>({baselineId:3,setup:{}});
+  await assert.rejects(domain.open(read,options),error=>error===failure);
+  assert.deepEqual(resets.map(event=>[event.reason,event.presentation]),[['project-builtin','temporal'],['project-rollback','temporal']]);
+  assert.deepEqual(effects,['load','rollback','restore','release']);assert.equal(presented,0);
+  failed=false;assert.equal(await domain.open(read,options),true);assert.equal(presented,1);
+  current=false;assert.equal(await domain.open(()=>assert.fail('Stale source must not be read.'),options),false);
+});
+
 test('same-generation territorial source admission delegates its exact scope and cursor intent to C++',async () => {
   const current=Object.freeze({ header: 'current',labels: Object.freeze([{ id: 'L' }]) }),source=Object.freeze({ territorialEntities: [] }),calls=[];
   const project=createProjectDomain({ productMode:'editor', documentModel: { snapshot: () => current },publishCommand() {},readBuiltinSelectionCatalogs: () => [],

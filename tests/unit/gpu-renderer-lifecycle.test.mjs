@@ -47,3 +47,18 @@ test('timeline changes release modern preview ownership', t => {
   assert.equal(state.auditPreviewCountries, null);
   assert.equal(state.countryVisualPhase, 'canonical'); renderer.dispose();
 });
+
+test('temporal presentation wait is cancelled by a newer generation and rejects stale requests',async t=>{
+  const previous=globalThis.window;globalThis.window={devicePixelRatio:1};
+  t.after(()=>{globalThis.window=previous;});
+  const renderer=createGpuMapRenderer({state:{physicalSettings:{},pendingCountryRenderIds:new Set()},rendererUi:{},isMobile:()=>false,mapWorkScheduler:{cancel(){}},runtimeAssetUrl:path=>path,
+    renderCountryBoundaryFeatures:()=>[],countryBoundaryStyleById:()=>null,scheduleGpuFrame:()=>{}});
+  renderer.resetProjectRenderState({generation:1,presentation:'temporal'});
+  const pending=renderer.waitForTemporalPresentation();
+  renderer.resetProjectRenderState({generation:2});
+  await assert.rejects(pending,{name:'AbortError'});
+  assert.equal(await renderer.waitForTemporalPresentation(),true);
+  renderer.resetProjectRenderState({generation:3,presentation:'temporal',isCurrent:()=>false});
+  await assert.rejects(renderer.waitForTemporalPresentation(),{name:'AbortError',cancelled:true});
+  renderer.dispose();
+});
