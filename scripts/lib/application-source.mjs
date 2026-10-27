@@ -7,6 +7,13 @@ const root=fileURLToPath(new URL('../../',import.meta.url)),index=buildFrontendI
 export function applicationModuleUrl(name){const entry=frontendAsset(root,'assets/js/modules/'+name,{index});return pathToFileURL(resolve(root,entry.sourcePath));}
 const readModule=name=>{const entry=frontendAsset(root,'assets/js/modules/'+name,{index});return emitFrontendModule(entry.bytes.toString('utf8'),entry.sourcePath,index);};
 
+export const domainPublicFacade = source => source.slice(source.lastIndexOf('return Object.freeze({'));
+export function assertProjectLifecycleFacade(source) {
+  const facade=domainPublicFacade(source);
+  for(const method of ['createProject','load','save','undo','redo'])
+    if(!new RegExp(`\\b${method}\\s*[,:(]`).test(facade))throw new Error(`ProjectDomain must own project lifecycle: ${method}`);
+}
+
 
 /** Owner IDs come from real composition bindings, independently of file naming. */
 export function applicationOwnerDefinitions(){

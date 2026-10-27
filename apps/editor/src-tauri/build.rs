@@ -28,14 +28,15 @@ fn main() {
         let frontend = config.pointer("/build/frontendDist").and_then(|v| v.as_str()).expect("CI stage path required");
         let evidence_path = std::path::PathBuf::from(frontend).join("shell/stage-evidence.json");
         println!("cargo:rerun-if-changed={}", evidence_path.display());
-        let evidence: serde_json::Value = serde_json::from_str(
-            &std::fs::read_to_string(evidence_path).expect("Missing stage evidence")
-        ).expect("Invalid stage evidence");
+        let evidence_bytes = std::fs::read(&evidence_path).expect("Missing stage evidence");
+        let evidence: serde_json::Value = serde_json::from_slice(&evidence_bytes).expect("Invalid stage evidence");
         let profile = evidence["profile"].as_str().expect("Missing staged resource profile");
         assert!(profile == "map-data" || (verification && profile == "test-fixture"),
             "The test-fixture profile requires a verification native build");
         assert_eq!(evidence["verification"].as_bool(), Some(verification),
             "Staged verification assets and native feature must match");
+        std::fs::write(std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("stage-evidence.json"), evidence_bytes)
+            .expect("Write verified stage evidence");
     }
     // Only Android needs C entry-point exports from this crate. An empty Windows
     // cdylib export list otherwise enables MinGW's implicit export of Rust

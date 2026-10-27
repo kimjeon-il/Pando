@@ -17,8 +17,8 @@ use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
 #[cfg(not(feature = "development"))]
 const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../dist/shell/stage-evidence.json"
+    env!("OUT_DIR"),
+    "/stage-evidence.json"
 ));
 const NATIVE_BUILD_INFO: &str = include_str!(concat!(env!("OUT_DIR"), "/native-build-info.json"));
 
