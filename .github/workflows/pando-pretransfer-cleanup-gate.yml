@@ -26,7 +26,7 @@ jobs:
       - name: Validate relocated color generator and focused historical GIS tests
         run: |
           node tools/build-country-default-colors.mjs --check
-          node --test tests/unit/historical-german-coastline-events.test.mjs tests/unit/historical-netherlands-coast-phase0.test.mjs
+          node --test tests/unit/historical-german-coastline-events.test.mjs tests/unit/historical-netherlands-coast-events.test.mjs
       - name: Python syntax for maintained GIS generators
         run: |
           python -m compileall -q scripts/gis
