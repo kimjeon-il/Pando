@@ -179,7 +179,7 @@ jobs:
           node tools/gis/diagnose-ussr-1922-source-drift.mjs \
             --zip build-native/historical/ussr-1922-approved-master.zip \
             --current-root build-native/historical/ussr-1922-existing \
-            --old-pin d790ac6f0e8fe55e1407cc7a5b29bc696f48384c \
+            --old-pin 7b0fa46c9fe92474e32856d5dc8014e470ff7a67 \
             --output build-native/historical/ussr-1922-drift-review \
             | tee build-native/historical/ussr-1922-drift-review.jsonl
       - name: Validate approved 1922 Dniester/Europe lineage and five-founder GEOS partition
