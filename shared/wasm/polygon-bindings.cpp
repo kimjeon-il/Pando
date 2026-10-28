@@ -2,6 +2,7 @@
 #include <pandoeditor/polygonwrapping.h>
 #include <pandoeditor/geometrypredicates.h>
 #include <pandoeditor/projectcodec.h>
+#include <pandoeditor/sphericalpolygon.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <emscripten.h>
@@ -12,6 +13,63 @@ namespace {
 using emscripten::val;
 using emscripten::EM_VAL;
 using namespace pandoeditor;
+EM_JS(EM_VAL, packDisplayAreas, (EM_VAL handle), {
+    const inputs=Emval.toValue(handle),shape=[inputs.length],points=[];
+    for(const polygons of inputs){shape.push(polygons.length);
+        for(const polygon of polygons){shape.push(polygon.length);
+            for(const raw of polygon){const ring=raw===undefined?[]:raw;
+                if(ring.length<3){shape.push(0,0);continue;}
+                const last=ring.length-1,closed=ring[0][0]===ring[last][0]&&ring[0][1]===ring[last][1];
+                shape.push(ring.length,closed?1:0);
+                for(const point of ring)points.push(Number(point[0]||0),Number(point[1]||0));
+            }
+        }
+    }
+    return Emval.toHandle([new Uint32Array(shape),new Float64Array(points)]);
+});
+EM_JS(EM_VAL, packDisplayLines, (EM_VAL handle), {
+    const inputs=Emval.toValue(handle),shape=[inputs.length],points=[];
+    for(const line of inputs){shape.push(line.length);
+        for(let i=0;i<line.length;i++){
+            const point=line[i],valid=Array.isArray(point);
+            shape.push(valid?1:0);
+            if(valid&&(Array.isArray(line[i-1])||Array.isArray(line[i+1])))points.push(Number(point[0]||0),Number(point[1]||0));
+            else points.push(0,0);
+        }
+    }
+    return Emval.toHandle([new Uint32Array(shape),new Float64Array(points)]);
+});
+std::pair<std::vector<unsigned>,std::vector<double>> readDisplayPacked(val packed) {
+    const auto shapeValue=packed[0],pointsValue=packed[1];
+    std::vector<unsigned> shape(shapeValue["length"].as<unsigned>());
+    std::vector<double> points(pointsValue["length"].as<unsigned>());
+    if(!shape.empty())val(emscripten::typed_memory_view(shape.size(),shape.data())).call<void>("set",shapeValue);
+    if(!points.empty())val(emscripten::typed_memory_view(points.size(),points.data())).call<void>("set",pointsValue);
+    return {std::move(shape),std::move(points)};
+}
+val displayAreasForWeb(val input) {
+    auto [shape,points]=readDisplayPacked(val::take_ownership(packDisplayAreas(input.as_handle())));
+    std::size_t at=0,position=0;auto result=val::array();const auto count=shape.at(at++);
+    for(unsigned index=0;index<count;++index){
+        std::vector<std::vector<DisplayMetricRing>> polygons(shape.at(at++));
+        for(auto& polygon:polygons){polygon.resize(shape.at(at++));for(auto& ring:polygon){
+            const auto length=shape.at(at++);ring.closed=shape.at(at++);ring.points.resize(length);
+            for(auto& point:ring.points){point={points.at(position),points.at(position+1)};position+=2;}
+        }}
+        result.set(index,displayGeometryAreaKm2(polygons));
+    }
+    return result;
+}
+val displayLinesForWeb(val input) {
+    auto [shape,points]=readDisplayPacked(val::take_ownership(packDisplayLines(input.as_handle())));
+    std::size_t at=0,position=0;auto result=val::array();const auto count=shape.at(at++);
+    for(unsigned index=0;index<count;++index){
+        std::vector<std::optional<Point>> line(shape.at(at++));
+        for(auto& point:line){const auto valid=shape.at(at++);if(valid)point=Point{points.at(position),points.at(position+1)};position+=2;}
+        result.set(index,displayLineDistanceKm(line));
+    }
+    return result;
+}
 // Transfer coordinates in bulk. Per-coordinate emval access dominates large
 // polygons even when the sweep itself is fast; these helpers only marshal data.
 EM_JS(EM_VAL, packPolygonOperands, (EM_VAL handle), {
@@ -227,6 +285,8 @@ std::string wrapGeometry(const std::string& input){
     std::terminate();
 }
 EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
+    emscripten::function("displayGeometryAreasKm2",&displayAreasForWeb);
+    emscripten::function("displayLineDistancesKm",&displayLinesForWeb);
     emscripten::function("polygonOperation",&polygonOperation);
     emscripten::function("territorialValidationArea",&validationArea);
     emscripten::function("territorialAreaDecision",&territorialAreaForWeb);

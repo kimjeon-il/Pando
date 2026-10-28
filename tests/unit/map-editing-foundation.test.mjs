@@ -263,6 +263,17 @@ test('administrative containment retains its exact outside-area threshold', () =
   assert.equal(hasOutside(2e-10), true);
 });
 
+test('batched C++ display metrics retain holes, date-line wrapping and empty inputs', () => {
+  const polygons = [[], [[[[0,0],[2,0],[2,2],[0,2],[0,0]]]],
+    [[[[0,0],[3,0],[3,3],[0,3],[0,0]],[[1,1],[2,1],[2,2],[1,2],[1,1]]]],
+    [[[[179,10],[-179,10],[-179,12],[179,12],[179,10]]]]];
+  const results = sharedCalculationCore.displayGeometryAreasKm2(polygons);
+  const expected = [0, 49447.34036408627, 98868.32141153161, 48546.24727917458];
+  assert.deepEqual(results, expected);
+  assert.equal(sharedCalculationCore.displayLineDistancesKm([[[179,10],[-179,10],[-178,11]]])[0], 374.95264909590503);
+  assert.deepEqual(sharedCalculationCore.displayLineDistancesKm([[], [null,[1,2]]]), [0,0]);
+});
+
 test('full audit trusts the canonical baseline and clips only dirty countries exactly', () => {
   const countries = [
     feature('A', [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]),

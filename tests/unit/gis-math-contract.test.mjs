@@ -168,8 +168,8 @@ test('main validator and actual GIS Worker agree on normal, empty, invalid, prec
 test('country normalizer and GPU mesh preserve winding, finite packets and owner ranges', () => {
   const classicContext = vm.createContext({ console, self: null, PandoLabSphericalCore: sphericalCore });
   classicContext.self = classicContext;
-  const countryGeometry = loadClassic('assets/js/modules/polygon-geometry.js', 'PandoLabPolygonGeometry', classicContext);
-  const meshCore = loadClassic('assets/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore', classicContext);
+  const countryGeometry = loadClassic('shared/frontend/js/modules/polygon-geometry.js', 'PandoLabPolygonGeometry', classicContext);
+  const meshCore = loadClassic('shared/frontend/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore', classicContext);
   const fixtures = [
     polygonFeature('normal', [ring(0, 0, 2, 2)]),
     polygonFeature('reversed', [ring(3, 0, 5, 2, false), ring(3.5, 0.5, 4, 1, true)]),

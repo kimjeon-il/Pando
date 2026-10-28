@@ -5,6 +5,7 @@ import {createGeometryPreview} from "../../apps/editor/frontend/js/modules/app-g
 import {createEditPreviewController} from "../../apps/editor/frontend/js/modules/edit-preview-controller.js";
 import {beginGeometryPreview,clearGeometryPreview,previewIsCurrent} from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
+import {createTestViewingSession} from '../helpers/viewing-project.mjs';
 
 async function fixture(t,{execute}={}) {
   const calls=[],seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
@@ -105,21 +106,21 @@ test('failed preview platform adoption restores the Core candidate and suppresse
 
 test('held geometry candidate survives independent view and catalog acknowledgements and Undo retains those view controls',async t=>{
   const owner=await fixture(t),before=owner.documentModel.territorialViews()[0].geometry;
+  const viewing=createTestViewingSession(owner);t.after(viewing.dispose);
   const geometry=structuredClone(before);(geometry.type==='MultiPolygon'?geometry.coordinates[0][0]:geometry.coordinates[0])[1][0]+=0.125;
   const prepared=await owner.project.prepareCommand(geometryCommand(owner,geometry));
   assert.equal(await owner.preview.beginLocalGeometryPreview({operation:'territorial-test',preparedCommand:prepared,preparedPreview:validPreview}),true);
-  const changed=await owner.project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'visibility',key:'countryFlags',visible:false}});
-  assert.equal(changed.ok,true,changed.error?.message);
+  viewing.session.applyViewingPresentation({action:'visibility',key:'objects',visible:false});
   await owner.project.admitSelectionCatalog('placeBuiltin',[{domain:'placeBuiltin',type:'city',id:'builtin:place:view-candidate'}]);
-  const view=owner.documentModel.snapshot().layerVisibility;
-  assert.equal(view.countryFlags,false);assert.equal(owner.project.canUndo(),false);
+  const view={...viewing.session.state.layerVisibility};
+  assert.equal(view.objects,false);assert.equal(owner.project.canUndo(),false);
   assert.equal(await owner.preview.applyActiveGeometryPreview(),true);
   assert.deepEqual(owner.documentModel.territorialViews()[0].geometry,geometry);
-  assert.deepEqual(owner.documentModel.snapshot().layerVisibility,view);
+  assert.deepEqual(viewing.session.state.layerVisibility,view);
   assert.equal(await owner.project.undo(),true);assert.equal(owner.project.canUndo(),false);
   assert.deepEqual(owner.documentModel.territorialViews()[0].geometry,before);
-  assert.deepEqual(owner.documentModel.snapshot().layerVisibility,view);
-  assert.equal(owner.client.state().presentationDirty,true);
+  assert.deepEqual(viewing.session.state.layerVisibility,view);
+  assert.equal(owner.client.state().presentationDirty,false);
 });
 
 test('candidate exposes canonical affected periods and history command identity',async t=>{
