@@ -7,6 +7,14 @@
 #include <vector>
 
 namespace pandoeditor {
+struct SubunitSelectionItem {
+    bool subunit=false,locked=false;
+    std::string parentId;
+    const Geometry* geometry=nullptr;
+};
+enum class SubunitSelectionStatus { Valid, InvalidSelection, DifferentParent, Locked, Disconnected };
+SubunitSelectionStatus inspectSubunitSelection(const std::vector<SubunitSelectionItem>& items,
+    bool deferConnectivity=false,bool requireSubunits=true,std::vector<std::size_t>* order=nullptr);
 class ProjectSnapshot;
 enum class TerritorialMutationKind { CreateCountry, CreateSubunit, CreateRegion, ChangeParent, ChangeRegionSovereign, TransferSubunit, DeleteCountry, DeleteUnits, PromoteSubunitToCountry, ConvertCountryToSubunit, ReplaceGeometry, MergeTerritorial, AnnexTerritory, SplitTerritorial, ReconcileSharedBoundary, ReconcileCoastline };
 enum class ReferenceRewriteOperation { RemoveEntry, ReplaceId, ClearField, DeleteKey };

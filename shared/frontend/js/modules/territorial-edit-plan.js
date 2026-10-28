@@ -28,7 +28,7 @@ function territorialRootId(feature, getEntity) {
   return id(current.id);
 }
 
-  function createKernel(clipper, { normalize = geometry => geometry, segmentCandidates = null } = {}) {
+  function createKernel(clipper, { normalize = geometry => geometry } = {}) {
     const wrapped = new WeakMap();
     const geographic = geometry => {
       if (!geometry) return geometry;
@@ -66,22 +66,9 @@ function territorialRootId(feature, getEntity) {
     const significant = (geometry, reference) => area(geometry) > Math.max(1e-10, area(reference) * 1e-9);
     const contains = (parent, child) => !significant(difference(child, parent), child);
     function adjacent(a, b) {
-      function* allSegments(geometry) {
-        for (const polygon of rawCoordinates(geometry)) for (const ring of polygon) for (let index = 1; index < ring.length; index++) yield { a: ring[index - 1], b: ring[index] };
-      }
-      // Collinear overlap works when neighboring rings have different segmentation.
-      for (const pa of rawCoordinates(a)) for (const ra of pa) for (let i = 1; i < ra.length; i++) {
-        const p = ra[i - 1], q = ra[i], dx = q[0] - p[0], dy = q[1] - p[1];
-        const length = Math.hypot(dx, dy);
-        if (!length) continue;
-        for (const { a: u, b: v } of segmentCandidates ? segmentCandidates(b, p, q) : allSegments(b)) {
-          if (Math.abs(dx * (u[1] - p[1]) - dy * (u[0] - p[0])) / length > 1e-7
-            || Math.abs(dx * (v[1] - p[1]) - dy * (v[0] - p[0])) / length > 1e-7) continue;
-          const t = r => ((r[0] - p[0]) * dx + (r[1] - p[1]) * dy) / (length * length);
-          if (Math.min(1, Math.max(t(u), t(v))) - Math.max(0, Math.min(t(u), t(v))) > 1e-8) return true;
-        }
-      }
-      return false;
+      const core = root.PandoLabSphericalCore;
+      if (typeof core?.territorialGeometriesAdjacent !== 'function') throw new Error('Canonical C++ adjacency validator is unavailable.');
+      return core.territorialGeometriesAdjacent(rawCoordinates(a), rawCoordinates(b));
     }
 
     function validate(entities, previous = [], affectedIds = null) {
@@ -316,12 +303,15 @@ function territorialRootId(feature, getEntity) {
       const targets = [...new Set((request.sourceIds || []).map(id))].filter(key => key !== id(target.id)).map(key => byId.get(key));
       targets.forEach(assertSibling);
       if (!targets.length) throw new Error('합병 대상을 선택하세요.');
-      const connected = [target], pending = [...targets];
-      while (pending.length) {
-        const index = pending.findIndex(candidate => connected.some(other => adjacent(candidate.geometry, other.geometry)));
-        if (index < 0) throw new Error('선택한 하위단위들이 서로 연결되어야 합니다.');
-        connected.push(...pending.splice(index, 1));
-      }
+      const selected = [target, ...targets];
+      const core = root.PandoLabSphericalCore;
+      if (typeof core?.subunitSelectionDecision !== 'function') throw new Error('Canonical C++ subunit selection validator is unavailable.');
+      const decision = core.subunitSelectionDecision(selected.map(unit => unit.properties.entityKind),
+        selected.map(unit => String(unit.properties.parentId || '')), selected.map(unit => !!unit.properties.locked),
+        selected.map(unit => rawCoordinates(unit.geometry)), false);
+      if (decision.status === 'locked') throw new Error('잠긴 하위단위는 변경할 수 없습니다.');
+      if (decision.status !== 'valid') throw new Error('선택한 하위단위들이 서로 연결되어야 합니다.');
+      const connected = decision.order.map(index => selected[index]);
       put(target, union(...connected.map(unit => unit.geometry)));
       for (const donor of targets) {
         removed.add(id(donor.id));

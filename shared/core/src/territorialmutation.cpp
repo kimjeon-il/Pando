@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#ifdef __EMSCRIPTEN__
+#include <emscripten/em_math.h>
+#endif
 
 namespace pandoeditor {
 namespace {
@@ -38,15 +41,50 @@ bool descendant(const ProjectDocument& d,const ObjectRef& child,const ObjectRef&
 double cross(Point a,Point b,Point c){return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);}
 bool adjacent(const Geometry& a,const Geometry& b) {
     constexpr double lineTolerance=1e-7,overlapTolerance=1e-8;
-    auto edges=[](const Geometry& g){std::vector<std::pair<Point,Point>> out;for(const auto& p:g.polygons)for(const auto& r:p)for(std::size_t i=1;i<r.size();++i)out.push_back({r[i-1],r[i]});return out;};
-    const auto left=edges(a),right=edges(b);
-    for(const auto& edge:left){const auto& p=edge.first;const auto& q=edge.second;const auto dx=q.x-p.x,dy=q.y-p.y,length=std::hypot(dx,dy);if(!length)continue;
-        for(const auto& [u,v]:right){if(std::abs(cross(p,q,u))/length>lineTolerance||std::abs(cross(p,q,v))/length>lineTolerance)continue;
+    struct Edge { Point a,b;double minX,maxX,minY,maxY; };
+    auto edges=[](const Geometry& g){std::vector<Edge> out;for(const auto& p:g.polygons)for(const auto& r:p)for(std::size_t i=1;i<r.size();++i){const auto a=r[i-1],b=r[i];out.push_back({a,b,std::min(a.x,b.x),std::max(a.x,b.x),std::min(a.y,b.y),std::max(a.y,b.y)});}return out;};
+    const auto left=edges(a);auto right=edges(b);
+    std::stable_sort(right.begin(),right.end(),[](const Edge& a,const Edge& b){return a.minX<b.minX;});
+    for(const auto& edge:left){const auto& p=edge.a;const auto& q=edge.b;const auto dx=q.x-p.x,dy=q.y-p.y;
+#ifdef __EMSCRIPTEN__
+        const auto length=emscripten_math_hypot(2,dx,dy);
+#else
+        const auto length=std::hypot(dx,dy);
+#endif
+        if(!length)continue;
+        const auto end=std::upper_bound(right.begin(),right.end(),edge.maxX+lineTolerance,[](double value,const Edge& item){return value<item.minX;});
+        for(auto it=right.begin();it!=end;++it){
+            if(it->maxX<edge.minX-lineTolerance||it->maxY<edge.minY-lineTolerance||it->minY>edge.maxY+lineTolerance)continue;
+            const auto& u=it->a;const auto& v=it->b;
+            if(std::abs(cross(p,q,u))/length>lineTolerance||std::abs(cross(p,q,v))/length>lineTolerance)continue;
             const auto parameter=[&](Point r){return ((r.x-p.x)*dx+(r.y-p.y)*dy)/(length*length);};
             if(std::min(1.,std::max(parameter(u),parameter(v)))-std::max(0.,std::min(parameter(u),parameter(v)))>overlapTolerance)return true;
         }}
     return false;
 }
+}
+SubunitSelectionStatus inspectSubunitSelection(const std::vector<SubunitSelectionItem>& items,
+    bool deferConnectivity,bool requireSubunits,std::vector<std::size_t>* order) {
+    if(items.size()<2|| (requireSubunits&&std::any_of(items.begin(),items.end(),[](const auto& item){return !item.subunit;})))
+        return SubunitSelectionStatus::InvalidSelection;
+    for(const auto& item:items)if(item.parentId!=items.front().parentId)return SubunitSelectionStatus::DifferentParent;
+    for(const auto& item:items)if(item.locked)return SubunitSelectionStatus::Locked;
+    if(deferConnectivity)return SubunitSelectionStatus::Valid;
+    std::vector<std::size_t> connected{0},pending;
+    for(std::size_t i=1;i<items.size();++i)pending.push_back(i);
+    while(!pending.empty()){
+        const auto found=std::find_if(pending.begin(),pending.end(),[&](auto candidate){
+            return items[candidate].geometry&&std::any_of(connected.begin(),connected.end(),[&](auto current){
+                return items[current].geometry&&adjacent(*items[candidate].geometry,*items[current].geometry);
+            });
+        });
+        if(found==pending.end())return SubunitSelectionStatus::Disconnected;
+        connected.push_back(*found);pending.erase(found);
+    }
+    if(order)*order=std::move(connected);
+    return SubunitSelectionStatus::Valid;
+}
+namespace {
 void transferScope(const ProjectSnapshot& s,TerritorialMutationPlan& plan,
                    const ObjectRef& target,const ObjectRef& destination) {
     const auto& doc=s.document();const auto old=administrativeRoot(doc,target);
@@ -148,12 +186,16 @@ TerritorialMutationPlan planMerge(const ProjectSnapshot& s,const MergeTerritoria
                 throw std::invalid_argument("ADMINISTRATIVE_PARENT_MISMATCH");
         }
     }
-    std::vector<ObjectRef> connected{in.target},pending=in.donors;
-    while(!pending.empty()) {
-        const auto found=std::find_if(pending.begin(),pending.end(),[&](const auto& candidate){const auto candidateShape=shape(s.document(),candidate);return std::any_of(connected.begin(),connected.end(),[&](const auto& current){return adjacent(*candidateShape,*shape(s.document(),current));});});
-        if(found==pending.end())throw std::invalid_argument("GEOMETRY_NOT_CONNECTED");
-        connected.push_back(*found);pending.erase(found);
+    std::vector<std::shared_ptr<const Geometry>> selectionGeometry;
+    std::vector<SubunitSelectionItem> selection;
+    for(const auto& ref:owners){
+        const auto& selected=unit(s,ref);const auto relation=parentRecord(s.document(),ref);
+        selectionGeometry.push_back(shape(s.document(),ref));
+        selection.push_back({selected.kind==UnitKind::General&&!relation->parentId.empty(),selected.locked,
+            relation->parentId,selectionGeometry.back().get()});
     }
+    if(inspectSubunitSelection(selection,false,false)==SubunitSelectionStatus::Disconnected)
+        throw std::invalid_argument("GEOMETRY_NOT_CONNECTED");
     auto p=initial(s,TerritorialMutationKind::MergeTerritorial,in);p.targets=owners;p.affectedObjects=owners;p.selectedAfter=in.target;p.requiresConfirmation=true;
     p.geometry.kind=GeometryRequirementKind::WorkerPatch;p.geometry.operation="merge";p.geometry.readOwners=owners;
     p.geometry.replacements.push_back({in.target,in.target});

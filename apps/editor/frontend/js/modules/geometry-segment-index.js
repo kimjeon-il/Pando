@@ -2,11 +2,9 @@ import { createBoundarySpatialIndex, segmentBounds } from "../../../../../shared
 import { geometryRevision } from "../../../../../shared/frontend/js/modules/geometry-versions.js";
 
 const indexes = new WeakMap();
-const rawIndexes = new WeakMap();
-export function geometrySegmentIndex(geometry, { wrap = true } = {}) {
-  const cache = wrap ? indexes : rawIndexes;
+export function geometrySegmentIndex(geometry) {
   const revision = geometryRevision(geometry);
-  const cached = cache.get(geometry);
+  const cached = indexes.get(geometry);
   if (cached?.revision === revision) return cached.index;
   const index = createBoundarySpatialIndex();
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.type === 'MultiPolygon' ? geometry.coordinates : [];
@@ -15,24 +13,16 @@ export function geometrySegmentIndex(geometry, { wrap = true } = {}) {
       const row = { a: ring[segmentIndex], b: ring[segmentIndex + 1], polygonIndex, ringIndex, segmentIndex };
       // Query all three longitude copies; retain original coordinates and references.
       let end = row.b[0];
-      while (wrap && end - row.a[0] > 180) end -= 360;
-      while (wrap && end - row.a[0] < -180) end += 360;
+      while (end - row.a[0] > 180) end -= 360;
+      while (end - row.a[0] < -180) end += 360;
       const bounds = segmentBounds({ a: row.a, b: [end, row.b[1]] });
       index.insert(`${polygonIndex}:${ringIndex}:${segmentIndex}`, row, bounds);
     }
   }
-  const query = bounds => wrap ? [...new Set([-360, 0, 360].flatMap(shift => index.query([bounds[0] + shift, bounds[1], bounds[2] + shift, bounds[3]])))] : index.query(bounds);
+  const query = bounds => [...new Set([-360, 0, 360].flatMap(shift => index.query([bounds[0] + shift, bounds[1], bounds[2] + shift, bounds[3]])))];
   const prepared = { query, values: index.values };
-  cache.set(geometry, { revision, index: prepared });
+  indexes.set(geometry, { revision, index: prepared });
   return prepared;
-}
-
-export function territorialSegmentCandidates(geometry, a, b) {
-  const epsilon = 1e-7;
-  return geometrySegmentIndex(geometry, { wrap: false }).query([
-    Math.min(a[0], b[0]) - epsilon, Math.min(a[1], b[1]) - epsilon,
-    Math.max(a[0], b[0]) + epsilon, Math.max(a[1], b[1]) + epsilon,
-  ]);
 }
 
 export function segmentQueryBounds(a, b, epsilon = 1e-7) {

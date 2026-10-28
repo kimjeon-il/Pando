@@ -1,10 +1,9 @@
 import { normalizePolygonGeometry, multiCoordinates } from "../../../../../shared/frontend/js/modules/map-edit-geometry.js";
 import "../../../../../shared/frontend/js/modules/territorial-edit-plan.js";
-import { territorialSegmentCandidates } from './geometry-segment-index.js';
 import { validateGeometry } from "../../../../../shared/frontend/js/modules/geometry-validation.js";
 
 export function calculateTerritorialEdit(payload, entities, clipper) {
-  return globalThis.PandoLabTerritorialEdit.createKernel(clipper, { normalize: normalizePolygonGeometry, segmentCandidates: territorialSegmentCandidates }).plan({ ...payload, entities });
+  return globalThis.PandoLabTerritorialEdit.createKernel(clipper, { normalize: normalizePolygonGeometry }).plan({ ...payload, entities });
 }
 
 export function calculateRegionRedraw(source, draft) {

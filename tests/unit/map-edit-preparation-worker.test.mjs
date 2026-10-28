@@ -14,17 +14,24 @@ globalThis.PandoLabSphericalCore = await loadVerifiedCore();
 function harness(t, rows, { failFirstClipMethod = '' } = {}) {
   const script = new URL("../../apps/editor/frontend/js/workers/map-edit-worker.js", import.meta.url).href;
   const coreAdapter = new URL('../helpers/node-core-wasm-loader.mjs', import.meta.url).href;
+  const sharedRoot = new URL('../../shared/frontend/js/', import.meta.url).href;
   const createWorker = () => {
     const worker = new Worker(`
       const { parentPort } = require('node:worker_threads');
       const fs = require('node:fs'), vm = require('node:vm');
       global.self = global;
       self.location = new URL(${JSON.stringify(script)});
-      global.importScripts = (...urls) => urls.forEach(url => vm.runInThisContext('(function(module,exports){' + fs.readFileSync(new URL(url), 'utf8') + '\\n}).call(globalThis,undefined,undefined)'));
+      const sourceUrl = specifier => {
+        const input = new URL(specifier,self.location);
+        if (fs.existsSync(input)) return input.href;
+        const kind = input.pathname.includes('/workers/') ? 'workers' : 'modules';
+        return new URL(kind + '/' + input.pathname.split('/').pop(), ${JSON.stringify(sharedRoot)}).href;
+      };
+      global.importScripts = (...urls) => urls.forEach(url => vm.runInThisContext('(function(module,exports){' + fs.readFileSync(new URL(sourceUrl(url)), 'utf8') + '\\n}).call(globalThis,undefined,undefined)'));
       self.postMessage = data => parentPort.postMessage(data);
       vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), {
         filename: self.location.href,
-        importModuleDynamically: specifier => import(specifier.includes('core-wasm-loader.js') ? ${JSON.stringify(coreAdapter)} : new URL(specifier, self.location).href),
+        importModuleDynamically: specifier => import(specifier.includes('core-wasm-loader.js') ? ${JSON.stringify(coreAdapter)} : sourceUrl(specifier)),
       });
       const failMethod = ${JSON.stringify(failFirstClipMethod)};
       if (failMethod) {
@@ -199,6 +206,21 @@ test('actual worker validates normalized edits and invalidates receipts after lo
   parent.properties.locked = true;
   await assert.rejects(client.execute('territorial-validation', { payload: { preparationId: response.result.preparationId } }), /변경|다시/);
   assert.deepEqual(parent.geometry, square(0, 0, 10, 10));
+});
+
+test('actual Worker preserves the connected subunit merge order and rejects a stale lock', { timeout: 15000 }, async t => {
+  const country=feature('KR',square(0,0,10,5));
+  const a=feature('a',square(0,0,3,5),{parentId:'KR'});
+  const b=feature('b',square(3,0,6,5),{parentId:'KR'});
+  const c=feature('c',square(6,0,9,5),{parentId:'KR'});
+  const client=harness(t,[country,a,b,c].map(feature=>({feature})));
+  const preview=await client.execute('territorial-edit',{payload:{operation:'merge',targetId:'a',parentId:'KR',sourceIds:['c','b']}});
+  assert.deepEqual(preview.result.removedIds,['c','b']);
+  assert.equal(area(preview.result.features.find(row=>row.id==='a').geometry),45);
+  assert.equal((await client.execute('territorial-validation',{payload:{preparationId:preview.result.preparationId}})).result.valid,true);
+  b.properties.locked=true;
+  await assert.rejects(client.execute('territorial-validation',{payload:{preparationId:preview.result.preparationId}}),/변경|다시/);
+  assert.deepEqual(a.geometry,square(0,0,3,5));
 });
 
 test('actual worker prepares uncovered source and indexed snaps', { timeout: 15000 }, async t => {

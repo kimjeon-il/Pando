@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "276bc17087dda548e3a9d248e13114e60ddec8bedf87daa5679409d3f2f723ea",
+  "sourceSha256": "4787f4f89cb829c0b637f97456be2b79436e25f7709a583e8934df140560adad",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -189,7 +189,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/territorialmutation.h",
-      "sha256": "1864d0a4e66e497ccaa08eeec6ab9de38695840802a96c05b1b5381d259f91d6"
+      "sha256": "1eacd4887f093dad2d7b86e4c73818cbb8e03d4d393dc66ad173720e213318f8"
     },
     {
       "path": "shared/core/include/pandoeditor/timeline-edit.h",
@@ -413,7 +413,7 @@
     },
     {
       "path": "shared/core/src/territorialmutation.cpp",
-      "sha256": "89f4d80d04cfb9f005b91a5e7d097cf652c88e3754846a187d65a2ec761ab0c4"
+      "sha256": "47623a5a4ad5dc4e6fd2ecd3c99f13a4fba9172a5cd81ee01aa9a4c403ec93b9"
     },
     {
       "path": "shared/core/src/timeline-edit.cpp",
@@ -593,7 +593,7 @@
     },
     {
       "path": "shared/wasm/polygon-bindings.cpp",
-      "sha256": "2e46c0a91c437a9786e12485f5ee353b1e115c17118530e96c1180c80888f979"
+      "sha256": "daa55ee0ede504b497fb4a16d59f1ed1262b9f1c101330ce8757cea0d633667b"
     },
     {
       "path": "shared/wasm/reference-bindings.cpp",
@@ -615,11 +615,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "56410fa4b93f9883aab5fbcdb3c512a2f586e2bc0ca9c2c510489657682e60e9"
+      "sha256": "82a933c55fc974e5e19b2d4805ffcebfced0b136357883fd630faa01d7ffe49a"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "673c14d3b07e3b5d3c6654942579df555c565359cb2bbd843f2b63f718d542ae"
+      "sha256": "0a063d03bbfeec9db03f32520e15a25c41a48e0ed09e8fcf482ce8e4e53bbffd"
     }
   }
 }
