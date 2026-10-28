@@ -50,7 +50,7 @@ EM_JS(EM_VAL, packGisGeometry, (EM_VAL handle), {
     }
     return Emval.toHandle([new Uint32Array(shape),new Float64Array(points)]);
 });
-bool gisGeometry(val input) {
+MultiPolygon readGisGeometry(val input) {
     const auto packed=val::take_ownership(packGisGeometry(input.as_handle()));
     const auto shapeValue=packed[0],pointsValue=packed[1];
     std::vector<unsigned> shape(shapeValue["length"].as<unsigned>());
@@ -59,8 +59,9 @@ bool gisGeometry(val input) {
     if(!points.empty())val(emscripten::typed_memory_view(points.size(),points.data())).call<void>("set",pointsValue);
     std::size_t at=0,point=0;MultiPolygon polygons(shape.at(at++));
     for(auto& polygon:polygons){polygon.resize(shape.at(at++));for(auto& ring:polygon){ring.resize(shape.at(at++));for(auto& p:ring){p={points.at(point),points.at(point+1)};point+=2;}}}
-    return validateGisGeometry(polygons);
+    return polygons;
 }
+bool gisGeometry(val input) {return validateGisGeometry(readGisGeometry(input));}
 std::vector<MultiPolygon> readOperands(val inputs){
     const auto packed=val::take_ownership(packPolygonOperands(inputs.as_handle()));
     const auto shapeValue=packed[0],pointsValue=packed[1];
@@ -137,6 +138,72 @@ struct GisCandidatePort {
         result.set("componentPairs",pairs);return result;
     }
 };
+std::u16string utf16(val input) {
+    std::u16string result;const auto length=input["length"].as<unsigned>();result.reserve(length);
+    for(unsigned i=0;i<length;++i)result.push_back(static_cast<char16_t>(input.call<unsigned>("charCodeAt",i)));
+    return result;
+}
+std::vector<std::u16string> utf16List(val input) {
+    std::vector<std::u16string> result;const auto length=input["length"].as<unsigned>();result.reserve(length);
+    for(unsigned i=0;i<length;++i)result.push_back(utf16(input[i]));return result;
+}
+std::optional<GisComponentBounds> optionalBounds(val input) {
+    if(input.isNull()||input.isUndefined())return std::nullopt;
+    GisComponentBounds result;for(unsigned i=0;i<4;++i)result[i]=input[i].as<double>();return result;
+}
+std::vector<std::optional<GisComponentBounds>> optionalBoundsList(val input) {
+    std::vector<std::optional<GisComponentBounds>> result;const auto length=input["length"].as<unsigned>();result.reserve(length);
+    for(unsigned i=0;i<length;++i)result.push_back(optionalBounds(input[i]));return result;
+}
+std::optional<std::set<std::u16string>> territorialKeys(val input) {
+    if(input.isNull()||input.isUndefined())return std::nullopt;
+    const auto values=utf16List(input);return std::set<std::u16string>(values.begin(),values.end());
+}
+struct TerritorialCandidatePort {
+    TerritorialOverlapCandidateIterator iterator;
+    TerritorialCandidatePort(val ids,val bounds,val affected,bool scoped,val keys)
+        :iterator(utf16List(ids),optionalBoundsList(bounds),gisAffected(affected),scoped,territorialKeys(keys)){}
+    val next() {
+        try {
+            const auto candidate=iterator.next();if(!candidate)return val::null();
+            auto result=val::object();
+            result.set("leftIndex",static_cast<unsigned>(candidate->leftIndex));result.set("rightIndex",static_cast<unsigned>(candidate->rightIndex));
+            return result;
+        } catch(const std::exception& error) {
+            if(std::string(error.what())=="TERRITORIAL_COMPONENT_BOUNDS")val::global("TypeError").new_(std::string("Cannot read properties of null (reading '2')")).throw_();
+            val::global("Error").new_(std::string(error.what())).throw_();
+        }
+        std::terminate();
+    }
+    val components(val left,val right) {
+        try {
+            const auto values=iterator.components(optionalBoundsList(left),optionalBoundsList(right));
+            auto result=val::array();unsigned index=0;
+            for(const auto& pair:values){auto row=val::array();row.set(0,static_cast<unsigned>(pair.first));row.set(1,static_cast<unsigned>(pair.second));result.set(index++,row);}
+            return result;
+        } catch(const std::exception& error) {
+            if(std::string(error.what())=="TERRITORIAL_COMPONENT_BOUNDS")val::global("TypeError").new_(std::string("Cannot read properties of null (reading '2')")).throw_();
+            val::global("Error").new_(std::string(error.what())).throw_();
+        }
+        std::terminate();
+    }
+    val diagnostics()const {
+        const auto value=iterator.diagnostics();auto result=val::object();
+        result.set("boundsCandidatePairs",static_cast<unsigned>(value.boundsCandidatePairs));
+        result.set("componentCandidatePairs",static_cast<unsigned>(value.componentCandidatePairs));
+        result.set("componentEvaluated",value.componentEvaluated);return result;
+    }
+};
+Polygon territorialPolygon(val input) {
+    auto polygons=val::array();polygons.set(0,input);return readGisGeometry(polygons).front();
+}
+struct TerritorialPolygonPort {
+    TerritorialPolygonIndex index;
+    explicit TerritorialPolygonPort(val polygon):index(territorialPolygon(polygon)){}
+    bool mayOverlap(const TerritorialPolygonPort& other,val left,val right)const {
+        return index.mayOverlap(other.index,*optionalBounds(left),*optionalBounds(right));
+    }
+};
 }
 std::string wrapGeometry(const std::string& input){
     try {
@@ -154,5 +221,7 @@ EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("validateGisGeometry",&gisGeometry);
     emscripten::function("gisValidationArea",&gisArea);
     emscripten::class_<GisCandidatePort>("GisOverlapCandidates").constructor<val,val,bool>().function("next",&GisCandidatePort::next).function("isSignificant",&GisCandidatePort::isSignificant);
+    emscripten::class_<TerritorialCandidatePort>("TerritorialOverlapCandidates").constructor<val,val,val,bool,val>().function("next",&TerritorialCandidatePort::next).function("components",&TerritorialCandidatePort::components).function("diagnostics",&TerritorialCandidatePort::diagnostics);
+    emscripten::class_<TerritorialPolygonPort>("TerritorialPolygonIndex").constructor<val>().function("mayOverlap",&TerritorialPolygonPort::mayOverlap);
     emscripten::function("wrapPolygonGeometry",&wrapGeometry);
 }

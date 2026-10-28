@@ -23,75 +23,13 @@ function sampleRing(ring = [], maximumVertices = 16) {
   return sampled;
 }
 
-function coarseMultiCoordinates(geometry) {
-  return polygons(geometry).map(polygon => (polygon || []).map(ring => sampleRing(ring)));
-}
-
 function verificationMultiCoordinates(geometry) {
   return polygons(geometry).map(polygon => (polygon || []).map(ring => sampleRing(ring, 512)));
-}
-
-function createRingPointIndex(ring = []) {
-  const edges = (ring || []).slice(0, -1).map((a, index) => ({ a, b: ring[index + 1] }));
-  const minY = edges.reduce((value, edge) => Math.min(value, edge.a[1], edge.b[1]), Infinity);
-  const maxY = edges.reduce((value, edge) => Math.max(value, edge.a[1], edge.b[1]), -Infinity);
-  const binCount = Math.min(256, Math.max(8, Math.ceil(Math.sqrt(edges.length || 1))));
-  const span = Math.max(1e-12, maxY - minY);
-  const buckets = Array.from({ length: binCount }, () => []);
-  const binFor = value => Math.max(0, Math.min(binCount - 1, Math.floor((value - minY) / span * binCount)));
-  edges.forEach(edge => {
-    const start = binFor(Math.min(edge.a[1], edge.b[1]));
-    const end = binFor(Math.max(edge.a[1], edge.b[1]));
-    for (let bin = start; bin <= end; bin += 1) buckets[bin].push(edge);
-  });
-  return { minY, maxY, binFor, buckets };
-}
-
-function pointRelationToRingIndex(point, index, epsilon = 1e-9) {
-  if (!index || point[1] < index.minY - epsilon || point[1] > index.maxY + epsilon) return -1;
-  let inside = false;
-  for (const { a, b } of index.buckets[index.binFor(point[1])] || []) {
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const cross = (point[0] - a[0]) * dy - (point[1] - a[1]) * dx;
-    if (Math.abs(cross) <= epsilon * Math.max(1, Math.hypot(dx, dy))
-      && point[0] >= Math.min(a[0], b[0]) - epsilon && point[0] <= Math.max(a[0], b[0]) + epsilon
-      && point[1] >= Math.min(a[1], b[1]) - epsilon && point[1] <= Math.max(a[1], b[1]) + epsilon) return 0;
-    if ((a[1] > point[1]) !== (b[1] > point[1])
-      && point[0] < (b[0] - a[0]) * (point[1] - a[1]) / ((b[1] - a[1]) || Number.EPSILON) + a[0]) inside = !inside;
-  }
-  return inside ? 1 : -1;
-}
-
-function createPolygonPointIndex(polygon = []) {
-  return (polygon || []).map(createRingPointIndex);
-}
-
-function pointStrictlyInPolygonIndex(point, polygonIndex = []) {
-  if (pointRelationToRingIndex(point, polygonIndex[0]) !== 1) return false;
-  return polygonIndex.slice(1).every(ringIndex => pointRelationToRingIndex(point, ringIndex) === -1);
-}
-
-function coarsePolygonsMayOverlap(leftSample, rightSample, leftIndex, rightIndex, leftBounds, rightBounds) {
-  const leftOuter = (leftSample?.[0] || []).slice(0, -1);
-  const rightOuter = (rightSample?.[0] || []).slice(0, -1);
-  if (leftOuter.some(point => pointStrictlyInPolygonIndex(point, rightIndex))
-    || rightOuter.some(point => pointStrictlyInPolygonIndex(point, leftIndex))) return true;
-  const center = [
-    (Math.max(leftBounds[0], rightBounds[0]) + Math.min(leftBounds[2], rightBounds[2])) / 2,
-    (Math.max(leftBounds[1], rightBounds[1]) + Math.min(leftBounds[3], rightBounds[3])) / 2,
-  ];
-  if (pointStrictlyInPolygonIndex(center, leftIndex) && pointStrictlyInPolygonIndex(center, rightIndex)) return true;
-  return false;
 }
 
 function bounds(geometry) {
   const output = coordinateBounds(geometry?.coordinates);
   return output.every(Number.isFinite) ? output : null;
-}
-
-function boundsOverlap(a, b) {
-  return !!a && !!b && a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
 }
 
 function geometryPlanarArea(geometry) {
@@ -163,17 +101,12 @@ export function validateTerritorialGeometry(features = [], {
     });
     for (const feature of candidates) issues.push(...validateGeometry(feature));
   }
-  if (!clipper?.intersection) return issues;
+  if (!clipper?.intersection || !candidates.length) return issues;
 
-  const tested = new Set();
-  const coarseCoordinates = new WeakMap();
   const verificationCoordinates = new WeakMap();
   const componentBoundsCache = new WeakMap();
   const polygonPointIndexCache = new WeakMap();
-  const coarseFor = feature => {
-    if (!coarseCoordinates.has(feature)) coarseCoordinates.set(feature, coarseMultiCoordinates(feature.geometry));
-    return coarseCoordinates.get(feature);
-  };
+  const polygonIndexes = [];
   const verificationFor = feature => {
     if (!verificationCoordinates.has(feature)) verificationCoordinates.set(feature, verificationMultiCoordinates(feature.geometry));
     return verificationCoordinates.get(feature);
@@ -186,33 +119,31 @@ export function validateTerritorialGeometry(features = [], {
   };
   const polygonPointIndexesFor = feature => {
     if (!polygonPointIndexCache.has(feature)) {
-      polygonPointIndexCache.set(feature, polygons(feature.geometry).map(createPolygonPointIndex));
+      if (typeof sharedCalculationCore.TerritorialPolygonIndex !== 'function') {
+        throw Object.assign(new Error('Canonical C++ territorial polygon index is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+      }
+      const indexes = polygons(feature.geometry).map(polygon => {
+        const index = new sharedCalculationCore.TerritorialPolygonIndex(polygon);
+        polygonIndexes.push(index);
+        return index;
+      });
+      polygonPointIndexCache.set(feature, indexes);
     }
     return polygonPointIndexCache.get(feature);
   };
-  const overlappingComponentPairs = (left, right) => {
-    const output = [];
-    const leftBounds = componentBoundsFor(left);
-    const rightBounds = componentBoundsFor(right);
-    leftBounds.forEach((leftBox, leftIndex) => rightBounds.forEach((rightBox, rightIndex) => {
-      if (Math.min(leftBox[2], rightBox[2]) - Math.max(leftBox[0], rightBox[0]) > 1e-10
-        && Math.min(leftBox[3], rightBox[3]) - Math.max(leftBox[1], rightBox[1]) > 1e-10) output.push([leftIndex, rightIndex]);
-    }));
-    return output;
-  };
-  for (const feature of candidates) {
-    const id = featureId(feature);
-    const featureBounds = bounds(feature.geometry);
-    for (const other of features) {
-      const otherId = featureId(other);
-      if (!id || id === otherId || !boundsOverlap(featureBounds, bounds(other.geometry))) continue;
-      if (diagnostics) diagnostics.boundsCandidatePairs = (diagnostics.boundsCandidatePairs || 0) + 1;
-      const pairKey = id < otherId ? `${id}|${otherId}` : `${otherId}|${id}`;
-      if (tested.has(pairKey)) continue;
-      tested.add(pairKey);
-      if (pairKeys && !pairKeys.has(pairKey)) continue;
-      const componentPairs = overlappingComponentPairs(feature, other);
-      if (diagnostics) diagnostics.componentCandidatePairs = (diagnostics.componentCandidatePairs || 0) + componentPairs.length;
+  if (typeof sharedCalculationCore.TerritorialOverlapCandidates !== 'function') {
+    throw Object.assign(new Error('Canonical C++ territorial overlap scope is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  const ids = features.map(feature => featureId(feature));
+  const featureBounds = features.map(feature => bounds(feature.geometry));
+  const iterator = new sharedCalculationCore.TerritorialOverlapCandidates(ids, featureBounds,
+    ids.map(id => !!affected?.has(id)), !!affected, pairKeys ? [...pairKeys].filter(key => typeof key === 'string') : null);
+  try {
+    for (let candidate = iterator.next(); candidate; candidate = iterator.next()) {
+      const feature = features[candidate.leftIndex], other = features[candidate.rightIndex];
+      const id = ids[candidate.leftIndex], otherId = ids[candidate.rightIndex];
+      const candidateBounds = featureBounds[candidate.leftIndex];
+      const componentPairs = iterator.components(componentBoundsFor(feature), componentBoundsFor(other));
       if (!componentPairs.length) continue;
       // Most country pairs whose bounds touch only share a border. A small,
       // noncanonical preflight rejects those cheaply; canonical coordinates are
@@ -236,10 +167,8 @@ export function validateTerritorialGeometry(features = [], {
         }
       } else {
         for (const [leftIndex, rightIndex] of componentPairs) {
-          if (coarseMayOverlap || coarsePolygonsMayOverlap(
-            coarseFor(feature)[leftIndex], coarseFor(other)[rightIndex],
-            polygonPointIndexesFor(feature)[leftIndex], polygonPointIndexesFor(other)[rightIndex],
-            componentBoundsFor(feature)[leftIndex], componentBoundsFor(other)[rightIndex],
+          if (coarseMayOverlap || polygonPointIndexesFor(feature)[leftIndex].mayOverlap(
+            polygonPointIndexesFor(other)[rightIndex], componentBoundsFor(feature)[leftIndex], componentBoundsFor(other)[rightIndex],
           )) {
             coarseMayOverlap = true;
             break;
@@ -260,7 +189,7 @@ export function validateTerritorialGeometry(features = [], {
       } catch (_) {
         intersectionFailed = true;
         issues.push(issue('invalid-geometry', `${id}와 ${otherId}의 중첩 검사를 완료하지 못했습니다.`, {
-          entityRefs: [id, otherId], bounds: featureBounds,
+          entityRefs: [id, otherId], bounds: candidateBounds,
         }));
       }
       if (intersectionFailed) continue;
@@ -270,6 +199,17 @@ export function validateTerritorialGeometry(features = [], {
       issues.push(issue('overlap', `${id}와 ${otherId} 사이에 중첩 영역이 있습니다.`, {
         entityRefs: [id, otherId], geometry: overlap, bounds: bounds(overlap), planarArea: overlapPlanarArea,
       }));
+    }
+  } finally {
+    try {
+      if (diagnostics) {
+        const counts = iterator.diagnostics();
+        if (counts.boundsCandidatePairs) diagnostics.boundsCandidatePairs = (diagnostics.boundsCandidatePairs || 0) + counts.boundsCandidatePairs;
+        if (counts.componentEvaluated) diagnostics.componentCandidatePairs = (diagnostics.componentCandidatePairs || 0) + counts.componentCandidatePairs;
+      }
+    } finally {
+      try { for (const index of polygonIndexes) index.delete(); }
+      finally { iterator.delete(); }
     }
   }
   if (baselineUnion && clipper.xor && candidates.length) {

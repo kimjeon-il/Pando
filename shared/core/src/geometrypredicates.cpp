@@ -498,6 +498,98 @@ std::optional<GisOverlapCandidate> GisOverlapCandidateIterator::next() {
     }
     return std::nullopt;
 }
+TerritorialOverlapCandidateIterator::TerritorialOverlapCandidateIterator(
+    std::vector<std::u16string> ids,std::vector<std::optional<GisComponentBounds>> bounds,
+    std::vector<bool> affected,bool scoped,std::optional<std::set<std::u16string>> pairKeys)
+    :ids_(std::move(ids)),bounds_(std::move(bounds)),affected_(std::move(affected)),scoped_(scoped),pairKeys_(std::move(pairKeys)) {
+    if(bounds_.size()!=ids_.size()||affected_.size()!=ids_.size())
+        throw std::invalid_argument("Invalid territorial overlap scope");
+}
+std::optional<GisOverlapCandidate> TerritorialOverlapCandidateIterator::next() {
+    const auto overlaps=[](const GisComponentBounds& a,const GisComponentBounds& b) {
+        return a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];
+    };
+    while(left_<ids_.size()){
+        if(scoped_&&!affected_[left_]){++left_;right_=0;continue;}
+        if(right_>=ids_.size()){++left_;right_=0;continue;}
+        const auto i=left_,j=right_++;
+        if(ids_[i].empty()||ids_[i]==ids_[j]||!bounds_[i]||!bounds_[j]||!overlaps(*bounds_[i],*bounds_[j]))continue;
+        ++diagnostics_.boundsCandidatePairs;
+        const auto key=ids_[i]<ids_[j]?ids_[i]+u"|"+ids_[j]:ids_[j]+u"|"+ids_[i];
+        if(!tested_.insert(key).second||(pairKeys_&&!pairKeys_->count(key)))continue;
+        return GisOverlapCandidate{i,j,{}};
+    }
+    return std::nullopt;
+}
+std::vector<std::pair<std::size_t,std::size_t>> TerritorialOverlapCandidateIterator::components(
+    const std::vector<std::optional<GisComponentBounds>>& left,const std::vector<std::optional<GisComponentBounds>>& right) {
+    std::vector<std::pair<std::size_t,std::size_t>> result;
+    for(std::size_t a=0;a<left.size();++a)for(std::size_t b=0;b<right.size();++b){
+        if(!left[a]||!right[b])throw std::invalid_argument("TERRITORIAL_COMPONENT_BOUNDS");
+        const auto& l=*left[a];const auto& r=*right[b];
+        if(std::min(l[2],r[2])-std::max(l[0],r[0])>1e-10&&std::min(l[3],r[3])-std::max(l[1],r[1])>1e-10)
+            result.emplace_back(a,b);
+    }
+    diagnostics_.componentEvaluated=true;diagnostics_.componentCandidatePairs+=result.size();return result;
+}
+struct TerritorialPolygonIndex::Data {
+    struct Edge {Point a,b;};
+    struct RingIndex {
+        double minY=INFINITY,maxY=-INFINITY,span=1e-12;
+        std::vector<std::vector<Edge>> buckets;
+        std::size_t bin(double y)const {
+            const auto value=std::floor((y-minY)/span*buckets.size());
+            return static_cast<std::size_t>(std::max(0.,std::min(double(buckets.size()-1),value)));
+        }
+        explicit RingIndex(const Ring& ring) {
+            const auto count=ring.empty()?0:ring.size()-1;
+            for(std::size_t i=0;i<count;++i){minY=std::min({minY,ring[i].y,ring[i+1].y});maxY=std::max({maxY,ring[i].y,ring[i+1].y});}
+            const auto bins=std::min<std::size_t>(256,std::max<std::size_t>(8,static_cast<std::size_t>(std::ceil(std::sqrt(double(count))))));
+            buckets.resize(bins);span=std::max(1e-12,maxY-minY);
+            for(std::size_t i=0;i<count;++i){const auto start=bin(std::min(ring[i].y,ring[i+1].y)),end=bin(std::max(ring[i].y,ring[i+1].y));
+                for(auto bucket=start;bucket<=end;++bucket)buckets[bucket].push_back({ring[i],ring[i+1]});}
+        }
+        int relation(Point point)const {
+            constexpr double epsilon=1e-9;
+            if(point.y<minY-epsilon||point.y>maxY+epsilon)return -1;
+            bool inside=false;
+            for(const auto& edge:buckets[bin(point.y)]){
+                const auto a=edge.a,b=edge.b;const auto dx=b.x-a.x,dy=b.y-a.y;
+                const auto cross=(point.x-a.x)*dy-(point.y-a.y)*dx;
+                if(std::abs(cross)<=epsilon*std::max(1.,std::hypot(dx,dy))
+                   &&point.x>=std::min(a.x,b.x)-epsilon&&point.x<=std::max(a.x,b.x)+epsilon
+                   &&point.y>=std::min(a.y,b.y)-epsilon&&point.y<=std::max(a.y,b.y)+epsilon)return 0;
+                if((a.y>point.y)!=(b.y>point.y)&&point.x<(b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+            }
+            return inside?1:-1;
+        }
+    };
+    std::vector<RingIndex> rings;
+    std::vector<Point> samples;
+    explicit Data(const Polygon& polygon) {
+        for(const auto& ring:polygon)for(const auto p:ring)if(!std::isfinite(p.x)||!std::isfinite(p.y))
+            throw std::invalid_argument("INVALID_GEOMETRY: nonfinite coordinate");
+        rings.reserve(polygon.size());for(const auto& ring:polygon)rings.emplace_back(ring);
+        if(polygon.empty())return;
+        const auto& ring=polygon.front();const auto count=ring.empty()?0:ring.size()-1;
+        if(count<=16){for(std::size_t i=0;i<count;++i)samples.push_back(ring[i]);}
+        else for(std::size_t i=0;i<16;++i)samples.push_back(ring[(i*count)/16]);
+    }
+    bool contains(Point point)const {
+        if(rings.empty()||rings.front().relation(point)!=1)return false;
+        for(std::size_t i=1;i<rings.size();++i)if(rings[i].relation(point)!=-1)return false;
+        return true;
+    }
+};
+TerritorialPolygonIndex::TerritorialPolygonIndex(Polygon polygon):data_(std::make_shared<Data>(polygon)){}
+bool TerritorialPolygonIndex::mayOverlap(const TerritorialPolygonIndex& other,
+    const GisComponentBounds& left,const GisComponentBounds& right)const {
+    for(const auto p:data_->samples)if(other.data_->contains(p))return true;
+    for(const auto p:other.data_->samples)if(data_->contains(p))return true;
+    const Point center{(std::max(left[0],right[0])+std::min(left[2],right[2]))/2,
+                       (std::max(left[1],right[1])+std::min(left[3],right[3]))/2};
+    return data_->contains(center)&&other.data_->contains(center);
+}
 double planarArea(const Geometry& g) noexcept { double sum=0;for(const auto& p:g.polygons)for(std::size_t i=0;i<p.size();++i)sum+=(i?-1:1)*ringArea(p[i]);return std::abs(sum); }
 bool significantArea(double value,double reference) noexcept { return value>std::max(1e-10,std::abs(reference)*1e-9); }
 bool geometryContains(const Geometry& container,const Geometry& subject) {

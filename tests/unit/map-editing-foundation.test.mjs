@@ -6,7 +6,7 @@ import { buildBoundaryTopology, moveTopologyNodes, planCoastEdit, planSharedBoun
 import { geometryAreaKm2, lineDistanceKm, percentChange } from "../../apps/editor/frontend/js/modules/geometry-metrics.js";
 import { beginGeometryPreview, clearGeometryPreview, createGeometryPreviewState, previewIsCurrent } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 import { resolveSnap, snapThreshold } from "../../apps/editor/frontend/js/modules/geometry-snap.js";
-import { runMapAudit, validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
+import { runMapAudit, validateGeometry, validateTerritorialGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
 import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
 import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
@@ -81,6 +81,43 @@ test('territorial overlap area preserves per-polygon holes and empty input', () 
   const small = [[10, 0], [11, 0], [11, 1], [10, 1], [10, 0]];
   assert.equal(globalThis.PandoLabSphericalCore.territorialValidationArea([[square, hole], [small]]), 9);
   assert.equal(globalThis.PandoLabSphericalCore.territorialValidationArea([]), 0);
+});
+
+test('territorial overlap candidates preserve affected direction and diagnostic counts', () => {
+  const boxes = [[0, 0, 2, 2], [1, 1, 3, 3], [2, 2, 4, 4]];
+  const iterator = new globalThis.PandoLabSphericalCore.TerritorialOverlapCandidates(
+    ['A', 'B', 'C'], boxes, [false, true, false], true, null);
+  try {
+    assert.deepEqual(iterator.next(), { leftIndex: 1, rightIndex: 0 });
+    assert.deepEqual(iterator.components([boxes[1]], [boxes[0]]), [[0, 0]]);
+    assert.deepEqual(iterator.next(), { leftIndex: 1, rightIndex: 2 });
+    assert.deepEqual(iterator.components([boxes[1]], [boxes[2]]), [[0, 0]]);
+    assert.equal(iterator.next(), null);
+    assert.deepEqual(iterator.diagnostics(), { boundsCandidatePairs: 2, componentCandidatePairs: 2, componentEvaluated: true });
+  } finally { iterator.delete(); }
+  const astral = '\u{10000}', bmp = '\ue000';
+  const unicode = new globalThis.PandoLabSphericalCore.TerritorialOverlapCandidates(
+    [astral, bmp], boxes.slice(0, 2), [false, false], false, [`${astral}|${bmp}`]);
+  try {
+    assert.deepEqual(unicode.next(), { leftIndex: 0, rightIndex: 1 });
+    assert.equal(unicode.next(), null);
+  } finally { unicode.delete(); }
+  const malformed = { id: 'bad', geometry: { type: 'MultiPolygon', coordinates: [
+    [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]], [],
+  ] } };
+  assert.throws(() => validateTerritorialGeometry([malformed, feature('B', [[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]])],
+    { clipper: { intersection: () => [] }, overlapOnly: true }), TypeError);
+});
+
+test('territorial coarse overlap preserves containment and hole behavior', () => {
+  const box = (x, y, w, h) => [[x, y], [x+w, y], [x+w, y+h], [x, y+h], [x, y]];
+  const left = new globalThis.PandoLabSphericalCore.TerritorialPolygonIndex([box(0, 0, 10, 10), box(3, 3, 4, 4)]);
+  const filled = new globalThis.PandoLabSphericalCore.TerritorialPolygonIndex([box(1, 1, 1, 1)]);
+  const hole = new globalThis.PandoLabSphericalCore.TerritorialPolygonIndex([box(4, 4, 1, 1)]);
+  try {
+    assert.equal(left.mayOverlap(filled, [0, 0, 10, 10], [1, 1, 2, 2]), true);
+    assert.equal(left.mayOverlap(hole, [0, 0, 10, 10], [4, 4, 5, 5]), false);
+  } finally { left.delete(); filled.delete(); hole.delete(); }
 });
 
 test('spherical metrics provide useful live distance, area and percentage feedback', () => {
