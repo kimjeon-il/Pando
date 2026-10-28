@@ -1,7 +1,7 @@
 name: OBJ-095 prepared source row packing and source-ref parity
 on:
   push:
-    branches: [work/perf-source-row-owners-20261017]
+    branches: [ work/perf-source-row-owners-20261017 ]
     paths:
       - '.github/workflows/soviet-source-row-packing.yml'
       - 'assets/js/modules/boundary-topology.js'
@@ -35,7 +35,8 @@ jobs:
           node --check assets/js/modules/country-contact-core.js
           node --check tests/unit/boundary-source-row-compact.test.mjs
           pnpm exec eslint assets/js/modules/boundary-topology.js assets/js/modules/country-contact-core.js tests/unit/boundary-source-row-compact.test.mjs
-      - name: Check C++ contacts, full original source refs, packed index, cache seed and edit patch
+      - name: Check C++ contacts, full original source refs, packed index, cache seed
+          and edit patch
         run: |
           node --test tests/unit/boundary-source-row-compact.test.mjs tests/unit/country-contact-core.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/boundary-spatial-index-packed.test.mjs tests/unit/shared-edge-singleton.test.mjs tests/unit/boundary-preparation.test.mjs tests/unit/p5-6-contribution-merge.test.mjs
   paired-worker-memory:
@@ -50,8 +51,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: baseline
-          ref: 0059af35094609390d8ce03f76339e5ef8c27948
+          ref: dc2f8d0b4e46a295c5967dcf380a58c0ca5d9d57
           persist-credentials: false
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 33e1afa92fc19edb9191112b9490bc93b3eec49d
+          inputs-target: baseline
       - uses: actions/setup-node@v4
         with:
           node-version-file: candidate/.nvmrc
@@ -66,7 +72,7 @@ jobs:
       - name: Measure OBJ-094 source, same Soviet-modern Worker memory
         env:
           PANDOLAB_INDEX_VARIANT: packed
-          PANDOLAB_EXPECT_COMMIT: 0059af35094609390d8ce03f76339e5ef8c27948
+          PANDOLAB_EXPECT_COMMIT: dc2f8d0b4e46a295c5967dcf380a58c0ca5d9d57
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDOLAB_TEST_PORT: '4221'
         run: |

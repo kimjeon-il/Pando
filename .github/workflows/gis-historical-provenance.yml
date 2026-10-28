@@ -27,7 +27,7 @@ jobs:
       - name: Identify the current approved external library revision
         run: |
           mkdir -p build-native/historical
-          OLD=980f02fbf28d9242799ca964736aa6f87de82615
+          OLD=5ec3a5db5661213855f65ddc3c3239e51a73e40a
           NEW=$(node -p "require('./config/library-data.json').revision")
           node tools/gis/check-historical-source-provenance.mjs \
             --before "$OLD" --after "$NEW" \

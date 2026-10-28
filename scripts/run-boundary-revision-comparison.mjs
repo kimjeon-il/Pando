@@ -6,7 +6,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BOUNDARY_REVISION_STAGES } from '../tests/browser/helpers/boundary-revision-timings.mjs';
 
-const baselineRevision = '0c55e8e4e8bacb3b125091c9b3a12ff535b5bdb6';
+const baselineRevision = '9fe9e91c2894c23a646b38ce5c792299dc102f99';
 const prProduct = { assets: '710ae68872869f8a63145fc7d190d4c2ea34dcf2', index: '12c97886e4018a3c88ee454557b3feee97cb3055' };
 const spec = 'tests/browser/boundary-cut-snapping.spec.mjs';
 const title = 'a child cut snaps to both parent boundaries, preserves coverage and undoes in one step';

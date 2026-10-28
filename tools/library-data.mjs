@@ -531,6 +531,22 @@ export function prefetchArchiveEntries({checkout,revision,entries,additionalByte
 export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
   return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch }));
 }
+// Project an explicitly selected input checkout into an isolated reproduction.
+// This does not read a retired schema or prepare the shared runtime cache.
+export function mountLibraryInputs({ source, root }) {
+  source = realpathSync(source); root = realpathSync(root);
+  const input = safeChild(source, 'assets/data'), output = safeChild(root, 'assets/data');
+  for (const parent of [dirname(input), dirname(output)]) {
+    try { if (lstatSync(parent).isSymbolicLink()) throw Error('Indirect library input parent is forbidden'); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
+  if (!lstatSync(input).isDirectory() || lstatSync(input).isSymbolicLink()) throw Error('Library inputs must be a regular checkout directory');
+  try { lstatSync(output); throw Error('Existing library input target must not be overwritten'); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  mkdirSync(dirname(output), { recursive: true });
+  symlinkSync(input, output, process.platform === 'win32' ? 'junction' : 'dir');
+  return output;
+}
 export function withLibraryLock(root, operation, { maintenance = false, organizing = false, compact = true } = {}) {
   const lockPath = resolve(root, '.library-data/prepare.lock');
   mkdirSync(dirname(lockPath), { recursive: true });
@@ -1501,7 +1517,11 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  if (process.argv[2] === '--begin-write' || process.argv[2] === '--end-write' || process.argv[2] === '--with-write') {
+  if (process.argv[2]?.startsWith('--mount-inputs=')) {
+    const root = process.argv.find(arg => arg.startsWith('--root='))?.slice(7);
+    if (!root) throw Error('Explicit reproduction root is required');
+    console.log(mountLibraryInputs({ source: process.argv[2].slice(15), root }));
+  } else if (process.argv[2] === '--begin-write' || process.argv[2] === '--end-write' || process.argv[2] === '--with-write') {
     const root = process.argv.find(arg => arg.startsWith('--root='))?.slice(7) || defaultRoot;
     if (process.argv[2] === '--end-write') endLibraryWrite({ root, id: process.argv.find(arg => arg.startsWith('--lease-id='))?.slice(11) });
     else {

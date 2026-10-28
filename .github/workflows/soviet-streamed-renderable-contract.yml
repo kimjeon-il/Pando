@@ -1,7 +1,7 @@
 name: Soviet streamed outline retention and output parity
 on:
   push:
-    branches: [work/perf-renderable-on-demand-20261017]
+    branches: [ work/perf-renderable-on-demand-20261017 ]
     paths:
       - '.github/workflows/soviet-streamed-renderable-contract.yml'
       - 'assets/js/modules/geographic-boundary.js'
@@ -44,7 +44,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: 6b0c501dd09029ef237e90c1ef55fdb82bdf315f
+          ref: 9b4886fc7c2623f2bc871fe5a37cf367900a034c
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 99a76bb8376d798c2e9bf132ad7f8d2b6ccb4298
+          inputs-target: .
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4

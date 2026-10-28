@@ -12,7 +12,7 @@ const configUrl = new URL('../../playwright.boundary-capture.config.mjs', import
 const runnerUrl = new URL('../../scripts/run-boundary-capture-comparison.mjs', import.meta.url);
 const flag = 'PANDOLAB_BOUNDARY_CAPTURE_SCREENSHOTS';
 const title = 'a child cut snaps to both parent boundaries, preserves coverage and undoes in one step';
-const head = 'fccbbe86a54f66f8d43014fa036e58f8eab9501b';
+const head = '1ba699efda8bb6997b9aff2db1bf42b9926fd4b0';
 
 function loadConfig(value) {
   assert.ok(existsSync(configUrl), 'the isolated capture config must exist');

@@ -1,7 +1,7 @@
 name: Shared-border transient C++ wire encoding paired A/B
 on:
   push:
-    branches: [work/perf-contact-wire-lifetime-20261017]
+    branches: [ work/perf-contact-wire-lifetime-20261017 ]
     paths:
       - '.github/workflows/soviet-contact-wire-paired.yml'
       - 'assets/js/modules/country-contact-core.js'
@@ -24,8 +24,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: baseline
-          ref: f2370babfccf3dd07dca26f11aeecab4434189ca
+          ref: 507e7f7093a8d7c162433eb7ad313ec492e7948b
           persist-credentials: false
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: efe3141d5ec9175d57213b2f14eecd06207e5941
+          inputs-target: baseline
       - uses: actions/setup-node@v4
         with:
           node-version-file: candidate/.nvmrc
@@ -49,7 +54,7 @@ jobs:
       - name: Baseline modern-world Worker V8 and original wire lifetime
         env:
           PANDOLAB_INDEX_VARIANT: packed
-          PANDOLAB_EXPECT_COMMIT: f2370babfccf3dd07dca26f11aeecab4434189ca
+          PANDOLAB_EXPECT_COMMIT: 507e7f7093a8d7c162433eb7ad313ec492e7948b
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDOLAB_TEST_PORT: '4195'
         run: |
@@ -68,7 +73,7 @@ jobs:
           cp test-results/soviet-boundary-index-packed/measurement.json ../candidate-packed.json
       - name: Original cache CPU repeated modern contact batch
         env:
-          PANDOLAB_EXPECT_COMMIT: f2370babfccf3dd07dca26f11aeecab4434189ca
+          PANDOLAB_EXPECT_COMMIT: 507e7f7093a8d7c162433eb7ad313ec492e7948b
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDOLAB_TEST_PORT: '4197'
         run: |

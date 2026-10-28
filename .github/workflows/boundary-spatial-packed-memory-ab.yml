@@ -1,7 +1,7 @@
 name: Soviet packed boundary index paired memory A/B
 on:
   push:
-    branches: [work/perf-boundary-index-20261017]
+    branches: [ work/perf-boundary-index-20261017 ]
     paths:
       - '.github/workflows/boundary-spatial-packed-memory-ab.yml'
       - 'tests/browser/soviet-boundary-index-packed-memory.spec.mjs'
@@ -23,8 +23,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: 78ab111e34966bc2573bfdd192c75954f322d771
+          ref: c43ec911f03097c22439a3c095595066456b84bd
           path: baseline
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 3dc69b375177cb880ec4bf7781bd90a8860b95a4
+          inputs-target: baseline
       - uses: actions/setup-node@v4
         with:
           node-version-file: candidate/.nvmrc
@@ -40,7 +45,7 @@ jobs:
       - name: Run exactly the same measurement on unchanged main
         env:
           PANDOLAB_INDEX_VARIANT: baseline
-          PANDOLAB_EXPECT_COMMIT: 78ab111e34966bc2573bfdd192c75954f322d771
+          PANDOLAB_EXPECT_COMMIT: c43ec911f03097c22439a3c095595066456b84bd
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDOLAB_TEST_PORT: '4181'
         run: |

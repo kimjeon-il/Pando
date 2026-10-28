@@ -10,7 +10,7 @@ import vm from 'node:vm';
 const arg = name => { const i=process.argv.indexOf(name);return i<0?undefined:process.argv[i+1]; };
 const selected=(arg('--operations')||'cut,polygon,river,reference').split(',');
 assert.ok(selected.length&&selected.every(name=>['cut','polygon','river','reference'].includes(name)),'Unknown performance operation');
-const baselineSha = '8e22982616e3c9ba43eeb84baec17cd886267cfa';
+const baselineSha = 'd57e235cc4b8c7f94a603d4352556f11b28bc735';
 const git = (root,...args) => execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 if(process.argv.includes('--sample-root')) {
   const root=resolve(arg('--sample-root')),mode=arg('--mode');

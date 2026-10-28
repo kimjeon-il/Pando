@@ -132,7 +132,7 @@ for(const {quality,limit,name,sourceHash,segments} of cases) {
     speedup:round(1/ratio),compiledToLegacyRatio:round(ratio)});
   process.stdout.write(quality+': '+JSON.stringify(results.at(-1))+'\n');
 }
-const report={schema:'p5-shared-border-performance',baselineCommit:'b436f85a53a5d5fde4e44ca502e08c79488bd1ce',
+const report={schema:'p5-shared-border-performance',baselineCommit:'3485ad37c60389c977f1a211236788c6bd17125d',
   node:process.version,platform:process.platform,arch:process.arch,heapLimitMb:3072,
   results};
 const outputAt=process.argv.indexOf('--output');

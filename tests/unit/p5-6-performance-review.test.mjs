@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { reviewBorderPerformance } from '../../tools/p5-6-review-performance.mjs';
-const pinned='b436f85a53a5d5fde4e44ca502e08c79488bd1ce';
+const pinned='3485ad37c60389c977f1a211236788c6bd17125d';
 const row=(quality,ratio=.81)=>({
   quality,input:'fixture-'+quality,sourceHash:'f'.repeat(64),
   sourceSegments:10,displaySegments:12,match:true,

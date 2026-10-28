@@ -26,7 +26,7 @@ jobs:
         uses: ./.github/actions/library-data
       - name: Prove product source exactly equals pinned main
         env:
-          MAIN_BASE: e85b3e158d5c02e4aa028283db5b83a1750f4b1a
+          MAIN_BASE: ec21576200489941c1a219f855f19395f465dd31
         run: |
           git merge-base --is-ancestor "$MAIN_BASE" HEAD
           git diff --name-only "$MAIN_BASE" HEAD | grep -Ev '^(\.github/workflows/soviet-main-long-cycle-memory\.yml|tests/browser/soviet-main-long-cycle\.spec\.mjs|tests/browser/helpers/soviet-memory-attribution\.mjs)$' > /tmp/non-test-change || true
@@ -46,7 +46,7 @@ jobs:
       - name: Run 12 Soviet-to-modern cycles
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-          PANDOLAB_EXPECT_MAIN_SHA: e85b3e158d5c02e4aa028283db5b83a1750f4b1a
+          PANDOLAB_EXPECT_MAIN_SHA: ec21576200489941c1a219f855f19395f465dd31
         run: pnpm exec playwright test tests/browser/soviet-main-long-cycle.spec.mjs --workers=1 --retries=0 --trace off
       - if: always()
         uses: actions/upload-artifact@v4

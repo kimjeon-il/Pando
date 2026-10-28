@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync,readFileSync,writeFileSync } from 'node:fs';
 import { resolve,dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const pinned='b436f85a53a5d5fde4e44ca502e08c79488bd1ce';
+const pinned='3485ad37c60389c977f1a211236788c6bd17125d';
 const validSha=/^[a-f0-9]{64}$/;
 const round=n=>Number(n.toFixed(3));
 

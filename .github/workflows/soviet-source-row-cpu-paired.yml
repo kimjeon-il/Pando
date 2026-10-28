@@ -1,7 +1,7 @@
 name: OBJ-095 prepared source row CPU parity on real adjacent countries
 on:
   push:
-    branches: [work/perf-source-row-owners-20261017]
+    branches: [ work/perf-source-row-owners-20261017 ]
     paths:
       - '.github/workflows/soviet-source-row-cpu-paired.yml'
   workflow_dispatch:
@@ -22,8 +22,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: baseline
-          ref: 0059af35094609390d8ce03f76339e5ef8c27948
+          ref: dc2f8d0b4e46a295c5967dcf380a58c0ca5d9d57
           persist-credentials: false
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 33e1afa92fc19edb9191112b9490bc93b3eec49d
+          inputs-target: baseline
       - uses: actions/setup-node@v4
         with:
           node-version-file: candidate/.nvmrc
@@ -37,7 +42,7 @@ jobs:
           (cd candidate && pnpm exec playwright install --with-deps chromium)
       - name: Baseline five real Russia-China C++ boundary contact calls
         env:
-          PANDOLAB_EXPECT_COMMIT: 0059af35094609390d8ce03f76339e5ef8c27948
+          PANDOLAB_EXPECT_COMMIT: dc2f8d0b4e46a295c5967dcf380a58c0ca5d9d57
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDOLAB_TEST_PORT: '4223'
         run: |
