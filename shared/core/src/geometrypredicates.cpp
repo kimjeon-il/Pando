@@ -390,6 +390,13 @@ bool territorialAreaDecision(double area,TerritorialAreaUse use) noexcept {
     if(use==TerritorialAreaUse::Overlap)return !(area<=1e-10);
     return area>(use==TerritorialAreaUse::Verification?1e-8:1e-10);
 }
+std::vector<std::size_t> territorialSampleIndices(std::size_t length,std::size_t maximum) {
+    const auto count=length?length-1:0;std::vector<std::size_t> result;
+    if(count<=maximum){result.reserve(length);for(std::size_t i=0;i<length;++i)result.push_back(i);return result;}
+    result.reserve(maximum?maximum+1:0);
+    for(std::size_t i=0;i<maximum;++i)result.push_back(static_cast<std::size_t>(std::uint64_t(i)*count/maximum));
+    if(!result.empty())result.push_back(0);return result;
+}
 
 namespace {
 // Exact decimal rounding for Number.toFixed(8) on accepted geographic values.
@@ -575,9 +582,8 @@ struct TerritorialPolygonIndex::Data {
             throw std::invalid_argument("INVALID_GEOMETRY: nonfinite coordinate");
         rings.reserve(polygon.size());for(const auto& ring:polygon)rings.emplace_back(ring);
         if(polygon.empty())return;
-        const auto& ring=polygon.front();const auto count=ring.empty()?0:ring.size()-1;
-        if(count<=16){for(std::size_t i=0;i<count;++i)samples.push_back(ring[i]);}
-        else for(std::size_t i=0;i<16;++i)samples.push_back(ring[(i*count)/16]);
+        const auto& ring=polygon.front();const auto indices=territorialSampleIndices(ring.size(),16);
+        for(std::size_t i=0;i+1<indices.size();++i)samples.push_back(ring[indices[i]]);
     }
     bool contains(Point point)const {
         if(rings.empty()||rings.front().relation(point)!=1)return false;

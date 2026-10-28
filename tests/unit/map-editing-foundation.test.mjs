@@ -126,6 +126,16 @@ test('territorial coarse overlap preserves containment and hole behavior', () =>
   } finally { left.delete(); filled.delete(); hole.delete(); }
 });
 
+test('territorial verification sampling preserves short rings and closes long samples', () => {
+  const sample = globalThis.PandoLabSphericalCore.territorialSampleIndices;
+  assert.deepEqual(sample(3, 512), [0, 1, 2]);
+  const long = sample(514, 512);
+  assert.equal(long.length, 513);
+  assert.equal(long[0], 0);
+  assert.equal(long[511], 511);
+  assert.equal(long[512], 0);
+});
+
 test('spherical metrics provide useful live distance, area and percentage feedback', () => {
   assert.ok(lineDistanceKm([[0, 0], [1, 0]]) > 111);
   assert.ok(lineDistanceKm([[0, 0], [1, 0]]) < 112);

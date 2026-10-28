@@ -113,6 +113,10 @@ bool territorialAreaForWeb(double area,const std::string& use) {
     if(use=="verification")return territorialAreaDecision(area,TerritorialAreaUse::Verification);
     throw std::invalid_argument("Invalid territorial validation area use");
 }
+val territorialSampleForWeb(unsigned length,unsigned maximum) {
+    const auto indices=territorialSampleIndices(length,maximum);auto result=val::array();unsigned i=0;
+    for(const auto index:indices)result.set(i++,static_cast<unsigned>(index));return result;
+}
 double gisArea(val input) {
     auto operands=val::array();operands.set(0,input);
     return gisValidationArea(readOperands(operands).front());
@@ -225,6 +229,7 @@ EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("polygonOperation",&polygonOperation);
     emscripten::function("territorialValidationArea",&validationArea);
     emscripten::function("territorialAreaDecision",&territorialAreaForWeb);
+    emscripten::function("territorialSampleIndices",&territorialSampleForWeb);
     emscripten::function("validateGisGeometry",&gisGeometry);
     emscripten::function("gisValidationArea",&gisArea);
     emscripten::class_<GisCandidatePort>("GisOverlapCandidates").constructor<val,val,bool>().function("next",&GisCandidatePort::next).function("isSignificant",&GisCandidatePort::isSignificant);
