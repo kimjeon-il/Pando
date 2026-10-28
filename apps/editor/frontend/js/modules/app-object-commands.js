@@ -76,9 +76,7 @@ export function createObjectCommands() {
     if ((0, dependencies.platform.$)('multiPropertiesColorTrigger')) (0, dependencies.platform.$)('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
     const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId));
     const subunitOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !!dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId));
-    const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => dependencies.territorialModel.entityRepository.get(ref.id)), {
-      adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry),
-    }) : null;
+    const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => dependencies.territorialModel.entityRepository.get(ref.id))) : null;
     (0, dependencies.platform.$)('multiCountryActions')?.classList.toggle('hidden', !countryOnly && !subunitOnly);
     const mergeButton = (0, dependencies.platform.$)('multiSubunitMergeBtn');
     if (mergeButton) { mergeButton.hidden = !subunitOnly; mergeButton.disabled = !subunitPolicy?.valid; }

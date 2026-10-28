@@ -4,7 +4,7 @@
  */
 import { resolveSelectChoice } from "../../../../../shared/frontend/js/modules/select-option-policy.js";
 import "../../../../../shared/frontend/js/modules/territorial-edit-plan.js";
-import { territorialSegmentCandidates } from './geometry-segment-index.js';
+import { subunitSelectionPolicy } from './territorial-interaction-policy.js';
 
 export function createTerritorialDrafts() {
   let dependencies;
@@ -95,7 +95,14 @@ export function createTerritorialDrafts() {
         preparedPreview: result.preview,
         validatePrepared: async () => {
           const checked = await dependencies.spatialQuery.mapEditClient.execute('territorial-validation', { payload: { preparationId: result.preparationId } });
-          return checked.result.valid && current() && dependencies.spatialQuery.mapEditClient.sourcesCurrent(response.sourceRevision);
+          if (!checked.result.valid || !current() || !dependencies.spatialQuery.mapEditClient.sourcesCurrent(response.sourceRevision)) return false;
+          if (request.operation === 'merge' && request.parentId) {
+            const target = dependencies.territorialModel.entityRepository.get(request.targetId);
+            if (target?.properties?.entityKind !== 'general' || target.properties.parentId !== request.parentId) return false;
+            const ids = [String(request.targetId), ...new Set((request.sourceIds || []).map(String).filter(id => id !== String(request.targetId)))];
+            return subunitSelectionPolicy(ids.map(id => dependencies.territorialModel.entityRepository.get(id))).valid;
+          }
+          return true;
         },
         beforeApply: () => partial.length || result.ownershipChanges.length ? new Promise(resolve => {
           (0, dependencies.projectRestore.openConfirmModal)({
@@ -368,7 +375,7 @@ export function createTerritorialDrafts() {
   }
 
   function territorialUnitsAreAdjacent(left, right) {
-    return globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping, { segmentCandidates: territorialSegmentCandidates }).adjacent(left.geometry, right.geometry);
+    return globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(left.geometry, right.geometry);
   }
 
   function enterTerritorialUnitMergeMode(id) {

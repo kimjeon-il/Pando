@@ -189,7 +189,7 @@ export function createCountryModes() {
     const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !!dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
       const units = refs.map(ref => dependencies.territorialModel.entityRepository.get(ref.id));
-      const policy = subunitSelectionPolicy(units, operation === 'merge' ? { adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry) } : { deferConnectivity: true });
+      const policy = subunitSelectionPolicy(units, { deferConnectivity: operation !== 'merge' });
       if (!policy.valid) { (0, dependencies.feedback.setActionStatus)(policy.message, 'error', 3600); return false; }
       if (operation === 'merge') return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'merge', targetId: units[0].id,
         parentId: units[0].properties.parentId, sourceIds: units.slice(1).map(unit => unit.id),

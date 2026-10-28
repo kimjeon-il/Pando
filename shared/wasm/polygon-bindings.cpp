@@ -3,6 +3,7 @@
 #include <pandoeditor/geometrypredicates.h>
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/sphericalpolygon.h>
+#include <pandoeditor/territorialmutation.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <emscripten.h>
@@ -120,6 +121,41 @@ MultiPolygon readGisGeometry(val input) {
     return polygons;
 }
 bool gisGeometry(val input) {return validateGisGeometry(readGisGeometry(input));}
+std::string selectionParentKey(val value) {
+    std::string result;const auto length=value["length"].as<unsigned>();result.reserve(length*2);
+    for(unsigned i=0;i<length;++i){const auto unit=value.call<unsigned>("charCodeAt",i);result.push_back(char(unit&255));result.push_back(char(unit>>8));}
+    return result;
+}
+val subunitSelectionForWeb(val kinds,val parents,val locks,val polygons,bool deferConnectivity) {
+    const auto count=kinds["length"].as<unsigned>();
+    if(parents["length"].as<unsigned>()!=count||locks["length"].as<unsigned>()!=count||polygons["length"].as<unsigned>()!=count)
+        throw std::invalid_argument("Invalid subunit selection inputs");
+    std::vector<Geometry> geometries(count);std::vector<SubunitSelectionItem> items;items.reserve(count);
+    for(unsigned i=0;i<count;++i){auto parent=selectionParentKey(parents[i]);
+        items.push_back({kinds[i].as<std::string>()=="general"&&!parent.empty(),locks[i].as<bool>(),std::move(parent),nullptr});}
+    std::vector<std::size_t> sequence;
+    auto status=inspectSubunitSelection(items,true);
+    if(status==SubunitSelectionStatus::Valid&&!deferConnectivity){
+        for(unsigned i=0;i<count;++i){geometries[i].type="MultiPolygon";geometries[i].polygons=readGisGeometry(polygons[i]);items[i].geometry=&geometries[i];}
+        status=inspectSubunitSelection(items,false,true,&sequence);
+    }
+    const char* code=nullptr;
+    switch(status){
+    case SubunitSelectionStatus::Valid:code="valid";break;
+    case SubunitSelectionStatus::InvalidSelection:code="invalid-selection";break;
+    case SubunitSelectionStatus::DifferentParent:code="different-parent";break;
+    case SubunitSelectionStatus::Locked:code="locked";break;
+    case SubunitSelectionStatus::Disconnected:code="disconnected";break;
+    }
+    if(!code)throw std::invalid_argument("Invalid subunit selection status");
+    auto result=val::object(),order=val::array();unsigned index=0;
+    for(const auto row:sequence)order.set(index++,unsigned(row));
+    result.set("status",std::string(code));result.set("order",order);return result;
+}
+bool territorialAdjacentForWeb(val left,val right) {
+    Geometry a,b;a.type=b.type="MultiPolygon";a.polygons=readGisGeometry(left);b.polygons=readGisGeometry(right);
+    return inspectSubunitSelection({{false,false,"",&b},{false,false,"",&a}},false,false)==SubunitSelectionStatus::Valid;
+}
 std::vector<MultiPolygon> readOperands(val inputs){
     const auto packed=val::take_ownership(packPolygonOperands(inputs.as_handle()));
     const auto shapeValue=packed[0],pointsValue=packed[1];
@@ -285,6 +321,8 @@ std::string wrapGeometry(const std::string& input){
     std::terminate();
 }
 EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
+    emscripten::function("subunitSelectionDecision",&subunitSelectionForWeb);
+    emscripten::function("territorialGeometriesAdjacent",&territorialAdjacentForWeb);
     emscripten::function("displayGeometryAreasKm2",&displayAreasForWeb);
     emscripten::function("displayLineDistancesKm",&displayLinesForWeb);
     emscripten::function("polygonOperation",&polygonOperation);
