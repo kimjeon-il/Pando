@@ -17,6 +17,20 @@ import {createGpuScene} from './gpu-scene.js';
 import {createMapHost} from './map-workspace-host.js';
 import {createObjectPicking} from './object-picking.js';
 
+// Phases retain late-bound dependencies without changing product startup policy.
+const READ_INITIALIZATION=Object.freeze({
+  queries:[['objectPresentation','initializeTerritorialScope'],['objectPresentation','initializeObjectPresentationModel']],
+  spatial:[['spatialIndex','initializeGeometryBoundsCache'],['spatialIndex','initializeMapObjectSpatialIndex'],['spatialIndex','initializeViewportCullingMetrics']],
+  labels:[['territorialLabels','initializeCountryOutlineCache'],['territorialLabels','initializeLabelLayoutMetrics'],['territorialLabels','initializeTerritorialLabelScreenAreas']],
+  anchors:[['countryIndex','initializeCountryLandRevision'],['countryIndex','initializeCountryLabelAnchorWorker'],['countryIndex','initializeLabelFallbackQueue']],
+  projection:[['mapProjection','initializeMapLayoutMetricsSnapshot'],['mapProjection','initializeProjections']],
+});
+export function initializeMapReadOwners(owners,phase){
+  const stages=READ_INITIALIZATION[phase];
+  if(!stages)throw new TypeError('Unknown map initialization phase: '+phase);
+  for(const [owner,method]of stages)owners[owner][method]();
+}
+
 /** One owner graph; only the editor may register mutation and persistence hooks. */
 export function createMapOwners({productMode,platform={},buildMeta,editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Map composition requires immutable product mode.');

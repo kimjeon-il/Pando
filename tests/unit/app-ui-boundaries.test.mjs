@@ -4,6 +4,9 @@ import { createApplicationLifecycle } from "../../shared/frontend/js/modules/app
 import { createProjectUiBridge } from "../../apps/editor/frontend/js/modules/project-ui-bridge.js";
 import { createPropertyEditorBindings } from "../../apps/editor/frontend/js/modules/property-editor-bindings.js";
 import { createMapInputPresentation } from "../../shared/frontend/js/modules/map-input-presentation.js";
+import {createMapInputController} from '../../shared/frontend/js/modules/map-input-controller.js';
+import {createPointerTargets} from '../../shared/frontend/js/modules/pointer-targets.js';
+import {createMapInteractionGate} from '../../shared/frontend/js/modules/map-interaction-gate.js';
 import { createGisWorkflowController } from "../../apps/editor/frontend/js/modules/gis-workflow-controller.js";
 import { createMapDebugController } from "../../apps/editor/frontend/js/modules/map-debug-controller.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
@@ -229,49 +232,66 @@ test('common entity actions await completion inside the existing operation error
 });
 
 test('flat/globe input reads current zoom and movement transitions stay single-shot', () => {
-  let inputOptions;
-  let state = { moving: false, projection: 'flat', flatZoom: 2, globeZoom: 3, tool: 'select' };
-  const events = [];
-  const window = fakeWindow();
-  window.addEventListener('pandolab:interaction-state', event => events.push(event.detail.active));
-  const svg = { on() { return this; } };
-  const bridge = createMapInputPresentation({
-    reportOperationError: error => { throw error; },
-    getElement: () => new FakeElement(), window, navigator: {}, d3: { select: () => ({ on() { return this; } }) },
-    getInputSnapshot: () => ({ ...state }), setMoving: value => { state.moving = value; },
-    getQualityTier: () => 'normal', createMapInputController: options => { inputOptions = options; return { destroy() {} }; },
-    renderQualityController: { beginInteraction() {}, endInteraction() {} }, applyAdaptiveRenderQuality() {},
-    renderingDomain: { beginInteraction() {}, endInteraction() {} },
-    mapWorkScheduler: { setInteractionActive() {} },
-    gpuMapRenderer: { setHydroInteractionActive() {}, prioritizeLatest() {} },
-    editingDomain: { clearDraftHover() {} }, cancelCountryHoverPick() {},
-    projectDomain: { queueViewAutosave: () => events.push('autosave') },
-  });
-  bridge.bindSvg(svg);
-  assert.equal(inputOptions.getZoom(), 2);
-  state = { ...state, projection: 'globe' };
-  assert.equal(inputOptions.getZoom(), 3);
-  bridge.beginMovement(); bridge.beginMovement();
-  bridge.finishMovement(); bridge.finishMovement();
-  assert.deepEqual(events, [true, false, 'autosave']);
-  bridge.dispose();
+  let inputOptions,state={mapMoving:false,projection:'flat',view:{flatZoom:2,globeZoom:3},tool:'select'};
+  const events=[],window=fakeWindow();window.addEventListener('pandolab:interaction-state',event=>events.push(event.detail.active));
+  const bridge=createMapInputPresentation({productMode:'editor',window,navigator:{},getRevision:()=>1,mapInteractionGate:{},
+    createMapInputController:options=>{inputOptions=options;return {destroy(){}};},
+    editing:{domain:{clearDraftHover(){}},getDraftSnapshot:()=>({}),dispatchInteraction(){}},
+    ports:{platform:{$:()=>new FakeElement(),d3:{select:()=>({on(){return this;}})}},
+      projectState:{get state(){return state;},mapWorkScheduler:{setInteractionActive(){}}},
+      renderScene:{currentRenderQuality:{tier:'normal'}},renderQuality:{renderQualityController:{beginInteraction(){},endInteraction(){}},applyAdaptiveRenderQuality(){}},
+      rendering:{gpuMapRenderer:{setHydroInteractionActive(){},prioritizeLatest(){}}},
+      domains:{renderingDomain:{beginInteraction(){},endInteraction(){}},projectDomain:{queueViewAutosave:()=>events.push('autosave')}},
+      pointerInteractionA:{cancelCountryHoverPick(){}},pointerInteractionB:{},navigation:{},surfaces:{},objectPicking:{},mapView:{},
+      feedback:{reportOperationError:error=>{throw error;}}}});
+  bridge.bindSvg({on(){return this;}});assert.equal(inputOptions.getZoom(),2);
+  state={...state,projection:'globe'};assert.equal(inputOptions.getZoom(),3);
+  bridge.beginMovement();bridge.beginMovement();bridge.finishMovement();bridge.finishMovement();
+  assert.deepEqual(events,[true,false,'autosave']);bridge.dispose();
+});
+
+test('shared input uses canonical state and reports a hover rejection with its operation code',async()=>{
+ const events=[],errors=[],state={mapMoving:false,tool:'select',projection:'flat',view:{flatZoom:2,globeZoom:3}};
+ const hover={on(name,fn){events[name]=fn;return this;}},window=fakeWindow();
+ const failure=new Error('selection rejected');
+ const bridge=createMapInputPresentation({productMode:'viewer',window,navigator:{},getRevision:()=>1,
+  createMapInputController:()=>({destroy(){}}),mapInteractionGate:{},
+  ports:{platform:{$:()=>new FakeElement(),d3:{select:()=>hover}},projectState:{state},renderScene:{},renderQuality:{},rendering:{},navigation:{},mapView:{},objectPicking:{},surfaces:{},
+   pointerInteractionA:{cancelCountryHoverPick(){}},pointerInteractionB:{},interactionStateCommands:{setHoverHit(){}},
+   domains:{selectionDomain:{setHover:()=>Promise.reject(failure)}},feedback:{reportOperationError:(...args)=>errors.push(args)}}});
+ bridge.bindSvg({on(){return this;}});events['mouseleave.map-input']();await new Promise(resolve=>globalThis.setImmediate(resolve));
+ assert.equal(errors.length,1);assert.equal(errors[0][0],failure);assert.equal(errors[0][2],'PL-SELECTION-HOVER-001');
+ assert.notEqual(errors[0][1],errors[0][2]);bridge.dispose();bridge.dispose();
+});
+
+test('both products select on a touch release without a browser click and suppress the duplicate click',()=>{
+ for(const productMode of ['viewer','editor']){
+  const map=new FakeElement(),state={tool:'select',projection:'flat',view:{flatZoom:1,globeZoom:1}},window=fakeWindow();let clicks=0,clickHandler;
+  map.getBoundingClientRect=()=>({left:0,top:0});
+  const d3={select:()=>({on(){return this;}}),mouse:()=>[20,20]},targets=createPointerTargets();targets.connect({platform:{d3},projectState:{state}});
+  const bridge=createMapInputPresentation({productMode,window,navigator:{},createMapInputController,getRevision:()=>1,
+   mapInteractionGate:createMapInteractionGate(),
+   editing:productMode==='editor'?{domain:{draftInputActive:()=>false},getDraftSnapshot:()=>({inputPhase:'idle'})}:null,
+   ports:{platform:{$:()=>map,d3},projectState:{state},renderScene:{},renderQuality:{},rendering:{},navigation:{},mapView:{},surfaces:{isMobile:()=>true},
+    objectPicking:{handleMapClick:()=>{clicks++;}},domains:{},pointerInteractionA:{cancelCountryHoverPick(){},mapNavigationEnabled:()=>true,mapClickBlocked:targets.mapClickBlocked},pointerInteractionB:{suppressNextMapClick:targets.suppressNextMapClick},feedback:{reportOperationError:error=>{throw error;}}}});
+  bridge.bindSvg({on(name,fn){if(name==='click')clickHandler=fn;return this;}});
+  for(const type of ['pointerdown','pointerup'])map.dispatchEvent(Object.assign(new Event(type),{button:0,pointerId:1,pointerType:'touch',clientX:20,clientY:20}));
+  assert.equal(clicks,1,productMode+' must handle a real touch release');clickHandler.call(map);assert.equal(clicks,1,'late browser click must not select twice');bridge.dispose();
+ }
 });
 
 test('map pinch cancellation waits for the draft owner and reports a rejected Core acknowledgement once', async () => {
-  let inputOptions,reject;
-  const pending=new Promise((resolve,fail) => { reject=fail; }),errors=[],dispatched=[];
-  const bridge=createMapInputPresentation({ getElement: () => new FakeElement(),window: fakeWindow(),navigator: {},
-    d3: { select: () => ({ on() { return this; } }) },getInputSnapshot: () => ({ tool: 'select' }),
-    createMapInputController: options => { inputOptions=options;return { destroy() {} }; },
-    editingDomain: { cancelActiveGesture: () => pending },
-    dispatchEditingInteraction: (...args) => { dispatched.push(args);return true; },
-    reportOperationError: (...args) => errors.push(args) });
-  bridge.bindSvg({ on() { return this; } });
-  const operation=inputOptions.cancelStroke('pinch');
+  let inputOptions,reject;const pending=new Promise((resolve,fail)=>{reject=fail;}),errors=[],dispatched=[];
+  const bridge=createMapInputPresentation({productMode:'editor',window:fakeWindow(),navigator:{},getRevision:()=>1,mapInteractionGate:{},
+    createMapInputController:options=>{inputOptions=options;return {destroy(){}};},
+    editing:{domain:{cancelActiveGesture:()=>pending},dispatchInteraction:(...args)=>{dispatched.push(args);return true;}},
+    ports:{platform:{$:()=>new FakeElement(),d3:{select:()=>({on(){return this;}})}},projectState:{},rendering:{},renderScene:{},renderQuality:{},domains:{},
+      pointerInteractionA:{cancelCountryHoverPick(){}},pointerInteractionB:{},navigation:{},surfaces:{},objectPicking:{},mapView:{},
+      feedback:{reportOperationError:(...args)=>errors.push(args)}}});
+  bridge.bindSvg({on(){return this;}});const operation=inputOptions.cancelStroke('pinch');
   assert.deepEqual(dispatched,[]);assert.deepEqual(errors,[]);
-  const error=Object.assign(new Error('Draft cancellation source changed'),{ code: 'STALE_REVISION' });
-  reject(error);assert.equal(await operation,false);
-  assert.equal(errors.length,1);assert.equal(errors[0][0],error);assert.equal(errors[0][1],'PL-DRAFT-CANCEL-001');
+  const error=Object.assign(new Error('Draft cancellation source changed'),{code:'STALE_REVISION'});reject(error);assert.equal(await operation,false);
+  assert.equal(errors.length,1);assert.equal(errors[0][0],error);assert.equal(errors[0][2],'PL-DRAFT-CANCEL-001');
   assert.deepEqual(dispatched,[]);bridge.dispose();
 });
 

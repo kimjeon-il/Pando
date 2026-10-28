@@ -1,45 +1,32 @@
-
-export function createMapInputPresentation({
-  productMode='editor',
-  getElement: $,
-  window,
-  d3,
-  navigator,
-  createMapInputController,
-  getInputSnapshot,
-  setMoving,
-  clearHoverHit,
-  getQualityTier,
-  getRevision,
-  getDraftSnapshot,
-  renderQualityController,
-  mapWorkScheduler,
-  gpuMapRenderer,
-  renderingDomain,
-  editingDomain,
-  selectionDomain,
-  projectDomain,
-  mapInteractionGate,
-  applyAdaptiveRenderQuality,
-  queueAdaptiveRenderQualityRefresh,
-  cancelCountryHoverPick,
-  suppressNextMapClick,
-  mapNavigationEnabled,
-  dragMapBy,
-  transformMapView,
-  zoomBy,
-  isMobile,
-  isGenericFeatureDraftTool,
-  handleMapClick,
-  dispatchEditingInteraction,
-  mapClickBlocked,
-  screenToGeo,
-  queueCountryHoverPick,
-  getTerritorialLabelRef,
-  reportOperationError,
-} = {}) {
+export function createMapInputPresentation({productMode,ports,window,navigator,createMapInputController,getRevision,mapInteractionGate,editing:editingHooks=null} = {}) {
+  if(!['viewer','editor'].includes(productMode))throw new TypeError('Map input requires explicit product mode.');
   const editing=productMode==='editor';
-  if (typeof reportOperationError!=='function') throw new TypeError('Map editing input requires its operation error reporter.');
+  if(!editing&&editingHooks)throw new TypeError('Viewer input cannot register editing hooks.');
+  if(editing&&!editingHooks)throw new TypeError('Editor input requires its editing hooks.');
+  if(typeof ports?.feedback?.reportOperationError!=='function')throw new TypeError('Map input requires its operation error reporter.');
+  const reportOperationError=(error,code)=>ports.feedback.reportOperationError(error,'지도 입력을 적용하지 못했습니다.',code,4200);
+  const {$,d3}=ports.platform;
+  const {gpuMapRenderer}=ports.rendering;
+  const {mapWorkScheduler}=ports.projectState;
+  const {renderingDomain,selectionDomain,projectDomain}=ports.domains;
+  const {renderQualityController,applyAdaptiveRenderQuality,queueAdaptiveRenderQualityRefresh}=ports.renderQuality;
+  const {cancelCountryHoverPick,mapNavigationEnabled,mapClickBlocked,queueCountryHoverPick}=ports.pointerInteractionA;
+  const {suppressNextMapClick}=ports.pointerInteractionB;
+  const {dragMapBy,transformMapView,zoomBy}=ports.navigation;
+  const {isMobile}=ports.surfaces;
+  const {handleMapClick,getTerritorialLabelRef}=ports.objectPicking;
+  const {screenToGeo}=ports.mapView;
+  const editingDomain=editingHooks?.domain,getDraftSnapshot=editingHooks?.getDraftSnapshot;
+  const isGenericFeatureDraftTool=editingHooks?.isGenericFeatureDraftTool,dispatchEditingInteraction=editingHooks?.dispatchInteraction;
+  const setMoving=value=>{ports.projectState.state.mapMoving=value;};
+  const clearHoverHit=()=>ports.interactionStateCommands.setHoverHit(null);
+  const getQualityTier=()=>ports.renderScene.currentRenderQuality.tier;
+  const getInputSnapshot=()=>{
+    const state=ports.projectState.state;
+    return {moving:state.mapMoving,projectReplacing:state.projectReplacing===true,spacePanActive:state.spacePanActive,
+      tool:state.tool,projection:state.projection,globeZoom:state.view.globeZoom,flatZoom:state.view.flatZoom,
+      territorySelectionSession:state.territorySelectionSession,labelPlacementMode:state.labelPlacementMode};
+  };
   const clearDraftHover = async reason => {
     if(!editing)return false;
     try { return await editingDomain.clearDraftHover(reason); }
@@ -54,6 +41,7 @@ export function createMapInputPresentation({
   let boundSvg = null;
   let boundHoverSurface = null;
   function dispose() {
+    if(boundInput)cancelCountryHoverPick({clear:true});
     boundInput?.destroy();
     boundInput = null;
     boundSvg?.on('click', null);
@@ -129,9 +117,10 @@ export function createMapInputPresentation({
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
       },
       canDirectTap: () => {
-        if(!editing)return false;
         const input = getInputSnapshot();
         if (input.projectReplacing) return false;
+        if(input.tool==='select'&&!input.labelPlacementMode)return true;
+        if(!editing)return false;
         if (input.tool === 'move') return false;
         const territoryDraft = input.territorySelectionSession?.tool === input.tool
           && input.territorySelectionSession.stage === 'selection'

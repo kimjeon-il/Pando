@@ -46,7 +46,7 @@ test('viewer composition supports territorial hover and body clicks across camer
  await page.route('**/modules/viewer-map.js*',async route=>{
   const response=await route.fetch(),source=await response.text(),anchor='  objectPicking.bindChooser();';
   expect(source.split(anchor)).toHaveLength(2);
-  await route.fulfill({response,body:source.replace(anchor,anchor+'\nwindow.__viewerPickingTest={picking:objectPicking,state,selection:()=>selectionProxy.snapshot()};')});
+  await route.fulfill({response,body:source.replace(anchor,anchor+'\nwindow.__viewerPickingTest={picking:objectPicking,state,selection:()=>selectionDomain.snapshot()};')});
  });
  await page.goto('/?debug=1');
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});

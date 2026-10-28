@@ -1,10 +1,9 @@
-import {MAP_OWNER_PORTS} from "../../../../../shared/frontend/js/modules/map-owner-ports.js";
+import {MAP_OWNER_PORTS,createMapReadPorts,mergeCapabilityPorts} from "../../../../../shared/frontend/js/modules/map-owner-ports.js";
 import { createFoundationPorts, FOUNDATION_OWNER_PORTS } from './app-capability-ports-foundation.js';
 import { createMapInteractionPorts, MAP_INTERACTION_OWNER_PORTS } from './app-capability-ports-map-interaction.js';
 import { createObjectEditingPorts, OBJECT_EDITING_OWNER_PORTS } from './app-capability-ports-object-editing.js';
 import { createProjectIoPorts, PROJECT_IO_OWNER_PORTS } from './app-capability-ports-project-io.js';
 import { createLifecycleUiPorts, LIFECYCLE_UI_OWNER_PORTS } from './app-capability-ports-lifecycle-ui.js';
-import { mergeCapabilityPorts } from './app-capability-port-utils.js';
 
 export { FOUNDATION_OWNER_PORTS, MAP_INTERACTION_OWNER_PORTS, OBJECT_EDITING_OWNER_PORTS, PROJECT_IO_OWNER_PORTS, LIFECYCLE_UI_OWNER_PORTS };
 
@@ -22,14 +21,6 @@ export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
 
 export function createSpatialDataPorts(providers) {
   const ports = {
-    countries: Object.freeze({
-      get builtinTerritorialScene() { return providers.builtinSession.builtinTerritorialScene; },
-      get territorialLabelFeatureById() { return providers.builtinSession.territorialLabelFeatureById; },
-      get countryLandRevision() { return providers.countryIndex.countryLandRevision; },
-      get PRISTINE_LABEL_ANCHORS() { return providers.builtinSession.PRISTINE_LABEL_ANCHORS; },
-      get scheduleCountryLabelAnchors() { return providers.countryIndex.scheduleCountryLabelAnchors; },
-      get validLabelAnchor() { return providers.countryIndex.validLabelAnchor; },
-    }),
     countryCommands: Object.freeze({
       bumpLandRevision: () => { providers.countryIndex.countryLandRevision += 1; },
     }),
@@ -79,29 +70,12 @@ export function createSpatialDataPorts(providers) {
     labels: Object.freeze({
       get countryOutlineCache() { return providers.territorialLabels.countryOutlineCache; },
     }),
-    objectDisplay: Object.freeze({
-      get invalidateObjectPresentation() { return providers.objectCatalog.invalidateObjectPresentation; },
-    }),
     mapNavigation: Object.freeze({
-      get clampViewZooms(){return providers.cameraNavigation.clampViewZooms;},
-      get reprojectView(){return providers.cameraNavigation.reprojectView;},
+
       get equirectangularCenterForAnchor() { return providers.runtime.equirectangularCenterForAnchor; },
       get FLAT_LATITUDE_LIMIT() { return providers.environment.FLAT_LATITUDE_LIMIT; },
       get normalizeMapSurfaceDragDelta() { return providers.runtime.normalizeMapSurfaceDragDelta; },
       get ZOOM_LIMITS() { return providers.environment.ZOOM_LIMITS; },
-    }),
-    mapView: Object.freeze({
-      get activeProjection() { return providers.mapProjection.activeProjection; },
-      get flatProjection() { return providers.mapProjection.flatProjection; },
-      get globeProjection() { return providers.mapProjection.globeProjection; },
-      get isCoordVisible() { return providers.mapProjection.isCoordVisible; },
-      get mapHost() { return providers.mapHost.mapHost; },
-      get path() { return providers.mapProjection.path; },
-      get projectionLayoutMetrics() { return providers.mapProjection.projectionLayoutMetrics; },
-      get ringRepresentativePoint() { return providers.mapProjection.ringRepresentativePoint; },
-      get screenToGeo() { return providers.mapProjection.screenToGeo; },
-      get syncMapHostFromState() { return providers.mapHost.syncMapHostFromState; },
-      get updateProjection() { return providers.mapProjection.updateProjection; },
     }),
     objectLookup: Object.freeze({
       get isObjectAvailable(){return providers.objectCommands.isObjectAvailable;},
@@ -120,13 +94,6 @@ export function createSpatialDataPorts(providers) {
       get deepClone() { return providers.environment.deepClone; },
       get polygonClipping() { return providers.environment.polygonClipping; },
       get runtimeAssetUrl() { return providers.environment.runtimeAssetUrl; },
-    }),
-    presentation: Object.freeze({
-      get genericFeatureDisplayFeature() { return providers.objectPresentation.genericFeatureDisplayFeature; },
-    }),
-    projectState: Object.freeze({
-      get mapWorkScheduler() { return providers.projectSession.mapWorkScheduler; },
-      get state() { return providers.projectSession.state; },
     }),
     readiness: Object.freeze({
       get canMutateProject() { return providers.runtime.canMutateProject; },
@@ -150,23 +117,6 @@ export function createSpatialDataPorts(providers) {
       get createEditPreviewController() { return providers.runtime.createEditPreviewController; },
       get createMapEditWorkerClient() { return providers.runtime.createMapEditWorkerClient; },
       get createMapObjectSpatialIndex() { return providers.runtime.createMapObjectSpatialIndex; },
-    }),
-    spatialQuery: Object.freeze({
-      get geometryBounds() { return providers.spatialIndex.geometryBounds; },
-      get mapEditClient() { return providers.spatialIndex.mapEditClient; },
-      get markCountryGeometriesChanged() { return providers.spatialIndex.markCountryGeometriesChanged; },
-      get mapObjectGeometryRevisions() { return providers.spatialIndex.mapObjectGeometryRevisions; },
-      get rebuildSpatialIndex() { return providers.spatialIndex.rebuildSpatialIndex; },
-      get spatialFeatures() { return providers.spatialIndex.spatialFeatures; },
-      get viewportCullingMetrics() { return providers.spatialIndex.viewportCullingMetrics; },
-      get visibleMapObjectCandidates() { return providers.spatialIndex.visibleMapObjectCandidates; },
-    }),
-    surfaces: Object.freeze({
-      get isGenericFeatureDraftTool() { return providers.workspaceSurfaces.isGenericFeatureDraftTool; },
-      get isMobile() { return providers.workspaceSurfaces.isMobile; },
-      get isPolygonDraftTool() { return providers.workspaceSurfaces.isPolygonDraftTool; },
-      get layoutMode() { return providers.workspaceSurfaces.layoutMode; },
-      get uid() { return providers.workspaceSurfaces.uid; },
     }),
     taskUi: Object.freeze({
       get setModeBanner() { return providers.taskPresentation.setModeBanner; },
@@ -212,15 +162,15 @@ function createMapResourcePorts(providers) {
       get COLOR_DOMAINS() { return providers.runtime.COLOR_DOMAINS; },
       get DEFAULT_GENERIC_FEATURE_COLOR() { return providers.environment.DEFAULT_GENERIC_FEATURE_COLOR; },
       get defaultCountryColor() { return providers.environment.defaultCountryColor; },
-      get genericFeatureColor() { return providers.objectPresentation.genericFeatureColor; },
+
       get normalizeEditorColor() { return providers.colorPicker.normalizeEditorColor; },
       get readDomainColor() { return providers.runtime.readDomainColor; },
-      get territorialEntityColor() { return providers.objectPresentation.territorialEntityColor; },
+
       get writeDomainColor() { return providers.runtime.writeDomainColor; },
     }),
     distributionPresentation: Object.freeze({
       bumpVisibilityRevision: () => { providers.objectPresentation.distributionVisibilityRevision += 1; },
-      get distributionColor() { return providers.objectPresentation.distributionColor; },
+
     }),
     draftPresentation: Object.freeze({
       get activeCutDraftSourceGeometry() { return providers.cutGeometry.activeCutDraftSourceGeometry; },
@@ -239,38 +189,25 @@ function createMapResourcePorts(providers) {
       get segmentsProperlyIntersect() { return providers.countryValidation.segmentsProperlyIntersect; },
     }),
     hydroPresentation: Object.freeze({
-      get allBuiltInHydroFeatures() { return providers.hydroSettings.allBuiltInHydroFeatures; },
+
       get HYDRO_LAYER_META() { return providers.environment.HYDRO_LAYER_META; },
       get HYDRO_TOOL_CONFIG() { return providers.environment.HYDRO_TOOL_CONFIG; },
-      get hydroCategoryKey() { return providers.objectPresentation.hydroCategoryKey; },
-      get hydroCategoryLabel() { return providers.objectPresentation.hydroCategoryLabel; },
-      get hydroDisplayColor() { return providers.hydroSettings.hydroDisplayColor; },
-      get hydroEditById() { return providers.hydroSettings.hydroEditById; },
-      get hydroEditorName() { return providers.objectPresentation.hydroEditorName; },
-      get hydroFallbackName() { return providers.objectPresentation.hydroFallbackName; },
-      get hydroLayerVisible() { return providers.hydroSettings.hydroLayerVisible; },
-      get hydroLineParts() { return providers.hydroSettings.hydroLineParts; },
+
     }),
     labelPresentation: Object.freeze({
-      get labelById() { return providers.territorialLabels.labelById; },
-      get builtinPlaces() { return providers.territorialLabels.builtinPlaces; },
+
       get automaticLabelSettings() { return providers.runtime.automaticLabelSettings; },
       get buildRenderableStrokeFeature() { return providers.runtime.buildRenderableStrokeFeature; },
-      get countryLabelAnchors() { return providers.countryIndex.countryLabelAnchors; },
-      get currentMapZoom() { return providers.territorialLabels.currentMapZoom; },
+
       get LABEL_PRIORITIES() { return providers.runtime.LABEL_PRIORITIES; },
       get labelKey() { return providers.runtime.labelKey; },
       get layoutTerritorialFlags() { return providers.runtime.layoutTerritorialFlags; },
       get layoutLabels() { return providers.runtime.layoutLabels; },
-      get pendingCountryLabelAnchors() { return providers.countryIndex.pendingCountryLabelAnchors; },
+
     }),
     layerPresentation: Object.freeze({
       get ASSET_REVISION() { return providers.environment.ASSET_REVISION; },
-      get isCountryVisibleById() { return providers.objectCatalog.isCountryVisibleById; },
-      get isLayerItemVisible() { return providers.objectCatalog.isLayerItemVisible; },
-      get LAYER_GROUP_KEYS() { return providers.objectPresentation.LAYER_GROUP_KEYS; },
-      get layerGroupNames() { return providers.objectPresentation.layerGroupNames; },
-      get invalidateObjectPresentation() { return providers.objectCatalog.invalidateObjectPresentation; },
+
     }),
     mapLayers: Object.freeze({
       get baseSvg() { return providers.objectCommands.baseSvg; },
@@ -284,9 +221,7 @@ function createMapResourcePorts(providers) {
     mapLayout: Object.freeze({
       get createMapLayoutMetricsSnapshot() { return providers.runtime.createMapLayoutMetricsSnapshot; },
       get DEFAULT_SAFE_INSETS() { return providers.runtime.DEFAULT_SAFE_INSETS; },
-      get mapLayoutMetricsSnapshot() { return providers.mapProjection.mapLayoutMetricsSnapshot; },
-      get projectVisibleCoordinate() { return providers.mapProjection.projectVisibleCoordinate; },
-      get viewRevision() { return providers.mapHost.viewRevision; },
+
     }),
     objectDefinitions: Object.freeze({
       get builtinSubunitSourceId() { return providers.runtime.builtinSubunitSourceId; },
@@ -295,12 +230,8 @@ function createMapResourcePorts(providers) {
       get MAP_OBJECT_TYPES() { return providers.runtime.MAP_OBJECT_TYPES; },
     }),
     objectPresentation: Object.freeze({
-      get createTerritorialScopeResolver() { return providers.runtime.createTerritorialScopeResolver; },
       get genericFeatureGeometryKind() { return providers.runtime.genericFeatureGeometryKind; },
-      get genericFeatureName() { return providers.objectPresentation.genericFeatureName; },
-      get genericFeatureRoleLabel() { return providers.objectPresentation.genericFeatureRoleLabel; },
-      get territorialRootName() { return providers.objectPresentation.territorialRootName; },
-      get territorialEntityName() { return providers.objectPresentation.territorialEntityName; },
+
     }),
     operationFeedback: Object.freeze({
       get reliabilityDiagnostic() { return providers.environment.reliabilityDiagnostic; },
@@ -320,7 +251,7 @@ function createMapResourcePorts(providers) {
       get createHydroService() { return providers.runtime.createHydroService; },
       get createTerrainService() { return providers.runtime.createTerrainService; },
       get fetchWithRetry() { return providers.runtime.fetchWithRetry; },
-      get isHydroFeatureVisible() { return providers.hydroSettings.isHydroFeatureVisible; },
+
     }),
     preferences: Object.freeze({
       get applyAppAccent() { return providers.runtime.applyAppAccent; },
@@ -337,11 +268,9 @@ function createMapResourcePorts(providers) {
     }),
     renderScene: Object.freeze({
       get createRenderSceneBuilder() { return providers.runtime.createRenderSceneBuilder; },
-      get currentRenderQuality() { return providers.renderQuality.currentRenderQuality; },
-      get featureFromGeometry() { return providers.gpuScene.featureFromGeometry; },
+
       get OVERLAY_GROUPS() { return providers.runtime.OVERLAY_GROUPS; },
-      get selectionGeometryRevision() { return providers.gpuScene.selectionGeometryRevision; },
-      get syncGpuInteractionState() { return providers.gpuScene.syncGpuInteractionState; },
+
     }),
   });
 }
@@ -355,5 +284,6 @@ export function createApplicationPorts(providers) {
     createObjectEditingPorts(providers),
     createProjectIoPorts(providers),
     createLifecycleUiPorts(providers),
+    createMapReadPorts(providers),
   );
 }
