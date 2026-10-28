@@ -72,3 +72,67 @@ test('notification output resolves initialized platform ports when used',()=>{
  owner.connect({platform,surfaces:{isMobile:()=>false}});
  platform.$=()=>null;assert.doesNotThrow(()=>owner.setActionStatus('준비','working',0));
 });
+
+test('common read ports preserve canonical scope and current sources across product project replacement',async()=>{
+ const {createMapReadPorts,mergeCapabilityPorts,connectMapOwner}=await import('../../shared/frontend/js/modules/map-owner-ports.js');
+ assert.equal(typeof createMapReadPorts,'function');
+ for(const productMode of ['viewer','editor']){
+  const owners=createMapOwners({productMode});let queries=0,rows=[];
+  let scope={displayFeature:()=>{queries++;return null;}};
+  const projectSession={state:{}};
+  const common=createMapReadPorts({...owners,projectSession,objectPresentation:{get territorialScope(){return scope;}}});
+  const ports=mergeCapabilityPorts(common,{platform:{},selectionServices:{normalizeObjectRef:value=>value},objectLookup:{},objectOperationsA:{},territorialModel:{},layerPresentation:{},renderScene:{},
+   labelPresentation:{},cutGeometry:{},landRelations:{},spatialRecords:{indexedMapObjectCandidates:()=>rows},rendering:{},
+   hydroModel:{},hydroPresentation:{},physicalServices:{},pointerInteractionA:{},domains:{},mapLayout:{},feedback:{}});
+  connectMapOwner('objectPicking',owners.objectPicking,ports);
+  rows=[{domain:'territorial',id:'one'}];
+  assert.deepEqual(owners.objectPicking.territorialObjectsAt([0,0]),[]);assert.equal(queries,1);
+  assert.equal(ports.objectModelB.territorialScope,scope);
+  assert.equal(ports.projectState.state,projectSession.state);
+  scope={displayFeature:()=>{queries+=10;return null;}};
+  projectSession.state={countryVisualPhase:'pending'};
+  assert.equal(ports.projectState.state,projectSession.state);
+  assert.equal(ports.objectModelB.territorialScope,scope);
+  assert.deepEqual(owners.objectPicking.territorialObjectsAt([0,0]),[]);assert.equal(queries,1);
+  projectSession.state={countryVisualPhase:'canonical'};
+  assert.deepEqual(owners.objectPicking.territorialObjectsAt([0,0]),[]);assert.equal(queries,11);
+  rows=[];assert.deepEqual(owners.objectPicking.territorialObjectsAt([0,0]),[]);assert.equal(queries,11);
+ }
+});
+
+test('common query initialization installs one live scope and presentation caches',async()=>{
+ const {initializeMapReadOwners}=await import('../../shared/frontend/js/modules/map-owner-composition.js');
+ const {MAP_OBJECT_CATEGORIES,MAP_OBJECT_TYPES}=await import('../../shared/frontend/js/modules/map-object-categories.js');
+ const owners=createMapOwners({productMode:'viewer'});let entities=[];
+ owners.objectPresentation.connect({platform:{polygonClipping:{}},projectState:{state:{}},territorialModel:{entityRepository:{list:()=>entities,get:id=>entities.find(row=>row.id===id)}},objectDefinitions:{MAP_OBJECT_CATEGORIES,MAP_OBJECT_TYPES}});
+ initializeMapReadOwners(owners,'queries');
+ assert.deepEqual(owners.objectPresentation.territorialScope.displayEntities(),[]);
+ entities=[{id:'A',properties:{entityKind:'general'},geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[0,1],[0,0]]]}}];
+ assert.equal(owners.objectPresentation.territorialScope.displayEntities()[0],entities[0]);
+ assert.equal(owners.objectPresentation.distributionVisibilityRevision,0);
+ assert.equal(owners.objectPresentation.distributionRenderRowCache.rebuildCount,0);
+ assert.throws(()=>initializeMapReadOwners(owners,'queries'),/already initialized/);
+});
+
+test('shared rendering resources retain one frame snapshot and the canonical selection geometry',async()=>{
+ const {createMapRenderingResources}=await import('../../shared/frontend/js/modules/map-renderer-composition.js');
+ assert.equal(typeof createMapRenderingResources,'function');
+ const entity={id:'A'},selection={snapshot:()=>({selection:{items:[]}}),has:()=>false};
+ const ports=Object.fromEntries(['platform','countryLabelModel','pointerInteractionA','objectPicking','objectPresentation','applicationServicesB','surfaces','labelPresentation','genericEditingA','mapLayout','mapLayers','layerPresentation','renderScene','preferences','gpuRenderingA','gpuRenderingB','physicalResources','hydroPresentation','spatialQuery','spatialRecords','physicalServices','selectionServices','builtinCountries','territorialEditingB','objectModelB','genericEditingB','presentation','colorModel','distributionServices','territorialModel','applicationConstantsA','objectModelA','countries','territorialServicesA','interactionPresentation','projectionView','applicationServicesA','objectOperationsA','geometryOperations','interactionStateCommands','rendering'].map(key=>[key,{}]));
+ ports.projectState={state:{stateRevision:1}};const session={selectionDomain:selection};
+ ports.distributionPresentation={};
+ ports.countryLabelModel.renderPendingCountryOverlays=()=>assert.fail('editor SVG preview must not enter viewer rendering');
+ ports.territorialModel.entityRepository={get:()=>entity};
+ ports.objectModelB.territorialScope={displayFeature:()=>entity};
+ let layer={id:'old'},reads=0;
+ const layers={get selectionLayer(){reads++;return layer;}};
+ const resources=createMapRenderingResources({ports,layers,session});
+ assert.equal(resources.territorialResources.selectionHas({id:'A'}),false);
+ assert.equal(resources.countryResources.renderPendingCountryOverlays,undefined);
+ const initial=reads;layer={id:'new'};
+ resources.refreshRenderResources(1);assert.equal(resources.selectionResources.selectionLayer,layer);
+ const first=reads;resources.refreshRenderResources(1);assert.equal(reads,first);
+ layer={id:'newer'};resources.refreshRenderResources(2);assert.equal(resources.selectionResources.selectionLayer,layer);
+ assert.ok(first>initial);assert.equal(resources.selectionResources.territorialDisplayFeature('A'),entity);
+ assert.equal(resources.selectionResources.activeEditPreview,undefined);
+});

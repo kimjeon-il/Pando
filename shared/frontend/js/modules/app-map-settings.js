@@ -10,7 +10,7 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ capabilities,viewPresentation = null,authoredStyles=false,onLayerVisibilityChange=null } = {}) {
+export function createMapSettings({ capabilities,viewPresentation = null,authoredStyles=false } = {}) {
   if (!capabilities || ['builtinHydro', 'builtinPlaces', 'terrain'].some(key => typeof capabilities[key] !== 'boolean')) {
     throw new TypeError('Map settings require resource capabilities.');
   }
@@ -28,6 +28,9 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   function connect(ports) {
     if (dependencies) throw new Error('map-settings already connected');
     if (typeof ports?.feedback?.reportOperationError !== 'function') throw new TypeError('Map settings require their operation error reporter.');
+    for (const method of ['loadHydroData','preparePlaces']) {
+      if(typeof ports.layerResources?.[method] !== 'function') throw new TypeError('Map settings require layerResources.'+method);
+    }
     dependencies = ports;
   }
 
@@ -78,7 +81,8 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
       dependencies.domains.renderingDomain?.invalidateBaseScene?.('layer-visibility');
       if (key === 'objects') dependencies.domains.renderingDomain.invalidateLabels('layer-visibility');
     }
-    if (onLayerVisibilityChange) await onLayerVisibilityChange(key, visible);
+    if (visible && (key === 'rivers' || key === 'lakes')) await dependencies.layerResources.loadHydroData(true);
+    if (visible && key === 'labels') await dependencies.layerResources.preparePlaces({force:true});
   }
 
   function syncPlaceLanguageChecks() {

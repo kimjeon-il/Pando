@@ -143,8 +143,9 @@ export async function composeViewer({ productMode, meta }) {
   const files=createFileController({productMode,elements:fileElements,fileAccess:createBrowserFileAccess({productMode,elements:fileElements,window,document}),projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
   action(get('builtinMapBtn'),'click',()=>builtinClock.followNow());
-  display=createMapSettings({capabilities:owners.capabilities,viewPresentation:map,onLayerVisibilityChange:async(key,enabled)=>{if(enabled&&(key==='rivers'||key==='lakes'))await owners.physicalResources.loadHydroData(true);if(enabled&&key==='labels')await owners.territorialLabels.preparePlaces({force:true});}});
+  display=createMapSettings({capabilities:owners.capabilities,viewPresentation:map});
   display.connect({
+    layerResources:{loadHydroData:owners.physicalResources.loadHydroData,preparePlaces:owners.territorialLabels.preparePlaces},
     platform:{$:id=>get(id==='app'?'viewer':id),deepClone:structuredClone,clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},
     navigation:map.navigation,domains:{renderingDomain:map.renderingDomain,objectSearchController:searchController},rendering:{gpuMapRenderer:map.renderer},objectDisplay:map.objectCatalog,distributionPresentation:map.distributionPresentation,feedback:{reportOperationError:report},
     projectState:{get state(){return map.displayState();}},

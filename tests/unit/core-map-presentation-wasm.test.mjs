@@ -16,7 +16,7 @@ test('production object controls share one Core policy and preserve object overr
   t.after(() => { if(original)Object.defineProperty(globalThis,'document',original);else delete globalThis.document; });
   const settings=createMapSettings({capabilities:resourceCapabilities('editor'),viewPresentation:{applyPresentation:viewing.session.applyViewingPresentation},authoredStyles:true}),state={ get layerVisibility() { return viewing.session.state.layerVisibility; },
     get layerPresentation() { return owner.documentModel.snapshot().layerPresentation; } };
-  settings.connect({ projectState: { state },platform: { $: () => null },feedback: { reportOperationError: error => assert.fail(error.stack) },
+  settings.connect({ layerResources:{loadHydroData:async()=>{},preparePlaces:async()=>{}},projectState: { state },platform: { $: () => null },feedback: { reportOperationError: error => assert.fail(error.stack) },
     objectModelA: { expandedMapDisplayGroups: new Set() },preferences: { userPreferences: { labels: { place: { languages: { ko: true } } } } },
     objectDisplay: { invalidateObjectPresentation() {} },rendering: { gpuMapRenderer: { invalidateCountryPalette() {} } },
     territorialModel: { DISTRIBUTION_MODES: { TERRITORIAL: 'territorial',GEOMETRY: 'geometry' } },
