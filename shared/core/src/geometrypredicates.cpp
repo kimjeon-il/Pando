@@ -337,6 +337,9 @@ std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring) {
         if(index<ring.size()){result.coordinate=ring[index];result.coordinateIndex=index;}
         return result;
     };
+    for(std::size_t i=0;i<ring.size();++i)if(!std::isfinite(ring[i].x)||!std::isfinite(ring[i].y)) {
+        TerritorialRingIssue result;result.kind="invalid-geometry";result.vertexIndex=i;issues.push_back(result);return issues;
+    }
     if(ring.size()<4){issues.push_back(original("invalid-geometry",0));return issues;}
     const auto equal=[](Point a,Point b){return std::abs(a.x-b.x)<=1e-10&&std::abs(a.y-b.y)<=1e-10;};
     if(!equal(ring.front(),ring.back()))issues.push_back(original("open-ring",ring.size()-1));
@@ -353,7 +356,7 @@ std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring) {
     std::vector<Segment> active;
     constexpr double tolerance=1e-12;
     for(const auto& current:segments){
-        active.erase(std::remove_if(active.begin(),active.end(),[&](const auto& candidate){return candidate.maxX<current.minX-tolerance;}),active.end());
+        active.erase(std::remove_if(active.begin(),active.end(),[&](const auto& candidate){return !(candidate.maxX>=current.minX-tolerance);}),active.end());
         for(const auto& candidate:active){
             const auto a=candidate.index,b=current.index,n=segments.size();
             if((a>b?a-b:b-a)==1||(a==0&&b==n-1)||(b==0&&a==n-1)||candidate.maxY<current.minY-tolerance||candidate.minY>current.maxY+tolerance)continue;

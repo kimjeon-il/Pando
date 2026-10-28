@@ -128,7 +128,8 @@ function validateRing(ring, entityRefs, polygonIndex, ringIndex) {
   if (typeof sharedCalculationCore.validateTerritorialRing !== 'function') {
     throw Object.assign(new Error('Canonical C++ ring validator is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  return sharedCalculationCore.validateTerritorialRing(ring).map(result => issue(result.kind, ringMessages[result.kind], {
+  return sharedCalculationCore.validateTerritorialRing(ring).map(result => issue(result.kind,
+    result.kind === 'invalid-geometry' && result.vertexIndex != null ? '유효하지 않은 좌표가 있습니다.' : ringMessages[result.kind], {
     entityRefs, coordinate: result.coordinate, polygonIndex, ringIndex,
     ...(result.vertexIndex == null ? {} : { vertexIndex: result.vertexIndex }),
     ...(result.segmentIndex == null ? {} : { segmentIndex: result.segmentIndex }),

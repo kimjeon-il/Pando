@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "2a6387a1fc3bdf8e91c57e9fb7774887cfd2167725022a3347c0735d54b140d1",
+  "sourceSha256": "9c68fc52cf13e0fd35e4b5db7e481b063076a61c1bbc7d6119bff5a4ee8cce29",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -301,7 +301,7 @@
     },
     {
       "path": "shared/core/src/geometrypredicates.cpp",
-      "sha256": "776fc930ecf5eb360902340c1a45b70d065397544295eeff0ffc55fb55517672"
+      "sha256": "9d5a0e0dc97b8b052fb2aab0e155f1446e3bd4ffd735100f795e96133ed54d4c"
     },
     {
       "path": "shared/core/src/geometryprovenance.cpp",
@@ -605,7 +605,7 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "644c264017752a976ef8119903383d7464911249ed60bc9e69e68d145c4ef1c9"
+      "sha256": "7ee0a2098787729c3d243f5ea225066e9cb2b226297e9f0e314202a8de2b0750"
     },
     {
       "path": "shared/wasm/timeline-bindings.cpp",
@@ -615,11 +615,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "b2abd97c5e7bef9667efdfba016df1b61003633a5b26a7110104acb31de79139"
+      "sha256": "53ccc31eb668677d139c8b35ae7b30af048c8b0e50d3b2b6813880e24626a77d"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "45b148b5ea9cc71cf335aac0807ebd68bbad2e68829a6fb4e7091f302392cd6b"
+      "sha256": "51e42126ecaff116fc7dea975d7452d18a6fa0ac4c059d84ce2450f7eac052c7"
     }
   }
 }

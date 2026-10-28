@@ -47,6 +47,32 @@ test('C++ ring validation preserves the current located geometry issues', () => 
   }
   const short = [[3, 4, 5]];
   assert.deepEqual(validateGeometry(feature('R', short))[0].coordinate, short[0]);
+  assert.equal(validateGeometry(feature('R', []))[0].kind, 'invalid-geometry');
+});
+
+test('nonfinite ring coordinates report their vertex without a map location', () => {
+  for (const value of [NaN, Infinity, -Infinity]) {
+    const ring = [[0, 0], [1, 0], [value, 1], [0, 0]];
+    const issues = validateGeometry(feature('R', ring));
+    assert.equal(issues.length, 1);
+    assert.equal(issues[0].kind, 'invalid-geometry');
+    assert.equal(issues[0].vertexIndex, 2);
+    assert.equal(issues[0].coordinate, undefined);
+    assert.match(issues[0].message, /좌표/);
+    const short = validateGeometry(feature('R', [[value, 1]]));
+    assert.equal(short[0].kind, 'invalid-geometry');
+    assert.equal(short[0].vertexIndex, 0);
+    assert.equal(short[0].coordinate, undefined);
+  }
+  let seed = 17;
+  const next = () => { seed = (1664525 * seed + 1013904223) >>> 0; return seed % 101 - 50; };
+  const longer = Array.from({ length: 65 }, () => [next(), next()]);
+  longer[0][0] = NaN;
+  const issues = validateGeometry(feature('R', longer));
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].kind, 'invalid-geometry');
+  assert.equal(issues[0].vertexIndex, 0);
+  assert.equal(issues[0].coordinate, undefined);
 });
 
 test('spherical metrics provide useful live distance, area and percentage feedback', () => {
