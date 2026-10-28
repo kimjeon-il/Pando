@@ -110,6 +110,32 @@ double gisArea(val input) {
     auto operands=val::array();operands.set(0,input);
     return gisValidationArea(readOperands(operands).front());
 }
+std::vector<std::vector<GisComponentBounds>> gisBounds(val input) {
+    std::vector<std::vector<GisComponentBounds>> result(input["length"].as<unsigned>());
+    for(unsigned i=0;i<result.size();++i){
+        const auto components=input[i];result[i].resize(components["length"].as<unsigned>());
+        for(unsigned j=0;j<result[i].size();++j)for(unsigned k=0;k<4;++k)
+            result[i][j][k]=components[j][k].as<double>();
+    }
+    return result;
+}
+std::vector<bool> gisAffected(val input) {
+    std::vector<bool> result;const auto length=input["length"].as<unsigned>();result.reserve(length);
+    for(unsigned i=0;i<length;++i)result.push_back(input[i].as<bool>());
+    return result;
+}
+struct GisCandidatePort {
+    GisOverlapCandidateIterator iterator;
+    GisCandidatePort(val bounds,val affected,bool scoped):iterator(gisBounds(bounds),gisAffected(affected),scoped){}
+    val next() {
+        const auto candidate=iterator.next();if(!candidate)return val::null();
+        auto result=val::object(),pairs=val::array();unsigned index=0;
+        result.set("leftIndex",static_cast<unsigned>(candidate->leftIndex));
+        result.set("rightIndex",static_cast<unsigned>(candidate->rightIndex));
+        for(const auto& pair:candidate->componentPairs){auto row=val::array();row.set(0,static_cast<unsigned>(pair.first));row.set(1,static_cast<unsigned>(pair.second));pairs.set(index++,row);}
+        result.set("componentPairs",pairs);return result;
+    }
+};
 }
 std::string wrapGeometry(const std::string& input){
     try {
@@ -126,5 +152,6 @@ EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("territorialValidationArea",&validationArea);
     emscripten::function("validateGisGeometry",&gisGeometry);
     emscripten::function("gisValidationArea",&gisArea);
+    emscripten::class_<GisCandidatePort>("GisOverlapCandidates").constructor<val,val,bool>().function("next",&GisCandidatePort::next);
     emscripten::function("wrapPolygonGeometry",&wrapGeometry);
 }
