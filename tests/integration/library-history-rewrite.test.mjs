@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, writeFileSync, readFileSync, unlinkSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { buildResearchPurgeManifest, rewriteResearchHistory } from '../../tools/library-history.mjs';
+import { buildResearchPurgeManifest, rewriteHistory } from '../../tools/library-history.mjs';
 import * as history from '../../tools/library-history.mjs';
 
 test('history rewrite purges archived research across branches, tags and owner refs while preserving runtime bytes', async t => {
@@ -34,7 +34,7 @@ test('history rewrite purges archived research across branches, tags and owner r
   unlinkSync(join(source, path)); put('archive/index.json', JSON.stringify(current)); git(source, 'add', '-A'); git(source, 'commit', '-qm', 'retire detail');
   const head = git(source, 'rev-parse', 'HEAD');
   const manifest = buildResearchPurgeManifest({ retiredPaths: [path, path.replace('detail.json', 'orphan-only.md')], indexes: [old, current], currentIndex: current });
-  await rewriteResearchHistory({ source, target, manifest, filterRepoPath: process.env.PANDO_HISTORY_FILTER_REPO, pythonPath: process.env.PANDO_HISTORY_PYTHON });
+  await rewriteHistory({ source, target, manifest, filterRepoPath: process.env.PANDO_HISTORY_FILTER_REPO, pythonPath: process.env.PANDO_HISTORY_PYTHON });
   for (const ref of ['refs/heads/main', 'refs/heads/work/ui', 'refs/tags/reference', 'refs/pando/reports/gis']) {
     assert.equal(git(target, 'ls-tree', '-r', '--name-only', ref, '--', path), '');
     assert.equal(JSON.parse(git(target, 'show', ref + ':archive/index.json')).files[path], undefined);

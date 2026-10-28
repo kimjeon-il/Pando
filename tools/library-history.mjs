@@ -28,7 +28,32 @@ export function buildResearchPurgeManifest({ retiredPaths, indexes, currentIndex
     sharedStoresPreserved: [...candidates].filter(path => retainedStores.has(path)).sort() };
 }
 
-export function filterResearchIndex(index, manifest) {
+export function buildHistoryRetentionManifest({ keepPaths, indexes, aliases = {}, currentOnly = {}, allowedBlobIds = {} }) {
+  const safe = path => {
+    if (!path || /^[A-Za-z]:/.test(path) || path.startsWith('/') || path.includes('\\') || path.split('/').some(part => !part || part === '.' || part === '..')) throw Error(`Unsafe retention path: ${path}`);
+    return path;
+  };
+  const retained = new Set(keepPaths.map(safe));
+  for (const [old, current] of Object.entries(aliases)) { safe(old); safe(current); if (retained.has(current)) retained.add(old); }
+  for (const [path, hashes] of Object.entries(currentOnly)) {
+    if (!retained.has(safe(path)) || !Array.isArray(hashes) || !hashes.length) throw Error(`Current-only editions require a retained path: ${path}`);
+  }
+  const blobSelections = { ...allowedBlobIds };
+  for (const [old, current] of Object.entries(aliases)) if (retained.has(old) && blobSelections[current]) blobSelections[old] = [...blobSelections[current]];
+  const manifest = { schema: 'pando-history-retention-v1', keepPaths: [...retained].sort(), aliases, currentOnly, allowedBlobIds: blobSelections };
+  for (const index of indexes) for (const entry of Object.values(filterHistoryIndex(index, manifest).files)) retained.add(safe(entry.stored));
+  manifest.keepPaths = [...retained].sort();
+  return manifest;
+}
+
+export function filterHistoryIndex(index, manifest) {
+  if (manifest.keepPaths) {
+    const retained = new Set(manifest.keepPaths);
+    return { ...index, files: Object.fromEntries(Object.entries(index.files).filter(([path, entry]) => {
+      const canonical = manifest.aliases[path] || path;
+      return retained.has(path) && (!manifest.currentOnly[canonical] || manifest.currentOnly[canonical].includes(entry.sha256));
+    })) };
+  }
   const excluded = new Set(manifest.logicalPaths);
   return { ...index, files: Object.fromEntries(Object.entries(index.files).filter(([path]) => !excluded.has(path))) };
 }
@@ -57,7 +82,7 @@ export function preservePrivateHistoryObjects({ source, target, objects, manifes
       let parsed;
       try { parsed = JSON.parse(bytes.toString('utf8')); } catch (error) { if (!(error instanceof SyntaxError)) throw error; }
       if (parsed?.files && !Array.isArray(parsed.files) && Object.values(parsed.files).every(entry => typeof entry?.stored === 'string')) {
-        const filtered = filterResearchIndex(parsed, manifest);
+        const filtered = filterHistoryIndex(parsed, manifest);
         if (Object.keys(filtered.files).length !== Object.keys(parsed.files).length) bytes = Buffer.from(JSON.stringify(filtered) + '\n');
       }
       next = git(target, ['hash-object', '-w', '--stdin'], bytes);
@@ -86,7 +111,7 @@ export function preservePrivateHistoryObjects({ source, target, objects, manifes
   return { objectMap, additionalObjects: extra.size, pack };
 }
 
-export async function rewriteResearchHistory({ source, target, manifest, filterRepoPath, pythonPath }) {
+export async function rewriteHistory({ source, target, manifest, filterRepoPath, pythonPath, refs = ['--all'], renamePaths = {} }) {
   source = resolve(source); target = resolve(target);
   if (existsSync(target)) throw Error('History output already exists; inspect it before resuming.');
   const environment = { ...process.env, GIT_NO_LAZY_FETCH: '1', GIT_OPTIONAL_LOCKS: '0' };
@@ -97,20 +122,20 @@ export async function rewriteResearchHistory({ source, target, manifest, filterR
   mkdirSync(join(target, 'objects/info'), { recursive: true });
   writeFileSync(join(target, 'objects/info/alternates'), objects.replaceAll('\\', '/') + '\n');
   const manifestPath = target + '.manifest.json', callbackPath = target + '.callback.py';
-  const indexOids = git('-C', source, 'rev-list', '--objects', '--all', '--reflog', '--', 'archive/index.json')
+  const indexOids = git('-C', source, 'rev-list', '--objects', ...refs, '--', 'archive/index.json')
     .split('\n').filter(line => /^[a-f0-9]{40} archive\/index.json$/.test(line)).map(line => line.slice(0, 40));
   const indexBlobMap = {};
   for (const oid of new Set(indexOids)) {
     const original = JSON.parse(git('-C', source, 'cat-file', 'blob', oid));
-    const filtered = filterResearchIndex(original, manifest);
+    const filtered = filterHistoryIndex(original, manifest);
     if (Object.keys(original.files).length === Object.keys(filtered.files).length) continue;
     indexBlobMap[oid] = execFileSync('git', ['--git-dir=' + target, 'hash-object', '-w', '--stdin'], {
       env: environment, input: JSON.stringify(filtered) + '\n', encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
   }
-  writeFileSync(manifestPath, JSON.stringify({ ...manifest, indexBlobMap }));
-  writeFileSync(callbackPath, `import json\nif 'pando_history' not in globals():\n    with open(${JSON.stringify(manifestPath.replaceAll('\\', '/'))}, encoding='utf-8') as f:\n        globals()['pando_history'] = json.load(f)\n    pando_history['excluded'] = {p.encode('utf-8') for p in pando_history['paths']}\nkept = []\nfor change in commit.file_changes:\n    if change.filename in pando_history['excluded']:\n        continue\n    if change.type == b'M' and change.filename == b'archive/index.json':\n        old = change.blob_id.decode('ascii')\n        if old in pando_history['indexBlobMap']:\n            change.blob_id = pando_history['indexBlobMap'][old].encode('ascii')\n    kept.append(change)\ncommit.file_changes = kept\n`);
-  const exporter = spawn('git', ['-C', source, 'fast-export', '--all', '--show-original-ids', '--no-data', '--signed-tags=strip', '--tag-of-filtered-object=rewrite', '--reference-excluded-parents', '--use-done-feature'], { env: environment, stdio: ['ignore', 'pipe', 'pipe'] });
+  writeFileSync(manifestPath, JSON.stringify({ ...manifest, indexBlobMap, renamePaths }));
+  writeFileSync(callbackPath, `import json\nif 'pando_history' not in globals():\n    with open(${JSON.stringify(manifestPath.replaceAll('\\', '/'))}, encoding='utf-8') as f:\n        globals()['pando_history'] = json.load(f)\n    pando_history['excluded'] = {p.encode('utf-8') for p in pando_history.get('paths', [])}\n    pando_history['retained'] = {p.encode('utf-8') for p in pando_history.get('keepPaths', [])}\nkept = []\nfor change in commit.file_changes:\n    if change.filename in pando_history['excluded']:\n        continue\n    name = change.filename.decode('utf-8')\n    if 'keepPaths' in pando_history and change.filename not in pando_history['retained']:\n        continue\n    if change.type == b'M':\n        old = change.blob_id.decode('ascii')\n        allowed = pando_history.get('allowedBlobIds', {}).get(name)\n        if allowed is not None and old not in allowed:\n            kept.append(FileChange(b'D', change.filename))\n            continue\n        if change.filename == b'archive/index.json' and old in pando_history['indexBlobMap']:\n            change.blob_id = pando_history['indexBlobMap'][old].encode('ascii')\n    if name in pando_history['renamePaths']:\n        change.filename = pando_history['renamePaths'][name].encode('utf-8')\n    kept.append(change)\ncommit.file_changes = kept\n`);
+  const exporter = spawn('git', ['-C', source, 'fast-export', ...refs, '--show-original-ids', '--no-data', '--signed-tags=strip', '--tag-of-filtered-object=rewrite', '--reference-excluded-parents', '--use-done-feature'], { env: environment, stdio: ['ignore', 'pipe', 'pipe'] });
   const filter = spawn(pythonPath, [filterRepoPath, '--source', source, '--target', target, '--stdin', '--force', '--prune-empty', 'never', '--prune-degenerate', 'never', '--preserve-commit-hashes', '--commit-callback', callbackPath], { env: environment, stdio: ['pipe', 'pipe', 'pipe'] });
   let output = '', errors = '';
   exporter.stderr.on('data', chunk => { errors += chunk; });
