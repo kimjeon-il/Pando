@@ -11,6 +11,7 @@
 #include <pandoeditor/webobjectcommands.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
+#include <emscripten.h>
 #include <emscripten/version.h>
 #include <cmath>
 #include <initializer_list>
@@ -72,16 +73,20 @@ template<class Function> auto boundary(Function function)->decltype(function()) 
     }
     std::terminate();
 }
+EM_JS(emscripten::EM_VAL, packTerritorialRing, (emscripten::EM_VAL handle), {
+    const ring=Emval.toValue(handle), points=new Float64Array(ring.length*2);
+    if(ring.length>=4)for(let i=0;i<ring.length;++i){points[i*2]=Number(ring[i][0]);points[i*2+1]=Number(ring[i][1]);}
+    return Emval.toHandle(points);
+});
 val territorialRingValidationForWeb(const val& input) {
     return boundary([&] {
         array(input,"INVALID_GEOMETRY");
-        Ring ring;
-        const auto count=input["length"].as<unsigned>();ring.reserve(count);
-        const auto number=val::global("Number");
-        for(unsigned i=0;i<count;++i){
-            if(count<4){ring.push_back({});continue;}
-            const auto p=input[i];ring.push_back({number(p[0]).as<double>(),number(p[1]).as<double>()});
-        }
+        const auto count=input["length"].as<unsigned>();
+        const auto packed=val::take_ownership(packTerritorialRing(input.as_handle()));
+        std::vector<double> points(count*2);
+        if(!points.empty())val(emscripten::typed_memory_view(points.size(),points.data())).call<void>("set",packed);
+        Ring ring;ring.reserve(count);
+        for(unsigned i=0;i<count;++i)ring.push_back({points[i*2],points[i*2+1]});
         auto output=val::array();unsigned index=0;
         for(const auto& issue:validateTerritorialRing(ring)){
             auto row=val::object();row.set("kind",issue.kind);
