@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "f64a4c2833b7a796ae6a78a26fa02d802ce5508f04e9701ebf1043039881d9b4",
+  "sourceSha256": "72f87b85ed897b7cf6fae99122f6f4e0c584873258644bf6b480aed3237ead38",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -73,7 +73,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/geometrypredicates.h",
-      "sha256": "f35996001ae130a73e1ded80cbaab53ef04ae095e47fd49b34097e4e4da7ba1f"
+      "sha256": "d7e6f5b4cbab678a7c73bc5722df1a3d8e48ec5188a6d4e930f5bd8c30f49efa"
     },
     {
       "path": "shared/core/include/pandoeditor/geometryprovenance.h",
@@ -593,7 +593,7 @@
     },
     {
       "path": "shared/wasm/polygon-bindings.cpp",
-      "sha256": "c7d7fab485b67066d403dce6dbcb97bdcb4d8ba6775437ebb795137f867b294f"
+      "sha256": "a5938651403a03f104359cdc53b7cdd3453f481f8b6118cc9f8527508a4dd3f5"
     },
     {
       "path": "shared/wasm/reference-bindings.cpp",
@@ -619,7 +619,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "ac1df936dc8446ffa443d404351ee2593df8c40f3da4a1a6531bae20f686182b"
+      "sha256": "d93f15d7cb4cc13c1c50c4559fd18db6913427483d2f33fff8a11c79fb504fe3"
     }
   }
 }
