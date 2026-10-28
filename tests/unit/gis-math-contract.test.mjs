@@ -60,6 +60,21 @@ function boundaryFixtures() {
   ];
 }
 
+test('shared GIS geometry validation preserves rounded identity and finite-coordinate rules', () => {
+  const valid = [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]];
+  const bow = [[[0, 0], [2, 2], [0, 2], [2, 0], [0, 0]]];
+  const roundedDuplicate = [[[0, 0], [1e-9, 0], [0, 1], [0, 0]]];
+  const negativeZeroKey = [[[0, 0], [-1e-9, 0], [0, 1], [0, 0]]];
+  const exactHalf = [[[0.001953125, 0], [0.001953129, 0], [0, 1], [0.001953125, 0]]];
+  assert.equal(sphericalCore.validateGisGeometry([valid]), true);
+  assert.equal(sphericalCore.validateGisGeometry([bow]), false);
+  assert.equal(sphericalCore.validateGisGeometry([roundedDuplicate]), false);
+  assert.equal(sphericalCore.validateGisGeometry([negativeZeroKey]), true);
+  assert.equal(sphericalCore.validateGisGeometry([exactHalf]), false);
+  assert.equal(sphericalCore.validateGisGeometry([[[[0, 0], [1, 0], [NaN, 1], [0, 0]]]]), false);
+  assert.equal(sphericalCore.validateGisGeometry([]), false);
+});
+
 test('browser and Worker geographic boundary contracts are exact and non-mutating', () => {
   const worker = createBoundaryWorker();
   for (const input of boundaryFixtures()) {
@@ -125,7 +140,8 @@ test('main validator and actual GIS Worker agree on normal, empty, invalid, prec
   };
   for (const fixture of fixtures) {
     const actual = await worker.validate(fixture.collection);
-    const { id: _id, intersectionAttempts: _attempts, ...workerOutcome } = actual;
+    const { id: _id, intersectionAttempts: _attempts, code, ...workerOutcome } = actual;
+    if (!actual.ok) assert.equal(code, 'PL-WORKER-RPC-OPERATION', fixture.name);
     assert.deepEqual(workerOutcome, mainOutcome(fixture.collection), fixture.name);
   }
 });
