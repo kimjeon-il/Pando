@@ -1,6 +1,7 @@
 #include <pandoeditor/document-session.h>
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/sphericalpolygon.h>
+#include <pandoeditor/geometrypredicates.h>
 #include <pandoeditor/temporal.h>
 #include <pandoeditor/timeline-edit.h>
 #include <pandoeditor/webcommands.h>
@@ -70,6 +71,28 @@ template<class Function> auto boundary(Function function)->decltype(function()) 
         value.set("code",code);value.throw_();
     }
     std::terminate();
+}
+val territorialRingValidationForWeb(const val& input) {
+    return boundary([&] {
+        array(input,"INVALID_GEOMETRY");
+        Ring ring;
+        const auto count=input["length"].as<unsigned>();ring.reserve(count);
+        const auto number=val::global("Number");
+        for(unsigned i=0;i<count;++i){
+            if(count<4){ring.push_back({});continue;}
+            const auto p=input[i];ring.push_back({number(p[0]).as<double>(),number(p[1]).as<double>()});
+        }
+        auto output=val::array();unsigned index=0;
+        for(const auto& issue:validateTerritorialRing(ring)){
+            auto row=val::object();row.set("kind",issue.kind);
+            if(issue.coordinateIndex)row.set("coordinate",input[static_cast<unsigned>(*issue.coordinateIndex)]);
+            else if(issue.kind=="self-intersection") {auto coordinate=val::array();coordinate.set(0,issue.coordinate.x);coordinate.set(1,issue.coordinate.y);row.set("coordinate",coordinate);}
+            if(issue.vertexIndex)row.set("vertexIndex",static_cast<unsigned>(*issue.vertexIndex));
+            if(issue.segmentIndex)row.set("segmentIndex",static_cast<unsigned>(*issue.segmentIndex));
+            output.set(index++,row);
+        }
+        return output;
+    });
 }
 val polygonGeometry(const val& input,bool clipped) {
     return boundary([&] {
@@ -722,6 +745,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::constant("coreSourceSha256",std::string(PANDOEDITOR_CORE_SOURCE_SHA256));
     emscripten::constant("coreCompilerVersion",compilerVersion);
     emscripten::function("sphericalRingSignedArea",&sphericalRingAreaForWeb);
+    emscripten::function("validateTerritorialRing",&territorialRingValidationForWeb);
     emscripten::function("sphericalRingSignedAreas",&sphericalRingAreasForWeb);
     emscripten::function("temporalParse",&temporalParseForWeb);
     emscripten::function("temporalMonthEnd",&temporalMonthEndForWeb);
