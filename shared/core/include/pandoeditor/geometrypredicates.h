@@ -30,6 +30,7 @@ public:
     GisOverlapCandidateIterator(std::vector<std::vector<GisComponentBounds>> bounds,
         std::vector<bool> affected, bool scoped);
     std::optional<GisOverlapCandidate> next();
+    bool isSignificant(double area) const noexcept { return !(area<=1e-8); }
 private:
     std::vector<std::vector<GisComponentBounds>> bounds_;
     std::vector<bool> affected_;

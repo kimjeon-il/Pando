@@ -115,7 +115,7 @@ export function validateCollection(collection, affectedIds = null, { overlapAffe
           overlapPlanarArea += planarArea(componentOverlap);
         }
       }
-      if (overlapPlanarArea <= 1e-8) continue;
+      if (!candidates.isSignificant(overlapPlanarArea)) continue;
       const overlapGeometry = { type: 'MultiPolygon', coordinates: overlap };
       const areaKm2 = geometryAreaKm2(overlapGeometry);
       return { overlapAreaKm2: areaKm2, firstOverlap: [ids[i], ids[j]] };
