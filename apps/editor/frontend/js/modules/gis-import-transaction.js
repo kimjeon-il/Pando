@@ -95,7 +95,8 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     const changed = before.filter(entity => replacements.has(entity.id))
       .map(entity => ({ ...entity, geometry: replacements.get(entity.id) }));
     result.assertCurrent?.();
-    if(projectDomain.getGeneration()!==expectedGeneration)throw createCancellationError('지도 변경으로 가져오기를 취소했습니다. 다시 준비하세요.');
+    if(projectDomain.getGeneration()!==expectedGeneration||projectDomain.state().epoch!==expectedEpoch)
+      throw createCancellationError('지도 변경으로 가져오기를 취소했습니다. 다시 준비하세요.');
     const prepared=rejected(await projectDomain.prepareCommand({ commandId:'territorial.import',targets:[],expectedEpoch,
       payload:{operations:[territorialPatch([...changed,...imported])] } }));
     if(!prepared.changed)return [];
