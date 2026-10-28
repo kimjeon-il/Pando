@@ -14,6 +14,21 @@
 #include <vector>
 
 namespace pandoeditor {
+enum class ReferenceChainStatus { Valid, Missing, Cycle };
+template<class Text>
+ReferenceChainStatus inspectReferenceChain(const std::map<Text,std::optional<Text>>& parents,const Text& start) {
+    if(start.empty())return ReferenceChainStatus::Valid;
+    const auto initial=parents.find(start);
+    if(initial==parents.end())return ReferenceChainStatus::Valid;
+    std::set<Text> seen{start};auto current=initial->second;
+    while(current){
+        if(!seen.insert(*current).second)return ReferenceChainStatus::Cycle;
+        const auto found=parents.find(*current);
+        if(found==parents.end())return ReferenceChainStatus::Missing;
+        current=found->second;
+    }
+    return ReferenceChainStatus::Valid;
+}
 inline ObjectRef territorialRef(const std::string& id) { return {"territorial",id}; }
 enum class UnitKind { General, Regional };
 struct SourceProvenance {

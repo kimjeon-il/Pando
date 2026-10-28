@@ -73,6 +73,31 @@ template<class Function> auto boundary(Function function)->decltype(function()) 
     }
     std::terminate();
 }
+std::u16string referenceUtf16(const val& input) {
+    if(!type(input,"string"))fail("INVALID_REFERENCE_GRAPH","Reference IDs must be strings.");
+    std::u16string result;const auto length=input["length"].as<unsigned>();result.reserve(length);
+    for(unsigned i=0;i<length;++i)result.push_back(static_cast<char16_t>(input.call<unsigned>("charCodeAt",i)));
+    return result;
+}
+val referenceGraphForWeb(const val& ids,const val& parents) {
+    return boundary([&] {
+        array(ids,"INVALID_REFERENCE_GRAPH");array(parents,"INVALID_REFERENCE_GRAPH");
+        const auto length=ids["length"].as<unsigned>();
+        if(parents["length"].as<unsigned>()!=length)fail("INVALID_REFERENCE_GRAPH","Reference arrays must have equal length.");
+        std::vector<std::u16string> values;values.reserve(length);
+        std::map<std::u16string,std::optional<std::u16string>> graph;
+        for(unsigned i=0;i<length;++i){auto id=referenceUtf16(ids[i]),parent=referenceUtf16(parents[i]);
+            values.push_back(id);graph[id]=parent.empty()?std::nullopt:std::optional<std::u16string>(std::move(parent));}
+        std::set<std::u16string> seen;auto output=val::array();
+        for(unsigned i=0;i<length;++i){const auto& id=values[i];auto row=val::object();
+            const auto status=id.empty()?"empty":seen.insert(id).second?"ok":"duplicate";
+            const auto chain=inspectReferenceChain(graph,id);
+            row.set("idStatus",std::string(status));row.set("cycle",chain==ReferenceChainStatus::Cycle);
+            row.set("missing",chain==ReferenceChainStatus::Missing);output.set(i,row);
+        }
+        return output;
+    });
+}
 EM_JS(emscripten::EM_VAL, packTerritorialRing, (emscripten::EM_VAL handle), {
     const ring=Emval.toValue(handle), points=new Float64Array(ring.length*2);
     for(let i=0;i<ring.length;++i){if(ring.length<4&&!Array.isArray(ring[i]))continue;points[i*2]=Number(ring[i][0]);points[i*2+1]=Number(ring[i][1]);}
@@ -751,6 +776,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::constant("coreCompilerVersion",compilerVersion);
     emscripten::function("sphericalRingSignedArea",&sphericalRingAreaForWeb);
     emscripten::function("validateTerritorialRing",&territorialRingValidationForWeb);
+    emscripten::function("referenceGraphDiagnostics",&referenceGraphForWeb);
     emscripten::function("sphericalRingSignedAreas",&sphericalRingAreasForWeb);
     emscripten::function("temporalParse",&temporalParseForWeb);
     emscripten::function("temporalMonthEnd",&temporalMonthEndForWeb);

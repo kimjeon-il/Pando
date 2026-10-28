@@ -1,5 +1,5 @@
 import { normalizeTerritorialEntities, normalizeTerritorialIdentities } from './territorial-units.js';
-import { normalizeTemporalInterval } from './temporal.js';
+import { normalizeTemporalInterval, sharedCalculationCore } from './temporal.js';
 import { validateSourceProvenance } from './source-provenance.js';
 
 const text = value => String(value ?? '').trim();
@@ -16,32 +16,27 @@ function issue(code, message, objectIds = [], field = '') {
   });
 }
 
-function duplicateIssues(rows, idOf, code, label) {
-  const seen = new Set();
+function graphDiagnostics(rows, idOf, parentOf = () => '') {
+  if (typeof sharedCalculationCore.referenceGraphDiagnostics !== 'function') {
+    throw Object.assign(new Error('Canonical C++ reference graph validator is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  const items = rows || [];
+  return sharedCalculationCore.referenceGraphDiagnostics(items.map(row => text(idOf(row))), items.map(row => text(parentOf(row))));
+}
+
+function duplicateIssues(rows, idOf, code, label, diagnostics = null) {
   const issues = [];
-  for (const row of rows || []) {
+  const items = rows || [];
+  const results = diagnostics || graphDiagnostics(items, idOf);
+  for (const [index, row] of items.entries()) {
     const id = text(idOf(row));
-    if (!id) {
+    if (results[index].idStatus === 'empty') {
       issues.push(issue(`${code}-EMPTY`, `${label} ID가 비어 있습니다.`));
       continue;
     }
-    if (seen.has(id)) issues.push(issue(`${code}-DUPLICATE`, `${label} ID가 중복되었습니다: ${id}`, [id]));
-    seen.add(id);
+    if (results[index].idStatus === 'duplicate') issues.push(issue(`${code}-DUPLICATE`, `${label} ID가 중복되었습니다: ${id}`, [id]));
   }
   return issues;
-}
-
-function parentCycle(startId, byId, parentOf) {
-  const start = text(startId);
-  if (!start) return false;
-  const visited = new Set([start]);
-  let cursor = text(parentOf(byId.get(start)));
-  while (cursor && byId.has(cursor)) {
-    if (visited.has(cursor)) return true;
-    visited.add(cursor);
-    cursor = text(parentOf(byId.get(cursor)));
-  }
-  return false;
 }
 
 function geometryIssue(row, id, label) {
@@ -67,16 +62,16 @@ export function validateProjectReferenceIntegrity({
   try { storageOnly ? normalizeTerritorialIdentities(territorialEntities) : normalizeTerritorialEntities(territorialEntities,{cloneGeometry:geometry=>geometry}); }
   catch(error) { issues.push(issue('PL-INV-TERRITORIAL',error.message,[], 'territorialEntities')); }
 
-  issues.push(...duplicateIssues(territorialEntities, row => row?.id, 'PL-INV-ENTITY', '객체'));
-  issues.push(...duplicateIssues(distributionLayers, row => row?.id, 'PL-INV-DIST-LAYER', '분포 레이어'));
+  const territorialGraph = graphDiagnostics(territorialEntities, row => row?.id, row => storageOnly ? '' : row?.properties?.parentId);
+  const distributionGraph = graphDiagnostics(distributionLayers, row => row?.id, row => row?.parentId);
+  issues.push(...duplicateIssues(territorialEntities, row => row?.id, 'PL-INV-ENTITY', '객체', territorialGraph));
+  issues.push(...duplicateIssues(distributionLayers, row => row?.id, 'PL-INV-DIST-LAYER', '분포 레이어', distributionGraph));
   issues.push(...duplicateIssues(distributionEntries, row => row?.id, 'PL-INV-DIST-ENTRY', '분포 엔트리'));
   issues.push(...duplicateIssues(genericFeatures, row => row?.id, 'PL-INV-GENERIC', '기타 객체'));
 
   const countryIds = new Set((countries || []).map(row => text(row?.id)).filter(Boolean));
   const territorialIds = new Set(territorialEntities.map(row => text(row?.id)).filter(Boolean));
-  const unitById = new Map(territorialEntities.map(row => [text(row?.id), row]));
-
-  for (const feature of territorialEntities) {
+  for (const [index, feature] of territorialEntities.entries()) {
     if (storageOnly) continue; // Temporal geometry/parent integrity is owned by timeline validation.
     const id = text(feature?.id);
     const parentId = text(feature?.properties?.parentId);
@@ -90,7 +85,7 @@ export function validateProjectReferenceIntegrity({
     }
 
 
-    if (parentCycle(id, unitById, row => row?.properties?.parentId)) {
+    if (territorialGraph[index].cycle) {
       issues.push(issue('PL-INV-PARENT-CYCLE', `${id}의 상위 단위 관계가 순환합니다.`, [id], 'parentId'));
     }
     try { normalizeTemporalInterval(feature?.properties?.validFrom, feature?.properties?.validTo); }
@@ -98,7 +93,7 @@ export function validateProjectReferenceIntegrity({
   }
 
   const layerById = new Map((distributionLayers || []).map(layer => [text(layer?.id), layer]).filter(([id]) => id));
-  for (const layer of distributionLayers || []) {
+  for (const [index, layer] of (distributionLayers || []).entries()) {
     const id = text(layer?.id);
     const parentId = text(layer?.parentId);
     if (parentId === id) {
@@ -109,7 +104,7 @@ export function validateProjectReferenceIntegrity({
         issues.push(issue('PL-INV-MISSING-DIST-PARENT', `${id}의 상위 분포 레이어 ${parentId}이 존재하지 않습니다.`, [id, parentId], 'parentId'));
       }
     }
-    if (parentCycle(id, layerById, row => row?.parentId)) {
+    if (distributionGraph[index].cycle) {
       issues.push(issue('PL-INV-DIST-PARENT-CYCLE', `${id}의 분포 레이어 상위 관계가 순환합니다.`, [id], 'parentId'));
     }
     try { normalizeTemporalInterval(layer?.validFrom, layer?.validTo); }

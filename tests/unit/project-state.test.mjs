@@ -96,7 +96,17 @@ const currentProject = () => { const project = {
   }],
   hydroEdits: [{ type: 'Feature', id: uuid(6), geometry: { type:'LineString', coordinates:[[0,0],[1,1]] }, properties: { pandolab_schema_version: 1, category:'river' } }],
   labels: [{ id: uuid(7) }],
-}; return { ...project, ...staticTerritorialInput(project.territorialEntities) }; };
+};
+  const timeline = staticTerritorialInput(project.territorialEntities);
+  const water = project.hydroEdits[0];
+  const objectRef = { domain: 'hydro', id: water.id };
+  const geometryRef = { id: `fixture-water:${water.id}`, version: 1 };
+  timeline.timelineRecords.lifetimes.push({ id: `life:${water.id}`, objectRef, validFrom: null, validTo: null });
+  timeline.timelineRecords.geometryBindings.push({ id: `binding:${water.id}`, objectRef, validFrom: null, validTo: null, geometryRef });
+  timeline.geometries.push({ ...geometryRef, geojson: water.geometry });
+  water.geometry = null;
+  return { ...project, ...timeline };
+};
 
 test('current project schema accepts only explicit current versions and UUID object IDs', () => {
   assert.equal(assertCurrentProjectSchema(currentProject()).schemaVersion, PROJECT_SCHEMA_VERSION);

@@ -101,15 +101,12 @@ void indexContentImpl(const ProjectDocument& d,DocumentIndex& idx,bool completeR
         require(!v.valueScale.manual||(std::isfinite(v.valueScale.min)&&std::isfinite(v.valueScale.max)&&v.valueScale.min<v.valueScale.max),"INVALID_DISTRIBUTION: value scale");
         require(v.color<=0xffffff,"INVALID_DISTRIBUTION: color"); temporalBounds(v.validity);
     }
+    std::map<std::string,std::optional<std::string>> distributionParents;
+    for(const auto& layer:d.distributionLayers)distributionParents[layer.id]=layer.parentId;
     for(const auto& v:d.distributionLayers) {
-        std::set<std::string> seen{v.id}; auto parent=v.parentId;
-        while(parent) {
-            require(seen.insert(*parent).second,"DISTRIBUTION_CYCLE");
-            auto it=idx.objects.find({"distributionLayer",*parent});
-            require(it!=idx.objects.end(),"DANGLING_REF: distribution parent");
-            const auto& p=d.distributionLayers.at(it->second);
-            parent=p.parentId;
-        }
+        const auto chain=inspectReferenceChain(distributionParents,v.id);
+        require(chain!=ReferenceChainStatus::Cycle,"DISTRIBUTION_CYCLE");
+        require(chain!=ReferenceChainStatus::Missing,"DANGLING_REF: distribution parent");
         if(v.parentId) idx.dependents[{"distributionLayer",*v.parentId}].push_back({"distributionLayer",v.id});
     }
     for(std::size_t i=0;i<d.distributionEntries.size();++i) {
