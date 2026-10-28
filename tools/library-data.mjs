@@ -543,6 +543,14 @@ export function mountLibraryInputs({ source, root }) {
   if (!lstatSync(input).isDirectory() || lstatSync(input).isSymbolicLink()) throw Error('Library inputs must be a regular checkout directory');
   try { lstatSync(output); throw Error('Existing library input target must not be overwritten'); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (existsSync(resolve(root, '.git'))) {
+    const exclude = git(root, ['rev-parse', '--path-format=absolute', '--git-path', 'info/exclude']);
+    const previous = existsSync(exclude) ? readFileSync(exclude, 'utf8') : '';
+    if (!previous.split(/\r?\n/).includes('/assets/data')) {
+      mkdirSync(dirname(exclude), { recursive: true });
+      writeFileSync(exclude, previous + (previous.endsWith('\n') || !previous ? '' : '\n') + '/assets/data\n');
+    }
+  }
   mkdirSync(dirname(output), { recursive: true });
   symlinkSync(input, output, process.platform === 'win32' ? 'junction' : 'dir');
   return output;

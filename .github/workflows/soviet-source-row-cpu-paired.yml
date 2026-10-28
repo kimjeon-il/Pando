@@ -25,6 +25,7 @@ jobs:
           ref: dc2f8d0b4e46a295c5967dcf380a58c0ca5d9d57
           persist-credentials: false
       - name: Mount selected baseline inputs from library storage
+        id: library_baseline_1
         uses: kimjeon-il/Pando/.github/actions/library-data@main
         with:
           inputs-revision: 33e1afa92fc19edb9191112b9490bc93b3eec49d
@@ -86,3 +87,13 @@ jobs:
             candidate/source-row-cpu-pair.json
           retention-days: 14
           if-no-files-found: warn
+      - name: Verify selected library input bytes remain unchanged
+        if: always() && steps.library_baseline_1.outcome == 'success'
+        shell: bash
+        env:
+          INPUT_CHECKOUT: .pando-inputs/baseline
+        run: >
+          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
+          --untracked-files=all -- assets/data)"
+
+          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }

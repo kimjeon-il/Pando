@@ -25,6 +25,7 @@ jobs:
           ref: b010c23645f8aaffd6084a7a89e1a6c6826304ff
           path: baseline
       - name: Mount selected baseline inputs from library storage
+        id: library_baseline_1
         uses: kimjeon-il/Pando/.github/actions/library-data@main
         with:
           inputs-revision: c2dc7fcf8cc99be4d9617df06fc8fed01a030ca3
@@ -96,3 +97,13 @@ jobs:
             candidate/test-results/soviet-boundary-index-packed/
           retention-days: 14
           if-no-files-found: warn
+      - name: Verify selected library input bytes remain unchanged
+        if: always() && steps.library_baseline_1.outcome == 'success'
+        shell: bash
+        env:
+          INPUT_CHECKOUT: .pando-inputs/baseline
+        run: >
+          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
+          --untracked-files=all -- assets/data)"
+
+          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }
