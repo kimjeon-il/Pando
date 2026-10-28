@@ -3,15 +3,19 @@ import { createGisGeometryValidator } from "../../../apps/editor/frontend/js/mod
 
 export function createGisWorkerHarness(t) {
   const script = new URL("../../../apps/editor/frontend/js/workers/gis-geometry-worker.js", import.meta.url).href;
+  const clipping = new URL("../../../shared/frontend/js/modules/polygon-clipping-core.js", import.meta.url).href;
+  const rpcHost = new URL("../../../shared/frontend/js/workers/worker-rpc-host.js", import.meta.url).href;
   const worker = new Worker(`
     const { parentPort } = require('node:worker_threads');
     const fs = require('node:fs'), vm = require('node:vm');
     global.self = global;
     self.location = new URL(${JSON.stringify(script)});
-    global.importScripts = (...urls) => urls.forEach(url => vm.runInThisContext(
-      '(function(module,exports){' + fs.readFileSync(new URL(url, self.location), 'utf8') + '\\n}).call(globalThis,undefined,undefined)',
-      { filename: new URL(url, self.location).href },
-    ));
+    global.importScripts = (...urls) => urls.forEach(url => {
+      const input = new URL(url, self.location);
+      const source = input.pathname.endsWith('/polygon-clipping-core.js') ? ${JSON.stringify(clipping)}
+        : input.pathname.endsWith('/worker-rpc-host.js') ? ${JSON.stringify(rpcHost)} : input.href;
+      vm.runInThisContext('(function(module,exports){' + fs.readFileSync(new URL(source), 'utf8') + '\\n}).call(globalThis,undefined,undefined)', { filename: source });
+    });
     self.postMessage = data => parentPort.postMessage(data);
     vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), {
       filename: self.location.href,

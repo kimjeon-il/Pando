@@ -3,6 +3,7 @@ import test from 'node:test';
 import { createMapAudit } from "../../apps/editor/frontend/js/modules/app-map-audit.js";
 import { connectMapInteraction } from "../../apps/editor/frontend/js/modules/app-connect-map-interaction.js";
 import { MAP_INTERACTION_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/app-capability-ports-map-interaction.js";
+import { MAP_OWNER_REQUIRED_PORTS } from "../../shared/frontend/js/modules/map-owner-ports.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from "../../shared/frontend/js/modules/worker-rpc.js";
@@ -29,6 +30,9 @@ test('the application connector sends current repository entities to the audit W
   connectMapInteraction({
     ...owners,
     ports: {
+      ...Object.fromEntries(['gpuScene', 'mapHost', 'objectPicking'].flatMap(name =>
+        MAP_OWNER_REQUIRED_PORTS[name].map(port => [port, {}]))),
+      objectModelB: { territorialScope: { displayFeature: feature => feature } },
       domains: { renderingDomain: { invalidateEditingOverlays() {} } },
       feedback: { reportOperationError() {}, setActionStatus() {} },
       lifecycleUi: { mapDebug: { renderPanel() {} } },
@@ -38,6 +42,7 @@ test('the application connector sends current repository entities to the audit W
     },
   });
   mapAudit.initializeGeometryValidationWorker();
+  assert.equal(mapAudit.issueCoordinate({ kind: 'invalid-geometry', vertexIndex: 0 }), null);
   const first=mapAudit.runFullMapAudit();
   assert.equal(state.audit.status, 'running');
   const auditRequests=()=>requests.filter(message=>message.type==='request');

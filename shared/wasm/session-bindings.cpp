@@ -75,7 +75,7 @@ template<class Function> auto boundary(Function function)->decltype(function()) 
 }
 EM_JS(emscripten::EM_VAL, packTerritorialRing, (emscripten::EM_VAL handle), {
     const ring=Emval.toValue(handle), points=new Float64Array(ring.length*2);
-    if(ring.length>=4)for(let i=0;i<ring.length;++i){points[i*2]=Number(ring[i][0]);points[i*2+1]=Number(ring[i][1]);}
+    for(let i=0;i<ring.length;++i){if(ring.length<4&&!Array.isArray(ring[i]))continue;points[i*2]=Number(ring[i][0]);points[i*2+1]=Number(ring[i][1]);}
     return Emval.toHandle(points);
 });
 val territorialRingValidationForWeb(const val& input) {
