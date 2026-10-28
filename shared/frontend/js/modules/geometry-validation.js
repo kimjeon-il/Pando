@@ -15,12 +15,10 @@ function multiCoordinates(geometry) {
 }
 
 function sampleRing(ring = [], maximumVertices = 16) {
-  const count = Math.max(0, ring.length - 1);
-  if (count <= maximumVertices) return clone(ring);
-  const sampled = [];
-  for (let index = 0; index < maximumVertices; index += 1) sampled.push(clone(ring[Math.floor(index * count / maximumVertices)]));
-  if (sampled.length) sampled.push(clone(sampled[0]));
-  return sampled;
+  if (typeof sharedCalculationCore.territorialSampleIndices !== 'function') {
+    throw Object.assign(new Error('Canonical C++ territorial sampler is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  return sharedCalculationCore.territorialSampleIndices(ring.length, maximumVertices).map(index => clone(ring[index]));
 }
 
 function verificationMultiCoordinates(geometry) {

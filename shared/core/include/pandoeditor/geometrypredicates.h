@@ -20,6 +20,7 @@ std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring);
 double territorialValidationArea(const MultiPolygon& polygons) noexcept;
 enum class TerritorialAreaUse { Overlap, Gap, Verification };
 bool territorialAreaDecision(double area,TerritorialAreaUse use) noexcept;
+std::vector<std::size_t> territorialSampleIndices(std::size_t length,std::size_t maximum);
 bool validateGisGeometry(const MultiPolygon& polygons);
 double gisValidationArea(const MultiPolygon& polygons) noexcept;
 using GisComponentBounds = std::array<double,4>;
