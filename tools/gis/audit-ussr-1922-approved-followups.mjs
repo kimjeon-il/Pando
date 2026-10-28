@@ -16,11 +16,12 @@ import {loadApprovedUSSR,FOUNDER_IDS,DISPLAY,MASTER,MEMBER_HASHES,
   USSR_ZIP_SHA,comparable} from './replay-ussr-1922-countries.mjs';
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
+// These four IDs are recorded receipt provenance; they are not Git lookup targets.
 export const BASE_APPROVED_DATA_PIN='68380579a7c7a1bd8ec97683b7517502c1389c3c';
 export const CENTRAL_ASIA_DATA_PIN='fa27d79b5d9ef0f2449da5e118a835c1c585c6e3';
 export const BUKHARA_DATA_PIN='a963457e578d335fec181f91ad25dfe729e96e1b';
 export const CAUCASUS_BASE_DATA_PIN='e79308f832256c70fd9f2ea6b87bfd807e7c1585';
-export const APPROVED_DATA_PIN='dd7ba67d5a35796593bf60d6007f192c8bca7964';
+export const APPROVED_DATA_PIN='c68c307028c782f57f0607a7798abd0b7e8e64a7';
 export const PROOFS=Object.freeze({
   caucasus:{
     path:'reports/borders/reconstruction/ussr-caucasus-modern-approved-2026-10-26/integration-proof.json',
