@@ -1,4 +1,4 @@
-import { createReadPorts } from './app-capability-port-utils.js';
+import { createReadPorts } from '../../../../../shared/frontend/js/modules/map-owner-ports.js';
 
 export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
   "territorySelectionWorkflow": ["countries","countryCommitFlow","countryEditingA","countryEditingB","countryEditingC","domains","feedback","geometryOperations","interactionPresentation","projectState","riverCandidates","spatialQuery","surfaces","taskUi","territorialEditingA","territorialEditingB","territoryComponentUi","territoryComponents","territorialModel"],

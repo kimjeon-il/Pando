@@ -1,3 +1,4 @@
+import {createMapRenderingResources} from '../../../../../shared/frontend/js/modules/map-renderer-composition.js';
 import {createEditingPresentation} from './editing-presentation.js';
 import {createMapDisplayClient} from "../../../../../shared/frontend/js/modules/map-display-client.js";
 import { rememberCutPreparation } from './cut-preparation-cache.js';
@@ -72,27 +73,6 @@ export function createDomainAssembly() {
     // Rendering domains are created before initSvg() so project/GIS services can
     // be available during bootstrap. Resource references are plain snapshots;
     // the rendering coordinator refreshes them once at the start of a frame.
-    const resourceSnapshots = Object.create(null);
-    let renderResourceSnapshotFrameId = null;
-    const createResourceSnapshot = (name, values, live = {}) => {
-      const resource = { ...values };
-      const refresh = () => {
-        for (const [property, getter] of Object.entries(live)) {
-          if (typeof getter === 'function') resource[property] = getter();
-        }
-        return resource;
-      };
-      Object.defineProperty(resource, '__refresh', { value: refresh, enumerable: false });
-      resourceSnapshots[name] = resource;
-      refresh();
-      return resource;
-    };
-    const refreshRenderResources = frameId => {
-      if (frameId !== null && frameId !== undefined && frameId === renderResourceSnapshotFrameId) return;
-      for (const resource of Object.values(resourceSnapshots)) resource.__refresh?.();
-      renderResourceSnapshotFrameId = frameId ?? `direct-${Date.now()}`;
-      return renderResourceSnapshotFrameId;
-    };
     const domainContext = Object.freeze({
       getProjectSnapshot: () => documentModel.snapshot(),
       getSessionSnapshot: () => (0, dependencies.platform.deepClone)({ projection: dependencies.projectState.state.projection, view: dependencies.projectState.state.view, selected: dependencies.projectState.state.selected }),
@@ -819,411 +799,191 @@ export function createDomainAssembly() {
         interactionSvg: dependencies.mapHostViewB.interactionSvg,
         gpuCanvas: (0, dependencies.platform.$)('map')?.querySelector('.gpu-map-canvas') || null,
       }),
-      labelResources: createResourceSnapshot('labels', {
-        d3: dependencies.platform.d3,
-        territorialLabelLayer: dependencies.mapHostViewA.territorialLabelLayer,
-        labelLayer: dependencies.mapHostViewB.labelLayer,
-        svg: dependencies.mapLayers.svg,
-        getState: () => dependencies.projectState.state,
-        preparePlaces: dependencies.countryLabelModel.preparePlaces,
-        beginPlaceInteraction: () => { dependencies.countryLabelModel.builtinPlaces.beginInteraction(); objectSearchController.cancelSearch(); },
-        disposePlaces: () => dependencies.countryLabelModel.builtinPlaces.dispose(),
-        mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
-        handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
-        handleMapClick: dependencies.objectPicking.handleMapClick,
-        getTerritorialLabelRef: dependencies.objectPicking.getTerritorialLabelRef,
-        countryName: dependencies.objectPresentation.territorialEntityName,
-        layerStyle: dependencies.applicationServicesB.layerStyle,
-        isMobile: dependencies.surfaces.isMobile,
-        automaticLabelSettings: dependencies.labelPresentation.automaticLabelSettings,
-        labelSettings: (currentState, domain, id) => currentState.labelSettings?.[(0, dependencies.labelPresentation.labelKey)(domain, id)] || {},
-        labelById: dependencies.countryLabelModel.labelById,
-      labelKey: dependencies.labelPresentation.labelKey,
-        countryLabelAnchors: () => dependencies.labelPresentation.countryLabelAnchors,
-        labelDragBehavior: dependencies.genericEditingA.labelDragBehavior,
-        normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef,
-        selectionSnapshot: () => selectionDomain.snapshot().selection,
-        selectionHas: ref => selectionDomain.has(ref),
-      }, {
-        territorialLabelLayer: () => dependencies.mapHostViewA.territorialLabelLayer,
-        labelLayer: () => dependencies.mapHostViewB.labelLayer,
-        svg: () => dependencies.mapLayers.svg,
+      ...createMapRenderingResources({ports:dependencies,session:{selectionDomain,get renderingDomain(){return renderingDomain;},get objectSearchController(){return objectSearchController;}},layers:{
+      get territorialLabelLayer(){return dependencies.mapHostViewA.territorialLabelLayer;},
+      get labelLayer(){return dependencies.mapHostViewB.labelLayer;},
+      get svg(){return dependencies.mapLayers.svg;},
+      get countryLayer(){return dependencies.mapLayers.countryLayer;},
+      get hydroLakeLayer(){return dependencies.mapHostViewA.hydroLakeLayer;},
+      get hydroRiverLayer(){return dependencies.mapHostViewA.hydroRiverLayer;},
+      get hydroEditLayer(){return dependencies.mapHostViewA.hydroEditLayer;},
+      get territorialUnitLayer(){return dependencies.mapHostViewC.territorialUnitLayer;},
+      get territorialOperationLayer(){return dependencies.mapHostViewC.territorialOperationLayer;},
+      get genericFeatureLayer(){return dependencies.mapHostViewA.genericFeatureLayer;},
+      get distributionLayer(){return dependencies.mapHostViewA.distributionLayer;},
+      get territorialBoundaryLayer(){return dependencies.mapHostViewC.territorialBoundaryLayer;},
+      get selectionLayer(){return dependencies.mapHostViewB.selectionLayer;},
+      get hoverLayer(){return dependencies.mapHostViewA.hoverLayer;}
+      },editing:{
+      projectedOverlayResources:{get layers(){return [dependencies.mapHostViewC.territorialBoundaryLayer, dependencies.mapLayers.overlayStackLayer, dependencies.mapHostViewA.hydroEditLayer, dependencies.mapHostViewC.territorialOperationLayer];}},
+      interactionResources:{d3: dependencies.platform.d3,
+      isMobile: dependencies.surfaces.isMobile,
+      selectionStyle: dependencies.applicationConstantsB.SELECTION_STYLE,
+      projectedLineDistance: dependencies.objectPicking.projectedLineDistance,
+      formatTerritoryArea: dependencies.territoryComponents.formatTerritoryArea,
+      setModeBanner: dependencies.taskUi.setModeBanner,
+      featureFromGeometry: dependencies.renderScene.featureFromGeometry,
+      hasAreaGeometry: dependencies.applicationServicesA.hasAreaGeometry,
+      buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
+      issueCoordinate: dependencies.mapAudit.issueCoordinate,
+      getValidationPacket: () => ({
+      issues: dependencies.projectState.state.audit?.report?.issues || dependencies.projectState.state.geometryPreview?.session?.validation?.issues || [],
+      selectedIssueId: dependencies.projectState.state.audit?.selectedIssueId || null,
       }),
-      countryResources: createResourceSnapshot('countries', {
-        getState: () => dependencies.projectState.state,
-        getViewRevision: () => dependencies.mapLayout.viewRevision,
-        countryLayer: dependencies.mapLayers.countryLayer,
-        countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
-        getEntity: dependencies.territorialModel.entityRepository.get,
-        isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
-        renderPendingCountryOverlays: dependencies.countryLabelModel.renderPendingCountryOverlays,
-        selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
-        mapTheme: dependencies.preferences.mapTheme,
-        resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
-        replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
-        syncGpuRenderScene: dependencies.gpuRenderingB.syncGpuRenderScene,
-        gpuMapRenderer: dependencies.rendering.gpuMapRenderer,
-        applyGpuSceneCoverage: dependencies.gpuRenderingA.applyGpuSceneCoverage,
-        applyGpuInteractionCoverage: dependencies.gpuRenderingA.applyGpuInteractionCoverage,
-      }, {
-        countryLayer: () => dependencies.mapLayers.countryLayer,
-      }),
-      hydroResources: createResourceSnapshot('hydro', {
-        getState: () => dependencies.projectState.state,
-        getStateRevision: () => dependencies.projectState.state.stateRevision,
-        hydroLakeLayer: dependencies.mapHostViewA.hydroLakeLayer,
-        hydroRiverLayer: dependencies.mapHostViewA.hydroRiverLayer,
-        hydroEditLayer: dependencies.mapHostViewA.hydroEditLayer,
-        gpuMapRenderer: dependencies.rendering.gpuMapRenderer,
-        layerStyle: dependencies.applicationServicesB.layerStyle,
-        hydroRenderGroups: dependencies.physicalResources.hydroRenderGroups,
-        hydroDisplayColor: dependencies.hydroPresentation.hydroDisplayColor,
-        hydroEditColor: dependencies.physicalResources.hydroEditColor,
-        visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
-        geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
-        isHydroFeatureVisible: dependencies.physicalServices.isHydroFeatureVisible,
-        normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef,
-        selectionHas: ref => selectionDomain.has(ref),
-        viewportCullingMetrics: dependencies.spatialQuery.viewportCullingMetrics,
-        setMapHover: dependencies.gpuRenderingA.setMapHover,
-        mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
-        d3: dependencies.platform.d3,
-        svg: dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
-        handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
-        buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
-      }, {
-        hydroLakeLayer: () => dependencies.mapHostViewA.hydroLakeLayer,
-        hydroRiverLayer: () => dependencies.mapHostViewA.hydroRiverLayer,
-        hydroEditLayer: () => dependencies.mapHostViewA.hydroEditLayer,
-        svg: () => dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
-      }),
-      territorialResources: createResourceSnapshot('territorial', {
-        displayEntities: () => dependencies.objectModelB.territorialScope.displayEntities(),
-        entityRepository: territorialEntityRepository,
-        isNativeBuiltinSubunit: dependencies.builtinCountries.isNativeBuiltinSubunit,
-        syncBuiltinPalette: dependencies.builtinCountries.syncBuiltinPalette,
-        getState: () => dependencies.projectState.state,
-        territorialUnitLayer: dependencies.mapHostViewC.territorialUnitLayer,
-        territorialOperationLayer: dependencies.mapHostViewC.territorialOperationLayer,
-        visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
-        geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
-        isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
-        selectionHas: ref => selectionDomain.has(ref),
-        normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef,
-        viewportCullingMetrics: dependencies.spatialQuery.viewportCullingMetrics,
-        setMapHover: dependencies.gpuRenderingA.setMapHover,
-        mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
-        toggleTerritorialUnitMergeTarget: dependencies.territorialEditingB.toggleTerritorialUnitMergeTarget,
-        d3: dependencies.platform.d3,
-        svg: dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
-        handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
-        territorialStyleColor: dependencies.objectModelB.territorialStyleColor,
-        territorialEntityColor: dependencies.colorModel.territorialEntityColor,
-        layerStyle: dependencies.applicationServicesB.layerStyle,
-        selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
-        gpuSceneOrder: dependencies.gpuRenderingA.gpuSceneOrder,
-        resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
-        replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
-        buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
-      }, {
-        territorialUnitLayer: () => dependencies.mapHostViewC.territorialUnitLayer,
-        territorialOperationLayer: () => dependencies.mapHostViewC.territorialOperationLayer,
-        svg: () => dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
-      }),
-      genericResources: createResourceSnapshot('generic', {
-        getState: () => dependencies.projectState.state,
-        genericFeatureLayer: dependencies.mapHostViewA.genericFeatureLayer,
-        genericFeatureDisplayFeature: dependencies.presentation.genericFeatureDisplayFeature,
-        genericFeatureColor: dependencies.colorModel.genericFeatureColor,
-        visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
-        isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
-        geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
-        normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef,
-        selectionHas: ref => selectionDomain.has(ref),
-        selectionSnapshot: () => selectionDomain.snapshot().selection,
-        viewportCullingMetrics: dependencies.spatialQuery.viewportCullingMetrics,
-        mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
-        d3: dependencies.platform.d3,
-        svg: dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
-        handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
-        setMapHover: dependencies.gpuRenderingA.setMapHover,
-        toggleGenericFeatureMergeTarget: dependencies.genericEditingB.toggleGenericFeatureMergeTarget,
-        layerStyle: dependencies.applicationServicesB.layerStyle,
-        selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
-        gpuSceneOrder: dependencies.gpuRenderingA.gpuSceneOrder,
-        resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
-        replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
-        buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
-      }, {
-        genericFeatureLayer: () => dependencies.mapHostViewA.genericFeatureLayer,
-        svg: () => dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
-      }),
-      distributionResources: createResourceSnapshot('distribution', {
-        getState: () => dependencies.projectState.state,
-        distributionLayer: dependencies.mapHostViewA.distributionLayer,
-        distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
-        territorialEntityRepository: territorialEntityRepository,
-        featureFromGeometry: dependencies.renderScene.featureFromGeometry,
-        geometryBounds: dependencies.spatialQuery.geometryBounds,
-        distributionColor: dependencies.distributionPresentation.distributionColor,
-        DISTRIBUTION_MODES: dependencies.territorialModel.DISTRIBUTION_MODES,
-        DISTRIBUTION_RENDER_MODES: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES,
-        visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
-        geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
-        isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
-        normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef,
-        selectionHas: ref => selectionDomain.has(ref),
-        viewportCullingMetrics: dependencies.spatialQuery.viewportCullingMetrics,
-        mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
-        d3: dependencies.platform.d3,
-        svg: dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
-        handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
-        setMapHover: dependencies.gpuRenderingA.setMapHover,
-        layerStyle: dependencies.applicationServicesB.layerStyle,
-        selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
-        gpuSceneOrder: dependencies.gpuRenderingA.gpuSceneOrder,
-        replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
-        buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
-        getCountryGeometryRevision: () => dependencies.countries.countryLandRevision,
-        getDistributionVisibilityRevision: () => dependencies.objectModelA.distributionVisibilityRevision,
-      }, {
-        distributionLayer: () => dependencies.mapHostViewA.distributionLayer,
-        svg: () => dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
-      }),
-      territorialBoundaryResources: createResourceSnapshot('territorialBoundary', {
-        getState: () => dependencies.projectState.state,
-        getCountryLandRevision: () => dependencies.countries.countryLandRevision,
-        getTerritorialGeometryRevision: () => dependencies.spatialQuery.mapObjectGeometryRevisions.territorial,
-        geometryToken: geometry => (0, dependencies.interactionPresentation.territorialBoundaryGeometryToken)(geometry),
-        buildTerritorialInternalBoundarySegments: dependencies.territorialServicesA.buildTerritorialInternalBoundarySegments,
-        territorialEntityColor: dependencies.colorModel.territorialEntityColor,
-        layerStyle: dependencies.applicationServicesB.layerStyle,
-        mapTheme: dependencies.preferences.mapTheme,
-        territorialBoundaryLayer: dependencies.mapHostViewC.territorialBoundaryLayer,
-        replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
-        gpuSceneOrder: dependencies.gpuRenderingA.gpuSceneOrder,
-      }, {
-        territorialBoundaryLayer: () => dependencies.mapHostViewC.territorialBoundaryLayer,
-      }),
-      baseResources: createResourceSnapshot('base', {
-        getState: () => dependencies.projectState.state,
-        updatePandoGlobeShell: dependencies.projectionView.updatePandoGlobeShell,
-        graticule: dependencies.projectionView.graticule,
-        gpuMapRenderer: dependencies.rendering.gpuMapRenderer,
-        replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
-        buildGraticuleStrokeGeometryPacket: dependencies.applicationServicesA.buildGraticuleStrokeGeometryPacket,
-        isLightTheme: () => (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || dependencies.preferences.systemTheme) === 'light',
-      }, {
-      }),
-      projectedOverlayResources: createResourceSnapshot('projectedOverlays', {
-        layers: null,
-      }, {
-        layers: () => [dependencies.mapHostViewC.territorialBoundaryLayer, dependencies.mapLayers.overlayStackLayer, dependencies.mapHostViewA.hydroEditLayer, dependencies.mapHostViewC.territorialOperationLayer],
-      }),
-      selectionResources: createResourceSnapshot('selection', {
-        getState: () => dependencies.projectState.state,
-        selectionLayer: dependencies.mapHostViewB.selectionLayer,
-        hoverLayer: dependencies.mapHostViewA.hoverLayer,
-        d3: dependencies.platform.d3,
-        document,
-        selectionPass: dependencies.gpuRenderingA.selectionPass,
-        resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
-        territorialDisplayFeature: value => dependencies.objectModelB.territorialScope.displayFeature(value),
-        countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
-        mapFeatureForObjectRef: dependencies.gpuRenderingA.mapFeatureForObjectRef,
-        objectRefVisible: dependencies.objectOperationsA.objectRefVisible,
-        territorialEntityById: id => territorialEntityRepository.get(id),
-        selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
-        buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
-        buildSelectionBoundarySegments: dependencies.selectionServices.buildSelectionBoundarySegments,
-        getCountryLandRevision: () => dependencies.countries.countryLandRevision,
-        getStateRevision: () => dependencies.projectState.state.stateRevision,
-        getTerritorialBoundaryRevision: () => renderingDomain?.getTerritorialBoundaryStats?.().revision || '',
-        getViewRevision: () => dependencies.mapLayout.viewRevision,
-        getProjection: () => dependencies.projectState.state.projection,
-        isMobile: dependencies.surfaces.isMobile,
-        gpuMapRenderer: dependencies.rendering.gpuMapRenderer,
-        activeEditPreview: () => dependencies.geometryOperations.editPreviewController.packet(),
-        buildGpuInteractionFillItems: dependencies.gpuRenderingA.buildGpuInteractionFillItems,
-        syncGpuInteractionState: dependencies.renderScene.syncGpuInteractionState,
-        setCurrentSelectionPacket: packet => { dependencies.interactionStateCommands.setSelectionPacket(packet || null); },
-        getCurrentSelectionPacket: () => dependencies.gpuRenderingA.currentSelectionPacket,
-        updatePerformanceMetrics: partial => Object.assign(dependencies.rendering.selectionPerformanceMetrics, partial || {}),
-        publishMetrics: metrics => {
-          window.__PANDOLAB_SELECTION_RENDER_METRICS__ = {
-            ...(window.__PANDOLAB_SELECTION_RENDER_METRICS__ || {}),
-            ...metrics,
-          };
-        },
-        reportError: ({ stage = 'selection-overlay-render', error } = {}) => {
-          dependencies.readiness.reliabilityDiagnostic.push({
-            category: 'render',
-            operation: 'selection-overlay-render',
-            result: 'recovered',
-            errorCode: '',
-            technicalMessage: String(error?.message || error || stage),
-            stack: error?.stack || '',
-          });
-          console.warn(`[${stage}] 직전 정상 선택 프레임을 유지합니다.`, error);
-        },
-      }, {
-        selectionLayer: () => dependencies.mapHostViewB.selectionLayer,
-        hoverLayer: () => dependencies.mapHostViewA.hoverLayer,
-        selectionPass: () => dependencies.gpuRenderingA.selectionPass,
-      }),
-      interactionResources: createResourceSnapshot('interaction', {
-        draftLayer: dependencies.mapHostViewA.draftLayer,
-        d3: dependencies.platform.d3,
-        svg: dependencies.mapLayers.svg,
-        isMobile: dependencies.surfaces.isMobile,
-        selectionStyle: dependencies.applicationConstantsB.SELECTION_STYLE,
-        projectedLineDistance: dependencies.objectPicking.projectedLineDistance,
-        formatTerritoryArea: dependencies.territoryComponents.formatTerritoryArea,
-        setModeBanner: dependencies.taskUi.setModeBanner,
-        previewLayer: dependencies.mapHostViewB.previewLayer,
-        validationLayer: dependencies.mapHostViewC.validationLayer,
-        snapLayer: dependencies.mapHostViewB.snapLayer,
-        featureFromGeometry: dependencies.renderScene.featureFromGeometry,
-        hasAreaGeometry: dependencies.applicationServicesA.hasAreaGeometry,
-        buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
-        issueCoordinate: dependencies.mapAudit.issueCoordinate,
-        getValidationPacket: () => ({
-          issues: dependencies.projectState.state.audit?.report?.issues || dependencies.projectState.state.geometryPreview?.session?.validation?.issues || [],
-          selectedIssueId: dependencies.projectState.state.audit?.selectedIssueId || null,
-        }),
-        geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
-        syncGpuInteractionLayer: dependencies.interactionPresentation.syncGpuInteractionLayer,
-        applyGpuInteractionCoverage: dependencies.gpuRenderingA.applyGpuInteractionCoverage,
-        scheduleSpatialIndexRebuild: () => dependencies.projectState.mapWorkScheduler.scheduleIdle('map-object-spatial-index', () => (0, dependencies.spatialRecords.rebuildMapObjectSpatialIndex)(), 40),
-        getViewRevision: () => dependencies.mapLayout.viewRevision,
-        getViewState: () => window.__PANDOLAB_VIEW_STATE__ || null,
-      }, {
-        draftLayer: () => dependencies.mapHostViewA.draftLayer,
-        previewLayer: () => dependencies.mapHostViewB.previewLayer,
-        validationLayer: () => dependencies.mapHostViewC.validationLayer,
-        snapLayer: () => dependencies.mapHostViewB.snapLayer,
-        svg: () => dependencies.mapLayers.svg,
-      }),
-      editingRenderResources: createResourceSnapshot('editing', {
-        openVertexChooser:dependencies.objectPicking.openVertexChooser,
-        currentRevision:()=>editingDomain.snapshot().revision,
-        inputRevision:()=>dependencies.lifecycleUi.mapInputController?.pointerRevision()??0,
-        currentMapZoom: dependencies.labelPresentation.currentMapZoom,
-        isMobile: dependencies.surfaces.isMobile,
-        d3: dependencies.platform.d3,
-        vertexLayer: dependencies.mapHostViewC.vertexLayer,
-        boundaryEditLayer: dependencies.mapHostViewA.boundaryEditLayer,
-        replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
-        getEditInteractionRevision: () => dependencies.pointerInteractionA.editInteractionRevision,
-        getInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
-      }, {
-        vertexLayer: () => dependencies.mapHostViewC.vertexLayer,
-        boundaryEditLayer: () => dependencies.mapHostViewA.boundaryEditLayer,
-      }),
-      refreshRenderResources,
+      geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
+      syncGpuInteractionLayer: dependencies.interactionPresentation.syncGpuInteractionLayer,
+      applyGpuInteractionCoverage: dependencies.gpuRenderingA.applyGpuInteractionCoverage,
+      scheduleSpatialIndexRebuild: () => dependencies.projectState.mapWorkScheduler.scheduleIdle('map-object-spatial-index', () => (0, dependencies.spatialRecords.rebuildMapObjectSpatialIndex)(), 40),
+      getViewRevision: () => dependencies.mapLayout.viewRevision,
+      getViewState: () => window.__PANDOLAB_VIEW_STATE__ || null,
+      get draftLayer(){return dependencies.mapHostViewA.draftLayer;},
+      get previewLayer(){return dependencies.mapHostViewB.previewLayer;},
+      get validationLayer(){return dependencies.mapHostViewC.validationLayer;},
+      get snapLayer(){return dependencies.mapHostViewB.snapLayer;},
+      get svg(){return dependencies.mapLayers.svg;}},
+      editingRenderResources:{openVertexChooser:dependencies.objectPicking.openVertexChooser,
+      currentRevision:()=>editingDomain.snapshot().revision,
+      inputRevision:()=>dependencies.lifecycleUi.mapInputController?.pointerRevision()??0,
+      currentMapZoom: dependencies.labelPresentation.currentMapZoom,
+      isMobile: dependencies.surfaces.isMobile,
+      d3: dependencies.platform.d3,
+      replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
+      getEditInteractionRevision: () => dependencies.pointerInteractionA.editInteractionRevision,
+      getInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
+      get vertexLayer(){return dependencies.mapHostViewC.vertexLayer;},
+      get boundaryEditLayer(){return dependencies.mapHostViewA.boundaryEditLayer;}},
+
+      labelResources:{labelDragBehavior: dependencies.genericEditingA.labelDragBehavior},
+      countryResources:{renderPendingCountryOverlays:dependencies.countryLabelModel.renderPendingCountryOverlays},
+      territorialBoundaryResources:{buildTerritorialInternalBoundarySegments:dependencies.territorialServicesA.buildTerritorialInternalBoundarySegments},
+      territorialResources:{
+      toggleTerritorialUnitMergeTarget: dependencies.territorialEditingB.toggleTerritorialUnitMergeTarget,
+      get territorialOperationLayer(){return dependencies.mapHostViewC.territorialOperationLayer;}},
+      genericResources:{toggleGenericFeatureMergeTarget: dependencies.genericEditingB.toggleGenericFeatureMergeTarget},
+      selectionResources:{activeEditPreview: () => dependencies.geometryOperations.editPreviewController.packet(),
+      updatePerformanceMetrics: partial => Object.assign(dependencies.rendering.selectionPerformanceMetrics, partial || {}),
+      publishMetrics: metrics => {
+      window.__PANDOLAB_SELECTION_RENDER_METRICS__ = {
+      ...(window.__PANDOLAB_SELECTION_RENDER_METRICS__ || {}),
+      ...metrics,
+      };
+      },
+      reportError: ({ stage = 'selection-overlay-render', error } = {}) => {
+      dependencies.readiness.reliabilityDiagnostic.push({
+      category: 'render',
+      operation: 'selection-overlay-render',
+      result: 'recovered',
+      errorCode: '',
+      technicalMessage: String(error?.message || error || stage),
+      stack: error?.stack || '',
+      });
+      console.warn(`[${stage}] 직전 정상 선택 프레임을 유지합니다.`, error);
+      }}
+      }}),
+
       requestFrame: callback => requestAnimationFrame(callback),
       prepareView:dependencies.mapHostViewC.prepareVisualFrame,
       onFrameComplete: dependencies.mapHostViewA.handleRenderFrameComplete,
       invalidMaskMode: ['localhost', '127.0.0.1', '::1'].includes(location.hostname)
-        || new URLSearchParams(location.search).has('debug')
-        || new URLSearchParams(location.search).has('perf')
-        ? 'throw'
-        : 'report',
+      || new URLSearchParams(location.search).has('debug')
+      || new URLSearchParams(location.search).has('perf')
+      ? 'throw'
+      : 'report',
       renderers: {
-        view: visualFrame => dependencies.rendering.gpuMapRenderer.renderFrame(visualFrame),
-        stackOverlays: dependencies.interactionPresentation.applyOverlayStackOrder,
-        labelLayout: dependencies.countryLabelModel.visibleLabelLayout,
-        debug: (...args) => dependencies.lifecycleUi.mapDebug.renderPanel(...args),
-        objectSearch: (...args) => objectSearchController?.render?.(...args),
+      view: visualFrame => dependencies.rendering.gpuMapRenderer.renderFrame(visualFrame),
+      stackOverlays: dependencies.interactionPresentation.applyOverlayStackOrder,
+      labelLayout: dependencies.countryLabelModel.visibleLabelLayout,
+      debug: (...args) => dependencies.lifecycleUi.mapDebug.renderPanel(...args),
+      objectSearch: (...args) => objectSearchController?.render?.(...args),
       },
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'rendering-domain', ...entry }),
-    });
+      });
 
-  }
+      }
 
-  function initializeDomainState() {
-    territorialEntityStore?.dispose();
-    commandOwner?.dispose();
-    ({ documentModel, commandOwner } = createDocumentSession({ productMode: 'editor',
+      function initializeDomainState() {
+      territorialEntityStore?.dispose();
+      commandOwner?.dispose();
+      ({ documentModel, commandOwner } = createDocumentSession({ productMode: 'editor',
       initialProject: dependencies.projectSession.initialDocument(),
       onTransition: () => dependencies.projectSession.saveState.sync() }));
-    (territorialEntityStore = (0, dependencies.territorialServicesA.createTerritorialEntityStore)({
+      (territorialEntityStore = (0, dependencies.territorialServicesA.createTerritorialEntityStore)({
       documentModel,commandOwner,
       onEntitiesReplaced: (entities, { rootGeometryChanged }) => {
-        if (rootGeometryChanged) (0, dependencies.geometryMutation.reindexCountries)(
-          { type: 'FeatureCollection', features: entities.filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)) });
-        dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
+      if (rootGeometryChanged) (0, dependencies.geometryMutation.reindexCountries)(
+      { type: 'FeatureCollection', features: entities.filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)) });
+      dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
       },
-    }));
+      }));
 
-    (territorialEntityRepository = (0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
+      (territorialEntityRepository = (0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
       entityStore: territorialEntityStore,
-    }));
+      }));
 
-    (projectDomain = null);
+      (projectDomain = null);
 
-    (selectionDomain = null);
+      (selectionDomain = null);
 
-    (renderingDomain = null);
+      (renderingDomain = null);
 
-    (gisDomain = null);
+      (gisDomain = null);
 
-    (editingDomain = null);
+      (editingDomain = null);
 
-    (selectionUiController = null);
+      (selectionUiController = null);
 
-    territorialPropertyController?.dispose();
-    (territorialPropertyController = null);
+      territorialPropertyController?.dispose();
+      (territorialPropertyController = null);
 
-    (objectPropertyController = null);
+      (objectPropertyController = null);
 
-    (objectSearchController = null);
-    domainsReady=null;
-  }
+      (objectSearchController = null);
+      domainsReady=null;
+      }
 
-  async function setTimelineMonth(month) {
-    const canPublish = () => {
+      async function setTimelineMonth(month) {
+      const canPublish = () => {
       const current = dependencies.projectState.state;
       return !(current.projectReplacing || current.modeProcessing || current.geometryPreview?.session
-        || current.territorySelectionSession || editingDomain?.snapshot().objectVertexEditing || editingDomain?.snapshot().selectionDraft || editingDomain?.snapshot().boundaryDraft || editingDomain?.draftInputActive?.());
-    };
-    if (!canPublish()) {
+      || current.territorySelectionSession || editingDomain?.snapshot().objectVertexEditing || editingDomain?.snapshot().selectionDraft || editingDomain?.snapshot().boundaryDraft || editingDomain?.draftInputActive?.());
+      };
+      if (!canPublish()) {
       throw Object.assign(new Error('편집을 확정하거나 취소한 뒤 시간대를 이동하세요.'), { code: 'TIMELINE_DRAFT_ACTIVE' });
-    }
-    const changed = await territorialEntityStore.setTimelineCursor(month, { canPublish });
-    if (!changed) return false;
-    // The map-edit Worker may be idle with an earlier month's large cached
-    // topology. Drop that derived cache without re-exporting or re-sending the
-    // whole current world; the next actual edit refreshes its sources.
-    dependencies.spatialQuery.mapEditClient.invalidateBoundaryCache();
-    dependencies.rendering.gpuMapRenderer.invalidateCountryPreview();
-    renderingDomain?.invalidateProject?.('timeline-cursor');
-    // A cursor change does not modify the canonical document. Persist only
-    // the small view/session record, never the full geometry archive.
-    projectDomain.queueViewAutosave();
-    dependencies.taskPresentation.syncEditingContext();
-    return true;
-  }
+      }
+      const changed = await territorialEntityStore.setTimelineCursor(month, { canPublish });
+      if (!changed) return false;
+      // The map-edit Worker may be idle with an earlier month's large cached
+      // topology. Drop that derived cache without re-exporting or re-sending the
+      // whole current world; the next actual edit refreshes its sources.
+      dependencies.spatialQuery.mapEditClient.invalidateBoundaryCache();
+      dependencies.rendering.gpuMapRenderer.invalidateCountryPreview();
+      renderingDomain?.invalidateProject?.('timeline-cursor');
+      // A cursor change does not modify the canonical document. Persist only
+      // the small view/session record, never the full geometry archive.
+      projectDomain.queueViewAutosave();
+      dependencies.taskPresentation.syncEditingContext();
+      return true;
+      }
 
-  return Object.freeze({
-    connect,
-    initializeDomainState,
-    setTimelineMonth,
-    get timelineMonth() { return commandOwner.state()?.timelineCursor || ''; },
-    get commandOwner() { return commandOwner; },
-    get documentModel() { return documentModel; },
-    get territorialPropertyController() { return territorialPropertyController; },
-    get editingDomain() { return editingDomain; },
-    get gisDomain() { return gisDomain; },
-    get initializeDomainBoundaries() { return initializeDomainBoundaries; },
-    get objectSearchController() { return objectSearchController; },
-    set objectSearchController(value) { objectSearchController = value; },
-    get objectPropertyController() { return objectPropertyController; },
-    get projectDomain() { return projectDomain; },
-    get renderingDomain() { return renderingDomain; },
-    get selectionDomain() { return selectionDomain; },
-    get selectionUiController() { return selectionUiController; },
-    get territorialEntityRepository() { return territorialEntityRepository; },
-    get territorialEntityStore() { return territorialEntityStore; },
-  });
-}
+      return Object.freeze({
+      connect,
+      initializeDomainState,
+      setTimelineMonth,
+      get timelineMonth() { return commandOwner.state()?.timelineCursor || ''; },
+      get commandOwner() { return commandOwner; },
+      get documentModel() { return documentModel; },
+      get territorialPropertyController() { return territorialPropertyController; },
+      get editingDomain() { return editingDomain; },
+      get gisDomain() { return gisDomain; },
+      get initializeDomainBoundaries() { return initializeDomainBoundaries; },
+      get objectSearchController() { return objectSearchController; },
+      set objectSearchController(value) { objectSearchController = value; },
+      get objectPropertyController() { return objectPropertyController; },
+      get projectDomain() { return projectDomain; },
+      get renderingDomain() { return renderingDomain; },
+      get selectionDomain() { return selectionDomain; },
+      get selectionUiController() { return selectionUiController; },
+      get territorialEntityRepository() { return territorialEntityRepository; },
+      get territorialEntityStore() { return territorialEntityStore; },
+      });
+      }

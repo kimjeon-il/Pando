@@ -1,5 +1,5 @@
 import {createRuntimeContext} from '../../../../../shared/frontend/js/modules/runtime-context.js';
-import {createMapOwners} from "../../../../../shared/frontend/js/modules/map-owner-composition.js";
+import {createMapOwners,initializeMapReadOwners} from "../../../../../shared/frontend/js/modules/map-owner-composition.js";
 import {handleEditorMapClick} from './editor-map-click.js';
 /** Compose owners, connect their explicit ports, then initialize in dependency order. */
 export async function composeApplication({ productMode, revision, platform = {}, onComposed = null }) {
@@ -219,36 +219,28 @@ export async function composeApplication({ productMode, revision, platform = {},
   mapHost.initializeValidationLayer();
   geometryPreview.initializeBoundarySelectionAnalysisCache();
   mapHost.initializeMapResizeObserver();
-  mapProjection.initializeMapLayoutMetricsSnapshot();
   mapHost.initializeResolutionQuery();
   pointerTargets.initializeEditInteractionRevision();
   lifecycleAssembly.initializeMapInputController();
   mapHost.initializeMapHostBindings();
   lifecycleAssembly.initializeMapInteractionGate();
-  spatialIndex.initializeGeometryBoundsCache();
-  territorialLabels.initializeCountryOutlineCache();
-  spatialIndex.initializeMapObjectSpatialIndex();
-  objectPresentation.initializeTerritorialScope();
-  territorialLabels.initializeLabelLayoutMetrics();
-  spatialIndex.initializeViewportCullingMetrics();
+  initializeMapReadOwners({objectPresentation},'queries');
+  initializeMapReadOwners({spatialIndex},'spatial');
+  initializeMapReadOwners({territorialLabels},'labels');
   serviceAssembly.initializeSelectionPerformanceMetrics();
-  countryIndex.initializeCountryLandRevision();
-  territorialLabels.initializeTerritorialLabelScreenAreas();
+  initializeMapReadOwners({countryIndex},'anchors');
   pointerTargets.initializeHoverPickFrame();
-  countryIndex.initializeCountryLabelAnchorWorker();
   mapAudit.initializeGeometryValidationWorker();
   riverCandidates.initializeRiverPartitionGeneration();
   territorySelectionWorkflow.initializeTerritorySelectionWorkflow();
   geometryPreview.initializeActiveGeometryPreviewApply();
   pointerTargets.initializeSnapCandidateCache();
-  mapProjection.initializeProjections();
+  initializeMapReadOwners({mapProjection},'projection');
   serviceAssembly.initializeGpuMapRenderer();
   renderQuality.initializeGpuRebuildTimer();
   readinessNotifications.initializeCANONICAL_CONTROL_SELECTOR();
-  countryIndex.initializeLabelFallbackQueue();
   factorySpatialEdit.registerSpatialEditing(spatialIndex,applicationPorts);
   landRelations.initializeRingHitTester();
-  objectPresentation.initializeObjectPresentationModel();
   physicalResources.initializeTerrainService();
   propertySelection.initializePropertySelection();
   mapSettings.initializeLAYER_STYLE_TARGETS();
