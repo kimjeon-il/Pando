@@ -75,6 +75,13 @@ test('shared GIS geometry validation preserves rounded identity and finite-coord
   assert.equal(sphericalCore.validateGisGeometry([]), false);
 });
 
+test('GIS overlap area closes open rings before subtracting holes', () => {
+  const shell = [[2, 1], [5, 1], [5, 4], [2, 4]];
+  const hole = [[3, 2], [4, 2], [4, 3], [3, 3]];
+  assert.equal(sphericalCore.gisValidationArea([[shell, hole]]), 8);
+  assert.equal(sphericalCore.gisValidationArea([]), 0);
+});
+
 test('browser and Worker geographic boundary contracts are exact and non-mutating', () => {
   const worker = createBoundaryWorker();
   for (const input of boundaryFixtures()) {

@@ -106,6 +106,10 @@ double validationArea(val input) {
     auto operands=val::array();operands.set(0,input);
     return territorialValidationArea(readOperands(operands).front());
 }
+double gisArea(val input) {
+    auto operands=val::array();operands.set(0,input);
+    return gisValidationArea(readOperands(operands).front());
+}
 }
 std::string wrapGeometry(const std::string& input){
     try {
@@ -121,5 +125,6 @@ EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("polygonOperation",&polygonOperation);
     emscripten::function("territorialValidationArea",&validationArea);
     emscripten::function("validateGisGeometry",&gisGeometry);
+    emscripten::function("gisValidationArea",&gisArea);
     emscripten::function("wrapPolygonGeometry",&wrapGeometry);
 }
