@@ -1,9 +1,6 @@
 import { geometryAreaKm2 } from './geometry-metrics.js';
+import { sharedCalculationCore } from '../../../../../shared/frontend/js/modules/temporal.js';
 import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
-
-function coordinateKey(point, precision = 8) {
-  return `${Number(point?.[0] || 0).toFixed(precision)},${Number(point?.[1] || 0).toFixed(precision)}`;
-}
 
 function closedRing(raw) {
   if (!Array.isArray(raw) || !raw.length) return [];
@@ -19,53 +16,6 @@ function signedArea(ring) {
   return area / 2;
 }
 
-function unwrapRing(raw) {
-  const ring = closedRing(raw);
-  if (!ring.length) return ring;
-  const output = [ring[0].slice()];
-  for (let i = 1; i < ring.length; i += 1) {
-    let longitude = ring[i][0];
-    while (longitude - output[i - 1][0] > 180) longitude -= 360;
-    while (longitude - output[i - 1][0] < -180) longitude += 360;
-    output.push([longitude, ring[i][1]]);
-  }
-  return output;
-}
-
-function orientation(a, b, c) {
-  return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-}
-
-function properIntersection(a, b, c, d, epsilon = 1e-10) {
-  const abC = orientation(a, b, c), abD = orientation(a, b, d);
-  const cdA = orientation(c, d, a), cdB = orientation(c, d, b);
-  return ((abC > epsilon && abD < -epsilon) || (abC < -epsilon && abD > epsilon))
-    && ((cdA > epsilon && cdB < -epsilon) || (cdA < -epsilon && cdB > epsilon));
-}
-
-function ringSelfIntersects(raw) {
-  const ring = unwrapRing(raw);
-  const count = Math.max(0, ring.length - 1);
-  if (count < 4) return false;
-  const segments = [];
-  for (let index = 0; index < count; index += 1) {
-    const a = ring[index], b = ring[index + 1];
-    segments.push({ index, a, b, minX: Math.min(a[0], b[0]), maxX: Math.max(a[0], b[0]), minY: Math.min(a[1], b[1]), maxY: Math.max(a[1], b[1]) });
-  }
-  segments.sort((a, b) => a.minX - b.minX || a.minY - b.minY || a.index - b.index);
-  let active = [];
-  for (const segment of segments) {
-    active = active.filter(other => other.maxX >= segment.minX);
-    for (const other of active) {
-      if (Math.abs(segment.index - other.index) <= 1 || (Math.min(segment.index, other.index) === 0 && Math.max(segment.index, other.index) === count - 1)) continue;
-      if (other.maxY < segment.minY || other.minY > segment.maxY) continue;
-      if (properIntersection(segment.a, segment.b, other.a, other.b)) return true;
-    }
-    active.push(segment);
-  }
-  return false;
-}
-
 function polygonSets(geometry) {
   if (geometry?.type === 'Polygon') return [geometry.coordinates || []];
   if (geometry?.type === 'MultiPolygon') return geometry.coordinates || [];
@@ -73,14 +23,10 @@ function polygonSets(geometry) {
 }
 
 function validGeometry(geometry) {
-  const polygons = polygonSets(geometry);
-  if (!polygons.length) return false;
-  return polygons.every(polygon => polygon?.length && polygon.every(raw => {
-    const ring = closedRing(raw);
-    if (ring.length < 4 || new Set(ring.slice(0, -1).map(point => coordinateKey(point))).size < 3) return false;
-    if (!ring.every(point => Number.isFinite(point[0]) && Number.isFinite(point[1]) && point[0] >= -180.000001 && point[0] <= 180.000001 && point[1] >= -90.000001 && point[1] <= 90.000001)) return false;
-    return Math.abs(signedArea(ring)) > 1e-14 && !ringSelfIntersects(ring);
-  }));
+  if (typeof sharedCalculationCore.validateGisGeometry !== 'function') {
+    throw Object.assign(new Error('Canonical C++ GIS geometry validator is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  return sharedCalculationCore.validateGisGeometry(polygonSets(geometry));
 }
 
 function ringBounds(ring) {

@@ -37,6 +37,30 @@ EM_JS(EM_VAL, unpackPolygonResult, (EM_VAL shapeHandle,EM_VAL pointsHandle), {
         for(let r=0;r<rings;r++){const ring=[],count=shape[at++];for(let i=0;i<count;i++)ring.push([points[point++],points[point++]]);polygon.push(ring);}result.push(polygon);}
     return Emval.toHandle(result);
 });
+EM_JS(EM_VAL, packGisGeometry, (EM_VAL handle), {
+    const input=Emval.toValue(handle),shape=[input.length],points=[];
+    for(const polygon of input){
+        if(!polygon?.length){shape.push(0);continue;}
+        if(!Array.isArray(polygon))throw new TypeError('Invalid GIS polygon');
+        shape.push(polygon.length);
+        for(const raw of polygon){
+            const ring=Array.isArray(raw)?raw:[];shape.push(ring.length);
+            for(const point of ring)points.push(Number(point[0]),Number(point[1]));
+        }
+    }
+    return Emval.toHandle([new Uint32Array(shape),new Float64Array(points)]);
+});
+bool gisGeometry(val input) {
+    const auto packed=val::take_ownership(packGisGeometry(input.as_handle()));
+    const auto shapeValue=packed[0],pointsValue=packed[1];
+    std::vector<unsigned> shape(shapeValue["length"].as<unsigned>());
+    std::vector<double> points(pointsValue["length"].as<unsigned>());
+    if(!shape.empty())val(emscripten::typed_memory_view(shape.size(),shape.data())).call<void>("set",shapeValue);
+    if(!points.empty())val(emscripten::typed_memory_view(points.size(),points.data())).call<void>("set",pointsValue);
+    std::size_t at=0,point=0;MultiPolygon polygons(shape.at(at++));
+    for(auto& polygon:polygons){polygon.resize(shape.at(at++));for(auto& ring:polygon){ring.resize(shape.at(at++));for(auto& p:ring){p={points.at(point),points.at(point+1)};point+=2;}}}
+    return validateGisGeometry(polygons);
+}
 std::vector<MultiPolygon> readOperands(val inputs){
     const auto packed=val::take_ownership(packPolygonOperands(inputs.as_handle()));
     const auto shapeValue=packed[0],pointsValue=packed[1];
@@ -96,5 +120,6 @@ std::string wrapGeometry(const std::string& input){
 EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("polygonOperation",&polygonOperation);
     emscripten::function("territorialValidationArea",&validationArea);
+    emscripten::function("validateGisGeometry",&gisGeometry);
     emscripten::function("wrapPolygonGeometry",&wrapGeometry);
 }

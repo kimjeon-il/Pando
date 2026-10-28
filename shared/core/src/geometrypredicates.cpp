@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <cstring>
+#include <set>
 
 namespace pandoeditor {
 namespace {
@@ -382,6 +384,70 @@ double territorialValidationArea(const MultiPolygon& polygons) noexcept {
         total+=std::max(0.,exterior-holes);
     }
     return total;
+}
+
+namespace {
+// Exact decimal rounding for Number.toFixed(8) on accepted geographic values.
+// Multiplication is split into two words so native MSVC and WASM agree.
+std::pair<bool,std::uint64_t> gisCoordinateKey(double value) {
+    const bool negative=value<0;
+    std::uint64_t bits=0;const double magnitude=std::abs(value);std::memcpy(&bits,&magnitude,sizeof(bits));
+    const auto exponent=static_cast<int>((bits>>52)&0x7ff);
+    std::uint64_t mantissa=bits&((std::uint64_t(1)<<52)-1);
+    if(exponent)mantissa|=std::uint64_t(1)<<52;
+    const int shift=52-(exponent?exponent-1023:-1022);
+    const auto a=(mantissa&0xffffffffULL)*100000000ULL,b=(mantissa>>32)*100000000ULL;
+    const auto low=a+(b<<32);const auto high=(b>>32)+(low<a?1:0);
+    if(shift>=128)return {negative,0};
+    std::uint64_t rounded=shift>=64?high>>(shift-64):(low>>shift)|(high<<(64-shift));
+    const int bit=shift-1;
+    const bool roundUp=bit>=64?((high>>(bit-64))&1)!=0:((low>>bit)&1)!=0;
+    if(roundUp)++rounded;
+    return {negative,rounded};
+}
+double gisOrientation(Point a,Point b,Point c) {
+    return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+}
+bool gisProperIntersection(Point a,Point b,Point c,Point d) {
+    constexpr double epsilon=1e-10;
+    const auto ac=gisOrientation(a,b,c),ad=gisOrientation(a,b,d),ca=gisOrientation(c,d,a),cb=gisOrientation(c,d,b);
+    return ((ac>epsilon&&ad< -epsilon)||(ac< -epsilon&&ad>epsilon))
+        && ((ca>epsilon&&cb< -epsilon)||(ca< -epsilon&&cb>epsilon));
+}
+bool gisRingSelfIntersects(Ring ring) {
+    if(ring.size()<5)return false;
+    for(std::size_t i=1;i<ring.size();++i){while(ring[i].x-ring[i-1].x>180)ring[i].x-=360;while(ring[i].x-ring[i-1].x< -180)ring[i].x+=360;}
+    struct Edge {std::size_t index;Point a,b;double minX,maxX,minY,maxY;};
+    std::vector<Edge> segments;segments.reserve(ring.size()-1);
+    for(std::size_t i=1;i<ring.size();++i){const auto a=ring[i-1],b=ring[i];segments.push_back({i-1,a,b,std::min(a.x,b.x),std::max(a.x,b.x),std::min(a.y,b.y),std::max(a.y,b.y)});}
+    std::sort(segments.begin(),segments.end(),[](const auto& a,const auto& b){return a.minX!=b.minX?a.minX<b.minX:a.minY!=b.minY?a.minY<b.minY:a.index<b.index;});
+    std::vector<Edge> active;
+    for(const auto& current:segments){
+        active.erase(std::remove_if(active.begin(),active.end(),[&](const auto& other){return other.maxX<current.minX;}),active.end());
+        for(const auto& other:active){const auto low=std::min(current.index,other.index),high=std::max(current.index,other.index);
+            if(high-low<=1||(low==0&&high==segments.size()-1)||other.maxY<current.minY||other.minY>current.maxY)continue;
+            if(gisProperIntersection(current.a,current.b,other.a,other.b))return true;
+        }
+        active.push_back(current);
+    }
+    return false;
+}
+}
+bool validateGisGeometry(const MultiPolygon& polygons) {
+    if(polygons.empty())return false;
+    for(const auto& polygon:polygons){
+        if(polygon.empty())return false;
+        for(auto ring:polygon){
+            if(ring.empty())return false;
+            for(const auto& p:ring)if(!std::isfinite(p.x)||!std::isfinite(p.y)||p.x< -180.000001||p.x>180.000001||p.y< -90.000001||p.y>90.000001)return false;
+            if(ring.front().x!=ring.back().x||ring.front().y!=ring.back().y)ring.push_back(ring.front());
+            if(ring.size()<4)return false;
+            std::set<std::pair<std::pair<bool,std::uint64_t>,std::pair<bool,std::uint64_t>>> unique;
+            for(std::size_t i=0;i+1<ring.size();++i)unique.emplace(gisCoordinateKey(ring[i].x),gisCoordinateKey(ring[i].y));
+            if(unique.size()<3||ringArea(ring)<=1e-14||gisRingSelfIntersects(ring))return false;
+        }
+    }
+    return true;
 }
 double planarArea(const Geometry& g) noexcept { double sum=0;for(const auto& p:g.polygons)for(std::size_t i=0;i<p.size();++i)sum+=(i?-1:1)*ringArea(p[i]);return std::abs(sum); }
 bool significantArea(double value,double reference) noexcept { return value>std::max(1e-10,std::abs(reference)*1e-9); }
