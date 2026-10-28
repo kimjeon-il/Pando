@@ -15,6 +15,12 @@
 
 namespace pandoeditor {
 enum class ReferenceChainStatus { Valid, Missing, Cycle };
+enum class DistributionReferenceMode { Invalid, Territorial, Geometry };
+struct DistributionReferenceStatus {
+    bool missingLayer, invalidMode, invalidValue, missingTerritory;
+};
+DistributionReferenceStatus inspectDistributionReference(bool layerExists,DistributionReferenceMode mode,
+    bool finiteValue,bool territoryExists);
 template<class Text>
 ReferenceChainStatus inspectReferenceChain(const std::map<Text,std::optional<Text>>& parents,const Text& start) {
     if(start.empty())return ReferenceChainStatus::Valid;

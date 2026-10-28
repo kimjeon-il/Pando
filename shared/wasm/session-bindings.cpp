@@ -98,6 +98,29 @@ val referenceGraphForWeb(const val& ids,const val& parents) {
         return output;
     });
 }
+val distributionReferencesForWeb(const val& layerIds,const val& territoryIds,const val& layers,
+    const val& modes,const val& territories,const val& values) {
+    return boundary([&] {
+        for(const auto& v:{layerIds,territoryIds,layers,modes,territories,values})array(v,"INVALID_REFERENCE_GRAPH");
+        const auto length=layers["length"].as<unsigned>();
+        if(modes["length"].as<unsigned>()!=length||territories["length"].as<unsigned>()!=length||
+            values["length"].as<unsigned>()!=length)fail("INVALID_REFERENCE_GRAPH","Reference arrays must have equal length.");
+        std::set<std::u16string> knownLayers,knownTerritories;
+        for(unsigned i=0;i<layerIds["length"].as<unsigned>();++i)knownLayers.insert(referenceUtf16(layerIds[i]));
+        for(unsigned i=0;i<territoryIds["length"].as<unsigned>();++i)knownTerritories.insert(referenceUtf16(territoryIds[i]));
+        auto output=val::array();
+        for(unsigned i=0;i<length;++i){
+            const auto layer=referenceUtf16(layers[i]),modeName=referenceUtf16(modes[i]),territory=referenceUtf16(territories[i]);
+            const auto mode=modeName==u"territorial"?DistributionReferenceMode::Territorial:
+                modeName==u"geometry"?DistributionReferenceMode::Geometry:DistributionReferenceMode::Invalid;
+            const bool finite=type(values[i],"number")&&std::isfinite(values[i].as<double>());
+            const auto status=inspectDistributionReference(knownLayers.count(layer),mode,finite,knownTerritories.count(territory));
+            auto row=val::object();row.set("missingLayer",status.missingLayer);row.set("invalidMode",status.invalidMode);
+            row.set("invalidValue",status.invalidValue);row.set("missingTerritory",status.missingTerritory);output.set(i,row);
+        }
+        return output;
+    });
+}
 EM_JS(emscripten::EM_VAL, packTerritorialRing, (emscripten::EM_VAL handle), {
     const ring=Emval.toValue(handle), points=new Float64Array(ring.length*2);
     for(let i=0;i<ring.length;++i){if(ring.length<4&&!Array.isArray(ring[i]))continue;points[i*2]=Number(ring[i][0]);points[i*2+1]=Number(ring[i][1]);}
@@ -777,6 +800,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::function("sphericalRingSignedArea",&sphericalRingAreaForWeb);
     emscripten::function("validateTerritorialRing",&territorialRingValidationForWeb);
     emscripten::function("referenceGraphDiagnostics",&referenceGraphForWeb);
+    emscripten::function("distributionReferenceDiagnostics",&distributionReferencesForWeb);
     emscripten::function("sphericalRingSignedAreas",&sphericalRingAreasForWeb);
     emscripten::function("temporalParse",&temporalParseForWeb);
     emscripten::function("temporalMonthEnd",&temporalMonthEndForWeb);

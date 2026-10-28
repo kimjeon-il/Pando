@@ -7,6 +7,11 @@
 #include <stdexcept>
 
 namespace pandoeditor {
+DistributionReferenceStatus inspectDistributionReference(bool layerExists,DistributionReferenceMode mode,
+    bool finiteValue,bool territoryExists) {
+    return {!layerExists,mode==DistributionReferenceMode::Invalid,!finiteValue,
+        mode==DistributionReferenceMode::Territorial&&!territoryExists};
+}
 namespace {
 void require(bool ok, const char* message) {
     if (!ok) throw std::invalid_argument(message);
@@ -111,12 +116,19 @@ void indexContentImpl(const ProjectDocument& d,DocumentIndex& idx,bool completeR
     }
     for(std::size_t i=0;i<d.distributionEntries.size();++i) {
         const auto& v=d.distributionEntries[i]; auto ref=add("distributionEntry",v.id,i);
-        require(idx.objects.count({"distributionLayer",v.layerId}),"DANGLING_REF: distribution layer");
+        const auto mode=bool(v.territory)==bool(v.geometry)?DistributionReferenceMode::Invalid:
+            v.territory?DistributionReferenceMode::Territorial:DistributionReferenceMode::Geometry;
+        const auto status=inspectDistributionReference(idx.objects.count({"distributionLayer",v.layerId}),mode,
+            std::isfinite(v.value),!v.territory||!completeReferences||idx.objects.count(*v.territory));
+        require(!status.missingLayer,"DANGLING_REF: distribution layer");
         idx.dependents[{"distributionLayer",v.layerId}].push_back(ref);
-        require(bool(v.territory)!=bool(v.geometry),"INVALID_DISTRIBUTION: exactly one source required");
-        require(std::isfinite(v.value),"INVALID_DISTRIBUTION: value");
+        require(!status.invalidMode,"INVALID_DISTRIBUTION: exactly one source required");
+        require(!status.invalidValue,"INVALID_DISTRIBUTION: value");
         temporalBounds(v.validity);
-        if(v.territory) territory(ref,*v.territory);
+        if(v.territory) {
+            require(!status.missingTerritory,"DANGLING_REF: content territory");
+            territory(ref,*v.territory);
+        }
         if(v.geometry) {
             const auto type=geometry(ref,*v.geometry)->type;
             require(type=="Polygon" || type=="MultiPolygon","INVALID_DISTRIBUTION: geometry");

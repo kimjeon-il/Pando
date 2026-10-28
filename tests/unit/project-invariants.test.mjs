@@ -23,6 +23,20 @@ test('shared reference graph reports duplicate IDs, missing parents and cycles i
     ['ok', 'duplicate', 'empty', 'empty']);
 });
 
+test('shared distribution reference diagnostics preserve invalid fields independently', () => {
+  const rows = sharedCalculationCore.distributionReferenceDiagnostics(
+    ['L'], ['A'],
+    ['L', 'missing', 'L', 'L'], ['territorial', 'territorial', 'bad', 'geometry'],
+    ['A', 'missing', '', ''], [1, 0, Infinity, '1'],
+  );
+  assert.deepEqual(rows, [
+    { missingLayer: false, invalidMode: false, invalidValue: false, missingTerritory: false },
+    { missingLayer: true, invalidMode: false, invalidValue: false, missingTerritory: true },
+    { missingLayer: false, invalidMode: true, invalidValue: true, missingTerritory: false },
+    { missingLayer: false, invalidMode: false, invalidValue: true, missingTerritory: false },
+  ]);
+});
+
 test('valid project references pass', () => {
   const result = validateProjectReferenceIntegrity({
     territorialEntities: [...[country('A')],...[unit('R', 'A')]],

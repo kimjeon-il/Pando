@@ -255,16 +255,24 @@ function validateAdministrativeContainment(units = [], countries = [], { clipper
 }
 
 function validateDistributionReference(entries = [], units = []) {
-  const unitIds = new Set(units.map(feature => String(feature.id)));
-  const seenIds = new Set();
+  if (typeof sharedCalculationCore.referenceGraphDiagnostics !== 'function' ||
+      typeof sharedCalculationCore.distributionReferenceDiagnostics !== 'function') {
+    throw Object.assign(new Error('Canonical C++ distribution reference validator is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  const ids = entries.map(entry => String(entry.id || ''));
+  const identity = sharedCalculationCore.referenceGraphDiagnostics(ids, ids.map(() => ''));
+  const references = sharedCalculationCore.distributionReferenceDiagnostics(
+    [], units.map(feature => String(feature.id)), entries.map(() => ''),
+    entries.map(entry => entry.mode === 'territorial' ? 'territorial' : ''),
+    entries.map(entry => String(entry.territorialUnitId || '')), entries.map(() => 0),
+  );
   const issues = [];
   entries.forEach((entry, entryIndex) => {
-    const id = String(entry.id || '');
-    if (id && seenIds.has(id)) issues.push(issue('duplicate-id', `중복 분포 ID ${id}가 있습니다.`, {
+    const id = ids[entryIndex];
+    if (identity[entryIndex].idStatus === 'duplicate') issues.push(issue('duplicate-id', `중복 분포 ID ${id}가 있습니다.`, {
       entityRefs: [id], sequence: entryIndex,
     }));
-    if (id) seenIds.add(id);
-    if (entry.mode === 'territorial' && !unitIds.has(String(entry.territorialUnitId || ''))) {
+    if (references[entryIndex].missingTerritory) {
       issues.push(issue('missing-territorial-reference', `분포가 존재하지 않는 territorialUnitId ${entry.territorialUnitId || '—'}를 참조합니다.`, {
         entityRefs: [id, String(entry.territorialUnitId || '')], severity: 'error', sequence: entryIndex,
       }));
