@@ -38,4 +38,34 @@ private:
     bool scoped_;
     std::size_t left_=0,right_=1;
 };
+struct TerritorialOverlapDiagnostics { std::size_t boundsCandidatePairs=0,componentCandidatePairs=0; bool componentEvaluated=false; };
+class TerritorialOverlapCandidateIterator {
+public:
+    TerritorialOverlapCandidateIterator(std::vector<std::u16string> ids,
+        std::vector<std::optional<GisComponentBounds>> bounds,
+        std::vector<bool> affected,bool scoped,std::optional<std::set<std::u16string>> pairKeys);
+    std::optional<GisOverlapCandidate> next();
+    std::vector<std::pair<std::size_t,std::size_t>> components(
+        const std::vector<std::optional<GisComponentBounds>>& left,
+        const std::vector<std::optional<GisComponentBounds>>& right);
+    TerritorialOverlapDiagnostics diagnostics()const noexcept {return diagnostics_;}
+private:
+    std::vector<std::u16string> ids_;
+    std::vector<std::optional<GisComponentBounds>> bounds_;
+    std::vector<bool> affected_;
+    bool scoped_;
+    std::optional<std::set<std::u16string>> pairKeys_;
+    std::set<std::u16string> tested_;
+    TerritorialOverlapDiagnostics diagnostics_;
+    std::size_t left_=0,right_=0;
+};
+class TerritorialPolygonIndex {
+public:
+    explicit TerritorialPolygonIndex(Polygon polygon);
+    bool mayOverlap(const TerritorialPolygonIndex& other,
+        const GisComponentBounds& leftBounds,const GisComponentBounds& rightBounds)const;
+private:
+    struct Data;
+    std::shared_ptr<const Data> data_;
+};
 }
