@@ -4,7 +4,6 @@ import { validateSourceProvenance } from './source-provenance.js';
 
 const text = value => String(value ?? '').trim();
 const POLYGON_TYPES = new Set(['Polygon', 'MultiPolygon']);
-const DISTRIBUTION_MODES = new Set(['territorial', 'geometry']);
 
 function issue(code, message, objectIds = [], field = '') {
   return Object.freeze({
@@ -111,26 +110,35 @@ export function validateProjectReferenceIntegrity({
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }
   }
 
-  for (const entry of distributionEntries || []) {
+  if (typeof sharedCalculationCore.distributionReferenceDiagnostics !== 'function') {
+    throw Object.assign(new Error('Canonical C++ distribution reference validator is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  const entries = distributionEntries || [];
+  const entryDiagnostics = sharedCalculationCore.distributionReferenceDiagnostics(
+    [...layerById.keys()], [...territorialIds], entries.map(row => text(row?.layerId)),
+    entries.map(row => text(row?.mode)), entries.map(row => text(row?.territorialUnitId)),
+    entries.map(row => row?.value),
+  );
+  for (const [index, entry] of entries.entries()) {
     const id = text(entry?.id);
     const layerId = text(entry?.layerId);
     const mode = text(entry?.mode);
-    const value = entry?.value;
+    const diagnostic = entryDiagnostics[index];
 
-    if (!layerById.has(layerId)) {
+    if (diagnostic.missingLayer) {
       issues.push(issue('PL-INV-MISSING-DIST-LAYER', `${id}의 분포 레이어 ${layerId}이 존재하지 않습니다.`, [id, layerId], 'layerId'));
     }
-    if (!DISTRIBUTION_MODES.has(mode)) {
+    if (diagnostic.invalidMode) {
       issues.push(issue('PL-INV-DIST-MODE', `${id}의 분포 방식이 올바르지 않습니다.`, [id], 'mode'));
     }
-    if (typeof value !== 'number' || !Number.isFinite(value)) {
+    if (diagnostic.invalidValue) {
       issues.push(issue('PL-INV-DIST-VALUE', `${id}의 값은 유한한 숫자여야 합니다.`, [id], 'value'));
     }
     try { normalizeTemporalInterval(entry?.validFrom, entry?.validTo); }
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }
     if (mode === 'territorial') {
       const territorialUnitId = text(entry?.territorialUnitId);
-      if (!territorialIds.has(territorialUnitId)) {
+      if (diagnostic.missingTerritory) {
         issues.push(issue('PL-INV-MISSING-DIST-TERRITORIAL', `${id}의 참조 영역 ${territorialUnitId}이 존재하지 않습니다.`, [id, territorialUnitId], 'territorialUnitId'));
       }
     } else if (mode === 'geometry') {

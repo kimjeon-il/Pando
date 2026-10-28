@@ -30,3 +30,29 @@ test('same-generation source admission publishes one complete C++ load between o
     assert.deepEqual(JSON.parse(await owner.client.storageSnapshot()),replacement);
   } finally { owner.dispose(); }
 });
+
+test('rejecting invalid distribution references preserves the document and its history',async () => {
+  const initial=seed();
+  const owner=await createNodeCoreProject(initial);
+  try {
+    await owner.project.executeCommand(name('Unsaved edit'));
+    const before=structuredClone(owner.documentModel.snapshot());
+    const stateBefore=owner.client.state();
+    for(const corrupt of [
+      project => { project.distributionEntries[0].layerId='missing-layer'; },
+      project => { project.distributionEntries[0].territorialUnitId='missing-territory'; },
+      project => { project.distributionLayers[0].parentId=project.distributionLayers[0].id; },
+      project => { project.distributionLayers.push(structuredClone(project.distributionLayers[0])); },
+    ]) {
+      const invalid=seed();corrupt(invalid);
+      await assert.rejects(owner.project.admit(invalid));
+      assert.deepEqual(owner.documentModel.snapshot(),before);
+      const stateAfter=owner.client.state();
+      assert.equal(stateAfter.stateRevision,stateBefore.stateRevision);
+      assert.equal(stateAfter.documentDirty,stateBefore.documentDirty);
+      assert.equal(stateAfter.canUndo,stateBefore.canUndo);
+    }
+    assert.equal(await owner.project.undo(),true);
+    assert.equal(owner.documentModel.snapshot().territorialEntities[0].properties.name,initial.territorialEntities[0].properties.name);
+  } finally { owner.dispose(); }
+});
