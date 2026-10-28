@@ -55,6 +55,17 @@ test('report completion publishes only the selected originals through shared mai
   assert.equal(git(f.remote, 'show', 'main:reports/development/task/report.md'), '# 수정');
 });
 
+test('report path access preserves an independent pending Git maintenance operation',t=>{
+  const f=fixture(t),pending=join(f.shared,'.git/pando-git-compaction.pending.json');
+  const journal=JSON.stringify({schema:'pando-git-storage-v1',phase:'inventoried',gitState:{},objects:[],packs:[],stagingPath:'.git/independent-maintenance'});
+  writeFileSync(pending,journal);
+  const path=library.hydrateReports({root:f.root,path:'development/task/report.md',access:'write'});
+  assert.equal(readFileSync(path,'utf8'),'# 원문\n');
+  assert.equal(library.hydrateReports({root:f.root,path:'development/task/report.md',access:'read'}),path);
+  assert.equal(readFileSync(pending,'utf8'),journal);
+  assert.equal(existsSync(join(f.root,'.library-data/materialized')),false);
+});
+
 test('failed push remains a failure with originals intact and retries the same report-only commit', t => {
   const f = fixture(t); assert.equal(typeof library.publishLibraryReports, 'function');
   put(f.remote, 'hooks/pre-receive', '#!/bin/sh\nexit 1\n');
