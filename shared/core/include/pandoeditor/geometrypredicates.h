@@ -18,6 +18,8 @@ struct TerritorialRingIssue {
 std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring);
 // Sum each polygon's nonnegative shell-minus-holes area without closing rings.
 double territorialValidationArea(const MultiPolygon& polygons) noexcept;
+enum class TerritorialAreaUse { Overlap, Gap, Verification };
+bool territorialAreaDecision(double area,TerritorialAreaUse use) noexcept;
 bool validateGisGeometry(const MultiPolygon& polygons);
 double gisValidationArea(const MultiPolygon& polygons) noexcept;
 using GisComponentBounds = std::array<double,4>;

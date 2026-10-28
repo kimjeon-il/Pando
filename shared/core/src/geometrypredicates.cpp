@@ -386,6 +386,10 @@ double territorialValidationArea(const MultiPolygon& polygons) noexcept {
     }
     return total;
 }
+bool territorialAreaDecision(double area,TerritorialAreaUse use) noexcept {
+    if(use==TerritorialAreaUse::Overlap)return !(area<=1e-10);
+    return area>(use==TerritorialAreaUse::Verification?1e-8:1e-10);
+}
 
 namespace {
 // Exact decimal rounding for Number.toFixed(8) on accepted geographic values.

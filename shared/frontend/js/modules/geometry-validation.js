@@ -34,7 +34,8 @@ function bounds(geometry) {
 
 function geometryPlanarArea(geometry) {
   const components = polygons(geometry).filter(polygon => polygon?.length);
-  if (typeof sharedCalculationCore.territorialValidationArea !== 'function') {
+  if (typeof sharedCalculationCore.territorialValidationArea !== 'function'
+      || typeof sharedCalculationCore.territorialAreaDecision !== 'function') {
     throw Object.assign(new Error('Canonical C++ validation area is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
   }
   return sharedCalculationCore.territorialValidationArea(components);
@@ -160,7 +161,7 @@ export function validateTerritorialGeometry(features = [], {
             coarseMayOverlap = true;
             break;
           }
-          if (geometryPlanarArea(clipGeometry('MultiPolygon', verification)) > 1e-8) {
+          if (sharedCalculationCore.territorialAreaDecision(geometryPlanarArea(clipGeometry('MultiPolygon', verification)), 'verification')) {
             coarseMayOverlap = true;
             break;
           }
@@ -195,7 +196,7 @@ export function validateTerritorialGeometry(features = [], {
       if (intersectionFailed) continue;
       const overlap = clipGeometry('MultiPolygon', coordinates);
       const overlapPlanarArea = geometryPlanarArea(overlap);
-      if (overlapPlanarArea <= 1e-10) continue;
+      if (!sharedCalculationCore.territorialAreaDecision(overlapPlanarArea, 'overlap')) continue;
       issues.push(issue('overlap', `${id}와 ${otherId} 사이에 중첩 영역이 있습니다.`, {
         entityRefs: [id, otherId], geometry: overlap, bounds: bounds(overlap), planarArea: overlapPlanarArea,
       }));
@@ -215,7 +216,7 @@ export function validateTerritorialGeometry(features = [], {
   if (baselineUnion && clipper.xor && candidates.length) {
     const currentUnion = clipper.union(...candidates.map(feature => multiCoordinates(feature.geometry)));
     const changed = clipGeometry('MultiPolygon', clipper.xor(multiCoordinates(baselineUnion), currentUnion));
-    if (geometryPlanarArea(changed) > 1e-10) issues.push(issue('gap', '편집 전 영역과 비교해 빈틈 또는 면적 손실이 생겼습니다.', {
+    if (sharedCalculationCore.territorialAreaDecision(geometryPlanarArea(changed), 'gap')) issues.push(issue('gap', '편집 전 영역과 비교해 빈틈 또는 면적 손실이 생겼습니다.', {
       entityRefs: candidates.map(featureId), geometry: changed, bounds: bounds(changed),
     }));
   }
