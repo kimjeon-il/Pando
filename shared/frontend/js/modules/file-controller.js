@@ -6,6 +6,13 @@ export function createFileController({productMode,readProject=readProjectFile,op
   if(!['viewer','editor'].includes(productMode))throw new TypeError('File operations require immutable product mode.');
   if(typeof reportOperationError!=='function')throw new TypeError('File operations require their operation error reporter.');
   if(!fileAccess)throw new TypeError('File operations require an explicit file-access port.');
+  const required=['openProjectFile',...(productMode==='editor'?['openGisFiles','prepareProjectSave','saveExportFile']:[])];
+  for(const name of required){
+    if(typeof fileAccess[name]!=='function')throw new TypeError('File access requires '+name+'.');
+  }
+  for(const name of ['bind','dispose']){
+    if(fileAccess[name]!==undefined&&typeof fileAccess[name]!=='function')throw new TypeError('Optional file access '+name+' must be a function.');
+  }
   const loadProject=openProject||((read)=>projectDomain.open(read));
   const acceptProject=file=>loadProject(()=>readProject(file));
   const acceptGis=files=>{if(productMode!=='editor')throw new Error('GIS import is unavailable in this product.');return onFiles(files,{sourceKind:'vector'});};

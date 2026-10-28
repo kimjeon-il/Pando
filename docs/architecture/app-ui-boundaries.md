@@ -65,7 +65,10 @@ module URL. The immutable Worker resolver remains the asset-manifest boundary.
 
 `file-controller.js` owns file workflow and ProjectDomain commands. An explicit
 browser or native file-access port owns pickers, input events, paths/URIs and
-bytes. `prepareProjectSave()` runs before encoding and returns a `write`/`abort`
+bytes. The controller requires `openProjectFile` for both products and
+`openGisFiles`, `prepareProjectSave`, `saveExportFile` for the editor at construction.
+Optional transport `bind`/`dispose` hooks must be functions when provided.
+`prepareProjectSave()` runs before encoding and returns a `write`/`abort`
 destination. The browser picker opens during preparation to retain user
 activation. Native transport retains its existing `finish_document_write`
 dialog timing and chunk protocol. Persistence receives its resolved preview Worker URL; it does not

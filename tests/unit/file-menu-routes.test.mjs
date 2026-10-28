@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {createBrowserFileAccess} from '../../shared/frontend/js/modules/browser-file-access.js';
 import { createFileController } from "../../shared/frontend/js/modules/file-controller.js";
+import {renderProductHtml} from '../../scripts/lib/product-html.mjs';
 const {File}=globalThis;
 
 test('topbar separates history, file, view, settings and help commands', () => {
-  const html = readFileSync(new URL('../../apps/editor/editor.html', import.meta.url), 'utf8');
+  const {editor:html}=renderProductHtml(path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8'));
   const tokens = readFileSync(new URL('../../shared/frontend/css/tokens/design-tokens.css', import.meta.url), 'utf8');
   const menuCss = readFileSync(new URL('../../shared/frontend/css/components/menus.css', import.meta.url), 'utf8');
   const fileBindings = readFileSync(new URL("../../apps/editor/frontend/js/modules/app-file-bindings.js", import.meta.url), 'utf8');
