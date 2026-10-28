@@ -1,5 +1,6 @@
 #include <pandoeditor/polygonclipping.h>
 #include <pandoeditor/polygonwrapping.h>
+#include <pandoeditor/geometrypredicates.h>
 #include <pandoeditor/projectcodec.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
@@ -77,6 +78,10 @@ val polygonOperation(const std::string& name,val inputs,bool precisionRetry){
     }catch(const std::exception& error){auto js=val::global("Error").new_(std::string(error.what()));js.set("code",std::string("PL-GEOMETRY-CALCULATION"));js.throw_();}
     std::terminate();
 }
+double validationArea(val input) {
+    auto operands=val::array();operands.set(0,input);
+    return territorialValidationArea(readOperands(operands).front());
+}
 }
 std::string wrapGeometry(const std::string& input){
     try {
@@ -90,5 +95,6 @@ std::string wrapGeometry(const std::string& input){
 }
 EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("polygonOperation",&polygonOperation);
+    emscripten::function("territorialValidationArea",&validationArea);
     emscripten::function("wrapPolygonGeometry",&wrapGeometry);
 }

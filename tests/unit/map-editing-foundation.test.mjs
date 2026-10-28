@@ -75,6 +75,14 @@ test('nonfinite ring coordinates report their vertex without a map location', ()
   assert.equal(issues[0].coordinate, undefined);
 });
 
+test('territorial overlap area preserves per-polygon holes and empty input', () => {
+  const square = [[0, 0], [3, 0], [3, 3], [0, 3], [0, 0]];
+  const hole = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]];
+  const small = [[10, 0], [11, 0], [11, 1], [10, 1], [10, 0]];
+  assert.equal(globalThis.PandoLabSphericalCore.territorialValidationArea([[square, hole], [small]]), 9);
+  assert.equal(globalThis.PandoLabSphericalCore.territorialValidationArea([]), 0);
+});
+
 test('spherical metrics provide useful live distance, area and percentage feedback', () => {
   assert.ok(lineDistanceKm([[0, 0], [1, 0]]) > 111);
   assert.ok(lineDistanceKm([[0, 0], [1, 0]]) < 112);

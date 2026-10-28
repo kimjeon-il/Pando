@@ -373,6 +373,16 @@ std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring) {
     }
     return issues;
 }
+double territorialValidationArea(const MultiPolygon& polygons) noexcept {
+    double total=0;
+    for(const auto& polygon:polygons) {
+        const double exterior=polygon.empty()?0:ringArea(polygon.front());
+        double holes=0;
+        for(std::size_t i=1;i<polygon.size();++i)holes+=ringArea(polygon[i]);
+        total+=std::max(0.,exterior-holes);
+    }
+    return total;
+}
 double planarArea(const Geometry& g) noexcept { double sum=0;for(const auto& p:g.polygons)for(std::size_t i=0;i<p.size();++i)sum+=(i?-1:1)*ringArea(p[i]);return std::abs(sum); }
 bool significantArea(double value,double reference) noexcept { return value>std::max(1e-10,std::abs(reference)*1e-9); }
 bool geometryContains(const Geometry& container,const Geometry& subject) {

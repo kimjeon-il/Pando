@@ -94,18 +94,12 @@ function boundsOverlap(a, b) {
   return !!a && !!b && a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
 }
 
-function ringArea(ring = []) {
-  let sum = 0;
-  for (let index = 0; index < ring.length - 1; index += 1) {
-    sum += Number(ring[index][0]) * Number(ring[index + 1][1]) - Number(ring[index + 1][0]) * Number(ring[index][1]);
-  }
-  return sum / 2;
-}
-
 function geometryPlanarArea(geometry) {
-  return polygons(geometry).reduce((total, polygon) => total + Math.max(0,
-    Math.abs(ringArea(polygon[0] || [])) - (polygon || []).slice(1).reduce((sum, ring) => sum + Math.abs(ringArea(ring)), 0),
-  ), 0);
+  const components = polygons(geometry).filter(polygon => polygon?.length);
+  if (typeof sharedCalculationCore.territorialValidationArea !== 'function') {
+    throw Object.assign(new Error('Canonical C++ validation area is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  return sharedCalculationCore.territorialValidationArea(components);
 }
 
 function issue(kind, message, details = {}) {
