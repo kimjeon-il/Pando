@@ -117,3 +117,45 @@ test('report completion adopts a newer remote main from a filtered archive witho
   assert.equal(git(f.shared, 'merge-base', newer, 'HEAD'), newer);
   assert.equal(git(f.data, 'rev-parse', 'HEAD'), f.privateHead);
 });
+
+test('report completion explicitly removes retired originals and verifies their remote absence', t => {
+  const f = fixture(t), scope = 'reports/development/task', retired = scope + '/retired.json';
+  put(f.edits, 'development/task/retired.json', '{"detail":"retired"}\n');
+  library.publishLibraryReports({ root: f.root, prefixes: [scope] });
+  unlinkSync(join(f.edits, 'development/task/retired.json'));
+  assert.throws(() => library.checkLibraryReports({ root: f.root, prefixes: [scope], removePaths: [retired] }), /remov|retir|still|present/i);
+  const result = library.publishLibraryReports({ root: f.root, prefixes: [scope], removePaths: [retired] });
+  assert.equal(result.removed, 1);
+  assert.equal(JSON.parse(git(f.remote, 'show', 'main:archive/index.json')).files[retired], undefined);
+  assert.equal(git(f.remote, 'ls-tree', '-r', '--name-only', 'main', '--', retired), '');
+  assert.equal(library.publishLibraryReports({ root: f.root, prefixes: [scope], removePaths: [retired] }).revision, result.revision);
+  assert.equal(readFileSync(join(f.root, 'config/library-data.json'), 'utf8'), f.pin);
+  assert.equal(git(f.data, 'rev-parse', 'HEAD'), f.privateHead);
+  const owner = JSON.parse(readFileSync(join(f.shared, 'reports/.owners.json'), 'utf8')).owners.ui.revision;
+  assert.equal(JSON.parse(git(f.shared, 'show', owner + ':archive/index.json')).files[retired], undefined);
+  put(f.shared, 'reports/development/task/retired.json', 'unindexed original reappeared');
+  git(f.shared, 'add', '--sparse', '--', retired); git(f.shared, 'commit', '-qm', 'out-of-band retired original');
+  git(f.shared, 'push', '-q', 'origin', 'main');
+  assert.throws(() => library.checkLibraryReports({ root: f.root, prefixes: [scope], removePaths: [retired] }), /remov|retir|still|present/i);
+  library.publishLibraryReports({ root: f.root, prefixes: [scope], removePaths: [retired] });
+  assert.equal(git(f.remote, 'ls-tree', '-r', '--name-only', 'main', '--', retired), '');
+});
+
+test('explicit report deletion supports a retired scope without a remaining working directory', t => {
+  const f = fixture(t), retired = 'reports/development/task/report.md', scope = 'reports/development/task';
+  library.publishLibraryReports({ root: f.root, prefixes: [scope] });
+  unlinkSync(join(f.edits, 'development/task/report.md'));
+  const result = library.publishLibraryReports({ root: f.root, prefixes: [scope], removePaths: [retired] });
+  assert.equal(result.files, 0);
+  assert.equal(result.removed, 1);
+  assert.equal(git(f.remote, 'ls-tree', '-r', '--name-only', 'main', '--', scope), '');
+});
+
+test('report deletion refuses present working originals and paths outside the selected report scopes', t => {
+  const f = fixture(t), scope = 'reports/development/task';
+  for (const target of ['assets/data/current.bin', 'reports/development/other/unfinished.md', scope + '/../other/unfinished.md']) {
+    assert.throws(() => library.publishLibraryReports({ root: f.root, prefixes: [scope], removePaths: [target] }), /delet|remov|scope|path/i);
+  }
+  assert.throws(() => library.publishLibraryReports({ root: f.root, prefixes: [scope], removePaths: [scope + '/report.md'] }), /working|original|preserv/i);
+  assert.equal(git(f.remote, 'rev-parse', 'main'), f.revision);
+});
