@@ -1,3 +1,11 @@
+import {layerStyle} from './layer-presentation.js';
+import {normalizeObjectRef} from './object-selection-controller.js';
+import {automaticLabelSettings,labelKey} from './label-layout.js';
+import {buildRenderableStrokeFeature} from './geographic-boundary.js';
+import {buildSelectionBoundarySegments} from './selection-stroke-geometry.js';
+import {DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES} from './distribution-model.js';
+import {geometryRevisionKey} from './geometry-versions.js';
+import {buildGraticuleStrokeGeometryPacket} from './graticule-geometry.js';
 import {createGpuMapRenderer} from './gpu-map-renderer.js';
 import {createTerritorialFillResolver} from './territorial-fill-style.js';
 export function createMapRenderer(dependencies, { productMode }) {
@@ -73,3 +81,195 @@ export function createMapRenderer(dependencies, { productMode }) {
     if (retry) retry.onclick = () => gpuMapRenderer.retryMapPreparation();
     return gpuMapRenderer;
   }
+
+/** Shared frame resource wiring. Document and geometry ownership stay in their existing domains. */
+export function createMapRenderingResources({ports,layers,session,editing=null,readStateRevision=()=>ports.projectState.state.stateRevision,document=globalThis.document}){
+  if(!session?.selectionDomain)throw new TypeError('Map rendering resources require the canonical selection session.');
+  const resources=Object.create(null);let lastFrame;
+  function snapshot(name,values,live){
+    const resource={...values},extension=editing?.[name];
+    const refresh=()=>{for(const [key,read]of Object.entries(live))resource[key]=read();if(extension)Object.assign(resource,extension);};
+    resources[name]={resource,refresh};refresh();return resource;
+  }
+  const common={
+    getState: () => ports.projectState.state,
+    layerStyle: layerStyle,
+    visibleMapObjectCandidates: ports.spatialQuery.visibleMapObjectCandidates,
+    geometryMayIntersectViewport: ports.spatialRecords.geometryMayIntersectViewport,
+    normalizeObjectRef: normalizeObjectRef,
+    selectionHas: ref => session.selectionDomain.has(ref),
+    viewportCullingMetrics: ports.spatialQuery.viewportCullingMetrics,
+    setMapHover: ports.gpuRenderingA.setMapHover,
+    mapClickBlocked: ports.pointerInteractionA.mapClickBlocked,
+    d3: ports.platform.d3,
+    handleObjectSelectionAt: ports.objectPicking.handleObjectSelectionAt,
+    buildRenderableStrokeFeature: buildRenderableStrokeFeature
+  };
+  const result={
+    labelResources:snapshot("labelResources", {
+      d3: ports.platform.d3,
+      getState: () => ports.projectState.state,
+      preparePlaces: ports.countryLabelModel.preparePlaces,
+      beginPlaceInteraction: () => { ports.countryLabelModel.builtinPlaces.beginInteraction(); session.objectSearchController.cancelSearch(); },
+      disposePlaces: () => ports.countryLabelModel.builtinPlaces.dispose(),
+      mapClickBlocked: ports.pointerInteractionA.mapClickBlocked,
+      handleObjectSelectionAt: ports.objectPicking.handleObjectSelectionAt,
+      handleMapClick: ports.objectPicking.handleMapClick,
+      getTerritorialLabelRef: ports.objectPicking.getTerritorialLabelRef,
+      countryName: ports.objectPresentation.territorialEntityName,
+      layerStyle,
+      isMobile: ports.surfaces.isMobile,
+      automaticLabelSettings,
+      labelSettings: (currentState, domain, id) => currentState.labelSettings?.[(0, labelKey)(domain, id)] || {},
+      labelById: ports.countryLabelModel.labelById,
+      labelKey,
+      countryLabelAnchors: () => ports.labelPresentation.countryLabelAnchors,
+      normalizeObjectRef,
+      selectionSnapshot: () => session.selectionDomain.snapshot().selection,
+      selectionHas: ref => session.selectionDomain.has(ref)
+    }, {
+      territorialLabelLayer: () => layers.territorialLabelLayer,
+      labelLayer: () => layers.labelLayer,
+      svg: () => layers.svg
+    }),
+    countryResources:snapshot("countryResources", {
+      getState: () => ports.projectState.state,
+      getViewRevision: () => ports.mapLayout.viewRevision,
+      countryOutlineFeature: ports.countryLabelModel.countryOutlineFeature,
+      getEntity: ports.territorialModel.entityRepository.get,
+      isLayerItemVisible: ports.layerPresentation.isLayerItemVisible,
+      selectionGeometryRevision: ports.renderScene.selectionGeometryRevision,
+      mapTheme: ports.preferences.mapTheme,
+      resolvedInteractionStyle: () => ports.preferences.resolvedInteractionStyle,
+      replaceGpuSceneDomain: ports.gpuRenderingA.replaceGpuSceneDomain,
+      syncGpuRenderScene: ports.gpuRenderingB.syncGpuRenderScene,
+      gpuMapRenderer: ports.rendering.gpuMapRenderer,
+      applyGpuSceneCoverage: ports.gpuRenderingA.applyGpuSceneCoverage,
+      applyGpuInteractionCoverage: ports.gpuRenderingA.applyGpuInteractionCoverage
+    }, {
+      countryLayer: () => layers.countryLayer
+    }),
+    hydroResources:snapshot("hydroResources", {
+      ...common,
+      getStateRevision: readStateRevision,
+      gpuMapRenderer: ports.rendering.gpuMapRenderer,
+      hydroRenderGroups: ports.physicalResources.hydroRenderGroups,
+      hydroDisplayColor: ports.hydroPresentation.hydroDisplayColor,
+      hydroEditColor: ports.physicalResources.hydroEditColor,
+      isHydroFeatureVisible: ports.physicalServices.isHydroFeatureVisible
+    }, {
+      hydroLakeLayer: () => layers.hydroLakeLayer,
+      hydroRiverLayer: () => layers.hydroRiverLayer,
+      hydroEditLayer: () => layers.hydroEditLayer,
+      svg: () => layers.svg?.node?.() || layers.svg
+    }),
+    territorialResources:snapshot("territorialResources", {
+      ...common,
+      displayEntities: () => ports.objectModelB.territorialScope.displayEntities(),
+      entityRepository: ports.territorialModel.entityRepository,
+      isNativeBuiltinSubunit: ports.builtinCountries.isNativeBuiltinSubunit,
+      syncBuiltinPalette: ports.builtinCountries.syncBuiltinPalette,
+      isLayerItemVisible: ports.layerPresentation.isLayerItemVisible,
+      territorialStyleColor: ports.objectModelB.territorialStyleColor,
+      territorialEntityColor: ports.colorModel.territorialEntityColor,
+      selectionGeometryRevision: ports.renderScene.selectionGeometryRevision,
+      gpuSceneOrder: ports.gpuRenderingA.gpuSceneOrder,
+      resolvedInteractionStyle: () => ports.preferences.resolvedInteractionStyle,
+      replaceGpuSceneDomain: ports.gpuRenderingA.replaceGpuSceneDomain
+    }, {
+      territorialUnitLayer: () => layers.territorialUnitLayer,
+      svg: () => layers.svg?.node?.() || layers.svg
+    }),
+    genericResources:snapshot("genericResources", {
+      ...common,
+      genericFeatureDisplayFeature: ports.presentation.genericFeatureDisplayFeature,
+      genericFeatureColor: ports.colorModel.genericFeatureColor,
+      isLayerItemVisible: ports.layerPresentation.isLayerItemVisible,
+      selectionSnapshot: () => session.selectionDomain.snapshot().selection,
+      selectionGeometryRevision: ports.renderScene.selectionGeometryRevision,
+      gpuSceneOrder: ports.gpuRenderingA.gpuSceneOrder,
+      resolvedInteractionStyle: () => ports.preferences.resolvedInteractionStyle,
+      replaceGpuSceneDomain: ports.gpuRenderingA.replaceGpuSceneDomain
+    }, {
+      genericFeatureLayer: () => layers.genericFeatureLayer,
+      svg: () => layers.svg?.node?.() || layers.svg
+    }),
+    distributionResources:snapshot("distributionResources", {
+      ...common,
+      distributionEntriesForLayer: ports.distributionServices.distributionEntriesForLayer,
+      territorialEntityRepository: ports.territorialModel.entityRepository,
+      featureFromGeometry: ports.renderScene.featureFromGeometry,
+      geometryBounds: ports.spatialQuery.geometryBounds,
+      distributionColor: ports.distributionPresentation.distributionColor,
+      DISTRIBUTION_MODES,
+      DISTRIBUTION_RENDER_MODES,
+      isLayerItemVisible: ports.layerPresentation.isLayerItemVisible,
+      selectionGeometryRevision: ports.renderScene.selectionGeometryRevision,
+      gpuSceneOrder: ports.gpuRenderingA.gpuSceneOrder,
+      replaceGpuSceneDomain: ports.gpuRenderingA.replaceGpuSceneDomain,
+      getCountryGeometryRevision: () => ports.countries.countryLandRevision,
+      getDistributionVisibilityRevision: () => ports.objectModelA.distributionVisibilityRevision
+    }, {
+      distributionLayer: () => layers.distributionLayer,
+      svg: () => layers.svg?.node?.() || layers.svg
+    }),
+    territorialBoundaryResources:snapshot("territorialBoundaryResources", {
+      getState: () => ports.projectState.state,
+      getCountryLandRevision: () => ports.countries.countryLandRevision,
+      getTerritorialGeometryRevision: () => ports.spatialQuery.mapObjectGeometryRevisions.territorial,
+      geometryToken: geometry => geometryRevisionKey(geometry),
+      territorialEntityColor: ports.colorModel.territorialEntityColor,
+      layerStyle,
+      mapTheme: ports.preferences.mapTheme,
+      replaceGpuSceneDomain: ports.gpuRenderingA.replaceGpuSceneDomain,
+      gpuSceneOrder: ports.gpuRenderingA.gpuSceneOrder
+    }, {
+      territorialBoundaryLayer: () => layers.territorialBoundaryLayer
+    }),
+    baseResources:snapshot("baseResources", {
+      getState: () => ports.projectState.state,
+      updatePandoGlobeShell: ports.projectionView.updatePandoGlobeShell,
+      graticule: ports.projectionView.graticule,
+      gpuMapRenderer: ports.rendering.gpuMapRenderer,
+      replaceGpuSceneDomain: ports.gpuRenderingA.replaceGpuSceneDomain,
+      buildGraticuleStrokeGeometryPacket,
+      isLightTheme: () => (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || ports.preferences.systemTheme) === 'light'
+    }, {
+
+    }),
+    selectionResources:snapshot("selectionResources", {
+      getState: () => ports.projectState.state,
+      d3: ports.platform.d3,
+      document,
+      resolvedInteractionStyle: () => ports.preferences.resolvedInteractionStyle,
+      territorialDisplayFeature: value => ports.objectModelB.territorialScope.displayFeature(value),
+      countryOutlineFeature: ports.countryLabelModel.countryOutlineFeature,
+      mapFeatureForObjectRef: ports.gpuRenderingA.mapFeatureForObjectRef,
+      objectRefVisible: ports.objectOperationsA.objectRefVisible,
+      territorialEntityById: id => ports.territorialModel.entityRepository.get(id),
+      selectionGeometryRevision: ports.renderScene.selectionGeometryRevision,
+      buildRenderableStrokeFeature,
+      buildSelectionBoundarySegments,
+      getCountryLandRevision: () => ports.countries.countryLandRevision,
+      getStateRevision: readStateRevision,
+      getTerritorialBoundaryRevision: () => session.renderingDomain?.getTerritorialBoundaryStats?.().revision || '',
+      getViewRevision: () => ports.mapLayout.viewRevision,
+      getProjection: () => ports.projectState.state.projection,
+      isMobile: ports.surfaces.isMobile,
+      gpuMapRenderer: ports.rendering.gpuMapRenderer,
+      buildGpuInteractionFillItems: ports.gpuRenderingA.buildGpuInteractionFillItems,
+      syncGpuInteractionState: ports.renderScene.syncGpuInteractionState,
+      setCurrentSelectionPacket: packet => { ports.interactionStateCommands.setSelectionPacket(packet || null); },
+      getCurrentSelectionPacket: () => ports.gpuRenderingA.currentSelectionPacket
+    }, {
+      selectionLayer: () => layers.selectionLayer,
+      hoverLayer: () => layers.hoverLayer,
+      selectionPass: () => ports.gpuRenderingA.selectionPass
+    })
+  };
+  for(const name of Object.keys(editing||{}))if(!Object.hasOwn(result,name))result[name]=snapshot(name,{},{});
+  return {...result,refreshRenderResources(frameId){
+      if(frameId!=null&&frameId===lastFrame)return lastFrame;
+      for(const {refresh}of Object.values(resources))refresh();lastFrame=frameId;return lastFrame;
+    }};
+}

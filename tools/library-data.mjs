@@ -174,7 +174,7 @@ export function hydrateReports({ root = defaultRoot, path, access } = {}) {
   if (!['read', 'write'].includes(access)) throw Error('Report access must be read or write');
   checkedReportPath(libraryReportRoot(root), path);
   if (path.split(/[\\/]/).some(part => part.startsWith('.'))) throw Error('Unsafe reserved report path');
-  return withLibraryLock(root, () => hydrateOwnedReports({ root, path, access }));
+  return withLibraryLock(root, () => hydrateOwnedReports({ root, path, access }),{compact:false});
 }
 function hydrateOwnedReports({ root, path, access }) {
   excludeReportStorage(librarySharedCheckout(root));

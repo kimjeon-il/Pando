@@ -1,4 +1,4 @@
-import { createReadPorts } from './app-capability-port-utils.js';
+import { createReadPorts } from '../../../../../shared/frontend/js/modules/map-owner-ports.js';
 
 export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
   "fileBindings": [

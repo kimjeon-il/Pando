@@ -2,7 +2,6 @@ import { INTERACTION_ROLE_PRIORITY } from "../../../../../shared/frontend/js/mod
 import { interactionNodeRole, resolveMapStrokeStyle, resolveMapInteractionStyle } from "../../../../../shared/frontend/js/modules/map-interaction-style.js";
 import { applySvgInteractionOwnership } from "../../../../../shared/frontend/js/modules/render-channel-ownership.js";
 import { createGpuMeshWorkerJobs } from "../../../../../shared/frontend/js/modules/gpu-mesh-worker-jobs.js";
-import { geometryRevisionKey } from "../../../../../shared/frontend/js/modules/geometry-versions.js";
 /** InteractionPackets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -21,10 +20,6 @@ export function createInteractionPackets() {
   function connect(ports) {
     if (dependencies) throw new Error('interaction-packets already connected');
     dependencies = ports;
-  }
-
-  function territorialBoundaryGeometryToken(geometry) {
-    return geometryRevisionKey(geometry);
   }
 
   function applyOverlayStackOrder() {
@@ -231,6 +226,5 @@ export function createInteractionPackets() {
     get defaultDraftInstruction() { return defaultDraftInstruction; },
     get syncGenericDraftFeedback() { return syncGenericDraftFeedback; },
     get syncGpuInteractionLayer() { return syncGpuInteractionLayer; },
-    get territorialBoundaryGeometryToken() { return territorialBoundaryGeometryToken; },
   });
 }

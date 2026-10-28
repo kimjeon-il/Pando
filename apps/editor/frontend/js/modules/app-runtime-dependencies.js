@@ -11,7 +11,6 @@ const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '';
 const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, territorialParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`../../../../../shared/frontend/js/modules/builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutTerritorialFlags } = await import(`../../../../../shared/frontend/js/modules/territorial-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
-const { createTerritorialScopeResolver } = await import(`../../../../../shared/frontend/js/modules/territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityRepository } = await import(`../../../../../shared/frontend/js/modules/territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityStore } = await import(`../../../../../shared/frontend/js/modules/territorial-entity-store.js?v=${encodeURIComponent(moduleRevision)}`);
 const { classifyBuiltinCountries, builtinSubunitSourceId } = await import(`../../../../../shared/frontend/js/modules/builtin-subunits.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -380,7 +379,6 @@ export {
   territorialParentChoices,
   BUILTIN_TERRITORY_MERGES,
   layoutTerritorialFlags,
-  createTerritorialScopeResolver,
   classifyBuiltinCountries,
   builtinSubunitSourceId,
   versionedModuleUrl,

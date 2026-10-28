@@ -1,7 +1,8 @@
-import { createReadPorts } from './app-capability-port-utils.js';
+import { createReadPorts } from '../../../../../shared/frontend/js/modules/map-owner-ports.js';
 
 export const PROJECT_IO_OWNER_PORTS = Object.freeze({
   "mapSettings": [
+    "layerResources",
     "builtinBaseline",
     "builtinCountries",
     "applicationConstantsA",
@@ -253,6 +254,7 @@ const PORT_SPECS = Object.freeze({
 export function createProjectIoPorts(providers) {
   return Object.freeze({
     ...createReadPorts(providers, PORT_SPECS),
+
     gisRuntimeCommands: Object.freeze({
       installWorkflow: value => { providers.gisAssembly.gisWorkflow = value; },
       setExportController: value => { providers.runtime.setgisExportController(value); },

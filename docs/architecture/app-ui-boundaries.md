@@ -39,6 +39,25 @@ shared map owners. Both products connect through this boundary. Ports remain
 live, including accessors and sources installed later in startup. Editor-only
 commands remain in the editor composition; they are not empty Viewer services.
 
+`createMapReadPorts` owns the shared owner-to-owner member mappings. Both products
+merge these live descriptors with their host services and editor capabilities;
+they do not snapshot late-installed sources. `initializeMapReadOwners` groups
+query, spatial, label, anchor and projection initialization without owning product
+startup, document admission or native lifecycle policy.
+
+`createMapRenderingResources` composes the shared display resources from the
+existing ports, canonical selection session and live layer references. Resources
+refresh once per render frame. Editor preview, editing interaction and editing
+metrics are explicit editor extensions; renderer dependency keys and caches stay
+with their existing owners.
+
+`createMapInputPresentation` reads current map state from the shared ports and
+accepts explicit editor hooks. Both products use the same operation error
+contract: error, user message, code and duration. Select-mode touch releases
+select directly and suppress a later synthetic click through the existing input
+controller. Map settings own accepted
+layer-visibility source preparation through the existing hydro/place loaders.
+
 `runtime-context.js` validates the immutable generated build receipt and owns
 versioned asset URL construction. Composition passes that receipt to builtin
 and physical resource owners. Module-relative imports use their versioned
@@ -46,7 +65,10 @@ module URL. The immutable Worker resolver remains the asset-manifest boundary.
 
 `file-controller.js` owns file workflow and ProjectDomain commands. An explicit
 browser or native file-access port owns pickers, input events, paths/URIs and
-bytes. `prepareProjectSave()` runs before encoding and returns a `write`/`abort`
+bytes. The controller requires `openProjectFile` for both products and
+`openGisFiles`, `prepareProjectSave`, `saveExportFile` for the editor at construction.
+Optional transport `bind`/`dispose` hooks must be functions when provided.
+`prepareProjectSave()` runs before encoding and returns a `write`/`abort`
 destination. The browser picker opens during preparation to retain user
 activation. Native transport retains its existing `finish_document_write`
 dialog timing and chunk protocol. Persistence receives its resolved preview Worker URL; it does not
