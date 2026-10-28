@@ -7,6 +7,7 @@
 #include <memory>
 #include <cstring>
 #include <set>
+#include <stdexcept>
 
 namespace pandoeditor {
 namespace {
@@ -466,6 +467,36 @@ double gisValidationArea(const MultiPolygon& polygons) noexcept {
         total+=std::max(0.,exterior-holes);
     }
     return total;
+}
+GisOverlapCandidateIterator::GisOverlapCandidateIterator(
+    std::vector<std::vector<GisComponentBounds>> bounds,std::vector<bool> affected,bool scoped)
+    :bounds_(std::move(bounds)),affected_(std::move(affected)),scoped_(scoped) {
+    if(affected_.size()!=bounds_.size())throw std::invalid_argument("Invalid GIS affected scope");
+    if(scoped_)for(std::size_t i=0;i<affected_.size();++i)if(affected_[i])affectedIndexes_.push_back(i);
+}
+std::optional<GisOverlapCandidate> GisOverlapCandidateIterator::next() {
+    const auto overlaps=[](const GisComponentBounds& a,const GisComponentBounds& b) {
+        return a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];
+    };
+    while(left_<bounds_.size()){
+        if(right_>=bounds_.size()){++left_;right_=left_+1;continue;}
+        if(scoped_&&!affected_[left_]){
+            const auto found=std::lower_bound(affectedIndexes_.begin(),affectedIndexes_.end(),right_);
+            if(found==affectedIndexes_.end()){++left_;right_=left_+1;continue;}
+            right_=*found;
+        }
+        const auto i=left_,j=right_++;
+        GisOverlapCandidate result{i,j,{}};
+        const bool whole=bounds_[i].size()*bounds_[j].size()>64;
+        for(std::size_t a=0;a<bounds_[i].size();++a) {
+            for(std::size_t b=0;b<bounds_[j].size();++b)if(overlaps(bounds_[i][a],bounds_[j][b])) {
+                result.componentPairs.emplace_back(a,b);
+                if(whole)return result;
+            }
+        }
+        if(!result.componentPairs.empty())return result;
+    }
+    return std::nullopt;
 }
 double planarArea(const Geometry& g) noexcept { double sum=0;for(const auto& p:g.polygons)for(std::size_t i=0;i<p.size();++i)sum+=(i?-1:1)*ringArea(p[i]);return std::abs(sum); }
 bool significantArea(double value,double reference) noexcept { return value>std::max(1e-10,std::abs(reference)*1e-9); }

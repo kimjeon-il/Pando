@@ -82,6 +82,16 @@ test('GIS overlap area closes open rings before subtracting holes', () => {
   assert.equal(sphericalCore.gisValidationArea([]), 0);
 });
 
+test('GIS overlap candidates preserve pair order and the affected scope', () => {
+  const boxes = [[[0, 0, 2, 2]], [[1, 1, 3, 3]], [[0, 0, 1, 1]], [[20, 20, 21, 21]]];
+  const iterator = new sphericalCore.GisOverlapCandidates(boxes, [false, true, false, false], true);
+  try {
+    assert.deepEqual(iterator.next(), { leftIndex: 0, rightIndex: 1, componentPairs: [[0, 0]] });
+    assert.deepEqual(iterator.next(), { leftIndex: 1, rightIndex: 2, componentPairs: [[0, 0]] });
+    assert.equal(iterator.next(), null);
+  } finally { iterator.delete(); }
+});
+
 test('browser and Worker geographic boundary contracts are exact and non-mutating', () => {
   const worker = createBoundaryWorker();
   for (const input of boundaryFixtures()) {

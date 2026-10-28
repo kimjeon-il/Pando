@@ -1,5 +1,6 @@
 #pragma once
 #include <pandoeditor/document.h>
+#include <array>
 
 namespace pandoeditor {
 double planarArea(const Geometry& geometry) noexcept;
@@ -19,4 +20,21 @@ std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring);
 double territorialValidationArea(const MultiPolygon& polygons) noexcept;
 bool validateGisGeometry(const MultiPolygon& polygons);
 double gisValidationArea(const MultiPolygon& polygons) noexcept;
+using GisComponentBounds = std::array<double,4>;
+struct GisOverlapCandidate {
+    std::size_t leftIndex, rightIndex;
+    std::vector<std::pair<std::size_t,std::size_t>> componentPairs;
+};
+class GisOverlapCandidateIterator {
+public:
+    GisOverlapCandidateIterator(std::vector<std::vector<GisComponentBounds>> bounds,
+        std::vector<bool> affected, bool scoped);
+    std::optional<GisOverlapCandidate> next();
+private:
+    std::vector<std::vector<GisComponentBounds>> bounds_;
+    std::vector<bool> affected_;
+    std::vector<std::size_t> affectedIndexes_;
+    bool scoped_;
+    std::size_t left_=0,right_=1;
+};
 }

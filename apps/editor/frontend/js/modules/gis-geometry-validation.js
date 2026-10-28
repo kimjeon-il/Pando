@@ -26,16 +26,8 @@ function ringBounds(ring) {
   return bounds;
 }
 
-function boundsOverlap(a, b) {
-  return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
-}
-
 function polygonBounds(geometry) {
   return polygonSets(geometry).map(polygon => ringBounds(polygon?.[0] || []));
-}
-
-function canOverlap(a, b) {
-  return a.some(first => b.some(second => boundsOverlap(first, second)));
 }
 
 const robustPolygonIntersection = (left, right) => (
@@ -79,10 +71,14 @@ export function validateCollection(collection, affectedIds = null, { overlapAffe
     }
     componentBounds.push(polygonBounds(features[index].geometry));
   }
-  for (let i = 0; i < features.length; i += 1) {
-    for (let j = i + 1; j < features.length; j += 1) {
-      if (overlapAffected && !overlapAffected.has(ids[i]) && !overlapAffected.has(ids[j])) continue;
-      if (!canOverlap(componentBounds[i], componentBounds[j])) continue;
+  if (typeof sharedCalculationCore.GisOverlapCandidates !== 'function') {
+    throw Object.assign(new Error('Canonical C++ GIS overlap scope is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  const candidates = new sharedCalculationCore.GisOverlapCandidates(componentBounds,
+    ids.map(id => !!overlapAffected?.has(id)), !!overlapAffected);
+  try {
+    for (let candidate = candidates.next(); candidate; candidate = candidates.next()) {
+      const i = candidate.leftIndex, j = candidate.rightIndex;
       const overlap = [];
       let overlapPlanarArea = 0;
       const leftPolygons = polygonSets(features[i].geometry);
@@ -104,22 +100,19 @@ export function validateCollection(collection, affectedIds = null, { overlapAffe
           throw new Error(`COUNTRY_OVERLAP_CALCULATION_FAILED: ${ids[i]}/${ids[j]} whole MultiPolygon: ${error.message}`, { cause: error });
         }
       } else {
-        for (let leftIndex = 0; leftIndex < leftPolygons.length; leftIndex += 1) {
-          for (let rightIndex = 0; rightIndex < rightPolygons.length; rightIndex += 1) {
-            if (!boundsOverlap(componentBounds[i][leftIndex], componentBounds[j][rightIndex])) continue;
-            let componentOverlap;
-            try {
-              componentOverlap = robustPolygonIntersection(
-                [leftPolygons[leftIndex]],
-                [rightPolygons[rightIndex]],
-              );
-            } catch (error) {
-              throw new Error(`COUNTRY_OVERLAP_CALCULATION_FAILED: ${ids[i]}/${ids[j]} polygon ${leftIndex}/${rightIndex}: ${error.message}`, { cause: error });
-            }
-            if (!componentOverlap?.length) continue;
-            overlap.push(...componentOverlap);
-            overlapPlanarArea += planarArea(componentOverlap);
+        for (const [leftIndex, rightIndex] of candidate.componentPairs) {
+          let componentOverlap;
+          try {
+            componentOverlap = robustPolygonIntersection(
+              [leftPolygons[leftIndex]],
+              [rightPolygons[rightIndex]],
+            );
+          } catch (error) {
+            throw new Error(`COUNTRY_OVERLAP_CALCULATION_FAILED: ${ids[i]}/${ids[j]} polygon ${leftIndex}/${rightIndex}: ${error.message}`, { cause: error });
           }
+          if (!componentOverlap?.length) continue;
+          overlap.push(...componentOverlap);
+          overlapPlanarArea += planarArea(componentOverlap);
         }
       }
       if (overlapPlanarArea <= 1e-8) continue;
@@ -127,6 +120,8 @@ export function validateCollection(collection, affectedIds = null, { overlapAffe
       const areaKm2 = geometryAreaKm2(overlapGeometry);
       return { overlapAreaKm2: areaKm2, firstOverlap: [ids[i], ids[j]] };
     }
+  } finally {
+    candidates.delete();
   }
   return { overlapAreaKm2: 0, firstOverlap: null };
 }
