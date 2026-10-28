@@ -24,7 +24,7 @@ Event inventories are reusable across sovereigns and eras: Germany 1914 coastal 
 ## 2. Existing canonical owners: do not duplicate
 
 - **Current national source geometry:** `assets/data/territorial-entities/source/countries/<lineageId>.json` and the existing territorial build pipeline. Generated bundles are **not** authoritative editable source.
-- **German regional event evidence:** `tools/historical-library/sources/german-coastline/change-events.json` and the detailed WMS / dyke / Helgoland evidence alongside it. Do **not** copy those entries into another 'global' country-specific table.
+- **German regional event evidence:** `tools/historical-library/sources/german-coastline/change-events.json` and only major coastline, waterway and island changes documented by independent sources. Dedicated WMS microtile, Cecilienkoog dyke and subpixel diagnostics were retired on 2026-10-28; they are not required source evidence. Do **not** copy those entries into another 'global' country-specific table.
 - **Dutch dated event evidence:** `tools/historical-library/sources/netherlands/change-events.json` and the [condensed historical Netherlands report](https://github.com/kimjeon-il/PandoLab-library-data/blob/main/reports/borders/reconstruction/netherlands/land-reclamation-reverse-timeline.md). Retired baseline probes and individual area/vertex receipts are not historical shoreline sources or publication prerequisites.
 
 Worldwide catalogue discovery now starts from the [read-only coastline catalogue registry](../tools/historical-library/sources/coastline-catalogs.json). It references German and Dutch regional source catalogues by **path and geographic scope**, without copying events. A future loader may consume this registry; no production loader or current-world build has been changed.
@@ -62,7 +62,7 @@ Follow the existing GIS policy's `source-indexed`, `overlay-reviewed`, `screen-d
 Use overlapping spatial packages **rather than a separate full audit for every country**. The first pilot packages are:
 
 - **Netherlands:** Zuiderzee/IJsselmeer, Wieringermeer and Flevoland first; review Lauwerszee and IJsselmeer/Markermeer connectivity only when visible at 1:10M. Rotterdam, Zeeland, Dollard and smaller fills are exceptional only where a major coastline or waterway change is demonstrated, not a mandatory high-resolution rollback.
-- **1914 German Empire:** continue existing coastal event list and historical WMS, North Frisian levees, Helgoland and Schleswig land/sea boundary; **do not treat large Natural Earth vs HistoGIS differences as confirmed reclamation**.
+- **1914 German Empire:** keep the dated event list and historically significant mainland/island changes (including Helgoland when relevant). Retire microlevee tracing, period-WMS pixel comparisons and unverified small-coastline probes. **Do not treat large Natural Earth vs HistoGIS differences as confirmed reclamation**.
 - **Shared Dollard/Ems:** one physical shoreline investigation with *separate* bilateral frontier evidence and sovereignty interpretations.
 
 Use event checkpoints, not synthetic 1-year snapshots. Prioritize major changes and missing important coastal components at the Natural Earth 1:10M presentation level, with period evidence. Minor numerical differences do not require further reconstruction; small changes affecting a selected important exception remain reviewable with a recorded reason. Preserve the existing pilot inventory and its observed results rather than claiming they have been revalidated under this policy.

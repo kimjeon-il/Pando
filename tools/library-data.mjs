@@ -1223,17 +1223,28 @@ function assertReportSubject(root, path) {
   const subject = path.slice(8).split('/')[0];
   if (!Object.hasOwn(REPORT_SUBJECTS, subject) && !['README.md', 'TEMPLATE.md'].includes(subject)) throw Error(`Use a canonical report subject; obsolete path: ${path}`);
 }
-function reportWorkingFiles(root, prefixes) {
+function reportWorkingFiles(root, prefixes, removePaths = []) {
   if (!Array.isArray(prefixes) || !prefixes.length || prefixes.some(path => typeof path !== 'string'
     || !/^reports\/[\w.-]+(?:\/[\w.-]+)*$/.test(path) || path.split('/').some(part => part.startsWith('.')))) {
     throw Error('Report completion requires explicit reports/<scope> prefixes.');
+  }
+  if (!Array.isArray(removePaths) || removePaths.some(path => typeof path !== 'string'
+    || !/^reports\/[\w.-]+(?:\/[\w.-]+)+$/.test(path) || path.split('/').some(part => part.startsWith('.'))
+    || !prefixes.some(prefix => path === prefix || path.startsWith(prefix + '/')))) {
+    throw Error('Report deletion requires explicit paths inside the selected report scopes.');
+  }
+  for (const path of removePaths) {
+    assertReportSubject(root, path);
+    if (existsSync(checkedReportPath(libraryReportEditRoot(root), path.slice(8)))) {
+      throw Error(`Remove the working original before publishing its deletion: ${path}`);
+    }
   }
   const files = new Map();
   for (const prefix of prefixes) {
     assertReportSubject(root, prefix);
     const scope = checkedReportPath(libraryReportEditRoot(root), prefix.slice(8));
     const scoped = plainReportFiles(scope);
-    if (!scoped.length) throw Error(`Empty or missing report scope: ${prefix}`);
+    if (!scoped.length && !removePaths.some(path => path === prefix || path.startsWith(prefix + '/'))) throw Error(`Empty or missing report scope: ${prefix}`);
     for (const file of scoped) {
       const before = lstatSync(file.path), bytes = readFileSync(file.path), after = lstatSync(file.path);
       if (before.size !== after.size || before.mtimeMs !== after.mtimeMs) throw Error(`Report writer is still changing ${file.path}`);
@@ -1276,9 +1287,20 @@ function prepareReportPublication(root, prefixes) {
   }
   return { checkout: shared };
 }
-function checkOwnedReports(root, prefixes) {
-  const files = reportWorkingFiles(root, prefixes), shared = librarySharedCheckout(root), revision = fetchReportMain(shared);
+function checkOwnedReports(root, prefixes, removePaths = []) {
+  const files = reportWorkingFiles(root, prefixes, removePaths), shared = librarySharedCheckout(root), revision = fetchReportMain(shared);
   const index = JSON.parse(git(shared, ['show', `${revision}:archive/index.json`], { allowFetch: true }));
+  for (const path of removePaths) {
+    if (index.files[path]) {
+      throw Error(`Retired report is still present remotely: ${path}`);
+    }
+  }
+  if (removePaths.length) {
+    const subjects = [...new Set(removePaths.map(path => path.split('/').slice(0, 2).join('/')))];
+    const present = git(shared, ['ls-tree', '-r', '--name-only', revision, '--', ...subjects]).split('\n')
+      .filter(file => removePaths.some(path => file === path || file.startsWith(path + '/')));
+    if (present.length) throw Error(`Retired report is still present remotely: ${present.join(', ')}`);
+  }
   for (const file of files) {
     const entry = index.files[file.logical];
     if (!entry || entry.sha256 !== file.sha256 || entry.bytes !== file.bytes) throw Error(`Report is not published with its current original: ${file.logical}`);
@@ -1288,20 +1310,20 @@ function checkOwnedReports(root, prefixes) {
     const bytes = entry.encoding === 'gzip' ? gunzipSync(stored) : stored;
     if (bytes.length !== file.bytes || reportDigest(bytes) !== file.sha256) throw Error(`Remote report content is corrupt or mismatched: ${file.logical}`);
   }
-  return { revision, files: files.length, prefixes };
+  return { revision, files: files.length, removed: new Set(removePaths).size, prefixes };
 }
 // Task completion is scoped and explicit. Merely requesting a writable path
 // must never publish a partially written report or unrelated runtime work.
-export function publishLibraryReports({ root = defaultRoot, prefixes } = {}) {
+export function publishLibraryReports({ root = defaultRoot, prefixes, removePaths = [] } = {}) {
   return withLibraryLock(root, () => {
-    reportWorkingFiles(root, prefixes);
+    reportWorkingFiles(root, prefixes, removePaths);
     const data = prepareReportPublication(root, prefixes);
-    storeOwnedLibraryData({ root, prefixes, removePaths: [], push: true, reportData: data });
-    return checkOwnedReports(root, prefixes);
+    storeOwnedLibraryData({ root, prefixes, removePaths, push: true, reportData: data });
+    return checkOwnedReports(root, prefixes, removePaths);
   },{compact:false});
 }
-export function checkLibraryReports({ root = defaultRoot, prefixes } = {}) {
-  return withLibraryLock(root, () => checkOwnedReports(root, prefixes),{compact:false});
+export function checkLibraryReports({ root = defaultRoot, prefixes, removePaths = [] } = {}) {
+  return withLibraryLock(root, () => checkOwnedReports(root, prefixes, removePaths),{compact:false});
 }
 
 // App-owned writers store their output here; the data repository runs no tools.
@@ -1400,6 +1422,13 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
     throw Error(`Preserve or remove the working original before archiving its deletion: ${path}`);
   }
   const removed = new Set(removePaths);
+  const retiredReports = [...removed].filter(path => path.startsWith('reports/'));
+  const trackedReports = retiredReports.length ? new Set(git(data.checkout, ['ls-files', '-z', '--', 'reports']).split('\0').filter(Boolean)) : new Set();
+  for (const path of retiredReports) {
+    const output = checkedReportPath(data.checkout, path);
+    if ((existsSync(output) && (!lstatSync(output).isFile() || lstatSync(output).isSymbolicLink()))
+      || [...trackedReports].some(file => file.startsWith(path + '/'))) throw Error(`Explicit report deletion must name a plain file: ${path}`);
+  }
   const seen = new Set();
   const visit = (directory, prefix) => {
     if (!traversable(prefix) || !existsSync(directory)) return;
@@ -1417,7 +1446,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   // branch must never be implicitly imported into a branch publication.
   visit(editRoot, 'reports');
   for (const [path, entry] of Object.entries(index.files)) {
-    if (path.startsWith('reports/') && !removed.has(path)) continue;
+    if (path.startsWith('reports/')) continue;
     if (!included(path) || !(path.startsWith('reports/') || managedMounts.some(mount => path.startsWith(mount + '/'))) || seen.has(path)) continue;
     delete index.files[path];
     if (entry.stored === path || path.startsWith('reports/')) {
@@ -1426,6 +1455,15 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
       if (git(data.checkout, ['ls-files', '--', path])) git(data.checkout, ['update-index', '--force-remove', '--', path]);
     }
   }
+  for (const path of retiredReports) {
+    delete index.files[path];
+    const output = checkedReportPath(data.checkout, path);
+    if (existsSync(output)) removeContentLink(librarySharedCheckout(root), output);
+  }
+  const trackedRetirements = retiredReports.filter(path => trackedReports.has(path));
+  if (trackedRetirements.length) execFileSync('git', [...gitOptions, 'update-index', '-z', '--index-info'], {
+    cwd: data.checkout, input: trackedRetirements.map(path => `0 ${'0'.repeat(40)}\t${path}\0`).join(''), stdio: ['pipe', 'pipe', 'pipe'],
+  });
   // The existing native source schema remains the only editable library format.
   if (storeNativeObjects) {
   const indexBytes = readFileSync(resolve(data.materialized, 'assets/data/territorial-entities/generated/v2/index.json'));
@@ -1491,7 +1529,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (process.argv.includes('--publish-reports') || process.argv.includes('--check-reports')) {
     const root = process.argv.find(arg => arg.startsWith('--root='))?.slice(7) || defaultRoot;
     const operation = process.argv.includes('--publish-reports') ? publishLibraryReports : checkLibraryReports;
-    console.log(JSON.stringify(operation({ root, prefixes })));
+    const removePaths = process.argv.filter(arg => arg.startsWith('--remove-path=')).map(arg => arg.slice(14));
+    console.log(JSON.stringify(operation({ root, prefixes, removePaths })));
   } else {
   const separator = process.argv.indexOf('--');
   const selected = separator < 0 ? [] : process.argv.slice(separator + 1).filter(path => !path.startsWith('-'));

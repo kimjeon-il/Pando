@@ -14,7 +14,7 @@ import {validatePhysicalMetrics} from './replay-ussr-1922-physical.mjs';
 import {APPROVED_DATA_PIN,approvedReportReceiptsMatch} from './audit-ussr-1922-approved-followups.mjs';
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
-export const ARCHIVE_BASE='reports/geography/ussr-1922-caspian-application-2026-10-24/';
+export const ARCHIVE_BASE='reports/borders/reconstruction/ussr-1922-caspian-application-2026-10-24/';
 export const ARCHIVED=Object.freeze({
   'README.md':{sha256:'b56e841c11112de6af6e7d76e502b62d931f12a42b839006fcf7e97765427aa8',bytes:9921},
   'application-proof.json':{sha256:'6948649a0ba4be6201552b75f2cbec1f88b7f696bf5c7f88eff34d10d744b8b4',bytes:2655},
