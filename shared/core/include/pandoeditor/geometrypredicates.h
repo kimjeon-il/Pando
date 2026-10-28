@@ -15,4 +15,6 @@ struct TerritorialRingIssue {
     std::optional<std::size_t> coordinateIndex, vertexIndex, segmentIndex;
 };
 std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring);
+// Sum each polygon's nonnegative shell-minus-holes area without closing rings.
+double territorialValidationArea(const MultiPolygon& polygons) noexcept;
 }
