@@ -73,20 +73,29 @@ template<class Function> auto boundary(Function function)->decltype(function()) 
     }
     std::terminate();
 }
+EM_JS(emscripten::EM_VAL, packReferenceUtf16, (emscripten::EM_VAL handle), {
+    const value=Emval.toValue(handle), units=new Uint16Array(value.length);
+    for(let i=0;i<value.length;i++)units[i]=value.charCodeAt(i);
+    return Emval.toHandle(units);
+});
+EM_JS(emscripten::EM_VAL, unpackReferenceUtf16, (const std::uint16_t* data, unsigned length), {
+    let value=String();const start=data>>>1;
+    for(let offset=0;offset<length;offset+=8192)
+        value+=String.fromCharCode(...HEAPU16.subarray(start+offset,start+Math.min(length,offset+8192)));
+    return Emval.toHandle(value);
+});
 std::u16string referenceUtf16(const val& input) {
     if(!type(input,"string"))fail("INVALID_REFERENCE_GRAPH","Reference IDs must be strings.");
-    std::u16string result;const auto length=input["length"].as<unsigned>();result.reserve(length);
-    for(unsigned i=0;i<length;++i)result.push_back(static_cast<char16_t>(input.call<unsigned>("charCodeAt",i)));
+    const auto packed=val::take_ownership(packReferenceUtf16(input.as_handle()));
+    std::vector<std::uint16_t> units(packed["length"].as<unsigned>());
+    if(!units.empty())val(emscripten::typed_memory_view(units.size(),units.data())).call<void>("set",packed);
+    std::u16string result;result.reserve(units.size());
+    for(const auto unit:units)result.push_back(static_cast<char16_t>(unit));
     return result;
 }
 val referenceWebString(const std::u16string& input) {
-    auto chunks=val::array();unsigned part=0;
-    for(std::size_t start=0;start<input.size();start+=8192) {
-        auto units=val::array();unsigned index=0;
-        for(std::size_t i=start;i<std::min(input.size(),start+8192);++i)units.set(index++,unsigned(input[i]));
-        chunks.set(part++,val::global("String")["fromCharCode"].call<val>("apply",val::null(),units));
-    }
-    return chunks.call<val>("join",std::string(""));
+    static_assert(sizeof(char16_t)==sizeof(std::uint16_t));
+    return val::take_ownership(unpackReferenceUtf16(reinterpret_cast<const std::uint16_t*>(input.data()),input.size()));
 }
 TerritorialRootNode<std::u16string> rootNodeForWeb(const val& feature) {
     const auto properties=feature["properties"],rawId=feature["id"],rawParent=properties["parentId"],kind=properties["entityKind"];
