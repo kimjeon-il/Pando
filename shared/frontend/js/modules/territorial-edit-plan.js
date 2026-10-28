@@ -12,20 +12,14 @@
 
 function territorialRootId(feature, getEntity) {
   if (!feature) return '';
-  if (feature.properties.entityKind === 'regional') {
-    if (feature.properties.parentId) throw new Error('독립 권역에는 부모를 지정할 수 없습니다.');
-    return id(feature.id);
-  }
-  const seen = new Set([id(feature.id)]);
-  let current = feature;
-  while (current.properties.parentId) {
-    const parentId = id(current.properties.parentId);
-    if (seen.has(parentId)) throw new Error(feature.id + '의 부모 관계가 순환합니다.');
-    const parent = getEntity(parentId);
-    if (!parent || parent.properties.entityKind !== 'general') throw new Error(feature.id + '의 부모는 존재하는 일반객체여야 합니다.');
-    seen.add(parentId); current = parent;
-  }
-  return id(current.id);
+  const core = root.PandoLabSphericalCore;
+  if (typeof core?.resolveTerritorialRoot !== 'function') throw new Error('Canonical C++ territorial root validator is unavailable.');
+  const result = core.resolveTerritorialRoot(feature, getEntity);
+  if (result.status === 'regional-parent') throw new Error('독립 권역에는 부모를 지정할 수 없습니다.');
+  if (result.status === 'cycle') throw new Error(feature.id + '의 부모 관계가 순환합니다.');
+  if (result.status === 'invalid-parent') throw new Error(feature.id + '의 부모는 존재하는 일반객체여야 합니다.');
+  if (result.status !== 'valid') throw new Error('Unknown C++ territorial root result.');
+  return result.rootId;
 }
 
   function createKernel(clipper, { normalize = geometry => geometry } = {}) {
