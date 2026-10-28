@@ -1,7 +1,7 @@
 name: Soviet singleton-edge retained Worker memory A/B
 on:
   push:
-    branches: [work/perf-singleton-edges-20261017]
+    branches: [ work/perf-singleton-edges-20261017 ]
     paths:
       - '.github/workflows/soviet-singleton-edge-memory-ab.yml'
   workflow_dispatch:
@@ -22,8 +22,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: 48fe06df9ec7ce47b4f0640d1f43817deb3a964a
+          ref: b010c23645f8aaffd6084a7a89e1a6c6826304ff
           path: baseline
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: c2dc7fcf8cc99be4d9617df06fc8fed01a030ca3
+          inputs-target: baseline
       - uses: actions/setup-node@v4
         with:
           node-version-file: candidate/.nvmrc
@@ -39,7 +44,7 @@ jobs:
       - name: Current main prior to singleton contact edges
         env:
           PANDOLAB_INDEX_VARIANT: packed
-          PANDOLAB_EXPECT_COMMIT: 48fe06df9ec7ce47b4f0640d1f43817deb3a964a
+          PANDOLAB_EXPECT_COMMIT: b010c23645f8aaffd6084a7a89e1a6c6826304ff
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDOLAB_TEST_PORT: '4193'
         run: |

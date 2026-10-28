@@ -13,7 +13,7 @@ import {loadApprovedUSSR,FOUNDER_IDS,comparable,
 import {fetchPinnedSources,OBJECT_PATHS} from './stage-ussr-1922-library-originals.mjs';
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
-export const FIRST_PUBLISHED_REV='7b0fa46c9fe92474e32856d5dc8014e470ff7a67';
+export const FIRST_PUBLISHED_REV='7c85f482a8fa6fbddc4d390cc1dfb6a521a59f4a';
 const fail=(condition,message)=>{if(!condition)throw Error(message);};
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const lookup=(root,id)=>{

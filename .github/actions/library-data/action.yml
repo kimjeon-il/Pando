@@ -1,7 +1,30 @@
 name: Prepare paired external library assets
 description: Mount pinned runtime assets and compressed original material; no data tests or regeneration.
+inputs:
+  inputs-revision:
+    description: Explicit library revision for an isolated reproduction input checkout
+    default: ''
+  inputs-target:
+    description: Existing application checkout receiving the selected inputs
+    default: '.'
 runs:
   using: composite
   steps:
+    - if: inputs.inputs-revision != ''
+      uses: actions/checkout@v4
+      with:
+        repository: kimjeon-il/PandoLab-library-data
+        ref: ${{ inputs.inputs-revision }}
+        path: .pando-inputs/${{ inputs.inputs-target }}
+        persist-credentials: false
+        filter: blob:none
+        sparse-checkout: assets/data
+    - if: inputs.inputs-revision != ''
+      shell: bash
+      env:
+        INPUT_SOURCE: .pando-inputs/${{ inputs.inputs-target }}
+        INPUT_TARGET: ${{ inputs.inputs-target }}
+      run: node "$GITHUB_ACTION_PATH/../../../tools/library-data.mjs" --mount-inputs="$GITHUB_WORKSPACE/$INPUT_SOURCE" --root="$GITHUB_WORKSPACE/$INPUT_TARGET"
     - shell: bash
+      if: inputs.inputs-revision == ''
       run: node tools/library-data.mjs

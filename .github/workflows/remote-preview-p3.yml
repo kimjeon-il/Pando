@@ -30,7 +30,8 @@ on:
         type: string
         required: false
       browser_flows:
-        description: Run editing flows; disable only to measure performance after reusing flow evidence
+        description: Run editing flows; disable only to measure performance after
+          reusing flow evidence
         type: boolean
         required: false
         default: true
@@ -78,11 +79,13 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Check preview and build plan without installing SDKs
-        run: node --test tests/unit/p3-remote-plan.test.mjs tests/unit/p3-preview-server.test.mjs
+        run: node --test tests/unit/p3-remote-plan.test.mjs
+          tests/unit/p3-preview-server.test.mjs
       - name: Fetch source-change base for artifact result verification
         shell: bash
         env:
-          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before || '' }}
+          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha ||
+            github.event.before || '' }}
           SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
           ORIGINAL_SOURCE_SHA: ${{ inputs.original_source_sha || '' }}
         run: |
@@ -99,13 +102,15 @@ jobs:
       - name: Resolve changed scopes using the actual Git history
         id: scope
         env:
-          PANDO_P3_BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before || '' }}
+          PANDO_P3_BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha ||
+            github.event.before || '' }}
           PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
           PANDO_P3_SCOPE: ${{ inputs.scope || 'auto' }}
         run: node scripts/p3-plan-remote.mjs --github-output
   web-contracts:
     needs: plan
-    if: needs.plan.outputs.contracts == 'true' && github.event_name != 'pull_request'
+    if: needs.plan.outputs.contracts == 'true' && github.event_name !=
+      'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -125,7 +130,8 @@ jobs:
       - name: Select current application checks
         id: plan
         env: &a1
-          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
+          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha ||
+            github.event.before || 'origin/main' }}
           HEAD_SHA: ${{ inputs.source_sha || github.sha }}
           CHECK_PROFILE: p3
           CHECK_SCOPE: ${{ inputs.scope || 'auto' }}
@@ -135,10 +141,12 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Install native GIS prerequisites only for selected data checks
         if: steps.plan.outputs.gis_native == 'true'
-        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev
+          pkg-config cmake
       - name: Execute the same checks as local development
         env: *a1
-        run: node scripts/run-application-checks.mjs --output "$RUNNER_TEMP/application-checks.json"
+        run: node scripts/run-application-checks.mjs --output
+          "$RUNNER_TEMP/application-checks.json"
       - name: Upload application check evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -172,7 +180,8 @@ jobs:
       - name: Upload runnable static Web preview for this branch
         uses: actions/upload-artifact@v4
         with:
-          name: p3-web-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha }}
+          name: p3-web-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha
+            }}
           path: ${{ runner.temp }}/p3-preview/${{ needs.plan.outputs.slug }}
           retention-days: 5
           compression-level: 0
@@ -189,7 +198,8 @@ jobs:
     needs: plan
     if: needs.plan.outputs.browser == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ (inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)) && 40 || 18 }}
+    timeout-minutes: ${{ (inputs.scope == 'acceptance' || (inputs.scope == 'browser'
+      && inputs.retry_failed)) && 40 || 18 }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -207,10 +217,14 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify the active built-in world mesh decoder and GPU capability wiring
         if: ${{ !inputs.retry_failed }}
-        run: node --test tests/unit/country-mesh-codec-runtime.test.mjs tests/unit/gpu-scene-platform-port.test.mjs
+        run: node --test tests/unit/country-mesh-codec-runtime.test.mjs
+          tests/unit/gpu-scene-platform-port.test.mjs
       - name: Verify C++ area, shared-border packet, and boundary-edit handoff
         if: ${{ !inputs.retry_failed }}
-        run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
+        run: node --test tests/unit/p5-spherical-area-delegation.test.mjs
+          tests/unit/edit-preview-handoff.test.mjs
+          tests/unit/country-shared-boundary-state.test.mjs
+          tests/unit/country-shared-boundary-generator.test.mjs
       - name: Verify consecutive country merges and current Worker contracts
         if: inputs.scope == 'acceptance'
         env:
@@ -224,7 +238,8 @@ jobs:
           fi
       - name: Record final committed artifact identity and current hydro consumption
         id: acceptance_inputs
-        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
+        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' &&
+          inputs.retry_failed)
         run: |
           mkdir -p test-results/p9-artifacts
           source_sha="$(git rev-parse HEAD)"
@@ -232,18 +247,26 @@ jobs:
           if [ '${{ inputs.scope }}' = acceptance ]; then node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out test-results/p9-artifacts/hydro.json; fi
       - uses: actions/checkout@v4
         id: acceptance_baseline
-        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
+        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' &&
+          inputs.retry_failed)
         with:
-          ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
+          ref: d57e235cc4b8c7f94a603d4352556f11b28bc735
           path: build-native/p9/baseline
           persist-credentials: false
-      - name: Run real desktop and emulated mobile screenshots plus startup observability
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa
+          inputs-target: build-native/p9/baseline
+      - name: Run real desktop and emulated mobile screenshots plus startup
+          observability
         if: inputs.browser_tests == ''
         shell: bash
         env:
           PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
           PANDOLAB_BROWSER_CHANNEL: chromium
-          PANDO_P9_ACCEPTANCE: ${{ inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed) }}
+          PANDO_P9_ACCEPTANCE: ${{ inputs.scope == 'acceptance' || (inputs.scope ==
+            'browser' && inputs.retry_failed) }}
         run: |
           set -euo pipefail
           mkdir -p test-results/p3-browser
@@ -253,7 +276,8 @@ jobs:
             --workers=1 --retries=0 --max-failures=1 --output=test-results/p3-browser \
             2>&1 | tee test-results/p3-browser.log
       - name: Verify affected Web editing, persistence and plugin import workflows
-        if: inputs.browser_flows != false && (inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed))
+        if: inputs.browser_flows != false && (inputs.scope == 'acceptance' ||
+          (inputs.scope == 'browser' && inputs.retry_failed))
         shell: bash
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
@@ -267,17 +291,21 @@ jobs:
           pattern='annex - (polygon|components|line multiple crossings)|a child cut|plugin GeoJSON|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'
           if [ -n "$PANDO_BROWSER_TESTS" ]; then pattern="$PANDO_BROWSER_TESTS"; fi
           pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/map-plugin-import.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep "$pattern" "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
-      - name: Compare initial display, edit readiness, frames and JS heap against the fixed baseline
-        if: ${{ !cancelled() && steps.acceptance_inputs.outcome == 'success' && steps.acceptance_baseline.outcome == 'success' }}
+      - name: Compare initial display, edit readiness, frames and JS heap against the
+          fixed baseline
+        if: ${{ !cancelled() && steps.acceptance_inputs.outcome == 'success' &&
+          steps.acceptance_baseline.outcome == 'success' }}
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDO_P9_BASELINE_ROOT: build-native/p9/baseline
-        run: pnpm exec playwright test tests/browser/p9-browser-performance.spec.mjs --workers=1 --retries=0 --output=test-results/p9-browser-performance
+        run: pnpm exec playwright test tests/browser/p9-browser-performance.spec.mjs
+          --workers=1 --retries=0 --output=test-results/p9-browser-performance
       - name: Archive screenshots, test output and failure evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p3-browser-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha }}
+          name: p3-browser-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha ||
+            github.sha }}
           path: |
             test-results/p3-browser
             test-results/p9-browser
@@ -300,9 +328,14 @@ jobs:
         uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
         with:
-          ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
+          ref: d57e235cc4b8c7f94a603d4352556f11b28bc735
           path: build-native/p9/baseline
           persist-credentials: false
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa
+          inputs-target: build-native/p9/baseline
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc

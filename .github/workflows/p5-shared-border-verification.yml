@@ -2,7 +2,7 @@ name: P5 Shared border calculation and generator verification
 # P5-6 verification receipt: rerun scoped Web + native CI against the integrated main source tree 691ec5d; comment-only change.
 on:
   push:
-    branches: [work/objects]
+    branches: [ work/objects ]
     paths:
       - '.github/workflows/p5-shared-border-verification.yml'
       - 'shared/core/include/pandoeditor/boundarychain.h'
@@ -127,7 +127,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: kimjeon-il/Pando
-          ref: b436f85a53a5d5fde4e44ca502e08c79488bd1ce
+          ref: 3485ad37c60389c977f1a211236788c6bd17125d
           path: build-native/p5-legacy
           sparse-checkout: |
             assets/js/modules/country-shared-boundary-packet.js

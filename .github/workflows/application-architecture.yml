@@ -21,7 +21,10 @@ on:
     branches:
       - main
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 && format('{0}-{1}', github.event_name, github.event.pull_request.number || github.ref) || format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
+  group: ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' &&
+    github.run_attempt == 1 && format('{0}-{1}', github.event_name,
+    github.event.pull_request.number || github.ref) ||
+    format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 }}
 permissions:
   contents: read
@@ -52,9 +55,11 @@ jobs:
         uses: ./.github/actions/library-data
       - name: Select current application checks
         id: plan
-        if: github.event_name != 'workflow_dispatch' || !startsWith(inputs.browser_scope, 'boundary-')
+        if: github.event_name != 'workflow_dispatch' ||
+          !startsWith(inputs.browser_scope, 'boundary-')
         env: &a5
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before ||
+            'origin/main' }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
         run: node scripts/run-application-checks.mjs --list --github-output
@@ -78,10 +83,12 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Install native GIS prerequisites only for selected data checks
         if: steps.plan.outputs.gis_native == 'true'
-        run: sudo apt-get update && sudo apt-get install -y libgeos-dev libproj-dev zlib1g-dev pkg-config cmake
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev libproj-dev
+          zlib1g-dev pkg-config cmake
       - name: Execute the same checks as local development
         env: *a5
-        run: node scripts/run-application-checks.mjs --output "$RUNNER_TEMP/application-checks.json"
+        run: node scripts/run-application-checks.mjs --output
+          "$RUNNER_TEMP/application-checks.json"
       - name: Upload application check evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -92,7 +99,8 @@ jobs:
   boundary-capture-comparison:
     name: Boundary screencast comparison (A1, B1, B2, A2)
     needs: changes
-    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-capture-comparison'
+    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope ==
+      'boundary-capture-comparison'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -115,7 +123,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boundary-capture-summary-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: boundary-capture-summary-${{ github.run_id }}-attempt-${{
+            github.run_attempt }}
           path: |
             test-results/boundary-capture-comparison/comparison-*/summary.json
             test-results/boundary-capture-comparison/comparison-*/**/evidence/**
@@ -151,7 +160,8 @@ jobs:
   boundary-native-capture:
     name: Boundary native rendering attribution (one B run)
     needs: changes
-    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-native-capture'
+    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope ==
+      'boundary-native-capture'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -189,7 +199,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boundary-native-manifest-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: boundary-native-manifest-${{ github.run_id }}-attempt-${{
+            github.run_attempt }}
           path: |
             test-results/boundary-native-capture/**/boundary-project-undo-native-timeline-manifest.json
             test-results/boundary-native-capture.log
@@ -198,7 +209,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boundary-native-playwright-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: boundary-native-playwright-${{ github.run_id }}-attempt-${{
+            github.run_attempt }}
           path: |
             test-results/boundary-native-capture
             !test-results/boundary-native-capture/**/boundary-project-undo-native-timeline.json*
@@ -207,7 +219,8 @@ jobs:
   boundary-revision-comparison:
     name: Boundary revision comparison (PR1, main1, main2, PR2)
     needs: changes
-    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-revision-comparison'
+    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope ==
+      'boundary-revision-comparison'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -222,9 +235,14 @@ jobs:
       - name: Checkout immutable latest main product
         uses: actions/checkout@v4
         with:
-          ref: 0c55e8e4e8bacb3b125091c9b3a12ff535b5bdb6
+          ref: 9fe9e91c2894c23a646b38ce5c792299dc102f99
           path: boundary-main
           fetch-depth: 1
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 4e93ea7b4fe3be3afc0eb17b11e2f1c6663dcbc2
+          inputs-target: boundary-main
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -245,7 +263,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boundary-revision-summary-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: boundary-revision-summary-${{ github.run_id }}-attempt-${{
+            github.run_attempt }}
           path: |
             boundary-pr/test-results/boundary-revision-comparison/comparison-*/summary.json
             boundary-pr/test-results/boundary-revision-comparison/comparison-*/**/timings.json
@@ -254,27 +273,31 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boundary-revision-PR1-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: boundary-revision-PR1-${{ github.run_id }}-attempt-${{ github.run_attempt
+            }}
           path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/PR1
           if-no-files-found: error
       - name: Upload main1 revision evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boundary-revision-main1-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: boundary-revision-main1-${{ github.run_id }}-attempt-${{
+            github.run_attempt }}
           path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/main1
           if-no-files-found: error
       - name: Upload main2 revision evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boundary-revision-main2-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: boundary-revision-main2-${{ github.run_id }}-attempt-${{
+            github.run_attempt }}
           path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/main2
           if-no-files-found: error
       - name: Upload PR2 revision evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boundary-revision-PR2-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: boundary-revision-PR2-${{ github.run_id }}-attempt-${{ github.run_attempt
+            }}
           path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/PR2
           if-no-files-found: error

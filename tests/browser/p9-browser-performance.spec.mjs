@@ -10,7 +10,7 @@ import os from 'node:os';
 import { createP3PreviewServer } from '../../scripts/p3-preview-server.mjs';
 import { installP9EditWorkload, runP9EditWorkload, readP9EditWorkload, P9_EDIT_METRIC_KEYS } from './helpers/p9-edit-workload.mjs';
 
-const baselineSha = '8e22982616e3c9ba43eeb84baec17cd886267cfa';
+const baselineSha = 'd57e235cc4b8c7f94a603d4352556f11b28bc735';
 const candidateRoot = fileURLToPath(new URL('../../', import.meta.url));
 const viewport = { width: 1440, height: 900 };
 const hardware = process.env.PANDO_P9_HARDWARE === 'true';

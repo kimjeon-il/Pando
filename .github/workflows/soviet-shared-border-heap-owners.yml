@@ -21,7 +21,7 @@ jobs:
         uses: ./.github/actions/library-data
       - name: Confirm only test files and an unrelated documentation report differ from pinned main
         env:
-          MAIN_BASE: e85b3e158d5c02e4aa028283db5b83a1750f4b1a
+          MAIN_BASE: ec21576200489941c1a219f855f19395f465dd31
         run: |
           git merge-base --is-ancestor "$MAIN_BASE" HEAD
           git diff --name-only "$MAIN_BASE" HEAD |
@@ -40,7 +40,7 @@ jobs:
       - name: Measure retaining roots and derived caches in isolated Chromium
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-          PANDOLAB_EXPECT_MAIN_SHA: e85b3e158d5c02e4aa028283db5b83a1750f4b1a
+          PANDOLAB_EXPECT_MAIN_SHA: ec21576200489941c1a219f855f19395f465dd31
         run: pnpm exec playwright test tests/browser/soviet-shared-border-heap-owners.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve raw stage measurements
         if: always()

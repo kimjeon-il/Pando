@@ -2,7 +2,7 @@ name: Hydro v0.13.2 packfile fidelity and Range regression
 
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - 'shared/frontend/js/workers/hydro-shard-store.js'
       - 'shared/frontend/js/workers/hydro-tile-worker.js'
@@ -41,8 +41,8 @@ jobs:
         uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/Pando
-          ref: 8de07030cccff5e7ec3c68e6beb6bb288c95afb2
+          repository: kimjeon-il/PandoLab-library-data
+          ref: 81c45d11d1265e287dd21aaf0127c1112aca1176
           path: historical-hydro
           persist-credentials: false
           filter: blob:none

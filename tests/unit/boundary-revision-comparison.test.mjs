@@ -10,8 +10,8 @@ import test from 'node:test';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const runnerUrl = new URL('../../scripts/run-boundary-revision-comparison.mjs', import.meta.url);
 const configUrl = new URL('../../playwright.boundary-revision.config.mjs', import.meta.url);
-const baseline = '0c55e8e4e8bacb3b125091c9b3a12ff535b5bdb6';
-const head = 'bd7ccd6762928d480c806c6188814372281d24de';
+const baseline = '9fe9e91c2894c23a646b38ce5c792299dc102f99';
+const head = '350e5ae8cf348e8244b355b688741831339ab519';
 const title = 'a child cut snaps to both parent boundaries, preserves coverage and undoes in one step';
 const sequence = ['PR1', 'main1', 'main2', 'PR2'];
 

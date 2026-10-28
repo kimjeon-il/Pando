@@ -40,7 +40,7 @@ jobs:
             printf '#define geometrySignificantOverlap geometrySignificantOverlapLegacy\n'
             printf '#define planarArea planarAreaLegacy\n'
             printf '#define significantArea significantAreaLegacy\n'
-            git show 8df349b988a41073eed4641823ca20fbcfd69347:shared/core/src/geometrypredicates.cpp
+            git show b8b03d7090539bd43d62b9e98bf1bd28368a519b:shared/core/src/geometrypredicates.cpp
           } > /tmp/obj098/legacy-geometrypredicates.cpp
           g++ -std=c++17 -O2 -Ishared/core/include -c /tmp/obj098/legacy-geometrypredicates.cpp -o /tmp/obj098/legacy.o
           g++ -std=c++17 -O2 -DPANDO_OBJ098_LEGACY_COMPARE=1 -Ishared/core/include tests/cpp/obj098-geographic-containment.cpp /tmp/obj098/legacy.o build-native/obj098-core/shared/core/libpandoeditor_core.a -lz -o /tmp/obj098/differential

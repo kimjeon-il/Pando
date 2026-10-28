@@ -1,7 +1,7 @@
 name: Soviet on-demand renderable memory paired A/B
 on:
   push:
-    branches: [work/perf-renderable-on-demand-20261017]
+    branches: [ work/perf-renderable-on-demand-20261017 ]
     paths:
       - '.github/workflows/soviet-streamed-renderable-memory-ab.yml'
   workflow_dispatch:
@@ -22,8 +22,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: baseline
-          ref: 6b0c501dd09029ef237e90c1ef55fdb82bdf315f
+          ref: 9b4886fc7c2623f2bc871fe5a37cf367900a034c
           persist-credentials: false
+      - name: Mount selected baseline inputs from library storage
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 99a76bb8376d798c2e9bf132ad7f8d2b6ccb4298
+          inputs-target: baseline
       - uses: actions/setup-node@v4
         with:
           node-version-file: candidate/.nvmrc
@@ -39,7 +44,7 @@ jobs:
       - name: Pinned main before on-demand outlines
         env:
           PANDOLAB_INDEX_VARIANT: packed
-          PANDOLAB_EXPECT_COMMIT: 6b0c501dd09029ef237e90c1ef55fdb82bdf315f
+          PANDOLAB_EXPECT_COMMIT: 9b4886fc7c2623f2bc871fe5a37cf367900a034c
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDOLAB_TEST_PORT: '4191'
         run: |
