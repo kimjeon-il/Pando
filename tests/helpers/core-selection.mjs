@@ -16,9 +16,9 @@ export async function createNodeSelection({ territorialIds = ['A','B','C','D','D
     .filter(([key]) => admittedPresentationKeys.has(key)));
   seed.layerPresentation.objectOrder = seed.layerPresentation.objectOrder.filter(key => admittedPresentationKeys.has(key));
   seed.timelineRecords = { schemaVersion: TIMELINE_RECORD_SCHEMA_VERSION,propertyBindings: [],
-    lifetimes: territorialIds.map(id => ({ id: 'life:'+id,entityId: id,validFrom: null,validTo: null })),
-    geometryBindings: territorialIds.map(id => ({ id: 'shape:'+id,entityId: id,validFrom: null,validTo: null,geometryRef: { id: 'shape',version: 1 } })),
-    parentRelations: territorialIds.map(id => ({ id: 'parent:'+id,entityId: id,validFrom: null,validTo: null,parentId: '',coverageMode: 'explicit' })) };
+    lifetimes: territorialIds.map(id => ({ id: 'life:'+id,objectRef: {domain:'territorial',id},validFrom: null,validTo: null })),
+    geometryBindings: territorialIds.map(id => ({ id: 'shape:'+id,objectRef: {domain:'territorial',id},validFrom: null,validTo: null,geometryRef: { id: 'shape',version: 1 } })),
+    parentRelations: territorialIds.map(id => ({ id: 'parent:'+id,objectRef: {domain:'territorial',id},validFrom: null,validTo: null,parentId: '',coverageMode: 'explicit' })) };
   const label = seed.labels[0];
   Object.assign(seed, { labels: [],labelSettings: {},genericFeatures: [],hydroEdits: [],distributionLayers: [],distributionEntries: [] });
   const owner = await createNodeCoreProject(seed);

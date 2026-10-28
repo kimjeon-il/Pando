@@ -1,24 +1,27 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import {randomUUID} from 'node:crypto';
 import { createProbeStorage } from '../probe-storage.js';
 import { createNativeStorage, encodeBytes, decodeBytes } from '../native-storage.js';
 const writeProject=async(storage,blob)=>(await storage.prepareProjectSave()).write(blob);
 
-function simulatedNative(files = []) {
+function simulatedNative(files = [], path = 'C:/picked.gpkg') {
   const writes = [], chunks = [], events = [], reading = new Map();
+  const writing = new Map();
   let next = 0;
   const invoke = async (command, args = {}) => {
     events.push(command);
-    if (command === 'begin_document_write') return { token: ++next };
+    if (command === 'begin_document_write') { writing.set(++next,[]);return { token: next }; }
     if (command === 'append_document_chunk') {
       const bytes = decodeBytes(args.contents);
       assert.ok(bytes.length <= 256 * 1024);
       chunks.push(bytes);
+      writing.get(args.token).push(bytes);
       return {};
     }
     if (command === 'finish_document_write') {
-      writes.push(Buffer.concat(chunks.map(c => Buffer.from(c))));
-      return { cancelled: false, path: 'C:/picked.gpkg' };
+      writes.push(Buffer.concat(writing.get(args.token).map(c => Buffer.from(c))));writing.delete(args.token);
+      return { cancelled: false, path };
     }
     if (command === 'begin_document_read') {
       const selected = files.map(row => {
@@ -37,7 +40,7 @@ function simulatedNative(files = []) {
       if (done) reading.delete(args.token);
       return { contents: encodeBytes(part), done };
     }
-    if (command === 'abort_document_transfer') return true;
+    if (command === 'abort_document_transfer') { writing.delete(args.token);reading.delete(args.token);return true; }
     throw new Error('Unexpected command ' + command);
   };
   return { invoke, writes, chunks, events };
@@ -117,3 +120,52 @@ test('native errors abort the transfer and leave the owning file state unchanged
   await assert.rejects(writeProject(storage,new Blob(['data'])), /disk full/);
   assert.deepEqual(calls, ['begin_document_write','append_document_chunk','abort_document_transfer']);
 });
+
+for(const [platform,path] of [['windows','C:/maps/판도.gpkg'],['android','content://documents/primary%3ADownload%2F%ED%8C%90%EB%8F%84.gpkg']]){
+ test(`${platform} file controller preserves the actual Core document through native save, reopen, cancellation and failures`,{timeout:60000},async t=>{
+  const [{createFileController},{createInitialDocument},{createNodeCoreProject},{productionGeoPackage}]=await Promise.all([
+   import('../../../shared/frontend/js/modules/file-controller.js'),import('../../../shared/frontend/js/modules/initial-document.js'),
+   import('../../../tests/helpers/core-project.mjs'),import('../../../tests/helpers/production-geopackage.mjs')]);
+  const selected=[],native=simulatedNative(selected,path),statuses=[],errors=[];
+  let mode='',release,entered;
+  const failure=new Error('native transfer failed');
+  const storage=createNativeStorage(async(command,args)=>{
+   if(mode==='hold'&&command==='finish_document_write'){entered();await new Promise(resolve=>{release=resolve;});}
+   if(mode==='write-failure'&&command==='append_document_chunk')throw failure;
+   if(mode==='read-failure'&&command==='read_document_chunk')throw failure;
+   if(mode==='cancel-save'&&command==='finish_document_write')return {cancelled:true};
+   if(mode==='cancel-open'&&command==='begin_document_read')return {cancelled:true};
+   return native.invoke(command,args);
+  });
+  const owner=await createNodeCoreProject(createInitialDocument({appVersion:'0.36.0'}),{appVersion:'0.36.0',replaceSnapshot:()=>true,
+   createProjectFile:async(project,{spatialState})=>new Blob([(await productionGeoPackage('write',new ArrayBuffer(0),project,spatialState)).buffer])});
+  t.after(()=>owner.dispose());
+  const create=async name=>{
+   const id=randomUUID();
+   const ack=await owner.project.executeCommand({commandId:'generic.create',targets:[{domain:'generic',id}],payload:{feature:{type:'Feature',id,
+    geometry:{type:'Point',coordinates:[1,2]},properties:{schemaVersion:2,name,notes:'',color:'#8c68d8',locked:false,source:{kind:'drawn',license:'',details:{}}}}}});
+   assert.equal(ack.ok,true,JSON.stringify(ack.error));
+  };
+  const controller=createFileController({productMode:'editor',elements:{save:{disabled:false}},fileAccess:storage,projectDomain:owner.project,
+   readProject:async file=>(await productionGeoPackage('read',await file.arrayBuffer())).metadata.projectState,
+   setActionStatus:(...args)=>statuses.push(args),reportOperationError:(...args)=>errors.push(args)});
+  controller.bind();t.after(()=>controller.dispose());t.mock.method(console,'error',(...args)=>errors.push(args));
+  await create('saved');
+  mode='hold';const waiting=new Promise(resolve=>{entered=resolve;}),saving=controller.saveProject();
+  await Promise.race([waiting,saving.then(()=>assert.fail('save ended before native write: '+errors.map(row=>row.map(value=>value?.stack||value).join(' ')).join('\n')))]);
+  assert.equal(await controller.saveProject(),false);release();assert.equal(await saving,true);mode='';
+  assert.equal(native.writes.length,1);assert.equal(native.writes[0].subarray(0,16).toString(),'SQLite format 3\0');
+  assert.equal(owner.project.state().dirty,false);
+  selected.push({path,bytes:native.writes[0]});await create('unsaved');const before=owner.documentModel.snapshot();
+  mode='cancel-open';assert.equal(await controller.openProjectPicker(),false);assert.deepEqual(owner.documentModel.snapshot(),before);
+  mode='read-failure';await assert.rejects(controller.openProjectPicker(),error=>error===failure);assert.deepEqual(owner.documentModel.snapshot(),before);
+  for(const cancelled of ['cancel-save','write-failure']){
+   mode=cancelled;const successes=statuses.filter(row=>row[1]==='success').length;
+   assert.equal(await controller.saveProject(),false);assert.equal(owner.project.state().dirty,true);
+   assert.equal(statuses.filter(row=>row[1]==='success').length,successes);assert.deepEqual(owner.documentModel.snapshot(),before);
+  }
+  assert.ok(errors.some(args=>args.includes(failure)));assert.ok(native.events.includes('abort_document_transfer'));
+  mode='';await controller.openProjectPicker();
+  assert.deepEqual(owner.documentModel.snapshot().genericFeatures.map(row=>row.properties.name),['saved']);assert.equal(owner.project.state().dirty,false);
+ });
+}

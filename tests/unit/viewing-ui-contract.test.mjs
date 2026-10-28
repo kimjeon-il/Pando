@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {frontendFragmentRoot} from '../../scripts/lib/frontend-layout.mjs';
 const read=path=>readFileSync(new URL(`../../${path}`,import.meta.url),'utf8').replaceAll('\r\n','\n');
 test('web and app share viewing controls while status preferences and date tools match each product',async()=>{
  const {renderProductHtml}=await import('../../scripts/lib/product-html.mjs');
@@ -11,6 +12,10 @@ test('web and app share viewing controls while status preferences and date tools
  const search=html=>html.match(/<aside id="objectSearchSurface"[\s\S]*?<\/aside>/)[0];
  assert.equal(search(web),search(app));
  assert.match(web,/id="timelineControls"/);assert.doesNotMatch(app,/id="timelineControls"/);
- const common=renderProductHtml(path=>['ui/fragments/map-terrain.html','ui/fragments/map-decorations-basic.html'].includes(path)?'':read(path));
+ assert.match(menu(web),/data-map-display-group="terrain"/);
+ assert.match(menu(web),/data-map-background="graticule"/);
+ assert.doesNotMatch(menu(app),/data-map-display-group="terrain"|data-map-background="graticule"/);
+ const productOnly=['map-terrain','map-decorations-basic'].map(name=>`${frontendFragmentRoot}/${name}.html`);
+ const common=renderProductHtml(path=>productOnly.includes(path)?'':read(path));
  assert.equal(menu(common.web),menu(common.editor));assert.equal(preferences(web),preferences(app));
 });

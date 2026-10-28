@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {gotoEditor,setEditorMonth} from './helpers/editor-entry.mjs';
 import {openFileMenu} from './helpers/map-plugin-flow.mjs';
+import {openViewingDisplay,setViewingLayer,closeViewingDisplay} from './helpers/viewing-display.mjs';
 import {createViewerProjectPackage} from '../fixtures/viewer-project-package.mjs';
 import {createTerritorialFeature,TERRITORIAL_IDENTITY_FIELDS} from '../../shared/frontend/js/modules/territorial-units.js';
 
@@ -66,6 +67,16 @@ for(const renderer of ['webgl','canvas'])for(const touch of [false,true]){
       });
       expect(pendingMeta).toBe('계산 중');
       await expect.poll(()=>page.evaluate(()=>window.__sharedRendering.options.gpuMapRenderer.getStats().renderer)).toBe(renderer==='canvas'?'canvas-worker':'webgl2');
+      const beforeMenu=await state(page);
+      await openViewingDisplay(page);await setViewingLayer(page,'objects',false);
+      await expect.poll(()=>page.evaluate(()=>window.__sharedOwners.value.projectSession.state.layerVisibility.objects)).toBe(false);
+      await expect(page.locator('[data-map-display-row="objects"]')).toBeVisible();
+      await expect(page.locator('#distributionMenuGroup')).toBeHidden();
+      expect(await page.locator('[data-map-display-group="terrain"]').count()).toBe(product==='viewer'?1:0);
+      await setViewingLayer(page,'objects',true);
+      await expect.poll(()=>page.evaluate(()=>window.__sharedOwners.value.projectSession.state.layerVisibility.objects)).toBe(true);
+      await closeViewingDisplay(page);
+      const afterMenu=await state(page);for(const key of ['checkpoint','presentationCheckpoint','dirty','canUndo'])expect(afterMenu[key],product+' menu '+key).toBe(beforeMenu[key]);
       if(renderer==='webgl'&&!touch){
         const camera=await page.evaluate(()=>JSON.stringify(window.__sharedOwners.value.projectSession.state.view));
         if(product==='editor'){await setEditorMonth(page,'1914-07');await setEditorMonth(page,'1914-08');}

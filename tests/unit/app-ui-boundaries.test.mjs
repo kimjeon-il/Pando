@@ -264,19 +264,24 @@ test('shared input uses canonical state and reports a hover rejection with its o
  assert.notEqual(errors[0][1],errors[0][2]);bridge.dispose();bridge.dispose();
 });
 
-test('both products select on a touch release without a browser click and suppress the duplicate click',()=>{
+test('both products select once and discard touch releases after replacement or input disposal',()=>{
  for(const productMode of ['viewer','editor']){
-  const map=new FakeElement(),state={tool:'select',projection:'flat',view:{flatZoom:1,globeZoom:1}},window=fakeWindow();let clicks=0,clickHandler;
+  const map=new FakeElement(),state={tool:'select',projection:'flat',view:{flatZoom:1,globeZoom:1}},window=fakeWindow();let clicks=0,clickHandler,revision=1;
   map.getBoundingClientRect=()=>({left:0,top:0});
   const d3={select:()=>({on(){return this;}}),mouse:()=>[20,20]},targets=createPointerTargets();targets.connect({platform:{d3},projectState:{state}});
-  const bridge=createMapInputPresentation({productMode,window,navigator:{},createMapInputController,getRevision:()=>1,
+  const bridge=createMapInputPresentation({productMode,window,navigator:{},createMapInputController,getRevision:()=>revision,
    mapInteractionGate:createMapInteractionGate(),
    editing:productMode==='editor'?{domain:{draftInputActive:()=>false},getDraftSnapshot:()=>({inputPhase:'idle'})}:null,
    ports:{platform:{$:()=>map,d3},projectState:{state},renderScene:{},renderQuality:{},rendering:{},navigation:{},mapView:{},surfaces:{isMobile:()=>true},
     objectPicking:{handleMapClick:()=>{clicks++;}},domains:{},pointerInteractionA:{cancelCountryHoverPick(){},mapNavigationEnabled:()=>true,mapClickBlocked:targets.mapClickBlocked},pointerInteractionB:{suppressNextMapClick:targets.suppressNextMapClick},feedback:{reportOperationError:error=>{throw error;}}}});
-  bridge.bindSvg({on(name,fn){if(name==='click')clickHandler=fn;return this;}});
-  for(const type of ['pointerdown','pointerup'])map.dispatchEvent(Object.assign(new Event(type),{button:0,pointerId:1,pointerType:'touch',clientX:20,clientY:20}));
-  assert.equal(clicks,1,productMode+' must handle a real touch release');clickHandler.call(map);assert.equal(clicks,1,'late browser click must not select twice');bridge.dispose();
+  const svg={on(name,fn){if(name==='click')clickHandler=fn;return this;}};
+  const pointer=type=>map.dispatchEvent(Object.assign(new Event(type),{button:0,pointerId:1,pointerType:'touch',clientX:20,clientY:20}));
+  bridge.bindSvg(svg);pointer('pointerdown');pointer('pointerup');
+  assert.equal(clicks,1,productMode+' must handle a real touch release');clickHandler.call(map);assert.equal(clicks,1,'late browser click must not select twice');
+  pointer('pointerdown');revision++;pointer('pointerup');assert.equal(clicks,1,'replacement cancels an old gesture');
+  pointer('pointerdown');bridge.dispose();pointer('pointerup');assert.equal(clicks,1,'disposed input cannot select');
+  bridge.bindSvg(svg);pointer('pointerdown');pointer('pointerup');assert.equal(clicks,2,'rebinding installs one input owner');
+  bridge.dispose();bridge.dispose();assert.equal(clickHandler,null);
  }
 });
 

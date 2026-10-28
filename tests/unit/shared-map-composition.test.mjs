@@ -73,12 +73,12 @@ test('notification output resolves initialized platform ports when used',()=>{
  platform.$=()=>null;assert.doesNotThrow(()=>owner.setActionStatus('준비','working',0));
 });
 
-test('common read ports preserve canonical scope and late sources through both product connections',async()=>{
+test('common read ports preserve canonical scope and current sources across product project replacement',async()=>{
  const {createMapReadPorts,mergeCapabilityPorts,connectMapOwner}=await import('../../shared/frontend/js/modules/map-owner-ports.js');
  assert.equal(typeof createMapReadPorts,'function');
  for(const productMode of ['viewer','editor']){
   const owners=createMapOwners({productMode});let queries=0,rows=[];
-  const scope={displayFeature:()=>{queries++;return null;}};
+  let scope={displayFeature:()=>{queries++;return null;}};
   const projectSession={state:{}};
   const common=createMapReadPorts({...owners,projectSession,objectPresentation:{get territorialScope(){return scope;}}});
   const ports=mergeCapabilityPorts(common,{platform:{},selectionServices:{normalizeObjectRef:value=>value},objectLookup:{},objectOperationsA:{},territorialModel:{},layerPresentation:{},renderScene:{},
@@ -89,6 +89,14 @@ test('common read ports preserve canonical scope and late sources through both p
   assert.deepEqual(owners.objectPicking.territorialObjectsAt([0,0]),[]);assert.equal(queries,1);
   assert.equal(ports.objectModelB.territorialScope,scope);
   assert.equal(ports.projectState.state,projectSession.state);
+  scope={displayFeature:()=>{queries+=10;return null;}};
+  projectSession.state={countryVisualPhase:'pending'};
+  assert.equal(ports.projectState.state,projectSession.state);
+  assert.equal(ports.objectModelB.territorialScope,scope);
+  assert.deepEqual(owners.objectPicking.territorialObjectsAt([0,0]),[]);assert.equal(queries,1);
+  projectSession.state={countryVisualPhase:'canonical'};
+  assert.deepEqual(owners.objectPicking.territorialObjectsAt([0,0]),[]);assert.equal(queries,11);
+  rows=[];assert.deepEqual(owners.objectPicking.territorialObjectsAt([0,0]),[]);assert.equal(queries,11);
  }
 });
 
