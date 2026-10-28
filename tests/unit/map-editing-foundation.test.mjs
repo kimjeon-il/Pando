@@ -81,6 +81,12 @@ test('territorial overlap area preserves per-polygon holes and empty input', () 
   const small = [[10, 0], [11, 0], [11, 1], [10, 1], [10, 0]];
   assert.equal(globalThis.PandoLabSphericalCore.territorialValidationArea([[square, hole], [small]]), 9);
   assert.equal(globalThis.PandoLabSphericalCore.territorialValidationArea([]), 0);
+  const decision = globalThis.PandoLabSphericalCore.territorialAreaDecision;
+  assert.equal(decision(1e-10, 'overlap'), false);
+  assert.equal(decision(1.01e-10, 'overlap'), true);
+  assert.equal(decision(1e-10, 'gap'), false);
+  assert.equal(decision(1e-8, 'verification'), false);
+  assert.equal(decision(1.01e-8, 'verification'), true);
 });
 
 test('territorial overlap candidates preserve affected direction and diagnostic counts', () => {
