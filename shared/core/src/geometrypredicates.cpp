@@ -449,6 +449,24 @@ bool validateGisGeometry(const MultiPolygon& polygons) {
     }
     return true;
 }
+double gisValidationArea(const MultiPolygon& polygons) noexcept {
+    const auto closedArea=[](const Ring& ring) {
+        if(ring.empty())return 0.;
+        double sum=0;
+        for(std::size_t i=1;i<ring.size();++i)sum+=ring[i-1].x*ring[i].y-ring[i].x*ring[i-1].y;
+        if(ring.front().x!=ring.back().x||ring.front().y!=ring.back().y)
+            sum+=ring.back().x*ring.front().y-ring.front().x*ring.back().y;
+        return std::abs(sum/2);
+    };
+    double total=0;
+    for(const auto& polygon:polygons){
+        if(polygon.empty())continue;
+        const auto exterior=closedArea(polygon.front());double holes=0;
+        for(std::size_t i=1;i<polygon.size();++i)holes+=closedArea(polygon[i]);
+        total+=std::max(0.,exterior-holes);
+    }
+    return total;
+}
 double planarArea(const Geometry& g) noexcept { double sum=0;for(const auto& p:g.polygons)for(std::size_t i=0;i<p.size();++i)sum+=(i?-1:1)*ringArea(p[i]);return std::abs(sum); }
 bool significantArea(double value,double reference) noexcept { return value>std::max(1e-10,std::abs(reference)*1e-9); }
 bool geometryContains(const Geometry& container,const Geometry& subject) {

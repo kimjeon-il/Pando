@@ -2,20 +2,6 @@ import { geometryAreaKm2 } from './geometry-metrics.js';
 import { sharedCalculationCore } from '../../../../../shared/frontend/js/modules/temporal.js';
 import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
 
-function closedRing(raw) {
-  if (!Array.isArray(raw) || !raw.length) return [];
-  const ring = raw.map(point => [Number(point[0]), Number(point[1])]);
-  const first = ring[0], last = ring[ring.length - 1];
-  if (first[0] !== last[0] || first[1] !== last[1]) ring.push(first.slice());
-  return ring;
-}
-
-function signedArea(ring) {
-  let area = 0;
-  for (let i = 0; i < ring.length - 1; i += 1) area += ring[i][0] * ring[i + 1][1] - ring[i + 1][0] * ring[i][1];
-  return area / 2;
-}
-
 function polygonSets(geometry) {
   if (geometry?.type === 'Polygon') return [geometry.coordinates || []];
   if (geometry?.type === 'MultiPolygon') return geometry.coordinates || [];
@@ -57,12 +43,10 @@ const robustPolygonIntersection = (left, right) => (
 );
 
 function planarArea(multiPolygon) {
-  return (multiPolygon || []).reduce((total, polygon) => {
-    if (!polygon?.length) return total;
-    const exterior = Math.abs(signedArea(closedRing(polygon[0])));
-    const holes = polygon.slice(1).reduce((sum, ring) => sum + Math.abs(signedArea(closedRing(ring))), 0);
-    return total + Math.max(0, exterior - holes);
-  }, 0);
+  if (typeof sharedCalculationCore.gisValidationArea !== 'function') {
+    throw Object.assign(new Error('Canonical C++ GIS overlap area is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  return sharedCalculationCore.gisValidationArea((multiPolygon || []).filter(polygon => polygon?.length));
 }
 
 function featureName(feature) {

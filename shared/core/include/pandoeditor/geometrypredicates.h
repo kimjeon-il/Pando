@@ -18,4 +18,5 @@ std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring);
 // Sum each polygon's nonnegative shell-minus-holes area without closing rings.
 double territorialValidationArea(const MultiPolygon& polygons) noexcept;
 bool validateGisGeometry(const MultiPolygon& polygons);
+double gisValidationArea(const MultiPolygon& polygons) noexcept;
 }
