@@ -46,6 +46,7 @@ jobs:
           persist-credentials: false
           ref: 9b4886fc7c2623f2bc871fe5a37cf367900a034c
       - name: Mount selected baseline inputs from library storage
+        id: library_baseline_0
         uses: kimjeon-il/Pando/.github/actions/library-data@main
         with:
           inputs-revision: 99a76bb8376d798c2e9bf132ad7f8d2b6ccb4298
@@ -73,3 +74,13 @@ jobs:
           grep -F "invalid의 Polygon" /tmp/baseline-gis-contract.log
           grep -F "fail 1" /tmp/baseline-gis-contract.log
           echo 'Confirmed exact pre-existing GIS invalid-polygon Worker error-code difference on untouched main.'
+      - name: Verify selected library input bytes remain unchanged
+        if: always() && steps.library_baseline_0.outcome == 'success'
+        shell: bash
+        env:
+          INPUT_CHECKOUT: .pando-inputs/.
+        run: >
+          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
+          --untracked-files=all -- assets/data)"
+
+          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }

@@ -239,6 +239,7 @@ jobs:
           path: boundary-main
           fetch-depth: 1
       - name: Mount selected baseline inputs from library storage
+        id: library_baseline_1
         uses: kimjeon-il/Pando/.github/actions/library-data@main
         with:
           inputs-revision: 4e93ea7b4fe3be3afc0eb17b11e2f1c6663dcbc2
@@ -301,3 +302,13 @@ jobs:
             }}
           path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/PR2
           if-no-files-found: error
+      - name: Verify selected library input bytes remain unchanged
+        if: always() && steps.library_baseline_1.outcome == 'success'
+        shell: bash
+        env:
+          INPUT_CHECKOUT: .pando-inputs/boundary-main
+        run: >
+          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
+          --untracked-files=all -- assets/data)"
+
+          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }

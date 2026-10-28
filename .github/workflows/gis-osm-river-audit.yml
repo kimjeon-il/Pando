@@ -53,7 +53,7 @@ jobs:
           from pathlib import Path
           manifest=json.loads(Path('assets/data/hydro/v0.13.2/manifest.json').read_text())
           expected=next(x['sha256'] for x in manifest['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson')
-          url='https://raw.githubusercontent.com/kimjeon-il/Pando/9b4886fc7c2623f2bc871fe5a37cf367900a034c/assets/data/hydro/rivers_base.geojson'
+          url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/99a76bb8376d798c2e9bf132ad7f8d2b6ccb4298/assets/data/hydro/rivers_base.geojson'
           request=urllib.request.Request(url,headers={'User-Agent':'PandoLab-GIS-audit/1.0'})
           with urllib.request.urlopen(request,timeout=90) as response:
               data=response.read()

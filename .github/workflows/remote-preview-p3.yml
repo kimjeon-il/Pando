@@ -254,6 +254,7 @@ jobs:
           path: build-native/p9/baseline
           persist-credentials: false
       - name: Mount selected baseline inputs from library storage
+        id: library_baseline_10
         uses: kimjeon-il/Pando/.github/actions/library-data@main
         with:
           inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa
@@ -315,6 +316,16 @@ jobs:
             playwright-report
           if-no-files-found: warn
           retention-days: 10
+      - name: Verify selected library input bytes remain unchanged
+        if: always() && steps.library_baseline_10.outcome == 'success'
+        shell: bash
+        env:
+          INPUT_CHECKOUT: .pando-inputs/build-native/p9/baseline
+        run: >
+          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
+          --untracked-files=all -- assets/data)"
+
+          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }
   calculation-performance:
     if: inputs.scope == 'acceptance'
     runs-on: ubuntu-24.04
@@ -332,6 +343,7 @@ jobs:
           path: build-native/p9/baseline
           persist-credentials: false
       - name: Mount selected baseline inputs from library storage
+        id: library_baseline_2
         uses: kimjeon-il/Pando/.github/actions/library-data@main
         with:
           inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa
@@ -355,3 +367,13 @@ jobs:
           path: build-native/p9/calculation-performance.json
           if-no-files-found: warn
           retention-days: 14
+      - name: Verify selected library input bytes remain unchanged
+        if: always() && steps.library_baseline_2.outcome == 'success'
+        shell: bash
+        env:
+          INPUT_CHECKOUT: .pando-inputs/build-native/p9/baseline
+        run: >
+          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
+          --untracked-files=all -- assets/data)"
+
+          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }
