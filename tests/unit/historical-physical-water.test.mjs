@@ -1,9 +1,12 @@
 import test from 'node:test';
+import {createCoreDocumentReadModel} from '../../shared/frontend/js/modules/core-document-read-model.js';
+import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
 import assert from 'node:assert/strict';
 import {resolvePhysicalWaterObjects,createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
 import {modernCaspianWater} from '../../tools/gis/prepare-water-object-history.mjs';
 import {drawGpuBaseScene} from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
@@ -65,4 +68,68 @@ test('a rejected history load retains the background, avoids a fetch loop and re
  state.timelineCursor='2026-10';assert.equal(resource.physicalLand,initial);
  reject=false;state.timelineCursor='1922-12';void resource.physicalLand;await loaded;
  assert.equal(resource.physicalLand.water.type,'Polygon');assert.ok(requests>count);
+});
+
+test('two independently resolved lakes share one physical land derivative without a parallel date selector',async t=>{
+ const previous=globalThis.fetch;t.after(()=>{globalThis.fetch=previous;});
+ const bytes=new Map(),requests=[];
+ const asset=(name,geometry)=>{const body=Buffer.from(JSON.stringify(geometry));bytes.set(name,body);return {url:'assets/data/'+name,encoding:'identity',sha256:createHash('sha256').update(body).digest('hex'),compressedBytes:body.length,decodedBytes:body.length};};
+ const box=x=>({type:'Polygon',coordinates:[[[x,0],[x+1,0],[x+1,1],[x,0]]]});
+ const modern=asset('modern',{type:'MultiPolygon',coordinates:[]}),land=asset('combined-land',{type:'MultiPolygon',coordinates:[box(0).coordinates]}),first=asset('first',box(2)),second=asset('second',box(5));
+ const input=catalog(land,first),other={domain:'hydroBuiltin',id:'waterbody:second'};
+ for(const row of [...input.timelineRecords.lifetimes,...input.timelineRecords.geometryBindings]){row.validFrom='1922-01-01';row.validTo='1929-12-31';}
+ input.identities.push({objectRef:other,entityKind:'lake',name:'Second',layerId:'lakes_base'});
+ const replaced={domain:'hydroBuiltin',id:'lakes_base:fixture'};
+ input.geometries.push({geometryRef:{id:'second-water',version:1},land,asset:second,replaces:[replaced]});
+ input.timelineRecords.lifetimes.push({id:'life-second',objectRef:other,validFrom:null,validTo:null});
+ input.timelineRecords.geometryBindings.push({id:'second-binding',objectRef:other,validFrom:'1922-01-01',validTo:'1929-12-31',geometryRef:{id:'second-water',version:1}});
+ for(const date of ['1921-12-31','1930-01-01','1930'])assert.equal(resolvePhysicalWaterObjects(input,date).length,0);
+ for(const date of ['1922-01-01','1929-12-31','1922','1929'])assert.equal(resolvePhysicalWaterObjects(input,date).length,2);
+ globalThis.fetch=async url=>{const name=new URL(url).pathname.split('/').at(-1);requests.push(name);return new Response(bytes.get(name));};
+ let ready;const loaded=new Promise(resolve=>{ready=resolve;});
+ const original={id:replaced.id,properties:{pandolab_id:replaced.id,category:'lake'}};
+ const state={timelineCursor:'',hydroEdits:[],hydroFeatureCache:new Map([[replaced.id,original]])},resource=createPhysicalResources({buildMeta:{dataRevision:'two-lakes',physicalLand:modern,physicalWaterObjects:input},capabilities:{terrain:false,builtinHydro:false}});
+ const hidden=new Set();
+ resource.connect({projectState:{state},physicalServices:{isHydroFeatureVisible:feature=>!hidden.has(feature.id)},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},domains:{renderingDomain:{invalidateProject:reason=>{if(reason==='physical-water-ready')ready();}}},feedback:{reportOperationError:error=>{throw error;}}});
+ await resource.loadPhysicalData({includeHydro:false});const initial=resource.physicalLand;
+ state.timelineCursor='1922';assert.equal(resource.physicalLand,initial);assert.equal(resource.isHydroObjectActive(original),true,'loading retains the original source');await loaded;
+ const selected=resource.physicalLand;assert.equal(selected.water.type,'MultiPolygon');assert.equal(selected.water.coordinates.length,2);assert.equal(requests.filter(name=>name==='combined-land').length,1);
+ assert.equal(resource.isHydroObjectActive(original),false,'only the selected ready geometry replaces its explicit source');
+ state.timelineCursor='1929';assert.equal(resource.physicalLand,selected,'unchanged selected versions reuse presentation');
+ state.hydroFeatureCache.set(other.id,{id:other.id});hidden.add(other.id);
+ const firstOnly=resource.physicalLand;assert.deepEqual(firstOnly.water,box(2));assert.equal(resource.physicalLand,firstOnly);
+ hidden.clear();assert.equal(resource.physicalLand.water.coordinates.length,2,'visibility changes rebuild only presentation');
+ const store=createGeometryVersionStore([{id:'copy-first',version:1,geojson:box(3)},{id:'copy-second',version:1,geojson:box(6)},{id:'copy-second',version:2,geojson:box(7)}]);
+ state.hydroEdits=[{id:'copy-first',properties:{sourceFeatureId:objectRef.id},geometry:store.get({id:'copy-first',version:1})}];
+ assert.deepEqual(resource.physicalLand.water,box(5),'copying one water transfers only its fill to the authored renderer');
+ const firstCopyLand=resource.physicalLand.geometry;
+ state.hydroEdits.push({id:'copy-second',properties:{sourceFeatureId:other.id},geometry:store.get({id:'copy-second',version:1})});
+ assert.equal(resource.physicalLand.water,null,'both copies own their independent fills');
+ const expected=globalThis.polygonClipping.difference(globalThis.polygonClipping.union(firstCopyLand.coordinates,[box(5).coordinates]),[box(6).coordinates]);
+ assert.deepEqual(globalThis.polygonClipping.xor(resource.physicalLand.geometry.coordinates,expected),[]);
+ state.hydroEdits[1]={...state.hydroEdits[1],geometry:store.get({id:'copy-second',version:2})};
+ const revised=globalThis.polygonClipping.difference(globalThis.polygonClipping.union(firstCopyLand.coordinates,[box(5).coordinates]),[box(7).coordinates]);
+ assert.deepEqual(globalThis.polygonClipping.xor(resource.physicalLand.geometry.coordinates,revised),[],'second edit preserves the first local patch');
+ state.hydroEdits.pop();assert.deepEqual(resource.physicalLand.water,box(5),'removing the second copy restores only that source fill');
+ const raw={territorialEntities:[],hydroEdits:[{id:'copy-second',type:'Feature',geometry:null,properties:{category:'lake',sourceFeatureId:other.id}}],geometries:store.snapshot()};
+ const model=createCoreDocumentReadModel(raw),copyRef={domain:'hydro',id:'copy-second'};
+ const records={schemaVersion:3,lifetimes:[{id:'life',objectRef:copyRef,validFrom:null,validTo:null}],parentRelations:[],propertyBindings:[],geometryBindings:[
+   {id:'early',objectRef:copyRef,validFrom:null,validTo:'1925-12-31',geometryRef:{id:'copy-second',version:1}},
+   {id:'late',objectRef:copyRef,validFrom:'1926-01-01',validTo:null,geometryRef:{id:'copy-second',version:2}}]};
+ for(const [date,x] of [['1925-12-31',6],['1926-01-01',7]]) {
+   const world=sharedCalculationCore.timelineResolveWorld(records,{entities:[{objectRef:copyRef,entityKind:'lake'}],geometryExists:()=>true},date);
+   model.acceptWorld({...world,sourceEpoch:1},1);
+   assert.equal(model.snapshot().hydroEdits[0].geometry,null,'canonical identity remains geometry-free');
+   state.hydroEdits=model.list('hydro');
+   assert.deepEqual(state.hydroEdits[0].geometry,box(x),'read model supplies the C++ selected geometry');
+   const projected=resource.physicalLand;
+   assert.deepEqual(projected.water,box(2));
+   const expectedProjection=globalThis.polygonClipping.difference(globalThis.polygonClipping.union(selected.geometry.coordinates,[box(5).coordinates]),[box(x).coordinates]);
+   assert.deepEqual(globalThis.polygonClipping.xor(projected.geometry.coordinates,expectedProjection),[]);
+ }
+
+ assert.equal(requests.filter(name=>name==='combined-land').length,1,'visibility and copying reuse immutable land');
+ state.timelineCursor='1930';assert.equal(resource.physicalLand,initial);assert.equal(resource.isHydroObjectActive(original),true);assert.equal(state.hydroFeatureCache.get(replaced.id),original);
+ input.geometries[1].land={...land,sha256:'different'};state.timelineCursor='1922';
+ assert.throws(()=>resource.physicalLand,/one coherent physical land derivative/);
 });
