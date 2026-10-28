@@ -127,6 +127,7 @@ std::vector<bool> gisAffected(val input) {
 struct GisCandidatePort {
     GisOverlapCandidateIterator iterator;
     GisCandidatePort(val bounds,val affected,bool scoped):iterator(gisBounds(bounds),gisAffected(affected),scoped){}
+    bool isSignificant(double area)const {return iterator.isSignificant(area);}
     val next() {
         const auto candidate=iterator.next();if(!candidate)return val::null();
         auto result=val::object(),pairs=val::array();unsigned index=0;
@@ -152,6 +153,6 @@ EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("territorialValidationArea",&validationArea);
     emscripten::function("validateGisGeometry",&gisGeometry);
     emscripten::function("gisValidationArea",&gisArea);
-    emscripten::class_<GisCandidatePort>("GisOverlapCandidates").constructor<val,val,bool>().function("next",&GisCandidatePort::next);
+    emscripten::class_<GisCandidatePort>("GisOverlapCandidates").constructor<val,val,bool>().function("next",&GisCandidatePort::next).function("isSignificant",&GisCandidatePort::isSignificant);
     emscripten::function("wrapPolygonGeometry",&wrapGeometry);
 }
