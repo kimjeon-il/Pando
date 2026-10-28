@@ -146,6 +146,7 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
   let baseInvalidations = 0, workspaceUpdates = 0;
   const settings = createMapSettings({capabilities:resourceCapabilities('editor'),viewPresentation:{applyPresentation:payload=>{workspaceUpdates++;return viewing.session.applyViewingPresentation(payload);}}});
   settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, {
+    loadHydroData:async()=>{},preparePlaces:async()=>{},
     state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
     reportOperationError: error => assert.fail(error.stack),
     userPreferences: defaultUserPreferences(), saveUserPreferences: next => normalizeUserPreferences(next), setUserPreferences() {},
@@ -219,6 +220,7 @@ test('place language toggles persist independently and invalidate only label lay
     setUserPreferences: next => { current = next; flat.userPreferences = next; },
     renderingDomain: { invalidateLabels: () => { invalidations++; } },
   };
+  Object.assign(flat,{loadHydroData:async()=>{},preparePlaces:async()=>{}});
   settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, flat));
   assert.equal(settings.setPlaceLanguage('en', true), true);
   assert.deepEqual(current.labels.place.languages, { ko: true, en: true, native: false });

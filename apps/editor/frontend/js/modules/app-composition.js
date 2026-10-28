@@ -101,7 +101,7 @@ export async function composeApplication({ productMode, revision, platform = {},
   const objectMetadata = factoryObjectMetadata.createObjectMetadata();
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
-  const mapSettings = factoryMapSettings.createMapSettings({capabilities,viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true,onLayerVisibilityChange:async(key,enabled)=>{if(!enabled)return;if(key==='rivers'||key==='lakes')await physicalResources.loadHydroData(true);if(key==='labels')await territorialLabels.preparePlaces({force:true});}});
+  const mapSettings = factoryMapSettings.createMapSettings({capabilities,viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true});
   const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace,
     libraryGeometryContext:platform.libraryGeometryContext });
   const projectRestore = factoryProjectRestore.createProjectRestore();
