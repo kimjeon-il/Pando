@@ -10,6 +10,7 @@ import { runMapAudit, validateGeometry, validateTerritorialGeometry } from "../.
 import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
 import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 
 const feature = (id, coordinates) => ({
   type: 'Feature',
@@ -245,6 +246,21 @@ test('geometry validation returns a located self-intersection issue and relation
   assert.ok(report.issues.some(issue => issue.kind === 'orphan-administrative'));
   assert.ok(report.issues.some(issue => issue.kind === 'missing-territorial-reference'));
   assert.equal(report.issues.filter(issue => issue.kind === 'duplicate-id').length, 2);
+});
+
+test('administrative containment retains its exact outside-area threshold', () => {
+  const core = sharedCalculationCore;
+  assert.equal(core.territorialAreaDecision(1e-10, 'containment'), false);
+  assert.equal(core.territorialAreaDecision(2e-10, 'containment'), true);
+  assert.equal(core.territorialAreaDecision(Number.NaN, 'containment'), false);
+  const parent = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: feature('A', [[0,0],[2,0],[2,2],[0,2],[0,0]]).geometry });
+  const child = createTerritorialFeature({ id: 'child', entityKind: 'general', parentId: 'A',
+    geometry: feature('child', [[0,0],[1,0],[1,1],[0,1],[0,0]]).geometry });
+  const hasOutside = height => runMapAudit({ countries: [parent], units: [child],
+    clipper: { difference: () => [[[[0,0],[1,0],[1,height],[0,height],[0,0]]]] } })
+    .issues.some(row => row.kind === 'outside-parent');
+  assert.equal(hasOutside(1e-10), false);
+  assert.equal(hasOutside(2e-10), true);
 });
 
 test('full audit trusts the canonical baseline and clips only dirty countries exactly', () => {

@@ -246,7 +246,7 @@ function validateAdministrativeContainment(units = [], countries = [], { clipper
     }));
     if (properties.coverageMode !== 'explicit' && clipper?.difference && parent?.geometry && unit.geometry) {
       const outside = clipGeometry('MultiPolygon', clipper.difference(multiCoordinates(unit.geometry), multiCoordinates(parent.geometry)));
-      if (geometryPlanarArea(outside) > 1e-10) issues.push(issue('outside-parent', `${properties.name || id}이(가) 부모 영역 밖에 있습니다.`, {
+      if (sharedCalculationCore.territorialAreaDecision(geometryPlanarArea(outside), 'containment')) issues.push(issue('outside-parent', `${properties.name || id}이(가) 부모 영역 밖에 있습니다.`, {
         entityRefs: [id, featureId(parent)], geometry: outside, bounds: bounds(outside),
       }));
     }

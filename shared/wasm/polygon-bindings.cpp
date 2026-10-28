@@ -111,6 +111,7 @@ bool territorialAreaForWeb(double area,const std::string& use) {
     if(use=="overlap")return territorialAreaDecision(area,TerritorialAreaUse::Overlap);
     if(use=="gap")return territorialAreaDecision(area,TerritorialAreaUse::Gap);
     if(use=="verification")return territorialAreaDecision(area,TerritorialAreaUse::Verification);
+    if(use=="containment")return territorialAreaDecision(area,TerritorialAreaUse::Containment);
     throw std::invalid_argument("Invalid territorial validation area use");
 }
 val territorialSampleForWeb(unsigned length,unsigned maximum) {
