@@ -7,6 +7,69 @@
 > **대상:** 저장소에 추적된 Python `.py` **101개 전수**. 5개 전환 묶음에 누락·중복 없이 분류함.  
 > **결론:** 남겨두기라는 최종 상태는 없음. *기능을 다른 언어로 이식*하거나 *일회성 작업은 결과의 영구 보존·검증 후 원본 스크립트와 Actions를 종료*함.
 
+## 2026-10-29 잔여 기준 목록
+
+사용자가 승인한 55개 기준이다. Git 추적 파일 수를 현재 진행률로 계산한다. 아래 목록은 최초 기준으로 보존하며 새 Python 파일을 허용하지 않는다. 기능별 대체·실제 호출자·검증·삭제 조건은 아래의 각 그룹을 따른다. 55개 각각의 호출자·대응 검사 상세 연결은 계속 작성해야 한다. 원본 26개가 없는 HGIS 실자료 비교는 미검증으로 남긴다.
+
+- 지도 원본 수집: `map_source.py`와 `acquire-sources.py`를 `plugins/pando-map-tools/lib/map-source.mjs`와 `tools/reference-analysis/acquire-sources.mjs`로 이전했다. 지도 분석 CLI와 코퍼스 CLI가 같은 수집 정본을 사용한다. 네 형식 고정 입력의 원본 바이트·크기·SHA-256을 이전 구현과 비교했고, 권리·HTTPS·제한·체크섬·취소·동시 생성 보존은 Node 검사로 확인했다. 기존 파생 이미지 Python 테스트는 유지한다.
+- 별도 미완료: 전체 지도 플러그인 검사는 이전 소스 레이아웃인 `assets/js/modules/temporal.js`를 참조해 시작하지 못한다. 실제 소스는 `shared/frontend/js/modules/temporal.js`에 있다. 수집기 단위 검사와 기존 구현 비교가 통과한 것은 실제 분석 왕복이 검증되었다는 뜻이 아니다.
+
+- `plugins/pando-map-tools/lib/map_source.py`
+- `plugins/pando-map-tools/lib/raster.py`
+- `tests/python/test_build_terrain_dem.py`
+- `tests/python/test_build_terrain_preview.py`
+- `tests/python/test_qgis_bridge.py`
+- `tests/python/test_reference_analysis_conditions.py`
+- `tests/python/test_reference_analysis_corpus.py`
+- `tests/python/test_reference_analysis_evaluation.py`
+- `tests/python/test_reference_analysis_macro.py`
+- `tests/python/test_reference_analysis_publisher.py`
+- `tests/python/test_reference_analysis_semap.py`
+- `tests/python/test_reference_analysis_sources.py`
+- `tests/reference-analysis/test_model.py`
+- `tests/test_hydro_calibration.py`
+- `tests/test_hydro_connectivity.py`
+- `tests/test_hydro_tiles.py`
+- `tests/test_hydronym_spacing.py`
+- `tests/test_lsib_boundary_supplement.py`
+- `tests/test_map_plugin_raster.py`
+- `tools/build-hydro-tiles.py`
+- `tools/build-physical-data.py`
+- `tools/build-terrain-dem.py`
+- `tools/build-terrain-preview.py`
+- `tools/build_german_empire_1914_base.py`
+- `tools/build_german_empire_1914_modern_coast.py`
+- `tools/calibrate-hydro.py`
+- `tools/gis/compare_osm_hydro_natural_earth.py`
+- `tools/gis/prepare_hydro_name_replacement_bundle.py`
+- `tools/gis/verify_independent_river_point_anchors.py`
+- `tools/gis/verify_osm_hydro_batch01_anchors.py`
+- `tools/gis/verify_osm_hydro_batch02_points.py`
+- `tools/gis/verify_osm_hydro_batch03_points.py`
+- `tools/gis/verify_victorian_yarra_source.py`
+- `tools/hydro_connectivity.py`
+- `tools/library_data.py`
+- `tools/pc-file-allocation.py`
+- `tools/qgis/bootstrap.py`
+- `tools/qgis/bridge.py`
+- `tools/reference-analysis/acquire-sources.py`
+- `tools/reference-analysis/corpus.py`
+- `tools/reference-analysis/evaluation.py`
+- `tools/reference-analysis/inspect-checkpoint.py`
+- `tools/reference-analysis/macro.py`
+- `tools/reference-analysis/model.py`
+- `tools/reference-analysis/prepare-analysis-images.py`
+- `tools/reference-analysis/publisher.py`
+- `tools/reference-analysis/semap.py`
+- `tools/reference-analysis/train.py`
+- `tools/reference-analysis/verify-model.py`
+- `tools/repair-hydro-connectivity.py`
+- `tools/report_paths.py`
+- `tools/supplement-lsib-boundaries.py`
+- `tools/verify-hydro-connectivity.py`
+- `tools/verify-lsib-screen-delta.py`
+- `tools/verify-terrain-dem.py`
+
 ## 실행 현황 — A0~A2 (2026-10-25)
 
 - **C2 북슐레스비히 과잉 정밀조사 종료 (2026-10-27, 최신 지시):** Natural Earth 1:10M 표시 축척 대비 불필요했던 북슐레스비히 표석 1~26·SLUB 도엽 4장·교구 경계 중첩·지도 보관 및 권리 검증을 **사업 범위에서 철회**한다. 12개 연구 Python과 대응하는 전용 Node·Actions·테스트를 기능 전환 대신 삭제한다. 기존 보고서의 '삭제 전 원도엽 영구 보존 의무'는 사용자 승인으로 철회되었다. **운영 역사 객체 `state:north-schleswig`, `north-schleswig-1900-r3`, 국가별 색인과 일반 지도 입력·출처 표시는 보존한다.** 외부 라이브러리의 별도 연구 사료는 런타임 핀 이력과 분리해 정리하며, 핀을 무단 전진시키거나 운영 형상을 바꾸지 않는다.

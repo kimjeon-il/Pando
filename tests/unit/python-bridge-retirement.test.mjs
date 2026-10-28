@@ -12,20 +12,15 @@ const tracked = (...patterns) => execFileSync('git', ['ls-files', '-z', '--', ..
 const read = path => readFileSync(join(root, path), 'utf8');
 const remaining = tracked('*.py', '*.pyi', '*.ipynb').sort();
 
-test('Python files only decrease within the reviewed original and integration inventories', () => {
+test('Python files only decrease within the reviewed 55-file inventory', () => {
   const plan = read('docs/development/python-zero-migration-plan-2026-10-25.md');
-  const inventory = plan.split('## 부록. 전수 분류 매니페스트')[1];
+  const inventory = plan.split('## 2026-10-29 잔여 기준 목록')[1]?.split('\n## ')[0];
   assert.ok(inventory, 'Python migration inventory must remain available');
-  const original = [...inventory.matchAll(/^- `([^`]+\.py)`$/gm)].map(match => match[1]);
-  assert.equal(original.length, 101, 'the reviewed migration inventory must cover 101 files');
-  assert.equal(new Set(original).size, 101, 'the initial inventory must not contain duplicates');
-  const integration = plan.split('## 통합 추가 검토 목록')[1].split('\n## ')[0];
-  const additions = [...integration.matchAll(/^- `([^`]+\.py)`$/gm)].map(match => match[1]);
-  assert.deepEqual(additions, ['plugins/pando-map-tools/lib/map_source.py'], 'integration additions require an explicit reviewed inventory');
-  const originalRemaining = remaining.filter(path => original.includes(path));
-  assert.ok(originalRemaining.length <= 75, `Original Python file count exceeded C2 baseline: ${originalRemaining.length}`);
-  assert.ok(remaining.length <= 75 + additions.length, `Python file count exceeded reviewed inventories: ${remaining.length}`);
-  for (const path of remaining) assert.ok(original.includes(path) || additions.includes(path), `Unreviewed Python file: ${path}`);
+  const reviewed = [...inventory.matchAll(/^- `([^`]+\.(?:py|pyi|ipynb))`\r?$/gm)].map(match => match[1]);
+  assert.equal(reviewed.length, 55, 'the reviewed migration inventory must cover 55 files');
+  assert.equal(new Set(reviewed).size, 55, 'the reviewed inventory must not contain duplicates');
+  assert.ok(remaining.length <= 53, `Python file count exceeded the current reviewed ceiling: ${remaining.length}`);
+  for (const path of remaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
 });
 
 test('temporary Python bridge modules have real consumers and leave no orphaned adapters', t => {

@@ -232,7 +232,7 @@ function assertReportProducersIdle(shared = null) {
   const writers = processes.filter(item => {
     if (item.ProcessId === process.pid) return false;
     const command = item.CommandLine || '';
-    if (/\.working[\\/]|reference-analysis[\\/](?:train|macro|inspect-checkpoint|acquire-sources|publisher|prepare-analysis-images)\.py/i.test(command)) return true;
+    if (/\.working[\\/]|reference-analysis[\\/](?:(?:train|macro|inspect-checkpoint|publisher|prepare-analysis-images)\.py|acquire-sources\.mjs)/i.test(command)) return true;
     // An input report path does not make a read-only verifier a producer.
     return /--report-directory(?:[=\s])/.test(command) && (!shared || command.replaceAll('\\', '/').toLowerCase().includes(shared.replaceAll('\\', '/').toLowerCase()));
   });
