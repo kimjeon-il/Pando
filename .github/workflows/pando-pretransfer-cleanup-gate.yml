@@ -32,7 +32,7 @@ jobs:
           python -m compileall -q scripts/gis
           node --check tools/build-place-candidates.mjs
           python -m py_compile tools/build_german_empire_1914_modern_coast.py
-      - name: Validate inventory and deleted legacy locations
+      - name: Validate application report ownership
         shell: bash
         run: |
           python - <<'PY'
@@ -40,21 +40,15 @@ jobs:
           import subprocess
           paths=set(subprocess.check_output(['git','ls-files','-z']).decode().strip('\x00').split('\x00'))
           reports=[p for p in paths if p.startswith('reports/')]
-          assert len(reports)==1957, f'unexpected report count {len(reports)}'
-          assert len([p for p in paths if p.startswith('reports/borders/reconstruction/siachen/')])==54
+          assert not reports, 'Report originals belong in PandoLab-library-data, not application Git'
           assert not any(p.startswith('assets/data/research/siachen/') for p in paths)
           assert not any(p.startswith('native/') for p in paths)
           assert not any(p.startswith('.superpowers/') for p in paths)
-          assert 'reports/places/source-manifest.json' in paths
-          for batch in range(152,195):
-            for name in ('results.json','source-notes.json'):
-              path=f'reports/hydro/names/reconstruction-2026-10-09/batch-r{batch}/{name}'
-              assert path in paths, path
-          print('PASS: report inventory and research evidence checked; no retired app or legacy copies')
+          print('PASS: application Git owns no report originals or retired local copies')
           PY
-      - name: Verify old and new report layout resolution
+      - name: Verify canonical report paths and scoped publication
         run: |
-          node --test tests/unit/report-paths.test.mjs
+          node --test tests/unit/report-paths.test.mjs tests/unit/library-report-publication.test.mjs
 
   web-mobile:
     runs-on: ubuntu-24.04
