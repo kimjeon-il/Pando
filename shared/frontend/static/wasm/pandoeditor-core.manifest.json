@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "54db8ed1c15f71c28bccb24ad20b49a8fc4f654d5e2f35b5da6bc4dfebd272ca",
+  "sourceSha256": "dec70cd7909043b605c6c92c1b334313cfa9f674100b6e97009a9d3de0467603",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -57,7 +57,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
-      "sha256": "461c95cfb900b95e36c7a486aaffb25792c12382b61d87fbeb72f8bec13f65ab"
+      "sha256": "1a6b21f1f11da7f5d397cd36bb8afe3c24c522bfda59a153ec289c3fa0a618b3"
     },
     {
       "path": "shared/core/include/pandoeditor/geometry-types.h",
@@ -273,7 +273,7 @@
     },
     {
       "path": "shared/core/src/content.cpp",
-      "sha256": "0183eb223e2d065047a5fe96732f621db68e5dc45caaab08fd2fa4228b2fcdad"
+      "sha256": "231cd6c44a589b961610bf6e939944bbdf0eaa6944dbd7fa6c196f40a9841c0f"
     },
     {
       "path": "shared/core/src/countrycontact.cpp",
@@ -605,7 +605,7 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "7ee0a2098787729c3d243f5ea225066e9cb2b226297e9f0e314202a8de2b0750"
+      "sha256": "9b55f584008a08035506b86b4f4ed3b80cc84acde16475f25d73fda426c03953"
     },
     {
       "path": "shared/wasm/timeline-bindings.cpp",
@@ -619,7 +619,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "1d8981fc8769bdd91073fb19fcb19d0b6ea2535bcf8406cfa1c71bc9d2aa96d0"
+      "sha256": "6e8f4055e8c3db475435a959b50093d714921c5c95cdec70c3455092fbe3919f"
     }
   }
 }

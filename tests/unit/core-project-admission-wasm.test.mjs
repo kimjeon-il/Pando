@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-const seed=() => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+const seed=() => {
+  const project = JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+  // The document owner emits geometry records in ID/version order.
+  project.geometries.sort((a,b) => a.id < b.id ? -1 : a.id > b.id ? 1 : a.version - b.version);
+  return project;
+};
 const name=value => ({ commandId: 'territorial.field',targets: [{ domain: 'territorial',id: 'A' }],payload: { id: 'A',field: 'name',value } });
 
 test('same-generation source admission publishes one complete C++ load between ordered commands and resets whole history',async () => {

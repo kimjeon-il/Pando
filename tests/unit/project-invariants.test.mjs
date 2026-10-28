@@ -1,6 +1,7 @@
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 
 import {
   assertProjectReferenceIntegrity,
@@ -10,6 +11,17 @@ import {
 const polygon = () => ({ type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] });
 const country = id => createTerritorialFeature({id,entityKind:'general',name:id,geometry:polygon()});
 const unit=(id,parentId='')=>createTerritorialFeature({id,entityKind:'general',parentId,geometry:polygon()});
+
+test('shared reference graph reports duplicate IDs, missing parents and cycles in input order', () => {
+  const core = sharedCalculationCore;
+  assert.deepEqual(core.referenceGraphDiagnostics(['A', 'B', 'C'], ['B', 'A', 'missing']), [
+    { idStatus: 'ok', cycle: true, missing: false },
+    { idStatus: 'ok', cycle: true, missing: false },
+    { idStatus: 'ok', cycle: false, missing: true },
+  ]);
+  assert.deepEqual(core.referenceGraphDiagnostics(['A', 'A', '', ''], ['', '', '', '']).map(row => row.idStatus),
+    ['ok', 'duplicate', 'empty', 'empty']);
+});
 
 test('valid project references pass', () => {
   const result = validateProjectReferenceIntegrity({
