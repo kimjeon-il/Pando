@@ -19,6 +19,36 @@ const feature = (id, coordinates) => ({
 });
 const clone = value => JSON.parse(JSON.stringify(value));
 
+test('C++ ring validation preserves the current located geometry issues', () => {
+  const rings = [
+    [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]],
+    [[0, 0], [1, 0], [1, 1], [0, 1]],
+    [[0, 0], [1, 0], [1, 0], [0, 1], [0, 0]],
+    [[0, 0], [2, 2], [0, 2], [2, 0], [0, 0]],
+    [[0, 0], [1, 0], [2, 0], [0, 0]],
+    [[0, 0], [1, 0], [0, 0]],
+  ];
+  const expectedRows = [
+    [],
+    [{ kind: 'open-ring', coordinate: [0, 1] }],
+    [{ kind: 'duplicate-vertex', coordinate: [1, 0], vertexIndex: 2 }, { kind: 'self-intersection', coordinate: [1, -0], segmentIndex: 0 }],
+    [{ kind: 'zero-area', coordinate: [0, 0] }, { kind: 'self-intersection', coordinate: [1, 1], segmentIndex: 0 }],
+    [{ kind: 'zero-area', coordinate: [0, 0] }],
+    [{ kind: 'invalid-geometry', coordinate: [0, 0] }],
+  ];
+  for (const [index, ring] of rings.entries()) {
+    const actual = globalThis.PandoLabSphericalCore.validateTerritorialRing(ring).map(({ kind, coordinate, vertexIndex, segmentIndex }) =>
+      ({ kind, coordinate, vertexIndex, segmentIndex }));
+    const expected = expectedRows[index].map(({ kind, coordinate, vertexIndex, segmentIndex }) =>
+      ({ kind, coordinate, vertexIndex, segmentIndex }));
+    assert.deepEqual(actual, expected);
+    assert.deepEqual(validateGeometry(feature('R', ring)).map(({ kind, coordinate, vertexIndex, segmentIndex }) =>
+      ({ kind, coordinate, vertexIndex, segmentIndex })), expected);
+  }
+  const short = [[3, 4, 5]];
+  assert.deepEqual(validateGeometry(feature('R', short))[0].coordinate, short[0]);
+});
+
 test('spherical metrics provide useful live distance, area and percentage feedback', () => {
   assert.ok(lineDistanceKm([[0, 0], [1, 0]]) > 111);
   assert.ok(lineDistanceKm([[0, 0], [1, 0]]) < 112);

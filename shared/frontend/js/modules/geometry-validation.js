@@ -1,5 +1,6 @@
 import { territorialRootId } from './territorial-units.js';
 import { coordinateBounds } from './coordinate-bounds.js';
+import { sharedCalculationCore } from './temporal.js';
 
 const clone = value => value == null ? value : structuredClone(value);
 const featureId = (feature, fallback = '') => String(feature?.id || fallback);
@@ -84,10 +85,6 @@ function coarsePolygonsMayOverlap(leftSample, rightSample, leftIndex, rightIndex
   return false;
 }
 
-function coordinateEqual(a, b, epsilon = 1e-10) {
-  return Math.abs(Number(a?.[0]) - Number(b?.[0])) <= epsilon && Math.abs(Number(a?.[1]) - Number(b?.[1])) <= epsilon;
-}
-
 function bounds(geometry) {
   const output = coordinateBounds(geometry?.coordinates);
   return output.every(Number.isFinite) ? output : null;
@@ -95,21 +92,6 @@ function bounds(geometry) {
 
 function boundsOverlap(a, b) {
   return !!a && !!b && a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
-}
-
-function segmentIntersection(a, b, c, d, epsilon = 1e-12) {
-  const denominator = (Number(a[0]) - Number(b[0])) * (Number(c[1]) - Number(d[1]))
-    - (Number(a[1]) - Number(b[1])) * (Number(c[0]) - Number(d[0]));
-  if (Math.abs(denominator) <= epsilon) return null;
-  const determinant1 = Number(a[0]) * Number(b[1]) - Number(a[1]) * Number(b[0]);
-  const determinant2 = Number(c[0]) * Number(d[1]) - Number(c[1]) * Number(d[0]);
-  const x = (determinant1 * (Number(c[0]) - Number(d[0])) - (Number(a[0]) - Number(b[0])) * determinant2) / denominator;
-  const y = (determinant1 * (Number(c[1]) - Number(d[1])) - (Number(a[1]) - Number(b[1])) * determinant2) / denominator;
-  const inside = (point, left, right) => point[0] >= Math.min(left[0], right[0]) - epsilon
-    && point[0] <= Math.max(left[0], right[0]) + epsilon
-    && point[1] >= Math.min(left[1], right[1]) - epsilon
-    && point[1] <= Math.max(left[1], right[1]) + epsilon;
-  return inside([x, y], a, b) && inside([x, y], c, d) ? [x, y] : null;
 }
 
 function ringArea(ring = []) {
@@ -131,51 +113,26 @@ function issue(kind, message, details = {}) {
   return { id: `${kind}:${target}:${details.sequence || 0}`, kind, severity: details.severity || 'error', message, ...details };
 }
 
+const ringMessages = Object.freeze({
+  'invalid-geometry': '고리를 구성하는 꼭짓점이 부족합니다.',
+  'open-ring': 'Polygon 고리가 닫혀 있지 않습니다.',
+  'zero-area': '면적이 없거나 지나치게 작은 고리입니다.',
+  'duplicate-vertex': '연속된 중복 꼭짓점이 있습니다.',
+  'self-intersection': '경계가 자기 자신과 교차합니다.',
+});
+
 function validateRing(ring, entityRefs, polygonIndex, ringIndex) {
-  const issues = [];
-  if (!Array.isArray(ring) || ring.length < 4) {
-    issues.push(issue('invalid-geometry', '고리를 구성하는 꼭짓점이 부족합니다.', { entityRefs, coordinate: ring?.[0], polygonIndex, ringIndex }));
-    return issues;
+  if (!Array.isArray(ring)) return [issue('invalid-geometry', ringMessages['invalid-geometry'], {
+    entityRefs, coordinate: ring?.[0], polygonIndex, ringIndex,
+  })];
+  if (typeof sharedCalculationCore.validateTerritorialRing !== 'function') {
+    throw Object.assign(new Error('Canonical C++ ring validator is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  if (!coordinateEqual(ring[0], ring[ring.length - 1])) {
-    issues.push(issue('open-ring', 'Polygon 고리가 닫혀 있지 않습니다.', { entityRefs, coordinate: ring[ring.length - 1], polygonIndex, ringIndex }));
-  }
-  if (Math.abs(ringArea(ring)) <= 1e-14) {
-    issues.push(issue('zero-area', '면적이 없거나 지나치게 작은 고리입니다.', { entityRefs, coordinate: ring[0], polygonIndex, ringIndex }));
-  }
-  for (let index = 1; index < ring.length; index += 1) {
-    if (coordinateEqual(ring[index - 1], ring[index])) issues.push(issue('duplicate-vertex', '연속된 중복 꼭짓점이 있습니다.', {
-      entityRefs, coordinate: ring[index], polygonIndex, ringIndex, vertexIndex: index,
-    }));
-  }
-  const segmentCount = ring.length - 1;
-  const segments = Array.from({ length: segmentCount }, (_, index) => {
-    const a = ring[index];
-    const b = ring[index + 1];
-    return {
-      index, a, b,
-      minX: Math.min(a[0], b[0]), maxX: Math.max(a[0], b[0]),
-      minY: Math.min(a[1], b[1]), maxY: Math.max(a[1], b[1]),
-    };
-  }).sort((left, right) => left.minX - right.minX || left.minY - right.minY);
-  let active = [];
-  for (const current of segments) {
-    active = active.filter(candidate => candidate.maxX >= current.minX - 1e-12);
-    for (const candidate of active) {
-      const adjacent = Math.abs(candidate.index - current.index) === 1
-        || (candidate.index === 0 && current.index === segmentCount - 1)
-        || (current.index === 0 && candidate.index === segmentCount - 1);
-      if (adjacent || candidate.maxY < current.minY - 1e-12 || candidate.minY > current.maxY + 1e-12) continue;
-      const intersection = segmentIntersection(candidate.a, candidate.b, current.a, current.b);
-      if (!intersection) continue;
-      issues.push(issue('self-intersection', '경계가 자기 자신과 교차합니다.', {
-        entityRefs, coordinate: intersection, polygonIndex, ringIndex, segmentIndex: candidate.index,
-      }));
-      return issues;
-    }
-    active.push(current);
-  }
-  return issues;
+  return sharedCalculationCore.validateTerritorialRing(ring).map(result => issue(result.kind, ringMessages[result.kind], {
+    entityRefs, coordinate: result.coordinate, polygonIndex, ringIndex,
+    ...(result.vertexIndex == null ? {} : { vertexIndex: result.vertexIndex }),
+    ...(result.segmentIndex == null ? {} : { segmentIndex: result.segmentIndex }),
+  }));
 }
 
 export function validateGeometry(feature) {
