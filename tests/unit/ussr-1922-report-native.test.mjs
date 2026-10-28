@@ -108,7 +108,8 @@ test('archived physical maps and report content must match pinned receipts, not 
   const sha=data=>createHash('sha256').update(data).digest('hex');
   const expected=Object.fromEntries(Object.entries(blobs).map(([f,b])=>[f,{sha256:sha(b),bytes:b.length}]));
   const index={files:Object.fromEntries(Object.entries(expected).map(([f,r])=>[
-    ARCHIVE_BASE+f,{...r,encoding:'identity',stored:ARCHIVE_BASE+f}]))};
+    'reports/borders/reconstruction/ussr-1922-caspian-application-2026-10-24/'+f,
+    {...r,encoding:'identity',stored:'reports/borders/reconstruction/ussr-1922-caspian-application-2026-10-24/'+f}]))};
   const revision='a'.repeat(40);
   const found=await verifyArchivedReports(index,revision,
     async p=>blobs[p.split('/').at(-1)],expected);

@@ -40,7 +40,7 @@ node scripts/gis/run-source.mjs --help
 
 ## 2026-10-25 시아첸 일회성 조사 코드 정리
 
-시아첸 연구용 Python 스크립트 8개와 전용 GitHub Actions 8개는 `work/gis`에서 정리했다. 공통 GIS 수동 실행기에서 폐기된 `historical-topography-probe` 작업도 제거했다. 지도 PNG 22개, GeoJSON 11개, Markdown 보고서 13개, JSON 분석 자료 8개는 [외부 라이브러리의 시아첸 보고서 폴더](https://github.com/kimjeon-il/PandoLab-library-data/tree/main/reports/borders/reconstruction/siachen)에 그대로 보관한다. 기존 조사 코드는 Git 이력에서 복구할 수 있다. 앱·웹 런타임과 공통 GIS 생성기는 변경하지 않았다.
+시아첸 연구용 Python 스크립트 8개와 전용 GitHub Actions 8개, 공통 GIS 수동 실행기의 `historical-topography-probe` 작업은 종료했다. 당시 보관한 상세 연구자료도 2026-10-28의 1:10M 범위 정리에서 폐기했다. 현재는 [핵심 조사 기록과 Natural Earth 1:10M 분쟁지역 참조](https://github.com/kimjeon-il/PandoLab-library-data/tree/main/reports/borders/reconstruction/siachen)만 유지한다. 과거 Git 이력, 앱·웹 런타임과 공통 GIS 생성기는 유지한다.
 
 ## 2026-10-25 2차 GIS/Python 정리
 
