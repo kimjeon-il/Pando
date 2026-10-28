@@ -79,6 +79,43 @@ std::u16string referenceUtf16(const val& input) {
     for(unsigned i=0;i<length;++i)result.push_back(static_cast<char16_t>(input.call<unsigned>("charCodeAt",i)));
     return result;
 }
+val referenceWebString(const std::u16string& input) {
+    auto chunks=val::array();unsigned part=0;
+    for(std::size_t start=0;start<input.size();start+=8192) {
+        auto units=val::array();unsigned index=0;
+        for(std::size_t i=start;i<std::min(input.size(),start+8192);++i)units.set(index++,unsigned(input[i]));
+        chunks.set(part++,val::global("String")["fromCharCode"].call<val>("apply",val::null(),units));
+    }
+    return chunks.call<val>("join",std::string(""));
+}
+TerritorialRootNode<std::u16string> rootNodeForWeb(const val& feature) {
+    const auto properties=feature["properties"],rawId=feature["id"],rawParent=properties["parentId"],kind=properties["entityKind"];
+    const auto string=val::global("String"),boolean=val::global("Boolean");
+    const auto identifier=rawId.isNull()||rawId.isUndefined()?val(std::string("")):string(rawId);
+    const auto parent=boolean(rawParent).as<bool>()?string(rawParent):val(std::string(""));
+    const bool isString=type(kind,"string");
+    return {referenceUtf16(identifier),referenceUtf16(parent),isString&&kind.as<std::string>()=="regional",
+        isString&&kind.as<std::string>()=="general"};
+}
+val territorialRootForWeb(const val& feature,const val& lookup) {
+    return boundary([&] {
+        if(!type(lookup,"function"))fail("INVALID_REFERENCE_GRAPH","A territorial lookup is required.");
+        const auto result=inspectTerritorialRoot(rootNodeForWeb(feature),[&](const std::u16string& id)->std::optional<TerritorialRootNode<std::u16string>>{
+            const auto parent=lookup(referenceWebString(id));
+            if(!val::global("Boolean")(parent).as<bool>())return std::nullopt;
+            return rootNodeForWeb(parent);
+        });
+        const char* status=nullptr;
+        switch(result.status){
+        case TerritorialRootStatus::Valid:status="valid";break;
+        case TerritorialRootStatus::RegionalParent:status="regional-parent";break;
+        case TerritorialRootStatus::Cycle:status="cycle";break;
+        case TerritorialRootStatus::MissingParent:
+        case TerritorialRootStatus::WrongParentKind:status="invalid-parent";break;
+        }
+        auto value=val::object();value.set("status",std::string(status));value.set("rootId",referenceWebString(result.root));return value;
+    });
+}
 val referenceGraphForWeb(const val& ids,const val& parents) {
     return boundary([&] {
         array(ids,"INVALID_REFERENCE_GRAPH");array(parents,"INVALID_REFERENCE_GRAPH");
@@ -800,6 +837,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::function("sphericalRingSignedArea",&sphericalRingAreaForWeb);
     emscripten::function("validateTerritorialRing",&territorialRingValidationForWeb);
     emscripten::function("referenceGraphDiagnostics",&referenceGraphForWeb);
+    emscripten::function("resolveTerritorialRoot",&territorialRootForWeb);
     emscripten::function("distributionReferenceDiagnostics",&distributionReferencesForWeb);
     emscripten::function("sphericalRingSignedAreas",&sphericalRingAreasForWeb);
     emscripten::function("temporalParse",&temporalParseForWeb);

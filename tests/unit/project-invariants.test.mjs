@@ -37,6 +37,24 @@ test('shared distribution reference diagnostics preserve invalid fields independ
   ]);
 });
 
+test('shared territorial root distinguishes missing, cyclic and regional parents', () => {
+  const rows=new Map([
+    ['A', {id:'A',properties:{entityKind:'general',parentId:''}}],
+    ['B', {id:'B',properties:{entityKind:'general',parentId:'A'}}],
+  ]);
+  const resolve = row => sharedCalculationCore.resolveTerritorialRoot(row, id => rows.get(id) || null);
+  assert.deepEqual(resolve(rows.get('B')), { status:'valid', rootId:'A' });
+  assert.deepEqual(resolve({id:'C',properties:{entityKind:'general',parentId:'missing'}}), { status:'invalid-parent', rootId:'' });
+  assert.deepEqual(resolve({id:'C',properties:{entityKind:'general',parentId:'C'}}), { status:'cycle', rootId:'' });
+  assert.deepEqual(resolve({id:'R',properties:{entityKind:'regional',parentId:'A'}}), { status:'regional-parent', rootId:'' });
+  const unusual='지도\ud800';
+  rows.set(unusual,{id:unusual,properties:{entityKind:'general',parentId:''}});
+  assert.deepEqual(resolve({id:'child',properties:{entityKind:'general',parentId:unusual}}), { status:'valid',rootId:unusual });
+  const longId='가'.repeat(9000);
+  rows.set(longId,{id:longId,properties:{entityKind:'general',parentId:''}});
+  assert.deepEqual(resolve({id:'long-child',properties:{entityKind:'general',parentId:longId}}), { status:'valid',rootId:longId });
+});
+
 test('valid project references pass', () => {
   const result = validateProjectReferenceIntegrity({
     territorialEntities: [...[country('A')],...[unit('R', 'A')]],

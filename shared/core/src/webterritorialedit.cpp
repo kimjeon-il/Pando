@@ -54,15 +54,16 @@ std::map<std::string,std::size_t> indexRows(const Rows& rows) {
 }
 std::string root(const Rows& rows,const std::map<std::string,std::size_t>& index,const std::string& id) {
     auto found=index.find(id);require(found!=index.end(),"invalid","Territorial parent is missing.");
-    const auto* row=&rows[found->second];
-    if(row->identity.kind==UnitKind::Regional)require(row->parentId.empty(),"invalid","Independent regions cannot have parents.");
-    std::set<std::string> seen{row->identity.id};
-    while(!row->parentId.empty()) {
-        require(seen.insert(row->parentId).second,"invalid","Territorial parent relationship is cyclic.");
-        found=index.find(row->parentId);require(found!=index.end(),"invalid","Territorial parent is missing.");
-        row=&rows[found->second];require(row->identity.kind==UnitKind::General,"invalid","A territorial parent must be a general entity.");
-    }
-    return row->identity.id;
+    const auto node=[](const WebTerritorialFeature& row){return TerritorialRootNode<std::string>{row.identity.id,row.parentId,
+        row.identity.kind==UnitKind::Regional,row.identity.kind==UnitKind::General};};
+    const auto result=inspectTerritorialRoot(node(rows[found->second]),[&](const std::string& parent)->std::optional<TerritorialRootNode<std::string>>{
+        const auto next=index.find(parent);return next==index.end()?std::nullopt:std::optional(node(rows[next->second]));
+    });
+    require(result.status!=TerritorialRootStatus::RegionalParent,"invalid","Independent regions cannot have parents.");
+    require(result.status!=TerritorialRootStatus::Cycle,"invalid","Territorial parent relationship is cyclic.");
+    require(result.status!=TerritorialRootStatus::MissingParent,"invalid","Territorial parent is missing.");
+    require(result.status!=TerritorialRootStatus::WrongParentKind,"invalid","A territorial parent must be a general entity.");
+    return result.root;
 }
 void validateHierarchy(const Rows& rows) {
     const auto index=indexRows(rows);

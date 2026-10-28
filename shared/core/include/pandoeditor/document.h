@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 namespace pandoeditor {
@@ -21,6 +22,22 @@ struct DistributionReferenceStatus {
 };
 DistributionReferenceStatus inspectDistributionReference(bool layerExists,DistributionReferenceMode mode,
     bool finiteValue,bool territoryExists);
+enum class TerritorialRootStatus { Valid, RegionalParent, Cycle, MissingParent, WrongParentKind };
+template<class Text> struct TerritorialRootNode { Text id,parent;bool regional=false,general=false; };
+template<class Text> struct TerritorialRootResult { TerritorialRootStatus status;Text root; };
+template<class Text,class Lookup>
+TerritorialRootResult<Text> inspectTerritorialRoot(TerritorialRootNode<Text> current,Lookup lookup) {
+    if(current.regional&&!current.parent.empty())return {TerritorialRootStatus::RegionalParent,{}};
+    std::set<Text> seen{current.id};
+    while(!current.parent.empty()) {
+        if(!seen.insert(current.parent).second)return {TerritorialRootStatus::Cycle,{}};
+        auto parent=lookup(current.parent);
+        if(!parent)return {TerritorialRootStatus::MissingParent,{}};
+        if(!parent->general)return {TerritorialRootStatus::WrongParentKind,{}};
+        current=std::move(*parent);
+    }
+    return {TerritorialRootStatus::Valid,std::move(current.id)};
+}
 template<class Text>
 ReferenceChainStatus inspectReferenceChain(const std::map<Text,std::optional<Text>>& parents,const Text& start) {
     if(start.empty())return ReferenceChainStatus::Valid;

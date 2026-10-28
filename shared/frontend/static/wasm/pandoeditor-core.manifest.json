@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "4787f4f89cb829c0b637f97456be2b79436e25f7709a583e8934df140560adad",
+  "sourceSha256": "20feadbe7d412625045d6a58e4dc4e8a6fdb416c7ff8b37c2c80f9e028f1f046",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -57,7 +57,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
-      "sha256": "f49e4ae4309e8af58a283af25940177eee8f5d5f72c7cdfe186ba29c6399450d"
+      "sha256": "137fafa11eb8070c089c4d64de5af4d55c61963a65453a13a20de87d4c584e94"
     },
     {
       "path": "shared/core/include/pandoeditor/geometry-types.h",
@@ -465,7 +465,7 @@
     },
     {
       "path": "shared/core/src/webterritorialedit.cpp",
-      "sha256": "190edd69b2a44052f192ffecd556382e66fba2d1a991ad76a58aec36f6a581d1"
+      "sha256": "1bafa72cadd0a53aa5811e00d3ce585c84a9983c324b2024d1f3539a0b19dff0"
     },
     {
       "path": "shared/tests/CMakeLists.txt",
@@ -605,7 +605,7 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "2a7c3119b117927baf81a615b586eda8bbf218599b442b9552e4b584284616aa"
+      "sha256": "a59a6cf05c5435b01444df60e6c72bd123172a0e21132644d8af7a2ed93dc1fc"
     },
     {
       "path": "shared/wasm/timeline-bindings.cpp",
@@ -619,7 +619,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "0a063d03bbfeec9db03f32520e15a25c41a48e0ed09e8fcf482ce8e4e53bbffd"
+      "sha256": "65454bc0e9bae7cb2c4c48efd8d7dc7819c97c4116434b1a441c5f26355972ac"
     }
   }
 }
