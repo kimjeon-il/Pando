@@ -113,6 +113,9 @@ test('annex review uses the validated transferred geometry even when union diffe
     transferredGeometry: transferred, clipper: { union: (...polygons) => polygons[0], difference: () => [partial.coordinates] } });
   assert.deepEqual(preview.delta.addedGeometry, transferred);
   assert.deepEqual(preview.delta.removedGeometry, transferred);
+  assert.equal(preview.metrics.perEntity[0].before, 308716.46323909174);
+  assert.equal(preview.metrics.perEntity[0].after, 308716.46323909174);
+  assert.equal(preview.metrics.transferredAreaKm2, 111160.50070553622);
   assert.throws(() => buildGeometryPreview({ operation: 'annex', beforeFeatures: before, afterFeatures: after }),
     /편입.*형상/);
 });

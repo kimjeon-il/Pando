@@ -1,4 +1,4 @@
-import { geometryAreaKm2, percentChange } from './geometry-metrics.js';
+import { geometryAreasKm2, percentChange } from './geometry-metrics.js';
 import { wrapPolygonGeometry, hasCanonicalPolygonWinding, multiCoordinates, normalizeClippedPolygonGeometry } from "../../../../../shared/frontend/js/modules/map-edit-geometry.js";
 import {
   buildRenderableBoundaryGeometry,
@@ -114,9 +114,11 @@ export function buildGeometryPreview({ operation, beforeFeatures = [], afterFeat
     addedGeometry ||= clone(transferredGeometry);
   }
   if (operation === 'merge' && afterUnion) addedGeometry = clone(afterUnion);
-  const perEntity = [...new Set([...beforeById.keys(), ...afterById.keys()])].map(id => {
-    const before = geometryAreaKm2(beforeById.get(id)?.geometry);
-    const after = geometryAreaKm2(afterById.get(id)?.geometry);
+  const entityIds = [...new Set([...beforeById.keys(), ...afterById.keys()])];
+  const areas = geometryAreasKm2([...entityIds.flatMap(id => [beforeById.get(id)?.geometry, afterById.get(id)?.geometry]), afterUnion, transferredGeometry]);
+  const perEntity = entityIds.map((id, index) => {
+    const before = areas[index * 2];
+    const after = areas[index * 2 + 1];
     return { id, before, after, delta: after - before, percent: percentChange(before, after) };
   });
   return {
@@ -131,8 +133,8 @@ export function buildGeometryPreview({ operation, beforeFeatures = [], afterFeat
     metrics: {
       operation,
       removedCountryCount: removedIds.length,
-      finalAreaKm2: geometryAreaKm2(afterUnion),
-      transferredAreaKm2: geometryAreaKm2(transferredGeometry),
+      finalAreaKm2: areas[entityIds.length * 2],
+      transferredAreaKm2: areas[entityIds.length * 2 + 1],
       perEntity,
     },
   };

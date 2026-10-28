@@ -1,5 +1,5 @@
 import { editingContextPresentation, shouldShowTaskInputInstruction, taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
-import { lineDistanceKm } from './geometry-metrics.js';
+import { lineDistancesKm } from './geometry-metrics.js';
 import { timelineMonthLabel } from "../../../../../shared/frontend/js/modules/timeline-controls.js";
 
 /** Task surface presentation. Territory selection is rendered from one shared model. */
@@ -424,8 +424,8 @@ export function createTaskPresentation() {
     section.classList.toggle('hidden', !showResults);
     if (!hydro && !merge) return;
     const busy = !!(state.modeProcessing || state.multiDraft?.previewPending || draft.strokeActive);
-    const length = geometry => (geometry?.type === 'MultiLineString' ? geometry.coordinates : [geometry?.coordinates || []])
-      .reduce((sum, line) => sum + lineDistanceKm(line), 0);
+    const length = geometry => lineDistancesKm(geometry?.type === 'MultiLineString' ? geometry.coordinates : [geometry?.coordinates || []])
+      .reduce((sum, line) => sum + line, 0);
     const measure = geometry => state.tool === 'river'
       ? `${length(geometry).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} km`
       : dependencies.applicationServicesA.formatArea(dependencies.applicationServicesB.sphericalGeometryAreaKm2(geometry), 'ko-KR', { approximate: false });

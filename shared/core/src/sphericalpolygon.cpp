@@ -6,6 +6,9 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#ifdef __EMSCRIPTEN__
+#include <emscripten/em_math.h>
+#endif
 
 namespace pandoeditor {
 namespace {
@@ -14,6 +17,31 @@ constexpr double rad = pi / 180.;
 constexpr double tolerance = 1e-10;
 constexpr double sphere = 4 * pi;
 constexpr double hemisphere = 2 * pi;
+
+// The editor's previous Web metric used the host's ECMAScript Math functions.
+// Keep those elementary operations on WASM so rounding at a decision boundary
+// remains identical; the metric and its accumulation are owned by C++.
+double displaySin(double value) {
+#ifdef __EMSCRIPTEN__
+    return emscripten_math_sin(value);
+#else
+    return std::sin(value);
+#endif
+}
+double displayCos(double value) {
+#ifdef __EMSCRIPTEN__
+    return emscripten_math_cos(value);
+#else
+    return std::cos(value);
+#endif
+}
+double displayAsin(double value) {
+#ifdef __EMSCRIPTEN__
+    return emscripten_math_asin(value);
+#else
+    return std::asin(value);
+#endif
+}
 
 bool near(Point a, Point b) {
     return std::abs(a.x-b.x)<=tolerance && std::abs(a.y-b.y)<=tolerance;
@@ -153,6 +181,52 @@ void typeCheck(const Geometry& geometry) {
         throw std::invalid_argument("INVALID_POLYGON: Polygon must have one component");
 }
 } // namespace
+
+double displayGeometryAreaKm2(const std::vector<std::vector<DisplayMetricRing>>& polygons) {
+    constexpr double radius=6371.0088;
+    auto radians=[](double value){return value*pi/180.;};
+    auto ringArea=[&](const DisplayMetricRing& ring){
+        if(ring.points.size()<3)return 0.;
+        const auto limit=ring.closed?ring.points.size()-1:ring.points.size();
+        double sum=0.;
+        for(std::size_t i=0;i<limit;++i){
+            const auto current=ring.points[i],next=ring.points[(i+1)%limit];
+            auto delta=radians(next.x)-radians(current.x);
+            if(delta>pi)delta-=pi*2;
+            if(delta< -pi)delta+=pi*2;
+            sum+=delta*(2+displaySin(radians(current.y))+displaySin(radians(next.y)));
+        }
+        auto area=std::abs(sum/2);
+        if(area>pi*2)area=pi*4-area;
+        return std::isnan(area)?area:std::max(0.,area);
+    };
+    double total=0.;
+    for(const auto& polygon:polygons){
+        if(polygon.empty())continue;
+        const auto outer=ringArea(polygon.front());double holes=0.;
+        for(std::size_t i=1;i<polygon.size();++i)holes+=ringArea(polygon[i]);
+        const auto area=outer-holes;
+        total+=std::isnan(area)?area:std::max(0.,area);
+    }
+    return total*radius*radius;
+}
+double displayLineDistanceKm(const std::vector<std::optional<Point>>& points) {
+    constexpr double radius=6371.0088;
+    auto radians=[](double value){return value*pi/180.;};double total=0.;
+    for(std::size_t i=1;i<points.size();++i){
+        if(!points[i-1]||!points[i])continue;
+        const auto a=*points[i-1],b=*points[i];
+        const auto lat1=radians(a.y),lat2=radians(b.y),deltaLat=lat2-lat1;
+        auto deltaLon=radians(b.x)-radians(a.x);
+        if(deltaLon>pi)deltaLon-=pi*2;
+        if(deltaLon< -pi)deltaLon+=pi*2;
+        const auto y=displaySin(deltaLat/2),x=displaySin(deltaLon/2);
+        const auto haversine=y*y+displayCos(lat1)*displayCos(lat2)*(x*x);
+        const auto clamped=std::isnan(haversine)?haversine:std::max(0.,std::min(1.,haversine));
+        total+=radius*2*displayAsin(std::sqrt(clamped));
+    }
+    return total;
+}
 
 double sphericalRingSignedArea(const Ring& ring) {
     if(ring.size()<4)throw std::invalid_argument("INVALID_POLYGON_RING: short ring");
