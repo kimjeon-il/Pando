@@ -18,7 +18,11 @@ int run(const std::vector<fs::path>& args){
     for(const auto* name:{"model.onnx","tile.f32","overview.f32","position.f32","expected.f32"})
         if(fs::exists(dir/name))throw std::runtime_error("Diagnostic output exists");
     torch::set_num_threads(2);torch::manual_seed(20261029);
-    pando::reference::ReferenceBoundaryModel model;model->eval();torch::NoGradGuard guard;
+    pando::reference::ReferenceBoundaryModel model;
+    bool refusedTrainingMode=false;
+    try{pando::reference::exportReferenceOnnx(model);}catch(const std::exception&){refusedTrainingMode=true;}
+    if(!refusedTrainingMode)throw std::runtime_error("ONNX exporter accepted training-mode normalization");
+    model->eval();torch::NoGradGuard guard;
     const auto tile=(torch::remainder(torch::arange(3*512*512,torch::kFloat32),251)/250).reshape({1,3,512,512});
     const auto overview=(torch::remainder(torch::arange(3*256*256,torch::kFloat32),197)/196).reshape({1,3,256,256});
     const auto position=torch::tensor({.1f,-.2f,.3f,.4f}).reshape({1,4});

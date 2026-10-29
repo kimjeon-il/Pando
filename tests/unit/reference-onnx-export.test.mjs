@@ -32,7 +32,7 @@ function protobufFields(bytes){
   return fields;
 }
 
-test('native ONNX graph reproduces every C++ model output and refuses overwrite',async()=>{
+test('native ONNX graph reproduces every C++ model output and refuses overwrite',{skip:!process.env.PANDO_REFERENCE_ONNX_TEST_BINARY},async()=>{
   const binary=process.env.PANDO_REFERENCE_ONNX_TEST_BINARY;
   assert(binary,'PANDO_REFERENCE_ONNX_TEST_BINARY must identify the native test executable');
   const directory=mkdtempSync(join(tmpdir(),'pando-onnx-test-'));
