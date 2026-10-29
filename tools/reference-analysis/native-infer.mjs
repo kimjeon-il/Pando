@@ -8,7 +8,9 @@ import {verifyNativeTool} from '../native-tool.mjs';
 
 export const referenceSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/reference-analysis/reference-infer.cpp',
   'tools/cpp/reference-analysis/reference-model.cpp','tools/cpp/reference-analysis/reference-model.h',
+  'tools/cpp/reference-analysis/reference-io.cpp','tools/cpp/reference-analysis/reference-io.h',
   'tools/cpp/reference-analysis/safetensors.cpp','tools/cpp/reference-analysis/safetensors.h',
+  'tools/cpp/reference-analysis/training-checkpoint.cpp','tools/cpp/reference-analysis/training-checkpoint.h',
   'tools/cpp/reference-analysis/boundary-loss.cpp','tools/cpp/reference-analysis/boundary-loss.h',
   'shared/core/src/losslessjson.cpp','shared/core/include/pandoeditor/losslessjson.h']);
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
