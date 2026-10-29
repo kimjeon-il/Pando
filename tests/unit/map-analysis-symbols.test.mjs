@@ -51,6 +51,51 @@ test('point-symbol detector ignores elongated linework in the search window', ()
   assert.equal(result, null);
 });
 
+test('point-symbol detector separates a dark city dot from connected pale cartographic linework',()=>{
+  const raster=makeRaster();
+  for(let x=0;x<raster.width;x++)raster.luma[50*raster.width+x]=130;
+  fillDisk(raster,60,50,3,20);
+  const result=findReferenceImagePointSymbol(raster,[60/119,50/99],{searchRadiusPx:18});
+  assert.ok(result);
+  assert.ok(Math.hypot(result.pixel[0]-60,result.pixel[1]-50)<.3);
+});
+
+test('OCR symbol search excludes neighbouring labels as well as the current label',()=>{
+  const raster=makeRaster(180,100,240);
+  fillDisk(raster,61,49,3,70);
+  fillDisk(raster,90,31,3,20); // A round glyph in another OCR line.
+  const box=[68/179,40/99,46/179,18/99];
+  const result=findReferenceImagePointSymbolNearTextBox(raster,box,{
+    searchRadiusPx:18,textBoxes:[box,[85/179,26/99,12/179,12/99]],
+  });
+  assert.ok(result);assert.ok(Math.hypot(result.pixel[0]-61,result.pixel[1]-49)<.3);
+});
+
+test('OCR symbol search leaves a distant unrelated dot unresolved',()=>{
+  const raster=makeRaster(180,100,240);
+  fillDisk(raster,90,77,3,20);
+  const result=findReferenceImagePointSymbolNearTextBox(raster,[68/179,40/99,46/179,18/99],{searchRadiusPx:32});
+  assert.equal(result,null);
+});
+
+test('equally adjacent pale fragments do not outrank a high-contrast city dot',()=>{
+  const raster=makeRaster(180,100,240);
+  fillDisk(raster,61,49,3,20);
+  fillDisk(raster,121,49,2,140);
+  const result=findReferenceImagePointSymbolNearTextBox(raster,[68/179,40/99,46/179,18/99],{searchRadiusPx:24});
+  assert.ok(result);assert.ok(Math.hypot(result.pixel[0]-61,result.pixel[1]-49)<.3);
+});
+
+test('a rejected distant dot cannot hide a valid adjacent lower-contrast symbol',()=>{
+  const raster=makeRaster(180,100,240);
+  fillDisk(raster,61,49,3,100);
+  const box=[68/179,40/99,46/179,18/99],options={searchRadiusPx:32,minimumConfidence:.4};
+  assert.ok(findReferenceImagePointSymbolNearTextBox(raster,box,options));
+  fillDisk(raster,52,49,3,20);
+  const result=findReferenceImagePointSymbolNearTextBox(raster,box,options);
+  assert.ok(result);assert.ok(Math.hypot(result.pixel[0]-61,result.pixel[1]-49)<.3);
+});
+
 test('place candidate builder de-duplicates two place seeds that snap to the same symbol', () => {
   const raster = makeRaster();
   fillDisk(raster, 40, 45, 3, 30);

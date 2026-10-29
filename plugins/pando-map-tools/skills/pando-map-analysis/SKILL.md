@@ -72,6 +72,14 @@ stays uncertain; request only the needed region or control points. The macro-v6
 model remains pending, trainingOnly: true, releaseApproved: false. Never
 claim extraction of its unobserved channels or infer country, name or validity.
 
+Inspect the actual recognition language and retained OSD/probe evidence; a weak
+script vote may be corrected by much stronger recognition. The current place
+seed is a curated subset, not a complete world gazetteer. A missing name is a
+coverage limitation, not evidence for a different region. Check city-symbol
+centres against the image; OCR can include a dot in a label box or miss it.
+Use `auto` control-point fitting to compare validated transforms. TPS training
+residuals alone cannot justify approval; preserve failed pixel-validation gates.
+
 Read [the structured revision contract](references/edits.md) before editing.
 Registration-only edits reproject the saved pixel graph without OCR/inference.
 Inspect each revised preview and current graph IDs before selecting results.
