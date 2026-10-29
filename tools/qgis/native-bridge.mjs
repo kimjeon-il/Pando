@@ -10,7 +10,7 @@ import {normalizeFile,normalizeSourceAttribute,parseJson,stringifyJson} from './
 import {startNativeQgis} from './native-start.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
-const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | algorithms [--offset N --limit N --search TEXT] | buffer --layer ID --distance NUMBER [--segments N] --output NEW_OUTPUT | schema --layer ID | set-visibility --layer ID --visible true|false | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | delete-feature --layer ID --fid FID | add-feature --layer ID --wkt WKT --json ATTRIBUTES | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
+const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | algorithms [--offset N --limit N --search TEXT] | buffer --layer ID --distance NUMBER [--segments N] --output NEW_OUTPUT | schema --layer ID | raster-info --layer ID | set-visibility --layer ID --visible true|false | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | delete-feature --layer ID --fid FID | add-feature --layer ID --wkt WKT --json ATTRIBUTES | open INPUT | open-raster INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
 export async function runNativeBridge(args,{signal}={}){
   signal?.throwIfAborted();
   const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},search:{type:'string'},distance:{type:'string'},segments:{type:'string'},fids:{type:'string'},expression:{type:'string'},fid:{type:'string'},field:{type:'string'},json:{type:'string'},wkt:{type:'string'},visible:{type:'string'},geometry:{type:'boolean'}}});
@@ -19,10 +19,10 @@ export async function runNativeBridge(args,{signal}={}){
     if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.search!==undefined||values.distance!==undefined||values.segments!==undefined||values.fids!==undefined||values.expression!==undefined||values.fid!==undefined||values.field!==undefined||values.json!==undefined||values.wkt!==undefined||values.visible!==undefined||values.geometry!==undefined)throw Error(usage);
     return normalizeFile(rest[0],values.output);
   }
-  if(!['start','status','project','layers','schema','set-visibility','algorithms','buffer','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature','open','export'].includes(command))throw Error(usage);
+  if(!['start','status','project','layers','schema','raster-info','set-visibility','algorithms','buffer','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature','open','open-raster','export'].includes(command))throw Error(usage);
   if((['start','status','project','layers','algorithms'].includes(command)&&(rest.length||values.layer||values.output))||
-    (command==='open'&&(rest.length!==1||values.layer||values.output))||
-    (['schema','set-visibility'].includes(command)&&(rest.length||!values.layer||values.output))||
+    (['open','open-raster'].includes(command)&&(rest.length!==1||values.layer||values.output))||
+    (['schema','raster-info','set-visibility'].includes(command)&&(rest.length||!values.layer||values.output))||
     (command==='set-visibility'&&!['true','false'].includes(values.visible))||
     (command!=='set-visibility'&&values.visible!==undefined)||
     (['features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature'].includes(command)&&(rest.length||!values.layer||values.output))||
@@ -65,6 +65,7 @@ export async function runNativeBridge(args,{signal}={}){
     return requestNativeQgis(config,{command,offset,limit,...(values.search===undefined?{}:{search:values.search})},{signal});
   }
   if(command==='schema')return requestNativeQgis(config,{command:'schema',layer:values.layer},{signal});
+  if(command==='raster-info')return requestNativeQgis(config,{command,layer:values.layer},{signal});
   if(command==='set-visibility')return requestNativeQgis(config,{command,layer:values.layer,visible:values.visible==='true'},{signal});
   if(command==='features'){
     if(values.expression!==undefined&&(!values.expression.trim()||values.expression.length>10000))throw Error('A bounded nonempty feature expression is required');
@@ -108,9 +109,9 @@ export async function runNativeBridge(args,{signal}={}){
     if(!values.json||values.json.length>500000)throw Error('A bounded JSON value is required');
     return requestNativeQgis(config,{command,layer:values.layer,fid,field:values.field,json:values.json},{signal});
   }
-  if(command==='open'){
+  if(command==='open'||command==='open-raster'){
     const path=realpathSync(rest[0]);if(!statSync(path).isFile())throw Error('QGIS input must be a regular file');
-    return requestNativeQgis(config,{command:'open',path},{signal});
+    return requestNativeQgis(config,{command,path},{signal});
   }
   if(command==='buffer'){
     const distance=Number(values.distance),segments=values.segments===undefined?5:Number(values.segments);

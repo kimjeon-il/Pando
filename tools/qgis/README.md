@@ -34,6 +34,8 @@ node tools/qgis/native-bridge.mjs redo-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs rollback-edit --layer QGIS_LAYER_ID
 # node tools/qgis/native-bridge.mjs commit-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs open 'D:/path/to/pando-layer.geojson'
+node tools/qgis/native-bridge.mjs open-raster 'D:/path/to/map.tif'
+node tools/qgis/native-bridge.mjs raster-info --layer QGIS_RASTER_LAYER_ID
 node tools/qgis/native-bridge.mjs export --layer QGIS_LAYER_ID --output 'D:/path/to/qgis-result.geojson'
 node tools/qgis/native-bridge.mjs normalize 'D:/path/to/qgis-export.geojson' --output 'D:/path/to/normalized.geojson'
 ```
