@@ -39,7 +39,7 @@
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
-- **검증 대기:** QGIS `native:buffer` 실행을 메모리 출력과 기존 안전한 EPSG:4326 파일 내보내기에 연결했다. 관련 Node 검사 10개는 통과했으며 소스 일치 Windows 빌드와 실제 QGIS의 처리 결과 검증이 필요하다. 다른 처리 알고리즘 전환은 미완료다.
+- **QGIS 버퍼 처리:** `native:buffer`를 메모리 출력과 기존 안전한 EPSG:4326 파일 내보내기에 연결했다. 관련 Node 검사 10개와 [Windows CI 40963482028](https://github.com/kimjeon-il/Pando/actions/runs/40963482028)이 통과했다. 소스 일치 바이너리 SHA-256 `6d15632485bd1e8be548ebf275f13fcc510174df00ccc6651453f2dda171bf4a`를 실제 QGIS 및 MCP에서 실행해 EPSG:3857의 점 2개에 50m 버퍼를 만들고 출력 MultiPolygon의 경도를 확인했다. 원본 파일 해시·기존 출력 보존과 임시 프로젝트 레이어 미생성을 확인했다. 다른 처리 알고리즘 전환은 미완료다.
 
 - **QGIS 처리 알고리즘 목록:** 등록된 처리 알고리즘의 검색·페이지 조회를 네이티브 CLI/MCP에 추가했다. CLI/MCP 검사와 [Windows CI 40962813490](https://github.com/kimjeon-il/Pando/actions/runs/40962813490)이 통과했고 소스 일치 바이너리 SHA-256 `35209798e4e660620cb70a6ad6453f24d3c521b0c98f80a24eeda59eadb208db`로 실제 QGIS의 두 페이지, `buffer` 검색 및 MCP `native:buffer` 검색을 확인했다. 이는 목록 조회이며 처리 실행은 아직 전환되지 않았다.
 
