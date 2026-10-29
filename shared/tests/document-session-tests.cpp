@@ -3,6 +3,7 @@
 #include <pandoeditor/timeline-edit.h>
 #include <pandoeditor/webcontentcommands.h>
 #include <pandoeditor/webterritorialcommands.h>
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -140,7 +141,14 @@ void pureTimelineContracts() {
 int main() {
     pureTimelineContracts();
     std::ifstream file(DOCUMENT_SESSION_FIXTURE,std::ios::binary);assert(file);
-    const std::string seed{std::istreambuf_iterator<char>(file),std::istreambuf_iterator<char>()};
+    const std::string rawSeed{std::istreambuf_iterator<char>(file),std::istreambuf_iterator<char>()};
+    auto canonicalSeed=codecjson::parse(rawSeed);
+    auto& geometries=canonicalSeed.object.at("geometries").array;
+    std::sort(geometries.begin(),geometries.end(),[](const auto& a,const auto& b){
+        const auto& left=a.object.at("id").string;const auto& right=b.object.at("id").string;
+        return left==right?codecjson::finiteNumber(a.object.at("version"))<codecjson::finiteNumber(b.object.at("version")):left<right;
+    });
+    const auto seed=canonicalSeed.encode();
     ownedCommandBoundaries(seed);
     auto blank=codecjson::parse(seed);for(auto& row:blank.object.at("territorialEntities").array) {
         auto& properties=row.object.at("properties");properties.object["name"]=codecjson::Value::str("");
@@ -251,7 +259,15 @@ int main() {
     reconcileGeometryProvenance(opaqueBefore,opaqueCandidate);assert(opaqueCandidate.geometryProvenance.opaqueUncertain);
     Project uncertain;uncertain.replace(opaqueCandidate);
     const projectcodec::PlatformPorts webPorts{[](const std::string&){},true,codecjson::ParsedTextPolicy::PreserveUtf16};
-    try { projectcodec::encodeWeb(uncertain.snapshot(),webPorts);assert(false); }
+    assert(!projectcodec::encodeWeb(uncertain.snapshot(),webPorts).empty());
+    auto unsafe=opaqueCandidate;
+    const auto privateLabel=unsafe.labels.at(0);const auto shape=*unsafe.geometries.get(privateLabel.geometry);
+    const GeometryRef privateRef{"web-label:"+privateLabel.id,2};
+    unsafe.geometries.insert(privateRef,shape);unsafe.labels.at(0).geometry=privateRef;
+    unsafe.geometryProvenance.inlineAllocations.emplace(privateRef,InlineGeometryAllocation{
+        {"label",privateLabel.id},projectcodec::geometrySha256(shape),false});
+    Project unsafeProject;unsafeProject.replace(unsafe);
+    try { projectcodec::encodeWeb(unsafeProject.snapshot(),webPorts);assert(false); }
     catch(const std::invalid_argument& error){assert(std::string(error.what())=="UNSUPPORTED_WEB_EXPORT: opaque geometry dependencies");}
     session.documentLoad(seed,"2026-10");
     const auto batchEpoch=session.projectState().epoch;

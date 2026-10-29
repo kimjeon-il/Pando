@@ -112,6 +112,37 @@ export function createCountryImportMergePlanner({
       residualOverlapAreaKm2: 0,
     };
     let result;
+    if (typeof sharedCalculationCore.planGisCountryGeometry !== 'function'
+        || typeof sharedCalculationCore.gisCountryMergeCanCommit !== 'function') {
+      throw Object.assign(new Error('Canonical C++ GIS geometry planner is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+    }
+    let importedRawUnion, importedBounds, overlap;
+    const incomingBounds = [], remainders = new Map();
+    const operations = {
+      prepare() {
+        importedRawUnion = normalizeGeometry(clipper.union(...imported.map(feature => feature.geometry.coordinates)));
+        if (!importedRawUnion) throw new Error('가져온 영토를 결합할 수 없습니다.');
+      },
+      bounds(index, currentIndex) {
+        const existing = current[currentIndex];
+        return index >= 0
+          ? boundsOverlap(incomingBounds[index] ??= geometryBounds(imported[index].geometry), geometryBounds(existing.geometry))
+          : boundsOverlap(geometryBounds(existing.geometry), importedBounds ??= geometryBounds(importedRawUnion));
+      },
+      intersection(index, currentIndex) {
+        const existing = current[currentIndex];
+        overlap = index >= 0
+          ? normalizeGeometry(clipper.intersection(imported[index].geometry.coordinates, existing.geometry.coordinates))
+          : normalizeGeometry(clipper.intersection(existing.geometry.coordinates, importedRawUnion.coordinates));
+        return overlap ? planarArea(geometryCoordinates(overlap)) : null;
+      },
+      area() { return areaKm2(overlap); },
+      subtract(index) {
+        const remainder = normalizeGeometry(clipper.difference(current[index].geometry.coordinates, importedRawUnion.coordinates));
+        remainders.set(index, remainder);
+        return !!remainder;
+      },
+    };
 
     if (strategy === 'id-replace') {
       counts.replaced = matched;
@@ -122,52 +153,36 @@ export function createCountryImportMergePlanner({
         feature,
         clone(feature.geometry),
       )));
-      for (const incoming of imported) {
-        let incomingBounds;
-        for (const other of unaffected) {
-          if (!boundsOverlap(incomingBounds ??= geometryBounds(incoming.geometry), geometryBounds(other.geometry))) continue;
-          const overlap = normalizeGeometry(clipper.intersection(incoming.geometry.coordinates, other.geometry.coordinates));
-          if (!overlap || planarArea(geometryCoordinates(overlap)) <= 1e-8) continue;
-          counts.overlapAreaKm2 += areaKm2(overlap);
-        }
-      }
+      counts.overlapAreaKm2 = sharedCalculationCore.planGisCountryGeometry(imported.length, identityPlan.unaffected, true, operations).overlapAreaKm2;
       return {
         countriesData: { type: 'FeatureCollection', features: result },
         counts,
         affectedIds: [...affectedIds],
-        canCommit: counts.overlapAreaKm2 <= 0.001,
+        canCommit: sharedCalculationCore.gisCountryMergeCanCommit(counts.overlapAreaKm2),
       };
     }
 
-    const importedRawUnion = normalizeGeometry(clipper.union(...imported.map(feature => feature.geometry.coordinates)));
-    if (!importedRawUnion) throw new Error('가져온 영토를 결합할 수 없습니다.');
+    const geometryPlan = sharedCalculationCore.planGisCountryGeometry(imported.length, identityPlan.unaffected, false, operations);
+    counts.overlapAreaKm2 = geometryPlan.overlapAreaKm2;
     const donorIds = [];
     result = [];
-    // The union stays immutable throughout this operation. Compute its bounds
-    // at the first comparison; preserve empty/matched-only short circuiting.
-    let importedBounds;
+    const donors = new Map(geometryPlan.donors.map(row => [row.index, row]));
     for (const currentIndex of identityPlan.unaffected) {
       const existing = current[currentIndex];
       const id = text(existing?.id);
-      if (!boundsOverlap(geometryBounds(existing.geometry), importedBounds ??= geometryBounds(importedRawUnion))) {
+      const donor = donors.get(currentIndex);
+      if (!donor) {
         result.push(existing);
         continue;
       }
-      const overlap = normalizeGeometry(clipper.intersection(existing.geometry.coordinates, importedRawUnion.coordinates));
-      if (!overlap || planarArea(geometryCoordinates(overlap)) <= 1e-8) {
-        result.push(existing);
-        continue;
-      }
-      counts.overlapAreaKm2 += areaKm2(overlap);
-      const remainder = normalizeGeometry(clipper.difference(existing.geometry.coordinates, importedRawUnion.coordinates));
       affectedIds.add(id);
       donorIds.push(id);
       counts.subtracted += 1;
-      if (!remainder) {
+      if (donor.removed) {
         counts.deleted += 1;
         continue;
       }
-      existing.geometry = remainder;
+      existing.geometry = remainders.get(currentIndex);
       result.push(existing);
     }
     for (const [index, incoming] of imported.entries()) {
@@ -184,7 +199,7 @@ export function createCountryImportMergePlanner({
       affectedIds: [...affectedIds],
       donorIds,
       transferredGeometry: clone(importedRawUnion),
-      canCommit: counts.residualOverlapAreaKm2 <= 0.001,
+      canCommit: sharedCalculationCore.gisCountryMergeCanCommit(counts.residualOverlapAreaKm2),
     };
   };
 }

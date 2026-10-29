@@ -177,7 +177,6 @@ test('modal, GIS, and historical runtimes are absent from the initial request gr
     'confirm-modal-controller.js',
     'coast-reconciliation-controller.js',
     'import-service.js',
-    'territorial-import-plan.js',
     'country-import-identity.js',
     'coast-reconciliation.js',
     'annex-geometry.js',

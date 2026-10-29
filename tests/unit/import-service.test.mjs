@@ -22,6 +22,37 @@ test('shared GIS country merge resolves ordered identities and rejects invalid i
   assert.equal(sharedCalculationCore.planGisCountryMerge(['A'], ['B', 'B']).status, 'invalid-ids');
 });
 
+test('shared GIS geometry plan preserves candidate order and only subtracts significant overlaps', () => {
+  const calls = [];
+  let current = -1;
+  const result = sharedCalculationCore.planGisCountryGeometry(1, [0, 1, 2], false, {
+    prepare() { calls.push('union'); },
+    bounds(incoming, country) { calls.push(`bounds:${incoming}:${country}`); return country !== 0; },
+    intersection(incoming, country) { calls.push(`intersection:${incoming}:${country}`); current = country; return country === 1 ? 1e-8 : 2e-8; },
+    area() { calls.push(`area:${current}`); return 4; },
+    subtract(country) { calls.push(`subtract:${country}`); return false; },
+  });
+  assert.deepEqual(result, { overlapAreaKm2: 4, donors: [{ index: 2, removed: true }] });
+  assert.deepEqual(calls, ['union', 'bounds:-1:0', 'bounds:-1:1', 'intersection:-1:1',
+    'bounds:-1:2', 'intersection:-1:2', 'area:2', 'subtract:2']);
+});
+
+test('shared GIS geometry plan preserves geometry operation errors', () => {
+  const failure = new Error('overlap failed');
+  assert.throws(() => sharedCalculationCore.planGisCountryGeometry(1, [0], true, {
+    bounds() { return true; },
+    intersection() { throw failure; },
+  }), error => error === failure);
+});
+
+test('shared GIS merge commit threshold matches the existing boundary', () => {
+  const canCommit = sharedCalculationCore.gisCountryMergeCanCommit;
+  assert.equal(canCommit(0), true);
+  assert.equal(canCommit(0.001), true);
+  assert.equal(canCommit(0.0010001), false);
+  assert.equal(canCommit(NaN), false);
+});
+
 test('actual country merge rejects empty and duplicate imported IDs before geometry operations', async () => {
   let operations = 0;
   const planner = createCountryImportMergePlanner({
