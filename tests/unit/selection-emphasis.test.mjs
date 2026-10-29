@@ -86,7 +86,8 @@ test('country interaction boundaries reuse stable shared resources and draw only
   const baseStart = gpu.indexOf('function drawCountryBoundaryStrokes');
   const baseEnd = gpu.indexOf('function drawBaseSceneContent', baseStart);
   const baseBoundary = gpu.slice(baseStart, baseEnd);
-  assert.match(baseBoundary, /drawProgram\(lineProgram, lineVao, lineIndexBuffer/);
+  assert.match(baseBoundary, /strokeRenderer\.drawBatches/);
+  assert.match(baseBoundary, /countryBoundaryBatches\(/);
   assert.doesNotMatch(baseBoundary, /currentCountryStrokeResources\(\)/);
   assert.doesNotMatch(gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro')), /primaryBoundaryPaletteTexture/);
 });
@@ -107,11 +108,12 @@ test('country interaction fill consumes only the prepared emphasized ranges', as
 
 test('territorial persistent boundaries use the shared GPU scene stroke domain', async () => {
   const rendering = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
+  const content = await readFile(new URL("../../shared/frontend/js/modules/map-content-presentation.js", import.meta.url), 'utf8');
   const gpu = await readFile(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
   const preparation = await readFile(new URL("../../shared/frontend/js/modules/map-display-preparation.js", import.meta.url), 'utf8');
   assert.match(preparation, /buildTerritorialInternalBoundarySegments/);
   assert.doesNotMatch(rendering, /buildTerritorialInternalBoundarySegments/);
-  assert.match(rendering, /replaceGpuSceneDomain\?\.\('territorial-boundaries'/);
+  assert.match(content, /replaceGpuSceneDomain\?\.\('territorial-boundaries'/);
   assert.match(gpu, /strokeRenderer\.drawBatches/);
 });
 

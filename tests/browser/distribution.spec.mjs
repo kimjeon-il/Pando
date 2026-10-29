@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, sceneItems } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { selectUiOption } from './helpers/ui-select.mjs';
@@ -186,8 +186,7 @@ test('single display follows distribution selection without another view menu ch
   await expect(page.locator('#distributionSingleRadio')).toBeChecked();
   await page.locator('#mapDisplayBtn').click();
 
-  const renderedLayerIds = () => page.locator('#map path.distribution-shape')
-    .evaluateAll(nodes => nodes.map(node => node.__data__.layer.id));
+  const renderedLayerIds = async () => [...new Set((await sceneItems(page, 'distributions')).map(item => decodeURIComponent(item.objectKey.split(':').at(-1))))];
   for (const id of ids) {
     expect(await page.evaluate(layerId => window.PANDOLAB_DISTRIBUTIONS.select(layerId), id)).toBe(true);
     await expect.poll(renderedLayerIds).toEqual([id]);
@@ -211,6 +210,10 @@ test('single display follows distribution selection without another view menu ch
 
 test('a numeric distribution stores signed values and survives undo and redo', async ({ page }) => {
   test.setTimeout(180_000);
+  await page.route('**/modules/object-picking.js*',async route=>{
+    const response=await route.fetch(),source=await response.text(),anchor='    dependencies = ports;';
+    await route.fulfill({response,body:source.replace(anchor,anchor+'\nwindow.__distributionSelection=()=>ports.domains.selectionDomain.snapshot();')});
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
   const germany = countries.find(feature => feature.id === 'DEU');
@@ -242,7 +245,12 @@ test('a numeric distribution stores signed values and survives undo and redo', a
   }), { timeout: 30_000 }).toBe(1);
 
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1, { timeout: 30_000 });
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1, { timeout: 30_000 });
+  await expect.poll(async () => (await sceneItems(page, 'distributions')).filter(item => item.key.endsWith(':fill')).length, { timeout: 30_000 }).toBe(1);
+  await page.addStyleTag({content:'#map .territorial-label-layer {display:none !important;}'});
+  const point=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.project([10,51]));
+  const map=await page.locator('#map').boundingBox();
+  await page.mouse.move(map.x+point[0],map.y+point[1]);
+  await expect.poll(()=>page.evaluate(()=>window.__distributionSelection().hover?.domain)).toBe('distribution');
   const stored = await page.evaluate(() => {
     const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
     return { layer, entries: window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id) };
@@ -257,13 +265,13 @@ test('a numeric distribution stores signed values and survives undo and redo', a
     const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
     return layer ? window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id).length : 0;
   }), { timeout: 30_000 }).toBe(0);
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(0, { timeout: 30_000 });
+  await expect.poll(async () => (await sceneItems(page, 'distributions')).length, { timeout: 30_000 }).toBe(0);
   await page.locator('#redoBtn').click();
   await expect.poll(() => page.evaluate(() => {
     const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
     return layer ? window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id).length : 0;
   }), { timeout: 30_000 }).toBe(1);
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1, { timeout: 30_000 });
+  await expect.poll(async () => (await sceneItems(page, 'distributions')).filter(item => item.key.endsWith(':fill')).length, { timeout: 30_000 }).toBe(1);
   expect(errors).toEqual([]);
 });
 
@@ -340,7 +348,7 @@ test('overlap and single display preserve independent values and free geometry o
   }
   await expect(page.locator('#distributionActiveLayerInput').locator('..')).toBeVisible({ timeout: 30_000 });
   await selectUiOption(page, '#distributionActiveLayerInput', current.layers[1].id);
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
+  await expect.poll(async () => (await sceneItems(page, 'distributions')).filter(item => item.key.endsWith(':fill')).length).toBe(1);
   // The select's external popover closes the view menu; reopen it for the next command.
   await openDistributionViewMenu(page);
   await page.locator('#distributionOverlapRadio').locator('..').click();
@@ -352,14 +360,12 @@ test('overlap and single display preserve independent values and free geometry o
       layers: window.PANDOLAB_DISTRIBUTIONS.listLayers().map(layer => ({
         layer, entries: window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id),
       })),
-      shown: [...document.querySelectorAll('#map path.distribution-shape')].map(node => ({
-        layerId: node.__data__.layer.id, entryId: node.__data__.entry.id,
-      })),
+      shown: (window.__testMapSceneDomain('distributions')?.polygons || []).map(item => ({ key: item.key, objectKey: item.objectKey })),
       frame: { ...document.querySelector('#map .map-svg').dataset },
     }), firstUnit)),
     contentType: 'application/json',
   });
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(2);
+  await expect.poll(async () => (await sceneItems(page, 'distributions')).filter(item => item.key.endsWith(':fill')).length).toBe(2);
 
   await expect.poll(async () => {
     const saved = await autosavedDistributions(page);

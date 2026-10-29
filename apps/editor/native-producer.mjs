@@ -11,7 +11,7 @@ export function nativeBuildArguments(platform,mode) {
   if(!Object.hasOwn(nativeTargets,platform))throw Error('Unsupported native platform');
   if(!nativeModes.includes(mode))throw Error('Unsupported native mode');
   const android=platform.startsWith('android');
-  return [...(android?['android','build']:['build']),'--debug',...(android?['--apk']:['--no-bundle']),'--target',
+  return [...(android?['android','build']:['build']),'--debug',...(android?['--apk']:mode==='offline'?['--bundles','nsis']:['--no-bundle']),'--target',
     android?(platform==='android'?'aarch64':'x86_64'):nativeTargets.windows,'--features',
     mode==='development'?'custom-protocol,development':mode==='verification'?'custom-protocol,verification':'custom-protocol'];
 }
@@ -33,6 +33,7 @@ export async function buildNativeOnCI({root=resolve(shell,'../..'),platform,mode
     config.app={...config.app,security:{...config.app?.security,capabilities:[capability]}};
   }
   if(mode!=='development')config.build={...config.build,frontendDist:resolve(editorStageRoot(root),'dist')};
+  if(platform==='windows'&&mode==='offline')config.bundle={...config.bundle,active:true,targets:['nsis']};
   const library=JSON.parse(await readFile(resolve(root,'config/library-data.json'),'utf8'));
   const env={...process.env,CARGO_INCREMENTAL:'0',PANDOLAB_NATIVE_BUILD_INFO:JSON.stringify(buildInfo),PANDOLAB_LIBRARY_REPOSITORY:library.repository,PANDOLAB_SHELL_PROFILE:'map-data',PANDOLAB_SHELL_DEVELOPMENT:mode==='development'?'1':'0',PANDOLAB_SHELL_VERIFICATION:mode==='verification'?'1':'0',TAURI_CONFIG:JSON.stringify(config)};
   await mkdir(output,{recursive:true});const overlay=resolve(output,'ci-config.json');await writeFile(overlay,JSON.stringify(config));
@@ -54,6 +55,12 @@ export async function buildNativeOnCI({root=resolve(shell,'../..'),platform,mode
     const build=resolve(shell,'src-tauri/target',identity.target,'debug/build');
     for(const entry of await readdir(build))if(entry.startsWith('webview2-com-sys-')){const dll=resolve(build,entry,'out/x64/WebView2Loader.dll');if(await exists(dll)){await copy(dll,'WebView2Loader.dll');break;}}
     const info=inspectWindowsBinary(resolve(output,'pandolab-web-shell.exe'));if(info.nativeInputSha256!==identity.sha256||info.executionMode!==mode)throw Error('Compiled Windows identity differs');
+    if(mode==='offline'){
+      const directory=resolve(shell,'src-tauri/target',identity.target,'debug/bundle/nsis');
+      const installers=(await readdir(directory)).filter(name=>name.endsWith('-setup.exe'));
+      if(installers.length!==1)throw Error('Expected one Windows setup executable');
+      await copy(resolve(directory,installers[0]),'PandoLab-setup.exe');
+    }
   }else{
     await copy(resolve(shell,'src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk'),'app.apk');
     certificate=apkCertificateSha256(await readFile(resolve(output,'app.apk')));

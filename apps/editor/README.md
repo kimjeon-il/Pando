@@ -33,6 +33,10 @@ verification 모드다. development와 verification을 섞을 수 없다. 일반
 허용한다. test:native는 Windows CI 단위검사를 요청한다. fixture 프로필의 원격 빌드 요청은 제공하지 않는다.
 일반 앱에는 시험 파일 쓰기·자동 종료 명령이 없다. 검증 스크립트는 build-info를 확인한다.
 
+Windows offline 산출물에는 현재 사용자용 `PandoLab-setup.exe` 설치 프로그램이 포함된다.
+설치한 앱은 시작 메뉴에서 실행하며 설치 단계에서 바탕화면 바로가기를 선택할 수 있다.
+Android는 기존 앱 식별자와 서명을 유지해 기존 설치를 덮어쓰는 방식으로 갱신한다.
+
 packaged-artifacts.mjs가 CI 요청·다운로드·검증을 소유한다. Manifest는 소스 커밋, 네이티브 입력
 SHA-256, 플랫폼, 실행 모드, 도구 버전과 파일별 크기·SHA-256을 기록한다. Windows build-info와
 Android APK 인증서도 확인한다. 실행기는 공용 D:/build/cache/pandolab/native/<입력 SHA-256>에서

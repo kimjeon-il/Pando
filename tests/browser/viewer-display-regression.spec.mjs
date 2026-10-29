@@ -83,6 +83,57 @@ test('viewer composition supports territorial hover and body clicks across camer
  expect(errors.filter(error=>/PL-MAP-(HOVER|CLICK)-001|displayFeature/.test(error))).toEqual([]);
 });
 
+test('1922 country hover follows the visible country rather than a transparent hemisphere',async({page})=>{
+ test.setTimeout(150000);
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.route('**/modules/viewer-map.js*',async route=>{
+  const response=await route.fetch(),source=await response.text(),anchor='  objectPicking.bindChooser();';
+  expect(source.split(anchor)).toHaveLength(2);
+  await route.fulfill({response,body:source.replace(anchor,anchor+'\nwindow.__viewerPickingTest={picking:objectPicking,state,selection:()=>selectionDomain.snapshot()};')});
+ });
+ await page.goto('/?debug=1');
+ await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+ await page.locator('#timelineDateButton').click();
+ await page.locator('#timelineViewUnit').selectOption('month');
+ await page.locator('#timelineYearInput').fill('1922');
+ await page.locator('#timelineMonthInput').selectOption('12');
+ await page.locator('#timelineGoBtn').click();
+ await expect(page.locator('#timelineDateButtonText')).toContainText('1922',{timeout:90000});
+ await page.addStyleTag({content:'#map .territorial-label-item {pointer-events:none !important;}'});
+ for(const [coordinate,id] of [[[3,46],'FRA'],[[10,51],'DEU'],[[14,41],'ITA']]){
+  const point=await page.evaluate(coord=>window.__PANDOLAB_MAP_HOST__.project(coord),coordinate);
+  const bounds=await page.locator('#map').boundingBox();
+  await page.mouse.move(bounds.x+point[0],bounds.y+point[1]);
+  await expect.poll(()=>page.evaluate(()=>window.__viewerPickingTest.selection().hover?.id),{timeout:10000}).toBe(id);
+ }
+ await expect(page.locator('path.territorial-unit-shape, path.distribution-shape')).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+test('canvas viewer uses the same coordinate-based country hover',async({page})=>{
+ await page.addInitScript(()=>{
+  const getContext=HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext=function(type,...args){
+   if(String(type).includes('webgl'))return null;
+   return getContext.call(this,type,...args);
+  };
+ });
+ await page.route('**/modules/viewer-map.js*',async route=>{
+  const response=await route.fetch(),source=await response.text(),anchor='  objectPicking.bindChooser();';
+  expect(source.split(anchor)).toHaveLength(2);
+  await route.fulfill({response,body:source.replace(anchor,anchor+'\nwindow.__viewerPickingTest={state,selection:()=>selectionDomain.snapshot()};')});
+ });
+ await page.goto('/?debug=1');
+ await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+ await expect.poll(()=>page.evaluate(()=>window.__viewerPickingTest.state.countryVisualPhase),{timeout:90000}).not.toBe('pending');
+ await page.addStyleTag({content:'#map .territorial-label-item {pointer-events:none !important;}'});
+ const point=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.project([32,39]));
+ const bounds=await page.locator('#map').boundingBox();
+ await page.mouse.move(bounds.x+point[0],bounds.y+point[1]);
+ await expect.poll(()=>page.evaluate(()=>window.__viewerPickingTest.selection().hover?.id)).toBe('TUR');
+ await expect(page.locator('path.territorial-unit-shape')).toHaveCount(0);
+});
+
 test('labels paint above land and camera motion reuses geometry centroids',async({page})=>{
  page.setDefaultTimeout(15000);
  await page.goto('/?debug=1');

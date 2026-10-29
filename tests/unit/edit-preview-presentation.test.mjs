@@ -69,6 +69,7 @@ function harness(renderer = 'webgl2', { directFallback = false, objectSuccessor 
     ...(objectSuccessor ? { editingRenderResources: { vertexLayer: layer,
       getInteractionStyle: () => resolveMapInteractionStyle({ outlineVisible: false }) } } : {}),
     gpuMapRenderer: { getRuntimeState: () => ({ renderer }), renderInteraction: () => result,
+      canPresentVisualFrame: () => true,
       setFramePresentationListener: callback => { present = callback; } },
   });
   const render = coverage => { result = coverage; rendering.invalidateGpuInteraction('upload-complete'); frames.shift()(); };

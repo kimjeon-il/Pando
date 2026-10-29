@@ -9,7 +9,7 @@ import {connectBoundarySegments} from './boundary-lines.js';
 export function createMapContentPresentation({countries={},hydro={},territorial={},generic={},distribution={},
  territorialBoundary={},base={},projected={},active,requireFrame=value=>value,framePath,
  commitViewAttachedLayers=()=>{},prepareMapDisplay=null,onMapDisplayReady=()=>{},
- reportDiagnostic=()=>{},isDisposed,isSmooth=()=>document.documentElement.dataset.smoothLines!=='false'}={}) {
+ reportDiagnostic=()=>{},isDisposed,canPresentFrame=()=>true,isSmooth=()=>document.documentElement.dataset.smoothLines!=='false'}={}) {
   const renderCountries = (frame, {
     presentationOnly = false,
     gpuResult = null,
@@ -162,44 +162,6 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         && (selected || editing || (visibleIds.has(String(feature.id)) && t.geometryMayIntersectViewport?.(feature.geometry)));
     });
     if (t.viewportCullingMetrics?.lastByDomain?.territorial) t.viewportCullingMetrics.lastByDomain.territorial.finalVisibleCount = data.length;
-    const selection = t.territorialUnitLayer?.selectAll('path.territorial-unit-shape').data(data, feature => String(feature.id));
-    selection?.enter().append('path').attr('class', 'territorial-unit-shape')
-      .on('mouseenter.hover', feature => t.setMapHover?.('territorialUnit', feature.id, feature, {
-        domain: 'territorial', type: 'entity', id: feature.id,
-      }))
-      .on('mouseleave.hover', feature => t.setMapHover?.('', '', null, { domain: 'territorial', type: 'entity', id: feature.id }))
-      .on('click', function(feature) {
-        const stateNow = t.getState?.() || {};
-        if (t.mapClickBlocked?.()) return;
-        if (stateNow.tool === 'merge-territorial-unit') {
-          t.d3?.event?.stopPropagation?.();
-          t.toggleTerritorialUnitMergeTarget?.(String(feature.id));
-          return;
-        }
-        if (stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
-        t.d3?.event?.stopPropagation?.();
-        t.handleObjectSelectionAt?.(t.d3?.mouse?.(t.svg), {
-          sourceEvent: t.d3?.event,
-          hitRef: { domain: 'territorial', type: 'entity', id: feature.id },
-        });
-      });
-    selection?.attr('d', feature => framePath(frameContext)(feature))
-      .attr('data-gpu-scene-key', feature => {
-        const key = t.normalizeObjectRef?.({ domain: 'territorial', type: 'entity', id: feature.id })?.key
-          || `territorial:entity:${feature.id}`;
-        return `${key}:fill`;
-      })
-      .classed('is-territory', feature => feature.properties?.entityKind === 'general')
-      .classed('is-region', feature => feature.properties?.entityKind === 'regional')
-      .classed('territorial-unit-merge-source', feature => state.territorialUnitMergeSourceId === String(feature.id))
-      .classed('territorial-unit-merge-target', feature => (state.territorialUnitMergeTargetIds || []).includes(String(feature.id)))
-      .style('color', null)
-      .style('fill', 'transparent')
-      .style('fill-opacity', 0)
-      .style('stroke', 'none').style('stroke-opacity', 0).style('stroke-width', 0).style('stroke-dasharray', 'none')
-      .style('mix-blend-mode', 'normal')
-      .attr('data-presentation-group', 'objects');
-    selection?.exit().remove();
     t.territorialOperationLayer?.selectAll('path.territorial-unit-operation-outline').remove();
     const polygons = [];
     const strokes = [];
@@ -224,7 +186,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     renderTerritorialInternalBoundaries(boundaryFeatures);
     return true;
   };
-  const renderGenericFeatures = frameContext => {
+  const renderGenericFeatures = (frameContext, { presentationOnly = false } = {}) => {
     active();
     const g = generic;
     const state = g.getState?.() || {};
@@ -239,43 +201,42 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
           || g.selectionHas?.(g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: feature.id }))))
       : [];
     if (g.viewportCullingMetrics?.lastByDomain?.generic) g.viewportCullingMetrics.lastByDomain.generic.finalVisibleCount = data.length;
-    const selection = g.genericFeatureLayer?.selectAll('path.generic-feature-shape').data(data, d => String(d.id));
-    selection?.enter().append('path').attr('class', 'generic-feature-shape')
-      .on('mouseenter.hover', d => g.setMapHover?.('generic', d.id, d, { domain: 'generic', type: 'feature', id: d.id }))
-      .on('mouseleave.hover', feature => g.setMapHover?.('', '', null, { domain: 'generic', type: 'feature', id: feature.id }))
-      .on('click', function(d) {
-        const stateNow = g.getState?.() || {};
-        if (g.mapClickBlocked?.()) return;
-        if (stateNow.tool === 'merge-generic-feature') {
-          g.d3?.event?.stopPropagation?.();
-          g.toggleGenericFeatureMergeTarget?.(String(d.id));
-          return;
-        }
-        if (stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
-        g.d3?.event?.stopPropagation?.();
-        g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, hitRef: { domain: 'generic', type: 'feature', id: d.id } });
-      });
     const selectedRef = d => g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: d.id });
-    const sceneGeometry = d => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(d.geometry?.type);
-    selection?.attr('d', framePath(frameContext))
-      .attr('data-gpu-scene-key', d => d.geometry?.type?.includes('Polygon')
-        ? `${selectedRef(d)?.key || `generic:feature:${d.id}`}:fill`
-        : ['LineString', 'MultiLineString'].includes(d.geometry?.type) ? `${selectedRef(d)?.key || `generic:feature:${d.id}`}:line` : null)
-      .classed('selected', d => g.selectionHas?.(selectedRef(d)))
-      .classed('selected-point', d => d.geometry?.type === 'Point' && g.selectionHas?.(selectedRef(d)))
-      .classed('is-primary-selection', d => selectedRef(d)?.key === g.selectionSnapshot?.()?.primaryKey)
-      .classed('is-secondary-selection', d => g.selectionHas?.(selectedRef(d)) && selectedRef(d)?.key !== g.selectionSnapshot?.()?.primaryKey)
-      .style('fill', d => sceneGeometry(d) ? 'transparent' : 'none')
-      .style('fill-opacity', 0)
-      .style('stroke', d => sceneGeometry(d) ? 'transparent' : g.genericFeatureColor?.(d))
-      .style('stroke-opacity', d => sceneGeometry(d) ? 0 : style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', d => sceneGeometry(d) ? 0 : style.boundaryWidth)
-      .style('mix-blend-mode', d => sceneGeometry(d) ? 'normal' : style.blendMode)
-      .attr('data-presentation-group', 'genericFeatures')
-      .classed('generic-feature-merge-source', d => state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(d.id))
-      .classed('generic-feature-merge-target', d => state.tool === 'merge-generic-feature' && (state.genericFeatureMergeTargetIds || []).includes(String(d.id)));
-    selection?.exit().remove();
-    g.genericFeatureLayer?.selectAll('path.generic-feature-boundary').remove();
+    if (canPresentFrame(frameContext)) {
+      const selection = g.genericFeatureLayer?.selectAll('path.generic-feature-shape').data(data.filter(d => ['Point', 'MultiPoint'].includes(d.geometry?.type)), d => String(d.id));
+      selection?.enter().append('path').attr('class', 'generic-feature-shape')
+        .on('mouseenter.hover', d => g.setMapHover?.('generic', d.id, d, { domain: 'generic', type: 'feature', id: d.id }))
+        .on('mouseleave.hover', feature => g.setMapHover?.('', '', null, { domain: 'generic', type: 'feature', id: feature.id }))
+        .on('click', function(d) {
+          const stateNow = g.getState?.() || {};
+          if (g.mapClickBlocked?.()) return;
+          if (stateNow.tool === 'merge-generic-feature') {
+            g.d3?.event?.stopPropagation?.();
+            g.toggleGenericFeatureMergeTarget?.(String(d.id));
+            return;
+          }
+          if (stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
+          g.d3?.event?.stopPropagation?.();
+          g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, hitRef: { domain: 'generic', type: 'feature', id: d.id } });
+        });
+      selection?.attr('d', framePath(frameContext))
+        .classed('selected', d => g.selectionHas?.(selectedRef(d)))
+        .classed('selected-point', d => d.geometry?.type === 'Point' && g.selectionHas?.(selectedRef(d)))
+        .classed('is-primary-selection', d => selectedRef(d)?.key === g.selectionSnapshot?.()?.primaryKey)
+        .classed('is-secondary-selection', d => g.selectionHas?.(selectedRef(d)) && selectedRef(d)?.key !== g.selectionSnapshot?.()?.primaryKey)
+        .style('fill', 'none')
+        .style('fill-opacity', 0)
+        .style('stroke', d => g.genericFeatureColor?.(d))
+        .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
+        .style('stroke-width', style.boundaryWidth)
+        .style('mix-blend-mode', style.blendMode)
+        .attr('data-presentation-group', 'genericFeatures')
+        .classed('generic-feature-merge-source', d => state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(d.id))
+        .classed('generic-feature-merge-target', d => state.tool === 'merge-generic-feature' && (state.genericFeatureMergeTargetIds || []).includes(String(d.id)));
+      selection?.exit().remove();
+      g.genericFeatureLayer?.selectAll('path.generic-feature-boundary').remove();
+    }
+    if (presentationOnly) return true;
     const polygons = [];
     const strokes = [];
     for (const feature of data) {
@@ -374,25 +335,6 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const isArea = row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type);
     const color = row => d.distributionColor?.(row.layer);
     const styleFor = () => d.layerStyle?.(state.layerPresentation, 'distributions') || {};
-    const selection = d.distributionLayer.selectAll('path.distribution-shape').data(data, row => row.id);
-    selection.enter().append('path').attr('class', 'distribution-shape')
-      .on('mouseenter.hover', row => d.setMapHover?.('distribution', row.id, d.featureFromGeometry?.(row.geometry), { domain: 'distribution', type: 'distribution', id: row.layer.id }))
-      .on('mouseleave.hover', row => d.setMapHover?.('', '', null, { domain: 'distribution', type: 'distribution', id: row.layer.id }))
-      .on('click', function(row) {
-        const stateNow = d.getState?.() || {};
-        if (d.mapClickBlocked?.() || stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
-        d.d3?.event?.stopPropagation?.();
-        d.handleObjectSelectionAt?.(d.d3?.mouse?.(d.svg), { sourceEvent: d.d3?.event, hitRef: { domain: 'distribution', type: 'distribution', id: row.layer.id } });
-      });
-    selection.attr('d', row => framePath(frameContext)({ type: 'Feature', properties: {}, geometry: row.geometry }))
-      .attr('data-gpu-scene-key', row => `distribution-entry:${row.id}:${isArea(row) ? 'fill' : 'line'}`)
-      .style('fill', 'transparent').style('stroke', 'transparent')
-      .style('fill-opacity', 0)
-      .style('stroke-opacity', 0)
-      .style('stroke-width', 0)
-      .style('mix-blend-mode', 'normal')
-      .attr('data-presentation-group', 'distributions');
-    selection.exit().remove();
     d.distributionLayer.selectAll('path.distribution-boundary').remove();
     const polygons = [], strokes = [];
     for (const row of data) {
@@ -529,6 +471,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
   };
   const syncBaseView = (viewState = null) => {
     active();
+    if (!canPresentFrame(viewState)) return false;
     const b = base;
     b.updatePandoGlobeShell?.(viewState);
     return true;
@@ -550,6 +493,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
   };
   const renderProjectedOverlays = (frameContext = null) => {
     active();
+    if (!canPresentFrame(frameContext)) return false;
     for (const layer of projected.layers || []) {
       layer?.selectAll?.('path')?.attr('d', framePath(frameContext));
     }

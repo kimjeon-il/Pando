@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, territorialCenter } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -267,12 +267,11 @@ test('subunit merge removes the exact middle target and preserves preview, apply
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#mergeEntityBtn').click();
+  await expect.poll(()=>page.evaluate(()=>window.__testEditorTimeline.state().tool)).toBe('merge-territorial-unit');
+  await page.addStyleTag({content:'#map .territorial-label-item {pointer-events:none !important;}'});
   for (const target of units.slice(1)) {
-    await page.locator('path.territorial-unit-shape').evaluateAll((nodes, id) => {
-      const node = nodes.find(node => node.__data__.id === id);
-      if (!node) throw new Error(`missing merge target ${id}`);
-      node.dispatchEvent(new node.ownerDocument.defaultView.MouseEvent('click', { bubbles: true }));
-    }, target.id);
+    const point = await territorialCenter(page, target.id);
+    await page.mouse.click(point.x, point.y);
   }
   await expect(page.locator('#modeTaskResultsList li')).toHaveCount(3);
   await page.getByRole('button', { name: '병합 2 합병 대상에서 제외' }).click();

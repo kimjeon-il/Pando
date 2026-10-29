@@ -100,6 +100,7 @@ export function createMapRenderCoordinator({
   prepareView,
   renderers,
   isPresentationBlocked = () => false,
+  canPresentFrame = (_frame, result) => !result?.preserved,
   onFrameComplete = null,
   invalidMaskMode = 'throw',
   onInvalidMask = null,
@@ -145,10 +146,17 @@ export function createMapRenderCoordinator({
     return value;
   }
 
+  const presentationMask = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.VIEW_PRESENTATION
+    | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
+    | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW
+    | MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.LAYER_TREE | MAP_RENDER_DIRTY.HUD
+    | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS;
+
   function render({ dirtyMask, reasons = [] }) {
     // A replacement owns no display frame until its renderer commits one.
     // Preserve the whole old presentation, including DOM labels and shell.
     if (isPresentationBlocked()) {
+      deferredPresentationMask |= expandedMask(dirtyMask);
       renderers.preservedFrame?.();
       return { deferred: true, renderRevision };
     }
@@ -205,14 +213,15 @@ export function createMapRenderCoordinator({
 
       if (mask & sceneGpuMask) {
         viewFrameResult = callRenderer('countries', rendererTimes, viewState);
-      } else if (!viewFrameResult && (mask & MAP_RENDER_DIRTY.GPU_FRAME)) {
+      } else if (!viewFrameResult && ((mask & MAP_RENDER_DIRTY.GPU_FRAME)
+        || ((mask & MAP_RENDER_DIRTY.GPU_INTERACTION) && !canPresentFrame(viewState)))) {
+        // Upload completions also arrive as interaction invalidations. They
+        // must be allowed to finish the pending map before DOM publication.
         viewFrameResult = callRenderer('view', rendererTimes, viewState);
       }
 
-      if (viewFrameResult?.preserved) {
-        deferredPresentationMask |= mask & (MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.VIEW_PRESENTATION
-          | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW
-          | MAP_RENDER_DIRTY.LAYER_TREE | MAP_RENDER_DIRTY.HUD | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS);
+      if (!canPresentFrame(viewState, viewFrameResult)) {
+        deferredPresentationMask |= mask & presentationMask;
         return { deferred: true, renderRevision };
       }
       deferredPresentationMask = 0;

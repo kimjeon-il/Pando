@@ -2,6 +2,7 @@ export function createMapInputController({
   element,
   interactiveTarget,
   canNavigate,
+  isInputBlocked = () => false,
   getRevision,
   beginMovement,
   finishMovement,
@@ -64,6 +65,7 @@ export function createMapInputController({
 
   function pointerDown(event) {
     pointerRevision++;
+    if (isInputBlocked()) { cancel(); return; }
     if (event.button > 1) return;
     const assistedPan = event.button === 1;
     const isTouch = event.pointerType === 'touch';
@@ -116,6 +118,7 @@ export function createMapInputController({
   }
 
   function pointerMove(event) {
+    if (isInputBlocked()) { cancel(); return; }
     if (!pointers.has(event.pointerId)) return;
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, pointerType: event.pointerType });
     if (pinch && pointers.size >= 2) {
@@ -165,6 +168,7 @@ export function createMapInputController({
   }
 
   function finishPointer(event, cancelled = false) {
+    if (isInputBlocked()) { cancel(); return; }
     pointers.delete(event.pointerId);
     if (pinch) {
       if (pointers.size < 2) {
@@ -230,6 +234,7 @@ export function createMapInputController({
 
   function wheel(event) {
     event.preventDefault();
+    if (isInputBlocked()) { cancel(); return; }
     startMovement();
     const point = localPoint(event);
     transformView({

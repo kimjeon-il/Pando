@@ -91,8 +91,8 @@ export function createMapInputPresentation({productMode,ports,window,navigator,c
       // Own the complete map surface so native touch/pinch gestures cannot
       // escape through a child SVG hit target and become page zoom.
       element: $('map'),
+      isInputBlocked: () => getInputSnapshot().projectReplacing,
       interactiveTarget: (target, event) => {
-        if (getInputSnapshot().projectReplacing) return true;
         if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.project-bounds-picker')) return true;
         if (target?.closest?.('.map-overlay-layer')) return true;
         if (event?.button === 1) return false;
@@ -100,7 +100,6 @@ export function createMapInputPresentation({productMode,ports,window,navigator,c
         return getInputSnapshot().tool !== 'move' && !getInputSnapshot().spacePanActive && mapInteractionGate.isPandoTarget(target);
       },
       canNavigate: () => {
-        if (getInputSnapshot().projectReplacing) return false;
         const enabled = mapNavigationEnabled();
         mapInteractionGate.setNavigationEnabled(enabled);
         return enabled;
@@ -127,7 +126,8 @@ export function createMapInputPresentation({productMode,ports,window,navigator,c
           && input.territorySelectionSession.activePhase === 'drawing'
           && ['line', 'polygon'].includes(input.territorySelectionSession.activeMethod);
         const draftTap = (isGenericFeatureDraftTool(input.tool) || territoryDraft) && getDraftSnapshot().inputPhase === 'draw';
-        return input.labelPlacementMode || draftTap || input.tool === 'point';
+        return input.labelPlacementMode || draftTap || input.tool === 'point'
+          || input.tool === 'merge-territorial-unit' || input.tool === 'merge-generic-feature';
       },
       directTap: handleMapClick,
       canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'territorial-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
@@ -203,7 +203,7 @@ export function createMapInputPresentation({productMode,ports,window,navigator,c
         if (editing&&(isGenericFeatureDraftTool(input.tool) || territoryDraft) && draft.inputPhase === 'draw' && draft.coords.length) {
           dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
         }
-        if (getInputSnapshot().tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape, .territorial-unit-shape, .distribution-shape')) {
+        if (getInputSnapshot().tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape')) {
           queueCountryHoverPick(screenPoint, coord);
         }
       } else {

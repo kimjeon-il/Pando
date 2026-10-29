@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, sceneItems } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -66,8 +66,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     await selectUiOption(page, '#entityParentInput', 'GBR');
     await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');
     expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
-    await expect.poll(() => page.locator('path.territorial-unit-shape').evaluateAll(nodes =>
-      nodes.filter(node => node.__data__.id === 'IRL').map(node => node.dataset.gpuSceneKey)))
+    await expect.poll(async () => (await sceneItems(page, 'territorial-units')).map(item => item.key))
       .toContain('territorial:entity:IRL:fill');
     if (renderer === 'webgl2') {
       await expect.poll(() => page.evaluate(() =>

@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, projectMapPoint } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -31,12 +31,9 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await page.locator('#gisImportConfirmBtn').click();
     await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId)
       .some(unit => unit.properties.name === '상속 화면 비교')), { timeout: 60_000 }).toBe(true);
-    const clip = await page.locator('path.territorial-unit-shape').evaluateAll(nodes => {
-      const path = nodes.find(node => node.__data__?.properties?.name === '상속 화면 비교');
-      if (!path) throw new Error('하위단위 표시 경로가 없습니다.');
-      const box = path.getBoundingClientRect();
-      return { x: box.x + box.width * 0.25, y: box.y + box.height * 0.25, width: box.width * 0.5, height: box.height * 0.5 };
-    });
+    const topLeft = await projectMapPoint(page, [9.25, 50.75]);
+    const bottomRight = await projectMapPoint(page, [9.75, 50.25]);
+    const clip = { x: topLeft.x, y: topLeft.y, width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y };
     expect(clip.width).toBeGreaterThan(2);
     expect(clip.height).toBeGreaterThan(2);
     // Remove only text from the captured interior; territorial and physical fills stay visible.

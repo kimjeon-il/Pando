@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, sceneItems } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
 import { PROJECT_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 test.use({ channel: 'chromium' });
@@ -33,8 +33,7 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
   }
   const id = before.unit.id;
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setColor(id, '#123456').changed, id)).toBe(true);
-  await expect.poll(() => page.locator('path.territorial-unit-shape').evaluateAll((nodes, id) =>
-    nodes.find(node => node.__data__?.id === id)?.__data__?.properties.style.color, id)).toBe('#123456');
+  await expect.poll(async () => (await sceneItems(page, 'territorial-units')).find(item => item.objectKey === `territorial:entity:${id}`)?.style?.color).toBe('#123456');
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.style, id)).toEqual(before.unit.properties.style);
   const colorCommits = await page.evaluate(id => {

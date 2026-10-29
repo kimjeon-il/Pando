@@ -22,7 +22,7 @@ const feature = (name, geometry) => normalizeGenericFeatureSemantics({ type: 'Fe
 
 
 const chain=new Proxy(function(){},{get:(_target,key)=>key==='then'?undefined:()=>chain,apply:()=>chain});
-async function fixture(t,mutate=()=>{}){
+async function fixture(t,mutate=()=>{},layers={}){
  const {project}=await createViewerProjectPackage();
  project.genericFeatures=[feature('line',line),feature('area',square)];
  project.layerPresentation=normalizeLayerPresentation({styles:{genericFeatures:{opacity:.5}}});mutate(project);
@@ -36,7 +36,8 @@ async function fixture(t,mutate=()=>{}){
     domains.includes('generic')?state.genericFeatures.map(row=>({id:row.id})):core.documentModel.territorialViews().map(row=>({id:row.id})),
   geometryMayIntersectViewport:()=>true,replaceGpuSceneDomain:(_domain,packet)=>{scene.polygons.push(...packet.polygons||[]);scene.strokes.push(...packet.strokes||[]);},
   genericFeatureColor:feature=>feature.properties.color,gpuSceneOrder:(...args)=>overlayVisualOrder(state.layerPresentation,...args),
-  buildRenderableStrokeFeature:feature=>feature,distributionLayer:{selectAll:()=>chain},distributionColor:layer=>readDomainColor(COLOR_DOMAINS.DISTRIBUTION,{layer}).value,
+  buildRenderableStrokeFeature:feature=>feature,distributionLayer:layers.distribution||{selectAll:()=>chain},genericFeatureLayer:layers.generic,
+  distributionColor:layer=>readDomainColor(COLOR_DOMAINS.DISTRIBUTION,{layer}).value,
   DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES,territorialEntityRepository:entityRepository,
   featureFromGeometry:geometry=>({type:'Feature',properties:{},geometry}),getCountryGeometryRevision:()=>revision,getDistributionVisibilityRevision:()=>revision};
  const content=createMapContentPresentation({active:()=>{},framePath:()=>()=>'',isDisposed:()=>false,isSmooth:()=>true,
@@ -47,6 +48,16 @@ async function fixture(t,mutate=()=>{}){
    scene={polygons:[],strokes:[]};content.renderGenericFeatures({});content.renderDistributions({});return scene;
  },content};
 }
+
+test('rendered polygon and line objects do not create duplicate SVG hit paths',async t=>{
+ const recorded=[];
+ const layer={selectAll(selector){const selection={data(rows){recorded.push({selector,rows});return selection},enter(){return selection},exit(){return selection},append(){return selection},on(){return selection},attr(){return selection},style(){return selection},classed(){return selection},remove(){return selection}};return selection}};
+ const f=await fixture(t,project=>{project.distributionLayers=[createDistributionLayer({id:ids.population,name:'인구'})];project.distributionEntries=[createDistributionEntry({id:ids.low,layerId:ids.population,mode:'geometry',geometry:square,value:10})];},{generic:layer,distribution:layer});
+ const scene=await f.build();
+ assert.ok(scene.polygons.length>0);assert.ok(scene.strokes.length>0);
+ assert.ok(recorded.filter(row=>row.selector==='path.generic-feature-shape').every(row=>row.rows.length===0));
+ assert.ok(recorded.filter(row=>row.selector==='path.distribution-shape').every(row=>row.rows.length===0));
+});
 
 test('the shared content owner keeps saved generic geometry and opacity without document writes',async t=>{
  const f=await fixture(t),before=f.core.documentModel.snapshot(),scene=await f.build();

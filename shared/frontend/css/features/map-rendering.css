@@ -341,14 +341,6 @@
   filter: var(--territorial-label-flag-filter);
 }
 
-.territorial-unit-shape {
-  fill-opacity: 0;
-  stroke: none;
-  cursor: pointer;
-  vector-effect: non-scaling-stroke;
-  transition: fill-opacity .12s ease, stroke-width .12s ease;
-}
-
 .territorial-unit-operation-outline {
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -379,13 +371,6 @@
 
 .hydro-edit-shape.hydro-edit-native-hit {
   pointer-events: all;
-}
-
-.distribution-shape {
-  stroke-width: 1.4px;
-  stroke-linejoin: round;
-  cursor: pointer;
-  vector-effect: non-scaling-stroke;
 }
 
 .user-label-dot {

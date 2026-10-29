@@ -6,6 +6,9 @@ import { createSelectionPass } from "../../shared/frontend/js/modules/selection-
 import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
 import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
+import { createRenderSceneBuilder } from "../../shared/frontend/js/modules/render-scene.js";
 
 // Only the DOM/D3 adapter and render device are doubles; selection planning,
 // staging, coordinator invalidation and accepted-frame reconciliation are real.
@@ -78,6 +81,7 @@ async function harness(t) {
       projectPath: () => 'M0,0L1,0L1,1Z' })),
     renderers: { view: result },
     gpuMapRenderer: { getRuntimeState: () => ({ renderer }), setFramePresentationListener: callback => { presented = callback; },
+      canPresentVisualFrame: () => true,
       renderInteraction: () => { interactionRenders++; return result(); } },
     selectionResources: { document: svg.document, d3: svg.d3, selectionPass,
       selectionLayer: svg.d3.select(selected), hoverLayer: svg.d3.select(hovered),
@@ -94,11 +98,24 @@ async function harness(t) {
   const accept = (frame, overrides = {}) => presented({ frameId: frame.frameId, viewRevision: frame.viewRevision,
     projectionRevision: frame.projectionRevision, projectGeneration: frame.projectGeneration, renderer, ...overrides });
   return { render, nodes, accept, verifyCanonical, stages: svg.stages, rendering,
+    clearSelection: async () => { await selection.clear(); await selection.setHover(null); },
     interactionRenders: () => interactionRenders, setRenderer: value => { renderer = value; } };
 }
 
 const fillSelector = '.map-selection-fill, .map-hover-fill';
 const outlineSelector = '.map-selection-outline, .map-hover-outline';
+
+test('temporal Canvas acknowledgement publishes current selection rather than reprojecting old outlines', async t => {
+  const h = await harness(t);
+  h.setRenderer('canvas-worker');
+  h.render('invalidateSelection');
+  assert.equal(h.nodes(outlineSelector).length, 2);
+  await h.clearSelection();
+  const next = h.render('invalidateGpuFrame');
+  assert.equal(h.nodes(outlineSelector).length, 2, 'previous selection is held until acknowledgement');
+  assert.equal(h.accept(next, { temporalCommit: true }), true);
+  assert.equal(h.nodes(outlineSelector).length, 0);
+});
 
 test('first accepted Canvas Worker frame retires pending-startup fills while preserving selection and outline fallback', async t => {
   const h = await harness(t);
@@ -213,9 +230,11 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   await selection.setHover({ domain: 'territorial', type: 'entity', id: 'FRA' });
   const snapshot = selection.snapshot(), model = structuredClone(features), scheduledReasons = [];
   const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => new URL(path, 'https://example.test/assets/js/'),
+    validateGeometry,
     isMobile: () => false, isSafeKoreanErrorMessage: () => true, mapTheme: () => theme, getSystemTheme: () => 'light',
     deepClone: structuredClone, hydroVisibilityThreshold: () => 0, mapWorkScheduler: { cancel() {} },
     createCountryFillResolver: () => () => ({ color: '#eee', fillAlpha: nativeVisibility?1:0 }),
+    canonicalCountryFeatures: () => features,
     renderCountryFeatures: () => features, renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
     countryOutlineFeature: value => value, isCountryVisibleById: id => state.itemVisibility.objects[id==='HKG'?'unit-uuid':id]!==false, setActionStatus() {},
     renderViewFrame: () => rendering.invalidateGpuFrame('view-frame'),
@@ -226,6 +245,8 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   });
   canvas = createCanvas(); renderer.attach(canvas);
   rendering = createRenderingDomain({ gpuMapRenderer: renderer, selectionDomain: selection,
+    baseResources: { getState: () => state },
+    territorialResources: { getState: () => state, displayEntities: () => features },
     requestFrame: callback => queued.push(callback),
     prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewRevision: 1, projectGeneration: 0,
       viewState: { ...state, translate: [150, 100], scale: 40, dpr: 1 }, projectPath: () => 'M0,0L1,0L1,1Z',
@@ -251,6 +272,13 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   assert.equal(queued.length, 0);
   scheduledReasons.length = 0;
   return { renderer, rendering, nodes, queued, scheduledReasons, workers,drawnIds, scenePaints: () => scenePaints,
+    prepareCountries: () => {
+      renderer.setRenderScene(createRenderSceneBuilder().build({polygons:[{
+        key:'fixture:land',role:'physical-land',geometry:features[0].geometry,
+        style:{color:'#eeeeee',fillAlpha:1},
+      }]}));
+      return renderer.rebuildFromCountries(features);
+    },
     currentCanvas: () => canvas, recoveryPending: () => [...timers.values()].some(timer => timer.delay === 5000),
     restore: async () => { contextLost = false; await canvas.dispatch('webglcontextrestored'); },
     transition: async () => {
@@ -342,14 +370,19 @@ test('Worker failure acknowledges pending geometry only after its scheduled Canv
 for(const canvasWorker of [false,true])test(`native display IDs obey canonical individual visibility in Canvas worker=${canvasWorker}`,async t=>{
   const h=await directFallbackHarness(t,{canvasWorker,nativeVisibility:true});
   await h.transition();
+  // Visibility is observable only after the canonical source is admitted.
+  await h.prepareCountries();
   if(canvasWorker){
     const worker=h.workers.find(worker=>worker.name==='pandolab-canvas-renderer');
     const style=worker.messages.find(message=>message.type==='init'||message.type==='style');
     assert.deepEqual(style.hiddenCountryIds,['HKG']);
     assert.equal(style.hiddenCountryIds.includes('unit-uuid'),false);
   }
-  h.queued.shift()();
-  assert.ok(h.drawnIds.includes('DEU'));
+  // The background is accepted before the canonical country fill is published.
+  for(let frame=0;frame<3&&h.queued.length;frame++)h.queued.shift()();
+  assert.equal(h.renderer.getStats().surfacePresentation.quality,'canonical');
+  assert.ok(h.drawnIds.includes('DEU'), JSON.stringify({drawn:h.drawnIds,queued:h.queued.length,
+    surface:h.renderer.getStats().surfacePresentation,paints:h.scenePaints()}));
   assert.equal(h.drawnIds.includes('HKG'),false);
   h.verifyCanonical();
 });

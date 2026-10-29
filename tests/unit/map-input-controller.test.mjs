@@ -66,6 +66,28 @@ function createController(surface, overrides = {}) {
   });
 }
 
+test('project replacement blocks wheel, pinch and an already started drag until released', () => {
+  const surface = new PointerSurface(), changes = [];
+  let blocked = false;
+  const controller = createController(surface, {
+    isInputBlocked: () => blocked,
+    dragBy: () => changes.push('drag'), transformView: () => changes.push('zoom'),
+  });
+  surface.dispatchEvent(pointerEvent('pointerdown'));
+  blocked = true;
+  surface.dispatchEvent(pointerEvent('pointermove', { clientX: 80 }));
+  surface.dispatchEvent(pointerEvent('pointerup', { clientX: 80 }));
+  surface.dispatchEvent(pointerEvent('wheel', { deltaY: -120 }));
+  surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 1 }));
+  surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 2, clientX: 60 }));
+  surface.dispatchEvent(pointerEvent('pointermove', { pointerType: 'touch', pointerId: 2, clientX: 100 }));
+  assert.deepEqual(changes, []);
+  blocked = false;
+  surface.dispatchEvent(pointerEvent('wheel', { deltaY: -120 }));
+  assert.deepEqual(changes, ['zoom']);
+  controller.destroy();
+});
+
 test('image placement owns the gesture before map drawing or navigation starts', () => {
   const surface = new PointerSurface();
   const events = [];

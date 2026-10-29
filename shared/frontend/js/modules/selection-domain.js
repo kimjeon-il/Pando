@@ -102,7 +102,7 @@ export function createSelectionDomain({
     const ref = publicKeyRef(String(key));
     return ref ? nativeKey(ref) : 'web-unmatched-key:' + String(key);
   };
-  function perform(payload, reason, projectGeneration = generation()) {
+  function perform(payload, reason, projectGeneration = generation(), isCurrent = () => true) {
     active();
     const epoch = commandOwner.state()?.epoch;
     if (!Number.isSafeInteger(epoch)) throw Object.assign(new Error('The Core document must be loaded before selecting objects.'), { code: 'PL-CORE-NOT-LOADED' });
@@ -111,7 +111,7 @@ export function createSelectionDomain({
     contexts.set(request, context);
     // Preserve intent order in the Core queue. Its epoch is resolved when the
     // request reaches Core, after any earlier document commands complete.
-    return commandOwner.selectionApply(request, { isCurrent: () => !disposed && generation() === projectGeneration }).then(ack => {
+    return commandOwner.selectionApply(request, { isCurrent: () => !disposed && generation() === projectGeneration && isCurrent() }).then(ack => {
       if (disposed) return current;
       if (typeof ack?.countNoOp !== 'boolean' || !ack.selection) invalid('A complete C++ selection acknowledgement is required.');
       const native = ack.selection;
@@ -131,8 +131,8 @@ export function createSelectionDomain({
   const prune = async (validKeys, options = {}) => perform({ action: 'prune',
     validKeys: validKeys == null ? null : [...validKeys].map(convertKey) }, options.reason || 'prune');
   const clear = async (options = {}) => perform({ action: 'clear' }, options.reason || 'clear');
-  const setHover = async (value, { source = '', expectedKey = '' } = {}) => perform({ action: 'setHover',
-    ref: value == null ? null : (toCore(value) || {}), source, expectedKey: expectedKey ? convertKey(expectedKey) : '' }, 'selection-hover');
+  const setHover = async (value, { source = '', expectedKey = '', isCurrent = () => true } = {}) => perform({ action: 'setHover',
+    ref: value == null ? null : (toCore(value) || {}), source, expectedKey: expectedKey ? convertKey(expectedKey) : '' }, 'selection-hover', generation(), isCurrent);
   const resetProject = async projectGeneration => perform({ action: 'resetProject' }, 'project-reset', Number(projectGeneration || 0));
   const refresh = async (options = {}) => {
     active();
