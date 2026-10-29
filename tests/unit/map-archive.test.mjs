@@ -4,6 +4,7 @@ import {existsSync} from 'node:fs';
 import {mkdtemp,mkdir,readFile,rm,symlink,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {setInterval,clearInterval} from 'node:timers';
 import test from 'node:test';
 import {archiveDirectory,nodeManifest} from '../../tools/reference-analysis/runtime-assets.mjs';
 import {zipMembers,zipMemberChunks} from '../../tools/lib/geonames-zip.mjs';
@@ -40,14 +41,14 @@ test('refuses existing archives and linked source paths without changing them',(
 
 test('cancelled archive leaves no incomplete output',()=>fixture(async root=>{
   const input=join(root,'input');await mkdir(input);await writeFile(join(input,'file'),'source');
-  const controller=new AbortController();controller.abort();
+  const controller=new globalThis.AbortController();controller.abort();
   await assert.rejects(archiveDirectory(input,{signal:controller.signal}));
   await assert.rejects(readFile(input+'.zip'),/ENOENT/);
 }));
 test('cancellation during archive writing removes only its partial ZIP',()=>fixture(async root=>{
   const input=join(root,'input');await mkdir(input);const original=randomBytes(4*1024*1024);
   await writeFile(join(input,'file'),original);
-  const controller=new AbortController(),output=input+'.zip';
+  const controller=new globalThis.AbortController(),output=input+'.zip';
   const timer=setInterval(()=>{if(existsSync(output))controller.abort();},1);
   try {await assert.rejects(archiveDirectory(input,{signal:controller.signal}),/abort/i);}finally{clearInterval(timer);}
   await assert.rejects(readFile(output),/ENOENT/);assert.deepEqual(await readFile(join(input,'file')),original);
