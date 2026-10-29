@@ -3,6 +3,7 @@
 #include <pandoeditor/geometrypredicates.h>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #ifdef __EMSCRIPTEN__
 #include <emscripten/em_math.h>
@@ -44,7 +45,21 @@ bool adjacent(const Geometry& a,const Geometry& b) {
     struct Edge { Point a,b;double minX,maxX,minY,maxY; };
     auto edges=[](const Geometry& g){std::vector<Edge> out;for(const auto& p:g.polygons)for(const auto& r:p)for(std::size_t i=1;i<r.size();++i){const auto a=r[i-1],b=r[i];out.push_back({a,b,std::min(a.x,b.x),std::max(a.x,b.x),std::min(a.y,b.y),std::max(a.y,b.y)});}return out;};
     const auto left=edges(a);auto right=edges(b);
-    std::stable_sort(right.begin(),right.end(),[](const Edge& a,const Edge& b){return a.minX<b.minX;});
+    if(left.empty()||right.empty())return false;
+    struct Node { double minX,maxX,minY,maxY;std::size_t begin,end,left,right; };
+    std::vector<Node> nodes;nodes.reserve(right.size()*2);
+    const auto build=[&](auto&& self,std::size_t begin,std::size_t end)->std::size_t {
+        const auto infinity=std::numeric_limits<double>::infinity();
+        Node node{infinity,-infinity,infinity,-infinity,begin,end,0,0};
+        for(auto i=begin;i<end;++i){node.minX=std::min(node.minX,right[i].minX);node.maxX=std::max(node.maxX,right[i].maxX);
+            node.minY=std::min(node.minY,right[i].minY);node.maxY=std::max(node.maxY,right[i].maxY);}
+        const auto index=nodes.size();nodes.push_back(node);
+        if(end-begin>8){const auto middle=begin+(end-begin)/2;const bool splitX=node.maxX-node.minX>=node.maxY-node.minY;
+            std::nth_element(right.begin()+begin,right.begin()+middle,right.begin()+end,[splitX](const Edge& x,const Edge& y){return splitX?x.minX<y.minX:x.minY<y.minY;});
+            const auto first=self(self,begin,middle),second=self(self,middle,end);nodes[index].left=first;nodes[index].right=second;}
+        return index;
+    };
+    const auto root=build(build,0,right.size());
     for(const auto& edge:left){const auto& p=edge.a;const auto& q=edge.b;const auto dx=q.x-p.x,dy=q.y-p.y;
 #ifdef __EMSCRIPTEN__
         const auto length=emscripten_math_hypot(2,dx,dy);
@@ -52,14 +67,20 @@ bool adjacent(const Geometry& a,const Geometry& b) {
         const auto length=std::hypot(dx,dy);
 #endif
         if(!length)continue;
-        const auto end=std::upper_bound(right.begin(),right.end(),edge.maxX+lineTolerance,[](double value,const Edge& item){return value<item.minX;});
-        for(auto it=right.begin();it!=end;++it){
-            if(it->maxX<edge.minX-lineTolerance||it->maxY<edge.minY-lineTolerance||it->minY>edge.maxY+lineTolerance)continue;
-            const auto& u=it->a;const auto& v=it->b;
-            if(std::abs(cross(p,q,u))/length>lineTolerance||std::abs(cross(p,q,v))/length>lineTolerance)continue;
-            const auto parameter=[&](Point r){return ((r.x-p.x)*dx+(r.y-p.y)*dy)/(length*length);};
-            if(std::min(1.,std::max(parameter(u),parameter(v)))-std::max(0.,std::min(parameter(u),parameter(v)))>overlapTolerance)return true;
-        }}
+        const auto overlaps=[&](double minX,double maxX,double minY,double maxY){return
+            maxX>=edge.minX-lineTolerance&&minX<=edge.maxX+lineTolerance&&
+            maxY>=edge.minY-lineTolerance&&minY<=edge.maxY+lineTolerance;};
+        const auto query=[&](auto&& self,std::size_t index)->bool{
+            const auto& node=nodes[index];if(!overlaps(node.minX,node.maxX,node.minY,node.maxY))return false;
+            if(node.end-node.begin>8)return self(self,node.left)||self(self,node.right);
+            for(auto i=node.begin;i<node.end;++i){const auto& candidate=right[i];
+                if(!overlaps(candidate.minX,candidate.maxX,candidate.minY,candidate.maxY))continue;
+                const auto& u=candidate.a;const auto& v=candidate.b;
+                if(std::abs(cross(p,q,u))/length>lineTolerance||std::abs(cross(p,q,v))/length>lineTolerance)continue;
+                const auto parameter=[&](Point r){return ((r.x-p.x)*dx+(r.y-p.y)*dy)/(length*length);};
+                if(std::min(1.,std::max(parameter(u),parameter(v)))-std::max(0.,std::min(parameter(u),parameter(v)))>overlapTolerance)return true;
+            }return false;};
+        if(query(query,root))return true;}
     return false;
 }
 }

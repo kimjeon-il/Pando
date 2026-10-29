@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "1862e8739bba7b940fe3ac1bf2c6221b3aa80c50ee1a8ba9faadce04b8255539",
+  "sourceSha256": "3ade9ea2fc2ed57e85c67153ba3d7a06fd060f27109fcec8b5f6b00d53ca820e",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -413,7 +413,7 @@
     },
     {
       "path": "shared/core/src/territorialmutation.cpp",
-      "sha256": "47623a5a4ad5dc4e6fd2ecd3c99f13a4fba9172a5cd81ee01aa9a4c403ec93b9"
+      "sha256": "ccac531e7b5bd3262b481b66795308cb2eb6a082cf908a2ce99eb48101742d0e"
     },
     {
       "path": "shared/core/src/timeline-edit.cpp",
@@ -619,7 +619,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "ccbfc1a9d364f05f4906efe6cc0e087a279b92a50a20793a10890514436231cc"
+      "sha256": "ef07e3e768713ca34705cc51f7398853ed92cc1a3636d2143c224f695303ec75"
     }
   }
 }
