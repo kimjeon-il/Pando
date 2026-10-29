@@ -40,6 +40,14 @@ class CorpusTests(unittest.TestCase):
         result = corpus.evaluation_groups(sheets)
         self.assertEqual(set(result), {"monochrome/Arabic/ara", "monochrome/Arabic/fas", "monochrome/Arabic/urd"})
 
+    def test_source_language_is_not_relabelled_to_an_available_ocr_pack(self):
+        for language, script in [('afr','Latin'),('und','Zyyy')]:
+            sheet=self.sheet(language,language,'test');sheet.update(language=language,script=script,ocrLanguages=['eng'])
+            self.assertEqual(corpus.validate_corpus(dict(schemaVersion=1,sheets=[sheet]))['sheets'][0]['language'],language)
+        with self.assertRaisesRegex(ValueError,'OCR'):
+            sheet['ocrLanguages']=['not-installed']
+            corpus.validate_corpus(dict(schemaVersion=1,sheets=[sheet]))
+
     def test_training_accepts_every_new_pack_from_the_same_runtime_catalog(self):
         for language in ['lat', 'deu_latf', 'rus', 'ukr', 'heb', 'hye', 'kat', 'hin', 'ben', 'jpn_vert', 'chi_tra_vert']:
             sheet = self.sheet(language, language, 'test')
@@ -107,7 +115,7 @@ class CorpusTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'split'):
                 corpus.validate_corpus(value, pathlib.Path(folder))
             sheet.update(split='train', mapKind='monochrome', editionId='independently-confirmed')
-            with self.assertRaisesRegex(ValueError, 'Human-reviewed'):
+            with self.assertRaisesRegex(ValueError, 'Source-reviewed'):
                 corpus.validate_corpus(value, pathlib.Path(folder))
             self.assertEqual(image.read_bytes(), original)
             self.assertEqual(len(list(pathlib.Path(folder).rglob('*.jpg'))), 1)
@@ -126,6 +134,18 @@ class CorpusTests(unittest.TestCase):
             before = {path: path.read_bytes() for path in [image, labels, manifest]}
             self.assertEqual(corpus.prepare_review_corpus(sources), manifest)
             self.assertTrue(all(path.read_bytes() == body for path, body in before.items()))
+
+    def test_review_preparation_accepts_original_png_without_a_jpeg_copy(self):
+        with tempfile.TemporaryDirectory() as folder:
+            sources=pathlib.Path(folder)/'sources';sources.mkdir()
+            image=sources/'sheet.png';Image.new('RGB',(40,24),'white').save(image)
+            metadata=dict(id='sheet',familyId='new-family',language='fas',script='Arabic',format='png',
+                          url='https://example.org/map.png',license='CC0',rightsReviewed=True,
+                          sha256=hashlib.sha256(image.read_bytes()).hexdigest())
+            image.with_suffix('.source.json').write_text(json.dumps(metadata),encoding='utf-8')
+            manifest=corpus.prepare_review_corpus(sources)
+            self.assertEqual(json.loads(manifest.read_text())['sheets'][0]['image'],'sources/sheet.png')
+            self.assertFalse(list(pathlib.Path(folder).rglob('*.jpg')))
 
     def test_review_preparation_checks_all_sources_before_writing_and_rejects_unsafe_ids(self):
         with tempfile.TemporaryDirectory() as folder:

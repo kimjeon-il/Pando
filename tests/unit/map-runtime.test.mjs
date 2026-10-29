@@ -12,14 +12,18 @@ async function file(root,path,bytes) {
   bytes=Buffer.from(bytes);await mkdir(dirname(join(root,path)),{recursive:true});await writeFile(join(root,path),bytes);
   return {path,bytes:bytes.length,sha256:sha(bytes)};
 }
-async function fixture(root) {
+async function fixture(root,ocrResources={}) {
   const plugin=join(root,'plugin'),seed=join(plugin,'runtime/workspace');
   const files=[await file(seed,'package.json','{"private":true,"type":"module"}'),await file(seed,'tools/load-node-core.mjs','export const core=true;'),
     await file(seed,'tools/library-archive.mjs',await readFile(new URL('../../tools/library-archive.mjs',import.meta.url)))];
   const model=await file(plugin,'model/boundary.onnx','test-model');
   const spec={trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,model:{url:'boundary.onnx',bytes:model.bytes,sha256:model.sha256}};
   const modelManifest=await file(plugin,'model/boundary.manifest.json',JSON.stringify(spec));
-  const catalog={schemaVersion:1,codeRevision:'a'.repeat(40),dataRevision:'b'.repeat(40),files,model:modelManifest,ocrResources:{}};
+  const ocr=await file(seed,'assets/data/reference-analysis/v1/ocr/manifest.json',JSON.stringify({languages:Object.fromEntries(Object.entries(ocrResources).map(([lang,row])=>[lang,{url:lang+'.traineddata.gz',sha256:row.sha256,bytes:row.bytes}]))}));
+  const gazetteer=await file(seed,'assets/data/reference-analysis/v1/gazetteer/manifest.json',JSON.stringify({revision:'c'.repeat(64),files:{}}));
+  files.push(ocr,gazetteer);
+  const analysisData=await file(plugin,'analysis-data.json',JSON.stringify({schemaVersion:1,repository:'owner/data',revision:'b'.repeat(40),ocr:{root:'assets/ocr',manifestSha256:ocr.sha256},gazetteer:{root:'reports/gazetteer',manifestSha256:gazetteer.sha256,revision:'c'.repeat(64)}}));
+  const catalog={schemaVersion:2,codeRevision:'a'.repeat(40),dataRevision:'b'.repeat(40),files,model:modelManifest,analysisData,ocrResources,gazetteerResources:{},gazetteer:{revision:'c'.repeat(64),manifestSha256:gazetteer.sha256}};
   await file(plugin,'runtime.json',JSON.stringify(catalog));return {plugin,seed,catalog};
 }
 
@@ -32,6 +36,19 @@ test('runtime seed validation refuses corrupt, missing, duplicate and escaping r
     await assert.rejects(runtime.verifyRuntimeFiles(dir,[{...row,path:'../item'}]),/path/i);
     await writeFile(join(dir,row.path),'changed!');await assert.rejects(runtime.verifyRuntimeFiles(dir,[row]),/hash|size/i);
     await assert.rejects(runtime.verifyRuntimeFiles(dir,[{...row,path:'missing'}]),/ENOENT|missing/i);
+  } finally {await rm(dir,{recursive:true,force:true});}
+});
+
+test('installed catalog refuses a mixed data revision, gazetteer or unpinned lazy shard before creating a cache',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'map-runtime-pairing-'));
+  try {
+    const {plugin,catalog}=await fixture(dir),cacheRoot=join(dir,'cache');
+    for(const patch of [{dataRevision:'d'.repeat(40)},{gazetteer:{...catalog.gazetteer,revision:'e'.repeat(64)}},
+      {gazetteerResources:{'assets/data/reference-analysis/v1/gazetteer/names/x.json':{url:'https://example.org/unpinned',bytes:2,sha256:'f'.repeat(64)}}}]) {
+      await writeFile(join(plugin,'runtime.json'),JSON.stringify({...catalog,...patch}));
+      await assert.rejects(runtime.materializeWorkspace({pluginRoot:plugin,cacheRoot}),/pair|gazetteer|resource/i);
+      await assert.rejects(readdir(cacheRoot),/ENOENT/);
+    }
   } finally {await rm(dir,{recursive:true,force:true});}
 });
 
@@ -57,10 +74,8 @@ test('OCR prepares only a requested language, verifies decoded archive bytes and
   assert.equal(typeof runtime.ensureOcrLanguage,'function');
   const dir=await mkdtemp(join(tmpdir(),'map-runtime-language-'));
   try {
-    const {plugin,catalog}=await fixture(dir),bytes=Buffer.from('language-pack');
-    catalog.ocrResources.ell={url:'https://example.invalid/ell.gz',encoding:'gzip',bytes:bytes.length,sha256:sha(bytes)};
-    catalog.ocrResources.ara={...catalog.ocrResources.ell,url:'https://example.invalid/ara.gz'};
-    await writeFile(join(plugin,'runtime.json'),JSON.stringify(catalog));
+    const bytes=Buffer.from('language-pack'),spec={url:'https://example.invalid/ell.gz',encoding:'gzip',bytes:bytes.length,sha256:sha(bytes)};
+    const {plugin}=await fixture(dir,{ell:spec,ara:{...spec,url:'https://example.invalid/ara.gz'}});
     const prepared=await runtime.materializeWorkspace({pluginRoot:plugin,cacheRoot:join(dir,'cache')});let requests=0;
     const fetchAsset=async()=>{requests++;return new Response(gzipSync(bytes));};
     await runtime.ensureOcrLanguage(prepared.workspace,'ell',{fetchAsset});
@@ -68,7 +83,7 @@ test('OCR prepares only a requested language, verifies decoded archive bytes and
     const ocr=join(prepared.workspace,'assets/data/reference-analysis/v1/ocr');
     assert.deepEqual(await readFile(join(ocr,'ell.traineddata.gz')),bytes);
     await assert.rejects(runtime.ensureOcrLanguage(prepared.workspace,'ara',{fetchAsset:async()=>new Response(gzipSync(Buffer.from('wrong')))}),/hash|size/i);
-    assert.deepEqual(await readdir(ocr),['ell.traineddata.gz']);
+    assert.deepEqual(await readdir(ocr),['ell.traineddata.gz','manifest.json']);
   } finally {await rm(dir,{recursive:true,force:true});}
 });
 
@@ -81,5 +96,20 @@ test('a pre-existing preparation temporary file is never removed or overwritten'
     await mkdir(workspace,{recursive:true});await writeFile(temporary,'another active writer');
     await assert.rejects(runtime.materializeWorkspace({pluginRoot:plugin,cacheRoot}),/EEXIST/);
     assert.equal(await readFile(temporary,'utf8'),'another active writer');
+  } finally {await rm(dir,{recursive:true,force:true});}
+});
+
+test('gazetteer resources use the same bounded hash-verified lazy asset loader',async()=>{
+  assert.equal(typeof runtime.ensureRuntimeAsset,'function');
+  const dir=await mkdtemp(join(tmpdir(),'map-runtime-gazetteer-'));
+  try {
+    await file(dir,'tools/library-archive.mjs',await readFile(new URL('../../tools/library-archive.mjs',import.meta.url)));
+    const bytes=Buffer.from('{"aliases":[]}'),path='assets/data/reference-analysis/v1/gazetteer/names/abc.json';
+    const spec={url:'https://example.org/pinned/shard',encoding:'identity',bytes:bytes.length,sha256:sha(bytes)};
+    let calls=0;const fetchAsset=async()=>{calls++;return new Response(bytes);};
+    await runtime.ensureRuntimeAsset(dir,path,spec,{fetchAsset});
+    await runtime.ensureRuntimeAsset(dir,path,spec,{fetchAsset});assert.equal(calls,1);
+    assert.deepEqual(await readFile(join(dir,path)),bytes);
+    await assert.rejects(runtime.ensureRuntimeAsset(dir,path,{...spec,sha256:'a'.repeat(64)},{fetchAsset}),/hash|size/i);
   } finally {await rm(dir,{recursive:true,force:true});}
 });

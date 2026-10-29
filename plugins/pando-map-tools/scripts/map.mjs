@@ -16,7 +16,7 @@ try {
     if(!/^--[a-z-]+$/.test(values[i])||!values[i+1]||values[i+1].startsWith('--')||Object.hasOwn(options,values[i].slice(2)))throw new Error('Use unique --key value options.');
     options[values[i].slice(2)]=values[i+1];
   }
-  const allowed={analyze:['workspace','input','source','job','model','languages','page','date','rect','max-pixels','provenance'],revise:['workspace','job','changes'],export:['workspace','job','output']};
+  const allowed={analyze:['workspace','input','source','job','model','languages','page','date','rect','projection','max-pixels','provenance'],revise:['workspace','job','changes'],export:['workspace','job','output']};
   if(!allowed[command]||Object.keys(options).some(key=>!allowed[command].includes(key))||!options.job)throw new Error('Usage: map.mjs analyze --input <map> or --source <source.json> --job <new job>; revise --job <job> --changes <json>; export --job <job> --output <new directory>.');
   if(command==='analyze'&&Boolean(options.input)===Boolean(options.source))throw new Error('Analyze requires exactly one of --input or --source.');
   if(options.source&&options.provenance)throw new Error('--source records its acquired provenance; do not override it with --provenance.');
@@ -42,7 +42,7 @@ try {
     let model=options.model||runtime.modelPath;
     if(!model){const {reportPath}=await workspaceModule('tools/report-paths.mjs');model=reportPath('reports/map-analysis/models/macro-v6/boundary.manifest.json',{access:'read'});}
     const job=await analyze({input,jobPath,modelPath:resolve(model),languages:options.languages?.split(','),page:options.page?Number(options.page):null,
-      date:options.date||null,rect:options.rect?JSON.parse(options.rect):null,provenance,maxPixels:options['max-pixels']?Number(options['max-pixels']):4_000_000,signal:controller.signal,progress});
+      date:options.date||null,rect:options.rect?JSON.parse(options.rect):null,projection:options.projection?JSON.parse(await readFile(options.projection,'utf8')):null,provenance,maxPixels:options['max-pixels']?Number(options['max-pixels']):4_000_000,signal:controller.signal,progress});
     await renderPreview(job,jobPath+'.preview.png',controller.signal);
     process.stdout.write(JSON.stringify({job:jobPath,status:job.status,preview:jobPath+'.preview.png',locationCandidates:job.locationCandidates.length,
       boundaries:job.graph.chains.length,faces:job.graph.faces.length,diagnostics:job.diagnostics,runtime:{cacheHit:runtime.cacheHit,codeRevision:runtime.catalog?.codeRevision}})+'\n');

@@ -2,7 +2,7 @@ import { readFile, writeFile, access } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { resolve, dirname } from 'node:path';
 import { workspace, workspaceModule, requireWorkspace, core, assertRuntimeResources } from './workspace.mjs';
-import { ensureOcrLanguage } from './runtime.mjs';
+import { ensureOcrLanguage,openAnalysisGazetteer,analysisDataConfig } from './runtime.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
 import { raster, cropRaster, resizeRaster, pngRaster } from './raster.mjs';
 import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob } from './jobs.mjs';
@@ -16,7 +16,6 @@ import { detectReferenceGraticule } from './analysis/grid.mjs';
 import { findReferenceImagePointSymbolNearTextBox, referenceImagePointRasterFromRgba } from './analysis/symbols.mjs';
 import { resolveReferenceImagePlaceDetections } from './analysis/place-match.mjs';
 const {version:pluginVersion}=JSON.parse(await readFile(new URL('../plugin.json',import.meta.url),'utf8'));
-const { createPlaceWorkerStore }=await workspaceModule('shared/frontend/js/modules/place-worker-store.js');
 const { createWorkerRpcClient }=await workspaceModule('shared/frontend/js/modules/worker-rpc.js');
 
 const check = signal => signal?.throwIfAborted();
@@ -122,14 +121,14 @@ export function regionAnalysisOptions(job,command) {
   if(!job.resources.modelManifestPath) throw new Error('Current model manifest path is required to reanalyze a region.');
   return {...job.options,input:job.source.path,rect:structuredClone(r),previous:job,modelPath:job.resources.modelManifestPath};
 }
-export async function analyze({input,jobPath,modelPath,languages=null,page=null,date=null,rect=null,provenance=null,maxPixels=4_000_000,previous=null,signal,progress=()=>{}}) {
+export async function analyze({input,jobPath,modelPath,languages=null,page=null,date=null,rect=null,projection=null,provenance=null,maxPixels=4_000_000,previous=null,signal,progress=()=>{}}) {
   const path=resolve(input), sourceBytes=await readFile(path);check(signal);
   const image=await raster({action:'read',path,page,rect,maxPixels},null,signal);
   const {manifest,bytes}=await readModel(modelPath);
-  const pin=JSON.parse(await readFile(resolve(workspace,'config/library-data.json'),'utf8'));
+  const binding=await analysisDataConfig(),pin=binding.config;
   let job=createJob({path,sha256:digest(sourceBytes),width:image.originalWidth,height:image.originalHeight,mapping:image.mapping,page},
     {dataRevision:pin.revision,model:manifest,modelManifestPath:resolve(modelPath),pluginVersion,nodeVersion:process.version},
-    {date,languages,page,rect,provenance,maxPixels});
+    {date,languages,page,rect,projection,provenance,maxPixels});
   if(previous) {
     assertJob(previous);
     if(previous.source.sha256!==job.source.sha256) throw new Error('Source signature changed before region analysis.');
@@ -142,6 +141,7 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
   try {
     const ocrManifestPath=resolve(workspace,'assets/data/reference-analysis/v1/ocr/manifest.json');
     const ocrManifestBytes=await readFile(ocrManifestPath),ocrManifest=JSON.parse(ocrManifestBytes);
+    if(digest(ocrManifestBytes)!==pin.ocr.manifestSha256)throw new Error('OCR manifest differs from fixed analysis data pairing.');
     const ocr=await recognize(image,languages,signal,progress);check(signal);
     const fullUv=uv=>[(image.mapping.rect.x+uv[0]*(image.mapping.rect.width-1))/(image.originalWidth-1),(image.mapping.rect.y+uv[1]*(image.mapping.rect.height-1))/(image.originalHeight-1)];
     const pointRaster=referenceImagePointRasterFromRgba(image);
@@ -157,28 +157,35 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     const layout=detectReferenceMapLayout(image,{blocks:ocr.rows}),grid=detectReferenceGraticule(image,ocr.rows);
     job.ocr={orientation:ocr.orientation,detections};job.layout={...layout,panels:layout.panels.map(p=>({...p,sourceRect:box(p.sourceRect)}))};
     job.grid={...grid,labels:grid.labels.map(v=>({...v,boundingBox:box(v.boundingBox)})),points:grid.points.map(v=>({...v,image:fullUv(v.image)}))};
-    const placeRoot=resolve(workspace,'assets/data/places'),placeManifestBytes=await readFile(resolve(placeRoot,'manifest.json')),placeManifest=JSON.parse(placeManifestBytes);
-    const store=createPlaceWorkerStore({manifest:placeManifest,fetchBytes:spec=>readFile(resolve(placeRoot,spec.url))});
-    job.diagnostics.push({code:'LIMITED_PLACE_COVERAGE',reason:'The packaged curated city subset is not a complete world gazetteer.',
-      action:'Missing settlements cannot establish a location; inspect source/grid evidence or supply reviewed control points.'});
+    const store=await openAnalysisGazetteer(workspace,{signal});
+    job.diagnostics.push({code:'GAZETTEER_SCOPE',records:store.manifest.recordCount,
+      reason:'Global modern settlements and source-reviewed historical aliases; missing names do not prove a location or historical existence.'});
     const context={signal,throwIfCancelled:()=>check(signal),emitEvent:(_event,data)=>progress(data)};
-    job.matching=await resolveReferenceImagePlaceDetections(detections,{search:query=>store.search(query,context),mapDate:date,allowAmbiguous:true,maxDetections:256,maxSearchQueries:1024,maxPlaces:20000});
+    job.matching=await resolveReferenceImagePlaceDetections(detections,{search:query=>store.search(query,{signal}),mapDate:date,allowAmbiguous:true,maxDetections:256,maxSearchQueries:1024,maxPlaces:20000});
     const detected=new Map(detections.map(v=>[v.id,v]));
     const candidates=job.matching.matches.flatMap(v=>{const symbol=detected.get(v.detectionId)?.symbol;return symbol?[{...v,image:symbol.uv,confidence:v.confidence*.76+symbol.confidence*.24}]:[];});
-    const solve=points=>calculate('autoGeoref',{points,mode:'auto',maxTrials:1024,minimumInliers:6,inlierThresholdMeters:25000});
+    const embedded=image.mapping.georeference;
+    if(embedded?.diagnostic)job.diagnostics.push({code:'GEOPDF_UNSUPPORTED',reason:embedded.diagnostic});
+    const selectedProjection=calculate('normalizeProjection',projection || embedded?.projection || {kind:'geographic'});
+    const solve=points=>calculate('autoGeoref',{points,projection:selectedProjection,mode:'auto',maxTrials:1024,minimumInliers:6,inlierThresholdMeters:25000});
     const solved=solve(candidates);job.locationCandidates=[];
     if(solved.ok) {
-      const {warp,quality}=selectReferenceImageGeoreference(solved.controlPoints,job.source);
+      const {warp,quality}=selectReferenceImageGeoreference(solved.controlPoints,job.source,{projection:selectedProjection});
       job.locationCandidates.push({warp,quality});
       const ids=new Set(solved.inlierIds),remaining=candidates.filter(v=>!ids.has(v.id));
       if(new Set(remaining.map(v=>v.detectionId)).size>=6) {
         const other=solve(remaining);
         if(other.ok && other.inlierCount>=solved.inlierCount*.85) {
-          const {warp:alternative,quality:alternativeQuality}=selectReferenceImageGeoreference(other.controlPoints,job.source);
+          const {warp:alternative,quality:alternativeQuality}=selectReferenceImageGeoreference(other.controlPoints,job.source,{projection:selectedProjection});
           if(alternativeQuality.recommended) job.locationCandidates.push({warp:alternative,quality:alternativeQuality});
         }
       }
-      if(quality.recommended && job.locationCandidates.length===1) {job.warp=warp;job.quality=quality;job.calibration={controlPoints:structuredClone(warp.controlPoints),mode:warp.mode,linearConstraints:[]};}
+      if(quality.recommended && job.locationCandidates.length===1) {job.warp=warp;job.quality=quality;job.calibration={controlPoints:structuredClone(warp.controlPoints),mode:warp.mode,projection:warp.projection,linearConstraints:[]};}
+    }
+    if(!job.warp && embedded?.projection && embedded.controlPoints?.length>=3) {
+      const {warp,quality}=selectReferenceImageGeoreference(embedded.controlPoints,job.source,{mode:'affine',projection:selectedProjection});
+      if(warp.ok)job.locationCandidates.push({warp,quality,origin:'embedded-publisher-metadata',independentChecks:false});
+      job.diagnostics.push({code:'GEOPDF_REQUIRES_REVIEW',reason:'Publisher metadata is a candidate, not independent check points or a performed datum transformation.'});
     }
     if(!job.warp) job.diagnostics.push({code:'NEEDS_GEOREFERENCE',reason:solved.reason || 'ambiguous-or-unverified-location',action:'Review locationCandidates/grid or supply original-image UV control points.'});
     const ort=loadOrtRuntime();
@@ -194,14 +201,14 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
       if(actual!==ocrManifest.languages[language]?.sha256) throw new Error('OCR language resources changed during analysis.');
       job.resources.ocrLanguageHashes[language]=actual;
     }
-    job.resources.ocrManifestSha256=digest(ocrManifestBytes);job.resources.placeManifestSha256=digest(placeManifestBytes);
-    job.resources.placeRevision=placeManifest.revision;job.status=job.warp?.ok?'needs-review':'needs-georeference';
+    job.resources.ocrManifestSha256=digest(ocrManifestBytes);job.resources.gazetteerManifestSha256=store.manifestSha256;
+    job.resources.gazetteerRevision=store.manifest.revision;job.status=job.warp?.ok?'needs-review':'needs-georeference';
     check(signal);
     if(digest(await readFile(path))!==job.source.sha256) throw new Error('Source image signature changed during analysis.');
     assertRuntimeResources(job.resources);
-    if(JSON.parse(await readFile(resolve(workspace,'config/library-data.json'),'utf8')).revision!==pin.revision
+    if(digest(await readFile(binding.path))!==binding.sha256
       || digest(await readFile(ocrManifestPath))!==job.resources.ocrManifestSha256
-      || digest(await readFile(resolve(placeRoot,'manifest.json')))!==job.resources.placeManifestSha256
+      || digest(await readFile(store.manifestPath))!==job.resources.gazetteerManifestSha256
       || digest((await readModel(modelPath)).manifest)!==digest(manifest)) throw new Error('Analysis resource signatures changed during analysis.');
     job=sealJob(job);await saveJob(jobPath,job);
     return job;
