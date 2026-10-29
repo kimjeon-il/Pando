@@ -66,7 +66,7 @@ install missing providers. Buffer distances use the input layer's CRS units;
 buffer output is normalized to EPSG:4326 and refuses an existing destination.
 Raster sampling uses the raster layer's coordinate reference system and returns
 `valid: false` and a null value for NoData or points outside its extent.
-If a buffer request times out or loses its connection before QGIS replies, the
+If an export or buffer request times out or loses its connection before QGIS replies, the
 reported scratch directory is preserved because QGIS may still be writing it.
 Attribute and geometry changes require an edit session started by the native bridge. An existing
 QGIS edit session is not taken over. Changes stay in the QGIS edit buffer and

@@ -40,7 +40,8 @@ export async function requestNativeQgis(config,request,{signal,timeoutMs=30000,m
         finish(Error('Invalid response from native QGIS'));return;
       }
       if(!response.ok){const message=typeof response.error==='string'?response.error:'QGIS operation failed';
-        finish(Error('Native QGIS: '+message.replaceAll(config.token,'[redacted]')));return;}
+        const error=Error('Native QGIS: '+message.replaceAll(config.token,'[redacted]'));
+        error.qgisCompleted=true;finish(error);return;}
       if(!response.result||typeof response.result!=='object'||Array.isArray(response.result)){finish(Error('Invalid response from native QGIS'));return;}
       finish(null,response.result);
     });
