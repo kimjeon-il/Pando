@@ -51,7 +51,7 @@ jobs:
         run: |
           cmake -S tools/cpp -B build-native/reference-analysis/native -A x64 -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch" -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
           if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed' }
-          cmake --build build-native/reference-analysis/native --config Release --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer --parallel 1
+          cmake --build build-native/reference-analysis/native --config Release --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer pando-reference-training-proof --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'Native reference build failed' }
       - name: Verify Windows loss behavior
         timeout-minutes: 3
@@ -84,6 +84,13 @@ jobs:
         run: |
           & build-native/reference-analysis/native/Release/pando-training-checkpoint-tests.exe
           if ($LASTEXITCODE -ne 0) { throw 'Checkpoint resume test failed' }
+      - name: Verify real-input proof rejects unsafe requests
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          $env:PANDO_REFERENCE_TRAINING_PROOF_BINARY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-training-proof.exe"
+          node --test tests/unit/reference-training-proof.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Training proof refusal test failed' }
       - name: Verify a frozen encoder AdamW update separately
         timeout-minutes: 2
         shell: pwsh
@@ -96,10 +103,18 @@ jobs:
           node tools/reference-analysis/package-native-reference.mjs --binary build-native/reference-analysis/native/Release/pando-reference-infer.exe --directory build-native/reference-analysis/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Artifact packaging failed' }
           Copy-Item build-native/reference-analysis/native/Release/pando-reference-model-tests.exe build-native/reference-analysis/artifact/pando-reference-model-tests.exe
+          node tools/reference-analysis/package-native-reference.mjs --kind training-proof --binary build-native/reference-analysis/native/Release/pando-reference-training-proof.exe --directory build-native/reference-analysis/artifact-proof
+          if ($LASTEXITCODE -ne 0) { throw 'Training proof artifact packaging failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: native-reference-windows-x64-${{ github.sha }}
           path: build-native/reference-analysis/artifact/
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-reference-training-proof-windows-x64-${{ github.sha }}
+          path: build-native/reference-analysis/artifact-proof/
           if-no-files-found: error
           retention-days: 7
   reference-loss:
@@ -127,7 +142,7 @@ jobs:
           cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
             -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer --parallel 1
+          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer pando-reference-training-proof --parallel 1
       - name: Compare original loss, model fixtures and Safetensors validation
         run: |
           build-native/reference-analysis/native/pando-reference-loss-tests
@@ -138,6 +153,10 @@ jobs:
         env:
           PANDO_REFERENCE_INFER_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-infer
         run: node --test tests/unit/reference-infer-cli.test.mjs
+      - name: Verify real-input proof rejects unsafe requests
+        env:
+          PANDO_REFERENCE_TRAINING_PROOF_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-training-proof
+        run: node --test tests/unit/reference-training-proof.test.mjs
   native-hydro:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04
