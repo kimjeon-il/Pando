@@ -15,7 +15,7 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>Buffer.from(JSON.stringify(value,null,2)+'\n');
 const prefix='plugins/pando-map-tools/',skill='skills/pando-map-analysis/';
 
-export async function packagePrivatePlugin({revision,directory,modelPath,workspace=root,python=join(root,'build-native/python/Scripts/python.exe')}) {
+export async function packagePrivatePlugin({revision,directory,modelPath,workspace=root}) {
   if(!/^[a-f0-9]{40}$/.test(revision||''))throw Error('A full pushed work/ui source commit is required');
   await run('git',['merge-base','--is-ancestor',revision,'origin/work/ui'],{cwd:workspace});
   directory=resolve(directory);const rel=relative(workspace,directory);
@@ -76,10 +76,10 @@ export async function packagePrivatePlugin({revision,directory,modelPath,workspa
   const seedRoot=join(directory,skill,'runtime/workspace');
   const {loadNodeCore}=await import(pathToFileURL(join(seedRoot,'tools/load-node-core.mjs')));await loadNodeCore({root:seedRoot});
   return {version:source.version,codeRevision:revision,dataRevision:config.revision,modelSha256:model.model.sha256,
-    directory,fileCount:files.length,uncompressedBytes:total,...await archiveDirectory(directory,{python})};
+    directory,fileCount:files.length,uncompressedBytes:total,...await archiveDirectory(directory)};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  const {values}=parseArgs({options:{revision:{type:'string'},directory:{type:'string'},model:{type:'string'},python:{type:'string'}}});
-  try{console.log(JSON.stringify(await packagePrivatePlugin({revision:values.revision,directory:values.directory,modelPath:values.model,python:values.python}),null,2));}
+  const {values}=parseArgs({options:{revision:{type:'string'},directory:{type:'string'},model:{type:'string'}}});
+  try{console.log(JSON.stringify(await packagePrivatePlugin({revision:values.revision,directory:values.directory,modelPath:values.model}),null,2));}
   catch(error){console.error(error);process.exitCode=1;}
 }
