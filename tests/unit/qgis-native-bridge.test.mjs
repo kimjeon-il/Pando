@@ -34,9 +34,9 @@ async function fixture(t){
       else if(request.command==='clear-selection'){assert.equal(request.layer,'layer-1');result={ok:true};}
       else if(['begin-edit','rollback-edit','commit-edit','undo-edit','redo-edit'].includes(request.command)){
         assert.equal(request.layer,'layer-1');result={ok:true};}
-      else if(request.command==='set-text-attribute'){
+      else if(request.command==='set-attribute'){
         assert.equal(request.layer,'layer-1');assert.equal(request.fid,'1');
-        assert.equal(request.field,'name');assert.equal(request.value,'edited');result={updated:true};}
+        assert.equal(request.field,'name');assert.equal(request.json,JSON.stringify('edited'));result={updated:true};}
       else if(request.command==='set-geometry'){
         assert.equal(request.layer,'layer-1');assert.equal(request.fid,'1');
         assert.equal(request.wkt,'POINT (127 37)');result={updated:true};}
@@ -74,12 +74,12 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   assert.equal(expression.code,0,expression.stderr);assert.equal(JSON.parse(expression.stdout).selected,1);
   const both=await run(['--config',config,'select','--layer','layer-1','--fids','[]','--expression','true']);assert.notEqual(both.code,0);
   const begin=await run(['--config',config,'begin-edit','--layer','layer-1']);assert.equal(begin.code,0,begin.stderr);
-  const update=await run(['--config',config,'set-text-attribute','--layer','layer-1','--fid','1','--field','name','--value','edited']);
+  const update=await run(['--config',config,'set-attribute','--layer','layer-1','--fid','1','--field','name','--json',JSON.stringify('edited')]);
   assert.equal(update.code,0,update.stderr);assert.equal(JSON.parse(update.stdout).updated,true);
   const undo=await run(['--config',config,'undo-edit','--layer','layer-1']);assert.equal(undo.code,0,undo.stderr);
   const redo=await run(['--config',config,'redo-edit','--layer','layer-1']);assert.equal(redo.code,0,redo.stderr);
   const rollback=await run(['--config',config,'rollback-edit','--layer','layer-1']);assert.equal(rollback.code,0,rollback.stderr);
-  const invalidUpdate=await run(['--config',config,'set-text-attribute','--layer','layer-1','--fid','x','--field','name','--value','x']);assert.notEqual(invalidUpdate.code,0);
+  const invalidUpdate=await run(['--config',config,'set-attribute','--layer','layer-1','--fid','x','--field','name','--json',JSON.stringify('x')]);assert.notEqual(invalidUpdate.code,0);
   const geometry=await run(['--config',config,'set-geometry','--layer','layer-1','--fid','1','--wkt','POINT (127 37)']);
   assert.equal(geometry.code,0,geometry.stderr);assert.equal(JSON.parse(geometry.stdout).updated,true);
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);

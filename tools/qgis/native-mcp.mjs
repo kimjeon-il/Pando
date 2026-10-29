@@ -38,9 +38,9 @@ function createServer(){
     ['qgis_native_redo_edit','redo-edit','Redo a change in a bridge-owned edit session.'],
   ])server.registerTool(name,{description,inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,command,'--layer',layer],extra.signal));
-  server.registerTool('qgis_native_set_text_attribute',{description:'Change one text attribute within a bridge-owned QGIS edit session.',
-    inputSchema:z.strictObject({layer:path,fid:z.string().regex(/^-?(0|[1-9]\d*)$/),field:path,value:z.string().max(65536)})},
-  async({layer,fid,field,value},extra)=>respond([...options,'set-text-attribute',`--layer=${layer}`,`--fid=${fid}`,`--field=${field}`,`--value=${value}`],extra.signal));
+  server.registerTool('qgis_native_set_attribute',{description:'Change one QGIS attribute using its exact JSON text within a bridge-owned edit session.',
+    inputSchema:z.strictObject({layer:path,fid:z.string().regex(/^-?(0|[1-9]\d*)$/),field:path,json:z.string().min(1).max(500000)})},
+  async({layer,fid,field,json},extra)=>respond([...options,'set-attribute',`--layer=${layer}`,`--fid=${fid}`,`--field=${field}`,`--json=${json}`],extra.signal));
   server.registerTool('qgis_native_set_geometry',{description:'Change one geometry using EPSG:4326 WKT within a bridge-owned QGIS edit session.',
     inputSchema:z.strictObject({layer:path,fid:z.string().regex(/^-?(0|[1-9]\d*)$/),wkt:z.string().min(1).max(500000)})},
   async({layer,fid,wkt},extra)=>respond([...options,'set-geometry',`--layer=${layer}`,`--fid=${fid}`,`--wkt=${wkt}`],extra.signal));
