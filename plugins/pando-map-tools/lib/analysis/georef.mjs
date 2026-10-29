@@ -50,13 +50,14 @@ export function selectReferenceImageGeoreference(points,source,{mode='auto',proj
 export function selectReferenceImageProjection(points,source,{candidates}={}) {
   if(candidates!==undefined&&(!Array.isArray(candidates)||!candidates.length||candidates.length>64))throw new Error('One to64 typed projection candidates required.');
   if(!Array.isArray(points))throw new Error('Distinct valid original-image controls required.');
-  const ids=new Set(),images=new Set(),coordinates=new Set();
+  const ids=new Set();
   for(const point of points){
     if(!point.id||ids.has(point.id)||!Array.isArray(point.image)||point.image.length!==2||point.image.some(v=>!Number.isFinite(v)||v<0||v>1)
       ||!Array.isArray(point.coordinate)||point.coordinate.length!==2||point.coordinate.some((v,i)=>!Number.isFinite(v)||Math.abs(v)>(i?90:180)))throw new Error('Distinct valid original-image controls required.');
-    ids.add(point.id);images.add(JSON.stringify(point.image));coordinates.add(JSON.stringify(point.coordinate));
+    ids.add(point.id);
   }
-  if(Math.min(ids.size,images.size,coordinates.size)<18)return {ok:false,reason:'projection-selection-requires18-distinct-controls'};
+  if(!calculateReferenceImage('controlIndependence',{points}).independent)return {ok:false,reason:'duplicate-control-observations'};
+  if(points.length<18)return {ok:false,reason:'projection-selection-requires18-distinct-controls'};
   // Interleaved spatial order supplies separate evidence to fit, choose and confirm.
   const sorted=[...points].sort((a,b)=>a.image[1]-b.image[1]||a.image[0]-b.image[0]||a.id.localeCompare(b.id));
   const groups=[[],[],[]];sorted.forEach((point,index)=>groups[index%3].push(point));
@@ -69,12 +70,14 @@ export function selectReferenceImageProjection(points,source,{candidates}={}) {
     const lat0=Math.max(-85,Math.min(85,latitudes[Math.floor(latitudes.length/2)])),hemisphere=lat0<0?-1:1;
     candidates=[{kind:'geographic'}];
     for(const center of new Set([lon0,Math.round(lon0/15)*15])) {
-      candidates.push({kind:'merc',ellipsoid:'WGS84',lon0:center},
-        ...['laea','aeqd'].map(kind=>({kind,ellipsoid:'sphere',lon0:center,lat0})),
-        {kind:'robin',ellipsoid:'sphere',lon0:center},
-        {kind:'stere',ellipsoid:'WGS84',lon0:center,lat0:90*hemisphere,k0:.994});
-      for(const [lat1,lat2]of [[33,45],[49,77],[25,60]])candidates.push({kind:'lcc',ellipsoid:'WGS84',lon0:center,lat0,lat1:lat1*hemisphere,lat2:lat2*hemisphere});
+      candidates.push(...['laea','aeqd'].map(kind=>({kind,ellipsoid:'sphere',lon0:center,lat0})),{kind:'robin',ellipsoid:'sphere',lon0:center});
     }
+    // Mercator meridians translate the plane; LCC/polar meridians rotate it.
+    // Their centres are absorbed by the fitted affine transform, so propose one
+    // representative rather than inventing ambiguity between equivalent maps.
+    candidates.push({kind:'merc',ellipsoid:'WGS84',lon0},
+      {kind:'stere',ellipsoid:'WGS84',lon0,lat0:90*hemisphere,k0:.994});
+    for(const [lat1,lat2]of [[33,45],[49,77],[25,60]])candidates.push({kind:'lcc',ellipsoid:'WGS84',lon0,lat0,lat1:lat1*hemisphere,lat2:lat2*hemisphere});
     // An equidistant cylindrical map is already expressible by geographic+affine;
     // adding its identical fit as another hypothesis creates artificial ambiguity.
   }
