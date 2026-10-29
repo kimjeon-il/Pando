@@ -19,6 +19,11 @@ node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --fids '["1","2"]
 node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --expression '"name" = ''map'''
 node tools/qgis/native-bridge.mjs selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs clear-selection --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs begin-edit --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs set-text-attribute --layer QGIS_LAYER_ID --fid 1 --field name --value '새 이름'
+# Choose one ending for the session:
+node tools/qgis/native-bridge.mjs rollback-edit --layer QGIS_LAYER_ID
+# node tools/qgis/native-bridge.mjs commit-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs open 'D:/path/to/pando-layer.geojson'
 node tools/qgis/native-bridge.mjs export --layer QGIS_LAYER_ID --output 'D:/path/to/qgis-result.geojson'
 node tools/qgis/native-bridge.mjs normalize 'D:/path/to/qgis-export.geojson' --output 'D:/path/to/normalized.geojson'
@@ -34,6 +39,12 @@ replacement: the upstream editing and processing tools remain active until
 their used capabilities have been migrated and tested.
 Native selection accepts QGIS feature IDs as decimal strings, preserving signed
 64-bit values, or a QGIS expression validated against the layer before use.
+Text changes require an edit session started by the native bridge. An existing
+QGIS edit session is not taken over. Changes stay in the QGIS edit buffer and
+use its Undo history until an explicit commit or rollback; either action also
+affects any other edits made to the same QGIS layer in that session. Commit
+writes through the layer's provider, so it can change the underlying source.
+Other attribute types and geometry edits remain on the existing bridge.
 
 QGIS operations use upstream `nkarasiak/qgis-mcp` 0.15.2, commit
 `dae432367fcb2873a151b94c4faaadef2033cf9f`. Native QGIS LTR lives once at

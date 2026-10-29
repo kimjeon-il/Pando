@@ -6,6 +6,9 @@
 #include <qgisplugin.h>
 #include <qgsfield.h>
 #include <qgsfields.h>
+#include <qgsfeature.h>
+#include <qgsfeatureiterator.h>
+#include <qgsfeaturerequest.h>
 #include <qgsexpression.h>
 #include <qgsexpressioncontext.h>
 #include <qgsexpressioncontextutils.h>
@@ -18,6 +21,7 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QHostAddress>
+#include <QHash>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -63,6 +67,8 @@ int pageValue(const QJsonObject& request,const QString& key,int fallback,int min
 }
 class Bridge final:public QObject,public QgisPlugin {
     QTcpServer server_;QByteArray token_;int active_=0;
+    QHash<QString,QPointer<QgsVectorLayer>> editSessions_;
+    QHash<QString,QMetaObject::Connection> editConnections_;
     QJsonObject execute(const QJsonObject& request){
         const auto command=request.value(QStringLiteral("command")).toString();
         if(command==QStringLiteral("status"))return {{QStringLiteral("qgis_version"),Qgis::version()},
@@ -102,6 +108,44 @@ class Bridge final:public QObject,public QgisPlugin {
                 {QStringLiteral("precision"),field.precision()},{QStringLiteral("is_numeric"),field.isNumeric()}});
             return {{QStringLiteral("geometry_type"),static_cast<int>(layer->geometryType())},
                 {QStringLiteral("crs"),layer->crs().authid()},{QStringLiteral("fields"),fields}};
+        }
+        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("set-text-attribute")){
+            const auto id=request.value(QStringLiteral("layer")).toString();
+            auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
+            if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
+            if(command==QStringLiteral("begin-edit")){
+                if(layer->isEditable())throw QStringLiteral("Existing edit session must be preserved");
+                if(!layer->startEditing())throw QStringLiteral("QGIS could not start editing");
+                QObject::disconnect(editConnections_.take(id));editSessions_.insert(id,layer);
+                editConnections_.insert(id,QObject::connect(layer,&QgsVectorLayer::editingStopped,this,[this,id]{
+                    editSessions_.remove(id);QObject::disconnect(editConnections_.take(id));
+                }));
+                return {{QStringLiteral("ok"),true}};
+            }
+            if(editSessions_.value(id)!=layer||!layer->isEditable())throw QStringLiteral("An edit session started by this bridge is required");
+            if(layer->isEditCommandActive())throw QStringLiteral("Another QGIS edit command is active");
+            if(command==QStringLiteral("commit-edit")){
+                if(!layer->commitChanges())throw QStringLiteral("QGIS commit failed: ")+layer->commitErrors().join(QStringLiteral("; "));
+                editSessions_.remove(id);return {{QStringLiteral("ok"),true}};
+            }
+            if(command==QStringLiteral("rollback-edit")){
+                if(!layer->rollBack())throw QStringLiteral("QGIS rollback failed");
+                editSessions_.remove(id);return {{QStringLiteral("ok"),true}};
+            }
+            const auto fidValue=request.value(QStringLiteral("fid")),nameValue=request.value(QStringLiteral("field")),textValue=request.value(QStringLiteral("value"));
+            static const QRegularExpression integer(QStringLiteral("^-?(0|[1-9][0-9]*)$"));
+            const auto text=fidValue.toString();bool valid=false;const auto fid=text.toLongLong(&valid);
+            if(!fidValue.isString()||!integer.match(text).hasMatch()||!valid||!nameValue.isString()||nameValue.toString().isEmpty()||!textValue.isString()||textValue.toString().size()>65536)
+                throw QStringLiteral("A signed feature ID, field and bounded text value are required");
+            const auto index=layer->fields().indexOf(nameValue.toString());
+            if(index<0||layer->fields().at(index).type()!=QVariant::String)throw QStringLiteral("An existing text field is required");
+            QgsFeature feature;auto iterator=layer->getFeatures(QgsFeatureRequest().setFilterFid(fid));
+            if(!iterator.nextFeature(feature))throw QStringLiteral("QGIS feature ID not found");
+            layer->beginEditCommand(QStringLiteral("Pando text attribute"));
+            if(!layer->changeAttributeValue(fid,index,textValue.toString(),feature.attribute(index),true)){
+                layer->destroyEditCommand();throw QStringLiteral("QGIS attribute change failed");
+            }
+            layer->endEditCommand();return {{QStringLiteral("updated"),true}};
         }
         if(command==QStringLiteral("select")||command==QStringLiteral("selection")||command==QStringLiteral("clear-selection")){
             const auto id=request.value(QStringLiteral("layer")).toString();
