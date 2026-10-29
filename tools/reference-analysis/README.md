@@ -19,10 +19,17 @@ release checkpoint is claimed. Publisher-derived training remains available belo
 prepare-reference-analysis-assets.mjs prepares/checks only the shared pinned
 language files. Tesseract and ONNX Runtime reuse installed Node dependencies;
 there is no browser runtime bundle, Blob bootstrap or static server. The plugin
-Worker owns OCR startup cancellation and failures. verify-model.py exports an
-untrained interface diagnostic into the fixed ignored build directory; run
-node --test tests/reference-analysis/onnx-interface.test.mjs only to check its
-actual Node/WASM interface. This diagnostic is never a release model.
+Worker owns OCR startup cancellation and failures. The source-verified Windows
+native ONNX exporter can create an untrained interface diagnostic in the fixed
+ignored build directory. Install the matching CI artifact in
+`build-native/reference-analysis/onnx-export` and point `--torch-library` to the
+matching LibTorch 2.14.1 runtime directory. Existing outputs are never replaced.
+This diagnostic is never a release model.
+
+```powershell
+node tools/reference-analysis/native-onnx-export.mjs --diagnostic --output build-native/reference-analysis/interface-smoke.onnx --torch-library 'C:/path/to/matching/torch/lib'
+node --test tests/reference-analysis/onnx-interface.test.mjs
+```
 
 ```powershell
 node tools/reference-analysis/acquire-sources.mjs --output EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
