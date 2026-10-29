@@ -13,6 +13,8 @@ import torch
 from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from report_paths import report_argument
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / 'plugins/pando-map-tools/lib'))
+from raster import oriented_map_image
 
 from corpus import (CHANNELS, RASTER_ORIGINS, validate_corpus, evaluation_groups, corpus_path,
                     corpus_fingerprint, review_masks, build_training_lineage, assert_evaluation_independence)
@@ -55,7 +57,7 @@ class MapTiles(torch.utils.data.Dataset):
         sheet_index, x, y = self.tiles[index]
         sheet = self.sheets[sheet_index]
         with Image.open(self.root / sheet["image"]) as source:
-            image = ImageOps.exif_transpose(source).convert("RGB")
+            image = oriented_map_image(source).convert("RGB")
         width, height = image.size
         annotation = json.loads((self.root / sheet["annotations"]).read_text(encoding="utf-8"))
         if annotation.get("width") != width or annotation.get("height") != height:
@@ -275,6 +277,7 @@ def train(args, corpus, root):
             torch.save(dict(schemaVersion=1, model=model.state_dict(), classes=CHANNELS, trained=True,
                             steps=steps, stepCountKind='attempted-batches', optimizerUpdates=updates, skippedUpdates=skipped,
                             initialization=initialization, lineage=lineage,
+                            encoderInitialization=initial.get('encoderInitialization') if initialization else model.encoderInitialization,
                             sampling='balanced-corpora-originals-with-coverage' if args.balance_sources else 'uniform-tiles',
                             samplingSeed=20261023 if args.balance_sources else None,
                             geographicFocus='macro-only' if args.macro_only else 'unrestricted',
@@ -395,7 +398,8 @@ def export(args):
                     corpusSha256=checkpoint["corpusSha256"], evaluationStatus="pending", releaseApproved=False)
     manifest.update(trainingOnly=checkpoint['trainingOnly'], trainingBatches=checkpoint['steps'],
                     optimizerUpdates=checkpoint['optimizerUpdates'], stepCountKind=checkpoint['stepCountKind'],
-                    unobservedChannels=checkpoint['unobservedChannels'], lineage=checkpoint.get('lineage'))
+                    unobservedChannels=checkpoint['unobservedChannels'], lineage=checkpoint.get('lineage'),
+                    encoderInitialization=checkpoint.get('encoderInitialization'))
     path.with_suffix(".manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
 

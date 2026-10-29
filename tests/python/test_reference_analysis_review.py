@@ -135,6 +135,30 @@ class ReviewContractTests(unittest.TestCase):
             self.assertTrue(report['diagnosticOnly'])
             self.assertIn('confounders',report)
 
+    def test_public_encoder_initialization_records_actual_verified_weight_bytes(self):
+        from model import verified_pretrained_identity
+        with tempfile.TemporaryDirectory() as directory:
+            path=pathlib.Path(directory)/'encoder.pth';path.write_bytes(b'fixture weights')
+            digest=hashlib.sha256(path.read_bytes()).hexdigest()
+            url='https://download.pytorch.org/models/encoder-'+digest[:8]+'.pth'
+            value=verified_pretrained_identity(path,url)
+            self.assertEqual(value['sha256'],digest)
+            self.assertEqual(value['bytes'],15)
+            path.write_bytes(b'changed')
+            with self.assertRaisesRegex(ValueError,'hash'):
+                verified_pretrained_identity(path,url)
+
+    def test_transparent_training_source_uses_the_same_white_composite_as_analysis(self):
+        from PIL import Image
+        from train import MapTiles
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory)
+            image=Image.new('RGBA',(24,16),(0,0,0,0));image.putpixel((4,4),(0,0,0,255));image.save(root/'map.png')
+            (root/'label.json').write_text(json.dumps(self.annotation()))
+            tile=MapTiles(root,[dict(id='transparent',image='map.png',annotations='label.json')])[0][0]
+            self.assertGreater(float(tile[0,0,0]),2.)
+            self.assertLess(float(tile[0,4,4]),-2.)
+
 
 if __name__ == '__main__':
     unittest.main()

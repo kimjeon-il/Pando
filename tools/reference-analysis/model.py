@@ -1,8 +1,20 @@
 """Local training architecture. No synthetic weights are accepted as a release."""
 import torch
+import pathlib
+import hashlib
+import re
 from torch import nn
 from torch.nn import functional as F
 from torchvision.models import mobilenet_v3_large, MobileNet_V3_Large_Weights
+
+
+def verified_pretrained_identity(path, url):
+    match = re.fullmatch(r'https://download\.pytorch\.org/models/[^/]+-([a-f0-9]{8})\.pth', url)
+    path = pathlib.Path(path)
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if not match or not digest.startswith(match[1]):
+        raise ValueError('Public encoder weight hash differs from the pinned upstream identifier')
+    return dict(kind='public-pretrained-image-classification', url=url, sha256=digest, bytes=path.stat().st_size)
 
 
 class Decode(nn.Module):
@@ -22,6 +34,7 @@ class ReferenceBoundaryModel(nn.Module):
         super().__init__()
         weights = MobileNet_V3_Large_Weights.IMAGENET1K_V2 if pretrained else None
         self.encoder = mobilenet_v3_large(weights=weights).features
+        self.encoderInitialization = verified_pretrained_identity(pathlib.Path(torch.hub.get_dir())/'checkpoints'/weights.url.rsplit('/',1)[-1],weights.url) if weights else None
         self.overview = nn.Sequential(nn.Conv2d(3, 16, 5, stride=2, padding=2), nn.ReLU(),
                                       nn.Conv2d(16, 32, 3, stride=2, padding=1), nn.ReLU(),
                                       nn.AdaptiveAvgPool2d(1))
