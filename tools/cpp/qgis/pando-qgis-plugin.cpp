@@ -4,6 +4,8 @@
 #include <qgis.h>
 #include <qgisinterface.h>
 #include <qgisplugin.h>
+#include <qgsfield.h>
+#include <qgsfields.h>
 #include <qgslayertree.h>
 #include <qgslayertreegroup.h>
 #include <qgslayertreelayer.h>
@@ -85,6 +87,17 @@ class Bridge final:public QObject,public QgisPlugin {
             auto* added=layer.release();
             return {{QStringLiteral("id"),added->id()},{QStringLiteral("name"),added->name()},
                 {QStringLiteral("feature_count"),static_cast<double>(added->featureCount())},{QStringLiteral("crs"),added->crs().authid()}};
+        }
+        if(command==QStringLiteral("schema")){
+            const auto id=request.value(QStringLiteral("layer")).toString();
+            auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
+            if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
+            QJsonArray fields;
+            for(const auto& field:layer->fields())fields.append(QJsonObject{{QStringLiteral("name"),field.name()},
+                {QStringLiteral("type"),field.typeName()},{QStringLiteral("length"),field.length()},
+                {QStringLiteral("precision"),field.precision()},{QStringLiteral("is_numeric"),field.isNumeric()}});
+            return {{QStringLiteral("geometry_type"),static_cast<int>(layer->geometryType())},
+                {QStringLiteral("crs"),layer->crs().authid()},{QStringLiteral("fields"),fields}};
         }
         if(command==QStringLiteral("export"))return exportQgisLayer(request.value(QStringLiteral("layer")).toString(),
             request.value(QStringLiteral("output")).toString());

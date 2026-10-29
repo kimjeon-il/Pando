@@ -10,7 +10,7 @@ import {normalizeFile} from './normalize.mjs';
 import {startNativeQgis} from './native-start.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
-const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
+const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | schema --layer ID | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
 export async function runNativeBridge(args,{signal}={}){
   signal?.throwIfAborted();
   const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'}}});
@@ -19,9 +19,10 @@ export async function runNativeBridge(args,{signal}={}){
     if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined)throw Error(usage);
     return normalizeFile(rest[0],values.output);
   }
-  if(!['start','status','project','layers','open','export'].includes(command))throw Error(usage);
+  if(!['start','status','project','layers','schema','open','export'].includes(command))throw Error(usage);
   if((['start','status','project','layers'].includes(command)&&(rest.length||values.layer||values.output))||
     (command==='open'&&(rest.length!==1||values.layer||values.output))||
+    (command==='schema'&&(rest.length||!values.layer||values.output))||
     (command==='export'&&(rest.length||!values.layer||!values.output))||
     (command!=='layers'&&(values.offset!==undefined||values.limit!==undefined)))throw Error(usage);
   let offset=0,limit=50;
@@ -41,6 +42,7 @@ export async function runNativeBridge(args,{signal}={}){
   if(command==='status')return requestNativeQgis(config,{command:'status'},{signal});
   if(command==='project')return requestNativeQgis(config,{command:'project'},{signal});
   if(command==='layers')return requestNativeQgis(config,{command:'layers',offset,limit},{signal});
+  if(command==='schema')return requestNativeQgis(config,{command:'schema',layer:values.layer},{signal});
   if(command==='open'){
     const path=realpathSync(rest[0]);if(!statSync(path).isFile())throw Error('QGIS input must be a regular file');
     return requestNativeQgis(config,{command:'open',path},{signal});
