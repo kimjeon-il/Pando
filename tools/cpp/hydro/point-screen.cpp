@@ -36,6 +36,7 @@ std::string utm(const Value& value){
     const int zone=(crs[8]-'0')*10+crs[9]-'0';if(zone<1||zone>60)throw std::invalid_argument("Invalid UTM zone");return crs;
 }
 struct GeosDeleter{GEOSContextHandle_t context;void operator()(GEOSGeometry* geometry)const{if(geometry)GEOSGeom_destroy_r(context,geometry);}};
+struct TreeDeleter{GEOSContextHandle_t context;void operator()(GEOSSTRtree* tree)const{if(tree)GEOSSTRtree_destroy_r(context,tree);}};
 using Geometry=std::unique_ptr<GEOSGeometry,GeosDeleter>;
 Geometry own(GEOSContextHandle_t context,GEOSGeometry* geometry){
     if(!geometry)throw std::runtime_error("GEOS geometry operation failed");return Geometry(geometry,GeosDeleter{context});
@@ -65,7 +66,7 @@ Value run(const Value& input){
         if(modeField->second.kind!=Value::String)throw std::invalid_argument("Invalid point-screen mode");
         mode=modeField->second.string;
     }
-    if(mode!="union_if_line"&&mode!="parts")throw std::invalid_argument("Invalid point-screen mode");
+    if(mode!="union_if_line"&&mode!="parts"&&mode!="tree")throw std::invalid_argument("Invalid point-screen mode");
     if(sourceLines.empty()||sourceLines.size()>100000||sourcePoints.size()>10000)
         throw std::invalid_argument("Invalid point-screen input size");
     using ProjContext=std::unique_ptr<PJ_CONTEXT,decltype(&proj_context_destroy)>;
@@ -85,7 +86,7 @@ Value run(const Value& input){
         for(const auto& coordinate:coordinates)projected.push_back(transformed(projection.get(),inputPoint(coordinate),PJ_FWD));
         auto line=geometry(context.get(),projected,false);double length=0;
         if(!GEOSLength_r(context.get(),line.get(),&length)||!std::isfinite(length))throw std::runtime_error("GEOS line length failed");
-        if(mode=="parts"&&length<=0)continue;
+        if(mode!="union_if_line"&&length<=0)continue;
         lengths.array.push_back(Value::num(length));lines.push_back(std::move(line));
     }
     if(lines.empty())throw std::invalid_argument("No usable point-screen lines");
@@ -100,6 +101,11 @@ Value run(const Value& input){
         auto collection=own(context.get(),collectionRaw);merged=own(context.get(),GEOSUnaryUnion_r(context.get(),collection.get()));
         mergedLine=GEOSGeomTypeId_r(context.get(),merged.get())==GEOS_LINESTRING;
     }
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(nullptr,TreeDeleter{context.get()});
+    if(mode=="tree"){
+        tree.reset(GEOSSTRtree_create_r(context.get(),10));if(!tree)throw std::runtime_error("GEOS tree creation failed");
+        for(const auto& line:lines)GEOSSTRtree_insert_r(context.get(),tree.get(),line.get(),line.get());
+    }
     auto points=Value::arr();
     for(const auto& source:sourcePoints){
         auto point=geometry(context.get(),{transformed(projection.get(),inputPoint(source),PJ_FWD)},true);
@@ -111,7 +117,9 @@ Value run(const Value& input){
                !GEOSGeomGetY_r(context.get(),candidate.get(),&y)||!std::isfinite(separation))throw std::runtime_error("GEOS closest point failed");
             if(separation<best){best=separation;nearest={x,y};}
         };
-        if(mergedLine)inspect(merged.get());else for(const auto& line:lines)inspect(line.get());
+        if(mergedLine)inspect(merged.get());
+        else if(tree){const auto* line=GEOSSTRtree_nearest_r(context.get(),tree.get(),point.get());if(!line)throw std::runtime_error("GEOS nearest-line query failed");inspect(line);}
+        else for(const auto& line:lines)inspect(line.get());
         const auto geographic=transformed(projection.get(),nearest,PJ_INV);auto coordinate=Value::arr();coordinate.array={Value::num(geographic.x),Value::num(geographic.y)};
         auto result=Value::obj();result.object["distanceMeters"]=Value::num(best);result.object["nearestLonLat"]=coordinate;points.array.push_back(std::move(result));
     }
