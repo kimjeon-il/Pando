@@ -34,8 +34,6 @@ torch::Tensor inputTensor(const fs::path& path,const std::vector<int64_t>& shape
 }
 int run(const std::vector<fs::path>& args){
     if(args.size()!=6)throw std::runtime_error("Usage: pando-reference-infer DEVICE SAFETENSORS TILE_F32 OVERVIEW_F32 POSITION_F32");
-    // Match the validated Python runtime and avoid thread-count-dependent logits.
-    torch::set_num_threads(2);
     const auto choice=args[1].string();torch::Device device(torch::kCPU);
     if(choice=="cuda"){
 #ifdef _WIN32
@@ -46,6 +44,8 @@ int run(const std::vector<fs::path>& args){
         if(!torch::cuda::is_available())throw std::runtime_error("CUDA was requested but is unavailable");device=torch::Device(torch::kCUDA);
     }
     else if(choice!="cpu")throw std::runtime_error("Device must be cpu or cuda");
+    // Match the validated Python runtime and avoid thread-count-dependent logits.
+    torch::set_num_threads(2);
     pando::reference::ReferenceBoundaryModel model;
     const auto metadata=pando::reference::loadSafetensors(*model,bytes(args[2],256*1024*1024));
     const auto architecture=metadata.find("architecture");

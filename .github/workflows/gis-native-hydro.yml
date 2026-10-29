@@ -53,20 +53,43 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed' }
           cmake --build build-native/reference-analysis/native --config Release --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-reference-infer --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'Native reference build failed' }
-      - name: Verify Windows model, loss and Safetensors behavior
+      - name: Verify Windows loss behavior
+        timeout-minutes: 3
         shell: pwsh
         run: |
           & build-native/reference-analysis/native/Release/pando-reference-loss-tests.exe
           if ($LASTEXITCODE -ne 0) { throw 'Loss test failed' }
-          & build-native/reference-analysis/native/Release/pando-reference-model-tests.exe tests/fixtures/reference-model-synthetic-logits.f32
+      - name: Verify Windows model inference against every original output
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          & build-native/reference-analysis/native/Release/pando-reference-model-tests.exe tests/fixtures/reference-model-synthetic-logits.f32 --inference-only
           if ($LASTEXITCODE -ne 0) { throw 'Model test failed' }
+      - name: Verify Windows Safetensors behavior
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
           & build-native/reference-analysis/native/Release/pando-safetensors-tests.exe
           if ($LASTEXITCODE -ne 0) { throw 'Safetensors test failed' }
+      - name: Verify Windows inference rejects invalid requests
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
           $env:PANDO_REFERENCE_INFER_BINARY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-infer.exe"
           node --test tests/unit/reference-infer-cli.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Inference CLI test failed' }
+      - name: Verify a frozen encoder AdamW update separately
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          & build-native/reference-analysis/native/Release/pando-reference-model-tests.exe tests/fixtures/reference-model-synthetic-logits.f32
+          if ($LASTEXITCODE -ne 0) { throw 'Frozen encoder training test failed' }
       - name: Package only the source-bound native executable
-        run: node tools/reference-analysis/package-native-reference.mjs --binary build-native/reference-analysis/native/Release/pando-reference-infer.exe --directory build-native/reference-analysis/artifact
+        shell: pwsh
+        run: |
+          node tools/reference-analysis/package-native-reference.mjs --binary build-native/reference-analysis/native/Release/pando-reference-infer.exe --directory build-native/reference-analysis/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Artifact packaging failed' }
+          Copy-Item build-native/reference-analysis/native/Release/pando-reference-model-tests.exe build-native/reference-analysis/artifact/pando-reference-model-tests.exe
       - uses: actions/upload-artifact@v4
         with:
           name: native-reference-windows-x64-${{ github.sha }}

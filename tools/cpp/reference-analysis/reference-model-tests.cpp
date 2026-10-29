@@ -15,7 +15,7 @@ void close(double actual,double expected,double tolerance,const char* message){
 }
 int main(int argc,char** argv){
     try{
-        check(argc==2,"Synthetic original logits fixture path is required");
+        check(argc==2||(argc==3&&std::string(argv[2])=="--inference-only"),"Synthetic original logits fixture path is required");
         torch::set_num_threads(2);pando::reference::ReferenceBoundaryModel model;model->eval();
         const auto parameters=model->named_parameters(true),buffers=model->named_buffers(true);
         check(parameters.size()+buffers.size()==340,"Named tensor inventory does not match the original model");
@@ -52,6 +52,9 @@ int main(int argc,char** argv){
                 .04988204315304756,-.04190129414200783,.0013500750064849854,-.022478243336081505,.029418926686048508,.05365516245365143};
             for(int i=0;i<10;++i)close(flat.index({indices[i]}).item<double>(),expected[i],.005,"A model output differs from the original");
         }
+        std::cout<<"Reference model architecture and every synthetic original output verified"<<std::endl;
+        if(argc==3)return 0;
+        std::cout<<"Starting synthetic AdamW update"<<std::endl;
         model->train();for(auto& parameter:model->encoder->parameters())parameter.requires_grad_(false);model->encoder->eval();
         auto before=model->head->weight.detach().clone();
         auto running=model->encoder->at<pando::reference::ConvNormImpl>(0).named_buffers(true)["1.running_mean"].clone();
@@ -63,6 +66,6 @@ int main(int argc,char** argv){
         check(!torch::equal(before,model->head->weight.detach()),"Optimizer did not update the unfrozen decoder");
         check(torch::equal(running,model->encoder->at<pando::reference::ConvNormImpl>(0).named_buffers(true)["1.running_mean"]),"Frozen encoder statistics changed");
         for(const auto& parameter:model->encoder->parameters())check(!parameter.grad().defined(),"Frozen encoder received a gradient");
-        std::cout<<"Reference model architecture and every synthetic original output verified\n";return 0;
+        std::cout<<"Frozen encoder AdamW update verified\n";return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }
