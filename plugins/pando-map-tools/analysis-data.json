@@ -2,6 +2,12 @@
   "schemaVersion": 1,
   "repository": "kimjeon-il/PandoLab-library-data",
   "revision": "8d668a6c9ffb7844849fb63af5b02ebc8a496b70",
+  "defaultModel": {
+    "name": "macro-v6",
+    "root": "reports/map-analysis/models/macro-v6",
+    "manifestSha256": "2b745a592b6fc80d8709fa27a88bd00536cc50ca42d071262a3ba4662930aa74",
+    "sha256": "04ee59b043d1fde4a4c407fc079bdb03ba051eceb8adfb4784e7e67c62f7b39c"
+  },
   "gazetteer": {
     "root": "reports/map-analysis/corpus/gazetteer-v1/runtime",
     "manifestSha256": "d28f9dec988ab7daacc8717fafaa54222b55b863f88d5c5e431c77cd99513cef",

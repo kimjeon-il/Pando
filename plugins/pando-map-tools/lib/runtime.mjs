@@ -15,6 +15,8 @@ async function readAnalysisDataConfig(path) {
   const bytes=await readFile(path),config=JSON.parse(bytes);
   if(config.schemaVersion!==1||!/^[a-f0-9]{40}$/.test(config.revision)||!/^[-\w.]+\/[-\w.]+$/.test(config.repository)||!config.gazetteer?.root||!/^[a-f0-9]{64}$/.test(config.gazetteer.manifestSha256)||!/^[a-f0-9]{64}$/.test(config.gazetteer.revision)||!/^[a-f0-9]{64}$/.test(config.ocr?.manifestSha256))throw fail('Current analysis data pairing required');
   bundlePath(dirname(path),config.ocr.root);bundlePath(dirname(path),config.gazetteer.root);
+  if(!config.defaultModel?.name||!/^[a-f0-9]{64}$/.test(config.defaultModel.sha256)||!/^[a-f0-9]{64}$/.test(config.defaultModel.manifestSha256))throw fail('Pinned default model pairing required');
+  bundlePath(dirname(path),config.defaultModel.root);
   return {config,sha256:hash(bytes),path};
 }
 export const analysisDataConfig=()=>readAnalysisDataConfig(fileURLToPath(new URL('../analysis-data.json',import.meta.url)));
@@ -83,6 +85,7 @@ export async function materializeWorkspace({pluginRoot,cacheRoot,signal}) {
   }
   await verifyRuntimeFiles(pluginRoot,[catalog.model]);
   const modelPath=bundlePath(pluginRoot,catalog.model.path),model=await readJSON(modelPath);
+  if(catalog.model.sha256!==config.defaultModel.manifestSha256||model.model?.sha256!==config.defaultModel.sha256)throw fail('Default model differs from pinned analysis pairing');
   if(model.trainingOnly!==true||model.releaseApproved!==false||model.evaluationStatus!=='pending')throw fail('Expected the private pending model');
   await verifyRuntimeFiles(dirname(modelPath),[{path:model.model.url,...model.model}]);
   const runtimeKey=hash(JSON.stringify(catalog)),workspace=bundlePath(cacheRoot,runtimeKey);

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFile, mkdir, open, unlink } from 'node:fs/promises';
 import { resolve, dirname, relative, isAbsolute, basename } from 'node:path';
-import { prepareRuntime } from '../lib/runtime.mjs';
+import { prepareRuntime,analysisDataConfig } from '../lib/runtime.mjs';
 import { acquire } from '../lib/map-source.mjs';
 
 const controller=new globalThis.AbortController();
@@ -22,7 +22,7 @@ try {
   process.env.PANDO_MAP_WORKSPACE=runtime.workspace;process.env.PANDO_MAP_PYTHON=runtime.python;
   const {workspace,workspaceModule}=await import('../lib/workspace.mjs');
   const {analyze,renderPreview,reviseWithRaster,regionAnalysisOptions}=await import('../lib/engine.mjs');
-  const {loadJob,saveJob,exportJob}=await import('../lib/jobs.mjs');
+  const {loadJob,saveJob,exportJob,digest}=await import('../lib/jobs.mjs');
   const external=path=>{const full=resolve(path),rel=relative(workspace,full);if(!rel.startsWith('..')&&!isAbsolute(rel))throw new Error('Jobs/exports belong outside the analysis workspace.');return full;};
   controller.signal.throwIfAborted();jobPath=external(options.job);await mkdir(dirname(jobPath),{recursive:true});
   lock=await open(jobPath+'.lock','wx');await lock.writeFile(JSON.stringify({pid:process.pid,started:new Date().toISOString()}));
@@ -37,7 +37,11 @@ try {
     }
     provenance??={kind:'provided-file',title:basename(input),rightsReviewed:false,license:null};
     let model=options.model||runtime.modelPath;
-    if(!model){const {reportPath}=await workspaceModule('tools/report-paths.mjs');model=reportPath('reports/map-analysis/models/macro-v6/boundary.manifest.json',{access:'read'});}
+    if(!model){
+      const {reportPath}=await workspaceModule('tools/report-paths.mjs'),{config}=await analysisDataConfig();
+      model=reportPath(config.defaultModel.root+'/boundary.manifest.json',{access:'read'});
+      if(digest(await readFile(model))!==config.defaultModel.manifestSha256)throw new Error('Default model manifest differs from pinned analysis pairing.');
+    }
     const job=await analyze({input,jobPath,modelPath:resolve(model),languages:options.languages?.split(','),page:options.page?Number(options.page):null,
       date:options.date||null,rect:options.rect?JSON.parse(options.rect):null,projection:options.projection?JSON.parse(await readFile(options.projection,'utf8')):null,provenance,maxPixels:options['max-pixels']?Number(options['max-pixels']):4_000_000,signal:controller.signal,progress});
     await renderPreview(job,jobPath+'.preview.png',controller.signal);
