@@ -19,7 +19,7 @@ test('Python files only decrease within the reviewed 55-file inventory', () => {
   const reviewed = [...inventory.matchAll(/^- `([^`]+\.(?:py|pyi|ipynb))`\r?$/gm)].map(match => match[1]);
   assert.equal(reviewed.length, 55, 'the reviewed migration inventory must cover 55 files');
   assert.equal(new Set(reviewed).size, 55, 'the reviewed inventory must not contain duplicates');
-  assert.ok(remaining.length <= 51, `Python file count exceeded the current reviewed ceiling: ${remaining.length}`);
+  assert.ok(remaining.length <= 50, `Python file count exceeded the current reviewed ceiling: ${remaining.length}`);
   for (const path of remaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
 });
 
