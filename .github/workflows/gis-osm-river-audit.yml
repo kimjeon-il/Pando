@@ -126,7 +126,7 @@ jobs:
           JS
       - name: Reproduce the independent Victorian Yarra government river vector check
         run: |
-          python -m pip install --quiet pyproj
+          python -m pip install --quiet pyproj shapely
           python tools/gis/verify_victorian_yarra_source.py \
             --decoded /tmp/hydro-decoded.json \
             --output /tmp/yarra-government-vector-validated.json
