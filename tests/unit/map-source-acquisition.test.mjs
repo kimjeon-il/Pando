@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { acquire } from '../../plugins/pando-map-tools/lib/map-source.mjs';
@@ -40,7 +40,7 @@ test('honors cancellation and preserves unfamiliar partial files', async () => f
   await writeFile(join(dir,'seed.png.part'),'other process');
   await assert.rejects(acquire(source(),dir,{fetcher:response(png)}),/exist/i);
   assert.equal(await readFile(join(dir,'seed.png.part'),'utf8'),'other process');
-  const controller = new AbortController(); controller.abort();
+  const controller = new globalThis.AbortController(); controller.abort();
   await assert.rejects(acquire(source({id:'cancelled'}),dir,{signal:controller.signal,fetcher:response(png)}));
   assert.deepEqual(await readdir(dir),['seed.png.part']);
 }));
@@ -73,3 +73,16 @@ test('a concurrently created original is never overwritten and the unfinished si
   assert.equal(await readFile(join(dir,'seed.png'),'utf8'),'concurrent original');
   assert.deepEqual(await readdir(dir),['seed.png']);
 }));
+
+test('map CLI invokes the Node source owner and holds a source with unverified rights',
+  {skip:!process.env.PANDO_MAP_PYTHON},async()=>folder(async dir=>{
+    const sourcePath=join(dir,'source.json'),jobPath=join(dir,'job.json');
+    await writeFile(sourcePath,JSON.stringify({id:'unreviewed',rightsReviewed:false}));
+    const cli=fileURLToPath(new URL('../../plugins/pando-map-tools/scripts/map.mjs',import.meta.url));
+    const result=spawnSync(process.execPath,[cli,'analyze','--source',sourcePath,'--job',jobPath],{encoding:'utf8',env:process.env});
+    assert.equal(result.status,1,result.stderr);
+    const errors=result.stderr.trim().split(/\r?\n/).map(line=>JSON.parse(line));
+    assert(errors.some(row=>row.phase==='source'&&row.status==='acquiring'));
+    assert(errors.some(row=>row.code==='PL-MAP-SOURCE'&&/rights-unverified/.test(row.message)));
+    assert.deepEqual(await readdir(dir),['source.json']);
+  }));

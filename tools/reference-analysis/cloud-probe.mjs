@@ -10,6 +10,7 @@ import { promisify } from 'node:util';
 import { parseArgs } from 'node:util';
 import { collectSourceFiles, nodeManifest, writeArtifactFiles, archiveDirectory } from './runtime-assets.mjs';
 import { bundlePath, verifyRuntimeFiles } from '../../plugins/pando-map-tools/lib/runtime.mjs';
+import { frontendWasmRoot } from '../../scripts/lib/frontend-layout.mjs';
 
 const exec=promisify(execFile),root=fileURLToPath(new URL('../../',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -36,7 +37,7 @@ export async function packProbe({directory,environment,workspace=root}) {
   const model=await json(modelPath),sources=[];
   const add=(source,name)=>sources.push({source,name});
   for(const file of await collectSourceFiles(workspace,{diagnostics:true}))if(file!=='package.json')add(join(workspace,file),'workspace/'+file);
-  for(const name of ['pandoeditor-core.manifest.json','pandoeditor-core.js','pandoeditor-core.wasm'])add(join(workspace,'assets/wasm',name),'workspace/assets/wasm/'+name);
+  for(const name of ['pandoeditor-core.manifest.json','pandoeditor-core.js','pandoeditor-core.wasm'])add(join(workspace,frontendWasmRoot,name),'workspace/'+frontendWasmRoot+'/'+name);
   for(const name of ['manifest.json','eng.traineddata.gz','osd.traineddata.gz'])add(join(workspace,'assets/data/reference-analysis/v1/ocr',name),'workspace/assets/data/reference-analysis/v1/ocr/'+name);
   const places=await json(join(workspace,'assets/data/places/manifest.json'));add(join(workspace,'assets/data/places/manifest.json'),'workspace/assets/data/places/manifest.json');
   for(const spec of Object.values(places.shards))add(bundlePath(join(workspace,'assets/data/places'),spec.url),'workspace/assets/data/places/'+spec.url);

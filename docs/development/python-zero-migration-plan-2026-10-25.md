@@ -19,7 +19,7 @@
 - 저장소 보고서 소유권 검사: CI에서 Git 추적 경로를 확인하던 인라인 Python을 Node 검사로 전환하고 현재 추적 경로에 대해 실행했다. GIS 생성기 구문 검사에는 아직 Python이 필요하다.
 - Hydro 3차 조사 기록: 11개 수계 조사 결과의 범위·비승인 상태 검사와 관측점 25개 단위 영수증 출력을 Node 정책 모듈로 옮겼다. 점간 GIS 계산 Python과 정부 API 실자료 조사는 후속 전환 대상이다.
 - Hydro 1·2차 조사 결과의 수계 범위와 원본 무변경 검사도 인라인 Node로 옮겼다. 양쪽 CI 검사의 정상·변경된 영수증 처리만 별도로 확인했으며 원본 수집·GIS 계산 Python은 그대로 남아 있다.
-- 별도 미완료: 전체 지도 플러그인 검사는 이전 소스 레이아웃인 `assets/js/modules/temporal.js`를 참조해 시작하지 못한다. 실제 소스는 `shared/frontend/js/modules/temporal.js`에 있다. 수집기 단위 검사와 기존 구현 비교가 통과한 것은 실제 분석 왕복이 검증되었다는 뜻이 아니다.
+- 지도 플러그인 경로 복구: 실행·OCR·소스 패키징의 옛 `assets/js`·`assets/wasm` 참조를 현행 `shared/frontend` 소스 배치로 교체했다. 기존 UI Python 런타임을 재사용해 플러그인·패키지 검사 26개와 CLI의 미검증 출처 보류 경로를 확인했다. 실제 지도 전체 분석 왕복과 영상 처리의 C++ 전환은 아직 미완료다.
 
 - `plugins/pando-map-tools/lib/map_source.py`
 - `plugins/pando-map-tools/lib/raster.py`
