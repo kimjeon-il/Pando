@@ -24,6 +24,8 @@ node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --expression '"na
 node tools/qgis/native-bridge.mjs selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs clear-selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs begin-edit --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs add-field --layer QGIS_LAYER_ID --field label --field-type string
+node tools/qgis/native-bridge.mjs delete-field --layer QGIS_LAYER_ID --field label
 node tools/qgis/native-bridge.mjs set-attribute --layer QGIS_LAYER_ID --fid 1 --field name --json '"새 이름"'
 node tools/qgis/native-bridge.mjs set-geometry --layer QGIS_LAYER_ID --fid 1 --wkt 'POINT (127 37)'
 node tools/qgis/native-bridge.mjs delete-feature --layer QGIS_LAYER_ID --fid 1
@@ -75,6 +77,8 @@ not write the provider until the session is explicitly committed.
 Feature addition accepts a two-dimensional EPSG:4326 WKT and exact JSON object
 of existing field names and values. It returns the QGIS edit-buffer FID as a
 decimal string; providers may assign a different persistent FID at commit.
+Field additions and deletions use that same undoable edit session; available
+types are string, integer, int64, double and boolean.
 Geometry edits use a valid two-dimensional EPSG:4326 WKT geometry of the
 existing feature's type. QGIS transforms it into the layer's CRS before editing.
 Attribute values are exact JSON text so integers are not rounded in transit;

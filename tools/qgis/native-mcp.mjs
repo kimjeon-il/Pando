@@ -55,6 +55,12 @@ function createServer(){
   server.registerTool('qgis_native_set_attribute',{description:'Change one QGIS attribute using its exact JSON text within a bridge-owned edit session.',
     inputSchema:z.strictObject({layer:path,fid:z.string().regex(/^-?(0|[1-9]\d*)$/),field:path,json:z.string().min(1).max(500000)})},
   async({layer,fid,field,json},extra)=>respond([...options,'set-attribute',`--layer=${layer}`,`--fid=${fid}`,`--field=${field}`,`--json=${json}`],extra.signal));
+  server.registerTool('qgis_native_add_field',{description:'Add a field within a bridge-owned edit session.',
+    inputSchema:z.strictObject({layer:path,field:z.string().min(1).max(128),fieldType:z.enum(['string','integer','int64','double','boolean'])})},
+    async({layer,field,fieldType},extra)=>respond([...options,'add-field',`--layer=${layer}`,`--field=${field}`,`--field-type=${fieldType}`],extra.signal));
+  server.registerTool('qgis_native_delete_field',{description:'Delete a field within a bridge-owned edit session.',
+    inputSchema:z.strictObject({layer:path,field:z.string().min(1).max(128)})},
+    async({layer,field},extra)=>respond([...options,'delete-field',`--layer=${layer}`,`--field=${field}`],extra.signal));
   server.registerTool('qgis_native_set_geometry',{description:'Change one geometry using EPSG:4326 WKT within a bridge-owned QGIS edit session.',
     inputSchema:z.strictObject({layer:path,fid:z.string().regex(/^-?(0|[1-9]\d*)$/),wkt:z.string().min(1).max(500000)})},
   async({layer,fid,wkt},extra)=>respond([...options,'set-geometry',`--layer=${layer}`,`--fid=${fid}`,`--wkt=${wkt}`],extra.signal));
