@@ -49,12 +49,16 @@ jobs:
           cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
             -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests --parallel 1
+          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-reference-infer --parallel 1
       - name: Compare original loss, model fixtures and Safetensors validation
         run: |
           build-native/reference-analysis/native/pando-reference-loss-tests
-          build-native/reference-analysis/native/pando-reference-model-tests
+          build-native/reference-analysis/native/pando-reference-model-tests tests/fixtures/reference-model-synthetic-logits.f32
           build-native/reference-analysis/native/pando-safetensors-tests
+      - name: Verify native inference command rejects invalid requests
+        env:
+          PANDO_REFERENCE_INFER_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-infer
+        run: node --test tests/unit/reference-infer-cli.test.mjs
   native-hydro:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04

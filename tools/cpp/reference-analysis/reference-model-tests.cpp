@@ -2,6 +2,7 @@
 #include <torch/torch.h>
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 
@@ -11,8 +12,9 @@ void close(double actual,double expected,double tolerance,const char* message){
     if(!std::isfinite(actual)||std::abs(actual-expected)>tolerance)throw std::runtime_error(message);
 }
 }
-int main(){
+int main(int argc,char** argv){
     try{
+        check(argc==2,"Synthetic original logits fixture path is required");
         torch::set_num_threads(2);pando::reference::ReferenceBoundaryModel model;model->eval();
         const auto parameters=model->named_parameters(true),buffers=model->named_buffers(true);
         check(parameters.size()+buffers.size()==340,"Named tensor inventory does not match the original model");
@@ -35,6 +37,12 @@ int main(){
             auto position=torch::tensor({.1f,-.2f,.3f,.4f}).reshape({1,4});
             const auto output=model->forward(tile,overview,position),flat=output.flatten();
             check(output.sizes()==torch::IntArrayRef({1,7,64,64}),"Output tensor shape changed");
+            auto expectedTensor=torch::empty({7*64*64},torch::kFloat32);
+            std::ifstream fixture(argv[1],std::ios::binary);
+            check(static_cast<bool>(fixture.read(static_cast<char*>(expectedTensor.data_ptr()),expectedTensor.numel()*sizeof(float))),"Synthetic original logits fixture is truncated");
+            check(fixture.peek()==std::char_traits<char>::eof(),"Synthetic original logits fixture has extra bytes");
+            const double maximum=(flat-expectedTensor).abs().max().item<double>();
+            close(maximum,0,.005,"Model full output differs from the original by more than 0.005");
             close(flat.min().item<double>(),-0.30149194598197937,.005,"Minimum differs from original");
             close(flat.max().item<double>(),.3340306580066681,.005,"Maximum differs from original");
             close(flat.mean().item<double>(),.008703770115971565,.005,"Mean differs from original");
@@ -43,6 +51,6 @@ int main(){
                 .04988204315304756,-.04190129414200783,.0013500750064849854,-.022478243336081505,.029418926686048508,.05365516245365143};
             for(int i=0;i<10;++i)close(flat.index({indices[i]}).item<double>(),expected[i],.005,"A model output differs from the original");
         }
-        std::cout<<"Reference model architecture and synthetic original outputs verified\n";return 0;
+        std::cout<<"Reference model architecture and every synthetic original output verified\n";return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }
