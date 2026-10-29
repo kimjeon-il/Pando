@@ -6,7 +6,7 @@ import { ensureOcrLanguage,openAnalysisGazetteer,analysisDataConfig } from './ru
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
 import { raster, cropRaster, resizeRaster, pngRaster } from './raster.mjs';
 import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob } from './jobs.mjs';
-import { selectReferenceImageGeoreference } from './analysis/georef.mjs';
+import { selectReferenceImageGeoreference,selectReferenceImageProjection } from './analysis/georef.mjs';
 import { referenceImageTilePlan, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
 import { inferReferenceBoundaries } from './analysis/inference.mjs';
 import { referenceOcrRecognitionPlan, referenceOcrBlocks, referenceOcrOriginalBox } from './analysis/ocr-catalog.mjs';
@@ -167,17 +167,24 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     const embedded=image.mapping.georeference;
     if(embedded?.diagnostic)job.diagnostics.push({code:'GEOPDF_UNSUPPORTED',reason:embedded.diagnostic});
     const selectedProjection=calculate('normalizeProjection',projection || embedded?.projection || {kind:'geographic'});
+    const knownProjection=Boolean(projection || embedded?.projection);
     const solve=points=>calculate('autoGeoref',{points,projection:selectedProjection,mode:'auto',maxTrials:1024,minimumInliers:6,inlierThresholdMeters:25000});
     const solved=solve(candidates);job.locationCandidates=[];
     if(solved.ok) {
-      const {warp,quality}=selectReferenceImageGeoreference(solved.controlPoints,job.source,{projection:selectedProjection});
+      const selected=knownProjection?selectReferenceImageGeoreference(solved.controlPoints,job.source,{projection:selectedProjection})
+        :selectReferenceImageProjection(solved.controlPoints,job.source);
+      const provisional=selected.warp?selected:selectReferenceImageGeoreference(solved.controlPoints,job.source,{projection:selectedProjection});
+      const {warp}=provisional,quality=!knownProjection&&!selected.ok?{...provisional.quality,recommended:false,reason:selected.reason}:provisional.quality;
+      if(!knownProjection)job.diagnostics.push({code:'PROJECTION_DISCOVERY',reason:selected.reason||'reserved-controls-confirmed',attemptedProjectionCount:selected.attemptedProjectionCount||0});
       job.locationCandidates.push({warp,quality});
       const ids=new Set(solved.inlierIds),remaining=candidates.filter(v=>!ids.has(v.id));
       if(new Set(remaining.map(v=>v.detectionId)).size>=6) {
         const other=solve(remaining);
         if(other.ok && other.inlierCount>=solved.inlierCount*.85) {
-          const {warp:alternative,quality:alternativeQuality}=selectReferenceImageGeoreference(other.controlPoints,job.source,{projection:selectedProjection});
-          if(alternativeQuality.recommended) job.locationCandidates.push({warp:alternative,quality:alternativeQuality});
+          const alternativeResult=knownProjection?selectReferenceImageGeoreference(other.controlPoints,job.source,{projection:selectedProjection})
+            :selectReferenceImageProjection(other.controlPoints,job.source);
+          const {warp:alternative,quality:alternativeQuality}=alternativeResult;
+          if(alternative?.ok&&alternativeQuality.recommended) job.locationCandidates.push({warp:alternative,quality:alternativeQuality});
         }
       }
       if(quality.recommended && job.locationCandidates.length===1) {job.warp=warp;job.quality=quality;job.calibration={controlPoints:structuredClone(warp.controlPoints),mode:warp.mode,projection:warp.projection,linearConstraints:[]};}
