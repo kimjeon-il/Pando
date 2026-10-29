@@ -61,3 +61,13 @@ test('unknown projection selection reserves distinct fit, selection and confirma
   const groups=Object.values(selected.validation.pointIds);assert.equal(new Set(groups.flat()).size,18);
   assert.ok(groups.every(v=>v.length===6));assert.ok(selected.validation.confirmationP95Pixels<.001);
 });
+
+test('automatic projection discovery needs18 controls and never treats its provisional geographic seed as known',()=>{
+  const source={width:1800,height:1200};
+  const points=Array.from({length:18},(_,i)=>{const image=[.1+(i%6)*.16,.1+Math.floor(i/6)*.4];return {id:'auto'+i,image,coordinate:[-120+60*image[0],65-40*image[1]]};});
+  assert.equal(georef.selectReferenceImageProjection(points.slice(0,6),source).reason,'projection-selection-requires18-distinct-controls');
+  const result=georef.selectReferenceImageProjection(points,source);
+  assert.ok(result.attemptedProjectionCount>3&&result.attemptedProjectionCount<=64);
+  if(result.ok)assert.equal(new Set(Object.values(result.validation.pointIds).flat()).size,18);
+  else assert.match(result.reason,/ambiguous|confirmation|stable/);
+});
