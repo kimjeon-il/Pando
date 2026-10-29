@@ -127,6 +127,28 @@ test('one Worker mesh serves both fill and outline roles and survives style chan
   builder.releasePrepared();
 });
 
+test('sequential physical batches accumulate and cancellation preserves completed inputs', async () => {
+  const submitted=[];
+  const builder=createRenderSceneBuilder({meshJobs:{preparePolygons:async items=>{
+    submitted.push(items.map(item=>item.cacheKey));
+    return {packets:items.map(item=>({cacheKey:item.cacheKey,packet:engine.buildPolygonGeometryPacket(item.geometry)}))};
+  },cancelAll(){}}});
+  const land={key:'physical-land',geometry,geometryRevision:'historical-land'};
+  const water={key:'physical-water',geometry:{type:'Polygon',coordinates:[[[4,0],[5,0],[5,1],[4,1],[4,0]]]},geometryRevision:'historical-water'};
+  await builder.preparePolygons([land]);
+  builder.cancelPreparation();
+  assert.equal(builder.missingPolygons([land]).length,0,'cancelling a request must retain a completed mesh');
+  await builder.preparePolygons([land,water]);
+  assert.equal(builder.missingPolygons([land,water]).length,0,'both physical results must coexist');
+  assert.deepEqual(submitted.map(rows=>rows.length),[1,1]);
+  const scene=builder.build({polygons:[land,water]});builder.releasePrepared();
+  assert.deepEqual(scene.polygons.map(item=>item.key),['physical-land','physical-water']);
+  assert.equal(builder.missingPolygons([land,water]).length,0,'adopted results live in the existing scene cache');
+  builder.invalidateGeometry('physical-water');
+  assert.equal(builder.missingPolygons([land,water]).length,1);
+  builder.clear();
+});
+
 test('triangulation rejection identifies the failing scene geometry', async () => {
   const store = createPreparedPolygonMeshStore({ engine });
   await assert.rejects(store.prepare({ cacheKey: 'edited-object:revision-7',

@@ -230,6 +230,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   await selection.setHover({ domain: 'territorial', type: 'entity', id: 'FRA' });
   const snapshot = selection.snapshot(), model = structuredClone(features), scheduledReasons = [];
   const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => new URL(path, 'https://example.test/assets/js/'),
+    getPhysicalContextState:()=>({ready:true,landRevision:0,waterRevision:null}),
     validateGeometry,
     isMobile: () => false, isSafeKoreanErrorMessage: () => true, mapTheme: () => theme, getSystemTheme: () => 'light',
     deepClone: structuredClone, hydroVisibilityThreshold: () => 0, mapWorkScheduler: { cancel() {} },

@@ -82,3 +82,54 @@ test('automatic projection discovery needs18 controls and never treats its provi
   if(result.ok)assert.equal(new Set(Object.values(result.validation.pointIds).flat()).size,18);
   else assert.match(result.reason,/ambiguous|confirmation|stable/);
 });
+
+function projectedFixture() {
+  const projection={kind:'lcc',ellipsoid:'GRS80',lon0:-95,lat0:49,lat1:49,lat2:77};
+  const images=Array.from({length:18},(_,i)=>[.1+(i%6)*.16,.1+Math.floor(i/6)*.4]);
+  const plane=images.map(([u,v])=>[-2500000+5000000*u,4000000-4500000*v]);
+  const coordinates=calculate('projectionInverse',{projection,points:plane}).coordinates;
+  return {projection,source:{width:1584,height:1224},points:images.map((image,i)=>({id:'reserved-'+i,image,coordinate:coordinates[i]}))};
+}
+
+test('typed projection exports nonempty boundary lines and closed faces as longitude latitude',()=>{
+  const {projection,source,points}=projectedFixture();
+  const warp=calculate('warp',{points,mode:'affine',projection});
+  const pixels=[[317,245],[950,245],[950,734],[317,734],[317,245]];
+  const graph={...source,chains:[{id:0,points:pixels.slice(0,2)}],faces:[{id:0,ring:pixels,holes:[]}]};
+  const output=calculate('projectBoundaryGraph',{graph,warp});
+  const expected=calculate('project',{warp,point:[pixels[0][0]/(source.width-1),pixels[0][1]/(source.height-1)]});
+  assert.equal(output.lines[0].geometry.type,'LineString');
+  assert.ok(output.lines[0].geometry.coordinates[0].every((v,i)=>Math.abs(v-expected[i])<1e-8));
+  assert.equal(output.polygons[0].geometry.type,'Polygon');
+  assert.ok(output.polygons[0].geometry.coordinates.flat().every(([lon,lat])=>Math.abs(lon)<=180&&Math.abs(lat)<=90));
+});
+
+test('quality does not count repeated image positions, settlements or detections as independent controls',()=>{
+  const triangle=[[.1,.1],[.9,.1],[.1,.9]].map((image,i)=>({id:'triangle-'+i,image,coordinate:[30+10*image[0],20-10*image[1]]}));
+  const repeated=[...triangle,...triangle.map(p=>({...p,id:p.id+'-copy'}))];
+  assert.equal(georef.georeferenceQuality(repeated,'affine',{width:1000,height:1000}).recommended,false);
+  const {projection,source,points}=projectedFixture();
+  for(const field of ['detectionId','placeId']) {
+    const observed=points.map((p,i)=>({...p,[field]:'observation-'+(i===1?0:i)}));
+    const warp=calculate('warp',{points:observed,mode:'affine',projection});
+    assert.equal(georef.georeferenceQuality(warp.controlPoints,'affine',source,projection).recommended,false);
+  }
+});
+
+test('projection splitting rejects duplicate observations instead of leaking them across reserved groups',()=>{
+  const {projection,source,points}=projectedFixture(),options={candidates:[{kind:'geographic'},projection]};
+  const repeated=[...points,...points.slice(0,3).map(p=>({...p,id:p.id+'-copy'}))];
+  assert.equal(georef.selectReferenceImageProjection(repeated,source,options).ok,false);
+  for(const field of ['detectionId','placeId']) {
+    assert.equal(georef.selectReferenceImageProjection(points.map((p,i)=>({...p,[field]:'same-'+(i===1?0:i)})),source,options).ok,false);
+  }
+});
+
+test('engine unknown-projection entry reserves controls before attempting any geographic consensus',async()=>{
+  const {locateReferenceImage}=await import('../../plugins/pando-map-tools/lib/engine.mjs');
+  const {source,points}=projectedFixture();
+  const result=locateReferenceImage(points,source);
+  assert.ok(result.accepted,'A geographic consensus gate must not reject valid typed LCC controls');
+  assert.equal(result.accepted.warp.projection.kind,'lcc');
+  assert.equal(new Set(Object.values(result.accepted.quality.projectionValidation.pointIds).flat()).size,18);
+});
