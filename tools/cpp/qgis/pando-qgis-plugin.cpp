@@ -189,6 +189,13 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("id"),added->id()},{QStringLiteral("name"),added->name()},
                 {QStringLiteral("feature_count"),static_cast<double>(added->featureCount())},{QStringLiteral("crs"),added->crs().authid()}};
         }
+        if(command==QStringLiteral("set-visibility")){
+            const auto id=request.value(QStringLiteral("layer")).toString();const auto visible=request.value(QStringLiteral("visible"));
+            auto* layer=QgsProject::instance()->mapLayer(id);auto* node=QgsProject::instance()->layerTreeRoot()->findLayer(id);
+            if(id.isEmpty()||!layer||!node||!visible.isBool())throw QStringLiteral("A valid layer ID and boolean visibility are required");
+            node->setItemVisibilityChecked(visible.toBool());
+            return {{QStringLiteral("checked"),node->itemVisibilityChecked()},{QStringLiteral("visible"),node->isVisible()}};
+        }
         if(command==QStringLiteral("schema")){
             const auto id=request.value(QStringLiteral("layer")).toString();
             auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));

@@ -27,6 +27,7 @@ async function fixture(t){
         result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
       else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
         result={layer:'layer-1',fields:[{name:'source',type:'Map',length:0,precision:0}]};}
+      else if(request.command==='set-visibility'){assert.equal(request.layer,'layer-1');assert.equal(request.visible,false);result={checked:false,visible:false};}
       else if(request.command==='features'){
         assert.equal(request.layer,'layer-1');assert.equal(request.offset,0);assert.equal(request.limit,1);
         result={features:[{fid:'1',attributesJson:JSON.stringify({source:{sequence:JSON.rawJSON('9007199254740993')}})}],hasMore:true,crs:'EPSG:4326'};
@@ -73,6 +74,9 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const schema=await run(['--config',config,'schema','--layer','layer-1']);assert.equal(schema.code,0,schema.stderr);
   assert.equal(JSON.parse(schema.stdout).fields[0].name,'source');
   const missingLayer=await run(['--config',config,'schema']);assert.notEqual(missingLayer.code,0);
+  const visibility=await run(['--config',config,'set-visibility','--layer','layer-1','--visible','false']);
+  assert.equal(visibility.code,0,visibility.stderr);assert.equal(JSON.parse(visibility.stdout).visible,false);
+  const invalidVisibility=await run(['--config',config,'set-visibility','--layer','layer-1','--visible','yes']);assert.notEqual(invalidVisibility.code,0);
   const features=await run(['--config',config,'features','--layer','layer-1','--limit','1']);assert.equal(features.code,0,features.stderr);
   assert.match(features.stdout,/9007199254740993/);
   const decoded=JSON.parse(features.stdout,(key,value,context)=>key==='sequence'?BigInt(context.source):value);
