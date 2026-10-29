@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {batch03Anchors} from '../../tools/gis/hydro-osm-batch03-anchors.mjs';
+import {formatBatch03Receipts} from '../../tools/gis/hydro-independent-name-policy.mjs';
 import {buildBatch03Screen} from '../../tools/gis/verify-osm-hydro-batch03-points.mjs';
 
 function decoded(){return {manifest:{version:'0.13.2',metadata:{featureCount:16548},container:{sha256:'fixture-sha'}},
@@ -25,6 +26,7 @@ test('last-eleven screen retains unavailable sources, deduplicates aliases and n
   assert.deepEqual(row.independentPointChecks[0].names,['Đồng Nai','Dong Nai']);
   assert.equal(row.independentPointChecks[0].distanceKm,1.062);assert.equal(row.candidateIdentityConfirmed,false);
   assert.ok(result.items.some(item=>item.pointCount===0));assert.match(result.limitations[1],/unavailable queries/);
+  assert.equal(formatBatch03Receipts(result)[0],'FINAL_11_RESEARCH_SCREEN_SUCCESS');
 });
 test('last-eleven screen rejects missing inputs and malformed native receipts',async()=>{
   const data=decoded(),queries=receipts();
