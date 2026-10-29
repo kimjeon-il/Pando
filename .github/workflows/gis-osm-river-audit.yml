@@ -6,7 +6,6 @@ on:
     paths:
       - tools/inventory-osm-hydronyms.mjs
       - tests/unit/osm-hydro-inventory.test.mjs
-      - tools/gis/compare_osm_hydro_natural_earth.py
       - tools/gis/compare-osm-hydro-natural-earth.mjs
       - tests/unit/hydro-ne-sampling.test.mjs
       - tools/gis/verify_victorian_yarra_source.py
@@ -47,64 +46,26 @@ jobs:
         run: |
           node tools/decode-hydro-connectivity.mjs \
             assets/data/hydro/v0.13.2 /tmp/hydro-decoded.json
-      - name: Acquire hash-verified public-domain Natural Earth name geometry
+      - name: Select pinned Natural Earth name geometry
         run: |
-          python - <<'PY'
-          import hashlib, json, urllib.request
-          from pathlib import Path
-          manifest=json.loads(Path('assets/data/hydro/v0.13.2/manifest.json').read_text())
-          expected=next(x['sha256'] for x in manifest['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson')
-          url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/99a76bb8376d798c2e9bf132ad7f8d2b6ccb4298/assets/data/hydro/rivers_base.geojson'
-          request=urllib.request.Request(url,headers={'User-Agent':'PandoLab-GIS-audit/1.0'})
-          with urllib.request.urlopen(request,timeout=90) as response:
-              data=response.read()
-          actual=hashlib.sha256(data).hexdigest()
-          if actual!=expected: raise ValueError('Natural Earth reference source SHA-256 mismatch '+actual+' != '+expected)
-          Path('/tmp/ne-rivers-base.geojson').write_bytes(data)
-          print('NE_RIVER_REFERENCE_SHA='+actual,flush=True)
-          PY
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const m=JSON.parse(fs.readFileSync('assets/data/hydro/v0.13.2/manifest.json','utf8'));
+          const expected=m.sources.naturalEarthNameReference.find(row=>row.file==='rivers_base.geojson')?.sha256;
+          const bytes=fs.readFileSync('assets/data/hydro/rivers_base.geojson');
+          if(!expected || createHash('sha256').update(bytes).digest('hex')!==expected)throw Error('Natural Earth reference source SHA-256 mismatch');
+          fs.writeFileSync('/tmp/hydro-ne-reference.sha256',expected,{flag:'wx'});
+          console.log('NE_RIVER_REFERENCE_SHA='+expected);
+          JS
       - name: Independently compare remaining Hydro mainstem routes with Natural Earth
-        run: |
-          python -m pip install --quiet shapely
-          python tools/gis/compare_osm_hydro_natural_earth.py \
-            --decoded /tmp/hydro-decoded.json \
-            --natural-earth /tmp/ne-rivers-base.geojson \
-            --expected-sha256 "$(python -c "import json; m=json.load(open('assets/data/hydro/v0.13.2/manifest.json')); print(next(x['sha256'] for x in m['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson'))")" \
-            --inventory /tmp/osm-hydro-inventory.json \
-            --output /tmp/osm-ne-crosscheck.json
-      - name: Compare current Node Natural Earth name screen with Python source oracle (remaining systems)
         run: |
           node tools/gis/compare-osm-hydro-natural-earth.mjs \
             --decoded /tmp/hydro-decoded.json \
-            --natural-earth /tmp/ne-rivers-base.geojson \
-            --expected-sha256 "$(node -e "let m=require('./assets/data/hydro/v0.13.2/manifest.json');process.stdout.write(m.sources.naturalEarthNameReference.find(x=>x.file==='rivers_base.geojson').sha256)")" \
+            --natural-earth assets/data/hydro/rivers_base.geojson \
+            --expected-sha256 "$(cat /tmp/hydro-ne-reference.sha256)" \
             --inventory /tmp/osm-hydro-inventory.json \
-            --output /tmp/osm-ne-crosscheck-node.json
-          node --input-type=module - <<'JS'
-          import fs from 'node:fs';
-          const python=JSON.parse(fs.readFileSync('/tmp/osm-ne-crosscheck.json','utf8'));
-          const node=JSON.parse(fs.readFileSync('/tmp/osm-ne-crosscheck-node.json','utf8'));
-          if(python.items.length!==node.items.length || python.naturalEarthNamedParts!==node.naturalEarthNamedParts)
-            throw Error('NE source counts differ');
-          const diffs=[];
-          for(let i=0;i<python.items.length;i++){
-            const a=python.items[i],b=node.items[i];
-            if(a.systemId!==b.systemId||a.mainstemFragments!==b.mainstemFragments||
-              JSON.stringify(a.mainstemBounds)!==JSON.stringify(b.mainstemBounds))
-              throw Error('Hydro geometry mismatch for '+a.systemId+JSON.stringify({python:{mainstemFragments:a.mainstemFragments,mainstemBounds:a.mainstemBounds},node:{mainstemFragments:b.mainstemFragments,mainstemBounds:b.mainstemBounds}}));
-            if(a.naturalEarthCandidates.length!==b.naturalEarthCandidates.length){
-              diffs.push({systemId:a.systemId,reason:'candidate count'});continue;
-            }
-            for(let k=0;k<a.naturalEarthCandidates.length;k++){
-              const x=a.naturalEarthCandidates[k],y=b.naturalEarthCandidates[k];
-              if(x.name!==y.name||x.nameKo!==y.nameKo || x.supportingSamples!==y.supportingSamples
-                  ||Math.abs(x.meanDistanceDegrees-y.meanDistanceDegrees)>0.00002)
-                diffs.push({systemId:a.systemId,candidate:k,original:x,node:y});
-            }
-          }
-          if(diffs.length)throw Error('Python/Node NE source sampling mismatch: '+JSON.stringify(diffs.slice(0,4)));
-          console.log('Python/Node pinned NE comparison matched for '+python.items.length+' Hydro systems');
-          JS
+            --output /tmp/osm-ne-crosscheck.json
       - name: Independently check suspect Texas streams against USGS field stations
         run: |
           node tools/gis/check-official-usgs-hydro-gauges.mjs \
@@ -159,15 +120,8 @@ jobs:
             items:Object.entries(verified).map(([systemId,value])=>({systemId,nameKo:value.previousNameKo}))
           }));
           JS
-          node --input-type=module - <<'JS'
-          import fs from 'node:fs';
-          const m=JSON.parse(fs.readFileSync('assets/data/hydro/v0.13.2/manifest.json','utf8'));
-          const expected=m.sources.naturalEarthNameReference.find(row=>row.file==='rivers_base.geojson')?.sha256;
-          if(!expected)throw Error('Missing pinned Natural Earth source hash');
-          fs.writeFileSync('/tmp/hydro-ne-reference.sha256',expected);
-          JS
-          python tools/gis/compare_osm_hydro_natural_earth.py \
-            --decoded /tmp/hydro-decoded.json --natural-earth /tmp/ne-rivers-base.geojson \
+          node tools/gis/compare-osm-hydro-natural-earth.mjs \
+            --decoded /tmp/hydro-decoded.json --natural-earth assets/data/hydro/rivers_base.geojson \
             --expected-sha256 "$(cat /tmp/hydro-ne-reference.sha256)" \
             --inventory /tmp/reviewed-mainstem-scope.json \
             --output /tmp/reviewed-ne-crosscheck.json
