@@ -134,6 +134,8 @@ class ReviewContractTests(unittest.TestCase):
             self.assertFalse(report['admission']['passed'])
             self.assertTrue(report['diagnosticOnly'])
             self.assertIn('confounders',report)
+            self.assertFalse(report['reviewCoverage']['complete'])
+            self.assertIn('incomplete-source-map-review',[v['reason'] for v in report['admission']['failures']])
 
     def test_public_encoder_initialization_records_actual_verified_weight_bytes(self):
         from model import verified_pretrained_identity
