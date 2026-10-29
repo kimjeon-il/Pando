@@ -1,6 +1,6 @@
 import { calculateReferenceImage, calculateReferenceMesh, createReferenceWarp, createCalculatedReferenceWarp, referenceWarpDescriptor, freezeReferenceResult } from './core.mjs';
 
-export const REFERENCE_IMAGE_GEOREF_SCHEMA_VERSION = 2;
+export const REFERENCE_IMAGE_GEOREF_SCHEMA_VERSION = 3;
 
 export const REFERENCE_IMAGE_WARP_MODES = Object.freeze({
   AUTO: 'auto',
@@ -10,21 +10,21 @@ export const REFERENCE_IMAGE_WARP_MODES = Object.freeze({
   TPS: 'tps',
 });
 
-export function georeferenceQuality(points,mode,source) {
+export function georeferenceQuality(points,mode,source,projection={kind:'geographic'}) {
   const rect=source.mapping?.rect || {x:0,y:0,width:source.width,height:source.height};
   return calculateReferenceImage('georefQuality',{
-    points,mode,sourceWidth:source.width,sourceHeight:source.height,
+    points,mode,projection,sourceWidth:source.width,sourceHeight:source.height,
     validationDomain:[rect.x/(source.width-1),rect.y/(source.height-1),
       (rect.x+rect.width-1)/(source.width-1),(rect.y+rect.height-1)/(source.height-1)],
   });
 }
 
-export function selectReferenceImageGeoreference(points,source,{mode='auto'}={}) {
+export function selectReferenceImageGeoreference(points,source,{mode='auto',projection={kind:'geographic'}}={}) {
   const modes=['similarity','affine','projective','tps'];
   if(mode!=='auto'&&!modes.includes(mode))throw new Error('Unsupported georeference mode.');
   const candidates=(mode==='auto'?modes:[mode]).map(candidateMode=>{
-    const warp=calculateReferenceImage('warp',{points,mode:candidateMode});
-    const quality=warp.ok?georeferenceQuality(warp.controlPoints,candidateMode,source):null;
+    const warp=calculateReferenceImage('warp',{points,mode:candidateMode,projection});
+    const quality=warp.ok?georeferenceQuality(warp.controlPoints,candidateMode,source,projection):null;
     const eligible=warp.ok&&!quality.folded&&(mode!=='auto'||candidateMode!=='tps'||quality.recommended);
     return {mode:candidateMode,warp,quality,eligible};
   });
@@ -51,8 +51,8 @@ export function normalizeReferenceControlPoints(values = []) {
   return freezeReferenceResult(calculateReferenceImage('normalize', values));
 }
 
-export function buildReferenceImageWarp(values = [], { mode = REFERENCE_IMAGE_WARP_MODES.AUTO } = {}) {
-  return createCalculatedReferenceWarp('warp', { points: values, mode });
+export function buildReferenceImageWarp(values = [], { mode = REFERENCE_IMAGE_WARP_MODES.AUTO, projection={kind:'geographic'} } = {}) {
+  return createCalculatedReferenceWarp('warp', { points: values, mode, projection });
 }
 
 export function buildReferenceImageAutoGeoref(values = [], options = {}) {

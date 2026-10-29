@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "76a9b734f4c81ade694b62e2f2b002204e405e6d991562ab64d147fb6fe261ff",
+  "sourceSha256": "3fd61e01c71374bce5038d82f45e9cbe90147284b9770500fa4da9561a44e3ec",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -13,7 +13,7 @@
     },
     {
       "path": "shared/core/CMakeLists.txt",
-      "sha256": "b804f5e02e0a8b33b0ee78ba826d43a227af695055d98cb4f1d259beeb26b51e"
+      "sha256": "59ed47264474de001bcbbde6fc82e2e80d7c24c2fa51568510ea1ca9508ee041"
     },
     {
       "path": "shared/core/include/pandoeditor/boundarychain.h",
@@ -116,6 +116,10 @@
       "sha256": "602008117e54b5d47fff61c7b2a684ca74a31e772f0586f6fca7aae21a2b99af"
     },
     {
+      "path": "shared/core/include/pandoeditor/mapprojection.h",
+      "sha256": "c5a2c3e1cb0d7528c8f6c41242700ecbbecadd99170ee2fe5b031d3d6375b234"
+    },
+    {
       "path": "shared/core/include/pandoeditor/objectproperties.h",
       "sha256": "7b6317fb7eb9cd1c4d9209cbdcc6abf47ced7a8c4573c938aceff71c4a250a16"
     },
@@ -161,7 +165,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/referenceimage.h",
-      "sha256": "b1aa96a4032a2d7aa328fa643a521b953a1efbe27c55f6f2ae59181ee7a132f1"
+      "sha256": "d2fc2de76f820c70d63c6440cb63256019ec11f610a1af72df12a102a325ade6"
     },
     {
       "path": "shared/core/include/pandoeditor/referencetracing.h",
@@ -344,6 +348,10 @@
       "sha256": "a6881128724334b407ddf36f8c52710abe1023d6677a69cdb0ed0e58978ebf28"
     },
     {
+      "path": "shared/core/src/mapprojection.cpp",
+      "sha256": "1e8bd340dce7af36db3c6774ad22b7ac10a164d61755caac494a371d23012dfa"
+    },
+    {
       "path": "shared/core/src/objectproperties.cpp",
       "sha256": "f5be329fccff7c59de16192083ba047af8cb93e3aa8d5707643e8266d1ba69ee"
     },
@@ -389,7 +397,7 @@
     },
     {
       "path": "shared/core/src/referenceimage.cpp",
-      "sha256": "b70c4762fb1a52f88e2371771907979b775f53e965825000ae27a0375295d69c"
+      "sha256": "a054fa706ff5caa65ce57cdd137316cf5d3263ae8c82b23c873f3c1864498d62"
     },
     {
       "path": "shared/core/src/referencetracing.cpp",
@@ -619,7 +627,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "f9c1fc094de10c5e8e345b08a643f4a1fab3062882d5b4d96581f74e0db03cc6"
+      "sha256": "3c06ff93b0d95e8e546d58cc5f8dc112fcdd9ea847e7bc76c4dad3d85becc41a"
     }
   }
 }
