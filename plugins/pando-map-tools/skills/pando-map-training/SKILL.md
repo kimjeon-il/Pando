@@ -63,6 +63,10 @@ training, export ONNX and inspect identical unaugmented targets against the actu
 baseline with inspect-checkpoint.py. Verify ONNX/PyTorch parity locally using
 verify-trained-onnx.mjs in the existing Node WASM runtime. Pass local model and
 diagnostic paths; no browser, static server or --base argument is used.
+Its --baseline-checkpoint is the actual inherited map initializer only. For a
+fresh encoder, omit that option and compare the baseline separately with
+train.py evaluate on the exact same frozen known-pixel corpus. Pass the actual
+--auxiliary-corpus to inspection too, so its fingerprint matches training.
 
 Training-tile fitting is not held-out accuracy. Keep trainingOnly true,
 evaluationStatus pending, releaseApproved false and map application not-applied
