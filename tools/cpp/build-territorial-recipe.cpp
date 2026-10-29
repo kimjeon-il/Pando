@@ -5,6 +5,7 @@
 #include <pandoeditor/sphericalpolygon.h>
 #include <geos_c.h>
 #include <proj.h>
+#include <geodesic.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -124,6 +125,39 @@ public:
     double area(const GEOSGeometry* value) {
         double result=0;
         if(!GEOSArea_r(context_,value,&result))throw std::runtime_error("GEOS failed: area");
+        return result;
+    }
+    double geodesicArea(const Shape& shape) {
+        geod_geodesic ellipsoid;geod_init(&ellipsoid,6378137.0,1.0/298.257223563);
+        double total=0;
+        const auto ringArea=[&](const GEOSGeometry* ring) {
+            geod_polygon polygon;geod_polygon_init(&polygon,0);
+            const auto* sequence=GEOSGeom_getCoordSeq_r(context_,ring);unsigned count=0;
+            if(!sequence||!GEOSCoordSeq_getSize_r(context_,sequence,&count))throw std::runtime_error("GEOS failed: geodesic ring");
+            for(unsigned i=0;i<count;++i){double lon=0,lat=0;
+                if(!GEOSCoordSeq_getXY_r(context_,sequence,i,&lon,&lat))throw std::runtime_error("GEOS failed: geodesic point");
+                geod_polygon_addpoint(&ellipsoid,&polygon,lat,lon);
+            }
+            double area=0,perimeter=0;geod_polygon_compute(&ellipsoid,&polygon,0,1,&area,&perimeter);return area;
+        };
+        for(const auto& part:parts(shape)){
+            if(empty(part.get()))continue;
+            if(type(part.get())!=GEOS_POLYGON)throw std::runtime_error("Geodesic area requires polygonal geometry");
+            total+=ringArea(GEOSGetExteriorRing_r(context_,part.get()));
+            const int count=GEOSGetNumInteriorRings_r(context_,part.get());
+            if(count<0)throw std::runtime_error("GEOS failed: geodesic interior count");
+            for(int i=0;i<count;++i)total+=ringArea(GEOSGetInteriorRingN_r(context_,part.get(),i));
+        }
+        return std::abs(total)/1000000.0;
+    }
+    V geographicSummary(const Shape& shape) {
+        if(empty(shape.get()))throw std::runtime_error("Cannot summarize empty geometry");
+        double bounds[4];if(!GEOSGeom_getExtent_r(context_,shape.get(),&bounds[0],&bounds[1],&bounds[2],&bounds[3]))
+            throw std::runtime_error("GEOS failed: geographic extent");
+        const int count=GEOSGetNumCoordinates_r(context_,shape.get());if(count<0)throw std::runtime_error("GEOS failed: coordinate count");
+        auto result=V::obj(),extent=V::arr();for(double value:bounds)extent.array.push_back(V::num(value));
+        result.object["bounds"]=std::move(extent);result.object["areaKm2"]=V::num(geodesicArea(shape));
+        result.object["componentCount"]=V::num(static_cast<double>(parts(shape).size()));result.object["coordinateCount"]=V::num(count);
         return result;
     }
     double length(const Shape& value) {
@@ -560,8 +594,9 @@ class Recipe {
         const auto* policy=optional(recipe_,"validation");
         if(!policy)return;
         if(const auto* area=optional(*policy,"areaKm2")) {
-            const auto projected=engine_.project(result,"EPSG:4326","EPSG:3035");
-            const double km2=engine_.area(projected.get())/1000000.0;
+            const auto* method=optional(*policy,"areaMethod");
+            const double km2=method&&str(*method)=="wgs84-geodesic"?engine_.geodesicArea(result)
+                :engine_.area(engine_.project(result,"EPSG:4326","EPSG:3035").get())/1000000.0;
             if(km2<number(field(*area,"minimum"))
                 ||km2>number(field(*area,"maximum")))
                 throw std::runtime_error("Historical recipe projected area outside approved km2 range");
@@ -639,6 +674,21 @@ public:
         verifyResult(results_.at(str(field(operations.back(),"id"))),result);
         return result;
     }
+    V german1914() {
+        const auto geometry=build();
+        const auto& result=results_.at("german-1914-candidate");
+        const auto& patch=results_.at("heligoland-components");
+        const auto& window=results_.at("heligoland-window");
+        const auto selected=engine_.intersection(result,window);
+        auto difference=engine_.own(GEOSSymDifference_r(engine_.context(),selected.get(),patch.get()),"patch symmetric difference");
+        const double differenceKm2=engine_.geodesicArea(difference);
+        const double limit=number(field(field(recipe_,"validation"),"maximumHeligolandPatchDifferenceKm2"));
+        if(differenceKm2>limit)throw std::runtime_error("Historical island patch differs from selected source");
+        auto out=V::obj();out.object["geometry"]=geometry;
+        out.object["corrected"]=engine_.geographicSummary(results_.at("hgis-axis-corrected"));
+        out.object["patch"]=engine_.geographicSummary(patch);out.object["output"]=engine_.geographicSummary(result);
+        out.object["output"].object["heligolandPatchDifferenceKm2"]=V::num(differenceKm2);return out;
+    }
 };
 #include "historical-linework-audit.inc"
 #include "historical-caspian-generalization.inc"
@@ -650,6 +700,11 @@ public:
 
 int main(int argc,char** argv) {
     try {
+        if(argc==4 && std::string(argv[1])=="--german-1914-base") {
+            const std::string specification=std::string(argv[3])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[3]));
+            Recipe recipe(fs::absolute(argv[2]),pandoeditor::codecjson::parse(specification));
+            std::cout<<recipe.german1914().encode()<<'\n';return 0;
+        }
         if(argc==3 && std::string(argv[1])=="--axis-correct-tree") {
             const auto input=pandoeditor::codecjson::parse(read(fs::absolute(argv[2])));
             std::cout<<correctHistoricalCoordinateTree(input).encode()<<'\n';

@@ -69,6 +69,7 @@
     }
   },
   "validation": {
+    "areaMethod": "wgs84-geodesic",
     "areaKm2": {
       "minimum": 530000,
       "maximum": 550000
