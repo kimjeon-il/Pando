@@ -11,7 +11,8 @@ import {startNativeQgis} from './native-start.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
-export async function runNativeBridge(args){
+export async function runNativeBridge(args,{signal}={}){
+  signal?.throwIfAborted();
   const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'}}});
   const [command,...rest]=positionals;
   if(command==='normalize'){
@@ -25,13 +26,13 @@ export async function runNativeBridge(args){
   const raw=readFileSync(resolve(values.config||join(root,'.library-data/qgis-native.json')),'utf8');
   let config;
   try{config=JSON.parse(raw);}catch(error){throw new Error('Invalid QGIS configuration JSON',{cause:error});}
-  if(command==='start')return startNativeQgis(config,{root});
-  if(command==='status')return requestNativeQgis(config,{command:'status'});
+  if(command==='start')return startNativeQgis(config,{root,signal});
+  if(command==='status')return requestNativeQgis(config,{command:'status'},{signal});
   if(command==='open'){
     const path=realpathSync(rest[0]);if(!statSync(path).isFile())throw Error('QGIS input must be a regular file');
-    return requestNativeQgis(config,{command:'open',path});
+    return requestNativeQgis(config,{command:'open',path},{signal});
   }
-  return exportNativeQgis(config,{layerId:values.layer,output:values.output});
+  return exportNativeQgis(config,{layerId:values.layer,output:values.output},{signal});
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{console.log(JSON.stringify(await runNativeBridge(process.argv.slice(2))));}
