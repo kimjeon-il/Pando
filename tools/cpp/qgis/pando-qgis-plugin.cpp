@@ -310,7 +310,7 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("features"),page},{QStringLiteral("hasMore"),hasMore},{QStringLiteral("crs"),layer->crs().authid()},
                 {QStringLiteral("totalFeatures"),QString::number(layer->featureCount())},{QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit}};
         }
-        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")||command==QStringLiteral("add-field")||command==QStringLiteral("delete-field")||command==QStringLiteral("delete-feature")||command==QStringLiteral("add-feature")){
+        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")||command==QStringLiteral("add-field")||command==QStringLiteral("delete-field")||command==QStringLiteral("rename-field")||command==QStringLiteral("delete-feature")||command==QStringLiteral("add-feature")){
             const auto id=request.value(QStringLiteral("layer")).toString();
             auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
             if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
@@ -339,10 +339,19 @@ class Bridge final:public QObject,public QgisPlugin {
                 if(!layer->rollBack())throw QStringLiteral("QGIS rollback failed");
                 editSessions_.remove(id);return {{QStringLiteral("ok"),true}};
             }
-            if(command==QStringLiteral("add-field")||command==QStringLiteral("delete-field")){
+            if(command==QStringLiteral("add-field")||command==QStringLiteral("delete-field")||command==QStringLiteral("rename-field")){
                 const auto field=request.value(QStringLiteral("field"));
                 if(!field.isString()||field.toString().trimmed().isEmpty()||field.toString().size()>128)throw QStringLiteral("A bounded field name is required");
                 const auto index=layer->fields().indexOf(field.toString());
+                if(command==QStringLiteral("rename-field")){
+                    const auto renamed=request.value(QStringLiteral("newField"));
+                    if(index<0)throw QStringLiteral("An existing field is required");
+                    if(!renamed.isString()||renamed.toString().trimmed().isEmpty()||renamed.toString().size()>128)throw QStringLiteral("A bounded new field name is required");
+                    if(layer->fields().indexOf(renamed.toString())>=0)throw QStringLiteral("A field with this name already exists");
+                    layer->beginEditCommand(QStringLiteral("Pando field rename"));
+                    if(!layer->renameAttribute(index,renamed.toString())){layer->destroyEditCommand();throw QStringLiteral("QGIS field rename failed");}
+                    layer->endEditCommand();return {{QStringLiteral("renamed"),true}};
+                }
                 if(command==QStringLiteral("delete-field")){
                     if(index<0)throw QStringLiteral("An existing field is required");
                     layer->beginEditCommand(QStringLiteral("Pando field deletion"));
