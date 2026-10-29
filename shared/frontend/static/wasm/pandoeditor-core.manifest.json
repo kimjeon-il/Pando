@@ -619,7 +619,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "24dcb8887e580fb298388d34c7c026f4bb0b2bd309a79b0c561cb05a4000bb53"
+      "sha256": "982d9da813fd806cf776c4eae9b626f698817d2d018a9e6b0014c6d3a1030ffb"
     }
   }
 }
