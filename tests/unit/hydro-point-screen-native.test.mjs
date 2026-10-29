@@ -29,3 +29,7 @@ test('native point screen supports independent input parts for batch audits',{sk
   assert.equal(output.lineLengthsMeters.length,2);
   assert.ok(Math.abs(output.points[2].nearestLonLat[0]-9.199992435555043)<1e-8);
 });
+test('native point screen reports line lengths when a system has no external points',{skip:!binary},()=>{
+  const result=invoke({...fixture,mode:'parts',points:[]});assert.equal(result.status,0,result.stderr);
+  const output=JSON.parse(result.stdout);assert.deepEqual(output.points,[]);assert.equal(output.lineLengthsMeters.length,2);
+});

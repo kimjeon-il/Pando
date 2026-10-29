@@ -66,7 +66,7 @@ Value run(const Value& input){
         mode=modeField->second.string;
     }
     if(mode!="union_if_line"&&mode!="parts")throw std::invalid_argument("Invalid point-screen mode");
-    if(sourceLines.empty()||sourcePoints.empty()||sourceLines.size()>100000||sourcePoints.size()>10000)
+    if(sourceLines.empty()||sourceLines.size()>100000||sourcePoints.size()>10000)
         throw std::invalid_argument("Invalid point-screen input size");
     using ProjContext=std::unique_ptr<PJ_CONTEXT,decltype(&proj_context_destroy)>;
     using Proj=std::unique_ptr<PJ,decltype(&proj_destroy)>;
