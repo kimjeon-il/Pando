@@ -190,6 +190,35 @@ export function verifyYarraEvidence(match,review){
     close(match.hydroSamplesToNamedGovernmentRiver.p90DistanceKm,recorded.p90DistanceKm,.01),'Yarra distance mismatch');
   ensure(match.source.license==='CC BY 4.0','Yarra license mismatch');
 }
+export function formatBatch03Receipts(data){
+  const expected=['40475481','40486439','41023100','41067217','41109275','41171836',
+    '41182380','41337891','41386179','41386700','41390476'];
+  ensure(data.systemsReviewed===11&&Array.isArray(data.items)&&data.items.length===expected.length&&
+    data.items.every((row,i)=>row.systemId===expected[i]),'Unexpected batch 03 system scope');
+  ensure(data.geoDataNotChanged===true&&data.sourceOnlyScreen===true&&data.approvalCount===0&&
+    data.baseline==='HydroRIVERS v0.13.2','Invalid batch 03 evidence status');
+  ensure(data.items.every(row=>row.mainstemLengthKm>0&&row.mainstemLineSegments>=1&&Array.isArray(row.independentPointChecks)),
+    'Missing batch 03 mainstem or point data');
+  ensure(Array.isArray(data.governmentQueryReceipts),'Missing government query receipts');
+  const lines=['FINAL_11_RESEARCH_SCREEN_SUCCESS'];
+  for(const item of data.items){
+    const points=item.independentPointChecks;
+    for(let offset=0;offset<Math.max(points.length,1);offset+=25){
+      const payload={systemId:item.systemId,nameKo:item.originalNameKo,mainstemLengthKm:item.mainstemLengthKm,
+        mainstemFeatures:item.mainstemFeatures,mainstemLineSegments:item.mainstemLineSegments,
+        pointCount:points.length,chunkIndex:offset/25,points:points.slice(offset,offset+25)};
+      lines.push('OSM_BATCH03_POINT_CHUNK='+JSON.stringify(payload));
+    }
+  }
+  const value=(row,key,fallback)=>Object.hasOwn(row,key)?row[key]:fallback;
+  for(const query of data.governmentQueryReceipts){
+    const payload={id:query.systemId,kind:query.kind,status:query.status,responseSha256:value(query,'responseSha256',null),
+      raw:value(query,'rawFeatureCount',0),unique:value(query,'uniqueRiverPointCount',0),
+      limit:value(query,'exceededTransferLimit',false),failureClass:value(query,'failureClass',null),url:query.url};
+    lines.push('OSM_BATCH03_QUERY_RECEIPT='+JSON.stringify(payload));
+  }
+  return lines;
+}
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     if (process.argv.length !== 4 || process.argv[2] !== '--input')
