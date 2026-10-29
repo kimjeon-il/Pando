@@ -13,7 +13,7 @@ export const referenceSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','too
   'shared/core/src/losslessjson.cpp','shared/core/include/pandoeditor/losslessjson.h']);
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export async function nativeReferenceInfer({weights,tile,overview,position,output,device='cpu',torchLibrary,
-  root=defaultRoot,directory=resolve(root,'build-native/reference-analysis'),signal}){
+  root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/windows'),signal}){
   signal?.throwIfAborted();
   if(process.platform!=='win32'||!torchLibrary||!['cpu','cuda'].includes(device))throw Error('Windows native inference requires a CPU/CUDA device and LibTorch library directory');
   if(!weights||!tile||!overview||!position||!output)throw Error('Weights, three tensor inputs and a new output are required');
