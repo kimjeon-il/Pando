@@ -38,6 +38,10 @@ test('native allocation reports sparse and compressed allocation instead of logi
   writeFileSync(sparse,randomBytes(4096));
   execFileSync('fsutil',['sparse','setflag',sparse],{windowsHide:true});truncateSync(sparse,16*1024**2);
   const a=run(['sparse']);assert(a.selectedUniqueAllocation>0);assert(a.selectedUniqueAllocation<statSync(sparse).size);
-  writeFileSync(compressed,Buffer.alloc(4*1024**2,7));execFileSync('compact.exe',['/C','/I','/Q',compressed],{windowsHide:true});
+  writeFileSync(compressed,Buffer.alloc(4*1024**2,7));
+  // A compressed parent can mark newly written bytes compressed without
+  // recompressing them; clear the inherited flag before the explicit pass.
+  execFileSync('compact.exe',['/U','/I','/Q',compressed],{windowsHide:true});
+  execFileSync('compact.exe',['/C','/I','/Q',compressed],{windowsHide:true});
   const b=run(['compressed']);assert(b.selectedUniqueAllocation<statSync(compressed).size);assert.equal(b.reclaimableAllocation,b.selectedUniqueAllocation);
 });

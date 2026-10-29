@@ -1,6 +1,18 @@
 // Source-bound CI artifacts for optional tools; this module never builds or downloads.
-import {lstatSync,readFileSync} from 'node:fs';
+import {constants,copyFileSync,lstatSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {basename,join,resolve} from 'node:path';
 import {containedPath,contentHash} from './library-content.mjs';
+
+export function packageNativeTool({binary,directory,root='.',target,platform,architecture,revision,sourceFiles,runtimeVersion}){
+  const source=resolve(binary),destination=resolve(directory),name=basename(source),bytes=readFileSync(source);
+  if(!/^[a-f0-9]{40}$/.test(revision)||!bytes.length)throw Error('Native artifact needs a revision and nonempty binary');
+  const manifest={schemaVersion:1,target,platform,architecture,revision,
+    sourceFiles:sourceFiles.map(path=>({path,normalization:'lf',sha256:contentHash(readFileSync(containedPath(root,path),'utf8').replaceAll('\r\n','\n'))})),
+    files:[{path:name,bytes:bytes.length,sha256:contentHash(bytes)}]};
+  if(runtimeVersion)manifest.runtimeVersion=runtimeVersion;
+  mkdirSync(destination,{recursive:true});copyFileSync(source,join(destination,name),constants.COPYFILE_EXCL);
+  writeFileSync(join(destination,'native-tool.manifest.json'),JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});return manifest;
+}
 
 export function verifyNativeTool({root,directory,target,executable,sourceFiles,platform=process.platform,architecture=process.arch}){
   const manifestPath=containedPath(directory,'native-tool.manifest.json');
