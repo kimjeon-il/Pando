@@ -375,6 +375,16 @@ std::optional<ReferencePoint> projectReferenceImageWarp(const V& warp,ReferenceP
     return project(warp,point,geographic);
 }
 codecjson::Value referenceImageOperation(const std::string& operation,const V& input,const ReferenceProjection& host) {
+    if(operation=="warpInverse") {
+        const auto& warp=get(input,"warp");
+        if(!yes(get(warp,"ok")))throw std::invalid_argument("Solved warp is required for inverse coordinates");
+        auto coordinates=V::arr();
+        for(const auto& value:get(input,"points").array) {
+            const auto coordinate=point(value);const auto uv=coordinate?inverseWarp(warp,*coordinate):std::nullopt;
+            coordinates.array.push_back(uv?pair(*uv):V{});
+        }
+        return obj({{"coordinates",coordinates}});
+    }
     if(operation=="warpPixelErrors") {
         const auto& warp=get(input,"warp");const double width=field(input,"sourceWidth",0),height=field(input,"sourceHeight",0);
         if(width<2||height<2||!yes(get(warp,"ok")))throw std::invalid_argument("Solved warp and original dimensions required");
