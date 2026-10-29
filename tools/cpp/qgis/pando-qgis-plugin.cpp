@@ -163,7 +163,8 @@ class Bridge final:public QObject,public QgisPlugin {
                 const QgsCoordinateReferenceSystem geographic(QStringLiteral("EPSG:4326"));
                 if(layer->crs()!=geographic){
                     QgsCoordinateTransform transform(geographic,layer->crs(),QgsProject::instance());
-                    if(!transform.isValid()||geometry.transform(transform)!=Qgis::GeometryOperationResult::Success||geometry.isEmpty()||!geometry.isGeosValid())
+                    transform.setAllowFallbackTransforms(false);transform.setBallparkTransformsAreAppropriate(false);
+                    if(!transform.isValid()||geometry.transform(transform)!=Qgis::GeometryOperationResult::Success||transform.fallbackOperationOccurred()||geometry.isEmpty()||!geometry.isGeosValid())
                         throw QStringLiteral("Unable to transform geometry to the layer CRS");
                 }
                 layer->beginEditCommand(QStringLiteral("Pando geometry edit"));
