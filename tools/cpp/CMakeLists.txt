@@ -10,6 +10,8 @@ if(PANDO_BUILD_REFERENCE_MODEL)
         reference-analysis/safetensors.cpp ../../shared/core/src/losslessjson.cpp)
     target_include_directories(pando-reference-core PRIVATE ../../shared/core/include)
     target_link_libraries(pando-reference-core PUBLIC ${TORCH_LIBRARIES})
+    # The installed PyTorch 2.14 headers require C++20; keep other tools on C++17.
+    target_compile_features(pando-reference-core PUBLIC cxx_std_20)
     target_compile_options(pando-reference-core PUBLIC ${PANDO_TORCH_FLAGS})
     add_executable(pando-reference-loss-tests reference-analysis/boundary-loss-tests.cpp)
     add_executable(pando-reference-model-tests reference-analysis/reference-model-tests.cpp)
