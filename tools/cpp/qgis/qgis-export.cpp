@@ -64,9 +64,12 @@ public:
 }
 QByteArray serializeQgisVariant(const QVariant& value){return serializeVariant(value);}
 QJsonObject exportQgisLayer(const QString& layerId,const QString& destination){
+    auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(layerId));
+    return exportQgisVector(layer,destination);
+}
+QJsonObject exportQgisVector(QgsVectorLayer* layer,const QString& destination){
     const QFileInfo file(destination);
     if(!file.isAbsolute()||!file.dir().exists()||file.exists()||file.isSymLink())throw QStringLiteral("A new absolute output path in an existing directory is required");
-    auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(layerId));
     if(!layer||!layer->isValid())throw QStringLiteral("Unknown or invalid QGIS vector layer");
     if(!layer->crs().isValid())throw QStringLiteral("Source CRS is required");
     auto iterator=layer->getFeatures();QgsFeature feature;

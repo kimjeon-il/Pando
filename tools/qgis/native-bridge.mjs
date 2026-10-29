@@ -10,16 +10,16 @@ import {normalizeFile,normalizeSourceAttribute,parseJson,stringifyJson} from './
 import {startNativeQgis} from './native-start.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
-const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | algorithms [--offset N --limit N --search TEXT] | schema --layer ID | set-visibility --layer ID --visible true|false | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | delete-feature --layer ID --fid FID | add-feature --layer ID --wkt WKT --json ATTRIBUTES | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
+const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | algorithms [--offset N --limit N --search TEXT] | buffer --layer ID --distance NUMBER [--segments N] --output NEW_OUTPUT | schema --layer ID | set-visibility --layer ID --visible true|false | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | delete-feature --layer ID --fid FID | add-feature --layer ID --wkt WKT --json ATTRIBUTES | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
 export async function runNativeBridge(args,{signal}={}){
   signal?.throwIfAborted();
-  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},search:{type:'string'},fids:{type:'string'},expression:{type:'string'},fid:{type:'string'},field:{type:'string'},json:{type:'string'},wkt:{type:'string'},visible:{type:'string'},geometry:{type:'boolean'}}});
+  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},search:{type:'string'},distance:{type:'string'},segments:{type:'string'},fids:{type:'string'},expression:{type:'string'},fid:{type:'string'},field:{type:'string'},json:{type:'string'},wkt:{type:'string'},visible:{type:'string'},geometry:{type:'boolean'}}});
   const [command,...rest]=positionals;
   if(command==='normalize'){
-    if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.search!==undefined||values.fids!==undefined||values.expression!==undefined||values.fid!==undefined||values.field!==undefined||values.json!==undefined||values.wkt!==undefined||values.visible!==undefined||values.geometry!==undefined)throw Error(usage);
+    if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.search!==undefined||values.distance!==undefined||values.segments!==undefined||values.fids!==undefined||values.expression!==undefined||values.fid!==undefined||values.field!==undefined||values.json!==undefined||values.wkt!==undefined||values.visible!==undefined||values.geometry!==undefined)throw Error(usage);
     return normalizeFile(rest[0],values.output);
   }
-  if(!['start','status','project','layers','schema','set-visibility','algorithms','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature','open','export'].includes(command))throw Error(usage);
+  if(!['start','status','project','layers','schema','set-visibility','algorithms','buffer','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature','open','export'].includes(command))throw Error(usage);
   if((['start','status','project','layers','algorithms'].includes(command)&&(rest.length||values.layer||values.output))||
     (command==='open'&&(rest.length!==1||values.layer||values.output))||
     (['schema','set-visibility'].includes(command)&&(rest.length||!values.layer||values.output))||
@@ -38,7 +38,9 @@ export async function runNativeBridge(args,{signal}={}){
     (command!=='select'&&values.fids!==undefined)||
     (!['select','features'].includes(command)&&values.expression!==undefined)||
     (command!=='features'&&values.geometry!==undefined)||
-    (command==='export'&&(rest.length||!values.layer||!values.output))||
+    (['export','buffer'].includes(command)&&(rest.length||!values.layer||!values.output))||
+    (command==='buffer'&&values.distance===undefined)||
+    (command!=='buffer'&&(values.distance!==undefined||values.segments!==undefined))||
     (command!=='algorithms'&&values.search!==undefined)||
     (!['layers','features','algorithms'].includes(command)&&(values.offset!==undefined||values.limit!==undefined)))throw Error(usage);
   let offset=0,limit=50;
@@ -109,6 +111,12 @@ export async function runNativeBridge(args,{signal}={}){
   if(command==='open'){
     const path=realpathSync(rest[0]);if(!statSync(path).isFile())throw Error('QGIS input must be a regular file');
     return requestNativeQgis(config,{command:'open',path},{signal});
+  }
+  if(command==='buffer'){
+    const distance=Number(values.distance),segments=values.segments===undefined?5:Number(values.segments);
+    if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(values.distance)||!Number.isFinite(distance)||!Number.isInteger(segments)||segments<1||segments>100||
+      (values.segments!==undefined&&!/^[1-9]\d*$/.test(values.segments)))throw Error('A finite buffer distance and 1–100 segments are required');
+    return exportNativeQgis(config,{layerId:values.layer,output:values.output,buffer:{distance,segments}},{signal});
   }
   return exportNativeQgis(config,{layerId:values.layer,output:values.output},{signal});
 }

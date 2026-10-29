@@ -7,6 +7,8 @@
 #include <qgisplugin.h>
 #include <qgsapplication.h>
 #include <qgsprocessingalgorithm.h>
+#include <qgsprocessingcontext.h>
+#include <qgsprocessingfeedback.h>
 #include <qgsprocessingregistry.h>
 #include <qgscoordinatereferencesystem.h>
 #include <qgscoordinatetransform.h>
@@ -28,6 +30,7 @@
 #include <qgsrasterlayer.h>
 #include <qgsvectorlayer.h>
 #include <QCoreApplication>
+#include <QDir>
 #include <QFileInfo>
 #include <QHostAddress>
 #include <QHash>
@@ -183,6 +186,27 @@ class Bridge final:public QObject,public QgisPlugin {
                 page.append(QJsonObject{{QStringLiteral("id"),algorithm->id()},{QStringLiteral("name"),algorithm->displayName()},{QStringLiteral("group"),algorithm->group()}});
             }
             return {{QStringLiteral("algorithms"),page},{QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit},{QStringLiteral("hasMore"),hasMore}};
+        }
+        if(command==QStringLiteral("buffer")){
+            const auto id=request.value(QStringLiteral("layer")).toString();const auto distance=request.value(QStringLiteral("distance"));
+            auto* input=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
+            if(id.isEmpty()||!input||!input->isValid()||!input->crs().isValid())throw QStringLiteral("A valid vector layer and CRS are required");
+            if(!distance.isDouble()||!std::isfinite(distance.toDouble()))throw QStringLiteral("A finite buffer distance is required");
+            const auto segments=pageValue(request,QStringLiteral("segments"),5,1,100);
+            const QFileInfo destination(request.value(QStringLiteral("output")).toString());
+            if(!destination.isAbsolute()||!destination.dir().exists()||destination.exists()||destination.isSymLink())throw QStringLiteral("A new absolute output path in an existing directory is required");
+            auto* registry=QgsApplication::processingRegistry();const auto* algorithm=registry?registry->algorithmById(QStringLiteral("native:buffer")):nullptr;
+            if(!algorithm)throw QStringLiteral("QGIS native buffer algorithm is unavailable");
+            QgsProcessingContext context;context.setProject(QgsProject::instance());QgsProcessingFeedback feedback;
+            const QVariantMap params{{QStringLiteral("INPUT"),id},{QStringLiteral("DISTANCE"),distance.toDouble()},{QStringLiteral("SEGMENTS"),segments},
+                {QStringLiteral("END_CAP_STYLE"),0},{QStringLiteral("JOIN_STYLE"),0},{QStringLiteral("MITER_LIMIT"),2.0},
+                {QStringLiteral("DISSOLVE"),false},{QStringLiteral("OUTPUT"),QStringLiteral("memory:")}};
+            QString error;if(!algorithm->checkParameterValues(params,context,&error))throw QStringLiteral("Invalid QGIS buffer parameters: ")+error;
+            bool ok=false;const auto result=algorithm->run(params,context,&feedback,&ok);
+            if(!ok)throw QStringLiteral("QGIS buffer processing failed");
+            std::unique_ptr<QgsMapLayer> output(context.takeResultLayer(result.value(QStringLiteral("OUTPUT")).toString()));
+            auto* vector=qobject_cast<QgsVectorLayer*>(output.get());if(!vector||!vector->isValid())throw QStringLiteral("QGIS buffer did not produce a vector layer");
+            return exportQgisVector(vector,destination.absoluteFilePath());
         }
         if(command==QStringLiteral("project")||command==QStringLiteral("layers")){
             auto* project=QgsProject::instance();const auto layers=project->mapLayers();QJsonArray page;
