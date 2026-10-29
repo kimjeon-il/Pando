@@ -19,6 +19,33 @@ const {version:pluginVersion}=JSON.parse(await readFile(new URL('../plugin.json'
 const { createWorkerRpcClient }=await workspaceModule('shared/frontend/js/modules/worker-rpc.js');
 
 const check = signal => signal?.throwIfAborted();
+export function locateReferenceImage(candidates,source,projection=null) {
+  const selectedProjection=calculate('normalizeProjection',projection||{kind:'geographic'}),knownProjection=Boolean(projection);
+  if(!knownProjection) {
+    // Reserve fit/selection/confirmation observations before any fitting or
+    // outlier rejection. A geographic seed cannot veto a non-geographic map.
+    const selected=selectReferenceImageProjection(candidates,source);
+    return {locationCandidates:selected.ok?[{warp:selected.warp,quality:selected.quality}]:[],accepted:selected.ok?selected:null,
+      projectionDiscovery:{code:'PROJECTION_DISCOVERY',reason:selected.reason||'reserved-controls-confirmed',attemptedProjectionCount:selected.attemptedProjectionCount||0},
+      reason:selected.reason||''};
+  }
+  const solve=points=>calculate('autoGeoref',{points,projection:selectedProjection,mode:'auto',maxTrials:1024,minimumInliers:6,inlierThresholdMeters:25000});
+  const solved=solve(candidates),locationCandidates=[];let accepted=null,projectionDiscovery=null;
+  if(solved.ok) {
+    const {warp,quality}=selectReferenceImageGeoreference(solved.controlPoints,source,{projection:selectedProjection});
+    locationCandidates.push({warp,quality});
+    const ids=new Set(solved.inlierIds),remaining=candidates.filter(v=>!ids.has(v.id));
+    if(new Set(remaining.map(v=>v.detectionId)).size>=6) {
+      const other=solve(remaining);
+      if(other.ok&&other.inlierCount>=solved.inlierCount*.85) {
+        const alternativeResult=selectReferenceImageGeoreference(other.controlPoints,source,{projection:selectedProjection});
+        if(alternativeResult.warp?.ok&&alternativeResult.quality.recommended)locationCandidates.push(alternativeResult);
+      }
+    }
+    if(quality.recommended&&locationCandidates.length===1)accepted={warp,quality};
+  }
+  return {locationCandidates,accepted,projectionDiscovery,reason:solved.reason||'ambiguous-or-unverified-location'};
+}
 export function loadOrtRuntime() {
   const ort=requireWorkspace('onnxruntime-web/wasm');
   ort.env.wasm.numThreads=1;ort.env.wasm.proxy=false;
@@ -167,34 +194,16 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     const embedded=image.mapping.georeference;
     if(embedded?.diagnostic)job.diagnostics.push({code:'GEOPDF_UNSUPPORTED',reason:embedded.diagnostic});
     const selectedProjection=calculate('normalizeProjection',projection || embedded?.projection || {kind:'geographic'});
-    const knownProjection=Boolean(projection || embedded?.projection);
-    const solve=points=>calculate('autoGeoref',{points,projection:selectedProjection,mode:'auto',maxTrials:1024,minimumInliers:6,inlierThresholdMeters:25000});
-    const solved=solve(candidates);job.locationCandidates=[];
-    if(solved.ok) {
-      const selected=knownProjection?selectReferenceImageGeoreference(solved.controlPoints,job.source,{projection:selectedProjection})
-        :selectReferenceImageProjection(solved.controlPoints,job.source);
-      const provisional=selected.warp?selected:selectReferenceImageGeoreference(solved.controlPoints,job.source,{projection:selectedProjection});
-      const {warp}=provisional,quality=!knownProjection&&!selected.ok?{...provisional.quality,recommended:false,reason:selected.reason}:provisional.quality;
-      if(!knownProjection)job.diagnostics.push({code:'PROJECTION_DISCOVERY',reason:selected.reason||'reserved-controls-confirmed',attemptedProjectionCount:selected.attemptedProjectionCount||0});
-      job.locationCandidates.push({warp,quality});
-      const ids=new Set(solved.inlierIds),remaining=candidates.filter(v=>!ids.has(v.id));
-      if(new Set(remaining.map(v=>v.detectionId)).size>=6) {
-        const other=solve(remaining);
-        if(other.ok && other.inlierCount>=solved.inlierCount*.85) {
-          const alternativeResult=knownProjection?selectReferenceImageGeoreference(other.controlPoints,job.source,{projection:selectedProjection})
-            :selectReferenceImageProjection(other.controlPoints,job.source);
-          const {warp:alternative,quality:alternativeQuality}=alternativeResult;
-          if(alternative?.ok&&alternativeQuality.recommended) job.locationCandidates.push({warp:alternative,quality:alternativeQuality});
-        }
-      }
-      if(quality.recommended && job.locationCandidates.length===1) {job.warp=warp;job.quality=quality;job.calibration={controlPoints:structuredClone(warp.controlPoints),mode:warp.mode,projection:warp.projection,linearConstraints:[]};}
-    }
+    const location=locateReferenceImage(candidates,job.source,projection||embedded?.projection||null);
+    job.locationCandidates=location.locationCandidates;
+    if(location.projectionDiscovery)job.diagnostics.push(location.projectionDiscovery);
+    if(location.accepted) {const {warp,quality}=location.accepted;job.warp=warp;job.quality=quality;job.calibration={controlPoints:structuredClone(warp.controlPoints),mode:warp.mode,projection:warp.projection,linearConstraints:[]};}
     if(!job.warp && embedded?.projection && embedded.controlPoints?.length>=3) {
       const {warp,quality}=selectReferenceImageGeoreference(embedded.controlPoints,job.source,{mode:'affine',projection:selectedProjection});
       if(warp.ok)job.locationCandidates.push({warp,quality,origin:'embedded-publisher-metadata',independentChecks:false});
       job.diagnostics.push({code:'GEOPDF_REQUIRES_REVIEW',reason:'Publisher metadata is a candidate, not independent check points or a performed datum transformation.'});
     }
-    if(!job.warp) job.diagnostics.push({code:'NEEDS_GEOREFERENCE',reason:solved.reason || 'ambiguous-or-unverified-location',action:'Review locationCandidates/grid or supply original-image UV control points.'});
+    if(!job.warp) job.diagnostics.push({code:'NEEDS_GEOREFERENCE',reason:location.reason,action:'Review locationCandidates/grid or supply original-image UV control points.'});
     const ort=loadOrtRuntime();
     const mask=await inferReferenceBoundaries({width:image.width,height:image.height,bytes,ort,context,
       overview:()=>resizeRaster(image,[256,256],signal),tileRaster:tile=>cropRaster(image,tile,512),
