@@ -139,20 +139,15 @@ jobs:
             --external-gauges /tmp/batch02-ca-gauges.json \
             --nga /tmp/batch02-nga.json \
             --output /tmp/batch02-source-independent-point-audit.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          receipt=json.loads(Path("/tmp/batch02-source-independent-point-audit.json").read_text())
-          assert receipt["studyCount"]==10
-          assert receipt["originalVersion"]=="0.13.2"
-          assert not receipt["publishedHydroGeometryChanged"]
-          assert not receipt["publishedRiverNameMetadataChanged"]
-          assert not receipt["osmRelationUsedAsReference"]
-          assert [r["systemId"] for r in receipt["items"]]==[
-            "20628098","20773860","20774342","30145067","40188382",
-            "40364680","40391614","40414035","40415850","40423228"]
-          print("All 10 systems spatially examined; no production data mutation")
-          PY
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const receipt=JSON.parse(readFileSync('/tmp/batch02-source-independent-point-audit.json','utf8'));
+          assert.equal(receipt.studyCount,10);assert.equal(receipt.originalVersion,'0.13.2');
+          assert.equal(receipt.publishedHydroGeometryChanged,false);assert.equal(receipt.publishedRiverNameMetadataChanged,false);assert.equal(receipt.osmRelationUsedAsReference,false);
+          assert.deepEqual(receipt.items.map(row=>row.systemId),['20628098','20773860','20774342','30145067','40188382','40364680','40391614','40414035','40415850','40423228']);
+          console.log('All 10 systems spatially examined; no production data mutation');
+          JS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
