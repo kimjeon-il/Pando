@@ -143,6 +143,53 @@ export function validateIndependentHydronyms(document) {
 export function loadIndependentHydronyms(path) {
   return validateIndependentHydronyms(JSON.parse(readFileSync(path, 'utf8')));
 }
+const close=(a,b,tolerance)=>Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<tolerance;
+export function verifyStationEvidence(stations,review){
+  for(const id of ['70816878','70819626']){
+    const measured=stations.candidateSystems[id],recorded=review[id].officialStationEvidence;
+    const own=new Set(stations.stationRows.filter(row=>row.independentHydrography===measured.candidateName).map(row=>row.station));
+    const expected=new Set(recorded.stationIds);
+    ensure(measured.criteriaSatisfied,'Station criteria failed: '+id);
+    ensure(own.size===expected.size&&[...own].every(station=>expected.has(station)),'Station identity mismatch: '+id);
+    ensure(close(recorded.maximumMatchingStationDistanceKm,measured.maxMatchingStationDistanceKm,.002)&&
+      close(recorded.nearestDifferentBasinStationKm,measured.nearestDifferentBasinStationKm,.002),'Station distance mismatch: '+id);
+  }
+}
+export function verifyNaturalEarthEvidence(review,evidence){
+  const byId=new Map(evidence.items.map(row=>[String(row.systemId),row]));
+  ensure(byId.size===evidence.items.length,'Repeated Natural Earth system ID');
+  for(const entry of review.replacements){
+    if(entry.naturalEarth==null)continue;
+    const id=entry.systemId,candidates=byId.get(id)?.naturalEarthCandidates;
+    ensure(Array.isArray(candidates),'Missing Natural Earth system: '+id);
+    const match=candidates.find(row=>row.name===entry.naturalEarth.name);
+    ensure(match&&close(match.sampleCoverage,entry.naturalEarth.sampleCoverage,.001),'Natural Earth candidate mismatch: '+id);
+    const competing=Math.max(0,...candidates.filter(row=>row.name!==match.name&&row.nameKo).map(row=>row.sampleCoverage));
+    if(entry.conservativeMainstemReview){
+      ensure(candidates[0].name===match.name&&close(competing,entry.conservativeMainstemReview.otherNamedNECoverage,.001)&&match.meanDistanceDegrees<=.04,'Conservative competing candidate mismatch: '+id);
+    }
+    if(entry.crossBorderNameReview){
+      ensure(close(competing,entry.crossBorderNameReview.strongestOtherNENameCoverage,.001)&&match.sampleCoverage>=.35&&match.sampleCoverage<.45&&match.meanDistanceDegrees<.06,'Cross-border competing candidate mismatch: '+id);
+    }
+    if(entry.partialExistingNameReview){
+      ensure(candidates[0].name===match.name&&close(competing,entry.partialExistingNameReview.strongestOtherNENameCoverage,.001)&&competing<=.05&&match.meanDistanceDegrees<=.025,'Partial competing candidate mismatch: '+id);
+    }
+    const confluence=entry.basinConfluenceReview||entry.independentBasinRename;
+    if(confluence){
+      const trib=candidates.find(row=>row.name===confluence.namedTributaryNE),threshold=entry.independentBasinRename ? .90 : .75;
+      ensure(trib&&close(trib.sampleCoverage,confluence.tributarySampleCoverage,.001)&&match.sampleCoverage+trib.sampleCoverage>=threshold&&match.meanDistanceDegrees<=.05&&trib.meanDistanceDegrees<=.05,'Confluence candidate mismatch: '+id);
+    }
+  }
+}
+export function verifyYarraEvidence(match,review){
+  const recorded=review.replacements.find(row=>row.systemId==='50798885').officialGovernmentVectorEvidence;
+  ensure(match.source.sourceGeoJSONSha256===recorded.sourceGeoJSONSha256,'Yarra source hash mismatch');
+  ensure(match.hydroSamplesToNamedGovernmentRiver.samples===recorded.hydroMainstemSamples,'Yarra sample count mismatch');
+  ensure(close(match.hydroSamplesToNamedGovernmentRiver.within1km,recorded.within1kmHydroToGovernment,.0002)&&
+    close(match.governmentSamplesToHydroMainstem.within1km,recorded.within1kmGovernmentToHydro,.0002)&&
+    close(match.hydroSamplesToNamedGovernmentRiver.p90DistanceKm,recorded.p90DistanceKm,.01),'Yarra distance mismatch');
+  ensure(match.source.license==='CC BY 4.0','Yarra license mismatch');
+}
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     if (process.argv.length !== 4 || process.argv[2] !== '--input')

@@ -16,6 +16,7 @@ on:
       - tools/gis/prepare-hydro-name-replacement-bundle.mjs
       - tests/unit/hydro-name-repack.test.mjs
       - tests/unit/hydro-independent-name-policy.test.mjs
+      - tests/unit/hydro-independent-evidence.test.mjs
       - tools/build-hydro-tiles.py
       - .github/workflows/gis-osm-river-audit.yml
   workflow_dispatch:
@@ -92,22 +93,12 @@ jobs:
           JS
       - name: Verify USGS station evidence is tied to the exact published Hydro geometry
         run: |
-          python - <<'PY'
-          import json,sys
-          from pathlib import Path
-          sys.path.insert(0,'tools/gis')
-          stations=json.loads(Path('/tmp/usgs-official-anchor-check.json').read_text())
-          review=json.loads(Path('/tmp/hydro-independent-review-validated.json').read_text())
-          for ident in ('70816878','70819626'):
-              measured=stations['candidateSystems'][ident]
-              recorded=review[ident]['officialStationEvidence']
-              own={r['station'] for r in stations['stationRows'] if r['independentHydrography']==measured['candidateName']}
-              assert measured['criteriaSatisfied'],ident
-              assert set(recorded['stationIds'])==own,ident
-              assert abs(recorded['maximumMatchingStationDistanceKm']-measured['maxMatchingStationDistanceKm'])<0.002
-              assert abs(recorded['nearestDifferentBasinStationKm']-measured['nearestDifferentBasinStationKm'])<0.002
-          print('Both station-based source exemptions reproduced against original Hydro geometry')
-          PY
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {verifyStationEvidence} from './tools/gis/hydro-independent-name-policy.mjs';
+          verifyStationEvidence(JSON.parse(readFileSync('/tmp/usgs-official-anchor-check.json')),JSON.parse(readFileSync('/tmp/hydro-independent-review-validated.json')));
+          console.log('Both station-based source exemptions reproduced against original Hydro geometry');
+          JS
       - name: Check all 42 reviewed mainstems independently of the 73 OSM-matched systems
         run: |
           node tools/gis/hydro-independent-name-policy.mjs \
@@ -127,75 +118,27 @@ jobs:
             --output /tmp/reviewed-ne-crosscheck.json
       - name: Verify all lower-coverage candidate river names against independent Natural Earth line comparison
         run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          review=json.loads(Path('tools/gis/hydro-independent-name-replacements.json').read_text())['replacements']
-          ne=json.loads(Path('/tmp/reviewed-ne-crosscheck.json').read_text())['items']
-          ne_by_id={str(row['systemId']):row for row in ne}
-          for entry in review:
-              if entry.get('naturalEarth') is None: continue
-              candidates=ne_by_id[entry['systemId']]['naturalEarthCandidates']
-              match=next((row for row in candidates if row['name'] == entry['naturalEarth']['name']),None)
-              assert match is not None, entry['systemId']
-              assert abs(match['sampleCoverage'] - entry['naturalEarth']['sampleCoverage']) < 0.001, entry['systemId']
-              conservative=entry.get('conservativeMainstemReview')
-              if conservative:
-                  assert candidates[0]['name']==match['name'],entry['systemId']
-                  competing=max((row['sampleCoverage'] for row in candidates
-                                 if row['name']!=match['name'] and row['nameKo']),default=0)
-                  assert abs(competing-conservative['otherNamedNECoverage'])<0.001,entry['systemId']
-                  assert match['meanDistanceDegrees'] <= 0.04,entry['systemId']
-              cross_border=entry.get('crossBorderNameReview')
-              if cross_border:
-                  rivals=[z for z in candidates if z['name']!=match['name'] and z.get('nameKo')]
-                  max_rival=max((z['sampleCoverage'] for z in rivals),default=0)
-                  assert abs(max_rival-cross_border['strongestOtherNENameCoverage'])<0.001,entry['systemId']
-                  assert 0.35<=match['sampleCoverage']<0.45,entry['systemId']
-                  assert match['meanDistanceDegrees']<0.06,entry['systemId']
-              partial=entry.get('partialExistingNameReview')
-              if partial:
-                  assert candidates[0]['name'] == match['name'],entry['systemId']
-                  rivals=[row for row in candidates if row['name']!=match['name'] and row['nameKo']]
-                  max_rival=max((row['sampleCoverage'] for row in rivals),default=0)
-                  assert abs(max_rival-partial['strongestOtherNENameCoverage'])<0.001,entry['systemId']
-                  assert max_rival<=0.05 and match['meanDistanceDegrees']<=0.025,entry['systemId']
-              confluence=entry.get('basinConfluenceReview') or entry.get('independentBasinRename')
-              if confluence:
-                  trib=next((row for row in candidates
-                             if row['name']==confluence['namedTributaryNE']),None)
-                  assert trib is not None,entry['systemId']
-                  assert abs(trib['sampleCoverage']-confluence['tributarySampleCoverage'])<0.001,entry['systemId']
-                  threshold=0.90 if entry.get('independentBasinRename') else 0.75
-                  assert match['sampleCoverage']+trib['sampleCoverage']>=threshold,entry['systemId']
-                  assert match['meanDistanceDegrees']<=0.05,entry['systemId']
-                  assert trib['meanDistanceDegrees']<=0.05,entry['systemId']
-          print('Source-independent 81-sample geometry comparisons reproduced for all reviewed river systems')
-          PY
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {verifyNaturalEarthEvidence} from './tools/gis/hydro-independent-name-policy.mjs';
+          verifyNaturalEarthEvidence(JSON.parse(readFileSync('tools/gis/hydro-independent-name-replacements.json')),JSON.parse(readFileSync('/tmp/reviewed-ne-crosscheck.json')));
+          console.log('Source-independent 81-sample geometry comparisons reproduced for all reviewed river systems');
+          JS
       - name: Reproduce the independent Victorian Yarra government river vector check
         run: |
           python -m pip install --quiet pyproj
           python tools/gis/verify_victorian_yarra_source.py \
             --decoded /tmp/hydro-decoded.json \
             --output /tmp/yarra-government-vector-validated.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          match=json.loads(Path('/tmp/yarra-government-vector-validated.json').read_text())
-          review=json.loads(Path('tools/gis/hydro-independent-name-replacements.json').read_text())
-          by_id={row['systemId']:row for row in review['replacements']}
-          recorded=by_id['50798885']['officialGovernmentVectorEvidence']
-          assert match['source']['sourceGeoJSONSha256']==recorded['sourceGeoJSONSha256']
-          assert match['hydroSamplesToNamedGovernmentRiver']['samples']==recorded['hydroMainstemSamples']
-          assert abs(match['hydroSamplesToNamedGovernmentRiver']['within1km']-recorded['within1kmHydroToGovernment'])<0.0002
-          assert abs(match['governmentSamplesToHydroMainstem']['within1km']-recorded['within1kmGovernmentToHydro'])<0.0002
-          assert abs(match['hydroSamplesToNamedGovernmentRiver']['p90DistanceKm']-recorded['p90DistanceKm'])<0.01
-          assert match['source']['license']=='CC BY 4.0'
-          print('Victoria government river centerline spatial verification reproduced')
-          PY
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {verifyYarraEvidence} from './tools/gis/hydro-independent-name-policy.mjs';
+          verifyYarraEvidence(JSON.parse(readFileSync('/tmp/yarra-government-vector-validated.json')),JSON.parse(readFileSync('tools/gis/hydro-independent-name-replacements.json')));
+          console.log('Victoria government river centerline spatial verification reproduced');
+          JS
       - name: Verify independently researched river-name records
         run: |
-          node --test tests/unit/hydro-independent-name-policy.test.mjs tests/unit/hydro-name-repack.test.mjs
+          node --test tests/unit/hydro-independent-name-policy.test.mjs tests/unit/hydro-independent-evidence.test.mjs tests/unit/hydro-name-repack.test.mjs
       - name: Verify feature-level independent-source notes
         run: node --test tests/unit/hydro-source-notes.test.mjs
       - name: Verify current published independent names and immutable Hydro bytes
