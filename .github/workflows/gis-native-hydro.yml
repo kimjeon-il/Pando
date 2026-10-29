@@ -147,25 +147,10 @@ jobs:
             JSON.parse(readFileSync(`tests/fixtures/hydro-osm-batch02-${suffix}-v0132-expected.json`,'utf8')));
           console.log('Second-ten results match the frozen baseline with and without optional sources');
           JS
-      - uses: actions/setup-python@v5
-        if: inputs.target == 'hydro-batch03'
-        with:
-          python-version-file: '.python-version'
-      - name: Compare last-eleven audit against the original using fixed NGA responses
+      - name: Compare last-eleven audit against the frozen baseline using fixed NGA responses
         if: inputs.target == 'hydro-batch03'
         run: |
-          python -m pip install --quiet 'shapely>=2,<3' 'pyproj>=3,<4'
           node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch03-decoded.json
-          python - <<'PY'
-          import importlib.util, io, sys
-          spec=importlib.util.spec_from_file_location('original','tools/gis/verify_osm_hydro_batch03_points.py')
-          module=importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(module)
-          data=open('tests/fixtures/hydro-osm-batch03-nga-response.json','rb').read()
-          module.urllib.request.urlopen=lambda request,timeout: io.BytesIO(data)
-          sys.argv=['original','--decoded','/tmp/pando-batch03-decoded.json','--output','/tmp/batch03-python.json']
-          module.main()
-          PY
           node --input-type=module - <<'JS'
           import assert from 'node:assert/strict';
           import {readFileSync,writeFileSync} from 'node:fs';
@@ -177,16 +162,9 @@ jobs:
           const decoded=JSON.parse(readFileSync('/tmp/pando-batch03-decoded.json','utf8'));
           const native=await buildBatch03Screen(decoded,{receipts,screen:screenHydroPoints});
           writeFileSync('/tmp/batch03-native.json',JSON.stringify(native,null,2)+'\n',{flag:'wx'});
-          assert.deepEqual(native,JSON.parse(readFileSync('/tmp/batch03-python.json','utf8')));
-          console.log('All eleven real systems match the original with fixed NGA responses');
+          assert.deepEqual(native,JSON.parse(readFileSync('tests/fixtures/hydro-osm-batch03-v0132-expected.json','utf8')));
+          console.log('All eleven real systems match the frozen baseline with fixed NGA responses');
           JS
-      - uses: actions/upload-artifact@v4
-        if: always() && inputs.target == 'hydro-batch03'
-        with:
-          name: hydro-batch03-python-baseline-${{ github.sha }}
-          path: /tmp/batch03-python.json
-          if-no-files-found: warn
-          retention-days: 7
   qgis-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'qgis-windows'
     runs-on: windows-2022
