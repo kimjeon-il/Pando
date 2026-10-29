@@ -43,6 +43,7 @@ export async function packagePrivatePlugin({revision,directory,modelPath,workspa
   for(const name of ['pandoeditor-core.manifest.json','pandoeditor-core.js','pandoeditor-core.wasm'])addSeed(frontendWasmRoot+'/'+name,await read(frontendWasmRoot+'/'+name));
   for(const file of dataset.files)addSeed(file.path,file.data);
   modelPath=resolve(modelPath);const modelBytes=await readFile(modelPath),model=JSON.parse(modelBytes);
+  if(hash(modelBytes)!==config.defaultModel.manifestSha256||model.model.sha256!==config.defaultModel.sha256)throw Error('Private default model differs from the immutable analysis pairing; candidate analysis is not default-model admission');
   assert.equal(model.trainingOnly,true);assert.equal(model.evaluationStatus,'pending');assert.equal(model.releaseApproved,false);
   await verifyRuntimeFiles(dirname(modelPath),[{path:model.model.url,...model.model}]);
   add(skill+'model/boundary.manifest.json',modelBytes);add(skill+'model/'+model.model.url,await readFile(bundlePath(dirname(modelPath),model.model.url)));

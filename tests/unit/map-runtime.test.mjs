@@ -22,7 +22,7 @@ async function fixture(root,ocrResources={}) {
   const ocr=await file(seed,'assets/data/reference-analysis/v1/ocr/manifest.json',JSON.stringify({languages:Object.fromEntries(Object.entries(ocrResources).map(([lang,row])=>[lang,{url:lang+'.traineddata.gz',sha256:row.sha256,bytes:row.bytes}]))}));
   const gazetteer=await file(seed,'assets/data/reference-analysis/v1/gazetteer/manifest.json',JSON.stringify({revision:'c'.repeat(64),files:{}}));
   files.push(ocr,gazetteer);
-  const analysisData=await file(plugin,'analysis-data.json',JSON.stringify({schemaVersion:1,repository:'owner/data',revision:'b'.repeat(40),ocr:{root:'assets/ocr',manifestSha256:ocr.sha256},gazetteer:{root:'reports/gazetteer',manifestSha256:gazetteer.sha256,revision:'c'.repeat(64)}}));
+  const analysisData=await file(plugin,'analysis-data.json',JSON.stringify({schemaVersion:1,repository:'owner/data',revision:'b'.repeat(40),ocr:{root:'assets/ocr',manifestSha256:ocr.sha256},gazetteer:{root:'reports/gazetteer',manifestSha256:gazetteer.sha256,revision:'c'.repeat(64)},defaultModel:{name:'fixture',root:'reports/map-analysis/models/fixture',manifestSha256:modelManifest.sha256,sha256:model.sha256}}));
   const catalog={schemaVersion:2,codeRevision:'a'.repeat(40),dataRevision:'b'.repeat(40),files,model:modelManifest,analysisData,ocrResources,gazetteerResources:{},gazetteer:{revision:'c'.repeat(64),manifestSha256:gazetteer.sha256}};
   await file(plugin,'runtime.json',JSON.stringify(catalog));return {plugin,seed,catalog};
 }
@@ -49,6 +49,16 @@ test('installed catalog refuses a mixed data revision, gazetteer or unpinned laz
       await assert.rejects(runtime.materializeWorkspace({pluginRoot:plugin,cacheRoot}),/pair|gazetteer|resource/i);
       await assert.rejects(readdir(cacheRoot),/ENOENT/);
     }
+  } finally {await rm(dir,{recursive:true,force:true});}
+});
+
+test('another valid pending model cannot silently replace the immutable private default',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'map-runtime-default-model-'));
+  try {
+    const {plugin,catalog}=await fixture(dir),model=await file(plugin,'model/candidate.onnx','different-candidate');
+    const manifest=await file(plugin,'model/candidate.manifest.json',JSON.stringify({trainingOnly:true,releaseApproved:false,evaluationStatus:'pending',model:{url:'candidate.onnx',sha256:model.sha256,bytes:model.bytes}}));
+    await writeFile(join(plugin,'runtime.json'),JSON.stringify({...catalog,model:manifest}));
+    await assert.rejects(runtime.materializeWorkspace({pluginRoot:plugin,cacheRoot:join(dir,'cache')}),/default model|model.*pair/i);
   } finally {await rm(dir,{recursive:true,force:true});}
 });
 
