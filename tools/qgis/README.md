@@ -47,9 +47,9 @@ QGIS edit session is not taken over. Changes stay in the QGIS edit buffer and
 use its Undo history until an explicit commit or rollback; either action also
 affects any other edits made to the same QGIS layer in that session. Commit
 writes through the layer's provider, so it can change the underlying source.
-Geometry edits currently require an EPSG:4326 layer, a valid two-dimensional
-WKT geometry of the existing feature's type and geographic coordinates. Other
-attribute types and projected-layer geometry edits remain on the existing bridge.
+Geometry edits use a valid two-dimensional EPSG:4326 WKT geometry of the
+existing feature's type. QGIS transforms it into the layer's CRS before editing.
+Other attribute types remain on the existing bridge.
 
 QGIS operations use upstream `nkarasiak/qgis-mcp` 0.15.2, commit
 `dae432367fcb2873a151b94c4faaadef2033cf9f`. Native QGIS LTR lives once at

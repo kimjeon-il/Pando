@@ -4,6 +4,8 @@
 #include <qgis.h>
 #include <qgisinterface.h>
 #include <qgisplugin.h>
+#include <qgscoordinatereferencesystem.h>
+#include <qgscoordinatetransform.h>
 #include <qgsfield.h>
 #include <qgsfields.h>
 #include <qgsfeature.h>
@@ -149,14 +151,20 @@ class Bridge final:public QObject,public QgisPlugin {
             if(!iterator.nextFeature(feature))throw QStringLiteral("QGIS feature ID not found");
             if(command==QStringLiteral("set-geometry")){
                 const auto wkt=request.value(QStringLiteral("wkt"));
-                if(!wkt.isString()||wkt.toString().isEmpty()||wkt.toString().size()>500000||layer->crs().authid()!=QStringLiteral("EPSG:4326"))
-                    throw QStringLiteral("Bounded WKT and an EPSG:4326 layer are required");
+                if(!wkt.isString()||wkt.toString().isEmpty()||wkt.toString().size()>500000||!layer->crs().isValid())
+                    throw QStringLiteral("Bounded EPSG:4326 WKT and a valid layer CRS are required");
                 auto geometry=QgsGeometry::fromWkt(wkt.toString());
                 if(geometry.isNull()||geometry.isEmpty()||!geometry.isGeosValid()||QgsWkbTypes::hasZ(geometry.wkbType())||QgsWkbTypes::hasM(geometry.wkbType())||
                     feature.geometry().isNull()||geometry.type()!=feature.geometry().type())throw QStringLiteral("A valid two-dimensional geometry of the existing feature type is required");
                 const auto bounds=geometry.boundingBox();
                 if(!std::isfinite(bounds.xMinimum())||!std::isfinite(bounds.xMaximum())||!std::isfinite(bounds.yMinimum())||!std::isfinite(bounds.yMaximum())||
                     bounds.xMinimum()<-180||bounds.xMaximum()>180||bounds.yMinimum()<-90||bounds.yMaximum()>90)throw QStringLiteral("Geometry coordinates must be geographic longitude and latitude");
+                const QgsCoordinateReferenceSystem geographic(QStringLiteral("EPSG:4326"));
+                if(layer->crs()!=geographic){
+                    QgsCoordinateTransform transform(geographic,layer->crs(),QgsProject::instance());
+                    if(!transform.isValid()||geometry.transform(transform)!=Qgis::GeometryOperationResult::Success||geometry.isEmpty()||!geometry.isGeosValid())
+                        throw QStringLiteral("Unable to transform geometry to the layer CRS");
+                }
                 layer->beginEditCommand(QStringLiteral("Pando geometry edit"));
                 if(!layer->changeGeometry(fid,geometry,true)){layer->destroyEditCommand();throw QStringLiteral("QGIS geometry change failed");}
                 layer->endEditCommand();layer->updateExtents();layer->triggerRepaint();return {{QStringLiteral("updated"),true}};
