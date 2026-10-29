@@ -5,7 +5,7 @@ import {existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs'
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {nativeOnnxDiagnostic,nativeOnnxExport} from '../../tools/reference-analysis/native-onnx-export.mjs';
+import {nativeCheckpointOnnxExport,nativeOnnxDiagnostic,nativeOnnxExport} from '../../tools/reference-analysis/native-onnx-export.mjs';
 
 test('native exporter refuses missing arguments and existing output',{skip:!process.env.PANDO_REFERENCE_ONNX_EXPORT_BINARY},t=>{
   const directory=mkdtempSync(join(tmpdir(),'pando-onnx-cli-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
@@ -29,4 +29,18 @@ test('ONNX export preserves existing output and refuses modified warm-start weig
     transfer:'weights-only-no-optimizer',weightsSha256:createHash('sha256').update('original').digest('hex')}));
   await assert.rejects(nativeOnnxExport({...request,output:unused}),/warm-start weights/);
   assert.equal(existsSync(unused),false);
+});
+test('checkpoint export refuses invalid resume proof and changed checkpoint bytes',{skip:process.platform!=='win32'},async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-onnx-checkpoint-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const checkpoint=join(root,'checkpoint.pt'),proof=join(root,'proof.json'),output=join(root,'new.onnx');
+  writeFileSync(checkpoint,'modified');
+  const receipt={purpose:'real-input-resume-proof',trainingOnly:true,releaseApproved:false,independentEvaluation:false,
+    exactModelResume:true,device:'cpu',checkpointBytes:8,checkpointSha256:createHash('sha256').update('original').digest('hex')};
+  writeFileSync(proof,JSON.stringify(receipt));
+  await assert.rejects(nativeCheckpointOnnxExport({checkpoint,proof,output,torchLibrary:root}),/matching private checkpoint/);
+  assert.equal(existsSync(output),false);
+  receipt.checkpointSha256=createHash('sha256').update('modified').digest('hex');receipt.releaseApproved=true;
+  writeFileSync(proof,JSON.stringify(receipt));
+  await assert.rejects(nativeCheckpointOnnxExport({checkpoint,proof,output,torchLibrary:root}),/matching private checkpoint/);
+  assert.equal(existsSync(output),false);
 });
