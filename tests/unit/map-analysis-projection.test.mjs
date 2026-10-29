@@ -31,3 +31,12 @@ test('projected affine fit, full-source pixel validation and prepared mesh share
   const mesh=calculate('mesh',{warp,columns:4,rows:4});
   assert.ok(mesh.vertices.every(v=>!v.coordinate||v.coordinate.every(Number.isFinite)));
 });
+test('valid controls cannot recommend an image whose outer pixels exceed projection domain',()=>{
+  const projection={kind:'aeqd',ellipsoid:'sphere',radius:6371008.8};
+  const images=Array.from({length:9},(_,i)=>[.25+(i%3)*.25,.25+Math.floor(i/3)*.25]);
+  const plane=images.map(([u,v])=>[(u-.5)*8*projection.radius,(v-.5)*8*projection.radius]);
+  const coordinates=calculate('projectionInverse',{projection,points:plane}).coordinates;
+  const points=images.map((image,i)=>({id:'g'+i,image,coordinate:coordinates[i]}));
+  const {quality}=selectReferenceImageGeoreference(points,{width:800,height:800},{mode:'affine',projection});
+  assert.equal(quality.recommended,false);assert.equal(quality.invalidDomain,true);
+});

@@ -25,7 +25,7 @@ export function selectReferenceImageGeoreference(points,source,{mode='auto',proj
   const candidates=(mode==='auto'?modes:[mode]).map(candidateMode=>{
     const warp=calculateReferenceImage('warp',{points,mode:candidateMode,projection});
     const quality=warp.ok?georeferenceQuality(warp.controlPoints,candidateMode,source,projection):null;
-    const eligible=warp.ok&&!quality.folded&&(mode!=='auto'||candidateMode!=='tps'||quality.recommended);
+    const eligible=warp.ok&&!quality.folded&&!quality.invalidDomain&&(mode!=='auto'||candidateMode!=='tps'||quality.recommended);
     return {mode:candidateMode,warp,quality,eligible};
   });
   let selected;
