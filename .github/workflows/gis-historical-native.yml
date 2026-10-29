@@ -81,10 +81,25 @@ jobs:
           python-version-file: .python-version
       - name: Install only the temporary original-generator oracle
         run: python -m pip install --quiet 'shapely==2.1.2' 'pyproj==3.7.2'
+      - name: Read only the pinned Natural Earth donor used by the recipe
+        run: |
+          node --input-type=module - <<'JS'
+          import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+          import {extractArchived,PATHS,APPROVED_NE_SHA} from './tools/gis/verify-german-1914-originals.mjs';
+          const pin=JSON.parse(readFileSync('config/library-data.json','utf8')).revision;
+          const base='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+pin+'/';
+          const get=async path=>{const r=await fetch(base+path,{signal:AbortSignal.timeout(120000)});if(!r.ok)throw Error('Pinned source HTTP '+r.status);return Buffer.from(await r.arrayBuffer());};
+          const index=JSON.parse((await get('archive/index.json')).toString('utf8'));
+          const entry=index.files[PATHS.naturalEarth];if(!entry||entry.sha256!==APPROVED_NE_SHA)throw Error('Pinned Natural Earth donor differs');
+          const source=extractArchived(index,PATHS.naturalEarth,await get(entry.stored));
+          mkdirSync('build-native/german-base',{recursive:true});writeFileSync('build-native/german-base/canonical-ne.json',source.bytes,{flag:'wx'});
+          console.log('NATURAL_EARTH_DONOR='+JSON.stringify({revision:pin,sha256:source.sha256,bytes:source.decodedBytes}));
+          JS
       - name: Compare synthetic generation with the original and verify the common native engine
         env:
           PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
           PANDO_GERMAN_ORACLE_PYTHON: python
+          PANDO_GERMAN_CANONICAL_NE: ${{ github.workspace }}/build-native/german-base/canonical-ne.json
         run: node --test tests/unit/gis-german-base-builder.test.mjs tests/unit/gis-german-base-native.test.mjs
   native-hgis:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'all'
