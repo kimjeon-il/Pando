@@ -1,0 +1,218 @@
+{
+  "schema": "pando-independent-hydronym-point-screen-v1",
+  "referenceHydroVersion": "v0.13.2",
+  "evidenceType": "independent-named-point-vs-published-mainstem-distance",
+  "nameIdentityVerified": false,
+  "geometryCopiedToRuntime": false,
+  "caveat": "A named register point does not represent the entire river; full independent vector alignment and topology are needed before name changes.",
+  "items": [
+    {
+      "systemId": "20071308",
+      "mainstemFeatureCount": 2,
+      "mainstemSegmentCount": 112,
+      "mainstemTotalLengthKm": 416.298,
+      "pointChecks": {
+        "finnish_nls_oulujoki": {
+          "river": "Oulujoki",
+          "publishedPointLonLat": [
+            25.56374,
+            64.99977
+          ],
+          "closestHydroMainstemKm": 1.964,
+          "nearestHydroLonLat": [
+            25.53958,
+            64.98542
+          ],
+          "sourceType": "Finland National Land Survey geographical names register",
+          "source": "https://finto.fi/yso-paikat/fi/page/p204727"
+        },
+        "finnish_nls_siikajoki": {
+          "river": "Siikajoki",
+          "publishedPointLonLat": [
+            24.74333,
+            64.83728
+          ],
+          "closestHydroMainstemKm": 37.737,
+          "nearestHydroLonLat": [
+            25.42311,
+            65.01459
+          ],
+          "sourceType": "Finland National Land Survey geographical names register",
+          "source": "https://finto.fi/yso-paikat/en/page/p139542"
+        }
+      }
+    },
+    {
+      "systemId": "20075401",
+      "mainstemFeatureCount": 1,
+      "mainstemSegmentCount": 31,
+      "mainstemTotalLengthKm": 179.022,
+      "pointChecks": {
+        "finnish_nls_oulujoki": {
+          "river": "Oulujoki",
+          "publishedPointLonLat": [
+            25.56374,
+            64.99977
+          ],
+          "closestHydroMainstemKm": 38.998,
+          "nearestHydroLonLat": [
+            24.89792,
+            64.79375
+          ],
+          "sourceType": "Finland National Land Survey geographical names register",
+          "source": "https://finto.fi/yso-paikat/fi/page/p204727"
+        },
+        "finnish_nls_siikajoki": {
+          "river": "Siikajoki",
+          "publishedPointLonLat": [
+            24.74333,
+            64.83728
+          ],
+          "closestHydroMainstemKm": 0.396,
+          "nearestHydroLonLat": [
+            24.73556,
+            64.83598
+          ],
+          "sourceType": "Finland National Land Survey geographical names register",
+          "source": "https://finto.fi/yso-paikat/en/page/p139542"
+        }
+      }
+    },
+    {
+      "systemId": "20456598",
+      "mainstemFeatureCount": 1,
+      "mainstemSegmentCount": 151,
+      "mainstemTotalLengthKm": 699.416,
+      "pointChecks": {
+        "kazakh_emba_atlas_location": {
+          "river": "Zhem/Emba",
+          "publishedPointLonLat": [
+            56.39972222222222,
+            47.87388888888889
+          ],
+          "closestHydroMainstemKm": 0.207,
+          "nearestHydroLonLat": [
+            56.40202,
+            47.87285
+          ],
+          "sourceType": "Secondary transcription of Kazakhstan encyclopedias (1990/1983); not an official GIS line",
+          "source": "https://silkadv.com/ru/node/4653"
+        },
+        "kazakh_ural_atlas_location": {
+          "river": "Zhaiyk/Ural",
+          "publishedPointLonLat": [
+            51.58833333333334,
+            49.577222222222225
+          ],
+          "closestHydroMainstemKm": 308.332,
+          "nearestHydroLonLat": [
+            53.10208,
+            46.99792
+          ],
+          "sourceType": "Secondary transcription of river monograph (1987); not an official GIS line",
+          "source": "https://silkadv.com/en/content/ural-river-kazakhstan"
+        }
+      }
+    },
+    {
+      "systemId": "20532766",
+      "mainstemFeatureCount": 3,
+      "mainstemSegmentCount": 127,
+      "mainstemTotalLengthKm": 601.479,
+      "pointChecks": {
+        "russian_sulak_2024_field_mouth": {
+          "river": "Sulak",
+          "publishedPointLonLat": [
+            47.537988,
+            43.259126
+          ],
+          "closestHydroMainstemKm": 38.108,
+          "nearestHydroLonLat": [
+            47.53798,
+            43.60208
+          ],
+          "sourceType": "Independent academic field sampling of Sulak on 12 August 2024",
+          "source": "https://www.mdpi.com/2073-4441/17/23/3390"
+        },
+        "russian_sulak_2024_field_upstream": {
+          "river": "Sulak",
+          "publishedPointLonLat": [
+            47.1130054,
+            43.3657051
+          ],
+          "closestHydroMainstemKm": 35.21,
+          "nearestHydroLonLat": [
+            47.38958,
+            43.61042
+          ],
+          "sourceType": "Independent academic field sampling of Sulak on 12 August 2024",
+          "source": "https://www.mdpi.com/2073-4441/17/23/3390"
+        },
+        "russian_terek_register_mouth": {
+          "river": "Terek",
+          "publishedPointLonLat": [
+            47.55972222222222,
+            43.59527777777778
+          ],
+          "closestHydroMainstemKm": 1.366,
+          "nearestHydroLonLat": [
+            47.55208,
+            43.60625
+          ],
+          "sourceType": "Secondary hydrological gazetteer giving Russian GVR ID 07020000212108200002513",
+          "source": "https://waterresources.ru/reki/terek/"
+        }
+      }
+    },
+    {
+      "systemId": "20540915",
+      "mainstemFeatureCount": 1,
+      "mainstemSegmentCount": 50,
+      "mainstemTotalLengthKm": 282.666,
+      "pointChecks": {
+        "russian_sulak_2024_field_mouth": {
+          "river": "Sulak",
+          "publishedPointLonLat": [
+            47.537988,
+            43.259126
+          ],
+          "closestHydroMainstemKm": 0.084,
+          "nearestHydroLonLat": [
+            47.53715,
+            43.25868
+          ],
+          "sourceType": "Independent academic field sampling of Sulak on 12 August 2024",
+          "source": "https://www.mdpi.com/2073-4441/17/23/3390"
+        },
+        "russian_sulak_2024_field_upstream": {
+          "river": "Sulak",
+          "publishedPointLonLat": [
+            47.1130054,
+            43.3657051
+          ],
+          "closestHydroMainstemKm": 0.03,
+          "nearestHydroLonLat": [
+            47.1133,
+            43.36586
+          ],
+          "sourceType": "Independent academic field sampling of Sulak on 12 August 2024",
+          "source": "https://www.mdpi.com/2073-4441/17/23/3390"
+        },
+        "russian_terek_register_mouth": {
+          "river": "Terek",
+          "publishedPointLonLat": [
+            47.55972222222222,
+            43.59527777777778
+          ],
+          "closestHydroMainstemKm": 34.557,
+          "nearestHydroLonLat": [
+            47.40208,
+            43.30625
+          ],
+          "sourceType": "Secondary hydrological gazetteer giving Russian GVR ID 07020000212108200002513",
+          "source": "https://waterresources.ru/reki/terek/"
+        }
+      }
+    }
+  ]
+}
