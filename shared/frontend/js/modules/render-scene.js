@@ -334,6 +334,7 @@ export function createRenderSceneBuilder({
     for (const cache of [polygonCache, strokeCache]) {
       for (const entryKey of [...cache.keys()]) if (entryKey.includes(needle)) deleteCacheEntry(cache, entryKey);
     }
+    for (const entryKey of prepared.keys()) if (entryKey.includes(needle)) prepared.delete(entryKey);
   }
 
   function missingPolygons(items, input = {}) {
@@ -345,6 +346,13 @@ export function createRenderSceneBuilder({
   }
 
   async function preparePolygons(items, input = {}) {
+    // This map is the current candidate's completed work, not another long-lived
+    // cache. Keep reusable batches while dropping inputs no longer requested.
+    const requested = new Set(items.filter(item => item?.key && isPolygonGeometry(item.geometry)).map(item => {
+      const context = packetContext(item, input);
+      return packetKey(item, 'polygon', context.lod, context.projection);
+    }));
+    for (const key of prepared.keys()) if (!requested.has(key)) prepared.delete(key);
     const missing = missingPolygons(items, input);
     if (!missing.length) return;
     if (!meshJobs) throw new TypeError('GPU mesh Worker owner is required.');
@@ -359,7 +367,6 @@ export function createRenderSceneBuilder({
     const aliases = new Map(groups.map(value => [value.request.cacheKey, value.keys]));
     const result = await meshJobs.preparePolygons(groups.map(value => value.request), revision);
     if (revision !== preparationRevision) return;
-    prepared.clear();
     for (const { cacheKey, packet } of result.packets) {
       for (const key of aliases.get(cacheKey) || []) prepared.set(key, packet);
     }
@@ -371,7 +378,7 @@ export function createRenderSceneBuilder({
     missingPolygons,
     preparePolygons,
     releasePrepared: () => prepared.clear(),
-    cancelPreparation: () => { preparationRevision += 1; prepared.clear(); meshJobs?.cancelAll('superseded'); },
+    cancelPreparation: () => { preparationRevision += 1; meshJobs?.cancelAll('superseded'); },
     invalidateGeometry,
     setCacheByteBudget: value => {
       cacheBudgetBytes = Math.max(1, Number(value) || 1);

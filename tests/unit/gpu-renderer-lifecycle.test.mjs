@@ -1,7 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import { createGpuMapRenderer,physicalSceneMatchesContext } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 import { createGpuResourceLifecycle } from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
+
+test('physical presentation requires the selected land and water revisions, including no water',()=>{
+  const polygon=(role,geometryRevision)=>({role,geometryRevision});
+  const target={ready:true,landRevision:'historical-land',waterRevision:'historical-water'};
+  assert.equal(physicalSceneMatchesContext({polygons:[polygon('physical-land','modern-land')]},target),false);
+  assert.equal(physicalSceneMatchesContext({polygons:[polygon('physical-land','historical-land')]},target),false);
+  const scene={polygons:[polygon('physical-land','historical-land'),polygon('physical-water','historical-water')]};
+  assert.equal(physicalSceneMatchesContext(scene,target),true);
+  assert.equal(physicalSceneMatchesContext(scene,{...target,ready:false}),false);
+  assert.equal(physicalSceneMatchesContext(scene,{...target,waterRevision:null}),false);
+  assert.equal(physicalSceneMatchesContext({polygons:[scene.polygons[0]]},{...target,waterRevision:null}),true);
+});
 
 test('disposing an awaited frame settles AbortError and a late callback is inert', async t => {
   let callback;

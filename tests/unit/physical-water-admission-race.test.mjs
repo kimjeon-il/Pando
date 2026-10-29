@@ -36,7 +36,7 @@ for(const requestModern of [true,false])test(requestModern
   resource.connect({projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},
     cutGeometry:{coordinateBounds:()=>[0,0,6,1]},platform:{d3:{geo:{centroid:()=>[0,0]}}},
     hydroPresentation:{allBuiltInHydroFeatures:()=>[...state.hydroFeatureCache.values()],HYDRO_LAYER_META:{lakes_base:{category:'lake'}},hydroCategoryKey:value=>value},
-    physicalServices:{isHydroFeatureVisible:()=>true},
+    physicalServices:{isHydroFeatureVisible:feature=>feature.id!==caspian.id},
     domains:{projectDomain:{admitSelectionCatalog:async (_domain,references)=>{
       references();admissions++;
       if(admissions===1){firstAdmission.resolve();await releaseFirst.promise;}
@@ -47,6 +47,9 @@ for(const requestModern of [true,false])test(requestModern
   state.timelineCursor='1922';void resource.physicalLand;
   await firstAdmission.promise;
   assert.equal(state.hydroFeatureCache.has(aral.id),true,'the first historical lake is awaiting canonical admission');
+  assert.equal(resource.physicalContextState.ready,true,'immutable physical masks must not wait for Core admission queued after the temporal frame');
+  assert.equal(resource.physicalLand.revision,historyLand.sha256,'the prepared physical mask can render while identity admission is pending');
+  assert.deepEqual(resource.physicalLand.water,box(5),'a hidden second lake stays hidden before its canonical admission');
   state.timelineCursor='1930';
   if(requestModern){
     void resource.physicalLand;await modernReady.promise;
