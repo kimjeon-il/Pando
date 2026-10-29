@@ -3,6 +3,8 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { compareNaturalEarthMainstems, naturalEarthHydronym,
   pointToLineDistance, pythonRound, runNaturalEarthScreen } from '../../tools/gis/compare-osm-hydro-natural-earth.mjs';
@@ -102,4 +104,13 @@ test('CLI checks Natural Earth bytes and never overwrites input files',t=>{
   assert.throws(()=>runNaturalEarthScreen(params),/EEXIST/);
   params[5]='0'.repeat(64);
   assert.throws(()=>runNaturalEarthScreen(params),/SHA-256/);
+});
+test('CLI emits the reviewed per-system rows needed by existing audit consumers',t=>{
+  const dir=mkdtempSync(join(tmpdir(),'hydro-ne-cli-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const source=join(dir,'ne.json'),geo=join(dir,'decoded.json'),review=join(dir,'review.json'),output=join(dir,'output.json');
+  writeFileSync(source,JSON.stringify(ne()));writeFileSync(geo,JSON.stringify(decoded()));writeFileSync(review,JSON.stringify(scope()));
+  const cli=fileURLToPath(new URL('../../tools/gis/compare-osm-hydro-natural-earth.mjs',import.meta.url));
+  const stdout=execFileSync(process.execPath,[cli,'--decoded',geo,'--natural-earth',source,'--expected-sha256',hash(readFileSync(source)),'--inventory',review,'--output',output],{encoding:'utf8'});
+  const row=stdout.split(/\r?\n/).find(line=>line.startsWith('OSM_NE_ROW='));
+  assert.ok(row);assert.equal(JSON.parse(row.slice('OSM_NE_ROW='.length)).systemId,'42');
 });

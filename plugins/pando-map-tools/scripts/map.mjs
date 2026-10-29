@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 import { readFile, mkdir, open, unlink } from 'node:fs/promises';
 import { resolve, dirname, relative, isAbsolute, basename } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { prepareRuntime } from '../lib/runtime.mjs';
+import { acquire } from '../lib/map-source.mjs';
 
-const run=promisify(execFile),controller=new globalThis.AbortController();
+const controller=new globalThis.AbortController();
 const abort=()=>controller.abort(new Error('Cancelled by SIGINT'));
 process.once('SIGINT',abort);let lock,jobPath;
 const progress=data=>process.stderr.write(JSON.stringify(data)+'\n');
@@ -33,8 +31,7 @@ try {
     let input=options.input,provenance=options.provenance?JSON.parse(await readFile(options.provenance,'utf8')):null;
     if(options.source) {
       progress({phase:'source',status:'acquiring'});
-      const acquired=await run(runtime.python,[fileURLToPath(new URL('../lib/map_source.py',import.meta.url)),resolve(options.source),jobPath+'.input'],{signal:controller.signal,windowsHide:true,maxBuffer:1000000});
-      const source=JSON.parse(acquired.stdout);
+      const source=await acquire(JSON.parse(await readFile(resolve(options.source),'utf8')),jobPath+'.input',{signal:controller.signal});
       if(!['acquired-unlabelled','verified-existing'].includes(source.status))throw Object.assign(new Error('Map source is unavailable: '+source.status),{code:'PL-MAP-SOURCE'});
       input=source.path;provenance=JSON.parse(await readFile(source.provenancePath,'utf8'));
     }

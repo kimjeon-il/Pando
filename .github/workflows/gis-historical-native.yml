@@ -39,17 +39,93 @@ on:
       - 'tests/unit/gis-caspian-source-zip.test.mjs'
       - 'tools/historical-library/german-empire-1914-base.recipe.json'
       - 'tests/unit/gis-german-base-native.test.mjs'
+      - 'tests/unit/gis-german-base-builder.test.mjs'
+      - 'tools/gis/build-german-1914-base.mjs'
       - 'tools/gis/verify-german-1914-originals.mjs'
       - 'tests/unit/gis-german-1914-originals.test.mjs'
       - 'tools/fetch-german-empire-1914-source.mjs'
       - '.github/workflows/gis-historical-native.yml'
   workflow_dispatch:
+    inputs:
+      target:
+        description: Native verification scope
+        type: choice
+        options: [all, german-base, german-windows]
+        default: all
 
 permissions:
   contents: read
 
 jobs:
+  german-base-windows:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'german-windows'
+    runs-on: windows-2022
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check space for the isolated CI compiler and GIS SDK
+        shell: pwsh
+        run: |
+          $drive = Get-PSDrive -Name C
+          if ($drive.Free -lt 9GB) { throw 'The CI runner needs 4 GiB estimated build space plus 5 GiB headroom' }
+          Write-Output "Windows CI free bytes: $($drive.Free)"
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the existing GEOS/PROJ territorial engine on Windows
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Run the frozen synthetic generator and engine contracts
+        env:
+          PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe.exe
+        run: node --test tests/unit/gis-german-base-builder.test.mjs tests/unit/gis-german-base-native.test.mjs
+  german-base-migration:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'german-base'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the existing GEOS/PROJ territorial engine
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Read only the pinned Natural Earth donor used by the recipe
+        run: |
+          node --input-type=module - <<'JS'
+          import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+          import {extractArchived,PATHS,APPROVED_NE_SHA} from './tools/gis/verify-german-1914-originals.mjs';
+          const pin=JSON.parse(readFileSync('config/library-data.json','utf8')).revision;
+          const base='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+pin+'/';
+          const get=async path=>{const r=await fetch(base+path,{signal:AbortSignal.timeout(120000)});if(!r.ok)throw Error('Pinned source HTTP '+r.status);return Buffer.from(await r.arrayBuffer());};
+          const index=JSON.parse((await get('archive/index.json')).toString('utf8'));
+          const entry=index.files[PATHS.naturalEarth];if(!entry||entry.sha256!==APPROVED_NE_SHA)throw Error('Pinned Natural Earth donor differs');
+          const source=extractArchived(index,PATHS.naturalEarth,await get(entry.stored));
+          mkdirSync('build-native/german-base',{recursive:true});writeFileSync('build-native/german-base/canonical-ne.json',source.bytes,{flag:'wx'});
+          console.log('NATURAL_EARTH_DONOR='+JSON.stringify({revision:pin,sha256:source.sha256,bytes:source.decodedBytes}));
+          JS
+      - name: Compare the frozen original-generator cases and verify the common native engine
+        env:
+          PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
+          PANDO_GERMAN_CANONICAL_NE: ${{ github.workspace }}/build-native/german-base/canonical-ne.json
+        run: node --test tests/unit/gis-german-base-builder.test.mjs tests/unit/gis-german-base-native.test.mjs
   native-hgis:
+    if: github.event_name != 'workflow_dispatch' || inputs.target == 'all'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     defaults:

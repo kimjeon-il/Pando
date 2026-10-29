@@ -1,4 +1,4 @@
-/** Read-only pinned HydroRIVERS/Natural Earth 81-sample name-screen parity candidate.
+/** Read-only pinned HydroRIVERS/Natural Earth 81-sample name screen.
  * A name near a mainstem may be a tributary and is never automatically approved.
  */
 import { createHash } from 'node:crypto';
@@ -188,6 +188,7 @@ export function runNaturalEarthScreen(argv=process.argv.slice(2)){
   writeFileSync(path('--output'),JSON.stringify(proof,null,2)+'\n',{flag:'wx'});
   console.log('OSM_NE_TOTAL='+proof.items.length);
   console.log('OSM_NE_NAMED_PARTS='+proof.naturalEarthNamedParts);
+  for(const row of proof.items)console.log('OSM_NE_ROW='+JSON.stringify(row));
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{runNaturalEarthScreen();}catch(error){console.error('hydro-ne-screen: '+error.message);process.exitCode=1;}

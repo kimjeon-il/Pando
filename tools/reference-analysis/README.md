@@ -25,7 +25,7 @@ node --test tests/reference-analysis/onnx-interface.test.mjs only to check its
 actual Node/WASM interface. This diagnostic is never a release model.
 
 ```powershell
-& build-native/python/Scripts/python.exe tools/reference-analysis/acquire-sources.py --output EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
+node tools/reference-analysis/acquire-sources.mjs --output EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
 & build-native/python/Scripts/python.exe tools/reference-analysis/prepare-analysis-images.py --sources EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
 ```
 
@@ -170,7 +170,7 @@ water polygons are not silently relabelled as coastline.
 ```powershell
 $publisherCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/usgs-publisher'
 $firstModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/usgs-publisher-v1'
-& $trainingPython tools/reference-analysis/acquire-sources.py --catalog tools/reference-analysis/usgs-source-catalog.json --output "$publisherCorpus/sources"
+node tools/reference-analysis/acquire-sources.mjs --catalog tools/reference-analysis/usgs-source-catalog.json --output "$publisherCorpus/sources"
 & $trainingPython tools/reference-analysis/publisher.py --sources "$publisherCorpus/sources"
 $env:TORCH_HOME = "$firstModel/encoder"
 & $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --output "$firstModel/boundary.pt" --epochs 12 --batch 1 --device cuda
@@ -262,7 +262,7 @@ annotations CC BY 4.0, image reuse conditions in the authors' `license_images.md
 
 `macro-source-catalog.json` pins whole published world/continent/country
 maps, distinct from the city patches and detailed US Topo sheets above. Acquire
-the catalogued PDFs with `acquire-sources.py`; run `macro.py` from this app checkout
+the catalogued PDFs with `acquire-sources.mjs`; run `macro.py` from this app checkout
 against the external sources directory. It reuses the current raster corpus,
 trainer, inspection and ONNX verification owners. No product/runtime owner changes.
 
@@ -280,7 +280,7 @@ PDF bytes and whole-map scope are hash-bound in the corpus fingerprint.
 ```powershell
 $macroCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/macro-political'
 $macroModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v2'
-& $trainingPython tools/reference-analysis/acquire-sources.py --catalog tools/reference-analysis/macro-source-catalog.json --output "$macroCorpus/sources"
+node tools/reference-analysis/acquire-sources.mjs --catalog tools/reference-analysis/macro-source-catalog.json --output "$macroCorpus/sources"
 & $trainingPython tools/reference-analysis/macro.py --sources "$macroCorpus/sources" --manifest-name corpus.conditions.training.json
 & $trainingPython tools/reference-analysis/train.py train --training-only --macro-only --corpus "$macroCorpus/corpus.conditions.training.json" --initialize-checkpoint 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v1/boundary.pt' --output "$macroModel/boundary.pt" --epochs 8 --batch 1 --device cuda --balance-sources --learning-rate 0.00001 --freeze-encoder-epochs 2
 & $trainingPython tools/reference-analysis/train.py export --checkpoint "$macroModel/boundary.pt" --output "$macroModel/boundary.onnx"

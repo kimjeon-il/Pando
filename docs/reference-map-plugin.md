@@ -33,7 +33,7 @@ Codex uses existing web tools to select a source when extent, depicted period,
 map type and rights are clear, asking only when interpretation is unresolved.
 Survey/publication/revision dates and later historical reconstructions are
 recorded separately. Bounded JPEG/PDF/PNG/WebP acquisition and training corpus
-acquisition share `lib/map_source.py`; source bytes are never overwritten.
+acquisition share `lib/map-source.mjs`; source bytes are never overwritten.
 User maps and outputs remain private and are never automatically published.
 
 The installed skill runs `<skill_root>/scripts/map.mjs` without local paths.

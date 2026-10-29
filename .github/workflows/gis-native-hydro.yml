@@ -13,12 +13,133 @@ on:
       - 'tests/test_hydro_connectivity.py'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
+    inputs:
+      target:
+        description: Standalone native tool to build and verify
+        type: choice
+        options: [hydro, pc-allocation, reference-loss, reference-windows]
+        default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  reference-windows:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-windows'
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space and acquire the matching Windows LibTorch SDK
+        shell: pwsh
+        run: |
+          if ((Get-PSDrive -Name C).Free -lt 9GB) { throw 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom' }
+          New-Item -ItemType Directory -Force -Path build-native/reference-analysis | Out-Null
+          curl.exe --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 220000000 'https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.14.1%2Bcpu.zip' --output build-native/reference-analysis/libtorch.zip
+          if ($LASTEXITCODE -ne 0) { throw 'LibTorch SDK download failed' }
+          Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256
+          if ((Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256).Hash -ne '28FFDDE0A7FF3B431139709B4A91B8B6D59FDE3BE67B76FD88D0C913EF8973F7') { throw 'LibTorch SDK SHA-256 mismatch' }
+          Expand-Archive -Path build-native/reference-analysis/libtorch.zip -DestinationPath build-native/reference-analysis
+          Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
+      - name: Build the optional reference inference tools
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/reference-analysis/native -A x64 -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch" -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
+          if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed' }
+          cmake --build build-native/reference-analysis/native --config Release --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer --parallel 1
+          if ($LASTEXITCODE -ne 0) { throw 'Native reference build failed' }
+      - name: Verify Windows loss behavior
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          & build-native/reference-analysis/native/Release/pando-reference-loss-tests.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Loss test failed' }
+      - name: Verify Windows model inference against every original output
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          & build-native/reference-analysis/native/Release/pando-reference-model-tests.exe tests/fixtures/reference-model-synthetic-logits.f32 --inference-only
+          if ($LASTEXITCODE -ne 0) { throw 'Model test failed' }
+      - name: Verify Windows Safetensors behavior
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          & build-native/reference-analysis/native/Release/pando-safetensors-tests.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Safetensors test failed' }
+      - name: Verify Windows inference rejects invalid requests
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          $env:PANDO_REFERENCE_INFER_BINARY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-infer.exe"
+          node --test tests/unit/reference-infer-cli.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Inference CLI test failed' }
+      - name: Verify Windows checkpoint preserves optimizer, RNG and sampling
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          & build-native/reference-analysis/native/Release/pando-training-checkpoint-tests.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Checkpoint resume test failed' }
+      - name: Verify a frozen encoder AdamW update separately
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          & build-native/reference-analysis/native/Release/pando-reference-model-tests.exe tests/fixtures/reference-model-synthetic-logits.f32
+          if ($LASTEXITCODE -ne 0) { throw 'Frozen encoder training test failed' }
+      - name: Package only the source-bound native executable
+        shell: pwsh
+        run: |
+          node tools/reference-analysis/package-native-reference.mjs --binary build-native/reference-analysis/native/Release/pando-reference-infer.exe --directory build-native/reference-analysis/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Artifact packaging failed' }
+          Copy-Item build-native/reference-analysis/native/Release/pando-reference-model-tests.exe build-native/reference-analysis/artifact/pando-reference-model-tests.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-reference-windows-x64-${{ github.sha }}
+          path: build-native/reference-analysis/artifact/
+          if-no-files-found: error
+          retention-days: 7
+  reference-loss:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-loss'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check space and acquire the fixed LibTorch CPU SDK
+        run: |
+          set -euo pipefail
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+          mkdir -p build-native/reference-analysis
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
+            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
+            --output build-native/reference-analysis/libtorch.zip
+          sha256sum build-native/reference-analysis/libtorch.zip
+          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
+          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
+      - name: Build the native boundary loss and model tests
+        run: |
+          cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
+          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer --parallel 1
+      - name: Compare original loss, model fixtures and Safetensors validation
+        run: |
+          build-native/reference-analysis/native/pando-reference-loss-tests
+          build-native/reference-analysis/native/pando-reference-model-tests tests/fixtures/reference-model-synthetic-logits.f32
+          build-native/reference-analysis/native/pando-safetensors-tests
+          build-native/reference-analysis/native/pando-training-checkpoint-tests
+      - name: Verify native inference command rejects invalid requests
+        env:
+          PANDO_REFERENCE_INFER_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-infer
+        run: node --test tests/unit/reference-infer-cli.test.mjs
   native-hydro:
+    if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -49,3 +170,34 @@ jobs:
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro/pando-hydro-connectivity
         run: python -m unittest discover -s tests -p 'test_hydro_connectivity.py' -v
+  pc-allocation:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'pc-allocation'
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build only the standalone Windows allocation auditor
+        run: |
+          cmake -S tools/cpp -B build-native/pc-allocation -A x64 -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_CONNECTIVITY=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF -DPANDO_BUILD_PC_ALLOCATION=ON
+          cmake --build build-native/pc-allocation --config Release --target pando-pc-file-allocation
+      - name: Verify real Windows file identities and allocation
+        env:
+          PANDO_PC_ALLOCATION_BINARY: ${{ github.workspace }}/build-native/pc-allocation/Release/pando-pc-file-allocation.exe
+        run: node --test tests/unit/pc-file-allocation-native.test.mjs tests/unit/native-tool.test.mjs
+      - name: Package source and binary identities
+        run: node tools/package-native-allocation.mjs --binary build-native/pc-allocation/Release/pando-pc-file-allocation.exe --directory build-native/pc-allocation
+      - name: Verify the downloaded-tool invocation contract in the real cleanup owner
+        run: node --test tests/unit/pc-cleanup.test.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-pc-allocation-windows-x64-${{ github.sha }}
+          path: |
+            build-native/pc-allocation/pando-pc-file-allocation.exe
+            build-native/pc-allocation/native-tool.manifest.json
+          if-no-files-found: error
+          retention-days: 7
