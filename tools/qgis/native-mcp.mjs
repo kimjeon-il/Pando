@@ -15,6 +15,11 @@ function createServer(){
     async(_args,extra)=>respond([...options,'start'],extra.signal));
   server.registerTool('qgis_native_status',{description:'Inspect the authenticated native QGIS instance.',inputSchema:empty},
     async(_args,extra)=>respond([...options,'status'],extra.signal));
+  server.registerTool('qgis_native_project',{description:'Inspect the current QGIS project and its first ten layers.',inputSchema:empty},
+    async(_args,extra)=>respond([...options,'project'],extra.signal));
+  server.registerTool('qgis_native_layers',{description:'List QGIS layers with bounded pagination.',
+    inputSchema:z.strictObject({offset:z.number().int().min(0).max(100000000).default(0),limit:z.number().int().min(1).max(100).default(50)})},
+  async({offset,limit},extra)=>respond([...options,'layers','--offset',String(offset),'--limit',String(limit)],extra.signal));
   server.registerTool('qgis_native_open',{description:'Open an existing vector file in native QGIS.',inputSchema:z.strictObject({input:path})},
     async({input},extra)=>respond([...options,'open',input],extra.signal));
   server.registerTool('qgis_native_export',{description:'Export a layer as normalized EPSG:4326 GeoJSON without overwriting an existing file.',

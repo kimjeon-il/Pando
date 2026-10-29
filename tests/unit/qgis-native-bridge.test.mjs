@@ -22,6 +22,9 @@ async function fixture(t){
       const request=JSON.parse(text.slice(0,text.indexOf('\n')));assert.equal(request.token,'cli-test-token');
       let result;
       if(request.command==='status')result={transport:'pando-native-v1',qgis_version:'3.44.15'};
+      else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
+      else if(request.command==='layers'){assert.equal(request.offset,0);assert.equal(request.limit,10);
+        result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
       else if(request.command==='open'){assert.equal(request.path,input);result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};}
       else if(request.command==='export'){
         assert.equal(request.layer,'layer-1');writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',
@@ -39,6 +42,10 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const {root,input,config}=await fixture(t);
   const status=await run(['--config',config,'status']);assert.equal(status.code,0,status.stderr);
   assert.equal(JSON.parse(status.stdout).transport,'pando-native-v1');
+  const project=await run(['--config',config,'project']);assert.equal(project.code,0,project.stderr);assert.equal(JSON.parse(project.stdout).layer_count,1);
+  const layers=await run(['--config',config,'layers','--offset','0','--limit','10']);assert.equal(layers.code,0,layers.stderr);
+  assert.equal(JSON.parse(layers.stdout).layers[0].id,'layer-1');
+  const invalidPage=await run(['--config',config,'layers','--limit','101']);assert.notEqual(invalidPage.code,0);
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);
   assert.equal(JSON.parse(opened.stdout).id,'layer-1');
   const output=join(root,'output.geojson');const exported=await run(['--config',config,'export','--layer','layer-1','--output',output]);

@@ -47,3 +47,15 @@ test('native QGIS request honors cancellation and response size limits',async t=
   const controller=new globalThis.AbortController(),pending=requestNativeQgis(config,{command:'open'},{signal:controller.signal});
   controller.abort();await assert.rejects(pending,/abort/i);
 });
+
+test('native QGIS can inspect project and paginated layers without executing code',async t=>{
+  const config=await fixture(t,(socket,request)=>{
+    if(request.command==='project')socket.end(JSON.stringify({ok:true,result:{title:'map',layer_count:1,layers:[{id:'layer-1'}]}})+'\n');
+    else if(request.command==='layers'){
+      assert.equal(request.offset,0);assert.equal(request.limit,10);
+      socket.end(JSON.stringify({ok:true,result:{layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10}})+'\n');
+    }else throw Error('Unexpected command');
+  });
+  assert.equal((await requestNativeQgis(config,{command:'project'})).layer_count,1);
+  assert.equal((await requestNativeQgis(config,{command:'layers',offset:0,limit:10})).layers[0].id,'layer-1');
+});
