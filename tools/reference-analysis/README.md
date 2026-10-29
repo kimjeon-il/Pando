@@ -89,6 +89,17 @@ Labels use EXIF-oriented original pixel coordinates and dimensions:
   "reviewed": false,
   "width": 1600,
   "height": 1200,
+  "review": {
+    "kind": "agent",
+    "reviewer": "source-reader",
+    "sourceSha256": "SHA256_OF_THE_EXACT_ORIENTED_INPUT_FILE",
+    "predictionBlind": true,
+    "coverage": "partial",
+    "reviewedAt": null
+  },
+  "known": {
+    "international": [[[110, 130], [190, 130], [190, 220], [110, 220]]]
+  },
   "lines": [
     { "kind": "international", "points": [[120, 140], [180, 210]], "width": 3 }
   ],
@@ -104,7 +115,24 @@ unreadable areas in `ignore`. City symbols, original transcriptions, independent
 georeference check points and source-date evidence must also be retained with the
 corpus; the segmentation line schema does not replace their independent review.
 
-Prepare a draft directly from the verified acquired JPEG sources, without making
+The reviewed identity uses the exact input hash and actual UTC time ending in
+`Z`. Record agent review as `agent`, never `human`. Explicit per-channel `known`
+polygons are mandatory: pixels/classes outside them stay unknown, rather than
+becoming negative truth. Positive stroke caps must fit the known regions too.
+Colour and connected text may overlap boundary channels. PNG alpha is composited
+on white by the same oriented-image owner used by plugin analysis.
+
+Use `coverage: partial` for reviewed patches. Only a source reviewed over its
+whole readable map may use `whole-readable-map`; partial labels can train and
+produce scoped diagnostic counts but cannot qualify whole-map accuracy. Freeze
+original/family/edition/duplicate identities and source-blind labels before
+predictions. Keep reversible pre-training corrections with the original hashes.
+Select a candidate with a separate frozen validation corpus, then freeze its
+checkpoint and threshold before final-test evaluation. Inherited checkpoints
+need complete ancestral training and selection lineage; otherwise use a verified
+public pretrained encoder. Missing lineage is not cured by changing approval flags.
+
+Prepare a draft directly from verified acquired PNG, JPEG or WebP sources, without making
 another image copy:
 
 ```powershell
