@@ -23,6 +23,7 @@ node tools/qgis/native-bridge.mjs clear-selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs begin-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs set-attribute --layer QGIS_LAYER_ID --fid 1 --field name --json '"새 이름"'
 node tools/qgis/native-bridge.mjs set-geometry --layer QGIS_LAYER_ID --fid 1 --wkt 'POINT (127 37)'
+node tools/qgis/native-bridge.mjs delete-feature --layer QGIS_LAYER_ID --fid 1
 node tools/qgis/native-bridge.mjs undo-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs redo-edit --layer QGIS_LAYER_ID
 # Choose one ending for the session:
@@ -51,6 +52,8 @@ QGIS edit session is not taken over. Changes stay in the QGIS edit buffer and
 use its Undo history until an explicit commit or rollback; either action also
 affects any other edits made to the same QGIS layer in that session. Commit
 writes through the layer's provider, so it can change the underlying source.
+Feature deletion has the same edit-session and undo/rollback boundary; it does
+not write the provider until the session is explicitly committed.
 Geometry edits use a valid two-dimensional EPSG:4326 WKT geometry of the
 existing feature's type. QGIS transforms it into the layer's CRS before editing.
 Attribute values are exact JSON text so integers are not rounded in transit;

@@ -9,7 +9,37 @@
 
 ## 2026-10-29 잔여 기준 목록
 
+### 2026-10-30 재개 기준: 추적 Python 46개
+
+`work/gis` 통합 기준 `2c41bf5f`: 도구 26개, 테스트 20개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+
+| 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
+| --- | --- | --- |
+| `plugins/pando-map-tools/lib/raster.py` | 공통 C++ 이미지/PDF 도구; 지도 분석 플러그인 | EXIF, 페이지, crop, 투명도, GeoPDF 좌표와 원본 출력 비교 |
+| `tools/qgis/bootstrap.py`, `tools/qgis/bridge.py` | 네이티브 QGIS 플러그인과 Node CLI/MCP; QGIS 실행 설정 | 실제 사용 편집·처리, 인증, 좌표·ID·출처, 내보내기 왕복 |
+| `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
+| `tools/repair-hydro-connectivity.py`, `tools/verify-hydro-connectivity.py` | 같은 C++ 수계 엔진과 Node 복구·검증 명령; Actions | 전후 연결, 거부·오류와 실자료 선택 범위 비교 |
+| `tools/build-physical-data.py`, `tools/build-terrain-dem.py`, `tools/build-terrain-preview.py`, `tools/verify-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
+| `tools/build_german_empire_1914_modern_coast.py`, `tools/supplement-lsib-boundaries.py`, `tools/verify-lsib-screen-delta.py` | C++ 영토 레시피·GEOS와 Node 출처·검증; 역사 GIS 명령 | ID·기간·귀속·위상, 화면 차이, 고정 사례 및 보유 원본 |
+| `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
+| `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
+| `tools/reference-analysis/evaluation.py`, `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
+| `tools/reference-analysis/macro.py`, `tools/reference-analysis/publisher.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
+| `tools/reference-analysis/semap.py`, `tools/reference-analysis/prepare-analysis-images.py` | Node ZIP·출처 소유자와 C++ 영상 계층; 자료 준비 명령 | 범위 다운로드·CRC·SHA, 라벨·이미지 동등성, 취소·실패 |
+| `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
+| `tests/python/test_build_terrain_dem.py`, `tests/python/test_build_terrain_preview.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
+| `tests/python/test_map_plugin_geopdf.py`, `tests/test_map_plugin_raster.py` | CTest와 Node 지도 영상·GeoPDF 검사 | EXIF·PDF·투영 좌표·크기 제한 및 잘못된 입력 |
+| `tests/python/test_qgis_bridge.py` | Node/QGIS 실제 연결·왕복 검사 | 인증·편집·롤백·내보내기 및 덮어쓰기 거부 |
+| `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
+| `tests/python/test_reference_analysis_corpus.py`, `tests/python/test_reference_analysis_review.py`, `tests/python/test_reference_analysis_sources.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
+| `tests/python/test_reference_analysis_evaluation.py`, `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
+| `tests/python/test_reference_analysis_macro.py`, `tests/python/test_reference_analysis_publisher.py`, `tests/python/test_reference_analysis_semap.py` | Node/C++ 출처별 코퍼스 생성 검사 | PDF 계층·라벨·mask·ZIP과 출처 불일치 |
+| `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
+| `tests/test_lsib_boundary_supplement.py` | CTest/Node LSIB 레시피·화면 차이 검사 | 형상·공유 경계·출처·화면 차이의 고정 사례 |
+
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
+
+- **검증 대기:** 네이티브 QGIS의 단일 피처 삭제를 브리지 소유 편집 세션과 Undo/Redo·롤백에 연결했다. CLI/MCP 고정 입력 검사는 통과했으며 소스 일치 QGIS 바이너리 빌드와 실제 세션 검증은 진행 중이다. 기존 Python 연결은 유지한다.
 
 - 학습 전환 체크포인트: 현재 Python 모델의 BCE·Dice·연결성 손실과 관측되지 않은 채널의 gradient 고정 사례를 C++ LibTorch로 이전했다. MobileNetV3 encoder·overview·position·decoder·7채널 모델의 340개 텐서 이름, Safetensors 로더와 Python이 만든 합성 logits 전체(기준 SHA-256 `ca115f9ebed8308c702b137f10a08129fec30169e9659af47be05c47439dd218`, 최대 오차 0.005 이하)를 [CI 40840912107](https://github.com/kimjeon-il/Pando/actions/runs/40840912107)에서 확인했다. Windows용 LibTorch 2.14 헤더가 C++20을 요구하므로 **선택형 학습 대상에만 C++20을 적용**하고 다른 GIS·앱 대상은 기존 C++17을 유지한다. 비공개 macro-v6 가중치를 optimizer 없는 warm-start로 한 번 추출하고 보존 지도 입력에서 추론 및 제한된 학습·재개를 검증했다. 새 학습 체크포인트의 ONNX 내보내기와 전체 학습 실행 경로는 미완료이며 관련 Python과 원본 모델은 유지한다.
 - 실제 보존 지도 PNG(`cc8a18a0…8595ad81`, 1680×1290)에서 만든 첫 타일과 비공개 macro-v6의 기존 Python/Node ONNX WASM 전체 logits를 비교했다. 최대 절대오차는 `0.0002338886260986328`이며 0.005 기준 이내다. 이는 기존 모델의 실행 동등성 기준이며, 새 C++의 실모델 결과나 독립 정확도 승인은 아니다.

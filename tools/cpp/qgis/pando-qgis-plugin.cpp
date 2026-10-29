@@ -180,7 +180,7 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("features"),page},{QStringLiteral("hasMore"),hasMore},{QStringLiteral("crs"),layer->crs().authid()},
                 {QStringLiteral("totalFeatures"),QString::number(layer->featureCount())},{QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit}};
         }
-        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")){
+        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")||command==QStringLiteral("delete-feature")){
             const auto id=request.value(QStringLiteral("layer")).toString();
             auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
             if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
@@ -215,6 +215,11 @@ class Bridge final:public QObject,public QgisPlugin {
             if(!fidValue.isString()||!integer.match(text).hasMatch()||!valid)throw QStringLiteral("A signed QGIS feature ID is required");
             QgsFeature feature;auto iterator=layer->getFeatures(QgsFeatureRequest().setFilterFid(fid));
             if(!iterator.nextFeature(feature))throw QStringLiteral("QGIS feature ID not found");
+            if(command==QStringLiteral("delete-feature")){
+                layer->beginEditCommand(QStringLiteral("Pando feature deletion"));
+                if(!layer->deleteFeature(fid)){layer->destroyEditCommand();throw QStringLiteral("QGIS feature deletion failed");}
+                layer->endEditCommand();layer->updateExtents();layer->triggerRepaint();return {{QStringLiteral("deleted"),true}};
+            }
             if(command==QStringLiteral("set-geometry")){
                 const auto wkt=request.value(QStringLiteral("wkt"));
                 if(!wkt.isString()||wkt.toString().isEmpty()||wkt.toString().size()>500000||!layer->crs().isValid())
