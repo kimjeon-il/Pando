@@ -5,7 +5,7 @@ import {existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs'
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {nativeOnnxExport} from '../../tools/reference-analysis/native-onnx-export.mjs';
+import {nativeOnnxDiagnostic,nativeOnnxExport} from '../../tools/reference-analysis/native-onnx-export.mjs';
 
 test('native exporter refuses missing arguments and existing output',{skip:!process.env.PANDO_REFERENCE_ONNX_EXPORT_BINARY},t=>{
   const directory=mkdtempSync(join(tmpdir(),'pando-onnx-cli-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
@@ -22,6 +22,7 @@ test('ONNX export preserves existing output and refuses modified warm-start weig
   writeFileSync(weights,'weights');writeFileSync(output,'existing model');
   const request={weights,output,torchLibrary:root};
   await assert.rejects(nativeOnnxExport(request),/output exists/);
+  await assert.rejects(nativeOnnxDiagnostic({output,torchLibrary:root}),/output exists/);
   assert.equal(readFileSync(output,'utf8'),'existing model');
   const unused=join(root,'new.onnx');
   writeFileSync(join(root,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,

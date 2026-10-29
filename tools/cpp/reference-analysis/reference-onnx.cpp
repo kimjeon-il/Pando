@@ -106,6 +106,10 @@ public:
     std::string build(ReferenceBoundaryModel& model){
         if(model->is_training()||model->encoder->size()!=17||model->overview->size()!=5||model->context->size()!=2||model->decode->size()!=4)
             throw std::runtime_error("Unsupported reference model structure or training mode");
+        auto* pool=model->overview->ptr(4)->as<torch::nn::AdaptiveAvgPool2dImpl>();
+        if(!model->overview->ptr(1)->as<torch::nn::ReLUImpl>()||!model->overview->ptr(3)->as<torch::nn::ReLUImpl>()||
+            !model->context->ptr(1)->as<torch::nn::ReLUImpl>()||!pool||(*pool->options.output_size())[0]!=1||(*pool->options.output_size())[1]!=1)
+            throw std::runtime_error("Unsupported ONNX overview or context structure");
         Value x{"tile",3,512,512};x=convNorm(x,model->encoder->at<ConvNormImpl>(0));std::vector<Value> skips;
         for(std::size_t i=1;i<=15;++i){x=residual(x,model->encoder->at<InvertedResidualImpl>(i));if(i==1||i==3||i==6||i==12)skips.push_back(x);}
         x=convNorm(x,model->encoder->at<ConvNormImpl>(16));
