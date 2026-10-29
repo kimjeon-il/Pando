@@ -33,7 +33,7 @@ function protobufFields(bytes){
   return fields;
 }
 
-test('native ONNX graph reproduces every C++ model output and refuses overwrite',{skip:!process.env.PANDO_REFERENCE_ONNX_TEST_BINARY},async()=>{
+test('native ONNX graph reproduces every C++ model output and refuses overwrite',{skip:!process.env.PANDO_REFERENCE_ONNX_TEST_BINARY},async t=>{
   const binary=process.env.PANDO_REFERENCE_ONNX_TEST_BINARY;
   assert(binary,'PANDO_REFERENCE_ONNX_TEST_BINARY must identify the native test executable');
   const directory=mkdtempSync(join(tmpdir(),'pando-onnx-test-'));
@@ -75,6 +75,7 @@ test('native ONNX graph reproduces every C++ model output and refuses overwrite'
       maximum=Math.max(maximum,Math.abs(actual[i]-expected[i]));
     }
     assert(maximum<=0.005,`ONNX maximum absolute error ${maximum} exceeds 0.005`);
+    t.diagnostic(`Maximum absolute ONNX error: ${maximum}`);
     const refused=invoke();assert.equal(refused.error,undefined);assert.notEqual(refused.status,0);
   }finally{
     for(const tensor of Object.values(inputs))tensor.dispose();
