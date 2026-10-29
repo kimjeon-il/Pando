@@ -4,7 +4,6 @@ import {spawnSync} from 'node:child_process';
 import {mkdtempSync,mkdirSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import {buildGerman1914} from '../../tools/gis/build-german-1914-base.mjs';
 
@@ -34,24 +33,13 @@ function fixture(t,{realCountry}={}){
       {id:'german-1914-candidate',operation:'union',inputs:['without-heligoland-window','heligoland-components']}]};
   return {root,recipe,binary};
 }
-function compareOracle(f,receipt,output){
-  if(process.env.PANDO_GERMAN_ORACLE_PYTHON){
-    const script=[
-      'import importlib.util,json,pathlib,sys',
-      'spec=importlib.util.spec_from_file_location("original",sys.argv[1])',
-      'original=importlib.util.module_from_spec(spec); spec.loader.exec_module(original)',
-      'original.ROOT=pathlib.Path(sys.argv[2]); recipe=json.load(sys.stdin)',
-      'geometry,diagnostics=original.build(recipe)',
-      'print(json.dumps({"geometry":original.output_collection(geometry,recipe)["features"][0]["geometry"],"diagnostics":diagnostics}))',
-    ].join('\n');
-    const python=spawnSync(process.env.PANDO_GERMAN_ORACLE_PYTHON,['-c',script,fileURLToPath(new URL('../../tools/build_german_empire_1914_base.py',import.meta.url)),f.root],{input:JSON.stringify(f.recipe),encoding:'utf8'});
-    assert.equal(python.status,0,python.stderr);const oracle=JSON.parse(python.stdout);
-    for(const field of ['areaKm2','componentCount','coordinateCount','heligolandPatchDifferenceKm2'])assert(Math.abs(receipt.output[field]-oracle.diagnostics.output[field])<.000002,field);
-    assert.deepEqual(receipt.output.bounds,oracle.diagnostics.output.bounds);
+function compareOracle(f,receipt,output,name){
+    const oracle=JSON.parse(readFileSync(new URL(`../fixtures/german-1914-base-${name}-oracle.json`,import.meta.url),'utf8'));
+    for(const field of ['areaKm2','componentCount','coordinateCount','heligolandPatchDifferenceKm2'])assert(Math.abs(receipt.output[field]-oracle.output[field])<.000002,field);
+    assert.deepEqual(receipt.output.bounds,oracle.output.bounds);
     const request=join(f.root,'geometry-comparison.json');writeFileSync(request,JSON.stringify({approved:oracle.geometry,published:output.features[0].geometry}));
     const compared=spawnSync(binary,['--compare-historical-geometry',request],{encoding:'utf8'});
     assert.equal(compared.status,0,compared.stderr);assert.equal(JSON.parse(compared.stdout).passed,true,'original and native rounded geometry must be topologically identical');
-  }
 }
 test('German builder produces a protected working derivative and reproducible check',t=>{
   assert(binary,'PANDO_TERRITORIAL_RECIPE_BINARY required');const f=fixture(t);
@@ -59,14 +47,14 @@ test('German builder produces a protected working derivative and reproducible ch
   assert.equal(receipt.output.heligolandPatchDifferenceKm2,0);assert(receipt.output.areaKm2>2000&&receipt.output.areaKm2<10000);
   const output=JSON.parse(readFileSync(join(f.root,f.recipe.output),'utf8'));
   assert.equal(output.features[0].properties.status,'working-base-not-final');assert.equal(output.features[0].geometry.type,'MultiPolygon');
-  compareOracle(f,receipt,output);
+  compareOracle(f,receipt,output,'synthetic');
   assert.deepEqual(buildGerman1914({...f,check:true}),receipt);
   assert.throws(()=>buildGerman1914(f),/exists/i,'existing derivative must be preserved');
 });
 test('German builder uses the preserved real Natural Earth Heligoland donor',{skip:!process.env.PANDO_GERMAN_CANONICAL_NE},t=>{
   const f=fixture(t,{realCountry:process.env.PANDO_GERMAN_CANONICAL_NE}),receipt=buildGerman1914(f);
   assert.equal(receipt.heligolandPatch.componentCount,2);assert.equal(receipt.output.heligolandPatchDifferenceKm2,0);
-  compareOracle(f,receipt,JSON.parse(readFileSync(join(f.root,f.recipe.output),'utf8')));
+  compareOracle(f,receipt,JSON.parse(readFileSync(join(f.root,f.recipe.output),'utf8')),'natural-earth');
 });
 test('German builder rejects altered sources and historical anchor changes before publishing output',t=>{
   const f=fixture(t);const bad=structuredClone(f.recipe);bad.sources.canonicalCountries.sha256='0'.repeat(64);

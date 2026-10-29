@@ -140,8 +140,8 @@ Prepare the source and build the working base with:
 
 ```powershell
 node tools/fetch-german-empire-1914-source.mjs
-python tools/build_german_empire_1914_base.py
-python tools/build_german_empire_1914_base.py --check
+node tools/gis/build-german-1914-base.mjs
+node tools/gis/build-german-1914-base.mjs --check
 ```
 
 If Harvard/NYU WFS access is unavailable, download **Germany State Boundaries,
