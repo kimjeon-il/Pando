@@ -20,7 +20,9 @@ async function start() {
         && globalThis.PANDOLAB_SHELL_VERIFICATION !== !!verification)) {
     throw new Error('Verification assets do not match the native application.');
   }
-  installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'map-data' });
+  const physicalAssets = [meta.physicalLand?.url, ...(meta.physicalWaterObjects?.geometries || [])
+    .flatMap(row => [row.land?.url, row.asset?.url])].filter(Boolean);
+  installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'map-data', physicalAssets });
   const assetBase = new URL('../assets/js/', import.meta.url);
   const runtimeModuleUrl=new URL('../assets/js/modules/runtime-context.js',import.meta.url);
   runtimeModuleUrl.searchParams.set('v',meta.assetRevision);

@@ -52,3 +52,16 @@ test('small projects permit only the pinned physical substrate in addition to en
   await assert.rejects(scope.fetch('/assets/data/terrain-preview/manifest.json'), /blocked/i);
   assert.equal(state.blocked.length, 2);
 });
+
+test('verification permits only staged historical physical assets selected by metadata', async () => {
+  const scope = { location: new URL('https://tauri.localhost/'), fetch: async () => new Response('packaged') };
+  const state = installNetworkGuard(scope, { physicalAssets: [
+    'assets/data/physical-land/v1/caspian-modern-water.json.gz',
+    'assets/data/physical-land/v1/historical-land.json.gz',
+  ] });
+  await scope.fetch('/assets/data/physical-land/v1/caspian-modern-water.json.gz');
+  await scope.fetch('/assets/data/physical-land/v1/historical-land.json.gz');
+  await assert.rejects(scope.fetch('/assets/data/physical-land/v1/other.json.gz'), /blocked/i);
+  await assert.rejects(scope.fetch('https://elsewhere.example/assets/data/physical-land/v1/historical-land.json.gz'), /blocked/i);
+  assert.equal(state.blocked.length, 2);
+});
