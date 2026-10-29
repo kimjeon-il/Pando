@@ -72,6 +72,14 @@ QJsonObject layerSummary(QgsMapLayer* layer,bool detail){
     if(detail&&raster){result.insert(QStringLiteral("width"),raster->width());result.insert(QStringLiteral("height"),raster->height());}
     return result;
 }
+QJsonObject rasterSummary(QgsRasterLayer* layer){
+    if(!layer||!layer->isValid())throw QStringLiteral("A valid QGIS raster layer is required");
+    const auto extent=layer->extent();
+    return {{QStringLiteral("id"),layer->id()},{QStringLiteral("name"),layer->name()},
+        {QStringLiteral("width"),layer->width()},{QStringLiteral("height"),layer->height()},
+        {QStringLiteral("bands"),layer->bandCount()},{QStringLiteral("crs"),layer->crs().authid()},
+        {QStringLiteral("extent"),QJsonArray{extent.xMinimum(),extent.yMinimum(),extent.xMaximum(),extent.yMaximum()}}};
+}
 int pageValue(const QJsonObject& request,const QString& key,int fallback,int minimum,int maximum){
     if(!request.contains(key))return fallback;
     const auto value=request.value(key);const auto number=value.toDouble(-1);
@@ -222,6 +230,17 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("filename"),project->fileName()},{QStringLiteral("title"),project->title()},
                 {QStringLiteral("layer_count"),layers.size()},{QStringLiteral("crs"),project->crs().authid()},
                 {QStringLiteral("layers"),page},{QStringLiteral("layers_truncated"),layers.size()>page.size()}};
+        }
+        if(command==QStringLiteral("open-raster")){
+            const auto path=request.value(QStringLiteral("path")).toString();const QFileInfo file(path);
+            if(!file.isAbsolute()||!file.isFile())throw QStringLiteral("An existing absolute raster file is required");
+            auto layer=std::make_unique<QgsRasterLayer>(file.absoluteFilePath(),file.completeBaseName(),QStringLiteral("gdal"));
+            if(!layer->isValid())throw QStringLiteral("QGIS could not open the raster layer");
+            if(!QgsProject::instance()->addMapLayer(layer.get()))throw QStringLiteral("QGIS could not add the raster layer");
+            return rasterSummary(layer.release());
+        }
+        if(command==QStringLiteral("raster-info")){
+            return rasterSummary(qobject_cast<QgsRasterLayer*>(QgsProject::instance()->mapLayer(request.value(QStringLiteral("layer")).toString())));
         }
         if(command==QStringLiteral("open")){
             const auto path=request.value(QStringLiteral("path")).toString();const QFileInfo file(path);

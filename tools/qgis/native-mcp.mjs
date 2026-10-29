@@ -66,6 +66,10 @@ function createServer(){
   async({layer,wkt,json},extra)=>respond([...options,'add-feature',`--layer=${layer}`,`--wkt=${wkt}`,`--json=${json}`],extra.signal));
   server.registerTool('qgis_native_open',{description:'Open an existing vector file in native QGIS.',inputSchema:z.strictObject({input:path})},
     async({input},extra)=>respond([...options,'open',input],extra.signal));
+  server.registerTool('qgis_native_open_raster',{description:'Open an existing raster file in native QGIS.',inputSchema:z.strictObject({input:path})},
+    async({input},extra)=>respond([...options,'open-raster',input],extra.signal));
+  server.registerTool('qgis_native_raster_info',{description:'Inspect raster dimensions, bands, CRS and extent.',inputSchema:z.strictObject({layer:path})},
+    async({layer},extra)=>respond([...options,'raster-info',`--layer=${layer}`],extra.signal));
   server.registerTool('qgis_native_export',{description:'Export a layer as normalized EPSG:4326 GeoJSON without overwriting an existing file.',
     inputSchema:z.strictObject({layer:path,output:path})},async({layer,output},extra)=>respond([...options,'export','--layer',layer,'--output',output],extra.signal));
   server.registerTool('qgis_native_normalize',{description:'Normalize an existing geographic QGIS GeoJSON export into a new file.',
