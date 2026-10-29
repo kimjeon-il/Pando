@@ -69,7 +69,7 @@ QJsonObject exportQgisLayer(const QString& layerId,const QString& destination){
     }
     QgsVectorFileWriter::SaveVectorOptions options;
     options.driverName=QStringLiteral("GeoJSON");options.fileEncoding=QStringLiteral("UTF-8");
-    options.layerOptions={QStringLiteral("RFC7946=YES"),QStringLiteral("COORDINATE_PRECISION=15")};
+    options.layerOptions=QStringList{QStringLiteral("RFC7946=YES"),QStringLiteral("COORDINATE_PRECISION=15")};
     options.ct=QgsCoordinateTransform(layer->crs(),QgsCoordinateReferenceSystem(QStringLiteral("EPSG:4326")),QgsProject::instance());
     options.overrideGeometryType=layer->wkbType();options.includeZ=false;
     SourceConverter converter(layer->fields().indexOf(QStringLiteral("source")));options.fieldValueConverter=&converter;

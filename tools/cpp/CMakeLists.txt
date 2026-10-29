@@ -46,7 +46,7 @@ if(PANDO_BUILD_QGIS_BRIDGE)
         "${PANDO_QT_DIR}/include" ${PANDO_QT_INCLUDE_DIRS})
     target_link_libraries(pando-qgis-bridge PRIVATE "${PANDO_QGIS_DIR}/lib/qgis_core.lib" "${PANDO_QGIS_DIR}/lib/qgis_gui.lib"
         "${PANDO_QT_DIR}/lib/Qt5Core.lib" "${PANDO_QT_DIR}/lib/Qt5Network.lib" "${PANDO_QT_DIR}/lib/Qt5Widgets.lib" "${PANDO_QT_DIR}/lib/Qt5Gui.lib")
-    target_compile_definitions(pando-qgis-bridge PRIVATE QT_CORE_LIB QT_NETWORK_LIB QT_WIDGETS_LIB QT_GUI_LIB)
+    target_compile_definitions(pando-qgis-bridge PRIVATE QT_CORE_LIB QT_NETWORK_LIB QT_WIDGETS_LIB QT_GUI_LIB _USE_MATH_DEFINES)
     if(MSVC)
         target_compile_options(pando-qgis-bridge PRIVATE /utf-8)
     endif()
