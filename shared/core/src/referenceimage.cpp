@@ -420,10 +420,11 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
             {"folded",V::boolean(false)},{"imageCoverage",V::num(0)},{"crossValidationP95Pixels",V{}},
             {"reason",V::str("insufficient-distributed-controls")}});
         if(!yes(get(warp,"ok")))return out;
+        bool controlOutsideDomain=false;
         for(const auto& p:points.array) {
             const auto uv=*point(get(p,"image"));
             if(uv[0]<domain[0]-epsilon||uv[0]>domain[2]+epsilon||uv[1]<domain[1]-epsilon||uv[1]>domain[3]+epsilon) {
-                out.object["reason"]=V::str("control-outside-validation-domain");return out;
+                controlOutsideDomain=true;
             }
         }
         const auto inverse=[](const V& descriptor,P coordinate)->std::optional<P> {
@@ -467,6 +468,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         }
         out.object["folded"]=V::boolean(folded);
         if(folded){out.object["reason"]=V::str("folded-or-singular-warp");return out;}
+        if(controlOutsideDomain){out.object["reason"]=V::str("control-outside-validation-domain");return out;}
         if(points.array.size()<6||area<.2)return out;
         Row errors;
         for(std::size_t i=0;i<points.array.size();++i){

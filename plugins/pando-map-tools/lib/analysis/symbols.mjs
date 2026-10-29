@@ -42,7 +42,6 @@ function medianLuma(raster, left, top, right, bottom) {
 function connectedComponents(raster, bounds, accepts, {
   maxComponentPixels = 140,
   maxDiameter = 14,
-  excludeBoxPx = null,
 } = {}) {
   const { left, top, right, bottom } = bounds;
   const width = right - left + 1;
@@ -148,7 +147,7 @@ function scoreComponent(component, expected, background, searchRadius, polarity,
     : component.meanLuma - background;
   if (rawContrast <= 0) return null;
 
-  const contrastScore = clamp(rawContrast / 96, 0, 1);
+  const contrastScore = clamp(rawContrast / 160, 0, 1);
   const compactness = clamp(aspect * Math.min(1, fill / 0.45), 0, 1);
   const distanceScore = 1 - clamp(distance / Math.max(1, searchRadius), 0, 1);
   const diameter = Math.sqrt(Math.max(1, area));
@@ -223,7 +222,8 @@ export function findReferenceImagePointSymbol(raster, expectedUv, {
   minimumConfidence = 0.42,
   maxComponentPixels = 140,
   maxDiameter = 14,
-  excludeBoxPx = null,
+  excludeBoxesPx = [],
+  scoreCandidate = candidate => candidate.confidence,
 } = {}) {
   if (!validRaster(raster)) return null;
   const uv = finitePair(expectedUv);
@@ -240,10 +240,11 @@ export function findReferenceImagePointSymbol(raster, expectedUv, {
   const background = medianLuma(raster, left, top, right, bottom);
   const contrast = Math.max(8, Number(minimumContrast) || 28);
   const bounds = { left, top, right, bottom };
-  const polarities = [
-    ['dark', value => value <= background - contrast],
-    ['light', value => value >= background + contrast],
-  ];
+  // A pale road/contour can join a black city dot at the first threshold.
+  // Re-examine the same local pixels at stronger contrasts, without erasing
+  // linework or changing the source raster.
+  const polarities = [...new Set([contrast,Math.max(contrast,80),Math.max(contrast,128)])]
+    .flatMap(level=>[['dark',value=>value<=background-level],['light',value=>value>=background+level]]);
 
   let best = null;
   for (const [polarity, accepts] of polarities) {
@@ -252,18 +253,15 @@ export function findReferenceImagePointSymbol(raster, expectedUv, {
       maxDiameter,
     });
     for (const component of components) {
-      if (Array.isArray(excludeBoxPx) && excludeBoxPx.length === 4) {
-        const [exLeft, exTop, exRight, exBottom] = excludeBoxPx.map(Number);
-        const center = component.center;
-        if (
-          center[0] >= exLeft && center[0] <= exRight
-          && center[1] >= exTop && center[1] <= exBottom
-        ) continue;
-      }
+      const [cx,cy]=component.center;
+      if(excludeBoxesPx.some(([left,top,right,bottom])=>cx>=left&&cx<=right&&cy>=top&&cy<=bottom))continue;
       const score = scoreComponent(component, expected, background, searchRadius, polarity, {
         maxPixels: maxComponentPixels,
       });
-      if (!score || score.confidence < minimumConfidence) continue;
+      if (!score) continue;
+      const confidence=scoreCandidate({...component,...score});
+      if(!Number.isFinite(confidence)||confidence<minimumConfidence)continue;
+      score.confidence=clamp(confidence,0,1);
       if (!best
         || score.confidence > best.confidence + 1e-9
         || (Math.abs(score.confidence - best.confidence) <= 1e-9 && score.distance < best.distance)) {
@@ -293,6 +291,7 @@ export function findReferenceImagePointSymbolNearTextBox(raster, normalizedBox, 
   searchRadiusPx = 24,
   exclusionPaddingPx = 2,
   minimumConfidence = 0.42,
+  textBoxes = [],
 } = {}) {
   if (!validRaster(raster) || !Array.isArray(normalizedBox) || normalizedBox.length !== 4) return null;
   const values = normalizedBox.map(Number);
@@ -306,10 +305,15 @@ export function findReferenceImagePointSymbolNearTextBox(raster, normalizedBox, 
 
   const radius = Math.max(8, Math.round(Number(searchRadiusPx) || 24));
   const pad = Math.max(0, Number(exclusionPaddingPx) || 0);
-  const exclusion = [left - pad, top - pad, right + pad, bottom + pad];
+  const exclusions = [[left-pad,top-pad,right+pad,bottom+pad],...textBoxes
+    .filter(box=>Array.isArray(box)&&box.length===4&&box.every(Number.isFinite))
+    .map(([x,y,w,h])=>[x*(raster.width-1)-pad,y*(raster.height-1)-pad,
+      (x+w)*(raster.width-1)+pad,(y+h)*(raster.height-1)+pad])];
   const offset = Math.max(5, Math.min(radius * 0.5, Math.max(7, Math.min(right - left, bottom - top) * 0.55)));
   const cx = (left + right) / 2;
   const cy = (top + bottom) / 2;
+  const maximumGap=Math.min(radius,Math.max(8,(bottom-top)*.6));
+  const distanceToBox=([x,y])=>Math.hypot(Math.max(left-x,0,x-right),Math.max(top-y,0,y-bottom));
   const probes = [
     [left - offset, cy],
     [right + offset, cy],
@@ -330,21 +334,15 @@ export function findReferenceImagePointSymbolNearTextBox(raster, normalizedBox, 
     const symbol = findReferenceImagePointSymbol(raster, expectedUv, {
       searchRadiusPx: radius,
       minimumConfidence,
-      excludeBoxPx: exclusion,
+      excludeBoxesPx: exclusions,
+      scoreCandidate: candidate=>{
+        const distance=distanceToBox(candidate.center);
+        return distance>maximumGap?null:candidate.confidence*.65+(1-distance/maximumGap)*.35;
+      },
     });
     if (!symbol) continue;
 
-    const dx = symbol.pixel[0] < left ? left - symbol.pixel[0]
-      : symbol.pixel[0] > right ? symbol.pixel[0] - right : 0;
-    const dy = symbol.pixel[1] < top ? top - symbol.pixel[1]
-      : symbol.pixel[1] > bottom ? symbol.pixel[1] - bottom : 0;
-    const boxDistance = Math.hypot(dx, dy);
-    const adjustedConfidence = clamp(
-      symbol.confidence * 0.88 + (1 - clamp(boxDistance / (radius * 1.5), 0, 1)) * 0.12,
-      0,
-      1,
-    );
-    const candidate = Object.freeze({ ...symbol, confidence: adjustedConfidence, boxDistancePixels: boxDistance });
+    const candidate = Object.freeze({ ...symbol, boxDistancePixels: distanceToBox(symbol.pixel) });
     if (!best
       || candidate.confidence > best.confidence + 1e-9
       || (Math.abs(candidate.confidence - best.confidence) <= 1e-9
