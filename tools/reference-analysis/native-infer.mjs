@@ -13,7 +13,16 @@ export const referenceSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','too
   'tools/cpp/reference-analysis/training-checkpoint.cpp','tools/cpp/reference-analysis/training-checkpoint.h',
   'tools/cpp/reference-analysis/boundary-loss.cpp','tools/cpp/reference-analysis/boundary-loss.h',
   'shared/core/src/losslessjson.cpp','shared/core/include/pandoeditor/losslessjson.h']);
+export const referenceProofSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-training-proof.cpp']);
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
+export function matchingTorchLibrary(torchLibrary,manifest){
+  if(manifest.runtimeVersion!=='2.14.1')throw Error('Unexpected native LibTorch ABI version');
+  const library=resolve(torchLibrary),versionFile=join(dirname(library),'version.py');
+  const version=readFileSync(versionFile,'utf8').match(/^__version__\s*=\s*['"]([^'"]+)['"]/m)?.[1];
+  if(!version||version.split('+')[0]!==manifest.runtimeVersion||!existsSync(join(library,'torch_cpu.dll'))||!existsSync(join(library,'c10.dll')))
+    throw Error('The selected LibTorch runtime does not match the native tool');
+  return library;
+}
 export async function nativeReferenceInfer({weights,tile,overview,position,output,device='cpu',torchLibrary,
   root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/windows'),signal}){
   signal?.throwIfAborted();
@@ -21,11 +30,7 @@ export async function nativeReferenceInfer({weights,tile,overview,position,outpu
   if(!weights||!tile||!overview||!position||!output)throw Error('Weights, three tensor inputs and a new output are required');
   if(existsSync(output))throw Error('Inference output already exists; preserve it');
   const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-infer',executable:'pando-reference-infer.exe',sourceFiles:referenceSourceFiles});
-  if(manifest.runtimeVersion!=='2.14.1')throw Error('Unexpected native LibTorch ABI version');
-  const library=resolve(torchLibrary),versionFile=join(dirname(library),'version.py');
-  const version=readFileSync(versionFile,'utf8').match(/^__version__\s*=\s*['"]([^'"]+)['"]/m)?.[1];
-  if(!version||version.split('+')[0]!==manifest.runtimeVersion||!existsSync(join(library,'torch_cpu.dll'))||!existsSync(join(library,'c10.dll')))
-    throw Error('The selected LibTorch runtime does not match the native tool');
+  const library=matchingTorchLibrary(torchLibrary,manifest);
   const data=await new Promise((ok,fail)=>execFile(binary,[device,resolve(weights),resolve(tile),resolve(overview),resolve(position)],{
     encoding:'buffer',windowsHide:true,maxBuffer:8*1024**2,signal,env:{...process.env,PATH:library+delimiter+process.env.PATH},
   },(error,stdout,stderr)=>error?fail(new Error('Native reference inference failed: '+stderr.toString(),{cause:error})):ok(stdout)));
