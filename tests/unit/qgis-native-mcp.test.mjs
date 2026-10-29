@@ -22,7 +22,7 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
       else if(request.command==='selection')result={fids:['9007199254740993'],count:1};
       else if(request.command==='clear-selection')result={ok:true};
       else if(['begin-edit','rollback-edit','commit-edit','undo-edit','redo-edit'].includes(request.command))result={ok:true};
-      else if(request.command==='set-text-attribute')result={updated:request.field==='name'&&request.value==='edited'};
+      else if(request.command==='set-text-attribute')result={updated:request.field==='name',value:request.value};
       else if(request.command==='open')result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};
       else if(request.command==='export'){
         writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'Point',coordinates:[127,37]},
@@ -63,6 +63,8 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   const both=await call('qgis_native_select',{layer:'layer-1',fids:[],expression:'true'});assert.equal(both.result.isError,true);
   assert.equal(JSON.parse((await call('qgis_native_begin_edit',{layer:'layer-1'})).result.content[0].text).ok,true);
   assert.equal(JSON.parse((await call('qgis_native_set_text_attribute',{layer:'layer-1',fid:'1',field:'name',value:'edited'})).result.content[0].text).updated,true);
+  const dashValue=await call('qgis_native_set_text_attribute',{layer:'layer-1',fid:'1',field:'name',value:'-edited'});
+  assert.equal(JSON.parse(dashValue.result.content[0].text).value,'-edited');
   assert.equal(JSON.parse((await call('qgis_native_undo_edit',{layer:'layer-1'})).result.content[0].text).ok,true);
   assert.equal(JSON.parse((await call('qgis_native_redo_edit',{layer:'layer-1'})).result.content[0].text).ok,true);
   assert.equal(JSON.parse((await call('qgis_native_rollback_edit',{layer:'layer-1'})).result.content[0].text).ok,true);
