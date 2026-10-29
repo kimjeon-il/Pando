@@ -54,7 +54,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   });
   await page.setViewportSize(viewport);
   await page.addInitScript(project => localStorage.setItem('pandolab-editor-project', JSON.stringify(project)),
-    staticAutosaveProject({ physicalSettings: { terrainVisible: false } }, [parent]));
+    staticAutosaveProject({}, [parent]));
   await gotoEditor(page, '/?debug=1&demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -77,8 +77,8 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   await expect(page.locator('g.draft-vertex')).toHaveCount(3);
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#confirmModal')).toBeVisible();
-  await expect(page.locator('#confirmModalMessage')).toContainText('점 3개');
-  await expect(page.locator('#confirmModalCancelBtn')).toHaveText('계속 그리기');
+  await expect(page.locator('#confirmModalMessage')).toContainText('미적용 입력을 모두 버립니다');
+  await expect(page.locator('#confirmModalCancelBtn')).toHaveText('편집 계속');
   await page.locator('#confirmModalCancelBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(3);
   await page.locator('#modeCancelBtn').click();
