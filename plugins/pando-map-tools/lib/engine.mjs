@@ -5,18 +5,19 @@ import { workspace, workspaceModule, requireWorkspace, core, assertRuntimeResour
 import { ensureOcrLanguage } from './runtime.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
 import { raster, cropRaster, resizeRaster, pngRaster } from './raster.mjs';
-import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob, georeferenceQuality } from './jobs.mjs';
+import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob } from './jobs.mjs';
+import { selectReferenceImageGeoreference } from './analysis/georef.mjs';
 import { referenceImageTilePlan, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
 import { inferReferenceBoundaries } from './analysis/inference.mjs';
-import { referenceOcrLanguagesForScript, REFERENCE_OCR_LANGUAGES, referenceOcrBlocks, referenceOcrOriginalBox } from './analysis/ocr-catalog.mjs';
+import { referenceOcrRecognitionPlan, referenceOcrBlocks, referenceOcrOriginalBox } from './analysis/ocr-catalog.mjs';
 import { normalizeReferenceImageOcrBlocks } from './analysis/ocr.mjs';
 import { detectReferenceMapLayout } from './analysis/layout.mjs';
 import { detectReferenceGraticule } from './analysis/grid.mjs';
 import { findReferenceImagePointSymbolNearTextBox, referenceImagePointRasterFromRgba } from './analysis/symbols.mjs';
 import { resolveReferenceImagePlaceDetections } from './analysis/place-match.mjs';
 const {version:pluginVersion}=JSON.parse(await readFile(new URL('../plugin.json',import.meta.url),'utf8'));
-const { createPlaceWorkerStore }=await workspaceModule('assets/js/modules/place-worker-store.js');
-const { createWorkerRpcClient }=await workspaceModule('assets/js/modules/worker-rpc.js');
+const { createPlaceWorkerStore }=await workspaceModule('shared/frontend/js/modules/place-worker-store.js');
+const { createWorkerRpcClient }=await workspaceModule('shared/frontend/js/modules/worker-rpc.js');
 
 const check = signal => signal?.throwIfAborted();
 export function loadOrtRuntime() {
@@ -61,21 +62,20 @@ export async function recognize(image,languages,signal,progress=()=>{}) {
   finally {rpc.stop('OCR operation ended');await raw.terminate();}
 }
 export async function recognizeInProcess(image,languages,signal,progress) {
-  const rows=[];let orientation={script:'Unknown',clockwiseDegrees:0,confidence:0};
+  const rows=[];let orientation={script:'Unknown',clockwiseDegrees:0,osdClockwiseDegrees:null,confidence:0};
   const small=await resizeRaster(image,[Math.max(2,Math.round(image.width*Math.min(1,1600/Math.max(image.width,image.height)))),Math.max(2,Math.round(image.height*Math.min(1,1600/Math.max(image.width,image.height))))],signal);
   const overview=await pngRaster(small,signal);
   try {
     const result=await withOcrWorker('osd',worker=>worker.detect(overview),signal), data=result.data;
-    orientation={script:data.script || 'Unknown',clockwiseDegrees:data.orientation_degrees || 0,confidence:data.orientation_confidence || 0,scriptConfidence:data.script_confidence || 0};
+    orientation={script:data.script || 'Unknown',clockwiseDegrees:data.orientation_degrees || 0,osdClockwiseDegrees:data.orientation_degrees || 0,confidence:data.orientation_confidence || 0,scriptConfidence:data.script_confidence || 0};
   } catch(error) {
     check(signal);
     if(!/too few|not enough|resolution|osd.*(?:null|undefined)/i.test(error.message)) throw error;
     orientation.diagnostic=error.message;
   }
-  let selected=languages?.length?languages:referenceOcrLanguagesForScript(orientation.script);
-  if(selected.some(v=>!REFERENCE_OCR_LANGUAGES.includes(v))) throw new Error('Unsupported OCR language.');
+  let selected=referenceOcrRecognitionPlan(orientation,[],languages).languages;
   const rotated=(image,degrees)=>degrees?raster({action:'rotate',width:image.width,height:image.height,degrees},image.data,signal):image;
-  if(orientation.confidence<15) {
+  if(orientation.confidence<15 || (!languages?.length&&(orientation.scriptConfidence||0)<10)) {
     const scores=[];
     for(const language of [...new Set([selected[0],'eng'])]) await withOcrWorker(language,async worker=>{
       await worker.setParameters({tessedit_pageseg_mode:'11'});
@@ -87,11 +87,9 @@ export async function recognizeInProcess(image,languages,signal,progress) {
     },signal);
     scores.sort((a,b)=>b.score-a.score);
     orientation.probeScores=scores;
-    if(scores[0]?.score>0) {
-      orientation.clockwiseDegrees=scores[0].angle;
-      if(!languages?.length && scores[0].language==='eng' && orientation.script!=='Latin' && orientation.scriptConfidence<2) {orientation.script='Latin';selected=referenceOcrLanguagesForScript('Latin');}
-    }
   }
+  const plan=referenceOcrRecognitionPlan(orientation,orientation.probeScores||[],languages);
+  selected=plan.languages;orientation={...orientation,clockwiseDegrees:plan.clockwiseDegrees,selectionReason:plan.reason};
   for(const language of selected) {
     await withOcrWorker(language,async worker=>{
       await worker.setParameters({tessedit_pageseg_mode:language.endsWith('_vert')?'5':'11'});
@@ -149,8 +147,10 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     const pointRaster=referenceImagePointRasterFromRgba(image);
     const pixel=([x,y])=>[image.mapping.rect.x+x*(image.mapping.rect.width-1)/(image.width-1),image.mapping.rect.y+y*(image.mapping.rect.height-1)/(image.height-1)];
     const box=b=>{const [x,y]=pixel([b.x,b.y]);return {x,y,width:b.width*(image.mapping.rect.width-1)/(image.width-1),height:b.height*(image.mapping.rect.height-1)/(image.height-1)};};
-    const detections=normalizeReferenceImageOcrBlocks(ocr.rows,{width:image.width,height:image.height,maximumDetections:256})
-      .map(row=>{const symbol=findReferenceImagePointSymbolNearTextBox(pointRaster,row.box,{searchRadiusPx:32,minimumConfidence:.4});
+    const textDetections=normalizeReferenceImageOcrBlocks(ocr.rows,{width:image.width,height:image.height,maximumDetections:256});
+    const textBoxes=textDetections.map(row=>row.box);
+    const detections=textDetections
+      .map(row=>{const symbol=findReferenceImagePointSymbolNearTextBox(pointRaster,row.box,{searchRadiusPx:32,minimumConfidence:.4,textBoxes});
         const originalBox=box({x:row.box[0]*image.width,y:row.box[1]*image.height,width:row.box[2]*image.width,height:row.box[3]*image.height});
         return {...row,image:fullUv(row.image),sourceBox:originalBox,box:[originalBox.x/image.originalWidth,originalBox.y/image.originalHeight,originalBox.width/image.originalWidth,originalBox.height/image.originalHeight],
           symbol:symbol?{...symbol,uv:fullUv(symbol.uv),pixel:pixel(symbol.pixel),expectedPixel:pixel(symbol.expectedPixel)}:null};});
@@ -159,6 +159,8 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     job.grid={...grid,labels:grid.labels.map(v=>({...v,boundingBox:box(v.boundingBox)})),points:grid.points.map(v=>({...v,image:fullUv(v.image)}))};
     const placeRoot=resolve(workspace,'assets/data/places'),placeManifestBytes=await readFile(resolve(placeRoot,'manifest.json')),placeManifest=JSON.parse(placeManifestBytes);
     const store=createPlaceWorkerStore({manifest:placeManifest,fetchBytes:spec=>readFile(resolve(placeRoot,spec.url))});
+    job.diagnostics.push({code:'LIMITED_PLACE_COVERAGE',reason:'The packaged curated city subset is not a complete world gazetteer.',
+      action:'Missing settlements cannot establish a location; inspect source/grid evidence or supply reviewed control points.'});
     const context={signal,throwIfCancelled:()=>check(signal),emitEvent:(_event,data)=>progress(data)};
     job.matching=await resolveReferenceImagePlaceDetections(detections,{search:query=>store.search(query,context),mapDate:date,allowAmbiguous:true,maxDetections:256,maxSearchQueries:1024,maxPlaces:20000});
     const detected=new Map(detections.map(v=>[v.id,v]));
@@ -166,15 +168,13 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     const solve=points=>calculate('autoGeoref',{points,mode:'auto',maxTrials:1024,minimumInliers:6,inlierThresholdMeters:25000});
     const solved=solve(candidates);job.locationCandidates=[];
     if(solved.ok) {
-      const warp=calculate('warp',{points:solved.controlPoints,mode:solved.mode});
-      const quality=georeferenceQuality(warp.controlPoints,warp.mode,job.source);
+      const {warp,quality}=selectReferenceImageGeoreference(solved.controlPoints,job.source);
       job.locationCandidates.push({warp,quality});
       const ids=new Set(solved.inlierIds),remaining=candidates.filter(v=>!ids.has(v.id));
       if(new Set(remaining.map(v=>v.detectionId)).size>=6) {
         const other=solve(remaining);
         if(other.ok && other.inlierCount>=solved.inlierCount*.85) {
-          const alternative=calculate('warp',{points:other.controlPoints,mode:other.mode});
-          const alternativeQuality=georeferenceQuality(alternative.controlPoints,alternative.mode,job.source);
+          const {warp:alternative,quality:alternativeQuality}=selectReferenceImageGeoreference(other.controlPoints,job.source);
           if(alternativeQuality.recommended) job.locationCandidates.push({warp:alternative,quality:alternativeQuality});
         }
       }

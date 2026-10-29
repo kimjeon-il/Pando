@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile, writeFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { validateCandidateModel, createJob, reviseJob, exportJob, sealJob, digest, georeferenceQuality } from '../../plugins/pando-map-tools/lib/jobs.mjs';
+import { validateCandidateModel, createJob, reviseJob, exportJob, sealJob, digest } from '../../plugins/pando-map-tools/lib/jobs.mjs';
+import { georeferenceQuality } from '../../plugins/pando-map-tools/lib/analysis/georef.mjs';
 import * as engine from '../../plugins/pando-map-tools/lib/engine.mjs';
 import { raster } from '../../plugins/pando-map-tools/lib/raster.mjs';
 
@@ -31,6 +32,7 @@ test('Node OCR unwraps the existing RPC acknowledgement and returns normalized r
   const result=await engine.recognize({width:80,height:40,data:Buffer.alloc(80*40*4,255)},['eng'],null);
   assert.ok(Array.isArray(result.rows));
   assert.deepEqual(result.orientation.languages,['eng']);
+  assert.equal(result.orientation.osdClockwiseDegrees,0);
 });
 
 const manifest = { schemaVersion: 1, evaluationStatus: 'pending', releaseApproved: false, trainingOnly: true,
@@ -92,6 +94,16 @@ test('choosing a location invalidates approval and rejects absent candidates',()
   assert.equal(revised.warp.mode,'affine');
   assert.equal(revised.review,null);
   assert.throws(()=>reviseJob(job,{type:'location',index:2}),/location/i);
+});
+
+test('a control outside the crop cannot hide a TPS fold from the review gate',()=>{
+  const source={path:'map.png',sha256:'b'.repeat(64),width:1001,height:1001,mapping:{rect:{x:100,y:100,width:501,height:501}}};
+  let job=createJob(source,{dataRevision:'test'});
+  job.status='needs-georeference';job.graph={ok:true,chains:[{id:0,points:[[200,200],[300,300]],semanticBits:1,confidence:.9}],faces:[],unresolved:[]};job=sealJob(job);
+  const points=[.05,.35,.65,.95].flatMap(u=>[.05,.35,.65,.95].map(v=>({id:`${u}/${v}`,image:[u,v],coordinate:[-100+20*(u-.5)**2,40+20*v]})));
+  const revised=reviseJob(job,{type:'control-points',mode:'tps',points});
+  assert.equal(revised.quality.folded,true);
+  assert.throws(()=>reviseJob(revised,{type:'review',georeference:true,boundaries:true,selectedIds:['line:0']}),/fold|georeference|정합/i);
 });
 
 test('changing the analyzed panel requires bounded original pixels and retains its signed predecessor',()=>{

@@ -8,6 +8,11 @@ Edits are JSON objects or an array:
   affine/TPS three and projective four points. TPS benefits from additional
   distributed points. The numerical core rejects degenerate fits. Mapping edits
   reproject the existing pixel graph without running inference.
+  Omit `mode` or use `auto` to compare the existing transforms in original
+  source pixels. TPS is selected automatically only with passing cross-validation;
+  its near-zero training residual is not accuracy evidence. Inspect
+  `quality.modelComparison`, coverage, folds and independent checks before review.
+  Controls outside a selected crop cannot recommend that panel.
 * `{"type":"boundary","command":{"type":"exclude","chainId":1}}`.
   The shared core also accepts `replace` with original-pixel `points`, `cut`
   with a pixel `point`, and `join` with `from`/`to` chainId and start/end.

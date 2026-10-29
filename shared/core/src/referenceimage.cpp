@@ -405,12 +405,28 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         const auto points=normalize(get(input,"points"));
         const double width=field(input,"sourceWidth",0),height=field(input,"sourceHeight",0);
         if(width<2||height<2)throw std::invalid_argument("Source dimensions are required for pixel validation.");
+        Row domain{0,0,1,1};
+        if(input.object.count("validationDomain")) {
+            const auto& values=get(input,"validationDomain");
+            if(values.kind!=V::Array||values.array.size()!=4)throw std::invalid_argument("Invalid georeference validation domain.");
+            for(std::size_t i=0;i<4;++i)domain[i]=number(values.array[i],NAN);
+            if(!std::all_of(domain.begin(),domain.end(),[](double value){return std::isfinite(value);})
+                ||domain[0]<0||domain[1]<0||domain[2]>1||domain[3]>1||domain[2]<=domain[0]||domain[3]<=domain[1])
+                throw std::invalid_argument("Invalid georeference validation domain.");
+        }
         const auto mode=text(get(input,"mode"),"affine");
         const auto warp=fit(points,mode);
         auto out=obj({{"ok",V::boolean(yes(get(warp,"ok")))},{"recommended",V::boolean(false)},
             {"folded",V::boolean(false)},{"imageCoverage",V::num(0)},{"crossValidationP95Pixels",V{}},
             {"reason",V::str("insufficient-distributed-controls")}});
         if(!yes(get(warp,"ok")))return out;
+        bool controlOutsideDomain=false;
+        for(const auto& p:points.array) {
+            const auto uv=*point(get(p,"image"));
+            if(uv[0]<domain[0]-epsilon||uv[0]>domain[2]+epsilon||uv[1]<domain[1]-epsilon||uv[1]>domain[3]+epsilon) {
+                controlOutsideDomain=true;
+            }
+        }
         const auto inverse=[](const V& descriptor,P coordinate)->std::optional<P> {
             const auto prepared=prepareReferenceImageWarp(descriptor);P uv{.5,.5};
             auto initial=projectReferenceImageWarp(prepared,uv,false);if(!initial)return {};
@@ -439,11 +455,11 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         const auto lower=polygon.size();
         for(auto i=hull.rbegin()+std::min<std::size_t>(1,hull.size());i!=hull.rend();++i){while(polygon.size()>lower&&cross(polygon[polygon.size()-2],polygon.back(),*i)<=0)polygon.pop_back();polygon.push_back(*i);}
         double area=0;for(std::size_t i=1;i<polygon.size();++i)area+=polygon[i-1][0]*polygon[i][1]-polygon[i][0]*polygon[i-1][1];
-        area=std::abs(area)/2;out.object["imageCoverage"]=V::num(area);
+        area=std::abs(area)/2/((domain[2]-domain[0])*(domain[3]-domain[1]));out.object["imageCoverage"]=V::num(area);
         bool folded=false;double referenceDet=0;
         const auto prepared=prepareReferenceImageWarp(warp);
         for(int y=0;y<=16;++y)for(int x=0;x<=16;++x){
-            const P uv{double(x)/16,double(y)/16};
+            const P uv{domain[0]+double(x)/16*(domain[2]-domain[0]),domain[1]+double(y)/16*(domain[3]-domain[1])};
             const auto p=projectReferenceImageWarp(prepared,uv,false),a=projectReferenceImageWarp(prepared,{uv[0]+1e-5,uv[1]},false),b=projectReferenceImageWarp(prepared,{uv[0],uv[1]+1e-5},false);
             if(!p||!a||!b){folded=true;continue;}
             const double det=(((*a)[0]-(*p)[0])*((*b)[1]-(*p)[1])-((*a)[1]-(*p)[1])*((*b)[0]-(*p)[0]))/1e-10;
@@ -452,6 +468,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         }
         out.object["folded"]=V::boolean(folded);
         if(folded){out.object["reason"]=V::str("folded-or-singular-warp");return out;}
+        if(controlOutsideDomain){out.object["reason"]=V::str("control-outside-validation-domain");return out;}
         if(points.array.size()<6||area<.2)return out;
         Row errors;
         for(std::size_t i=0;i<points.array.size();++i){
