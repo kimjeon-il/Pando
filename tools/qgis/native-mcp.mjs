@@ -34,6 +34,8 @@ function createServer(){
     ['qgis_native_begin_edit','begin-edit','Start a new edit session without taking over existing edits.'],
     ['qgis_native_commit_edit','commit-edit','Commit an edit session started by this bridge.'],
     ['qgis_native_rollback_edit','rollback-edit','Discard an edit session started by this bridge.'],
+    ['qgis_native_undo_edit','undo-edit','Undo the latest change in a bridge-owned edit session.'],
+    ['qgis_native_redo_edit','redo-edit','Redo a change in a bridge-owned edit session.'],
   ])server.registerTool(name,{description,inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,command,'--layer',layer],extra.signal));
   server.registerTool('qgis_native_set_text_attribute',{description:'Change one text attribute within a bridge-owned QGIS edit session.',

@@ -21,6 +21,8 @@ node tools/qgis/native-bridge.mjs selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs clear-selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs begin-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs set-text-attribute --layer QGIS_LAYER_ID --fid 1 --field name --value '새 이름'
+node tools/qgis/native-bridge.mjs undo-edit --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs redo-edit --layer QGIS_LAYER_ID
 # Choose one ending for the session:
 node tools/qgis/native-bridge.mjs rollback-edit --layer QGIS_LAYER_ID
 # node tools/qgis/native-bridge.mjs commit-edit --layer QGIS_LAYER_ID

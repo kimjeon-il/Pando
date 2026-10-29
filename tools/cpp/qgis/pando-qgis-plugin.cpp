@@ -30,6 +30,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
+#include <QUndoStack>
 #include <algorithm>
 #include <cmath>
 #include <exception>
@@ -109,7 +110,7 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("geometry_type"),static_cast<int>(layer->geometryType())},
                 {QStringLiteral("crs"),layer->crs().authid()},{QStringLiteral("fields"),fields}};
         }
-        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("set-text-attribute")){
+        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-text-attribute")){
             const auto id=request.value(QStringLiteral("layer")).toString();
             auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
             if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
@@ -124,6 +125,12 @@ class Bridge final:public QObject,public QgisPlugin {
             }
             if(editSessions_.value(id)!=layer||!layer->isEditable())throw QStringLiteral("An edit session started by this bridge is required");
             if(layer->isEditCommandActive())throw QStringLiteral("Another QGIS edit command is active");
+            if(command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")){
+                auto* stack=layer->undoStack();
+                if(!stack||(command==QStringLiteral("undo-edit")?!stack->canUndo():!stack->canRedo()))throw QStringLiteral("No QGIS edit available for this action");
+                if(command==QStringLiteral("undo-edit"))stack->undo();else stack->redo();
+                return {{QStringLiteral("ok"),true}};
+            }
             if(command==QStringLiteral("commit-edit")){
                 if(!layer->commitChanges())throw QStringLiteral("QGIS commit failed: ")+layer->commitErrors().join(QStringLiteral("; "));
                 editSessions_.remove(id);return {{QStringLiteral("ok"),true}};
