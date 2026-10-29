@@ -62,8 +62,18 @@ export function reviseJob(job, command) {
     next.calibration={controlPoints:structuredClone(choice.warp.controlPoints),mode:choice.warp.mode,projection:choice.warp.projection,linearConstraints:[]};
   } else if (command.type==='boundary') {
     if (!job.graph) throw new Error('No pixel boundary graph.');
-    if (!['exclude','replace','cut','join'].includes(command.command?.type)) throw new Error('Unknown graph revision.');
-    next.graph=calculate('editBoundaryGraph',{graph:job.graph,command:command.command});
+    if (!['add','exclude','replace','cut','join'].includes(command.command?.type)) throw new Error('Unknown graph revision.');
+    if(command.command.type==='add') {
+      const {points,semanticBits,reason}=command.command;
+      if(![1,2,4].includes(semanticBits) || typeof reason!=='string' || !reason.trim() || reason.length>2000) throw new Error('A manual boundary addition needs one explicit boundary class and its source-review reason.');
+      const id=job.graph.chains.reduce((largest,chain)=>Math.max(largest,chain.id),-1)+1;
+      const graph={...job.graph,chains:[...job.graph.chains,{id,points,semanticBits,confidence:1}]};
+      // As with panel restoration/exclusion, the existing core validates all
+      // original pixels and rebuilds shared junctions/faces. Replacing the new
+      // path with itself preserves every existing shared endpoint; no topology
+      // algorithm or inference graph is duplicated in the job owner.
+      next.graph=calculate('editBoundaryGraph',{graph,command:{type:'replace',chainId:id,points}});
+    } else next.graph=calculate('editBoundaryGraph',{graph:job.graph,command:command.command});
     if (!next.graph.ok) throw new Error('Boundary revision failed.');
   } else if(command.type==='exclude-rect') {
     if(!job.graph?.ok || !Array.isArray(command.rect) || command.rect.length!==4 || command.rect.some(v=>!Number.isFinite(v)) || command.rect[2]<=command.rect[0] || command.rect[3]<=command.rect[1]) throw new Error('Expected original-pixel exclusion [x0,y0,x1,y1].');
