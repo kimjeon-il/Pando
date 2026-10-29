@@ -51,7 +51,7 @@ jobs:
         run: |
           cmake -S tools/cpp -B build-native/reference-analysis/native -A x64 -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch" -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
           if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed' }
-          cmake --build build-native/reference-analysis/native --config Release --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-reference-infer --parallel 1
+          cmake --build build-native/reference-analysis/native --config Release --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'Native reference build failed' }
       - name: Verify Windows loss behavior
         timeout-minutes: 3
@@ -78,6 +78,12 @@ jobs:
           $env:PANDO_REFERENCE_INFER_BINARY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-infer.exe"
           node --test tests/unit/reference-infer-cli.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Inference CLI test failed' }
+      - name: Verify Windows checkpoint preserves optimizer, RNG and sampling
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          & build-native/reference-analysis/native/Release/pando-training-checkpoint-tests.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Checkpoint resume test failed' }
       - name: Verify a frozen encoder AdamW update separately
         timeout-minutes: 2
         shell: pwsh
@@ -121,12 +127,13 @@ jobs:
           cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
             -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-reference-infer --parallel 1
+          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer --parallel 1
       - name: Compare original loss, model fixtures and Safetensors validation
         run: |
           build-native/reference-analysis/native/pando-reference-loss-tests
           build-native/reference-analysis/native/pando-reference-model-tests tests/fixtures/reference-model-synthetic-logits.f32
           build-native/reference-analysis/native/pando-safetensors-tests
+          build-native/reference-analysis/native/pando-training-checkpoint-tests
       - name: Verify native inference command rejects invalid requests
         env:
           PANDO_REFERENCE_INFER_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-infer
