@@ -26,6 +26,7 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
       else if(request.command==='set-attribute')result={updated:request.field==='name',json:request.json};
       else if(request.command==='set-geometry')result={updated:request.wkt==='POINT (127 37)'};
       else if(request.command==='delete-feature')result={deleted:request.fid==='-1'};
+      else if(request.command==='add-feature')result={fid:'-2',json:request.json,wkt:request.wkt};
       else if(request.command==='open')result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};
       else if(request.command==='export'){
         writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'Point',coordinates:[127,37]},
@@ -51,7 +52,7 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   assert.equal(initialized.result.serverInfo.name,'pando-qgis-native');
   child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
   const listed=await request('tools/list',{});
-  assert.deepEqual(listed.result.tools.map(tool=>tool.name).sort(),['qgis_native_begin_edit','qgis_native_clear_selection','qgis_native_commit_edit','qgis_native_delete_feature','qgis_native_export','qgis_native_features','qgis_native_layers','qgis_native_normalize','qgis_native_open','qgis_native_project','qgis_native_redo_edit','qgis_native_rollback_edit','qgis_native_schema','qgis_native_select','qgis_native_selection','qgis_native_set_attribute','qgis_native_set_geometry','qgis_native_start','qgis_native_status','qgis_native_undo_edit']);
+  assert.deepEqual(listed.result.tools.map(tool=>tool.name).sort(),['qgis_native_add_feature','qgis_native_begin_edit','qgis_native_clear_selection','qgis_native_commit_edit','qgis_native_delete_feature','qgis_native_export','qgis_native_features','qgis_native_layers','qgis_native_normalize','qgis_native_open','qgis_native_project','qgis_native_redo_edit','qgis_native_rollback_edit','qgis_native_schema','qgis_native_select','qgis_native_selection','qgis_native_set_attribute','qgis_native_set_geometry','qgis_native_start','qgis_native_status','qgis_native_undo_edit']);
   const call=(name,args)=>request('tools/call',{name,arguments:args});
   const status=await call('qgis_native_status',{});assert.equal(JSON.parse(status.result.content[0].text).transport,'pando-native-v1');
   const project=await call('qgis_native_project',{});assert.equal(JSON.parse(project.result.content[0].text).layer_count,1);
@@ -78,6 +79,8 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   assert.equal(JSON.parse(precise.result.content[0].text).json,'9007199254740993');
   assert.equal(JSON.parse((await call('qgis_native_set_geometry',{layer:'layer-1',fid:'1',wkt:'POINT (127 37)'})).result.content[0].text).updated,true);
   assert.equal(JSON.parse((await call('qgis_native_delete_feature',{layer:'layer-1',fid:'-1'})).result.content[0].text).deleted,true);
+  const added=await call('qgis_native_add_feature',{layer:'layer-1',wkt:'POINT (127 37)',json:'{"source":{"sequence":9007199254740993}}'});
+  assert.equal(JSON.parse(added.result.content[0].text).json,'{"source":{"sequence":9007199254740993}}');
   assert.equal(JSON.parse((await call('qgis_native_undo_edit',{layer:'layer-1'})).result.content[0].text).ok,true);
   assert.equal(JSON.parse((await call('qgis_native_redo_edit',{layer:'layer-1'})).result.content[0].text).ok,true);
   assert.equal(JSON.parse((await call('qgis_native_rollback_edit',{layer:'layer-1'})).result.content[0].text).ok,true);
