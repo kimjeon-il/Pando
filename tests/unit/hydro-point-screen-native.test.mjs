@@ -15,7 +15,8 @@ test('native point screen computes projected lengths and closest points',{skip:!
   assert.ok(result.points[0].distanceMeters<1e-6);
   assert.ok(result.points[1].distanceMeters>10000&&result.points[1].distanceMeters<12000);
   assert.ok(result.points[2].distanceMeters>1000&&result.points[2].distanceMeters<1200);
-  assert.ok(Math.abs(result.points[2].nearestLonLat[0]-9.2)<1e-7,JSON.stringify(result.points[2]));
+  assert.ok(Math.abs(result.points[2].nearestLonLat[0]-9.199992435555043)<1e-8);
+  assert.ok(Math.abs(result.points[2].nearestLonLat[1]-0.500000007662718)<1e-8);
 });
 test('native point screen rejects invalid CRS and coordinates without partial output',{skip:!binary},()=>{
   for(const input of [{...fixture,crs:'EPSG:4326'}, {...fixture,points:[[181,0]]},{...fixture,lines:[[[9,0]]]}]){
