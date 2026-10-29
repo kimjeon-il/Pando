@@ -6,7 +6,6 @@ on:
     paths:
       - tools/inventory-osm-hydronyms.mjs
       - tests/unit/osm-hydro-inventory.test.mjs
-      - tools/gis/compare_osm_hydro_natural_earth.py
       - tools/gis/compare-osm-hydro-natural-earth.mjs
       - tests/unit/hydro-ne-sampling.test.mjs
       - tools/gis/verify_victorian_yarra_source.py
@@ -14,8 +13,10 @@ on:
       - tests/unit/hydro-usgs-official-gauges.test.mjs
       - tools/gis/hydro-independent-name-policy.mjs
       - tools/gis/hydro-independent-name-replacements.json
-      - tools/gis/prepare_hydro_name_replacement_bundle.py
+      - tools/gis/prepare-hydro-name-replacement-bundle.mjs
+      - tests/unit/hydro-name-repack.test.mjs
       - tests/unit/hydro-independent-name-policy.test.mjs
+      - tests/unit/hydro-independent-evidence.test.mjs
       - tools/build-hydro-tiles.py
       - .github/workflows/gis-osm-river-audit.yml
   workflow_dispatch:
@@ -46,64 +47,26 @@ jobs:
         run: |
           node tools/decode-hydro-connectivity.mjs \
             assets/data/hydro/v0.13.2 /tmp/hydro-decoded.json
-      - name: Acquire hash-verified public-domain Natural Earth name geometry
+      - name: Select pinned Natural Earth name geometry
         run: |
-          python - <<'PY'
-          import hashlib, json, urllib.request
-          from pathlib import Path
-          manifest=json.loads(Path('assets/data/hydro/v0.13.2/manifest.json').read_text())
-          expected=next(x['sha256'] for x in manifest['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson')
-          url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/99a76bb8376d798c2e9bf132ad7f8d2b6ccb4298/assets/data/hydro/rivers_base.geojson'
-          request=urllib.request.Request(url,headers={'User-Agent':'PandoLab-GIS-audit/1.0'})
-          with urllib.request.urlopen(request,timeout=90) as response:
-              data=response.read()
-          actual=hashlib.sha256(data).hexdigest()
-          if actual!=expected: raise ValueError('Natural Earth reference source SHA-256 mismatch '+actual+' != '+expected)
-          Path('/tmp/ne-rivers-base.geojson').write_bytes(data)
-          print('NE_RIVER_REFERENCE_SHA='+actual,flush=True)
-          PY
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const m=JSON.parse(fs.readFileSync('assets/data/hydro/v0.13.2/manifest.json','utf8'));
+          const expected=m.sources.naturalEarthNameReference.find(row=>row.file==='rivers_base.geojson')?.sha256;
+          const bytes=fs.readFileSync('assets/data/hydro/rivers_base.geojson');
+          if(!expected || createHash('sha256').update(bytes).digest('hex')!==expected)throw Error('Natural Earth reference source SHA-256 mismatch');
+          fs.writeFileSync('/tmp/hydro-ne-reference.sha256',expected,{flag:'wx'});
+          console.log('NE_RIVER_REFERENCE_SHA='+expected);
+          JS
       - name: Independently compare remaining Hydro mainstem routes with Natural Earth
-        run: |
-          python -m pip install --quiet shapely
-          python tools/gis/compare_osm_hydro_natural_earth.py \
-            --decoded /tmp/hydro-decoded.json \
-            --natural-earth /tmp/ne-rivers-base.geojson \
-            --expected-sha256 "$(python -c "import json; m=json.load(open('assets/data/hydro/v0.13.2/manifest.json')); print(next(x['sha256'] for x in m['sources']['naturalEarthNameReference'] if x['file']=='rivers_base.geojson'))")" \
-            --inventory /tmp/osm-hydro-inventory.json \
-            --output /tmp/osm-ne-crosscheck.json
-      - name: Compare current Node Natural Earth name screen with Python source oracle (remaining systems)
         run: |
           node tools/gis/compare-osm-hydro-natural-earth.mjs \
             --decoded /tmp/hydro-decoded.json \
-            --natural-earth /tmp/ne-rivers-base.geojson \
-            --expected-sha256 "$(node -e "let m=require('./assets/data/hydro/v0.13.2/manifest.json');process.stdout.write(m.sources.naturalEarthNameReference.find(x=>x.file==='rivers_base.geojson').sha256)")" \
+            --natural-earth assets/data/hydro/rivers_base.geojson \
+            --expected-sha256 "$(cat /tmp/hydro-ne-reference.sha256)" \
             --inventory /tmp/osm-hydro-inventory.json \
-            --output /tmp/osm-ne-crosscheck-node.json
-          node --input-type=module - <<'JS'
-          import fs from 'node:fs';
-          const python=JSON.parse(fs.readFileSync('/tmp/osm-ne-crosscheck.json','utf8'));
-          const node=JSON.parse(fs.readFileSync('/tmp/osm-ne-crosscheck-node.json','utf8'));
-          if(python.items.length!==node.items.length || python.naturalEarthNamedParts!==node.naturalEarthNamedParts)
-            throw Error('NE source counts differ');
-          const diffs=[];
-          for(let i=0;i<python.items.length;i++){
-            const a=python.items[i],b=node.items[i];
-            if(a.systemId!==b.systemId||a.mainstemFragments!==b.mainstemFragments||
-              JSON.stringify(a.mainstemBounds)!==JSON.stringify(b.mainstemBounds))
-              throw Error('Hydro geometry mismatch for '+a.systemId+JSON.stringify({python:{mainstemFragments:a.mainstemFragments,mainstemBounds:a.mainstemBounds},node:{mainstemFragments:b.mainstemFragments,mainstemBounds:b.mainstemBounds}}));
-            if(a.naturalEarthCandidates.length!==b.naturalEarthCandidates.length){
-              diffs.push({systemId:a.systemId,reason:'candidate count'});continue;
-            }
-            for(let k=0;k<a.naturalEarthCandidates.length;k++){
-              const x=a.naturalEarthCandidates[k],y=b.naturalEarthCandidates[k];
-              if(x.name!==y.name||x.nameKo!==y.nameKo || x.supportingSamples!==y.supportingSamples
-                  ||Math.abs(x.meanDistanceDegrees-y.meanDistanceDegrees)>0.00002)
-                diffs.push({systemId:a.systemId,candidate:k,original:x,node:y});
-            }
-          }
-          if(diffs.length)throw Error('Python/Node NE source sampling mismatch: '+JSON.stringify(diffs.slice(0,4)));
-          console.log('Python/Node pinned NE comparison matched for '+python.items.length+' Hydro systems');
-          JS
+            --output /tmp/osm-ne-crosscheck.json
       - name: Independently check suspect Texas streams against USGS field stations
         run: |
           node tools/gis/check-official-usgs-hydro-gauges.mjs \
@@ -130,22 +93,12 @@ jobs:
           JS
       - name: Verify USGS station evidence is tied to the exact published Hydro geometry
         run: |
-          python - <<'PY'
-          import json,sys
-          from pathlib import Path
-          sys.path.insert(0,'tools/gis')
-          stations=json.loads(Path('/tmp/usgs-official-anchor-check.json').read_text())
-          review=json.loads(Path('/tmp/hydro-independent-review-validated.json').read_text())
-          for ident in ('70816878','70819626'):
-              measured=stations['candidateSystems'][ident]
-              recorded=review[ident]['officialStationEvidence']
-              own={r['station'] for r in stations['stationRows'] if r['independentHydrography']==measured['candidateName']}
-              assert measured['criteriaSatisfied'],ident
-              assert set(recorded['stationIds'])==own,ident
-              assert abs(recorded['maximumMatchingStationDistanceKm']-measured['maxMatchingStationDistanceKm'])<0.002
-              assert abs(recorded['nearestDifferentBasinStationKm']-measured['nearestDifferentBasinStationKm'])<0.002
-          print('Both station-based source exemptions reproduced against original Hydro geometry')
-          PY
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {verifyStationEvidence} from './tools/gis/hydro-independent-name-policy.mjs';
+          verifyStationEvidence(JSON.parse(readFileSync('/tmp/usgs-official-anchor-check.json')),JSON.parse(readFileSync('/tmp/hydro-independent-review-validated.json')));
+          console.log('Both station-based source exemptions reproduced against original Hydro geometry');
+          JS
       - name: Check all 42 reviewed mainstems independently of the 73 OSM-matched systems
         run: |
           node tools/gis/hydro-independent-name-policy.mjs \
@@ -158,89 +111,34 @@ jobs:
             items:Object.entries(verified).map(([systemId,value])=>({systemId,nameKo:value.previousNameKo}))
           }));
           JS
-          node --input-type=module - <<'JS'
-          import fs from 'node:fs';
-          const m=JSON.parse(fs.readFileSync('assets/data/hydro/v0.13.2/manifest.json','utf8'));
-          const expected=m.sources.naturalEarthNameReference.find(row=>row.file==='rivers_base.geojson')?.sha256;
-          if(!expected)throw Error('Missing pinned Natural Earth source hash');
-          fs.writeFileSync('/tmp/hydro-ne-reference.sha256',expected);
-          JS
-          python tools/gis/compare_osm_hydro_natural_earth.py \
-            --decoded /tmp/hydro-decoded.json --natural-earth /tmp/ne-rivers-base.geojson \
+          node tools/gis/compare-osm-hydro-natural-earth.mjs \
+            --decoded /tmp/hydro-decoded.json --natural-earth assets/data/hydro/rivers_base.geojson \
             --expected-sha256 "$(cat /tmp/hydro-ne-reference.sha256)" \
             --inventory /tmp/reviewed-mainstem-scope.json \
             --output /tmp/reviewed-ne-crosscheck.json
       - name: Verify all lower-coverage candidate river names against independent Natural Earth line comparison
         run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          review=json.loads(Path('tools/gis/hydro-independent-name-replacements.json').read_text())['replacements']
-          ne=json.loads(Path('/tmp/reviewed-ne-crosscheck.json').read_text())['items']
-          ne_by_id={str(row['systemId']):row for row in ne}
-          for entry in review:
-              if entry.get('naturalEarth') is None: continue
-              candidates=ne_by_id[entry['systemId']]['naturalEarthCandidates']
-              match=next((row for row in candidates if row['name'] == entry['naturalEarth']['name']),None)
-              assert match is not None, entry['systemId']
-              assert abs(match['sampleCoverage'] - entry['naturalEarth']['sampleCoverage']) < 0.001, entry['systemId']
-              conservative=entry.get('conservativeMainstemReview')
-              if conservative:
-                  assert candidates[0]['name']==match['name'],entry['systemId']
-                  competing=max((row['sampleCoverage'] for row in candidates
-                                 if row['name']!=match['name'] and row['nameKo']),default=0)
-                  assert abs(competing-conservative['otherNamedNECoverage'])<0.001,entry['systemId']
-                  assert match['meanDistanceDegrees'] <= 0.04,entry['systemId']
-              cross_border=entry.get('crossBorderNameReview')
-              if cross_border:
-                  rivals=[z for z in candidates if z['name']!=match['name'] and z.get('nameKo')]
-                  max_rival=max((z['sampleCoverage'] for z in rivals),default=0)
-                  assert abs(max_rival-cross_border['strongestOtherNENameCoverage'])<0.001,entry['systemId']
-                  assert 0.35<=match['sampleCoverage']<0.45,entry['systemId']
-                  assert match['meanDistanceDegrees']<0.06,entry['systemId']
-              partial=entry.get('partialExistingNameReview')
-              if partial:
-                  assert candidates[0]['name'] == match['name'],entry['systemId']
-                  rivals=[row for row in candidates if row['name']!=match['name'] and row['nameKo']]
-                  max_rival=max((row['sampleCoverage'] for row in rivals),default=0)
-                  assert abs(max_rival-partial['strongestOtherNENameCoverage'])<0.001,entry['systemId']
-                  assert max_rival<=0.05 and match['meanDistanceDegrees']<=0.025,entry['systemId']
-              confluence=entry.get('basinConfluenceReview') or entry.get('independentBasinRename')
-              if confluence:
-                  trib=next((row for row in candidates
-                             if row['name']==confluence['namedTributaryNE']),None)
-                  assert trib is not None,entry['systemId']
-                  assert abs(trib['sampleCoverage']-confluence['tributarySampleCoverage'])<0.001,entry['systemId']
-                  threshold=0.90 if entry.get('independentBasinRename') else 0.75
-                  assert match['sampleCoverage']+trib['sampleCoverage']>=threshold,entry['systemId']
-                  assert match['meanDistanceDegrees']<=0.05,entry['systemId']
-                  assert trib['meanDistanceDegrees']<=0.05,entry['systemId']
-          print('Source-independent 81-sample geometry comparisons reproduced for all reviewed river systems')
-          PY
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {verifyNaturalEarthEvidence} from './tools/gis/hydro-independent-name-policy.mjs';
+          verifyNaturalEarthEvidence(JSON.parse(readFileSync('tools/gis/hydro-independent-name-replacements.json')),JSON.parse(readFileSync('/tmp/reviewed-ne-crosscheck.json')));
+          console.log('Source-independent 81-sample geometry comparisons reproduced for all reviewed river systems');
+          JS
       - name: Reproduce the independent Victorian Yarra government river vector check
         run: |
-          python -m pip install --quiet pyproj
+          python -m pip install --quiet pyproj shapely
           python tools/gis/verify_victorian_yarra_source.py \
             --decoded /tmp/hydro-decoded.json \
             --output /tmp/yarra-government-vector-validated.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          match=json.loads(Path('/tmp/yarra-government-vector-validated.json').read_text())
-          review=json.loads(Path('tools/gis/hydro-independent-name-replacements.json').read_text())
-          by_id={row['systemId']:row for row in review['replacements']}
-          recorded=by_id['50798885']['officialGovernmentVectorEvidence']
-          assert match['source']['sourceGeoJSONSha256']==recorded['sourceGeoJSONSha256']
-          assert match['hydroSamplesToNamedGovernmentRiver']['samples']==recorded['hydroMainstemSamples']
-          assert abs(match['hydroSamplesToNamedGovernmentRiver']['within1km']-recorded['within1kmHydroToGovernment'])<0.0002
-          assert abs(match['governmentSamplesToHydroMainstem']['within1km']-recorded['within1kmGovernmentToHydro'])<0.0002
-          assert abs(match['hydroSamplesToNamedGovernmentRiver']['p90DistanceKm']-recorded['p90DistanceKm'])<0.01
-          assert match['source']['license']=='CC BY 4.0'
-          print('Victoria government river centerline spatial verification reproduced')
-          PY
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {verifyYarraEvidence} from './tools/gis/hydro-independent-name-policy.mjs';
+          verifyYarraEvidence(JSON.parse(readFileSync('/tmp/yarra-government-vector-validated.json')),JSON.parse(readFileSync('tools/gis/hydro-independent-name-replacements.json')));
+          console.log('Victoria government river centerline spatial verification reproduced');
+          JS
       - name: Verify independently researched river-name records
         run: |
-          node --test tests/unit/hydro-independent-name-policy.test.mjs
+          node --test tests/unit/hydro-independent-name-policy.test.mjs tests/unit/hydro-independent-evidence.test.mjs tests/unit/hydro-name-repack.test.mjs
       - name: Verify feature-level independent-source notes
         run: node --test tests/unit/hydro-source-notes.test.mjs
       - name: Verify current published independent names and immutable Hydro bytes

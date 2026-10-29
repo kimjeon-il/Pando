@@ -7,6 +7,90 @@
 > **대상:** 저장소에 추적된 Python `.py` **101개 전수**. 5개 전환 묶음에 누락·중복 없이 분류함.  
 > **결론:** 남겨두기라는 최종 상태는 없음. *기능을 다른 언어로 이식*하거나 *일회성 작업은 결과의 영구 보존·검증 후 원본 스크립트와 Actions를 종료*함.
 
+## 2026-10-29 잔여 기준 목록
+
+재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
+
+- 학습 전환 체크포인트: 현재 Python 모델의 BCE·Dice·연결성 손실과 관측되지 않은 채널의 gradient 고정 사례를 C++ LibTorch로 이전했다. MobileNetV3 encoder·overview·position·decoder·7채널 모델의 340개 텐서 이름, Safetensors 로더와 Python이 만든 합성 logits 전체(기준 SHA-256 `ca115f9ebed8308c702b137f10a08129fec30169e9659af47be05c47439dd218`, 최대 오차 0.005 이하)를 [CI 40840912107](https://github.com/kimjeon-il/Pando/actions/runs/40840912107)에서 확인했다. Windows용 LibTorch 2.14 헤더가 C++20을 요구하므로 **선택형 학습 대상에만 C++20을 적용**하고 다른 GIS·앱 대상은 기존 C++17을 유지한다. 비공개 macro-v6 가중치를 optimizer 없는 warm-start로 한 번 추출하고 보존 지도 입력을 준비했다. Windows 빌드·실모델 전체 출력·학습·ONNX는 아직 검증 중이며 Python 실행 경로와 원본 모델은 유지한다.
+- 실제 보존 지도 PNG(`cc8a18a0…8595ad81`, 1680×1290)에서 만든 첫 타일과 비공개 macro-v6의 기존 Python/Node ONNX WASM 전체 logits를 비교했다. 최대 절대오차는 `0.0002338886260986328`이며 0.005 기준 이내다. 이는 기존 모델의 실행 동등성 기준이며, 새 C++의 실모델 결과나 독립 정확도 승인은 아니다.
+- 보존 모델을 한 번 Safetensors 가중치로 옮기고 실제 지도 입력의 C++ CPU logits 1,835,008개를 이전 Python과 비교했다. 기본 스레드 수에서는 최대 오차 1.148로 실패했으며, 기존 Python과 같은 2개 스레드에서는 **모든 값이 일치**했다. 추론기에 스레드 수를 명시하고 Windows CUDA runtime 연결을 수정해 재검증 중이다. optimizer 상태는 원본 체크포인트에 없으므로 이전 결과를 정확한 학습 재개로 간주하지 않는다.
+- [CI 40841964938](https://github.com/kimjeon-il/Pando/actions/runs/40841964938)의 합성 학습 사례에서는 AdamW가 decoder를 갱신하고 동결한 encoder 가중치·통계는 변하지 않았다. 이는 실자료 학습이나 저장 후 정확한 재개 검증이 아니다.
+- 실자료 학습 후보 중 CIA 2021 세계지도 한 장만 선택해 기존 코퍼스 검증으로 원본·권리·감독 mask·파생 영상 해시와 source-derived-weak 상태를 확인했다. 코퍼스의 옛 OCR 카탈로그 경로가 현행 소스 배치에서 실패하던 문제는 기존 Node 카탈로그를 읽도록 수정했다. 검증은 학습이나 모델 승인에 해당하지 않는다.
+
+- 독일 1914 생성기: 기존 GEOS/PROJ 엔진에 WGS84 타원체 면적과 헬골란트 패치 검증을 추가하고 Node 자료·출력 관리자를 연결했다. [CI 40838951664](https://github.com/kimjeon-il/Pando/actions/runs/40838951664)에서 26개 합성 주와 실제 Natural Earth 헬골란트 원본을 각각 사용해 Python/C++ 출력 형상·면적·검증값을 대조했다. 이 두 기준을 고정 fixture로 남기고 Python 생성기와 oracle 실행을 제거했다. 사용자 예외에 따라 Harvard HGIS 원본 26개 기반 실자료 재현과 역사 형상은 **미검증**으로 유지한다. 현재 추적 Python은 **49개(도구 32, 테스트 17)**다.
+
+- Windows 파일 할당량: `tools/pc-file-allocation.py`를 선택형 C++ 대상 `pando-pc-file-allocation`으로 전환했다. [Windows CI 40833720677](https://github.com/kimjeon-il/Pando/actions/runs/40833720677)의 바이너리를 고정 `build-native/pc-allocation`에 받아 소스·실행 파일 SHA-256을 검증한 뒤 기존 Node 정리 소유자가 호출한다. CI와 로컬에서 하드링크·긴 한글 경로·정션 차단을 확인하고, 로컬에서 희소·압축 파일의 실제 할당량과 Python 결과 동등성을 확인했다. 최종 실행 경로에 Python·자동 컴파일·fallback을 남기지 않았다. 잔여 추적 Python은 **50개(도구 33, 테스트 17)**이다. 이 검사는 사용자 파일 정리 실행을 뜻하지 않는다.
+
+사용자가 승인한 55개 기준이다. Git 추적 파일 수를 현재 진행률로 계산한다. 아래 목록은 최초 기준으로 보존하며 새 Python 파일을 허용하지 않는다. 기능별 대체·실제 호출자·검증·삭제 조건은 아래의 각 그룹을 따른다. 55개 각각의 호출자·대응 검사 상세 연결은 계속 작성해야 한다. 원본 26개가 없는 HGIS 실자료 비교는 미검증으로 남긴다.
+
+- 지도 원본 수집: `map_source.py`와 `acquire-sources.py`를 `plugins/pando-map-tools/lib/map-source.mjs`와 `tools/reference-analysis/acquire-sources.mjs`로 이전했다. 지도 분석 CLI와 코퍼스 CLI가 같은 수집 정본을 사용한다. 네 형식 고정 입력의 원본 바이트·크기·SHA-256을 이전 구현과 비교했고, 권리·HTTPS·제한·체크섬·취소·동시 생성 보존은 Node 검사로 확인했다. 기존 파생 이미지 Python 테스트는 유지한다.
+- 비공개 패키지 ZIP: 패키징과 cloud probe의 ZIP 생성에 쓰던 인라인 Python을 스트리밍 Node ZIP 작성기로 교체했다. 원본 파일·기존 ZIP 보존, CRC/내용 확인과 진단 실행에 필요한 의존성 포함을 별도로 검사한다. 파일 목록 53개에는 변화가 없다.
+- Hydro 이름 재포장: 기존 Python 생성기를 Node로 이전했다. 고정 자료와 운영 자료의 10047863 수계 1개(원본 번들 SHA-256 `f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f`)를 Python과 비교해 메타데이터 의미·색인·형상 바이트가 일치했다. 압축 결과의 전체 해시는 Node `c140969f68579d52d5d72123f71e576d32e07029b2aba22d3040f1de31220e28`, Python `f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f`로 달랐으며 운영 manifest와 자료 pin은 갱신하지 않았다.
+- Hydro/Natural Earth 조사: 기존 Node 조사기와 Python 원본을 현행 Hydro OSM 잔여 31개 및 검토 수계 42개에 비교했다. Natural Earth 원본 SHA-256 `3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99`의 명명 선분 4,226개, 수계 ID·본류 형상 범위·후보·지지 샘플이 일치했고 평균 거리는 기존 CI 허용오차 0.00002도 이내였다. Python 조사기는 제거하고 CI 두 호출을 Node 정본으로 전환한다. 자동 후보는 지명 승인으로 취급하지 않는다.
+- Hydro 조사 증거 대조: CI의 USGS 관측점, Natural Earth 검토 후보와 Yarra 벡터 결과를 비교하는 세 인라인 Python을 Node 정책 모듈로 전환했다. 실제 USGS 2개 수계 및 Natural Earth 42개 수계 대조와 실패 사례를 확인했다. Yarra 벡터는 고정 사례만 검사했으며 이번에 정부 API 실자료 대조를 재실행하지 않았다.
+- 저장소 보고서 소유권 검사: CI에서 Git 추적 경로를 확인하던 인라인 Python을 Node 검사로 전환하고 현재 추적 경로에 대해 실행했다. GIS 생성기 구문 검사에는 아직 Python이 필요하다.
+- Hydro 3차 조사 기록: 11개 수계 조사 결과의 범위·비승인 상태 검사와 관측점 25개 단위 영수증 출력을 Node 정책 모듈로 옮겼다. 점간 GIS 계산 Python과 정부 API 실자료 조사는 후속 전환 대상이다.
+- Hydro 1·2차 조사 결과의 수계 범위와 원본 무변경 검사도 인라인 Node로 옮겼다. 양쪽 CI 검사의 정상·변경된 영수증 처리만 별도로 확인했으며 원본 수집·GIS 계산 Python은 그대로 남아 있다.
+- 핀란드 NLS 수계 서비스 조회: Python 인라인 조회를 크기·시간 제한이 있는 Node 조회기로 교체했다. 실제 서비스에서 4개 샘플의 속성 이름만 확인했으며 원본 형상은 저장하거나 런타임에 반영하지 않았다. 조회 성공은 지명·수계 승인 근거가 아니다.
+- NGA GNS와 중앙아시아 관측소 수집: 2차 연구 CI의 인라인 Python 두 블록을 Node 정본으로 연결했다. HTTPS·응답 크기·시간·취소 제한과 MD5 확인, 관측소/하천 명칭 구분, 읽기 전용 SQLite 추출을 유지한다. 고정 사례 8개와 YAML·lint를 확인했다. 실제 GNS 요청은 4개 중 2개가 응답했고 중앙아시아 원본 요청은 시간초과/접근실패로 실자료 추출이 미검증이다. 실패는 자료 부재로 판단하지 않는다. 공간 비교 Python은 아직 유지하며 이 변경은 추적 Python 50개를 감소시키지 않는다.
+- 지도 플러그인 경로 복구: 실행·OCR·소스 패키징의 옛 `assets/js`·`assets/wasm` 참조를 현행 `shared/frontend` 소스 배치로 교체했다. 기존 UI Python 런타임을 재사용해 플러그인·패키지 검사와 CLI의 미검증 출처 보류 경로를 확인했다. 실제 보존 지도 PNG(5,161,936 bytes, SHA-256 `cc8a18a0e80370929d5572935adefa5baffec902344278bf08ef21145895ad81`)와 비공개 기존 모델로 OCR·경계 후보·미리보기를 실행해 `needs-georeference` 결과를 확인했다. 영상 처리의 C++ 전환과 지도 승인·모델 정확도 검증은 미완료다.
+
+- `plugins/pando-map-tools/lib/map_source.py`
+- `plugins/pando-map-tools/lib/raster.py`
+- `tests/python/test_build_terrain_dem.py`
+- `tests/python/test_build_terrain_preview.py`
+- `tests/python/test_qgis_bridge.py`
+- `tests/python/test_reference_analysis_conditions.py`
+- `tests/python/test_reference_analysis_corpus.py`
+- `tests/python/test_reference_analysis_evaluation.py`
+- `tests/python/test_reference_analysis_macro.py`
+- `tests/python/test_reference_analysis_publisher.py`
+- `tests/python/test_reference_analysis_semap.py`
+- `tests/python/test_reference_analysis_sources.py`
+- `tests/reference-analysis/test_model.py`
+- `tests/test_hydro_calibration.py`
+- `tests/test_hydro_connectivity.py`
+- `tests/test_hydro_tiles.py`
+- `tests/test_hydronym_spacing.py`
+- `tests/test_lsib_boundary_supplement.py`
+- `tests/test_map_plugin_raster.py`
+- `tools/build-hydro-tiles.py`
+- `tools/build-physical-data.py`
+- `tools/build-terrain-dem.py`
+- `tools/build-terrain-preview.py`
+- `tools/build_german_empire_1914_base.py`
+- `tools/build_german_empire_1914_modern_coast.py`
+- `tools/calibrate-hydro.py`
+- `tools/gis/compare_osm_hydro_natural_earth.py`
+- `tools/gis/prepare_hydro_name_replacement_bundle.py`
+- `tools/gis/verify_independent_river_point_anchors.py`
+- `tools/gis/verify_osm_hydro_batch01_anchors.py`
+- `tools/gis/verify_osm_hydro_batch02_points.py`
+- `tools/gis/verify_osm_hydro_batch03_points.py`
+- `tools/gis/verify_victorian_yarra_source.py`
+- `tools/hydro_connectivity.py`
+- `tools/library_data.py`
+- `tools/pc-file-allocation.py`
+- `tools/qgis/bootstrap.py`
+- `tools/qgis/bridge.py`
+- `tools/reference-analysis/acquire-sources.py`
+- `tools/reference-analysis/corpus.py`
+- `tools/reference-analysis/evaluation.py`
+- `tools/reference-analysis/inspect-checkpoint.py`
+- `tools/reference-analysis/macro.py`
+- `tools/reference-analysis/model.py`
+- `tools/reference-analysis/prepare-analysis-images.py`
+- `tools/reference-analysis/publisher.py`
+- `tools/reference-analysis/semap.py`
+- `tools/reference-analysis/train.py`
+- `tools/reference-analysis/verify-model.py`
+- `tools/repair-hydro-connectivity.py`
+- `tools/report_paths.py`
+- `tools/supplement-lsib-boundaries.py`
+- `tools/verify-hydro-connectivity.py`
+- `tools/verify-lsib-screen-delta.py`
+- `tools/verify-terrain-dem.py`
+
 ## 실행 현황 — A0~A2 (2026-10-25)
 
 - **C2 북슐레스비히 과잉 정밀조사 종료 (2026-10-27, 최신 지시):** Natural Earth 1:10M 표시 축척 대비 불필요했던 북슐레스비히 표석 1~26·SLUB 도엽 4장·교구 경계 중첩·지도 보관 및 권리 검증을 **사업 범위에서 철회**한다. 12개 연구 Python과 대응하는 전용 Node·Actions·테스트를 기능 전환 대신 삭제한다. 기존 보고서의 '삭제 전 원도엽 영구 보존 의무'는 사용자 승인으로 철회되었다. **운영 역사 객체 `state:north-schleswig`, `north-schleswig-1900-r3`, 국가별 색인과 일반 지도 입력·출처 표시는 보존한다.** 외부 라이브러리의 별도 연구 사료는 런타임 핀 이력과 분리해 정리하며, 핀을 무단 전진시키거나 운영 형상을 바꾸지 않는다.

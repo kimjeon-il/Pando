@@ -3,10 +3,9 @@ import assert from 'node:assert/strict';
 import {classifyEditorChild,cacheDirectories,assertOffline,sqliteProof,compactDatabase,discoverProfile,confirmRecovery,checkedConsumers} from '../../tools/pc-cleanup.mjs';
 import {DatabaseSync} from 'node:sqlite';
 import {mkdtempSync,rmSync,existsSync,mkdirSync,writeFileSync,readFileSync,linkSync,symlinkSync} from 'node:fs';
-import {tmpdir,homedir} from 'node:os';
+import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {execFileSync} from 'node:child_process';
-import {fileURLToPath} from 'node:url';
+import {auditFileAllocation} from '../../tools/pc-file-allocation.mjs';
 import {previewGeneratedCleanup,applyGeneratedCleanup} from '../../tools/worktree-generated.mjs';
 import {contentHash} from '../../tools/library-content.mjs';
 import {randomBytes} from 'node:crypto';
@@ -66,10 +65,9 @@ test('interruption after SQLite backup resumes the owned recovery copy',async t=
  const result=await compactDatabase({path,recovery,receipt,guard:()=>{}});assert.equal(result.phase,'verified-awaiting-reopen');
 });
 test('NTFS allocation audit counts selected hardlink data once and retains outside links',{skip:process.platform!=='win32'},t=>{
- const python=join(homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');if(!existsSync(python)){t.skip('existing metadata runtime unavailable');return;}
  const root=mkdtempSync(join(tmpdir(),'pc-allocation-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
  writeFileSync(join(root,'a'),randomBytes(65536));linkSync(join(root,'a'),join(root,'b'));
- const manifest=join(root,'manifest.json'),audit=entries=>{writeFileSync(manifest,JSON.stringify({entries:entries.map(path=>({root,path,action:'delete'}))}));return JSON.parse(execFileSync(python,[fileURLToPath(new URL('../../tools/pc-file-allocation.py',import.meta.url)),manifest],{encoding:'utf8',windowsHide:true}));};
+ const manifest=join(root,'manifest.json'),audit=entries=>{writeFileSync(manifest,JSON.stringify({entries:entries.map(path=>({root,path,action:'delete'}))}));return auditFileAllocation(manifest);};
  const one=audit(['a']),two=audit(['a','b']);assert.equal(one.reclaimableAllocation,0);assert.equal(two.uniqueFileIds,1);assert.equal(two.reclaimableAllocation,two.selectedUniqueAllocation);assert.ok(two.reclaimableAllocation>0);
  const long='long/'.repeat(60)+'allocation.bin';mkdirSync(join(root,long,'..'),{recursive:true});writeFileSync(join(root,long),randomBytes(4096));assert.equal(audit([long]).files,1);
 });

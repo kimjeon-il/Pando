@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import pathlib
+import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -14,7 +15,10 @@ from PIL import Image
 
 CHANNELS = ["international", "administrative", "coast", "hydro", "transport", "text", "frame"]
 RASTER_ORIGINS = {'publisher-layer-export', 'semap-human-mask-export', 'macro-vector-supervision'}
-LANGUAGES = set(json.loads((pathlib.Path(__file__).resolve().parents[2] / 'assets/vendor/reference-analysis/manifest.json').read_text(encoding='utf-8'))['languages']) - {'osd'}
+LANGUAGES = set(json.loads(subprocess.check_output([
+    'node', '--input-type=module', '-e',
+    "import {REFERENCE_OCR_LANGUAGES} from './plugins/pando-map-tools/lib/analysis/ocr-catalog.mjs'; console.log(JSON.stringify(REFERENCE_OCR_LANGUAGES))",
+], cwd=pathlib.Path(__file__).resolve().parents[2], text=True, encoding='utf-8')))
 
 
 def corpus_path(root, relative):

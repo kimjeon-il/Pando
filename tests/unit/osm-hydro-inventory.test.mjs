@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { gzipSync } from 'node:zlib';
 import { inventoryOsmHydronyms, readHydroMetadataSection, main } from '../../tools/inventory-osm-hydronyms.mjs';
@@ -74,7 +75,7 @@ test('CLI emits both Python-compatible log records and immutable input files', t
   const { manifest, bundle } = fixture();
   const m = join(dir, 'manifest.json'), b = join(dir, 'hydro.bin'), out = join(dir, 'inventory.json');
   writeFileSync(m, JSON.stringify(manifest)); writeFileSync(b, bundle);
-  const result = spawnSync(process.execPath, [new URL('../../tools/inventory-osm-hydronyms.mjs', import.meta.url).pathname,
+  const result = spawnSync(process.execPath, [fileURLToPath(new URL('../../tools/inventory-osm-hydronyms.mjs', import.meta.url)),
     '--manifest', m, '--bundle', b, '--output', out], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /^OSM_AUDIT_TOTAL=1\n/m);
