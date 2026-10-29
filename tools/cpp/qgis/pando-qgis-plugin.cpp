@@ -8,6 +8,7 @@
 #include <qgsfields.h>
 #include <qgsexpression.h>
 #include <qgsexpressioncontext.h>
+#include <qgsexpressioncontextutils.h>
 #include <qgslayertree.h>
 #include <qgslayertreegroup.h>
 #include <qgslayertreelayer.h>
