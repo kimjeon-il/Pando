@@ -38,3 +38,18 @@ test('native point screen supports indexed nearest-line searches',{skip:!binary}
   const output=JSON.parse(result.stdout);assert.equal(output.points.length,3);
   assert.ok(Math.abs(output.points[2].nearestLonLat[0]-9.199992435555043)<1e-8);
 });
+test('native vector screen compares both directions in projected coordinates',{skip:!binary},()=>{
+  const line=[[145,-37.8],[145.01,-37.81]],result=invoke({crs:'EPSG:32755',mode:'vector',lines:[line],referenceLines:[line],points:[],samples:5});
+  assert.equal(result.status,0,result.stderr);const output=JSON.parse(result.stdout);
+  assert.equal(output.lineLengthsMeters.length,1);assert.equal(output.referenceLengthsMeters.length,1);
+  assert.equal(output.hydroToReferenceMeters.length,5);assert.equal(output.referenceToHydroMeters.length,5);
+  assert.ok(output.hydroToReferenceMeters.every(value=>value<1e-6));
+  assert.ok(output.referenceToHydroMeters.every(value=>value<1e-6));
+  assert.equal(output.referenceBoundsMeters.length,4);
+});
+test('native vector screen rejects missing, invalid or degenerate source lines',{skip:!binary},()=>{
+  for(const referenceLines of [[],[[[145,-37.8],[145,-37.8]]]]){
+    const result=invoke({crs:'EPSG:32755',mode:'vector',lines:[[[145,-37.8],[145.01,-37.81]]],referenceLines,points:[],samples:5});
+    assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+  }
+});

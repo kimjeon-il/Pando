@@ -4,11 +4,13 @@
 #include <geos_c.h>
 #include <proj.h>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <numeric>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -58,6 +60,54 @@ Geometry geometry(GEOSContextHandle_t context,const std::vector<Point>& points,b
     if(!raw){GEOSCoordSeq_destroy_r(context,seq);throw std::runtime_error("GEOS geometry creation failed");}
     return own(context,raw);
 }
+struct LineSet{
+    std::vector<Geometry> lines;std::vector<double> lengths;
+    std::array<double,4> bounds{std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),
+        -std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity()};
+};
+LineSet projectLines(GEOSContextHandle_t context,PJ* projection,const std::vector<Value>& source,
+                     std::size_t& totalVertices,bool dropZero,bool validate){
+    if(source.empty()||source.size()>100000)throw std::invalid_argument("Invalid point-screen input size");
+    LineSet result;
+    for(const auto& row:source){
+        const auto& coordinates=array(row);totalVertices+=coordinates.size();
+        if(coordinates.size()<2||totalVertices>5000000)throw std::invalid_argument("Invalid point-screen line");
+        std::vector<Point> projected;projected.reserve(coordinates.size());
+        for(const auto& coordinate:coordinates){
+            const auto point=transformed(projection,inputPoint(coordinate),PJ_FWD);projected.push_back(point);
+            result.bounds[0]=std::min(result.bounds[0],point.x);result.bounds[1]=std::min(result.bounds[1],point.y);
+            result.bounds[2]=std::max(result.bounds[2],point.x);result.bounds[3]=std::max(result.bounds[3],point.y);
+        }
+        auto line=geometry(context,projected,false);double length=0;
+        if(validate&&(GEOSisEmpty_r(context,line.get())!=0||GEOSisValid_r(context,line.get())!=1))throw std::invalid_argument("Invalid river line");
+        if(!GEOSLength_r(context,line.get(),&length)||!std::isfinite(length))throw std::runtime_error("GEOS line length failed");
+        if(dropZero&&length<=0)continue;
+        result.lengths.push_back(length);result.lines.push_back(std::move(line));
+    }
+    if(result.lines.empty())throw std::invalid_argument("No usable point-screen lines");return result;
+}
+Geometry unionLines(GEOSContextHandle_t context,const std::vector<Geometry>& lines){
+    std::vector<GEOSGeometry*> clones;clones.reserve(lines.size());
+    for(const auto& line:lines){auto* clone=GEOSGeom_clone_r(context,line.get());if(!clone){for(auto* item:clones)GEOSGeom_destroy_r(context,item);throw std::runtime_error("GEOS clone failed");}clones.push_back(clone);}
+    auto* collectionRaw=GEOSGeom_createCollection_r(context,GEOS_MULTILINESTRING,clones.data(),static_cast<unsigned int>(clones.size()));
+    if(!collectionRaw){for(auto* item:clones)GEOSGeom_destroy_r(context,item);throw std::runtime_error("GEOS collection failed");}
+    auto collection=own(context,collectionRaw);return own(context,GEOSUnaryUnion_r(context,collection.get()));
+}
+Value numberArray(const std::vector<double>& numbers){auto result=Value::arr();for(double number:numbers)result.array.push_back(Value::num(number));return result;}
+Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GEOSGeometry* target,int count){
+    const double total=std::accumulate(source.lengths.begin(),source.lengths.end(),0.0);
+    if(!std::isfinite(total)||total<=0)throw std::invalid_argument("Invalid total river length");
+    auto distances=Value::arr();
+    for(int index=0;index<count;++index){
+        const double position=total*(index+0.5)/count;double before=0;std::size_t part=0;
+        for(;part+1<source.lines.size()&&position>before+source.lengths[part];++part)before+=source.lengths[part];
+        const auto local=std::min(source.lengths[part],position-before);
+        auto point=own(context,GEOSInterpolate_r(context,source.lines[part].get(),local));double distance=0;
+        if(!GEOSDistance_r(context,point.get(),target,&distance)||!std::isfinite(distance))throw std::runtime_error("GEOS sample distance failed");
+        distances.array.push_back(Value::num(distance));
+    }
+    return distances;
+}
 Value run(const Value& input){
     const auto crs=utm(field(input,"crs"));const auto& sourceLines=array(field(input,"lines"));const auto& sourcePoints=array(field(input,"points"));
     std::string mode="union_if_line";
@@ -66,7 +116,7 @@ Value run(const Value& input){
         if(modeField->second.kind!=Value::String)throw std::invalid_argument("Invalid point-screen mode");
         mode=modeField->second.string;
     }
-    if(mode!="union_if_line"&&mode!="parts"&&mode!="tree")throw std::invalid_argument("Invalid point-screen mode");
+    if(mode!="union_if_line"&&mode!="parts"&&mode!="tree"&&mode!="vector")throw std::invalid_argument("Invalid point-screen mode");
     if(sourceLines.empty()||sourceLines.size()>100000||sourcePoints.size()>10000)
         throw std::invalid_argument("Invalid point-screen input size");
     using ProjContext=std::unique_ptr<PJ_CONTEXT,decltype(&proj_context_destroy)>;
@@ -78,27 +128,28 @@ Value run(const Value& input){
     if(!projection)throw std::runtime_error("PROJ axis normalization failed");
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
-    std::vector<Geometry> lines;auto lengths=Value::arr();std::size_t totalVertices=0;
-    for(const auto& source:sourceLines){
-        const auto& coordinates=array(source);totalVertices+=coordinates.size();
-        if(coordinates.size()<2||totalVertices>5000000)throw std::invalid_argument("Invalid point-screen line");
-        std::vector<Point> projected;projected.reserve(coordinates.size());
-        for(const auto& coordinate:coordinates)projected.push_back(transformed(projection.get(),inputPoint(coordinate),PJ_FWD));
-        auto line=geometry(context.get(),projected,false);double length=0;
-        if(!GEOSLength_r(context.get(),line.get(),&length)||!std::isfinite(length))throw std::runtime_error("GEOS line length failed");
-        if(mode!="union_if_line"&&length<=0)continue;
-        lengths.array.push_back(Value::num(length));lines.push_back(std::move(line));
+    std::size_t totalVertices=0;
+    auto hydro=projectLines(context.get(),projection.get(),sourceLines,totalVertices,mode!="union_if_line",mode=="vector");
+    auto& lines=hydro.lines;
+    if(mode=="vector"){
+        if(!sourcePoints.empty())throw std::invalid_argument("Vector mode does not accept points");
+        const double sampleCount=pandoeditor::codecjson::finiteNumber(field(input,"samples"));
+        if(!std::isfinite(sampleCount)||std::floor(sampleCount)!=sampleCount||sampleCount<1||sampleCount>1000)
+            throw std::invalid_argument("Invalid vector sample count");
+        auto reference=projectLines(context.get(),projection.get(),array(field(input,"referenceLines")),totalVertices,true,true);
+        auto hydroUnion=unionLines(context.get(),hydro.lines),referenceUnion=unionLines(context.get(),reference.lines);
+        auto result=Value::obj(),bounds=Value::arr();for(double value:reference.bounds)bounds.array.push_back(Value::num(value));
+        result.object["lineLengthsMeters"]=numberArray(hydro.lengths);result.object["referenceLengthsMeters"]=numberArray(reference.lengths);
+        result.object["referenceBoundsMeters"]=std::move(bounds);
+        result.object["hydroToReferenceMeters"]=sampleDistances(context.get(),hydro,referenceUnion.get(),static_cast<int>(sampleCount));
+        result.object["referenceToHydroMeters"]=sampleDistances(context.get(),reference,hydroUnion.get(),static_cast<int>(sampleCount));
+        return result;
     }
-    if(lines.empty())throw std::invalid_argument("No usable point-screen lines");
     // Shapely's original implementation projects onto the unary union only
     // when it is a single LineString; otherwise it searches input parts.
     Geometry merged(nullptr,GeosDeleter{context.get()});bool mergedLine=false;
     if(mode=="union_if_line"){
-        std::vector<GEOSGeometry*> clones;clones.reserve(lines.size());
-        for(const auto& line:lines){auto* clone=GEOSGeom_clone_r(context.get(),line.get());if(!clone){for(auto* item:clones)GEOSGeom_destroy_r(context.get(),item);throw std::runtime_error("GEOS clone failed");}clones.push_back(clone);}
-        auto* collectionRaw=GEOSGeom_createCollection_r(context.get(),GEOS_MULTILINESTRING,clones.data(),static_cast<unsigned int>(clones.size()));
-        if(!collectionRaw){for(auto* item:clones)GEOSGeom_destroy_r(context.get(),item);throw std::runtime_error("GEOS collection failed");}
-        auto collection=own(context.get(),collectionRaw);merged=own(context.get(),GEOSUnaryUnion_r(context.get(),collection.get()));
+        merged=unionLines(context.get(),lines);
         mergedLine=GEOSGeomTypeId_r(context.get(),merged.get())==GEOS_LINESTRING;
     }
     std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(nullptr,TreeDeleter{context.get()});
@@ -123,7 +174,7 @@ Value run(const Value& input){
         const auto geographic=transformed(projection.get(),nearest,PJ_INV);auto coordinate=Value::arr();coordinate.array={Value::num(geographic.x),Value::num(geographic.y)};
         auto result=Value::obj();result.object["distanceMeters"]=Value::num(best);result.object["nearestLonLat"]=coordinate;points.array.push_back(std::move(result));
     }
-    auto result=Value::obj();result.object["lineLengthsMeters"]=std::move(lengths);result.object["points"]=std::move(points);return result;
+    auto result=Value::obj();result.object["lineLengthsMeters"]=numberArray(hydro.lengths);result.object["points"]=std::move(points);return result;
 }
 }
 int main(){
