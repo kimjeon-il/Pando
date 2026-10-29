@@ -17,13 +17,40 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, pc-allocation]
+        options: [hydro, pc-allocation, reference-loss]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  reference-loss:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-loss'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check space and acquire the fixed LibTorch CPU SDK
+        run: |
+          set -euo pipefail
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+          mkdir -p build-native/reference-analysis
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
+            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
+            --output build-native/reference-analysis/libtorch.zip
+          sha256sum build-native/reference-analysis/libtorch.zip
+          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
+      - name: Build only the native boundary loss test
+        run: |
+          cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
+          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests --parallel 1
+      - name: Compare original loss and gradient fixtures
+        run: build-native/reference-analysis/native/pando-reference-loss-tests
   native-hydro:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04
