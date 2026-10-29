@@ -11,7 +11,7 @@
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
-- 학습 전환 체크포인트: 현재 Python 모델의 BCE·Dice·연결성 손실과 관측되지 않은 채널의 gradient 고정 사례를 C++ LibTorch로 이전했다. MobileNetV3 encoder·overview·position·decoder·7채널 모델의 340개 텐서 이름, Safetensors 로더와 Python이 만든 합성 logits 전체(기준 SHA-256 `ca115f9ebed8308c702b137f10a08129fec30169e9659af47be05c47439dd218`, 최대 오차 0.005 이하)를 [CI 40840912107](https://github.com/kimjeon-il/Pando/actions/runs/40840912107)에서 확인했다. Windows 네이티브 실행 파일은 빌드 검증 중이다. 실모델 전체 출력·학습·ONNX는 아직 미검증이며 Python 학습·평가 실행 경로와 원본 모델은 유지한다.
+- 학습 전환 체크포인트: 현재 Python 모델의 BCE·Dice·연결성 손실과 관측되지 않은 채널의 gradient 고정 사례를 C++ LibTorch로 이전했다. MobileNetV3 encoder·overview·position·decoder·7채널 모델의 340개 텐서 이름, Safetensors 로더와 Python이 만든 합성 logits 전체(기준 SHA-256 `ca115f9ebed8308c702b137f10a08129fec30169e9659af47be05c47439dd218`, 최대 오차 0.005 이하)를 [CI 40840912107](https://github.com/kimjeon-il/Pando/actions/runs/40840912107)에서 확인했다. Windows용 LibTorch 2.14 헤더가 C++20을 요구하므로 **선택형 학습 대상에만 C++20을 적용**하고 다른 GIS·앱 대상은 기존 C++17을 유지한다. 비공개 macro-v6 가중치를 optimizer 없는 warm-start로 한 번 추출하고 보존 지도 입력을 준비했다. Windows 빌드·실모델 전체 출력·학습·ONNX는 아직 검증 중이며 Python 실행 경로와 원본 모델은 유지한다.
 
 - 독일 1914 생성기: 기존 GEOS/PROJ 엔진에 WGS84 타원체 면적과 헬골란트 패치 검증을 추가하고 Node 자료·출력 관리자를 연결했다. [CI 40838951664](https://github.com/kimjeon-il/Pando/actions/runs/40838951664)에서 26개 합성 주와 실제 Natural Earth 헬골란트 원본을 각각 사용해 Python/C++ 출력 형상·면적·검증값을 대조했다. 이 두 기준을 고정 fixture로 남기고 Python 생성기와 oracle 실행을 제거했다. 사용자 예외에 따라 Harvard HGIS 원본 26개 기반 실자료 재현과 역사 형상은 **미검증**으로 유지한다. 현재 추적 Python은 **49개(도구 32, 테스트 17)**다.
 
