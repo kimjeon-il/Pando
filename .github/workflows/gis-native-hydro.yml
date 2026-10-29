@@ -42,15 +42,18 @@ jobs:
             'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
             --output build-native/reference-analysis/libtorch.zip
           sha256sum build-native/reference-analysis/libtorch.zip
+          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
           unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
-      - name: Build only the native boundary loss test
+      - name: Build the native boundary loss and model tests
         run: |
           cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
             -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests --parallel 1
-      - name: Compare original loss and gradient fixtures
-        run: build-native/reference-analysis/native/pando-reference-loss-tests
+          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests --parallel 1
+      - name: Compare original loss, gradient and model fixtures
+        run: |
+          build-native/reference-analysis/native/pando-reference-loss-tests
+          build-native/reference-analysis/native/pando-reference-model-tests
   native-hydro:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04
