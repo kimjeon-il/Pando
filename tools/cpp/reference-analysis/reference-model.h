@@ -5,6 +5,7 @@ namespace pando::reference {
 // Bilinear interpolation whose backward uses the deterministic CPU kernel.
 torch::Tensor deterministicResize(const torch::Tensor& input,int64_t height,int64_t width);
 struct ConvNormImpl:torch::nn::SequentialImpl {
+    const int activation;
     ConvNormImpl(int64_t input,int64_t output,int64_t kernel,int64_t stride,int64_t groups,int activation);
     torch::Tensor forward(const torch::Tensor& input);
 };
