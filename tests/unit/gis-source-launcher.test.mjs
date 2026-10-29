@@ -25,6 +25,7 @@ test('native Node tools and not-yet-migrated Python GIS tools use their own inte
  }
  assert.match(buildCommand('place-candidates',[])[1],/build-place-candidates\.mjs$/);
  assert.match(buildCommand('hydro-packfile',[])[1],/build-hydro-packfile\.mjs$/);
+ assert.match(buildCommand('historical-border',[])[1],/build-german-1914-base\.mjs$/);
 });
 test('GIS raw subprocess launch requires explicit --execute and keeps forwarded args',()=>{
  const logs=[],calls=[];
