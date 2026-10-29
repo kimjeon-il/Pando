@@ -4,18 +4,23 @@
 #include <qgis.h>
 #include <qgisinterface.h>
 #include <qgisplugin.h>
+#include <qgslayertreegroup.h>
+#include <qgslayertreelayer.h>
 #include <qgsproject.h>
+#include <qgsrasterlayer.h>
 #include <qgsvectorlayer.h>
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QHostAddress>
 #include <QJsonDocument>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QPointer>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
 #include <algorithm>
+#include <cmath>
 #include <exception>
 #include <memory>
 
@@ -30,12 +35,46 @@ bool tokenMatches(const QByteArray& actual,const QByteArray& expected){
     for(int i=0;i<length;++i)difference|=static_cast<unsigned char>(i<actual.size()?actual[i]:0)^static_cast<unsigned char>(i<expected.size()?expected[i]:0);
     return difference==0;
 }
+QJsonObject layerSummary(QgsMapLayer* layer,bool detail){
+    auto* node=QgsProject::instance()->layerTreeRoot()->findLayer(layer->id());
+    auto* vector=qobject_cast<QgsVectorLayer*>(layer);auto* raster=qobject_cast<QgsRasterLayer*>(layer);
+    const auto type=vector?QStringLiteral("vector_%1").arg(static_cast<int>(vector->geometryType())):
+        raster?QStringLiteral("raster"):QString::number(static_cast<int>(layer->type()));
+    QJsonObject result{{QStringLiteral("id"),layer->id()},{QStringLiteral("name"),layer->name()},
+        {QStringLiteral("type"),type},{QStringLiteral("visible"),node&&node->isVisible()}};
+    if(detail&&vector){result.insert(QStringLiteral("feature_count"),static_cast<double>(vector->featureCount()));
+        result.insert(QStringLiteral("geometry_type"),static_cast<int>(vector->geometryType()));}
+    if(detail&&raster){result.insert(QStringLiteral("width"),raster->width());result.insert(QStringLiteral("height"),raster->height());}
+    return result;
+}
+int pageValue(const QJsonObject& request,const QString& key,int fallback,int minimum,int maximum){
+    if(!request.contains(key))return fallback;
+    const auto value=request.value(key);const auto number=value.toDouble(-1);
+    if(!value.isDouble()||!std::isfinite(number)||std::floor(number)!=number||number<minimum||number>maximum)
+        throw QStringLiteral("Invalid layer pagination");
+    return static_cast<int>(number);
+}
 class Bridge final:public QObject,public QgisPlugin {
     QTcpServer server_;QByteArray token_;int active_=0;
     QJsonObject execute(const QJsonObject& request){
         const auto command=request.value(QStringLiteral("command")).toString();
         if(command==QStringLiteral("status"))return {{QStringLiteral("qgis_version"),Qgis::version()},
             {QStringLiteral("pid"),static_cast<double>(QCoreApplication::applicationPid())},{QStringLiteral("transport"),QStringLiteral("pando-native-v1")}};
+        if(command==QStringLiteral("project")||command==QStringLiteral("layers")){
+            auto* project=QgsProject::instance();const auto layers=project->mapLayers();QJsonArray page;
+            const int offset=command==QStringLiteral("layers")?pageValue(request,QStringLiteral("offset"),0,0,100000000):0;
+            const int limit=command==QStringLiteral("layers")?pageValue(request,QStringLiteral("limit"),50,1,100):10;
+            int index=0;for(auto it=layers.cbegin();it!=layers.cend();++it,++index){
+                if(index>=offset&&index-offset<limit){auto item=layerSummary(it.value(),command==QStringLiteral("layers"));
+                    if(command==QStringLiteral("project")&&!it.value()->isValid())item.insert(QStringLiteral("visible"),false);page.append(item);}
+                if(index-offset>=limit)break;
+            }
+            if(command==QStringLiteral("layers"))return {{QStringLiteral("layers"),page},{QStringLiteral("total_count"),layers.size()},
+                {QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit}};
+            return {{QStringLiteral("filename"),project->fileName()},{QStringLiteral("title"),project->title()},
+                {QStringLiteral("layer_count"),layers.size()},{QStringLiteral("crs"),project->crs().authid()},
+                {QStringLiteral("layers"),page},{QStringLiteral("layers_truncated"),layers.size()>page.size()}};
+        }
         if(command==QStringLiteral("open")){
             const auto path=request.value(QStringLiteral("path")).toString();const QFileInfo file(path);
             if(!file.isAbsolute()||!file.isFile())throw QStringLiteral("An existing absolute vector file is required");
