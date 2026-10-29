@@ -35,7 +35,8 @@ test('checkpoint export refuses invalid resume proof and changed checkpoint byte
   const checkpoint=join(root,'checkpoint.pt'),proof=join(root,'proof.json'),output=join(root,'new.onnx');
   writeFileSync(checkpoint,'modified');
   const receipt={purpose:'real-input-resume-proof',trainingOnly:true,releaseApproved:false,independentEvaluation:false,
-    exactModelResume:true,device:'cpu',checkpointBytes:8,checkpointSha256:createHash('sha256').update('original').digest('hex')};
+    preprocessing:'rgb-brightness-then-imagenet-normalization',exactModelResume:true,device:'cpu',checkpointBytes:8,
+    checkpointSha256:createHash('sha256').update('original').digest('hex')};
   writeFileSync(proof,JSON.stringify(receipt));
   await assert.rejects(nativeCheckpointOnnxExport({checkpoint,proof,output,torchLibrary:root}),/matching private checkpoint/);
   assert.equal(existsSync(output),false);
