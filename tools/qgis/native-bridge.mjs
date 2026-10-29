@@ -10,17 +10,17 @@ import {normalizeFile,normalizeSourceAttribute,parseJson,stringifyJson} from './
 import {startNativeQgis} from './native-start.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
-const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | schema --layer ID | set-visibility --layer ID --visible true|false | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | delete-feature --layer ID --fid FID | add-feature --layer ID --wkt WKT --json ATTRIBUTES | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
+const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | algorithms [--offset N --limit N --search TEXT] | schema --layer ID | set-visibility --layer ID --visible true|false | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | delete-feature --layer ID --fid FID | add-feature --layer ID --wkt WKT --json ATTRIBUTES | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
 export async function runNativeBridge(args,{signal}={}){
   signal?.throwIfAborted();
-  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},fids:{type:'string'},expression:{type:'string'},fid:{type:'string'},field:{type:'string'},json:{type:'string'},wkt:{type:'string'},visible:{type:'string'},geometry:{type:'boolean'}}});
+  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},search:{type:'string'},fids:{type:'string'},expression:{type:'string'},fid:{type:'string'},field:{type:'string'},json:{type:'string'},wkt:{type:'string'},visible:{type:'string'},geometry:{type:'boolean'}}});
   const [command,...rest]=positionals;
   if(command==='normalize'){
-    if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.fids!==undefined||values.expression!==undefined||values.fid!==undefined||values.field!==undefined||values.json!==undefined||values.wkt!==undefined||values.visible!==undefined||values.geometry!==undefined)throw Error(usage);
+    if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.search!==undefined||values.fids!==undefined||values.expression!==undefined||values.fid!==undefined||values.field!==undefined||values.json!==undefined||values.wkt!==undefined||values.visible!==undefined||values.geometry!==undefined)throw Error(usage);
     return normalizeFile(rest[0],values.output);
   }
-  if(!['start','status','project','layers','schema','set-visibility','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature','open','export'].includes(command))throw Error(usage);
-  if((['start','status','project','layers'].includes(command)&&(rest.length||values.layer||values.output))||
+  if(!['start','status','project','layers','schema','set-visibility','algorithms','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature','open','export'].includes(command))throw Error(usage);
+  if((['start','status','project','layers','algorithms'].includes(command)&&(rest.length||values.layer||values.output))||
     (command==='open'&&(rest.length!==1||values.layer||values.output))||
     (['schema','set-visibility'].includes(command)&&(rest.length||!values.layer||values.output))||
     (command==='set-visibility'&&!['true','false'].includes(values.visible))||
@@ -39,9 +39,10 @@ export async function runNativeBridge(args,{signal}={}){
     (!['select','features'].includes(command)&&values.expression!==undefined)||
     (command!=='features'&&values.geometry!==undefined)||
     (command==='export'&&(rest.length||!values.layer||!values.output))||
-    (!['layers','features'].includes(command)&&(values.offset!==undefined||values.limit!==undefined)))throw Error(usage);
+    (command!=='algorithms'&&values.search!==undefined)||
+    (!['layers','features','algorithms'].includes(command)&&(values.offset!==undefined||values.limit!==undefined)))throw Error(usage);
   let offset=0,limit=50;
-  if(command==='layers'||command==='features'){
+  if(command==='layers'||command==='features'||command==='algorithms'){
     const parsePage=(value,fallback,max)=>{
       if(value===undefined)return fallback;
       if(!/^(?:0|[1-9]\d*)$/.test(value)||!Number.isSafeInteger(Number(value))||Number(value)>max)throw Error('Invalid layer pagination');
@@ -57,6 +58,10 @@ export async function runNativeBridge(args,{signal}={}){
   if(command==='status')return requestNativeQgis(config,{command:'status'},{signal});
   if(command==='project')return requestNativeQgis(config,{command:'project'},{signal});
   if(command==='layers')return requestNativeQgis(config,{command:'layers',offset,limit},{signal});
+  if(command==='algorithms'){
+    if(values.search!==undefined&&(!values.search.trim()||values.search.length>256))throw Error('A bounded nonempty algorithm search is required');
+    return requestNativeQgis(config,{command,offset,limit,...(values.search===undefined?{}:{search:values.search})},{signal});
+  }
   if(command==='schema')return requestNativeQgis(config,{command:'schema',layer:values.layer},{signal});
   if(command==='set-visibility')return requestNativeQgis(config,{command,layer:values.layer,visible:values.visible==='true'},{signal});
   if(command==='features'){

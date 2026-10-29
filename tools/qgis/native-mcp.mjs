@@ -25,6 +25,9 @@ function createServer(){
     async({layer},extra)=>respond([...options,'schema','--layer',layer],extra.signal));
   server.registerTool('qgis_native_set_visibility',{description:'Set the checked visibility of a QGIS layer without changing parent groups.',inputSchema:z.strictObject({layer:path,visible:z.boolean()})},
     async({layer,visible},extra)=>respond([...options,'set-visibility',`--layer=${layer}`,`--visible=${visible}`],extra.signal));
+  server.registerTool('qgis_native_algorithms',{description:'List a bounded page of registered QGIS processing algorithms.',
+    inputSchema:z.strictObject({offset:z.number().int().min(0).max(100000000).default(0),limit:z.number().int().min(1).max(100).default(50),search:z.string().min(1).max(256).optional()})},
+    async({offset,limit,search},extra)=>respond([...options,'algorithms','--offset',String(offset),'--limit',String(limit),...(search===undefined?[]:[`--search=${search}`])],extra.signal));
   server.registerTool('qgis_native_features',{description:'Read a bounded page of vector features and exact attribute values.',
     inputSchema:z.strictObject({layer:path,offset:z.number().int().min(0).max(100000000).default(0),limit:z.number().int().min(1).max(100).default(10),
       expression:z.string().min(1).max(10000).optional(),geometry:z.boolean().default(false)})},
