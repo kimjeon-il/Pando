@@ -18,6 +18,9 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
       else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
       else if(request.command==='layers')result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:request.offset,limit:request.limit};
       else if(request.command==='schema')result={layer:request.layer,fields:[{name:'source',type:'Map',length:0,precision:0}]};
+      else if(request.command==='select')result={selected:request.fids.length};
+      else if(request.command==='selection')result={fids:['9007199254740993'],count:1};
+      else if(request.command==='clear-selection')result={ok:true};
       else if(request.command==='open')result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};
       else if(request.command==='export'){
         writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'Point',coordinates:[127,37]},
@@ -43,13 +46,17 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   assert.equal(initialized.result.serverInfo.name,'pando-qgis-native');
   child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
   const listed=await request('tools/list',{});
-  assert.deepEqual(listed.result.tools.map(tool=>tool.name).sort(),['qgis_native_export','qgis_native_layers','qgis_native_normalize','qgis_native_open','qgis_native_project','qgis_native_schema','qgis_native_start','qgis_native_status']);
+  assert.deepEqual(listed.result.tools.map(tool=>tool.name).sort(),['qgis_native_clear_selection','qgis_native_export','qgis_native_layers','qgis_native_normalize','qgis_native_open','qgis_native_project','qgis_native_schema','qgis_native_select','qgis_native_selection','qgis_native_start','qgis_native_status']);
   const call=(name,args)=>request('tools/call',{name,arguments:args});
   const status=await call('qgis_native_status',{});assert.equal(JSON.parse(status.result.content[0].text).transport,'pando-native-v1');
   const project=await call('qgis_native_project',{});assert.equal(JSON.parse(project.result.content[0].text).layer_count,1);
   const layers=await call('qgis_native_layers',{offset:0,limit:10});assert.equal(JSON.parse(layers.result.content[0].text).layers[0].id,'layer-1');
   const schema=await call('qgis_native_schema',{layer:'layer-1'});assert.equal(JSON.parse(schema.result.content[0].text).fields[0].name,'source');
   const badSchema=await call('qgis_native_schema',{layer:''});assert.equal(badSchema.result.isError,true);
+  const selected=await call('qgis_native_select',{layer:'layer-1',fids:['9007199254740993']});assert.equal(JSON.parse(selected.result.content[0].text).selected,1);
+  const selection=await call('qgis_native_selection',{layer:'layer-1'});assert.deepEqual(JSON.parse(selection.result.content[0].text).fids,['9007199254740993']);
+  const clear=await call('qgis_native_clear_selection',{layer:'layer-1'});assert.equal(JSON.parse(clear.result.content[0].text).ok,true);
+  const invalidFid=await call('qgis_native_select',{layer:'layer-1',fids:['no']});assert.equal(invalidFid.result.isError,true);
   const opened=await call('qgis_native_open',{input});assert.equal(JSON.parse(opened.result.content[0].text).id,'layer-1');
   const output=join(root,'output.geojson'),saved=await call('qgis_native_export',{layer:'layer-1',output});
   assert.equal(JSON.parse(saved.result.content[0].text).output,output);

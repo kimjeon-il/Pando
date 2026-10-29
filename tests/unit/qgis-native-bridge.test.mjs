@@ -27,6 +27,9 @@ async function fixture(t){
         result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
       else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
         result={layer:'layer-1',fields:[{name:'source',type:'Map',length:0,precision:0}]};}
+      else if(request.command==='select'){assert.equal(request.layer,'layer-1');assert.deepEqual(request.fids,['1','9007199254740993']);result={selected:2};}
+      else if(request.command==='selection'){assert.equal(request.layer,'layer-1');result={fids:['1','9007199254740993'],count:2};}
+      else if(request.command==='clear-selection'){assert.equal(request.layer,'layer-1');result={ok:true};}
       else if(request.command==='open'){assert.equal(request.path,input);result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};}
       else if(request.command==='export'){
         assert.equal(request.layer,'layer-1');writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',
@@ -51,6 +54,12 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const schema=await run(['--config',config,'schema','--layer','layer-1']);assert.equal(schema.code,0,schema.stderr);
   assert.equal(JSON.parse(schema.stdout).fields[0].name,'source');
   const missingLayer=await run(['--config',config,'schema']);assert.notEqual(missingLayer.code,0);
+  const selected=await run(['--config',config,'select','--layer','layer-1','--fids','["1","9007199254740993"]']);
+  assert.equal(selected.code,0,selected.stderr);assert.equal(JSON.parse(selected.stdout).selected,2);
+  const selection=await run(['--config',config,'selection','--layer','layer-1']);assert.equal(selection.code,0,selection.stderr);
+  assert.deepEqual(JSON.parse(selection.stdout).fids,['1','9007199254740993']);
+  const cleared=await run(['--config',config,'clear-selection','--layer','layer-1']);assert.equal(cleared.code,0,cleared.stderr);
+  const invalidFids=await run(['--config',config,'select','--layer','layer-1','--fids','[9007199254740993]']);assert.notEqual(invalidFids.code,0);
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);
   assert.equal(JSON.parse(opened.stdout).id,'layer-1');
   const output=join(root,'output.geojson');const exported=await run(['--config',config,'export','--layer','layer-1','--output',output]);

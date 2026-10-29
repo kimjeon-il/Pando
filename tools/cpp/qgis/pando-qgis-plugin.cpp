@@ -19,6 +19,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QPointer>
+#include <QRegularExpression>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
@@ -98,6 +99,28 @@ class Bridge final:public QObject,public QgisPlugin {
                 {QStringLiteral("precision"),field.precision()},{QStringLiteral("is_numeric"),field.isNumeric()}});
             return {{QStringLiteral("geometry_type"),static_cast<int>(layer->geometryType())},
                 {QStringLiteral("crs"),layer->crs().authid()},{QStringLiteral("fields"),fields}};
+        }
+        if(command==QStringLiteral("select")||command==QStringLiteral("selection")||command==QStringLiteral("clear-selection")){
+            const auto id=request.value(QStringLiteral("layer")).toString();
+            auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
+            if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
+            if(command==QStringLiteral("clear-selection")){layer->removeSelection();return {{QStringLiteral("ok"),true}};}
+            if(command==QStringLiteral("select")){
+                const auto value=request.value(QStringLiteral("fids"));
+                if(!value.isArray()||value.toArray().size()>10000)throw QStringLiteral("A bounded array of string feature IDs is required");
+                QgsFeatureIds ids;
+                static const QRegularExpression integer(QStringLiteral("^-?(0|[1-9][0-9]*)$"));
+                for(const auto& entry:value.toArray()){
+                    bool valid=false;const auto text=entry.toString();const auto fid=text.toLongLong(&valid);
+                    if(!entry.isString()||!integer.match(text).hasMatch()||!valid)throw QStringLiteral("Invalid QGIS feature ID");
+                    ids.insert(fid);
+                }
+                layer->selectByIds(ids);
+                return {{QStringLiteral("selected"),layer->selectedFeatureCount()}};
+            }
+            const auto selected=layer->selectedFeatureIds();QList<QgsFeatureId> sorted=selected.values();std::sort(sorted.begin(),sorted.end());
+            QJsonArray ids;for(const auto fid:sorted)ids.append(QString::number(fid));
+            return {{QStringLiteral("fids"),ids},{QStringLiteral("count"),layer->selectedFeatureCount()}};
         }
         if(command==QStringLiteral("export"))return exportQgisLayer(request.value(QStringLiteral("layer")).toString(),
             request.value(QStringLiteral("output")).toString());
