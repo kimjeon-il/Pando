@@ -4,7 +4,7 @@ import {lstatSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {screenHydroPoints} from './hydro-point-screen-native.mjs';
+import {lineParts,roundPython,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
 const anchors={
   finnish_nls_oulujoki:{name:'Oulujoki',lon:25.56374,lat:64.99977,kind:'Finland National Land Survey geographical names register',source:'https://finto.fi/yso-paikat/fi/page/p204727'},
   finnish_nls_siikajoki:{name:'Siikajoki',lon:24.74333,lat:64.83728,kind:'Finland National Land Survey geographical names register',source:'https://finto.fi/yso-paikat/en/page/p139542'},
@@ -22,24 +22,6 @@ const groups={
   '20540915':['russian_sulak_2024_field_mouth','russian_sulak_2024_field_upstream','russian_terek_register_mouth'],
 };
 
-// Python rounds the exact binary float to nearest decimal, ties to even.
-function roundPython(value,digits){
-  if(!Number.isFinite(value))throw Error('Nonfinite native point-screen result');
-  const bytes=new DataView(new ArrayBuffer(8));bytes.setFloat64(0,Math.abs(value));
-  const high=bytes.getUint32(0),low=bytes.getUint32(4),exponent=(high>>>20)&0x7ff;
-  let numerator=(BigInt(high&0xfffff)<<32n)|BigInt(low),power;
-  if(exponent===0)power=-1074;else{numerator|=1n<<52n;power=exponent-1075;}
-  numerator*=10n**BigInt(digits);let denominator=1n;
-  if(power>=0)numerator<<=BigInt(power);else denominator<<=BigInt(-power);
-  let quotient=numerator/denominator;const rest=numerator%denominator;
-  if(rest*2n>denominator||(rest*2n===denominator&&quotient%2n!==0n))quotient++;
-  return (value<0?-1:1)*Number(quotient)/10**digits;
-}
-function lineParts(geometry){
-  if(geometry?.type==='LineString')return [geometry.coordinates];
-  if(geometry?.type==='MultiLineString')return geometry.coordinates;
-  throw Error('Unrecognized line geometry type: '+geometry?.type);
-}
 export async function buildIndependentPointScreen(decoded,screen){
   if(String(decoded?.manifest?.version)!=='0.13.2')throw Error('Expected pinned HydroRIVERS v0.13.2');
   if(!Array.isArray(decoded.features)||typeof screen!=='function')throw Error('Decoded Hydro features and native screen are required');
@@ -55,11 +37,7 @@ export async function buildIndependentPointScreen(decoded,screen){
     if(!lines.length)throw Error('No mainstem lines for '+id);
     const keys=groups[id],crs=['20071308','20075401'].includes(id)?'EPSG:32635':['20532766','20540915'].includes(id)?'EPSG:32638':'EPSG:32640';
     const result=await screen({crs,lines,points:keys.map(key=>[anchors[key].lon,anchors[key].lat])});
-    if(!result||!Array.isArray(result.lineLengthsMeters)||result.lineLengthsMeters.length!==lines.length||
-      result.lineLengthsMeters.some(value=>!Number.isFinite(value)||value<0)||!Array.isArray(result.points)||result.points.length!==keys.length||
-      result.points.some(item=>!item||!Number.isFinite(item.distanceMeters)||item.distanceMeters<0||
-        !Array.isArray(item.nearestLonLat)||item.nearestLonLat.length!==2||item.nearestLonLat.some(value=>!Number.isFinite(value))))
-      throw Error('Invalid native point-screen result');
+    validatePointScreenResult(result,lines.length,keys.length);
     const pointChecks={};
     for(let i=0;i<keys.length;i++){
       const key=keys[i],anchor=anchors[key],point=result.points[i];

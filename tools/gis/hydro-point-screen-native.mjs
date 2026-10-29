@@ -7,6 +7,32 @@ import {verifyNativeTool} from '../native-tool.mjs';
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroPointScreenSources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/point-screen.cpp',
   'shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
+// The source audits round the exact binary float to nearest decimal, ties to even.
+export function roundPython(value,digits){
+  if(!Number.isFinite(value))throw Error('Nonfinite native point-screen result');
+  const bytes=new DataView(new ArrayBuffer(8));bytes.setFloat64(0,Math.abs(value));
+  const high=bytes.getUint32(0),low=bytes.getUint32(4),exponent=(high>>>20)&0x7ff;
+  let numerator=(BigInt(high&0xfffff)<<32n)|BigInt(low),power;
+  if(exponent===0)power=-1074;else{numerator|=1n<<52n;power=exponent-1075;}
+  numerator*=10n**BigInt(digits);let denominator=1n;
+  if(power>=0)numerator<<=BigInt(power);else denominator<<=BigInt(-power);
+  let quotient=numerator/denominator;const rest=numerator%denominator;
+  if(rest*2n>denominator||(rest*2n===denominator&&quotient%2n!==0n))quotient++;
+  return (value<0?-1:1)*Number(quotient)/10**digits;
+}
+export function lineParts(geometry){
+  if(geometry?.type==='LineString')return [geometry.coordinates];
+  if(geometry?.type==='MultiLineString')return geometry.coordinates;
+  throw Error('Unrecognized line geometry type: '+geometry?.type);
+}
+export function validatePointScreenResult(result,lineCount,pointCount,{allowFilteredLines=false}={}){
+  if(!result||!Array.isArray(result.lineLengthsMeters)||
+    (allowFilteredLines?(result.lineLengthsMeters.length<1||result.lineLengthsMeters.length>lineCount):result.lineLengthsMeters.length!==lineCount)||
+    result.lineLengthsMeters.some(value=>!Number.isFinite(value)||value<0)||!Array.isArray(result.points)||result.points.length!==pointCount||
+    result.points.some(item=>!item||!Number.isFinite(item.distanceMeters)||item.distanceMeters<0||
+      !Array.isArray(item.nearestLonLat)||item.nearestLonLat.length!==2||item.nearestLonLat.some(value=>!Number.isFinite(value))))
+    throw Error('Invalid native point-screen result');
+}
 export function windowsHydroRuntime(root){
   if(typeof root!=='string'||!root)throw Error('The matching OSGeo4W runtime root is required');
   const runtime=resolve(root),installed=readFileSync(join(runtime,'etc/setup/installed.db'),'utf8');
