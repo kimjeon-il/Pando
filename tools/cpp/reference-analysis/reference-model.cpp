@@ -1,4 +1,6 @@
 #include "reference-model.h"
+#include <ATen/Context.h>
+#include <ATen/ops/upsample_bilinear2d_backward.h>
 #include <algorithm>
 #include <array>
 #include <vector>
@@ -12,8 +14,30 @@ int64_t divisible(int64_t value){
     auto result=std::max<int64_t>(8,((value+4)/8)*8);if(result*10<value*9)result+=8;return result;
 }
 torch::Tensor resize(const torch::Tensor& value,int64_t height,int64_t width){
+    if(value.is_cuda()&&value.requires_grad()&&at::globalContext().deterministicAlgorithms())
+        return deterministicResize(value,height,width);
     return F::interpolate(value,F::InterpolateFuncOptions().size(std::vector<int64_t>{height,width}).mode(torch::kBilinear).align_corners(false));
 }
+}
+namespace {
+struct DeterministicBilinear:torch::autograd::Function<DeterministicBilinear> {
+    static torch::Tensor forward(torch::autograd::AutogradContext* ctx,const torch::Tensor& input,int64_t height,int64_t width){
+        ctx->saved_data["input_size"]=input.sizes().vec();
+        ctx->saved_data["output_size"]=std::vector<int64_t>{height,width};
+        ctx->saved_data["cuda_index"]=input.is_cuda()?input.get_device():-1;
+        return F::interpolate(input,F::InterpolateFuncOptions().size(std::vector<int64_t>{height,width}).mode(torch::kBilinear).align_corners(false));
+    }
+    static torch::autograd::variable_list backward(torch::autograd::AutogradContext* ctx,torch::autograd::variable_list gradients){
+        const auto inputSize=ctx->saved_data["input_size"].toIntVector(),outputSize=ctx->saved_data["output_size"].toIntVector();
+        auto gradient=at::upsample_bilinear2d_backward(gradients[0].to(torch::kCPU),outputSize,inputSize,false);
+        const auto index=ctx->saved_data["cuda_index"].toInt();
+        if(index>=0)gradient=gradient.to(torch::Device(torch::kCUDA,static_cast<c10::DeviceIndex>(index)));
+        return {gradient,torch::Tensor(),torch::Tensor()};
+    }
+};
+}
+torch::Tensor deterministicResize(const torch::Tensor& input,int64_t height,int64_t width){
+    return DeterministicBilinear::apply(input,height,width);
 }
 ConvNormImpl::ConvNormImpl(int64_t input,int64_t output,int64_t kernel,int64_t stride,int64_t groups,int activation){
     push_back(torch::nn::Conv2d(torch::nn::Conv2dOptions(input,output,kernel).stride(stride).padding((kernel-1)/2).groups(groups).bias(false)));

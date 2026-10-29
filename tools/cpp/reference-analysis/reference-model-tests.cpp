@@ -17,6 +17,17 @@ int main(int argc,char** argv){
     try{
         check(argc==2||(argc==3&&std::string(argv[2])=="--inference-only"),"Synthetic original logits fixture path is required");
         torch::set_num_threads(2);pando::reference::ReferenceBoundaryModel model;model->eval();
+        {
+            auto input=torch::arange(30,torch::kFloat32).reshape({1,2,3,5}).set_requires_grad(true);
+            auto reference=input.detach().clone().set_requires_grad(true);
+            auto actual=pando::reference::deterministicResize(input,7,9);
+            auto expected=torch::nn::functional::interpolate(reference,torch::nn::functional::InterpolateFuncOptions()
+                .size(std::vector<int64_t>{7,9}).mode(torch::kBilinear).align_corners(false));
+            auto weights=torch::arange(actual.numel(),torch::kFloat32).reshape(actual.sizes())/actual.numel();
+            (actual*weights).sum().backward();(expected*weights).sum().backward();
+            check(torch::equal(actual,expected),"Deterministic resize changed forward values");
+            check(torch::equal(input.grad(),reference.grad()),"Deterministic resize changed the CPU bilinear gradient");
+        }
         const auto parameters=model->named_parameters(true),buffers=model->named_buffers(true);
         check(parameters.size()+buffers.size()==340,"Named tensor inventory does not match the original model");
         check(parameters.contains("encoder.4.block.2.fc1.weight"),"MobileNet squeeze-excitation tensor missing");
