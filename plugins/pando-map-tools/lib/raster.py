@@ -11,6 +11,12 @@ import re
 from PIL import Image, ImageOps, ImageDraw
 
 
+def oriented_map_image(opened):
+    """Canonical EXIF orientation and white alpha composite for app and training."""
+    oriented = ImageOps.exif_transpose(opened).convert('RGBA')
+    return Image.alpha_composite(Image.new('RGBA', oriented.size, (255, 255, 255, 255)), oriented)
+
+
 def check_source_grid(width, height):
     if width * height > 16_777_216 or max(width, height) > 16_384:
         raise ValueError('Original raster exceeds the current 16MP graph budget; use an explicit analysis derivative and preserve the master')
@@ -116,9 +122,7 @@ def source(spec):
         check_source_grid(*opened.size)
         orientation = opened.getexif().get(274, 1)
         raw_size = list(opened.size)
-        oriented = ImageOps.exif_transpose(opened).convert('RGBA')
-        white = Image.new('RGBA', oriented.size, (255, 255, 255, 255))
-        return Image.alpha_composite(white, oriented), {'exifOrientation': orientation, 'encodedSize': raw_size}
+        return oriented_map_image(opened), {'exifOrientation': orientation, 'encodedSize': raw_size}
 
 
 def run(spec):
