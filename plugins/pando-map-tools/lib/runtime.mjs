@@ -6,10 +6,18 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
+import {createGazetteer} from './analysis/gazetteer.mjs';
 
 const run=promisify(execFile),hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const readJSON=async path=>JSON.parse(await readFile(path,'utf8'));
 const fail=(message,code='PL-MAP-RESOURCE')=>Object.assign(new Error(message),{code});
+async function readAnalysisDataConfig(path) {
+  const bytes=await readFile(path),config=JSON.parse(bytes);
+  if(config.schemaVersion!==1||!/^[a-f0-9]{40}$/.test(config.revision)||!/^[-\w.]+\/[-\w.]+$/.test(config.repository)||!config.gazetteer?.root||!/^[a-f0-9]{64}$/.test(config.gazetteer.manifestSha256)||!/^[a-f0-9]{64}$/.test(config.gazetteer.revision)||!/^[a-f0-9]{64}$/.test(config.ocr?.manifestSha256))throw fail('Current analysis data pairing required');
+  bundlePath(dirname(path),config.ocr.root);bundlePath(dirname(path),config.gazetteer.root);
+  return {config,sha256:hash(bytes),path};
+}
+export const analysisDataConfig=()=>readAnalysisDataConfig(fileURLToPath(new URL('../analysis-data.json',import.meta.url)));
 export function bundlePath(base,name) {
   if(typeof name!=='string'||!name||name.includes('\\')||isAbsolute(name)||name.split('/').some(part=>!part||part==='.'||part==='..'))throw fail('Invalid resource path');
   const path=resolve(base,name),rel=relative(resolve(base),path);
@@ -53,8 +61,26 @@ async function checkDirectory(path) {
 export async function materializeWorkspace({pluginRoot,cacheRoot,signal}) {
   pluginRoot=resolve(pluginRoot);cacheRoot=resolve(cacheRoot);
   const catalog=await readJSON(join(pluginRoot,'runtime.json'));
-  if(catalog.schemaVersion!==1||!Array.isArray(catalog.files)||!catalog.model||!/^[a-f0-9]{40}$/.test(catalog.codeRevision)||!/^[a-f0-9]{40}$/.test(catalog.dataRevision))throw fail('Unsupported private runtime catalog');
+  if(catalog.schemaVersion!==2||!Array.isArray(catalog.files)||!catalog.model||!/^[a-f0-9]{40}$/.test(catalog.codeRevision)||!/^[a-f0-9]{40}$/.test(catalog.dataRevision))throw fail('Unsupported private runtime catalog');
   const seed=join(pluginRoot,'runtime/workspace');await verifyRuntimeFiles(seed,catalog.files);
+  await verifyRuntimeFiles(pluginRoot,[catalog.analysisData]);
+  const {config}=await readAnalysisDataConfig(bundlePath(pluginRoot,catalog.analysisData.path));
+  if(catalog.dataRevision!==config.revision||catalog.gazetteer?.revision!==config.gazetteer.revision||catalog.gazetteer?.manifestSha256!==config.gazetteer.manifestSha256)throw fail('Runtime analysis data pairing differs');
+  const roots={ocr:'assets/data/reference-analysis/v1/ocr/',gazetteer:'assets/data/reference-analysis/v1/gazetteer/'};
+  for(const [kind,prefix]of Object.entries(roots)) {
+    const path=prefix+'manifest.json';
+    if(!catalog.files.some(row=>row.path===path&&row.sha256===config[kind].manifestSha256))throw fail('Unpinned '+kind+' manifest');
+    const bytes=await readFile(await regularResourcePath(seed,path));
+    if(hash(bytes)!==config[kind].manifestSha256)throw fail('Runtime '+kind+' manifest differs');
+    const manifest=JSON.parse(bytes),resources=catalog[kind+'Resources'];
+    const expected=kind==='ocr'?Object.entries(manifest.languages).map(([language,spec])=>[language,spec]):Object.values(manifest.files).map(spec=>[prefix+spec.path,spec]);
+    if(!resources||Object.keys(resources).length!==expected.length)throw fail('Unpinned '+kind+' resources');
+    if(kind==='gazetteer'&&manifest.revision!==config.gazetteer.revision)throw fail('Gazetteer revision differs');
+    for(const [key,spec]of expected) {
+      const resource=resources[key];
+      if(!resource||resource.sha256!==spec.sha256||resource.bytes!==spec.bytes||new URL(resource.url).protocol!=='https:')throw fail('Unpinned '+kind+' resource: '+key);
+    }
+  }
   await verifyRuntimeFiles(pluginRoot,[catalog.model]);
   const modelPath=bundlePath(pluginRoot,catalog.model.path),model=await readJSON(modelPath);
   if(model.trainingOnly!==true||model.releaseApproved!==false||model.evaluationStatus!=='pending')throw fail('Expected the private pending model');
@@ -77,20 +103,43 @@ export async function ensureOcrLanguage(workspace,language,{signal,fetchAsset=fe
   if(!/^[a-z][a-z0-9_]{1,20}$/.test(language))throw fail('Invalid OCR language');
   const catalog=await readJSON(catalogPath),spec=catalog.ocrResources[language];
   if(!spec)throw fail('OCR language resource is unavailable: '+language);
-  const path='assets/data/reference-analysis/v1/ocr/'+language+'.traineddata.gz',row={path,...spec};
+  return ensureRuntimeAsset(workspace,'assets/data/reference-analysis/v1/ocr/'+language+'.traineddata.gz',spec,{signal,fetchAsset});
+}
+export async function ensureRuntimeAsset(workspace,path,spec,{signal,fetchAsset=fetch}={}) {
+  if(!spec)throw fail('Pinned runtime resource is unavailable: '+path);
+  const row={...spec,path};bundlePath(workspace,path);signal?.throwIfAborted();
   if(existsSync(bundlePath(workspace,path))) {await verifyRuntimeFiles(workspace,[row]);return;}
-  if(new URL(spec.url).protocol!=='https:')throw fail('OCR download requires HTTPS');
+  if(new URL(spec.url).protocol!=='https:')throw fail('Runtime resource download requires HTTPS');
   signal?.throwIfAborted();const response=await fetchAsset(spec.url,{signal});
-  if(!response.ok||!response.body)throw fail('OCR download failed: '+language+' HTTP '+response.status);
+  if(!response.ok||!response.body)throw fail('Runtime resource download failed: '+path+' HTTP '+response.status);
   const chunks=[];let count=0;
   for await(const chunk of response.body) {
     signal?.throwIfAborted();count+=chunk.length;
-    if(count>Math.max(spec.bytes*2,1024*1024))throw fail('OCR archive exceeds download budget');
+    if(count>Math.max(spec.bytes*2,1024*1024))throw fail('Runtime resource archive exceeds download budget');
     chunks.push(chunk);
   }
   const {decodeLibraryArchiveBytes}=await import(pathToFileURL(join(workspace,'tools/library-archive.mjs')));
   const bytes=decodeLibraryArchiveBytes(Buffer.concat(chunks),spec);
-  verifyBytes(bytes,row);await atomicFile(bundlePath(workspace,path),bytes);
+  verifyBytes(bytes,row);signal?.throwIfAborted();await atomicFile(bundlePath(workspace,path),bytes);
+}
+export async function openAnalysisGazetteer(workspace,{signal,fetchAsset=fetch}={}) {
+  const prefix='assets/data/reference-analysis/v1/gazetteer/';
+  const {config}=await analysisDataConfig(),catalogPath=join(workspace,'.map-runtime.json');
+  const catalog=existsSync(catalogPath)?await readJSON(catalogPath):null;
+  let root=join(workspace,prefix);
+  if(!catalog){
+    const {reportPath}=await import(pathToFileURL(join(workspace,'tools/report-paths.mjs')));
+    root=dirname(reportPath(config.gazetteer.root+'/manifest.json',{root:workspace,access:'read'}));
+  }
+  const manifestPath=await regularResourcePath(root,'manifest.json'),manifestBytes=await readFile(manifestPath);
+  if(hash(manifestBytes)!==config.gazetteer.manifestSha256)throw fail('Analysis gazetteer manifest differs from fixed data pairing');
+  const manifest=JSON.parse(manifestBytes);
+  const store=createGazetteer({manifest,fetchBytes:async(spec,options)=>{
+    const path=prefix+spec.path;
+    if(catalog&&!existsSync(bundlePath(workspace,path)))await ensureRuntimeAsset(workspace,path,catalog.gazetteerResources?.[path],{signal:options.signal||signal,fetchAsset});
+    return readFile(await regularResourcePath(root,spec.path));
+  }});
+  return {...store,manifest,manifestSha256:hash(manifestBytes),manifestPath};
 }
 async function pythonRuntime(workspace) {
   const candidates=process.env.PANDO_MAP_PYTHON?[process.env.PANDO_MAP_PYTHON]

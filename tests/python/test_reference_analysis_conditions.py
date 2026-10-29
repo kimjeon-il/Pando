@@ -43,7 +43,8 @@ class ConditionTrainingTests(unittest.TestCase):
             y, x = np.mgrid[:128, :128]
             image = np.stack([x * 2, y * 2, (x + y) % 256], axis=-1).astype(np.uint8)
             Image.fromarray(image).save(root / 'map.png')
-            annotation = dict(width=128, height=128, lines=[dict(kind='international', points=[[10, 20], [90, 110]], width=2)])
+            annotation = dict(width=128, height=128, lines=[dict(kind='international', points=[[10, 20], [90, 110]], width=2)],
+                              known={'international': [[[0, 0], [127, 0], [127, 127], [0, 127]]]})
             (root / 'label.json').write_text(json.dumps(annotation))
             sheets = [dict(id='fixture', image='map.png', annotations='label.json')]
             plain = MapTiles(root, sheets)

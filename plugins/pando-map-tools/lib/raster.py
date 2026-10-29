@@ -7,12 +7,91 @@ import io
 import json
 import math
 import sys
+import re
 from PIL import Image, ImageOps, ImageDraw
 
 
 def check_source_grid(width, height):
     if width * height > 16_777_216 or max(width, height) > 16_384:
         raise ValueError('Original raster exceeds the current 16MP graph budget; use an explicit analysis derivative and preserve the master')
+
+
+def geopdf_projection(wkt):
+    """Recognized WKT1 projection subset, not a general CRS/datum parser."""
+    prime = re.findall(r'PRIMEM\["[^"]+",([\d.eE+-]+)\]', wkt, re.I)
+    units = re.findall(r'UNIT\["([^"]+)",([\d.eE+-]+)\]', wkt, re.I)
+    if (len(prime) != 1 or float(prime[0]) != 0 or len(units) != 2
+            or units[0][0].lower() not in {'degree', 'degrees'}
+            or abs(float(units[0][1])-math.pi/180) > 1e-16
+            or re.search(r'AXIS\[|TOWGS84\[', wkt, re.I)):
+        return None
+    method = re.search(r'PROJECTION\["([^"]+)"\]', wkt, re.I)
+    spheroid = re.search(r'SPHEROID\["[^"]+",([\d.eE+-]+),([\d.eE+-]+)\]', wkt, re.I)
+    if not method or not spheroid or not re.search(r'UNIT\["(?:Meter|Metre)",1(?:\.0*)?\]\]$', wkt, re.I):
+        return None
+    kinds = {'lambert_conformal_conic': 'lcc', 'mercator': 'merc', 'mercator_1sp': 'merc',
+             'azimuthal_equidistant': 'aeqd', 'lambert_azimuthal_equal_area': 'laea',
+             'polar_stereographic': 'stere', 'robinson': 'robin', 'equirectangular': 'eqc'}
+    kind = kinds.get(method[1].lower())
+    if not kind:
+        return None
+    radius, inverse_flattening = map(float, spheroid.groups())
+    if not math.isfinite(radius) or radius <= 0:
+        return None
+    if inverse_flattening == 0:
+        projection = dict(kind=kind, ellipsoid='sphere', radius=radius)
+    elif abs(radius-6378137) < .00001 and abs(inverse_flattening-298.257222101) < 1e-8:
+        projection = dict(kind=kind, ellipsoid='GRS80')
+    elif abs(radius-6378137) < .00001 and abs(inverse_flattening-298.257223563) < 1e-8:
+        projection = dict(kind=kind, ellipsoid='WGS84')
+    else:
+        return None
+    if kind in {'eqc', 'aeqd', 'laea', 'robin'} and projection['ellipsoid'] != 'sphere':
+        return None
+    keys = dict(central_meridian='lon0', latitude_of_origin='lat0', standard_parallel_1='lat1',
+                standard_parallel_2='lat2', scale_factor='k0', false_easting='x0', false_northing='y0')
+    for key, number in re.findall(r'PARAMETER\["([^"]+)",([\d.eE+-]+)\]', wkt, re.I):
+        if key.lower() not in keys or not math.isfinite(float(number)):
+            return None
+        projection[keys[key.lower()]] = float(number)
+    return projection
+
+
+def geopdf_reference(document, page):
+    raw = document.xref_get_key(page.xref, 'VP')[1]
+    if raw == 'null':
+        return None
+    if len(raw) > 1_000_000:
+        return dict(diagnostic='geopdf-viewport-exceeds-budget')
+    refs = re.findall(r'(\d+)\s+\d+\s+R', raw)
+    if refs and '/BBox' not in raw:
+        if len(refs) != 1:
+            return dict(diagnostic='multiple-geopdf-viewports-need-selection')
+        raw = document.xref_object(int(refs[0]), compressed=True)
+    if raw.count('/BBox') != 1:
+        return dict(diagnostic='multiple-or-unsupported-geopdf-viewports')
+    def numbers(key):
+        match = re.search(r'/'+key+r'\s*\[([\d.eE+\s-]+)\]', raw)
+        return list(map(float, match[1].split())) if match else []
+    bounds, geographic, local = numbers('BBox'), numbers('GPTS'), numbers('LPTS')
+    wkt = re.search(r'/WKT\s*\((.*?)\)\s*>>', raw)
+    projection = geopdf_projection(wkt[1]) if wkt else None
+    if not projection or len(bounds) != 4 or len(geographic) != len(local) or len(local) < 6 or len(local) % 2:
+        return dict(diagnostic='unsupported-geopdf-crs-or-control-layout')
+    if not all(math.isfinite(value) for value in bounds+geographic+local) or bounds[2] <= bounds[0] or bounds[3] <= bounds[1]:
+        return dict(diagnostic='invalid-geopdf-control-layout')
+    import fitz
+    controls = []
+    for index in range(0, len(local), 2):
+        u, v = local[index:index+2]
+        pixel = fitz.Point(bounds[0]+u*(bounds[2]-bounds[0]), bounds[1]+v*(bounds[3]-bounds[1])) * page.transformation_matrix * page.rotation_matrix
+        image = [pixel.x/page.rect.width, pixel.y/page.rect.height]
+        coordinate = [geographic[index+1], geographic[index]]
+        if any(not 0 <= value <= 1 for value in image) or abs(coordinate[0]) > 180 or abs(coordinate[1]) > 90:
+            return dict(diagnostic='geopdf-controls-outside-page')
+        controls.append(dict(id='geopdf-'+str(index//2), image=image, coordinate=coordinate))
+    return dict(projection=projection, controlPoints=controls, wkt=wkt[1], independentChecks=False,
+                coordinateEvidence='embedded-publisher-metadata', datumTransformation='not-performed')
 
 
 def source(spec):
@@ -30,7 +109,7 @@ def source(spec):
             # 144 dpi is the documented original raster pixel coordinate plane.
             pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
             image = Image.frombytes('RGB', (pix.width, pix.height), pix.samples)
-            return image, {'page': page_number, 'pdfDpi': 144}
+            return image, {'page': page_number, 'pdfDpi': 144, 'georeference': geopdf_reference(document, page)}
     with Image.open(path) as opened:
         if opened.format not in ('PNG', 'JPEG', 'WEBP'):
             raise ValueError('Expected PNG, JPEG, WebP or PDF')

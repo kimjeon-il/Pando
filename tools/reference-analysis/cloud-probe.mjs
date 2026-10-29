@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { parseArgs } from 'node:util';
-import { collectSourceFiles, nodeManifest, writeArtifactFiles, archiveDirectory } from './runtime-assets.mjs';
+import { collectSourceFiles, nodeManifest, writeArtifactFiles, archiveDirectory, analysisAssetCatalog } from './runtime-assets.mjs';
 import { bundlePath, verifyRuntimeFiles } from '../../plugins/pando-map-tools/lib/runtime.mjs';
 import { frontendWasmRoot } from '../../scripts/lib/frontend-layout.mjs';
 
@@ -38,9 +38,9 @@ export async function packProbe({directory,environment,workspace=root,python=joi
   const add=(source,name)=>sources.push({source,name});
   for(const file of await collectSourceFiles(workspace,{diagnostics:true}))if(file!=='package.json')add(join(workspace,file),'workspace/'+file);
   for(const name of ['pandoeditor-core.manifest.json','pandoeditor-core.js','pandoeditor-core.wasm'])add(join(workspace,frontendWasmRoot,name),'workspace/'+frontendWasmRoot+'/'+name);
-  for(const name of ['manifest.json','eng.traineddata.gz','osd.traineddata.gz'])add(join(workspace,'assets/data/reference-analysis/v1/ocr',name),'workspace/assets/data/reference-analysis/v1/ocr/'+name);
-  const places=await json(join(workspace,'assets/data/places/manifest.json'));add(join(workspace,'assets/data/places/manifest.json'),'workspace/assets/data/places/manifest.json');
-  for(const spec of Object.values(places.shards))add(bundlePath(join(workspace,'assets/data/places'),spec.url),'workspace/assets/data/places/'+spec.url);
+  const dataset=await analysisAssetCatalog(workspace);
+  const inline=dataset.files.map(file=>({path:'workspace/'+file.path,data:file.data}));
+  inline.push({path:'workspace/.map-runtime.json',data:JSON.stringify({schemaVersion:2,ocrResources:dataset.ocrResources,gazetteerResources:dataset.gazetteerResources})});
   add(old.source.path,'inputs/map.jpg');add(modelPath,'model/boundary.manifest.json');add(bundlePath(dirname(modelPath),model.model.url),'model/'+model.model.url);
   for(const name of ['tile.f32','overview.f32','position.f32','expected-logits.f32'])add(join(dirname(modelPath),'diagnostics',name),'diagnostics/'+name);
   const provenancePath=reportPath('reports/map-analysis/corpus/macro-political/sources/nrcan-canada-monochrome.source.json',{access:'read',root:workspace});
@@ -50,12 +50,13 @@ export async function packProbe({directory,environment,workspace=root,python=joi
   assert.equal(model.trainingOnly,true);assert.equal(model.releaseApproved,false);assert.equal(model.evaluationStatus,'pending');
   const calibration=old.history.find(row=>row.command?.type==='control-points')?.command;
   if(!calibration?.points?.length)throw Error('Reviewed calibration inputs are missing');
-  const bytes=(await Promise.all(sources.map(async row=>(await stat(row.source)).size))).reduce((a,b)=>a+b,0);
+  const bytes=(await Promise.all(sources.map(async row=>(await stat(row.source)).size))).reduce((a,b)=>a+b,0)
+    +inline.reduce((total,row)=>total+Buffer.byteLength(row.data),0);
   const free=await statfs(dirname(directory));if(free.bavail*free.bsize<bytes*3+5*1024**3)throw Error('Insufficient package and 5GiB disk headroom');
-  const manifest={schemaVersion:1,purpose:'execution-feasibility-only',sourceRevision:(await json(join(workspace,'config/library-data.json'))).revision,
-    modelSha256:model.model.sha256,calibration,options:Object.fromEntries(['date','languages','page','rect','maxPixels'].filter(key=>Object.hasOwn(old.options,key)).map(key=>[key,old.options[key]])),files:[]};
+  const manifest={schemaVersion:1,purpose:'execution-feasibility-only',sourceRevision:dataset.config.revision,
+    modelSha256:model.model.sha256,calibration,options:Object.fromEntries(['date','languages','page','rect','maxPixels','projection'].filter(key=>Object.hasOwn(old.options,key)).map(key=>[key,old.options[key]])),files:[]};
   const entries=await Promise.all(sources.map(async row=>({path:row.name,data:await readFile(row.source)})));
-  entries.push({path:'workspace/package.json',data:JSON.stringify(nodeManifest(workspace),null,2)+'\n'},
+  entries.push(...inline,{path:'workspace/package.json',data:JSON.stringify(nodeManifest(workspace),null,2)+'\n'},
     {path:'environment.json',data:JSON.stringify(environment,null,2)+'\n'});
   manifest.files=await writeArtifactFiles(directory,entries);
   await writeJson(join(directory,'probe.json'),manifest);await verifyBundle(directory);
@@ -92,9 +93,8 @@ export async function runProbe({bundle,output,python='python',stage='components'
       const {createCalculatedReferenceWarp}=await plugin('analysis/core.mjs');const points=[{id:'a',image:[0,0],coordinate:[10,20]},{id:'b',image:[1,0],coordinate:[20,20]},{id:'c',image:[0,1],coordinate:[10,10]},{id:'d',image:[1,1],coordinate:[20,10]}];
       const warp=createCalculatedReferenceWarp('warp',{points,mode:'affine'});assert(warp.ok);const projected=warp.project([.5,.5]);assert(projected.every(Number.isFinite));result.checks.wasm={verdict:'passed',projected};
       const env={...process.env};await exec(process.execPath,[join(workspace,'tools/reference-analysis/verify-trained-onnx.mjs'),'--model',join(bundle,'model/boundary.onnx'),'--diagnostics',join(bundle,'diagnostics'),'--output',join(output,'onnx-parity.json')],{env,windowsHide:true,maxBuffer:2*1024*1024});result.checks.onnx=await json(join(output,'onnx-parity.json'));
-      const {createPlaceWorkerStore}=await import(pathToFileURL(join(workspace,'shared/frontend/js/modules/place-worker-store.js'))),placeRoot=join(workspace,'assets/data/places');
-      const store=createPlaceWorkerStore({manifest:await json(join(placeRoot,'manifest.json')),fetchBytes:spec=>readFile(join(placeRoot,spec.url))});
-      const places=await store.search('London',{signal:null,throwIfCancelled(){},emitEvent(){}});assert.match(JSON.stringify(places),/London/i);result.checks.places={verdict:'passed',query:'London',result:places};
+      const {openAnalysisGazetteer}=await plugin('runtime.mjs');
+      const store=await openAnalysisGazetteer(workspace),places=await store.search('London');assert.match(JSON.stringify(places),/London/i);result.checks.places={verdict:'passed',query:'London',result:places};
     } else if(stage==='map') {
       if(existsSync(jobPath))throw Error('Map job already exists');
       let job=await engine.analyze({...await probeAnalysisOptions(bundle,manifest),jobPath,signal:AbortSignal.timeout(600000),progress:data=>process.stderr.write(JSON.stringify(data)+'\n')});
