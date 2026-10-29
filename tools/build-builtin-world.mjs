@@ -2,12 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {gzipSync} from 'node:zlib';
+import {gzipSync,gunzipSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {withLibraryOutputs,libraryConfig,libraryCheckout,decodeArchiveEntry} from './library-data.mjs';
-import {readTerritorialSources,readTerritorialSource,territorialSourceRoot,territorialDataRoot} from './territorial-entity-sources.mjs';
+import {readTerritorialSources,readTerritorialSource,entityFileName,territorialSourceRoot,territorialDataRoot} from './territorial-entity-sources.mjs';
+import {normalizeTerritorialLibraryEntity} from '../apps/editor/frontend/js/modules/territorial-library.js';
 import {buildCurrentWorld} from './territorial-current-world.mjs';
-import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments} from './builtin-world-compiler.mjs';
+import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from './builtin-world-compiler.mjs';
 import {BUILTIN_SUBUNITS} from "../shared/frontend/js/modules/builtin-subunits.js";
 
 const output=fileURLToPath(new URL('../assets/data/builtin-world/generated/v1/',import.meta.url));
@@ -53,6 +54,31 @@ function encodeCountries(index,countries){
    compressedBytes:stored.length,decodedBytes:decoded.length});
  }
  return files;
+}
+
+export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previousIndex,readSource=readTerritorialSource,readPreviousSource,readCountry}) {
+ if(!entityIds?.length||new Set(entityIds).size!==entityIds.length)throw Error('Explicit unique name scope required');
+ const index=structuredClone(previousIndex),files=new Map(),affected=new Set();
+ const revisions={...index.inputHashes.sourceRevisions};
+ for(const id of entityIds){
+  const mapping=index.sourceIdentities.filter(row=>row.sourceEntityIds.includes(id));
+  if(mapping.length!==1||mapping[0].sourceEntityIds.length!==1)throw Error(`Name-only update requires one source identity: ${id}`);
+  const entry=index.entities.find(row=>row.entityId===mapping[0].projectEntityId),source=sourceIndex.entities.find(row=>row.entityId===id);
+  if(!entry||!source)throw Error(`Missing named country: ${id}`);
+  const stored=readCountry(entry.file);
+  if(stored.length!==entry.compressedBytes||sha(stored)!==entry.sha256)throw Error(`Changed country bytes: ${id}`);
+  const country=JSON.parse(gunzipSync(stored)),entity=readSource(id),prior=readPreviousSource(id);
+  if(country.entityId!==entry.entityId||entity.entityId!==id)throw Error('Name scope identity mismatch');
+  const unnamed=({names,alternateNames,nameVersions,...rest})=>rest;
+  if(JSON.stringify(unnamed(entity))!==JSON.stringify(unnamed(prior)))throw Error(`Name-only scope includes non-name changes: ${id}`);
+  const next=replaceBuiltinWorldCountryNames(country,entity);
+  for(const [file,bytes] of encodeCountries(index,[next]))files.set(file,bytes);
+  revisions[id]=source.sha256;affected.add(entry.entityId);
+ }
+ for(const entry of index.entities)if(!files.has(entry.file))files.set(entry.file,readCountry(entry.file));
+ const ordered=Object.fromEntries(Object.entries(revisions).sort(([a],[b])=>a.localeCompare(b,'en')));
+ index.inputHashes.sourceRevisions=ordered;index.inputHashes.entities=sha(JSON.stringify(ordered));
+ return packBuiltinWorldFiles(index,files,{verifyEntityIds:affected});
 }
 
 /** Recompile only connected spatial/hierarchy components; untouched country
@@ -147,12 +173,24 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const existing=process.argv.includes('--pack-existing');
  const selected=process.argv.find(arg=>arg.startsWith('--entities='));
+ const namesOnly=process.argv.includes('--names-only');
+ if(namesOnly&&!selected)throw Error('--names-only requires --entities');
+ if(namesOnly&&process.argv.includes('--plan'))throw Error('--plan is only supported for geometry generation');
  if(existing&&selected)throw new Error('Choose either --pack-existing or --entities');
  if(process.argv.includes('--plan')&&!selected)throw new Error('--plan requires --entities');
  const sourceIndex=JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'generated/v2/index.json')));
  const index=existing||selected?JSON.parse(fs.readFileSync(path.join(output,'index.json'))):null;
  let files,scope;
  if(selected){
+  if(namesOnly){
+   const ids=selected.slice('--entities='.length).split(',').filter(Boolean);
+   const root=fileURLToPath(new URL('../',import.meta.url)),config=libraryConfig(root),checkout=libraryCheckout(root);
+   const archive=JSON.parse(execFileSync('git',['-c','maintenance.auto=false','-c','gc.auto=0','show',`${config.revision}:archive/index.json`],{cwd:checkout,maxBuffer:16*1024*1024}));
+   files=buildBuiltinWorldNamePublication({entityIds:ids,sourceIndex,previousIndex:index,readCountry:file=>fs.readFileSync(path.join(output,file)),
+    readPreviousSource:id=>normalizeTerritorialLibraryEntity(JSON.parse(decodeArchiveEntry(checkout,archive.files[`assets/data/territorial-entities/source/countries/${entityFileName(id)}`],config.revision)))});
+   scope={projectEntityIds:index.sourceIdentities.filter(row=>row.sourceEntityIds.some(id=>ids.includes(id))).map(row=>row.projectEntityId)};
+   console.log(`Name-only generation: ${ids.length} selected source; geometry and coverage reused without recomputation.`);
+  }else{
   const root=fileURLToPath(new URL('../',import.meta.url)),config=libraryConfig(root),checkout=libraryCheckout(root);
   const archive=JSON.parse(execFileSync('git',['-c','maintenance.auto=false','-c','gc.auto=0','show',`${config.revision}:archive/index.json`],{cwd:checkout,maxBuffer:16*1024*1024}));
   const previousSourceIndex=JSON.parse(decodeArchiveEntry(checkout,archive.files['assets/data/territorial-entities/generated/v2/index.json'],config.revision));
@@ -162,6 +200,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
    readCountry:file=>fs.readFileSync(path.join(output,file)),planOnly:process.argv.includes('--plan'),
    onScope:planned=>{scope=planned;console.log(`Scoped generation: ${scope.requested} requested; ${scope.sourceIds.length} connected source inputs in ${scope.components.length} components; other source files are not read.`);}});
   if(process.argv.includes('--plan')){console.log(JSON.stringify(files,null,2));process.exit(0);}
+  }
  }else files=existing?packBuiltinWorldFiles(index,new Map(index.entities.map(entry=>[entry.file,fs.readFileSync(path.join(output,entry.file))]))):buildBuiltinWorldPublication({input:{sourceIndex}});
  const affectedFiles=scope&&new Set(JSON.parse(files.get('index.json')).entities.filter(row=>scope.projectEntityIds.includes(row.entityId)).map(row=>row.file));
  const outputs=scope?new Map([...files].filter(([file])=>!file.startsWith('countries/')||affectedFiles.has(file))):files;

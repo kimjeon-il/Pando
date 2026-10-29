@@ -8,6 +8,7 @@ import { createGeometryVersionStore } from "../shared/frontend/js/modules/geomet
 import { normalizeTimelineRecords } from "../shared/frontend/js/modules/timeline-records.js";
 import { createProjectSerializer } from "../apps/editor/frontend/js/modules/project-serializer.js";
 import { DISTRIBUTION_MODES } from "../shared/frontend/js/modules/distribution-model.js";
+import {territorialNameData} from '../apps/editor/frontend/js/modules/territorial-library.js';
 import { adjustHistoricalTerritories, historicalWorldClipper,createHistoricalTerritoryCache } from './historical-world-territories.mjs';
 
 const compare = (a, b) => {
@@ -50,6 +51,35 @@ const identity = feature => ({ type: 'Feature', id: feature.id, geometry: null,
   properties: Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.map(key => [key, structuredClone(feature.properties[key])])) });
 const withoutGeometry = ({ geometry, ...value }) => structuredClone(value);
 
+function applyNameBaseline(identity,entity) {
+  const properties=identity.properties;
+  if(Object.hasOwn(entity,'nameVersions')) {
+    properties.name='';delete properties.metadata.nameDetails;
+    properties.metadata.nameSource={baseName:'',nameExplicit:true};
+  }else{
+    const naming=territorialNameData(entity);
+    properties.name=naming.name;properties.metadata.nameDetails=naming.names;
+  }
+}
+
+export function compileBuiltinWorldNameBindings(entity,id) {
+  return territorialNameData(entity).versions.flatMap((version,i)=>{
+    const period=intersection(bounds(version),bounds(entity.lifetime));
+    if(!period)return [];
+    const naming=territorialNameData({lifetime:{validFrom:null,validTo:null},nameVersions:[{...version,validFrom:null,validTo:null}]});
+    return [{id:`historical-world:names:${id}:${i}`,objectRef:{domain:'territorial',id},
+      validFrom:period.start&&date(period.start),validTo:period.end&&date(period.end),property:'name',value:{name:naming.name,nameExplicit:true,names:naming.names}}];
+  });
+}
+
+export function replaceBuiltinWorldCountryNames(country,entity) {
+  const result=structuredClone(country);
+  applyNameBaseline(result.identity,entity);
+  result.timelineRecords.propertyBindings=[...result.timelineRecords.propertyBindings.filter(row=>row.property!=='name'),
+    ...compileBuiltinWorldNameBindings(entity,result.entityId)];
+  return result;
+}
+
 /** Build an ordinary editable project; library inputs and raw intervals stay immutable. */
 export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper, availableSourceIds = null }) {
   entities=entities.filter(entity=>['general','regional'].includes(entity.entityKind));
@@ -76,6 +106,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     const version = primary.geometryVersions.find(row=>row.versionId===selection.get(primary.entityId));
     if(!version)throw new Error(`Missing selected geometry: ${primary.entityId}`);
     const normalized = identity(feature);
+    applyNameBaseline(normalized,primary);
     normalized.properties.metadata.historicalTimeline = { entityId: primary.entityId, sourceEntityIds: info.sourceEntityIds,
       lifetime: structuredClone(primary.lifetime), geometryVersions: primary.geometryVersions.map(withoutGeometry), geometryBindings: [] };
     const windows=primary.geometryVersions.map(row=>{
@@ -85,7 +116,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
         parentId:feature.properties.parentId,coverageMode:feature.properties.coverageMode,
         currentSnapshot:row.versionId===version.versionId};
     }).filter(Boolean);
-    definitions.set(feature.id,{identity:normalized,currentSnapshot:true,info,windows});
+    definitions.set(feature.id,{identity:normalized,currentSnapshot:true,info,windows,nameSource:primary});
   }
   for (const entity of entities) {
     const lifetime = bounds(entity.lifetime);
@@ -98,7 +129,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     const first = entity.geometryVersions[0];
     if (!first) throw new Error(`Missing source geometry: ${entity.entityId}`);
     const feature = createTerritorialFeature({ id: entity.entityId, entityKind: entity.entityKind,
-      name: entity.names.ko || entity.names.en || Object.values(entity.names)[0], geometry: first.geometry,
+      name: '', geometry: first.geometry,
       color: entity.metadata?.defaultColor || '',
       notes: entity.metadata?.notes || '', metadata: { ...structuredClone(entity.metadata),
         ...(entity.entityKind === 'general' && !entity.parentEntityId && entity.metadata?.defaultFlagDataUrl
@@ -106,6 +137,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
         historicalTimeline: { entityId: entity.entityId, lifetime: structuredClone(entity.lifetime),
           sourceInfo: structuredClone(entity.sourceInfo), geometryVersions: entity.geometryVersions.map(withoutGeometry), geometryBindings: [] } },
       sourceEntityId: entity.entityId });
+    applyNameBaseline(feature,entity);
     const windows = entity.geometryVersions.map(version => {
       const available = bounds(version);
       const interval = available && intersection(lifetime, available);
@@ -113,7 +145,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
         parentId: sourceToProject.get(entity.parentEntityId) || entity.parentEntityId,
         coverageMode: entity.instantiation.coverageMode || 'explicit' };
     }).filter(Boolean);
-    definitions.set(entity.entityId, { identity: identity(feature), currentSnapshot: false, windows });
+    definitions.set(entity.entityId, { identity: identity(feature), currentSnapshot: false, windows,nameSource:entity });
     sourceIdentities.push({ projectEntityId: entity.entityId, sourceEntityIds: [entity.entityId], sourceFeatureIds: [] });
   }
   const archive = createGeometryVersionStore(), byGeometry = new Map();
@@ -188,6 +220,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     records.lifetimes.push({ id: `historical-world:lifetimes:${id}:0`, objectRef: {domain:"territorial",id},
       ...structuredClone(definitions.get(id).identity.properties.metadata.historicalTimeline.lifetime) });
     for (const name of ['geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));
+    records.propertyBindings.push(...compileBuiltinWorldNameBindings(definitions.get(id).nameSource,id));
   }
   const normalized = normalizeTimelineRecords(records, { entities: identities.map(row => ({ objectRef: {domain:"territorial",id:row.id}, entityKind: row.properties.entityKind })), geometryExists: ref => archive.get(ref) !== null });
   const availability=new Map([...rowsByEntity].map(([id,rows])=>[id,rows.availability]));

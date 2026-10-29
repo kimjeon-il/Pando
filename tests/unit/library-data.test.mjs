@@ -10,6 +10,17 @@ import { gzipSync } from 'node:zlib';
 import { compactLibraryCheckout, decodeArchiveEntry, prepareLibraryData, libraryReportRoot, libraryReportEditRoot, libraryMaterializedRoot, withLibraryWrite, hydrateReports, safeChild, storeLibraryData } from '../../tools/library-data.mjs';
 import { reportPath } from '../../tools/report-paths.mjs';
 
+test('scoped native storage requires every changed source chunk and shared index together',async()=>{
+  const {assertTerritorialStorageScope}=await import('../../tools/library-data.mjs');
+  const base='assets/data/territorial-entities',old={entities:[{entityId:'state:edited',file:'state-edited.json.gz',sha256:'old'},{entityId:'state:kept',file:'state-kept.json.gz',sha256:'same'}]};
+  const next=structuredClone(old);next.entities[0].sha256='new';
+  const paths=[base+'/generated/v2/index.json',base+'/generated/v2/state-edited.json.gz',base+'/source/countries/state-edited.json'];
+  assert.doesNotThrow(()=>assertTerritorialStorageScope(paths,next,old));
+  for(let i=0;i<paths.length;i++)assert.throws(()=>assertTerritorialStorageScope(paths.filter((_,j)=>i!==j),next,old));
+  const extra=structuredClone(next);extra.entities[1].sha256='unexpected';
+  assert.throws(()=>assertTerritorialStorageScope(paths,extra,old),/together/);
+});
+
 test('native library storage reuses unedited object references without reading their chunks',async()=>{
   const {storeNativeLibraryObjects}=await import('../../tools/library-data.mjs');
   assert.equal(typeof storeNativeLibraryObjects,'function');
@@ -24,6 +35,35 @@ test('native library storage reuses unedited object references without reading t
   assert.equal(writes.length,1);
   assert.equal(writes[0].text,'{"entityId":"state:edited","lifetime":{"validFrom":"1841","validTo":null}}\n');
   assert.equal(writes[0].path,`objects/${entities['state:edited']}.json`);
+});
+
+test('scoped native storage uses the pinned native index when checkout metadata belongs to another edition',t=>{
+  const parent=mkdtempSync(join(tmpdir(),'pando-scoped-native-')),root=join(parent,'app'),data=join(root,'.library-data/repository');
+  t.after(()=>rmSync(parent,{recursive:true,force:true}));
+  const put=(base,path,bytes)=>{mkdirSync(dirname(join(base,path)),{recursive:true});writeFileSync(join(base,path),bytes);};
+  const git=(base,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:base,encoding:'utf8',stdio:'pipe'}).trim();
+  for(const base of [root,data]){mkdirSync(base,{recursive:true});git(base,'init','-q');git(base,'config','user.name','Fixture');git(base,'config','user.email','fixture@example.invalid');}
+  const base='assets/data/territorial-entities',source=base+'/source/countries/state-test.json',chunk=base+'/generated/v2/state-test.json.gz',indexPath=base+'/generated/v2/index.json';
+  const bytes=gzipSync('{"entityId":"state:test","names":{"ko":"Before"}}'),hash=value=>createHash('sha256').update(value).digest('hex');
+  const oldIndex=Buffer.from(JSON.stringify({entities:[{entityId:'state:test',file:'state-test.json.gz',sha256:hash(bytes)}]}));
+  const files={[source]:Buffer.from('{"names":{"ko":"Before"}}'),[chunk]:bytes,[indexPath]:oldIndex};
+  const archive={};for(const [path,value]of Object.entries(files)){put(data,path,value);archive[path]={stored:path,encoding:'identity',bytes:value.length,sha256:hash(value)};}
+  put(data,'archive/index.json',JSON.stringify({schemaVersion:1,branch:'main',files:archive}));
+  put(data,`objects/${hash(oldIndex)}.json`,oldIndex);put(data,'library.json',JSON.stringify({schemaVersion:1,indexHash:hash(oldIndex),entities:{'state:test':'old-native'}}));
+  git(data,'add','.');git(data,'commit','-qm','pinned edition');const pin=git(data,'rev-parse','HEAD');
+  put(data,'library.json',JSON.stringify({schemaVersion:1,indexHash:'missing-other-edition',entities:{}}));git(data,'add','.');git(data,'commit','-qm','other metadata edition');
+  put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:pin,mounts:['assets/data','reports']}));
+  put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
+  prepareLibraryData({root,fetch:false});
+  const next=gzipSync('{"entityId":"state:test","names":{"ko":"After"}}');
+  withLibraryWrite({root,prefixes:[source,chunk,indexPath]},()=>{
+    put(root,source,'{"names":{"ko":"After"}}');put(root,chunk,next);
+    put(root,indexPath,JSON.stringify({entities:[{entityId:'state:test',file:'state-test.json.gz',sha256:hash(next)}]}));
+  });
+  storeLibraryData({root,prefixes:[source,chunk,indexPath]});
+  const stored=JSON.parse(git(data,'show','HEAD:library.json'));
+  assert.notEqual(stored.indexHash,'missing-other-edition');
+  assert.equal(JSON.parse(git(data,'show',`HEAD:objects/${stored.entities['state:test']}.json`)).names.ko,'After');
 });
 
 test('public release paths remain directly archivable from the storage Git tree', t => {

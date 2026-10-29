@@ -16,6 +16,39 @@ void apply(Project& project,const std::string& command,CommandArguments args) {
 std::string name(const Project& project,const std::string& month) {return timelineDocumentView(project.document(),month).document.units.front().name;}
 }
 int main() {
+    {
+        // Compiled explicit histories have an unnamed baseline. Projection must
+        // not retain a previous or future edition when the cursor crosses a gap.
+        auto d=makeTerritorialDocument({{{"A",""},box(0,2),{}}});
+        d.timelineRecords.propertyBindings={{"before",territorialRef("A"),{{},"1999"},"name",R"({"name":"Old","nameExplicit":true,"names":{"ko":{"common":"Old","formal":"Old formal"}}})"},
+            {"after",territorialRef("A"),{"2001",{}},"name",R"({"name":"New","nameExplicit":true,"names":{"ko":{"common":"New"}}})"}};
+        Project gap;gap.replace(d);gap.setTimelineCursor("1999-12");assert(gap.viewDocument().units.front().name=="Old");
+        gap.setTimelineCursor("2000-06");assert(gap.viewDocument().units.front().name.empty());
+        assert(!codecjson::parse(gap.viewDocument().units.front().metadata).object.count("nameDetails"));
+        gap.setTimelineCursor("2001-01");assert(gap.viewDocument().units.front().name=="New");
+    }
+    {
+        auto document=makeTerritorialDocument({{{"A","Old"},box(0,2),{}}});
+        document.units.front().metadata=R"({"nameDetails":{"ko":{"common":"Old","formal":"Old formal","aliases":["Old alias"]},"native":[{"language":"hy","common":"Native"}]},"kept":true})";
+        document.timelineRecords.propertyBindings.push_back({"new-name",territorialRef("A"),{"2000",{}},"name",
+            R"({"name":"New","nameExplicit":true,"names":{"ko":{"common":"New","formal":"New formal","aliases":["New alias"]},"native":[{"language":"hy","common":"Native"}]}})"});
+        Project named;named.replace(document);named.setTimelineCursor("2000-01");
+        auto names=[](const ProjectDocument& d){return codecjson::parse(d.units.front().metadata).object.at("nameDetails");};
+        assert(names(named.viewDocument()).object.at("ko").object.at("formal").string=="New formal");
+        CommandArguments edit;edit.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Edited"};
+        apply(named,"territorial.field",edit);
+        assert(named.viewDocument().units.front().name=="Edited");
+        assert(names(named.viewDocument()).object.at("ko").object.at("common").string=="Edited");
+        assert(names(named.viewDocument()).object.at("ko").object.at("formal").string=="New formal");
+        assert(names(named.document()).object.at("ko").object.at("common").string=="Old");
+        assert(named.undo());assert(named.viewDocument().units.front().name=="New");assert(named.redo());
+        const projectcodec::PlatformPorts ports{[](const std::string&) {}};
+        Project restored;restored.replace(projectcodec::decodeWeb(projectcodec::encodeWeb(named.snapshot(),ports),ports));
+        restored.setTimelineCursor("2000-01");
+        assert(names(restored.viewDocument()).encode()==names(named.viewDocument()).encode());
+        restored.setTimelineCursor("1999-12");assert(restored.viewDocument().units.front().name=="Old");
+        assert(names(restored.viewDocument()).object.at("ko").object.at("formal").string=="Old formal");
+    }
     // Project's direct history must not apply retired native-only text pruning.
     {
         auto document=makeTerritorialDocument({{{"A","Country"},box(0,2),{}}});
@@ -125,8 +158,8 @@ int main() {
     assert(timelineDocumentView(project.document(),"2012-01").document.symbols.at(territorialRef("A")).policy==FlagPolicy::None);
     WebTerritorialEdit absorption;absorption.operation=WebTerritorialOperation::Remove;absorption.removedIds={"A"};
     auto suspended=applyWebTerritorialEdit(project.snapshot(),absorption,TerritorialEditContext::LibraryImport);
-    assert(!timelineDocumentView(suspended,"2013-01").inactiveIds.count("A"));
-    assert(timelineDocumentView(suspended,"2012-01").inactiveIds.count("A"));
+    assert(!timelineDocumentView(suspended,"2013-01").inactiveIds.count(territorialRef("A")));
+    assert(timelineDocumentView(suspended,"2012-01").inactiveIds.count(territorialRef("A")));
     assert(timelineDocumentView(suspended,"2013-01").document.units.front().name=="Future");
     args.action=TimelineParentEdit{"A","2012-01","B","partition"};
     const auto rejected=CommandProcessor::prepare(project,CommandProcessor::makeRequest(project,"timeline.parent",args));assert(!rejected.ok());

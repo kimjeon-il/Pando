@@ -1344,3 +1344,9 @@
 .territorial-library-source-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); padding-block: var(--space-2); }
 .territorial-library-source-flag { max-width: var(--territorial-library-source-flag-max-width); max-height: var(--territorial-library-source-flag-max-height); object-fit: contain; }
 
+.editor-name-details { margin: 0; display: grid; gap: var(--space-2); }
+.editor-name-details[hidden] { display: none; }
+.editor-name-detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--space-2); }
+.editor-name-detail dt { color: var(--muted); }
+.editor-name-detail dd { margin: 0; overflow-wrap: anywhere; }
+

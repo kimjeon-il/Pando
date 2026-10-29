@@ -379,7 +379,18 @@ void applyField(ProjectDocument& candidate,const DocumentIndex& index,const Terr
             const auto value=trimWebText(action.value);
             switch(action.field) {
             case TerritorialField::Name:
-                if(u.kind!=UnitKind::General || trimWebText(u.nameExplicit&&!u.name.empty()?u.name:!u.baseName.empty()?u.baseName:u.id)!=value){u.name=value;u.nameExplicit=true;}
+                if(u.kind!=UnitKind::General || trimWebText(u.nameExplicit&&!u.name.empty()?u.name:!u.baseName.empty()?u.baseName:u.id)!=value){
+                    u.name=value;u.nameExplicit=true;
+                    auto metadata=codecjson::parse(u.metadata);
+                    if(metadata.object.count("nameDetails")) {
+                        auto details=normalizeTerritorialNames(metadata.object.at("nameDetails"));
+                        auto& row=details.object.count("ko")?details.object.at("ko"):details.object.count("en")?details.object.at("en"):details.object.at("native").array.front();
+                        if(!value.empty())row.object["common"]=codecjson::Value::str(value);
+                        else details=codecjson::Value{};
+                        if(details.kind==codecjson::Value::Null)metadata.object.erase("nameDetails");else metadata.object["nameDetails"]=details;
+                        u.metadata=metadata.encode();
+                    }
+                }
                 break;
             case TerritorialField::Notes:u.notes=value;break;
             case TerritorialField::ValidFrom:case TerritorialField::ValidTo:

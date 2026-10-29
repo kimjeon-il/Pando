@@ -1,6 +1,7 @@
 #pragma once
 #include <pandoeditor/geometry-types.h>
 #include <pandoeditor/presentation.h>
+#include <pandoeditor/losslessjson.h>
 #include <functional>
 #include <stdexcept>
 
@@ -54,4 +55,7 @@ public:
 
 // Pure value normalization. Live project persistence/codec integration is T2-2.
 TimelineRecords normalizeTimelineRecords(const TimelineRecords&, const TimelineValidationContext&);
+codecjson::Value normalizeTerritorialNames(const codecjson::Value&);
+std::string territorialCommonName(const codecjson::Value&);
+codecjson::Value territorialLibraryNames(const codecjson::Value&,const std::optional<std::string>&);
 }

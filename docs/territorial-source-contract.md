@@ -3,6 +3,35 @@
 This contract is shared by Pando Web and PandoEditor. The temporal semantics in
 `docs/timeline-contract.md` are unchanged.
 
+## Names
+
+Source `names` and `alternateNames` describe undated names and search terms.
+An explicit `nameVersions` array supplies independent name intervals with
+`validFrom`, `validTo` and `names`. Each names value has optional `ko` and `en`
+objects and a `native` array with explicit language tags. Each language has a
+`common` name, a `formal` name, or both, and optional `aliases`. Unknown formal
+names, translations and historical dates stay absent. Existing unclassified
+search aliases retain their original text.
+
+The shared C++ timeline selects names independently of geometry, using the same
+inclusive interval and precision rules. Explicit name gaps are not filled from
+another period. Undated catalog browsing presents the latest documented name
+edition. Search includes all documented names and aliases; dated results show
+the selected edition.
+
+Builtin country name editions compile to the existing `name` property binding.
+Its value includes `name`, `nameExplicit` and optional structured `names`.
+The resolved names appear in `metadata.nameDetails`; this is a projection of
+the same property, not a second timeline. Common-name edits retain formal names,
+native entries and aliases through history and exchange. Catalog imports remain
+snapshots: they copy the name edition selected at their source reference date.
+
+`build-territorial-entity-chunks.mjs --entities=<ids>` regenerates only those
+source chunks and their shared catalog index. `build-builtin-world.mjs
+--entities=<ids> --names-only` updates country names while retaining geometry,
+geometry validity, relationships and coverage. It rejects any non-name source
+change against the pinned original.
+
 - Web project schemaVersion: **10**; native project version: **10**.
 - Territorial identity/model schemaVersion: **6**; timelineRecords: **1**.
 - Project `id` identifies an independently editable instance. It is never the

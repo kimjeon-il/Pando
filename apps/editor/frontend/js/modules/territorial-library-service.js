@@ -1,4 +1,4 @@
-import {instantiateLibraryEntity, territorialEntityExistsAt, selectGeometryVersion,historicalSourceAvailability,normalizeTerritorialLibraryIndex} from './territorial-library.js';
+import {instantiateLibraryEntity, territorialEntityExistsAt, selectGeometryVersion,historicalSourceAvailability,normalizeTerritorialLibraryIndex,territorialNameData} from './territorial-library.js';
 import {compareTemporal, parseTemporal} from "../../../../../shared/frontend/js/modules/temporal.js";
 
 const compareIdentity = (left, right) => left < right ? -1 : left > right ? 1 : 0;
@@ -53,7 +53,7 @@ export function createTerritorialLibraryService({loader, today = () => {
     return (catalog?.lineages || []).map(lineage=>{
       const groupMatches = !needle || matches(Object.values(lineage.names));
       const entities = lineage.entityRefs.map(get).filter(entity=>groupMatches
-        || matches([...Object.values(entity.names),...entity.alternateNames]));
+        || matches([...Object.values(entity.names),...territorialNameData(entity).searchNames]));
       return {lineageId:lineage.lineageId, names:lineage.names, entities};
     }).filter(group=>group.entities.length);
   }
@@ -61,6 +61,7 @@ export function createTerritorialLibraryService({loader, today = () => {
     const dated = parseTemporal(referenceDate) !== null;
     return matchingGroups(query).map(group=>({...group, entities:group.entities
       .map(entity=>({...entity,
+        displayName:territorialNameData(entity,dated?referenceDate:null).name || entity.entityId,
         sourceAvailability:dated?historicalSourceAvailability(entity,referenceDate):null,
         selectedVersionId:dated ? selectGeometryVersion(entity,referenceDate)?.versionId || null : null})),
     })).filter(group=>group.entities.length);
@@ -68,7 +69,7 @@ export function createTerritorialLibraryService({loader, today = () => {
   function events({query = ''} = {}) {
     const found = new Map();
     for (const {entities} of matchingGroups(query)) for (const entity of entities) {
-      const name = entity.names.ko || entity.names.en || Object.values(entity.names)[0];
+      const name = territorialNameData(entity).name;
       const sources = [
         ['lifetime.validFrom',entity.lifetime.validFrom,'기록 시작'],
         ['lifetime.validTo',entity.lifetime.validTo,'기록 마지막 시점'],

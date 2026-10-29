@@ -236,6 +236,14 @@ int selectGeometryVersion(val lifetime,val versions,val referenceDate) {
         return index?static_cast<int>(*index):-1;
     });
 }
+val libraryNames(val entity,val referenceDate) {
+    return boundary([&] {
+        const auto input=codecjson::parse(val::global("JSON").call<val>("stringify",entity).as<std::string>());
+        std::optional<std::string> date;
+        if(!referenceDate.isNull()&&!referenceDate.isUndefined())date=readText(referenceDate,"TIMELINE_NAME");
+        return val::global("JSON").call<val>("parse",territorialLibraryNames(input,date).encode());
+    });
+}
 std::string sourceAvailability(val lifetime,val versions,const std::string& referenceDate) {
     return boundary([&] {
         array(versions,"PL-LIB-GEOMETRY");std::vector<Validity> candidates;
@@ -299,5 +307,6 @@ EMSCRIPTEN_BINDINGS(pandoeditor_timeline_calculations) {
     emscripten::function("timelineTruncateEntity",&truncateEntity);
     emscripten::function("timelineVersionExistsAt",&versionExistsAt);
     emscripten::function("timelineSelectGeometryVersion",&selectGeometryVersion);
+    emscripten::function("timelineLibraryNames",&libraryNames);
     emscripten::function("timelineSourceAvailability",&sourceAvailability);
 }

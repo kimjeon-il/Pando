@@ -70,6 +70,17 @@ test('presenting the same entity twice while its area is pending completes with 
   assert.equal(state.selectionStatus.textContent, 'A renamed · 1 km²');
 });
 
+test('name details present current formal names, native languages and aliases without editing',()=>{
+  const state=setup();
+  state.views.get(state.a.key).feature.properties.metadata.nameDetails={ko:{common:'A',formal:'정식명',aliases:['별칭']},native:[{language:'hy',common:'Արցախ'}]};
+  state.controller.present(state.a);
+  const panel=state.fields.get('entityNameDetails');
+  assert.equal(panel.hidden,false);
+  assert.deepEqual(panel.children.map(row=>row.children.map(node=>node.textContent)),[
+    ['한국어 통칭','A'],['한국어 정식명','정식명'],['한국어 별칭','별칭'],['원어 (hy) 통칭','Արցախ']]);
+  assert.equal(state.relations.length,0);
+});
+
 test('replaced entity geometry discards the old display result and calculates the new geometry only once', () => {
   const state = setup();
   state.controller.present(state.a);

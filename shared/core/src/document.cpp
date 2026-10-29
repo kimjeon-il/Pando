@@ -115,6 +115,8 @@ DocumentIndex validateDocumentImpl(const ProjectDocument& d,void(*readContent)(c
     DocumentIndex idx;
     for(std::size_t i=0;i<d.units.size();++i) {
         const auto& u=d.units[i]; auto ref=territorialRef(u.id);
+        const auto metadata=codecjson::parse(u.metadata);
+        if(metadata.object.count("nameDetails"))normalizeTerritorialNames(metadata.object.at("nameDetails"));
         require(!u.id.empty(),"INVALID_UNIT: id");
         require(u.kind==UnitKind::General || u.kind==UnitKind::Regional,"INVALID_UNIT: kind");
         if(u.libraryOrigin) {

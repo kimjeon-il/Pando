@@ -4,7 +4,7 @@ import {createGeometryVersionStore} from "../../../../../shared/frontend/js/modu
 export const TERRITORIAL_LIBRARY_SCHEMA_VERSION = 2;
 export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional', RIVER:'river', LAKE:'lake' });
 export function assertTerritorialIndexEntity(entry,entity){
-  const keys=['schemaVersion','entityId','lineageId','entityKind','names','alternateNames','lifetime','parentEntityId','instantiation','metadata'];
+  const keys=['schemaVersion','entityId','lineageId','entityKind','names','alternateNames','nameVersions','lifetime','parentEntityId','instantiation','metadata'];
   const comparable=value=>Array.isArray(value)?value.map(comparable):value&&typeof value==='object'
     ?Object.fromEntries(Object.keys(value).sort().map(key=>[key,comparable(value[key])])):value;
   const source=Object.fromEntries(keys.map(key=>[key,entity[key]]));
@@ -69,6 +69,7 @@ export function normalizeTerritorialLibraryIndex(raw) {
       || entity.file!==`${entity.entityId.replace(':','-')}.json.gz` || !/^[a-f0-9]{64}$/.test(entity.sha256) || !(entity.compressedBytes>0 && entity.decodedBytes>0)
       || !entity.geometryVersions?.length || entity.geometryVersionCount!==entity.geometryVersions.length || !Array.isArray(entity.bbox) || entity.bbox.length!==4 || entity.bbox.some(v=>!Number.isFinite(v)))throw new Error('Invalid territorial index entry');
     names(entity.names);
+    territorialNameData(entity);
     if (['canonicalName','displayNames','libraryId'].some(key=>Object.hasOwn(entity,key))) throw new Error('Retired index names/identity');
     ids.add(entity.entityId);interval(entity.lifetime);
     if(entity.validFrom!==entity.lifetime.validFrom || entity.validTo!==entity.lifetime.validTo)throw new Error('Inconsistent indexed lifetime');
@@ -131,14 +132,20 @@ export function normalizeTerritorialLibraryEntity(raw) {
     schemaVersion: TERRITORIAL_LIBRARY_SCHEMA_VERSION, entityId, entityKind: raw.entityKind,
     ...(raw.lineageId ? {lineageId:raw.lineageId} : {}),
     names: names(raw.names), alternateNames: [...new Set((raw.alternateNames || []).map(text).filter(Boolean))],
+    ...(Object.hasOwn(raw,'nameVersions')?{nameVersions:territorialNameData(raw).versions}:{}),
     lifetime, parentEntityId: text(raw.parentEntityId), geometryVersions, instantiation,
     metadata: structuredClone(raw.metadata || {}), sourceInfo: structuredClone(raw.sourceInfo || {}),
   });
 }
 
+export function territorialNameData(entity, referenceDate=null) {
+  return sharedCalculationCore.timelineLibraryNames({lifetime:entity.lifetime,names:entity.names,
+    alternateNames:entity.alternateNames || [],...(Object.hasOwn(entity,'nameVersions')?{nameVersions:entity.nameVersions}:{})},referenceDate);
+}
+
 // P5-4: the historical library has a separate reference date from the map
 // timeline. Its inclusive end-of-year/month version calculations are C++ owned.
-for (const name of ['timelineVersionExistsAt', 'timelineSelectGeometryVersion']) {
+for (const name of ['timelineVersionExistsAt', 'timelineSelectGeometryVersion','timelineLibraryNames']) {
   if (typeof sharedCalculationCore[name] !== 'function') {
     throw Object.assign(new Error('Required shared C++ library calculation is missing: ' + name),
       { code: 'PL-CORE-WASM-CAPABILITY' });
@@ -160,11 +167,13 @@ export function instantiateLibraryEntity(entity, referenceDate, geometryVersionI
   const version = geometryVersionId && referenceDate===null
     ? entity.geometryVersions.find(row=>row.versionId===geometryVersionId) : selectGeometryVersion(entity, referenceDate);
   if (!version) throw new Error('선택한 시점에 사용할 경계 버전이 없습니다.');
+  const naming=territorialNameData(entity,referenceDate);
+  if(!naming.name)throw new Error('선택한 시점에 확인된 명칭이 없습니다.');
   return {
     entityId: entity.entityId, geometryVersionId: version.versionId, entityKind: entity.entityKind,
-    name: entity.names.ko || entity.names.en || Object.values(entity.names)[0], parentEntityId: entity.parentEntityId,
+    name: naming.name, parentEntityId: entity.parentEntityId,
     geometry: structuredClone(version.geometry), rendering:structuredClone(version.rendering || {}), validFrom: null, validTo: null,
-    metadata: {...structuredClone(entity.metadata), ...(version.historicalProvenance ? {historicalProvenance:structuredClone(version.historicalProvenance)} : {}), sourceInfo: structuredClone(entity.sourceInfo), sourceLifetime:structuredClone(entity.lifetime), sourceGeometryValidity:{validFrom:version.validFrom,validTo:version.validTo}, sourceReferenceDate:referenceDate, geometryCertainty: version.certainty},
+    metadata: {...structuredClone(entity.metadata),nameDetails:naming.names, ...(version.historicalProvenance ? {historicalProvenance:structuredClone(version.historicalProvenance)} : {}), sourceInfo: structuredClone(entity.sourceInfo), sourceLifetime:structuredClone(entity.lifetime), sourceGeometryValidity:{validFrom:version.validFrom,validTo:version.validTo}, sourceReferenceDate:referenceDate, geometryCertainty: version.certainty},
     instantiation: structuredClone(version.instantiation || entity.instantiation),
   };
 }

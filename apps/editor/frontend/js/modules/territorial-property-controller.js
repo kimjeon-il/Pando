@@ -2,6 +2,7 @@ import {resolveObjectAction} from './object-action-registry.js';
 import { territorialSelectionStatus } from './country-display.js';
 import { normalizeObjectRef } from "../../../../../shared/frontend/js/modules/object-selection-controller.js";
 import { normalizeTemporalInterval } from "../../../../../shared/frontend/js/modules/temporal.js";
+import {presentTerritorialNames} from '../../../../../shared/frontend/js/modules/territorial-name-presentation.js';
 
 export function formatTerritorialPeriodInput({ validFrom, validTo }) {
   return validFrom || validTo ? `${validFrom || ''} ~ ${validTo || ''}`.trim() : '';
@@ -125,6 +126,7 @@ export function createTerritorialPropertyController({
     const properties = view.feature.properties;
     const general = properties.entityKind === 'general', nested = general && !!properties.parentId;
     elements.name.value = view.displayName;
+    presentTerritorialNames(document,$('entityNameDetails'),properties.metadata.nameDetails);
     elements.notes.value = properties.notes;
     $('entityPeriodInput').value = formatTerritorialPeriodInput(properties);
     clearPeriodError();

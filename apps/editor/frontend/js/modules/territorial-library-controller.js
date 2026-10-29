@@ -1,3 +1,5 @@
+import {territorialNameData} from './territorial-library.js';
+import {presentTerritorialNames} from '../../../../../shared/frontend/js/modules/territorial-name-presentation.js';
 const RESULT_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Home', 'End']);
 
 export function createTerritorialLibraryController({
@@ -226,7 +228,7 @@ export function createTerritorialLibraryController({
       elements.preview.hidden = false;
       const title = document.createElement('h3');
       title.className = 'territorial-library-preview-title';
-      title.textContent = entity.names.ko || entity.names.en || Object.values(entity.names)[0];
+      title.textContent = territorialNameData(entity,referenceDate).name;
       const help = document.createElement('p');
       help.className = 'editor-help';
       help.textContent = flagUrl ? '이 항목의 기본 국기를 적용합니다.' : '이 항목에는 기본 국기가 없습니다.';
@@ -259,7 +261,8 @@ export function createTerritorialLibraryController({
     elements.preview.hidden = false;
     const title = document.createElement('h3');
     title.className = 'territorial-library-preview-title';
-    title.textContent = entity.names.ko || entity.names.en || Object.values(entity.names)[0];
+    const naming=territorialNameData(entity,referenceDate);
+    title.textContent = naming.name;
     const map = renderMapPreview(entity, version);
     map.dataset.geometryVersionId = version.versionId;
     const source = document.createElement('p');
@@ -276,7 +279,9 @@ export function createTerritorialLibraryController({
     const heading = document.createElement('div');
     heading.className = 'territorial-library-preview-heading';
     heading.append(title);
-    elements.preview.replaceChildren(heading, map, ...(source.textContent ? [source] : []),
+    const nameDetails=document.createElement('dl');nameDetails.className='editor-name-details';
+    presentTerritorialNames(document,nameDetails,naming.names);
+    elements.preview.replaceChildren(heading, nameDetails,map, ...(source.textContent ? [source] : []),
       ...(meta.textContent ? [meta] : []));
     if(editing)editing.decorate({entity,version,host:elements.preview});
     elements.add.disabled = false;
@@ -310,7 +315,7 @@ export function createTerritorialLibraryController({
       if (selected) button.setAttribute('aria-controls', elements.preview.id);
       button.tabIndex = selected ? 0 : -1;
       const strong = document.createElement('strong');
-      strong.textContent = entity.names.ko || entity.names.en || Object.values(entity.names)[0];
+      strong.textContent = entity.displayName ?? territorialNameData(entity).name;
       const small = document.createElement('small');
       small.textContent = [period(entity),availabilityNotice(entity.sourceAvailability)].filter(Boolean).join(' · ');
       const flagUrl = String(entity.metadata?.defaultFlagDataUrl || '').trim();
