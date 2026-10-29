@@ -24,7 +24,12 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     const response=await route.fetch(),source=await response.text();
     const marker="const nextDependencies = { source: 'country-mesh',";
     expect(source).toContain(marker);
-    await route.fulfill({response,body:source.replace(marker,"if (window.__temporalGate) await window.__temporalGate();\n"+marker)});
+    await route.fulfill({response,body:source.replace(marker,`
+      window.__temporalWaterPresented=()=>preparedBaseScene?.physicalWaterItems.length>0
+        && preparedBaseScene.physicalWaterItems.every(({packet})=>polygonOverlayPass.hasPreparedResource(packet))
+        && lastBaseSceneResult?.overlayRenderedKeys.includes('physical-water');
+      if (window.__temporalGate) await window.__temporalGate();
+    `+marker)});
   });
   await page.route('**/modules/country-index.js*',async route=>{
     const response=await route.fetch(),source=await response.text();
@@ -70,11 +75,23 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
   const date=await page.locator('#timelineDateButtonText').textContent();
   const labelPositions=()=>page.locator('#map .territorial-label-item, #map .user-label').evaluateAll(nodes=>
     nodes.map(node=>({text:node.textContent,transform:node.getAttribute('transform')})));
+  // General readiness precedes asynchronous borders and selected historical
+  // water. Compare retained frames only after those pixels have been submitted.
+  const waitForCompleteScene=async()=>{
+    if(mode!=='webgl')return;
+    await expect.poll(()=>page.evaluate(()=>{
+      const s=window.__PANDOLAB_VIEWER__.rendererStats();
+      return window.__temporalWaterPresented() && s.countrySharedBoundaryReady
+        && !s.countrySharedBoundaryReplacementPending && s.surfacePresentation.quality==='canonical'
+        && s.sceneCache.valid && !s.sceneCache.dirty;
+    }),{timeout:45000}).toBe(true);
+  };
   await page.evaluate(()=>{window.__temporalHeld=[];window.__temporalGate=()=>new Promise((resolve,reject)=>window.__temporalHeld.push({resolve,reject}));});
   await page.locator('#timelineDateButton').click();
   await page.locator('#timelineViewUnit').selectOption('month');
   await page.locator('#timelineYearInput').fill('1922');
   await page.locator('#timelineMonthInput').selectOption('12');
+  await waitForCompleteScene();
   const before=await image(),labels=await page.locator('#map').innerText(),positions=await labelPositions();
   expect(positions.length).toBeGreaterThan(0);
   await page.screenshot({path:test.info().outputPath(`before-${mode}.png`)});
@@ -108,6 +125,8 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
   expect((await image()).hash).not.toBe(before.hash);
   if(mode==='webgl'){
     await page.locator('#timelineDateButton').click();
+    await page.mouse.move(20,20);
+    await waitForCompleteScene();
     const committed=await image();
     await page.evaluate(()=>{window.__temporalGate=()=>{window.__temporalGate=null;return Promise.reject(new Error('controlled temporal preparation failure'));};});
     await page.locator('#timelineNextMonth').click();
