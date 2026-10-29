@@ -310,7 +310,7 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("features"),page},{QStringLiteral("hasMore"),hasMore},{QStringLiteral("crs"),layer->crs().authid()},
                 {QStringLiteral("totalFeatures"),QString::number(layer->featureCount())},{QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit}};
         }
-        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")||command==QStringLiteral("delete-feature")||command==QStringLiteral("add-feature")){
+        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")||command==QStringLiteral("add-field")||command==QStringLiteral("delete-field")||command==QStringLiteral("delete-feature")||command==QStringLiteral("add-feature")){
             const auto id=request.value(QStringLiteral("layer")).toString();
             auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
             if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
@@ -338,6 +338,28 @@ class Bridge final:public QObject,public QgisPlugin {
             if(command==QStringLiteral("rollback-edit")){
                 if(!layer->rollBack())throw QStringLiteral("QGIS rollback failed");
                 editSessions_.remove(id);return {{QStringLiteral("ok"),true}};
+            }
+            if(command==QStringLiteral("add-field")||command==QStringLiteral("delete-field")){
+                const auto field=request.value(QStringLiteral("field"));
+                if(!field.isString()||field.toString().trimmed().isEmpty()||field.toString().size()>128)throw QStringLiteral("A bounded field name is required");
+                const auto index=layer->fields().indexOf(field.toString());
+                if(command==QStringLiteral("delete-field")){
+                    if(index<0)throw QStringLiteral("An existing field is required");
+                    layer->beginEditCommand(QStringLiteral("Pando field deletion"));
+                    if(!layer->deleteAttribute(index)){layer->destroyEditCommand();throw QStringLiteral("QGIS field deletion failed");}
+                    layer->endEditCommand();return {{QStringLiteral("deleted"),true}};
+                }
+                if(index>=0)throw QStringLiteral("A field with this name already exists");
+                const auto type=request.value(QStringLiteral("fieldType")).toString();QVariant::Type fieldType;
+                if(type==QStringLiteral("string"))fieldType=QVariant::String;
+                else if(type==QStringLiteral("integer"))fieldType=QVariant::Int;
+                else if(type==QStringLiteral("int64"))fieldType=QVariant::LongLong;
+                else if(type==QStringLiteral("double"))fieldType=QVariant::Double;
+                else if(type==QStringLiteral("boolean"))fieldType=QVariant::Bool;
+                else throw QStringLiteral("A supported QGIS field type is required");
+                layer->beginEditCommand(QStringLiteral("Pando field addition"));
+                if(!layer->addAttribute(QgsField(field.toString(),fieldType))){layer->destroyEditCommand();throw QStringLiteral("QGIS field addition failed");}
+                layer->endEditCommand();return {{QStringLiteral("added"),true}};
             }
             if(command==QStringLiteral("add-feature")){
                 const auto json=request.value(QStringLiteral("json"));

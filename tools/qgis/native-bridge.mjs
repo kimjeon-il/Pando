@@ -13,13 +13,13 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | algorithms [--offset N --limit N --search TEXT] | buffer --layer ID --distance NUMBER [--segments N] --output NEW_OUTPUT | schema --layer ID | raster-info --layer ID | raster-sample --layer ID --x X --y Y [--band N] | set-visibility --layer ID --visible true|false | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | delete-feature --layer ID --fid FID | add-feature --layer ID --wkt WKT --json ATTRIBUTES | open INPUT | open-raster INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
 export async function runNativeBridge(args,{signal}={}){
   signal?.throwIfAborted();
-  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},search:{type:'string'},distance:{type:'string'},segments:{type:'string'},x:{type:'string'},y:{type:'string'},band:{type:'string'},fids:{type:'string'},expression:{type:'string'},fid:{type:'string'},field:{type:'string'},json:{type:'string'},wkt:{type:'string'},visible:{type:'string'},geometry:{type:'boolean'}}});
+  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},search:{type:'string'},distance:{type:'string'},segments:{type:'string'},x:{type:'string'},y:{type:'string'},band:{type:'string'},fids:{type:'string'},expression:{type:'string'},fid:{type:'string'},field:{type:'string'},'field-type':{type:'string'},json:{type:'string'},wkt:{type:'string'},visible:{type:'string'},geometry:{type:'boolean'}}});
   const [command,...rest]=positionals;
   if(command==='normalize'){
-    if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.search!==undefined||values.distance!==undefined||values.segments!==undefined||values.x!==undefined||values.y!==undefined||values.band!==undefined||values.fids!==undefined||values.expression!==undefined||values.fid!==undefined||values.field!==undefined||values.json!==undefined||values.wkt!==undefined||values.visible!==undefined||values.geometry!==undefined)throw Error(usage);
+    if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.search!==undefined||values.distance!==undefined||values.segments!==undefined||values.x!==undefined||values.y!==undefined||values.band!==undefined||values.fids!==undefined||values.expression!==undefined||values.fid!==undefined||values.field!==undefined||values['field-type']!==undefined||values.json!==undefined||values.wkt!==undefined||values.visible!==undefined||values.geometry!==undefined)throw Error(usage);
     return normalizeFile(rest[0],values.output);
   }
-  if(!['start','status','project','layers','schema','raster-info','raster-sample','set-visibility','algorithms','buffer','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature','open','open-raster','export'].includes(command))throw Error(usage);
+  if(!['start','status','project','layers','schema','raster-info','raster-sample','set-visibility','algorithms','buffer','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','add-field','delete-field','delete-feature','add-feature','open','open-raster','export'].includes(command))throw Error(usage);
   if((['start','status','project','layers','algorithms'].includes(command)&&(rest.length||values.layer||values.output))||
     (['open','open-raster'].includes(command)&&(rest.length!==1||values.layer||values.output))||
     (['schema','raster-info','raster-sample','set-visibility'].includes(command)&&(rest.length||!values.layer||values.output))||
@@ -27,13 +27,16 @@ export async function runNativeBridge(args,{signal}={}){
     (command!=='raster-sample'&&(values.x!==undefined||values.y!==undefined||values.band!==undefined))||
     (command==='set-visibility'&&!['true','false'].includes(values.visible))||
     (command!=='set-visibility'&&values.visible!==undefined)||
-    (['features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','add-feature'].includes(command)&&(rest.length||!values.layer||values.output))||
+    (['features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','add-field','delete-field','delete-feature','add-feature'].includes(command)&&(rest.length||!values.layer||values.output))||
     (command==='set-attribute'&&(!values.fid||!values.field||values.json===undefined))||
     (command==='set-geometry'&&(!values.fid||!values.wkt))||
     (command==='delete-feature'&&!values.fid)||
     (command==='add-feature'&&(!values.wkt||values.json===undefined))||
     (!['set-attribute','set-geometry','delete-feature'].includes(command)&&values.fid!==undefined)||
-    (command!=='set-attribute'&&values.field!==undefined)||
+    (['add-field','delete-field'].includes(command)&&!values.field)||
+    (command==='add-field'&&!['string','integer','int64','double','boolean'].includes(values['field-type']))||
+    (command!=='add-field'&&values['field-type']!==undefined)||
+    (!['set-attribute','add-field','delete-field'].includes(command)&&values.field!==undefined)||
     (!['set-attribute','add-feature'].includes(command)&&values.json!==undefined)||
     (!['set-geometry','add-feature'].includes(command)&&values.wkt!==undefined)||
     (command==='select'&&((values.fids===undefined)===(values.expression===undefined)))||
@@ -102,6 +105,10 @@ export async function runNativeBridge(args,{signal}={}){
   }
   if(command==='selection'||command==='clear-selection')return requestNativeQgis(config,{command,layer:values.layer},{signal});
   if(['begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit'].includes(command))return requestNativeQgis(config,{command,layer:values.layer},{signal});
+  if(command==='add-field'||command==='delete-field'){
+    if(!values.field.trim()||values.field.length>128)throw Error('A bounded field name is required');
+    return requestNativeQgis(config,{command,layer:values.layer,field:values.field,...(command==='add-field'?{fieldType:values['field-type']}:{})},{signal});
+  }
   if(command==='add-feature'){
     if(!values.wkt||values.wkt.length>500000||!values.json||values.json.length>500000)throw Error('Bounded WKT and JSON attributes are required');
     return requestNativeQgis(config,{command,layer:values.layer,wkt:values.wkt,json:values.json},{signal});
