@@ -2,6 +2,7 @@
 import {connect} from 'node:net';
 
 const commands=new Set(['status','open','export']);
+export const qgisNativeSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/qgis/pando-qgis-plugin.cpp']);
 export async function requestNativeQgis(config,request,{signal,timeoutMs=30000,maxResponseBytes=1024*1024}={}){
   signal?.throwIfAborted();
   if(!config||config.host!=='127.0.0.1'||!Number.isInteger(config.port)||config.port<1024||config.port>65535||
@@ -13,14 +14,14 @@ export async function requestNativeQgis(config,request,{signal,timeoutMs=30000,m
   const message=Buffer.from(JSON.stringify({token:config.token,...request})+'\n','utf8');
   if(message.length>1024*1024)throw Error('Native QGIS request is too large');
   return new Promise((accept,reject)=>{
-    const socket=connect({host:config.host,port:config.port});let done=false,size=0,chunks=[];
+    const socket=connect({host:config.host,port:config.port});let done=false,size=0,chunks=[],timer;
     const finish=(error,value)=>{
-      if(done)return;done=true;signal?.removeEventListener('abort',abort);socket.destroy();
+      if(done)return;done=true;signal?.removeEventListener('abort',abort);globalThis.clearTimeout(timer);socket.destroy();
       if(error)reject(error);else accept(value);
     };
     const abort=()=>finish(signal.reason instanceof Error?signal.reason:new Error('QGIS request aborted'));
     signal?.addEventListener('abort',abort,{once:true});
-    socket.setTimeout(timeoutMs,()=>finish(Error('Native QGIS request timed out')));
+    timer=globalThis.setTimeout(()=>finish(Error('Native QGIS request timed out')),timeoutMs);
     socket.on('error',error=>finish(new Error('Native QGIS connection failed: '+error.message,{cause:error})));
     socket.on('connect',()=>socket.write(message));
     socket.on('data',chunk=>{
