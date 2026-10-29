@@ -5,6 +5,8 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/gis/verify_osm_hydro_batch01_anchors.py'
+      - 'tools/gis/probe-finnish-hydro.mjs'
+      - 'tests/unit/finnish-hydro-probe.test.mjs'
       - '.github/workflows/gis-hydro-osm-batch01-research.yml'
   workflow_dispatch:
 
@@ -49,26 +51,8 @@ jobs:
       - name: Probe Finland NLS national INSPIRE river-vector read-only endpoint
         shell: bash
         run: |
-          python - <<'PY'
-          import json, urllib.request, pathlib
-          from urllib.parse import urlencode
-          root='https://avoin-paikkatieto.maanmittauslaitos.fi/inspire-hydrography/features/v1/collections/watercourse/items'
-          query=urlencode({'bbox':'24.70,64.75,24.95,64.9','limit':4,'f':'json'})
-          receipt={'provider':'National Land Survey of Finland','url':root,'status':'unavailable','downloadedRawLinesIntoRuntime':False}
-          try:
-              with urllib.request.urlopen(urllib.request.Request(root+'?'+query,headers={'Accept':'application/geo+json, application/json','User-Agent':'PandoLab-GIS-name-audit/1.0'}),timeout=18) as response:
-                  buf=response.read(1000001)
-                  if len(buf)>1000000: raise ValueError('truncated or oversized sample')
-                  obj=json.loads(buf)
-                  if 'features' not in obj or obj.get('type') not in ('FeatureCollection',None): raise ValueError('unexpected service response')
-                  receipt.update(status='sample-retrieved',featureCount=len(obj['features']),
-                                 sampleProperties=list(obj['features'][0].get('properties',{})) if obj['features'] else [])
-          except Exception as error:
-              receipt['failureClass']=type(error).__name__
-              receipt['note']='The endpoint could not be tested in this action. It is not evidence of missing national data.'
-          pathlib.Path('/tmp/batch01-finnish-api-probe.json').write_text(json.dumps(receipt,indent=2))
-          print('FINNISH_API_PROBE='+json.dumps(receipt,separators=(',',':')))
-          PY
+          node tools/gis/probe-finnish-hydro.mjs --output /tmp/batch01-finnish-api-probe.json
+          node --test tests/unit/finnish-hydro-probe.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
