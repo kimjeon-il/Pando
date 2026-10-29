@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import test from 'node:test';
 import {buildIndependentPointScreen} from '../../tools/gis/verify-independent-river-point-anchors.mjs';
+import {windowsHydroRuntime} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const ids=['20071308','20075401','20456598','20532766','20540915'];
 function fixture(){return {manifest:{version:'0.13.2'},features:ids.map(id=>({metadata:{systemId:id,role:'mainstem'},
@@ -29,6 +30,15 @@ test('independent Hydro screen refuses an existing output before reading input o
   const result=spawnSync(process.execPath,[resolve('tools/gis/verify-independent-river-point-anchors.mjs'),
     '--decoded',join(root,'missing.json'),'--output',output],{encoding:'utf8',windowsHide:true});
   assert.notEqual(result.status,0);assert.match(result.stderr,/exists/i);assert.equal(readFileSync(output,'utf8'),'preserve');
+});
+test('Windows Hydro point screen requires the matching GEOS, PROJ and projection data',t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-hydro-runtime-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  for(const path of ['etc/setup','bin','share/proj'])mkdirSync(join(root,path),{recursive:true});
+  for(const path of ['bin/geos_c.dll','bin/proj_9.dll','share/proj/proj.db'])writeFileSync(join(root,path),'fixture');
+  const database=join(root,'etc/setup/installed.db');
+  writeFileSync(database,'geos geos-3.15.0-1.tar.bz2 0\nproj9-runtime proj9-runtime-9.8.1-1.tar.bz2 0\nproj-runtime-data proj-runtime-data-9.8.1-1.tar.bz2 0\n');
+  assert.equal(windowsHydroRuntime(root).bin,join(root,'bin'));
+  writeFileSync(database,'geos geos-3.14.0-1.tar.bz2 0\n');assert.throws(()=>windowsHydroRuntime(root),/version mismatch/i);
 });
 test('independent Hydro screen rejects wrong baseline, missing systems and invalid native receipts',async()=>{
   const valid=fixture();

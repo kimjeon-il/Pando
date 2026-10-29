@@ -75,12 +75,12 @@ export async function buildIndependentPointScreen(decoded,screen){
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    const {values}=parseArgs({options:{decoded:{type:'string'},output:{type:'string'},'native-directory':{type:'string'}}});
-    if(!values.decoded||!values.output)throw Error('--decoded INPUT --output NEW_OUTPUT [--native-directory DIR] required');
+    const {values}=parseArgs({options:{decoded:{type:'string'},output:{type:'string'},'native-directory':{type:'string'},'osgeo-root':{type:'string'}}});
+    if(!values.decoded||!values.output)throw Error('--decoded INPUT --output NEW_OUTPUT [--native-directory DIR] [--osgeo-root DIR] required');
     const output=resolve(values.output);
     try{lstatSync(output);throw Error('Output already exists; preserve it');}catch(error){if(error.code!=='ENOENT')throw error;}
     const decoded=JSON.parse(readFileSync(resolve(values.decoded),'utf8'));
-    const result=await buildIndependentPointScreen(decoded,input=>screenHydroPoints(input,{directory:values['native-directory']}));
+    const result=await buildIndependentPointScreen(decoded,input=>screenHydroPoints(input,{directory:values['native-directory'],runtimeRoot:values['osgeo-root']}));
     mkdirSync(dirname(output),{recursive:true});
     writeFileSync(output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(result));
   }catch(error){console.error('independent-river-point-screen: '+error.message);process.exitCode=1;}

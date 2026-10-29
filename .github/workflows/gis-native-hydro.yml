@@ -17,13 +17,60 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, pc-allocation, reference-loss, reference-windows, qgis-windows]
+        options: [hydro, hydro-point-screen, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  hydro-point-windows:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-point-windows'
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare the matching GEOS and PROJ development SDK
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/hydro-point-sdk"
+          New-Item -ItemType Directory -Force -Path $sdk | Out-Null
+          $packages = @(
+            @{name='geos'; path='geos/geos-devel/geos-devel-3.15.0-1.tar.bz2'; sha='6D62956B904C0BC5B2825F2EADFBD1DCD2342B82F1881E79AAE6561CE1EE2021'},
+            @{name='proj'; path='proj/proj-devel/proj-devel-9.8.1-1.tar.bz2'; sha='B8A6F4DBB800F019BE4F4C45849B53818F2074213B850DFC38681CC99D0E3889'}
+          )
+          $zip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+          foreach ($package in $packages) {
+            $archive = Join-Path $sdk ($package.name + '.tar.bz2')
+            $url = 'https://download-cache.osgeo.org/osgeo4w/v2/x86_64/release/' + $package.path
+            curl.exe --proto '=https' --tlsv1.2 --fail --location --max-time 120 --max-filesize 3000000 $url --output $archive
+            if ($LASTEXITCODE -ne 0) { throw "SDK download failed: $($package.name)" }
+            if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $package.sha) { throw "SDK digest mismatch: $($package.name)" }
+            & $zip x -y $archive "-o$sdk/packed" | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "SDK decompression failed: $($package.name)" }
+            & $zip x -y "$sdk/packed/$($package.name).tar" "-o$sdk" | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "SDK extraction failed: $($package.name)" }
+          }
+      - name: Build and package the Windows point screen
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/hydro-point-screen -A x64 -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON -DPANDO_QGIS_SDK_ROOT="$env:GITHUB_WORKSPACE/build-native/hydro-point-sdk"
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro point-screen configure failed' }
+          cmake --build build-native/hydro-point-screen --config Release --target pando-hydro-point-screen --parallel 1
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro point-screen build failed' }
+          node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/Release/pando-hydro-point-screen.exe --directory build-native/hydro-point-screen/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro point-screen packaging failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-hydro-point-screen-windows-x64-${{ github.sha }}
+          path: build-native/hydro-point-screen/artifact/
+          if-no-files-found: error
+          retention-days: 7
   hydro-point-screen:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-point-screen'
     runs-on: ubuntu-24.04
