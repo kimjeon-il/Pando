@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows]
         default: hydro
 
 permissions:
@@ -72,7 +72,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
   hydro-point-screen:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-point-screen'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'hydro-point-screen' || inputs.target == 'hydro-batch01')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -92,7 +92,7 @@ jobs:
       - name: Verify small point-screen cases
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
-        run: node --test tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-independent-point-screen.test.mjs
+        run: node --test tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-independent-point-screen.test.mjs tests/unit/hydro-osm-batch01-screen.test.mjs
       - name: Package the source-bound point screen
         run: node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Read the paired data revision
@@ -108,6 +108,7 @@ jobs:
           filter: blob:none
           sparse-checkout: assets/data/hydro/v0.13.2
       - name: Compare the five selected real Hydro systems
+        if: inputs.target == 'hydro-point-screen'
         run: |
           node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-point-decoded.json
           node tools/gis/verify-independent-river-point-anchors.mjs --decoded /tmp/pando-point-decoded.json --output /tmp/pando-point-native.json
@@ -119,6 +120,32 @@ jobs:
           assert.deepEqual(newResult,oldResult);
           console.log('All five real system screens match the frozen source-verified baseline');
           JS
+      - uses: actions/setup-python@v5
+        if: inputs.target == 'hydro-batch01'
+        with:
+          python-version-file: '.python-version'
+      - name: Compare the ten selected systems with the original audit
+        if: inputs.target == 'hydro-batch01'
+        run: |
+          python -m pip install --quiet 'shapely>=2,<3' 'pyproj>=3,<4'
+          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch01-decoded.json
+          python tools/gis/verify_osm_hydro_batch01_anchors.py --decoded /tmp/pando-batch01-decoded.json --output /tmp/pando-batch01-python.json
+          node tools/gis/verify-osm-hydro-batch01-anchors.mjs --decoded /tmp/pando-batch01-decoded.json --output /tmp/pando-batch01-native.json
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const python=JSON.parse(readFileSync('/tmp/pando-batch01-python.json','utf8'));
+          const native=JSON.parse(readFileSync('/tmp/pando-batch01-native.json','utf8'));
+          assert.deepEqual(native,python);
+          console.log('All ten real system screens match the original Python result');
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.target == 'hydro-batch01'
+        with:
+          name: hydro-batch01-python-baseline-${{ github.sha }}
+          path: /tmp/pando-batch01-python.json
+          if-no-files-found: warn
+          retention-days: 7
   qgis-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'qgis-windows'
     runs-on: windows-2022
