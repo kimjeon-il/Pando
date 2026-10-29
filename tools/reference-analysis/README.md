@@ -104,6 +104,16 @@ unreadable areas in `ignore`. City symbols, original transcriptions, independent
 georeference check points and source-date evidence must also be retained with the
 corpus; the segmentation line schema does not replace their independent review.
 
+Inventory original maps and report attachments without copying or changing them:
+
+```powershell
+node tools/reference-analysis/corpus-inventory.mjs --reports EXTERNAL_REPORTS --sources EXTERNAL_SOURCES --output NEW_INVENTORY.json
+```
+
+The inventory classifies original candidates, report evidence, official
+downsamples and app-only derivatives separately. It records source hashes and
+does not overwrite an existing inventory or admit material for training.
+
 Prepare a draft directly from the verified acquired JPEG sources, without making
 another image copy:
 
