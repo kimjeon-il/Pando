@@ -1,14 +1,13 @@
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {randomBytes} from 'node:crypto';
-import {existsSync,mkdtempSync,mkdirSync,writeFileSync,readFileSync,linkSync,symlinkSync,rmSync} from 'node:fs';
+import {existsSync,mkdtempSync,mkdirSync,writeFileSync,readFileSync,linkSync,symlinkSync,rmSync,truncateSync,statSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 
 const windows=process.platform==='win32';
-const binary=resolve(process.env.PANDO_PC_ALLOCATION_BINARY||'build-native/pc-allocation/Release/pando-pc-file-allocation.exe');
+const binary=resolve(process.env.PANDO_PC_ALLOCATION_BINARY||'build-native/pc-allocation/pando-pc-file-allocation.exe');
 function setup(t){
   assert(existsSync(binary),'Build or download the native PC allocation tool first');
   const root=mkdtempSync(join(tmpdir(),'pando-native-allocation-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
@@ -34,11 +33,11 @@ test('native allocation refuses a junction in any selected path',{skip:!windows}
   symlinkSync(join(root,'real'),join(root,'linked'),'junction');
   assert.throws(()=>run(['linked/file']));assert.equal(readFileSync(join(root,'real','file'),'utf8'),'protected');
 });
-test('native allocation matches the existing Python oracle on selected real files',
-  {skip:!windows||!process.env.PANDO_PC_ALLOCATION_ORACLE_PYTHON},t=>{
-    const {root,run,manifest}=setup(t);writeFileSync(join(root,'file'),randomBytes(65536));linkSync(join(root,'file'),join(root,'link'));
-    const actual=run([{path:'file',action:'delete'},{path:'link',action:'relocate'}]);
-    const script=fileURLToPath(new URL('../../tools/pc-file-allocation.py',import.meta.url));
-    const expected=JSON.parse(execFileSync(process.env.PANDO_PC_ALLOCATION_ORACLE_PYTHON,[script,manifest],{encoding:'utf8',windowsHide:true}));
-    assert.deepEqual(actual,expected);
-  });
+test('native allocation reports sparse and compressed allocation instead of logical size',{skip:!windows},t=>{
+  const {root,run}=setup(t),sparse=join(root,'sparse'),compressed=join(root,'compressed');
+  writeFileSync(sparse,randomBytes(4096));
+  execFileSync('fsutil',['sparse','setflag',sparse],{windowsHide:true});truncateSync(sparse,16*1024**2);
+  const a=run(['sparse']);assert(a.selectedUniqueAllocation>0);assert(a.selectedUniqueAllocation<statSync(sparse).size);
+  writeFileSync(compressed,Buffer.alloc(4*1024**2,7));execFileSync('compact.exe',['/C','/I','/Q',compressed],{windowsHide:true});
+  const b=run(['compressed']);assert(b.selectedUniqueAllocation<statSync(compressed).size);assert.equal(b.reclaimableAllocation,b.selectedUniqueAllocation);
+});

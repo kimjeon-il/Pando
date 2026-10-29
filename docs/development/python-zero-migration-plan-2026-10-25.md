@@ -11,6 +11,8 @@
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
+- Windows 파일 할당량: `tools/pc-file-allocation.py`를 선택형 C++ 대상 `pando-pc-file-allocation`으로 전환했다. [Windows CI 40833720677](https://github.com/kimjeon-il/Pando/actions/runs/40833720677)의 바이너리를 고정 `build-native/pc-allocation`에 받아 소스·실행 파일 SHA-256을 검증한 뒤 기존 Node 정리 소유자가 호출한다. CI와 로컬에서 하드링크·긴 한글 경로·정션 차단을 확인하고, 로컬에서 희소·압축 파일의 실제 할당량과 Python 결과 동등성을 확인했다. 최종 실행 경로에 Python·자동 컴파일·fallback을 남기지 않았다. 잔여 추적 Python은 **50개(도구 33, 테스트 17)**이다. 이 검사는 사용자 파일 정리 실행을 뜻하지 않는다.
+
 사용자가 승인한 55개 기준이다. Git 추적 파일 수를 현재 진행률로 계산한다. 아래 목록은 최초 기준으로 보존하며 새 Python 파일을 허용하지 않는다. 기능별 대체·실제 호출자·검증·삭제 조건은 아래의 각 그룹을 따른다. 55개 각각의 호출자·대응 검사 상세 연결은 계속 작성해야 한다. 원본 26개가 없는 HGIS 실자료 비교는 미검증으로 남긴다.
 
 - 지도 원본 수집: `map_source.py`와 `acquire-sources.py`를 `plugins/pando-map-tools/lib/map-source.mjs`와 `tools/reference-analysis/acquire-sources.mjs`로 이전했다. 지도 분석 CLI와 코퍼스 CLI가 같은 수집 정본을 사용한다. 네 형식 고정 입력의 원본 바이트·크기·SHA-256을 이전 구현과 비교했고, 권리·HTTPS·제한·체크섬·취소·동시 생성 보존은 Node 검사로 확인했다. 기존 파생 이미지 Python 테스트는 유지한다.

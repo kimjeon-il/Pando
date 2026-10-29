@@ -9,6 +9,7 @@ import {execFileSync} from 'node:child_process';
 import {atomicStorageJSON,containedPath,contentHash} from './library-content.mjs';
 import {fileHash} from './library-git.mjs';
 import {previewGeneratedCleanup,applyGeneratedCleanup} from './worktree-generated.mjs';
+import {auditFileAllocation} from './pc-file-allocation.mjs';
 
 const task='c-drive-cleanup-20261026';
 const databaseNames=['goals_1.sqlite','logs_2.sqlite','memories_1.sqlite','memories_v2_1.sqlite','queue_1.sqlite','state_5.sqlite','thread_history_1.sqlite'];
@@ -198,9 +199,7 @@ export async function cleanupCDrive({mode,root,settings,library}){
     const allocationPath=join(directory,prefix+'.allocation.json');
     if(!existsSync(allocationPath)){
      if(existsSync(join(directory,prefix+'.journal.json')))throw Error('Original allocation audit missing on interrupted cleanup');
-     const python=join(home,'.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');
-     if(!existsSync(python))throw Error('Existing read-only metadata runtime missing; do not install another runtime');
-     const allocation=JSON.parse(execFileSync(python,[join(root,'tools/pc-file-allocation.py'),manifestPath],{encoding:'utf8',windowsHide:true,maxBuffer:1024**2}));
+     const allocation=auditFileAllocation(manifestPath,{root});
      atomicStorageJSON(allocationPath,{manifestSha256:proof.manifestSha256,...allocation});
     }
     const allocation=JSON.parse(readFileSync(allocationPath,'utf8'));if(allocation.manifestSha256!==proof.manifestSha256)throw Error('Allocation manifest mismatch');

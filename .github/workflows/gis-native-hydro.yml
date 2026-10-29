@@ -74,13 +74,16 @@ jobs:
       - name: Verify real Windows file identities and allocation
         env:
           PANDO_PC_ALLOCATION_BINARY: ${{ github.workspace }}/build-native/pc-allocation/Release/pando-pc-file-allocation.exe
-          PANDO_PC_ALLOCATION_ORACLE_PYTHON: python
-        run: node --test tests/unit/pc-file-allocation-native.test.mjs
+        run: node --test tests/unit/pc-file-allocation-native.test.mjs tests/unit/native-tool.test.mjs
       - name: Package source and binary identities
-        run: node tools/package-native-allocation.mjs --binary build-native/pc-allocation/Release/pando-pc-file-allocation.exe --directory build-native/pc-allocation/artifact
+        run: node tools/package-native-allocation.mjs --binary build-native/pc-allocation/Release/pando-pc-file-allocation.exe --directory build-native/pc-allocation
+      - name: Verify the downloaded-tool invocation contract in the real cleanup owner
+        run: node --test tests/unit/pc-cleanup.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: native-pc-allocation-windows-x64-${{ github.sha }}
-          path: build-native/pc-allocation/artifact/
+          path: |
+            build-native/pc-allocation/pando-pc-file-allocation.exe
+            build-native/pc-allocation/native-tool.manifest.json
           if-no-files-found: error
           retention-days: 7
