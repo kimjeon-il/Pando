@@ -1,7 +1,7 @@
 // Bounded, authenticated loopback transport for the native QGIS plugin.
 import {connect} from 'node:net';
 
-const commands=new Set(['status','project','layers','schema','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','set-text-attribute','open','export']);
+const commands=new Set(['status','project','layers','schema','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-text-attribute','open','export']);
 export const qgisNativeSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/qgis/pando-qgis-plugin.cpp',
   'tools/cpp/qgis/qgis-export.cpp','tools/cpp/qgis/qgis-export.h']);
 export function validateNativeQgisConfig(config){

@@ -32,7 +32,7 @@ async function fixture(t){
         else{assert.deepEqual(request.fids,['1','9007199254740993']);result={selected:2};}}
       else if(request.command==='selection'){assert.equal(request.layer,'layer-1');result={fids:['1','9007199254740993'],count:2};}
       else if(request.command==='clear-selection'){assert.equal(request.layer,'layer-1');result={ok:true};}
-      else if(['begin-edit','rollback-edit','commit-edit'].includes(request.command)){
+      else if(['begin-edit','rollback-edit','commit-edit','undo-edit','redo-edit'].includes(request.command)){
         assert.equal(request.layer,'layer-1');result={ok:true};}
       else if(request.command==='set-text-attribute'){
         assert.equal(request.layer,'layer-1');assert.equal(request.fid,'1');
@@ -73,6 +73,8 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const begin=await run(['--config',config,'begin-edit','--layer','layer-1']);assert.equal(begin.code,0,begin.stderr);
   const update=await run(['--config',config,'set-text-attribute','--layer','layer-1','--fid','1','--field','name','--value','edited']);
   assert.equal(update.code,0,update.stderr);assert.equal(JSON.parse(update.stdout).updated,true);
+  const undo=await run(['--config',config,'undo-edit','--layer','layer-1']);assert.equal(undo.code,0,undo.stderr);
+  const redo=await run(['--config',config,'redo-edit','--layer','layer-1']);assert.equal(redo.code,0,redo.stderr);
   const rollback=await run(['--config',config,'rollback-edit','--layer','layer-1']);assert.equal(rollback.code,0,rollback.stderr);
   const invalidUpdate=await run(['--config',config,'set-text-attribute','--layer','layer-1','--fid','x','--field','name','--value','x']);assert.notEqual(invalidUpdate.code,0);
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);
