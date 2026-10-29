@@ -5,7 +5,8 @@ import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {batch01Anchors} from './hydro-osm-batch01-anchors.mjs';
-import {lineParts,roundPython,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
+import {lineParts,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
+import {pythonRound} from './hydro-numeric.mjs';
 
 export async function buildBatch01Screen(decoded,screen){
   const manifest=decoded?.manifest;
@@ -25,13 +26,13 @@ export async function buildBatch01Screen(decoded,screen){
     validatePointScreenResult(native,lines.length,keys.length,{allowFilteredLines:true});
     const stations=keys.map((key,index)=>{
       const row=info[key],point=native.points[index];return {id:key,river:row.river,
-        publishedPointLonLat:[roundPython(row.lon,7),roundPython(row.lat,7)],distanceToMainstemKm:roundPython(point.distanceMeters/1000,3),
-        nearestHydroLonLat:point.nearestLonLat.map(value=>roundPython(value,6)),independentSource:row.source,stationDescription:row.description};
+        publishedPointLonLat:[pythonRound(row.lon,7),pythonRound(row.lat,7)],distanceToMainstemKm:pythonRound(point.distanceMeters/1000,3),
+        nearestHydroLonLat:point.nearestLonLat.map(value=>pythonRound(value,6)),independentSource:row.source,stationDescription:row.description};
     });
     const minima={};for(const name of [...new Set(stations.map(station=>station.river))].sort())
       minima[name]=Math.min(...stations.filter(station=>station.river===name).map(station=>station.distanceToMainstemKm));
     items.push({systemId:id,publishedNameKo:features[0].metadata.name,mainstemFeatureCount:features.length,
-      linePartCount:native.lineLengthsMeters.length,mainstemLengthKm:roundPython(native.lineLengthsMeters.reduce((sum,value)=>sum+value,0)/1000,3),
+      linePartCount:native.lineLengthsMeters.length,mainstemLengthKm:pythonRound(native.lineLengthsMeters.reduce((sum,value)=>sum+value,0)/1000,3),
       independentStations:stations,minDistanceKmByRiver:minima});
   }
   return {schema:'pando-hydro-osm-remaining-first10-point-check-v1',baselineHydroVersion:'v0.13.2',

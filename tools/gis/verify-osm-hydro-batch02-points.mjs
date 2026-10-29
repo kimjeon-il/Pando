@@ -5,7 +5,8 @@ import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {batch02Anchors} from './hydro-osm-batch02-anchors.mjs';
-import {lineParts,roundPython,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
+import {lineParts,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
+import {pythonRound} from './hydro-numeric.mjs';
 
 function independentSources(gauges,nga){
   const external={},named={};
@@ -54,10 +55,10 @@ export async function buildBatch02Screen(decoded,{screen,gauges,nga}={}){
     const native=await screen({crs:batch02Anchors.crs[id],mode:'parts',lines,points:anchors.map(point=>[point.lon,point.lat])});
     validatePointScreenResult(native,lines.length,anchors.length,{allowFilteredLines:true});
     const independentPoints=anchors.map((point,index)=>({id:point.id,designatedName:point.name,sourceKind:point.kind,independentSource:point.source,
-      referenceLonLat:[point.lon,point.lat],distanceToPublishedMainstemKm:roundPython(native.points[index].distanceMeters/1000,3),
-      nearestHydroLonLat:native.points[index].nearestLonLat.map(value=>roundPython(value,6))}));
+      referenceLonLat:[point.lon,point.lat],distanceToPublishedMainstemKm:pythonRound(native.points[index].distanceMeters/1000,3),
+      nearestHydroLonLat:native.points[index].nearestLonLat.map(value=>pythonRound(value,6))}));
     items.push({mainstemFeatureCount:features.length,lineSegments:native.lineLengthsMeters.length,
-      mainstemTotalLengthKm:roundPython(native.lineLengthsMeters.reduce((sum,value)=>sum+value,0)/1000,3),independentPoints,
+      mainstemTotalLengthKm:pythonRound(native.lineLengthsMeters.reduce((sum,value)=>sum+value,0)/1000,3),independentPoints,
       systemId:id,publishedNameKo:features[0].metadata.name,pointScreenHasWholeRiverAuthority:false});
   }
   return {schema:'pando-independent-osm-hydro-batch02-point-screen-v1',originalVersion:'0.13.2',originalBundleSha256:manifest.container.sha256,

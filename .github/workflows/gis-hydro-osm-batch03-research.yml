@@ -8,6 +8,7 @@ on:
       - 'tools/gis/hydro-osm-batch03-anchors.mjs'
       - 'tools/gis/probe-nga-streams.mjs'
       - 'tools/gis/hydro-point-screen-native.mjs'
+      - 'tools/gis/hydro-numeric.mjs'
       - 'tools/cpp/hydro/point-screen.cpp'
       - 'tools/cpp/CMakeLists.txt'
       - 'tools/gis/hydro-independent-name-policy.mjs'

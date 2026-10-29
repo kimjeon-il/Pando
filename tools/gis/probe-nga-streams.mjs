@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath,URLSearchParams} from 'node:url';
 import {fetchBoundedBytes,fetchBoundedJson} from './bounded-source-json.mjs';
 import {batch03Anchors} from './hydro-osm-batch03-anchors.mjs';
-import {roundPython} from './hydro-point-screen-native.mjs';
+import {pythonRound} from './hydro-numeric.mjs';
 
 const base='https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query';
 const queries=[['40391614','ufi = -187951'],['40414035','ufi = -191071'],['40415850','ufi = -708771'],
@@ -59,7 +59,7 @@ async function queryBatch03(systemId,allRivers,{fetcher,signal}){
     const locations=new Map();
     for(const record of raw.features){const a=record.attributes||{},lon=a.long_dd,lat=a.lat_dd;
       if(a.desig_cd!=='STM'||!Number.isFinite(lon)||!Number.isFinite(lat)||lon<w||lon>e||lat<s||lat>n||a.ufi===undefined||a.ufi===null)continue;
-      const id=String(a.ufi),key=JSON.stringify([id,roundPython(lon,6),roundPython(lat,6)]);
+      const id=String(a.ufi),key=JSON.stringify([id,pythonRound(lon,6),pythonRound(lat,6)]);
       if(!locations.has(key))locations.set(key,{id:'nga_'+id,ufi:a.ufi,lon,lat,names:[],role:'NGA-GNS-named-STM-point-not-line',
         source:batch03Anchors.gnsAbout,featureCountry:a.cc_ft??null});
       const label=String(a.full_name||'').trim(),names=locations.get(key).names;if(label&&!names.includes(label))names.push(label);
