@@ -4,12 +4,13 @@ import {McpServer} from '@modelcontextprotocol/server';
 import {serveStdio} from '@modelcontextprotocol/server/stdio';
 import * as z from 'zod/v4';
 import {runNativeBridge} from './native-bridge.mjs';
+import {stringifyJson} from './normalize.mjs';
 
 function createServer(){
   const server=new McpServer({name:'pando-qgis-native',version:'0.1.0'});
   const config=process.env.PANDO_QGIS_NATIVE_CONFIG;
   const options=config?['--config',config]:[];
-  const respond=async(args,signal)=>({content:[{type:'text',text:JSON.stringify(await runNativeBridge(args,{signal}))}]});
+  const respond=async(args,signal)=>({content:[{type:'text',text:stringifyJson(await runNativeBridge(args,{signal}))}]});
   const empty=z.strictObject({}),path=z.string().min(1);
   server.registerTool('qgis_native_start',{description:'Start or reuse the authenticated native QGIS instance.',inputSchema:empty},
     async(_args,extra)=>respond([...options,'start'],extra.signal));
@@ -22,6 +23,11 @@ function createServer(){
   async({offset,limit},extra)=>respond([...options,'layers','--offset',String(offset),'--limit',String(limit)],extra.signal));
   server.registerTool('qgis_native_schema',{description:'Inspect vector layer geometry, CRS and field definitions.',inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,'schema','--layer',layer],extra.signal));
+  server.registerTool('qgis_native_features',{description:'Read a bounded page of vector features and exact attribute values.',
+    inputSchema:z.strictObject({layer:path,offset:z.number().int().min(0).max(100000000).default(0),limit:z.number().int().min(1).max(100).default(10),
+      expression:z.string().min(1).max(10000).optional(),geometry:z.boolean().default(false)})},
+  async({layer,offset,limit,expression,geometry},extra)=>respond([...options,'features',`--layer=${layer}`,'--offset',String(offset),'--limit',String(limit),
+    ...(expression===undefined?[]:[`--expression=${expression}`]),...(geometry?['--geometry']:[])],extra.signal));
   server.registerTool('qgis_native_select',{description:'Replace the selection using QGIS feature IDs as decimal strings or a QGIS expression.',
     inputSchema:z.strictObject({layer:path,fids:z.array(z.string().regex(/^-?(0|[1-9]\d*)$/)).max(10000).optional(),expression:z.string().min(1).max(10000).optional()})},
   async({layer,fids,expression},extra)=>respond([...options,'select','--layer',layer,...(fids===undefined?[]:['--fids',JSON.stringify(fids)]),

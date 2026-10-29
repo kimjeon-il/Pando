@@ -15,6 +15,7 @@ node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs layers --offset 0 --limit 50
 node tools/qgis/native-bridge.mjs schema --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs features --layer QGIS_LAYER_ID --offset 0 --limit 10 --geometry
 node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --fids '["1","2"]'
 node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --expression '"name" = ''map'''
 node tools/qgis/native-bridge.mjs selection --layer QGIS_LAYER_ID
@@ -37,11 +38,14 @@ and never rewrites an existing unrelated profile. QGIS executes operations on
 its main thread; mixed-geometry GeoJSON opens without a sublayer dialog. The
 native MCP server can be started separately with `node tools/qgis/native-mcp.mjs`;
 it uses `PANDO_QGIS_NATIVE_CONFIG` when set, otherwise the default config above.
-It exposes start, status, project, layer and field inspection, selection, open, export and normalize. It is not yet an MCP
+It exposes start, status, project, layer, field and feature inspection, selection, managed editing, open, export and normalize. It is not yet an MCP
 replacement: the upstream editing and processing tools remain active until
 their used capabilities have been migrated and tested.
 Native selection accepts QGIS feature IDs as decimal strings, preserving signed
 64-bit values, or a QGIS expression validated against the layer before use.
+Feature reads return a bounded page with exact JSON attributes, optional WKT in
+the layer CRS and string QGIS FIDs. Filtered pages report `hasMore` without a
+whole-layer filtered count.
 Attribute and geometry changes require an edit session started by the native bridge. An existing
 QGIS edit session is not taken over. Changes stay in the QGIS edit buffer and
 use its Undo history until an explicit commit or rollback; either action also
