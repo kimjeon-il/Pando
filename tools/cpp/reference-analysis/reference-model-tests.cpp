@@ -1,5 +1,6 @@
 #include "reference-model.h"
 #include "boundary-loss.h"
+#include "training-augmentation.h"
 #include <torch/torch.h>
 #include <algorithm>
 #include <cmath>
@@ -17,6 +18,16 @@ int main(int argc,char** argv){
     try{
         check(argc==2||(argc==3&&std::string(argv[2])=="--inference-only"),"Synthetic original logits fixture path is required");
         torch::set_num_threads(2);pando::reference::ReferenceBoundaryModel model;model->eval();
+        {
+            const auto mean=torch::tensor({.485f,.456f,.406f}).reshape({1,3,1,1});
+            const auto deviation=torch::tensor({.229f,.224f,.225f}).reshape({1,3,1,1});
+            const auto rgb=torch::tensor({.1f,.5f,.9f}).reshape({1,3,1,1});
+            const auto input=(rgb-mean)/deviation;
+            const auto output=pando::reference::normalizedBrightness(input,torch::tensor(.5f));
+            check(torch::allclose(output,(rgb*.5-mean)/deviation,1e-6,1e-6),"Brightness must be applied before ImageNet normalization");
+            bool refused=false;try{pando::reference::normalizedBrightness(input,torch::tensor(-1.f));}catch(const std::exception&){refused=true;}
+            check(refused,"Invalid brightness factor was accepted");
+        }
         {
             auto input=torch::arange(30,torch::kFloat32).reshape({1,2,3,5}).set_requires_grad(true);
             auto reference=input.detach().clone().set_requires_grad(true);

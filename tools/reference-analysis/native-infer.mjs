@@ -12,6 +12,7 @@ export const referenceSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','too
   'tools/cpp/reference-analysis/reference-io.cpp','tools/cpp/reference-analysis/reference-io.h',
   'tools/cpp/reference-analysis/safetensors.cpp','tools/cpp/reference-analysis/safetensors.h',
   'tools/cpp/reference-analysis/training-checkpoint.cpp','tools/cpp/reference-analysis/training-checkpoint.h',
+  'tools/cpp/reference-analysis/training-augmentation.h',
   'tools/cpp/reference-analysis/boundary-loss.cpp','tools/cpp/reference-analysis/boundary-loss.h',
   'shared/core/src/losslessjson.cpp','shared/core/include/pandoeditor/losslessjson.h']);
 export const referenceProofSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-training-proof.cpp']);

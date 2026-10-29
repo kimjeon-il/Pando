@@ -48,7 +48,8 @@ export async function nativeCheckpointOnnxExport({checkpoint,proof,output,torchL
   if(statSync(resolve(checkpoint)).size>1024**3)throw Error('Training checkpoint exceeds its size limit');
   const bytes=readFileSync(resolve(checkpoint));
   if(receipt.purpose!=='real-input-resume-proof'||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.independentEvaluation!==false||
-    receipt.exactModelResume!==true||!['cpu','cuda'].includes(receipt.device)||receipt.checkpointBytes!==bytes.length||receipt.checkpointSha256!==sha256(bytes))
+    receipt.preprocessing!=='rgb-brightness-then-imagenet-normalization'||receipt.exactModelResume!==true||!['cpu','cuda'].includes(receipt.device)||
+    receipt.checkpointBytes!==bytes.length||receipt.checkpointSha256!==sha256(bytes))
     throw Error('A matching private checkpoint and resume proof are required');
   return runExport({args:['--checkpoint',receipt.device,resolve(checkpoint)],output,torchLibrary,root,directory,signal,diagnostic:false,checkpoint:true});
 }

@@ -30,7 +30,8 @@ export async function nativeTrainingProof({weights,sample,checkpoint,device='cpu
     env:{...process.env,PATH:library+delimiter+process.env.PATH,CUBLAS_WORKSPACE_CONFIG:':4096:8'}},
   (error,text,stderr)=>error?fail(new Error('Native training proof failed: '+error.message+' '+stderr,{cause:error})):ok(text)));
   signal?.throwIfAborted();const result=JSON.parse(stdout);
-  if(result.purpose!=='real-input-resume-proof'||result.trainingOnly!==true||result.releaseApproved!==false||result.exactModelResume!==true||result.tileIndex!==data.tileIndex)
+  if(result.purpose!=='real-input-resume-proof'||result.trainingOnly!==true||result.releaseApproved!==false||
+    result.preprocessing!=='rgb-brightness-then-imagenet-normalization'||result.exactModelResume!==true||result.tileIndex!==data.tileIndex)
     throw Error('Native training proof returned an invalid result');
   const bytes=readFileSync(resolve(checkpoint));
   return {...result,device,sourceId:data.sourceId,sourcePdfSha256:data.sourcePdfSha256,checkpointBytes:bytes.length,
