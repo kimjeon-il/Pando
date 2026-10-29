@@ -39,17 +39,55 @@ on:
       - 'tests/unit/gis-caspian-source-zip.test.mjs'
       - 'tools/historical-library/german-empire-1914-base.recipe.json'
       - 'tests/unit/gis-german-base-native.test.mjs'
+      - 'tests/unit/gis-german-base-builder.test.mjs'
+      - 'tools/gis/build-german-1914-base.mjs'
       - 'tools/gis/verify-german-1914-originals.mjs'
       - 'tests/unit/gis-german-1914-originals.test.mjs'
       - 'tools/fetch-german-empire-1914-source.mjs'
       - '.github/workflows/gis-historical-native.yml'
   workflow_dispatch:
+    inputs:
+      target:
+        description: Native verification scope
+        type: choice
+        options: [all, german-base]
+        default: all
 
 permissions:
   contents: read
 
 jobs:
+  german-base-migration:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'german-base'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the existing GEOS/PROJ territorial engine
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install only the temporary original-generator oracle
+        run: python -m pip install --quiet 'shapely==2.1.2' 'pyproj==3.7.2'
+      - name: Compare synthetic generation with the original and verify the common native engine
+        env:
+          PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
+          PANDO_GERMAN_ORACLE_PYTHON: python
+        run: node --test tests/unit/gis-german-base-builder.test.mjs tests/unit/gis-german-base-native.test.mjs
   native-hgis:
+    if: github.event_name != 'workflow_dispatch' || inputs.target == 'all'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     defaults:
