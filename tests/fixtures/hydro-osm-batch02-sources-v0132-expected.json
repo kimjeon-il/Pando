@@ -1,0 +1,423 @@
+{
+  "schema": "pando-independent-osm-hydro-batch02-point-screen-v1",
+  "originalVersion": "0.13.2",
+  "originalBundleSha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+  "publishedRiverNameMetadataChanged": false,
+  "publishedHydroGeometryChanged": false,
+  "osmRelationUsedAsReference": false,
+  "studyCount": 10,
+  "pointsCompared": 20,
+  "method": "Original published HydroRIVERS mainstem -> independent named points, metric local UTM nearest-geodesic approximation",
+  "caveat": "Only proximity. NGA points may be mouth-level approximate; SCA marinas are off-center facilities; ecological area centroid is NOT a gauging site. No rename authorization.",
+  "externalGaugesAvailable": true,
+  "externalGaugeCounts": {
+    "40188382": 2,
+    "20628098": 1
+  },
+  "ngaResultsAvailable": true,
+  "ngaCounts": {
+    "40364680": 1
+  },
+  "items": [
+    {
+      "mainstemFeatureCount": 7,
+      "lineSegments": 445,
+      "mainstemTotalLengthKm": 1484.7,
+      "independentPoints": [
+        {
+          "id": "tmu_amu_12348",
+          "designatedName": "Amu Darya river (satellite water level reference)",
+          "sourceKind": "German-TUM-DAHITI-water-level-site",
+          "independentSource": "https://dahiti.dgfi.tum.de/en/12348/",
+          "referenceLonLat": [
+            65.5596,
+            37.6545
+          ],
+          "distanceToPublishedMainstemKm": 258.723,
+          "nearestHydroLonLat": [
+            66.06875,
+            35.360417
+          ]
+        },
+        {
+          "id": "kerki_2025_paper",
+          "designatedName": "Amu Darya Kerki hydrometric station",
+          "sourceKind": "named-hydrometric-station-scholarly-coordinate",
+          "independentSource": "https://www.mdpi.com/2073-4441/17/5/721",
+          "referenceLonLat": [
+            65.25,
+            37.83
+          ],
+          "distanceToPublishedMainstemKm": 257.277,
+          "nearestHydroLonLat": [
+            62.460417,
+            37.16875
+          ]
+        },
+        {
+          "id": "cad_g2",
+          "designatedName": "Amu",
+          "sourceKind": "CA-discharge-scientific-2023-located-hydromet-gauge",
+          "independentSource": "https://zenodo.org/records/7743778",
+          "referenceLonLat": [
+            65,
+            38
+          ],
+          "distanceToPublishedMainstemKm": 242.07,
+          "nearestHydroLonLat": [
+            62.427083,
+            37.24375
+          ]
+        }
+      ],
+      "systemId": "20628098",
+      "publishedNameKo": "아무다리야강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 1,
+      "lineSegments": 34,
+      "mainstemTotalLengthKm": 185.82,
+      "independentPoints": [
+        {
+          "id": "sca_port_said_marina",
+          "designatedName": "Suez navigation canal Port Said marina",
+          "sourceKind": "government-navigation-facility",
+          "independentSource": "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx",
+          "referenceLonLat": [
+            32.3150132,
+            31.2561108
+          ],
+          "distanceToPublishedMainstemKm": 0.407,
+          "nearestHydroLonLat": [
+            32.31109,
+            31.257578
+          ]
+        },
+        {
+          "id": "sca_ismailia_marina",
+          "designatedName": "Suez navigation canal Ismailia marina",
+          "sourceKind": "government-navigation-facility",
+          "independentSource": "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx",
+          "referenceLonLat": [
+            32.2712444,
+            30.5849802
+          ],
+          "distanceToPublishedMainstemKm": 3.356,
+          "nearestHydroLonLat": [
+            32.30625,
+            30.584985
+          ]
+        },
+        {
+          "id": "sca_port_tawfik_marina",
+          "designatedName": "Suez navigation canal Port Tawfik marina",
+          "sourceKind": "government-navigation-facility",
+          "independentSource": "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx",
+          "referenceLonLat": [
+            32.5719166,
+            29.9475083
+          ],
+          "distanceToPublishedMainstemKm": 19.056,
+          "nearestHydroLonLat": [
+            32.647917,
+            30.10625
+          ]
+        }
+      ],
+      "systemId": "20773860",
+      "publishedNameKo": "수에즈운하강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 1,
+      "lineSegments": 29,
+      "mainstemTotalLengthKm": 191.913,
+      "independentPoints": [
+        {
+          "id": "sca_port_said_marina",
+          "designatedName": "Suez navigation canal Port Said marina",
+          "sourceKind": "government-navigation-facility",
+          "independentSource": "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx",
+          "referenceLonLat": [
+            32.3150132,
+            31.2561108
+          ],
+          "distanceToPublishedMainstemKm": 27.399,
+          "nearestHydroLonLat": [
+            32.529505,
+            31.091491
+          ]
+        },
+        {
+          "id": "sca_ismailia_marina",
+          "designatedName": "Suez navigation canal Ismailia marina",
+          "sourceKind": "government-navigation-facility",
+          "independentSource": "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx",
+          "referenceLonLat": [
+            32.2712444,
+            30.5849802
+          ],
+          "distanceToPublishedMainstemKm": 40.118,
+          "nearestHydroLonLat": [
+            32.51875,
+            30.877083
+          ]
+        },
+        {
+          "id": "sca_port_tawfik_marina",
+          "designatedName": "Suez navigation canal Port Tawfik marina",
+          "sourceKind": "government-navigation-facility",
+          "independentSource": "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx",
+          "referenceLonLat": [
+            32.5719166,
+            29.9475083
+          ],
+          "distanceToPublishedMainstemKm": 64.149,
+          "nearestHydroLonLat": [
+            33.1625,
+            30.214583
+          ]
+        }
+      ],
+      "systemId": "20774342",
+      "publishedNameKo": "수에즈운하강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 4,
+      "lineSegments": 630,
+      "mainstemTotalLengthKm": 3147.799,
+      "independentPoints": [
+        {
+          "id": "tum_ob_38692",
+          "designatedName": "Ob river satellite water level point",
+          "sourceKind": "German-TUM-DAHITI-satellite-water-level-site",
+          "independentSource": "https://dahiti.dgfi.tum.de/en/38692/",
+          "referenceLonLat": [
+            65.7292,
+            65.69
+          ],
+          "distanceToPublishedMainstemKm": 0.672,
+          "nearestHydroLonLat": [
+            65.714583,
+            65.690001
+          ]
+        },
+        {
+          "id": "hydromet_irtysh_hanty",
+          "designatedName": "Irtysh hydrometric station Khanty-Mansiysk",
+          "sourceKind": "federal-hydromet-coordinates-from-independent-secondary-reproduction",
+          "independentSource": "https://www.snt-bugorok.ru/level/uroven-vody-v-irtyshe-u-goroda-khanty-mansiisk-segodnya",
+          "referenceLonLat": [
+            68.9853,
+            60.9882
+          ],
+          "distanceToPublishedMainstemKm": 0.38,
+          "nearestHydroLonLat": [
+            68.98125,
+            60.985417
+          ]
+        },
+        {
+          "id": "ru_fish_irtysh_slushkinskaya",
+          "designatedName": "Irtysh legally defined fishing boundary (not gauge)",
+          "sourceKind": "Russian-federal-fisheries-statutory-river-coordinate",
+          "independentSource": "https://fish.gov.ru/wp-content/uploads/2025/11/zs.pdf",
+          "referenceLonLat": [
+            69.81959944444444,
+            60.21011638888889
+          ],
+          "distanceToPublishedMainstemKm": 0.058,
+          "nearestHydroLonLat": [
+            69.81875,
+            60.210417
+          ]
+        },
+        {
+          "id": "ru_fish_irtysh_sotnikovskaya",
+          "designatedName": "Irtysh legally defined fishing boundary (not gauge)",
+          "sourceKind": "Russian-federal-fisheries-statutory-river-coordinate",
+          "independentSource": "https://fish.gov.ru/wp-content/uploads/2025/11/zs.pdf",
+          "referenceLonLat": [
+            69.87701888888888,
+            60.32964777777778
+          ],
+          "distanceToPublishedMainstemKm": 0.124,
+          "nearestHydroLonLat": [
+            69.875013,
+            60.329155
+          ]
+        }
+      ],
+      "systemId": "30145067",
+      "publishedNameKo": "오비강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 13,
+      "lineSegments": 289,
+      "mainstemTotalLengthKm": 1118.16,
+      "independentPoints": [
+        {
+          "id": "cad_g1",
+          "designatedName": "R",
+          "sourceKind": "CA-discharge-scientific-2023-located-hydromet-gauge",
+          "independentSource": "https://zenodo.org/records/7743778",
+          "referenceLonLat": [
+            70,
+            45
+          ],
+          "distanceToPublishedMainstemKm": 7.677,
+          "nearestHydroLonLat": [
+            69.910417,
+            44.972917
+          ]
+        }
+      ],
+      "systemId": "40188382",
+      "publishedNameKo": "시르다리야강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 2,
+      "lineSegments": 64,
+      "mainstemTotalLengthKm": 193.588,
+      "independentPoints": [
+        {
+          "id": "nga_123",
+          "designatedName": "Chongchon",
+          "sourceKind": "US-NGA-GNS-named-stream-feature-point",
+          "independentSource": "https://geonames.nga.mil/geonames/GNSHome/",
+          "referenceLonLat": [
+            125,
+            39
+          ],
+          "distanceToPublishedMainstemKm": 74.51,
+          "nearestHydroLonLat": [
+            125.451752,
+            39.571275
+          ]
+        }
+      ],
+      "systemId": "40364680",
+      "publishedNameKo": "청천강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 2,
+      "lineSegments": 105,
+      "mainstemTotalLengthKm": 380.858,
+      "independentPoints": [
+        {
+          "id": "nga_ufi_minus187951_taedong",
+          "designatedName": "대동강",
+          "sourceKind": "US-NGA-GNS-named-stream-location-not-centerline",
+          "independentSource": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-187951&outFields=*&f=json",
+          "referenceLonLat": [
+            125.465828,
+            38.720416
+          ],
+          "distanceToPublishedMainstemKm": 8.523,
+          "nearestHydroLonLat": [
+            125.558752,
+            38.696235
+          ]
+        }
+      ],
+      "systemId": "40391614",
+      "publishedNameKo": "대동강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 1,
+      "lineSegments": 45,
+      "mainstemTotalLengthKm": 168.138,
+      "independentPoints": [
+        {
+          "id": "nga_ufi_minus191071_yesong",
+          "designatedName": "예성강",
+          "sourceKind": "US-NGA-GNS-named-stream-location-not-centerline",
+          "independentSource": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?outFields=%2A&where=ufi+%3D+-191071",
+          "referenceLonLat": [
+            126.395278,
+            37.885278
+          ],
+          "distanceToPublishedMainstemKm": 0.697,
+          "nearestHydroLonLat": [
+            126.40167,
+            37.888991
+          ]
+        }
+      ],
+      "systemId": "40414035",
+      "publishedNameKo": "례성강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 2,
+      "lineSegments": 82,
+      "mainstemTotalLengthKm": 255.4,
+      "independentPoints": [
+        {
+          "id": "nga_ufi_minus708771_imjin",
+          "designatedName": "림진강",
+          "sourceKind": "US-NGA-GNS-named-stream-location-not-centerline",
+          "independentSource": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-708771&outFields=*&f=json",
+          "referenceLonLat": [
+            126.663889,
+            37.785
+          ],
+          "distanceToPublishedMainstemKm": 4.809,
+          "nearestHydroLonLat": [
+            126.668154,
+            37.828186
+          ]
+        },
+        {
+          "id": "nibr_imjin_wetland_zone_centroid",
+          "designatedName": "Imjin River ecological study zone centroid (NOT a river station)",
+          "sourceKind": "ecological-area-centroid-not-hydrographic-observation",
+          "independentSource": "https://www.nibr.go.kr/aiibook/access/ecatalogt.jsp?Dir=1069&callmode=admin&catimage=&eclang=ko&start=12&um=s",
+          "referenceLonLat": [
+            126.769,
+            37.887
+          ],
+          "distanceToPublishedMainstemKm": 2.492,
+          "nearestHydroLonLat": [
+            126.79375,
+            37.897917
+          ]
+        }
+      ],
+      "systemId": "40415850",
+      "publishedNameKo": "림진강/임진강",
+      "pointScreenHasWholeRiverAuthority": false
+    },
+    {
+      "mainstemFeatureCount": 4,
+      "lineSegments": 61,
+      "mainstemTotalLengthKm": 178.385,
+      "independentPoints": [
+        {
+          "id": "ag_namhan_station_277",
+          "designatedName": "Namhan River water-level site (Korea Rural Community Corporation data reproduction)",
+          "sourceKind": "government-derived-station-point-secondary-reproduction",
+          "independentSource": "https://yss.purpleo.kr/article/277",
+          "referenceLonLat": [
+            127.6866667,
+            37.18305556
+          ],
+          "distanceToPublishedMainstemKm": 4.986,
+          "nearestHydroLonLat": [
+            127.697917,
+            37.227083
+          ]
+        }
+      ],
+      "systemId": "40423228",
+      "publishedNameKo": "남한강",
+      "pointScreenHasWholeRiverAuthority": false
+    }
+  ]
+}
