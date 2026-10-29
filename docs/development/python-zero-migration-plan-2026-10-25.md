@@ -39,7 +39,7 @@
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
-- **검증 대기:** QGIS 필드 추가·삭제를 브리지 소유 편집 세션과 Undo/Redo·롤백에 연결했다. Node 검사는 통과했으며 실제 QGIS 공급자의 스키마 변경과 롤백 검증이 필요하다.
+- **QGIS 필드 편집:** 필드 추가·삭제를 브리지 소유 편집 세션과 Undo/Redo·롤백에 연결했다. 관련 Node 검사와 [Windows CI 40965908553](https://github.com/kimjeon-il/Pando/actions/runs/40965908553)이 통과했고, 소스 일치 바이너리 SHA-256 `44ee95a9008c80312836fcb8596173d417f7ec9d82b0a4f83550ac7be0e379a8`로 실제 QGIS 및 MCP에서 중복 필드·세션 부재 거부, 추가·속성 설정·삭제·Undo/Redo·롤백을 확인했다. 합성 GeoPackage의 스키마와 피처·형상은 롤백 후 같았고 입력 GeoJSON 원본 해시는 유지됐다. 다만 QGIS는 GeoPackage 편집 시작과 롤백 중 파일 바이트를 바꾸므로 바이트 보존이 필요한 원본은 작업 복사본을 사용해야 한다.
 
 - **QGIS 래스터 샘플:** 레이어 좌표계의 지점·밴드 샘플링을 CLI/MCP에 연결했다. Node 검사와 [Windows CI 40965314990](https://github.com/kimjeon-il/Pando/actions/runs/40965314990)이 통과했고, 소스 일치 바이너리 SHA-256 `c007bdf29080787e9b18e0d40bd4fd04ae7887cb0d6fab21e6b8187acc5c567d`으로 실제 QGIS와 MCP에서 유효값 5, NoData·범위 밖의 null, 없는 밴드 거부와 두 시험 원본의 해시 보존을 확인했다.
 

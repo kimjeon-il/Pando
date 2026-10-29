@@ -79,6 +79,9 @@ of existing field names and values. It returns the QGIS edit-buffer FID as a
 decimal string; providers may assign a different persistent FID at commit.
 Field additions and deletions use that same undoable edit session; available
 types are string, integer, int64, double and boolean.
+QGIS may change GeoPackage file bytes when an edit session starts or rolls back,
+even when its features and schema are restored. Use a working copy when exact
+original file bytes must remain unchanged.
 Geometry edits use a valid two-dimensional EPSG:4326 WKT geometry of the
 existing feature's type. QGIS transforms it into the layer's CRS before editing.
 Attribute values are exact JSON text so integers are not rounded in transit;
