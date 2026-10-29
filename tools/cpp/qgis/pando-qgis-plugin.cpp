@@ -11,6 +11,7 @@
 #include <QHostAddress>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QPointer>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
@@ -58,7 +59,8 @@ class Bridge final:public QObject,public QgisPlugin {
             auto data=std::make_shared<QByteArray>();auto handled=std::make_shared<bool>(false);
             QObject::connect(socket,&QTcpSocket::disconnected,this,[this,socket]{--active_;socket->deleteLater();});
             QTimer::singleShot(30000,socket,[socket]{socket->abort();});
-            QObject::connect(socket,&QTcpSocket::readyRead,this,[this,socket,data,handled]{
+            const QPointer<QTcpSocket> guardedSocket(socket);
+            QObject::connect(socket,&QTcpSocket::readyRead,this,[this,socket,guardedSocket,data,handled]{
                 if(*handled)return;
                 data->append(socket->readAll());
                 if(data->size()>1024*1024){socket->abort();return;}
@@ -74,7 +76,7 @@ class Bridge final:public QObject,public QgisPlugin {
                     response={{QStringLiteral("ok"),true},{QStringLiteral("result"),execute(request)}};
                 }catch(const QString& message){response={{QStringLiteral("ok"),false},{QStringLiteral("error"),message}};}
                 catch(const std::exception& error){response={{QStringLiteral("ok"),false},{QStringLiteral("error"),QString::fromUtf8(error.what())}};}
-                socket->write(QJsonDocument(response).toJson(QJsonDocument::Compact)+'\n');socket->disconnectFromHost();
+                if(guardedSocket){guardedSocket->write(QJsonDocument(response).toJson(QJsonDocument::Compact)+'\n');guardedSocket->disconnectFromHost();}
             });
         }
     }
