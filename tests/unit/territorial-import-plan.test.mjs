@@ -2,13 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 
-import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import {
   assignImportedCountries,
   buildTerritorialImportTransactionPlan,
 } from "../../apps/editor/frontend/js/modules/territorial-import-plan.js";
 
-const clipper = globalThis.polygonClipping;
 
 test('shared GIS country resolver rejects ambiguity but preserves repeated IDs and Unicode', () => {
   const indexes=sharedCalculationCore.resolveGisCountryNames(
@@ -46,21 +44,48 @@ test('shared GIS import area decisions retain overlap and remainder thresholds',
   assert.equal(decide('absorbed', 0.000002, 1, 0), false);
 });
 
+test('shared GIS geometry planner reports the donor and the unchanged owner area', () => {
+  const shape=(x0,x1)=>[[[[x0,0],[x1,0],[x1,2],[x0,2],[x0,0]]]];
+  const result=sharedCalculationCore.planGisTerritoryGeometry(
+    ['A','B'], [true,true], [shape(0,2),shape(2,4)], [shape(1,3)], [{index:0,features:[0]}],
+  );
+  assert.equal(result.status,'valid');
+  assert.equal(result.groups.length,1);
+  assert.deepEqual(result.groups[0].donors.map(row=>row.index),[1]);
+  assert.equal(result.groups[0].donors[0].absorbed,false);
+  assert.equal(result.groups[0].existingArea,result.groups[0].donors[0].area);
+  assert.equal(result.groups[0].newArea,0);
+});
+
+test('shared GIS geometry planner rejects non-finite coordinates', () => {
+  for (const coordinate of [NaN, Infinity, -Infinity]) {
+    const shape = [[[[0, 0], [coordinate, 0], [1, 1], [0, 0]]]];
+    assert.throws(() => sharedCalculationCore.planGisTerritoryGeometry(
+      ['A'], [true], [shape], [shape], [{ index: 0, features: [0] }],
+    ), /Invalid polygon coordinate/);
+  }
+});
+
+test('shared GIS geometry planner preserves absorbed donors and missing-owner errors', () => {
+  const shape = (x0, x1) => [[[[x0, 0], [x1, 0], [x1, 2], [x0, 2], [x0, 0]]]];
+  const result = sharedCalculationCore.planGisTerritoryGeometry(
+    ['한국', '이웃'], [true, true], [shape(0, 2), shape(2, 3)], [shape(1, 3)], [{ index: 0, features: [0] }],
+  );
+  assert.deepEqual(result.absorbed, [1]);
+  assert.equal(result.groups[0].donors[0].absorbed, true);
+  const missing = sharedCalculationCore.planGisTerritoryGeometry(
+    ['한국'], [false], [[]], [shape(1, 3)], [{ index: 0, features: [0] }],
+  );
+  assert.equal(missing.status, 'missing-owner');
+  assert.equal(missing.missing, 0);
+});
+
 function rectangle(id, name, minX, minY, maxX, maxY, properties = {}) {
   return {
     type: 'Feature', id,
     properties: { name, ...properties },
     geometry: { type: 'MultiPolygon', coordinates: [[[[minX, minY], [maxX, minY], [maxX, maxY], [minX, maxY], [minX, minY]]]] },
   };
-}
-
-function planarArea(geometry) {
-  return (geometry?.coordinates || []).reduce((sum, polygon) => {
-    const ring = polygon[0] || [];
-    let twice = 0;
-    for (let index = 0; index < ring.length - 1; index += 1) twice += ring[index][0] * ring[index + 1][1] - ring[index + 1][0] * ring[index][1];
-    return sum + Math.abs(twice) / 2;
-  }, 0);
 }
 
 test('a multipart administrative import transfers every donor intersection to the explicit owner', () => {
@@ -75,15 +100,16 @@ test('a multipart administrative import transfers every donor intersection to th
 
   const plan = buildTerritorialImportTransactionPlan({
     features: [eastPrussia], countries, targetCountryId: 'DEU',
-    clipper, areaKm2: planarArea,
   });
 
   assert.equal(plan.featureCount, 1);
   assert.equal(plan.groups.length, 1);
   assert.deepEqual(plan.groups[0].donorIds.sort(), ['LTU', 'POL', 'RUS']);
   assert.equal(plan.groups[0].importedGeometry.coordinates.length, 2);
-  assert.equal(plan.groups[0].existingOwnerAreaKm2, 2);
-  assert.equal(plan.groups[0].newAreaKm2, 1);
+  assert.equal(plan.groups[0].existingOwnerAreaKm2, 24712.37300428505);
+  assert.equal(plan.groups[0].newAreaKm2, 12359.9520368632);
+  assert.equal(plan.totalAreaKm2, 210058.93607114357);
+  assert.equal(plan.transferAreaKm2, 172986.61102999537);
 });
 
 test('a non-empty unresolved per-feature country value never falls back to the common country', () => {
@@ -98,7 +124,7 @@ test('a non-empty unresolved per-feature country value never falls back to the c
   assert.equal(assignments[0].unresolvedValue, 'missing-historical-id');
   assert.throws(() => buildTerritorialImportTransactionPlan({
     features: [feature], countries, targetCountryId: 'DEU', useFeatureCountryField: true,
-    countryField: 'sovereign_id', clipper, areaKm2: planarArea,
+    countryField: 'sovereign_id',
   }), /현재 지도에서 찾을 수 없습니다/);
 });
 
@@ -133,6 +159,6 @@ test('overlapping imported objects are rejected before any country geometry chan
   const right = rectangle('B', 'B', 2, 2, 4, 4);
 
   assert.throws(() => buildTerritorialImportTransactionPlan({
-    features: [left, right], countries, targetCountryId: 'DEU', clipper, areaKm2: planarArea,
+    features: [left, right], countries, targetCountryId: 'DEU',
   }), /가져올 객체끼리 겹칩니다/);
 });

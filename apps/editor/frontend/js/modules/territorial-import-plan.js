@@ -45,23 +45,6 @@ function importedName(feature, index) {
   return text(properties.name || properties.pandolab_name || properties.NAME_KO || properties.NAME_0 || properties.NAME || feature?.id, `객체 ${index + 1}`);
 }
 
-function intersectionGeometry(clipper, left, right) {
-  const coordinates = clipper.intersection(polygonCoordinates(left), polygonCoordinates(right));
-  return geometryFromCoordinates(coordinates);
-}
-
-function unionGeometries(clipper, geometries) {
-  const coordinates = geometries.map(polygonCoordinates).filter(item => item.length);
-  if (!coordinates.length) return null;
-  return geometryFromCoordinates(coordinates.length === 1 ? coordinates[0] : clipper.union(...coordinates));
-}
-
-function differenceGeometry(clipper, left, right) {
-  if (!left) return null;
-  if (!right) return clone(left);
-  return geometryFromCoordinates(clipper.difference(polygonCoordinates(left), polygonCoordinates(right)));
-}
-
 function prepareImportedCountries(features, {
   countries = [], targetCountryId = '', useFeatureCountryField = false, countryField = '',
 } = {}) {
@@ -85,8 +68,7 @@ function prepareImportedCountries(features, {
       unresolvedValue: decision.unresolvedField ? text(fieldValue) : '',
     };
   });
-  return { assignments, groups: plan.groups.map(group => ({ countryId: ids[group.index],
-    items: group.features.map(index => assignments[index]) })) };
+  return { assignments, groups: plan.groups, countryIds: ids };
 }
 
 export function assignImportedCountries(features, options = {}) {
@@ -95,12 +77,14 @@ export function assignImportedCountries(features, options = {}) {
 
 export function buildTerritorialImportTransactionPlan({
   features = [], countries = [], targetCountryId = '', useFeatureCountryField = false,
-  countryField = '', clipper, areaKm2 = () => 0,
+  countryField = '',
 } = {}) {
-  if (!clipper?.intersection || !clipper?.union || !clipper?.difference) throw new Error('영토 계산 엔진을 사용할 수 없습니다.');
+  if (typeof sharedCalculationCore.planGisTerritoryGeometry !== 'function') {
+    throw Object.assign(new Error('Canonical C++ GIS territory planner is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
   const polygonFeatures = features.filter(feature => polygonCoordinates(feature?.geometry).length);
   if (!polygonFeatures.length) throw new Error('가져올 Polygon 또는 MultiPolygon 객체가 없습니다.');
-  const { assignments, groups: grouped } = prepareImportedCountries(polygonFeatures, { countries, targetCountryId, useFeatureCountryField, countryField });
+  const { assignments, groups: grouped, countryIds } = prepareImportedCountries(polygonFeatures, { countries, targetCountryId, useFeatureCountryField, countryField });
   const unresolved = assignments.filter(item => !item.countryId);
   if (unresolved.length) {
     const values = [...new Set(unresolved.map(item => item.unresolvedValue).filter(Boolean))];
@@ -109,72 +93,28 @@ export function buildTerritorialImportTransactionPlan({
       : `소속 국가를 정하지 못한 객체가 ${unresolved.length}개 있습니다.`);
   }
 
-  for (let leftIndex = 0; leftIndex < assignments.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < assignments.length; rightIndex += 1) {
-      const left = assignments[leftIndex];
-      const right = assignments[rightIndex];
-      const overlap = intersectionGeometry(clipper, left.feature.geometry, right.feature.geometry);
-      const leftArea = areaKm2(left.feature.geometry), rightArea = areaKm2(right.feature.geometry);
-      if (overlap && sharedCalculationCore.gisTerritorialAreaDecision('input-overlap', areaKm2(overlap), leftArea, rightArea)) {
-        throw new Error(`가져올 객체끼리 겹칩니다: ${left.name} · ${right.name}`);
-      }
-    }
-  }
-
-  const countryIndex = new Map(countries.map(feature => [countryId(feature), feature]));
-  const groups = [];
-  for (const { countryId: ownerId, items } of grouped) {
-    const target = countryIndex.get(ownerId);
-    if (!target?.geometry) throw new Error(`소속 국가 ${ownerId}을(를) 현재 지도에서 찾을 수 없습니다.`);
-    const importedGeometry = unionGeometries(clipper, items.map(item => item.feature.geometry));
-    const importedAreaKm2 = areaKm2(importedGeometry);
-    const coveredParts = [];
-    const donors = [];
-    let existingOwnerAreaKm2 = 0;
-    for (const country of countries) {
-      if (!country?.geometry) continue;
-      const overlapGeometry = intersectionGeometry(clipper, importedGeometry, country.geometry);
-      if (!overlapGeometry) continue;
-      const overlapAreaKm2 = areaKm2(overlapGeometry);
-      if (!sharedCalculationCore.gisTerritorialAreaDecision('country-overlap', overlapAreaKm2, importedAreaKm2, 0)) continue;
-      coveredParts.push(overlapGeometry);
-      const id = countryId(country);
-      if (id === ownerId) {
-        existingOwnerAreaKm2 += overlapAreaKm2;
-        continue;
-      }
-      const remainder = differenceGeometry(clipper, country.geometry, importedGeometry);
-      donors.push({
-        countryId: id,
-        areaKm2: overlapAreaKm2,
-        fullyAbsorbed: !remainder || sharedCalculationCore.gisTerritorialAreaDecision('absorbed', areaKm2(remainder), overlapAreaKm2, 0),
-      });
-    }
-    const covered = unionGeometries(clipper, coveredParts);
-    const unclaimedGeometry = differenceGeometry(clipper, importedGeometry, covered);
-    const newAreaKm2 = unclaimedGeometry ? areaKm2(unclaimedGeometry) : 0;
-    groups.push({
-      targetCountryId: ownerId,
-      importedGeometry,
-      importedAreaKm2,
-      featureIndexes: items.map(item => item.index),
-      donorIds: donors.map(item => item.countryId),
-      donors,
-      existingOwnerAreaKm2,
-      newAreaKm2,
-      absorbedCountryIds: donors.filter(item => item.fullyAbsorbed).map(item => item.countryId),
-    });
-  }
+  const plan = sharedCalculationCore.planGisTerritoryGeometry(countryIds, countries.map(country => !!country?.geometry),
+    countries.map(country => polygonCoordinates(country?.geometry)), polygonFeatures.map(feature => polygonCoordinates(feature.geometry)), grouped);
+  if (plan.status === 'overlap') throw new Error(`가져올 객체끼리 겹칩니다: ${assignments[plan.left].name} · ${assignments[plan.right].name}`);
+  if (plan.status === 'missing-owner') throw new Error(`소속 국가 ${countryIds[plan.missing]}을(를) 현재 지도에서 찾을 수 없습니다.`);
+  if (plan.status !== 'valid') throw new Error('Unknown C++ GIS territory plan result.');
+  const groups = plan.groups.map(group => {
+    const donors = group.donors.map(donor => ({ countryId: countryIds[donor.index], areaKm2: donor.area, fullyAbsorbed: donor.absorbed }));
+    return { targetCountryId: countryIds[group.index], importedGeometry: geometryFromCoordinates(group.geometry),
+      importedAreaKm2: group.importedArea, featureIndexes: group.features, donorIds: donors.map(donor => donor.countryId),
+      donors, existingOwnerAreaKm2: group.existingArea, newAreaKm2: group.newArea,
+      absorbedCountryIds: donors.filter(donor => donor.fullyAbsorbed).map(donor => donor.countryId) };
+  });
 
   return {
     assignments: assignments.map(({ feature: _feature, ...item }) => item),
     groups,
     featureCount: assignments.length,
-    totalAreaKm2: groups.reduce((sum, group) => sum + group.importedAreaKm2, 0),
-    transferAreaKm2: groups.reduce((sum, group) => sum + group.donors.reduce((donorSum, donor) => donorSum + donor.areaKm2, 0), 0),
-    existingOwnerAreaKm2: groups.reduce((sum, group) => sum + group.existingOwnerAreaKm2, 0),
-    newAreaKm2: groups.reduce((sum, group) => sum + group.newAreaKm2, 0),
-    absorbedCountryIds: [...new Set(groups.flatMap(group => group.absorbedCountryIds))],
+    totalAreaKm2: plan.totalArea,
+    transferAreaKm2: plan.transferArea,
+    existingOwnerAreaKm2: plan.existingArea,
+    newAreaKm2: plan.newArea,
+    absorbedCountryIds: plan.absorbed.map(index => countryIds[index]),
     unresolvedCountryValueCount: assignments.filter(item => item.unresolvedValue).length,
   };
 }
