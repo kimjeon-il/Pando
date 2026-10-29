@@ -6,6 +6,32 @@ import {join} from 'node:path';
 import test from 'node:test';
 import {loadOrtRuntime} from '../../plugins/pando-map-tools/lib/engine.mjs';
 
+function protobufFields(bytes){
+  let index=0;
+  const readVarint=()=>{
+    let value=0n,shift=0n;
+    for(let count=0;count<10;count++){
+      assert(index<bytes.length,'Truncated protobuf varint');
+      const byte=bytes[index++];value|=BigInt(byte&127)<<shift;
+      if(!(byte&128))return value;
+      shift+=7n;
+    }
+    throw Error('Oversized protobuf varint');
+  };
+  const fields=[];
+  while(index<bytes.length){
+    const tag=Number(readVarint()),field=tag>>>3,wire=tag&7;
+    assert(field>0,'Invalid protobuf field');
+    if(wire===0)fields.push([field,readVarint()]);
+    else if(wire===2){
+      const length=Number(readVarint()),end=index+length;
+      assert(Number.isSafeInteger(length)&&end<=bytes.length,'Truncated protobuf field');
+      fields.push([field,bytes.subarray(index,end)]);index=end;
+    }else throw Error(`Unexpected protobuf wire type ${wire}`);
+  }
+  return fields;
+}
+
 test('native ONNX graph reproduces every C++ model output and refuses overwrite',async()=>{
   const binary=process.env.PANDO_REFERENCE_ONNX_TEST_BINARY;
   assert(binary,'PANDO_REFERENCE_ONNX_TEST_BINARY must identify the native test executable');
@@ -16,6 +42,13 @@ test('native ONNX graph reproduces every C++ model output and refuses overwrite'
     const invoke=()=>spawnSync(binary,[directory],{encoding:'utf8',timeout:120000});
     const result=invoke();assert.equal(result.error,undefined);assert.equal(result.status,0,result.stderr);
     const bytes=readFileSync(join(directory,'model.onnx'));
+    const modelFields=protobufFields(bytes);
+    assert.equal(modelFields.find(([field])=>field===1)?.[1],8n);
+    const opsets=modelFields.filter(([field])=>field===8);
+    assert.equal(opsets.length,1);
+    const opset=protobufFields(opsets[0][1]);
+    assert.equal(opset.find(([field])=>field===2)?.[1],17n);
+    assert(!opset.some(([field,value])=>field===1&&value.length),'Unexpected ONNX operator domain');
     const floatFile=name=>{
       const data=readFileSync(join(directory,name+'.f32'));
       assert.equal(data.length%4,0);
