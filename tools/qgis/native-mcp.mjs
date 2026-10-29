@@ -22,6 +22,13 @@ function createServer(){
   async({offset,limit},extra)=>respond([...options,'layers','--offset',String(offset),'--limit',String(limit)],extra.signal));
   server.registerTool('qgis_native_schema',{description:'Inspect vector layer geometry, CRS and field definitions.',inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,'schema','--layer',layer],extra.signal));
+  server.registerTool('qgis_native_select',{description:'Replace the selection using QGIS feature IDs as decimal strings.',
+    inputSchema:z.strictObject({layer:path,fids:z.array(z.string().regex(/^-?(0|[1-9]\d*)$/)).max(10000)})},
+  async({layer,fids},extra)=>respond([...options,'select','--layer',layer,'--fids',JSON.stringify(fids)],extra.signal));
+  server.registerTool('qgis_native_selection',{description:'Read selected QGIS feature IDs as decimal strings.',inputSchema:z.strictObject({layer:path})},
+    async({layer},extra)=>respond([...options,'selection','--layer',layer],extra.signal));
+  server.registerTool('qgis_native_clear_selection',{description:'Clear the selection of a vector layer.',inputSchema:z.strictObject({layer:path})},
+    async({layer},extra)=>respond([...options,'clear-selection','--layer',layer],extra.signal));
   server.registerTool('qgis_native_open',{description:'Open an existing vector file in native QGIS.',inputSchema:z.strictObject({input:path})},
     async({input},extra)=>respond([...options,'open',input],extra.signal));
   server.registerTool('qgis_native_export',{description:'Export a layer as normalized EPSG:4326 GeoJSON without overwriting an existing file.',
