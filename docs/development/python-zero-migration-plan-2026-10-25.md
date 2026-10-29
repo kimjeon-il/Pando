@@ -11,6 +11,8 @@
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
+- 학습 손실 함수 전환 체크포인트: 현재 Python 모델의 BCE·Dice·연결성 손실과 관측되지 않은 채널의 gradient 고정 사례를 C++ LibTorch 대상으로 옮기는 중이다. CI 빌드와 수치 비교 전이며 Python 학습·평가 실행 경로와 원본 모델은 유지한다.
+
 - 독일 1914 생성기: 기존 GEOS/PROJ 엔진에 WGS84 타원체 면적과 헬골란트 패치 검증을 추가하고 Node 자료·출력 관리자를 연결했다. [CI 40838951664](https://github.com/kimjeon-il/Pando/actions/runs/40838951664)에서 26개 합성 주와 실제 Natural Earth 헬골란트 원본을 각각 사용해 Python/C++ 출력 형상·면적·검증값을 대조했다. 이 두 기준을 고정 fixture로 남기고 Python 생성기와 oracle 실행을 제거했다. 사용자 예외에 따라 Harvard HGIS 원본 26개 기반 실자료 재현과 역사 형상은 **미검증**으로 유지한다. 현재 추적 Python은 **49개(도구 32, 테스트 17)**다.
 
 - Windows 파일 할당량: `tools/pc-file-allocation.py`를 선택형 C++ 대상 `pando-pc-file-allocation`으로 전환했다. [Windows CI 40833720677](https://github.com/kimjeon-il/Pando/actions/runs/40833720677)의 바이너리를 고정 `build-native/pc-allocation`에 받아 소스·실행 파일 SHA-256을 검증한 뒤 기존 Node 정리 소유자가 호출한다. CI와 로컬에서 하드링크·긴 한글 경로·정션 차단을 확인하고, 로컬에서 희소·압축 파일의 실제 할당량과 Python 결과 동등성을 확인했다. 최종 실행 경로에 Python·자동 컴파일·fallback을 남기지 않았다. 잔여 추적 Python은 **50개(도구 33, 테스트 17)**이다. 이 검사는 사용자 파일 정리 실행을 뜻하지 않는다.
