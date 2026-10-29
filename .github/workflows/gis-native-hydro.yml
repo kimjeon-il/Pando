@@ -17,13 +17,66 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, pc-allocation, reference-loss, reference-windows]
+        options: [hydro, pc-allocation, reference-loss, reference-windows, qgis-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  qgis-windows:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'qgis-windows'
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space and prepare the matching OSGeo4W development headers
+        shell: pwsh
+        run: |
+          if ((Get-PSDrive -Name C).Free -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          New-Item -ItemType Directory -Force -Path $sdk | Out-Null
+          $packages = @(
+            @{name='qgis'; path='qgis/qgis-ltr/qgis-ltr-devel/qgis-ltr-devel-3.44.15-1.tar.bz2'; sha='D55BA2C310AAEEE31C075AE049CF4ADDD51701988534616F4ECB475FC3097897'},
+            @{name='qt'; path='qt5/qt5-devel/qt5-devel-5.15.13-2.tar.bz2'; sha='D3F70B83B9BBEB7F6EDE7054D7DC3607F2C5DBE02DC316C79C33BD6ED3B6389C'},
+            @{name='gdal'; path='gdal/gdal-devel/gdal-devel-3.13.3-3.tar.bz2'; sha='2475B7AB14A8437B925D1E96908AD5E22B8296ADF01E00B9ECA3EF0816B736C2'},
+            @{name='geos'; path='geos/geos-devel/geos-devel-3.15.0-1.tar.bz2'; sha='6D62956B904C0BC5B2825F2EADFBD1DCD2342B82F1881E79AAE6561CE1EE2021'},
+            @{name='proj'; path='proj/proj-devel/proj-devel-9.8.1-1.tar.bz2'; sha='B8A6F4DBB800F019BE4F4C45849B53818F2074213B850DFC38681CC99D0E3889'}
+          )
+          foreach ($package in $packages) {
+            $archive = Join-Path $sdk ($package.name + '.tar.bz2')
+            $url = 'https://download-cache.osgeo.org/osgeo4w/v2/x86_64/release/' + $package.path
+            curl.exe --proto '=https' --tlsv1.2 --fail --location --max-time 180 --max-filesize 30000000 $url --output $archive
+            if ($LASTEXITCODE -ne 0) { throw "SDK download failed: $($package.name)" }
+            if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $package.sha) { throw "SDK digest mismatch: $($package.name)" }
+            tar.exe -xjf $archive -C $sdk
+            if ($LASTEXITCODE -ne 0) { throw "SDK extraction failed: $($package.name)" }
+          }
+      - name: Build the optional native QGIS bridge
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/qgis/native -A x64 -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_QGIS_BRIDGE=ON -DPANDO_QGIS_SDK_ROOT="$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          if ($LASTEXITCODE -ne 0) { throw 'QGIS CMake configure failed' }
+          cmake --build build-native/qgis/native --config Release --target pando-qgis-bridge --parallel 1
+          if ($LASTEXITCODE -ne 0) { throw 'QGIS native bridge build failed' }
+      - name: Test authenticated client transport
+        run: node --test tests/unit/qgis-native-client.test.mjs
+      - name: Package the source-bound bridge
+        shell: pwsh
+        run: |
+          node tools/qgis/package-native-plugin.mjs --binary build-native/qgis/native/Release/pando_qgis_bridge.dll --directory build-native/qgis/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'QGIS bridge packaging failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-qgis-bridge-windows-x64-${{ github.sha }}
+          path: build-native/qgis/artifact/
+          if-no-files-found: error
+          retention-days: 7
   reference-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-windows'
     runs-on: windows-2022
