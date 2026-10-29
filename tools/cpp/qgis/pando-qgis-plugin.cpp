@@ -9,6 +9,8 @@
 #include <qgsfeature.h>
 #include <qgsfeatureiterator.h>
 #include <qgsfeaturerequest.h>
+#include <qgsgeometry.h>
+#include <qgswkbtypes.h>
 #include <qgsexpression.h>
 #include <qgsexpressioncontext.h>
 #include <qgsexpressioncontextutils.h>
@@ -110,7 +112,7 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("geometry_type"),static_cast<int>(layer->geometryType())},
                 {QStringLiteral("crs"),layer->crs().authid()},{QStringLiteral("fields"),fields}};
         }
-        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-text-attribute")){
+        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-text-attribute")||command==QStringLiteral("set-geometry")){
             const auto id=request.value(QStringLiteral("layer")).toString();
             auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
             if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
@@ -139,15 +141,31 @@ class Bridge final:public QObject,public QgisPlugin {
                 if(!layer->rollBack())throw QStringLiteral("QGIS rollback failed");
                 editSessions_.remove(id);return {{QStringLiteral("ok"),true}};
             }
-            const auto fidValue=request.value(QStringLiteral("fid")),nameValue=request.value(QStringLiteral("field")),textValue=request.value(QStringLiteral("value"));
+            const auto fidValue=request.value(QStringLiteral("fid"));
             static const QRegularExpression integer(QStringLiteral("^-?(0|[1-9][0-9]*)$"));
             const auto text=fidValue.toString();bool valid=false;const auto fid=text.toLongLong(&valid);
-            if(!fidValue.isString()||!integer.match(text).hasMatch()||!valid||!nameValue.isString()||nameValue.toString().isEmpty()||!textValue.isString()||textValue.toString().size()>65536)
-                throw QStringLiteral("A signed feature ID, field and bounded text value are required");
-            const auto index=layer->fields().indexOf(nameValue.toString());
-            if(index<0||layer->fields().at(index).type()!=QVariant::String)throw QStringLiteral("An existing text field is required");
+            if(!fidValue.isString()||!integer.match(text).hasMatch()||!valid)throw QStringLiteral("A signed QGIS feature ID is required");
             QgsFeature feature;auto iterator=layer->getFeatures(QgsFeatureRequest().setFilterFid(fid));
             if(!iterator.nextFeature(feature))throw QStringLiteral("QGIS feature ID not found");
+            if(command==QStringLiteral("set-geometry")){
+                const auto wkt=request.value(QStringLiteral("wkt"));
+                if(!wkt.isString()||wkt.toString().isEmpty()||wkt.toString().size()>500000||layer->crs().authid()!=QStringLiteral("EPSG:4326"))
+                    throw QStringLiteral("Bounded WKT and an EPSG:4326 layer are required");
+                auto geometry=QgsGeometry::fromWkt(wkt.toString());
+                if(geometry.isNull()||geometry.isEmpty()||!geometry.isGeosValid()||QgsWkbTypes::hasZ(geometry.wkbType())||QgsWkbTypes::hasM(geometry.wkbType())||
+                    feature.geometry().isNull()||geometry.type()!=feature.geometry().type())throw QStringLiteral("A valid two-dimensional geometry of the existing feature type is required");
+                const auto bounds=geometry.boundingBox();
+                if(!std::isfinite(bounds.xMinimum())||!std::isfinite(bounds.xMaximum())||!std::isfinite(bounds.yMinimum())||!std::isfinite(bounds.yMaximum())||
+                    bounds.xMinimum()<-180||bounds.xMaximum()>180||bounds.yMinimum()<-90||bounds.yMaximum()>90)throw QStringLiteral("Geometry coordinates must be geographic longitude and latitude");
+                layer->beginEditCommand(QStringLiteral("Pando geometry edit"));
+                if(!layer->changeGeometry(fid,geometry,true)){layer->destroyEditCommand();throw QStringLiteral("QGIS geometry change failed");}
+                layer->endEditCommand();layer->updateExtents();layer->triggerRepaint();return {{QStringLiteral("updated"),true}};
+            }
+            const auto nameValue=request.value(QStringLiteral("field")),textValue=request.value(QStringLiteral("value"));
+            if(!nameValue.isString()||nameValue.toString().isEmpty()||!textValue.isString()||textValue.toString().size()>65536)
+                throw QStringLiteral("A field and bounded text value are required");
+            const auto index=layer->fields().indexOf(nameValue.toString());
+            if(index<0||layer->fields().at(index).type()!=QVariant::String)throw QStringLiteral("An existing text field is required");
             layer->beginEditCommand(QStringLiteral("Pando text attribute"));
             if(!layer->changeAttributeValue(fid,index,textValue.toString(),feature.attribute(index),true)){
                 layer->destroyEditCommand();throw QStringLiteral("QGIS attribute change failed");

@@ -37,6 +37,9 @@ async function fixture(t){
       else if(request.command==='set-text-attribute'){
         assert.equal(request.layer,'layer-1');assert.equal(request.fid,'1');
         assert.equal(request.field,'name');assert.equal(request.value,'edited');result={updated:true};}
+      else if(request.command==='set-geometry'){
+        assert.equal(request.layer,'layer-1');assert.equal(request.fid,'1');
+        assert.equal(request.wkt,'POINT (127 37)');result={updated:true};}
       else if(request.command==='open'){assert.equal(request.path,input);result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};}
       else if(request.command==='export'){
         assert.equal(request.layer,'layer-1');writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',
@@ -77,6 +80,8 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const redo=await run(['--config',config,'redo-edit','--layer','layer-1']);assert.equal(redo.code,0,redo.stderr);
   const rollback=await run(['--config',config,'rollback-edit','--layer','layer-1']);assert.equal(rollback.code,0,rollback.stderr);
   const invalidUpdate=await run(['--config',config,'set-text-attribute','--layer','layer-1','--fid','x','--field','name','--value','x']);assert.notEqual(invalidUpdate.code,0);
+  const geometry=await run(['--config',config,'set-geometry','--layer','layer-1','--fid','1','--wkt','POINT (127 37)']);
+  assert.equal(geometry.code,0,geometry.stderr);assert.equal(JSON.parse(geometry.stdout).updated,true);
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);
   assert.equal(JSON.parse(opened.stdout).id,'layer-1');
   const output=join(root,'output.geojson');const exported=await run(['--config',config,'export','--layer','layer-1','--output',output]);
