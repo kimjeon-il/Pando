@@ -26,6 +26,16 @@ test('shared adjacency keeps the original collinearity precision and raw date-li
   }
 });
 
+test('shared adjacency handles long separated and shared boundaries', () => {
+  const boundary = y => Array.from({ length: 10001 }, (_, index) => [index / 100, y]);
+  const shape = y => [[boundary(y)]];
+  const adjacent = globalThis.PandoLabSphericalCore.territorialGeometriesAdjacent;
+  assert.equal(adjacent(shape(0), shape(10)), false);
+  assert.equal(adjacent(shape(0), shape(0)), true);
+  const zigzag = Array.from({ length: 2001 }, (_, index) => [index / 100, index % 2 ? 10 : 0]);
+  assert.equal(adjacent([[zigzag]], shape(5)), false);
+});
+
 test('display preparation reuses unchanged groups and discards removed boundaries', async () => {
   const service = createMapDisplayPreparation();
   const country = createTerritorialFeature({ id: 'RUS', entityKind: 'general', geometry: square });
