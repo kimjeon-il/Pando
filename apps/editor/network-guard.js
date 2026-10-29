@@ -4,7 +4,7 @@ export function guardWorkerSource(source,{allowBundledData=false}={}){
   const directive=/^((?:\s|\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)*(['"])use strict\2\s*;)/;
   return directive.test(source)?source.replace(directive,match=>match+'\n'+guard):guard+source;
 }
-export function installNetworkGuard(scope = globalThis, { allowBundledData = false } = {}) {
+export function installNetworkGuard(scope = globalThis, { allowBundledData = false, physicalAssets = [] } = {}) {
   if (scope.__PANDOLAB_SHELL_NETWORK__) return scope.__PANDOLAB_SHELL_NETWORK__;
   const state = { requests: [], blocked: [], workers: [] };
   scope.__PANDOLAB_SHELL_NETWORK__ = state;
@@ -28,7 +28,9 @@ export function installNetworkGuard(scope = globalThis, { allowBundledData = fal
       || (url.protocol === 'ipc:' && url.hostname === 'localhost'));
     const dataPath = decodeURIComponent(url.pathname);
     const bundledData = dataPath.startsWith('/assets/data/');
-    const physicalLand = /^\/assets\/data\/physical-land\/v1\/(?:geometry\.json\.gz|manifest\.json)$/.test(dataPath);
+    const physicalLand = /^\/assets\/data\/physical-land\/v1\/(?:geometry\.json\.gz|manifest\.json)$/.test(dataPath)
+      || physicalAssets.some(path => typeof path === 'string' && path.startsWith('assets/data/physical-land/v1/')
+        && !path.split('/').some(part => part === '.' || part === '..') && dataPath === '/' + path);
     if ((!ipc && url.origin !== origin) || (bundledData && !allowBundledData && !physicalLand)) {
       record('blocked', row);
       throw new Error(`Prototype resource request blocked: ${url.href}`);
