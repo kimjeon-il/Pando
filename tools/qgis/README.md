@@ -14,6 +14,7 @@ node tools/qgis/native-bridge.mjs start
 node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs layers --offset 0 --limit 50
+node tools/qgis/native-bridge.mjs algorithms --search buffer --offset 0 --limit 50
 node tools/qgis/native-bridge.mjs schema --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs set-visibility --layer QGIS_LAYER_ID --visible false
 node tools/qgis/native-bridge.mjs features --layer QGIS_LAYER_ID --offset 0 --limit 10 --geometry
@@ -51,6 +52,8 @@ the layer CRS and string QGIS FIDs. Filtered pages report `hasMore` without a
 whole-layer filtered count.
 Visibility reports both the layer's checked state and effective visibility;
 a hidden parent group can keep a checked layer hidden.
+Algorithm discovery lists providers currently registered in QGIS. It does not
+execute algorithms or install missing providers.
 Attribute and geometry changes require an edit session started by the native bridge. An existing
 QGIS edit session is not taken over. Changes stay in the QGIS edit buffer and
 use its Undo history until an explicit commit or rollback; either action also

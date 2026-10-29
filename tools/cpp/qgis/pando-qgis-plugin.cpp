@@ -5,6 +5,9 @@
 #include <qgis.h>
 #include <qgisinterface.h>
 #include <qgisplugin.h>
+#include <qgsapplication.h>
+#include <qgsprocessingalgorithm.h>
+#include <qgsprocessingregistry.h>
 #include <qgscoordinatereferencesystem.h>
 #include <qgscoordinatetransform.h>
 #include <qgsfield.h>
@@ -164,6 +167,23 @@ class Bridge final:public QObject,public QgisPlugin {
         const auto command=request.value(QStringLiteral("command")).toString();
         if(command==QStringLiteral("status"))return {{QStringLiteral("qgis_version"),Qgis::version()},
             {QStringLiteral("pid"),static_cast<double>(QCoreApplication::applicationPid())},{QStringLiteral("transport"),QStringLiteral("pando-native-v1")}};
+        if(command==QStringLiteral("algorithms")){
+            const auto searchValue=request.value(QStringLiteral("search"));QString search;
+            if(!searchValue.isUndefined()){
+                if(!searchValue.isString()||searchValue.toString().trimmed().isEmpty()||searchValue.toString().size()>256)throw QStringLiteral("A bounded nonempty algorithm search is required");
+                search=searchValue.toString();
+            }
+            const int offset=pageValue(request,QStringLiteral("offset"),0,0,100000000),limit=pageValue(request,QStringLiteral("limit"),50,1,100);
+            auto* registry=QgsApplication::processingRegistry();if(!registry)throw QStringLiteral("QGIS processing registry is unavailable");
+            auto algorithms=registry->algorithms();std::sort(algorithms.begin(),algorithms.end(),[](const auto* a,const auto* b){return a->id()<b->id();});
+            QJsonArray page;int matched=0;bool hasMore=false;
+            for(const auto* algorithm:algorithms){
+                if(!search.isEmpty()&&!algorithm->id().contains(search,Qt::CaseInsensitive)&&!algorithm->displayName().contains(search,Qt::CaseInsensitive))continue;
+                if(matched++<offset)continue;if(page.size()==limit){hasMore=true;break;}
+                page.append(QJsonObject{{QStringLiteral("id"),algorithm->id()},{QStringLiteral("name"),algorithm->displayName()},{QStringLiteral("group"),algorithm->group()}});
+            }
+            return {{QStringLiteral("algorithms"),page},{QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit},{QStringLiteral("hasMore"),hasMore}};
+        }
         if(command==QStringLiteral("project")||command==QStringLiteral("layers")){
             auto* project=QgsProject::instance();const auto layers=project->mapLayers();QJsonArray page;
             const int offset=command==QStringLiteral("layers")?pageValue(request,QStringLiteral("offset"),0,0,100000000):0;
