@@ -39,7 +39,7 @@ struct DeterministicBilinear:torch::autograd::Function<DeterministicBilinear> {
 torch::Tensor deterministicResize(const torch::Tensor& input,int64_t height,int64_t width){
     return DeterministicBilinear::apply(input,height,width);
 }
-ConvNormImpl::ConvNormImpl(int64_t input,int64_t output,int64_t kernel,int64_t stride,int64_t groups,int activation){
+ConvNormImpl::ConvNormImpl(int64_t input,int64_t output,int64_t kernel,int64_t stride,int64_t groups,int activation):activation(activation){
     push_back(torch::nn::Conv2d(torch::nn::Conv2dOptions(input,output,kernel).stride(stride).padding((kernel-1)/2).groups(groups).bias(false)));
     push_back(torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(output).eps(.001).momentum(.01)));
     if(activation==1)push_back(torch::nn::ReLU(torch::nn::ReLUOptions().inplace(true)));

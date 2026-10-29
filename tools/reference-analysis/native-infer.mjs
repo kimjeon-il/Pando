@@ -8,12 +8,14 @@ import {verifyNativeTool} from '../native-tool.mjs';
 
 export const referenceSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/reference-analysis/reference-infer.cpp',
   'tools/cpp/reference-analysis/reference-model.cpp','tools/cpp/reference-analysis/reference-model.h',
+  'tools/cpp/reference-analysis/reference-onnx.cpp','tools/cpp/reference-analysis/reference-onnx.h',
   'tools/cpp/reference-analysis/reference-io.cpp','tools/cpp/reference-analysis/reference-io.h',
   'tools/cpp/reference-analysis/safetensors.cpp','tools/cpp/reference-analysis/safetensors.h',
   'tools/cpp/reference-analysis/training-checkpoint.cpp','tools/cpp/reference-analysis/training-checkpoint.h',
   'tools/cpp/reference-analysis/boundary-loss.cpp','tools/cpp/reference-analysis/boundary-loss.h',
   'shared/core/src/losslessjson.cpp','shared/core/include/pandoeditor/losslessjson.h']);
 export const referenceProofSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-training-proof.cpp']);
+export const referenceOnnxTestSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-onnx-tests.cpp']);
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export function matchingTorchLibrary(torchLibrary,manifest){
   if(manifest.runtimeVersion!=='2.14.1')throw Error('Unexpected native LibTorch ABI version');
