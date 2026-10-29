@@ -54,6 +54,7 @@ async function fixture(t){
       else if(request.command==='open'){assert.equal(request.path,input);result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};}
       else if(request.command==='open-raster'){assert.equal(request.path,input);result={id:'raster-1',width:3,height:2,bands:1,crs:'EPSG:4326'};}
       else if(request.command==='raster-info'){assert.equal(request.layer,'raster-1');result={id:'raster-1',width:3,height:2,bands:1,crs:'EPSG:4326'};}
+      else if(request.command==='raster-sample'){assert.equal(request.layer,'raster-1');assert.equal(request.x,10.5);assert.equal(request.y,19.5);assert.equal(request.band,1);result={valid:true,value:5,band:1};}
       else if(request.command==='export'){
         assert.equal(request.layer,'layer-1');writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',
           geometry:{type:'Point',coordinates:[127,37]},properties:{source:'{"schemaVersion":1,"sourceId":"map"}'}}]}),{flag:'wx'});
@@ -120,6 +121,9 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   assert.equal(JSON.parse(raster.stdout).id,'raster-1');
   const rasterInfo=await run(['--config',config,'raster-info','--layer','raster-1']);assert.equal(rasterInfo.code,0,rasterInfo.stderr);
   assert.equal(JSON.parse(rasterInfo.stdout).bands,1);
+  const sampled=await run(['--config',config,'raster-sample','--layer','raster-1','--x','10.5','--y','19.5','--band','1']);
+  assert.equal(sampled.code,0,sampled.stderr);assert.equal(JSON.parse(sampled.stdout).value,5);
+  const invalidSample=await run(['--config',config,'raster-sample','--layer','raster-1','--x','NaN','--y','19.5']);assert.notEqual(invalidSample.code,0);
   const output=join(root,'output.geojson');const exported=await run(['--config',config,'export','--layer','layer-1','--output',output]);
   assert.equal(exported.code,0,exported.stderr);assert.equal(JSON.parse(exported.stdout).output,output);
   const bytes=readFileSync(output);assert.equal(JSON.parse(bytes).features[0].properties.source.sourceId,'map');
