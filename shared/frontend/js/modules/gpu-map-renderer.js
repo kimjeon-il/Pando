@@ -30,6 +30,14 @@ import { shouldShowSharedCountryBorders } from './country-shared-boundary-packet
 import { geometryRevisionKey } from './geometry-versions.js';
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
 
+export function physicalSceneMatchesContext(scene,context) {
+  if(!context.ready)return false;
+  const land=(scene?.polygons||[]).filter(packet=>packet.role==='physical-land');
+  const water=(scene?.polygons||[]).filter(packet=>packet.role==='physical-water');
+  return land.length===1&&land[0].geometryRevision===context.landRevision
+    && (context.waterRevision==null?water.length===0:water.length===1&&water[0].geometryRevision===context.waterRevision);
+}
+
 export function hydroEditResourceDependencies(features,baseFid,displayColor) {
   const rows=features.filter(feature=>feature.geometry).map(feature=>{
     const ref=geometryReferenceFor(feature.geometry);
@@ -191,6 +199,7 @@ export function createGpuMapRenderer(deps) {
     hydroDisplayColor,
     hydroFeatureById,
     hydroVisibilityThreshold,
+    getPhysicalContextState,
     isCountryVisibleById,
     countryBoundaryStyleById,
     isHydroFeatureVisible,
@@ -258,15 +267,16 @@ export function createGpuMapRenderer(deps) {
         failTemporalPresentation(Object.assign(new Error('Temporal presentation superseded'), {name:'AbortError',cancelled:true}));
         return false;
       }
-      if (canonicalPromotionError || terrain.terrainFailed) {
-        failTemporalPresentation(new Error(canonicalPromotionError || '다음 시점 지형을 준비하지 못했습니다.'));
+      const physicalContext=getPhysicalContextState();
+      if (canonicalPromotionError || terrain.terrainFailed || physicalContext.error) {
+        failTemporalPresentation(physicalContext.error || new Error(canonicalPromotionError || '다음 시점 지형을 준비하지 못했습니다.'));
         return false;
       }
       const terrainNeeded = state.physicalSettings.terrainVisible && (isWebGlRenderer() ? !!terrainPreparation : true);
       const boundariesReady = !state.layerVisibility.objects || (countrySharedBoundary?.sourceQuality === surfacePresentation.quality
         && countrySharedBoundary.sourceProjectGeneration === projectGeneration);
       return !!resourcesDrawn && canonicalMeshReady && boundariesReady && surfacePresentation.quality !== 'pending'
-        && (!terrainNeeded || terrain.terrainReady);
+        && physicalSceneMatchesContext(renderScene,physicalContext) && (!terrainNeeded || terrain.terrainReady);
     }
 
     function waitForTemporalPresentation() {
@@ -474,7 +484,7 @@ export function createGpuMapRenderer(deps) {
 
     function recordMapPresentation(frame, resourcesDrawn = true) {
       const terrain = currentTerrainReadiness();
-      resourcesDrawn = resourcesDrawn && (renderScene?.polygons || []).some(packet => packet.role === 'physical-land');
+      resourcesDrawn = resourcesDrawn && physicalSceneMatchesContext(renderScene,getPhysicalContextState());
       if (temporalPending() && !temporalFrameReady(resourcesDrawn, terrain)) { presentedMapKey='';publishMapReadiness();return; }
       const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady;
       presentedMapKey = resourcesDrawn && terrainDrawn ? mapTargetKey(frame, terrain) : '';

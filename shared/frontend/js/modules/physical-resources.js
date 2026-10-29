@@ -37,6 +37,11 @@ export function resolvePhysicalWaterObjects(catalog,date) {
     geometryExists:ref=>assets.has(JSON.stringify(ref)),
   },date).entities.map(row=>({...row,identity:identities.get(timelineObjectKey(row.objectRef)),assets:assets.get(JSON.stringify(row.geometryRef))}));
 }
+// Runtime and prepared-mesh generation must concatenate the same selected
+// waters in the canonical selection order, including islands and holes.
+export function composePhysicalWaterGeometry(waters) {
+  return waters.length===1?waters[0]:waters.length?{type:'MultiPolygon',coordinates:waters.flatMap(value=>value.type==='Polygon'?[value.coordinates]:value.coordinates)}:null;
+}
 // Derived mask presentation belongs to the existing physical resource owner.
 // Project water identity/periods remain owned by the common C++ document.
 export function createPhysicalWaterPresentation() {
@@ -73,54 +78,80 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   const waterContexts=new Map();
   let requestedWaterKey=null;
   let physicalSelection=null;
+  function physicalSelectionFor(date) {
+    const catalog=buildMeta.physicalWaterObjects;
+    const rows=resolvePhysicalWaterObjects(catalog,date)
+      .sort((a,b)=>timelineObjectKey(a.objectRef).localeCompare(timelineObjectKey(b.objectRef)));
+    if(rows.some(row=>row.assets.land.sha256!==rows[0].assets.land.sha256))throw new Error('Selected water objects require one coherent physical land derivative.');
+    return {catalog,date,rows,key:JSON.stringify(rows.map(row=>[row.objectRef,row.geometryRef]))};
+  }
   function selectedPhysicalWater() {
     const catalog=buildMeta.physicalWaterObjects,date=dependencies.projectState.state.timelineCursor;
     if(!physicalSelection||physicalSelection.catalog!==catalog||physicalSelection.date!==date){
-      const rows=resolvePhysicalWaterObjects(catalog,date)
-        .sort((a,b)=>timelineObjectKey(a.objectRef).localeCompare(timelineObjectKey(b.objectRef)));
-      physicalSelection={catalog,date,rows,key:JSON.stringify(rows.map(row=>[row.objectRef,row.geometryRef]))};
+      physicalSelection=physicalSelectionFor(date);
     }
     return physicalSelection;
+  }
+  function ensurePhysicalContext({rows:selected,key}) {
+    if(waterContexts.has(key))return waterContexts.get(key);
+    const landAsset=selected[0].assets.land;
+    const entry={status:'loading',value:null,promise:null,activation:null,presentation:null,presentationKey:null};
+    waterContexts.set(key,entry);
+    const loader=storedPhysicalAssets(),decode=buffer=>JSON.parse(new TextDecoder().decode(buffer));
+    entry.promise=Promise.all([
+      landAsset.sha256===buildMeta.physicalLand.sha256?loadPhysicalLandMask({notify:false}).then(value=>({value:value.geometry})):loader.loadAsset(landAsset,'background',key+'-land','육지 배경',decode),
+      ...selected.map(row=>loader.loadAsset(row.assets.asset,'background',JSON.stringify(row.geometryRef)+'-water','수역 형상',decode)),
+    ]).then(([land,...waters])=>{
+      if(land.value.type!=='MultiPolygon'||waters.some(water=>!['Polygon','MultiPolygon'].includes(water.value.type)))throw new Error('Invalid physical-water geometry.');
+      entry.value=Object.freeze({geometry:land.value,revision:landAsset.sha256,
+        waters:selected.map((row,index)=>({row,water:waters[index].value,waterRevision:row.assets.asset.sha256}))});
+      entry.status='ready';return entry.value;
+    }).catch(error=>{entry.status='error';entry.error=error;throw error;});
+    return entry;
+  }
+  async function preparePhysicalContext(month,{isCurrent=()=>true}={}) {
+    const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Physical preparation superseded'),{name:'AbortError',cancelled:true});};
+    assertCurrent();
+    const selection=physicalSelectionFor(month),entry=waterContexts.get(selection.key);
+    if(entry?.status==='error')waterContexts.delete(selection.key);
+    const result=selection.rows.length?await ensurePhysicalContext(selection).promise:await loadPhysicalLandMask({notify:false});
+    assertCurrent();return result;
+  }
+  function activatePhysicalContext(entry,key) {
+    const cache=dependencies.projectState.state.hydroFeatureCache;
+    if(entry.activation&&entry.activation.cache===cache)return;
+    const activation={cache};entry.activation=activation;
+    activation.promise=entry.promise.then(async()=>{
+      for(const value of entry.value.waters){
+        if(requestedWaterKey!==key||selectedPhysicalWater().key!==key||dependencies.projectState.state.hydroFeatureCache!==cache)break;
+        await admitSelectedWater(value.row,value);
+      }
+      dependencies.domains.renderingDomain.invalidateProject('physical-water-ready');
+    }).catch(error=>{
+      dependencies.feedback.reportOperationError(error,'수역 형상을 준비하지 못했습니다. 시점을 바꿨다가 돌아오면 다시 불러옵니다.','PL-PHYSICAL-HISTORY-001',4200);
+    });
   }
   const presentPhysicalWater=createPhysicalWaterPresentation();
   function currentPhysicalContext() {
     const {rows:selected,key}=selectedPhysicalWater();
     if(!selected.length){requestedWaterKey=null;return physicalLand;}
-    const landAsset=selected[0].assets.land;
-    if(selected.some(row=>row.assets.land.sha256!==landAsset.sha256))throw new Error('Selected water objects require one coherent physical land derivative.');
     if(key!==requestedWaterKey){
       requestedWaterKey=key;
       if(waterContexts.get(key)?.status==='error')waterContexts.delete(key);
+      if(waterContexts.has(key))waterContexts.get(key).activation=null;
       // An old version cannot remain selectable while its successor loads.
       for(const row of selected)dependencies.projectState.state.hydroFeatureCache?.delete(row.objectRef.id);
     }
-    if(!waterContexts.has(key)) {
-      const entry={status:'loading',value:null,promise:null,presentation:null,presentationKey:null};waterContexts.set(key,entry);
-      const loader=storedPhysicalAssets();
-      const decode=buffer=>JSON.parse(new TextDecoder().decode(buffer));
-      entry.promise=Promise.all([
-        landAsset.sha256===buildMeta.physicalLand.sha256?loadPhysicalLandMask().then(value=>({value:value.geometry})):loader.loadAsset(landAsset,'background',key+'-land','육지 배경',decode),
-        ...selected.map(row=>loader.loadAsset(row.assets.asset,'background',JSON.stringify(row.geometryRef)+'-water','수역 형상',decode)),
-      ]).then(async ([land,...waters])=>{
-        if(land.value.type!=='MultiPolygon'||waters.some(water=>!['Polygon','MultiPolygon'].includes(water.value.type)))throw new Error('Invalid physical-water geometry.');
-        entry.value=Object.freeze({geometry:land.value,revision:landAsset.sha256,
-          waters:selected.map((row,index)=>({row,water:waters[index].value,waterRevision:row.assets.asset.sha256}))});
-        for(const value of entry.value.waters){
-          if(requestedWaterKey!==key||selectedPhysicalWater().key!==key)break;
-          await admitSelectedWater(value.row,value);
-        }
-        entry.status='ready';
-        dependencies.domains.renderingDomain.invalidateProject('physical-water-ready');
-      }).catch(error=>{entry.status='error';dependencies.feedback.reportOperationError(error,'수역 형상을 준비하지 못했습니다. 시점을 바꿨다가 돌아오면 다시 불러옵니다.','PL-PHYSICAL-HISTORY-001',4200);});
-    }
-    const entry=waterContexts.get(key),state=dependencies.projectState.state;
+    const entry=ensurePhysicalContext({rows:selected,key}),state=dependencies.projectState.state;
+    activatePhysicalContext(entry,key);
+    // Core catalog admission can be queued behind the current project
+    // replacement. Immutable mask readiness cannot wait for that queue.
     if(entry.status!=='ready')return physicalLand;
-    if(capabilities.builtinHydro && state.hydroFeatureCache)for(const value of entry.value.waters)if(!state.hydroFeatureCache.has(value.row.objectRef.id)) {
-      entry.promise=admitSelectedWater(value.row,value).catch(error=>dependencies.feedback.reportOperationError(error,'수역 객체를 등록하지 못했습니다.','PL-PHYSICAL-HISTORY-001',4200));
-    }
     const presentations=entry.value.waters.map(value=>{
       const id=value.row.objectRef.id,replacement=(state.hydroEdits||[]).find(feature=>feature.properties.sourceFeatureId===id);
-      const feature=state.hydroFeatureCache?.get(id),visible=!feature||dependencies.physicalServices.isHydroFeatureVisible(feature);
+      const feature=state.hydroFeatureCache?.get(id);
+      const descriptor=feature||{id,properties:{pandolab_id:id,category:value.row.identity.entityKind,layer_id:value.row.identity.layerId}};
+      const visible=capabilities.builtinHydro||feature?dependencies.physicalServices.isHydroFeatureVisible(descriptor):true;
       return {...value,replacement,visible};
     });
     const presentationKey=JSON.stringify(presentations.map(value=>[value.row.objectRef,value.row.geometryRef,
@@ -133,7 +164,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       geometry=result.geometry;revision=result.revision;
       if(result.water)visibleWater.push(result.water);
     }
-    const water=visibleWater.length===1?visibleWater[0]:visibleWater.length?{type:'MultiPolygon',coordinates:visibleWater.flatMap(value=>value.type==='Polygon'?[value.coordinates]:value.coordinates)}:null;
+    const water=composePhysicalWaterGeometry(visibleWater);
     entry.presentationKey=presentationKey;
     entry.presentation=Object.freeze({geometry,revision,water,waterRevision:JSON.stringify([key,presentationKey])});
     return entry.presentation;
@@ -155,7 +186,8 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     const state=dependencies.projectState.state,revision=state.hydroFeatureCatalogRevision||0,date=state.timelineCursor;
     if(!date)return false;
     const {rows:selected,key:selectionKey}=selectedPhysicalWater();
-    const readyKey=waterContexts.get(selectionKey)?.status==='ready'?selectionKey:null;
+    const entry=waterContexts.get(selectionKey);
+    const readyKey=entry?.status==='ready'?selectionKey:null;
     if(!builtinTimelineView || builtinTimelineView.revision!==revision || builtinTimelineView.date!==date || builtinTimelineView.readyKey!==readyKey) {
       const catalog=buildMeta.physicalWaterObjects;
       const identities=[...catalog.identities],records=structuredClone(catalog.timelineRecords);
@@ -181,7 +213,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     }
     return builtinTimelineView.active.has(timelineObjectKey({domain:'hydroBuiltin',id:String(feature.properties?.pandolab_id||feature.id)}));
   }
-  function loadPhysicalLandMask() {
+  function loadPhysicalLandMask({notify=true}={}) {
     if (physicalLand) return Promise.resolve(physicalLand);
     if (!landLoading) landLoading = (async () => {
       const meta = buildMeta;
@@ -193,7 +225,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
         return geometry;
       });
       physicalLand = Object.freeze({ geometry: result.value, revision: meta.physicalLand.sha256 });
-      dependencies.domains.renderingDomain.invalidateProject('physical-land-ready');
+      if(notify)dependencies.domains.renderingDomain.invalidateProject('physical-land-ready');
       return physicalLand;
     })().catch(error => { landLoading = null; throw error; });
     return landLoading;
@@ -417,7 +449,14 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     connect,
     initializeTerrainService,
     loadPhysicalLandMask,
+    preparePhysicalContext,
     get physicalLand() { return currentPhysicalContext(); },
+    get physicalContextState() {
+      const context=currentPhysicalContext(),selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);
+      const ready=selection.rows.length?entry?.status==='ready':!!physicalLand;
+      return {ready,error:entry?.error||null,
+        landRevision:ready?context.revision:null,waterRevision:ready&&context.water?context.waterRevision:null};
+    },
     get hydroEditColor() { return hydroEditColor; },
     get hydroFeatureInView() { return hydroFeatureInView; },
     get hydroRenderGroups() { return hydroRenderGroups; },
