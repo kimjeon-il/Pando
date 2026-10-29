@@ -50,13 +50,42 @@ on:
       target:
         description: Native verification scope
         type: choice
-        options: [all, german-base]
+        options: [all, german-base, german-windows]
         default: all
 
 permissions:
   contents: read
 
 jobs:
+  german-base-windows:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'german-windows'
+    runs-on: windows-2022
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check space for the isolated CI compiler and GIS SDK
+        shell: pwsh
+        run: |
+          $drive = Get-PSDrive -Name C
+          if ($drive.Free -lt 9GB) { throw 'The CI runner needs 4 GiB estimated build space plus 5 GiB headroom' }
+          Write-Output "Windows CI free bytes: $($drive.Free)"
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the existing GEOS/PROJ territorial engine on Windows
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Run the frozen synthetic generator and engine contracts
+        env:
+          PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe.exe
+        run: node --test tests/unit/gis-german-base-builder.test.mjs tests/unit/gis-german-base-native.test.mjs
   german-base-migration:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'german-base'
     runs-on: ubuntu-24.04
