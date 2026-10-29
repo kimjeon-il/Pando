@@ -449,49 +449,16 @@ def prepare_review_corpus(sources):
     return manifest
 
 
-def inventory(reports, sources):
-    entries = []
-    for root in [pathlib.Path(reports), pathlib.Path(sources)]:
-        if not root.exists():
-            continue
-        for path in sorted(root.rglob("*")):
-            if not path.is_file() or path.suffix.lower() not in {".jpg", ".jpeg", ".png", ".tif", ".jp2", ".pdf", ".md"}:
-                continue
-            if path.suffix.lower() == ".md":
-                text = path.read_text(encoding="utf-8", errors="replace")
-                urls = sorted(set(re.findall(r"https?://[^\s<>\])]+", text)))
-                urls = [url for url in urls if re.search(r"wms|kartenforum|fotothek|\.pdf|\.jpg|\.tif|iiif|map|atlas", url, re.I)]
-                if urls:
-                    entries.append(dict(path=str(path), kind="source-references", urls=urls, annotationStatus="unreviewed"))
-            else:
-                original = root == pathlib.Path(sources) or 'sources' in path.relative_to(root).parts[:-1]
-                kind = "original-candidate" if original else "report-evidence-candidate"
-                source_metadata, derivative_metadata = path.with_suffix('.source.json'), path.with_suffix('.json')
-                if source_metadata.is_file() and json.loads(source_metadata.read_text(encoding='utf-8')).get('materialKind') == 'official-downsample':
-                    kind = 'source-downsample-candidate'
-                if derivative_metadata.is_file() and json.loads(derivative_metadata.read_text(encoding='utf-8')).get('purpose') == 'app-runtime-input-only':
-                    kind = 'analysis-derivative'
-                entries.append(dict(path=str(path), kind=kind,
-                                    sha256=hashlib.sha256(path.read_bytes()).hexdigest(), annotationStatus="unlabelled"))
-    return dict(schemaVersion=1, entries=entries, trainingReady=False)
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--corpus")
-    parser.add_argument("--reports")
-    parser.add_argument("--sources")
-    parser.add_argument("--output")
     parser.add_argument("--prepare-review", type=pathlib.Path, metavar="SOURCE_DIRECTORY")
     args = parser.parse_args()
     if args.prepare_review:
         args.prepare_review = pathlib.Path(report_argument(args.prepare_review, access='write'))
     args.corpus = report_argument(args.corpus, access='read', siblings=True)
-    args.reports = report_argument(args.reports, access='read')
-    args.sources = report_argument(args.sources, access='read')
-    args.output = report_argument(args.output, access='write')
     if args.prepare_review:
-        if any([args.corpus, args.reports, args.sources, args.output]):
+        if args.corpus:
             parser.error("--prepare-review takes only the acquired source directory")
         if args.prepare_review.resolve().is_relative_to(pathlib.Path(__file__).resolve().parents[2]):
             parser.error("Review materials belong to external library storage")
@@ -501,8 +468,4 @@ if __name__ == "__main__":
         result = validate_corpus(json.loads(path.read_text(encoding="utf-8")), path.parent)
         print(json.dumps(dict(valid=True, groups=evaluation_groups(result["sheets"])), ensure_ascii=False))
     else:
-        if not all([args.reports, args.sources, args.output]):
-            parser.error("Inventory requires --reports, --sources and --output")
-        output = pathlib.Path(args.output)
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(inventory(args.reports, args.sources), ensure_ascii=False, indent=2), encoding="utf-8")
+        parser.error("Choose --corpus or --prepare-review")

@@ -54,32 +54,6 @@ class CorpusTests(unittest.TestCase):
             sheet['language'] = language
             corpus.validate_corpus(dict(schemaVersion=1, sheets=[sheet]))
 
-    def test_inventory_keeps_report_attachments_without_treating_screenshots_as_original_maps(self):
-        with tempfile.TemporaryDirectory() as folder:
-            reports = pathlib.Path(folder) / 'reports'
-            sources = pathlib.Path(folder) / 'sources'
-            (reports / 'case' / 'sources').mkdir(parents=True)
-            sources.mkdir()
-            (reports / 'case' / 'sources' / 'historic.pdf').write_bytes(b'original')
-            (reports / 'case' / 'comparison.png').write_bytes(b'screenshot')
-            rows = corpus.inventory(reports, sources)['entries']
-            self.assertEqual(len(rows), 2)
-            self.assertEqual(next(row for row in rows if row['path'].endswith('.pdf'))['kind'], 'original-candidate')
-            self.assertEqual(next(row for row in rows if row['path'].endswith('.png'))['kind'], 'report-evidence-candidate')
-            self.assertTrue(all(row['annotationStatus'] == 'unlabelled' for row in rows))
-
-    def test_inventory_distinguishes_official_downsamples_and_app_derivatives_from_masters(self):
-        with tempfile.TemporaryDirectory() as folder:
-            reports, sources = pathlib.Path(folder) / 'reports', pathlib.Path(folder) / 'sources'
-            reports.mkdir(); sources.mkdir()
-            (sources / 'preview.jpg').write_bytes(b'preview')
-            (sources / 'preview.source.json').write_text(json.dumps({'materialKind': 'official-downsample'}), encoding='utf-8')
-            (sources / 'master-analysis.jpg').write_bytes(b'derived')
-            (sources / 'master-analysis.json').write_text(json.dumps({'purpose': 'app-runtime-input-only', 'sourceSha256': 'a' * 64}), encoding='utf-8')
-            rows = corpus.inventory(reports, sources)['entries']
-            self.assertEqual(next(row for row in rows if row['path'].endswith('preview.jpg'))['kind'], 'source-downsample-candidate')
-            self.assertEqual(next(row for row in rows if row['path'].endswith('master-analysis.jpg'))['kind'], 'analysis-derivative')
-
     def acquired_source(self, folder):
         sources = pathlib.Path(folder) / 'sources'
         sources.mkdir()
