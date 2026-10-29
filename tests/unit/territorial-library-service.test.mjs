@@ -40,6 +40,17 @@ function fixture({entities = [entity('state:parent'),entity('state:child','state
 const rows = groups => groups.flatMap(group=>group.entities);
 const ids = groups => rows(groups).map(e=>e.entityId);
 
+test('past aliases search the same identity while dated results use the selected name',async()=>{
+  const country=entity('state:named');
+  country.nameVersions=[{validFrom:null,validTo:'1999',names:{ko:{common:'옛 이름',formal:'옛 정식명',aliases:['이전 별칭']}}},
+    {validFrom:'2000',validTo:null,names:{ko:{common:'새 이름'},native:[{language:'hy',common:'Արցախ'},{language:'ru',common:'Арцах'}]}}];
+  const f=fixture({entities:[country]});await f.service.load();
+  assert.equal(rows(f.service.search({query:'이전 별칭',referenceDate:'2000-01-01'}))[0].displayName,'새 이름');
+  assert.equal(rows(f.service.search({query:'Արցախ',referenceDate:'1999-12-31'}))[0].displayName,'옛 이름');
+  assert.equal(rows(f.service.search({query:'state:named',referenceDate:'2000-01-01'}))[0]?.displayName,'새 이름');
+  assert.equal(f.loads(),0);
+});
+
 // Removing first-day expansion or replacing the shared parser breaks these boundaries.
 test('UI normalization keeps blank, first-day, BCE and extended-year semantics separate from the shared selector', () => {
   const {service} = fixture();

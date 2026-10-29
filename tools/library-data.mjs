@@ -1395,6 +1395,21 @@ export function storeNativeLibraryObjects({libraryIndex,previousLibrary,previous
   }
   return entities;
 }
+export function assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex) {
+  const base='assets/data/territorial-entities',included=path=>prefixes.some(prefix=>path===prefix||path.startsWith(prefix+'/'));
+  if(included(base))return;
+  if(!included(base+'/generated/v2/index.json'))throw Error('Scoped territorial storage requires the paired index');
+  const previous=new Map(previousIndex.entities.map(row=>[row.entityId,row]));
+  if(previous.size!==libraryIndex.entities.length||libraryIndex.entities.some(row=>!previous.has(row.entityId)))throw Error('Scoped territorial storage cannot change catalog membership');
+  for(const entry of libraryIndex.entities)if(previous.get(entry.entityId).sha256!==entry.sha256) {
+    if(!included(`${base}/generated/v2/${entry.file}`)||!included(`${base}/source/countries/${entry.entityId.replace(':','-')}.json`))
+      throw Error(`Scoped territorial storage requires source, chunk and index together: ${entry.entityId}`);
+  }
+  for(const prefix of prefixes.filter(path=>path.startsWith(base+'/source/'))) {
+    const entry=libraryIndex.entities.find(row=>prefix===`${base}/source/countries/${row.entityId.replace(':','-')}.json`);
+    if(!entry||!included(`${base}/generated/v2/${entry.file}`))throw Error('Scoped territorial storage requires explicit paired source files');
+  }
+}
 function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }) {
   const data = reportData || prepareOwnedLibraryData({ root, fetch: true });
   if (libraryWriteLeases(librarySharedCheckout(root)).some(lease => lease.alive && lease.owner === libraryOwnerId(root) && lease.prefixes.some(a => prefixes.some(b => scopesOverlap(a, b))))) throw Error('Finish the active library write lease before storing this scope');
@@ -1404,8 +1419,16 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
       || !libraryConfig(root).mounts.some(mount => path === mount || path.startsWith(mount + '/'))))) throw Error('Invalid library storage prefixes.');
   const included = path => !prefixes || prefixes.some(prefix => path === prefix || path.startsWith(prefix + '/'));
   const traversable = path => included(path) || prefixes.some(prefix => prefix.startsWith(path + '/'));
-  const storeNativeObjects = !prefixes || included('assets/data/territorial-entities');
-  if (!storeNativeObjects && prefixes.some(path => path.startsWith('assets/data/territorial-entities/'))) throw Error('Store territorial entities as a whole so native objects and runtime data stay paired.');
+  const storeNativeObjects = !prefixes || prefixes.some(path=>path==='assets/data/territorial-entities'||path.startsWith('assets/data/territorial-entities/'));
+  let nativeStore;
+  if(storeNativeObjects) {
+    const indexBytes=readFileSync(resolve(data.materialized,'assets/data/territorial-entities/generated/v2/index.json'));
+    const runtimeRevision=libraryConfig(root).revision;
+    const libraryIndex=JSON.parse(indexBytes),previousLibrary=JSON.parse(git(data.checkout,['show',`${runtimeRevision}:library.json`],{allowFetch:true}));
+    const previousIndex=previousLibrary.indexHash?JSON.parse(git(data.checkout,['show',`${runtimeRevision}:objects/${previousLibrary.indexHash}.json`],{allowFetch:true})):{entities:[]};
+    if(prefixes)assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex);
+    nativeStore={indexBytes,libraryIndex,previousLibrary,previousIndex};
+  }
   const indexPath = resolve(data.checkout, 'archive/index.json');
   // A runtime pin owns all unselected data inputs, independently of the
   // archive checkout's later report or other stored work.
@@ -1490,9 +1513,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   });
   // The existing native source schema remains the only editable library format.
   if (storeNativeObjects) {
-  const indexBytes = readFileSync(resolve(data.materialized, 'assets/data/territorial-entities/generated/v2/index.json'));
-  const libraryIndex = JSON.parse(indexBytes), previousLibrary=JSON.parse(readFileSync(resolve(data.checkout,'library.json')));
-  const previousIndex=previousLibrary.indexHash?JSON.parse(git(data.checkout,['show',`HEAD:objects/${previousLibrary.indexHash}.json`],{allowFetch:true})):{entities:[]};
+  const {indexBytes,libraryIndex,previousLibrary,previousIndex}=nativeStore;
   const source = { schemaVersion: 1, indexHash: digest(indexBytes), entities: storeNativeLibraryObjects({libraryIndex,previousLibrary,previousIndex,
     readChunk:entry=>readFileSync(resolve(data.materialized,'assets/data/territorial-entities/generated/v2',entry.file)),put}) };
   put(`objects/${source.indexHash}.json`, indexBytes);

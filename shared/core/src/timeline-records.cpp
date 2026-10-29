@@ -1,5 +1,7 @@
 #include <pandoeditor/timeline-records.h>
 #include <pandoeditor/losslessjson.h>
+#include <pandoeditor/timeline-resolver.h>
+#include <pandoeditor/objectproperties.h>
 #include <cmath>
 #include <array>
 #include <cstdlib>
@@ -7,6 +9,95 @@
 #include <set>
 
 namespace pandoeditor {
+codecjson::Value normalizeTerritorialNames(const codecjson::Value& input) {
+    using V=codecjson::Value;
+    const auto bad=[](){throw TimelineError("TIMELINE_NAME","Invalid multilingual names");};
+    if(input.kind!=V::Object||input.object.empty())bad();
+    auto result=input;
+    const auto item=[&](V& row,bool native) {
+        if(row.kind!=V::Object||row.object.empty())bad();
+        bool named=false;
+        for(auto& [key,value]:row.object) {
+            if(key=="language"&&native) {
+                if(value.kind!=V::String||value.string.empty())bad();
+                for(char ch:value.string)if(!((ch>='a'&&ch<='z')||(ch>='A'&&ch<='Z')||(ch>='0'&&ch<='9')||ch=='-'))bad();
+            } else if(key=="common"||key=="formal") {
+                if(value.kind!=V::String||trimWebText(value.string).empty())bad();
+                named=true;
+            } else if(key=="aliases") {
+                if(value.kind!=V::Array)bad();
+                std::set<std::string> seen;
+                for(const auto& alias:value.array)if(alias.kind!=V::String||trimWebText(alias.string).empty()||!seen.insert(alias.string).second)bad();
+            } else bad();
+        }
+        if(!named||(native&&!row.object.count("language")))bad();
+    };
+    bool named=false;
+    for(auto& [key,value]:result.object) {
+        if(key=="ko"||key=="en"){item(value,false);named=true;}
+        else if(key=="native") {
+            if(value.kind!=V::Array)bad();
+            std::set<std::string> languages;
+            for(auto& row:value.array){item(row,true);if(!languages.insert(row.object.at("language").string).second)bad();named=true;}
+        } else bad();
+    }
+    if(!named)bad();
+    return result;
+}
+std::string territorialCommonName(const codecjson::Value& names) {
+    const auto text=[](const auto& row){const auto found=row.object.find("common");return found!=row.object.end()?found->second.string:row.object.at("formal").string;};
+    for(const char* key:{"ko","en"})if(names.object.count(key))return text(names.object.at(key));
+    const auto found=names.object.find("native");
+    return found!=names.object.end()&&!found->second.array.empty()?text(found->second.array.front()):"";
+}
+codecjson::Value territorialLibraryNames(const codecjson::Value& entity,const std::optional<std::string>& referenceDate) {
+    using V=codecjson::Value;
+    const auto validity=[](const V& row) {
+        if(row.kind!=V::Object||!row.object.count("validFrom")||!row.object.count("validTo"))throw TimelineError("TIMELINE_NAME","Missing name interval");
+        const auto endpoint=[](const V& v)->std::optional<std::string>{if(v.kind==V::Null)return {};if(v.kind!=V::String)throw TimelineError("TIMELINE_NAME","Invalid name endpoint");parseTemporal(v.string);return v.string;};
+        Validity result{endpoint(row.object.at("validFrom")),endpoint(row.object.at("validTo"))};normalizeTemporalInterval(result.from,result.to);return result;
+    };
+    const auto lifetime=validity(entity.object.at("lifetime"));
+    V versions=V::arr();std::vector<Validity> intervals;
+    if(const auto found=entity.object.find("nameVersions");found!=entity.object.end()) {
+        if(found->second.kind!=V::Array||found->second.array.empty())throw TimelineError("TIMELINE_NAME","Empty name history");
+        for(auto row:found->second.array) {
+            if(row.object.size()!=3||!row.object.count("names"))throw TimelineError("TIMELINE_NAME","Invalid name version");
+            intervals.push_back(validity(row));row.object["names"]=normalizeTerritorialNames(row.object.at("names"));versions.array.push_back(std::move(row));
+        }
+    } else {
+        V names=V::obj(),native=V::arr();
+        for(const auto& [language,value]:entity.object.at("names").object) {
+            V row=V::obj();row.object["common"]=value;
+            if(language=="ko"||language=="en")names.object[language]=row;
+            else {row.object["language"]=V::str(language=="native"?"und":language);native.array.push_back(row);}
+        }
+        if(!native.array.empty())names.object["native"]=native;
+        V row=V::obj();row.object["validFrom"]=V{};row.object["validTo"]=V{};row.object["names"]=normalizeTerritorialNames(names);
+        versions.array.push_back(row);intervals.push_back({});
+    }
+    for(std::size_t i=0;i<intervals.size();++i)for(std::size_t j=i+1;j<intervals.size();++j) {
+        const auto a=normalizeTemporalInterval(intervals[i].from,intervals[i].to),b=normalizeTemporalInterval(intervals[j].from,intervals[j].to);
+        if((!a.start||!b.end||!(b.end->endKey<a.start->startKey))&&(!b.start||!a.end||!(a.end->endKey<b.start->startKey)))throw TimelineError("TIMELINE_NAME","Overlapping name versions");
+    }
+    std::optional<std::size_t> selected;
+    if(referenceDate)selected=selectTimelineVersion(lifetime,intervals,referenceDate);
+    else {
+        selected=0;
+        for(std::size_t i=1;i<intervals.size();++i)if(intervals[i].from&&(!intervals[*selected].from||parseTemporal(*intervals[*selected].from).startKey<parseTemporal(*intervals[i].from).startKey))selected=i;
+    }
+    V result=V::obj();result.object["versions"]=versions;
+    result.object["names"]=selected?versions.array[*selected].object.at("names"):V{};
+    result.object["name"]=V::str(selected?territorialCommonName(result.object.at("names")):"");
+    V search=V::arr();std::set<std::string> seen;
+    const auto add=[&](const V& v){if(v.kind==V::String&&seen.insert(v.string).second)search.array.push_back(v);};
+    for(const auto& version:versions.array)for(const auto& [key,names]:version.object.at("names").object) {
+        const auto collect=[&](const V& row){for(const auto& [field,value]:row.object)if(field=="common"||field=="formal")add(value);else if(field=="aliases")for(const auto& alias:value.array)add(alias);};
+        if(key=="native")for(const auto& row:names.array)collect(row);else collect(names);
+    }
+    if(entity.object.count("alternateNames"))for(const auto& alias:entity.object.at("alternateNames").array)add(alias);
+    result.object["searchNames"]=search;return result;
+}
 namespace {
 [[noreturn]] void fail(const std::string& code,const std::string& detail) {
     throw TimelineError(code,detail);
@@ -143,8 +234,9 @@ TimelineRecords normalizeTimelineRecords(const TimelineRecords& input,const Time
             const auto found=value.object.find(key);if(found==value.object.end())fail("TIMELINE_PROPERTY",std::string("Missing ")+key);return found->second;
         };
         if(row.property=="name") {
-            if(value.object.size()!=2||field("name").kind!=V::String||field("nameExplicit").kind!=V::Bool)
+            if(value.object.size()!=(value.object.count("names")?3:2)||field("name").kind!=V::String||field("nameExplicit").kind!=V::Bool)
                 fail("TIMELINE_PROPERTY","Invalid name value.");
+            if(value.object.count("names"))normalizeTerritorialNames(field("names"));
         }else if(row.property=="color") {
             if(value.object.size()!=2||field("color").kind!=V::Number||field("explicitColor").kind!=V::Bool)
                 fail("TIMELINE_PROPERTY","Invalid color value.");

@@ -10,7 +10,15 @@ namespace pandoeditor {
 namespace {
 using V=codecjson::Value;
 std::string nameValue(const TerritorialUnit& unit) {
-    auto value=V::obj();value.object["name"]=V::str(unit.name);value.object["nameExplicit"]=V::boolean(unit.nameExplicit);return value.encode();
+    auto value=V::obj();value.object["name"]=V::str(unit.name);value.object["nameExplicit"]=V::boolean(unit.nameExplicit);
+    const auto metadata=codecjson::parse(unit.metadata);
+    if(metadata.object.count("nameDetails"))value.object["names"]=normalizeTerritorialNames(metadata.object.at("nameDetails"));
+    return value.encode();
+}
+void nameDetails(TerritorialUnit& unit,const V& value,const char* key) {
+    auto metadata=codecjson::parse(unit.metadata);metadata.object.erase("nameDetails");
+    if(value.object.count(key))metadata.object["nameDetails"]=normalizeTerritorialNames(value.object.at(key));
+    unit.metadata=metadata.encode();
 }
 std::string colorValue(const ObjectStyle& style) {
     auto value=V::obj();value.object["color"]=V::num(style.color);value.object["explicitColor"]=V::boolean(style.explicitColor);return value.encode();
@@ -43,7 +51,7 @@ void applyProperties(ProjectDocument& document,const TimelineRecords& records,co
             continue;
         }
         auto& unit=*units.at(row.objectRef.id);const auto ref=territorialRef(unit.id);const auto value=codecjson::parse(row.value);
-        if(row.property=="name") {unit.name=value.object.at("name").string;unit.nameExplicit=value.object.at("nameExplicit").raw=="true";}
+        if(row.property=="name") {unit.name=value.object.at("name").string;unit.nameExplicit=value.object.at("nameExplicit").raw=="true";nameDetails(unit,value,"names");}
         else if(row.property=="color") {auto& style=document.presentation.objectStyles.at(ref);style.color=static_cast<std::uint32_t>(std::stod(value.object.at("color").raw));style.explicitColor=value.object.at("explicitColor").raw=="true";}
         else {
             TerritorialSymbolStyle symbol;const auto policy=value.object.at("policy").string;
@@ -118,6 +126,7 @@ void captureTimelinePropertyChanges(const ProjectDocument& source,const ProjectD
         write("color",colorValue(beforeView.presentation.objectStyles.at(ref)),colorValue(candidate.presentation.objectStyles.at(ref)));
         write("flag",flagValue(beforeView,ref),flagValue(candidate,ref));
         unit.name=found->second->name;unit.nameExplicit=found->second->nameExplicit;
+        nameDetails(unit,codecjson::parse(found->second->metadata),"nameDetails");
         auto& style=candidate.presentation.objectStyles.at(ref);const auto& baseline=source.presentation.objectStyles.at(ref);
         style.color=baseline.color;style.explicitColor=baseline.explicitColor;
         const auto symbol=source.symbols.find(ref);

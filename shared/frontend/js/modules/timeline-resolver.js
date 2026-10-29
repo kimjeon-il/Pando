@@ -31,6 +31,8 @@ export function projectTimelineIdentity(identity, values) {
   const properties = { ...identity.properties, style: { ...identity.properties.style }, metadata: { ...identity.properties.metadata } };
   if (values.name) {
     properties.name = values.name.name;
+    if(values.name.names)properties.metadata.nameDetails=values.name.names;
+    else delete properties.metadata.nameDetails;
     properties.metadata.nameSource = { baseName: properties.metadata.nameSource?.baseName || '', nameExplicit: values.name.nameExplicit };
   }
   if (values.color) {
