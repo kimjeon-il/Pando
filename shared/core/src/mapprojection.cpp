@@ -79,6 +79,8 @@ MapProjection readMapProjection(const V& value) {
     if(p.kind=="lcc"){if(!value.object.count("lat1")||std::abs(p.lat0)>=90)throw std::invalid_argument("Lambert parameters required");cone(p);}
     if(p.kind=="stere"&&std::abs(p.lat0)!=90)throw std::invalid_argument("Only polar stereographic supported");
     if(p.kind=="merc"&&p.lat0!=0)throw std::invalid_argument("Mercator latitude of origin must be zero");
+    if(p.kind=="robin"&&p.lat0!=0)throw std::invalid_argument("Robinson latitude of origin must be zero");
+    if(p.kind!="lcc"&&p.kind!="eqc"&&(p.lat1!=0||p.lat2!=0))throw std::invalid_argument("Unsupported standard-parallel parameter for projection form");
     return p;
 }
 V writeMapProjection(const MapProjection& p) {
@@ -125,7 +127,7 @@ std::optional<P> inverseMapProjection(const MapProjection& p,P xy) {
         lambda=std::atan2(x,north)/c.n;auto value=inverseT(std::pow(rho/c.f,1/c.n),p.eccentricity);if(!value)return {};phi=*value;
     }else if(p.kind=="stere"){
         const double sign=p.lat0>0?1:-1,e=p.eccentricity,den=std::sqrt(std::pow(1+e,1+e)*std::pow(1-e,1-e));
-        auto value=inverseT(std::hypot(x,y)*den/2,e);if(!value)return {};phi=sign**value;lambda=std::atan2(x,-sign*y);
+        auto value=inverseT(std::hypot(x,y)*den/2,e);if(!value)return {};phi=sign*(*value);lambda=std::atan2(x,-sign*y);
     }else if(p.kind=="robin"){
         const double target=std::abs(y)/1.3523;if(target>1+1e-10)return {};
         double low=0,high=90;

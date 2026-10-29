@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "3fd61e01c71374bce5038d82f45e9cbe90147284b9770500fa4da9561a44e3ec",
+  "sourceSha256": "217380c78da2972d83e7f698cc31ce0d1c59f63c7fec0d9eadd27453418380e2",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -349,7 +349,7 @@
     },
     {
       "path": "shared/core/src/mapprojection.cpp",
-      "sha256": "1e8bd340dce7af36db3c6774ad22b7ac10a164d61755caac494a371d23012dfa"
+      "sha256": "a7bdd9889c84269b0f728e96ff834a7a344f49dacd62cb8c8674c5a938517d5d"
     },
     {
       "path": "shared/core/src/objectproperties.cpp",
@@ -397,7 +397,7 @@
     },
     {
       "path": "shared/core/src/referenceimage.cpp",
-      "sha256": "a054fa706ff5caa65ce57cdd137316cf5d3263ae8c82b23c873f3c1864498d62"
+      "sha256": "449f7e2911ffc1206ffeb6668b15b32430d6a1347224be7ae2cdac9bd7fea275"
     },
     {
       "path": "shared/core/src/referencetracing.cpp",
@@ -627,7 +627,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "3c06ff93b0d95e8e546d58cc5f8dc112fcdd9ea847e7bc76c4dad3d85becc41a"
+      "sha256": "042139b3b1bcb610d6bcb937a1a0292638dd24911c58924537da6ccd78bac5c3"
     }
   }
 }
