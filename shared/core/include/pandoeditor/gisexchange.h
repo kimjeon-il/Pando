@@ -18,6 +18,22 @@ struct GisCountryAssignmentGroup { int index=-1;std::vector<std::size_t> feature
 struct GisCountryAssignmentPlan { std::vector<GisCountryAssignment> assignments;std::vector<GisCountryAssignmentGroup> groups; };
 GisCountryAssignmentPlan planGisCountryAssignments(const std::vector<GisCountryName>&,
     const std::u16string& fallback,const std::vector<std::u16string>& fields,const std::vector<bool>& hasField);
+struct GisCountryShape { std::string id;bool hasGeometry=false;MultiPolygon geometry; };
+struct GisTerritoryDonor { std::size_t index=0;double area=0;bool absorbed=false; };
+struct GisTerritoryGroup {
+    std::size_t index=0;std::vector<std::size_t> features;MultiPolygon geometry;
+    double importedArea=0,existingArea=0,newArea=0;std::vector<GisTerritoryDonor> donors;
+};
+enum class GisTerritoryPlanStatus { Valid, Overlap, MissingOwner };
+struct GisTerritoryGeometryPlan {
+    GisTerritoryPlanStatus status=GisTerritoryPlanStatus::Valid;
+    std::size_t left=0,right=0,missing=0;
+    std::vector<GisTerritoryGroup> groups;
+    double totalArea=0,transferArea=0,existingArea=0,newArea=0;
+    std::vector<std::size_t> absorbed;
+};
+GisTerritoryGeometryPlan planGisTerritoryGeometry(const std::vector<GisCountryShape>&,
+    const std::vector<MultiPolygon>&,const std::vector<GisCountryAssignmentGroup>&);
 enum class GisTerritorialAreaUse { InputOverlap, CountryOverlap, Absorbed };
 bool gisTerritorialAreaDecision(GisTerritorialAreaUse,double area,double firstReference,double secondReference);
 enum class GisExchangeTarget { Project, General, Regional, Distribution, Generic };

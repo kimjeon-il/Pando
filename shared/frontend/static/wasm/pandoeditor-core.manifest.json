@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "4b5782ebff2fafc18f9e0c575dca911af03618f2dc320f79f0b9c468b56806ca",
+  "sourceSha256": "1862e8739bba7b940fe3ac1bf2c6221b3aa80c50ee1a8ba9faadce04b8255539",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -85,7 +85,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/gisexchange.h",
-      "sha256": "1e60a686f22e3bb6c6b0d030f1ba21be1e2258f8f7bb3fda5bdfd06f72fec509"
+      "sha256": "77211bc038d3b05a7c4c196e247421d519c72fc585c2991ce8d67c5a75d67e23"
     },
     {
       "path": "shared/core/include/pandoeditor/giszip.h",
@@ -313,7 +313,7 @@
     },
     {
       "path": "shared/core/src/gisexchange.cpp",
-      "sha256": "1880e93ee407fe55215ea8a5cf712adc846bc3921e0c6b5a0afab280a643626b"
+      "sha256": "548b07c6f2cd090487a917f6a243e623206fe785dd07e83794ff28b84972d4f0"
     },
     {
       "path": "shared/core/src/giszip.cpp",
@@ -593,7 +593,7 @@
     },
     {
       "path": "shared/wasm/polygon-bindings.cpp",
-      "sha256": "daa55ee0ede504b497fb4a16d59f1ed1262b9f1c101330ce8757cea0d633667b"
+      "sha256": "9073d570509786f3412cef2780e159b4390030a84324b44823ae4ef7b92df701"
     },
     {
       "path": "shared/wasm/reference-bindings.cpp",
@@ -615,11 +615,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "a793e01ea90464da0784638b0b9872094c633291bb289623d38cfe365e293fe9"
+      "sha256": "4784c3313b5665a3046ef587a3e1ff7c0f2da1d5f17b87347322fac092ad56ce"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "a2890d8f63fb1c59380e15a7889f8c6bb1eaf5cc77ade92febac8533adf7e9ce"
+      "sha256": "ccbfc1a9d364f05f4906efe6cc0e087a279b92a50a20793a10890514436231cc"
     }
   }
 }

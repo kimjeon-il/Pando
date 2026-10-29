@@ -1,7 +1,10 @@
 #include <pandoeditor/gisexchange.h>
 #include <pandoeditor/project.h>
 #include <pandoeditor/geometrypredicates.h>
+#include <pandoeditor/polygonclipping.h>
+#include <pandoeditor/sphericalpolygon.h>
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <limits>
@@ -50,6 +53,84 @@ GisCountryAssignmentPlan planGisCountryAssignments(const std::vector<GisCountryN
             if(inserted)result.groups.push_back({index,{}});
             result.groups[position->second].features.push_back(i);
         }
+    }
+    return result;
+}
+GisTerritoryGeometryPlan planGisTerritoryGeometry(const std::vector<GisCountryShape>& countries,
+    const std::vector<MultiPolygon>& features,const std::vector<GisCountryAssignmentGroup>& groups) {
+    const auto area=[](const MultiPolygon& polygons) {
+        std::vector<std::vector<DisplayMetricRing>> input;input.reserve(polygons.size());
+        for(const auto& polygon:polygons){auto& output=input.emplace_back();output.reserve(polygon.size());
+            for(const auto& ring:polygon){const bool closed=ring.size()>1&&ring.front().x==ring.back().x&&ring.front().y==ring.back().y;
+                output.push_back({ring,closed});}}
+        return displayGeometryAreaKm2(input);
+    };
+    const auto unite=[](const std::vector<MultiPolygon>& shapes) {
+        if(shapes.empty())return MultiPolygon{};
+        if(shapes.size()==1)return shapes.front();
+        return clipPolygons(PolygonOperation::Union,shapes);
+    };
+    const auto bounds=[](const MultiPolygon& polygons)->std::optional<std::array<double,4>> {
+        std::optional<std::array<double,4>> result;
+        for(const auto& polygon:polygons)for(const auto& ring:polygon)for(const auto& point:ring){
+            if(!result)result=std::array<double,4>{point.x,point.y,point.x,point.y};
+            else {(*result)[0]=std::min((*result)[0],point.x);(*result)[1]=std::min((*result)[1],point.y);
+                (*result)[2]=std::max((*result)[2],point.x);(*result)[3]=std::max((*result)[3],point.y);}
+        }
+        return result;
+    };
+    const auto intersects=[](const auto& a,const auto& b){return a&&b&&
+        (*a)[0]<=(*b)[2]&&(*b)[0]<=(*a)[2]&&(*a)[1]<=(*b)[3]&&(*b)[1]<=(*a)[3];};
+    std::vector<std::optional<std::array<double,4>>> featureBounds,countryBounds;
+    featureBounds.reserve(features.size());for(const auto& feature:features)featureBounds.push_back(bounds(feature));
+    countryBounds.reserve(countries.size());for(const auto& country:countries)countryBounds.push_back(bounds(country.geometry));
+    std::vector<std::optional<double>> featureAreas(features.size());
+    const auto featureArea=[&](std::size_t index){if(!featureAreas[index])featureAreas[index]=area(features[index]);return *featureAreas[index];};
+    GisTerritoryGeometryPlan result;
+    for(std::size_t left=0;left<features.size();++left)for(std::size_t right=left+1;right<features.size();++right){
+        if(!intersects(featureBounds[left],featureBounds[right]))continue;
+        const auto overlap=clipPolygons(PolygonOperation::Intersection,{features[left],features[right]});
+        const auto leftArea=featureArea(left),rightArea=featureArea(right);
+        if(!overlap.empty()&&gisTerritorialAreaDecision(GisTerritorialAreaUse::InputOverlap,area(overlap),leftArea,rightArea)){
+            result.status=GisTerritoryPlanStatus::Overlap;result.left=left;result.right=right;return result;
+        }
+    }
+    std::map<std::string,std::size_t> countryIndexes;
+    for(std::size_t i=0;i<countries.size();++i)countryIndexes[countries[i].id]=i;
+    std::set<std::string> absorbedIds;
+    for(const auto& group:groups){
+        if(group.index<0||std::size_t(group.index)>=countries.size())throw std::invalid_argument("INVALID_GIS_PLAN: country group");
+        const auto& ownerId=countries[std::size_t(group.index)].id;const auto owner=countryIndexes.find(ownerId);
+        if(owner==countryIndexes.end()||!countries[owner->second].hasGeometry){
+            result.status=GisTerritoryPlanStatus::MissingOwner;result.missing=std::size_t(group.index);return result;
+        }
+        GisTerritoryGroup output;output.index=std::size_t(group.index);output.features=group.features;
+        std::vector<MultiPolygon> incoming;incoming.reserve(group.features.size());
+        for(const auto index:group.features){if(index>=features.size())throw std::invalid_argument("INVALID_GIS_PLAN: feature index");
+            if(!features[index].empty())incoming.push_back(features[index]);}
+        output.geometry=unite(incoming);output.importedArea=area(output.geometry);
+        const auto importedBounds=bounds(output.geometry);
+        std::vector<MultiPolygon> covered;
+        for(std::size_t index=0;index<countries.size();++index){const auto& country=countries[index];
+            if(!country.hasGeometry||!intersects(importedBounds,countryBounds[index]))continue;
+            const auto overlap=clipPolygons(PolygonOperation::Intersection,{output.geometry,country.geometry});
+            if(overlap.empty())continue;
+            const auto overlapArea=area(overlap);
+            if(!gisTerritorialAreaDecision(GisTerritorialAreaUse::CountryOverlap,overlapArea,output.importedArea,0))continue;
+            covered.push_back(overlap);
+            if(country.id==ownerId){output.existingArea+=overlapArea;continue;}
+            const auto remainder=clipPolygons(PolygonOperation::Difference,{country.geometry,output.geometry});
+            const bool full=remainder.empty()||gisTerritorialAreaDecision(GisTerritorialAreaUse::Absorbed,area(remainder),overlapArea,0);
+            output.donors.push_back({index,overlapArea,full});
+            if(full&&absorbedIds.insert(country.id).second)result.absorbed.push_back(index);
+        }
+        const auto coveredGeometry=unite(covered);
+        const auto unclaimed=coveredGeometry.empty()?output.geometry:
+            clipPolygons(PolygonOperation::Difference,{output.geometry,coveredGeometry});
+        output.newArea=unclaimed.empty()?0:area(unclaimed);
+        result.totalArea+=output.importedArea;double transfer=0.;for(const auto& donor:output.donors)transfer+=donor.area;
+        result.transferArea+=transfer;result.existingArea+=output.existingArea;result.newArea+=output.newArea;
+        result.groups.push_back(std::move(output));
     }
     return result;
 }
