@@ -13,12 +13,19 @@ on:
       - 'tests/test_hydro_connectivity.py'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
+    inputs:
+      target:
+        description: Standalone native tool to build and verify
+        type: choice
+        options: [hydro, pc-allocation]
+        default: hydro
 
 permissions:
   contents: read
 
 jobs:
   native-hydro:
+    if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -49,3 +56,31 @@ jobs:
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro/pando-hydro-connectivity
         run: python -m unittest discover -s tests -p 'test_hydro_connectivity.py' -v
+  pc-allocation:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'pc-allocation'
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build only the standalone Windows allocation auditor
+        run: |
+          cmake -S tools/cpp -B build-native/pc-allocation -A x64 -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_CONNECTIVITY=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF -DPANDO_BUILD_PC_ALLOCATION=ON
+          cmake --build build-native/pc-allocation --config Release --target pando-pc-file-allocation
+      - name: Verify real Windows file identities and allocation
+        env:
+          PANDO_PC_ALLOCATION_BINARY: ${{ github.workspace }}/build-native/pc-allocation/Release/pando-pc-file-allocation.exe
+          PANDO_PC_ALLOCATION_ORACLE_PYTHON: python
+        run: node --test tests/unit/pc-file-allocation-native.test.mjs
+      - name: Package source and binary identities
+        run: node tools/package-native-allocation.mjs --binary build-native/pc-allocation/Release/pando-pc-file-allocation.exe --directory build-native/pc-allocation/artifact
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-pc-allocation-windows-x64-${{ github.sha }}
+          path: build-native/pc-allocation/artifact/
+          if-no-files-found: error
+          retention-days: 7
