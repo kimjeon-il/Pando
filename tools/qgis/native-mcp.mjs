@@ -70,6 +70,9 @@ function createServer(){
     async({input},extra)=>respond([...options,'open-raster',input],extra.signal));
   server.registerTool('qgis_native_raster_info',{description:'Inspect raster dimensions, bands, CRS and extent.',inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,'raster-info',`--layer=${layer}`],extra.signal));
+  server.registerTool('qgis_native_raster_sample',{description:'Sample one raster band at coordinates in the layer CRS.',
+    inputSchema:z.strictObject({layer:path,x:z.number().finite(),y:z.number().finite(),band:z.number().int().min(1).max(10000).default(1)})},
+    async({layer,x,y,band},extra)=>respond([...options,'raster-sample',`--layer=${layer}`,`--x=${x}`,`--y=${y}`,'--band',String(band)],extra.signal));
   server.registerTool('qgis_native_export',{description:'Export a layer as normalized EPSG:4326 GeoJSON without overwriting an existing file.',
     inputSchema:z.strictObject({layer:path,output:path})},async({layer,output},extra)=>respond([...options,'export','--layer',layer,'--output',output],extra.signal));
   server.registerTool('qgis_native_normalize',{description:'Normalize an existing geographic QGIS GeoJSON export into a new file.',

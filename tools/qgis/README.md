@@ -36,6 +36,7 @@ node tools/qgis/native-bridge.mjs rollback-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs open 'D:/path/to/pando-layer.geojson'
 node tools/qgis/native-bridge.mjs open-raster 'D:/path/to/map.tif'
 node tools/qgis/native-bridge.mjs raster-info --layer QGIS_RASTER_LAYER_ID
+node tools/qgis/native-bridge.mjs raster-sample --layer QGIS_RASTER_LAYER_ID --x 10.5 --y 19.5 --band 1
 node tools/qgis/native-bridge.mjs export --layer QGIS_LAYER_ID --output 'D:/path/to/qgis-result.geojson'
 node tools/qgis/native-bridge.mjs normalize 'D:/path/to/qgis-export.geojson' --output 'D:/path/to/normalized.geojson'
 ```
@@ -60,6 +61,8 @@ a hidden parent group can keep a checked layer hidden.
 Algorithm discovery lists providers currently registered in QGIS and does not
 install missing providers. Buffer distances use the input layer's CRS units;
 buffer output is normalized to EPSG:4326 and refuses an existing destination.
+Raster sampling uses the raster layer's coordinate reference system and returns
+`valid: false` and a null value for NoData or points outside its extent.
 If a buffer request times out or loses its connection before QGIS replies, the
 reported scratch directory is preserved because QGIS may still be writing it.
 Attribute and geometry changes require an edit session started by the native bridge. An existing

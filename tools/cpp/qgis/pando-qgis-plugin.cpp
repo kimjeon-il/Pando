@@ -27,6 +27,7 @@
 #include <qgslayertreegroup.h>
 #include <qgslayertreelayer.h>
 #include <qgsproject.h>
+#include <qgsrasterdataprovider.h>
 #include <qgsrasterlayer.h>
 #include <qgsvectorlayer.h>
 #include <QCoreApplication>
@@ -241,6 +242,16 @@ class Bridge final:public QObject,public QgisPlugin {
         }
         if(command==QStringLiteral("raster-info")){
             return rasterSummary(qobject_cast<QgsRasterLayer*>(QgsProject::instance()->mapLayer(request.value(QStringLiteral("layer")).toString())));
+        }
+        if(command==QStringLiteral("raster-sample")){
+            auto* layer=qobject_cast<QgsRasterLayer*>(QgsProject::instance()->mapLayer(request.value(QStringLiteral("layer")).toString()));
+            if(!layer||!layer->isValid()||!layer->dataProvider()||layer->bandCount()<1)throw QStringLiteral("A valid QGIS raster layer is required");
+            const auto x=request.value(QStringLiteral("x")),y=request.value(QStringLiteral("y"));
+            if(!x.isDouble()||!y.isDouble()||!std::isfinite(x.toDouble())||!std::isfinite(y.toDouble()))throw QStringLiteral("Finite layer CRS coordinates are required");
+            const int band=pageValue(request,QStringLiteral("band"),1,1,layer->bandCount());
+            bool ok=false;const auto value=layer->dataProvider()->sample(QgsPointXY(x.toDouble(),y.toDouble()),band,&ok);
+            return {{QStringLiteral("band"),band},{QStringLiteral("valid"),ok&&std::isfinite(value)},
+                {QStringLiteral("value"),ok&&std::isfinite(value)?QJsonValue(value):QJsonValue(QJsonValue::Null)}};
         }
         if(command==QStringLiteral("open")){
             const auto path=request.value(QStringLiteral("path")).toString();const QFileInfo file(path);
