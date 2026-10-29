@@ -8,19 +8,27 @@ const geometries=new Set(['Point','MultiPoint','LineString','MultiLineString','P
 const geographicCrs=new Set(['EPSG:4326','urn:ogc:def:crs:OGC:1.3:CRS84','urn:ogc:def:crs:EPSG::4326']);
 
 // JSON can contain integer QGIS identifiers wider than JavaScript's safe range.
-function parseJson(text){
+export function parseJson(text){
   return JSON.parse(text.replace(/^\ufeff/,''),(key,value,context)=>{
     if(typeof value==='number'&&!Number.isSafeInteger(value)&&/^-?(?:0|[1-9]\d*)$/.test(context?.source||''))
       return BigInt(context.source);
     return value;
   });
 }
-function serialize(value){
+export function stringifyJson(value,spacing=0){
   return JSON.stringify(value,(key,item)=>{
     if(typeof item==='bigint')return JSON.rawJSON(item.toString());
     if(typeof item==='number'&&!Number.isFinite(item))throw Error('Nonfinite value in QGIS exchange');
     return item;
-  },2)+'\n';
+  },spacing);
+}
+function serialize(value){return stringifyJson(value,2)+'\n';}
+export function normalizeSourceAttribute(properties){
+  if(typeof properties.source==='string'&&properties.source.trimStart().startsWith('{')){
+    const source=parseJson(properties.source);
+    if(source&&typeof source==='object'&&!Array.isArray(source)&&source.schemaVersion===1)properties.source=source;
+  }
+  return properties;
 }
 function coordinates(value){
   if(!Array.isArray(value)||!value.length)throw Error('Invalid geometry coordinate array');
@@ -41,10 +49,7 @@ export function normalizeExchange(collection){
     if(feature.properties===null||feature.properties===undefined)feature.properties={};
     const properties=feature.properties;
     if(!properties||typeof properties!=='object'||Array.isArray(properties))throw Error('Feature properties must be an object');
-    if(typeof properties.source==='string'&&properties.source.trimStart().startsWith('{')){
-      const source=parseJson(properties.source);
-      if(source&&typeof source==='object'&&!Array.isArray(source)&&source.schemaVersion===1)properties.source=source;
-    }
+    normalizeSourceAttribute(properties);
   }
   return result;
 }

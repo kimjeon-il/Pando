@@ -73,6 +73,13 @@ int pageValue(const QJsonObject& request,const QString& key,int fallback,int min
         throw QStringLiteral("Invalid layer pagination");
     return static_cast<int>(number);
 }
+void validateFilter(QgsVectorLayer* layer,const QString& expression){
+    if(expression.trimmed().isEmpty()||expression.size()>10000)throw QStringLiteral("A bounded selection expression is required");
+    QgsExpression parsed(expression);
+    if(parsed.hasParserError())throw QStringLiteral("Expression parse error: ")+parsed.parserErrorString();
+    QgsExpressionContext context(QgsExpressionContextUtils::globalProjectLayerScopes(layer));
+    if(!parsed.prepare(&context)||parsed.hasEvalError())throw QStringLiteral("Expression error: ")+parsed.evalErrorString();
+}
 QVariant exactJsonValue(const pandoeditor::codecjson::Value& value){
     using Value=pandoeditor::codecjson::Value;
     switch(value.kind){
@@ -143,6 +150,35 @@ class Bridge final:public QObject,public QgisPlugin {
                 {QStringLiteral("precision"),field.precision()},{QStringLiteral("is_numeric"),field.isNumeric()}});
             return {{QStringLiteral("geometry_type"),static_cast<int>(layer->geometryType())},
                 {QStringLiteral("crs"),layer->crs().authid()},{QStringLiteral("fields"),fields}};
+        }
+        if(command==QStringLiteral("features")){
+            const auto id=request.value(QStringLiteral("layer")).toString();
+            auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
+            if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
+            const auto offset=pageValue(request,QStringLiteral("offset"),0,0,100000000),limit=pageValue(request,QStringLiteral("limit"),10,1,100);
+            const auto include=request.value(QStringLiteral("geometry"));
+            if(!include.isUndefined()&&!include.isBool())throw QStringLiteral("Geometry option must be boolean");
+            QgsFeatureRequest query;const auto expression=request.value(QStringLiteral("expression"));
+            if(!expression.isUndefined()){
+                if(!expression.isString())throw QStringLiteral("Invalid feature expression");
+                validateFilter(layer,expression.toString());query.setFilterExpression(expression.toString());
+            }
+            auto iterator=layer->getFeatures(query);QgsFeature feature;QJsonArray page;int skipped=0;bool hasMore=false;int bytes=0;
+            while(iterator.nextFeature(feature)){
+                if(skipped<offset){++skipped;continue;}
+                if(page.size()==limit){hasMore=true;break;}
+                QVariantMap attrs;const auto fields=layer->fields();
+                for(int i=0;i<fields.size();++i)attrs.insert(fields.at(i).name(),feature.attribute(i));
+                const auto attributes=serializeQgisVariant(attrs);bytes+=attributes.size();
+                QJsonObject row{{QStringLiteral("fid"),QString::number(feature.id())},{QStringLiteral("attributesJson"),QString::fromUtf8(attributes)}};
+                if(include.toBool()&&feature.hasGeometry()){
+                    const auto wkt=feature.geometry().asWkt(17);bytes+=wkt.toUtf8().size();row.insert(QStringLiteral("geometryWkt"),wkt);
+                }
+                if(bytes>500000)throw QStringLiteral("Feature page exceeds the response limit");
+                page.append(row);
+            }
+            return {{QStringLiteral("features"),page},{QStringLiteral("hasMore"),hasMore},{QStringLiteral("crs"),layer->crs().authid()},
+                {QStringLiteral("totalFeatures"),QString::number(layer->featureCount())},{QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit}};
         }
         if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")){
             const auto id=request.value(QStringLiteral("layer")).toString();
@@ -252,10 +288,7 @@ class Bridge final:public QObject,public QgisPlugin {
                 if(!expression.isUndefined()){
                     if(!value.isUndefined()||!expression.isString()||expression.toString().trimmed().isEmpty()||expression.toString().size()>10000)
                         throw QStringLiteral("A single bounded selection expression is required");
-                    QgsExpression parsed(expression.toString());
-                    if(parsed.hasParserError())throw QStringLiteral("Expression parse error: ")+parsed.parserErrorString();
-                    QgsExpressionContext context(QgsExpressionContextUtils::globalProjectLayerScopes(layer));
-                    if(!parsed.prepare(&context)||parsed.hasEvalError())throw QStringLiteral("Expression error: ")+parsed.evalErrorString();
+                    validateFilter(layer,expression.toString());
                     layer->selectByExpression(expression.toString());
                     return {{QStringLiteral("selected"),layer->selectedFeatureCount()}};
                 }

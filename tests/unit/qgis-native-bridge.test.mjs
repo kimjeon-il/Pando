@@ -27,6 +27,10 @@ async function fixture(t){
         result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
       else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
         result={layer:'layer-1',fields:[{name:'source',type:'Map',length:0,precision:0}]};}
+      else if(request.command==='features'){
+        assert.equal(request.layer,'layer-1');assert.equal(request.offset,0);assert.equal(request.limit,1);
+        result={features:[{fid:'1',attributesJson:JSON.stringify({source:{sequence:JSON.rawJSON('9007199254740993')}})}],hasMore:true,crs:'EPSG:4326'};
+      }
       else if(request.command==='select'){assert.equal(request.layer,'layer-1');
         if(request.expression!==undefined){assert.equal(request.expression,'"name" = \'map\'');result={selected:1};}
         else{assert.deepEqual(request.fids,['1','9007199254740993']);result={selected:2};}}
@@ -64,6 +68,10 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const schema=await run(['--config',config,'schema','--layer','layer-1']);assert.equal(schema.code,0,schema.stderr);
   assert.equal(JSON.parse(schema.stdout).fields[0].name,'source');
   const missingLayer=await run(['--config',config,'schema']);assert.notEqual(missingLayer.code,0);
+  const features=await run(['--config',config,'features','--layer','layer-1','--limit','1']);assert.equal(features.code,0,features.stderr);
+  assert.match(features.stdout,/9007199254740993/);
+  const decoded=JSON.parse(features.stdout,(key,value,context)=>key==='sequence'?BigInt(context.source):value);
+  assert.equal(decoded.features[0].fid,'1');assert.equal(decoded.features[0].attributes.source.sequence,9007199254740993n);
   const selected=await run(['--config',config,'select','--layer','layer-1','--fids','["1","9007199254740993"]']);
   assert.equal(selected.code,0,selected.stderr);assert.equal(JSON.parse(selected.stdout).selected,2);
   const selection=await run(['--config',config,'selection','--layer','layer-1']);assert.equal(selection.code,0,selection.stderr);
