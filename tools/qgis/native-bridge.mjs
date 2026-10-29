@@ -10,13 +10,13 @@ import {normalizeFile} from './normalize.mjs';
 import {startNativeQgis} from './native-start.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
-const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | schema --layer ID | select --layer ID --fids JSON | selection --layer ID | clear-selection --layer ID | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
+const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | schema --layer ID | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
 export async function runNativeBridge(args,{signal}={}){
   signal?.throwIfAborted();
-  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},fids:{type:'string'}}});
+  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},fids:{type:'string'},expression:{type:'string'}}});
   const [command,...rest]=positionals;
   if(command==='normalize'){
-    if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.fids!==undefined)throw Error(usage);
+    if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.fids!==undefined||values.expression!==undefined)throw Error(usage);
     return normalizeFile(rest[0],values.output);
   }
   if(!['start','status','project','layers','schema','select','selection','clear-selection','open','export'].includes(command))throw Error(usage);
@@ -24,7 +24,8 @@ export async function runNativeBridge(args,{signal}={}){
     (command==='open'&&(rest.length!==1||values.layer||values.output))||
     (command==='schema'&&(rest.length||!values.layer||values.output))||
     (['select','selection','clear-selection'].includes(command)&&(rest.length||!values.layer||values.output))||
-    (command==='select'&&values.fids===undefined)||(command!=='select'&&values.fids!==undefined)||
+    (command==='select'&&((values.fids===undefined)===(values.expression===undefined)))||
+    (command!=='select'&&(values.fids!==undefined||values.expression!==undefined))||
     (command==='export'&&(rest.length||!values.layer||!values.output))||
     (command!=='layers'&&(values.offset!==undefined||values.limit!==undefined)))throw Error(usage);
   let offset=0,limit=50;
@@ -46,6 +47,10 @@ export async function runNativeBridge(args,{signal}={}){
   if(command==='layers')return requestNativeQgis(config,{command:'layers',offset,limit},{signal});
   if(command==='schema')return requestNativeQgis(config,{command:'schema',layer:values.layer},{signal});
   if(command==='select'){
+    if(values.expression!==undefined){
+      if(!values.expression.trim()||values.expression.length>10000)throw Error('A bounded nonempty selection expression is required');
+      return requestNativeQgis(config,{command:'select',layer:values.layer,expression:values.expression},{signal});
+    }
     let fids;try{fids=JSON.parse(values.fids);}catch{throw Error('Feature IDs must be a JSON array of decimal strings');}
     if(!Array.isArray(fids)||fids.length>10000||fids.some(fid=>typeof fid!=='string'||! /^-?(0|[1-9]\d*)$/.test(fid)||BigInt(fid)<-9223372036854775808n||BigInt(fid)>9223372036854775807n))
       throw Error('Feature IDs must be a bounded array of signed 64-bit decimal strings');
