@@ -125,7 +125,8 @@ V diagnostics(const V& points,const std::vector<P>& images,const std::vector<P>&
         {"hardPointCount",V::num(hard.size())},{"softPointCount",V::num(soft.size())},{"imageCoverage",V::num(coverage)}});
     result.object["residuals"]=std::move(residuals);result.object["warnings"]=std::move(warnings);return result;
 }
-V fit(const V& raw,const std::string& requested,bool geographic=true) {
+V fit(const V& raw,const std::string& requested,bool geographic=true,const V& projectionValue=empty) {
+    const auto projection=readMapProjection(projectionValue);
     auto points=normalize(raw,geographic);const auto count=points.array.size();auto mode=requested;
     if(mode!="similarity"&&mode!="affine"&&mode!="projective"&&mode!="tps")mode=geographic&&count>=6?"tps":count>=4?"projective":count>=3?"affine":"similarity";
     const int minimum=mode=="similarity"?2:mode=="projective"?4:3;
@@ -135,7 +136,9 @@ V fit(const V& raw,const std::string& requested,bool geographic=true) {
     for(const auto& p:points.array){images.push_back(*point(get(p,"image")));coordinates.push_back(*point(get(p,"coordinate")));}
     Matrix rows,hard;Row x,y,hx,hy;bool pinnedAny=false;const auto reference=coordinates[0][0];
     for(std::size_t index=0;index<count;++index) {
-        const auto& p=points.array[index];const auto uv=images[index],coordinate=coordinates[index];const auto u=uv[0],v=uv[1],lon=geographic?unwrap(coordinate[0],reference):coordinate[0],lat=coordinate[1];
+        const auto& p=points.array[index];const auto uv=images[index],coordinate=coordinates[index];const auto projected=geographic?forwardMapProjection(projection,coordinate):std::optional<P>{coordinate};
+        if(!projected){result.object["reason"]=V::str("control-outside-projection-domain");return result;}
+        const auto u=uv[0],v=uv[1],lon=geographic&&projection.kind=="geographic"?unwrap(coordinate[0],reference):(*projected)[0],lat=(*projected)[1];
         const bool pinned=yes(get(p,"pinned"));pinnedAny|=pinned;auto& r=pinned?hard:rows;auto& vx=pinned?hx:x;auto& vy=pinned?hy:y;
         if(mode=="similarity") {r.push_back({u,-v,1,0});vx.push_back(lon);r.push_back({v,u,0,1});vx.push_back(lat);}
         else if(mode=="projective") {r.push_back({u,v,1,0,0,0,-lon*u,-lon*v});vx.push_back(lon);r.push_back({0,0,0,u,v,1,-lat*u,-lat*v});vx.push_back(lat);}
@@ -148,13 +151,13 @@ V fit(const V& raw,const std::string& requested,bool geographic=true) {
     }
     const auto a=constrained(rows,x,hard,hx,regularization);const auto b=(mode=="affine"||mode=="tps")?constrained(rows,y,hard,hy,regularization):std::optional<Row>(Row{});
     if(!a||!b){result.object["reason"]=V::str("singular-control-points");return result;}
-    PreparedReferenceWarp prepared;prepared.xCoefficients=*a;prepared.yCoefficients=*b;
+    PreparedReferenceWarp prepared;prepared.projection=projection;prepared.xCoefficients=*a;prepared.yCoefficients=*b;
     // Match the descriptor number boundary, which canonicalizes negative zero.
     for(auto& value:prepared.xCoefficients)if(value==0)value=0;
     for(auto& value:prepared.yCoefficients)if(value==0)value=0;
     prepared.mode=mode=="similarity"?PreparedReferenceWarp::Similarity:mode=="affine"?PreparedReferenceWarp::Affine:mode=="projective"?PreparedReferenceWarp::Projective:PreparedReferenceWarp::ThinPlateSpline;
     if(mode=="tps")prepared.controlPoints=images;
-    result.object["ok"]=V::boolean(true);result.object["schemaVersion"]=V::num(2);
+    result.object["ok"]=V::boolean(true);result.object["schemaVersion"]=V::num(3);result.object["projection"]=writeMapProjection(projection);
     result.object["xCoefficients"]=array(*a);result.object["yCoefficients"]=array(*b);
     result.object["diagnostics"]=diagnostics(points,images,coordinates,prepared);
     result.object["controlPoints"]=std::move(points);return result;
@@ -200,14 +203,14 @@ V calibrationWarp(const V& record) {
     const bool hasEnabledConstraints=std::any_of(constraints.array.begin(),constraints.array.end(),[](const V& item){
         return get(item,"enabled").kind!=V::Bool||yes(get(item,"enabled"));
     });
-    if(!points.array.empty()&&hasEnabledConstraints) {const auto base=fit(points,mode);if(yes(get(base,"ok")))lines=linearPoints(constraints,base);}
+    if(!points.array.empty()&&hasEnabledConstraints) {const auto base=fit(points,mode,true,get(record,"projection"));if(yes(get(base,"ok")))lines=linearPoints(constraints,base);}
     points.array.insert(points.array.end(),lines.array.begin(),lines.array.end());V result;
     if(yes(get(record,"cornerPinEnabled"))&&!points.array.empty()) {
         const auto& mapQuad=get(record,"mapQuad");if(mapQuad.kind!=V::Array||mapQuad.array.size()!=4)return obj({{"ok",V::boolean(false)},{"mode",V::str("tps")},{"minimumPoints",V::num(3)},{"pointCount",V::num(points.array.size())},{"reason",V::str("invalid-corner-pin-quad")}});
         auto corners=V::arr();const P uv[]={{0,0},{1,0},{1,1},{0,1}};
         for(int i=0;i<4;++i)corners.array.push_back(obj({{"id",V::str("corner-pin-"+std::to_string(i))},{"image",pair(uv[i])},{"coordinate",mapQuad.array[i]},{"pinned",V::boolean(true)}}));
-        corners.array.insert(corners.array.end(),points.array.begin(),points.array.end());result=fit(corners,"tps");
-    }else result=fit(points,lines.array.empty()?mode:"tps");
+        corners.array.insert(corners.array.end(),points.array.begin(),points.array.end());result=fit(corners,"tps",true,get(record,"projection"));
+    }else result=fit(points,lines.array.empty()?mode:"tps",true,get(record,"projection"));
     if(yes(get(result,"ok"))&&!lines.array.empty()){std::set<std::string> ids;for(const auto& p:lines.array)ids.insert(text(get(p,"linearConstraintId")));auto& d=result.object["diagnostics"];d.object["linearConstraintCount"]=V::num(ids.size());d.object["linearConstraintPointCount"]=V::num(lines.array.size());}return result;
 }
 V mesh(const V& warp,double columns=24,double rows=16) {
@@ -271,7 +274,7 @@ Score score(const V& warp,const V& candidates,double threshold){
 }
 bool better(const Score& candidate,const Score& current){if(candidate.inliers.array.size()!=current.inliers.array.size())return candidate.inliers.array.size()>current.inliers.array.size();if(std::abs(candidate.confidence-current.confidence)>1e-12)return candidate.confidence>current.confidence;if(std::abs(candidate.rms-current.rms)>1e-9)return candidate.rms<current.rms;return candidate.coverage>current.coverage;}
 V concat(V a,const V& b){a.array.insert(a.array.end(),b.array.begin(),b.array.end());return a;}
-V crossValidate(const std::string& mode,const V& candidates,const V& hard){const auto count=candidates.array.size();if(count<2||count-1+hard.array.size()<std::size_t(modeMinimum(mode)))return {};Row errors;for(std::size_t i=0;i<count;++i){auto training=hard;for(std::size_t j=0;j<count;++j)if(j!=i)training.array.push_back(candidates.array[j]);const auto warp=fit(training,mode);if(!yes(get(warp,"ok")))return {};const auto meters=residual(warp,candidates.array[i]);if(!std::isfinite(meters))return {};errors.push_back(meters);}double squared=0;for(auto x:errors)squared+=x*x;std::sort(errors.begin(),errors.end());const auto middle=count/2;return obj({{"mode",V::str(mode)},{"count",V::num(count)},{"rmsMeters",V::num(std::sqrt(squared/count))},{"medianMeters",V::num(count%2?errors[middle]:(errors[middle-1]+errors[middle])/2)},{"maxMeters",V::num(errors.back())}});}
+V crossValidate(const std::string& mode,const V& candidates,const V& hard,const V& projection){const auto count=candidates.array.size();if(count<2||count-1+hard.array.size()<std::size_t(modeMinimum(mode)))return {};Row errors;for(std::size_t i=0;i<count;++i){auto training=hard;for(std::size_t j=0;j<count;++j)if(j!=i)training.array.push_back(candidates.array[j]);const auto warp=fit(training,mode,true,projection);if(!yes(get(warp,"ok")))return {};const auto meters=residual(warp,candidates.array[i]);if(!std::isfinite(meters))return {};errors.push_back(meters);}double squared=0;for(auto x:errors)squared+=x*x;std::sort(errors.begin(),errors.end());const auto middle=count/2;return obj({{"mode",V::str(mode)},{"count",V::num(count)},{"rmsMeters",V::num(std::sqrt(squared/count))},{"medianMeters",V::num(count%2?errors[middle]:(errors[middle-1]+errors[middle])/2)},{"maxMeters",V::num(errors.back())}});}
 V autoGeoref(const V& input){
     auto candidates=V::arr();std::set<std::string> ids;
     for(std::size_t i=0;i<get(input,"points").array.size();++i){const auto& raw=get(input,"points").array[i];auto id=text(get(raw,"id"),"auto-gcp-"+std::to_string(i+1));if(id.empty())id="auto-gcp-"+std::to_string(i+1);const auto begin=id.find_first_not_of(" \t\r\n"),end=id.find_last_not_of(" \t\r\n");id=begin==std::string::npos?"auto-gcp-"+std::to_string(i+1):id.substr(begin,end-begin+1);if(id=="anchor"||ids.count(id))continue;auto p=raw;p.object["id"]=V::str(id);p.object["pinned"]=V::boolean(false);auto list=V::arr();list.array.push_back(p);const auto normalized=normalize(list);if(normalized.array.empty())continue;ids.insert(id);p=normalized.array[0];p.object["confidence"]=V::num(std::clamp(field(raw,"confidence",1),0.,1.));p.object["origin"]=get(raw,"origin");candidates.array.push_back(p);}
@@ -284,11 +287,11 @@ V autoGeoref(const V& input){
     const auto minimum=modeMinimum(consensus),sampleCount=std::max(0,minimum-int(hard.array.size()));result.object["mode"]=V::str(consensus);result.object["minimumPoints"]=V::num(minimum);result.object["hardPointCount"]=V::num(hard.array.size());
     if(candidates.array.size()<std::size_t(sampleCount)||count<std::size_t(minimum)){result.object["reason"]=V::str("insufficient-auto-georef-candidates");return result;}
     const auto threshold=std::max(1.,field(input,"inlierThresholdMeters",25000));const auto trialLimit=int(std::clamp(std::floor(field(input,"maxTrials",256)+.5),1.,4096.));const auto required=std::max(minimum,int(std::floor(field(input,"minimumInliers",minimum)+.5)));std::uint32_t random=std::uint32_t(field(input,"seed",0x6d2b79f5));if(!random)random=0x6d2b79f5;std::set<std::string> seen;int trials=0,attempts=0;std::optional<Score> best;
-    while(trials<trialLimit&&attempts<trialLimit*12){++attempts;std::vector<std::size_t> indices(candidates.array.size());std::iota(indices.begin(),indices.end(),0);if(std::size_t(sampleCount)<indices.size())for(int i=0;i<sampleCount;++i){random^=random<<13;random^=random>>17;random^=random<<5;const auto j=i+std::size_t((double(random)/4294967296.)*(indices.size()-i));std::swap(indices[i],indices[j]);}indices.resize(sampleCount);std::sort(indices.begin(),indices.end());auto sample=hard;std::string key;for(auto i:indices){if(!key.empty())key.push_back('\0');key+=text(get(candidates.array[i],"id"));sample.array.push_back(candidates.array[i]);}if(!seen.insert(key).second){if(std::size_t(sampleCount)>=candidates.array.size())break;continue;}++trials;const auto warp=fit(sample,consensus);if(!yes(get(warp,"ok")))continue;const auto current=score(warp,candidates,threshold);if(current.inliers.array.size()+hard.array.size()<std::size_t(required))continue;if(!best||better(current,*best))best=current;if(current.inliers.array.size()==candidates.array.size())break;}
+    while(trials<trialLimit&&attempts<trialLimit*12){++attempts;std::vector<std::size_t> indices(candidates.array.size());std::iota(indices.begin(),indices.end(),0);if(std::size_t(sampleCount)<indices.size())for(int i=0;i<sampleCount;++i){random^=random<<13;random^=random>>17;random^=random<<5;const auto j=i+std::size_t((double(random)/4294967296.)*(indices.size()-i));std::swap(indices[i],indices[j]);}indices.resize(sampleCount);std::sort(indices.begin(),indices.end());auto sample=hard;std::string key;for(auto i:indices){if(!key.empty())key.push_back('\0');key+=text(get(candidates.array[i],"id"));sample.array.push_back(candidates.array[i]);}if(!seen.insert(key).second){if(std::size_t(sampleCount)>=candidates.array.size())break;continue;}++trials;const auto warp=fit(sample,consensus,true,get(input,"projection"));if(!yes(get(warp,"ok")))continue;const auto current=score(warp,candidates,threshold);if(current.inliers.array.size()+hard.array.size()<std::size_t(required))continue;if(!best||better(current,*best))best=current;if(current.inliers.array.size()==candidates.array.size())break;}
     result.object["trials"]=V::num(trials);result.object["thresholdMeters"]=V::num(threshold);if(!best){result.object["reason"]=V::str("no-auto-georef-consensus");return result;}
     auto accepted=best->inliers;auto mode=consensus;auto validations=V::arr();
-    if(requested=="auto"&&accepted.array.size()>=5){double bestRms=INFINITY;for(const auto& candidateMode:{"similarity","affine","projective"}){const auto validation=crossValidate(candidateMode,accepted,hard);if(validation.kind==V::Null)continue;validations.array.push_back(validation);const auto rms=field(validation,"rmsMeters",INFINITY);if(validations.array.size()==1||rms<bestRms*.99){mode=candidateMode;bestRms=rms;}}}
-    V warp;for(int refinement=0;refinement<3;++refinement){warp=fit(concat(hard,accepted),mode);if(!yes(get(warp,"ok")))break;const auto refined=score(warp,candidates,threshold).inliers;if(refined.array.size()+hard.array.size()<std::size_t(required))break;bool same=refined.array.size()==accepted.array.size();if(same)for(std::size_t i=0;i<refined.array.size();++i)if(text(get(refined.array[i],"id"))!=text(get(accepted.array[i],"id")))same=false;accepted=refined;if(same)break;}
+    if(requested=="auto"&&accepted.array.size()>=5){double bestRms=INFINITY;for(const auto& candidateMode:{"similarity","affine","projective"}){const auto validation=crossValidate(candidateMode,accepted,hard,get(input,"projection"));if(validation.kind==V::Null)continue;validations.array.push_back(validation);const auto rms=field(validation,"rmsMeters",INFINITY);if(validations.array.size()==1||rms<bestRms*.99){mode=candidateMode;bestRms=rms;}}}
+    V warp;for(int refinement=0;refinement<3;++refinement){warp=fit(concat(hard,accepted),mode,true,get(input,"projection"));if(!yes(get(warp,"ok")))break;const auto refined=score(warp,candidates,threshold).inliers;if(refined.array.size()+hard.array.size()<std::size_t(required))break;bool same=refined.array.size()==accepted.array.size();if(same)for(std::size_t i=0;i<refined.array.size();++i)if(text(get(refined.array[i],"id"))!=text(get(accepted.array[i],"id")))same=false;accepted=refined;if(same)break;}
     result.object["mode"]=V::str(mode);result.object["minimumPoints"]=V::num(modeMinimum(mode));if(!yes(get(warp,"ok"))){result.object["reason"]=V::str(text(get(warp,"reason"),"auto-georef-refit-failed"));return result;}
     std::set<std::string> acceptedIds;for(const auto& p:accepted.array)acceptedIds.insert(text(get(p,"id")));auto matches=V::arr(),inlierIds=V::arr(),rejectedIds=V::arr();for(const auto& candidate:candidates.array){const auto meters=residual(warp,candidate);const bool inlier=acceptedIds.count(text(get(candidate,"id")))&&meters<=threshold;auto match=candidate;match.object.erase("pinned");match.object["residualMeters"]=std::isfinite(meters)?V::num(meters):V{};match.object["inlier"]=V::boolean(inlier);matches.array.push_back(match);(inlier?inlierIds:rejectedIds).array.push_back(get(candidate,"id"));}
     auto d=get(warp,"diagnostics");d.object["ransacTrials"]=V::num(trials);d.object["ransacThresholdMeters"]=V::num(threshold);d.object["candidateCount"]=V::num(candidates.array.size());d.object["inlierCount"]=V::num(inlierIds.array.size());d.object["rejectedCount"]=V::num(rejectedIds.array.size());d.object["modelSelection"]=obj({{"consensusMode",V::str(consensus)},{"selectedMode",V::str(mode)},{"validations",validations}});
@@ -297,7 +300,7 @@ V autoGeoref(const V& input){
 }
 
 PreparedReferenceWarp prepareReferenceImageWarp(const V& value) {
-    PreparedReferenceWarp warp;if(!yes(get(value,"ok")))return warp;
+    PreparedReferenceWarp warp;if(!yes(get(value,"ok")))return warp;warp.projection=readMapProjection(get(value,"projection"));
     warp.restrictToImage=yes(get(value,"restrictToImage"));
     warp.flipX=yes(get(value,"flipX"));warp.flipY=yes(get(value,"flipY"));
     const auto mode=text(get(value,"mode"));
@@ -327,7 +330,7 @@ std::optional<ReferencePoint> projectReferenceImageWarp(const PreparedReferenceW
         for(const auto r:{1.,uv[0],uv[1]}){p[0]+=a[i]*r;p[1]+=b[i]*r;++i;}
     } else return {};
     if(!std::isfinite(p[0])||!std::isfinite(p[1]))return {};
-    return geographic?P{wrap(p[0]),std::clamp(p[1],-90.,90.)}:p;
+    return geographic?inverseMapProjection(warp.projection,p):std::optional<P>{p};
 }
 ReferenceWarpMesh buildReferenceImageMesh(const PreparedReferenceWarp& warp,double columns,double rows) {
     ReferenceWarpMesh result;if(warp.mode==PreparedReferenceWarp::Invalid)return result;
@@ -351,6 +354,15 @@ std::optional<ReferencePoint> projectReferenceImageWarp(const V& warp,ReferenceP
     return project(warp,point,geographic);
 }
 codecjson::Value referenceImageOperation(const std::string& operation,const V& input,const ReferenceProjection& host) {
+    if(operation=="normalizeProjection")return writeMapProjection(readMapProjection(input));
+    if(operation=="projectionForward"||operation=="projectionInverse") {
+        const auto projection=readMapProjection(get(input,"projection"));auto coordinates=V::arr();
+        for(const auto& value:get(input,"points").array) {
+            const auto p=point(value);const auto result=p?(operation=="projectionForward"?forwardMapProjection(projection,*p):inverseMapProjection(projection,*p)):std::nullopt;
+            coordinates.array.push_back(result?pair(*result):V{});
+        }
+        return obj({{"projection",writeMapProjection(projection)},{"coordinates",coordinates}});
+    }
     if(operation=="editBoundaryGraph")return editReferenceBoundaryGraph(get(input,"graph"),get(input,"command"));
     if(operation=="projectBoundaryGraph"){
         const auto& graph=get(input,"graph");const auto& warp=get(input,"warp");
@@ -415,7 +427,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
                 throw std::invalid_argument("Invalid georeference validation domain.");
         }
         const auto mode=text(get(input,"mode"),"affine");
-        const auto warp=fit(points,mode);
+        const auto warp=fit(points,mode,true,get(input,"projection"));
         auto out=obj({{"ok",V::boolean(yes(get(warp,"ok")))},{"recommended",V::boolean(false)},
             {"folded",V::boolean(false)},{"imageCoverage",V::num(0)},{"crossValidationP95Pixels",V{}},
             {"reason",V::str("insufficient-distributed-controls")}});
@@ -430,7 +442,8 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         const auto inverse=[](const V& descriptor,P coordinate)->std::optional<P> {
             const auto prepared=prepareReferenceImageWarp(descriptor);P uv{.5,.5};
             auto initial=projectReferenceImageWarp(prepared,uv,false);if(!initial)return {};
-            coordinate[0]=unwrap(coordinate[0],(*initial)[0]);
+            if(prepared.projection.kind=="geographic")coordinate[0]=unwrap(coordinate[0],(*initial)[0]);
+            else {const auto projected=forwardMapProjection(prepared.projection,coordinate);if(!projected)return {};coordinate=*projected;}
             for(int iteration=0;iteration<24;++iteration) {
                 const auto p=projectReferenceImageWarp(prepared,uv,false);
                 const auto x=projectReferenceImageWarp(prepared,{uv[0]+1e-5,uv[1]},false);
@@ -474,7 +487,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         for(std::size_t i=0;i<points.array.size();++i){
             if(yes(get(points.array[i],"pinned")))continue;
             auto training=V::arr();for(std::size_t j=0;j<points.array.size();++j)if(i!=j)training.array.push_back(points.array[j]);
-            const auto check=fit(training,mode);if(!yes(get(check,"ok")))continue;
+            const auto check=fit(training,mode,true,get(input,"projection"));if(!yes(get(check,"ok")))continue;
             const auto uv=inverse(check,*point(get(points.array[i],"coordinate")));if(!uv)continue;
             const auto actual=*point(get(points.array[i],"image"));
             errors.push_back(std::hypot(((*uv)[0]-actual[0])*(width-1),((*uv)[1]-actual[1])*(height-1)));
@@ -488,7 +501,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
     }
     if(operation=="normalize")return normalize(input);
     if(operation=="autoGeoref")return autoGeoref(input);
-    if(operation=="warp")return fit(get(input,"points"),text(get(input,"mode"),"auto"));
+    if(operation=="warp")return fit(get(input,"points"),text(get(input,"mode"),"auto"),true,get(input,"projection"));
     if(operation=="warpRaw")return fit(get(input,"points"),text(get(input,"mode"),"auto"),false);
     if(operation=="project") {const auto uv=point(get(input,"point"));const auto p=uv?project(get(input,"warp"),*uv):std::nullopt;return p?pair(*p):V{};}
     if(operation=="projectRaw") {const auto uv=point(get(input,"point"));const auto p=uv?project(get(input,"warp"),*uv,false):std::nullopt;return p?pair(*p):V{};}
