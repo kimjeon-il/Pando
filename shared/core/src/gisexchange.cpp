@@ -3,11 +3,56 @@
 #include <pandoeditor/geometrypredicates.h>
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <limits>
 #include <set>
 #include <stdexcept>
 
 namespace pandoeditor {
+bool gisTerritorialAreaDecision(GisTerritorialAreaUse use,double area,double first,double second) {
+    const auto jsMax=[](double a,double b){return std::isnan(a)||std::isnan(b)?std::numeric_limits<double>::quiet_NaN():std::max(a,b);};
+    if(use==GisTerritorialAreaUse::InputOverlap) {
+        const auto smaller=std::isnan(first)||std::isnan(second)?std::numeric_limits<double>::quiet_NaN():std::min(first,second);
+        return area>jsMax(0.000001,jsMax(1.,smaller)*1e-9);
+    }
+    const auto threshold=jsMax(0.000001,first*1e-10);
+    return use==GisTerritorialAreaUse::CountryOverlap?!(area<=threshold):area<=threshold;
+}
+std::vector<int> resolveGisCountryNames(const std::vector<GisCountryName>& countries,
+    const std::vector<std::u16string>& queries) {
+    struct Match { std::u16string id;int index=-1;bool ambiguous=false; };
+    std::map<std::u16string,Match> lookup;
+    for(std::size_t index=0;index<countries.size();++index) {
+        const auto& country=countries[index];if(country.id.empty())continue;
+        for(const auto* key:{&country.normalizedId,&country.normalizedName}) {
+            if(key->empty())continue;
+            auto [found,inserted]=lookup.emplace(*key,Match{country.id,int(index),false});
+            if(!inserted&&found->second.id!=country.id)found->second.ambiguous=true;
+        }
+    }
+    std::vector<int> result;result.reserve(queries.size());
+    for(const auto& query:queries){const auto found=lookup.find(query);
+        result.push_back(query.empty()||found==lookup.end()||found->second.ambiguous?-1:found->second.index);}
+    return result;
+}
+GisCountryAssignmentPlan planGisCountryAssignments(const std::vector<GisCountryName>& countries,
+    const std::u16string& fallback,const std::vector<std::u16string>& fields,const std::vector<bool>& hasField) {
+    if(fields.size()!=hasField.size())throw std::invalid_argument("INVALID_GIS_COUNTRY_NAMES: assignment arrays");
+    std::vector<std::u16string> queries;queries.reserve(fields.size()+1);queries.push_back(fallback);
+    queries.insert(queries.end(),fields.begin(),fields.end());const auto matches=resolveGisCountryNames(countries,queries);
+    GisCountryAssignmentPlan result;result.assignments.reserve(fields.size());
+    std::map<std::u16string,std::size_t> groupIndexes;
+    for(std::size_t i=0;i<fields.size();++i) {
+        const auto index=hasField[i]?matches[i+1]:matches.front();
+        result.assignments.push_back({index,!hasField[i]&&index>=0,hasField[i]&&index<0});
+        if(index>=0) {
+            const auto [position,inserted]=groupIndexes.emplace(countries[std::size_t(index)].id,result.groups.size());
+            if(inserted)result.groups.push_back({index,{}});
+            result.groups[position->second].features.push_back(i);
+        }
+    }
+    return result;
+}
 namespace {
 std::string trim(const std::string& raw) {
     const auto start=raw.find_first_not_of(" \t\r\n"),end=raw.find_last_not_of(" \t\r\n");
