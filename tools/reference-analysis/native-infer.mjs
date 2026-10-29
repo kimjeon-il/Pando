@@ -32,8 +32,8 @@ export async function nativeReferenceInfer({weights,tile,overview,position,outpu
   const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-infer',executable:'pando-reference-infer.exe',sourceFiles:referenceSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,manifest);
   const data=await new Promise((ok,fail)=>execFile(binary,[device,resolve(weights),resolve(tile),resolve(overview),resolve(position)],{
-    encoding:'buffer',windowsHide:true,maxBuffer:8*1024**2,signal,env:{...process.env,PATH:library+delimiter+process.env.PATH},
-  },(error,stdout,stderr)=>error?fail(new Error('Native reference inference failed: '+stderr.toString(),{cause:error})):ok(stdout)));
+    encoding:'buffer',windowsHide:true,maxBuffer:8*1024**2,timeout:180000,signal,env:{...process.env,PATH:library+delimiter+process.env.PATH},
+  },(error,stdout,stderr)=>error?fail(new Error('Native reference inference failed: '+error.message+' '+stderr.toString(),{cause:error})):ok(stdout)));
   signal?.throwIfAborted();
   if(data.length!==7*512*512*4)throw Error('Native reference output has an incorrect byte length');
   writeFileSync(resolve(output),data,{flag:'wx'});return {bytes:data.length,shape:[1,7,512,512],device,toolRevision:manifest.revision};
