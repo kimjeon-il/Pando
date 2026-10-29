@@ -287,7 +287,7 @@ class Bridge final:public QObject,public QgisPlugin {
             }
             if(command==QStringLiteral("set-geometry")){
                 if(feature.geometry().isNull())throw QStringLiteral("The existing feature must have geometry");
-                const auto geometry=geographicGeometry(layer,request.value(QStringLiteral("wkt")),feature.geometry().type());
+                auto geometry=geographicGeometry(layer,request.value(QStringLiteral("wkt")),feature.geometry().type());
                 layer->beginEditCommand(QStringLiteral("Pando geometry edit"));
                 if(!layer->changeGeometry(fid,geometry,true)){layer->destroyEditCommand();throw QStringLiteral("QGIS geometry change failed");}
                 layer->endEditCommand();layer->updateExtents();layer->triggerRepaint();return {{QStringLiteral("updated"),true}};
