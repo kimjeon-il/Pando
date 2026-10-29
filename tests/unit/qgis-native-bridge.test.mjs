@@ -46,6 +46,9 @@ async function fixture(t){
         assert.equal(request.wkt,'POINT (127 37)');result={updated:true};}
       else if(request.command==='delete-feature'){
         assert.equal(request.layer,'layer-1');assert.equal(request.fid,'-1');result={deleted:true};}
+      else if(request.command==='add-feature'){
+        assert.equal(request.layer,'layer-1');assert.equal(request.wkt,'POINT (127 37)');
+        assert.equal(request.json,'{"name":"new","source":{"sequence":9007199254740993}}');result={fid:'-2'};}
       else if(request.command==='open'){assert.equal(request.path,input);result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};}
       else if(request.command==='export'){
         assert.equal(request.layer,'layer-1');writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',
@@ -96,6 +99,8 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   assert.equal(deleted.code,0,deleted.stderr);assert.equal(JSON.parse(deleted.stdout).deleted,true);
   const invalidDelete=await run(['--config',config,'delete-feature','--layer','layer-1','--fid=9223372036854775808']);
   assert.notEqual(invalidDelete.code,0);
+  const added=await run(['--config',config,'add-feature','--layer','layer-1','--wkt','POINT (127 37)','--json','{"name":"new","source":{"sequence":9007199254740993}}']);
+  assert.equal(added.code,0,added.stderr);assert.equal(JSON.parse(added.stdout).fid,'-2');
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);
   assert.equal(JSON.parse(opened.stdout).id,'layer-1');
   const output=join(root,'output.geojson');const exported=await run(['--config',config,'export','--layer','layer-1','--output',output]);

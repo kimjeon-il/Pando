@@ -107,6 +107,55 @@ QVariant exactJsonValue(const pandoeditor::codecjson::Value& value){
     }
     throw QStringLiteral("Unsupported JSON attribute");
 }
+QVariant attributeValue(const QgsField& field,const pandoeditor::codecjson::Value& parsed,const QString& json){
+    auto value=exactJsonValue(parsed);const auto kind=field.type();
+    const bool jsonText=kind==QVariant::String&&(field.typeName().compare(QStringLiteral("json"),Qt::CaseInsensitive)==0||field.typeName().compare(QStringLiteral("jsonb"),Qt::CaseInsensitive)==0)&&
+        (parsed.kind==pandoeditor::codecjson::Value::Object||parsed.kind==pandoeditor::codecjson::Value::Array);
+    const bool accepted=parsed.kind==pandoeditor::codecjson::Value::Null||
+        (parsed.kind==pandoeditor::codecjson::Value::String&&kind==QVariant::String)||
+        (parsed.kind==pandoeditor::codecjson::Value::Bool&&kind==QVariant::Bool)||
+        (parsed.kind==pandoeditor::codecjson::Value::Number&&field.isNumeric())||
+        (parsed.kind==pandoeditor::codecjson::Value::Object&&kind==QVariant::Map)||
+        (parsed.kind==pandoeditor::codecjson::Value::Array&&(kind==QVariant::List||kind==QVariant::StringList))||jsonText;
+    if(!accepted)throw QStringLiteral("JSON value type does not match the QGIS field");
+    if(parsed.kind==pandoeditor::codecjson::Value::Array&&kind==QVariant::StringList&&
+        std::any_of(parsed.array.begin(),parsed.array.end(),[](const auto& item){return item.kind!=pandoeditor::codecjson::Value::String;}))
+        throw QStringLiteral("A string-list field requires only JSON strings");
+    if(parsed.kind==pandoeditor::codecjson::Value::Number&&value.type()==QVariant::Double&&kind!=QVariant::Double)
+        throw QStringLiteral("Fractional value cannot be assigned to an integer field");
+    if(parsed.kind==pandoeditor::codecjson::Value::Number&&value.type()!=QVariant::Double&&kind!=QVariant::Double){
+        const bool isUnsigned=value.type()==QVariant::ULongLong;
+        const auto unsignedValue=value.toULongLong();const auto signedValue=value.toLongLong();
+        if((kind==QVariant::Int&&((isUnsigned&&unsignedValue>static_cast<qulonglong>((std::numeric_limits<int>::max)()))||
+            (!isUnsigned&&(signedValue<(std::numeric_limits<int>::min)()||signedValue>(std::numeric_limits<int>::max)()))))||
+            (kind==QVariant::UInt&&((!isUnsigned&&signedValue<0)||unsignedValue>(std::numeric_limits<unsigned int>::max)()))||
+            (kind==QVariant::LongLong&&isUnsigned&&unsignedValue>static_cast<qulonglong>((std::numeric_limits<qlonglong>::max)()))||
+            (kind==QVariant::ULongLong&&!isUnsigned&&signedValue<0))throw QStringLiteral("Integer exceeds the QGIS field range");
+    }
+    if(parsed.kind==pandoeditor::codecjson::Value::Number&&kind==QVariant::Double&&value.type()!=QVariant::Double&&
+        (value.toDouble()>9007199254740991.0||value.toDouble()<-9007199254740991.0))throw QStringLiteral("Integer exceeds exact floating-point range");
+    if(jsonText)value=json;
+    QString conversionError;if(!jsonText&&!field.convertCompatible(value,&conversionError))throw QStringLiteral("Invalid QGIS field value: ")+conversionError;
+    return value;
+}
+QgsGeometry geographicGeometry(QgsVectorLayer* layer,const QJsonValue& wkt,Qgis::GeometryType expected){
+    if(!wkt.isString()||wkt.toString().isEmpty()||wkt.toString().size()>500000||!layer->crs().isValid())
+        throw QStringLiteral("Bounded EPSG:4326 WKT and a valid layer CRS are required");
+    auto geometry=QgsGeometry::fromWkt(wkt.toString());
+    if(geometry.isNull()||geometry.isEmpty()||!geometry.isGeosValid()||QgsWkbTypes::hasZ(geometry.wkbType())||QgsWkbTypes::hasM(geometry.wkbType())||geometry.type()!=expected)
+        throw QStringLiteral("A valid two-dimensional geometry of the layer type is required");
+    const auto bounds=geometry.boundingBox();
+    if(!std::isfinite(bounds.xMinimum())||!std::isfinite(bounds.xMaximum())||!std::isfinite(bounds.yMinimum())||!std::isfinite(bounds.yMaximum())||
+        bounds.xMinimum()<-180||bounds.xMaximum()>180||bounds.yMinimum()<-90||bounds.yMaximum()>90)throw QStringLiteral("Geometry coordinates must be geographic longitude and latitude");
+    const QgsCoordinateReferenceSystem geographic(QStringLiteral("EPSG:4326"));
+    if(layer->crs()!=geographic){
+        QgsCoordinateTransform transform(geographic,layer->crs(),QgsProject::instance());
+        transform.setAllowFallbackTransforms(false);transform.setBallparkTransformsAreAppropriate(false);
+        if(!transform.isValid()||geometry.transform(transform)!=Qgis::GeometryOperationResult::Success||transform.fallbackOperationOccurred()||geometry.isEmpty()||!geometry.isGeosValid())
+            throw QStringLiteral("Unable to transform geometry to the layer CRS");
+    }
+    return geometry;
+}
 class Bridge final:public QObject,public QgisPlugin {
     QTcpServer server_;QByteArray token_;int active_=0;
     QHash<QString,QPointer<QgsVectorLayer>> editSessions_;
@@ -180,7 +229,7 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("features"),page},{QStringLiteral("hasMore"),hasMore},{QStringLiteral("crs"),layer->crs().authid()},
                 {QStringLiteral("totalFeatures"),QString::number(layer->featureCount())},{QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit}};
         }
-        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")||command==QStringLiteral("delete-feature")){
+        if(command==QStringLiteral("begin-edit")||command==QStringLiteral("commit-edit")||command==QStringLiteral("rollback-edit")||command==QStringLiteral("undo-edit")||command==QStringLiteral("redo-edit")||command==QStringLiteral("set-attribute")||command==QStringLiteral("set-geometry")||command==QStringLiteral("delete-feature")||command==QStringLiteral("add-feature")){
             const auto id=request.value(QStringLiteral("layer")).toString();
             auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
             if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
@@ -209,6 +258,22 @@ class Bridge final:public QObject,public QgisPlugin {
                 if(!layer->rollBack())throw QStringLiteral("QGIS rollback failed");
                 editSessions_.remove(id);return {{QStringLiteral("ok"),true}};
             }
+            if(command==QStringLiteral("add-feature")){
+                const auto json=request.value(QStringLiteral("json"));
+                if(!json.isString()||json.toString().isEmpty()||json.toString().size()>500000)throw QStringLiteral("Bounded JSON attributes are required");
+                const auto parsed=pandoeditor::codecjson::parse(json.toString().toUtf8().toStdString());
+                if(parsed.kind!=pandoeditor::codecjson::Value::Object)throw QStringLiteral("Feature attributes must be a JSON object");
+                QgsFeature feature(layer->fields());feature.setGeometry(geographicGeometry(layer,request.value(QStringLiteral("wkt")),layer->geometryType()));
+                for(const auto& entry:parsed.object){
+                    const auto name=QString::fromUtf8(entry.first.data(),static_cast<int>(entry.first.size()));
+                    if(name.toUtf8().toStdString()!=entry.first)throw QStringLiteral("Attribute contains an invalid Unicode key");
+                    const auto index=layer->fields().indexOf(name);if(index<0)throw QStringLiteral("An existing field is required");
+                    feature.setAttribute(index,attributeValue(layer->fields().at(index),entry.second,QString::fromUtf8(entry.second.encode().c_str())));
+                }
+                layer->beginEditCommand(QStringLiteral("Pando feature addition"));
+                if(!layer->addFeature(feature)){layer->destroyEditCommand();throw QStringLiteral("QGIS feature addition failed");}
+                layer->endEditCommand();layer->updateExtents();layer->triggerRepaint();return {{QStringLiteral("fid"),QString::number(feature.id())}};
+            }
             const auto fidValue=request.value(QStringLiteral("fid"));
             static const QRegularExpression integer(QStringLiteral("^-?(0|[1-9][0-9]*)$"));
             const auto text=fidValue.toString();bool valid=false;const auto fid=text.toLongLong(&valid);
@@ -221,22 +286,8 @@ class Bridge final:public QObject,public QgisPlugin {
                 layer->endEditCommand();layer->updateExtents();layer->triggerRepaint();return {{QStringLiteral("deleted"),true}};
             }
             if(command==QStringLiteral("set-geometry")){
-                const auto wkt=request.value(QStringLiteral("wkt"));
-                if(!wkt.isString()||wkt.toString().isEmpty()||wkt.toString().size()>500000||!layer->crs().isValid())
-                    throw QStringLiteral("Bounded EPSG:4326 WKT and a valid layer CRS are required");
-                auto geometry=QgsGeometry::fromWkt(wkt.toString());
-                if(geometry.isNull()||geometry.isEmpty()||!geometry.isGeosValid()||QgsWkbTypes::hasZ(geometry.wkbType())||QgsWkbTypes::hasM(geometry.wkbType())||
-                    feature.geometry().isNull()||geometry.type()!=feature.geometry().type())throw QStringLiteral("A valid two-dimensional geometry of the existing feature type is required");
-                const auto bounds=geometry.boundingBox();
-                if(!std::isfinite(bounds.xMinimum())||!std::isfinite(bounds.xMaximum())||!std::isfinite(bounds.yMinimum())||!std::isfinite(bounds.yMaximum())||
-                    bounds.xMinimum()<-180||bounds.xMaximum()>180||bounds.yMinimum()<-90||bounds.yMaximum()>90)throw QStringLiteral("Geometry coordinates must be geographic longitude and latitude");
-                const QgsCoordinateReferenceSystem geographic(QStringLiteral("EPSG:4326"));
-                if(layer->crs()!=geographic){
-                    QgsCoordinateTransform transform(geographic,layer->crs(),QgsProject::instance());
-                    transform.setAllowFallbackTransforms(false);transform.setBallparkTransformsAreAppropriate(false);
-                    if(!transform.isValid()||geometry.transform(transform)!=Qgis::GeometryOperationResult::Success||transform.fallbackOperationOccurred()||geometry.isEmpty()||!geometry.isGeosValid())
-                        throw QStringLiteral("Unable to transform geometry to the layer CRS");
-                }
+                if(feature.geometry().isNull())throw QStringLiteral("The existing feature must have geometry");
+                const auto geometry=geographicGeometry(layer,request.value(QStringLiteral("wkt")),feature.geometry().type());
                 layer->beginEditCommand(QStringLiteral("Pando geometry edit"));
                 if(!layer->changeGeometry(fid,geometry,true)){layer->destroyEditCommand();throw QStringLiteral("QGIS geometry change failed");}
                 layer->endEditCommand();layer->updateExtents();layer->triggerRepaint();return {{QStringLiteral("updated"),true}};
@@ -247,35 +298,7 @@ class Bridge final:public QObject,public QgisPlugin {
             const auto index=layer->fields().indexOf(nameValue.toString());
             if(index<0)throw QStringLiteral("An existing field is required");
             const auto parsed=pandoeditor::codecjson::parse(jsonValue.toString().toUtf8().toStdString());
-            auto value=exactJsonValue(parsed);const auto field=layer->fields().at(index);
-            const auto kind=field.type();
-            const bool jsonText=kind==QVariant::String&&(field.typeName().compare(QStringLiteral("json"),Qt::CaseInsensitive)==0||field.typeName().compare(QStringLiteral("jsonb"),Qt::CaseInsensitive)==0)&&
-                (parsed.kind==pandoeditor::codecjson::Value::Object||parsed.kind==pandoeditor::codecjson::Value::Array);
-            const bool accepted=parsed.kind==pandoeditor::codecjson::Value::Null||
-                (parsed.kind==pandoeditor::codecjson::Value::String&&kind==QVariant::String)||
-                (parsed.kind==pandoeditor::codecjson::Value::Bool&&kind==QVariant::Bool)||
-                (parsed.kind==pandoeditor::codecjson::Value::Number&&field.isNumeric())||
-                (parsed.kind==pandoeditor::codecjson::Value::Object&&kind==QVariant::Map)||
-                (parsed.kind==pandoeditor::codecjson::Value::Array&&(kind==QVariant::List||kind==QVariant::StringList))||jsonText;
-            if(!accepted)throw QStringLiteral("JSON value type does not match the QGIS field");
-            if(parsed.kind==pandoeditor::codecjson::Value::Array&&kind==QVariant::StringList&&
-                std::any_of(parsed.array.begin(),parsed.array.end(),[](const auto& item){return item.kind!=pandoeditor::codecjson::Value::String;}))
-                throw QStringLiteral("A string-list field requires only JSON strings");
-            if(parsed.kind==pandoeditor::codecjson::Value::Number&&value.type()==QVariant::Double&&kind!=QVariant::Double)
-                throw QStringLiteral("Fractional value cannot be assigned to an integer field");
-            if(parsed.kind==pandoeditor::codecjson::Value::Number&&value.type()!=QVariant::Double&&kind!=QVariant::Double){
-                const bool isUnsigned=value.type()==QVariant::ULongLong;
-                const auto unsignedValue=value.toULongLong();const auto signedValue=value.toLongLong();
-                if((kind==QVariant::Int&&((isUnsigned&&unsignedValue>static_cast<qulonglong>((std::numeric_limits<int>::max)()))||
-                    (!isUnsigned&&(signedValue<(std::numeric_limits<int>::min)()||signedValue>(std::numeric_limits<int>::max)()))))||
-                    (kind==QVariant::UInt&&((!isUnsigned&&signedValue<0)||unsignedValue>(std::numeric_limits<unsigned int>::max)()))||
-                    (kind==QVariant::LongLong&&isUnsigned&&unsignedValue>static_cast<qulonglong>((std::numeric_limits<qlonglong>::max)()))||
-                    (kind==QVariant::ULongLong&&!isUnsigned&&signedValue<0))throw QStringLiteral("Integer exceeds the QGIS field range");
-            }
-            if(parsed.kind==pandoeditor::codecjson::Value::Number&&kind==QVariant::Double&&value.type()!=QVariant::Double&&
-                (value.toDouble()>9007199254740991.0||value.toDouble()<-9007199254740991.0))throw QStringLiteral("Integer exceeds exact floating-point range");
-            if(jsonText)value=jsonValue.toString();
-            QString conversionError;if(!jsonText&&!field.convertCompatible(value,&conversionError))throw QStringLiteral("Invalid QGIS field value: ")+conversionError;
+            const auto value=attributeValue(layer->fields().at(index),parsed,jsonValue.toString());
             layer->beginEditCommand(QStringLiteral("Pando attribute edit"));
             if(!layer->changeAttributeValue(fid,index,value,feature.attribute(index),true)){
                 layer->destroyEditCommand();throw QStringLiteral("QGIS attribute change failed");

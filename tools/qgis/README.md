@@ -24,6 +24,7 @@ node tools/qgis/native-bridge.mjs begin-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs set-attribute --layer QGIS_LAYER_ID --fid 1 --field name --json '"새 이름"'
 node tools/qgis/native-bridge.mjs set-geometry --layer QGIS_LAYER_ID --fid 1 --wkt 'POINT (127 37)'
 node tools/qgis/native-bridge.mjs delete-feature --layer QGIS_LAYER_ID --fid 1
+node tools/qgis/native-bridge.mjs add-feature --layer QGIS_LAYER_ID --wkt 'POINT (127 37)' --json '{"name":"새 피처"}'
 node tools/qgis/native-bridge.mjs undo-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs redo-edit --layer QGIS_LAYER_ID
 # Choose one ending for the session:
@@ -54,6 +55,9 @@ affects any other edits made to the same QGIS layer in that session. Commit
 writes through the layer's provider, so it can change the underlying source.
 Feature deletion has the same edit-session and undo/rollback boundary; it does
 not write the provider until the session is explicitly committed.
+Feature addition accepts a two-dimensional EPSG:4326 WKT and exact JSON object
+of existing field names and values. It returns the QGIS edit-buffer FID as a
+decimal string; providers may assign a different persistent FID at commit.
 Geometry edits use a valid two-dimensional EPSG:4326 WKT geometry of the
 existing feature's type. QGIS transforms it into the layer's CRS before editing.
 Attribute values are exact JSON text so integers are not rounded in transit;

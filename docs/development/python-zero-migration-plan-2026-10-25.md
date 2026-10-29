@@ -39,6 +39,8 @@
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
+- **검증 대기:** 네이티브 QGIS 피처 추가를 기존 좌표·속성 변환과 편집 세션에 연결했다. CLI/MCP 고정 입력 검사는 통과했으며 소스 일치 Windows 빌드와 실제 QGIS의 추가·Undo/Redo·롤백·투영 레이어 검증은 진행 중이다.
+
 - **QGIS 피처 삭제:** 네이티브 QGIS의 단일 피처 삭제를 브리지 소유 편집 세션과 Undo/Redo·롤백에 연결했다. CLI/MCP 고정 입력 검사 7개와 [Windows CI 40960162516](https://github.com/kimjeon-il/Pando/actions/runs/40960162516)을 통과했고, 소스 일치 바이너리 SHA-256 `7b76777acfe455b361e795502e342c59e09a8accc7bec60051138554284b8013`을 실제 QGIS 한 인스턴스에서 확인했다. 합성 피처 2개에서 세션 없는 삭제와 없는 ID 거부, 삭제·Undo/Redo·롤백과 중첩 출처 보존을 검증했으며 시험 입력 SHA-256 `bec657b708a2dbb377379f78b79d4675d395ca2c0f8d06bb0381b8a7beefb48f`은 그대로였다. 기존 Python 연결은 나머지 기능 전환까지 유지한다.
 
 - 학습 전환 체크포인트: 현재 Python 모델의 BCE·Dice·연결성 손실과 관측되지 않은 채널의 gradient 고정 사례를 C++ LibTorch로 이전했다. MobileNetV3 encoder·overview·position·decoder·7채널 모델의 340개 텐서 이름, Safetensors 로더와 Python이 만든 합성 logits 전체(기준 SHA-256 `ca115f9ebed8308c702b137f10a08129fec30169e9659af47be05c47439dd218`, 최대 오차 0.005 이하)를 [CI 40840912107](https://github.com/kimjeon-il/Pando/actions/runs/40840912107)에서 확인했다. Windows용 LibTorch 2.14 헤더가 C++20을 요구하므로 **선택형 학습 대상에만 C++20을 적용**하고 다른 GIS·앱 대상은 기존 C++17을 유지한다. 비공개 macro-v6 가중치를 optimizer 없는 warm-start로 한 번 추출하고 보존 지도 입력에서 추론 및 제한된 학습·재개를 검증했다. 새 학습 체크포인트의 ONNX 내보내기와 전체 학습 실행 경로는 미완료이며 관련 Python과 원본 모델은 유지한다.
