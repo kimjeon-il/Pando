@@ -47,3 +47,17 @@ test('native QGIS export preserves unexpected scratch and retains both failure c
   const [directory]=readdirSync(root);assert.match(directory,/^\.pando-qgis-/);
   assert.equal(readFileSync(join(root,directory,'unexpected.txt'),'utf8'),'preserve');
 });
+
+test('timed out buffer preserves scratch while QGIS may still write',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-native-buffer-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  let completed;const written=new Promise(resolve=>{completed=resolve;});
+  const server=createServer(socket=>socket.once('data',bytes=>{
+    const request=JSON.parse(bytes.toString().split('\n')[0]);assert.equal(request.command,'buffer');
+    setTimeout(()=>{writeFileSync(request.output,'late output',{flag:'wx'});completed();},100);
+  }));
+  server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>server.close());
+  const config={host:'127.0.0.1',port:server.address().port,token:'test-only-secret'};
+  await assert.rejects(exportNativeQgis(config,{layerId:'layer-1',output:join(root,'out.geojson'),buffer:{distance:50,segments:5}},{timeoutMs:20}),/scratch.*preserved/i);
+  await written;const [directory]=readdirSync(root);assert.match(directory,/^\.pando-qgis-/);
+  assert.equal(readFileSync(join(root,directory,'export.geojson'),'utf8'),'late output');
+});
