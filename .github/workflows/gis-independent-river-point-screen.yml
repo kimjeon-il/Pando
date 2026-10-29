@@ -4,7 +4,11 @@ on:
   push:
     branches: [work/gis]
     paths:
-      - 'tools/gis/verify_independent_river_point_anchors.py'
+      - 'tools/gis/verify-independent-river-point-anchors.mjs'
+      - 'tools/gis/hydro-point-screen-native.mjs'
+      - 'tools/cpp/hydro/point-screen.cpp'
+      - 'tools/cpp/CMakeLists.txt'
+      - 'tests/fixtures/hydro-independent-point-screen-v0132-expected.json'
       - '.github/workflows/gis-independent-river-point-screen.yml'
   workflow_dispatch:
 
@@ -19,23 +23,41 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Mount pinned library hydro data
-        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - uses: actions/setup-python@v5
+      - name: Read the paired data revision
+        id: hydro-data-pin
+        run: node -e "console.log('revision='+require('./config/library-data.json').revision)" >> "$GITHUB_OUTPUT"
+      - name: Fetch only the pinned Hydro bundle
+        uses: actions/checkout@v4
         with:
-          python-version-file: .python-version
-      - name: Install read-only geometric comparison dependencies
-        run: python -m pip install --quiet "shapely>=2,<3" "pyproj>=3,<4"
+          repository: kimjeon-il/PandoLab-library-data
+          ref: ${{ steps.hydro-data-pin.outputs.revision }}
+          path: .pando-hydro-input
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: assets/data/hydro/v0.13.2
+      - name: Build the read-only native point screen
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev ninja-build
+          cmake -S tools/cpp -B build-native/hydro-point-screen -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON
+          cmake --build build-native/hydro-point-screen --target pando-hydro-point-screen
+          node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Decode version-pinned Hydro through production decoder
-        run: node tools/decode-hydro-connectivity.mjs assets/data/hydro/v0.13.2 /tmp/pando-hydro-point-decoded.json
+        run: node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-hydro-point-decoded.json
       - name: Compare independent NLS/Kazakh river name anchors with original Hydro mainstems
         run: |
-          python tools/gis/verify_independent_river_point_anchors.py \
+          node tools/gis/verify-independent-river-point-anchors.mjs \
             --decoded /tmp/pando-hydro-point-decoded.json \
             --output /tmp/pando-independent-river-point-screen.json
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          assert.deepEqual(JSON.parse(readFileSync('/tmp/pando-independent-river-point-screen.json','utf8')),
+            JSON.parse(readFileSync('tests/fixtures/hydro-independent-point-screen-v0132-expected.json','utf8')));
+          JS
       - name: Preserve isolated source evidence
         if: always()
         uses: actions/upload-artifact@v4
