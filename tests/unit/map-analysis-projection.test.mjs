@@ -32,6 +32,17 @@ test('projected affine fit, full-source pixel validation and prepared mesh share
   const mesh=calculate('mesh',{warp,columns:4,rows:4});
   assert.ok(mesh.vertices.every(v=>!v.coordinate||v.coordinate.every(Number.isFinite)));
 });
+
+test('composed inverse returns source UVs through the same C++ projection and warp',()=>{
+  const projection={kind:'lcc',ellipsoid:'GRS80',lon0:-95,lat0:49,lat1:49,lat2:77};
+  const images=[[.1,.1],[.9,.1],[.1,.9],[.9,.9],[.5,.5],[.5,.1]];
+  const coordinates=calculate('projectionInverse',{projection,points:images.map(([u,v])=>[-2500000+5000000*u,4000000-4500000*v])}).coordinates;
+  const warp=calculate('warp',{projection,mode:'affine',points:images.map((image,i)=>({id:'inverse'+i,image,coordinate:coordinates[i]}))});
+  const inverse=calculate('warpInverse',{warp,points:[...coordinates,[0,100]]});
+  for(let i=0;i<images.length;i++)assert.ok(Math.hypot(...inverse.coordinates[i].map((v,j)=>v-images[i][j]))<1e-8);
+  assert.equal(inverse.coordinates.at(-1),null);
+  assert.throws(()=>calculate('warpInverse',{warp:{ok:false},points:[[0,0]]}),/warp|solved/i);
+});
 test('valid controls cannot recommend an image whose outer pixels exceed projection domain',()=>{
   const projection={kind:'aeqd',ellipsoid:'sphere',radius:6371008.8};
   const images=Array.from({length:9},(_,i)=>[.25+(i%3)*.25,.25+Math.floor(i/3)*.25]);
