@@ -4,7 +4,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {verifyNativeTool} from '../../tools/native-tool.mjs';
+import {packageNativeTool,verifyNativeTool} from '../../tools/native-tool.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 function fixture(t){
@@ -32,4 +32,13 @@ test('native tool rejects wrong platform, revision and linked executable',t=>{
   f.manifest.revision='b'.repeat(40);f.save();
   rmSync(join(f.directory,'tool.exe'));mkdirSync(join(f.root,'outside'));symlinkSync(join(f.root,'outside'),join(f.directory,'tool.exe'),process.platform==='win32'?'junction':'dir');
   assert.throws(f.verify,/link|file/i);
+});
+test('tool packaging records source identities and refuses to replace an existing artifact',t=>{
+  const f=fixture(t),destination=join(f.root,'package');
+  const manifest=packageNativeTool({root:f.root,binary:join(f.directory,'tool.exe'),directory:destination,target:'fixture',platform:process.platform,
+    architecture:process.arch,revision:'a'.repeat(40),sourceFiles:['source.cpp'],runtimeVersion:'test-runtime'});
+  assert.equal(manifest.runtimeVersion,'test-runtime');
+  assert.equal(verifyNativeTool({root:f.root,directory:destination,target:'fixture',executable:'tool.exe',sourceFiles:['source.cpp']}).binary,join(destination,'tool.exe'));
+  assert.throws(()=>packageNativeTool({root:f.root,binary:join(f.directory,'tool.exe'),directory:destination,target:'fixture',platform:process.platform,
+    architecture:process.arch,revision:'a'.repeat(40),sourceFiles:['source.cpp']}));
 });
