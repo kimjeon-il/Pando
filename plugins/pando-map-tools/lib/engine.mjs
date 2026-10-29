@@ -62,12 +62,12 @@ export async function recognize(image,languages,signal,progress=()=>{}) {
   finally {rpc.stop('OCR operation ended');await raw.terminate();}
 }
 export async function recognizeInProcess(image,languages,signal,progress) {
-  const rows=[];let orientation={script:'Unknown',clockwiseDegrees:0,confidence:0};
+  const rows=[];let orientation={script:'Unknown',clockwiseDegrees:0,osdClockwiseDegrees:null,confidence:0};
   const small=await resizeRaster(image,[Math.max(2,Math.round(image.width*Math.min(1,1600/Math.max(image.width,image.height)))),Math.max(2,Math.round(image.height*Math.min(1,1600/Math.max(image.width,image.height))))],signal);
   const overview=await pngRaster(small,signal);
   try {
     const result=await withOcrWorker('osd',worker=>worker.detect(overview),signal), data=result.data;
-    orientation={script:data.script || 'Unknown',clockwiseDegrees:data.orientation_degrees || 0,confidence:data.orientation_confidence || 0,scriptConfidence:data.script_confidence || 0};
+    orientation={script:data.script || 'Unknown',clockwiseDegrees:data.orientation_degrees || 0,osdClockwiseDegrees:data.orientation_degrees || 0,confidence:data.orientation_confidence || 0,scriptConfidence:data.script_confidence || 0};
   } catch(error) {
     check(signal);
     if(!/too few|not enough|resolution|osd.*(?:null|undefined)/i.test(error.message)) throw error;
@@ -147,8 +147,10 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     const pointRaster=referenceImagePointRasterFromRgba(image);
     const pixel=([x,y])=>[image.mapping.rect.x+x*(image.mapping.rect.width-1)/(image.width-1),image.mapping.rect.y+y*(image.mapping.rect.height-1)/(image.height-1)];
     const box=b=>{const [x,y]=pixel([b.x,b.y]);return {x,y,width:b.width*(image.mapping.rect.width-1)/(image.width-1),height:b.height*(image.mapping.rect.height-1)/(image.height-1)};};
-    const detections=normalizeReferenceImageOcrBlocks(ocr.rows,{width:image.width,height:image.height,maximumDetections:256})
-      .map(row=>{const symbol=findReferenceImagePointSymbolNearTextBox(pointRaster,row.box,{searchRadiusPx:32,minimumConfidence:.4});
+    const textDetections=normalizeReferenceImageOcrBlocks(ocr.rows,{width:image.width,height:image.height,maximumDetections:256});
+    const textBoxes=textDetections.map(row=>row.box);
+    const detections=textDetections
+      .map(row=>{const symbol=findReferenceImagePointSymbolNearTextBox(pointRaster,row.box,{searchRadiusPx:32,minimumConfidence:.4,textBoxes});
         const originalBox=box({x:row.box[0]*image.width,y:row.box[1]*image.height,width:row.box[2]*image.width,height:row.box[3]*image.height});
         return {...row,image:fullUv(row.image),sourceBox:originalBox,box:[originalBox.x/image.originalWidth,originalBox.y/image.originalHeight,originalBox.width/image.originalWidth,originalBox.height/image.originalHeight],
           symbol:symbol?{...symbol,uv:fullUv(symbol.uv),pixel:pixel(symbol.pixel),expectedPixel:pixel(symbol.expectedPixel)}:null};});
@@ -157,6 +159,8 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     job.grid={...grid,labels:grid.labels.map(v=>({...v,boundingBox:box(v.boundingBox)})),points:grid.points.map(v=>({...v,image:fullUv(v.image)}))};
     const placeRoot=resolve(workspace,'assets/data/places'),placeManifestBytes=await readFile(resolve(placeRoot,'manifest.json')),placeManifest=JSON.parse(placeManifestBytes);
     const store=createPlaceWorkerStore({manifest:placeManifest,fetchBytes:spec=>readFile(resolve(placeRoot,spec.url))});
+    job.diagnostics.push({code:'LIMITED_PLACE_COVERAGE',reason:'The packaged curated city subset is not a complete world gazetteer.',
+      action:'Missing settlements cannot establish a location; inspect source/grid evidence or supply reviewed control points.'});
     const context={signal,throwIfCancelled:()=>check(signal),emitEvent:(_event,data)=>progress(data)};
     job.matching=await resolveReferenceImagePlaceDetections(detections,{search:query=>store.search(query,context),mapDate:date,allowAmbiguous:true,maxDetections:256,maxSearchQueries:1024,maxPlaces:20000});
     const detected=new Map(detections.map(v=>[v.id,v]));

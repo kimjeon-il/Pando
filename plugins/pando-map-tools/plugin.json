@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pando-map-tools",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Analyze map images, refine georeferencing and boundary candidates, export GeoJSON, and train map models.",
   "extensions": {
     "com.openai": {
