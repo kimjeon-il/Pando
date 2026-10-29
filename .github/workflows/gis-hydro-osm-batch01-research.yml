@@ -36,16 +36,16 @@ jobs:
           python tools/gis/verify_osm_hydro_batch01_anchors.py \
             --decoded /tmp/batch01-decoded.json \
             --output /tmp/batch01-independent-stations.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          j=json.loads(Path('/tmp/batch01-independent-stations.json').read_text())
-          expected=['10521208','10526283','20071308','20075401','20282318','20456598','20532766','20540915','20561290','20565620']
-          assert [x['systemId'] for x in j['items']]==expected
-          assert j['osmSourcesNotUsed'] and j['metadataNotModified']
-          assert all(len(x['independentStations'])>=2 for x in j['items'])
-          print('Independent spatial screen of all 10 pending systems succeeded, no name applied')
-          PY
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const j=JSON.parse(readFileSync('/tmp/batch01-independent-stations.json','utf8'));
+          const expected=['10521208','10526283','20071308','20075401','20282318','20456598','20532766','20540915','20561290','20565620'];
+          assert.deepEqual(j.items.map(row=>row.systemId),expected);
+          assert.equal(j.osmSourcesNotUsed,true);assert.equal(j.metadataNotModified,true);
+          assert(j.items.every(row=>row.independentStations.length>=2));
+          console.log('Independent spatial screen of all 10 pending systems succeeded, no name applied');
+          JS
       - name: Probe Finland NLS national INSPIRE river-vector read-only endpoint
         shell: bash
         run: |

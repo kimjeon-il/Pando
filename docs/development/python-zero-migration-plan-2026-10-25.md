@@ -18,6 +18,7 @@
 - Hydro 조사 증거 대조: CI의 USGS 관측점, Natural Earth 검토 후보와 Yarra 벡터 결과를 비교하는 세 인라인 Python을 Node 정책 모듈로 전환했다. 실제 USGS 2개 수계 및 Natural Earth 42개 수계 대조와 실패 사례를 확인했다. Yarra 벡터는 고정 사례만 검사했으며 이번에 정부 API 실자료 대조를 재실행하지 않았다.
 - 저장소 보고서 소유권 검사: CI에서 Git 추적 경로를 확인하던 인라인 Python을 Node 검사로 전환하고 현재 추적 경로에 대해 실행했다. GIS 생성기 구문 검사에는 아직 Python이 필요하다.
 - Hydro 3차 조사 기록: 11개 수계 조사 결과의 범위·비승인 상태 검사와 관측점 25개 단위 영수증 출력을 Node 정책 모듈로 옮겼다. 점간 GIS 계산 Python과 정부 API 실자료 조사는 후속 전환 대상이다.
+- Hydro 1·2차 조사 결과의 수계 범위와 원본 무변경 검사도 인라인 Node로 옮겼다. 양쪽 CI 검사의 정상·변경된 영수증 처리만 별도로 확인했으며 원본 수집·GIS 계산 Python은 그대로 남아 있다.
 - 별도 미완료: 전체 지도 플러그인 검사는 이전 소스 레이아웃인 `assets/js/modules/temporal.js`를 참조해 시작하지 못한다. 실제 소스는 `shared/frontend/js/modules/temporal.js`에 있다. 수집기 단위 검사와 기존 구현 비교가 통과한 것은 실제 분석 왕복이 검증되었다는 뜻이 아니다.
 
 - `plugins/pando-map-tools/lib/map_source.py`
