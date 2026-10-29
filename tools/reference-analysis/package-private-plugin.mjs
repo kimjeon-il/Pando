@@ -6,9 +6,8 @@ import { resolve, dirname, join, relative, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify, parseArgs } from 'node:util';
-import { collectSourceFiles, readPinnedSource, nodeManifest, writeArtifactFiles, archiveDirectory } from './runtime-assets.mjs';
+import { collectSourceFiles, readPinnedSource, nodeManifest, writeArtifactFiles, archiveDirectory, analysisAssetCatalog } from './runtime-assets.mjs';
 import { bundlePath, verifyRuntimeFiles } from '../../plugins/pando-map-tools/lib/runtime.mjs';
-import { libraryCheckout, decodeArchiveEntry } from '../library-data.mjs';
 import { frontendWasmRoot } from '../../scripts/lib/frontend-layout.mjs';
 
 const run=promisify(execFile),root=fileURLToPath(new URL('../../',import.meta.url));
@@ -22,12 +21,8 @@ export async function packagePrivatePlugin({revision,directory,modelPath,workspa
   directory=resolve(directory);const rel=relative(workspace,directory);
   if(!rel||(!rel.startsWith('..')&&!isAbsolute(rel)))throw Error('Private package must be outside application Git');
   const read=name=>readPinnedSource(workspace,revision,name);
-  const config=JSON.parse(await read('config/library-data.json')),checkout=libraryCheckout(workspace);
-  const index=JSON.parse((await run('git',['show',config.revision+':archive/index.json'],{cwd:checkout,maxBuffer:32*1024*1024})).stdout);
-  const data=name=>{
-    const entry=index.files[name];if(!entry)throw Error('Pinned data is missing: '+name);
-    return decodeArchiveEntry(checkout,entry,config.revision);
-  };
+  const dataset=await analysisAssetCatalog(workspace,{revision});
+  const {config,ocrResources,gazetteerResources,gazetteer}=dataset;
   const source=JSON.parse(await read(prefix+'plugin.json')),npm=nodeManifest(workspace);
   assert.equal(hash(await readFile(join(workspace,'pnpm-lock.yaml'))),hash(await read('pnpm-lock.yaml')),'Dependency closure must match the committed lockfile');
   const sourceNpm=JSON.parse(await read('package.json'));
@@ -46,25 +41,15 @@ export async function packagePrivatePlugin({revision,directory,modelPath,workspa
   addSeed('package.json',json(npm));
   addSeed('docs/historical-border-reconstruction-policy.md',await read('docs/historical-border-reconstruction-policy.md'));
   for(const name of ['pandoeditor-core.manifest.json','pandoeditor-core.js','pandoeditor-core.wasm'])addSeed(frontendWasmRoot+'/'+name,await read(frontendWasmRoot+'/'+name));
-  const ocrPath='assets/data/reference-analysis/v1/ocr/',ocr=JSON.parse(data(ocrPath+'manifest.json')),ocrResources={};
-  addSeed(ocrPath+'manifest.json',data(ocrPath+'manifest.json'));
-  for(const [language,spec]of Object.entries(ocr.languages)) {
-    const path=ocrPath+spec.url,entry=index.files[path];if(!entry)throw Error('Pinned OCR language missing: '+language);
-    bundlePath(workspace,entry.stored);
-    ocrResources[language]={url:'https://raw.githubusercontent.com/'+config.repository+'/'+config.revision+'/'+entry.stored,
-      encoding:entry.encoding,bytes:entry.bytes,sha256:entry.sha256};
-    assert.equal(entry.sha256,spec.sha256);assert.equal(entry.bytes,spec.bytes);
-    if(['eng','osd'].includes(language))addSeed(path,data(path));
-  }
-  const placesPath='assets/data/places/',places=JSON.parse(data(placesPath+'manifest.json'));
-  addSeed(placesPath+'manifest.json',data(placesPath+'manifest.json'));
-  for(const spec of Object.values(places.shards)){bundlePath(workspace,spec.url);addSeed(placesPath+spec.url,data(placesPath+spec.url));}
+  for(const file of dataset.files)addSeed(file.path,file.data);
   modelPath=resolve(modelPath);const modelBytes=await readFile(modelPath),model=JSON.parse(modelBytes);
   assert.equal(model.trainingOnly,true);assert.equal(model.evaluationStatus,'pending');assert.equal(model.releaseApproved,false);
   await verifyRuntimeFiles(dirname(modelPath),[{path:model.model.url,...model.model}]);
   add(skill+'model/boundary.manifest.json',modelBytes);add(skill+'model/'+model.model.url,await readFile(bundlePath(dirname(modelPath),model.model.url)));
-  add(skill+'runtime.json',json({schemaVersion:1,codeRevision:revision,dataRevision:config.revision,files:seed,
-    model:{path:'model/boundary.manifest.json',bytes:modelBytes.length,sha256:hash(modelBytes)},ocrResources}));
+  add(skill+'runtime.json',json({schemaVersion:2,codeRevision:revision,dataRevision:config.revision,files:seed,
+    analysisData:{path:'analysis-data.json',bytes:(await read(prefix+'analysis-data.json')).length,sha256:hash(await read(prefix+'analysis-data.json'))},
+    model:{path:'model/boundary.manifest.json',bytes:modelBytes.length,sha256:hash(modelBytes)},ocrResources,gazetteerResources,
+    gazetteer:{revision:gazetteer.revision,manifestSha256:config.gazetteer.manifestSha256}}));
   const outer=structuredClone(source);outer.name='map-toolkit';
   outer.description='Find or attach maps, review georeferencing and boundary candidates, and download GeoJSON in private Work.';
   const ui=outer.extensions['com.openai'].interface;ui.composerIcon='./'+skill+'assets/map-toolkit.svg';ui.logo=ui.composerIcon;
