@@ -32,7 +32,7 @@ test('Node OCR unwraps the existing RPC acknowledgement and returns normalized r
   const result=await engine.recognize({width:80,height:40,data:Buffer.alloc(80*40*4,255)},['eng'],null);
   assert.ok(Array.isArray(result.rows));
   assert.deepEqual(result.orientation.languages,['eng']);
-  assert.equal(result.orientation.osdClockwiseDegrees,null);
+  assert.equal(result.orientation.osdClockwiseDegrees,0);
 });
 
 const manifest = { schemaVersion: 1, evaluationStatus: 'pending', releaseApproved: false, trainingOnly: true,
