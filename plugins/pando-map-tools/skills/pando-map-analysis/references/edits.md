@@ -27,6 +27,13 @@ Edits are JSON objects or an array:
   The shared core also accepts `replace` with original-pixel `points`, `cut`
   with a pixel `point`, and `join` with `from`/`to` chainId and start/end.
   Graph edits rebuild IDs: read current IDs before the next edit.
+* `{"type":"boundary","command":{"type":"add","semanticBits":1,"points":[[660,280],[662,320]],"reason":"Source-reviewed missing border stroke"}}`
+  adds a manually reviewed missing line in original pixels. Select exactly one
+  class: 1 international, 2 administrative or 4 coast. A source-review reason
+  is required. This is manual correction, not model recognition or confidence
+  evidence. The shared core validates bounds and rebuilds junctions/faces;
+  read its new IDs before refining or selecting. Do not move an unrelated line
+  with `replace`: it intentionally preserves existing shared endpoints.
 * `{"type":"exclude-rect","rect":[0,0,500,200]}` excludes whole chains with
   vertices in this original-pixel rectangle; cut first for partial removal.
 * `{"type":"live-wire","chainId":1,"anchors":[[0.1,0.2],[0.3,0.4]]}` traces

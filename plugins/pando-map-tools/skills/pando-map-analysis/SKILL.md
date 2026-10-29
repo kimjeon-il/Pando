@@ -92,6 +92,10 @@ conversion is not a datum transformation or independent historical validation.
 Read [the structured revision contract](references/edits.md) before editing.
 Registration-only edits reproject the saved pixel graph without OCR/inference.
 Inspect each revised preview and current graph IDs before selecting results.
+For a missing source-reviewed stroke, use the explicit manual boundary `add`
+command with its class and reason; then refine its new chain. Never repurpose an
+unrelated chain, relax shared endpoints, patch a signed job or present a separate
+unapplied candidate as an exported feature.
 Only mark the current georeference and selected candidates reviewed after
 comparison; unresolved uncertainty stays in the output. Never close cropped or
 open boundaries artificially. Preserve source geometry and edit history.
