@@ -40,7 +40,7 @@ function createServer(){
     async({layer},extra)=>respond([...options,command,'--layer',layer],extra.signal));
   server.registerTool('qgis_native_set_text_attribute',{description:'Change one text attribute within a bridge-owned QGIS edit session.',
     inputSchema:z.strictObject({layer:path,fid:z.string().regex(/^-?(0|[1-9]\d*)$/),field:path,value:z.string().max(65536)})},
-  async({layer,fid,field,value},extra)=>respond([...options,'set-text-attribute','--layer',layer,'--fid',fid,'--field',field,'--value',value],extra.signal));
+  async({layer,fid,field,value},extra)=>respond([...options,'set-text-attribute',`--layer=${layer}`,`--fid=${fid}`,`--field=${field}`,`--value=${value}`],extra.signal));
   server.registerTool('qgis_native_open',{description:'Open an existing vector file in native QGIS.',inputSchema:z.strictObject({input:path})},
     async({input},extra)=>respond([...options,'open',input],extra.signal));
   server.registerTool('qgis_native_export',{description:'Export a layer as normalized EPSG:4326 GeoJSON without overwriting an existing file.',
