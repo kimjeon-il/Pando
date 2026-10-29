@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile, writeFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { validateCandidateModel, createJob, reviseJob, exportJob, sealJob, digest, georeferenceQuality } from '../../plugins/pando-map-tools/lib/jobs.mjs';
+import { validateCandidateModel, createJob, reviseJob, exportJob, sealJob, digest } from '../../plugins/pando-map-tools/lib/jobs.mjs';
+import { georeferenceQuality } from '../../plugins/pando-map-tools/lib/analysis/georef.mjs';
 import * as engine from '../../plugins/pando-map-tools/lib/engine.mjs';
 import { raster } from '../../plugins/pando-map-tools/lib/raster.mjs';
 

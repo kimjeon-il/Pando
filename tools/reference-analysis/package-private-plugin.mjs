@@ -9,6 +9,7 @@ import { promisify, parseArgs } from 'node:util';
 import { collectSourceFiles, readPinnedSource, nodeManifest, writeArtifactFiles, archiveDirectory } from './runtime-assets.mjs';
 import { bundlePath, verifyRuntimeFiles } from '../../plugins/pando-map-tools/lib/runtime.mjs';
 import { libraryCheckout, decodeArchiveEntry } from '../library-data.mjs';
+import { frontendWasmRoot } from '../../scripts/lib/frontend-layout.mjs';
 
 const run=promisify(execFile),root=fileURLToPath(new URL('../../',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -44,7 +45,7 @@ export async function packagePrivatePlugin({revision,directory,modelPath,workspa
   }
   addSeed('package.json',json(npm));
   addSeed('docs/historical-border-reconstruction-policy.md',await read('docs/historical-border-reconstruction-policy.md'));
-  for(const name of ['pandoeditor-core.manifest.json','pandoeditor-core.js','pandoeditor-core.wasm'])addSeed('assets/wasm/'+name,await read('assets/wasm/'+name));
+  for(const name of ['pandoeditor-core.manifest.json','pandoeditor-core.js','pandoeditor-core.wasm'])addSeed(frontendWasmRoot+'/'+name,await read(frontendWasmRoot+'/'+name));
   const ocrPath='assets/data/reference-analysis/v1/ocr/',ocr=JSON.parse(data(ocrPath+'manifest.json')),ocrResources={};
   addSeed(ocrPath+'manifest.json',data(ocrPath+'manifest.json'));
   for(const [language,spec]of Object.entries(ocr.languages)) {
