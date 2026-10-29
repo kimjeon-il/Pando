@@ -27,8 +27,7 @@ test('QGIS JSON fields reach the actual Core with atomic Undo and preserved sour
   try {
     const input = join(folder, 'qgis.geojson'), output = join(folder, 'pando.geojson');
     writeFileSync(input, JSON.stringify(foreign));
-    const python = process.env.PANDOLAB_TRAINING_PYTHON || resolve('build-native/python/Scripts/python.exe');
-    execFileSync(python, ['tools/qgis/bridge.py', 'normalize', input, '--output', output], { stdio: 'pipe' });
+    execFileSync(process.execPath, ['tools/qgis/normalize.mjs', input, '--output', output], { stdio: 'pipe' });
     const collection = JSON.parse(readFileSync(output));
     let count = 0;
     const f = await createGisCoreFixture([], { runtime: { validateStructuredGeometry: validateGeometry,

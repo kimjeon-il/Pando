@@ -1,8 +1,6 @@
 """Pando's file exchange with the upstream QGIS MCP client, not another GIS engine."""
 import argparse
-import copy
 import json
-import math
 import os
 from pathlib import Path
 import subprocess
@@ -12,56 +10,6 @@ import time
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / '.library-data/qgis.json'
-GEOMETRIES = {'Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'}
-
-
-def normalize_exchange(collection):
-    """Restore a JSON field serialized by OGR; Pando still owns import semantics."""
-    result = copy.deepcopy(collection)
-    if result.get('type') != 'FeatureCollection' or not isinstance(result.get('features'), list):
-        raise ValueError('A GeoJSON FeatureCollection is required')
-    crs = result.pop('crs', None)
-    if crs and crs.get('properties', {}).get('name') not in {
-        'EPSG:4326', 'urn:ogc:def:crs:OGC:1.3:CRS84', 'urn:ogc:def:crs:EPSG::4326'
-    }:
-        raise ValueError('QGIS must export EPSG:4326 / RFC7946 first')
-
-    def coordinates(value):
-        if not isinstance(value, list) or not value:
-            raise ValueError('Invalid geometry coordinate array')
-        if isinstance(value[0], (int, float)):
-            if (len(value) != 2 or any(isinstance(v, bool) or not isinstance(v, (int, float))
-                                     or not math.isfinite(v) for v in value)
-                    or not -180 <= value[0] <= 180 or not -90 <= value[1] <= 90):
-                raise ValueError('Invalid RFC7946 coordinate; export EPSG:4326 and XY')
-        else:
-            for child in value:
-                coordinates(child)
-
-    for feature in result['features']:
-        geometry = feature.get('geometry')
-        if feature.get('type') != 'Feature' or not isinstance(geometry, dict) or geometry.get('type') not in GEOMETRIES:
-            raise ValueError('Unsupported or missing feature geometry')
-        coordinates(geometry.get('coordinates'))
-        properties = feature.get('properties')
-        if properties is None:
-            feature['properties'] = properties = {}
-        if not isinstance(properties, dict):
-            raise ValueError('Feature properties must be an object')
-        source = properties.get('source')
-        if isinstance(source, str) and source.lstrip().startswith('{'):
-            parsed = json.loads(source)
-            if isinstance(parsed, dict) and parsed.get('schemaVersion') == 1:
-                properties['source'] = parsed
-    return result
-
-
-def write_exchange(path, collection):
-    data = json.dumps(normalize_exchange(collection), ensure_ascii=False, allow_nan=False, indent=2) + '\n'
-    with Path(path).open('x', encoding='utf-8') as output:
-        output.write(data)
-
-
 def accept_code_result(response):
     if response.get('status') != 'success':
         raise RuntimeError(response.get('message', 'QGIS command failed'))
@@ -122,7 +70,11 @@ def export_layer(client, layer_id, output):
     with tempfile.TemporaryDirectory(prefix='.pando-qgis-', dir=output.parent) as folder:
         temporary = Path(folder) / 'export.geojson'
         executed = accept_code_result(client.execute_code(export_code(temporary, layer_id)))
-        write_exchange(output, json.loads(temporary.read_text(encoding='utf-8-sig')))
+        try:
+            subprocess.run(['node', str(ROOT / 'tools/qgis/normalize.mjs'), str(temporary), '--output', str(output)],
+                           check=True, capture_output=True, text=True, encoding='utf-8', timeout=120)
+        except subprocess.CalledProcessError as error:
+            raise RuntimeError('QGIS exchange normalization failed: ' + (error.stderr or str(error))) from error
     return dict(output=str(output), qgis=executed)
 
 
@@ -197,14 +149,7 @@ def main():
     exporting = commands.add_parser('export')
     exporting.add_argument('--layer', required=True)
     exporting.add_argument('--output', required=True, type=Path)
-    normalizing = commands.add_parser('normalize')
-    normalizing.add_argument('input', type=Path)
-    normalizing.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
-    if args.command == 'normalize':
-        write_exchange(args.output, json.loads(args.input.read_text(encoding='utf-8-sig')))
-        print(json.dumps(dict(output=str(args.output))))
-        return
     config = load_config(args.config)
     if args.command == 'start':
         print(json.dumps(start(config, args.config), ensure_ascii=False))

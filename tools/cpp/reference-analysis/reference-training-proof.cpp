@@ -4,6 +4,7 @@
 #include "reference-model.h"
 #include "safetensors.h"
 #include "training-checkpoint.h"
+#include "training-augmentation.h"
 #include <torch/torch.h>
 #include <ATen/Context.h>
 #include <filesystem>
@@ -20,7 +21,8 @@ double update(ReferenceBoundaryModel& model,torch::optim::AdamW& optimizer,const
     optimizer.zero_grad();
     // One paired brightness draw makes replay depend on the recorded RNG.
     const auto factor=.85+.25*torch::rand({},torch::TensorOptions().dtype(torch::kFloat32).device(device));
-    const auto logits=model->forward((sample.tile*factor).clamp(0,1),(sample.overview*factor).clamp(0,1),sample.position);
+    const auto logits=model->forward(pando::reference::normalizedBrightness(sample.tile,factor),
+        pando::reference::normalizedBrightness(sample.overview,factor),sample.position);
     const auto loss=pando::reference::boundaryLoss(logits,sample.target,sample.valid);
     if(!torch::isfinite(loss).item<bool>())throw std::runtime_error("Nonfinite real-input training loss");
     loss.backward();torch::nn::utils::clip_grad_norm_(model->parameters(),1.0,2.0,true);optimizer.step();return loss.item<double>();
@@ -29,7 +31,6 @@ int run(const std::vector<fs::path>& args){
     if(args.size()!=10)throw std::runtime_error("Usage: reference-training-proof DEVICE WEIGHTS TILE OVERVIEW POSITION TARGET VALID NEW_CHECKPOINT TILE_INDEX");
     if(fs::exists(args[8]))throw std::runtime_error("Checkpoint already exists; preserve the existing file");
     const auto device=pando::reference::selectDevice(args[1].string());
-    torch::set_num_threads(2);
     at::globalContext().setDeterministicAlgorithms(true,false);
     const auto source=pando::reference::readBounded(args[2],256*1024*1024);
     Sample sample{pando::reference::readFloatTensor(args[3],{1,3,512,512}).to(device),
@@ -65,7 +66,7 @@ int run(const std::vector<fs::path>& args){
     const auto expectedBuffers=original->named_buffers(true),actualBuffers=resumed->named_buffers(true);
     if(expectedBuffers.size()!=actualBuffers.size())throw std::runtime_error("Resumed buffer inventory differs");
     for(const auto& item:expectedBuffers){if(!actualBuffers.contains(item.key())||!torch::equal(item.value(),actualBuffers[item.key()]))throw std::runtime_error("Resumed model buffer differs: "+item.key());}
-    std::cout<<"{\"purpose\":\"real-input-resume-proof\",\"trainingOnly\":true,\"releaseApproved\":false,\"firstLoss\":"<<firstLoss
+    std::cout<<"{\"purpose\":\"real-input-resume-proof\",\"trainingOnly\":true,\"releaseApproved\":false,\"preprocessing\":\"rgb-brightness-then-imagenet-normalization\",\"firstLoss\":"<<firstLoss
         <<",\"resumedLoss\":"<<resumedLoss<<",\"exactModelResume\":true,\"tileIndex\":"<<index<<"}\n";return 0;
 }
 }
