@@ -5,7 +5,8 @@ import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {batch03Anchors} from './hydro-osm-batch03-anchors.mjs';
-import {lineParts,roundPython,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
+import {lineParts,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
+import {pythonRound} from './hydro-numeric.mjs';
 import {probeNgaBatch03} from './probe-nga-streams.mjs';
 
 export async function buildBatch03Screen(decoded,{receipts,screen,signal}={}){
@@ -29,7 +30,7 @@ export async function buildBatch03Screen(decoded,{receipts,screen,signal}={}){
     signal?.throwIfAborted();const unique=new Map();
     for(const anchor of [...(batch03Anchors.external[id]||[]),...bySystem.get(id)]){
       if(!anchor||typeof anchor.id!=='string'||!Number.isFinite(anchor.lon)||!Number.isFinite(anchor.lat))throw Error('Invalid independent point');
-      const key=JSON.stringify([anchor.id,roundPython(anchor.lon,6),roundPython(anchor.lat,6)]);
+      const key=JSON.stringify([anchor.id,pythonRound(anchor.lon,6),pythonRound(anchor.lat,6)]);
       if(!unique.has(key))unique.set(key,{...anchor,...(Array.isArray(anchor.names)?{names:[...anchor.names]}:{})});
       else if(Array.isArray(anchor.names)&&anchor.names.length){const prior=unique.get(key);prior.names??=[];
         for(const name of anchor.names)if(!prior.names.includes(name))prior.names.push(name);}
@@ -40,11 +41,11 @@ export async function buildBatch03Screen(decoded,{receipts,screen,signal}={}){
     const native=await screen({crs:batch03Anchors.crs[id],mode:'tree',lines,points:anchors.map(anchor=>[anchor.lon,anchor.lat])},{signal});
     validatePointScreenResult(native,lines.length,anchors.length,{allowFilteredLines:true});
     const observations=anchors.map((anchor,index)=>({pointId:anchor.id,names:Array.isArray(anchor.names)&&anchor.names.length?anchor.names:[anchor.name??null],
-      publishedLonLat:[roundPython(anchor.lon,6),roundPython(anchor.lat,6)],nearestHydroLonLat:native.points[index].nearestLonLat.map(value=>roundPython(value,6)),
-      distanceKm:roundPython(native.points[index].distanceMeters/1000,3),featureUfi:anchor.ufi??null,sourceRole:anchor.role,source:anchor.source}));
+      publishedLonLat:[pythonRound(anchor.lon,6),pythonRound(anchor.lat,6)],nearestHydroLonLat:native.points[index].nearestLonLat.map(value=>pythonRound(value,6)),
+      distanceKm:pythonRound(native.points[index].distanceMeters/1000,3),featureUfi:anchor.ufi??null,sourceRole:anchor.role,source:anchor.source}));
     observations.sort((a,b)=>a.distanceKm-b.distanceKm);
     items.push({systemId:id,originalNameKo:features[0].metadata.name,mainstemFeatures:features.length,mainstemLineSegments:native.lineLengthsMeters.length,
-      mainstemLengthKm:roundPython(native.lineLengthsMeters.reduce((sum,value)=>sum+value,0)/1000,3),independentPointChecks:observations,
+      mainstemLengthKm:pythonRound(native.lineLengthsMeters.reduce((sum,value)=>sum+value,0)/1000,3),independentPointChecks:observations,
       pointCount:observations.length,pointCountWithin1km:observations.filter(point=>point.distanceKm<=1).length,
       pointCountWithin5km:observations.filter(point=>point.distanceKm<=5).length,candidateIdentityConfirmed:false,riverGeometryEdited:false});
   }

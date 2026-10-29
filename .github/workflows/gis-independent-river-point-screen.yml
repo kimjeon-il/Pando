@@ -6,6 +6,7 @@ on:
     paths:
       - 'tools/gis/verify-independent-river-point-anchors.mjs'
       - 'tools/gis/hydro-point-screen-native.mjs'
+      - 'tools/gis/hydro-numeric.mjs'
       - 'tools/cpp/hydro/point-screen.cpp'
       - 'tools/cpp/CMakeLists.txt'
       - 'tests/fixtures/hydro-independent-point-screen-v0132-expected.json'

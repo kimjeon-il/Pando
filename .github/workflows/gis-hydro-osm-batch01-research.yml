@@ -7,6 +7,7 @@ on:
       - 'tools/gis/verify-osm-hydro-batch01-anchors.mjs'
       - 'tools/gis/hydro-osm-batch01-anchors.mjs'
       - 'tools/gis/hydro-point-screen-native.mjs'
+      - 'tools/gis/hydro-numeric.mjs'
       - 'tools/cpp/hydro/point-screen.cpp'
       - 'tools/cpp/CMakeLists.txt'
       - 'tools/gis/probe-finnish-hydro.mjs'
