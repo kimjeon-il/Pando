@@ -4,6 +4,7 @@
 #include <qgis.h>
 #include <qgisinterface.h>
 #include <qgisplugin.h>
+#include <qgsproject.h>
 #include <qgsvectorlayer.h>
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -29,7 +30,7 @@ bool tokenMatches(const QByteArray& actual,const QByteArray& expected){
     return difference==0;
 }
 class Bridge final:public QObject,public QgisPlugin {
-    QgisInterface* iface_;QTcpServer server_;QByteArray token_;int active_=0;
+    QTcpServer server_;QByteArray token_;int active_=0;
     QJsonObject execute(const QJsonObject& request){
         const auto command=request.value(QStringLiteral("command")).toString();
         if(command==QStringLiteral("status"))return {{QStringLiteral("qgis_version"),Qgis::version()},
@@ -37,10 +38,12 @@ class Bridge final:public QObject,public QgisPlugin {
         if(command==QStringLiteral("open")){
             const auto path=request.value(QStringLiteral("path")).toString();const QFileInfo file(path);
             if(!file.isAbsolute()||!file.isFile())throw QStringLiteral("An existing absolute vector file is required");
-            auto* layer=iface_->addVectorLayer(file.absoluteFilePath(),file.completeBaseName(),QStringLiteral("ogr"));
-            if(!layer||!layer->isValid())throw QStringLiteral("QGIS could not open the vector layer");
-            return {{QStringLiteral("id"),layer->id()},{QStringLiteral("name"),layer->name()},
-                {QStringLiteral("feature_count"),static_cast<double>(layer->featureCount())},{QStringLiteral("crs"),layer->crs().authid()}};
+            auto layer=std::make_unique<QgsVectorLayer>(file.absoluteFilePath(),file.completeBaseName(),QStringLiteral("ogr"));
+            if(!layer->isValid())throw QStringLiteral("QGIS could not open the vector layer");
+            if(!QgsProject::instance()->addMapLayer(layer.get()))throw QStringLiteral("QGIS could not add the vector layer");
+            auto* added=layer.release();
+            return {{QStringLiteral("id"),added->id()},{QStringLiteral("name"),added->name()},
+                {QStringLiteral("feature_count"),static_cast<double>(added->featureCount())},{QStringLiteral("crs"),added->crs().authid()}};
         }
         if(command==QStringLiteral("export"))return exportQgisLayer(request.value(QStringLiteral("layer")).toString(),
             request.value(QStringLiteral("output")).toString());
@@ -76,7 +79,7 @@ class Bridge final:public QObject,public QgisPlugin {
         }
     }
 public:
-    explicit Bridge(QgisInterface* iface):QgisPlugin(pluginName,pluginDescription,pluginCategory,pluginVersion,QgisPlugin::UI),iface_(iface){}
+    explicit Bridge(QgisInterface*):QgisPlugin(pluginName,pluginDescription,pluginCategory,pluginVersion,QgisPlugin::UI){}
     void initGui() override{
         token_=qgetenv("PANDO_QGIS_NATIVE_TOKEN");bool valid=false;const auto port=qgetenv("PANDO_QGIS_NATIVE_PORT").toUShort(&valid);
         if(token_.isEmpty()||token_.size()>4096||!valid||port<1024){qWarning("Pando native QGIS bridge configuration is missing or invalid");return;}
