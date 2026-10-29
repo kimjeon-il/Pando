@@ -27,7 +27,9 @@ async function fixture(t){
         result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
       else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
         result={layer:'layer-1',fields:[{name:'source',type:'Map',length:0,precision:0}]};}
-      else if(request.command==='select'){assert.equal(request.layer,'layer-1');assert.deepEqual(request.fids,['1','9007199254740993']);result={selected:2};}
+      else if(request.command==='select'){assert.equal(request.layer,'layer-1');
+        if(request.expression!==undefined){assert.equal(request.expression,'"name" = \'map\'');result={selected:1};}
+        else{assert.deepEqual(request.fids,['1','9007199254740993']);result={selected:2};}}
       else if(request.command==='selection'){assert.equal(request.layer,'layer-1');result={fids:['1','9007199254740993'],count:2};}
       else if(request.command==='clear-selection'){assert.equal(request.layer,'layer-1');result={ok:true};}
       else if(request.command==='open'){assert.equal(request.path,input);result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};}
@@ -60,6 +62,9 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   assert.deepEqual(JSON.parse(selection.stdout).fids,['1','9007199254740993']);
   const cleared=await run(['--config',config,'clear-selection','--layer','layer-1']);assert.equal(cleared.code,0,cleared.stderr);
   const invalidFids=await run(['--config',config,'select','--layer','layer-1','--fids','[9007199254740993]']);assert.notEqual(invalidFids.code,0);
+  const expression=await run(['--config',config,'select','--layer','layer-1','--expression','"name" = \'map\'']);
+  assert.equal(expression.code,0,expression.stderr);assert.equal(JSON.parse(expression.stdout).selected,1);
+  const both=await run(['--config',config,'select','--layer','layer-1','--fids','[]','--expression','true']);assert.notEqual(both.code,0);
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);
   assert.equal(JSON.parse(opened.stdout).id,'layer-1');
   const output=join(root,'output.geojson');const exported=await run(['--config',config,'export','--layer','layer-1','--output',output]);

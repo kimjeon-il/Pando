@@ -18,7 +18,7 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
       else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
       else if(request.command==='layers')result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:request.offset,limit:request.limit};
       else if(request.command==='schema')result={layer:request.layer,fields:[{name:'source',type:'Map',length:0,precision:0}]};
-      else if(request.command==='select')result={selected:request.fids.length};
+      else if(request.command==='select')result={selected:request.expression?1:request.fids.length};
       else if(request.command==='selection')result={fids:['9007199254740993'],count:1};
       else if(request.command==='clear-selection')result={ok:true};
       else if(request.command==='open')result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};
@@ -57,6 +57,8 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   const selection=await call('qgis_native_selection',{layer:'layer-1'});assert.deepEqual(JSON.parse(selection.result.content[0].text).fids,['9007199254740993']);
   const clear=await call('qgis_native_clear_selection',{layer:'layer-1'});assert.equal(JSON.parse(clear.result.content[0].text).ok,true);
   const invalidFid=await call('qgis_native_select',{layer:'layer-1',fids:['no']});assert.equal(invalidFid.result.isError,true);
+  const expression=await call('qgis_native_select',{layer:'layer-1',expression:'"name" = \'map\''});assert.equal(JSON.parse(expression.result.content[0].text).selected,1);
+  const both=await call('qgis_native_select',{layer:'layer-1',fids:[],expression:'true'});assert.equal(both.result.isError,true);
   const opened=await call('qgis_native_open',{input});assert.equal(JSON.parse(opened.result.content[0].text).id,'layer-1');
   const output=join(root,'output.geojson'),saved=await call('qgis_native_export',{layer:'layer-1',output});
   assert.equal(JSON.parse(saved.result.content[0].text).output,output);

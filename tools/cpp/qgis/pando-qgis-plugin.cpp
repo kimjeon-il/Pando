@@ -6,6 +6,8 @@
 #include <qgisplugin.h>
 #include <qgsfield.h>
 #include <qgsfields.h>
+#include <qgsexpression.h>
+#include <qgsexpressioncontext.h>
 #include <qgslayertree.h>
 #include <qgslayertreegroup.h>
 #include <qgslayertreelayer.h>
@@ -107,6 +109,17 @@ class Bridge final:public QObject,public QgisPlugin {
             if(command==QStringLiteral("clear-selection")){layer->removeSelection();return {{QStringLiteral("ok"),true}};}
             if(command==QStringLiteral("select")){
                 const auto value=request.value(QStringLiteral("fids"));
+                const auto expression=request.value(QStringLiteral("expression"));
+                if(!expression.isUndefined()){
+                    if(!value.isUndefined()||!expression.isString()||expression.toString().trimmed().isEmpty()||expression.toString().size()>10000)
+                        throw QStringLiteral("A single bounded selection expression is required");
+                    QgsExpression parsed(expression.toString());
+                    if(parsed.hasParserError())throw QStringLiteral("Expression parse error: ")+parsed.parserErrorString();
+                    QgsExpressionContext context(QgsExpressionContextUtils::globalProjectLayerScopes(layer));
+                    if(!parsed.prepare(&context)||parsed.hasEvalError())throw QStringLiteral("Expression error: ")+parsed.evalErrorString();
+                    layer->selectByExpression(expression.toString());
+                    return {{QStringLiteral("selected"),layer->selectedFeatureCount()}};
+                }
                 if(!value.isArray()||value.toArray().size()>10000)throw QStringLiteral("A bounded array of string feature IDs is required");
                 QgsFeatureIds ids;
                 static const QRegularExpression integer(QStringLiteral("^-?(0|[1-9][0-9]*)$"));

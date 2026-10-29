@@ -16,6 +16,7 @@ node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs layers --offset 0 --limit 50
 node tools/qgis/native-bridge.mjs schema --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --fids '["1","2"]'
+node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --expression '"name" = ''map'''
 node tools/qgis/native-bridge.mjs selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs clear-selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs open 'D:/path/to/pando-layer.geojson'
@@ -28,11 +29,11 @@ and never rewrites an existing unrelated profile. QGIS executes operations on
 its main thread; mixed-geometry GeoJSON opens without a sublayer dialog. The
 native MCP server can be started separately with `node tools/qgis/native-mcp.mjs`;
 it uses `PANDO_QGIS_NATIVE_CONFIG` when set, otherwise the default config above.
-It exposes start, status, project, layer and field inspection, feature-ID selection, open, export and normalize. It is not yet an MCP
+It exposes start, status, project, layer and field inspection, selection, open, export and normalize. It is not yet an MCP
 replacement: the upstream editing and processing tools remain active until
 their used capabilities have been migrated and tested.
 Native selection accepts QGIS feature IDs as decimal strings, preserving signed
-64-bit values; expression-based selection remains in the upstream bridge.
+64-bit values, or a QGIS expression validated against the layer before use.
 
 QGIS operations use upstream `nkarasiak/qgis-mcp` 0.15.2, commit
 `dae432367fcb2873a151b94c4faaadef2033cf9f`. Native QGIS LTR lives once at

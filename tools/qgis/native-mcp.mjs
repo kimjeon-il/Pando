@@ -22,9 +22,10 @@ function createServer(){
   async({offset,limit},extra)=>respond([...options,'layers','--offset',String(offset),'--limit',String(limit)],extra.signal));
   server.registerTool('qgis_native_schema',{description:'Inspect vector layer geometry, CRS and field definitions.',inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,'schema','--layer',layer],extra.signal));
-  server.registerTool('qgis_native_select',{description:'Replace the selection using QGIS feature IDs as decimal strings.',
-    inputSchema:z.strictObject({layer:path,fids:z.array(z.string().regex(/^-?(0|[1-9]\d*)$/)).max(10000)})},
-  async({layer,fids},extra)=>respond([...options,'select','--layer',layer,'--fids',JSON.stringify(fids)],extra.signal));
+  server.registerTool('qgis_native_select',{description:'Replace the selection using QGIS feature IDs as decimal strings or a QGIS expression.',
+    inputSchema:z.strictObject({layer:path,fids:z.array(z.string().regex(/^-?(0|[1-9]\d*)$/)).max(10000).optional(),expression:z.string().min(1).max(10000).optional()})},
+  async({layer,fids,expression},extra)=>respond([...options,'select','--layer',layer,...(fids===undefined?[]:['--fids',JSON.stringify(fids)]),
+    ...(expression===undefined?[]:['--expression',expression])],extra.signal));
   server.registerTool('qgis_native_selection',{description:'Read selected QGIS feature IDs as decimal strings.',inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,'selection','--layer',layer],extra.signal));
   server.registerTool('qgis_native_clear_selection',{description:'Clear the selection of a vector layer.',inputSchema:z.strictObject({layer:path})},
