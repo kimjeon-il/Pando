@@ -1,0 +1,31 @@
+import {gotoEditor} from './helpers/editor-entry.mjs';
+import {selectUiOption} from './helpers/ui-select.mjs';
+import {expect,test} from '@playwright/test';
+import {staticAutosaveProject} from '../helpers/timeline-project.mjs';
+import {createTerritorialFeature} from '../../shared/frontend/js/modules/territorial-units.js';
+import '../../apps/editor/frontend/js/gis-adapters.js';
+test('synthetic GIS import preserves root and supports undo redo',async({page})=>{
+ test.setTimeout(90000);
+ const geom=(a,b)=>({type:'Polygon',coordinates:[[[a,a],[a,b],[b,b],[b,a],[a,a]]]});
+ const root=createTerritorialFeature({id:'A',entityKind:'general',name:'Root',geometry:geom(0,10)});
+ const seed=staticAutosaveProject({},[root]);
+ await page.addInitScript(seed=>localStorage.setItem('pandolab-editor-project',JSON.stringify(seed)),seed);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await gotoEditor(page,'/?renderer=canvas');
+ await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60000});
+ const before=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').geometry);
+ await page.locator('#mobileFileBtn').click();const choosing=page.waitForEvent('filechooser');
+ await page.locator('#fileAdvancedBtn').click();await page.locator('#openGisBtn').click();
+ const source=createTerritorialFeature({id:'part',entityKind:'general',name:'합성지역',parentId:'A',coverageMode:'explicit',geometry:geom(1,3)});
+ const row=globalThis.PandoLabGisAdapters.territorialRows({territorialEntities:[source]}).entities[0];
+ await (await choosing).setFiles({name:'synthetic.geojson',mimeType:'application/geo+json',buffer:Buffer.from(JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',id:source.id,properties:Object.fromEntries(Object.entries(row).filter(([key])=>key!=='geometry')),geometry:row.geometry}]}))});
+ await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/,{timeout:60000});
+ await selectUiOption(page,'#gisTargetType','general');await selectUiOption(page,'#gisParentUnit','A');
+ for(const step of ['2/3','3/3']){await page.locator('#gisImportNextBtn').click();await expect(page.locator('#gisStepIndicator')).toContainText(step)}
+ await page.locator('#gisImportConfirmBtn').click();await expect(page.locator('#gisImportModal')).toBeHidden({timeout:60000});
+ const get=()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list({kind:'general'}).find(e=>e.properties.name==='합성지역')||null);
+ await expect.poll(get,{timeout:60000}).not.toBeNull();const imported=await get();expect(imported.properties.parentId).toBe('A');
+ expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').geometry)).toEqual(before);
+ await page.locator('#undoBtn').click();await expect.poll(get).toBeNull();await page.locator('#redoBtn').click();await expect.poll(get).toEqual(imported);
+ expect(errors).toEqual([]);
+});
