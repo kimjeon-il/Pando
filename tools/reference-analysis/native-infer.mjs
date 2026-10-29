@@ -16,6 +16,7 @@ export const referenceSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','too
   'shared/core/src/losslessjson.cpp','shared/core/include/pandoeditor/losslessjson.h']);
 export const referenceProofSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-training-proof.cpp']);
 export const referenceOnnxTestSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-onnx-tests.cpp']);
+export const referenceOnnxExportSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-onnx-export.cpp']);
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export function matchingTorchLibrary(torchLibrary,manifest){
   if(manifest.runtimeVersion!=='2.14.1')throw Error('Unexpected native LibTorch ABI version');
