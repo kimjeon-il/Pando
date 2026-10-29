@@ -29,6 +29,7 @@ int run(const std::vector<fs::path>& args){
     if(args.size()!=10)throw std::runtime_error("Usage: reference-training-proof DEVICE WEIGHTS TILE OVERVIEW POSITION TARGET VALID NEW_CHECKPOINT TILE_INDEX");
     if(fs::exists(args[8]))throw std::runtime_error("Checkpoint already exists; preserve the existing file");
     const auto device=pando::reference::selectDevice(args[1].string());
+    torch::set_num_threads(2);
     at::globalContext().setDeterministicAlgorithms(true,false);
     const auto source=pando::reference::readBounded(args[2],256*1024*1024);
     Sample sample{pando::reference::readFloatTensor(args[3],{1,3,512,512}).to(device),
