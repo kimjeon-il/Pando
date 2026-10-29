@@ -469,18 +469,21 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         for(auto i=hull.rbegin()+std::min<std::size_t>(1,hull.size());i!=hull.rend();++i){while(polygon.size()>lower&&cross(polygon[polygon.size()-2],polygon.back(),*i)<=0)polygon.pop_back();polygon.push_back(*i);}
         double area=0;for(std::size_t i=1;i<polygon.size();++i)area+=polygon[i-1][0]*polygon[i][1]-polygon[i][0]*polygon[i-1][1];
         area=std::abs(area)/2/((domain[2]-domain[0])*(domain[3]-domain[1]));out.object["imageCoverage"]=V::num(area);
-        bool folded=false;double referenceDet=0;
+        bool folded=false,invalidDomain=false;double referenceDet=0;
         const auto prepared=prepareReferenceImageWarp(warp);
         for(int y=0;y<=16;++y)for(int x=0;x<=16;++x){
             const P uv{domain[0]+double(x)/16*(domain[2]-domain[0]),domain[1]+double(y)/16*(domain[3]-domain[1])};
             const auto p=projectReferenceImageWarp(prepared,uv,false),a=projectReferenceImageWarp(prepared,{uv[0]+1e-5,uv[1]},false),b=projectReferenceImageWarp(prepared,{uv[0],uv[1]+1e-5},false);
             if(!p||!a||!b){folded=true;continue;}
+            if(!inverseMapProjection(prepared.projection,*p))invalidDomain=true;
             const double det=(((*a)[0]-(*p)[0])*((*b)[1]-(*p)[1])-((*a)[1]-(*p)[1])*((*b)[0]-(*p)[0]))/1e-10;
             if(!referenceDet)referenceDet=det;
             if(!std::isfinite(det)||std::abs(det)<std::max(1e-14,std::abs(referenceDet)*1e-6)||det*referenceDet<=0)folded=true;
         }
         out.object["folded"]=V::boolean(folded);
+        out.object["invalidDomain"]=V::boolean(invalidDomain);
         if(folded){out.object["reason"]=V::str("folded-or-singular-warp");return out;}
+        if(invalidDomain){out.object["reason"]=V::str("projection-domain-exceeded");return out;}
         if(controlOutsideDomain){out.object["reason"]=V::str("control-outside-validation-domain");return out;}
         if(points.array.size()<6||area<.2)return out;
         Row errors;
