@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pandoeditor/losslessjson.h>
+#include <pandoeditor/mapprojection.h>
 #include <array>
 #include <functional>
 #include <optional>
@@ -17,6 +18,7 @@ struct ReferenceProjection {
     std::function<std::optional<ReferencePoint>(ReferencePoint)> unproject;
 };
 struct PreparedReferenceWarp {
+    MapProjection projection;
     enum Mode { Invalid, Similarity, Affine, Projective, ThinPlateSpline } mode=Invalid;
     std::vector<double> xCoefficients,yCoefficients;
     std::vector<ReferencePoint> controlPoints;
