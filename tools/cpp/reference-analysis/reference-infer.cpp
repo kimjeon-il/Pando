@@ -11,6 +11,9 @@
 #include <string>
 #include <vector>
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
 #include <fcntl.h>
 #include <io.h>
 #endif
@@ -31,8 +34,17 @@ torch::Tensor inputTensor(const fs::path& path,const std::vector<int64_t>& shape
 }
 int run(const std::vector<fs::path>& args){
     if(args.size()!=6)throw std::runtime_error("Usage: pando-reference-infer DEVICE SAFETENSORS TILE_F32 OVERVIEW_F32 POSITION_F32");
+    // Match the validated Python runtime and avoid thread-count-dependent logits.
+    torch::set_num_threads(2);
     const auto choice=args[1].string();torch::Device device(torch::kCPU);
-    if(choice=="cuda"){if(!torch::cuda::is_available())throw std::runtime_error("CUDA was requested but is unavailable");device=torch::Device(torch::kCUDA);}
+    if(choice=="cuda"){
+#ifdef _WIN32
+        // CPU SDK builds can use the matching installed CUDA LibTorch runtime.
+        // Load its registration hooks before querying the device.
+        if(!LoadLibraryW(L"torch_cuda.dll"))throw std::runtime_error("Cannot load torch_cuda.dll, Win32 error "+std::to_string(GetLastError()));
+#endif
+        if(!torch::cuda::is_available())throw std::runtime_error("CUDA was requested but is unavailable");device=torch::Device(torch::kCUDA);
+    }
     else if(choice!="cpu")throw std::runtime_error("Device must be cpu or cuda");
     pando::reference::ReferenceBoundaryModel model;
     const auto metadata=pando::reference::loadSafetensors(*model,bytes(args[2],256*1024*1024));

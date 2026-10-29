@@ -13,6 +13,7 @@
 
 - 학습 전환 체크포인트: 현재 Python 모델의 BCE·Dice·연결성 손실과 관측되지 않은 채널의 gradient 고정 사례를 C++ LibTorch로 이전했다. MobileNetV3 encoder·overview·position·decoder·7채널 모델의 340개 텐서 이름, Safetensors 로더와 Python이 만든 합성 logits 전체(기준 SHA-256 `ca115f9ebed8308c702b137f10a08129fec30169e9659af47be05c47439dd218`, 최대 오차 0.005 이하)를 [CI 40840912107](https://github.com/kimjeon-il/Pando/actions/runs/40840912107)에서 확인했다. Windows용 LibTorch 2.14 헤더가 C++20을 요구하므로 **선택형 학습 대상에만 C++20을 적용**하고 다른 GIS·앱 대상은 기존 C++17을 유지한다. 비공개 macro-v6 가중치를 optimizer 없는 warm-start로 한 번 추출하고 보존 지도 입력을 준비했다. Windows 빌드·실모델 전체 출력·학습·ONNX는 아직 검증 중이며 Python 실행 경로와 원본 모델은 유지한다.
 - 실제 보존 지도 PNG(`cc8a18a0…8595ad81`, 1680×1290)에서 만든 첫 타일과 비공개 macro-v6의 기존 Python/Node ONNX WASM 전체 logits를 비교했다. 최대 절대오차는 `0.0002338886260986328`이며 0.005 기준 이내다. 이는 기존 모델의 실행 동등성 기준이며, 새 C++의 실모델 결과나 독립 정확도 승인은 아니다.
+- 보존 모델을 한 번 Safetensors 가중치로 옮기고 실제 지도 입력의 C++ CPU logits 1,835,008개를 이전 Python과 비교했다. 기본 스레드 수에서는 최대 오차 1.148로 실패했으며, 기존 Python과 같은 2개 스레드에서는 **모든 값이 일치**했다. 추론기에 스레드 수를 명시하고 Windows CUDA runtime 연결을 수정해 재검증 중이다. optimizer 상태는 원본 체크포인트에 없으므로 이전 결과를 정확한 학습 재개로 간주하지 않는다.
 
 - 독일 1914 생성기: 기존 GEOS/PROJ 엔진에 WGS84 타원체 면적과 헬골란트 패치 검증을 추가하고 Node 자료·출력 관리자를 연결했다. [CI 40838951664](https://github.com/kimjeon-il/Pando/actions/runs/40838951664)에서 26개 합성 주와 실제 Natural Earth 헬골란트 원본을 각각 사용해 Python/C++ 출력 형상·면적·검증값을 대조했다. 이 두 기준을 고정 fixture로 남기고 Python 생성기와 oracle 실행을 제거했다. 사용자 예외에 따라 Harvard HGIS 원본 26개 기반 실자료 재현과 역사 형상은 **미검증**으로 유지한다. 현재 추적 Python은 **49개(도구 32, 테스트 17)**다.
 
