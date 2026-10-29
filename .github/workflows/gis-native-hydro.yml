@@ -17,13 +17,67 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, pc-allocation, reference-loss, reference-windows, qgis-windows]
+        options: [hydro, hydro-point-screen, pc-allocation, reference-loss, reference-windows, qgis-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  hydro-point-screen:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-point-screen'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install only native geometry development dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev ninja-build
+      - name: Build the point screen
+        run: |
+          cmake -S tools/cpp -B build-native/hydro-point-screen -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON
+          cmake --build build-native/hydro-point-screen --target pando-hydro-point-screen
+      - name: Verify small point-screen cases
+        env:
+          PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
+        run: node --test tests/unit/hydro-point-screen-native.test.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: '.python-version'
+      - name: Compare temporary Shapely and PyProj oracle
+        run: |
+          python -m pip install --quiet 'shapely>=2,<3' 'pyproj>=3,<4'
+          python - <<'PY'
+          import json, subprocess
+          from pyproj import Transformer
+          from shapely.geometry import LineString, Point
+          from shapely.ops import transform, unary_union
+          cases = [
+              {'crs':'EPSG:32632','lines':[[[9,0],[9,1]],[[9.2,0],[9.2,1]]], 'points':[[9,0],[9.1,.5],[9.19,.5]]},
+              {'crs':'EPSG:32635','lines':[[[25,64],[25.1,64.1]],[[25.1,64.1],[25.2,64.2]]], 'points':[[25.08,64.1],[25.3,64.2]]},
+          ]
+          for sample in cases:
+              native=json.loads(subprocess.run(['build-native/hydro-point-screen/pando-hydro-point-screen'],input=json.dumps(sample),text=True,check=True,capture_output=True).stdout)
+              forward=Transformer.from_crs('EPSG:4326',sample['crs'],always_xy=True).transform
+              inverse=Transformer.from_crs(sample['crs'],'EPSG:4326',always_xy=True).transform
+              lines=[transform(forward,LineString(row)) for row in sample['lines']]
+              merged=unary_union(lines)
+              for actual,line in zip(native['lineLengthsMeters'],lines):
+                  assert abs(actual-line.length)<0.001, (actual,line.length)
+              for item,coords in zip(native['points'],sample['points']):
+                  point=transform(forward,Point(coords))
+                  candidates=[merged] if merged.geom_type=='LineString' else lines
+                  nearest=min((line.interpolate(line.project(point)) for line in candidates),key=lambda candidate:point.distance(candidate))
+                  lon,lat=inverse(nearest.x,nearest.y)
+                  assert abs(item['distanceMeters']-point.distance(nearest))<0.001
+                  assert abs(item['nearestLonLat'][0]-lon)<1e-8 and abs(item['nearestLonLat'][1]-lat)<1e-8
+          print('Native point screen matches the temporary Python oracle for both fixed cases')
+          PY
   qgis-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'qgis-windows'
     runs-on: windows-2022
