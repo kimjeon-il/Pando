@@ -1,0 +1,37 @@
+{
+  "schema": "pando-government-vector-hydronym-v1",
+  "systemId": "50798885",
+  "currentNameKo": "야라강",
+  "source": {
+    "provider": "State Government of Victoria - Department of Transport and Planning",
+    "referenceLayer": "https://spatial.planning.vic.gov.au/server/rest/services/yarra_river_land/MapServer/0",
+    "sourceGeoJSONSha256": "70a2b0c84e9094258c64514d1392f7ef712fbaa7312754a7b80296e3dbb50fb6",
+    "license": "CC BY 4.0",
+    "licenseSource": "https://discover.data.vic.gov.au/en_AU/dataset/vicmap-hydro-watercourse-line",
+    "independentHydrology": "https://www.melbournewater.com.au/water-and-environment/water-management/rivers-and-creeks/yarra-river"
+  },
+  "governmentFeatures": 1,
+  "governmentSegmentCount": 4,
+  "hydroMainstemFeatures": 1,
+  "hydroMainstemSegmentCount": 41,
+  "hydroMainstemTotalLengthKm": 163.597,
+  "governmentRiverTotalLengthKm": 252.752,
+  "hydroSamplesToNamedGovernmentRiver": {
+    "samples": 161,
+    "within0_5km": 0.9565,
+    "within1km": 0.9876,
+    "within2km": 0.9938,
+    "p90DistanceKm": 0.338,
+    "maxDistanceKm": 2.187
+  },
+  "governmentSamplesToHydroMainstem": {
+    "samples": 161,
+    "within0_5km": 0.8509,
+    "within1km": 0.9876,
+    "within2km": 0.9876,
+    "p90DistanceKm": 0.573,
+    "maxDistanceKm": 3.112
+  },
+  "assessment": "independent-geometry-screen-only",
+  "publishedToRuntime": false
+}

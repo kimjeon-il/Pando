@@ -154,7 +154,7 @@ test('nested GIS Python changes select their existing external workflow', () => 
   const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
   const check = catalog.externalChecks.find(row => row.id === 'gis-python');
   f.catalog.externalChecks = [check]; f.put(check.workflow);
-  const changedFiles = ['tools/gis/verify_victorian_yarra_source.py', 'scripts/research/check.py', 'tests/test_hydro_independent_names.py'];
+  const changedFiles = ['tools/verify-terrain-dem.py', 'scripts/research/check.py', 'tests/test_hydro_independent_names.py'];
   changedFiles.forEach(file => f.put(file));
   const plan = planApplicationChecks({ changedFiles, repository: f.repository() });
   assert.deepEqual(plan.externalChecks.map(row => row.id), ['gis-python']);
