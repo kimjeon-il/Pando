@@ -16,6 +16,7 @@
 - Hydro 이름 재포장: 기존 Python 생성기를 Node로 이전했다. 고정 자료와 운영 자료의 10047863 수계 1개(원본 번들 SHA-256 `f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f`)를 Python과 비교해 메타데이터 의미·색인·형상 바이트가 일치했다. 압축 결과의 전체 해시는 Node `c140969f68579d52d5d72123f71e576d32e07029b2aba22d3040f1de31220e28`, Python `f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f`로 달랐으며 운영 manifest와 자료 pin은 갱신하지 않았다.
 - Hydro/Natural Earth 조사: 기존 Node 조사기와 Python 원본을 현행 Hydro OSM 잔여 31개 및 검토 수계 42개에 비교했다. Natural Earth 원본 SHA-256 `3391aa917d3707be8da0a133b5a3bde26594e8b87648cb7f533d0df4fd8bcc99`의 명명 선분 4,226개, 수계 ID·본류 형상 범위·후보·지지 샘플이 일치했고 평균 거리는 기존 CI 허용오차 0.00002도 이내였다. Python 조사기는 제거하고 CI 두 호출을 Node 정본으로 전환한다. 자동 후보는 지명 승인으로 취급하지 않는다.
 - Hydro 조사 증거 대조: CI의 USGS 관측점, Natural Earth 검토 후보와 Yarra 벡터 결과를 비교하는 세 인라인 Python을 Node 정책 모듈로 전환했다. 실제 USGS 2개 수계 및 Natural Earth 42개 수계 대조와 실패 사례를 확인했다. Yarra 벡터는 고정 사례만 검사했으며 이번에 정부 API 실자료 대조를 재실행하지 않았다.
+- 저장소 보고서 소유권 검사: CI에서 Git 추적 경로를 확인하던 인라인 Python을 Node 검사로 전환하고 현재 추적 경로에 대해 실행했다. GIS 생성기 구문 검사에는 아직 Python이 필요하다.
 - 별도 미완료: 전체 지도 플러그인 검사는 이전 소스 레이아웃인 `assets/js/modules/temporal.js`를 참조해 시작하지 못한다. 실제 소스는 `shared/frontend/js/modules/temporal.js`에 있다. 수집기 단위 검사와 기존 구현 비교가 통과한 것은 실제 분석 왕복이 검증되었다는 뜻이 아니다.
 
 - `plugins/pando-map-tools/lib/map_source.py`

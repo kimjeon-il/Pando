@@ -35,17 +35,14 @@ jobs:
       - name: Validate application report ownership
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          import subprocess
-          paths=set(subprocess.check_output(['git','ls-files','-z']).decode().strip('\x00').split('\x00'))
-          reports=[p for p in paths if p.startswith('reports/')]
-          assert not reports, 'Report originals belong in PandoLab-library-data, not application Git'
-          assert not any(p.startswith('assets/data/research/siachen/') for p in paths)
-          assert not any(p.startswith('native/') for p in paths)
-          assert not any(p.startswith('.superpowers/') for p in paths)
-          print('PASS: application Git owns no report originals or retired local copies')
-          PY
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          const paths=execFileSync('git',['ls-files','-z'],{encoding:'utf8'}).split('\0').filter(Boolean);
+          for(const prefix of ['reports/','assets/data/research/siachen/','native/','.superpowers/'])
+            assert(!paths.some(path=>path.startsWith(prefix)),`Application Git must not own ${prefix}`);
+          console.log('PASS: application Git owns no report originals or retired local copies');
+          JS
       - name: Verify canonical report paths and scoped publication
         run: |
           node --test tests/unit/report-paths.test.mjs tests/unit/library-report-publication.test.mjs
