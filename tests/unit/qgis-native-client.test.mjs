@@ -6,6 +6,7 @@ import {requestNativeQgis} from '../../tools/qgis/native-client.mjs';
 
 async function fixture(t,handler){
   const server=createServer(socket=>{
+    socket.on('error',error=>{if(error.code!=='ECONNRESET')throw error;});
     let text='';socket.setEncoding('utf8');socket.on('data',chunk=>{
       text+=chunk;
       if(text.includes('\n'))handler(socket,JSON.parse(text.slice(0,text.indexOf('\n'))));
@@ -28,6 +29,10 @@ test('native QGIS request propagates errors, malformed responses and timeout',as
   const config=await fixture(t,(socket,request)=>{
     if(request.command==='status')socket.end('{bad json}\n');
     if(request.command==='open')socket.end(JSON.stringify({ok:false,error:'unknown layer: test-only-secret'})+'\n');
+    if(request.command==='export'){
+      const timer=globalThis.setInterval(()=>socket.write(' '),10);
+      socket.on('close',()=>globalThis.clearInterval(timer));
+    }
   });
   await assert.rejects(requestNativeQgis(config,{command:'status'}),/invalid response/i);
   await assert.rejects(requestNativeQgis(config,{command:'open'}),error=>/unknown layer/.test(error.message)&&!error.message.includes(config.token));
