@@ -1,5 +1,28 @@
 # Pando / QGIS MCP
 
+## Native bridge under migration
+
+The native bridge has a separate configuration at `.library-data/qgis-native.json`
+and does not replace the existing MCP connection below. Its JSON fields are
+`host` (`127.0.0.1`), `port`, a private random `token`, `qgisRoot`,
+`profilesRoot`, `profile`, and `artifactDirectory`. Use absolute Windows paths
+and a dedicated profile; the verified plugin artifact must match this checkout's
+source and QGIS 3.44.15 / Qt 5.15.13. Keep the token in the ignored config.
+
+```powershell
+node tools/qgis/native-bridge.mjs start
+node tools/qgis/native-bridge.mjs status
+node tools/qgis/native-bridge.mjs open 'D:/path/to/pando-layer.geojson'
+node tools/qgis/native-bridge.mjs export --layer QGIS_LAYER_ID --output 'D:/path/to/qgis-result.geojson'
+node tools/qgis/native-bridge.mjs normalize 'D:/path/to/qgis-export.geojson' --output 'D:/path/to/normalized.geojson'
+```
+
+Startup refuses an occupied port with an unexpected or unauthenticated service,
+and never rewrites an existing unrelated profile. QGIS executes operations on
+its main thread; mixed-geometry GeoJSON opens without a sublayer dialog. The
+native CLI is not yet an MCP replacement: the upstream editing and processing
+tools remain active until their used capabilities have been migrated and tested.
+
 QGIS operations use upstream `nkarasiak/qgis-mcp` 0.15.2, commit
 `dae432367fcb2873a151b94c4faaadef2033cf9f`. Native QGIS LTR lives once at
 `D:/dev/tools/osgeo4w`; the upstream plugin source lives at
