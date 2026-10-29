@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {mkdtempSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -44,6 +45,8 @@ test('native ONNX graph reproduces every C++ model output and refuses overwrite'
     const invoke=()=>spawnSync(binary,args,{encoding:'utf8',timeout:120000});
     const result=invoke();assert.equal(result.error,undefined);assert.equal(result.status,0,result.stderr);
     const bytes=readFileSync(join(directory,'model.onnx'));
+    if(process.env.PANDO_REFERENCE_EXPECTED_ONNX_SHA256)
+      assert.equal(createHash('sha256').update(bytes).digest('hex'),process.env.PANDO_REFERENCE_EXPECTED_ONNX_SHA256,'Test and exported checkpoint graphs differ');
     const modelFields=protobufFields(bytes);
     assert.equal(modelFields.find(([field])=>field===1)?.[1],8n);
     const opsets=modelFields.filter(([field])=>field===8);

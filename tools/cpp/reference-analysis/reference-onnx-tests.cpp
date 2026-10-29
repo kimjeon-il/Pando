@@ -19,13 +19,13 @@ int run(const std::vector<fs::path>& args){
     const auto dir=args.back();
     for(const auto* name:{"model.onnx","tile.f32","overview.f32","position.f32","expected.f32"})
         if(fs::exists(dir/name))throw std::runtime_error("Diagnostic output exists");
-    torch::set_num_threads(2);torch::manual_seed(20261029);pando::reference::ReferenceBoundaryModel model;
+    const auto device=pando::reference::selectDevice(checkpoint?args[2].string():"cpu");
+    torch::manual_seed(20261029);pando::reference::ReferenceBoundaryModel model;
     bool refusedTrainingMode=false;
     try{pando::reference::exportReferenceOnnx(model);}catch(const std::exception&){refusedTrainingMode=true;}
     if(!refusedTrainingMode)throw std::runtime_error("ONNX exporter accepted training-mode normalization");
-    auto device=torch::Device(torch::kCPU);
     if(checkpoint){
-        device=pando::reference::selectDevice(args[2].string());model->to(device);
+        model->to(device);
         torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
         const auto data=pando::reference::readBounded(args[3],1024ULL*1024*1024);
         pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(data.begin(),data.end()),device);

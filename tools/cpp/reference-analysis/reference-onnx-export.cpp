@@ -15,11 +15,12 @@ int run(const std::vector<fs::path>& args){
     if(args.size()!=3&&!checkpoint)throw std::runtime_error("Usage: pando-reference-onnx-export WEIGHTS|--diagnostic NEW_OUTPUT, or --checkpoint DEVICE CHECKPOINT NEW_OUTPUT");
     const auto output=args.back();
     if(fs::exists(output))throw std::runtime_error("ONNX output exists; preserve the existing file");
-    torch::set_num_threads(2);const bool diagnostic=!checkpoint&&args[1]==fs::path("--diagnostic");
+    const auto device=pando::reference::selectDevice(checkpoint?args[2].string():"cpu");
+    const bool diagnostic=!checkpoint&&args[1]==fs::path("--diagnostic");
     if(diagnostic)torch::manual_seed(20261022);
     pando::reference::ReferenceBoundaryModel model;
     if(checkpoint){
-        const auto device=pando::reference::selectDevice(args[2].string());model->to(device);
+        model->to(device);
         torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
         const auto data=pando::reference::readBounded(args[3],1024ULL*1024*1024);
         pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(data.begin(),data.end()),device);
