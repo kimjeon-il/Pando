@@ -13,6 +13,16 @@ Edits are JSON objects or an array:
   its near-zero training residual is not accuracy evidence. Inspect
   `quality.modelComparison`, coverage, folds and independent checks before review.
   Controls outside a selected crop cannot recommend that panel.
+* `{"type":"projection","projection":{"kind":"lcc","ellipsoid":"GRS80","lon0":-95,"lat0":49,"lat1":49,"lat2":77}}`
+  changes the typed map projection using the existing controls. This example is
+  a parameter contract, not a default for an unknown map. Longitude/latitude
+  parameters use degrees; projected coordinates use metres. Supported kinds
+  are `geographic`, `eqc`, `merc`, `lcc`, `laea`, `aeqd`, `stere` and `robin`;
+  unsupported ellipsoid/domain combinations fail explicitly. This revision
+  reprojects the saved pixel graph without repeating OCR or inference and
+  invalidates review. Fixed-projection recommendations need six distinct points;
+  unknown-projection selection reserves six fit, six selection and six
+  confirmation points. Read the returned diagnostics before review.
 * `{"type":"boundary","command":{"type":"exclude","chainId":1}}`.
   The shared core also accepts `replace` with original-pixel `points`, `cut`
   with a pixel `point`, and `join` with `from`/`to` chainId and start/end.

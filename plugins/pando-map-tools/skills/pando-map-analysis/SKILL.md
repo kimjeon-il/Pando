@@ -73,12 +73,21 @@ model remains pending, trainingOnly: true, releaseApproved: false. Never
 claim extraction of its unobserved channels or infer country, name or validity.
 
 Inspect the actual recognition language and retained OSD/probe evidence; a weak
-script vote may be corrected by much stronger recognition. The current place
-seed is a curated subset, not a complete world gazetteer. A missing name is a
-coverage limitation, not evidence for a different region. Check city-symbol
+script vote may be corrected by much stronger recognition. Global name search
+uses the pinned cities500 index and evidenced historical aliases, independent
+of the current map viewport. It does not cover every village or historical name.
+A missing name is a coverage limitation, not evidence for a different region. Check city-symbol
 centres against the image; OCR can include a dot in a label box or miss it.
 Use `auto` control-point fitting to compare validated transforms. TPS training
 residuals alone cannot justify approval; preserve failed pixel-validation gates.
+When the projection is known, pass --projection <projection.json> or revise it
+explicitly. Fixed-projection automatic recommendation needs six distinct
+controls, 20 percent image coverage and cross-validation P95 at most eight
+original pixels. Unknown projection selection needs 18 distinct controls split
+between fit, selection and reserved confirmation; never manufacture controls
+from the same PDF transform or count a repeated OCR/place match twice.
+Inspect invalid-domain, fold and extrapolation diagnostics. Supported projection
+conversion is not a datum transformation or independent historical validation.
 
 Read [the structured revision contract](references/edits.md) before editing.
 Registration-only edits reproject the saved pixel graph without OCR/inference.

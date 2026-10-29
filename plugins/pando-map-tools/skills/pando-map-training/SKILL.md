@@ -41,10 +41,18 @@ Validate with the current corpus owner before training.
 ## Train and inspect
 
 Use train.py train --training-only --macro-only --balance-sources with an explicit
-admitted corpus, actual prior checkpoint and a new output path. Add
+admitted corpus and a new output path. An actual prior checkpoint is usable
+only with complete transitive source/family/edition/duplicate lineage. Otherwise
+start from the verified public encoder; do not restamp missing lineage. Add
 --augment-conditions when scan/photometric diversity is requested; coordinates
 and labels stay unchanged. Select epochs, learning rate and encoder freeze for
 the actual data. Record attempted batches, successful updates and AMP skips.
+Use a separate frozen validation corpus and validation-loss early stopping.
+Final-test sheets must not enter training or model selection. Source review
+records the actual agent/human/publisher identity and exact known/unknown class
+regions. Partial source review may train and produce scoped diagnostics but
+cannot qualify whole-map accuracy. Keep the current private default until the
+frozen per-map/map-macro precision, recall and confounder gates pass.
 
 Read the initializer reports. Refuse rejected or aborted checkpoints; correct
 labels and restart from the last admitted predecessor rather than continuing
