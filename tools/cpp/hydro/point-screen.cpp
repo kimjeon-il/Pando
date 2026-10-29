@@ -59,6 +59,13 @@ Geometry geometry(GEOSContextHandle_t context,const std::vector<Point>& points,b
 }
 Value run(const Value& input){
     const auto crs=utm(field(input,"crs"));const auto& sourceLines=array(field(input,"lines"));const auto& sourcePoints=array(field(input,"points"));
+    std::string mode="union_if_line";
+    const auto modeField=input.object.find("mode");
+    if(modeField!=input.object.end()){
+        if(modeField->second.kind!=Value::String)throw std::invalid_argument("Invalid point-screen mode");
+        mode=modeField->second.string;
+    }
+    if(mode!="union_if_line"&&mode!="parts")throw std::invalid_argument("Invalid point-screen mode");
     if(sourceLines.empty()||sourcePoints.empty()||sourceLines.size()>100000||sourcePoints.size()>10000)
         throw std::invalid_argument("Invalid point-screen input size");
     using ProjContext=std::unique_ptr<PJ_CONTEXT,decltype(&proj_context_destroy)>;
@@ -78,16 +85,21 @@ Value run(const Value& input){
         for(const auto& coordinate:coordinates)projected.push_back(transformed(projection.get(),inputPoint(coordinate),PJ_FWD));
         auto line=geometry(context.get(),projected,false);double length=0;
         if(!GEOSLength_r(context.get(),line.get(),&length)||!std::isfinite(length))throw std::runtime_error("GEOS line length failed");
+        if(mode=="parts"&&length<=0)continue;
         lengths.array.push_back(Value::num(length));lines.push_back(std::move(line));
     }
+    if(lines.empty())throw std::invalid_argument("No usable point-screen lines");
     // Shapely's original implementation projects onto the unary union only
     // when it is a single LineString; otherwise it searches input parts.
-    std::vector<GEOSGeometry*> clones;clones.reserve(lines.size());
-    for(const auto& line:lines){auto* clone=GEOSGeom_clone_r(context.get(),line.get());if(!clone){for(auto* item:clones)GEOSGeom_destroy_r(context.get(),item);throw std::runtime_error("GEOS clone failed");}clones.push_back(clone);}
-    auto* collectionRaw=GEOSGeom_createCollection_r(context.get(),GEOS_MULTILINESTRING,clones.data(),static_cast<unsigned int>(clones.size()));
-    if(!collectionRaw){for(auto* item:clones)GEOSGeom_destroy_r(context.get(),item);throw std::runtime_error("GEOS collection failed");}
-    auto collection=own(context.get(),collectionRaw);auto merged=own(context.get(),GEOSUnaryUnion_r(context.get(),collection.get()));
-    const bool mergedLine=GEOSGeomTypeId_r(context.get(),merged.get())==GEOS_LINESTRING;
+    Geometry merged(nullptr,GeosDeleter{context.get()});bool mergedLine=false;
+    if(mode=="union_if_line"){
+        std::vector<GEOSGeometry*> clones;clones.reserve(lines.size());
+        for(const auto& line:lines){auto* clone=GEOSGeom_clone_r(context.get(),line.get());if(!clone){for(auto* item:clones)GEOSGeom_destroy_r(context.get(),item);throw std::runtime_error("GEOS clone failed");}clones.push_back(clone);}
+        auto* collectionRaw=GEOSGeom_createCollection_r(context.get(),GEOS_MULTILINESTRING,clones.data(),static_cast<unsigned int>(clones.size()));
+        if(!collectionRaw){for(auto* item:clones)GEOSGeom_destroy_r(context.get(),item);throw std::runtime_error("GEOS collection failed");}
+        auto collection=own(context.get(),collectionRaw);merged=own(context.get(),GEOSUnaryUnion_r(context.get(),collection.get()));
+        mergedLine=GEOSGeomTypeId_r(context.get(),merged.get())==GEOS_LINESTRING;
+    }
     auto points=Value::arr();
     for(const auto& source:sourcePoints){
         auto point=geometry(context.get(),{transformed(projection.get(),inputPoint(source),PJ_FWD)},true);
