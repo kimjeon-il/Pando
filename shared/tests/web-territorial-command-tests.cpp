@@ -174,8 +174,8 @@ void geometryVersionUsesArchivedHighWaterAndMonthSplit() {
         assert(p.document().geometries.versions().size()==3);
         if(month) {
             const auto& rows=p.document().timelineRecords.geometryBindings;assert(rows.size()==2);
-            assert(rows[0].id=="geometry:A"&&rows[0].validity.to==std::optional<std::string>{"2026-09"});
-            assert(rows[1].id=="geometry:A:2026-10"&&rows[1].validity.from==std::optional<std::string>{"2026-10"});
+            assert(rows[0].id=="geometry:territorial:A"&&rows[0].validity.to==std::optional<std::string>{"2026-09"});
+            assert(rows[1].id=="geometry:territorial:A:2026-10"&&rows[1].validity.from==std::optional<std::string>{"2026-10"});
         } else assert(p.document().timelineRecords.geometryBindings.size()==1);
         assert(p.undo()&&p.document().timelineRecords.geometryBindings.size()==1&&binding(p,"A").geometryRef.version==1);
     }
@@ -197,11 +197,11 @@ void monthCatalogOrderDateGuardsAndSplitCollisionMatchOriginal() {
     try {applyWebTerritorialEdit(p.snapshot(),std::get<WebTerritorialEdit>(reuse.args.action));assert(false);}
     catch(const TimelineError& error){assert(error.code=="TIMELINE_ACTIVATION");}
     Project collision;collision.replace(fixture());collision.setTimelineCursor("2026-10",false);collision.setTimelineCursor("2026-10");
-    auto rows=V::arr();rows.array={feature("A"),feature("A:2026-10")};
+    auto rows=V::arr();rows.array={feature("A"),feature("territorial:A:2026-10")};
     rows.array[0].object["geometry"]=json(R"({"type":"Polygon","coordinates":[[[0,0],[3,0],[3,3],[0,0]]]})");
     const auto action=readWebTerritorialCommand(collision.snapshot(),"territorial.patch",payload("features",rows),ports);
     try {applyWebTerritorialEdit(collision.snapshot(),std::get<WebTerritorialEdit>(action.args.action));assert(false);}
-    catch(const TimelineError& error){assert(error.code=="TIMELINE_ID"&&std::string(error.what()).find("geometry:A:2026-10")!=std::string::npos);}
+    catch(const TimelineError& error){assert(error.code=="TIMELINE_ID"&&std::string(error.what()).find("geometry:territorial:A:2026-10")!=std::string::npos);}
     assert(collision.historyCheckpoint()==0&&collision.document().units.size()==1&&collision.document().geometries.versions().size()==1);
 }
 }

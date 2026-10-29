@@ -150,24 +150,6 @@ val referenceGraphForWeb(const val& ids,const val& parents) {
         return output;
     });
 }
-std::vector<GisCountryName> gisCountriesForWeb(const val& ids,const val& normalizedIds,const val& normalizedNames) {
-    for(const auto& input:{ids,normalizedIds,normalizedNames})array(input,"INVALID_GIS_COUNTRY_NAMES");
-    const auto count=ids["length"].as<unsigned>();
-    if(normalizedIds["length"].as<unsigned>()!=count||normalizedNames["length"].as<unsigned>()!=count)
-        fail("INVALID_GIS_COUNTRY_NAMES","Country arrays must have equal length.");
-    std::vector<GisCountryName> countries;countries.reserve(count);
-    for(unsigned i=0;i<count;++i)countries.push_back({referenceUtf16(ids[i]),referenceUtf16(normalizedIds[i]),referenceUtf16(normalizedNames[i])});
-    return countries;
-}
-val gisCountryNamesForWeb(const val& ids,const val& normalizedIds,const val& normalizedNames,const val& queries) {
-    return boundary([&] {
-        const auto countries=gisCountriesForWeb(ids,normalizedIds,normalizedNames);array(queries,"INVALID_GIS_COUNTRY_NAMES");
-        std::vector<std::u16string> values;const auto length=queries["length"].as<unsigned>();values.reserve(length);
-        for(unsigned i=0;i<length;++i)values.push_back(referenceUtf16(queries[i]));
-        const auto matches=resolveGisCountryNames(countries,values);auto output=val::array();
-        for(unsigned i=0;i<matches.size();++i)output.set(i,matches[i]);return output;
-    });
-}
 val gisCountryMergeForWeb(const val& current,const val& incoming) {
     return boundary([&] {
         array(current,"INVALID_GIS_COUNTRY_IDS");array(incoming,"INVALID_GIS_COUNTRY_IDS");
@@ -184,31 +166,26 @@ val gisCountryMergeForWeb(const val& current,const val& incoming) {
         output.set("existing",existing);output.set("unaffected",unaffected);return output;
     });
 }
-val gisCountryAssignmentsForWeb(const val& ids,const val& normalizedIds,const val& normalizedNames,
-    const val& fallback,const val& fields,const val& supplied) {
+val gisCountryGeometryForWeb(unsigned incomingCount,const val& unaffected,bool replaceById,const val& callbacks) {
     return boundary([&] {
-        const auto countries=gisCountriesForWeb(ids,normalizedIds,normalizedNames);
-        array(fields,"INVALID_GIS_COUNTRY_NAMES");array(supplied,"INVALID_GIS_COUNTRY_NAMES");
-        const auto length=fields["length"].as<unsigned>();
-        if(supplied["length"].as<unsigned>()!=length)fail("INVALID_GIS_COUNTRY_NAMES","Assignment arrays must have equal length.");
-        std::vector<std::u16string> values;std::vector<bool> hasField;values.reserve(length);hasField.reserve(length);
-        for(unsigned i=0;i<length;++i){values.push_back(referenceUtf16(fields[i]));
-            if(!type(supplied[i],"boolean"))fail("INVALID_GIS_COUNTRY_NAMES","Field flags must be booleans.");hasField.push_back(supplied[i].as<bool>());}
-        const auto plan=planGisCountryAssignments(countries,referenceUtf16(fallback),values,hasField);
-        auto output=val::object(),assignments=val::array(),groups=val::array();
-        for(unsigned i=0;i<plan.assignments.size();++i){auto row=val::object();row.set("index",plan.assignments[i].index);
-            row.set("usedFallback",plan.assignments[i].usedFallback);row.set("unresolvedField",plan.assignments[i].unresolvedField);assignments.set(i,row);}
-        for(unsigned i=0;i<plan.groups.size();++i){auto row=val::object(),features=val::array();
-            for(unsigned j=0;j<plan.groups[i].features.size();++j)features.set(j,unsigned(plan.groups[i].features[j]));
-            row.set("index",plan.groups[i].index);row.set("features",features);groups.set(i,row);}
-        output.set("assignments",assignments);output.set("groups",groups);return output;
+        array(unaffected,"INVALID_GIS_COUNTRY_IDS");
+        std::vector<std::size_t> indices;
+        for(unsigned i=0;i<unaffected["length"].as<unsigned>();++i)indices.push_back(unaffected[i].as<unsigned>());
+        GisCountryMergeOperations operations;
+        operations.prepare=[&]{callbacks.call<void>("prepare");};
+        operations.bounds=[&](int incoming,std::size_t country){return callbacks.call<bool>("bounds",incoming,unsigned(country));};
+        operations.intersection=[&](int incoming,std::size_t country)->std::optional<double>{
+            const auto value=callbacks.call<val>("intersection",incoming,unsigned(country));
+            return value.isNull()||value.isUndefined()?std::nullopt:std::optional<double>(value.as<double>());
+        };
+        operations.area=[&]{return callbacks.call<double>("area");};
+        operations.subtract=[&](std::size_t country){return callbacks.call<bool>("subtract",unsigned(country));};
+        const auto plan=planGisCountryGeometry(incomingCount,indices,replaceById,operations);
+        auto output=val::object(),donors=val::array();output.set("overlapAreaKm2",plan.overlapAreaKm2);
+        for(unsigned i=0;i<plan.donors.size();++i){auto donor=val::object();donor.set("index",unsigned(plan.donors[i].index));
+            donor.set("removed",plan.donors[i].removed);donors.set(i,donor);}
+        output.set("donors",donors);return output;
     });
-}
-bool gisTerritorialAreaForWeb(const std::string& use,double area,double first,double second) {
-    if(use=="input-overlap")return gisTerritorialAreaDecision(GisTerritorialAreaUse::InputOverlap,area,first,second);
-    if(use=="country-overlap")return gisTerritorialAreaDecision(GisTerritorialAreaUse::CountryOverlap,area,first,second);
-    if(use=="absorbed")return gisTerritorialAreaDecision(GisTerritorialAreaUse::Absorbed,area,first,second);
-    throw std::invalid_argument("Invalid GIS territorial area use");
 }
 val distributionReferencesForWeb(const val& layerIds,const val& territoryIds,const val& layers,
     const val& modes,const val& territories,const val& values) {
@@ -912,10 +889,9 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::function("sphericalRingSignedArea",&sphericalRingAreaForWeb);
     emscripten::function("validateTerritorialRing",&territorialRingValidationForWeb);
     emscripten::function("referenceGraphDiagnostics",&referenceGraphForWeb);
-    emscripten::function("resolveGisCountryNames",&gisCountryNamesForWeb);
-    emscripten::function("planGisCountryAssignments",&gisCountryAssignmentsForWeb);
     emscripten::function("planGisCountryMerge",&gisCountryMergeForWeb);
-    emscripten::function("gisTerritorialAreaDecision",&gisTerritorialAreaForWeb);
+    emscripten::function("planGisCountryGeometry",&gisCountryGeometryForWeb);
+    emscripten::function("gisCountryMergeCanCommit",&gisCountryMergeCanCommit);
     emscripten::function("resolveTerritorialRoot",&territorialRootForWeb);
     emscripten::function("distributionReferenceDiagnostics",&distributionReferencesForWeb);
     emscripten::function("sphericalRingSignedAreas",&sphericalRingAreasForWeb);

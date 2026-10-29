@@ -147,8 +147,6 @@ let importServiceModule;
 let appendImportedSourceInfo;
 let applyImportedPackageAssets;
 let createGisImportWizardController;
-let buildTerritorialImportTransactionPlan;
-let resolveImportedCountryId;
 let identityResolutionSummary;
 let materializeResolvedCountries;
 let resolveCountryIdentities;
@@ -202,16 +200,14 @@ async function ensureGisRuntime() {
   const startedAt = performance.now();
   gisRuntimePromise = Promise.all([
     import(versionedModuleUrl('./modules/import-service.js')),
-    import(versionedModuleUrl('./modules/territorial-import-plan.js')),
     import(versionedModuleUrl('./modules/country-import-identity.js')),
     import(versionedModuleUrl('./modules/coast-reconciliation.js')),
     import(versionedModuleUrl('./modules/annex-geometry.js')),
     import(versionedModuleUrl('./modules/river-territory-partition.js')),
     import(versionedModuleUrl('./modules/gis-import-wizard-controller.js')),
-  ]).then(([imports, territorial, countryIdentity, coast, annex, river, wizardController]) => {
+  ]).then(([imports, countryIdentity, coast, annex, river, wizardController]) => {
     importServiceModule = imports;
     createGisImportWizardController = wizardController.createGisImportWizardController;
-    ({ buildTerritorialImportTransactionPlan, resolveImportedCountryId } = territorial);
     ({ identityResolutionSummary, materializeResolvedCountries, resolveCountryIdentities } = countryIdentity);
     ({ analyzeAdminCountryCoast, normalizeCoastDecision, planCoastReconciliations, validateCoastReplacement } = coast);
     ({ planDrawnTerritoryAnnex } = annex);
@@ -223,7 +219,7 @@ async function ensureGisRuntime() {
       riverTerritoryPartitionConfigFingerprint,
     } = river);
     recordLazyRuntime('lazyGisLoadedMs', startedAt);
-    return { imports, territorial, countryIdentity, coast, annex, river };
+    return { imports, countryIdentity, coast, annex, river };
   }).catch(error => {
     gisRuntimePromise = null;
     recordLazyRuntimeError();
@@ -441,8 +437,6 @@ export {
   appendImportedSourceInfo,
   applyImportedPackageAssets,
   createGisImportWizardController,
-  buildTerritorialImportTransactionPlan,
-  resolveImportedCountryId,
   identityResolutionSummary,
   materializeResolvedCountries,
   resolveCountryIdentities,

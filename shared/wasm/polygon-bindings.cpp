@@ -186,37 +186,6 @@ val writeResult(const MultiPolygon& result){
     const val shapeView(emscripten::typed_memory_view(shape.size(),shape.data())),pointsView(emscripten::typed_memory_view(points.size(),points.data()));
     return val::take_ownership(unpackPolygonResult(shapeView.as_handle(),pointsView.as_handle()));
 }
-val gisTerritoryGeometryForWeb(val ids,val hasGeometry,val countryShapes,val featureShapes,val groups) {
-    const auto countryCount=ids["length"].as<unsigned>(),featureCount=featureShapes["length"].as<unsigned>();
-    if(hasGeometry["length"].as<unsigned>()!=countryCount||countryShapes["length"].as<unsigned>()!=countryCount)
-        throw std::invalid_argument("INVALID_GIS_PLAN: country arrays");
-    auto operands=val::array();unsigned position=0;
-    for(unsigned i=0;i<countryCount;++i)operands.set(position++,countryShapes[i]);
-    for(unsigned i=0;i<featureCount;++i)operands.set(position++,featureShapes[i]);
-    auto shapes=readOperands(operands);std::vector<GisCountryShape> countries;countries.reserve(countryCount);
-    for(unsigned i=0;i<countryCount;++i)countries.push_back({selectionParentKey(ids[i]),hasGeometry[i].as<bool>(),std::move(shapes[i])});
-    std::vector<MultiPolygon> features;features.reserve(featureCount);
-    for(unsigned i=0;i<featureCount;++i)features.push_back(std::move(shapes[countryCount+i]));
-    std::vector<GisCountryAssignmentGroup> selected;const auto count=groups["length"].as<unsigned>();selected.reserve(count);
-    for(unsigned i=0;i<count;++i){const auto row=groups[i],indexes=row["features"];GisCountryAssignmentGroup group;group.index=row["index"].as<int>();
-        for(unsigned j=0;j<indexes["length"].as<unsigned>();++j)group.features.push_back(indexes[j].as<unsigned>());selected.push_back(std::move(group));}
-    const auto plan=planGisTerritoryGeometry(countries,features,selected);
-    auto result=val::object(),outputGroups=val::array(),absorbed=val::array();
-    result.set("status",std::string(plan.status==GisTerritoryPlanStatus::Valid?"valid":
-        plan.status==GisTerritoryPlanStatus::Overlap?"overlap":"missing-owner"));
-    result.set("left",unsigned(plan.left));result.set("right",unsigned(plan.right));result.set("missing",unsigned(plan.missing));
-    for(unsigned i=0;i<plan.groups.size();++i){const auto& group=plan.groups[i];auto row=val::object(),donors=val::array(),indices=val::array();
-        row.set("index",unsigned(group.index));row.set("geometry",writeResult(group.geometry));row.set("importedArea",group.importedArea);
-        row.set("existingArea",group.existingArea);row.set("newArea",group.newArea);
-        for(unsigned j=0;j<group.features.size();++j)indices.set(j,unsigned(group.features[j]));
-        for(unsigned j=0;j<group.donors.size();++j){auto donor=val::object();donor.set("index",unsigned(group.donors[j].index));
-            donor.set("area",group.donors[j].area);donor.set("absorbed",group.donors[j].absorbed);donors.set(j,donor);}
-        row.set("features",indices);row.set("donors",donors);outputGroups.set(i,row);
-    }
-    for(unsigned i=0;i<plan.absorbed.size();++i)absorbed.set(i,unsigned(plan.absorbed[i]));
-    result.set("groups",outputGroups);result.set("absorbed",absorbed);result.set("totalArea",plan.totalArea);
-    result.set("transferArea",plan.transferArea);result.set("existingArea",plan.existingArea);result.set("newArea",plan.newArea);return result;
-}
 val polygonOperation(const std::string& name,val inputs,bool precisionRetry){
     try{
         PolygonOperation operation;
@@ -355,7 +324,6 @@ std::string wrapGeometry(const std::string& input){
 EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("subunitSelectionDecision",&subunitSelectionForWeb);
     emscripten::function("territorialGeometriesAdjacent",&territorialAdjacentForWeb);
-    emscripten::function("planGisTerritoryGeometry",&gisTerritoryGeometryForWeb);
     emscripten::function("displayGeometryAreasKm2",&displayAreasForWeb);
     emscripten::function("displayLineDistancesKm",&displayLinesForWeb);
     emscripten::function("polygonOperation",&polygonOperation);

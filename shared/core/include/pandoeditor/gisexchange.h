@@ -2,22 +2,13 @@
 #include <pandoeditor/document.h>
 #include <pandoeditor/territorialmutation.h>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
 
 namespace pandoeditor {
 class ProjectSnapshot;
-// IDs and pre-normalized search keys retain their original UTF-16 identity.
-// Each result is the first matching row, or -1 for no match or ambiguity.
-struct GisCountryName { std::u16string id,normalizedId,normalizedName; };
-std::vector<int> resolveGisCountryNames(const std::vector<GisCountryName>&,
-    const std::vector<std::u16string>& queries);
-struct GisCountryAssignment { int index=-1;bool usedFallback=false,unresolvedField=false; };
-struct GisCountryAssignmentGroup { int index=-1;std::vector<std::size_t> features; };
-struct GisCountryAssignmentPlan { std::vector<GisCountryAssignment> assignments;std::vector<GisCountryAssignmentGroup> groups; };
-GisCountryAssignmentPlan planGisCountryAssignments(const std::vector<GisCountryName>&,
-    const std::u16string& fallback,const std::vector<std::u16string>& fields,const std::vector<bool>& hasField);
 enum class GisCountryMergeStatus { Valid, Empty, InvalidIds };
 struct GisCountryMergeIdentities {
     GisCountryMergeStatus status=GisCountryMergeStatus::Valid;
@@ -25,24 +16,18 @@ struct GisCountryMergeIdentities {
 };
 GisCountryMergeIdentities planGisCountryMerge(const std::vector<std::u16string>& current,
     const std::vector<std::u16string>& incoming);
-struct GisCountryShape { std::string id;bool hasGeometry=false;MultiPolygon geometry; };
-struct GisTerritoryDonor { std::size_t index=0;double area=0;bool absorbed=false; };
-struct GisTerritoryGroup {
-    std::size_t index=0;std::vector<std::size_t> features;MultiPolygon geometry;
-    double importedArea=0,existingArea=0,newArea=0;std::vector<GisTerritoryDonor> donors;
+struct GisCountryMergeOperations {
+    std::function<void()> prepare;
+    std::function<bool(int,std::size_t)> bounds;
+    std::function<std::optional<double>(int,std::size_t)> intersection;
+    std::function<double()> area;
+    std::function<bool(std::size_t)> subtract;
 };
-enum class GisTerritoryPlanStatus { Valid, Overlap, MissingOwner };
-struct GisTerritoryGeometryPlan {
-    GisTerritoryPlanStatus status=GisTerritoryPlanStatus::Valid;
-    std::size_t left=0,right=0,missing=0;
-    std::vector<GisTerritoryGroup> groups;
-    double totalArea=0,transferArea=0,existingArea=0,newArea=0;
-    std::vector<std::size_t> absorbed;
-};
-GisTerritoryGeometryPlan planGisTerritoryGeometry(const std::vector<GisCountryShape>&,
-    const std::vector<MultiPolygon>&,const std::vector<GisCountryAssignmentGroup>&);
-enum class GisTerritorialAreaUse { InputOverlap, CountryOverlap, Absorbed };
-bool gisTerritorialAreaDecision(GisTerritorialAreaUse,double area,double firstReference,double secondReference);
+struct GisCountryMergeDonor { std::size_t index=0;bool removed=false; };
+struct GisCountryMergeGeometry { double overlapAreaKm2=0;std::vector<GisCountryMergeDonor> donors; };
+GisCountryMergeGeometry planGisCountryGeometry(std::size_t incomingCount,
+    const std::vector<std::size_t>& unaffected,bool replaceById,const GisCountryMergeOperations& operations);
+bool gisCountryMergeCanCommit(double overlapAreaKm2) noexcept;
 enum class GisExchangeTarget { Project, General, Regional, Distribution, Generic };
 struct GisTargetDescriptor {
     GisExchangeTarget target;
