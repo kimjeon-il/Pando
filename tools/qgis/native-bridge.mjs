@@ -10,7 +10,7 @@ import {normalizeFile,normalizeSourceAttribute,parseJson,stringifyJson} from './
 import {startNativeQgis} from './native-start.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
-const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | schema --layer ID | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
+const usage='Usage: node tools/qgis/native-bridge.mjs [--config FILE] start | status | project | layers [--offset N --limit N] | schema --layer ID | features --layer ID [--offset N --limit N --expression TEXT --geometry] | select --layer ID (--fids JSON | --expression TEXT) | selection --layer ID | clear-selection --layer ID | begin-edit|commit-edit|rollback-edit|undo-edit|redo-edit --layer ID | set-attribute --layer ID --fid FID --field FIELD --json JSON | set-geometry --layer ID --fid FID --wkt WKT | delete-feature --layer ID --fid FID | open INPUT | export --layer ID --output NEW_OUTPUT | normalize INPUT --output NEW_OUTPUT';
 export async function runNativeBridge(args,{signal}={}){
   signal?.throwIfAborted();
   const {values,positionals}=parseArgs({args,allowPositionals:true,options:{config:{type:'string'},layer:{type:'string'},output:{type:'string'},offset:{type:'string'},limit:{type:'string'},fids:{type:'string'},expression:{type:'string'},fid:{type:'string'},field:{type:'string'},json:{type:'string'},wkt:{type:'string'},geometry:{type:'boolean'}}});
@@ -19,14 +19,15 @@ export async function runNativeBridge(args,{signal}={}){
     if(rest.length!==1||!values.output||values.layer||values.config||values.offset!==undefined||values.limit!==undefined||values.fids!==undefined||values.expression!==undefined||values.fid!==undefined||values.field!==undefined||values.json!==undefined||values.wkt!==undefined||values.geometry!==undefined)throw Error(usage);
     return normalizeFile(rest[0],values.output);
   }
-  if(!['start','status','project','layers','schema','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','open','export'].includes(command))throw Error(usage);
+  if(!['start','status','project','layers','schema','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature','open','export'].includes(command))throw Error(usage);
   if((['start','status','project','layers'].includes(command)&&(rest.length||values.layer||values.output))||
     (command==='open'&&(rest.length!==1||values.layer||values.output))||
     (command==='schema'&&(rest.length||!values.layer||values.output))||
-    (['features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry'].includes(command)&&(rest.length||!values.layer||values.output))||
+    (['features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','delete-feature'].includes(command)&&(rest.length||!values.layer||values.output))||
     (command==='set-attribute'&&(!values.fid||!values.field||values.json===undefined))||
     (command==='set-geometry'&&(!values.fid||!values.wkt))||
-    (!['set-attribute','set-geometry'].includes(command)&&values.fid!==undefined)||
+    (command==='delete-feature'&&!values.fid)||
+    (!['set-attribute','set-geometry','delete-feature'].includes(command)&&values.fid!==undefined)||
     (command!=='set-attribute'&&(values.field!==undefined||values.json!==undefined))||
     (command!=='set-geometry'&&values.wkt!==undefined)||
     (command==='select'&&((values.fids===undefined)===(values.expression===undefined)))||
@@ -79,10 +80,11 @@ export async function runNativeBridge(args,{signal}={}){
   }
   if(command==='selection'||command==='clear-selection')return requestNativeQgis(config,{command,layer:values.layer},{signal});
   if(['begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit'].includes(command))return requestNativeQgis(config,{command,layer:values.layer},{signal});
-  if(command==='set-attribute'||command==='set-geometry'){
+  if(command==='set-attribute'||command==='set-geometry'||command==='delete-feature'){
     const fid=values.fid;
     if(!/^-?(0|[1-9]\d*)$/.test(fid)||BigInt(fid)<-9223372036854775808n||BigInt(fid)>9223372036854775807n)
       throw Error('A signed QGIS feature ID is required');
+    if(command==='delete-feature')return requestNativeQgis(config,{command,layer:values.layer,fid},{signal});
     if(command==='set-geometry'){
       if(values.wkt.length>500000)throw Error('A bounded WKT geometry is required');
       return requestNativeQgis(config,{command,layer:values.layer,fid,wkt:values.wkt},{signal});

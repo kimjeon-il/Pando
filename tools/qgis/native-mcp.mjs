@@ -50,6 +50,9 @@ function createServer(){
   server.registerTool('qgis_native_set_geometry',{description:'Change one geometry using EPSG:4326 WKT within a bridge-owned QGIS edit session.',
     inputSchema:z.strictObject({layer:path,fid:z.string().regex(/^-?(0|[1-9]\d*)$/),wkt:z.string().min(1).max(500000)})},
   async({layer,fid,wkt},extra)=>respond([...options,'set-geometry',`--layer=${layer}`,`--fid=${fid}`,`--wkt=${wkt}`],extra.signal));
+  server.registerTool('qgis_native_delete_feature',{description:'Delete one feature within a bridge-owned edit session, with QGIS undo and rollback.',
+    inputSchema:z.strictObject({layer:path,fid:z.string().regex(/^-?(0|[1-9]\d*)$/)})},
+  async({layer,fid},extra)=>respond([...options,'delete-feature',`--layer=${layer}`,`--fid=${fid}`],extra.signal));
   server.registerTool('qgis_native_open',{description:'Open an existing vector file in native QGIS.',inputSchema:z.strictObject({input:path})},
     async({input},extra)=>respond([...options,'open',input],extra.signal));
   server.registerTool('qgis_native_export',{description:'Export a layer as normalized EPSG:4326 GeoJSON without overwriting an existing file.',
