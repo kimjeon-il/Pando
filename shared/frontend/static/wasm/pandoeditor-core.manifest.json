@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "3ade9ea2fc2ed57e85c67153ba3d7a06fd060f27109fcec8b5f6b00d53ca820e",
+  "sourceSha256": "3299ec8f8a49c07b0ada0ff60f673b2ae20a9107120d9a23e8df5676948d0ca8",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -85,7 +85,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/gisexchange.h",
-      "sha256": "77211bc038d3b05a7c4c196e247421d519c72fc585c2991ce8d67c5a75d67e23"
+      "sha256": "c4b5da991a217dee5b4bda59158b9a40a5316cced6b28f20d979fc1e97583de9"
     },
     {
       "path": "shared/core/include/pandoeditor/giszip.h",
@@ -313,7 +313,7 @@
     },
     {
       "path": "shared/core/src/gisexchange.cpp",
-      "sha256": "548b07c6f2cd090487a917f6a243e623206fe785dd07e83794ff28b84972d4f0"
+      "sha256": "872f5684fa67e5dd2e9e97ed4102356a7f572bda279c8d2748b653286580783a"
     },
     {
       "path": "shared/core/src/giszip.cpp",
@@ -605,7 +605,7 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "37e6580d5dd2eca155f4365260fc9c8f09086906a22f068ccc8723b0d03d34d9"
+      "sha256": "32437ad7a94d4fd0cbbc8de9615ce701cc9800fb63c0c7998985fabb70ca609d"
     },
     {
       "path": "shared/wasm/timeline-bindings.cpp",
@@ -619,7 +619,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "ef07e3e768713ca34705cc51f7398853ed92cc1a3636d2143c224f695303ec75"
+      "sha256": "a9d4675daf46901201bc683e57688ffb77ac6616f12cb75a0846d4928844ce8b"
     }
   }
 }

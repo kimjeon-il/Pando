@@ -3,6 +3,7 @@ import { createTerritorialFeature } from "../../shared/frontend/js/modules/terri
 import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { sharedCalculationCore } from '../../shared/frontend/js/modules/temporal.js';
 
 import {
   appendImportedSourceInfo,
@@ -11,6 +12,27 @@ import {
   createGisGeometryValidator,
   createImportService,
 } from "../../apps/editor/frontend/js/modules/import-service.js";
+
+test('shared GIS country merge resolves ordered identities and rejects invalid imports', () => {
+  assert.deepEqual(sharedCalculationCore.planGisCountryMerge(['A', '이웃', 'A'], ['A', '새 국가']), {
+    status: 'valid', matched: 1, existing: [2, -1], unaffected: [1],
+  });
+  assert.equal(sharedCalculationCore.planGisCountryMerge(['A'], []).status, 'empty');
+  assert.equal(sharedCalculationCore.planGisCountryMerge(['A'], ['', 'B']).status, 'invalid-ids');
+  assert.equal(sharedCalculationCore.planGisCountryMerge(['A'], ['B', 'B']).status, 'invalid-ids');
+});
+
+test('actual country merge rejects empty and duplicate imported IDs before geometry operations', async () => {
+  let operations = 0;
+  const planner = createCountryImportMergePlanner({
+    clipper: { union() { operations++; }, difference() { operations++; }, intersection() { operations++; } },
+    clone: structuredClone, featureCountryId: feature => feature.id,
+  });
+  await assert.rejects(planner({ features: [] }, { features: [] }, 'id-replace'), /병합할 국가 객체가 없습니다/);
+  await assert.rejects(planner({ features: [] }, { features: [country('X'), country('X')] }, 'id-replace'), /중복/);
+  await assert.rejects(planner({ features: [] }, { features: [country('')] }, 'id-replace'), /비어 있거나 중복/);
+  assert.equal(operations, 0);
+});
 
 const country = (id, name = id) => ({
   type: 'Feature',

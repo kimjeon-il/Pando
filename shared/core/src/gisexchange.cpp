@@ -38,6 +38,22 @@ std::vector<int> resolveGisCountryNames(const std::vector<GisCountryName>& count
         result.push_back(query.empty()||found==lookup.end()||found->second.ambiguous?-1:found->second.index);}
     return result;
 }
+GisCountryMergeIdentities planGisCountryMerge(const std::vector<std::u16string>& current,
+    const std::vector<std::u16string>& incoming) {
+    GisCountryMergeIdentities result;
+    if(incoming.empty()){result.status=GisCountryMergeStatus::Empty;return result;}
+    std::set<std::u16string> imported;
+    for(const auto& id:incoming)if(id.empty()||!imported.insert(id).second){
+        result.status=GisCountryMergeStatus::InvalidIds;return result;
+    }
+    std::map<std::u16string,int> lookup;
+    for(std::size_t i=0;i<current.size();++i)lookup[current[i]]=int(i);
+    for(const auto& id:incoming){const auto found=lookup.find(id);
+        if(found==lookup.end())result.existing.push_back(-1);
+        else{result.existing.push_back(found->second);++result.matched;}}
+    for(std::size_t i=0;i<current.size();++i)if(!imported.count(current[i]))result.unaffected.push_back(i);
+    return result;
+}
 GisCountryAssignmentPlan planGisCountryAssignments(const std::vector<GisCountryName>& countries,
     const std::u16string& fallback,const std::vector<std::u16string>& fields,const std::vector<bool>& hasField) {
     if(fields.size()!=hasField.size())throw std::invalid_argument("INVALID_GIS_COUNTRY_NAMES: assignment arrays");
