@@ -62,10 +62,10 @@ public:
     Value activation(Value x,const std::string& op){x.name=node(op,{x.name});return x;}
     Value convNorm(Value x,ConvNormImpl& layer){
         if(layer.size()!=(layer.activation?3:2)||layer.activation<0||layer.activation>2)throw std::runtime_error("Unsupported ONNX encoder layer");
-        x=conv(x,layer.at<torch::nn::Conv2dImpl>(0));auto& bn=layer.at<torch::nn::BatchNorm2dImpl>(1);
-        if(bn.is_training()||!bn.options.affine()||!bn.options.track_running_stats())throw std::runtime_error("ONNX requires evaluation batch normalization");
-        x.name=node("BatchNormalization",{x.name,tensor(bn.weight),tensor(bn.bias),tensor(bn.running_mean),tensor(bn.running_var)},
-            {attrFloat("epsilon",static_cast<float>(bn.options.eps()))});
+        x=conv(x,layer.at<torch::nn::Conv2dImpl>(0));auto* bn=layer.ptr(1)->as<torch::nn::BatchNorm2dImpl>();
+        if(!bn||bn->is_training()||!bn->options.affine()||!bn->options.track_running_stats())throw std::runtime_error("ONNX requires evaluation batch normalization");
+        x.name=node("BatchNormalization",{x.name,tensor(bn->weight),tensor(bn->bias),tensor(bn->running_mean),tensor(bn->running_var)},
+            {attrFloat("epsilon",static_cast<float>(bn->options.eps()))});
         if(layer.activation==1)x=activation(x,"Relu");else if(layer.activation==2)x=activation(x,"HardSwish");return x;
     }
     Value squeeze(Value x,SqueezeExcitationImpl& layer){
