@@ -56,6 +56,10 @@ async function fixture(t){
         assert.equal(request.layer,'layer-1');writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',
           geometry:{type:'Point',coordinates:[127,37]},properties:{source:'{"schemaVersion":1,"sourceId":"map"}'}}]}),{flag:'wx'});
         result={output:request.output,features:1,crs:'EPSG:4326'};
+      }else if(request.command==='buffer'){
+        assert.equal(request.layer,'layer-1');assert.equal(request.distance,50);assert.equal(request.segments,5);
+        writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'Polygon',coordinates:[[[127,37],[128,37],[128,38],[127,37]]]},properties:{name:'buffer'}}]}),{flag:'wx'});
+        result={output:request.output,features:1,crs:'EPSG:4326'};
       }else throw Error('Unexpected command');
       socket.end(JSON.stringify({ok:true,result})+'\n');
     });
@@ -115,6 +119,16 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const bytes=readFileSync(output);assert.equal(JSON.parse(bytes).features[0].properties.source.sourceId,'map');
   const repeated=await run(['--config',config,'export','--layer','layer-1','--output',output]);
   assert.notEqual(repeated.code,0);assert.match(repeated.stderr,/exists/i);assert.deepEqual(readFileSync(output),bytes);
+  const buffered=join(root,'buffer.geojson');const buffer=await run(['--config',config,'buffer','--layer','layer-1','--distance','50','--output',buffered]);
+  assert.equal(buffer.code,0,buffer.stderr);assert.equal(JSON.parse(readFileSync(buffered)).features[0].geometry.type,'Polygon');
+  const existingBuffer=readFileSync(buffered);const repeatBuffer=await run(['--config',config,'buffer','--layer','layer-1','--distance','50','--output',buffered]);
+  assert.notEqual(repeatBuffer.code,0);assert.deepEqual(readFileSync(buffered),existingBuffer);
+  for(const value of ['NaN','1e999','0x10']){
+    const invalid=await run(['--config',config,'buffer','--layer','layer-1','--distance',value,'--output',join(root,'invalid.geojson')]);
+    assert.notEqual(invalid.code,0);
+  }
+  const invalidSegments=await run(['--config',config,'buffer','--layer','layer-1','--distance','50','--segments','0','--output',join(root,'invalid.geojson')]);
+  assert.notEqual(invalidSegments.code,0);
 });
 test('native QGIS CLI rejects invalid input without exposing its token',async t=>{
   const {root,config}=await fixture(t);
