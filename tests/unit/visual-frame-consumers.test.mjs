@@ -5,10 +5,66 @@ import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visua
 import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
 import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 import { createMapHost } from "../../shared/frontend/js/modules/map-workspace-host.js";
+import { createMapContentPresentation } from "../../shared/frontend/js/modules/map-content-presentation.js";
 
 const frame = () => createMapVisualFrame({ frameId: 8, viewRevision: 3,
   viewState: { projection: 'flat', size: { width: 300, height: 200 }, translate: [150, 100], scale: 40, dpr: 2 },
   projectPath: () => 'snapshot-path' });
+
+test('generic point DOM waits for publication while scene preparation continues', () => {
+  let ready=false, writes=0, packets=0;
+  const chain={};
+  for(const name of ['data','enter','append','on','attr','classed','style','exit','remove','selectAll'])
+    chain[name]=()=>{writes++;return chain;};
+  const feature={id:'point',geometry:{type:'Point',coordinates:[0,0]}};
+  const content=createMapContentPresentation({active(){},isDisposed:()=>false,canPresentFrame:()=>ready,
+    framePath:()=>()=> 'M0,0', generic:{getState:()=>({genericFeatures:[feature]}),
+      isLayerItemVisible:()=>true,visibleMapObjectCandidates:()=>[{id:'point'}],geometryMayIntersectViewport:()=>true,
+      genericFeatureLayer:chain,replaceGpuSceneDomain:()=>packets++}});
+  content.renderGenericFeatures(frame());
+  assert.equal(packets,1);
+  assert.equal(writes,0);
+  ready=true;
+  content.renderGenericFeatures(frame(),{presentationOnly:true});
+  assert.ok(writes>0);
+  assert.equal(packets,1,'publication does not submit another scene');
+});
+
+test('preserved WebGL frames never enter the Canvas acknowledgement queue', t => {
+  let ready = false, commits = 0;
+  const queued = [];
+  const gpuMapRenderer = {getRuntimeState: () => ({renderer:'webgl2',projectRenderBlocked:false}),
+    canPresentVisualFrame: (_frame, result) => ready && !result?.deferred,
+    commitVisualFrame: () => commits++};
+  const domain = createRenderingDomain({gpuMapRenderer,requestFrame: fn => queued.push(fn),prepareView: frame,
+    renderers:{view: () => ready ? {succeeded:true} : {preserved:true,deferred:true}}});
+  t.after(() => domain.dispose());
+  domain.invalidateView(); queued.shift()();
+  assert.equal(commits,0);
+  domain.invalidateLabels('place-response'); queued.shift()();
+  assert.equal(commits,0);
+  ready=true;
+  domain.invalidateView(); queued.shift()();
+  assert.equal(commits,1);
+});
+
+test('Canvas presentation rejects old responses and publishes only an accepted frame', t => {
+  let accept=false, listener, commits=0;
+  const queued=[];
+  const gpuMapRenderer={getRuntimeState:()=>({renderer:'canvas-worker',projectRenderBlocked:false}),
+    canPresentVisualFrame:(_frame,_result,options)=>accept && options?.canvasPresented===true,
+    setFramePresentationListener:value=>{listener=value;},commitVisualFrame:()=>commits++};
+  const domain=createRenderingDomain({gpuMapRenderer,requestFrame:fn=>queued.push(fn),prepareView:frame,
+    renderers:{view:()=>({deferred:true,preserved:true})}});
+  t.after(()=>domain.dispose());
+  domain.invalidateView();queued.shift()();
+  const result={frameId:8,viewRevision:3,projectionRevision:0,projectGeneration:0,temporalCommit:true};
+  assert.equal(listener(result),false);
+  accept=true;
+  assert.equal(listener({...result,projectGeneration:1}),false);
+  assert.equal(listener(result),true);
+  assert.equal(commits,1);
+});
 
 test('quality invalidation reads the current view from a lazily initialized map host', t => {
   let host = null;

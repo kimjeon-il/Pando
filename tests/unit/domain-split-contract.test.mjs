@@ -293,6 +293,7 @@ test('view-only selection rendering reprojects only existing SVG fallbacks witho
     prepareView: ({ frameId }) => testFrame(frameId, 8, () => { projectedPaths += 1; return 'M0,0L1,1'; }),
     gpuMapRenderer: {
       getRuntimeState(){return {renderer:'svg',projectRenderBlocked:false};},
+      canPresentVisualFrame(){return true;},
       renderInteraction() {
         gpuInteractionRenders += 1;
         return { succeeded: true };
@@ -321,6 +322,7 @@ test('view-only selection rendering is a no-op when no SVG fallback exists', () 
     prepareView: ({ frameId }) => testFrame(frameId, 9),
     gpuMapRenderer: {
       getRuntimeState(){return {renderer:'svg',projectRenderBlocked:false};},
+      canPresentVisualFrame(){return true;},
       renderInteraction() {
         gpuInteractionRenders += 1;
         return { succeeded: true };

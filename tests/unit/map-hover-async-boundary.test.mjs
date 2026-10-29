@@ -22,7 +22,7 @@ function acknowledgements() {
     packet(index, hover) { calls[index].resolve({ hover }); },
   };
 }
-function pointers(t) {
+function pointers(t, { selectableObjectsAt } = {}) {
   const queue = acknowledgements(), errors = [], timers = new Map();
   let generation = 1, picked = hit('A'), pickingFailure;
   const state = { tool: 'select', mapMoving: false }, layout = { viewRevision: 1 }, draft = { dragging: false };
@@ -31,13 +31,33 @@ function pointers(t) {
   const owner = createPointerTargets({isDraggingDraft:()=>draft.dragging});
   owner.connect({ domains: { selectionDomain: queue, projectDomain: { getGeneration: () => generation } },
     projectState: { state }, mapLayout: layout, draftPresentation: { editingDraftSnapshot: () => draft },
-    objectPicking: { territorialObjectsAt: () => { if(pickingFailure)throw pickingFailure;return picked ? [picked] : []; } },
+    objectPicking: { selectableObjectsAt: selectableObjectsAt || (async () => {
+      if(pickingFailure)throw pickingFailure;return picked ? [picked.ref] : [];
+    }) },
     feedback: { reportOperationError: (...args) => errors.push(args) } });
   owner.initializeHoverPickFrame();
   return { owner, queue, errors, state, layout, draft, timers,
     pick(value) { picked=value; }, failPick(error) { pickingFailure=error; }, generation(value) { generation=value; },
     fire() { const [token,callback]=timers.entries().next().value;timers.delete(token);return callback(); } };
 }
+
+test('ground hover uses the same ordered object lookup for a generic feature', async t => {
+  const generic=normalizeObjectRef({domain:'generic',type:'feature',id:'G'});
+  const f=pointers(t,{selectableObjectsAt:async()=>[generic]});
+  f.owner.queueCountryHoverPick([10,10],[0,0]);
+  const pending=f.fire();await Promise.resolve();
+  assert.equal(f.queue.calls[0].value.key,generic.key);
+  f.queue.accept(0);assert.equal(await pending,true);
+});
+
+test('a delayed geographic lookup cannot enter Core after the project or pointer changes', async t => {
+  let resolve;
+  const f=pointers(t,{selectableObjectsAt:()=>new Promise(done=>{resolve=done;})});
+  f.owner.queueCountryHoverPick([10,10],[0,0]);
+  const pending=f.fire();f.generation(2);resolve([ref('A')]);await Promise.resolve();
+  const calls=f.queue.calls.length;if(calls)f.queue.accept(0);
+  assert.equal(await pending,false);assert.equal(calls,0);
+});
 function gpu() {
   const queue = acknowledgements(), publications = [], errors = [], state = { tool: 'select', mapMoving: false };
   let generation = 1, mobile = false;
@@ -53,14 +73,14 @@ function gpu() {
 test('ground hover keeps the 50 ms pick and publishes its hit only after Core acknowledges',async t => {
   const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);
   assert.equal(f.queue.calls.length,0);assert.equal(f.timers.size,1);
-  const pending=f.fire();assert.equal(f.queue.calls.length,1);assert.equal(f.owner.lastHoverHit,null);
-  assert.deepEqual(f.queue.calls[0].options,{ source: 'map' });
+  const pending=f.fire();await Promise.resolve();assert.equal(f.queue.calls.length,1);assert.equal(f.owner.lastHoverHit,null);
+  assert.equal(f.queue.calls[0].options.source,'map');assert.equal(f.queue.calls[0].options.isCurrent(),true);
   f.queue.accept(0);assert.equal(await pending,true);assert.equal(f.owner.lastHoverHit.ref.id,'A');
   f.owner.queueCountryHoverPick([11,10],[0,0]);assert.equal(f.timers.size,0,'Retain the original three-pixel threshold.');
 });
 
 test('ground cancellation clears an in-flight enter even before the first accepted hover',async t => {
-  const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);const enter=f.fire();
+  const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);const enter=f.fire();await Promise.resolve();
   const leave=f.owner.cancelCountryHoverPick({ clear: true });assert.equal(f.queue.calls.length,2);
   f.queue.accept(0);assert.equal(await enter,false);assert.equal(f.owner.lastHoverHit,null);
   f.queue.accept(1,null);assert.equal(await leave,true);assert.equal(f.owner.lastHoverHit,null);
@@ -68,21 +88,22 @@ test('ground cancellation clears an in-flight enter even before the first accept
 });
 
 test('newer ground picks, cancellation, camera and project changes discard delayed display hits',async t => {
-  const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);const first=f.fire();
-  f.pick(hit('B'));f.owner.queueCountryHoverPick([20,10],[0,0]);const second=f.fire();
+  const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);const first=f.fire();await Promise.resolve();
+  f.pick(hit('B'));f.owner.queueCountryHoverPick([20,10],[0,0]);const second=f.fire();await Promise.resolve();
+  assert.equal(f.queue.calls[0].options.isCurrent(),false);
   f.queue.accept(0);assert.equal(await first,false);assert.equal(f.owner.lastHoverHit,null);
   f.queue.accept(1);assert.equal(await second,true);assert.equal(f.owner.lastHoverHit.ref.id,'B');
   for (const invalidate of [() => f.owner.cancelCountryHoverPick(),() => { f.layout.viewRevision++; },() => f.generation(2)]) {
-    f.owner.queueCountryHoverPick([30+f.queue.calls.length*10,10],[0,0]);const pending=f.fire(),index=f.queue.calls.length-1;
+    f.owner.queueCountryHoverPick([30+f.queue.calls.length*10,10],[0,0]);const pending=f.fire();await Promise.resolve();const index=f.queue.calls.length-1;
     invalidate();f.queue.accept(index);assert.equal(await pending,false);assert.equal(f.owner.lastHoverHit.ref.id,'B');
   }
 });
 
 test('ground stale rejections are contained and unexpected picking or Core errors retain diagnostics',async t => {
-  const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);let pending=f.fire();
+  const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);let pending=f.fire();await Promise.resolve();
   f.queue.calls[0].reject(Object.assign(new Error('old epoch'),{ code: 'STALE_REVISION' }));
   assert.equal(await pending,false);assert.deepEqual(f.errors,[]);assert.equal(f.owner.lastHoverHit,null);
-  f.owner.queueCountryHoverPick([20,10],[0,0]);pending=f.fire();
+  f.owner.queueCountryHoverPick([20,10],[0,0]);pending=f.fire();await Promise.resolve();
   const failure=new Error('Core transport failed');f.queue.calls[1].reject(failure);
   assert.equal(await pending,false);assert.equal(f.errors[0][0],failure);assert.equal(f.errors[0][2],'PL-MAP-HOVER-001');
   const pickingFailure=new Error('Picking failed');f.failPick(pickingFailure);

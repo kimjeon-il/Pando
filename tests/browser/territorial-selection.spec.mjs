@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, sceneItems } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { selectUiOption } from './helpers/ui-select.mjs';
@@ -54,21 +54,26 @@ async function importTerritorialPolygon(page, { name, target, coordinates }) {
   }
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 60_000 });
-  const shape = page.locator('path.territorial-unit-shape');
-  await expect.poll(
-    async () => shape.evaluateAll((nodes, expectedName) => nodes.some(node => node.__data__?.properties?.name === expectedName), name),
-    { timeout: 60_000 },
-  ).toBe(true);
+  let id;
+  await expect.poll(async () => {
+    id = await page.evaluate(expectedName => window.PANDOLAB_TERRITORIAL.list().find(f => f.properties.name === expectedName)?.id, name);
+    return !!id;
+  }, { timeout: 60_000 }).toBe(true);
+  await expect.poll(async () => (await sceneItems(page, 'territorial-units')).some(item => item.objectKey === `territorial:entity:${id}`), { timeout: 60_000 }).toBe(true);
   await page.keyboard.press('Escape');
+  if (await page.locator('#fileMenu').isVisible()) await page.keyboard.press('Escape');
   await expect(page.locator('#fileMenu')).toBeHidden();
 }
 
 async function territorialShapeCenter(page, name) {
-  return page.locator('path.territorial-unit-shape').evaluateAll((nodes, expectedName) => {
-    const shape = nodes.find(node => node.__data__?.properties?.name === expectedName);
-    if (!shape) return null;
-    const box = shape.getBoundingClientRect();
-    return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+  return page.evaluate(expectedName => {
+    const feature = window.PANDOLAB_TERRITORIAL.list().find(item => item.properties.name === expectedName);
+    if (!feature) return null;
+    const ring = feature.geometry.type === 'Polygon' ? feature.geometry.coordinates[0] : feature.geometry.coordinates[0][0];
+    const coordinate = [(Math.min(...ring.map(p => p[0])) + Math.max(...ring.map(p => p[0]))) / 2,
+      (Math.min(...ring.map(p => p[1])) + Math.max(...ring.map(p => p[1]))) / 2];
+    const projected = window.__PANDOLAB_MAP_HOST__.project(coordinate), box = document.querySelector('#map').getBoundingClientRect();
+    return { x: box.x + projected[0], y: box.y + projected[1] };
   }, name);
 }
 
@@ -102,6 +107,7 @@ test('an overlapping child can be chosen explicitly and does not block map dragg
   await page.mouse.move(beforeDrag.x + 48, beforeDrag.y + 12, { steps: 4 });
   await page.mouse.up();
   await expect.poll(async () => (await territorialShapeCenter(page, name))?.x).toBeGreaterThan(beforeDrag.x + 20);
+  await expect.poll(() => page.evaluate(() => window.__testEditorTimeline.state().suppressNextMapClick)).toBeNull();
 
   const afterDrag = await territorialShapeCenter(page, name);
   await selectTerritorialObjectOnMap(page, afterDrag, name);
@@ -188,9 +194,8 @@ test.describe('mobile selection', () => {
     expect(point).not.toBeNull();
     const inputProofPath = testInfo.outputPath('mobile-territorial-input.json');
     await writeFile(inputProofPath, JSON.stringify(await page.evaluate(({ point, name }) => {
-      const node = [...document.querySelectorAll('path.territorial-unit-shape')]
-        .find(node => node.__data__?.properties.name === name);
-      return { point, shapeBounds: node.getBoundingClientRect().toJSON(), d: node.getAttribute('d'),
+      const feature = window.PANDOLAB_TERRITORIAL.list().find(item => item.properties.name === name);
+      return { point, geometry: feature.geometry,
         target: document.elementFromPoint(point.x, point.y)?.outerHTML.slice(0, 400),
         selection: document.querySelector('#selectionStatus').textContent,
         view: window.__PANDOLAB_VIEW_DEBUG__.snapshot(), frame: window.__PANDOLAB_RENDER_DEBUG__.snapshot() };

@@ -1,3 +1,5 @@
+import {territorialPaintRole} from '../../../../../shared/frontend/js/modules/layer-presentation.js';
+
 /** Editor output registration for map clicks outside selection/navigation. */
 export async function handleEditorMapClick(screenPoint,dependencies){
     const rawCoord = (0, dependencies.mapView.screenToGeo)(screenPoint);
@@ -6,6 +8,20 @@ export async function handleEditorMapClick(screenPoint,dependencies){
     const coord = rawCoord;
     if (dependencies.projectState.state.labelPlacementMode) {
       await (0, dependencies.genericEditingA.addLabelAt)(coord);
+      return;
+    }
+    const tool = dependencies.projectState.state.tool;
+    if (tool === 'merge-territorial-unit' || tool === 'merge-generic-feature') {
+      const generation = dependencies.domains.projectDomain.getGeneration(), viewRevision = dependencies.mapLayout.viewRevision;
+      const refs = await dependencies.objectPicking.selectableObjectsAt(screenPoint, coord, { includeLabels: false, includeHydro: false });
+      if (generation !== dependencies.domains.projectDomain.getGeneration() || viewRevision !== dependencies.mapLayout.viewRevision
+        || dependencies.projectState.state.projectReplacing || dependencies.projectState.state.tool !== tool) return;
+      const target = refs.find(ref => tool === 'merge-generic-feature' ? ref.domain === 'generic'
+        : ref.domain === 'territorial' && territorialPaintRole(dependencies.territorialModel.entityRepository.get(ref.id)) !== 'country-fill');
+      if (target) {
+        if (tool === 'merge-generic-feature') dependencies.genericEditingB.toggleGenericFeatureMergeTarget(target.id);
+        else dependencies.territorialEditingB.toggleTerritorialUnitMergeTarget(target.id);
+      }
       return;
     }
     const territoryCountryPicking = (0, dependencies.territorySelectionB.territorySelectionCountryPickingActive)();

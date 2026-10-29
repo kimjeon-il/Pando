@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, territorialCenter } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -90,6 +90,10 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
   const errors=[];
   page.on('pageerror',e=>errors.push(e.stack || e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  await page.route('**/modules/object-picking.js*',async route=>{
+    const response=await route.fetch(),source=await response.text(),anchor='    dependencies = ports;';
+    await route.fulfill({response,body:source.replace(anchor,anchor+'\nwindow.__mergePickingTest={picking:selectableObjectsAt,screenToGeo:ports.mapView.screenToGeo};')});
+  });
   await gotoEditor(page, '/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60000});
   const [a,b]=await importRegions(page,[{name:'병합 A',x:9},{name:'병합 B',x:10}]);
@@ -101,10 +105,17 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
   await page.locator(`[data-object-search-select][data-item-id="${a}"]`).click();
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#actionsTabBtn').click(); await page.locator('#mergeEntityBtn').click();
-  await page.locator('path.territorial-unit-shape').evaluateAll((nodes,id)=>{
-    const n=nodes.find(node=>node.__data__.id===id); if(!n)throw new Error('region shape missing');
-    n.dispatchEvent(new n.ownerDocument.defaultView.MouseEvent('click',{bubbles:true}));
-  },b);
+  await expect.poll(()=>page.evaluate(()=>window.__testEditorTimeline.state().tool)).toBe('merge-territorial-unit');
+  await page.addStyleTag({content:'#map .territorial-label-item {pointer-events:none !important;}'});
+  const target = await territorialCenter(page, b);
+  const picking = await page.evaluate(async point => {
+    const box=document.querySelector('#map').getBoundingClientRect(), local=[point.x-box.x,point.y-box.y];
+    return { local, coordinate:window.__mergePickingTest.screenToGeo(local), target:document.elementFromPoint(point.x,point.y)?.outerHTML.slice(0,150),
+      refs:await window.__mergePickingTest.picking(local,window.__mergePickingTest.screenToGeo(local),{includeLabels:false,includeHydro:false}) };
+  },target);
+  expect(picking.refs.map(ref=>ref.id), JSON.stringify(picking)).toContain(b);
+  await page.mouse.click(target.x, target.y);
+  await expect.poll(()=>page.evaluate(()=>window.__testEditorTimeline.state().territorialUnitMergeTargetIds)).toContain(b);
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled(); await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#geometryPreviewSummary')).toBeVisible({timeout:30000});
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled(); await page.locator('#modePrimaryBtn').click();

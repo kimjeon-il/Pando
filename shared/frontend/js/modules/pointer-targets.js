@@ -54,7 +54,11 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
     try {
       const generation = dependencies.domains.projectDomain.getGeneration(), viewRevision = dependencies.mapLayout.viewRevision;
       const nextRef = hit?.ref || null;
-      const accepted = await dependencies.domains.selectionDomain.setHover(nextRef,clear ? {} : { source: 'map' });
+      const isCurrent = () => sequence === hoverPickSequence && generation === dependencies.domains.projectDomain.getGeneration()
+        && (clear || (viewRevision === dependencies.mapLayout.viewRevision && !dependencies.projectState.state.mapMoving
+          && !dependencies.projectState.state.projectReplacing && dependencies.projectState.state.tool === 'select'
+          && !(isDraggingDraft ? isDraggingDraft() : false)));
+      const accepted = await dependencies.domains.selectionDomain.setHover(nextRef, { ...(clear ? {} : { source: 'map' }), isCurrent });
       if (!accepted || !Object.hasOwn(accepted,'hover')) throw new TypeError('An accepted Core hover snapshot is required.');
       if (sequence !== hoverPickSequence || generation !== dependencies.domains.projectDomain.getGeneration()
         || (!clear && (viewRevision !== dependencies.mapLayout.viewRevision || dependencies.projectState.state.mapMoving
@@ -101,8 +105,14 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
         if (!pending || dependencies.projectState.state.mapMoving || (isDraggingDraft ? isDraggingDraft():false) || dependencies.projectState.state.tool !== 'select') return false;
         lastHoverPickPoint = pending.screenPoint;
         lastHoverPickViewRevision = dependencies.mapLayout.viewRevision;
-        const hit = dependencies.objectPicking.territorialObjectsAt(pending.screenPoint, pending.coord)[0] || null;
-        return await applyCountryHover(hit,pending.sequence);
+        const generation = dependencies.domains.projectDomain.getGeneration();
+        const refs = await dependencies.objectPicking.selectableObjectsAt(pending.screenPoint, pending.coord,
+          { includeLabels: false, includeHydro: false });
+        if (pending.sequence !== hoverPickSequence || dependencies.projectState.state.projectReplacing
+          || generation !== dependencies.domains.projectDomain.getGeneration()
+          || dependencies.projectState.state.mapMoving || dependencies.projectState.state.tool !== 'select'
+          || lastHoverPickViewRevision !== dependencies.mapLayout.viewRevision) return false;
+        return await applyCountryHover(refs[0] ? { ref: refs[0] } : null,pending.sequence);
       } catch (error) {
         if (!obsoleteHoverError(error)) dependencies.feedback.reportOperationError(error,'지도 hover 대상을 찾지 못했습니다.','PL-MAP-HOVER-001',4200);
         return false;

@@ -105,6 +105,18 @@ test('hover sources and expected keys are passed to Core without a second hover 
   assert.equal(domain.snapshot().hover, null);domain.dispose();
 });
 
+test('queued hover checks the current pointer before entering Core', async () => {
+  const { domain, calls } = fixture();
+  let current = true;
+  const pending = domain.setHover(A, { source: 'map', isCurrent: () => current });
+  assert.equal(calls[0].options.isCurrent(), true);
+  current = false;
+  assert.equal(calls[0].options.isCurrent(), false);
+  calls[0].reject(Object.assign(new Error('stale'), { code: 'PL-CORE-STALE' }));
+  await assert.rejects(pending, { code: 'PL-CORE-STALE' });
+  domain.dispose();
+});
+
 test('disposing selection unsubscribes and suppresses a late acknowledgement', async () => {
   const { domain, complete, events } = fixture();
   const pending = domain.replace(B);domain.dispose();complete(0, snapshot(1, [B]));await pending;

@@ -22,6 +22,56 @@ test('a preserved temporal frame holds labels and publishes them with its succes
   assert.deepEqual(calls,['layout','labels','present']);
 });
 
+test('temporal publication also holds label-only and selection-only invalidations', () => {
+  const frames = [], calls = [];
+  let ready = false;
+  const coordinator = createMapRenderCoordinator({requestFrame: fn => frames.push(fn),
+    prepareView: ({frameId}) => ({frameId}),
+    canPresentFrame: (_frame, result) => ready && result?.succeeded === true,
+    renderers: {view: () => ({succeeded: ready, preserved: !ready}),
+      labelLayout: () => { calls.push('layout'); return {}; },
+      territorialLabels: () => calls.push('labels'), selectionData: () => calls.push('selection'),
+      viewPresentation: () => calls.push('present')}});
+  for (const mask of [MAP_RENDER_DIRTY.GPU_FRAME, MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.VIEW_PRESENTATION,
+    MAP_RENDER_DIRTY.SELECTION_DATA]) {
+    coordinator.invalidate(mask); frames.shift()();
+    assert.deepEqual(calls, [], 'no presentation may bypass the renderer publication gate');
+  }
+  ready = true;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME); frames.shift()();
+  assert.deepEqual(calls, ['selection', 'layout', 'labels', 'present']);
+});
+
+test('resource completion can draw the pending temporal frame before publishing deferred labels', () => {
+  const frames = [], calls = [];
+  let prepared = false, presentedFrame = null;
+  const coordinator = createMapRenderCoordinator({requestFrame: fn => frames.push(fn),
+    prepareView: ({frameId}) => ({frameId}),
+    canPresentFrame: (frame, result) => presentedFrame === frame.frameId && !result?.preserved,
+    renderers: {view: frame => { if (prepared) presentedFrame = frame.frameId; return {preserved: !prepared}; },
+      labelLayout: () => calls.push('layout'), territorialLabels: () => calls.push('labels'),
+      viewPresentation: () => calls.push('present')}});
+  coordinator.invalidate(MAP_RENDER_MASKS.VIEW | MAP_RENDER_DIRTY.LABEL_LAYOUT); frames.shift()();
+  assert.deepEqual(calls, []);
+  prepared = true;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, 'overlay-mesh-ready'); frames.shift()();
+  assert.deepEqual(calls, ['layout', 'labels', 'present']);
+});
+
+test('project preparation invalidated while replacement is blocked is replayed before publication', () => {
+  const frames = [], calls = [];
+  let blocked = true;
+  const coordinator = createMapRenderCoordinator({requestFrame: fn => frames.push(fn),
+    prepareView: ({frameId}) => ({frameId}), isPresentationBlocked: () => blocked,
+    renderers: {base: () => calls.push('base'), countries: () => { calls.push('countries'); return {succeeded:true}; },
+      territorialLabels: () => calls.push('labels'), viewPresentation: () => calls.push('present')}});
+  coordinator.invalidate(MAP_RENDER_MASKS.PROJECT); frames.shift()();
+  assert.deepEqual(calls, []);
+  blocked = false;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME); frames.shift()();
+  assert.deepEqual(calls, ['base', 'countries', 'labels', 'present']);
+});
+
 function fixture() {
   const calls = [];
   const frames = [];

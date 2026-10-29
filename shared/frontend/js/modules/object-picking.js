@@ -84,7 +84,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
     }).sort((a, b) => compareVisualOrder(a.ref, b.ref));
   }
 
-  async function selectableObjectsAt(screenPoint, coord, { seedRefs = [] } = {}) {
+  async function selectableObjectsAt(screenPoint, coord, { seedRefs = [], includeLabels = true, includeHydro = true } = {}) {
     const candidates = [];
     const add = ref => {
       const normalized = (0, dependencies.selectionServices.normalizeObjectRef)(ref);
@@ -96,6 +96,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
     territorialObjectsAt(screenPoint, coord, indexed).forEach(item => add(item.ref));
     for (const entry of indexed) {
       if (entry.domain === 'label') {
+        if (!includeLabels) continue;
         if (dependencies.projectState.state.layerVisibility.labels===false || !(0, dependencies.layerPresentation.isLayerItemVisible)('labels', entry.id)) continue;
         const label = dependencies.projectState.state.labels.find(item => String(item.id) === entry.id);
         const projected = label ? (0, dependencies.mapView.activeProjection)()(label.coordinates) : null;
@@ -117,12 +118,13 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
         continue;
       }
       if (entry.domain === 'hydro') {
+        if (!includeHydro) continue;
         const feature = (0, dependencies.hydroPresentation.hydroEditById)(entry.id);
         dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;
         if (feature && (0, dependencies.physicalServices.isHydroFeatureVisible)(feature) && geometryHitsScreenPoint(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 14 : 8)) add({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id });
       }
     }
-    if (dependencies.projectState.state.layerVisibility.rivers || dependencies.projectState.state.layerVisibility.lakes) {
+    if (includeHydro && (dependencies.projectState.state.layerVisibility.rivers || dependencies.projectState.state.layerVisibility.lakes)) {
       const hydro = await (0, dependencies.pointerInteractionA.hydroAtScreenPoint)(screenPoint, coord);
       if (hydro) add({ domain: 'hydro', type: hydro.properties?.category || 'river', id: hydro.properties?.pandolab_id || hydro.id });
     }

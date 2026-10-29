@@ -232,6 +232,16 @@ export function createGpuMapRenderer(deps) {
     let temporalCanvas = null;
 
     const temporalPending = () => !!temporalPresentation && !temporalPresentation.presented;
+    function canPresentVisualFrame(frame, result = null, { canvasPresented = false } = {}) {
+      if (projectRenderBlocked || result?.preserved || result?.succeeded === false) return false;
+      if (!temporalPending()) return true;
+      if (result?.deferred && !canvasPresented) return false;
+      return !temporalPresentation.error && temporalPresentation.isCurrent()
+        && temporalPresentation.generation === projectGeneration
+        && frame?.projectGeneration === projectGeneration
+        && temporalPresentation.context === renderDeviceContextRevision
+        && temporalPresentation.frameId != null && temporalPresentation.frameId === frame?.frameId;
+    }
     function failTemporalPresentation(error) {
       if (!temporalPending()) return;
       temporalPresentation.error = error;
@@ -5396,6 +5406,7 @@ export function createGpuMapRenderer(deps) {
       setSelectionPass, setRenderScene, setInteractionState, invalidateSceneCache,
       setFramePresentationListener,
       waitForPreviewFrame, waitForTemporalPresentation,
+      canPresentVisualFrame,
       getSelectionRenderResult: () => lastSelectionRenderResult,
       getRenderDevice: () => renderDevice,
       getUploadByteBudget: () => renderQuality.uploadBudgetBytes,
@@ -5411,8 +5422,8 @@ export function createGpuMapRenderer(deps) {
         if (gl) hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: hydroUploadScheduler });
       },
       commitVisualFrame: frame => {
+        if (!canPresentVisualFrame(frame)) return;
         if (temporalPending()) {
-          if (temporalPresentation.frameId !== frame.frameId || !temporalFrameReady(true)) return;
           temporalPresentation.presented = true;
           temporalCanvas = null;
           temporalPresentation.onPresented();

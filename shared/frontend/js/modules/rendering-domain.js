@@ -145,7 +145,9 @@ export function createRenderingDomain({
     requireFrame,framePath,frameProjectCoordinate,getPacket:()=>editingPacket,emitEditingInteraction,reportEditingOperationError}) : null;
   const {renderBoundaryEdit,renderVertices,renderDraft,renderSnap,renderValidation,renderGeometryPreview}=editPresentation||{};
   const pendingHighlights = new Map();
-  const content=createMapContentPresentation({countries,hydro,territorial,generic,distribution,territorialBoundary,base,projected,
+  const canPresentFrame = (frame, result, options) => !gpuMapRenderer
+    || gpuMapRenderer.canPresentVisualFrame(frame, result, options);
+  const content=createMapContentPresentation({countries,hydro,territorial,generic,distribution,territorialBoundary,base,projected,canPresentFrame,
     active,requireFrame,framePath,commitViewAttachedLayers:(...args)=>commitViewAttachedLayers(...args),
     prepareMapDisplay,onMapDisplayReady:handleMapDisplayReady,reportDiagnostic,isDisposed:()=>disposed});
   const {renderCountries,renderHydro,renderHydroEdits,renderTerritorialUnits,renderGenericFeatures,renderDistributions,
@@ -1048,7 +1050,8 @@ export function createRenderingDomain({
       stats.visualFrameRejectedCount += 1;
       return false;
     }
-    if (!canvasPresented && (gpuResult?.deferred || pendingVisualFrames.has(Number(frame.frameId)))) {
+    if (!canvasPresented && gpuMapRenderer?.getRuntimeState().renderer === 'canvas-worker'
+      && (gpuResult?.deferred || pendingVisualFrames.has(Number(frame.frameId)))) {
       pendingVisualFrames.set(Number(frame.frameId), frame);
       // A current Worker frame can be displayed while a later same-view frame
       // waits behind it. Keep its identity until presentation accepts it.
@@ -1059,12 +1062,15 @@ export function createRenderingDomain({
       }
       return false;
     }
+    if (!canPresentFrame(frame, gpuResult, { canvasPresented })) return false;
+    const temporalCommit = gpuResult?.temporalCommit === true || gpuMapRenderer?.getRuntimeState().temporalPresentationPending;
     syncBaseView(frame);
     renderProjectedOverlays(frame);
+    if (temporalCommit) renderGenericFeatures(frame, { presentationOnly: true });
     renderCountries(frame, { presentationOnly: true, gpuResult });
     // GPU-only redraws bypass selectionView; accepted Canvas presentation must
     // still retire the previous fill owner while retaining outline fallbacks.
-    if (canvasPresented) renderSelectionOverlay(frame, { viewOnly: true, updateData: false, gpuFrameResult: gpuResult });
+    if (canvasPresented) renderSelectionOverlay(frame, { viewOnly: !temporalCommit, updateData: !!temporalCommit, gpuFrameResult: gpuResult });
     renderTerritorialLabelPositions(frame);
     renderUserLabelPositions(frame);
     if (editPresentation && editingPacketHasViewContent(editingPacket)) {
@@ -1118,6 +1124,7 @@ export function createRenderingDomain({
       stats.visualFrameRejectedCount += 1;
       return false;
     }
+    if (!canPresentFrame(frame, result, { canvasPresented: true })) return false;
     if (result.temporalCommit) {
       const layout = renderPass('labelLayout', frame);
       renderTerritorialLabels(layout, frame);
@@ -1130,6 +1137,7 @@ export function createRenderingDomain({
     requestFrame,
     prepareView,
     isPresentationBlocked: () => !!gpuMapRenderer && gpuMapRenderer.getRuntimeState().projectRenderBlocked,
+    canPresentFrame,
     invalidMaskMode,
     onInvalidMask: error => reportDiagnostic({
       code: error.code,
@@ -1145,7 +1153,7 @@ export function createRenderingDomain({
       view: frame => {
         const result = renderPass('view', frame);
         if (result?.deferred) commitViewAttachedLayers(frame, result);
-        else if (gpuMapRenderer?.getRuntimeState?.()?.renderer === 'canvas2d') {
+        else if (gpuMapRenderer?.getRuntimeState?.()?.renderer === 'canvas2d' && canPresentFrame(frame, result)) {
           // Canvas2D presents synchronously and has no Worker acceptance callback.
           renderSelectionOverlay(frame, { viewOnly: true, updateData: false, gpuFrameResult: result });
         }

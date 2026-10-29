@@ -1,4 +1,4 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
+import { gotoEditor, sceneItems } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { GENERIC_FEATURE_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
@@ -22,7 +22,6 @@ test('restored generic geometry ignores source ownership metadata', async ({ pag
   const geometry = { type: 'Polygon', coordinates: [[[5, 45], [5, 55], [15, 55], [15, 45], [5, 45]]] };
   await gotoEditor(page, '/assets/css/app.css');
   const saved = staticAutosaveProject({
-      layerVisibility: { genericFeatures: true },
       genericFeatures: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000006', geometry,
         properties: { schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION, name: '독립 형상 검증', color: '#8c68d8', notes: '', locked: false,
           source: { schemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION, kind: 'gis', sourceId: 'original', sourceFormat: 'geojson',
@@ -35,12 +34,12 @@ test('restored generic geometry ignores source ownership metadata', async ({ pag
   await page.locator('#objectSearchInput').fill('독립 형상 검증');
   await page.locator('#objectSearchResults .object-search-result').click();
   await expect(page.locator('#genericFeatureProperties')).toBeVisible();
-  const shape = page.locator('path.generic-feature-shape');
-  await expect(shape).toHaveCount(1);
-  expect(await shape.evaluate(node => node.__data__.geometry)).toEqual(geometry);
-  expect(await shape.evaluate(node => node.__data__.properties.source.details.legacyGenericSemantics))
+  const key = 'generic:feature:00000000-0000-4000-8000-000000000006';
+  await expect.poll(async () => (await sceneItems(page, 'generic-features')).some(item => item.objectKey === key)).toBe(true);
+  expect((await sceneItems(page, 'generic-features')).find(item => item.objectKey === key).geometry).toEqual(geometry);
+  expect(await page.evaluate(() => window.__testEditorTimeline.state().genericFeatures[0].properties.source.details.legacyGenericSemantics))
     .toEqual({ ownerId: 'DEU', landBinding: 'hard' });
-  expect(await shape.getAttribute('d')).toBeTruthy();
+  await expect(page.locator('path.generic-feature-shape')).toHaveCount(0);
   expect(await page.evaluate(() => window.__genericWorkerOperations)).not.toContain('territorial-land-clip');
   expect(errors).toEqual([]);
 });

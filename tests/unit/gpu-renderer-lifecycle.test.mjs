@@ -54,6 +54,8 @@ test('temporal presentation wait is cancelled by a newer generation and rejects 
   const renderer=createGpuMapRenderer({state:{physicalSettings:{},pendingCountryRenderIds:new Set()},rendererUi:{},isMobile:()=>false,mapWorkScheduler:{cancel(){}},runtimeAssetUrl:path=>path,
     renderCountryBoundaryFeatures:()=>[],countryBoundaryStyleById:()=>null,scheduleGpuFrame:()=>{}});
   renderer.resetProjectRenderState({generation:1,presentation:'temporal'});
+  assert.equal(renderer.canPresentVisualFrame({frameId:1,projectGeneration:1}),false);
+  assert.equal(renderer.canPresentVisualFrame({frameId:1,projectGeneration:0},{succeeded:true}),false);
   const pending=renderer.waitForTemporalPresentation();
   renderer.resetProjectRenderState({generation:2});
   await assert.rejects(pending,{name:'AbortError'});

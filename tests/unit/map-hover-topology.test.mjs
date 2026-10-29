@@ -63,7 +63,7 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
   const ref = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'DEU' });
   let published = 0, areaPicks = 0;
   const points = [], clicks = [], draftEvents = [];
-  const state = { tool: 'select' };
+  const state = { tool: 'select', view: { globeZoom: 1, flatZoom: 1 } };
   const draft = {};
   let panning = false;
   const owner=await createNodeSelection({territorialIds:['DEU'],genericIds:[],labelIds:['PLACE'],distributionIds:[],onHoverChanged: s => {
@@ -77,13 +77,13 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
   });
   t.mock.method(globalThis,'clearTimeout',token=>{if(!hoverTimers.delete(token))originalClear(token);});
   const settle=async()=>{await owner.client.selectionSnapshot();};
-  const runQueuedPicks=async()=>{for(const[token,callback]of hoverTimers){hoverTimers.delete(token);callback();}await settle();};
+  const runQueuedPicks=async()=>{for(const[token,callback]of hoverTimers){hoverTimers.delete(token);await callback();}await settle();};
   let executedPicks = 0;
   const pointers = createPointerTargets({isDraggingDraft:()=>draft.dragging});
   pointers.connect({ domains: { selectionDomain: domain,projectDomain:owner.project }, projectState: { state },
     feedback:{reportOperationError:error=>{throw error;}},
     draftPresentation: { editingDraftSnapshot: () => draft }, mapLayout: { viewRevision: 1 },
-    objectPicking: { territorialObjectsAt: () => { executedPicks++; return [{ ref }]; } } });
+    objectPicking: { selectableObjectsAt: async () => { executedPicks++; return [ref]; } } });
   pointers.initializeHoverPickFrame();
   const peer = node('user-label', interaction), peerText = node('peer-text', peer);
   peer.__data__ = { id: 'PLACE', kind: peerKind };
@@ -96,18 +96,20 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
     labels: { isMobile: () => false }, labelState: () => state, selectionDomain: domain,
     reportDiagnostic:entry=>{throw entry.error;},
     labelRef: value => normalizeObjectRef({ domain: 'label', type: value.kind, id: value.id }) });
-  const input = createMapInputPresentation({
-    getElement: () => map, window, navigator: {}, d3,
+  const input = createMapInputPresentation({ productMode: 'editor', window, navigator: {}, getRevision: () => 1,
     createMapInputController: () => ({ destroy() {}, isPanning: () => panning }),
-    getInputSnapshot: () => state, getDraftSnapshot: () => editing ? editing.snapshot().draft : draft,
-    editingDomain: editing || { clearDraftHover: async () => false,cancelActiveGesture: async () => false },
-    reportOperationError: error => { throw error; },
-    isMobile: () => false, isGenericFeatureDraftTool: () => false,
-    screenToGeo: () => [10, 49], getTerritorialLabelRef: () => ref,
-    cancelCountryHoverPick: pointers.cancelCountryHoverPick, clearHoverHit() {}, dispatchEditingInteraction: (...args) => draftEvents.push(args), mapClickBlocked: () => false,
-    handleMapClick: point => clicks.push(point),
-    queueCountryHoverPick(point, coord) { areaPicks++; points.push(point); if (queuedPicks) pointers.queueCountryHoverPick(point, coord); else domain.setHover(ref, { source: 'map' }); },
-    selectionDomain: domain,
+    mapInteractionGate: {}, editing: { getDraftSnapshot: () => editing ? editing.snapshot().draft : draft,
+      domain: editing || { clearDraftHover: async () => false,cancelActiveGesture: async () => false },
+      isGenericFeatureDraftTool: () => false, dispatchInteraction: (...args) => draftEvents.push(args) },
+    ports: { platform: { d3, $: id => id === 'map' ? map : null }, rendering: { gpuMapRenderer: {} },
+      projectState: { state, mapWorkScheduler: {} }, domains: { selectionDomain: domain, projectDomain: owner.project },
+      renderQuality: {}, pointerInteractionB: {}, navigation: {}, surfaces: { isMobile: () => false },
+      mapView: { screenToGeo: () => [10, 49] }, interactionStateCommands: { setHoverHit() {} },
+      feedback: { reportOperationError: error => { throw error; } },
+      objectPicking: { handleMapClick: point => clicks.push(point), getTerritorialLabelRef: () => ref },
+      pointerInteractionA: { cancelCountryHoverPick: pointers.cancelCountryHoverPick, mapClickBlocked: () => false,
+        queueCountryHoverPick(point, coord) { areaPicks++; points.push(point); if (queuedPicks) pointers.queueCountryHoverPick(point, coord); else domain.setHover(ref, { source: 'map' }); } },
+    },
   });
   input.bindSvg(d3.select(overlay));
   const dispatch = (target, type, extra = {}) => {
