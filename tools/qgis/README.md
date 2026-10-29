@@ -41,7 +41,9 @@ node tools/qgis/native-bridge.mjs normalize 'D:/path/to/qgis-export.geojson' --o
 ```
 
 Startup refuses an occupied port with an unexpected or unauthenticated service,
-and never rewrites an existing unrelated profile. QGIS executes operations on
+and never rewrites an existing unrelated profile. It reuses the configured
+authenticated instance and refuses to start another while a different QGIS
+process is running. QGIS executes operations on
 its main thread; mixed-geometry GeoJSON opens without a sublayer dialog. The
 native MCP server can be started separately with `node tools/qgis/native-mcp.mjs`;
 it uses `PANDO_QGIS_NATIVE_CONFIG` when set, otherwise the default config above.
