@@ -138,6 +138,10 @@ licensed.
 
 Prepare the source and build the working base with:
 
+Set `PANDO_TERRITORIAL_RECIPE_BINARY` to the separately built native
+`pando-territorial-recipe` executable first. It must match this source tree and
+have GEOS and PROJ available.
+
 ```powershell
 node tools/fetch-german-empire-1914-source.mjs
 node tools/gis/build-german-1914-base.mjs
