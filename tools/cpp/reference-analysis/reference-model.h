@@ -2,6 +2,12 @@
 #include <torch/torch.h>
 
 namespace pando::reference {
+struct ConvNormImpl:torch::nn::SequentialImpl {
+    ConvNormImpl(int64_t input,int64_t output,int64_t kernel,int64_t stride,int64_t groups,int activation);
+    torch::Tensor forward(const torch::Tensor& input);
+};
+TORCH_MODULE(ConvNorm);
+
 struct SqueezeExcitationImpl:torch::nn::Module {
     torch::nn::Conv2d fc1{nullptr},fc2{nullptr};
     SqueezeExcitationImpl(int64_t channels,int64_t squeezed);
