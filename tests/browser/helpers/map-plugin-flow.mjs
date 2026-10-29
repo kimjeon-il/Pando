@@ -27,7 +27,7 @@ async function historyClick(page,action,touch,touchInput) {
 }
 
 export async function instrumentMapPlugin(page) {
-  for(const [file,extra] of [['app-domain-assembly.js','window.__pluginDocument=()=>projectDomain;'],['app-property-selection.js','window.__pluginSelectGeneric=id=>applyGenericSelectionIntent(id);']]) {
+  for(const [file,extra] of [['app-domain-assembly.js','window.__pluginDocument=()=>projectDomain;window.__pluginReadModel=()=>documentModel;'],['app-property-selection.js','window.__pluginSelectGeneric=id=>applyGenericSelectionIntent(id);']]) {
     await page.route('**/modules/'+file+'*',async route=>{
       const source=await moduleSource(route);
       await route.fulfill({contentType:'application/javascript',body:source.replace('dependencies = ports;','dependencies = ports;'+extra)});
@@ -82,7 +82,7 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
   await expect(page.locator('#genericFeatureConvertType')).toHaveValue('river');
   await clickControl(page,page.locator('#convertGenericFeatureBtn'),touch,touchInput);
   await expect.poll(async()=>(await read()).length,{timeout:stateTimeout}).toBe(collection.features.length-1);
-  const readEdited=()=>page.evaluate(()=>window.__pluginDocument().snapshot().hydroEdits[0]);
+  const readEdited=()=>page.evaluate(()=>window.__pluginReadModel().list('hydro')[0]);
   await expect.poll(async()=>(await readEdited())?.geometry,{timeout:stateTimeout}).toEqual(imported[0].geometry);
   expect((await readEdited()).properties.metadata.compatibilitySource.source.details.imageSha256).toBe(collection.features[0].properties.source.details.imageSha256);
   onStep('converted');
@@ -113,6 +113,8 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
   const before=await page.evaluate(()=>window.__pluginDocument().snapshot()),saved=await saveReopen();
   await expect.poll(()=>page.evaluate(()=>window.__pluginDocument().state().dirty),{timeout:30000}).toBe(false);
   const reopened=await page.evaluate(()=>window.__pluginDocument().snapshot());
-  expect(reopened.genericFeatures).toEqual(before.genericFeatures);expect(reopened.hydroEdits).toEqual(before.hydroEdits);expect(errors).toEqual([]);
+  expect(reopened.genericFeatures).toEqual(before.genericFeatures);expect(reopened.hydroEdits).toEqual(before.hydroEdits);
+  expect(reopened.timelineRecords).toEqual(before.timelineRecords);expect(reopened.geometries).toEqual(before.geometries);
+  expect((await readEdited()).geometry).toEqual(edited.geometry);expect(errors).toEqual([]);
   return {importedCount:imported.length,geometryEdited:true,batchUndoRedo:true,editUndoRedo:true,savedReopened:true,sourcePreserved:true,saved,errors};
 }
