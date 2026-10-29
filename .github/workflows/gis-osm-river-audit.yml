@@ -14,7 +14,8 @@ on:
       - tests/unit/hydro-usgs-official-gauges.test.mjs
       - tools/gis/hydro-independent-name-policy.mjs
       - tools/gis/hydro-independent-name-replacements.json
-      - tools/gis/prepare_hydro_name_replacement_bundle.py
+      - tools/gis/prepare-hydro-name-replacement-bundle.mjs
+      - tests/unit/hydro-name-repack.test.mjs
       - tests/unit/hydro-independent-name-policy.test.mjs
       - tools/build-hydro-tiles.py
       - .github/workflows/gis-osm-river-audit.yml
@@ -240,7 +241,7 @@ jobs:
           PY
       - name: Verify independently researched river-name records
         run: |
-          node --test tests/unit/hydro-independent-name-policy.test.mjs
+          node --test tests/unit/hydro-independent-name-policy.test.mjs tests/unit/hydro-name-repack.test.mjs
       - name: Verify feature-level independent-source notes
         run: node --test tests/unit/hydro-source-notes.test.mjs
       - name: Verify current published independent names and immutable Hydro bytes

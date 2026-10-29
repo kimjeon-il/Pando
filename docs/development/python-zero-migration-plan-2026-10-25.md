@@ -13,6 +13,7 @@
 
 - 지도 원본 수집: `map_source.py`와 `acquire-sources.py`를 `plugins/pando-map-tools/lib/map-source.mjs`와 `tools/reference-analysis/acquire-sources.mjs`로 이전했다. 지도 분석 CLI와 코퍼스 CLI가 같은 수집 정본을 사용한다. 네 형식 고정 입력의 원본 바이트·크기·SHA-256을 이전 구현과 비교했고, 권리·HTTPS·제한·체크섬·취소·동시 생성 보존은 Node 검사로 확인했다. 기존 파생 이미지 Python 테스트는 유지한다.
 - 비공개 패키지 ZIP: 패키징과 cloud probe의 ZIP 생성에 쓰던 인라인 Python을 스트리밍 Node ZIP 작성기로 교체했다. 원본 파일·기존 ZIP 보존, CRC/내용 확인과 진단 실행에 필요한 의존성 포함을 별도로 검사한다. 파일 목록 53개에는 변화가 없다.
+- Hydro 이름 재포장: 기존 Python 생성기를 Node로 이전했다. 고정 자료와 운영 자료의 10047863 수계 1개(원본 번들 SHA-256 `f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f`)를 Python과 비교해 메타데이터 의미·색인·형상 바이트가 일치했다. 압축 결과의 전체 해시는 Node `c140969f68579d52d5d72123f71e576d32e07029b2aba22d3040f1de31220e28`, Python `f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f`로 달랐으며 운영 manifest와 자료 pin은 갱신하지 않았다.
 - 별도 미완료: 전체 지도 플러그인 검사는 이전 소스 레이아웃인 `assets/js/modules/temporal.js`를 참조해 시작하지 못한다. 실제 소스는 `shared/frontend/js/modules/temporal.js`에 있다. 수집기 단위 검사와 기존 구현 비교가 통과한 것은 실제 분석 왕복이 검증되었다는 뜻이 아니다.
 
 - `plugins/pando-map-tools/lib/map_source.py`
