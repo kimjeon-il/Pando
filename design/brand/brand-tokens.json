@@ -1,0 +1,32 @@
+{
+  "name": "PandoLab Shared Boundary",
+  "version": "1.0.0",
+  "date": "2026-10-29",
+  "brand": {
+    "primary": "#315EDB",
+    "ink": "#16243C",
+    "paper": "#F5F7FB",
+    "onPrimary": "#FFFFFF",
+    "onDarkAccent": "#8DB1FF"
+  },
+  "symbol": {
+    "concept": "two equal-area regions separated by a stepped shared boundary",
+    "masterViewBox": [
+      0,
+      0,
+      48,
+      48
+    ],
+    "masterChannelUnits": 4,
+    "smallChannelUnits": 6,
+    "smallMaxCssPixels": 32,
+    "outerRadiusUnits": 3
+  },
+  "usage": {
+    "defaultAppIcon": "white symbol on primary blue plate",
+    "lightBackground": "primary blue symbol",
+    "darkBackground": "white or onDarkAccent symbol",
+    "themedIcon": "monochrome shape; OS owns tint",
+    "maskable": "separate safe-area placement; do not stretch the normal app icon"
+  }
+}
