@@ -331,10 +331,11 @@ def evaluate(args, corpus, root):
         independence = dict(passed=False, reason=str(error))
     groups = evaluation_groups(sheets)
     counts = {key: np.zeros((3, 4), dtype=np.int64) for key in groups}
-    per_sheet, confounders, coverage = {}, {}, {}
+    per_sheet, confounders, coverage, review_scopes = {}, {}, {}, {}
     with torch.no_grad():
         for sheet in sheets:
             annotation = json.loads((root / sheet['annotations']).read_text(encoding='utf-8'))
+            review_scopes[sheet['id']] = annotation.get('review', {}).get('coverage', 'unspecified')
             width, height = annotation['width'], annotation['height']
             probability = np.zeros((3, height, width), dtype=np.float32)
             weights = np.zeros((height, width), dtype=np.float32)
@@ -367,7 +368,10 @@ def evaluate(args, corpus, root):
         raise ValueError('Baseline must use the exact frozen corpus, threshold and known-pixel scope')
     nonregression = confounder_nonregression(confounders, baseline.get('confounders') if baseline else None)
     admission = boundary_admission(per_sheet, required_channels=[kind for kind in CHANNELS[:3] if kind not in checkpoint['unobservedChannels']])
-    admission['passed'] = admission['passed'] and nonregression['passed'] and independence['passed'] and not diagnostic
+    complete_review = all(scope == 'whole-readable-map' for scope in review_scopes.values())
+    admission['passed'] = admission['passed'] and nonregression['passed'] and independence['passed'] and not diagnostic and complete_review
+    if not complete_review:
+        admission['failures'].append(dict(reason='incomplete-source-map-review'))
     if diagnostic:
         admission['failures'].append(dict(reason='diagnostic-baseline-is-not-qualification'))
     if not nonregression['passed']:
@@ -380,6 +384,7 @@ def evaluate(args, corpus, root):
                   trainingOnly=checkpoint['trainingOnly'], evaluationStatus='pending',
                   groups=group_metrics, sheets=per_sheet, threshold=.55, diagnosticOnly=diagnostic, independence=independence,
                   confounders=confounders, coverage=coverage, nonregression=nonregression,
+                  reviewCoverage=dict(complete=complete_review, sheets=review_scopes),
                   baselineReportSha256=hashlib.sha256(pathlib.Path(baseline_path).read_bytes()).hexdigest() if baseline_path else None,
                   admission=admission,releaseApproved=False,
                   pending=['independent georeference region evaluation', 'all script/map-family coverage', 'Windows WebView2 and Android offline performance'])
