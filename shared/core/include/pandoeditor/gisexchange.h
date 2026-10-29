@@ -8,6 +8,18 @@
 
 namespace pandoeditor {
 class ProjectSnapshot;
+// IDs and pre-normalized search keys retain their original UTF-16 identity.
+// Each result is the first matching row, or -1 for no match or ambiguity.
+struct GisCountryName { std::u16string id,normalizedId,normalizedName; };
+std::vector<int> resolveGisCountryNames(const std::vector<GisCountryName>&,
+    const std::vector<std::u16string>& queries);
+struct GisCountryAssignment { int index=-1;bool usedFallback=false,unresolvedField=false; };
+struct GisCountryAssignmentGroup { int index=-1;std::vector<std::size_t> features; };
+struct GisCountryAssignmentPlan { std::vector<GisCountryAssignment> assignments;std::vector<GisCountryAssignmentGroup> groups; };
+GisCountryAssignmentPlan planGisCountryAssignments(const std::vector<GisCountryName>&,
+    const std::u16string& fallback,const std::vector<std::u16string>& fields,const std::vector<bool>& hasField);
+enum class GisTerritorialAreaUse { InputOverlap, CountryOverlap, Absorbed };
+bool gisTerritorialAreaDecision(GisTerritorialAreaUse,double area,double firstReference,double secondReference);
 enum class GisExchangeTarget { Project, General, Regional, Distribution, Generic };
 struct GisTargetDescriptor {
     GisExchangeTarget target;

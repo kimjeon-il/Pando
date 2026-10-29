@@ -1,3 +1,5 @@
+import { sharedCalculationCore } from '../../../../../shared/frontend/js/modules/temporal.js';
+
 const clone = value => value == null ? value : structuredClone(value);
 const text = (value, fallback = '') => String(value ?? '').trim() || fallback;
 
@@ -16,21 +18,26 @@ function countryId(feature) {
   return text(feature?.id);
 }
 
-function countryNames(feature) {
-  const properties = feature?.properties || {};
-  return [
-    countryId(feature), properties.name,
-  ].map(value => text(value).toLocaleLowerCase('ko')).filter(Boolean);
+const normalizedCountryValue = value => text(value).toLocaleLowerCase('ko');
+
+function countryLookupInputs(countries) {
+  const rows = countries || [];
+  const ids = rows.map(countryId);
+  return { ids, normalizedIds: ids.map(normalizedCountryValue),
+    normalizedNames: rows.map(feature => normalizedCountryValue(feature?.properties?.name)) };
+}
+
+function resolveCountryValues(values, countries) {
+  if (typeof sharedCalculationCore.resolveGisCountryNames !== 'function') {
+    throw Object.assign(new Error('Canonical C++ GIS country resolver is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  const { ids, normalizedIds, normalizedNames } = countryLookupInputs(countries);
+  const indexes = sharedCalculationCore.resolveGisCountryNames(ids, normalizedIds, normalizedNames, values.map(normalizedCountryValue));
+  return indexes.map(index => index < 0 ? '' : ids[index]);
 }
 
 export function resolveImportedCountryId(value, countries = []) {
-  const wanted = text(value).toLocaleLowerCase('ko');
-  if (!wanted) return '';
-  const matches = [...new Set((countries || [])
-    .filter(feature => countryNames(feature).includes(wanted))
-    .map(countryId)
-    .filter(Boolean))];
-  return matches.length === 1 ? matches[0] : '';
+  return resolveCountryValues([value], countries)[0];
 }
 
 function importedName(feature, index) {
@@ -55,24 +62,35 @@ function differenceGeometry(clipper, left, right) {
   return geometryFromCoordinates(clipper.difference(polygonCoordinates(left), polygonCoordinates(right)));
 }
 
-export function assignImportedCountries(features, {
+function prepareImportedCountries(features, {
   countries = [], targetCountryId = '', useFeatureCountryField = false, countryField = '',
 } = {}) {
-  const fallbackId = resolveImportedCountryId(targetCountryId, countries);
-  return (features || []).map((feature, index) => {
-    const fieldValue = useFeatureCountryField && countryField ? feature?.properties?.[countryField] : '';
-    const resolved = resolveImportedCountryId(fieldValue, countries);
-    const hasFieldValue = !!text(fieldValue);
-    const assignedCountryId = hasFieldValue ? resolved : fallbackId;
+  const items = features || [];
+  const fieldValues = items.map(feature => useFeatureCountryField && countryField ? feature?.properties?.[countryField] : '');
+  if (typeof sharedCalculationCore.planGisCountryAssignments !== 'function') {
+    throw Object.assign(new Error('Canonical C++ GIS country assignment planner is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  const { ids, normalizedIds, normalizedNames } = countryLookupInputs(countries);
+  const plan = sharedCalculationCore.planGisCountryAssignments(ids, normalizedIds, normalizedNames,
+    normalizedCountryValue(targetCountryId), fieldValues.map(normalizedCountryValue), fieldValues.map(value => !!text(value)));
+  const assignments = items.map((feature, index) => {
+    const fieldValue = fieldValues[index];
+    const decision = plan.assignments[index];
     return {
       feature,
       index,
       name: importedName(feature, index),
-      countryId: assignedCountryId,
-      usedFallback: !hasFieldValue && !!fallbackId,
-      unresolvedValue: hasFieldValue && !resolved ? text(fieldValue) : '',
+      countryId: decision.index < 0 ? '' : ids[decision.index],
+      usedFallback: decision.usedFallback,
+      unresolvedValue: decision.unresolvedField ? text(fieldValue) : '',
     };
   });
+  return { assignments, groups: plan.groups.map(group => ({ countryId: ids[group.index],
+    items: group.features.map(index => assignments[index]) })) };
+}
+
+export function assignImportedCountries(features, options = {}) {
+  return prepareImportedCountries(features, options).assignments;
 }
 
 export function buildTerritorialImportTransactionPlan({
@@ -82,7 +100,7 @@ export function buildTerritorialImportTransactionPlan({
   if (!clipper?.intersection || !clipper?.union || !clipper?.difference) throw new Error('영토 계산 엔진을 사용할 수 없습니다.');
   const polygonFeatures = features.filter(feature => polygonCoordinates(feature?.geometry).length);
   if (!polygonFeatures.length) throw new Error('가져올 Polygon 또는 MultiPolygon 객체가 없습니다.');
-  const assignments = assignImportedCountries(polygonFeatures, { countries, targetCountryId, useFeatureCountryField, countryField });
+  const { assignments, groups: grouped } = prepareImportedCountries(polygonFeatures, { countries, targetCountryId, useFeatureCountryField, countryField });
   const unresolved = assignments.filter(item => !item.countryId);
   if (unresolved.length) {
     const values = [...new Set(unresolved.map(item => item.unresolvedValue).filter(Boolean))];
@@ -96,22 +114,16 @@ export function buildTerritorialImportTransactionPlan({
       const left = assignments[leftIndex];
       const right = assignments[rightIndex];
       const overlap = intersectionGeometry(clipper, left.feature.geometry, right.feature.geometry);
-      const smallerArea = Math.max(1, Math.min(areaKm2(left.feature.geometry), areaKm2(right.feature.geometry)));
-      if (overlap && areaKm2(overlap) > Math.max(0.000001, smallerArea * 1e-9)) {
+      const leftArea = areaKm2(left.feature.geometry), rightArea = areaKm2(right.feature.geometry);
+      if (overlap && sharedCalculationCore.gisTerritorialAreaDecision('input-overlap', areaKm2(overlap), leftArea, rightArea)) {
         throw new Error(`가져올 객체끼리 겹칩니다: ${left.name} · ${right.name}`);
       }
     }
   }
 
-  const grouped = new Map();
-  for (const assignment of assignments) {
-    if (!grouped.has(assignment.countryId)) grouped.set(assignment.countryId, []);
-    grouped.get(assignment.countryId).push(assignment);
-  }
-
   const countryIndex = new Map(countries.map(feature => [countryId(feature), feature]));
   const groups = [];
-  for (const [ownerId, items] of grouped) {
+  for (const { countryId: ownerId, items } of grouped) {
     const target = countryIndex.get(ownerId);
     if (!target?.geometry) throw new Error(`소속 국가 ${ownerId}을(를) 현재 지도에서 찾을 수 없습니다.`);
     const importedGeometry = unionGeometries(clipper, items.map(item => item.feature.geometry));
@@ -124,7 +136,7 @@ export function buildTerritorialImportTransactionPlan({
       const overlapGeometry = intersectionGeometry(clipper, importedGeometry, country.geometry);
       if (!overlapGeometry) continue;
       const overlapAreaKm2 = areaKm2(overlapGeometry);
-      if (overlapAreaKm2 <= Math.max(0.000001, importedAreaKm2 * 1e-10)) continue;
+      if (!sharedCalculationCore.gisTerritorialAreaDecision('country-overlap', overlapAreaKm2, importedAreaKm2, 0)) continue;
       coveredParts.push(overlapGeometry);
       const id = countryId(country);
       if (id === ownerId) {
@@ -135,7 +147,7 @@ export function buildTerritorialImportTransactionPlan({
       donors.push({
         countryId: id,
         areaKm2: overlapAreaKm2,
-        fullyAbsorbed: !remainder || areaKm2(remainder) <= Math.max(0.000001, overlapAreaKm2 * 1e-10),
+        fullyAbsorbed: !remainder || sharedCalculationCore.gisTerritorialAreaDecision('absorbed', areaKm2(remainder), overlapAreaKm2, 0),
       });
     }
     const covered = unionGeometries(clipper, coveredParts);
