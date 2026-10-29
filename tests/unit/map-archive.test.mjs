@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {createHash} from 'node:crypto';
+import {createHash,randomBytes} from 'node:crypto';
+import {existsSync} from 'node:fs';
 import {mkdtemp,mkdir,readFile,rm,symlink,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -42,6 +43,14 @@ test('cancelled archive leaves no incomplete output',()=>fixture(async root=>{
   const controller=new AbortController();controller.abort();
   await assert.rejects(archiveDirectory(input,{signal:controller.signal}));
   await assert.rejects(readFile(input+'.zip'),/ENOENT/);
+}));
+test('cancellation during archive writing removes only its partial ZIP',()=>fixture(async root=>{
+  const input=join(root,'input');await mkdir(input);const original=randomBytes(4*1024*1024);
+  await writeFile(join(input,'file'),original);
+  const controller=new AbortController(),output=input+'.zip';
+  const timer=setInterval(()=>{if(existsSync(output))controller.abort();},1);
+  try {await assert.rejects(archiveDirectory(input,{signal:controller.signal}),/abort/i);}finally{clearInterval(timer);}
+  await assert.rejects(readFile(output),/ENOENT/);assert.deepEqual(await readFile(join(input,'file')),original);
 }));
 
 test('diagnostic runtime includes the ZIP writer needed by its own imports',()=>{
