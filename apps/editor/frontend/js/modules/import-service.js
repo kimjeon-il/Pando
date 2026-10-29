@@ -1,5 +1,6 @@
 import { EXCHANGE_TARGETS, normalizeExchangeTarget } from './exchange-adapter-registry.js';
 import { createGisImportPlan } from './gis-import-plan.js';
+import { sharedCalculationCore } from '../../../../../shared/frontend/js/modules/temporal.js';
 import {
   WORKER_RPC_ERROR_CATEGORIES,
   createWorkerRpcClient,
@@ -89,17 +90,18 @@ export function createCountryImportMergePlanner({
       feature.id = featureCountryId(feature, index);
       return feature;
     });
-    if (!imported.length) throw new Error('병합할 국가 객체가 없습니다.');
     const incomingIds = imported.map(feature => text(feature?.id));
-    if (incomingIds.some(id => !id) || new Set(incomingIds).size !== incomingIds.length) {
+    if (typeof sharedCalculationCore.planGisCountryMerge !== 'function') {
+      throw Object.assign(new Error('Canonical C++ GIS country merge planner is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
+    }
+    const identityPlan = sharedCalculationCore.planGisCountryMerge(current.map(feature => text(feature?.id)), incomingIds);
+    if (identityPlan.status === 'empty') throw new Error('병합할 국가 객체가 없습니다.');
+    if (identityPlan.status === 'invalid-ids') {
       throw new Error('가져온 국가 ID 연결 결과가 비어 있거나 중복되었습니다.');
     }
-
-    const currentById = new Map(current.map(feature => [text(feature?.id), feature]));
-    const importedById = new Map(imported.map(feature => [text(feature?.id), feature]));
-    const importedIds = new Set(importedById.keys());
-    const affectedIds = new Set(importedIds);
-    const matched = [...importedIds].filter(id => currentById.has(id)).length;
+    if (identityPlan.status !== 'valid') throw new Error('Unknown C++ GIS country merge plan result.');
+    const affectedIds = new Set(incomingIds);
+    const matched = identityPlan.matched;
     const counts = {
       matched,
       added: imported.length - matched,
@@ -113,13 +115,13 @@ export function createCountryImportMergePlanner({
 
     if (strategy === 'id-replace') {
       counts.replaced = matched;
-      result = current.filter(feature => !importedIds.has(text(feature?.id)));
-      result.push(...imported.map(feature => mergeImportedCountryProperties(
-        currentById.get(text(feature?.id)),
+      const unaffected = identityPlan.unaffected.map(index => current[index]);
+      result = [...unaffected];
+      result.push(...imported.map((feature, index) => mergeImportedCountryProperties(
+        identityPlan.existing[index] < 0 ? undefined : current[identityPlan.existing[index]],
         feature,
         clone(feature.geometry),
       )));
-      const unaffected = result.filter(feature => !importedIds.has(text(feature?.id)));
       for (const incoming of imported) {
         let incomingBounds;
         for (const other of unaffected) {
@@ -144,9 +146,9 @@ export function createCountryImportMergePlanner({
     // The union stays immutable throughout this operation. Compute its bounds
     // at the first comparison; preserve empty/matched-only short circuiting.
     let importedBounds;
-    for (const existing of current) {
+    for (const currentIndex of identityPlan.unaffected) {
+      const existing = current[currentIndex];
       const id = text(existing?.id);
-      if (importedIds.has(id)) continue;
       if (!boundsOverlap(geometryBounds(existing.geometry), importedBounds ??= geometryBounds(importedRawUnion))) {
         result.push(existing);
         continue;
@@ -168,9 +170,8 @@ export function createCountryImportMergePlanner({
       existing.geometry = remainder;
       result.push(existing);
     }
-    for (const incoming of imported) {
-      const id = text(incoming?.id);
-      const existing = currentById.get(id);
+    for (const [index, incoming] of imported.entries()) {
+      const existing = identityPlan.existing[index] < 0 ? undefined : current[identityPlan.existing[index]];
       const geometry = clone(incoming.geometry);
       if (!geometry) throw new Error(`${countryName(incoming)} 영토를 결합할 수 없습니다.`);
       result.push(mergeImportedCountryProperties(existing, incoming, geometry));

@@ -18,6 +18,13 @@ struct GisCountryAssignmentGroup { int index=-1;std::vector<std::size_t> feature
 struct GisCountryAssignmentPlan { std::vector<GisCountryAssignment> assignments;std::vector<GisCountryAssignmentGroup> groups; };
 GisCountryAssignmentPlan planGisCountryAssignments(const std::vector<GisCountryName>&,
     const std::u16string& fallback,const std::vector<std::u16string>& fields,const std::vector<bool>& hasField);
+enum class GisCountryMergeStatus { Valid, Empty, InvalidIds };
+struct GisCountryMergeIdentities {
+    GisCountryMergeStatus status=GisCountryMergeStatus::Valid;
+    std::size_t matched=0;std::vector<int> existing;std::vector<std::size_t> unaffected;
+};
+GisCountryMergeIdentities planGisCountryMerge(const std::vector<std::u16string>& current,
+    const std::vector<std::u16string>& incoming);
 struct GisCountryShape { std::string id;bool hasGeometry=false;MultiPolygon geometry; };
 struct GisTerritoryDonor { std::size_t index=0;double area=0;bool absorbed=false; };
 struct GisTerritoryGroup {

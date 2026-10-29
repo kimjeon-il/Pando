@@ -168,6 +168,22 @@ val gisCountryNamesForWeb(const val& ids,const val& normalizedIds,const val& nor
         for(unsigned i=0;i<matches.size();++i)output.set(i,matches[i]);return output;
     });
 }
+val gisCountryMergeForWeb(const val& current,const val& incoming) {
+    return boundary([&] {
+        array(current,"INVALID_GIS_COUNTRY_IDS");array(incoming,"INVALID_GIS_COUNTRY_IDS");
+        std::vector<std::u16string> currentIds,incomingIds;
+        for(unsigned i=0;i<current["length"].as<unsigned>();++i)currentIds.push_back(referenceUtf16(current[i]));
+        for(unsigned i=0;i<incoming["length"].as<unsigned>();++i)incomingIds.push_back(referenceUtf16(incoming[i]));
+        const auto plan=planGisCountryMerge(currentIds,incomingIds);
+        auto output=val::object(),existing=val::array(),unaffected=val::array();
+        const char* status=plan.status==GisCountryMergeStatus::Valid?"valid":
+            plan.status==GisCountryMergeStatus::Empty?"empty":"invalid-ids";
+        output.set("status",std::string(status));output.set("matched",unsigned(plan.matched));
+        for(unsigned i=0;i<plan.existing.size();++i)existing.set(i,plan.existing[i]);
+        for(unsigned i=0;i<plan.unaffected.size();++i)unaffected.set(i,unsigned(plan.unaffected[i]));
+        output.set("existing",existing);output.set("unaffected",unaffected);return output;
+    });
+}
 val gisCountryAssignmentsForWeb(const val& ids,const val& normalizedIds,const val& normalizedNames,
     const val& fallback,const val& fields,const val& supplied) {
     return boundary([&] {
@@ -898,6 +914,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::function("referenceGraphDiagnostics",&referenceGraphForWeb);
     emscripten::function("resolveGisCountryNames",&gisCountryNamesForWeb);
     emscripten::function("planGisCountryAssignments",&gisCountryAssignmentsForWeb);
+    emscripten::function("planGisCountryMerge",&gisCountryMergeForWeb);
     emscripten::function("gisTerritorialAreaDecision",&gisTerritorialAreaForWeb);
     emscripten::function("resolveTerritorialRoot",&territorialRootForWeb);
     emscripten::function("distributionReferenceDiagnostics",&distributionReferencesForWeb);
