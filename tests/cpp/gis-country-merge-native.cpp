@@ -1,9 +1,34 @@
 #include <pandoeditor/gisexchange.h>
+#include <pandoeditor/project.h>
+#include <pandoeditor/projectcodec.h>
 #include <cassert>
 #include <iostream>
 
+using namespace pandoeditor;
+
+void existingCountryOverlapIsNotValidatedByProjectAdmission() {
+    auto geometry=[](const char* json){return projectcodec::readWebGeometry(codecjson::parse(json));};
+    const auto first=geometry(R"({"type":"Polygon","coordinates":[[[0,0],[2,0],[2,2],[0,2],[0,0]]]})");
+    const auto overlap=geometry(R"({"type":"Polygon","coordinates":[[[1,1],[3,1],[3,3],[1,3],[1,1]]]})");
+    const auto distant=geometry(R"({"type":"Polygon","coordinates":[[[10,10],[12,10],[12,12],[10,12],[10,10]]]})");
+    ProjectDocument doc;doc.documentId="synthetic-overlap";
+    for(const auto& [id,shape]:std::vector<std::pair<std::string,Geometry>>{{"A",first},{"B",overlap}}) {
+        TerritorialUnit unit;unit.id=id;unit.name=id;unit.kind=UnitKind::General;doc.units.push_back(unit);
+        const GeometryRef ref{"geometry:"+id,1};doc.geometries.insert(ref,shape);
+        doc.geometryProvenance.originalArchive.insert(ref);addStaticTerritorialRecords(doc,id,ref);
+        doc.presentation.objectStyles[territorialRef(id)]={0,1,false};
+    }
+    Project project;project.replace(doc);
+    const auto revision=project.revision();
+    GisTerritorialInput input;input.id="C";input.name="C";input.kind=UnitKind::General;input.geometry=distant;
+    bool rejected=false;
+    try { (void)planTerritorialGisImport(project.snapshot(),"test",{"synthetic","fixture"},GisExchangeTarget::General,{input}); }
+    catch(const std::invalid_argument& error) { rejected=std::string(error.what())=="GIS_COUNTRY_OVERLAP"; }
+    assert(rejected&&project.revision()==revision&&project.document().units.size()==2);
+}
+
 int main() {
-    using namespace pandoeditor;
+    existingCountryOverlapIsNotValidatedByProjectAdmission();
     std::vector<std::string> calls;
     GisCountryMergeOperations ops;
     ops.prepare=[&]{calls.push_back("union");};
