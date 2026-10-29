@@ -1,4 +1,5 @@
 #include "reference-model.h"
+#include "boundary-loss.h"
 #include <torch/torch.h>
 #include <algorithm>
 #include <cmath>
@@ -51,6 +52,17 @@ int main(int argc,char** argv){
                 .04988204315304756,-.04190129414200783,.0013500750064849854,-.022478243336081505,.029418926686048508,.05365516245365143};
             for(int i=0;i<10;++i)close(flat.index({indices[i]}).item<double>(),expected[i],.005,"A model output differs from the original");
         }
+        model->train();for(auto& parameter:model->encoder->parameters())parameter.requires_grad_(false);model->encoder->eval();
+        auto before=model->head->weight.detach().clone();
+        auto running=model->encoder->at<pando::reference::ConvNormImpl>(0).named_buffers(true)["1.running_mean"].clone();
+        torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
+        auto tile=torch::zeros({1,3,64,64}),overview=torch::zeros({1,3,32,32}),position=torch::zeros({1,4});
+        auto output=model->forward(tile,overview,position),target=torch::zeros_like(output),valid=torch::ones({1,1,64,64});
+        auto loss=pando::reference::boundaryLoss(output,target,valid);check(torch::isfinite(loss).item<bool>(),"Training loss is not finite");
+        optimizer.zero_grad();loss.backward();optimizer.step();
+        check(!torch::equal(before,model->head->weight.detach()),"Optimizer did not update the unfrozen decoder");
+        check(torch::equal(running,model->encoder->at<pando::reference::ConvNormImpl>(0).named_buffers(true)["1.running_mean"]),"Frozen encoder statistics changed");
+        for(const auto& parameter:model->encoder->parameters())check(!parameter.grad().defined(),"Frozen encoder received a gradient");
         std::cout<<"Reference model architecture and every synthetic original output verified\n";return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }
