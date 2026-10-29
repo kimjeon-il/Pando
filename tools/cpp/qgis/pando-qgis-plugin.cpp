@@ -14,6 +14,7 @@
 #include <qgsgeometry.h>
 #include <qgswkbtypes.h>
 #include <qgsexpression.h>
+#include <qgsexception.h>
 #include <qgsexpressioncontext.h>
 #include <qgsexpressioncontextutils.h>
 #include <qgslayertree.h>
@@ -242,6 +243,7 @@ class Bridge final:public QObject,public QgisPlugin {
                     if(!supplied.isString()||!tokenMatches(supplied.toString().toUtf8(),token_))throw QStringLiteral("Authentication failed");
                     response={{QStringLiteral("ok"),true},{QStringLiteral("result"),execute(request)}};
                 }catch(const QString& message){response={{QStringLiteral("ok"),false},{QStringLiteral("error"),message}};}
+                catch(const QgsException& error){response={{QStringLiteral("ok"),false},{QStringLiteral("error"),error.what()}};}
                 catch(const std::exception& error){response={{QStringLiteral("ok"),false},{QStringLiteral("error"),QString::fromUtf8(error.what())}};}
                 if(guardedSocket){guardedSocket->write(QJsonDocument(response).toJson(QJsonDocument::Compact)+'\n');guardedSocket->disconnectFromHost();}
             });
