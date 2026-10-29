@@ -2,7 +2,8 @@
 import {connect} from 'node:net';
 
 const commands=new Set(['status','open','export']);
-export const qgisNativeSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/qgis/pando-qgis-plugin.cpp']);
+export const qgisNativeSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/qgis/pando-qgis-plugin.cpp',
+  'tools/cpp/qgis/qgis-export.cpp','tools/cpp/qgis/qgis-export.h']);
 export async function requestNativeQgis(config,request,{signal,timeoutMs=30000,maxResponseBytes=1024*1024}={}){
   signal?.throwIfAborted();
   if(!config||config.host!=='127.0.0.1'||!Number.isInteger(config.port)||config.port<1024||config.port>65535||
