@@ -21,7 +21,7 @@ export async function exportNativeQgis(config,{layerId,output,buffer},{signal,ti
     signal?.throwIfAborted();normalizeFile(temporary,target);
     result={output:target,qgis:receipt};
   }catch(error){failure=error;}
-  if(buffer&&failure&&!receiptReceived)throw new Error(`QGIS buffer scratch preserved while processing state is unknown: ${directory}: ${failure.message}`,{cause:failure});
+  if(failure&&!receiptReceived&&!failure.qgisCompleted)throw new Error(`QGIS ${buffer?'buffer':'export'} scratch preserved while processing state is unknown: ${directory}: ${failure.message}`,{cause:failure});
   try{
     try{
       const item=lstatSync(temporary);
