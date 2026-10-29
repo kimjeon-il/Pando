@@ -6,6 +6,7 @@ on:
     paths:
       - 'tools/gis/verify_osm_hydro_batch01_anchors.py'
       - 'tools/gis/probe-finnish-hydro.mjs'
+      - 'tools/gis/bounded-source-json.mjs'
       - 'tests/unit/finnish-hydro-probe.test.mjs'
       - '.github/workflows/gis-hydro-osm-batch01-research.yml'
   workflow_dispatch:
