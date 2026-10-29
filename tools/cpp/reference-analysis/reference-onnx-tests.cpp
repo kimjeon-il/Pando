@@ -1,5 +1,6 @@
 #include "reference-onnx.h"
 #include "reference-io.h"
+#include "training-checkpoint.h"
 #include <torch/torch.h>
 #include <filesystem>
 #include <iostream>
@@ -13,21 +14,31 @@ std::string raw(const torch::Tensor& value){
     return {static_cast<const char*>(contiguous.data_ptr()),static_cast<std::size_t>(contiguous.numel()*sizeof(float))};
 }
 int run(const std::vector<fs::path>& args){
-    if(args.size()!=2||!fs::is_directory(args[1]))throw std::runtime_error("An existing empty diagnostic directory is required");
-    const auto dir=args[1];
+    const bool checkpoint=args.size()==8&&args[1]==fs::path("--checkpoint");
+    if((args.size()!=2&&!checkpoint)||!fs::is_directory(args.back()))throw std::runtime_error("An existing empty diagnostic directory is required");
+    const auto dir=args.back();
     for(const auto* name:{"model.onnx","tile.f32","overview.f32","position.f32","expected.f32"})
         if(fs::exists(dir/name))throw std::runtime_error("Diagnostic output exists");
-    torch::set_num_threads(2);torch::manual_seed(20261029);
-    pando::reference::ReferenceBoundaryModel model;
+    torch::set_num_threads(2);torch::manual_seed(20261029);pando::reference::ReferenceBoundaryModel model;
     bool refusedTrainingMode=false;
     try{pando::reference::exportReferenceOnnx(model);}catch(const std::exception&){refusedTrainingMode=true;}
     if(!refusedTrainingMode)throw std::runtime_error("ONNX exporter accepted training-mode normalization");
+    auto device=torch::Device(torch::kCPU);
+    if(checkpoint){
+        device=pando::reference::selectDevice(args[2].string());model->to(device);
+        torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
+        const auto data=pando::reference::readBounded(args[3],1024ULL*1024*1024);
+        pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(data.begin(),data.end()),device);
+    }
     model->eval();torch::NoGradGuard guard;
-    const auto tile=(torch::remainder(torch::arange(3*512*512,torch::kFloat32),251)/250).reshape({1,3,512,512});
-    const auto overview=(torch::remainder(torch::arange(3*256*256,torch::kFloat32),197)/196).reshape({1,3,256,256});
-    const auto position=torch::tensor({.1f,-.2f,.3f,.4f}).reshape({1,4});
-    const auto expected=model->forward(tile,overview,position);
+    const auto tile=checkpoint?pando::reference::readFloatTensor(args[4],{1,3,512,512}):
+        (torch::remainder(torch::arange(3*512*512,torch::kFloat32),251)/250).reshape({1,3,512,512});
+    const auto overview=checkpoint?pando::reference::readFloatTensor(args[5],{1,3,256,256}):
+        (torch::remainder(torch::arange(3*256*256,torch::kFloat32),197)/196).reshape({1,3,256,256});
+    const auto position=checkpoint?pando::reference::readFloatTensor(args[6],{1,4}):torch::tensor({.1f,-.2f,.3f,.4f}).reshape({1,4});
+    const auto expected=model->forward(tile.to(device),overview.to(device),position.to(device));
     if(!torch::isfinite(expected).all().item<bool>())throw std::runtime_error("Synthetic reference output is nonfinite");
+    model->to(torch::kCPU);
     const auto onnx=pando::reference::exportReferenceOnnx(model);
     pando::reference::writeNewFile(dir/"tile.f32",raw(tile));pando::reference::writeNewFile(dir/"overview.f32",raw(overview));
     pando::reference::writeNewFile(dir/"position.f32",raw(position));pando::reference::writeNewFile(dir/"expected.f32",raw(expected));

@@ -39,7 +39,9 @@ test('native ONNX graph reproduces every C++ model output and refuses overwrite'
   let session,outputs;
   const inputs={};
   try{
-    const invoke=()=>spawnSync(binary,[directory],{encoding:'utf8',timeout:120000});
+    const fixture=process.env.PANDO_REFERENCE_CHECKPOINT_FIXTURE&&JSON.parse(readFileSync(process.env.PANDO_REFERENCE_CHECKPOINT_FIXTURE,'utf8'));
+    const args=fixture?['--checkpoint',fixture.device,fixture.checkpoint,fixture.tile,fixture.overview,fixture.position,directory]:[directory];
+    const invoke=()=>spawnSync(binary,args,{encoding:'utf8',timeout:120000});
     const result=invoke();assert.equal(result.error,undefined);assert.equal(result.status,0,result.stderr);
     const bytes=readFileSync(join(directory,'model.onnx'));
     const modelFields=protobufFields(bytes);
