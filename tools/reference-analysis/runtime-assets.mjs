@@ -12,9 +12,31 @@ import { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import yazl from 'yazl';
 import { bundlePath, regularResourcePath } from '../../plugins/pando-map-tools/lib/runtime.mjs';
+import {libraryCheckout,decodeArchiveEntry} from '../library-data.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const unix=path=>path.split(sep).join('/');
 const git=promisify(execFile);
+export async function analysisAssetCatalog(workspace,{revision}={}) {
+  const bytes=revision?await readPinnedSource(workspace,revision,'plugins/pando-map-tools/analysis-data.json'):await readFile(join(workspace,'plugins/pando-map-tools/analysis-data.json'));
+  const config=JSON.parse(bytes),checkout=libraryCheckout(workspace);
+  const index=JSON.parse((await git('git',['show',config.revision+':archive/index.json'],{cwd:checkout,maxBuffer:32*1024*1024})).stdout);
+  const data=name=>{const entry=index.files[name];if(!entry)throw Error('Pinned analysis resource missing: '+name);return decodeArchiveEntry(checkout,entry,config.revision);};
+  const resource=name=>{const entry=index.files[name];if(!entry)throw Error('Pinned analysis resource missing: '+name);bundlePath(workspace,entry.stored);return {url:'https://raw.githubusercontent.com/'+config.repository+'/'+config.revision+'/'+entry.stored,encoding:entry.encoding,bytes:entry.bytes,sha256:entry.sha256};};
+  const ocrPath='assets/data/reference-analysis/v1/ocr/',gazetteerPath='assets/data/reference-analysis/v1/gazetteer/';
+  const ocrBytes=data(config.ocr.root+'/manifest.json'),gazetteerBytes=data(config.gazetteer.root+'/manifest.json');
+  const sha=value=>createHash('sha256').update(value).digest('hex');
+  assert.equal(sha(ocrBytes),config.ocr.manifestSha256);assert.equal(sha(gazetteerBytes),config.gazetteer.manifestSha256);
+  const ocr=JSON.parse(ocrBytes),gazetteer=JSON.parse(gazetteerBytes),ocrResources={},gazetteerResources={};
+  const files=[{path:ocrPath+'manifest.json',data:ocrBytes},{path:gazetteerPath+'manifest.json',data:gazetteerBytes}];
+  for(const [language,spec]of Object.entries(ocr.languages)){
+    const name=config.ocr.root+'/'+spec.url,entry=resource(name);assert.equal(entry.sha256,spec.sha256);assert.equal(entry.bytes,spec.bytes);ocrResources[language]=entry;
+    if(['eng','osd'].includes(language))files.push({path:ocrPath+spec.url,data:data(name)});
+  }
+  for(const spec of Object.values(gazetteer.files)){
+    const entry=resource(config.gazetteer.root+'/'+spec.path);assert.equal(entry.sha256,spec.sha256);assert.equal(entry.bytes,spec.bytes);gazetteerResources[gazetteerPath+spec.path]=entry;
+  }
+  return {config,files,ocrResources,gazetteerResources,gazetteer};
+}
 export async function writeArtifactFiles(directory,entries) {
   const seen=new Set();
   for(const row of entries) {
@@ -85,9 +107,9 @@ async function walk(directory,prefix,include=()=>true) {
   return files;
 }
 export async function collectSourceFiles(workspace=root,{diagnostics=false,revision}={}) {
-  const seeds=['package.json','pnpm-lock.yaml','config/library-data.json','shared/frontend/js/modules/temporal.js',
+  const seeds=['package.json','pnpm-lock.yaml','shared/frontend/js/modules/temporal.js',
     'shared/frontend/js/modules/core-wasm-loader.js','shared/frontend/js/modules/source-provenance.js','shared/frontend/js/modules/version-contract.js',
-    'shared/frontend/js/modules/place-worker-store.js','shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js',
+    'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js','shared/third_party/proj-robinson-LICENSE',
     'tools/load-node-core.mjs','tools/package-shared-core-assets.mjs','tools/library-archive.mjs'];
   if(diagnostics)seeds.push('tools/reference-analysis/verify-trained-onnx.mjs','tools/reference-analysis/cloud-probe.mjs');
   if(revision) {

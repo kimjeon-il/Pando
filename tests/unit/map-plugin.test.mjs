@@ -39,6 +39,19 @@ const manifest = { schemaVersion: 1, evaluationStatus: 'pending', releaseApprove
   classes: ['international','administrative','coast','hydro','transport','text','frame'],
   unobservedChannels: ['coast','hydro','transport','text','frame'],
   tileSize:512, overlap:64, overviewSize:256, model:{url:'boundary.onnx',bytes:123,sha256:'a'.repeat(64)} };
+test('projection-only revision reuses pixel inference and invalidates prior review',()=>{
+  let job=createJob({path:'map.png',sha256:'a'.repeat(64),width:100,height:100},{dataRevision:'test'});
+  job.status='needs-georeference';job.graph={ok:true,width:100,height:100,chains:[],faces:[],unresolved:[]};
+  job.segmentation={signature:'unchanged-model-input',rawGraph:structuredClone(job.graph)};job=sealJob(job);
+  const points=[{id:'a',image:[.1,.1],coordinate:[-120,60]},{id:'b',image:[.9,.1],coordinate:[-60,60]},{id:'c',image:[.1,.9],coordinate:[-120,40]}];
+  job=reviseJob(job,{type:'control-points',mode:'affine',points});job.review={georeference:true,boundaries:true};job=sealJob(job);
+  const projection={kind:'lcc',lon0:-95,lat0:49,lat1:49,lat2:77,ellipsoid:'GRS80'};
+  const next=reviseJob(job,{type:'projection',projection});
+  assert.equal(next.warp.projection.kind,'lcc');assert.equal(next.review,null);
+  assert.deepEqual(next.graph,job.graph);assert.deepEqual(next.segmentation,job.segmentation);
+  assert.deepEqual(next.calibration.controlPoints,points);
+  assert.throws(()=>reviseJob(sealJob({...job,schemaVersion:1}),{type:'projection',projection}),/schema|signature/i);
+});
 test('production jobs bind all calculation helpers and refuse missing or changed runtime identity', async()=>{
   let job=createJob({path:'map.png',sha256:'a'.repeat(64),width:100,height:100},{dataRevision:'test'});
   job.status='needs-georeference';job=sealJob(job);

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "kimjeon-il/PandoLab-library-data",
+  "revision": "8d668a6c9ffb7844849fb63af5b02ebc8a496b70",
+  "gazetteer": {
+    "root": "reports/map-analysis/corpus/gazetteer-v1/runtime",
+    "manifestSha256": "d28f9dec988ab7daacc8717fafaa54222b55b863f88d5c5e431c77cd99513cef",
+    "revision": "a44261bca491ea878acd95d33d94272d72ade84f9054e1461e53e2d7de977cfe"
+  },
+  "ocr": {
+    "root": "assets/data/reference-analysis/v1/ocr",
+    "manifestSha256": "b98ca196956a8971464d6eefd85640c99be0354ec03031ba1c43b46009bf0f15"
+  }
+}

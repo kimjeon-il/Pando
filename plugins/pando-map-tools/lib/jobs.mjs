@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, writeFile, readFile, rename, rm, lstat } from 'node:fs/
 import { resolve, join, dirname, basename } from 'node:path';
 import { workspaceModule, runtimeResources, assertRuntimeResources } from './workspace.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
-import { georeferenceQuality, selectReferenceImageGeoreference } from './analysis/georef.mjs';
+import { georeferenceQuality, selectReferenceImageGeoreference, selectReferenceImageProjection } from './analysis/georef.mjs';
 const { normalizeSourceProvenance, SOURCE_KINDS } = await workspaceModule('shared/frontend/js/modules/source-provenance.js');
 const { GENERIC_FEATURE_SCHEMA_VERSION } = await workspaceModule('shared/frontend/js/modules/version-contract.js');
 import { validateReferenceBoundaryTensorContract, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
@@ -12,7 +12,8 @@ export const digest = value => createHash('sha256').update(typeof value === 'str
 export const sealJob = job => { const { signature: _signature, ...body } = job; return { ...body, signature: digest(body) }; };
 export function assertJob(job) {
   const {signature,...body}=job;
-  if (job.schemaVersion!==1 || signature!==digest(body)) throw new Error('Job signature mismatch; use structured revise commands.');
+  if(job.schemaVersion!==2)throw new Error('Unsupported job schema; analyze a new job with the current plugin.');
+  if (signature!==digest(body)) throw new Error('Job signature mismatch; use structured revise commands.');
   if (['cancelled','failed','running'].includes(job.status)) throw new Error(`Job is ${job.status}.`);
   assertRuntimeResources(job.resources);
 }
@@ -26,7 +27,7 @@ export function validateCandidateModel(input) {
   return {...structuredClone(input),observedChannels:REFERENCE_BOUNDARY_CHANNELS.filter(v=>!unknown.includes(v))};
 }
 export function createJob(source, resources, options={}) {
-  return sealJob({schemaVersion:1,id:randomUUID(),revision:0,status:'running',source:structuredClone(source),resources:{...runtimeResources(),...structuredClone(resources)},
+  return sealJob({schemaVersion:2,id:randomUUID(),revision:0,status:'running',source:structuredClone(source),resources:{...runtimeResources(),...structuredClone(resources)},
     options:structuredClone(options),calibration:null,warp:null,quality:null,graph:null,segmentation:null,history:[],review:null,diagnostics:[]});
 }
 export function reviseJob(job, command) {
@@ -38,16 +39,27 @@ export function reviseJob(job, command) {
     const points=command.points;
     if (new Set(points.map(p=>p.id)).size!==points.length || points.some(p=>!p.id || !Array.isArray(p.image) || p.image.length!==2 || p.image.some(v=>!Number.isFinite(v)||v<0||v>1)
       || !Array.isArray(p.coordinate) || p.coordinate.length!==2 || p.coordinate.some((v,i)=>!Number.isFinite(v)||Math.abs(v)>(i?90:180)))) throw new Error('Invalid control points.');
-    const {warp,quality}=selectReferenceImageGeoreference(points,job.source,{mode:command.mode || 'auto'});
+    const projection=command.projection || job.calibration?.projection || {kind:'geographic'};
+    const {warp,quality}=selectReferenceImageGeoreference(points,job.source,{mode:command.mode || 'auto',projection});
     if (!warp.ok && warp.reason!=='insufficient-control-points') throw new Error(`Georeference failed: ${warp.reason}`);
     next.warp=warp;
-    next.calibration={controlPoints:structuredClone(points),mode:warp.mode,linearConstraints:[]};
+    next.calibration={controlPoints:structuredClone(points),mode:warp.mode,projection:warp.projection || calculate('normalizeProjection',projection),linearConstraints:[]};
     next.quality=quality;
+  } else if(command.type==='projection') {
+    if(!job.calibration || (!command.projection&&!command.candidates))throw new Error('Current controls and a typed projection are required.');
+    if(command.projection&&command.candidates)throw new Error('Choose one fixed projection or a candidate set.');
+    const result=command.candidates?selectReferenceImageProjection(job.calibration.controlPoints,job.source,{candidates:command.candidates})
+      :selectReferenceImageGeoreference(job.calibration.controlPoints,job.source,{mode:command.mode || 'auto',projection:command.projection});
+    if(command.candidates&&!result.ok)throw new Error('Projection selection remains unverified: '+result.reason);
+    const {warp,quality}=result,projection=warp.projection;
+    if(!warp.ok)throw new Error('Projection calibration failed: '+warp.reason);
+    next.warp=warp;next.quality=quality;
+    next.calibration={controlPoints:structuredClone(command.candidates?warp.controlPoints:job.calibration.controlPoints),mode:warp.mode,projection,linearConstraints:[]};
   } else if(command.type==='location') {
     const choice=Number.isInteger(command.index)?job.locationCandidates?.[command.index]:null;
-    if(!choice?.warp.ok || choice.quality.folded) throw new Error('Invalid or unstable location candidate.');
+    if(!choice?.warp.ok || choice.quality.folded || choice.quality.invalidDomain) throw new Error('Invalid or unstable location candidate.');
     next.warp=structuredClone(choice.warp);next.quality=structuredClone(choice.quality);
-    next.calibration={controlPoints:structuredClone(choice.warp.controlPoints),mode:choice.warp.mode,linearConstraints:[]};
+    next.calibration={controlPoints:structuredClone(choice.warp.controlPoints),mode:choice.warp.mode,projection:choice.warp.projection,linearConstraints:[]};
   } else if (command.type==='boundary') {
     if (!job.graph) throw new Error('No pixel boundary graph.');
     if (!['exclude','replace','cut','join'].includes(command.command?.type)) throw new Error('Unknown graph revision.');
@@ -65,13 +77,13 @@ export function reviseJob(job, command) {
     if(command.constraints.some(v=>v.enabled!==false) && !calculate('linearPoints',{constraints:command.constraints,baseWarp:job.warp}).length) throw new Error('No valid enabled line constraints.');
     next.warp=calculate('calibrationWarp',next.calibration);
     if(!next.warp.ok) throw new Error('Linear refinement failed.');
-    const base=georeferenceQuality(next.calibration.controlPoints,next.calibration.mode,job.source);
-    const final=georeferenceQuality(next.warp.controlPoints,next.warp.mode,job.source);
+    const base=georeferenceQuality(next.calibration.controlPoints,next.calibration.mode,job.source,next.calibration.projection);
+    const final=georeferenceQuality(next.warp.controlPoints,next.warp.mode,job.source,next.warp.projection);
     next.quality=command.constraints.some(v=>v.enabled!==false)
       ? {...final,recommended:false,imageCoverage:base.imageCoverage,crossValidationP95Pixels:null,reason:'line-constraints-need-independent-validation',baseControlQuality:base}
       : base;
   } else if (command.type==='review') {
-    if (!job.warp?.ok || job.quality?.folded || !job.graph?.ok || command.georeference!==true || command.boundaries!==true || !Array.isArray(command.selectedIds) || !command.selectedIds.length) throw new Error('Explicit stable georeference/boundary review and selection required.');
+    if (!job.warp?.ok || job.quality?.folded || job.quality?.invalidDomain || !job.graph?.ok || command.georeference!==true || command.boundaries!==true || !Array.isArray(command.selectedIds) || !command.selectedIds.length) throw new Error('Explicit stable georeference/boundary review and selection required.');
     if (new Set(command.selectedIds).size!==command.selectedIds.length) throw new Error('Duplicate selected candidates.');
     next.review={georeference:true,boundaries:true,selectedIds:[...command.selectedIds],revision:job.revision+1};
   } else throw new Error(`Unknown structured revision: ${command.type}`);

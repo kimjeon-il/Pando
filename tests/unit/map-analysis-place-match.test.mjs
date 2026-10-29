@@ -1,11 +1,10 @@
+import {normalizeReferenceImagePlaceText,referenceImagePlaceNameSimilarity} from '../../plugins/pando-map-tools/lib/analysis/place-text.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
   buildReferenceImagePlaceAutoGeoref,
   matchReferenceImagePlaceDetections,
-  normalizeReferenceImagePlaceText,
-  referenceImagePlaceNameSimilarity,
   referenceImagePlaceNames,
   referenceImagePlaceSearchQueries,
   resolveReferenceImagePlaceAutoGeoref,
@@ -93,10 +92,10 @@ test('ambiguous duplicate names are rejected without enough evidence', () => {
   assert.equal(matched.rejected[0].reason, 'ambiguous-place-match');
 });
 
-test('search queries include a short prefix so one-character OCR errors can recover candidates', () => {
+test('search queries retain full raw and folded names without broad prefix rescans', () => {
   const queries = referenceImagePlaceSearchQueries('Beriin');
   assert.ok(queries.includes('beriin'));
-  assert.ok(queries.includes('be'));
+  assert.deepEqual(queries,['beriin']);
 });
 
 test('global search honors the full OCR detection budget and shares query passes across labels', async () => {
