@@ -26,7 +26,7 @@ export async function verifyBundle(directory) {
   await verifyRuntimeFiles(directory,manifest.files);
   return manifest;
 }
-export async function packProbe({directory,environment,workspace=root,python=join(root,'build-native/python/Scripts/python.exe')}) {
+export async function packProbe({directory,environment,workspace=root}) {
   validateEnvironment(environment);directory=resolve(directory);
   const rel=relative(workspace,directory);if(!rel.startsWith('..')&&!isAbsolute(rel))throw Error('Probe package belongs outside the application checkout');
   if(existsSync(directory))throw Error('Package destination already exists');
@@ -54,11 +54,11 @@ export async function packProbe({directory,environment,workspace=root,python=joi
   const manifest={schemaVersion:1,purpose:'execution-feasibility-only',sourceRevision:(await json(join(workspace,'config/library-data.json'))).revision,
     modelSha256:model.model.sha256,calibration,options:Object.fromEntries(['date','languages','page','rect','maxPixels'].filter(key=>Object.hasOwn(old.options,key)).map(key=>[key,old.options[key]])),files:[]};
   const entries=await Promise.all(sources.map(async row=>({path:row.name,data:await readFile(row.source)})));
-  entries.push({path:'workspace/package.json',data:JSON.stringify(nodeManifest(workspace),null,2)+'\n'},
+  entries.push({path:'workspace/package.json',data:JSON.stringify(nodeManifest(workspace,{diagnostics:true}),null,2)+'\n'},
     {path:'environment.json',data:JSON.stringify(environment,null,2)+'\n'});
   manifest.files=await writeArtifactFiles(directory,entries);
   await writeJson(join(directory,'probe.json'),manifest);await verifyBundle(directory);
-  return {directory,fileCount:manifest.files.length,uncompressedBytes:bytes,...await archiveDirectory(directory,{python})};
+  return {directory,fileCount:manifest.files.length,uncompressedBytes:bytes,...await archiveDirectory(directory)};
 }
 export async function probeAnalysisOptions(bundle,manifest) {
   return {...manifest.options,input:join(bundle,'inputs/map.jpg'),modelPath:join(bundle,'model/boundary.manifest.json'),
@@ -117,9 +117,10 @@ export async function runProbe({bundle,output,python='python',stage='components'
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const command=process.argv[2];
   try {
-    const {values}=parseArgs({args:process.argv.slice(3),options:Object.fromEntries(['output','environment','python','bundle','stage','selection','surface'].map(name=>[name,{type:'string'}]))});
+    const options=command==='pack'?['output','environment']:['output','python','bundle','stage','selection','surface'];
+    const {values}=parseArgs({args:process.argv.slice(3),options:Object.fromEntries(options.map(name=>[name,{type:'string'}]))});
     if(!values.output)throw Error('--output is required');
-    const result=command==='pack'?await packProbe({directory:values.output,environment:await json(values.environment),python:values.python}):command==='run'?await runProbe({...values}):(()=>{throw Error('Use pack or run')})();
+    const result=command==='pack'?await packProbe({directory:values.output,environment:await json(values.environment)}):command==='run'?await runProbe({...values}):(()=>{throw Error('Use pack or run')})();
     console.log(JSON.stringify(result));if(result.verdict==='failed')process.exitCode=1;
   } catch(error) {console.error(JSON.stringify({verdict:'failed',message:error.message,stack:error.stack}));process.exitCode=1;}
 }

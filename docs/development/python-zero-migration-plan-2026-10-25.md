@@ -12,6 +12,7 @@
 사용자가 승인한 55개 기준이다. Git 추적 파일 수를 현재 진행률로 계산한다. 아래 목록은 최초 기준으로 보존하며 새 Python 파일을 허용하지 않는다. 기능별 대체·실제 호출자·검증·삭제 조건은 아래의 각 그룹을 따른다. 55개 각각의 호출자·대응 검사 상세 연결은 계속 작성해야 한다. 원본 26개가 없는 HGIS 실자료 비교는 미검증으로 남긴다.
 
 - 지도 원본 수집: `map_source.py`와 `acquire-sources.py`를 `plugins/pando-map-tools/lib/map-source.mjs`와 `tools/reference-analysis/acquire-sources.mjs`로 이전했다. 지도 분석 CLI와 코퍼스 CLI가 같은 수집 정본을 사용한다. 네 형식 고정 입력의 원본 바이트·크기·SHA-256을 이전 구현과 비교했고, 권리·HTTPS·제한·체크섬·취소·동시 생성 보존은 Node 검사로 확인했다. 기존 파생 이미지 Python 테스트는 유지한다.
+- 비공개 패키지 ZIP: 패키징과 cloud probe의 ZIP 생성에 쓰던 인라인 Python을 스트리밍 Node ZIP 작성기로 교체했다. 원본 파일·기존 ZIP 보존, CRC/내용 확인과 진단 실행에 필요한 의존성 포함을 별도로 검사한다. 파일 목록 53개에는 변화가 없다.
 - 별도 미완료: 전체 지도 플러그인 검사는 이전 소스 레이아웃인 `assets/js/modules/temporal.js`를 참조해 시작하지 못한다. 실제 소스는 `shared/frontend/js/modules/temporal.js`에 있다. 수집기 단위 검사와 기존 구현 비교가 통과한 것은 실제 분석 왕복이 검증되었다는 뜻이 아니다.
 
 - `plugins/pando-map-tools/lib/map_source.py`
