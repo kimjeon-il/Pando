@@ -20,8 +20,11 @@ node tools/qgis/native-bridge.mjs normalize 'D:/path/to/qgis-export.geojson' --o
 Startup refuses an occupied port with an unexpected or unauthenticated service,
 and never rewrites an existing unrelated profile. QGIS executes operations on
 its main thread; mixed-geometry GeoJSON opens without a sublayer dialog. The
-native CLI is not yet an MCP replacement: the upstream editing and processing
-tools remain active until their used capabilities have been migrated and tested.
+native MCP server can be started separately with `node tools/qgis/native-mcp.mjs`;
+it uses `PANDO_QGIS_NATIVE_CONFIG` when set, otherwise the default config above.
+It exposes only start, status, open, export and normalize. It is not yet an MCP
+replacement: the upstream editing and processing tools remain active until
+their used capabilities have been migrated and tested.
 
 QGIS operations use upstream `nkarasiak/qgis-mcp` 0.15.2, commit
 `dae432367fcb2873a151b94c4faaadef2033cf9f`. Native QGIS LTR lives once at
