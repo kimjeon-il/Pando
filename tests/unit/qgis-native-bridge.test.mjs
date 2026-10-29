@@ -45,6 +45,7 @@ async function fixture(t){
         assert.equal(request.field,'name');assert.equal(request.json,JSON.stringify('edited'));result={updated:true};}
       else if(request.command==='add-field'){assert.equal(request.layer,'layer-1');assert.equal(request.field,'label');assert.equal(request.fieldType,'string');result={added:true};}
       else if(request.command==='delete-field'){assert.equal(request.layer,'layer-1');assert.equal(request.field,'label');result={deleted:true};}
+      else if(request.command==='rename-field'){assert.equal(request.field,'label');assert.equal(request.newField,'new_label');result={renamed:true};}
       else if(request.command==='set-geometry'){
         assert.equal(request.layer,'layer-1');assert.equal(request.fid,'1');
         assert.equal(request.wkt,'POINT (127 37)');result={updated:true};}
@@ -104,6 +105,7 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const both=await run(['--config',config,'select','--layer','layer-1','--fids','[]','--expression','true']);assert.notEqual(both.code,0);
   const begin=await run(['--config',config,'begin-edit','--layer','layer-1']);assert.equal(begin.code,0,begin.stderr);
   const addField=await run(['--config',config,'add-field','--layer','layer-1','--field','label','--field-type','string']);assert.equal(addField.code,0,addField.stderr);
+  const renameField=await run(['--config',config,'rename-field','--layer','layer-1','--field','label','--new-field','new_label']);assert.equal(renameField.code,0,renameField.stderr);
   const deleteField=await run(['--config',config,'delete-field','--layer','layer-1','--field','label']);assert.equal(deleteField.code,0,deleteField.stderr);
   const update=await run(['--config',config,'set-attribute','--layer','layer-1','--fid','1','--field','name','--json',JSON.stringify('edited')]);
   assert.equal(update.code,0,update.stderr);assert.equal(JSON.parse(update.stdout).updated,true);
