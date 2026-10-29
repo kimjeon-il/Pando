@@ -26,9 +26,9 @@ export async function nativeTrainingProof({weights,sample,checkpoint,device='cpu
     hash(readFileSync(resolve(weights)))!==transfer.weightsSha256)throw Error('Verified private warm-start weights are required');
   const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-training-proof',executable:'pando-reference-training-proof.exe',sourceFiles:referenceProofSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,manifest),args=[device,resolve(weights),...['tile','overview','position','target','valid'].map(name=>resolve(sample,name+'.f32')),resolve(checkpoint),String(data.tileIndex)];
-  const stdout=await new Promise((ok,fail)=>execFile(binary,args,{encoding:'utf8',windowsHide:true,maxBuffer:1024**2,signal,
+  const stdout=await new Promise((ok,fail)=>execFile(binary,args,{encoding:'utf8',windowsHide:true,maxBuffer:1024**2,timeout:300000,signal,
     env:{...process.env,PATH:library+delimiter+process.env.PATH,CUBLAS_WORKSPACE_CONFIG:':4096:8'}},
-  (error,text,stderr)=>error?fail(new Error('Native training proof failed: '+stderr,{cause:error})):ok(text)));
+  (error,text,stderr)=>error?fail(new Error('Native training proof failed: '+error.message+' '+stderr,{cause:error})):ok(text)));
   signal?.throwIfAborted();const result=JSON.parse(stdout);
   if(result.purpose!=='real-input-resume-proof'||result.trainingOnly!==true||result.releaseApproved!==false||result.exactModelResume!==true||result.tileIndex!==data.tileIndex)
     throw Error('Native training proof returned an invalid result');
