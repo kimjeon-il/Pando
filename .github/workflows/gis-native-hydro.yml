@@ -49,11 +49,12 @@ jobs:
           cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
             -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests --parallel 1
-      - name: Compare original loss, gradient and model fixtures
+          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests --parallel 1
+      - name: Compare original loss, model fixtures and Safetensors validation
         run: |
           build-native/reference-analysis/native/pando-reference-loss-tests
           build-native/reference-analysis/native/pando-reference-model-tests
+          build-native/reference-analysis/native/pando-safetensors-tests
   native-hydro:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04
