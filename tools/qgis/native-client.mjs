@@ -1,13 +1,16 @@
 // Bounded, authenticated loopback transport for the native QGIS plugin.
 import {connect} from 'node:net';
 
-const commands=new Set(['status','open','export']);
+const commands=new Set(['status','project','layers','open','export']);
 export const qgisNativeSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/qgis/pando-qgis-plugin.cpp',
   'tools/cpp/qgis/qgis-export.cpp','tools/cpp/qgis/qgis-export.h']);
-export async function requestNativeQgis(config,request,{signal,timeoutMs=30000,maxResponseBytes=1024*1024}={}){
-  signal?.throwIfAborted();
+export function validateNativeQgisConfig(config){
   if(!config||config.host!=='127.0.0.1'||!Number.isInteger(config.port)||config.port<1024||config.port>65535||
     typeof config.token!=='string'||!config.token||config.token.length>4096)throw Error('Authenticated IPv4 loopback QGIS configuration is required');
+}
+export async function requestNativeQgis(config,request,{signal,timeoutMs=30000,maxResponseBytes=1024*1024}={}){
+  signal?.throwIfAborted();
+  validateNativeQgisConfig(config);
   if(!request||typeof request!=='object'||Array.isArray(request)||!commands.has(request.command)||'token' in request)
     throw Error('An allowed native QGIS command is required');
   if(!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>120000||!Number.isInteger(maxResponseBytes)||maxResponseBytes<1||maxResponseBytes>2*1024*1024)
