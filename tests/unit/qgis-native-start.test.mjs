@@ -39,3 +39,16 @@ test('native QGIS refuses an occupied unauthenticated port without creating a pr
     profilesRoot,profile:'proof',artifactDirectory:artifact},{root:resolve('.')}),/authentication/i);
   assert.equal(existsSync(profilesRoot),false);
 });
+test('native QGIS does not start a second instance when another QGIS is running',async t=>{
+  if(process.platform!=='win32'){t.skip('native QGIS startup is Windows-only');return;}
+  const root=mkdtempSync(join(tmpdir(),'pando-qgis-start-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const sdk=join(root,'qgis'),artifact=join(root,'artifact'),binary=join(root,'pando_qgis_bridge.dll');
+  mkdirSync(join(sdk,'bin'),{recursive:true});writeFileSync(join(sdk,'bin','qgis-ltr.bat'),'@exit /b 1\n');writeFileSync(binary,'test-only');
+  packageNativeTool({binary,directory:artifact,root:resolve('.'),target:'qgis-native-bridge',platform:'win32',architecture:'x64',
+    revision:'a'.repeat(40),runtimeVersion:'qgis-3.44.15-qt-5.15.13',sourceFiles:qgisNativeSourceFiles});
+  const server=createServer();server.listen(0,'127.0.0.1');await once(server,'listening');const port=server.address().port;await new Promise((ok,fail)=>server.close(error=>error?fail(error):ok()));
+  const profilesRoot=join(root,'profiles');
+  await assert.rejects(startNativeQgis({host:'127.0.0.1',port,token:'secret',qgisRoot:sdk,profilesRoot,profile:'proof',artifactDirectory:artifact},
+    {root:resolve('.'),qgisIsRunning:async()=>true}),/already running/i);
+  assert.equal(existsSync(profilesRoot),false);
+});

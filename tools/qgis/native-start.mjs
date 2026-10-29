@@ -1,4 +1,4 @@
-import {spawn} from 'node:child_process';
+import {execFileSync,spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {existsSync,mkdirSync,readFileSync,statSync,writeFileSync} from 'node:fs';
 import {isAbsolute,join,resolve} from 'node:path';
@@ -32,7 +32,10 @@ export function prepareNativeProfile(config,artifactDirectory){
   }
   return settings;
 }
-export async function startNativeQgis(config,{root,signal}={}){
+export async function startNativeQgis(config,{root,signal,qgisIsRunning=()=>{
+  const rows=execFileSync('tasklist.exe',['/FO','CSV','/NH'],{encoding:'utf8',windowsHide:true});
+  return rows.split(/\r?\n/).some(row=>/^"qgis(?:-ltr)?-bin\.exe",/i.test(row));
+}}={}){
   signal?.throwIfAborted();validateNativeQgisConfig(config);
   if(process.platform!=='win32')throw Error('Native QGIS startup currently requires Windows');
   const projectRoot=resolve(root),artifact=safePath(config.artifactDirectory),qgisRoot=safePath(config.qgisRoot),profilesRoot=safePath(config.profilesRoot);
@@ -44,6 +47,7 @@ export async function startNativeQgis(config,{root,signal}={}){
     if(existing.transport!=='pando-native-v1'||!/^3\.44\.15(?:-|$)/.test(existing.qgis_version))throw Error('Occupied QGIS port has an unexpected native service');
     return existing;
   }catch(error){if(error.cause?.code!=='ECONNREFUSED')throw error;}
+  if(await qgisIsRunning())throw Error('QGIS is already running without this authenticated bridge; preserve the existing instance');
   prepareNativeProfile(config,artifact);
   const command=`""${launcher}" --nologo --noversioncheck --profiles-path "${profilesRoot}" --profile "${config.profile}""`;
   const child=spawn(process.env.ComSpec||'cmd.exe',['/d','/s','/c',command],{windowsVerbatimArguments:true,windowsHide:true,detached:true,
