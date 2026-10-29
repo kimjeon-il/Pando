@@ -25,6 +25,8 @@ async function fixture(t){
       else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
       else if(request.command==='layers'){assert.equal(request.offset,0);assert.equal(request.limit,10);
         result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
+      else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
+        result={layer:'layer-1',fields:[{name:'source',type:'Map',length:0,precision:0}]};}
       else if(request.command==='open'){assert.equal(request.path,input);result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};}
       else if(request.command==='export'){
         assert.equal(request.layer,'layer-1');writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',
@@ -46,6 +48,9 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const layers=await run(['--config',config,'layers','--offset','0','--limit','10']);assert.equal(layers.code,0,layers.stderr);
   assert.equal(JSON.parse(layers.stdout).layers[0].id,'layer-1');
   const invalidPage=await run(['--config',config,'layers','--limit','101']);assert.notEqual(invalidPage.code,0);
+  const schema=await run(['--config',config,'schema','--layer','layer-1']);assert.equal(schema.code,0,schema.stderr);
+  assert.equal(JSON.parse(schema.stdout).fields[0].name,'source');
+  const missingLayer=await run(['--config',config,'schema']);assert.notEqual(missingLayer.code,0);
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);
   assert.equal(JSON.parse(opened.stdout).id,'layer-1');
   const output=join(root,'output.geojson');const exported=await run(['--config',config,'export','--layer','layer-1','--output',output]);

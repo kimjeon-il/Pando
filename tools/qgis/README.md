@@ -14,6 +14,7 @@ node tools/qgis/native-bridge.mjs start
 node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs layers --offset 0 --limit 50
+node tools/qgis/native-bridge.mjs schema --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs open 'D:/path/to/pando-layer.geojson'
 node tools/qgis/native-bridge.mjs export --layer QGIS_LAYER_ID --output 'D:/path/to/qgis-result.geojson'
 node tools/qgis/native-bridge.mjs normalize 'D:/path/to/qgis-export.geojson' --output 'D:/path/to/normalized.geojson'
@@ -24,7 +25,7 @@ and never rewrites an existing unrelated profile. QGIS executes operations on
 its main thread; mixed-geometry GeoJSON opens without a sublayer dialog. The
 native MCP server can be started separately with `node tools/qgis/native-mcp.mjs`;
 it uses `PANDO_QGIS_NATIVE_CONFIG` when set, otherwise the default config above.
-It exposes only start, status, project and layer inspection, open, export and normalize. It is not yet an MCP
+It exposes only start, status, project, layer and field inspection, open, export and normalize. It is not yet an MCP
 replacement: the upstream editing and processing tools remain active until
 their used capabilities have been migrated and tested.
 
