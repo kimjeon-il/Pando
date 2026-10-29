@@ -56,6 +56,8 @@ a hidden parent group can keep a checked layer hidden.
 Algorithm discovery lists providers currently registered in QGIS and does not
 install missing providers. Buffer distances use the input layer's CRS units;
 buffer output is normalized to EPSG:4326 and refuses an existing destination.
+If a buffer request times out or loses its connection before QGIS replies, the
+reported scratch directory is preserved because QGIS may still be writing it.
 Attribute and geometry changes require an edit session started by the native bridge. An existing
 QGIS edit session is not taken over. Changes stay in the QGIS edit buffer and
 use its Undo history until an explicit commit or rollback; either action also

@@ -12,14 +12,16 @@ export async function exportNativeQgis(config,{layerId,output,buffer},{signal,ti
   if(typeof layerId!=='string'||!layerId||typeof output!=='string'||!output)throw Error('A QGIS layer and a new output path are required');
   const target=resolve(output);assertNew(target);
   const directory=mkdtempSync(join(dirname(target),'.pando-qgis-')),temporary=join(directory,'export.geojson');
-  let failure,result,cleanupFailure;
+  let failure,result,cleanupFailure,receiptReceived=false;
   try{
-    const receipt=await requestNativeQgis(config,{...(buffer?{command:'buffer',distance:buffer.distance,segments:buffer.segments}:{command:'export'}),layer:layerId,output:temporary},{signal,timeoutMs});
+    const receipt=await requestNativeQgis(config,{...(buffer?{command:'buffer',distance:buffer.distance,segments:buffer.segments}:{command:'export'}),layer:layerId,output:temporary},{signal,timeoutMs:timeoutMs??(buffer?120000:undefined)});
+    receiptReceived=true;
     if(typeof receipt.output!=='string'||resolve(receipt.output)!==temporary||receipt.crs!=='EPSG:4326'||!Number.isSafeInteger(receipt.features)||receipt.features<0)
       throw Error('Native QGIS returned an invalid export receipt');
     signal?.throwIfAborted();normalizeFile(temporary,target);
     result={output:target,qgis:receipt};
   }catch(error){failure=error;}
+  if(buffer&&failure&&!receiptReceived)throw new Error(`QGIS buffer scratch preserved while processing state is unknown: ${directory}: ${failure.message}`,{cause:failure});
   try{
     try{
       const item=lstatSync(temporary);
