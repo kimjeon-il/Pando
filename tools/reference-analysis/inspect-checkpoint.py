@@ -9,9 +9,10 @@ import onnx
 import torch
 from PIL import Image, ImageDraw
 
-from corpus import CHANNELS, corpus_fingerprint, validate_corpus
+from corpus import CHANNELS, RASTER_ORIGINS, corpus_fingerprint, validate_corpus, review_masks
 from train import MapTiles, load_model
 from report_paths import report_argument
+from raster import oriented_map_image
 
 
 def prediction_statistics(probability, expected, known):
@@ -31,6 +32,8 @@ def inspect(args):
     baseline, baseline_sha = None, None
     if args.baseline_checkpoint:
         baseline_sha = hashlib.sha256(pathlib.Path(args.baseline_checkpoint).read_bytes()).hexdigest()
+        if not checkpoint.get('initialization'):
+            raise ValueError('A fresh encoder has no map initializer; compare baselines with frozen-corpus evaluation')
         if checkpoint['initialization']['sha256'] != baseline_sha:
             raise ValueError('Comparison must use the actual initializer checkpoint')
         baseline, _ = load_model(args.baseline_checkpoint, 'cpu')
@@ -59,12 +62,19 @@ def inspect(args):
             # Choose a real tile with the most labelled international-border
             # pixels (administrative when no international boundary is present).
             annotation = json.loads((root / sheet['annotations']).read_text(encoding='utf-8'))
-            with Image.open(root / annotation['raster']['path']) as source:
-                bits = np.asarray(source, dtype=np.uint8)
-            channel = next((i for i, name in enumerate(CHANNELS) if annotation['positivePixels'][name]), 3)
+            if annotation.get('origin') in RASTER_ORIGINS:
+                with Image.open(root / annotation['raster']['path']) as source:
+                    bits = np.asarray(source, dtype=np.uint8)
+                with Image.open(root / annotation['validRaster']['path']) as source:
+                    valid_bits = np.asarray(source, dtype=np.uint8)
+                positive = np.stack([((bits & valid_bits) & (1 << i)) != 0 for i in range(len(CHANNELS))])
+            else:
+                target, valid = review_masks(annotation)
+                positive = target & valid
+            channel = next((i for i in range(len(CHANNELS)) if positive[i].any()), 3)
             index = max(range(len(dataset)), key=lambda i: int(np.count_nonzero(
-                bits[dataset.tiles[i][2]:dataset.tiles[i][2] + 512,
-                     dataset.tiles[i][1]:dataset.tiles[i][1] + 512] & (1 << channel))))
+                positive[channel, dataset.tiles[i][2]:dataset.tiles[i][2] + 512,
+                         dataset.tiles[i][1]:dataset.tiles[i][1] + 512])))
             tile, overview, position, target, valid, _ = dataset[index]
             logits = model(tile[None], overview[None], position[None])
             if not torch.isfinite(logits).all():
@@ -77,13 +87,15 @@ def inspect(args):
             known = valid.numpy() > .5
             predicted = probability >= .55
             _, x, y = dataset.tiles[index]
-            with Image.open(root / sheet['image']) as source:
-                source = source.convert('RGB').crop((x, y, x + 512, y + 512))
-            original = np.asarray(source).copy()
+            with Image.open(root / sheet['image']) as opened:
+                source = oriented_map_image(opened).convert('RGB')
+            source_tile = Image.new('RGB', (512, 512), 'white')
+            source_tile.paste(source.crop((x, y, min(x + 512, source.width), min(y + 512, source.height))), (0, 0))
+            original = np.asarray(source_tile).copy()
             panels = [original]
             for active in [expected, *([] if prior is None else [prior >= .55]), predicted]:
                 overlay = original.copy()
-                for c in [3, 4, 5, 6, 1, 0]:
+                for c in [3, 4, 5, 6, 2, 1, 0]:
                     mask = active[c] & known[c]
                     overlay[mask] = (overlay[mask] * .2 + colors[c] * .8).astype(np.uint8)
                 panels.append(overlay)

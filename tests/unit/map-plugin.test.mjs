@@ -128,6 +128,36 @@ test('changing the analyzed panel requires bounded original pixels and retains i
   assert.throws(()=>engine.regionAnalysisOptions(job,{type:'region',rect:{x:90,y:20,width:60,height:40}}),/bounds/i);
 });
 
+test('adding a source-reviewed missing boundary preserves inference and existing endpoints',()=>{
+  let job=createJob({path:'map.png',sha256:'a'.repeat(64),width:30,height:30},{dataRevision:'test'});
+  job.status='needs-review';job.graph={ok:true,width:30,height:30,chains:[
+    {id:0,points:[[2,2],[12,2]],semanticBits:1,confidence:.9},
+  ],faces:[],unresolved:[]};
+  job.segmentation={signature:'original-inference',rawGraph:structuredClone(job.graph)};
+  job.review={georeference:true,boundaries:true,selectedIds:['line:0'],revision:0};job=sealJob(job);
+  const result=reviseJob(job,{type:'boundary',command:{type:'add',semanticBits:1,points:[[20,20],[28,20]],reason:'Source-reviewed missing border'}});
+  assert.equal(result.graph.chains.length,2);assert.equal(result.graph.faces.length,0);
+  assert.deepEqual(result.segmentation,job.segmentation);assert.equal(job.graph.chains.length,1);
+  assert.ok(result.graph.chains.some(c=>JSON.stringify(c.points)===JSON.stringify([[2,2],[12,2]])));
+  assert.ok(result.graph.chains.some(c=>JSON.stringify(c.points)===JSON.stringify([[20,20],[28,20]])));
+  assert.equal(result.review,null);assert.equal(result.history.at(-1).command.command.reason,'Source-reviewed missing border');
+  assert.throws(()=>reviseJob(job,{type:'boundary',command:{type:'replace',chainId:0,points:[[20,20],[28,20]]}}),/preserve.*endpoints/i);
+});
+
+test('adding a reviewed line uses the shared graph topology and rejects invalid manual inputs',()=>{
+  let job=createJob({path:'map.png',sha256:'a'.repeat(64),width:30,height:30},{dataRevision:'test'});
+  job.status='needs-review';job.graph={ok:true,width:30,height:30,chains:[
+    {id:0,points:[[2,5],[12,5]],semanticBits:1,confidence:.9},
+  ],faces:[],unresolved:[]};job=sealJob(job);
+  const command={type:'add',semanticBits:1,points:[[7,5],[7,15]],reason:'Source-reviewed missing branch'};
+  const result=reviseJob(job,{type:'boundary',command});
+  assert.equal(result.graph.chains.length,3);assert.equal(result.graph.faces.length,0);
+  assert.equal(result.graph.chains.filter(c=>c.points.some(p=>p[0]===7&&p[1]===5)).length,3);
+  for(const patch of [{reason:''},{semanticBits:3},{semanticBits:0},{semanticBits:8},{points:[]},{points:[[7,5],[30,15]]},{points:[[7,5],[NaN,15]]}])
+    assert.throws(()=>reviseJob(job,{type:'boundary',command:{...command,...patch}}));
+  assert.equal(job.graph.chains.length,1);assert.equal(job.history.length,0);
+});
+
 test('excluding multiple chains rebuilds once without treating retired ids as current ids',()=>{
   let job=createJob({path:'map.png',sha256:'a'.repeat(64),width:30,height:30},{dataRevision:'test'});
   job.status='needs-review';job.graph={ok:true,width:30,height:30,chains:[

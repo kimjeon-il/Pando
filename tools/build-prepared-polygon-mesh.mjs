@@ -6,16 +6,20 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import "../shared/frontend/js/workers/gpu-mesh-core.js";
-import { encodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from "../shared/frontend/js/modules/polygon-mesh-codec.js";
+import { decodePolygonMesh, encodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from "../shared/frontend/js/modules/polygon-mesh-codec.js";
 import './load-spherical-core.mjs';
 import "../shared/frontend/js/vendor/polygon-clipping.min.js";
 import { createGeometryVersionStore } from "../shared/frontend/js/modules/geometry-version-store.js";
-import {temporalContains,temporalMonthEnd,shiftTemporalMonth} from "../shared/frontend/js/modules/temporal.js";
+import {parseTemporal,temporalContains,temporalMonthEnd,shiftTemporalMonth} from "../shared/frontend/js/modules/temporal.js";
 import { resolveWorld } from "../shared/frontend/js/modules/timeline-resolver.js";
 import { createTerritorialScopeResolver } from "../shared/frontend/js/modules/territorial-scope.js";
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../shared/frontend/js/modules/builtin-world-loader.js";
+import {resolvePhysicalWaterObjects,composePhysicalWaterGeometry} from '../shared/frontend/js/modules/physical-resources.js';
+import {timelineObjectKey} from '../shared/frontend/js/modules/timeline-records.js';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
+const defaultRoot=fileURLToPath(new URL('../',import.meta.url));
+export function buildPreparedPolygonMeshes({root=defaultRoot,physicalMonth=null,write=writeLibraryOutput,sourceIdentity=sharedSourceManifest}={}) {
+if(physicalMonth!==null&&(!physicalMonth||parseTemporal(physicalMonth,{nullable:false}).precision!=='month'))throw Error('A physical query month is required.');
 const destination = 'assets/data/prepared-polygons/generated/v2';
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const readJson = file => JSON.parse(file.endsWith('.gz') ? gunzipSync(readFileSync(resolve(root, file))) : readFileSync(resolve(root, file), 'utf8'));
@@ -33,6 +37,21 @@ function source(file) {
   if (inputHashes[file]) return;
   inputHashes[file] = sha256(readFileSync(resolve(root, file))); collect(readJson(file));
 }
+const precisionDiscards=[],seenScopes=new Set();
+if(physicalMonth){
+ const manifestPath='assets/data/physical-land/v1/manifest.json',manifest=readJson(manifestPath);
+ inputHashes[manifestPath]=sha256(readFileSync(resolve(root,manifestPath)));
+ const selected=resolvePhysicalWaterObjects(manifest.waterObjects,physicalMonth).sort((a,b)=>timelineObjectKey(a.objectRef).localeCompare(timelineObjectKey(b.objectRef)));
+ if(!selected.length)throw Error('No physical-water context is selected for '+physicalMonth);
+ const land=selected[0].assets.land;
+ if(selected.some(row=>row.assets.land.sha256!==land.sha256))throw Error('Selected waters require one coherent land derivative.');
+ const readAsset=spec=>{
+  const raw=readFileSync(resolve(root,spec.url));
+  if(raw.length!==spec.compressedBytes||sha256(raw)!==spec.sha256)throw Error('Physical source identity mismatch: '+spec.url);
+  inputHashes[spec.url]=sha256(raw);return readJson(spec.url);
+ };
+ collect(readAsset(land));collect(composePhysicalWaterGeometry(selected.map(row=>readAsset(row.assets.asset))));
+}else{
 const indexPath='assets/data/builtin-world/generated/v1/index.json';
 const index=readJson(indexPath);source(indexPath);
 const countries=index.entities.map(entry=>{
@@ -49,7 +68,7 @@ for(const entity of sourceIndex.entities)source(`assets/data/territorial-entitie
 const months=new Set();
 for(const country of countries)for(const row of [...country.timelineRecords.geometryBindings,...country.timelineRecords.parentRelations])
  for(const value of [row.validFrom,row.validTo])if(value)for(const offset of [-1,0,1])months.add(shiftTemporalMonth(value.slice(0,-3),offset));
-const precisionDiscards=[],seenScopes=new Set();
+
 for(const month of [...months].sort()){
  const wanted=selectBuiltinCountries(index,month),ids=new Set(wanted.map(row=>row.entityId));
  const active=countries.filter(row=>ids.has(row.entityId));
@@ -76,19 +95,28 @@ for(const month of [...months].sort()){
   if(scope.precisionDiscards.length)precisionDiscards.push({id,month,discards:scope.precisionDiscards});
  }
 }
+}
 const engine = globalThis.PandoLabGpuMeshCore;
 const meshes = {};
-const algorithmSourceSha256 = sharedSourceManifest(root).sourceSha256;
+const algorithmSourceSha256 = sourceIdentity(root).sourceSha256;
 const oldManifestPath=resolve(root,`${destination}/manifest.json`);
 const oldManifest=existsSync(oldManifestPath)?readJson(`${destination}/manifest.json`):null;
 const reusable=oldManifest?.schemaVersion===2 && oldManifest.meshFormatVersion===POLYGON_MESH_FORMAT_VERSION
-  && oldManifest.algorithmSourceSha256===algorithmSourceSha256 && oldManifest.algorithmVersion===engine.MESH_ALGORITHM_REVISION;
+  && oldManifest.algorithmVersion===engine.MESH_ALGORITHM_REVISION && oldManifest.maxEdgeDegrees===engine.MAX_RENDER_EDGE_DEGREES;
+// Match the runtime's packet algorithm/precision contract. An unrelated Core
+// edit (for example reference-image UI) does not change a polygon mesh.
+if(physicalMonth){
+ if(!reusable)throw Error('Scoped append requires a prepared manifest with the current mesh algorithm and precision.');
+ Object.assign(meshes,oldManifest.meshes);
+}
 let count = 0, bytes = 0, reused = 0;
 for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeCompare(b))) {
   const previous=reusable?oldManifest.meshes[digest]:null;
   if(previous && existsSync(resolve(root,previous.url))){
     const stored=readFileSync(resolve(root,previous.url));
     if(stored.length===previous.compressedBytes && sha256(stored)===previous.sha256){
+      const decoded=gunzipSync(stored);
+      decodePolygonMesh(decoded.buffer.slice(decoded.byteOffset,decoded.byteOffset+decoded.byteLength),{algorithmVersion:engine.MESH_ALGORITHM_REVISION});
       meshes[digest]=previous;bytes+=stored.length;count++;reused++;continue;
     }
   }
@@ -99,7 +127,7 @@ for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeComp
   // published content hashes do not change when generated on Windows.
   compressed[9] = 3;
   const hash = sha256(compressed), url = `${destination}/polygon-mesh-sha256-${hash}.bin.gz`;
-  mkdirSync(dirname(resolve(root, url)), { recursive: true }); writeLibraryOutput(resolve(root, url), compressed);
+  mkdirSync(dirname(resolve(root, url)), { recursive: true }); write(resolve(root, url), compressed);
   meshes[digest] = { url, sha256: hash, encoding: 'gzip', compressedBytes: compressed.length, decodedBytes: encoded.length };
   bytes += compressed.length; count++;
   if (count % 25 === 0) console.log(`Prepared ${count}/${geometries.size} fixed polygon meshes`);
@@ -107,6 +135,14 @@ for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeComp
 const manifest = { schema: 'pandolab-prepared-polygon-meshes', schemaVersion: 2,
   meshFormatVersion: POLYGON_MESH_FORMAT_VERSION,
   algorithmVersion: engine.MESH_ALGORITHM_REVISION, algorithmSourceSha256,
-  maxEdgeDegrees: engine.MAX_RENDER_EDGE_DEGREES, inputHashes, precisionDiscards, meshes };
-writeLibraryOutput(resolve(root, `${destination}/manifest.json`), JSON.stringify(manifest, null, 2) + '\n');
-console.log(`Prepared ${count} fixed polygon meshes (${bytes} compressed bytes; ${reused} unchanged meshes reused).`);
+  maxEdgeDegrees: engine.MAX_RENDER_EDGE_DEGREES,
+  inputHashes:physicalMonth?{...oldManifest.inputHashes,...inputHashes}:inputHashes,
+  precisionDiscards:physicalMonth?oldManifest.precisionDiscards:precisionDiscards, meshes };
+write(resolve(root, `${destination}/manifest.json`), JSON.stringify(manifest, null, 2) + '\n');
+return {manifest,count,bytes,reused,selectedDigests:[...geometries.keys()]};
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const args=process.argv.slice(2);if(args.some(arg=>!arg.startsWith('--physical-month='))||args.length>1)throw Error('Usage: node tools/build-prepared-polygon-mesh.mjs [--physical-month=YYYY-MM]');
+ const result=buildPreparedPolygonMeshes({physicalMonth:args.length?args[0].slice('--physical-month='.length):null});
+ console.log(JSON.stringify({selected:result.count,compressedBytes:result.bytes,reused:result.reused,digests:result.selectedDigests}));
+}

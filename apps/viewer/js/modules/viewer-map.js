@@ -280,7 +280,10 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     },
     cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
-    prepareBuiltinProject:async(month,options)=>{const baseline=await builtinSession.prepareProjectBaseline(month,options);return {...baseline,setup:{initialMonth:baseline.sourceMonth,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}};},
+    prepareBuiltinProject:async(month,options)=>{
+      const [baseline]=await Promise.all([builtinSession.prepareProjectBaseline(month,options),physicalResources.preparePhysicalContext(month,options)]);
+      return {...baseline,setup:{initialMonth:baseline.sourceMonth,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}};
+    },
     placeSelectionReferences:labelOwner.builtinPlaceSelectionReferences,hydroSelectionReferences:physicalResources.builtinHydroSelectionReferences,
     objectPicking,closeObjectChooser:objectPicking.closeObjectChooser,objectCatalog,objectQuery,refreshSelection:()=>renderingDomain.invalidateSelection(),
     capturePresentation:projectSession.captureViewingPresentation,

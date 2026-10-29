@@ -66,8 +66,23 @@ V normalize(const V& input,bool geographic=true) {
         if(!ids.insert(id).second)continue;
         out.array.push_back(obj({{"id",V::str(id)},{"image",pair(*image)},
             {"coordinate",pair(geographic?P{wrap((*coordinate)[0]),std::clamp((*coordinate)[1],-90.,90.)}:*coordinate)},{"pinned",V::boolean(yes(get(value,"pinned")))}}));
+        for(const auto* key:{"detectionId","placeId"})if(!text(get(value,key)).empty())out.array.back().object[key]=get(value,key);
     }
     return out;
+}
+bool independentControls(const V& points) {
+    std::set<std::string> detections,places;
+    for(std::size_t i=0;i<points.array.size();++i) {
+        const auto& current=points.array[i];
+        const auto detection=text(get(current,"detectionId")),place=text(get(current,"placeId"));
+        if((!detection.empty()&&!detections.insert(detection).second)||(!place.empty()&&!places.insert(place).second))return false;
+        const auto uv=*point(get(current,"image")),coordinate=*point(get(current,"coordinate"));
+        for(std::size_t j=0;j<i;++j) {
+            const auto image=*point(get(points.array[j],"image"));
+            if(std::hypot(uv[0]-image[0],uv[1]-image[1])<=epsilon||distance(coordinate,*point(get(points.array[j],"coordinate")))<=1e-6)return false;
+        }
+    }
+    return true;
 }
 std::optional<Row> solve(Matrix matrix,Row target) {
     const auto n=matrix.size();if(!n||target.size()!=n)return {};
@@ -299,7 +314,6 @@ V crossValidate(const std::string& mode,const V& candidates,const V& hard,const 
 V autoGeoref(const V& input){
     auto candidates=V::arr();std::set<std::string> ids;
     for(std::size_t i=0;i<get(input,"points").array.size();++i){const auto& raw=get(input,"points").array[i];auto id=text(get(raw,"id"),"auto-gcp-"+std::to_string(i+1));if(id.empty())id="auto-gcp-"+std::to_string(i+1);const auto begin=id.find_first_not_of(" \t\r\n"),end=id.find_last_not_of(" \t\r\n");id=begin==std::string::npos?"auto-gcp-"+std::to_string(i+1):id.substr(begin,end-begin+1);if(id=="anchor"||ids.count(id))continue;auto p=raw;p.object["id"]=V::str(id);p.object["pinned"]=V::boolean(false);auto list=V::arr();list.array.push_back(p);const auto normalized=normalize(list);if(normalized.array.empty())continue;ids.insert(id);p=normalized.array[0];p.object["confidence"]=V::num(std::clamp(field(raw,"confidence",1),0.,1.));p.object["origin"]=get(raw,"origin");candidates.array.push_back(p);}
-    for(auto& candidate:candidates.array)for(const auto& raw:get(input,"points").array)if(text(get(candidate,"id"))==text(get(raw,"id"))){candidate.object["detectionId"]=get(raw,"detectionId");candidate.object["placeId"]=get(raw,"placeId");break;}
     auto result=obj({{"ok",V::boolean(false)},{"candidateCount",V::num(candidates.array.size())}}),hard=V::arr();const auto& anchor=get(input,"anchor");
     if(anchor.kind!=V::Null){auto list=V::arr();list.array.push_back(obj({{"id",V::str("anchor")},{"image",get(anchor,"image")},{"coordinate",get(anchor,"coordinate")},{"pinned",V::boolean(true)}}));hard=normalize(list);if(hard.array.empty()){result.object["reason"]=V::str("invalid-anchor");return result;}}
     const auto requested=text(get(input,"mode"),"auto");const auto count=candidates.array.size()+hard.array.size();std::string consensus=requested;
@@ -416,7 +430,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         const auto prepared=prepareReferenceImageWarp(warp);std::size_t projectedCount=0;
         const auto coordinate=[&](P pixel){
             if(pixel[0]<0||pixel[0]>width-1||pixel[1]<0||pixel[1]>height-1)throw std::invalid_argument("Boundary point is outside its source image.");
-            const auto p=projectReferenceImageWarp(prepared,{pixel[0]/(width-1),pixel[1]/(height-1)},false);
+            const auto p=projectReferenceImageWarp(prepared,{pixel[0]/(width-1),pixel[1]/(height-1)});
             if(!p||std::abs((*p)[1])>90)throw std::runtime_error("Unprojectable boundary point.");
             return P{wrap((*p)[0]),(*p)[1]};
         };
@@ -510,6 +524,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         if(folded){out.object["reason"]=V::str("folded-or-singular-warp");return out;}
         if(invalidDomain){out.object["reason"]=V::str("projection-domain-exceeded");return out;}
         if(controlOutsideDomain){out.object["reason"]=V::str("control-outside-validation-domain");return out;}
+        if(!independentControls(points)){out.object["reason"]=V::str("duplicate-control-observations");return out;}
         if(points.array.size()<6||area<.2)return out;
         Row errors;
         for(std::size_t i=0;i<points.array.size();++i){
@@ -526,6 +541,10 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
         out.object["crossValidationP95Pixels"]=V::num(p95);
         out.object["recommended"]=V::boolean(p95<=8);out.object["reason"]=V::str(p95<=8?"":"source-pixel-validation-failed");
         return out;
+    }
+    if(operation=="controlIndependence") {
+        const auto& raw=get(input,"points");const auto points=normalize(raw);
+        return obj({{"independent",V::boolean(points.array.size()==raw.array.size()&&independentControls(points))}});
     }
     if(operation=="normalize")return normalize(input);
     if(operation=="autoGeoref")return autoGeoref(input);

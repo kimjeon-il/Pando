@@ -13,10 +13,27 @@ Edits are JSON objects or an array:
   its near-zero training residual is not accuracy evidence. Inspect
   `quality.modelComparison`, coverage, folds and independent checks before review.
   Controls outside a selected crop cannot recommend that panel.
+* `{"type":"projection","projection":{"kind":"lcc","ellipsoid":"GRS80","lon0":-95,"lat0":49,"lat1":49,"lat2":77}}`
+  changes the typed map projection using the existing controls. This example is
+  a parameter contract, not a default for an unknown map. Longitude/latitude
+  parameters use degrees; projected coordinates use metres. Supported kinds
+  are `geographic`, `eqc`, `merc`, `lcc`, `laea`, `aeqd`, `stere` and `robin`;
+  unsupported ellipsoid/domain combinations fail explicitly. This revision
+  reprojects the saved pixel graph without repeating OCR or inference and
+  invalidates review. Fixed-projection recommendations need six distinct points;
+  unknown-projection selection reserves six fit, six selection and six
+  confirmation points. Read the returned diagnostics before review.
 * `{"type":"boundary","command":{"type":"exclude","chainId":1}}`.
   The shared core also accepts `replace` with original-pixel `points`, `cut`
   with a pixel `point`, and `join` with `from`/`to` chainId and start/end.
   Graph edits rebuild IDs: read current IDs before the next edit.
+* `{"type":"boundary","command":{"type":"add","semanticBits":1,"points":[[660,280],[662,320]],"reason":"Source-reviewed missing border stroke"}}`
+  adds a manually reviewed missing line in original pixels. Select exactly one
+  class: 1 international, 2 administrative or 4 coast. A source-review reason
+  is required. This is manual correction, not model recognition or confidence
+  evidence. The shared core validates bounds and rebuilds junctions/faces;
+  read its new IDs before refining or selecting. Do not move an unrelated line
+  with `replace`: it intentionally preserves existing shared endpoints.
 * `{"type":"exclude-rect","rect":[0,0,500,200]}` excludes whole chains with
   vertices in this original-pixel rectangle; cut first for partial removal.
 * `{"type":"live-wire","chainId":1,"anchors":[[0.1,0.2],[0.3,0.4]]}` traces

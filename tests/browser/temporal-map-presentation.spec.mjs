@@ -24,12 +24,27 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     const response=await route.fetch(),source=await response.text();
     const marker="const nextDependencies = { source: 'country-mesh',";
     expect(source).toContain(marker);
-    await route.fulfill({response,body:source.replace(marker,`
+    const proofMarker='const temporalPending =';
+    expect(source).toContain(proofMarker);
+    const instrumented=source.replace(proofMarker,`window.__physicalFrameProof=()=>({expected:getPhysicalContextState(),
+      actual:(renderScene?.polygons||[]).filter(packet=>['physical-land','physical-water'].includes(packet.role)).map(packet=>({role:packet.role,revision:packet.geometryRevision})),
+      matches:physicalSceneMatchesContext(renderScene,getPhysicalContextState()),at:performance.now()});\n`+proofMarker);
+    await route.fulfill({response,body:instrumented.replace(marker,`
       window.__temporalWaterPresented=()=>preparedBaseScene?.physicalWaterItems.length>0
         && preparedBaseScene.physicalWaterItems.every(({packet})=>polygonOverlayPass.hasPreparedResource(packet))
         && lastBaseSceneResult?.overlayRenderedKeys.includes('physical-water');
       if (window.__temporalGate) await window.__temporalGate();
     `+marker)});
+  });
+  await page.route('**/modules/render-scene.js*',async route=>{
+    const response=await route.fetch(),source=await response.text(),marker='if (revision !== preparationRevision) return;';
+    expect(source).toContain(marker);
+    await route.fulfill({response,body:source.replace(marker,marker+`\n(window.__physicalBatches||=[]).push({at:performance.now(),keys:groups.map(value=>value.request.cacheKey),stats:result.stats});`)});
+  });
+  await page.route('**/modules/physical-resources.js*',async route=>{
+    const response=await route.fetch(),source=await response.text(),start='async function preparePhysicalContext(month,{isCurrent=()=>true}={}) {',done='assertCurrent();return result;';
+    expect(source).toContain(start);expect(source).toContain(done);
+    await route.fulfill({response,body:source.replace(start,start+`\n(window.__physicalRequests||=[]).push({month,phase:'start',at:performance.now()});`).replace(done,`(window.__physicalRequests||=[]).push({month,phase:'ready',at:performance.now()});`+done)});
   });
   await page.route('**/modules/country-index.js*',async route=>{
     const response=await route.fetch(),source=await response.text();
@@ -56,10 +71,10 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
   await expect.poll(()=>page.evaluate(()=>window.__pendingCountryAnchors?.()),{timeout:45000}).toBe(0);
   const image=async()=>{
     // Read WebGL through the compositor without changing its context options.
-    // Read bitmaprenderer directly: toggling visibility for a screenshot can
+    // Read Canvas directly: toggling visibility for a screenshot can
     // retain its earlier compositor image even after a new bitmap is accepted.
-    const png=mode==='canvas-worker'?null:await page.locator('.gpu-map-canvas').screenshot({style:
-      'body * {visibility:hidden!important} .gpu-map-canvas {visibility:visible!important}'});
+    const png=mode==='webgl'?await page.locator('.gpu-map-canvas').screenshot({style:
+      'body * {visibility:hidden!important} .gpu-map-canvas {visibility:visible!important}'}):null;
     return page.evaluate(async encoded=>{
     const bitmap=encoded?await createImageBitmap(await (await fetch('data:image/png;base64,'+encoded)).blob()):document.querySelector('.gpu-map-canvas');
     const snapshot=document.createElement('canvas');snapshot.width=bitmap.width;snapshot.height=bitmap.height;
@@ -118,10 +133,18 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     await expect(page.locator('#timelineDateButtonText')).toHaveText('1922년 12월',{timeout:60000});
   } catch(error) {
     console.log('transition errors',errors,consoleErrors);
-    console.log('transition readiness',await page.evaluate(()=>{const stats=window.__PANDOLAB_VIEWER__.rendererStats();return {readiness:stats.mapReadiness,generation:stats.projectGeneration,blocked:stats.projectRenderBlocked,terrain:stats.terrainReady,boundary:stats.countrySharedBoundaryReady};}));
+    console.log('transition readiness',await page.evaluate(()=>{const stats=window.__PANDOLAB_VIEWER__.rendererStats();return {readiness:stats.mapReadiness,generation:stats.projectGeneration,blocked:stats.projectRenderBlocked,terrain:stats.terrainReady,boundary:stats.countrySharedBoundaryReady,physical:window.__physicalFrameProof(),batches:window.__physicalBatches,requests:window.__physicalRequests,mesh:stats.lastMeshPreparation};}));
     throw error;
   }
   await expect(page.locator('#viewerStatus')).toBeHidden();
+  const physical=await page.evaluate(()=>({frame:window.__physicalFrameProof(),batches:window.__physicalBatches,requests:window.__physicalRequests,
+    mesh:window.__PANDOLAB_VIEWER__.rendererStats().lastMeshPreparation}));
+  expect(physical.frame.matches).toBe(true);
+  expect(physical.frame.expected.landRevision).toBe('a627e16fa56d7e9ad5ff65103bd7dfc66a6ba6edf2f22eabf4300e3b7939de4f');
+  expect(physical.frame.actual.map(row=>row.role).sort()).toEqual(['physical-land','physical-water']);
+  console.log('temporal physical preparation',mode,JSON.stringify({matches:physical.frame.matches,landRevision:physical.frame.expected.landRevision,
+    roles:physical.frame.actual.map(row=>row.role),requests:physical.requests,
+    batches:physical.batches.map(row=>({at:row.at,count:row.keys.length,physicalKeys:row.keys.filter(key=>key.startsWith('polygon:physical-')).map(key=>key.split('::')[0]),stats:row.stats})),mesh:physical.mesh}));
   expect((await image()).hash).not.toBe(before.hash);
   if(mode==='webgl'){
     await page.locator('#timelineDateButton').click();

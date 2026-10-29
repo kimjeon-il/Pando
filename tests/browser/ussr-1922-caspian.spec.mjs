@@ -5,12 +5,29 @@ import {gotoEditor} from './helpers/editor-entry.mjs';
 
 test.use({viewport:{width:1365,height:900},trace:'off'});
 async function observePhysicalContext(page){
- await page.route('**/assets/js/modules/physical-resources.js*',async route=>{
-  const response=await route.fetch(),source=await response.text(),anchor='  function loadPhysicalLandMask() {';
+ await page.route('**/modules/gpu-map-renderer.js*',async route=>{
+  const response=await route.fetch(),source=await response.text(),anchor='const temporalPending =';
   expect(source).toContain(anchor);
-  await route.fulfill({response,body:source.replace(anchor,`  globalThis.__gisPhysicalProof=()=>{const value=currentPhysicalContext();return {month:dependencies.projectState.state.timelineCursor,landRevision:value?.revision,waterRevision:value?.waterRevision,holes:value?.water?.coordinates.length-1};};\n`+anchor)});
+  await route.fulfill({response,body:source.replace(anchor,`window.__gisPhysicalFrameProof=()=>({drawn:!!preparedBaseScene?.physicalLandItems.length&&preparedBaseScene.physicalLandItems.every(({packet})=>polygonOverlayPass.hasPreparedResource(packet))&&!!lastBaseSceneResult?.overlayRenderedKeys.includes('physical-water'),readiness:mapReadiness(),matches:physicalSceneMatchesContext(renderScene,getPhysicalContextState()),expected:getPhysicalContextState(),roles:(renderScene?.polygons||[]).filter(packet=>['physical-land','physical-water'].includes(packet.role)).map(packet=>packet.role)});\n`+anchor)});
+ });
+ await page.route('**/assets/js/modules/physical-resources.js*',async route=>{
+  const response=await route.fetch(),source=await response.text(),anchor='  function currentPhysicalContext() {';
+  expect(source).toContain(anchor);
+  await route.fulfill({response,body:source.replace(anchor,`  globalThis.__gisPhysicalProof=()=>{const value=currentPhysicalContext();return {month:dependencies.projectState.state.timelineCursor,landRevision:value?.revision,waterRevision:value?.waterRevision,holes:waterContexts.get(selectedPhysicalWater().key)?.value?.waters.find(row=>row.row.objectRef.id==='waterbody:caspian')?.water.coordinates.length-1};};\n`+anchor)});
  });
 }
+
+test('App physical background publishes both selected 1922 masks with matching prepared revisions',async({page})=>{
+ test.setTimeout(120000);const errors=[];page.on('pageerror',error=>errors.push(error.message));await observePhysicalContext(page);
+ await gotoEditor(page,'/?debug=1');await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
+ await page.getByRole('button',{name:'파일 메뉴 열기',exact:true}).click();await page.locator('#newProjectBtn').click();
+ await page.locator('#projectSetupMonth').fill('1922-12');await page.locator('#projectSetupSource').selectOption('empty');await page.locator('#projectSetupSubmit').click();
+ await expect.poll(async()=>{if(await page.locator('#confirmModalOkBtn').isVisible())await page.locator('#confirmModalOkBtn').click();return await page.evaluate(()=>window.__gisPhysicalFrameProof?.());},{timeout:45000}).toMatchObject({matches:true,expected:{ready:true,landRevision:'a627e16fa56d7e9ad5ff65103bd7dfc66a6ba6edf2f22eabf4300e3b7939de4f'}});
+ await expect.poll(()=>page.evaluate(()=>window.__gisPhysicalFrameProof().drawn)).toBe(true);
+ expect(await page.evaluate(()=>window.__gisPhysicalFrameProof().roles.sort())).toEqual(['physical-land','physical-water']);
+ await expect.poll(()=>page.evaluate(()=>window.__gisPhysicalFrameProof().readiness.status),{timeout:30000}).toMatch(/ready|limited/);
+ expect(errors).toEqual([]);
+});
 async function evidence(page,testInfo,name,details){
  const file=process.env.PANDOLAB_GIS_EVIDENCE_DIR?join(process.env.PANDOLAB_GIS_EVIDENCE_DIR,name):testInfo.outputPath(name);
  await mkdir(dirname(file),{recursive:true});await page.screenshot({path:file+'.png'});await writeFile(file+'.json',JSON.stringify(details,null,2));

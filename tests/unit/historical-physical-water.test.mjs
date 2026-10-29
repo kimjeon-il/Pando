@@ -37,6 +37,27 @@ test('reviewed physical geography uses the common object resolver through May12,
  }
 });
 
+test('physical history prefetch is detached, deduplicated and reusable when its month activates',async t=>{
+ const previous=globalThis.fetch;t.after(()=>{globalThis.fetch=previous;});
+ const bytes=new Map(),requests=[];
+ const asset=(name,geometry)=>{const body=Buffer.from(JSON.stringify(geometry));bytes.set(name,body);return {url:'assets/data/'+name,encoding:'identity',sha256:createHash('sha256').update(body).digest('hex'),compressedBytes:body.length,decodedBytes:body.length};};
+ const modern=asset('modern-prefetch',{type:'MultiPolygon',coordinates:[]}),land=asset('history-prefetch',{type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[0,0]]]]}),water=asset('water-prefetch',{type:'Polygon',coordinates:[]});
+ globalThis.fetch=async url=>{const name=new URL(url).pathname.split('/').at(-1);requests.push(name);return new Response(bytes.get(name));};
+ const state={timelineCursor:'2026-10',hydroFeatureCache:new Map()},invalidations=[];
+ const resource=createPhysicalResources({buildMeta:{dataRevision:'prefetch-test',physicalLand:modern,physicalWaterObjects:catalog(land,water)},capabilities:{terrain:false,builtinHydro:false}});
+ resource.connect({projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},domains:{renderingDomain:{invalidateProject:reason=>invalidations.push(reason)}},feedback:{reportOperationError:error=>{throw error;}}});
+ await resource.loadPhysicalLandMask();const initial=resource.physicalLand;invalidations.length=0;
+ await Promise.all([resource.preparePhysicalContext('1922-12'),resource.preparePhysicalContext('1922-12')]);
+ assert.equal(state.timelineCursor,'2026-10');assert.equal(resource.physicalLand,initial);assert.equal(state.hydroFeatureCache.size,0);
+ assert.deepEqual(invalidations,[],'preparation cannot publish or invalidate the current view');
+ assert.equal(requests.filter(name=>name==='history-prefetch').length,1);
+ state.timelineCursor='1922-12';const selected=resource.physicalLand;
+ assert.equal(selected.revision,land.sha256);assert.equal(selected.water.type,'Polygon');
+ const count=requests.length;await resource.preparePhysicalContext('1925-04');assert.equal(requests.length,count,'same selected versions share the existing cache');
+ await assert.rejects(resource.preparePhysicalContext('1922-12',{isCurrent:()=>false}),{name:'AbortError'});
+ assert.equal(resource.physicalLand,selected,'a stale request cannot change the active physical context');
+});
+
 test('GPU water covers political paint once using ocean style and stays separate from territories',()=>{
  const events=[],gl=new Proxy({},{get:(_,key)=>/^[A-Z_]+$/.test(key)?key:()=>{}});
  const range={ranges:[]},water={kind:'polygon',packet:{key:'historic-water',role:'physical-water',style:{color:'wrong'}}};
