@@ -1,0 +1,9 @@
+{
+  "shared/frontend/static/brand/favicon.svg": "890c2990256220ae801496576b49e0f1076bc59a7cf18e8230605a04ad4ba113",
+  "shared/frontend/static/brand/favicon.ico": "846b3eb46d201d2feaf9b188e1cb81cf3cc1689424a97fc691221c5a615b5501",
+  "shared/frontend/static/brand/apple-touch-icon.png": "240b23c30aa30a91c5d54f0110058d90da94c93b7d4ad3e222091cf542066399",
+  "apps/editor/src-tauri/icons/icon.ico": "5ec2fb4b3cefb4f20ad77deb00f722fc61c307c57d88b793a606e5bf9a250133",
+  "apps/editor/src-tauri/icons/icon.png": "ac5bdfbafeefbf8388fb0d13ec9374c1bb0b882bcdd8472165a5c8218e381135",
+  "apps/editor/src-tauri/android/app/src/main/res/drawable/pando_icon_foreground.xml": "162d9885d7f082d0ffc2733efcf6b2ed83c02afd0395b2c351865b73e6dc7c41",
+  "apps/editor/src-tauri/android/app/src/main/res/drawable/pando_icon_monochrome.xml": "5c9afc1779101f93d0d62a57c48be737c54287c8b628732c219eb39dee2693fd"
+}

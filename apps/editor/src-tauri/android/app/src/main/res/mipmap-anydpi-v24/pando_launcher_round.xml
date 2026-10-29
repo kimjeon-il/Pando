@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="@color/pando_icon_background" android:pathData="M24 0 A24 24 0 1 1 24 48 A24 24 0 1 1 24 0 Z" />
+    <group android:translateX="3.6" android:translateY="3.6" android:scaleX="0.85" android:scaleY="0.85">
+        <path android:fillColor="#FFFFFF" android:pathData="M9 6 H19 V26 H25 V42 H9 Q6 42 6 39 V9 Q6 6 9 6 Z" />
+        <path android:fillColor="#FFFFFF" android:pathData="M39 42 H29 V22 H23 V6 H39 Q42 6 42 9 V39 Q42 42 39 42 Z" />
+    </group>
+</vector>
