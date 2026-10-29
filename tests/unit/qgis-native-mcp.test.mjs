@@ -19,7 +19,7 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
       else if(request.command==='layers')result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:request.offset,limit:request.limit};
       else if(request.command==='schema')result={layer:request.layer,fields:[{name:'source',type:'Map',length:0,precision:0}]};
       else if(request.command==='features')result={features:[{fid:'1',attributesJson:JSON.stringify({source:{sequence:JSON.rawJSON('9007199254740993')}})}],hasMore:false,crs:'EPSG:4326'};
-      else if(request.command==='select')result={selected:request.expression?1:request.fids.length};
+      else if(request.command==='select')result={selected:request.expression?1:request.fids.length,expression:request.expression};
       else if(request.command==='selection')result={fids:['9007199254740993'],count:1};
       else if(request.command==='clear-selection')result={ok:true};
       else if(['begin-edit','rollback-edit','commit-edit','undo-edit','redo-edit'].includes(request.command))result={ok:true};
@@ -66,6 +66,8 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   const clear=await call('qgis_native_clear_selection',{layer:'layer-1'});assert.equal(JSON.parse(clear.result.content[0].text).ok,true);
   const invalidFid=await call('qgis_native_select',{layer:'layer-1',fids:['no']});assert.equal(invalidFid.result.isError,true);
   const expression=await call('qgis_native_select',{layer:'layer-1',expression:'"name" = \'map\''});assert.equal(JSON.parse(expression.result.content[0].text).selected,1);
+  const negativeExpression=await call('qgis_native_select',{layer:'layer-1',expression:'-1 < 0'});
+  assert.equal(JSON.parse(negativeExpression.result.content[0].text).expression,'-1 < 0');
   const both=await call('qgis_native_select',{layer:'layer-1',fids:[],expression:'true'});assert.equal(both.result.isError,true);
   assert.equal(JSON.parse((await call('qgis_native_begin_edit',{layer:'layer-1'})).result.content[0].text).ok,true);
   assert.equal(JSON.parse((await call('qgis_native_set_attribute',{layer:'layer-1',fid:'1',field:'name',json:JSON.stringify('edited')})).result.content[0].text).updated,true);
