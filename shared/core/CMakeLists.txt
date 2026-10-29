@@ -58,6 +58,7 @@ add_library(pandoeditor_core STATIC
     src/riverpartition.cpp
     src/cutgeometry.cpp
     src/referenceimage.cpp
+    src/mapprojection.cpp
     src/referencetracing.cpp
     src/referenceboundaries.cpp
     src/sphericalpolygon.cpp
