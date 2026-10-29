@@ -1,6 +1,30 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { referenceOcrLanguagesForScript, referenceOcrBlocks, referenceOcrOriginalBox, REFERENCE_OCR_LANGUAGES } from '../../plugins/pando-map-tools/lib/analysis/ocr-catalog.mjs';
+import * as catalog from '../../plugins/pando-map-tools/lib/analysis/ocr-catalog.mjs';
+const { referenceOcrLanguagesForScript, referenceOcrBlocks, referenceOcrOriginalBox, REFERENCE_OCR_LANGUAGES }=catalog;
+
+test('strong English recognition corrects the observed weak Cyrillic script decision without rewriting OSD evidence',()=>{
+  const observed={script:'Cyrillic',scriptConfidence:3.000000476837158,confidence:5.092620849609375,clockwiseDegrees:0};
+  const before=structuredClone(observed);
+  const plan=catalog.referenceOcrRecognitionPlan(observed,[{language:'eng',angle:0,score:317.97},{language:'rus',angle:0,score:37.17}]);
+  assert.deepEqual(plan.languages,['eng']);assert.equal(plan.clockwiseDegrees,0);
+  assert.equal(plan.reason,'recognition-probe-overrides-weak-script');assert.deepEqual(observed,before);
+});
+test('explicit languages and strong non-Latin evidence survive Latin legend text',()=>{
+  const observed={script:'Arabic',scriptConfidence:12,clockwiseDegrees:0};
+  const probes=[{language:'eng',angle:90,score:100},{language:'ara',angle:0,score:180}];
+  assert.deepEqual(catalog.referenceOcrRecognitionPlan(observed,probes).languages,['ara','fas','urd']);
+  assert.equal(catalog.referenceOcrRecognitionPlan(observed,probes).clockwiseDegrees,0);
+  assert.deepEqual(catalog.referenceOcrRecognitionPlan(observed,probes,['fas','urd']).languages,['fas','urd']);
+  assert.throws(()=>catalog.referenceOcrRecognitionPlan(observed,probes,['unavailable']),/language/i);
+});
+test('unknown scripts and inconclusive probes keep a bounded recognizer and do not execute every pack',()=>{
+  assert.deepEqual(referenceOcrLanguagesForScript('Unknown'),['eng']);
+  const plan=catalog.referenceOcrRecognitionPlan({script:'Unknown',clockwiseDegrees:270},[{language:'eng',angle:0,score:NaN}]);
+  assert.deepEqual(plan.languages,['eng']);assert.equal(plan.clockwiseDegrees,270);
+  const weak=catalog.referenceOcrRecognitionPlan({script:'Cyrillic',scriptConfidence:3},[{language:'eng',angle:0,score:19},{language:'rus',angle:0,score:5}]);
+  assert.deepEqual(weak.languages,['rus','ukr']);
+});
 
 test('Greek script includes separate modern and ancient Greek recognition models', () => {
   assert.deepEqual(referenceOcrLanguagesForScript('Greek'), ['ell', 'grc']);

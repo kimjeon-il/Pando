@@ -10,6 +10,43 @@ export const REFERENCE_IMAGE_WARP_MODES = Object.freeze({
   TPS: 'tps',
 });
 
+export function georeferenceQuality(points,mode,source) {
+  const rect=source.mapping?.rect || {x:0,y:0,width:source.width,height:source.height};
+  return calculateReferenceImage('georefQuality',{
+    points,mode,sourceWidth:source.width,sourceHeight:source.height,
+    validationDomain:[rect.x/(source.width-1),rect.y/(source.height-1),
+      (rect.x+rect.width-1)/(source.width-1),(rect.y+rect.height-1)/(source.height-1)],
+  });
+}
+
+export function selectReferenceImageGeoreference(points,source,{mode='auto'}={}) {
+  const modes=['similarity','affine','projective','tps'];
+  if(mode!=='auto'&&!modes.includes(mode))throw new Error('Unsupported georeference mode.');
+  const candidates=(mode==='auto'?modes:[mode]).map(candidateMode=>{
+    const warp=calculateReferenceImage('warp',{points,mode:candidateMode});
+    const quality=warp.ok?georeferenceQuality(warp.controlPoints,candidateMode,source):null;
+    const eligible=warp.ok&&!quality.folded&&(mode!=='auto'||candidateMode!=='tps'||quality.recommended);
+    return {mode:candidateMode,warp,quality,eligible};
+  });
+  let selected;
+  for(const candidate of candidates.filter(row=>row.eligible&&row.quality.recommended)) {
+    const score=candidate.quality.crossValidationP95Pixels,best=selected?.quality.crossValidationP95Pixels;
+    if(!selected||(score<best*.8&&best-score>=1))selected=candidate;
+  }
+  // A provisional manual fit is still useful with too few distributed controls,
+  // but interpolation alone cannot admit a nonlinear automatic transform.
+  if(!selected)for(const candidate of candidates.filter(row=>row.eligible)) {
+    const score=candidate.quality.crossValidationP95Pixels,best=selected?.quality.crossValidationP95Pixels;
+    if(!selected||(Number.isFinite(score)&&(!Number.isFinite(best)||(score<best*.8&&best-score>=1)))
+      ||(!Number.isFinite(score)&&!Number.isFinite(best)&&candidate.warp.diagnostics.rmsMeters<selected.warp.diagnostics.rmsMeters*.8))selected=candidate;
+  }
+  selected??=candidates[0];
+  const modelComparison=candidates.map(row=>({mode:row.mode,ok:row.warp.ok,eligible:row.eligible,
+    rmsMeters:row.warp.diagnostics?.rmsMeters??null,crossValidationP95Pixels:row.quality?.crossValidationP95Pixels??null,
+    recommended:row.quality?.recommended??false,folded:row.quality?.folded??false,reason:row.warp.reason||row.quality?.reason||''}));
+  return {warp:selected.warp,quality:selected.quality?{...selected.quality,modelComparison}:null};
+}
+
 export function normalizeReferenceControlPoints(values = []) {
   return freezeReferenceResult(calculateReferenceImage('normalize', values));
 }

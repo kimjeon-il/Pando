@@ -3,8 +3,9 @@ import { mkdir, mkdtemp, writeFile, readFile, rename, rm, lstat } from 'node:fs/
 import { resolve, join, dirname, basename } from 'node:path';
 import { workspaceModule, runtimeResources, assertRuntimeResources } from './workspace.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
-const { normalizeSourceProvenance, SOURCE_KINDS } = await workspaceModule('assets/js/modules/source-provenance.js');
-const { GENERIC_FEATURE_SCHEMA_VERSION } = await workspaceModule('assets/js/modules/version-contract.js');
+import { georeferenceQuality, selectReferenceImageGeoreference } from './analysis/georef.mjs';
+const { normalizeSourceProvenance, SOURCE_KINDS } = await workspaceModule('shared/frontend/js/modules/source-provenance.js');
+const { GENERIC_FEATURE_SCHEMA_VERSION } = await workspaceModule('shared/frontend/js/modules/version-contract.js');
 import { validateReferenceBoundaryTensorContract, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
 
 export const digest = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');
@@ -28,11 +29,6 @@ export function createJob(source, resources, options={}) {
   return sealJob({schemaVersion:1,id:randomUUID(),revision:0,status:'running',source:structuredClone(source),resources:{...runtimeResources(),...structuredClone(resources)},
     options:structuredClone(options),calibration:null,warp:null,quality:null,graph:null,segmentation:null,history:[],review:null,diagnostics:[]});
 }
-export function georeferenceQuality(points,mode,source) {
-  const rect=source.mapping?.rect || {x:0,y:0,width:source.width,height:source.height};
-  const local=points.map(point=>({...point,image:[(point.image[0]*(source.width-1)-rect.x)/(rect.width-1),(point.image[1]*(source.height-1)-rect.y)/(rect.height-1)]}));
-  return calculate('georefQuality',{points:local,mode,sourceWidth:rect.width,sourceHeight:rect.height});
-}
 export function reviseJob(job, command) {
   assertJob(job);
   if (!command || typeof command!=='object') throw new TypeError('Structured revision required.');
@@ -42,11 +38,11 @@ export function reviseJob(job, command) {
     const points=command.points;
     if (new Set(points.map(p=>p.id)).size!==points.length || points.some(p=>!p.id || !Array.isArray(p.image) || p.image.length!==2 || p.image.some(v=>!Number.isFinite(v)||v<0||v>1)
       || !Array.isArray(p.coordinate) || p.coordinate.length!==2 || p.coordinate.some((v,i)=>!Number.isFinite(v)||Math.abs(v)>(i?90:180)))) throw new Error('Invalid control points.');
-    const warp=calculate('warp',{points,mode:command.mode || 'auto'});
+    const {warp,quality}=selectReferenceImageGeoreference(points,job.source,{mode:command.mode || 'auto'});
     if (!warp.ok && warp.reason!=='insufficient-control-points') throw new Error(`Georeference failed: ${warp.reason}`);
     next.warp=warp;
-    next.calibration={controlPoints:structuredClone(points),mode:command.mode || 'auto',linearConstraints:[]};
-    next.quality=warp.ok?georeferenceQuality(points,warp.mode,job.source):null;
+    next.calibration={controlPoints:structuredClone(points),mode:warp.mode,linearConstraints:[]};
+    next.quality=quality;
   } else if(command.type==='location') {
     const choice=Number.isInteger(command.index)?job.locationCandidates?.[command.index]:null;
     if(!choice?.warp.ok || choice.quality.folded) throw new Error('Invalid or unstable location candidate.');

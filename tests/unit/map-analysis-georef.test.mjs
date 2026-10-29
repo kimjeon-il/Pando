@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import * as georef from '../../plugins/pando-map-tools/lib/analysis/georef.mjs';
 
 import {
   buildReferenceImageAutoGeoref,
@@ -13,6 +14,49 @@ import {
 } from '../../plugins/pando-map-tools/lib/analysis/georef.mjs';
 
 const point = (id, image, coordinate) => ({ id, image, coordinate });
+
+const distributed=(map)=>[.05,.35,.65,.95].flatMap(u=>[.05,.35,.65,.95].map(v=>point(`${u}/${v}`,[u,v],map(u,v))));
+test('automatic calibration selects the simplest independently validated fit rather than interpolating every control',()=>{
+  const points=distributed((u,v)=>[-100+20*u+3*v,40+2*u-10*v]);
+  const result=georef.selectReferenceImageGeoreference(points,{width:400,height:400});
+  assert.equal(result.warp.mode,'affine');assert.equal(result.quality.recommended,true);
+  assert.ok(result.quality.crossValidationP95Pixels<.001);
+  assert.equal(result.quality.modelComparison.length,4);
+  assert.equal(georef.selectReferenceImageGeoreference(points,{width:400,height:400},{mode:'tps'}).warp.mode,'tps');
+});
+test('nonlinear calibration is selected only when source-pixel cross validation improves',()=>{
+  const points=distributed((u,v)=>[-100+20*u+1.5*Math.sin(Math.PI*v),40+20*v+.5*Math.sin(Math.PI*u)]);
+  const result=georef.selectReferenceImageGeoreference(points,{width:400,height:400});
+  assert.equal(result.warp.mode,'tps');assert.equal(result.quality.recommended,true);
+  assert.ok(result.quality.crossValidationP95Pixels<=8);
+  assert.ok(result.quality.modelComparison.filter(row=>row.mode!=='tps').every(row=>!row.recommended));
+});
+test('sparse controls cannot make an interpolating TPS look validated through its training residual',()=>{
+  const points=[[.1,.3],[.3,.4],[.6,.3],[.65,.7],[.4,.65],[.1,.6]].map(([u,v],i)=>point(String(i),[u,v],[-130+u*80,70-v*30+i*.01]));
+  const result=georef.selectReferenceImageGeoreference(points,{width:1600,height:1200});
+  assert.notEqual(result.warp.mode,'tps');assert.equal(result.quality.recommended,false);
+  assert.equal(result.quality.crossValidationP95Pixels,null);
+  assert.equal(result.quality.modelComparison.find(row=>row.mode==='tps').eligible,false);
+  assert.ok(result.quality.imageCoverage<.2);
+});
+
+test('cropped TPS validation measures the same original-UV transform rather than refitting a rescaled kernel',()=>{
+  const points=distributed((u,v)=>[-100+20*u+1.5*Math.sin(Math.PI*v),40+20*v+.5*Math.sin(Math.PI*u)])
+    .map(row=>({...row,image:[.1+row.image[0]*.6,.05+row.image[1]*.9]}));
+  const full=georef.georeferenceQuality(points,'tps',{width:1001,height:1001});
+  const crop=georef.georeferenceQuality(points,'tps',{width:1001,height:1001,mapping:{rect:{x:100,y:50,width:601,height:901}}});
+  assert.ok(Number.isFinite(full.crossValidationP95Pixels));
+  assert.ok(Math.abs(crop.crossValidationP95Pixels-full.crossValidationP95Pixels)<1e-5);
+  assert.ok(Math.abs(crop.imageCoverage-.81)<1e-8);
+});
+
+test('controls outside the selected panel cannot recommend a crop or inflate its coverage',()=>{
+  const points=distributed((u,v)=>[-100+20*u,40+20*v]);
+  const result=georef.georeferenceQuality(points,'affine',{width:1001,height:1001,mapping:{rect:{x:100,y:100,width:501,height:501}}});
+  assert.equal(result.recommended,false);
+  assert.equal(result.reason,'control-outside-validation-domain');
+  assert.equal(result.crossValidationP95Pixels,null);
+});
 
 test('similarity warp fits two control points', () => {
   const warp = buildReferenceImageWarp([
