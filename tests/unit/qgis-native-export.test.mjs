@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict';
+import {createServer} from 'node:net';
+import {once} from 'node:events';
+import {mkdtempSync,readFileSync,readdirSync,rmSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {dirname,join} from 'node:path';
+import test from 'node:test';
+import {exportNativeQgis} from '../../tools/qgis/native-export.mjs';
+
+async function setup(t,geometry=[127,37],extra=false){
+  const root=mkdtempSync(join(tmpdir(),'pando-native-export-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const server=createServer(socket=>{
+    let raw='';socket.setEncoding('utf8');socket.on('error',error=>{if(error.code!=='ECONNRESET')throw error;});
+    socket.on('data',chunk=>{raw+=chunk;if(!raw.includes('\n'))return;
+      const request=JSON.parse(raw.slice(0,raw.indexOf('\n')));
+      assert.equal(request.token,'test-only-secret');assert.equal(request.command,'export');assert.equal(request.layer,'layer-1');
+      writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',id:'source-id',
+        geometry:{type:'Point',coordinates:geometry},properties:{source:JSON.stringify({schemaVersion:1,sourceId:'원본'})}}]}),{flag:'wx'});
+      if(extra)writeFileSync(join(dirname(request.output),'unexpected.txt'),'preserve');
+      socket.end(JSON.stringify({ok:true,result:{output:request.output,crs:'EPSG:4326',features:1}})+'\n');
+    });
+  });
+  server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>server.close());
+  return {root,config:{host:'127.0.0.1',port:server.address().port,token:'test-only-secret'}};
+}
+
+test('native QGIS export writes normalized output once and removes only its scratch',async t=>{
+  const {root,config}=await setup(t),output=join(root,'결과.geojson');
+  const result=await exportNativeQgis(config,{layerId:'layer-1',output});
+  const saved=readFileSync(output);assert.equal(result.output,output);
+  assert.equal(JSON.parse(saved).features[0].properties.source.sourceId,'원본');
+  assert.deepEqual(readdirSync(root),['결과.geojson']);
+  await assert.rejects(exportNativeQgis(config,{layerId:'layer-1',output}),/exists/i);
+  assert.deepEqual(readFileSync(output),saved);
+});
+
+test('native QGIS export refuses invalid output without leaving scratch or a final file',async t=>{
+  const {root,config}=await setup(t,[300000,400000]),output=join(root,'bad.geojson');
+  await assert.rejects(exportNativeQgis(config,{layerId:'layer-1',output}),/coordinate/i);
+  assert.deepEqual(readdirSync(root),[]);
+});
+
+test('native QGIS export preserves unexpected scratch and retains both failure causes',async t=>{
+  const {root,config}=await setup(t,[300000,400000],true),output=join(root,'bad.geojson');
+  await assert.rejects(exportNativeQgis(config,{layerId:'layer-1',output}),error=>
+    error instanceof globalThis.AggregateError&&/coordinate/i.test(error.cause.message)&&error.errors.length===2);
+  const [directory]=readdirSync(root);assert.match(directory,/^\.pando-qgis-/);
+  assert.equal(readFileSync(join(root,directory,'unexpected.txt'),'utf8'),'preserve');
+});

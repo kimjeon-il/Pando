@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Check space and prepare the matching OSGeo4W development headers
+      - name: Download and verify the matching OSGeo4W development packages
         shell: pwsh
         run: |
           if ((Get-PSDrive -Name C).Free -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
@@ -49,13 +49,44 @@ jobs:
             @{name='proj'; path='proj/proj-devel/proj-devel-9.8.1-1.tar.bz2'; sha='B8A6F4DBB800F019BE4F4C45849B53818F2074213B850DFC38681CC99D0E3889'}
           )
           foreach ($package in $packages) {
+            Write-Output "Downloading $($package.name) SDK"
             $archive = Join-Path $sdk ($package.name + '.tar.bz2')
             $url = 'https://download-cache.osgeo.org/osgeo4w/v2/x86_64/release/' + $package.path
             curl.exe --proto '=https' --tlsv1.2 --fail --location --max-time 180 --max-filesize 30000000 $url --output $archive
             if ($LASTEXITCODE -ne 0) { throw "SDK download failed: $($package.name)" }
             if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $package.sha) { throw "SDK digest mismatch: $($package.name)" }
-            tar.exe -xjf $archive -C $sdk
-            if ($LASTEXITCODE -ne 0) { throw "SDK extraction failed: $($package.name)" }
+          }
+      - name: Extract QGIS headers and import libraries
+        timeout-minutes: 4
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          $zip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+          & $zip x -y "$sdk/qgis.tar.bz2" "-o$sdk/packed" | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'QGIS SDK decompression failed' }
+          & $zip x -y "$sdk/packed/qgis.tar" "-o$sdk" | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'QGIS SDK extraction failed' }
+      - name: Extract Qt headers and import libraries
+        timeout-minutes: 6
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          $zip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+          & $zip x -y "$sdk/qt.tar.bz2" "-o$sdk/packed" | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'Qt SDK decompression failed' }
+          & $zip x -y "$sdk/packed/qt.tar" "-o$sdk" | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'Qt SDK extraction failed' }
+      - name: Extract GIS development headers
+        timeout-minutes: 4
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          $zip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+          foreach ($name in @('gdal','geos','proj')) {
+            & $zip x -y "$sdk/$name.tar.bz2" "-o$sdk/packed" | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "$name SDK decompression failed" }
+            & $zip x -y "$sdk/packed/$name.tar" "-o$sdk" | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "$name SDK extraction failed" }
           }
       - name: Build the optional native QGIS bridge
         shell: pwsh
@@ -65,7 +96,7 @@ jobs:
           cmake --build build-native/qgis/native --config Release --target pando-qgis-bridge --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'QGIS native bridge build failed' }
       - name: Test authenticated client transport
-        run: node --test tests/unit/qgis-native-client.test.mjs
+        run: node --test tests/unit/qgis-native-client.test.mjs tests/unit/qgis-native-export.test.mjs
       - name: Package the source-bound bridge
         shell: pwsh
         run: |
