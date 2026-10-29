@@ -1,5 +1,6 @@
 // Native QGIS 3.44 bridge. QGIS owns this plugin and dispatches socket events
 // on its GUI thread; no arbitrary code execution is exposed.
+#include "qgis-export.h"
 #include <qgis.h>
 #include <qgisinterface.h>
 #include <qgisplugin.h>
@@ -41,6 +42,8 @@ class Bridge final:public QObject,public QgisPlugin {
             return {{QStringLiteral("id"),layer->id()},{QStringLiteral("name"),layer->name()},
                 {QStringLiteral("feature_count"),static_cast<double>(layer->featureCount())},{QStringLiteral("crs"),layer->crs().authid()}};
         }
+        if(command==QStringLiteral("export"))return exportQgisLayer(request.value(QStringLiteral("layer")).toString(),
+            request.value(QStringLiteral("output")).toString());
         throw QStringLiteral("Unsupported native QGIS command");
     }
     void acceptConnection(){

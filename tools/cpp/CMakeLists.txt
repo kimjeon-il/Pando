@@ -40,7 +40,7 @@ if(PANDO_BUILD_QGIS_BRIDGE)
             list(APPEND PANDO_QT_INCLUDE_DIRS "${entry}")
         endif()
     endforeach()
-    add_library(pando-qgis-bridge MODULE qgis/pando-qgis-plugin.cpp)
+    add_library(pando-qgis-bridge MODULE qgis/pando-qgis-plugin.cpp qgis/qgis-export.cpp)
     set_target_properties(pando-qgis-bridge PROPERTIES PREFIX "" OUTPUT_NAME "pando_qgis_bridge")
     target_include_directories(pando-qgis-bridge PRIVATE "${PANDO_QGIS_DIR}/include" "${PANDO_QGIS_SDK_ROOT}/include"
         "${PANDO_QT_DIR}/include" ${PANDO_QT_INCLUDE_DIRS})
