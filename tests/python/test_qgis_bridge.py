@@ -1,4 +1,3 @@
-import copy
 import importlib.util
 import io
 import json
@@ -31,50 +30,7 @@ class QgisBridgeTests(unittest.TestCase):
             with self.assertRaises(ConnectionError):
                 bridge.connect(dict(host='127.0.0.1', port=9876, token='test-only'))
 
-    def sample(self):
-        return dict(type='FeatureCollection', features=[dict(type='Feature', id='qgis-fid',
-                    geometry=dict(type='LineString', coordinates=[[127, 37], [128, 38]]),
-                    properties=dict(name='경계', source=json.dumps(dict(schemaVersion=1, kind='gis',
-                        sourceId='original', details=dict(licence='retained', reviewed=False)))) )])
-
-    def test_exchange_restores_nested_qgis_json_without_mutating_input(self):
-        original = self.sample()
-        before = copy.deepcopy(original)
-        result = bridge.normalize_exchange(original)
-        self.assertEqual(original, before)
-        self.assertEqual(result['features'][0]['properties']['source']['sourceId'], 'original')
-        self.assertEqual(result['features'][0]['geometry'], before['features'][0]['geometry'])
-        self.assertEqual(result['features'][0]['id'], 'qgis-fid', 'Pando owns internal-ID replacement')
-
-    def test_exchange_rejects_projected_or_nonfinite_coordinates(self):
-        original = self.sample()
-        original['crs'] = dict(type='name', properties=dict(name='EPSG:3857'))
-        with self.assertRaisesRegex(ValueError, 'EPSG:4326'):
-            bridge.normalize_exchange(original)
-        original.pop('crs')
-        original['features'][0]['geometry']['coordinates'][0] = [300000, 400000]
-        with self.assertRaisesRegex(ValueError, 'coordinate'):
-            bridge.normalize_exchange(original)
-        original['features'][0]['geometry']['coordinates'][0] = [float('nan'), 37]
-        with self.assertRaisesRegex(ValueError, 'coordinate'):
-            bridge.normalize_exchange(original)
-
-    def test_exchange_preserves_unknown_source_and_rejects_missing_geometry(self):
-        original = self.sample()
-        original['features'][0]['properties']['source'] = 'OpenStreetMap'
-        self.assertEqual(bridge.normalize_exchange(original)['features'][0]['properties']['source'], 'OpenStreetMap')
-        original['features'][0]['geometry'] = None
-        with self.assertRaisesRegex(ValueError, 'geometry'):
-            bridge.normalize_exchange(original)
-
-    def test_output_is_exclusive_and_failed_qgis_execution_is_visible(self):
-        with tempfile.TemporaryDirectory() as folder:
-            output = pathlib.Path(folder) / 'out.geojson'
-            bridge.write_exchange(output, self.sample())
-            saved = output.read_bytes()
-            with self.assertRaises(FileExistsError):
-                bridge.write_exchange(output, self.sample())
-            self.assertEqual(output.read_bytes(), saved)
+    def test_failed_qgis_execution_is_visible(self):
         for response in [dict(status='error', message='failed'),
                          dict(status='success', result=dict(executed=False, error='script failed'))]:
             with self.assertRaisesRegex(RuntimeError, 'failed'):
@@ -101,6 +57,31 @@ class QgisBridgeTests(unittest.TestCase):
                 bridge.export_layer(FailedClient(), 'layer', root / 'result.geojson')
             self.assertEqual(list(root.iterdir()), [existing])
             self.assertEqual(existing.read_text(), 'unfinished user data')
+
+    def test_export_uses_node_normalization_and_reports_failures(self):
+        class Client:
+            def __init__(self, coords):
+                self.coords = coords
+            def execute_code(self, destination):
+                collection = dict(type='FeatureCollection', features=[dict(type='Feature', id='qgis-fid',
+                    geometry=dict(type='Point', coordinates=self.coords),
+                    properties=dict(source=json.dumps(dict(schemaVersion=1, sourceId='원본'))))])
+                pathlib.Path(destination).write_text(json.dumps(collection, ensure_ascii=False), encoding='utf-8')
+                return dict(status='success', result=dict(executed=True))
+        with tempfile.TemporaryDirectory() as folder, patch.object(bridge, 'export_code', side_effect=lambda path, layer: str(path)):
+            output = pathlib.Path(folder) / 'result.geojson'
+            bridge.export_layer(Client([127, 37]), 'layer', output)
+            result = json.loads(output.read_text(encoding='utf-8'))
+            self.assertEqual(result['features'][0]['id'], 'qgis-fid')
+            self.assertEqual(result['features'][0]['properties']['source']['sourceId'], '원본')
+            saved = output.read_bytes()
+            with self.assertRaises(FileExistsError):
+                bridge.export_layer(Client([127, 37]), 'layer', output)
+            self.assertEqual(output.read_bytes(), saved)
+            invalid = pathlib.Path(folder) / 'invalid.geojson'
+            with self.assertRaisesRegex(RuntimeError, 'coordinate'):
+                bridge.export_layer(Client([300000, 400000]), 'layer', invalid)
+            self.assertFalse(invalid.exists())
 
 
 if __name__ == '__main__':

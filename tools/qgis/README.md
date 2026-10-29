@@ -21,15 +21,18 @@ $qgisPython = 'D:/dev/worktrees/ui/build-native/python/Scripts/python.exe'
 & $qgisPython tools/qgis/bridge.py status
 & $qgisPython tools/qgis/bridge.py open 'D:/path/to/pando-layer.geojson'
 & $qgisPython tools/qgis/bridge.py export --layer QGIS_LAYER_ID --output 'D:/path/to/qgis-result.geojson'
+node tools/qgis/normalize.mjs 'D:/path/to/qgis-export.geojson' --output 'D:/path/to/normalized.geojson'
 ```
 
 Use Pando's existing GIS export (GeoJSON bundle or GeoPackage), and open an
 exported layer in QGIS. The `open` command returns QGIS's layer ID. Process/edit
 through existing QGIS MCP tools. `export` writes GeoJSON explicitly in EPSG:4326,
 checks source geometry in QGIS and restores the JSON source field serialized by
-OGR, including QGIS QVariantMap fields. It refuses existing outputs. Its private intermediate export is removed on
-success or failure. Input data is unchanged. `normalize INPUT --output OUTPUT`
-only restores JSON fields/checks geographic coordinates; it never reprojects.
+OGR, including QGIS QVariantMap fields, using the same Node normalization as the
+standalone command. It refuses existing outputs. Its private intermediate export
+is removed on success or failure. Input data is unchanged. The normalization
+command only restores JSON fields/checks geographic coordinates; it never
+reprojects. Wide integer IDs are preserved when reading and writing JSON.
 
 Import the result through Pando's GIS import dialog as 기타 객체 (`generic`).
 The existing importer preserves source IDs/attributes, creates fresh internal
@@ -48,7 +51,7 @@ Focused verification:
 
 ```powershell
 & $qgisPython -m unittest discover -s tests/python -p test_qgis_bridge.py
-node --test tests/unit/qgis-pando-exchange.test.mjs
+node --test tests/unit/qgis-normalize.test.mjs tests/unit/qgis-pando-exchange.test.mjs
 pnpm.cmd exec playwright test tests/browser/qgis-pando-exchange.spec.mjs
 ```
 
