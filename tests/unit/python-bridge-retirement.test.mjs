@@ -12,15 +12,21 @@ const tracked = (...patterns) => execFileSync('git', ['ls-files', '-z', '--', ..
 const read = path => readFileSync(join(root, path), 'utf8');
 const remaining = tracked('*.py', '*.pyi', '*.ipynb').sort();
 
-test('Python files only decrease within the reviewed 55-file inventory', () => {
+test('Python files only decrease within the reviewed inventory and two integrated tests', () => {
   const plan = read('docs/development/python-zero-migration-plan-2026-10-25.md');
   const inventory = plan.split('## 2026-10-29 잔여 기준 목록')[1]?.split('\n## ')[0];
   assert.ok(inventory, 'Python migration inventory must remain available');
   const reviewed = [...inventory.matchAll(/^- `([^`]+\.(?:py|pyi|ipynb))`\r?$/gm)].map(match => match[1]);
   assert.equal(reviewed.length, 55, 'the reviewed migration inventory must cover 55 files');
   assert.equal(new Set(reviewed).size, 55, 'the reviewed inventory must not contain duplicates');
-  assert.ok(remaining.length <= 48, `Python file count exceeded the current reviewed ceiling: ${remaining.length}`);
-  for (const path of remaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
+  // These two tests arrived in a concurrent integration after the 55-file
+  // inventory was frozen. Preserve their behavior and migrate them as well;
+  // do not use the exception to allow any other added Python file.
+  const integrated = new Set(['tests/python/test_map_plugin_geopdf.py', 'tests/python/test_reference_analysis_review.py']);
+  const originalRemaining = remaining.filter(path => !integrated.has(path));
+  assert.ok(originalRemaining.length <= 48, `Original Python inventory exceeded its current ceiling: ${originalRemaining.length}`);
+  assert.ok(remaining.length <= 50, `Python file count exceeded the integrated ceiling: ${remaining.length}`);
+  for (const path of originalRemaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
 });
 
 test('temporary Python bridge modules have real consumers and leave no orphaned adapters', t => {
