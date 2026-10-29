@@ -47,6 +47,38 @@ export function selectReferenceImageGeoreference(points,source,{mode='auto',proj
   return {warp:selected.warp,quality:selected.quality?{...selected.quality,modelComparison}:null};
 }
 
+export function selectReferenceImageProjection(points,source,{candidates}={}) {
+  if(!Array.isArray(candidates)||!candidates.length||candidates.length>64)throw new Error('One to64 typed projection candidates required.');
+  const ids=new Set(),images=new Set(),coordinates=new Set();
+  for(const point of points){
+    if(!point.id||ids.has(point.id)||!Array.isArray(point.image)||point.image.length!==2||point.image.some(v=>!Number.isFinite(v)||v<0||v>1)
+      ||!Array.isArray(point.coordinate)||point.coordinate.length!==2||point.coordinate.some((v,i)=>!Number.isFinite(v)||Math.abs(v)>(i?90:180)))throw new Error('Distinct valid original-image controls required.');
+    ids.add(point.id);images.add(JSON.stringify(point.image));coordinates.add(JSON.stringify(point.coordinate));
+  }
+  if(Math.min(ids.size,images.size,coordinates.size)<18)return {ok:false,reason:'projection-selection-requires18-distinct-controls'};
+  // Interleaved spatial order supplies separate evidence to fit, choose and confirm.
+  const sorted=[...points].sort((a,b)=>a.image[1]-b.image[1]||a.image[0]-b.image[0]||a.id.localeCompare(b.id));
+  const groups=[[],[],[]];sorted.forEach((point,index)=>groups[index%3].push(point));
+  const [fitPoints,selectionPoints,confirmationPoints]=groups;
+  const pixelErrors=(warp,checks)=>calculateReferenceImage('warpPixelErrors',{warp,points:checks,sourceWidth:source.width,sourceHeight:source.height});
+  const attempts=candidates.map(input=>{
+    const projection=calculateReferenceImage('normalizeProjection',input);
+    const result=selectReferenceImageGeoreference(fitPoints,source,{projection});
+    const selection=result.warp.ok?pixelErrors(result.warp,selectionPoints):{ok:false,p95Pixels:null};
+    return {projection,...result,selection};
+  }).filter(row=>row.selection.ok&&!row.quality.folded&&!row.quality.invalidDomain).sort((a,b)=>a.selection.p95Pixels-b.selection.p95Pixels);
+  const best=attempts[0],second=attempts[1];
+  if(!best)return {ok:false,reason:'no-stable-projection-candidate'};
+  if(second&&!(best.selection.p95Pixels<second.selection.p95Pixels*.8&&second.selection.p95Pixels-best.selection.p95Pixels>=1))return {ok:false,reason:'ambiguous-projection-candidates'};
+  // Refit only selection+training controls. Confirmation points NEVER enter this warp.
+  const result=selectReferenceImageGeoreference([...fitPoints,...selectionPoints],source,{mode:best.warp.mode,projection:best.projection});
+  const confirmation=pixelErrors(result.warp,confirmationPoints);
+  const validation={method:'reserved-original-pixel-controls',pointIds:{fit:fitPoints.map(p=>p.id),selection:selectionPoints.map(p=>p.id),confirmation:confirmationPoints.map(p=>p.id)},
+    selectionP95Pixels:best.selection.p95Pixels,confirmationP95Pixels:confirmation.p95Pixels,confirmationPoints:structuredClone(confirmationPoints)};
+  if(!result.quality.recommended||!confirmation.ok||confirmation.p95Pixels>8)return {ok:false,reason:'projection-confirmation-failed',validation};
+  return {ok:true,...result,projection:best.projection,validation,quality:{...result.quality,projectionValidation:validation}};
+}
+
 export function normalizeReferenceControlPoints(values = []) {
   return freezeReferenceResult(calculateReferenceImage('normalize', values));
 }

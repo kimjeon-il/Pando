@@ -162,6 +162,27 @@ V fit(const V& raw,const std::string& requested,bool geographic=true,const V& pr
     result.object["diagnostics"]=diagnostics(points,images,coordinates,prepared);
     result.object["controlPoints"]=std::move(points);return result;
 }
+std::optional<P> inverseWarp(const V& descriptor,P coordinate) {
+            const auto prepared=prepareReferenceImageWarp(descriptor);P uv{.5,.5};
+            auto initial=projectReferenceImageWarp(prepared,uv,false);if(!initial)return {};
+            if(prepared.projection.kind=="geographic")coordinate[0]=unwrap(coordinate[0],(*initial)[0]);
+            else {const auto projected=forwardMapProjection(prepared.projection,coordinate);if(!projected)return {};coordinate=*projected;}
+            for(int iteration=0;iteration<24;++iteration) {
+                const auto p=projectReferenceImageWarp(prepared,uv,false);
+                const auto x=projectReferenceImageWarp(prepared,{uv[0]+1e-5,uv[1]},false);
+                const auto y=projectReferenceImageWarp(prepared,{uv[0],uv[1]+1e-5},false);
+                if(!p||!x||!y)return {};
+                const auto a=((*x)[0]-(*p)[0])/1e-5,b=((*y)[0]-(*p)[0])/1e-5;
+                const auto c=((*x)[1]-(*p)[1])/1e-5,d=((*y)[1]-(*p)[1])/1e-5,det=a*d-b*c;
+                if(!std::isfinite(det)||std::abs(det)<1e-14)return {};
+                const auto ex=coordinate[0]-(*p)[0],ey=coordinate[1]-(*p)[1];
+                const P step{(d*ex-b*ey)/det,(-c*ex+a*ey)/det};
+                uv[0]+=step[0];uv[1]+=step[1];
+                if(!std::isfinite(uv[0])||!std::isfinite(uv[1]))return {};
+                if(std::hypot(step[0],step[1])<1e-9)return uv;
+            }
+            return {};
+}
 V projective(const V& quad) {
     if(quad.kind!=V::Array||quad.array.size()!=4)return obj({{"ok",V::boolean(false)},{"mode",V::str("projective")},{"minimumPoints",V::num(4)},{"pointCount",V::num(0)},{"reason",V::str("invalid-map-quad")}});
     const P corners[]={{0,0},{1,0},{1,1},{0,1}};auto points=V::arr();
@@ -354,6 +375,20 @@ std::optional<ReferencePoint> projectReferenceImageWarp(const V& warp,ReferenceP
     return project(warp,point,geographic);
 }
 codecjson::Value referenceImageOperation(const std::string& operation,const V& input,const ReferenceProjection& host) {
+    if(operation=="warpPixelErrors") {
+        const auto& warp=get(input,"warp");const double width=field(input,"sourceWidth",0),height=field(input,"sourceHeight",0);
+        if(width<2||height<2||!yes(get(warp,"ok")))throw std::invalid_argument("Solved warp and original dimensions required");
+        auto errors=V::arr();Row measured;
+        for(const auto& raw:get(input,"points").array) {
+            const auto image=point(get(raw,"image")),coordinate=point(get(raw,"coordinate"));
+            const auto uv=coordinate?inverseWarp(warp,*coordinate):std::nullopt;
+            if(!image||!uv){errors.array.push_back(V{});continue;}
+            const double pixels=std::hypot(((*uv)[0]-(*image)[0])*(width-1),((*uv)[1]-(*image)[1])*(height-1));
+            errors.array.push_back(V::num(pixels));measured.push_back(pixels);
+        }
+        std::sort(measured.begin(),measured.end());const bool ok=!measured.empty()&&measured.size()==errors.array.size();
+        return obj({{"ok",V::boolean(ok)},{"pixels",errors},{"p95Pixels",ok?V::num(measured[std::min(measured.size()-1,std::size_t(std::ceil(measured.size()*.95)-1))]):V{}}});
+    }
     if(operation=="normalizeProjection")return writeMapProjection(readMapProjection(input));
     if(operation=="projectionForward"||operation=="projectionInverse") {
         const auto projection=readMapProjection(get(input,"projection"));auto coordinates=V::arr();
@@ -439,27 +474,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
                 controlOutsideDomain=true;
             }
         }
-        const auto inverse=[](const V& descriptor,P coordinate)->std::optional<P> {
-            const auto prepared=prepareReferenceImageWarp(descriptor);P uv{.5,.5};
-            auto initial=projectReferenceImageWarp(prepared,uv,false);if(!initial)return {};
-            if(prepared.projection.kind=="geographic")coordinate[0]=unwrap(coordinate[0],(*initial)[0]);
-            else {const auto projected=forwardMapProjection(prepared.projection,coordinate);if(!projected)return {};coordinate=*projected;}
-            for(int iteration=0;iteration<24;++iteration) {
-                const auto p=projectReferenceImageWarp(prepared,uv,false);
-                const auto x=projectReferenceImageWarp(prepared,{uv[0]+1e-5,uv[1]},false);
-                const auto y=projectReferenceImageWarp(prepared,{uv[0],uv[1]+1e-5},false);
-                if(!p||!x||!y)return {};
-                const auto a=((*x)[0]-(*p)[0])/1e-5,b=((*y)[0]-(*p)[0])/1e-5;
-                const auto c=((*x)[1]-(*p)[1])/1e-5,d=((*y)[1]-(*p)[1])/1e-5,det=a*d-b*c;
-                if(!std::isfinite(det)||std::abs(det)<1e-14)return {};
-                const auto ex=coordinate[0]-(*p)[0],ey=coordinate[1]-(*p)[1];
-                const P step{(d*ex-b*ey)/det,(-c*ex+a*ey)/det};
-                uv[0]+=step[0];uv[1]+=step[1];
-                if(!std::isfinite(uv[0])||!std::isfinite(uv[1]))return {};
-                if(std::hypot(step[0],step[1])<1e-9)return uv;
-            }
-            return {};
-        };
+
         std::vector<P> hull;for(const auto& p:points.array)hull.push_back(*point(get(p,"image")));
         std::sort(hull.begin(),hull.end());hull.erase(std::unique(hull.begin(),hull.end()),hull.end());
         const auto cross=[](P a,P b,P c){return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);};
@@ -491,7 +506,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
             if(yes(get(points.array[i],"pinned")))continue;
             auto training=V::arr();for(std::size_t j=0;j<points.array.size();++j)if(i!=j)training.array.push_back(points.array[j]);
             const auto check=fit(training,mode,true,get(input,"projection"));if(!yes(get(check,"ok")))continue;
-            const auto uv=inverse(check,*point(get(points.array[i],"coordinate")));if(!uv)continue;
+            const auto uv=inverseWarp(check,*point(get(points.array[i],"coordinate")));if(!uv)continue;
             const auto actual=*point(get(points.array[i],"image"));
             errors.push_back(std::hypot(((*uv)[0]-actual[0])*(width-1),((*uv)[1]-actual[1])*(height-1)));
         }
