@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, writeFile, readFile, rename, rm, lstat } from 'node:fs/
 import { resolve, join, dirname, basename } from 'node:path';
 import { workspaceModule, runtimeResources, assertRuntimeResources } from './workspace.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
-const { normalizeSourceProvenance, SOURCE_KINDS } = await workspaceModule('assets/js/modules/source-provenance.js');
-const { GENERIC_FEATURE_SCHEMA_VERSION } = await workspaceModule('assets/js/modules/version-contract.js');
+const { normalizeSourceProvenance, SOURCE_KINDS } = await workspaceModule('shared/frontend/js/modules/source-provenance.js');
+const { GENERIC_FEATURE_SCHEMA_VERSION } = await workspaceModule('shared/frontend/js/modules/version-contract.js');
 import { validateReferenceBoundaryTensorContract, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
 
 export const digest = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');

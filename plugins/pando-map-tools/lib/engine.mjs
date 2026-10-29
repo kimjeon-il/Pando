@@ -15,8 +15,8 @@ import { detectReferenceGraticule } from './analysis/grid.mjs';
 import { findReferenceImagePointSymbolNearTextBox, referenceImagePointRasterFromRgba } from './analysis/symbols.mjs';
 import { resolveReferenceImagePlaceDetections } from './analysis/place-match.mjs';
 const {version:pluginVersion}=JSON.parse(await readFile(new URL('../plugin.json',import.meta.url),'utf8'));
-const { createPlaceWorkerStore }=await workspaceModule('assets/js/modules/place-worker-store.js');
-const { createWorkerRpcClient }=await workspaceModule('assets/js/modules/worker-rpc.js');
+const { createPlaceWorkerStore }=await workspaceModule('shared/frontend/js/modules/place-worker-store.js');
+const { createWorkerRpcClient }=await workspaceModule('shared/frontend/js/modules/worker-rpc.js');
 
 const check = signal => signal?.throwIfAborted();
 export function loadOrtRuntime() {

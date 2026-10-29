@@ -85,9 +85,9 @@ async function walk(directory,prefix,include=()=>true) {
   return files;
 }
 export async function collectSourceFiles(workspace=root,{diagnostics=false,revision}={}) {
-  const seeds=['package.json','pnpm-lock.yaml','config/library-data.json','assets/js/modules/temporal.js',
-    'assets/js/modules/core-wasm-loader.js','assets/js/modules/source-provenance.js','assets/js/modules/version-contract.js',
-    'assets/js/modules/place-worker-store.js','assets/js/modules/worker-rpc.js','assets/js/workers/worker-rpc-host.js',
+  const seeds=['package.json','pnpm-lock.yaml','config/library-data.json','shared/frontend/js/modules/temporal.js',
+    'shared/frontend/js/modules/core-wasm-loader.js','shared/frontend/js/modules/source-provenance.js','shared/frontend/js/modules/version-contract.js',
+    'shared/frontend/js/modules/place-worker-store.js','shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js',
     'tools/load-node-core.mjs','tools/package-shared-core-assets.mjs','tools/library-archive.mjs'];
   if(diagnostics)seeds.push('tools/reference-analysis/verify-trained-onnx.mjs','tools/reference-analysis/cloud-probe.mjs');
   if(revision) {

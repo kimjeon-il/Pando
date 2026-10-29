@@ -10,7 +10,8 @@ export const workspace = resolve(process.env.PANDO_MAP_WORKSPACE || fileURLToPat
 if (!existsSync(resolve(workspace, 'tools/load-node-core.mjs'))) throw new Error('Set --workspace to the existing Pando work/ui checkout.');
 export const workspaceModule = path => import(pathToFileURL(resolve(workspace, path)).href);
 export const requireWorkspace = createRequire(resolve(workspace, 'package.json'));
-export const { sharedCalculationCore: core } = await workspaceModule('assets/js/modules/temporal.js');
+const {frontendWasmRoot}=await workspaceModule('scripts/lib/frontend-layout.mjs');
+export const { sharedCalculationCore: core } = await workspaceModule('shared/frontend/js/modules/temporal.js');
 
 // Bind numerical work to the loaded producer, including its helper modules.
 // These identities are path-independent so the installed code and source agree.
@@ -27,12 +28,12 @@ function runtimeSnapshot() {
     }
   }
   pluginFiles('lib');pluginFiles('scripts');add('plugin/plugin.json',resolve(pluginRoot,'plugin.json'));
-  for (const path of ['pnpm-lock.yaml','assets/js/modules/temporal.js','assets/js/modules/core-wasm-loader.js',
-    'assets/js/modules/source-provenance.js','assets/js/modules/version-contract.js','assets/js/modules/place-worker-store.js',
-    'assets/js/modules/worker-rpc.js','assets/js/workers/worker-rpc-host.js','tools/load-node-core.mjs']) add('workspace/'+path,resolve(workspace,path));
+  for (const path of ['pnpm-lock.yaml','shared/frontend/js/modules/temporal.js','shared/frontend/js/modules/core-wasm-loader.js',
+    'shared/frontend/js/modules/source-provenance.js','shared/frontend/js/modules/version-contract.js','shared/frontend/js/modules/place-worker-store.js',
+    'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js','tools/load-node-core.mjs','scripts/lib/frontend-layout.mjs']) add('workspace/'+path,resolve(workspace,path));
   const producerInputs=Object.fromEntries(Object.entries(inputs).sort(([a],[b])=>a.localeCompare(b)));
   return {producerSha256:hash(JSON.stringify(producerInputs)),producerInputs,
-    coreManifestSha256:hash(readFileSync(resolve(workspace,'assets/wasm/pandoeditor-core.manifest.json')))};
+    coreManifestSha256:hash(readFileSync(resolve(workspace,frontendWasmRoot,'pandoeditor-core.manifest.json')))};
 }
 const loadedRuntime=runtimeSnapshot();
 export function runtimeResources() { return structuredClone(loadedRuntime); }
