@@ -1,11 +1,14 @@
 import {createHash} from 'node:crypto';
 import {closeSync,fstatSync,openSync,readFileSync,readSync,statSync} from 'node:fs';
 import {basename,dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {resolveCorpusPath} from './corpus-path.mjs';
 
 export function readTrainingBounded(path,limit){const info=statSync(path);if(!info.isFile()||info.size>limit)throw Error('Training input exceeds its byte budget');return readFileSync(path);}
-export function trainingFileIdentity(path){const fd=openSync(path,'r');try{const before=fstatSync(fd);
-  if(!before.isFile()||before.size>1024**3)throw Error('Expected bounded checkpoint or evidence file');
+export function trainingFileIdentity(path,{maxBytes=1024**3}={}){
+  if(!Number.isSafeInteger(maxBytes)||maxBytes<1)throw Error('Invalid evidence byte budget');
+  const fd=openSync(path,'r');try{const before=fstatSync(fd);
+  if(!before.isFile()||before.size>maxBytes)throw Error('Expected bounded checkpoint or evidence file');
   const hash=createHash('sha256'),buffer=Buffer.allocUnsafe(1024*1024);let total=0,count;
   while((count=readSync(fd,buffer,0,buffer.length,null))>0){total+=count;hash.update(buffer.subarray(0,count));}
   const after=fstatSync(fd);if(total!==before.size||after.size!==before.size||after.mtimeMs!==before.mtimeMs||after.ino!==before.ino||after.dev!==before.dev)
@@ -33,7 +36,20 @@ export async function corpusFingerprint(manifest,auxiliary){
   const compare=(a,b)=>{const x=Array.from(a,c=>c.codePointAt(0)),y=Array.from(b,c=>c.codePointAt(0));
     for(let i=0;i<Math.min(x.length,y.length);i++)if(x[i]!==y[i])return x[i]-y[i];return x.length-y.length;};
   const digest=createHash('sha256');for(const relative of [...files].sort(compare)){
-    const actual=await resolveCorpusPath(root,relative);digest.update(`${relative}\n${trainingFileIdentity(actual)}\n`,'utf8');
+    const actual=await resolveCorpusPath(root,relative);digest.update(`${relative}\n${trainingFileIdentity(actual,{maxBytes:Number.MAX_SAFE_INTEGER})}\n`,'utf8');
   }
   return digest.digest('hex');
+}
+
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{
+    if(process.argv.length!==3||process.argv[2]!=='--fingerprint-stream')throw Error('Expected --fingerprint-stream');
+    const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;
+      if(length>1024*1024)throw Error('Corpus fingerprint request exceeds byte budget');chunks.push(chunk);}
+    const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
+    if(typeof request?.manifest!=='string'||!request.manifest||
+      (request.auxiliary!==null&&request.auxiliary!==undefined&&(typeof request.auxiliary!=='string'||!request.auxiliary)))
+      throw Error('Explicit corpus manifest paths required');
+    process.stdout.write(JSON.stringify({fingerprint:await corpusFingerprint(request.manifest,request.auxiliary)})+'\n');
+  }catch(error){console.error('training-evidence: '+error.message);process.exitCode=1;}
 }

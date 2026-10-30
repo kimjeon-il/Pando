@@ -1,4 +1,6 @@
 // Ancestral training and selection exposure is never independent test truth.
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 const KEYS=Object.freeze(['id','sha256','familyId','editionId','duplicateGroup']);
 const SHA=/^[a-f0-9]{64}$/;
 export function validateTrainingLineage(value){
@@ -29,4 +31,16 @@ export function assertEvaluationIndependence(lineage,sheets,{split='test'}={}){
       throw Error('Not independent: ancestral '+key+' overlap or missing identity');
     for(const previous of lineage.sheets)for(const key of KEYS)if(!sheet[key]||sheet[key]===previous[key])throw Error('Not independent: ancestral '+key+' overlap or missing identity');
   }
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{
+    if(process.argv.length!==3||process.argv[2]!=='--stream')throw Error('Expected --stream');
+    const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;
+      if(length>16*1024*1024)throw Error('Training lineage input exceeds byte budget');chunks.push(chunk);}
+    const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));let result;
+    if(request?.action==='build')result=buildTrainingLineage(request.sheets,{parent:request.parent??null,parentSha256:request.parentSha256??null});
+    else if(request?.action==='independent'){assertEvaluationIndependence(request.lineage,request.sheets,{split:request.split??'test'});result=null;}
+    else throw Error('Expected a lineage build or independence action');
+    process.stdout.write(JSON.stringify({result})+'\n');
+  }catch(error){console.error('training-lineage: '+error.message);process.exitCode=1;}
 }

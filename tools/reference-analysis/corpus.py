@@ -28,52 +28,26 @@ def validate_review_annotation(annotation, sheet):
         raise ValueError('Invalid native review validation response')
 
 
-LINEAGE_KEYS = ('id', 'sha256', 'familyId', 'editionId', 'duplicateGroup')
-
-
-def validate_training_lineage(value):
-    if (not isinstance(value, dict) or value.get('schemaVersion') != 1 or value.get('complete') is not True
-            or not isinstance(value.get('sheets'), list) or not isinstance(value.get('parents'), list)):
-        raise ValueError('Complete verified ancestral lineage required')
-    if any(not isinstance(sha, str) or not re.fullmatch('[a-f0-9]{64}', sha) for sha in value['parents']):
-        raise ValueError('Complete ancestral checkpoint hashes required')
-    for row in value['sheets']:
-        if (not all(isinstance(row.get(key), str) and row[key] for key in LINEAGE_KEYS)
-                or not re.fullmatch('[a-f0-9]{64}', row['sha256']) or row.get('usage') not in {'train', 'selection'}):
-            raise ValueError('Complete ancestral source identity required')
-    return value
+def lineage_operation(action, **values):
+    script = pathlib.Path(__file__).with_name('training-lineage.mjs')
+    payload = json.dumps(dict(action=action, **values), allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--stream'], input=payload,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Training lineage validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    response = json.loads(result.stdout)
+    if not isinstance(response, dict) or set(response) != {'result'}:
+        raise ValueError('Invalid training lineage response')
+    return response['result']
 
 
 def build_training_lineage(sheets, *, parent=None, parent_sha256=None):
-    """Record training and model-selection exposure, including every ancestor."""
-    result = dict(schemaVersion=1, complete=True, parents=[], sheets=[])
-    if parent is not None:
-        validate_training_lineage(parent)
-        if not re.fullmatch('[a-f0-9]{64}', parent_sha256 or ''):
-            raise ValueError('Complete verified ancestral lineage required')
-        result['parents'] = [*parent.get('parents', []), parent_sha256]
-        result['sheets'] = [dict(row) for row in parent['sheets']]
-    for sheet in sheets:
-        if sheet.get('split') == 'test':
-            continue
-        row = {key: sheet.get(key) for key in LINEAGE_KEYS}
-        row['usage'] = 'selection' if sheet.get('split') == 'validation' else 'train'
-        if not all(isinstance(row[key], str) and row[key] for key in LINEAGE_KEYS) or not re.fullmatch('[a-f0-9]{64}', row['sha256']):
-            raise ValueError('Complete source/family identity required for lineage')
-        if row not in result['sheets']:
-            result['sheets'].append(row)
-    return validate_training_lineage(result)
+    return lineage_operation('build', sheets=sheets, parent=parent, parentSha256=parent_sha256)
 
 
 def assert_evaluation_independence(lineage, sheets, *, split='test'):
-    validate_training_lineage(lineage)
-    for sheet in sheets:
-        if split not in {'test', 'validation'} or sheet.get('split') != split:
-            raise ValueError('Independent final-test split required')
-        for previous in lineage['sheets']:
-            for key in LINEAGE_KEYS:
-                if not sheet.get(key) or sheet[key] == previous[key]:
-                    raise ValueError('Not independent: ancestral ' + key + ' overlap or missing identity')
+    lineage_operation('independent', lineage=lineage, sheets=sheets, split=split)
 
 
 def corpus_path(root, relative):
@@ -89,27 +63,17 @@ def corpus_path(root, relative):
 
 
 def corpus_fingerprint(manifest, auxiliary=None):
-    """Pin labels and their rasters as well as the manifest and original images."""
-    if auxiliary:
-        return hashlib.sha256(json.dumps([corpus_fingerprint(manifest), corpus_fingerprint(auxiliary)]).encode()).hexdigest()
-    manifest = pathlib.Path(manifest).resolve()
-    value = json.loads(manifest.read_text(encoding='utf-8'))
-    root, files = manifest.parent, {manifest.name}
-    for sheet in value['sheets']:
-        files.update([sheet['image'], sheet['annotations']])
-        annotation = json.loads(corpus_path(root, sheet['annotations']).read_text(encoding='utf-8'))
-        if annotation.get('origin') in {'publisher-layer-export', 'macro-vector-supervision'}:
-            files.update([annotation['sourcePdf'], annotation['sourceMetadata'],
-                          annotation['raster']['path'], annotation['validRaster']['path']])
-        elif annotation.get('origin') == 'semap-human-mask-export':
-            files.update([spec['path'] for spec in annotation['sourceFiles']])
-            files.update([annotation['raster']['path'], annotation['validRaster']['path']])
-    digest = hashlib.sha256()
-    for relative in sorted(files):
-        with corpus_path(root, relative).open('rb') as stream:
-            file_hash = hashlib.file_digest(stream, 'sha256').hexdigest()
-        digest.update(f'{relative}\n{file_hash}\n'.encode('utf-8'))
-    return digest.hexdigest()
+    script = pathlib.Path(__file__).with_name('training-evidence.mjs')
+    payload = json.dumps(dict(manifest=str(manifest), auxiliary=str(auxiliary) if auxiliary else None)).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--fingerprint-stream'], input=payload,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Native corpus fingerprint failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    fingerprint = json.loads(result.stdout).get('fingerprint')
+    if not isinstance(fingerprint, str) or not re.fullmatch('[a-f0-9]{64}', fingerprint):
+        raise ValueError('Invalid corpus fingerprint response')
+    return fingerprint
 
 
 def validate_publisher_annotation(annotation, sheet, root):
