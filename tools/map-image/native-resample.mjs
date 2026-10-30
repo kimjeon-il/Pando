@@ -151,7 +151,7 @@ export async function inspectNativeImageHeader(bytes,format,{signal,workspace=ro
   const swap=orientation>=5&&orientation<=8;signal?.throwIfAborted();
   return {format,encodedSize:[width,height],orientation,size:swap?[height,width]:[width,height]};
 }
-export async function readNativeImage({path,rect,format,maxPixels=4000000},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+export async function readNativeImage({path,rect,format,maxPixels=4000000,expectedSha256},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   if(typeof path!=='string'||!path||!['png','jpeg','webp'].includes(format))throw Error('Image path and supported format are required');
   if(!Number.isInteger(maxPixels)||maxPixels<256||maxPixels>16777216)throw Error('Pixel budget must be 256..16777216');
@@ -165,8 +165,10 @@ export async function readNativeImage({path,rect,format,maxPixels=4000000},{sign
   for await(const chunk of createReadStream(path,{signal:signal||undefined})){
     bytes+=chunk.length;if(bytes>300*1024*1024)throw Error('Image input exceeds encoded byte budget');chunks.push(chunk);
   }
-  signal?.throwIfAborted();
-  const data=await runNative(nativeBinary(workspace,directory),['read-'+format,String(maxPixels),...coordinates.map(String)],Buffer.concat(chunks,bytes),44+16777216*4,signal);
+  signal?.throwIfAborted();const encoded=Buffer.concat(chunks,bytes);
+  if(expectedSha256!==undefined&&(typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256)||createHash('sha256').update(encoded).digest('hex')!==expectedSha256))
+    throw Error('Original image hash changed');
+  const data=await runNative(nativeBinary(workspace,directory),['read-'+format,String(maxPixels),...coordinates.map(String)],encoded,44+16777216*4,signal);
   if(data.length<44)throw Error('Native image receipt is truncated');
   const fields=Array.from({length:11},(_,i)=>data.readUInt32BE(i*4));
   const [encodedWidth,encodedHeight,exifOrientation,originalWidth,originalHeight,x,y,width,height,outWidth,outHeight]=fields;
