@@ -10,7 +10,7 @@ import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-tr
 import {macroTrainingSupervision} from './training-tiles.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-function encodedWeights(counts){
+export function encodedWeights(counts){
   if(!Array.isArray(counts)||counts.length!==7||counts.some(pair=>!Array.isArray(pair)||pair.length!==2||
     pair.some(n=>!Number.isSafeInteger(n)||n<0)||pair[1]>pair[0]))throw Error('Invalid training supervision counts');
   const bytes=Buffer.alloc(28);let unobservedMask=0;

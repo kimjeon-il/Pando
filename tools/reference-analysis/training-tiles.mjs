@@ -11,6 +11,29 @@ import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-tr
 import {validateSemapTrainingCorpus} from './validate-semap.mjs';
 
 const rasterOrigins=new Set(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision']);
+// Combine independently verified primary macro and auxiliary Semap training inputs.
+export async function inspectCombinedTrainingData({corpus,auxiliary,macroOnly,signal,verifyEvidence,workspace,imageDirectory}){
+  signal?.throwIfAborted();
+  if(!corpus||!auxiliary||typeof macroOnly!=='boolean')throw Error('Explicit primary, auxiliary and macro scope required');
+  if(macroOnly)throw Error('Unreviewed Semap sources are not valid macro-only training inputs');
+  const primaryPath=resolve(corpus),auxiliaryPath=resolve(auxiliary),fingerprint=await corpusFingerprint(primaryPath,auxiliaryPath);
+  const primaryManifest=JSON.parse(readTrainingBounded(primaryPath,32*1024*1024));
+  const auxiliaryManifest=JSON.parse(readTrainingBounded(auxiliaryPath,32*1024*1024));
+  if(!Array.isArray(primaryManifest.sheets)||!Array.isArray(auxiliaryManifest.sheets))throw Error('Both training corpora require sheets');
+  const ids=new Set(primaryManifest.sheets.map(sheet=>sheet.id));
+  if(auxiliaryManifest.sheets.some(sheet=>ids.has(sheet.id)))throw Error('Duplicate sheet identity across training corpora');
+  const options={signal,workspace,imageDirectory};
+  const primary=await indexMacroTrainingDataset(primaryPath,options),supervision=await macroTrainingSupervision(primaryPath,options);
+  if(primary.corpusSha256!==supervision.corpusSha256)throw Error('Primary training corpus changed during preparation');
+  const extra=await inspectSemapTrainingDataset(auxiliaryPath,{...options,verifyEvidence});
+  const counts=supervision.counts.map((pair,i)=>pair.map((value,j)=>{const sum=value+extra.counts[i][j];
+    if(!Number.isSafeInteger(sum))throw Error('Training supervision count exceeds safe range');return sum;}));
+  const datasets=[primary.tiles,extra.tiles].map((rows,corpusIndex)=>rows.map(tile=>({...tile,localIndex:tile.index,
+    index:tile.index+(corpusIndex?primary.tiles.length:0)})));
+  for(const row of primaryManifest.sheets){const {checks}=await verifiedMacroTrainingSource(dirname(primaryPath),primaryManifest,row.id);recheckMacroTrainingSource(checks);}
+  if(await corpusFingerprint(primaryPath,auxiliaryPath)!==fingerprint)throw Error('Training sources changed during combined preparation');
+  return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,lineageFingerprint:fingerprint,counts,datasets};
+}
 // Semap is auxiliary training data; it is never promoted to reviewed macro scope.
 export async function inspectSemapTrainingDataset(corpus,{signal,verifyEvidence,workspace,imageDirectory}={}){
   signal?.throwIfAborted();if(!corpus)throw Error('Explicit Semap training corpus required');
