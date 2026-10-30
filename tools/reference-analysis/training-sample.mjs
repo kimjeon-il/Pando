@@ -57,7 +57,11 @@ export async function writeSemapTrainingSample({corpus,sourceId,tileIndex,localI
   if(!corpus||!sourceId||!output||typeof augment!=='boolean'||![tileIndex,localIndex,x,y,epoch].every(value=>Number.isSafeInteger(value)&&value>=0))
     throw Error('Explicit Semap training sample inputs required');
   if(existsSync(output))throw Error('Training sample output exists; preserve it');
-  const corpusPath=resolve(corpus),root=dirname(corpusPath),data=await inspectSemapTrainingDataset(corpusPath,{signal,verifyEvidence});
+  const corpusPath=resolve(corpus),data=await inspectSemapTrainingDataset(corpusPath,{signal,verifyEvidence});
+  return writeVerifiedSemapSample({corpusPath,sourceId,tileIndex,localIndex,x,y,augment,epoch,output,signal,data,recheckCorpus:true});
+}
+async function writeVerifiedSemapSample({corpusPath,sourceId,tileIndex,localIndex,x,y,augment,epoch,output,signal,data,recheckCorpus}){
+  const root=dirname(corpusPath);
   const tile=data.tiles[localIndex],source=data.sources.find(row=>row.sheet.id===sourceId);
   if(!source||!tile||tile.sourceId!==sourceId||tile.x!==x||tile.y!==y||tileIndex<localIndex)throw Error('Semap source tile index differs');
   const {sheet,annotation,checks}=source,labelName=basename(annotation.originalImageMember,'.jpg')+'.png';
@@ -66,7 +70,7 @@ export async function writeSemapTrainingSample({corpus,sourceId,tileIndex,localI
   const annotationPath=await resolveCorpusPath(root,sheet.annotations),annotationSha256=trainingSha256(readTrainingBounded(annotationPath,16*1024*1024));
   const tensors=await prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,augment,epoch,index:localIndex},{signal});
   for(const [path,expected] of checks)if(trainingSha256(readTrainingBounded(path,16*1024*1024))!==expected)throw Error('Semap source changed during sample preparation');
-  if(await corpusFingerprint(corpusPath)!==data.lineageFingerprint)throw Error('Training corpus changed during sample preparation');
+  if(recheckCorpus&&await corpusFingerprint(corpusPath)!==data.lineageFingerprint)throw Error('Training corpus changed during sample preparation');
   const tensorSha256=Object.fromEntries(TRAINING_TENSOR_NAMES.map(name=>[name,trainingSha256(tensors[name])]));
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,sourceId,sourceKind:'semap-label',sourceEvidenceSha256:label.sha256,
     imageSha256:sheet.sha256,annotationSha256,maskSha256:annotation.raster.sha256,validMaskSha256:annotation.validRaster.sha256,
@@ -88,9 +92,11 @@ export async function prepareCombinedTrainingBatch({corpus,auxiliary,orderDirect
   for(let i=0;i<count;i++){const index=Number(order.readBigUInt64LE((cursor+i)*8)),tile=tiles[index];
     if(!tile||tile.index!==index)throw Error('Combined training order contains an invalid index');selected.push(tile);}
   signal?.throwIfAborted();mkdirSync(resolve(output));const samples=[];
+  const auxiliaryData={tiles:checked.datasets[1],sources:checked.auxiliarySources};
   for(let i=0;i<selected.length;i++){const tile=selected[i],directory=resolve(output,'sample-'+String(i).padStart(2,'0'));
     if(tile.index<checked.datasets[0].length)await writeMacroTrainingSample({corpus,sourceId:tile.sourceId,tileIndex:tile.index,x:tile.x,y:tile.y,augment,epoch,output:directory,signal});
-    else await writeSemapTrainingSample({corpus:auxiliary,sourceId:tile.sourceId,tileIndex:tile.index,localIndex:tile.localIndex,x:tile.x,y:tile.y,augment,epoch,output:directory,signal,verifyEvidence});
+    else await writeVerifiedSemapSample({corpusPath:resolve(auxiliary),sourceId:tile.sourceId,tileIndex:tile.index,localIndex:tile.localIndex,
+      x:tile.x,y:tile.y,augment,epoch,output:directory,signal,data:auxiliaryData,recheckCorpus:false});
     samples.push({index:tile.index,directory,augment});
   }
   if(await corpusFingerprint(corpus,auxiliary)!==checked.lineageFingerprint||trainingSha256(readTrainingBounded(join(orderDirectory,'order.u64'),8000000))!==checked.orderSha256||
