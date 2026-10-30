@@ -70,11 +70,16 @@ torch::Tensor readStreamTensor(const std::vector<std::int64_t>& shape){std::int6
   if(!std::cin.read(static_cast<char*>(tensor.data_ptr()),static_cast<std::streamsize>(length)))throw std::runtime_error("Truncated reference tensor stream");
   if(!torch::isfinite(tensor).all().item<bool>())throw std::runtime_error("Reference tensor contains nonfinite values");return tensor;}
 int infer(const std::vector<fs::path>& args){
-  if(args.size()!=5||(args[4]!=fs::path("logits")&&args[4]!=fs::path("probabilities")))throw std::invalid_argument("Expected infer DEVICE CHECKPOINT logits|probabilities");
+  if(args.size()!=5||(args[4]!=fs::path("logits")&&args[4]!=fs::path("probabilities")))throw std::invalid_argument("Expected inference DEVICE MODEL logits|probabilities");
   torch::set_num_threads(2);
-  const auto device=pando::reference::selectDevice(args[2].string());const auto bytes=pando::reference::readBounded(args[3],1024ULL*1024*1024);
-  pando::reference::ReferenceBoundaryModel model;model->to(device);torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
-  pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(bytes.begin(),bytes.end()),device);
+  const auto device=pando::reference::selectDevice(args[2].string());const bool initializer=args[1]==fs::path("infer-weights");
+  const auto bytes=pando::reference::readBounded(args[3],initializer?256ULL*1024*1024:1024ULL*1024*1024);
+  pando::reference::ReferenceBoundaryModel model;
+  if(initializer){const auto metadata=pando::reference::loadSafetensors(*model,bytes);const auto architecture=metadata.find("architecture"),scope=metadata.find("trainingOnly");
+    if(architecture==metadata.end()||architecture->second!="mobilenetv3-unet-context-v1"||scope==metadata.end()||scope->second!="true")
+      throw std::invalid_argument("A private training-only reference initializer is required");model->to(device);
+  }else{model->to(device);torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
+    pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(bytes.begin(),bytes.end()),device);}
   const auto tile=readStreamTensor({1,3,512,512}).to(device),overview=readStreamTensor({1,3,256,256}).to(device),position=readStreamTensor({1,4}).to(device);
   if(std::cin.peek()!=std::char_traits<char>::eof())throw std::invalid_argument("Trailing reference tensor bytes");
   model->eval();torch::NoGradGuard guard;auto output=model->forward(tile,overview,position);
@@ -100,7 +105,7 @@ int validate(const std::vector<fs::path>& args){
 }
 int run(const std::vector<fs::path>& args){
   if(args.size()>1&&args[1]==fs::path("order"))return balancedOrder(args);
-  if(args.size()>1&&args[1]==fs::path("infer"))return infer(args);
+  if(args.size()>1&&(args[1]==fs::path("infer")||args[1]==fs::path("infer-weights")))return infer(args);
   if(args.size()>1&&args[1]==fs::path("validate"))return validate(args);
   if(args.size()<17||(args.size()-15)%2||args.size()>47)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none PRECISION SCALE GROWTH UNOBSERVED_MASK INDEX SAMPLE_DIR...");
   const auto mode=args[2].string();if(mode!="warm"&&mode!="resume")throw std::invalid_argument("Training mode must be warm or resume");

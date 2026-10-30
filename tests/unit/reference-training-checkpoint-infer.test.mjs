@@ -5,7 +5,7 @@ import {mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {nativeTrainingCheckpointInfer} from '../../tools/reference-analysis/native-training-validation.mjs';
+import {nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from '../../tools/reference-analysis/native-training-validation.mjs';
 
 const available=Boolean(process.env.PANDO_REFERENCE_INFER_FIXTURE&&process.env.PANDO_REFERENCE_BATCH_DIRECTORY&&process.env.PANDO_REFERENCE_TORCH_LIBRARY);
 test('native checkpoint inference matches the source model output', {skip:!available},async t=>{
@@ -24,6 +24,15 @@ test('native checkpoint inference matches the source model output', {skip:!avail
   maximum=0;for(let i=0;i<expectedProbability.length;i+=4)maximum=Math.max(maximum,Math.abs(expectedProbability.readFloatLE(i)-probability.probabilities.readFloatLE(i)));
   assert.ok(maximum<=1e-6,`checkpoint probability error ${maximum}`);
   await assert.rejects(nativeTrainingCheckpointInfer({...options,output:'other'}),/output/i);
+  const weights=join(folder,'weights.safetensors'),weightsSha256=createHash('sha256').update(readFileSync(weights)).digest('hex');
+  writeFileSync(join(folder,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
+    transfer:'weights-only-no-optimizer',weightsSha256}));
+  const baseline=await nativeTrainingWeightsInfer({...options,weights,output:'probabilities'});
+  maximum=0;for(let i=0;i<expectedProbability.length;i+=4)maximum=Math.max(maximum,Math.abs(expectedProbability.readFloatLE(i)-baseline.probabilities.readFloatLE(i)));
+  assert.ok(maximum<=1e-6,`initializer probability error ${maximum}`);assert.equal(baseline.weightsSha256,weightsSha256);
+  writeFileSync(join(folder,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
+    transfer:'weights-only-no-optimizer',weightsSha256:'0'.repeat(64)}));
+  await assert.rejects(nativeTrainingWeightsInfer({...options,weights}),/initializer/i);
   await assert.rejects(nativeTrainingCheckpointInfer({...options,tile:Buffer.alloc(1)}),/tensor/i);
   const badPosition=Buffer.from(inputs.position);badPosition.writeFloatLE(Number.NaN,0);
   await assert.rejects(nativeTrainingCheckpointInfer({...options,position:badPosition}),/nonfinite/i);
