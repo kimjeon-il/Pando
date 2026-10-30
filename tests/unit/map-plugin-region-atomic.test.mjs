@@ -9,6 +9,38 @@ import {createJob,sealJob,saveJob,digest} from '../../plugins/pando-map-tools/li
 import {analyze,renderPreview} from '../../plugins/pando-map-tools/lib/engine.mjs';
 import {raster} from '../../plugins/pando-map-tools/lib/raster.mjs';
 
+test('analysis preserves two pixel arcs instead of simplifying them into duplicate boundaries',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'map-pixel-master-'));
+  try {
+    const input=join(directory,'map.png'),jobPath=join(directory,'map.job.json'),modelPath=join(directory,'boundary.json');
+    await writeFile(input,(await raster({action:'encode',width:80,height:40},Buffer.alloc(80*40*4,255))).data);
+    const python=process.env.PANDO_MAP_PYTHON || join(process.cwd(),'build-native/python/Scripts/python.exe');
+    await promisify(execFile)(python,['-c',[
+      'import sys,numpy as np,onnx',
+      'from onnx import helper,TensorProto,numpy_helper',
+      'values=np.full((1,7,512,512),-12,dtype=np.float32)',
+      'points=[(3,3),(4,3),(5,4),(5,5),(4,5),(3,4),(0,3),(1,3),(2,3),(6,5),(7,5),(8,5)]',
+      'for x,y in points: values[0,0,y,x]=12',
+      "inputs=[helper.make_tensor_value_info(n,TensorProto.FLOAT,s) for n,s in [('tile',[1,3,512,512]),('overview',[1,3,256,256]),('position',[1,4])]]",
+      "node=helper.make_node('Constant',[],['logits'],value=numpy_helper.from_array(values))",
+      "graph=helper.make_graph([node],'unit-pixel-network',inputs,[helper.make_tensor_value_info('logits',TensorProto.FLOAT,[1,7,512,512])])",
+      'model=helper.make_model(graph,opset_imports=[helper.make_opsetid("",18)],ir_version=8)',
+      'onnx.save(model,sys.argv[1])',
+    ].join('\n'),join(directory,'boundary.onnx')]);
+    const bytes=await readFile(join(directory,'boundary.onnx'));
+    await writeFile(modelPath,JSON.stringify({schemaVersion:1,evaluationStatus:'pending',releaseApproved:false,trainingOnly:true,
+      classes:['international','administrative','coast','hydro','transport','text','frame'],unobservedChannels:['coast','hydro','transport','text','frame'],tileSize:512,overlap:64,overviewSize:256,
+      model:{url:'boundary.onnx',bytes:bytes.length,sha256:digest(bytes)}}));
+    const result=await analyze({input,jobPath,modelPath,languages:['eng']});
+    assert.equal(result.graph.chains.length,4);
+    assert.equal(result.graph.faces.length,1);
+    assert.deepEqual(result.graph.chains[1].points,[[3,3],[4,3],[5,4],[5,5]]);
+    assert.deepEqual(result.graph.chains[2].points,[[3,3],[3,4],[4,5],[5,5]]);
+    assert.deepEqual(result.segmentation.rawGraph,result.graph);
+    assert.equal(result.status,'needs-georeference');
+  } finally {await rm(directory,{recursive:true,force:true});}
+});
+
 for(const mode of ['failure','cancellation'])test(`${mode} during region analysis preserves the original successful job bytes`,async()=>{
   const directory=await mkdtemp(join(tmpdir(),'map-region-atomic-'));
   try {
