@@ -61,6 +61,10 @@ class ReviewContractTests(unittest.TestCase):
         leaked['sha256'] = 'a'*64
         with self.assertRaisesRegex(ValueError, 'sha256'):
             corpus.assert_evaluation_independence(lineage, [leaked])
+        missing = self.sheet('new', 'test')
+        del missing['familyId']
+        with self.assertRaisesRegex(ValueError, 'familyId'):
+            corpus.assert_evaluation_independence(corpus.build_training_lineage([]), [missing])
 
     def test_lineage_records_selection_exposure_and_rejects_test_exposure(self):
         validation = self.sheet('validation', 'validation')

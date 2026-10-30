@@ -1,6 +1,18 @@
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {assertEvaluationIndependence,buildTrainingLineage,validateTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
+
+test('lineage stream records parents and refuses invalid independent sources',()=>{
+  const parent=buildTrainingLineage([sheet('train')]),fresh=sheet('fresh');
+  const args=['tools/reference-analysis/training-lineage.mjs','--stream'];
+  const request={action:'build',sheets:[fresh],parent,parentSha256:'c'.repeat(64)};
+  let result=spawnSync(process.execPath,args,{input:JSON.stringify(request),encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout).result,buildTrainingLineage([fresh],{parent,parentSha256:request.parentSha256}));
+  result=spawnSync(process.execPath,args,{input:JSON.stringify({action:'independent',lineage:parent,sheets:[{...sheet('test','test'),familyId:'family-train'}]}),encoding:'utf8'});
+  assert.notEqual(result.status,0);assert.match(result.stderr,/familyId/);
+  result=spawnSync(process.execPath,args,{input:JSON.stringify({action:'unknown'}),encoding:'utf8'});assert.notEqual(result.status,0);
+});
 
 function sheet(id,split='train') {return {id,familyId:'family-'+id,editionId:'edition-'+id,duplicateGroup:'group-'+id,
   sha256:({train:'a',fresh:'b',selection:'d',test:'e',different:'f'}[id]??'0').repeat(64),split};}
