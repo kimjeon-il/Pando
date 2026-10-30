@@ -83,8 +83,13 @@ export async function recognize(image,languages,signal,progress=()=>{}) {
   const raw=new Worker(new URL('./ocr-worker.mjs',import.meta.url),{workerData:{workspace}});
   const port={postMessage:message=>raw.postMessage(message),terminate:()=>raw.terminate()};
   raw.on('message',data=>port.onmessage?.({data}));raw.on('error',error=>port.onerror?.(error));
-  const rpc=createWorkerRpcClient({createWorker:()=>port,defaultTimeoutMs:240_000,onEvent:event=>progress(event.payload)});
+  let progressFailure=null;
+  const rpc=createWorkerRpcClient({createWorker:()=>port,defaultTimeoutMs:240_000,onEvent:event=>{
+    try {progress(event.payload);}
+    catch(error){progressFailure={error};rpc.stop('OCR progress callback failed');}
+  }});
   try {return (await rpc.request('map.ocr',{image,languages},{signal})).result;}
+  catch(error){throw progressFailure?progressFailure.error:error;}
   finally {rpc.stop('OCR operation ended');await raw.terminate();}
 }
 export async function recognizeInProcess(image,languages,signal,progress) {
@@ -164,7 +169,9 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     job.inferenceHistory=[...(previous.inferenceHistory || []),...(previous.segmentation?[{revision:previous.revision,source:previous.source,resources:previous.resources,segmentation:previous.segmentation}]:[])];
     job=sealJob(job);
   }
-  await saveJob(jobPath,job);
+  // Region revisions are candidates until the existing CLI transaction commits
+  // them. A failed/cancelled attempt must not replace its successful predecessor.
+  if(!previous)await saveJob(jobPath,job);
   try {
     const ocrManifestPath=resolve(workspace,'assets/data/reference-analysis/v1/ocr/manifest.json');
     const ocrManifestBytes=await readFile(ocrManifestPath),ocrManifest=JSON.parse(ocrManifestBytes);
@@ -226,11 +233,11 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
       || digest(await readFile(ocrManifestPath))!==job.resources.ocrManifestSha256
       || digest(await readFile(store.manifestPath))!==job.resources.gazetteerManifestSha256
       || digest((await readModel(modelPath)).manifest)!==digest(manifest)) throw new Error('Analysis resource signatures changed during analysis.');
-    job=sealJob(job);await saveJob(jobPath,job);
+    job=sealJob(job);if(!previous)await saveJob(jobPath,job);
     return job;
   } catch(error) {
     job.status=signal?.aborted?'cancelled':'failed';job.diagnostics.push({code:error.code || error.name,message:error.message,stack:error.stack,cause:error.cause?.stack});
-    await saveJob(jobPath,job);throw error;
+    if(!previous)await saveJob(jobPath,job);throw error;
   }
 }
 export async function renderPreview(job,path,signal) {
