@@ -1,0 +1,54 @@
+name: Verify published 2000–2011 GIS historical year display
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-post-2000-browser-check.yml'
+      - 'tests/browser/post-2000-world-timeline.spec.mjs'
+      - 'config/library-data.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gis-post-2000-browser-check
+  cancel-in-progress: false
+
+jobs:
+  browser-year-snapshots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare the exact new library source and runtime pin
+        uses: ./.github/actions/library-data
+      - name: Check the pinned source and generated runtime inputs
+        run: |
+          node scripts/generate-build-metadata.mjs
+          node scripts/check-version.mjs
+          node --test tests/unit/post-2000-generated-world-display.test.mjs
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify year-specific new world in the actual editor
+        run: pnpm exec playwright test tests/browser/post-2000-world-timeline.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Preserve actual rendered evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gis-post-2000-year-display-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 7
