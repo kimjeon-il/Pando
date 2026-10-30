@@ -100,7 +100,7 @@ jobs:
         run: |
           cmake -S tools/cpp/reference-analysis/conditions-test -B build-native/reference-analysis/conditions-test
           if ($LASTEXITCODE -ne 0) { throw 'Training conditions configure failed' }
-          cmake --build build-native/reference-analysis/conditions-test --config Release --target reference-conditions-test reference-photometry-test --parallel 2
+          cmake --build build-native/reference-analysis/conditions-test --config Release --target reference-conditions-test reference-photometry-test reference-sampling-test --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Training conditions build failed' }
           if ($IsWindows) { $conditions = 'build-native/reference-analysis/conditions-test/Release/reference-conditions-test.exe' }
           else { $conditions = 'build-native/reference-analysis/conditions-test/reference-conditions-test' }
@@ -110,6 +110,10 @@ jobs:
           else { $photometry = 'build-native/reference-analysis/conditions-test/reference-photometry-test' }
           & $photometry tests/fixtures/reference-training-photometry
           if ($LASTEXITCODE -ne 0) { throw 'Training photometry differs from original' }
+          if ($IsWindows) { $sampling = 'build-native/reference-analysis/conditions-test/Release/reference-sampling-test.exe' }
+          else { $sampling = 'build-native/reference-analysis/conditions-test/reference-sampling-test' }
+          & $sampling
+          if ($LASTEXITCODE -ne 0) { throw 'Balanced training order differs from original' }
       - name: Compare reviewed masks and invalid-input behavior
         shell: pwsh
         run: |
