@@ -89,7 +89,7 @@ test('production jobs bind all calculation helpers and refuse missing or changed
   for(const path of ['tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs','tools/cpp/map-image/webp-read.c',
     'tools/cpp/map-pdf/pdf-read.c','tools/cpp/map-preview/preview.cpp','tools/cpp/map-preview/aileron-subset.ttf'])
     assert.ok(job.resources.producerInputs['workspace/'+path],path);
-  assert.equal(job.resources.producerInputs['plugin/lib/raster.py'],undefined);
+  assert.ok(!Object.keys(job.resources.producerInputs).some(path=>path.startsWith('plugin/')&&path.endsWith('.py')));
   assert.equal(reviseJob(job,{type:'control-points',points:[]}).status,'needs-georeference');
 });
 test('candidate execution preserves pending approval and excludes unobserved classes', () => {

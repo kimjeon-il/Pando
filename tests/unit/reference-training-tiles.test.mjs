@@ -63,6 +63,16 @@ test('training sample stream returns the source-bound native tensors',async()=>{
   const invalid=spawnSync(process.execPath,args,{input:JSON.stringify({...request,sheet:{...request.sheet,sha256:'0'.repeat(64)}}),maxBuffer:32*1024*1024});
   assert.notEqual(invalid.status,0);assert.match(invalid.stderr.toString(),/hash/i);
 });
+test('diagnostic source stream returns original white-composited RGB pixels',async()=>{
+  const root='tests/fixtures/reference-training-tile',annotation=JSON.parse(await readFile(root+'/label.json','utf8'));
+  const sha256=createHash('sha256').update(await readFile(root+'/map.png')).digest('hex');
+  const args=['tools/reference-analysis/training-tiles.mjs','--source-rgb'],request={root,sheet:{image:'map.png',sha256},annotation,x:0,y:0};
+  const run=spawnSync(process.execPath,args,{input:JSON.stringify(request),maxBuffer:4*1024*1024});
+  assert.equal(run.status,0,run.stderr.toString());assert.equal(run.stdout.length,512*512*3);
+  assert.equal(createHash('sha256').update(run.stdout).digest('hex'),'28b4cfe1c9ae4af45a02c95db867ff9861bb5596cbdd3fe6db777c211199c7b4');
+  const invalid=spawnSync(process.execPath,args,{input:JSON.stringify({...request,sheet:{...request.sheet,sha256:'0'.repeat(64)}})});
+  assert.notEqual(invalid.status,0);assert.match(invalid.stderr.toString(),/hash/i);
+});
 test('source-bound raster supervision matches original training tensors',async()=>{
   const root='tests/fixtures/reference-training-raster',annotation=JSON.parse(await readFile(root+'/label.json','utf8'));
   const expected=JSON.parse(await readFile(root+'/expected.json','utf8'));

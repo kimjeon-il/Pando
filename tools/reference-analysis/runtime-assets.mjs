@@ -107,8 +107,7 @@ async function walk(directory,prefix,include=()=>true) {
   return files;
 }
 export async function collectSourceFiles(workspace=root,{diagnostics=false,revision}={}) {
-  // The remaining raster.py is imported by training only; the plugin now uses native readers and preview rendering.
-  const pluginRuntimePath=path=>!path.includes('skills/pando-map-training/')&&path!=='plugins/pando-map-tools/lib/raster.py';
+  const pluginRuntimePath=path=>!path.includes('skills/pando-map-training/')&&!path.endsWith('.py');
   const seeds=['package.json','pnpm-lock.yaml','shared/frontend/js/modules/temporal.js',
     'shared/frontend/js/modules/core-wasm-loader.js','shared/frontend/js/modules/source-provenance.js','shared/frontend/js/modules/version-contract.js',
     'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js','shared/third_party/proj-robinson-LICENSE',

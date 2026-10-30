@@ -9,7 +9,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 현행 기준: 추적 Python 33개
+### 2026-10-30 현행 기준: 추적 Python 32개
+
+- **Python 래스터 어댑터 종료:** 학습 표본과 체크포인트 진단의 마지막 EXIF 방향·흰색 투명 합성 호출을 공통 C++ 영상 경로로 옮기고 `plugins/pando-map-tools/lib/raster.py`를 제거했다. 합성 입력과 보존 검토 지도·매크로 지도 각 한 타일의 RGB 바이트가 이전 Pillow 처리와 같았다. 기존 Python 진단 시험과 런타임 소스 범위 검사도 통과했다. 이는 영상 입력 처리의 이행이며 전체 학습·진단 실행기 종료는 아니다.
 
 - **Semap 수집기 종료:** 기존 Python 학습 코퍼스 검증기의 Semap 출처·원본·저자 분할·라벨 변환 확인을 Node/C++ 정본으로 연결하고 수집기와 대응 Python 테스트를 제거했다. 기존 출처 증거에 남은 생산자 파일명은 기록으로 보존한다. 범위 요청·CRC·권리 문서·라벨·기존 출력·취소·변경된 주석 거부를 Node 동작 검사와 [Windows/Linux CI 41053514939](https://github.com/kimjeon-il/Pando/actions/runs/41053514939)로 확인했고, 실제 보존 `loc_092763-23_2525_3561` 한 건도 기존 Python과 새 호출 경로가 모두 통과했다. 같은 원본 한 건의 별도 검증 복사본에서 생산자 메타데이터만 Node 형식으로 바꿔 Python 학습 코퍼스 호출자가 새 형식도 받는지 확인했다. 실제 생산 이력을 바꾸거나 새 파생 자료를 게시하지 않았다. 이는 선택한 학습 원본의 이행이며 독립 평가가 아니다.
 
@@ -53,9 +55,9 @@
   생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. [생성 CI 41035148153](https://github.com/kimjeon-il/Pando/actions/runs/41035148153)과 [검증 CI 41035161783](https://github.com/kimjeon-il/Pando/actions/runs/41035161783)이 Windows·Linux에서 통과했다. 운영 자료 전체를 재해시하지 않았다.
   생성기의 단일 원본·산출물 SHA-256도 검증기와 같은 Node 스트리밍 판독으로 옮겼다. 합성 파일과 보유 DEM 타일 791,060바이트의 해시 `eccbdfea15371f054fdefac4774442b1519151b1dda638a01bdb1974bde5de9f`가 이전 Python 결과와 일치했고, [Windows/Linux CI 41035784510](https://github.com/kimjeon-il/Pando/actions/runs/41035784510)이 통과했다.
 
-`work/gis` 현행 기준: 도구 20개, 테스트 13개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 19개, 테스트 13개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
-지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. Python 학습·진단에서 아직 호출하는 EXIF 및 흰색 alpha 합성 함수는 유지하며, 투명 원본을 사용하는 학습 진단 시험을 확인했다.
+지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. 학습·진단의 EXIF 및 흰색 alpha 합성도 위와 같이 공통 네이티브 경로로 옮겼다.
 
 검토된 JPEG 학습 타일은 원본 전체 픽셀 배열 없이 행 단위로 읽어 방향 1–8의 256×256 개요와 선택한 512×512 타일을 만든다. 합성 4,097×4,097 JPEG의 일반·90도 회전과 가장자리 패딩, 작은 JPEG의 각 EXIF 방향 및 학습 텐서를 Pillow와 비교했으며 [Windows/Linux CI 41038797590](https://github.com/kimjeon-il/Pando/actions/runs/41038797590)이 통과했다. 보유 `zenodo-urdu-punjab-undated` 원본 17,180×14,414의 개요 SHA-256 `dceda9c69007e4a4111894a3186a2bbfea382dc24115193c160b248f2167b7e5`과 선택 타일 SHA-256 `5a8f75f6e7ada1416e7f346ee9cbcbf4d8c6e33b01c908ea8f8d2d85c5a43c39`도 이전 Pillow 계산과 일치했다. 이는 한 원본의 입력 처리 검증이며 학습 실행·모델 정확도 승인이 아니다. PNG·WebP 및 래스터 마스크의 후속 전환과 남은 제한은 위의 대형 학습 영상·마스크 항목에 기록한다.
 
@@ -63,7 +65,6 @@
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
-| `plugins/pando-map-tools/lib/raster.py` | 학습의 남은 EXIF·흰색 합성을 C++ 영상 계층으로 이전 | 학습 이미지 입력과 투명도·방향 동등성; 마지막 호출자 제거 |
 | `tools/qgis/bootstrap.py`, `tools/qgis/bridge.py` | 네이티브 QGIS 플러그인과 Node CLI/MCP; QGIS 실행 설정 | 실제 사용 편집·처리, 인증, 좌표·ID·출처, 내보내기 왕복 |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
 | `tools/build-physical-data.py`, `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
@@ -126,7 +127,7 @@
 
 - **학습용 JPEG 입력 준비:** `prepare-analysis-images.mjs`와 고정 libjpeg-turbo C++ 도구로 기존 축소·출처 확인을 옮겼다. [Windows/Linux CI 41001388685](https://github.com/kimjeon-il/Pando/actions/runs/41001388685)의 RGB·흑백·CMYK와 2·4배 draft 합성 사례에서 메타데이터와 JPEG 출력 바이트가 Python과 같았다. EXIF 방향·출처 불일치·기존 출력·취소 거부와 원본 보존도 로컬에서 확인했다. 보존 원본 17,180×14,414(26,226,792바이트, SHA-256 `cfdf4de3992c84ae3d45dc84e187c536298908b0712e74ce326d3ea775c57fc3`)의 별도 검증 복사본으로 만든 3,087×2,590 파생본은 기존 3,677,675바이트 보존본과 바이트가 완전히 같았고 SHA-256은 `103806f1b4390e8d74c47c7595422d0beed33c1d818540ea332481018468aa19`이다. 원본과 기존 파생본은 그대로 두었다. 대응 Python 도구와 테스트를 제거하며 검증 복사본은 전체 전환 종료 후 정리한다.
 
-- **지도 래스터·GeoPDF 테스트 이전:** 원래 Python 테스트의 단일·다중 페이지 선택, 원본 좌표·투명도·EXIF, 16MP 초과 거부, 내장 제어점과 지원되지 않는 투영·본초자오선·단위의 거부를 실제 Node→C++ 경로의 고정 사례로 옮기고 Python 테스트 두 개를 제거했다. 레거시 `raster.py`는 학습과 체크포인트 점검의 공통 영상 함수로 아직 필요하므로 유지한다.
+- **지도 래스터·GeoPDF 테스트 이전:** 원래 Python 테스트의 단일·다중 페이지 선택, 원본 좌표·투명도·EXIF, 16MP 초과 거부, 내장 제어점과 지원되지 않는 투영·본초자오선·단위의 거부를 실제 Node→C++ 경로의 고정 사례로 옮기고 Python 테스트 두 개를 제거했다. 당시 학습과 체크포인트 점검에 남았던 래스터 함수도 위의 후속 전환에서 제거했다.
 
 - **지도 미리보기·실행 경로:** FreeType 2.14.3과 고정 글꼴 기반 C++로 선·표식·글자·범례를 옮겼다. [Windows/Linux CI 41000080703](https://github.com/kimjeon-il/Pando/actions/runs/41000080703)에서 다양한 색상·좌표·반투명 글자와 긴 PDF의 두 단계 축소, 짝수·홀수 입력 픽셀이 Python과 일치했다. 실제 보존 캐나다 JPEG 작업의 304개 선과 6개 제어점을 2,200×1,701 미리보기로 렌더링했을 때 모든 픽셀이 같았고 양쪽 픽셀 SHA-256은 `68fcbeaefcd273a7d673e6ad97cb137eb296f3f4c153219c04465c3299809099`였다. PNG 인코딩 바이트는 네이티브 1,948,468바이트, Python 1,939,180바이트로 달랐으며 지도 원본 SHA는 유지됐다. 서명된 작업·원본 변경 거부와 Python 없이 도구 시작 및 출처 검사를 로컬에서 확인했다. 지도 플러그인에서 Python 실행과 패키지 내 해당 소스를 제거하되, 학습·점검 호출자가 아직 가져오는 `raster.py`는 보존한다. 실제 클라우드 패키지 실행은 미검증이다.
 

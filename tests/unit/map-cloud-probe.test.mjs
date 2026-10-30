@@ -63,11 +63,11 @@ test('product source closure excludes diagnostic runners, training and Python so
   assert(!files.some(path=>path.startsWith('assets/js/')||path.startsWith('assets/wasm/')));
 });
 
-test('committed runtime source closure includes the native owners and excludes the training-only raster module',async()=>{
+test('committed runtime source closure includes the native owners and excludes Python modules',async()=>{
   const revision=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
   const files=await collectSourceFiles(undefined,{revision});
   for(const path of ['tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs','tools/cpp/map-preview/aileron-subset.ttf'])assert(files.includes(path),path);
-  assert(!files.includes('plugins/pando-map-tools/lib/raster.py'));
+  assert(!files.some(path=>path.startsWith('plugins/pando-map-tools/')&&path.endsWith('.py')));
 });
 
 test('repeated export or resume is rejected before changing the job or a successful receipt',async()=>{
