@@ -9,7 +9,7 @@ export async function raster(spec, bytes=null, signal=null) {
   if(spec.action==='preview'){
     const image=await raster({action:'read',path:spec.path,page:spec.page,maxPixels:16777216},null,signal);
     const {renderNativePreview}=await workspaceModule('tools/map-image/native-preview.mjs');
-    return renderNativePreview(image,spec.job,{signal,workspace});
+    return renderNativePreview(image,spec.job,{signal,workspace,sourceIsPdf:spec.path.toLowerCase().endsWith('.pdf')});
   }
   if(spec.action==='read'&&typeof spec.path==='string'&&spec.path.toLowerCase().endsWith('.pdf')){
     const {readNativePdf}=await workspaceModule('tools/map-image/native-pdf.mjs');

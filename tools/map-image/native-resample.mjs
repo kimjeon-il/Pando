@@ -74,6 +74,9 @@ async function operateNativeRgba(image,size,action,{signal,workspace=root,direct
 export function resizeNativeRgba(image,size,options){
   return operateNativeRgba(image,size,['resize-rgba',...(Array.isArray(size)?size:[])],options);
 }
+export function resizeNativePdfThumbnail(image,size,options){
+  return operateNativeRgba(image,size,['thumbnail-pdf',...(Array.isArray(size)?size:[])],options);
+}
 export function rotateNativeRgba(image,degrees,options){
   if(![0,90,180,270].includes(degrees))return Promise.reject(Error('Invalid clockwise rotation'));
   const width=image?.width,height=image?.height,size=degrees===90||degrees===270?[height,width]:[width,height];

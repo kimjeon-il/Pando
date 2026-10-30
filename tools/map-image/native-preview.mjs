@@ -4,7 +4,7 @@ import {chmodSync,existsSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
-import {encodeNativePng,resizeNativeRgba} from './native-resample.mjs';
+import {encodeNativePng,resizeNativeRgba,resizeNativePdfThumbnail} from './native-resample.mjs';
 
 export const mapPreviewSourceFiles=Object.freeze(['tools/cpp/map-preview/CMakeLists.txt','tools/cpp/map-preview/preview.cpp',
   'tools/cpp/map-preview/PILLOW-LICENSE','tools/cpp/map-preview/FREETYPE-LICENSE']);
@@ -88,12 +88,12 @@ function run(binary,input,expected,signal){return new Promise((accept,reject)=>{
   child.on('close',(code,reason)=>code!==0||reason||overflow?finish(Error('Native preview failed: '+Buffer.concat(errors).toString('utf8'))):finish(null,Buffer.concat(chunks,size)));
   child.stdin.end(input);
 });}
-export async function renderNativePreview(image,job,{signal,workspace=root,directory=process.env.PANDO_MAP_PREVIEW_ARTIFACT||
+export async function renderNativePreview(image,job,{signal,workspace=root,sourceIsPdf=false,directory=process.env.PANDO_MAP_PREVIEW_ARTIFACT||
   resolve(workspace,'build-native/map-preview',existsSync(resolve(workspace,'.map-runtime.json'))?`${process.platform}-${process.arch}`:'artifact')}={}){
   signal?.throwIfAborted();const {binary}=artifact(workspace,directory,process.platform);
   if(process.platform!=='win32'&&!process.env.PANDO_MAP_PREVIEW_ARTIFACT&&existsSync(resolve(workspace,'.map-runtime.json')))chmodSync(binary,0o755);
   const [width,height]=targetSize(image.width,image.height);
-  const resized=width===image.width&&height===image.height?image:await resizeNativeRgba(image,[width,height],{signal,workspace});
+  const resized=width===image.width&&height===image.height?image:await (sourceIsPdf?resizeNativePdfThumbnail:resizeNativeRgba)(image,[width,height],{signal,workspace});
   const data=await run(binary,request(width,height,resized.data,font(workspace),commands(job,width,height,image.width,image.height)),width*height*4,signal);
   if(data.length!==width*height*4)throw Error('Native preview output length mismatch');
   return encodeNativePng({width,height,data},{signal,workspace});
