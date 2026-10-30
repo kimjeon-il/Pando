@@ -1,6 +1,5 @@
 // Verify an explicitly selected DEM dataset without modifying its source or outputs.
 import {createHash} from 'node:crypto';
-import {createReadStream} from 'node:fs';
 import {readFile,stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -8,11 +7,9 @@ import {parseArgs} from 'node:util';
 import {readNativeRawWebp} from './map-image/native-resample.mjs';
 import {verifyTerrainDemLevel} from './gis/terrain-dem-check.mjs';
 import {sampleGdalDem} from './gis/terrain-dem-source.mjs';
-import {terrainAssetDigest} from './gis/terrain-dem-assets.mjs';
+import {hashTerrainFile,terrainAssetDigest} from './gis/terrain-dem-assets.mjs';
 
 const digest=data=>createHash('sha256').update(data).digest();
-async function digestFile(path,signal){const hash=createHash('sha256'),stream=createReadStream(path,{highWaterMark:4*1024*1024,signal});
-  for await(const chunk of stream){signal?.throwIfAborted();hash.update(chunk);}return hash.digest('hex');}
 async function readBounded(path,limit,signal){const info=await stat(path);
   if(!info.isFile()||info.size<1||info.size>limit)throw Error('DEM asset exceeds its byte budget: '+path);
   const bytes=await readFile(path,{signal});if(bytes.length!==info.size)throw Error('DEM asset changed during reading: '+path);return bytes;}
@@ -24,7 +21,7 @@ export async function verifyTerrainDem({output,etopo,referenceOutput,gdalBinary,
     !Array.isArray(manifest.levels)||!manifest.levels.length||!/^[a-f0-9]{64}$/.test(manifest.sources?.[0]?.sha256||'')||
     !/^[a-f0-9]{64}$/.test(manifest.tint?.sha256||'')||!/^[a-f0-9]{64}$/.test(manifest.assetsSha256||''))
     throw Error('Unexpected DEM manifest or source pins');
-  if(await digestFile(source,signal)!==manifest.sources[0].sha256)throw Error('DEM source checksum mismatch');
+  if((await hashTerrainFile(source,{signal})).sha256!==manifest.sources[0].sha256)throw Error('DEM source checksum mismatch');
   const options={...(demDirectory?{directory:demDirectory}:{}),signal},imageOptions={...(imageDirectory?{directory:imageDirectory}:{}),signal};
   const levelIds=new Set(),aggregate=terrainAssetDigest(),reports=[];
   for(const level of manifest.levels){

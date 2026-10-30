@@ -24,6 +24,7 @@ class TerrainDemTest(unittest.TestCase):
             (root/'0').mkdir()
             (root/'0/0-0.webp').write_bytes(b'tile')
             (root/'tint.webp').write_bytes(b'tint')
+            self.assertEqual(dem.sha256(root/'0/0-0.webp'), '8b668b8994aa845107399994593d0ca831520be5257f005351a0ec13e97a39be')
             summary, reports = dem.asset_summary(root, [dict(id=0, columns=1, rows=1)])
             self.assertEqual(summary, '5ad4ffea29010ac414c267e6cdc850ba10a9bb44f7a1ea814eff2de470922833')
             self.assertEqual(reports, [dict(level=0, tileCount=1, bytes=4, maxTileBytes=4)])
