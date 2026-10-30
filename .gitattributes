@@ -33,3 +33,4 @@ tests/fixtures/geographic-predicate-comparison/** text eol=lf
 # PDF cross-reference offsets require byte-exact fixtures on every platform.
 tests/fixtures/map-image/pdf-read/*.pdf binary
 tests/fixtures/map-image/**/*.rgba binary
+tests/fixtures/reference-review-mask/*.bin binary
