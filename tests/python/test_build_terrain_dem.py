@@ -18,6 +18,16 @@ SPEC.loader.exec_module(dem)
 
 
 class TerrainDemTest(unittest.TestCase):
+    def test_asset_summary_uses_shared_node_digest(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root/'0').mkdir()
+            (root/'0/0-0.webp').write_bytes(b'tile')
+            (root/'tint.webp').write_bytes(b'tint')
+            summary, reports = dem.asset_summary(root, [dict(id=0, columns=1, rows=1)])
+            self.assertEqual(summary, '5ad4ffea29010ac414c267e6cdc850ba10a9bb44f7a1ea814eff2de470922833')
+            self.assertEqual(reports, [dict(level=0, tileCount=1, bytes=4, maxTileBytes=4)])
+
     def test_generator_refuses_to_overwrite_existing_dataset(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
