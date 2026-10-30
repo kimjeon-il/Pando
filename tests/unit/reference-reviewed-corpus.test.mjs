@@ -23,6 +23,8 @@ test('reviewed corpus validates materialized source and keeps language groups di
   const {root,sheet}=await fixture(t);const input={schemaVersion:1,sheets:[sheet]};
   assert.equal(await validateReviewedCorpus(input,root),input);
   assert.deepEqual(evaluationGroups([sheet,{...sheet,id:'other',language:'urd'}]),{'monochrome/Arabic/fas':['map'],'monochrome/Arabic/urd':['other']});
+  assert.deepEqual(Object.keys(evaluationGroups(['ara','fas','urd'].map((language,index)=>({...sheet,id:String(index),language})))).sort(),
+    ['monochrome/Arabic/ara','monochrome/Arabic/fas','monochrome/Arabic/urd']);
   const manifest=join(root,'review.json');await writeFile(manifest,JSON.stringify(input));
   const result=JSON.parse(execFileSync(process.execPath,['tools/reference-analysis/reviewed-corpus.mjs','--corpus',manifest],{encoding:'utf8'}));
   assert.deepEqual(result,{valid:true,groups:{'monochrome/Arabic/fas':['map']}});
@@ -30,6 +32,7 @@ test('reviewed corpus validates materialized source and keeps language groups di
 test('reviewed corpus rejects split leakage, paths, source and unreviewed labels',async t=>{
   const {root,sheet,annotation}=await fixture(t);const check=rows=>validateReviewedCorpus({schemaVersion:1,sheets:rows},root);
   await assert.rejects(check([sheet,{...sheet,id:'other',split:'test'}]),/familyId.*split/i);
+  await assert.rejects(check([{...sheet,annotations:null}]),/annotations/i);
   await assert.rejects(check([{...sheet,image:'../outside'}]),/path|inside|escape/i);
   await assert.rejects(check([{...sheet,sha256:'0'.repeat(64)}]),/hash/i);
   await writeFile(join(root,'labels/map.json'),JSON.stringify({...annotation,reviewed:false}));await assert.rejects(check([sheet]),/source.reviewed/i);
@@ -38,4 +41,13 @@ test('reviewed corpus rejects training-only and unavailable OCR packs',async t=>
   const {root,sheet}=await fixture(t);
   await assert.rejects(validateReviewedCorpus({schemaVersion:1,trainingOnly:true,sheets:[sheet]},root),/training.only/i);
   await assert.rejects(validateReviewedCorpus({schemaVersion:1,sheets:[{...sheet,ocrLanguages:['missing']}]},root),/OCR/i);
+});
+test('source language remains distinct from the installed OCR pack catalog',async t=>{
+  const {root,sheet}=await fixture(t);
+  for(const [language,script] of [['afr','Latin'],['und','Zyyy']]){
+    const row={...sheet,language,script,ocrLanguages:['eng']};const validated=await validateReviewedCorpus({schemaVersion:1,sheets:[row]},root);
+    assert.equal(validated.sheets[0].language,language);
+  }
+  for(const language of ['lat','deu_latf','rus','ukr','heb','hye','kat','hin','ben','jpn_vert','chi_tra_vert'])
+    await validateReviewedCorpus({schemaVersion:1,sheets:[{...sheet,language}]},root);
 });

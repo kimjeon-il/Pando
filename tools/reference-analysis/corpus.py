@@ -1,13 +1,8 @@
 """Application-owned reference-map corpus contracts. Data stays in the library."""
-import argparse
 import hashlib
 import json
 import pathlib
 import subprocess
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-from report_paths import report_argument
 import re
 import importlib.metadata
 
@@ -366,12 +361,3 @@ def validate_source_language(source):
     packs = source.get('ocrLanguages', [])
     if not isinstance(packs, list) or len(set(packs)) != len(packs) or any(pack not in LANGUAGES for pack in packs):
         raise ValueError('OCR languages must refer to the installed runtime catalog')
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--corpus", required=True)
-    args = parser.parse_args()
-    path = pathlib.Path(report_argument(args.corpus, access='read', siblings=True))
-    result = validate_corpus(json.loads(path.read_text(encoding="utf-8")), path.parent)
-    print(json.dumps(dict(valid=True, groups=evaluation_groups(result["sheets"])), ensure_ascii=False))

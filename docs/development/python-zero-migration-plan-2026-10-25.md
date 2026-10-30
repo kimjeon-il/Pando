@@ -9,9 +9,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 현행 기준: 추적 Python 41개
+### 2026-10-30 현행 기준: 추적 Python 40개
 
-`work/gis` 현행 기준: 도구 25개, 테스트 16개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 25개, 테스트 15개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
@@ -30,7 +30,7 @@
 | `tests/python/test_build_terrain_dem.py`, `tests/python/test_build_terrain_preview.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
 | `tests/python/test_qgis_bridge.py` | Node/QGIS 실제 연결·왕복 검사 | 인증·편집·롤백·내보내기 및 덮어쓰기 거부 |
 | `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
-| `tests/python/test_reference_analysis_corpus.py`, `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
+| `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
 | `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
 | `tests/python/test_reference_analysis_macro.py`, `tests/python/test_reference_analysis_publisher.py`, `tests/python/test_reference_analysis_semap.py` | Node/C++ 출처별 코퍼스 생성 검사 | PDF 계층·라벨·mask·ZIP과 출처 불일치 |
 | `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
@@ -43,6 +43,8 @@
 - **원본 픽셀 경계 평가 기반:** `pando-map-evaluation`과 Node 집계는 채널별 원본 픽셀 거리 허용, 알려진 영역·제외 영역, 공변량 오탐과 기존 맵별·거시 승인 문턱을 유지한다. [Windows/Linux CI 41002929483](https://github.com/kimjeon-il/Pando/actions/runs/41002929483)에서 기존 Python 고정 결과와 오류 조건을 비교했다. 보유 `pakistan-urdu` 주석의 724×600 원본 좌표에 고정 예측을 적용한 평가에서 세 채널 계수, 정밀도·재현율과 네 공변량의 전체 결과가 Python과 같았다. 이는 합성 예측에 대한 코드 동등성일 뿐 모델 정확도나 독립 평가 승인이 아니다. 학습 호출자 이전 전까지 기존 Python 평가는 유지한다.
 
 - **검토용 코퍼스 준비:** 원본 JPEG·PNG·WebP의 크기와 EXIF 방향은 픽셀을 풀지 않는 공통 C++ 영상 헤더 기능으로 읽고, Node가 출처·권리·원본 해시, 경로 이탈과 기존 라벨·초안 보존을 처리한다. [Windows/Linux CI 41003579738](https://github.com/kimjeon-il/Pando/actions/runs/41003579738)에서 방향·거부·기존 작업 보존 사례를 확인했다. 보유 우르두 지도 원본 17,180×14,414(SHA-256 `cfdf4de3992c84ae3d45dc84e187c536298908b0712e74ce326d3ea775c57fc3`)의 별도 검증 공간에서 Python과 Node가 동일한 라벨·초안 데이터를 생성했다. 원본 지도는 수정하지 않았다. Python 준비 명령과 대응 테스트는 제거했지만 코퍼스 검증과 학습의 다른 Python 호출은 남아 있다.
+
+- **독립 검토 코퍼스 검증:** Node와 C++가 출처·원본 해시, 학습/검증/시험 분리, 리뷰 원본 일치, 알려진 영역과 라벨, OCR 언어를 검증한다. 큰 원본은 한 번에 전체 마스크를 만들지 않고 구간별로 검사한다. [Windows/Linux CI 41004368173](https://github.com/kimjeon-il/Pando/actions/runs/41004368173)과 로컬 구간 경계·실패 사례가 통과했고, 보유 `pakistan-urdu` 원본 한 건의 실제 분류 `color/Arabic/urd`가 Python과 같았다. 독립 검토용 CLI와 해당 Python 테스트는 전환했으며, 학습용 파생 자료 검증을 포함하는 Python 내부 함수는 학습 호출자 전환까지 유지한다.
 
 - **학습용 JPEG 입력 준비:** `prepare-analysis-images.mjs`와 고정 libjpeg-turbo C++ 도구로 기존 축소·출처 확인을 옮겼다. [Windows/Linux CI 41001388685](https://github.com/kimjeon-il/Pando/actions/runs/41001388685)의 RGB·흑백·CMYK와 2·4배 draft 합성 사례에서 메타데이터와 JPEG 출력 바이트가 Python과 같았다. EXIF 방향·출처 불일치·기존 출력·취소 거부와 원본 보존도 로컬에서 확인했다. 보존 원본 17,180×14,414(26,226,792바이트, SHA-256 `cfdf4de3992c84ae3d45dc84e187c536298908b0712e74ce326d3ea775c57fc3`)의 별도 검증 복사본으로 만든 3,087×2,590 파생본은 기존 3,677,675바이트 보존본과 바이트가 완전히 같았고 SHA-256은 `103806f1b4390e8d74c47c7595422d0beed33c1d818540ea332481018468aa19`이다. 원본과 기존 파생본은 그대로 두었다. 대응 Python 도구와 테스트를 제거하며 검증 복사본은 전체 전환 종료 후 정리한다.
 
