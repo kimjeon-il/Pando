@@ -43,7 +43,7 @@ function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learnin
 }
 async function verifyEvidence(root,corpus,sample,data,{epoch,signal}){
   const {sheet,annotation,annotationSha256,checks}=await verifiedMacroTrainingSource(root,corpus,data.sourceId);
-  if(sheet.sha256!==data.imageSha256||annotationSha256!==data.annotationSha256||annotation.sourceSha256!==data.sourcePdfSha256||
+  if(data.sourceKind!=='macro-pdf'||data.augmentationIndex!==data.tileIndex||sheet.sha256!==data.imageSha256||annotationSha256!==data.annotationSha256||annotation.sourceSha256!==data.sourceEvidenceSha256||
     annotation.raster.sha256!==data.maskSha256||annotation.validRaster.sha256!==data.validMaskSha256)
     throw Error('Source-derived macro training evidence differs');
   if(!Array.isArray(data.pixelOrigin)||data.pixelOrigin.length!==2||data.pixelOrigin.some(v=>!Number.isInteger(v)||v<0)||typeof sample.augment!=='boolean')
@@ -51,7 +51,7 @@ async function verifyEvidence(root,corpus,sample,data,{epoch,signal}){
   const [x,y]=data.pixelOrigin,rebuilt=await prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,
     augment:sample.augment,epoch,index:data.tileIndex},{signal});
   for(const name of TRAINING_TENSOR_NAMES)if(trainingSha256(rebuilt[name])!==data.tensorSha256[name])throw Error('Training tensor differs from source: '+name);
-  return {record:{sourceId:data.sourceId,imageSha256:data.imageSha256,annotationSha256:data.annotationSha256,sourcePdfSha256:data.sourcePdfSha256,
+  return {record:{sourceId:data.sourceId,sourceKind:data.sourceKind,imageSha256:data.imageSha256,annotationSha256:data.annotationSha256,sourceEvidenceSha256:data.sourceEvidenceSha256,
     tileIndex:data.tileIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment},checks};
 }
 export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,

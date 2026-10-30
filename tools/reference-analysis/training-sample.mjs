@@ -1,9 +1,10 @@
 import {createHash} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,statSync,writeFileSync} from 'node:fs';
-import {dirname,join,resolve} from 'node:path';
-import {readTrainingBounded} from './training-evidence.mjs';
+import {basename,dirname,join,resolve} from 'node:path';
+import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
+import {resolveCorpusPath} from './corpus-path.mjs';
 import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
-import {indexMacroTrainingDataset,listRasterTrainingTiles,prepareRasterTrainingTile} from './training-tiles.mjs';
+import {indexMacroTrainingDataset,inspectSemapTrainingDataset,listRasterTrainingTiles,prepareRasterTrainingTile} from './training-tiles.mjs';
 
 export const TRAINING_TENSOR_NAMES=Object.freeze(['tile','overview','position','target','valid']);
 const TRAINING_TENSOR_LIMITS=Object.freeze({tile:3*512*512*4,overview:3*256*256*4,position:4*4,target:7*512*512*4,valid:7*512*512*4});
@@ -14,8 +15,9 @@ export function verifyTrainingSample(directory,{requireInternational=false}={}){
   const data=JSON.parse(readFileSync(receiptPath,'utf8'));
   if(data.trainingOnly!==true||data.releaseApproved!==false||typeof data.sourceId!=='string'||!data.sourceId||
     !Number.isInteger(data.tileIndex)||data.tileIndex<0||
+    !Number.isInteger(data.augmentationIndex)||data.augmentationIndex<0||!['macro-pdf','semap-label'].includes(data.sourceKind)||
     (requireInternational&&(!(data.knownInternationalPixels>0)||!(data.positiveInternationalPixels>0)))||
-    !['sourcePdfSha256','imageSha256','annotationSha256','maskSha256','validMaskSha256'].every(field=>/^[a-f0-9]{64}$/.test(data[field]||'')))
+    !['sourceEvidenceSha256','imageSha256','annotationSha256','maskSha256','validMaskSha256'].every(field=>/^[a-f0-9]{64}$/.test(data[field]||'')))
     throw Error('A source-bound training-only sample receipt is required');
   for(const name of TRAINING_TENSOR_NAMES){const path=join(directory,name+'.f32'),info=statSync(path);
     if(!info.isFile()||info.size<1||info.size>TRAINING_TENSOR_LIMITS[name])throw Error('Training sample tensor exceeds its byte budget: '+name);
@@ -40,9 +42,34 @@ export async function writeMacroTrainingSample({corpus,sourceId,tileIndex,x,y,au
   const tensorSha256=Object.fromEntries(TRAINING_TENSOR_NAMES.map(name=>[name,trainingSha256(tensors[name])]));
   let knownInternationalPixels=0,positiveInternationalPixels=0;
   for(let offset=0;offset<512*512*4;offset+=4)if(tensors.valid.readFloatLE(offset)>0){knownInternationalPixels++;if(tensors.target.readFloatLE(offset)>0)positiveInternationalPixels++;}
-  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,sourceId,sourcePdfSha256:annotation.sourceSha256,imageSha256:sheet.sha256,
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,sourceId,sourceKind:'macro-pdf',sourceEvidenceSha256:annotation.sourceSha256,
+    augmentationIndex:tileIndex,imageSha256:sheet.sha256,
     annotationSha256,maskSha256:annotation.raster.sha256,validMaskSha256:annotation.validRaster.sha256,tileIndex,pixelOrigin:[x,y],
     positiveInternationalPixels,knownInternationalPixels,tensorSha256};
+  signal?.throwIfAborted();mkdirSync(resolve(output));
+  for(const name of TRAINING_TENSOR_NAMES)writeFileSync(join(output,name+'.f32'),tensors[name],{flag:'wx'});
+  writeFileSync(join(output,'sample.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
+}
+
+export async function writeSemapTrainingSample({corpus,sourceId,tileIndex,localIndex,x,y,augment,epoch,output,signal,verifyEvidence}){
+  signal?.throwIfAborted();
+  if(!corpus||!sourceId||!output||typeof augment!=='boolean'||![tileIndex,localIndex,x,y,epoch].every(value=>Number.isSafeInteger(value)&&value>=0))
+    throw Error('Explicit Semap training sample inputs required');
+  if(existsSync(output))throw Error('Training sample output exists; preserve it');
+  const corpusPath=resolve(corpus),root=dirname(corpusPath),data=await inspectSemapTrainingDataset(corpusPath,{signal,verifyEvidence});
+  const tile=data.tiles[localIndex],source=data.sources.find(row=>row.sheet.id===sourceId);
+  if(!source||!tile||tile.sourceId!==sourceId||tile.x!==x||tile.y!==y||tileIndex<localIndex)throw Error('Semap source tile index differs');
+  const {sheet,annotation,checks}=source,labelName=basename(annotation.originalImageMember,'.jpg')+'.png';
+  const label=annotation.sourceFiles.find(file=>basename(file.path)===labelName);
+  if(!label)throw Error('Semap source label identity required');
+  const annotationPath=await resolveCorpusPath(root,sheet.annotations),annotationSha256=trainingSha256(readTrainingBounded(annotationPath,16*1024*1024));
+  const tensors=await prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,augment,epoch,index:localIndex},{signal});
+  for(const [path,expected] of checks)if(trainingSha256(readTrainingBounded(path,16*1024*1024))!==expected)throw Error('Semap source changed during sample preparation');
+  if(await corpusFingerprint(corpusPath)!==data.lineageFingerprint)throw Error('Training corpus changed during sample preparation');
+  const tensorSha256=Object.fromEntries(TRAINING_TENSOR_NAMES.map(name=>[name,trainingSha256(tensors[name])]));
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,sourceId,sourceKind:'semap-label',sourceEvidenceSha256:label.sha256,
+    imageSha256:sheet.sha256,annotationSha256,maskSha256:annotation.raster.sha256,validMaskSha256:annotation.validRaster.sha256,
+    tileIndex,augmentationIndex:localIndex,pixelOrigin:[x,y],positiveInternationalPixels:0,knownInternationalPixels:0,tensorSha256};
   signal?.throwIfAborted();mkdirSync(resolve(output));
   for(const name of TRAINING_TENSOR_NAMES)writeFileSync(join(output,name+'.f32'),tensors[name],{flag:'wx'});
   writeFileSync(join(output,'sample.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;

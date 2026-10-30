@@ -55,7 +55,7 @@ export async function inspectSemapTrainingDataset(corpus,{signal,verifyEvidence,
     if(hash(readTrainingBounded(source,16*1024*1024))!==expected)throw Error('Semap source changed during indexing');}
   if(hash(readTrainingBounded(path,32*1024*1024))!==corpusSha256||await corpusFingerprint(path)!==lineageFingerprint)
     throw Error('Training corpus changed during indexing');
-  return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,corpusSha256,lineageFingerprint,counts,tiles};
+  return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,corpusSha256,lineageFingerprint,counts,tiles,sources:validated.sources};
 }
 export async function indexMacroTrainingDataset(corpus,{signal,workspace,imageDirectory}={}){
   signal?.throwIfAborted();if(!corpus)throw Error('Explicit macro training corpus required');

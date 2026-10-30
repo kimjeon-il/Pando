@@ -30,7 +30,7 @@ export async function nativeTrainingProof({weights,sample,checkpoint,device='cpu
     result.preprocessing!=='rgb-brightness-then-imagenet-normalization'||result.exactModelResume!==true||result.tileIndex!==data.tileIndex)
     throw Error('Native training proof returned an invalid result');
   const bytes=readFileSync(resolve(checkpoint));
-  return {...result,device,sourceId:data.sourceId,sourcePdfSha256:data.sourcePdfSha256,checkpointBytes:bytes.length,
+  return {...result,device,sourceId:data.sourceId,sourceKind:data.sourceKind,sourceEvidenceSha256:data.sourceEvidenceSha256,checkpointBytes:bytes.length,
     checkpointSha256:createHash('sha256').update(bytes).digest('hex'),toolRevision:manifest.revision,independentEvaluation:false};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
