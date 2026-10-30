@@ -18,6 +18,8 @@ function createServer(){
     async(_args,extra)=>respond([...options,'status'],extra.signal));
   server.registerTool('qgis_native_project',{description:'Inspect the current QGIS project and its first ten layers.',inputSchema:empty},
     async(_args,extra)=>respond([...options,'project'],extra.signal));
+  server.registerTool('qgis_native_save_project',{description:'Save the current named QGIS project; unnamed and missing projects are refused.',inputSchema:empty},
+    async(_args,extra)=>respond([...options,'save-project'],extra.signal));
   server.registerTool('qgis_native_project_crs',{description:'Set the current project coordinate reference system.',inputSchema:z.strictObject({crs:z.string().min(1).max(128)})},
     async({crs},extra)=>respond([...options,'project-crs',`--target-crs=${crs}`],extra.signal));
   server.registerTool('qgis_native_canvas_screenshot',{description:'Capture the current QGIS map canvas as a bounded PNG image.',inputSchema:empty},

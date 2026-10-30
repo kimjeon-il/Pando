@@ -187,6 +187,12 @@ class Bridge final:public QObject,public QgisPlugin {
         const auto command=request.value(QStringLiteral("command")).toString();
         if(command==QStringLiteral("status"))return {{QStringLiteral("qgis_version"),Qgis::version()},
             {QStringLiteral("pid"),static_cast<double>(QCoreApplication::applicationPid())},{QStringLiteral("transport"),QStringLiteral("pando-native-v1")}};
+        if(command==QStringLiteral("save-project")){
+            auto* project=QgsProject::instance();const auto filename=project->fileName();
+            if(filename.isEmpty()||!QFileInfo(filename).isFile())throw QStringLiteral("A current existing project file is required");
+            if(!project->write())throw QStringLiteral("QGIS project save failed: ")+project->error();
+            return {{QStringLiteral("saved"),true},{QStringLiteral("filename"),filename}};
+        }
         if(command==QStringLiteral("project-crs")){
             const auto input=request.value(QStringLiteral("crs"));
             if(!input.isString()||input.toString().trimmed().isEmpty()||input.toString().size()>128)throw QStringLiteral("A bounded project CRS is required");

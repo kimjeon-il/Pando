@@ -33,6 +33,7 @@ async function fixture(t){
         assert.equal(request.sourceCrs,'EPSG:4326');assert.equal(request.targetCrs,'EPSG:3857');
         assert.deepEqual(request.points,[[-1,2]]);result={points:[[1,2]]};}
       else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
+      else if(request.command==='save-project')result={saved:true,filename:'D:/지도/project.qgz'};
       else if(request.command==='layers'){assert.equal(request.offset,0);assert.equal(request.limit,10);
         result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
       else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
@@ -181,6 +182,14 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   }
   const invalidSegments=await run(['--config',config,'buffer','--layer','layer-1','--distance','50','--segments','0','--output',join(root,'invalid.geojson')]);
   assert.notEqual(invalidSegments.code,0);
+});
+
+test('native QGIS CLI saves the current project without accepting another output path',async t=>{
+  const {config}=await fixture(t);
+  const saved=await run(['--config',config,'save-project']);
+  assert.equal(saved.code,0,saved.stderr);
+  assert.deepEqual(JSON.parse(saved.stdout),{saved:true,filename:'D:/지도/project.qgz'});
+  assert.notEqual((await run(['--config',config,'save-project','--output','other.qgz'])).code,0);
 });
 test('native QGIS CLI rejects invalid input without exposing its token',async t=>{
   const {root,config}=await fixture(t);

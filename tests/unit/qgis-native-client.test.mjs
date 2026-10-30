@@ -60,6 +60,14 @@ test('native QGIS can inspect project and paginated layers without executing cod
   assert.equal((await requestNativeQgis(config,{command:'layers',offset:0,limit:10})).layers[0].id,'layer-1');
 });
 
+test('native QGIS can explicitly save its current named project',async t=>{
+  const config=await fixture(t,(socket,request)=>{
+    assert.deepEqual(request,{token:'test-only-secret',command:'save-project'});
+    socket.end(JSON.stringify({ok:true,result:{saved:true,filename:'D:/지도/project.qgz'}})+'\n');
+  });
+  assert.deepEqual(await requestNativeQgis(config,{command:'save-project'}),{saved:true,filename:'D:/지도/project.qgz'});
+});
+
 test('native QGIS reads and selects the active layer without changing the project data',async t=>{
   const config=await fixture(t,(socket,request)=>{
     assert.equal(request.command,'active-layer');
