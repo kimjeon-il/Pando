@@ -17,13 +17,39 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  terrain-preview:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-preview'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build and verify only the terrain preview compositor
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF -DPANDO_BUILD_TERRAIN_PREVIEW=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview configure failed' }
+          cmake --build build-native/terrain-preview --config Release --target pando-terrain-preview
+          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview build failed' }
+          if ($IsWindows) { $env:PANDO_TERRAIN_PREVIEW_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/Release/pando-terrain-preview.exe" }
+          else { $env:PANDO_TERRAIN_PREVIEW_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/pando-terrain-preview" }
+          node --test tests/unit/terrain-preview-native.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview differs from frozen source pixels' }
   reference-step:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'reference-step' || inputs.target == 'reference-ordered')
     strategy:
