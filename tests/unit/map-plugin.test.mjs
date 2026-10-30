@@ -8,7 +8,7 @@ import { georeferenceQuality } from '../../plugins/pando-map-tools/lib/analysis/
 import * as engine from '../../plugins/pando-map-tools/lib/engine.mjs';
 import { raster } from '../../plugins/pando-map-tools/lib/raster.mjs';
 
-test('Pillow adapter works without a signal and reverses clockwise boxes to source pixels', async()=>{
+test('native rotation works without a signal and reverses clockwise boxes to source pixels', async()=>{
   const pixels=Buffer.alloc(4*2*4,255);pixels[0]=12;
   const rotated=await raster({action:'rotate',width:4,height:2,degrees:90},pixels);
   assert.deepEqual([rotated.width,rotated.height],[2,4]);
