@@ -27,7 +27,7 @@ test('training batch management rejects changed samples and preserves existing o
   await assert.rejects(nativeTrainingBatch({...request,unobservedMask:undefined}),/configuration/i);
   await assert.rejects(nativeTrainingBatch({...request,amp:true}),/configuration/i);
   writeFileSync(output,'preserve');await assert.rejects(nativeTrainingBatch(request),/exists/i);assert.equal(readFileSync(output,'utf8'),'preserve');
-  const sampleOutput=join(root,'prepared');await assert.rejects(runMacroTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false}),/exists/i);
+  const sampleOutput=join(root,'prepared');await assert.rejects(runMacroTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false,supervision:join(root,'supervision')}),/exists/i);
   assert.equal(existsSync(sampleOutput),false);
   const changed={...request,output:join(root,'fresh.pt')};writeFileSync(join(sample,'target.f32'),'changed');
   await assert.rejects(nativeTrainingBatch(changed),/tensor changed/i);assert.equal(existsSync(changed.output),false);
