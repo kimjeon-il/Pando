@@ -23,7 +23,7 @@ export async function selectDiagnosticTile({root,annotation},{signal,workspace,i
   }else{
     scores=[];
     for(const tile of tiles){signal?.throwIfAborted();
-      const masks=await reviewMasks(annotation,{window:[tile.x,tile.y,512,512],signal,workspace,directory:reviewDirectory});
+      const masks=await reviewMasks(annotation,{window:[tile.x,tile.y,512,512],fullSheetCoordinates:true,signal,workspace,directory:reviewDirectory});
       const counts=Array(7).fill(0);let active=false;
       for(let i=0;i<masks.knownBits.length;i++){const known=masks.knownBits[i];if(known){active=true;const positive=known&masks.targetBits[i];
         if(positive)for(let c=0;c<7;c++)if(positive&(1<<c))counts[c]++;}}
