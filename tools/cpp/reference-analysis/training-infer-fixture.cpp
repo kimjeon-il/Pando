@@ -26,6 +26,7 @@ int run(const std::vector<fs::path>& args){
   torch::NoGradGuard guard;const auto expected=model->forward(tile,overview,position).to(torch::kCPU).contiguous();
   if(!torch::isfinite(expected).all().item<bool>())throw std::runtime_error("Invalid synthetic inference fixture");
   saveTensor(args[1]/"tile.f32",tile);saveTensor(args[1]/"overview.f32",overview);saveTensor(args[1]/"position.f32",position);saveTensor(args[1]/"expected.f32",expected);
+  saveTensor(args[1]/"expected-probabilities.f32",expected.sigmoid());
   std::cout<<"Synthetic private checkpoint fixture ready\n";return 0;
 }
 }

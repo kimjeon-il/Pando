@@ -19,6 +19,11 @@ test('native checkpoint inference matches the source model output', {skip:!avail
   assert.equal(result.logits.length,7*512*512*4);assert.equal(expected.length,result.logits.length);
   let maximum=0;for(let i=0;i<expected.length;i+=4)maximum=Math.max(maximum,Math.abs(expected.readFloatLE(i)-result.logits.readFloatLE(i)));
   assert.ok(maximum<=1e-6,`checkpoint inference error ${maximum}`);assert.equal(result.checkpointSha256,checkpointSha256);
+  const probability=await nativeTrainingCheckpointInfer({...options,output:'probabilities'}),expectedProbability=readFileSync(join(folder,'expected-probabilities.f32'));
+  assert.equal(probability.probabilities.length,expectedProbability.length);
+  maximum=0;for(let i=0;i<expectedProbability.length;i+=4)maximum=Math.max(maximum,Math.abs(expectedProbability.readFloatLE(i)-probability.probabilities.readFloatLE(i)));
+  assert.ok(maximum<=1e-6,`checkpoint probability error ${maximum}`);
+  await assert.rejects(nativeTrainingCheckpointInfer({...options,output:'other'}),/output/i);
   await assert.rejects(nativeTrainingCheckpointInfer({...options,tile:Buffer.alloc(1)}),/tensor/i);
   const badPosition=Buffer.from(inputs.position);badPosition.writeFloatLE(Number.NaN,0);
   await assert.rejects(nativeTrainingCheckpointInfer({...options,position:badPosition}),/nonfinite/i);

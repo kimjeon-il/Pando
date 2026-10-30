@@ -28,10 +28,11 @@ function validator(binary,args,env,signal,{binaryOutput=false,maximum=65536}={})
   });
   done.catch(()=>{});return {child,done};
 }
-export async function nativeTrainingCheckpointInfer({checkpoint,tile,overview,position,device='cpu',torchLibrary,
+export async function nativeTrainingCheckpointInfer({checkpoint,tile,overview,position,device='cpu',output='logits',torchLibrary,
   root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
   if(!['win32','linux'].includes(process.platform)||!checkpoint||!torchLibrary||!['cpu','cuda'].includes(device))throw Error('Explicit native checkpoint inference inputs required');
+  if(!['logits','probabilities'].includes(output))throw Error('Invalid checkpoint inference output');
   if(![tile,overview,position].every(value=>value instanceof Uint8Array)||tile.length!==3*512*512*4||overview.length!==3*256*256*4||position.length!==4*4)
     throw Error('Checkpoint inference tensors have invalid dimensions');
   const path=resolve(checkpoint),receiptPath=path+'.receipt.json',checkpointHash=trainingFileIdentity(path),receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
@@ -41,13 +42,13 @@ export async function nativeTrainingCheckpointInfer({checkpoint,tile,overview,po
   const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,tool),env={...process.env,
     ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'};
-  const bytes=7*512*512*4,{child,done}=validator(binary,['infer',device,path],env,signal,{binaryOutput:true,maximum:bytes});
+  const bytes=7*512*512*4,{child,done}=validator(binary,['infer',device,path,output],env,signal,{binaryOutput:true,maximum:bytes});
   let logits;try{[,logits]=await Promise.all([pipeline(Readable.from([tile,overview,position],{objectMode:false}),child.stdin,{signal}),done]);}
   catch(error){child.kill();await done.catch(()=>{});throw error;}
   signal?.throwIfAborted();if(logits.length!==bytes)throw Error('Native checkpoint logits have incorrect dimensions');
   for(let at=0;at<logits.length;at+=4)if(!Number.isFinite(logits.readFloatLE(at)))throw Error('Native checkpoint logits contain nonfinite values');
   if(trainingFileIdentity(path)!==checkpointHash||sha(readTrainingBounded(receiptPath,1024*1024))!==receiptHash)throw Error('Inference checkpoint changed during execution');
-  return {logits,checkpointSha256:checkpointHash,toolRevision:tool.revision,trainingOnly:true,releaseApproved:false};
+  return {[output]:logits,checkpointSha256:checkpointHash,toolRevision:tool.revision,trainingOnly:true,releaseApproved:false};
 }
 export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',diagnosticOnly=false,torchLibrary,
   root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){

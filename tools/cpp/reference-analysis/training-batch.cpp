@@ -70,14 +70,16 @@ torch::Tensor readStreamTensor(const std::vector<std::int64_t>& shape){std::int6
   if(!std::cin.read(static_cast<char*>(tensor.data_ptr()),static_cast<std::streamsize>(length)))throw std::runtime_error("Truncated reference tensor stream");
   if(!torch::isfinite(tensor).all().item<bool>())throw std::runtime_error("Reference tensor contains nonfinite values");return tensor;}
 int infer(const std::vector<fs::path>& args){
-  if(args.size()!=4)throw std::invalid_argument("Expected infer DEVICE CHECKPOINT");
+  if(args.size()!=5||(args[4]!=fs::path("logits")&&args[4]!=fs::path("probabilities")))throw std::invalid_argument("Expected infer DEVICE CHECKPOINT logits|probabilities");
   torch::set_num_threads(2);
   const auto device=pando::reference::selectDevice(args[2].string());const auto bytes=pando::reference::readBounded(args[3],1024ULL*1024*1024);
   pando::reference::ReferenceBoundaryModel model;model->to(device);torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
   pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(bytes.begin(),bytes.end()),device);
   const auto tile=readStreamTensor({1,3,512,512}).to(device),overview=readStreamTensor({1,3,256,256}).to(device),position=readStreamTensor({1,4}).to(device);
   if(std::cin.peek()!=std::char_traits<char>::eof())throw std::invalid_argument("Trailing reference tensor bytes");
-  model->eval();torch::NoGradGuard guard;const auto output=model->forward(tile,overview,position).to(torch::kCPU).contiguous();
+  model->eval();torch::NoGradGuard guard;auto output=model->forward(tile,overview,position);
+  if(args[4]==fs::path("probabilities"))output=output.sigmoid();
+  output=output.to(torch::kCPU).contiguous();
   if(output.sizes()!=torch::IntArrayRef({1,7,512,512})||!torch::isfinite(output).all().item<bool>())throw std::runtime_error("Checkpoint inference returned invalid logits");
   std::cout.write(static_cast<const char*>(output.data_ptr()),static_cast<std::streamsize>(output.numel()*sizeof(float)));
   if(!std::cout)throw std::runtime_error("Unable to write checkpoint logits");return 0;
