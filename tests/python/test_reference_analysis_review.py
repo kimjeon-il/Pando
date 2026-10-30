@@ -111,6 +111,19 @@ class ReviewContractTests(unittest.TestCase):
             self.assertEqual(counts[0].tolist(), [240, 18])
             self.assertEqual(counts[1].tolist(), [0, 0])
 
+    def test_training_index_preserves_full_sheet_fractional_boundary(self):
+        from PIL import Image
+        from train import MapTiles
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            Image.new('RGB', (600, 16), 'white').save(root/'map.png')
+            annotation = dict(width=600, height=16, known={'international': [
+                [[447.1, 0], [447.9, 0], [447.9, 10], [447.1, 10]]]}, lines=[], ignore=[])
+            (root/'label.json').write_text(json.dumps(annotation))
+            rows = [dict(id='fixture', image='map.png', annotations='label.json')]
+            self.assertEqual(MapTiles(root, rows).tiles, [(0, 0, 0)])
+            self.assertEqual(MapTiles(root, rows, supervised_only=False).tiles, [(0, 0, 0), (0, 448, 0)])
+
     def test_diagnostic_old_model_evaluation_cannot_claim_independence_or_admission(self):
         from PIL import Image
         import argparse
