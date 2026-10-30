@@ -12,6 +12,12 @@ const tracked = (...patterns) => execFileSync('git', ['ls-files', '-z', '--', ..
 const read = path => readFileSync(join(root, path), 'utf8');
 const remaining = tracked('*.py', '*.pyi', '*.ipynb').sort();
 
+test('QGIS exchange has no project-owned Python bridge or bridge test', () => {
+  for (const path of ['tools/qgis/bootstrap.py', 'tools/qgis/bridge.py', 'tests/python/test_qgis_bridge.py']) {
+    assert.ok(!remaining.includes(path), `Retired QGIS Python remains: ${path}`);
+  }
+});
+
 test('Python files only decrease within the reviewed inventory and two integrated tests', () => {
   const plan = read('docs/development/python-zero-migration-plan-2026-10-25.md');
   const inventory = plan.split('## 2026-10-29 잔여 기준 목록')[1]?.split('\n## ')[0];
@@ -24,8 +30,8 @@ test('Python files only decrease within the reviewed inventory and two integrate
   // do not use the exception to allow any other added Python file.
   const integrated = new Set(['tests/python/test_reference_analysis_review.py', 'tests/python/test_reference_analysis_inspection.py']);
   const originalRemaining = remaining.filter(path => !integrated.has(path));
-  assert.ok(originalRemaining.length <= 29, `Original Python inventory exceeded its current ceiling: ${originalRemaining.length}`);
-  assert.ok(remaining.length <= 31, `Python file count exceeded the integrated ceiling: ${remaining.length}`);
+  assert.ok(originalRemaining.length <= 26, `Original Python inventory exceeded its current ceiling: ${originalRemaining.length}`);
+  assert.ok(remaining.length <= 28, `Python file count exceeded the integrated ceiling: ${remaining.length}`);
   for (const path of originalRemaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
 });
 

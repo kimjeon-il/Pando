@@ -1,5 +1,4 @@
-// Node CLI for the authenticated native QGIS bridge. The existing Python
-// integration remains in use until startup and its MCP tools are replaced.
+// Node CLI for the authenticated native QGIS bridge.
 import {readFileSync,realpathSync,statSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
