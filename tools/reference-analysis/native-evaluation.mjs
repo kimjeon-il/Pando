@@ -91,3 +91,17 @@ export function confounderNonregression(candidate,baseline){
   }
   if(!measured)failures.push({reason:'no-known-confounder-evidence'});return {passed:!failures.length,measured,failures};
 }
+
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{
+    if(process.argv.length!==3||process.argv[2]!=='--diagnostic-stream')throw Error('Expected --diagnostic-stream');
+    const chunks=[];let length=0;
+    for await(const chunk of process.stdin){length+=chunk.length;if(length>64*1024*1024)throw Error('Diagnostic input exceeds budget');chunks.push(chunk);}
+    const bytes=Buffer.concat(chunks,length);
+    if(bytes.length<16||bytes.toString('ascii',0,8)!=='PDIAG001')throw Error('Invalid diagnostic input');
+    const width=bytes.readUInt32BE(8),height=bytes.readUInt32BE(12),values=width*height*7;
+    if(!Number.isSafeInteger(values)||values>11000000||bytes.length!==16+values*6)throw Error('Invalid diagnostic input length');
+    const probability=bytes.subarray(16,16+values*4),target=bytes.subarray(16+values*4,16+values*5),known=bytes.subarray(16+values*5);
+    process.stdout.write(JSON.stringify(await diagnosticPixelStatistics({width,height,probability,target,known}))+'\n');
+  }catch(error){console.error('native-evaluation: '+error.message);process.exitCode=1;}
+}
