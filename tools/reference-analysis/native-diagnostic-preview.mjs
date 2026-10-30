@@ -123,7 +123,8 @@ async function diagnoseSource({corpus,reviewCorpus,sourceId,checkpoint,baselineW
     {signal,workspace,imageDirectory,evaluationDirectory,batchDirectory});
   const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels,reviewed},{signal,workspace,imageDirectory,previewDirectory});
   if(reviewed){
-    if(trainingFileIdentity(reviewPath)!==reviewHash||trainingFileIdentity(verified.annotationPath)!==verified.annotationSha256||trainingFileIdentity(path)!==sheet.sha256)
+    if(trainingFileIdentity(reviewPath)!==reviewHash||trainingFileIdentity(verified.annotationPath)!==verified.annotationSha256||
+      trainingFileIdentity(path,{maxBytes:Number.MAX_SAFE_INTEGER})!==sheet.sha256)
       throw Error('Reviewed inputs changed during diagnostic');
   }else recheckMacroTrainingSource(checks);
   if(trainingFileIdentity(corpusPath)!==corpusHash||trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash)
