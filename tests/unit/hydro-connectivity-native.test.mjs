@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {auditHydroParts,validateHydroAudit} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {auditHydroParts,hydroPartsBySource,validateHydroAudit} from '../../tools/gis/hydro-connectivity-native.mjs';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
 function fixture() {
@@ -114,6 +114,16 @@ test('audit result validation rejects inconsistent source identities and counts'
   assert.throws(()=>validateHydroAudit(invalid,{...input,sourceOrder:[1,2,3]}),/audit/i);
   invalid.issues=[];invalid.regions.eu.issues=2;
   assert.throws(()=>validateHydroAudit(invalid,{...input,sourceOrder:[1,2,3]}),/audit/i);
+});
+test('feature source mapping retains split reaches and does not mutate original geometry',()=>{
+  const features=[{metadata:{category:'river',sourceId:'1,2',fid:10,flags:1,systemId:'s'},
+    geometry:{type:'MultiLineString',coordinates:[[[0,0],[1,0]],[[1,0],[2,0]]]}},
+    {metadata:{category:'lake'},geometry:{type:'Polygon',coordinates:[]}}];
+  const original=structuredClone(features),parts=hydroPartsBySource(features);
+  assert.deepEqual(parts['1'][0],{fid:10,part:0,points:[[0,0],[1,0]],aligned:true,system:'s'});
+  assert.deepEqual(parts['2'][0].points,[[1,0],[2,0]]);parts['1'][0].points[0][0]=9;
+  assert.deepEqual(features,original);
+  features[0].metadata.sourceId='1';assert.throws(()=>hydroPartsBySource(features),/mapping/i);
 });
 test('source-bound Node audit runs the verified native engine',{
   skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY,
