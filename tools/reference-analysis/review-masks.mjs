@@ -91,6 +91,10 @@ export async function validateReviewedAnnotation(annotation,sheet,options={}){
   }
   for(const region of annotation.regions||[]){if(!REFERENCE_BOUNDARY_CHANNELS.slice(3).includes(region.kind))throw Error('Boundary truth requires centerlines; regions describe confounders');points(region.polygon,3);}
   for(const polygon of annotation.ignore||[])points(polygon,3);
-  const {targetBits,knownBits}=await reviewMasks({...annotation,ignore:[]},options);
-  for(let i=0;i<targetBits.length;i++)if(targetBits[i]&~knownBits[i])throw Error('Positive labels extend outside explicitly known regions');
+  const tile=width*height<=16777216&&width<=16384&&height<=16384?Math.max(width,height):2048;
+  for(let y=0;y<height;y+=tile)for(let x=0;x<width;x+=tile){
+    const window=[x,y,Math.min(tile,width-x),Math.min(tile,height-y)];
+    const {targetBits,knownBits}=await reviewMasks({...annotation,ignore:[]},{...options,window});
+    for(let i=0;i<targetBits.length;i++)if(targetBits[i]&~knownBits[i])throw Error('Positive labels extend outside explicitly known regions');
+  }
 }
