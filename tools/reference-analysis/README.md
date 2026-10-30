@@ -67,8 +67,11 @@ native C++ checkpoint and the same CPU/CUDA device recorded in its receipt. The
 output directory must not exist, and its parent must already exist. The command
 checks the corpus and source hashes and writes a private diagnostic JSON and
 JPEG; it does not establish independent accuracy or approve a model release.
-It does not yet replace the full Python inspection command or its baseline and
-other corpus modes.
+To show the initialization alongside the trained result, add `--baseline-weights`
+with the original private Safetensors file and its adjacent transfer receipt.
+Its hash must match the checkpoint receipt; earlier checkpoints without a
+recorded initializer identity cannot be used for this comparison. This command
+does not yet replace the full Python inspection command or its other corpus modes.
 
 ```powershell
 node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/example/corpus.training.json --source SOURCE_ID --checkpoint EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/checkpoint.pt --output EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/diagnostic-source --device cuda --torch-library 'C:/path/to/matching/torch/lib'

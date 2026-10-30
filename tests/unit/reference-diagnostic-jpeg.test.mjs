@@ -16,5 +16,7 @@ test('diagnostic JPEG contains titled input, target and prediction panels',async
   assert.ok(pixel(1124,100)[1]>190&&pixel(1124,100)[0]<10);
   let dark=0;for(let y=0;y<28;y++)for(let x=0;x<1536;x++)if(pixel(x,y)[0]<100)dark++;
   assert.ok(dark>20,'caption text is visible');
+  const withBaseline=await renderDiagnosticJpeg({original,panels:[target,original,predicted]});
+  assert.deepEqual([withBaseline.width,withBaseline.height],[2048,540]);
   await assert.rejects(renderDiagnosticJpeg({original,panels:[target]}),/panels/i);
 });

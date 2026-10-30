@@ -1,5 +1,6 @@
 // Binary boundary for native training-diagnostic overlay composition.
 import {dirname,extname,resolve} from 'node:path';
+import {createHash} from 'node:crypto';
 import {existsSync} from 'node:fs';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -8,7 +9,7 @@ import {reportArgument} from '../report-paths.mjs';
 import {composeNativeDiagnosticOverlays,encodeNativeJpeg,readNativeTrainingRaster} from '../map-image/native-resample.mjs';
 import {drawNativePreviewLabels} from '../map-image/native-preview.mjs';
 import {diagnosticPixelStatistics} from './native-evaluation.mjs';
-import {nativeTrainingCheckpointInfer} from './native-training-validation.mjs';
+import {nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from './native-training-validation.mjs';
 import {readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
 import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
 import {selectDiagnosticTile} from './diagnostic-selection.mjs';
@@ -44,13 +45,18 @@ export async function summarizeDiagnosticTile({width,height,original,probability
   return {channels,baselineChannels,panels,trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 
-export async function diagnoseNativeTrainingTile({checkpoint,tile,overview,position,target,valid,original,device,torchLibrary},
+export async function diagnoseNativeTrainingTile({checkpoint,baselineWeights,tile,overview,position,target,valid,original,device,torchLibrary},
   {signal,workspace,imageDirectory,evaluationDirectory,batchDirectory}={}){
+  if(baselineWeights!=null&&(typeof baselineWeights!=='string'||!baselineWeights))throw Error('Explicit baseline weights path required');
   const inference=await nativeTrainingCheckpointInfer({checkpoint,tile,overview,position,device,torchLibrary,output:'probabilities',
     signal,root:workspace,directory:batchDirectory});
-  const diagnostic=await summarizeDiagnosticTile({width:512,height:512,original,probability:inference.probabilities,target,valid},
+  const baseline=baselineWeights!=null?await nativeTrainingWeightsInfer({weights:baselineWeights,tile,overview,position,device,torchLibrary,output:'probabilities',
+    signal,root:workspace,directory:batchDirectory}):null;
+  const diagnostic=await summarizeDiagnosticTile({width:512,height:512,original,probability:inference.probabilities,target,valid,
+    ...(baseline?{baseline:baseline.probabilities}:{})},
     {signal,workspace,imageDirectory,evaluationDirectory});
-  return {...diagnostic,probabilities:inference.probabilities,checkpointSha256:inference.checkpointSha256,toolRevision:inference.toolRevision};
+  return {...diagnostic,probabilities:inference.probabilities,checkpointSha256:inference.checkpointSha256,
+    baselineWeightsSha256:baseline?.weightsSha256??null,toolRevision:inference.toolRevision};
 }
 
 export async function renderDiagnosticJpeg({original,panels},{signal,workspace,imageDirectory,previewDirectory}={}){
@@ -70,16 +76,27 @@ export async function renderDiagnosticJpeg({original,panels},{signal,workspace,i
 }
 
 // Inspect one explicitly selected macro source; the result is training-only.
-export async function diagnoseMacroTrainingSource({corpus,sourceId,checkpoint,device,torchLibrary},
+export async function diagnoseMacroTrainingSource({corpus,sourceId,checkpoint,baselineWeights,device,torchLibrary},
   {signal,workspace,imageDirectory,previewDirectory,evaluationDirectory,batchDirectory}={}){
   signal?.throwIfAborted();
   if(!corpus||!checkpoint||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
     throw Error('Explicit macro source, checkpoint and device required');
   const corpusPath=resolve(corpus),root=dirname(corpusPath),checkpointPath=resolve(checkpoint),receiptPath=checkpointPath+'.receipt.json';
-  const corpusHash=trainingFileIdentity(corpusPath),checkpointHash=trainingFileIdentity(checkpointPath),receiptHash=trainingFileIdentity(receiptPath);
-  const manifest=JSON.parse(readTrainingBounded(corpusPath,32*1024*1024)),receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
+  const corpusHash=trainingFileIdentity(corpusPath),checkpointHash=trainingFileIdentity(checkpointPath),receiptBytes=readTrainingBounded(receiptPath,1024*1024);
+  const receiptHash=createHash('sha256').update(receiptBytes).digest('hex'),manifest=JSON.parse(readTrainingBounded(corpusPath,32*1024*1024)),receipt=JSON.parse(receiptBytes);
   if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||
     receipt.checkpointSha256!==checkpointHash||receipt.corpusSha256!==corpusHash)throw Error('Checkpoint does not match this training corpus');
+  let baselinePath=null,baselineHash=null,transferPath=null,transferHash=null;
+  if(baselineWeights!=null){
+    if(typeof baselineWeights!=='string'||!baselineWeights)throw Error('Explicit baseline weights path required');
+    baselinePath=resolve(baselineWeights);baselineHash=trainingFileIdentity(baselinePath);
+    if(!receipt.initializationWeightsSha256||receipt.initializationWeightsSha256!==baselineHash)throw Error('Baseline does not match the checkpoint initializer');
+    transferPath=resolve(dirname(baselinePath),'transfer.json');const transferBytes=readTrainingBounded(transferPath,1024*1024);
+    transferHash=createHash('sha256').update(transferBytes).digest('hex');const transfer=JSON.parse(transferBytes);
+    if(receipt.initializationSourceSha256!=null&&!/^[a-f0-9]{64}$/.test(receipt.initializationSourceSha256))throw Error('Invalid baseline original checkpoint identity');
+    if(receipt.initializationSourceSha256!==null&&receipt.initializationSourceSha256!==undefined&&
+      transfer.sourceCheckpointSha256!==receipt.initializationSourceSha256)throw Error('Baseline original checkpoint identity differs');
+  }
   const {sheet,annotation,checks}=await verifiedMacroTrainingSource(root,manifest,sourceId);recheckMacroTrainingSource(checks);
   const selected=await selectDiagnosticTile({root,annotation},{signal,workspace,imageDirectory});
   if(!selected)throw Error('Training source has no supervised diagnostic tile');
@@ -89,13 +106,16 @@ export async function diagnoseMacroTrainingSource({corpus,sourceId,checkpoint,de
     prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,augment:false,epoch:0,index},{signal,workspace,imageDirectory}),
     readNativeTrainingRaster({path,format,expectedSha256:sheet.sha256,x,y},{signal,workspace,directory:imageDirectory})]);
   const original=Buffer.alloc(512*512*3);for(let i=0;i<512*512;i++){original[i*3]=image.tile[i*4];original[i*3+1]=image.tile[i*4+1];original[i*3+2]=image.tile[i*4+2];}
-  const diagnostic=await diagnoseNativeTrainingTile({checkpoint:checkpointPath,...tensors,original,device,torchLibrary},
+  const diagnostic=await diagnoseNativeTrainingTile({checkpoint:checkpointPath,baselineWeights:baselinePath,...tensors,original,device,torchLibrary},
     {signal,workspace,imageDirectory,evaluationDirectory,batchDirectory});
   const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels},{signal,workspace,imageDirectory,previewDirectory});
   recheckMacroTrainingSource(checks);
   if(trainingFileIdentity(corpusPath)!==corpusHash||trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash)
     throw Error('Training inputs changed during diagnostic');
-  return {sourceId,tileIndex:index,pixelOrigin:[x,y],channels:diagnostic.channels,jpeg:preview.data,checkpointSha256:checkpointHash,corpusSha256:corpusHash,
+  if(baselinePath&&(trainingFileIdentity(baselinePath)!==baselineHash||trainingFileIdentity(transferPath)!==transferHash))throw Error('Baseline changed during diagnostic');
+  return {sourceId,tileIndex:index,pixelOrigin:[x,y],channels:diagnostic.channels,baselineChannels:diagnostic.baselineChannels,
+    baselineWeightsSha256:diagnostic.baselineWeightsSha256,baselineOriginalCheckpointSha256:baselinePath?(receipt.initializationSourceSha256??null):null,
+    jpeg:preview.data,checkpointSha256:checkpointHash,corpusSha256:corpusHash,
     trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 
@@ -103,13 +123,14 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
     if(process.argv[2]==='--macro-source'){
       const {values,positionals}=parseArgs({args:process.argv.slice(3),allowPositionals:true,options:{corpus:{type:'string'},source:{type:'string'},
-        checkpoint:{type:'string'},output:{type:'string'},device:{type:'string'},'torch-library':{type:'string'}}});
+        checkpoint:{type:'string'},'baseline-weights':{type:'string'},output:{type:'string'},device:{type:'string'},'torch-library':{type:'string'}}});
       if(positionals.length||!values.corpus||!values.source||!values.checkpoint||!values.output||!values.device||!values['torch-library'])
         throw Error('Expected --macro-source --corpus MANIFEST --source ID --checkpoint PATH --output DIRECTORY --device cpu|cuda --torch-library DIRECTORY');
       const output=resolve(reportArgument(values.output,{access:'write'}));
       if(existsSync(output))throw Error('Diagnostic output exists; preserve prior evidence');
       const result=await diagnoseMacroTrainingSource({corpus:reportArgument(values.corpus,{access:'read',siblings:true}),sourceId:values.source,
-        checkpoint:reportArgument(values.checkpoint,{access:'read'}),device:values.device,torchLibrary:values['torch-library']});
+        checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),
+        device:values.device,torchLibrary:values['torch-library']});
       const {jpeg,...diagnostic}=result;
       await mkdir(output);await writeFile(resolve(output,'preview.jpg'),jpeg,{flag:'wx'});
       await writeFile(resolve(output,'diagnostics.json'),JSON.stringify({...diagnostic,purpose:'training-set-diagnostic-only',previewFile:'preview.jpg'},null,2)+'\n',{flag:'wx'});

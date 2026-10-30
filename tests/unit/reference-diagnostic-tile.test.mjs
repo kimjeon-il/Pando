@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -43,8 +43,16 @@ test('macro diagnostics refuse a checkpoint for a different corpus before execut
   const request={corpus,checkpoint,sourceId:'fixture',device:'cpu',torchLibrary:folder};
   await assert.rejects(diagnoseMacroTrainingSource(request),/does not match/i);
   receipt.corpusSha256=hash('{}');writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
+  const weights=join(folder,'weights.safetensors');writeFileSync(weights,'other initializer');
+  await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/checkpoint initializer/i);
+  receipt.initializationWeightsSha256='0'.repeat(64);writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
+  await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/checkpoint initializer/i);
   await assert.rejects(diagnoseMacroTrainingSource(request),/training-only corpus/i);
   const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--macro-source','--corpus',corpus,
     '--source','fixture','--checkpoint',checkpoint,'--output',folder,'--device','cpu','--torch-library',folder],{encoding:'utf8'});
   assert.notEqual(cli.status,0);assert.match(cli.stderr,/output exists/i);
+  const output=join(folder,'new-diagnostic');
+  const wrongBaseline=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--macro-source','--corpus',corpus,
+    '--source','fixture','--checkpoint',checkpoint,'--baseline-weights',weights,'--output',output,'--device','cpu','--torch-library',folder],{encoding:'utf8'});
+  assert.notEqual(wrongBaseline.status,0);assert.match(wrongBaseline.stderr,/checkpoint initializer/i);assert.equal(existsSync(output),false);
 });
