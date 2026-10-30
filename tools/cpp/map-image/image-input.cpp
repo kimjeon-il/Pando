@@ -9,11 +9,12 @@
 #include <string>
 
 namespace pando::map_image {
-ImageInput readImage(const std::vector<std::uint8_t>& encoded,bool jpeg,int maximumPixels,int x,int y,int width,int height){
+ImageInput readImage(const std::vector<std::uint8_t>& encoded,const std::string& format,int maximumPixels,int x,int y,int width,int height){
     if(maximumPixels<256||maximumPixels>16777216)throw std::invalid_argument("Pixel budget must be 256..16777216");
     PandoImage decoded{};
-    if(!(jpeg?pando_read_jpeg(encoded.data(),encoded.size(),&decoded):pando_read_png(encoded.data(),encoded.size(),&decoded)))
-        throw std::runtime_error(std::string(jpeg?"JPEG input: ":"PNG input: ")+decoded.error);
+    const int success=format=="jpeg"?pando_read_jpeg(encoded.data(),encoded.size(),&decoded):
+        format=="webp"?pando_read_webp(encoded.data(),encoded.size(),&decoded):pando_read_png(encoded.data(),encoded.size(),&decoded);
+    if(!success)throw std::runtime_error(format+" input: "+decoded.error);
     std::unique_ptr<std::uint8_t,decltype(&std::free)> pixels(decoded.rgba,&std::free);
     const int rawWidth=static_cast<int>(decoded.width),rawHeight=static_cast<int>(decoded.height),orientation=static_cast<int>(decoded.orientation);
     const bool swaps=orientation>=5&&orientation<=8;

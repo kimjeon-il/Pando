@@ -114,8 +114,9 @@ export async function collectSourceFiles(workspace=root,{diagnostics=false,revis
     'tools/map-image/native-resample.mjs','tools/native-tool.mjs','tools/cpp/CMakeLists.txt',
     'tools/cpp/map-image/main.cpp','tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h',
     'tools/cpp/map-image/png.cpp','tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h',
-    'tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE',
-    'tools/cpp/map-image/libpng-LICENSE','tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg'];
+    'tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/webp-read.c','tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE',
+    'tools/cpp/map-image/libpng-LICENSE','tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg',
+    'tools/cpp/map-image/libwebp-COPYING','tools/cpp/map-image/libwebp-PATENTS'];
   if(diagnostics)seeds.push('tools/reference-analysis/verify-trained-onnx.mjs','tools/reference-analysis/cloud-probe.mjs');
   if(revision) {
     if(!/^[a-f0-9]{40}$/.test(revision))throw Error('A full commit revision is required');
