@@ -1,4 +1,5 @@
 #include "training-step.h"
+#include "training-validation.h"
 #include <ATen/Context.h>
 #include <cmath>
 #include <iostream>
@@ -19,6 +20,9 @@ int main(){try{
     torch::zeros({1,7,64,64}),torch::ones({1,7,64,64})};
   batch.target.index_put_({torch::indexing::Slice(),torch::indexing::Slice(),torch::indexing::Slice(20,40),torch::indexing::Slice(20,40)},1);
   batch.valid.index_put_({torch::indexing::Slice(),torch::indexing::Slice(),torch::indexing::Slice(0,10),torch::indexing::Slice()},0);
+  const auto validation=pando::reference::validationBatchLoss(model,batch);
+  if(!std::isfinite(validation)||std::abs(validation-1.5832347869873047)>.005||model->is_training())throw std::runtime_error("Validation loss or evaluation mode differs from Python");
+  model->train();model->encoder->eval();
   const auto weights=torch::tensor({1.f,2.f,3.f,4.f,5.f,6.f,7.f});
   const double loss=pando::reference::trainingBatchStep(model,optimizer,batch,weights);
   if(!std::isfinite(loss)||std::abs(loss-1.8224329948425293)>.005)throw std::runtime_error("Weighted training loss differs from Python");

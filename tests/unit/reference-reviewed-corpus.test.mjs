@@ -21,7 +21,9 @@ async function fixture(t){
 }
 test('reviewed corpus validates materialized source and keeps language groups distinct',async t=>{
   const {root,sheet}=await fixture(t);const input={schemaVersion:1,sheets:[sheet]};
-  assert.equal(await validateReviewedCorpus(input,root),input);
+  const verified=[];assert.equal(await validateReviewedCorpus(input,root,{onVerified:entry=>verified.push(entry)}),input);
+  assert.equal(verified.length,1);assert.equal(verified[0].annotation.review.sourceSha256,sheet.sha256);
+  assert.equal(verified[0].annotationSha256,createHash('sha256').update(await readFile(join(root,'labels/map.json'))).digest('hex'));
   assert.deepEqual(evaluationGroups([sheet,{...sheet,id:'other',language:'urd'}]),{'monochrome/Arabic/fas':['map'],'monochrome/Arabic/urd':['other']});
   assert.deepEqual(Object.keys(evaluationGroups(['ara','fas','urd'].map((language,index)=>({...sheet,id:String(index),language})))).sort(),
     ['monochrome/Arabic/ara','monochrome/Arabic/fas','monochrome/Arabic/urd']);
