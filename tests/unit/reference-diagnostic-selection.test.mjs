@@ -14,6 +14,17 @@ test('diagnostic selection uses known positives and keeps the first maximum',asy
   assert.ok(selected.positivePixels>0);
 });
 
+test('diagnostic selection keeps first tile for ties and uses hydro for no positives',async()=>{
+  const annotation={width:1024,height:512,known:{coast:[[[0,0],[1023,0],[1023,511],[0,511]]]},
+    lines:[{kind:'coast',points:[[500,30],[500,40]],width:1}],regions:[],ignore:[]};
+  const tied=await selectDiagnosticTile({annotation});
+  assert.equal(tied.index,0);assert.equal(tied.x,0);assert.equal(tied.channel,2);assert.ok(tied.positivePixels>0);
+  annotation.lines=[];
+  assert.deepEqual(await selectDiagnosticTile({annotation}),{index:0,x:0,y:0,channel:3,positivePixels:0});
+  annotation.known={};
+  assert.equal(await selectDiagnosticTile({annotation}),null);
+});
+
 test('large raster selection uses original known/target pixels and overlapping tile order',async()=>{
   const root='tests/fixtures',path='reference-training-raster/large-valid.png',bytes=await readFile(`${root}/${path}`);
   const sha256=createHash('sha256').update(bytes).digest('hex');
