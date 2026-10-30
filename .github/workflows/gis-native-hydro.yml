@@ -45,7 +45,7 @@ jobs:
       - name: Build and verify only the terrain preview compositor
         shell: pwsh
         run: |
-          cmake -S tools/cpp -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF -DPANDO_BUILD_TERRAIN_PREVIEW=ON
+          cmake -S tools/cpp/terrain -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview configure failed' }
           cmake --build build-native/terrain-preview --config Release --target pando-terrain-preview
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview build failed' }

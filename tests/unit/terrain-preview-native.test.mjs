@@ -28,8 +28,15 @@ test('native land mask preserves dateline wrapping, holes and overlapping polygo
   for(const row of masks){const result=spawnSync(binary,['mask'],{input:JSON.stringify(row),maxBuffer:2*1024*1024});
     assert.equal(result.status,0,`${row.name}: ${result.stderr}`);assert.deepEqual(result.stdout,Buffer.from(row.expectedBase64,'base64'),row.name);}
 });
+test('native land mask rejects invalid geometry and dimensions without partial output',{skip:!binary},()=>{
+  const invalid=structuredClone(masks[0]);invalid.countries.features[0].geometry.coordinates[0][0][0]=181;
+  const empty=structuredClone(masks[0]);empty.width=0;
+  for(const input of [invalid,empty]){const result=spawnSync(binary,['mask'],{input:JSON.stringify(input)});
+    assert.equal(result.status,1);assert.equal(result.stdout.length,0);assert(result.stderr.length>0);}
+});
 test('terrain preview interface validates pixel buffers before starting the native tool',async()=>{
   const row=cases[0];await assert.rejects(composeNativeTerrainPreview({...row,dem:Buffer.alloc(1),tint:Buffer.from(row.tint),land:Buffer.from(row.land)}),/buffer/i);
+  await assert.rejects(rasterizeNativeTerrainLand({...masks[0],width:0}),/inputs/i);
 });
 test('source-bound terrain preview interface preserves all frozen pixel cases',{
   skip:!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY,

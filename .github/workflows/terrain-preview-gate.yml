@@ -42,7 +42,7 @@ jobs:
           version: '11.19.0'
       - name: Rebuild the fixed DEM preview and verify current terrain assets
         run: |
-          cmake -S tools/cpp -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF -DPANDO_BUILD_TERRAIN_PREVIEW=ON
+          cmake -S tools/cpp/terrain -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release
           cmake --build build-native/terrain-preview --target pando-terrain-preview
           python -m pip install Pillow==12.3.0 numpy==2.3.5
           python tools/build-terrain-preview.py --rebuild-check
