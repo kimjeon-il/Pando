@@ -4,9 +4,17 @@ import { mkdtemp, writeFile, readFile, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { validateEnvironment, verifyBundle, runProbe } from '../../tools/reference-analysis/cloud-probe.mjs';
 import { nodeManifest, collectSourceFiles } from '../../tools/reference-analysis/runtime-assets.mjs';
 import * as probe from '../../tools/reference-analysis/cloud-probe.mjs';
+import {prepareRuntime} from '../../plugins/pando-map-tools/lib/runtime.mjs';
+
+test('map runtime starts without a Python interpreter',async()=>{
+  const previous=process.env.PANDO_MAP_PYTHON;process.env.PANDO_MAP_PYTHON=join(tmpdir(),'no-such-python');
+  try{const result=await prepareRuntime({workspace:process.cwd()});assert.equal(result.workspace,process.cwd());assert.equal(Object.hasOwn(result,'python'),false);}
+  finally{if(previous===undefined)delete process.env.PANDO_MAP_PYTHON;else process.env.PANDO_MAP_PYTHON=previous;}
+});
 
 test('environment gate requires observed Work cloud execution rather than a local smoke test',()=>{
   const receipt={surface:'chatgpt-work-cloud',verdict:'passed',checks:{platform:{os:'Linux'},node:{status:'passed'},file_read_write:{status:'passed'}}};
@@ -47,12 +55,19 @@ test('generated runtime dependencies are exact versions from the installed produ
   assert(!manifest.scripts);assert(!manifest.devDependencies);
 });
 
-test('product source closure excludes diagnostic runners, training and generated Python caches',async()=>{
+test('product source closure excludes diagnostic runners, training and Python sources',async()=>{
   const files=await collectSourceFiles(undefined,{diagnostics:false});
   assert(!files.includes('tools/reference-analysis/cloud-probe.mjs'));
   assert(!files.includes('tools/reference-analysis/verify-trained-onnx.mjs'));
-  assert(!files.some(path=>path.includes('__pycache__')||path.endsWith('.pyc')||path.includes('skills/pando-map-training/')));
+  assert(!files.some(path=>path.includes('__pycache__')||path.endsWith('.pyc')||path.endsWith('.py')||path.includes('skills/pando-map-training/')));
   assert(!files.some(path=>path.startsWith('assets/js/')||path.startsWith('assets/wasm/')));
+});
+
+test('committed runtime source closure includes the native owners and excludes the training-only raster module',async()=>{
+  const revision=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+  const files=await collectSourceFiles(undefined,{revision});
+  for(const path of ['tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs','tools/cpp/map-preview/aileron-subset.ttf'])assert(files.includes(path),path);
+  assert(!files.includes('plugins/pando-map-tools/lib/raster.py'));
 });
 
 test('repeated export or resume is rejected before changing the job or a successful receipt',async()=>{

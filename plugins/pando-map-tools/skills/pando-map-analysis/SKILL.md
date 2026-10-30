@@ -39,8 +39,8 @@ when source details are available. Missing rights are recorded, not invented.
 
 skills.read supplies this installed skill's skill_root. Use
 <skill_root>/scripts/map.mjs; its managed model and hashed runtime seed prepare
-automatically. Existing Node/Python, Pillow and PyMuPDF are used. Only required
-exact Node dependencies and requested OCR packs are installed/fetched. A missing
+automatically. Node and the pinned native image, PDF and preview tools are used.
+Only required exact Node dependencies and requested OCR packs are installed/fetched. A missing
 or altered resource must fail visibly; never bypass signatures or repoint to a
 moving branch. If cloud execution tools are unavailable, report that limitation.
 

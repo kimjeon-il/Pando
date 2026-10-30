@@ -46,17 +46,21 @@ Map Toolkit's PNG, JPEG and WebP input, RGBA resize, clockwise right-angle rotat
 in `build-native/map-image/artifact`; build it through the `map-image` GIS native
 workflow and install the artifact for the current platform. A missing or
 source-mismatched binary is an error. PDF input uses the separate source-verified
-`pando-map-pdf` executable and the pinned MuPDF 1.26.11 runtime; preview rendering
-still uses the existing adapter during migration. For private package or cloud-probe
+`pando-map-pdf` executable and the pinned MuPDF 1.26.11 runtime. Review overlays
+and labels use the source-verified `pando-map-preview` executable and pinned font.
+The map-analysis runtime does not start Python. For private package or cloud-probe
 creation, set `PANDO_MAP_IMAGE_LINUX_ARTIFACT` and
 `PANDO_MAP_IMAGE_WINDOWS_ARTIFACT` to the matching CI artifact directories.
-Both image artifacts and both PDF artifacts must match the selected source revision;
-the PDF artifact directories can be selected with `PANDO_MAP_PDF_LINUX_ARTIFACT`
-and `PANDO_MAP_PDF_WINDOWS_ARTIFACT`. They are included in the private runtime,
+The image, PDF and preview artifacts for both platforms must match the selected source revision;
+the PDF and preview artifact directories can be selected with
+`PANDO_MAP_PDF_LINUX_ARTIFACT`, `PANDO_MAP_PDF_WINDOWS_ARTIFACT`,
+`PANDO_MAP_PREVIEW_LINUX_ARTIFACT` and `PANDO_MAP_PREVIEW_WINDOWS_ARTIFACT`.
+They are included in the private runtime,
 and no model or public data is changed by this setup.
 The executable statically includes zlib 1.3.2, libpng 1.6.57, libjpeg-turbo
 3.1.4.1 and libwebp 1.6.0. Their notices are in `tools/cpp/map-image/`; the MuPDF
-license notices are in `tools/cpp/map-pdf/`.
+license notices are in `tools/cpp/map-pdf/`; preview font and FreeType notices are
+in `tools/cpp/map-preview/`. Training and corpus tools remain under migration.
 
 Analysis runtime proof uses the plugin CLI with local map/model paths. Native
 application proof uses `tests/browser/native-map-plugin.mjs` for ordinary GIS

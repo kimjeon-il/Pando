@@ -144,18 +144,6 @@ export async function openAnalysisGazetteer(workspace,{signal,fetchAsset=fetch}=
   }});
   return {...store,manifest,manifestSha256:hash(manifestBytes),manifestPath};
 }
-async function pythonRuntime(workspace) {
-  const candidates=process.env.PANDO_MAP_PYTHON?[process.env.PANDO_MAP_PYTHON]
-    :process.platform==='win32'?[join(workspace,'build-native/python/Scripts/python.exe')]:['python3','python'];
-  const failures=[];
-  for(const candidate of candidates) {
-    try {
-      const value=await run(candidate,['-c','import sys,json,PIL,fitz; assert sys.version_info >= (3,11); print(json.dumps({"executable":sys.executable,"pillow":PIL.__version__,"pymupdf":fitz.VersionBind}))'],{windowsHide:true,maxBuffer:100000});
-      return JSON.parse(value.stdout).executable;
-    } catch(error) {failures.push(error);}
-  }
-  throw Object.assign(fail('Python 3.11+, Pillow and PyMuPDF are required','PL-MAP-PYTHON'),{cause:new AggregateError(failures)});
-}
 async function dependenciesReady(workspace,npm) {
   for(const [name,version] of Object.entries({...npm.dependencies,...npm.overrides})) {
     try {if((await readJSON(join(workspace,'node_modules',name,'package.json'))).version!==version)return false;}
@@ -167,7 +155,7 @@ export async function prepareRuntime({workspace,pluginRoot=fileURLToPath(new URL
   const local=resolve(workspace||process.env.PANDO_MAP_WORKSPACE||resolve(pluginRoot,'../..'));
   if(workspace||process.env.PANDO_MAP_WORKSPACE||existsSync(join(local,'tools/load-node-core.mjs'))) {
     if(!existsSync(join(local,'tools/load-node-core.mjs')))throw fail('The selected existing workspace is unavailable');
-    return {workspace:local,python:await pythonRuntime(local),modelPath:null,cacheHit:true};
+    return {workspace:local,modelPath:null,cacheHit:true};
   }
   progress({phase:'runtime',step:'verify'});
   const prepared=await materializeWorkspace({pluginRoot,cacheRoot,signal});
@@ -183,5 +171,5 @@ export async function prepareRuntime({workspace,pluginRoot=fileURLToPath(new URL
     } finally {if(lock){await lock.close();await unlink(lockPath);}}
   }
   progress({phase:'runtime',step:'ready',cacheHit:prepared.cacheHit});
-  return {...prepared,python:await pythonRuntime(prepared.workspace)};
+  return prepared;
 }

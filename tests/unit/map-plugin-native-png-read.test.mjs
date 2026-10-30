@@ -27,6 +27,14 @@ test('native PNG input rejects bad rectangles, budgets and missing files',async(
   await assert.rejects(raster({action:'read',path:path+'.missing',maxPixels:256}));
 });
 
+test('unsupported raster formats and operations fail without invoking Python',async t=>{
+  process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
+  const folder=mkdtempSync(join(tmpdir(),'pando-raster-format-'));t.after(()=>rmSync(folder,{recursive:true,force:true}));
+  const path=join(folder,'invalid.bmp');writeFileSync(path,Buffer.from('not an accepted raster'));
+  await assert.rejects(raster({action:'read',path,maxPixels:256}),/PNG, JPEG, WebP or PDF/i);
+  await assert.rejects(raster({action:'unsupported',path}),/operation/i);
+});
+
 test('native PNG input detects file content and rejects truncated or oversized input',async t=>{
   process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
   const folder=mkdtempSync(join(tmpdir(),'pando-png-source-'));t.after(()=>rmSync(folder,{recursive:true,force:true}));
