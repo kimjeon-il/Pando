@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {crc32,inflateSync} from 'node:zlib';
 import test from 'node:test';
-import {raster,resizeRaster} from '../../plugins/pando-map-tools/lib/raster.mjs';
+import {pngRaster,raster,resizeRaster} from '../../plugins/pando-map-tools/lib/raster.mjs';
 
 test('map plugin resizes RGBA without starting its Python raster adapter',async()=>{
   process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
@@ -23,4 +24,30 @@ test('map plugin rotates RGBA pixels clockwise without Python',async()=>{
     assert.deepEqual(actual.data,Buffer.concat(order.map(i=>pixels.subarray(i*4,i*4+4))));
   }
   await assert.rejects(raster({action:'rotate',width:3,height:2,degrees:45},pixels),/rotation/i);
+});
+
+test('map plugin encodes PNG with exact RGBA pixels without Python',async()=>{
+  process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
+  const pixels=Buffer.from([1,2,3,0, 4,5,6,127, 7,8,9,255, 10,11,12,1, 13,14,15,254, 16,17,18,255]);
+  const png=await pngRaster({width:3,height:2,data:pixels});
+  assert.deepEqual(png.subarray(0,8),Buffer.from([137,80,78,71,13,10,26,10]));
+  let cursor=8,header,ended=false;const chunks=[];
+  while(cursor<png.length){
+    const n=png.readUInt32BE(cursor),type=png.subarray(cursor+4,cursor+8),body=png.subarray(cursor+8,cursor+8+n);
+    assert.equal(body.length,n);assert.equal(png.readUInt32BE(cursor+8+n),crc32(Buffer.concat([type,body])));
+    if(type.toString()==='IHDR')header=body;
+    if(type.toString()==='IDAT')chunks.push(body);
+    if(type.toString()==='IEND')ended=true;
+    cursor+=n+12;
+  }
+  assert.equal(cursor,png.length);assert.ok(ended&&header&&chunks.length);
+  assert.deepEqual([header.readUInt32BE(0),header.readUInt32BE(4),header[8],header[9]],[3,2,8,6]);
+  const raw=inflateSync(Buffer.concat(chunks)),decoded=Buffer.alloc(pixels.length),stride=12;
+  const paeth=(a,b,c)=>{const p=a+b-c,da=Math.abs(p-a),db=Math.abs(p-b),dc=Math.abs(p-c);return da<=db&&da<=dc?a:db<=dc?b:c;};
+  for(let y=0;y<2;y++)for(let x=0;x<stride;x++){
+    const filter=raw[y*(stride+1)],at=y*stride+x,left=x>=4?decoded[at-4]:0,up=y?decoded[at-stride]:0,upperLeft=y&&x>=4?decoded[at-stride-4]:0;
+    assert.ok(filter<=4);const prediction=[0,left,up,Math.floor((left+up)/2),paeth(left,up,upperLeft)][filter];
+    decoded[at]=(raw[y*(stride+1)+1+x]+prediction)&255;
+  }
+  assert.deepEqual(decoded,pixels);
 });

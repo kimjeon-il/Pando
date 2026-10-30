@@ -127,8 +127,8 @@ def source(spec):
 
 def run(spec):
     action = spec['action']
-    if action == 'encode':
-        image = Image.frombytes('RGBA', (spec['width'], spec['height']), sys.stdin.buffer.read())
+    if action not in ('read', 'preview'):
+        raise ValueError('Unknown raster operation')
     else:
         image, metadata = source(spec)
         width, height = image.size
