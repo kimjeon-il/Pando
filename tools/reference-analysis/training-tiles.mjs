@@ -1,8 +1,7 @@
 // Prepare one source-coordinate training tile with the shared native owners.
 import {dirname,extname,resolve} from 'node:path';
-import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMask,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
+import {countNativeEncodedTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMask,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -76,13 +75,19 @@ export async function indexMacroTrainingDataset(corpus,{signal,workspace,imageDi
   if(hash(readTrainingBounded(path,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during indexing');
   return {trainingOnly:true,releaseApproved:false,corpusSha256,tiles};
 }
-async function trainingRaster(root,annotation,field,options){
+async function encodedTrainingRaster(root,annotation,field,options){
   if(!rasterOrigins.has(annotation?.origin))throw Error('Explicit raster training supervision required');
   const spec=annotation[field];if(!spec||typeof spec.path!=='string')throw Error('Source-bound raster path required');
-  const path=await resolveCorpusPath(root,spec.path),bytes=await readFile(path,{signal:options.signal});
+  options.signal?.throwIfAborted();
+  const path=await resolveCorpusPath(root,spec.path),bytes=readTrainingBounded(path,300*1024*1024);
+  options.signal?.throwIfAborted();
+  return {bytes,sha256:spec.sha256};
+}
+async function trainingRaster(root,annotation,field,options){
+  const {bytes,sha256}=await encodedTrainingRaster(root,annotation,field,options);
   const nativeOptions={signal:options.signal,workspace:options.workspace,directory:options.imageDirectory};
-  const mask=options.scanTiles?await scanNativeTrainingMaskTiles(bytes,spec.sha256,nativeOptions):options.window?await readNativeTrainingMaskWindow(bytes,spec.sha256,options.window,nativeOptions):
-    await readNativeTrainingMask(bytes,spec.sha256,nativeOptions);
+  const mask=options.scanTiles?await scanNativeTrainingMaskTiles(bytes,sha256,nativeOptions):options.window?await readNativeTrainingMaskWindow(bytes,sha256,options.window,nativeOptions):
+    await readNativeTrainingMask(bytes,sha256,nativeOptions);
   if(mask.width!==annotation.width||mask.height!==annotation.height)throw Error('Training raster dimensions differ from original');return mask;
 }
 export async function macroTrainingSupervision(corpus,{signal,workspace,imageDirectory}={}){
@@ -95,8 +100,10 @@ export async function macroTrainingSupervision(corpus,{signal,workspace,imageDir
   for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
     if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
     const {annotation,checks}=await verifiedMacroTrainingSource(root,manifest,row.id);
-    const [target,known]=await Promise.all([trainingRaster(root,annotation,'raster',options),trainingRaster(root,annotation,'validRaster',options)]);
-    const sheetCounts=await countNativeTrainingSupervision(target,known,{signal,workspace,directory:imageDirectory});
+    const [target,known]=await Promise.all([encodedTrainingRaster(root,annotation,'raster',options),encodedTrainingRaster(root,annotation,'validRaster',options)]);
+    const supervision=await countNativeEncodedTrainingSupervision(target,known,{signal,workspace,directory:imageDirectory});
+    if(supervision.width!==annotation.width||supervision.height!==annotation.height)throw Error('Training raster dimensions differ from original');
+    const sheetCounts=supervision.counts;
     for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=sheetCounts[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
     recheckMacroTrainingSource(checks);
     sources.push({id:row.id,hashes:checks.map(([,expected])=>expected)});
