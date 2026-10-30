@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import yazl from 'yazl';
-import {openSourceArchive,readPinnedHttpRange,selectRealTrainingMembers} from '../../tools/reference-analysis/semap-source.mjs';
+import {openSourceArchive,orderSemapTrainingMembers,readPinnedHttpRange,readPinnedSmallFile,readTrainingPartition,selectRealTrainingMembers} from '../../tools/reference-analysis/semap-source.mjs';
 import {zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 
 test('bounded source ranges retry short bodies and join partial stream chunks',async()=>{
@@ -47,6 +47,12 @@ test('only licensed real training members are selected and alternate tiles remai
   const training=new Set(names.map(name=>name.split('/').at(-1).replace(/\.jpg$/,'')));
   assert.deepEqual(selectRealTrainingMembers(names,training),names.slice(0,3));
 });
+test('real source candidates interleave institutions using original deterministic diversity order',()=>{
+  const names=['images/real/loc_000001-0_0_0.jpg','images/real/loc_000001-1_0_0.jpg','images/real/loc_000002-0_0_0.jpg',
+    'images/real/wwu_munster_109980-1_1697_6386.jpg','images/real/wwu_munster_000002-0_0_0.jpg'];
+  const training=new Set(names.map(name=>name.split('/').at(-1).replace(/\.jpg$/,'')));
+  assert.deepEqual(orderSemapTrainingMembers(names,training),[names[2],names[3],names[1],names[4],names[0]]);
+});
 test('bounded source ranges reject incorrect range, oversized data and cancellation',async()=>{
   const options={url:'https://example.test/source.zip',total:100,start:10,end:15};
   await assert.rejects(readPinnedHttpRange({...options,fetcher:async()=>new Response('abcdef',{status:206,headers:{'Content-Range':'bytes 0-5/100'}})}),/exact pinned/i);
@@ -54,4 +60,18 @@ test('bounded source ranges reject incorrect range, oversized data and cancellat
   const controller=new AbortController();controller.abort();
   await assert.rejects(readPinnedHttpRange({...options,signal:controller.signal}));
   await assert.rejects(readPinnedHttpRange({...options,end:99,total:100,start:-1}),/range/i);
+});
+test('small partition and rights evidence must match its pinned length and digest',async()=>{
+  const options={url:'https://example.test/license',size:6,md5:'e80b5017098950fc58aad83c8c14978e'};
+  assert.equal((await readPinnedSmallFile({...options,fetcher:async()=>new Response('abcdef')})).toString(),'abcdef');
+  await assert.rejects(readPinnedSmallFile({...options,fetcher:async()=>new Response('abc')}),/identity/i);
+  await assert.rejects(readPinnedSmallFile({...options,fetcher:async()=>new Response('ABCDEF')}),/identity/i);
+  await assert.rejects(readPinnedSmallFile({...options,fetcher:async()=>new Response('abcdefg')}),/exceeds/i);
+});
+test('author partition requires one CRC-verified training list',async()=>{
+  const build=async names=>{const zip=new yazl.ZipFile(),chunks=[];zip.outputStream.on('data',part=>chunks.push(part));
+    const done=new Promise((ok,fail)=>{zip.outputStream.on('end',ok);zip.outputStream.on('error',fail);});
+    for(const name of names)zip.addBuffer(Buffer.from('loc_000001-1_0_0\nloc_000002-0_0_0\n'),name);zip.end();await done;return Buffer.concat(chunks);};
+  assert.deepEqual([...await readTrainingPartition(await build(['partitions/train.txt']))],['loc_000001-1_0_0','loc_000002-0_0_0']);
+  await assert.rejects(readTrainingPartition(await build(['one/train.txt','two/train.txt'])),/unique/i);
 });
