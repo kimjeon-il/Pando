@@ -108,6 +108,17 @@ export async function readNativeTrainingMask(bytes,sha256,{signal,workspace=root
   dimensions(width,height);if(data.length!==8+width*height)throw Error('Native training mask byte length mismatch');
   signal?.throwIfAborted();return {width,height,data:data.subarray(8)};
 }
+export async function countNativeTrainingSupervision(target,known,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();dimensions(target?.width,target?.height);
+  if(target.width!==known?.width||target.height!==known?.height||!(target.data instanceof Uint8Array)||!(known.data instanceof Uint8Array)||
+    target.data.length!==target.width*target.height||known.data.length!==target.data.length)throw Error('Matching source-coordinate training masks required');
+  const output=await runNative(nativeBinary(workspace,directory),['training-supervision',String(target.width),String(target.height)],
+    Buffer.concat([target.data,known.data]),56,signal);
+  if(output.length!==56)throw Error('Native training supervision receipt is invalid');
+  const counts=Array.from({length:7},(_,i)=>[output.readUInt32BE(i*8),output.readUInt32BE(i*8+4)]);
+  if(counts.some(([valid,positive])=>valid>target.data.length||positive>valid))throw Error('Native training supervision counts are invalid');
+  return counts;
+}
 export function resizeNativePdfThumbnail(image,size,options){
   return operateNativeRgba(image,size,['thumbnail-pdf',...(Array.isArray(size)?size:[])],options);
 }

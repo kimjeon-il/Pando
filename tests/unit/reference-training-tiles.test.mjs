@@ -3,7 +3,13 @@ import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import {listRasterTrainingTiles,listReviewedTrainingTiles,prepareRasterTrainingTile,prepareReviewedTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
-import {readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
+
+test('native supervision counts only target pixels inside known regions',async()=>{
+  const target={width:3,height:1,data:Buffer.from([1,2,127])},known={width:3,height:1,data:Buffer.from([1,3,0])};
+  assert.deepEqual(await countNativeTrainingSupervision(target,known),[[2,1],[1,1],[0,0],[0,0],[0,0],[0,0],[0,0]]);
+  await assert.rejects(countNativeTrainingSupervision(target,{...known,width:2}),/Matching/);
+});
 
 test('training tile selection keeps supervised areas and excludes unknown padded tiles',async()=>{
   const annotation={width:600,height:16,known:{international:[[[0,0],[49,0],[49,15],[0,15]]]},lines:[],ignore:[]};
