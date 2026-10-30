@@ -14,6 +14,7 @@ node tools/qgis/native-bridge.mjs start
 node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs canvas
+node tools/qgis/native-bridge.mjs canvas-extent --bounds '[125,35,130,40]' --source-crs EPSG:4326
 node tools/qgis/native-bridge.mjs canvas-scale --scale 10000000 --rotation 0
 node tools/qgis/native-bridge.mjs active-layer
 node tools/qgis/native-bridge.mjs active-layer --layer QGIS_LAYER_ID
@@ -32,6 +33,7 @@ node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --expression '"na
 node tools/qgis/native-bridge.mjs selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs clear-selection --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs begin-edit --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs edit-status --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs add-field --layer QGIS_LAYER_ID --field label --field-type string
 node tools/qgis/native-bridge.mjs rename-field --layer QGIS_LAYER_ID --field label --new-field new_label
 node tools/qgis/native-bridge.mjs delete-field --layer QGIS_LAYER_ID --field label

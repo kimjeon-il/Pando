@@ -20,6 +20,8 @@ function createServer(){
     async(_args,extra)=>respond([...options,'project'],extra.signal));
   server.registerTool('qgis_native_canvas',{description:'Inspect the current map extent, CRS, size, scale and rotation.',inputSchema:empty},
     async(_args,extra)=>respond([...options,'canvas'],extra.signal));
+  server.registerTool('qgis_native_canvas_extent',{description:'Set the map extent in an explicit or current canvas CRS.',inputSchema:z.strictObject({bounds:z.tuple([z.number().finite(),z.number().finite(),z.number().finite(),z.number().finite()]),sourceCrs:z.string().min(1).max(128).optional()})},
+    async({bounds,sourceCrs},extra)=>respond([...options,'canvas-extent',`--bounds=${JSON.stringify(bounds)}`,...(sourceCrs===undefined?[]:[`--source-crs=${sourceCrs}`])],extra.signal));
   server.registerTool('qgis_native_canvas_scale',{description:'Set the map scale and/or rotation.',inputSchema:z.strictObject({scale:z.number().finite().positive().optional(),rotation:z.number().finite().optional()})},
     async({scale,rotation},extra)=>respond([...options,'canvas-scale',...(scale===undefined?[]:[`--scale=${scale}`]),...(rotation===undefined?[]:[`--rotation=${rotation}`])],extra.signal));
   server.registerTool('qgis_native_active_layer',{description:'Read or set the active QGIS layer.',inputSchema:z.strictObject({layer:path.optional()})},
@@ -35,6 +37,8 @@ function createServer(){
   async({offset,limit},extra)=>respond([...options,'layers','--offset',String(offset),'--limit',String(limit)],extra.signal));
   server.registerTool('qgis_native_schema',{description:'Inspect vector layer geometry, CRS and field definitions.',inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,'schema','--layer',layer],extra.signal));
+  server.registerTool('qgis_native_edit_status',{description:'Inspect pending layer edits and whether this bridge owns the edit session.',inputSchema:z.strictObject({layer:path})},
+    async({layer},extra)=>respond([...options,'edit-status',`--layer=${layer}`],extra.signal));
   server.registerTool('qgis_native_set_visibility',{description:'Set the checked visibility of a QGIS layer without changing parent groups.',inputSchema:z.strictObject({layer:path,visible:z.boolean()})},
     async({layer,visible},extra)=>respond([...options,'set-visibility',`--layer=${layer}`,`--visible=${visible}`],extra.signal));
   server.registerTool('qgis_native_remove_layer',{description:'Remove a project layer while preserving source files; editable, modified and temporary layers are refused.',inputSchema:z.strictObject({layer:path})},
