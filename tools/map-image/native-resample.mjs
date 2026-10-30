@@ -79,6 +79,21 @@ export async function nativeMacroAdjacency(image,radius,options){
   return {target:data.subarray(0,pixels),known:data.subarray(pixels)};
 }
 export async function nativeMacroDilate(image,radius,options){return nativeMacroMask(image,radius,'macro-dilate',options);}
+async function nativeMacroColors(image,colors,action,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();dimensions(image?.width,image?.height);
+  if(!(image.data instanceof Uint8Array)||image.data.length!==image.width*image.height*3)throw Error('Macro RGB input length differs');
+  const visible=action==='macro-visible';
+  if(!Array.isArray(colors)||colors.length<(visible?1:2)||colors.length>(visible?1024:16)||
+    colors.some(color=>!Array.isArray(color)||color.length!==3||color.some(value=>typeof value!=='number'||!Number.isFinite(value)||value<0||value>1)))
+    throw Error('Invalid macro color palette');
+  const values=Buffer.alloc(colors.length*24);colors.flat().forEach((value,i)=>values.writeDoubleLE(value,i*8));
+  const output=await runNative(nativeBinary(workspace,directory),[action,String(image.width),String(image.height),String(colors.length)],
+    Buffer.concat([values,image.data]),image.width*image.height,signal);
+  if(output.length!==image.width*image.height||output.some(value=>value>(visible?1:colors.length)))throw Error('Invalid native macro color result');
+  return output;
+}
+export async function nativeMacroPalette(image,colors,options){return nativeMacroColors(image,colors,'macro-palette',options);}
+export async function nativeMacroVisible(image,colors,options){return nativeMacroColors(image,colors,'macro-visible',options);}
 async function operateNativeRgba(image,size,action,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   if(!image||!Array.isArray(size)||size.length!==2||!(image.data instanceof Uint8Array))throw Error('RGBA image and output size are required');

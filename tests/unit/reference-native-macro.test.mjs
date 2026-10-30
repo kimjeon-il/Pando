@@ -1,7 +1,29 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {nativeMacroAdjacency,nativeMacroDilate} from '../../tools/map-image/native-resample.mjs';
+import {nativeMacroAdjacency,nativeMacroDilate,nativeMacroPalette,nativeMacroVisible} from '../../tools/map-image/native-resample.mjs';
+
+test('macro palette labels preserve nearest colour, unknowns and first palette tie',async()=>{
+  const image={width:4,height:1,data:Buffer.from([255,0,0, 254,0,0, 0,0,255, 10,10,10])};
+  const palette=[[1,0,0],[1,0,0],[0,0,1]];
+  assert.deepEqual(await nativeMacroPalette(image,palette),Buffer.from([1,1,3,0]));
+  await assert.rejects(nativeMacroPalette(image,[[1,0,0]]),/palette/i);
+  await assert.rejects(nativeMacroPalette(image,[[1,0,0],[NaN,0,0]]),/palette/i);
+});
+test('macro visible stroke mask matches any listed signature within threshold',async()=>{
+  const image={width:3,height:1,data:Buffer.from([255,0,0, 240,4,3, 0,255,0])};
+  assert.deepEqual(await nativeMacroVisible(image,[[1,0,0]]),Buffer.from([1,1,0]));
+  assert.deepEqual(await nativeMacroVisible(image,[[0,1,0],[1,0,0]]),Buffer.from([1,1,1]));
+  await assert.rejects(nativeMacroVisible(image,[]),/palette/i);
+});
+test('macro color stream checks palette and RGB lengths',()=>{
+  const colors=Buffer.alloc(48);colors.writeDoubleLE(1,0);colors.writeDoubleLE(1,40);
+  const input=Buffer.concat([colors,Buffer.from([255,0,0,0,0,255])]);
+  const args=['tools/reference-analysis/macro-masks.mjs','palette','2','1','2'];
+  const result=spawnSync(process.execPath,args,{input});assert.equal(result.status,0,result.stderr.toString());
+  assert.deepEqual(result.stdout,Buffer.from([1,2]));
+  assert.notEqual(spawnSync(process.execPath,args,{input:input.subarray(0,-1)}).status,0);
+});
 
 test('native macro supervision distinguishes country seams and unknown gaps',async()=>{
   const width=50,height=30,labels=Buffer.alloc(width*height);
