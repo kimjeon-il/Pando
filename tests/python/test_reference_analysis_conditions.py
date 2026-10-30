@@ -1,4 +1,5 @@
 """Photometric training changes must preserve supervised original geometry."""
+import hashlib
 import json
 import pathlib
 import sys
@@ -46,7 +47,7 @@ class ConditionTrainingTests(unittest.TestCase):
             annotation = dict(width=128, height=128, lines=[dict(kind='international', points=[[10, 20], [90, 110]], width=2)],
                               known={'international': [[[0, 0], [127, 0], [127, 127], [0, 127]]]})
             (root / 'label.json').write_text(json.dumps(annotation))
-            sheets = [dict(id='fixture', image='map.png', annotations='label.json')]
+            sheets = [dict(id='fixture', image='map.png', sha256=hashlib.sha256((root / 'map.png').read_bytes()).hexdigest(), annotations='label.json')]
             plain = MapTiles(root, sheets)
             varied = MapTiles(root, sheets, augment_conditions=True)
             original, first = plain[0], varied[0]

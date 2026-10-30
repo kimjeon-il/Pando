@@ -101,7 +101,7 @@ class ReviewContractTests(unittest.TestCase):
             Image.new('RGB', (24, 16), 'white').save(root/'map.png')
             label = self.annotation()
             (root/'label.json').write_text(json.dumps(label))
-            rows = [dict(id='fixture', image='map.png', annotations='label.json')]
+            rows = [dict(id='fixture', image='map.png', sha256=hashlib.sha256((root/'map.png').read_bytes()).hexdigest(), annotations='label.json')]
             dataset = MapTiles(root, rows)
             target, validity = dataset[0][3:5]
             self.assertFalse(validity[1].any())
@@ -120,7 +120,7 @@ class ReviewContractTests(unittest.TestCase):
             annotation = dict(width=600, height=16, known={'international': [
                 [[447.1, 0], [447.9, 0], [447.9, 10], [447.1, 10]]]}, lines=[], ignore=[])
             (root/'label.json').write_text(json.dumps(annotation))
-            rows = [dict(id='fixture', image='map.png', annotations='label.json')]
+            rows = [dict(id='fixture', image='map.png', sha256=hashlib.sha256((root/'map.png').read_bytes()).hexdigest(), annotations='label.json')]
             self.assertEqual(MapTiles(root, rows).tiles, [(0, 0, 0)])
             self.assertEqual(MapTiles(root, rows, supervised_only=False).tiles, [(0, 0, 0), (0, 448, 0)])
 
@@ -136,7 +136,7 @@ class ReviewContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory);Image.new('RGB',(24,16),'white').save(root/'map.png')
             label=self.annotation();(root/'label.json').write_text(json.dumps(label))
-            row=self.sheet('test','test');row.update(image='map.png',annotations='label.json',mapKind='monochrome',script='Latin',language='eng')
+            row=self.sheet('test','test');row.update(image='map.png',sha256=hashlib.sha256((root/'map.png').read_bytes()).hexdigest(),annotations='label.json',mapKind='monochrome',script='Latin',language='eng')
             value=dict(schemaVersion=1,sheets=[row]);(root/'corpus.json').write_text(json.dumps(value));(root/'old.pt').write_bytes(b'old-model')
             args=argparse.Namespace(checkpoint=str(root/'old.pt'),device='cpu',corpus=str(root/'corpus.json'),output=str(root/'report.json'),diagnostic_only=True,baseline_report=None)
             checkpoint=dict(corpusSha256='b'*64,trainingOnly=True,unobservedChannels=[])
@@ -170,7 +170,7 @@ class ReviewContractTests(unittest.TestCase):
             root=pathlib.Path(directory)
             image=Image.new('RGBA',(24,16),(0,0,0,0));image.putpixel((4,4),(0,0,0,255));image.save(root/'map.png')
             (root/'label.json').write_text(json.dumps(self.annotation()))
-            tile=MapTiles(root,[dict(id='transparent',image='map.png',annotations='label.json')])[0][0]
+            tile=MapTiles(root,[dict(id='transparent',image='map.png',sha256=hashlib.sha256((root/'map.png').read_bytes()).hexdigest(),annotations='label.json')])[0][0]
             self.assertGreater(float(tile[0,0,0]),2.)
             self.assertLess(float(tile[0,4,4]),-2.)
 
