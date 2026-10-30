@@ -25,6 +25,25 @@ async function fixture(t){
       else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
       else if(request.command==='layers'){assert.equal(request.offset,0);assert.equal(request.limit,10);
         result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
+      else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
+        result={layer:'layer-1',fields:[{name:'source',type:'Map',length:0,precision:0}]};}
+      else if(request.command==='features'){
+        assert.equal(request.layer,'layer-1');assert.equal(request.offset,0);assert.equal(request.limit,1);
+        result={features:[{fid:'1',attributesJson:JSON.stringify({source:{sequence:JSON.rawJSON('9007199254740993')}})}],hasMore:true,crs:'EPSG:4326'};
+      }
+      else if(request.command==='select'){assert.equal(request.layer,'layer-1');
+        if(request.expression!==undefined){assert.equal(request.expression,'"name" = \'map\'');result={selected:1};}
+        else{assert.deepEqual(request.fids,['1','9007199254740993']);result={selected:2};}}
+      else if(request.command==='selection'){assert.equal(request.layer,'layer-1');result={fids:['1','9007199254740993'],count:2};}
+      else if(request.command==='clear-selection'){assert.equal(request.layer,'layer-1');result={ok:true};}
+      else if(['begin-edit','rollback-edit','commit-edit','undo-edit','redo-edit'].includes(request.command)){
+        assert.equal(request.layer,'layer-1');result={ok:true};}
+      else if(request.command==='set-attribute'){
+        assert.equal(request.layer,'layer-1');assert.equal(request.fid,'1');
+        assert.equal(request.field,'name');assert.equal(request.json,JSON.stringify('edited'));result={updated:true};}
+      else if(request.command==='set-geometry'){
+        assert.equal(request.layer,'layer-1');assert.equal(request.fid,'1');
+        assert.equal(request.wkt,'POINT (127 37)');result={updated:true};}
       else if(request.command==='open'){assert.equal(request.path,input);result={id:'layer-1',feature_count:1,crs:'EPSG:4326'};}
       else if(request.command==='export'){
         assert.equal(request.layer,'layer-1');writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',
@@ -46,6 +65,31 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const layers=await run(['--config',config,'layers','--offset','0','--limit','10']);assert.equal(layers.code,0,layers.stderr);
   assert.equal(JSON.parse(layers.stdout).layers[0].id,'layer-1');
   const invalidPage=await run(['--config',config,'layers','--limit','101']);assert.notEqual(invalidPage.code,0);
+  const schema=await run(['--config',config,'schema','--layer','layer-1']);assert.equal(schema.code,0,schema.stderr);
+  assert.equal(JSON.parse(schema.stdout).fields[0].name,'source');
+  const missingLayer=await run(['--config',config,'schema']);assert.notEqual(missingLayer.code,0);
+  const features=await run(['--config',config,'features','--layer','layer-1','--limit','1']);assert.equal(features.code,0,features.stderr);
+  assert.match(features.stdout,/9007199254740993/);
+  const decoded=JSON.parse(features.stdout,(key,value,context)=>key==='sequence'?BigInt(context.source):value);
+  assert.equal(decoded.features[0].fid,'1');assert.equal(decoded.features[0].attributes.source.sequence,9007199254740993n);
+  const selected=await run(['--config',config,'select','--layer','layer-1','--fids','["1","9007199254740993"]']);
+  assert.equal(selected.code,0,selected.stderr);assert.equal(JSON.parse(selected.stdout).selected,2);
+  const selection=await run(['--config',config,'selection','--layer','layer-1']);assert.equal(selection.code,0,selection.stderr);
+  assert.deepEqual(JSON.parse(selection.stdout).fids,['1','9007199254740993']);
+  const cleared=await run(['--config',config,'clear-selection','--layer','layer-1']);assert.equal(cleared.code,0,cleared.stderr);
+  const invalidFids=await run(['--config',config,'select','--layer','layer-1','--fids','[9007199254740993]']);assert.notEqual(invalidFids.code,0);
+  const expression=await run(['--config',config,'select','--layer','layer-1','--expression','"name" = \'map\'']);
+  assert.equal(expression.code,0,expression.stderr);assert.equal(JSON.parse(expression.stdout).selected,1);
+  const both=await run(['--config',config,'select','--layer','layer-1','--fids','[]','--expression','true']);assert.notEqual(both.code,0);
+  const begin=await run(['--config',config,'begin-edit','--layer','layer-1']);assert.equal(begin.code,0,begin.stderr);
+  const update=await run(['--config',config,'set-attribute','--layer','layer-1','--fid','1','--field','name','--json',JSON.stringify('edited')]);
+  assert.equal(update.code,0,update.stderr);assert.equal(JSON.parse(update.stdout).updated,true);
+  const undo=await run(['--config',config,'undo-edit','--layer','layer-1']);assert.equal(undo.code,0,undo.stderr);
+  const redo=await run(['--config',config,'redo-edit','--layer','layer-1']);assert.equal(redo.code,0,redo.stderr);
+  const rollback=await run(['--config',config,'rollback-edit','--layer','layer-1']);assert.equal(rollback.code,0,rollback.stderr);
+  const invalidUpdate=await run(['--config',config,'set-attribute','--layer','layer-1','--fid','x','--field','name','--json',JSON.stringify('x')]);assert.notEqual(invalidUpdate.code,0);
+  const geometry=await run(['--config',config,'set-geometry','--layer','layer-1','--fid','1','--wkt','POINT (127 37)']);
+  assert.equal(geometry.code,0,geometry.stderr);assert.equal(JSON.parse(geometry.stdout).updated,true);
   const opened=await run(['--config',config,'open',input]);assert.equal(opened.code,0,opened.stderr);
   assert.equal(JSON.parse(opened.stdout).id,'layer-1');
   const output=join(root,'output.geojson');const exported=await run(['--config',config,'export','--layer','layer-1','--output',output]);

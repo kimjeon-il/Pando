@@ -4,7 +4,8 @@ import {lstatSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {lineParts,roundPython,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
+import {lineParts,screenHydroPoints,validatePointScreenResult} from './hydro-point-screen-native.mjs';
+import {pythonRound} from './hydro-numeric.mjs';
 const anchors={
   finnish_nls_oulujoki:{name:'Oulujoki',lon:25.56374,lat:64.99977,kind:'Finland National Land Survey geographical names register',source:'https://finto.fi/yso-paikat/fi/page/p204727'},
   finnish_nls_siikajoki:{name:'Siikajoki',lon:24.74333,lat:64.83728,kind:'Finland National Land Survey geographical names register',source:'https://finto.fi/yso-paikat/en/page/p139542'},
@@ -41,11 +42,11 @@ export async function buildIndependentPointScreen(decoded,screen){
     const pointChecks={};
     for(let i=0;i<keys.length;i++){
       const key=keys[i],anchor=anchors[key],point=result.points[i];
-      pointChecks[key]={river:anchor.name,publishedPointLonLat:[anchor.lon,anchor.lat],closestHydroMainstemKm:roundPython(point.distanceMeters/1000,3),
-        nearestHydroLonLat:point.nearestLonLat.map(value=>roundPython(value,5)),sourceType:anchor.kind,source:anchor.source};
+      pointChecks[key]={river:anchor.name,publishedPointLonLat:[anchor.lon,anchor.lat],closestHydroMainstemKm:pythonRound(point.distanceMeters/1000,3),
+        nearestHydroLonLat:point.nearestLonLat.map(value=>pythonRound(value,5)),sourceType:anchor.kind,source:anchor.source};
     }
     items.push({systemId:id,mainstemFeatureCount:features.length,mainstemSegmentCount:lines.length,
-      mainstemTotalLengthKm:roundPython(result.lineLengthsMeters.reduce((sum,value)=>sum+value,0)/1000,3),pointChecks});
+      mainstemTotalLengthKm:pythonRound(result.lineLengthsMeters.reduce((sum,value)=>sum+value,0)/1000,3),pointChecks});
   }
   return {schema:'pando-independent-hydronym-point-screen-v1',referenceHydroVersion:'v0.13.2',
     evidenceType:'independent-named-point-vs-published-mainstem-distance',nameIdentityVerified:false,geometryCopiedToRuntime:false,

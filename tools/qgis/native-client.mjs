@@ -1,9 +1,9 @@
 // Bounded, authenticated loopback transport for the native QGIS plugin.
 import {connect} from 'node:net';
 
-const commands=new Set(['status','project','layers','open','export']);
+const commands=new Set(['status','project','layers','schema','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','open','export']);
 export const qgisNativeSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/qgis/pando-qgis-plugin.cpp',
-  'tools/cpp/qgis/qgis-export.cpp','tools/cpp/qgis/qgis-export.h']);
+  'tools/cpp/qgis/qgis-export.cpp','tools/cpp/qgis/qgis-export.h','shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
 export function validateNativeQgisConfig(config){
   if(!config||config.host!=='127.0.0.1'||!Number.isInteger(config.port)||config.port<1024||config.port>65535||
     typeof config.token!=='string'||!config.token||config.token.length>4096)throw Error('Authenticated IPv4 loopback QGIS configuration is required');

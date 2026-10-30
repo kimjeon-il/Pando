@@ -40,9 +40,9 @@ if(PANDO_BUILD_QGIS_BRIDGE)
             list(APPEND PANDO_QT_INCLUDE_DIRS "${entry}")
         endif()
     endforeach()
-    add_library(pando-qgis-bridge MODULE qgis/pando-qgis-plugin.cpp qgis/qgis-export.cpp)
+    add_library(pando-qgis-bridge MODULE qgis/pando-qgis-plugin.cpp qgis/qgis-export.cpp ../../shared/core/src/losslessjson.cpp)
     set_target_properties(pando-qgis-bridge PROPERTIES PREFIX "" OUTPUT_NAME "pando_qgis_bridge")
-    target_include_directories(pando-qgis-bridge PRIVATE "${PANDO_QGIS_DIR}/include" "${PANDO_QGIS_SDK_ROOT}/include"
+    target_include_directories(pando-qgis-bridge PRIVATE ../../shared/core/include "${PANDO_QGIS_DIR}/include" "${PANDO_QGIS_SDK_ROOT}/include"
         "${PANDO_QT_DIR}/include" ${PANDO_QT_INCLUDE_DIRS})
     target_link_libraries(pando-qgis-bridge PRIVATE "${PANDO_QGIS_DIR}/lib/qgis_core.lib" "${PANDO_QGIS_DIR}/lib/qgis_gui.lib"
         "${PANDO_QT_DIR}/lib/Qt5Core.lib" "${PANDO_QT_DIR}/lib/Qt5Network.lib" "${PANDO_QT_DIR}/lib/Qt5Widgets.lib" "${PANDO_QT_DIR}/lib/Qt5Gui.lib")

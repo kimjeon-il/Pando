@@ -4,7 +4,12 @@ on:
   push:
     branches: [work/gis]
     paths:
-      - 'tools/gis/verify_osm_hydro_batch02_points.py'
+      - 'tools/gis/verify-osm-hydro-batch02-points.mjs'
+      - 'tools/gis/hydro-osm-batch02-anchors.mjs'
+      - 'tools/gis/hydro-point-screen-native.mjs'
+      - 'tools/gis/hydro-numeric.mjs'
+      - 'tools/cpp/hydro/point-screen.cpp'
+      - 'tools/cpp/CMakeLists.txt'
       - 'tools/gis/probe-nga-streams.mjs'
       - 'tools/gis/probe-central-asia-gauges.mjs'
       - 'tools/gis/bounded-source-json.mjs'
@@ -24,27 +29,39 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Mount paired, published Hydro v0.13.2
-        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - uses: actions/setup-python@v5
+      - name: Read the paired data revision
+        id: hydro-data-pin
+        run: node -e "console.log('revision='+require('./config/library-data.json').revision)" >> "$GITHUB_OUTPUT"
+      - name: Fetch only the pinned Hydro bundle
+        uses: actions/checkout@v4
         with:
-          python-version-file: .python-version
-      - name: Install independent geometry projection software
-        run: python -m pip install --quiet "shapely>=2,<3" "pyproj>=3,<4"
+          repository: kimjeon-il/PandoLab-library-data
+          ref: ${{ steps.hydro-data-pin.outputs.revision }}
+          path: .pando-hydro-input
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: assets/data/hydro/v0.13.2
+      - name: Build the read-only native point screen
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev ninja-build
+          cmake -S tools/cpp -B build-native/hydro-point-screen -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON
+          cmake --build build-native/hydro-point-screen --target pando-hydro-point-screen
+          node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Test bounded independent-source acquisition
         run: node --test tests/unit/hydro-nga-source-probe.test.mjs tests/unit/hydro-central-asia-probe.test.mjs
       - name: Decode Hydro exactly with production runtime
-        run: node tools/decode-hydro-connectivity.mjs assets/data/hydro/v0.13.2 /tmp/batch02-decoded.json
+        run: node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/batch02-decoded.json
       - name: Query NGA US government non-OSM named-stream locations
         run: node tools/gis/probe-nga-streams.mjs --output /tmp/batch02-nga.json
       - name: Acquire checksum-verified 2023 Central Asia scientific Hydromet gauge locations
         run: node tools/gis/probe-central-asia-gauges.mjs --output /tmp/batch02-ca-gauges.json
       - name: Compare all 10 pending river mainstems against real independent locations
         run: |
-          python tools/gis/verify_osm_hydro_batch02_points.py \
+          node tools/gis/verify-osm-hydro-batch02-points.mjs \
             --decoded /tmp/batch02-decoded.json \
             --external-gauges /tmp/batch02-ca-gauges.json \
             --nga /tmp/batch02-nga.json \

@@ -115,6 +115,16 @@ unreadable areas in `ignore`. City symbols, original transcriptions, independent
 georeference check points and source-date evidence must also be retained with the
 corpus; the segmentation line schema does not replace their independent review.
 
+Inventory original maps and report attachments without copying or changing them:
+
+```powershell
+node tools/reference-analysis/corpus-inventory.mjs --reports EXTERNAL_REPORTS --sources EXTERNAL_SOURCES --output NEW_INVENTORY.json
+```
+
+The inventory classifies original candidates, report evidence, official
+downsamples and app-only derivatives separately. It records source hashes and
+does not overwrite an existing inventory or admit material for training.
+
 The reviewed identity uses the exact input hash and actual UTC time ending in
 `Z`. Record agent review as `agent`, never `human`. Explicit per-channel `known`
 polygons are mandatory: pixels/classes outside them stay unknown, rather than

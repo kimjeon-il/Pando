@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows]
         default: hydro
 
 permissions:
@@ -72,7 +72,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
   hydro-point-screen:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-point-screen'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'hydro-point-screen' || inputs.target == 'hydro-batch01' || inputs.target == 'hydro-batch02' || inputs.target == 'hydro-batch03' || inputs.target == 'hydro-yarra')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -92,7 +92,7 @@ jobs:
       - name: Verify small point-screen cases
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
-        run: node --test tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-independent-point-screen.test.mjs
+        run: node --test tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-independent-point-screen.test.mjs tests/unit/hydro-osm-batch01-screen.test.mjs tests/unit/hydro-osm-batch02-screen.test.mjs tests/unit/hydro-osm-batch03-screen.test.mjs tests/unit/hydro-batch03-nga-probe.test.mjs tests/unit/hydro-yarra-vector-screen.test.mjs
       - name: Package the source-bound point screen
         run: node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Read the paired data revision
@@ -108,6 +108,7 @@ jobs:
           filter: blob:none
           sparse-checkout: assets/data/hydro/v0.13.2
       - name: Compare the five selected real Hydro systems
+        if: inputs.target == 'hydro-point-screen'
         run: |
           node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-point-decoded.json
           node tools/gis/verify-independent-river-point-anchors.mjs --decoded /tmp/pando-point-decoded.json --output /tmp/pando-point-native.json
@@ -118,6 +119,71 @@ jobs:
           const newResult=JSON.parse(readFileSync('/tmp/pando-point-native.json','utf8'));
           assert.deepEqual(newResult,oldResult);
           console.log('All five real system screens match the frozen source-verified baseline');
+          JS
+      - name: Compare the ten selected systems with the frozen original audit
+        if: inputs.target == 'hydro-batch01'
+        run: |
+          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch01-decoded.json
+          node tools/gis/verify-osm-hydro-batch01-anchors.mjs --decoded /tmp/pando-batch01-decoded.json --output /tmp/pando-batch01-native.json
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const baseline=JSON.parse(readFileSync('tests/fixtures/hydro-osm-batch01-v0132-expected.json','utf8'));
+          const native=JSON.parse(readFileSync('/tmp/pando-batch01-native.json','utf8'));
+          assert.deepEqual(native,baseline);
+          console.log('All ten real system screens match the source-verified baseline');
+          JS
+      - name: Compare second-ten audit with and without optional sources against the frozen baseline
+        if: inputs.target == 'hydro-batch02'
+        run: |
+          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch02-decoded.json
+          node tools/gis/verify-osm-hydro-batch02-points.mjs --decoded /tmp/pando-batch02-decoded.json --output /tmp/batch02-native-default.json
+          node tools/gis/verify-osm-hydro-batch02-points.mjs --decoded /tmp/pando-batch02-decoded.json --external-gauges tests/fixtures/hydro-osm-batch02-gauges-fixture.json --nga tests/fixtures/hydro-osm-batch02-nga-fixture.json --output /tmp/batch02-native-sources.json
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          for(const suffix of ['default','sources'])assert.deepEqual(
+            JSON.parse(readFileSync(`/tmp/batch02-native-${suffix}.json`,'utf8')),
+            JSON.parse(readFileSync(`tests/fixtures/hydro-osm-batch02-${suffix}-v0132-expected.json`,'utf8')));
+          console.log('Second-ten results match the frozen baseline with and without optional sources');
+          JS
+      - name: Compare last-eleven audit against the frozen baseline using fixed NGA responses
+        if: inputs.target == 'hydro-batch03'
+        run: |
+          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch03-decoded.json
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {probeNgaBatch03} from './tools/gis/probe-nga-streams.mjs';
+          import {screenHydroPoints} from './tools/gis/hydro-point-screen-native.mjs';
+          import {buildBatch03Screen} from './tools/gis/verify-osm-hydro-batch03-points.mjs';
+          const bytes=readFileSync('tests/fixtures/hydro-osm-batch03-nga-response.json');
+          const receipts=await probeNgaBatch03({fetcher:async()=>new Response(bytes,{status:200})});
+          const decoded=JSON.parse(readFileSync('/tmp/pando-batch03-decoded.json','utf8'));
+          const native=await buildBatch03Screen(decoded,{receipts,screen:screenHydroPoints});
+          writeFileSync('/tmp/batch03-native.json',JSON.stringify(native,null,2)+'\n',{flag:'wx'});
+          assert.deepEqual(native,JSON.parse(readFileSync('tests/fixtures/hydro-osm-batch03-v0132-expected.json','utf8')));
+          console.log('All eleven real systems match the frozen baseline with fixed NGA responses');
+          JS
+      - name: Compare real Yarra source with the frozen original audit
+        if: inputs.target == 'hydro-yarra'
+        run: |
+          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-yarra-decoded.json
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          import {writeFileSync} from 'node:fs';
+          import {fetchYarraVector} from './tools/gis/verify-victorian-yarra-source.mjs';
+          const bytes=await fetchYarraVector();
+          assert.equal(createHash('sha256').update(bytes).digest('hex'),'70a2b0c84e9094258c64514d1392f7ef712fbaa7312754a7b80296e3dbb50fb6');
+          writeFileSync('/tmp/pando-yarra-reference.json',bytes,{flag:'wx'});
+          JS
+          node tools/gis/verify-victorian-yarra-source.mjs --decoded /tmp/pando-yarra-decoded.json --reference /tmp/pando-yarra-reference.json --expected-sha256 70a2b0c84e9094258c64514d1392f7ef712fbaa7312754a7b80296e3dbb50fb6 --output /tmp/pando-yarra-native.json
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          assert.deepEqual(JSON.parse(readFileSync('/tmp/pando-yarra-native.json','utf8')),JSON.parse(readFileSync('tests/fixtures/hydro-yarra-v0132-expected.json','utf8')));
+          console.log('The real Yarra source matches the frozen bidirectional screen');
           JS
   qgis-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'qgis-windows'

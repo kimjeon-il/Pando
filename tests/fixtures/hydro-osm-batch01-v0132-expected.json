@@ -1,0 +1,1658 @@
+{
+  "schema": "pando-hydro-osm-remaining-first10-point-check-v1",
+  "baselineHydroVersion": "v0.13.2",
+  "publishedHydroBundleSha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+  "metadataNotModified": true,
+  "osmSourcesNotUsed": true,
+  "method": "independent named-station/point to all preexisting Pando Hydro mainstem polyline segments in local UTM",
+  "limits": [
+    "Point-to-line proximity is a screening metric, not whole river identity or a license substitution.",
+    "Multiple named tributaries may belong to one grouped logical Hydro basin.",
+    "NLS register locations are named point references, not whole 107km Oulujoki or 194km Siikajoki vectors.",
+    "Terek/Ural comparison points came from secondary gazetteers; country official polyline is pending.",
+    "Chad Manda is listed under Chari basin by a 2021 paper, but Bahr Sara by national hydrometeorology."
+  ],
+  "items": [
+    {
+      "systemId": "10521208",
+      "publishedNameKo": "샤리강",
+      "mainstemFeatureCount": 19,
+      "linePartCount": 390,
+      "mainstemLengthKm": 1845.142,
+      "independentStations": [
+        {
+          "id": "chari_sarh",
+          "river": "Chari",
+          "publishedPointLonLat": [
+            18.41,
+            9.15
+          ],
+          "distanceToMainstemKm": 1.106,
+          "nearestHydroLonLat": [
+            18.402872,
+            9.142961
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460200118 at Sarh"
+        },
+        {
+          "id": "chari_bousso",
+          "river": "Chari",
+          "publishedPointLonLat": [
+            16.71,
+            10.5
+          ],
+          "distanceToMainstemKm": 2.464,
+          "nearestHydroLonLat": [
+            16.725998,
+            10.484331
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460200106 at Bousso"
+        },
+        {
+          "id": "chari_mailao",
+          "river": "Chari",
+          "publishedPointLonLat": [
+            15.28,
+            11.6
+          ],
+          "distanceToMainstemKm": 1.045,
+          "nearestHydroLonLat": [
+            15.289583,
+            11.6
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460200133 at Mailao"
+        },
+        {
+          "id": "chari_ndjamena",
+          "river": "Chari/Logone",
+          "publishedPointLonLat": [
+            15.03,
+            12.11
+          ],
+          "distanceToMainstemKm": 0.908,
+          "nearestHydroLonLat": [
+            15.026766,
+            12.102433
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460200121 confluence reach"
+        },
+        {
+          "id": "bahr_sara_manda",
+          "river": "Bahr Sara (Chari tributary)",
+          "publishedPointLonLat": [
+            18.2,
+            9.18
+          ],
+          "distanceToMainstemKm": 14.034,
+          "nearestHydroLonLat": [
+            18.25625,
+            9.29375
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460201903 Manda; watercourse label disputed"
+        },
+        {
+          "id": "logone_bongor",
+          "river": "Logone",
+          "publishedPointLonLat": [
+            15.41,
+            10.26
+          ],
+          "distanceToMainstemKm": 71.649,
+          "nearestHydroLonLat": [
+            15.76875,
+            10.802083
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460300112 Bongor"
+        },
+        {
+          "id": "logone_gana",
+          "river": "Logone",
+          "publishedPointLonLat": [
+            15.15,
+            11.55
+          ],
+          "distanceToMainstemKm": 15.511,
+          "nearestHydroLonLat": [
+            15.289583,
+            11.577083
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460300163 Logone-Gana"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Bahr Sara (Chari tributary)": 14.034,
+        "Chari": 1.045,
+        "Chari/Logone": 0.908,
+        "Logone": 15.511
+      }
+    },
+    {
+      "systemId": "10526283",
+      "publishedNameKo": "샤리강",
+      "mainstemFeatureCount": 2,
+      "linePartCount": 130,
+      "mainstemLengthKm": 640.088,
+      "independentStations": [
+        {
+          "id": "chari_sarh",
+          "river": "Chari",
+          "publishedPointLonLat": [
+            18.41,
+            9.15
+          ],
+          "distanceToMainstemKm": 122.817,
+          "nearestHydroLonLat": [
+            18.285417,
+            10.252083
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460200118 at Sarh"
+        },
+        {
+          "id": "chari_bousso",
+          "river": "Chari",
+          "publishedPointLonLat": [
+            16.71,
+            10.5
+          ],
+          "distanceToMainstemKm": 52.783,
+          "nearestHydroLonLat": [
+            17.127083,
+            10.739583
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460200106 at Bousso"
+        },
+        {
+          "id": "chari_mailao",
+          "river": "Chari",
+          "publishedPointLonLat": [
+            15.28,
+            11.6
+          ],
+          "distanceToMainstemKm": 191.899,
+          "nearestHydroLonLat": [
+            16.935417,
+            12.19375
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460200133 at Mailao"
+        },
+        {
+          "id": "chari_ndjamena",
+          "river": "Chari/Logone",
+          "publishedPointLonLat": [
+            15.03,
+            12.11
+          ],
+          "distanceToMainstemKm": 198.3,
+          "nearestHydroLonLat": [
+            16.789583,
+            12.58125
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460200121 confluence reach"
+        },
+        {
+          "id": "bahr_sara_manda",
+          "river": "Bahr Sara (Chari tributary)",
+          "publishedPointLonLat": [
+            18.2,
+            9.18
+          ],
+          "distanceToMainstemKm": 119.052,
+          "nearestHydroLonLat": [
+            18.28125,
+            10.252083
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460201903 Manda; watercourse label disputed"
+        },
+        {
+          "id": "logone_bongor",
+          "river": "Logone",
+          "publishedPointLonLat": [
+            15.41,
+            10.26
+          ],
+          "distanceToMainstemKm": 194.828,
+          "nearestHydroLonLat": [
+            17.110417,
+            10.78125
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460300112 Bongor"
+        },
+        {
+          "id": "logone_gana",
+          "river": "Logone",
+          "publishedPointLonLat": [
+            15.15,
+            11.55
+          ],
+          "distanceToMainstemKm": 207.11,
+          "nearestHydroLonLat": [
+            16.935417,
+            12.19375
+          ],
+          "independentSource": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf",
+          "stationDescription": "Chad DRE 1460300163 Logone-Gana"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Bahr Sara (Chari tributary)": 119.052,
+        "Chari": 52.783,
+        "Chari/Logone": 198.3,
+        "Logone": 194.828
+      }
+    },
+    {
+      "systemId": "20071308",
+      "publishedNameKo": "오울루강",
+      "mainstemFeatureCount": 2,
+      "linePartCount": 112,
+      "mainstemLengthKm": 416.298,
+      "independentStations": [
+        {
+          "id": "nls_oulujoki",
+          "river": "Oulujoki",
+          "publishedPointLonLat": [
+            25.56374,
+            64.99977
+          ],
+          "distanceToMainstemKm": 1.964,
+          "nearestHydroLonLat": [
+            25.539583,
+            64.985417
+          ],
+          "independentSource": "https://finto.fi/yso-paikat/fi/page/p204727",
+          "stationDescription": "Finland NLS registered named watercourse location"
+        },
+        {
+          "id": "nls_siikajoki",
+          "river": "Siikajoki",
+          "publishedPointLonLat": [
+            24.74333,
+            64.83728
+          ],
+          "distanceToMainstemKm": 37.737,
+          "nearestHydroLonLat": [
+            25.423106,
+            65.014594
+          ],
+          "independentSource": "https://finto.fi/yso-paikat/en/page/p139542",
+          "stationDescription": "Finland NLS registered named watercourse location"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Oulujoki": 1.964,
+        "Siikajoki": 37.737
+      }
+    },
+    {
+      "systemId": "20075401",
+      "publishedNameKo": "오울루강",
+      "mainstemFeatureCount": 1,
+      "linePartCount": 31,
+      "mainstemLengthKm": 179.022,
+      "independentStations": [
+        {
+          "id": "nls_oulujoki",
+          "river": "Oulujoki",
+          "publishedPointLonLat": [
+            25.56374,
+            64.99977
+          ],
+          "distanceToMainstemKm": 38.998,
+          "nearestHydroLonLat": [
+            24.897917,
+            64.79375
+          ],
+          "independentSource": "https://finto.fi/yso-paikat/fi/page/p204727",
+          "stationDescription": "Finland NLS registered named watercourse location"
+        },
+        {
+          "id": "nls_siikajoki",
+          "river": "Siikajoki",
+          "publishedPointLonLat": [
+            24.74333,
+            64.83728
+          ],
+          "distanceToMainstemKm": 0.396,
+          "nearestHydroLonLat": [
+            24.735556,
+            64.835983
+          ],
+          "independentSource": "https://finto.fi/yso-paikat/en/page/p139542",
+          "stationDescription": "Finland NLS registered named watercourse location"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Oulujoki": 38.998,
+        "Siikajoki": 0.396
+      }
+    },
+    {
+      "systemId": "20282318",
+      "publishedNameKo": "오데르강",
+      "mainstemFeatureCount": 6,
+      "linePartCount": 130,
+      "mainstemLengthKm": 591.434,
+      "independentStations": [
+        {
+          "id": "imgw_odra_trestno",
+          "river": "Odra",
+          "publishedPointLonLat": [
+            17.1469,
+            51.0822
+          ],
+          "distanceToMainstemKm": 170.298,
+          "nearestHydroLonLat": [
+            18.439583,
+            52.385417
+          ],
+          "independentSource": "https://danepubliczne.imgw.pl/api/data/hydro/format/html",
+          "stationDescription": "IMGW 151170030 Trestno"
+        },
+        {
+          "id": "imgw_odra_glogow",
+          "river": "Odra",
+          "publishedPointLonLat": [
+            16.0592,
+            51.6739
+          ],
+          "distanceToMainstemKm": 123.528,
+          "nearestHydroLonLat": [
+            15.110417,
+            52.61875
+          ],
+          "independentSource": "https://danepubliczne.imgw.pl/api/data/hydro/format/html",
+          "stationDescription": "IMGW 151160060 Glogow"
+        },
+        {
+          "id": "imgw_odra_kostrzyn",
+          "river": "Odra",
+          "publishedPointLonLat": [
+            14.6106,
+            52.5992
+          ],
+          "distanceToMainstemKm": 0.336,
+          "nearestHydroLonLat": [
+            14.606895,
+            52.597196
+          ],
+          "independentSource": "https://danepubliczne.imgw.pl/api/data/hydro/format/html",
+          "stationDescription": "IMGW 152140060 Kostrzyn"
+        },
+        {
+          "id": "imgw_odra_gozdowice",
+          "river": "Odra",
+          "publishedPointLonLat": [
+            14.3178,
+            52.7642
+          ],
+          "distanceToMainstemKm": 0.25,
+          "nearestHydroLonLat": [
+            14.320004,
+            52.76601
+          ],
+          "independentSource": "https://danepubliczne.imgw.pl/api/data/hydro/format/html",
+          "stationDescription": "IMGW 152140020 Gozdowice"
+        },
+        {
+          "id": "imgw_warta_kostrzyn",
+          "river": "Warta",
+          "publishedPointLonLat": [
+            14.6622,
+            52.5819
+          ],
+          "distanceToMainstemKm": 0.168,
+          "nearestHydroLonLat": [
+            14.662747,
+            52.580424
+          ],
+          "independentSource": "https://danepubliczne.imgw.pl/api/data/hydro/format/html",
+          "stationDescription": "IMGW 152140070 Kostrzyn"
+        },
+        {
+          "id": "imgw_warta_skwierzyna",
+          "river": "Warta",
+          "publishedPointLonLat": [
+            15.5003,
+            52.6019
+          ],
+          "distanceToMainstemKm": 15.348,
+          "nearestHydroLonLat": [
+            15.485417,
+            52.739583
+          ],
+          "independentSource": "https://danepubliczne.imgw.pl/api/data/hydro/format/html",
+          "stationDescription": "IMGW 152150110 Skwierzyna"
+        },
+        {
+          "id": "imgw_warta_swierkocin",
+          "river": "Warta",
+          "publishedPointLonLat": [
+            14.9994,
+            52.6506
+          ],
+          "distanceToMainstemKm": 0.298,
+          "nearestHydroLonLat": [
+            14.9994,
+            52.647918
+          ],
+          "independentSource": "https://danepubliczne.imgw.pl/api/data/hydro/format/html",
+          "stationDescription": "IMGW 152150010 Swierkocin"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Odra": 0.25,
+        "Warta": 0.168
+      }
+    },
+    {
+      "systemId": "20456598",
+      "publishedNameKo": "우랄강",
+      "mainstemFeatureCount": 1,
+      "linePartCount": 151,
+      "mainstemLengthKm": 699.416,
+      "independentStations": [
+        {
+          "id": "atlas_zhem",
+          "river": "Zhem/Emba",
+          "publishedPointLonLat": [
+            56.3997222,
+            47.8738889
+          ],
+          "distanceToMainstemKm": 0.207,
+          "nearestHydroLonLat": [
+            56.402017,
+            47.87285
+          ],
+          "independentSource": "https://silkadv.com/ru/node/4653",
+          "stationDescription": "secondary geographic point transcription, not government GIS"
+        },
+        {
+          "id": "atlas_ural",
+          "river": "Zhaiyk/Ural",
+          "publishedPointLonLat": [
+            51.5883333,
+            49.5772222
+          ],
+          "distanceToMainstemKm": 308.332,
+          "nearestHydroLonLat": [
+            53.102083,
+            46.997917
+          ],
+          "independentSource": "https://silkadv.com/en/content/ural-river-kazakhstan",
+          "stationDescription": "secondary geographic point transcription, not government GIS"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Zhaiyk/Ural": 308.332,
+        "Zhem/Emba": 0.207
+      }
+    },
+    {
+      "systemId": "20532766",
+      "publishedNameKo": "테레크강",
+      "mainstemFeatureCount": 3,
+      "linePartCount": 127,
+      "mainstemLengthKm": 601.479,
+      "independentStations": [
+        {
+          "id": "sulak_field_01",
+          "river": "Sulak",
+          "publishedPointLonLat": [
+            47.537988,
+            43.259126
+          ],
+          "distanceToMainstemKm": 38.108,
+          "nearestHydroLonLat": [
+            47.537981,
+            43.602083
+          ],
+          "independentSource": "https://www.mdpi.com/2073-4441/17/23/3390",
+          "stationDescription": "2024 independent field sampling"
+        },
+        {
+          "id": "sulak_field_02",
+          "river": "Sulak",
+          "publishedPointLonLat": [
+            47.1130054,
+            43.3657051
+          ],
+          "distanceToMainstemKm": 35.21,
+          "nearestHydroLonLat": [
+            47.389583,
+            43.610417
+          ],
+          "independentSource": "https://www.mdpi.com/2073-4441/17/23/3390",
+          "stationDescription": "2024 independent field sampling"
+        },
+        {
+          "id": "terek_mouth",
+          "river": "Terek",
+          "publishedPointLonLat": [
+            47.5597222,
+            43.5952778
+          ],
+          "distanceToMainstemKm": 1.366,
+          "nearestHydroLonLat": [
+            47.552083,
+            43.60625
+          ],
+          "independentSource": "https://waterresources.ru/reki/terek/",
+          "stationDescription": "secondary Russian river gazetteer"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Sulak": 35.21,
+        "Terek": 1.366
+      }
+    },
+    {
+      "systemId": "20540915",
+      "publishedNameKo": "테레크강",
+      "mainstemFeatureCount": 1,
+      "linePartCount": 50,
+      "mainstemLengthKm": 282.666,
+      "independentStations": [
+        {
+          "id": "sulak_field_01",
+          "river": "Sulak",
+          "publishedPointLonLat": [
+            47.537988,
+            43.259126
+          ],
+          "distanceToMainstemKm": 0.084,
+          "nearestHydroLonLat": [
+            47.537153,
+            43.25868
+          ],
+          "independentSource": "https://www.mdpi.com/2073-4441/17/23/3390",
+          "stationDescription": "2024 independent field sampling"
+        },
+        {
+          "id": "sulak_field_02",
+          "river": "Sulak",
+          "publishedPointLonLat": [
+            47.1130054,
+            43.3657051
+          ],
+          "distanceToMainstemKm": 0.03,
+          "nearestHydroLonLat": [
+            47.113303,
+            43.365863
+          ],
+          "independentSource": "https://www.mdpi.com/2073-4441/17/23/3390",
+          "stationDescription": "2024 independent field sampling"
+        },
+        {
+          "id": "terek_mouth",
+          "river": "Terek",
+          "publishedPointLonLat": [
+            47.5597222,
+            43.5952778
+          ],
+          "distanceToMainstemKm": 34.557,
+          "nearestHydroLonLat": [
+            47.402083,
+            43.30625
+          ],
+          "independentSource": "https://waterresources.ru/reki/terek/",
+          "stationDescription": "secondary Russian river gazetteer"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Sulak": 0.03,
+        "Terek": 34.557
+      }
+    },
+    {
+      "systemId": "20561290",
+      "publishedNameKo": "리오니강",
+      "mainstemFeatureCount": 1,
+      "linePartCount": 79,
+      "mainstemLengthKm": 202.137,
+      "independentStations": [
+        {
+          "id": "rioni_oni",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            43.4333833,
+            42.5816
+          ],
+          "distanceToMainstemKm": 50.057,
+          "nearestHydroLonLat": [
+            43.077083,
+            42.947917
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 4"
+        },
+        {
+          "id": "rioni_utsera",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            43.5527667,
+            42.6487833
+          ],
+          "distanceToMainstemKm": 51.163,
+          "nearestHydroLonLat": [
+            43.077083,
+            42.947917
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 5"
+        },
+        {
+          "id": "rioni_khidikari",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            43.1881833,
+            42.5313667
+          ],
+          "distanceToMainstemKm": 44.987,
+          "nearestHydroLonLat": [
+            43.010417,
+            42.914583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 8"
+        },
+        {
+          "id": "rioni_alpana",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            42.8422667,
+            42.5622667
+          ],
+          "distanceToMainstemKm": 40.572,
+          "nearestHydroLonLat": [
+            42.972917,
+            42.914583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 10"
+        },
+        {
+          "id": "tskh_lentekhi",
+          "river": "Tskhenistskali",
+          "publishedPointLonLat": [
+            42.72225,
+            42.7828667
+          ],
+          "distanceToMainstemKm": 22.924,
+          "nearestHydroLonLat": [
+            42.897917,
+            42.94375
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 11"
+        },
+        {
+          "id": "tskh_luji",
+          "river": "Tskhenistskali",
+          "publishedPointLonLat": [
+            42.9519833,
+            42.82675
+          ],
+          "distanceToMainstemKm": 9.906,
+          "nearestHydroLonLat": [
+            42.972917,
+            42.914583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 12"
+        },
+        {
+          "id": "kvirila_sachkhere",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            43.40855,
+            42.33625
+          ],
+          "distanceToMainstemKm": 72.06,
+          "nearestHydroLonLat": [
+            43.010417,
+            42.914583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 1"
+        },
+        {
+          "id": "kvirila_chiatura",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            43.2779,
+            42.2853
+          ],
+          "distanceToMainstemKm": 73.261,
+          "nearestHydroLonLat": [
+            43.010417,
+            42.914583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 2"
+        },
+        {
+          "id": "jejora_oni",
+          "river": "Jejora",
+          "publishedPointLonLat": [
+            43.4299333,
+            42.5738167
+          ],
+          "distanceToMainstemKm": 50.602,
+          "nearestHydroLonLat": [
+            43.077083,
+            42.947917
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 3"
+        },
+        {
+          "id": "krikhula_ambrolauri",
+          "river": "Krikhula",
+          "publishedPointLonLat": [
+            43.1488833,
+            42.5217
+          ],
+          "distanceToMainstemKm": 45.09,
+          "nearestHydroLonLat": [
+            43.010417,
+            42.914583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 9"
+        },
+        {
+          "id": "rioni_nve_chaladidi",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            41.9333333,
+            42.2
+          ],
+          "distanceToMainstemKm": 33.473,
+          "nearestHydroLonLat": [
+            41.660417,
+            42.422917
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 141 Chaladidi, coordinates rounded to minute"
+        },
+        {
+          "id": "rioni_nve_patara_poti",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            41.7833333,
+            42.1833333
+          ],
+          "distanceToMainstemKm": 28.304,
+          "nearestHydroLonLat": [
+            41.639583,
+            42.414583
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 142 Patara-Poti, rounded"
+        },
+        {
+          "id": "rioni_nve_poti",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            41.6833333,
+            42.15
+          ],
+          "distanceToMainstemKm": 29.362,
+          "nearestHydroLonLat": [
+            41.560417,
+            42.397917
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 143 Poti bridge, rounded"
+        },
+        {
+          "id": "rioni_nve_poti_north",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            41.65,
+            42.1666667
+          ],
+          "distanceToMainstemKm": 26.744,
+          "nearestHydroLonLat": [
+            41.560417,
+            42.397917
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 144 northern branch, rounded"
+        },
+        {
+          "id": "rioni_nve_samtredia",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            42.3333333,
+            42.1333333
+          ],
+          "distanceToMainstemKm": 62.965,
+          "nearestHydroLonLat": [
+            41.83125,
+            42.560417
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 139 Samtredia, rounded"
+        },
+        {
+          "id": "rioni_nve_dapnari",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            42.1166667,
+            42.3166667
+          ],
+          "distanceToMainstemKm": 35.855,
+          "nearestHydroLonLat": [
+            41.83125,
+            42.560417
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 140 Dapnari, rounded"
+        },
+        {
+          "id": "rioni_nve_kutaisi",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            42.7,
+            42.2666667
+          ],
+          "distanceToMainstemKm": 71.976,
+          "nearestHydroLonLat": [
+            42.022917,
+            42.677083
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 136 Kutaisi, rounded"
+        },
+        {
+          "id": "kvirila_nve_mouth",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            42.7333333,
+            42.1833333
+          ],
+          "distanceToMainstemKm": 80.174,
+          "nearestHydroLonLat": [
+            42.022917,
+            42.677083
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 178 Kvirila mouth, rounded"
+        },
+        {
+          "id": "kvirila_nve_zestaponi",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            43.0333333,
+            42.1
+          ],
+          "distanceToMainstemKm": 90.499,
+          "nearestHydroLonLat": [
+            43.010417,
+            42.914583
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 174 Zestaponi, rounded"
+        },
+        {
+          "id": "kvirila_nve_ajameti",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            42.7833333,
+            42.2
+          ],
+          "distanceToMainstemKm": 80.889,
+          "nearestHydroLonLat": [
+            42.972917,
+            42.914583
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 177 Ajameti, rounded"
+        },
+        {
+          "id": "enguri_vichnishi",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            42.9036333,
+            42.9418333
+          ],
+          "distanceToMainstemKm": 0.213,
+          "nearestHydroLonLat": [
+            42.903633,
+            42.94375
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 14"
+        },
+        {
+          "id": "enguri_mestia",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            42.7479333,
+            43.0753833
+          ],
+          "distanceToMainstemKm": 7.28,
+          "nearestHydroLonLat": [
+            42.78125,
+            43.014583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 15"
+        },
+        {
+          "id": "enguri_potskho",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            42.0287833,
+            42.7295667
+          ],
+          "distanceToMainstemKm": 0.001,
+          "nearestHydroLonLat": [
+            42.028772,
+            42.729561
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 19"
+        },
+        {
+          "id": "enguri_khaishi",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            42.1782,
+            42.9448833
+          ],
+          "distanceToMainstemKm": 0.126,
+          "nearestHydroLonLat": [
+            42.1782,
+            42.94375
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 20"
+        },
+        {
+          "id": "enguri_anaklia_mouth",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            41.5602333,
+            42.39225
+          ],
+          "distanceToMainstemKm": 0.623,
+          "nearestHydroLonLat": [
+            41.559294,
+            42.397813
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 24"
+        },
+        {
+          "id": "dolra_ushkhvani",
+          "river": "Dolra (Enguri tributary)",
+          "publishedPointLonLat": [
+            42.6023833,
+            43.0445167
+          ],
+          "distanceToMainstemKm": 3.326,
+          "nearestHydroLonLat": [
+            42.602083,
+            43.014583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 16"
+        },
+        {
+          "id": "nakra_intake",
+          "river": "Nakra (Enguri tributary)",
+          "publishedPointLonLat": [
+            42.3803667,
+            43.0697333
+          ],
+          "distanceToMainstemKm": 2.071,
+          "nearestHydroLonLat": [
+            42.397917,
+            43.05625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 17"
+        },
+        {
+          "id": "nenskra_marghi",
+          "river": "Nenskra (Enguri tributary)",
+          "publishedPointLonLat": [
+            42.19005,
+            43.0183333
+          ],
+          "distanceToMainstemKm": 5.109,
+          "nearestHydroLonLat": [
+            42.227083,
+            42.98125
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 18"
+        },
+        {
+          "id": "chanistskali_jikhashkari",
+          "river": "Chanistskali (Enguri tributary)",
+          "publishedPointLonLat": [
+            42.0251167,
+            42.4964167
+          ],
+          "distanceToMainstemKm": 16.207,
+          "nearestHydroLonLat": [
+            41.902083,
+            42.610417
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 21"
+        },
+        {
+          "id": "chkhoushia_zugdidi",
+          "river": "Chkhoushia (Enguri tributary)",
+          "publishedPointLonLat": [
+            41.84655,
+            42.4904667
+          ],
+          "distanceToMainstemKm": 6.959,
+          "nearestHydroLonLat": [
+            41.802083,
+            42.54375
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 22"
+        },
+        {
+          "id": "jumi_darcheli",
+          "river": "Jumi (Enguri tributary)",
+          "publishedPointLonLat": [
+            41.6808667,
+            42.43
+          ],
+          "distanceToMainstemKm": 1.348,
+          "nearestHydroLonLat": [
+            41.664583,
+            42.43125
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 23"
+        },
+        {
+          "id": "khobistskali_gamogma",
+          "river": "Khobistskali",
+          "publishedPointLonLat": [
+            41.8382167,
+            42.27285
+          ],
+          "distanceToMainstemKm": 22.203,
+          "nearestHydroLonLat": [
+            41.660417,
+            42.422917
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 25"
+        },
+        {
+          "id": "khobistskali_khobi",
+          "river": "Khobistskali",
+          "publishedPointLonLat": [
+            41.9097667,
+            42.3134
+          ],
+          "distanceToMainstemKm": 23.883,
+          "nearestHydroLonLat": [
+            41.660417,
+            42.422917
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 26"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Chanistskali (Enguri tributary)": 16.207,
+        "Chkhoushia (Enguri tributary)": 6.959,
+        "Dolra (Enguri tributary)": 3.326,
+        "Enguri": 0.001,
+        "Jejora": 50.602,
+        "Jumi (Enguri tributary)": 1.348,
+        "Khobistskali": 22.203,
+        "Krikhula": 45.09,
+        "Kvirila": 72.06,
+        "Nakra (Enguri tributary)": 2.071,
+        "Nenskra (Enguri tributary)": 5.109,
+        "Rioni": 26.744,
+        "Tskhenistskali": 9.906
+      }
+    },
+    {
+      "systemId": "20565620",
+      "publishedNameKo": "리오니강",
+      "mainstemFeatureCount": 2,
+      "linePartCount": 76,
+      "mainstemLengthKm": 241.089,
+      "independentStations": [
+        {
+          "id": "rioni_oni",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            43.4333833,
+            42.5816
+          ],
+          "distanceToMainstemKm": 34.046,
+          "nearestHydroLonLat": [
+            43.641667,
+            42.316667
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 4"
+        },
+        {
+          "id": "rioni_utsera",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            43.5527667,
+            42.6487833
+          ],
+          "distanceToMainstemKm": 37.601,
+          "nearestHydroLonLat": [
+            43.641667,
+            42.316667
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 5"
+        },
+        {
+          "id": "rioni_khidikari",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            43.1881833,
+            42.5313667
+          ],
+          "distanceToMainstemKm": 43.307,
+          "nearestHydroLonLat": [
+            43.577083,
+            42.26875
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 8"
+        },
+        {
+          "id": "rioni_alpana",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            42.8422667,
+            42.5622667
+          ],
+          "distanceToMainstemKm": 39.594,
+          "nearestHydroLonLat": [
+            42.81875,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 10"
+        },
+        {
+          "id": "tskh_lentekhi",
+          "river": "Tskhenistskali",
+          "publishedPointLonLat": [
+            42.72225,
+            42.7828667
+          ],
+          "distanceToMainstemKm": 64.292,
+          "nearestHydroLonLat": [
+            42.789583,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 11"
+        },
+        {
+          "id": "tskh_luji",
+          "river": "Tskhenistskali",
+          "publishedPointLonLat": [
+            42.9519833,
+            42.82675
+          ],
+          "distanceToMainstemKm": 69.789,
+          "nearestHydroLonLat": [
+            42.81875,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 12"
+        },
+        {
+          "id": "kvirila_sachkhere",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            43.40855,
+            42.33625
+          ],
+          "distanceToMainstemKm": 15.625,
+          "nearestHydroLonLat": [
+            43.56079,
+            42.252459
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 1"
+        },
+        {
+          "id": "kvirila_chiatura",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            43.2779,
+            42.2853
+          ],
+          "distanceToMainstemKm": 18.962,
+          "nearestHydroLonLat": [
+            43.28125,
+            42.114583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 2"
+        },
+        {
+          "id": "jejora_oni",
+          "river": "Jejora",
+          "publishedPointLonLat": [
+            43.4299333,
+            42.5738167
+          ],
+          "distanceToMainstemKm": 33.45,
+          "nearestHydroLonLat": [
+            43.641667,
+            42.316667
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 3"
+        },
+        {
+          "id": "krikhula_ambrolauri",
+          "river": "Krikhula",
+          "publishedPointLonLat": [
+            43.1488833,
+            42.5217
+          ],
+          "distanceToMainstemKm": 42.758,
+          "nearestHydroLonLat": [
+            42.877083,
+            42.19375
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 9"
+        },
+        {
+          "id": "rioni_nve_chaladidi",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            41.9333333,
+            42.2
+          ],
+          "distanceToMainstemKm": 0.276,
+          "nearestHydroLonLat": [
+            41.936016,
+            42.198517
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 141 Chaladidi, coordinates rounded to minute"
+        },
+        {
+          "id": "rioni_nve_patara_poti",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            41.7833333,
+            42.1833333
+          ],
+          "distanceToMainstemKm": 0.276,
+          "nearestHydroLonLat": [
+            41.78065,
+            42.184817
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 142 Patara-Poti, rounded"
+        },
+        {
+          "id": "rioni_nve_poti",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            41.6833333,
+            42.15
+          ],
+          "distanceToMainstemKm": 4.329,
+          "nearestHydroLonLat": [
+            41.714583,
+            42.18125
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 143 Poti bridge, rounded"
+        },
+        {
+          "id": "rioni_nve_poti_north",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            41.65,
+            42.1666667
+          ],
+          "distanceToMainstemKm": 3.511,
+          "nearestHydroLonLat": [
+            41.65625,
+            42.197917
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 144 northern branch, rounded"
+        },
+        {
+          "id": "rioni_nve_samtredia",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            42.3333333,
+            42.1333333
+          ],
+          "distanceToMainstemKm": 0.861,
+          "nearestHydroLonLat": [
+            42.34375,
+            42.133334
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 139 Samtredia, rounded"
+        },
+        {
+          "id": "rioni_nve_dapnari",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            42.1166667,
+            42.3166667
+          ],
+          "distanceToMainstemKm": 15.11,
+          "nearestHydroLonLat": [
+            42.06875,
+            42.185417
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 140 Dapnari, rounded"
+        },
+        {
+          "id": "rioni_nve_kutaisi",
+          "river": "Rioni",
+          "publishedPointLonLat": [
+            42.7,
+            42.2666667
+          ],
+          "distanceToMainstemKm": 9.336,
+          "nearestHydroLonLat": [
+            42.75625,
+            42.19375
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 136 Kutaisi, rounded"
+        },
+        {
+          "id": "kvirila_nve_mouth",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            42.7333333,
+            42.1833333
+          ],
+          "distanceToMainstemKm": 0.552,
+          "nearestHydroLonLat": [
+            42.738698,
+            42.180365
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 178 Kvirila mouth, rounded"
+        },
+        {
+          "id": "kvirila_nve_zestaponi",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            43.0333333,
+            42.1
+          ],
+          "distanceToMainstemKm": 0.288,
+          "nearestHydroLonLat": [
+            43.03125,
+            42.102083
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 174 Zestaponi, rounded"
+        },
+        {
+          "id": "kvirila_nve_ajameti",
+          "river": "Kvirila",
+          "publishedPointLonLat": [
+            42.7833333,
+            42.2
+          ],
+          "distanceToMainstemKm": 0.231,
+          "nearestHydroLonLat": [
+            42.783333,
+            42.202083
+          ],
+          "independentSource": "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf",
+          "stationDescription": "NVE/Georgia NEA 2017 gauge 177 Ajameti, rounded"
+        },
+        {
+          "id": "enguri_vichnishi",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            42.9036333,
+            42.9418333
+          ],
+          "distanceToMainstemKm": 82.007,
+          "nearestHydroLonLat": [
+            42.81875,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 14"
+        },
+        {
+          "id": "enguri_mestia",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            42.7479333,
+            43.0753833
+          ],
+          "distanceToMainstemKm": 96.61,
+          "nearestHydroLonLat": [
+            42.789583,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 15"
+        },
+        {
+          "id": "enguri_potskho",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            42.0287833,
+            42.7295667
+          ],
+          "distanceToMainstemKm": 58.457,
+          "nearestHydroLonLat": [
+            41.95625,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 19"
+        },
+        {
+          "id": "enguri_khaishi",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            42.1782,
+            42.9448833
+          ],
+          "distanceToMainstemKm": 84.076,
+          "nearestHydroLonLat": [
+            41.95625,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 20"
+        },
+        {
+          "id": "enguri_anaklia_mouth",
+          "river": "Enguri",
+          "publishedPointLonLat": [
+            41.5602333,
+            42.39225
+          ],
+          "distanceToMainstemKm": 20.96,
+          "nearestHydroLonLat": [
+            41.648003,
+            42.215277
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 24"
+        },
+        {
+          "id": "dolra_ushkhvani",
+          "river": "Dolra (Enguri tributary)",
+          "publishedPointLonLat": [
+            42.6023833,
+            43.0445167
+          ],
+          "distanceToMainstemKm": 94.381,
+          "nearestHydroLonLat": [
+            42.789583,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 16"
+        },
+        {
+          "id": "nakra_intake",
+          "river": "Nakra (Enguri tributary)",
+          "publishedPointLonLat": [
+            42.3803667,
+            43.0697333
+          ],
+          "distanceToMainstemKm": 101.038,
+          "nearestHydroLonLat": [
+            42.397917,
+            42.160417
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 17"
+        },
+        {
+          "id": "nenskra_marghi",
+          "river": "Nenskra (Enguri tributary)",
+          "publishedPointLonLat": [
+            42.19005,
+            43.0183333
+          ],
+          "distanceToMainstemKm": 92.256,
+          "nearestHydroLonLat": [
+            41.95625,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 18"
+        },
+        {
+          "id": "chanistskali_jikhashkari",
+          "river": "Chanistskali (Enguri tributary)",
+          "publishedPointLonLat": [
+            42.0251167,
+            42.4964167
+          ],
+          "distanceToMainstemKm": 32.739,
+          "nearestHydroLonLat": [
+            41.95625,
+            42.20625
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 21"
+        },
+        {
+          "id": "chkhoushia_zugdidi",
+          "river": "Chkhoushia (Enguri tributary)",
+          "publishedPointLonLat": [
+            41.84655,
+            42.4904667
+          ],
+          "distanceToMainstemKm": 30.966,
+          "nearestHydroLonLat": [
+            41.79375,
+            42.214583
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 22"
+        },
+        {
+          "id": "jumi_darcheli",
+          "river": "Jumi (Enguri tributary)",
+          "publishedPointLonLat": [
+            41.6808667,
+            42.43
+          ],
+          "distanceToMainstemKm": 24.017,
+          "nearestHydroLonLat": [
+            41.648003,
+            42.215277
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 23"
+        },
+        {
+          "id": "khobistskali_gamogma",
+          "river": "Khobistskali",
+          "publishedPointLonLat": [
+            41.8382167,
+            42.27285
+          ],
+          "distanceToMainstemKm": 6.984,
+          "nearestHydroLonLat": [
+            41.847917,
+            42.210417
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 25"
+        },
+        {
+          "id": "khobistskali_khobi",
+          "river": "Khobistskali",
+          "publishedPointLonLat": [
+            41.9097667,
+            42.3134
+          ],
+          "distanceToMainstemKm": 12.036,
+          "nearestHydroLonLat": [
+            41.864583,
+            42.210417
+          ],
+          "independentSource": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "stationDescription": "NEA EU4Environment 2022 site 26"
+        }
+      ],
+      "minDistanceKmByRiver": {
+        "Chanistskali (Enguri tributary)": 32.739,
+        "Chkhoushia (Enguri tributary)": 30.966,
+        "Dolra (Enguri tributary)": 94.381,
+        "Enguri": 20.96,
+        "Jejora": 33.45,
+        "Jumi (Enguri tributary)": 24.017,
+        "Khobistskali": 6.984,
+        "Krikhula": 42.758,
+        "Kvirila": 0.231,
+        "Nakra (Enguri tributary)": 101.038,
+        "Nenskra (Enguri tributary)": 92.256,
+        "Rioni": 0.276,
+        "Tskhenistskali": 64.292
+      }
+    }
+  ]
+}
