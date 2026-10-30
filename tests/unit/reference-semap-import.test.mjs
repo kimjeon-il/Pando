@@ -7,6 +7,7 @@ import test from 'node:test';
 import {encodeNativeGrayPng,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
 import {prepareSemapCorpus} from '../../tools/reference-analysis/prepare-semap.mjs';
 import {validateSemapTrainingCorpus} from '../../tools/reference-analysis/validate-semap.mjs';
+import {inspectSemapTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
 
 test('Semap importer preserves real originals, rejects changed outputs and never creates review truth',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-semap-import-'));t.after(()=>rm(root,{recursive:true}));
@@ -29,6 +30,10 @@ test('Semap importer preserves real originals, rejects changed outputs and never
   assert.equal(annotation.origin,'semap-human-mask-export');assert.deepEqual(annotation.observedChannels,['hydro','transport']);
   const verifyEvidence=(name,bytes)=>assert.deepEqual(bytes,evidence[name]);
   assert.equal((await validateSemapTrainingCorpus(manifest,root,{verifyEvidence})).valid,true);
+  const dataset=await inspectSemapTrainingDataset(first.manifest,{verifyEvidence});
+  assert.deepEqual(dataset.counts,[[0,0],[0,0],[0,0],[108,108],[108,0],[0,0],[0,0]]);
+  assert.deepEqual(dataset.tiles,[{sourceId:sheet.id,index:0,x:0,y:0,duplicateGroup:sheet.duplicateGroup}]);
+  assert.equal(dataset.trainingOnly,true);assert.equal(dataset.releaseApproved,false);
   const target=await readFile(join(root,annotation.raster.path));const mask=await readNativeTrainingMask(target,annotation.raster.sha256);
   assert(mask.data.every(value=>value===8));
   await prepareSemapCorpus({output:root,perInstitution:1,maximumMaps:1,source});
@@ -36,6 +41,7 @@ test('Semap importer preserves real originals, rejects changed outputs and never
   annotation.raster.sha256=createHash('sha256').update(empty).digest('hex');
   await writeFile(join(root,sheet.annotations),JSON.stringify(annotation));
   await assert.rejects(validateSemapTrainingCorpus(manifest,root,{verifyEvidence}),/conversion/i);
+  await assert.rejects(inspectSemapTrainingDataset(first.manifest,{verifyEvidence}),/conversion/i);
   await assert.rejects(prepareSemapCorpus({output:root,perInstitution:1,maximumMaps:1,source}),/preserve/i);
   assert.deepEqual(await readFile(join(root,annotation.raster.path)),empty);
 });

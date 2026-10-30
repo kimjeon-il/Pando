@@ -8,8 +8,30 @@ import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {readTrainingBounded} from './training-evidence.mjs';
 import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
+import {validateSemapTrainingCorpus} from './validate-semap.mjs';
 
 const rasterOrigins=new Set(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision']);
+// Semap is auxiliary training data; it is never promoted to reviewed macro scope.
+export async function inspectSemapTrainingDataset(corpus,{signal,verifyEvidence,workspace,imageDirectory}={}){
+  signal?.throwIfAborted();if(!corpus)throw Error('Explicit Semap training corpus required');
+  const path=resolve(corpus),root=dirname(path),hash=value=>createHash('sha256').update(value).digest('hex');
+  const bytes=readTrainingBounded(path,32*1024*1024),corpusSha256=hash(bytes),manifest=JSON.parse(bytes);
+  const validated=await validateSemapTrainingCorpus(manifest,root,{signal,verifyEvidence});
+  const tiles=[],counts=Array.from({length:7},()=>[0,0]);
+  for(const {sheet,annotation,counts:sourceCounts} of validated.sources){
+    for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=sourceCounts[i][j];
+      if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
+    for(const tile of await listRasterTrainingTiles({root,annotation},{signal,workspace,imageDirectory})){
+      if(tiles.length>=1000000)throw Error('Training tile count exceeds budget');
+      tiles.push({sourceId:sheet.id,index:tiles.length,x:tile.x,y:tile.y,duplicateGroup:sheet.duplicateGroup});
+    }
+  }
+  if(!tiles.length)throw Error('Corpus has no supervised Semap training tiles');
+  for(const {checks} of validated.sources)for(const [source,expected] of checks){signal?.throwIfAborted();
+    if(hash(readTrainingBounded(source,16*1024*1024))!==expected)throw Error('Semap source changed during indexing');}
+  if(hash(readTrainingBounded(path,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during indexing');
+  return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,corpusSha256,counts,tiles};
+}
 export async function indexMacroTrainingDataset(corpus,{signal,workspace,imageDirectory}={}){
   signal?.throwIfAborted();if(!corpus)throw Error('Explicit macro training corpus required');
   const path=resolve(corpus),root=dirname(path),bytes=readTrainingBounded(path,32*1024*1024),hash=value=>createHash('sha256').update(value).digest('hex');

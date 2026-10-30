@@ -14,7 +14,7 @@ const channels=['international','administrative','coast','hydro','transport','te
 export async function validateSemapTrainingCorpus(corpus,root,{signal,verifyEvidence=verifySemapEvidence}={}){
   signal?.throwIfAborted();if(!corpus||corpus.schemaVersion!==1||corpus.trainingOnly!==true||!Array.isArray(corpus.sheets)||!corpus.sheets.length||typeof verifyEvidence!=='function')
     throw Error('Explicit real-only Semap training corpus required');
-  const seen=new Set();
+  const seen=new Set(),sources=[];
   for(const sheet of corpus.sheets){signal?.throwIfAborted();
     if(!sheet?.id||seen.has(sheet.id)||sheet.split!=='train'||!sheet.annotations||!sheet.source?.url||!sheet.source?.license||
       !['color','monochrome'].includes(sheet.mapKind)||!/^[a-f0-9]{64}$/.test(sheet.sha256||''))throw Error('Unique Semap training source required');
@@ -56,12 +56,14 @@ export async function validateSemapTrainingCorpus(corpus,root,{signal,verifyEvid
     const counts=await countNativeTrainingSupervision(converted.target,converted.known,{signal});
     if(channels.some((name,i)=>annotation.positivePixels?.[name]!==counts[i][1]))throw Error('Semap positive pixel counts differ');
     for(const [path,expected] of checks)if(sha(readTrainingBounded(path,16*1024*1024))!==expected)throw Error('Semap source changed during verification');
+    sources.push({sheet,annotation,checks,counts});
   }
-  return {valid:true,sheets:seen.size,trainingOnly:true,independentEvaluation:false};
+  return {valid:true,sheets:seen.size,trainingOnly:true,independentEvaluation:false,sources};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'}}});
     if(positionals.length||!values.corpus)throw Error('Explicit --corpus required');const path=resolve(values.corpus);
-    console.log(JSON.stringify(await validateSemapTrainingCorpus(JSON.parse(readTrainingBounded(path,32*1024*1024)),dirname(path))));
+    const {sources,...result}=await validateSemapTrainingCorpus(JSON.parse(readTrainingBounded(path,32*1024*1024)),dirname(path));
+    console.log(JSON.stringify(result));
   }catch(error){console.error('validate-semap: '+error.message);process.exitCode=1;}
 }
