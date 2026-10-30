@@ -1,3 +1,4 @@
+import hashlib
 import pathlib
 import sys
 import unittest
@@ -81,9 +82,13 @@ class ModelInterfaceTests(unittest.TestCase):
             masks[8, 10] = 1 | 32
             Image.fromarray(masks).save(root / 'mask.png')
             Image.fromarray(np.full_like(masks, 127 & ~4)).save(root / 'valid.png')
-            (root / 'labels.json').write_text(json.dumps(dict(schemaVersion=1, width=32, height=24,
-                origin='publisher-layer-export', raster={'path': 'mask.png'}, validRaster={'path': 'valid.png'})), encoding='utf-8')
-            dataset = MapTiles(root, [dict(image='source.png', annotations='labels.json')])
+            digest = lambda path: hashlib.sha256((root / path).read_bytes()).hexdigest()
+            annotation = dict(schemaVersion=1, width=32, height=24, origin='publisher-layer-export',
+                raster={'path': 'mask.png', 'sha256': digest('mask.png')},
+                validRaster={'path': 'valid.png', 'sha256': digest('valid.png')})
+            (root / 'labels.json').write_text(json.dumps(annotation), encoding='utf-8')
+            sheet = dict(image='source.png', sha256=digest('source.png'), annotations='labels.json')
+            dataset = MapTiles(root, [sheet])
             tile, overview, position, target, valid, _ = dataset[0]
             self.assertEqual(float(target[0, 8, 10]), 1)
             self.assertEqual(float(target[5, 8, 10]), 1)
@@ -93,7 +98,11 @@ class ModelInterfaceTests(unittest.TestCase):
             self.assertEqual(list(tile.shape), [3, 512, 512])
             self.assertEqual(list(overview.shape), [3, 256, 256])
             Image.fromarray(np.zeros_like(masks)).save(root / 'valid.png')
-            self.assertEqual(len(MapTiles(root, [dict(image='source.png', annotations='labels.json')])), 0,
+            with self.assertRaisesRegex(ValueError, '(?i)hash'):
+                MapTiles(root, [sheet])
+            annotation['validRaster']['sha256'] = digest('valid.png')
+            (root / 'labels.json').write_text(json.dumps(annotation), encoding='utf-8')
+            self.assertEqual(len(MapTiles(root, [sheet])), 0,
                              'An unlabelled auxiliary tile must not count as training')
 
     def test_broadcast_and_explicit_channel_validity_are_the_same_supervision(self):
