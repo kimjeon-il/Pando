@@ -26,18 +26,30 @@ permissions:
 jobs:
   map-image:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-image'
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Build the isolated map image resampling test
+        shell: pwsh
         run: |
           cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
-          cmake --build build-native/map-image --target pando-map-image-resample-tests --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image-resample-tests --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
       - name: Compare small fixed pixel oracles
-        run: build-native/map-image/pando-map-image-resample-tests tests/fixtures/map-image
+        shell: pwsh
+        run: |
+          if ($IsWindows) { $binary = 'build-native/map-image/Release/pando-map-image-resample-tests.exe' }
+          else { $binary = 'build-native/map-image/pando-map-image-resample-tests' }
+          & $binary tests/fixtures/map-image
+          if ($LASTEXITCODE -ne 0) { throw 'Map image oracle mismatch' }
   hydro-point-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-point-windows'
     runs-on: windows-2022
