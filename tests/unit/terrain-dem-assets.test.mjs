@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { summarizeTerrainAssets } from '../../tools/gis/terrain-dem-assets.mjs';
+import { hashTerrainFile, summarizeTerrainAssets } from '../../tools/gis/terrain-dem-assets.mjs';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest();
 test('DEM asset summary uses level and row order and the original binary hashes', async t => {
@@ -13,6 +13,7 @@ test('DEM asset summary uses level and row order and the original binary hashes'
   const files=[['0/0-0.webp','a'],['0/1-0.webp','bb'],['0/0-1.webp','ccc'],['0/1-1.webp','dddd'],['1/0-0.webp','eeeee']];
   for(const [path,bytes] of files)writeFileSync(join(root,path),bytes);
   writeFileSync(join(root,'tint.webp'),'tint');
+  assert.equal((await hashTerrainFile(join(root,'tint.webp'))).sha256,digest('tint').toString('hex'));
   const aggregate=createHash('sha256');for(const [path,bytes] of files)aggregate.update(path).update(digest(bytes));
   aggregate.update(digest('tint'));
   assert.deepEqual(await summarizeTerrainAssets(root,[{id:0,columns:2,rows:2},{id:1,columns:1,rows:1}]), {

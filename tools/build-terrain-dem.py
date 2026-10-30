@@ -13,7 +13,6 @@ The manifest is published only after every tile has been encoded and verified.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import os
@@ -56,11 +55,12 @@ ICE_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/693f11
 
 
 def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(4 * 1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-assets.mjs'
+    result = subprocess.run(['node', str(script), '--file', str(path)], stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('DEM file hashing failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    return json.loads(result.stdout)['sha256']
 
 
 def levels():

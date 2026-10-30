@@ -15,7 +15,7 @@ export function terrainAssetDigest(){
   };
 }
 
-async function fileDigest(path,signal){
+export async function hashTerrainFile(path,{signal}={}){
   const before=await stat(path);if(!before.isFile())throw Error('DEM asset must be a file: '+path);
   const hash=createHash('sha256'),stream=createReadStream(path,{highWaterMark:1024*1024,signal});let bytes=0;
   for await(const chunk of stream){signal?.throwIfAborted();bytes+=chunk.length;hash.update(chunk);}
@@ -33,18 +33,19 @@ export async function summarizeTerrainAssets(output,levels,{signal}={}){
       throw Error('Invalid DEM level');
     seen.add(level.id);let bytes=0,maxTileBytes=0;
     for(let row=0;row<level.rows;row++)for(let column=0;column<level.columns;column++){
-      const path=`${level.id}/${column}-${row}.webp`,file=await fileDigest(resolve(root,path),signal);
+      const path=`${level.id}/${column}-${row}.webp`,file=await hashTerrainFile(resolve(root,path),{signal});
       bytes+=file.bytes;maxTileBytes=Math.max(maxTileBytes,file.bytes);digest.add(path,file.sha256);
     }
     reports.push({level:level.id,tileCount:level.rows*level.columns,bytes,maxTileBytes});
   }
-  const tint=await fileDigest(resolve(root,'tint.webp'),signal);
+  const tint=await hashTerrainFile(resolve(root,'tint.webp'),{signal});
   return {assetsSha256:digest.finish(tint.sha256),reports};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{const {values}=parseArgs({options:{output:{type:'string'},levels:{type:'string'}}});
-    if(!values.output||!values.levels)throw Error('Expected --output and --levels');
-    console.log(JSON.stringify(await summarizeTerrainAssets(values.output,JSON.parse(values.levels))));
+  try{const {values}=parseArgs({options:{output:{type:'string'},levels:{type:'string'},file:{type:'string'}}});
+    if(values.file&&!values.output&&!values.levels)console.log(JSON.stringify(await hashTerrainFile(values.file)));
+    else if(values.output&&values.levels&&!values.file)console.log(JSON.stringify(await summarizeTerrainAssets(values.output,JSON.parse(values.levels))));
+    else throw Error('Expected --file or --output and --levels');
   }catch(error){console.error('terrain-dem-assets: '+error.message);process.exitCode=1;}
 }
