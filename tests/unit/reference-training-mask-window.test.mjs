@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import {readNativeTrainingMaskWindow} from '../../tools/map-image/native-resample.mjs';
-import {prepareRasterTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
+import {listRasterTrainingTiles,prepareRasterTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
 
 test('large source-bound mask returns only the selected raw grayscale window',async()=>{
   const bytes=await readFile('tests/fixtures/reference-training-raster/large-valid.png');
@@ -29,4 +29,7 @@ test('large raster supervision and source image share original coordinates',asyn
   const result=await prepareRasterTrainingTile({root,imagePath,sourceSha256,annotation,x:4000,y:4000});
   assert.equal(result.target.readFloatLE(0),1);assert.equal(result.valid.readFloatLE(0),1);
   assert.equal(result.target.readFloatLE((100*512+100)*4),0);assert.equal(result.valid.readFloatLE((100*512+100)*4),0);
+  const tiles=await listRasterTrainingTiles({root,annotation});
+  assert.deepEqual(tiles.map(({x,y})=>[x,y]),[[3584,3584],[4032,3584],[3584,4032],[4032,4032]]);
+  assert.equal((await listRasterTrainingTiles({root,annotation},{supervisedOnly:false})).length,100);
 });

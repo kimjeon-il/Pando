@@ -2,7 +2,7 @@
 import {dirname,extname,resolve} from 'node:path';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMask,readNativeTrainingMaskWindow} from '../map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMask,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -81,7 +81,7 @@ async function trainingRaster(root,annotation,field,options){
   const spec=annotation[field];if(!spec||typeof spec.path!=='string')throw Error('Source-bound raster path required');
   const path=await resolveCorpusPath(root,spec.path),bytes=await readFile(path,{signal:options.signal});
   const nativeOptions={signal:options.signal,workspace:options.workspace,directory:options.imageDirectory};
-  const mask=options.window?await readNativeTrainingMaskWindow(bytes,spec.sha256,options.window,nativeOptions):
+  const mask=options.scanTiles?await scanNativeTrainingMaskTiles(bytes,spec.sha256,nativeOptions):options.window?await readNativeTrainingMaskWindow(bytes,spec.sha256,options.window,nativeOptions):
     await readNativeTrainingMask(bytes,spec.sha256,nativeOptions);
   if(mask.width!==annotation.width||mask.height!==annotation.height)throw Error('Training raster dimensions differ from original');return mask;
 }
@@ -108,9 +108,9 @@ export async function macroTrainingSupervision(corpus,{signal,workspace,imageDir
 }
 export async function listRasterTrainingTiles({root,annotation},{supervisedOnly=true,signal,workspace,imageDirectory}={}){
   if(typeof supervisedOnly!=='boolean')throw Error('Explicit training supervision mode required');
-  const options={signal,workspace,imageDirectory},mask=await trainingRaster(root,annotation,'validRaster',options);
+  const options={signal,workspace,imageDirectory,scanTiles:true},mask=await trainingRaster(root,annotation,'validRaster',options);
   const tiles=referenceImageTilePlan(mask.width,mask.height);if(!supervisedOnly)return tiles;
-  return tiles.filter(tile=>{for(let y=tile.y;y<tile.y+tile.height;y++)for(let x=tile.x;x<tile.x+tile.width;x++)if(mask.data[y*mask.width+x])return true;return false;});
+  return tiles.filter((_,index)=>mask.tiles[index]!==0);
 }
 
 export async function listReviewedTrainingTiles(annotation,{supervisedOnly=true,signal,workspace,reviewDirectory}={}){
