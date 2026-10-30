@@ -12,6 +12,8 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,
 // Opaque RGB values in RGBA storage; Pillow-compatible bilinear training input.
 std::vector<std::uint8_t> resizeOpaqueBilinear(const std::vector<std::uint8_t>& input,
     int width,int height,int outputWidth,int outputHeight);
+std::vector<std::uint8_t> resizeOpaqueBicubic(const std::vector<std::uint8_t>& input,
+    int width,int height,int outputWidth,int outputHeight);
 // Pillow's two-stage thumbnail reduction for opaque RGB PDF pages.
 std::vector<std::uint8_t> resizeOpaqueThumbnail(const std::vector<std::uint8_t>& input,
     int width,int height,int outputWidth,int outputHeight);

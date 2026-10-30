@@ -138,6 +138,17 @@ export async function encodeNativeGrayPng(image,{signal,workspace=root,directory
     image.data.length+image.height+1048576,signal);
   if(result.length<8)throw Error('Native grayscale PNG is truncated');return result;
 }
+export async function inspectNativeSemapImage(bytes,sha256,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!(bytes instanceof Uint8Array)||bytes.length<2||bytes.length>8*1024*1024||bytes[0]!==255||bytes[1]!==216||
+    typeof sha256!=='string'||!/^[a-f0-9]{64}$/.test(sha256)||createHash('sha256').update(bytes).digest('hex')!==sha256)
+    throw Error('Source-bound Semap JPEG required');
+  const result=await runNative(nativeBinary(workspace,directory),['semap-image'],bytes,12,signal);
+  if(result.length!==12)throw Error('Native Semap image receipt is invalid');
+  const width=result.readUInt32BE(0),height=result.readUInt32BE(4),chromaSum=result.readUInt32BE(8);
+  if(!width||!height||width>1200||height>1200||chromaSum>128*128*255)throw Error('Native Semap image metadata is invalid');
+  const chroma=chromaSum/(128*128);return {width,height,chromaSum,chroma,mapKind:chroma<8?'monochrome':'color'};
+}
 export function resizeNativePdfThumbnail(image,size,options){
   return operateNativeRgba(image,size,['thumbnail-pdf',...(Array.isArray(size)?size:[])],options);
 }

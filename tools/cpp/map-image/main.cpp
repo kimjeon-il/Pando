@@ -4,6 +4,7 @@
 #include "image-read.h"
 #include "training-scan.h"
 #include "training-tile.h"
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -63,6 +64,18 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="semap-image"){
+            if(argc!=2)throw std::invalid_argument("Semap image takes no extra arguments");
+            const auto encoded=encodedInput();PandoImage image{};
+            if(!pando_read_jpeg(encoded.data(),encoded.size(),&image))throw std::runtime_error(std::string("Semap JPEG: ")+image.error);
+            std::unique_ptr<std::uint8_t,decltype(&std::free)> pixels(image.rgba,&std::free);
+            if(image.width>1200||image.height>1200)throw std::invalid_argument("Semap real image exceeds size budget");
+            const std::vector<std::uint8_t> input(pixels.get(),pixels.get()+std::size_t(image.width)*image.height*4);
+            const auto reduced=pando::map_image::resizeOpaqueBicubic(input,image.width,image.height,128,128);
+            std::uint32_t sum=0;for(std::size_t i=0;i<reduced.size();i+=4){const auto lo=std::min({reduced[i],reduced[i+1],reduced[i+2]});
+                const auto hi=std::max({reduced[i],reduced[i+1],reduced[i+2]});sum+=hi-lo;}
+            number(image.width);number(image.height);number(sum);if(!std::cout)throw std::runtime_error("Unable to write Semap image inspection");return 0;
+        }
         if(action=="semap-labels"||action=="encode-gray"){
             if(argc!=4)throw std::invalid_argument("Expected grayscale WIDTH HEIGHT");
             const int width=dimension(argv[2]),height=dimension(argv[3]);const auto pixels=std::size_t(width)*height;
