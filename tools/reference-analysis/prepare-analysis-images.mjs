@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import {createHash} from 'node:crypto';
+import {createReadStream} from 'node:fs';
 import {link,open,readFile,readdir,realpath,stat,unlink,writeFile} from 'node:fs/promises';
 import {basename,dirname,extname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -9,6 +10,8 @@ import {reportArgument} from '../report-paths.mjs';
 
 const workspace=resolve(fileURLToPath(new URL('../../',import.meta.url)));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
+async function sourceHashAfterPreparation(path,signal){const hash=createHash('sha256');
+  for await(const chunk of createReadStream(path,{signal:signal||undefined}))hash.update(chunk);return hash.digest('hex');}
 async function exists(path){try{await stat(path);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}}
 
 export async function prepareAnalysisImage(value,{maximumPixels=8000000,signal}={}){
@@ -34,13 +37,15 @@ export async function prepareAnalysisImage(value,{maximumPixels=8000000,signal}=
   }
   const result=await prepareNativeJpeg(bytes,maximumPixels,{signal,workspace});
   if(!result.changed||result.originalSize.some((value,index)=>value!==originalSize[index]))throw Error('JPEG preparation identity changed');
+  if(await sourceHashAfterPreparation(path,signal)!==sourceHash)throw Error('Original JPEG changed during preparation');
   const output={...common,path:basename(target),size:result.size,
     originalPixelsPerInputPixel:[result.originalSize[0]/result.size[0],result.originalSize[1]/result.size[1]],sha256:sha256(result.data)};
   let createdTemporary=false,createdEvidence=false,published=false;
   try{
     const file=await open(temporary,'wx');createdTemporary=true;
     try{await file.writeFile(result.data,{signal:signal||undefined});}finally{await file.close();}
-    signal?.throwIfAborted();await writeFile(evidence,JSON.stringify(output,null,2)+'\n',{flag:'wx',signal:signal||undefined});createdEvidence=true;
+    signal?.throwIfAborted();const receipt=await open(evidence,'wx');createdEvidence=true;
+    try{await receipt.writeFile(JSON.stringify(output,null,2)+'\n',{signal:signal||undefined});}finally{await receipt.close();}
     signal?.throwIfAborted();await link(temporary,target);published=true;
     return output;
   }finally{
