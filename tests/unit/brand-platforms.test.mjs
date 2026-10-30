@@ -121,12 +121,15 @@ test('Android keeps full-bleed system-shaped background and glyph-only foregroun
   }
 });
 
-test('web keeps its small plated favicon instead of inheriting the unplated Windows treatment',()=>{
+test('web uses a white plate and cobalt optical-small glyph while Windows keeps transparency',()=>{
   const svg=text('shared/frontend/static/brand/favicon.svg');
-  assert.match(svg,/<rect\b[^>]*fill="#315EDB"/);
-  assert.deepEqual(paths(svg),paths(text('design/brand/symbol-small-white.svg')));
+  assert.match(svg,/<rect\b[^>]*fill="#FFFFFF"/);
+  assert.equal((svg.match(/<path\b[^>]*fill="#315EDB"/g)||[]).length,2);
+  assert.deepEqual(paths(svg),paths(text('design/brand/windows-small.svg')));
   for(const frame of icoFrames(read('shared/frontend/static/brand/favicon.ico'))){
-    const at=(Math.floor(frame.height/2)*frame.width+Math.floor(frame.width/2))*4;
-    assert.deepEqual([...frame.pixels.subarray(at,at+4)],[49,94,219,255]);
+    const sample=(x,y)=>[...frame.pixels.subarray((y*frame.width+x)*4,(y*frame.width+x)*4+4)];
+    assert.deepEqual(sample(Math.floor(frame.width/2),Math.floor(frame.height/2)),[255,255,255,255]);
+    assert.deepEqual(sample(Math.floor(frame.width/4),Math.floor(frame.height/4)),[49,94,219,255]);
+    assert.equal(sample(0,0)[3],0);
   }
 });
