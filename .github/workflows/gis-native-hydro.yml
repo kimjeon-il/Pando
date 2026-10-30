@@ -36,12 +36,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Build the isolated map image resampling test
         shell: pwsh
         run: |
           cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
           if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
-          cmake --build build-native/map-image --config Release --target pando-map-image-resample-tests --parallel 2
+          cmake --build build-native/map-image --config Release --target pando-map-image-resample-tests pando-map-image --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
       - name: Compare small fixed pixel oracles
         shell: pwsh
@@ -50,6 +53,22 @@ jobs:
           else { $binary = 'build-native/map-image/pando-map-image-resample-tests' }
           & $binary tests/fixtures/map-image
           if ($LASTEXITCODE -ne 0) { throw 'Map image oracle mismatch' }
+      - name: Package and exercise the actual Node-to-native resize path
+        shell: pwsh
+        run: |
+          if ($IsWindows) { $binary = 'build-native/map-image/Release/pando-map-image.exe' }
+          else { $binary = 'build-native/map-image/pando-map-image' }
+          node tools/map-image/package-native.mjs --binary $binary --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Map image packaging failed' }
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          node --test tests/unit/map-native-resize.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-map-image-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-image/artifact/
+          if-no-files-found: error
+          retention-days: 7
   hydro-point-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-point-windows'
     runs-on: windows-2022
