@@ -1,4 +1,5 @@
 // DEM-derived preview pixels; no source files or map assets are modified.
+#include "land-mask.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -70,16 +71,19 @@ Bytes compose(const Bytes& in){
     return out;
 }
 }
-int main(){
+int main(int argc,char** argv){
 #ifdef _WIN32
     _setmode(_fileno(stdin),_O_BINARY);_setmode(_fileno(stdout),_O_BINARY);
 #endif
-    try{Bytes input;std::array<char,65536> buffer{};
+    try{const bool mask=argc==2&&std::string(argv[1])=="mask";
+        if(argc!=1&&!mask)throw std::invalid_argument("Invalid terrain preview operation");
+        Bytes input;std::array<char,65536> buffer{};
         while(std::cin){std::cin.read(buffer.data(),static_cast<std::streamsize>(buffer.size()));const auto count=std::cin.gcount();
             if(input.size()+static_cast<std::size_t>(count)>256*1024*1024)throw std::invalid_argument("Terrain preview input exceeds budget");
             input.insert(input.end(),buffer.data(),buffer.data()+count);}
         if(!std::cin.eof())throw std::runtime_error("Unable to read terrain preview");
-        const auto result=compose(input);std::cout.write(reinterpret_cast<const char*>(result.data()),static_cast<std::streamsize>(result.size()));
+        const auto result=mask?terrainLandMask(std::string(input.begin(),input.end())):compose(input);
+        std::cout.write(reinterpret_cast<const char*>(result.data()),static_cast<std::streamsize>(result.size()));
         if(!std::cout)throw std::runtime_error("Unable to write terrain preview");return 0;
     }catch(const std::exception& error){std::cerr<<"terrain-preview: "<<error.what()<<'\n';return 1;}
 }
