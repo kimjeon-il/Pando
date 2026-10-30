@@ -29,7 +29,6 @@ from PIL import Image
 import rasterio
 from rasterio.enums import Resampling
 from rasterio.features import bounds, geometry_mask
-from rasterio.fill import fillnodata
 from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 
@@ -290,20 +289,20 @@ def fill_tint_background(rgb, valid):
     """
     if not valid.any():
         raise ValueError('Tint has no valid land colours')
-    if tuple(map(int, rasterio.__gdal_version__.split('.')[:2])) < (3, 9):
-        raise RuntimeError('Nearest tint fill requires GDAL 3.9 or later')
-    width = valid.shape[1]
-    wrapped_valid = np.tile(valid, (1, 3)).astype(np.uint8)
-    result = rgb.astype(np.float32, copy=True)
-    for channel in range(3):
-        values = np.where(valid, rgb[channel], np.nan).astype(np.float32)
-        filled = fillnodata(np.tile(values, (1, 3)), mask=wrapped_valid,
-                            max_search_distance=width, smoothing_iterations=0,
-                            interpolation='nearest')
-        result[channel] = filled[:, width:2*width]
-    if not np.isfinite(result).all():
-        raise ValueError('Tint regional fill left unresolved cells')
-    return np.clip(np.rint(result), 0, 255).astype(np.uint8)
+    if valid.ndim != 2 or rgb.shape != (3, *valid.shape):
+        raise ValueError('Tint RGB and valid mask dimensions must match')
+    height, width = valid.shape
+    payload = struct.pack('<8sII', b'PDTINT01', width, height)
+    payload += np.ascontiguousarray(rgb, dtype='<f4').tobytes()
+    payload += np.ascontiguousarray(valid, dtype=np.uint8).tobytes()
+    script = Path(__file__).with_name('gis') / 'terrain-dem-fill.mjs'
+    result = subprocess.run(['node', str(script), '--fill-tint'], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('Native GDAL tint fill failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if len(result.stdout) != 3 * width * height:
+        raise ValueError('Invalid native GDAL tint fill output length')
+    return np.frombuffer(result.stdout, dtype=np.uint8).reshape(3, height, width).copy()
 
 
 def resample_tint(source, ice_geometries, land_geometries, output, width=TINT_WIDTH, height=TINT_HEIGHT):

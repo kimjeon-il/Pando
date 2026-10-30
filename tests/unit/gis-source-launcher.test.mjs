@@ -6,6 +6,7 @@ import {basename,join} from 'node:path';
 import {buildCommand,parseArguments,runSource,ROOT,TASK_SOURCES} from '../../scripts/gis/run-source.mjs';
 import {packageNativeTool} from '../../tools/native-tool.mjs';
 import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
+import {terrainDemFillSources} from '../../tools/gis/terrain-dem-source.mjs';
 
 test('GIS launcher uses an allowlist and dry-run never launches source commands',()=>{
  const calls=[],logs=[];
@@ -67,16 +68,21 @@ test('terrain preview dispatcher invokes the Node owner with explicit arguments'
  assert.match(calls[0].args[0],/build-terrain-preview\.mjs$/);
  assert.deepEqual(calls[0].args.slice(1),['--check']);
 });
-test('DEM generation requires a source-bound native elevation encoder',t=>{
+test('DEM generation requires source-bound native elevation encoding and tint filling',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-dem-dispatch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
- for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
+ for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
  const argv=['--task','terrain-dem','--execute'],calls=[];
  assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
  const binary=join(root,process.platform==='win32'?'pando-terrain-dem-encode.exe':'pando-terrain-dem-encode');writeFileSync(binary,'fixture binary');
  packageNativeTool({root,binary,directory:join(root,'build-native/terrain-dem-encode/artifact'),target:'terrain-dem-encode',platform:process.platform,
    architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainDemEncodeSources});
+ assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
+ const fill=join(root,process.platform==='win32'?'pando-terrain-dem-fill.exe':'pando-terrain-dem-fill');writeFileSync(fill,'fixture binary');
+ packageNativeTool({root,binary:fill,directory:join(root,'build-native/terrain-dem-encode/fill-artifact'),target:'terrain-dem-fill',platform:process.platform,
+   architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainDemFillSources});
  assert.equal(runSource({root,argv,output:()=>{},spawn:(exe,args,options)=>{calls.push(options);return {status:0,signal:null};}}),0);
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_ENCODE_BINARY,join(root,'build-native/terrain-dem-encode/artifact',basename(binary)));
+ assert.equal(calls[0].env.PANDO_TERRAIN_DEM_FILL_DIRECTORY,join(root,'build-native/terrain-dem-encode/fill-artifact'));
 });
 
 test('historical-border dispatches the migrated Node recipe owner without restoring Python',t=>{

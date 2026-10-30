@@ -45,7 +45,7 @@ node tools/verify-terrain-dem.mjs --etopo 'F:\map-editor-dem-0.13.0\source\ETOPO
 
 생성기는 원본 체크섬·좌표계·격자 크기·NoData를 확인한다. 고도를 먼저 각 LOD에서 면적 평균으로 구한 후, 315°/45° 광원으로 사전 음영을 계산한다. 타일은 1px 실제 이웃 gutter가 있는 lossless WebP RGBA다. `R×256+G−12000`이 고도 m, B가 사전 음영, A는 255다. 저장 공간을 줄이기 위해 B만 4단계 간격으로 양자화한다. 극점 바깥의 1px gutter는 낮은 LOD에서 가장 가까운 실제 행의 음영을 쓰고, 높은 LOD에서는 원래 음영을 유지한다. 기존 음영과의 오차는 최대 2/255이고 고도 RG는 완전히 동일하다. 1m는 **저장 간격**이며 원본 고도의 측량 정확도가 아니다. 검증기는 모든 타일의 크기·채널·인접 gutter·날짜변경선·체크섬을 검사한다. 기존 산출물과 비교할 때는 `--reference-output`을 지정해 고도 채널의 바이트 일치와 음영 오차를 검사한다. 산출 용량·생성 시간·작업 메모리는 Git 밖 `build-report.json`에 기록한다. 초기 전체 생성에서 메모리 계측에 실패했으므로 `peakWorkingSetBytes`가 `null`일 수 있다. `representativePeakWorkingSetBytes`는 각 LOD의 전체 크기 타일 하나씩 재측정한 값이며 전체 생성의 최대 메모리로 해석하면 안 된다.
 
-생성 명령은 소스가 확인된 `terrain-dem-encode` 실행 파일을 요구한다. 검증에는 소스가 확인된 `terrain-dem-check`·`map-image` 네이티브 도구와 GDAL의 `gdallocationinfo`가 필요하다. GDAL이 PATH에 없다면 `PANDO_GDAL_LOCATIONINFO` 또는 `--gdal`로 실행 파일을 지정한다. 이 명령은 명시한 DEM 전체를 읽기 전용으로 검사하므로 필요한 경우에만 실행한다.
+생성 명령은 소스가 확인된 `terrain-dem-encode`와 `terrain-dem-fill` 네이티브 실행 파일을 요구한다. 후자는 GDAL 3.9 이상의 라이브러리를 사용하며, Windows에서 런타임 DLL이 PATH에 없다면 `PANDO_TERRAIN_DEM_GDAL_BIN`에 DLL 디렉터리의 절대 경로를 지정한다. 실행기는 두 도구의 소스·바이너리 일치를 생성 전에 확인한다. 검증에는 소스가 확인된 `terrain-dem-check`·`map-image` 네이티브 도구와 GDAL의 `gdallocationinfo`가 필요하다. GDAL이 PATH에 없다면 `PANDO_GDAL_LOCATIONINFO` 또는 `--gdal`로 실행 파일을 지정한다. 이 명령은 명시한 DEM 전체를 읽기 전용으로 검사하므로 필요한 경우에만 실행한다.
 
 로컬 자료를 보려면 다른 터미널에서 `node tools/serve-terrain-dem.mjs --root 'F:\map-editor-dem-0.13.0'`을 실행하고 앱 URL에 `?demTerrain=local`을 붙인다. `?demTerrain=preview`는 공개 DEM 주소를 사용한다. 앱 시작 전 `window.PANDOLAB_DEV_DEM_MANIFEST_URL`에 절대 manifest URL을 지정하면 두 선택보다 우선한다. 타일 URL 템플릿에는 데이터 루트 기준 상대 URL 또는 절대 URL을 사용할 수 있다.
 
