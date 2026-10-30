@@ -96,6 +96,7 @@ test('source-bound raster supervision matches original training tensors',async()
     assert.deepEqual(hashes,row.hashes,`raster augment ${row.augment}, epoch ${row.epoch}`);}
   const invalid=structuredClone(annotation);invalid.raster.sha256='0'.repeat(64);
   await assert.rejects(prepareRasterTrainingTile({root,imagePath:'map.png',sourceSha256,annotation:invalid,x:0,y:0}),/hash/i);
+  await assert.rejects(countAnnotationTrainingSupervision({root,annotation:invalid}),/hash/i);
   await assert.rejects(prepareRasterTrainingTile({root,imagePath:'map.png',sourceSha256:'0'.repeat(64),annotation,x:0,y:0}),/hash/i);
   const edge=await prepareRasterTrainingTile({root,imagePath:'map.png',sourceSha256,annotation,x:23,y:15});
   assert.ok(Math.abs(edge.position.readFloatLE(8)-1/24)<1e-7);
