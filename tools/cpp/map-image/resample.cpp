@@ -101,33 +101,54 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,int 
     }
     return output;
 }
+struct OpaqueBilinearAccumulator::Impl {
+    using Contribution=std::pair<int,std::int32_t>;
+    int width,height,outputWidth,rowsReceived=0;bool finished=false;
+    std::vector<Row> horizontal;
+    std::vector<std::vector<Contribution>> bySourceRow;
+    std::vector<std::uint8_t> seen,intermediate;
+    std::vector<std::int64_t> sums;
+    Impl(int w,int h,int ow,int oh):width(w),height(h),outputWidth(ow),horizontal(coefficients(w,ow,w,Filter::bilinear)),
+      bySourceRow(h),seen(h),intermediate(std::size_t(ow)*4),sums(std::size_t(ow)*oh*4){
+        const auto vertical=coefficients(h,oh,h,Filter::bilinear);
+        for(int y=0;y<oh;++y)for(std::size_t j=0;j<vertical[y].weights.size();++j)
+            if(vertical[y].weights[j])bySourceRow[vertical[y].start+j].emplace_back(y,vertical[y].weights[j]);
+    }
+};
+OpaqueBilinearAccumulator::OpaqueBilinearAccumulator(int width,int height,int outputWidth,int outputHeight){
+    if(width<=0||height<=0||width>65535||height>65535||std::int64_t(width)*height>600000000)
+        throw std::invalid_argument("Invalid streaming training image dimensions");
+    validate(outputWidth,outputHeight);impl_=std::make_unique<Impl>(width,height,outputWidth,outputHeight);
+}
+OpaqueBilinearAccumulator::~OpaqueBilinearAccumulator()=default;
+void OpaqueBilinearAccumulator::addRow(int y,const std::uint8_t* row,std::size_t length){
+    auto& state=*impl_;
+    if(state.finished||y<0||y>=state.height||state.seen[y]||!row||length!=std::size_t(state.width)*4)
+        throw std::invalid_argument("Invalid or repeated streaming training row");
+    for(std::size_t i=3;i<length;i+=4)if(row[i]!=255)throw std::invalid_argument("Training bilinear input must be opaque");
+    for(int x=0;x<state.outputWidth;++x)for(int c=0;c<4;++c){
+        const auto& weights=state.horizontal[x];std::int64_t sum=0;
+        for(std::size_t j=0;j<weights.weights.size();++j)sum+=std::int64_t(row[(std::size_t(weights.start)+j)*4+c])*weights.weights[j];
+        state.intermediate[std::size_t(x)*4+c]=rounded(sum);
+    }
+    for(const auto& [outputRow,weight]:state.bySourceRow[y])for(std::size_t i=0;i<state.intermediate.size();++i)
+        state.sums[std::size_t(outputRow)*state.intermediate.size()+i]+=std::int64_t(state.intermediate[i])*weight;
+    state.seen[y]=1;++state.rowsReceived;
+}
+std::vector<std::uint8_t> OpaqueBilinearAccumulator::finish(){
+    auto& state=*impl_;
+    if(state.finished||state.rowsReceived!=state.height)throw std::invalid_argument("Incomplete streaming training image");
+    state.finished=true;std::vector<std::uint8_t> output(state.sums.size());
+    for(std::size_t i=0;i<state.sums.size();++i)output[i]=rounded(state.sums[i]);
+    return output;
+}
 std::vector<std::uint8_t> resizeOpaqueBilinearRows(int width,int height,int outputWidth,int outputHeight,
     const OpaqueRgbaRowReader& readRow){
-    if(width<=0||height<=0||width>65535||height>65535||std::int64_t(width)*height>600000000||!readRow)
-        throw std::invalid_argument("Invalid streaming training image dimensions");
-    validate(outputWidth,outputHeight);
-    const auto horizontal=coefficients(width,outputWidth,width,Filter::bilinear);
-    const auto vertical=coefficients(height,outputHeight,height,Filter::bilinear);
-    using Contribution=std::pair<int,std::int32_t>;
-    std::vector<std::vector<Contribution>> bySourceRow(height);
-    for(int y=0;y<outputHeight;++y)for(std::size_t j=0;j<vertical[y].weights.size();++j)
-        if(vertical[y].weights[j])bySourceRow[vertical[y].start+j].emplace_back(y,vertical[y].weights[j]);
-    std::vector<std::uint8_t> row(std::size_t(width)*4),intermediate(std::size_t(outputWidth)*4);
-    std::vector<std::int64_t> sums(std::size_t(outputWidth)*outputHeight*4);
-    for(int y=0;y<height;++y){
-        readRow(y,row.data(),row.size());
-        for(std::size_t i=3;i<row.size();i+=4)if(row[i]!=255)throw std::invalid_argument("Training bilinear input must be opaque");
-        for(int x=0;x<outputWidth;++x)for(int c=0;c<4;++c){
-            const auto& weights=horizontal[x];std::int64_t sum=0;
-            for(std::size_t j=0;j<weights.weights.size();++j)sum+=std::int64_t(row[(std::size_t(weights.start)+j)*4+c])*weights.weights[j];
-            intermediate[std::size_t(x)*4+c]=rounded(sum);
-        }
-        for(const auto& [outputRow,weight]:bySourceRow[y])for(std::size_t i=0;i<intermediate.size();++i)
-            sums[std::size_t(outputRow)*intermediate.size()+i]+=std::int64_t(intermediate[i])*weight;
-    }
-    std::vector<std::uint8_t> output(sums.size());
-    for(std::size_t i=0;i<sums.size();++i)output[i]=rounded(sums[i]);
-    return output;
+    if(!readRow)throw std::invalid_argument("Missing streaming training row reader");
+    OpaqueBilinearAccumulator accumulator(width,height,outputWidth,outputHeight);
+    std::vector<std::uint8_t> row(std::size_t(width)*4);
+    for(int y=0;y<height;++y){readRow(y,row.data(),row.size());accumulator.addRow(y,row.data(),row.size());}
+    return accumulator.finish();
 }
 std::vector<std::uint8_t> resizeOpaqueBilinear(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
     validate(width,height);

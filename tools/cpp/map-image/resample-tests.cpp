@@ -51,6 +51,16 @@ int main(int argc,char** argv){
               "Streaming large training overview differs from Pillow 12.3");
         rejects([&]{pando::map_image::resizeOpaqueBilinearRows(2,2,1,1,
             [](int,std::uint8_t* row,std::size_t length){for(std::size_t i=0;i<length;i++)row[i]=0;});});
+        const std::vector<std::uint8_t> orientedRows={10,20,30,255,50,60,70,255,90,100,110,255,
+            20,30,40,255,60,70,80,255,100,110,120,255};
+        pando::map_image::OpaqueBilinearAccumulator accumulator(3,2,2,2);
+        accumulator.addRow(1,orientedRows.data()+12,12);
+        rejects([&]{accumulator.addRow(1,orientedRows.data()+12,12);});
+        accumulator.addRow(0,orientedRows.data(),12);
+        check(accumulator.finish()==std::vector<std::uint8_t>({25,35,45,255,75,85,95,255,35,45,55,255,85,95,105,255}),
+              "Out-of-order source rows differ from Pillow");
+        pando::map_image::OpaqueBilinearAccumulator incomplete(3,2,2,2);
+        rejects([&]{incomplete.finish();});
         std::cout<<"RGB and RGBA resampling match Pillow pixel oracles\n";return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

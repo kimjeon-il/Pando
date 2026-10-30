@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <functional>
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 namespace pando::map_image {
@@ -16,6 +17,18 @@ std::vector<std::uint8_t> resizeOpaqueBilinear(const std::vector<std::uint8_t>& 
     int width,int height,int outputWidth,int outputHeight);
 // Consume each opaque source row once in ascending order, without a full image buffer.
 using OpaqueRgbaRowReader=std::function<void(int,std::uint8_t*,std::size_t)>;
+class OpaqueBilinearAccumulator {
+public:
+    OpaqueBilinearAccumulator(int width,int height,int outputWidth,int outputHeight);
+    ~OpaqueBilinearAccumulator();
+    OpaqueBilinearAccumulator(const OpaqueBilinearAccumulator&)=delete;
+    OpaqueBilinearAccumulator& operator=(const OpaqueBilinearAccumulator&)=delete;
+    void addRow(int y,const std::uint8_t* row,std::size_t length);
+    std::vector<std::uint8_t> finish();
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+};
 std::vector<std::uint8_t> resizeOpaqueBilinearRows(int width,int height,int outputWidth,int outputHeight,
     const OpaqueRgbaRowReader& readRow);
 std::vector<std::uint8_t> resizeOpaqueBicubic(const std::vector<std::uint8_t>& input,
