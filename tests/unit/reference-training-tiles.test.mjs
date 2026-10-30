@@ -3,13 +3,26 @@ import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
-import {listRasterTrainingTiles,listReviewedTrainingTiles,prepareRasterTrainingTile,prepareReviewedTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
+import {countAnnotationTrainingSupervision,listRasterTrainingTiles,listReviewedTrainingTiles,prepareRasterTrainingTile,prepareReviewedTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
 import {countNativeTrainingSupervision,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
 
 test('native supervision counts only target pixels inside known regions',async()=>{
   const target={width:3,height:1,data:Buffer.from([1,2,127])},known={width:3,height:1,data:Buffer.from([1,3,0])};
   assert.deepEqual(await countNativeTrainingSupervision(target,known),[[2,1],[1,1],[0,0],[0,0],[0,0],[0,0],[0,0]]);
   await assert.rejects(countNativeTrainingSupervision(target,{...known,width:2}),/Matching/);
+});
+test('reviewed supervision retains full-sheet fractional pixels across bounded windows',async()=>{
+  const annotation={width:4100,height:8,known:{international:[[[4094.5,0],[4098.8,0],[4098.8,7],[4094.5,7]]]},
+    lines:[{kind:'international',points:[[4094.5,3.5],[4098.8,3.5]],width:1}],ignore:[]};
+  assert.deepEqual(await countAnnotationTrainingSupervision({annotation}),[[40,5],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]);
+});
+test('training supervision stream returns channel counts for selected sources',()=>{
+  const args=['tools/reference-analysis/training-tiles.mjs','--supervision'];
+  const run=spawnSync(process.execPath,args,{input:JSON.stringify({root:'tests/fixtures/reference-training-tile',sheets:[{annotations:'label.json'}]}),encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);
+  assert.deepEqual(JSON.parse(run.stdout),[[228,18],[0,0],[160,29],[178,20],[0,0],[228,25],[0,0]]);
+  const invalid=spawnSync(process.execPath,args,{input:JSON.stringify({root:'tests/fixtures/reference-training-tile',sheets:[{annotations:'missing.json'}]}),encoding:'utf8'});
+  assert.notEqual(invalid.status,0);
 });
 
 test('training tile selection keeps supervised areas and excludes unknown padded tiles',async()=>{
