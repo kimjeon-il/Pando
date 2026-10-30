@@ -6,7 +6,8 @@ import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {createHash} from 'node:crypto';
-import {planPrivateRelease,recordPrivateUpload,verifyPrivateRelease,nextReleaseVersion,assertPushedRevision,verifyReleaseArchive,runVerifiedCommands} from '../../tools/reference-analysis/release-private-plugin.mjs';
+import {planPrivateRelease,recordPrivateUpload,verifyPrivateRelease,nextReleaseVersion,assertPushedRevision,verifyReleaseArchive,runVerifiedCommands,releaseInputPaths} from '../../tools/reference-analysis/release-private-plugin.mjs';
+import {frontendWasmRoot} from '../../scripts/lib/frontend-layout.mjs';
 import {privatePluginFingerprint} from '../../tools/reference-analysis/package-private-plugin.mjs';
 import {archiveDirectory} from '../../tools/reference-analysis/runtime-assets.mjs';
 
@@ -110,4 +111,10 @@ test('focused command failures and edits during verification cannot produce a pa
     await assert.rejects(runVerifiedCommands({...options,commands:commands('process.exit(2)')}));
     await assert.rejects(runVerifiedCommands({...options,commands:commands('require("fs").writeFileSync("input","changed")')}),/differ/i);
   }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('verification binds the actual loaded WASM pair and policy as well as JavaScript source',async()=>{
+  const paths=await releaseInputPaths(undefined,undefined,[]);
+  for(const name of ['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json'])assert(paths.includes(frontendWasmRoot+'/'+name),name);
+  assert(paths.includes('docs/historical-border-reconstruction-policy.md'));
 });
