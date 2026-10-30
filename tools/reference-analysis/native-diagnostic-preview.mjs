@@ -40,7 +40,7 @@ export async function diagnoseNativeTrainingTile({checkpoint,tile,overview,posit
     signal,root:workspace,directory:batchDirectory});
   const diagnostic=await summarizeDiagnosticTile({width:512,height:512,original,probability:inference.probabilities,target,valid},
     {signal,workspace,imageDirectory,evaluationDirectory});
-  return {...diagnostic,checkpointSha256:inference.checkpointSha256,toolRevision:inference.toolRevision};
+  return {...diagnostic,probabilities:inference.probabilities,checkpointSha256:inference.checkpointSha256,toolRevision:inference.toolRevision};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

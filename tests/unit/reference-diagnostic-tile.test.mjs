@@ -21,4 +21,9 @@ test('diagnostic tile joins native probabilities, known masks, statistics and ov
   await assert.rejects(summarizeDiagnosticTile({...options,target:Buffer.alloc(1)}),/dimensions/i);
   const bad=Buffer.from(probability);bad.writeFloatLE(NaN,0);
   await assert.rejects(summarizeDiagnosticTile({...options,probability:bad}),/invalid tensor/i);
+  const invalid=Buffer.from(baseline);invalid.writeFloatLE(1.1,0);
+  await assert.rejects(summarizeDiagnosticTile({...options,baseline:invalid}),/invalid tensor/i);
+  await assert.rejects(summarizeDiagnosticTile({...options,baseline:null}),/dimensions/i);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(summarizeDiagnosticTile(options,{signal:controller.signal}),{name:'AbortError'});
 });

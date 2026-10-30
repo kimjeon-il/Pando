@@ -46,7 +46,8 @@ export async function nativeTrainingCheckpointInfer({checkpoint,tile,overview,po
   let logits;try{[,logits]=await Promise.all([pipeline(Readable.from([tile,overview,position],{objectMode:false}),child.stdin,{signal}),done]);}
   catch(error){child.kill();await done.catch(()=>{});throw error;}
   signal?.throwIfAborted();if(logits.length!==bytes)throw Error('Native checkpoint logits have incorrect dimensions');
-  for(let at=0;at<logits.length;at+=4)if(!Number.isFinite(logits.readFloatLE(at)))throw Error('Native checkpoint logits contain nonfinite values');
+  for(let at=0;at<logits.length;at+=4){const value=logits.readFloatLE(at);
+    if(!Number.isFinite(value)||(output==='probabilities'&&(value<0||value>1)))throw Error('Native checkpoint output contains invalid values');}
   if(trainingFileIdentity(path)!==checkpointHash||sha(readTrainingBounded(receiptPath,1024*1024))!==receiptHash)throw Error('Inference checkpoint changed during execution');
   return {[output]:logits,checkpointSha256:checkpointHash,toolRevision:tool.revision,trainingOnly:true,releaseApproved:false};
 }
