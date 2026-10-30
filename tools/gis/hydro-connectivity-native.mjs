@@ -31,17 +31,29 @@ export function validateHydroAudit(result,input){
     input.sourceOrder.some(id=>!Number.isSafeInteger(id)||id<=0)||new Set(input.sourceOrder).size!==input.sourceOrder.length||
     Object.keys(result.regions).length!==regions.length||regions.some(region=>!result.regions[region]||Array.isArray(result.regions[region])))
     throw Error('Invalid native Hydro audit result');
-  const order=new Map(input.sourceOrder.map((id,index)=>[id,index])),seen=new Set(),counts=new Map(regions.map(region=>[region,0]));let last=-1;
+  if(Object.keys(input.raw).length!==input.sourceOrder.length||input.sourceOrder.some(id=>!Object.hasOwn(input.raw,id)))
+    throw Error('Invalid native Hydro audit source order');
+  const order=new Map(input.sourceOrder.map((id,index)=>[id,index])),seen=new Set(),expected=new Map(regions.map(region=>[region,{}]));let last=-1;
+  const increment=(row,key)=>{row[key]=(row[key]||0)+1;};
+  for(const id of input.sourceOrder){const source=input.raw[id],counts=expected.get(source?.region);
+    if(!counts||!Number.isSafeInteger(source.next))throw Error('Invalid native Hydro audit source');
+    increment(counts,'selectedReaches');if(!source.next)increment(counts,'naturalTerminals');
+    else if(Object.hasOwn(input.raw,source.next))increment(counts,'expectedConnections');}
   for(const item of result.issues){const index=order.get(item?.source),source=input.raw[item?.source];
-    if(index===undefined||index<=last||seen.has(item.source)||!source||source.region!==item.region||source.next!==item.downstream||
-      !counts.has(item.region)||!causes.has(item.cause)||typeof item.repairable!=='boolean')throw Error('Invalid native Hydro audit issue');
+    if(index===undefined||index<=last||seen.has(item.source)||!source||!source.next||source.region!==item.region||source.next!==item.downstream||
+      !expected.has(item.region)||!causes.has(item.cause)||typeof item.repairable!=='boolean')throw Error('Invalid native Hydro audit issue');
+    const hasDownstream=Object.hasOwn(input.raw,item.downstream);
+    if((item.cause==='missing-downstream')===hasDownstream||
+      (['missing-downstream','ambiguous-source-parts'].includes(item.cause)&&item.repairable))throw Error('Invalid native Hydro audit issue');
     if(['original-mismatch','border-alignment','chain-connection'].includes(item.cause)&&
       (!Number.isFinite(item.gapM)||item.gapM<0||!Number.isFinite(item.originalGapM)||item.originalGapM<0||
        !item.upstream||!item.downstreamPart))throw Error('Invalid native Hydro audit geometry');
-    last=index;seen.add(item.source);counts.set(item.region,counts.get(item.region)+1);
+    last=index;seen.add(item.source);const counts=expected.get(item.region);increment(counts,'issues');increment(counts,item.repairable?'repairable':'unresolved');increment(counts,item.cause);
   }
   for(const region of regions){const stats=result.regions[region];
-    if(Object.values(stats).some(value=>!Number.isSafeInteger(value)||value<0)||(stats.issues||0)!==counts.get(region))
+    const counts=expected.get(region),connected=(counts.expectedConnections||0)-(counts.issues||0)+(counts['missing-downstream']||0);
+    if(connected<0)throw Error('Invalid native Hydro audit counts');if(connected)counts.connected=connected;
+    if(Object.values(stats).some(value=>!Number.isSafeInteger(value)||value<0)||!isDeepStrictEqual(stats,counts))
       throw Error('Invalid native Hydro audit counts');}
   return result;
 }

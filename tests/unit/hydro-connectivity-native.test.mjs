@@ -110,10 +110,13 @@ nativeTest('audit classifies source-proven gaps without changing their geometry'
 });
 test('audit result validation rejects inconsistent source identities and counts',()=>{
   const input=fixture(),result={regions:Object.fromEntries(['eu','as','si','af','sa','na','ar','au','gr'].map(id=>[id,{}])),issues:[]};
+  result.regions.eu={selectedReaches:3,expectedConnections:2,naturalTerminals:1,connected:2};
   validateHydroAudit(result,{...input,sourceOrder:[1,2,3]});
   const invalid=structuredClone(result);invalid.issues.push({region:'eu',source:99,downstream:2,cause:'missing-downstream',repairable:false});
   assert.throws(()=>validateHydroAudit(invalid,{...input,sourceOrder:[1,2,3]}),/audit/i);
   invalid.issues=[];invalid.regions.eu.issues=2;
+  assert.throws(()=>validateHydroAudit(invalid,{...input,sourceOrder:[1,2,3]}),/audit/i);
+  delete invalid.regions.eu.issues;invalid.regions.eu.selectedReaches=2;
   assert.throws(()=>validateHydroAudit(invalid,{...input,sourceOrder:[1,2,3]}),/audit/i);
 });
 test('feature source mapping retains split reaches and does not mutate original geometry',()=>{
