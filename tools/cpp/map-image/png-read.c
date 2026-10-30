@@ -5,7 +5,7 @@
 
 typedef struct Decoder {
     const uint8_t* bytes;size_t size,offset;
-    uint8_t* pixels;png_bytep* rows;
+    uint8_t* pixels;uint8_t* output;png_bytep* rows;
     char error[256];
 } Decoder;
 static void failure(png_structp png,png_const_charp message){
@@ -64,9 +64,10 @@ int pando_read_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result){
     if(depth!=8||color!=PNG_COLOR_TYPE_GRAY)png_error(png,"Training mask must be 8-bit grayscale");
     png_destroy_read_struct(&png,&info,NULL);free(decoder);return pando_read_png(bytes,size,result);
 }
-int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){
+static int read_png(const uint8_t* bytes,size_t size,PandoImage* result,
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
     Decoder* decoder;png_structp png;png_infop info;png_uint_32 width,height;int color,depth,interlace,has_alpha;size_t y,x,rowbytes;
-    uint8_t* output;png_uint_32 exif_size=0;png_bytep exif=NULL;
+    png_uint_32 exif_size=0;png_bytep exif=NULL;
     memset(result,0,sizeof(*result));result->orientation=1;
     decoder=(Decoder*)calloc(1,sizeof(*decoder));if(!decoder){strcpy(result->error,"Out of memory");return 0;}
     decoder->bytes=bytes;decoder->size=size;
@@ -76,12 +77,14 @@ int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){
     if(!info){png_destroy_read_struct(&png,NULL,NULL);free(decoder);strcpy(result->error,"PNG metadata unavailable");return 0;}
     if(setjmp(png_jmpbuf(png))){
         strncpy(result->error,decoder->error,sizeof(result->error)-1);
-        free(decoder->pixels);free(decoder->rows);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 0;
+        free(decoder->pixels);free(decoder->output);free(decoder->rows);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 0;
     }
-    png_set_read_fn(png,decoder,input);png_set_user_limits(png,16384,16384);png_read_info(png,info);
+    png_set_read_fn(png,decoder,input);png_set_user_limits(png,consume?65535:16384,consume?65535:16384);png_read_info(png,info);
     png_get_IHDR(png,info,&width,&height,&depth,&color,&interlace,NULL,NULL);
-    if(!width||!height||(uint64_t)width*height>16777216)png_error(png,"PNG exceeds the 16MP graph budget");
+    if(!width||!height||(uint64_t)width*height>(consume?600000000:16777216))png_error(png,consume?"PNG exceeds the source pixel budget":"PNG exceeds the 16MP graph budget");
     if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=pando_exif_orientation(exif,exif_size);
+    if(consume&&(result->orientation<1||result->orientation>8))png_error(png,"Invalid streaming PNG orientation");
+    if(consume&&interlace!=PNG_INTERLACE_NONE)png_error(png,"Streaming interlaced PNG is not available");
     has_alpha=(color&PNG_COLOR_MASK_ALPHA)!=0||png_get_valid(png,info,PNG_INFO_tRNS);
     if(color==PNG_COLOR_TYPE_PALETTE)png_set_palette_to_rgb(png);
     if(color==PNG_COLOR_TYPE_GRAY&&depth<8)png_set_expand_gray_1_2_4_to_8(png);
@@ -91,15 +94,36 @@ int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){
     png_set_interlace_handling(png);png_read_update_info(png,info);
     rowbytes=png_get_rowbytes(png,info);
     if(rowbytes!=(size_t)width*(depth==16?8:4))png_error(png,"Unexpected PNG pixel layout");
-    decoder->pixels=(uint8_t*)malloc(rowbytes*height);decoder->rows=(png_bytep*)malloc(sizeof(png_bytep)*height);
-    if(!decoder->pixels||!decoder->rows)png_error(png,"PNG allocation failed");
-    for(y=0;y<height;y++)decoder->rows[y]=decoder->pixels+y*rowbytes;
-    png_read_image(png,decoder->rows);png_read_end(png,info);
-    output=(uint8_t*)malloc((size_t)width*height*4);if(!output)png_error(png,"PNG output allocation failed");
-    for(y=0;y<height;y++)for(x=0;x<width;x++){
-        const uint8_t* source=decoder->pixels+y*rowbytes+x*(depth==16?8:4);uint8_t* dest=output+(y*width+x)*4;int c;
-        for(c=0;c<4;c++)dest[c]=depth==16?(color==PNG_COLOR_TYPE_GRAY&&c<3?(source[c*2]?255:source[c*2+1]):source[c*2]):source[c];
+    decoder->pixels=(uint8_t*)malloc(rowbytes*(consume?1:height));
+    decoder->output=(uint8_t*)malloc((size_t)width*(consume?1:height)*4);
+    if(!consume)decoder->rows=(png_bytep*)malloc(sizeof(png_bytep)*height);
+    if(!decoder->pixels||!decoder->output||(!consume&&!decoder->rows))png_error(png,"PNG allocation failed");
+    if(consume){
+        if(!start(context,width,height,result->orientation))png_error(png,"PNG row consumer initialization failed");
+        for(y=0;y<height;y++){
+            png_read_row(png,decoder->pixels,NULL);
+            for(x=0;x<width;x++){
+                const uint8_t* source=decoder->pixels+x*(depth==16?8:4);uint8_t* dest=decoder->output+x*4;int c;
+                for(c=0;c<4;c++)dest[c]=depth==16?(color==PNG_COLOR_TYPE_GRAY&&c<3?(source[c*2]?255:source[c*2+1]):source[c*2]):source[c];
+            }
+            if(!consume(context,(uint32_t)y,decoder->output,(size_t)width*4))png_error(png,"PNG row consumer failed");
+        }
+    }else{
+        for(y=0;y<height;y++)decoder->rows[y]=decoder->pixels+y*rowbytes;
+        png_read_image(png,decoder->rows);
+        for(y=0;y<height;y++)for(x=0;x<width;x++){
+            const uint8_t* source=decoder->pixels+y*rowbytes+x*(depth==16?8:4);uint8_t* dest=decoder->output+(y*width+x)*4;int c;
+            for(c=0;c<4;c++)dest[c]=depth==16?(color==PNG_COLOR_TYPE_GRAY&&c<3?(source[c*2]?255:source[c*2+1]):source[c*2]):source[c];
+        }
     }
-    result->width=width;result->height=height;result->rgba=output;
+    png_read_end(png,info);
+    result->width=width;result->height=height;
+    if(consume){free(decoder->output);decoder->output=NULL;}else{result->rgba=decoder->output;decoder->output=NULL;}
     free(decoder->pixels);free(decoder->rows);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 1;
+}
+int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){return read_png(bytes,size,result,NULL,NULL,NULL);}
+int pando_stream_png_rows(const uint8_t* bytes,size_t size,PandoImage* result,
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
+    if(!start||!consume){memset(result,0,sizeof(*result));strcpy(result->error,"PNG row callbacks required");return 0;}
+    return read_png(bytes,size,result,start,consume,context);
 }

@@ -589,7 +589,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
           $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
-          node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-jpeg-overview.test.mjs tests/unit/reference-training-large-jpeg.test.mjs
+          node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-jpeg-overview.test.mjs tests/unit/reference-training-large-jpeg.test.mjs tests/unit/reference-training-png-overview.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Training image or tile pixels differ' }
       - uses: actions/upload-artifact@v4
         with:
