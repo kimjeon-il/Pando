@@ -1,0 +1,62 @@
+[
+  {
+    "inputSize": [
+      13,
+      7
+    ],
+    "outputSize": [
+      7,
+      13
+    ],
+    "input": "AAAA/x8LSf8+FpL/XSHb/3wsJP+bN23/ukK2/9lN///4WEj/F2OR/zZu2v9VeSP/dIRs/wc1Ef8mQFr/RUuj/2RW7P+DYTX/omx+/8F3x//gghD//41Z/x6Yov89o+v/XK40/3u5ff8OaiL/LXVr/0yAtP9ri/3/ipZG/6mhj//IrNj/57ch/wbCav8lzbP/RNj8/2PjRf+C7o7/FZ8z/zSqfP9TtcX/csAO/5HLV/+w1qD/z+Hp/+7sMv8N93v/LALE/0sNDf9qGFb/iSOf/xzURP87343/WurW/3n1H/+YAGj/twux/9YW+v/1IUP/FCyM/zM31f9SQh7/cU1n/5BYsP8jCVX/QhSe/2Ef5/+AKjD/nzV5/75Awv/dSwv//FZU/xthnf86bOb/WXcv/3iCeP+XjcH/Kj5m/0lJr/9oVPj/h19B/6Zqiv/FddP/5IAc/wOLZf8ilq7/QaH3/2CsQP9/t4n/nsLS/w==",
+    "output": "Ewct/0YZmv9/LV//ukK2/8BXjf85a53/YX1X/xUXMv9IKZ//gT1k/7xSqP/CZ3v/O3ui/2ONXP8ZNDv/TEao/4Vabf/Ab5H/xoRc/z+Yq/9nqmX/HVBF/1Bisv+Jdnf/xIuR/5igWv8+tLX/a8Zv/yBtTv9Tf7v/jJOA/8eomv9XvWP/PNG+/27jeP8kiVf/V5uc/5CvcP/LxKP/UcFs/z98kf9yiXb/KKZg/1u4d/+UzF3/z+Gs/1XBdf9DFVv/dhxy/yzDaf9fz4D/mHtm/9N0tf9ZcH7/Ryxk/3o5e/8wy3L/Y9OJ/5w2b//XGrT/XS+H/0tDbf9+VYT/M157/2Zskv+fNnj/2jd1/2BMkP9OYHb/gXKN/zcYhf9qKpz/oz6C/9VTS/9ZaJr/UnyA/4WOl/87NY7/bkel/6dbi/+4cFT/NIWj/1aZif+Jq6D/PUWT/3BXqv+pa5D/p4BZ/x+VqP9YqY7/i7ul/w=="
+  },
+  {
+    "inputSize": [
+      23,
+      17
+    ],
+    "outputSize": [
+      9,
+      7
+    ],
+    "input": "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",
+    "output": "Jz1c/25Wkf+5c4n/fYyJ/1ykgf+rooX/naOS/0qDgf+Rbnb/Npl2/32Vd/+9jJL/UHqC/2tje/+3Yof/amSE/1l6hv+gjnT/R1iR/45ggf+vZ3T/RoOP/3ybgf+/lnL/WaGM/2p6gf+xh3D/WKGO/5+he/+flX3/QmZ7/41qhv+vWH//QGlv/3t4iP/CiYz/aWKD/7BnhP9qa3L/T4d2/56Xhf+wmHf/S5d3/4x+df/TfIb/eqV2/7+XeP9noYH/X3Vz/69pcP+AV4n/T2p8/513iv+xiIb/iWaB/7VWg/9JZov/bnyJ/7eXc/9sspL/XJKK/6yTd/+kY4n/"
+  },
+  {
+    "inputSize": [
+      3,
+      5
+    ],
+    "outputSize": [
+      1,
+      1
+    ],
+    "input": "AAAA/x8LSf8+FpL/BzUR/yZAWv9FS6P/Dmoi/y11a/9MgLT/FZ8z/zSqfP9TtcX/HNRE/zvfjf9a6tb/",
+    "output": "LXVr/w=="
+  },
+  {
+    "inputSize": [
+      7,
+      3
+    ],
+    "outputSize": [
+      28,
+      12
+    ],
+    "input": "AAAA/x8LSf8+FpL/XSHb/3wsJP+bN23/ukK2/wc1Ef8mQFr/RUuj/2RW7P+DYTX/omx+/8F3x/8OaiL/LXVr/0yAtP9ri/3/ipZG/6mhj//IrNj/",
+    "output": "AAAA/wAAAP8EAQn/DAQb/xMHLv8bCkD/IwxS/ysPZP8yEnf/OhWJ/0IXm/9KGq3/UR3A/1kg0v9hIsT/aSWW/3Aoaf94Kzv/gC0t/4gwP/+PM1L/lzZk/584dv+nO4j/rj6b/7ZBrf+6Qrb/ukK2/wAAAP8AAAD/BAEJ/wwEG/8TBy7/GwpA/yMMUv8rD2T/MhJ3/zoVif9CF5v/Shqt/1EdwP9ZINL/YSLE/2kllv9wKGn/eCs7/4AtLf+IMD//jzNS/5c2ZP+fOHb/pzuI/64+m/+2Qa3/ukK2/7pCtv8BBwL/AQcC/wUIC/8NCx3/FA4w/xwRQv8kE1T/LBZm/zMZef87HIv/Qx6d/0shr/9SJML/WifU/2Ipxv9qLJj/cS9r/3kyPf+BNC//iTdB/5A6VP+YPWb/oD94/6hCiv+vRZ3/t0iv/7tJuP+7Sbj/AxQG/wMUBv8HFQ//Dxgh/xYbNP8eHkb/JiBY/y4jav81Jn3/PSmP/0Urof9NLrP/VDHG/1w02P9kNsr/bDmc/3M8b/97P0H/g0Ez/4tERf+SR1j/mkpq/6JMfP+qT47/sVKh/7lVs/+9Vrz/vVa8/wQhC/8EIQv/CCIU/xAlJv8XKDn/HytL/yctXf8vMG//NjOC/z42lP9GOKb/Tju4/1U+y/9dQd3/ZUPP/21Gof90SXT/fExG/4ROOP+MUUr/k1Rd/5tXb/+jWYH/q1yT/7Jfpv+6Yrj/vmPB/75jwf8GLg//Bi4P/wovGP8SMir/GTU9/yE4T/8pOmH/MT1z/zhAhv9AQ5j/SEWq/1BIvP9XS8//X07h/2dQ0/9vU6X/dlZ4/35ZSv+GWzz/jl5O/5VhYf+dZHP/pWaF/61pl/+0bKr/vG+8/8Bwxf/AcMX/CDwT/wg8E/8MPRz/FEAu/xtDQf8jRlP/K0hl/zNLd/86Tor/QlGc/0pTrv9SVsD/WVnT/2Fc5f9pXtf/cWGp/3hkfP+AZ07/iGlA/5BsUv+Xb2X/n3J3/6d0if+vd5v/tnqu/759wP/Cfsn/wn7J/wpJF/8KSRf/Dkog/xZNMv8dUEX/JVNX/y1Vaf81WHv/PFuO/0ReoP9MYLL/VGPE/1tm1/9jaen/a2vb/3Nurf96cYD/gnRS/4p2RP+SeVb/mXxp/6F/e/+pgY3/sYSf/7iHsv/AisT/xIvN/8SLzf8LVhz/C1Yc/w9XJf8XWjf/Hl1K/yZgXP8uYm7/NmWA/z1ok/9Fa6X/TW23/1Vwyf9cc9z/ZHbu/2x44P90e7L/e36F/4OBV/+Lg0n/k4Zb/5qJbv+ijID/qo6S/7KRpP+5lLf/wZfJ/8WY0v/FmNL/DWMg/w1jIP8RZCn/GWc7/yBqTv8obWD/MG9y/zhyhP8/dZf/R3ip/096u/9Xfc3/XoDg/2aD8v9uheT/doi2/32Lif+Fjlv/jZBN/5WTX/+clnL/pJmE/6yblv+0nqj/u6G7/8Okzf/Hpdb/x6XW/w5qIv8OaiL/Emsr/xpuPf8hcVD/KXRi/zF2dP85eYb/QHyZ/0h/q/9Qgb3/WITP/1+H4v9nivT/b4zm/3ePuP9+kov/hpVd/46XT/+WmmH/nZ10/6Wghv+topj/taWq/7yovf/Eq8//yKzY/8is2P8OaiL/Dmoi/xJrK/8abj3/IXFQ/yl0Yv8xdnT/OXmG/0B8mf9If6v/UIG9/1iEz/9fh+L/Z4r0/2+M5v93j7j/fpKL/4aVXf+Ol0//lpph/52ddP+loIb/raKY/7Wlqv+8qL3/xKvP/8is2P/IrNj/"
+  },
+  {
+    "inputSize": [
+      2,
+      2
+    ],
+    "outputSize": [
+      2,
+      2
+    ],
+    "input": "AAAA/x8LSf8HNRH/JkBa/w==",
+    "output": "AAAA/x8LSf8HNRH/JkBa/w=="
+  }
+]
