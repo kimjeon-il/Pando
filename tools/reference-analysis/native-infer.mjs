@@ -24,10 +24,17 @@ export const referenceOnnxTestSourceFiles=Object.freeze([...referenceSourceFiles
 export const referenceOnnxExportSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-onnx-export.cpp']);
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export function matchingTorchLibrary(torchLibrary,manifest){
-  if(manifest.runtimeVersion!=='2.14.1')throw Error('Unexpected native LibTorch ABI version');
-  const library=resolve(torchLibrary),versionFile=join(dirname(library),'version.py');
-  const version=readFileSync(versionFile,'utf8').match(/^__version__\s*=\s*['"]([^'"]+)['"]/m)?.[1];
-  if(!version||version.split('+')[0]!==manifest.runtimeVersion||!existsSync(join(library,'torch_cpu.dll'))||!existsSync(join(library,'c10.dll')))
+  const library=resolve(torchLibrary);let version,files;
+  if(process.platform==='win32'){
+    if(manifest.runtimeVersion!=='2.14.1')throw Error('Unexpected native LibTorch ABI version');
+    const versionFile=join(dirname(library),'version.py');version=readFileSync(versionFile,'utf8').match(/^__version__\s*=\s*['"]([^'"]+)['"]/m)?.[1]?.split('+')[0];
+    files=['torch_cpu.dll','c10.dll'];
+  }else if(process.platform==='linux'){
+    if(manifest.runtimeVersion!=='2.7.1')throw Error('Unexpected native LibTorch ABI version');
+    const versionFile=join(dirname(library),'share','cmake','Torch','TorchConfigVersion.cmake');
+    version=readFileSync(versionFile,'utf8').match(/set\(PACKAGE_VERSION\s+"([^"]+)"\)/)?.[1];files=['libtorch.so','libtorch_cpu.so','libc10.so'];
+  }else throw Error('Unsupported native LibTorch platform');
+  if(!version||version!==manifest.runtimeVersion||files.some(name=>!existsSync(join(library,name))))
     throw Error('The selected LibTorch runtime does not match the native tool');
   return library;
 }

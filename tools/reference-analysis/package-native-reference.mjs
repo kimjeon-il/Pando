@@ -10,6 +10,6 @@ const proof=values.kind==='training-proof';
 const batch=values.kind==='training-batch';
 const onnx=values.kind==='onnx-test';
 const exporter=values.kind==='onnx-export';
-const manifest=packageNativeTool({binary:values.binary,directory:values.directory,target:proof?'reference-training-proof':batch?'reference-training-batch':onnx?'reference-onnx-tests':exporter?'reference-onnx-export':'reference-infer',platform:'win32',architecture:'x64',runtimeVersion:'2.14.1',
+const manifest=packageNativeTool({binary:values.binary,directory:values.directory,target:proof?'reference-training-proof':batch?'reference-training-batch':onnx?'reference-onnx-tests':exporter?'reference-onnx-export':'reference-infer',platform:batch?process.platform:'win32',architecture:'x64',runtimeVersion:batch&&process.platform==='linux'?'2.7.1':'2.14.1',
   revision:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),sourceFiles:proof?referenceProofSourceFiles:batch?referenceBatchSourceFiles:onnx?referenceOnnxTestSourceFiles:exporter?referenceOnnxExportSourceFiles:referenceSourceFiles});
 console.log(JSON.stringify(manifest));

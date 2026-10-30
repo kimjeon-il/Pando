@@ -50,9 +50,9 @@ async function verifyEvidence(root,corpus,sample,data,{epoch,signal}){
 export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,
   samples,device='cpu',torchLibrary,root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
-  if(process.platform!=='win32'||!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!torchLibrary||!['cpu','cuda'].includes(device)||
+  if(!['win32','linux'].includes(process.platform)||!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!torchLibrary||!['cpu','cuda'].includes(device)||
     ![epoch,seed,freezeEpochs].every(v=>Number.isSafeInteger(v)&&v>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
-    !Array.isArray(samples)||samples.length<1||samples.length>16)throw Error('Explicit Windows training batch inputs and configuration required');
+    !Array.isArray(samples)||samples.length<1||samples.length>16)throw Error('Explicit native training batch inputs and configuration required');
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
   let previous=null,cursor=0;
@@ -77,11 +77,12 @@ export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,
   if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets))throw Error('Explicit private training-only corpus required');
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
   const sourceRoot=dirname(corpusPath),evidence=[];for(let i=0;i<samples.length;i++)evidence.push(await verifyEvidence(sourceRoot,manifest,samples[i],checked[i],{epoch,signal}));
-  const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable:'pando-reference-training-batch.exe',sourceFiles:referenceBatchSourceFiles});
+  const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
+  const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,tool),args=[device,mode,inputPath,target,String(epoch),String(seed),String(freezeEpochs),String(learningRate),resolve(order),weights.argument];
   for(const sample of samples)args.push(String(sample.index),resolve(sample.directory));
   const stdout=await new Promise((ok,fail)=>execFile(binary,args,{encoding:'utf8',windowsHide:true,maxBuffer:1024**2,timeout:300000,signal,
-    env:{...process.env,PATH:library+delimiter+process.env.PATH,CUBLAS_WORKSPACE_CONFIG:':4096:8'}},
+    env:{...process.env,...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'}},
     (error,text,stderr)=>error?fail(new Error('Native training batch failed: '+error.message+' '+stderr,{cause:error})):ok(text)));
   signal?.throwIfAborted();const result=JSON.parse(stdout),info=statSync(target);
   if(result.trainingOnly!==true||result.releaseApproved!==false||result.precision!=='fp32'||result.epoch!==epoch||result.cursor!==cursor+samples.length||

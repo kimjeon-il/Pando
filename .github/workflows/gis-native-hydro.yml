@@ -81,16 +81,21 @@ jobs:
           else { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/pando-reference-training-batch" }
           node --test tests/unit/reference-training-batch-refusal.test.mjs tests/unit/reference-training-batch-manager.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Training batch refusal check failed' }
-      - name: Package the Windows training batch engine
-        if: runner.os == 'Windows'
+      - name: Package the training batch engine
         shell: pwsh
         run: |
-          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe --directory build-native/reference-analysis/artifact-batch
+          if ($IsWindows) { $batch = 'build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe' }
+          else { $batch = 'build-native/reference-analysis/step-test/pando-reference-training-batch' }
+          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary $batch --directory build-native/reference-analysis/artifact-batch
           if ($LASTEXITCODE -ne 0) { throw 'Training batch packaging failed' }
+          if (-not $IsWindows) {
+            node --input-type=module -e "import {matchingTorchLibrary} from './tools/reference-analysis/native-infer.mjs'; matchingTorchLibrary(process.env.GITHUB_WORKSPACE+'/build-native/reference-analysis/libtorch/lib',{runtimeVersion:'2.7.1'})"
+            if ($LASTEXITCODE -ne 0) { throw 'Linux LibTorch runtime identity failed' }
+          }
       - uses: actions/upload-artifact@v4
-        if: runner.os == 'Windows' && always()
+        if: always()
         with:
-          name: native-reference-training-batch-${{ github.sha }}
+          name: native-reference-training-batch-${{ matrix.os }}-${{ github.sha }}
           path: build-native/reference-analysis/artifact-batch/
           if-no-files-found: ignore
           retention-days: 7
