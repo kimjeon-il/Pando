@@ -9,6 +9,21 @@ export const hydroConnectivitySources=Object.freeze(['tools/cpp/CMakeLists.txt',
   'shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
 const regions=['eu','as','si','af','sa','na','ar','au','gr'];
 const causes=new Set(['missing-downstream','ambiguous-source-parts','original-mismatch','border-alignment','chain-connection']);
+export function hydroPartsBySource(features){
+  if(!Array.isArray(features))throw Error('Hydro features required');const parts=Object.create(null);
+  for(const feature of features){const meta=feature?.metadata;if(meta?.category!=='river')continue;
+    const geometry=feature.geometry,lines=geometry?.type==='LineString'?[geometry.coordinates]:geometry?.type==='MultiLineString'?geometry.coordinates:null;
+    if(!Array.isArray(lines)||typeof meta.sourceId!=='string'||!Number.isSafeInteger(meta.fid)||!Number.isSafeInteger(meta.flags)||typeof meta.systemId!=='string')
+      throw Error('Invalid Hydro river feature');
+    const sources=meta.sourceId.split(',').map(value=>{if(!/^\s*\d+\s*$/.test(value))throw Error('Invalid Hydro source ID');
+      const id=Number(value);if(!Number.isSafeInteger(id)||id<=0)throw Error('Invalid Hydro source ID');return id;});
+    if(sources.length!==lines.length)throw Error('Ambiguous source/part mapping: '+meta.fid);
+    for(let index=0;index<sources.length;index++){if(!Array.isArray(lines[index]))throw Error('Invalid Hydro source geometry');
+      const key=String(sources[index]);(parts[key]??=[]).push({fid:meta.fid,part:index,points:structuredClone(lines[index]),
+        aligned:Boolean(meta.flags&1),system:meta.systemId});}
+  }
+  return parts;
+}
 export function validateHydroAudit(result,input){
   if(!result||!result.regions||typeof result.regions!=='object'||!Array.isArray(result.issues)||!Array.isArray(input?.sourceOrder)||!input.raw||
     input.sourceOrder.some(id=>!Number.isSafeInteger(id)||id<=0)||new Set(input.sourceOrder).size!==input.sourceOrder.length||
@@ -41,4 +56,7 @@ export async function auditHydroParts({parts,raw,sourceOrder},{root=rootDefault,
     child.stdin.on('error',error=>{if(error.code!=='EPIPE')child.kill();});child.stdin.end(payload);
   });
   signal?.throwIfAborted();return validateHydroAudit(JSON.parse(text),input);
+}
+export async function auditHydroFeatures({features,raw,sourceOrder},options){
+  return auditHydroParts({parts:hydroPartsBySource(features),raw,sourceOrder},options);
 }
