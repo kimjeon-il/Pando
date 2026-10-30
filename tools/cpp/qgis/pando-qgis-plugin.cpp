@@ -33,6 +33,7 @@
 #include <qgsrasterdataprovider.h>
 #include <qgsrasterlayer.h>
 #include <qgsvectorlayer.h>
+#include <qgsvectorlayereditbuffer.h>
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -203,6 +204,35 @@ class Bridge final:public QObject,public QgisPlugin {
             if(!rotation.isUndefined())canvas->setRotation(rotation.toDouble());
             canvas->refresh();
             return {{QStringLiteral("ok"),true},{QStringLiteral("scale"),canvas->scale()},{QStringLiteral("rotation"),canvas->rotation()}};
+        }
+        if(command==QStringLiteral("canvas-extent")){
+            auto* canvas=iface_->mapCanvas();if(!canvas)throw QStringLiteral("QGIS map canvas is unavailable");
+            const auto input=request.value(QStringLiteral("bounds")),source=request.value(QStringLiteral("sourceCrs"));
+            if(!input.isArray()||input.toArray().size()!=4||(!source.isUndefined()&&(!source.isString()||source.toString().trimmed().isEmpty()||source.toString().size()>128)))
+                throw QStringLiteral("Four finite bounds and an optional valid CRS are required");
+            const auto values=input.toArray();for(const auto& value:values)if(!value.isDouble()||!std::isfinite(value.toDouble()))throw QStringLiteral("Four finite bounds are required");
+            if(values[0].toDouble()>=values[2].toDouble()||values[1].toDouble()>=values[3].toDouble())throw QStringLiteral("Canvas bounds must have positive width and height");
+            QgsRectangle rect(values[0].toDouble(),values[1].toDouble(),values[2].toDouble(),values[3].toDouble());
+            const auto destination=canvas->mapSettings().destinationCrs();
+            if(!destination.isValid())throw QStringLiteral("Canvas CRS is invalid");
+            QJsonObject result;
+            if(!source.isUndefined()){
+                const QgsCoordinateReferenceSystem from(source.toString());if(!from.isValid())throw QStringLiteral("Source CRS is invalid");
+                if(from!=destination){
+                    QgsCoordinateTransform transform(from,destination,QgsProject::instance());
+                    transform.setAllowFallbackTransforms(false);transform.setBallparkTransformsAreAppropriate(false);
+                    if(!transform.isValid())throw QStringLiteral("Invalid canvas coordinate transformation");
+                    const auto crossing=transform.transformBoundingBox(rect,Qgis::TransformDirection::Forward,true);
+                    rect=transform.transformBoundingBox(rect);
+                    if(transform.fallbackOperationOccurred())throw QStringLiteral("Canvas coordinate transformation used a fallback");
+                    if(crossing.xMinimum()>crossing.xMaximum())result.insert(QStringLiteral("warning"),QStringLiteral("The transformed box crosses the antimeridian; the canvas spans its long side"));
+                }
+            }
+            if(!std::isfinite(rect.xMinimum())||!std::isfinite(rect.yMinimum())||!std::isfinite(rect.xMaximum())||!std::isfinite(rect.yMaximum())||rect.isEmpty())
+                throw QStringLiteral("Canvas coordinate transformation produced invalid bounds");
+            canvas->setExtent(rect);canvas->refresh();
+            result.insert(QStringLiteral("extent"),QJsonArray{rect.xMinimum(),rect.yMinimum(),rect.xMaximum(),rect.yMaximum()});
+            result.insert(QStringLiteral("crs"),destination.authid());return result;
         }
         if(command==QStringLiteral("active-layer")){
             const auto value=request.value(QStringLiteral("layer"));
@@ -384,6 +414,21 @@ class Bridge final:public QObject,public QgisPlugin {
                 {QStringLiteral("precision"),field.precision()},{QStringLiteral("is_numeric"),field.isNumeric()}});
             return {{QStringLiteral("geometry_type"),static_cast<int>(layer->geometryType())},
                 {QStringLiteral("crs"),layer->crs().authid()},{QStringLiteral("fields"),fields}};
+        }
+        if(command==QStringLiteral("edit-status")){
+            const auto id=request.value(QStringLiteral("layer")).toString();
+            auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
+            if(id.isEmpty()||!layer||!layer->isValid())throw QStringLiteral("A valid vector layer ID is required");
+            auto* stack=layer->undoStack();auto* buffer=layer->editBuffer();
+            QJsonObject pending{{QStringLiteral("added"),buffer?buffer->addedFeatures().size():0},
+                {QStringLiteral("deleted"),buffer?buffer->deletedFeatureIds().size():0},
+                {QStringLiteral("changedAttributes"),buffer?buffer->changedAttributeValues().size():0},
+                {QStringLiteral("changedGeometries"),buffer?buffer->changedGeometries().size():0}};
+            return {{QStringLiteral("id"),id},{QStringLiteral("name"),layer->name()},
+                {QStringLiteral("editable"),layer->isEditable()},{QStringLiteral("modified"),layer->isModified()},
+                {QStringLiteral("owned"),editSessions_.value(id)==layer},{QStringLiteral("canUndo"),stack&&stack->canUndo()},
+                {QStringLiteral("canRedo"),stack&&stack->canRedo()},{QStringLiteral("undoSteps"),stack?stack->index():0},
+                {QStringLiteral("pending"),pending}};
         }
         if(command==QStringLiteral("features")){
             const auto id=request.value(QStringLiteral("layer")).toString();

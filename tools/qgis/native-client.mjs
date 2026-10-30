@@ -1,7 +1,7 @@
 // Bounded, authenticated loopback transport for the native QGIS plugin.
 import {connect} from 'node:net';
 
-const commands=new Set(['status','project','canvas','canvas-scale','layers','active-layer','zoom-to-layer','transform','schema','raster-info','raster-sample','set-visibility','remove-layer','algorithms','buffer','clip','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','add-field','delete-field','rename-field','delete-feature','add-feature','open','open-raster','export']);
+const commands=new Set(['status','project','canvas','canvas-scale','canvas-extent','layers','active-layer','zoom-to-layer','transform','schema','edit-status','raster-info','raster-sample','set-visibility','remove-layer','algorithms','buffer','clip','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','add-field','delete-field','rename-field','delete-feature','add-feature','open','open-raster','export']);
 export const qgisNativeSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/qgis/pando-qgis-plugin.cpp',
   'tools/cpp/qgis/qgis-export.cpp','tools/cpp/qgis/qgis-export.h','shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
 export function validateNativeQgisConfig(config){
