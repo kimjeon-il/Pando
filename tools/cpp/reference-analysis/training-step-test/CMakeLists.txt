@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.20)
+project(pando_reference_training_step LANGUAGES CXX)
+find_package(Torch REQUIRED)
+separate_arguments(PANDO_TORCH_FLAGS NATIVE_COMMAND "${TORCH_CXX_FLAGS}")
+add_executable(reference-training-step-test ../training-step-tests.cpp ../reference-model.cpp ../boundary-loss.cpp)
+target_compile_features(reference-training-step-test PRIVATE cxx_std_20)
+target_compile_options(reference-training-step-test PRIVATE ${PANDO_TORCH_FLAGS})
+target_link_libraries(reference-training-step-test PRIVATE ${TORCH_LIBRARIES})
