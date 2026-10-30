@@ -6,8 +6,9 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import {pythonRound} from '../../tools/gis/hydro-numeric.mjs';
 import { compareNaturalEarthMainstems, naturalEarthHydronym,
-  pointToLineDistance, pythonRound, runNaturalEarthScreen } from '../../tools/gis/compare-osm-hydro-natural-earth.mjs';
+  pointToLineDistance, runNaturalEarthScreen } from '../../tools/gis/compare-osm-hydro-natural-earth.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const ne = () => ({features:[

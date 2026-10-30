@@ -14,6 +14,20 @@ node tools/qgis/native-bridge.mjs start
 node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs layers --offset 0 --limit 50
+node tools/qgis/native-bridge.mjs schema --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs features --layer QGIS_LAYER_ID --offset 0 --limit 10 --geometry
+node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --fids '["1","2"]'
+node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --expression '"name" = ''map'''
+node tools/qgis/native-bridge.mjs selection --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs clear-selection --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs begin-edit --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs set-attribute --layer QGIS_LAYER_ID --fid 1 --field name --json '"새 이름"'
+node tools/qgis/native-bridge.mjs set-geometry --layer QGIS_LAYER_ID --fid 1 --wkt 'POINT (127 37)'
+node tools/qgis/native-bridge.mjs undo-edit --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs redo-edit --layer QGIS_LAYER_ID
+# Choose one ending for the session:
+node tools/qgis/native-bridge.mjs rollback-edit --layer QGIS_LAYER_ID
+# node tools/qgis/native-bridge.mjs commit-edit --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs open 'D:/path/to/pando-layer.geojson'
 node tools/qgis/native-bridge.mjs export --layer QGIS_LAYER_ID --output 'D:/path/to/qgis-result.geojson'
 node tools/qgis/native-bridge.mjs normalize 'D:/path/to/qgis-export.geojson' --output 'D:/path/to/normalized.geojson'
@@ -24,9 +38,24 @@ and never rewrites an existing unrelated profile. QGIS executes operations on
 its main thread; mixed-geometry GeoJSON opens without a sublayer dialog. The
 native MCP server can be started separately with `node tools/qgis/native-mcp.mjs`;
 it uses `PANDO_QGIS_NATIVE_CONFIG` when set, otherwise the default config above.
-It exposes only start, status, project and layer inspection, open, export and normalize. It is not yet an MCP
+It exposes start, status, project, layer, field and feature inspection, selection, managed editing, open, export and normalize. It is not yet an MCP
 replacement: the upstream editing and processing tools remain active until
 their used capabilities have been migrated and tested.
+Native selection accepts QGIS feature IDs as decimal strings, preserving signed
+64-bit values, or a QGIS expression validated against the layer before use.
+Feature reads return a bounded page with exact JSON attributes, optional WKT in
+the layer CRS and string QGIS FIDs. Filtered pages report `hasMore` without a
+whole-layer filtered count.
+Attribute and geometry changes require an edit session started by the native bridge. An existing
+QGIS edit session is not taken over. Changes stay in the QGIS edit buffer and
+use its Undo history until an explicit commit or rollback; either action also
+affects any other edits made to the same QGIS layer in that session. Commit
+writes through the layer's provider, so it can change the underlying source.
+Geometry edits use a valid two-dimensional EPSG:4326 WKT geometry of the
+existing feature's type. QGIS transforms it into the layer's CRS before editing.
+Attribute values are exact JSON text so integers are not rounded in transit;
+unsupported type conversions are rejected. For a negative numeric CLI value,
+use the equals form, for example `--json=-1`.
 
 QGIS operations use upstream `nkarasiak/qgis-mcp` 0.15.2, commit
 `dae432367fcb2873a151b94c4faaadef2033cf9f`. Native QGIS LTR lives once at

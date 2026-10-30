@@ -1,0 +1,505 @@
+{
+  "schema": "pando-hydro-osm-remaining-last11-ngo-government-point-screen-v1",
+  "baseline": "HydroRIVERS v0.13.2",
+  "originalBundleSha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+  "independentDataSource": "NGA GNS and named agency gazetteer endpoints",
+  "governmentQueryCount": 13,
+  "governmentQueryReceipts": [
+    {
+      "systemId": "40475481",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 35.29880 AND lat_dd <= 36.93870 AND long_dd >= 126.36540 AND long_dd <= 128.13460 AND (full_name LIKE '%Geum%' OR full_name LIKE '%Kum-gang%' OR full_name LIKE '%Keum%' OR full_name LIKE '%금강%' OR full_name LIKE '%Kŭm%' OR full_name LIKE '%Kumgang%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+35.29880+AND+lat_dd+%3C%3D+36.93870+AND+long_dd+%3E%3D+126.36540+AND+long_dd+%3C%3D+128.13460+AND+%28full_name+LIKE+%27%25Geum%25%27+OR+full_name+LIKE+%27%25Kum-gang%25%27+OR+full_name+LIKE+%27%25Keum%25%27+OR+full_name+LIKE+%27%25%EA%B8%88%EA%B0%95%25%27+OR+full_name+LIKE+%27%25K%C5%ADm%25%27+OR+full_name+LIKE+%27%25Kumgang%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    },
+    {
+      "systemId": "40486439",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 35.21750 AND lat_dd <= 36.55960 AND long_dd >= 138.40080 AND long_dd <= 140.27210 AND (full_name LIKE '%Arakawa%' OR full_name LIKE '%Ara-kawa%' OR full_name LIKE '%Tone%' OR full_name LIKE '%Tonegawa%' OR full_name LIKE '%荒川%' OR full_name LIKE '%利根%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+35.21750+AND+lat_dd+%3C%3D+36.55960+AND+long_dd+%3E%3D+138.40080+AND+long_dd+%3C%3D+140.27210+AND+%28full_name+LIKE+%27%25Arakawa%25%27+OR+full_name+LIKE+%27%25Ara-kawa%25%27+OR+full_name+LIKE+%27%25Tone%25%27+OR+full_name+LIKE+%27%25Tonegawa%25%27+OR+full_name+LIKE+%27%25%E8%8D%92%E5%B7%9D%25%27+OR+full_name+LIKE+%27%25%E5%88%A9%E6%A0%B9%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [
+        {
+          "id": "nga_456",
+          "ufi": 456,
+          "lon": 139.7,
+          "lat": 35.9,
+          "names": [
+            "荒川"
+          ],
+          "role": "NGA-GNS-named-STM-point-not-line",
+          "source": "https://geonames.nga.mil/geonames/GNSHome/",
+          "featureCountry": "JA"
+        }
+      ],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 1
+    },
+    {
+      "systemId": "41023100",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 23.65030 AND lat_dd <= 32.83880 AND long_dd >= 67.11310 AND long_dd <= 74.92830 AND (full_name LIKE '%Indus%' OR full_name LIKE '%Sindh%' OR full_name LIKE '%Ravi%' OR full_name LIKE '%Chenab%' OR full_name LIKE '%Panjnad%' OR full_name LIKE '%Sutlej%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+23.65030+AND+lat_dd+%3C%3D+32.83880+AND+long_dd+%3E%3D+67.11310+AND+long_dd+%3C%3D+74.92830+AND+%28full_name+LIKE+%27%25Indus%25%27+OR+full_name+LIKE+%27%25Sindh%25%27+OR+full_name+LIKE+%27%25Ravi%25%27+OR+full_name+LIKE+%27%25Chenab%25%27+OR+full_name+LIKE+%27%25Panjnad%25%27+OR+full_name+LIKE+%27%25Sutlej%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    },
+    {
+      "systemId": "41067217",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 22.79360 AND lat_dd <= 28.97210 AND long_dd >= 89.20290 AND long_dd <= 94.77630 AND (full_name LIKE '%Brahmaputra%' OR full_name LIKE '%Yarlung%' OR full_name LIKE '%Tsangpo%' OR full_name LIKE '%Jamuna%' OR full_name LIKE '%Padma%' OR full_name LIKE '%Ganges%' OR full_name LIKE '%Meghna%' OR full_name LIKE '%Tista%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+22.79360+AND+lat_dd+%3C%3D+28.97210+AND+long_dd+%3E%3D+89.20290+AND+long_dd+%3C%3D+94.77630+AND+%28full_name+LIKE+%27%25Brahmaputra%25%27+OR+full_name+LIKE+%27%25Yarlung%25%27+OR+full_name+LIKE+%27%25Tsangpo%25%27+OR+full_name+LIKE+%27%25Jamuna%25%27+OR+full_name+LIKE+%27%25Padma%25%27+OR+full_name+LIKE+%27%25Ganges%25%27+OR+full_name+LIKE+%27%25Meghna%25%27+OR+full_name+LIKE+%27%25Tista%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    },
+    {
+      "systemId": "41109275",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 21.89040 AND lat_dd <= 24.00960 AND long_dd >= 105.52580 AND long_dd <= 113.67850 AND (full_name LIKE '%Nanpan%' OR full_name LIKE '%Zuo%' OR full_name LIKE '%Yu Jiang%' OR full_name LIKE '%Yong%' OR full_name LIKE '%Xi Jiang%' OR full_name LIKE '%Xun%' OR full_name LIKE '%You Jiang%' OR full_name LIKE '%左江%' OR full_name LIKE '%邕江%' OR full_name LIKE '%郁江%' OR full_name LIKE '%浔江%' OR full_name LIKE '%西江%' OR full_name LIKE '%南盘%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+21.89040+AND+lat_dd+%3C%3D+24.00960+AND+long_dd+%3E%3D+105.52580+AND+long_dd+%3C%3D+113.67850+AND+%28full_name+LIKE+%27%25Nanpan%25%27+OR+full_name+LIKE+%27%25Zuo%25%27+OR+full_name+LIKE+%27%25Yu+Jiang%25%27+OR+full_name+LIKE+%27%25Yong%25%27+OR+full_name+LIKE+%27%25Xi+Jiang%25%27+OR+full_name+LIKE+%27%25Xun%25%27+OR+full_name+LIKE+%27%25You+Jiang%25%27+OR+full_name+LIKE+%27%25%E5%B7%A6%E6%B1%9F%25%27+OR+full_name+LIKE+%27%25%E9%82%95%E6%B1%9F%25%27+OR+full_name+LIKE+%27%25%E9%83%81%E6%B1%9F%25%27+OR+full_name+LIKE+%27%25%E6%B5%94%E6%B1%9F%25%27+OR+full_name+LIKE+%27%25%E8%A5%BF%E6%B1%9F%25%27+OR+full_name+LIKE+%27%25%E5%8D%97%E7%9B%98%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    },
+    {
+      "systemId": "41171836",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 20.27800 AND lat_dd <= 22.20120 AND long_dd >= 105.74880 AND long_dd <= 107.08260 AND (full_name LIKE '%Luc Nam%' OR full_name LIKE '%Lục Nam%' OR full_name LIKE '%Cau%' OR full_name LIKE '%Cầu%' OR full_name LIKE '%Thuong%' OR full_name LIKE '%Thương%' OR full_name LIKE '%Thai Binh%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+20.27800+AND+lat_dd+%3C%3D+22.20120+AND+long_dd+%3E%3D+105.74880+AND+long_dd+%3C%3D+107.08260+AND+%28full_name+LIKE+%27%25Luc+Nam%25%27+OR+full_name+LIKE+%27%25L%E1%BB%A5c+Nam%25%27+OR+full_name+LIKE+%27%25Cau%25%27+OR+full_name+LIKE+%27%25C%E1%BA%A7u%25%27+OR+full_name+LIKE+%27%25Thuong%25%27+OR+full_name+LIKE+%27%25Th%C6%B0%C6%A1ng%25%27+OR+full_name+LIKE+%27%25Thai+Binh%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    },
+    {
+      "systemId": "41182380",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 19.86960 AND lat_dd <= 23.96790 AND long_dd >= 103.98210 AND long_dd <= 106.95030 AND (full_name LIKE '%Cau%' OR full_name LIKE '%Cầu%' OR full_name LIKE '%Red%' OR full_name LIKE '%Hồng%' OR full_name LIKE '%Hong%' OR full_name LIKE '%Black River%' OR full_name LIKE '%Thao%' OR full_name LIKE '%Da River%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+19.86960+AND+lat_dd+%3C%3D+23.96790+AND+long_dd+%3E%3D+103.98210+AND+long_dd+%3C%3D+106.95030+AND+%28full_name+LIKE+%27%25Cau%25%27+OR+full_name+LIKE+%27%25C%E1%BA%A7u%25%27+OR+full_name+LIKE+%27%25Red%25%27+OR+full_name+LIKE+%27%25H%E1%BB%93ng%25%27+OR+full_name+LIKE+%27%25Hong%25%27+OR+full_name+LIKE+%27%25Black+River%25%27+OR+full_name+LIKE+%27%25Thao%25%27+OR+full_name+LIKE+%27%25Da+River%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    },
+    {
+      "systemId": "41337891",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 13.17840 AND lat_dd <= 19.97210 AND long_dd >= 99.62790 AND long_dd <= 101.61540 AND (full_name LIKE '%Yom%' OR full_name LIKE '%Pa Sak%' OR full_name LIKE '%Pasak%' OR full_name LIKE '%Chao Phraya%' OR full_name LIKE '%Ping%' OR full_name LIKE '%Nan%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+13.17840+AND+lat_dd+%3C%3D+19.97210+AND+long_dd+%3E%3D+99.62790+AND+long_dd+%3C%3D+101.61540+AND+%28full_name+LIKE+%27%25Yom%25%27+OR+full_name+LIKE+%27%25Pa+Sak%25%27+OR+full_name+LIKE+%27%25Pasak%25%27+OR+full_name+LIKE+%27%25Chao+Phraya%25%27+OR+full_name+LIKE+%27%25Ping%25%27+OR+full_name+LIKE+%27%25Nan%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    },
+    {
+      "systemId": "41386179",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 9.90000 AND lat_dd <= 12.82000 AND long_dd >= 106.03000 AND long_dd <= 109.35000 AND (full_name LIKE '%Dong Nai%' OR full_name LIKE '%Đồng Nai%' OR full_name LIKE '%La Nga%' OR full_name LIKE '%Srepok%' OR full_name LIKE '%Krong%' OR full_name LIKE '%Krông%' OR full_name LIKE '%Sai Gon%' OR full_name LIKE '%Saigon%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+9.90000+AND+lat_dd+%3C%3D+12.82000+AND+long_dd+%3E%3D+106.03000+AND+long_dd+%3C%3D+109.35000+AND+%28full_name+LIKE+%27%25Dong+Nai%25%27+OR+full_name+LIKE+%27%25%C4%90%E1%BB%93ng+Nai%25%27+OR+full_name+LIKE+%27%25La+Nga%25%27+OR+full_name+LIKE+%27%25Srepok%25%27+OR+full_name+LIKE+%27%25Krong%25%27+OR+full_name+LIKE+%27%25Kr%C3%B4ng%25%27+OR+full_name+LIKE+%27%25Sai+Gon%25%27+OR+full_name+LIKE+%27%25Saigon%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [
+        {
+          "id": "nga_123",
+          "ufi": 123,
+          "lon": 107,
+          "lat": 11,
+          "names": [
+            "Đồng Nai",
+            "Dong Nai"
+          ],
+          "role": "NGA-GNS-named-STM-point-not-line",
+          "source": "https://geonames.nga.mil/geonames/GNSHome/",
+          "featureCountry": "VM"
+        }
+      ],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 1
+    },
+    {
+      "systemId": "41386700",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 9.80000 AND lat_dd <= 12.57000 AND long_dd >= 104.98000 AND long_dd <= 107.32000 AND (full_name LIKE '%Vam Co%' OR full_name LIKE '%Vàm Cỏ%' OR full_name LIKE '%Saigon%' OR full_name LIKE '%Sài Gòn%' OR full_name LIKE '%Dong Nai%' OR full_name LIKE '%Nha Be%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+9.80000+AND+lat_dd+%3C%3D+12.57000+AND+long_dd+%3E%3D+104.98000+AND+long_dd+%3C%3D+107.32000+AND+%28full_name+LIKE+%27%25Vam+Co%25%27+OR+full_name+LIKE+%27%25V%C3%A0m+C%E1%BB%8F%25%27+OR+full_name+LIKE+%27%25Saigon%25%27+OR+full_name+LIKE+%27%25S%C3%A0i+G%C3%B2n%25%27+OR+full_name+LIKE+%27%25Dong+Nai%25%27+OR+full_name+LIKE+%27%25Nha+Be%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [
+        {
+          "id": "nga_123",
+          "ufi": 123,
+          "lon": 107,
+          "lat": 11,
+          "names": [
+            "Đồng Nai",
+            "Dong Nai"
+          ],
+          "role": "NGA-GNS-named-STM-point-not-line",
+          "source": "https://geonames.nga.mil/geonames/GNSHome/",
+          "featureCountry": "VM"
+        }
+      ],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 1
+    },
+    {
+      "systemId": "41390476",
+      "kind": "name-and-competing-names",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 9.51250 AND lat_dd <= 10.58870 AND long_dd >= 105.42580 AND long_dd <= 106.88530 AND (full_name LIKE '%Ba Lai%' OR full_name LIKE '%Mekong%' OR full_name LIKE '%Tien%' OR full_name LIKE '%Tiền%' OR full_name LIKE '%Hau%' OR full_name LIKE '%Hậu%' OR full_name LIKE '%Ham Luong%' OR full_name LIKE '%Hàm Luông%' OR full_name LIKE '%Co Chien%' OR full_name LIKE '%Cổ Chiên%')",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+9.51250+AND+lat_dd+%3C%3D+10.58870+AND+long_dd+%3E%3D+105.42580+AND+long_dd+%3C%3D+106.88530+AND+%28full_name+LIKE+%27%25Ba+Lai%25%27+OR+full_name+LIKE+%27%25Mekong%25%27+OR+full_name+LIKE+%27%25Tien%25%27+OR+full_name+LIKE+%27%25Ti%E1%BB%81n%25%27+OR+full_name+LIKE+%27%25Hau%25%27+OR+full_name+LIKE+%27%25H%E1%BA%ADu%25%27+OR+full_name+LIKE+%27%25Ham+Luong%25%27+OR+full_name+LIKE+%27%25H%C3%A0m+Lu%C3%B4ng%25%27+OR+full_name+LIKE+%27%25Co+Chien%25%27+OR+full_name+LIKE+%27%25C%E1%BB%95+Chi%C3%AAn%25%27%29&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=200&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    },
+    {
+      "systemId": "41386179",
+      "kind": "all-streams-in-small-bbox",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 10.32000 AND lat_dd <= 12.40000 AND long_dd >= 106.45000 AND long_dd <= 108.93000",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+10.32000+AND+lat_dd+%3C%3D+12.40000+AND+long_dd+%3E%3D+106.45000+AND+long_dd+%3C%3D+108.93000&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=300&f=json",
+      "status": "queried",
+      "features": [
+        {
+          "id": "nga_123",
+          "ufi": 123,
+          "lon": 107,
+          "lat": 11,
+          "names": [
+            "Đồng Nai",
+            "Dong Nai"
+          ],
+          "role": "NGA-GNS-named-STM-point-not-line",
+          "source": "https://geonames.nga.mil/geonames/GNSHome/",
+          "featureCountry": "VM"
+        }
+      ],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 1
+    },
+    {
+      "systemId": "41386700",
+      "kind": "all-streams-in-small-bbox",
+      "agency": "US National Geospatial-Intelligence Agency",
+      "where": "desig_cd = 'STM' AND lat_dd >= 10.22000 AND lat_dd <= 12.15000 AND long_dd >= 105.40000 AND long_dd <= 106.90000",
+      "url": "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=desig_cd+%3D+%27STM%27+AND+lat_dd+%3E%3D+10.22000+AND+lat_dd+%3C%3D+12.15000+AND+long_dd+%3E%3D+105.40000+AND+long_dd+%3C%3D+106.90000&outFields=ufi%2Cuni%2Clat_dd%2Clong_dd%2Cfull_name%2Cdesig_cd%2Ccc_ft&returnGeometry=false&resultRecordCount=300&f=json",
+      "status": "queried",
+      "features": [],
+      "responseSha256": "a72847115b8afdb69a5fa12df3a9cd60cc7351cdf179393322be58399c162623",
+      "rawFeatureCount": 4,
+      "exceededTransferLimit": true,
+      "uniqueRiverPointCount": 0
+    }
+  ],
+  "systemsReviewed": 11,
+  "comparedIndependentPoints": 6,
+  "geoDataNotChanged": true,
+  "sourceOnlyScreen": true,
+  "approvalCount": 0,
+  "limitations": [
+    "GNS designated STM named points do not describe full source-to-mouth geometry.",
+    "No GNS matches or unavailable queries prove neither nonexistence nor any name conflict.",
+    "All-stream searches can reach resultRecordCount limit; record exceededTransferLimit and do not call them exhaustive.",
+    "Nearby named rivers at confluences are not proof that all a grouped mainstem has that name.",
+    "Official MONRE 2017 Ba Lai termini are river endpoints, NOT Hydro mainstem endpoints.",
+    "MLIT Iwabuchi facility is a rainfall gauge on a building roof, NOT a river gauge or centerline."
+  ],
+  "items": [
+    {
+      "systemId": "40475481",
+      "originalNameKo": "금강",
+      "mainstemFeatures": 2,
+      "mainstemLineSegments": 95,
+      "mainstemLengthKm": 341.905,
+      "independentPointChecks": [],
+      "pointCount": 0,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "40486439",
+      "originalNameKo": "아라카와강",
+      "mainstemFeatures": 1,
+      "mainstemLineSegments": 33,
+      "mainstemLengthKm": 167.946,
+      "independentPointChecks": [
+        {
+          "pointId": "mlit_iwabuchi_rain_rooftop",
+          "names": [
+            "Arakawa Iwabuchi RAIN station roof (NOT watercourse line)"
+          ],
+          "publishedLonLat": [
+            139.746111,
+            35.784722
+          ],
+          "nearestHydroLonLat": [
+            139.740102,
+            35.780733
+          ],
+          "distanceKm": 0.701,
+          "featureUfi": null,
+          "sourceRole": "MLIT-on-basin-building-roof-not-river-gauge",
+          "source": "https://www.ktr.mlit.go.jp/arage/suibou-info/common/html/rain2128100100001_10.html"
+        },
+        {
+          "pointId": "nga_456",
+          "names": [
+            "荒川"
+          ],
+          "publishedLonLat": [
+            139.7,
+            35.9
+          ],
+          "nearestHydroLonLat": [
+            139.622917,
+            35.83125
+          ],
+          "distanceKm": 10.325,
+          "featureUfi": 456,
+          "sourceRole": "NGA-GNS-named-STM-point-not-line",
+          "source": "https://geonames.nga.mil/geonames/GNSHome/"
+        }
+      ],
+      "pointCount": 2,
+      "pointCountWithin1km": 1,
+      "pointCountWithin5km": 1,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41023100",
+      "originalNameKo": "라비강",
+      "mainstemFeatures": 3,
+      "mainstemLineSegments": 318,
+      "mainstemLengthKm": 1743.227,
+      "independentPointChecks": [],
+      "pointCount": 0,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41067217",
+      "originalNameKo": "브라마푸트라강/얄룽창포강",
+      "mainstemFeatures": 4,
+      "mainstemLineSegments": 721,
+      "mainstemLengthKm": 1424.506,
+      "independentPointChecks": [],
+      "pointCount": 0,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41109275",
+      "originalNameKo": "난판강",
+      "mainstemFeatures": 3,
+      "mainstemLineSegments": 429,
+      "mainstemLengthKm": 1295.962,
+      "independentPointChecks": [],
+      "pointCount": 0,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41171836",
+      "originalNameKo": "룩남강",
+      "mainstemFeatures": 2,
+      "mainstemLineSegments": 71,
+      "mainstemLengthKm": 224.444,
+      "independentPointChecks": [],
+      "pointCount": 0,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41182380",
+      "originalNameKo": "꺼우강",
+      "mainstemFeatures": 8,
+      "mainstemLineSegments": 231,
+      "mainstemLengthKm": 718.855,
+      "independentPointChecks": [],
+      "pointCount": 0,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41337891",
+      "originalNameKo": "빠삭강",
+      "mainstemFeatures": 5,
+      "mainstemLineSegments": 223,
+      "mainstemLengthKm": 1042.213,
+      "independentPointChecks": [],
+      "pointCount": 0,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41386179",
+      "originalNameKo": "미명명 수계 41386179",
+      "mainstemFeatures": 4,
+      "mainstemLineSegments": 234,
+      "mainstemLengthKm": 529.21,
+      "independentPointChecks": [
+        {
+          "pointId": "nga_123",
+          "names": [
+            "Đồng Nai",
+            "Dong Nai"
+          ],
+          "publishedLonLat": [
+            107,
+            11
+          ],
+          "nearestHydroLonLat": [
+            106.94375,
+            11.05625
+          ],
+          "distanceKm": 8.748,
+          "featureUfi": 123,
+          "sourceRole": "NGA-GNS-named-STM-point-not-line",
+          "source": "https://geonames.nga.mil/geonames/GNSHome/"
+        }
+      ],
+      "pointCount": 1,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41386700",
+      "originalNameKo": "미명명 수계 41386700",
+      "mainstemFeatures": 7,
+      "mainstemLineSegments": 125,
+      "mainstemLengthKm": 261.394,
+      "independentPointChecks": [
+        {
+          "pointId": "nga_123",
+          "names": [
+            "Đồng Nai",
+            "Dong Nai"
+          ],
+          "publishedLonLat": [
+            107,
+            11
+          ],
+          "nearestHydroLonLat": [
+            106.721367,
+            10.472491
+          ],
+          "distanceKm": 65.837,
+          "featureUfi": 123,
+          "sourceRole": "NGA-GNS-named-STM-point-not-line",
+          "source": "https://geonames.nga.mil/geonames/GNSHome/"
+        }
+      ],
+      "pointCount": 1,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    },
+    {
+      "systemId": "41390476",
+      "originalNameKo": "발라이강",
+      "mainstemFeatures": 1,
+      "mainstemLineSegments": 31,
+      "mainstemLengthKm": 93.485,
+      "independentPointChecks": [
+        {
+          "pointId": "monre_2017_ba_lai_start",
+          "names": [
+            "sông Ba Lai official start"
+          ],
+          "publishedLonLat": [
+            106.187222,
+            10.301667
+          ],
+          "nearestHydroLonLat": [
+            106.177083,
+            10.164583
+          ],
+          "distanceKm": 15.2,
+          "featureUfi": null,
+          "sourceRole": "government-registered-river-endpoint",
+          "source": "https://vupc.mae.gov.vn/Data/files/12-2017-tt-btnmt.pdf"
+        },
+        {
+          "pointId": "monre_2017_ba_lai_end",
+          "names": [
+            "sông Ba Lai official endpoint"
+          ],
+          "publishedLonLat": [
+            106.688889,
+            10.038333
+          ],
+          "nearestHydroLonLat": [
+            106.465349,
+            9.932538
+          ],
+          "distanceKm": 27.159,
+          "featureUfi": null,
+          "sourceRole": "government-registered-river-endpoint",
+          "source": "https://vupc.mae.gov.vn/Data/files/12-2017-tt-btnmt.pdf"
+        }
+      ],
+      "pointCount": 2,
+      "pointCountWithin1km": 0,
+      "pointCountWithin5km": 0,
+      "candidateIdentityConfirmed": false,
+      "riverGeometryEdited": false
+    }
+  ]
+}

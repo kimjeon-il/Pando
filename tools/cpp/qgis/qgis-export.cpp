@@ -9,9 +9,12 @@
 #include <qgsvectorfilewriter.h>
 #include <qgsvectorlayer.h>
 #include <QDir>
+#include <QDate>
+#include <QDateTime>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QTime>
 #include <QVariant>
 #include <cmath>
 
@@ -28,6 +31,9 @@ QByteArray serializeVariant(const QVariant& value){
     case QVariant::UInt:case QVariant::ULongLong:return QByteArray::number(value.toULongLong());
     case QVariant::Double:{const auto number=value.toDouble();if(!std::isfinite(number))throw QStringLiteral("Nonfinite source property");return QByteArray::number(number,'g',17);}
     case QVariant::String:return quoteJson(value.toString());
+    case QVariant::Date:return quoteJson(value.toDate().toString(Qt::ISODate));
+    case QVariant::Time:return quoteJson(value.toTime().toString(Qt::ISODateWithMs));
+    case QVariant::DateTime:return quoteJson(value.toDateTime().toString(Qt::ISODateWithMs));
     case QVariant::StringList:{
         QByteArray result="[";bool first=true;for(const auto& item:value.toStringList()){if(!first)result+=',';first=false;result+=quoteJson(item);}return result+']';
     }
@@ -56,6 +62,7 @@ public:
     QgsVectorFileWriter::FieldValueConverter* clone() const override{return new SourceConverter(index_);}
 };
 }
+QByteArray serializeQgisVariant(const QVariant& value){return serializeVariant(value);}
 QJsonObject exportQgisLayer(const QString& layerId,const QString& destination){
     const QFileInfo file(destination);
     if(!file.isAbsolute()||!file.dir().exists()||file.exists()||file.isSymLink())throw QStringLiteral("A new absolute output path in an existing directory is required");
