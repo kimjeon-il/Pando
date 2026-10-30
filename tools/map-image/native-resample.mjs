@@ -137,6 +137,18 @@ export async function readNativeTrainingMaskWindow(bytes,sha256,{x,y},{signal,wo
     throw Error('Native training mask window dimensions are invalid');
   signal?.throwIfAborted();return {width,height,data:data.subarray(8)};
 }
+export async function scanNativeTrainingMaskTiles(bytes,sha256,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!(bytes instanceof Uint8Array)||!bytes.length||bytes.length>300*1024*1024||typeof sha256!=='string'||!/^[a-f0-9]{64}$/.test(sha256))
+    throw Error('Bounded source-bound training mask required');
+  if(createHash('sha256').update(bytes).digest('hex')!==sha256)throw Error('Training mask hash changed');
+  const data=await runNative(nativeBinary(workspace,directory),['training-mask-tiles'],bytes,8+147*147,signal);
+  if(data.length<8)throw Error('Native training mask tile receipt is invalid');
+  const width=data.readUInt32BE(0),height=data.readUInt32BE(4),count=Math.ceil(width/448)*Math.ceil(height/448);
+  if(!width||!height||width>65535||height>65535||width*height>600000000||data.length!==8+count||data.subarray(8).some(value=>value>1))
+    throw Error('Native training mask tile receipt is invalid');
+  signal?.throwIfAborted();return {width,height,tiles:data.subarray(8)};
+}
 export async function countNativeTrainingSupervision(target,known,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();dimensions(target?.width,target?.height);
   if(target.width!==known?.width||target.height!==known?.height||!(target.data instanceof Uint8Array)||!(known.data instanceof Uint8Array)||

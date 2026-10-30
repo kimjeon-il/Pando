@@ -200,6 +200,37 @@ int main(int argc,char** argv){
             for(unsigned channel=0;channel<7;++channel){number(validCount[channel]);number(positiveCount[channel]);}
             if(!std::cout)throw std::runtime_error("Unable to write training supervision counts");return 0;
         }
+        if(action=="training-mask-tiles"){
+            if(argc!=2)throw std::invalid_argument("Training mask tiles takes no extra arguments");
+            struct MaskTiles {std::uint32_t width=0,height=0,columns=0;std::vector<std::uint8_t> tiles;std::exception_ptr error;} state;
+            const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t)->int{
+                auto& s=*static_cast<MaskTiles*>(context);try{
+                    s.width=width;s.height=height;s.columns=(width+447)/448;
+                    s.tiles.assign(std::size_t(s.columns)*((height+447)/448),0);return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            const auto row=[](void* context,std::uint32_t y,const std::uint8_t* rgba,std::size_t length)->int{
+                auto& s=*static_cast<MaskTiles*>(context);try{
+                    if(length!=std::size_t(s.width)*4)throw std::invalid_argument("Invalid training mask row");
+                    const auto ty=y/448;const bool previousY=ty>0&&y%448<64;
+                    for(std::uint32_t x=0;x<s.width;++x)if(rgba[std::size_t(x)*4]){
+                        const auto tx=x/448;const bool previousX=tx>0&&x%448<64;
+                        s.tiles[std::size_t(ty)*s.columns+tx]=1;
+                        if(previousX)s.tiles[std::size_t(ty)*s.columns+tx-1]=1;
+                        if(previousY){s.tiles[std::size_t(ty-1)*s.columns+tx]=1;
+                            if(previousX)s.tiles[std::size_t(ty-1)*s.columns+tx-1]=1;}
+                    }
+                    return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            const auto encoded=encodedInput();PandoImage image{};
+            if(!pando_stream_gray_mask(encoded.data(),encoded.size(),&image,start,row,&state)){
+                if(state.error)std::rethrow_exception(state.error);
+                throw std::runtime_error(std::string("Training mask: ")+image.error);
+            }
+            number(state.width);number(state.height);std::cout.write(reinterpret_cast<const char*>(state.tiles.data()),static_cast<std::streamsize>(state.tiles.size()));
+            if(!std::cout)throw std::runtime_error("Unable to write training mask tile index");return 0;
+        }
         if(action=="training-mask-window"){
             if(argc!=4)throw std::invalid_argument("Expected training mask window X Y");
             struct MaskWindow {std::uint32_t x,y,width=0,height=0;std::vector<std::uint8_t> pixels;std::exception_ptr error;} state{
