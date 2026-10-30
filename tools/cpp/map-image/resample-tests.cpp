@@ -39,6 +39,15 @@ int main(int argc,char** argv){
         rejects([&]{pando::map_image::resizeRgb(input,7,5,0,1);});
         rejects([&]{pando::map_image::resizeRgb(input,7,5,20000,1);});
         rejects([&]{pando::map_image::resizeRgb(input,7,4,3,2);});
+        const auto streamed=pando::map_image::resizeOpaqueBilinearRows(4097,4097,2,2,
+            [](int y,std::uint8_t* row,std::size_t length){
+                (void)y;
+                for(std::size_t i=0;i<length;i+=4){row[i]=17;row[i+1]=92;row[i+2]=203;row[i+3]=255;}
+            });
+        check(streamed==std::vector<std::uint8_t>({17,92,203,255,17,92,203,255,17,92,203,255,17,92,203,255}),
+              "Streaming large training overview changed constant pixels");
+        rejects([&]{pando::map_image::resizeOpaqueBilinearRows(2,2,1,1,
+            [](int,std::uint8_t* row,std::size_t length){for(std::size_t i=0;i<length;i++)row[i]=0;});});
         std::cout<<"RGB and RGBA resampling match Pillow pixel oracles\n";return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

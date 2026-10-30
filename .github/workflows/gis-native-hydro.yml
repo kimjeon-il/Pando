@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-training-overview, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode]
         default: hydro
 
 permissions:
@@ -549,6 +549,52 @@ jobs:
           name: native-map-pdf-${{ matrix.os }}-${{ github.sha }}
           path: build-native/map-pdf/artifact/
           if-no-files-found: error
+          retention-days: 7
+  map-training-overview:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-training-overview'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build only the image and reviewed-mask tools
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image-resample-tests pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
+          cmake -S tools/cpp/map-review -B build-native/map-review/native -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
+          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
+      - name: Check streaming overview and affected training tiles
+        shell: pwsh
+        run: |
+          if ($IsWindows) { $test = 'build-native/map-image/Release/pando-map-image-resample-tests.exe'; $binary = 'build-native/map-image/Release/pando-map-image.exe'; $review = 'build-native/map-review/native/Release/pando-map-review.exe' }
+          else { $test = 'build-native/map-image/pando-map-image-resample-tests'; $binary = 'build-native/map-image/pando-map-image'; $review = 'build-native/map-review/native/pando-map-review' }
+          & $test tests/fixtures/map-image
+          if ($LASTEXITCODE -ne 0) { throw 'Streaming overview differs from pixel contracts' }
+          node tools/map-image/package-native.mjs --binary $binary --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Map image packaging failed' }
+          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
+          node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Training image or tile pixels differ' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-map-training-overview-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-image/artifact/
           retention-days: 7
   map-image:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-image'
