@@ -4,6 +4,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
+import {readHydroSources} from './hydro-source-reader.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroConnectivitySources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/connectivity-junctions.cpp',
@@ -88,4 +89,9 @@ export async function repairHydroParts({parts,raw,region},options){
 }
 export async function auditHydroFeatures({features,raw,sourceOrder},options){
   return auditHydroParts({parts:hydroPartsBySource(features),raw,sourceOrder},options);
+}
+export async function auditHydroSourceArchives({features,archives},options={}){
+  const parts=hydroPartsBySource(features),source=await readHydroSources(archives,{signal:options.signal});
+  if(!isDeepStrictEqual(Object.keys(parts).sort(),Object.keys(source.rows).sort()))throw Error('Selected Hydro source IDs differ from feature parts');
+  return auditHydroParts({parts,raw:source.rows,sourceOrder:source.sourceOrder},options);
 }
