@@ -28,7 +28,9 @@ export function matchingTorchLibrary(torchLibrary,manifest){
   const library=resolve(torchLibrary);let version,files;
   if(process.platform==='win32'){
     if(manifest.runtimeVersion!=='2.14.1')throw Error('Unexpected native LibTorch ABI version');
-    const versionFile=join(dirname(library),'version.py');version=readFileSync(versionFile,'utf8').match(/^__version__\s*=\s*['"]([^'"]+)['"]/m)?.[1]?.split('+')[0];
+    const sdkVersion=join(dirname(library),'share','cmake','Torch','TorchConfigVersion.cmake');
+    if(existsSync(sdkVersion))version=readFileSync(sdkVersion,'utf8').match(/set\(PACKAGE_VERSION\s+"([^"]+)"\)/)?.[1];
+    else version=readFileSync(join(dirname(library),'version.py'),'utf8').match(/^__version__\s*=\s*['"]([^'"]+)['"]/m)?.[1]?.split('+')[0];
     files=['torch_cpu.dll','c10.dll'];
   }else if(process.platform==='linux'){
     if(manifest.runtimeVersion!=='2.7.1')throw Error('Unexpected native LibTorch ABI version');

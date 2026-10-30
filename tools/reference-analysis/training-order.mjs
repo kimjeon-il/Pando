@@ -35,9 +35,11 @@ export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,tor
   const child=spawn(binary,['order',String(epoch),String(seed)],{stdio:['pipe','pipe','pipe'],windowsHide:true,env,signal});
   const result=[],errors=[];let size=0,errorSize=0;
   const done=new Promise((accept,reject)=>{
-    child.on('error',reject);child.stdout.on('data',part=>{size+=part.length;if(size>length*8){child.kill();reject(Error('Training order exceeds expected length'));}else result.push(part);});
+    let settled=false;const finish=error=>{if(settled)return;settled=true;clearTimeout(timer);error?reject(error):accept();};
+    const timer=setTimeout(()=>{child.kill();finish(Error('Native training order timed out'));},120000);
+    child.on('error',finish);child.stdout.on('data',part=>{size+=part.length;if(size>length*8){child.kill();finish(Error('Training order exceeds expected length'));}else result.push(part);});
     child.stderr.on('data',part=>{errorSize+=part.length;if(errorSize<=65536)errors.push(part);});
-    child.on('close',(code,reason)=>code===0&&!reason?accept():reject(Error('Native training order failed: '+Buffer.concat(errors).toString('utf8'))));
+    child.on('close',(code,reason)=>finish(code===0&&!reason?null:Error('Native training order failed: '+Buffer.concat(errors).toString('utf8'))));
   });done.catch(()=>{});
   try{await Promise.all([pipeline(Readable.from(pieces,{objectMode:false}),child.stdin,{signal}),done]);}
   catch(error){child.kill();await done.catch(()=>{});throw error;}

@@ -6,7 +6,7 @@ import {existsSync,statSync,writeFileSync} from 'node:fs';
 import {delimiter,dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
-import {resolveCorpusPath} from './corpus-path.mjs';
+import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {prepareRasterTrainingTile} from './training-tiles.mjs';
 import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample} from './training-sample.mjs';
@@ -23,30 +23,17 @@ function positiveWeight(path){if(!path)return {argument:'none',hash:null};const 
   return {argument:resolve(path),hash:sha(bytes)};
 }
 async function verifyEvidence(root,corpus,sample,data,{epoch,signal}){
-  const rows=corpus.sheets.filter(row=>row.id===data.sourceId);if(rows.length!==1)throw Error('Unique training source identity required');const sheet=rows[0];
-  if(sheet.split!=='train'||!['world','continent','country'].includes(sheet.geographicScope)||!sheet.scopeEvidence||sheet.sha256!==data.imageSha256||
-    ['familyId','editionId','duplicateGroup'].some(key=>typeof sheet[key]!=='string'||!sheet[key])||!sheet.source?.url||!sheet.source?.license)
-    throw Error('Verified macro training source required');
-  const annotationPath=await resolveCorpusPath(root,sheet.annotations),annotationBytes=readBounded(annotationPath,64*1024*1024);
-  if(sha(annotationBytes)!==data.annotationSha256)throw Error('Training annotation hash changed');const annotation=JSON.parse(annotationBytes);
-  if(annotation.origin!=='macro-vector-supervision'||annotation.reviewed!==false||annotation.supervisionQuality!=='source-derived-weak'||
-    annotation.sourceSha256!==data.sourcePdfSha256||annotation.raster?.sha256!==data.maskSha256||annotation.validRaster?.sha256!==data.validMaskSha256)
+  const {sheet,annotation,annotationSha256,checks}=await verifiedMacroTrainingSource(root,corpus,data.sourceId);
+  if(sheet.sha256!==data.imageSha256||annotationSha256!==data.annotationSha256||annotation.sourceSha256!==data.sourcePdfSha256||
+    annotation.raster.sha256!==data.maskSha256||annotation.validRaster.sha256!==data.validMaskSha256)
     throw Error('Source-derived macro training evidence differs');
-  const metadataPath=await resolveCorpusPath(root,annotation.sourceMetadata),metadataBytes=readBounded(metadataPath,1024*1024);
-  if(sha(metadataBytes)!==annotation.sourceMetadataSha256)throw Error('Training source metadata hash changed');const metadata=JSON.parse(metadataBytes);
-  if(metadata.rightsReviewed!==true||!metadata.license||metadata.materialKind!=='published-macro-pdf'||metadata.sha256!==annotation.sourceSha256||
-    ['id','familyId','editionId','duplicateGroup','geographicScope','scopeEvidence'].some(key=>metadata[key]!==sheet[key])||
-    metadata.url!==sheet.source?.url||metadata.license!==sheet.source?.license)throw Error('Verified macro source provenance required');
-  const sourcePdf=await resolveCorpusPath(root,annotation.sourcePdf);if(identity(sourcePdf)!==data.sourcePdfSha256)throw Error('Training source PDF hash changed');
-  const imagePath=await resolveCorpusPath(root,sheet.image),maskPath=await resolveCorpusPath(root,annotation.raster.path),validPath=await resolveCorpusPath(root,annotation.validRaster.path);
   if(!Array.isArray(data.pixelOrigin)||data.pixelOrigin.length!==2||data.pixelOrigin.some(v=>!Number.isInteger(v)||v<0)||typeof sample.augment!=='boolean')
     throw Error('Training sample position and augmentation must be explicit');
   const [x,y]=data.pixelOrigin,rebuilt=await prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,
     augment:sample.augment,epoch,index:data.tileIndex},{signal});
   for(const name of TRAINING_TENSOR_NAMES)if(trainingSha256(rebuilt[name])!==data.tensorSha256[name])throw Error('Training tensor differs from source: '+name);
   return {record:{sourceId:data.sourceId,imageSha256:data.imageSha256,annotationSha256:data.annotationSha256,sourcePdfSha256:data.sourcePdfSha256,
-    tileIndex:data.tileIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment},checks:[[sourcePdf,data.sourcePdfSha256],[metadataPath,annotation.sourceMetadataSha256],
-      [annotationPath,data.annotationSha256],[imagePath,data.imageSha256],[maskPath,data.maskSha256],[validPath,data.validMaskSha256]]};
+    tileIndex:data.tileIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment},checks};
 }
 export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,
   samples,device='cpu',amp=device==='cuda',torchLibrary,root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
@@ -96,7 +83,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,
   if(identity(inputPath)!==inputHash||sha(readBounded(corpusPath,32*1024*1024))!==corpusHash||readOrder(resolve(order)).hash!==orderData.hash||positiveWeight(positiveWeights).hash!==weights.hash)
     throw Error('Training inputs changed during execution; preserve its checkpoint');
   for(const sample of samples)verifyTrainingSample(sample.directory);
-  for(const item of evidence)for(const [path,expected] of item.checks)if(identity(path)!==expected)throw Error('Training source changed during execution; preserve its checkpoint');
+  for(const item of evidence)recheckMacroTrainingSource(item.checks);
   const count=(key,increment)=>previous?(Number.isSafeInteger(previous[key])?previous[key]+increment:null):increment;
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,precision,
     initialization:previous?previous.initialization:'weights-only-no-optimizer',device,corpusSha256:corpusHash,epoch,cursor:result.cursor,
