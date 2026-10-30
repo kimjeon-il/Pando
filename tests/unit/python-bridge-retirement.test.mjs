@@ -12,7 +12,7 @@ const tracked = (...patterns) => execFileSync('git', ['ls-files', '-z', '--', ..
 const read = path => readFileSync(join(root, path), 'utf8');
 const remaining = tracked('*.py', '*.pyi', '*.ipynb').sort();
 
-test('Python files only decrease within the reviewed inventory and three integrated tests', () => {
+test('Python files only decrease within the reviewed inventory and two integrated tests', () => {
   const plan = read('docs/development/python-zero-migration-plan-2026-10-25.md');
   const inventory = plan.split('## 2026-10-29 잔여 기준 목록')[1]?.split('\n## ')[0];
   assert.ok(inventory, 'Python migration inventory must remain available');
@@ -22,11 +22,10 @@ test('Python files only decrease within the reviewed inventory and three integra
   // These tests arrived in concurrent integrations after the 55-file
   // inventory was frozen. Preserve their behavior and migrate them as well;
   // do not use the exception to allow any other added Python file.
-  const integrated = new Set(['tests/python/test_map_plugin_geopdf.py', 'tests/python/test_reference_analysis_review.py',
-    'tests/python/test_reference_analysis_inspection.py']);
+  const integrated = new Set(['tests/python/test_reference_analysis_review.py', 'tests/python/test_reference_analysis_inspection.py']);
   const originalRemaining = remaining.filter(path => !integrated.has(path));
-  assert.ok(originalRemaining.length <= 43, `Original Python inventory exceeded its current ceiling: ${originalRemaining.length}`);
-  assert.ok(remaining.length <= 46, `Python file count exceeded the integrated ceiling: ${remaining.length}`);
+  assert.ok(originalRemaining.length <= 40, `Original Python inventory exceeded its current ceiling: ${originalRemaining.length}`);
+  assert.ok(remaining.length <= 42, `Python file count exceeded the integrated ceiling: ${remaining.length}`);
   for (const path of originalRemaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
 });
 
