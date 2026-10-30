@@ -20,5 +20,6 @@ test('incomplete ancestry, hash aliases, missing IDs and wrong split are rejecte
   const lineage=buildTrainingLineage([sheet('train')]);
   assert.throws(()=>assertEvaluationIndependence(lineage,[{...sheet('different','test'),sha256:'a'.repeat(64)}]),/sha256/);
   assert.throws(()=>assertEvaluationIndependence(lineage,[{...sheet('different','test'),editionId:null}]),/editionId/);
+  assert.throws(()=>assertEvaluationIndependence(buildTrainingLineage([]),[{...sheet('different','test'),familyId:null}]),/familyId/);
   assert.throws(()=>assertEvaluationIndependence(lineage,[sheet('different','validation')]),/split/i);
 });

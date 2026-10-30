@@ -57,6 +57,9 @@ test('independent native evaluation refuses exposure to training ancestry',async
   const leaked={...sheet,id:'different',sha256:'b'.repeat(64),split:'test'};
   await assert.rejects(evaluateIndependentSheet(prediction(0,5),annotation(),{sheet:leaked,lineage}),/familyId/);
   const independent={id:'test',sha256:'c'.repeat(64),familyId:'other',editionId:'other',duplicateGroup:'other',split:'test'};
-  const result=await evaluateIndependentSheet(prediction(0,5),annotation(),{sheet:independent,lineage});
+  const reviewed={...annotation(),schemaVersion:1,reviewed:true,review:{kind:'human',reviewer:'reviewer',reviewedAt:'2026-10-30T00:00:00Z',sourceSha256:independent.sha256,predictionBlind:true}};
+  const result=await evaluateIndependentSheet(prediction(0,5),reviewed,{sheet:independent,lineage});
   assert.deepEqual(result.counts[0],[14,14,14,14]);
+  await assert.rejects(evaluateIndependentSheet(prediction(0,5),{...reviewed,review:{...reviewed.review,sourceSha256:'d'.repeat(64)}},{sheet:independent,lineage}),/source hash/i);
+  await assert.rejects(evaluateIndependentSheet(prediction(0,5),{...reviewed,reviewed:false},{sheet:independent,lineage}),/source.reviewed/i);
 });

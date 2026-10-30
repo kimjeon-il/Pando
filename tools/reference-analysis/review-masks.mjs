@@ -64,3 +64,33 @@ export async function reviewMasks(annotation,{window=null,signal,workspace=root,
   const data=await invoke(binary,input,width*height*2,signal);if(data.length!==width*height*2)throw Error('Native review mask byte length mismatch');
   signal?.throwIfAborted();return {width,height,targetBits:data.subarray(0,width*height),knownBits:data.subarray(width*height)};
 }
+export async function validateReviewedAnnotation(annotation,sheet,options={}){
+  if(annotation?.schemaVersion!==1||annotation.reviewed!==true)throw Error('Source-reviewed current annotations required');
+  const review=annotation.review;
+  if(!review||!['agent','human','source-published'].includes(review.kind)||!review.reviewer||
+    typeof review.reviewedAt!=='string'||!/^\d{4}-\d{2}-\d{2}T[^\s]+Z$/.test(review.reviewedAt))throw Error('Explicit source-review identity required');
+  if(typeof sheet?.sha256!=='string'||!/^[a-f0-9]{64}$/.test(sheet.sha256)||review.sourceSha256!==sheet.sha256)
+    throw Error('Review source hash differs from original image');
+  if(review.predictionBlind!==true)throw Error('Prediction-blind source review required');
+  const {width,height}=annotation;if(!Number.isInteger(width)||!Number.isInteger(height)||Math.min(width,height)<2)throw Error('Original image dimensions required');
+  const points=(values,min)=>{
+    if(!Array.isArray(values)||values.length<min||values.some(point=>!Array.isArray(point)||point.length!==2||
+      point.some(value=>typeof value!=='number'||!Number.isFinite(value))||point[0]<0||point[0]>=width||point[1]<0||point[1]>=height))
+      throw Error('Annotations must use finite original image pixels');
+  };
+  if(!annotation.known||typeof annotation.known!=='object'||Array.isArray(annotation.known)||!Object.keys(annotation.known).length)
+    throw Error('Explicit per-channel known regions required');
+  for(const [kind,polygons] of Object.entries(annotation.known)){
+    if(!REFERENCE_BOUNDARY_CHANNELS.includes(kind)||!Array.isArray(polygons))throw Error('Invalid known semantic class');
+    for(const polygon of polygons)points(polygon,3);
+  }
+  for(const line of annotation.lines||[]){
+    if(!REFERENCE_BOUNDARY_CHANNELS.includes(line.kind)||typeof line.width!=='number'||!Number.isFinite(line.width)||line.width<=0)
+      throw Error('Semantic class and measured positive stroke width required');
+    points(line.points,2);
+  }
+  for(const region of annotation.regions||[]){if(!REFERENCE_BOUNDARY_CHANNELS.slice(3).includes(region.kind))throw Error('Boundary truth requires centerlines; regions describe confounders');points(region.polygon,3);}
+  for(const polygon of annotation.ignore||[])points(polygon,3);
+  const {targetBits,knownBits}=await reviewMasks({...annotation,ignore:[]},options);
+  for(let i=0;i<targetBits.length;i++)if(targetBits[i]&~knownBits[i])throw Error('Positive labels extend outside explicitly known regions');
+}

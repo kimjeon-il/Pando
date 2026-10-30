@@ -3,7 +3,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {REFERENCE_BOUNDARY_CHANNELS as CHANNELS} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {verifyNativeTool} from '../native-tool.mjs';
-import {reviewMasks} from './review-masks.mjs';
+import {reviewMasks,validateReviewedAnnotation} from './review-masks.mjs';
 import {assertEvaluationIndependence} from './training-lineage.mjs';
 
 export const evaluationSourceFiles=Object.freeze(['tools/cpp/map-evaluation/CMakeLists.txt','tools/cpp/map-evaluation/evaluation.cpp',
@@ -43,6 +43,7 @@ export async function evaluateBoundaries(prediction,annotation,{signal,workspace
 export async function evaluateIndependentSheet(prediction,annotation,{sheet,lineage,split='test',...options}={}){
   if(!sheet)throw Error('Independent evaluation requires source identity');
   assertEvaluationIndependence(lineage,[sheet],{split});
+  await validateReviewedAnnotation(annotation,sheet,{signal:options.signal,workspace:options.workspace,directory:options.reviewDirectory});
   return evaluateBoundaries(prediction,annotation,options);
 }
 export function boundaryAdmission(perSheet,{requiredChannels=[]}={}){
