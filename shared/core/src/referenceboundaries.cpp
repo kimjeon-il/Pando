@@ -239,7 +239,10 @@ codecjson::Value editReferenceBoundaryGraph(const V& graph,const V& command){
         if(a.chain==b.chain&&(a.index+1==b.index||b.index+1==a.index||(chains[a.chain].path.front()==chains[a.chain].path.back()&&((a.index==0&&b.index+2==chains[a.chain].path.size())||(b.index==0&&a.index+2==chains[a.chain].path.size())))))continue;
         double t=cross(q,s)/denominator,u=cross(q,r)/denominator;if(t< -1e-10||t>1+1e-10||u< -1e-10||u>1+1e-10)continue;t=std::clamp(t,0.,1.);u=std::clamp(u,0.,1.);
         Pixel p{a.a[0]+t*r[0],a.a[1]+t*r[1]};if(t==0)p=a.a;else if(t==1)p=a.b;else if(u==0)p=b.a;else if(u==1)p=b.b;
-        const double x=a.index+t,y=b.index+u;breaks[a.chain][x]=p;breaks[b.chain][y]=p;
+        // Canonical endpoint coordinates also need their exact parameter;
+        // otherwise 0.9999999999999999 creates a spurious split and new ID.
+        const double x=a.index+(p==a.a?0.:p==a.b?1.:t),y=b.index+(p==b.a?0.:p==b.b?1.:u);
+        breaks[a.chain][x]=p;breaks[b.chain][y]=p;
     }
     std::vector<EditableChain> noded;
     for(std::size_t c=0;c<chains.size();++c){auto& original=chains[c];const auto& cuts=breaks[c];if(cuts.size()==2){noded.push_back(std::move(original));continue;}
