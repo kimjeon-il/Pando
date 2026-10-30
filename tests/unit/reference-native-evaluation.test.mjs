@@ -19,18 +19,17 @@ test('native evaluation matches Python oracle for all channels and confounders',
 test('evaluation streams preserve native sheet metrics and group admission',()=>{
   const annotation=JSON.parse(readFileSync('tests/fixtures/reference-review-mask/full.json','utf8')).annotation;
   const oracle=JSON.parse(readFileSync('tests/fixtures/reference-review-mask/evaluation.json','utf8'));
-  const packed=Buffer.from(oracle.predictionBase64,'base64'),planes=Buffer.alloc(packed.length*3);
-  for(let i=0;i<packed.length;i++)for(let c=0;c<3;c++)planes[c*packed.length+i]=(packed[i]>>c)&1;
+  const packed=Buffer.from(oracle.predictionBase64,'base64');
   const json=Buffer.from(JSON.stringify(annotation)),header=Buffer.alloc(4);header.writeUInt32BE(json.length);
   const args=['tools/reference-analysis/native-evaluation.mjs','--sheet-stream'];
-  const result=spawnSync(process.execPath,args,{input:Buffer.concat([header,json,planes]),encoding:'utf8'});
+  const result=spawnSync(process.execPath,args,{input:Buffer.concat([header,json,packed]),encoding:'utf8'});
   assert.equal(result.status,0,result.stderr);const actual=JSON.parse(result.stdout);
   assert.deepEqual(actual,{counts:oracle.counts,metrics:oracle.metrics,confounders:oracle.confounders});
   const input={groups:{fixture:[actual.counts]},perSheet:{sheet:actual.metrics},confounders:{sheet:actual.confounders},baseline:null,requiredChannels:[]};
   const summary=spawnSync(process.execPath,['tools/reference-analysis/native-evaluation.mjs','--summary-stream'],{input:JSON.stringify(input),encoding:'utf8'});
   assert.equal(summary.status,0,summary.stderr);assert.deepEqual(JSON.parse(summary.stdout),summarizeEvaluation(input));
   assert.throws(()=>summarizeEvaluation({...input,groups:{fixture:[[[2,1,0,0],[0,0,0,0],[0,0,0,0]]]}}),/counts/i);
-  const bad=Buffer.from(planes);bad[0]=2;
+  const bad=Buffer.from(packed);bad[0]=8;
   const rejected=spawnSync(process.execPath,args,{input:Buffer.concat([header,json,bad]),encoding:'utf8'});
   assert.notEqual(rejected.status,0);assert.match(rejected.stderr,/binary/i);
 });
@@ -53,6 +52,11 @@ test('bounded evaluation supports sources wider than one native window',async()=
   const prediction=Buffer.alloc(width*height);prediction.fill(1,width);
   const result=await evaluateBoundariesTiled(prediction,annotation);
   assert.deepEqual(result.counts[0],[width,width,width,width]);
+  const json=Buffer.from(JSON.stringify(annotation)),header=Buffer.alloc(4);header.writeUInt32BE(json.length);
+  const run=spawnSync(process.execPath,['tools/reference-analysis/native-evaluation.mjs','--sheet-stream'],{input:Buffer.concat([header,json,prediction]),encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);assert.deepEqual(JSON.parse(run.stdout),result);
+  annotation.lines[0].width=5000;
+  assert.deepEqual((await evaluateBoundariesTiled(prediction,annotation)).counts[0],[width,width,width,width]);
 });
 test('native original-pixel evaluation keeps tolerance, known masks, and confounder scope',async()=>{
   const near=await evaluateBoundaries(prediction(0,7),annotation());

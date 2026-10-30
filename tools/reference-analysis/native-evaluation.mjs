@@ -64,14 +64,19 @@ function checkPrediction(prediction,annotation){const width=annotation?.width,he
     size>600000000||prediction.length!==size||prediction.some(v=>v&~7))throw Error('Prediction must use original sheet pixels and three packed channels');}
 export async function evaluateBoundaries(prediction,annotation,{signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact'),reviewDirectory}={}){
   signal?.throwIfAborted();checkPrediction(prediction,annotation);
+  if(annotation.width>16384||annotation.height>16384||annotation.width*annotation.height>16777216)
+    return evaluateBoundariesTiled(prediction,annotation,{signal,workspace,directory,reviewDirectory});
   return evaluationResult(await evaluateWindow(prediction,annotation,{signal,workspace,directory,reviewDirectory}));
 }
 export async function evaluateBoundariesTiled(prediction,annotation,{signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact'),reviewDirectory}={}){
   signal?.throwIfAborted();checkPrediction(prediction,annotation);const {width,height}=annotation;
   const radii=(annotation.lines||[]).filter(line=>CHANNELS.indexOf(line.kind)>=0&&CHANNELS.indexOf(line.kind)<3).map(line=>Math.max(2,line.width/2));
   if(radii.some(radius=>!Number.isFinite(radius)||radius<2))throw Error('Invalid evaluation tolerance');
-  const halo=Math.ceil(radii.reduce((maximum,value)=>Math.max(maximum,value),2));if(halo>2046)throw Error('Evaluation tolerance exceeds bounded-window limit');
-  const step=Math.min(1024,4094-2*halo),counts=Array.from({length:3},()=>[0,0,0,0]),confounderCounts=Array.from({length:4},()=>Array.from({length:3},()=>[0,0]));
+  const halo=Math.ceil(radii.reduce((maximum,value)=>Math.max(maximum,value),2));
+  const fits=core=>{const w=Math.min(width,core+2*halo),h=Math.min(height,core+2*halo);return w<=16384&&h<=16384&&w*h<=16777216;};
+  if(!fits(1))throw Error('Evaluation tolerance exceeds bounded-window limit');
+  let low=1,high=1024;while(low<high){const mid=Math.ceil((low+high)/2);if(fits(mid))low=mid;else high=mid-1;}
+  const step=low,counts=Array.from({length:3},()=>[0,0,0,0]),confounderCounts=Array.from({length:4},()=>Array.from({length:3},()=>[0,0]));
   for(let y=0;y<height;y+=step)for(let x=0;x<width;x+=step){
     signal?.throwIfAborted();const cw=Math.min(step,width-x),ch=Math.min(step,height-y),left=Math.max(0,x-halo),top=Math.max(0,y-halo);
     const right=Math.min(width,x+cw+halo),bottom=Math.min(height,y+ch+halo);
@@ -142,7 +147,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
     if(process.argv.length!==3||!['--diagnostic-stream','--sheet-stream','--summary-stream'].includes(process.argv[2]))throw Error('Expected an evaluation stream operation');
     const chunks=[];let length=0;
-    for await(const chunk of process.stdin){length+=chunk.length;if(length>65*1024*1024)throw Error('Evaluation input exceeds budget');chunks.push(chunk);}
+    const maximum=process.argv[2]==='--sheet-stream'?600000000+16*1024*1024+4:65*1024*1024;
+    for await(const chunk of process.stdin){length+=chunk.length;if(length>maximum)throw Error('Evaluation input exceeds budget');chunks.push(chunk);}
     const bytes=Buffer.concat(chunks,length);
     if(process.argv[2]==='--summary-stream'){
       process.stdout.write(JSON.stringify(summarizeEvaluation(JSON.parse(bytes.toString('utf8'))))+'\n');
@@ -150,10 +156,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       if(bytes.length<4)throw Error('Truncated sheet evaluation request');
       const headerLength=bytes.readUInt32BE(0);if(!headerLength||headerLength>16*1024*1024||bytes.length<4+headerLength)throw Error('Invalid sheet evaluation header');
       const annotation=JSON.parse(bytes.subarray(4,4+headerLength).toString('utf8')),pixels=annotation?.width*annotation?.height;
-      if(!Number.isSafeInteger(pixels)||pixels<1||pixels>16777216||bytes.length!==4+headerLength+pixels*3)throw Error('Invalid sheet prediction length');
-      const planes=bytes.subarray(4+headerLength),prediction=Buffer.alloc(pixels);
-      for(let i=0;i<pixels;i++){const a=planes[i],b=planes[pixels+i],c=planes[2*pixels+i];
-        if(a>1||b>1||c>1)throw Error('Sheet prediction must be binary');prediction[i]=a|(b<<1)|(c<<2);}
+      if(!Number.isSafeInteger(pixels)||pixels<1||pixels>600000000||bytes.length!==4+headerLength+pixels)throw Error('Invalid sheet prediction length');
+      const prediction=bytes.subarray(4+headerLength);if(prediction.some(value=>value&~7))throw Error('Sheet prediction must use three packed binary channels');
       process.stdout.write(JSON.stringify(await evaluateBoundaries(prediction,annotation))+'\n');
     }else{
     if(bytes.length<16||bytes.toString('ascii',0,8)!=='PDIAG001')throw Error('Invalid diagnostic input');
