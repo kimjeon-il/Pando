@@ -19,7 +19,7 @@ try {
   if(command==='analyze'&&Boolean(options.input)===Boolean(options.source))throw new Error('Analyze requires exactly one of --input or --source.');
   if(options.source&&options.provenance)throw new Error('--source records its acquired provenance; do not override it with --provenance.');
   const runtime=await prepareRuntime({workspace:options.workspace,signal:controller.signal,progress});
-  process.env.PANDO_MAP_WORKSPACE=runtime.workspace;process.env.PANDO_MAP_PYTHON=runtime.python;
+  process.env.PANDO_MAP_WORKSPACE=runtime.workspace;
   const {workspace,workspaceModule}=await import('../lib/workspace.mjs');
   const {analyze,renderPreview,reviseWithRaster,regionAnalysisOptions}=await import('../lib/engine.mjs');
   const {loadJob,saveJob,exportJob,digest}=await import('../lib/jobs.mjs');

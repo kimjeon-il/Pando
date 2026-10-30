@@ -5,13 +5,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 // An installed plugin binds to the existing permanent workspace, never a copy
-// of its dependencies, data cache or Python environment.
+// of its dependencies or data cache.
 export const workspace = resolve(process.env.PANDO_MAP_WORKSPACE || fileURLToPath(new URL('../../../', import.meta.url)));
 if (!existsSync(resolve(workspace, 'tools/load-node-core.mjs'))) throw new Error('Set --workspace to the existing Pando work/ui checkout.');
 export const workspaceModule = path => import(pathToFileURL(resolve(workspace, path)).href);
 export const requireWorkspace = createRequire(resolve(workspace, 'package.json'));
 const {frontendWasmRoot}=await workspaceModule('scripts/lib/frontend-layout.mjs');
 export const { sharedCalculationCore: core } = await workspaceModule('shared/frontend/js/modules/temporal.js');
+const [{mapImageSourceFiles},{mapPdfSourceFiles},{mapPreviewSourceFiles}]=await Promise.all([
+  workspaceModule('tools/map-image/native-resample.mjs'),workspaceModule('tools/map-image/native-pdf.mjs'),workspaceModule('tools/map-image/native-preview.mjs')]);
 
 // Bind numerical work to the loaded producer, including its helper modules.
 // These identities are path-independent so the installed code and source agree.
@@ -24,7 +26,7 @@ function runtimeSnapshot() {
     for (const entry of readdirSync(resolve(pluginRoot,directory),{withFileTypes:true})) {
       const path = `${directory}/${entry.name}`;
       if (entry.isDirectory()) pluginFiles(path);
-      else if (/\.(mjs|py)$/.test(path)) add('plugin/'+path,resolve(pluginRoot,path));
+      else if (/\.mjs$/.test(path)) add('plugin/'+path,resolve(pluginRoot,path));
     }
   }
   pluginFiles('lib');pluginFiles('scripts');add('plugin/plugin.json',resolve(pluginRoot,'plugin.json'));
@@ -32,11 +34,9 @@ function runtimeSnapshot() {
   for (const path of ['pnpm-lock.yaml','shared/frontend/js/modules/temporal.js','shared/frontend/js/modules/core-wasm-loader.js',
     'shared/frontend/js/modules/source-provenance.js','shared/frontend/js/modules/version-contract.js',
     'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js','tools/load-node-core.mjs','scripts/lib/frontend-layout.mjs',
-    'tools/map-image/native-resample.mjs','tools/native-tool.mjs','tools/library-content.mjs','tools/cpp/CMakeLists.txt',
-    'tools/cpp/map-image/main.cpp','tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h',
-    'tools/cpp/map-image/png.cpp','tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h',
-    'tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE',
-    'tools/cpp/map-image/libpng-LICENSE','tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg']) add('workspace/'+path,resolve(workspace,path));
+    'tools/map-image/native-resample.mjs','tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs',
+    'tools/native-tool.mjs','tools/library-content.mjs','tools/cpp/map-preview/aileron-subset.ttf',
+    ...mapImageSourceFiles,...mapPdfSourceFiles,...mapPreviewSourceFiles]) add('workspace/'+path,resolve(workspace,path));
   const producerInputs=Object.fromEntries(Object.entries(inputs).sort(([a],[b])=>a.localeCompare(b)));
   return {producerSha256:hash(JSON.stringify(producerInputs)),producerInputs,
     coreManifestSha256:hash(readFileSync(resolve(workspace,frontendWasmRoot,'pandoeditor-core.manifest.json')))};

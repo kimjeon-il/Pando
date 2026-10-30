@@ -15,6 +15,23 @@ test('native rotation works without a signal and reverses clockwise boxes to sou
   assert.equal(rotated.data[4],12);
 });
 
+test('signed map review renders native preview and detects changed source without Python',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'pando-map-preview-workflow-'));
+  const previous=process.env.PANDO_MAP_PYTHON;process.env.PANDO_MAP_PYTHON=join(dir,'missing-python');
+  try{
+    const source=join(dir,'map.png'),output=join(dir,'preview.png');
+    const bytes=await readFile('tests/fixtures/map-image/preview/rich.png');await writeFile(source,bytes);
+    const fixture=JSON.parse(await readFile('tests/fixtures/map-image/preview/rich.json','utf8'));
+    let job=createJob({path:source,sha256:digest(bytes),width:420,height:180,mapping:fixture.job.source.mapping},{dataRevision:'test'});
+    job.status='needs-georeference';job.graph=fixture.job.graph;job.warp=fixture.job.warp;job.quality=fixture.job.quality;job=sealJob(job);
+    await engine.renderPreview(job,output);
+    const image=await raster({action:'read',path:output,maxPixels:16777216});
+    assert.equal(Buffer.compare(image.data,await readFile('tests/fixtures/map-image/preview/rich.rgba')),0);
+    const before=await readFile(output);await writeFile(source,Buffer.concat([bytes,Buffer.from('changed')]));
+    await assert.rejects(engine.renderPreview(job,output),/Original image hash changed/);assert.deepEqual(await readFile(output),before);
+  }finally{if(previous===undefined)delete process.env.PANDO_MAP_PYTHON;else process.env.PANDO_MAP_PYTHON=previous;await rm(dir,{recursive:true,force:true});}
+});
+
 test('Node resolves the ORT WASM entry with env and session exports', () => {
   const ort=engine.loadOrtRuntime();
   assert.equal(ort.env.wasm.numThreads,1);
@@ -33,6 +50,12 @@ test('Node OCR unwraps the existing RPC acknowledgement and returns normalized r
   assert.ok(Array.isArray(result.rows));
   assert.deepEqual(result.orientation.languages,['eng']);
   assert.equal(result.orientation.osdClockwiseDegrees,0);
+});
+
+test('native diagnostic image reaches OCR without Python',async()=>{
+  const image=await raster({action:'read',path:'tests/fixtures/map-image/ocr-probe.png',maxPixels:16777216});
+  const result=await engine.recognize(image,['eng'],AbortSignal.timeout(120000));
+  assert.match(JSON.stringify(result.rows),/ATHENS|LONDON/);
 });
 
 const manifest = { schemaVersion: 1, evaluationStatus: 'pending', releaseApproved: false, trainingOnly: true,
@@ -63,7 +86,10 @@ test('production jobs bind all calculation helpers and refuse missing or changed
   }
   assert.ok(job.resources.producerInputs['plugin/lib/analysis/core.mjs']);
   assert.ok(job.resources.producerInputs['plugin/lib/analysis/georef.mjs']);
-  assert.ok(job.resources.producerInputs['plugin/lib/raster.py']);
+  for(const path of ['tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs','tools/cpp/map-image/webp-read.c',
+    'tools/cpp/map-pdf/pdf-read.c','tools/cpp/map-preview/preview.cpp','tools/cpp/map-preview/aileron-subset.ttf'])
+    assert.ok(job.resources.producerInputs['workspace/'+path],path);
+  assert.equal(job.resources.producerInputs['plugin/lib/raster.py'],undefined);
   assert.equal(reviseJob(job,{type:'control-points',points:[]}).status,'needs-georeference');
 });
 test('candidate execution preserves pending approval and excludes unobserved classes', () => {

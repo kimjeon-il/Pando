@@ -72,7 +72,7 @@ export async function probeAnalysisOptions(bundle,manifest) {
   return {...manifest.options,input:join(bundle,'inputs/map.jpg'),modelPath:join(bundle,'model/boundary.manifest.json'),
     provenance:await json(join(bundle,'inputs/provenance.json'))};
 }
-export async function runProbe({bundle,output,python='python',stage='components',selection,surface='local-preflight'}) {
+export async function runProbe({bundle,output,stage='components',selection,surface='local-preflight'}) {
   bundle=resolve(bundle);output=resolve(output);const manifest=await verifyBundle(bundle),workspace=join(bundle,'workspace');
   if(!['components','map','export','resume'].includes(stage))throw Error('Unknown probe stage');
   if(!['local-preflight','chatgpt-work-cloud'].includes(surface))throw Error('Unknown execution surface');
@@ -85,17 +85,21 @@ export async function runProbe({bundle,output,python='python',stage='components'
     throw Object.assign(new Error('Probe stage output already exists: '+join(output,name)),{code:'PL-MAP-PROBE-EXISTS'});
   }
   if(surface==='chatgpt-work-cloud'&&process.platform==='win32')throw Error('Windows local execution is not Work cloud evidence');
-  process.env.PANDO_MAP_WORKSPACE=workspace;process.env.PANDO_MAP_PYTHON=python;
+  process.env.PANDO_MAP_WORKSPACE=workspace;
   await mkdir(output,{recursive:true});const started=performance.now(),result={schemaVersion:1,surface,stage,verdict:'failed',platform:process.platform,nodeVersion:process.version,checks:{}};
   const plugin=name=>import(pathToFileURL(join(workspace,'plugins/pando-map-tools/lib',name)));
   const jobPath=join(output,'map.job.json');
   try {
     const engine=await plugin('engine.mjs'),jobs=await plugin('jobs.mjs');
     if(stage==='components') {
-      const rgba=Buffer.from((await exec(python,['-c',"from PIL import Image,ImageDraw,ImageFont; import fitz,sys; im=Image.new('RGBA',(640,240),'white'); d=ImageDraw.Draw(im); f=ImageFont.load_default(size=40); d.text((20,30),'ATHENS ATHENS',font=f,fill='black'); d.text((20,120),'LONDON LONDON',font=f,fill='black'); doc=fitz.open(); doc.new_page(); assert len(doc)==1; doc.close(); sys.stdout.buffer.write(im.tobytes())"],{encoding:'buffer',maxBuffer:2*1024*1024,windowsHide:true})).stdout);
-      const ocr=await engine.recognize({width:640,height:240,data:rgba},['eng'],AbortSignal.timeout(120000));assert.match(JSON.stringify(ocr.rows),/ATHENS|LONDON/);
+      const {raster}=await plugin('raster.mjs');
+      const image=await raster({action:'read',path:join(workspace,'tests/fixtures/map-image/ocr-probe.png'),maxPixels:16777216});
+      assert.equal(image.width,640);assert.equal(image.height,240);
+      const pdf=await raster({action:'read',path:join(workspace,'tests/fixtures/map-image/pdf-read/single.pdf'),maxPixels:16777216});
+      assert.equal(pdf.originalWidth,400);assert.equal(pdf.originalHeight,200);assert.equal(pdf.mapping.pdfDpi,144);
+      const ocr=await engine.recognize(image,['eng'],AbortSignal.timeout(120000));assert.match(JSON.stringify(ocr.rows),/ATHENS|LONDON/);
       const {referenceOcrOriginalBox}=await plugin('analysis/ocr-catalog.mjs');assert.deepEqual(referenceOcrOriginalBox({x:2,y:3,width:5,height:7},20,30,90),{x:3,y:23,width:7,height:5});
-      result.checks.ocr={verdict:'passed',rows:ocr.rows};result.checks.raster={verdict:'passed',pillow:true,pymupdf:true};
+      result.checks.ocr={verdict:'passed',rows:ocr.rows};result.checks.raster={verdict:'passed',nativeImage:true,nativePdf:true};
       const {createCalculatedReferenceWarp}=await plugin('analysis/core.mjs');const points=[{id:'a',image:[0,0],coordinate:[10,20]},{id:'b',image:[1,0],coordinate:[20,20]},{id:'c',image:[0,1],coordinate:[10,10]},{id:'d',image:[1,1],coordinate:[20,10]}];
       const warp=createCalculatedReferenceWarp('warp',{points,mode:'affine'});assert(warp.ok);const projected=warp.project([.5,.5]);assert(projected.every(Number.isFinite));result.checks.wasm={verdict:'passed',projected};
       const env={...process.env};await exec(process.execPath,[join(workspace,'tools/reference-analysis/verify-trained-onnx.mjs'),'--model',join(bundle,'model/boundary.onnx'),'--diagnostics',join(bundle,'diagnostics'),'--output',join(output,'onnx-parity.json')],{env,windowsHide:true,maxBuffer:2*1024*1024});result.checks.onnx=await json(join(output,'onnx-parity.json'));
@@ -124,7 +128,7 @@ export async function runProbe({bundle,output,python='python',stage='components'
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const command=process.argv[2];
   try {
-    const options=command==='pack'?['output','environment']:['output','python','bundle','stage','selection','surface'];
+    const options=command==='pack'?['output','environment']:['output','bundle','stage','selection','surface'];
     const {values}=parseArgs({args:process.argv.slice(3),options:Object.fromEntries(options.map(name=>[name,{type:'string'}]))});
     if(!values.output)throw Error('--output is required');
     const result=command==='pack'?await packProbe({directory:values.output,environment:await json(values.environment)}):command==='run'?await runProbe({...values}):(()=>{throw Error('Use pack or run')})();

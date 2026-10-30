@@ -68,6 +68,9 @@ jobs:
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
           node --test tests/unit/map-plugin-native-preview.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Native preview differs from original' }
+          $env:PANDO_MAP_PYTHON = "$env:GITHUB_WORKSPACE/no-python"
+          node --test --test-name-pattern='signed map review renders' tests/unit/map-plugin.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Map review workflow failed' }
       - uses: actions/upload-artifact@v4
         if: always()
         with:

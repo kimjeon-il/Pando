@@ -107,6 +107,8 @@ async function walk(directory,prefix,include=()=>true) {
   return files;
 }
 export async function collectSourceFiles(workspace=root,{diagnostics=false,revision}={}) {
+  // The remaining raster.py is imported by training only; the plugin now uses native readers and preview rendering.
+  const pluginRuntimePath=path=>!path.includes('skills/pando-map-training/')&&path!=='plugins/pando-map-tools/lib/raster.py';
   const seeds=['package.json','pnpm-lock.yaml','shared/frontend/js/modules/temporal.js',
     'shared/frontend/js/modules/core-wasm-loader.js','shared/frontend/js/modules/source-provenance.js','shared/frontend/js/modules/version-contract.js',
     'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js','shared/third_party/proj-robinson-LICENSE',
@@ -120,18 +122,19 @@ export async function collectSourceFiles(workspace=root,{diagnostics=false,revis
     'tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/webp-read.c','tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE',
     'tools/cpp/map-image/libpng-LICENSE','tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg',
     'tools/cpp/map-image/libwebp-COPYING','tools/cpp/map-image/libwebp-PATENTS'];
-  if(diagnostics)seeds.push('tools/reference-analysis/verify-trained-onnx.mjs','tools/reference-analysis/cloud-probe.mjs');
+  if(diagnostics)seeds.push('tools/reference-analysis/verify-trained-onnx.mjs','tools/reference-analysis/cloud-probe.mjs',
+    'tests/fixtures/map-image/ocr-probe.png','tests/fixtures/map-image/pdf-read/single.pdf');
   if(revision) {
     if(!/^[a-f0-9]{40}$/.test(revision))throw Error('A full commit revision is required');
     const tree=(await git('git',['ls-tree','-r','--format=%(objectmode) %(path)',revision,'--','plugins/pando-map-tools','shared'],{cwd:workspace,maxBuffer:4000000})).stdout;
     for(const row of tree.trim().split('\n')) {
       const [mode,...parts]=row.split(' '),path=parts.join(' ');
       if(mode==='120000')throw Error('Pinned source must not be a link: '+path);
-      if(path.startsWith('plugins/pando-map-tools/')&&!path.includes('skills/pando-map-training/'))seeds.push(path);
+      if(path.startsWith('plugins/pando-map-tools/')&&pluginRuntimePath(path))seeds.push(path);
       else if(/\.(cpp|h|hpp)(\.in)?$|\.cmake$/.test(path)||path.endsWith('/CMakeLists.txt'))seeds.push(path);
     }
   } else {
-    seeds.push(...(await walk(join(workspace,'plugins/pando-map-tools'),'plugins/pando-map-tools')).filter(name=>!name.includes('skills/pando-map-training/')));
+    seeds.push(...(await walk(join(workspace,'plugins/pando-map-tools'),'plugins/pando-map-tools')).filter(pluginRuntimePath));
     seeds.push(...await walk(join(workspace,'shared'),'shared',name=>/\.(cpp|h|hpp)(\.in)?$|\.cmake$/.test(name)||name.endsWith('/CMakeLists.txt')));
   }
   const files=new Set();
