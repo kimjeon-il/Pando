@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {encodeHydroFeatures,encodeHydroRepairPlan,prepareHydroEncodingFeatures} from '../../tools/gis/hydro-encoding-native.mjs';
+import {encodeHydroFeatures,encodeHydroGzip,encodeHydroRepairPlan,prepareHydroEncodingFeatures} from '../../tools/gis/hydro-encoding-native.mjs';
 import {planHydroFeatureRepairs} from '../../tools/gis/hydro-connectivity-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_ENCODING_BINARY;
 const cases=JSON.parse(readFileSync('tests/fixtures/hydro-encoding-oracle.json','utf8'));
+const packOracle=JSON.parse(readFileSync('tests/fixtures/hydro-pack-oracle.json','utf8'));
 test('Hydro encoding uses original bounds except for changed geometry',()=>{
   const feature={metadata:{fid:1,logicalFid:101,awId:'fixture:1',category:'river',stage:0,flags:1,
     fragmentIndex:0,fragmentCount:1,width:1.25,bounds:[-180000000,-1,180000000,1],sourceId:'100,110,105'},
@@ -31,6 +32,14 @@ test('native Hydro encoder refuses malformed width profiles and feature values',
     assert.equal(result.status,1);assert.equal(result.stdout,'');assert.ok(result.stderr.length);
   }
 });
+test('pinned zlib reproduces Python gzip payloads apart from platform OS byte',{skip:!binary},()=>{
+  const raw=packOracle.packs.map(row=>row.rawHex),result=spawnSync(binary,[],{input:JSON.stringify({mode:'gzip',payloads:raw}),encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);const output=JSON.parse(result.stdout).payloads;
+  for(const [i,encoded] of output.entries()){
+    const actual=Buffer.from(encoded,'hex'),expected=Buffer.from(packOracle.packs[i].gzipHex,'hex');
+    actual[9]=expected[9];assert.deepEqual(actual,expected);
+  }
+});
 test('source-bound Hydro encoder returns verified binary payloads',{skip:!process.env.PANDO_HYDRO_ENCODING_DIRECTORY},async()=>{
   const result=await encodeHydroFeatures(cases.map(row=>row.feature),{directory:process.env.PANDO_HYDRO_ENCODING_DIRECTORY});
   assert.deepEqual(result.map(row=>[row.feature.toString('hex'),row.sourceIds.toString('hex')]),cases.map(row=>[row.featureHex,row.sourceIdsHex]));
@@ -40,6 +49,12 @@ test('source-bound Hydro encoder returns verified binary payloads',{skip:!proces
   const planned=await encodeHydroRepairPlan({features:[feature],changedFeatureIds:[],boundsPendingFor:[]},
     {directory:process.env.PANDO_HYDRO_ENCODING_DIRECTORY});
   assert.equal(planned[0].feature.toString('hex'),cases[0].featureHex);
+  const compressed=await encodeHydroGzip(packOracle.packs.map(row=>Buffer.from(row.rawHex,'hex')),
+    {directory:process.env.PANDO_HYDRO_ENCODING_DIRECTORY});
+  assert.equal(compressed.length,packOracle.packs.length);
+  for(const [i,actual] of compressed.entries()){
+    const expected=Buffer.from(packOracle.packs[i].gzipHex,'hex');actual[9]=expected[9];assert.deepEqual(actual,expected);
+  }
   await assert.rejects(encodeHydroRepairPlan({features:[feature],changedFeatureIds:[1],boundsPendingFor:[]}),/bounds/i);
   await assert.rejects(encodeHydroFeatures([]),/features/i);
 });
