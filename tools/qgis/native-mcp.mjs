@@ -20,6 +20,8 @@ function createServer(){
     async(_args,extra)=>respond([...options,'project'],extra.signal));
   server.registerTool('qgis_native_canvas',{description:'Inspect the current map extent, CRS, size, scale and rotation.',inputSchema:empty},
     async(_args,extra)=>respond([...options,'canvas'],extra.signal));
+  server.registerTool('qgis_native_canvas_scale',{description:'Set the map scale and/or rotation.',inputSchema:z.strictObject({scale:z.number().finite().positive().optional(),rotation:z.number().finite().optional()})},
+    async({scale,rotation},extra)=>respond([...options,'canvas-scale',...(scale===undefined?[]:[`--scale=${scale}`]),...(rotation===undefined?[]:[`--rotation=${rotation}`])],extra.signal));
   server.registerTool('qgis_native_active_layer',{description:'Read or set the active QGIS layer.',inputSchema:z.strictObject({layer:path.optional()})},
     async({layer},extra)=>respond([...options,'active-layer',...(layer===undefined?[]:[`--layer=${layer}`])],extra.signal));
   server.registerTool('qgis_native_zoom_to_layer',{description:'Set the active layer and zoom the QGIS canvas to its extent.',inputSchema:z.strictObject({layer:path})},

@@ -192,6 +192,18 @@ class Bridge final:public QObject,public QgisPlugin {
                 {QStringLiteral("scale"),canvas->scale()},{QStringLiteral("rotation"),canvas->rotation()},
                 {QStringLiteral("magnification"),canvas->magnificationFactor()}};
         }
+        if(command==QStringLiteral("canvas-scale")){
+            auto* canvas=iface_->mapCanvas();if(!canvas)throw QStringLiteral("QGIS map canvas is unavailable");
+            const auto scale=request.value(QStringLiteral("scale")),rotation=request.value(QStringLiteral("rotation"));
+            if((scale.isUndefined()&&rotation.isUndefined())||
+               (!scale.isUndefined()&&(!scale.isDouble()||!std::isfinite(scale.toDouble())||scale.toDouble()<=0))||
+               (!rotation.isUndefined()&&(!rotation.isDouble()||!std::isfinite(rotation.toDouble()))))
+                throw QStringLiteral("A positive finite scale or finite rotation is required");
+            if(!scale.isUndefined())canvas->zoomScale(scale.toDouble());
+            if(!rotation.isUndefined())canvas->setRotation(rotation.toDouble());
+            canvas->refresh();
+            return {{QStringLiteral("ok"),true},{QStringLiteral("scale"),canvas->scale()},{QStringLiteral("rotation"),canvas->rotation()}};
+        }
         if(command==QStringLiteral("active-layer")){
             const auto value=request.value(QStringLiteral("layer"));
             if(!value.isUndefined()){
