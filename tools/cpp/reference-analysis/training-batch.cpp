@@ -65,18 +65,31 @@ int balancedOrder(const std::vector<fs::path>& args){
   for(const auto value:order)for(unsigned shift=0;shift<64;shift+=8)std::cout.put(static_cast<char>((value>>shift)&255));
   if(!std::cout)throw std::runtime_error("Unable to write training order");return 0;
 }
+torch::Tensor readStreamTensor(const std::vector<std::int64_t>& shape){std::int64_t elements=1;for(const auto size:shape)elements*=size;
+  auto tensor=torch::empty(shape,torch::kFloat32);const auto length=elements*static_cast<std::int64_t>(sizeof(float));
+  if(!std::cin.read(static_cast<char*>(tensor.data_ptr()),static_cast<std::streamsize>(length)))throw std::runtime_error("Truncated reference tensor stream");
+  if(!torch::isfinite(tensor).all().item<bool>())throw std::runtime_error("Reference tensor contains nonfinite values");return tensor;}
+int infer(const std::vector<fs::path>& args){
+  if(args.size()!=4)throw std::invalid_argument("Expected infer DEVICE CHECKPOINT");
+  torch::set_num_threads(2);
+  const auto device=pando::reference::selectDevice(args[2].string());const auto bytes=pando::reference::readBounded(args[3],1024ULL*1024*1024);
+  pando::reference::ReferenceBoundaryModel model;model->to(device);torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
+  pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(bytes.begin(),bytes.end()),device);
+  const auto tile=readStreamTensor({1,3,512,512}).to(device),overview=readStreamTensor({1,3,256,256}).to(device),position=readStreamTensor({1,4}).to(device);
+  if(std::cin.peek()!=std::char_traits<char>::eof())throw std::invalid_argument("Trailing reference tensor bytes");
+  model->eval();torch::NoGradGuard guard;const auto output=model->forward(tile,overview,position).to(torch::kCPU).contiguous();
+  if(output.sizes()!=torch::IntArrayRef({1,7,512,512})||!torch::isfinite(output).all().item<bool>())throw std::runtime_error("Checkpoint inference returned invalid logits");
+  std::cout.write(static_cast<const char*>(output.data_ptr()),static_cast<std::streamsize>(output.numel()*sizeof(float)));
+  if(!std::cout)throw std::runtime_error("Unable to write checkpoint logits");return 0;
+}
 int validate(const std::vector<fs::path>& args){
   if(args.size()!=5)throw std::invalid_argument("Expected validate DEVICE CHECKPOINT SAMPLE_COUNT");
   const auto count=integer(args[4]);if(count<1||count>100000)throw std::invalid_argument("Invalid validation sample count");
   const auto device=pando::reference::selectDevice(args[2].string());const auto bytes=pando::reference::readBounded(args[3],1024ULL*1024*1024);
   pando::reference::ReferenceBoundaryModel model;model->to(device);torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
   pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(bytes.begin(),bytes.end()),device);
-  const auto readTensor=[](const std::vector<std::int64_t>& shape){std::int64_t elements=1;for(const auto size:shape)elements*=size;
-    auto tensor=torch::empty(shape,torch::kFloat32);const auto length=elements*static_cast<std::int64_t>(sizeof(float));
-    if(!std::cin.read(static_cast<char*>(tensor.data_ptr()),static_cast<std::streamsize>(length)))throw std::runtime_error("Truncated validation tensor stream");
-    if(!torch::isfinite(tensor).all().item<bool>())throw std::runtime_error("Validation tensor contains nonfinite values");return tensor;};
-  double sum=0;for(std::int64_t i=0;i<count;++i){pando::reference::TrainingBatch batch{readTensor({1,3,512,512}),readTensor({1,3,256,256}),
-      readTensor({1,4}),readTensor({1,7,512,512}),readTensor({1,7,512,512})};checkSupervision(batch);
+  double sum=0;for(std::int64_t i=0;i<count;++i){pando::reference::TrainingBatch batch{readStreamTensor({1,3,512,512}),readStreamTensor({1,3,256,256}),
+      readStreamTensor({1,4}),readStreamTensor({1,7,512,512}),readStreamTensor({1,7,512,512})};checkSupervision(batch);
     batch={batch.tile.to(device),batch.overview.to(device),batch.position.to(device),batch.target.to(device),batch.valid.to(device)};
     sum+=pando::reference::validationBatchLoss(model,batch);}
   if(std::cin.peek()!=std::char_traits<char>::eof())throw std::invalid_argument("Trailing validation tensor bytes");
@@ -85,6 +98,7 @@ int validate(const std::vector<fs::path>& args){
 }
 int run(const std::vector<fs::path>& args){
   if(args.size()>1&&args[1]==fs::path("order"))return balancedOrder(args);
+  if(args.size()>1&&args[1]==fs::path("infer"))return infer(args);
   if(args.size()>1&&args[1]==fs::path("validate"))return validate(args);
   if(args.size()<17||(args.size()-15)%2||args.size()>47)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none PRECISION SCALE GROWTH UNOBSERVED_MASK INDEX SAMPLE_DIR...");
   const auto mode=args[2].string();if(mode!="warm"&&mode!="resume")throw std::invalid_argument("Training mode must be warm or resume");

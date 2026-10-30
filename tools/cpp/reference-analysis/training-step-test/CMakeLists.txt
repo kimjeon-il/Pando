@@ -15,3 +15,5 @@ target_link_libraries(reference-training-amp-test PRIVATE reference-training-tes
 add_executable(pando-reference-training-batch ../training-batch.cpp ../reference-io.cpp ../safetensors.cpp ../../../../shared/core/src/losslessjson.cpp)
 target_include_directories(pando-reference-training-batch PRIVATE ../../../../shared/core/include)
 target_link_libraries(pando-reference-training-batch PRIVATE reference-training-test-core)
+add_executable(reference-training-infer-fixture ../training-infer-fixture.cpp ../reference-io.cpp)
+target_link_libraries(reference-training-infer-fixture PRIVATE reference-training-test-core)

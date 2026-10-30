@@ -262,7 +262,7 @@ jobs:
           $torch = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
           cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
           if ($LASTEXITCODE -ne 0) { throw 'Training step configure failed' }
-          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test reference-training-ordered-test reference-training-amp-test pando-reference-training-batch --parallel 1
+          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test reference-training-ordered-test reference-training-amp-test pando-reference-training-batch reference-training-infer-fixture --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'Training step build failed' }
           if ($IsWindows) { $binary = 'build-native/reference-analysis/step-test/Release/reference-training-step-test.exe' }
           else { $binary = 'build-native/reference-analysis/step-test/reference-training-step-test' }
@@ -291,6 +291,10 @@ jobs:
           $env:PANDO_REFERENCE_TORCH_LIBRARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
           node --test tests/unit/reference-training-order.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Source-bound balanced training order failed' }
+          if ($IsWindows) { $env:PANDO_REFERENCE_INFER_FIXTURE = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/Release/reference-training-infer-fixture.exe" }
+          else { $env:PANDO_REFERENCE_INFER_FIXTURE = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/reference-training-infer-fixture" }
+          node --test tests/unit/reference-training-checkpoint-infer.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Native checkpoint inference differs' }
           if (-not $IsWindows) {
             node --input-type=module -e "import {matchingTorchLibrary} from './tools/reference-analysis/native-infer.mjs'; matchingTorchLibrary(process.env.GITHUB_WORKSPACE+'/build-native/reference-analysis/libtorch/lib',{runtimeVersion:'2.7.1'})"
             if ($LASTEXITCODE -ne 0) { throw 'Linux LibTorch runtime identity failed' }
