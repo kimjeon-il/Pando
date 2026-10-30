@@ -8,12 +8,13 @@ import io
 import json
 import math
 import pathlib
+import subprocess
 import sys
 import re
 
 import numpy as np
 import pymupdf
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from report_paths import report_argument
@@ -28,18 +29,30 @@ def digest(value):
 def fill_adjacency_supervision(labels, radius=2):
     if labels.ndim != 2 or labels.dtype != np.uint8 or not 1 <= radius <= 4:
         raise ValueError('Bounded palette labels required')
-    neighbors = np.zeros(labels.shape, dtype=np.uint8)
-    interior = np.zeros(labels.shape, dtype=bool)
-    for value in np.unique(labels):
-        if not value:
-            continue
-        mask = Image.fromarray((labels == value).astype(np.uint8))
-        neighbors += np.asarray(mask.filter(ImageFilter.MaxFilter(2 * radius + 1)))
-        interior |= np.asarray(mask.filter(ImageFilter.MinFilter(2 * radius + 1))).astype(bool)
-    # Only the visible, uncoloured seam between different country fills is a
-    # positive. Coast/sea, same-colour gaps and text holes remain unknown.
-    positive = (neighbors >= 2) & (labels == 0)
-    return positive.astype(np.uint8), (positive | interior).astype(np.uint8)
+    output = native_macro_mask('adjacency', labels, radius)
+    pixels = labels.size
+    return (np.frombuffer(output, dtype=np.uint8, count=pixels).copy().reshape(labels.shape),
+            np.frombuffer(output, dtype=np.uint8, count=pixels, offset=pixels).copy().reshape(labels.shape))
+
+
+def native_macro_mask(action, image, radius):
+    if image.ndim != 2 or image.dtype != np.uint8 or type(radius) is not int:
+        raise ValueError('Two-dimensional uint8 macro mask and integer radius required')
+    height, width = image.shape
+    script = pathlib.Path(__file__).with_name('macro-masks.mjs')
+    result = subprocess.run(['node', str(script), action, str(width), str(height), str(radius)],
+                            input=image.tobytes(), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Native macro mask failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if len(result.stdout) != width * height * (2 if action == 'adjacency' else 1):
+        raise ValueError('Invalid native macro mask length')
+    return result.stdout
+
+
+def dilate_macro_mask(mask, radius):
+    image = np.asarray(mask, dtype=np.uint8)
+    return np.frombuffer(native_macro_mask('dilate', image, radius), dtype=np.uint8).copy().reshape(image.shape).astype(bool)
 
 
 def stroke_matches(drawing, signature):
@@ -131,12 +144,11 @@ def derive(source, metadata, maximum_dimension):
                 for signature in signatures:
                     visible |= np.max(np.abs(image.astype(np.float32) / 255 - signature['color']), axis=2) <= .15
                 masks[pixels & visible] |= 1 << CHANNELS.index(channel)
-                known = np.ones(masks.shape, dtype=bool) if band is None else np.asarray(
-                    Image.fromarray((pixels & visible).astype(np.uint8)).filter(ImageFilter.MaxFilter(2 * band + 1))).astype(bool)
+                known = np.ones(masks.shape, dtype=bool) if band is None else dilate_macro_mask((pixels & visible).astype(np.uint8), band)
                 valid[known] |= 1 << CHANNELS.index(channel)
             for signature in specification.get('unknownStrokes', []):
                 unknown = stroke_mask(page, drawings, [signature], matrix)
-                unknown = np.asarray(Image.fromarray(unknown.astype(np.uint8)).filter(ImageFilter.MaxFilter(5))).astype(bool)
+                unknown = dilate_macro_mask(unknown.astype(np.uint8), 2)
                 valid[unknown] = 0
         else:
             raise ValueError('Explicit macro supervision strategy required')
