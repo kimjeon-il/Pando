@@ -117,6 +117,24 @@ Runtime pins and report revisions are independent. Preserve each owner's
 report revision and its `refs/pando/reports/<owner>` protection during runtime
 preparation/storage and publish only explicitly completed report scopes.
 
+## Map Toolkit release completion (mandatory)
+
+- For a completed Map Toolkit change that affects its packaged source, WASM or
+  pinned analysis resources, finish focused checks, commit/push the reviewed
+  work, then update and verify the existing PRIVATE personal plugin without
+  asking again. This completion workflow has standing user authorization.
+- Follow `docs/reference-map-plugin.md#automatic-release-on-codex-completion`.
+  Use `tools/reference-analysis/release-private-plugin.mjs` and the existing
+  package producer. Upload through authenticated Plugin Creator tools only.
+  Never create a replacement plugin or publish unfinished work/model candidates.
+- A file save, unrelated commit or ordinary Git push is not a release trigger.
+  Skip identical content. Preserve plugin identity, audience and account settings;
+  keep account IDs outside app Git. Do not merge main or deploy the website as
+  a side effect. Record upload and read-back failures as incomplete, not released.
+- Cleanup scoped release outputs after verification; retain at most one current
+  retry candidate. Respect tool-policy denials. Account release verification does
+  not establish that an installed cache or an already-open chat has refreshed.
+
 ## Historical GIS reconstruction policy (mandatory)
 
 For **all historical borders, coastlines, reclamations, river boundaries,
