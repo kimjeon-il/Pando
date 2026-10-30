@@ -79,7 +79,7 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
-        if(action=="training-jpeg-overview"||action=="training-png-overview"){
+        if(action=="training-jpeg-overview"||action=="training-png-overview"||action=="training-webp-overview"){
             if(argc!=4)throw std::invalid_argument("Expected raster training tile X Y");
             struct State {
                 std::uint32_t width=0,height=0,orientation=0,tileX=0,tileY=0;bool composite=false;
@@ -87,7 +87,7 @@ int main(int argc,char** argv){
                 std::unique_ptr<pando::map_image::OpaqueBilinearColumnAccumulator> columns;
                 std::vector<std::uint8_t> mirrored,tile;std::exception_ptr error;
             } state;
-            state.composite=action=="training-png-overview";
+            state.composite=action!="training-jpeg-overview";
             state.tileX=static_cast<std::uint32_t>(bounded(argv[2],65534));state.tileY=static_cast<std::uint32_t>(bounded(argv[3],65534));
             const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t orientation)->int{
                 auto& s=*static_cast<State*>(context);try{
@@ -133,7 +133,8 @@ int main(int argc,char** argv){
                 }catch(...){s.error=std::current_exception();return 0;}
             };
             const auto encoded=encodedInput();PandoImage image{};
-            const bool ok=state.composite?pando_stream_png_rows(encoded.data(),encoded.size(),&image,start,row,&state):
+            const bool ok=action=="training-png-overview"?pando_stream_png_rows(encoded.data(),encoded.size(),&image,start,row,&state):
+                action=="training-webp-overview"?pando_stream_webp_rows(encoded.data(),encoded.size(),&image,start,row,&state):
                 pando_stream_jpeg_rows(encoded.data(),encoded.size(),&image,start,row,&state);
             if(!ok){
                 if(state.error)std::rethrow_exception(state.error);
