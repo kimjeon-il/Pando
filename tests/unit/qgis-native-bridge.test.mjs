@@ -22,6 +22,9 @@ async function fixture(t){
       const request=JSON.parse(text.slice(0,text.indexOf('\n')));assert.equal(request.token,'cli-test-token');
       let result;
       if(request.command==='status')result={transport:'pando-native-v1',qgis_version:'3.44.15'};
+      else if(request.command==='transform'){
+        assert.equal(request.sourceCrs,'EPSG:4326');assert.equal(request.targetCrs,'EPSG:3857');
+        assert.deepEqual(request.points,[[-1,2]]);result={points:[[1,2]]};}
       else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
       else if(request.command==='layers'){assert.equal(request.offset,0);assert.equal(request.limit,10);
         result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
@@ -155,4 +158,15 @@ test('native QGIS CLI rejects invalid input without exposing its token',async t=
   writeFileSync(bad,'{"token":"cli-test-token", INVALID}');
   const malformed=await run(['--config',bad,'status']);assert.notEqual(malformed.code,0);
   assert.match(malformed.stderr,/invalid.*json/i);assert.doesNotMatch(malformed.stderr,/cli-test-token/);
+});
+
+test('native QGIS CLI forwards explicit CRS transforms and rejects malformed batches',async t=>{
+  const {config}=await fixture(t);
+  const args=['--config',config,'transform','--source-crs','EPSG:4326','--target-crs','EPSG:3857'];
+  const converted=await run([...args,'--points=[[-1,2]]']);assert.equal(converted.code,0,converted.stderr);
+  assert.deepEqual(JSON.parse(converted.stdout).points,[[1,2]]);
+  for(const points of ['[]','[[1]]','[[1,"2"]]','[[1,2,3]]','[[1e999,0]]']){
+    const rejected=await run([...args,'--points='+points]);assert.notEqual(rejected.code,0,points);
+  }
+  const unrelated=await run(['--config',config,'status','--points','[]']);assert.notEqual(unrelated.code,0);
 });
