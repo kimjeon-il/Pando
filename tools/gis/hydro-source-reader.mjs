@@ -70,9 +70,9 @@ async function readShp(reader,member,records,region){
   if(oid!==records.count)throw Error('Hydro shapefile and DBF record counts differ');
   await reader.finish();return rows;
 }
-export async function readHydroRegion({archive,specification,selected,signal}){
+export async function readHydroRegion({archive,specification,selected,signal,requireAll=true}){
   signal?.throwIfAborted();const region=specification?.datasetCode;
-  if(!archive||!regions.includes(region)||!(selected instanceof Set)||!selected.size||selected.size>1000000||
+  if(!archive||!regions.includes(region)||!(selected instanceof Set)||!selected.size||selected.size>1000000||typeof requireAll!=='boolean'||
     [...selected].some(id=>!Number.isSafeInteger(id)||id<=0)||!Array.isArray(specification.files))throw Error('Explicit bounded Hydro source selection required');
   const base=`HydroRIVERS_v10_${region}`,names=['dbf','shp','shx','prj'].map(ext=>base+'.'+ext),specs=new Map();
   for(const item of specification.files){if(!item||!names.includes(item.file)||specs.has(item.file)||!/^[a-f0-9]{64}$/.test(item.sha256||''))
@@ -85,16 +85,20 @@ export async function readHydroRegion({archive,specification,selected,signal}){
   const records=await readDbf(new ByteReader(stream(names[0]),signal),selected);
   const rows=await readShp(new ByteReader(stream(names[1]),signal),chosen.get(names[1]),records,region);
   for(const name of names.slice(2))for await(const _ of stream(name)){} // Verify unused index and projection originals too.
-  if(records.seen.size!==selected.size||Object.keys(rows).length!==selected.size)throw Error('Selected Hydro source IDs not found');
+  if((requireAll&&records.seen.size!==selected.size)||Object.keys(rows).length!==records.seen.size)throw Error('Selected Hydro source IDs not found');
   return {rows,sourceOrder:[...records.byRecord.values()].map(row=>row.id)};
 }
-export async function readHydroSources(archives,{signal}={}){
+export async function readHydroSources(archives,{signal,selected}={}){
   signal?.throwIfAborted();if(!Array.isArray(archives)||!archives.length)throw Error('Explicit selected Hydro source archives required');
+  if(selected!==undefined&&(!(selected instanceof Set)||!selected.size||archives.some(entry=>entry?.selected!==undefined)))
+    throw Error('One Hydro source selection mode is required');
   const byRegion=new Map();for(const entry of archives){const region=entry?.specification?.datasetCode;
     if(!regions.includes(region)||byRegion.has(region))throw Error('Invalid or duplicate Hydro source region');byRegion.set(region,entry);}
   const rows={},sourceOrder=[];
-  for(const region of regions){if(!byRegion.has(region))continue;const result=await readHydroRegion({...byRegion.get(region),signal});
+  for(const region of regions){if(!byRegion.has(region))continue;
+    const result=await readHydroRegion({...byRegion.get(region),...(selected?{selected}:{}),requireAll:!selected,signal});
     for(const id of result.sourceOrder){if(Object.hasOwn(rows,id))throw Error('Duplicate Hydro source ID across regions');
       rows[id]=result.rows[id];sourceOrder.push(id);}}
+  if(selected&&sourceOrder.length!==selected.size)throw Error('Selected Hydro source IDs not found');
   return {rows,sourceOrder};
 }

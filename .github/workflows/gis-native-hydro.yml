@@ -895,7 +895,7 @@ jobs:
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
-        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-source-reader.test.mjs
+        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs
       - name: Compare Python source oracle and native C++ generator on fixed junctions
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro/pando-hydro-connectivity
@@ -930,7 +930,7 @@ jobs:
         run: |
           $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe"
           $env:PANDO_HYDRO_CONNECTIVITY_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
-          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-source-reader.test.mjs
+          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro connectivity checks failed' }
       - uses: actions/upload-artifact@v4
         with:

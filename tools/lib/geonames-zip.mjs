@@ -1,5 +1,5 @@
 /** Read pinned GeoNames ZIP snapshots without extracting large files into the worktree.
- * Supports ZIP32/store/deflate with central-directory CRC and size checks; fails closed on ZIP64.
+ * Supports single-volume ZIP32/ZIP64 store/deflate with CRC and size checks.
  */
 import { createReadStream, promises as fs } from 'node:fs';
 import { createInflateRaw, inflateRawSync } from 'node:zlib';
@@ -20,6 +20,11 @@ const crcStep = (crc, data) => {
 const requireBuffer = (buffer, at, length, context) => {
   if (at < 0 || length < 0 || at + length > buffer.length)
     throw Error('Truncated ZIP ' + context);
+};
+const uint64 = (buffer, at, context) => {
+  requireBuffer(buffer,at,8,context);const value=buffer.readBigUInt64LE(at);
+  if(value>BigInt(Number.MAX_SAFE_INTEGER))throw Error('ZIP64 value exceeds safe range: '+context);
+  return Number(value);
 };
 const readExact = async (fd, size, at) => {
   const result = Buffer.alloc(size);
@@ -45,12 +50,26 @@ async function readZipMembers(fd, size, {lazy=false,maxCentral=Infinity}={}) {
     if (tail.readUInt16LE(eocd + 4) !== 0 || tail.readUInt16LE(eocd + 6) !== 0 ||
         tail.readUInt16LE(eocd + 8) !== tail.readUInt16LE(eocd + 10))
       throw Error('Split ZIP not supported');
-    const count = tail.readUInt16LE(eocd + 10), centralBytes = tail.readUInt32LE(eocd + 12),
-      centralStart = tail.readUInt32LE(eocd + 16);
+    let count = tail.readUInt16LE(eocd + 10), centralBytes = tail.readUInt32LE(eocd + 12),
+      centralStart = tail.readUInt32LE(eocd + 16), directoryEnd = size - tailSize + eocd;
+    if (count === 65535 || centralBytes === TOO_LARGE || centralStart === TOO_LARGE) {
+      const locatorAt=directoryEnd-20;if(locatorAt<0)throw Error('ZIP64 locator missing');
+      const locator=await readExact(fd,20,locatorAt);
+      if(locator.readUInt32LE(0)!==0x07064b50||locator.readUInt32LE(4)!==0||locator.readUInt32LE(16)!==1)
+        throw Error('Invalid ZIP64 locator or split ZIP');
+      const recordAt=uint64(locator,8,'directory offset');
+      if(recordAt+56>locatorAt)throw Error('Invalid ZIP64 directory offset');
+      const record=await readExact(fd,56,recordAt);
+      if(record.readUInt32LE(0)!==0x06064b50)throw Error('Invalid ZIP64 directory signature');
+      const recordSize=uint64(record,4,'directory record size');
+      if(recordSize<44||recordAt+12+recordSize>locatorAt||record.readUInt32LE(16)!==0||record.readUInt32LE(20)!==0)
+        throw Error('Invalid or split ZIP64 directory');
+      const diskCount=uint64(record,24,'disk entry count');count=uint64(record,32,'entry count');
+      if(diskCount!==count)throw Error('Split ZIP64 not supported');
+      centralBytes=uint64(record,40,'directory size');centralStart=uint64(record,48,'directory start');directoryEnd=recordAt;
+    }
     if (centralBytes > maxCentral) throw Error('ZIP central directory exceeds byte budget');
-    if (count === 65535 || centralBytes === TOO_LARGE || centralStart === TOO_LARGE)
-      throw Error('ZIP64 requires an approved ZIP library');
-    if (centralStart + centralBytes > size - tailSize + eocd)
+    if (centralStart + centralBytes > directoryEnd || count>Math.floor(centralBytes/46))
       throw Error('ZIP central directory is out of bounds');
     const central = await readExact(fd, centralBytes, centralStart);
     const members = [];
@@ -60,15 +79,24 @@ async function readZipMembers(fd, size, {lazy=false,maxCentral=Infinity}={}) {
       if (central.readUInt32LE(p) !== SIG_CENTRAL) throw Error('Invalid ZIP central signature');
       const flag = central.readUInt16LE(p + 8), method = central.readUInt16LE(p + 10),
         time = central.readUInt16LE(p + 12), date = central.readUInt16LE(p + 14),
-        crc32 = central.readUInt32LE(p + 16), compressed = central.readUInt32LE(p + 20),
-        uncompressed = central.readUInt32LE(p + 24),
+        crc32 = central.readUInt32LE(p + 16),
         n = central.readUInt16LE(p + 28), extra = central.readUInt16LE(p + 30),
-        comment = central.readUInt16LE(p + 32), disk = central.readUInt16LE(p + 34),
-        offset = central.readUInt32LE(p + 42);
+        comment = central.readUInt16LE(p + 32);
+      let compressed=central.readUInt32LE(p+20),uncompressed=central.readUInt32LE(p+24),
+        disk=central.readUInt16LE(p+34),offset=central.readUInt32LE(p+42);
       requireBuffer(central, p + 46, n + extra + comment, 'central entry');
       const name = central.toString('utf8', p + 46, p + 46 + n);
-      if ((flag & 1) || disk !== 0 || ![0, 8].includes(method) ||
-          [compressed, uncompressed, offset].includes(TOO_LARGE))
+      if(compressed===TOO_LARGE||uncompressed===TOO_LARGE||offset===TOO_LARGE||disk===65535){
+        const extraEnd=p+46+n+extra;let at=p+46+n,zip64=null;
+        while(at<extraEnd){requireBuffer(central,at,4,'ZIP64 extra header');const id=central.readUInt16LE(at),length=central.readUInt16LE(at+2);at+=4;
+          if(at+length>extraEnd)throw Error('Truncated ZIP64 extra field');
+          if(id===1){if(zip64)throw Error('Duplicate ZIP64 extra field');zip64=central.subarray(at,at+length);}at+=length;}
+        if(!zip64)throw Error('ZIP64 extra field missing');let cursor=0;
+        const next=()=>{const value=uint64(zip64,cursor,'entry extra');cursor+=8;return value;};
+        if(uncompressed===TOO_LARGE)uncompressed=next();if(compressed===TOO_LARGE)compressed=next();if(offset===TOO_LARGE)offset=next();
+        if(disk===65535){requireBuffer(zip64,cursor,4,'ZIP64 disk');disk=zip64.readUInt32LE(cursor);}
+      }
+      if ((flag & 1) || disk !== 0 || ![0, 8].includes(method))
         throw Error('Unsupported or encrypted ZIP entry: ' + name);
       if (!name || name.startsWith('/') || name.includes('\\') ||
           name.split('/').some(x => x === '..')) throw Error('Unsafe ZIP entry: ' + name);
