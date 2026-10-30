@@ -1,0 +1,702 @@
+{
+  "baseline": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "expectedConnections": 2,
+        "naturalTerminals": 1,
+        "issues": 2,
+        "repairable": 2,
+        "border-alignment": 2
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": [
+      {
+        "region": "eu",
+        "source": 1,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": true,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 1,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      },
+      {
+        "region": "eu",
+        "source": 3,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": true,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 3,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      }
+    ]
+  },
+  "original-mismatch": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "expectedConnections": 2,
+        "naturalTerminals": 1,
+        "issues": 2,
+        "unresolved": 2,
+        "original-mismatch": 1,
+        "border-alignment": 1
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": [
+      {
+        "region": "eu",
+        "source": 1,
+        "downstream": 2,
+        "cause": "original-mismatch",
+        "repairable": false,
+        "gapM": 222.39016000106187,
+        "originalGapM": 11119.507999999369,
+        "originalEnd": [
+          0.9,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 1,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      },
+      {
+        "region": "eu",
+        "source": 3,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": false,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 3,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      }
+    ]
+  },
+  "border-conflict": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "expectedConnections": 2,
+        "naturalTerminals": 1,
+        "issues": 2,
+        "unresolved": 2,
+        "border-alignment": 2
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": [
+      {
+        "region": "eu",
+        "source": 1,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": false,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 1,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      },
+      {
+        "region": "eu",
+        "source": 3,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": false,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 3,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      }
+    ]
+  },
+  "long-gap": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "expectedConnections": 2,
+        "naturalTerminals": 1,
+        "issues": 2,
+        "unresolved": 2,
+        "border-alignment": 2
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": [
+      {
+        "region": "eu",
+        "source": 1,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": false,
+        "gapM": 55597.54,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.5,
+          0
+        ],
+        "upstream": {
+          "fid": 1,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      },
+      {
+        "region": "eu",
+        "source": 3,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": false,
+        "gapM": 55597.54,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.5,
+          0
+        ],
+        "upstream": {
+          "fid": 3,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      }
+    ]
+  },
+  "system-mismatch": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "expectedConnections": 2,
+        "naturalTerminals": 1,
+        "issues": 2,
+        "unresolved": 2,
+        "border-alignment": 2
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": [
+      {
+        "region": "eu",
+        "source": 1,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": false,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 1,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      },
+      {
+        "region": "eu",
+        "source": 3,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": false,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 3,
+          "part": 0,
+          "aligned": false,
+          "system": "other"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      }
+    ]
+  },
+  "split-reach": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "expectedConnections": 2,
+        "naturalTerminals": 1,
+        "issues": 2,
+        "repairable": 2,
+        "border-alignment": 2
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": [
+      {
+        "region": "eu",
+        "source": 1,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": true,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 1,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      },
+      {
+        "region": "eu",
+        "source": 3,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": true,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 3,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      }
+    ]
+  },
+  "missing-downstream": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "naturalTerminals": 1,
+        "expectedConnections": 1,
+        "issues": 2,
+        "unresolved": 1,
+        "missing-downstream": 1,
+        "repairable": 1,
+        "border-alignment": 1
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": [
+      {
+        "region": "eu",
+        "source": 1,
+        "downstream": 999,
+        "cause": "missing-downstream",
+        "repairable": false
+      },
+      {
+        "region": "eu",
+        "source": 3,
+        "downstream": 2,
+        "cause": "border-alignment",
+        "repairable": true,
+        "gapM": 222.39016000106187,
+        "originalGapM": 0.0,
+        "originalEnd": [
+          1,
+          0
+        ],
+        "originalDownstreamStart": [
+          1,
+          0
+        ],
+        "displayEnd": [
+          1,
+          0
+        ],
+        "displayDownstreamStart": [
+          1.002,
+          0
+        ],
+        "upstream": {
+          "fid": 3,
+          "part": 0,
+          "aligned": false,
+          "system": "10"
+        },
+        "downstreamPart": {
+          "fid": 2,
+          "part": 0,
+          "aligned": true,
+          "system": "10"
+        }
+      }
+    ]
+  },
+  "connected": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "expectedConnections": 2,
+        "connected": 2,
+        "naturalTerminals": 1
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": []
+  },
+  "ambiguous": {
+    "regions": {
+      "eu": {
+        "selectedReaches": 3,
+        "expectedConnections": 2,
+        "naturalTerminals": 1,
+        "issues": 2,
+        "unresolved": 2,
+        "ambiguous-source-parts": 2
+      },
+      "as": {},
+      "si": {},
+      "af": {},
+      "sa": {},
+      "na": {},
+      "ar": {},
+      "au": {},
+      "gr": {}
+    },
+    "issues": [
+      {
+        "region": "eu",
+        "source": 1,
+        "downstream": 2,
+        "cause": "ambiguous-source-parts",
+        "repairable": false
+      },
+      {
+        "region": "eu",
+        "source": 3,
+        "downstream": 2,
+        "cause": "ambiguous-source-parts",
+        "repairable": false
+      }
+    ]
+  }
+}
