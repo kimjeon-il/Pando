@@ -67,7 +67,7 @@ jobs:
           $torch = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
           cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
           if ($LASTEXITCODE -ne 0) { throw 'Training step configure failed' }
-          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test reference-training-ordered-test --parallel 1
+          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test reference-training-ordered-test pando-reference-training-batch --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'Training step build failed' }
           if ($IsWindows) { $binary = 'build-native/reference-analysis/step-test/Release/reference-training-step-test.exe' }
           else { $binary = 'build-native/reference-analysis/step-test/reference-training-step-test' }
@@ -77,6 +77,23 @@ jobs:
           else { $ordered = 'build-native/reference-analysis/step-test/reference-training-ordered-test' }
           & $ordered
           if ($LASTEXITCODE -ne 0) { throw 'Ordered checkpoint resume differs' }
+          if ($IsWindows) { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe" }
+          else { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/pando-reference-training-batch" }
+          node --test tests/unit/reference-training-batch-refusal.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Training batch refusal check failed' }
+      - name: Package the Windows training batch engine
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe --directory build-native/reference-analysis/artifact-batch
+          if ($LASTEXITCODE -ne 0) { throw 'Training batch packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows' && always()
+        with:
+          name: native-reference-training-batch-${{ github.sha }}
+          path: build-native/reference-analysis/artifact-batch/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Build and package the existing Windows resume proof
         if: runner.os == 'Windows' && inputs.target == 'reference-step'
         shell: pwsh
