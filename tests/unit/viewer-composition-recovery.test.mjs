@@ -1,0 +1,72 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {createApplicationLifecycle} from '../../shared/frontend/js/modules/application-lifecycle.js';
+import {isRecoverableLoadError} from '../../shared/frontend/js/modules/reliability-core.js';
+const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const noop=()=>{};
+const network=()=>Object.assign(new Error('network unavailable'),{code:'PL-NETWORK-001',retryable:true});
+class Element extends EventTarget {
+  constructor(){super();this.dataset={};this.children=[];}
+  set textContent(value){this.text=value;this.children=[];}
+  get textContent(){return this.text;}
+  appendChild(value){this.children.push(value);}
+}
+async function fixture({engineFailure=false,mapFailure=false}={}){
+  const elements=new Map(),document=new EventTarget(),window=new EventTarget();
+  document.visibilityState='visible';document.getElementById=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
+  document.createElement=()=>new Element();window.document=document;window.navigator={onLine:true};window.CustomEvent=CustomEvent;window.location={search:''};
+  let loads=0,maps=0,reads=0,disposed=0,nowSelections=0,manual=false,openRevision=0,ready=0;
+  window.addEventListener('pandolab:ready',()=>ready++);
+  const controller=()=>({bind:noop,dispose:()=>disposed++,connect:noop,enhanceAll:noop,sync:noop,resetProject:noop,syncNow:noop,
+    render:noop,cancelSearch:noop,syncSelection:noop,completeHydration:async()=>{},initializeLAYER_STYLE_TARGETS:noop,bindNavigationUI:noop});
+  const state={timelineCursor:'1953-07'},snapshot={documentId:'test',projectSetup:{}};
+  const session={commandOwner:{load:async()=>{if(++loads===1&&engineFailure)throw network();},state:()=>state,dispose:()=>disposed++},
+    documentModel:{snapshot:()=>snapshot,get:()=>null}};
+  const surfaces={...controller(),isMobile:()=>false,initializeWorkspaceSurfaces:noop,applyLayoutMode:noop,closeSurface:noop,syncOverlayState:noop,closeFileMenu:noop};
+  const objectCatalog={...controller(),listObjectSearchItems:()=>[],invalidateObjectPresentation:noop,pruneLayerItemVisibility:async()=>{}};
+  const objectQuery={layerItemObjectRef:noop,focusObjectRef:noop,objectRefExists:()=>true,objectDisplayInfo:()=>({name:'test'})};
+  const map={viewState:{},objectCatalog,objectQuery,objectPresentation:{LAYER_SEARCH_GROUP_KEYS:[]},navigation:{selectObjectSearchItem:noop},
+    renderer:{},refreshAppearance:noop,loadPhysicalResources:noop,capturePresentation:()=>({zoom:7}),refreshSelection:noop,
+    prepareBuiltinProject:async()=>{reads++;if(mapFailure&&reads===1)throw network();return {};},loadPhysicalLandMask:async()=>{},
+    update:async()=>{},dispose:()=>disposed++,cancelSearch:noop,searchPlaces:noop,closeObjectChooser:noop};
+  const bindings={window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
+    createRuntimeContext:({meta})=>({meta,platform:{}}),createBrowserFileAccess:()=>({}),connectMapOwner:noop,
+    createBrowserProjectStorage:()=>({}),initialBoundsView:noop,
+    createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,
+    createPreferencePresentation:()=>({...controller(),current:{}}),
+    createMapOwners:()=>({workspaceSurfaces:surfaces,mapHost:{queueMapResize:noop},physicalResources:{loadHydroData:noop},territorialLabels:{preparePlaces:noop}}),
+    saveUserPreferences:noop,createDiagnosticLog:()=>({snapshot:()=>[]}),isRecoverableLoadError,
+    createNavigationBindings:controller,createSelectController:controller,createSelectionUiController:controller,createTooltipController:controller,
+    installTimelineControls:()=>noop,createAppObjectSearchController:()=>objectCatalog,createSemanticIcon:noop,createEmptyState:noop,
+    createSelectionDomain:controller,coreSelectionRefToWeb:noop,webSelectionRefToCore:noop,createDocumentSession:()=>session,
+    createProjectDomain:()=>({...controller(),getOpenRevision:()=>openRevision,isOpening:()=>false,
+      open:async reader=>{openRevision++;await reader();return true;}}),
+    createInitialDocument:()=>snapshot,createViewerMap:()=>{maps++;return map;},createFileController:controller,readProjectFile:noop,
+    createMapSettings:controller,layerStyle:noop,DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,createPreferencesDialog:noop,
+    createBuiltinMonthClock:options=>({...controller(),month:()=>null,isAutomatic:()=>!manual,
+      refresh:()=>manual?false:options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop}),
+      followNow:()=>{nowSelections++;return options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop});}}),
+  };
+  const source=readFileSync(new URL('../../apps/viewer/js/modules/viewer-composition.js',import.meta.url),'utf8')
+    .replace(/^import .*;\r?$/gm,'').replace('export async function composeViewer','async function composeViewer')
+    .replaceAll('import.meta.url',JSON.stringify('https://test.local/assets/js/modules/viewer-composition.js'));
+  const context=vm.createContext(bindings);vm.runInContext(source+'\nglobalThis.run=composeViewer;',context);
+  await context.run({productMode:'viewer',meta:{appVersion:'test'}});
+  return {window,status:document.getElementById('viewerStatus'),manual:()=>{manual=true;},
+    stats:()=>({loads,maps,reads,disposed,nowSelections,ready}),wake:()=>window.dispatchEvent(new Event('focus'))};
+}
+
+test('actual viewer composition resumes initial engine admission before creating the map once',async()=>{
+  const f=await fixture({engineFailure:true});assert.equal(f.stats().maps,0);assert.equal(f.stats().disposed,0);
+  f.wake();await tick();assert.deepEqual(f.stats(),{loads:2,maps:1,reads:1,disposed:0,nowSelections:0,ready:1});assert.equal(f.status.dataset.ready,'true');
+  f.window.dispatchEvent(Object.assign(new Event('pagehide'),{persisted:false}));assert.ok(f.stats().disposed>0);
+});
+test('actual viewer preserves composed map during a recoverable source failure',async()=>{
+  const f=await fixture({mapFailure:true});assert.equal(f.stats().maps,1);assert.equal(f.stats().disposed,0);assert.equal(f.status.dataset.ready,'false');
+  f.wake();await tick();assert.equal(f.stats().maps,1);assert.equal(f.stats().reads,2);assert.equal(f.status.dataset.ready,'true');
+});
+test('startup recovery does not force current date after the user takes control of the timeline',async()=>{
+  const f=await fixture({mapFailure:true});f.manual();f.wake();await tick();assert.equal(f.stats().reads,1);assert.equal(f.stats().nowSelections,0);
+});

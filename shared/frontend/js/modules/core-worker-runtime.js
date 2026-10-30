@@ -26,7 +26,14 @@ const documentMethods = Object.freeze({
 export function createCoreWorkerRuntime({ loadModule, validateFlagDataUrl, productMode = 'editor' }) {
   const policy = createProductModePolicy(productMode);
   let modulePromise = null;
-  const loadOnce = () => modulePromise ||= Promise.resolve().then(loadModule);
+  const loadOnce = () => {
+    if (!modulePromise) modulePromise = Promise.resolve().then(loadModule).catch(error => {
+      // A failed download is not a reusable module. Keep successful engines.
+      modulePromise = null;
+      throw error;
+    });
+    return modulePromise;
+  };
   const document = createDocumentSessionRuntime({ loadModule: loadOnce, validateFlagDataUrl });
   let loaded=false;
   let queue = Promise.resolve();

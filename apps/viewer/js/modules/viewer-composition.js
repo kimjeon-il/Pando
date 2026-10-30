@@ -8,7 +8,7 @@ import {createApplicationLifecycle} from "../../../../shared/frontend/js/modules
 import {createPreferencePresentation} from "../../../../shared/frontend/js/modules/preference-presentation.js";
 import {createMapOwners} from "../../../../shared/frontend/js/modules/map-owner-composition.js";
 import {saveUserPreferences} from "../../../../shared/frontend/js/modules/user-preferences.js";
-import {createDiagnosticLog} from "../../../../shared/frontend/js/modules/reliability-core.js";
+import {createDiagnosticLog,isRecoverableLoadError} from "../../../../shared/frontend/js/modules/reliability-core.js";
 import {createNavigationBindings} from "../../../../shared/frontend/js/modules/navigation-bindings.js";
 import {createSelectController} from "../../../../shared/frontend/js/modules/select-controller.js";
 import { createSelectionUiController } from "../../../../shared/frontend/js/modules/selection-ui-controller.js";
@@ -36,7 +36,7 @@ export async function composeViewer({ productMode, meta }) {
   const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url)});
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
   const get=id=>document.getElementById(id),status=get('viewerStatus');
-  let map,previousView,display,builtinClock,builtinActive=true;
+  let map,previousView,display,builtinClock,syncStatus,builtinActive=true;
   const preferencePresentation=createPreferencePresentation({document,window,productMode,onChange:change=>{if(map)map.refreshAppearance(change);}});
   const diagnostics=createDiagnosticLog({limit:250});
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
@@ -48,7 +48,8 @@ export async function composeViewer({ productMode, meta }) {
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile()});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,initialProject:createInitialDocument({appVersion:meta.appVersion})});
-  await documentSession.commandOwner.load(JSON.stringify(documentSession.documentModel.snapshot()));
+  const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner];
+  async function composeMap() {
   let openingPreserved=null;
   const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
@@ -68,17 +69,20 @@ export async function composeViewer({ productMode, meta }) {
       if(!openingPreserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
     }});await map.renderer.waitForTemporalPresentation();return true;},
     restoreReplacement:async()=>{await map.setSession(activeSession,{view:previousView});await map.renderer.waitForTemporalPresentation();}});
+  disposables.push(projectDomain);
   let selectionUiController;
   const selectionDomain=createSelectionDomain({commandOwner:documentSession.commandOwner,projectDomain,
     refAdapter:{fromCore:coreSelectionRefToWeb,toCore:ref=>webSelectionRefToCore(ref,{isStoredHydro:id=>documentSession.documentModel.get({domain:'hydro',id})!==null})},
     onSelectionChanged:snapshot=>selectionUiController.sync(snapshot),
     onHoverChanged:snapshot=>tooltipController.setMapHover(snapshot.hover?map.objectQuery.objectDisplayInfo(snapshot.hover):null),
     requestRender:()=>map.refreshSelection()});
+  disposables.push(selectionDomain);
   const selectionStatus=get('viewerSelectionStatus');
   selectionUiController=createSelectionUiController({window,document,selectionDomain,elements:{selectionStatus},
     resolveRef:value=>value,refExists:ref=>map.objectQuery.objectRefExists(ref),displayInfo:ref=>map.objectQuery.objectDisplayInfo(ref),
     presenters:{default:ref=>{selectionStatus.textContent=map.objectQuery.objectDisplayInfo(ref).name;}},
     uiActions:{closeChooser:()=>map.closeObjectChooser(),clearPresenter:()=>{selectionStatus.textContent='';},syncLayerRows:()=>searchController.syncSelection()}});
+  disposables.push(selectionUiController);
   const activeSession=Object.freeze({...documentSession,projectDomain,selectionDomain,selectionUiController});
   connectMapOwner('workspaceSurfaces',surfaces,{platform:{$:id=>get(id==='app'?'viewer':id)},projectState:{get state(){return map.viewState;}},
     uiFactoriesB:{createSurfaceController},domains:{get objectSearchController(){return searchController;}},
@@ -86,6 +90,7 @@ export async function composeViewer({ productMode, meta }) {
     platformConfigurationB:{selectController},get mapNavigation(){return map.navigation;}});
   surfaces.initializeWorkspaceSurfaces();
   map=createViewerMap({owners,runtimeContext,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report});
+  disposables.push(map);
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,
     layerItemObjectRef:map.objectQuery.layerItemObjectRef,selectionDomain,
@@ -95,12 +100,13 @@ export async function composeViewer({ productMode, meta }) {
     invalidateObjectPresentation:map.objectCatalog.invalidateObjectPresentation,
     selectObjectSearchItem:map.navigation.selectObjectSearchItem,focusObjectRef:map.objectQuery.focusObjectRef,
     closeSearchAfterSingleSelection:()=>surfaces.closeSurface('search')});
+  disposables.push(searchController);
   searchController.bind();surfaces.applyLayoutMode({initial:true});
   map.refreshAppearance({rerender:false});
   // Background assets are global; hydro identities must wait for the Core
   // replacement below. The resource owner handles errors and shared requests.
   map.loadPhysicalResources({includeHydro:false});
-  const syncStatus=()=>{if(map&&!projectDomain.isOpening())selectionUiController.syncNow(null,{force:true});};
+  syncStatus=()=>{if(map&&!projectDomain.isOpening())selectionUiController.syncNow(null,{force:true});};
   const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.render();};
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>builtinActive&&builtinClock?.month() ? builtinClock.month() : activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
@@ -110,6 +116,7 @@ export async function composeViewer({ productMode, meta }) {
       catch(error){if(current===activeSession&&!projectDomain.isOpening())throw error;}
     },
   });
+  disposables.push({dispose:disposeTimeline});
   const open=async (reader,options)=>{
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
@@ -134,6 +141,7 @@ export async function composeViewer({ productMode, meta }) {
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
   builtinClock=createBuiltinMonthClock({window,document,applyMonth:(month,{isCurrent,commit})=>open(()=>map.prepareBuiltinProject(month,{isCurrent}),{source:'builtin',isCurrent,onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},presentation:builtinActive&&builtinClock.month()!==null?'temporal':'default',preserveView:builtinClock.month()!==null}),onCommitted:()=>{builtinActive=true;syncStatus();},onError:report});
+  disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
     const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;
     try {const result=await open(reader,options);if(!result&&resume())builtinActive=previous;return result;}
@@ -141,6 +149,7 @@ export async function composeViewer({ productMode, meta }) {
   };
   const fileElements={projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')};
   const files=createFileController({productMode,elements:fileElements,fileAccess:createBrowserFileAccess({productMode,elements:fileElements,window,document}),projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
+  disposables.push(files);
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
   action(get('builtinMapBtn'),'click',()=>builtinClock.followNow());
   display=createMapSettings({capabilities:owners.capabilities,viewPresentation:map});
@@ -168,8 +177,21 @@ export async function composeViewer({ productMode, meta }) {
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
     openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({month:builtinClock.month(),automatic:builtinClock.isAutomatic()})});
-  const lifecycle=createApplicationLifecycle({window,startup:()=>builtinClock.followNow(),
-    getDisposables:()=>[files,builtinClock,{dispose:disposeTimeline},preferencePresentation,surfaces,notifications,searchController,map,selectionUiController,selectionDomain,projectDomain,documentSession.commandOwner],
+  }
+  const lifecycle=createApplicationLifecycle({window,document,
+    // Only initial engine admission is safe to repeat. DOM/map composition is not.
+    compose:[()=>documentSession.commandOwner.load(JSON.stringify(documentSession.documentModel.snapshot())),composeMap],
+    startup:()=>builtinClock.refresh(),
+    shouldRetryCompose:(error,index)=>index===0&&isRecoverableLoadError(error),
+    shouldRetryStartup:isRecoverableLoadError,
+    getDisposables:()=>[...disposables].reverse(),
+    onRecoverableError:(error,{retry})=>{
+      console.warn('[PL-MAP-START-RETRY]',error);
+      status.hidden=false;status.dataset.ready='false';
+      status.textContent='연결이 복구되면 지도를 다시 불러옵니다. ';
+      const button=document.createElement('button');button.type='button';button.className='ui-button btn';button.textContent='다시 시도';
+      button.addEventListener('click',()=>{retry().catch(report);});status.appendChild(button);
+    },
     onError:error=>{status.hidden=true;report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
 }
