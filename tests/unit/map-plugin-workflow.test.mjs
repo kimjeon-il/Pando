@@ -32,6 +32,28 @@ test('vector replacement preserves unrelated fractional geometry, semantics, con
   assert.deepEqual(input.chains[1],untouched);
 });
 
+test('fractional shared endpoints preserve unrelated chain IDs across exclusion and repeated rebuilds',()=>{
+  // Actual source-pixel contact: its intersection parameter rounds just below
+  // one even though the canonical contact is the exact existing endpoint.
+  for(const reverseFirst of [false,true])for(const reverseSecond of [false,true]){
+    const first=[[877.7560975609756,702.8364745011087],[879.1106594399276,702.8364745011087]];
+    const second=[[880.4652213188798,701.4822616407982],[879.1106594399276,702.8364745011087]];
+    if(reverseFirst)first.reverse();if(reverseSecond)second.reverse();
+    const untouched=[chain(90,first,1,.8671942353248596),chain(91,second,2,.844423508644104)];
+    const input={...graph([chain(20,[[10.25,10.5],[45.5,20.25]]),...untouched]),width:1000,height:1000};
+    let result=edit(input,{type:'exclude',chainId:20});
+    assert.deepEqual(result.chains,untouched);
+    assert.deepEqual(result.changeSet,{created:[],removed:[20],modified:[],faces:{created:[],removed:[],modified:[]}});
+    assert.equal(result.nextChainId,input.nextChainId);
+    for(let attempt=0;attempt<3;attempt++){
+      result=edit(result,{type:'rebuild'});
+      assert.deepEqual(result.chains,untouched);
+      assert.deepEqual(result.changeSet,{created:[],removed:[],modified:[],faces:{created:[],removed:[],modified:[]}});
+      assert.equal(result.nextChainId,input.nextChainId);
+    }
+  }
+});
+
 test('manual add nodes only intersected paths and retired chain identities never return',()=>{
   const untouched=chain(90,[[110.25,110.75],[150.5,150.25]],2,.372);
   const input=graph([chain(20,[[10.25,20.5],[50.25,20.5]]),untouched]);
