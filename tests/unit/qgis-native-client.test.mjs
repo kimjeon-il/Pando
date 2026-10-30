@@ -68,3 +68,12 @@ test('native QGIS reads and selects the active layer without changing the projec
   assert.equal((await requestNativeQgis(config,{command:'active-layer'})).layer.id,'layer-1');
   assert.equal((await requestNativeQgis(config,{command:'active-layer',layer:'layer-2'})).layer.id,'layer-2');
 });
+
+test('native QGIS transforms a bounded batch of coordinates between explicit CRSs',async t=>{
+  const config=await fixture(t,(socket,request)=>{
+    assert.deepEqual(request,{token:'test-only-secret',command:'transform',sourceCrs:'EPSG:4326',targetCrs:'EPSG:3857',points:[[1,1]]});
+    socket.end(JSON.stringify({ok:true,result:{points:[[111319.490793,111325.142866]]}})+'\n');
+  });
+  const result=await requestNativeQgis(config,{command:'transform',sourceCrs:'EPSG:4326',targetCrs:'EPSG:3857',points:[[1,1]]});
+  assert.equal(result.points[0][0],111319.490793);
+});

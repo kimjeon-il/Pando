@@ -20,6 +20,10 @@ function createServer(){
     async(_args,extra)=>respond([...options,'project'],extra.signal));
   server.registerTool('qgis_native_active_layer',{description:'Read or set the active QGIS layer.',inputSchema:z.strictObject({layer:path.optional()})},
     async({layer},extra)=>respond([...options,'active-layer',...(layer===undefined?[]:[`--layer=${layer}`])],extra.signal));
+  server.registerTool('qgis_native_transform',{description:'Transform a bounded batch of XY coordinates between explicit CRSs.',
+    inputSchema:z.strictObject({sourceCrs:z.string().min(1).max(128),targetCrs:z.string().min(1).max(128),
+      points:z.array(z.tuple([z.number().finite(),z.number().finite()])).min(1).max(10000)})},
+    async({sourceCrs,targetCrs,points},extra)=>respond([...options,'transform',`--source-crs=${sourceCrs}`,`--target-crs=${targetCrs}`,`--points=${JSON.stringify(points)}`],extra.signal));
   server.registerTool('qgis_native_layers',{description:'List QGIS layers with bounded pagination.',
     inputSchema:z.strictObject({offset:z.number().int().min(0).max(100000000).default(0),limit:z.number().int().min(1).max(100).default(50)})},
   async({offset,limit},extra)=>respond([...options,'layers','--offset',String(offset),'--limit',String(limit)],extra.signal));
