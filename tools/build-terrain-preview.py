@@ -18,7 +18,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 
 
 VERSION = "0.13.3-p2"
@@ -46,56 +46,18 @@ def encode_webp(pixels: np.ndarray) -> bytes:
     return encoded
 
 
-def _unwrap_ring(ring):
-    if not ring:
-        return []
-    result = [[float(ring[0][0]), float(ring[0][1])]]
-    for lon, lat in ring[1:]:
-        lon = float(lon)
-        while lon - result[-1][0] > 180:
-            lon -= 360
-        while lon - result[-1][0] < -180:
-            lon += 360
-        result.append([lon, float(lat)])
-    return result
-
-
 def rasterize_land_mask(countries: dict, x_origin: int, y_origin: int,
                         tile_width: int, tile_height: int,
                         level_width: int, level_height: int) -> np.ndarray:
-    mask = Image.new("L", (tile_width, tile_height), 0)
-    draw = ImageDraw.Draw(mask)
-    for feature in countries.get("features", []):
-        geometry = feature.get("geometry") or {}
-        kind = geometry.get("type")
-        polygons = [geometry.get("coordinates", [])] if kind == "Polygon" else (
-            geometry.get("coordinates", []) if kind == "MultiPolygon" else [])
-        for rings in polygons:
-            if not rings:
-                continue
-            unwrapped = [_unwrap_ring(ring) for ring in rings]
-            outer_center = sum(point[0] for point in unwrapped[0]) / len(unwrapped[0])
-            for ring in unwrapped[1:]:
-                if not ring:
-                    continue
-                shift = round((outer_center - sum(point[0] for point in ring) / len(ring)) / 360) * 360
-                for point in ring:
-                    point[0] += shift
-            for world_shift in (-360, 0, 360):
-                outer = [((lon + world_shift + 180) * level_width / 360 - x_origin,
-                          (90 - lat) * level_height / 180 - y_origin)
-                         for lon, lat in unwrapped[0]]
-                if not outer or max(x for x, _ in outer) < -1 or min(x for x, _ in outer) > tile_width or (
-                    max(y for _, y in outer) < -1 or min(y for _, y in outer) > tile_height):
-                    continue
-                draw.polygon(outer, fill=255)
-                for ring in unwrapped[1:]:
-                    hole = [((lon + world_shift + 180) * level_width / 360 - x_origin,
-                             (90 - lat) * level_height / 180 - y_origin)
-                            for lon, lat in ring]
-                    if hole:
-                        draw.polygon(hole, fill=0)
-    return np.asarray(mask) > 0
+    binary = os.environ.get('PANDO_TERRAIN_PREVIEW_BINARY')
+    if not binary:
+        raise RuntimeError('PANDO_TERRAIN_PREVIEW_BINARY is required for terrain preview generation')
+    payload = json.dumps(dict(countries=countries, x=x_origin, y=y_origin, width=tile_width, height=tile_height,
+                              levelWidth=level_width, levelHeight=level_height), ensure_ascii=False).encode('utf-8')
+    result = subprocess.run([binary, 'mask'], input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=180).stdout
+    if len(result) != tile_width * tile_height or any(value > 1 for value in result):
+        raise ValueError('Invalid native terrain land mask')
+    return np.frombuffer(result, dtype=np.uint8).reshape(tile_height, tile_width).astype(bool)
 
 
 def compose_preview_rgba(dem: np.ndarray, tint: np.ndarray, land: np.ndarray,
