@@ -21,7 +21,7 @@ node tools/qgis/native-bridge.mjs algorithms --search buffer --offset 0 --limit 
 node tools/qgis/native-bridge.mjs buffer --layer QGIS_LAYER_ID --distance 50 --output 'D:/path/to/new-buffer.geojson'
 node tools/qgis/native-bridge.mjs schema --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs set-visibility --layer QGIS_LAYER_ID --visible false
-node tools/qgis/native-bridge.mjs remove-layer --layer QGIS_VECTOR_LAYER_ID
+node tools/qgis/native-bridge.mjs remove-layer --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs features --layer QGIS_LAYER_ID --offset 0 --limit 10 --geometry
 node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --fids '["1","2"]'
 node tools/qgis/native-bridge.mjs select --layer QGIS_LAYER_ID --expression '"name" = ''map'''
@@ -67,8 +67,8 @@ the layer CRS and string QGIS FIDs. Filtered pages report `hasMore` without a
 whole-layer filtered count.
 Visibility reports both the layer's checked state and effective visibility;
 a hidden parent group can keep a checked layer hidden.
-Vector layer removal removes only the project layer, preserves its source file,
-and refuses layers with an active edit session. Raster removal is not supported.
+Layer removal removes only the project layer, preserves its source file, and
+refuses editable, modified or temporary layers to protect unsaved data.
 Algorithm discovery lists providers currently registered in QGIS and does not
 install missing providers. Buffer distances use the input layer's CRS units;
 buffer output is normalized to EPSG:4326 and refuses an existing destination.

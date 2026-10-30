@@ -299,9 +299,10 @@ class Bridge final:public QObject,public QgisPlugin {
         }
         if(command==QStringLiteral("remove-layer")){
             const auto id=request.value(QStringLiteral("layer")).toString();
-            auto* layer=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
-            if(!layer)throw QStringLiteral("Vector layer not found");
-            if(layer->isEditable()||editSessions_.contains(id))throw QStringLiteral("Editable layer must be committed or rolled back before removal");
+            auto* layer=QgsProject::instance()->mapLayer(id);
+            if(!layer)throw QStringLiteral("Layer not found");
+            if(layer->isEditable()||layer->isModified()||layer->isTemporary()||editSessions_.contains(id))
+                throw QStringLiteral("Editable, modified or temporary layers must be preserved");
             QgsProject::instance()->removeMapLayer(id);
             return {{QStringLiteral("removed"),true},{QStringLiteral("id"),id}};
         }
