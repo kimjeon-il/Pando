@@ -9,7 +9,8 @@ import {fileURLToPath} from 'node:url';
 import {execFile} from 'node:child_process';
 import {promisify,parseArgs} from 'node:util';
 import {privatePluginEntries,privatePluginFingerprint,packagePrivatePlugin} from './package-private-plugin.mjs';
-import {readPinnedSource} from './runtime-assets.mjs';
+import {readPinnedSource,collectSourceFiles} from './runtime-assets.mjs';
+import {frontendWasmRoot} from '../../scripts/lib/frontend-layout.mjs';
 import {zipMembers,zipMemberChunks} from '../lib/geonames-zip.mjs';
 
 const exec=promisify(execFile),root=fileURLToPath(new URL('../../',import.meta.url));
@@ -94,11 +95,15 @@ async function assertWorkingInputs(workspace,revision,paths){
 }
 export async function verifyReleaseChecks({revision,modelPath,commands,workspace=root,run=exec}){
   const candidate=await candidateFor({revision,modelPath,workspace,pushed:false});
-  const {collectSourceFiles}=await import('./runtime-assets.mjs');
-  const paths=[...await collectSourceFiles(workspace,{revision}),...commands.flatMap(row=>row.inputs||[])];
+  const paths=await releaseInputPaths(workspace,revision,commands);
   const checks=await runVerifiedCommands({workspace,revision,paths,commands,run});
   const after=await candidateFor({revision,modelPath,workspace,pushed:false});check(after.contentSha256===candidate.contentSha256,'Inputs changed during verification');
   return {schema:'map-toolkit-verification',codeRevision:revision,contentSha256:candidate.contentSha256,checks};
+}
+export async function releaseInputPaths(workspace=root,revision,commands){
+  return [...await collectSourceFiles(workspace,{revision}),
+    ...['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json'].map(name=>frontendWasmRoot+'/'+name),
+    'docs/historical-border-reconstruction-policy.md',...commands.flatMap(row=>row.inputs||[])];
 }
 export async function runVerifiedCommands({workspace,revision,paths,commands,run=exec}){
   check(Array.isArray(commands)&&commands.length>0,'Explicit focused checks required');
