@@ -54,3 +54,20 @@ test('mapped scripts cannot follow linked directories outside an explicit reposi
  symlinkSync(outside,join(root,'tools'),process.platform==='win32'?'junction':'dir');
  assert.throws(()=>buildCommand('terrain-dem',[],{root}),/escaped repository/);
 });
+
+test('historical-border dispatches the migrated Node recipe owner without restoring Python',t=>{
+ const root=mkdtempSync(join(tmpdir(),'gis-native-recipe-'));
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const source='tools/gis/build-german-1914-base.mjs';
+ mkdirSync(join(root,'tools/gis'),{recursive:true});
+ writeFileSync(join(root,source),"throw Error('fixture must not execute');\n");
+ const calls=[],logs=[],args=['--recipe','tools/historical-library/german-empire-1914-base.recipe.json','--check'];
+ const options={root,output:s=>logs.push(JSON.parse(s)),spawn:(exe,argv,settings)=>{calls.push({exe,argv,settings});return {status:0,signal:null};}};
+ assert.equal(runSource({...options,argv:['--task','historical-border','--',...args]}),0);
+ assert.equal(calls.length,0);assert.equal(logs[0].source,source);
+ assert.equal(logs[0].requiresExternalOriginals,false);
+ assert.equal(runSource({...options,argv:['--task','historical-border','--execute','--',...args]}),0);
+ assert.equal(calls.length,1);assert.equal(calls[0].exe,process.execPath);
+ assert.equal(calls[0].argv[0],join(root,source));assert.deepEqual(calls[0].argv.slice(1),args);
+ assert.equal(calls[0].settings.shell,false);assert.equal(logs[1].requiresExternalOriginals,true);
+});

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const TASK_SOURCES = Object.freeze({
-  'historical-border':'tools/build_german_empire_1914_base.py',
+  'historical-border':'tools/gis/build-german-1914-base.mjs',
   'historical-coast':'tools/build_german_empire_1914_modern_coast.py',
   'terrain-dem':'tools/build-terrain-dem.py',
   'terrain-preview':'tools/build-terrain-preview.py',

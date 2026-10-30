@@ -4,6 +4,9 @@ on:
     branches: [work/ui, work/objects, work/gis, work/places]
     paths:
       - '.github/workflows/gis-python-p4.yml'
+      - 'scripts/gis/run-source.mjs'
+      - 'tools/gis/build-german-1914-base.mjs'
+      - 'tests/unit/gis-source-launcher.test.mjs'
       - 'scripts/gis/**/*.py'
       - 'scripts/research/**/*.py'
       - 'tools/*.py'
@@ -15,6 +18,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/gis-python-p4.yml'
+      - 'scripts/gis/run-source.mjs'
+      - 'tools/gis/build-german-1914-base.mjs'
+      - 'tests/unit/gis-source-launcher.test.mjs'
       - 'scripts/gis/**/*.py'
       - 'scripts/research/**/*.py'
       - 'tools/*.py'
