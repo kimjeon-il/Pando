@@ -202,7 +202,7 @@ $checkpointPath = 'EXTERNAL_LIBRARY_WEIGHTS/boundary.pt'
 $evaluationPath = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/reports/boundary-evaluation.json'
 $onnxPath = 'EXTERNAL_LIBRARY_RUNTIME/boundary.onnx'
 
-& $trainingPython tools/reference-analysis/corpus.py --corpus $corpusPath
+node tools/reference-analysis/reviewed-corpus.mjs --corpus $corpusPath
 & $trainingPython tools/reference-analysis/train.py train --corpus $corpusPath --output $checkpointPath --batch 1
 & $trainingPython tools/reference-analysis/train.py evaluate --corpus $corpusPath --checkpoint $checkpointPath --output $evaluationPath
 & $trainingPython tools/reference-analysis/train.py export --checkpoint $checkpointPath --output $onnxPath
