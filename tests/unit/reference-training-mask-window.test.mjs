@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
-import {countNativeEncodedTrainingSupervision,readNativeTrainingMaskWindow} from '../../tools/map-image/native-resample.mjs';
+import {countNativeEncodedTrainingSupervision,countNativeTrainingSupervision,readNativeTrainingMask,readNativeTrainingMaskWindow} from '../../tools/map-image/native-resample.mjs';
 import {listRasterTrainingTiles,prepareRasterTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
 
 test('large source-bound mask returns only the selected raw grayscale window',async()=>{
@@ -42,4 +42,8 @@ test('large encoded mask supervision counts only shared known pixels',async()=>{
   await assert.rejects(countNativeEncodedTrainingSupervision({bytes,sha256:'0'.repeat(64)},{bytes,sha256}),/hash/i);
   const small=await readFile('tests/fixtures/reference-training-raster/oriented-mask.png'),smallHash=createHash('sha256').update(small).digest('hex');
   await assert.rejects(countNativeEncodedTrainingSupervision({bytes,sha256},{bytes:small,sha256:smallHash}),/matching/i);
+  const target=await readFile('tests/fixtures/reference-training-raster/raster.png'),known=await readFile('tests/fixtures/reference-training-raster/valid.png');
+  const hash=value=>createHash('sha256').update(value).digest('hex'),targetHash=hash(target),knownHash=hash(known);
+  const expected=await countNativeTrainingSupervision(await readNativeTrainingMask(target,targetHash),await readNativeTrainingMask(known,knownHash));
+  assert.deepEqual((await countNativeEncodedTrainingSupervision({bytes:target,sha256:targetHash},{bytes:known,sha256:knownHash})).counts,expected);
 });

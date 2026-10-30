@@ -1,7 +1,7 @@
 // Prepare one source-coordinate training tile with the shared native owners.
 import {dirname,extname,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
-import {countNativeEncodedTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMask,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
+import {countNativeEncodedTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -86,8 +86,9 @@ async function encodedTrainingRaster(root,annotation,field,options){
 async function trainingRaster(root,annotation,field,options){
   const {bytes,sha256}=await encodedTrainingRaster(root,annotation,field,options);
   const nativeOptions={signal:options.signal,workspace:options.workspace,directory:options.imageDirectory};
-  const mask=options.scanTiles?await scanNativeTrainingMaskTiles(bytes,sha256,nativeOptions):options.window?await readNativeTrainingMaskWindow(bytes,sha256,options.window,nativeOptions):
-    await readNativeTrainingMask(bytes,sha256,nativeOptions);
+  if(!options.scanTiles&&!options.window)throw Error('Training mask access requires a window or tile scan');
+  const mask=options.scanTiles?await scanNativeTrainingMaskTiles(bytes,sha256,nativeOptions):
+    await readNativeTrainingMaskWindow(bytes,sha256,options.window,nativeOptions);
   if(mask.width!==annotation.width||mask.height!==annotation.height)throw Error('Training raster dimensions differ from original');return mask;
 }
 export async function macroTrainingSupervision(corpus,{signal,workspace,imageDirectory}={}){
