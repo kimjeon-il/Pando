@@ -10,12 +10,6 @@ from PIL import Image
 
 CHANNELS = ["international", "administrative", "coast", "hydro", "transport", "text", "frame"]
 RASTER_ORIGINS = {'publisher-layer-export', 'semap-human-mask-export', 'macro-vector-supervision'}
-LANGUAGES = set(json.loads(subprocess.check_output([
-    'node', '--input-type=module', '-e',
-    "import {REFERENCE_OCR_LANGUAGES} from './plugins/pando-map-tools/lib/analysis/ocr-catalog.mjs'; console.log(JSON.stringify(REFERENCE_OCR_LANGUAGES))",
-], cwd=pathlib.Path(__file__).resolve().parents[2], text=True, encoding='utf-8')))
-
-
 def validate_review_annotation(annotation, sheet):
     script = pathlib.Path(__file__).with_name('review-masks.mjs')
     payload = json.dumps(dict(annotation=annotation, sheet=sheet), allow_nan=False).encode('utf-8')
@@ -166,41 +160,18 @@ def validate_macro_annotation(annotation, sheet, root):
 
 
 def validate_corpus(value, root=None, *, training_only=False):
-    if value.get("schemaVersion") != 1 or not isinstance(value.get("sheets"), list):
-        raise ValueError("Corpus schemaVersion=1 and sheets are required")
-    if training_only and (value.get('trainingOnly') is not True or root is None):
+    if training_only and root is None:
         raise ValueError('Explicit materialized training-only corpus required')
-    if not training_only and value.get('trainingOnly'):
-        raise ValueError('Source-reviewed independent corpus required; supplied corpus is training-only')
-    seen, splits = set(), {}
+    script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
+    payload = json.dumps(dict(value=value, trainingOnly=training_only), allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--metadata-stream'], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=120, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Corpus metadata validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if json.loads(result.stdout) != {'valid': True}:
+        raise ValueError('Invalid corpus metadata validation response')
     for sheet in value["sheets"]:
-        if not sheet.get("id") or sheet["id"] in seen:
-            raise ValueError("Unique sheet id required")
-        seen.add(sheet["id"])
-        if sheet.get("split") not in {"train", "validation", "test"}:
-            raise ValueError("Explicit train/validation/test split required")
-        if training_only and sheet['split'] != 'train':
-            raise ValueError('Publisher training-only data cannot become validation/test truth')
-        for key in ["familyId", "editionId", "duplicateGroup"]:
-            group = sheet.get(key)
-            if not group:
-                raise ValueError(key + " required")
-            previous = splits.setdefault((key, group), sheet["split"])
-            if previous != sheet["split"]:
-                raise ValueError(key + " crosses split boundaries")
-        if not sheet.get("annotations"):
-            raise ValueError("Reviewed annotations required; unlabelled sources are inventory only")
-        if not re.fullmatch("[a-f0-9]{64}", sheet.get("sha256", "")):
-            raise ValueError("Original image sha256 required")
-        validate_source_language(sheet)
-        if sheet.get("mapKind") not in {"color", "monochrome"}:
-            raise ValueError("mapKind must be color or monochrome")
-        if not all(sheet.get("source", {}).get(key) for key in ["url", "license"]):
-            raise ValueError("Source URL and license required")
         for key in ["image", "annotations"]:
-            path = pathlib.PurePosixPath(sheet[key])
-            if path.is_absolute() or ".." in path.parts:
-                raise ValueError("Corpus paths must stay inside corpus root")
             if root:
                 absolute = corpus_path(root, sheet[key])
                 if key == "image" and hashlib.sha256(absolute.read_bytes()).hexdigest() != sheet["sha256"]:
@@ -226,11 +197,3 @@ def evaluation_groups(sheets):
         key = "/".join(sheet[k] for k in ["mapKind", "script", "language"])
         groups.setdefault(key, []).append(sheet["id"])
     return groups
-
-
-def validate_source_language(source):
-    if not re.fullmatch(r'[a-z]{3}(?:_[a-z0-9]+)*', source.get('language', '')) or not source.get('script'):
-        raise ValueError('Explicit source language and script required')
-    packs = source.get('ocrLanguages', [])
-    if not isinstance(packs, list) or len(set(packs)) != len(packs) or any(pack not in LANGUAGES for pack in packs):
-        raise ValueError('OCR languages must refer to the installed runtime catalog')
