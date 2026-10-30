@@ -41,3 +41,10 @@ test('large Adam7 PNG preserves Pillow composite, overview and tile',async()=>{
   assert.equal(actual.width,4097);assert.equal(actual.height,4097);assert.equal(Buffer.compare(actual.data,expected.data),0);
   assert.equal(createHash('sha256').update(actual.tile).digest('hex'),'72ad5058355a30ef0477b24d7b97906602b5abb9b8324e6fe6ea6916703a3e28');
 });
+test('large Adam7 PNG preserves 90-degree EXIF orientation',async()=>{
+  const path='tests/fixtures/map-image/png-read/training-large-adam7-rotated.png',bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
+  const actual=await readNativeTrainingRaster({path,format:'png',expectedSha256,x:4000,y:4000});
+  const expected=await readNativeImage({path:'tests/fixtures/map-image/png-read/training-large-adam7-rotated-overview.png',format:'png',maxPixels:16777216});
+  assert.equal(actual.orientation,6);assert.equal(actual.width,4097);assert.equal(actual.height,4097);assert.equal(Buffer.compare(actual.data,expected.data),0);
+  assert.equal(createHash('sha256').update(actual.tile).digest('hex'),'7ba39dae1ebccee7122c76c9f0d00e97254986f00842182e3ce1c3d205442d15');
+});
