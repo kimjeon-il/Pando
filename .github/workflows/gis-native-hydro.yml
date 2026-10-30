@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated]
         default: hydro
 
 permissions:
@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   hydro-encoding:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-encoding'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'hydro-encoding' || inputs.target == 'hydro-encoding-integrated')
     strategy:
       fail-fast: false
       matrix:
@@ -39,6 +39,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Build the Hydro connector for the integrated repair check
+        if: inputs.target == 'hydro-encoding-integrated'
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/hydro -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF -DPANDO_BUILD_HYDRO_CONNECTIVITY=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro connector configuration failed' }
+          cmake --build build-native/hydro --config Release --target pando-hydro-connectivity --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro connector build failed' }
+          if ($IsWindows) { $connector = 'build-native/hydro/Release/pando-hydro-connectivity.exe' }
+          else { $connector = 'build-native/hydro/pando-hydro-connectivity' }
+          node tools/gis/package-hydro-connectivity.mjs --binary $connector --directory build-native/hydro/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro connector packaging failed' }
+          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_HYDRO_CONNECTIVITY_DIRECTORY=$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
       - name: Build and check only the Hydro feature encoder
         shell: pwsh
         run: |
