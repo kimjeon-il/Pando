@@ -17,13 +17,79 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  reference-step:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-step'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Acquire fixed Windows LibTorch SDK
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if ((Get-PSDrive -Name C).Free -lt 9GB) { throw 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom' }
+          New-Item -ItemType Directory -Path build-native/reference-analysis -ErrorAction SilentlyContinue | Out-Null
+          curl.exe --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 220000000 'https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.14.1%2Bcpu.zip' --output build-native/reference-analysis/libtorch.zip
+          if ($LASTEXITCODE -ne 0) { throw 'LibTorch SDK download failed' }
+          if ((Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256).Hash -ne '28FFDDE0A7FF3B431139709B4A91B8B6D59FDE3BE67B76FD88D0C913EF8973F7') { throw 'LibTorch SDK SHA-256 mismatch' }
+          Expand-Archive -Path build-native/reference-analysis/libtorch.zip -DestinationPath build-native/reference-analysis
+          Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
+      - name: Acquire fixed Linux LibTorch SDK
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+          mkdir -p build-native/reference-analysis
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' --output build-native/reference-analysis/libtorch.zip
+          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
+          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
+      - name: Build and compare the affected training step
+        shell: pwsh
+        run: |
+          $torch = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
+          cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
+          if ($LASTEXITCODE -ne 0) { throw 'Training step configure failed' }
+          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test --parallel 1
+          if ($LASTEXITCODE -ne 0) { throw 'Training step build failed' }
+          if ($IsWindows) { $binary = 'build-native/reference-analysis/step-test/Release/reference-training-step-test.exe' }
+          else { $binary = 'build-native/reference-analysis/step-test/reference-training-step-test' }
+          & $binary
+          if ($LASTEXITCODE -ne 0) { throw 'Training step differs from original' }
+      - name: Build and package the existing Windows resume proof
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/reference-analysis/native -A x64 -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch" -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Reference proof configure failed' }
+          cmake --build build-native/reference-analysis/native --config Release --target pando-reference-training-proof --parallel 1
+          if ($LASTEXITCODE -ne 0) { throw 'Reference proof build failed' }
+          node tools/reference-analysis/package-native-reference.mjs --kind training-proof --binary build-native/reference-analysis/native/Release/pando-reference-training-proof.exe --directory build-native/reference-analysis/artifact-proof
+          if ($LASTEXITCODE -ne 0) { throw 'Reference proof packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows' && always()
+        with:
+          name: native-reference-training-proof-${{ github.sha }}
+          path: build-native/reference-analysis/artifact-proof/
+          if-no-files-found: ignore
+          retention-days: 7
   map-evaluation:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-evaluation'
     strategy:

@@ -15,7 +15,8 @@ export const referenceSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','too
   'tools/cpp/reference-analysis/training-augmentation.h',
   'tools/cpp/reference-analysis/boundary-loss.cpp','tools/cpp/reference-analysis/boundary-loss.h',
   'shared/core/src/losslessjson.cpp','shared/core/include/pandoeditor/losslessjson.h']);
-export const referenceProofSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-training-proof.cpp']);
+export const referenceProofSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-training-proof.cpp',
+  'tools/cpp/reference-analysis/training-step.h']);
 export const referenceOnnxTestSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-onnx-tests.cpp']);
 export const referenceOnnxExportSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-onnx-export.cpp']);
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));

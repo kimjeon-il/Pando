@@ -5,6 +5,7 @@
 #include "safetensors.h"
 #include "training-checkpoint.h"
 #include "training-augmentation.h"
+#include "training-step.h"
 #include <torch/torch.h>
 #include <ATen/Context.h>
 #include <filesystem>
@@ -18,14 +19,10 @@ namespace {
 using pando::reference::ReferenceBoundaryModel;
 struct Sample {torch::Tensor tile,overview,position,target,valid;};
 double update(ReferenceBoundaryModel& model,torch::optim::AdamW& optimizer,const Sample& sample,const torch::Device& device){
-    optimizer.zero_grad();
     // One paired brightness draw makes replay depend on the recorded RNG.
     const auto factor=.85+.25*torch::rand({},torch::TensorOptions().dtype(torch::kFloat32).device(device));
-    const auto logits=model->forward(pando::reference::normalizedBrightness(sample.tile,factor),
-        pando::reference::normalizedBrightness(sample.overview,factor),sample.position);
-    const auto loss=pando::reference::boundaryLoss(logits,sample.target,sample.valid);
-    if(!torch::isfinite(loss).item<bool>())throw std::runtime_error("Nonfinite real-input training loss");
-    loss.backward();torch::nn::utils::clip_grad_norm_(model->parameters(),1.0,2.0,true);optimizer.step();return loss.item<double>();
+    return pando::reference::trainingBatchStep(model,optimizer,{pando::reference::normalizedBrightness(sample.tile,factor),
+        pando::reference::normalizedBrightness(sample.overview,factor),sample.position,sample.target,sample.valid});
 }
 int run(const std::vector<fs::path>& args){
     if(args.size()!=10)throw std::runtime_error("Usage: reference-training-proof DEVICE WEIGHTS TILE OVERVIEW POSITION TARGET VALID NEW_CHECKPOINT TILE_INDEX");
