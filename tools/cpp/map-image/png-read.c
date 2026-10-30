@@ -51,7 +51,8 @@ int pando_inspect_png(const uint8_t* bytes,size_t size,PandoImage* result){
     if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=pando_exif_orientation(exif,exif_size);
     result->width=width;result->height=height;png_destroy_read_struct(&png,&info,NULL);free(decoder);return 1;
 }
-int pando_read_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result){
+static int read_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result,
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
     Decoder* decoder;png_structp png;png_infop info;int depth,color;
     memset(result,0,sizeof(*result));decoder=(Decoder*)calloc(1,sizeof(*decoder));
     if(!decoder){strcpy(result->error,"Out of memory");return 0;}decoder->bytes=bytes;decoder->size=size;
@@ -59,10 +60,17 @@ int pando_read_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result){
     if(!png){free(decoder);strcpy(result->error,"PNG decoder unavailable");return 0;}
     info=png_create_info_struct(png);if(!info){png_destroy_read_struct(&png,NULL,NULL);free(decoder);strcpy(result->error,"PNG metadata unavailable");return 0;}
     if(setjmp(png_jmpbuf(png))){strncpy(result->error,decoder->error,sizeof(result->error)-1);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 0;}
-    png_set_read_fn(png,decoder,input);png_set_user_limits(png,16384,16384);png_read_info(png,info);
+    png_set_read_fn(png,decoder,input);png_set_user_limits(png,consume?65535:16384,consume?65535:16384);png_read_info(png,info);
     depth=png_get_bit_depth(png,info);color=png_get_color_type(png,info);
     if(depth!=8||color!=PNG_COLOR_TYPE_GRAY)png_error(png,"Training mask must be 8-bit grayscale");
-    png_destroy_read_struct(&png,&info,NULL);free(decoder);return pando_read_png(bytes,size,result);
+    png_destroy_read_struct(&png,&info,NULL);free(decoder);
+    return consume?pando_stream_png_rows(bytes,size,result,start,consume,context):pando_read_png(bytes,size,result);
+}
+int pando_read_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result){return read_gray_mask(bytes,size,result,NULL,NULL,NULL);}
+int pando_stream_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result,
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
+    if(!start||!consume){memset(result,0,sizeof(*result));strcpy(result->error,"PNG row callbacks required");return 0;}
+    return read_gray_mask(bytes,size,result,start,consume,context);
 }
 static int read_png(const uint8_t* bytes,size_t size,PandoImage* result,
     PandoImageRowStart start,PandoImageRowConsumer consume,void* context){

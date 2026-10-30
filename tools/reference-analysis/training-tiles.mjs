@@ -2,7 +2,7 @@
 import {dirname,extname,resolve} from 'node:path';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMask} from '../map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMask,readNativeTrainingMaskWindow} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -80,7 +80,9 @@ async function trainingRaster(root,annotation,field,options){
   if(!rasterOrigins.has(annotation?.origin))throw Error('Explicit raster training supervision required');
   const spec=annotation[field];if(!spec||typeof spec.path!=='string')throw Error('Source-bound raster path required');
   const path=await resolveCorpusPath(root,spec.path),bytes=await readFile(path,{signal:options.signal});
-  const mask=await readNativeTrainingMask(bytes,spec.sha256,{signal:options.signal,workspace:options.workspace,directory:options.imageDirectory});
+  const nativeOptions={signal:options.signal,workspace:options.workspace,directory:options.imageDirectory};
+  const mask=options.window?await readNativeTrainingMaskWindow(bytes,spec.sha256,options.window,nativeOptions):
+    await readNativeTrainingMask(bytes,spec.sha256,nativeOptions);
   if(mask.width!==annotation.width||mask.height!==annotation.height)throw Error('Training raster dimensions differ from original');return mask;
 }
 export async function macroTrainingSupervision(corpus,{signal,workspace,imageDirectory}={}){
@@ -103,10 +105,6 @@ export async function macroTrainingSupervision(corpus,{signal,workspace,imageDir
   const positiveWeights=counts.map(([known,positive])=>Math.max(1,Math.min(64,(known-positive)/Math.max(positive,1))));
   const unobservedChannels=REFERENCE_BOUNDARY_CHANNELS.filter((_,i)=>counts[i][1]===0||counts[i][1]===counts[i][0]);
   return {trainingOnly:true,releaseApproved:false,corpusSha256,counts,positiveWeights,unobservedChannels,sources};
-}
-function maskWindow(mask,x,y){
-  const result=Buffer.alloc(512*512),width=Math.min(512,mask.width-x),height=Math.min(512,mask.height-y);
-  for(let row=0;row<height;row++)mask.data.copy(result,row*512,(y+row)*mask.width+x,(y+row)*mask.width+x+width);return result;
 }
 export async function listRasterTrainingTiles({root,annotation},{supervisedOnly=true,signal,workspace,imageDirectory}={}){
   if(typeof supervisedOnly!=='boolean')throw Error('Explicit training supervision mode required');
@@ -139,11 +137,11 @@ export async function prepareRasterTrainingTile({root,imagePath,sourceSha256,ann
   {signal,workspace,imageDirectory}={}){
   signal?.throwIfAborted();const path=await resolveCorpusPath(root,imagePath),format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(path).toLowerCase()];
   if(!format||typeof sourceSha256!=='string'||!/^[a-f0-9]{64}$/.test(sourceSha256))throw Error('Source-bound PNG, JPEG or WebP training image required');
-  const options={signal,workspace,imageDirectory},[image,target,known]=await Promise.all([
+  const options={signal,workspace,imageDirectory,window:{x,y}},[image,target,known]=await Promise.all([
     readNativeTrainingRaster({path,format,expectedSha256:sourceSha256,x,y},{signal,workspace,directory:imageDirectory}),
     trainingRaster(root,annotation,'raster',options),trainingRaster(root,annotation,'validRaster',options)]);
   if(annotation.width!==image.width||annotation.height!==image.height)
     throw Error('Annotations must use oriented original image dimensions');
   if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=image.width||y>=image.height)throw Error('Training tile must start inside original image');
-  return prepareNativeTrainingTilePieces({image,targetBits:maskWindow(target,x,y),knownBits:maskWindow(known,x,y),x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});
+  return prepareNativeTrainingTilePieces({image,targetBits:target.data,knownBits:known.data,x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});
 }
