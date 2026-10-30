@@ -25,7 +25,7 @@ static void message(j_common_ptr common,int level){
 }
 static int read_jpeg(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,int inspect_only,PandoImage* result,
     uint32_t* original_width,uint32_t* original_height,uint32_t* bound_width,uint32_t* bound_height,int* output_cmyk,
-    PandoJpegRowStart start,PandoJpegRowConsumer consume,void* context){
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
     Decoder* decoder;unsigned int y,x;int cmyk;
     memset(result,0,sizeof(*result));result->orientation=1;
     decoder=(Decoder*)calloc(1,sizeof(*decoder));if(!decoder){strcpy(result->error,"Out of memory");return 0;}
@@ -110,7 +110,7 @@ int pando_read_jpeg_draft(const uint8_t* bytes,size_t size,uint32_t maximum_pixe
     return read_jpeg(bytes,size,maximum_pixels,inspect_only,result,original_width,original_height,bound_width,bound_height,cmyk,NULL,NULL,NULL);
 }
 int pando_stream_jpeg_rows(const uint8_t* bytes,size_t size,PandoImage* result,
-    PandoJpegRowStart start,PandoJpegRowConsumer consume,void* context){
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
     if(!start||!consume){memset(result,0,sizeof(*result));strcpy(result->error,"JPEG row callbacks required");return 0;}
     return read_jpeg(bytes,size,0,0,result,NULL,NULL,NULL,NULL,NULL,start,consume,context);
 }

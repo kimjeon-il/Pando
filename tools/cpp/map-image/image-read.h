@@ -15,10 +15,12 @@ int pando_read_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result);
 int pando_inspect_png(const uint8_t* bytes,size_t size,PandoImage* result);
 int pando_read_jpeg(const uint8_t* bytes,size_t size,PandoImage* result);
 int pando_inspect_jpeg(const uint8_t* bytes,size_t size,PandoImage* result);
-typedef int (*PandoJpegRowStart)(void* context,uint32_t width,uint32_t height,uint32_t orientation);
-typedef int (*PandoJpegRowConsumer)(void* context,uint32_t y,const uint8_t* rgba,size_t length);
+typedef int (*PandoImageRowStart)(void* context,uint32_t width,uint32_t height,uint32_t orientation);
+typedef int (*PandoImageRowConsumer)(void* context,uint32_t y,const uint8_t* rgba,size_t length);
 int pando_stream_jpeg_rows(const uint8_t* bytes,size_t size,PandoImage* result,
-    PandoJpegRowStart start,PandoJpegRowConsumer consume,void* context);
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context);
+int pando_stream_png_rows(const uint8_t* bytes,size_t size,PandoImage* result,
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context);
 int pando_read_jpeg_draft(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,int inspect_only,PandoImage* result,
     uint32_t* original_width,uint32_t* original_height,uint32_t* bound_width,uint32_t* bound_height,int* cmyk);
 int pando_write_jpeg(const uint8_t* rgba,uint32_t width,uint32_t height,uint8_t** bytes,size_t* size,char* error,size_t error_size);

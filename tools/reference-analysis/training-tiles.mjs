@@ -2,7 +2,7 @@
 import {dirname,extname,resolve} from 'node:path';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {countNativeTrainingSupervision,prepareNativeTrainingTile,prepareNativeTrainingTilePieces,readNativeImage,readNativeTrainingJpegOverview,readNativeTrainingMask} from '../map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,prepareNativeTrainingTile,prepareNativeTrainingTilePieces,readNativeImage,readNativeTrainingRaster,readNativeTrainingMask} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -131,7 +131,7 @@ export async function prepareReviewedTrainingTile({imagePath,sourceSha256,annota
   const format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(imagePath||'').toLowerCase()];
   if(!format||typeof sourceSha256!=='string'||!/^[a-f0-9]{64}$/.test(sourceSha256))throw Error('Source-bound PNG, JPEG or WebP training image required');
   if(format==='jpeg'){
-    const image=await readNativeTrainingJpegOverview({path:imagePath,expectedSha256:sourceSha256,x,y},{signal,workspace,directory:imageDirectory});
+    const image=await readNativeTrainingRaster({path:imagePath,format,expectedSha256:sourceSha256,x,y},{signal,workspace,directory:imageDirectory});
     if(annotation?.width!==image.width||annotation.height!==image.height)throw Error('Annotations must use oriented original image dimensions');
     const masks=await reviewMasks(annotation,{window:[x,y,512,512],signal,workspace,directory:reviewDirectory});
     return prepareNativeTrainingTilePieces({image,targetBits:masks.targetBits,knownBits:masks.knownBits,x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});

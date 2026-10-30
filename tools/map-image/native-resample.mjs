@@ -270,18 +270,18 @@ export async function readNativeImage({path,rect,format,maxPixels=4000000,expect
   const bytes=await readEncodedImage(path,options.signal);
   return decodeNativeImageBytes({bytes,rect,format,maxPixels,expectedSha256},options);
 }
-export async function readNativeTrainingJpegOverview({path,expectedSha256,x=0,y=0},{workspace=root,directory=artifactDirectory(workspace),signal}={}){
+export async function readNativeTrainingRaster({path,format,expectedSha256,x=0,y=0},{workspace=root,directory=artifactDirectory(workspace),signal}={}){
   signal?.throwIfAborted();
-  if(typeof path!=='string'||!path||typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256)||
+  if(typeof path!=='string'||!path||!['jpeg','png'].includes(format)||typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256)||
     ![x,y].every(value=>Number.isInteger(value)&&value>=0&&value<65535))
-    throw Error('Source-bound JPEG path and SHA-256 required');
+    throw Error('Source-bound PNG or JPEG path and SHA-256 required');
   const bytes=await readEncodedImage(path,signal);
   if(createHash('sha256').update(bytes).digest('hex')!==expectedSha256)throw Error('Original image hash changed');
   const overviewBytes=256*256*4,tileBytes=512*512*4;
-  const output=await runNative(nativeBinary(workspace,directory),['training-jpeg-overview',String(x),String(y)],bytes,12+overviewBytes+tileBytes,signal);
-  if(output.length!==12+overviewBytes+tileBytes)throw Error('Invalid JPEG training overview receipt');
+  const output=await runNative(nativeBinary(workspace,directory),[`training-${format}-overview`,String(x),String(y)],bytes,12+overviewBytes+tileBytes,signal);
+  if(output.length!==12+overviewBytes+tileBytes)throw Error('Invalid training raster receipt');
   const width=output.readUInt32BE(0),height=output.readUInt32BE(4),orientation=output.readUInt32BE(8);
   if(!width||!height||width>65535||height>65535||width*height>600000000||orientation<1||orientation>8)
-    throw Error('Invalid JPEG training overview dimensions or orientation');
+    throw Error('Invalid training raster dimensions or orientation');
   return {width,height,orientation,x,y,data:output.subarray(12,12+overviewBytes),tile:output.subarray(12+overviewBytes)};
 }

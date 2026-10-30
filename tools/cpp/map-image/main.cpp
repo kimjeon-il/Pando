@@ -79,14 +79,15 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
-        if(action=="training-jpeg-overview"){
-            if(argc!=4)throw std::invalid_argument("Expected JPEG training tile X Y");
+        if(action=="training-jpeg-overview"||action=="training-png-overview"){
+            if(argc!=4)throw std::invalid_argument("Expected raster training tile X Y");
             struct State {
-                std::uint32_t width=0,height=0,orientation=0,tileX=0,tileY=0;
+                std::uint32_t width=0,height=0,orientation=0,tileX=0,tileY=0;bool composite=false;
                 std::unique_ptr<pando::map_image::OpaqueBilinearAccumulator> accumulator;
                 std::unique_ptr<pando::map_image::OpaqueBilinearColumnAccumulator> columns;
                 std::vector<std::uint8_t> mirrored,tile;std::exception_ptr error;
             } state;
+            state.composite=action=="training-png-overview";
             state.tileX=static_cast<std::uint32_t>(bounded(argv[2],65534));state.tileY=static_cast<std::uint32_t>(bounded(argv[3],65534));
             const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t orientation)->int{
                 auto& s=*static_cast<State*>(context);try{
@@ -96,14 +97,19 @@ int main(int argc,char** argv){
                     s.tile.assign(std::size_t(512)*512*4,255);
                     if(orientation>=5)s.columns=std::make_unique<pando::map_image::OpaqueBilinearColumnAccumulator>(height,width,256,256);
                     else s.accumulator=std::make_unique<pando::map_image::OpaqueBilinearAccumulator>(width,height,256,256);
-                    if(orientation==2||orientation==3||orientation==7||orientation==8)s.mirrored.resize(std::size_t(width)*4);
+                    if(s.composite||orientation==2||orientation==3||orientation==7||orientation==8)s.mirrored.resize(std::size_t(width)*4);
                     return 1;
                 }catch(...){s.error=std::current_exception();return 0;}
             };
             const auto row=[](void* context,std::uint32_t y,const std::uint8_t* pixels,std::size_t length)->int{
                 auto& s=*static_cast<State*>(context);try{
                     if(!s.mirrored.empty()){
-                        for(std::size_t x=0;x<s.width;++x)std::copy_n(pixels+x*4,4,s.mirrored.data()+(s.width-1-x)*4);
+                        const bool reverse=s.orientation==2||s.orientation==3||s.orientation==7||s.orientation==8;
+                        for(std::size_t x=0;x<s.width;++x){
+                            const auto* source=pixels+x*4;auto* destination=s.mirrored.data()+(reverse?s.width-1-x:x)*4;
+                            if(s.composite){const int alpha=source[3];for(int c=0;c<3;++c)destination[c]=std::uint8_t((source[c]*alpha+255*(255-alpha)+127)/255);destination[3]=255;}
+                            else std::copy_n(source,4,destination);
+                        }
                         pixels=s.mirrored.data();
                     }
                     if(s.orientation>=5){
@@ -127,15 +133,17 @@ int main(int argc,char** argv){
                 }catch(...){s.error=std::current_exception();return 0;}
             };
             const auto encoded=encodedInput();PandoImage image{};
-            if(!pando_stream_jpeg_rows(encoded.data(),encoded.size(),&image,start,row,&state)){
+            const bool ok=state.composite?pando_stream_png_rows(encoded.data(),encoded.size(),&image,start,row,&state):
+                pando_stream_jpeg_rows(encoded.data(),encoded.size(),&image,start,row,&state);
+            if(!ok){
                 if(state.error)std::rethrow_exception(state.error);
-                throw std::runtime_error(std::string("Training JPEG: ")+image.error);
+                throw std::runtime_error(std::string("Training raster: ")+image.error);
             }
             const auto output=state.orientation>=5?state.columns->finish():state.accumulator->finish();
             number(state.orientation>=5?image.height:image.width);number(state.orientation>=5?image.width:image.height);number(image.orientation);
             std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
             std::cout.write(reinterpret_cast<const char*>(state.tile.data()),static_cast<std::streamsize>(state.tile.size()));
-            if(!std::cout)throw std::runtime_error("Unable to write JPEG training overview");return 0;
+            if(!std::cout)throw std::runtime_error("Unable to write training overview");return 0;
         }
         if(action=="read-webp-raw"){
             if(argc!=2)throw std::invalid_argument("Raw WebP takes no extra arguments");
