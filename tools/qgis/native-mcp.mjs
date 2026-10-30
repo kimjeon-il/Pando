@@ -31,7 +31,7 @@ function createServer(){
     async({layer},extra)=>respond([...options,'schema','--layer',layer],extra.signal));
   server.registerTool('qgis_native_set_visibility',{description:'Set the checked visibility of a QGIS layer without changing parent groups.',inputSchema:z.strictObject({layer:path,visible:z.boolean()})},
     async({layer,visible},extra)=>respond([...options,'set-visibility',`--layer=${layer}`,`--visible=${visible}`],extra.signal));
-  server.registerTool('qgis_native_remove_layer',{description:'Remove a vector layer from the project, refusing editable layers; source files are preserved.',inputSchema:z.strictObject({layer:path})},
+  server.registerTool('qgis_native_remove_layer',{description:'Remove a project layer while preserving source files; editable, modified and temporary layers are refused.',inputSchema:z.strictObject({layer:path})},
     async({layer},extra)=>respond([...options,'remove-layer',`--layer=${layer}`],extra.signal));
   server.registerTool('qgis_native_algorithms',{description:'List a bounded page of registered QGIS processing algorithms.',
     inputSchema:z.strictObject({offset:z.number().int().min(0).max(100000000).default(0),limit:z.number().int().min(1).max(100).default(50),search:z.string().min(1).max(256).optional()})},

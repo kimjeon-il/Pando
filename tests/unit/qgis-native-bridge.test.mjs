@@ -31,7 +31,7 @@ async function fixture(t){
       else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
         result={layer:'layer-1',fields:[{name:'source',type:'Map',length:0,precision:0}]};}
       else if(request.command==='set-visibility'){assert.equal(request.layer,'layer-1');assert.equal(request.visible,false);result={checked:false,visible:false};}
-      else if(request.command==='remove-layer'){assert.equal(request.layer,'layer-1');result={removed:true,id:'layer-1'};}
+      else if(request.command==='remove-layer'){assert.ok(['layer-1','raster-1'].includes(request.layer));result={removed:true,id:request.layer};}
       else if(request.command==='algorithms'){assert.equal(request.search,'buffer');assert.equal(request.limit,2);result={algorithms:[{id:'native:buffer',name:'Buffer'}],hasMore:false};}
       else if(request.command==='features'){
         assert.equal(request.layer,'layer-1');assert.equal(request.offset,0);assert.equal(request.limit,1);
@@ -94,6 +94,8 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const invalidVisibility=await run(['--config',config,'set-visibility','--layer','layer-1','--visible','yes']);assert.notEqual(invalidVisibility.code,0);
   const removed=await run(['--config',config,'remove-layer','--layer','layer-1']);assert.equal(removed.code,0,removed.stderr);
   assert.equal(JSON.parse(removed.stdout).removed,true);
+  const removedRaster=await run(['--config',config,'remove-layer','--layer','raster-1']);assert.equal(removedRaster.code,0,removedRaster.stderr);
+  assert.equal(JSON.parse(removedRaster.stdout).id,'raster-1');
   assert.notEqual((await run(['--config',config,'remove-layer'])).code,0);
   const algorithms=await run(['--config',config,'algorithms','--search','buffer','--limit','2']);
   assert.equal(algorithms.code,0,algorithms.stderr);assert.equal(JSON.parse(algorithms.stdout).algorithms[0].id,'native:buffer');
