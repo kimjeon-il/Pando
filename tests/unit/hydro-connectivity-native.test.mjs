@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {auditHydroParts,auditHydroSourceArchives,hydroPartsBySource,repairHydroParts,validateHydroAudit,validateHydroRepair} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {auditHydroParts,auditHydroSourceArchives,hydroPartsBySource,repairHydroParts,validateHydroAudit,validateHydroRepair,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {readFile} from 'node:fs/promises';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
@@ -155,4 +155,11 @@ test('source-bound Node audit runs the verified native engine',{
   const frozen=structuredClone(features),archives=[{archive:'tests/fixtures/hydro-source/fixture.zip',specification,selected:new Set([103,101,102])}];
   const fromArchive=await auditHydroSourceArchives({features,archives},{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
   assert.deepEqual(fromArchive.issues,[]);assert.equal(fromArchive.regions.eu.connected,2);assert.deepEqual(features,frozen);
+  const baseline={features:structuredClone(features)};baseline.features[0].geometry.coordinates[1]=[.999,0];
+  const staged={features:structuredClone(features)},report={changes:[{fid:1,part:0,index:-1,before:[.999,0],after:[1,0]}],changedFeatureIds:[1],unchangedFeatureCount:2,remaining:[]};
+  const request={baseline,staged,report,archives},options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
+  const verification=await verifyHydroStaged(request,options);
+  assert.equal(verification.features,3);assert.equal(verification.unchangedFeatures,2);assert.equal(verification.remaining,0);
+  staged.features[2].geometry.coordinates[0]=[0,2];await assert.rejects(verifyHydroStaged(request,options),/geometry/i);
+  staged.features[2].geometry.coordinates[0]=[0,1];staged.features[1].widths=[2];await assert.rejects(verifyHydroStaged(request,options),/width/i);
 });
