@@ -95,6 +95,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
           cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
+      - name: Verify original training scan-condition sampling
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/reference-analysis/conditions-test -B build-native/reference-analysis/conditions-test
+          if ($LASTEXITCODE -ne 0) { throw 'Training conditions configure failed' }
+          cmake --build build-native/reference-analysis/conditions-test --config Release --target reference-conditions-test --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Training conditions build failed' }
+          if ($IsWindows) { $conditions = 'build-native/reference-analysis/conditions-test/Release/reference-conditions-test.exe' }
+          else { $conditions = 'build-native/reference-analysis/conditions-test/reference-conditions-test' }
+          & $conditions
+          if ($LASTEXITCODE -ne 0) { throw 'Training conditions differ from original' }
       - name: Compare reviewed masks and invalid-input behavior
         shell: pwsh
         run: |
