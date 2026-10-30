@@ -10,6 +10,7 @@ import {validateSemapTrainingCorpus} from '../../tools/reference-analysis/valida
 import {inspectCombinedTrainingData,inspectSemapTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
 import {verifyCombinedTrainingOrder,writeCombinedTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
 import {prepareCombinedTrainingBatch,verifyTrainingSample,writeSemapTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
+import {nativeTrainingBatch,runCombinedTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
 
 test('Semap importer preserves real originals, rejects changed outputs and never creates review truth',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-semap-import-'));t.after(()=>rm(root,{recursive:true}));
@@ -75,9 +76,19 @@ test('Semap importer preserves real originals, rejects changed outputs and never
     const batch=await prepareCombinedTrainingBatch({...request,cursor:0,count:2,augment:false,output:join(root,'mixed-batch')});
     assert.deepEqual(batch.samples.map(row=>row.index),[0,1]);
     assert.deepEqual(batch.samples.map(row=>verifyTrainingSample(row.directory).sourceKind),['macro-pdf','semap-label']);
+    const initializer=join(root,'initializer.bin');await writeFile(initializer,'weights');
+    await writeFile(join(root,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
+      transfer:'weights-only-no-optimizer',weightsSha256:sha('weights')}));
+    const semapReceiptPath=join(batch.samples[1].directory,'sample.json'),semapReceipt=JSON.parse(await readFile(semapReceiptPath,'utf8'));
+    semapReceipt.sourceEvidenceSha256='0'.repeat(64);await writeFile(semapReceiptPath,JSON.stringify(semapReceipt));
+    await assert.rejects(nativeTrainingBatch({...request,mode:'warm',input:initializer,output:join(root,'invalid.pt'),
+      order:join(output,'order.u64'),positiveWeights:join(output,'weights.f32'),unobservedMask:plan.unobservedMask,
+      freezeEpochs:2,learningRate:.0001,device:'cpu',torchLibrary:root,samples:batch.samples}),/source evidence/i);
     await writeFile(join(output,'weights.f32'),Buffer.alloc(28));
     await assert.rejects(verifyCombinedTrainingOrder(request),/weight/i);
     await assert.rejects(prepareCombinedTrainingBatch({...request,cursor:0,count:1,augment:false,output:join(root,'changed-batch')}),/weight/i);
+    await assert.rejects(runCombinedTrainingBatch({...request,mode:'warm',input:join(root,'weights'),output:join(root,'model.pt'),
+      sampleOutput:join(root,'run-samples'),count:1,augment:false,freezeEpochs:2,learningRate:.0001,device:'cpu',torchLibrary:root}),/weight/i);
   }
   const target=await readFile(join(root,annotation.raster.path));const mask=await readNativeTrainingMask(target,annotation.raster.sha256);
   assert(mask.data.every(value=>value===8));
