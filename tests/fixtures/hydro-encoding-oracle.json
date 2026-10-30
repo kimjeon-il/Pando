@@ -225,5 +225,87 @@
     },
     "featureHex": "040000006800000002030400000001000000000040ad54f5c0bdf0ffc052ab0a80841e002e0000000000000002010480cbdaaa0180897aff95b5d502000080897a8096b5d502ff887a010380dac409ff887a80897a00ff887a00",
     "sourceIdsHex": ""
+  },
+  {
+    "feature": {
+      "fid": 10,
+      "logical_fid": 110,
+      "pandolab_id": "fixture:10",
+      "category": "river",
+      "stage": 0,
+      "flags": 0,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "width": 1.25,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0,
+            0
+          ],
+          [
+            1.002,
+            0
+          ]
+        ]
+      },
+      "bounds": [
+        0,
+        0,
+        1.002,
+        0
+      ],
+      "width_profile": [
+        [
+          1,
+          1
+        ]
+      ],
+      "source_id": "1"
+    },
+    "featureHex": "0a0000006e00000001000100000001000000a03f0000000000000000104a0f0000000000080000000500000001020000a0a87a000102e80700",
+    "sourceIdsHex": "0101"
+  },
+  {
+    "feature": {
+      "fid": 11,
+      "logical_fid": 111,
+      "pandolab_id": "fixture:11",
+      "category": "river",
+      "stage": 0,
+      "flags": 1,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "width": 1.25,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1.002,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      },
+      "bounds": [
+        1.002,
+        0,
+        2,
+        0
+      ],
+      "width_profile": [
+        [
+          1,
+          1
+        ]
+      ],
+      "source_id": "2"
+    },
+    "featureHex": "0b0000006f00000001000101000001000000a03f104a0f000000000080841e00000000000a000000050000000102a0a87a00e0e979000102e80700",
+    "sourceIdsHex": "0102"
   }
 ]
