@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace pando::map_image {
@@ -100,11 +101,40 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,int 
     }
     return output;
 }
+std::vector<std::uint8_t> resizeOpaqueBilinearRows(int width,int height,int outputWidth,int outputHeight,
+    const OpaqueRgbaRowReader& readRow){
+    if(width<=0||height<=0||width>65535||height>65535||std::int64_t(width)*height>600000000||!readRow)
+        throw std::invalid_argument("Invalid streaming training image dimensions");
+    validate(outputWidth,outputHeight);
+    const auto horizontal=coefficients(width,outputWidth,width,Filter::bilinear);
+    const auto vertical=coefficients(height,outputHeight,height,Filter::bilinear);
+    using Contribution=std::pair<int,std::int32_t>;
+    std::vector<std::vector<Contribution>> bySourceRow(height);
+    for(int y=0;y<outputHeight;++y)for(std::size_t j=0;j<vertical[y].weights.size();++j)
+        if(vertical[y].weights[j])bySourceRow[vertical[y].start+j].emplace_back(y,vertical[y].weights[j]);
+    std::vector<std::uint8_t> row(std::size_t(width)*4),intermediate(std::size_t(outputWidth)*4);
+    std::vector<std::int64_t> sums(std::size_t(outputWidth)*outputHeight*4);
+    for(int y=0;y<height;++y){
+        readRow(y,row.data(),row.size());
+        for(std::size_t i=3;i<row.size();i+=4)if(row[i]!=255)throw std::invalid_argument("Training bilinear input must be opaque");
+        for(int x=0;x<outputWidth;++x)for(int c=0;c<4;++c){
+            const auto& weights=horizontal[x];std::int64_t sum=0;
+            for(std::size_t j=0;j<weights.weights.size();++j)sum+=std::int64_t(row[(std::size_t(weights.start)+j)*4+c])*weights.weights[j];
+            intermediate[std::size_t(x)*4+c]=rounded(sum);
+        }
+        for(const auto& [outputRow,weight]:bySourceRow[y])for(std::size_t i=0;i<intermediate.size();++i)
+            sums[std::size_t(outputRow)*intermediate.size()+i]+=std::int64_t(intermediate[i])*weight;
+    }
+    std::vector<std::uint8_t> output(sums.size());
+    for(std::size_t i=0;i<sums.size();++i)output[i]=rounded(sums[i]);
+    return output;
+}
 std::vector<std::uint8_t> resizeOpaqueBilinear(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
-    validate(width,height);validate(outputWidth,outputHeight);
+    validate(width,height);
     if(input.size()!=static_cast<std::size_t>(width)*height*4)throw std::invalid_argument("RGBA input byte length differs from dimensions");
-    for(std::size_t i=3;i<input.size();i+=4)if(input[i]!=255)throw std::invalid_argument("Training bilinear input must be opaque");
-    return resizeChannels(input,width,height,outputWidth,outputHeight,4,width,height,16384,Filter::bilinear);
+    return resizeOpaqueBilinearRows(width,height,outputWidth,outputHeight,[&](int y,std::uint8_t* row,std::size_t length){
+        std::copy_n(input.data()+std::size_t(y)*length,length,row);
+    });
 }
 std::vector<std::uint8_t> resizeOpaqueBicubic(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
     validate(width,height);validate(outputWidth,outputHeight);

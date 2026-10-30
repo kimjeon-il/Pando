@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <functional>
+#include <cstddef>
 #include <vector>
 
 namespace pando::map_image {
@@ -12,6 +14,10 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,
 // Opaque RGB values in RGBA storage; Pillow-compatible bilinear training input.
 std::vector<std::uint8_t> resizeOpaqueBilinear(const std::vector<std::uint8_t>& input,
     int width,int height,int outputWidth,int outputHeight);
+// Consume each opaque source row once in ascending order, without a full image buffer.
+using OpaqueRgbaRowReader=std::function<void(int,std::uint8_t*,std::size_t)>;
+std::vector<std::uint8_t> resizeOpaqueBilinearRows(int width,int height,int outputWidth,int outputHeight,
+    const OpaqueRgbaRowReader& readRow);
 std::vector<std::uint8_t> resizeOpaqueBicubic(const std::vector<std::uint8_t>& input,
     int width,int height,int outputWidth,int outputHeight);
 // Pillow's two-stage thumbnail reduction for opaque RGB PDF pages.
