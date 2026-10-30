@@ -2,7 +2,7 @@
 // checkpoint; a diagnostic result is never an independent model approval.
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {dirname,delimiter,resolve} from 'node:path';
+import {dirname,delimiter,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
@@ -28,28 +28,43 @@ function validator(binary,args,env,signal,{binaryOutput=false,maximum=65536}={})
   });
   done.catch(()=>{});return {child,done};
 }
-export async function nativeTrainingCheckpointInfer({checkpoint,tile,overview,position,device='cpu',output='logits',torchLibrary,
-  root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
+async function inferPrivateModel({path,mode,tile,overview,position,device,output,torchLibrary,root,directory,signal}){
   signal?.throwIfAborted();
-  if(!['win32','linux'].includes(process.platform)||!checkpoint||!torchLibrary||!['cpu','cuda'].includes(device))throw Error('Explicit native checkpoint inference inputs required');
+  if(!['win32','linux'].includes(process.platform)||!path||!torchLibrary||!['cpu','cuda'].includes(device))throw Error('Explicit native checkpoint inference inputs required');
   if(!['logits','probabilities'].includes(output))throw Error('Invalid checkpoint inference output');
   if(![tile,overview,position].every(value=>value instanceof Uint8Array)||tile.length!==3*512*512*4||overview.length!==3*256*256*4||position.length!==4*4)
     throw Error('Checkpoint inference tensors have invalid dimensions');
-  const path=resolve(checkpoint),receiptPath=path+'.receipt.json',checkpointHash=trainingFileIdentity(path),receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
-  if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==checkpointHash)
-    throw Error('Private checkpoint receipt differs from its file');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
   const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,tool),env={...process.env,
     ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'};
-  const bytes=7*512*512*4,{child,done}=validator(binary,['infer',device,path,output],env,signal,{binaryOutput:true,maximum:bytes});
+  const bytes=7*512*512*4,{child,done}=validator(binary,[mode,device,path,output],env,signal,{binaryOutput:true,maximum:bytes});
   let logits;try{[,logits]=await Promise.all([pipeline(Readable.from([tile,overview,position],{objectMode:false}),child.stdin,{signal}),done]);}
   catch(error){child.kill();await done.catch(()=>{});throw error;}
   signal?.throwIfAborted();if(logits.length!==bytes)throw Error('Native checkpoint logits have incorrect dimensions');
   for(let at=0;at<logits.length;at+=4){const value=logits.readFloatLE(at);
     if(!Number.isFinite(value)||(output==='probabilities'&&(value<0||value>1)))throw Error('Native checkpoint output contains invalid values');}
+  return {[output]:logits,toolRevision:tool.revision,trainingOnly:true,releaseApproved:false};
+}
+export async function nativeTrainingCheckpointInfer({checkpoint,tile,overview,position,device='cpu',output='logits',torchLibrary,
+  root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
+  signal?.throwIfAborted();if(!checkpoint)throw Error('Explicit native checkpoint required');
+  const path=resolve(checkpoint),receiptPath=path+'.receipt.json',checkpointHash=trainingFileIdentity(path),receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
+  if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==checkpointHash)
+    throw Error('Private checkpoint receipt differs from its file');
+  const result=await inferPrivateModel({path,mode:'infer',tile,overview,position,device,output,torchLibrary,root,directory,signal});
   if(trainingFileIdentity(path)!==checkpointHash||sha(readTrainingBounded(receiptPath,1024*1024))!==receiptHash)throw Error('Inference checkpoint changed during execution');
-  return {[output]:logits,checkpointSha256:checkpointHash,toolRevision:tool.revision,trainingOnly:true,releaseApproved:false};
+  return {...result,checkpointSha256:checkpointHash};
+}
+export async function nativeTrainingWeightsInfer({weights,tile,overview,position,device='cpu',output='logits',torchLibrary,
+  root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
+  signal?.throwIfAborted();if(!weights)throw Error('Explicit private initializer required');
+  const path=resolve(weights),receiptPath=join(dirname(path),'transfer.json'),weightsHash=trainingFileIdentity(path),receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
+  if(receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.evaluationStatus!=='pending'||
+    receipt.transfer!=='weights-only-no-optimizer'||receipt.weightsSha256!==weightsHash)throw Error('Private initializer transfer differs from its weights');
+  const result=await inferPrivateModel({path,mode:'infer-weights',tile,overview,position,device,output,torchLibrary,root,directory,signal});
+  if(trainingFileIdentity(path)!==weightsHash||sha(readTrainingBounded(receiptPath,1024*1024))!==receiptHash)throw Error('Initializer changed during execution');
+  return {...result,weightsSha256:weightsHash};
 }
 export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',diagnosticOnly=false,torchLibrary,
   root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
