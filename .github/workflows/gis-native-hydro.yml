@@ -79,7 +79,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Ordered checkpoint resume differs' }
           if ($IsWindows) { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe" }
           else { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/pando-reference-training-batch" }
-          node --test tests/unit/reference-training-batch-refusal.test.mjs
+          node --test tests/unit/reference-training-batch-refusal.test.mjs tests/unit/reference-training-batch-manager.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Training batch refusal check failed' }
       - name: Package the Windows training batch engine
         if: runner.os == 'Windows'
@@ -104,6 +104,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Reference proof build failed' }
           node tools/reference-analysis/package-native-reference.mjs --kind training-proof --binary build-native/reference-analysis/native/Release/pando-reference-training-proof.exe --directory build-native/reference-analysis/artifact-proof
           if ($LASTEXITCODE -ne 0) { throw 'Reference proof packaging failed' }
+          $env:PANDO_REFERENCE_TRAINING_PROOF_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-training-proof.exe"
+          node --test tests/unit/reference-training-proof.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Reference proof refusal check failed' }
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Windows' && inputs.target == 'reference-step' && always()
         with:

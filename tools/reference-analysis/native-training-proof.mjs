@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {matchingTorchLibrary,referenceProofSourceFiles} from './native-infer.mjs';
+import {TRAINING_TENSOR_NAMES,verifyTrainingSample} from './training-sample.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export async function nativeTrainingProof({weights,sample,checkpoint,device='cpu',torchLibrary,
@@ -14,18 +15,13 @@ export async function nativeTrainingProof({weights,sample,checkpoint,device='cpu
   signal?.throwIfAborted();
   if(process.platform!=='win32'||!weights||!sample||!checkpoint||!torchLibrary||!['cpu','cuda'].includes(device))throw Error('Windows proof requires weights, a verified sample, a new checkpoint and a matching LibTorch runtime');
   if(existsSync(checkpoint))throw Error('Checkpoint exists; preserve the previous file');
-  const data=JSON.parse(readFileSync(join(sample,'sample.json'),'utf8'));
-  if(data.trainingOnly!==true||data.releaseApproved!==false||typeof data.sourceId!=='string'||!data.sourceId||
-    !Number.isInteger(data.tileIndex)||data.tileIndex<0||!(data.knownInternationalPixels>0)||!(data.positiveInternationalPixels>0)||
-    !['sourcePdfSha256','imageSha256','annotationSha256','maskSha256','validMaskSha256'].every(field=>/^[a-f0-9]{64}$/.test(data[field]||'')))
-    throw Error('A source-bound training-only sample receipt is required');
+  const data=verifyTrainingSample(sample,{requireInternational:true});
   const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
-  for(const name of ['tile','overview','position','target','valid'])if(hash(readFileSync(join(sample,name+'.f32')))!==data.tensorSha256?.[name])throw Error('Training sample tensor changed: '+name);
   const transfer=JSON.parse(readFileSync(join(dirname(resolve(weights)),'transfer.json'),'utf8'));
   if(transfer.trainingOnly!==true||transfer.evaluationStatus!=='pending'||transfer.releaseApproved!==false||transfer.transfer!=='weights-only-no-optimizer'||
     hash(readFileSync(resolve(weights)))!==transfer.weightsSha256)throw Error('Verified private warm-start weights are required');
   const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-training-proof',executable:'pando-reference-training-proof.exe',sourceFiles:referenceProofSourceFiles});
-  const library=matchingTorchLibrary(torchLibrary,manifest),args=[device,resolve(weights),...['tile','overview','position','target','valid'].map(name=>resolve(sample,name+'.f32')),resolve(checkpoint),String(data.tileIndex)];
+  const library=matchingTorchLibrary(torchLibrary,manifest),args=[device,resolve(weights),...TRAINING_TENSOR_NAMES.map(name=>resolve(sample,name+'.f32')),resolve(checkpoint),String(data.tileIndex)];
   const stdout=await new Promise((ok,fail)=>execFile(binary,args,{encoding:'utf8',windowsHide:true,maxBuffer:1024**2,timeout:300000,signal,
     env:{...process.env,PATH:library+delimiter+process.env.PATH,CUBLAS_WORKSPACE_CONFIG:':4096:8'}},
   (error,text,stderr)=>error?fail(new Error('Native training proof failed: '+error.message+' '+stderr,{cause:error})):ok(text)));
