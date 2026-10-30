@@ -126,7 +126,9 @@ export async function renderNativePreview(image,job,{signal,workspace=root,selec
   if(process.platform!=='win32'&&!process.env.PANDO_MAP_PREVIEW_ARTIFACT&&existsSync(resolve(workspace,'.map-runtime.json')))chmodSync(binary,0o755);
   const [width,height]=targetSize(image.width,image.height);
   const resized=width===image.width&&height===image.height?image:await (sourceIsPdf?resizeNativePdfThumbnail:resizeNativeRgba)(image,[width,height],{signal,workspace});
-  const data=await run(binary,request(width,height,resized.data,font(workspace),commands(job,width,height,image.width,image.height,selectedGeometry)),width*height*4,signal);
+  const originalWidth=image.originalWidth??image.width,originalHeight=image.originalHeight??image.height;
+  if(![originalWidth,originalHeight].every(value=>Number.isInteger(value)&&value>0))throw Error('Invalid original preview dimensions');
+  const data=await run(binary,request(width,height,resized.data,font(workspace),commands(job,width,height,originalWidth,originalHeight,selectedGeometry)),width*height*4,signal);
   if(data.length!==width*height*4)throw Error('Native preview output length mismatch');
   return encodeNativePng({width,height,data},{signal,workspace});
 }
