@@ -117,8 +117,11 @@ export async function runMacroTrainingBatch({count,sampleOutput,augment,supervis
   const corpusHash=sha(readBounded(resolve(corpus),32*1024*1024));
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
   const prepared=await prepareMacroTrainingBatch({corpus,order,cursor,count,epoch,augment,output:sampleOutput,signal});
+  const afterPreparation=await verifyMacroTrainingOrder({corpus,order,supervision,epoch,seed,signal});
   if(prepared.orderSha256!==orderData.hash||orderData.hash!==checkedOrder.orderSha256||prepared.corpusSha256!==corpusHash||identity(inputPath)!==inputHash)
     throw Error('Training inputs changed before batch execution');
+  if(afterPreparation.sourcesSha256!==checkedOrder.sourcesSha256||afterPreparation.weightsSha256!==checkedOrder.weightsSha256||afterPreparation.orderSha256!==checkedOrder.orderSha256)
+    throw Error('Training source changed during batch preparation');
   return nativeTrainingBatch({...options,device,amp,positiveWeights,unobservedMask,samples:prepared.samples});
 }
 
