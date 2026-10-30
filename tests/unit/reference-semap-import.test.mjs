@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {copyFile,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {access,copyFile,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import test from 'node:test';
@@ -65,6 +65,10 @@ test('Semap importer preserves real originals, rejects changed outputs and never
   assert.deepEqual(combined.datasets.map(rows=>rows.map(row=>[row.index,row.localIndex])),[[[0,0]],[[1,0]]]);
   assert.equal(combined.trainingOnly,true);assert.equal(combined.releaseApproved,false);
   if(process.env.PANDO_REFERENCE_BATCH_DIRECTORY&&process.env.PANDO_REFERENCE_TORCH_LIBRARY){
+    const absent=join(root,'missing-runtime-order');
+    await assert.rejects(writeCombinedTrainingOrder({corpus:macroPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence,epoch:0,seed:42,
+      output:absent,torchLibrary:join(root,'missing-torch'),directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY}));
+    await assert.rejects(access(absent),{code:'ENOENT'});
     const output=join(root,'mixed-order'),plan=await writeCombinedTrainingOrder({corpus:macroPath,auxiliary:first.manifest,macroOnly:false,
       verifyEvidence,epoch:0,seed:42,output,torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY});
     assert.deepEqual(plan.counts,combined.counts);assert.equal(plan.lineageFingerprint,combined.lineageFingerprint);

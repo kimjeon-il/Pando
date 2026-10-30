@@ -14,6 +14,12 @@ import {indexMacroTrainingDataset,inspectCombinedTrainingData} from './training-
 import {encodedWeights,verifyMacroTrainingSupervision} from './training-supervision.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
+function trainingOrderTool({root,directory=resolve(root,'build-native/reference-analysis/training-batch'),torchLibrary}){
+  if(!['win32','linux'].includes(process.platform)||!torchLibrary)throw Error('Explicit native training order inputs required');
+  const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
+  const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
+  return {binary,manifest,library:matchingTorchLibrary(torchLibrary,manifest)};
+}
 // Prepare a source-bound mixed-corpus sampling order and weights; no training or model admission.
 export async function writeCombinedTrainingOrder({corpus,auxiliary,macroOnly,epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal,verifyEvidence}){
   signal?.throwIfAborted();
@@ -23,6 +29,7 @@ export async function writeCombinedTrainingOrder({corpus,auxiliary,macroOnly,epo
   if(existsSync(output))throw Error('Training order output exists; preserve it');
   const data=await inspectCombinedTrainingData({corpus,auxiliary,macroOnly,signal,verifyEvidence});
   const {bytes,unobservedMask}=encodedWeights(data.counts),target=resolve(output),order=join(target,'order.u64');
+  trainingOrderTool({root,directory,torchLibrary});
   signal?.throwIfAborted();mkdirSync(target);
   const result=await writeBalancedTrainingOrder({datasets:data.datasets.map(rows=>rows.map(row=>row.duplicateGroup)),epoch,seed,
     output:order,torchLibrary,root,directory,signal});
@@ -70,9 +77,7 @@ export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,tor
   }
   const length=Math.max(Math.ceil(total/datasets.length),largest)*datasets.length;
   if(length>1000000)throw Error('Training order exceeds budget');
-  const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
-  const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
-  const library=matchingTorchLibrary(torchLibrary,manifest),env={...process.env,
+  const {binary,manifest,library}=trainingOrderTool({root,directory,torchLibrary}),env={...process.env,
     ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')})};
   const child=spawn(binary,['order',String(epoch),String(seed)],{stdio:['pipe','pipe','pipe'],windowsHide:true,env,signal});
   const result=[],errors=[];let size=0,errorSize=0;
